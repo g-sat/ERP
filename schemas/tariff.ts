@@ -1,0 +1,88 @@
+import * as z from "zod"
+
+export const tariffSchema = z.object({
+  tariffId: z.string().optional(),
+  task: z.string().min(1, "Task is required"),
+  charge: z.string().min(1, "Charge is required"),
+  uom: z.string().min(1, "UOM is required"),
+  type: z.string().optional(),
+  fromPlace: z.string().optional(),
+  toPlace: z.string().optional(),
+  displayRate: z.number().min(0, "Display rate must be positive"),
+  basicRate: z.number().min(0, "Basic rate must be positive"),
+  minUnit: z.number().min(0, "Minimum unit must be positive"),
+  maxUnit: z.number().optional(),
+  isAdditional: z.boolean(),
+  additionalUnit: z.number().optional(),
+  additionalRate: z.number().optional(),
+  isPrepayment: z.boolean(),
+  prepaymentRate: z.number().optional(),
+  isActive: z.boolean(),
+  remarks: z.string().optional(),
+})
+
+export type TariffFormValues = z.infer<typeof tariffSchema>
+
+export const tariffFiltersSchema = z.object({
+  search: z.string().optional(),
+  task: z.string().optional(),
+  port: z.string().optional(),
+  customer: z.string().optional(),
+  sortBy: z.enum(["task", "charge", "uom", "type"]).optional(),
+  sortOrder: z.enum(["asc", "desc"]).optional(),
+})
+
+export type TariffFiltersValues = z.infer<typeof tariffFiltersSchema>
+
+export const TariffSchema = z.object({
+  tariffId: z.number(),
+  rateType: z.string().optional(),
+  taskId: z.number().optional(),
+  taskCode: z.string().optional(),
+  taskName: z.string().optional(),
+  chargeId: z.number().optional(),
+  chargeCode: z.string().optional(),
+  chargeName: z.string().optional(),
+  portId: z.number().optional(),
+  portCode: z.string().optional(),
+  portName: z.string().optional(),
+  customerId: z.number().optional(),
+  customerCode: z.string().optional(),
+  customerName: z.string().optional(),
+  currencyId: z.number().default(0),
+  currencyCode: z.string().optional(),
+  currencyName: z.string().optional(),
+  uomId: z.number().optional(),
+  uomCode: z.string().optional(),
+  uomName: z.string().optional(),
+  slabUomId: z.number().optional(),
+  slabUomCode: z.string().optional(),
+  slabUomName: z.string().optional(),
+  visaTypeId: z.number().optional(),
+  visaTypeCode: z.string().optional(),
+  visaTypeName: z.string().optional(),
+  fromPlace: z.number().optional(),
+  fromPlaceName: z.string().optional(),
+  toPlace: z.number().optional(),
+  toPlaceName: z.string().optional(),
+  displayRate: z.number().optional(),
+  basicRate: z.number().optional(),
+  minUnit: z.number().optional(),
+  maxUnit: z.number().optional(),
+  isAdditional: z.boolean().default(false),
+  additionalUnit: z.number().optional(),
+  additionalRate: z.number().optional(),
+  prepaymentPercentage: z.number().optional(),
+  isPrepayment: z.boolean().default(false),
+  itemNo: z.number().default(0),
+  remarks: z.string().optional(),
+  isActive: z.boolean().default(true),
+  createById: z.number(),
+  createDate: z.date().default(new Date()),
+  editById: z.number().optional(),
+  editDate: z.date().optional(),
+  createBy: z.string().optional(),
+  editBy: z.string().optional(),
+})
+
+export type TariffType = z.infer<typeof TariffSchema>

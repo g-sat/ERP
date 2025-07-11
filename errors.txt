@@ -1,0 +1,378 @@
+============================
+Next.js Image & Link Warnings: Documentation
+============================
+
+1. [Image LCP & Performance Warnings]
+-------------------------------------
+**Warning Messages:**
+- Image with src "https://images.unsplash.com/..." was detected as the Largest Contentful Paint (LCP). Please add the "priority" property if this image is above the fold.
+- Image has "fill" but is missing "sizes" prop. Please add it to improve page performance.
+
+**Cause:**
+- The Unsplash image used in login, registration, and forgot password forms was rendered with Next.js <Image> but without the `priority` and `sizes` props. This caused warnings about LCP and responsive image loading.
+
+**Solution:**
+- Added `priority={true}` and `sizes="(min-width: 768px) 50vw, 100vw"` to the <Image> components in:
+  - components/login-form.tsx
+  - app/(auth)/register/components/registration-form.tsx
+  - app/(auth)/forgot-password/components/forgot-password-form.tsx
+- This ensures the image is prioritized for loading and is responsive, resolving the warnings.
+
+
+2. [Linter Error: <a> Tag for Internal Links]
+---------------------------------------------
+**Warning Message:**
+- Do not use an <a> element to navigate to `/login/`. Use <Link /> from `next/link` instead.
+
+**Cause:**
+- Internal navigation to `/login` in registration and forgot password forms used a plain `<a>` tag instead of Next.js `<Link>`, violating Next.js best practices.
+
+**Solution:**
+- Replaced `<a href="/login">` with `<Link href="/login">` in:
+  - app/(auth)/register/components/registration-form.tsx
+  - app/(auth)/forgot-password/components/forgot-password-form.tsx
+- This resolves the linter error and ensures proper client-side navigation.
+
+
+============================
+Status: All related warnings and errors have been resolved as of this update.
+============================
+
+
+============================
+Additional Runtime Warnings & Errors
+============================
+
+1. [Vercel Web Analytics: Debug Mode]
+-------------------------------------
+**Message:**
+- [Vercel Web Analytics] Debug mode is enabled by default in development. No requests will be sent to the server.
+- [Vercel Web Analytics] [pageview] ...
+
+**Cause:**
+- Vercel Analytics is in debug mode during development. No analytics data is sent to Vercel servers.
+
+**Action:**
+- None required. This is informational and expected in development.
+
+
+2. [Fast Refresh: NaNms]
+------------------------
+**Message:**
+- [Fast Refresh] done in NaNms
+
+**Cause:**
+- Next.js Hot Module Replacement (HMR) sometimes logs NaNms due to a minor bug in reporting refresh time.
+
+**Action:**
+- None required. This is harmless and does not affect app functionality.
+
+
+3. [Preload CSS Resource Warning]
+---------------------------------
+**Message:**
+- The resource <URL> was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally.
+
+**Cause:**
+- Browser warning when a preloaded CSS file is not used immediately. Often triggered by dynamic imports or Next.js internal optimizations.
+
+**Action:**
+- If you did not manually add `<link rel="preload">` for CSS, you can ignore this warning. If you did, ensure `as="style"` is set. Generally safe to ignore unless you see styling issues.
+
+
+4. [CORS Policy Error: API Request Blocked]
+-------------------------------------------
+**Message:**
+- Access to fetch at 'http://118.189.194.191:1223/api/auth/login' from origin 'http://192.168.29.229:4000' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+- POST http://118.189.194.191:1223/api/auth/login net::ERR_FAILED 500 (Internal Server Error)
+- Login failed: TypeError: Failed to fetch
+
+**Cause:**
+- The backend API at `http://118.189.194.191:1223` does not include the required `Access-Control-Allow-Origin` header in its response, so the browser blocks the request for security reasons (CORS).
+
+**Action:**
+- Update the backend server to include the appropriate CORS headers, e.g.:
+  - `Access-Control-Allow-Origin: *` (for all origins, or specify your frontend URL)
+  - `Access-Control-Allow-Methods: POST, GET, OPTIONS, ...`
+  - `Access-Control-Allow-Headers: Content-Type, ...`
+- This must be fixed on the backend. The frontend cannot bypass browser CORS restrictions.
+
+
+============================
+Status: All issues above are informational or require backend changes for CORS. No frontend code changes needed except for CORS resolution.
+============================
+
+============================
+5. [SyntaxError: Unexpected end of JSON input in getPermissions]
+-------------------------------------
+**Error Message:**
+- SyntaxError: Unexpected end of JSON input
+    at Object.getPermissions (...)
+    at async switchCompany (...)
+    at async handleContinue (...)
+
+**Cause:**
+- The frontend called response.json() on a fetch response from the /admin/GetUserRightsbyUser endpoint, but the response was either empty, not valid JSON, or not a JSON content-type. This can happen if the backend returns an error, an empty response, or a non-JSON error page.
+
+**Solution:**
+- Defensive JSON parsing was added to the getPermissions function in stores/auth-store.ts. Now, before parsing, the code checks if the response is JSON. If not, it logs the raw response and throws a clear error. If JSON parsing fails, it logs the error and the raw response for easier debugging. This prevents the app from crashing with an unhelpful SyntaxError and provides more context for troubleshooting.
+
+**Code Fix Location:**
+- stores/auth-store.ts (getPermissions function)
+
+============================
+
+============================
+6. [Tab Navigation Issue: Currency to Exchange Rate in AR Invoice]
+-------------------------------------
+**Issue:**
+- Pressing Tab after selecting the currency in the AR Invoice form did not move focus to the Exchange Rate input. The problem only affected the currency field; other fields worked as expected.
+
+**Cause:**
+- The CurrencyAutocomplete component used a custom handleKeyDown function that overrode the default Tab behavior. This logic did not correctly find the next focusable field when using react-select and custom input components, so focus was lost or stuck.
+
+**Solution:**
+- Removed the custom handleKeyDown function and the onKeyDown={handleKeyDown} prop from the Select component in components/ui-custom/autocomplete-currency.tsx. This restores the browser's default Tab navigation, allowing focus to move naturally from currency to exchange rate and other fields.
+
+**Code Fix Location:**
+- components/ui-custom/autocomplete-currency.tsx
+
+============================
+
+============================
+7. [Tab Navigation Issue: Invoice Details Table]
+-------------------------------------
+**Issue:**
+- Pressing Tab in the invoice details table (when editing an invoice) did not move focus to the next input as expected. Tab navigation was unreliable or broken in some cells.
+
+**Cause:**
+- The table used custom onKeyDown handlers for almost every editable cell, intercepting the Tab key and manually moving focus using a cellRefs map. If the map was out of sync or a key was missing, Tab would do nothing, breaking keyboard navigation.
+
+**Solution:**
+- Removed all custom onKeyDown handlers that intercepted Tab and manually moved focus in app/(root)/[companyId]/ar/invoice/components/invoice-details-table.tsx. Now, the browser's default Tab navigation is restored, allowing users to tab through all editable cells naturally.
+
+**Code Fix Location:**
+- app/(root)/[companyId]/ar/invoice/components/invoice-details-table.tsx
+
+============================
+
+============================
+8. [Tab Navigation Issue: Chart Account to Remarks in Invoice Details Table]
+-------------------------------------
+**Issue:**
+- Pressing Tab in the Chart Account field of the invoice details table did not move focus to the Remarks input. Tab navigation was blocked at this field.
+
+**Cause:**
+- The ChartofAccountAutocomplete component used a custom handleKeyDown function that overrode the default Tab behavior. This logic did not correctly find the next focusable field in a table/grid context, so focus was lost or stuck.
+
+**Solution:**
+- Removed the custom handleKeyDown function and the onKeyDown={handleKeyDown} prop from the Select component in components/ui-custom/autocomplete-chartofaccount.tsx. This restores the browser's default Tab navigation, allowing focus to move naturally from Chart Account to Remarks and then to Quantity.
+
+**Code Fix Location:**
+- components/ui-custom/autocomplete-chartofaccount.tsx
+
+============================
+
+============================
+9. [Hydration Mismatch Error: SSR vs. Client IDs in Autocomplete Fields]
+-------------------------------------
+**Issue:**
+- React hydration mismatch warning: The server-rendered HTML did not match the client-rendered HTML. This was especially visible in react-select-based autocomplete fields (Customer, CreditTerm, Bank, Currency, Chart Account, etc.), where IDs like react-select-2-input vs. react-select-3-input differed between SSR and client.
+
+**Cause:**
+- The react-select library generates dynamic IDs for accessibility. If the order or number of Selects changes between SSR and client, or if no stable ID is provided, the IDs will not match, causing hydration errors.
+
+**Solution:**
+- Added a stable instanceId prop to all Select components in the autocomplete fields (Customer, CreditTerm, Bank, Currency, Chart Account, etc.), using the name prop as a unique identifier. This ensures the IDs are consistent between server and client, preventing hydration mismatches.
+
+**Code Fix Locations:**
+- components/ui-custom/autocomplete-customer.tsx
+- components/ui-custom/autocomplete-creditterm.tsx
+- components/ui-custom/autocomplete-bank.tsx
+- components/ui-custom/autocomplete-currency.tsx
+- components/ui-custom/autocomplete-chartofaccount.tsx
+
+============================
+
+============================
+10. [Tab Navigation Issue: Remarks to Quantity to Bill Quantity in Invoice Details Table]
+-------------------------------------
+**Issue:**
+- Pressing Tab in the Remarks field did not move focus to the Quantity input, and from Quantity to Bill Quantity, as expected in the invoice details table.
+
+**Cause:**
+- Some browsers or table/grid structures may skip inputs that do not explicitly set tabIndex, especially when using custom input components like react-number-format's NumericFormat. This can break the natural tab order in complex tables.
+
+**Solution:**
+- Added tabIndex={0} to the <Input /> element in CustomInput and to the <NumericFormat /> element in CustomNumberInputCellRefs. This ensures all these fields are always focusable and included in the tab order, restoring smooth Tab navigation from Remarks to Quantity to Bill Quantity.
+
+**Code Fix Locations:**
+- components/ui-custom/custom-input.tsx
+- components/ui-custom/custom-number-input-cellrefs.tsx
+
+============================
+
+============================
+11. [Tab Navigation: Explicit Sequential Tab Order in Invoice Details Table]
+-------------------------------------
+**Issue:**
+- The tab order in the invoice details table did not follow the desired sequence: Seq No → Product → Chart Account → Remarks → Quantity → Bill Quantity → UOM → Unit Price → Amount → ...
+
+**Solution:**
+- Set explicit tabIndex values for all editable fields in each row to enforce the correct tab order:
+  1. Seq No (tabIndex=1)
+  2. Product (tabIndex=2)
+  3. Chart Account (tabIndex=3)
+  4. Remarks (tabIndex=4)
+  5. Quantity (tabIndex=5)
+  6. Bill Quantity (tabIndex=6)
+  7. UOM (tabIndex=7)
+  8. Unit Price (tabIndex=8)
+  9. Amount (tabIndex=9)
+- Updated all relevant custom components (ProductAutocomplete, ChartofAccountAutocomplete, UomAutocomplete, CustomInput, CustomNumberInputCellRefs) to accept and forward tabIndex.
+
+**Code Fix Locations:**
+- app/(root)/[companyId]/ar/invoice/components/invoice-details-table.tsx
+- components/ui-custom/autocomplete-product.tsx
+- components/ui-custom/autocomplete-chartofaccount.tsx
+- components/ui-custom/autocomplete-uom.tsx
+- components/ui-custom/custom-input.tsx
+- components/ui-custom/custom-number-input-cellrefs.tsx
+
+============================
+
+============================
+12. [Tab Navigation Correction: Restore Natural Row-wise Tab Order in Invoice Details Table]
+-------------------------------------
+**Issue:**
+- Setting static tabIndex values for each editable field in every row caused the browser to tab down columns (all Seq No, then all Product, etc.) instead of across the row.
+
+**Solution:**
+- Removed all explicit tabIndex props from editable fields in the invoice details table and related custom components. Now, the browser's default tab order is used, which tabs across the row (left-to-right), then moves to the next row, as expected.
+- This is the best practice for tables: ensure the DOM order of cells matches the desired tab order, and let the browser handle navigation.
+
+**Code Fix Locations:**
+- app/(root)/[companyId]/ar/invoice/components/invoice-details-table.tsx
+- components/ui-custom/autocomplete-product.tsx
+- components/ui-custom/autocomplete-chartofaccount.tsx
+- components/ui-custom/autocomplete-uom.tsx
+- components/ui-custom/custom-input.tsx
+- components/ui-custom/custom-number-input-cellrefs.tsx
+
+============================
+
+============================
+13. [Tab Focus Issue in Numeric Inputs: React Table Re-render Fix]
+-------------------------------------
+**Issue:**
+- When tabbing from a numeric input (Quantity, Bill Quantity, Unit Price, etc.) in the invoice details table, focus would get stuck on the same input or not move to the next field. The console would log totals, but focus would not advance.
+
+**Cause:**
+- On blur or value change, the table or row was being re-rendered/remounted due to a state update (totals calculation, etc.). This caused the browser to lose track of the next focusable input, breaking natural tab order.
+
+**Solution:**
+- Wrapped the state update logic in the onBlurEvent for Quantity, Bill Quantity, and Unit Price columns in setTimeout(..., 0). This delays the state update until after the browser has moved focus, preventing React from remounting the row before focus can advance.
+
+**Code Fix Location:**
+- app/(root)/[companyId]/ar/invoice/components/invoice-details-table.tsx
+
+============================
+
+============================
+14. [Tab Focus Issue: setTimeout Fix Applied to All Editable Columns in Invoice Details Table]
+-------------------------------------
+**Issue:**
+- Tabbing between any editable cell (text, number, autocomplete) in the invoice details table could break if a state update caused React to remount the row, preventing focus from moving as expected.
+
+**Solution:**
+- All onBlurEvent and onChangeEvent handlers for editable columns (Remarks, Product, Chart Account, UOM, etc.) now wrap their state updates in setTimeout(..., 0). This ensures the browser moves focus before React re-renders, fixing the tab order and focus issues for all columns.
+
+**Code Fix Location:**
+- app/(root)/[companyId]/ar/invoice/components/invoice-details-table.tsx
+
+============================
+
+============================
+15. [Tabbing/Focus Issue in Invoice Details Table: Root Cause, Solutions, and setTimeout Fix]
+-------------------------------------
+**Issue:**
+- Tabbing between certain fields (especially numeric inputs like Amount) in the invoice details table did not move focus to the next input as expected. Focus would get stuck or return to the same input, breaking the natural tab order.
+
+**Root Cause:**
+- When editing a cell and triggering a state update (e.g., updating row data or recalculating totals),
+  React re-rendered the table or row. If the row’s key prop changed, or if the row was re-rendered in a way that unmounted and remounted the input,
+  the browser lost track of the next focusable element.
+  The browser tries to move focus to the next input immediately after the current input’s blur event. 
+  If React unmounts/remounts the DOM node before this happens, the browser can’t find the next input, so focus stays put or is lost.
+
+**Possible Solutions:**
+A. Minimize Re-renders: Update only the changed value, not the entire table or all rows. Ensure each row’s key prop is stable and does not change when editing a cell.
+B. Avoid State Updates on Blur: Move state updates to onChange if possible, to avoid remounting the input during the blur/focus transition.
+C. Debounce or Delay State Updates: Use a debounce function to delay state updates until after the user has finished editing.
+D. The setTimeout Hack (Chosen Solution): In the onBlur (or onChange) handler, wrap the state update in setTimeout(() => { ... }, 0). This lets the browser finish moving focus before React re-renders the DOM.
+
+**Why setTimeout Was Chosen:**
+- It’s a quick, reliable fix that works even if you can’t easily refactor your state management or table structure.
+- Other solutions can be complex in a dynamic table/grid.
+- The setTimeout hack is a well-known workaround for this exact React focus/remount issue.
+
+**How setTimeout Was Used:**
+- All onBlurEvent and onChangeEvent handlers that update state and could cause a re-render were wrapped in setTimeout(..., 0). For example:
+  Before:
+    onBlurEvent={() => handleTotalAmountChange(row.original.id)}
+  After:
+    onBlurEvent={() => setTimeout(() => { handleTotalAmountChange(row.original.id) }, 0)}
+- This ensures the browser’s native tab order is preserved, and focus moves as expected.
+
+**Summary Table:**
+| Method                | Pros                        | Cons                        | Why Not Chosen? / Why Chosen?         |
+|-----------------------|-----------------------------|-----------------------------|----------------------------------------|
+| Minimize re-renders   | Clean, robust               | Can require big refactor    | Not always practical in big tables     |
+| Stable keys           | Best practice, robust       | Needs careful data design   | Already applied, but not enough alone  |
+| Debounce/delay update | Smooth, less re-render      | Can delay UI updates        | Not always user-friendly               |
+| setTimeout (used)     | Simple, effective, quick    | Slightly hacky, but safe    | Works reliably, minimal code change    |
+
+**Conclusion:**
+- The error was caused by React remounting the input/row before the browser could move focus, breaking tab order.
+- setTimeout was chosen because it’s simple, effective, and doesn’t require a major refactor.
+- It was applied by wrapping all state updates in onBlur/onChange handlers in setTimeout, ensuring the browser can move focus before React re-renders.
+
+---
+[2024-06-09] Invoice Table Row Update Bug
+
+**Error:**
+When editing any cell in the invoice details table, all rows were being updated with the same value.
+
+**Root Cause:**
+Each row in the invoice details table must have a unique `id` property. The previous implementation used `id: String(item.invoiceId || item.seqNo || Math.random())` when mapping data to rows. If `invoiceId` or `seqNo` was missing or not unique, this could result in duplicate IDs (especially if `Math.random()` was used during the same render cycle). When the update logic ran, it matched multiple rows (or all rows) with the same `id`, causing all rows to update together.
+
+**Solution:**
+The mapping logic was changed to always generate a new UUID for each row using `generateUUID()`. This guarantees that every row has a unique `id`, so only the intended row is updated when editing a cell. Additionally, a console error is logged if a duplicate ID is ever detected (which should never happen with UUIDs).
+
+**File Fixed:**
+- app/(root)/[companyId]/ar/invoice/components/invoice-details-table.tsx
+
+**Technical Details:**
+- Before: `id: String(item.invoiceId || item.seqNo || Math.random())`
+- After:  `id: generateUUID()`
+- The update logic in `updateData` and cell editors now works as intended, updating only the targeted row.
+
+**How to Avoid in the Future:**
+- Always ensure that each row in a dynamic table has a unique, stable identifier (preferably a UUID or a database primary key).
+- Never use non-unique or potentially duplicate values (like `Math.random()` or missing fields) for row keys or IDs in React lists or data tables.
+
+---
+
+---
+[2024-06-09] BUG FIX LOG
+
+Issue: Invoice quantity (qty) was reverting to an incorrect value (e.g., 22.50) after reload, even though billing quantity (billQTY) was correct. This happened because qty was loaded from its own value in the database, which could be stale or incorrect, instead of always matching billQTY.
+
+Solution: Updated the data loading logic so that qty is always set to billQTY when loading invoice details. This ensures that after reload, quantity always matches billing quantity.
+
+File(s) changed:
+- app/(root)/[companyId]/ar/invoice/components/invoice-details-table.tsx
+
+Change:
+- In the mapping logic for loading invoice details, set qty: Number(item.billQTY || 0) instead of qty: Number(item.qty || 0).
+---

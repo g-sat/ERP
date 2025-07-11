@@ -1,0 +1,61 @@
+import { z } from "zod"
+
+export const accountSetupSchema = z.object({
+  accSetupCode: z.string().min(1, { message: "Code is required" }),
+  accSetupName: z.string().min(1, { message: "Name is required" }),
+  accSetupId: z.number().min(0, { message: "ID must be 0 or greater" }),
+  accSetupCategoryId: z.number().min(0, { message: "ID must be 0 or greater" }),
+  isActive: z.boolean().default(true),
+  remarks: z.string().optional(),
+})
+
+export type AccountSetupFormValues = z.infer<typeof accountSetupSchema>
+
+export const accountSetupFiltersSchema = z.object({
+  isActive: z.boolean().optional(),
+  search: z.string().optional(),
+  sortOrder: z.enum(["asc", "desc"]).optional(),
+})
+
+export type AccountSetupFiltersValues = z.infer<
+  typeof accountSetupFiltersSchema
+>
+
+export const accountSetupCategorySchema = z.object({
+  accSetupCategoryId: z.number().min(0, { message: "ID must be 0 or greater" }),
+  accSetupCategoryCode: z.string().min(1, { message: "Code is required" }),
+  accSetupCategoryName: z.string().min(1, { message: "Name is required" }),
+  isActive: z.boolean().default(true),
+  remarks: z.string().optional(),
+})
+
+export type AccountSetupCategoryFormValues = z.infer<
+  typeof accountSetupCategorySchema
+>
+
+export const accountSetupCategoryFiltersSchema = z.object({
+  search: z.string().optional(),
+  sortOrder: z.enum(["asc", "desc"]).optional(),
+})
+
+export type AccountSetupCategoryFiltersValues = z.infer<
+  typeof accountSetupCategoryFiltersSchema
+>
+
+export const accountSetupDtSchema = z.object({
+  accSetupId: z.number().min(1),
+  currencyId: z.number().min(1),
+  glId: z.number().min(1),
+  applyAllCurr: z.boolean(),
+})
+
+export type AccountSetupDtFormValues = z.infer<typeof accountSetupDtSchema>
+
+export const accountSetupDtFiltersSchema = z.object({
+  search: z.string().optional(),
+  sortOrder: z.enum(["asc", "desc"]).optional(),
+})
+
+export type AccountSetupDtFiltersValues = z.infer<
+  typeof accountSetupDtFiltersSchema
+>

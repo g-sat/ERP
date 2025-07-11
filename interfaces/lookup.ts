@@ -1,0 +1,448 @@
+export interface UserGroupLookup {
+  userGroupId: number
+  userGroupCode: string
+  userGroupName: string
+}
+
+export interface IUserLookup {
+  userId: number
+  userCode: string
+  userName: string
+}
+
+export interface ICountryLookup {
+  countryId: number
+  countryCode: string
+  countryName: string
+}
+
+export interface IVesselLookup {
+  vesselId: number
+  vesselName: string
+  vesselCode: string
+}
+
+export interface IJobOrderLookup {
+  jobOrderId: number
+  jobOrderNo: string
+}
+
+export interface ITaskLookup {
+  taskId: number
+  taskName: string
+  taskCode: string
+}
+
+export interface IChargeLookup {
+  chargeId: number
+  chargeName: string
+  chargeCode: string
+}
+
+export interface IBargeLookup {
+  bargeId: number
+  bargeCode: string
+  bargeName: string
+}
+
+export interface ICurrencyLookup {
+  currencyId: number
+  currencyCode: string
+  currencyName: string
+  isMultiply: boolean
+}
+
+export interface IChartofAccountLookup {
+  glId: number
+  glCode: string
+  glName: string
+}
+
+export interface ICategoryLookup {
+  categoryId: number
+  categoryCode: string
+  categoryName: string
+}
+
+export interface IAccountSetupCategoryLookup {
+  accSetupCategoryId: number
+  accSetupCategoryCode: string
+  accSetupCategoryName: string
+}
+
+export interface IGstLookup {
+  gstId: number
+  gstCode: string
+  gstName: string
+  gstPercentage: number
+}
+
+export interface IGstCategoryLookup {
+  gstCategoryId: number
+  gstCategoryCode: string
+  gstCategoryName: string
+}
+
+export interface IAccountSetupLookup {
+  accSetupId: number
+  accSetupCode: string
+  accSetupName: string
+}
+
+export interface ICOACategory1Lookup {
+  coaCategoryId: number
+  coaCategoryCode: string
+  coaCategoryName: string
+}
+
+export interface ICOACategory2Lookup {
+  coaCategoryId: number
+  coaCategoryCode: string
+  coaCategoryName: string
+}
+
+export interface ICOACategory3Lookup {
+  coaCategoryId: number
+  coaCategoryCode: string
+  coaCategoryName: string
+}
+
+export interface IAccountTypeLookup {
+  accTypeId: number
+  accTypeCode: string
+  accTypeName: string
+}
+
+export interface IAccountGroupLookup {
+  accGroupId: number
+  accGroupCode: string
+  accGroupName: string
+}
+
+export interface IPortRegionLookup {
+  portRegionId: number
+  portRegionCode: string
+  portRegionName: string
+}
+
+export interface IOrderTypeCategoryLookup {
+  orderTypeCategoryId: number
+  orderTypeCategoryCode: string
+  orderTypeCategoryName: string
+}
+
+export interface IDepartmentLookup {
+  departmentId: number
+  departmentCode: string
+  departmentName: string
+}
+
+export interface ICustomerLookup {
+  customerId: number
+  customerCode: string
+  customerName: string
+  currencyId: number
+  creditTermId: number
+  bankId: number
+}
+export interface ICreditTermLookup {
+  creditTermId: number
+  creditTermCode: string
+  creditTermName: string
+}
+
+export interface IBankLookup {
+  bankId: number
+  bankCode: string
+  bankName: string
+}
+
+export interface IYearLookup {
+  yearId: number
+  yearCode: string
+  yearName: string
+}
+
+export interface IGSTCategoryLookup {
+  gstCategoryId: number
+  gstCategoryCode: string
+  gstCategoryName: string
+}
+
+export interface ITaxCategoryLookup {
+  taxCategoryId: number
+  taxCategoryCode: string
+  taxCategoryName: string
+}
+
+export interface IProductLookup {
+  productId: number
+  productCode: string
+  productName: string
+}
+
+export interface IEmployeeLookup {
+  employeeId: number
+  employeeCode: string
+  employeeName: string
+}
+
+export interface ITaxLookup {
+  taxId: number
+  taxCode: string
+  taxName: string
+}
+export interface IUomLookup {
+  uomId: number
+  uomCode: string
+  uomName: string
+}
+
+export interface IPortLookup {
+  portId: number
+  portCode: string
+  portName: string
+}
+
+export interface IPortRegionLookup {
+  portRegionId: number
+  portRegionCode: string
+  portRegionName: string
+}
+
+export interface IDesignationLookup {
+  designationId: number
+  designationCode: string
+  designationName: string
+}
+
+export interface IVoyageLookup {
+  voyageId: number
+  voyageNo: string
+  referenceNo: string
+}
+
+export interface IEmployeeLookup {
+  employeeId: number
+  employeeCode: string
+  employeeName: string
+}
+export interface IUserGroupLookup {
+  userGroupId: number
+  userGroupCode: string
+  userGroupName: string
+}
+
+export interface ITransactionLookup {
+  transactionId: number
+  transactionCode: string
+  transactionName: string
+}
+
+export interface IModuleLookup {
+  moduleId: number
+  moduleCode: string
+  moduleName: string
+}
+
+export interface ISupplierLookup {
+  supplierId: number
+  supplierCode: string
+  supplierName: string
+  currencyId: number
+  creditTermId: number
+}
+
+export interface IPaymentTypeLookup {
+  paymentTypeId: number
+  paymentTypeCode: string
+  paymentTypeName: string
+}
+
+export interface IDocumentNoModuleTransactions {
+  moduleId: number
+  moduleName: string
+  transactionId: number
+  transactionName: string
+}
+
+export interface IDynamicLookup {
+  companyId: number
+  isBarge: boolean
+  isVessel: boolean
+  isVoyage: boolean
+  isCustomer: boolean
+  isSupplier: boolean
+  isProduct: boolean
+  createById: number
+  createDate: string | Date
+  editById: null | string | number
+  editDate: null | string | Date
+  createBy: null | string | number
+  editBy: null | string | number
+}
+
+export interface IDocType {
+  companyId: number
+  transactionId: number
+  transactionCode: string
+  transactionName: string
+  moduleId: number
+  moduleCode: string
+  moduleName: string
+  documentId: string
+  documentNo: string
+  itemNo: number
+  docTypeId: number
+  docTypeCode: string
+  docTypeName: string
+  docPath: string
+  remarks: string
+  createById: number
+  createDate: string | Date
+  createBy: string
+  editById: number
+  editDate: string | Date
+  editBy: string
+}
+
+export interface IDocument {
+  transactionId: number
+  moduleId: number
+  documentId: string
+  documentNo: string
+  itemNo: string | number
+  docTypeId: number
+  docPath: string
+  remarks: string
+}
+
+export interface IDocumentType {
+  docTypeId: number
+  docTypeCode: string
+  docTypeName: string
+}
+
+export interface ITransactionLookup {
+  transactionId: number
+  transactionCode: string
+  transactionName: string
+}
+
+export interface IModuleLookup {
+  moduleId: number
+  moduleCode: string
+  moduleName: string
+}
+
+export interface IUserGroupLookup {
+  userGroupId: number
+  userGroupCode: string
+  userGroupName: string
+}
+
+export interface IUserRoleLookup {
+  userRoleId: number
+  userRoleCode: string
+  userRoleName: string
+}
+
+export interface IUserLookup {
+  userId: number
+  userCode: string
+  userName: string
+}
+
+export interface ISubCategoryLookup {
+  subCategoryId: number
+  subCategoryCode: string
+  subCategoryName: string
+}
+
+export interface IOrderTypeLookup {
+  orderTypeId: number
+  orderTypeCode: string
+  orderTypeName: string
+}
+
+export interface IOrderTypeCategoryLookup {
+  orderTypeCategoryId: number
+  orderTypeCategoryCode: string
+  orderTypeCategoryName: string
+}
+
+export interface IServiceTypeLookup {
+  serviceTypeId: number
+  serviceTypeCode: string
+  serviceTypeName: string
+}
+
+export interface IServiceTypeCategoryLookup {
+  serviceTypeCategoryId: number
+  serviceTypeCategoryCode: string
+  serviceTypeCategoryName: string
+}
+
+export interface IModuleTransactionLookup {
+  moduleId: number
+  moduleName: string
+  transactionId: number
+  transactionName: string
+}
+
+export interface IDocumentTypeLookup {
+  docTypeId: number
+  docTypeCode: string
+  docTypeName: string
+}
+
+export interface IVisaLookup {
+  visaId: number
+  visaCode: string
+  visaName: string
+}
+export interface IStatusLookup {
+  statusId: number
+  statusCode: string
+  statusName: string
+}
+export interface IRankLookup {
+  rankId: number
+  rankCode: string
+  rankName: string
+}
+export interface IVisaTypeLookup {
+  visaTypeId: number
+  visaTypeCode: string
+  visaTypeName: string
+}
+
+export interface IPassTypeLookup {
+  passTypeId: number
+  passTypeCode: string
+  passTypeName: string
+}
+
+export interface ILandingTypeLookup {
+  landingTypeId: number
+  landingTypeCode: string
+  landingTypeName: string
+}
+
+export interface IModeTypeLookup {
+  modeTypeId: number
+  modeTypeCode: string
+  modeTypeName: string
+}
+
+export interface IConsignmentTypeLookup {
+  consignmentTypeId: number
+  consignmentTypeCode: string
+  consignmentTypeName: string
+}
+
+export interface ICarrierTypeLookup {
+  carrierTypeId: number
+  carrierTypeCode: string
+  carrierTypeName: string
+}
