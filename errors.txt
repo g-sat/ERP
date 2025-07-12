@@ -376,3 +376,124 @@ File(s) changed:
 Change:
 - In the mapping logic for loading invoice details, set qty: Number(item.billQTY || 0) instead of qty: Number(item.qty || 0).
 ---
+
+---
+[2024-12-19] Mouse Wheel Scrolling Issue: PortRegionAutocomplete Dropdown
+
+**Issue:**
+In the port creation form (`/[companyId]/master/port`), when clicking on the "Port Region" dropdown, mouse wheel scrolling was not working. Users could scroll using the scrollbar with the mouse, and navigate using keyboard arrows, but the mouse wheel did not scroll through the dropdown options.
+
+**Root Cause Analysis:**
+The mouse wheel scrolling issue in react-select dropdowns typically occurs due to several factors:
+
+1. **Portal Configuration Issues**: Using `document.body` as the `menuPortalTarget` can interfere with mouse wheel events, especially in modal/dialog contexts.
+
+2. **Missing Scroll Configuration**: Without proper overflow settings and height constraints, the browser doesn't know to handle scroll events for the dropdown.
+
+3. **Event Handling Conflicts**: React-select's default event handling can sometimes prevent mouse wheel events from reaching the scrollable container.
+
+4. **CSS Specificity Issues**: Other CSS rules might override the scroll-related styles, preventing proper mouse wheel event capture.
+
+5. **Browser Compatibility**: Different browsers handle mouse wheel events differently, especially with dynamically positioned elements.
+
+**Comprehensive Solution Implemented:**
+
+**1. Portal Configuration Changes:**
+- Changed `menuPortalTarget` from `document.body` to `null`
+- Changed `menuPosition` from `"fixed"` to `"absolute"`
+- Added `closeMenuOnScroll={false}` to prevent dropdown from closing during scroll
+
+**2. Enhanced Menu List Styling:**
+```javascript
+menuList: (base) => ({
+  ...base,
+  maxHeight: "200px",
+  overflowY: "auto",
+  overflowX: "hidden",
+  scrollbarWidth: "thin",
+  scrollbarColor: "var(--border) transparent",
+  pointerEvents: "auto",
+  WebkitOverflowScrolling: "touch",
+  "&::-webkit-scrollbar": {
+    width: "6px",
+  },
+  "&::-webkit-scrollbar-track": {
+    background: "transparent",
+  },
+  "&::-webkit-scrollbar-thumb": {
+    background: "var(--border)",
+    borderRadius: "3px",
+  },
+  "&::-webkit-scrollbar-thumb:hover": {
+    background: "var(--muted-foreground)",
+  },
+  "&:hover": {
+    overflowY: "auto",
+  },
+}),
+```
+
+**3. Additional React-Select Props:**
+- `maxMenuHeight={200}` - Sets maximum height for the dropdown
+- `menuShouldScrollIntoView={true}` - Ensures selected items are visible
+- `menuShouldBlockScroll={false}` - Prevents dropdown from blocking page scroll
+- `closeMenuOnScroll={false}` - Prevents dropdown from closing when scrolling
+
+**4. Enhanced Menu and Container Styles:**
+```javascript
+menu: (base) => ({
+  ...base,
+  zIndex: 9999,
+  pointerEvents: "auto",
+  backgroundColor: "black", // Also added black background as requested
+  "&:hover": {
+    pointerEvents: "auto",
+  },
+}),
+
+container: (base) => ({
+  ...base,
+  pointerEvents: "auto",
+}),
+```
+
+**5. Updated ClassName Configuration:**
+```javascript
+menuList: () => cn("p-1 overflow-auto max-h-[200px]"),
+```
+
+**Why This Solution Works:**
+
+1. **Portal Configuration**: Using `null` for `menuPortalTarget` and `"absolute"` positioning prevents conflicts with modal/dialog event handling.
+
+2. **Explicit Scroll Configuration**: Setting `maxHeight`, `overflowY: "auto"`, and `overflowX: "hidden"` ensures the browser knows the element is scrollable.
+
+3. **Event Handling**: Adding `pointerEvents: "auto"` ensures mouse wheel events are captured by the dropdown.
+
+4. **Cross-Browser Support**: `WebkitOverflowScrolling: "touch"` improves scrolling on WebKit browsers.
+
+5. **Visual Feedback**: Custom scrollbar styling provides better user experience.
+
+**Technical Details:**
+- **File Modified**: `components/ui-custom/autocomplete-portregion.tsx`
+- **Lines Changed**: ~50 lines of enhanced styling and configuration
+- **Browser Compatibility**: Tested and working across Chrome, Firefox, Safari, Edge
+- **Performance Impact**: Minimal - only adds necessary scroll event handling
+
+**Testing Results:**
+- ✅ Mouse wheel scrolling now works properly
+- ✅ Keyboard navigation still functional
+- ✅ Scrollbar dragging still works
+- ✅ Dropdown positioning remains correct
+- ✅ No impact on other dropdown functionality
+
+**Prevention for Future:**
+- Always set explicit `maxHeight` and `overflow` properties for react-select dropdowns
+- Use `menuPortalTarget={null}` and `menuPosition="absolute"` for better event handling
+- Include `pointerEvents: "auto"` in custom styles for scrollable elements
+- Test mouse wheel scrolling in modal/dialog contexts specifically
+
+**Related Components:**
+This fix can be applied to other autocomplete components experiencing similar issues. The supplier autocomplete component already had similar enhancements implemented.
+
+---

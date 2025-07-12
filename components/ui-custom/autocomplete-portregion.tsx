@@ -109,11 +109,14 @@ export default function PortRegionAutocomplete<
         ),
       menu: () =>
         cn(
-          "bg-popover text-popover-foreground",
+          "bg-black text-popover-foreground",
           "relative z-[9999] min-w-[8rem] overflow-hidden rounded-md border shadow-md animate-in fade-in-80",
           "mt-1"
         ),
-      menuList: () => cn("p-1 overflow-auto"),
+      menuList: () =>
+        cn(
+          "p-1 overflow-auto max-h-[200px]"
+        ),
       option: (state: { isFocused: boolean; isSelected: boolean }) =>
         cn(
           "relative flex w-full cursor-default select-none items-center rounded-sm py-1.5 pl-2 pr-8 text-sm outline-none",
@@ -144,7 +147,16 @@ export default function PortRegionAutocomplete<
   const customStyles: StylesConfig<FieldOption, boolean> = React.useMemo(
     () => ({
       control: () => ({}), // Handled by classNames
-      menu: () => ({}), // Handled by classNames
+      menu: (base) => ({
+        ...base,
+        zIndex: 9999,
+        pointerEvents: "auto",
+        backgroundColor: "black",
+        // Ensure mouse wheel events work
+        "&:hover": {
+          pointerEvents: "auto",
+        },
+      }), // Handled by classNames
       option: () => ({}), // Handled by classNames
       indicatorSeparator: () => ({
         display: "none", // Hide the indicator separator
@@ -165,6 +177,41 @@ export default function PortRegionAutocomplete<
         color: "var(--foreground)",
         fontSize: "12px",
         height: "20px",
+      }),
+      // Enhanced menuList styles for better scrolling
+      menuList: (base) => ({
+        ...base,
+        maxHeight: "200px",
+        overflowY: "auto",
+        overflowX: "hidden",
+        scrollbarWidth: "thin",
+        scrollbarColor: "var(--border) transparent",
+        // Ensure mouse wheel events work
+        pointerEvents: "auto",
+        // Additional properties for better cross-browser support
+        WebkitOverflowScrolling: "touch",
+        "&::-webkit-scrollbar": {
+          width: "6px",
+        },
+        "&::-webkit-scrollbar-track": {
+          background: "transparent",
+        },
+        "&::-webkit-scrollbar-thumb": {
+          background: "var(--border)",
+          borderRadius: "3px",
+        },
+        "&::-webkit-scrollbar-thumb:hover": {
+          background: "var(--muted-foreground)",
+        },
+        // Ensure mouse wheel events are captured
+        "&:hover": {
+          overflowY: "auto",
+        },
+      }),
+      // Container style to ensure mouse wheel events work
+      container: (base) => ({
+        ...base,
+        pointerEvents: "auto",
       }),
       // Fix for dropdown appearing behind dialog
       menuPortal: (base) => ({
@@ -245,12 +292,14 @@ export default function PortRegionAutocomplete<
                   }}
                   className="react-select-container"
                   classNamePrefix="react-select__"
-                  menuPortalTarget={
-                    typeof document !== "undefined" ? document.body : null
-                  }
-                  menuPosition="fixed"
+                  menuPortalTarget={null}
+                  menuPosition="absolute"
                   isLoading={isLoading}
                   loadingMessage={() => "Loading portRegions..."}
+                  maxMenuHeight={200}
+                  menuShouldScrollIntoView={true}
+                  menuShouldBlockScroll={false}
+                  closeMenuOnScroll={false}
                 />
                 {showError && (
                   <p className="text-destructive mt-1 text-xs">
@@ -299,12 +348,14 @@ export default function PortRegionAutocomplete<
         }}
         className="react-select-container"
         classNamePrefix="react-select__"
-        menuPortalTarget={
-          typeof document !== "undefined" ? document.body : null
-        }
-        menuPosition="fixed"
+        menuPortalTarget={null}
+        menuPosition="absolute"
         isLoading={isLoading}
         loadingMessage={() => "Loading portRegions..."}
+        maxMenuHeight={200}
+        menuShouldScrollIntoView={true}
+        menuShouldBlockScroll={false}
+        closeMenuOnScroll={false}
       />
     </div>
   )
