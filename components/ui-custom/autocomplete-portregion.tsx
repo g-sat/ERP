@@ -109,7 +109,7 @@ export default function PortRegionAutocomplete<
         ),
       menu: () =>
         cn(
-          "bg-black text-popover-foreground", // SCROLLBAR ISSUE FIX: Added black background
+          "bg-popover text-popover-foreground",
           "relative z-[9999] min-w-[8rem] overflow-hidden rounded-md border shadow-md animate-in fade-in-80",
           "mt-1"
         ),
@@ -151,7 +151,7 @@ export default function PortRegionAutocomplete<
         ...base,
         zIndex: 9999,
         pointerEvents: "auto", // SCROLLBAR ISSUE FIX: Ensures mouse wheel events are captured
-        backgroundColor: "black", // SCROLLBAR ISSUE FIX: Added black background as requested
+        // backgroundColor: "black", // SCROLLBAR ISSUE FIX: Added black background as requested
         // Ensure mouse wheel events work
         "&:hover": {
           pointerEvents: "auto",

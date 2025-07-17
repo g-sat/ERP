@@ -63,7 +63,7 @@ import {
   CollapsibleTrigger,
 } from "../ui/collapsible"
 
-const data = {
+export const menuData = {
   mainNav: [
     {
       title: "Dashboard",
@@ -272,9 +272,9 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
   const pathname = usePathname()
 
   const platformNavs = [
-    data.masterNav[0],
-    data.projectNav[0],
-    ...data.accountNav,
+    menuData.masterNav[0],
+    menuData.projectNav[0],
+    ...menuData.accountNav,
     //data.hrmsNav[0],
     //data.documentNav[0],
   ]
@@ -287,7 +287,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
 
   React.useEffect(() => {
     const currentPath = pathname
-    for (const menu of data.mainNav) {
+    for (const menu of menuData.mainNav) {
       if (currentPath === getUrlWithCompanyId(menu.url)) {
         setSelectedMenu(menu.title)
         setOpenMenu(null)
@@ -333,7 +333,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
-          {data.mainNav.map((item) => (
+          {menuData.mainNav.map((item) => (
             <SidebarMenuItem key={item.url}>
               <SidebarMenuButton
                 asChild
