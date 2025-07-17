@@ -2,6 +2,7 @@
 
 import { useEffect } from "react"
 import { IDebitNoteDt } from "@/interfaces/checklist"
+import { IGstLookup } from "@/interfaces/lookup"
 import { DebitNoteDtFormValues, DebitNoteDtSchema } from "@/schemas/checklist"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
@@ -21,7 +22,8 @@ interface DebitNoteFormProps {
   onCancel?: () => void
   isSubmitting?: boolean
   isConfirmed?: boolean
-  companyId: string
+  taskId: number
+  exchangeRate?: number // Add exchange rate prop
 }
 
 export function DebitNoteForm({
@@ -30,10 +32,13 @@ export function DebitNoteForm({
   onCancel,
   isSubmitting = false,
   isConfirmed,
-  companyId,
+  taskId,
+  exchangeRate = 1, // Default to 1 if not provided
 }: DebitNoteFormProps) {
+  console.log("taskId :", taskId)
   console.log("initialData :", initialData)
   console.log("isConfirmed DebitNoteForm :", isConfirmed)
+  console.log("exchangeRate :", exchangeRate)
 
   const form = useForm<DebitNoteDtFormValues>({
     resolver: zodResolver(DebitNoteDtSchema),
@@ -41,7 +46,7 @@ export function DebitNoteForm({
       debitNoteId: initialData?.debitNoteId ?? 0,
       debitNoteNo: initialData?.debitNoteNo ?? "",
       itemNo: initialData?.itemNo ?? 0,
-      taskId: initialData?.taskId ?? 0,
+      taskId: taskId,
       taskName: initialData?.taskName ?? "",
       chargeId: initialData?.chargeId ?? 0,
       chargeName: initialData?.chargeName ?? "",
@@ -49,7 +54,6 @@ export function DebitNoteForm({
       glName: initialData?.glName ?? "",
       qty: initialData?.qty ?? 0,
       unitPrice: initialData?.unitPrice ?? 0,
-      amt: initialData?.amt ?? 0,
       totAmt: initialData?.totAmt ?? 0,
       gstId: initialData?.gstId ?? 0,
       gstName: initialData?.gstName ?? "",
@@ -58,18 +62,114 @@ export function DebitNoteForm({
       totAftGstAmt: initialData?.totAftGstAmt ?? 0,
       remarks: initialData?.remarks ?? "",
       editVersion: initialData?.editVersion ?? 0,
-      amtLocal: initialData?.amtLocal ?? 0,
+      totLocalAmt: initialData?.totLocalAmt ?? 0,
       isServiceCharge: initialData?.isServiceCharge ?? false,
       serviceCharge: initialData?.serviceCharge ?? 0,
     },
   })
+
+  // Watch form values for calculations
+  const watchedValues = form.watch()
+
+  // Calculation functions
+  const calculateTotalAmount = (qty: number, unitPrice: number): number => {
+    return qty * unitPrice
+  }
+
+  const calculateGSTAmount = (
+    totalAmount: number,
+    gstPercentage: number
+  ): number => {
+    return (totalAmount * gstPercentage) / 100
+  }
+
+  const calculateTotalAfterGST = (
+    totalAmount: number,
+    gstAmount: number
+  ): number => {
+    return totalAmount + gstAmount
+  }
+
+  const convertLocalToTotal = (localAmount: number, exRate: number): number => {
+    return exRate > 0 ? localAmount / exRate : localAmount
+  }
+
+  // Effect for quantity * unit price calculation
+  useEffect(() => {
+    const { qty, unitPrice } = watchedValues
+    if (qty > 0 && unitPrice > 0) {
+      const calculatedTotal = calculateTotalAmount(qty, unitPrice)
+      form.setValue("totAmt", calculatedTotal)
+
+      // Recalculate GST and total after GST
+      const gstPercentage = form.getValues("gstPercentage")
+      if (gstPercentage > 0) {
+        const gstAmount = calculateGSTAmount(calculatedTotal, gstPercentage)
+        form.setValue("gstAmt", gstAmount)
+        form.setValue(
+          "totAftGstAmt",
+          calculateTotalAfterGST(calculatedTotal, gstAmount)
+        )
+      }
+    }
+  }, [watchedValues.qty, watchedValues.unitPrice, form])
+
+  // Effect for GST percentage changes
+  useEffect(() => {
+    const { totAmt, gstPercentage } = watchedValues
+    if (totAmt > 0 && gstPercentage > 0) {
+      const gstAmount = calculateGSTAmount(totAmt, gstPercentage)
+      form.setValue("gstAmt", gstAmount)
+      form.setValue("totAftGstAmt", calculateTotalAfterGST(totAmt, gstAmount))
+    } else if (gstPercentage === 0) {
+      form.setValue("gstAmt", 0)
+      form.setValue("totAftGstAmt", totAmt)
+    }
+  }, [watchedValues.gstPercentage, watchedValues.totAmt, form])
+
+  // Effect for local amount changes
+  useEffect(() => {
+    const { totLocalAmt } = watchedValues
+    if (totLocalAmt > 0 && exchangeRate > 0) {
+      const calculatedTotal = convertLocalToTotal(totLocalAmt, exchangeRate)
+      form.setValue("totAmt", calculatedTotal)
+
+      // Recalculate GST and total after GST
+      const gstPercentage = form.getValues("gstPercentage")
+      if (gstPercentage > 0) {
+        const gstAmount = calculateGSTAmount(calculatedTotal, gstPercentage)
+        form.setValue("gstAmt", gstAmount)
+        form.setValue(
+          "totAftGstAmt",
+          calculateTotalAfterGST(calculatedTotal, gstAmount)
+        )
+      }
+    }
+  }, [watchedValues.totLocalAmt, exchangeRate, form])
+
+  // Effect for GST autocomplete changes (to update GST percentage)
+  const handleGSTChange = (selectedGst: IGstLookup | null) => {
+    if (selectedGst) {
+      form.setValue("gstId", selectedGst.gstId)
+      form.setValue("gstName", selectedGst.gstName)
+      form.setValue("gstPercentage", selectedGst.gstPercentage || 0)
+
+      // Recalculate GST amount and total after GST
+      const totAmt = form.getValues("totAmt")
+      if (totAmt > 0 && selectedGst.gstPercentage > 0) {
+        const gstAmount = calculateGSTAmount(totAmt, selectedGst.gstPercentage)
+        form.setValue("gstAmt", gstAmount)
+        form.setValue("totAftGstAmt", calculateTotalAfterGST(totAmt, gstAmount))
+      }
+    }
+  }
 
   useEffect(() => {
     form.reset({
       debitNoteId: initialData?.debitNoteId ?? 0,
       debitNoteNo: initialData?.debitNoteNo ?? "",
       itemNo: initialData?.itemNo ?? 0,
-      taskId: initialData?.taskId ?? 0,
+      taskId: taskId,
       taskName: initialData?.taskName ?? "",
       chargeId: initialData?.chargeId ?? 0,
       chargeName: initialData?.chargeName ?? "",
@@ -77,7 +177,6 @@ export function DebitNoteForm({
       glName: initialData?.glName ?? "",
       qty: initialData?.qty ?? 0,
       unitPrice: initialData?.unitPrice ?? 0,
-      amt: initialData?.amt ?? 0,
       totAmt: initialData?.totAmt ?? 0,
       gstId: initialData?.gstId ?? 0,
       gstName: initialData?.gstName ?? "",
@@ -86,13 +185,15 @@ export function DebitNoteForm({
       totAftGstAmt: initialData?.totAftGstAmt ?? 0,
       remarks: initialData?.remarks ?? "",
       editVersion: initialData?.editVersion ?? 0,
-      amtLocal: initialData?.amtLocal ?? 0,
+      totLocalAmt: initialData?.totLocalAmt ?? 0,
       isServiceCharge: initialData?.isServiceCharge ?? false,
       serviceCharge: initialData?.serviceCharge ?? 0,
     })
-  }, [initialData, form])
+  }, [initialData, form, taskId])
 
   const onSubmit = (data: DebitNoteDtFormValues) => {
+    console.log("data :", data)
+
     submitAction(data)
   }
 
@@ -114,7 +215,9 @@ export function DebitNoteForm({
               <ChargeAutocomplete
                 form={form}
                 name="chargeId"
-                label="Charge"
+                label="Charge Name"
+                taskId={taskId}
+                isRequired={true}
                 isDisabled={isConfirmed}
               />
 
@@ -143,16 +246,8 @@ export function DebitNoteForm({
 
               <CustomNumberInput
                 form={form}
-                name="amtLocal"
+                name="totLocalAmt"
                 label="Amount Local"
-                round={2}
-                isDisabled={isConfirmed}
-              />
-
-              <CustomNumberInput
-                form={form}
-                name="amt"
-                label="Amount"
                 round={2}
                 isDisabled={isConfirmed}
               />
@@ -170,6 +265,7 @@ export function DebitNoteForm({
                 name="gstId"
                 label="GST"
                 isDisabled={isConfirmed}
+                onChangeEvent={handleGSTChange}
               />
 
               <CustomNumberInput

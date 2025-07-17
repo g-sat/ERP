@@ -7,8 +7,10 @@ import {
   IBargeLookup,
   ICarrierTypeLookup,
   IChargeLookup,
+  ICompanyLookup,
   IConsignmentTypeLookup,
   ICountryLookup,
+  ICustomerLookup,
   IDepartmentLookup,
   IDocumentTypeLookup,
   IDynamicLookup,
@@ -899,6 +901,7 @@ export const useVesselLookup = () => {
     queryFn: async () => {
       try {
         const response = await apiProxy.get(`${Lookup.getVessel}`)
+        console.log("Vessel lookup response:", response.data?.data)
         return response.data?.data || []
       } catch (error) {
         handleApiError(error)
@@ -953,6 +956,24 @@ export const useChargeLookup = (taskId: number) => {
       }
     },
     enabled: taskId !== 0,
+  })
+}
+
+export const useCompanyCustomerLookup = (companyId: number) => {
+  return useQuery<ICustomerLookup[]>({
+    queryKey: ["customer-lookUp", companyId],
+    ...defaultQueryConfig,
+    queryFn: async () => {
+      try {
+        const response = await apiProxy.get(
+          `${Lookup.getCompanyCustomer}/${companyId}`
+        )
+        return response.data?.data || []
+      } catch (error) {
+        handleApiError(error)
+      }
+    },
+    enabled: companyId !== 0,
   })
 }
 
@@ -1141,6 +1162,22 @@ export const useCarrierTypeLookup = () => {
     queryFn: async () => {
       try {
         const response = await apiProxy.get(`${Lookup.getCarrierType}`)
+        return response.data?.data || []
+      } catch (error) {
+        handleApiError(error)
+      }
+    },
+    refetchOnWindowFocus: false,
+  })
+}
+
+export const useCompanyLookup = () => {
+  return useQuery<ICompanyLookup[]>({
+    queryKey: ["company-lookUp"],
+    placeholderData: keepPreviousData,
+    queryFn: async () => {
+      try {
+        const response = await apiProxy.get(`${Lookup.getCompany}`)
         return response.data?.data || []
       } catch (error) {
         handleApiError(error)

@@ -120,7 +120,50 @@ export function useGetById<T>(
       })
       return response.data
     },
-    // Cache disabled
+    // Cache enabled
+    // refetchOnWindowFocus: false,
+    // refetchOnMount: false,
+    // refetchOnReconnect: false,
+    // gcTime: 10 * 60 * 1000,
+    // staleTime: 5 * 60 * 1000,
+    ...options,
+  })
+}
+
+/**
+ * 1.3 Get Data by ID Hook
+ * @param {string} baseUrl - Base URL for the API endpoint
+ * @param {string} queryKey - Key for caching the query
+ * @param {string} id - ID of the item to fetch
+ * @param {object} options - Additional query options
+ * @returns {object} Query object containing the data
+ */
+export function useGetByParams<T>(
+  baseUrl: string,
+  queryKey: string,
+  companyId: string,
+  params: string,
+  options = {}
+) {
+  return useQuery<ApiResponse<T>>({
+    queryKey: [queryKey, params],
+    queryFn: async () => {
+      console.log("params", params)
+
+      // Clean up the URL by removing any double slashes
+      const cleanUrl = baseUrl.replace(/\/+/g, "/")
+      const response = await apiProxy.get<ApiResponse<T>>(
+        `${cleanUrl}/${params}`,
+        {
+          headers: {
+            "X-Company-Id": companyId,
+            "Content-Type": "application/json",
+          },
+        }
+      )
+      return response.data
+    },
+    // Cache enabled
     // refetchOnWindowFocus: false,
     // refetchOnMount: false,
     // refetchOnReconnect: false,

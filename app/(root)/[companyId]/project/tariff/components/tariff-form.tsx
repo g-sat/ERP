@@ -4,213 +4,403 @@ import { useEffect } from "react"
 import { ITariff } from "@/interfaces/tariff"
 import { TariffFormValues, tariffSchema } from "@/schemas/tariff"
 import { zodResolver } from "@hookform/resolvers/zod"
+import { XIcon } from "lucide-react"
 import { useForm } from "react-hook-form"
+import { toast } from "sonner"
 
+import { Task } from "@/lib/project-utils"
 import { Button } from "@/components/ui/button"
 import { Form } from "@/components/ui/form"
-import CustomInput from "@/components/ui-custom/custom-input"
+import ChargeAutocomplete from "@/components/ui-custom/autocomplete-charge"
+import CustomerAutocomplete from "@/components/ui-custom/autocomplete-customer"
+import PortAutocomplete from "@/components/ui-custom/autocomplete-port"
+import TaskAutocomplete from "@/components/ui-custom/autocomplete-task"
+import UomAutocomplete from "@/components/ui-custom/autocomplete-uom"
+import VisaTypeAutocomplete from "@/components/ui-custom/autocomplete-visatype"
 import CustomNumberInput from "@/components/ui-custom/custom-number-input"
 import CustomSwitch from "@/components/ui-custom/custom-switch"
+import CustomTextarea from "@/components/ui-custom/custom-textarea"
 
 interface TariffFormProps {
   tariff?: ITariff
   onSave: (data: ITariff) => void
+  onClose: () => void
   mode: "create" | "edit" | "view"
+  customerId: number
+  portId: number
+  taskId: number
+  onValidationError?: (hasErrors: boolean) => void
 }
 
-export function TariffForm({ tariff, onSave, mode }: TariffFormProps) {
+export function TariffForm({
+  tariff,
+  onSave,
+  onClose,
+  mode,
+  customerId,
+  portId,
+  taskId,
+  onValidationError,
+}: TariffFormProps) {
   const form = useForm<TariffFormValues>({
     resolver: zodResolver(tariffSchema),
     defaultValues: {
-      task: tariff?.task || "",
-      charge: tariff?.charge || "",
-      uom: tariff?.uom || "",
-      type: tariff?.type || "",
-      fromPlace: tariff?.fromPlace || "",
-      toPlace: tariff?.toPlace || "",
+      tariffId: tariff?.tariffId || 0,
+      taskId: tariff?.taskId || taskId,
+      chargeId: tariff?.chargeId || 0,
+      portId: tariff?.portId || portId,
+      customerId: tariff?.customerId || customerId,
+      currencyId: tariff?.currencyId || 0,
+      uomId: tariff?.uomId || 0,
+      visaTypeId: tariff?.visaTypeId || 0,
       displayRate: tariff?.displayRate || 0,
       basicRate: tariff?.basicRate || 0,
       minUnit: tariff?.minUnit || 0,
-      maxUnit: tariff?.maxUnit,
+      maxUnit: tariff?.maxUnit || 0,
       isAdditional: tariff?.isAdditional || false,
-      additionalUnit: tariff?.additionalUnit,
-      additionalRate: tariff?.additionalRate,
+      additionalUnit: tariff?.additionalUnit || 0,
+      additionalRate: tariff?.additionalRate || 0,
+      prepaymentPercentage: tariff?.prepaymentPercentage || 0,
       isPrepayment: tariff?.isPrepayment || false,
-      prepaymentRate: tariff?.prepaymentRate,
+      seqNo: tariff?.seqNo || 0,
+      isDefault: tariff?.isDefault || true,
       isActive: tariff?.isActive || true,
       remarks: tariff?.remarks || "",
     },
   })
 
   useEffect(() => {
+    console.log("TariffForm useEffect triggered:", {
+      mode,
+      customerId,
+      portId,
+      taskId,
+      tariff: !!tariff,
+    })
+
     if (tariff) {
       form.reset({
-        task: tariff.task,
-        charge: tariff.charge,
-        uom: tariff.uom,
-        type: tariff.type,
-        fromPlace: tariff.fromPlace,
-        toPlace: tariff.toPlace,
-        displayRate: tariff.displayRate,
-        basicRate: tariff.basicRate,
-        minUnit: tariff.minUnit,
-        maxUnit: tariff.maxUnit,
-        isAdditional: tariff.isAdditional,
-        additionalUnit: tariff.additionalUnit,
-        additionalRate: tariff.additionalRate,
-        isPrepayment: tariff.isPrepayment,
-        prepaymentRate: tariff.prepaymentRate,
-        isActive: tariff.isActive,
-        remarks: tariff.remarks,
+        tariffId: tariff.tariffId || 0,
+        taskId: tariff.taskId || taskId,
+        chargeId: tariff.chargeId || 0,
+        portId: tariff.portId || portId,
+        customerId: tariff.customerId || customerId,
+        currencyId: tariff.currencyId || 0,
+        uomId: tariff.uomId || 0,
+        visaTypeId: tariff.visaTypeId || 0,
+        displayRate: tariff.displayRate || 0,
+        basicRate: tariff.basicRate || 0,
+        minUnit: tariff.minUnit || 0,
+        maxUnit: tariff.maxUnit || 0,
+        isAdditional: tariff.isAdditional || false,
+        additionalUnit: tariff.additionalUnit || 0,
+        additionalRate: tariff.additionalRate || 0,
+        prepaymentPercentage: tariff.prepaymentPercentage || 0,
+        isPrepayment: tariff.isPrepayment || false,
+        seqNo: tariff.seqNo || 0,
+        isDefault: tariff.isDefault || true,
+        isActive: tariff.isActive || true,
+        remarks: tariff.remarks || "",
+      })
+    } else if (mode === "create") {
+      // For create mode, reset form with props values
+      console.log("Setting form values for create mode:", {
+        customerId,
+        portId,
+        taskId,
+      })
+      form.reset({
+        tariffId: 0,
+        taskId: taskId,
+        chargeId: 0,
+        portId: portId,
+        customerId: customerId,
+        currencyId: 0,
+        uomId: 0,
+        visaTypeId: 0,
+        displayRate: 0,
+        basicRate: 0,
+        minUnit: 0,
+        maxUnit: 0,
+        isAdditional: false,
+        additionalUnit: 0,
+        additionalRate: 0,
+        prepaymentPercentage: 0,
+        isPrepayment: false,
+        seqNo: 0,
+        isDefault: true,
+        isActive: true,
+        remarks: "",
       })
     }
-  }, [tariff, form])
+  }, [tariff, form, customerId, portId, taskId, mode])
+
+  // Watch switch states for conditional field editing
+  const isAdditional = form.watch("isAdditional")
+  const isPrepayment = form.watch("isPrepayment")
+
+  // Watch form values for debugging
+  const watchedCustomerId = form.watch("customerId")
+  const watchedPortId = form.watch("portId")
+  const watchedTaskId = form.watch("taskId")
+
+  // Check if current task is VisaService (taskId = 16)
+  const isVisaService = watchedTaskId === Task.VisaService
+
+  console.log("Form watched values:", {
+    customerId: watchedCustomerId,
+    portId: watchedPortId,
+    taskId: watchedTaskId,
+  })
+
+  // Get form errors for display
+  const formErrors = form.formState.errors
 
   function onSubmit(data: TariffFormValues) {
+    console.log("Form submitted with data:", data)
+
     const tariffData: ITariff = {
-      tariffId: tariff?.tariffId || "",
-      ...data,
+      tariffId: data.tariffId,
+      taskId: data.taskId,
+      chargeId: data.chargeId,
+      portId: data.portId,
+      customerId: data.customerId,
+      currencyId: data.currencyId,
+      uomId: data.uomId,
+      visaTypeId: data.visaTypeId,
+      displayRate: data.displayRate,
+      basicRate: data.basicRate,
+      minUnit: data.minUnit,
+      maxUnit: data.maxUnit,
+      isAdditional: data.isAdditional,
+      additionalUnit: data.additionalUnit,
+      additionalRate: data.additionalRate,
+      isPrepayment: data.isPrepayment,
+      prepaymentPercentage: data.prepaymentPercentage,
+      seqNo: data.seqNo,
+      isDefault: data.isDefault,
+      isActive: data.isActive,
+      remarks: data.remarks || "",
     }
+
+    console.log("Calling onSave with tariffData:", tariffData)
     onSave(tariffData)
   }
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          <CustomInput
-            form={form}
-            name="task"
-            label="Task"
-            placeholder="Enter task"
-            isDisabled={mode === "view"}
-          />
-          <CustomInput
-            form={form}
-            name="charge"
-            label="Charge"
-            placeholder="Enter charge"
-            isDisabled={mode === "view"}
-          />
-          <CustomInput
-            form={form}
-            name="uom"
-            label="Unit of Measure"
-            placeholder="Enter UOM"
-            isDisabled={mode === "view"}
-          />
-          <CustomInput
-            form={form}
-            name="type"
-            label="Type"
-            placeholder="Enter type"
-            isDisabled={mode === "view"}
-          />
-          <CustomInput
-            form={form}
-            name="fromPlace"
-            label="From Place"
-            placeholder="Enter from place"
-            isDisabled={mode === "view"}
-          />
-          <CustomInput
-            form={form}
-            name="toPlace"
-            label="To Place"
-            placeholder="Enter to place"
-            isDisabled={mode === "view"}
-          />
-          <CustomNumberInput
-            form={form}
-            name="displayRate"
-            label="Display Rate"
-            isRequired
-            isDisabled={mode === "view"}
-            round={2}
-          />
-          <CustomNumberInput
-            form={form}
-            name="basicRate"
-            label="Basic Rate"
-            isRequired
-            isDisabled={mode === "view"}
-            round={2}
-          />
-          <CustomNumberInput
-            form={form}
-            name="minUnit"
-            label="Min Unit"
-            isRequired
-            isDisabled={false}
-            round={2}
-          />
-          <CustomNumberInput
-            form={form}
-            name="maxUnit"
-            label="Max Unit"
-            isRequired
-            isDisabled={false}
-            round={2}
-          />
-          <CustomSwitch
-            form={form}
-            name="isAdditional"
-            label="Additional"
-            isDisabled={mode === "view"}
-          />
-          <CustomNumberInput
-            form={form}
-            name="additionalUnit"
-            label="Additional Unit"
-            isRequired
-            isDisabled={false}
-            round={2}
-          />
-          <CustomNumberInput
-            form={form}
-            name="additionalRate"
-            label="Additional Rate"
-            isRequired
-            isDisabled={false}
-            round={2}
-          />
-          <CustomNumberInput
-            form={form}
-            name="prepaymentRate"
-            label="Prepayment Rate"
-            isRequired
-            isDisabled={false}
-            round={2}
-          />
-          <CustomSwitch
-            form={form}
-            name="isPrepayment"
-            label="Prepayment"
-            isDisabled={mode === "view"}
-          />
-          <CustomSwitch
-            form={form}
-            name="isActive"
-            label="Active"
-            isDisabled={mode === "view"}
-          />
-          <CustomInput
-            form={form}
-            name="remarks"
-            label="Remarks"
-            placeholder="Enter remarks"
-            isDisabled={mode === "view"}
-          />
+    <div className="max-w flex flex-col gap-2">
+      {/* Validation Status */}
+      {Object.keys(formErrors).length > 0 && (
+        <div className="bg-destructive/10 border-destructive/20 mb-4 rounded-md border p-3">
+          <h4 className="text-destructive mb-2 text-sm font-medium">
+            Please fix the following errors:
+          </h4>
+          <ul className="text-destructive space-y-1 text-sm">
+            {Object.entries(formErrors).map(([field, error]) => (
+              <li key={field}>• {error?.message || `${field} is required`}</li>
+            ))}
+          </ul>
         </div>
+      )}
 
-        {mode !== "view" && (
-          <div className="flex justify-end space-x-2">
-            <Button type="submit">
-              {mode === "create" ? "Create Tariff" : "Save Changes"}
-            </Button>
+      <Form {...form}>
+        <form
+          onSubmit={form.handleSubmit(
+            (data) => {
+              console.log("Form validation passed, calling onSubmit")
+              toast.success("Form validation passed! Saving tariff...")
+              onValidationError?.(false) // No validation errors
+              onSubmit(data)
+            },
+            (errors) => {
+              console.error("Form validation failed:", errors)
+              console.error("Form values:", form.getValues())
+              console.error(
+                "Form errors details:",
+                JSON.stringify(errors, null, 2)
+              )
+
+              // Notify parent about validation errors
+              onValidationError?.(true)
+
+              // Show toast for validation errors
+              const errorMessages = Object.values(errors)
+                .map((error) => error?.message)
+                .filter(Boolean)
+              if (errorMessages.length > 0) {
+                toast.error(
+                  `Please fix the following errors: ${errorMessages.join(", ")}`
+                )
+              } else {
+                toast.error("Please fill in all required fields")
+              }
+            }
+          )}
+          className="space-y-6"
+        >
+          <div className="grid grid-cols-4 gap-2">
+            <CustomerAutocomplete
+              key={`customer-${mode}-${customerId}`}
+              form={form}
+              name="customerId"
+              label="Customer"
+              isRequired
+              isDisabled={mode === "view"}
+            />
+            <PortAutocomplete
+              key={`port-${mode}-${portId}`}
+              form={form}
+              name="portId"
+              label="Port"
+              isRequired
+              isDisabled={mode === "view"}
+            />
+            <TaskAutocomplete
+              form={form}
+              name="taskId"
+              label="Task"
+              isRequired
+              isDisabled={mode === "view"}
+            />
+            <ChargeAutocomplete
+              form={form}
+              name="chargeId"
+              label="Charge"
+              taskId={form.watch("taskId") || taskId}
+              isRequired
+              isDisabled={mode === "view"}
+            />
+            {isVisaService && (
+              <VisaTypeAutocomplete
+                form={form}
+                name="visaTypeId"
+                label="Visa Type"
+                isRequired={isVisaService}
+                isDisabled={mode === "view"}
+              />
+            )}
+            <UomAutocomplete
+              form={form}
+              name="uomId"
+              label="Unit of Measure"
+              isRequired
+              isDisabled={mode === "view"}
+            />
+
+            <CustomNumberInput
+              form={form}
+              name="displayRate"
+              label="Display Rate"
+              isRequired
+              isDisabled={mode === "view"}
+              round={2}
+            />
+            <CustomNumberInput
+              form={form}
+              name="basicRate"
+              label="Basic Rate"
+              isRequired
+              isDisabled={mode === "view"}
+              round={2}
+            />
+            <CustomNumberInput
+              form={form}
+              name="minUnit"
+              label="Min Unit"
+              isRequired
+              isDisabled={false}
+              round={2}
+            />
+            <CustomNumberInput
+              form={form}
+              name="maxUnit"
+              label="Max Unit"
+              isRequired
+              isDisabled={false}
+              round={2}
+            />
+
+            <CustomSwitch
+              form={form}
+              name="isAdditional"
+              label="Additional"
+              isDisabled={mode === "view"}
+            />
+            <CustomNumberInput
+              form={form}
+              name="additionalUnit"
+              label="Additional Unit"
+              isRequired={isAdditional}
+              isDisabled={mode === "view" || !isAdditional}
+              round={2}
+            />
+
+            <CustomNumberInput
+              form={form}
+              name="additionalRate"
+              label="Additional Rate"
+              isRequired={isAdditional}
+              isDisabled={mode === "view" || !isAdditional}
+              round={2}
+            />
+
+            <CustomSwitch
+              form={form}
+              name="isPrepayment"
+              label="Prepayment"
+              isDisabled={mode === "view"}
+            />
+            <CustomNumberInput
+              form={form}
+              name="prepaymentPercentage"
+              label="Prepayment Rate"
+              isRequired={isPrepayment}
+              isDisabled={mode === "view" || !isPrepayment}
+              round={2}
+            />
+            <CustomTextarea
+              form={form}
+              name="remarks"
+              label="Remarks"
+              isDisabled={mode === "view"}
+            />
+            <CustomSwitch
+              form={form}
+              name="isDefault"
+              label="Default"
+              isDisabled={mode === "view"}
+            />
+            <CustomSwitch
+              form={form}
+              name="isActive"
+              label="Active"
+              isDisabled={mode === "view"}
+            />
           </div>
-        )}
-      </form>
-    </Form>
+
+          <div className="flex justify-end space-x-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onClose}
+              className="flex items-center gap-2"
+            >
+              <XIcon className="h-4 w-4" />
+              Close
+            </Button>
+            {mode !== "view" && (
+              <>
+                <Button
+                  type="submit"
+                  onClick={() => console.log("Submit button clicked")}
+                >
+                  {mode === "create" ? "Create Tariff" : "Save Changes"}
+                </Button>
+              </>
+            )}
+          </div>
+        </form>
+      </Form>
+    </div>
   )
 }

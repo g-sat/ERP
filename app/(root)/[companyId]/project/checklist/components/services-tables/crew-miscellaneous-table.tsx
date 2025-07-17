@@ -58,7 +58,7 @@ interface CrewMiscellaneousTableProps {
   onDeleteCrewMiscellaneous?: (crewMiscellaneousId: string) => void
   onEditCrewMiscellaneous?: (crewMiscellaneous: ICrewMiscellaneous) => void
   onCreateCrewMiscellaneous?: () => void
-  onDebitNote?: (crewMiscellaneousId: string) => void
+  onDebitNote?: (crewMiscellaneousId: string, debitNoteNo?: string) => void
   onPurchase?: (crewMiscellaneousId: string) => void
   onRefresh?: () => void
   onFilterChange?: (filters: ICrewMiscellaneousFilter) => void
@@ -135,7 +135,7 @@ export function CrewMiscellaneousTable({
               onView={onCrewMiscellaneousSelect}
               onEdit={onEditCrewMiscellaneous}
               onDelete={onDeleteCrewMiscellaneous}
-              onDebitNote={onDebitNote}
+              onDebitNote={handleDebitNoteFromActions}
               onPurchase={onPurchase}
               onSelect={(_, checked) => {
                 // Handle row selection for checkbox
@@ -360,22 +360,15 @@ export function CrewMiscellaneousTable({
     }
   }, [onCombinedService, hasSelectedRows, selectedRows])
 
-  const handleDebitNote = useCallback(() => {
-    if (!hasSelectedRows) {
-      console.log("No rows selected for debit note")
-      return
-    }
-    if (hasValidDebitNoteIds) {
-      console.log("Selected rows already have valid debit note IDs")
-      return
-    }
-    if (onDebitNote) {
-      selectedRows.forEach((row) => {
-        const crewMiscellaneous = row.original
-        onDebitNote(crewMiscellaneous.crewMiscellaneousId.toString())
-      })
-    }
-  }, [onDebitNote, hasSelectedRows, hasValidDebitNoteIds, selectedRows])
+  // Wrapper function for TableActionsProject onDebitNote callback
+  const handleDebitNoteFromActions = useCallback(
+    (id: string) => {
+      if (onDebitNote) {
+        onDebitNote(id, "")
+      }
+    },
+    [onDebitNote]
+  )
 
   // Apply grid settings after table is created
   useEffect(() => {
@@ -487,11 +480,18 @@ export function CrewMiscellaneousTable({
         moduleId={moduleId || 1}
         transactionId={transactionId || 1}
         onCombinedService={handleCombinedService}
-        onDebitNote={handleDebitNote}
+        onDebitNote={(debitNoteNo, selectedIds) => {
+          if (selectedIds && selectedIds.length > 0 && onDebitNote) {
+            onDebitNote(selectedIds.join(","), debitNoteNo || "")
+          }
+        }}
         hasSelectedRows={hasSelectedRows}
         selectedRowsCount={selectedRowsCount}
         hasValidDebitNoteIds={hasValidDebitNoteIds}
         isConfirmed={isConfirmed}
+        selectedRowIds={selectedRows.map((row) =>
+          row.original.crewMiscellaneousId.toString()
+        )}
       />
 
       <DndContext

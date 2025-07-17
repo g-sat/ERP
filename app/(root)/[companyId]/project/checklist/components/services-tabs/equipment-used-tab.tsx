@@ -3,12 +3,14 @@
 import { useCallback, useMemo, useState } from "react"
 import { ApiResponse } from "@/interfaces/auth"
 import {
+  IDebitNoteData,
   IDebitNoteHd,
   IEquipmentUsed,
   IJobOrderHd,
 } from "@/interfaces/checklist"
 import { EquipmentUsedFormValues } from "@/schemas/checklist"
 import { useQueryClient } from "@tanstack/react-query"
+import { Loader2 } from "lucide-react"
 import { toast } from "sonner"
 
 import { JobOrder_DebitNote, JobOrder_EquipmentUsed } from "@/lib/api-routes"
@@ -20,6 +22,7 @@ import {
   useSave,
   useUpdate,
 } from "@/hooks/use-common-v1"
+import { Button } from "@/components/ui/button"
 import {
   Dialog,
   DialogContent,
@@ -78,6 +81,18 @@ export function EquipmentUsedTab({
     equipmentUsedId: null,
     equipmentUsedName: null,
   })
+
+  // State for debit note delete confirmation
+  const [debitNoteDeleteConfirmation, setDebitNoteDeleteConfirmation] =
+    useState<{
+      isOpen: boolean
+      debitNoteId: number | null
+      debitNoteNo: string | null
+    }>({
+      isOpen: false,
+      debitNoteId: null,
+      debitNoteNo: null,
+    })
   // State for selected items (for bulk operations)
   const [selectedItems, setSelectedItems] = useState<string[]>([])
 
@@ -121,6 +136,19 @@ export function EquipmentUsedTab({
     "equipmentUsed",
     companyId
   )
+  // Debit note mutation
+  const debitNoteMutation = useSave<IDebitNoteData>(
+    `${JobOrder_DebitNote.add}`,
+    "debitNote",
+    companyId
+  )
+
+  // Debit note delete mutation
+  const debitNoteDeleteMutation = useDelete(
+    `${JobOrder_DebitNote.delete}`,
+    "debitNote",
+    companyId
+  )
 
   // Handlers
   const handleSelect = useCallback(
@@ -129,7 +157,12 @@ export function EquipmentUsedTab({
 
       try {
         const response = await apiProxy.get<ApiResponse<IEquipmentUsed>>(
-          `${JobOrder_EquipmentUsed.getById}/${jobOrderId}/${item.equipmentUsedId}`
+          `${JobOrder_EquipmentUsed.getById}/${jobOrderId}/${item.equipmentUsedId}`,
+          {
+            headers: {
+              "X-Company-Id": companyId,
+            },
+          }
         )
         if (response.data.result === 1 && response.data.data) {
           const itemData = Array.isArray(response.data.data)
@@ -197,7 +230,12 @@ export function EquipmentUsedTab({
     async (item: IEquipmentUsed) => {
       console.log("Handling edit for item:", item)
       const response = await apiProxy.get<ApiResponse<IEquipmentUsed>>(
-        `${JobOrder_EquipmentUsed.getById}/${jobOrderId}/${item.equipmentUsedId}`
+        `${JobOrder_EquipmentUsed.getById}/${jobOrderId}/${item.equipmentUsedId}`,
+        {
+          headers: {
+            "X-Company-Id": companyId,
+          },
+        }
       )
       if (response.data.result === 1 && response.data.data) {
         const itemData = Array.isArray(response.data.data)
@@ -279,40 +317,132 @@ export function EquipmentUsedTab({
   }, [])
 
   const handleDebitNote = useCallback(
-    async (equipmentUsedId: string) => {
-      // First, find and set the selected item
-      const foundItem = data?.find(
-        (item) => item.equipmentUsedId.toString() === equipmentUsedId
-      )
-      setSelectedItem(foundItem)
+    async (equipmentUsedId: string, debitNoteNo?: string) => {
+      try {
+        // Handle both single ID and comma-separated multiple IDs
+        const selectedIds = equipmentUsedId.includes(",")
+          ? equipmentUsedId.split(",").map((id) => id.trim())
+          : [equipmentUsedId]
 
-      // Open the debit note modal
-      setShowDebitNoteModal(true)
+        console.log("Selected IDs for debit note:", selectedIds)
 
-      // Now make the API call with the correct debitNoteId
-      if (foundItem?.debitNoteId) {
-        const debitNoteResponse = await apiProxy.get<ApiResponse<IDebitNoteHd>>(
-          `${JobOrder_DebitNote.getById}/${jobData.jobOrderId}/${Task.EquipmentUsed}/${foundItem.debitNoteId}`
+        // Find all selected items
+        const foundItems = data?.filter((item) =>
+          selectedIds.includes(item.equipmentUsedId.toString())
         )
-        if (
-          debitNoteResponse.data.result === 1 &&
-          debitNoteResponse.data.data
-        ) {
-          console.log(debitNoteResponse.data.data)
-          // Handle both array and single object responses
-          const debitNoteData = Array.isArray(debitNoteResponse.data.data)
-            ? debitNoteResponse.data.data[0]
-            : debitNoteResponse.data.data
 
-          console.log("debitNoteData", debitNoteData)
-          setDebitNoteHd(debitNoteData)
+        if (!foundItems || foundItems.length === 0) {
+          toast.error("Equipment used(s) not found")
+          return
         }
-      } else {
-        // If no debitNoteId, clear the state
-        setDebitNoteHd(null)
+
+        // Check if any selected items have existing debit notes
+        const itemsWithExistingDebitNotes = foundItems.filter(
+          (item) => item.debitNoteId && item.debitNoteId > 0
+        )
+
+        // If all selected items have existing debit notes
+        if (itemsWithExistingDebitNotes.length === foundItems.length) {
+          console.log("All selected items have existing debit notes")
+
+          // For now, open the first item's debit note
+          // In the future, you might want to handle multiple debit notes differently
+          const firstItem = itemsWithExistingDebitNotes[0]
+          setSelectedItem(firstItem)
+          setShowDebitNoteModal(true)
+
+          // Fetch the existing debit note data
+          const debitNoteResponse = await apiProxy.get<
+            ApiResponse<IDebitNoteHd>
+          >(
+            `${JobOrder_DebitNote.getById}/${jobData.jobOrderId}/${Task.EquipmentUsed}/${firstItem.debitNoteId}`,
+            {
+              headers: {
+                "X-Company-Id": companyId,
+              },
+            }
+          )
+
+          if (
+            debitNoteResponse.data.result === 1 &&
+            debitNoteResponse.data.data
+          ) {
+            console.log(
+              "Existing debit note data:",
+              debitNoteResponse.data.data
+            )
+            const debitNoteData = Array.isArray(debitNoteResponse.data.data)
+              ? debitNoteResponse.data.data[0]
+              : debitNoteResponse.data.data
+
+            console.log("Existing debitNoteData", debitNoteData)
+            setDebitNoteHd(debitNoteData)
+          }
+
+          toast.info("Opening existing debit note")
+          return
+        }
+
+        // If some or all items don't have debit notes, create new ones
+        console.log(
+          "Creating new debit note(s) for selected items:",
+          selectedIds
+        )
+
+        // Prepare the data for the debit note mutation with comma-separated IDs
+        const debitNoteData: IDebitNoteData = {
+          multipleId: selectedIds.join(","), // Comma-separated string of all selected IDs
+          taskId: Task.EquipmentUsed,
+          jobOrderId: jobData.jobOrderId,
+          debitNoteNo: debitNoteNo || "",
+        }
+
+        console.log("Debit note data to be sent:", debitNoteData)
+
+        // Call the mutation
+        const response = await debitNoteMutation.mutateAsync(debitNoteData)
+
+        // Check if the mutation was successful
+        if (response.result > 0) {
+          // Set the first selected item and open the debit note modal
+          setSelectedItem(foundItems[0])
+          setShowDebitNoteModal(true)
+
+          // Fetch the debit note data using the returned ID
+          const debitNoteResponse = await apiProxy.get<
+            ApiResponse<IDebitNoteHd>
+          >(
+            `${JobOrder_DebitNote.getById}/${jobData.jobOrderId}/${Task.EquipmentUsed}/${response.result}`,
+            {
+              headers: {
+                "X-Company-Id": companyId,
+              },
+            }
+          )
+
+          if (
+            debitNoteResponse.data.result === 1 &&
+            debitNoteResponse.data.data
+          ) {
+            console.log("New debit note data:", debitNoteResponse.data.data)
+            const debitNoteData = Array.isArray(debitNoteResponse.data.data)
+              ? debitNoteResponse.data.data[0]
+              : debitNoteResponse.data.data
+
+            console.log("New debitNoteData", debitNoteData)
+            setDebitNoteHd(debitNoteData)
+          }
+
+          toast.success(
+            `Debit note created successfully for ${foundItems.length} item(s)`
+          )
+        }
+      } catch (error) {
+        console.error("Error handling debit note:", error)
+        toast.error("Failed to handle debit note")
       }
     },
-    [data, jobData]
+    [debitNoteMutation, data, jobData]
   )
 
   const handlePurchase = useCallback(() => {
@@ -322,6 +452,51 @@ export function EquipmentUsedTab({
   const handleRefreshEquipmentUsed = useCallback(() => {
     refetch()
   }, [refetch])
+
+  // Handle debit note delete
+  const handleDeleteDebitNote = useCallback(
+    (debitNoteId: number, debitNoteNo: string) => {
+      setDebitNoteDeleteConfirmation({
+        isOpen: true,
+        debitNoteId,
+        debitNoteNo,
+      })
+    },
+    []
+  )
+
+  const handleConfirmDeleteDebitNote = useCallback(() => {
+    if (debitNoteDeleteConfirmation.debitNoteId) {
+      toast.promise(
+        debitNoteDeleteMutation.mutateAsync(
+          `${jobData.jobOrderId}/${Task.EquipmentUsed}/${debitNoteDeleteConfirmation.debitNoteId}`
+        ),
+        {
+          loading: `Deleting debit note ${debitNoteDeleteConfirmation.debitNoteNo}...`,
+          success: () => {
+            queryClient.invalidateQueries({ queryKey: ["equipmentUsed"] })
+            queryClient.invalidateQueries({ queryKey: ["debitNote"] })
+            onTaskAdded?.()
+            setShowDebitNoteModal(false)
+            setDebitNoteHd(null)
+            return `Debit note ${debitNoteDeleteConfirmation.debitNoteNo} has been deleted`
+          },
+          error: "Failed to delete debit note",
+        }
+      )
+      setDebitNoteDeleteConfirmation({
+        isOpen: false,
+        debitNoteId: null,
+        debitNoteNo: null,
+      })
+    }
+  }, [
+    debitNoteDeleteConfirmation,
+    debitNoteDeleteMutation,
+    jobData.jobOrderId,
+    queryClient,
+    onTaskAdded,
+  ])
 
   return (
     <>
@@ -426,6 +601,7 @@ export function EquipmentUsedTab({
             debitNoteHd={debitNoteHd ?? undefined}
             isConfirmed={isConfirmed}
             companyId={companyId}
+            onDeleteDebitNote={handleDeleteDebitNote}
           />
         </DialogContent>
       </Dialog>
@@ -466,6 +642,50 @@ export function EquipmentUsedTab({
         }
         isDeleting={deleteMutation.isPending}
       />
+
+      {/* Debit Note Delete Confirmation */}
+      <Dialog
+        open={debitNoteDeleteConfirmation.isOpen}
+        onOpenChange={(isOpen) =>
+          setDebitNoteDeleteConfirmation((prev) => ({ ...prev, isOpen }))
+        }
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirm Deletion</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete debit note{" "}
+              <strong>{debitNoteDeleteConfirmation.debitNoteNo}</strong>? This
+              action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-end gap-2">
+            <Button
+              variant="outline"
+              onClick={() =>
+                setDebitNoteDeleteConfirmation({
+                  isOpen: false,
+                  debitNoteId: null,
+                  debitNoteNo: null,
+                })
+              }
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleConfirmDeleteDebitNote}
+              disabled={debitNoteDeleteMutation.isPending}
+            >
+              {debitNoteDeleteMutation.isPending ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                "Delete"
+              )}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   )
 }

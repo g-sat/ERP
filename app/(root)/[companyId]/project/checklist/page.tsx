@@ -22,8 +22,8 @@ import {
 import { Input } from "@/components/ui/input"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
-import { ChecklistForm } from "./components/checklist-form"
 import { ChecklistTable } from "./components/checklist-table"
+import { ChecklistTabs } from "./components/checklist-tabs"
 
 export default function ChecklistPage() {
   const params = useParams()
@@ -120,16 +120,18 @@ export default function ChecklistPage() {
   }
 
   const handleFormSuccess = () => {
-    setIsFormOpen(false)
-    setSelectedJobData(null)
-    setIsEditMode(false)
+    // Don't close the dialog after successful save
+    // setIsFormOpen(false)
+    // setSelectedJobData(null)
+    // setIsEditMode(false)
     refetchJobOrder() // Refresh the data after successful save/update
   }
 
-  const handleFormCancel = () => {
-    setIsFormOpen(false)
-    setSelectedJobData(null)
-    setIsEditMode(false)
+  const handleCloneJob = (clonedData: IJobOrderHd) => {
+    console.log("Cloning job order:", clonedData)
+    setSelectedJobData(clonedData)
+    setIsEditMode(false) // Set to create mode for cloned data
+    setIsFormOpen(true)
   }
 
   // Use API data
@@ -225,13 +227,14 @@ export default function ChecklistPage() {
           {[
             { value: "All", count: statusCounts.All },
             { value: "Pending", count: statusCounts.Pending },
-            { value: "Confirmed", count: statusCounts.Confirmed },
+
             { value: "Completed", count: statusCounts.Completed },
             { value: "Cancelled", count: statusCounts.Cancelled },
             {
               value: "Cancel With Service",
               count: statusCounts["Cancel With Service"],
             },
+            { value: "Confirmed", count: statusCounts.Confirmed },
             { value: "Posted", count: statusCounts.Posted },
           ].map(({ value, count }) => (
             <TabsTrigger
@@ -304,20 +307,32 @@ export default function ChecklistPage() {
       </Card>
       <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
         <DialogContent className="@container h-[90vh] w-[90vw] !max-w-none overflow-y-auto">
-          <DialogHeader>
+          <DialogHeader className="flex items-center justify-between">
             <DialogTitle>
               {isEditMode ? "Edit Job Order" : "Add Job Order"}
             </DialogTitle>
           </DialogHeader>
-          <ChecklistForm
-            jobData={selectedJobData}
-            onSuccess={handleFormSuccess}
-            onCancel={handleFormCancel}
-            isEdit={isEditMode}
-            isConfirmed={
-              selectedJobData?.statusName === ProjectStatus.Confirmed.toString()
-            }
-          />
+          {selectedJobData ? (
+            <ChecklistTabs
+              key={`${selectedJobData.jobOrderId}-${selectedJobData.jobOrderNo}-${Date.now()}`}
+              jobData={selectedJobData}
+              onSuccess={handleFormSuccess}
+              isEdit={isEditMode}
+              companyId={companyId}
+              isNewRecord={false}
+              onClone={handleCloneJob}
+            />
+          ) : (
+            <ChecklistTabs
+              key={`new-record-${Date.now()}`}
+              jobData={{} as IJobOrderHd}
+              onSuccess={handleFormSuccess}
+              isEdit={false}
+              companyId={companyId}
+              isNewRecord={true}
+              onClone={handleCloneJob}
+            />
+          )}
         </DialogContent>
       </Dialog>
     </div>

@@ -7,6 +7,8 @@ export interface ICharge {
   taskId: number
   itemNo: number
   glId: number
+  taskName: string
+  glName: string
   createById: number
   editById: number
   createBy: string

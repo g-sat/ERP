@@ -53,7 +53,7 @@ interface OtherServiceTableProps {
   onDeleteOtherService?: (otherServiceId: string) => void
   onEditOtherService?: (otherService: IOtherService) => void
   onCreateOtherService?: () => void
-  onDebitNote?: (otherServiceId: string) => void
+  onDebitNote?: (otherServiceId: string, debitNoteNo?: string) => void
   onPurchase?: (otherServiceId: string) => void
   onRefresh?: () => void
   onFilterChange?: (filters: IOtherServiceFilter) => void
@@ -129,7 +129,7 @@ export function OtherServiceTable({
               onView={onOtherServiceSelect}
               onEdit={onEditOtherService}
               onDelete={onDeleteOtherService}
-              onDebitNote={onDebitNote}
+              onDebitNote={handleDebitNoteFromActions}
               onPurchase={onPurchase}
               onSelect={(_, checked) => {
                 // Handle row selection for checkbox
@@ -383,22 +383,15 @@ export function OtherServiceTable({
     }
   }, [onCombinedService, hasSelectedRows, selectedRows])
 
-  const handleDebitNote = useCallback(() => {
-    if (!hasSelectedRows) {
-      console.log("No rows selected for debit note")
-      return
-    }
-    if (hasValidDebitNoteIds) {
-      console.log("Selected rows already have valid debit note IDs")
-      return
-    }
-    if (onDebitNote) {
-      selectedRows.forEach((row) => {
-        const otherService = row.original
-        onDebitNote(otherService.otherServiceId.toString())
-      })
-    }
-  }, [onDebitNote, hasSelectedRows, hasValidDebitNoteIds, selectedRows])
+  // Wrapper function for TableActionsProject onDebitNote callback
+  const handleDebitNoteFromActions = useCallback(
+    (id: string) => {
+      if (onDebitNote) {
+        onDebitNote(id, "")
+      }
+    },
+    [onDebitNote]
+  )
 
   useEffect(() => {
     if (gridSettings && table) {
@@ -508,11 +501,18 @@ export function OtherServiceTable({
         moduleId={moduleId || 1}
         transactionId={transactionId || 1}
         onCombinedService={handleCombinedService}
-        onDebitNote={handleDebitNote}
+        onDebitNote={(debitNoteNo, selectedIds) => {
+          if (selectedIds && selectedIds.length > 0 && onDebitNote) {
+            onDebitNote(selectedIds.join(","), debitNoteNo || "")
+          }
+        }}
         hasSelectedRows={hasSelectedRows}
         selectedRowsCount={selectedRowsCount}
         hasValidDebitNoteIds={hasValidDebitNoteIds}
         isConfirmed={isConfirmed}
+        selectedRowIds={selectedRows.map((row) =>
+          row.original.otherServiceId.toString()
+        )}
       />
 
       <DndContext

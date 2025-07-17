@@ -20,6 +20,7 @@ export interface IVesselLookup {
   vesselId: number
   vesselName: string
   vesselCode: string
+  imoCode: string
 }
 
 export interface IJobOrderLookup {
@@ -445,4 +446,10 @@ export interface ICarrierTypeLookup {
   carrierTypeId: number
   carrierTypeCode: string
   carrierTypeName: string
+}
+
+export interface ICompanyLookup {
+  companyId: number
+  companyCode: string
+  companyName: string
 }

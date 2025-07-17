@@ -1,12 +1,14 @@
 "use client"
 
-import React, { useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { useParams } from "next/navigation"
+import { ApiResponse } from "@/interfaces/auth"
+import { ITaskDetails } from "@/interfaces/checklist"
 import { ICustomerLookup, IPortLookup } from "@/interfaces/lookup"
-import { ITariff, ITariffFilter } from "@/interfaces/tariff"
+import { ITariff } from "@/interfaces/tariff"
 import {
+  BuildingIcon,
   CopyIcon,
-  CopyPlusIcon,
   PlusIcon,
   RefreshCcwIcon,
   SearchIcon,
@@ -15,8 +17,15 @@ import {
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 
-import { cn } from "@/lib/utils"
-import { useDelete, useGet, useSave, useUpdate } from "@/hooks/use-common-v1"
+import { Tariff } from "@/lib/api-routes"
+import { Task } from "@/lib/project-utils"
+import {
+  useDelete,
+  useGetByParams,
+  useSave,
+  useUpdate,
+} from "@/hooks/use-common-v1"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -31,12 +40,101 @@ import { DataTableSkeleton } from "@/components/skeleton/data-table-skeleton"
 import CustomerAutocomplete from "@/components/ui-custom/autocomplete-customer"
 import PortAutocomplete from "@/components/ui-custom/autocomplete-port"
 
+import { CopyCompanyRateForm } from "./components/copy-company-rate-form"
+import { CopyRateForm } from "./components/copy-rate-form"
 import { TariffForm } from "./components/tariff-form"
 import { TariffTable } from "./components/tariff-table"
 
 interface FilterFormValues extends Record<string, unknown> {
   customerId: number
   portId: number
+}
+
+// Define category mapping with Task enum values
+const CATEGORY_CONFIG: Record<
+  string,
+  { id: string; label: string; taskId: Task | number }
+> = {
+  portExpenses: {
+    id: "portExpenses",
+    label: "Port Expenses",
+    taskId: Task.PortExpenses,
+  },
+  launchServices: {
+    id: "launchServices",
+    label: "Launch Services",
+    taskId: Task.LaunchServices,
+  },
+  equipmentUsed: {
+    id: "equipmentUsed",
+    label: "Equipment Used",
+    taskId: Task.EquipmentUsed,
+  },
+  crewSignOn: {
+    id: "crewSignOn",
+    label: "Crew Sign On",
+    taskId: Task.CrewSignOn,
+  },
+  crewSignOff: {
+    id: "crewSignOff",
+    label: "Crew Sign Off",
+    taskId: Task.CrewSignOff,
+  },
+  crewMiscellaneous: {
+    id: "crewMiscellaneous",
+    label: "Crew Miscellaneous",
+    taskId: Task.CrewMiscellaneous,
+  },
+  medicalAssistance: {
+    id: "medicalAssistance",
+    label: "Medical Assistance",
+    taskId: Task.MedicalAssistance,
+  },
+  consignmentImport: {
+    id: "consignmentImport",
+    label: "Consignment Import",
+    taskId: Task.ConsignmentImport,
+  },
+  consignmentExport: {
+    id: "consignmentExport",
+    label: "Consignment Export",
+    taskId: Task.ConsignmentExport,
+  },
+  thirdParty: {
+    id: "thirdParty",
+    label: "Third Party",
+    taskId: Task.ThirdParty,
+  },
+  freshWater: {
+    id: "freshWater",
+    label: "Fresh Water",
+    taskId: Task.FreshWater,
+  },
+  techniciansSurveyors: {
+    id: "techniciansSurveyors",
+    label: "Technicians & Surveyors",
+    taskId: Task.TechniciansSurveyors,
+  },
+  landingItems: {
+    id: "landingItems",
+    label: "Landing Items",
+    taskId: Task.LandingItems,
+  },
+  otherService: {
+    id: "otherService",
+    label: "Other Service",
+    taskId: Task.OtherService,
+  },
+  agencyRemuneration: {
+    id: "agencyRemuneration",
+    label: "Agency Remuneration",
+    taskId: Task.AgencyRemuneration,
+  },
+  visaService: {
+    id: "visaService",
+    label: "Visa Service",
+    taskId: Task.VisaService,
+  },
 }
 
 export default function TariffPage() {
@@ -51,27 +149,70 @@ export default function TariffPage() {
     },
   })
 
-  // State for filters
-  const [filters, setFilters] = useState<ITariffFilter>({})
-  const [searchQuery, setSearchQuery] = useState<string>("")
+  // Watch form values for conditional rendering
+  const watchedCustomerId = form.watch("customerId")
+  // const watchedPortId = form.watch("portId")
 
-  // Fetch tariffs data from API
+  // State management
+  const [hasSearched, setHasSearched] = useState(false)
+  const [activeCategory, setActiveCategory] = useState("portExpenses")
+  const [currentTaskId, setCurrentTaskId] = useState(
+    CATEGORY_CONFIG.portExpenses?.taskId || Task.PortExpenses
+  )
+  const [isSearching, setIsSearching] = useState(false)
+  const [isTabLoading, setIsTabLoading] = useState(false)
+  const [mounted, setMounted] = useState(false)
+
+  // Fix hydration mismatch
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  // API parameters state
+  const [apiParams, setApiParams] = useState<{
+    customerId: number
+    portId: number
+  }>({
+    customerId: 0,
+    portId: 0,
+  })
+
+  // Tariff count API call
   const {
-    data: tariffsResponse,
-    refetch,
-    isLoading,
-    isRefetching,
-  } = useGet<ITariff>(`gettariff`, "tariffs", companyId, filters.search)
+    data: tariffCountResponse,
+    refetch: refetchTariffCount,
+    isLoading: isLoadingCount,
+  } = useGetByParams(
+    Tariff.getTariffCount,
+    `tariffCount-${apiParams.customerId}-${apiParams.portId}`,
+    companyId,
+    `${apiParams.customerId}/${apiParams.portId}`,
+    {
+      enabled: apiParams.customerId > 0 && apiParams.portId > 0,
+    }
+  )
 
-  // Destructure with fallback values
-  const { data: tariffsData } = tariffsResponse ?? { data: [] }
+  // Category-specific API calls - Fixed to use proper query key
+  const {
+    data: tariffByTaskResponse,
+    refetch: refetchTariffByTask,
+    isLoading: isLoadingTariffByTask,
+  } = useGetByParams<ITariff>(
+    Tariff.getTariffByTask,
+    `tariffByTask-${activeCategory}-${apiParams.customerId}-${apiParams.portId}-${currentTaskId}`,
+    companyId,
+    `${apiParams.customerId}/${apiParams.portId}/${currentTaskId}`,
+    {
+      enabled: apiParams.customerId > 0 && apiParams.portId > 0 && hasSearched,
+    }
+  )
 
-  // Define mutations for CRUD operations
-  const saveMutation = useSave<ITariff>(`savetariff`, "tariffs", companyId)
-  const updateMutation = useUpdate<ITariff>(`savetariff`, "tariffs", companyId)
-  const deleteMutation = useDelete(`deletetariff`, "tariffs", companyId)
+  // CRUD mutations
+  const saveMutation = useSave(Tariff.add, "tariffs", companyId)
+  const updateMutation = useUpdate(Tariff.add, "tariffs", companyId)
+  const deleteMutation = useDelete(Tariff.delete, "tariffs", companyId)
 
-  // State for modal and selected tariff
+  // Modal and selected tariff state
   const [selectedTariff, setSelectedTariff] = useState<ITariff | undefined>(
     undefined
   )
@@ -79,8 +220,13 @@ export default function TariffPage() {
   const [modalMode, setModalMode] = useState<"create" | "edit" | "view">(
     "create"
   )
+  const [hasFormErrors, setHasFormErrors] = useState(false)
 
-  // State for delete confirmation
+  // Copy forms state
+  const [showCopyRateForm, setShowCopyRateForm] = useState(false)
+  const [showCopyCompanyRateForm, setShowCopyCompanyRateForm] = useState(false)
+
+  // Delete confirmation state
   const [deleteConfirmation, setDeleteConfirmation] = useState<{
     isOpen: boolean
     tariffId: string | null
@@ -91,50 +237,161 @@ export default function TariffPage() {
     tariffName: null,
   })
 
-  // Handler to search with current filters
-  const handleSearch = () => {
+  // Handle both array and single object responses
+  const rawTariffCountData = tariffCountResponse?.data
+  const tariffCountData = rawTariffCountData
+    ? Array.isArray(rawTariffCountData)
+      ? rawTariffCountData[0]
+      : (rawTariffCountData as ITaskDetails)
+    : undefined
+
+  // Process category-specific tariff data
+  const rawTariffByTaskData = tariffByTaskResponse?.data
+  const tariffByTaskData = rawTariffByTaskData
+    ? Array.isArray(rawTariffByTaskData)
+      ? rawTariffByTaskData
+      : [rawTariffByTaskData]
+    : []
+
+  // Sequential API call handler
+  const handleSearch = useCallback(async () => {
     const formValues = form.getValues()
-    setFilters({
-      search: searchQuery,
-      customer: formValues.customerId.toString(),
-      port: formValues.portId.toString(),
-    })
-  }
 
-  // Handler to clear filters
+    if (formValues.customerId === 0) {
+      toast.error("Please select a customer first")
+      return
+    }
+
+    setIsSearching(true)
+
+    try {
+      // Update API parameters
+      const newApiParams = {
+        customerId: formValues.customerId,
+        portId: formValues.portId,
+      }
+
+      setApiParams(newApiParams)
+      setHasSearched(true)
+
+      // Wait for state to update, then trigger API calls
+      setTimeout(async () => {
+        try {
+          await refetchTariffCount()
+          await refetchTariffByTask()
+          toast.success("Search completed successfully")
+        } catch {
+          toast.error("Failed to fetch tariff data")
+        }
+      }, 100)
+    } catch {
+      toast.error("Failed to fetch tariff data")
+    } finally {
+      setIsSearching(false)
+    }
+  }, [form, refetchTariffCount, refetchTariffByTask])
+
+  // Handle category change - Only call task API, not count API
+  const handleCategoryChange = useCallback(
+    async (category: string) => {
+      const taskId = CATEGORY_CONFIG[category]?.taskId
+
+      // Update the active category and taskId first
+      setActiveCategory(category)
+      setCurrentTaskId(taskId || Task.PortExpenses)
+
+      // Only proceed if we have valid search parameters
+      if (mounted && hasSearched && apiParams.customerId > 0) {
+        // Set tab loading state
+        setIsTabLoading(true)
+
+        // Show loading toast for better UX
+        toast.info(
+          `Loading ${CATEGORY_CONFIG[category]?.label || category} data...`
+        )
+
+        try {
+          // Wait a bit for state to update, then call only the task API
+          setTimeout(async () => {
+            try {
+              await refetchTariffByTask()
+              toast.success(
+                `${CATEGORY_CONFIG[category]?.label || category} data loaded successfully`
+              )
+            } catch {
+              toast.error(
+                `Failed to load ${CATEGORY_CONFIG[category]?.label || category} data`
+              )
+            } finally {
+              setIsTabLoading(false)
+            }
+          }, 100)
+        } catch {
+          toast.error(
+            `Failed to load ${CATEGORY_CONFIG[category]?.label || category} data`
+          )
+          setIsTabLoading(false)
+        }
+      } else {
+        // Cannot load data: missing required parameters
+      }
+    },
+    [mounted, hasSearched, apiParams.customerId, refetchTariffByTask]
+  )
+
+  // Clear filters handler
   const handleClear = () => {
-    setSearchQuery("")
     form.reset()
-    setFilters({})
+    setHasSearched(false)
+    setApiParams({ customerId: 0, portId: 0 })
+    setActiveCategory("portExpenses")
+    setCurrentTaskId(CATEGORY_CONFIG.portExpenses?.taskId || Task.PortExpenses)
   }
 
-  // Handler to refresh data
-  const handleRefresh = () => {
-    refetch()
-  }
+  // Refresh handler
+  const handleRefresh = useCallback(() => {
+    if (apiParams.customerId > 0 && hasSearched) {
+      // Set loading state
+      setIsTabLoading(true)
 
-  // Handler to open modal for creating a new tariff
+      // Use Promise.all to ensure both API calls complete
+      Promise.all([refetchTariffCount(), refetchTariffByTask()])
+        .then(() => {
+          toast.success("Data refreshed successfully")
+        })
+        .catch(() => {
+          toast.error("Failed to refresh data")
+        })
+        .finally(() => {
+          setIsTabLoading(false)
+        })
+    } else {
+      toast.error(
+        "Please select customer and port, then search before refreshing"
+      )
+    }
+  }, [
+    apiParams.customerId,
+    hasSearched,
+    refetchTariffCount,
+    refetchTariffByTask,
+  ])
+
+  // CRUD handlers
   const handleCreateTariff = () => {
     setSelectedTariff(undefined)
     setModalMode("create")
+    setHasFormErrors(false) // Reset form errors when creating new tariff
     setIsModalOpen(true)
   }
 
-  // Handler to edit a tariff
   const handleEditTariff = (tariff: ITariff) => {
     setSelectedTariff(tariff)
     setModalMode("edit")
+    setHasFormErrors(false) // Reset form errors when editing tariff
     setIsModalOpen(true)
   }
 
-  // Handler to view a tariff
-  const handleViewTariff = (tariff: ITariff) => {
-    setSelectedTariff(tariff)
-    setModalMode("view")
-    setIsModalOpen(true)
-  }
-
-  // Handler to open delete confirmation
   const handleDeleteConfirmation = (tariffId: string, task: string) => {
     setDeleteConfirmation({
       isOpen: true,
@@ -143,118 +400,182 @@ export default function TariffPage() {
     })
   }
 
-  // Handler to delete a tariff
   const handleDeleteTariff = () => {
     if (deleteConfirmation.tariffId) {
       deleteMutation.mutate(deleteConfirmation.tariffId, {
-        onSuccess: () => {
-          setDeleteConfirmation({
-            isOpen: false,
-            tariffId: null,
-            tariffName: null,
-          })
-          toast.success("Tariff deleted successfully")
-          refetch()
+        onSuccess: (response: ApiResponse<unknown>) => {
+          if (response?.result === 1) {
+            setDeleteConfirmation({
+              isOpen: false,
+              tariffId: null,
+              tariffName: null,
+            })
+            toast.success("Tariff deleted successfully")
+            refetchTariffByTask()
+          } else {
+            const errorMessage = response?.message || "Failed to delete tariff"
+            toast.error(errorMessage)
+          }
         },
-        onError: (error) => {
-          console.error("Error deleting tariff:", error)
+        onError: () => {
           toast.error("Failed to delete tariff")
         },
       })
     }
   }
 
-  // Handler to save or update a tariff
   const handleSaveTariff = (data: ITariff) => {
+    const tariffData = {
+      ...data,
+    }
+
     if (modalMode === "create") {
-      saveMutation.mutate(data, {
-        onSuccess: () => {
-          setIsModalOpen(false)
-          toast.success("Tariff added successfully")
-          refetch()
+      saveMutation.mutate(tariffData, {
+        onSuccess: (response: ApiResponse<unknown>) => {
+          if (response?.result === 1) {
+            setIsModalOpen(false)
+            toast.success("Tariff added successfully")
+            refetchTariffByTask()
+          } else {
+            const errorMessage = response?.message || "Failed to add tariff"
+            toast.error(errorMessage)
+          }
         },
-        onError: (error) => {
-          console.error("Error adding tariff:", error)
+        onError: () => {
           toast.error("Failed to add tariff")
         },
       })
     } else if (modalMode === "edit" && selectedTariff?.tariffId) {
-      updateMutation.mutate(data, {
-        onSuccess: () => {
-          setIsModalOpen(false)
-          toast.success("Tariff updated successfully")
-          refetch()
+      updateMutation.mutate(tariffData, {
+        onSuccess: (response: ApiResponse<unknown>) => {
+          if (response?.result === 1) {
+            setIsModalOpen(false)
+            toast.success("Tariff updated successfully")
+            refetchTariffByTask()
+          } else {
+            const errorMessage = response?.message || "Failed to update tariff"
+            toast.error(errorMessage)
+          }
         },
-        onError: (error) => {
-          console.error("Error updating tariff:", error)
+        onError: () => {
           toast.error("Failed to update tariff")
         },
       })
     }
   }
 
-  // Handle customer selection
-  const handleCustomerChange = React.useCallback(
+  // Customer and Port change handlers
+  const handleCustomerChange = useCallback(
     (selectedCustomer: ICustomerLookup | null) => {
-      // Additional logic when customer changes
-      console.log("Selected customer:", selectedCustomer)
+      if (selectedCustomer) {
+        form.setValue("customerId", selectedCustomer.customerId || 0)
+      } else {
+        form.setValue("customerId", 0)
+      }
+      // Reset search state when customer changes
+      setHasSearched(false)
     },
-    []
+    [form]
   )
 
-  // Handle port selection
-  const handlePortChange = React.useCallback(
+  const handlePortChange = useCallback(
     (selectedPort: IPortLookup | null) => {
-      // Additional logic when port changes
-      console.log("Selected port:", selectedPort)
+      if (selectedPort) {
+        form.setValue("portId", selectedPort.portId || 0)
+      } else {
+        form.setValue("portId", 0)
+      }
+      // Reset search state when port changes
+      setHasSearched(false)
     },
-    []
+    [form]
   )
 
-  // Handler for filter change from table component
-  const handleFilterChange = (newFilters: ITariffFilter) => {
-    setFilters((prev) => ({ ...prev, ...newFilters }))
-  }
+  // Generate categories with counts using ITaskDetails structure
+  const categories = Object.values(CATEGORY_CONFIG).map((config) => {
+    let count = 0
 
-  const [activeCategory, setActiveCategory] = useState("portExpenses")
+    // Only calculate counts if mounted and we have data
+    if (mounted && tariffCountData && typeof tariffCountData === "object") {
+      // Map task IDs to ITaskDetails properties
+      const taskCountMap: Record<number, keyof ITaskDetails> = {
+        [Task.PortExpenses]: "portExpense",
+        [Task.LaunchServices]: "launchService",
+        [Task.EquipmentUsed]: "equipmentUsed",
+        [Task.CrewSignOn]: "crewSignOn",
+        [Task.CrewSignOff]: "crewSignOff",
+        [Task.CrewMiscellaneous]: "crewMiscellaneous",
+        [Task.MedicalAssistance]: "medicalAssistance",
+        [Task.ConsignmentImport]: "consignmentImport",
+        [Task.ConsignmentExport]: "consignmentExport",
+        [Task.ThirdParty]: "thirdParty",
+        [Task.FreshWater]: "freshWater",
+        [Task.TechniciansSurveyors]: "technicianSurveyor",
+        [Task.LandingItems]: "landingItems",
+        [Task.OtherService]: "otherService",
+        [Task.AgencyRemuneration]: "agencyRemuneration",
+        [Task.VisaService]: "visaService",
+      }
 
-  // Handle category change
-  const handleCategoryChange = (category: string) => {
-    setActiveCategory(category)
-  }
-  // Define categories with their corresponding counts and labels
-  const categories = [
-    {
-      id: "portExpenses",
-      label: "Port Expenses",
-      count: 1,
-      //count: data.filter((t) => t.category === "portExpenses").length,
-    },
-    { id: "launchServices", label: "Launch Services", count: 0 },
-    { id: "equipmentUsed", label: "Equipment Used", count: 1 },
-    { id: "crewSignOn", label: "Crew Sign On", count: 2 },
-    { id: "crewSignOff", label: "Crew Sign Off", count: 2 },
-    { id: "crewMiscellaneous", label: "Crew Miscellaneous", count: 2 },
-    { id: "medicalAssistance", label: "Medical Assistance", count: 3 },
-    { id: "consignmentImport", label: "Consignment Import", count: 15 },
-    { id: "consignmentExport", label: "Consignment Export", count: 8 },
-    { id: "thirdParty", label: "Third Party", count: 5 },
-    { id: "freshWater", label: "Fresh Water", count: 3 },
-    { id: "techniciansSurveyors", label: "Technicians & Surveyors", count: 7 },
-    { id: "landingItems", label: "Landing Items", count: 4 },
-    { id: "otherService", label: "Other Service", count: 6 },
-    { id: "agencyRemuneration", label: "Agency Remuneration", count: 2 },
-  ]
+      const propertyName = taskCountMap[config.taskId as number]
+      if (propertyName && propertyName in tariffCountData) {
+        count = (tariffCountData as ITaskDetails)[propertyName] || 0
+      }
+    }
+
+    return {
+      ...config,
+      count,
+    }
+  })
+
+  // Determine loading state
+  const isLoading =
+    isLoadingCount || isLoadingTariffByTask || isSearching || isTabLoading
 
   return (
-    <div className="@container flex flex-1 flex-col gap-6 p-6">
-      <h1 className="text-2xl font-bold">Tariff</h1>
-      {/* Filter controls moved from table component to main page */}
-      <div className="flex justify-between">
+    <div className="container mx-auto p-6">
+      {/* Header with title and action buttons */}
+      <div className="mb-6 flex items-center justify-between">
+        <h1 className="text-2xl font-bold">Tariff Management</h1>
+
+        {/* Top right action buttons */}
         <div className="flex items-center gap-2">
-          {/* Customer filter */}
-          <div className="flex flex-col gap-2">
-            {/* Customer */}
+          <Button
+            onClick={() => setShowCopyRateForm(true)}
+            variant="outline"
+            size="sm"
+            className="flex items-center gap-2"
+            title="Copy Rates"
+          >
+            <CopyIcon className="h-4 w-4" />
+          </Button>
+          <Button
+            onClick={() => setShowCopyCompanyRateForm(true)}
+            variant="outline"
+            size="sm"
+            className="flex items-center gap-2"
+            title="Copy Company Rates"
+          >
+            <BuildingIcon className="h-4 w-4" />
+          </Button>
+          {watchedCustomerId > 0 && (
+            <Button
+              onClick={handleCreateTariff}
+              className="flex items-center gap-2"
+            >
+              <PlusIcon className="h-4 w-4" />
+              Add Tariff
+            </Button>
+          )}
+        </div>
+      </div>
+
+      {/* Filter Controls */}
+      <div className="bg-card mb-3 rounded-lg border p-4">
+        <div className="grid grid-cols-1 items-end gap-4 md:grid-cols-4">
+          {/* Customer Selection */}
+          <div>
             <CustomerAutocomplete
               form={form}
               name="customerId"
@@ -264,129 +585,168 @@ export default function TariffPage() {
             />
           </div>
 
-          {/* Port filter */}
-          <div className="flex flex-col gap-2">
-            {/* Customer */}
+          {/* Port Selection */}
+          <div>
             <PortAutocomplete
               form={form}
               name="portId"
               label="Port"
-              isRequired={true}
               onChangeEvent={handlePortChange}
             />
           </div>
 
-          <Button onClick={handleSearch}>
-            <SearchIcon className="mr-2 h-4 w-4" />
-            Search
-          </Button>
-          <Button variant="outline" onClick={handleClear}>
-            <XIcon className="mr-2 h-4 w-4" />
-            Clear
-          </Button>
-          <Button variant="outline" onClick={handleRefresh}>
-            <RefreshCcwIcon className="mr-2 h-4 w-4" />
-            Refresh
-          </Button>
-        </div>
+          {/* Action Buttons */}
+          <div className="flex gap-2">
+            {/* Search Button - Only show when customer is selected */}
+            {watchedCustomerId > 0 && (
+              <Button
+                onClick={handleSearch}
+                disabled={isSearching || watchedCustomerId === 0}
+                className="flex items-center gap-2"
+              >
+                <SearchIcon className="h-4 w-4" />
+                {isSearching ? "Searching..." : "Search"}
+              </Button>
+            )}
 
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
             <Button
-              title="Add Tariff"
-              size={"icon"}
-              onClick={handleCreateTariff}
+              variant="outline"
+              onClick={handleClear}
+              className="flex items-center gap-2"
             >
-              <PlusIcon className="h-4 w-4" />
+              <XIcon className="h-4 w-4" />
+              Clear
             </Button>
 
             <Button
-              variant="secondary"
-              title="Copy Tariff Customer to Customer"
-              size={"icon"}
-              onClick={() => {}}
+              variant="outline"
+              onClick={handleRefresh}
+              disabled={!hasSearched || isLoading}
+              className="flex items-center gap-2"
             >
-              <CopyIcon className="h-4 w-4" />
-            </Button>
-
-            <Button
-              variant="secondary"
-              title="Copy Tariff Company to Company"
-              size={"icon"}
-              onClick={() => {}}
-            >
-              <CopyPlusIcon className="h-4 w-4" />
+              <RefreshCcwIcon
+                className={`h-4 w-4 ${isTabLoading ? "animate-spin" : ""}`}
+              />
+              {isTabLoading ? "Refreshing..." : "Refresh"}
             </Button>
           </div>
         </div>
       </div>
 
-      <div className="space-y-4">
-        {/* Category tabs */}
+      {/* Category Tabs */}
+      {mounted && hasSearched && (
         <Tabs
-          defaultValue="portExpenses"
           value={activeCategory}
           onValueChange={handleCategoryChange}
-          className="w-full"
+          className="mb-6"
         >
           <div className="overflow-x-auto">
-            <TabsList className="flex h-10 w-max">
+            <TabsList className="flex h-14 w-max">
               {categories.map((category) => (
                 <TabsTrigger
                   key={category.id}
                   value={category.id}
-                  className="flex items-center gap-2 px-4 py-2 whitespace-nowrap transition-colors"
+                  className="relative flex items-center space-x-2 px-4 py-2"
+                  disabled={isTabLoading && activeCategory === category.id}
                 >
                   {category.label}
-                  <span
-                    className={cn(
-                      "flex h-5 w-5 items-center justify-center rounded-full text-xs font-medium text-white",
-                      category.id === "portExpenses" && "bg-[#673AB7]",
-                      category.id === "launchServices" &&
-                        "bg-gray-200 text-gray-600",
-                      category.id === "equipmentUsed" && "bg-orange-500",
-                      category.id === "crewSignOn" && "bg-green-600",
-                      category.id === "crewSignOff" && "bg-red-600",
-                      category.id === "crewMiscellaneous" && "bg-teal-500",
-                      category.id === "medicalAssistance" && "bg-yellow-400",
-                      category.id === "consignmentImport" && "bg-orange-500",
-                      category.id === "consignmentExport" && "bg-blue-500",
-                      category.id === "thirdParty" && "bg-purple-500",
-                      category.id === "freshWater" && "bg-cyan-500",
-                      category.id === "techniciansSurveyors" && "bg-indigo-500",
-                      category.id === "landingItems" && "bg-emerald-500",
-                      category.id === "otherService" && "bg-rose-500",
-                      category.id === "agencyRemuneration" && "bg-amber-500"
-                    )}
+                  {isTabLoading && activeCategory === category.id && (
+                    <RefreshCcwIcon className="h-3 w-3 animate-spin" />
+                  )}
+                  <Badge
+                    variant={
+                      isLoading ||
+                      (isTabLoading && activeCategory === category.id)
+                        ? "secondary"
+                        : category.count && category.count > 0
+                          ? "destructive"
+                          : "outline"
+                    }
+                    className="text-xs font-medium"
                   >
-                    {category.count}
-                  </span>
+                    {isLoading ||
+                    (isTabLoading && activeCategory === category.id)
+                      ? "..."
+                      : category.count || 0}
+                  </Badge>
                 </TabsTrigger>
               ))}
             </TabsList>
           </div>
         </Tabs>
-      </div>
-
-      {isLoading || isRefetching ? (
-        <DataTableSkeleton columnCount={8} rowCount={10} />
-      ) : (
-        <TariffTable
-          data={tariffsData || []}
-          isLoading={isLoading || isRefetching}
-          onTariffSelect={handleViewTariff}
-          onDeleteTariff={handleDeleteConfirmation}
-          onEditTariff={handleEditTariff}
-          onCreateTariff={handleCreateTariff}
-          onRefresh={handleRefresh}
-          onFilterChange={handleFilterChange}
-          companyId={companyId}
-        />
       )}
 
-      {/* Tariff Modal using Drawer for right-side panel */}
-      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="max-w-[750px]">
+      {/* Placeholder for tabs during SSR */}
+      {!mounted && hasSearched && (
+        <div className="mb-6">
+          <div className="overflow-x-auto">
+            <div className="flex h-14 w-max">
+              {Object.values(CATEGORY_CONFIG).map((category) => (
+                <div
+                  key={category.id}
+                  className="relative flex items-center space-x-2 px-4 py-2"
+                >
+                  {category.label}
+                  <Badge variant="outline" className="text-xs font-medium">
+                    0
+                  </Badge>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Data Table */}
+      {mounted && (
+        <>
+          {isLoading ? (
+            <DataTableSkeleton columnCount={8} rowCount={10} />
+          ) : hasSearched ? (
+            <TariffTable
+              data={(tariffByTaskData as ITariff[]) || []}
+              isLoading={isLoading}
+              onDeleteTariff={handleDeleteConfirmation}
+              onEditTariff={handleEditTariff}
+              onRefresh={() => {
+                handleRefresh()
+              }}
+              companyId={companyId}
+            />
+          ) : (
+            <div className="text-muted-foreground py-12 text-center">
+              <p>Select a customer and click Search to view tariffs</p>
+            </div>
+          )}
+        </>
+      )}
+
+      {/* Placeholder for data table during SSR */}
+      {!mounted && hasSearched && (
+        <DataTableSkeleton columnCount={8} rowCount={10} />
+      )}
+
+      {/* Tariff Modal */}
+      <Dialog
+        open={isModalOpen}
+        onOpenChange={(open) => {
+          if (!open && hasFormErrors) {
+            toast.error("Please fix form errors before closing")
+            return
+          }
+          setIsModalOpen(open)
+        }}
+      >
+        <DialogContent
+          className="max-h-[70vh] w-[80vw] !max-w-none overflow-y-auto"
+          onPointerDownOutside={(e) => {
+            if (hasFormErrors) {
+              e.preventDefault()
+              toast.error("Please fix form errors before closing")
+              return
+            }
+          }}
+        >
           <DialogHeader>
             <DialogTitle>
               {modalMode === "create"
@@ -403,16 +763,73 @@ export default function TariffPage() {
                   : "View tariff details."}
             </DialogDescription>
           </DialogHeader>
-
-          <div className="py-4">
-            <TariffForm
-              tariff={selectedTariff}
-              onSave={handleSaveTariff}
-              mode={modalMode}
-            />
-          </div>
+          <TariffForm
+            tariff={selectedTariff}
+            onSave={handleSaveTariff}
+            onClose={() => setIsModalOpen(false)}
+            mode={modalMode}
+            customerId={watchedCustomerId || apiParams.customerId}
+            portId={apiParams.portId}
+            taskId={
+              CATEGORY_CONFIG[activeCategory]?.taskId || Task.PortExpenses
+            }
+            onValidationError={setHasFormErrors}
+          />
         </DialogContent>
       </Dialog>
+
+      {/* Copy Rate Form */}
+      {showCopyRateForm && (
+        <Dialog open={showCopyRateForm} onOpenChange={setShowCopyRateForm}>
+          <DialogContent
+            className="max-h-[70vh] w-[80vw] !max-w-none overflow-y-auto"
+            onPointerDownOutside={(e) => {
+              if (hasFormErrors) {
+                e.preventDefault()
+                toast.error("Please fix form errors before closing")
+                return
+              }
+            }}
+          >
+            <DialogHeader>
+              <DialogTitle>Copy Rates</DialogTitle>
+              <DialogDescription>
+                Copy rates between customers
+              </DialogDescription>
+            </DialogHeader>
+            <CopyRateForm onClose={() => setShowCopyRateForm(false)} />
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* Copy Company Rate Form */}
+      {showCopyCompanyRateForm && (
+        <Dialog
+          open={showCopyCompanyRateForm}
+          onOpenChange={setShowCopyCompanyRateForm}
+        >
+          <DialogContent
+            className="max-h-[70vh] w-[80vw] !max-w-none overflow-y-auto"
+            onPointerDownOutside={(e) => {
+              if (hasFormErrors) {
+                e.preventDefault()
+                toast.error("Please fix form errors before closing")
+                return
+              }
+            }}
+          >
+            <DialogHeader>
+              <DialogTitle>Copy Company Rates</DialogTitle>
+              <DialogDescription>
+                Copy rates between companies
+              </DialogDescription>
+            </DialogHeader>
+            <CopyCompanyRateForm
+              onClose={() => setShowCopyCompanyRateForm(false)}
+            />
+          </DialogContent>
+        </Dialog>
+      )}
 
       {/* Delete Confirmation Dialog */}
       <DeleteConfirmation

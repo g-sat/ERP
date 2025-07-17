@@ -53,7 +53,7 @@ interface FreshWaterTableProps {
   onDeleteFreshWater?: (freshWaterId: string) => void
   onEditFreshWater?: (freshWater: IFreshWater) => void
   onCreateFreshWater?: () => void
-  onDebitNote?: (freshWaterId: string) => void
+  onDebitNote?: (freshWaterId: string, debitNoteNo?: string) => void
   onPurchase?: (freshWaterId: string) => void
   onRefresh?: () => void
   onFilterChange?: (filters: IFreshWaterFilter) => void
@@ -143,40 +143,15 @@ export function FreshWaterTable({
     }
   }, [selectedRowIds, onCombinedService])
 
-  // Handle debit note with validation
-  const handleDebitNote = useCallback(() => {
-    console.log("Debit Note clicked - Selected Row IDs:", selectedRowIds)
-
-    if (selectedRowIds.length === 0) {
-      console.log("No items selected for Debit Note")
-      return
-    }
-
-    // Check if any selected item has debitNoteId > 0
-    const selectedIndices = Object.keys(rowSelection)
-    const selectedRows = data.filter((_, index) =>
-      selectedIndices.includes(index.toString())
-    )
-
-    const hasInvalidDebitNoteIds = selectedRows.some(
-      (row) => row.debitNoteId && row.debitNoteId > 0
-    )
-
-    if (hasInvalidDebitNoteIds) {
-      console.log(
-        "Some selected items have valid Debit Note IDs - showing toastr"
-      )
-      // You can add toastr notification here
-      return
-    }
-
-    console.log(
-      "All selected items have zero Debit Note IDs - proceeding with Debit Note"
-    )
-    if (onDebitNote) {
-      onDebitNote(selectedRowIds[0])
-    }
-  }, [selectedRowIds, rowSelection, data, onDebitNote])
+  // Wrapper function for TableActionsProject onDebitNote callback
+  const handleDebitNoteFromActions = useCallback(
+    (id: string) => {
+      if (onDebitNote) {
+        onDebitNote(id, "")
+      }
+    },
+    [onDebitNote]
+  )
 
   const { data: gridSettings } = useGetGridLayout(
     moduleId?.toString() || "",
@@ -198,17 +173,19 @@ export function FreshWaterTable({
         cell: ({ row }) => {
           const freshWater = row.original
           const isSelected = row.getIsSelected()
+          // Ensure debitNoteId is never null
+          const rowData = {
+            ...freshWater,
+            debitNoteId: freshWater.debitNoteId ?? undefined,
+          }
           return (
             <TableActionsProject
-              row={{
-                ...freshWater,
-                debitNoteId: freshWater.debitNoteId || undefined,
-              }}
+              row={rowData}
               idAccessor="freshWaterId"
               onView={onFreshWaterSelect}
               onEdit={onEditFreshWater}
               onDelete={onDeleteFreshWater}
-              onDebitNote={onDebitNote}
+              onDebitNote={handleDebitNoteFromActions}
               onPurchase={onPurchase}
               onSelect={(_, checked) => {
                 // Handle row selection for checkbox
@@ -588,11 +565,16 @@ export function FreshWaterTable({
         moduleId={moduleId || 1}
         transactionId={transactionId || 1}
         onCombinedService={handleCombinedService}
-        onDebitNote={handleDebitNote}
+        onDebitNote={(debitNoteNo, selectedIds) => {
+          if (selectedIds && selectedIds.length > 0 && onDebitNote) {
+            onDebitNote(selectedIds.join(","), debitNoteNo || "")
+          }
+        }}
         hasSelectedRows={hasSelectedRows}
         selectedRowsCount={selectedRowsCount}
         hasValidDebitNoteIds={hasValidDebitNoteIds}
         isConfirmed={isConfirmed}
+        selectedRowIds={selectedRowIds}
       />
 
       <DndContext

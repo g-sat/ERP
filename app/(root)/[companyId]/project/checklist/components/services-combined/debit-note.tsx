@@ -1,8 +1,11 @@
 import { useEffect, useState } from "react"
 import { IDebitNoteDt, IDebitNoteHd, IJobOrderHd } from "@/interfaces/checklist"
 import { DebitNoteDtFormValues } from "@/schemas/checklist"
+import { toast } from "sonner"
 
+import { JobOrder_DebitNote } from "@/lib/api-routes"
 import { TaskIdToName } from "@/lib/project-utils"
+import { useSave } from "@/hooks/use-common-v1"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -22,13 +25,16 @@ const DebitNote = ({
   debitNoteHd,
   isConfirmed,
   companyId,
+  onDeleteDebitNote,
 }: {
   jobData: IJobOrderHd
   taskId: number
   debitNoteHd?: IDebitNoteHd
   isConfirmed?: boolean
   companyId: string
+  onDeleteDebitNote?: (debitNoteId: number, debitNoteNo: string) => void
 }) => {
+  console.log("companyId in debit note", companyId)
   const [details, setDetails] = useState<IDebitNoteDt[]>(
     debitNoteHd?.debitNoteDetails ?? []
   )
@@ -42,25 +48,36 @@ const DebitNote = ({
   }, [debitNoteHd])
 
   const [showFormDialog, setShowFormDialog] = useState(false)
+  const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false)
   const [formKey, setFormKey] = useState(0) // Key to force form reset
   const [editingItem, setEditingItem] = useState<IDebitNoteDt | undefined>()
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  // Debit note details save mutation
+  const saveDebitNoteDetailsMutation = useSave<IDebitNoteDt>(
+    `${JobOrder_DebitNote.saveDetails}`,
+    "debitNoteDetails",
+    companyId
+  )
 
   // Helper to safely update details from form data
-  const handleDetailSave = (data: DebitNoteDtFormValues) => {
-    if (editingItem) {
-      // Update existing item
-      setDetails((prev) =>
-        prev.map((item) =>
-          item.itemNo === editingItem.itemNo ? { ...item, ...data } : item
-        )
-      )
-    } else {
-      // Add new item
-      const newItem: IDebitNoteDt = {
+  const handleDetailSave = async (data: DebitNoteDtFormValues) => {
+    console.log("data from debit note", data)
+
+    if (!debitNoteHd?.debitNoteId) {
+      toast.error("Debit note header not found")
+      return
+    }
+
+    setIsSubmitting(true)
+
+    try {
+      // Prepare the data for the API call
+      const debitNoteDetailData: IDebitNoteDt = {
         companyId: jobData.companyId,
-        debitNoteId: debitNoteHd?.debitNoteId || 0,
-        debitNoteNo: debitNoteHd?.debitNoteNo || "",
-        itemNo: details.length + 1, // Auto-increment item number
+        debitNoteId: debitNoteHd.debitNoteId,
+        debitNoteNo: debitNoteHd.debitNoteNo,
+        itemNo: editingItem ? editingItem.itemNo : details.length + 1,
         taskId: data.taskId,
         taskName: data.taskName,
         chargeId: data.chargeId,
@@ -69,8 +86,7 @@ const DebitNote = ({
         glName: data.glName,
         qty: data.qty,
         unitPrice: data.unitPrice,
-        amtLocal: data.amtLocal,
-        amt: data.amt,
+        totLocalAmt: data.totLocalAmt,
         totAmt: data.totAmt,
         gstId: data.gstId,
         gstName: data.gstName,
@@ -82,10 +98,44 @@ const DebitNote = ({
         isServiceCharge: data.isServiceCharge,
         serviceCharge: data.serviceCharge,
       }
-      setDetails((prev) => [...prev, newItem])
+
+      console.log("Saving debit note detail:", debitNoteDetailData)
+
+      // Call the API to save the debit note detail
+      const response =
+        await saveDebitNoteDetailsMutation.mutateAsync(debitNoteDetailData)
+
+      if (response.result > 0) {
+        // Update local state
+        if (editingItem) {
+          // Update existing item
+          setDetails((prev) =>
+            prev.map((item) =>
+              item.itemNo === editingItem.itemNo ? { ...item, ...data } : item
+            )
+          )
+          toast.success("Debit note detail updated successfully")
+        } else {
+          // Add new item
+          const newItem: IDebitNoteDt = {
+            ...debitNoteDetailData,
+            itemNo: details.length + 1, // Auto-increment item number
+          }
+          setDetails((prev) => [...prev, newItem])
+          toast.success("Debit note detail added successfully")
+        }
+
+        setShowFormDialog(false)
+        setEditingItem(undefined)
+      } else {
+        toast.error("Failed to save debit note detail")
+      }
+    } catch (error) {
+      console.error("Error saving debit note detail:", error)
+      toast.error("Failed to save debit note detail")
+    } finally {
+      setIsSubmitting(false)
     }
-    setShowFormDialog(false)
-    setEditingItem(undefined)
   }
 
   // Handle edit item
@@ -97,6 +147,18 @@ const DebitNote = ({
   // Handle delete item
   const handleDeleteItem = (itemNo: number) => {
     setDetails((prev) => prev.filter((item) => item.itemNo !== itemNo))
+  }
+
+  // Handle delete confirmation
+  const handleConfirmDelete = () => {
+    if (debitNoteHd?.debitNoteId && onDeleteDebitNote) {
+      onDeleteDebitNote(debitNoteHd.debitNoteId, debitNoteHd.debitNoteNo)
+    }
+    setShowDeleteConfirmation(false)
+  }
+
+  const handleCancelDelete = () => {
+    setShowDeleteConfirmation(false)
   }
 
   // Handle dialog close and clear data
@@ -128,14 +190,6 @@ const DebitNote = ({
         <div className="flex flex-col space-y-3 lg:flex-row lg:items-center lg:justify-between lg:space-y-0">
           <div className="flex flex-col space-y-2 lg:flex-row lg:items-center lg:space-y-0 lg:space-x-4">
             <div className="flex flex-wrap items-center gap-2 text-sm">
-              <span className="text-muted-foreground">Job Order:</span>
-              <Badge
-                variant="secondary"
-                className="bg-blue-100 text-blue-800 hover:bg-blue-200"
-              >
-                {jobData.jobOrderNo}
-              </Badge>
-              <span className="text-muted-foreground">•</span>
               <span className="text-muted-foreground">Debit Note:</span>
               <Badge
                 variant="secondary"
@@ -217,57 +271,16 @@ const DebitNote = ({
             setEditingItem(undefined)
             setShowFormDialog(true)
           }}
+          onDataReorder={(reorderedData) => {
+            // Update the details state with the reordered data
+            setDetails(reorderedData)
+          }}
           isConfirmed={isConfirmed}
           companyId={companyId}
         />
 
         {/* Action Buttons */}
-        <div className="bg-card flex flex-col gap-3 rounded-lg border p-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex flex-wrap gap-2">
-            <Button
-              variant="destructive"
-              size="sm"
-              className="bg-red-600 hover:bg-red-700"
-              disabled={isConfirmed}
-            >
-              <svg
-                className="mr-2 h-4 w-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                />
-              </svg>
-              Delete{" "}
-            </Button>
-            <Button
-              variant="destructive"
-              size="sm"
-              className="bg-orange-600 hover:bg-orange-700"
-              disabled={isConfirmed}
-            >
-              <svg
-                className="mr-2 h-4 w-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-              Delete Selected
-            </Button>
-          </div>
-
+        <div className="bg-card flex justify-end rounded-lg border p-4">
           <div className="flex gap-2">
             <Button
               size="sm"
@@ -290,10 +303,11 @@ const DebitNote = ({
               Print
             </Button>
             <Button
+              variant="destructive"
               size="sm"
-              variant="outline"
-              className="border-gray-200 text-gray-700 hover:bg-gray-50"
-              onClick={handleDialogClose}
+              className="bg-red-600 hover:bg-red-700"
+              disabled={isConfirmed || !debitNoteHd?.debitNoteId}
+              onClick={() => setShowDeleteConfirmation(true)}
             >
               <svg
                 className="mr-2 h-4 w-4"
@@ -305,10 +319,10 @@ const DebitNote = ({
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   strokeWidth={2}
-                  d="M6 18L18 6M6 6l12 12"
+                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
                 />
               </svg>
-              Close
+              Delete
             </Button>
           </div>
         </div>
@@ -344,10 +358,38 @@ const DebitNote = ({
               initialData={editingItem}
               submitAction={handleDetailSave}
               onCancel={handleDialogClose}
-              isSubmitting={false}
+              isSubmitting={isSubmitting}
               isConfirmed={isConfirmed}
-              companyId={companyId}
+              taskId={taskId}
+              exchangeRate={debitNoteHd?.exhRate || 1}
             />
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog
+        open={showDeleteConfirmation}
+        onOpenChange={setShowDeleteConfirmation}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirm Deletion</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete debit note{" "}
+              <span className="font-semibold text-red-600">
+                {debitNoteHd?.debitNoteNo || "N/A"}
+              </span>
+              ? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={handleCancelDelete}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={handleConfirmDelete}>
+              Delete
+            </Button>
           </div>
         </DialogContent>
       </Dialog>

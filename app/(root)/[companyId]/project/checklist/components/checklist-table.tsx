@@ -67,14 +67,14 @@ export function ChecklistTable({
       switch (selectedStatus) {
         case "Pending":
           return job.statusName === ProjectStatus.Pending.toString()
-        case "Confirmed":
-          return job.statusName === ProjectStatus.Confirmed.toString()
         case "Completed":
           return job.statusName === ProjectStatus.Completed.toString()
         case "Cancelled":
           return job.statusName === ProjectStatus.Cancelled.toString()
         case "Cancel With Service":
           return job.statusName === ProjectStatus.CancelWithService.toString()
+        case "Confirmed":
+          return job.statusName === ProjectStatus.Confirmed.toString()
         case "Posted":
           return job.statusName === ProjectStatus.Post.toString()
         default:
@@ -152,10 +152,10 @@ export function ChecklistTable({
           const status = row.getValue("statusName") as string
           const statusColors: Record<string, string> = {
             Pending: "bg-yellow-100 text-yellow-800",
-            Confirmed: "bg-green-100 text-green-800",
             Completed: "bg-blue-100 text-blue-800",
             Cancelled: "bg-red-100 text-red-800",
             "Cancel with Service": "bg-orange-100 text-orange-800",
+            Confirmed: "bg-green-100 text-green-800",
             Posted: "bg-purple-100 text-purple-800",
             Delivered: "bg-green-100 text-green-800",
             Approved: "bg-blue-100 text-blue-800",
@@ -199,7 +199,7 @@ export function ChecklistTable({
       },
 
       {
-        accessorKey: "remark1",
+        accessorKey: "remarks",
         header: "Remarks",
       },
       {
@@ -423,28 +423,37 @@ export function ChecklistTable({
           onPointerDownOutside={(e) => e.preventDefault()}
         >
           <DialogHeader className="px-6 pt-2 pb-0">
-            <DialogTitle>
-              <div className="text-foreground text-2xl font-bold tracking-tight">
-                Job Order Details :{" "}
-                <span
-                  className={`ml-auto rounded-full px-5 py-1 text-sm font-medium ${statusColors[selectedJob?.statusName as keyof typeof statusColors] || "bg-gray-100 text-gray-800"}`}
-                >
-                  {selectedJob?.statusName}
-                </span>
+            <div className="flex items-center justify-between">
+              <div className="flex-1">
+                <DialogTitle>
+                  <div className="text-foreground text-2xl font-bold tracking-tight">
+                    Job Order Details :{" "}
+                    <span
+                      className={`ml-auto rounded-full px-5 py-1 text-sm font-medium ${statusColors[selectedJob?.statusName as keyof typeof statusColors] || "bg-gray-100 text-gray-800"}`}
+                    >
+                      {selectedJob?.statusName}
+                    </span>
+                  </div>
+                </DialogTitle>
+                <DialogDescription>
+                  View and manage job order details and their associated
+                  services.
+                </DialogDescription>
               </div>
-            </DialogTitle>
-            <DialogDescription>
-              View and manage job order details and their associated services.
-            </DialogDescription>
+            </div>
           </DialogHeader>
           {selectedJob && (
             <div className="px-4 pt-0 pb-0">
               <ChecklistTabs
+                key={`${selectedJob.jobOrderId}-${selectedJob.jobOrderNo}`}
                 jobData={selectedJob}
-                onSuccess={() => setIsDetailsOpen(false)}
-                onCancel={() => setIsDetailsOpen(false)}
-                isEdit={false}
+                onSuccess={() => {
+                  // Don't close the dialog after successful save
+                  // setIsDetailsOpen(false)
+                }}
+                isEdit={true}
                 companyId={companyId}
+                isNewRecord={false}
               />
             </div>
           )}

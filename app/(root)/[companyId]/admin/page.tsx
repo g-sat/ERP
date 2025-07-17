@@ -506,7 +506,7 @@ export default function AdminPage() {
           <TabsTrigger value="user-wise-rights">User Wise Rights</TabsTrigger>
           <TabsTrigger value="group-rights">Group Rights</TabsTrigger>
           <TabsTrigger value="report-rights">Report Rights</TabsTrigger>
-          <TabsTrigger value="share-data">Share Data</TabsTrigger>
+          <TabsTrigger value="share-data">Company Share Data</TabsTrigger>
         </TabsList>
 
         <TabsContent value="users" className="space-y-4">

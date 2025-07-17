@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { IJobOrderHd, ITaskDetails } from "@/interfaces/checklist"
-import { useAuthStore } from "@/stores/auth-store"
+//import { useAuthStore } from "@/stores/auth-store"
 import { useQueryClient } from "@tanstack/react-query"
 
 import { JobOrder } from "@/lib/api-routes"
@@ -11,7 +11,6 @@ import { useGetById } from "@/hooks/use-common-v1"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
-import { JobDetailsGrid } from "./checklist-details-job-grid"
 import { AgencyRemunerationTab } from "./services-tabs/agency-remuneration-tab"
 import { ConsignmentExportTab } from "./services-tabs/consignment-export-tab"
 import { ConsignmentImportTab } from "./services-tabs/consignment-import-tab"
@@ -39,7 +38,7 @@ export function ChecklistDetailsForm({
   isConfirmed,
   companyId,
 }: ChecklistDetailsFormProps) {
-  const { decimals } = useAuthStore()
+  //const { decimals } = useAuthStore()
   const [activeTab, setActiveTab] = useState("port-expenses")
   const queryClient = useQueryClient()
 
@@ -85,8 +84,8 @@ export function ChecklistDetailsForm({
   console.log("Task count data:", data)
   return (
     <div className="@container w-full">
-      <JobDetailsGrid jobData={jobData} decimals={decimals} />
-      <div className="my-2" />
+      {/* <JobDetailsGrid jobData={jobData} decimals={decimals} /> */}
+      {/* <div className="my-2" /> */}
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <div className="overflow-x-auto">

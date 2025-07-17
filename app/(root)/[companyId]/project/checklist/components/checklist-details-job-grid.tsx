@@ -64,7 +64,7 @@ export function JobDetailsGrid({ jobData, decimals }: JobDetailsGridProps) {
     },
     {
       label: "IMO Number",
-      value: jobData.imoNo || "N/A",
+      value: jobData.imoCode || "N/A",
       icon: <Anchor className="h-4 w-4" />,
       color: "bg-cyan-50 text-cyan-600",
       valueColor: "text-cyan-800",

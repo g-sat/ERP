@@ -58,7 +58,7 @@ interface TechnicianSurveyorTableProps {
   onDeleteTechnicianSurveyor?: (technicianSurveyorId: string) => void
   onEditTechnicianSurveyor?: (technicianSurveyor: ITechnicianSurveyor) => void
   onCreateTechnicianSurveyor?: () => void
-  onDebitNote?: (technicianSurveyorId: string) => void
+  onDebitNote?: (technicianSurveyorId: string, debitNoteNo?: string) => void
   onPurchase?: (technicianSurveyorId: string) => void
   onRefresh?: () => void
   onFilterChange?: (filters: ITechnicianSurveyorFilter) => void
@@ -155,40 +155,15 @@ export function TechnicianSurveyorTable({
     }
   }, [selectedRowIds, onCombinedService])
 
-  // Handle debit note with validation
-  const handleDebitNote = useCallback(() => {
-    console.log("Debit Note clicked - Selected Row IDs:", selectedRowIds)
-
-    if (selectedRowIds.length === 0) {
-      console.log("No items selected for Debit Note")
-      return
-    }
-
-    // Check if any selected item has debitNoteId > 0
-    const selectedIndices = Object.keys(rowSelection)
-    const selectedRows = data.filter((_, index) =>
-      selectedIndices.includes(index.toString())
-    )
-
-    const hasInvalidDebitNoteIds = selectedRows.some(
-      (row) => row.debitNoteId && row.debitNoteId > 0
-    )
-
-    if (hasInvalidDebitNoteIds) {
-      console.log(
-        "Some selected items have valid Debit Note IDs - showing toastr"
-      )
-      // You can add toastr notification here
-      return
-    }
-
-    console.log(
-      "All selected items have zero Debit Note IDs - proceeding with Debit Note"
-    )
-    if (onDebitNote) {
-      onDebitNote(selectedRowIds[0])
-    }
-  }, [selectedRowIds, rowSelection, data, onDebitNote])
+  // Wrapper function for TableActionsProject onDebitNote callback
+  const handleDebitNoteFromActions = useCallback(
+    (id: string) => {
+      if (onDebitNote) {
+        onDebitNote(id, "")
+      }
+    },
+    [onDebitNote]
+  )
 
   const columns: ColumnDef<ITechnicianSurveyor>[] = useMemo(
     () => [
@@ -204,15 +179,12 @@ export function TechnicianSurveyorTable({
           const isSelected = row.getIsSelected()
           return (
             <TableActionsProject
-              row={{
-                ...technicianSurveyor,
-                debitNoteId: technicianSurveyor.debitNoteId || undefined,
-              }}
+              row={technicianSurveyor}
               idAccessor="technicianSurveyorId"
               onView={onTechnicianSurveyorSelect}
               onEdit={onEditTechnicianSurveyor}
               onDelete={onDeleteTechnicianSurveyor}
-              onDebitNote={onDebitNote}
+              onDebitNote={handleDebitNoteFromActions}
               onPurchase={onPurchase}
               onSelect={(_, checked) => {
                 // Handle row selection for checkbox
@@ -595,11 +567,16 @@ export function TechnicianSurveyorTable({
         moduleId={moduleId || 1}
         transactionId={transactionId || 1}
         onCombinedService={handleCombinedService}
-        onDebitNote={handleDebitNote}
+        onDebitNote={(debitNoteNo, selectedIds) => {
+          if (selectedIds && selectedIds.length > 0 && onDebitNote) {
+            onDebitNote(selectedIds.join(","), debitNoteNo || "")
+          }
+        }}
         hasSelectedRows={hasSelectedRows}
         selectedRowsCount={selectedRowsCount}
         hasValidDebitNoteIds={hasValidDebitNoteIds}
         isConfirmed={isConfirmed}
+        selectedRowIds={selectedRowIds}
       />
 
       <DndContext

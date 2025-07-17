@@ -2,64 +2,64 @@ import { z } from "zod"
 
 import { Task } from "@/lib/project-utils"
 
-export const JobOrderHdSchema = z.object({
-  jobOrderId: z.number(),
-  companyId: z.number().optional(),
-  jobOrderNo: z.string().optional(),
-  jobOrderDate: z.union([z.date(), z.string()]),
-  customerId: z.number().optional(),
-  customerCode: z.string().optional(),
-  customerName: z.string().optional(),
-  currencyId: z.number().optional(),
-  currencyCode: z.string().optional(),
-  currencyName: z.string().optional(),
-  exhRate: z.number().optional(),
-  vesselId: z.number(),
-  vesselName: z.string().optional(),
-  imoNo: z.string().optional(),
-  vesselDistance: z.number().optional(),
-  portId: z.number().optional(),
-  portName: z.string().optional(),
-  lastPortId: z.number().optional(),
-  lastPortName: z.string().optional(),
-  nextPortId: z.number().optional(),
-  nextPortName: z.string().optional(),
-  voyageId: z.number().optional(),
-  voyageNo: z.string().optional(),
-  natureOfCall: z.string().optional(),
-  isps: z.string().optional(),
-  etaDate: z.date().optional(),
-  etdDate: z.date().optional(),
-  ownerName: z.string().optional(),
-  ownerAgent: z.string().optional(),
-  masterName: z.string().optional(),
-  charters: z.string().optional(),
-  chartersAgent: z.string().optional(),
-  invoiceId: z.number().optional(),
-  invoiceNo: z.string().optional(),
-  invoiceDate: z.date().optional(),
-  seriesDate: z.date().optional(),
-  addressId: z.number().optional(),
-  contactId: z.number().optional(),
-  remark1: z.string().optional(),
-  remark2: z.string().optional(),
-  statusId: z.number().optional(),
-
-  gstId: z.number().optional(),
-  totalAmt: z.number().optional(),
-  totalLocalAmt: z.number().optional(),
-  isActive: z.boolean().optional(),
-  isTaxable: z.boolean().optional(),
-  isClose: z.boolean().optional(),
-  isPost: z.boolean().optional(),
-  editVersion: z.string().optional(),
-  createById: z.number(),
-  createDate: z.date(),
-  editById: z.number().optional(),
-  editDate: z.date().optional(),
-  createBy: z.string().optional(),
-  editBy: z.string().optional(),
-})
+export const JobOrderHdSchema = z
+  .object({
+    jobOrderId: z.number(),
+    jobOrderNo: z.string().min(1, "Job Order No is required"),
+    jobOrderDate: z
+      .union([z.date(), z.string()])
+      .refine(
+        (val) => val !== null && val !== undefined && val !== "",
+        "Job Order Date is required"
+      ),
+    customerId: z.number().min(1, "Customer is required"),
+    currencyId: z.number().optional(),
+    exhRate: z.number().optional(),
+    vesselId: z.number().min(1, "Vessel is required"),
+    imoCode: z.string().optional(),
+    vesselDistance: z.number().min(0, "Vessel Distance must be 0 or greater"),
+    portId: z.number().min(1, "Port is required"),
+    lastPortId: z.number().optional(),
+    nextPortId: z.number().optional(),
+    voyageId: z.number().optional(),
+    natureOfCall: z.string().optional(),
+    isps: z.string().optional(),
+    etaDate: z.union([z.date(), z.string()]).optional(),
+    etdDate: z.union([z.date(), z.string()]).optional(),
+    ownerName: z.string().optional(),
+    ownerAgent: z.string().optional(),
+    masterName: z.string().optional(),
+    charters: z.string().optional(),
+    chartersAgent: z.string().optional(),
+    invoiceId: z.number().optional(),
+    invoiceNo: z.string().optional(),
+    invoiceDate: z.union([z.date(), z.string()]).optional(),
+    seriesDate: z.union([z.date(), z.string()]).optional(),
+    addressId: z.number().optional(),
+    contactId: z.number().optional(),
+    remarks: z.string().optional(),
+    statusId: z.number().min(1, "Status is required"),
+    gstId: z.number().optional(),
+    gstPercentage: z.number().optional(),
+    isActive: z.boolean().optional(),
+    isTaxable: z.boolean().optional(),
+    isClose: z.boolean().optional(),
+    isPost: z.boolean().optional(),
+    editVersion: z.string().optional(),
+  })
+  .refine(
+    (data) => {
+      // If isTaxable is true, gstId is required
+      if (data.isTaxable && (!data.gstId || data.gstId === 0)) {
+        return false
+      }
+      return true
+    },
+    {
+      message: "GST is required when taxable is enabled",
+      path: ["gstId"],
+    }
+  )
 
 export type JobOrderHdFormValues = z.infer<typeof JobOrderHdSchema>
 
@@ -538,8 +538,7 @@ export const DebitNoteDtSchema = z.object({
   glName: z.string().default(""),
   qty: z.number().min(0, "Quantity must be 0 or greater").default(0),
   unitPrice: z.number().min(0, "Unit price must be 0 or greater").default(0),
-  amtLocal: z.number().default(0),
-  amt: z.number().min(0, "Amount must be 0 or greater").default(0),
+  totLocalAmt: z.number().default(0),
   totAmt: z.number().min(0, "Total amount must be 0 or greater").default(0),
   gstId: z.number().min(1, "GST ID is required"),
   gstName: z.string().default(""),

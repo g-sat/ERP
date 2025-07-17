@@ -1,6 +1,5 @@
 export interface IJobOrderHd {
   jobOrderId: number
-  companyId: number
   jobOrderNo?: string
   jobOrderDate?: Date | string
   customerId?: number
@@ -12,7 +11,7 @@ export interface IJobOrderHd {
   exhRate?: number
   vesselId: number
   vesselName?: string
-  imoNo?: string
+  imoCode?: string
   vesselDistance?: number
   portId?: number
   portName?: string
@@ -24,8 +23,8 @@ export interface IJobOrderHd {
   voyageNo?: string
   natureOfCall?: string
   isps?: string
-  etaDate?: Date
-  etdDate?: Date
+  etaDate?: Date | string
+  etdDate?: Date | string
   ownerName?: string
   ownerAgent?: string
   masterName?: string
@@ -33,26 +32,24 @@ export interface IJobOrderHd {
   chartersAgent?: string
   invoiceId?: number
   invoiceNo?: string
-  invoiceDate?: Date
-  seriesDate?: Date
+  invoiceDate?: Date | string
+  seriesDate?: Date | string
   addressId?: number
   contactId?: number
-  remark1?: string
-  remark2?: string
+  remarks?: string
   statusId?: number
   statusName?: string
   gstId?: number
-  totalAmt?: number
-  totalLocalAmt?: number
+  gstPercentage?: number
   isActive?: boolean
   isTaxable?: boolean
   isClose?: boolean
   isPost?: boolean
   editVersion?: string
-  createById: number
-  createDate: Date
+  createById?: number
+  createDate?: Date | string
   editById?: number
-  editDate?: Date
+  editDate?: Date | string
   createBy?: string
   editBy?: string
 }
@@ -788,8 +785,7 @@ export interface IDebitNoteDt {
   glName?: string
   qty: number
   unitPrice: number
-  amtLocal: number
-  amt: number
+  totLocalAmt: number
   totAmt: number
   gstId: number
   gstName?: string
@@ -818,4 +814,12 @@ export interface ITaskDetails {
   landingItems: number
   otherService: number
   agencyRemuneration: number
+  visaService: number
+}
+
+export interface IDebitNoteData {
+  multipleId: string
+  taskId: number
+  jobOrderId: number
+  debitNoteNo: string
 }

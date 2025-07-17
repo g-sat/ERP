@@ -152,6 +152,7 @@ export const Lookup = {
   getServiceTypeCategory: "/master/getservicetypecategorylookup",
   getDepartment: "/master/getdepartmentlookup",
   getCustomer: "/master/getcustomerlookup",
+  getCompanyCustomer: "/master/getcompanycustomerlookup",
   getCreditTerm: "/master/getcredittermslookup",
   getBank: "/master/getbanklookup",
   getJobOrder: "/master/getjoborderlookup",
@@ -200,6 +201,7 @@ export const Lookup = {
   getModeType: "/master/getmodetypelookup",
   getConsignmentType: "/master/getconsignmenttypelookup",
   getCarrierType: "/master/getcarriertypelookup",
+  getCompany: "/master/getcompanylookup",
 }
 
 //Master Endpoints
@@ -858,6 +860,18 @@ export const JobOrder = {
   getTaskCount: "/project/gettaskcount",
 }
 
+// Tariff Endpoints
+export const Tariff = {
+  getById: "/project/gettariffbyid",
+  add: "/project/savetariff",
+  delete: "/project/deletetariff",
+  getTariffCount: "/project/gettariffcount",
+  getTariffList: "/project/gettarifflist",
+  getTariffByTask: "/project/gettariffbytask",
+  copy: "/project/copytariff",
+  copyCompanyTariff: "/project/copycompanytariff",
+}
+
 // Port Expenses Endpoints
 export const JobOrder_PortExpenses = {
   get: "/project/getportexpenses",
@@ -985,6 +999,7 @@ export const JobOrder_DebitNote = {
   delete: "/project/deletedebitnote",
   getDetails: "/project/getdebitnotedetails",
   saveDetails: "/project/savedebitnotedetails",
+  deleteDetails: "/project/deletedebitnotedetails",
 }
 
 // HRMS API Routes

@@ -53,7 +53,7 @@ interface LaunchServiceTableProps {
   onDeleteLaunchService?: (launchServiceId: string) => void
   onEditLaunchService?: (launchService: ILaunchService) => void
   onCreateLaunchService?: () => void
-  onDebitNote?: (launchServiceId: string) => void
+  onDebitNote?: (launchServiceId: string, debitNoteNo?: string) => void
   onPurchase?: (launchServiceId: string) => void
   onRefresh?: () => void
   onFilterChange?: (filters: ILaunchServiceFilter) => void
@@ -142,40 +142,15 @@ export function LaunchServiceTable({
     }
   }, [selectedRowIds, onCombinedService])
 
-  // Handle debit note with validation
-  const handleDebitNote = useCallback(() => {
-    console.log("Debit Note clicked - Selected Row IDs:", selectedRowIds)
-
-    if (selectedRowIds.length === 0) {
-      console.log("No items selected for Debit Note")
-      return
-    }
-
-    // Check if any selected item has debitNoteId > 0
-    const selectedIndices = Object.keys(rowSelection)
-    const selectedRows = data.filter((_, index) =>
-      selectedIndices.includes(index.toString())
-    )
-
-    const hasInvalidDebitNoteIds = selectedRows.some(
-      (row) => row.debitNoteId && row.debitNoteId > 0
-    )
-
-    if (hasInvalidDebitNoteIds) {
-      console.log(
-        "Some selected items have valid Debit Note IDs - showing toastr"
-      )
-      // You can add toastr notification here
-      return
-    }
-
-    console.log(
-      "All selected items have zero Debit Note IDs - proceeding with Debit Note"
-    )
-    if (onDebitNote) {
-      onDebitNote(selectedRowIds[0])
-    }
-  }, [selectedRowIds, rowSelection, data, onDebitNote])
+  // Wrapper function for TableActionsProject onDebitNote callback
+  const handleDebitNoteFromActions = useCallback(
+    (id: string) => {
+      if (onDebitNote) {
+        onDebitNote(id, "")
+      }
+    },
+    [onDebitNote]
+  )
 
   const { data: gridSettings } = useGetGridLayout(
     moduleId?.toString() || "",
@@ -205,7 +180,7 @@ export function LaunchServiceTable({
               onView={onLaunchServiceSelect}
               onEdit={onEditLaunchService}
               onDelete={onDeleteLaunchService}
-              onDebitNote={onDebitNote}
+              onDebitNote={handleDebitNoteFromActions}
               onPurchase={onPurchase}
               onSelect={(_, checked) => {
                 // Handle row selection for checkbox
@@ -739,11 +714,16 @@ export function LaunchServiceTable({
         moduleId={moduleId || 1}
         transactionId={transactionId || 1}
         onCombinedService={handleCombinedService}
-        onDebitNote={handleDebitNote}
+        onDebitNote={(debitNoteNo, selectedIds) => {
+          if (selectedIds && selectedIds.length > 0 && onDebitNote) {
+            onDebitNote(selectedIds.join(","), debitNoteNo || "")
+          }
+        }}
         hasSelectedRows={hasSelectedRows}
         selectedRowsCount={selectedRowsCount}
         hasValidDebitNoteIds={hasValidDebitNoteIds}
         isConfirmed={isConfirmed}
+        selectedRowIds={selectedRowIds}
       />
 
       <DndContext
