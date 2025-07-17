@@ -301,12 +301,12 @@ export function ServiceTypeCategoryTable({
       const newIndex = table
         .getAllColumns()
         .findIndex((col) => col.id === over.id)
-      const newColumnService = arrayMove(
+      const newColumnOrder = arrayMove(
         table.getAllColumns(),
         oldIndex,
         newIndex
       )
-      table.setColumnOrder(newColumnService.map((col) => col.id))
+      table.setColumnOrder(newColumnOrder.map((col) => col.id))
     }
   }
 
@@ -314,7 +314,7 @@ export function ServiceTypeCategoryTable({
     if (gridSettings) {
       try {
         const colVisible = JSON.parse(gridSettings.grdColVisible || "{}")
-        const colOrder = JSON.parse(gridSettings.grdColService || "[]")
+        const colOrder = JSON.parse(gridSettings.grdColOrder || "[]")
         const colSize = JSON.parse(gridSettings.grdColSize || "{}")
         const sort = JSON.parse(gridSettings.grdSort || "[]")
 

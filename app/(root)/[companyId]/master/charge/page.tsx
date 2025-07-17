@@ -36,6 +36,7 @@ import { ChargesTable } from "./components/charge-table"
 export default function ChargePage() {
   const params = useParams()
   const companyId = params.companyId as string
+  console.log("companyId in charge page", companyId)
   const moduleId = ModuleId.master
   const transactionId = MasterTransactionId.charge
 
@@ -213,7 +214,7 @@ export default function ChargePage() {
         console.log("Processed chargeData:", chargeData)
 
         if (chargeData) {
-          const validChargeData: ICharge = {
+          const validChargeData: ChargeFormValues = {
             chargeId: chargeData.chargeId,
             chargeCode: chargeData.chargeCode,
             chargeName: chargeData.chargeName,
@@ -223,17 +224,10 @@ export default function ChargePage() {
             glId: chargeData.glId || 0,
             remarks: chargeData.remarks || "",
             isActive: chargeData.isActive ?? true,
-            companyId: chargeData.companyId,
-            createById: chargeData.createById || 0,
-            editById: chargeData.editById || 0,
-            createBy: chargeData.createBy,
-            editBy: chargeData.editBy,
-            createDate: chargeData.createDate,
-            editDate: chargeData.editDate,
           }
 
           console.log("Setting existing charge:", validChargeData)
-          setExistingCharge(validChargeData)
+          setExistingCharge(validChargeData as ICharge)
           setShowLoadDialog(true)
         }
       }

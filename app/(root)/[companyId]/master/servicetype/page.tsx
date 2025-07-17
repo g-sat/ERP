@@ -487,7 +487,7 @@ export default function ServiceTypePage() {
     <div className="@container flex flex-1 flex-col gap-6 p-6">
       <div className="flex flex-col justify-between gap-4 @md/main:flex-row @md/main:items-center">
         <div className="space-y-1">
-          <h1 className="text-3xl font-bold tracking-tight">Order Type</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Service Type</h1>
           <p className="text-muted-foreground text-sm">
             Manage service type information and settings
           </p>
@@ -496,9 +496,9 @@ export default function ServiceTypePage() {
 
       <Tabs defaultValue="servicetype" className="space-y-4">
         <TabsList>
-          <TabsTrigger value="servicetype">Order Type</TabsTrigger>
+          <TabsTrigger value="servicetype">Service Type</TabsTrigger>
           <TabsTrigger value="servicetypecategory">
-            Order Type Category
+            Service Type Category
           </TabsTrigger>
         </TabsList>
 
@@ -630,7 +630,7 @@ export default function ServiceTypePage() {
         </TabsContent>
       </Tabs>
 
-      {/* Order Type Form Dialog */}
+      {/* Service Type Form Dialog */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogContent
           className="sm:max-w-2xl"
@@ -638,9 +638,9 @@ export default function ServiceTypePage() {
         >
           <DialogHeader>
             <DialogTitle>
-              {modalMode === "create" && "Create Order Type"}
-              {modalMode === "edit" && "Update Order Type"}
-              {modalMode === "view" && "View Order Type"}
+              {modalMode === "create" && "Create Service Type"}
+              {modalMode === "edit" && "Update Service Type"}
+              {modalMode === "view" && "View Service Type"}
             </DialogTitle>
             <DialogDescription>
               {modalMode === "create"
@@ -664,7 +664,7 @@ export default function ServiceTypePage() {
         </DialogContent>
       </Dialog>
 
-      {/* Order Type Category Form Dialog */}
+      {/* Service Type Category Form Dialog */}
       <Dialog open={isCategoryModalOpen} onOpenChange={setIsCategoryModalOpen}>
         <DialogContent
           className="sm:max-w-2xl"
@@ -672,9 +672,9 @@ export default function ServiceTypePage() {
         >
           <DialogHeader>
             <DialogTitle>
-              {modalMode === "create" && "Create Order Type Category"}
-              {modalMode === "edit" && "Update Order Type Category"}
-              {modalMode === "view" && "View Order Type Category"}
+              {modalMode === "create" && "Create Service Type Category"}
+              {modalMode === "edit" && "Update Service Type Category"}
+              {modalMode === "view" && "View Service Type Category"}
             </DialogTitle>
             <DialogDescription>
               {modalMode === "create"
@@ -708,7 +708,7 @@ export default function ServiceTypePage() {
         onCancel={() => setExistingServiceType(null)}
         code={existingServiceType?.serviceTypeCode}
         name={existingServiceType?.serviceTypeName}
-        typeLabel="Order Type"
+        typeLabel="Service Type"
         isLoading={saveMutation.isPending || updateMutation.isPending}
       />
 
@@ -719,7 +719,7 @@ export default function ServiceTypePage() {
         onCancel={() => setExistingServiceTypeCategory(null)}
         code={existingServiceTypeCategory?.serviceTypeCategoryCode}
         name={existingServiceTypeCategory?.serviceTypeCategoryName}
-        typeLabel="Order Type Category"
+        typeLabel="Service Type Category"
         isLoading={
           saveCategoryMutation.isPending || updateCategoryMutation.isPending
         }
