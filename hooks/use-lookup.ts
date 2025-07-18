@@ -633,7 +633,7 @@ export const useCustomerLookup = () => {
 
 export const useSupplierLookup = () => {
   return useQuery<ISupplierLookup[]>({
-    queryKey: ["customer-lookup"],
+    queryKey: ["supplier-lookup"],
     ...defaultQueryConfig,
     queryFn: async () => {
       try {

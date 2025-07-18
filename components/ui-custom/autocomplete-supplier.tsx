@@ -45,12 +45,20 @@ export default function SupplierAutocomplete<
   onChangeEvent?: (selectedOption: ISupplierLookup | null) => void
 }) {
   const { data: suppliers = [], isLoading } = useSupplierLookup()
+
   // Memoize options to prevent unnecessary recalculations
   const options: FieldOption[] = React.useMemo(() => {
-    const allOptions = suppliers.map((supplier: ISupplierLookup) => ({
-      value: supplier.supplierId.toString(),
-      label: supplier.supplierName,
-    }))
+    const allOptions = suppliers
+      .filter(
+        (supplier: ISupplierLookup) =>
+          supplier &&
+          supplier.supplierId != null &&
+          supplier.supplierName != null
+      )
+      .map((supplier: ISupplierLookup) => ({
+        value: String(supplier.supplierId),
+        label: String(supplier.supplierName),
+      }))
 
     // Get current selected value
     const currentValue = form && name ? form.getValues(name)?.toString() : null
@@ -240,7 +248,9 @@ export default function SupplierAutocomplete<
         const selectedSupplier = selectedOption
           ? suppliers.find(
               (u: ISupplierLookup) =>
-                u.supplierId.toString() === selectedOption.value
+                u &&
+                u.supplierId != null &&
+                String(u.supplierId) === selectedOption.value
             ) || null
           : null
         onChangeEvent(selectedSupplier)
