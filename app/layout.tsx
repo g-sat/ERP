@@ -16,14 +16,14 @@ const META_THEME_COLORS = {
 }
 
 const siteConfig = {
-  name: "ERP",
-  url: "https://erp.com",
-  ogImage: "https://erp.com/og.jpg",
+  name: "AHHA ERP System",
+  url: "https://ahha-erp.com",
+  ogImage: "https://ahha-erp.com/og.jpg",
   description:
-    "A set of beautifully-designed, accessible components and a code distribution platform. Works with your favorite frameworks. Open Source. Open Code.",
+    "Comprehensive Enterprise Resource Planning system for shipping, logistics, and maritime operations. Streamline your business processes with integrated modules for accounting, project management, and document control.",
   links: {
-    twitter: "https://twitter.com/erp",
-    github: "https://github.com/erp",
+    twitter: "https://twitter.com/ahha_erp",
+    github: "https://github.com/ahha-erp",
   },
 }
 
@@ -34,32 +34,37 @@ export const metadata: Metadata = {
     default: siteConfig.name,
     template: `%s - ${siteConfig.name}`,
   },
-  metadataBase: new URL("https://v4.shadcn.com"),
+  metadataBase: new URL(siteConfig.url),
   description: siteConfig.description,
   keywords: [
-    "Next.js",
-    "React",
-    "Tailwind CSS",
-    "Server Components",
-    "Radix UI",
+    "ERP",
+    "Enterprise Resource Planning",
+    "Shipping Management",
+    "Logistics",
+    "Maritime Operations",
+    "Accounting",
+    "Project Management",
+    "Document Control",
+    "Business Management",
+    "Supply Chain",
   ],
   authors: [
     {
-      name: "shadcn",
-      url: "https://shadcn.com",
+      name: "AHHA Technologies",
+      url: "https://ahha-erp.com",
     },
   ],
-  creator: "shadcn",
+  creator: "AHHA Technologies",
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: "https://v4.shadcn.com",
+    url: siteConfig.url,
     title: siteConfig.name,
     description: siteConfig.description,
     siteName: siteConfig.name,
     images: [
       {
-        url: "https://v4.shadcn.com/opengraph-image.png",
+        url: siteConfig.ogImage,
         width: 1200,
         height: 630,
         alt: siteConfig.name,
@@ -70,19 +75,19 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: siteConfig.name,
     description: siteConfig.description,
-    images: ["https://v4.shadcn.com/opengraph-image.png"],
-    creator: "@shadcn",
+    images: [siteConfig.ogImage],
+    creator: "@ahha_erp",
   },
   icons: {
     icon: "/favicon.ico",
     shortcut: "/favicon-16x16.png",
     apple: "/apple-touch-icon.png",
   },
-  manifest: "/site.webmanifest",
+  manifest: `${siteConfig.url}/site.webmanifest`,
 }
 
 export const viewport: Viewport = {
-  themeColor: META_THEME_COLORS.dark,
+  themeColor: META_THEME_COLORS.light,
 }
 
 export default async function RootLayout({

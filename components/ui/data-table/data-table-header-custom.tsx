@@ -60,6 +60,7 @@ type TableHeaderProps<TData> = {
   moduleId?: number
   transactionId?: number
   companyId: string
+  isLoading?: boolean // Add loading state prop
 }
 
 export function TableHeaderCustom<TData>({
@@ -72,6 +73,7 @@ export function TableHeaderCustom<TData>({
   moduleId,
   transactionId,
   companyId,
+  isLoading = false, // Default to false
 }: TableHeaderProps<TData>) {
   const [columnSearch, setColumnSearch] = useState("")
   const [activeButton, setActiveButton] = useState<"show" | "hide" | null>(null)
@@ -195,8 +197,13 @@ export function TableHeaderCustom<TData>({
     <div className="mb-4 flex items-center justify-between">
       <div className="flex items-center gap-2">
         {/* Refresh Button */}
-        <Button variant="outline" size="icon" onClick={onRefresh}>
-          <RefreshCw className="h-4 w-4" />
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={onRefresh}
+          disabled={isLoading}
+        >
+          <RefreshCw className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`} />
         </Button>
         {/* Excel Export Button */}
         <Button

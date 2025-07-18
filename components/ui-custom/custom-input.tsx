@@ -59,7 +59,6 @@ export default function CustomInput<T extends Record<string, unknown>>({
           <FormItem>
             <FormControl>
               <Input
-                onKeyDown={e => { console.log('KeyDown:', e.key); handleKeyPress(e); }}
                 type={type}
                 placeholder={placeholder}
                 disabled={isDisabled}
@@ -88,6 +87,7 @@ export default function CustomInput<T extends Record<string, unknown>>({
                     onBlurEvent(e)
                   }
                 }}
+                onKeyDown={handleKeyPress}
               />
             </FormControl>
             <FormMessage />

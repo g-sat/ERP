@@ -63,7 +63,6 @@ const CustomNumberInputCellRefs = forwardRef<
             return (
               <FormItem className={cn("flex flex-col", className)}>
                 <NumericFormat
-                  onFocus={(e) => { console.log('Focused Quantity/Bill Quantity'); if (onFocus) onFocus(e); }}
                   value={value ?? ""}
                   onValueChange={(values) => {
                     const { floatValue } = values
@@ -89,6 +88,7 @@ const CustomNumberInputCellRefs = forwardRef<
                     }
                   }}
                   onKeyDown={onKeyDown}
+                  onFocus={onFocus}
                   decimalScale={round}
                   fixedDecimalScale={true}
                   allowLeadingZeros={true}

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react"
 import {
   calculateMultiplierAmount,
   calculatePercentagecAmount,
+  handleGstPercentageChange,
   mathRound,
 } from "@/helpers/account"
 import {
@@ -175,59 +176,48 @@ export default function InvoiceDetailsTable({
       Array.isArray(data_details) &&
       data_details.length > 0
     ) {
-      // Ensure unique IDs for each row
-      const usedIds = new Set<string>()
-      const validData = data_details.map((item) => {
-        // Always generate a new UUID for each row to guarantee uniqueness
-        const id = generateUUID()
-        if (usedIds.has(id)) {
-          // This should never happen, but log if it does
-          console.error("Duplicate row id detected in invoice-details-table! This will cause all rows to update together. Each row must have a unique id.")
-        }
-        usedIds.add(id)
-        return {
-          ...item,
-          id,
-          invoiceId: String(item.invoiceId || "0"),
-          invoiceNo: String(item.invoiceNo || ""),
-          itemNo: Number(item.itemNo || 0),
-          seqNo: Number(item.seqNo || 0),
-          docItemNo: Number(item.docItemNo || 0),
-          productId: Number(item.productId || 0),
-          glId: Number(item.glId || 0),
-          qty: Number(item.billQTY || 0), // CHANGED: Always set qty to billQTY
-          billQTY: Number(item.billQTY || 0),
-          uomId: Number(item.uomId || 0),
-          unitPrice: Number(item.unitPrice || 0),
-          totAmt: Number(item.totAmt || 0),
-          totLocalAmt: Number(item.totLocalAmt || 0),
-          totCtyAmt: Number(item.totCtyAmt || 0),
-          remarks: String(item.remarks || ""),
-          gstId: Number(item.gstId || 0),
-          gstPercentage: Number(item.gstPercentage || 0),
-          gstAmt: Number(item.gstAmt || 0),
-          gstLocalAmt: Number(item.gstLocalAmt || 0),
-          gstCtyAmt: Number(item.gstCtyAmt || 0),
-          deliveryDate: item.deliveryDate ? String(item.deliveryDate) : null,
-          departmentId: Number(item.departmentId || 0),
-          employeeId: Number(item.employeeId || 0),
-          portId: Number(item.portId || 0),
-          vesselId: Number(item.vesselId || 0),
-          bargeId: Number(item.bargeId || 0),
-          voyageId: Number(item.voyageId || 0),
-          operationId: String(item.operationId || "0"),
-          operationNo: String(item.operationNo || ""),
-          opRefNo: String(item.opRefNo || ""),
-          salesOrderId: String(item.salesOrderId || "0"),
-          salesOrderNo: String(item.salesOrderNo || ""),
-          supplyDate: item.supplyDate ? String(item.supplyDate) : null,
-          supplierName: String(item.supplierName || ""),
-          suppInvoiceNo: String(item.suppInvoiceNo || ""),
-          apInvoiceId: String(item.apInvoiceId || "0"),
-          apInvoiceNo: String(item.apInvoiceNo || ""),
-          editVersion: Number(item.editVersion || 0),
-        }
-      }) as InvoiceDetailRow[]
+      const validData = data_details.map((item) => ({
+        //id: crypto.randomUUID(),
+        id: generateUUID(),
+        invoiceId: String(item.invoiceId || "0"),
+        invoiceNo: String(item.invoiceNo || ""),
+        itemNo: Number(item.itemNo || 0),
+        seqNo: Number(item.seqNo || 0),
+        docItemNo: Number(item.docItemNo || 0),
+        productId: Number(item.productId || 0),
+        glId: Number(item.glId || 0),
+        qty: Number(item.qty || 0),
+        billQTY: Number(item.billQTY || 0),
+        uomId: Number(item.uomId || 0),
+        unitPrice: Number(item.unitPrice || 0),
+        totAmt: Number(item.totAmt || 0),
+        totLocalAmt: Number(item.totLocalAmt || 0),
+        totCtyAmt: Number(item.totCtyAmt || 0),
+        remarks: String(item.remarks || ""),
+        gstId: Number(item.gstId || 0),
+        gstPercentage: Number(item.gstPercentage || 0),
+        gstAmt: Number(item.gstAmt || 0),
+        gstLocalAmt: Number(item.gstLocalAmt || 0),
+        gstCtyAmt: Number(item.gstCtyAmt || 0),
+        deliveryDate: item.deliveryDate ? String(item.deliveryDate) : null,
+        departmentId: Number(item.departmentId || 0),
+        employeeId: Number(item.employeeId || 0),
+        portId: Number(item.portId || 0),
+        vesselId: Number(item.vesselId || 0),
+        bargeId: Number(item.bargeId || 0),
+        voyageId: Number(item.voyageId || 0),
+        operationId: String(item.operationId || "0"),
+        operationNo: String(item.operationNo || ""),
+        opRefNo: String(item.opRefNo || ""),
+        salesOrderId: String(item.salesOrderId || "0"),
+        salesOrderNo: String(item.salesOrderNo || ""),
+        supplyDate: item.supplyDate ? String(item.supplyDate) : null,
+        supplierName: String(item.supplierName || ""),
+        suppInvoiceNo: String(item.suppInvoiceNo || ""),
+        apInvoiceId: String(item.apInvoiceId || "0"),
+        apInvoiceNo: String(item.apInvoiceNo || ""),
+        editVersion: Number(item.editVersion || 0),
+      })) as InvoiceDetailRow[]
       setData(validData)
       validData.forEach((row) => {
         invoiceDetailForm.setValue(`itemNo-${row.id}`, row.itemNo || 0)
@@ -914,13 +904,11 @@ export default function InvoiceDetailsTable({
             form={invoiceDetailForm}
             name={`productId-${row.original.id}`}
             onChangeEvent={(selectedOption: IProductLookup | null) =>
-              setTimeout(() => {
-                updateData(
-                  row.original.id,
-                  "productId",
-                  selectedOption?.productId || 0
-                )
-              }, 0)
+              updateData(
+                row.original.id,
+                "productId",
+                selectedOption?.productId || 0
+              )
             }
           />
         </div>
@@ -930,15 +918,13 @@ export default function InvoiceDetailsTable({
       accessorKey: "glId",
       header: "Chart Account",
       size: 200,
-      cell: ({ row }: { row: { original: InvoiceDetailRow } }) => (
+      cell: ({ row }) => (
         <div className="w-full">
           <ChartofAccountAutocomplete
             form={invoiceDetailForm}
             name={`glId-${row.original.id}`}
             onChangeEvent={(selectedOption: IChartofAccountLookup | null) =>
-              setTimeout(() => {
-                updateData(row.original.id, "glId", selectedOption?.glId || 0)
-              }, 0)
+              updateData(row.original.id, "glId", selectedOption?.glId || 0)
             }
           />
         </div>
@@ -955,10 +941,8 @@ export default function InvoiceDetailsTable({
               form={invoiceDetailForm}
               name={`remarks-${row.original.id}`}
               onBlurEvent={(e: React.FocusEvent<HTMLInputElement>) => {
-                setTimeout(() => {
-                  const value = e.target.value === undefined ? "" : e.target.value
-                  updateData(row.original.id, "remarks", value)
-                }, 0)
+                const value = e.target.value === undefined ? "" : e.target.value
+                updateData(row.original.id, "remarks", value)
               }}
             />
           </div>
@@ -976,18 +960,27 @@ export default function InvoiceDetailsTable({
           round={qtyDec}
           className="text-right"
           onBlurEvent={(e: React.FocusEvent<HTMLInputElement>) => {
-            setTimeout(() => {
-              const newQty = parseFloat(e.target.value) || 0
-              updateData(row.original.id, "qty", newQty)
-              updateData(row.original.id, "billQTY", newQty)
-              invoiceDetailForm.setValue(`billQTY-${row.original.id}`, newQty)
-              handleQtyOrPriceChange(
-                row.original.id,
-                "billQTY",
-                e.target.value || "0",
-                "billQTY"
-              )
-            }, 0)
+            const newQty = parseFloat(e.target.value) || 0
+            updateData(row.original.id, "qty", newQty)
+            updateData(row.original.id, "billQTY", newQty)
+            invoiceDetailForm.setValue(`billQTY-${row.original.id}`, newQty)
+            handleQtyOrPriceChange(
+              row.original.id,
+              "billQTY",
+              e.target.value || "0",
+              "billQTY"
+            )
+          }}
+          onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
+            if (e.key === "Tab" && !e.shiftKey) {
+              e.preventDefault()
+              const nextKey = `billQTY-${row.original.id}`
+              const nextRef = cellRefs.get(nextKey)
+              if (nextRef) {
+                nextRef.focus()
+                nextRef.select()
+              }
+            }
           }}
         />
       ),
@@ -1003,15 +996,30 @@ export default function InvoiceDetailsTable({
           round={qtyDec}
           className="text-right"
           onBlurEvent={(e: React.FocusEvent<HTMLInputElement>) =>
-            setTimeout(() => {
-              handleQtyOrPriceChange(
-                row.original.id,
-                "billQTY",
-                e.target.value,
-                "unitPrice"
-              )
-            }, 0)
+            handleQtyOrPriceChange(
+              row.original.id,
+              "billQTY",
+              e.target.value,
+              "unitPrice"
+            )
           }
+          onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
+            if (e.key === "Tab" && !e.shiftKey) {
+              e.preventDefault()
+              const nextKey = `uomId-${row.original.id}`
+              const nextRef = cellRefs.get(nextKey)
+              if (nextRef) {
+                nextRef.focus()
+                nextRef.select()
+              }
+            }
+          }}
+          onFocus={(e: React.FocusEvent<HTMLInputElement>) => e.target.select()}
+          ref={(el) => {
+            const key = `billQTY-${row.original.id}`
+            if (el) cellRefs.set(key, el)
+            else cellRefs.delete(key)
+          }}
         />
       ),
     },
@@ -1019,15 +1027,13 @@ export default function InvoiceDetailsTable({
       accessorKey: "uomId",
       header: "UOM",
       size: 150,
-      cell: ({ row }: { row: { original: InvoiceDetailRow } }) => (
+      cell: ({ row }) => (
         <div className="w-full">
           <UomAutocomplete
             form={invoiceDetailForm}
             name={`uomId-${row.original.id}`}
             onChangeEvent={(selectedOption: IUomLookup | null) =>
-              setTimeout(() => {
-                updateData(row.original.id, "uomId", selectedOption?.uomId || 0)
-              }, 0)
+              updateData(row.original.id, "uomId", selectedOption?.uomId || 0)
             }
           />
         </div>
@@ -1044,15 +1050,30 @@ export default function InvoiceDetailsTable({
           round={priceDec}
           className="text-right"
           onBlurEvent={(e: React.FocusEvent<HTMLInputElement>) =>
-            setTimeout(() => {
-              handleQtyOrPriceChange(
-                row.original.id,
-                "unitPrice",
-                e.target.value,
-                "totAmt"
-              )
-            }, 0)
+            handleQtyOrPriceChange(
+              row.original.id,
+              "unitPrice",
+              e.target.value,
+              "totAmt"
+            )
           }
+          onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
+            if (e.key === "Tab") {
+              e.preventDefault()
+              const nextKey = `totAmt-${row.original.id}`
+              const nextRef = cellRefs.get(nextKey)
+              if (nextRef) {
+                nextRef.focus()
+                nextRef.select()
+              }
+            }
+          }}
+          onFocus={(e: React.FocusEvent<HTMLInputElement>) => e.target.select()}
+          ref={(el) => {
+            const key = `unitPrice-${row.original.id}`
+            if (el) cellRefs.set(key, el)
+            else cellRefs.delete(key)
+          }}
         />
       ),
     },
@@ -1066,9 +1087,24 @@ export default function InvoiceDetailsTable({
           name={`totAmt-${row.original.id}`}
           round={amtDec}
           className="text-right"
-          onBlurEvent={() => setTimeout(() => {
-            handleTotalAmountChange(row.original.id)
-          }, 0)}
+          onBlurEvent={() => handleTotalAmountChange(row.original.id)}
+          onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
+            if (e.key === "Tab") {
+              e.preventDefault()
+              const nextKey = `totLocalAmt-${row.original.id}`
+              const nextRef = cellRefs.get(nextKey)
+              if (nextRef) {
+                nextRef.focus()
+                nextRef.select()
+              }
+            }
+          }}
+          onFocus={(e: React.FocusEvent<HTMLInputElement>) => e.target.select()}
+          ref={(el) => {
+            const key = `totAmt-${row.original.id}`
+            if (el) cellRefs.set(key, el)
+            else cellRefs.delete(key)
+          }}
         />
       ),
     },
@@ -1082,9 +1118,24 @@ export default function InvoiceDetailsTable({
           name={`totLocalAmt-${row.original.id}`}
           round={amtDec}
           className="text-right"
-          onBlurEvent={(e: React.FocusEvent<HTMLInputElement>) => setTimeout(() => {
-            updateData(row.original.id, "totLocalAmt", parseFloat(e.target.value) || 0)
-          }, 0)}
+          onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
+            if (e.key === "Tab") {
+              e.preventDefault()
+              const nextKey = `totCtyAmt-${row.original.id}`
+              const nextRef = cellRefs.get(nextKey)
+              if (nextRef) {
+                nextRef.focus()
+                nextRef.select()
+              }
+            }
+          }}
+          onFocus={(e: React.FocusEvent<HTMLInputElement>) => e.target.select()}
+          ref={(el) => {
+            const key = `totLocalAmt-${row.original.id}`
+            if (el) cellRefs.set(key, el)
+            else cellRefs.delete(key)
+          }}
+          isDisabled={true}
         />
       ),
     },
@@ -1098,9 +1149,24 @@ export default function InvoiceDetailsTable({
           name={`totCtyAmt-${row.original.id}`}
           round={ctyAmtDec}
           className="text-right"
-          onBlurEvent={(e: React.FocusEvent<HTMLInputElement>) => setTimeout(() => {
-            updateData(row.original.id, "totCtyAmt", parseFloat(e.target.value) || 0)
-          }, 0)}
+          onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
+            if (e.key === "Tab") {
+              e.preventDefault()
+              const nextKey = `gstId-${row.original.id}`
+              const nextRef = cellRefs.get(nextKey)
+              if (nextRef) {
+                nextRef.focus()
+                nextRef.select()
+              }
+            }
+          }}
+          onFocus={(e: React.FocusEvent<HTMLInputElement>) => e.target.select()}
+          ref={(el) => {
+            const key = `totCtyAmt-${row.original.id}`
+            if (el) cellRefs.set(key, el)
+            else cellRefs.delete(key)
+          }}
+          isDisabled={true}
         />
       ),
     },
@@ -1203,9 +1269,26 @@ export default function InvoiceDetailsTable({
           name={`gstPercentage-${row.original.id}`}
           round={priceDec}
           className="text-right"
-          onBlurEvent={(e: React.FocusEvent<HTMLInputElement>) => setTimeout(() => {
-            updateData(row.original.id, "gstPercentage", parseFloat(e.target.value) || 0)
-          }, 0)}
+          onBlurEvent={() =>
+            handleGstPercentageChange(
+              form,
+              invoiceDetailForm,
+              decimals[0],
+              visible
+            )
+          }
+          onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
+            if (e.key === "Tab") {
+              e.preventDefault()
+              const nextKey = `gstAmt-${row.original.id}`
+              const nextRef = cellRefs.get(nextKey)
+              if (nextRef) {
+                nextRef.focus()
+                nextRef.select()
+              }
+            }
+          }}
+          onFocus={(e: React.FocusEvent<HTMLInputElement>) => e.target.select()}
         />
       ),
     },
@@ -1219,9 +1302,23 @@ export default function InvoiceDetailsTable({
           name={`gstAmt-${row.original.id}`}
           round={amtDec}
           className="text-right"
-          onBlurEvent={(e: React.FocusEvent<HTMLInputElement>) => setTimeout(() => {
-            updateData(row.original.id, "gstAmt", parseFloat(e.target.value) || 0)
-          }, 0)}
+          onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
+            if (e.key === "Tab") {
+              e.preventDefault()
+              const nextKey = `gstLocalAmt-${row.original.id}`
+              const nextRef = cellRefs.get(nextKey)
+              if (nextRef) {
+                nextRef.focus()
+                nextRef.select()
+              }
+            }
+          }}
+          onFocus={(e: React.FocusEvent<HTMLInputElement>) => e.target.select()}
+          ref={(el) => {
+            const key = `gstAmt-${row.original.id}`
+            if (el) cellRefs.set(key, el)
+            else cellRefs.delete(key)
+          }}
         />
       ),
     },
@@ -1235,9 +1332,24 @@ export default function InvoiceDetailsTable({
           name={`gstLocalAmt-${row.original.id}`}
           round={amtDec}
           className="text-right"
-          onBlurEvent={(e: React.FocusEvent<HTMLInputElement>) => setTimeout(() => {
-            updateData(row.original.id, "gstLocalAmt", parseFloat(e.target.value) || 0)
-          }, 0)}
+          onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
+            if (e.key === "Tab") {
+              e.preventDefault()
+              const nextKey = `gstCtyAmt-${row.original.id}`
+              const nextRef = cellRefs.get(nextKey)
+              if (nextRef) {
+                nextRef.focus()
+                nextRef.select()
+              }
+            }
+          }}
+          onFocus={(e: React.FocusEvent<HTMLInputElement>) => e.target.select()}
+          ref={(el) => {
+            const key = `gstLocalAmt-${row.original.id}`
+            if (el) cellRefs.set(key, el)
+            else cellRefs.delete(key)
+          }}
+          isDisabled={true}
         />
       ),
     },
@@ -1251,9 +1363,24 @@ export default function InvoiceDetailsTable({
           name={`gstCtyAmt-${row.original.id}`}
           round={ctyAmtDec}
           className="text-right"
-          onBlurEvent={(e: React.FocusEvent<HTMLInputElement>) => setTimeout(() => {
-            updateData(row.original.id, "gstCtyAmt", parseFloat(e.target.value) || 0)
-          }, 0)}
+          onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
+            if (e.key === "Tab") {
+              e.preventDefault()
+              const nextKey = `deliveryDate-${row.original.id}`
+              const nextRef = cellRefs.get(nextKey)
+              if (nextRef) {
+                nextRef.focus()
+                nextRef.select()
+              }
+            }
+          }}
+          onFocus={(e: React.FocusEvent<HTMLInputElement>) => e.target.select()}
+          ref={(el) => {
+            const key = `gstCtyAmt-${row.original.id}`
+            if (el) cellRefs.set(key, el)
+            else cellRefs.delete(key)
+          }}
+          isDisabled={true}
         />
       ),
     },
@@ -1267,13 +1394,11 @@ export default function InvoiceDetailsTable({
           form={invoiceDetailForm}
           name={`departmentId-${row.original.id}`}
           onChangeEvent={(selectedOption: IDepartmentLookup | null) =>
-            setTimeout(() => {
-              updateData(
-                row.original.id,
-                "departmentId",
-                selectedOption?.departmentId || 0
-              )
-            }, 0)
+            updateData(
+              row.original.id,
+              "departmentId",
+              selectedOption?.departmentId || 0
+            )
           }
         />
       ),
@@ -1287,13 +1412,11 @@ export default function InvoiceDetailsTable({
           form={invoiceDetailForm}
           name={`employeeId-${row.original.id}`}
           onChangeEvent={(selectedOption: IEmployeeLookup | null) =>
-            setTimeout(() => {
-              updateData(
-                row.original.id,
-                "employeeId",
-                selectedOption?.employeeId || 0
-              )
-            }, 0)
+            updateData(
+              row.original.id,
+              "employeeId",
+              selectedOption?.employeeId || 0
+            )
           }
         />
       ),
@@ -1307,9 +1430,7 @@ export default function InvoiceDetailsTable({
           form={invoiceDetailForm}
           name={`portId-${row.original.id}`}
           onChangeEvent={(selectedOption: IPortLookup | null) =>
-            setTimeout(() => {
-              updateData(row.original.id, "portId", selectedOption?.portId || 0)
-            }, 0)
+            updateData(row.original.id, "portId", selectedOption?.portId || 0)
           }
         />
       ),
@@ -1323,13 +1444,11 @@ export default function InvoiceDetailsTable({
           form={invoiceDetailForm}
           name={`vesselId-${row.original.id}`}
           onChangeEvent={(selectedOption: IVesselLookup | null) =>
-            setTimeout(() => {
-              updateData(
-                row.original.id,
-                "vesselId",
-                selectedOption?.vesselId || 0
-              )
-            }, 0)
+            updateData(
+              row.original.id,
+              "vesselId",
+              selectedOption?.vesselId || 0
+            )
           }
         />
       ),
@@ -1343,9 +1462,7 @@ export default function InvoiceDetailsTable({
           form={invoiceDetailForm}
           name={`bargeId-${row.original.id}`}
           onChangeEvent={(selectedOption: IBargeLookup | null) =>
-            setTimeout(() => {
-              updateData(row.original.id, "bargeId", selectedOption?.bargeId || 0)
-            }, 0)
+            updateData(row.original.id, "bargeId", selectedOption?.bargeId || 0)
           }
         />
       ),
@@ -1359,13 +1476,11 @@ export default function InvoiceDetailsTable({
           form={invoiceDetailForm}
           name={`voyageId-${row.original.id}`}
           onChangeEvent={(selectedOption: IVoyageLookup | null) =>
-            setTimeout(() => {
-              updateData(
-                row.original.id,
-                "voyageId",
-                selectedOption?.voyageId || 0
-              )
-            }, 0)
+            updateData(
+              row.original.id,
+              "voyageId",
+              selectedOption?.voyageId || 0
+            )
           }
         />
       ),

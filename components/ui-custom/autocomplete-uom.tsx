@@ -25,19 +25,7 @@ interface FieldOption {
   label: string
 }
 
-interface UomAutocompleteProps<T extends Record<string, unknown>> {
-  form: UseFormReturn<T>
-  name?: Path<T>
-  label?: string
-  className?: string
-  isDisabled?: boolean
-  isRequired?: boolean
-  onChangeEvent?: (selectedOption: IUomLookup | null) => void
-}
-
-export default function UomAutocomplete<
-  T extends Record<string, unknown>,
->({
+export default function UomAutocomplete<T extends Record<string, unknown>>({
   form,
   label,
   name,
@@ -45,7 +33,15 @@ export default function UomAutocomplete<
   className,
   isRequired = false,
   onChangeEvent,
-}: UomAutocompleteProps<T>) {
+}: {
+  form: UseFormReturn<T>
+  name?: Path<T>
+  label?: string
+  className?: string
+  isDisabled?: boolean
+  isRequired?: boolean
+  onChangeEvent?: (selectedOption: IUomLookup | null) => void
+}) {
   const { data: uoms = [], isLoading } = useUomLookup()
   // Memoize options to prevent unnecessary recalculations
   const options: FieldOption[] = React.useMemo(

@@ -153,8 +153,6 @@ export function LoginForm({
                 src={imageUrl}
                 alt="Image"
                 className="absolute inset-0 h-full w-full object-cover"
-                priority={true}
-                sizes="(min-width: 768px) 50vw, 100vw"
               />
             )}
           </div>

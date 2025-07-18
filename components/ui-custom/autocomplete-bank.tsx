@@ -226,7 +226,6 @@ export default function BankAutocomplete<T extends Record<string, unknown>>({
             return (
               <FormItem className={cn("flex flex-col", className)}>
                 <Select
-                  instanceId={name || "bank-select"}
                   options={options}
                   value={getValue()}
                   onChange={handleChange}
@@ -282,7 +281,6 @@ export default function BankAutocomplete<T extends Record<string, unknown>>({
         </div>
       )}
       <Select
-        instanceId={name || "bank-select"}
         options={options}
         onChange={handleChange}
         placeholder="Select Bank..."

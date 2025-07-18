@@ -228,7 +228,6 @@ export default function CreditTermAutocomplete<
             return (
               <FormItem className={cn("flex flex-col", className)}>
                 <Select
-                  instanceId={name || "creditterm-select"}
                   options={options}
                   value={getValue()}
                   onChange={handleChange}
@@ -284,7 +283,6 @@ export default function CreditTermAutocomplete<
         </div>
       )}
       <Select
-        instanceId={name || "creditterm-select"}
         options={options}
         onChange={handleChange}
         placeholder="Select CreditTerm..."

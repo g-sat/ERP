@@ -57,6 +57,34 @@ export default function CurrencyAutocomplete<
     [currencys]
   )
 
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLElement>) => {
+    if (event.key === "Tab" && !event.shiftKey) {
+      event.preventDefault()
+      const form = event.currentTarget.closest("form")
+      if (form) {
+        const focusableElements = form.querySelectorAll<HTMLElement>(
+          "button:not([disabled]), [href]:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([disabled]):not([tabindex='-1'])"
+        )
+
+        const currentElement = event.currentTarget
+        let currentIndex = -1
+        for (let i = 0; i < focusableElements.length; i++) {
+          if (focusableElements[i] === currentElement) {
+            currentIndex = i
+            break
+          }
+        }
+
+        if (currentIndex !== -1) {
+          const nextIndex = currentIndex + 1
+          if (nextIndex < focusableElements.length) {
+            focusableElements[nextIndex].focus()
+          }
+        }
+      }
+    }
+  }
+
   const DropdownIndicator = React.memo(
     (props: DropdownIndicatorProps<FieldOption>) => {
       return (
@@ -223,7 +251,6 @@ export default function CurrencyAutocomplete<
             return (
               <FormItem className={cn("flex flex-col", className)}>
                 <Select
-                  instanceId={name || "currency-select"}
                   options={options}
                   value={getValue()}
                   onChange={handleChange}
@@ -246,6 +273,7 @@ export default function CurrencyAutocomplete<
                   menuPosition="fixed"
                   isLoading={isLoading}
                   loadingMessage={() => "Loading currencies..."}
+                  onKeyDown={handleKeyDown}
                   tabIndex={0}
                 />
                 {showError && (
@@ -279,7 +307,6 @@ export default function CurrencyAutocomplete<
         </div>
       )}
       <Select
-        instanceId={name || "currency-select"}
         options={options}
         onChange={handleChange}
         placeholder="Select Currency..."
@@ -301,6 +328,7 @@ export default function CurrencyAutocomplete<
         menuPosition="fixed"
         isLoading={isLoading}
         loadingMessage={() => "Loading currencies..."}
+        onKeyDown={handleKeyDown}
         tabIndex={0}
       />
     </div>

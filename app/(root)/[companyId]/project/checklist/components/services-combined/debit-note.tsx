@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { IDebitNoteDt, IDebitNoteHd } from "@/interfaces/checklist"
+import { IDebitNoteDt, IDebitNoteHd, IJobOrderHd } from "@/interfaces/checklist"
 import { DebitNoteDtFormValues } from "@/schemas/checklist"
 import { toast } from "sonner"
 
@@ -20,12 +20,14 @@ import DebitNoteForm from "./debit-note-form"
 import DebitNoteTable from "./debit-note-table"
 
 const DebitNote = ({
+  jobData,
   taskId,
   debitNoteHd,
   isConfirmed,
   companyId,
   onDeleteDebitNote,
 }: {
+  jobData: IJobOrderHd
   taskId: number
   debitNoteHd?: IDebitNoteHd
   isConfirmed?: boolean
@@ -72,6 +74,7 @@ const DebitNote = ({
     try {
       // Prepare the data for the API call
       const debitNoteDetailData: IDebitNoteDt = {
+        companyId: jobData.companyId,
         debitNoteId: debitNoteHd.debitNoteId,
         debitNoteNo: debitNoteHd.debitNoteNo,
         itemNo: editingItem ? editingItem.itemNo : details.length + 1,

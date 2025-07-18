@@ -125,44 +125,19 @@ export async function GET(request: NextRequest) {
       "X-To-Date": toDate,
     }
 
-    console.log("📡 Making request to API with headers:", {
-      ...headers,
-      Authorization: headers.Authorization ? "Bearer [REDACTED]" : "",
-    })
+    //console.log("📡 Making request to API with headers:", {
+    //  ...headers,
+    //  Authorization: headers.Authorization ? "Bearer [REDACTED]" : "",
+    //})
 
     const response = await fetch(url, { headers })
-    console.log("📥 Response status:", response.status)
-    console.log("📥 Response headers:", Object.fromEntries(response.headers.entries()))
+    //console.log("📥 Response status:", response.status)
 
-    // Check if response is empty
-    const responseText = await response.text()
-    console.log("📥 Response text:", responseText)
+    const data = await response.json()
+    //console.log("✅ Request successful")
 
-    if (!responseText || responseText.trim() === "") {
-      console.warn("Empty response from API, returning empty data")
-      return NextResponse.json({ data: [], result: 0, message: "Empty response" })
-    }
-
-    // Try to parse as JSON
-    let data
-    try {
-      data = JSON.parse(responseText)
-    } catch (jsonError) {
-      console.error("Error parsing JSON from API:", jsonError)
-      console.error("Raw response:", responseText)
-      return NextResponse.json(
-        { 
-          data: [], 
-          result: 0, 
-          message: "Invalid JSON response from server",
-          error: jsonError instanceof Error ? jsonError.message : "JSON parse error"
-        },
-        { status: 500 }
-      )
-    }
-
-    console.log("✅ Request successful")
     setCachedResponse(url, data)
+
     return NextResponse.json(data)
   } catch (error) {
     return handleError(error)
@@ -188,35 +163,8 @@ export async function POST(request: NextRequest) {
       body: JSON.stringify(body),
     })
     console.log("📥 Response status:", response.status)
-    console.log("📥 Response headers:", Object.fromEntries(response.headers.entries()))
 
-    // Check if response is empty
-    const responseText = await response.text()
-    console.log("📥 Response text:", responseText)
-
-    if (!responseText || responseText.trim() === "") {
-      console.warn("Empty response from API, returning empty data")
-      return NextResponse.json({ data: [], result: 0, message: "Empty response" })
-    }
-
-    // Try to parse as JSON
-    let data
-    try {
-      data = JSON.parse(responseText)
-    } catch (jsonError) {
-      console.error("Error parsing JSON from API:", jsonError)
-      console.error("Raw response:", responseText)
-      return NextResponse.json(
-        { 
-          data: [], 
-          result: 0, 
-          message: "Invalid JSON response from server",
-          error: jsonError instanceof Error ? jsonError.message : "JSON parse error"
-        },
-        { status: 500 }
-      )
-    }
-
+    const data = await response.json()
     console.log("✅ Request successful")
     return NextResponse.json(data)
   } catch (error) {

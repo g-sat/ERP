@@ -25,19 +25,7 @@ interface FieldOption {
   label: string
 }
 
-interface ProductAutocompleteProps<T extends Record<string, unknown>> {
-  form: UseFormReturn<T>
-  name?: Path<T>
-  label?: string
-  className?: string
-  isDisabled?: boolean
-  isRequired?: boolean
-  onChangeEvent?: (selectedOption: IProductLookup | null) => void
-}
-
-export default function ProductAutocomplete<
-  T extends Record<string, unknown>,
->({
+export default function ProductAutocomplete<T extends Record<string, unknown>>({
   form,
   label,
   name,
@@ -45,7 +33,15 @@ export default function ProductAutocomplete<
   className,
   isRequired = false,
   onChangeEvent,
-}: ProductAutocompleteProps<T>) {
+}: {
+  form: UseFormReturn<T>
+  name?: Path<T>
+  label?: string
+  className?: string
+  isDisabled?: boolean
+  isRequired?: boolean
+  onChangeEvent?: (selectedOption: IProductLookup | null) => void
+}) {
   const { data: products = [], isLoading } = useProductLookup()
   // Memoize options to prevent unnecessary recalculations
   const options: FieldOption[] = React.useMemo(

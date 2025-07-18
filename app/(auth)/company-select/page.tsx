@@ -117,23 +117,11 @@ export default function CompanySelectPage() {
 
       // Always fetch decimal settings when selecting a company
       console.log("Fetching decimal settings for company:", selectedCompanyId)
-      try {
-        await getDecimals()
-      } catch (decimalError) {
-        console.warn("Failed to fetch decimal settings:", decimalError)
-        // Continue even if decimals fail
-      }
+      await getDecimals()
 
       router.push(`/${selectedCompanyId}/dashboard`)
     } catch (err) {
-      console.error("Error during company switch:", err)
-      const errorMessage = err instanceof Error ? err.message : "Switch failed."
-      setError(errorMessage)
-      
-      // If it's a network or API error, provide more helpful feedback
-      if (errorMessage.includes("fetch") || errorMessage.includes("network") || errorMessage.includes("API")) {
-        setError("Unable to connect to the server. Please check your internet connection and try again.")
-      }
+      setError(err instanceof Error ? err.message : "Switch failed.")
     } finally {
       setIsLoading(false)
     }

@@ -135,33 +135,6 @@ export function NavHeader() {
             </Link>
           </NavigationMenuLink>
         </NavigationMenuItem>
-        <NavigationMenuItem>
-          <NavigationMenuLink asChild>
-            <Link
-              href={getUrlWithCompanyId("/charts")}
-              className={cn(
-                "text-sm leading-none font-medium",
-                pathname === getUrlWithCompanyId("/charts") && "text-primary"
-              )}
-            >
-              Chart
-            </Link>
-          </NavigationMenuLink>
-        </NavigationMenuItem>
-        <NavigationMenuItem>
-          <NavigationMenuLink asChild>
-            <Link
-              href={getUrlWithCompanyId("/forms")}
-              className={cn(
-                "text-sm leading-none font-medium",
-                pathname === getUrlWithCompanyId("/forms") && "text-primary"
-              )}
-            >
-              Form
-            </Link>
-          </NavigationMenuLink>
-        </NavigationMenuItem>
-
         {/* Project Navigation */}
         <NavigationMenuItem>
           <NavigationMenuTrigger

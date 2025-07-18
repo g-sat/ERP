@@ -2,7 +2,6 @@ import { useState } from "react"
 import Image from "next/image"
 import { useRouter } from "next/navigation"
 import { useAuthStore } from "@/stores/auth-store"
-import Link from "next/link"
 
 import { cn } from "@/lib/utils"
 import { Alert, AlertDescription } from "@/components/ui/alert"
@@ -125,9 +124,9 @@ export function RegistrationForm({
 
               <div className="text-center text-sm">
                 Already have an account?{" "}
-                <Link href="/login" className="underline underline-offset-4">
+                <a href="/login" className="underline underline-offset-4">
                   Sign in
-                </Link>
+                </a>
               </div>
             </div>
           </form>
@@ -138,8 +137,6 @@ export function RegistrationForm({
                 src={imageUrl}
                 alt="Image"
                 className="absolute inset-0 h-full w-full object-cover"
-                priority={true}
-                sizes="(min-width: 768px) 50vw, 100vw"
               />
             )}
           </div>

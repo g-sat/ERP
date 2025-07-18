@@ -1,7 +1,6 @@
 import { useState } from "react"
 import Image from "next/image"
 import { useRouter } from "next/navigation"
-import Link from "next/link"
 
 import { cn } from "@/lib/utils"
 import { Alert, AlertDescription } from "@/components/ui/alert"
@@ -96,9 +95,9 @@ export function ForgotPasswordForm({
 
               <div className="text-center text-sm">
                 Remember your password?{" "}
-                <Link href="/login" className="underline underline-offset-4">
+                <a href="/login" className="underline underline-offset-4">
                   Back to login
-                </Link>
+                </a>
               </div>
 
               {success && (
@@ -119,8 +118,6 @@ export function ForgotPasswordForm({
                 src={imageUrl}
                 alt="Image"
                 className="absolute inset-0 h-full w-full object-cover"
-                priority={true}
-                sizes="(min-width: 768px) 50vw, 100vw"
               />
             )}
           </div>
