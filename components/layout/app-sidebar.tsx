@@ -271,19 +271,25 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
   )
   const pathname = usePathname()
 
-  const platformNavs = [
-    menuData.masterNav[0],
-    menuData.projectNav[0],
-    ...menuData.accountNav,
-    //data.hrmsNav[0],
-    //data.documentNav[0],
-  ]
+  const platformNavs = React.useMemo(
+    () => [
+      menuData.masterNav[0],
+      menuData.projectNav[0],
+      ...menuData.accountNav,
+      //data.hrmsNav[0],
+      //data.documentNav[0],
+    ],
+    []
+  )
 
-  const getUrlWithCompanyId = (url: string) => {
-    if (!currentCompany?.companyId) return url
-    if (url === "#") return url
-    return `/${currentCompany.companyId}${url}`
-  }
+  const getUrlWithCompanyId = React.useCallback(
+    (url: string) => {
+      if (!currentCompany?.companyId) return url
+      if (url === "#") return url
+      return `/${currentCompany.companyId}${url}`
+    },
+    [currentCompany?.companyId]
+  )
 
   React.useEffect(() => {
     const currentPath = pathname
@@ -305,7 +311,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
         }
       }
     }
-  }, [pathname])
+  }, [pathname, getUrlWithCompanyId, platformNavs])
 
   const handleMenuClick = (menuTitle: string) => {
     setOpenMenu(openMenu === menuTitle ? null : menuTitle)
