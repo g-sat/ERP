@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { IDebitNoteDt, IDebitNoteHd, IJobOrderHd } from "@/interfaces/checklist"
+import { IDebitNoteDt, IDebitNoteHd } from "@/interfaces/checklist"
 import { DebitNoteDtFormValues } from "@/schemas/checklist"
 import { toast } from "sonner"
 
@@ -20,14 +20,12 @@ import DebitNoteForm from "./debit-note-form"
 import DebitNoteTable from "./debit-note-table"
 
 const DebitNote = ({
-  jobData,
   taskId,
   debitNoteHd,
   isConfirmed,
   companyId,
   onDeleteDebitNote,
 }: {
-  jobData: IJobOrderHd
   taskId: number
   debitNoteHd?: IDebitNoteHd
   isConfirmed?: boolean
