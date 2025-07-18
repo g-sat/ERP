@@ -74,7 +74,6 @@ const DebitNote = ({
     try {
       // Prepare the data for the API call
       const debitNoteDetailData: IDebitNoteDt = {
-        companyId: jobData.companyId,
         debitNoteId: debitNoteHd.debitNoteId,
         debitNoteNo: debitNoteHd.debitNoteNo,
         itemNo: editingItem ? editingItem.itemNo : details.length + 1,

@@ -1,4 +1,5 @@
 export interface IJobOrderHd {
+  companyId: number
   jobOrderId: number
   jobOrderNo?: string
   jobOrderDate?: Date | string
@@ -773,7 +774,6 @@ export interface IDebitNoteHd {
 }
 
 export interface IDebitNoteDt {
-  companyId: number
   debitNoteId: number
   debitNoteNo: string
   itemNo: number

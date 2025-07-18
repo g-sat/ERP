@@ -1,7 +1,13 @@
 import { useCallback, useMemo, useState } from "react"
 import { IGridSetting } from "@/interfaces/setting"
 import { Column } from "@tanstack/react-table"
-import { Layout, Plus, RefreshCw, SlidersHorizontal } from "lucide-react"
+import {
+  Layout,
+  Plus,
+  RefreshCw,
+  SlidersHorizontal,
+  Trash2,
+} from "lucide-react"
 
 import { useSave } from "@/hooks/use-common"
 import { Button } from "@/components/ui/button"
@@ -18,6 +24,7 @@ import { Input } from "@/components/ui/input"
 type TableHeaderDebitNoteProps<TData> = {
   onRefresh?: () => void
   onCreate?: () => void
+  onDeleteSelected?: (selectedIds: string[]) => void
   searchQuery: string
   onSearchChange: (query: string) => void
   columns: Column<TData, unknown>[]
@@ -27,12 +34,15 @@ type TableHeaderDebitNoteProps<TData> = {
   // New props for conditional button behavior
   hasSelectedRows?: boolean
   selectedRowsCount?: number
+  selectedRowIds?: string[]
+  totalRowsCount?: number
   isConfirmed?: boolean
 }
 
 export function TableHeaderDebitNote<TData>({
   onRefresh,
   onCreate,
+  onDeleteSelected,
   searchQuery,
   onSearchChange,
   columns,
@@ -41,6 +51,7 @@ export function TableHeaderDebitNote<TData>({
   transactionId,
   hasSelectedRows = false,
   selectedRowsCount = 0,
+  selectedRowIds = [],
   isConfirmed = false,
 }: TableHeaderDebitNoteProps<TData>) {
   const [columnSearch, setColumnSearch] = useState("")
@@ -106,14 +117,24 @@ export function TableHeaderDebitNote<TData>({
     }
   }, [moduleId, transactionId, tableName, columns, saveGridSettings])
 
+  // Handle bulk delete
+  const handleBulkDelete = useCallback(() => {
+    if (onDeleteSelected && selectedRowIds.length > 0) {
+      onDeleteSelected(selectedRowIds)
+    }
+  }, [onDeleteSelected, selectedRowIds])
+
   return (
     <div className="mb-4 space-y-2">
-      {/* Selected items count */}
-      {hasSelectedRows && selectedRowsCount > 0 && (
-        <div className="text-muted-foreground text-sm">
-          {selectedRowsCount} item{selectedRowsCount !== 1 ? "s" : ""} selected
-        </div>
-      )}
+      {/* Selected items count and Select All */}
+      <div className="flex items-center justify-between">
+        {hasSelectedRows && selectedRowsCount > 0 && (
+          <div className="text-muted-foreground text-sm">
+            {selectedRowsCount} item{selectedRowsCount !== 1 ? "s" : ""}{" "}
+            selected
+          </div>
+        )}
+      </div>
 
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
@@ -129,6 +150,19 @@ export function TableHeaderDebitNote<TData>({
           >
             <RefreshCw className="h-4 w-4" />
           </Button>
+          {/* Bulk Delete Button */}
+          {hasSelectedRows && onDeleteSelected && (
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={handleBulkDelete}
+              disabled={isConfirmed}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              <Trash2 className="mr-2 h-4 w-4" />
+              Delete Selected ({selectedRowsCount})
+            </Button>
+          )}
         </div>
 
         {/* Search Input */}
