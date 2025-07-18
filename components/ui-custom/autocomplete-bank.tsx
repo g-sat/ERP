@@ -248,6 +248,7 @@ export default function BankAutocomplete<T extends Record<string, unknown>>({
                   menuPosition="fixed"
                   isLoading={isLoading}
                   loadingMessage={() => "Loading banks..."}
+                  instanceId={name}
                 />
                 {showError && (
                   <p className="text-destructive mt-1 text-xs">
@@ -302,6 +303,7 @@ export default function BankAutocomplete<T extends Record<string, unknown>>({
         menuPosition="fixed"
         isLoading={isLoading}
         loadingMessage={() => "Loading banks..."}
+        instanceId={name}
       />
     </div>
   )

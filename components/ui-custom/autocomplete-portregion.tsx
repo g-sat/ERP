@@ -113,7 +113,10 @@ export default function PortRegionAutocomplete<
           "relative z-[9999] min-w-[8rem] overflow-hidden rounded-md border shadow-md animate-in fade-in-80",
           "mt-1"
         ),
-      menuList: () => cn("p-1 overflow-auto max-h-[200px]"),
+      menuList: () =>
+        cn(
+          "p-1 overflow-auto max-h-[200px]" // SCROLLBAR ISSUE FIX: Added max-height and overflow-auto for scrollable dropdown
+        ),
       option: (state: { isFocused: boolean; isSelected: boolean }) =>
         cn(
           "relative flex w-full cursor-default select-none items-center rounded-sm py-1.5 pl-2 pr-8 text-sm outline-none",
@@ -144,7 +147,16 @@ export default function PortRegionAutocomplete<
   const customStyles: StylesConfig<FieldOption, boolean> = React.useMemo(
     () => ({
       control: () => ({}), // Handled by classNames
-      menu: () => ({}), // Handled by classNames
+      menu: (base) => ({
+        ...base,
+        zIndex: 9999,
+        pointerEvents: "auto", // SCROLLBAR ISSUE FIX: Ensures mouse wheel events are captured
+        // backgroundColor: "black", // SCROLLBAR ISSUE FIX: Added black background as requested
+        // Ensure mouse wheel events work
+        "&:hover": {
+          pointerEvents: "auto",
+        },
+      }), // Handled by classNames
       option: () => ({}), // Handled by classNames
       indicatorSeparator: () => ({
         display: "none", // Hide the indicator separator
@@ -165,6 +177,41 @@ export default function PortRegionAutocomplete<
         color: "var(--foreground)",
         fontSize: "12px",
         height: "20px",
+      }),
+      // Enhanced menuList styles for better scrolling
+      menuList: (base) => ({
+        ...base,
+        maxHeight: "200px", // SCROLLBAR ISSUE FIX: Sets explicit height for scrollable area
+        overflowY: "auto", // SCROLLBAR ISSUE FIX: Enables vertical scrolling
+        overflowX: "hidden", // SCROLLBAR ISSUE FIX: Prevents horizontal scrolling
+        scrollbarWidth: "thin", // SCROLLBAR ISSUE FIX: Thin scrollbar for better UX
+        scrollbarColor: "var(--border) transparent", // SCROLLBAR ISSUE FIX: Custom scrollbar colors
+        // Ensure mouse wheel events work
+        pointerEvents: "auto", // SCROLLBAR ISSUE FIX: Critical for mouse wheel event capture
+        // Additional properties for better cross-browser support
+        WebkitOverflowScrolling: "touch", // SCROLLBAR ISSUE FIX: Better scrolling on WebKit browsers
+        "&::-webkit-scrollbar": {
+          width: "6px", // SCROLLBAR ISSUE FIX: Custom scrollbar width
+        },
+        "&::-webkit-scrollbar-track": {
+          background: "transparent", // SCROLLBAR ISSUE FIX: Transparent track
+        },
+        "&::-webkit-scrollbar-thumb": {
+          background: "var(--border)", // SCROLLBAR ISSUE FIX: Custom thumb color
+          borderRadius: "3px", // SCROLLBAR ISSUE FIX: Rounded scrollbar
+        },
+        "&::-webkit-scrollbar-thumb:hover": {
+          background: "var(--muted-foreground)", // SCROLLBAR ISSUE FIX: Hover effect
+        },
+        // Ensure mouse wheel events are captured
+        "&:hover": {
+          overflowY: "auto", // SCROLLBAR ISSUE FIX: Maintains scroll on hover
+        },
+      }),
+      // Container style to ensure mouse wheel events work
+      container: (base) => ({
+        ...base,
+        pointerEvents: "auto", // SCROLLBAR ISSUE FIX: Ensures container captures mouse events
       }),
       // Fix for dropdown appearing behind dialog
       menuPortal: (base) => ({
@@ -245,12 +292,14 @@ export default function PortRegionAutocomplete<
                   }}
                   className="react-select-container"
                   classNamePrefix="react-select__"
-                  menuPortalTarget={
-                    typeof document !== "undefined" ? document.body : null
-                  }
-                  menuPosition="fixed"
+                  menuPortalTarget={null} // SCROLLBAR ISSUE FIX: Changed from document.body to null for better event handling
+                  menuPosition="absolute" // SCROLLBAR ISSUE FIX: Changed from "fixed" to "absolute" positioning
                   isLoading={isLoading}
                   loadingMessage={() => "Loading portRegions..."}
+                  maxMenuHeight={200} // SCROLLBAR ISSUE FIX: Sets maximum height for scrollable dropdown
+                  menuShouldScrollIntoView={true} // SCROLLBAR ISSUE FIX: Ensures selected items are visible
+                  menuShouldBlockScroll={false} // SCROLLBAR ISSUE FIX: Prevents dropdown from blocking page scroll
+                  closeMenuOnScroll={false} // SCROLLBAR ISSUE FIX: Prevents dropdown from closing when scrolling
                 />
                 {showError && (
                   <p className="text-destructive mt-1 text-xs">
@@ -299,12 +348,14 @@ export default function PortRegionAutocomplete<
         }}
         className="react-select-container"
         classNamePrefix="react-select__"
-        menuPortalTarget={
-          typeof document !== "undefined" ? document.body : null
-        }
-        menuPosition="fixed"
+        menuPortalTarget={null} // SCROLLBAR ISSUE FIX: Changed from document.body to null for better event handling
+        menuPosition="absolute" // SCROLLBAR ISSUE FIX: Changed from "fixed" to "absolute" positioning
         isLoading={isLoading}
         loadingMessage={() => "Loading portRegions..."}
+        maxMenuHeight={200} // SCROLLBAR ISSUE FIX: Sets maximum height for scrollable dropdown
+        menuShouldScrollIntoView={true} // SCROLLBAR ISSUE FIX: Ensures selected items are visible
+        menuShouldBlockScroll={false} // SCROLLBAR ISSUE FIX: Prevents dropdown from blocking page scroll
+        closeMenuOnScroll={false} // SCROLLBAR ISSUE FIX: Prevents dropdown from closing when scrolling
       />
     </div>
   )

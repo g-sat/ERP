@@ -533,7 +533,22 @@ export const useAuthStore = create<AuthState>()(
               }
             )
 
-            const data = await response.json()
+            // Defensive: check content-type before parsing
+            const contentType = response.headers.get("content-type")
+            let data
+            if (!contentType || !contentType.includes("application/json")) {
+              const text = await response.text()
+              console.error("Expected JSON, got:", text)
+              throw new Error("Server did not return JSON. Raw response: " + text)
+            } else {
+              try {
+                data = await response.json()
+              } catch (jsonError) {
+                const text = await response.text()
+                console.error("Error parsing JSON. Raw response:", text)
+                throw new Error("Error parsing JSON: " + (jsonError instanceof Error ? jsonError.message : String(jsonError)) + ". Raw response: " + text)
+              }
+            }
 
             if (!response.ok) {
               throw new Error(`Failed to fetch permissions: ${response.status}`)
