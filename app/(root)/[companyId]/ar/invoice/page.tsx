@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { ApiResponse } from "@/interfaces/auth"
 import { IArInvoiceFilter, IArInvoiceHd, IArInvoiceDt } from "@/interfaces/invoice"
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
@@ -353,10 +353,16 @@ export default function InvoicePage() {
     }
   }
 
+  // Remove direct refetchInvoices from handleFilterChange
   const handleFilterChange = (newFilters: IArInvoiceFilter) => {
     setFilters(newFilters)
-    refetchInvoices()
+    // refetchInvoices(); // Removed: will be handled by useEffect
   }
+
+  // Add useEffect to refetch invoices when filters change
+  useEffect(() => {
+    refetchInvoices()
+  }, [filters])
 
   const handleInvoiceSearch = async (value: string) => {
     if (!value) return

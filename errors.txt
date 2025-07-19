@@ -877,3 +877,24 @@ How to Avoid in the Future:
 - Always log and check the parameters being sent to the backend when debugging fetch issues.
 
 ---
+
+---
+[2024-06-10] BUG FIX LOG
+
+Issue: When searching for invoices in the invoice list popup after entering dates, the first search returned no data, but the second search worked. This was due to a race condition: the fetch for invoices was triggered immediately after updating the filter state, but React state updates are asynchronous. As a result, the first fetch used the old filter values, and only the second fetch (after the state was updated) worked as expected.
+
+Solution: Refactored the filter logic in app/(root)/[companyId]/ar/invoice/page.tsx. Now, the fetch for invoices (refetchInvoices) is triggered in a useEffect that listens for changes to the filters state. This guarantees the fetch always uses the latest filter values, eliminating the race condition and ensuring the first search works correctly.
+
+File(s) changed:
+- app/(root)/[companyId]/ar/invoice/page.tsx
+
+Technical Details:
+- Removed direct call to refetchInvoices from handleFilterChange.
+- Added a useEffect that calls refetchInvoices whenever filters state changes.
+- This guarantees the fetch always uses the latest filter values.
+
+How to Avoid in the Future:
+- When a fetch depends on updated state, use useEffect to trigger the fetch after the state update, not immediately after calling setState.
+- Avoid calling fetch functions in the same handler as setState for values that are used in the fetch.
+
+---
