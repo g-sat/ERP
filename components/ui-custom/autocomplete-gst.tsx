@@ -25,6 +25,16 @@ interface FieldOption {
   label: string
 }
 
+interface GstAutocompleteProps<T extends Record<string, unknown>> {
+  form: UseFormReturn<T>
+  name?: Path<T>
+  label?: string
+  className?: string
+  isDisabled?: boolean
+  isRequired?: boolean
+  onChangeEvent?: (selectedOption: IGstLookup | null) => void
+}
+
 export default function GstAutocomplete<T extends Record<string, unknown>>({
   form,
   label,
@@ -33,27 +43,18 @@ export default function GstAutocomplete<T extends Record<string, unknown>>({
   className,
   isRequired = false,
   onChangeEvent,
-}: {
-  form: UseFormReturn<T>
-  name?: Path<T>
-  label?: string
-  className?: string
-  isDisabled?: boolean
-  isRequired?: boolean
-  onChangeEvent?: (selectedOption: IGstLookup | null) => void
-}) {
-  const { data: gsts = [], isLoading } = useGstLookup()
-  // Memoize options to prevent unnecessary recalculations
+}: GstAutocompleteProps<T>) {
+  const { data: gst = [], isLoading } = useGstLookup()
+
   const options: FieldOption[] = React.useMemo(
     () =>
-      gsts.map((gst: IGstLookup) => ({
+      gst.map((gst: IGstLookup) => ({
         value: gst.gstId.toString(),
-        label: gst.gstName,
+        label: gst.gstCode + " - " + gst.gstName,
       })),
-    [gsts]
+    [gst]
   )
 
-  // Custom components with display names
   const DropdownIndicator = React.memo(
     (props: DropdownIndicatorProps<FieldOption>) => {
       return (
@@ -90,7 +91,7 @@ export default function GstAutocomplete<T extends Record<string, unknown>>({
       </components.Option>
     )
   })
-  Option.displayName = "Option" // Custom classNames for React Select (aligned with shadcn select.tsx)
+  Option.displayName = "Option"
 
   const selectClassNames = React.useMemo(
     () => ({
@@ -120,11 +121,11 @@ export default function GstAutocomplete<T extends Record<string, unknown>>({
         ),
       noOptionsMessage: () => cn("text-muted-foreground py-2 px-3 text-sm"),
       placeholder: () => cn("text-muted-foreground"),
-      singleValue: () => cn("text-foreground"), // Fixed to match menu list
+      singleValue: () => cn("text-foreground"),
       valueContainer: () => cn("px-0 py-0.5 gap-1"),
       input: () =>
         cn("text-foreground placeholder:text-muted-foreground m-0 p-0"),
-      indicatorsContainer: () => cn(""), // Gap removed
+      indicatorsContainer: () => cn(""),
       clearIndicator: () =>
         cn("text-muted-foreground hover:text-foreground p-1 rounded-sm"),
       dropdownIndicator: () => cn("text-muted-foreground p-1 rounded-sm"),
@@ -138,19 +139,17 @@ export default function GstAutocomplete<T extends Record<string, unknown>>({
     [isDisabled]
   )
 
-  // We still need some styles for things that can't be controlled via className
   const customStyles: StylesConfig<FieldOption, boolean> = React.useMemo(
     () => ({
-      control: () => ({}), // Handled by classNames
-      menu: () => ({}), // Handled by classNames
-      option: () => ({}), // Handled by classNames
+      control: () => ({}),
+      menu: () => ({}),
+      option: () => ({}),
       indicatorSeparator: () => ({
-        display: "none", // Hide the indicator separator
+        display: "none",
       }),
-      // These minimal styles ensure proper layout
       valueContainer: (provided) => ({
         ...provided,
-        padding: undefined, // Use className padding
+        padding: undefined,
       }),
       input: (provided) => ({
         ...provided,
@@ -164,7 +163,6 @@ export default function GstAutocomplete<T extends Record<string, unknown>>({
         fontSize: "12px",
         height: "20px",
       }),
-      // Fix for dropdown appearing behind dialog
       menuPortal: (base) => ({
         ...base,
         zIndex: 9999,
@@ -174,32 +172,28 @@ export default function GstAutocomplete<T extends Record<string, unknown>>({
     []
   )
 
-  // Memoize handleChange to prevent unnecessary recreations
   const handleChange = React.useCallback(
     (option: SingleValue<FieldOption> | MultiValue<FieldOption>) => {
       const selectedOption = Array.isArray(option) ? option[0] : option
       if (form && name) {
-        // Set the value as a number
         const value = selectedOption ? Number(selectedOption.value) : 0
         form.setValue(name, value as PathValue<T, Path<T>>)
       }
       if (onChangeEvent) {
         const selectedGst = selectedOption
-          ? gsts.find(
+          ? gst.find(
               (u: IGstLookup) => u.gstId.toString() === selectedOption.value
             ) || null
           : null
         onChangeEvent(selectedGst)
       }
     },
-    [form, name, onChangeEvent, gsts]
+    [form, name, onChangeEvent, gst]
   )
 
-  // Memoize getValue to prevent unnecessary recalculations
   const getValue = React.useCallback(() => {
     if (form && name) {
       const formValue = form.getValues(name)
-      // Convert form value to string for comparison
       return (
         options.find((option) => option.value === formValue?.toString()) || null
       )
@@ -229,7 +223,7 @@ export default function GstAutocomplete<T extends Record<string, unknown>>({
                   options={options}
                   value={getValue()}
                   onChange={handleChange}
-                  placeholder="Select Gst..."
+                  placeholder="Select GST..."
                   isDisabled={isDisabled || isLoading}
                   isClearable={true}
                   isSearchable={true}
@@ -247,7 +241,9 @@ export default function GstAutocomplete<T extends Record<string, unknown>>({
                   }
                   menuPosition="fixed"
                   isLoading={isLoading}
-                  loadingMessage={() => "Loading gsts..."}
+                  loadingMessage={() => "Loading account setups..."}
+                  tabIndex={0}
+                  instanceId={name}
                 />
                 {showError && (
                   <p className="text-destructive mt-1 text-xs">
@@ -262,7 +258,6 @@ export default function GstAutocomplete<T extends Record<string, unknown>>({
     )
   }
 
-  // Standalone version (no form)
   return (
     <div className={cn("flex flex-col gap-1", className)}>
       {label && (
@@ -283,7 +278,7 @@ export default function GstAutocomplete<T extends Record<string, unknown>>({
       <Select
         options={options}
         onChange={handleChange}
-        placeholder="Select Gst..."
+        placeholder="Select GST..."
         isDisabled={isDisabled || isLoading}
         isClearable={true}
         isSearchable={true}
@@ -301,7 +296,9 @@ export default function GstAutocomplete<T extends Record<string, unknown>>({
         }
         menuPosition="fixed"
         isLoading={isLoading}
-        loadingMessage={() => "Loading gsts..."}
+        loadingMessage={() => "Loading GST..."}
+        tabIndex={0}
+        instanceId={name}
       />
     </div>
   )
