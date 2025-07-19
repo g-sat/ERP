@@ -846,3 +846,11 @@ if (errorMessage.includes("fetch") || errorMessage.includes("network") || errorM
 ============================
 Status: FIXED - All JSON parsing errors resolved with comprehensive error handling
 ============================
+
+---
+Date: [FIX DATE HERE]
+Error: Popup content in job order details (all tabs) was vertically centered in the checklist operations module.
+Root Cause: The DialogContent component in components/ui/dialog.tsx used the 'grid' class, which caused all children to be vertically centered by default.
+Fix: Replaced 'grid' with 'block' in the DialogContent className to ensure content aligns to the top.
+Location: components/ui/dialog.tsx (DialogContent), affects popups in app/(root)/[companyId]/operations/checklist/components/services-tabs/*
+---
