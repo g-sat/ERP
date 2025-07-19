@@ -65,10 +65,7 @@ export function TableHeaderCustom<TData>({
   tableName = "Table",
 }: TableHeaderProps<TData>) {
   // Add the save mutation for grid settings
-  const saveGridSettings = useSave<IGridSetting>(
-    "/setting/saveUserGrid",
-    "gridSettings"
-  )
+  const saveGridSettings = useSave<IGridSetting>("/setting/saveUserGrid")
 
   const handleExportExcel = (data: TData[]) => {
     toast.info("Exporting to Excel...", {

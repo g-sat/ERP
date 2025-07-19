@@ -35,12 +35,10 @@ import {
 
 interface EditVersionDetailsProps {
   invoiceId: string
-  companyId: string
 }
 
 export default function EditVersionDetails({
   invoiceId,
-  companyId,
 }: EditVersionDetailsProps) {
   const { decimals } = useAuthStore()
   const amtDec = decimals[0]?.amtDec || 2
@@ -341,7 +339,6 @@ export default function EditVersionDetails({
             columns={table.getAllLeafColumns()}
             data={tableData}
             tableName="Edit Version Details"
-            companyId={companyId}
           />
           <div className="rounded-md border">
             <Table>

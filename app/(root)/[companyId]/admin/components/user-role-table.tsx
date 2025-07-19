@@ -38,7 +38,7 @@ import { useVirtualizer } from "@tanstack/react-virtual"
 import { format, isValid } from "date-fns"
 
 import { AdminTransactionId, ModuleId, TableName } from "@/lib/utils"
-import { useGetGridLayout } from "@/hooks/use-setting"
+import { useGetGridLayout } from "@/hooks/use-settings"
 import { Badge } from "@/components/ui/badge"
 import {
   DraggableColumnHeader,
@@ -65,7 +65,6 @@ interface UserRoleTableProps {
   onFilterChange?: (filters: IUserRoleFilter) => void
   moduleId?: number
   transactionId?: number
-  companyId: string
 }
 
 export function UserRoleTable({
@@ -79,7 +78,6 @@ export function UserRoleTable({
   onFilterChange,
   moduleId,
   transactionId,
-  companyId,
 }: UserRoleTableProps) {
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
@@ -96,8 +94,7 @@ export function UserRoleTable({
   const { data: gridSettings } = useGetGridLayout(
     moduleId?.toString() || "",
     transactionId?.toString() || "",
-    TableName.user_role,
-    companyId
+    TableName.user_role
   )
 
   useEffect(() => {
@@ -350,7 +347,6 @@ export function UserRoleTable({
         hideCreateButton={false}
         moduleId={moduleId || ModuleId.admin}
         transactionId={transactionId || AdminTransactionId.user_role}
-        companyId={companyId}
       />
 
       <DndContext

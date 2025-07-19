@@ -35,11 +35,15 @@ import {
 const data = {
   projectNav: [
     {
-      title: "Project",
-      url: "/project",
+      title: "Operations",
+      url: "/operations",
       items: [
-        { title: "CheckList", url: "/project/checklist", icon: ClipboardList },
-        { title: "Tariff", url: "/project/tariff", icon: Coins },
+        {
+          title: "CheckList",
+          url: "/operations/checklist",
+          icon: ClipboardList,
+        },
+        { title: "Tariff", url: "/operations/tariff", icon: Coins },
       ],
     },
   ],
@@ -135,7 +139,7 @@ export function NavHeader() {
             </Link>
           </NavigationMenuLink>
         </NavigationMenuItem>
-        {/* Project Navigation */}
+        {/* Operations Navigation */}
         <NavigationMenuItem>
           <NavigationMenuTrigger
             className={
@@ -144,7 +148,7 @@ export function NavHeader() {
                 : ""
             }
           >
-            Project
+            Operations
           </NavigationMenuTrigger>
           <NavigationMenuContent>
             <ul className="grid w-[300px] md:w-[400px] md:grid-cols-3 lg:w-[500px]">

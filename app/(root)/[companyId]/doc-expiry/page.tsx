@@ -1,7 +1,6 @@
 "use client"
 
 import { useCallback, useEffect, useState } from "react"
-import { useParams } from "next/navigation"
 import {
   DocumentExpiry,
   DocumentExpiryFilterValues,
@@ -11,7 +10,7 @@ import { differenceInDays, format } from "date-fns"
 import { BarChart2, Download, Plus } from "lucide-react"
 import { toast } from "sonner"
 
-import { useDocExpiry } from "@/hooks/use-docexpiry"
+import { useDocExpiry } from "@/hooks/use-document-expiry"
 import { Button } from "@/components/ui/button"
 import {
   Select,
@@ -32,9 +31,6 @@ import ExpirationForecast from "./components/expiration-forecast"
 import { Document } from "./types"
 
 export default function DocExpiryPage() {
-  const params = useParams()
-  const companyId = params.companyId as string
-
   const [sortBy, setSortBy] = useState("expiry_date_asc")
   const [viewMode, setViewMode] = useState<"grid" | "table">("grid")
   const [selectedDocs, setSelectedDocs] = useState<number[]>([])
@@ -57,7 +53,7 @@ export default function DocExpiryPage() {
     createDocument,
     updateDocument,
     deleteDocument,
-  } = useDocExpiry(companyId)
+  } = useDocExpiry()
 
   const fetchData = useCallback(() => {
     fetchDocuments(currentFilters)

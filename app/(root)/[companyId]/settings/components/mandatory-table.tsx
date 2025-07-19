@@ -23,7 +23,7 @@ import { cn } from "@/lib/utils"
 import {
   useMandatoryFieldSave,
   useMandatoryFieldbyidGet,
-} from "@/hooks/use-setting"
+} from "@/hooks/use-settings"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Form } from "@/components/ui/form"

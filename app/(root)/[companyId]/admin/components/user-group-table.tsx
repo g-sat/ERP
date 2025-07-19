@@ -38,7 +38,7 @@ import { useVirtualizer } from "@tanstack/react-virtual"
 import { format, isValid } from "date-fns"
 
 import { AdminTransactionId, TableName } from "@/lib/utils"
-import { useGetGridLayout } from "@/hooks/use-setting"
+import { useGetGridLayout } from "@/hooks/use-settings"
 import { Badge } from "@/components/ui/badge"
 import {
   DraggableColumnHeader,
@@ -65,7 +65,6 @@ interface UserGroupTableProps {
   onFilterChange?: (filters: IUserGroupFilter) => void
   moduleId?: number
   transactionId?: number
-  companyId: string
 }
 
 export function UserGroupTable({
@@ -79,7 +78,6 @@ export function UserGroupTable({
   onFilterChange,
   moduleId,
   transactionId,
-  companyId,
 }: UserGroupTableProps) {
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
@@ -96,8 +94,7 @@ export function UserGroupTable({
   const { data: gridSettings } = useGetGridLayout(
     moduleId?.toString() || "",
     transactionId?.toString() || "",
-    TableName.user_group,
-    companyId
+    TableName.user_group
   )
 
   useEffect(() => {
@@ -350,7 +347,6 @@ export function UserGroupTable({
         hideCreateButton={false}
         moduleId={moduleId || 1}
         transactionId={transactionId || AdminTransactionId.user_group}
-        companyId={companyId}
       />
 
       <DndContext

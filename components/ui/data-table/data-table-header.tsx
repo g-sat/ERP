@@ -58,7 +58,6 @@ type TableHeaderProps<TData> = {
   hideCreateButton?: boolean // Add hideCreateButton prop
   moduleId: number
   transactionId: number
-  companyId: string
 }
 
 export function TableHeader<TData>({
@@ -72,7 +71,6 @@ export function TableHeader<TData>({
   hideCreateButton = false, // Default to false
   moduleId,
   transactionId,
-  companyId,
 }: TableHeaderProps<TData>) {
   const [columnSearch, setColumnSearch] = useState("")
   const [activeButton, setActiveButton] = useState<"show" | "hide" | null>(null)
@@ -97,11 +95,7 @@ export function TableHeader<TData>({
   }
 
   // Add the save mutation for grid settings
-  const saveGridSettings = useSave<IGridSetting>(
-    "/setting/saveUserGrid",
-    "gridSettings",
-    companyId
-  )
+  const saveGridSettings = useSave<IGridSetting>("/setting/saveUserGrid")
 
   const handleExportExcel = (data: TData[]) => {
     toast.info("Exporting to Excel...", {

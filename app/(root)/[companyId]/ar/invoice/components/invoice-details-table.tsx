@@ -58,7 +58,7 @@ import { BasicSetting } from "@/lib/api-routes"
 import { clientDateFormat } from "@/lib/format"
 import { cn } from "@/lib/utils"
 import { useSave } from "@/hooks/use-common"
-import { useGetGridLayout } from "@/hooks/use-setting"
+import { useGetGridLayout } from "@/hooks/use-settings"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -112,7 +112,6 @@ const generateUUID = (): string => {
 interface InvoiceDetailsTableProps {
   form: UseFormReturn<ArInvoiceHdFormValues>
   visible: IVisibleFields
-  companyId: string
 }
 
 const cellRefs = new Map<string, HTMLInputElement>()
@@ -125,7 +124,6 @@ interface InvoiceDetailRow extends ArInvoiceDtFormValues {
 export default function InvoiceDetailsTable({
   form,
   visible,
-  companyId,
 }: InvoiceDetailsTableProps) {
   const { decimals } = useAuthStore()
   const qtyDec = decimals[0]?.qtyDec || 2
@@ -146,8 +144,7 @@ export default function InvoiceDetailsTable({
   const { data: gridSettings } = useGetGridLayout(
     moduleId.toString(),
     transactionId.toString(),
-    grdName,
-    companyId
+    grdName
   )
 
   useEffect(() => {
@@ -501,10 +498,7 @@ export default function InvoiceDetailsTable({
     }
   }, [])
 
-  const saveGridSettings = useSave<IGridSetting>(
-    "/setting/saveUserGrid",
-    "gridSettings"
-  )
+  const saveGridSettings = useSave<IGridSetting>("/setting/saveUserGrid")
 
   const updateData = <T extends string | number | null>(
     id: string,
@@ -888,7 +882,9 @@ export default function InvoiceDetailsTable({
           name={`seqNo-${row.original.id}`}
           round={0}
           className="text-right"
-          onChangeEvent={(value) => setTimeout(() => updateData(row.original.id, "seqNo", value), 0)}
+          onChangeEvent={(value) =>
+            setTimeout(() => updateData(row.original.id, "seqNo", value), 0)
+          }
           onFocus={(e: React.FocusEvent<HTMLInputElement>) => e.target.select()}
         />
       ),
@@ -902,7 +898,17 @@ export default function InvoiceDetailsTable({
           <ProductAutocomplete
             form={invoiceDetailForm}
             name={`productId-${row.original.id}`}
-            onChangeEvent={(selectedOption: IProductLookup | null) => setTimeout(() => updateData(row.original.id, "productId", selectedOption?.productId || 0), 0)}
+            onChangeEvent={(selectedOption: IProductLookup | null) =>
+              setTimeout(
+                () =>
+                  updateData(
+                    row.original.id,
+                    "productId",
+                    selectedOption?.productId || 0
+                  ),
+                0
+              )
+            }
           />
         </div>
       ),
@@ -916,7 +922,17 @@ export default function InvoiceDetailsTable({
           <ChartofAccountAutocomplete
             form={invoiceDetailForm}
             name={`glId-${row.original.id}`}
-            onChangeEvent={(selectedOption: IChartofAccountLookup | null) => setTimeout(() => updateData(row.original.id, "glId", selectedOption?.glId || 0), 0)}
+            onChangeEvent={(selectedOption: IChartofAccountLookup | null) =>
+              setTimeout(
+                () =>
+                  updateData(
+                    row.original.id,
+                    "glId",
+                    selectedOption?.glId || 0
+                  ),
+                0
+              )
+            }
           />
         </div>
       ),
@@ -931,10 +947,13 @@ export default function InvoiceDetailsTable({
             <CustomInput
               form={invoiceDetailForm}
               name={`remarks-${row.original.id}`}
-              onBlurEvent={(e: React.FocusEvent<HTMLInputElement>) => setTimeout(() => {
-                const value = e.target.value === undefined ? "" : e.target.value
-                updateData(row.original.id, "remarks", value)
-              }, 0)}
+              onBlurEvent={(e: React.FocusEvent<HTMLInputElement>) =>
+                setTimeout(() => {
+                  const value =
+                    e.target.value === undefined ? "" : e.target.value
+                  updateData(row.original.id, "remarks", value)
+                }, 0)
+              }
             />
           </div>
         </div>
@@ -950,18 +969,20 @@ export default function InvoiceDetailsTable({
           name={`qty-${row.original.id}`}
           round={qtyDec}
           className="text-right"
-          onBlurEvent={(e: React.FocusEvent<HTMLInputElement>) => setTimeout(() => {
-            const newQty = parseFloat(e.target.value) || 0
-            updateData(row.original.id, "qty", newQty)
-            updateData(row.original.id, "billQTY", newQty)
-            invoiceDetailForm.setValue(`billQTY-${row.original.id}`, newQty)
-            handleQtyOrPriceChange(
-              row.original.id,
-              "billQTY",
-              e.target.value || "0",
-              "billQTY"
-            )
-          }, 0)}
+          onBlurEvent={(e: React.FocusEvent<HTMLInputElement>) =>
+            setTimeout(() => {
+              const newQty = parseFloat(e.target.value) || 0
+              updateData(row.original.id, "qty", newQty)
+              updateData(row.original.id, "billQTY", newQty)
+              invoiceDetailForm.setValue(`billQTY-${row.original.id}`, newQty)
+              handleQtyOrPriceChange(
+                row.original.id,
+                "billQTY",
+                e.target.value || "0",
+                "billQTY"
+              )
+            }, 0)
+          }
         />
       ),
     },
@@ -997,7 +1018,17 @@ export default function InvoiceDetailsTable({
           <UomAutocomplete
             form={invoiceDetailForm}
             name={`uomId-${row.original.id}`}
-            onChangeEvent={(selectedOption: IUomLookup | null) => setTimeout(() => updateData(row.original.id, "uomId", selectedOption?.uomId || 0), 0)}
+            onChangeEvent={(selectedOption: IUomLookup | null) =>
+              setTimeout(
+                () =>
+                  updateData(
+                    row.original.id,
+                    "uomId",
+                    selectedOption?.uomId || 0
+                  ),
+                0
+              )
+            }
           />
         </div>
       ),
@@ -1035,7 +1066,9 @@ export default function InvoiceDetailsTable({
           name={`totAmt-${row.original.id}`}
           round={amtDec}
           className="text-right"
-          onBlurEvent={() => setTimeout(() => handleTotalAmountChange(row.original.id), 0)}
+          onBlurEvent={() =>
+            setTimeout(() => handleTotalAmountChange(row.original.id), 0)
+          }
         />
       ),
     },
@@ -1109,84 +1142,101 @@ export default function InvoiceDetailsTable({
         <GstAutocomplete
           form={invoiceDetailForm}
           name={`gstId-${row.original.id}`}
-          onChangeEvent={async (selectedOption: IGstLookup | null) => setTimeout(async () => {
-            if (selectedOption) {
-              await updateData(row.original.id, "gstId", selectedOption.gstId)
-              // Get the account date from the header form
-              const accountDate = form.getValues().accountDate
+          onChangeEvent={async (selectedOption: IGstLookup | null) =>
+            setTimeout(async () => {
+              if (selectedOption) {
+                await updateData(row.original.id, "gstId", selectedOption.gstId)
+                // Get the account date from the header form
+                const accountDate = form.getValues().accountDate
 
-              if (accountDate && selectedOption.gstId) {
-                try {
-                  const dt = format(
-                    parse(accountDate.toString(), clientDateFormat, new Date()),
-                    "yyyy-MM-dd"
-                  )
-
-                  const res = await apiProxy.get(
-                    `${BasicSetting.getGstPercentage}/${selectedOption.gstId}/${dt}`
-                  )
-
-                  // Update the GST percentage for this specific row
-                  const gstPercentage = res?.data.data || 0
-                  await updateData(
-                    row.original.id,
-                    "gstPercentage",
-                    gstPercentage
-                  )
-                  invoiceDetailForm.setValue(
-                    `gstPercentage-${row.original.id}`,
-                    gstPercentage
-                  )
-
-                  // Get the current row data
-                  const rowData = data.find((item) => item.id === row.original.id)
-                  if (rowData) {
-                    // Update GST amount based on total amount and new GST percentage
-                    const gstAmt = calculatePercentagecAmount(
-                      rowData.totAmt || 0,
-                      gstPercentage,
-                      amtDec
+                if (accountDate && selectedOption.gstId) {
+                  try {
+                    const dt = format(
+                      parse(
+                        accountDate.toString(),
+                        clientDateFormat,
+                        new Date()
+                      ),
+                      "yyyy-MM-dd"
                     )
-                    await updateData(row.original.id, "gstAmt", gstAmt)
+
+                    const res = await apiProxy.get(
+                      `${BasicSetting.getGstPercentage}/${selectedOption.gstId}/${dt}`
+                    )
+
+                    // Update the GST percentage for this specific row
+                    const gstPercentage = res?.data.data || 0
+                    await updateData(
+                      row.original.id,
+                      "gstPercentage",
+                      gstPercentage
+                    )
                     invoiceDetailForm.setValue(
-                      `gstAmt-${row.original.id}`,
-                      gstAmt
+                      `gstPercentage-${row.original.id}`,
+                      gstPercentage
                     )
 
-                    // Update GST local amount
-                    const exchangeRate = form.getValues().exhRate || 0
-                    const gstLocalAmt = calculateMultiplierAmount(
-                      gstAmt,
-                      exchangeRate,
-                      locAmtDec
+                    // Get the current row data
+                    const rowData = data.find(
+                      (item) => item.id === row.original.id
                     )
-                    await updateData(row.original.id, "gstLocalAmt", gstLocalAmt)
-                    invoiceDetailForm.setValue(
-                      `gstLocalAmt-${row.original.id}`,
-                      gstLocalAmt
-                    )
-
-                    // Update GST country amount if visible
-                    if (visible?.m_CtyCurr) {
-                      const cityExchangeRate = form.getValues().ctyExhRate || 0
-                      const gstCtyAmt = calculateMultiplierAmount(
-                        gstAmt,
-                        cityExchangeRate,
-                        ctyAmtDec
+                    if (rowData) {
+                      // Update GST amount based on total amount and new GST percentage
+                      const gstAmt = calculatePercentagecAmount(
+                        rowData.totAmt || 0,
+                        gstPercentage,
+                        amtDec
                       )
-                      await updateData(row.original.id, "gstCtyAmt", gstCtyAmt)
+                      await updateData(row.original.id, "gstAmt", gstAmt)
                       invoiceDetailForm.setValue(
-                        `gstCtyAmt-${row.original.id}`,
-                        gstCtyAmt
+                        `gstAmt-${row.original.id}`,
+                        gstAmt
                       )
+
+                      // Update GST local amount
+                      const exchangeRate = form.getValues().exhRate || 0
+                      const gstLocalAmt = calculateMultiplierAmount(
+                        gstAmt,
+                        exchangeRate,
+                        locAmtDec
+                      )
+                      await updateData(
+                        row.original.id,
+                        "gstLocalAmt",
+                        gstLocalAmt
+                      )
+                      invoiceDetailForm.setValue(
+                        `gstLocalAmt-${row.original.id}`,
+                        gstLocalAmt
+                      )
+
+                      // Update GST country amount if visible
+                      if (visible?.m_CtyCurr) {
+                        const cityExchangeRate =
+                          form.getValues().ctyExhRate || 0
+                        const gstCtyAmt = calculateMultiplierAmount(
+                          gstAmt,
+                          cityExchangeRate,
+                          ctyAmtDec
+                        )
+                        await updateData(
+                          row.original.id,
+                          "gstCtyAmt",
+                          gstCtyAmt
+                        )
+                        invoiceDetailForm.setValue(
+                          `gstCtyAmt-${row.original.id}`,
+                          gstCtyAmt
+                        )
+                      }
                     }
+                  } catch (error) {
+                    console.error("Error fetching GST percentage:", error)
                   }
-                } catch (error) {
-                  console.error("Error fetching GST percentage:", error)
                 }
               }
-            }
-          }, 0)}
+            }, 0)
+          }
         />
       ),
     },
@@ -1223,10 +1273,12 @@ export default function InvoiceDetailsTable({
           name={`gstAmt-${row.original.id}`}
           round={amtDec}
           className="text-right"
-          onBlurEvent={() => setTimeout(() => {
-            // If there is any logic to update GST Amount, place it here
-            // Example: updateData(row.original.id, "gstAmt", ...)
-          }, 0)}
+          onBlurEvent={() =>
+            setTimeout(() => {
+              // If there is any logic to update GST Amount, place it here
+              // Example: updateData(row.original.id, "gstAmt", ...)
+            }, 0)
+          }
           onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
             if (e.key === "Tab") {
               e.preventDefault()
@@ -1257,9 +1309,11 @@ export default function InvoiceDetailsTable({
           name={`gstLocalAmt-${row.original.id}`}
           round={amtDec}
           className="text-right"
-          onBlurEvent={() => setTimeout(() => {
-            // If there is any logic to update GST Local Amount, place it here
-          }, 0)}
+          onBlurEvent={() =>
+            setTimeout(() => {
+              // If there is any logic to update GST Local Amount, place it here
+            }, 0)
+          }
           onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
             if (e.key === "Tab") {
               e.preventDefault()
@@ -1291,9 +1345,11 @@ export default function InvoiceDetailsTable({
           name={`gstCtyAmt-${row.original.id}`}
           round={ctyAmtDec}
           className="text-right"
-          onBlurEvent={() => setTimeout(() => {
-            // If there is any logic to update GST Country Amount, place it here
-          }, 0)}
+          onBlurEvent={() =>
+            setTimeout(() => {
+              // If there is any logic to update GST Country Amount, place it here
+            }, 0)
+          }
           onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
             if (e.key === "Tab") {
               e.preventDefault()
@@ -1324,7 +1380,17 @@ export default function InvoiceDetailsTable({
         <DepartmentAutocomplete
           form={invoiceDetailForm}
           name={`departmentId-${row.original.id}`}
-          onChangeEvent={(selectedOption: IDepartmentLookup | null) => setTimeout(() => updateData(row.original.id, "departmentId", selectedOption?.departmentId || 0), 0)}
+          onChangeEvent={(selectedOption: IDepartmentLookup | null) =>
+            setTimeout(
+              () =>
+                updateData(
+                  row.original.id,
+                  "departmentId",
+                  selectedOption?.departmentId || 0
+                ),
+              0
+            )
+          }
         />
       ),
     },
@@ -1336,7 +1402,17 @@ export default function InvoiceDetailsTable({
         <EmployeeAutocomplete
           form={invoiceDetailForm}
           name={`employeeId-${row.original.id}`}
-          onChangeEvent={(selectedOption: IEmployeeLookup | null) => setTimeout(() => updateData(row.original.id, "employeeId", selectedOption?.employeeId || 0), 0)}
+          onChangeEvent={(selectedOption: IEmployeeLookup | null) =>
+            setTimeout(
+              () =>
+                updateData(
+                  row.original.id,
+                  "employeeId",
+                  selectedOption?.employeeId || 0
+                ),
+              0
+            )
+          }
         />
       ),
     },
@@ -1348,7 +1424,17 @@ export default function InvoiceDetailsTable({
         <PortAutocomplete
           form={invoiceDetailForm}
           name={`portId-${row.original.id}`}
-          onChangeEvent={(selectedOption: IPortLookup | null) => setTimeout(() => updateData(row.original.id, "portId", selectedOption?.portId || 0), 0)}
+          onChangeEvent={(selectedOption: IPortLookup | null) =>
+            setTimeout(
+              () =>
+                updateData(
+                  row.original.id,
+                  "portId",
+                  selectedOption?.portId || 0
+                ),
+              0
+            )
+          }
         />
       ),
     },
@@ -1360,7 +1446,17 @@ export default function InvoiceDetailsTable({
         <VesselAutocomplete
           form={invoiceDetailForm}
           name={`vesselId-${row.original.id}`}
-          onChangeEvent={(selectedOption: IVesselLookup | null) => setTimeout(() => updateData(row.original.id, "vesselId", selectedOption?.vesselId || 0), 0)}
+          onChangeEvent={(selectedOption: IVesselLookup | null) =>
+            setTimeout(
+              () =>
+                updateData(
+                  row.original.id,
+                  "vesselId",
+                  selectedOption?.vesselId || 0
+                ),
+              0
+            )
+          }
         />
       ),
     },
@@ -1372,7 +1468,17 @@ export default function InvoiceDetailsTable({
         <BargeAutocomplete
           form={invoiceDetailForm}
           name={`bargeId-${row.original.id}`}
-          onChangeEvent={(selectedOption: IBargeLookup | null) => setTimeout(() => updateData(row.original.id, "bargeId", selectedOption?.bargeId || 0), 0)}
+          onChangeEvent={(selectedOption: IBargeLookup | null) =>
+            setTimeout(
+              () =>
+                updateData(
+                  row.original.id,
+                  "bargeId",
+                  selectedOption?.bargeId || 0
+                ),
+              0
+            )
+          }
         />
       ),
     },
@@ -1384,7 +1490,17 @@ export default function InvoiceDetailsTable({
         <VoyageAutocomplete
           form={invoiceDetailForm}
           name={`voyageId-${row.original.id}`}
-          onChangeEvent={(selectedOption: IVoyageLookup | null) => setTimeout(() => updateData(row.original.id, "voyageId", selectedOption?.voyageId || 0), 0)}
+          onChangeEvent={(selectedOption: IVoyageLookup | null) =>
+            setTimeout(
+              () =>
+                updateData(
+                  row.original.id,
+                  "voyageId",
+                  selectedOption?.voyageId || 0
+                ),
+              0
+            )
+          }
         />
       ),
     },

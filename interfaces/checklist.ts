@@ -774,7 +774,6 @@ export interface IDebitNoteHd {
 }
 
 export interface IDebitNoteDt {
-  companyId: number
   debitNoteId: number
   debitNoteNo: string
   itemNo: number

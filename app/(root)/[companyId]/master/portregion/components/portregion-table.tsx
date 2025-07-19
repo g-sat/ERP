@@ -37,7 +37,7 @@ import { useVirtualizer } from "@tanstack/react-virtual"
 import { format, isValid } from "date-fns"
 
 import { MasterTransactionId, TableName } from "@/lib/utils"
-import { useGetGridLayout } from "@/hooks/use-setting"
+import { useGetGridLayout } from "@/hooks/use-settings"
 import { Badge } from "@/components/ui/badge"
 import {
   DraggableColumnHeader,
@@ -63,7 +63,6 @@ interface PortRegionsTableProps {
   onFilterChange?: (filters: IPortRegionFilter) => void
   moduleId?: number
   transactionId?: number
-  companyId: string
 }
 
 export function PortRegionsTable({
@@ -77,7 +76,6 @@ export function PortRegionsTable({
   onFilterChange,
   moduleId,
   transactionId,
-  companyId,
 }: PortRegionsTableProps) {
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
@@ -94,8 +92,7 @@ export function PortRegionsTable({
   const { data: gridSettings } = useGetGridLayout(
     moduleId?.toString() || "",
     transactionId?.toString() || "",
-    TableName.port_region,
-    companyId
+    TableName.port_region
   )
 
   useEffect(() => {
@@ -343,7 +340,6 @@ export function PortRegionsTable({
         hideCreateButton={false}
         moduleId={moduleId || 1}
         transactionId={transactionId || MasterTransactionId.port_region}
-        companyId={companyId}
       />
 
       <div

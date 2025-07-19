@@ -7,7 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 
-import { useUserSettingGet, useUserSettingSave } from "@/hooks/use-setting"
+import { useUserSettingGet, useUserSettingSave } from "@/hooks/use-settings"
 import { Button } from "@/components/ui/button"
 import {
   Form,

@@ -27,14 +27,12 @@ interface GLPostDetailsProps {
   invoiceId: string
   moduleId: number
   transactionId: number
-  companyId: string
 }
 
 export default function GLPostDetails({
   invoiceId,
   moduleId,
   transactionId,
-  companyId,
 }: GLPostDetailsProps) {
   const { decimals } = useAuthStore()
   const amtDec = decimals[0]?.amtDec || 2
@@ -301,7 +299,6 @@ export default function GLPostDetails({
           columns={table.getAllLeafColumns()}
           data={glPostDetailsData || []}
           tableName="GL Post Details"
-          companyId={companyId}
         />
         <div className="rounded-md border">
           <Table>

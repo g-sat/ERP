@@ -42,7 +42,7 @@ export default function SettingsPage() {
           <TabsTrigger value="document">Document No</TabsTrigger>
           <TabsTrigger value="decimal">Decimal</TabsTrigger>
           <TabsTrigger value="finance">Finance</TabsTrigger>
-          <TabsTrigger value="project">TaskService</TabsTrigger>
+          <TabsTrigger value="task">TaskService</TabsTrigger>
           <TabsTrigger value="lookup">Dynamic Lookup</TabsTrigger>
           <TabsTrigger value="account">Account</TabsTrigger>
           <TabsTrigger value="mandatory">Mandatory Fields</TabsTrigger>
@@ -169,7 +169,7 @@ export default function SettingsPage() {
           </div>
         </TabsContent>
 
-        <TabsContent value="project" className="space-y-4">
+        <TabsContent value="task" className="space-y-4">
           <div className="mt-4">
             {isLoadingTaskService ? (
               <DataTableSkeleton

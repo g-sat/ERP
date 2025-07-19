@@ -48,7 +48,6 @@ export interface InvoiceTableProps {
   onRefresh: () => void
   onFilterChange: (filters: IArInvoiceFilter) => void
   initialFilters?: IArInvoiceFilter
-  companyId: string
 }
 
 export default function InvoiceTable({
@@ -58,7 +57,6 @@ export default function InvoiceTable({
   onRefresh,
   onFilterChange,
   initialFilters,
-  companyId,
 }: InvoiceTableProps) {
   const { decimals } = useAuthStore()
   const amtDec = decimals[0]?.amtDec || 2
@@ -69,10 +67,10 @@ export default function InvoiceTable({
 
   const form = useForm({
     defaultValues: {
-      fromDate:
-        initialFilters?.fromDate ||
+      startDate:
+        initialFilters?.startDate ||
         format(subMonths(new Date(), 1), "yyyy-MM-dd"),
-      toDate: initialFilters?.toDate || format(new Date(), "yyyy-MM-dd"),
+      endDate: initialFilters?.endDate || format(new Date(), "yyyy-MM-dd"),
     },
   })
 
@@ -339,8 +337,8 @@ export default function InvoiceTable({
 
   const handleSearchInvoice = () => {
     const newFilters: IArInvoiceFilter = {
-      fromDate: form.getValues("fromDate"),
-      toDate: form.getValues("toDate"),
+      startDate: form.getValues("startDate"),
+      endDate: form.getValues("endDate"),
       search: searchQuery,
       sortBy: sorting[0]?.id || "invoiceNo",
       sortOrder: sorting[0]?.desc ? "desc" : "asc",
@@ -393,7 +391,7 @@ export default function InvoiceTable({
             <span className="text-sm font-medium">From Date:</span>
             <CustomDateNew
               form={form}
-              name="fromDate"
+              name="startDate"
               isRequired={true}
               dateFormat={dateFormat}
               size="sm"
@@ -405,7 +403,7 @@ export default function InvoiceTable({
             <span className="text-sm font-medium">To Date:</span>
             <CustomDateNew
               form={form}
-              name="toDate"
+              name="endDate"
               isRequired={true}
               dateFormat={dateFormat}
               size="sm"
@@ -425,7 +423,6 @@ export default function InvoiceTable({
         columns={table.getAllLeafColumns()}
         data={data}
         tableName="Invoices"
-        companyId={companyId}
       />
       <div
         ref={tableContainerRef}

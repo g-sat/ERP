@@ -18,11 +18,9 @@ import DocumentUpload from "./other/document-upload"
 
 interface OtherProps {
   form: UseFormReturn<ArInvoiceHdFormValues>
-  isEdit: boolean
-  companyId: string
 }
 
-export default function Other({ form, isEdit, companyId }: OtherProps) {
+export default function Other({ form }: OtherProps) {
   const [selectedAddress, setSelectedAddress] =
     useState<ICustomerAddress | null>(null)
   const [selectedContact, setSelectedContact] =
@@ -259,11 +257,7 @@ export default function Other({ form, isEdit, companyId }: OtherProps) {
           <CardTitle className="text-base">Document Information</CardTitle>
         </CardHeader>
         <CardContent>
-          <DocumentUpload
-            moduleId={25}
-            transactionId={1}
-            companyId={companyId}
-          />
+          <DocumentUpload moduleId={25} transactionId={1} />
         </CardContent>
       </Card>
     </div>

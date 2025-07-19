@@ -15,7 +15,6 @@ interface HistoryProps {
   isEdit: boolean
   moduleId: number
   transactionId: number
-  companyId: string
 }
 
 export default function History({
@@ -23,7 +22,6 @@ export default function History({
   isEdit,
   moduleId,
   transactionId,
-  companyId,
 }: HistoryProps) {
   const { decimals } = useAuthStore()
   const dateFormat = decimals[0]?.dateFormat || "yyyy-MM-dd"
@@ -56,18 +54,13 @@ export default function History({
         invoiceId={form.getValues().invoiceId}
         moduleId={moduleId}
         transactionId={transactionId}
-        companyId={companyId}
       />
       <GLPostDetails
         invoiceId={form.getValues().invoiceId}
         moduleId={moduleId}
         transactionId={transactionId}
-        companyId={companyId}
       />
-      <EditVersionDetails
-        invoiceId={form.getValues().invoiceId}
-        companyId={companyId}
-      />
+      <EditVersionDetails invoiceId={form.getValues().invoiceId} />
     </div>
   )
 }

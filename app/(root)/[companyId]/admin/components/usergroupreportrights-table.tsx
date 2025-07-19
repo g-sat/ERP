@@ -36,11 +36,7 @@ const groupRights = [
   },
 ]
 
-export function UserGroupReportRightsTable({
-  companyId,
-}: {
-  companyId: string
-}) {
+export function UserGroupReportRightsTable() {
   return (
     <div className="rounded-md border">
       <div className="max-h-[460px] overflow-auto">

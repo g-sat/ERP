@@ -152,14 +152,18 @@ export const menuData = {
       ],
     },
   ],
-  projectNav: [
+  operationsNav: [
     {
-      title: "Project",
-      url: "/project",
+      title: "Operations",
+      url: "/operations",
       icon: FolderKanban,
       items: [
-        { title: "CheckList", url: "/project/checklist", icon: ClipboardList },
-        { title: "Tariff", url: "/project/tariff", icon: Coins },
+        {
+          title: "CheckList",
+          url: "/operations/checklist",
+          icon: ClipboardList,
+        },
+        { title: "Tariff", url: "/operations/tariff", icon: Coins },
       ],
     },
   ],
@@ -274,7 +278,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
   const platformNavs = React.useMemo(
     () => [
       menuData.masterNav[0],
-      menuData.projectNav[0],
+      menuData.operationsNav[0],
       ...menuData.accountNav,
       //data.hrmsNav[0],
       //data.documentNav[0],

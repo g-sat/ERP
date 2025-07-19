@@ -36,7 +36,7 @@ type PermissionType =
   | "isExport"
   | "isPrint"
 
-export function UserGroupRightsTable({ companyId }: { companyId: string }) {
+export function UserGroupRightsTable() {
   const form = useForm()
   const [selectedGroup, setSelectedGroup] = useState<UserGroup | null>(null)
   const [groupRights, setGroupRights] = useState<IUserGroupRights[]>([])

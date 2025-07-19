@@ -29,7 +29,7 @@ type CompanyRight = {
   userGroupId: string
 }
 
-export function UserRightsTable({ companyId }: { companyId: string }) {
+export function UserRightsTable() {
   const form = useForm()
   const [selectedUser, setSelectedUser] = useState<IUserLookup | null>(null)
   const [companyRights, setCompanyRights] = useState<CompanyRight[]>([])

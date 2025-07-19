@@ -10,7 +10,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 
-import { useDynamicLookupGet, useDynamicLookupSave } from "@/hooks/use-setting"
+import { useDynamicLookupGet, useDynamicLookupSave } from "@/hooks/use-settings"
 import { Button } from "@/components/ui/button"
 import {
   Form,
@@ -77,34 +77,39 @@ export function DynamicLookupForm() {
   }, [dynamicLookupResponse, form])
 
   function onSubmit(formData: DynamicLookupFormValues) {
-    saveDynamicLookupSettings(formData, {
-      onSuccess: (response) => {
-        const { result, message } = response as DynamicLookupResponse
+    saveDynamicLookupSettings(
+      { data: [formData] },
+      {
+        onSuccess: (response) => {
+          const { result, message } = response as DynamicLookupResponse
 
-        if (result === -2) {
-          toast.error("This record is locked")
-          return
-        }
+          if (result === -2) {
+            toast.error("This record is locked")
+            return
+          }
 
-        if (result === -1) {
-          toast.error(message || "Failed to save dynamic lookup settings")
-          return
-        }
+          if (result === -1) {
+            toast.error(message || "Failed to save dynamic lookup settings")
+            return
+          }
 
-        if (result === 1) {
-          toast.success(message || "Dynamic lookup settings saved successfully")
-          // Reload data after successful save
-          refetch()
-        }
-      },
-      onError: (error) => {
-        toast.error(
-          error instanceof Error
-            ? error.message
-            : "Failed to save dynamic lookup settings"
-        )
-      },
-    })
+          if (result === 1) {
+            toast.success(
+              message || "Dynamic lookup settings saved successfully"
+            )
+            // Reload data after successful save
+            refetch()
+          }
+        },
+        onError: (error) => {
+          toast.error(
+            error instanceof Error
+              ? error.message
+              : "Failed to save dynamic lookup settings"
+          )
+        },
+      }
+    )
   }
 
   if (isLoading) {

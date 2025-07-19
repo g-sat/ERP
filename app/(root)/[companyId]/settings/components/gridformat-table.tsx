@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react"
 import { IUserLookup } from "@/interfaces/lookup"
 import { GridSettingFormValues } from "@/schemas/setting"
-import { useAuthStore } from "@/stores/auth-store"
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -19,7 +18,7 @@ import { useForm } from "react-hook-form"
 import {
   useCloneUserSettingSave,
   useUserGridSettingbyidGet,
-} from "@/hooks/use-setting"
+} from "@/hooks/use-settings"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -62,8 +61,6 @@ export function GridFormatTable() {
   const [targetUser, setTargetUser] = useState<IUserLookup | null>(null)
   const [gridSettings, setGridSettings] = useState<GridSetting[]>([])
   const [isCloneDialogOpen, setIsCloneDialogOpen] = useState(false)
-  const { decimals } = useAuthStore()
-  const dateFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
   // Fetch grid settings for selected user

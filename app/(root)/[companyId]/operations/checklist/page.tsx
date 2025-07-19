@@ -13,7 +13,7 @@ import {
 import { toast } from "sonner"
 
 import { JobOrder } from "@/lib/api-routes"
-import { OperationStatus } from "@/lib/operations-utils"
+import { OperationsStatus } from "@/lib/operations-utils"
 import { cn } from "@/lib/utils"
 import {
   exportJobOrdersDirect,
@@ -225,26 +225,27 @@ export default function ChecklistPage() {
       All: apiData.length,
       Pending: apiData.filter(
         (job: IJobOrderHd) =>
-          job.statusName === OperationStatus.Pending.toString()
+          job.statusName === OperationsStatus.Pending.toString()
       ).length,
       Confirmed: apiData.filter(
         (job: IJobOrderHd) =>
-          job.statusName === OperationStatus.Confirmed.toString()
+          job.statusName === OperationsStatus.Confirmed.toString()
       ).length,
       Completed: apiData.filter(
         (job: IJobOrderHd) =>
-          job.statusName === OperationStatus.Completed.toString()
+          job.statusName === OperationsStatus.Completed.toString()
       ).length,
       Cancelled: apiData.filter(
         (job: IJobOrderHd) =>
-          job.statusName === OperationStatus.Cancelled.toString()
+          job.statusName === OperationsStatus.Cancelled.toString()
       ).length,
       "Cancel With Service": apiData.filter(
         (job: IJobOrderHd) =>
-          job.statusName === OperationStatus.CancelWithService.toString()
+          job.statusName === OperationsStatus.CancelWithService.toString()
       ).length,
       Posted: apiData.filter(
-        (job: IJobOrderHd) => job.statusName === OperationStatus.Post.toString()
+        (job: IJobOrderHd) =>
+          job.statusName === OperationsStatus.Post.toString()
       ).length,
     }
     return counts
@@ -366,14 +367,14 @@ export default function ChecklistPage() {
                 className="border-input bg-background ring-offset-background mt-1 w-full rounded-md border px-3 py-2 text-sm"
               >
                 <option value="">All Statuses</option>
-                <option value={OperationStatus.Pending}>Pending</option>
-                <option value={OperationStatus.Confirmed}>Confirmed</option>
-                <option value={OperationStatus.Completed}>Completed</option>
-                <option value={OperationStatus.Cancelled}>Cancelled</option>
-                <option value={OperationStatus.CancelWithService}>
+                <option value={OperationsStatus.Pending}>Pending</option>
+                <option value={OperationsStatus.Confirmed}>Confirmed</option>
+                <option value={OperationsStatus.Completed}>Completed</option>
+                <option value={OperationsStatus.Cancelled}>Cancelled</option>
+                <option value={OperationsStatus.CancelWithService}>
                   Cancel With Service
                 </option>
-                <option value={OperationStatus.Post}>Posted</option>
+                <option value={OperationsStatus.Post}>Posted</option>
               </select>
             </div>
           </div>

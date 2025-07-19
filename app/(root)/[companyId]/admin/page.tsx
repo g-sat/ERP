@@ -1,7 +1,6 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useParams } from "next/navigation"
 import {
   IUser,
   IUserFilter,
@@ -49,9 +48,6 @@ import { UserRightsTable } from "./components/userrights-table"
 import { UserWiseRightsTable } from "./components/userwiserights-table"
 
 export default function AdminPage() {
-  const params = useParams()
-  const companyId = params.companyId as string
-
   const moduleId = ModuleId.admin
   const transactionId = AdminTransactionId.user
   const transactionIdGroup = AdminTransactionId.user_group
@@ -97,31 +93,21 @@ export default function AdminPage() {
     refetch: refetchUsers,
     isLoading: isLoadingUsers,
     isRefetching: isRefetchingUsers,
-  } = useGet<IUser>(`${User.get}`, "users", companyId, filters.search)
+  } = useGet<IUser>(`${User.get}`, "users", filters.search)
 
   const {
     data: userGroupsResponse,
     refetch: refetchUserGroups,
     isLoading: isLoadingUserGroups,
     isRefetching: isRefetchingUserGroups,
-  } = useGet<IUserGroup>(
-    `${UserGroup.get}`,
-    "usergroups",
-    companyId,
-    groupFilters.search
-  )
+  } = useGet<IUserGroup>(`${UserGroup.get}`, "usergroups", groupFilters.search)
 
   const {
     data: userRolesResponse,
     refetch: refetchUserRoles,
     isLoading: isLoadingUserRoles,
     isRefetching: isRefetchingUserRoles,
-  } = useGet<IUserRole>(
-    `${UserRole.get}`,
-    "userroles",
-    companyId,
-    roleFilters.search
-  )
+  } = useGet<IUserRole>(`${UserRole.get}`, "userroles", roleFilters.search)
 
   const { data: usersData } = (usersResponse as ApiResponse<IUser>) ?? {
     result: 0,
@@ -143,33 +129,17 @@ export default function AdminPage() {
       data: [],
     }
 
-  const saveMutation = useSave(`${User.add}`, "users", companyId)
-  const updateMutation = useUpdate(`${User.add}`, "users", companyId)
-  const deleteMutation = useDelete(`${User.delete}`, "users", companyId)
+  const saveMutation = useSave(`${User.add}`)
+  const updateMutation = useUpdate(`${User.add}`)
+  const deleteMutation = useDelete(`${User.delete}`)
 
-  const saveGroupMutation = useSave(`${UserGroup.add}`, "usergroups", companyId)
-  const updateGroupMutation = useUpdate(
-    `${UserGroup.add}`,
-    "usergroups",
-    companyId
-  )
-  const deleteGroupMutation = useDelete(
-    `${UserGroup.delete}`,
-    "usergroups",
-    companyId
-  )
+  const saveGroupMutation = useSave(`${UserGroup.add}`)
+  const updateGroupMutation = useUpdate(`${UserGroup.add}`)
+  const deleteGroupMutation = useDelete(`${UserGroup.delete}`)
 
-  const saveRoleMutation = useSave(`${UserRole.add}`, "userroles", companyId)
-  const updateRoleMutation = useUpdate(
-    `${UserRole.add}`,
-    "userroles",
-    companyId
-  )
-  const deleteRoleMutation = useDelete(
-    `${UserRole.delete}`,
-    "userroles",
-    companyId
-  )
+  const saveRoleMutation = useSave(`${UserRole.add}`)
+  const updateRoleMutation = useUpdate(`${UserRole.add}`)
+  const deleteRoleMutation = useDelete(`${UserRole.delete}`)
 
   const [selectedUser, setSelectedUser] = useState<IUser | undefined>(undefined)
   const [selectedUserGroup, setSelectedUserGroup] = useState<
@@ -539,7 +509,6 @@ export default function AdminPage() {
                 onFilterChange={setFilters}
                 moduleId={moduleId}
                 transactionId={transactionId}
-                companyId={companyId}
               />
             </LockSkeleton>
           ) : (
@@ -554,7 +523,6 @@ export default function AdminPage() {
               onFilterChange={setFilters}
               moduleId={moduleId}
               transactionId={transactionId}
-              companyId={companyId}
             />
           )}
         </TabsContent>
@@ -597,7 +565,6 @@ export default function AdminPage() {
                 onFilterChange={setRoleFilters}
                 moduleId={moduleId}
                 transactionId={transactionIdRole}
-                companyId={companyId}
               />
             </LockSkeleton>
           ) : (
@@ -618,7 +585,6 @@ export default function AdminPage() {
               onFilterChange={setRoleFilters}
               moduleId={moduleId}
               transactionId={transactionIdRole}
-              companyId={companyId}
             />
           )}
         </TabsContent>
@@ -661,7 +627,6 @@ export default function AdminPage() {
                 onFilterChange={setGroupFilters}
                 moduleId={moduleId}
                 transactionId={transactionIdGroup}
-                companyId={companyId}
               />
             </LockSkeleton>
           ) : (
@@ -684,7 +649,6 @@ export default function AdminPage() {
               onFilterChange={setGroupFilters}
               moduleId={moduleId}
               transactionId={transactionIdGroup}
-              companyId={companyId}
             />
           )}
         </TabsContent>
@@ -707,7 +671,7 @@ export default function AdminPage() {
               shrinkZero
             />
           ) : (
-            <UserRightsTable companyId={companyId} />
+            <UserRightsTable />
           )}
         </TabsContent>
 
@@ -729,7 +693,7 @@ export default function AdminPage() {
               shrinkZero
             />
           ) : (
-            <UserWiseRightsTable companyId={companyId} />
+            <UserWiseRightsTable />
           )}
         </TabsContent>
 
@@ -751,7 +715,7 @@ export default function AdminPage() {
               shrinkZero
             />
           ) : (
-            <UserGroupRightsTable companyId={companyId} />
+            <UserGroupRightsTable />
           )}
         </TabsContent>
 
@@ -773,7 +737,7 @@ export default function AdminPage() {
               shrinkZero
             />
           ) : (
-            <UserGroupReportRightsTable companyId={companyId} />
+            <UserGroupReportRightsTable />
           )}
         </TabsContent>
 
@@ -795,7 +759,7 @@ export default function AdminPage() {
               shrinkZero
             />
           ) : (
-            <ShareDataTable companyId={companyId} />
+            <ShareDataTable />
           )}
         </TabsContent>
       </Tabs>

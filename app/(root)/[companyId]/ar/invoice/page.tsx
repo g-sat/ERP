@@ -1,7 +1,6 @@
 "use client"
 
 import { useState } from "react"
-import { useParams } from "next/navigation"
 import { ApiResponse } from "@/interfaces/auth"
 import { IArInvoiceFilter, IArInvoiceHd } from "@/interfaces/invoice"
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
@@ -41,9 +40,6 @@ import Main from "./components/main-tab"
 import Other from "./components/other"
 
 export default function InvoicePage() {
-  const params = useParams()
-  const companyId = params.companyId as string
-
   const [showListDialog, setShowListDialog] = useState(false)
   const [showConfirmDialog, setShowConfirmDialog] = useState({
     save: false,
@@ -193,7 +189,6 @@ export default function InvoicePage() {
     useGetInvoiceById<ArInvoiceHdFormValues>(
       `${ArInvoice.getByIdNo}`,
       "arInvoiceHd",
-      companyId,
       invoice?.invoiceId?.toString() ?? "0",
       invoice?.invoiceNo ?? searchNo,
       {
@@ -514,12 +509,11 @@ export default function InvoicePage() {
             onSave={handleConfirmation}
             isEdit={isEdit}
             visible={visible}
-            companyId={companyId}
           />
         </TabsContent>
 
         <TabsContent value="other">
-          <Other form={form} isEdit={isEdit} companyId={companyId} />
+          <Other form={form} />
         </TabsContent>
 
         <TabsContent value="history">
@@ -528,7 +522,6 @@ export default function InvoicePage() {
             isEdit={isEdit}
             moduleId={moduleId}
             transactionId={transactionId}
-            companyId={companyId}
           />
         </TabsContent>
       </Tabs>
@@ -563,7 +556,6 @@ export default function InvoicePage() {
             onRefresh={() => refetchInvoices()}
             onFilterChange={handleFilterChange}
             initialFilters={filters}
-            companyId={companyId}
           />
         </DialogContent>
       </Dialog>

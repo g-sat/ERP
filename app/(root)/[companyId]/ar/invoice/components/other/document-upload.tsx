@@ -30,13 +30,11 @@ import DocumentTypeAutocomplete from "@/components/ui-custom/autocomplete-docume
 interface DocumentUploadProps {
   moduleId: number
   transactionId: number
-  companyId: string
 }
 
 export default function DocumentUpload({
   moduleId,
   transactionId,
-  companyId,
 }: DocumentUploadProps) {
   const { decimals } = useAuthStore()
   const dateFormat = decimals[0]?.dateFormat || "dd/MM/yyyy"
@@ -137,7 +135,7 @@ export default function DocumentUpload({
     },
     {
       id: "actions",
-      cell: ({ row }: { row: { original: IDocType } }) => (
+      cell: () => (
         <Button variant="destructive" size="sm">
           Delete
         </Button>
@@ -191,7 +189,6 @@ export default function DocumentUpload({
             columns={[]}
             data={documents?.data || []}
             tableName="Documents"
-            companyId={companyId}
           />
           <div className="rounded-md border">
             <Table>

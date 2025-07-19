@@ -29,7 +29,7 @@ type PermissionType =
   | "isExport"
   | "isPrint"
 
-export function UserWiseRightsTable({ companyId }: { companyId: string }) {
+export function UserWiseRightsTable() {
   const form = useForm()
   const [selectedUser, setSelectedUser] = useState<IUserLookup | null>(null)
   const [groupRights, setGroupRights] = useState<IUserRightsv1[]>([])

@@ -59,7 +59,6 @@ type TableHeaderProps<TData> = {
   tableName?: string // Optional table name prop
   moduleId?: number
   transactionId?: number
-  companyId: string
   isLoading?: boolean // Add loading state prop
 }
 
@@ -72,7 +71,6 @@ export function TableHeaderCustom<TData>({
   tableName = "Table",
   moduleId,
   transactionId,
-  companyId,
   isLoading = false, // Default to false
 }: TableHeaderProps<TData>) {
   const [columnSearch, setColumnSearch] = useState("")
@@ -98,11 +96,7 @@ export function TableHeaderCustom<TData>({
   }
 
   // Add the save mutation for grid settings
-  const saveGridSettings = useSave<IGridSetting>(
-    "/setting/saveUserGrid",
-    "gridSettings",
-    companyId
-  )
+  const saveGridSettings = useSave<IGridSetting>("/setting/saveUserGrid")
 
   const handleExportExcel = (data: TData[]) => {
     toast.info("Exporting to Excel...", {

@@ -21,7 +21,7 @@ import {
 
 type PermissionType = "shareToAll"
 
-export function ShareDataTable({ companyId }: { companyId: string }) {
+export function ShareDataTable() {
   const form = useForm()
   const [shareData, setShareData] = useState<IShareData[]>([])
   const [saving, setSaving] = useState(false)

@@ -1,7 +1,6 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useParams } from "next/navigation"
 import { ApiResponse } from "@/interfaces/auth"
 import { IPortRegion, IPortRegionFilter } from "@/interfaces/portregion"
 import { PortRegionFormValues } from "@/schemas/portregion"
@@ -34,8 +33,6 @@ import { PortRegionForm } from "./components/portregion-form"
 import { PortRegionsTable } from "./components/portregion-table"
 
 export default function PortRegionPage() {
-  const params = useParams()
-  const companyId = params.companyId as string
   const moduleId = ModuleId.master
   const transactionId = MasterTransactionId.port_region
 
@@ -50,12 +47,7 @@ export default function PortRegionPage() {
     refetch,
     isLoading,
     isRefetching,
-  } = useGet<IPortRegion>(
-    `${PortRegion.get}`,
-    "portregions",
-    companyId,
-    filters.search
-  )
+  } = useGet<IPortRegion>(`${PortRegion.get}`, "portregions", filters.search)
 
   const { result: portregionsResult, data: portregionsData } =
     (portRegionsResponse as ApiResponse<IPortRegion>) ?? {
@@ -64,21 +56,9 @@ export default function PortRegionPage() {
       data: [],
     }
 
-  const saveMutation = useSave<PortRegionFormValues>(
-    `${PortRegion.add}`,
-    "portregions",
-    companyId
-  )
-  const updateMutation = useUpdate<PortRegionFormValues>(
-    `${PortRegion.add}`,
-    "portregions",
-    companyId
-  )
-  const deleteMutation = useDelete(
-    `${PortRegion.delete}`,
-    "portregions",
-    companyId
-  )
+  const saveMutation = useSave<PortRegionFormValues>(`${PortRegion.add}`)
+  const updateMutation = useUpdate<PortRegionFormValues>(`${PortRegion.add}`)
+  const deleteMutation = useDelete(`${PortRegion.delete}`)
 
   const [selectedPortRegion, setSelectedPortRegion] =
     useState<IPortRegion | null>(null)
@@ -104,7 +84,6 @@ export default function PortRegionPage() {
   const { refetch: checkCodeAvailability } = useGetById<IPortRegion>(
     `${PortRegion.getByCode}`,
     "portRegionByCode",
-    companyId,
     codeToCheck,
     {
       enabled: !!codeToCheck && codeToCheck.trim() !== "",
@@ -322,7 +301,6 @@ export default function PortRegionPage() {
           onFilterChange={setFilters}
           moduleId={moduleId}
           transactionId={transactionId}
-          companyId={companyId}
         />
       ) : (
         <div>No data available</div>

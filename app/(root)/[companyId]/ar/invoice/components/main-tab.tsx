@@ -13,16 +13,9 @@ interface MainProps {
   onSave: (action: string) => Promise<void>
   isEdit: boolean
   visible: IVisibleFields
-  companyId: string
 }
 
-export default function Main({
-  form,
-  onSave,
-  isEdit,
-  visible,
-  companyId,
-}: MainProps) {
+export default function Main({ form, onSave, isEdit, visible }: MainProps) {
   return (
     <div className="divide-y">
       <InvoiceForm
@@ -31,11 +24,7 @@ export default function Main({
         isEdit={isEdit}
         visible={visible}
       />
-      <InvoiceDetailsTable
-        form={form}
-        visible={visible}
-        companyId={companyId}
-      />
+      <InvoiceDetailsTable form={form} visible={visible} />
     </div>
   )
 }

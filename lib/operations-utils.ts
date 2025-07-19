@@ -1,4 +1,4 @@
-export enum ProjectStatus {
+export enum OperationsStatus {
   All = "All",
   Pending = "Pending",
   Completed = "Completed",

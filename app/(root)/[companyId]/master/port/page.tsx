@@ -1,7 +1,6 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useParams } from "next/navigation"
 import { ApiResponse } from "@/interfaces/auth"
 import { IPort, IPortFilter } from "@/interfaces/port"
 import { PortFormValues } from "@/schemas/port"
@@ -34,8 +33,6 @@ import { PortForm } from "./components/port-form"
 import { PortsTable } from "./components/port-table"
 
 export default function PortPage() {
-  const params = useParams()
-  const companyId = params.companyId as string
   const moduleId = ModuleId.master
   const transactionId = MasterTransactionId.port
 
@@ -50,7 +47,7 @@ export default function PortPage() {
     refetch,
     isLoading,
     isRefetching,
-  } = useGet<IPort>(`${Port.get}`, "ports", companyId, filters.search)
+  } = useGet<IPort>(`${Port.get}`, "ports", filters.search)
 
   const { result: portsResult, data: portsData } =
     (portsResponse as ApiResponse<IPort>) ?? {
@@ -59,17 +56,9 @@ export default function PortPage() {
       data: [],
     }
 
-  const saveMutation = useSave<PortFormValues>(
-    `${Port.add}`,
-    "ports",
-    companyId
-  )
-  const updateMutation = useUpdate<PortFormValues>(
-    `${Port.add}`,
-    "ports",
-    companyId
-  )
-  const deleteMutation = useDelete(`${Port.delete}`, "ports", companyId)
+  const saveMutation = useSave<PortFormValues>(`${Port.add}`)
+  const updateMutation = useUpdate<PortFormValues>(`${Port.add}`)
+  const deleteMutation = useDelete(`${Port.delete}`)
 
   const [selectedPort, setSelectedPort] = useState<IPort | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -93,7 +82,6 @@ export default function PortPage() {
   const { refetch: checkCodeAvailability } = useGetById<IPort>(
     `${Port.getByCode}`,
     "portByCode",
-    companyId,
     codeToCheck,
     {
       enabled: !!codeToCheck && codeToCheck.trim() !== "",
@@ -306,7 +294,6 @@ export default function PortPage() {
           onFilterChange={setFilters}
           moduleId={moduleId}
           transactionId={transactionId}
-          companyId={companyId}
         />
       ) : (
         <div>No data available</div>

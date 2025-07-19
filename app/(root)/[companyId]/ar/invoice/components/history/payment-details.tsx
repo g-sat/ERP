@@ -26,14 +26,12 @@ interface PaymentDetailsProps {
   invoiceId: string
   moduleId: number
   transactionId: number
-  companyId: string
 }
 
 export default function PaymentDetails({
   invoiceId,
   moduleId,
   transactionId,
-  companyId,
 }: PaymentDetailsProps) {
   const { decimals } = useAuthStore()
   const amtDec = decimals[0]?.amtDec || 2
@@ -144,7 +142,6 @@ export default function PaymentDetails({
           columns={table.getAllLeafColumns()}
           data={paymentDetailsData || []}
           tableName="Payment Details"
-          companyId={companyId}
         />
         <div className="rounded-md border">
           <Table>

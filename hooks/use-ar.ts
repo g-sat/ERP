@@ -18,7 +18,6 @@ import { ArInvoice } from "@/lib/api-routes"
 export function useGetInvoiceById<T>(
   baseUrl: string,
   queryKey: string,
-  companyId: string,
   invoiceId: string,
   invoiceNo: string,
   options = {}

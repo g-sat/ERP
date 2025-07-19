@@ -133,10 +133,7 @@ export function TableHeaderProject<TData>({
   }, [onCombinedService])
 
   // Add the save mutation for grid settings
-  const saveGridSettings = useSave<IGridSetting>(
-    "/setting/saveUserGrid",
-    "gridSettings"
-  )
+  const saveGridSettings = useSave<IGridSetting>("/setting/saveUserGrid")
 
   const handleSaveLayout = useCallback(async () => {
     try {
