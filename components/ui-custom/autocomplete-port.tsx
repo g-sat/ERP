@@ -53,6 +53,10 @@ export default function PortAutocomplete<T extends Record<string, unknown>>({
     [ports]
   )
 
+  // SSR hydration fix: only render Select after mount
+  const [mounted, setMounted] = React.useState(false)
+  React.useEffect(() => { setMounted(true) }, [])
+
   // Custom components with display names
   const DropdownIndicator = React.memo(
     (props: DropdownIndicatorProps<FieldOption>) => {
@@ -206,6 +210,11 @@ export default function PortAutocomplete<T extends Record<string, unknown>>({
     }
     return null
   }, [form, name, options])
+
+  if (!mounted) {
+    // Optionally, return a skeleton/loader here
+    return null
+  }
 
   if (form && name) {
     return (
