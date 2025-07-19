@@ -854,3 +854,26 @@ Root Cause: The DialogContent component in components/ui/dialog.tsx used the 'gr
 Fix: Replaced 'grid' with 'block' in the DialogContent className to ensure content aligns to the top.
 Location: components/ui/dialog.tsx (DialogContent), affects popups in app/(root)/[companyId]/operations/checklist/components/services-tabs/*
 ---
+
+---
+[2024-06-10] BUG FIX LOG
+
+Issue: Invoice details fetch (single click) failed with AxiosError 500 on first click, but worked on second click. This was due to a race condition: the API call to fetch invoice details used the invoice state, which was not yet updated with the selected invoice's values on the first click. As a result, the API was called with stale or empty parameters (e.g., invoiceId = "0" or invoiceNo = ""), causing the backend to return a 500 error. On the second click, the state was correct, so the fetch succeeded.
+
+Solution: Refactored the invoice selection logic in app/(root)/[companyId]/ar/invoice/page.tsx. Now, when an invoice is selected, the fetch for invoice details is made directly using the selected invoice's invoiceId and invoiceNo, not from the possibly stale state. This guarantees the API is always called with the correct parameters, eliminating the race condition and 500 error.
+
+File(s) changed:
+- app/(root)/[companyId]/ar/invoice/page.tsx
+
+Technical Details:
+- Removed useGetInvoiceById hook for selection.
+- Now calls getById(`/account/getarinvoicebyidno/${selectedInvoice.invoiceId}/${selectedInvoice.invoiceNo}`) directly in handleInvoiceSelect.
+- Ensured type safety for invoice detail mapping (uses IArInvoiceDt).
+- Added error logging and user feedback for failed fetches.
+
+How to Avoid in the Future:
+- When fetching details based on user selection, always use the selected item's values directly, not from state that may not be updated yet.
+- Avoid using hooks that depend on state that is set in the same event handler as the fetch trigger.
+- Always log and check the parameters being sent to the backend when debugging fetch issues.
+
+---
