@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react"
 // import Link from "next/link" // Remove unused import
-import { useRouter } from "next/navigation"
+import { useRouter, usePathname } from "next/navigation"
 import { Search } from "lucide-react"
 
 import { Label } from "@/components/ui/label"
@@ -41,6 +41,9 @@ export function SearchForm({
   const [query, setQuery] = useState("")
   const [showResults, setShowResults] = useState(false)
   const router = useRouter()
+  const pathname = usePathname()
+  // Extract companyId from the current path (assumes /[companyId]/...)
+  const companyId = pathname.split("/")[1] || ""
 
   // Flatten all menu and submenu items
   const allMenus = useMemo(() => {
@@ -95,7 +98,11 @@ export function SearchForm({
   const handleSelect = (url: string) => {
     setShowResults(false)
     setQuery("")
-    router.push(url)
+    // Only prepend if not already present and companyId exists
+    const fullUrl = companyId && !url.startsWith(`/${companyId}`)
+      ? `/${companyId}${url}`
+      : url
+    router.push(fullUrl)
   }
 
   // Type guard for icon rendering
