@@ -138,7 +138,7 @@ export function ChecklistTabs({
 
   return (
     <div className="w-full">
-      <div className="mb-2 flex items-center justify-between">
+      <div className="mb-2 flex ">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1">
           <TabsList className="flex gap-2">
             <TabsTrigger value="main">Main</TabsTrigger>

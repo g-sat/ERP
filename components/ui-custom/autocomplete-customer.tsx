@@ -234,6 +234,7 @@ export default function CustomerAutocomplete<
             return (
               <FormItem className={cn("flex flex-col", className)}>
                 <Select
+                  instanceId={name || "customer-select"}
                   options={options}
                   value={getValue()}
                   onChange={handleChange}
@@ -289,6 +290,7 @@ export default function CustomerAutocomplete<
         </div>
       )}
       <Select
+        instanceId={name || "customer-select"}
         options={options}
         onChange={handleChange}
         placeholder="Select Customer..."

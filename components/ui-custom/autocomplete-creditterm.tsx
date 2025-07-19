@@ -250,6 +250,7 @@ export default function CreditTermAutocomplete<
                   menuPosition="fixed"
                   isLoading={isLoading}
                   loadingMessage={() => "Loading creditterms..."}
+                  instanceId={name}
                 />
                 {showError && (
                   <p className="text-destructive mt-1 text-xs">
@@ -304,6 +305,7 @@ export default function CreditTermAutocomplete<
         menuPosition="fixed"
         isLoading={isLoading}
         loadingMessage={() => "Loading creditterms..."}
+        instanceId={name}
       />
     </div>
   )
