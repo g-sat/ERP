@@ -3,21 +3,22 @@ import Cookies from "js-cookie"
 import { create } from "zustand"
 import { devtools, persist } from "zustand/middleware"
 
+import { getData } from "@/lib/api-client"
+
 import { usePermissionStore } from "./permission-store"
 
 // Constants and Configuration
 // -------------------------
-const API_URL = process.env.NEXT_PUBLIC_API_URL
-const ENABLE_COMPANY_SWITCH =
+const BACKEND_API_URL = process.env.NEXT_PUBLIC_API_URL
+const ENABLE_COMPANY_SWITCHING =
   process.env.NEXT_PUBLIC_ENABLE_COMPANY_SWITCH === "true"
 const DEFAULT_REGISTRATION_ID = process.env
   .NEXT_PUBLIC_DEFAULT_REGISTRATION_ID as string
 
 // Storage Keys
 // ------------
-const AUTH_TOKEN_COOKIE = "auth-token"
-const COMPANY_ID_COOKIE = "company_id"
-const TAB_COMPANY_ID_KEY = "tab_company_id"
+const AUTH_TOKEN_COOKIE_NAME = "auth-token"
+const SESSION_STORAGE_TAB_COMPANY_ID_KEY = "tab_company_id"
 
 // Helper Functions
 // ---------------
@@ -25,26 +26,26 @@ const TAB_COMPANY_ID_KEY = "tab_company_id"
  * Gets the company ID specific to the current browser tab
  * Used for multi-tab support where each tab can have a different company selected
  */
-const getTabCompanyId = () => {
+const getCurrentTabCompanyIdFromSession = () => {
   if (typeof window === "undefined") return null
-  return sessionStorage.getItem(TAB_COMPANY_ID_KEY)
+  return sessionStorage.getItem(SESSION_STORAGE_TAB_COMPANY_ID_KEY)
 }
 
 /**
  * Sets the company ID for the current browser tab
  * @param companyId - The company ID to set
  */
-const setTabCompanyId = (companyId: string) => {
+const setCurrentTabCompanyIdInSession = (companyId: string) => {
   if (typeof window === "undefined") return
-  sessionStorage.setItem(TAB_COMPANY_ID_KEY, companyId)
+  sessionStorage.setItem(SESSION_STORAGE_TAB_COMPANY_ID_KEY, companyId)
 }
 
 /**
  * Clears the company ID for the current browser tab
  */
-const clearTabCompanyId = () => {
+const clearCurrentTabCompanyIdFromSession = () => {
   if (typeof window === "undefined") return
-  sessionStorage.removeItem(TAB_COMPANY_ID_KEY)
+  sessionStorage.removeItem(SESSION_STORAGE_TAB_COMPANY_ID_KEY)
 }
 
 /**
@@ -52,7 +53,7 @@ const clearTabCompanyId = () => {
  * @param token - The JWT token to parse
  * @returns The user ID from the token or a default value
  */
-const getUserIdFromToken = (token: string): string => {
+const extractUserIdFromJwtToken = (token: string): string => {
   try {
     const payload = JSON.parse(atob(token.split(".")[1]))
     return payload.userId
@@ -149,7 +150,7 @@ export const useAuthStore = create<AuthState>()(
         error: null,
         companies: [],
         currentCompany: null,
-        isCompanySwitchEnabled: ENABLE_COMPANY_SWITCH,
+        isCompanySwitchEnabled: ENABLE_COMPANY_SWITCHING,
         decimals: [],
 
         // Authentication Actions
@@ -171,7 +172,7 @@ export const useAuthStore = create<AuthState>()(
           set({ isLoading: true, error: null })
 
           try {
-            const response = await fetch(`${API_URL}/auth/login`, {
+            const response = await fetch(`${BACKEND_API_URL}/auth/login`, {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
@@ -227,7 +228,7 @@ export const useAuthStore = create<AuthState>()(
           set({ isLoading: true, error: null })
 
           try {
-            const response = await fetch(`${API_URL}/auth/login`, {
+            const response = await fetch(`${BACKEND_API_URL}/auth/login`, {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
@@ -249,10 +250,8 @@ export const useAuthStore = create<AuthState>()(
             if (data.result !== 1) {
               get().setAppLocked(true)
               if (data.user.isLocked === true) {
-                Cookies.remove(AUTH_TOKEN_COOKIE)
-                Cookies.remove(COMPANY_ID_COOKIE)
+                Cookies.remove(AUTH_TOKEN_COOKIE_NAME)
                 Cookies.remove("auth-token")
-                Cookies.remove("selectedCompanyId")
 
                 set({
                   isAuthenticated: false,
@@ -286,7 +285,7 @@ export const useAuthStore = create<AuthState>()(
          * Sets authentication state and stores tokens
          */
         logInSuccess: (user: IUser, token: string, refreshToken: string) => {
-          Cookies.set(AUTH_TOKEN_COOKIE, token, { expires: 7 })
+          Cookies.set(AUTH_TOKEN_COOKIE_NAME, token, { expires: 7 })
 
           set({
             isAuthenticated: true,
@@ -304,10 +303,8 @@ export const useAuthStore = create<AuthState>()(
          * Clears authentication state and tokens
          */
         logInFailed: (error: string) => {
-          Cookies.remove(AUTH_TOKEN_COOKIE)
-          Cookies.remove(COMPANY_ID_COOKIE)
+          Cookies.remove(AUTH_TOKEN_COOKIE_NAME)
           Cookies.remove("auth-token")
-          Cookies.remove("selectedCompanyId")
 
           set({
             isAuthenticated: false,
@@ -371,7 +368,7 @@ export const useAuthStore = create<AuthState>()(
           try {
             const token = get().token
             if (token) {
-              await fetch(`${API_URL}/auth/logout`, {
+              await fetch(`${BACKEND_API_URL}/auth/logout`, {
                 method: "POST",
                 headers: {
                   Authorization: `Bearer ${token}`,
@@ -386,10 +383,8 @@ export const useAuthStore = create<AuthState>()(
         },
 
         logOutSuccess: () => {
-          Cookies.remove(AUTH_TOKEN_COOKIE)
-          Cookies.remove(COMPANY_ID_COOKIE)
+          Cookies.remove(AUTH_TOKEN_COOKIE_NAME)
           Cookies.remove("auth-token")
-          Cookies.remove("selectedCompanyId")
           get().clearCurrentTabCompanyId()
 
           // Clear both storages from localStorage
@@ -423,13 +418,16 @@ export const useAuthStore = create<AuthState>()(
           if (!token) return
 
           try {
-            const response = await fetch(`${API_URL}/admin/GetUserCompany`, {
-              headers: {
-                Authorization: `Bearer ${token}`,
-                "X-Reg-Id": DEFAULT_REGISTRATION_ID,
-                "X-User-Id": getUserIdFromToken(token),
-              },
-            })
+            const response = await fetch(
+              `${BACKEND_API_URL}/admin/GetUserCompany`,
+              {
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                  "X-Reg-Id": DEFAULT_REGISTRATION_ID,
+                  "X-User-Id": extractUserIdFromJwtToken(token),
+                },
+              }
+            )
 
             const data = await response.json()
 
@@ -494,7 +492,6 @@ export const useAuthStore = create<AuthState>()(
 
             get().setCurrentTabCompanyId(companyId)
             set({ currentCompany: company })
-            Cookies.set(COMPANY_ID_COOKIE, companyId, { expires: 1 })
 
             // Fetch permissions and decimals after switching company
             await get().getPermissions()
@@ -522,7 +519,7 @@ export const useAuthStore = create<AuthState>()(
 
           try {
             const response = await fetch(
-              `${API_URL}/admin/GetUserRightsbyUser`,
+              `${BACKEND_API_URL}/admin/GetUserRightsbyUser`,
               {
                 headers: {
                   Authorization: `Bearer ${token}`,
@@ -533,22 +530,7 @@ export const useAuthStore = create<AuthState>()(
               }
             )
 
-            // Defensive: check content-type before parsing
-            const contentType = response.headers.get("content-type")
-            let data
-            if (!contentType || !contentType.includes("application/json")) {
-              const text = await response.text()
-              console.error("Expected JSON, got:", text)
-              throw new Error("Server did not return JSON. Raw response: " + text)
-            } else {
-              try {
-                data = await response.json()
-              } catch (jsonError) {
-                const text = await response.text()
-                console.error("Error parsing JSON. Raw response:", text)
-                throw new Error("Error parsing JSON: " + (jsonError instanceof Error ? jsonError.message : String(jsonError)) + ". Raw response: " + text)
-              }
-            }
+            const data = await response.json()
 
             if (!response.ok) {
               throw new Error(`Failed to fetch permissions: ${response.status}`)
@@ -571,22 +553,9 @@ export const useAuthStore = create<AuthState>()(
           if (!token || !currentCompany || !user) return
 
           try {
-            const response = await fetch(`${API_URL}/setting/getdecsetting`, {
-              headers: {
-                Authorization: `Bearer ${token}`,
-                "X-Reg-Id": DEFAULT_REGISTRATION_ID,
-                "X-Company-Id": currentCompany.companyId,
-                "X-User-Id": user.userId,
-              },
-            })
+            const response = await getData(`/setting/getdecsetting`)
 
-            const data = await response.json()
-
-            if (!response.ok) {
-              throw new Error(
-                `Failed to fetch decimal settings: ${response.status}`
-              )
-            }
+            const data = response.data
 
             const decimaldata = data.data || data || []
             get().setDecimals(decimaldata)
@@ -632,10 +601,10 @@ export const useAuthStore = create<AuthState>()(
         },
 
         // Tab Company ID Actions
-        getCurrentTabCompanyId: () => getTabCompanyId(),
+        getCurrentTabCompanyId: () => getCurrentTabCompanyIdFromSession(),
         setCurrentTabCompanyId: (companyId: string) =>
-          setTabCompanyId(companyId),
-        clearCurrentTabCompanyId: () => clearTabCompanyId(),
+          setCurrentTabCompanyIdInSession(companyId),
+        clearCurrentTabCompanyId: () => clearCurrentTabCompanyIdFromSession(),
       }),
       {
         name: "auth-storage",
