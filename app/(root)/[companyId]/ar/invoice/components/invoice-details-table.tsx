@@ -39,6 +39,7 @@ import {
   getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
+  Cell,
 } from "@tanstack/react-table"
 import axios from "axios"
 import { format, parse } from "date-fns"
@@ -1583,18 +1584,46 @@ export default function InvoiceDetailsTable({
     })
   }
 
+  useEffect(() => {
+    const handleTabNavigation = (e: KeyboardEvent) => {
+      if (e.key !== "Tab") return
+      const active = document.activeElement as HTMLElement
+      if (!active) return
+      // Only handle if inside our table
+      if (!active.closest(".invoice-details-table")) return
+      // Find all focusable inputs in the table
+      const focusable = Array.from(
+        document.querySelectorAll(
+          ".invoice-details-table input, .invoice-details-table select, .invoice-details-table textarea, .invoice-details-table [tabindex='0']"
+        )
+      ) as HTMLElement[]
+      if (focusable.length === 0) return
+      const idx = focusable.indexOf(active)
+      let nextIdx = e.shiftKey ? idx - 1 : idx + 1
+      if (nextIdx < 0) nextIdx = focusable.length - 1
+      if (nextIdx >= focusable.length) nextIdx = 0
+      e.preventDefault()
+      focusable[nextIdx].focus()
+      focusable[nextIdx].scrollIntoView({ block: "nearest", inline: "nearest" })
+    }
+    document.addEventListener("keydown", handleTabNavigation, true)
+    return () => {
+      document.removeEventListener("keydown", handleTabNavigation, true)
+    }
+  }, [])
+
   if (!mounted) {
     return null
   }
 
   return (
-    <div className="w-full overflow-auto">
+    <div className="w-full overflow-x-auto rounded-lg border bg-white dark:bg-zinc-900 shadow-md invoice-details-table">
       <FormProvider {...invoiceDetailForm}>
-        <Card className="shadow-lg">
+        <Card className="shadow-lg border-none">
           <CardContent>
             <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <Button
                     variant="outline"
                     size="sm"
@@ -1712,15 +1741,16 @@ export default function InvoiceDetailsTable({
                 </div>
               </div>
 
+              {/* 2. Responsive, sticky, zebra, modern table */}
               <div
-                className="overflow-x-auto overflow-y-auto"
+                className="overflow-x-auto overflow-y-auto rounded-lg border"
                 style={{ maxHeight: "calc(100vh - 200px)" }}
               >
                 <Table
-                  className="w-full border-collapse border"
+                  className="w-full border-collapse border min-w-[1200px]"
                   style={{ tableLayout: "fixed" }}
                 >
-                  <TableHeader className="bg-muted/30 sticky top-0 z-10">
+                  <TableHeader className="bg-muted/30 sticky top-0 z-10 shadow-sm">
                     {table.getHeaderGroups().map((headerGroup) => (
                       <TableRow key={headerGroup.id}>
                         {headerGroup.headers.map((header) => (
@@ -1728,13 +1758,12 @@ export default function InvoiceDetailsTable({
                             key={header.id}
                             className={
                               header.id === "actions"
-                                ? "dark:bg-muted/90 light:bg-muted/30 light:text-black dark:text-white"
-                                : ""
+                                ? "sticky left-0 z-20 bg-muted/90 border-r border-b border-gray-200 dark:border-zinc-800"
+                                : "border-b border-gray-200 dark:border-zinc-800"
                             }
                             style={{
                               width: header.getSize(),
-                              position:
-                                header.id === "actions" ? "sticky" : "relative",
+                              position: header.id === "actions" ? "sticky" : "relative",
                               left: header.id === "actions" ? 0 : "auto",
                               zIndex: header.id === "actions" ? 20 : 10,
                             }}
@@ -1752,19 +1781,27 @@ export default function InvoiceDetailsTable({
                   </TableHeader>
                   <TableBody>
                     {table.getRowModel().rows?.length ? (
-                      table.getRowModel().rows.map((row) => (
+                      table.getRowModel().rows.map((row, rowIdx) => (
                         <TableRow
                           key={row.id}
                           data-state={row.getIsSelected() && "selected"}
+                          className={
+                            (rowIdx % 2 === 0
+                              ? "bg-white dark:bg-zinc-900"
+                              : "bg-gray-50 dark:bg-zinc-800") +
+                            (row.getIsSelected() ? " ring-2 ring-blue-400" : "")
+                          }
+                          style={{ transition: "background 0.2s" }}
                         >
-                          {row.getVisibleCells().map((cell) => (
+                          {row.getVisibleCells().map((cell: Cell<InvoiceDetailRow, unknown>) => (
                             <TableCell
                               key={cell.id}
                               className={cn(
                                 cell.column.id === "actions"
-                                  ? "dark:bg-muted/90 light:bg-muted/30 light:text-black dark:text-black"
-                                  : "",
-                                "select-text"
+                                  ? "sticky left-0 z-20 bg-muted/90 border-r border-gray-200 dark:border-zinc-800"
+                                  : "border-gray-200 dark:border-zinc-800",
+                                "select-text px-2 py-1 align-middle text-sm whitespace-nowrap overflow-hidden text-ellipsis",
+                                "focus-within:ring-2 focus-within:ring-blue-400"
                               )}
                               style={{
                                 width: cell.column.getSize(),
@@ -1774,12 +1811,26 @@ export default function InvoiceDetailsTable({
                                     : "relative",
                                 left: cell.column.id === "actions" ? 0 : "auto",
                                 zIndex: cell.column.id === "actions" ? 20 : 10,
+                                outline: row.getIsSelected()
+                                  ? "2px solid #2563eb"
+                                  : undefined,
                               }}
+                              tabIndex={-1}
                             >
-                              {flexRender(
-                                cell.column.columnDef.cell,
-                                cell.getContext()
-                              )}
+                              {/* Tooltip for truncated/important fields */}
+                              <div
+                                className="w-full h-full"
+                                title={
+                                  typeof cell.getValue() === "string" && (cell.getValue() as string).length > 20
+                                    ? (cell.getValue() as string)
+                                    : undefined
+                                }
+                              >
+                                {flexRender(
+                                  cell.column.columnDef.cell,
+                                  cell.getContext()
+                                )}
+                              </div>
                             </TableCell>
                           ))}
                         </TableRow>
