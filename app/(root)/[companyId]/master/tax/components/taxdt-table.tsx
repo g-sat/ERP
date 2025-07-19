@@ -33,7 +33,7 @@ import { useVirtualizer } from "@tanstack/react-virtual"
 import { format, isValid } from "date-fns"
 
 import { MasterTransactionId, TableName } from "@/lib/utils"
-import { useGetGridLayout } from "@/hooks/use-setting"
+import { useGetGridLayout } from "@/hooks/use-settings"
 import {
   DraggableColumnHeader,
   TableActions,
@@ -58,7 +58,6 @@ interface TaxDtTableProps {
   onFilterChange?: (filters: ITaxFilter) => void
   moduleId?: number
   transactionId?: number
-  companyId: string
 }
 
 export function TaxDtTable({
@@ -72,7 +71,6 @@ export function TaxDtTable({
   onFilterChange,
   moduleId,
   transactionId,
-  companyId,
 }: TaxDtTableProps) {
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
@@ -90,8 +88,7 @@ export function TaxDtTable({
   const { data: gridSettings } = useGetGridLayout(
     moduleId?.toString() || "",
     transactionId?.toString() || "",
-    TableName.tax_dt,
-    companyId
+    TableName.tax_dt
   )
 
   useEffect(() => {
@@ -332,7 +329,6 @@ export function TaxDtTable({
         hideCreateButton={false}
         moduleId={moduleId || 1}
         transactionId={transactionId || MasterTransactionId.tax_dt}
-        companyId={companyId}
       />
 
       <div

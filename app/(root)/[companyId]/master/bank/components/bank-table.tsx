@@ -38,7 +38,7 @@ import { useVirtualizer } from "@tanstack/react-virtual"
 import { format, isValid } from "date-fns"
 
 import { TableName } from "@/lib/utils"
-import { useGetGridLayout } from "@/hooks/use-setting"
+import { useGetGridLayout } from "@/hooks/use-settings"
 import { Badge } from "@/components/ui/badge"
 import { DraggableColumnHeader, TableFooter } from "@/components/ui/data-table"
 import { TableHeaderCustom } from "@/components/ui/data-table/data-table-header-custom"
@@ -58,7 +58,6 @@ interface BankTableProps {
   onRefresh?: () => void
   moduleId: number
   transactionId: number
-  companyId: string
 }
 
 export function BankTable({
@@ -69,7 +68,6 @@ export function BankTable({
   onRefresh,
   moduleId,
   transactionId,
-  companyId,
 }: BankTableProps) {
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
@@ -86,8 +84,7 @@ export function BankTable({
   const { data: gridSettings } = useGetGridLayout(
     moduleId?.toString() || "",
     transactionId?.toString() || "",
-    TableName.bank,
-    companyId
+    TableName.bank
   )
 
   useEffect(() => {
@@ -380,7 +377,6 @@ export function BankTable({
         tableName={TableName.bank}
         moduleId={moduleId}
         transactionId={transactionId}
-        companyId={companyId}
       />
 
       <div

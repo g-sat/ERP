@@ -16,8 +16,9 @@ import {
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query"
-import axios, { AxiosError } from "axios"
+import { AxiosError } from "axios"
 
+import { apiClient, getData, saveData } from "@/lib/api-client"
 import {
   DocumentType,
   ShareData,
@@ -26,11 +27,6 @@ import {
   UserGroupRights,
   UserRights,
 } from "@/lib/api-routes"
-
-// Create a base axios instance with the proxy prefix
-const apiProxy = axios.create({
-  baseURL: "/api/proxy",
-})
 
 /**
  * 1. User Management Hooks
@@ -45,15 +41,12 @@ export const useGetuser = (page: number, limit: number, search: string) => {
   return useQuery<ApiResponse<IUser[]>>({
     queryKey: ["user", page, limit, search],
     queryFn: async () => {
-      return apiProxy
-        .get(User.get, {
-          headers: {
-            searchString: search ? search : " ",
-            pageNumber: page + 1,
-            pageSize: limit,
-          },
-        })
-        .then((response) => response.data)
+      const params = {
+        searchString: search ? search : " ",
+        pageNumber: (page + 1).toString(),
+        pageSize: limit.toString(),
+      }
+      return await getData(User.get, params)
     },
     refetchOnWindowFocus: false,
   })
@@ -68,7 +61,7 @@ export const useSaveUser = () => {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: async ({ data }: { data: IUser }) => {
-      return apiProxy.post(User.add, data).then((res) => res.data)
+      return await saveData(User.add, data)
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["user"] }),
   })
@@ -83,7 +76,7 @@ export const useUpdateUser = () => {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: async (data: IUser) => {
-      return apiProxy.post(User.add, data).then((res) => res.data)
+      return await saveData(User.add, data)
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["user"] }),
   })
@@ -98,9 +91,8 @@ export const useDeleteuser = () => {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: async ({ id }: { id: number }) => {
-      return apiProxy
-        .delete(`${User.delete}/${id}`) //for user update need to add userid pathvariable  & have doubt wht we send in headers
-        .then((res) => res.data)
+      const response = await apiClient.delete(`${User.delete}/${id}`)
+      return response.data
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["user"] }),
   })
@@ -115,9 +107,7 @@ export const useResetPasswordV1 = () => {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: async (data: IResetPassword) => {
-      return apiProxy
-        .post(`${User.resetPassword}/${data.userId}`, data)
-        .then((res) => res.data)
+      return await saveData(`${User.resetPassword}/${data.userId}`, data)
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["user"] }),
   })
@@ -132,9 +122,7 @@ export const useUpdateUserRights = () => {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: async (data: IUserRights[]) => {
-      return apiProxy
-        .post(`${UserRights.add}`, data) //for UserGroup update need to add UserGroupid pathvariable
-        .then((res) => res.data)
+      return await saveData(UserRights.add, data)
     },
     onSuccess: () =>
       queryClient.invalidateQueries({ queryKey: ["UserRights"] }),
@@ -154,9 +142,7 @@ export const useUserGroupRightbyidGet = (userGroupId: number) => {
     placeholderData: keepPreviousData,
     staleTime: 600000,
     queryFn: async () => {
-      return apiProxy
-        .get(`${UserGroupRights.get}/${userGroupId}`)
-        .then((response) => response.data)
+      return await getData(`${UserGroupRights.get}/${userGroupId}`)
     },
     refetchOnWindowFocus: false,
   })
@@ -171,8 +157,7 @@ export const useUserGroupRightSave = () => {
   return useMutation({
     mutationFn: async ({ data }: { data: IUserGroupRights[] }) => {
       try {
-        const response = await apiProxy.post(`${UserGroupRights.add}`, data)
-        return response.data
+        return await saveData(UserGroupRights.add, data)
       } catch (error) {
         if (error instanceof AxiosError) {
           console.error("Error saving user group rights:", error)
@@ -196,7 +181,7 @@ export const useShareDataGet = () => {
     placeholderData: keepPreviousData,
     staleTime: 600000,
     queryFn: async () => {
-      return apiProxy.get(`${ShareData.get}`).then((response) => response.data)
+      return await getData(ShareData.get)
     },
     refetchOnWindowFocus: false,
   })
@@ -211,7 +196,7 @@ export const useShareDataSave = () => {
   return useMutation({
     mutationFn: async ({ data }: { data: IShareData[] }) => {
       try {
-        const response = await apiProxy.post(`${ShareData.add}`, data)
+        const response = await apiClient.post(`${ShareData.add}`, data)
         return response.data
       } catch (error) {
         if (error instanceof AxiosError) {
@@ -235,7 +220,7 @@ export const useUserRightbyidGet = (userId: number) => {
   return useQuery({
     queryKey: ["userright", userId],
     queryFn: async () => {
-      return apiProxy
+      return apiClient
         .get(`${UserRights.get}/${userId}`)
         .then((response) => response.data)
     },
@@ -252,7 +237,7 @@ export const useGetUserRights = (id: number) => {
   return useQuery<ApiResponse<IUserRights[]>>({
     queryKey: ["UserRights", id],
     queryFn: async () => {
-      return apiProxy
+      return apiClient
         .get(`${UserRights.get}/${id}`)
         .then((response) => response.data)
     },
@@ -269,7 +254,7 @@ export const useUserRightSave = () => {
   return useMutation({
     mutationFn: async ({ data }: { data: IUserRights[] }) => {
       try {
-        const response = await apiProxy.post(`${UserRights.add}`, data)
+        const response = await apiClient.post(`${UserRights.add}`, data)
         return response.data
       } catch (error) {
         if (error instanceof AxiosError) {
@@ -288,7 +273,7 @@ export const useUserRightbyidGetV1 = (userId: number) => {
     placeholderData: keepPreviousData,
     staleTime: 600000,
     queryFn: async () => {
-      return apiProxy
+      return apiClient
         .get(`${UserRights.getV1}/${userId}`)
         .then((response) => response.data)
     },
@@ -300,7 +285,7 @@ export const useUserRightSaveV1 = () => {
   return useMutation({
     mutationFn: async ({ data }: { data: IUserRightsv1[] }) => {
       try {
-        const response = await apiProxy.post(`${UserRights.addV1}`, data)
+        const response = await apiClient.post(`${UserRights.addV1}`, data)
         return response.data
       } catch (error) {
         if (error instanceof AxiosError) {
@@ -330,15 +315,12 @@ export const useGetUserGroup = (
   return useQuery<ApiResponse<IUserGroup[]>>({
     queryKey: ["UserGroup", page, limit, search],
     queryFn: async () => {
-      return apiProxy
-        .get(UserGroup.get, {
-          headers: {
-            searchString: search ? search : " ",
-            pageNumber: page + 1,
-            pageSize: limit,
-          },
-        })
-        .then((response) => response.data)
+      const params = {
+        searchString: search ? search : " ",
+        pageNumber: (page + 1).toString(),
+        pageSize: limit.toString(),
+      }
+      return await getData(UserGroup.get, params)
     },
     refetchOnWindowFocus: false,
   })
@@ -353,7 +335,7 @@ export const useSaveUserGroup = () => {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: async ({ data }: { data: IUserGroup }) => {
-      return apiProxy.post(UserGroup.add, data).then((res) => res.data)
+      return apiClient.post(UserGroup.add, data).then((res) => res.data)
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["userGroup"] }),
   })
@@ -368,7 +350,7 @@ export const useUpdateUserGroup = () => {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: async (data: IUserGroup) => {
-      return apiProxy.post(UserGroup.add, data).then((res) => res.data)
+      return apiClient.post(UserGroup.add, data).then((res) => res.data)
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["userGroup"] }),
   })
@@ -383,7 +365,7 @@ export const useDeleteUserGroup = () => {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: async ({ id }: { id: number }) => {
-      return apiProxy
+      return apiClient
         .delete(`${UserGroup.delete}/${id}`) //for UserGroup update need to add UserGroupid pathvariable  & have doubt wht we send in headers
         .then((res) => res.data)
     },
@@ -411,7 +393,7 @@ export const useGetDocuments = (
       result?.transactionId,
     ],
     queryFn: async () => {
-      return apiProxy
+      return apiClient
         .get(
           `${DocumentType.get}/${result?.moduleId}/${result?.transactionId}/${documentId}`
         )
@@ -432,7 +414,7 @@ export const useSaveDocument = () => {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: async ({ data }: { data: IDocType }) => {
-      return apiProxy.post(`${DocumentType.add}`, data).then((res) => res.data)
+      return apiClient.post(`${DocumentType.add}`, data).then((res) => res.data)
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["user"] }),
   })
@@ -456,7 +438,7 @@ export function useGetDocumentType<T>(
     queryKey: ["documentType", moduleId, transactionId, documentId],
     queryFn: async () => {
       // Clean up the URL by removing any double slashes
-      const response = await apiProxy.get<ApiResponse<T>>(
+      const response = await apiClient.get<ApiResponse<T>>(
         `${DocumentType.get}/${moduleId}/${transactionId}/${documentId}`
       )
       return response.data
@@ -481,7 +463,7 @@ export const useCloneUserGroupRightsSave = () => {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: async (data: ICloneUserGroupRights) => {
-      return apiProxy
+      return apiClient
         .post(
           `${UserGroupRights.clone}/${data.fromUserGroupId}/${data.toUserGroupId}`,
           data

@@ -1,7 +1,6 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useParams } from "next/navigation"
 import { ApiResponse } from "@/interfaces/auth"
 import { ISubCategory, ISubCategoryFilter } from "@/interfaces/subcategory"
 import { SubCategoryFormValues } from "@/schemas/subcategory"
@@ -17,7 +16,7 @@ import {
   useGetById,
   useSave,
   useUpdate,
-} from "@/hooks/use-common-v1"
+} from "@/hooks/use-common"
 import {
   Dialog,
   DialogContent,
@@ -34,8 +33,6 @@ import { SubCategoryForm } from "./components/subcategory-form"
 import { SubCategorysTable } from "./components/subcategory-table"
 
 export default function SubCategoryPage() {
-  const params = useParams()
-  const companyId = params.companyId as string
   const moduleId = ModuleId.master
   const transactionId = MasterTransactionId.sub_category
 
@@ -50,12 +47,7 @@ export default function SubCategoryPage() {
     refetch,
     isLoading,
     isRefetching,
-  } = useGet<ISubCategory>(
-    `${SubCategory.get}`,
-    "subcategorys",
-    companyId,
-    filters.search
-  )
+  } = useGet<ISubCategory>(`${SubCategory.get}`, "subcategorys", filters.search)
 
   const { result: subcategorysResult, data: subcategorysData } =
     (subcategorysResponse as ApiResponse<ISubCategory>) ?? {
@@ -70,21 +62,9 @@ export default function SubCategoryPage() {
     }
   }, [filters])
 
-  const saveMutation = useSave<SubCategoryFormValues>(
-    `${SubCategory.add}`,
-    "subcategorys",
-    companyId
-  )
-  const updateMutation = useUpdate<SubCategoryFormValues>(
-    `${SubCategory.add}`,
-    "subcategorys",
-    companyId
-  )
-  const deleteMutation = useDelete(
-    `${SubCategory.delete}`,
-    "subcategorys",
-    companyId
-  )
+  const saveMutation = useSave<SubCategoryFormValues>(`${SubCategory.add}`)
+  const updateMutation = useUpdate<SubCategoryFormValues>(`${SubCategory.add}`)
+  const deleteMutation = useDelete(`${SubCategory.delete}`)
 
   const [selectedSubCategory, setSelectedSubCategory] =
     useState<ISubCategory | null>(null)
@@ -113,7 +93,7 @@ export default function SubCategoryPage() {
   const { refetch: checkCodeAvailability } = useGetById<ISubCategory>(
     `${SubCategory.getByCode}`,
     "subcategoryByCode",
-    companyId,
+
     codeToCheck,
     {
       enabled: !!codeToCheck && codeToCheck.trim() !== "",
@@ -324,7 +304,6 @@ export default function SubCategoryPage() {
           onFilterChange={setFilters}
           moduleId={moduleId}
           transactionId={transactionId}
-          companyId={companyId}
         />
       ) : (
         <div>No data available</div>

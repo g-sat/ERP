@@ -1,7 +1,6 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useParams } from "next/navigation"
 import { ApiResponse } from "@/interfaces/auth"
 import {
   IBank,
@@ -26,7 +25,7 @@ import {
   useGetById,
   useSave,
   useUpdate,
-} from "@/hooks/use-common-v1"
+} from "@/hooks/use-common"
 import { useGetBankById } from "@/hooks/use-master"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -48,8 +47,6 @@ import { BankContactForm } from "./components/contact-form"
 import { ContactsTable } from "./components/contact-table"
 
 export default function BankPage() {
-  const params = useParams()
-  const companyId = params.companyId as string
   const moduleId = ModuleId.master
   const transactionId = MasterTransactionId.bank
 
@@ -104,7 +101,7 @@ export default function BankPage() {
     refetch: refetchBanks,
     isLoading: isLoadingBanks,
     isRefetching: isRefetchingBanks,
-  } = useGet<IBank>(`${Bank.get}`, "banks", companyId, filters.search)
+  } = useGet<IBank>(`${Bank.get}`, "banks", filters.search)
 
   const { refetch: refetchBankDetails } = useGetBankById<IBank>(
     `${Bank.getById}`,
@@ -118,7 +115,6 @@ export default function BankPage() {
     useGetById<IBankAddress>(
       `${BankAddress.get}`,
       "bankaddresses",
-      companyId,
       bank?.bankId?.toString() || "",
       { enabled: !!bank?.bankId }
     )
@@ -127,7 +123,6 @@ export default function BankPage() {
     useGetById<IBankContact>(
       `${BankContact.get}`,
       "bankcontacts",
-      companyId,
       bank?.bankId?.toString() || "",
       { enabled: !!bank?.bankId }
     )
@@ -139,47 +134,23 @@ export default function BankPage() {
   }
 
   // Mutations
-  const saveMutation = useSave<BankFormValues>(
-    `${Bank.add}`,
-    "banks",
-    companyId
-  )
-  const updateMutation = useUpdate<BankFormValues>(
-    `${Bank.add}`,
-    "banks",
-    companyId
-  )
-  const deleteMutation = useDelete(`${Bank.delete}`, "banks", companyId)
+  const saveMutation = useSave<BankFormValues>(`${Bank.add}`)
+  const updateMutation = useUpdate<BankFormValues>(`${Bank.add}`)
+  const deleteMutation = useDelete(`${Bank.delete}`)
   const saveAddressMutation = useSave<BankAddressFormValues>(
-    `${BankAddress.add}`,
-    "bankaddresses",
-    companyId
+    `${BankAddress.add}`
   )
   const updateAddressMutation = useUpdate<BankAddressFormValues>(
-    `${BankAddress.add}`,
-    "bankaddresses",
-    companyId
+    `${BankAddress.add}`
   )
-  const deleteAddressMutation = useDelete(
-    `${BankAddress.delete}`,
-    "bankaddresses",
-    companyId
-  )
+  const deleteAddressMutation = useDelete(`${BankAddress.delete}`)
   const saveContactMutation = useSave<BankContactFormValues>(
-    `${BankContact.add}`,
-    "bankcontacts",
-    companyId
+    `${BankContact.add}`
   )
   const updateContactMutation = useUpdate<BankContactFormValues>(
-    `${BankContact.add}`,
-    "bankcontacts",
-    companyId
+    `${BankContact.add}`
   )
-  const deleteContactMutation = useDelete(
-    `${BankContact.delete}`,
-    "bankcontacts",
-    companyId
-  )
+  const deleteContactMutation = useDelete(`${BankContact.delete}`)
 
   // Fetch bank details, addresses, and contacts when bank changes
   useEffect(() => {
@@ -553,7 +524,6 @@ export default function BankPage() {
                       onCreateAddress={canCreate ? handleAddressAdd : undefined}
                       moduleId={moduleId}
                       transactionId={transactionId}
-                      companyId={companyId}
                     />
                   </div>
                 </TabsContent>
@@ -573,7 +543,6 @@ export default function BankPage() {
                       onCreateContact={canCreate ? handleContactAdd : undefined}
                       moduleId={moduleId}
                       transactionId={transactionId}
-                      companyId={companyId}
                     />
                   </div>
                 </TabsContent>
@@ -602,7 +571,6 @@ export default function BankPage() {
             onRefresh={() => refetchBanks()}
             moduleId={moduleId}
             transactionId={transactionId}
-            companyId={companyId}
           />
         </DialogContent>
       </Dialog>

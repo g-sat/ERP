@@ -1,7 +1,6 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useParams } from "next/navigation"
 import { ApiResponse } from "@/interfaces/auth"
 import {
   ITax,
@@ -19,10 +18,10 @@ import { usePermissionStore } from "@/stores/permission-store"
 import { useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 
+import { getData } from "@/lib/api-client"
 import { Tax, TaxCategory, TaxDt } from "@/lib/api-routes"
-import { apiProxy } from "@/lib/axios-config"
 import { MasterTransactionId, ModuleId } from "@/lib/utils"
-import { useDelete, useGet, useSave, useUpdate } from "@/hooks/use-common-v1"
+import { useDelete, useGet, useSave, useUpdate } from "@/hooks/use-common"
 import {
   Dialog,
   DialogContent,
@@ -45,8 +44,6 @@ import { TaxDtForm } from "./components/taxdt-form"
 import { TaxDtTable } from "./components/taxdt-table"
 
 export default function TaxPage() {
-  const params = useParams()
-  const companyId = params.companyId as string
   const moduleId = ModuleId.master
   const transactionId = MasterTransactionId.tax
   const transactionIdCategory = MasterTransactionId.tax_category
@@ -89,14 +86,14 @@ export default function TaxPage() {
     refetch: refetchTax,
     isLoading: isLoadingTax,
     isRefetching: isRefetchingTax,
-  } = useGet<ITax>(`${Tax.get}`, "taxs", companyId, filters.search)
+  } = useGet<ITax>(`${Tax.get}`, "taxs", filters.search)
 
   const {
     data: taxsDtResponse,
     refetch: refetchTaxDt,
     isLoading: isLoadingTaxDt,
     isRefetching: isRefetchingTaxDt,
-  } = useGet<ITaxDt>(`${TaxDt.get}`, "taxsdt", companyId, dtFilters.search)
+  } = useGet<ITaxDt>(`${TaxDt.get}`, "taxsdt", dtFilters.search)
 
   const {
     data: taxsCategoryResponse,
@@ -106,7 +103,6 @@ export default function TaxPage() {
   } = useGet<ITaxCategory>(
     `${TaxCategory.get}`,
     "taxcategory",
-    companyId,
     categoryFilters.search
   )
 
@@ -117,41 +113,21 @@ export default function TaxPage() {
     (taxsCategoryResponse as ApiResponse<ITaxCategory>)?.data || []
 
   // Mutations
-  const saveMutation = useSave<TaxFormValues>(`${Tax.add}`, "taxs", companyId)
-  const updateMutation = useUpdate<TaxFormValues>(
-    `${Tax.add}`,
-    "taxs",
-    companyId
-  )
-  const deleteMutation = useDelete(`${Tax.delete}`, "taxs", companyId)
+  const saveMutation = useSave<TaxFormValues>(`${Tax.add}`)
+  const updateMutation = useUpdate<TaxFormValues>(`${Tax.add}`)
+  const deleteMutation = useDelete(`${Tax.delete}`)
 
-  const saveDtMutation = useSave<TaxDtFormValues>(
-    `${TaxDt.add}`,
-    "taxsdt",
-    companyId
-  )
-  const updateDtMutation = useUpdate<TaxDtFormValues>(
-    `${TaxDt.add}`,
-    "taxsdt",
-    companyId
-  )
-  const deleteDtMutation = useDelete(`${TaxDt.delete}`, "taxsdt", companyId)
+  const saveDtMutation = useSave<TaxDtFormValues>(`${TaxDt.add}`)
+  const updateDtMutation = useUpdate<TaxDtFormValues>(`${TaxDt.add}`)
+  const deleteDtMutation = useDelete(`${TaxDt.delete}`)
 
   const saveCategoryMutation = useSave<TaxCategoryFormValues>(
-    `${TaxCategory.add}`,
-    "taxs",
-    companyId
+    `${TaxCategory.add}`
   )
   const updateCategoryMutation = useUpdate<TaxCategoryFormValues>(
-    `${TaxCategory.add}`,
-    "taxs",
-    companyId
+    `${TaxCategory.add}`
   )
-  const deleteCategoryMutation = useDelete(
-    `${TaxCategory.delete}`,
-    "taxCategory",
-    companyId
-  )
+  const deleteCategoryMutation = useDelete(`${TaxCategory.delete}`)
 
   // State management
   const [selectedTax, setSelectedTax] = useState<ITax | undefined>()
@@ -463,9 +439,7 @@ export default function TaxPage() {
 
     try {
       if (isModalOpen) {
-        const response = await apiProxy.get<ApiResponse<ITax>>(
-          `${Tax.getByCode}/${trimmedCode}`
-        )
+        const response = await getData(`${Tax.getByCode}/${trimmedCode}`)
 
         if (response.data.result === 1 && response.data.data) {
           const countryData = Array.isArray(response.data.data)
@@ -478,7 +452,7 @@ export default function TaxPage() {
           }
         }
       } else if (isCategoryModalOpen) {
-        const response = await apiProxy.get<ApiResponse<ITaxCategory>>(
+        const response = await getData(
           `${TaxCategory.getByCode}/${trimmedCode}`
         )
         if (response.data.result === 1 && response.data.data) {
@@ -564,7 +538,6 @@ export default function TaxPage() {
                 onFilterChange={setFilters}
                 moduleId={moduleId}
                 transactionId={transactionId}
-                companyId={companyId}
               />
             </LockSkeleton>
           ) : (
@@ -579,7 +552,6 @@ export default function TaxPage() {
               onFilterChange={setFilters}
               moduleId={moduleId}
               transactionId={transactionId}
-              companyId={companyId}
             />
           )}
         </TabsContent>
@@ -614,7 +586,6 @@ export default function TaxPage() {
                 onFilterChange={setDtFilters}
                 moduleId={moduleId}
                 transactionId={transactionIdDt}
-                companyId={companyId}
               />
             </LockSkeleton>
           ) : (
@@ -629,7 +600,6 @@ export default function TaxPage() {
               onFilterChange={setDtFilters}
               moduleId={moduleId}
               transactionId={transactionIdDt}
-              companyId={companyId}
             />
           )}
         </TabsContent>
@@ -671,7 +641,6 @@ export default function TaxPage() {
                 onFilterChange={setCategoryFilters}
                 moduleId={moduleId}
                 transactionId={transactionIdCategory}
-                companyId={companyId}
               />
             </LockSkeleton>
           ) : (
@@ -692,7 +661,6 @@ export default function TaxPage() {
               onFilterChange={setCategoryFilters}
               moduleId={moduleId}
               transactionId={transactionIdCategory}
-              companyId={companyId}
             />
           )}
         </TabsContent>

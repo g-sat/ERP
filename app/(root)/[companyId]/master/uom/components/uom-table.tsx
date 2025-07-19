@@ -37,7 +37,7 @@ import { useVirtualizer } from "@tanstack/react-virtual"
 import { format, isValid } from "date-fns"
 
 import { MasterTransactionId, TableName } from "@/lib/utils"
-import { useGetGridLayout } from "@/hooks/use-setting"
+import { useGetGridLayout } from "@/hooks/use-settings"
 import { Badge } from "@/components/ui/badge"
 import {
   DraggableColumnHeader,
@@ -64,7 +64,6 @@ interface UomTableProps {
   onFilterChange?: (filters: IUomFilter) => void
   moduleId?: number
   transactionId?: number
-  companyId: string
 }
 
 export function UomTable({
@@ -78,7 +77,6 @@ export function UomTable({
   onFilterChange,
   moduleId,
   transactionId,
-  companyId,
 }: UomTableProps) {
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
@@ -95,8 +93,7 @@ export function UomTable({
   const { data: gridSettings } = useGetGridLayout(
     moduleId?.toString() || "",
     transactionId?.toString() || "",
-    TableName.uom,
-    companyId
+    TableName.uom
   )
 
   useEffect(() => {
@@ -355,7 +352,6 @@ export function UomTable({
         hideCreateButton={false}
         moduleId={moduleId || 1}
         transactionId={transactionId || MasterTransactionId.uom}
-        companyId={companyId}
       />
 
       <div

@@ -1,7 +1,6 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useParams } from "next/navigation"
 import { ApiResponse } from "@/interfaces/auth"
 import { ICharge, IChargeFilter } from "@/interfaces/charge"
 import { ChargeFormValues } from "@/schemas/charge"
@@ -17,7 +16,7 @@ import {
   useGetById,
   useSave,
   useUpdate,
-} from "@/hooks/use-common-v1"
+} from "@/hooks/use-common"
 import {
   Dialog,
   DialogContent,
@@ -34,9 +33,6 @@ import { ChargeForm } from "./components/charge-form"
 import { ChargesTable } from "./components/charge-table"
 
 export default function ChargePage() {
-  const params = useParams()
-  const companyId = params.companyId as string
-  console.log("companyId in charge page", companyId)
   const moduleId = ModuleId.master
   const transactionId = MasterTransactionId.charge
 
@@ -52,7 +48,7 @@ export default function ChargePage() {
     refetch,
     isLoading,
     isRefetching,
-  } = useGet<ICharge>(`${Charge.get}`, "charges", companyId, filters.search)
+  } = useGet<ICharge>(`${Charge.get}`, "charges", filters.search)
 
   const { result: chargesResult, data: chargesData } =
     (chargesResponse as ApiResponse<ICharge>) ?? {
@@ -61,17 +57,9 @@ export default function ChargePage() {
       data: [],
     }
 
-  const saveMutation = useSave<ChargeFormValues>(
-    `${Charge.add}`,
-    "charges",
-    companyId
-  )
-  const updateMutation = useUpdate<ChargeFormValues>(
-    `${Charge.add}`,
-    "charges",
-    companyId
-  )
-  const deleteMutation = useDelete(`${Charge.delete}`, "charges", companyId)
+  const saveMutation = useSave<ChargeFormValues>(`${Charge.add}`)
+  const updateMutation = useUpdate<ChargeFormValues>(`${Charge.add}`)
+  const deleteMutation = useDelete(`${Charge.delete}`)
 
   const [selectedCharge, setSelectedCharge] = useState<ICharge | undefined>(
     undefined
@@ -97,7 +85,7 @@ export default function ChargePage() {
   const { refetch: checkCodeAvailability } = useGetById<ICharge>(
     `${Charge.getByCode}`,
     "chargeByCode",
-    companyId,
+
     codeToCheck,
     {
       enabled: !!codeToCheck && codeToCheck.trim() !== "",
@@ -308,7 +296,6 @@ export default function ChargePage() {
           onFilterChange={setFilters}
           moduleId={moduleId}
           transactionId={transactionId}
-          companyId={companyId}
         />
       ) : (
         <div>No data available</div>

@@ -37,7 +37,7 @@ import { useVirtualizer } from "@tanstack/react-virtual"
 import { format, isValid } from "date-fns"
 
 import { MasterTransactionId, ModuleId, TableName } from "@/lib/utils"
-import { useGetGridLayout } from "@/hooks/use-setting"
+import { useGetGridLayout } from "@/hooks/use-settings"
 import { Badge } from "@/components/ui/badge"
 import {
   DraggableColumnHeader,
@@ -63,7 +63,6 @@ interface GstCategoryTableProps {
   onFilterChange?: (filters: IGstFilter) => void
   moduleId?: number
   transactionId?: number
-  companyId: string
 }
 
 export function GstCategoryTable({
@@ -77,7 +76,6 @@ export function GstCategoryTable({
   onFilterChange,
   moduleId,
   transactionId,
-  companyId,
 }: GstCategoryTableProps) {
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
@@ -94,8 +92,7 @@ export function GstCategoryTable({
   const { data: gridSettings } = useGetGridLayout(
     moduleId?.toString() || "",
     transactionId?.toString() || "",
-    TableName.gst_category,
-    companyId
+    TableName.gst_category
   )
 
   useEffect(() => {
@@ -344,7 +341,6 @@ export function GstCategoryTable({
         hideCreateButton={false}
         moduleId={moduleId || ModuleId.master}
         transactionId={transactionId || MasterTransactionId.gst_category}
-        companyId={companyId}
       />
 
       <div

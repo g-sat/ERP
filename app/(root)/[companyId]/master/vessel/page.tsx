@@ -1,7 +1,6 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useParams } from "next/navigation"
 import { ApiResponse } from "@/interfaces/auth"
 import { IVessel, IVesselFilter } from "@/interfaces/vessel"
 import { VesselFormValues } from "@/schemas/vessel"
@@ -17,7 +16,7 @@ import {
   useGetById,
   useSave,
   useUpdate,
-} from "@/hooks/use-common-v1"
+} from "@/hooks/use-common"
 import {
   Dialog,
   DialogContent,
@@ -34,8 +33,6 @@ import { VesselForm } from "./components/vessel-form"
 import { VesselsTable } from "./components/vessel-table"
 
 export default function VesselPage() {
-  const params = useParams()
-  const companyId = params.companyId as string
   const moduleId = ModuleId.master
   const transactionId = MasterTransactionId.vessel
 
@@ -50,7 +47,7 @@ export default function VesselPage() {
     refetch,
     isLoading,
     isRefetching,
-  } = useGet<IVessel>(`${Vessel.get}`, "vessels", companyId, filters.search)
+  } = useGet<IVessel>(`${Vessel.get}`, "vessels", filters.search)
 
   const { result: vesselsResult, data: vesselsData } =
     (vesselsResponse as ApiResponse<IVessel>) ?? {
@@ -65,17 +62,9 @@ export default function VesselPage() {
     }
   }, [filters])
 
-  const saveMutation = useSave<VesselFormValues>(
-    `${Vessel.add}`,
-    "vessels",
-    companyId
-  )
-  const updateMutation = useUpdate<VesselFormValues>(
-    `${Vessel.add}`,
-    "vessels",
-    companyId
-  )
-  const deleteMutation = useDelete(`${Vessel.delete}`, "vessels", companyId)
+  const saveMutation = useSave<VesselFormValues>(`${Vessel.add}`)
+  const updateMutation = useUpdate<VesselFormValues>(`${Vessel.add}`)
+  const deleteMutation = useDelete(`${Vessel.delete}`)
 
   const [selectedVessel, setSelectedVessel] = useState<IVessel | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -102,7 +91,7 @@ export default function VesselPage() {
   const { refetch: checkCodeAvailability } = useGetById<IVessel>(
     `${Vessel.getByCode}`,
     "vesselByCode",
-    companyId,
+
     codeToCheck,
     {
       enabled: !!codeToCheck && codeToCheck.trim() !== "",
@@ -314,7 +303,6 @@ export default function VesselPage() {
           onFilterChange={setFilters}
           moduleId={moduleId}
           transactionId={transactionId}
-          companyId={companyId}
         />
       ) : (
         <div>No data available</div>

@@ -64,7 +64,6 @@ interface CurrenciesTableProps {
   onFilterChange?: (filters: ICurrencyFilter) => void
   moduleId: number
   transactionId: number
-  companyId: string
 }
 
 export function CurrenciesTable({
@@ -78,7 +77,6 @@ export function CurrenciesTable({
   onFilterChange,
   moduleId,
   transactionId,
-  companyId,
 }: CurrenciesTableProps) {
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
@@ -341,7 +339,6 @@ export function CurrenciesTable({
         hideCreateButton={false}
         moduleId={moduleId}
         transactionId={transactionId}
-        companyId={companyId}
       />
 
       <div

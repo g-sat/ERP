@@ -37,7 +37,7 @@ import { useVirtualizer } from "@tanstack/react-virtual"
 import { format, isValid } from "date-fns"
 
 import { MasterTransactionId, TableName } from "@/lib/utils"
-import { useGetGridLayout } from "@/hooks/use-setting"
+import { useGetGridLayout } from "@/hooks/use-settings"
 import { Badge } from "@/components/ui/badge"
 import {
   DraggableColumnHeader,
@@ -63,7 +63,6 @@ interface CoaCategory3TableProps {
   onFilterChange?: (filters: ICoaCategory3Filter) => void
   moduleId?: number
   transactionId?: number
-  companyId: string
 }
 
 export function CoaCategory3Table({
@@ -77,7 +76,6 @@ export function CoaCategory3Table({
   onFilterChange,
   moduleId,
   transactionId,
-  companyId,
 }: CoaCategory3TableProps) {
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
@@ -94,8 +92,7 @@ export function CoaCategory3Table({
   const { data: gridSettings } = useGetGridLayout(
     moduleId?.toString() || "",
     transactionId?.toString() || "",
-    TableName.coa_category3,
-    companyId
+    TableName.coa_category3
   )
 
   useEffect(() => {
@@ -351,7 +348,6 @@ export function CoaCategory3Table({
         hideCreateButton={false}
         moduleId={moduleId || 1}
         transactionId={transactionId || MasterTransactionId.coa_category3}
-        companyId={companyId}
       />
 
       <div

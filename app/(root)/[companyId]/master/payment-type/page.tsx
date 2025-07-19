@@ -1,7 +1,6 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useParams } from "next/navigation"
 import { ApiResponse } from "@/interfaces/auth"
 import { IPaymentType, IPaymentTypeFilter } from "@/interfaces/paymenttype"
 import { PaymentTypeFormValues } from "@/schemas/paymenttype"
@@ -17,7 +16,7 @@ import {
   useGetById,
   useSave,
   useUpdate,
-} from "@/hooks/use-common-v1"
+} from "@/hooks/use-common"
 import {
   Dialog,
   DialogContent,
@@ -35,8 +34,6 @@ import { PaymentTypeForm } from "./components/payment-type-form"
 import { PaymentTypesTable } from "./components/payment-type-table"
 
 export default function PaymentTypePage() {
-  const params = useParams()
-  const companyId = params.companyId as string
   const moduleId = ModuleId.master
   const transactionId = MasterTransactionId.payment_type
 
@@ -51,12 +48,7 @@ export default function PaymentTypePage() {
     refetch,
     isLoading,
     isRefetching,
-  } = useGet<IPaymentType>(
-    `${PaymentType.get}`,
-    "paymenttypes",
-    companyId,
-    filters.search
-  )
+  } = useGet<IPaymentType>(`${PaymentType.get}`, "paymenttypes", filters.search)
 
   const { result: paymentTypesResult, data: paymentTypesData } =
     (paymentTypesResponse as ApiResponse<IPaymentType>) ?? {
@@ -71,21 +63,9 @@ export default function PaymentTypePage() {
     }
   }, [filters])
 
-  const saveMutation = useSave<PaymentTypeFormValues>(
-    `${PaymentType.add}`,
-    "paymenttypes",
-    companyId
-  )
-  const updateMutation = useUpdate<PaymentTypeFormValues>(
-    `${PaymentType.add}`,
-    "paymenttypes",
-    companyId
-  )
-  const deleteMutation = useDelete(
-    `${PaymentType.delete}`,
-    "paymenttypes",
-    companyId
-  )
+  const saveMutation = useSave<PaymentTypeFormValues>(`${PaymentType.add}`)
+  const updateMutation = useUpdate<PaymentTypeFormValues>(`${PaymentType.add}`)
+  const deleteMutation = useDelete(`${PaymentType.delete}`)
 
   const [selectedPaymentType, setSelectedPaymentType] =
     useState<IPaymentType | null>(null)
@@ -114,7 +94,7 @@ export default function PaymentTypePage() {
   const { refetch: checkCodeAvailability } = useGetById<IPaymentType>(
     `${PaymentType.getByCode}`,
     "paymentTypeByCode",
-    companyId,
+
     codeToCheck,
     {
       enabled: !!codeToCheck && codeToCheck.trim() !== "",
@@ -326,7 +306,6 @@ export default function PaymentTypePage() {
             onFilterChange={setFilters}
             moduleId={moduleId}
             transactionId={transactionId}
-            companyId={companyId}
           />
         </LockSkeleton>
       ) : paymentTypesResult ? (
@@ -343,7 +322,6 @@ export default function PaymentTypePage() {
           onFilterChange={setFilters}
           moduleId={moduleId}
           transactionId={transactionId}
-          companyId={companyId}
         />
       ) : (
         <div>No data available</div>

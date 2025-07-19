@@ -1,6 +1,7 @@
 import { ApiResponse } from "@/interfaces/auth"
 import { useQuery } from "@tanstack/react-query"
-import axios from "axios"
+
+import { getById, getData } from "@/lib/api-client"
 
 /**
  * 1. Customer Management
@@ -25,19 +26,14 @@ export function useGetCustomerByIdV1<T>(
     queryFn: async () => {
       // Clean and construct base URL
       const cleanUrl = baseUrl.replace(/\/+/g, "/")
-      let url = `/api/proxy${cleanUrl}`
 
       // Add optional query parameters
-      const params = new URLSearchParams()
-      if (customerId) params.append("customerId", customerId.toString())
-      if (customerCode) params.append("customerCode", `${customerCode}'`)
-      if (customerName) params.append("customerName", `'${customerName}'`)
+      const params: Record<string, string> = {}
+      if (customerId) params.customerId = customerId.toString()
+      if (customerCode) params.customerCode = customerCode
+      if (customerName) params.customerName = customerName
 
-      const queryString = params.toString()
-      if (queryString) url += `?${queryString}`
-
-      const response = await axios.get<ApiResponse<T>>(url)
-      return response.data
+      return await getData(cleanUrl, params)
     },
     refetchOnWindowFocus: false,
     refetchOnMount: false,
@@ -67,15 +63,10 @@ export function useGetCustomerById<T>(
   return useQuery<ApiResponse<T>>({
     queryKey: [queryKey, customerId, customerCode, customerName],
     queryFn: async () => {
-      // URL encode parameters
-      const encodedCode = encodeURIComponent(customerCode)
-      const encodedName = encodeURIComponent(customerName)
       const cleanUrl = baseUrl.replace(/\/+/g, "/")
-      const url = `/api/proxy${cleanUrl}/${customerId}/${encodedCode}/${encodedName}`
-
-      const response = await axios.get<ApiResponse<T>>(url, {})
-
-      return response.data
+      return await getById(
+        `${cleanUrl}/${customerId}/${customerCode}/${customerName}`
+      )
     },
     refetchOnWindowFocus: false,
     refetchOnMount: false,
@@ -111,15 +102,10 @@ export function useGetSupplierById<T>(
   return useQuery<ApiResponse<T>>({
     queryKey: [queryKey, supplierId, supplierCode, supplierName],
     queryFn: async () => {
-      // URL encode parameters
-      const encodedCode = encodeURIComponent(supplierCode)
-      const encodedName = encodeURIComponent(supplierName)
       const cleanUrl = baseUrl.replace(/\/+/g, "/")
-      const url = `/api/proxy${cleanUrl}/${supplierId}/${encodedCode}/${encodedName}`
-
-      const response = await axios.get<ApiResponse<T>>(url, {})
-
-      return response.data
+      return await getById(
+        `${cleanUrl}/${supplierId}/${supplierCode}/${supplierName}`
+      )
     },
     refetchOnWindowFocus: false,
     refetchOnMount: false,
@@ -155,15 +141,8 @@ export function useGetBankById<T>(
   return useQuery<ApiResponse<T>>({
     queryKey: [queryKey, bankId, bankCode, bankName],
     queryFn: async () => {
-      // URL encode parameters
-      const encodedCode = encodeURIComponent(bankCode)
-      const encodedName = encodeURIComponent(bankName)
       const cleanUrl = baseUrl.replace(/\/+/g, "/")
-      const url = `/api/proxy${cleanUrl}/${bankId}/${encodedCode}/${encodedName}`
-
-      const response = await axios.get<ApiResponse<T>>(url, {})
-
-      return response.data
+      return await getById(`${cleanUrl}/${bankId}/${bankCode}/${bankName}`)
     },
     refetchOnWindowFocus: false,
     refetchOnMount: false,

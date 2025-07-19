@@ -37,7 +37,7 @@ import { useVirtualizer } from "@tanstack/react-virtual"
 import { format, isValid } from "date-fns"
 
 import { MasterTransactionId, TableName } from "@/lib/utils"
-import { useGetGridLayout } from "@/hooks/use-setting"
+import { useGetGridLayout } from "@/hooks/use-settings"
 import { Badge } from "@/components/ui/badge"
 import {
   DraggableColumnHeader,
@@ -64,7 +64,6 @@ interface ServiceTypeTableProps {
   onFilterChange?: (filters: IServiceTypeFilter) => void
   moduleId?: number
   transactionId?: number
-  companyId: string
 }
 
 export function ServiceTypeTable({
@@ -78,7 +77,6 @@ export function ServiceTypeTable({
   onFilterChange,
   moduleId,
   transactionId,
-  companyId,
 }: ServiceTypeTableProps) {
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
@@ -95,8 +93,7 @@ export function ServiceTypeTable({
   const { data: gridSettings } = useGetGridLayout(
     moduleId?.toString() || "",
     transactionId?.toString() || "",
-    TableName.service_type,
-    companyId
+    TableName.service_type
   )
 
   const columns: ColumnDef<IServiceType>[] = [
@@ -362,7 +359,6 @@ export function ServiceTypeTable({
         hideCreateButton={false}
         moduleId={moduleId || 1}
         transactionId={transactionId || MasterTransactionId.service_type}
-        companyId={companyId}
       />
 
       <div

@@ -37,7 +37,7 @@ import { useVirtualizer } from "@tanstack/react-virtual"
 import { format, isValid } from "date-fns"
 
 import { MasterTransactionId, TableName } from "@/lib/utils"
-import { useGetGridLayout } from "@/hooks/use-setting"
+import { useGetGridLayout } from "@/hooks/use-settings"
 import { Badge } from "@/components/ui/badge"
 import {
   DraggableColumnHeader,
@@ -63,7 +63,6 @@ interface CountriesTableProps {
   onFilterChange?: (filters: ICountryFilter) => void
   moduleId?: number
   transactionId?: number
-  companyId: string
 }
 
 export function CountriesTable({
@@ -77,7 +76,6 @@ export function CountriesTable({
   onFilterChange,
   moduleId,
   transactionId,
-  companyId,
 }: CountriesTableProps) {
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
@@ -94,8 +92,7 @@ export function CountriesTable({
   const { data: gridSettings } = useGetGridLayout(
     moduleId?.toString() || "",
     transactionId?.toString() || "",
-    TableName.country,
-    companyId
+    TableName.country
   )
 
   useEffect(() => {
@@ -351,7 +348,6 @@ export function CountriesTable({
         hideCreateButton={false}
         moduleId={moduleId || 1}
         transactionId={transactionId || MasterTransactionId.country}
-        companyId={companyId}
       />
 
       <div

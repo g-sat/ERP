@@ -38,7 +38,7 @@ import { useVirtualizer } from "@tanstack/react-virtual"
 import { format, isValid } from "date-fns"
 
 import { MasterTransactionId, TableName } from "@/lib/utils"
-import { useGetGridLayout } from "@/hooks/use-setting"
+import { useGetGridLayout } from "@/hooks/use-settings"
 import { Badge } from "@/components/ui/badge"
 import {
   DraggableColumnHeader,
@@ -65,7 +65,6 @@ interface AccountGroupsTableProps {
   onFilterChange?: (filters: IAccountGroupFilter) => void
   moduleId?: number
   transactionId?: number
-  companyId: string
 }
 
 export function AccountGroupsTable({
@@ -79,7 +78,6 @@ export function AccountGroupsTable({
   onFilterChange,
   moduleId,
   transactionId,
-  companyId,
 }: AccountGroupsTableProps) {
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
@@ -96,8 +94,7 @@ export function AccountGroupsTable({
   const { data: gridSettings } = useGetGridLayout(
     moduleId?.toString() || "",
     transactionId?.toString() || "",
-    TableName.account_group,
-    companyId
+    TableName.account_group
   )
 
   useEffect(() => {
@@ -371,7 +368,6 @@ export function AccountGroupsTable({
         hideCreateButton={false}
         moduleId={moduleId || 1}
         transactionId={transactionId || MasterTransactionId.account_group}
-        companyId={companyId}
       />
 
       <DndContext

@@ -37,7 +37,7 @@ import { useVirtualizer } from "@tanstack/react-virtual"
 import { format, isValid } from "date-fns"
 
 import { MasterTransactionId, ModuleId, TableName } from "@/lib/utils"
-import { useGetGridLayout } from "@/hooks/use-setting"
+import { useGetGridLayout } from "@/hooks/use-settings"
 import { Badge } from "@/components/ui/badge"
 import {
   DraggableColumnHeader,
@@ -63,7 +63,6 @@ interface DesignationsTableProps {
   onFilterChange?: (filters: IDesignationFilter) => void
   moduleId?: number
   transactionId?: number
-  companyId: string
 }
 
 export function DesignationsTable({
@@ -77,7 +76,6 @@ export function DesignationsTable({
   onFilterChange,
   moduleId,
   transactionId,
-  companyId,
 }: DesignationsTableProps) {
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
@@ -94,8 +92,7 @@ export function DesignationsTable({
   const { data: gridSettings } = useGetGridLayout(
     moduleId?.toString() || "",
     transactionId?.toString() || "",
-    TableName.designation,
-    companyId
+    TableName.designation
   )
 
   useEffect(() => {
@@ -344,7 +341,6 @@ export function DesignationsTable({
         hideCreateButton={false}
         moduleId={moduleId || ModuleId.master}
         transactionId={transactionId || MasterTransactionId.designation}
-        companyId={companyId}
       />
 
       <div

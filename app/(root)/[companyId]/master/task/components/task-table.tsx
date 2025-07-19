@@ -37,7 +37,7 @@ import { useVirtualizer } from "@tanstack/react-virtual"
 import { format, isValid } from "date-fns"
 
 import { TableName } from "@/lib/utils"
-import { useGetGridLayout } from "@/hooks/use-setting"
+import { useGetGridLayout } from "@/hooks/use-settings"
 import { Badge } from "@/components/ui/badge"
 import {
   DraggableColumnHeader,
@@ -63,7 +63,6 @@ interface TasksTableProps {
   onFilterChange?: (filters: ITaskFilter) => void
   moduleId?: number
   transactionId?: number
-  companyId: string
 }
 
 export function TasksTable({
@@ -77,7 +76,6 @@ export function TasksTable({
   onFilterChange,
   moduleId,
   transactionId,
-  companyId,
 }: TasksTableProps) {
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
@@ -94,8 +92,7 @@ export function TasksTable({
   const { data: gridSettings } = useGetGridLayout(
     moduleId?.toString() || "",
     transactionId?.toString() || "",
-    TableName.task,
-    companyId
+    TableName.task
   )
 
   useEffect(() => {
@@ -352,7 +349,6 @@ export function TasksTable({
         hideCreateButton={false}
         moduleId={moduleId || 1}
         transactionId={transactionId || 1}
-        companyId={companyId}
       />
 
       <div

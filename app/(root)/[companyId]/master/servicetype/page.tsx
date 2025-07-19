@@ -1,7 +1,6 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useParams } from "next/navigation"
 import { ApiResponse } from "@/interfaces/auth"
 import {
   IServiceType,
@@ -17,10 +16,10 @@ import { usePermissionStore } from "@/stores/permission-store"
 import { useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 
+import { getData } from "@/lib/api-client"
 import { ServiceType, ServiceTypeCategory } from "@/lib/api-routes"
-import { apiProxy } from "@/lib/axios-config"
 import { MasterTransactionId, ModuleId } from "@/lib/utils"
-import { useDelete, useGet, useSave, useUpdate } from "@/hooks/use-common-v1"
+import { useDelete, useGet, useSave, useUpdate } from "@/hooks/use-common"
 import {
   Dialog,
   DialogContent,
@@ -58,8 +57,6 @@ const tableSkeletonProps = {
 }
 
 export default function ServiceTypePage() {
-  const params = useParams()
-  const companyId = params.companyId as string
   const moduleId = ModuleId.master
   const transactionId = MasterTransactionId.service_type
   const transactionIdCategory = MasterTransactionId.service_type_category
@@ -98,12 +95,7 @@ export default function ServiceTypePage() {
     refetch: refetchServiceType,
     isLoading: isLoadingServiceType,
     isRefetching: isRefetchingServiceType,
-  } = useGet<IServiceType>(
-    `${ServiceType.get}`,
-    "servicetypes",
-    companyId,
-    filters.search
-  )
+  } = useGet<IServiceType>(`${ServiceType.get}`, "servicetypes", filters.search)
 
   const {
     data: servicetypesCategoryResponse,
@@ -113,7 +105,6 @@ export default function ServiceTypePage() {
   } = useGet<IServiceTypeCategory>(
     `${ServiceTypeCategory.get}`,
     "servicetypecategory",
-    companyId,
     categoryFilters.search
   )
 
@@ -125,37 +116,17 @@ export default function ServiceTypePage() {
     []
 
   // Mutations
-  const saveMutation = useSave<ServiceTypeFormValues>(
-    `${ServiceType.add}`,
-    "servicetypes",
-    companyId
-  )
-  const updateMutation = useUpdate<ServiceTypeFormValues>(
-    `${ServiceType.add}`,
-    "servicetypes",
-    companyId
-  )
-  const deleteMutation = useDelete(
-    `${ServiceType.delete}`,
-    "servicetypes",
-    companyId
-  )
+  const saveMutation = useSave<ServiceTypeFormValues>(`${ServiceType.add}`)
+  const updateMutation = useUpdate<ServiceTypeFormValues>(`${ServiceType.add}`)
+  const deleteMutation = useDelete(`${ServiceType.delete}`)
 
   const saveCategoryMutation = useSave<ServiceTypeCategoryFormValues>(
-    `${ServiceTypeCategory.add}`,
-    "servicetypes",
-    companyId
+    `${ServiceTypeCategory.add}`
   )
   const updateCategoryMutation = useUpdate<ServiceTypeCategoryFormValues>(
-    `${ServiceTypeCategory.add}`,
-    "servicetypes",
-    companyId
+    `${ServiceTypeCategory.add}`
   )
-  const deleteCategoryMutation = useDelete(
-    `${ServiceTypeCategory.delete}`,
-    "servicetypeCategory",
-    companyId
-  )
+  const deleteCategoryMutation = useDelete(`${ServiceTypeCategory.delete}`)
 
   // State management
   const [selectedServiceType, setSelectedServiceType] = useState<
@@ -416,14 +387,14 @@ export default function ServiceTypePage() {
     if (!trimmedCode) return
 
     try {
-      const response = await apiProxy.get<ApiResponse<IServiceType>>(
+      const response = (await getData(
         `${ServiceType.getByCode}/${trimmedCode}`
-      )
+      )) as ApiResponse<IServiceType>
 
-      if (response.data.result === 1 && response.data.data) {
-        const servicetypeData = Array.isArray(response.data.data)
-          ? response.data.data[0]
-          : response.data.data
+      if (response.result === 1 && response.data) {
+        const servicetypeData = Array.isArray(response.data)
+          ? response.data[0]
+          : response.data
 
         if (servicetypeData) {
           setExistingServiceType(servicetypeData as IServiceType)
@@ -431,16 +402,14 @@ export default function ServiceTypePage() {
         }
       }
 
-      const responseCategory = await apiProxy.get<
-        ApiResponse<IServiceTypeCategory>
-      >(`${ServiceTypeCategory.getByCode}/${trimmedCode}`)
+      const responseCategory = (await getData(
+        `${ServiceTypeCategory.getByCode}/${trimmedCode}`
+      )) as ApiResponse<IServiceTypeCategory>
 
-      if (responseCategory.data.result === 1 && responseCategory.data.data) {
-        const servicetypeCategoryData = Array.isArray(
-          responseCategory.data.data
-        )
-          ? responseCategory.data.data[0]
-          : responseCategory.data.data
+      if (responseCategory.result === 1 && responseCategory.data) {
+        const servicetypeCategoryData = Array.isArray(responseCategory.data)
+          ? responseCategory.data[0]
+          : responseCategory.data
 
         if (servicetypeCategoryData) {
           setExistingServiceTypeCategory(
@@ -537,7 +506,6 @@ export default function ServiceTypePage() {
                 onFilterChange={handleServiceTypeFilterChange}
                 moduleId={moduleId}
                 transactionId={transactionId}
-                companyId={companyId}
               />
             </LockSkeleton>
           ) : (
@@ -556,7 +524,6 @@ export default function ServiceTypePage() {
               onFilterChange={handleServiceTypeFilterChange}
               moduleId={moduleId}
               transactionId={transactionId}
-              companyId={companyId}
             />
           )}
         </TabsContent>
@@ -603,7 +570,6 @@ export default function ServiceTypePage() {
                 onFilterChange={setCategoryFilters}
                 moduleId={moduleId}
                 transactionId={transactionId}
-                companyId={companyId}
               />
             </LockSkeleton>
           ) : (
@@ -624,7 +590,6 @@ export default function ServiceTypePage() {
               onFilterChange={setCategoryFilters}
               moduleId={moduleId}
               transactionId={transactionId}
-              companyId={companyId}
             />
           )}
         </TabsContent>

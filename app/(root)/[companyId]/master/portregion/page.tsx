@@ -17,7 +17,7 @@ import {
   useGetById,
   useSave,
   useUpdate,
-} from "@/hooks/use-common-v1"
+} from "@/hooks/use-common"
 import {
   Dialog,
   DialogContent,

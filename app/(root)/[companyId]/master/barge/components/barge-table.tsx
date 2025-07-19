@@ -37,7 +37,7 @@ import { useVirtualizer } from "@tanstack/react-virtual"
 import { format, isValid } from "date-fns"
 
 import { MasterTransactionId, ModuleId, TableName } from "@/lib/utils"
-import { useGetGridLayout } from "@/hooks/use-setting"
+import { useGetGridLayout } from "@/hooks/use-settings"
 import { Badge } from "@/components/ui/badge"
 import {
   DraggableColumnHeader,
@@ -63,7 +63,6 @@ interface BargesTableProps {
   onFilterChange?: (filters: IBargeFilter) => void
   moduleId?: number
   transactionId?: number
-  companyId: string
 }
 
 export function BargesTable({
@@ -77,7 +76,6 @@ export function BargesTable({
   onFilterChange,
   moduleId,
   transactionId,
-  companyId,
 }: BargesTableProps) {
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
@@ -94,8 +92,7 @@ export function BargesTable({
   const { data: gridSettings } = useGetGridLayout(
     moduleId?.toString() || "",
     transactionId?.toString() || "",
-    TableName.barge,
-    companyId
+    TableName.barge
   )
 
   useEffect(() => {
@@ -408,7 +405,6 @@ export function BargesTable({
         hideCreateButton={false}
         moduleId={moduleId || ModuleId.master}
         transactionId={transactionId || MasterTransactionId.barge}
-        companyId={companyId}
       />
 
       <div

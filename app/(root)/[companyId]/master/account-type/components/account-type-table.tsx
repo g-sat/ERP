@@ -37,7 +37,7 @@ import { useVirtualizer } from "@tanstack/react-virtual"
 import { format, isValid } from "date-fns"
 
 import { MasterTransactionId, TableName } from "@/lib/utils"
-import { useGetGridLayout } from "@/hooks/use-setting"
+import { useGetGridLayout } from "@/hooks/use-settings"
 import { Badge } from "@/components/ui/badge"
 import {
   DraggableColumnHeader,
@@ -63,7 +63,6 @@ interface AccountTypesTableProps {
   onFilterChange?: (filters: IAccountTypeFilter) => void
   moduleId?: number
   transactionId?: number
-  companyId: string
 }
 
 export function AccountTypesTable({
@@ -77,7 +76,6 @@ export function AccountTypesTable({
   onFilterChange,
   moduleId,
   transactionId,
-  companyId,
 }: AccountTypesTableProps) {
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
@@ -94,8 +92,7 @@ export function AccountTypesTable({
   const { data: gridSettings } = useGetGridLayout(
     moduleId?.toString() || "",
     transactionId?.toString() || "",
-    TableName.account_type,
-    companyId
+    TableName.account_type
   )
 
   useEffect(() => {
@@ -359,7 +356,6 @@ export function AccountTypesTable({
         hideCreateButton={false}
         moduleId={moduleId || 1}
         transactionId={transactionId || MasterTransactionId.account_type}
-        companyId={companyId}
       />
 
       <div

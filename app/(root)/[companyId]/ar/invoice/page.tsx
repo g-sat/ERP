@@ -22,12 +22,7 @@ import { toast } from "sonner"
 import { ArInvoice } from "@/lib/api-routes"
 import { clientDateFormat, parseDate } from "@/lib/format"
 import { useGetInvoiceById } from "@/hooks/use-ar"
-import {
-  useDelete,
-  useGetHeader,
-  useSave,
-  useUpdate,
-} from "@/hooks/use-common-v1"
+import { useDelete, useGetHeader, useSave, useUpdate } from "@/hooks/use-common"
 import { useGetRequiredFields, useGetVisibleFields } from "@/hooks/use-lookup"
 import { Button } from "@/components/ui/button"
 import {
@@ -61,8 +56,8 @@ export default function InvoicePage() {
   const [activeTab, setActiveTab] = useState("main")
 
   const [filters, setFilters] = useState<IArInvoiceFilter>({
-    fromDate: format(subMonths(new Date(), 1), "yyyy-MM-dd"),
-    toDate: format(new Date(), "yyyy-MM-dd"),
+    startDate: format(subMonths(new Date(), 1), "yyyy-MM-dd"),
+    endDate: format(new Date(), "yyyy-MM-dd"),
     search: "",
     sortBy: "invoiceNo",
     sortOrder: "asc",
@@ -176,10 +171,10 @@ export default function InvoicePage() {
   } = useGetHeader<IArInvoiceHd>(
     `${ArInvoice.get}`,
     "arInvoiceHd",
-    companyId,
+
     filters.search,
-    filters.fromDate?.toString(),
-    filters.toDate?.toString()
+    filters.startDate?.toString(),
+    filters.endDate?.toString()
   )
 
   const { data: invoicesData } =
@@ -190,21 +185,9 @@ export default function InvoicePage() {
     }
 
   // Mutations
-  const saveMutation = useSave<ArInvoiceHdFormValues>(
-    `${ArInvoice.add}`,
-    "arInvoiceHds",
-    companyId
-  )
-  const updateMutation = useUpdate<ArInvoiceHdFormValues>(
-    `${ArInvoice.add}`,
-    "arInvoiceHds",
-    companyId
-  )
-  const deleteMutation = useDelete(
-    `${ArInvoice.delete}`,
-    "arInvoiceHds",
-    companyId
-  )
+  const saveMutation = useSave<ArInvoiceHdFormValues>(`${ArInvoice.add}`)
+  const updateMutation = useUpdate<ArInvoiceHdFormValues>(`${ArInvoice.add}`)
+  const deleteMutation = useDelete(`${ArInvoice.delete}`)
 
   const { data: invoiceByIdData, refetch: refetchInvoiceById } =
     useGetInvoiceById<ArInvoiceHdFormValues>(

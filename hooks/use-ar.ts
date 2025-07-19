@@ -1,22 +1,13 @@
 import { ApiResponse } from "@/interfaces/auth"
 import { useQuery } from "@tanstack/react-query"
-import axios from "axios"
 
+import { getById, getData } from "@/lib/api-client"
 import { ArInvoice } from "@/lib/api-routes"
 
 /**
- * 1. Base Configuration
- * --------------------
- * 1.1 API Proxy Configuration
- */
-const apiProxy = axios.create({
-  baseURL: "/api/proxy",
-})
-
-/**
- * 2. Invoice Management
+ * 1. Invoice Management
  * -------------------
- * 2.1 Get Invoice by ID
+ * 1.1 Get Invoice by ID
  * @param {string} baseUrl - Base URL for the API endpoint
  * @param {string} queryKey - Key for caching the query
  * @param {string} invoiceId - Invoice ID
@@ -37,16 +28,7 @@ export function useGetInvoiceById<T>(
     queryFn: async () => {
       // Clean up the URL by removing any double slashes
       const cleanUrl = baseUrl.replace(/\/+/g, "/")
-      const response = await apiProxy.get<ApiResponse<T>>(
-        `${cleanUrl}/${invoiceId}/${invoiceNo}`,
-        {
-          headers: {
-            "X-Company-Id": companyId,
-            "Content-Type": "application/json",
-          },
-        }
-      )
-      return response.data
+      return await getById(`${cleanUrl}/${invoiceId}/${invoiceNo}`)
     },
     refetchOnWindowFocus: false,
     refetchOnMount: false,
@@ -58,7 +40,7 @@ export function useGetInvoiceById<T>(
 }
 
 /**
- * 2.2 Get AR Invoice History List
+ * 1.2 Get AR Invoice History List
  * @param {string} invoiceId - Invoice ID
  * @param {object} options - Additional query options
  * @returns {object} Query object containing invoice history list
@@ -68,10 +50,7 @@ export function useGetARInvoiceHistoryList<T>(invoiceId: string, options = {}) {
     queryKey: ["ar-invoice-history-list", invoiceId],
     queryFn: async () => {
       // Clean up the URL by removing any double slashes
-      const response = await apiProxy.get<ApiResponse<T>>(
-        `${ArInvoice.history}/${invoiceId}`
-      )
-      return response.data
+      return await getData(`${ArInvoice.history}/${invoiceId}`)
     },
     refetchOnWindowFocus: false,
     refetchOnMount: false,
@@ -83,7 +62,7 @@ export function useGetARInvoiceHistoryList<T>(invoiceId: string, options = {}) {
 }
 
 /**
- * 2.3 Get AR Invoice History Details
+ * 1.3 Get AR Invoice History Details
  * @param {string} invoiceId - Invoice ID
  * @param {string} editVersion - Edit version
  * @param {object} options - Additional query options
@@ -98,10 +77,9 @@ export function useGetARInvoiceHistoryDetails<T>(
     queryKey: ["ar-invoice-history-details", invoiceId, editVersion],
     queryFn: async () => {
       // Clean up the URL by removing any double slashes
-      const response = await apiProxy.get<ApiResponse<T>>(
+      return await getData(
         `${ArInvoice.historyDetails}/${invoiceId}/${editVersion}`
       )
-      return response.data
     },
     refetchOnWindowFocus: false,
     refetchOnMount: false,

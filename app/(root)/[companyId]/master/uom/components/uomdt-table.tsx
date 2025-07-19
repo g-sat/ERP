@@ -33,7 +33,7 @@ import { useVirtualizer } from "@tanstack/react-virtual"
 import { format, isValid } from "date-fns"
 
 import { MasterTransactionId, TableName } from "@/lib/utils"
-import { useGetGridLayout } from "@/hooks/use-setting"
+import { useGetGridLayout } from "@/hooks/use-settings"
 import {
   DraggableColumnHeader,
   TableActions,
@@ -59,7 +59,6 @@ interface UomDtTableProps {
   onFilterChange?: (filters: IUomFilter) => void
   moduleId?: number
   transactionId?: number
-  companyId: string
 }
 
 export function UomDtTable({
@@ -73,7 +72,6 @@ export function UomDtTable({
   onFilterChange,
   moduleId,
   transactionId,
-  companyId,
 }: UomDtTableProps) {
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
@@ -90,8 +88,7 @@ export function UomDtTable({
   const { data: gridSettings } = useGetGridLayout(
     moduleId?.toString() || "",
     transactionId?.toString() || "",
-    TableName.uom_dt,
-    companyId
+    TableName.uom_dt
   )
 
   const columns: ColumnDef<IUomDt>[] = [
@@ -324,7 +321,6 @@ export function UomDtTable({
         hideCreateButton={true}
         moduleId={moduleId || 1}
         transactionId={transactionId || MasterTransactionId.uom_dt}
-        companyId={companyId}
       />
 
       <div

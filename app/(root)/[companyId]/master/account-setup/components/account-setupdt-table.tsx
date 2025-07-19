@@ -40,7 +40,7 @@ import { useVirtualizer } from "@tanstack/react-virtual"
 import { format, isValid } from "date-fns"
 
 import { MasterTransactionId, TableName } from "@/lib/utils"
-import { useGetGridLayout } from "@/hooks/use-setting"
+import { useGetGridLayout } from "@/hooks/use-settings"
 import { Badge } from "@/components/ui/badge"
 import {
   DraggableColumnHeader,
@@ -66,7 +66,6 @@ interface AccountSetupDtTableProps {
   onFilterChange?: (filters: IAccountSetupDtFilter) => void
   moduleId?: number
   transactionId?: number
-  companyId: string
 }
 
 export function AccountSetupDtTable({
@@ -80,7 +79,6 @@ export function AccountSetupDtTable({
   onFilterChange,
   moduleId,
   transactionId,
-  companyId,
 }: AccountSetupDtTableProps) {
   console.log("data", data)
   const { decimals } = useAuthStore()
@@ -98,8 +96,7 @@ export function AccountSetupDtTable({
   const { data: gridSettings } = useGetGridLayout(
     moduleId?.toString() || "",
     transactionId?.toString() || "",
-    TableName.account_setup_dt,
-    companyId
+    TableName.account_setup_dt
   )
 
   useEffect(() => {
@@ -361,7 +358,6 @@ export function AccountSetupDtTable({
         hideCreateButton={false}
         moduleId={moduleId || 1}
         transactionId={transactionId || MasterTransactionId.account_setup_dt}
-        companyId={companyId}
       />
 
       <div

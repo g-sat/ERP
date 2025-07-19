@@ -37,7 +37,7 @@ import { useVirtualizer } from "@tanstack/react-virtual"
 import { format, isValid } from "date-fns"
 
 import { MasterTransactionId, TableName } from "@/lib/utils"
-import { useGetGridLayout } from "@/hooks/use-setting"
+import { useGetGridLayout } from "@/hooks/use-settings"
 import { Badge } from "@/components/ui/badge"
 import { DraggableColumnHeader, TableActions } from "@/components/ui/data-table"
 import { CustomTableBody } from "@/components/ui/data-table/data-table-body"
@@ -58,7 +58,7 @@ interface ContactsTableProps {
   onRefresh?: () => void
   moduleId: number
   transactionId: number
-  companyId: string
+
   onFilterChange?: (filters: ISupplierContactFilter) => void
 }
 
@@ -72,7 +72,7 @@ export function ContactsTable({
   onRefresh,
   moduleId,
   transactionId,
-  companyId,
+
   onFilterChange,
 }: ContactsTableProps) {
   const { decimals } = useAuthStore()
@@ -88,8 +88,7 @@ export function ContactsTable({
   const { data: gridSettings } = useGetGridLayout(
     moduleId?.toString() || "",
     transactionId?.toString() || "",
-    TableName.supplier_contact,
-    companyId
+    TableName.supplier_contact
   )
 
   useEffect(() => {
@@ -411,7 +410,6 @@ export function ContactsTable({
         hideCreateButton={false}
         moduleId={moduleId || 1}
         transactionId={transactionId || MasterTransactionId.supplier}
-        companyId={companyId}
       />
 
       <div

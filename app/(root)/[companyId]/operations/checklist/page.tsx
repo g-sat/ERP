@@ -13,7 +13,7 @@ import {
 import { toast } from "sonner"
 
 import { JobOrder } from "@/lib/api-routes"
-import { ProjectStatus } from "@/lib/operations-utils"
+import { OperationStatus } from "@/lib/operations-utils"
 import { cn } from "@/lib/utils"
 import {
   exportJobOrdersDirect,
@@ -225,26 +225,26 @@ export default function ChecklistPage() {
       All: apiData.length,
       Pending: apiData.filter(
         (job: IJobOrderHd) =>
-          job.statusName === ProjectStatus.Pending.toString()
+          job.statusName === OperationStatus.Pending.toString()
       ).length,
       Confirmed: apiData.filter(
         (job: IJobOrderHd) =>
-          job.statusName === ProjectStatus.Confirmed.toString()
+          job.statusName === OperationStatus.Confirmed.toString()
       ).length,
       Completed: apiData.filter(
         (job: IJobOrderHd) =>
-          job.statusName === ProjectStatus.Completed.toString()
+          job.statusName === OperationStatus.Completed.toString()
       ).length,
       Cancelled: apiData.filter(
         (job: IJobOrderHd) =>
-          job.statusName === ProjectStatus.Cancelled.toString()
+          job.statusName === OperationStatus.Cancelled.toString()
       ).length,
       "Cancel With Service": apiData.filter(
         (job: IJobOrderHd) =>
-          job.statusName === ProjectStatus.CancelWithService.toString()
+          job.statusName === OperationStatus.CancelWithService.toString()
       ).length,
       Posted: apiData.filter(
-        (job: IJobOrderHd) => job.statusName === ProjectStatus.Post.toString()
+        (job: IJobOrderHd) => job.statusName === OperationStatus.Post.toString()
       ).length,
     }
     return counts
@@ -366,14 +366,14 @@ export default function ChecklistPage() {
                 className="border-input bg-background ring-offset-background mt-1 w-full rounded-md border px-3 py-2 text-sm"
               >
                 <option value="">All Statuses</option>
-                <option value={ProjectStatus.Pending}>Pending</option>
-                <option value={ProjectStatus.Confirmed}>Confirmed</option>
-                <option value={ProjectStatus.Completed}>Completed</option>
-                <option value={ProjectStatus.Cancelled}>Cancelled</option>
-                <option value={ProjectStatus.CancelWithService}>
+                <option value={OperationStatus.Pending}>Pending</option>
+                <option value={OperationStatus.Confirmed}>Confirmed</option>
+                <option value={OperationStatus.Completed}>Completed</option>
+                <option value={OperationStatus.Cancelled}>Cancelled</option>
+                <option value={OperationStatus.CancelWithService}>
                   Cancel With Service
                 </option>
-                <option value={ProjectStatus.Post}>Posted</option>
+                <option value={OperationStatus.Post}>Posted</option>
               </select>
             </div>
           </div>

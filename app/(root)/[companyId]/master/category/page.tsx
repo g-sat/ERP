@@ -1,7 +1,6 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useParams } from "next/navigation"
 import { ApiResponse } from "@/interfaces/auth"
 import { ICategory, ICategoryFilter } from "@/interfaces/category"
 import { CategoryFormValues } from "@/schemas/category"
@@ -17,7 +16,7 @@ import {
   useGetById,
   useSave,
   useUpdate,
-} from "@/hooks/use-common-v1"
+} from "@/hooks/use-common"
 import {
   Dialog,
   DialogContent,
@@ -35,8 +34,6 @@ import { CategoryForm } from "./components/category-form"
 import { CategorysTable } from "./components/category-table"
 
 export default function CategoryPage() {
-  const params = useParams()
-  const companyId = params.companyId as string
   const moduleId = ModuleId.master
   const transactionId = MasterTransactionId.category
 
@@ -56,12 +53,7 @@ export default function CategoryPage() {
     refetch,
     isLoading,
     isRefetching,
-  } = useGet<ICategory>(
-    `${Category.get}`,
-    "categorys",
-    companyId,
-    filters.search
-  )
+  } = useGet<ICategory>(`${Category.get}`, "categorys", filters.search)
 
   const { result: categorysResult, data: categorysData } =
     (categorysResponse as ApiResponse<ICategory>) ?? {
@@ -86,17 +78,9 @@ export default function CategoryPage() {
     }
   }, [categorysResponse])
 
-  const saveMutation = useSave<CategoryFormValues>(
-    `${Category.add}`,
-    "categorys",
-    companyId
-  )
-  const updateMutation = useUpdate<CategoryFormValues>(
-    `${Category.add}`,
-    "categorys",
-    companyId
-  )
-  const deleteMutation = useDelete(`${Category.delete}`, "categorys", companyId)
+  const saveMutation = useSave<CategoryFormValues>(`${Category.add}`)
+  const updateMutation = useUpdate<CategoryFormValues>(`${Category.add}`)
+  const deleteMutation = useDelete(`${Category.delete}`)
 
   const [selectedCategory, setSelectedCategory] = useState<ICategory | null>(
     null
@@ -127,7 +111,7 @@ export default function CategoryPage() {
   const { refetch: checkCodeAvailability } = useGetById<ICategory>(
     `${Category.getByCode}`,
     "categoryByCode",
-    companyId,
+
     codeToCheck,
     {
       enabled: !!codeToCheck && codeToCheck.trim() !== "",
@@ -298,7 +282,6 @@ export default function CategoryPage() {
             onFilterChange={setFilters}
             moduleId={moduleId}
             transactionId={transactionId}
-            companyId={companyId}
           />
         </LockSkeleton>
       ) : categorysResult ? (
@@ -315,7 +298,6 @@ export default function CategoryPage() {
           onFilterChange={setFilters}
           moduleId={moduleId}
           transactionId={transactionId}
-          companyId={companyId}
         />
       ) : (
         <div>No data available</div>

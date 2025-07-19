@@ -1,7 +1,6 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useParams } from "next/navigation"
 import { ApiResponse } from "@/interfaces/auth"
 import { IUom, IUomDt, IUomFilter } from "@/interfaces/uom"
 import { UomDtFormValues, UomFormValues } from "@/schemas/uom"
@@ -9,10 +8,10 @@ import { usePermissionStore } from "@/stores/permission-store"
 import { useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 
+import { getData } from "@/lib/api-client"
 import { Uom, UomDt } from "@/lib/api-routes"
-import { apiProxy } from "@/lib/axios-config"
 import { MasterTransactionId, ModuleId } from "@/lib/utils"
-import { useDelete, useGet, useSave, useUpdate } from "@/hooks/use-common-v1"
+import { useDelete, useGet, useSave, useUpdate } from "@/hooks/use-common"
 import {
   Dialog,
   DialogContent,
@@ -50,8 +49,6 @@ const tableSkeletonProps = {
 }
 
 export default function UomPage() {
-  const params = useParams()
-  const companyId = params.companyId as string
   const moduleId = ModuleId.master
   const transactionId = MasterTransactionId.uom
   const transactionIdDt = MasterTransactionId.uom_dt
@@ -79,39 +76,27 @@ export default function UomPage() {
     refetch: refetchUom,
     isLoading: isLoadingUom,
     isRefetching: isRefetchingUom,
-  } = useGet<IUom>(`${Uom.get}`, "uoms", companyId, filters.search)
+  } = useGet<IUom>(`${Uom.get}`, "uoms", filters.search)
 
   const {
     data: uomDtResponse,
     refetch: refetchUomDt,
     isLoading: isLoadingUomDt,
     isRefetching: isRefetchingUomDt,
-  } = useGet<IUomDt>(`${UomDt.get}`, "uomsdt", companyId, dtFilters.search)
+  } = useGet<IUomDt>(`${UomDt.get}`, "uomsdt", dtFilters.search)
 
   // Extract data from responses
   const uomsData = (uomsResponse as ApiResponse<IUom>)?.data || []
   const uomDtData = (uomDtResponse as ApiResponse<IUomDt>)?.data || []
 
   // Mutations
-  const saveMutation = useSave<UomFormValues>(`${Uom.add}`, "uoms", companyId)
-  const updateMutation = useUpdate<UomFormValues>(
-    `${Uom.add}`,
-    "uoms",
-    companyId
-  )
-  const deleteMutation = useDelete(`${Uom.delete}`, "uoms", companyId)
+  const saveMutation = useSave<UomFormValues>(`${Uom.add}`)
+  const updateMutation = useUpdate<UomFormValues>(`${Uom.add}`)
+  const deleteMutation = useDelete(`${Uom.delete}`)
 
-  const saveDtMutation = useSave<UomDtFormValues>(
-    `${UomDt.add}`,
-    "uomsdt",
-    companyId
-  )
-  const updateDtMutation = useUpdate<UomDtFormValues>(
-    `${UomDt.add}`,
-    "uomsdt",
-    companyId
-  )
-  const deleteDtMutation = useDelete(`${UomDt.delete}`, "uomsdt", companyId)
+  const saveDtMutation = useSave<UomDtFormValues>(`${UomDt.add}`)
+  const updateDtMutation = useUpdate<UomDtFormValues>(`${UomDt.add}`)
+  const deleteDtMutation = useDelete(`${UomDt.delete}`)
 
   // State management
   const [selectedUom, setSelectedUom] = useState<IUom | undefined>()
@@ -348,14 +333,14 @@ export default function UomPage() {
     if (!trimmedCode) return
 
     try {
-      const response = await apiProxy.get<ApiResponse<IUom>>(
+      const response = (await getData(
         `${Uom.getByCode}/${trimmedCode}`
-      )
+      )) as ApiResponse<IUom>
 
-      if (response.data.result === 1 && response.data.data) {
-        const uomData = Array.isArray(response.data.data)
-          ? response.data.data[0]
-          : response.data.data
+      if (response.result === 1 && response.data) {
+        const uomData = Array.isArray(response.data)
+          ? response.data[0]
+          : response.data
 
         if (uomData) {
           setExistingUom(uomData as IUom)
@@ -429,7 +414,6 @@ export default function UomPage() {
                 onFilterChange={handleUomFilterChange}
                 moduleId={moduleId}
                 transactionId={transactionId}
-                companyId={companyId}
               />
             </LockSkeleton>
           ) : (
@@ -444,7 +428,6 @@ export default function UomPage() {
               onFilterChange={handleUomFilterChange}
               moduleId={moduleId}
               transactionId={transactionId}
-              companyId={companyId}
             />
           )}
         </TabsContent>
@@ -478,7 +461,6 @@ export default function UomPage() {
                 onFilterChange={handleUomDtFilterChange}
                 moduleId={moduleId}
                 transactionId={transactionIdDt}
-                companyId={companyId}
               />
             </LockSkeleton>
           ) : (
@@ -492,7 +474,6 @@ export default function UomPage() {
               onFilterChange={handleUomDtFilterChange}
               moduleId={moduleId}
               transactionId={transactionIdDt}
-              companyId={companyId}
             />
           )}
         </TabsContent>

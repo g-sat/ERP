@@ -37,7 +37,7 @@ import { useVirtualizer } from "@tanstack/react-virtual"
 import { format, isValid } from "date-fns"
 
 import { MasterTransactionId, TableName } from "@/lib/utils"
-import { useGetGridLayout } from "@/hooks/use-setting"
+import { useGetGridLayout } from "@/hooks/use-settings"
 import { Badge } from "@/components/ui/badge"
 import {
   DraggableColumnHeader,
@@ -63,7 +63,6 @@ interface SubCategorysTableProps {
   onFilterChange?: (filters: ISubCategoryFilter) => void
   moduleId?: number
   transactionId?: number
-  companyId: string
 }
 
 export function SubCategorysTable({
@@ -77,7 +76,6 @@ export function SubCategorysTable({
   onFilterChange,
   moduleId,
   transactionId,
-  companyId,
 }: SubCategorysTableProps) {
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
@@ -94,8 +92,7 @@ export function SubCategorysTable({
   const { data: gridSettings } = useGetGridLayout(
     moduleId?.toString() || "",
     transactionId?.toString() || "",
-    TableName.sub_category,
-    companyId
+    TableName.sub_category
   )
 
   useEffect(() => {
@@ -344,7 +341,6 @@ export function SubCategorysTable({
         hideCreateButton={false}
         moduleId={moduleId || 1}
         transactionId={transactionId || MasterTransactionId.sub_category}
-        companyId={companyId}
       />
 
       <div

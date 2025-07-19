@@ -17,7 +17,7 @@ import { useVirtualizer } from "@tanstack/react-virtual"
 import { format } from "date-fns"
 import { EditIcon } from "lucide-react"
 
-import { ProjectStatus } from "@/lib/operations-utils"
+import { OperationStatus } from "@/lib/operations-utils"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { TableFooter } from "@/components/ui/data-table/data-table-footer"
@@ -64,17 +64,17 @@ export function ChecklistTable({
     return data.filter((job: IJobOrderHd) => {
       switch (selectedStatus) {
         case "Pending":
-          return job.statusName === ProjectStatus.Pending.toString()
+          return job.statusName === OperationStatus.Pending.toString()
         case "Completed":
-          return job.statusName === ProjectStatus.Completed.toString()
+          return job.statusName === OperationStatus.Completed.toString()
         case "Cancelled":
-          return job.statusName === ProjectStatus.Cancelled.toString()
+          return job.statusName === OperationStatus.Cancelled.toString()
         case "Cancel With Service":
-          return job.statusName === ProjectStatus.CancelWithService.toString()
+          return job.statusName === OperationStatus.CancelWithService.toString()
         case "Confirmed":
-          return job.statusName === ProjectStatus.Confirmed.toString()
+          return job.statusName === OperationStatus.Confirmed.toString()
         case "Posted":
-          return job.statusName === ProjectStatus.Post.toString()
+          return job.statusName === OperationStatus.Post.toString()
         default:
           return true
       }

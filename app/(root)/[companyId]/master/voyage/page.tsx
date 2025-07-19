@@ -1,7 +1,6 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useParams } from "next/navigation"
 import { ApiResponse } from "@/interfaces/auth"
 import { IVoyage, IVoyageFilter } from "@/interfaces/voyage"
 import { VoyageFormValues } from "@/schemas/voyage"
@@ -17,7 +16,7 @@ import {
   useGetById,
   useSave,
   useUpdate,
-} from "@/hooks/use-common-v1"
+} from "@/hooks/use-common"
 import {
   Dialog,
   DialogContent,
@@ -34,10 +33,6 @@ import { VoyageForm } from "./components/voyage-form"
 import { VoyagesTable } from "./components/voyage-table"
 
 export default function VoyagePage() {
-  const params = useParams()
-  const companyId = params.companyId as string
-  console.log("companyId from voyage page", companyId)
-
   const moduleId = ModuleId.master
   const transactionId = MasterTransactionId.voyage
 
@@ -52,7 +47,7 @@ export default function VoyagePage() {
     refetch,
     isLoading,
     isRefetching,
-  } = useGet<IVoyage>(`${Voyage.get}`, "voyages", companyId, filters.search)
+  } = useGet<IVoyage>(`${Voyage.get}`, "voyages", filters.search)
 
   const { result: voyagesResult, data: voyagesData } =
     (voyagesResponse as ApiResponse<IVoyage>) ?? {
@@ -67,17 +62,9 @@ export default function VoyagePage() {
     }
   }, [filters.search])
 
-  const saveMutation = useSave<VoyageFormValues>(
-    `${Voyage.add}`,
-    "voyages",
-    companyId
-  )
-  const updateMutation = useUpdate<VoyageFormValues>(
-    `${Voyage.add}`,
-    "voyages",
-    companyId
-  )
-  const deleteMutation = useDelete(`${Voyage.delete}`, "voyages", companyId)
+  const saveMutation = useSave<VoyageFormValues>(`${Voyage.add}`)
+  const updateMutation = useUpdate<VoyageFormValues>(`${Voyage.add}`)
+  const deleteMutation = useDelete(`${Voyage.delete}`)
 
   const [selectedVoyage, setSelectedVoyage] = useState<IVoyage | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -104,7 +91,7 @@ export default function VoyagePage() {
   const { refetch: checkCodeAvailability } = useGetById<IVoyage>(
     `${Voyage.getByCode}`,
     "voyageByCode",
-    companyId,
+
     codeToCheck
   )
 
@@ -308,7 +295,6 @@ export default function VoyagePage() {
           onFilterChange={setFilters}
           moduleId={moduleId}
           transactionId={transactionId}
-          companyId={companyId}
         />
       ) : (
         <div>No data available</div>

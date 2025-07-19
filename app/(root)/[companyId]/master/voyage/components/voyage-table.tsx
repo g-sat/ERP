@@ -37,7 +37,7 @@ import { useVirtualizer } from "@tanstack/react-virtual"
 import { format, isValid } from "date-fns"
 
 import { MasterTransactionId, TableName } from "@/lib/utils"
-import { useGetGridLayout } from "@/hooks/use-setting"
+import { useGetGridLayout } from "@/hooks/use-settings"
 import { Badge } from "@/components/ui/badge"
 import {
   DraggableColumnHeader,
@@ -63,7 +63,6 @@ interface VoyagesTableProps {
   onFilterChange?: (filters: IVoyageFilter) => void
   moduleId?: number
   transactionId?: number
-  companyId: string
 }
 
 export function VoyagesTable({
@@ -77,7 +76,6 @@ export function VoyagesTable({
   onFilterChange,
   moduleId,
   transactionId,
-  companyId,
 }: VoyagesTableProps) {
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
@@ -94,8 +92,7 @@ export function VoyagesTable({
   const { data: gridSettings } = useGetGridLayout(
     moduleId?.toString() || "",
     transactionId?.toString() || "",
-    TableName.voyage,
-    companyId
+    TableName.voyage
   )
 
   useEffect(() => {
@@ -363,7 +360,6 @@ export function VoyagesTable({
         hideCreateButton={false}
         moduleId={moduleId || 1}
         transactionId={transactionId || MasterTransactionId.voyage}
-        companyId={companyId}
       />
 
       <div

@@ -11,15 +11,15 @@ export function absoluteUrl(path: string) {
 
 export enum ModuleId {
   master = 1,
-  sales = 2,
-  purchase = 3,
+  operations = 2,
+  sales = 3,
+  purchase = 4,
   ar = 25,
   ap = 26,
   cb = 27,
   gl = 28,
   setting = 99,
   admin = 100,
-  project = 101,
 }
 
 export enum MasterTransactionId {
@@ -76,7 +76,9 @@ export enum MasterTransactionId {
   service_type_category = 52,
 }
 
-export enum ProjectTransactionId {
+export enum OperationsTransactionId {
+  checklist = 1,
+  tariff = 2,
   job_order = 1,
   port_expenses = 1,
   launch_service = 2,
@@ -186,6 +188,12 @@ export function getModuleAndTransactionId(pathname: string): {
           transactionName as keyof typeof MasterTransactionId
         ] || 0
       break
+    case ModuleId.operations:
+      transactionId =
+        OperationsTransactionId[
+          transactionName as keyof typeof OperationsTransactionId
+        ] || 0
+      break
     case ModuleId.ar:
       transactionId =
         ARTransactionId[transactionName as keyof typeof ARTransactionId] || 0
@@ -280,7 +288,7 @@ export enum TableName {
   user_role = "user_role",
   user = "user",
 
-  // project
+  // operations
   port_expenses = "port_expenses",
   launch_service = "launch_service",
   equipment_used = "equipment_used",

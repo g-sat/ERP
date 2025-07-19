@@ -1,97 +1,48 @@
 import { ApiResponse } from "@/interfaces/auth"
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import axios, { AxiosError } from "axios"
+import { useMutation, useQuery } from "@tanstack/react-query"
+import { AxiosError } from "axios"
 import { toast } from "sonner"
 
-const apiProxy = axios.create({
-  baseURL: "/api/proxy",
-})
+import { apiClient, getById, getData, saveData } from "@/lib/api-client"
 
-/**
- * 1. Common Query Hooks
- * --------------------
- * 1.1 Get Data Hook
- * @param {string} baseUrl - Base URL for the API endpoint
- * @param {string} queryKey - Key for caching the query
- * @param {string} filters - Optional filter string
- * @returns {object} Query object containing the data
- */
 export function useGet<T>(baseUrl: string, queryKey: string, filters?: string) {
   return useQuery<ApiResponse<T>>({
     queryKey: [queryKey, filters],
     queryFn: async () => {
-      // Clean up the URL by removing any double slashes
       const cleanUrl = baseUrl.replace(/\/+/g, "/")
-      const response = await apiProxy.get<ApiResponse<T>>(`${cleanUrl}`, {
-        headers: {
-          "Content-Type": "application/json",
-          "X-Page-Number": "1",
-          "X-Page-Size": "2000",
-          "X-Search-String":
-            filters && filters.trim() !== "" ? filters : "null",
-        },
-      })
-      return response.data
+      const params = {
+        searchString: filters && filters.trim() !== "" ? filters : "null",
+        pageNumber: "1",
+        pageSize: "2000",
+      }
+      return await getData(cleanUrl, params)
     },
-    // Cache disabled
-    // refetchOnWindowFocus: false,
-    // refetchOnMount: false,
-    // refetchOnReconnect: false,
-    // gcTime: 10 * 60 * 1000,
-    // staleTime: 5 * 60 * 1000,
   })
 }
 
-/**
- * 1.2 Get Header Data Hook
- * @param {string} baseUrl - Base URL for the API endpoint
- * @param {string} queryKey - Key for caching the query
- * @param {string} filters - Optional filter string
- * @param {string} fromDate - Optional start date
- * @param {string} toDate - Optional end date
- * @returns {object} Query object containing the header data
- */
 export function useGetHeader<T>(
   baseUrl: string,
   queryKey: string,
   filters?: string,
-  fromDate?: string,
-  toDate?: string
+  startDate?: string,
+  endDate?: string
 ) {
   return useQuery<ApiResponse<T>>({
     queryKey: [queryKey, filters],
     queryFn: async () => {
-      // Clean up the URL by removing any double slashes
       const cleanUrl = baseUrl.replace(/\/+/g, "/")
-      const response = await apiProxy.get<ApiResponse<T>>(`${cleanUrl}`, {
-        headers: {
-          "Content-Type": "application/json",
-          "X-Page-Number": "1",
-          "X-Page-Size": "2000",
-          "X-Search-String": filters && filters.trim() !== "" ? filters : "",
-          "X-From-Date": fromDate && fromDate.trim() !== "" ? fromDate : "",
-          "X-To-Date": toDate && toDate.trim() !== "" ? toDate : "",
-        },
-      })
-      return response.data
+      const params = {
+        searchString: filters && filters.trim() !== "" ? filters : "",
+        pageNumber: "1",
+        pageSize: "2000",
+        startDate: startDate && startDate.trim() !== "" ? startDate : "",
+        endDate: endDate && endDate.trim() !== "" ? endDate : "",
+      }
+      return await getData(cleanUrl, params)
     },
-    // Cache disabled
-    // refetchOnWindowFocus: false,
-    // refetchOnMount: false,
-    // refetchOnReconnect: false,
-    // gcTime: 10 * 60 * 1000,
-    // staleTime: 5 * 60 * 1000,
   })
 }
 
-/**
- * 1.3 Get Data by ID Hook
- * @param {string} baseUrl - Base URL for the API endpoint
- * @param {string} queryKey - Key for caching the query
- * @param {string} id - ID of the item to fetch
- * @param {object} options - Additional query options
- * @returns {object} Query object containing the data
- */
 export function useGetById<T>(
   baseUrl: string,
   queryKey: string,
@@ -101,78 +52,35 @@ export function useGetById<T>(
   return useQuery<ApiResponse<T>>({
     queryKey: [queryKey, id],
     queryFn: async () => {
-      // Clean up the URL by removing any double slashes
       const cleanUrl = baseUrl.replace(/\/+/g, "/")
-      const response = await apiProxy.get<ApiResponse<T>>(`${cleanUrl}/${id}`)
-      return response.data
+      return await getById(`${cleanUrl}/${id}`)
     },
-    // Cache disabled
-    // refetchOnWindowFocus: false,
-    // refetchOnMount: false,
-    // refetchOnReconnect: false,
-    // gcTime: 10 * 60 * 1000,
-    // staleTime: 5 * 60 * 1000,
+    enabled: !!id && id.trim() !== "", // Only run when id is not empty or null
     ...options,
   })
 }
 
-/**
- * 1.4 Get Data by ID Hook (Version 1)
- * @param {string} baseUrl - Base URL for the API endpoint
- * @param {string} queryKey - Key for caching the query
- * @param {string} id - ID of the item to fetch
- * @returns {function} Async function to fetch data by ID
- */
-export function useGetByIdV1<T>(baseUrl: string, queryKey: string, id: string) {
-  return async (id: string): Promise<T | null> => {
-    try {
-      const response = await apiProxy.get<T>(`${baseUrl}/${id}`, {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      })
-      return response.data
-    } catch (error) {
-      const axiosError = error as AxiosError
-      console.error("❌ Error fetching item:", axiosError.message)
-      toast.error("An error occurred")
-      return null
-    }
-  }
+export function useGetByParams<T>(
+  baseUrl: string,
+  queryKey: string,
+  params: string,
+  options = {}
+) {
+  return useQuery<ApiResponse<T>>({
+    queryKey: [queryKey, params],
+    queryFn: async () => {
+      const cleanUrl = baseUrl.replace(/\/+/g, "/")
+      return await getData(`${cleanUrl}/${params}`)
+    },
+    ...options,
+  })
 }
 
-/**
- * 2. Mutation Hooks
- * ----------------
- * 2.1 Save Data Hook
- * @param {string} baseUrl - Base URL for the API endpoint
- * @param {string} queryKey - Key for caching the query
- * @returns {object} Mutation object for saving data
- */
-export function useSave<T>(baseUrl: string, queryKey: string) {
-  const queryClient = useQueryClient()
-
+export function useSave<T>(baseUrl: string) {
   return useMutation({
     mutationFn: async (newData: Partial<T>) => {
-      const response = await apiProxy.post<ApiResponse<T>>(
-        `${baseUrl}`,
-        newData,
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      )
-      return response.data
+      return await saveData(baseUrl, newData)
     },
-    // Cache invalidation disabled
-    // onMutate: async () => {
-    //   // Cancel any outgoing refetches
-    //   await queryClient.cancelQueries({ queryKey: [queryKey] })
-    //   // Snapshot the previous value
-    //   const previousData = queryClient.getQueryData<ApiResponse<T>>([queryKey])
-    //   return { previousData }
-    // },
     onSuccess: (response) => {
       if (response.result === 1) {
         toast.success(response.message || "Created successfully")
@@ -180,46 +88,18 @@ export function useSave<T>(baseUrl: string, queryKey: string) {
         toast.error(response.message || "Creation failed")
       }
     },
-    onError: (
-      error: AxiosError<{ message?: string }>,
-      _,
-      context?: { previousData?: ApiResponse<T> }
-    ) => {
-      // Cache restoration disabled
-      // if (context?.previousData) {
-      //   queryClient.setQueryData([queryKey], context.previousData)
-      // }
+    onError: (error: AxiosError<{ message?: string }>) => {
       const errorMessage = error.response?.data?.message || "An error occurred"
       toast.error(errorMessage)
     },
   })
 }
 
-/**
- * 2.2 Update Data Hook
- * @param {string} baseUrl - Base URL for the API endpoint
- * @param {string} queryKey - Key for caching the query
- * @returns {object} Mutation object for updating data
- */
-export function useUpdate<T>(baseUrl: string, queryKey: string) {
-  const queryClient = useQueryClient()
-
+export function useUpdate<T>(baseUrl: string) {
   return useMutation({
     mutationFn: async (updatedData: Partial<T>) => {
-      const response = await apiProxy.post<ApiResponse<T>>(
-        `${baseUrl}`,
-        updatedData
-      )
-      return response.data
+      return await saveData(baseUrl, updatedData)
     },
-    // Cache invalidation disabled
-    // onMutate: async () => {
-    //   // Cancel any outgoing refetches
-    //   await queryClient.cancelQueries({ queryKey: [queryKey] })
-    //   // Snapshot the previous value
-    //   const previousData = queryClient.getQueryData<ApiResponse<T>>([queryKey])
-    //   return { previousData }
-    // },
     onSuccess: (response) => {
       if (response.result === 1) {
         toast.success(response.message || "Updated successfully")
@@ -227,52 +107,19 @@ export function useUpdate<T>(baseUrl: string, queryKey: string) {
         toast.error(response.message || "Update failed")
       }
     },
-    onError: (
-      error: AxiosError<{ message?: string }>,
-      _,
-      context?: { previousData?: ApiResponse<T> }
-    ) => {
-      // Cache restoration disabled
-      // if (context?.previousData) {
-      //   queryClient.setQueryData([queryKey], context.previousData)
-      // }
+    onError: (error: AxiosError<{ message?: string }>) => {
       const errorMessage = error.response?.data?.message || "An error occurred"
       toast.error(errorMessage)
     },
   })
 }
 
-/**
- * 2.3 Delete Data Hook
- * @param {string} baseUrl - Base URL for the API endpoint
- * @param {string} queryKey - Key for caching the query
- * @returns {object} Mutation object for deleting data
- */
-export function useDelete<
-  T extends { id?: string | number; countryId?: string | number },
->(baseUrl: string, queryKey: string) {
-  const queryClient = useQueryClient()
-
+export function useDelete(baseUrl: string) {
   return useMutation({
     mutationFn: async (id: string) => {
-      const response = await apiProxy.delete<ApiResponse<T>>(
-        `${baseUrl}/${id}`,
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      )
+      const response = await apiClient.delete(`${baseUrl}/${id}`)
       return response.data
     },
-    // Cache invalidation disabled
-    // onMutate: async () => {
-    //   // Cancel any outgoing refetches
-    //   await queryClient.cancelQueries({ queryKey: [queryKey] })
-    //   // Snapshot the previous value
-    //   const previousData = queryClient.getQueryData<ApiResponse<T>>([queryKey])
-    //   return { previousData }
-    // },
     onSuccess: (response) => {
       if (response.result === 1) {
         toast.success(response.message || "Deleted successfully")
@@ -280,36 +127,16 @@ export function useDelete<
         toast.error(response.message || "Deletion failed")
       }
     },
-    onError: (
-      error: AxiosError<{ message?: string }>,
-      _,
-      context?: { previousData?: ApiResponse<T> }
-    ) => {
-      // Cache restoration disabled
-      // if (context?.previousData) {
-      //   queryClient.setQueryData([queryKey], context.previousData)
-      // }
+    onError: (error: AxiosError<{ message?: string }>) => {
       const errorMessage = error.response?.data?.message || "An error occurred"
       toast.error(errorMessage)
     },
   })
 }
 
-/**
- * 3. Grid Layout Hooks
- * -------------------
- * 3.1 Update Grid Layout Hook
- * @returns {object} Mutation object for updating grid layout
- */
 export function useUpdateGridLayout() {
-  const queryClient = useQueryClient()
-
   return useMutation({
-    mutationFn: async ({
-      data,
-      moduleId,
-      transactionId,
-    }: {
+    mutationFn: async (data: {
       data: {
         companyId: number
         moduleId: number
@@ -324,17 +151,9 @@ export function useUpdateGridLayout() {
       moduleId: number
       transactionId: number
     }) => {
-      const response = await apiProxy.post(`/setting/saveUserGrid`, data, {
-        headers: {
-          "Content-Type": "application/json",
-          moduleId: moduleId.toString(),
-          transactionId: transactionId.toString(),
-        },
-      })
-      return response.data
+      return await saveData("/setting/saveUserGrid", data)
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["grid-layout-config"] })
       toast.success("Layout saved successfully!")
     },
     onError: (error: AxiosError) => {

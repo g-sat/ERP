@@ -122,6 +122,7 @@ export const NumberFormat = {
 // User Grid Setting Endpoints
 export const UserGrid = {
   get: "/setting/getusergrid",
+  getV2: "/setting/GetUserGridV1",
   getV1: "/setting/GetUserGridByIdV1",
   getById: "/setting/getusergridbyid",
   getByUserId: "/setting/getusergridbyuserid",
@@ -851,155 +852,155 @@ export const Checklist = {
 
 // Job Order Endpoints
 export const JobOrder = {
-  get: "/project/getjoborder",
-  getByIdNo: "/project/GetjoborderbyIdNo",
-  add: "/project/savejoborder",
-  delete: "/project/deletejoborder",
-  getDetails: "/project/getdetails",
-  saveDetails: "/project/savedetails",
-  getTaskCount: "/project/gettaskcount",
+  get: "/operations/getjoborder",
+  getByIdNo: "/operations/GetjoborderbyIdNo",
+  add: "/operations/savejoborder",
+  delete: "/operations/deletejoborder",
+  getDetails: "/operations/getdetails",
+  saveDetails: "/operations/savedetails",
+  getTaskCount: "/operations/gettaskcount",
 }
 
 // Tariff Endpoints
 export const Tariff = {
-  getById: "/project/gettariffbyid",
-  add: "/project/savetariff",
-  delete: "/project/deletetariff",
-  getTariffCount: "/project/gettariffcount",
-  getTariffList: "/project/gettarifflist",
-  getTariffByTask: "/project/gettariffbytask",
-  copy: "/project/copytariff",
-  copyCompanyTariff: "/project/copycompanytariff",
+  getTariffCount: "/operations/gettariffcount",
+  getTariffList: "/operations/gettarifflist",
+  getTariffByTask: "/operations/gettariffbytask",
+  getById: "/operations/gettariffbyid",
+  add: "/operations/savetariff",
+  delete: "/operations/deletetariff",
+  copy: "/operations/copytariff",
+  copyCompanyTariff: "/operations/copycompanytariff",
 }
 
 // Port Expenses Endpoints
 export const JobOrder_PortExpenses = {
-  get: "/project/getportexpenses",
-  getById: "/project/GetPortExpensesById",
-  add: "/project/saveportexpenses",
-  delete: "/project/deleteportexpenses",
+  get: "/operations/getportexpenses",
+  getById: "/operations/GetPortExpensesById",
+  add: "/operations/saveportexpenses",
+  delete: "/operations/deleteportexpenses",
 }
 
 // Launch Services Endpoints
 export const JobOrder_LaunchServices = {
-  get: "/project/getlaunchservices",
-  getById: "/project/getlaunchservicesbyid",
-  add: "/project/savelaunchservices",
-  delete: "/project/deletelaunchservices",
+  get: "/operations/getlaunchservices",
+  getById: "/operations/getlaunchservicesbyid",
+  add: "/operations/savelaunchservices",
+  delete: "/operations/deletelaunchservices",
 }
 
 // Equipment Used Endpoints
 export const JobOrder_EquipmentUsed = {
-  get: "/project/getequipmentused",
-  getById: "/project/getequipmentusedbyid",
-  add: "/project/saveequipmentused",
-  delete: "/project/deleteequipmentused",
+  get: "/operations/getequipmentused",
+  getById: "/operations/getequipmentusedbyid",
+  add: "/operations/saveequipmentused",
+  delete: "/operations/deleteequipmentused",
 }
 
 // Crew Sign On Endpoints
 export const JobOrder_CrewSignOn = {
-  get: "/project/getcrewsignon",
-  getById: "/project/getcrewsignonbyid",
-  add: "/project/savecrewsignon",
-  delete: "/project/deletecrewsignon",
+  get: "/operations/getcrewsignon",
+  getById: "/operations/getcrewsignonbyid",
+  add: "/operations/savecrewsignon",
+  delete: "/operations/deletecrewsignon",
 }
 
 // Crew Sign Off Endpoints
 export const JobOrder_CrewSignOff = {
-  get: "/project/getcrewsignoff",
-  getById: "/project/getcrewsignoffbyid",
-  add: "/project/savecrewsignoff",
-  delete: "/project/deletecrewsignoff",
+  get: "/operations/getcrewsignoff",
+  getById: "/operations/getcrewsignoffbyid",
+  add: "/operations/savecrewsignoff",
+  delete: "/operations/deletecrewsignoff",
 }
 
 // Crew Miscellaneous Endpoints
 export const JobOrder_CrewMiscellaneous = {
-  get: "/project/getcrewmiscellaneous",
-  getById: "/project/getcrewmiscellaneousbyid",
-  add: "/project/savecrewmiscellaneous",
-  delete: "/project/deletecrewmiscellaneous",
+  get: "/operations/getcrewmiscellaneous",
+  getById: "/operations/getcrewmiscellaneousbyid",
+  add: "/operations/savecrewmiscellaneous",
+  delete: "/operations/deletecrewmiscellaneous",
 }
 
 // Medical Assistance Endpoints
 export const JobOrder_MedicalAssistance = {
-  get: "/project/getmedicalassistance",
-  getById: "/project/getmedicalassistancebyid",
-  add: "/project/savemedicalassistance",
-  delete: "/project/deletemedicalassistance",
+  get: "/operations/getmedicalassistance",
+  getById: "/operations/getmedicalassistancebyid",
+  add: "/operations/savemedicalassistance",
+  delete: "/operations/deletemedicalassistance",
 }
 
 // Consignment Import Endpoints
 export const JobOrder_ConsignmentImport = {
-  get: "/project/getconsignmentimport",
-  getById: "/project/getconsignmentimportbyid",
-  add: "/project/saveconsignmentimport",
-  delete: "/project/deleteconsignmentimport",
+  get: "/operations/getconsignmentimport",
+  getById: "/operations/getconsignmentimportbyid",
+  add: "/operations/saveconsignmentimport",
+  delete: "/operations/deleteconsignmentimport",
 }
 
 // Consignment Export Endpoints
 export const JobOrder_ConsignmentExport = {
-  get: "/project/getconsignmentexport",
-  getById: "/project/getconsignmentexportbyid",
-  add: "/project/saveconsignmentexport",
-  delete: "/project/deleteconsignmentexport",
+  get: "/operations/getconsignmentexport",
+  getById: "/operations/getconsignmentexportbyid",
+  add: "/operations/saveconsignmentexport",
+  delete: "/operations/deleteconsignmentexport",
 }
 
 // Third Party Endpoints
 export const JobOrder_ThirdParty = {
-  get: "/project/getthirdparty",
-  getById: "/project/getthirdpartybyid",
-  add: "/project/savethirdparty",
-  delete: "/project/deletethirdparty",
+  get: "/operations/getthirdparty",
+  getById: "/operations/getthirdpartybyid",
+  add: "/operations/savethirdparty",
+  delete: "/operations/deletethirdparty",
 }
 
 // Fresh Water Endpoints
 export const JobOrder_FreshWater = {
-  get: "/project/getfreshwater",
-  getById: "/project/getfreshwaterbyid",
-  add: "/project/savefreshwater",
-  delete: "/project/deletefreshwater",
+  get: "/operations/getfreshwater",
+  getById: "/operations/getfreshwaterbyid",
+  add: "/operations/savefreshwater",
+  delete: "/operations/deletefreshwater",
 }
 
 // Technicians Surveyors Endpoints
 export const JobOrder_TechnicianSurveyor = {
-  get: "/project/gettechniciansurveyor",
-  getById: "/project/gettechniciansurveyorbyid",
-  add: "/project/savetechniciansurveyor",
-  delete: "/project/deletetechniciansurveyor",
+  get: "/operations/gettechniciansurveyor",
+  getById: "/operations/gettechniciansurveyorbyid",
+  add: "/operations/savetechniciansurveyor",
+  delete: "/operations/deletetechniciansurveyor",
 }
 
 // Landing Items Endpoints
 export const JobOrder_LandingItems = {
-  get: "/project/getlandingitems",
-  getById: "/project/getlandingitemsbyid",
-  add: "/project/savelandingitems",
-  delete: "/project/deletelandingitems",
+  get: "/operations/getlandingitems",
+  getById: "/operations/getlandingitemsbyid",
+  add: "/operations/savelandingitems",
+  delete: "/operations/deletelandingitems",
 }
 
 // Other Service Endpoints
 export const JobOrder_OtherService = {
-  get: "/project/getotherservice",
-  getById: "/project/getotherservicebyid",
-  add: "/project/saveotherservice",
-  delete: "/project/deleteotherservice",
+  get: "/operations/getotherservice",
+  getById: "/operations/getotherservicebyid",
+  add: "/operations/saveotherservice",
+  delete: "/operations/deleteotherservice",
 }
 
 // Agency Remuneration Endpoints
 export const JobOrder_AgencyRemuneration = {
-  get: "/project/getagencyremuneration",
-  getById: "/project/getagencyremunerationbyid",
-  add: "/project/saveagencyremuneration",
-  delete: "/project/deleteagencyremuneration",
+  get: "/operations/getagencyremuneration",
+  getById: "/operations/getagencyremunerationbyid",
+  add: "/operations/saveagencyremuneration",
+  delete: "/operations/deleteagencyremuneration",
 }
 
 // Debit Note Endpoints
 export const JobOrder_DebitNote = {
-  getById: "/project/getdebitnotebyid",
-  add: "/project/savedebitnote",
-  delete: "/project/deletedebitnote",
-  getDetails: "/project/getdebitnotedetails",
-  saveDetails: "/project/savedebitnotedetails",
-  deleteDetails: "/project/deletedebitnotedetails",
+  getById: "/operations/getdebitnotebyid",
+  add: "/operations/savedebitnote",
+  delete: "/operations/deletedebitnote",
+  getDetails: "/operations/getdebitnotedetails",
+  saveDetails: "/operations/savedebitnotedetails",
+  deleteDetails: "/operations/deletedebitnotedetails",
 }
 
 // HRMS API Routes

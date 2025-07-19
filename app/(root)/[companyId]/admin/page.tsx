@@ -22,7 +22,7 @@ import { toast } from "sonner"
 
 import { User, UserGroup, UserRole } from "@/lib/api-routes"
 import { AdminTransactionId, ModuleId } from "@/lib/utils"
-import { useDelete, useGet, useSave, useUpdate } from "@/hooks/use-common-v1"
+import { useDelete, useGet, useSave, useUpdate } from "@/hooks/use-common"
 import {
   Dialog,
   DialogContent,

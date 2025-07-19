@@ -1,7 +1,6 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useParams } from "next/navigation"
 import { ApiResponse } from "@/interfaces/auth"
 import {
   ICreditTerm,
@@ -16,10 +15,10 @@ import { usePermissionStore } from "@/stores/permission-store"
 import { useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 
+import { getData } from "@/lib/api-client"
 import { CreditTerm, CreditTermDt } from "@/lib/api-routes"
-import { apiProxy } from "@/lib/axios-config"
 import { MasterTransactionId, ModuleId } from "@/lib/utils"
-import { useDelete, useGet, useSave, useUpdate } from "@/hooks/use-common-v1"
+import { useDelete, useGet, useSave, useUpdate } from "@/hooks/use-common"
 import {
   Dialog,
   DialogContent,
@@ -57,8 +56,6 @@ const tableSkeletonProps = {
 }
 
 export default function CreditTermPage() {
-  const params = useParams()
-  const companyId = params.companyId as string
   const moduleId = ModuleId.master
   const transactionId = MasterTransactionId.credit_terms
   const transactionIdDt = MasterTransactionId.credit_term_dt
@@ -86,12 +83,7 @@ export default function CreditTermPage() {
     refetch: refetchCreditTerm,
     isLoading: isLoadingCreditTerm,
     isRefetching: isRefetchingCreditTerm,
-  } = useGet<ICreditTerm>(
-    `${CreditTerm.get}`,
-    "creditterms",
-    companyId,
-    filters.search
-  )
+  } = useGet<ICreditTerm>(`${CreditTerm.get}`, "creditterms", filters.search)
 
   const {
     data: creditTermsDtResponse,
@@ -101,7 +93,6 @@ export default function CreditTermPage() {
   } = useGet<ICreditTermDt>(
     `${CreditTermDt.get}`,
     "credittermsdt",
-    companyId,
     dtFilters.search
   )
 
@@ -112,37 +103,15 @@ export default function CreditTermPage() {
     (creditTermsDtResponse as ApiResponse<ICreditTermDt>)?.data || []
 
   // Mutations
-  const saveMutation = useSave<CreditTermFormValues>(
-    `${CreditTerm.add}`,
-    "creditterms",
-    companyId
-  )
-  const updateMutation = useUpdate<CreditTermFormValues>(
-    `${CreditTerm.add}`,
-    "creditterms",
-    companyId
-  )
-  const deleteMutation = useDelete(
-    `${CreditTerm.delete}`,
-    "creditterms",
-    companyId
-  )
+  const saveMutation = useSave<CreditTermFormValues>(`${CreditTerm.add}`)
+  const updateMutation = useUpdate<CreditTermFormValues>(`${CreditTerm.add}`)
+  const deleteMutation = useDelete(`${CreditTerm.delete}`)
 
-  const saveDtMutation = useSave<CreditTermDtFormValues>(
-    `${CreditTermDt.add}`,
-    "credittermsdt",
-    companyId
-  )
+  const saveDtMutation = useSave<CreditTermDtFormValues>(`${CreditTermDt.add}`)
   const updateDtMutation = useUpdate<CreditTermDtFormValues>(
-    `${CreditTermDt.add}`,
-    "credittermsdt",
-    companyId
+    `${CreditTermDt.add}`
   )
-  const deleteDtMutation = useDelete(
-    `${CreditTermDt.delete}`,
-    "credittermsdt",
-    companyId
-  )
+  const deleteDtMutation = useDelete(`${CreditTermDt.delete}`)
 
   // State management
   const [selectedCreditTerm, setSelectedCreditTerm] = useState<
@@ -396,9 +365,7 @@ export default function CreditTermPage() {
     if (!trimmedCode) return
 
     try {
-      const response = await apiProxy.get<ApiResponse<ICreditTerm>>(
-        `${CreditTerm.getByCode}/${trimmedCode}`
-      )
+      const response = await getData(`${CreditTerm.getByCode}/${trimmedCode}`)
 
       if (response.data.result === 1 && response.data.data) {
         const creditTermData = Array.isArray(response.data.data)
@@ -486,7 +453,6 @@ export default function CreditTermPage() {
                 onFilterChange={handleCreditTermFilterChange}
                 moduleId={moduleId}
                 transactionId={transactionId}
-                companyId={companyId}
               />
             </LockSkeleton>
           ) : (
@@ -504,7 +470,6 @@ export default function CreditTermPage() {
               onFilterChange={handleCreditTermFilterChange}
               moduleId={moduleId}
               transactionId={transactionId}
-              companyId={companyId}
             />
           )}
         </TabsContent>
@@ -548,7 +513,6 @@ export default function CreditTermPage() {
                 onFilterChange={handleCreditTermDtFilterChange}
                 moduleId={moduleId}
                 transactionId={transactionId}
-                companyId={companyId}
               />
             </LockSkeleton>
           ) : (
@@ -571,7 +535,6 @@ export default function CreditTermPage() {
               onFilterChange={handleCreditTermDtFilterChange}
               moduleId={moduleId}
               transactionId={transactionId}
-              companyId={companyId}
             />
           )}
         </TabsContent>

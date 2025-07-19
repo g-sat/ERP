@@ -1,7 +1,6 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useParams } from "next/navigation"
 import { ApiResponse } from "@/interfaces/auth"
 import { IEmployee, IEmployeeFilter } from "@/interfaces/employee"
 import { EmployeeFormValues } from "@/schemas/employee"
@@ -10,7 +9,7 @@ import { toast } from "sonner"
 
 import { Employee } from "@/lib/api-routes"
 import { MasterTransactionId, ModuleId } from "@/lib/utils"
-import { useDelete, useGet, useSave, useUpdate } from "@/hooks/use-common-v1"
+import { useDelete, useGet, useSave, useUpdate } from "@/hooks/use-common"
 import {
   Dialog,
   DialogContent,
@@ -27,8 +26,6 @@ import { EmployeeForm } from "./components/employee-form"
 import { EmployeesTable } from "./components/employee-table"
 
 export default function EmployeePage() {
-  const params = useParams()
-  const companyId = params.companyId as string
   const moduleId = ModuleId.master
   const transactionId = MasterTransactionId.employee
   const [filters, setFilters] = useState<IEmployeeFilter>({})
@@ -37,12 +34,7 @@ export default function EmployeePage() {
     refetch,
     isLoading,
     isRefetching,
-  } = useGet<IEmployee>(
-    `${Employee.get}`,
-    "employees",
-    companyId,
-    filters.search
-  )
+  } = useGet<IEmployee>(`${Employee.get}`, "employees", filters.search)
 
   const { result: employeesResult, data: employeesData } =
     (employeesResponse as ApiResponse<IEmployee>) ?? {
@@ -57,17 +49,9 @@ export default function EmployeePage() {
     }
   }, [filters])
 
-  const saveMutation = useSave<EmployeeFormValues>(
-    `${Employee.add}`,
-    "employees",
-    companyId
-  )
-  const updateMutation = useUpdate<EmployeeFormValues>(
-    `${Employee.add}`,
-    "employees",
-    companyId
-  )
-  const deleteMutation = useDelete(`${Employee.delete}`, "employees", companyId)
+  const saveMutation = useSave<EmployeeFormValues>(`${Employee.add}`)
+  const updateMutation = useUpdate<EmployeeFormValues>(`${Employee.add}`)
+  const deleteMutation = useDelete(`${Employee.delete}`)
 
   const [selectedEmployee, setSelectedEmployee] = useState<
     IEmployee | undefined
@@ -214,7 +198,6 @@ export default function EmployeePage() {
             onFilterChange={setFilters}
             moduleId={moduleId}
             transactionId={transactionId}
-            companyId={companyId}
           />
         </LockSkeleton>
       ) : employeesResult ? (
@@ -229,7 +212,6 @@ export default function EmployeePage() {
             toast("Refreshing data...Fetching the latest employee data.")
           }}
           onFilterChange={setFilters}
-          companyId={companyId}
         />
       ) : (
         <div>No data available</div>

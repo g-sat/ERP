@@ -1,7 +1,6 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useParams } from "next/navigation"
 import { IAccountGroup, IAccountGroupFilter } from "@/interfaces/accountgroup"
 import { ApiResponse } from "@/interfaces/auth"
 import { AccountGroupFormValues } from "@/schemas/accountgroup"
@@ -17,7 +16,7 @@ import {
   useGetById,
   useSave,
   useUpdate,
-} from "@/hooks/use-common-v1"
+} from "@/hooks/use-common"
 import {
   Dialog,
   DialogContent,
@@ -34,9 +33,6 @@ import { AccountGroupForm } from "./components/account-group-form"
 import { AccountGroupsTable } from "./components/account-group-table"
 
 export default function AccountGroupPage() {
-  const params = useParams()
-  const companyId = params.companyId as string
-
   const moduleId = ModuleId.master
   const transactionId = MasterTransactionId.account_group
 
@@ -56,7 +52,6 @@ export default function AccountGroupPage() {
   } = useGet<IAccountGroup>(
     `${AccountGroup.get}`,
     "accountGroups",
-    companyId,
     filters.search
   )
 
@@ -69,21 +64,11 @@ export default function AccountGroupPage() {
     }
 
   // Define mutations for CRUD operations
-  const saveMutation = useSave<AccountGroupFormValues>(
-    `${AccountGroup.add}`,
-    "accountGroups",
-    companyId
-  )
+  const saveMutation = useSave<AccountGroupFormValues>(`${AccountGroup.add}`)
   const updateMutation = useUpdate<AccountGroupFormValues>(
-    `${AccountGroup.add}`,
-    "accountGroups",
-    companyId
+    `${AccountGroup.add}`
   )
-  const deleteMutation = useDelete(
-    `${AccountGroup.delete}`,
-    "accountGroups",
-    companyId
-  )
+  const deleteMutation = useDelete(`${AccountGroup.delete}`)
 
   // State for modal and selected account group
   const [selectedAccountGroup, setSelectedAccountGroup] = useState<
@@ -114,11 +99,7 @@ export default function AccountGroupPage() {
   const { refetch: checkCodeAvailability } = useGetById<IAccountGroup>(
     `${AccountGroup.getByCode}`,
     "accountGroupByCode",
-    companyId,
-    codeToCheck,
-    {
-      enabled: !!codeToCheck && codeToCheck.trim() !== "",
-    }
+    codeToCheck
   )
 
   // Handler to Re-fetches data when called
@@ -359,7 +340,6 @@ export default function AccountGroupPage() {
           onFilterChange={setFilters}
           moduleId={moduleId}
           transactionId={transactionId}
-          companyId={companyId}
         />
       ) : (
         <div>No data available</div>

@@ -1,7 +1,6 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useParams } from "next/navigation"
 import { ApiResponse } from "@/interfaces/auth"
 import {
   ISupplier,
@@ -26,7 +25,7 @@ import {
   useGetById,
   useSave,
   useUpdate,
-} from "@/hooks/use-common-v1"
+} from "@/hooks/use-common"
 import { useGetSupplierById } from "@/hooks/use-master"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -48,8 +47,6 @@ import SupplierForm from "./components/supplier-form"
 import { SupplierTable } from "./components/supplier-table"
 
 export default function SupplierPage() {
-  const params = useParams()
-  const companyId = params.companyId as string
   const moduleId = ModuleId.master
   const transactionId = MasterTransactionId.supplier
 
@@ -102,12 +99,7 @@ export default function SupplierPage() {
     refetch: refetchSuppliers,
     isLoading: isLoadingSuppliers,
     isRefetching: isRefetchingSuppliers,
-  } = useGet<ISupplier>(
-    `${Supplier.get}`,
-    "suppliers",
-    companyId,
-    filters.search
-  )
+  } = useGet<ISupplier>(`${Supplier.get}`, "suppliers", filters.search)
 
   const { refetch: refetchSupplierDetails } = useGetSupplierById<ISupplier>(
     `${Supplier.getById}`,
@@ -121,7 +113,7 @@ export default function SupplierPage() {
     useGetById<ISupplierAddress>(
       `${SupplierAddress.get}`,
       "supplieraddresses",
-      companyId,
+
       supplier?.supplierId?.toString() || "",
       { enabled: !!supplier?.supplierId }
     )
@@ -130,7 +122,7 @@ export default function SupplierPage() {
     useGetById<ISupplierContact>(
       `${SupplierContact.get}`,
       "suppliercontacts",
-      companyId,
+
       supplier?.supplierId?.toString() || "",
       { enabled: !!supplier?.supplierId }
     )
@@ -143,47 +135,23 @@ export default function SupplierPage() {
     }
 
   // Mutations
-  const saveMutation = useSave<SupplierFormValues>(
-    `${Supplier.add}`,
-    "suppliers",
-    companyId
-  )
-  const updateMutation = useUpdate<SupplierFormValues>(
-    `${Supplier.add}`,
-    "suppliers",
-    companyId
-  )
-  const deleteMutation = useDelete(`${Supplier.delete}`, "suppliers", companyId)
+  const saveMutation = useSave<SupplierFormValues>(`${Supplier.add}`)
+  const updateMutation = useUpdate<SupplierFormValues>(`${Supplier.add}`)
+  const deleteMutation = useDelete(`${Supplier.delete}`)
   const saveAddressMutation = useSave<SupplierAddressFormValues>(
-    `${SupplierAddress.add}`,
-    "supplieraddresses",
-    companyId
+    `${SupplierAddress.add}`
   )
   const updateAddressMutation = useUpdate<SupplierAddressFormValues>(
-    `${SupplierAddress.add}`,
-    "supplieraddresses",
-    companyId
+    `${SupplierAddress.add}`
   )
-  const deleteAddressMutation = useDelete(
-    `${SupplierAddress.delete}`,
-    "supplieraddresses",
-    companyId
-  )
+  const deleteAddressMutation = useDelete(`${SupplierAddress.delete}`)
   const saveContactMutation = useSave<SupplierContactFormValues>(
-    `${SupplierContact.add}`,
-    "suppliercontacts",
-    companyId
+    `${SupplierContact.add}`
   )
   const updateContactMutation = useUpdate<SupplierContactFormValues>(
-    `${SupplierContact.add}`,
-    "suppliercontacts",
-    companyId
+    `${SupplierContact.add}`
   )
-  const deleteContactMutation = useDelete(
-    `${SupplierContact.delete}`,
-    "suppliercontacts",
-    companyId
-  )
+  const deleteContactMutation = useDelete(`${SupplierContact.delete}`)
 
   // Fetch supplier details, addresses, and contacts when supplier changes
   useEffect(() => {
@@ -573,7 +541,6 @@ export default function SupplierPage() {
                       onCreateAddress={canCreate ? handleAddressAdd : undefined}
                       moduleId={moduleId}
                       transactionId={transactionId}
-                      companyId={companyId}
                     />
                   </div>
                 </TabsContent>
@@ -593,7 +560,6 @@ export default function SupplierPage() {
                       onCreateContact={canCreate ? handleContactAdd : undefined}
                       moduleId={moduleId}
                       transactionId={transactionId}
-                      companyId={companyId}
                     />
                   </div>
                 </TabsContent>
@@ -622,7 +588,6 @@ export default function SupplierPage() {
             onRefresh={() => refetchSuppliers()}
             moduleId={moduleId}
             transactionId={transactionId}
-            companyId={companyId}
           />
         </DialogContent>
       </Dialog>

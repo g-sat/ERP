@@ -37,7 +37,7 @@ import { useVirtualizer } from "@tanstack/react-virtual"
 import { format, isValid } from "date-fns"
 
 import { TableName } from "@/lib/utils"
-import { useGetGridLayout } from "@/hooks/use-setting"
+import { useGetGridLayout } from "@/hooks/use-settings"
 import { Badge } from "@/components/ui/badge"
 import {
   DraggableColumnHeader,
@@ -63,7 +63,6 @@ interface VesselsTableProps {
   onFilterChange?: (filters: IVesselFilter) => void
   moduleId?: number
   transactionId?: number
-  companyId: string
 }
 
 export function VesselsTable({
@@ -77,7 +76,6 @@ export function VesselsTable({
   onFilterChange,
   moduleId,
   transactionId,
-  companyId,
 }: VesselsTableProps) {
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
@@ -94,8 +92,7 @@ export function VesselsTable({
   const { data: gridSettings } = useGetGridLayout(
     moduleId?.toString() || "",
     transactionId?.toString() || "",
-    TableName.vessel,
-    companyId
+    TableName.vessel
   )
 
   useEffect(() => {
@@ -398,7 +395,6 @@ export function VesselsTable({
         hideCreateButton={false}
         moduleId={moduleId || 1}
         transactionId={transactionId || 1}
-        companyId={companyId}
       />
 
       <div

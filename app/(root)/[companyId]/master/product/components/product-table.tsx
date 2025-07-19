@@ -37,7 +37,7 @@ import { useVirtualizer } from "@tanstack/react-virtual"
 import { format, isValid } from "date-fns"
 
 import { MasterTransactionId, TableName } from "@/lib/utils"
-import { useGetGridLayout } from "@/hooks/use-setting"
+import { useGetGridLayout } from "@/hooks/use-settings"
 import { Badge } from "@/components/ui/badge"
 import {
   DraggableColumnHeader,
@@ -63,7 +63,6 @@ interface ProductsTableProps {
   onFilterChange?: (filters: IProductFilter) => void
   moduleId?: number
   transactionId?: number
-  companyId: string
 }
 
 export function ProductsTable({
@@ -77,7 +76,6 @@ export function ProductsTable({
   onFilterChange,
   moduleId,
   transactionId,
-  companyId,
 }: ProductsTableProps) {
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
@@ -94,8 +92,7 @@ export function ProductsTable({
   const { data: gridSettings } = useGetGridLayout(
     moduleId?.toString() || "",
     transactionId?.toString() || "",
-    TableName.product,
-    companyId
+    TableName.product
   )
 
   useEffect(() => {
@@ -343,7 +340,6 @@ export function ProductsTable({
         hideCreateButton={false}
         moduleId={moduleId || 1}
         transactionId={transactionId || MasterTransactionId.product}
-        companyId={companyId}
       />
 
       <div

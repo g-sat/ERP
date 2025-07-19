@@ -1,7 +1,6 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useParams } from "next/navigation"
 import { ApiResponse } from "@/interfaces/auth"
 import { IProduct, IProductFilter } from "@/interfaces/product"
 import { ProductFormValues } from "@/schemas/product"
@@ -17,7 +16,7 @@ import {
   useGetById,
   useSave,
   useUpdate,
-} from "@/hooks/use-common-v1"
+} from "@/hooks/use-common"
 import {
   Dialog,
   DialogContent,
@@ -34,8 +33,6 @@ import { ProductForm } from "./components/product-form"
 import { ProductsTable } from "./components/product-table"
 
 export default function ProductPage() {
-  const params = useParams()
-  const companyId = params.companyId as string
   const moduleId = ModuleId.master
   const transactionId = MasterTransactionId.product
 
@@ -50,7 +47,7 @@ export default function ProductPage() {
     refetch,
     isLoading,
     isRefetching,
-  } = useGet<IProduct>(`${Product.get}`, "products", companyId, filters.search)
+  } = useGet<IProduct>(`${Product.get}`, "products", filters.search)
 
   const { result: productsResult, data: productsData } =
     (productsResponse as ApiResponse<IProduct>) ?? {
@@ -59,17 +56,9 @@ export default function ProductPage() {
       data: [],
     }
 
-  const saveMutation = useSave<ProductFormValues>(
-    `${Product.add}`,
-    "products",
-    companyId
-  )
-  const updateMutation = useUpdate<ProductFormValues>(
-    `${Product.add}`,
-    "products",
-    companyId
-  )
-  const deleteMutation = useDelete(`${Product.delete}`, "products", companyId)
+  const saveMutation = useSave<ProductFormValues>(`${Product.add}`)
+  const updateMutation = useUpdate<ProductFormValues>(`${Product.add}`)
+  const deleteMutation = useDelete(`${Product.delete}`)
 
   const [selectedProduct, setSelectedProduct] = useState<IProduct | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -93,7 +82,7 @@ export default function ProductPage() {
   const { refetch: checkCodeAvailability } = useGetById<IProduct>(
     `${Product.getByCode}`,
     "productByCode",
-    companyId,
+
     codeToCheck,
     {
       enabled: !!codeToCheck && codeToCheck.trim() !== "",
@@ -308,7 +297,6 @@ export default function ProductPage() {
           onFilterChange={setFilters}
           moduleId={moduleId}
           transactionId={transactionId}
-          companyId={companyId}
         />
       ) : (
         <div>No data available</div>

@@ -1,22 +1,13 @@
 import { ApiResponse } from "@/interfaces/auth"
 import { useQuery } from "@tanstack/react-query"
-import axios from "axios"
 
+import { getData } from "@/lib/api-client"
 import { HistoryDetails } from "@/lib/api-routes"
 
 /**
- * 1. Base Configuration
- * --------------------
- * 1.1 API Proxy Configuration
- */
-const apiProxy = axios.create({
-  baseURL: "/api/proxy",
-})
-
-/**
- * 2. GL Posting Management
+ * 1. GL Posting Management
  * ----------------------
- * 2.1 Get GL Post Details
+ * 1.1 Get GL Post Details
  * @param {number} moduleId - Module ID
  * @param {number} transactionId - Transaction ID
  * @param {string} invoiceId - Invoice ID
@@ -33,10 +24,9 @@ export function useGetGlPostDetails<T>(
     queryKey: ["gl-post-details", moduleId, transactionId, invoiceId],
     queryFn: async () => {
       // Clean up the URL by removing any double slashes
-      const response = await apiProxy.get<ApiResponse<T>>(
+      return await getData(
         `${HistoryDetails.getGlPostingDetails}/${moduleId}/${transactionId}/${invoiceId}`
       )
-      return response.data
     },
     refetchOnWindowFocus: false,
     refetchOnMount: false,
@@ -48,9 +38,9 @@ export function useGetGlPostDetails<T>(
 }
 
 /**
- * 3. Payment Management
+ * 2. Payment Management
  * -------------------
- * 3.1 Get Payment Details
+ * 2.1 Get Payment Details
  * @param {number} moduleId - Module ID
  * @param {number} transactionId - Transaction ID
  * @param {string} invoiceId - Invoice ID
@@ -67,10 +57,9 @@ export function useGetPaymentDetails<T>(
     queryKey: ["payment-details", moduleId, transactionId, invoiceId],
     queryFn: async () => {
       // Clean up the URL by removing any double slashes
-      const response = await apiProxy.get<ApiResponse<T>>(
+      return await getData(
         `${HistoryDetails.getPaymentDetails}/${moduleId}/${transactionId}/${invoiceId}`
       )
-      return response.data
     },
     refetchOnWindowFocus: false,
     refetchOnMount: false,

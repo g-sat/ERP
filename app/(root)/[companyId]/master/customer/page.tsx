@@ -1,7 +1,6 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useParams } from "next/navigation"
 import { ApiResponse } from "@/interfaces/auth"
 import {
   ICustomer,
@@ -26,7 +25,7 @@ import {
   useGetById,
   useSave,
   useUpdate,
-} from "@/hooks/use-common-v1"
+} from "@/hooks/use-common"
 import { useGetCustomerById } from "@/hooks/use-master"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -48,8 +47,6 @@ import CustomerForm from "./components/customer-form"
 import { CustomerTable } from "./components/customer-table"
 
 export default function CustomerPage() {
-  const params = useParams()
-  const companyId = params.companyId as string
   const moduleId = ModuleId.master
   const transactionId = MasterTransactionId.customer
 
@@ -102,12 +99,7 @@ export default function CustomerPage() {
     refetch: refetchCustomers,
     isLoading: isLoadingCustomers,
     isRefetching: isRefetchingCustomers,
-  } = useGet<ICustomer>(
-    `${Customer.get}`,
-    "customers",
-    companyId,
-    filters.search
-  )
+  } = useGet<ICustomer>(`${Customer.get}`, "customers", filters.search)
 
   const { refetch: refetchCustomerDetails } = useGetCustomerById<ICustomer>(
     `${Customer.getById}`,
@@ -121,7 +113,7 @@ export default function CustomerPage() {
     useGetById<ICustomerAddress>(
       `${CustomerAddress.get}`,
       "customeraddresses",
-      companyId,
+
       customer?.customerId?.toString() || "",
       { enabled: !!customer?.customerId }
     )
@@ -130,7 +122,7 @@ export default function CustomerPage() {
     useGetById<ICustomerContact>(
       `${CustomerContact.get}`,
       "customercontacts",
-      companyId,
+
       customer?.customerId?.toString() || "",
       { enabled: !!customer?.customerId }
     )
@@ -143,47 +135,23 @@ export default function CustomerPage() {
     }
 
   // Mutations
-  const saveMutation = useSave<CustomerFormValues>(
-    `${Customer.add}`,
-    "customers",
-    companyId
-  )
-  const updateMutation = useUpdate<CustomerFormValues>(
-    `${Customer.add}`,
-    "customers",
-    companyId
-  )
-  const deleteMutation = useDelete(`${Customer.delete}`, "customers", companyId)
+  const saveMutation = useSave<CustomerFormValues>(`${Customer.add}`)
+  const updateMutation = useUpdate<CustomerFormValues>(`${Customer.add}`)
+  const deleteMutation = useDelete(`${Customer.delete}`)
   const saveAddressMutation = useSave<CustomerAddressFormValues>(
-    `${CustomerAddress.add}`,
-    "customeraddresses",
-    companyId
+    `${CustomerAddress.add}`
   )
   const updateAddressMutation = useUpdate<CustomerAddressFormValues>(
-    `${CustomerAddress.add}`,
-    "customeraddresses",
-    companyId
+    `${CustomerAddress.add}`
   )
-  const deleteAddressMutation = useDelete(
-    `${CustomerAddress.delete}`,
-    "customeraddresses",
-    companyId
-  )
+  const deleteAddressMutation = useDelete(`${CustomerAddress.delete}`)
   const saveContactMutation = useSave<CustomerContactFormValues>(
-    `${CustomerContact.add}`,
-    "customercontacts",
-    companyId
+    `${CustomerContact.add}`
   )
   const updateContactMutation = useUpdate<CustomerContactFormValues>(
-    `${CustomerContact.add}`,
-    "customercontacts",
-    companyId
+    `${CustomerContact.add}`
   )
-  const deleteContactMutation = useDelete(
-    `${CustomerContact.delete}`,
-    "customercontacts",
-    companyId
-  )
+  const deleteContactMutation = useDelete(`${CustomerContact.delete}`)
 
   // Fetch customer details, addresses, and contacts when customer changes
   useEffect(() => {
@@ -573,7 +541,6 @@ export default function CustomerPage() {
                       onCreateAddress={canCreate ? handleAddressAdd : undefined}
                       moduleId={moduleId}
                       transactionId={transactionId}
-                      companyId={companyId}
                     />
                   </div>
                 </TabsContent>
@@ -593,7 +560,6 @@ export default function CustomerPage() {
                       onCreateContact={canCreate ? handleContactAdd : undefined}
                       moduleId={moduleId}
                       transactionId={transactionId}
-                      companyId={companyId}
                     />
                   </div>
                 </TabsContent>
@@ -622,7 +588,6 @@ export default function CustomerPage() {
             onRefresh={() => refetchCustomers()}
             moduleId={moduleId}
             transactionId={transactionId}
-            companyId={companyId}
           />
         </DialogContent>
       </Dialog>

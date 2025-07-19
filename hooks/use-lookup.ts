@@ -45,8 +45,9 @@ import {
 import { IPaymentType } from "@/interfaces/paymenttype"
 import { ISupplierAddress, ISupplierContact } from "@/interfaces/supplier"
 import { keepPreviousData, useQuery } from "@tanstack/react-query"
-import axios, { AxiosError } from "axios"
+import { AxiosError } from "axios"
 
+import { apiClient, getData } from "@/lib/api-client"
 import {
   Admin,
   DynamicLookupSetting,
@@ -56,16 +57,7 @@ import {
 } from "@/lib/api-routes"
 
 /**
- * 1. Base Configuration
- * --------------------
- * 1.1 API Proxy Configuration
- */
-const apiProxy = axios.create({
-  baseURL: "/api/proxy",
-})
-
-/**
- * 1.2 Query Configuration
+ * 1. Query Configuration
  */
 const defaultQueryConfig = {
   staleTime: 60 * 60 * 1000, // 1 hour
@@ -73,10 +65,10 @@ const defaultQueryConfig = {
 }
 
 /**
- * 1.3 Error Handler
+ * 2. Error Handler
  */
 const handleApiError = (error: unknown) => {
-  if (axios.isAxiosError(error)) {
+  if (error instanceof AxiosError) {
     const axiosError = error as AxiosError<{ message: string }>
     throw new Error(axiosError.response?.data?.message || "An error occurred")
   }
@@ -84,9 +76,9 @@ const handleApiError = (error: unknown) => {
 }
 
 /**
- * 2. Transaction Management
+ * 3. Transaction Management
  * ------------------------
- * 2.1 Get Transactions
+ * 3.1 Get Transactions
  * @param {object} params - Parameters object
  * @param {number} params.moduleId - Module ID
  * @returns {object} Query object containing transactions
@@ -101,7 +93,7 @@ export const useGetTransactions = ({
     ...defaultQueryConfig,
     queryFn: async () => {
       try {
-        const response = await apiProxy.get(Admin.getUserTransactions, {
+        const response = await apiClient.get(Admin.getUserTransactions, {
           headers: { moduleId },
         })
         return response.data?.data || []
@@ -114,9 +106,9 @@ export const useGetTransactions = ({
 }
 
 /**
- * 3. Field Management
+ * 4. Field Management
  * -----------------
- * 3.1 Get Required Fields
+ * 4.1 Get Required Fields
  * @param {number} moduleId - Module ID
  * @param {number} transactionId - Transaction ID
  * @returns {object} Query object containing required fields
@@ -130,10 +122,10 @@ export const useGetRequiredFields = (
     ...defaultQueryConfig,
     queryFn: async () => {
       try {
-        const response = await apiProxy.get(
+        const data = await getData(
           `${MandatoryFieldSetting.get}/${moduleId}/${transactionId}`
         )
-        return response.data?.data || []
+        return data?.data || []
       } catch (error) {
         handleApiError(error)
       }
@@ -143,7 +135,7 @@ export const useGetRequiredFields = (
 }
 
 /**
- * 3.2 Get Visible Fields
+ * 4.2 Get Visible Fields
  * @param {number} moduleId - Module ID
  * @param {number} transactionId - Transaction ID
  * @returns {object} Query object containing visible fields
@@ -157,10 +149,10 @@ export const useGetVisibleFields = (
     ...defaultQueryConfig,
     queryFn: async () => {
       try {
-        const response = await apiProxy.get(
+        const data = await getData(
           `${VisibleFieldSetting.get}/${moduleId}/${transactionId}`
         )
-        return response.data?.data || []
+        return data?.data || []
       } catch (error) {
         handleApiError(error)
       }
@@ -170,9 +162,9 @@ export const useGetVisibleFields = (
 }
 
 /**
- * 4. Dynamic Lookup Management
+ * 5. Dynamic Lookup Management
  * --------------------------
- * 4.1 Get Dynamic Lookup
+ * 5.1 Get Dynamic Lookup
  * @returns {object} Query object containing dynamic lookup data
  */
 export const useGetDynamicLookup = () => {
@@ -181,8 +173,8 @@ export const useGetDynamicLookup = () => {
     ...defaultQueryConfig,
     queryFn: async () => {
       try {
-        const response = await apiProxy.get(`${DynamicLookupSetting.get}`)
-        return response.data?.data || []
+        const data = await getData(DynamicLookupSetting.get)
+        return data?.data || []
       } catch (error) {
         handleApiError(error)
       }
@@ -191,9 +183,9 @@ export const useGetDynamicLookup = () => {
 }
 
 /**
- * 5. Contact Management
+ * 6. Contact Management
  * -------------------
- * 5.1 Get Customer Contact Lookup
+ * 6.1 Get Customer Contact Lookup
  * @param {number|string} customerId - Customer ID
  * @returns {object} Query object containing customer contacts
  */
@@ -203,10 +195,8 @@ export const useCustomerContactLookup = (customerId: number | string) => {
     ...defaultQueryConfig,
     queryFn: async () => {
       try {
-        const response = await apiProxy.get(
-          `${Lookup.getCustomerContact}/${customerId}`
-        )
-        return response.data?.data || []
+        const data = await getData(`${Lookup.getCustomerContact}/${customerId}`)
+        return data?.data || []
       } catch (error) {
         handleApiError(error)
       }
@@ -216,7 +206,7 @@ export const useCustomerContactLookup = (customerId: number | string) => {
 }
 
 /**
- * 5.2 Get Customer Address Lookup
+ * 6.2 Get Customer Address Lookup
  * @param {number|string} customerId - Customer ID
  * @returns {object} Query object containing customer addresses
  */
@@ -226,10 +216,8 @@ export const useCustomerAddressLookup = (customerId: number | string) => {
     ...defaultQueryConfig,
     queryFn: async () => {
       try {
-        const response = await apiProxy.get(
-          `${Lookup.getCustomerAddress}/${customerId}`
-        )
-        return response.data?.data || []
+        const data = await getData(`${Lookup.getCustomerAddress}/${customerId}`)
+        return data?.data || []
       } catch (error) {
         handleApiError(error)
       }
@@ -239,7 +227,7 @@ export const useCustomerAddressLookup = (customerId: number | string) => {
 }
 
 /**
- * 5.3 Get Supplier Contact Lookup
+ * 6.3 Get Supplier Contact Lookup
  * @param {number|string} customerId - Customer ID
  * @returns {object} Query object containing supplier contacts
  */
@@ -249,10 +237,8 @@ export const useSupplierContactLookup = (customerId: number | string) => {
     ...defaultQueryConfig,
     queryFn: async () => {
       try {
-        const response = await apiProxy.get(
-          `${Lookup.getSupplierContact}/${customerId}`
-        )
-        return response.data?.data || []
+        const data = await getData(`${Lookup.getSupplierContact}/${customerId}`)
+        return data?.data || []
       } catch (error) {
         handleApiError(error)
       }
@@ -262,7 +248,7 @@ export const useSupplierContactLookup = (customerId: number | string) => {
 }
 
 /**
- * 5.4 Get Supplier Address Lookup
+ * 6.4 Get Supplier Address Lookup
  * @param {number|string} customerId - Customer ID
  * @returns {object} Query object containing supplier addresses
  */
@@ -272,10 +258,8 @@ export const useSupplierAddressLookup = (customerId: number | string) => {
     ...defaultQueryConfig,
     queryFn: async () => {
       try {
-        const response = await apiProxy.get(
-          `${Lookup.getSupplierAddress}/${customerId}`
-        )
-        return response.data?.data || []
+        const data = await getData(`${Lookup.getSupplierAddress}/${customerId}`)
+        return data?.data || []
       } catch (error) {
         handleApiError(error)
       }
@@ -290,10 +274,10 @@ export const useModuleLookup = (IsVisible: boolean, IsMandatory: boolean) => {
     ...defaultQueryConfig,
     queryFn: async () => {
       try {
-        const response = await apiProxy.get(
+        const data = await getData(
           `${Lookup.getModule}/${IsVisible}/${IsMandatory}`
         )
-        return response.data?.data || []
+        return data?.data || []
       } catch (error) {
         handleApiError(error)
       }
@@ -307,8 +291,8 @@ export const useCountryLookup = () => {
     ...defaultQueryConfig,
     queryFn: async () => {
       try {
-        const response = await apiProxy.get(`${Lookup.getCountry}`)
-        return response.data?.data || []
+        const data = await getData(Lookup.getCountry)
+        return data?.data || []
       } catch (error) {
         handleApiError(error)
       }
@@ -322,8 +306,8 @@ export const useTaxLookup = () => {
     ...defaultQueryConfig,
     queryFn: async () => {
       try {
-        const response = await apiProxy.get(`${Lookup.getTax}`)
-        return response.data?.data || []
+        const data = await getData(Lookup.getTax)
+        return data?.data || []
       } catch (error) {
         handleApiError(error)
       }
@@ -337,8 +321,8 @@ export const useTaxCategoryLookup = () => {
     ...defaultQueryConfig,
     queryFn: async () => {
       try {
-        const response = await apiProxy.get(`${Lookup.getTaxCategory}`)
-        return response.data?.data || []
+        const data = await getData(Lookup.getTaxCategory)
+        return data?.data || []
       } catch (error) {
         handleApiError(error)
       }
@@ -352,8 +336,8 @@ export const useGstCategoryLookup = () => {
     ...defaultQueryConfig,
     queryFn: async () => {
       try {
-        const response = await apiProxy.get(`${Lookup.getGstCategory}`)
-        return response.data?.data || []
+        const data = await getData(Lookup.getGstCategory)
+        return data?.data || []
       } catch (error) {
         handleApiError(error)
       }
@@ -367,8 +351,8 @@ export const useBankLookup = () => {
     ...defaultQueryConfig,
     queryFn: async () => {
       try {
-        const response = await apiProxy.get(`${Lookup.getBank}`)
-        return response.data?.data || []
+        const data = await getData(Lookup.getBank)
+        return data?.data || []
       } catch (error) {
         handleApiError(error)
       }
@@ -382,8 +366,8 @@ export const useDepartmentLookup = () => {
     ...defaultQueryConfig,
     queryFn: async () => {
       try {
-        const response = await apiProxy.get(`${Lookup.getDepartment}`)
-        return response.data?.data || []
+        const data = await getData(Lookup.getDepartment)
+        return data?.data || []
       } catch (error) {
         handleApiError(error)
       }
@@ -397,8 +381,8 @@ export const useProductLookup = () => {
     ...defaultQueryConfig,
     queryFn: async () => {
       try {
-        const response = await apiProxy.get(`${Lookup.getProduct}`)
-        return response.data?.data || []
+        const data = await getData(Lookup.getProduct)
+        return data?.data || []
       } catch (error) {
         handleApiError(error)
       }
@@ -412,8 +396,8 @@ export const useBargeLookup = () => {
     ...defaultQueryConfig,
     queryFn: async () => {
       try {
-        const response = await apiProxy.get(`${Lookup.getBarge}`)
-        return response.data?.data || []
+        const data = await getData(Lookup.getBarge)
+        return data?.data || []
       } catch (error) {
         handleApiError(error)
       }
@@ -427,8 +411,8 @@ export const useGstLookup = () => {
     ...defaultQueryConfig,
     queryFn: async () => {
       try {
-        const response = await apiProxy.get(`${Lookup.getGst}`)
-        return response.data?.data || []
+        const data = await getData(Lookup.getGst)
+        return data?.data || []
       } catch (error) {
         handleApiError(error)
       }
@@ -442,8 +426,8 @@ export const useEmployeeLookup = () => {
     ...defaultQueryConfig,
     queryFn: async () => {
       try {
-        const response = await apiProxy.get(`${Lookup.getEmployee}`)
-        return response.data?.data || []
+        const data = await getData(Lookup.getEmployee)
+        return data?.data || []
       } catch (error) {
         handleApiError(error)
       }
@@ -457,8 +441,8 @@ export const useAccountGroupLookup = () => {
     ...defaultQueryConfig,
     queryFn: async () => {
       try {
-        const response = await apiProxy.get(`${Lookup.getAccountGroup}`)
-        return response.data?.data || []
+        const data = await getData(Lookup.getAccountGroup)
+        return data?.data || []
       } catch (error) {
         handleApiError(error)
       }
@@ -472,8 +456,8 @@ export const useAccountTypeLookup = () => {
     ...defaultQueryConfig,
     queryFn: async () => {
       try {
-        const response = await apiProxy.get(`${Lookup.getAccountType}`)
-        return response.data?.data || []
+        const data = await getData(Lookup.getAccountType)
+        return data?.data || []
       } catch (error) {
         handleApiError(error)
       }
@@ -487,8 +471,8 @@ export const useAccountSetupLookup = () => {
     ...defaultQueryConfig,
     queryFn: async () => {
       try {
-        const response = await apiProxy.get(`${Lookup.getAccountSetup}`)
-        return response.data?.data || []
+        const data = await getData(Lookup.getAccountSetup)
+        return data?.data || []
       } catch (error) {
         handleApiError(error)
       }
@@ -502,8 +486,8 @@ export const useCategoryLookup = () => {
     ...defaultQueryConfig,
     queryFn: async () => {
       try {
-        const response = await apiProxy.get(`${Lookup.getCategory}`)
-        return response.data?.data || []
+        const data = await getData(Lookup.getCategory)
+        return data?.data || []
       } catch (error) {
         handleApiError(error)
       }
@@ -517,8 +501,8 @@ export const usePortregionLookup = () => {
     ...defaultQueryConfig,
     queryFn: async () => {
       try {
-        const response = await apiProxy.get(`${Lookup.getPortRegion}`)
-        return response.data?.data || []
+        const data = await getData(Lookup.getPortRegion)
+        return data?.data || []
       } catch (error) {
         handleApiError(error)
       }
@@ -532,8 +516,8 @@ export const useVoyageLookup = () => {
     ...defaultQueryConfig,
     queryFn: async () => {
       try {
-        const response = await apiProxy.get(`${Lookup.getVoyage}`)
-        return response.data?.data || []
+        const data = await getData(Lookup.getVoyage)
+        return data?.data || []
       } catch (error) {
         handleApiError(error)
       }
@@ -547,8 +531,8 @@ export const useDesignationLookup = () => {
     ...defaultQueryConfig,
     queryFn: async () => {
       try {
-        const response = await apiProxy.get(`${Lookup.getDesignation}`)
-        return response.data?.data || []
+        const data = await getData(Lookup.getDesignation)
+        return data?.data || []
       } catch (error) {
         handleApiError(error)
       }
@@ -562,8 +546,8 @@ export const useCOACategory1Lookup = () => {
     ...defaultQueryConfig,
     queryFn: async () => {
       try {
-        const response = await apiProxy.get(`${Lookup.getCoaCategory1}`)
-        return response.data?.data || []
+        const data = await getData(Lookup.getCoaCategory1)
+        return data?.data || []
       } catch (error) {
         handleApiError(error)
       }
@@ -577,8 +561,8 @@ export const useCOACategory2Lookup = () => {
     ...defaultQueryConfig,
     queryFn: async () => {
       try {
-        const response = await apiProxy.get(`${Lookup.getCoaCategory2}`)
-        return response.data?.data || []
+        const data = await getData(Lookup.getCoaCategory2)
+        return data?.data || []
       } catch (error) {
         handleApiError(error)
       }
@@ -592,8 +576,8 @@ export const useCOACategory3Lookup = () => {
     ...defaultQueryConfig,
     queryFn: async () => {
       try {
-        const response = await apiProxy.get(`${Lookup.getCoaCategory3}`)
-        return response.data?.data || []
+        const data = await getData(Lookup.getCoaCategory3)
+        return data?.data || []
       } catch (error) {
         handleApiError(error)
       }
@@ -607,23 +591,8 @@ export const useAccountSetupCategoryLookup = () => {
     ...defaultQueryConfig,
     queryFn: async () => {
       try {
-        const response = await apiProxy.get(`${Lookup.getAccountSetupCategory}`)
-        return response.data?.data || []
-      } catch (error) {
-        handleApiError(error)
-      }
-    },
-  })
-}
-
-export const useCustomerLookup = () => {
-  return useQuery({
-    queryKey: ["customer-lookup"],
-    ...defaultQueryConfig,
-    queryFn: async () => {
-      try {
-        const response = await apiProxy.get(`${Lookup.getCustomer}`)
-        return response.data?.data || []
+        const data = await getData(Lookup.getAccountSetupCategory)
+        return data?.data || []
       } catch (error) {
         handleApiError(error)
       }
@@ -637,8 +606,8 @@ export const useSupplierLookup = () => {
     ...defaultQueryConfig,
     queryFn: async () => {
       try {
-        const response = await apiProxy.get(`${Lookup.getSupplier}`)
-        return response.data?.data || []
+        const data = await getData(Lookup.getSupplier)
+        return data?.data || []
       } catch (error) {
         handleApiError(error)
       }
@@ -652,8 +621,8 @@ export const usePortLookup = () => {
     ...defaultQueryConfig,
     queryFn: async () => {
       try {
-        const response = await apiProxy.get(`${Lookup.getPort}`)
-        return response.data?.data || []
+        const data = await getData(Lookup.getPort)
+        return data?.data || []
       } catch (error) {
         handleApiError(error)
       }
@@ -667,8 +636,8 @@ export const usePortRegionLookup = () => {
     ...defaultQueryConfig,
     queryFn: async () => {
       try {
-        const response = await apiProxy.get(`${Lookup.getPortRegion}`)
-        return response.data?.data || []
+        const data = await getData(Lookup.getPortRegion)
+        return data?.data || []
       } catch (error) {
         handleApiError(error)
       }
@@ -682,8 +651,8 @@ export const useUserLookup = () => {
     ...defaultQueryConfig,
     queryFn: async () => {
       try {
-        const response = await apiProxy.get(`${Lookup.getUser}`)
-        return response.data?.data || []
+        const data = await getData(Lookup.getUser)
+        return data?.data || []
       } catch (error) {
         handleApiError(error)
       }
@@ -697,8 +666,8 @@ export const useCurrencyLookup = () => {
     ...defaultQueryConfig,
     queryFn: async () => {
       try {
-        const response = await apiProxy.get(`${Lookup.getCurrency}`)
-        return response.data?.data || []
+        const data = await getData(Lookup.getCurrency)
+        return data?.data || []
       } catch (error) {
         handleApiError(error)
       }
@@ -712,8 +681,8 @@ export const useCreditTermLookup = () => {
     ...defaultQueryConfig,
     queryFn: async () => {
       try {
-        const response = await apiProxy.get(`${Lookup.getCreditTerm}`)
-        return response.data?.data || []
+        const data = await getData(Lookup.getCreditTerm)
+        return data?.data || []
       } catch (error) {
         handleApiError(error)
       }
@@ -727,8 +696,8 @@ export const useChartofAccountLookup = () => {
     ...defaultQueryConfig,
     queryFn: async () => {
       try {
-        const response = await apiProxy.get(`${Lookup.getChartOfAccount}`)
-        return response.data?.data || []
+        const data = await getData(Lookup.getChartOfAccount)
+        return data?.data || []
       } catch (error) {
         handleApiError(error)
       }
@@ -742,8 +711,8 @@ export const useUomLookup = () => {
     ...defaultQueryConfig,
     queryFn: async () => {
       try {
-        const response = await apiProxy.get(`${Lookup.getUom}`)
-        return response.data?.data || []
+        const data = await getData(Lookup.getUom)
+        return data?.data || []
       } catch (error) {
         handleApiError(error)
       }
@@ -757,8 +726,8 @@ export const useUserGroupLookup = () => {
     placeholderData: keepPreviousData,
     queryFn: async () => {
       try {
-        const response = await apiProxy.get(`${Lookup.getUserGroup}`)
-        return response.data?.data || []
+        const data = await getData(Lookup.getUserGroup)
+        return data?.data || []
       } catch (error) {
         handleApiError(error)
       }
@@ -773,8 +742,8 @@ export const useUserRoleLookup = () => {
     placeholderData: keepPreviousData,
     queryFn: async () => {
       try {
-        const response = await apiProxy.get(`${Lookup.getUserRole}`)
-        return response.data?.data || []
+        const data = await getData(Lookup.getUserRole)
+        return data?.data || []
       } catch (error) {
         handleApiError(error)
       }
@@ -789,8 +758,8 @@ export const useOrderTypeLookup = () => {
     placeholderData: keepPreviousData,
     queryFn: async () => {
       try {
-        const response = await apiProxy.get(`${Lookup.getOrderType}`)
-        return response.data?.data || []
+        const data = await getData(Lookup.getOrderType)
+        return data?.data || []
       } catch (error) {
         handleApiError(error)
       }
@@ -805,8 +774,8 @@ export const useOrderTypeCategoryLookup = () => {
     placeholderData: keepPreviousData,
     queryFn: async () => {
       try {
-        const response = await apiProxy.get(`${Lookup.getOrderTypeCategory}`)
-        return response.data?.data || []
+        const data = await getData(Lookup.getOrderTypeCategory)
+        return data?.data || []
       } catch (error) {
         handleApiError(error)
       }
@@ -821,8 +790,8 @@ export const useServiceTypeLookup = () => {
     placeholderData: keepPreviousData,
     queryFn: async () => {
       try {
-        const response = await apiProxy.get(`${Lookup.getServiceType}`)
-        return response.data?.data || []
+        const data = await getData(Lookup.getServiceType)
+        return data?.data || []
       } catch (error) {
         handleApiError(error)
       }
@@ -837,8 +806,8 @@ export const useServiceTypeCategoryLookup = () => {
     ...defaultQueryConfig,
     queryFn: async () => {
       try {
-        const response = await apiProxy.get(`${Lookup.getOrderTypeCategory}`)
-        return response.data?.data || []
+        const data = await getData(Lookup.getOrderTypeCategory)
+        return data?.data || []
       } catch (error) {
         handleApiError(error)
       }
@@ -852,8 +821,8 @@ export const useSubCategoryLookup = () => {
     placeholderData: keepPreviousData,
     queryFn: async () => {
       try {
-        const response = await apiProxy.get(`${Lookup.getSubCategory}`)
-        return response.data?.data || []
+        const data = await getData(Lookup.getSubCategory)
+        return data?.data || []
       } catch (error) {
         handleApiError(error)
       }
@@ -868,8 +837,8 @@ export const useTransactionLookup = (id: number) => {
     ...defaultQueryConfig,
     queryFn: async () => {
       try {
-        const response = await apiProxy.get(`${Lookup.getTransaction}/${id}`)
-        return response.data?.data || []
+        const data = await getData(`${Lookup.getTransaction}/${id}`)
+        return data?.data || []
       } catch (error) {
         handleApiError(error)
       }
@@ -884,8 +853,8 @@ export const usePaymentTypeLookup = () => {
     placeholderData: keepPreviousData,
     queryFn: async () => {
       try {
-        const response = await apiProxy.get(`${Lookup.getPaymentType}`)
-        return response.data?.data || []
+        const data = await getData(Lookup.getPaymentType)
+        return data?.data || []
       } catch (error) {
         handleApiError(error)
       }
@@ -900,9 +869,9 @@ export const useVesselLookup = () => {
     placeholderData: keepPreviousData,
     queryFn: async () => {
       try {
-        const response = await apiProxy.get(`${Lookup.getVessel}`)
-        console.log("Vessel lookup response:", response.data?.data)
-        return response.data?.data || []
+        const data = await getData(Lookup.getVessel)
+        console.log("Vessel lookup response:", data?.data)
+        return data?.data || []
       } catch (error) {
         handleApiError(error)
       }
@@ -917,8 +886,8 @@ export const useJobOrderLookup = () => {
     placeholderData: keepPreviousData,
     queryFn: async () => {
       try {
-        const response = await apiProxy.get(`${Lookup.getJobOrder}`)
-        return response.data?.data || []
+        const data = await getData(Lookup.getJobOrder)
+        return data?.data || []
       } catch (error) {
         handleApiError(error)
       }
@@ -933,8 +902,8 @@ export const useTaskLookup = () => {
     placeholderData: keepPreviousData,
     queryFn: async () => {
       try {
-        const response = await apiProxy.get(`${Lookup.getTask}`)
-        return response.data?.data || []
+        const data = await getData(Lookup.getTask)
+        return data?.data || []
       } catch (error) {
         handleApiError(error)
       }
@@ -949,13 +918,30 @@ export const useChargeLookup = (taskId: number) => {
     ...defaultQueryConfig,
     queryFn: async () => {
       try {
-        const response = await apiProxy.get(`${Lookup.getCharge}/${taskId}`)
-        return response.data?.data || []
+        const data = await getData(`${Lookup.getCharge}/${taskId}`)
+        return data?.data || []
       } catch (error) {
         handleApiError(error)
       }
     },
     enabled: taskId !== 0,
+  })
+}
+
+export const useCustomerLookup = () => {
+  return useQuery<ICustomerLookup[]>({
+    queryKey: ["customer-lookUp"],
+    ...defaultQueryConfig,
+    queryFn: async () => {
+      try {
+        // Using the new api-client approach
+        const data = await getData(Lookup.getCustomer)
+        return data?.data || []
+      } catch (error) {
+        handleApiError(error)
+      }
+    },
+    enabled: true,
   })
 }
 
@@ -965,10 +951,9 @@ export const useCompanyCustomerLookup = (companyId: number) => {
     ...defaultQueryConfig,
     queryFn: async () => {
       try {
-        const response = await apiProxy.get(
-          `${Lookup.getCompanyCustomer}/${companyId}`
-        )
-        return response.data?.data || []
+        // Using the new api-client approach
+        const data = await getData(`${Lookup.getCompanyCustomer}/${companyId}`)
+        return data?.data || []
       } catch (error) {
         handleApiError(error)
       }
@@ -983,8 +968,8 @@ export const useJobOrderTaskLookup = (jobOrderId: number) => {
     ...defaultQueryConfig,
     queryFn: async () => {
       try {
-        const response = await apiProxy.get(`${Lookup.getTask}/${jobOrderId}`)
-        return response.data?.data || []
+        const data = await getData(`${Lookup.getTask}/${jobOrderId}`)
+        return data?.data || []
       } catch (error) {
         handleApiError(error)
       }
@@ -999,10 +984,10 @@ export const useJobOrderChargeLookup = (jobOrderId: number, taskId: number) => {
     ...defaultQueryConfig,
     queryFn: async () => {
       try {
-        const response = await apiProxy.get(
+        const data = await getData(
           `${Lookup.getCharge}/${jobOrderId}/${taskId}`
         )
-        return response.data?.data || []
+        return data?.data || []
       } catch (error) {
         handleApiError(error)
       }
@@ -1017,8 +1002,8 @@ export const useDocumentTypeLookup = () => {
     placeholderData: keepPreviousData,
     queryFn: async () => {
       try {
-        const response = await apiProxy.get(`${Lookup.getDocumentType}`)
-        return response.data?.data || []
+        const data = await getData(Lookup.getDocumentType)
+        return data?.data || []
       } catch (error) {
         handleApiError(error)
       }
@@ -1033,8 +1018,8 @@ export const useStatusLookup = () => {
     placeholderData: keepPreviousData,
     queryFn: async () => {
       try {
-        const response = await apiProxy.get(`${Lookup.getStatus}`)
-        return response.data?.data || []
+        const data = await getData(Lookup.getStatus)
+        return data?.data || []
       } catch (error) {
         handleApiError(error)
       }
@@ -1049,8 +1034,8 @@ export const useStatusTaskLookup = () => {
     placeholderData: keepPreviousData,
     queryFn: async () => {
       try {
-        const response = await apiProxy.get(`${Lookup.getStatusTask}`)
-        return response.data?.data || []
+        const data = await getData(Lookup.getStatusTask)
+        return data?.data || []
       } catch (error) {
         handleApiError(error)
       }
@@ -1065,8 +1050,8 @@ export const useRankLookup = () => {
     placeholderData: keepPreviousData,
     queryFn: async () => {
       try {
-        const response = await apiProxy.get(`${Lookup.getRank}`)
-        return response.data?.data || []
+        const data = await getData(Lookup.getRank)
+        return data?.data || []
       } catch (error) {
         handleApiError(error)
       }
@@ -1081,8 +1066,8 @@ export const useVisaTypeLookup = () => {
     placeholderData: keepPreviousData,
     queryFn: async () => {
       try {
-        const response = await apiProxy.get(`${Lookup.getVisaType}`)
-        return response.data?.data || []
+        const data = await getData(Lookup.getVisaType)
+        return data?.data || []
       } catch (error) {
         handleApiError(error)
       }
@@ -1097,8 +1082,8 @@ export const usePassTypeLookup = () => {
     placeholderData: keepPreviousData,
     queryFn: async () => {
       try {
-        const response = await apiProxy.get(`${Lookup.getPassType}`)
-        return response.data?.data || []
+        const data = await getData(Lookup.getPassType)
+        return data?.data || []
       } catch (error) {
         handleApiError(error)
       }
@@ -1113,8 +1098,8 @@ export const useLandingTypeLookup = () => {
     placeholderData: keepPreviousData,
     queryFn: async () => {
       try {
-        const response = await apiProxy.get(`${Lookup.getLandingType}`)
-        return response.data?.data || []
+        const data = await getData(Lookup.getLandingType)
+        return data?.data || []
       } catch (error) {
         handleApiError(error)
       }
@@ -1129,8 +1114,8 @@ export const useModeTypeLookup = () => {
     placeholderData: keepPreviousData,
     queryFn: async () => {
       try {
-        const response = await apiProxy.get(`${Lookup.getModeType}`)
-        return response.data?.data || []
+        const data = await getData(Lookup.getModeType)
+        return data?.data || []
       } catch (error) {
         handleApiError(error)
       }
@@ -1145,8 +1130,8 @@ export const useConsignmentTypeLookup = () => {
     placeholderData: keepPreviousData,
     queryFn: async () => {
       try {
-        const response = await apiProxy.get(`${Lookup.getConsignmentType}`)
-        return response.data?.data || []
+        const data = await getData(Lookup.getConsignmentType)
+        return data?.data || []
       } catch (error) {
         handleApiError(error)
       }
@@ -1161,8 +1146,8 @@ export const useCarrierTypeLookup = () => {
     placeholderData: keepPreviousData,
     queryFn: async () => {
       try {
-        const response = await apiProxy.get(`${Lookup.getCarrierType}`)
-        return response.data?.data || []
+        const data = await getData(Lookup.getCarrierType)
+        return data?.data || []
       } catch (error) {
         handleApiError(error)
       }
@@ -1177,8 +1162,8 @@ export const useCompanyLookup = () => {
     placeholderData: keepPreviousData,
     queryFn: async () => {
       try {
-        const response = await apiProxy.get(`${Lookup.getCompany}`)
-        return response.data?.data || []
+        const data = await getData(Lookup.getCompany)
+        return data?.data || []
       } catch (error) {
         handleApiError(error)
       }
@@ -1200,19 +1185,18 @@ export const useJobOrderCustomerLookup = (
         // For now, we'll use the regular job order lookup and filter by customer
         // This is a temporary solution until we have a proper endpoint
         if (jobOrderId === 0) {
-          const response = await apiProxy.get(`${Lookup.getJobOrder}`)
+          const data = await getData(Lookup.getJobOrder)
           // Filter by customerId if available
-          const allJobOrders = response.data
+          const allJobOrders = data
           return allJobOrders.filter(
             (jobOrder: IJobOrderLookup & { customerId?: number }) =>
               jobOrder.customerId === customerId
           )
         } else {
-          const response = await apiProxy.get(
+          const data = await getData(
             `${Lookup.getJobOrderCustomer}/${customerId}/${jobOrderId}`
           )
-
-          return response.data?.data || []
+          return data?.data || []
         }
       } catch (error) {
         handleApiError(error)

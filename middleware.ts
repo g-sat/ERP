@@ -17,13 +17,11 @@ const authRoutes = ["/company-select"]
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
-  // Get auth token and selected company ID from cookies
+  // Get auth token from cookies
   const token = request.cookies.get("auth-token")?.value
-  const selectedCompanyId = request.cookies.get("tab_company_id")?.value
 
   console.log("Middleware - Current path:", pathname)
   console.log("Middleware - Token present:", !!token)
-  console.log("Middleware - Company ID present:", !!selectedCompanyId)
 
   // If no token is present and not on a public route, redirect to login
   if (!token && !publicRoutes.includes(pathname)) {

@@ -37,7 +37,7 @@ import { useVirtualizer } from "@tanstack/react-virtual"
 import { format, isValid } from "date-fns"
 
 import { MasterTransactionId, TableName } from "@/lib/utils"
-import { useGetGridLayout } from "@/hooks/use-setting"
+import { useGetGridLayout } from "@/hooks/use-settings"
 import { Badge } from "@/components/ui/badge"
 import {
   DraggableColumnHeader,
@@ -63,7 +63,6 @@ interface TaxCategoryTableProps {
   onFilterChange?: (filters: ITaxFilter) => void
   moduleId?: number
   transactionId?: number
-  companyId: string
 }
 
 export function TaxCategoryTable({
@@ -77,7 +76,6 @@ export function TaxCategoryTable({
   onFilterChange,
   moduleId,
   transactionId,
-  companyId,
 }: TaxCategoryTableProps) {
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
@@ -94,8 +92,7 @@ export function TaxCategoryTable({
   const { data: gridSettings } = useGetGridLayout(
     moduleId?.toString() || "",
     transactionId?.toString() || "",
-    TableName.tax_category,
-    companyId
+    TableName.tax_category
   )
 
   useEffect(() => {
@@ -344,7 +341,6 @@ export function TaxCategoryTable({
         hideCreateButton={false}
         moduleId={moduleId || 1}
         transactionId={transactionId || MasterTransactionId.tax_category}
-        companyId={companyId}
       />
 
       <div

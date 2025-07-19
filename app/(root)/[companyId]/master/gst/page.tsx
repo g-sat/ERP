@@ -1,7 +1,6 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useParams } from "next/navigation"
 import { ApiResponse } from "@/interfaces/auth"
 import {
   IGst,
@@ -19,10 +18,10 @@ import { usePermissionStore } from "@/stores/permission-store"
 import { useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 
+import { getData } from "@/lib/api-client"
 import { Gst, GstCategory, GstDt } from "@/lib/api-routes"
-import { apiProxy } from "@/lib/axios-config"
 import { MasterTransactionId, ModuleId } from "@/lib/utils"
-import { useDelete, useGet, useSave, useUpdate } from "@/hooks/use-common-v1"
+import { useDelete, useGet, useSave, useUpdate } from "@/hooks/use-common"
 import {
   Dialog,
   DialogContent,
@@ -45,8 +44,6 @@ import { GstDtForm } from "./components/gstdt-form"
 import { GstDtTable } from "./components/gstdt-table"
 
 export default function GstPage() {
-  const params = useParams()
-  const companyId = params.companyId as string
   const moduleId = ModuleId.master
   const transactionId = MasterTransactionId.gst
   const transactionIdCategory = MasterTransactionId.gst_category
@@ -89,14 +86,14 @@ export default function GstPage() {
     refetch: refetchGst,
     isLoading: isLoadingGst,
     isRefetching: isRefetchingGst,
-  } = useGet<IGst>(`${Gst.get}`, "gsts", companyId, filters.search)
+  } = useGet<IGst>(`${Gst.get}`, "gsts", filters.search)
 
   const {
     data: gstsDtResponse,
     refetch: refetchGstDt,
     isLoading: isLoadingGstDt,
     isRefetching: isRefetchingGstDt,
-  } = useGet<IGstDt>(`${GstDt.get}`, "gstsdt", companyId, dtFilters.search)
+  } = useGet<IGstDt>(`${GstDt.get}`, "gstsdt", dtFilters.search)
 
   const {
     data: gstsCategoryResponse,
@@ -106,7 +103,6 @@ export default function GstPage() {
   } = useGet<IGstCategory>(
     `${GstCategory.get}`,
     "gstcategory",
-    companyId,
     categoryFilters.search
   )
 
@@ -117,41 +113,21 @@ export default function GstPage() {
     (gstsCategoryResponse as ApiResponse<IGstCategory>)?.data || []
 
   // Mutations
-  const saveMutation = useSave<GstFormValues>(`${Gst.add}`, "gsts", companyId)
-  const updateMutation = useUpdate<GstFormValues>(
-    `${Gst.add}`,
-    "gsts",
-    companyId
-  )
-  const deleteMutation = useDelete(`${Gst.delete}`, "gsts", companyId)
+  const saveMutation = useSave<GstFormValues>(`${Gst.add}`)
+  const updateMutation = useUpdate<GstFormValues>(`${Gst.add}`)
+  const deleteMutation = useDelete(`${Gst.delete}`)
 
-  const saveDtMutation = useSave<GstDtFormValues>(
-    `${GstDt.add}`,
-    "gstsdt",
-    companyId
-  )
-  const updateDtMutation = useUpdate<GstDtFormValues>(
-    `${GstDt.add}`,
-    "gstsdt",
-    companyId
-  )
-  const deleteDtMutation = useDelete(`${GstDt.delete}`, "gstsdt", companyId)
+  const saveDtMutation = useSave<GstDtFormValues>(`${GstDt.add}`)
+  const updateDtMutation = useUpdate<GstDtFormValues>(`${GstDt.add}`)
+  const deleteDtMutation = useDelete(`${GstDt.delete}`)
 
   const saveCategoryMutation = useSave<GstCategoryFormValues>(
-    `${GstCategory.add}`,
-    "gsts",
-    companyId
+    `${GstCategory.add}`
   )
   const updateCategoryMutation = useUpdate<GstCategoryFormValues>(
-    `${GstCategory.add}`,
-    "gsts",
-    companyId
+    `${GstCategory.add}`
   )
-  const deleteCategoryMutation = useDelete(
-    `${GstCategory.delete}`,
-    "gstCategory",
-    companyId
-  )
+  const deleteCategoryMutation = useDelete(`${GstCategory.delete}`)
 
   // State management
   const [selectedGst, setSelectedGst] = useState<IGst | undefined>()
@@ -463,9 +439,7 @@ export default function GstPage() {
 
     try {
       if (isModalOpen) {
-        const response = await apiProxy.get<ApiResponse<IGst>>(
-          `${Gst.getByCode}/${trimmedCode}`
-        )
+        const response = await getData(`${Gst.getByCode}/${trimmedCode}`)
 
         if (response.data.result === 1 && response.data.data) {
           const countryData = Array.isArray(response.data.data)
@@ -478,7 +452,7 @@ export default function GstPage() {
           }
         }
       } else if (isCategoryModalOpen) {
-        const response = await apiProxy.get<ApiResponse<IGstCategory>>(
+        const response = await getData(
           `${GstCategory.getByCode}/${trimmedCode}`
         )
         if (response.data.result === 1 && response.data.data) {
@@ -564,7 +538,6 @@ export default function GstPage() {
                 onFilterChange={setFilters}
                 moduleId={moduleId}
                 transactionId={transactionId}
-                companyId={companyId}
               />
             </LockSkeleton>
           ) : (
@@ -579,7 +552,6 @@ export default function GstPage() {
               onFilterChange={setFilters}
               moduleId={moduleId}
               transactionId={transactionId}
-              companyId={companyId}
             />
           )}
         </TabsContent>
@@ -614,7 +586,6 @@ export default function GstPage() {
                 onFilterChange={setDtFilters}
                 moduleId={moduleId}
                 transactionId={transactionIdDt}
-                companyId={companyId}
               />
             </LockSkeleton>
           ) : (
@@ -629,7 +600,6 @@ export default function GstPage() {
               onFilterChange={setDtFilters}
               moduleId={moduleId}
               transactionId={transactionIdDt}
-              companyId={companyId}
             />
           )}
         </TabsContent>
@@ -671,7 +641,6 @@ export default function GstPage() {
                 onFilterChange={setCategoryFilters}
                 moduleId={moduleId}
                 transactionId={transactionIdCategory}
-                companyId={companyId}
               />
             </LockSkeleton>
           ) : (
@@ -692,7 +661,6 @@ export default function GstPage() {
               onFilterChange={setCategoryFilters}
               moduleId={moduleId}
               transactionId={transactionIdCategory}
-              companyId={companyId}
             />
           )}
         </TabsContent>

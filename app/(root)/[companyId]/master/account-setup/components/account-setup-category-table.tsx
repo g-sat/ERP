@@ -40,7 +40,7 @@ import { useVirtualizer } from "@tanstack/react-virtual"
 import { format, isValid } from "date-fns"
 
 import { MasterTransactionId, TableName } from "@/lib/utils"
-import { useGetGridLayout } from "@/hooks/use-setting"
+import { useGetGridLayout } from "@/hooks/use-settings"
 import { Badge } from "@/components/ui/badge"
 import {
   DraggableColumnHeader,
@@ -70,7 +70,6 @@ interface AccountSetupCategoryTableProps {
   onFilterChange?: (filters: IAccountSetupCategoryFilter) => void
   moduleId?: number
   transactionId?: number
-  companyId: string
 }
 
 export function AccountSetupCategoryTable({
@@ -84,7 +83,6 @@ export function AccountSetupCategoryTable({
   onFilterChange,
   moduleId,
   transactionId,
-  companyId,
 }: AccountSetupCategoryTableProps) {
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
@@ -101,8 +99,7 @@ export function AccountSetupCategoryTable({
   const { data: gridSettings } = useGetGridLayout(
     moduleId?.toString() || "",
     transactionId?.toString() || "",
-    TableName.account_setup_category,
-    companyId
+    TableName.account_setup_category
   )
 
   useEffect(() => {
@@ -354,7 +351,6 @@ export function AccountSetupCategoryTable({
         transactionId={
           transactionId || MasterTransactionId.account_setup_category
         }
-        companyId={companyId}
       />
 
       <div

@@ -1,7 +1,6 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useParams } from "next/navigation"
 import { ApiResponse } from "@/interfaces/auth"
 import {
   IChartofAccount,
@@ -25,15 +24,15 @@ import { usePermissionStore } from "@/stores/permission-store"
 import { useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 
+import { getData } from "@/lib/api-client"
 import {
   ChartOfAccount,
   CoaCategory1,
   CoaCategory2,
   CoaCategory3,
 } from "@/lib/api-routes"
-import { apiProxy } from "@/lib/axios-config"
 import { MasterTransactionId, ModuleId } from "@/lib/utils"
-import { useDelete, useGet, useSave, useUpdate } from "@/hooks/use-common-v1"
+import { useDelete, useGet, useSave, useUpdate } from "@/hooks/use-common"
 import {
   Dialog,
   DialogContent,
@@ -58,9 +57,6 @@ import { CoaCategory3Form } from "./components/coacategory3-form"
 import { CoaCategory3Table } from "./components/coacategory3-table"
 
 export default function ChartOfAccountPage() {
-  const params = useParams()
-  const companyId = params.companyId as string
-
   const moduleId = ModuleId.master
   const transactionId = MasterTransactionId.chart_of_account
   const transactionIdCategory1 = MasterTransactionId.coa_category1
@@ -123,7 +119,6 @@ export default function ChartOfAccountPage() {
   } = useGet<ICoaCategory1>(
     `${CoaCategory1.get}`,
     "coacategory1",
-    companyId,
     filters1.search
   )
 
@@ -135,7 +130,6 @@ export default function ChartOfAccountPage() {
   } = useGet<ICoaCategory2>(
     `${CoaCategory2.get}`,
     "coacategory2",
-    companyId,
     filters2.search
   )
 
@@ -147,7 +141,6 @@ export default function ChartOfAccountPage() {
   } = useGet<ICoaCategory3>(
     `${CoaCategory3.get}`,
     "coacategory3",
-    companyId,
     filters3.search
   )
 
@@ -159,7 +152,6 @@ export default function ChartOfAccountPage() {
   } = useGet<IChartofAccount>(
     `${ChartOfAccount.get}`,
     "chartofaccounts",
-    companyId,
     filtersChart.search
   )
 
@@ -174,69 +166,31 @@ export default function ChartOfAccountPage() {
     (chartOfAccountsResponse as ApiResponse<IChartofAccount>)?.data || []
 
   // Mutations
-  const saveMutation1 = useSave<CoaCategory1FormValues>(
-    `${CoaCategory1.add}`,
-    "coacategory1",
-    companyId
-  )
+  const saveMutation1 = useSave<CoaCategory1FormValues>(`${CoaCategory1.add}`)
   const updateMutation1 = useUpdate<CoaCategory1FormValues>(
-    `${CoaCategory1.add}`,
-    "coacategory1",
-    companyId
+    `${CoaCategory1.add}`
   )
-  const deleteMutation1 = useDelete(
-    `${CoaCategory1.delete}`,
-    "coacategory1",
-    companyId
-  )
+  const deleteMutation1 = useDelete(`${CoaCategory1.delete}`)
 
-  const saveMutation2 = useSave<CoaCategory2FormValues>(
-    `${CoaCategory2.add}`,
-    "coacategory2",
-    companyId
-  )
+  const saveMutation2 = useSave<CoaCategory2FormValues>(`${CoaCategory2.add}`)
   const updateMutation2 = useUpdate<CoaCategory2FormValues>(
-    `${CoaCategory2.add}`,
-    "coacategory2",
-    companyId
+    `${CoaCategory2.add}`
   )
-  const deleteMutation2 = useDelete(
-    `${CoaCategory2.delete}`,
-    "coacategory2",
-    companyId
-  )
+  const deleteMutation2 = useDelete(`${CoaCategory2.delete}`)
 
-  const saveMutation3 = useSave<CoaCategory3FormValues>(
-    `${CoaCategory3.add}`,
-    "coacategory3",
-    companyId
-  )
+  const saveMutation3 = useSave<CoaCategory3FormValues>(`${CoaCategory3.add}`)
   const updateMutation3 = useUpdate<CoaCategory3FormValues>(
-    `${CoaCategory3.add}`,
-    "coacategory3",
-    companyId
+    `${CoaCategory3.add}`
   )
-  const deleteMutation3 = useDelete(
-    `${CoaCategory3.delete}`,
-    "coacategory3",
-    companyId
-  )
+  const deleteMutation3 = useDelete(`${CoaCategory3.delete}`)
 
   const saveMutationChart = useSave<ChartofAccountFormValues>(
-    `${ChartOfAccount.add}`,
-    "chartofaccounts",
-    companyId
+    `${ChartOfAccount.add}`
   )
   const updateMutationChart = useUpdate<ChartofAccountFormValues>(
-    `${ChartOfAccount.add}`,
-    "chartofaccounts",
-    companyId
+    `${ChartOfAccount.add}`
   )
-  const deleteMutationChart = useDelete(
-    `${ChartOfAccount.delete}`,
-    "chartofaccounts",
-    companyId
-  )
+  const deleteMutationChart = useDelete(`${ChartOfAccount.delete}`)
 
   // State management
   const [selectedCategory1, setSelectedCategory1] = useState<
@@ -685,14 +639,14 @@ export default function ChartOfAccountPage() {
     if (!trimmedCode) return
 
     try {
-      const response = await apiProxy.get<ApiResponse<IChartofAccount>>(
+      const response = (await getData(
         `${ChartOfAccount.getByCode}/${trimmedCode}`
-      )
+      )) as ApiResponse<IChartofAccount>
 
-      if (response.data.result === 1 && response.data.data) {
-        const chartData = Array.isArray(response.data.data)
-          ? response.data.data[0]
-          : response.data.data
+      if (response.result === 1 && response.data) {
+        const chartData = Array.isArray(response.data)
+          ? response.data[0]
+          : response.data
 
         if (chartData) {
           setExistingChartofAccount(chartData as IChartofAccount)
@@ -700,14 +654,14 @@ export default function ChartOfAccountPage() {
         }
       }
 
-      const responseCategory1 = await apiProxy.get<ApiResponse<ICoaCategory1>>(
+      const responseCategory1 = (await getData(
         `${CoaCategory1.getByCode}/${trimmedCode}`
-      )
+      )) as ApiResponse<ICoaCategory1>
 
-      if (responseCategory1.data.result === 1 && responseCategory1.data.data) {
-        const category1Data = Array.isArray(responseCategory1.data.data)
-          ? responseCategory1.data.data[0]
-          : responseCategory1.data.data
+      if (responseCategory1.result === 1 && responseCategory1.data) {
+        const category1Data = Array.isArray(responseCategory1.data)
+          ? responseCategory1.data[0]
+          : responseCategory1.data
 
         if (category1Data) {
           setExistingCoaCategory1(category1Data as ICoaCategory1)
@@ -715,14 +669,14 @@ export default function ChartOfAccountPage() {
         }
       }
 
-      const responseCategory2 = await apiProxy.get<ApiResponse<ICoaCategory2>>(
+      const responseCategory2 = (await getData(
         `${CoaCategory2.getByCode}/${trimmedCode}`
-      )
+      )) as ApiResponse<ICoaCategory2>
 
-      if (responseCategory2.data.result === 1 && responseCategory2.data.data) {
-        const category2Data = Array.isArray(responseCategory2.data.data)
-          ? responseCategory2.data.data[0]
-          : responseCategory2.data.data
+      if (responseCategory2.result === 1 && responseCategory2.data) {
+        const category2Data = Array.isArray(responseCategory2.data)
+          ? responseCategory2.data[0]
+          : responseCategory2.data
 
         if (category2Data) {
           setExistingCoaCategory2(category2Data as ICoaCategory2)
@@ -730,14 +684,14 @@ export default function ChartOfAccountPage() {
         }
       }
 
-      const responseCategory3 = await apiProxy.get<ApiResponse<ICoaCategory3>>(
+      const responseCategory3 = (await getData(
         `${CoaCategory3.getByCode}/${trimmedCode}`
-      )
+      )) as ApiResponse<ICoaCategory3>
 
-      if (responseCategory3.data.result === 1 && responseCategory3.data.data) {
-        const category3Data = Array.isArray(responseCategory3.data.data)
-          ? responseCategory3.data.data[0]
-          : responseCategory3.data.data
+      if (responseCategory3.result === 1 && responseCategory3.data) {
+        const category3Data = Array.isArray(responseCategory3.data)
+          ? responseCategory3.data[0]
+          : responseCategory3.data
 
         if (category3Data) {
           setExistingCoaCategory3(category3Data as ICoaCategory3)
@@ -858,7 +812,6 @@ export default function ChartOfAccountPage() {
                 onFilterChange={handleChartFilterChange}
                 moduleId={moduleId}
                 transactionId={transactionId}
-                companyId={companyId}
               />
             </LockSkeleton>
           ) : (
@@ -880,7 +833,6 @@ export default function ChartOfAccountPage() {
               onFilterChange={handleChartFilterChange}
               moduleId={moduleId}
               transactionId={transactionId}
-              companyId={companyId}
             />
           )}
         </TabsContent>
@@ -921,7 +873,6 @@ export default function ChartOfAccountPage() {
                 onFilterChange={handleChartFilterChange}
                 moduleId={moduleId}
                 transactionId={transactionId}
-                companyId={companyId}
               />
             </LockSkeleton>
           ) : (
@@ -939,7 +890,6 @@ export default function ChartOfAccountPage() {
               onFilterChange={handleCategory1FilterChange}
               moduleId={moduleId}
               transactionId={transactionId}
-              companyId={companyId}
             />
           )}
         </TabsContent>
@@ -980,7 +930,6 @@ export default function ChartOfAccountPage() {
                 onFilterChange={handleCategory2FilterChange}
                 moduleId={moduleId}
                 transactionId={transactionId}
-                companyId={companyId}
               />
             </LockSkeleton>
           ) : (
@@ -998,7 +947,6 @@ export default function ChartOfAccountPage() {
               onFilterChange={handleCategory2FilterChange}
               moduleId={moduleId}
               transactionId={transactionId}
-              companyId={companyId}
             />
           )}
         </TabsContent>
@@ -1039,7 +987,6 @@ export default function ChartOfAccountPage() {
                 onFilterChange={handleCategory3FilterChange}
                 moduleId={moduleId}
                 transactionId={transactionId}
-                companyId={companyId}
               />
             </LockSkeleton>
           ) : (
@@ -1057,7 +1004,6 @@ export default function ChartOfAccountPage() {
               onFilterChange={handleCategory3FilterChange}
               moduleId={moduleId}
               transactionId={transactionId}
-              companyId={companyId}
             />
           )}
         </TabsContent>

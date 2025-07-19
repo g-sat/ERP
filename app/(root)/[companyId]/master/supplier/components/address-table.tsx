@@ -37,7 +37,7 @@ import { useVirtualizer } from "@tanstack/react-virtual"
 import { format, isValid } from "date-fns"
 
 import { MasterTransactionId, TableName } from "@/lib/utils"
-import { useGetGridLayout } from "@/hooks/use-setting"
+import { useGetGridLayout } from "@/hooks/use-settings"
 import { Badge } from "@/components/ui/badge"
 import {
   DraggableColumnHeader,
@@ -61,7 +61,7 @@ interface AddresssTableProps {
   onRefresh?: () => void
   moduleId: number
   transactionId: number
-  companyId: string
+
   onFilterChange?: (filters: ISupplierAddressFilter) => void
 }
 
@@ -75,7 +75,7 @@ export function AddresssTable({
   onRefresh,
   moduleId,
   transactionId,
-  companyId,
+
   onFilterChange,
 }: AddresssTableProps) {
   const { decimals } = useAuthStore()
@@ -91,8 +91,7 @@ export function AddresssTable({
   const { data: gridSettings } = useGetGridLayout(
     moduleId?.toString() || "",
     transactionId?.toString() || "",
-    TableName.supplier_address,
-    companyId
+    TableName.supplier_address
   )
 
   useEffect(() => {
@@ -455,7 +454,6 @@ export function AddresssTable({
         hideCreateButton={false}
         moduleId={moduleId || 1}
         transactionId={transactionId || MasterTransactionId.supplier}
-        companyId={companyId}
       />
 
       <div

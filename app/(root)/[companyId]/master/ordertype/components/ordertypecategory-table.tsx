@@ -37,7 +37,7 @@ import { useVirtualizer } from "@tanstack/react-virtual"
 import { format, isValid } from "date-fns"
 
 import { TableName } from "@/lib/utils"
-import { useGetGridLayout } from "@/hooks/use-setting"
+import { useGetGridLayout } from "@/hooks/use-settings"
 import { Badge } from "@/components/ui/badge"
 import {
   DraggableColumnHeader,
@@ -66,7 +66,6 @@ interface OrderTypeCategoryTableProps {
   onFilterChange?: (filters: IOrderTypeFilter) => void
   moduleId?: number
   transactionId?: number
-  companyId: string
 }
 
 export function OrderTypeCategoryTable({
@@ -80,7 +79,6 @@ export function OrderTypeCategoryTable({
   onFilterChange,
   moduleId,
   transactionId,
-  companyId,
 }: OrderTypeCategoryTableProps) {
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
@@ -97,8 +95,7 @@ export function OrderTypeCategoryTable({
   const { data: gridSettings } = useGetGridLayout(
     moduleId?.toString() || "",
     transactionId?.toString() || "",
-    TableName.order_type_category,
-    companyId
+    TableName.order_type_category
   )
 
   const columns: ColumnDef<IOrderTypeCategory>[] = [
@@ -353,7 +350,6 @@ export function OrderTypeCategoryTable({
         hideCreateButton={false}
         moduleId={moduleId || 1}
         transactionId={transactionId || 21}
-        companyId={companyId}
       />
 
       <div

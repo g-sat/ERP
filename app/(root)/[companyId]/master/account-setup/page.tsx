@@ -1,7 +1,6 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useParams } from "next/navigation"
 import {
   IAccountSetup,
   IAccountSetupCategory,
@@ -20,14 +19,14 @@ import { usePermissionStore } from "@/stores/permission-store"
 import { useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 
+import { getData } from "@/lib/api-client"
 import {
   AccountSetup,
   AccountSetupCategory,
   AccountSetupDt,
 } from "@/lib/api-routes"
-import { apiProxy } from "@/lib/axios-config"
 import { MasterTransactionId, ModuleId } from "@/lib/utils"
-import { useDelete, useGet, useSave, useUpdate } from "@/hooks/use-common-v1"
+import { useDelete, useGet, useSave, useUpdate } from "@/hooks/use-common"
 import {
   Dialog,
   DialogContent,
@@ -50,9 +49,6 @@ import { AccountSetupDtForm } from "./components/account-setupdt-form"
 import { AccountSetupDtTable } from "./components/account-setupdt-table"
 
 export default function AccountSetupPage() {
-  const params = useParams()
-  const companyId = params.companyId as string
-
   const moduleId = ModuleId.master
   const transactionId = MasterTransactionId.account_setup
   const transactionIdCategory = MasterTransactionId.account_setup_category
@@ -105,7 +101,6 @@ export default function AccountSetupPage() {
   } = useGet<IAccountSetupCategory>(
     `${AccountSetupCategory.get}`,
     "accountSetupCategories",
-    companyId,
     filtersCategory.search
   )
 
@@ -118,7 +113,6 @@ export default function AccountSetupPage() {
   } = useGet<IAccountSetup>(
     `${AccountSetup.get}`,
     "accountSetups",
-    companyId,
     filtersSetup.search
   )
 
@@ -131,7 +125,6 @@ export default function AccountSetupPage() {
   } = useGet<IAccountSetupDt>(
     `${AccountSetupDt.get}`,
     "accountSetupDts",
-    companyId,
     filtersDt.search
   )
 
@@ -156,54 +149,30 @@ export default function AccountSetupPage() {
 
   // Account Setup Category mutations
   const saveMutationCategory = useSave<AccountSetupCategoryFormValues>(
-    `${AccountSetupCategory.add}`,
-    "accountSetupCategories",
-    companyId
+    `${AccountSetupCategory.add}`
   )
   const updateMutationCategory = useUpdate<AccountSetupCategoryFormValues>(
-    `${AccountSetupCategory.add}`,
-    "accountSetupCategories",
-    companyId
+    `${AccountSetupCategory.add}`
   )
-  const deleteMutationCategory = useDelete(
-    `${AccountSetupCategory.delete}`,
-    "accountSetupCategories",
-    companyId
-  )
+  const deleteMutationCategory = useDelete(`${AccountSetupCategory.delete}`)
 
   // Account Setup mutations
   const saveMutationSetup = useSave<AccountSetupFormValues>(
-    `${AccountSetup.add}`,
-    "accountSetups",
-    companyId
+    `${AccountSetup.add}`
   )
   const updateMutationSetup = useUpdate<AccountSetupFormValues>(
-    `${AccountSetup.add}`,
-    "accountSetups",
-    companyId
+    `${AccountSetup.add}`
   )
-  const deleteMutationSetup = useDelete(
-    `${AccountSetup.delete}`,
-    "accountSetups",
-    companyId
-  )
+  const deleteMutationSetup = useDelete(`${AccountSetup.delete}`)
 
   // Account Setup Dt mutations
   const saveMutationDt = useSave<AccountSetupDtFormValues>(
-    `${AccountSetupDt.add}`,
-    "accountSetupDts",
-    companyId
+    `${AccountSetupDt.add}`
   )
   const updateMutationDt = useUpdate<AccountSetupDtFormValues>(
-    `${AccountSetupDt.add}`,
-    "accountSetupDts",
-    companyId
+    `${AccountSetupDt.add}`
   )
-  const deleteMutationDt = useDelete(
-    `${AccountSetupDt.delete}`,
-    "accountSetupDts",
-    companyId
-  )
+  const deleteMutationDt = useDelete(`${AccountSetupDt.delete}`)
 
   // Account Setup Category state
   const [selectedCategory, setSelectedCategory] = useState<
@@ -546,13 +515,13 @@ export default function AccountSetupPage() {
 
     try {
       if (type === "category" && isModalCategoryOpen) {
-        const response = await apiProxy.get<ApiResponse<IAccountSetupCategory>>(
+        const response = (await getData(
           `${AccountSetupCategory.getByCode}/${trimmedCode}`
-        )
-        if (response.data.result === 1 && response.data.data) {
-          const categoryData = Array.isArray(response.data.data)
-            ? response.data.data[0]
-            : response.data.data
+        )) as ApiResponse<IAccountSetupCategory>
+        if (response.result === 1 && response.data) {
+          const categoryData = Array.isArray(response.data)
+            ? response.data[0]
+            : response.data
 
           if (categoryData) {
             const validCategoryData: IAccountSetupCategory = {
@@ -574,13 +543,13 @@ export default function AccountSetupPage() {
           }
         }
       } else if (type === "setup" && isModalSetupOpen) {
-        const response = await apiProxy.get<ApiResponse<IAccountSetup>>(
+        const response = (await getData(
           `${AccountSetup.getByCode}/${trimmedCode}`
-        )
-        if (response.data.result === 1 && response.data.data) {
-          const setupData = Array.isArray(response.data.data)
-            ? response.data.data[0]
-            : response.data.data
+        )) as ApiResponse<IAccountSetup>
+        if (response.result === 1 && response.data) {
+          const setupData = Array.isArray(response.data)
+            ? response.data[0]
+            : response.data
 
           if (setupData) {
             const validSetupData: IAccountSetup = {
@@ -681,7 +650,6 @@ export default function AccountSetupPage() {
                 onFilterChange={setFiltersSetup}
                 moduleId={moduleId}
                 transactionId={transactionId}
-                companyId={companyId}
               />
             </LockSkeleton>
           ) : (
@@ -695,7 +663,6 @@ export default function AccountSetupPage() {
               onFilterChange={setFiltersSetup}
               moduleId={moduleId}
               transactionId={transactionId}
-              companyId={companyId}
             />
           )}
         </TabsContent>
@@ -733,7 +700,6 @@ export default function AccountSetupPage() {
                 onFilterChange={setFiltersDt}
                 moduleId={moduleId}
                 transactionId={transactionIdDt}
-                companyId={companyId}
               />
             </LockSkeleton>
           ) : (
@@ -747,7 +713,6 @@ export default function AccountSetupPage() {
               onFilterChange={setFiltersDt}
               moduleId={moduleId}
               transactionId={transactionIdDt}
-              companyId={companyId}
             />
           )}
         </TabsContent>
@@ -790,7 +755,6 @@ export default function AccountSetupPage() {
                 onFilterChange={setFiltersCategory}
                 moduleId={moduleId}
                 transactionId={transactionIdCategory}
-                companyId={companyId}
               />
             </LockSkeleton>
           ) : (
@@ -812,7 +776,6 @@ export default function AccountSetupPage() {
               onFilterChange={setFiltersCategory}
               moduleId={moduleId}
               transactionId={transactionIdCategory}
-              companyId={companyId}
             />
           )}
         </TabsContent>

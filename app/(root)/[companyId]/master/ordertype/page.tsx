@@ -1,7 +1,6 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useParams } from "next/navigation"
 import { ApiResponse } from "@/interfaces/auth"
 import {
   IOrderType,
@@ -17,10 +16,10 @@ import { usePermissionStore } from "@/stores/permission-store"
 import { useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 
+import { getData } from "@/lib/api-client"
 import { OrderType, OrderTypeCategory } from "@/lib/api-routes"
-import { apiProxy } from "@/lib/axios-config"
 import { MasterTransactionId, ModuleId } from "@/lib/utils"
-import { useDelete, useGet, useSave, useUpdate } from "@/hooks/use-common-v1"
+import { useDelete, useGet, useSave, useUpdate } from "@/hooks/use-common"
 import {
   Dialog,
   DialogContent,
@@ -58,8 +57,6 @@ const tableSkeletonProps = {
 }
 
 export default function OrderTypePage() {
-  const params = useParams()
-  const companyId = params.companyId as string
   const moduleId = ModuleId.master
   const transactionId = MasterTransactionId.order_type
   const transactionIdCategory = MasterTransactionId.order_type_category
@@ -98,12 +95,7 @@ export default function OrderTypePage() {
     refetch: refetchOrderType,
     isLoading: isLoadingOrderType,
     isRefetching: isRefetchingOrderType,
-  } = useGet<IOrderType>(
-    `${OrderType.get}`,
-    "ordertypes",
-    companyId,
-    filters.search
-  )
+  } = useGet<IOrderType>(`${OrderType.get}`, "ordertypes", filters.search)
 
   const {
     data: ordertypesCategoryResponse,
@@ -113,7 +105,6 @@ export default function OrderTypePage() {
   } = useGet<IOrderTypeCategory>(
     `${OrderTypeCategory.get}`,
     "ordertypecategory",
-    companyId,
     categoryFilters.search
   )
 
@@ -124,37 +115,17 @@ export default function OrderTypePage() {
     (ordertypesCategoryResponse as ApiResponse<IOrderTypeCategory>)?.data || []
 
   // Mutations
-  const saveMutation = useSave<OrderTypeFormValues>(
-    `${OrderType.add}`,
-    "ordertypes",
-    companyId
-  )
-  const updateMutation = useUpdate<OrderTypeFormValues>(
-    `${OrderType.add}`,
-    "ordertypes",
-    companyId
-  )
-  const deleteMutation = useDelete(
-    `${OrderType.delete}`,
-    "ordertypes",
-    companyId
-  )
+  const saveMutation = useSave<OrderTypeFormValues>(`${OrderType.add}`)
+  const updateMutation = useUpdate<OrderTypeFormValues>(`${OrderType.add}`)
+  const deleteMutation = useDelete(`${OrderType.delete}`)
 
   const saveCategoryMutation = useSave<OrderTypeCategoryFormValues>(
-    `${OrderTypeCategory.add}`,
-    "ordertypes",
-    companyId
+    `${OrderTypeCategory.add}`
   )
   const updateCategoryMutation = useUpdate<OrderTypeCategoryFormValues>(
-    `${OrderTypeCategory.add}`,
-    "ordertypes",
-    companyId
+    `${OrderTypeCategory.add}`
   )
-  const deleteCategoryMutation = useDelete(
-    `${OrderTypeCategory.delete}`,
-    "ordertypeCategory",
-    companyId
-  )
+  const deleteCategoryMutation = useDelete(`${OrderTypeCategory.delete}`)
 
   // State management
   const [selectedOrderType, setSelectedOrderType] = useState<
@@ -414,9 +385,7 @@ export default function OrderTypePage() {
     if (!trimmedCode) return
 
     try {
-      const response = await apiProxy.get<ApiResponse<IOrderType>>(
-        `${OrderType.getByCode}/${trimmedCode}`
-      )
+      const response = await getData(`${OrderType.getByCode}/${trimmedCode}`)
 
       if (response.data.result === 1 && response.data.data) {
         const ordertypeData = Array.isArray(response.data.data)
@@ -429,9 +398,9 @@ export default function OrderTypePage() {
         }
       }
 
-      const responseCategory = await apiProxy.get<
-        ApiResponse<IOrderTypeCategory>
-      >(`${OrderTypeCategory.getByCode}/${trimmedCode}`)
+      const responseCategory = await getData(
+        `${OrderTypeCategory.getByCode}/${trimmedCode}`
+      )
 
       if (responseCategory.data.result === 1 && responseCategory.data.data) {
         const ordertypeCategoryData = Array.isArray(responseCategory.data.data)
@@ -532,7 +501,6 @@ export default function OrderTypePage() {
                 onFilterChange={handleOrderTypeFilterChange}
                 moduleId={moduleId}
                 transactionId={transactionId}
-                companyId={companyId}
               />
             </LockSkeleton>
           ) : (
@@ -547,7 +515,6 @@ export default function OrderTypePage() {
               onFilterChange={handleOrderTypeFilterChange}
               moduleId={moduleId}
               transactionId={transactionId}
-              companyId={companyId}
             />
           )}
         </TabsContent>
@@ -589,7 +556,6 @@ export default function OrderTypePage() {
                 onFilterChange={setCategoryFilters}
                 moduleId={moduleId}
                 transactionId={transactionId}
-                companyId={companyId}
               />
             </LockSkeleton>
           ) : (
@@ -610,7 +576,6 @@ export default function OrderTypePage() {
               onFilterChange={setCategoryFilters}
               moduleId={moduleId}
               transactionId={transactionId}
-              companyId={companyId}
             />
           )}
         </TabsContent>

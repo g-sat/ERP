@@ -75,8 +75,8 @@ export interface IArInvoiceHd {
 }
 
 export interface IArInvoiceFilter {
-  fromDate: Date | string
-  toDate: Date | string
+  startDate: Date | string
+  endDate: Date | string
   search: string
   sortOrder: string
   sortBy: string

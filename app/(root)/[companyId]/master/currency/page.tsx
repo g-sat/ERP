@@ -1,7 +1,6 @@
 "use client"
 
 import { useCallback, useEffect, useMemo, useState } from "react"
-import { useParams } from "next/navigation"
 import { ApiResponse } from "@/interfaces/auth"
 import {
   ICurrency,
@@ -18,10 +17,10 @@ import { usePermissionStore } from "@/stores/permission-store"
 import { useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 
+import { getData } from "@/lib/api-client"
 import { Currency } from "@/lib/api-routes"
-import { apiProxy } from "@/lib/axios-config"
 import { MasterTransactionId, ModuleId } from "@/lib/utils"
-import { useDelete, useGet, useSave, useUpdate } from "@/hooks/use-common-v1"
+import { useDelete, useGet, useSave, useUpdate } from "@/hooks/use-common"
 import {
   Dialog,
   DialogContent,
@@ -49,8 +48,6 @@ const TRANSACTION_ID_DT = MasterTransactionId.currency_dt
 const TRANSACTION_ID_LOCAL_DT = MasterTransactionId.currency_local_dt
 
 export default function CurrencyPage() {
-  const params = useParams()
-  const companyId = params.companyId as string
   const { hasPermission } = usePermissionStore()
   const queryClient = useQueryClient()
 
@@ -88,19 +85,16 @@ export default function CurrencyPage() {
   const currencyQuery = useGet<ICurrency>(
     `${Currency.get}`,
     "currencies",
-    companyId,
     filters.search
   )
   const currencyDtQuery = useGet<ICurrencyDt>(
     `${Currency.getDt}`,
     "currencyDt",
-    companyId,
     dtFilters.search
   )
   const currencyLocalDtQuery = useGet<ICurrencyLocalDt>(
     `${Currency.getLocalDt}`,
     "currencyLocalDt",
-    companyId,
     localDtFilters.search
   )
 
@@ -114,49 +108,21 @@ export default function CurrencyPage() {
 
   // Mutations
   const currencyMutations = {
-    save: useSave<CurrencyFormValues>(
-      `${Currency.add}`,
-      "currencies",
-      companyId
-    ),
-    update: useUpdate<CurrencyFormValues>(
-      `${Currency.add}`,
-      "currencies",
-      companyId
-    ),
-    delete: useDelete(`${Currency.delete}`, "currencies", companyId),
+    save: useSave<CurrencyFormValues>(`${Currency.add}`),
+    update: useUpdate<CurrencyFormValues>(`${Currency.add}`),
+    delete: useDelete(`${Currency.delete}`),
   }
 
   const dtMutations = {
-    save: useSave<CurrencyDtFormValues>(
-      `${Currency.addDt}`,
-      "currencyDt",
-      companyId
-    ),
-    update: useUpdate<CurrencyDtFormValues>(
-      `${Currency.addDt}`,
-      "currencyDt",
-      companyId
-    ),
-    delete: useDelete(`${Currency.deleteDt}`, "currencyDt", companyId),
+    save: useSave<CurrencyDtFormValues>(`${Currency.addDt}`),
+    update: useUpdate<CurrencyDtFormValues>(`${Currency.addDt}`),
+    delete: useDelete(`${Currency.deleteDt}`),
   }
 
   const localDtMutations = {
-    save: useSave<CurrencyLocalDtFormValues>(
-      `${Currency.addLocalDt}`,
-      "currencyLocalDt",
-      companyId
-    ),
-    update: useUpdate<CurrencyLocalDtFormValues>(
-      `${Currency.addLocalDt}`,
-      "currencyLocalDt",
-      companyId
-    ),
-    delete: useDelete(
-      `${Currency.deleteLocalDt}`,
-      "currencyLocalDt",
-      companyId
-    ),
+    save: useSave<CurrencyLocalDtFormValues>(`${Currency.addLocalDt}`),
+    update: useUpdate<CurrencyLocalDtFormValues>(`${Currency.addLocalDt}`),
+    delete: useDelete(`${Currency.deleteLocalDt}`),
   }
 
   // State management
@@ -444,9 +410,7 @@ export default function CurrencyPage() {
       if (!trimmedCode) return
 
       try {
-        const response = await apiProxy.get<ApiResponse<ICurrency>>(
-          `${Currency.getByCode}/${trimmedCode}`
-        )
+        const response = await getData(`${Currency.getByCode}/${trimmedCode}`)
 
         if (response.data.result === 1 && response.data.data) {
           const currencyData = Array.isArray(response.data.data)
@@ -607,7 +571,6 @@ export default function CurrencyPage() {
                 onFilterChange={handleCurrencyFilterChange}
                 moduleId={MODULE_ID}
                 transactionId={TRANSACTION_ID}
-                companyId={companyId}
               />
             </LockSkeleton>
           ) : (
@@ -644,7 +607,6 @@ export default function CurrencyPage() {
               onFilterChange={handleCurrencyFilterChange}
               moduleId={MODULE_ID}
               transactionId={TRANSACTION_ID}
-              companyId={companyId}
             />
           )}
         </TabsContent>
@@ -704,7 +666,6 @@ export default function CurrencyPage() {
                 onFilterChange={handleCurrencyDtFilterChange}
                 moduleId={MODULE_ID}
                 transactionId={TRANSACTION_ID_DT}
-                companyId={companyId}
               />
             </LockSkeleton>
           ) : (
@@ -742,7 +703,6 @@ export default function CurrencyPage() {
               onFilterChange={handleCurrencyDtFilterChange}
               moduleId={MODULE_ID}
               transactionId={TRANSACTION_ID_DT}
-              companyId={companyId}
             />
           )}
         </TabsContent>
@@ -802,7 +762,6 @@ export default function CurrencyPage() {
                 onFilterChange={handleCurrencyLocalDtFilterChange}
                 moduleId={MODULE_ID}
                 transactionId={TRANSACTION_ID_LOCAL_DT}
-                companyId={companyId}
               />
             </LockSkeleton>
           ) : (
@@ -840,7 +799,6 @@ export default function CurrencyPage() {
               onFilterChange={handleCurrencyLocalDtFilterChange}
               moduleId={MODULE_ID}
               transactionId={TRANSACTION_ID_LOCAL_DT}
-              companyId={companyId}
             />
           )}
         </TabsContent>

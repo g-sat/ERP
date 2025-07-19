@@ -1,7 +1,6 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useParams } from "next/navigation"
 import { ApiResponse } from "@/interfaces/auth"
 import { IDepartment, IDepartmentFilter } from "@/interfaces/department"
 import { DepartmentFormValues } from "@/schemas/department"
@@ -17,7 +16,7 @@ import {
   useGetById,
   useSave,
   useUpdate,
-} from "@/hooks/use-common-v1"
+} from "@/hooks/use-common"
 import {
   Dialog,
   DialogContent,
@@ -34,9 +33,6 @@ import { DepartmentForm } from "./components/department-form"
 import { DepartmentsTable } from "./components/department-table"
 
 export default function DepartmentPage() {
-  const params = useParams()
-  const companyId = params.companyId as string
-
   const moduleId = ModuleId.master
   const transactionId = MasterTransactionId.department
 
@@ -51,12 +47,7 @@ export default function DepartmentPage() {
     refetch,
     isLoading,
     isRefetching,
-  } = useGet<IDepartment>(
-    `${Department.get}`,
-    "departments",
-    companyId,
-    filters.search
-  )
+  } = useGet<IDepartment>(`${Department.get}`, "departments", filters.search)
 
   const { result: departmentsResult, data: departmentsData } =
     (departmentsResponse as ApiResponse<IDepartment>) ?? {
@@ -71,21 +62,9 @@ export default function DepartmentPage() {
     }
   }, [filters])
 
-  const saveMutation = useSave<DepartmentFormValues>(
-    `${Department.add}`,
-    "departments",
-    companyId
-  )
-  const updateMutation = useUpdate<DepartmentFormValues>(
-    `${Department.add}`,
-    "departments",
-    companyId
-  )
-  const deleteMutation = useDelete(
-    `${Department.delete}`,
-    "departments",
-    companyId
-  )
+  const saveMutation = useSave<DepartmentFormValues>(`${Department.add}`)
+  const updateMutation = useUpdate<DepartmentFormValues>(`${Department.add}`)
+  const deleteMutation = useDelete(`${Department.delete}`)
 
   const [selectedDepartment, setSelectedDepartment] =
     useState<IDepartment | null>(null)
@@ -114,7 +93,7 @@ export default function DepartmentPage() {
   const { refetch: checkCodeAvailability } = useGetById<IDepartment>(
     `${Department.getByCode}`,
     "departmentByCode",
-    companyId,
+
     codeToCheck,
     {
       enabled: !!codeToCheck && codeToCheck.trim() !== "",
@@ -323,7 +302,6 @@ export default function DepartmentPage() {
           onFilterChange={setFilters}
           moduleId={moduleId}
           transactionId={transactionId}
-          companyId={companyId}
         />
       ) : (
         <div>No data available</div>

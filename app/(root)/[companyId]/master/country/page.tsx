@@ -1,7 +1,6 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useParams } from "next/navigation"
 import { ApiResponse } from "@/interfaces/auth"
 import { ICountry, ICountryFilter } from "@/interfaces/country"
 import { CountryFiltersValues, CountryFormValues } from "@/schemas/country"
@@ -17,7 +16,7 @@ import {
   useGetById,
   useSave,
   useUpdate,
-} from "@/hooks/use-common-v1"
+} from "@/hooks/use-common"
 import {
   Dialog,
   DialogContent,
@@ -35,8 +34,6 @@ import { CountryForm } from "./components/country-form"
 import { CountriesTable } from "./components/country-table"
 
 export default function CountryPage() {
-  const params = useParams()
-  const companyId = params.companyId as string
   const moduleId = ModuleId.master
   const transactionId = MasterTransactionId.country
 
@@ -54,7 +51,7 @@ export default function CountryPage() {
     refetch,
     isLoading,
     isRefetching,
-  } = useGet<ICountry>(`${Country.get}`, "countries", companyId, filters.search)
+  } = useGet<ICountry>(`${Country.get}`, "countries", filters.search)
 
   // Destructure with fallback values
   const { result: countriesResult, data: countriesdata } =
@@ -65,17 +62,9 @@ export default function CountryPage() {
     }
 
   // Define mutations for CRUD operations
-  const saveMutation = useSave<CountryFormValues>(
-    `${Country.add}`,
-    "countries",
-    companyId
-  )
-  const updateMutation = useUpdate<CountryFormValues>(
-    `${Country.add}`,
-    "countries",
-    companyId
-  )
-  const deleteMutation = useDelete(`${Country.delete}`, "countries", companyId)
+  const saveMutation = useSave<CountryFormValues>(`${Country.add}`)
+  const updateMutation = useUpdate<CountryFormValues>(`${Country.add}`)
+  const deleteMutation = useDelete(`${Country.delete}`)
 
   // State for modal and selected country
   const [selectedCountry, setSelectedCountry] = useState<ICountry | null>(null)
@@ -103,7 +92,7 @@ export default function CountryPage() {
   const { refetch: checkCodeAvailability } = useGetById<ICountry>(
     `${Country.getByCode}`,
     "countryByCode",
-    companyId,
+
     codeToCheck,
     {
       enabled: !!codeToCheck && codeToCheck.trim() !== "",
@@ -344,7 +333,7 @@ export default function CountryPage() {
           onFilterChange={setFilters}
           moduleId={moduleId}
           transactionId={transactionId}
-          companyId={companyId}
+
           // onFilterChange={(filters) => {
           //   toast.info("Filter applied", {
           //     description: `Search: ${filters.search || "none"}, Sort: ${filters.sortBy || "none"} ${filters.sortOrder || ""}`,

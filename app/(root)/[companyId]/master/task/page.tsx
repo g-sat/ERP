@@ -1,7 +1,6 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useParams } from "next/navigation"
 import { ApiResponse } from "@/interfaces/auth"
 import { ITask, ITaskFilter } from "@/interfaces/task"
 import { TaskFormValues } from "@/schemas/task"
@@ -17,7 +16,7 @@ import {
   useGetById,
   useSave,
   useUpdate,
-} from "@/hooks/use-common-v1"
+} from "@/hooks/use-common"
 import {
   Dialog,
   DialogContent,
@@ -35,8 +34,6 @@ import { TaskForm } from "./components/task-form"
 import { TasksTable } from "./components/task-table"
 
 export default function TaskPage() {
-  const params = useParams()
-  const companyId = params.companyId as string
   const moduleId = ModuleId.master
   const transactionId = MasterTransactionId.task
 
@@ -51,7 +48,7 @@ export default function TaskPage() {
     refetch,
     isLoading,
     isRefetching,
-  } = useGet<ITask>(`${Task.get}`, "tasks", companyId, filters.search)
+  } = useGet<ITask>(`${Task.get}`, "tasks", filters.search)
 
   const { result: tasksResult, data: tasksData } =
     (tasksResponse as ApiResponse<ITask>) ?? {
@@ -66,17 +63,9 @@ export default function TaskPage() {
     }
   }, [filters])
 
-  const saveMutation = useSave<TaskFormValues>(
-    `${Task.add}`,
-    "tasks",
-    companyId
-  )
-  const updateMutation = useUpdate<TaskFormValues>(
-    `${Task.add}`,
-    "tasks",
-    companyId
-  )
-  const deleteMutation = useDelete(`${Task.delete}`, "tasks", companyId)
+  const saveMutation = useSave<TaskFormValues>(`${Task.add}`)
+  const updateMutation = useUpdate<TaskFormValues>(`${Task.add}`)
+  const deleteMutation = useDelete(`${Task.delete}`)
 
   const [selectedTask, setSelectedTask] = useState<ITask | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -103,7 +92,7 @@ export default function TaskPage() {
   const { refetch: checkCodeAvailability } = useGetById<ITask>(
     `${Task.getByCode}`,
     "taskByCode",
-    companyId,
+
     codeToCheck,
     {
       enabled: !!codeToCheck && codeToCheck.trim() !== "",
@@ -312,7 +301,6 @@ export default function TaskPage() {
             onFilterChange={setFilters}
             moduleId={moduleId}
             transactionId={transactionId}
-            companyId={companyId}
           />
         </LockSkeleton>
       ) : tasksResult ? (
@@ -329,7 +317,6 @@ export default function TaskPage() {
           onFilterChange={setFilters}
           moduleId={moduleId}
           transactionId={transactionId}
-          companyId={companyId}
         />
       ) : (
         <div>No data available</div>

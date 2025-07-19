@@ -1,7 +1,6 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useParams } from "next/navigation"
 import { IAccountType, IAccountTypeFilter } from "@/interfaces/accounttype"
 import { ApiResponse } from "@/interfaces/auth"
 import { AccountTypeFormValues } from "@/schemas/accounttype"
@@ -17,7 +16,7 @@ import {
   useGetById,
   useSave,
   useUpdate,
-} from "@/hooks/use-common-v1"
+} from "@/hooks/use-common"
 import {
   Dialog,
   DialogContent,
@@ -34,8 +33,6 @@ import { AccountTypeForm } from "./components/account-type-form"
 import { AccountTypesTable } from "./components/account-type-table"
 
 export default function AccountTypePage() {
-  const params = useParams()
-  const companyId = params.companyId as string
   const moduleId = ModuleId.master
   const transactionId = MasterTransactionId.account_type
 
@@ -52,12 +49,7 @@ export default function AccountTypePage() {
     refetch,
     isLoading,
     isRefetching,
-  } = useGet<IAccountType>(
-    `${AccountType.get}`,
-    "accountTypes",
-    companyId,
-    filters.search
-  )
+  } = useGet<IAccountType>(`${AccountType.get}`, "accountTypes", filters.search)
 
   // Destructure with fallback values
   const { result: accountTypesResult, data: accountTypesData } =
@@ -68,21 +60,9 @@ export default function AccountTypePage() {
     }
 
   // Define mutations for CRUD operations
-  const saveMutation = useSave<AccountTypeFormValues>(
-    `${AccountType.add}`,
-    "accountTypes",
-    companyId
-  )
-  const updateMutation = useUpdate<AccountTypeFormValues>(
-    `${AccountType.add}`,
-    "accountTypes",
-    companyId
-  )
-  const deleteMutation = useDelete(
-    `${AccountType.delete}`,
-    "accountTypes",
-    companyId
-  )
+  const saveMutation = useSave<AccountTypeFormValues>(`${AccountType.add}`)
+  const updateMutation = useUpdate<AccountTypeFormValues>(`${AccountType.add}`)
+  const deleteMutation = useDelete(`${AccountType.delete}`)
 
   // State for modal and selected account type
   const [selectedAccountType, setSelectedAccountType] = useState<
@@ -113,7 +93,7 @@ export default function AccountTypePage() {
   const { refetch: checkCodeAvailability } = useGetById<IAccountType>(
     `${AccountType.getByCode}`,
     "accountTypeByCode",
-    companyId,
+
     codeToCheck
   )
 
@@ -354,7 +334,6 @@ export default function AccountTypePage() {
           onFilterChange={setFilters}
           moduleId={moduleId}
           transactionId={transactionId}
-          companyId={companyId}
         />
       ) : (
         <div>No data available</div>

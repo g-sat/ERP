@@ -38,7 +38,7 @@ import { useVirtualizer } from "@tanstack/react-virtual"
 import { format, isValid } from "date-fns"
 
 import { MasterTransactionId, ModuleId, TableName } from "@/lib/utils"
-import { useGetGridLayout } from "@/hooks/use-setting"
+import { useGetGridLayout } from "@/hooks/use-settings"
 import {
   DraggableColumnHeader,
   TableActions,
@@ -64,7 +64,6 @@ interface CurrencyLocalDtsTableProps {
   onFilterChange?: (filters: ICurrencyLocalDtFilter) => void
   moduleId?: number
   transactionId?: number
-  companyId: string
 }
 
 export function CurrencyLocalDtsTable({
@@ -78,7 +77,6 @@ export function CurrencyLocalDtsTable({
   onFilterChange,
   moduleId,
   transactionId,
-  companyId,
 }: CurrencyLocalDtsTableProps) {
   const { decimals } = useAuthStore()
   const dateFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy"
@@ -98,8 +96,7 @@ export function CurrencyLocalDtsTable({
   const { data: gridSettings } = useGetGridLayout(
     moduleId?.toString() || "",
     transactionId?.toString() || "",
-    TableName.currency_dt,
-    companyId
+    TableName.currency_dt
   )
 
   useEffect(() => {
@@ -344,7 +341,6 @@ export function CurrencyLocalDtsTable({
         hideCreateButton={false}
         moduleId={moduleId || ModuleId.master}
         transactionId={transactionId || MasterTransactionId.currency_dt}
-        companyId={companyId}
       />
 
       <div

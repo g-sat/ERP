@@ -1,7 +1,6 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useParams } from "next/navigation"
 import { ApiResponse } from "@/interfaces/auth"
 import { IBarge, IBargeFilter } from "@/interfaces/barge"
 import { BargeFormValues } from "@/schemas/barge"
@@ -17,7 +16,7 @@ import {
   useGetById,
   useSave,
   useUpdate,
-} from "@/hooks/use-common-v1"
+} from "@/hooks/use-common"
 import {
   Dialog,
   DialogContent,
@@ -35,9 +34,6 @@ import { BargeForm } from "./components/barge-form"
 import { BargesTable } from "./components/barge-table"
 
 export default function BargePage() {
-  const params = useParams()
-  const companyId = params.companyId as string
-
   const moduleId = ModuleId.master
   const transactionId = MasterTransactionId.barge
 
@@ -57,7 +53,7 @@ export default function BargePage() {
     refetch,
     isLoading,
     isRefetching,
-  } = useGet<IBarge>(`${Barge.get}`, "barges", companyId, filters.search)
+  } = useGet<IBarge>(`${Barge.get}`, "barges", filters.search)
 
   const { result: bargesResult, data: bargesData } =
     (bargesResponse as ApiResponse<IBarge>) ?? {
@@ -82,17 +78,9 @@ export default function BargePage() {
     }
   }, [bargesResponse])
 
-  const saveMutation = useSave<BargeFormValues>(
-    `${Barge.add}`,
-    "barges",
-    companyId
-  )
-  const updateMutation = useUpdate<BargeFormValues>(
-    `${Barge.add}`,
-    "barges",
-    companyId
-  )
-  const deleteMutation = useDelete(`${Barge.delete}`, "barges", companyId)
+  const saveMutation = useSave<BargeFormValues>(`${Barge.add}`)
+  const updateMutation = useUpdate<BargeFormValues>(`${Barge.add}`)
+  const deleteMutation = useDelete(`${Barge.delete}`)
 
   const [selectedBarge, setSelectedBarge] = useState<IBarge | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -119,7 +107,7 @@ export default function BargePage() {
   const { refetch: checkCodeAvailability } = useGetById<IBarge>(
     `${Barge.getByCode}`,
     "bargeByCode",
-    companyId,
+
     codeToCheck
   )
 
@@ -287,7 +275,6 @@ export default function BargePage() {
             onFilterChange={setFilters}
             moduleId={moduleId}
             transactionId={transactionId}
-            companyId={companyId}
           />
         </LockSkeleton>
       ) : bargesResult ? (
@@ -304,7 +291,6 @@ export default function BargePage() {
           onFilterChange={setFilters}
           moduleId={moduleId}
           transactionId={transactionId}
-          companyId={companyId}
         />
       ) : (
         <div>No data available</div>
