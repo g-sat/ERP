@@ -480,6 +480,7 @@ export default function AdminPage() {
           <TabsTrigger value="notification-preferences">
             Notification Preferences
           </TabsTrigger>
+
           <TabsTrigger value="share-data">Company Share Data</TabsTrigger>
         </TabsList>
 

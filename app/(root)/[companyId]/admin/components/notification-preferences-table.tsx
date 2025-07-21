@@ -16,11 +16,21 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
 import { Form } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import UserAutocomplete from "@/components/ui-custom/autocomplete-user"
+
+import { NotificationForm } from "./notification-form"
 
 export function NotificationPreferencesTable() {
   const form = useForm()
@@ -29,6 +39,8 @@ export function NotificationPreferencesTable() {
     useState<NotificationPreferences | null>(null)
   const [saving, setSaving] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [isNotificationDialogOpen, setIsNotificationDialogOpen] =
+    useState(false)
 
   const { saveNotification, testApi } = useNotificationStore()
 
@@ -221,13 +233,35 @@ export function NotificationPreferencesTable() {
                 {isLoading ? "Loading..." : "Search"}
               </Button>
             </div>
-            <Button
-              onClick={handleSave}
-              disabled={saving || !selectedUser || !userPreferences}
-              size="sm"
-            >
-              {saving ? "Saving..." : "Save"}
-            </Button>
+            <div className="flex gap-2">
+              <Dialog
+                open={isNotificationDialogOpen}
+                onOpenChange={setIsNotificationDialogOpen}
+              >
+                <DialogTrigger asChild>
+                  <Button variant="outline" size="sm">
+                    Send Notification
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-h-[90vh] !max-w-4xl overflow-y-auto">
+                  <DialogHeader>
+                    <DialogTitle>Send Notification</DialogTitle>
+                    <DialogDescription>
+                      Create and send a notification to users based on their
+                      preferences.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <NotificationForm />
+                </DialogContent>
+              </Dialog>
+              <Button
+                onClick={handleSave}
+                disabled={saving || !selectedUser || !userPreferences}
+                size="sm"
+              >
+                {saving ? "Saving..." : "Save"}
+              </Button>
+            </div>
           </div>
 
           {selectedUser && userPreferences && (
