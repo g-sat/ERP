@@ -80,7 +80,7 @@ export interface HrLeaveRequest {
   startDate: Date
   endDate: Date
   status: string // 'Pending' | 'Approved' | 'Rejected'
-  createdAt: number
+  createdDate: number
   // Related data
   employeeName?: string
   departmentName?: string

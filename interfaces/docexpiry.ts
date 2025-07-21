@@ -10,8 +10,8 @@ export interface DocumentExpiry {
   status: "valid" | "expiring" | "expired"
   attachmentPath?: string
   notes?: string
-  createdAt: Date
-  updatedAt: Date
+  createdDate: Date
+  updatedDate: Date
 }
 
 export interface DocumentExpiryFormValues {

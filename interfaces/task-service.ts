@@ -12,8 +12,8 @@ export interface ITaskService {
   vesselTypeId?: number | null
   portTypeId?: number | null
   isActive: boolean
-  createdAt?: string
-  updatedAt?: string | null
+  createdDate?: string
+  updatedDate?: string | null
   createdBy?: number | null
   updatedBy?: number | null
 }

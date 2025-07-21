@@ -131,7 +131,7 @@ export const hrLeaveRequestSchema = z
       required_error: "End date is required",
     }),
     status: z.enum(["Pending", "Approved", "Rejected"]).default("Pending"),
-    createdAt: z.number().optional(),
+    createdDate: z.number().optional(),
   })
   .refine((data) => data.endDate >= data.startDate, {
     message: "End date must be after start date",

@@ -1076,6 +1076,18 @@ export const HrLeaveApproval = {
   delete: "/api/hrms/leave-approvals",
 }
 
+// Notification Endpoints
+export const Notifications = {
+  get: "/notifications",
+  getById: "/notifications",
+  markRead: "/notifications/mark-read",
+  markAllRead: "/notifications/mark-all-read",
+  delete: "/notifications/delete",
+  clearAll: "/notifications/clear-all",
+  preferences: "/notifications/preferences",
+  stats: "/notifications/stats",
+}
+
 export const HrPayrollTransaction = {
   get: "/api/hrms/payroll-transactions",
   getById: "/api/hrms/payroll-transactions",

@@ -4,7 +4,6 @@ import { useEffect, useMemo, useState, type ChangeEvent } from "react"
 import type { IJobOrderHd } from "@/interfaces/checklist"
 import {
   DownloadIcon,
-  FilterIcon,
   PlusIcon,
   RefreshCcwIcon,
   SearchIcon,
@@ -52,7 +51,6 @@ export default function ChecklistPage() {
   )
   const [isEditMode, setIsEditMode] = useState(false)
   const [isExporting, setIsExporting] = useState(false)
-  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false)
 
   // Add this at the top of your component
   const today = new Date()
@@ -65,11 +63,6 @@ export default function ChecklistPage() {
   // Inside your component state
   const [startDate, setStartDate] = useState(formatDate(defaultStartDate))
   const [endDate, setEndDate] = useState(formatDate(today))
-
-  // Advanced filter states
-  const [customerFilter, setCustomerFilter] = useState("")
-  const [portFilter, setPortFilter] = useState("")
-  const [statusFilter, setStatusFilter] = useState<number | null>(null)
 
   // API hooks for job order using api-client.ts through useGetHeader
   const {
@@ -123,10 +116,6 @@ export default function ChecklistPage() {
     setEndDate(formatDate(today))
     setSearchQuery("")
     setSelectedStatus("All")
-    setCustomerFilter("")
-    setPortFilter("")
-    setStatusFilter(null)
-    setShowAdvancedFilters(false)
   }
 
   const handleSearchClick = async () => {
@@ -136,9 +125,6 @@ export default function ChecklistPage() {
         searchString: searchQuery,
         startDate: startDate,
         endDate: endDate,
-        statusId: statusFilter || undefined,
-        customerId: customerFilter ? parseInt(customerFilter) : undefined,
-        portId: portFilter ? parseInt(portFilter) : undefined,
       }
 
       await searchJobOrdersDirect(searchParams)
@@ -185,16 +171,13 @@ export default function ChecklistPage() {
   }
 
   // Enhanced export functionality using api-client.ts
-  const handleExport = async (format: "pdf" | "excel" | "csv") => {
+  const handleExport = async (format: "pdf" | "excel") => {
     setIsExporting(true)
     try {
       const filters = {
         searchString: searchQuery,
         startDate: startDate,
         endDate: endDate,
-        statusId: statusFilter?.toString() || "",
-        customerId: customerFilter || "",
-        portId: portFilter || "",
       }
 
       const response = await exportJobOrdersDirect(format, filters)
@@ -294,14 +277,6 @@ export default function ChecklistPage() {
 
           {/* Right side buttons */}
           <div className="ml-auto flex gap-2">
-            <Button
-              variant="outline"
-              onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-              className="flex items-center gap-2"
-            >
-              <FilterIcon className="h-4 w-4" />
-              Advanced
-            </Button>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" disabled={isExporting}>
@@ -316,9 +291,6 @@ export default function ChecklistPage() {
                 <DropdownMenuItem onClick={() => handleExport("excel")}>
                   Export as Excel
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleExport("csv")}>
-                  Export as CSV
-                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
             <Button variant="outline" onClick={handleRefresh}>
@@ -331,54 +303,6 @@ export default function ChecklistPage() {
             </Button>
           </div>
         </div>
-
-        {/* Advanced Filters */}
-        {showAdvancedFilters && (
-          <div className="grid grid-cols-1 gap-4 rounded-lg border p-4 md:grid-cols-3">
-            <div>
-              <label className="text-sm font-medium">Customer ID</label>
-              <Input
-                type="text"
-                placeholder="Enter Customer ID"
-                value={customerFilter}
-                onChange={(e) => setCustomerFilter(e.target.value)}
-                className="mt-1"
-              />
-            </div>
-            <div>
-              <label className="text-sm font-medium">Port ID</label>
-              <Input
-                type="text"
-                placeholder="Enter Port ID"
-                value={portFilter}
-                onChange={(e) => setPortFilter(e.target.value)}
-                className="mt-1"
-              />
-            </div>
-            <div>
-              <label className="text-sm font-medium">Status</label>
-              <select
-                value={statusFilter || ""}
-                onChange={(e) =>
-                  setStatusFilter(
-                    e.target.value ? parseInt(e.target.value) : null
-                  )
-                }
-                className="border-input bg-background ring-offset-background mt-1 w-full rounded-md border px-3 py-2 text-sm"
-              >
-                <option value="">All Statuses</option>
-                <option value={OperationsStatus.Pending}>Pending</option>
-                <option value={OperationsStatus.Confirmed}>Confirmed</option>
-                <option value={OperationsStatus.Completed}>Completed</option>
-                <option value={OperationsStatus.Cancelled}>Cancelled</option>
-                <option value={OperationsStatus.CancelWithService}>
-                  Cancel With Service
-                </option>
-                <option value={OperationsStatus.Post}>Posted</option>
-              </select>
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Status Tabs */}

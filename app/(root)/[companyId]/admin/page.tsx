@@ -35,6 +35,7 @@ import { DeleteConfirmation } from "@/components/delete-confirmation"
 import { DataTableSkeleton } from "@/components/skeleton/data-table-skeleton"
 import { LockSkeleton } from "@/components/skeleton/lock-skeleton"
 
+import { NotificationPreferencesTable } from "./components/notification-preferences-table"
 import { ShareDataTable } from "./components/sharedata-table"
 import { UserForm } from "./components/user-form"
 import { UserGroupForm } from "./components/user-group-form"
@@ -476,6 +477,9 @@ export default function AdminPage() {
           <TabsTrigger value="user-wise-rights">User Wise Rights</TabsTrigger>
           <TabsTrigger value="group-rights">Group Rights</TabsTrigger>
           <TabsTrigger value="report-rights">Report Rights</TabsTrigger>
+          <TabsTrigger value="notification-preferences">
+            Notification Preferences
+          </TabsTrigger>
           <TabsTrigger value="share-data">Company Share Data</TabsTrigger>
         </TabsList>
 
@@ -739,6 +743,10 @@ export default function AdminPage() {
           ) : (
             <UserGroupReportRightsTable />
           )}
+        </TabsContent>
+
+        <TabsContent value="notification-preferences">
+          <NotificationPreferencesTable />
         </TabsContent>
 
         <TabsContent value="share-data">

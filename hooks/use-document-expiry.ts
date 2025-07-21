@@ -29,8 +29,8 @@ export function useDocExpiry() {
             entityType: "employee",
             reminderDays: 90,
             status: "valid",
-            createdAt: new Date(),
-            updatedAt: new Date(),
+            createdDate: new Date(),
+            updatedDate: new Date(),
           },
           {
             id: "2",
@@ -45,8 +45,8 @@ export function useDocExpiry() {
             reminderDays: 30,
             status: "expiring",
             notes: "Renewal process started",
-            createdAt: new Date(),
-            updatedAt: new Date(),
+            createdDate: new Date(),
+            updatedDate: new Date(),
           },
           {
             id: "3",
@@ -60,8 +60,8 @@ export function useDocExpiry() {
             entityType: "customer",
             reminderDays: 60,
             status: "expired",
-            createdAt: new Date(),
-            updatedAt: new Date(),
+            createdDate: new Date(),
+            updatedDate: new Date(),
           },
         ]
 
@@ -88,8 +88,8 @@ export function useDocExpiry() {
         id: Date.now().toString(),
         ...data,
         status: getDocumentStatus(data.expiryDate, data.reminderDays),
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        createdDate: new Date(),
+        updatedDate: new Date(),
       }
       setDocuments((prev) => [...prev, newDocument])
       return newDocument
@@ -113,9 +113,9 @@ export function useDocExpiry() {
           id,
           ...data,
           status: getDocumentStatus(data.expiryDate, data.reminderDays),
-          createdAt:
-            documents.find((doc) => doc.id === id)?.createdAt || new Date(),
-          updatedAt: new Date(),
+          createdDate:
+            documents.find((doc) => doc.id === id)?.createdDate || new Date(),
+          updatedDate: new Date(),
         }
         setDocuments((prev) =>
           prev.map((doc) => (doc.id === id ? updatedDocument : doc))
