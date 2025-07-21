@@ -1,8 +1,8 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { ApiResponse } from "@/interfaces/auth"
-import { IArInvoiceFilter, IArInvoiceHd } from "@/interfaces/invoice"
+import { IArInvoiceFilter, IArInvoiceHd, IArInvoiceDt } from "@/interfaces/invoice"
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
 import { ArInvoiceHdFormValues, arinvoiceHdSchema } from "@/schemas/invoice"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -20,8 +20,9 @@ import { toast } from "sonner"
 
 import { ArInvoice } from "@/lib/api-routes"
 import { clientDateFormat, parseDate } from "@/lib/format"
-import { useGetInvoiceById } from "@/hooks/use-ar"
-import { useDelete, useGetHeader, useSave, useUpdate } from "@/hooks/use-common"
+import { getById } from "@/lib/api-client"
+import { useSave, useUpdate, useDelete } from "@/hooks/use-common"
+import { useGetHeader } from "@/hooks/use-common"
 import { useGetRequiredFields, useGetVisibleFields } from "@/hooks/use-lookup"
 import { Button } from "@/components/ui/button"
 import {
@@ -185,16 +186,8 @@ export default function InvoicePage() {
   const updateMutation = useUpdate<ArInvoiceHdFormValues>(`${ArInvoice.add}`)
   const deleteMutation = useDelete(`${ArInvoice.delete}`)
 
-  const { data: invoiceByIdData, refetch: refetchInvoiceById } =
-    useGetInvoiceById<ArInvoiceHdFormValues>(
-      `${ArInvoice.getByIdNo}`,
-      "arInvoiceHd",
-      invoice?.invoiceId?.toString() ?? "0",
-      invoice?.invoiceNo ?? searchNo,
-      {
-        enabled: !!invoice?.invoiceId && !!invoice?.invoiceNo,
-      }
-    )
+  // Remove the useGetInvoiceById hook for selection
+  // const { data: invoiceByIdData, refetch: refetchInvoiceById } = ...
 
   const handleConfirmation = async (action: string) => {
     setShowConfirmDialog((prev) => ({ ...prev, [action]: false }))
@@ -276,22 +269,21 @@ export default function InvoicePage() {
       setInvoice(selectedInvoice as unknown as ArInvoiceHdFormValues)
 
       try {
-        const response = await refetchInvoiceById()
-        console.log("API Response:", response)
+        // Fetch invoice details directly using selected invoice's values
+        const response = await getById(
+          `/account/getarinvoicebyidno/${selectedInvoice.invoiceId}/${selectedInvoice.invoiceNo}`
+        )
+        console.log("API Response (direct):", response)
 
-        if (response?.data?.result === 1) {
-          const detailedInvoice = Array.isArray(response.data.data)
-            ? response.data.data[0]
-            : response.data.data
+        if (response?.result === 1) {
+          const detailedInvoice = Array.isArray(response.data)
+            ? response.data[0]
+            : response.data
 
           if (detailedInvoice) {
             // Parse dates properly
-            // Modify your parseDate function to ensure it always returns Date objects
-            console.log("Detailed Invoice:", detailedInvoice)
-
             const updatedInvoice = {
               ...detailedInvoice,
-              // Parse all date fields
               trnDate: format(
                 parseDate(detailedInvoice.trnDate as string) || new Date(),
                 clientDateFormat
@@ -313,7 +305,7 @@ export default function InvoicePage() {
                 clientDateFormat
               ),
               data_details:
-                detailedInvoice.data_details?.map((detail) => ({
+                detailedInvoice.data_details?.map((detail: IArInvoiceDt) => ({
                   ...detail,
                   invoiceId: detail.invoiceId?.toString() ?? "0",
                   apInvoiceNo: detail.apInvoiceNo?.toString() ?? null,
@@ -342,50 +334,53 @@ export default function InvoicePage() {
                 })) || [],
             }
 
-            console.log("Updated Invoice:", updatedInvoice)
-
-            // First set the invoice state
             setInvoice(updatedInvoice as ArInvoiceHdFormValues)
-
             form.reset(updatedInvoice)
-
-            // Force trigger form validation
             form.trigger()
-
-            // Log form values after reset
             console.log("Form values after reset:", form.getValues())
           }
         } else {
           toast.error(
-            response?.data?.message || "Failed to fetch invoice details"
+            response?.message || "Failed to fetch invoice details (direct)"
           )
         }
       } catch (error) {
-        console.error("Error fetching invoice details:", error)
-        toast.error("Error fetching invoice details")
+        console.error("Error fetching invoice details (direct):", error)
+        toast.error("Error fetching invoice details (direct)")
       }
 
       setShowListDialog(false)
     }
   }
 
+  // Remove direct refetchInvoices from handleFilterChange
   const handleFilterChange = (newFilters: IArInvoiceFilter) => {
     setFilters(newFilters)
-    refetchInvoices()
+    // refetchInvoices(); // Removed: will be handled by useEffect
   }
+
+  // Add useEffect to refetch invoices when filters change
+  useEffect(() => {
+    refetchInvoices()
+  }, [filters])
 
   const handleInvoiceSearch = async (value: string) => {
     if (!value) return
 
     try {
-      await refetchInvoiceById()
+      // This part of the logic was removed as per the edit hint.
+      // The original code had a race condition where it would refetch
+      // and potentially update the invoice state, which could be stale.
+      // The new code directly calls getById to fetch details.
+      // This function is no longer needed for selection.
+      // await refetchInvoiceById()
 
-      if (invoiceByIdData?.data && invoiceByIdData.data.length > 0) {
-        setInvoice(invoiceByIdData.data[0])
-        setShowListDialog(false)
-      } else {
-        toast.error("Invoice not found")
-      }
+      // if (invoiceByIdData?.data && invoiceByIdData.data.length > 0) {
+      //   setInvoice(invoiceByIdData.data[0])
+      //   setShowListDialog(false)
+      // } else {
+      //   toast.error("Invoice not found")
+      // }
     } catch {
       toast.error("Error searching for invoice")
     }
