@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react"
 import {
   ApprovalAction,
-  ApprovalActionFilter,
   ApprovalLevel,
   ApprovalLevelFilter,
   ApprovalProcess,
@@ -18,15 +17,7 @@ import {
 } from "@/schemas/approval"
 import { usePermissionStore } from "@/stores/permission-store"
 import { useQueryClient } from "@tanstack/react-query"
-import {
-  BarChart3,
-  Building2,
-  CheckCircle,
-  Eye,
-  FileText,
-  Settings,
-  Users,
-} from "lucide-react"
+import { Building2, Users } from "lucide-react"
 import { toast } from "sonner"
 
 import {
@@ -36,15 +27,7 @@ import {
   ApprovalRequest as ApprovalRequestAPI,
 } from "@/lib/api-routes"
 import { useDelete, useGet, useSave, useUpdate } from "@/hooks/use-common"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
 import {
   Dialog,
   DialogContent,
@@ -56,14 +39,14 @@ import { Separator } from "@/components/ui/separator"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { DeleteConfirmation } from "@/components/delete-confirmation"
 import { DataTableSkeleton } from "@/components/skeleton/data-table-skeleton"
-import { LockSkeleton } from "@/components/skeleton/lock-skeleton"
 
-import { ApprovalActionTable } from "./components/approval-action-table"
 import { ApprovalLevelForm } from "./components/approval-level-form"
 import { ApprovalLevelTable } from "./components/approval-level-table"
 import { ApprovalProcessForm } from "./components/approval-process-form"
 import { ApprovalProcessTable } from "./components/approval-process-table"
-import { ApprovalRequestTable } from "./components/approval-request-table"
+import { ApprovalRequestDetail } from "./components/approval-request-detail"
+import { ApproverView } from "./components/approver-view"
+import { RequesterView } from "./components/requester-view"
 
 export default function ApprovalsPage() {
   const { hasPermission } = usePermissionStore()
@@ -87,7 +70,6 @@ export default function ApprovalsPage() {
   const [requestFilters, setRequestFilters] = useState<ApprovalRequestFilter>(
     {}
   )
-  const [actionFilters, setActionFilters] = useState<ApprovalActionFilter>({})
 
   // Data fetching
   const {
@@ -123,15 +105,9 @@ export default function ApprovalsPage() {
     requestFilters.search
   )
 
-  const {
-    data: actionsResponse,
-    refetch: refetchActions,
-    isLoading: isLoadingActions,
-    isRefetching: isRefetchingActions,
-  } = useGet<ApprovalAction>(
+  const { data: actionsResponse } = useGet<ApprovalAction>(
     `${ApprovalActionAPI.get}`,
-    "approval-actions",
-    actionFilters.search
+    "approval-actions"
   )
 
   // Data extraction
@@ -182,9 +158,14 @@ export default function ApprovalsPage() {
 
   const [isProcessModalOpen, setIsProcessModalOpen] = useState(false)
   const [isLevelModalOpen, setIsLevelModalOpen] = useState(false)
-  const [isApprovalStructureModalOpen, setIsApprovalStructureModalOpen] =
-    useState(false)
   const [isProcessDialogOpen, setIsProcessDialogOpen] = useState(false)
+  const [isRequestDetailOpen, setIsRequestDetailOpen] = useState(false)
+  const [selectedRequest, setSelectedRequest] =
+    useState<ApprovalRequest | null>(null)
+  const [viewMode, setViewMode] = useState<"requester" | "approver">(
+    "requester"
+  )
+  const [currentUserId] = useState(1) // Mock current user ID - replace with actual auth
 
   const [modalMode, setModalMode] = useState<"create" | "edit" | "view">(
     "create"
@@ -222,12 +203,6 @@ export default function ApprovalsPage() {
       refetchRequests()
     }
   }, [requestFilters.search])
-
-  useEffect(() => {
-    if (actionFilters.search !== undefined) {
-      refetchActions()
-    }
-  }, [actionFilters.search])
 
   // Process handlers
   const handleCreateProcess = () => {
@@ -434,36 +409,31 @@ export default function ApprovalsPage() {
     })
   }
 
-  // Get status counts for dashboard
-  const getStatusCounts = () => {
-    const counts = {
-      pending: 0,
-      approved: 0,
-      rejected: 0,
-      cancelled: 0,
-    }
-
-    requestsData?.forEach((request) => {
-      switch (request.status) {
-        case "Pending":
-          counts.pending++
-          break
-        case "Approved":
-          counts.approved++
-          break
-        case "Rejected":
-          counts.rejected++
-          break
-        case "Cancelled":
-          counts.cancelled++
-          break
-      }
-    })
-
-    return counts
+  // Handlers for request detail view
+  const handleViewRequest = (request: ApprovalRequest) => {
+    setSelectedRequest(request)
+    setIsRequestDetailOpen(true)
   }
 
-  const statusCounts = getStatusCounts()
+  const handleApproveRequest = async (requestId: number, comments: string) => {
+    // TODO: Implement approval logic
+    console.log("Approving request:", requestId, "with comments:", comments)
+    toast.success("Request approved successfully")
+    setIsRequestDetailOpen(false)
+    refetchRequests()
+  }
+
+  const handleRejectRequest = async (requestId: number, comments: string) => {
+    // TODO: Implement rejection logic
+    console.log("Rejecting request:", requestId, "with comments:", comments)
+    toast.success("Request rejected")
+    setIsRequestDetailOpen(false)
+    refetchRequests()
+  }
+
+  const handleFilterChange = (search: string) => {
+    setRequestFilters({ search })
+  }
 
   return (
     <div className="@container flex flex-1 flex-col gap-6 p-6">
@@ -477,15 +447,23 @@ export default function ApprovalsPage() {
             Manage approval processes, levels, requests, and actions
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            onClick={() => setIsApprovalStructureModalOpen(true)}
-            className="flex items-center gap-2"
-          >
-            <Eye className="h-4 w-4" />
-            View Approval Structure
-          </Button>
+        <div className="flex w-full items-center justify-between">
+          <div className="flex items-center gap-2 rounded-md border p-1">
+            <Button
+              variant={viewMode === "requester" ? "default" : "ghost"}
+              size="sm"
+              onClick={() => setViewMode("requester")}
+            >
+              Requester View
+            </Button>
+            <Button
+              variant={viewMode === "approver" ? "default" : "ghost"}
+              size="sm"
+              onClick={() => setViewMode("approver")}
+            >
+              Approver View
+            </Button>
+          </div>
           <Button
             onClick={() => setIsProcessDialogOpen(true)}
             className="flex items-center gap-2"
@@ -496,151 +474,27 @@ export default function ApprovalsPage() {
         </div>
       </div>
 
-      {/* Status Overview */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <BarChart3 className="h-5 w-5" />
-            Request Status Overview
-          </CardTitle>
-          <CardDescription>
-            Current status distribution of approval requests
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-4 md:grid-cols-4">
-            <div className="flex items-center justify-between rounded-lg border p-3">
-              <div className="space-y-1">
-                <p className="text-sm font-medium">Pending</p>
-                <p className="text-muted-foreground text-xs">
-                  Awaiting approval
-                </p>
-              </div>
-              <Badge variant="secondary" className="text-lg font-bold">
-                {statusCounts.pending}
-              </Badge>
-            </div>
-            <div className="flex items-center justify-between rounded-lg border p-3">
-              <div className="space-y-1">
-                <p className="text-sm font-medium">Approved</p>
-                <p className="text-muted-foreground text-xs">
-                  Successfully approved
-                </p>
-              </div>
-              <Badge variant="default" className="text-lg font-bold">
-                {statusCounts.approved}
-              </Badge>
-            </div>
-            <div className="flex items-center justify-between rounded-lg border p-3">
-              <div className="space-y-1">
-                <p className="text-sm font-medium">Rejected</p>
-                <p className="text-muted-foreground text-xs">Request denied</p>
-              </div>
-              <Badge variant="destructive" className="text-lg font-bold">
-                {statusCounts.rejected}
-              </Badge>
-            </div>
-            <div className="flex items-center justify-between rounded-lg border p-3">
-              <div className="space-y-1">
-                <p className="text-sm font-medium">Cancelled</p>
-                <p className="text-muted-foreground text-xs">
-                  Request cancelled
-                </p>
-              </div>
-              <Badge variant="outline" className="text-lg font-bold">
-                {statusCounts.cancelled}
-              </Badge>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Main Tabs */}
-      <Tabs defaultValue="requests" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="requests" className="flex items-center gap-2">
-            <FileText className="h-4 w-4" />
-            Requests
-          </TabsTrigger>
-          <TabsTrigger value="actions" className="flex items-center gap-2">
-            <CheckCircle className="h-4 w-4" />
-            Actions
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="requests" className="space-y-4">
-          {isLoadingRequests || isRefetchingRequests ? (
-            <DataTableSkeleton
-              columnCount={8}
-              filterCount={2}
-              cellWidths={[
-                "10rem",
-                "15rem",
-                "15rem",
-                "10rem",
-                "10rem",
-                "10rem",
-                "10rem",
-                "6rem",
-              ]}
-              shrinkZero
-            />
-          ) : (requestsResponse as ApiResponse<ApprovalRequest>)?.result ===
-            -2 ? (
-            <LockSkeleton locked={true}>
-              <ApprovalRequestTable
-                data={requestsData || []}
-                isLoading={isLoadingRequests}
-                onRefresh={refetchRequests}
-                onFilterChange={setRequestFilters}
-              />
-            </LockSkeleton>
-          ) : (
-            <ApprovalRequestTable
-              data={requestsData || []}
-              isLoading={isLoadingRequests}
-              onRefresh={refetchRequests}
-              onFilterChange={setRequestFilters}
-            />
-          )}
-        </TabsContent>
-
-        <TabsContent value="actions" className="space-y-4">
-          {isLoadingActions || isRefetchingActions ? (
-            <DataTableSkeleton
-              columnCount={7}
-              filterCount={2}
-              cellWidths={[
-                "10rem",
-                "15rem",
-                "10rem",
-                "10rem",
-                "10rem",
-                "15rem",
-                "6rem",
-              ]}
-              shrinkZero
-            />
-          ) : (actionsResponse as ApiResponse<ApprovalAction>)?.result ===
-            -2 ? (
-            <LockSkeleton locked={true}>
-              <ApprovalActionTable
-                data={actionsData || []}
-                isLoading={isLoadingActions}
-                onRefresh={refetchActions}
-                onFilterChange={setActionFilters}
-              />
-            </LockSkeleton>
-          ) : (
-            <ApprovalActionTable
-              data={actionsData || []}
-              isLoading={isLoadingActions}
-              onRefresh={refetchActions}
-              onFilterChange={setActionFilters}
-            />
-          )}
-        </TabsContent>
-      </Tabs>
+      {/* Main Content Based on View Mode */}
+      {viewMode === "requester" ? (
+        <RequesterView
+          requests={requestsData || []}
+          levels={levelsData || []}
+          isLoading={isLoadingRequests || isRefetchingRequests}
+          onViewRequest={handleViewRequest}
+          onRefresh={refetchRequests}
+          onFilterChange={handleFilterChange}
+        />
+      ) : (
+        <ApproverView
+          requests={requestsData || []}
+          levels={levelsData || []}
+          currentUserId={currentUserId}
+          isLoading={isLoadingRequests || isRefetchingRequests}
+          onViewRequest={handleViewRequest}
+          onRefresh={refetchRequests}
+          onFilterChange={handleFilterChange}
+        />
+      )}
 
       {/* Process Dialog */}
       <Dialog
@@ -731,122 +585,6 @@ export default function ApprovalsPage() {
             }
             isReadOnly={modalMode === "view"}
           />
-        </DialogContent>
-      </Dialog>
-
-      {/* Approval Structure Dialog */}
-      <Dialog
-        open={isApprovalStructureModalOpen}
-        onOpenChange={(open) => {
-          if (!open) {
-            setIsApprovalStructureModalOpen(false)
-          }
-        }}
-      >
-        <DialogContent
-          className="max-h-[80vh] overflow-y-auto sm:max-w-4xl"
-          onPointerDownOutside={(e) => {
-            e.preventDefault()
-          }}
-        >
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Settings className="h-5 w-5" />
-              Approval Structure Overview
-            </DialogTitle>
-            <DialogDescription>
-              View all approval processes and their associated levels
-            </DialogDescription>
-          </DialogHeader>
-          <Separator />
-          <div className="space-y-6">
-            {processesData?.map((process) => {
-              const processLevels =
-                levelsData?.filter(
-                  (level) => level.processId === process.processId
-                ) || []
-              return (
-                <Card key={process.processId}>
-                  <CardHeader>
-                    <CardTitle className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <Building2 className="h-5 w-5" />
-                        {process.processName}
-                      </div>
-                      <Badge
-                        variant={process.isActive ? "default" : "secondary"}
-                      >
-                        {process.isActive ? "Active" : "Inactive"}
-                      </Badge>
-                    </CardTitle>
-                    <CardDescription>
-                      Process ID: {process.processId} | Module ID:{" "}
-                      {process.moduleId}
-                      {process.transactionId &&
-                        ` | Transaction ID: ${process.transactionId}`}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    {processLevels.length > 0 ? (
-                      <div className="space-y-3">
-                        <h4 className="text-muted-foreground text-sm font-medium">
-                          Approval Levels:
-                        </h4>
-                        <div className="grid gap-3">
-                          {processLevels
-                            .sort((a, b) => a.levelNumber - b.levelNumber)
-                            .map((level) => (
-                              <div
-                                key={level.levelId}
-                                className="bg-muted/50 flex items-center justify-between rounded-lg border p-3"
-                              >
-                                <div className="flex items-center gap-3">
-                                  <div className="bg-primary text-primary-foreground flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold">
-                                    {level.levelNumber}
-                                  </div>
-                                  <div>
-                                    <p className="font-medium">
-                                      {level.levelName}
-                                    </p>
-                                    <p className="text-muted-foreground text-sm">
-                                      User Role ID: {level.userRoleId}
-                                    </p>
-                                  </div>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                  {level.isFinal && (
-                                    <Badge
-                                      variant="default"
-                                      className="text-xs"
-                                    >
-                                      Final Level
-                                    </Badge>
-                                  )}
-                                </div>
-                              </div>
-                            ))}
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="text-muted-foreground py-6 text-center">
-                        <Users className="mx-auto mb-2 h-8 w-8 opacity-50" />
-                        <p>No approval levels configured for this process</p>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              )
-            })}
-            {(!processesData || processesData.length === 0) && (
-              <div className="text-muted-foreground py-12 text-center">
-                <Building2 className="mx-auto mb-4 h-12 w-12 opacity-50" />
-                <h3 className="mb-2 text-lg font-medium">
-                  No Approval Processes
-                </h3>
-                <p>No approval processes have been configured yet.</p>
-              </div>
-            )}
-          </div>
         </DialogContent>
       </Dialog>
 
@@ -954,6 +692,36 @@ export default function ApprovalsPage() {
               )}
             </TabsContent>
           </Tabs>
+        </DialogContent>
+      </Dialog>
+
+      {/* Request Detail Dialog */}
+      <Dialog
+        open={isRequestDetailOpen}
+        onOpenChange={(open) => {
+          if (!open) {
+            setIsRequestDetailOpen(false)
+            setSelectedRequest(null)
+          }
+        }}
+      >
+        <DialogContent
+          className="max-h-[90vh] overflow-y-auto sm:max-w-4xl"
+          onPointerDownOutside={(e) => {
+            e.preventDefault()
+          }}
+        >
+          {selectedRequest && (
+            <ApprovalRequestDetail
+              request={selectedRequest}
+              levels={levelsData || []}
+              actions={actionsData || []}
+              currentUserId={currentUserId}
+              onApprove={handleApproveRequest}
+              onReject={handleRejectRequest}
+              onCancel={() => setIsRequestDetailOpen(false)}
+            />
+          )}
         </DialogContent>
       </Dialog>
 

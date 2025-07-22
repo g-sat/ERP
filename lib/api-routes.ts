@@ -1111,20 +1111,19 @@ export const HrDashboard = {
 
 // Approval Endpoints
 export const ApprovalProcess = {
-  get: "/approval/processes",
-  getById: "/approval/processes",
-  add: "/approval/processes",
-  update: "/approval/processes",
-  delete: "/approval/processes",
+  get: "/approval/GetApprovalProcessList",
+  getById: "/approval/GetApprovalProcessById",
+  add: "/approval/SaveApprovalProcess",
+  update: "/approval/SaveApprovalProcess",
+  delete: "/approval/DeleteApprovalProcess",
 }
 
 export const ApprovalLevel = {
-  get: "/approval/levels",
-  getById: "/approval/levels",
-  getByProcessId: "/approval/levels/process",
-  add: "/approval/levels",
-  update: "/approval/levels",
-  delete: "/approval/levels",
+  get: "/approval/GetApprovalLevelList",
+  getById: "/approval/GetApprovalLevelById",
+  add: "/approval/SaveApprovalLevel",
+  update: "/approval/SaveApprovalLevel",
+  delete: "/approval/DeleteApprovalLevel",
 }
 
 export const ApprovalRequest = {
