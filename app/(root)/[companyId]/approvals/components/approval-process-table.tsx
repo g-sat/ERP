@@ -1,0 +1,167 @@
+"use client"
+
+import { useState } from "react"
+import { ApprovalProcess, ApprovalProcessFilter } from "@/interfaces/approval"
+import { format, isValid } from "date-fns"
+import { Plus, RefreshCw, Search } from "lucide-react"
+
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
+
+interface ApprovalProcessTableProps {
+  data: ApprovalProcess[]
+  isLoading?: boolean
+  onProcessSelect?: (process: ApprovalProcess | undefined) => void
+  onDeleteProcess?: (processId: string) => void
+  onEditProcess?: (process: ApprovalProcess) => void
+  onCreateProcess?: () => void
+  onRefresh?: () => void
+  onFilterChange?: (filters: ApprovalProcessFilter) => void
+}
+
+export function ApprovalProcessTable({
+  data,
+  isLoading = false,
+  onProcessSelect,
+  onDeleteProcess,
+  onEditProcess,
+  onCreateProcess,
+  onRefresh,
+  onFilterChange,
+}: ApprovalProcessTableProps) {
+  const [searchQuery, setSearchQuery] = useState("")
+
+  const handleSearch = (query: string) => {
+    setSearchQuery(query)
+    onFilterChange?.({ search: query })
+  }
+
+  if (isLoading) {
+    return <div>Loading...</div>
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-1 items-center space-x-2">
+          <div className="relative">
+            <Search className="text-muted-foreground absolute top-2.5 left-2 h-4 w-4" />
+            <Input
+              placeholder="Search processes..."
+              value={searchQuery}
+              onChange={(event) => handleSearch(event.target.value)}
+              className="pl-8 sm:w-[300px]"
+            />
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          {onRefresh && (
+            <Button variant="outline" size="sm" onClick={onRefresh}>
+              <RefreshCw className="mr-2 h-4 w-4" />
+              Refresh
+            </Button>
+          )}
+          {onCreateProcess && (
+            <Button size="sm" onClick={onCreateProcess}>
+              <Plus className="mr-2 h-4 w-4" />
+              Create Process
+            </Button>
+          )}
+        </div>
+      </div>
+
+      <div className="rounded-md border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Process ID</TableHead>
+              <TableHead>Process Name</TableHead>
+              <TableHead>Module ID</TableHead>
+              <TableHead>Transaction ID</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Created Date</TableHead>
+              <TableHead>Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {data.length === 0 ? (
+              <TableRow>
+                <TableCell
+                  colSpan={7}
+                  className="text-muted-foreground text-center"
+                >
+                  No approval processes found.
+                </TableCell>
+              </TableRow>
+            ) : (
+              data.map((process) => (
+                <TableRow key={process.processId}>
+                  <TableCell>{process.processId}</TableCell>
+                  <TableCell className="font-medium">
+                    {process.processName}
+                  </TableCell>
+                  <TableCell>{process.moduleId}</TableCell>
+                  <TableCell>{process.transactionId || "-"}</TableCell>
+                  <TableCell>
+                    <Badge variant={process.isActive ? "default" : "secondary"}>
+                      {process.isActive ? "Active" : "Inactive"}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    {process.createdDate &&
+                    isValid(new Date(process.createdDate))
+                      ? format(new Date(process.createdDate), "dd/MM/yyyy")
+                      : "-"}
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      {onProcessSelect && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => onProcessSelect(process)}
+                        >
+                          View
+                        </Button>
+                      )}
+                      {onEditProcess && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => onEditProcess(process)}
+                        >
+                          Edit
+                        </Button>
+                      )}
+                      {onDeleteProcess && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() =>
+                            onDeleteProcess(process.processId.toString())
+                          }
+                          className="text-red-600 hover:text-red-800"
+                        >
+                          Delete
+                        </Button>
+                      )}
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </div>
+    </div>
+  )
+}

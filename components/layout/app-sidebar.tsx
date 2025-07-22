@@ -86,6 +86,13 @@ export const menuData = {
     //   icon: ClipboardList,
     // },
   ],
+  approvalNav: [
+    {
+      title: "Approvals",
+      url: "/approvals",
+      icon: BarChart,
+    },
+  ],
   masterNav: [
     {
       title: "Master",
@@ -305,6 +312,14 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
         return
       }
     }
+    for (const menu of menuData.approvalNav) {
+      if (currentPath === getUrlWithCompanyId(menu.url)) {
+        setSelectedMenu(menu.title)
+        setOpenMenu(null)
+        setSelectedSubMenu(null)
+        return
+      }
+    }
     for (const group of platformNavs) {
       for (const subItem of group.items || []) {
         if (currentPath === getUrlWithCompanyId(subItem.url)) {
@@ -344,6 +359,27 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
       <SidebarContent>
         <SidebarGroup>
           {menuData.mainNav.map((item) => (
+            <SidebarMenuItem key={item.url}>
+              <SidebarMenuButton
+                asChild
+                onMouseEnter={() => setHoveredMenu(item.title)}
+                onMouseLeave={() => setHoveredMenu(null)}
+                className={`hover:bg-primary/20 hover:text-primary data-[active=true]:bg-primary/20 data-[active=true]:text-primary transition-colors duration-200 ${
+                  isMenuActive(item.title) || hoveredMenu === item.title
+                    ? "bg-primary/20 text-primary"
+                    : ""
+                }`}
+              >
+                <Link href={getUrlWithCompanyId(item.url)}>
+                  {item.icon && <item.icon />}
+                  <span>{item.title}</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          ))}
+        </SidebarGroup>
+        <SidebarGroup>
+          {menuData.approvalNav.map((item) => (
             <SidebarMenuItem key={item.url}>
               <SidebarMenuButton
                 asChild

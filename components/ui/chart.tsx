@@ -321,7 +321,7 @@ function getPayloadConfigFromPayload(
   payload: unknown,
   key: string
 ) {
-  if (!config || !payload) return undefined
+  if (!config || !payload || typeof config !== "object") return undefined
   return key in config ? config[key] : undefined
 }
 

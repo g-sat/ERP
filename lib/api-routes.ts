@@ -1108,3 +1108,40 @@ export const HrDashboard = {
   getStats: "/api/hrms/dashboard/stats",
   getEmployeeStats: "/api/hrms/dashboard/employee-stats",
 }
+
+// Approval Endpoints
+export const ApprovalProcess = {
+  get: "/approval/processes",
+  getById: "/approval/processes",
+  add: "/approval/processes",
+  update: "/approval/processes",
+  delete: "/approval/processes",
+}
+
+export const ApprovalLevel = {
+  get: "/approval/levels",
+  getById: "/approval/levels",
+  getByProcessId: "/approval/levels/process",
+  add: "/approval/levels",
+  update: "/approval/levels",
+  delete: "/approval/levels",
+}
+
+export const ApprovalRequest = {
+  get: "/approval/requests",
+  getById: "/approval/requests",
+  getByCompany: "/approval/requests/company",
+  getByUser: "/approval/requests/user",
+  add: "/approval/requests",
+  update: "/approval/requests",
+  delete: "/approval/requests",
+}
+
+export const ApprovalAction = {
+  get: "/approval/actions",
+  getById: "/approval/actions",
+  getByRequest: "/approval/actions/request",
+  add: "/approval/actions",
+  update: "/approval/actions",
+  delete: "/approval/actions",
+}
