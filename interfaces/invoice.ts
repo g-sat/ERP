@@ -45,6 +45,8 @@ export interface IArInvoiceHd {
   address2: string
   address3: string
   address4: string
+  addressId: number
+  contactId: number
   pinCode: string
   countryId: number
   countryCode: null | number | string

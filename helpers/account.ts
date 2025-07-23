@@ -1,18 +1,14 @@
 import { IDecimal } from "@/interfaces/auth"
 import { IVisibleFields } from "@/interfaces/setting"
 import { ArInvoiceDtFormValues, ArInvoiceHdFormValues } from "@/schemas/invoice"
-import axios from "axios"
 import { addDays, format, parse } from "date-fns"
 import { UseFormReturn } from "react-hook-form"
 
+import { getData } from "@/lib/api-client"
 import { BasicSetting, Lookup } from "@/lib/api-routes"
 import { clientDateFormat } from "@/lib/format"
 
 export type Decimals = IDecimal
-
-const apiProxy = axios.create({
-  baseURL: "/api/proxy",
-})
 
 export const mathRound = (amtValue: number, precision: number): number => {
   const factor = Math.pow(10, precision)
@@ -268,11 +264,11 @@ export const setGSTPercentage = async (
         "yyyy-MM-dd"
       )
 
-      const res = await apiProxy.get(
+      const res = await getData(
         `${BasicSetting.getGstPercentage}/${gstId}/${dt}`
       )
-      //
-      const gstPercentage = res?.data?.data as number
+      console.log("res", res)
+      const gstPercentage = res?.data as number
       dtForm?.setValue("gstPercentage", gstPercentage)
       dtForm.trigger("gstPercentage")
       handleGstPercentageChange(hdForm, dtForm, decimals, visible)
@@ -292,11 +288,11 @@ export const setDueDate = async (form: any) => {
         parse(accountDate, clientDateFormat, new Date()),
         "yyyy-MM-dd"
       )
-      const res = await apiProxy.get(
+      const res = await getData(
         `${BasicSetting.getDaysfromCreditTerm}/${creditTermId}/${dt}`
       )
 
-      const days = res?.data?.data as number
+      const days = res?.data as number
       const dueDate = addDays(deliveryDate, days)
 
       form.setValue("dueDate", format(dueDate, clientDateFormat))
@@ -318,11 +314,11 @@ export const setExchangeRate = async (
         parse(accountDate, clientDateFormat, new Date()),
         "yyyy-MM-dd"
       )
-      const res = await apiProxy.get(
+      const res = await getData(
         `${BasicSetting.getExchangeRate}/${currencyId}/${dt}`
       )
 
-      const exhRate = res?.data?.data
+      const exhRate = res?.data
 
       form.setValue("exhRate", +Number(exhRate).toFixed(round))
       if (!visible?.m_CtyCurr) {
@@ -344,10 +340,10 @@ export const setExchangeRateLocal = async (form: any, round: number | 2) => {
         parse(accountDate, clientDateFormat, new Date()),
         "yyyy-MM-dd"
       )
-      const res = await apiProxy.get(
+      const res = await getData(
         `${BasicSetting.getExchangeRateLocal}/${currencyId}/${dt}`
       )
-      const exhRate = res?.data?.data
+      const exhRate = res?.data
       form.setValue("ctyExhRate", +Number(exhRate).toFixed(round))
       form.trigger("ctyExhRate")
     } catch {}
@@ -363,11 +359,11 @@ export const setRecExchangeRate = async (form: any, round: number | 2) => {
         parse(accountDate, clientDateFormat, new Date()),
         "yyyy-MM-dd"
       )
-      const res = await apiProxy.get(
+      const res = await getData(
         `${BasicSetting.getExchangeRate}/${currencyId}/${dt}`
       )
 
-      const exhRate = res?.data?.data
+      const exhRate = res?.data
       form.setValue("recExhRate", +Number(exhRate).toFixed(round))
       form.setValue("payExhRate", +Number(exhRate).toFixed(round))
     } catch {}
@@ -379,10 +375,10 @@ export const setAddressContactDetails = async (form: any) => {
 
   if (customerId !== 0) {
     try {
-      const { data: addresses } = await apiProxy.get(
+      const addresses = await getData(
         `${Lookup.getCustomerAddress}/${customerId}`
       )
-      const { data: contacts } = await apiProxy.get(
+      const contacts = await getData(
         `${Lookup.getCustomerContact}/${customerId}`
       )
 

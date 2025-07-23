@@ -39,14 +39,14 @@ import CustomTextarea from "@/components/ui-custom/custom-textarea"
 
 interface InvoiceFormProps {
   form: UseFormReturn<ArInvoiceHdFormValues>
-  onSave: (action: string) => Promise<void>
+  onSuccess: (action: string) => Promise<void>
   isEdit: boolean
   visible: IVisibleFields
 }
 
 export default function InvoiceForm({
   form,
-  onSave,
+  onSuccess,
   isEdit,
   visible,
 }: InvoiceFormProps) {
@@ -58,7 +58,7 @@ export default function InvoiceForm({
   const dateFormat = decimals[0]?.dateFormat || "dd/MM/yyyy"
 
   const onSubmit = async () => {
-    await onSave("save")
+    await onSuccess("save")
   }
 
   // Handle transaction date selection

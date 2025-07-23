@@ -29,6 +29,7 @@ import { IGridSetting, IVisibleFields } from "@/interfaces/setting"
 import { ArInvoiceDtFormValues, ArInvoiceHdFormValues } from "@/schemas/invoice"
 import { useAuthStore } from "@/stores/auth-store"
 import {
+  Cell,
   ColumnDef,
   ColumnFiltersState,
   SortingState,
@@ -39,9 +40,7 @@ import {
   getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
-  Cell,
 } from "@tanstack/react-table"
-import axios from "axios"
 import { format, parse } from "date-fns"
 import {
   FileSpreadsheet,
@@ -55,6 +54,7 @@ import { FormProvider, UseFormReturn, useForm } from "react-hook-form"
 import { toast } from "sonner"
 import * as XLSX from "xlsx"
 
+import { getData } from "@/lib/api-client"
 import { BasicSetting } from "@/lib/api-routes"
 import { clientDateFormat } from "@/lib/format"
 import { cn } from "@/lib/utils"
@@ -91,10 +91,6 @@ import VesselAutocomplete from "@/components/ui-custom/autocomplete-vessel"
 import VoyageAutocomplete from "@/components/ui-custom/autocomplete-voyage"
 import CustomInput from "@/components/ui-custom/custom-input"
 import CustomNumberInputCellRefs from "@/components/ui-custom/custom-number-input-cellrefs"
-
-const apiProxy = axios.create({
-  baseURL: "/api/proxy",
-})
 
 // UUID generation function that works across all environments
 const generateUUID = (): string => {
@@ -1161,7 +1157,7 @@ export default function InvoiceDetailsTable({
                       "yyyy-MM-dd"
                     )
 
-                    const res = await apiProxy.get(
+                    const res = await getData(
                       `${BasicSetting.getGstPercentage}/${selectedOption.gstId}/${dt}`
                     )
 
@@ -1617,9 +1613,9 @@ export default function InvoiceDetailsTable({
   }
 
   return (
-    <div className="w-full overflow-x-auto rounded-lg border bg-white dark:bg-zinc-900 shadow-md invoice-details-table">
+    <div className="invoice-details-table w-full overflow-x-auto rounded-lg border bg-white shadow-md dark:bg-zinc-900">
       <FormProvider {...invoiceDetailForm}>
-        <Card className="shadow-lg border-none">
+        <Card className="border-none shadow-lg">
           <CardContent>
             <div className="space-y-4">
               <div className="flex flex-wrap items-center justify-between gap-2">
@@ -1747,7 +1743,7 @@ export default function InvoiceDetailsTable({
                 style={{ maxHeight: "calc(100vh - 200px)" }}
               >
                 <Table
-                  className="w-full border-collapse border min-w-[1200px]"
+                  className="w-full min-w-[1200px] border-collapse border"
                   style={{ tableLayout: "fixed" }}
                 >
                   <TableHeader className="bg-muted/30 sticky top-0 z-10 shadow-sm">
@@ -1758,12 +1754,13 @@ export default function InvoiceDetailsTable({
                             key={header.id}
                             className={
                               header.id === "actions"
-                                ? "sticky left-0 z-20 bg-muted/90 border-r border-b border-gray-200 dark:border-zinc-800"
+                                ? "bg-muted/90 sticky left-0 z-20 border-r border-b border-gray-200 dark:border-zinc-800"
                                 : "border-b border-gray-200 dark:border-zinc-800"
                             }
                             style={{
                               width: header.getSize(),
-                              position: header.id === "actions" ? "sticky" : "relative",
+                              position:
+                                header.id === "actions" ? "sticky" : "relative",
                               left: header.id === "actions" ? 0 : "auto",
                               zIndex: header.id === "actions" ? 20 : 10,
                             }}
@@ -1793,46 +1790,51 @@ export default function InvoiceDetailsTable({
                           }
                           style={{ transition: "background 0.2s" }}
                         >
-                          {row.getVisibleCells().map((cell: Cell<InvoiceDetailRow, unknown>) => (
-                            <TableCell
-                              key={cell.id}
-                              className={cn(
-                                cell.column.id === "actions"
-                                  ? "sticky left-0 z-20 bg-muted/90 border-r border-gray-200 dark:border-zinc-800"
-                                  : "border-gray-200 dark:border-zinc-800",
-                                "select-text px-2 py-1 align-middle text-sm whitespace-nowrap overflow-hidden text-ellipsis",
-                                "focus-within:ring-2 focus-within:ring-blue-400"
-                              )}
-                              style={{
-                                width: cell.column.getSize(),
-                                position:
+                          {row
+                            .getVisibleCells()
+                            .map((cell: Cell<InvoiceDetailRow, unknown>) => (
+                              <TableCell
+                                key={cell.id}
+                                className={cn(
                                   cell.column.id === "actions"
-                                    ? "sticky"
-                                    : "relative",
-                                left: cell.column.id === "actions" ? 0 : "auto",
-                                zIndex: cell.column.id === "actions" ? 20 : 10,
-                                outline: row.getIsSelected()
-                                  ? "2px solid #2563eb"
-                                  : undefined,
-                              }}
-                              tabIndex={-1}
-                            >
-                              {/* Tooltip for truncated/important fields */}
-                              <div
-                                className="w-full h-full"
-                                title={
-                                  typeof cell.getValue() === "string" && (cell.getValue() as string).length > 20
-                                    ? (cell.getValue() as string)
-                                    : undefined
-                                }
-                              >
-                                {flexRender(
-                                  cell.column.columnDef.cell,
-                                  cell.getContext()
+                                    ? "bg-muted/90 sticky left-0 z-20 border-r border-gray-200 dark:border-zinc-800"
+                                    : "border-gray-200 dark:border-zinc-800",
+                                  "overflow-hidden px-2 py-1 align-middle text-sm text-ellipsis whitespace-nowrap select-text",
+                                  "focus-within:ring-2 focus-within:ring-blue-400"
                                 )}
-                              </div>
-                            </TableCell>
-                          ))}
+                                style={{
+                                  width: cell.column.getSize(),
+                                  position:
+                                    cell.column.id === "actions"
+                                      ? "sticky"
+                                      : "relative",
+                                  left:
+                                    cell.column.id === "actions" ? 0 : "auto",
+                                  zIndex:
+                                    cell.column.id === "actions" ? 20 : 10,
+                                  outline: row.getIsSelected()
+                                    ? "2px solid #2563eb"
+                                    : undefined,
+                                }}
+                                tabIndex={-1}
+                              >
+                                {/* Tooltip for truncated/important fields */}
+                                <div
+                                  className="h-full w-full"
+                                  title={
+                                    typeof cell.getValue() === "string" &&
+                                    (cell.getValue() as string).length > 20
+                                      ? (cell.getValue() as string)
+                                      : undefined
+                                  }
+                                >
+                                  {flexRender(
+                                    cell.column.columnDef.cell,
+                                    cell.getContext()
+                                  )}
+                                </div>
+                              </TableCell>
+                            ))}
                         </TableRow>
                       ))
                     ) : (

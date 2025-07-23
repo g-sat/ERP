@@ -80,6 +80,7 @@ export function useGetARInvoiceHistoryDetails<T>(
         `${ArInvoice.historyDetails}/${invoiceId}/${editVersion}`
       )
     },
+    enabled: !!invoiceId && invoiceId !== "0",
     refetchOnWindowFocus: false,
     refetchOnMount: false,
     refetchOnReconnect: false,

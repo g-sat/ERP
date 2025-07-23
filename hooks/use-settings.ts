@@ -13,6 +13,7 @@ import { AxiosError } from "axios"
 
 import { getData, saveData } from "@/lib/api-client"
 import {
+  BasicSetting,
   DecimalSetting,
   DynamicLookupSetting,
   FinanceSetting,
@@ -437,7 +438,9 @@ export const useGetGstPercentage = (gstId: number, accountDate: string) => {
   return useQuery({
     queryKey: ["gstpercentage", gstId, accountDate],
     queryFn: async () => {
-      return await getData(`/setting/GetGstPercentage/${gstId}/${accountDate}`)
+      return await getData(
+        `${BasicSetting.getGstPercentage}/${gstId}/${accountDate}`
+      )
     },
     refetchOnWindowFocus: false,
   })

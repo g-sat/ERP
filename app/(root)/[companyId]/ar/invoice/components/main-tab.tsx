@@ -10,17 +10,17 @@ import InvoiceForm from "./invoice-form"
 
 interface MainProps {
   form: UseFormReturn<ArInvoiceHdFormValues>
-  onSave: (action: string) => Promise<void>
+  onSuccess: (action: string) => Promise<void>
   isEdit: boolean
   visible: IVisibleFields
 }
 
-export default function Main({ form, onSave, isEdit, visible }: MainProps) {
+export default function Main({ form, onSuccess, isEdit, visible }: MainProps) {
   return (
     <div className="divide-y">
       <InvoiceForm
         form={form}
-        onSave={onSave}
+        onSuccess={onSuccess}
         isEdit={isEdit}
         visible={visible}
       />

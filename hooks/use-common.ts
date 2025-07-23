@@ -79,6 +79,7 @@ export function useGetByParams<T>(
 export function useSave<T>(baseUrl: string) {
   return useMutation({
     mutationFn: async (newData: Partial<T>) => {
+      console.log("newData to save", newData)
       return await saveData(baseUrl, newData)
     },
     onSuccess: (response) => {

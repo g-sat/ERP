@@ -82,16 +82,16 @@ export const arinvoiceHdSchema = (
     contactId: z.union([z.number(), z.null()]).optional().default(null),
     address1: required?.m_Address1
       ? z.string().min(1)
-      : z.string().optional().default(""),
+      : z.union([z.string(), z.null()]).optional().default(""),
     address2: required?.m_Address2
       ? z.string().min(1)
-      : z.string().optional().default(""),
+      : z.union([z.string(), z.null()]).optional().default(""),
     address3: required?.m_Address3
       ? z.string().min(1)
-      : z.string().optional().default(""),
+      : z.union([z.string(), z.null()]).optional().default(""),
     address4: required?.m_Address4
       ? z.string().min(1)
-      : z.string().optional().default(""),
+      : z.union([z.string(), z.null()]).optional().default(""),
     pinCode: required?.m_PinCode
       ? z.string().min(1)
       : z.string().optional().default(""),
@@ -110,38 +110,15 @@ export const arinvoiceHdSchema = (
 
     // Supplier Details
     moduleFrom: z.union([z.string(), z.null()]).optional().default(null),
-    customerName: z.union([z.string(), z.null()]).optional().default(null),
     suppInvoiceNo: required?.m_SuppInvoiceNo
       ? z.string().min(1)
-      : z.union([z.string(), z.null()]).optional().default(null),
+      : z.union([z.string(), z.null()]).optional().default(""),
+    supplierName: z.union([z.string(), z.null()]).optional().default(""),
     apInvoiceId: z
       .union([z.string(), z.number(), z.null()])
       .optional()
       .default(null),
     apInvoiceNo: z.union([z.string(), z.null()]).nullable().default(null),
-
-    // Audit Fields
-    createBy: z
-      .union([z.null(), z.number(), z.string()])
-      .optional()
-      .default(null),
-    createDate: z
-      .union([z.date(), z.string(), z.null()])
-      .optional()
-      .default(null),
-    editBy: z.union([z.string(), z.null()]).optional().default(null),
-    editDate: z
-      .union([z.null(), z.date(), z.string()])
-      .optional()
-      .default(null),
-    isCancel: z.union([z.boolean(), z.null()]).optional().default(false),
-    cancelBy: z.union([z.string(), z.null()]).optional().default(null),
-    cancelDate: z
-      .union([z.null(), z.date(), z.string()])
-      .optional()
-      .default(null),
-    cancelRemarks: z.union([z.string(), z.null()]).optional().default(null),
-    editVersion: z.union([z.number(), z.null()]).optional().default(0),
 
     // Nested Details
     data_details: z.array(arinvoiceDtSchema(required, visible)).min(1),

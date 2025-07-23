@@ -10,11 +10,13 @@ import {
   useReactTable,
 } from "@tanstack/react-table"
 import { format } from "date-fns"
+import { AlertCircle } from "lucide-react"
 
 import {
   useGetARInvoiceHistoryDetails,
   useGetARInvoiceHistoryList,
 } from "@/hooks/use-ar"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { DataTableCustom } from "@/components/ui/data-table/data-table-custom"
 import { TableHeaderCustom } from "@/components/ui/data-table/data-table-header-custom"
@@ -61,6 +63,11 @@ export default function EditVersionDetails({
       selectedInvoice?.editVersion?.toString() || ""
     )
 
+  // Debug logging
+  console.log("invoiceHistoryData:", invoiceHistoryData)
+  console.log("invoiceDetailsData:", invoiceDetailsData)
+  console.log("selectedInvoice:", selectedInvoice)
+
   function isIArInvoiceHdArray(arr: unknown): arr is IArInvoiceHd[] {
     return (
       Array.isArray(arr) &&
@@ -69,18 +76,34 @@ export default function EditVersionDetails({
     )
   }
 
-  const tableData: IArInvoiceHd[] = isIArInvoiceHdArray(
-    invoiceHistoryData?.data
-  )
-    ? invoiceHistoryData.data
-    : []
+  // Check if history data is successful and has valid data
+  const tableData: IArInvoiceHd[] =
+    invoiceHistoryData?.result === 1 &&
+    isIArInvoiceHdArray(invoiceHistoryData?.data)
+      ? invoiceHistoryData.data
+      : []
+
+  // Check if details data is successful and has valid data
   const dialogData: IArInvoiceHd | undefined =
-    invoiceDetailsData &&
+    invoiceDetailsData?.result === 1 &&
+    invoiceDetailsData?.data &&
     typeof invoiceDetailsData.data === "object" &&
     invoiceDetailsData.data !== null &&
     !Array.isArray(invoiceDetailsData.data)
       ? (invoiceDetailsData.data as IArInvoiceHd)
       : undefined
+
+  // Check for API errors
+  const hasHistoryError = invoiceHistoryData?.result === -1
+  const hasDetailsError = invoiceDetailsData?.result === -1
+
+  // Debug logging for processed data
+  console.log("tableData:", tableData)
+  console.log("dialogData:", dialogData)
+  console.log("hasHistoryError:", hasHistoryError)
+  console.log("hasDetailsError:", hasDetailsError)
+  console.log("invoiceHistoryData?.result:", invoiceHistoryData?.result)
+  console.log("invoiceDetailsData?.result:", invoiceDetailsData?.result)
 
   const columns: ColumnDef<IArInvoiceHd>[] = [
     {
@@ -319,7 +342,21 @@ export default function EditVersionDetails({
 
   const handleRefresh = async () => {
     try {
-      await Promise.all([refetchHistory(), refetchDetails()])
+      // Only refetch if we don't have a "Data does not exist" error
+      if (
+        !hasHistoryError ||
+        invoiceHistoryData?.message !== "Data does not exist"
+      ) {
+        console.log("Refetching history data")
+        await refetchHistory()
+      }
+      if (
+        !hasDetailsError ||
+        invoiceDetailsData?.message !== "Data does not exist"
+      ) {
+        console.log("Refetching details data")
+        await refetchDetails()
+      }
     } catch (error) {
       console.error("Error refreshing data:", error)
     }
@@ -332,6 +369,25 @@ export default function EditVersionDetails({
           <CardTitle>Edit Version Details</CardTitle>
         </CardHeader>
         <CardContent>
+          {/* Error handling for history data */}
+          {hasHistoryError && (
+            <Alert
+              variant={
+                invoiceHistoryData?.message === "Data does not exist"
+                  ? "default"
+                  : "destructive"
+              }
+              className="mb-4"
+            >
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                {invoiceHistoryData?.message === "Data does not exist"
+                  ? "No invoice history found for this invoice."
+                  : `Failed to load invoice history: ${invoiceHistoryData?.message || "Unknown error"}`}
+              </AlertDescription>
+            </Alert>
+          )}
+
           <TableHeaderCustom
             searchQuery={searchQuery}
             onSearchChange={handleSearch}
@@ -382,7 +438,7 @@ export default function EditVersionDetails({
                       colSpan={columns.length}
                       className="h-24 text-center"
                     >
-                      No results.
+                      {hasHistoryError ? "Error loading data" : "No results."}
                     </TableCell>
                   </TableRow>
                 )}
@@ -400,15 +456,35 @@ export default function EditVersionDetails({
           <DialogHeader>
             <DialogTitle>Invoice Details</DialogTitle>
           </DialogHeader>
+
+          {/* Error handling for details data */}
+          {hasDetailsError && (
+            <Alert
+              variant={
+                invoiceDetailsData?.message === "Data does not exist"
+                  ? "default"
+                  : "destructive"
+              }
+              className="mb-4"
+            >
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                {invoiceDetailsData?.message === "Data does not exist"
+                  ? "No invoice details found for this version."
+                  : `Failed to load invoice details: ${invoiceDetailsData?.message || "Unknown error"}`}
+              </AlertDescription>
+            </Alert>
+          )}
+
           <div className="grid gap-2">
             <Card>
               <CardHeader>
                 <CardTitle>Invoice Header</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-6 gap-2">
-                  {dialogData &&
-                    Object.entries(dialogData).map(([key, value]) =>
+                {dialogData ? (
+                  <div className="grid grid-cols-6 gap-2">
+                    {Object.entries(dialogData).map(([key, value]) =>
                       key !== "data_details" ? (
                         <div key={key} className="flex flex-col gap-1">
                           <span className="text-muted-foreground text-sm">
@@ -418,7 +494,14 @@ export default function EditVersionDetails({
                         </div>
                       ) : null
                     )}
-                </div>
+                  </div>
+                ) : (
+                  <div className="text-muted-foreground py-4 text-center">
+                    {hasDetailsError
+                      ? "Error loading invoice details"
+                      : "No invoice details available"}
+                  </div>
+                )}
               </CardContent>
             </Card>
             <Card>

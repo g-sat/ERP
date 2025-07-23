@@ -131,6 +131,7 @@ export const saveData = async (
   data: Record<string, unknown> | unknown
 ) => {
   try {
+    console.log("data to save", data)
     const response = await apiClient.post(endpoint, data)
     return response.data
   } catch (error) {
