@@ -148,7 +148,7 @@ export function ApprovalDetailDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] max-w-5xl overflow-y-auto">
+      <DialogContent className="max-h-[90vh] !max-w-5xl overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <FileText className="h-5 w-5" />
@@ -161,7 +161,7 @@ export function ApprovalDetailDialog({
 
         {requestDetail ? (
           <TooltipProvider>
-            <div className="space-y-6">
+            <div className="space-y-4">
               {/* Request Header */}
               <Card className="border-l-4 border-l-blue-500">
                 <CardHeader>

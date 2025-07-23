@@ -23,6 +23,10 @@ interface UseApprovalReturn {
   fetchRequestDetail: (requestId: number) => Promise<void>
   takeApprovalAction: (action: IApprovalActionRequest) => Promise<boolean>
   refreshRequests: () => Promise<void>
+  fetchApprovalCounts: () => Promise<{
+    pendingCount: number
+    myRequestsCount: number
+  } | null>
 
   // Utilities
   getStatusBadgeVariant: (
@@ -156,6 +160,27 @@ export const useApproval = (): UseApprovalReturn => {
     await fetchPendingApprovals()
   }, [fetchPendingApprovals])
 
+  const fetchApprovalCounts = useCallback(async () => {
+    if (!token || !user || !currentCompany) return null
+
+    try {
+      const response = await getData("/approval/counts")
+
+      if (response.result === 1) {
+        return {
+          pendingCount: response.data?.pendingCount || 0,
+          myRequestsCount: response.data?.myRequestsCount || 0,
+        }
+      } else {
+        setError(response.message || "Failed to fetch approval counts")
+        return null
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "An error occurred")
+      return null
+    }
+  }, [token, user, currentCompany])
+
   const getStatusBadgeVariant = useCallback(
     (statusId: number): "default" | "secondary" | "destructive" | "outline" => {
       switch (statusId) {
@@ -214,6 +239,7 @@ export const useApproval = (): UseApprovalReturn => {
     fetchRequestDetail,
     takeApprovalAction,
     refreshRequests,
+    fetchApprovalCounts,
     getStatusBadgeVariant,
     getStatusText,
     getActionTypeText,

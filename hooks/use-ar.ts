@@ -51,6 +51,7 @@ export function useGetARInvoiceHistoryList<T>(invoiceId: string, options = {}) {
       // Clean up the URL by removing any double slashes
       return await getData(`${ArInvoice.history}/${invoiceId}`)
     },
+    enabled: !!invoiceId && invoiceId !== "0",
     refetchOnWindowFocus: false,
     refetchOnMount: false,
     refetchOnReconnect: false,

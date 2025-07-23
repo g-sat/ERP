@@ -1144,3 +1144,7 @@ export const ApprovalAction = {
   update: "/approval/actions",
   delete: "/approval/actions",
 }
+
+export const ApprovalCounts = {
+  get: "/approval/counts",
+}
