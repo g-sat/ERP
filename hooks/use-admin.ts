@@ -111,7 +111,7 @@ export const useResetPasswordV1 = () => {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: async (data: IResetPassword) => {
-      return await saveData(`${User.resetPassword}/${data.userId}`, data)
+      return await saveData(`${User.resetPassword}`, data)
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["user"] }),
   })

@@ -41,6 +41,8 @@ import {
   Wallet,
 } from "lucide-react"
 
+import { useApprovalCounts } from "@/hooks/use-approval"
+import { Badge } from "@/components/ui/badge"
 import {
   Sidebar,
   SidebarContent,
@@ -271,6 +273,7 @@ export const menuData = {
 
 export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
   const { currentCompany } = useAuthStore()
+  const { pendingCount, refreshCounts } = useApprovalCounts()
   const [openMenu, setOpenMenu] = React.useState<string | null>(null)
   const [selectedMenu, setSelectedMenu] = React.useState<string | null>(null)
   const [selectedSubMenu, setSelectedSubMenu] = React.useState<string | null>(
@@ -331,6 +334,11 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
       }
     }
   }, [pathname, getUrlWithCompanyId, platformNavs])
+
+  // Refresh approval counts when component mounts
+  React.useEffect(() => {
+    refreshCounts()
+  }, [refreshCounts])
 
   const handleMenuClick = (menuTitle: string) => {
     setOpenMenu(openMenu === menuTitle ? null : menuTitle)
@@ -394,6 +402,14 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                 <Link href={getUrlWithCompanyId(item.url)}>
                   {item.icon && <item.icon />}
                   <span>{item.title}</span>
+                  {item.title === "Approvals" && pendingCount > 0 && (
+                    <Badge
+                      variant="destructive"
+                      className="ml-auto h-5 w-5 rounded-full p-0 text-xs"
+                    >
+                      {pendingCount > 99 ? "99+" : pendingCount}
+                    </Badge>
+                  )}
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>

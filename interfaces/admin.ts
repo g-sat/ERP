@@ -55,6 +55,7 @@ export interface IUserRoleFilter {
 
 export interface IResetPassword {
   userId: number
+  userCode: string
   userPassword: string
   confirmPassword: string
 }

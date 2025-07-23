@@ -30,7 +30,14 @@ interface UseApprovalReturn {
   ) => "default" | "secondary" | "destructive" | "outline"
   getStatusText: (statusId: number) => string
   getActionTypeText: (actionTypeId: number) => string
-  canTakeAction: (request: IApprovalRequest, userRoleId: number) => boolean
+  canTakeAction: (request: IApprovalRequest) => boolean
+}
+
+interface UseApprovalCountsReturn {
+  pendingCount: number
+  isLoading: boolean
+  error: string | null
+  refreshCounts: () => Promise<void>
 }
 
 export const useApproval = (): UseApprovalReturn => {
@@ -101,12 +108,12 @@ export const useApproval = (): UseApprovalReturn => {
       setError(null)
 
       try {
-        const response = await getData(`/approval/request/${requestId}`)
+        const response = await getData(`/approval/request-detail/${requestId}`)
 
         if (response.result === 1) {
-          setRequestDetail(response.data)
+          setRequestDetail(response.data || null)
         } else {
-          setError(response.message || "Failed to fetch request details")
+          setError(response.message || "Failed to fetch request detail")
         }
       } catch (err) {
         setError(err instanceof Error ? err.message : "An error occurred")
@@ -128,8 +135,8 @@ export const useApproval = (): UseApprovalReturn => {
         const response = await postData("/approval/take-action", action)
 
         if (response.result === 1) {
-          // Refresh the current view
-          await refreshRequests()
+          // Refresh the requests after taking action
+          await fetchPendingApprovals()
           return true
         } else {
           setError(response.message || "Failed to take action")
@@ -142,24 +149,22 @@ export const useApproval = (): UseApprovalReturn => {
         setIsLoading(false)
       }
     },
-    [token, user, currentCompany]
+    [token, user, currentCompany, fetchPendingApprovals]
   )
 
   const refreshRequests = useCallback(async () => {
-    // Refresh based on current context - could be enhanced to track current view
-    await fetchMyRequests()
-  }, [fetchMyRequests])
+    await fetchPendingApprovals()
+  }, [fetchPendingApprovals])
 
-  // Utility functions
   const getStatusBadgeVariant = useCallback(
     (statusId: number): "default" | "secondary" | "destructive" | "outline" => {
       switch (statusId) {
         case APPROVAL_STATUS.APPROVED:
           return "default"
-        case APPROVAL_STATUS.PENDING:
-          return "secondary"
         case APPROVAL_STATUS.REJECTED:
           return "destructive"
+        case APPROVAL_STATUS.PENDING:
+          return "secondary"
         default:
           return "outline"
       }
@@ -171,10 +176,10 @@ export const useApproval = (): UseApprovalReturn => {
     switch (statusId) {
       case APPROVAL_STATUS.APPROVED:
         return "Approved"
-      case APPROVAL_STATUS.PENDING:
-        return "Pending"
       case APPROVAL_STATUS.REJECTED:
         return "Rejected"
+      case APPROVAL_STATUS.PENDING:
+        return "Pending"
       default:
         return "Unknown"
     }
@@ -191,38 +196,71 @@ export const useApproval = (): UseApprovalReturn => {
     }
   }, [])
 
-  const canTakeAction = useCallback(
-    (request: IApprovalRequest, userRoleId: number): boolean => {
-      // Check if request is pending and user has the right role for current level
-      if (request.statusTypeId !== APPROVAL_STATUS.PENDING) {
-        return false
-      }
-
-      // This logic should be enhanced based on your business rules
-      // For now, assuming managers and admins can approve
-      return userRoleId === 1 || userRoleId === 2
-    },
-    []
-  )
+  const canTakeAction = useCallback((request: IApprovalRequest): boolean => {
+    // Check if the request is pending and the current user can take action
+    return (
+      request.statusTypeId === APPROVAL_STATUS.PENDING &&
+      request.currentLevelId > 0
+    )
+  }, [])
 
   return {
-    // State
     requests,
     requestDetail,
     isLoading,
     error,
-
-    // Actions
     fetchMyRequests,
     fetchPendingApprovals,
     fetchRequestDetail,
     takeApprovalAction,
     refreshRequests,
-
-    // Utilities
     getStatusBadgeVariant,
     getStatusText,
     getActionTypeText,
     canTakeAction,
+  }
+}
+
+export const useApprovalCounts = (): UseApprovalCountsReturn => {
+  const { token, user, currentCompany } = useAuthStore()
+  const [pendingCount, setPendingCount] = useState(0)
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const refreshCounts = useCallback(async () => {
+    if (!token || !user || !currentCompany) return
+
+    setIsLoading(true)
+    setError(null)
+
+    try {
+      const params = {
+        searchString: "null",
+        pageNumber: "1",
+        pageSize: "2000",
+      }
+      const response = await getData("/approval/pending-approvals", params)
+
+      if (response.result === 1) {
+        const requests = response.data || []
+        const count = requests.filter(
+          (r: IApprovalRequest) => r.statusTypeId === APPROVAL_STATUS.PENDING
+        ).length
+        setPendingCount(count)
+      } else {
+        setError(response.message || "Failed to fetch pending approvals")
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "An error occurred")
+    } finally {
+      setIsLoading(false)
+    }
+  }, [token, user, currentCompany])
+
+  return {
+    pendingCount,
+    isLoading,
+    error,
+    refreshCounts,
   }
 }
