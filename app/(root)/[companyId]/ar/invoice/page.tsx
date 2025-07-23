@@ -50,6 +50,7 @@ export default function InvoicePage() {
     reset: false,
     clone: false,
     delete: false,
+    load: false,
   })
   const [invoice, setInvoice] = useState<ArInvoiceHdFormValues | null>(null)
   const [searchNo, setSearchNo] = useState("")
@@ -301,6 +302,14 @@ export default function InvoicePage() {
     } catch {
       toast.error("Network error while deleting invoice")
     }
+
+    setShowConfirmDialog({
+      save: false,
+      reset: false,
+      clone: false,
+      delete: false,
+      load: false,
+    })
   }
 
   const handleInvoiceReset = () => {
@@ -308,6 +317,13 @@ export default function InvoicePage() {
     form.reset({
       ...defaultInvoice,
       data_details: [],
+    })
+    setShowConfirmDialog({
+      save: false,
+      reset: false,
+      clone: false,
+      delete: false,
+      load: false,
     })
   }
 
@@ -599,6 +615,9 @@ export default function InvoicePage() {
           form.reset(updatedInvoice)
           form.trigger()
           console.log("Form values after reset:", form.getValues())
+
+          // Show success message
+          toast.success(`Invoice ${value} loaded successfully`)
         }
       } else {
         toast.error(
@@ -608,6 +627,14 @@ export default function InvoicePage() {
     } catch {
       toast.error("Error searching for invoice")
     }
+
+    setShowConfirmDialog({
+      save: false,
+      reset: false,
+      clone: false,
+      delete: false,
+      load: false,
+    })
   }
 
   // Determine mode and invoice ID from URL
@@ -654,9 +681,15 @@ export default function InvoicePage() {
             <Input
               value={searchNo}
               onChange={(e) => setSearchNo(e.target.value)}
-              onBlur={() => handleInvoiceSearch(searchNo)}
+              onBlur={() => {
+                if (searchNo.trim()) {
+                  setShowConfirmDialog({ ...showConfirmDialog, load: true })
+                }
+              }}
               placeholder="Search Invoice No"
               className="h-8 text-sm"
+              readOnly={!!invoice?.invoiceId && invoice.invoiceId !== "0"}
+              disabled={!!invoice?.invoiceId && invoice.invoiceId !== "0"}
             />
             <Button
               variant="outline"
@@ -788,6 +821,7 @@ export default function InvoicePage() {
             reset: false,
             clone: false,
             delete: false,
+            load: false,
           })
         }
       >
@@ -798,6 +832,7 @@ export default function InvoicePage() {
               {showConfirmDialog.reset && "Reset Invoice"}
               {showConfirmDialog.clone && "Clone Invoice"}
               {showConfirmDialog.delete && "Delete Invoice"}
+              {showConfirmDialog.load && "Load Invoice"}
             </DialogTitle>
           </DialogHeader>
           <div className="p-6 text-center">
@@ -807,6 +842,7 @@ export default function InvoicePage() {
               {showConfirmDialog.clone && "Do you want to clone this invoice?"}
               {showConfirmDialog.delete &&
                 "Do you want to delete this invoice?"}
+              {showConfirmDialog.load && "Do you want to load this invoice?"}
             </h3>
             <div className="flex justify-center gap-4">
               <Button
@@ -817,6 +853,7 @@ export default function InvoicePage() {
                     reset: false,
                     clone: false,
                     delete: false,
+                    load: false,
                   })
                 }
               >
@@ -829,6 +866,7 @@ export default function InvoicePage() {
                   if (showConfirmDialog.reset) handleConfirmation("reset")
                   if (showConfirmDialog.clone) handleConfirmation("clone")
                   if (showConfirmDialog.delete) handleConfirmation("delete")
+                  if (showConfirmDialog.load) handleInvoiceSearch(searchNo)
                 }}
               >
                 Confirm
