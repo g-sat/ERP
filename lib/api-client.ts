@@ -139,6 +139,9 @@ export const saveData = async (
   }
 }
 
+// Alias for backward compatibility
+export const postData = saveData
+
 export const updateData = async (
   endpoint: string,
   data: Record<string, unknown> | unknown

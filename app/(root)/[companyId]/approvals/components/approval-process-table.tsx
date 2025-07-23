@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { ApprovalProcess, ApprovalProcessFilter } from "@/interfaces/approval"
+import { IApprovalProcess } from "@/interfaces/approval"
 import { format, isValid } from "date-fns"
 import { Plus, RefreshCw, Search } from "lucide-react"
 
@@ -18,14 +18,14 @@ import {
 } from "@/components/ui/table"
 
 interface ApprovalProcessTableProps {
-  data: ApprovalProcess[]
+  data: IApprovalProcess[]
   isLoading?: boolean
-  onProcessSelect?: (process: ApprovalProcess | undefined) => void
+  onProcessSelect?: (process: IApprovalProcess | undefined) => void
   onDeleteProcess?: (processId: string) => void
-  onEditProcess?: (process: ApprovalProcess) => void
+  onEditProcess?: (process: IApprovalProcess) => void
   onCreateProcess?: () => void
   onRefresh?: () => void
-  onFilterChange?: (filters: ApprovalProcessFilter) => void
+  onFilterChange?: (filters: Record<string, unknown>) => void
 }
 
 export function ApprovalProcessTable({

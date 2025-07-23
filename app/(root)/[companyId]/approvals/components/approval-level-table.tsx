@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { ApprovalLevel, ApprovalLevelFilter } from "@/interfaces/approval"
+import { IApprovalLevel } from "@/interfaces/approval"
 import { Plus, RefreshCw, Search } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
@@ -17,14 +17,14 @@ import {
 } from "@/components/ui/table"
 
 interface ApprovalLevelTableProps {
-  data: ApprovalLevel[]
+  data: IApprovalLevel[]
   isLoading?: boolean
-  onLevelSelect?: (level: ApprovalLevel | undefined) => void
+  onLevelSelect?: (level: IApprovalLevel | undefined) => void
   onDeleteLevel?: (levelId: string) => void
-  onEditLevel?: (level: ApprovalLevel) => void
+  onEditLevel?: (level: IApprovalLevel) => void
   onCreateLevel?: () => void
   onRefresh?: () => void
-  onFilterChange?: (filters: ApprovalLevelFilter) => void
+  onFilterChange?: (filters: Record<string, unknown>) => void
 }
 
 export function ApprovalLevelTable({
@@ -109,7 +109,7 @@ export function ApprovalLevelTable({
                   <TableCell>{level.levelNumber}</TableCell>
                   <TableCell>{level.userRoleId}</TableCell>
                   <TableCell className="font-medium">
-                    {level.levelName}
+                    Level {level.levelNumber}
                   </TableCell>
                   <TableCell>
                     <Badge variant={level.isFinal ? "default" : "secondary"}>

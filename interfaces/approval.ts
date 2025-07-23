@@ -1,73 +1,92 @@
-export interface ApprovalProcess {
+export interface IApprovalProcess {
   processId: number
   processName: string
   moduleId: number
   transactionId?: number
-  companyId?: number
   isActive: boolean
   createById: number
-  createdDate: string | Date
+  createdDate: string
 }
 
-export interface ApprovalLevel {
+export interface IApprovalLevel {
   levelId: number
   processId: number
   levelNumber: number
   userRoleId: number
-  levelName: string
   isFinal: boolean
 }
 
-export interface ApprovalRequest {
+export interface IApprovalRequest {
   requestId: number
   processId: number
   companyId: number
   referenceId: string
-  requestedBy: number
-  requestedOn: string | Date
+  requestedById: number
+  requestedDate: string
   currentLevelId: number
-  status: "Pending" | "Approved" | "Rejected" | "Cancelled"
   statusTypeId: number
+  // Additional fields for UI
+  processName?: string
+  requestedByName?: string
+  currentLevelNumber?: number
+  statusName?: string
 }
 
-export interface ApprovalAction {
+export interface IApprovalAction {
   actionId: number
   requestId: number
   levelId: number
   actionById: number
-  actionDate: string | Date
-  actionType: "Approved" | "Rejected" | string
-  actionTypeId?: number
-  comments?: string
+  actionDate: string
+  actionTypeId: number
+  remarks?: string
+  // Additional fields for UI
+  actionByName?: string
+  actionTypeName?: string
+  levelNumber?: number
 }
 
-// Filter interfaces
-export interface ApprovalProcessFilter {
-  isActive?: boolean
-  search?: string
-  sortOrder?: "asc" | "desc"
+export interface IApprovalRequestDetail extends IApprovalRequest {
+  process: IApprovalProcess
+  levels: IApprovalLevel[]
+  actions: IApprovalAction[]
+  currentLevel: IApprovalLevel
 }
 
-export interface ApprovalLevelFilter {
+export interface IApprovalActionRequest {
+  requestId: number
+  levelId: number
+  actionTypeId: number
+  remarks?: string
+}
+
+export interface IApprovalFilter {
+  statusTypeId?: number
   processId?: number
-  isActive?: boolean
-  search?: string
-  sortOrder?: "asc" | "desc"
+  dateFrom?: string
+  dateTo?: string
 }
 
-export interface ApprovalRequestFilter {
-  companyId?: number
-  processId?: number
-  status?: "Pending" | "Approved" | "Rejected" | "Cancelled"
-  requestedBy?: number
-  search?: string
-  sortOrder?: "asc" | "desc"
-}
+// Status and Action Type Constants
+export const APPROVAL_STATUS = {
+  PENDING: 1402,
+  APPROVED: 1401,
+  REJECTED: 1403,
+} as const
 
-export interface ApprovalActionFilter {
-  requestId?: number
-  levelId?: number
-  actionType?: "Approved" | "Rejected" | string
-  search?: string
-  sortOrder?: "asc" | "desc"
-}
+export const APPROVAL_ACTION_TYPES = {
+  APPROVED: 1401,
+  REJECTED: 1403,
+} as const
+
+export const USER_ROLES = {
+  ADMIN: 1,
+  MANAGER: 2,
+  CLERK: 3,
+} as const
+
+export type ApprovalStatusType =
+  (typeof APPROVAL_STATUS)[keyof typeof APPROVAL_STATUS]
+export type ApprovalActionType =
+  (typeof APPROVAL_ACTION_TYPES)[keyof typeof APPROVAL_ACTION_TYPES]
+export type UserRoleType = (typeof USER_ROLES)[keyof typeof USER_ROLES]

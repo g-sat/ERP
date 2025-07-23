@@ -18,7 +18,6 @@ export const approvalLevelSchema = z.object({
   processId: z.number().min(1, { message: "Process is required" }),
   levelNumber: z.number().min(1, { message: "Level number is required" }),
   userRoleId: z.number().min(1, { message: "User role is required" }),
-  levelName: z.string().min(1, { message: "Level name is required" }),
   isFinal: z.boolean().default(false),
 })
 
@@ -29,10 +28,9 @@ export const approvalRequestSchema = z.object({
   processId: z.number().min(1, { message: "Process is required" }),
   companyId: z.number().min(1, { message: "Company is required" }),
   referenceId: z.string().min(1, { message: "Reference ID is required" }),
-  requestedBy: z.number().min(1, { message: "Requested by is required" }),
-  requestedOn: z.date().optional(),
+  requestedById: z.number().min(1, { message: "Requested by is required" }),
+  requestedDate: z.string().optional(),
   currentLevelId: z.number().min(1, { message: "Current level is required" }),
-  status: z.enum(["Pending", "Approved", "Rejected", "Cancelled"]),
   statusTypeId: z.number().min(1, { message: "Status type is required" }),
 })
 
@@ -43,12 +41,11 @@ export const approvalActionSchema = z.object({
   requestId: z.number().min(1, { message: "Request is required" }),
   levelId: z.number().min(1, { message: "Level is required" }),
   actionById: z.number().min(1, { message: "Action by is required" }),
-  actionDate: z.date().optional(),
-  actionType: z.string().min(1, { message: "Action type is required" }),
-  actionTypeId: z.number().optional(),
-  comments: z
+  actionDate: z.string().optional(),
+  actionTypeId: z.number().min(1, { message: "Action type is required" }),
+  remarks: z
     .string()
-    .max(500, { message: "Comments cannot exceed 500 characters" })
+    .max(500, { message: "Remarks cannot exceed 500 characters" })
     .optional(),
 })
 
