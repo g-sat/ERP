@@ -1,7 +1,10 @@
 "use client"
 
 import { useState } from "react"
-import { IDocumentExpiry } from "@/interfaces/docexpiry"
+import {
+  IDocumentExpiry,
+  NOTIFICATION_DAYS_OPTIONS,
+} from "@/interfaces/docexpiry"
 import {
   DocumentExpiryFormValues,
   documentExpirySchema,
@@ -18,6 +21,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import DocumentTypeAutocomplete from "@/components/ui-custom/autocomplete-documenttype"
 import { CustomDateNew } from "@/components/ui-custom/custom-date-new"
 import CustomInput from "@/components/ui-custom/custom-input"
+import CustomSelect from "@/components/ui-custom/custom-select"
 import CustomTextArea from "@/components/ui-custom/custom-textarea"
 
 import DocumentUpload from "./document-upload"
@@ -145,13 +149,13 @@ export default function DocumentForm({
                 isDisabled={isReadOnly}
               />
 
-              <CustomInput
-                form={form}
+              <CustomSelect
                 name="notificationDaysBefore"
                 label="Notification Days Before"
+                options={NOTIFICATION_DAYS_OPTIONS}
                 isRequired={false}
-                type="number"
                 isDisabled={isReadOnly}
+                placeholder="Select notification days"
               />
 
               <CustomTextArea

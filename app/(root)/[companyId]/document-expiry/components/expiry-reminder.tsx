@@ -1,13 +1,243 @@
 "use client"
 
+import { useState } from "react"
 import { IDocumentExpiry } from "@/interfaces/docexpiry"
-import { differenceInDays, isBefore, parseISO } from "date-fns"
-import { AlertTriangle, CheckCircle, Clock, FileText } from "lucide-react"
+import { differenceInDays, format, isBefore, parseISO } from "date-fns"
+import {
+  AlertTriangle,
+  Calendar,
+  CheckCircle,
+  Clock,
+  Eye,
+  File,
+  FileText,
+  User,
+} from "lucide-react"
 
 import { DocumentExpiry } from "@/lib/api-routes"
 import { useGet } from "@/hooks/use-common"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
+import { Separator } from "@/components/ui/separator"
+
+import DocumentViewer from "./document-viewer"
+
+// Document Details Dialog Component
+function DocumentDetailsDialog({ document }: { document: IDocumentExpiry }) {
+  const [isOpen, setIsOpen] = useState(false)
+
+  const getExpiryStatus = (expiryDate: string | Date) => {
+    const today = new Date()
+    const expiry =
+      typeof expiryDate === "string"
+        ? parseISO(expiryDate)
+        : new Date(expiryDate)
+
+    const daysUntilExpiry = differenceInDays(expiry, today)
+
+    if (daysUntilExpiry < 0) {
+      return {
+        status: "expired",
+        days: Math.abs(daysUntilExpiry),
+        color: "destructive" as const,
+      }
+    } else if (daysUntilExpiry <= 7) {
+      return {
+        status: "critical",
+        days: daysUntilExpiry,
+        color: "destructive" as const,
+      }
+    } else if (daysUntilExpiry <= 30) {
+      return {
+        status: "warning",
+        days: daysUntilExpiry,
+        color: "secondary" as const,
+      }
+    } else {
+      return {
+        status: "safe",
+        days: daysUntilExpiry,
+        color: "default" as const,
+      }
+    }
+  }
+
+  const expiryStatus = getExpiryStatus(document.expiryDate)
+
+  const formatDate = (date: string | Date | undefined) => {
+    if (!date) return "Not specified"
+    const dateObj = typeof date === "string" ? parseISO(date) : new Date(date)
+    return format(dateObj, "PPP")
+  }
+
+  return (
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <DialogTrigger asChild>
+        <Button variant="ghost" size="sm">
+          <Eye className="mr-2 h-4 w-4" />
+          View Details
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="flex items-center space-x-2">
+            <File className="h-5 w-5" />
+            <span>Document Details</span>
+            <Badge variant={expiryStatus.color}>
+              {expiryStatus.status === "expired" && "Expired"}
+              {expiryStatus.status === "critical" && "Critical"}
+              {expiryStatus.status === "warning" && "Warning"}
+            </Badge>
+          </DialogTitle>
+        </DialogHeader>
+
+        <div className="space-y-6">
+          {/* Document Basic Info */}
+          <div className="space-y-4">
+            <div>
+              <h3 className="text-lg font-semibold">{document.documentName}</h3>
+              <p className="text-muted-foreground">{document.docTypeName}</p>
+            </div>
+
+            <Separator />
+
+            {/* Status and Timing */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <div className="flex items-center space-x-2">
+                  <Clock className="text-muted-foreground h-4 w-4" />
+                  <span className="text-sm font-medium">Expiry Status</span>
+                </div>
+                <div className="pl-6">
+                  <Badge variant={expiryStatus.color} className="mb-2">
+                    {expiryStatus.status === "expired" && "Expired"}
+                    {expiryStatus.status === "critical" && "Critical"}
+                    {expiryStatus.status === "warning" && "Warning"}
+                  </Badge>
+                  <p className="text-muted-foreground text-sm">
+                    {expiryStatus.status === "expired" &&
+                      `${expiryStatus.days} days ago`}
+                    {expiryStatus.status === "critical" &&
+                      `${expiryStatus.days} days left`}
+                    {expiryStatus.status === "warning" &&
+                      `${expiryStatus.days} days left`}
+                  </p>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex items-center space-x-2">
+                  <Calendar className="text-muted-foreground h-4 w-4" />
+                  <span className="text-sm font-medium">Notification</span>
+                </div>
+                <div className="pl-6">
+                  <p className="text-sm">
+                    {document.notificationDaysBefore
+                      ? `${document.notificationDaysBefore} days before expiry`
+                      : "Not configured"}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <Separator />
+
+          {/* Dates */}
+          <div className="space-y-4">
+            <h4 className="font-medium">Important Dates</h4>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <div className="flex items-center space-x-2">
+                  <Calendar className="text-muted-foreground h-4 w-4" />
+                  <span className="text-sm font-medium">Issue Date</span>
+                </div>
+                <p className="pl-6 text-sm">{formatDate(document.issueDate)}</p>
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex items-center space-x-2">
+                  <Calendar className="text-muted-foreground h-4 w-4" />
+                  <span className="text-sm font-medium">Expiry Date</span>
+                </div>
+                <p className="pl-6 text-sm">
+                  {formatDate(document.expiryDate)}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Remarks */}
+          {document.remarks && (
+            <>
+              <Separator />
+              <div className="space-y-2">
+                <h4 className="font-medium">Remarks</h4>
+                <p className="text-muted-foreground bg-muted rounded-md p-3 text-sm">
+                  {document.remarks}
+                </p>
+              </div>
+            </>
+          )}
+
+          {/* Document File */}
+          {document.filePath && (
+            <>
+              <Separator />
+              <div className="space-y-2">
+                <h4 className="font-medium">Document File</h4>
+                <DocumentViewer
+                  filePath={document.filePath}
+                  documentName={document.documentName}
+                  size="default"
+                />
+              </div>
+            </>
+          )}
+
+          {/* Audit Info */}
+          <Separator />
+          <div className="space-y-4">
+            <h4 className="font-medium">Audit Information</h4>
+            <div className="grid grid-cols-2 gap-4 text-sm">
+              <div className="space-y-2">
+                <div className="flex items-center space-x-2">
+                  <User className="text-muted-foreground h-4 w-4" />
+                  <span className="font-medium">Created</span>
+                </div>
+                <p className="text-muted-foreground pl-6">
+                  {document.createdDate
+                    ? formatDate(document.createdDate)
+                    : "Not available"}
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex items-center space-x-2">
+                  <User className="text-muted-foreground h-4 w-4" />
+                  <span className="font-medium">Last Modified</span>
+                </div>
+                <p className="text-muted-foreground pl-6">
+                  {document.editDate
+                    ? formatDate(document.editDate)
+                    : "Not available"}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  )
+}
 
 export default function ExpiryReminder() {
   const {
@@ -153,7 +383,7 @@ export default function ExpiryReminder() {
                     </Badge>
                   </div>
                   <p className="text-muted-foreground mt-1 text-sm">
-                    Type ID: {doc.docTypeId}
+                    Name: {doc.docTypeName}
                     {doc.remarks && ` • ${doc.remarks}`}
                   </p>
                 </div>
@@ -167,6 +397,7 @@ export default function ExpiryReminder() {
                     {expiryStatus.status === "warning" &&
                       `${expiryStatus.days} days left`}
                   </span>
+                  <DocumentDetailsDialog document={doc} />
                 </div>
               </div>
             )

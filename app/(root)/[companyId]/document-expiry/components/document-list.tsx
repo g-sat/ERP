@@ -66,13 +66,6 @@ export default function DocumentList() {
 
   const columns: ColumnDef<IDocumentExpiry>[] = [
     {
-      accessorKey: "documentId",
-      header: "ID",
-      cell: ({ row }) => (
-        <div className="font-medium">{row.getValue("documentId")}</div>
-      ),
-    },
-    {
       accessorKey: "documentName",
       header: "Document Name",
       cell: ({ row }) => <div>{row.getValue("documentName")}</div>,
@@ -113,7 +106,7 @@ export default function DocumentList() {
         const isExpired = row.getValue("isExpired") as boolean
         return (
           <Badge variant={isExpired ? "destructive" : "default"}>
-            {isExpired ? "Expired" : "Active"}
+            {isExpired ? "Expired" : "Updated"}
           </Badge>
         )
       },
