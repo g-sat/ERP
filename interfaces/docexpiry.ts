@@ -1,36 +1,17 @@
-export interface DocumentExpiry {
-  id: string
-  documentType: string
-  documentNumber: string
-  issuedDate: Date
-  expiryDate: Date
-  entityName: string
-  entityType: "customer" | "customer" | "employee" | "company" | "other"
-  reminderDays: number
-  status: "valid" | "expiring" | "expired"
-  attachmentPath?: string
-  notes?: string
-  createdDate: Date
-  updatedDate: Date
-}
-
-export interface DocumentExpiryFormValues {
-  documentType: string
-  documentNumber: string
-  issuedDate: Date
-  expiryDate: Date
-  entityName: string
-  entityType: "customer" | "customer" | "employee" | "company" | "other"
-  reminderDays: number
-  attachmentPath?: string
-  notes?: string
-}
-
-export interface DocumentExpiryFilterValues {
-  documentType?: string
-  entityType?: string
-  status?: string
-  expiryDateFrom?: Date
-  expiryDateTo?: Date
-  entityName?: string
+export interface IDocumentExpiry {
+  documentId: number
+  companyId: number
+  docTypeId: number
+  docTypeName: string
+  documentName: string
+  filePath?: string
+  issueDate?: string | Date
+  expiryDate: string | Date
+  notificationDaysBefore?: number
+  isExpired: boolean
+  remarks?: string
+  createdById?: number
+  createdDate?: string | Date
+  editById?: number
+  editDate?: string | Date
 }

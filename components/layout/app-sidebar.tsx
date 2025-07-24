@@ -42,7 +42,6 @@ import {
 } from "lucide-react"
 
 import { useApprovalCounts } from "@/hooks/use-approval"
-import { Badge } from "@/components/ui/badge"
 import {
   Sidebar,
   SidebarContent,
@@ -72,11 +71,16 @@ export const menuData = {
       url: "/dashboard",
       icon: LayoutDashboard,
     },
-    // {
-    //   title: "Doc Expiry",
-    //   url: "/doc-expiry",
-    //   icon: FileText,
-    // },
+    {
+      title: "Approvals",
+      url: "/approvals",
+      icon: BarChart,
+    },
+    {
+      title: "Document Expiry",
+      url: "/document-expiry",
+      icon: FileText,
+    },
     // {
     //   title: "Chat",
     //   url: "/chat",
@@ -87,13 +91,6 @@ export const menuData = {
     //   url: "/todo",
     //   icon: ClipboardList,
     // },
-  ],
-  approvalNav: [
-    {
-      title: "Approvals",
-      url: "/approvals",
-      icon: BarChart,
-    },
   ],
   masterNav: [
     {
@@ -127,6 +124,7 @@ export const menuData = {
         { title: "Currency", url: "/master/currency", icon: Coins },
         { title: "Customer", url: "/master/customer", icon: Users },
         { title: "Department", url: "/master/department", icon: Building },
+        { title: "Document Type", url: "/master/documenttype", icon: FileText },
         {
           title: "Designation",
           url: "/master/designation",
@@ -273,7 +271,7 @@ export const menuData = {
 
 export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
   const { currentCompany } = useAuthStore()
-  const { pendingCount, refreshCounts } = useApprovalCounts()
+  const { refreshCounts } = useApprovalCounts()
   const [openMenu, setOpenMenu] = React.useState<string | null>(null)
   const [selectedMenu, setSelectedMenu] = React.useState<string | null>(null)
   const [selectedSubMenu, setSelectedSubMenu] = React.useState<string | null>(
@@ -315,14 +313,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
         return
       }
     }
-    for (const menu of menuData.approvalNav) {
-      if (currentPath === getUrlWithCompanyId(menu.url)) {
-        setSelectedMenu(menu.title)
-        setOpenMenu(null)
-        setSelectedSubMenu(null)
-        return
-      }
-    }
+
     for (const group of platformNavs) {
       for (const subItem of group.items || []) {
         if (currentPath === getUrlWithCompanyId(subItem.url)) {
@@ -381,35 +372,6 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                 <Link href={getUrlWithCompanyId(item.url)}>
                   {item.icon && <item.icon />}
                   <span>{item.title}</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          ))}
-        </SidebarGroup>
-        <SidebarGroup>
-          {menuData.approvalNav.map((item) => (
-            <SidebarMenuItem key={item.url}>
-              <SidebarMenuButton
-                asChild
-                onMouseEnter={() => setHoveredMenu(item.title)}
-                onMouseLeave={() => setHoveredMenu(null)}
-                className={`hover:bg-primary/20 hover:text-primary data-[active=true]:bg-primary/20 data-[active=true]:text-primary transition-colors duration-200 ${
-                  isMenuActive(item.title) || hoveredMenu === item.title
-                    ? "bg-primary/20 text-primary"
-                    : ""
-                }`}
-              >
-                <Link href={getUrlWithCompanyId(item.url)}>
-                  {item.icon && <item.icon />}
-                  <span>{item.title}</span>
-                  {item.title === "Approvals" && pendingCount > 0 && (
-                    <Badge
-                      variant="destructive"
-                      className="ml-auto h-5 w-5 rounded-full p-0 text-xs"
-                    >
-                      {pendingCount > 99 ? "99+" : pendingCount}
-                    </Badge>
-                  )}
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>

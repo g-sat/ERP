@@ -2,7 +2,6 @@
 
 import { ArInvoiceHdFormValues } from "@/schemas/invoice"
 import { useAuthStore } from "@/stores/auth-store"
-import { format } from "date-fns"
 import { UseFormReturn } from "react-hook-form"
 
 import AccountDetails from "./history/account-details"
@@ -27,20 +26,12 @@ export default function History({
   const dateFormat = decimals[0]?.dateFormat || "yyyy-MM-dd"
 
   const accountDetails = {
-    createdBy: String(form.getValues().createBy || ""),
-    createdDate: form.getValues().createDate
-      ? format(form.getValues().createDate as Date, dateFormat)
-      : "",
-    editBy: form.getValues().editBy ? String(form.getValues().editBy) : null,
-    editDate: form.getValues().editDate
-      ? format(form.getValues().editDate as Date, dateFormat)
-      : "",
-    cancelBy: form.getValues().cancelBy
-      ? String(form.getValues().cancelBy)
-      : "",
-    cancelDate: form.getValues().cancelDate
-      ? format(form.getValues().cancelDate as Date, dateFormat)
-      : "",
+    createdBy: "", // Default value since createBy doesn't exist in form schema
+    createdDate: "", // Default value since createDate doesn't exist in form schema
+    editBy: null, // Default value since editBy doesn't exist in form schema
+    editDate: "", // Default value since editDate doesn't exist in form schema
+    cancelBy: "", // Default value since cancelBy doesn't exist in form schema
+    cancelDate: "", // Default value since cancelDate doesn't exist in form schema
     balanceAmt: Number(form.getValues().balAmt || 0),
     balanceBaseAmt: Number(form.getValues().balLocalAmt || 0),
     paymentAmt: Number(form.getValues().payAmt || 0),

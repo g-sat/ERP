@@ -1,30 +1,40 @@
 import * as z from "zod"
 
 export const documentExpirySchema = z.object({
-  documentType: z.string().min(1, "Document type is required"),
-  documentNumber: z.string().min(1, "Document number is required"),
-  issuedDate: z.date({
-    required_error: "Issue date is required",
-  }),
-  expiryDate: z.date({
-    required_error: "Expiry date is required",
-  }),
-  entityName: z.string().min(1, "Entity name is required"),
-  entityType: z.enum(["customer", "customer", "employee", "company", "other"], {
-    required_error: "Please select an entity type",
-  }),
-  reminderDays: z.coerce
+  documentId: z.number().optional(),
+  docTypeId: z.number().min(1, "Document type is required"),
+  documentName: z
+    .string()
+    .min(1, "Document name is required")
+    .max(255, "Document name cannot exceed 255 characters"),
+  filePath: z.string().optional(),
+  issueDate: z.union([z.string(), z.date()]).optional(),
+  expiryDate: z.union([z.string(), z.date()]).refine((val) => {
+    if (!val) return false
+    const date = typeof val === "string" ? new Date(val) : val
+    return !isNaN(date.getTime())
+  }, "Valid expiry date is required"),
+  notificationDaysBefore: z
     .number()
-    .min(0, "Reminder days must be a positive number"),
-  attachmentPath: z.string().optional(),
-  notes: z.string().optional(),
+    .min(0, "Notification days must be 0 or greater")
+    .max(365, "Notification days cannot exceed 365")
+    .optional()
+    .default(30),
+  isExpired: z.boolean().default(false),
+  remarks: z
+    .string()
+    .max(500, "Remarks cannot exceed 500 characters")
+    .optional(),
 })
 
-export const documentExpiryFilterSchema = z.object({
-  documentType: z.string().optional(),
-  entityType: z.string().optional(),
-  status: z.string().optional(),
-  expiryDateFrom: z.date().optional(),
-  expiryDateTo: z.date().optional(),
-  entityName: z.string().optional(),
+export type DocumentExpiryFormValues = z.infer<typeof documentExpirySchema>
+
+export const documentExpiryFiltersSchema = z.object({
+  isExpired: z.boolean().optional(),
+  search: z.string().optional(),
+  sortOrder: z.enum(["asc", "desc"]).optional(),
 })
+
+export type DocumentExpiryFiltersValues = z.infer<
+  typeof documentExpiryFiltersSchema
+>

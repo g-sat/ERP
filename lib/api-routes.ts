@@ -835,9 +835,9 @@ export const GlPeriodClose = {
 }
 
 export const Company = {
-  get: "/api/company",
-  add: "/api/company",
-  delete: "/api/company",
+  get: "/company",
+  add: "/company",
+  delete: "/company",
 }
 
 // Checklist Endpoints
@@ -1005,75 +1005,75 @@ export const JobOrder_DebitNote = {
 
 // HRMS API Routes
 export const HrDepartment = {
-  get: "/api/hrms/departments",
-  getById: "/api/hrms/departments",
-  post: "/api/hrms/departments",
-  put: "/api/hrms/departments",
-  delete: "/api/hrms/departments",
+  get: "/hrms/departments",
+  getById: "/hrms/departments",
+  post: "/hrms/departments",
+  put: "/hrms/departments",
+  delete: "/hrms/departments",
 }
 
 export const HrPosition = {
-  get: "/api/hrms/positions",
-  getById: "/api/hrms/positions",
-  post: "/api/hrms/positions",
-  put: "/api/hrms/positions",
-  delete: "/api/hrms/positions",
+  get: "/hrms/positions",
+  getById: "/hrms/positions",
+  post: "/hrms/positions",
+  put: "/hrms/positions",
+  delete: "/hrms/positions",
 }
 
 export const HrEmployee = {
-  get: "/api/hrms/employees",
-  getById: "/api/hrms/employees",
-  post: "/api/hrms/employees",
-  put: "/api/hrms/employees",
-  delete: "/api/hrms/employees",
+  get: "/hrms/employees",
+  getById: "/hrms/employees",
+  post: "/hrms/employees",
+  put: "/hrms/employees",
+  delete: "/hrms/employees",
 }
 
 export const HrSalaryComponent = {
-  get: "/api/hrms/salary-components",
-  getById: "/api/hrms/salary-components",
-  post: "/api/hrms/salary-components",
-  put: "/api/hrms/salary-components",
-  delete: "/api/hrms/salary-components",
+  get: "/hrms/salary-components",
+  getById: "/hrms/salary-components",
+  post: "/hrms/salary-components",
+  put: "/hrms/salary-components",
+  delete: "/hrms/salary-components",
 }
 
 export const HrEmployeeSalaryComponent = {
-  get: "/api/hrms/employee-salary-components",
-  getById: "/api/hrms/employee-salary-components",
-  post: "/api/hrms/employee-salary-components",
-  put: "/api/hrms/employee-salary-components",
-  delete: "/api/hrms/employee-salary-components",
+  get: "/hrms/employee-salary-components",
+  getById: "/hrms/employee-salary-components",
+  post: "/hrms/employee-salary-components",
+  put: "/hrms/employee-salary-components",
+  delete: "/hrms/employee-salary-components",
 }
 
 export const HrSalaryIncrement = {
-  get: "/api/hrms/salary-increments",
-  getById: "/api/hrms/salary-increments",
-  post: "/api/hrms/salary-increments",
-  put: "/api/hrms/salary-increments",
-  delete: "/api/hrms/salary-increments",
+  get: "/hrms/salary-increments",
+  getById: "/hrms/salary-increments",
+  post: "/hrms/salary-increments",
+  put: "/hrms/salary-increments",
+  delete: "/hrms/salary-increments",
 }
 
 export const HrLoan = {
-  get: "/api/hrms/loans",
-  getById: "/api/hrms/loans",
-  post: "/api/hrms/loans",
-  put: "/api/hrms/loans",
-  delete: "/api/hrms/loans",
+  get: "/hrms/loans",
+  getById: "/hrms/loans",
+  post: "/hrms/loans",
+  put: "/hrms/loans",
+  delete: "/hrms/loans",
 }
 
 export const HrLeaveRequest = {
-  get: "/api/hrms/leave-requests",
-  getById: "/api/hrms/leave-requests",
-  post: "/api/hrms/leave-requests",
-  put: "/api/hrms/leave-requests",
-  delete: "/api/hrms/leave-requests",
+  get: "/hrms/leave-requests",
+  getById: "/hrms/leave-requests",
+  post: "/hrms/leave-requests",
+  put: "/hrms/leave-requests",
+  delete: "/hrms/leave-requests",
 }
 
 export const HrLeaveApproval = {
-  get: "/api/hrms/leave-approvals",
-  getById: "/api/hrms/leave-approvals",
-  post: "/api/hrms/leave-approvals",
-  put: "/api/hrms/leave-approvals",
-  delete: "/api/hrms/leave-approvals",
+  get: "/hrms/leave-approvals",
+  getById: "/hrms/leave-approvals",
+  post: "/hrms/leave-approvals",
+  put: "/hrms/leave-approvals",
+  delete: "/hrms/leave-approvals",
 }
 
 // Notification Endpoints
@@ -1089,24 +1089,24 @@ export const Notifications = {
 }
 
 export const HrPayrollTransaction = {
-  get: "/api/hrms/payroll-transactions",
-  getById: "/api/hrms/payroll-transactions",
-  post: "/api/hrms/payroll-transactions",
-  put: "/api/hrms/payroll-transactions",
-  delete: "/api/hrms/payroll-transactions",
+  get: "/hrms/payroll-transactions",
+  getById: "/hrms/payroll-transactions",
+  post: "/hrms/payroll-transactions",
+  put: "/hrms/payroll-transactions",
+  delete: "/hrms/payroll-transactions",
 }
 
 export const HrPayrollDetail = {
-  get: "/api/hrms/payroll-details",
-  getById: "/api/hrms/payroll-details",
-  post: "/api/hrms/payroll-details",
-  put: "/api/hrms/payroll-details",
-  delete: "/api/hrms/payroll-details",
+  get: "/hrms/payroll-details",
+  getById: "/hrms/payroll-details",
+  post: "/hrms/payroll-details",
+  put: "/hrms/payroll-details",
+  delete: "/hrms/payroll-details",
 }
 
 export const HrDashboard = {
-  getStats: "/api/hrms/dashboard/stats",
-  getEmployeeStats: "/api/hrms/dashboard/employee-stats",
+  getStats: "/hrms/dashboard/stats",
+  getEmployeeStats: "/hrms/dashboard/employee-stats",
 }
 
 // Approval Endpoints
@@ -1147,4 +1147,12 @@ export const ApprovalAction = {
 
 export const ApprovalCounts = {
   get: "/approval/counts",
+}
+
+export const DocumentExpiry = {
+  get: "/document/GetExpDocument",
+  getById: "/document/GetExpDocumentbyid",
+  add: "/document/SaveExpDocument",
+  update: "/document/SaveExpDocument",
+  delete: "/document/DeleteExpDocument",
 }
