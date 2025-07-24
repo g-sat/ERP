@@ -18,6 +18,7 @@ export interface IUser {
   userGroupName: string
   userRoleId: string
   userRoleName: string
+  profilePicture: string
 }
 
 export interface ICompany {

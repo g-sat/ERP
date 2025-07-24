@@ -111,3 +111,42 @@ export interface ICloneUserGroupRights {
   fromUserGroupId: number
   toUserGroupId: number
 }
+
+export interface IUserProfile {
+  // Core Profile
+  userId: number
+  firstName?: string | null
+  lastName?: string | null
+  birthDate?: string | null // ISO date string format (YYYY-MM-DD)
+  gender?: "M" | "F" | "O" | null // M: Male, F: Female, O: Other
+  profilePicture?: string | null // Base64 encoded image or URL
+  bio?: string | null
+
+  // Contact Information
+  primaryContactType?: "Phone" | "Email" | "WhatsApp" | "Skype" | "Other" | null
+  primaryContactValue?: string | null
+  secondaryContactType?:
+    | "Phone"
+    | "Email"
+    | "WhatsApp"
+    | "Skype"
+    | "Other"
+    | null
+  secondaryContactValue?: string | null
+
+  // Address Information
+  addressType?: "Home" | "Office" | "Billing" | "Shipping" | "Other" | null
+  street?: string | null
+  city?: string | null
+  state?: string | null
+  postalCode?: string | null
+  country?: string | null
+
+  // Preferences
+  languagePreference?: string | null // BCP 47 language tag (e.g., 'en-US')
+  themePreference?: "light" | "dark" | "system" | null
+  timezonePreference?: string | null // IANA timezone (e.g., 'America/New_York')
+
+  // Audit Field
+  lastUpdated: string // ISO 8601 datetime string
+}

@@ -45,7 +45,7 @@ export default async function AppLayout({
               <HeaderUserInfo />
 
               {/*Why comments because of the useauthstore not a async component*/}
-              {/* <NavUser01
+              {/* <NavUser
                 user={{
                   name: "shadcn",
                   email: "m@example.com",

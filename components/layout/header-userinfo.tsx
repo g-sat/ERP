@@ -2,18 +2,18 @@
 
 import { useAuthStore } from "@/stores/auth-store"
 
-import { NavUser01 } from "@/components/layout/nav-user01"
+import { NavUser } from "@/components/layout/nav-user"
 
 export function HeaderUserInfo() {
   const { user } = useAuthStore()
 
   return (
-    <NavUser01
+    <NavUser
       user={{
         name: user?.userName || "Guest",
         email: user?.userEmail || "admin@gmail.com",
         role: "admin",
-        avatar: "/avatars/man1.png",
+        avatar: user?.profilePicture || "/avatars/man1.png",
       }}
     />
   )

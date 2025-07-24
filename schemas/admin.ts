@@ -73,6 +73,7 @@ export type UserRoleFilterValues = z.infer<typeof userRoleFilterSchema>
 
 export const resetPasswordSchema = z.object({
   userId: z.number().min(1, { message: "User ID must be greater than 0" }),
+  userCode: z.string().min(1, { message: "User code is required" }),
   userPassword: z
     .string()
     .min(8, { message: "Password must be at least 8 characters long" }),
@@ -134,3 +135,59 @@ export const cloneUserGroupRightsSchema = z.object({
 export type CloneUserGroupRightsFormValues = z.infer<
   typeof cloneUserGroupRightsSchema
 >
+
+export const userProfileSchema = z.object({
+  userId: z.number(),
+  firstName: z.string().min(2, "First name must be at least 2 characters"),
+  lastName: z.string().min(2, "Last name must be at least 2 characters"),
+  birthDate: z.string().optional().default(""),
+  gender: z.enum(["M", "F", "O"]).optional().default("M"),
+  profilePicture: z.string().optional().default(""),
+  bio: z.string().max(500, "Bio must be less than 500 characters").optional(),
+
+  // Contact Information
+  primaryContactType: z
+    .enum(["Phone", "Email", "WhatsApp", "Skype", "Other"])
+    .optional()
+    .default("Phone"),
+  primaryContactValue: z.string().optional().default(""),
+  secondaryContactType: z
+    .enum(["Phone", "Email", "WhatsApp", "Skype", "Other"])
+    .optional()
+    .default("Phone"),
+  secondaryContactValue: z.string().optional().default(""),
+
+  // Address Information
+  addressType: z
+    .enum(["Home", "Office", "Billing", "Shipping", "Other"])
+    .optional()
+    .default("Home"),
+  street: z.string().optional().default(""),
+  city: z.string().optional().default(""),
+  state: z.string().optional().default(""),
+  postalCode: z.string().optional().default(""),
+  country: z.string().optional().default(""),
+
+  // Preferences
+  languagePreference: z.string().optional().default(""),
+  themePreference: z
+    .enum(["light", "dark", "system"])
+    .optional()
+    .default("light"),
+  timezonePreference: z.string().optional().default(""),
+})
+
+export type UserProfileFormValues = z.infer<typeof userProfileSchema>
+
+// Password Schema
+export const userPasswordSchema = z
+  .object({
+    userPassword: z.string().min(8, "Password must be at least 8 characters"),
+    confirmPassword: z.string().min(1, "Please confirm your password"),
+  })
+  .refine((data) => data.userPassword === data.confirmPassword, {
+    message: "Passwords don't match",
+    path: ["confirmPassword"],
+  })
+
+export type UserPasswordFormValues = z.infer<typeof userPasswordSchema>
