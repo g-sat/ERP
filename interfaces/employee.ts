@@ -8,6 +8,8 @@ export interface IEmployee {
   employeeSignature: string
   empCategoryId: number
   departmentId: number
+  departmentName?: string
+  designationName?: string
   employeeSex: string
   martialStatus: string
   employeeDOB?: Date
@@ -34,4 +36,37 @@ export interface IEmployeeLookup {
   id: number
   code: string
   name: string
+}
+
+export interface IEmployeeCategory {
+  companyId: number
+  empCategoryId: number
+  empCategoryCode: string
+  empCategoryName: string
+  remarks: string
+  isActive: boolean
+  createById?: number
+  createDate?: Date | string
+  editById?: number
+  editDate?: Date | string
+  createBy?: string
+  editBy?: string
+}
+
+export interface IEmployeeBank {
+  employeeId: number
+  itemNo: number
+  bankName: string
+  accountNo: string
+  swiftCode: string
+  iban: string
+  remarks: string
+  isDefaultBank: boolean
+  isActive: boolean
+  createById?: number
+  createDate?: Date | string
+  editById?: number
+  editDate?: Date | string
+  createBy?: string
+  editBy?: string
 }

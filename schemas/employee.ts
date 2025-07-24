@@ -44,3 +44,28 @@ export const employeeFiltersSchema = z.object({
 })
 
 export type EmployeeFiltersValues = z.infer<typeof employeeFiltersSchema>
+
+export const employeeCategorySchema = z.object({
+  companyId: z.number(),
+  empCategoryId: z.number(),
+  empCategoryCode: z.string(),
+  empCategoryName: z.string(),
+  remarks: z.string(),
+  isActive: z.boolean(),
+})
+
+export type EmployeeCategoryValues = z.infer<typeof employeeCategorySchema>
+
+export const employeeBankSchema = z.object({
+  employeeId: z.number(),
+  itemNo: z.number(),
+  bankName: z.string(),
+  accountNo: z.string(),
+  swiftCode: z.string(),
+  iban: z.string(),
+  remarks: z.string(),
+  isDefaultBank: z.boolean(),
+  isActive: z.boolean(),
+})
+
+export type EmployeeBankValues = z.infer<typeof employeeBankSchema>

@@ -499,6 +499,18 @@ export const Employee = {
   getByCode: "/master/getemployeebycode",
   add: "/master/saveemployee",
   delete: "/master/deleteemployee",
+  getBanks: "/master/getemployeebanks",
+  addBank: "/master/saveemployeebank",
+  updateBank: "/master/updateemployeebank",
+  deleteBank: "/master/deleteemployeebank",
+}
+
+// Employee Category Endpoints
+export const EmployeeCategory = {
+  get: "/master/getemployeecategory",
+  getByCode: "/master/getemployeecategorybycode",
+  add: "/master/saveemployeecategory",
+  delete: "/master/deleteemployeecategory",
 }
 
 // GST Endpoints

@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
-import { IEmployee, IEmployeeFilter } from "@/interfaces/employee"
+import { IEmployeeCategory, IEmployeeFilter } from "@/interfaces/employee"
 import { useAuthStore } from "@/stores/auth-store"
 import {
   DndContext,
@@ -36,7 +36,7 @@ import {
 import { useVirtualizer } from "@tanstack/react-virtual"
 import { format, isValid } from "date-fns"
 
-import { MasterTransactionId, ModuleId, TableName } from "@/lib/utils"
+import { TableName } from "@/lib/utils"
 import { useGetGridLayout } from "@/hooks/use-settings"
 import { Badge } from "@/components/ui/badge"
 import {
@@ -53,31 +53,33 @@ import {
   TableHeader as TanstackTableHeader,
 } from "@/components/ui/table"
 
-interface EmployeesTableProps {
-  data: IEmployee[]
+interface EmployeeCategoryTableProps {
+  data: IEmployeeCategory[]
   isLoading?: boolean
-  onEmployeeSelect?: (employee: IEmployee | undefined) => void
-  onDeleteEmployee?: (employeeId: string) => void
-  onEditEmployee?: (employee: IEmployee) => void
-  onCreateEmployee?: () => void
+  onEmployeeCategorySelect?: (
+    employeeCategory: IEmployeeCategory | undefined
+  ) => void
+  onDeleteEmployeeCategory?: (employeeCategoryId: string) => void
+  onEditEmployeeCategory?: (employeeCategory: IEmployeeCategory) => void
+  onCreateEmployeeCategory?: () => void
   onRefresh?: () => void
   onFilterChange?: (filters: IEmployeeFilter) => void
   moduleId?: number
   transactionId?: number
 }
 
-export function EmployeesTable({
+export function EmployeeCategoryTable({
   data,
   isLoading = false,
-  onEmployeeSelect,
-  onDeleteEmployee,
-  onEditEmployee,
-  onCreateEmployee,
+  onEmployeeCategorySelect,
+  onDeleteEmployeeCategory,
+  onEditEmployeeCategory,
+  onCreateEmployeeCategory,
   onRefresh,
   onFilterChange,
   moduleId,
   transactionId,
-}: EmployeesTableProps) {
+}: EmployeeCategoryTableProps) {
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
   const [sorting, setSorting] = useState<SortingState>([])
@@ -93,10 +95,10 @@ export function EmployeesTable({
   const { data: gridSettings } = useGetGridLayout(
     moduleId?.toString() || "",
     transactionId?.toString() || "",
-    TableName.employee
+    TableName.employee_category
   )
 
-  const columns: ColumnDef<IEmployee>[] = [
+  const columns: ColumnDef<IEmployeeCategory>[] = [
     {
       id: "actions",
       header: "Actions",
@@ -105,49 +107,23 @@ export function EmployeesTable({
       minSize: 80,
       maxSize: 150,
       cell: ({ row }) => {
-        const employee = row.original
+        const employeeCategory = row.original
         return (
           <TableActions
-            row={employee}
-            idAccessor="employeeId"
-            onView={onEmployeeSelect}
-            onEdit={onEditEmployee}
-            onDelete={onDeleteEmployee}
+            row={employeeCategory}
+            idAccessor="empCategoryId"
+            onView={onEmployeeCategorySelect}
+            onEdit={onEditEmployeeCategory}
+            onDelete={onDeleteEmployeeCategory}
           />
         )
       },
     },
     {
-      accessorKey: "employeePhoto",
-      header: "Photo",
-      cell: ({ row }) => {
-        const photo = row.getValue("employeePhoto") as string
-        return (
-          <div className="flex items-center justify-center">
-            {photo ? (
-              <img
-                src={`data:image/jpeg;base64,${photo}`}
-                alt="Employee photo"
-                className="h-10 w-10 rounded-full border object-cover"
-              />
-            ) : (
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-200">
-                <span className="text-xs text-gray-500">No Photo</span>
-              </div>
-            )}
-          </div>
-        )
-      },
-      size: 80,
-      minSize: 60,
-      maxSize: 100,
-      enableHiding: true,
-    },
-    {
-      accessorKey: "employeeCode",
+      accessorKey: "empCategoryCode",
       header: "Code",
       cell: ({ row }) => (
-        <div className="font-medium">{row.getValue("employeeCode")}</div>
+        <div className="font-medium">{row.getValue("empCategoryCode")}</div>
       ),
       size: 120,
       minSize: 50,
@@ -155,29 +131,12 @@ export function EmployeesTable({
       enableColumnFilter: true,
     },
     {
-      accessorKey: "employeeName",
+      accessorKey: "empCategoryName",
       header: "Name",
       size: 200,
       minSize: 50,
       maxSize: 300,
       enableColumnFilter: true,
-    },
-
-    {
-      accessorKey: "departmentName",
-      header: "Department",
-      cell: ({ row }) => <div>{row.getValue("departmentName") || "—"}</div>,
-      size: 150,
-      minSize: 50,
-      maxSize: 200,
-    },
-    {
-      accessorKey: "designationName",
-      header: "Designation",
-      cell: ({ row }) => <div>{row.getValue("designationName") || "—"}</div>,
-      size: 150,
-      minSize: 50,
-      maxSize: 200,
     },
     {
       accessorKey: "isActive",
@@ -205,9 +164,9 @@ export function EmployeesTable({
       maxSize: 300,
     },
     {
-      accessorKey: "createBy",
+      accessorKey: "createById",
       header: "Create By",
-      cell: ({ row }) => <div>{row.getValue("createBy") || "—"}</div>,
+      cell: ({ row }) => <div>{row.getValue("createById") || "—"}</div>,
       size: 120,
       minSize: 50,
       maxSize: 150,
@@ -230,9 +189,9 @@ export function EmployeesTable({
       maxSize: 200,
     },
     {
-      accessorKey: "editBy",
+      accessorKey: "editById",
       header: "Edit By",
-      cell: ({ row }) => <div>{row.getValue("editBy") || "—"}</div>,
+      cell: ({ row }) => <div>{row.getValue("editById") || "—"}</div>,
       size: 120,
       minSize: 50,
       maxSize: 150,
@@ -341,16 +300,6 @@ export function EmployeesTable({
   }
 
   useEffect(() => {
-    if (!data?.length && onFilterChange) {
-      const filters: IEmployeeFilter = {
-        search: searchQuery,
-        sortOrder: sorting[0]?.desc ? "desc" : "asc",
-      }
-      onFilterChange(filters)
-    }
-  }, [sorting, searchQuery])
-
-  useEffect(() => {
     if (gridSettings) {
       try {
         const colVisible = JSON.parse(gridSettings.grdColVisible || "{}")
@@ -375,18 +324,29 @@ export function EmployeesTable({
     }
   }, [gridSettings])
 
+  useEffect(() => {
+    if (!data?.length && onFilterChange) {
+      const filters: IEmployeeFilter = {
+        search: searchQuery,
+        sortOrder: sorting[0]?.desc ? "desc" : "asc",
+      }
+      onFilterChange(filters)
+    }
+  }, [sorting, searchQuery])
+
   return (
     <div>
       <TableHeader
         searchQuery={searchQuery}
         onSearchChange={handleSearch}
         onRefresh={onRefresh}
-        onCreate={onCreateEmployee}
+        onCreate={onCreateEmployeeCategory}
         columns={table.getAllLeafColumns()}
         data={data}
-        tableName={TableName.employee}
-        moduleId={moduleId || ModuleId.master}
-        transactionId={transactionId || MasterTransactionId.employee}
+        tableName={TableName.employee_category}
+        hideCreateButton={false}
+        moduleId={moduleId || 1}
+        transactionId={transactionId || 53}
       />
 
       <div
@@ -414,14 +374,16 @@ export function EmployeesTable({
                 </TableRow>
               ))}
             </TanstackTableHeader>
-            <CustomTableBody
-              table={table}
-              virtualRows={virtualRows}
-              paddingTop={paddingTop}
-              paddingBottom={paddingBottom}
-              isLoading={isLoading}
-              columns={columns}
-            />
+            <TableBody className="**:data-[slot=table-cell]:first:w-8">
+              <CustomTableBody
+                table={table}
+                virtualRows={virtualRows}
+                paddingTop={paddingTop}
+                paddingBottom={paddingBottom}
+                isLoading={isLoading}
+                columns={columns}
+              />
+            </TableBody>
           </Table>
         </DndContext>
       </div>

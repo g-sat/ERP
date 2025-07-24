@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
-import { IEmployee, IEmployeeFilter } from "@/interfaces/employee"
+import { IEmployeeBank } from "@/interfaces/employee"
 import { useAuthStore } from "@/stores/auth-store"
 import {
   DndContext,
@@ -39,45 +39,38 @@ import { format, isValid } from "date-fns"
 import { MasterTransactionId, ModuleId, TableName } from "@/lib/utils"
 import { useGetGridLayout } from "@/hooks/use-settings"
 import { Badge } from "@/components/ui/badge"
-import {
-  DraggableColumnHeader,
-  TableActions,
-  TableFooter,
-  TableHeader,
-} from "@/components/ui/data-table"
+import { DraggableColumnHeader, TableActions } from "@/components/ui/data-table"
 import { CustomTableBody } from "@/components/ui/data-table/data-table-body"
+import { TableHeader } from "@/components/ui/data-table/data-table-header"
 import {
   Table,
-  TableBody,
   TableRow,
   TableHeader as TanstackTableHeader,
 } from "@/components/ui/table"
 
-interface EmployeesTableProps {
-  data: IEmployee[]
+interface EmployeeBankTableProps {
+  data: IEmployeeBank[]
   isLoading?: boolean
-  onEmployeeSelect?: (employee: IEmployee | undefined) => void
-  onDeleteEmployee?: (employeeId: string) => void
-  onEditEmployee?: (employee: IEmployee) => void
-  onCreateEmployee?: () => void
+  onEmployeeBankSelect?: (employeeBank: IEmployeeBank | undefined) => void
+  onDeleteEmployeeBank?: (employeeBankId: string) => Promise<void>
+  onEditEmployeeBank?: (employeeBank: IEmployeeBank | undefined) => void
+  onCreateEmployeeBank?: () => void
   onRefresh?: () => void
-  onFilterChange?: (filters: IEmployeeFilter) => void
   moduleId?: number
   transactionId?: number
 }
 
-export function EmployeesTable({
+export function EmployeeBankTable({
   data,
   isLoading = false,
-  onEmployeeSelect,
-  onDeleteEmployee,
-  onEditEmployee,
-  onCreateEmployee,
+  onEmployeeBankSelect,
+  onDeleteEmployeeBank,
+  onEditEmployeeBank,
+  onCreateEmployeeBank,
   onRefresh,
-  onFilterChange,
   moduleId,
   transactionId,
-}: EmployeesTableProps) {
+}: EmployeeBankTableProps) {
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
   const [sorting, setSorting] = useState<SortingState>([])
@@ -93,10 +86,34 @@ export function EmployeesTable({
   const { data: gridSettings } = useGetGridLayout(
     moduleId?.toString() || "",
     transactionId?.toString() || "",
-    TableName.employee
+    TableName.employee_bank
   )
 
-  const columns: ColumnDef<IEmployee>[] = [
+  useEffect(() => {
+    if (gridSettings) {
+      try {
+        const colVisible = JSON.parse(gridSettings.grdColVisible || "{}")
+        const colOrder = JSON.parse(gridSettings.grdColOrder || "[]")
+        const colSize = JSON.parse(gridSettings.grdColSize || "{}")
+        const sort = JSON.parse(gridSettings.grdSort || "[]")
+
+        setColumnVisibility(colVisible)
+        setSorting(sort)
+
+        if (Object.keys(colSize).length > 0) {
+          setColumnSizing(colSize)
+        }
+
+        if (colOrder.length > 0) {
+          table.setColumnOrder(colOrder)
+        }
+      } catch (error) {
+        console.error("Error parsing grid settings:", error)
+      }
+    }
+  }, [gridSettings])
+
+  const columns: ColumnDef<IEmployeeBank>[] = [
     {
       id: "actions",
       header: "Actions",
@@ -105,79 +122,78 @@ export function EmployeesTable({
       minSize: 80,
       maxSize: 150,
       cell: ({ row }) => {
-        const employee = row.original
+        const employeeBank = row.original
         return (
           <TableActions
-            row={employee}
-            idAccessor="employeeId"
-            onView={onEmployeeSelect}
-            onEdit={onEditEmployee}
-            onDelete={onDeleteEmployee}
+            row={employeeBank}
+            idAccessor="itemNo"
+            onView={onEmployeeBankSelect}
+            onEdit={onEditEmployeeBank}
+            onDelete={onDeleteEmployeeBank}
           />
         )
       },
     },
     {
-      accessorKey: "employeePhoto",
-      header: "Photo",
-      cell: ({ row }) => {
-        const photo = row.getValue("employeePhoto") as string
-        return (
-          <div className="flex items-center justify-center">
-            {photo ? (
-              <img
-                src={`data:image/jpeg;base64,${photo}`}
-                alt="Employee photo"
-                className="h-10 w-10 rounded-full border object-cover"
-              />
-            ) : (
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-200">
-                <span className="text-xs text-gray-500">No Photo</span>
-              </div>
-            )}
-          </div>
-        )
-      },
-      size: 80,
-      minSize: 60,
-      maxSize: 100,
-      enableHiding: true,
-    },
-    {
-      accessorKey: "employeeCode",
-      header: "Code",
+      accessorKey: "itemNo",
+      header: "Item No",
       cell: ({ row }) => (
-        <div className="font-medium">{row.getValue("employeeCode")}</div>
+        <div className="font-medium">{row.getValue("itemNo")}</div>
       ),
-      size: 120,
+      size: 100,
       minSize: 50,
-      maxSize: 150,
-      enableColumnFilter: true,
+      maxSize: 120,
     },
     {
-      accessorKey: "employeeName",
-      header: "Name",
+      accessorKey: "bankName",
+      header: "Bank Name",
       size: 200,
       minSize: 50,
       maxSize: 300,
       enableColumnFilter: true,
     },
-
     {
-      accessorKey: "departmentName",
-      header: "Department",
-      cell: ({ row }) => <div>{row.getValue("departmentName") || "—"}</div>,
+      accessorKey: "accountNo",
+      header: "Account Number",
+      size: 150,
+      minSize: 50,
+      maxSize: 200,
+      enableColumnFilter: true,
+    },
+    {
+      accessorKey: "swiftCode",
+      header: "Swift Code",
+      cell: ({ row }) => <div>{row.getValue("swiftCode") || "—"}</div>,
+      size: 120,
+      minSize: 50,
+      maxSize: 150,
+    },
+    {
+      accessorKey: "iban",
+      header: "IBAN",
+      cell: ({ row }) => <div>{row.getValue("iban") || "—"}</div>,
       size: 150,
       minSize: 50,
       maxSize: 200,
     },
     {
-      accessorKey: "designationName",
-      header: "Designation",
-      cell: ({ row }) => <div>{row.getValue("designationName") || "—"}</div>,
-      size: 150,
+      accessorKey: "isDefaultBank",
+      header: "Default Bank",
+      cell: ({ row }) => (
+        <Badge
+          variant={row.getValue("isDefaultBank") ? "default" : "secondary"}
+        >
+          {row.getValue("isDefaultBank") ? (
+            <IconCircleCheckFilled className="mr-1 fill-green-500 dark:fill-green-400" />
+          ) : (
+            <IconSquareRoundedXFilled className="mr-1 fill-red-500 dark:fill-red-400" />
+          )}
+          {row.getValue("isDefaultBank") ? "Yes" : "No"}
+        </Badge>
+      ),
+      size: 120,
       minSize: 50,
-      maxSize: 200,
+      maxSize: 150,
     },
     {
       accessorKey: "isActive",
@@ -303,12 +319,6 @@ export function EmployeesTable({
     setSearchQuery(query)
     if (data && data.length > 0) {
       table.setGlobalFilter(query)
-    } else if (onFilterChange) {
-      const newFilters: IEmployeeFilter = {
-        search: query,
-        sortOrder: sorting[0]?.desc ? "desc" : "asc",
-      }
-      onFilterChange(newFilters)
     }
   }
 
@@ -324,56 +334,24 @@ export function EmployeesTable({
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event
-    if (active && over && active.id !== over.id) {
+
+    if (active.id !== over?.id) {
       const oldIndex = table
         .getAllColumns()
         .findIndex((col) => col.id === active.id)
       const newIndex = table
         .getAllColumns()
-        .findIndex((col) => col.id === over.id)
+        .findIndex((col) => col.id === over?.id)
+
       const newColumnOrder = arrayMove(
-        table.getAllColumns(),
+        table.getAllColumns().map((col) => col.id),
         oldIndex,
         newIndex
       )
-      table.setColumnOrder(newColumnOrder.map((col) => col.id))
+
+      table.setColumnOrder(newColumnOrder)
     }
   }
-
-  useEffect(() => {
-    if (!data?.length && onFilterChange) {
-      const filters: IEmployeeFilter = {
-        search: searchQuery,
-        sortOrder: sorting[0]?.desc ? "desc" : "asc",
-      }
-      onFilterChange(filters)
-    }
-  }, [sorting, searchQuery])
-
-  useEffect(() => {
-    if (gridSettings) {
-      try {
-        const colVisible = JSON.parse(gridSettings.grdColVisible || "{}")
-        const colOrder = JSON.parse(gridSettings.grdColOrder || "[]")
-        const colSize = JSON.parse(gridSettings.grdColSize || "{}")
-        const sort = JSON.parse(gridSettings.grdSort || "[]")
-
-        setColumnVisibility(colVisible)
-        setSorting(sort)
-
-        // Apply column sizing if available
-        if (Object.keys(colSize).length > 0) {
-          setColumnSizing(colSize)
-        }
-
-        if (colOrder.length > 0) {
-          table.setColumnOrder(colOrder)
-        }
-      } catch (error) {
-        console.error("Error parsing grid settings:", error)
-      }
-    }
-  }, [gridSettings])
 
   return (
     <div>
@@ -381,10 +359,11 @@ export function EmployeesTable({
         searchQuery={searchQuery}
         onSearchChange={handleSearch}
         onRefresh={onRefresh}
-        onCreate={onCreateEmployee}
+        onCreate={onCreateEmployeeBank}
         columns={table.getAllLeafColumns()}
         data={data}
-        tableName={TableName.employee}
+        tableName={TableName.employee_bank}
+        hideCreateButton={false}
         moduleId={moduleId || ModuleId.master}
         transactionId={transactionId || MasterTransactionId.employee}
       />
@@ -421,20 +400,11 @@ export function EmployeesTable({
               paddingBottom={paddingBottom}
               isLoading={isLoading}
               columns={columns}
+              noDataMessage="No employee banks found."
             />
           </Table>
         </DndContext>
       </div>
-
-      <TableFooter
-        currentPage={currentPage}
-        totalPages={Math.ceil(data.length / pageSize)}
-        pageSize={pageSize}
-        totalRecords={data.length}
-        onPageChange={handlePageChange}
-        onPageSizeChange={handlePageSizeChange}
-        pageSizeOptions={[10, 50, 100, 500]}
-      />
     </div>
   )
 }
