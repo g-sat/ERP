@@ -2,8 +2,9 @@
 
 import { NotificationType } from "@/interfaces/notification"
 import { formatDistanceToNow } from "date-fns"
-import { Bell, Check, Trash2, X } from "lucide-react"
+import { Bell, Check, Clock, Trash2, X } from "lucide-react"
 
+import { useApprovalCounts } from "@/hooks/use-approval"
 import { useNotifications } from "@/hooks/use-notifications"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -55,6 +56,11 @@ export function Notifications() {
     sendTestNotification,
   } = useNotifications()
 
+  const { pendingCount: approvalCount, refreshCounts } = useApprovalCounts()
+
+  // Calculate total count (general notifications + approval count)
+  const totalCount = unreadCount + approvalCount
+
   const handleNotificationClick = async (notificationId: string) => {
     await markAsRead(notificationId)
   }
@@ -67,14 +73,20 @@ export function Notifications() {
     await deleteNotification(notificationId)
   }
 
+  const handleRefreshApprovals = async () => {
+    await refreshCounts()
+  }
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="outline" size="icon" className="relative size-8">
-          <Bell className="h-5 w-5" />
-          {unreadCount > 0 && (
-            <span className="bg-primary text-primary-foreground absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full text-[10px] font-medium">
-              {unreadCount > 99 ? "99+" : unreadCount}
+          <Bell
+            className={`h-5 w-5 ${totalCount > 0 ? "animate-pulse" : ""}`}
+          />
+          {totalCount > 0 && (
+            <span className="bg-primary text-primary-foreground absolute -top-1 -right-1 flex h-4 w-4 animate-bounce items-center justify-center rounded-full text-[10px] font-medium">
+              {totalCount > 99 ? "99+" : totalCount}
             </span>
           )}
         </Button>
@@ -107,9 +119,38 @@ export function Notifications() {
                 Clear all
               </Button>
             )}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleRefreshApprovals}
+              className="h-6 px-2 text-xs"
+            >
+              <Clock className="mr-1 h-3 w-3" />
+              Refresh
+            </Button>
           </div>
         </div>
         <DropdownMenuSeparator />
+
+        {/* Approval Count Summary */}
+        {approvalCount > 0 && (
+          <div className="border-b bg-yellow-50/50 p-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Clock className="h-4 w-4 text-yellow-600" />
+                <span className="text-sm font-medium text-yellow-800">
+                  Pending Approvals
+                </span>
+              </div>
+              <Badge
+                variant="secondary"
+                className="bg-yellow-100 text-yellow-800"
+              >
+                {approvalCount}
+              </Badge>
+            </div>
+          </div>
+        )}
 
         <ScrollArea className="h-80">
           {isLoading ? (

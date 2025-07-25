@@ -1,28 +1,31 @@
 export interface IEmployee {
   employeeId: number
   companyId: number
-  employeeCode: string
-  employeeName: string
-  employeeOtherName: string
-  employeePhoto: string
-  employeeSignature: string
+  companyName?: string
+  code: string
+  firstName?: string
+  lastName?: string
+  otherName?: string
+  photo?: string
+  signature?: string
   empCategoryId: number
+  empCategoryName?: string
   departmentId: number
   departmentName?: string
-  designationName?: string
-  employeeSex: string
-  martialStatus: string
-  employeeDOB?: Date
-  employeeJoinDate?: Date
-  employeeLastDate?: Date
-  employeeOffEmailAdd: string
-  employeeOtherEmailAdd: string
-  createBy: string
-  editBy: string | null
-  createDate: Date | string
-  editDate: Date | string
-  isActive: boolean
-  remarks: string
+  gender?: string
+  martialStatus?: string
+  dob?: Date | string
+  joinDate?: Date | string
+  lastDate?: Date | string
+  phoneNo?: string
+  offEmailAdd?: string
+  otherEmailAdd?: string
+  remarks?: string
+  isActive?: boolean
+  createDate?: Date | string
+  editDate?: Date | string
+  createBy?: string
+  editBy?: string
 }
 
 export interface IEmployeeFilter {

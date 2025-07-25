@@ -48,7 +48,6 @@ import {
 import { CustomTableBody } from "@/components/ui/data-table/data-table-body"
 import {
   Table,
-  TableBody,
   TableRow,
   TableHeader as TanstackTableHeader,
 } from "@/components/ui/table"
@@ -118,21 +117,42 @@ export function EmployeesTable({
       },
     },
     {
-      accessorKey: "employeePhoto",
+      accessorKey: "photo",
       header: "Photo",
       cell: ({ row }) => {
-        const photo = row.getValue("employeePhoto") as string
+        const photo = row.getValue("photo") as string
         return (
           <div className="flex items-center justify-center">
             {photo ? (
               <img
-                src={`data:image/jpeg;base64,${photo}`}
+                src={
+                  photo.startsWith("data:") || photo.length > 100
+                    ? `data:image/jpeg;base64,${photo}`
+                    : photo
+                }
                 alt="Employee photo"
                 className="h-10 w-10 rounded-full border object-cover"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement
+                  target.src = "/uploads/employee/default.png"
+                }}
               />
             ) : (
               <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-200">
-                <span className="text-xs text-gray-500">No Photo</span>
+                <img
+                  src="/uploads/employee/default.png"
+                  alt="Default employee photo"
+                  className="h-10 w-10 rounded-full object-cover"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement
+                    target.style.display = "none"
+                    const parent = target.parentElement
+                    if (parent) {
+                      parent.innerHTML =
+                        '<span class="text-xs text-gray-500">No Photo</span>'
+                    }
+                  }}
+                />
               </div>
             )}
           </div>
@@ -141,43 +161,97 @@ export function EmployeesTable({
       size: 80,
       minSize: 60,
       maxSize: 100,
-      enableHiding: true,
     },
     {
-      accessorKey: "employeeCode",
+      accessorKey: "code",
       header: "Code",
       cell: ({ row }) => (
-        <div className="font-medium">{row.getValue("employeeCode")}</div>
+        <div className="font-medium">{row.getValue("code")}</div>
       ),
       size: 120,
-      minSize: 50,
-      maxSize: 150,
-      enableColumnFilter: true,
     },
     {
-      accessorKey: "employeeName",
+      id: "name",
       header: "Name",
+      cell: ({ row }) => {
+        const { firstName = "", lastName = "", otherName = "" } = row.original
+        return (
+          <span>{`${firstName} ${lastName} ${otherName}`.trim() || "—"}</span>
+        )
+      },
       size: 200,
-      minSize: 50,
-      maxSize: 300,
-      enableColumnFilter: true,
     },
-
+    {
+      accessorKey: "gender",
+      header: "Gender",
+      cell: ({ row }) => <div>{row.getValue("gender") || "—"}</div>,
+      size: 100,
+    },
+    {
+      accessorKey: "martialStatus",
+      header: "Marital Status",
+      cell: ({ row }) => <div>{row.getValue("martialStatus") || "—"}</div>,
+      size: 120,
+    },
+    {
+      accessorKey: "dob",
+      header: "DOB",
+      cell: ({ row }) => {
+        const raw = row.getValue("dob")
+        const date = raw ? new Date(raw as string) : null
+        return date && isValid(date) ? format(date, "dd/MM/yyyy") : "—"
+      },
+      size: 120,
+    },
+    {
+      accessorKey: "joinDate",
+      header: "Join Date",
+      cell: ({ row }) => {
+        const raw = row.getValue("joinDate")
+        const date = raw ? new Date(raw as string) : null
+        return date && isValid(date) ? format(date, "dd/MM/yyyy") : "—"
+      },
+      size: 120,
+    },
+    {
+      accessorKey: "lastDate",
+      header: "Last Date",
+      cell: ({ row }) => {
+        const raw = row.getValue("lastDate")
+        const date = raw ? new Date(raw as string) : null
+        return date && isValid(date) ? format(date, "dd/MM/yyyy") : "—"
+      },
+      size: 120,
+    },
+    {
+      accessorKey: "phoneNo",
+      header: "Phone",
+      cell: ({ row }) => <div>{row.getValue("phoneNo") || "—"}</div>,
+      size: 150,
+    },
+    {
+      accessorKey: "offEmailAdd",
+      header: "Office Email",
+      cell: ({ row }) => <div>{row.getValue("offEmailAdd") || "—"}</div>,
+      size: 180,
+    },
+    {
+      accessorKey: "otherEmailAdd",
+      header: "Other Email",
+      cell: ({ row }) => <div>{row.getValue("otherEmailAdd") || "—"}</div>,
+      size: 180,
+    },
     {
       accessorKey: "departmentName",
       header: "Department",
       cell: ({ row }) => <div>{row.getValue("departmentName") || "—"}</div>,
       size: 150,
-      minSize: 50,
-      maxSize: 200,
     },
     {
-      accessorKey: "designationName",
-      header: "Designation",
-      cell: ({ row }) => <div>{row.getValue("designationName") || "—"}</div>,
+      accessorKey: "empCategoryName",
+      header: "Category",
+      cell: ({ row }) => <div>{row.getValue("empCategoryName") || "—"}</div>,
       size: 150,
-      minSize: 50,
-      maxSize: 200,
     },
     {
       accessorKey: "isActive",
@@ -185,74 +259,52 @@ export function EmployeesTable({
       cell: ({ row }) => (
         <Badge variant={row.getValue("isActive") ? "default" : "secondary"}>
           {row.getValue("isActive") ? (
-            <IconCircleCheckFilled className="mr-1 fill-green-500 dark:fill-green-400" />
+            <IconCircleCheckFilled className="mr-1 fill-green-500" />
           ) : (
-            <IconSquareRoundedXFilled className="mr-1 fill-red-500 dark:fill-red-400" />
+            <IconSquareRoundedXFilled className="mr-1 fill-red-500" />
           )}
           {row.getValue("isActive") ? "Active" : "Inactive"}
         </Badge>
       ),
       size: 120,
-      minSize: 50,
-      maxSize: 150,
     },
     {
       accessorKey: "remarks",
       header: "Remarks",
       cell: ({ row }) => <div>{row.getValue("remarks") || "—"}</div>,
       size: 200,
-      minSize: 50,
-      maxSize: 300,
     },
     {
       accessorKey: "createBy",
       header: "Create By",
       cell: ({ row }) => <div>{row.getValue("createBy") || "—"}</div>,
       size: 120,
-      minSize: 50,
-      maxSize: 150,
     },
     {
       accessorKey: "createDate",
       header: "Create Date",
       cell: ({ row }) => {
         const raw = row.getValue("createDate")
-        let date: Date | null = null
-        if (typeof raw === "string") {
-          date = new Date(raw)
-        } else if (raw instanceof Date) {
-          date = raw
-        }
-        return date && isValid(date) ? format(date, datetimeFormat) : "-"
+        const date = raw ? new Date(raw as string) : null
+        return date && isValid(date) ? format(date, datetimeFormat) : "—"
       },
       size: 180,
-      minSize: 150,
-      maxSize: 200,
     },
     {
       accessorKey: "editBy",
       header: "Edit By",
       cell: ({ row }) => <div>{row.getValue("editBy") || "—"}</div>,
       size: 120,
-      minSize: 50,
-      maxSize: 150,
     },
     {
       accessorKey: "editDate",
       header: "Edit Date",
       cell: ({ row }) => {
         const raw = row.getValue("editDate")
-        let date: Date | null = null
-        if (typeof raw === "string") {
-          date = new Date(raw)
-        } else if (raw instanceof Date) {
-          date = raw
-        }
-        return date && isValid(date) ? format(date, datetimeFormat) : "-"
+        const date = raw ? new Date(raw as string) : null
+        return date && isValid(date) ? format(date, datetimeFormat) : "—"
       },
       size: 180,
-      minSize: 150,
-      maxSize: 200,
     },
   ]
 

@@ -49,7 +49,7 @@ export default async function AppLayout({
                 user={{
                   name: "shadcn",
                   email: "m@example.com",
-                  avatar: "/avatars/shadcn.jpg",
+                  avatar: "/uploads/avatars/shadcn.jpg",
                 }}
               /> */}
             </div>

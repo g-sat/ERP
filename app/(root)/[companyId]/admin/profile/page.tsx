@@ -51,12 +51,11 @@ import {
 import { Separator } from "@/components/ui/separator"
 import { Switch } from "@/components/ui/switch"
 import { Textarea } from "@/components/ui/textarea"
+import PhotoUpload from "@/components/ui-custom/photo-upload"
 
 export default function ProfilePage() {
   const { user } = useAuthStore()
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [currentProfilePicture, setCurrentProfilePicture] = useState<string>("")
-  const fileInputRef = useRef<HTMLInputElement>(null)
 
   // Password visibility states
   const [showNewPassword, setShowNewPassword] = useState(false)
@@ -234,181 +233,6 @@ export default function ProfilePage() {
     })
   }
 
-  // Avatar handling
-  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
-    if (file) {
-      if (!file.type.startsWith("image/")) {
-        toast.error("Please select an image file.")
-        return
-      }
-
-      if (file.size > 5 * 1024 * 1024) {
-        toast.error("Please select an image smaller than 5MB.")
-        return
-      }
-
-      const url = URL.createObjectURL(file)
-      setPreviewUrl(url)
-    }
-  }
-
-  // Convert file to Base64 with optional resizing
-  const convertFileToBase64 = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader()
-      reader.readAsDataURL(file)
-      reader.onload = () => {
-        const result = reader.result as string
-
-        // Create an image element to check dimensions
-        const img = new Image()
-        img.onload = () => {
-          // Optional: Resize image if it's too large
-          const maxWidth = 400
-          const maxHeight = 400
-
-          if (img.width > maxWidth || img.height > maxHeight) {
-            // Create canvas to resize image
-            const canvas = document.createElement("canvas")
-            const ctx = canvas.getContext("2d")
-
-            // Calculate new dimensions maintaining aspect ratio
-            let { width, height } = img
-            if (width > height) {
-              if (width > maxWidth) {
-                height = (height * maxWidth) / width
-                width = maxWidth
-              }
-            } else {
-              if (height > maxHeight) {
-                width = (width * maxHeight) / height
-                height = maxHeight
-              }
-            }
-
-            canvas.width = width
-            canvas.height = height
-
-            // Draw resized image
-            ctx?.drawImage(img, 0, 0, width, height)
-
-            // Convert to Base64 with compression
-            const resizedBase64 = canvas.toDataURL("image/jpeg", 0.8)
-            const base64 = resizedBase64.split(",")[1]
-            resolve(base64)
-          } else {
-            // Use original image with compression
-            const canvas = document.createElement("canvas")
-            const ctx = canvas.getContext("2d")
-            canvas.width = img.width
-            canvas.height = img.height
-            ctx?.drawImage(img, 0, 0)
-
-            const compressedBase64 = canvas.toDataURL("image/jpeg", 0.8)
-            const base64 = compressedBase64.split(",")[1]
-            resolve(base64)
-          }
-        }
-        img.onerror = () => reject(new Error("Failed to load image"))
-        img.src = result
-      }
-      reader.onerror = (error) => reject(error)
-    })
-  }
-
-  const handleAvatarUpload = async () => {
-    if (!fileInputRef.current?.files?.[0]) {
-      toast.error("Please select an image to upload.")
-      return
-    }
-
-    try {
-      const file = fileInputRef.current.files[0]
-
-      // Convert image to Base64
-      const base64Image = await convertFileToBase64(file)
-
-      // Get current form values
-      const currentFormData = profileForm.getValues()
-
-      // Update form with Base64 image data
-      const updatedFormData = {
-        ...currentFormData,
-        profilePicture: base64Image,
-      }
-
-      console.log("Uploading avatar as Base64...")
-      console.log("Image size:", file.size, "bytes")
-      console.log("Base64 length:", base64Image.length)
-
-      // Call the profile update API with the new avatar
-      updateProfileMutation.mutate(updatedFormData, {
-        onSuccess: () => {
-          toast.success("Avatar Updated", {
-            description: "Your profile picture has been updated successfully.",
-          })
-
-          // Update current profile picture state
-          setCurrentProfilePicture(base64Image)
-
-          // Clear the file input and preview
-          if (fileInputRef.current) {
-            fileInputRef.current.value = ""
-          }
-          setPreviewUrl(null)
-        },
-        onError: (error) => {
-          console.error("Failed to upload avatar:", error)
-          toast.error("Failed to upload avatar. Please try again.")
-        },
-      })
-    } catch (error) {
-      console.error("Error converting image to Base64:", error)
-      toast.error("Failed to process image. Please try again.")
-    }
-  }
-
-  const handleRemoveAvatar = async () => {
-    try {
-      // Get current form values
-      const currentFormData = profileForm.getValues()
-
-      // Update form with empty profile picture
-      const updatedFormData = {
-        ...currentFormData,
-        profilePicture: "",
-      }
-
-      console.log("Removing avatar...")
-
-      // Call the profile update API to remove avatar
-      updateProfileMutation.mutate(updatedFormData, {
-        onSuccess: () => {
-          toast.success("Avatar Removed", {
-            description: "Your profile picture has been removed successfully.",
-          })
-
-          // Update current profile picture state
-          setCurrentProfilePicture("")
-
-          // Clear the file input and preview
-          if (fileInputRef.current) {
-            fileInputRef.current.value = ""
-          }
-          setPreviewUrl(null)
-        },
-        onError: (error) => {
-          console.error("Failed to remove avatar:", error)
-          toast.error("Failed to remove avatar. Please try again.")
-        },
-      })
-    } catch (error) {
-      console.error("Error removing avatar:", error)
-      toast.error("Failed to remove avatar. Please try again.")
-    }
-  }
-
   const handleSecuritySettingChange = (
     setting: keyof typeof securitySettings
   ) => {
@@ -497,28 +321,22 @@ export default function ProfilePage() {
                   <Avatar className="h-32 w-32">
                     <AvatarImage
                       src={
-                        previewUrl ||
-                        (currentProfilePicture
-                          ? `data:image/jpeg;base64,${currentProfilePicture}`
-                          : "/avatars/man1.png")
+                        currentProfilePicture
+                          ? currentProfilePicture.startsWith("data:")
+                            ? currentProfilePicture
+                            : currentProfilePicture
+                          : "/uploads/avatars/default.png"
                       }
                       alt={user?.userName || "User"}
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement
+                        target.src = "/uploads/avatars/default.png"
+                      }}
                     />
                     <AvatarFallback className="text-2xl">
                       {getInitials(user?.userName || "User")}
                     </AvatarFallback>
                   </Avatar>
-
-                  {previewUrl && (
-                    <Button
-                      size="icon"
-                      variant="destructive"
-                      className="absolute -top-2 -right-2 h-6 w-6 rounded-full"
-                      onClick={handleRemoveAvatar}
-                    >
-                      <X className="h-3 w-3" />
-                    </Button>
-                  )}
                 </div>
 
                 <div className="text-center">
@@ -532,47 +350,18 @@ export default function ProfilePage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="avatar-upload">Upload New Picture</Label>
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="outline"
-                    onClick={() => fileInputRef.current?.click()}
-                    disabled={updateProfileMutation.isPending}
-                  >
-                    <Camera className="mr-2 h-4 w-4" />
-                    Choose Image
-                  </Button>
-                  <input
-                    ref={fileInputRef}
-                    id="avatar-upload"
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={handleFileSelect}
-                  />
-                  {previewUrl && (
-                    <Button
-                      onClick={handleAvatarUpload}
-                      disabled={updateProfileMutation.isPending}
-                    >
-                      {updateProfileMutation.isPending ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Uploading...
-                        </>
-                      ) : (
-                        <>
-                          <Upload className="mr-2 h-4 w-4" />
-                          Upload
-                        </>
-                      )}
-                    </Button>
-                  )}
-                </div>
-                <div className="text-muted-foreground text-xs">
-                  <p>• Supported: JPG, PNG, GIF (max 5MB)</p>
-                  <p>• Recommended: 400x400 pixels</p>
-                </div>
+                <PhotoUpload
+                  currentPhoto={currentProfilePicture}
+                  onPhotoChange={(filePath) => {
+                    // Update the profile picture in the form
+                    profileForm.setValue("profilePicture", filePath)
+                    setCurrentProfilePicture(filePath)
+                  }}
+                  isDisabled={updateProfileMutation.isPending}
+                  label="Upload New Picture"
+                  photoType="profile"
+                  userId={user?.userId || ""}
+                />
               </div>
             </CardContent>
           </Card>
@@ -1102,7 +891,7 @@ export default function ProfilePage() {
                       type="button"
                       variant="ghost"
                       size="sm"
-                      className="absolute top-0 right-0 h-full px-3 py-2 hover:bg-transparent"
+                      className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
                       onClick={() => setShowNewPassword(!showNewPassword)}
                     >
                       {showNewPassword ? (
@@ -1132,7 +921,7 @@ export default function ProfilePage() {
                       type="button"
                       variant="ghost"
                       size="sm"
-                      className="absolute top-0 right-0 h-full px-3 py-2 hover:bg-transparent"
+                      className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
                       onClick={() =>
                         setShowConfirmPassword(!showConfirmPassword)
                       }

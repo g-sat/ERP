@@ -160,7 +160,7 @@ export function CompanySwitcher() {
                 ) : (
                   <>
                     <Image
-                      src={`/companies/${currentCompany.companyId}.svg`}
+                      src={`/uploads/companies/${currentCompany.companyId}.svg`}
                       alt={currentCompany.companyName || "Company Logo"}
                       width={32}
                       height={32}
@@ -239,7 +239,7 @@ export function CompanySwitcher() {
                   )}
                 >
                   <Image
-                    src={`/companies/${company.companyId}.svg`}
+                    src={`/uploads/companies/${company.companyId}.svg`}
                     alt={company.companyName || "Company Logo"}
                     width={24}
                     height={24}

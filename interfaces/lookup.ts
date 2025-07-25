@@ -354,6 +354,12 @@ export interface IUserLookup {
   userName: string
 }
 
+export interface IEmpCategoryLookup {
+  empCategoryId: number
+  empCategoryCode: string
+  empCategoryName: string
+}
+
 export interface ISubCategoryLookup {
   subCategoryId: number
   subCategoryCode: string

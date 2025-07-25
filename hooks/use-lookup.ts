@@ -14,6 +14,7 @@ import {
   IDepartmentLookup,
   IDocumentTypeLookup,
   IDynamicLookup,
+  IEmpCategoryLookup,
   IGstCategoryLookup,
   IJobOrderLookup,
   ILandingTypeLookup,
@@ -822,6 +823,22 @@ export const useSubCategoryLookup = () => {
     queryFn: async () => {
       try {
         const data = await getData(Lookup.getSubCategory)
+        return data?.data || []
+      } catch (error) {
+        handleApiError(error)
+      }
+    },
+    refetchOnWindowFocus: false,
+  })
+}
+
+export const useEmpCategoryLookup = () => {
+  return useQuery<IEmpCategoryLookup[]>({
+    queryKey: ["empcategory-lookUp"],
+    placeholderData: keepPreviousData,
+    queryFn: async () => {
+      try {
+        const data = await getData(Lookup.getEmpCategory)
         return data?.data || []
       } catch (error) {
         handleApiError(error)

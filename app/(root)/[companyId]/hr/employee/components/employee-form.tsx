@@ -11,16 +11,20 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { format } from "date-fns"
 import { useForm } from "react-hook-form"
 
+import { clientDateFormat, parseDate } from "@/lib/format"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Form } from "@/components/ui/form"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import CompanyAutocomplete from "@/components/ui-custom/autocomplete-company"
 import DepartmentAutocomplete from "@/components/ui-custom/autocomplete-department"
+import EmployeeCategoryAutocomplete from "@/components/ui-custom/autocomplete-empcategory"
 import CustomAccordion, {
   CustomAccordionContent,
   CustomAccordionItem,
   CustomAccordionTrigger,
 } from "@/components/ui-custom/custom-accordion"
+import { CustomDateNew } from "@/components/ui-custom/custom-date-new"
 import CustomInput from "@/components/ui-custom/custom-input"
 import CustomSwitch from "@/components/ui-custom/custom-switch"
 import CustomTextarea from "@/components/ui-custom/custom-textarea"
@@ -62,30 +66,50 @@ export function EmployeeForm({
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
   const form = useForm<EmployeeFormValues>({
     resolver: zodResolver(employeeSchema),
-    defaultValues: initialData
-      ? { ...initialData }
-      : {
-          employeeId: 0,
-          employeeCode: "",
-          employeeName: "",
-          employeeOtherName: "",
-          employeePhoto: "",
-          employeeSignature: "",
-          empCategoryId: 0,
-          departmentId: 0,
-          employeeSex: "",
-          martialStatus: "",
-          employeeDOB: undefined,
-          employeeJoinDate: undefined,
-          employeeLastDate: undefined,
-          employeeOffEmailAdd: "",
-          employeeOtherEmailAdd: "",
-          isActive: true,
-          remarks: "",
-        },
+    defaultValues: {
+      employeeId: initialData?.employeeId ?? 0,
+      companyId: initialData?.companyId ?? 0,
+      code: initialData?.code ?? "",
+      firstName: initialData?.firstName ?? "",
+      lastName: initialData?.lastName ?? "",
+      otherName: initialData?.otherName ?? "",
+      photo: initialData?.photo ?? "",
+      signature: initialData?.signature ?? "",
+      empCategoryId: initialData?.empCategoryId ?? 0,
+      departmentId: initialData?.departmentId ?? 0,
+      gender: initialData?.gender ?? "",
+      martialStatus: initialData?.martialStatus ?? "",
+      dob: initialData?.dob
+        ? format(
+            parseDate(initialData.dob as string) || new Date(),
+            clientDateFormat
+          )
+        : "",
+      joinDate: initialData?.joinDate
+        ? format(
+            parseDate(initialData.joinDate as string) || new Date(),
+            clientDateFormat
+          )
+        : undefined,
+      lastDate: initialData?.lastDate
+        ? format(
+            parseDate(initialData.lastDate as string) || new Date(),
+            clientDateFormat
+          )
+        : "",
+      phoneNo: initialData?.phoneNo ?? "",
+      offEmailAdd: initialData?.offEmailAdd ?? "",
+      otherEmailAdd: initialData?.otherEmailAdd ?? "",
+      isActive:
+        typeof initialData?.isActive === "boolean"
+          ? initialData.isActive
+          : true,
+      remarks: initialData?.remarks ?? "",
+    },
   })
 
   const onSubmit = (data: EmployeeFormValues) => {
+    console.log(data)
     submitAction(data)
   }
 
@@ -102,98 +126,131 @@ export function EmployeeForm({
 
               <TabsContent value="employee" className="space-y-4">
                 <div className="grid gap-2">
-                  <div className="grid grid-cols-3 gap-2">
+                  <div className="grid grid-cols-5 gap-2">
+                    <CompanyAutocomplete
+                      form={form}
+                      name="companyId"
+                      label="Company"
+                      isDisabled={isReadOnly}
+                      isRequired={true}
+                    />
                     <CustomInput
                       form={form}
-                      name="employeeCode"
+                      name="code"
                       label="Employee Code"
-                      isRequired
+                      isDisabled={true}
+                    />
+                    <CustomInput
+                      form={form}
+                      name="firstName"
+                      label="First Name"
+                      isRequired={true}
                       isDisabled={isReadOnly}
                     />
                     <CustomInput
                       form={form}
-                      name="employeeName"
-                      label="Employee Name"
-                      isRequired
+                      name="lastName"
+                      label="Last Name"
+                      isRequired={true}
                       isDisabled={isReadOnly}
                     />
-
                     <CustomInput
                       form={form}
-                      name="employeeOtherName"
+                      name="otherName"
                       label="Other Name"
                       isDisabled={isReadOnly}
                     />
-                  </div>
-
-                  <div className="grid grid-cols-1 gap-2">
-                    <PhotoUpload
-                      currentPhoto={form.watch("employeePhoto")}
-                      onPhotoChange={(base64Photo) =>
-                        form.setValue("employeePhoto", base64Photo)
-                      }
-                      isDisabled={isReadOnly}
-                      label="Employee Photo"
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-2">
                     <DepartmentAutocomplete
                       form={form}
                       name="departmentId"
                       label="Department"
                       isDisabled={isReadOnly}
-                      isRequired
+                      isRequired={true}
                     />
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-2">
+                    <EmployeeCategoryAutocomplete
+                      form={form}
+                      name="empCategoryId"
+                      label="Employee Category"
+                      isDisabled={isReadOnly}
+                      isRequired={true}
+                    />
                     <CustomInput
                       form={form}
-                      name="employeeSex"
+                      name="gender"
                       label="Gender"
-                      isRequired
+                      isRequired={true}
                       isDisabled={isReadOnly}
                     />
                     <CustomInput
                       form={form}
                       name="martialStatus"
                       label="Marital Status"
-                      isRequired
                       isDisabled={isReadOnly}
                     />
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-2">
+                    <CustomDateNew
+                      form={form}
+                      name="dob"
+                      label="Date of Birth"
+                      isDisabled={isReadOnly}
+                      isRequired={true}
+                    />
+                    <CustomDateNew
+                      form={form}
+                      name="joinDate"
+                      label="Join Date"
+                      isRequired={true}
+                      isDisabled={isReadOnly}
+                    />
+                    <CustomDateNew
+                      form={form}
+                      name="lastDate"
+                      label="Last Date"
+                      isDisabled={isReadOnly}
+                    />
                     <CustomInput
                       form={form}
-                      name="employeeOffEmailAdd"
+                      name="offEmailAdd"
                       label="Office Email"
                       type="email"
                       isDisabled={isReadOnly}
                     />
                     <CustomInput
                       form={form}
-                      name="employeeOtherEmailAdd"
+                      name="phoneNo"
+                      label="Phone Number"
+                      isDisabled={isReadOnly}
+                    />
+                    <CustomInput
+                      form={form}
+                      name="otherEmailAdd"
                       label="Other Email"
                       type="email"
                       isDisabled={isReadOnly}
                     />
-                  </div>
-
-                  <CustomTextarea
-                    form={form}
-                    name="remarks"
-                    label="Remarks"
-                    isDisabled={isReadOnly}
-                  />
-                  <div className="grid grid-cols-1 gap-2">
+                    <CustomTextarea
+                      form={form}
+                      name="remarks"
+                      label="Remarks"
+                      isDisabled={isReadOnly}
+                    />
                     <CustomSwitch
                       form={form}
                       name="isActive"
                       label="Active Status"
                       activeColor="success"
                       isDisabled={isReadOnly}
+                    />
+                  </div>
+                  <div className="grid grid-cols-1 gap-2">
+                    <PhotoUpload
+                      currentPhoto={form.watch("photo")}
+                      onPhotoChange={(filePath) =>
+                        form.setValue("photo", filePath)
+                      }
+                      isDisabled={isReadOnly}
+                      label="Employee Photo"
+                      photoType="employee"
+                      userId={initialData?.employeeId?.toString() || ""}
                     />
                   </div>
 
@@ -286,35 +343,35 @@ export function EmployeeForm({
               <div className="grid grid-cols-3 gap-2">
                 <CustomInput
                   form={form}
-                  name="employeeCode"
+                  name="code"
                   label="Employee Code"
                   isRequired
                   isDisabled={isReadOnly}
                 />
                 <CustomInput
                   form={form}
-                  name="employeeName"
-                  label="Employee Name"
+                  name="firstName"
+                  label="First Name"
                   isRequired
                   isDisabled={isReadOnly}
                 />
-
                 <CustomInput
                   form={form}
-                  name="employeeOtherName"
-                  label="Other Name"
+                  name="lastName"
+                  label="Last Name"
+                  isRequired
                   isDisabled={isReadOnly}
                 />
               </div>
 
               <div className="grid grid-cols-1 gap-2">
                 <PhotoUpload
-                  currentPhoto={form.watch("employeePhoto")}
-                  onPhotoChange={(base64Photo) =>
-                    form.setValue("employeePhoto", base64Photo)
-                  }
+                  currentPhoto={form.watch("photo")}
+                  onPhotoChange={(filePath) => form.setValue("photo", filePath)}
                   isDisabled={isReadOnly}
                   label="Employee Photo"
+                  photoType="employee"
+                  userId=""
                 />
               </div>
 
@@ -331,7 +388,7 @@ export function EmployeeForm({
               <div className="grid grid-cols-2 gap-2">
                 <CustomInput
                   form={form}
-                  name="employeeSex"
+                  name="gender"
                   label="Gender"
                   isRequired
                   isDisabled={isReadOnly}
@@ -348,14 +405,14 @@ export function EmployeeForm({
               <div className="grid grid-cols-2 gap-2">
                 <CustomInput
                   form={form}
-                  name="employeeOffEmailAdd"
+                  name="offEmailAdd"
                   label="Office Email"
                   type="email"
                   isDisabled={isReadOnly}
                 />
                 <CustomInput
                   form={form}
-                  name="employeeOtherEmailAdd"
+                  name="otherEmailAdd"
                   label="Other Email"
                   type="email"
                   isDisabled={isReadOnly}

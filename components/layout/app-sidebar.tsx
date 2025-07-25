@@ -42,6 +42,7 @@ import {
 } from "lucide-react"
 
 import { useApprovalCounts } from "@/hooks/use-approval"
+import { Badge } from "@/components/ui/badge"
 import {
   Sidebar,
   SidebarContent,
@@ -80,6 +81,15 @@ export const menuData = {
       title: "Document Expiry",
       url: "/document-expiry",
       icon: FileText,
+    },
+    {
+      title: "HR",
+      url: "/hr",
+      icon: GalleryVerticalEnd,
+      items: [
+        { title: "Employee", url: "/hr/employee", icon: User },
+        { title: "Attendance", url: "/hr/attendance", icon: ClipboardList },
+      ],
     },
     // {
     //   title: "Chat",
@@ -130,7 +140,7 @@ export const menuData = {
           url: "/master/designation",
           icon: GraduationCap,
         },
-        { title: "Employee", url: "/master/employee", icon: User },
+        //{ title: "Employee", url: "/master/employee", icon: User },
         { title: "Gst", url: "/master/gst", icon: Receipt },
         { title: "Order Type", url: "/master/ordertype", icon: ClipboardList },
         {
@@ -271,7 +281,7 @@ export const menuData = {
 
 export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
   const { currentCompany } = useAuthStore()
-  const { refreshCounts } = useApprovalCounts()
+  const { pendingCount: approvalCount, refreshCounts } = useApprovalCounts()
   const [openMenu, setOpenMenu] = React.useState<string | null>(null)
   const [selectedMenu, setSelectedMenu] = React.useState<string | null>(null)
   const [selectedSubMenu, setSelectedSubMenu] = React.useState<string | null>(
@@ -359,21 +369,101 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
         <SidebarGroup>
           {menuData.mainNav.map((item) => (
             <SidebarMenuItem key={item.url}>
-              <SidebarMenuButton
-                asChild
-                onMouseEnter={() => setHoveredMenu(item.title)}
-                onMouseLeave={() => setHoveredMenu(null)}
-                className={`hover:bg-primary/20 hover:text-primary data-[active=true]:bg-primary/20 data-[active=true]:text-primary transition-colors duration-200 ${
-                  isMenuActive(item.title) || hoveredMenu === item.title
-                    ? "bg-primary/20 text-primary"
-                    : ""
-                }`}
-              >
-                <Link href={getUrlWithCompanyId(item.url)}>
-                  {item.icon && <item.icon />}
-                  <span>{item.title}</span>
-                </Link>
-              </SidebarMenuButton>
+              {item.items ? (
+                // Collapsible menu item with sub-items
+                <Collapsible
+                  asChild
+                  open={openMenu === item.title}
+                  className="group/collapsible"
+                >
+                  <div>
+                    <CollapsibleTrigger asChild>
+                      <SidebarMenuButton
+                        tooltip={item.title}
+                        onClick={() => handleMenuClick(item.title)}
+                        onMouseEnter={() => setHoveredMenu(item.title)}
+                        onMouseLeave={() => setHoveredMenu(null)}
+                        className={`hover:bg-primary/20 hover:text-primary data-[active=true]:bg-primary/20 data-[active=true]:text-primary transition-colors duration-200 ${
+                          isMenuActive(item.title) || hoveredMenu === item.title
+                            ? "bg-primary/20 text-primary"
+                            : ""
+                        }`}
+                      >
+                        {item.icon && <item.icon />}
+                        <span>{item.title}</span>
+                        {item.title === "Approvals" && approvalCount > 0 && (
+                          <Badge
+                            variant="secondary"
+                            className="ml-auto animate-pulse bg-yellow-100 text-yellow-800"
+                          >
+                            {approvalCount}
+                          </Badge>
+                        )}
+                        <ChevronRightIcon className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
+                      </SidebarMenuButton>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent>
+                      <SidebarMenuSub>
+                        {item.items.map((subItem) => (
+                          <SidebarMenuSubItem key={subItem.title}>
+                            <SidebarMenuSubButton
+                              asChild
+                              onMouseEnter={() =>
+                                setHoveredSubMenu(subItem.title)
+                              }
+                              onMouseLeave={() => setHoveredSubMenu(null)}
+                              className={`hover:bg-primary/20 hover:text-primary data-[active=true]:bg-primary/20 data-[active=true]:text-primary transition-colors duration-200 ${
+                                isSubMenuActive(subItem.title) ||
+                                hoveredSubMenu === subItem.title
+                                  ? "bg-primary/20 text-primary"
+                                  : ""
+                              }`}
+                            >
+                              <Link
+                                href={getUrlWithCompanyId(subItem.url)}
+                                onClick={() =>
+                                  handleSubMenuClick(item.title, subItem.title)
+                                }
+                              >
+                                {subItem.icon && (
+                                  <subItem.icon className="h-4 w-4" />
+                                )}
+                                <span>{subItem.title}</span>
+                              </Link>
+                            </SidebarMenuSubButton>
+                          </SidebarMenuSubItem>
+                        ))}
+                      </SidebarMenuSub>
+                    </CollapsibleContent>
+                  </div>
+                </Collapsible>
+              ) : (
+                // Simple menu item without sub-items (direct link)
+                <SidebarMenuButton
+                  asChild
+                  tooltip={item.title}
+                  onMouseEnter={() => setHoveredMenu(item.title)}
+                  onMouseLeave={() => setHoveredMenu(null)}
+                  className={`hover:bg-primary/20 hover:text-primary data-[active=true]:bg-primary/20 data-[active=true]:text-primary transition-colors duration-200 ${
+                    isMenuActive(item.title) || hoveredMenu === item.title
+                      ? "bg-primary/20 text-primary"
+                      : ""
+                  }`}
+                >
+                  <Link href={getUrlWithCompanyId(item.url)}>
+                    {item.icon && <item.icon />}
+                    <span>{item.title}</span>
+                    {item.title === "Approvals" && approvalCount > 0 && (
+                      <Badge
+                        variant="secondary"
+                        className="ml-auto animate-pulse bg-yellow-100 text-yellow-800"
+                      >
+                        {approvalCount}
+                      </Badge>
+                    )}
+                  </Link>
+                </SidebarMenuButton>
+              )}
             </SidebarMenuItem>
           ))}
         </SidebarGroup>

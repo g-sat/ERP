@@ -170,7 +170,7 @@ export default function EmployeePage() {
   } = useGetEmployeeBanks(selectedEmployee?.employeeId)
 
   const employeeBanks =
-    (employeeBanksResponse as ApiResponse<IEmployeeBank>)?.data || []
+    (employeeBanksResponse?.data as IEmployeeBank[][])?.flat() || []
 
   // Refetch when filters change
   useEffect(() => {
@@ -403,7 +403,9 @@ export default function EmployeePage() {
     setDeleteConfirmation({
       isOpen: true,
       id: employeeId,
-      name: employeeToDelete.employeeName,
+      name:
+        `${employeeToDelete.firstName || ""} ${employeeToDelete.lastName || ""}`.trim() ||
+        employeeToDelete.code,
       type: "employee",
     })
   }
@@ -629,7 +631,7 @@ export default function EmployeePage() {
       {/* Employee Form Dialog */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogContent
-          className="sm:max-w-2xl"
+          className="max-h-[90vh] w-[80vw] !max-w-none overflow-y-auto"
           onPointerDownOutside={(e) => e.preventDefault()}
         >
           <DialogHeader>
@@ -646,7 +648,6 @@ export default function EmployeePage() {
                   : "View employee details."}
             </DialogDescription>
           </DialogHeader>
-          <Separator />
           <EmployeeForm
             initialData={modalMode !== "create" ? selectedEmployee : undefined}
             submitAction={handleFormSubmit}
@@ -670,7 +671,7 @@ export default function EmployeePage() {
         onOpenChange={setIsEmployeeBankModalOpen}
       >
         <DialogContent
-          className="sm:max-w-2xl"
+          className="sm:max-w-3xl"
           onPointerDownOutside={(e) => e.preventDefault()}
         >
           <DialogHeader>
@@ -709,7 +710,7 @@ export default function EmployeePage() {
       {/* Employee Category Form Dialog */}
       <Dialog open={isCategoryModalOpen} onOpenChange={setIsCategoryModalOpen}>
         <DialogContent
-          className="sm:max-w-2xl"
+          className="sm:max-w-3xl"
           onPointerDownOutside={(e) => e.preventDefault()}
         >
           <DialogHeader>
@@ -748,8 +749,11 @@ export default function EmployeePage() {
         onOpenChange={setShowLoadDialogEmployee}
         onLoad={handleLoadExistingEmployee}
         onCancel={() => setExistingEmployee(null)}
-        code={existingEmployee?.employeeCode}
-        name={existingEmployee?.employeeName}
+        code={existingEmployee?.code}
+        name={
+          `${existingEmployee?.firstName || ""} ${existingEmployee?.lastName || ""}`.trim() ||
+          existingEmployee?.code
+        }
         typeLabel="Employee"
         isLoading={saveMutation.isPending || updateMutation.isPending}
       />

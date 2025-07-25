@@ -2,36 +2,49 @@ import * as z from "zod"
 
 export const employeeSchema = z.object({
   employeeId: z.number(),
-
-  employeeCode: z
+  companyId: z.number(),
+  code: z.string().min(1, { message: "Employee code is required" }),
+  firstName: z.string().min(1, { message: "First name is required" }),
+  lastName: z.string().min(1, { message: "Last name is required" }),
+  otherName: z.string().optional().default(""),
+  photo: z.string().optional().default(""),
+  signature: z.string().optional().default(""),
+  empCategoryId: z
+    .number()
+    .min(1, { message: "Employee category is required" }),
+  departmentId: z.number().min(1, { message: "Department is required" }),
+  gender: z.string().min(1, { message: "Gender is required" }),
+  martialStatus: z.string().optional().default(""),
+  dob: z
+    .union([z.date(), z.string()])
+    .refine((val) => val !== "" && val !== null && val !== undefined, {
+      message: "Date of birth is required",
+    }),
+  joinDate: z
+    .union([z.date(), z.string()])
+    .refine((val) => val !== "" && val !== null && val !== undefined, {
+      message: "Join date is required",
+    }),
+  lastDate: z.union([z.date(), z.string()]).optional().default(""),
+  phoneNo: z.string().optional().default(""),
+  offEmailAdd: z
     .string()
-    .min(1, { message: "employee code is required" })
-    .max(50, { message: "employee code cannot exceed 50 characters" }),
-  employeeName: z
+    .email({ message: "Invalid office email format" })
+    .optional()
+    .default(""),
+  otherEmailAdd: z
     .string()
-    .min(2, { message: "employee name must be at least 2 characters" })
-    .max(150, { message: "employee name cannot exceed 150 characters" }),
-  employeeOtherName: z
-    .string()
-    .max(150, { message: "other name cannot exceed 150 characters" })
-    .optional(),
-  employeePhoto: z.string().optional(),
-  employeeSignature: z.string().optional(),
-  empCategoryId: z.number(),
-  departmentId: z.number(),
-  employeeSex: z.string(),
-  martialStatus: z.string(),
-  employeeDOB: z.date().optional(),
-  employeeJoinDate: z.date().optional(),
-  employeeLastDate: z.date().optional(),
-  employeeOffEmailAdd: z.string().email().optional(),
-  employeeOtherEmailAdd: z.string().email().optional(),
-
+    .optional()
+    .default("")
+    .refine((val) => !val || z.string().email().safeParse(val).success, {
+      message: "Invalid other email format",
+    }),
   isActive: z.boolean().default(true),
   remarks: z
     .string()
     .max(255, { message: "Remarks cannot exceed 255 characters" })
-    .optional(),
+    .optional()
+    .default(""),
 })
 
 export type EmployeeFormValues = z.infer<typeof employeeSchema>

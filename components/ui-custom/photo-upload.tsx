@@ -1,7 +1,7 @@
 "use client"
 
 import { useRef, useState } from "react"
-import { Camera, Upload, X } from "lucide-react"
+import { Camera, Loader2, Upload, X } from "lucide-react"
 import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
@@ -10,10 +10,12 @@ import { Label } from "@/components/ui/label"
 
 interface PhotoUploadProps {
   currentPhoto?: string
-  onPhotoChange: (base64Photo: string) => void
+  onPhotoChange: (filePath: string) => void
   isDisabled?: boolean
   label?: string
   className?: string
+  photoType?: "employee" | "profile"
+  userId?: string
 }
 
 export default function PhotoUpload({
@@ -22,73 +24,12 @@ export default function PhotoUpload({
   isDisabled = false,
   label = "Employee Photo",
   className = "",
+  photoType = "employee",
+  userId = "",
 }: PhotoUploadProps) {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+  const [isUploading, setIsUploading] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
-
-  // Convert file to Base64 with optional resizing
-  const convertFileToBase64 = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader()
-      reader.readAsDataURL(file)
-      reader.onload = () => {
-        const result = reader.result as string
-
-        // Create an image element to check dimensions
-        const img = new Image()
-        img.onload = () => {
-          // Optional: Resize image if it's too large
-          const maxWidth = 400
-          const maxHeight = 400
-
-          if (img.width > maxWidth || img.height > maxHeight) {
-            // Create canvas to resize image
-            const canvas = document.createElement("canvas")
-            const ctx = canvas.getContext("2d")
-
-            // Calculate new dimensions maintaining aspect ratio
-            let { width, height } = img
-            if (width > height) {
-              if (width > maxWidth) {
-                height = (height * maxWidth) / width
-                width = maxWidth
-              }
-            } else {
-              if (height > maxHeight) {
-                width = (width * maxHeight) / height
-                height = maxHeight
-              }
-            }
-
-            canvas.width = width
-            canvas.height = height
-
-            // Draw resized image
-            ctx?.drawImage(img, 0, 0, width, height)
-
-            // Convert to Base64 with compression
-            const resizedBase64 = canvas.toDataURL("image/jpeg", 0.8)
-            const base64 = resizedBase64.split(",")[1]
-            resolve(base64)
-          } else {
-            // Use original image with compression
-            const canvas = document.createElement("canvas")
-            const ctx = canvas.getContext("2d")
-            canvas.width = img.width
-            canvas.height = img.height
-            ctx?.drawImage(img, 0, 0)
-
-            const compressedBase64 = canvas.toDataURL("image/jpeg", 0.8)
-            const base64 = compressedBase64.split(",")[1]
-            resolve(base64)
-          }
-        }
-        img.onerror = () => reject(new Error("Failed to load image"))
-        img.src = result
-      }
-      reader.onerror = (error) => reject(error)
-    })
-  }
 
   const handleFileSelect = async (
     event: React.ChangeEvent<HTMLInputElement>
@@ -110,12 +51,36 @@ export default function PhotoUpload({
         const url = URL.createObjectURL(file)
         setPreviewUrl(url)
 
-        // Convert to Base64
-        const base64Photo = await convertFileToBase64(file)
-        onPhotoChange(base64Photo)
+        // Upload file to server
+        setIsUploading(true)
+        const formData = new FormData()
+        formData.append("file", file)
+        formData.append("photoType", photoType)
+        formData.append("userId", userId)
+
+        const response = await fetch("/api/photos/upload", {
+          method: "POST",
+          body: formData,
+        })
+
+        if (!response.ok) {
+          throw new Error("Upload failed")
+        }
+
+        const result = await response.json()
+
+        if (result.success) {
+          toast.success("Photo uploaded successfully")
+          onPhotoChange(result.filePath)
+        } else {
+          throw new Error(result.error || "Upload failed")
+        }
       } catch (error) {
-        console.error("Error processing image:", error)
-        toast.error("Failed to process image. Please try again.")
+        console.error("Error uploading photo:", error)
+        toast.error("Failed to upload photo. Please try again.")
+        setPreviewUrl(null)
+      } finally {
+        setIsUploading(false)
       }
     }
   }
@@ -133,9 +98,19 @@ export default function PhotoUpload({
       return previewUrl
     }
     if (currentPhoto) {
-      return `data:image/jpeg;base64,${currentPhoto}`
+      // Check if it's a base64 string or a file path
+      if (currentPhoto.startsWith("data:") || currentPhoto.length > 100) {
+        // It's a base64 string
+        return `data:image/jpeg;base64,${currentPhoto}`
+      } else {
+        // It's a file path
+        return currentPhoto
+      }
     }
-    return null
+    // Return default photo based on type
+    return photoType === "employee"
+      ? "/uploads/employee/default.png"
+      : "/uploads/avatars/default.png"
   }
 
   return (
@@ -147,9 +122,17 @@ export default function PhotoUpload({
           <div className="flex h-32 w-32 items-center justify-center overflow-hidden rounded-full border-2 border-dashed border-gray-300 bg-gray-50">
             {getPhotoUrl() ? (
               <img
-                src={getPhotoUrl()!}
-                alt="Employee photo"
+                src={getPhotoUrl()}
+                alt="Photo"
                 className="h-full w-full object-cover"
+                onError={(e) => {
+                  // Fallback to default image if the photo fails to load
+                  const target = e.target as HTMLImageElement
+                  target.src =
+                    photoType === "employee"
+                      ? "/uploads/employee/default.png"
+                      : "/uploads/avatars/default.png"
+                }}
               />
             ) : (
               <div className="text-center">
@@ -159,16 +142,22 @@ export default function PhotoUpload({
             )}
           </div>
 
-          {getPhotoUrl() && (
+          {getPhotoUrl() && !isUploading && (
             <Button
               size="icon"
               variant="destructive"
-              className="absolute -top-2 -right-2 h-6 w-6 rounded-full"
+              className="absolute -right-2 -top-2 h-6 w-6 rounded-full"
               onClick={handleRemovePhoto}
               disabled={isDisabled}
             >
               <X className="h-3 w-3" />
             </Button>
+          )}
+
+          {isUploading && (
+            <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/20">
+              <Loader2 className="h-6 w-6 animate-spin text-white" />
+            </div>
           )}
         </div>
 
@@ -176,10 +165,19 @@ export default function PhotoUpload({
           <Button
             variant="outline"
             onClick={() => fileInputRef.current?.click()}
-            disabled={isDisabled}
+            disabled={isDisabled || isUploading}
           >
-            <Upload className="mr-2 h-4 w-4" />
-            Choose Photo
+            {isUploading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Uploading...
+              </>
+            ) : (
+              <>
+                <Upload className="mr-2 h-4 w-4" />
+                Choose Photo
+              </>
+            )}
           </Button>
           <input
             ref={fileInputRef}
@@ -187,7 +185,7 @@ export default function PhotoUpload({
             accept="image/*"
             className="hidden"
             onChange={handleFileSelect}
-            disabled={isDisabled}
+            disabled={isDisabled || isUploading}
           />
         </div>
 

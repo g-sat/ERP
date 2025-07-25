@@ -141,6 +141,7 @@ export const Lookup = {
   getAccountSetup: "/master/getaccountsetuplookup",
   getCategory: "/master/getcategorylookup",
   getSubCategory: "/master/getsubcategorylookup",
+  getEmpCategory: "/master/getempcategorylookup",
   getCoaCategory1: "/master/getcoacategory1lookup",
   getCoaCategory2: "/master/getcoacategory2lookup",
   getCoaCategory3: "/master/getcoacategory3lookup",
@@ -1017,75 +1018,75 @@ export const JobOrder_DebitNote = {
 
 // HRMS API Routes
 export const HrDepartment = {
-  get: "/hrms/departments",
-  getById: "/hrms/departments",
-  post: "/hrms/departments",
-  put: "/hrms/departments",
-  delete: "/hrms/departments",
+  get: "/hr/departments",
+  getById: "/hr/departments",
+  post: "/hr/departments",
+  put: "/hr/departments",
+  delete: "/hr/departments",
 }
 
 export const HrPosition = {
-  get: "/hrms/positions",
-  getById: "/hrms/positions",
-  post: "/hrms/positions",
-  put: "/hrms/positions",
-  delete: "/hrms/positions",
+  get: "/hr/positions",
+  getById: "/hr/positions",
+  post: "/hr/positions",
+  put: "/hr/positions",
+  delete: "/hr/positions",
 }
 
 export const HrEmployee = {
-  get: "/hrms/employees",
-  getById: "/hrms/employees",
-  post: "/hrms/employees",
-  put: "/hrms/employees",
-  delete: "/hrms/employees",
+  get: "/hr/employees",
+  getById: "/hr/employees",
+  post: "/hr/employees",
+  put: "/hr/employees",
+  delete: "/hr/employees",
 }
 
 export const HrSalaryComponent = {
-  get: "/hrms/salary-components",
-  getById: "/hrms/salary-components",
-  post: "/hrms/salary-components",
-  put: "/hrms/salary-components",
-  delete: "/hrms/salary-components",
+  get: "/hr/salary-components",
+  getById: "/hr/salary-components",
+  post: "/hr/salary-components",
+  put: "/hr/salary-components",
+  delete: "/hr/salary-components",
 }
 
 export const HrEmployeeSalaryComponent = {
-  get: "/hrms/employee-salary-components",
-  getById: "/hrms/employee-salary-components",
-  post: "/hrms/employee-salary-components",
-  put: "/hrms/employee-salary-components",
-  delete: "/hrms/employee-salary-components",
+  get: "/hr/employee-salary-components",
+  getById: "/hr/employee-salary-components",
+  post: "/hr/employee-salary-components",
+  put: "/hr/employee-salary-components",
+  delete: "/hr/employee-salary-components",
 }
 
 export const HrSalaryIncrement = {
-  get: "/hrms/salary-increments",
-  getById: "/hrms/salary-increments",
-  post: "/hrms/salary-increments",
-  put: "/hrms/salary-increments",
-  delete: "/hrms/salary-increments",
+  get: "/hr/salary-increments",
+  getById: "/hr/salary-increments",
+  post: "/hr/salary-increments",
+  put: "/hr/salary-increments",
+  delete: "/hr/salary-increments",
 }
 
 export const HrLoan = {
-  get: "/hrms/loans",
-  getById: "/hrms/loans",
-  post: "/hrms/loans",
-  put: "/hrms/loans",
-  delete: "/hrms/loans",
+  get: "/hr/loans",
+  getById: "/hr/loans",
+  post: "/hr/loans",
+  put: "/hr/loans",
+  delete: "/hr/loans",
 }
 
 export const HrLeaveRequest = {
-  get: "/hrms/leave-requests",
-  getById: "/hrms/leave-requests",
-  post: "/hrms/leave-requests",
-  put: "/hrms/leave-requests",
-  delete: "/hrms/leave-requests",
+  get: "/hr/leave-requests",
+  getById: "/hr/leave-requests",
+  post: "/hr/leave-requests",
+  put: "/hr/leave-requests",
+  delete: "/hr/leave-requests",
 }
 
 export const HrLeaveApproval = {
-  get: "/hrms/leave-approvals",
-  getById: "/hrms/leave-approvals",
-  post: "/hrms/leave-approvals",
-  put: "/hrms/leave-approvals",
-  delete: "/hrms/leave-approvals",
+  get: "/hr/leave-approvals",
+  getById: "/hr/leave-approvals",
+  post: "/hr/leave-approvals",
+  put: "/hr/leave-approvals",
+  delete: "/hr/leave-approvals",
 }
 
 // Notification Endpoints
@@ -1101,24 +1102,24 @@ export const Notifications = {
 }
 
 export const HrPayrollTransaction = {
-  get: "/hrms/payroll-transactions",
-  getById: "/hrms/payroll-transactions",
-  post: "/hrms/payroll-transactions",
-  put: "/hrms/payroll-transactions",
-  delete: "/hrms/payroll-transactions",
+  get: "/hr/payroll-transactions",
+  getById: "/hr/payroll-transactions",
+  post: "/hr/payroll-transactions",
+  put: "/hr/payroll-transactions",
+  delete: "/hr/payroll-transactions",
 }
 
 export const HrPayrollDetail = {
-  get: "/hrms/payroll-details",
-  getById: "/hrms/payroll-details",
-  post: "/hrms/payroll-details",
-  put: "/hrms/payroll-details",
-  delete: "/hrms/payroll-details",
+  get: "/hr/payroll-details",
+  getById: "/hr/payroll-details",
+  post: "/hr/payroll-details",
+  put: "/hr/payroll-details",
+  delete: "/hr/payroll-details",
 }
 
 export const HrDashboard = {
-  getStats: "/hrms/dashboard/stats",
-  getEmployeeStats: "/hrms/dashboard/employee-stats",
+  getStats: "/hr/dashboard/stats",
+  getEmployeeStats: "/hr/dashboard/employee-stats",
 }
 
 // Approval Endpoints

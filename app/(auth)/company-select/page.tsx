@@ -178,7 +178,7 @@ export default function CompanySelectPage() {
                   <div className="flex items-center gap-3">
                     <div className="bg-muted flex h-10 w-10 items-center justify-center overflow-hidden rounded-lg">
                       <Image
-                        src={`/companies/${company.companyId}.svg`}
+                        src={`/uploads/companies/${company.companyId}.svg`}
                         alt={company.companyName || "Company Logo"}
                         width={40}
                         height={40}

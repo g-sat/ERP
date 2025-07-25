@@ -10,10 +10,19 @@ export function HeaderUserInfo() {
   // Helper function to get the proper avatar source
   const getAvatarSource = () => {
     if (user?.profilePicture) {
-      // If profile picture is Base64 data, add the data URL prefix
-      return `data:image/jpeg;base64,${user.profilePicture}`
+      // Check if it's a base64 string or a file path
+      if (
+        user.profilePicture.startsWith("data:") ||
+        user.profilePicture.length > 100
+      ) {
+        // It's a base64 string
+        return `data:image/jpeg;base64,${user.profilePicture}`
+      } else {
+        // It's a file path
+        return user.profilePicture
+      }
     }
-    return "/avatars/man1.png"
+    return "/uploads/avatars/default.png"
   }
 
   return (
