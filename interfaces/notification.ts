@@ -32,7 +32,7 @@ export interface NotificationHistory {
   status: NotificationStatus
   readDate?: Date | string
   createdDate: Date | string
-  updatedDate: Date | string
+  editDate: Date | string
   // Navigation data for opening specific pages
   navigation?: {
     type: "page" | "popup" | "external"

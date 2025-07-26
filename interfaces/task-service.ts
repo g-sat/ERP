@@ -13,7 +13,7 @@ export interface ITaskService {
   portTypeId?: number | null
   isActive: boolean
   createdDate?: string
-  updatedDate?: string | null
+  editDate?: string | null
   createdBy?: number | null
   updatedBy?: number | null
 }

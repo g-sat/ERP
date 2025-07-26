@@ -317,7 +317,7 @@ export const useNotificationStore = create<NotificationState>()(
                 (notification: Record<string, unknown>) => ({
                   ...notification,
                   createdDate: new Date(notification.createdDate as string),
-                  updatedDate: new Date(notification.updatedDate as string),
+                  editDate: new Date(notification.editDate as string),
                   readDate: notification.readDate
                     ? new Date(notification.readDate as string)
                     : undefined,
@@ -399,7 +399,7 @@ export const useNotificationStore = create<NotificationState>()(
               const processedNotification = {
                 ...notification,
                 createdDate: new Date(notification.createdDate as string),
-                updatedDate: new Date(notification.updatedDate as string),
+                editDate: new Date(notification.editDate as string),
                 readDate: notification.readDate
                   ? new Date(notification.readDate as string)
                   : undefined,

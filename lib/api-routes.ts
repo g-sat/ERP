@@ -23,6 +23,14 @@ export const DocumentType = {
   delete: "/admin/deletedocument",
 }
 
+// Attendance Endpoints
+export const Hr_Attendance = {
+  get: "/hr/GetAttendanceEmployee",
+  getById: "/hr/GetAttendanceEmployeeById",
+  save: "/hr/SaveAttendanceEmployee",
+  delete: "/hr/DeleteAttendanceEmployee",
+}
+
 // User Endpoints
 export const User = {
   get: "/admin/getuser",
@@ -1168,4 +1176,15 @@ export const DocumentExpiry = {
   add: "/document/SaveExpDocument",
   update: "/document/SaveExpDocument",
   delete: "/document/DeleteExpDocument",
+}
+
+// GL Period Close Endpoints
+export const GLPeriodClose = {
+  get: "/gl/period-close",
+  getById: "/gl/period-close",
+  post: "/gl/period-close",
+  put: "/gl/period-close",
+  delete: "/gl/period-close",
+  bulkAction: "/gl/period-close/bulk-action",
+  summary: "/gl/period-close/summary",
 }

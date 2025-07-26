@@ -20,6 +20,26 @@ export function useGet<T>(baseUrl: string, queryKey: string, filters?: string) {
   })
 }
 
+export function useGetbyPath<T>(
+  baseUrl: string,
+  queryKey: string,
+  path?: string,
+  filters?: string
+) {
+  return useQuery<ApiResponse<T>>({
+    queryKey: [queryKey, path, filters],
+    queryFn: async () => {
+      const cleanUrl = baseUrl.replace(/\/+/g, "/")
+      const params = {
+        searchString: filters && filters.trim() !== "" ? filters : "null",
+        pageNumber: "1",
+        pageSize: "2000",
+      }
+      return await getData(`${cleanUrl}/${path}`, params)
+    },
+  })
+}
+
 export function useGetHeader<T>(
   baseUrl: string,
   queryKey: string,

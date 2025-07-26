@@ -322,7 +322,9 @@ function getPayloadConfigFromPayload(
   key: string
 ) {
   if (!config || !payload || typeof config !== "object") return undefined
-  return key in config ? config[key] : undefined
+  return Object.prototype.hasOwnProperty.call(config, key)
+    ? config[key]
+    : undefined
 }
 
 export {

@@ -89,6 +89,8 @@ export const menuData = {
       items: [
         { title: "Employee", url: "/hr/employee", icon: User },
         { title: "Attendance", url: "/hr/attendance", icon: ClipboardList },
+        { title: "Leave", url: "/hr/leave", icon: ClipboardList },
+        { title: "Payroll", url: "/hr/payroll", icon: ClipboardList },
       ],
     },
     // {
