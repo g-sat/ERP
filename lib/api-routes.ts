@@ -205,6 +205,7 @@ export const Lookup = {
   getStatus: "/master/getstatuslookup",
   getStatusTask: "/master/getstatustasklookup",
   getRank: "/master/getranklookup",
+  getGender: "/master/getgenderlookup",
   getVisaType: "/master/getvisatypelookup",
   getPassType: "/master/getpasstypelookup",
   getLandingType: "/master/getlandingtypelookup",
@@ -508,10 +509,6 @@ export const Employee = {
   getByCode: "/master/getemployeebycode",
   add: "/master/saveemployee",
   delete: "/master/deleteemployee",
-  getBanks: "/master/getemployeebanks",
-  addBank: "/master/saveemployeebank",
-  updateBank: "/master/updateemployeebank",
-  deleteBank: "/master/deleteemployeebank",
 }
 
 // Employee Category Endpoints

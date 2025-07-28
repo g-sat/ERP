@@ -13,7 +13,7 @@ export const employeeSchema = z.object({
     .number()
     .min(1, { message: "Employee category is required" }),
   departmentId: z.number().min(1, { message: "Department is required" }),
-  gender: z.string().min(1, { message: "Gender is required" }),
+  genderId: z.number().min(1, { message: "Gender is required" }),
   martialStatus: z.string().optional().default(""),
   dob: z
     .union([z.date(), z.string()])
@@ -27,6 +27,10 @@ export const employeeSchema = z.object({
     }),
   lastDate: z.union([z.date(), z.string()]).optional().default(""),
   phoneNo: z.string().optional().default(""),
+  bankName: z.string().optional().default(""),
+  accountNo: z.string().optional().default(""),
+  swiftCode: z.string().optional().default(""),
+  iban: z.string().optional().default(""),
   offEmailAdd: z
     .string()
     .email({ message: "Invalid office email format" })
@@ -39,6 +43,15 @@ export const employeeSchema = z.object({
     .refine((val) => !val || z.string().email().safeParse(val).success, {
       message: "Invalid other email format",
     }),
+  passportNo: z.string().optional().default(""),
+  passportExpiry: z.union([z.date(), z.string()]).optional().default(""),
+  visaNo: z.string().optional().default(""),
+  visaExpiry: z.union([z.date(), z.string()]).optional().default(""),
+  nationality: z.string().optional().default(""),
+  emiratesIDNo: z.string().optional().default(""),
+  emiratesIDExpiry: z.union([z.date(), z.string()]).optional().default(""),
+  mohreContractIDNo: z.string().optional().default(""),
+  mohreContractExpiry: z.union([z.date(), z.string()]).optional().default(""),
   isActive: z.boolean().default(true),
   remarks: z
     .string()
@@ -68,17 +81,3 @@ export const employeeCategorySchema = z.object({
 })
 
 export type EmployeeCategoryValues = z.infer<typeof employeeCategorySchema>
-
-export const employeeBankSchema = z.object({
-  employeeId: z.number(),
-  itemNo: z.number(),
-  bankName: z.string(),
-  accountNo: z.string(),
-  swiftCode: z.string(),
-  iban: z.string(),
-  remarks: z.string(),
-  isDefaultBank: z.boolean(),
-  isActive: z.boolean(),
-})
-
-export type EmployeeBankValues = z.infer<typeof employeeBankSchema>

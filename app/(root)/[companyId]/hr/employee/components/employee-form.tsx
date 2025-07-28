@@ -1,11 +1,7 @@
 "use client"
 
-import { IEmployee, IEmployeeBank } from "@/interfaces/employee"
-import {
-  EmployeeBankValues,
-  EmployeeFormValues,
-  employeeSchema,
-} from "@/schemas/employee"
+import { IEmployee } from "@/interfaces/employee"
+import { EmployeeFormValues, employeeSchema } from "@/schemas/employee"
 import { useAuthStore } from "@/stores/auth-store"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { format } from "date-fns"
@@ -15,10 +11,10 @@ import { clientDateFormat, parseDate } from "@/lib/format"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Form } from "@/components/ui/form"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import CompanyAutocomplete from "@/components/ui-custom/autocomplete-company"
 import DepartmentAutocomplete from "@/components/ui-custom/autocomplete-department"
 import EmployeeCategoryAutocomplete from "@/components/ui-custom/autocomplete-empcategory"
+import GenderAutocomplete from "@/components/ui-custom/autocomplete-gender"
 import CustomAccordion, {
   CustomAccordionContent,
   CustomAccordionItem,
@@ -30,8 +26,6 @@ import CustomSwitch from "@/components/ui-custom/custom-switch"
 import CustomTextarea from "@/components/ui-custom/custom-textarea"
 import PhotoUpload from "@/components/ui-custom/photo-upload"
 
-import { EmployeeBankTable } from "./employee-bank-table"
-
 interface EmployeeFormProps {
   initialData?: IEmployee
   submitAction: (data: EmployeeFormValues) => void
@@ -40,13 +34,6 @@ interface EmployeeFormProps {
   isReadOnly?: boolean
   departments?: { value: string; label: string }[]
   designations?: { value: string; label: string }[]
-  employeeBanks?: IEmployeeBank[]
-  onEmployeeBankSave?: (data: EmployeeBankValues) => void
-  onEmployeeBankDelete?: (itemNo: string) => Promise<void>
-  onEmployeeBankEdit?: (employeeBank: IEmployeeBank | undefined) => void
-  onEmployeeBankCreate?: () => void
-  onEmployeeBankRefresh?: () => void
-  isEmployeeBankLoading?: boolean
 }
 
 export function EmployeeForm({
@@ -55,12 +42,6 @@ export function EmployeeForm({
   onCancel,
   isSubmitting = false,
   isReadOnly = false,
-  employeeBanks = [],
-  onEmployeeBankDelete,
-  onEmployeeBankEdit,
-  onEmployeeBankCreate,
-  onEmployeeBankRefresh,
-  isEmployeeBankLoading = false,
 }: EmployeeFormProps) {
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
@@ -77,7 +58,7 @@ export function EmployeeForm({
       signature: initialData?.signature ?? "",
       empCategoryId: initialData?.empCategoryId ?? 0,
       departmentId: initialData?.departmentId ?? 0,
-      gender: initialData?.gender ?? "",
+      genderId: initialData?.genderId ?? 0,
       martialStatus: initialData?.martialStatus ?? "",
       dob: initialData?.dob
         ? format(
@@ -98,8 +79,41 @@ export function EmployeeForm({
           )
         : "",
       phoneNo: initialData?.phoneNo ?? "",
+      bankName: initialData?.bankName ?? "",
+      accountNo: initialData?.accountNo ?? "",
+      swiftCode: initialData?.swiftCode ?? "",
+      iban: initialData?.iban ?? "",
       offEmailAdd: initialData?.offEmailAdd ?? "",
       otherEmailAdd: initialData?.otherEmailAdd ?? "",
+      passportNo: initialData?.passportNo ?? "",
+      passportExpiry: initialData?.passportExpiry
+        ? format(
+            parseDate(initialData.passportExpiry as string) || new Date(),
+            clientDateFormat
+          )
+        : "",
+      visaNo: initialData?.visaNo ?? "",
+      visaExpiry: initialData?.visaExpiry
+        ? format(
+            parseDate(initialData.visaExpiry as string) || new Date(),
+            clientDateFormat
+          )
+        : "",
+      nationality: initialData?.nationality ?? "",
+      emiratesIDNo: initialData?.emiratesIDNo ?? "",
+      emiratesIDExpiry: initialData?.emiratesIDExpiry
+        ? format(
+            parseDate(initialData.emiratesIDExpiry as string) || new Date(),
+            clientDateFormat
+          )
+        : "",
+      mohreContractIDNo: initialData?.mohreContractIDNo ?? "",
+      mohreContractExpiry: initialData?.mohreContractExpiry
+        ? format(
+            parseDate(initialData.mohreContractExpiry as string) || new Date(),
+            clientDateFormat
+          )
+        : "",
       isActive:
         typeof initialData?.isActive === "boolean"
           ? initialData.isActive
@@ -118,226 +132,281 @@ export function EmployeeForm({
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           {initialData ? (
-            <Tabs defaultValue="employee" className="space-y-4">
-              <TabsList>
-                <TabsTrigger value="employee">Employee Details</TabsTrigger>
-                <TabsTrigger value="employee-bank">Employee Banks</TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="employee" className="space-y-4">
-                <div className="grid gap-2">
-                  <div className="grid grid-cols-5 gap-2">
-                    <CompanyAutocomplete
-                      form={form}
-                      name="companyId"
-                      label="Company"
-                      isDisabled={isReadOnly}
-                      isRequired={true}
-                    />
-                    <CustomInput
-                      form={form}
-                      name="code"
-                      label="Employee Code"
-                      isDisabled={true}
-                    />
-                    <CustomInput
-                      form={form}
-                      name="firstName"
-                      label="First Name"
-                      isRequired={true}
-                      isDisabled={isReadOnly}
-                    />
-                    <CustomInput
-                      form={form}
-                      name="lastName"
-                      label="Last Name"
-                      isRequired={true}
-                      isDisabled={isReadOnly}
-                    />
-                    <CustomInput
-                      form={form}
-                      name="otherName"
-                      label="Other Name"
-                      isDisabled={isReadOnly}
-                    />
-                    <DepartmentAutocomplete
-                      form={form}
-                      name="departmentId"
-                      label="Department"
-                      isDisabled={isReadOnly}
-                      isRequired={true}
-                    />
-                    <EmployeeCategoryAutocomplete
-                      form={form}
-                      name="empCategoryId"
-                      label="Employee Category"
-                      isDisabled={isReadOnly}
-                      isRequired={true}
-                    />
-                    <CustomInput
-                      form={form}
-                      name="gender"
-                      label="Gender"
-                      isRequired={true}
-                      isDisabled={isReadOnly}
-                    />
-                    <CustomInput
-                      form={form}
-                      name="martialStatus"
-                      label="Marital Status"
-                      isDisabled={isReadOnly}
-                    />
-                    <CustomDateNew
-                      form={form}
-                      name="dob"
-                      label="Date of Birth"
-                      isDisabled={isReadOnly}
-                      isRequired={true}
-                    />
-                    <CustomDateNew
-                      form={form}
-                      name="joinDate"
-                      label="Join Date"
-                      isRequired={true}
-                      isDisabled={isReadOnly}
-                    />
-                    <CustomDateNew
-                      form={form}
-                      name="lastDate"
-                      label="Last Date"
-                      isDisabled={isReadOnly}
-                    />
-                    <CustomInput
-                      form={form}
-                      name="offEmailAdd"
-                      label="Office Email"
-                      type="email"
-                      isDisabled={isReadOnly}
-                    />
-                    <CustomInput
-                      form={form}
-                      name="phoneNo"
-                      label="Phone Number"
-                      isDisabled={isReadOnly}
-                    />
-                    <CustomInput
-                      form={form}
-                      name="otherEmailAdd"
-                      label="Other Email"
-                      type="email"
-                      isDisabled={isReadOnly}
-                    />
-                    <CustomTextarea
-                      form={form}
-                      name="remarks"
-                      label="Remarks"
-                      isDisabled={isReadOnly}
-                    />
-                    <CustomSwitch
-                      form={form}
-                      name="isActive"
-                      label="Active Status"
-                      activeColor="success"
-                      isDisabled={isReadOnly}
-                    />
-                  </div>
-                  <div className="grid grid-cols-1 gap-2">
-                    <PhotoUpload
-                      currentPhoto={form.watch("photo")}
-                      onPhotoChange={(filePath) =>
-                        form.setValue("photo", filePath)
-                      }
-                      isDisabled={isReadOnly}
-                      label="Employee Photo"
-                      photoType="employee"
-                      userId={initialData?.employeeId?.toString() || ""}
-                    />
-                  </div>
-
-                  {initialData &&
-                    (initialData.createBy ||
-                      initialData.createDate ||
-                      initialData.editBy ||
-                      initialData.editDate) && (
-                      <CustomAccordion
-                        type="single"
-                        collapsible
-                        className="rounded-md border"
-                      >
-                        <CustomAccordionItem value="audit-info">
-                          <CustomAccordionTrigger className="px-4">
-                            Audit Information
-                          </CustomAccordionTrigger>
-                          <CustomAccordionContent className="px-2">
-                            <div className="grid grid-cols-2 gap-4">
-                              {initialData.createDate && (
-                                <div className="flex items-center justify-between">
-                                  <span className="text-muted-foreground text-sm">
-                                    Created By
-                                  </span>
-                                  <div className="flex items-center gap-2">
-                                    <Badge
-                                      variant="outline"
-                                      className="font-normal"
-                                    >
-                                      {initialData.createBy}
-                                    </Badge>
-                                    <span className="text-muted-foreground text-sm">
-                                      {format(
-                                        new Date(initialData.createDate),
-                                        datetimeFormat
-                                      )}
-                                    </span>
-                                  </div>
-                                </div>
-                              )}
-                              {initialData.editBy && (
-                                <div className="flex items-center justify-between">
-                                  <span className="text-muted-foreground text-sm">
-                                    Last Edited By
-                                  </span>
-                                  <div className="flex items-center gap-2">
-                                    <Badge
-                                      variant="outline"
-                                      className="font-normal"
-                                    >
-                                      {initialData.editBy}
-                                    </Badge>
-                                    <span className="text-muted-foreground text-sm">
-                                      {initialData.editDate
-                                        ? format(
-                                            new Date(initialData.editDate),
-                                            datetimeFormat
-                                          )
-                                        : "—"}
-                                    </span>
-                                  </div>
-                                </div>
-                              )}
-                            </div>
-                          </CustomAccordionContent>
-                        </CustomAccordionItem>
-                      </CustomAccordion>
-                    )}
-                </div>
-              </TabsContent>
-
-              <TabsContent value="employee-bank" className="space-y-4">
-                <div className="rounded-md">
-                  <EmployeeBankTable
-                    data={employeeBanks}
-                    isLoading={isEmployeeBankLoading}
-                    onEmployeeBankSelect={onEmployeeBankEdit}
-                    onDeleteEmployeeBank={onEmployeeBankDelete}
-                    onEditEmployeeBank={onEmployeeBankEdit}
-                    onCreateEmployeeBank={onEmployeeBankCreate}
-                    onRefresh={onEmployeeBankRefresh}
-                    moduleId={1}
-                    transactionId={11}
+            <div className="space-y-4">
+              <div className="grid gap-2">
+                <div className="grid grid-cols-5 gap-2">
+                  <CompanyAutocomplete
+                    form={form}
+                    name="companyId"
+                    label="Company"
+                    isDisabled={isReadOnly}
+                    isRequired={true}
+                  />
+                  <CustomInput
+                    form={form}
+                    name="code"
+                    label="Employee Code"
+                    isDisabled={true}
+                  />
+                  <CustomInput
+                    form={form}
+                    name="firstName"
+                    label="First Name"
+                    isRequired={true}
+                    isDisabled={isReadOnly}
+                  />
+                  <CustomInput
+                    form={form}
+                    name="lastName"
+                    label="Last Name"
+                    isRequired={true}
+                    isDisabled={isReadOnly}
+                  />
+                  <CustomInput
+                    form={form}
+                    name="otherName"
+                    label="Other Name"
+                    isDisabled={isReadOnly}
+                  />
+                  <DepartmentAutocomplete
+                    form={form}
+                    name="departmentId"
+                    label="Department"
+                    isDisabled={isReadOnly}
+                    isRequired={true}
+                  />
+                  <EmployeeCategoryAutocomplete
+                    form={form}
+                    name="empCategoryId"
+                    label="Employee Category"
+                    isDisabled={isReadOnly}
+                    isRequired={true}
+                  />
+                  <GenderAutocomplete
+                    form={form}
+                    name="genderId"
+                    label="Gender"
+                    isDisabled={isReadOnly}
+                    isRequired={true}
+                  />
+                  <CustomInput
+                    form={form}
+                    name="martialStatus"
+                    label="Marital Status"
+                    isDisabled={isReadOnly}
+                  />
+                  <CustomDateNew
+                    form={form}
+                    name="dob"
+                    label="Date of Birth"
+                    isDisabled={isReadOnly}
+                    isRequired={true}
+                  />
+                  <CustomDateNew
+                    form={form}
+                    name="joinDate"
+                    label="Join Date"
+                    isRequired={true}
+                    isDisabled={isReadOnly}
+                  />
+                  <CustomDateNew
+                    form={form}
+                    name="lastDate"
+                    label="Last Date"
+                    isDisabled={isReadOnly}
+                  />
+                  <CustomInput
+                    form={form}
+                    name="offEmailAdd"
+                    label="Office Email"
+                    type="email"
+                    isDisabled={isReadOnly}
+                  />
+                  <CustomInput
+                    form={form}
+                    name="phoneNo"
+                    label="Phone Number"
+                    isDisabled={isReadOnly}
+                  />
+                  <CustomInput
+                    form={form}
+                    name="bankName"
+                    label="Bank Name"
+                    isDisabled={isReadOnly}
+                  />
+                  <CustomInput
+                    form={form}
+                    name="accountNo"
+                    label="Account No"
+                    isDisabled={isReadOnly}
+                  />
+                  <CustomInput
+                    form={form}
+                    name="swiftCode"
+                    label="Swift Code"
+                    isDisabled={isReadOnly}
+                  />
+                  <CustomInput
+                    form={form}
+                    name="iban"
+                    label="IBAN"
+                    isDisabled={isReadOnly}
+                  />
+                  <CustomInput
+                    form={form}
+                    name="otherEmailAdd"
+                    label="Other Email"
+                    type="email"
+                    isDisabled={isReadOnly}
+                  />
+                  <CustomInput
+                    form={form}
+                    name="passportNo"
+                    label="Passport No"
+                    isDisabled={isReadOnly}
+                  />
+                  <CustomDateNew
+                    form={form}
+                    name="passportExpiry"
+                    label="Passport Expiry"
+                    isDisabled={isReadOnly}
+                  />
+                  <CustomInput
+                    form={form}
+                    name="visaNo"
+                    label="Visa No"
+                    isDisabled={isReadOnly}
+                  />
+                  <CustomDateNew
+                    form={form}
+                    name="visaExpiry"
+                    label="Visa Expiry"
+                    isDisabled={isReadOnly}
+                  />
+                  <CustomInput
+                    form={form}
+                    name="nationality"
+                    label="Nationality"
+                    isDisabled={isReadOnly}
+                  />
+                  <CustomInput
+                    form={form}
+                    name="emiratesIDNo"
+                    label="Emirates ID No"
+                    isDisabled={isReadOnly}
+                  />
+                  <CustomDateNew
+                    form={form}
+                    name="emiratesIDExpiry"
+                    label="Emirates ID Expiry"
+                    isDisabled={isReadOnly}
+                  />
+                  <CustomInput
+                    form={form}
+                    name="mohreContractIDNo"
+                    label="MOHRE Contract No"
+                    isDisabled={isReadOnly}
+                  />
+                  <CustomDateNew
+                    form={form}
+                    name="mohreContractExpiry"
+                    label="MOHRE Contract Expiry"
+                    isDisabled={isReadOnly}
+                  />
+                  <CustomTextarea
+                    form={form}
+                    name="remarks"
+                    label="Remarks"
+                    isDisabled={isReadOnly}
+                  />
+                  <CustomSwitch
+                    form={form}
+                    name="isActive"
+                    label="Active Status"
+                    activeColor="success"
+                    isDisabled={isReadOnly}
                   />
                 </div>
-              </TabsContent>
-            </Tabs>
+                <div className="grid grid-cols-1 gap-2">
+                  <PhotoUpload
+                    currentPhoto={form.watch("photo")}
+                    onPhotoChange={(filePath) =>
+                      form.setValue("photo", filePath)
+                    }
+                    isDisabled={isReadOnly}
+                    label="Employee Photo"
+                    photoType="employee"
+                    userId={initialData?.employeeId?.toString() || ""}
+                  />
+                </div>
+
+                {initialData &&
+                  (initialData.createBy ||
+                    initialData.createDate ||
+                    initialData.editBy ||
+                    initialData.editDate) && (
+                    <CustomAccordion
+                      type="single"
+                      collapsible
+                      className="rounded-md border"
+                    >
+                      <CustomAccordionItem value="audit-info">
+                        <CustomAccordionTrigger className="px-4">
+                          Audit Information
+                        </CustomAccordionTrigger>
+                        <CustomAccordionContent className="px-2">
+                          <div className="grid grid-cols-2 gap-4">
+                            {initialData.createDate && (
+                              <div className="flex items-center justify-between">
+                                <span className="text-muted-foreground text-sm">
+                                  Created By
+                                </span>
+                                <div className="flex items-center gap-2">
+                                  <Badge
+                                    variant="outline"
+                                    className="font-normal"
+                                  >
+                                    {initialData.createBy}
+                                  </Badge>
+                                  <span className="text-muted-foreground text-sm">
+                                    {format(
+                                      new Date(initialData.createDate),
+                                      datetimeFormat
+                                    )}
+                                  </span>
+                                </div>
+                              </div>
+                            )}
+                            {initialData.editBy && (
+                              <div className="flex items-center justify-between">
+                                <span className="text-muted-foreground text-sm">
+                                  Last Edited By
+                                </span>
+                                <div className="flex items-center gap-2">
+                                  <Badge
+                                    variant="outline"
+                                    className="font-normal"
+                                  >
+                                    {initialData.editBy}
+                                  </Badge>
+                                  <span className="text-muted-foreground text-sm">
+                                    {initialData.editDate
+                                      ? format(
+                                          new Date(initialData.editDate),
+                                          datetimeFormat
+                                        )
+                                      : "—"}
+                                  </span>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </CustomAccordionContent>
+                      </CustomAccordionItem>
+                    </CustomAccordion>
+                  )}
+              </div>
+            </div>
           ) : (
             <div className="grid gap-2">
               <div className="grid grid-cols-3 gap-2">
@@ -386,13 +455,6 @@ export function EmployeeForm({
               </div>
 
               <div className="grid grid-cols-2 gap-2">
-                <CustomInput
-                  form={form}
-                  name="gender"
-                  label="Gender"
-                  isRequired
-                  isDisabled={isReadOnly}
-                />
                 <CustomInput
                   form={form}
                   name="martialStatus"

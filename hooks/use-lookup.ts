@@ -15,6 +15,7 @@ import {
   IDocumentTypeLookup,
   IDynamicLookup,
   IEmpCategoryLookup,
+  IGenderLookup,
   IGstCategoryLookup,
   IJobOrderLookup,
   ILandingTypeLookup,
@@ -1068,6 +1069,22 @@ export const useRankLookup = () => {
     queryFn: async () => {
       try {
         const data = await getData(Lookup.getRank)
+        return data?.data || []
+      } catch (error) {
+        handleApiError(error)
+      }
+    },
+    refetchOnWindowFocus: false,
+  })
+}
+
+export const useGenderLookup = () => {
+  return useQuery<IGenderLookup[]>({
+    queryKey: ["gender-lookUp"],
+    placeholderData: keepPreviousData,
+    queryFn: async () => {
+      try {
+        const data = await getData(Lookup.getGender)
         return data?.data || []
       } catch (error) {
         handleApiError(error)

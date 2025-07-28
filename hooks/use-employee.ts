@@ -1,5 +1,4 @@
-import { IEmployee, IEmployeeBank } from "@/interfaces/employee"
-import { EmployeeBankValues } from "@/schemas/employee"
+import { IEmployee } from "@/interfaces/employee"
 import { useQueryClient } from "@tanstack/react-query"
 
 import { getData } from "@/lib/api-client"
@@ -88,75 +87,6 @@ export function useDeleteEmployee() {
         onSuccess: (response) => {
           if (response.result === 1) {
             queryClient.invalidateQueries({ queryKey: ["employees"] })
-          }
-        },
-      })
-    },
-  }
-}
-
-// Hook for fetching employee banks
-export function useGetEmployeeBanks(employeeId: number | undefined) {
-  return useGetByParams<IEmployeeBank[]>(
-    Employee.getBanks,
-    "employee-banks",
-    `${employeeId}`,
-    {
-      enabled: !!employeeId && employeeId !== 0,
-    }
-  )
-}
-
-// Hook for saving employee bank
-export function useSaveEmployeeBank() {
-  const queryClient = useQueryClient()
-  const saveMutation = useSave<EmployeeBankValues>(Employee.addBank)
-
-  return {
-    ...saveMutation,
-    mutate: (data: EmployeeBankValues) => {
-      saveMutation.mutate(data, {
-        onSuccess: (response) => {
-          if (response.result === 1) {
-            queryClient.invalidateQueries({ queryKey: ["employee-banks"] })
-          }
-        },
-      })
-    },
-  }
-}
-
-// Hook for updating employee bank
-export function useUpdateEmployeeBank() {
-  const queryClient = useQueryClient()
-  const updateMutation = useUpdate<EmployeeBankValues>(Employee.updateBank)
-
-  return {
-    ...updateMutation,
-    mutate: (data: EmployeeBankValues) => {
-      updateMutation.mutate(data, {
-        onSuccess: (response) => {
-          if (response.result === 1) {
-            queryClient.invalidateQueries({ queryKey: ["employee-banks"] })
-          }
-        },
-      })
-    },
-  }
-}
-
-// Hook for deleting employee bank
-export function useDeleteEmployeeBank() {
-  const queryClient = useQueryClient()
-  const deleteMutation = useDelete(Employee.deleteBank)
-
-  return {
-    ...deleteMutation,
-    mutate: (itemNo: string) => {
-      deleteMutation.mutate(itemNo, {
-        onSuccess: (response) => {
-          if (response.result === 1) {
-            queryClient.invalidateQueries({ queryKey: ["employee-banks"] })
           }
         },
       })

@@ -230,6 +230,30 @@ export function EmployeesTable({
       size: 150,
     },
     {
+      accessorKey: "bankName",
+      header: "Bank",
+      cell: ({ row }) => <div>{row.getValue("bankName") || "—"}</div>,
+      size: 150,
+    },
+    {
+      accessorKey: "accountNo",
+      header: "Account No",
+      cell: ({ row }) => <div>{row.getValue("accountNo") || "—"}</div>,
+      size: 150,
+    },
+    {
+      accessorKey: "swiftCode",
+      header: "Swift Code",
+      cell: ({ row }) => <div>{row.getValue("swiftCode") || "—"}</div>,
+      size: 150,
+    },
+    {
+      accessorKey: "iban",
+      header: "IBAN",
+      cell: ({ row }) => <div>{row.getValue("iban") || "—"}</div>,
+      size: 150,
+    },
+    {
       accessorKey: "offEmailAdd",
       header: "Office Email",
       cell: ({ row }) => <div>{row.getValue("offEmailAdd") || "—"}</div>,
@@ -253,6 +277,78 @@ export function EmployeesTable({
       cell: ({ row }) => <div>{row.getValue("empCategoryName") || "—"}</div>,
       size: 150,
     },
+    {
+      accessorKey: "passportNo",
+      header: "Passport No",
+      cell: ({ row }) => <div>{row.getValue("passportNo") || "—"}</div>,
+      size: 150,
+    },
+    {
+      accessorKey: "passportExpiry",
+      header: "Passport Expiry",
+      cell: ({ row }) => {
+        const raw = row.getValue("passportExpiry")
+        const date = raw ? new Date(raw as string) : null
+        return date && isValid(date) ? format(date, datetimeFormat) : "—"
+      },
+      size: 150,
+    },
+    {
+      accessorKey: "visaNo",
+      header: "Visa No",
+      cell: ({ row }) => <div>{row.getValue("visaNo") || "—"}</div>,
+      size: 150,
+    },
+    {
+      accessorKey: "visaExpiry",
+      header: "Visa Expiry",
+      cell: ({ row }) => {
+        const raw = row.getValue("visaExpiry")
+        const date = raw ? new Date(raw as string) : null
+        return date && isValid(date) ? format(date, datetimeFormat) : "—"
+      },
+      size: 150,
+    },
+    {
+      accessorKey: "nationality",
+      header: "Nationality",
+      cell: ({ row }) => <div>{row.getValue("nationality") || "—"}</div>,
+      size: 150,
+    },
+    {
+      accessorKey: "emiratesIDNo",
+      header: "Emirates ID No",
+      cell: ({ row }) => <div>{row.getValue("emiratesIDNo") || "—"}</div>,
+      size: 150,
+    },
+    {
+      accessorKey: "emiratesIDExpiry",
+      header: "Emirates ID Expiry",
+      cell: ({ row }) => {
+        const raw = row.getValue("emiratesIDExpiry")
+        const date = raw ? new Date(raw as string) : null
+        return date && isValid(date) ? format(date, datetimeFormat) : "—"
+      },
+      size: 150,
+    },
+
+    {
+      accessorKey: "mohreContractIDNo",
+      header: "MOHRE Contract No",
+      cell: ({ row }) => <div>{row.getValue("mohreContractIDNo") || "—"}</div>,
+      size: 150,
+    },
+    {
+      accessorKey: "mohreContractExpiry",
+      header: "MOHRE Contract Expiry",
+      cell: ({ row }) => {
+        const raw = row.getValue("mohreContractExpiry")
+        const date = raw ? new Date(raw as string) : null
+        return date && isValid(date) ? format(date, datetimeFormat) : "—"
+      },
+      size: 150,
+    },
+
     {
       accessorKey: "isActive",
       header: "Status",

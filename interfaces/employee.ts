@@ -12,14 +12,28 @@ export interface IEmployee {
   empCategoryName?: string
   departmentId: number
   departmentName?: string
-  gender?: string
+  genderId?: number
+  genderName?: string
   martialStatus?: string
   dob?: Date | string
   joinDate?: Date | string
   lastDate?: Date | string
   phoneNo?: string
+  bankName?: string
+  accountNo?: string
+  swiftCode?: string
+  iban?: string
   offEmailAdd?: string
   otherEmailAdd?: string
+  passportNo?: string
+  passportExpiry?: Date | string
+  visaNo?: string
+  visaExpiry?: Date | string
+  nationality?: string
+  emiratesIDNo?: string
+  emiratesIDExpiry?: Date | string
+  mohreContractIDNo?: string
+  mohreContractExpiry?: Date | string
   remarks?: string
   isActive?: boolean
   createDate?: Date | string
@@ -47,24 +61,6 @@ export interface IEmployeeCategory {
   empCategoryCode: string
   empCategoryName: string
   remarks: string
-  isActive: boolean
-  createById?: number
-  createDate?: Date | string
-  editById?: number
-  editDate?: Date | string
-  createBy?: string
-  editBy?: string
-}
-
-export interface IEmployeeBank {
-  employeeId: number
-  itemNo: number
-  bankName: string
-  accountNo: string
-  swiftCode: string
-  iban: string
-  remarks: string
-  isDefaultBank: boolean
   isActive: boolean
   createById?: number
   createDate?: Date | string

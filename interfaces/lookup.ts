@@ -418,6 +418,11 @@ export interface IRankLookup {
   rankCode: string
   rankName: string
 }
+export interface IGenderLookup {
+  genderId: number
+  genderCode: string
+  genderName: string
+}
 export interface IVisaTypeLookup {
   visaTypeId: number
   visaTypeCode: string

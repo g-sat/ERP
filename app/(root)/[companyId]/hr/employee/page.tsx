@@ -4,15 +4,10 @@ import { useEffect, useState } from "react"
 import { ApiResponse } from "@/interfaces/auth"
 import {
   IEmployee,
-  IEmployeeBank,
   IEmployeeCategory,
   IEmployeeFilter,
 } from "@/interfaces/employee"
-import {
-  EmployeeBankValues,
-  EmployeeCategoryValues,
-  EmployeeFormValues,
-} from "@/schemas/employee"
+import { EmployeeCategoryValues, EmployeeFormValues } from "@/schemas/employee"
 import { usePermissionStore } from "@/stores/permission-store"
 import { useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
@@ -21,12 +16,6 @@ import { getData } from "@/lib/api-client"
 import { Employee, EmployeeCategory } from "@/lib/api-routes"
 import { MasterTransactionId, ModuleId } from "@/lib/utils"
 import { useDelete, useGet, useSave, useUpdate } from "@/hooks/use-common"
-import {
-  useDeleteEmployeeBank,
-  useGetEmployeeBanks,
-  useSaveEmployeeBank,
-  useUpdateEmployeeBank,
-} from "@/hooks/use-employee"
 import {
   Dialog,
   DialogContent,
@@ -41,7 +30,6 @@ import { DataTableSkeleton } from "@/components/skeleton/data-table-skeleton"
 import { LockSkeleton } from "@/components/skeleton/lock-skeleton"
 import { LoadExistingDialog } from "@/components/ui-custom/master-loadexisting-dialog"
 
-import { EmployeeBankForm } from "./components/employee-bank-form"
 import { EmployeeCategoryForm } from "./components/employee-category-form"
 import { EmployeeCategoryTable } from "./components/employee-category-table"
 import { EmployeeForm } from "./components/employee-form"
@@ -117,11 +105,6 @@ export default function EmployeePage() {
   )
   const deleteCategoryMutation = useDelete(`${EmployeeCategory.delete}`)
 
-  // Employee Bank hooks
-  const saveEmployeeBankMutation = useSaveEmployeeBank()
-  const updateEmployeeBankMutation = useUpdateEmployeeBank()
-  const deleteEmployeeBankMutation = useDeleteEmployeeBank()
-
   // State management
   const [selectedEmployee, setSelectedEmployee] = useState<
     IEmployee | undefined
@@ -153,25 +136,6 @@ export default function EmployeePage() {
   const [existingEmployeeCategory, setExistingEmployeeCategory] =
     useState<IEmployeeCategory | null>(null)
 
-  // Employee Bank state and hooks
-  const [isEmployeeBankModalOpen, setIsEmployeeBankModalOpen] = useState(false)
-  const [selectedEmployeeBank, setSelectedEmployeeBank] = useState<
-    IEmployeeBank | undefined
-  >()
-  const [employeeBankModalMode, setEmployeeBankModalMode] = useState<
-    "create" | "edit" | "view"
-  >("create")
-
-  // Use the employee banks hook
-  const {
-    data: employeeBanksResponse,
-    isLoading: isEmployeeBankLoading,
-    refetch: refetchEmployeeBanks,
-  } = useGetEmployeeBanks(selectedEmployee?.employeeId)
-
-  const employeeBanks =
-    (employeeBanksResponse?.data as IEmployeeBank[][])?.flat() || []
-
   // Refetch when filters change
   useEffect(() => {
     if (filters.search !== undefined) refetchEmployee()
@@ -180,13 +144,6 @@ export default function EmployeePage() {
   useEffect(() => {
     if (categoryFilters.search !== undefined) refetchEmployeeCategory()
   }, [categoryFilters.search])
-
-  // Load employee banks when employee is selected for editing
-  useEffect(() => {
-    if (selectedEmployee?.employeeId && modalMode === "edit") {
-      handleEmployeeBankRefresh()
-    }
-  }, [selectedEmployee?.employeeId, modalMode])
 
   // Action handlers
   const handleCreateEmployee = () => {
@@ -206,62 +163,6 @@ export default function EmployeePage() {
     setModalMode("view")
     setSelectedEmployee(employee)
     setIsModalOpen(true)
-  }
-
-  // Employee Bank handlers
-  const handleEmployeeBankCreate = () => {
-    setEmployeeBankModalMode("create")
-    setSelectedEmployeeBank(undefined)
-    setIsEmployeeBankModalOpen(true)
-  }
-
-  const handleEmployeeBankEdit = (employeeBank: IEmployeeBank | undefined) => {
-    if (!employeeBank) return
-    setEmployeeBankModalMode("edit")
-    setSelectedEmployeeBank(employeeBank)
-    setIsEmployeeBankModalOpen(true)
-  }
-
-  const handleEmployeeBankSave = async (data: EmployeeBankValues) => {
-    try {
-      const response = await (employeeBankModalMode === "create"
-        ? saveEmployeeBankMutation.mutateAsync(data)
-        : updateEmployeeBankMutation.mutateAsync(data))
-
-      if (response.result === 1) {
-        toast.success(
-          `Employee bank ${employeeBankModalMode === "create" ? "created" : "updated"} successfully`
-        )
-        setIsEmployeeBankModalOpen(false)
-        // Refresh employee banks
-        handleEmployeeBankRefresh()
-      } else {
-        toast.error(`Failed to ${employeeBankModalMode} employee bank`)
-      }
-    } catch {
-      toast.error(
-        `Error ${employeeBankModalMode === "create" ? "creating" : "updating"} employee bank`
-      )
-    }
-  }
-
-  const handleEmployeeBankDelete = async (itemNo: string) => {
-    try {
-      const response = await deleteEmployeeBankMutation.mutateAsync(itemNo)
-      if (response.result === 1) {
-        toast.success("Employee bank deleted successfully")
-        handleEmployeeBankRefresh()
-      } else {
-        toast.error("Failed to delete employee bank")
-      }
-    } catch {
-      toast.error("Error deleting employee bank")
-    }
-  }
-
-  const handleEmployeeBankRefresh = async () => {
-    if (!selectedEmployee?.employeeId) return
-    refetchEmployeeBanks()
   }
 
   const handleCreateEmployeeCategory = () => {
@@ -654,55 +555,6 @@ export default function EmployeePage() {
             onCancel={() => setIsModalOpen(false)}
             isSubmitting={saveMutation.isPending || updateMutation.isPending}
             isReadOnly={modalMode === "view"}
-            employeeBanks={employeeBanks}
-            onEmployeeBankSave={handleEmployeeBankSave}
-            onEmployeeBankDelete={handleEmployeeBankDelete}
-            onEmployeeBankEdit={handleEmployeeBankEdit}
-            onEmployeeBankCreate={handleEmployeeBankCreate}
-            onEmployeeBankRefresh={handleEmployeeBankRefresh}
-            isEmployeeBankLoading={isEmployeeBankLoading}
-          />
-        </DialogContent>
-      </Dialog>
-
-      {/* Employee Bank Form Dialog */}
-      <Dialog
-        open={isEmployeeBankModalOpen}
-        onOpenChange={setIsEmployeeBankModalOpen}
-      >
-        <DialogContent
-          className="sm:max-w-3xl"
-          onPointerDownOutside={(e) => e.preventDefault()}
-        >
-          <DialogHeader>
-            <DialogTitle>
-              {employeeBankModalMode === "create" && "Add Employee Bank"}
-              {employeeBankModalMode === "edit" && "Update Employee Bank"}
-              {employeeBankModalMode === "view" && "View Employee Bank"}
-            </DialogTitle>
-            <DialogDescription>
-              {employeeBankModalMode === "create"
-                ? "Add a new bank account for the employee."
-                : employeeBankModalMode === "edit"
-                  ? "Update employee bank information."
-                  : "View employee bank details."}
-            </DialogDescription>
-          </DialogHeader>
-          <Separator />
-          <EmployeeBankForm
-            initialData={
-              employeeBankModalMode !== "create"
-                ? selectedEmployeeBank
-                : undefined
-            }
-            submitAction={handleEmployeeBankSave}
-            onCancel={() => setIsEmployeeBankModalOpen(false)}
-            isSubmitting={
-              saveEmployeeBankMutation.isPending ||
-              updateEmployeeBankMutation.isPending
-            }
-            isReadOnly={employeeBankModalMode === "view"}
-            employeeId={selectedEmployee?.employeeId || 0}
           />
         </DialogContent>
       </Dialog>
