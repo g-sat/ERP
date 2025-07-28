@@ -64,7 +64,7 @@ export function ApprovalRequestTable({
 
   const handleAction = async (
     requestId: number,
-    actionTypeId: number,
+    statusId: number,
     remarks?: string
   ) => {
     setProcessingAction(requestId)
@@ -75,7 +75,7 @@ export function ApprovalRequestTable({
       const success = await takeApprovalAction({
         requestId,
         levelId: request.currentLevelId,
-        actionTypeId,
+        statusId,
         remarks,
       })
 
@@ -225,12 +225,12 @@ export function ApprovalRequestTable({
                 </TableCell>
                 <TableCell>
                   <div className="flex items-center gap-2">
-                    {getStatusIcon(request.statusTypeId)}
+                    {getStatusIcon(request.statusId)}
                     <Badge
                       variant="outline"
-                      className={`text-xs font-medium ${getStatusColor(request.statusTypeId)}`}
+                      className={`text-xs font-medium ${getStatusColor(request.statusId)}`}
                     >
-                      {getStatusText(request.statusTypeId)}
+                      {getStatusText(request.statusId)}
                     </Badge>
                   </div>
                 </TableCell>

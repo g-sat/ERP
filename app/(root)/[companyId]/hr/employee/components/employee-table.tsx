@@ -182,17 +182,18 @@ export function EmployeesTable({
       size: 200,
     },
     {
-      accessorKey: "gender",
-      header: "Gender",
-      cell: ({ row }) => <div>{row.getValue("gender") || "—"}</div>,
+      accessorKey: "companyName",
+      header: "Company",
+      cell: ({ row }) => <div>{row.getValue("companyName") || "—"}</div>,
       size: 100,
     },
     {
-      accessorKey: "martialStatus",
-      header: "Marital Status",
-      cell: ({ row }) => <div>{row.getValue("martialStatus") || "—"}</div>,
-      size: 120,
+      accessorKey: "genderName",
+      header: "Gender",
+      cell: ({ row }) => <div>{row.getValue("genderName") || "—"}</div>,
+      size: 100,
     },
+
     {
       accessorKey: "dob",
       header: "DOB",

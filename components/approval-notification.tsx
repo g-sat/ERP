@@ -84,13 +84,13 @@ export function ApprovalNotification({
   }
 
   return (
-    <Card className={`border-l-4 ${getStatusColor(request.statusTypeId)}`}>
+    <Card className={`border-l-4 ${getStatusColor(request.statusId)}`}>
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            {getStatusIcon(request.statusTypeId)}
+            {getStatusIcon(request.statusId)}
             <CardTitle className="text-sm">
-              {getStatusText(request.statusTypeId)}
+              {getStatusText(request.statusId)}
             </CardTitle>
           </div>
           {onDismiss && (

@@ -2,7 +2,7 @@ import * as z from "zod"
 
 export const employeeSchema = z.object({
   employeeId: z.number(),
-  companyId: z.number(),
+  companyId: z.number().min(1, { message: "Company is required" }),
   code: z.string().min(1, { message: "Employee code is required" }),
   firstName: z.string().min(1, { message: "First name is required" }),
   lastName: z.string().min(1, { message: "Last name is required" }),
@@ -27,10 +27,11 @@ export const employeeSchema = z.object({
     }),
   lastDate: z.union([z.date(), z.string()]).optional().default(""),
   phoneNo: z.string().optional().default(""),
-  bankName: z.string().optional().default(""),
-  accountNo: z.string().optional().default(""),
-  swiftCode: z.string().optional().default(""),
-  iban: z.string().optional().default(""),
+  offPhoneNo: z.string().optional().default(""),
+  bankName: z.string().min(1, { message: "Bank name is required" }),
+  accountNo: z.string().min(1, { message: "Account number is required" }),
+  swiftCode: z.string().min(1, { message: "Swift code is required" }),
+  iban: z.string().min(1, { message: "IBAN is required" }),
   offEmailAdd: z
     .string()
     .email({ message: "Invalid office email format" })

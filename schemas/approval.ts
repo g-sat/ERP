@@ -31,7 +31,7 @@ export const approvalRequestSchema = z.object({
   requestedById: z.number().min(1, { message: "Requested by is required" }),
   requestedDate: z.string().optional(),
   currentLevelId: z.number().min(1, { message: "Current level is required" }),
-  statusTypeId: z.number().min(1, { message: "Status type is required" }),
+  statusId: z.number().min(1, { message: "Status type is required" }),
 })
 
 export type ApprovalRequestFormValues = z.infer<typeof approvalRequestSchema>
@@ -42,7 +42,7 @@ export const approvalActionSchema = z.object({
   levelId: z.number().min(1, { message: "Level is required" }),
   actionById: z.number().min(1, { message: "Action by is required" }),
   actionDate: z.string().optional(),
-  actionTypeId: z.number().min(1, { message: "Action type is required" }),
+  statusId: z.number().min(1, { message: "Action type is required" }),
   remarks: z
     .string()
     .max(500, { message: "Remarks cannot exceed 500 characters" })

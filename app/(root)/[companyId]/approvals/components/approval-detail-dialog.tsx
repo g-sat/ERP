@@ -73,7 +73,7 @@ export function ApprovalDetailDialog({
   const [remarks, setRemarks] = useState("")
   const [isProcessing, setIsProcessing] = useState(false)
 
-  const handleAction = async (actionTypeId: number) => {
+  const handleAction = async (statusId: number) => {
     if (!requestDetail) return
 
     setIsProcessing(true)
@@ -81,7 +81,7 @@ export function ApprovalDetailDialog({
       const success = await takeApprovalAction({
         requestId: requestDetail.requestId,
         levelId: requestDetail.currentLevelId,
-        actionTypeId,
+        statusId,
         remarks: remarks.trim() || undefined,
       })
 
@@ -194,12 +194,12 @@ export function ApprovalDetailDialog({
                       </CardDescription>
                     </div>
                     <div className="flex items-center gap-2">
-                      {getStatusIcon(requestDetail.statusTypeId)}
+                      {getStatusIcon(requestDetail.statusId)}
                       <Badge
                         variant="outline"
-                        className={`font-medium ${getStatusColor(requestDetail.statusTypeId)}`}
+                        className={`font-medium ${getStatusColor(requestDetail.statusId)}`}
                       >
-                        {getStatusText(requestDetail.statusTypeId)}
+                        {getStatusText(requestDetail.statusId)}
                       </Badge>
                     </div>
                   </div>
@@ -307,7 +307,7 @@ export function ApprovalDetailDialog({
                                 }`}
                               >
                                 {isCompleted ? (
-                                  action?.actionTypeId ===
+                                  action?.statusId ===
                                   APPROVAL_ACTION_TYPES.APPROVED ? (
                                     <CheckCircle2 className="h-5 w-5" />
                                   ) : (
@@ -344,15 +344,13 @@ export function ApprovalDetailDialog({
                                   <Badge
                                     variant="outline"
                                     className={
-                                      action?.actionTypeId ===
+                                      action?.statusId ===
                                       APPROVAL_ACTION_TYPES.APPROVED
                                         ? "border-green-200 bg-green-50 text-green-700"
                                         : "border-red-200 bg-red-50 text-red-700"
                                     }
                                   >
-                                    {getActionTypeText(
-                                      action?.actionTypeId || 0
-                                    )}
+                                    {getActionTypeText(action?.statusId || 0)}
                                   </Badge>
                                 )}
                               </div>
@@ -467,13 +465,13 @@ export function ApprovalDetailDialog({
                           <div className="flex items-start gap-4">
                             <div
                               className={`flex h-10 w-10 items-center justify-center rounded-full ${
-                                action.actionTypeId ===
+                                action.statusId ===
                                 APPROVAL_ACTION_TYPES.APPROVED
                                   ? "bg-green-100 text-green-600"
                                   : "bg-red-100 text-red-600"
                               }`}
                             >
-                              {action.actionTypeId ===
+                              {action.statusId ===
                               APPROVAL_ACTION_TYPES.APPROVED ? (
                                 <CheckCircle2 className="h-5 w-5" />
                               ) : (
@@ -488,13 +486,13 @@ export function ApprovalDetailDialog({
                                 <Badge
                                   variant="outline"
                                   className={
-                                    action.actionTypeId ===
+                                    action.statusId ===
                                     APPROVAL_ACTION_TYPES.APPROVED
                                       ? "border-green-200 bg-green-50 text-green-700"
                                       : "border-red-200 bg-red-50 text-red-700"
                                   }
                                 >
-                                  {getActionTypeText(action.actionTypeId)}
+                                  {getActionTypeText(action.statusId)}
                                 </Badge>
                                 <Badge variant="secondary" className="text-xs">
                                   Level {action.levelNumber}

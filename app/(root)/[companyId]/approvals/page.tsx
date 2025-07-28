@@ -107,11 +107,11 @@ export default function ApprovalsPage() {
     const matchesStatus =
       statusFilter === "all" ||
       (statusFilter === "pending" &&
-        request.statusTypeId === APPROVAL_STATUS.PENDING) ||
+        request.statusId === APPROVAL_STATUS.PENDING) ||
       (statusFilter === "approved" &&
-        request.statusTypeId === APPROVAL_STATUS.APPROVED) ||
+        request.statusId === APPROVAL_STATUS.APPROVED) ||
       (statusFilter === "rejected" &&
-        request.statusTypeId === APPROVAL_STATUS.REJECTED)
+        request.statusId === APPROVAL_STATUS.REJECTED)
 
     const matchesProcess =
       processFilter === "all" || request.processName === processFilter
@@ -282,7 +282,7 @@ export default function ApprovalsPage() {
             <CardContent>
               <ApprovalRequestTable
                 requests={filteredRequests.filter(
-                  (r) => r.statusTypeId === APPROVAL_STATUS.PENDING
+                  (r) => r.statusId === APPROVAL_STATUS.PENDING
                 )}
                 onViewDetail={handleViewDetail}
                 showActions={true}

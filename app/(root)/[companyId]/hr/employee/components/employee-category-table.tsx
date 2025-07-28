@@ -48,7 +48,6 @@ import {
 import { CustomTableBody } from "@/components/ui/data-table/data-table-body"
 import {
   Table,
-  TableBody,
   TableRow,
   TableHeader as TanstackTableHeader,
 } from "@/components/ui/table"
@@ -300,6 +299,16 @@ export function EmployeeCategoryTable({
   }
 
   useEffect(() => {
+    if (!data?.length && onFilterChange) {
+      const filters: IEmployeeFilter = {
+        search: searchQuery,
+        sortOrder: sorting[0]?.desc ? "desc" : "asc",
+      }
+      onFilterChange(filters)
+    }
+  }, [sorting, searchQuery])
+
+  useEffect(() => {
     if (gridSettings) {
       try {
         const colVisible = JSON.parse(gridSettings.grdColVisible || "{}")
@@ -324,16 +333,6 @@ export function EmployeeCategoryTable({
     }
   }, [gridSettings])
 
-  useEffect(() => {
-    if (!data?.length && onFilterChange) {
-      const filters: IEmployeeFilter = {
-        search: searchQuery,
-        sortOrder: sorting[0]?.desc ? "desc" : "asc",
-      }
-      onFilterChange(filters)
-    }
-  }, [sorting, searchQuery])
-
   return (
     <div>
       <TableHeader
@@ -344,7 +343,6 @@ export function EmployeeCategoryTable({
         columns={table.getAllLeafColumns()}
         data={data}
         tableName={TableName.employee_category}
-        hideCreateButton={false}
         moduleId={moduleId || 1}
         transactionId={transactionId || 53}
       />
@@ -374,16 +372,14 @@ export function EmployeeCategoryTable({
                 </TableRow>
               ))}
             </TanstackTableHeader>
-            <TableBody className="**:data-[slot=table-cell]:first:w-8">
-              <CustomTableBody
-                table={table}
-                virtualRows={virtualRows}
-                paddingTop={paddingTop}
-                paddingBottom={paddingBottom}
-                isLoading={isLoading}
-                columns={columns}
-              />
-            </TableBody>
+            <CustomTableBody
+              table={table}
+              virtualRows={virtualRows}
+              paddingTop={paddingTop}
+              paddingBottom={paddingBottom}
+              isLoading={isLoading}
+              columns={columns}
+            />
           </Table>
         </DndContext>
       </div>

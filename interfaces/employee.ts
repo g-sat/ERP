@@ -19,6 +19,7 @@ export interface IEmployee {
   joinDate?: Date | string
   lastDate?: Date | string
   phoneNo?: string
+  offPhoneNo?: string
   bankName?: string
   accountNo?: string
   swiftCode?: string

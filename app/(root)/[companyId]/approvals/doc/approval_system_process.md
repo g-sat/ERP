@@ -104,7 +104,7 @@ The system expects the following backend API endpoints:
 ### POST /approval/take-action
 
 - Submits an approval action (approve/reject)
-- Body: { requestId, levelId, actionTypeId, remarks? }
+- Body: { requestId, levelId, statusId, remarks? }
 - Headers: X-User-Id, X-Company-Id
 
 ## Usage Flow

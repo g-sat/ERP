@@ -1,12 +1,13 @@
 "use client"
 
 import { useMemo, useState } from "react"
+import { IEmployee } from "@/interfaces/employee"
 import {
-  Leave,
-  LeaveBalance,
-  LeavePolicy,
-  LeaveStatus,
-  LeaveType,
+  ILeave,
+  ILeaveBalance,
+  ILeavePolicy,
+  LeaveFormData,
+  LeavePolicyFormData,
 } from "@/interfaces/leave"
 import {
   Calendar,
@@ -19,6 +20,7 @@ import {
   Users,
 } from "lucide-react"
 
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -38,9 +40,9 @@ import { LeaveRequestForm } from "./leave-request-form"
 import { LeaveTable } from "./leave-table"
 
 interface LeaveDashboardProps {
-  leaves: Leave[]
-  leaveBalances: LeaveBalance[]
-  policies: LeavePolicy[]
+  leaves: ILeave[]
+  leaveBalances: ILeaveBalance[]
+  policies: ILeavePolicy[]
   employees: Array<{
     id: string
     name: string
@@ -48,13 +50,21 @@ interface LeaveDashboardProps {
     photo?: string
     department?: string
   }>
-  onLeaveSubmit?: (data: any) => Promise<void>
-  onLeaveEdit?: (leave: Leave) => void
+  onLeaveSubmit?: (data: LeaveFormData) => Promise<void>
+  onLeaveEdit?: (leave: ILeave) => void
   onLeaveDelete?: (leaveId: string) => void
   onLeaveApprove?: (leaveId: string) => void
   onLeaveReject?: (leaveId: string) => void
-  onPolicySubmit?: (data: any) => Promise<void>
-  onPolicyEdit?: (policy: LeavePolicy) => void
+  onPolicySubmit?: (data: LeavePolicyFormData) => Promise<void>
+  onPolicyEdit?: (policy: ILeavePolicy) => void
+  onEmployeeView?: (employee: {
+    id: string
+    name: string
+    employeeCode: string
+    photo?: string
+    department?: string
+  }) => void
+  onApprovalView?: (leave: ILeave) => void
 }
 
 export function LeaveDashboard({
@@ -69,11 +79,13 @@ export function LeaveDashboard({
   onLeaveReject,
   onPolicySubmit,
   onPolicyEdit,
+  onEmployeeView,
+  onApprovalView,
 }: LeaveDashboardProps) {
   const [activeTab, setActiveTab] = useState("overview")
   const [searchTerm, setSearchTerm] = useState("")
-  const [statusFilter, setStatusFilter] = useState<LeaveStatus | "ALL">("ALL")
-  const [typeFilter, setTypeFilter] = useState<LeaveType | "ALL">("ALL")
+  const [statusFilter, setStatusFilter] = useState<string>("ALL")
+  const [typeFilter, setTypeFilter] = useState<string>("ALL")
 
   // Filter leaves based on search and filters
   const filteredLeaves = useMemo(() => {
@@ -84,8 +96,9 @@ export function LeaveDashboard({
         leave.reason.toLowerCase().includes(searchTerm.toLowerCase())
 
       const matchesStatus =
-        statusFilter === "ALL" || leave.status === statusFilter
-      const matchesType = typeFilter === "ALL" || leave.leaveType === typeFilter
+        statusFilter === "ALL" || leave.statusName === statusFilter
+      const matchesType =
+        typeFilter === "ALL" || leave.leaveTypeName === typeFilter
 
       return matchesSearch && matchesStatus && matchesType
     })
@@ -94,11 +107,26 @@ export function LeaveDashboard({
   // Calculate statistics
   const stats = useMemo(() => {
     const totalLeaves = leaves.length
-    const pendingLeaves = leaves.filter((l) => l.status === "PENDING").length
-    const approvedLeaves = leaves.filter((l) => l.status === "APPROVED").length
-    const rejectedLeaves = leaves.filter((l) => l.status === "REJECTED").length
-    const totalDays = leaves.reduce((sum, l) => sum + l.totalDays, 0)
-    const totalEmployees = new Set(leaves.map((l) => l.employeeId)).size
+    const pendingLeaves = leaves.filter(
+      (leave) => leave.statusName === "PENDING"
+    ).length
+    const approvedLeaves = leaves.filter(
+      (leave) => leave.statusName === "APPROVED"
+    ).length
+    const rejectedLeaves = leaves.filter(
+      (leave) => leave.statusName === "REJECTED"
+    ).length
+
+    const totalDays = leaves.reduce((sum, leave) => sum + leave.totalDays, 0)
+    const pendingDays = leaves
+      .filter((leave) => leave.statusName === "PENDING")
+      .reduce((sum, leave) => sum + leave.totalDays, 0)
+    const approvedDays = leaves
+      .filter((leave) => leave.statusName === "APPROVED")
+      .reduce((sum, leave) => sum + leave.totalDays, 0)
+    const rejectedDays = leaves
+      .filter((leave) => leave.statusName === "REJECTED")
+      .reduce((sum, leave) => sum + leave.totalDays, 0)
 
     return {
       totalLeaves,
@@ -106,40 +134,30 @@ export function LeaveDashboard({
       approvedLeaves,
       rejectedLeaves,
       totalDays,
-      totalEmployees,
+      pendingDays,
+      approvedDays,
+      rejectedDays,
     }
   }, [leaves])
 
-  // Calculate leave balance statistics
-  const balanceStats = useMemo(() => {
-    const totalAllocated = leaveBalances.reduce(
-      (sum, b) => sum + b.totalAllocated,
-      0
-    )
-    const totalUsed = leaveBalances.reduce((sum, b) => sum + b.totalUsed, 0)
-    const totalRemaining = leaveBalances.reduce(
-      (sum, b) => sum + b.remainingBalance,
-      0
-    )
-    const lowBalanceCount = leaveBalances.filter(
-      (b) => b.remainingBalance < 5
-    ).length
+  // Get unique statuses and types for filters
+  const statuses = useMemo(() => {
+    const uniqueStatuses = [...new Set(leaves.map((leave) => leave.statusName))]
+    return ["ALL", ...uniqueStatuses]
+  }, [leaves])
 
-    return {
-      totalAllocated,
-      totalUsed,
-      totalRemaining,
-      lowBalanceCount,
-    }
-  }, [leaveBalances])
+  const types = useMemo(() => {
+    const uniqueTypes = [...new Set(leaves.map((leave) => leave.leaveTypeName))]
+    return ["ALL", ...uniqueTypes]
+  }, [leaves])
 
-  const handleLeaveSubmit = async (data: any) => {
+  const handleLeaveSubmit = async (data: LeaveFormData) => {
     if (onLeaveSubmit) {
       await onLeaveSubmit(data)
     }
   }
 
-  const handlePolicySubmit = async (data: any) => {
+  const handlePolicySubmit = async (data: LeavePolicyFormData) => {
     if (onPolicySubmit) {
       await onPolicySubmit(data)
     }
@@ -148,134 +166,87 @@ export function LeaveDashboard({
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col items-start justify-between space-y-4 sm:flex-row sm:items-center sm:space-y-0">
+      <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Leave Management</h1>
-          <p className="text-gray-600">
+          <p className="text-muted-foreground">
             Manage employee leave requests and policies
           </p>
         </div>
-        <div className="flex space-x-2">
-          <LeaveRequestForm
-            onSubmit={handleLeaveSubmit}
-            employees={employees}
-            trigger={
-              <Button>
-                <Plus className="mr-2 h-4 w-4" />
-                Request Leave
-              </Button>
-            }
-          />
-          <LeavePolicyForm
-            onSubmit={handlePolicySubmit}
-            trigger={
-              <Button variant="outline">
-                <Settings className="mr-2 h-4 w-4" />
-                Add Policy
-              </Button>
-            }
-          />
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm">
+            <Settings className="mr-2 h-4 w-4" />
+            Settings
+          </Button>
+          <Button size="sm">
+            <Plus className="mr-2 h-4 w-4" />
+            New Leave Request
+          </Button>
         </div>
       </div>
 
       {/* Statistics Cards */}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <Calendar className="h-5 w-5 text-blue-600" />
-              <span className="text-sm font-medium text-gray-600">
-                Total Requests
-              </span>
-            </div>
-            <div className="mt-2 text-2xl font-bold">{stats.totalLeaves}</div>
-            <div className="text-xs text-gray-500">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              Total Requests
+            </CardTitle>
+            <Calendar className="text-muted-foreground h-4 w-4" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.totalLeaves}</div>
+            <p className="text-muted-foreground text-xs">
               {stats.totalDays} total days
-            </div>
+            </p>
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <Clock className="h-5 w-5 text-yellow-600" />
-              <span className="text-sm font-medium text-gray-600">Pending</span>
-            </div>
-            <div className="mt-2 text-2xl font-bold text-yellow-600">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Pending</CardTitle>
+            <Clock className="text-muted-foreground h-4 w-4" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-yellow-600">
               {stats.pendingLeaves}
             </div>
-            <div className="text-xs text-gray-500">Awaiting approval</div>
+            <p className="text-muted-foreground text-xs">
+              {stats.pendingDays} days pending
+            </p>
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <CheckCircle className="h-5 w-5 text-green-600" />
-              <span className="text-sm font-medium text-gray-600">
-                Approved
-              </span>
-            </div>
-            <div className="mt-2 text-2xl font-bold text-green-600">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Approved</CardTitle>
+            <CheckCircle className="text-muted-foreground h-4 w-4" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-green-600">
               {stats.approvedLeaves}
             </div>
-            <div className="text-xs text-gray-500">Successfully approved</div>
+            <p className="text-muted-foreground text-xs">
+              {stats.approvedDays} days approved
+            </p>
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <Users className="h-5 w-5 text-purple-600" />
-              <span className="text-sm font-medium text-gray-600">
-                Employees
-              </span>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Rejected</CardTitle>
+            <TrendingUp className="text-muted-foreground h-4 w-4" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-red-600">
+              {stats.rejectedLeaves}
             </div>
-            <div className="mt-2 text-2xl font-bold">
-              {stats.totalEmployees}
-            </div>
-            <div className="text-xs text-gray-500">With leave requests</div>
+            <p className="text-muted-foreground text-xs">
+              {stats.rejectedDays} days rejected
+            </p>
           </CardContent>
         </Card>
       </div>
-
-      {/* Leave Balance Summary */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <TrendingUp className="h-5 w-5" />
-            <span>Leave Balance Overview</span>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
-            <div className="text-center">
-              <div className="text-2xl font-bold text-green-600">
-                {balanceStats.totalAllocated}
-              </div>
-              <div className="text-sm text-gray-600">Total Allocated</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-orange-600">
-                {balanceStats.totalUsed}
-              </div>
-              <div className="text-sm text-gray-600">Total Used</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-blue-600">
-                {balanceStats.totalRemaining}
-              </div>
-              <div className="text-sm text-gray-600">Total Remaining</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-red-600">
-                {balanceStats.lowBalanceCount}
-              </div>
-              <div className="text-sm text-gray-600">Low Balance Alert</div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
 
       {/* Main Content Tabs */}
       <Tabs
@@ -283,57 +254,86 @@ export function LeaveDashboard({
         onValueChange={setActiveTab}
         className="space-y-4"
       >
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="requests">Leave Requests</TabsTrigger>
-          <TabsTrigger value="balances">Leave Balances</TabsTrigger>
+          <TabsTrigger value="requests">Requests</TabsTrigger>
+          <TabsTrigger value="balances">Balances</TabsTrigger>
           <TabsTrigger value="policies">Policies</TabsTrigger>
+          <TabsTrigger value="employees">Employees</TabsTrigger>
         </TabsList>
 
         {/* Overview Tab */}
         <TabsContent value="overview" className="space-y-4">
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-            {/* Recent Leave Requests */}
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
             <Card>
               <CardHeader>
                 <CardTitle>Recent Leave Requests</CardTitle>
               </CardHeader>
               <CardContent>
-                <LeaveTable
-                  leaves={leaves.slice(0, 5)}
-                  onEdit={onLeaveEdit}
-                  onDelete={onLeaveDelete}
-                  onApprove={onLeaveApprove}
-                  onReject={onLeaveReject}
-                  showActions={true}
-                />
+                <div className="space-y-3">
+                  {leaves.slice(0, 5).map((leave) => (
+                    <div
+                      key={leave.leaveId}
+                      className="flex items-center justify-between rounded-lg border p-3"
+                    >
+                      <div className="flex items-center space-x-3">
+                        <Avatar className="h-8 w-8">
+                          <AvatarImage src={leave.employeePhoto} />
+                          <AvatarFallback>
+                            {leave.employeeName.charAt(0)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <p className="font-medium">{leave.employeeName}</p>
+                          <p className="text-muted-foreground text-sm">
+                            {leave.leaveTypeName} • {leave.totalDays} days
+                          </p>
+                        </div>
+                      </div>
+                      <Badge
+                        variant={
+                          leave.statusName === "APPROVED"
+                            ? "default"
+                            : leave.statusName === "PENDING"
+                              ? "secondary"
+                              : "destructive"
+                        }
+                      >
+                        {leave.statusName}
+                      </Badge>
+                    </div>
+                  ))}
+                </div>
               </CardContent>
             </Card>
 
-            {/* Leave Type Distribution */}
             <Card>
               <CardHeader>
-                <CardTitle>Leave Type Distribution</CardTitle>
+                <CardTitle>Leave Balance Summary</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  {Object.entries(
-                    leaves.reduce(
-                      (acc, leave) => {
-                        acc[leave.leaveType] = (acc[leave.leaveType] || 0) + 1
-                        return acc
-                      },
-                      {} as Record<string, number>
-                    )
-                  ).map(([type, count]) => (
+                  {leaveBalances.slice(0, 5).map((balance) => (
                     <div
-                      key={type}
-                      className="flex items-center justify-between"
+                      key={balance.leaveBalanceId}
+                      className="flex items-center justify-between rounded-lg border p-3"
                     >
-                      <span className="text-sm text-gray-600">
-                        {type.replace("_", " ")}
-                      </span>
-                      <Badge variant="outline">{count}</Badge>
+                      <div>
+                        <p className="font-medium">
+                          Employee ID: {balance.employeeId}
+                        </p>
+                        <p className="text-muted-foreground text-sm">
+                          Type ID: {balance.leaveTypeId}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-medium">
+                          {balance.remainingBalance} remaining
+                        </p>
+                        <p className="text-muted-foreground text-sm">
+                          {balance.totalUsed} used
+                        </p>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -342,156 +342,140 @@ export function LeaveDashboard({
           </div>
         </TabsContent>
 
-        {/* Leave Requests Tab */}
+        {/* Requests Tab */}
         <TabsContent value="requests" className="space-y-4">
-          {/* Filters */}
           <Card>
-            <CardContent className="p-4">
-              <div className="flex flex-col gap-4 sm:flex-row">
-                <div className="flex-1">
-                  <div className="relative">
-                    <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-gray-400" />
-                    <Input
-                      placeholder="Search by employee name, code, or reason..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-10"
-                    />
-                  </div>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle>Leave Requests</CardTitle>
+                <div className="flex items-center gap-2">
+                  <Input
+                    placeholder="Search requests..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-64"
+                  />
+                  <Select value={statusFilter} onValueChange={setStatusFilter}>
+                    <SelectTrigger className="w-32">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {statuses.map((status) => (
+                        <SelectItem key={status} value={status}>
+                          {status}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Select value={typeFilter} onValueChange={setTypeFilter}>
+                    <SelectTrigger className="w-32">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {types.map((type) => (
+                        <SelectItem key={type} value={type}>
+                          {type}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
-                <Select
-                  value={statusFilter}
-                  onValueChange={(value) =>
-                    setStatusFilter(value as LeaveStatus | "ALL")
-                  }
-                >
-                  <SelectTrigger className="w-full sm:w-48">
-                    <SelectValue placeholder="Filter by status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="ALL">All Status</SelectItem>
-                    <SelectItem value="PENDING">Pending</SelectItem>
-                    <SelectItem value="APPROVED">Approved</SelectItem>
-                    <SelectItem value="REJECTED">Rejected</SelectItem>
-                    <SelectItem value="CANCELLED">Cancelled</SelectItem>
-                    <SelectItem value="COMPLETED">Completed</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Select
-                  value={typeFilter}
-                  onValueChange={(value) =>
-                    setTypeFilter(value as LeaveType | "ALL")
-                  }
-                >
-                  <SelectTrigger className="w-full sm:w-48">
-                    <SelectValue placeholder="Filter by type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="ALL">All Types</SelectItem>
-                    <SelectItem value="CASUAL">Casual</SelectItem>
-                    <SelectItem value="SICK">Sick</SelectItem>
-                    <SelectItem value="ANNUAL">Annual</SelectItem>
-                    <SelectItem value="MATERNITY">Maternity</SelectItem>
-                    <SelectItem value="PATERNITY">Paternity</SelectItem>
-                    <SelectItem value="BEREAVEMENT">Bereavement</SelectItem>
-                    <SelectItem value="UNPAID">Unpaid</SelectItem>
-                    <SelectItem value="COMPENSATORY">Compensatory</SelectItem>
-                    <SelectItem value="OTHER">Other</SelectItem>
-                  </SelectContent>
-                </Select>
               </div>
-            </CardContent>
-          </Card>
-
-          {/* Leave Requests Table */}
-          <Card>
-            <CardContent className="p-0">
+            </CardHeader>
+            <CardContent>
               <LeaveTable
                 leaves={filteredLeaves}
                 onEdit={onLeaveEdit}
                 onDelete={onLeaveDelete}
                 onApprove={onLeaveApprove}
                 onReject={onLeaveReject}
-                showActions={true}
+                onApprovalView={onApprovalView}
               />
             </CardContent>
           </Card>
         </TabsContent>
 
-        {/* Leave Balances Tab */}
+        {/* Balances Tab */}
         <TabsContent value="balances" className="space-y-4">
           <Card>
-            <CardContent className="p-0">
-              <LeaveBalanceTable
-                leaveBalances={leaveBalances}
-                showActions={true}
-              />
+            <CardHeader>
+              <CardTitle>Leave Balances</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <LeaveBalanceTable balances={leaveBalances} policies={policies} />
             </CardContent>
           </Card>
         </TabsContent>
 
         {/* Policies Tab */}
         <TabsContent value="policies" className="space-y-4">
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {policies.map((policy) => (
-              <Card key={policy.id}>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-lg">{policy.name}</CardTitle>
-                    <Badge variant={policy.isActive ? "default" : "secondary"}>
-                      {policy.isActive ? "Active" : "Inactive"}
-                    </Badge>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div>
-                    <Badge variant="outline" className="mb-2">
-                      {policy.leaveType.replace("_", " ")}
-                    </Badge>
-                    <p className="text-sm text-gray-600">
-                      {policy.description}
-                    </p>
-                  </div>
-                  <div className="grid grid-cols-2 gap-2 text-sm">
-                    <div>
-                      <span className="text-gray-500">Default:</span>
-                      <div className="font-medium">
-                        {policy.defaultDays} days
+          <Card>
+            <CardHeader>
+              <CardTitle>Leave Policies</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <LeavePolicyForm
+                policies={policies}
+                onSubmit={handlePolicySubmit}
+                onEdit={onPolicyEdit}
+              />
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Employees Tab */}
+        <TabsContent value="employees" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Employee Leave Overview</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {employees.map((employee) => (
+                  <div
+                    key={employee.id}
+                    className="hover:bg-muted/50 cursor-pointer rounded-lg border p-4 transition-colors"
+                    onClick={() => onEmployeeView?.(employee)}
+                  >
+                    <div className="flex items-center space-x-3">
+                      <Avatar className="h-10 w-10">
+                        <AvatarImage src={employee.photo} />
+                        <AvatarFallback>
+                          {employee.name.charAt(0)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1">
+                        <p className="font-medium">{employee.name}</p>
+                        <p className="text-muted-foreground text-sm">
+                          {employee.employeeCode}
+                        </p>
+                        {employee.department && (
+                          <p className="text-muted-foreground text-xs">
+                            {employee.department}
+                          </p>
+                        )}
                       </div>
                     </div>
-                    <div>
-                      <span className="text-gray-500">Max:</span>
-                      <div className="font-medium">{policy.maxDays} days</div>
-                    </div>
-                    <div>
-                      <span className="text-gray-500">Notice:</span>
-                      <div className="font-medium">
-                        {policy.advanceNoticeDays} days
-                      </div>
-                    </div>
-                    <div>
-                      <span className="text-gray-500">Approval:</span>
-                      <div className="font-medium">
-                        {policy.requiresApproval ? "Required" : "Not Required"}
-                      </div>
+                    <div className="mt-3 flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground">
+                        Leave Summary
+                      </span>
+                      <Badge variant="outline">View Details</Badge>
                     </div>
                   </div>
-                  <div className="flex space-x-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => onPolicyEdit?.(policy)}
-                    >
-                      <Settings className="mr-1 h-4 w-4" />
-                      Edit
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Leave Request Form Dialog */}
+      <LeaveRequestForm
+        employees={employees}
+        policies={policies}
+        onSubmit={handleLeaveSubmit}
+      />
     </div>
   )
 }

@@ -22,13 +22,13 @@ interface ApprovalDashboardProps {
 
 export function ApprovalDashboard({ requests }: ApprovalDashboardProps) {
   const pendingCount = requests.filter(
-    (r) => r.statusTypeId === APPROVAL_STATUS.PENDING
+    (r) => r.statusId === APPROVAL_STATUS.PENDING
   ).length
   const approvedCount = requests.filter(
-    (r) => r.statusTypeId === APPROVAL_STATUS.APPROVED
+    (r) => r.statusId === APPROVAL_STATUS.APPROVED
   ).length
   const rejectedCount = requests.filter(
-    (r) => r.statusTypeId === APPROVAL_STATUS.REJECTED
+    (r) => r.statusId === APPROVAL_STATUS.REJECTED
   ).length
   const totalCount = requests.length
 

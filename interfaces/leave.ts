@@ -1,121 +1,147 @@
-export interface Leave {
-  id: string
-  employeeId: string
+export interface ILeave {
+  leaveId: number
+  employeeId: number
   employeeName: string
   employeePhoto?: string
   employeeCode: string
-  department?: string
-  location?: string
-  leaveType: LeaveType
-  leaveCategory: LeaveCategory
-  startDate: string
-  endDate: string
+  departmentId: number
+  departmentName?: string
+  leaveTypeId: number
+  leaveTypeName: string
+  leaveCategoryId: number
+  leaveCategoryName: string
+  startDate: Date | string
+  endDate: Date | string
   totalDays: number
   reason: string
-  status: LeaveStatus
-  approvedBy?: string
-  approvedAt?: string
-  rejectedBy?: string
-  rejectedAt?: string
-  rejectionReason?: string
+  statusName: string
+  actionById?: number
+  actionBy?: string
+  actionDate?: Date | string
+  actionRemarks?: string
   attachments?: string[]
   notes?: string
-  createdDate: string
-  editDate: string
+  createDate: Date | string
+  editDate: Date | string
+  createBy?: string
+  editBy?: string
 }
 
-export type LeaveType =
-  | "CASUAL"
-  | "SICK"
-  | "ANNUAL"
-  | "MATERNITY"
-  | "PATERNITY"
-  | "BEREAVEMENT"
-  | "UNPAID"
-  | "COMPENSATORY"
-  | "OTHER"
+export interface ILeaveType {
+  leaveTypeId: number
+  code: string
+  name: string
+  remarks?: string
+  isActive?: boolean
+  createById: number
+  createDate: Date | string
+  editById?: number
+  editDate?: Date | string
+}
 
-export type LeaveCategory = "FULL_DAY" | "HALF_DAY" | "HOURLY" | "MULTIPLE_DAYS"
-
-export type LeaveStatus =
-  | "PENDING"
-  | "APPROVED"
-  | "REJECTED"
-  | "CANCELLED"
-  | "COMPLETED"
-
-export interface LeaveBalance {
-  id: string
-  employeeId: string
-  employeeName: string
-  employeeCode: string
-  leaveType: LeaveType
+export interface ILeaveBalance {
+  leaveBalanceId: number
+  employeeId: number
+  leaveTypeId: number
   totalAllocated: number
   totalUsed: number
   totalPending: number
   remainingBalance: number
   year: number
-  createdDate: string
-  editDate: string
+  createById?: number
+  createDate?: Date | string
+  editById?: number
+  editDate?: Date | string
 }
 
-export interface LeavePolicy {
-  id: string
-  companyId: string
-  leaveType: LeaveType
+export interface ILeavePolicy {
+  leavePolicyId: number
+  companyId: number
+  leaveTypeId: number
   name: string
-  description: string
+  description?: string
   defaultDays: number
   maxDays: number
   minDays: number
   advanceNoticeDays: number
   maxConsecutiveDays: number
-  requiresApproval: boolean
-  requiresDocument: boolean
-  isActive: boolean
-  createdDate: string
-  editDate: string
+  requiresApproval?: boolean
+  requiresDocument?: boolean
+  isActive?: boolean
+  createById: number
+  createDate: Date | string
+  editById?: number
+  editDate?: Date | string
 }
 
-export interface LeaveRequest {
-  id: string
-  employeeId: string
-  employeeName: string
-  employeeCode: string
-  department?: string
-  location?: string
-  leaveType: LeaveType
-  leaveCategory: LeaveCategory
-  startDate: string
-  endDate: string
+export interface ILeaveRequest {
+  leaveRequestId: number
+  employeeId: number
+  leaveTypeId: number
+  startDate: Date | string
+  endDate: Date | string
   totalDays: number
   reason: string
-  status: LeaveStatus
-  attachments?: string[]
-  notes?: string
-  createdDate: string
-  editDate: string
+  statusId: number
+  actionById?: number
+  actionDate?: Date | string
+  remarks?: string
+  attachments?: string
+  createById: number
+  createDate: string
+  editById?: number
+  editDate?: Date | string
 }
 
-export interface LeaveApproval {
-  id: string
-  leaveId: string
-  approverId: string
-  approverName: string
+export interface ILeaveApproval {
+  leaveApprovalId: number
+  leaveRequestId: number
+  approverId: number
   approvalLevel: number
-  status: "APPROVED" | "REJECTED"
+  statusId: number
   comments?: string
-  approvedAt: string
+  approvedDate?: Date | string
+  createDate?: Date | string
+}
+
+export interface ILeaveCalendar {
+  leaveCalendarId: number
+  date: Date | string
+  employeeId: number
+  leaveRequestId?: number
+  statusId: number
+  leaveTypeId?: number
+  createDate: Date | string
+}
+
+export interface ILeaveSetting {
+  leaveSettingId: number
+  companyId: number
+  autoApproveLeaves?: boolean
+  requireManagerApproval?: boolean
+  requireHrApproval?: boolean
+  allowNegativeBalance?: boolean
+  maxAdvanceBookingDays?: number
+  minAdvanceNoticeDays?: number
+  weekendDays?: string
+  holidays?: string
+  workingHours?: string
+  createById?: number
+  createDate?: Date | string
+  editById?: number
+  editDate?: Date | string
 }
 
 export interface LeaveFilter {
   employeeId?: string
-  department?: string
-  location?: string
-  leaveType?: LeaveType
-  status?: LeaveStatus
-  dateFrom?: string
-  dateTo?: string
+  departmentId?: number
+  departmentName?: string
+  locationId?: number
+  locationName?: string
+  leaveType?: ILeaveType
+  status?: string
+  dateFrom?: Date | string
+  dateTo?: Date | string
   approvedBy?: string
 }
 
@@ -134,52 +160,27 @@ export interface LeaveSummary {
   rejectedDays: number
 }
 
-export interface LeaveCalendar {
-  date: string
-  leaves: Leave[]
-  totalEmployees: number
-  employeesOnLeave: number
-  employeesPresent: number
-}
-
 export interface LeaveReport {
   employeeId: string
   employeeName: string
   employeeCode: string
-  department?: string
-  leaveType: LeaveType
+  departmentId?: number
+  departmentName?: string
+  leaveTypeId?: number
+  leaveTypeName?: string
   totalDays: number
   usedDays: number
   remainingDays: number
   year: number
 }
 
-export interface LeaveSettings {
-  id: string
-  companyId: string
-  autoApproveLeaves: boolean
-  requireManagerApproval: boolean
-  requireHRApproval: boolean
-  allowNegativeBalance: boolean
-  maxAdvanceBookingDays: number
-  minAdvanceNoticeDays: number
-  weekendDays: string[] // ["Saturday", "Sunday"]
-  holidays: string[] // ["2024-01-01", "2024-12-25"]
-  workingHours: {
-    start: string
-    end: string
-  }
-  createdDate: string
-  editDate: string
-}
-
 // Form Data Interfaces
 export interface LeaveFormData {
   employeeId: string
-  leaveType: LeaveType
-  leaveCategory: LeaveCategory
-  startDate: string
-  endDate: string
+  leaveTypeId: number
+  leaveTypeName: string
+  startDate: Date | string
+  endDate: Date | string
   reason: string
   notes?: string
   attachments?: string[]
@@ -187,7 +188,7 @@ export interface LeaveFormData {
 
 export interface LeavePolicyFormData {
   companyId: string
-  leaveType: LeaveType
+  leaveTypeId: number
   name: string
   description: string
   defaultDays: number
@@ -202,7 +203,7 @@ export interface LeavePolicyFormData {
 
 export interface LeaveBalanceFormData {
   employeeId: string
-  leaveType: LeaveType
+  leaveTypeId: number
   totalAllocated: number
   year: number
 }

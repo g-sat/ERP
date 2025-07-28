@@ -24,7 +24,7 @@ export interface IApprovalRequest {
   requestedById: number
   requestedDate: string
   currentLevelId: number
-  statusTypeId: number
+  statusId: number
   // Additional fields for UI
   processName?: string
   requestedByName?: string
@@ -38,7 +38,7 @@ export interface IApprovalAction {
   levelId: number
   actionById: number
   actionDate: string
-  actionTypeId: number
+  statusId: number
   remarks?: string
   // Additional fields for UI
   actionByName?: string
@@ -56,12 +56,12 @@ export interface IApprovalRequestDetail extends IApprovalRequest {
 export interface IApprovalActionRequest {
   requestId: number
   levelId: number
-  actionTypeId: number
+  statusId: number
   remarks?: string
 }
 
 export interface IApprovalFilter {
-  statusTypeId?: number
+  statusId?: number
   processId?: number
   dateFrom?: string
   dateTo?: string

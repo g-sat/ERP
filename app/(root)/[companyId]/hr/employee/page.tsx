@@ -10,6 +10,7 @@ import {
 import { EmployeeCategoryValues, EmployeeFormValues } from "@/schemas/employee"
 import { usePermissionStore } from "@/stores/permission-store"
 import { useQueryClient } from "@tanstack/react-query"
+import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 
 import { getData } from "@/lib/api-client"
@@ -28,6 +29,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { DeleteConfirmation } from "@/components/delete-confirmation"
 import { DataTableSkeleton } from "@/components/skeleton/data-table-skeleton"
 import { LockSkeleton } from "@/components/skeleton/lock-skeleton"
+import CompanyAutocomplete from "@/components/ui-custom/autocomplete-company"
 import { LoadExistingDialog } from "@/components/ui-custom/master-loadexisting-dialog"
 
 import { EmployeeCategoryForm } from "./components/employee-category-form"
@@ -66,6 +68,10 @@ export default function EmployeePage() {
   // State for filters
   const [filters, setFilters] = useState<IEmployeeFilter>({})
   const [categoryFilters, setCategoryFilters] = useState<IEmployeeFilter>({})
+  const [selectedCompanyId, setSelectedCompanyId] = useState<number>(0)
+
+  // Form for company selection
+  const companyForm = useForm()
 
   // Data fetching
   const {
@@ -87,10 +93,17 @@ export default function EmployeePage() {
   )
 
   // Extract data from responses
-  const employeesData =
+  const allEmployeesData =
     (employeesResponse as ApiResponse<IEmployee>)?.data || []
   const employeeCategoryData =
     (employeeCategoryResponse as ApiResponse<IEmployeeCategory>)?.data || []
+
+  // Filter employees by selected company
+  const employeesData = selectedCompanyId
+    ? allEmployeesData.filter(
+        (employee) => employee.companyId === selectedCompanyId
+      )
+    : allEmployeesData
 
   // Mutations
   const saveMutation = useSave<EmployeeFormValues>(`${Employee.add}`)
@@ -189,6 +202,14 @@ export default function EmployeePage() {
   // Filter handlers
   const handleEmployeeFilterChange = (filters: IEmployeeFilter) => {
     setFilters(filters)
+  }
+
+  // Company change handler
+  const handleCompanyChange = (companyId: number) => {
+    setSelectedCompanyId(companyId)
+    // Clear search filters when company changes
+    setFilters({})
+    // No API call needed - data is filtered client-side
   }
 
   // Helper function for API responses
@@ -455,7 +476,21 @@ export default function EmployeePage() {
           <TabsTrigger value="employeecategory">Employee Category</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="employee" className="space-y-4">
+        <TabsContent value="employee" className="space-y-4" key="employee-tab">
+          <div className="mb-4 flex items-center gap-4">
+            <CompanyAutocomplete
+              form={companyForm}
+              name="companyId"
+              label="Select Company"
+              onChangeEvent={(selectedOption) => {
+                if (selectedOption) {
+                  handleCompanyChange(selectedOption.companyId)
+                } else {
+                  handleCompanyChange(0)
+                }
+              }}
+            />
+          </div>
           {(employeesResponse as ApiResponse<IEmployee>)?.result === -2 ? (
             <LockSkeleton locked={true}>
               <EmployeesTable
@@ -485,7 +520,11 @@ export default function EmployeePage() {
           )}
         </TabsContent>
 
-        <TabsContent value="employeecategory" className="space-y-4">
+        <TabsContent
+          value="employeecategory"
+          className="space-y-4"
+          key="employeecategory-tab"
+        >
           {(employeeCategoryResponse as ApiResponse<IEmployeeCategory>)
             ?.result === -2 ? (
             <LockSkeleton locked={true}>
@@ -532,7 +571,7 @@ export default function EmployeePage() {
       {/* Employee Form Dialog */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogContent
-          className="max-h-[90vh] w-[80vw] !max-w-none overflow-y-auto"
+          className="max-h-[90vh] w-[90vw] !max-w-none overflow-y-auto"
           onPointerDownOutside={(e) => e.preventDefault()}
         >
           <DialogHeader>

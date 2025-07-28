@@ -33,7 +33,7 @@ interface UseApprovalReturn {
     statusId: number
   ) => "default" | "secondary" | "destructive" | "outline"
   getStatusText: (statusId: number) => string
-  getActionTypeText: (actionTypeId: number) => string
+  getActionTypeText: (statusId: number) => string
   canTakeAction: (request: IApprovalRequest) => boolean
 }
 
@@ -210,8 +210,8 @@ export const useApproval = (): UseApprovalReturn => {
     }
   }, [])
 
-  const getActionTypeText = useCallback((actionTypeId: number): string => {
-    switch (actionTypeId) {
+  const getActionTypeText = useCallback((statusId: number): string => {
+    switch (statusId) {
       case APPROVAL_ACTION_TYPES.APPROVED:
         return "Approved"
       case APPROVAL_ACTION_TYPES.REJECTED:
@@ -224,8 +224,7 @@ export const useApproval = (): UseApprovalReturn => {
   const canTakeAction = useCallback((request: IApprovalRequest): boolean => {
     // Check if the request is pending and the current user can take action
     return (
-      request.statusTypeId === APPROVAL_STATUS.PENDING &&
-      request.currentLevelId > 0
+      request.statusId === APPROVAL_STATUS.PENDING && request.currentLevelId > 0
     )
   }, [])
 
@@ -270,7 +269,7 @@ export const useApprovalCounts = (): UseApprovalCountsReturn => {
       if (response.result === 1) {
         const requests = response.data || []
         const count = requests.filter(
-          (r: IApprovalRequest) => r.statusTypeId === APPROVAL_STATUS.PENDING
+          (r: IApprovalRequest) => r.statusId === APPROVAL_STATUS.PENDING
         ).length
         setPendingCount(count)
       } else {
