@@ -50,12 +50,6 @@ export interface IEmployeeFilter {
   sortOrder?: "asc" | "desc"
 }
 
-export interface IEmployeeLookup {
-  id: number
-  code: string
-  name: string
-}
-
 export interface IEmployeeCategory {
   companyId: number
   empCategoryId: number

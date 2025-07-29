@@ -2,7 +2,8 @@
 
 import { useMemo, useState } from "react"
 import { IEmployee } from "@/interfaces/employee"
-import { ILeave, ILeaveBalance, LeaveFormData } from "@/interfaces/leave"
+import { ILeave, ILeaveBalance } from "@/interfaces/leave"
+import { LeaveRequestFormValues } from "@/schemas/leave"
 import { format } from "date-fns"
 import {
   AlertCircle,
@@ -30,8 +31,7 @@ interface EmployeeLeaveViewProps {
   employee: IEmployee
   leaves: ILeave[]
   leaveBalances: ILeaveBalance[]
-  onLeaveSubmit: (data: LeaveFormData) => Promise<void>
-  onLeaveEdit?: (leave: ILeave) => void
+  onLeaveSubmit: (data: LeaveRequestFormValues) => Promise<void>
   onLeaveCancel?: (leaveId: string) => Promise<void>
 }
 
@@ -40,7 +40,6 @@ export function EmployeeLeaveView({
   leaves,
   leaveBalances,
   onLeaveSubmit,
-  onLeaveEdit,
   onLeaveCancel,
 }: EmployeeLeaveViewProps) {
   const [activeTab, setActiveTab] = useState("overview")
@@ -116,11 +115,11 @@ export function EmployeeLeaveView({
 
   const approvalHierarchy = getApprovalHierarchy()
 
-  const handleLeaveSubmit = async (data: LeaveFormData) => {
+  const handleLeaveSubmit = async (data: LeaveRequestFormValues) => {
     try {
       await onLeaveSubmit({
         ...data,
-        employeeId: employee.employeeId.toString(),
+        employeeId: employee.employeeId,
       })
       toast.success(
         "Leave request submitted successfully! Sent to approval hierarchy."
@@ -435,13 +434,6 @@ export function EmployeeLeaveView({
                     {leave.statusName === "PENDING" && (
                       <div className="flex space-x-2">
                         <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => onLeaveEdit?.(leave)}
-                        >
-                          Edit
-                        </Button>
-                        <Button
                           variant="destructive"
                           size="sm"
                           onClick={() =>
@@ -491,19 +483,7 @@ export function EmployeeLeaveView({
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <LeaveRequestForm
-                onSubmit={handleLeaveSubmit}
-                employees={[
-                  {
-                    id: employee.employeeId.toString(),
-                    name: `${employee.firstName} ${employee.lastName}`,
-                    employeeCode: employee.code,
-                    photo: employee.photo,
-                    department: employee.departmentName,
-                  },
-                ]}
-                policies={[]}
-              />
+              <LeaveRequestForm onSubmit={handleLeaveSubmit} />
             </CardContent>
           </Card>
 

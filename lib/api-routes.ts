@@ -23,6 +23,15 @@ export const DocumentType = {
   delete: "/admin/deletedocument",
 }
 
+// Document Expiry Endpoints
+export const DocumentExpiry = {
+  get: "/document/GetExpDocument",
+  getById: "/document/GetExpDocumentbyid",
+  add: "/document/SaveExpDocument",
+  update: "/document/SaveExpDocument",
+  delete: "/document/DeleteExpDocument",
+}
+
 // Attendance Endpoints
 export const Hr_Attendance = {
   get: "/hr/GetAttendanceEmployee",
@@ -85,6 +94,11 @@ export const BasicSetting = {
 export const DecimalSetting = {
   get: "/setting/getdecsetting",
   add: "/setting/savedecsetting",
+}
+
+export const TaskServiceSetting = {
+  get: "/setting/GetTaskServiceSetting",
+  add: "/setting/SaveTaskServiceSetting",
 }
 
 // Finance Setting Endpoints
@@ -181,6 +195,7 @@ export const Lookup = {
   getVoyage: "/master/getvoyagelookup",
   getDesignation: "/master/getdesignationlookup",
   getEmployee: "/master/getemployeelookup",
+  getLeaveType: "/master/getleavetypelookup",
   getTax: "/master/gettaxlookup",
   getUserGroup: "/master/getusergrouplookup",
   getUserRole: "/master/getuserrolelookup",
@@ -1021,144 +1036,6 @@ export const JobOrder_DebitNote = {
   deleteDetails: "/operations/deletedebitnotedetails",
 }
 
-// HRMS API Routes
-export const HrDepartment = {
-  get: "/hr/departments",
-  getById: "/hr/departments",
-  post: "/hr/departments",
-  put: "/hr/departments",
-  delete: "/hr/departments",
-}
-
-export const HrPosition = {
-  get: "/hr/positions",
-  getById: "/hr/positions",
-  post: "/hr/positions",
-  put: "/hr/positions",
-  delete: "/hr/positions",
-}
-
-export const HrEmployee = {
-  get: "/hr/employees",
-  getById: "/hr/employees",
-  post: "/hr/employees",
-  put: "/hr/employees",
-  delete: "/hr/employees",
-}
-
-export const HrSalaryComponent = {
-  get: "/hr/salary-components",
-  getById: "/hr/salary-components",
-  post: "/hr/salary-components",
-  put: "/hr/salary-components",
-  delete: "/hr/salary-components",
-}
-
-export const HrEmployeeSalaryComponent = {
-  get: "/hr/employee-salary-components",
-  getById: "/hr/employee-salary-components",
-  post: "/hr/employee-salary-components",
-  put: "/hr/employee-salary-components",
-  delete: "/hr/employee-salary-components",
-}
-
-export const HrSalaryIncrement = {
-  get: "/hr/salary-increments",
-  getById: "/hr/salary-increments",
-  post: "/hr/salary-increments",
-  put: "/hr/salary-increments",
-  delete: "/hr/salary-increments",
-}
-
-export const HrLoan = {
-  get: "/hr/loans",
-  getById: "/hr/loans",
-  post: "/hr/loans",
-  put: "/hr/loans",
-  delete: "/hr/loans",
-}
-
-// Notification Endpoints
-export const Notifications = {
-  get: "/notifications",
-  getById: "/notifications",
-  markRead: "/notifications/mark-read",
-  markAllRead: "/notifications/mark-all-read",
-  delete: "/notifications/delete",
-  clearAll: "/notifications/clear-all",
-  preferences: "/notifications/preferences",
-  stats: "/notifications/stats",
-}
-
-export const HrPayrollTransaction = {
-  get: "/hr/payroll-transactions",
-  getById: "/hr/payroll-transactions",
-  post: "/hr/payroll-transactions",
-  put: "/hr/payroll-transactions",
-  delete: "/hr/payroll-transactions",
-}
-
-export const HrPayrollDetail = {
-  get: "/hr/payroll-details",
-  getById: "/hr/payroll-details",
-  post: "/hr/payroll-details",
-  put: "/hr/payroll-details",
-  delete: "/hr/payroll-details",
-}
-
-export const HrDashboard = {
-  getStats: "/hr/dashboard/stats",
-  getEmployeeStats: "/hr/dashboard/employee-stats",
-}
-
-// Approval Endpoints
-export const ApprovalProcess = {
-  get: "/approval/GetApprovalProcessList",
-  getById: "/approval/GetApprovalProcessById",
-  add: "/approval/SaveApprovalProcess",
-  update: "/approval/SaveApprovalProcess",
-  delete: "/approval/DeleteApprovalProcess",
-}
-
-export const ApprovalLevel = {
-  get: "/approval/GetApprovalLevelList",
-  getById: "/approval/GetApprovalLevelById",
-  add: "/approval/SaveApprovalLevel",
-  update: "/approval/SaveApprovalLevel",
-  delete: "/approval/DeleteApprovalLevel",
-}
-
-export const ApprovalRequest = {
-  get: "/approval/requests",
-  getById: "/approval/requests",
-  getByCompany: "/approval/requests/company",
-  getByUser: "/approval/requests/user",
-  add: "/approval/requests",
-  update: "/approval/requests",
-  delete: "/approval/requests",
-}
-
-export const ApprovalAction = {
-  get: "/approval/actions",
-  getById: "/approval/actions",
-  getByRequest: "/approval/actions/request",
-  add: "/approval/actions",
-  update: "/approval/actions",
-  delete: "/approval/actions",
-}
-
-export const ApprovalCounts = {
-  get: "/approval/counts",
-}
-
-export const DocumentExpiry = {
-  get: "/document/GetExpDocument",
-  getById: "/document/GetExpDocumentbyid",
-  add: "/document/SaveExpDocument",
-  update: "/document/SaveExpDocument",
-  delete: "/document/DeleteExpDocument",
-}
-
 // GL Period Close Endpoints
 export const GLPeriodClose = {
   get: "/gl/period-close",
@@ -1171,139 +1048,62 @@ export const GLPeriodClose = {
 }
 
 // Leave Management Endpoints
-export const HrLeave = {
-  get: "/hr/leave",
-  getById: "/hr/leave",
-  add: "/hr/leave",
-  update: "/hr/leave",
-  delete: "/hr/leave",
-  getByEmployee: "/hr/leave/employee",
-  getByDepartment: "/hr/leave/department",
-  getByStatus: "/hr/leave/status",
-  getByDateRange: "/hr/leave/date-range",
-  bulkAction: "/hr/leave/bulk-action",
-  summary: "/hr/leave/summary",
-  report: "/hr/leave/report",
-}
-
-export const HrLeaveBalance = {
-  get: "/hr/leave-balance",
-  getById: "/hr/leave-balance",
-  getByEmployee: "/hr/leave-balance/employee",
-  add: "/hr/leave-balance",
-  update: "/hr/leave-balance",
-  delete: "/hr/leave-balance",
-  bulkUpdate: "/hr/leave-balance/bulk-update",
-  resetYearly: "/hr/leave-balance/reset-yearly",
-  summary: "/hr/leave-balance/summary",
-}
-
-export const HrLeavePolicy = {
-  get: "/hr/leave-policy",
-  getById: "/hr/leave-policy",
-  add: "/hr/leave-policy",
-  update: "/hr/leave-policy",
-  delete: "/hr/leave-policy",
-  getByCompany: "/hr/leave-policy/company",
-  getActive: "/hr/leave-policy/active",
-}
 
 export const HrLeaveRequest = {
-  get: "/hr/leave-request",
-  getById: "/hr/leave-request",
-  add: "/hr/leave-request",
-  update: "/hr/leave-request",
-  delete: "/hr/leave-request",
+  get: "/hr/leave-request/getleaverequest",
+  getById: "/hr/leave-request/getleaverequestbyid",
+  add: "/hr/leave-request/saveleaverequest",
+  update: "/hr/leave-request/saveleaverequest",
+  delete: "/hr/leave-request/deleteleaverequest",
   getByEmployee: "/hr/leave-request/employee",
+  getByDepartment: "/hr/leave-request/department",
+  getByDateRange: "/hr/leave-request/daterangeleave",
   getByStatus: "/hr/leave-request/status",
-  getPending: "/hr/leave-request/pending",
-  getApproved: "/hr/leave-request/approved",
-  getRejected: "/hr/leave-request/rejected",
+  getPending: "/hr/leave-request/pendingleaverequest",
+  getApproved: "/hr/leave-request/approvedleaverequest",
+  getRejected: "/hr/leave-request/rejectedleaverequest",
   bulkAction: "/hr/leave-request/bulk-action",
 }
 
+export const HrLeaveBalance = {
+  get: "/hr/leave-balance/getleavebalance",
+  getById: "/hr/leave-balance/getleavebalancebyid",
+  getByEmployee: "/hr/leave-balance/employeeleavebalance",
+  add: "/hr/leave-balance/saveleavebalance",
+  update: "/hr/leave-balance/saveleavebalance",
+  delete: "/hr/leave-balance/deleteleavebalance",
+  bulkUpdate: "/hr/leave-balance/bulkupdatleavebalance",
+  resetYearly: "/hr/leave-balance/resetyearlyleavebalance",
+  summary: "/hr/leave-balance/summaryleavebalance",
+}
+
+export const HrLeavePolicy = {
+  get: "/hr/leave-policy/getleavepolicy",
+  getById: "/hr/leave-policy/getleavepolicybyid",
+  add: "/hr/leave-policy/saveleavepolicy",
+  update: "/hr/leave-policy/saveleavepolicy",
+  delete: "/hr/leave-policy/deleteleavepolicy",
+  getByCompany: "/hr/leave-policy/companyleavepolicy",
+  getActive: "/hr/leave-policy/activeleavepolicy",
+}
+
 export const HrLeaveApproval = {
-  get: "/hr/leave-approval",
-  getById: "/hr/leave-approval",
-  getByRequest: "/hr/leave-approval/request",
-  getByApprover: "/hr/leave-approval/approver",
-  getPending: "/hr/leave-approval/pending",
-  approve: "/hr/leave-approval/approve",
-  reject: "/hr/leave-approval/reject",
-  skip: "/hr/leave-approval/skip",
-  cancel: "/hr/leave-approval/cancel",
-  getWorkflow: "/hr/leave-approval/workflow",
+  get: "/hr/leave-approval/getleaveapproval",
+  getById: "/hr/leave-approval/getleaveapprovalbyid",
+  getByRequest: "/hr/leave-approval/requestleaveapproval",
+  getByApprover: "/hr/leave-approval/approverleaveapproval",
+  getPending: "/hr/leave-approval/pendingleaveapproval",
+  approve: "/hr/leave-approval/approveleaveapproval",
+  reject: "/hr/leave-approval/rejectleaveapproval",
+  skip: "/hr/leave-approval/skipleaveapproval",
+  cancel: "/hr/leave-approval/cancelleaveapproval",
+  getWorkflow: "/hr/leave-approval/workflowleaveapproval",
 }
 
-export const HrLeaveCalendar = {
-  get: "/hr/leave-calendar",
-  getById: "/hr/leave-calendar",
-  getByEmployee: "/hr/leave-calendar/employee",
-  getByDate: "/hr/leave-calendar/date",
-  getByDateRange: "/hr/leave-calendar/date-range",
-  add: "/hr/leave-calendar",
-  update: "/hr/leave-calendar",
-  delete: "/hr/leave-calendar",
-  bulkAdd: "/hr/leave-calendar/bulk-add",
-}
-
-export const HrLeaveSettings = {
-  get: "/hr/leave-settings",
-  getByCompany: "/hr/leave-settings/company",
-  add: "/hr/leave-settings",
-  update: "/hr/leave-settings",
-  delete: "/hr/leave-settings",
-  getHolidays: "/hr/leave-settings/holidays",
-  updateHolidays: "/hr/leave-settings/holidays",
-  getWorkingHours: "/hr/leave-settings/working-hours",
-  updateWorkingHours: "/hr/leave-settings/working-hours",
-}
-
-export const HrLeaveCategory = {
-  get: "/hr/leave-category",
-  getById: "/hr/leave-category",
-  add: "/hr/leave-category",
-  update: "/hr/leave-category",
-  delete: "/hr/leave-category",
-  getActive: "/hr/leave-category/active",
-}
-
-export const HrLeaveAttachment = {
-  get: "/hr/leave-attachment",
-  getById: "/hr/leave-attachment",
-  upload: "/hr/leave-attachment/upload",
-  delete: "/hr/leave-attachment",
-  download: "/hr/leave-attachment/download",
-  getByLeave: "/hr/leave-attachment/leave",
-}
-
-export const HrLeaveNotification = {
-  get: "/hr/leave-notification",
-  getById: "/hr/leave-notification",
-  markRead: "/hr/leave-notification/mark-read",
-  markAllRead: "/hr/leave-notification/mark-all-read",
-  delete: "/hr/leave-notification",
-  sendNotification: "/hr/leave-notification/send",
-}
-
-export const HrLeaveDashboard = {
-  getStats: "/hr/leave-dashboard/stats",
-  getEmployeeStats: "/hr/leave-dashboard/employee-stats",
-  getDepartmentStats: "/hr/leave-dashboard/department-stats",
-  getLeaveTrends: "/hr/leave-dashboard/trends",
-  getUpcomingLeaves: "/hr/leave-dashboard/upcoming",
-  getPendingApprovals: "/hr/leave-dashboard/pending-approvals",
-  getLeaveCalendar: "/hr/leave-dashboard/calendar",
-  getLeaveSummary: "/hr/leave-dashboard/summary",
-}
-
-export const HrLeaveReport = {
-  getEmployeeReport: "/hr/leave-report/employee",
-  getDepartmentReport: "/hr/leave-report/department",
-  getLeaveTypeReport: "/hr/leave-report/leave-type",
-  getBalanceReport: "/hr/leave-report/balance",
-  getApprovalReport: "/hr/leave-report/approval",
-  getTrendReport: "/hr/leave-report/trend",
-  exportReport: "/hr/leave-report/export",
-  getCustomReport: "/hr/leave-report/custom",
+export const Approval = {
+  get: "/approval/my-requests",
+  getPending: "/approval/pending-approvals",
+  getRequestDetail: "/approval/request-detail",
+  takeAction: "/approval/take-action",
+  getCounts: "/approval/counts",
 }

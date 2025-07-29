@@ -37,18 +37,12 @@ import {
 interface LeaveBalanceTableProps {
   balances: ILeaveBalance[]
   policies: ILeavePolicy[]
-  onEdit?: (balance: ILeaveBalance) => void
-  onView?: (balance: ILeaveBalance) => void
-  onAddBalance?: (employeeId: number) => void
   showActions?: boolean
 }
 
 export function LeaveBalanceTable({
   balances,
   policies,
-  onEdit,
-  onView,
-  onAddBalance,
   showActions = true,
 }: LeaveBalanceTableProps) {
   const getLeaveTypeColor = (typeId: number) => {
@@ -71,36 +65,9 @@ export function LeaveBalanceTable({
     }
   }
 
-  const getLeaveTypeName = (typeId: number) => {
-    const policy = policies.find((p) => p.leaveTypeId === typeId)
-    return policy?.name || `Type ${typeId}`
-  }
-
   const getUsagePercentage = (used: number, allocated: number) => {
     if (allocated === 0) return 0
     return Math.round((used / allocated) * 100)
-  }
-
-  const getUsageStatus = (percentage: number) => {
-    if (percentage >= 90) return "critical"
-    if (percentage >= 75) return "warning"
-    if (percentage >= 50) return "moderate"
-    return "good"
-  }
-
-  const getUsageColor = (status: string) => {
-    switch (status) {
-      case "critical":
-        return "bg-red-500"
-      case "warning":
-        return "bg-orange-500"
-      case "moderate":
-        return "bg-yellow-500"
-      case "good":
-        return "bg-green-500"
-      default:
-        return "bg-gray-500"
-    }
   }
 
   const getUsageIcon = (percentage: number) => {
@@ -110,6 +77,21 @@ export function LeaveBalanceTable({
     if (percentage >= 50)
       return <TrendingUp className="h-4 w-4 text-yellow-500" />
     return <TrendingDown className="h-4 w-4 text-green-500" />
+  }
+
+  // Handle empty or invalid data
+  if (!balances || balances.length === 0) {
+    return (
+      <div className="py-8 text-center">
+        <Calendar className="mx-auto h-12 w-12 text-gray-400" />
+        <h3 className="mt-4 text-lg font-medium text-gray-900">
+          No leave balances found
+        </h3>
+        <p className="mt-2 text-sm text-gray-500">
+          There are no leave balances to display.
+        </p>
+      </div>
+    )
   }
 
   return (
@@ -191,7 +173,7 @@ export function LeaveBalanceTable({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Employee ID</TableHead>
+              <TableHead>Employee</TableHead>
               <TableHead>Leave Type</TableHead>
               <TableHead>Allocated</TableHead>
               <TableHead>Used</TableHead>
@@ -210,7 +192,6 @@ export function LeaveBalanceTable({
                 balance.totalUsed,
                 balance.totalAllocated
               )
-              const usageStatus = getUsageStatus(usagePercentage)
 
               return (
                 <TableRow key={balance.leaveBalanceId}>
@@ -218,10 +199,12 @@ export function LeaveBalanceTable({
                     <div className="flex items-center space-x-2">
                       <Avatar className="h-8 w-8">
                         <AvatarFallback>
-                          {balance.employeeId.toString().slice(-2)}
+                          {balance.employeeName?.toString().slice(-2)}
                         </AvatarFallback>
                       </Avatar>
-                      <span className="font-medium">{balance.employeeId}</span>
+                      <span className="font-medium">
+                        {balance.employeeName}
+                      </span>
                     </div>
                   </TableCell>
                   <TableCell>
@@ -229,7 +212,7 @@ export function LeaveBalanceTable({
                       variant="outline"
                       className={getLeaveTypeColor(balance.leaveTypeId)}
                     >
-                      {getLeaveTypeName(balance.leaveTypeId)}
+                      {balance.leaveTypeName || `Type ${balance.leaveTypeId}`}
                     </Badge>
                   </TableCell>
                   <TableCell>
@@ -284,17 +267,42 @@ export function LeaveBalanceTable({
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                          <DropdownMenuItem onClick={() => onView?.(balance)}>
+                          <DropdownMenuItem
+                            onClick={() => {
+                              // Dispatch event to open balance form in view mode
+                              const event = new CustomEvent("openBalanceForm", {
+                                detail: { mode: "view", balance },
+                              })
+                              window.dispatchEvent(event)
+                            }}
+                          >
                             <Eye className="mr-2 h-4 w-4" />
                             View Details
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => onEdit?.(balance)}>
+                          <DropdownMenuItem
+                            onClick={() => {
+                              // Dispatch event to open balance form in edit mode
+                              const event = new CustomEvent("openBalanceForm", {
+                                detail: { mode: "edit", balance },
+                              })
+                              window.dispatchEvent(event)
+                            }}
+                          >
                             <Edit className="mr-2 h-4 w-4" />
                             Edit Balance
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
                           <DropdownMenuItem
-                            onClick={() => onAddBalance?.(balance.employeeId)}
+                            onClick={() => {
+                              // Dispatch event to open balance form in add mode for specific employee
+                              const event = new CustomEvent("openBalanceForm", {
+                                detail: {
+                                  mode: "add",
+                                  employeeId: balance.employeeId,
+                                },
+                              })
+                              window.dispatchEvent(event)
+                            }}
                           >
                             <Plus className="mr-2 h-4 w-4" />
                             Add Balance

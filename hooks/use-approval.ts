@@ -9,6 +9,7 @@ import {
 import { useAuthStore } from "@/stores/auth-store"
 
 import { getData, postData } from "@/lib/api-client"
+import { Approval } from "@/lib/api-routes"
 
 interface UseApprovalReturn {
   // State
@@ -64,7 +65,7 @@ export const useApproval = (): UseApprovalReturn => {
         pageNumber: "1",
         pageSize: "2000",
       }
-      const response = await getData("/approval/my-requests", params)
+      const response = await getData(Approval.get, params)
 
       if (response.result === 1) {
         setRequests(response.data || [])
@@ -90,7 +91,7 @@ export const useApproval = (): UseApprovalReturn => {
         pageNumber: "1",
         pageSize: "2000",
       }
-      const response = await getData("/approval/pending-approvals", params)
+      const response = await getData(Approval.getPending, params)
 
       if (response.result === 1) {
         setRequests(response.data || [])
@@ -112,7 +113,9 @@ export const useApproval = (): UseApprovalReturn => {
       setError(null)
 
       try {
-        const response = await getData(`/approval/request-detail/${requestId}`)
+        const response = await getData(
+          `${Approval.getRequestDetail}/${requestId}`
+        )
 
         if (response.result === 1) {
           setRequestDetail(response.data || null)
@@ -136,7 +139,7 @@ export const useApproval = (): UseApprovalReturn => {
       setError(null)
 
       try {
-        const response = await postData("/approval/take-action", action)
+        const response = await postData(Approval.takeAction, action)
 
         if (response.result === 1) {
           // Refresh the requests after taking action
@@ -164,7 +167,7 @@ export const useApproval = (): UseApprovalReturn => {
     if (!token || !user || !currentCompany) return null
 
     try {
-      const response = await getData("/approval/counts")
+      const response = await getData(Approval.getCounts)
 
       if (response.result === 1) {
         return {
@@ -264,7 +267,7 @@ export const useApprovalCounts = (): UseApprovalCountsReturn => {
         pageNumber: "1",
         pageSize: "2000",
       }
-      const response = await getData("/approval/pending-approvals", params)
+      const response = await getData(Approval.getPending, params)
 
       if (response.result === 1) {
         const requests = response.data || []

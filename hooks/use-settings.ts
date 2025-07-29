@@ -312,7 +312,7 @@ export const useModuleTransactionListGet = () => {
     placeholderData: keepPreviousData,
     staleTime: 600000,
     queryFn: async () => {
-      return await getData("/setting/getnumberformat")
+      return await getData(NumberFormat.getmodtrnslist)
     },
     refetchOnWindowFocus: false,
   })

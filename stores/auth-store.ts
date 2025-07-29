@@ -4,6 +4,7 @@ import { create } from "zustand"
 import { devtools, persist } from "zustand/middleware"
 
 import { getData } from "@/lib/api-client"
+import { DecimalSetting } from "@/lib/api-routes"
 
 import { usePermissionStore } from "./permission-store"
 
@@ -553,7 +554,7 @@ export const useAuthStore = create<AuthState>()(
           if (!token || !currentCompany || !user) return
 
           try {
-            const response = await getData(`/setting/getdecsetting`)
+            const response = await getData(DecimalSetting.get)
 
             const data = response.data
 

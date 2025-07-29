@@ -27,6 +27,25 @@ export interface ILeave {
   editBy?: string
 }
 
+export interface ILeaveRequest {
+  leaveRequestId: number
+  employeeId: number
+  leaveTypeId: number
+  startDate: Date | string
+  endDate: Date | string
+  totalDays: number
+  reason: string
+  statusId: number
+  actionById?: number
+  actionDate?: Date | string
+  remarks?: string
+  attachments?: string
+  createById: number
+  createDate: string
+  editById?: number
+  editDate?: Date | string
+}
+
 export interface ILeaveType {
   leaveTypeId: number
   code: string
@@ -42,6 +61,8 @@ export interface ILeaveType {
 export interface ILeaveBalance {
   leaveBalanceId: number
   employeeId: number
+  employeeName: string
+  leaveTypeName: string
   leaveTypeId: number
   totalAllocated: number
   totalUsed: number
@@ -58,6 +79,7 @@ export interface ILeavePolicy {
   leavePolicyId: number
   companyId: number
   leaveTypeId: number
+  leaveTypeName: string
   name: string
   description?: string
   defaultDays: number
@@ -70,25 +92,6 @@ export interface ILeavePolicy {
   isActive?: boolean
   createById: number
   createDate: Date | string
-  editById?: number
-  editDate?: Date | string
-}
-
-export interface ILeaveRequest {
-  leaveRequestId: number
-  employeeId: number
-  leaveTypeId: number
-  startDate: Date | string
-  endDate: Date | string
-  totalDays: number
-  reason: string
-  statusId: number
-  actionById?: number
-  actionDate?: Date | string
-  remarks?: string
-  attachments?: string
-  createById: number
-  createDate: string
   editById?: number
   editDate?: Date | string
 }
@@ -130,96 +133,4 @@ export interface ILeaveSetting {
   createDate?: Date | string
   editById?: number
   editDate?: Date | string
-}
-
-export interface LeaveFilter {
-  employeeId?: string
-  departmentId?: number
-  departmentName?: string
-  locationId?: number
-  locationName?: string
-  leaveType?: ILeaveType
-  status?: string
-  dateFrom?: Date | string
-  dateTo?: Date | string
-  approvedBy?: string
-}
-
-export interface LeaveSummary {
-  employeeId: string
-  employeeName: string
-  employeeCode: string
-  department?: string
-  totalLeaves: number
-  approvedLeaves: number
-  pendingLeaves: number
-  rejectedLeaves: number
-  totalDays: number
-  approvedDays: number
-  pendingDays: number
-  rejectedDays: number
-}
-
-export interface LeaveReport {
-  employeeId: string
-  employeeName: string
-  employeeCode: string
-  departmentId?: number
-  departmentName?: string
-  leaveTypeId?: number
-  leaveTypeName?: string
-  totalDays: number
-  usedDays: number
-  remainingDays: number
-  year: number
-}
-
-// Form Data Interfaces
-export interface LeaveFormData {
-  employeeId: string
-  leaveTypeId: number
-  leaveTypeName: string
-  startDate: Date | string
-  endDate: Date | string
-  reason: string
-  notes?: string
-  attachments?: string[]
-}
-
-export interface LeavePolicyFormData {
-  companyId: string
-  leaveTypeId: number
-  name: string
-  description: string
-  defaultDays: number
-  maxDays: number
-  minDays: number
-  advanceNoticeDays: number
-  maxConsecutiveDays: number
-  requiresApproval: boolean
-  requiresDocument: boolean
-  isActive: boolean
-}
-
-export interface LeaveBalanceFormData {
-  employeeId: string
-  leaveTypeId: number
-  totalAllocated: number
-  year: number
-}
-
-export interface LeaveSettingsFormData {
-  companyId: string
-  autoApproveLeaves: boolean
-  requireManagerApproval: boolean
-  requireHRApproval: boolean
-  allowNegativeBalance: boolean
-  maxAdvanceBookingDays: number
-  minAdvanceNoticeDays: number
-  weekendDays: string[]
-  holidays: string[]
-  workingHours: {
-    start: string
-    end: string
-  }
 }

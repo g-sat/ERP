@@ -188,6 +188,12 @@ export interface IEmployeeLookup {
   employeeName: string
 }
 
+export interface ILeaveTypeLookup {
+  leaveTypeId: number
+  leaveTypeName: string
+  leaveTypeCode: string
+}
+
 export interface ITaxLookup {
   taxId: number
   taxCode: string

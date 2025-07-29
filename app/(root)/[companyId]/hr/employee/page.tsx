@@ -588,6 +588,7 @@ export default function EmployeePage() {
                   : "View employee details."}
             </DialogDescription>
           </DialogHeader>
+
           <EmployeeForm
             initialData={modalMode !== "create" ? selectedEmployee : undefined}
             submitAction={handleFormSubmit}

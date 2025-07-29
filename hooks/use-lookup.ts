@@ -1,24 +1,36 @@
 import { ICustomerAddress, ICustomerContact } from "@/interfaces/customer"
 import {
   IAccountGroupLookup,
+  IAccountSetupCategoryLookup,
   IAccountSetupLookup,
   IAccountTypeLookup,
   IBankLookup,
   IBargeLookup,
+  ICOACategory1Lookup,
+  ICOACategory2Lookup,
+  ICOACategory3Lookup,
   ICarrierTypeLookup,
+  ICategoryLookup,
   IChargeLookup,
+  IChartofAccountLookup,
   ICompanyLookup,
   IConsignmentTypeLookup,
   ICountryLookup,
+  ICreditTermLookup,
+  ICurrencyLookup,
   ICustomerLookup,
   IDepartmentLookup,
+  IDesignationLookup,
   IDocumentTypeLookup,
   IDynamicLookup,
   IEmpCategoryLookup,
+  IEmployeeLookup,
   IGenderLookup,
   IGstCategoryLookup,
+  IGstLookup,
   IJobOrderLookup,
   ILandingTypeLookup,
+  ILeaveTypeLookup,
   IModeTypeLookup,
   IModuleLookup,
   IOrderTypeCategoryLookup,
@@ -43,6 +55,7 @@ import {
   IUserRoleLookup,
   IVesselLookup,
   IVisaTypeLookup,
+  IVoyageLookup,
 } from "@/interfaces/lookup"
 import { IPaymentType } from "@/interfaces/paymenttype"
 import { ISupplierAddress, ISupplierContact } from "@/interfaces/supplier"
@@ -408,7 +421,7 @@ export const useBargeLookup = () => {
 }
 
 export const useGstLookup = () => {
-  return useQuery({
+  return useQuery<IGstLookup[]>({
     queryKey: ["gst-lookup"],
     ...defaultQueryConfig,
     queryFn: async () => {
@@ -423,12 +436,27 @@ export const useGstLookup = () => {
 }
 
 export const useEmployeeLookup = () => {
-  return useQuery({
+  return useQuery<IEmployeeLookup[]>({
     queryKey: ["employee-lookup"],
     ...defaultQueryConfig,
     queryFn: async () => {
       try {
         const data = await getData(Lookup.getEmployee)
+        return data?.data || []
+      } catch (error) {
+        handleApiError(error)
+      }
+    },
+  })
+}
+
+export const useLeaveTypeLookup = () => {
+  return useQuery<ILeaveTypeLookup[]>({
+    queryKey: ["leave-type-lookup"],
+    ...defaultQueryConfig,
+    queryFn: async () => {
+      try {
+        const data = await getData(Lookup.getLeaveType)
         return data?.data || []
       } catch (error) {
         handleApiError(error)
@@ -483,7 +511,7 @@ export const useAccountSetupLookup = () => {
 }
 
 export const useCategoryLookup = () => {
-  return useQuery({
+  return useQuery<ICategoryLookup[]>({
     queryKey: ["category-lookup"],
     ...defaultQueryConfig,
     queryFn: async () => {
@@ -498,7 +526,7 @@ export const useCategoryLookup = () => {
 }
 
 export const usePortregionLookup = () => {
-  return useQuery({
+  return useQuery<IPortRegionLookup[]>({
     queryKey: ["portregion-lookup"],
     ...defaultQueryConfig,
     queryFn: async () => {
@@ -513,7 +541,7 @@ export const usePortregionLookup = () => {
 }
 
 export const useVoyageLookup = () => {
-  return useQuery({
+  return useQuery<IVoyageLookup[]>({
     queryKey: ["voyage-lookup"],
     ...defaultQueryConfig,
     queryFn: async () => {
@@ -528,7 +556,7 @@ export const useVoyageLookup = () => {
 }
 
 export const useDesignationLookup = () => {
-  return useQuery({
+  return useQuery<IDesignationLookup[]>({
     queryKey: ["designation-lookup"],
     ...defaultQueryConfig,
     queryFn: async () => {
@@ -543,7 +571,7 @@ export const useDesignationLookup = () => {
 }
 
 export const useCOACategory1Lookup = () => {
-  return useQuery({
+  return useQuery<ICOACategory1Lookup[]>({
     queryKey: ["coacategory1-lookup"],
     ...defaultQueryConfig,
     queryFn: async () => {
@@ -558,7 +586,7 @@ export const useCOACategory1Lookup = () => {
 }
 
 export const useCOACategory2Lookup = () => {
-  return useQuery({
+  return useQuery<ICOACategory2Lookup[]>({
     queryKey: ["coacategory2-lookup"],
     ...defaultQueryConfig,
     queryFn: async () => {
@@ -573,7 +601,7 @@ export const useCOACategory2Lookup = () => {
 }
 
 export const useCOACategory3Lookup = () => {
-  return useQuery({
+  return useQuery<ICOACategory3Lookup[]>({
     queryKey: ["coacategory3-lookup"],
     ...defaultQueryConfig,
     queryFn: async () => {
@@ -588,7 +616,7 @@ export const useCOACategory3Lookup = () => {
 }
 
 export const useAccountSetupCategoryLookup = () => {
-  return useQuery({
+  return useQuery<IAccountSetupCategoryLookup[]>({
     queryKey: ["account-setup-category-lookup"],
     ...defaultQueryConfig,
     queryFn: async () => {
@@ -663,7 +691,7 @@ export const useUserLookup = () => {
 }
 
 export const useCurrencyLookup = () => {
-  return useQuery({
+  return useQuery<ICurrencyLookup[]>({
     queryKey: ["currency-lookup"],
     ...defaultQueryConfig,
     queryFn: async () => {
@@ -678,7 +706,7 @@ export const useCurrencyLookup = () => {
 }
 
 export const useCreditTermLookup = () => {
-  return useQuery({
+  return useQuery<ICreditTermLookup[]>({
     queryKey: ["creditterm-lookup"],
     ...defaultQueryConfig,
     queryFn: async () => {
@@ -693,7 +721,7 @@ export const useCreditTermLookup = () => {
 }
 
 export const useChartofAccountLookup = () => {
-  return useQuery({
+  return useQuery<IChartofAccountLookup[]>({
     queryKey: ["chartofaccount-lookup"],
     ...defaultQueryConfig,
     queryFn: async () => {

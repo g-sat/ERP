@@ -1,13 +1,12 @@
 "use client"
 
-import React, { useState } from "react"
-import { ILeavePolicy, LeaveFormData } from "@/interfaces/leave"
-import { leaveFormDataSchema } from "@/schemas/leave"
+import React, { useEffect, useState } from "react"
+import { IEmployeeLookup, ILeaveTypeLookup } from "@/interfaces/lookup"
+import { LeaveRequestFormValues, leaveRequestSchema } from "@/schemas/leave"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { Calendar, FileText, Plus, Upload, X } from "lucide-react"
+import { FileText, Upload, X } from "lucide-react"
 import { useForm } from "react-hook-form"
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -16,65 +15,73 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog"
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
-import { Textarea } from "@/components/ui/textarea"
+import { Form, FormLabel } from "@/components/ui/form"
+import EmployeeAutocomplete from "@/components/ui-custom/autocomplete-employee"
+import LeaveTypeAutocomplete from "@/components/ui-custom/autocomplete-leavetype"
+import { CustomDateNew } from "@/components/ui-custom/custom-date-new"
+import CustomTextarea from "@/components/ui-custom/custom-textarea"
 
 interface LeaveRequestFormProps {
-  employees: Array<{
-    id: string
-    name: string
-    employeeCode: string
-    photo?: string
-    department?: string
-  }>
-  policies: ILeavePolicy[]
-  onSubmit: (data: LeaveFormData) => Promise<void>
+  onSubmit: (data: LeaveRequestFormValues) => Promise<void>
 }
 
-export function LeaveRequestForm({
-  employees,
-  policies,
-  onSubmit,
-}: LeaveRequestFormProps) {
+export function LeaveRequestForm({ onSubmit }: LeaveRequestFormProps) {
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const [attachments, setAttachments] = useState<string[]>([])
 
-  const form = useForm<LeaveFormData>({
-    resolver: zodResolver(leaveFormDataSchema),
+  // Listen for custom event to open the form
+  useEffect(() => {
+    const handleOpenForm = () => {
+      setOpen(true)
+    }
+
+    window.addEventListener("openLeaveRequestForm", handleOpenForm)
+    return () => {
+      window.removeEventListener("openLeaveRequestForm", handleOpenForm)
+    }
+  }, [])
+
+  const form = useForm<LeaveRequestFormValues>({
+    resolver: zodResolver(leaveRequestSchema),
     defaultValues: {
-      employeeId: "",
+      employeeId: 0,
       leaveTypeId: 1,
-      leaveTypeName: "",
       startDate: "",
       endDate: "",
+      totalDays: 0,
       reason: "",
-      notes: "",
-      attachments: [],
+      attachments: "",
     },
   })
 
-  const handleSubmit = async (data: LeaveFormData) => {
+  // Watch for date changes and update totalDays
+  useEffect(() => {
+    const startDate = form.watch("startDate")
+    const endDate = form.watch("endDate")
+
+    if (startDate && endDate) {
+      const calculatedDays = calculateDays()
+      form.setValue("totalDays", calculatedDays)
+    } else {
+      form.setValue("totalDays", 0)
+    }
+  }, [form.watch("startDate"), form.watch("endDate"), form])
+
+  const handleSubmit = async (data: LeaveRequestFormValues) => {
     try {
       setLoading(true)
-      await onSubmit({ ...data, attachments })
+
+      // Ensure totalDays is calculated and included
+      const calculatedDays = calculateDays()
+      const formData = {
+        ...data,
+        totalDays: calculatedDays,
+        attachments: attachments.join(","),
+      }
+
+      await onSubmit(formData)
       setOpen(false)
       form.reset()
       setAttachments([])
@@ -114,19 +121,24 @@ export function LeaveRequestForm({
     return 0
   }
 
-  const getLeaveTypeName = (typeId: number) => {
-    const policy = policies.find((p) => p.leaveTypeId === typeId)
-    return policy?.name || `Type ${typeId}`
+  const handleEmployeeChange = (selectedOption: IEmployeeLookup | null) => {
+    if (selectedOption) {
+      form.setValue("employeeId", selectedOption.employeeId)
+    } else {
+      form.setValue("employeeId", 0)
+    }
+  }
+
+  const handleLeaveTypeChange = (selectedOption: ILeaveTypeLookup | null) => {
+    if (selectedOption) {
+      form.setValue("leaveTypeId", selectedOption.leaveTypeId)
+    } else {
+      form.setValue("leaveTypeId", 1)
+    }
   }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button>
-          <Plus className="mr-2 h-4 w-4" />
-          Request Leave
-        </Button>
-      </DialogTrigger>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle>Request Leave</DialogTitle>
@@ -134,148 +146,40 @@ export function LeaveRequestForm({
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(handleSubmit)}
-            className="space-y-4"
+            className="space-y-4 pt-4"
           >
             {/* Employee Selection */}
-            <FormField
-              control={form.control}
+            <EmployeeAutocomplete
+              form={form}
               name="employeeId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Employee</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select employee" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {employees.map((employee) => (
-                        <SelectItem key={employee.id} value={employee.id}>
-                          <div className="flex items-center space-x-2">
-                            <Avatar className="h-6 w-6">
-                              <AvatarImage src={employee.photo} />
-                              <AvatarFallback>
-                                {employee.name.charAt(0)}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div>
-                              <div className="font-medium">{employee.name}</div>
-                              <div className="text-muted-foreground text-sm">
-                                {employee.employeeCode}
-                              </div>
-                            </div>
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
+              label=""
+              isRequired={true}
+              onChangeEvent={handleEmployeeChange}
             />
 
             {/* Leave Type Selection */}
-            <FormField
-              control={form.control}
+            <LeaveTypeAutocomplete
+              form={form}
               name="leaveTypeId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Leave Type</FormLabel>
-                  <Select
-                    onValueChange={(value) => {
-                      const typeId = parseInt(value)
-                      field.onChange(typeId)
-                      form.setValue("leaveTypeName", getLeaveTypeName(typeId))
-                    }}
-                    defaultValue={field.value.toString()}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select leave type" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {policies.map((policy) => (
-                        <SelectItem
-                          key={policy.leaveTypeId}
-                          value={policy.leaveTypeId.toString()}
-                        >
-                          <div className="flex items-center space-x-2">
-                            <Badge variant="outline">{policy.name}</Badge>
-                            <span className="text-muted-foreground text-sm">
-                              {policy.defaultDays} days default
-                            </span>
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
+              label=""
+              isRequired={true}
+              onChangeEvent={handleLeaveTypeChange}
             />
 
             {/* Date Range */}
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="startDate"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Start Date</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="date"
-                        placeholder="Select start date"
-                        value={
-                          typeof field.value === "string"
-                            ? field.value
-                            : field.value instanceof Date
-                              ? field.value.toISOString().split("T")[0]
-                              : ""
-                        }
-                        onChange={field.onChange}
-                        onBlur={field.onBlur}
-                        name={field.name}
-                        ref={field.ref}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="endDate"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>End Date</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="date"
-                        placeholder="Select end date"
-                        value={
-                          typeof field.value === "string"
-                            ? field.value
-                            : field.value instanceof Date
-                              ? field.value.toISOString().split("T")[0]
-                              : ""
-                        }
-                        onChange={field.onChange}
-                        onBlur={field.onBlur}
-                        name={field.name}
-                        ref={field.ref}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+
+            <CustomDateNew
+              form={form}
+              name="startDate"
+              label="Start Date"
+              isRequired={true}
+            />
+            <CustomDateNew
+              form={form}
+              name="endDate"
+              label="End Date"
+              isRequired={true}
+            />
 
             {/* Days Calculation */}
             {calculateDays() > 0 && (
@@ -283,48 +187,23 @@ export function LeaveRequestForm({
                 <CardContent className="p-3">
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-medium">Total Days:</span>
-                    <Badge variant="outline">{calculateDays()} days</Badge>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="outline">{calculateDays()} days</Badge>
+                      <span className="text-muted-foreground text-xs">
+                        (Form value: {form.watch("totalDays")})
+                      </span>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
             )}
 
             {/* Reason */}
-            <FormField
-              control={form.control}
+            <CustomTextarea
+              form={form}
               name="reason"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Reason for Leave</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder="Please provide a reason for your leave request..."
-                      className="min-h-[100px]"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* Notes */}
-            <FormField
-              control={form.control}
-              name="notes"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Additional Notes (Optional)</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder="Any additional information..."
-                      className="min-h-[80px]"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+              label="Reason for Leave"
+              isRequired={true}
             />
 
             {/* Attachments */}

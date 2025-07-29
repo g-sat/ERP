@@ -1,27 +1,15 @@
 "use client"
 
 import { useMemo, useState } from "react"
-import { IEmployee } from "@/interfaces/employee"
+import { ApiResponse } from "@/interfaces/auth"
+import { ILeave, ILeaveBalance, ILeavePolicy } from "@/interfaces/leave"
 import {
-  ILeave,
-  ILeaveBalance,
-  ILeavePolicy,
-  LeaveFormData,
-  LeavePolicyFormData,
-} from "@/interfaces/leave"
-import {
-  Calendar,
-  CheckCircle,
-  Clock,
-  Plus,
-  Search,
-  Settings,
-  TrendingUp,
-  Users,
-} from "lucide-react"
+  LeaveBalanceFormValues,
+  LeavePolicyFormValues,
+  LeaveRequestFormValues,
+} from "@/schemas/leave"
+import { Calendar, CheckCircle, Clock, Plus, TrendingUp } from "lucide-react"
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -34,57 +22,38 @@ import {
 } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
+import { LeaveBalanceForm } from "./leave-balance-form"
 import { LeaveBalanceTable } from "./leave-balance-table"
 import { LeavePolicyForm } from "./leave-policy-form"
+import { LeavePolicyTable } from "./leave-policy-table"
 import { LeaveRequestForm } from "./leave-request-form"
-import { LeaveTable } from "./leave-table"
+import { LeaveRequestTable } from "./leave-request-table"
 
 interface LeaveDashboardProps {
   leaves: ILeave[]
   leaveBalances: ILeaveBalance[]
   policies: ILeavePolicy[]
-  employees: Array<{
-    id: string
-    name: string
-    employeeCode: string
-    photo?: string
-    department?: string
-  }>
-  onLeaveSubmit?: (data: LeaveFormData) => Promise<void>
-  onLeaveEdit?: (leave: ILeave) => void
-  onLeaveDelete?: (leaveId: string) => void
-  onLeaveApprove?: (leaveId: string) => void
-  onLeaveReject?: (leaveId: string) => void
-  onPolicySubmit?: (data: LeavePolicyFormData) => Promise<void>
-  onPolicyEdit?: (policy: ILeavePolicy) => void
-  onEmployeeView?: (employee: {
-    id: string
-    name: string
-    employeeCode: string
-    photo?: string
-    department?: string
-  }) => void
-  onApprovalView?: (leave: ILeave) => void
+  onLeaveSubmit?: (data: LeaveRequestFormValues) => Promise<void>
+  onLeaveSave?: (
+    leaveId: string,
+    action: "approve" | "reject" | "cancel",
+    notes?: string
+  ) => void
+  onPolicySubmit?: (
+    data: LeavePolicyFormValues
+  ) => Promise<ApiResponse<ILeavePolicy> | void>
 }
 
 export function LeaveDashboard({
   leaves,
   leaveBalances,
   policies,
-  employees,
   onLeaveSubmit,
-  onLeaveEdit,
-  onLeaveDelete,
-  onLeaveApprove,
-  onLeaveReject,
+  onLeaveSave,
   onPolicySubmit,
-  onPolicyEdit,
-  onEmployeeView,
-  onApprovalView,
 }: LeaveDashboardProps) {
-  const [activeTab, setActiveTab] = useState("overview")
+  const [activeTab, setActiveTab] = useState("requests")
   const [searchTerm, setSearchTerm] = useState("")
-  const [statusFilter, setStatusFilter] = useState<string>("ALL")
   const [typeFilter, setTypeFilter] = useState<string>("ALL")
 
   // Filter leaves based on search and filters
@@ -95,14 +64,12 @@ export function LeaveDashboard({
         leave.employeeCode.toLowerCase().includes(searchTerm.toLowerCase()) ||
         leave.reason.toLowerCase().includes(searchTerm.toLowerCase())
 
-      const matchesStatus =
-        statusFilter === "ALL" || leave.statusName === statusFilter
       const matchesType =
         typeFilter === "ALL" || leave.leaveTypeName === typeFilter
 
-      return matchesSearch && matchesStatus && matchesType
+      return matchesSearch && matchesType
     })
-  }, [leaves, searchTerm, statusFilter, typeFilter])
+  }, [leaves, searchTerm, typeFilter])
 
   // Calculate statistics
   const stats = useMemo(() => {
@@ -140,49 +107,69 @@ export function LeaveDashboard({
     }
   }, [leaves])
 
-  // Get unique statuses and types for filters
-  const statuses = useMemo(() => {
-    const uniqueStatuses = [...new Set(leaves.map((leave) => leave.statusName))]
-    return ["ALL", ...uniqueStatuses]
-  }, [leaves])
-
+  // Get unique types for filters
   const types = useMemo(() => {
     const uniqueTypes = [...new Set(leaves.map((leave) => leave.leaveTypeName))]
     return ["ALL", ...uniqueTypes]
   }, [leaves])
 
-  const handleLeaveSubmit = async (data: LeaveFormData) => {
+  const handleLeaveSubmit = async (data: LeaveRequestFormValues) => {
     if (onLeaveSubmit) {
       await onLeaveSubmit(data)
     }
   }
 
-  const handlePolicySubmit = async (data: LeavePolicyFormData) => {
+  const handlePolicySubmit = async (data: LeavePolicyFormValues) => {
+    console.log("LeaveDashboard handlePolicySubmit called with data:", data)
     if (onPolicySubmit) {
-      await onPolicySubmit(data)
+      console.log("Calling onPolicySubmit...")
+      const response = await onPolicySubmit(data)
+      console.log("onPolicySubmit completed with response:", response)
+      return response
+    } else {
+      console.log("onPolicySubmit is not defined")
+      return {
+        result: -1,
+        message: "Policy submit handler not defined",
+        data: [],
+      } as ApiResponse<ILeavePolicy>
     }
+  }
+
+  const handleBalanceSubmit = async (data: LeaveBalanceFormValues) => {
+    console.log("LeaveDashboard handleBalanceSubmit called with data:", data)
+    // TODO: Implement balance submit logic
+    console.log("Balance submit not implemented yet")
+    return {
+      result: -1,
+      message: "Balance submit not implemented yet",
+      data: [],
+    } as ApiResponse<ILeaveBalance>
   }
 
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {/* Header with New Leave Request Button */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Leave Management</h1>
+          <h2 className="text-3xl font-bold tracking-tight">
+            Leave Management
+          </h2>
           <p className="text-muted-foreground">
-            Manage employee leave requests and policies
+            Manage employee leave requests, balances, and policies
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm">
-            <Settings className="mr-2 h-4 w-4" />
-            Settings
-          </Button>
-          <Button size="sm">
-            <Plus className="mr-2 h-4 w-4" />
-            New Leave Request
-          </Button>
-        </div>
+        <Button
+          onClick={() => {
+            // Trigger the LeaveRequestForm dialog
+            const event = new CustomEvent("openLeaveRequestForm")
+            window.dispatchEvent(event)
+          }}
+          className="flex items-center gap-2"
+        >
+          <Plus className="h-4 w-4" />
+          New Leave Request
+        </Button>
       </div>
 
       {/* Statistics Cards */}
@@ -254,93 +241,11 @@ export function LeaveDashboard({
         onValueChange={setActiveTab}
         className="space-y-4"
       >
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
+        <TabsList>
           <TabsTrigger value="requests">Requests</TabsTrigger>
           <TabsTrigger value="balances">Balances</TabsTrigger>
           <TabsTrigger value="policies">Policies</TabsTrigger>
-          <TabsTrigger value="employees">Employees</TabsTrigger>
         </TabsList>
-
-        {/* Overview Tab */}
-        <TabsContent value="overview" className="space-y-4">
-          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-            <Card>
-              <CardHeader>
-                <CardTitle>Recent Leave Requests</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {leaves.slice(0, 5).map((leave) => (
-                    <div
-                      key={leave.leaveId}
-                      className="flex items-center justify-between rounded-lg border p-3"
-                    >
-                      <div className="flex items-center space-x-3">
-                        <Avatar className="h-8 w-8">
-                          <AvatarImage src={leave.employeePhoto} />
-                          <AvatarFallback>
-                            {leave.employeeName.charAt(0)}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <p className="font-medium">{leave.employeeName}</p>
-                          <p className="text-muted-foreground text-sm">
-                            {leave.leaveTypeName} • {leave.totalDays} days
-                          </p>
-                        </div>
-                      </div>
-                      <Badge
-                        variant={
-                          leave.statusName === "APPROVED"
-                            ? "default"
-                            : leave.statusName === "PENDING"
-                              ? "secondary"
-                              : "destructive"
-                        }
-                      >
-                        {leave.statusName}
-                      </Badge>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Leave Balance Summary</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {leaveBalances.slice(0, 5).map((balance) => (
-                    <div
-                      key={balance.leaveBalanceId}
-                      className="flex items-center justify-between rounded-lg border p-3"
-                    >
-                      <div>
-                        <p className="font-medium">
-                          Employee ID: {balance.employeeId}
-                        </p>
-                        <p className="text-muted-foreground text-sm">
-                          Type ID: {balance.leaveTypeId}
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-medium">
-                          {balance.remainingBalance} remaining
-                        </p>
-                        <p className="text-muted-foreground text-sm">
-                          {balance.totalUsed} used
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
 
         {/* Requests Tab */}
         <TabsContent value="requests" className="space-y-4">
@@ -355,18 +260,6 @@ export function LeaveDashboard({
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="w-64"
                   />
-                  <Select value={statusFilter} onValueChange={setStatusFilter}>
-                    <SelectTrigger className="w-32">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {statuses.map((status) => (
-                        <SelectItem key={status} value={status}>
-                          {status}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
                   <Select value={typeFilter} onValueChange={setTypeFilter}>
                     <SelectTrigger className="w-32">
                       <SelectValue />
@@ -383,14 +276,7 @@ export function LeaveDashboard({
               </div>
             </CardHeader>
             <CardContent>
-              <LeaveTable
-                leaves={filteredLeaves}
-                onEdit={onLeaveEdit}
-                onDelete={onLeaveDelete}
-                onApprove={onLeaveApprove}
-                onReject={onLeaveReject}
-                onApprovalView={onApprovalView}
-              />
+              <LeaveRequestTable leaves={filteredLeaves} onSave={onLeaveSave} />
             </CardContent>
           </Card>
         </TabsContent>
@@ -399,83 +285,63 @@ export function LeaveDashboard({
         <TabsContent value="balances" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Leave Balances</CardTitle>
+              <div className="flex items-center justify-between">
+                <CardTitle>Leave Balances</CardTitle>
+                <Button
+                  onClick={() => {
+                    // This will be handled by the LeaveBalanceForm component
+                    const event = new CustomEvent("openBalanceForm", {
+                      detail: { mode: "add" },
+                    })
+                    window.dispatchEvent(event)
+                  }}
+                >
+                  <Plus className="mr-2 h-4 w-4" />
+                  Add New Balance
+                </Button>
+              </div>
             </CardHeader>
             <CardContent>
               <LeaveBalanceTable balances={leaveBalances} policies={policies} />
             </CardContent>
           </Card>
+
+          {/* Balance Form Component */}
+          <LeaveBalanceForm onSubmit={handleBalanceSubmit} />
         </TabsContent>
 
         {/* Policies Tab */}
         <TabsContent value="policies" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Leave Policies</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <LeavePolicyForm
-                policies={policies}
-                onSubmit={handlePolicySubmit}
-                onEdit={onPolicyEdit}
-              />
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Employees Tab */}
-        <TabsContent value="employees" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Employee Leave Overview</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {employees.map((employee) => (
-                  <div
-                    key={employee.id}
-                    className="hover:bg-muted/50 cursor-pointer rounded-lg border p-4 transition-colors"
-                    onClick={() => onEmployeeView?.(employee)}
-                  >
-                    <div className="flex items-center space-x-3">
-                      <Avatar className="h-10 w-10">
-                        <AvatarImage src={employee.photo} />
-                        <AvatarFallback>
-                          {employee.name.charAt(0)}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1">
-                        <p className="font-medium">{employee.name}</p>
-                        <p className="text-muted-foreground text-sm">
-                          {employee.employeeCode}
-                        </p>
-                        {employee.department && (
-                          <p className="text-muted-foreground text-xs">
-                            {employee.department}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                    <div className="mt-3 flex items-center justify-between text-sm">
-                      <span className="text-muted-foreground">
-                        Leave Summary
-                      </span>
-                      <Badge variant="outline">View Details</Badge>
-                    </div>
-                  </div>
-                ))}
+              <div className="flex items-center justify-between">
+                <CardTitle>Leave Policies</CardTitle>
+                <Button
+                  onClick={() => {
+                    // This will be handled by the LeavePolicyForm component
+                    const event = new CustomEvent("openPolicyForm", {
+                      detail: { mode: "add" },
+                    })
+                    window.dispatchEvent(event)
+                  }}
+                >
+                  <Plus className="mr-2 h-4 w-4" />
+                  Add New Policy
+                </Button>
               </div>
+            </CardHeader>
+            <CardContent>
+              <LeavePolicyTable policies={policies} />
             </CardContent>
           </Card>
+
+          {/* Policy Form Component */}
+          <LeavePolicyForm policies={policies} onSubmit={handlePolicySubmit} />
         </TabsContent>
       </Tabs>
 
       {/* Leave Request Form Dialog */}
-      <LeaveRequestForm
-        employees={employees}
-        policies={policies}
-        onSubmit={handleLeaveSubmit}
-      />
+      <LeaveRequestForm onSubmit={handleLeaveSubmit} />
     </div>
   )
 }
