@@ -4,15 +4,12 @@ export const employeeSchema = z.object({
   employeeId: z.number(),
   companyId: z.number().min(1, { message: "Company is required" }),
   code: z.string().min(1, { message: "Employee code is required" }),
-  firstName: z.string().min(1, { message: "First name is required" }),
-  lastName: z.string().min(1, { message: "Last name is required" }),
+  employeeName: z.string().min(1, { message: "Employee name is required" }),
   otherName: z.string().optional().default(""),
   photo: z.string().optional().default(""),
   signature: z.string().optional().default(""),
-  empCategoryId: z
-    .number()
-    .min(1, { message: "Employee category is required" }),
   departmentId: z.number().min(1, { message: "Department is required" }),
+  designationId: z.number().min(1, { message: "Designation is required" }),
   genderId: z.number().min(1, { message: "Gender is required" }),
   martialStatus: z.string().optional().default(""),
   dob: z
@@ -71,14 +68,3 @@ export const employeeFiltersSchema = z.object({
 })
 
 export type EmployeeFiltersValues = z.infer<typeof employeeFiltersSchema>
-
-export const employeeCategorySchema = z.object({
-  companyId: z.number(),
-  empCategoryId: z.number(),
-  empCategoryCode: z.string(),
-  empCategoryName: z.string(),
-  remarks: z.string(),
-  isActive: z.boolean(),
-})
-
-export type EmployeeCategoryValues = z.infer<typeof employeeCategorySchema>

@@ -174,10 +174,8 @@ export function EmployeesTable({
       id: "name",
       header: "Name",
       cell: ({ row }) => {
-        const { firstName = "", lastName = "", otherName = "" } = row.original
-        return (
-          <span>{`${firstName} ${lastName} ${otherName}`.trim() || "—"}</span>
-        )
+        const { employeeName = "", otherName = "" } = row.original
+        return <span>{`${employeeName} ${otherName}`.trim() || "—"}</span>
       },
       size: 200,
     },
@@ -203,6 +201,18 @@ export function EmployeesTable({
         return date && isValid(date) ? format(date, "dd/MM/yyyy") : "—"
       },
       size: 120,
+    },
+    {
+      accessorKey: "designationName",
+      header: "Designation",
+      cell: ({ row }) => <div>{row.getValue("designationName") || "—"}</div>,
+      size: 150,
+    },
+    {
+      accessorKey: "departmentName",
+      header: "Department",
+      cell: ({ row }) => <div>{row.getValue("departmentName") || "—"}</div>,
+      size: 150,
     },
     {
       accessorKey: "joinDate",
@@ -270,12 +280,6 @@ export function EmployeesTable({
       accessorKey: "departmentName",
       header: "Department",
       cell: ({ row }) => <div>{row.getValue("departmentName") || "—"}</div>,
-      size: 150,
-    },
-    {
-      accessorKey: "empCategoryName",
-      header: "Category",
-      cell: ({ row }) => <div>{row.getValue("empCategoryName") || "—"}</div>,
       size: 150,
     },
     {

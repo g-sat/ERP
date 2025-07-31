@@ -3,15 +3,14 @@ export interface IEmployee {
   companyId: number
   companyName?: string
   code: string
-  firstName?: string
-  lastName?: string
+  employeeName?: string
   otherName?: string
   photo?: string
   signature?: string
-  empCategoryId: number
-  empCategoryName?: string
   departmentId: number
   departmentName?: string
+  designationId: number
+  designationName?: string
   genderId?: number
   genderName?: string
   martialStatus?: string
@@ -48,19 +47,4 @@ export interface IEmployeeFilter {
   departmentId?: number
   search?: string
   sortOrder?: "asc" | "desc"
-}
-
-export interface IEmployeeCategory {
-  companyId: number
-  empCategoryId: number
-  empCategoryCode: string
-  empCategoryName: string
-  remarks: string
-  isActive: boolean
-  createById?: number
-  createDate?: Date | string
-  editById?: number
-  editDate?: Date | string
-  createBy?: string
-  editBy?: string
 }

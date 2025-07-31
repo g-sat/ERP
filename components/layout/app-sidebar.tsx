@@ -11,6 +11,7 @@ import {
   BarChart,
   Box,
   Building,
+  Calendar,
   ChartArea,
   ChevronRightIcon,
   ClipboardList,
@@ -88,9 +89,10 @@ export const menuData = {
       icon: GalleryVerticalEnd,
       items: [
         { title: "Employee", url: "/hr/employee", icon: User },
-        { title: "Attendance", url: "/hr/attendance", icon: ClipboardList },
-        { title: "Leave", url: "/hr/leave", icon: ClipboardList },
-        { title: "Payroll", url: "/hr/payroll", icon: ClipboardList },
+        { title: "Attendance", url: "/hr/attendance", icon: Calendar },
+        { title: "Leave", url: "/hr/leave", icon: Calendar },
+        { title: "Payroll", url: "/hr/payroll", icon: Wallet },
+        { title: "Loan", url: "/hr/loan", icon: CreditCard },
       ],
     },
     // {

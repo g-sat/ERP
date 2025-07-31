@@ -125,7 +125,7 @@ export function AttendanceDashboard() {
   const employees: IEmployeeAttendance[] = allEmployees.map(
     (emp: IEmployee) => ({
       employeeId: emp.employeeId.toString(),
-      employeeName: `${emp.firstName || ""} ${emp.lastName || ""}`.trim(),
+      employeeName: emp.employeeName?.trim() || "",
       companyId: emp.companyId,
       companyName: emp.companyName || "",
       employeePhoto: emp.photo,

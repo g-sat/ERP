@@ -15,7 +15,7 @@ import { Form } from "@/components/ui/form"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import CompanyAutocomplete from "@/components/ui-custom/autocomplete-company"
 import DepartmentAutocomplete from "@/components/ui-custom/autocomplete-department"
-import EmployeeCategoryAutocomplete from "@/components/ui-custom/autocomplete-empcategory"
+import DesignationAutocomplete from "@/components/ui-custom/autocomplete-designation"
 import GenderAutocomplete from "@/components/ui-custom/autocomplete-gender"
 import { CustomDateNew } from "@/components/ui-custom/custom-date-new"
 import CustomInput from "@/components/ui-custom/custom-input"
@@ -48,12 +48,11 @@ export function EmployeeForm({
       employeeId: initialData?.employeeId ?? 0,
       companyId: initialData?.companyId ?? 0,
       code: initialData?.code ?? "",
-      firstName: initialData?.firstName ?? "",
-      lastName: initialData?.lastName ?? "",
+      employeeName: initialData?.employeeName ?? "",
       otherName: initialData?.otherName ?? "",
       photo: initialData?.photo ?? "",
       signature: initialData?.signature ?? "",
-      empCategoryId: initialData?.empCategoryId ?? 0,
+      designationId: initialData?.designationId ?? 0,
       departmentId: initialData?.departmentId ?? 0,
       genderId: initialData?.genderId ?? 0,
       martialStatus: initialData?.martialStatus ?? "",
@@ -170,7 +169,7 @@ export function EmployeeForm({
                   <TabsTrigger value="main">Main</TabsTrigger>
                   <TabsTrigger value="bank">Bank</TabsTrigger>
                   <TabsTrigger value="personal">Personal</TabsTrigger>
-                  <TabsTrigger value="leave">Leave</TabsTrigger>
+                  <TabsTrigger value="settings">Settings</TabsTrigger>
                   <TabsTrigger value="history">History</TabsTrigger>
                 </TabsList>
 
@@ -198,15 +197,8 @@ export function EmployeeForm({
                         />
                         <CustomInput
                           form={form}
-                          name="firstName"
-                          label="First Name"
-                          isRequired={true}
-                          isDisabled={isReadOnly}
-                        />
-                        <CustomInput
-                          form={form}
-                          name="lastName"
-                          label="Last Name"
+                          name="employeeName"
+                          label="Employee Name"
                           isRequired={true}
                           isDisabled={isReadOnly}
                         />
@@ -216,6 +208,13 @@ export function EmployeeForm({
                           label="Other Name"
                           isDisabled={isReadOnly}
                         />
+                        <DesignationAutocomplete
+                          form={form}
+                          name="designationId"
+                          label="Designation"
+                          isDisabled={isReadOnly}
+                          isRequired={true}
+                        />
                         <DepartmentAutocomplete
                           form={form}
                           name="departmentId"
@@ -223,13 +222,7 @@ export function EmployeeForm({
                           isDisabled={isReadOnly}
                           isRequired={true}
                         />
-                        <EmployeeCategoryAutocomplete
-                          form={form}
-                          name="empCategoryId"
-                          label="Employee Category"
-                          isDisabled={isReadOnly}
-                          isRequired={true}
-                        />
+
                         <GenderAutocomplete
                           form={form}
                           name="genderId"
@@ -428,13 +421,13 @@ export function EmployeeForm({
                   </div>
                 </TabsContent>
 
-                {/* Leave Tab */}
+                {/* Settings Tab */}
 
                 <TabsContent
-                  value="leave"
+                  value="settings"
                   className="flex-1 space-y-4 overflow-y-auto"
                 >
-                  <h1>Leave</h1>
+                  <h1>Settings</h1>
                 </TabsContent>
 
                 {/* History Tab */}
@@ -619,15 +612,8 @@ export function EmployeeForm({
                   />
                   <CustomInput
                     form={form}
-                    name="firstName"
-                    label="First Name"
-                    isRequired
-                    isDisabled={isReadOnly}
-                  />
-                  <CustomInput
-                    form={form}
-                    name="lastName"
-                    label="Last Name"
+                    name="employeeName"
+                    label="Employee Name"
                     isRequired
                     isDisabled={isReadOnly}
                   />

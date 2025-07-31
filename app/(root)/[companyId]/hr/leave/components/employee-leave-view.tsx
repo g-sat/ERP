@@ -173,15 +173,14 @@ export function EmployeeLeaveView({
         <CardContent className="p-6">
           <div className="flex items-center space-x-4">
             <Avatar className="h-16 w-16">
-              <AvatarImage src={employee.photo} alt={employee.firstName} />
+              <AvatarImage src={employee.photo} alt={employee.employeeName} />
               <AvatarFallback>
-                {employee.firstName?.charAt(0)}
-                {employee.lastName?.charAt(0)}
+                {employee.employeeName?.charAt(0)}
               </AvatarFallback>
             </Avatar>
             <div className="flex-1">
               <h2 className="text-2xl font-bold">
-                {employee.firstName} {employee.lastName}
+                {employee.employeeName}
               </h2>
               <p className="text-muted-foreground">
                 {employee.code} • {employee.departmentName}

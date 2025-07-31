@@ -106,52 +106,34 @@ export function useCheckEmployeeCode() {
   )
 }
 
-// Hook for checking employee category code availability
-export function useCheckEmployeeCategoryCode() {
-  return useGetByParams<{
-    employeeCategoryId: number
-    employeeCategoryCode: string
-    employeeCategoryName: string
-  }>("/master/getemployeecategorybycode", "employee-category-code-check", "", {
-    enabled: false, // Only run when explicitly called
-  })
-}
-
 // Hook for employee duplicate detection
 export function useEmployeeDuplicateDetection() {
   const checkEmployeeCode = useCheckEmployeeCode()
-  const checkEmployeeCategoryCode = useCheckEmployeeCategoryCode()
 
   const checkDuplicates = async (code: string) => {
     const trimmedCode = code?.trim()
-    if (!trimmedCode) return { employee: null, category: null }
+    if (!trimmedCode) return { employee: null }
 
     try {
-      const [employeeResponse, categoryResponse] = await Promise.all([
-        getData(`${Employee.getByCode}/${trimmedCode}`),
-        getData(`/master/getemployeecategorybycode/${trimmedCode}`),
-      ])
+      const employeeResponse = await getData(
+        `${Employee.getByCode}/${trimmedCode}`
+      )
 
       return {
         employee:
           employeeResponse.data?.result === 1
             ? employeeResponse.data.data
             : null,
-        category:
-          categoryResponse.data?.result === 1
-            ? categoryResponse.data.data
-            : null,
       }
     } catch (error) {
       console.error("Error checking duplicates:", error)
-      return { employee: null, category: null }
+      return { employee: null }
     }
   }
 
   return {
     checkDuplicates,
-    isLoading:
-      checkEmployeeCode.isLoading || checkEmployeeCategoryCode.isLoading,
+    isLoading: checkEmployeeCode.isLoading,
   }
 }
 

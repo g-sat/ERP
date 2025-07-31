@@ -163,7 +163,6 @@ export const Lookup = {
   getAccountSetup: "/master/getaccountsetuplookup",
   getCategory: "/master/getcategorylookup",
   getSubCategory: "/master/getsubcategorylookup",
-  getEmpCategory: "/master/getempcategorylookup",
   getCoaCategory1: "/master/getcoacategory1lookup",
   getCoaCategory2: "/master/getcoacategory2lookup",
   getCoaCategory3: "/master/getcoacategory3lookup",
@@ -524,14 +523,6 @@ export const Employee = {
   getByCode: "/master/getemployeebycode",
   add: "/master/saveemployee",
   delete: "/master/deleteemployee",
-}
-
-// Employee Category Endpoints
-export const EmployeeCategory = {
-  get: "/master/getemployeecategory",
-  getByCode: "/master/getemployeecategorybycode",
-  add: "/master/saveemployeecategory",
-  delete: "/master/deleteemployeecategory",
 }
 
 // GST Endpoints
@@ -1106,4 +1097,85 @@ export const Approval = {
   getRequestDetail: "/approval/request-detail",
   takeAction: "/approval/take-action",
   getCounts: "/approval/counts",
+}
+
+// Payroll Management Endpoints
+export const PayrollPeriod = {
+  get: "/hr/payroll/getpayrollperiod",
+  getById: "/hr/payroll/getpayrollperiodbyid",
+  add: "/hr/payroll/savepayrollperiod",
+  update: "/hr/payroll/savepayrollperiod",
+  delete: "/hr/payroll/deletepayrollperiod",
+  close: "/hr/payroll/closepayrollperiod",
+  reopen: "/hr/payroll/reopenpayrollperiod",
+  getActive: "/hr/payroll/activepayrollperiod",
+  getByDateRange: "/hr/payroll/daterangepayrollperiod",
+}
+
+export const PayrollEmployee = {
+  get: "/hr/payroll/getpayrollemployee",
+  getById: "/hr/payroll/getpayrollemployeebyid",
+  add: "/hr/payroll/savepayrollemployee",
+  update: "/hr/payroll/savepayrollemployee",
+  delete: "/hr/payroll/deletepayrollemployee",
+  getByPeriod: "/hr/payroll/periodpayrollemployee",
+  getByEmployee: "/hr/payroll/employeepayrollemployee",
+  process: "/hr/payroll/processpayrollemployee",
+  bulkProcess: "/hr/payroll/bulkprocesspayrollemployee",
+  pay: "/hr/payroll/paypayrollemployee",
+  bulkPay: "/hr/payroll/bulkpaypayrollemployee",
+  summary: "/hr/payroll/summarypayrollemployee",
+}
+
+export const PayrollComponent = {
+  get: "/hr/payroll/getpayrollcomponent",
+  getById: "/hr/payroll/getpayrollcomponentbyid",
+  add: "/hr/payroll/savepayrollcomponent",
+  update: "/hr/payroll/savepayrollcomponent",
+  delete: "/hr/payroll/deletepayrollcomponent",
+  getByType: "/hr/payroll/typepayrollcomponent",
+  getActive: "/hr/payroll/activepayrollcomponent",
+}
+
+export const PayrollEmployeeComponent = {
+  get: "/hr/payroll/getpayrollemployeecomponent",
+  getById: "/hr/payroll/getpayrollemployeecomponentbyid",
+  add: "/hr/payroll/savepayrollemployeecomponent",
+  update: "/hr/payroll/savepayrollemployeecomponent",
+  delete: "/hr/payroll/deletepayrollemployeecomponent",
+  getByEmployee: "/hr/payroll/employeepayrollemployeecomponent",
+  bulkSave: "/hr/payroll/bulksavepayrollemployeecomponent",
+}
+
+export const PayrollTax = {
+  get: "/hr/payroll/getpayrolltax",
+  getById: "/hr/payroll/getpayrolltaxbyid",
+  add: "/hr/payroll/savepayrolltax",
+  update: "/hr/payroll/savepayrolltax",
+  delete: "/hr/payroll/deletepayrolltax",
+  getByType: "/hr/payroll/typepayrolltax",
+  getActive: "/hr/payroll/activepayrolltax",
+  calculate: "/hr/payroll/calculatepayrolltax",
+}
+
+export const PayrollBankTransfer = {
+  get: "/hr/payroll/getpayrollbanktransfer",
+  getById: "/hr/payroll/getpayrollbanktransferbyid",
+  add: "/hr/payroll/savepayrollbanktransfer",
+  update: "/hr/payroll/savepayrollbanktransfer",
+  delete: "/hr/payroll/deletepayrollbanktransfer",
+  getByPeriod: "/hr/payroll/periodpayrollbanktransfer",
+  process: "/hr/payroll/processpayrollbanktransfer",
+  complete: "/hr/payroll/completepayrollbanktransfer",
+  fail: "/hr/payroll/failpayrollbanktransfer",
+}
+
+export const PayrollReport = {
+  get: "/hr/payroll/getpayrollreport",
+  getById: "/hr/payroll/getpayrollreportbyid",
+  generate: "/hr/payroll/generatepayrollreport",
+  download: "/hr/payroll/downloadpayrollreport",
+  getByPeriod: "/hr/payroll/periodpayrollreport",
+  getByType: "/hr/payroll/typepayrollreport",
+  summary: "/hr/payroll/summarypayrollreport",
 }

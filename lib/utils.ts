@@ -33,7 +33,6 @@ export enum MasterTransactionId {
   credit_terms = 9,
   uom = 10,
   employee = 11,
-  employee_category = 53,
   bank = 12,
   designation = 13,
   port = 14,
@@ -75,6 +74,12 @@ export enum MasterTransactionId {
   job_order = 50,
   service_type = 51,
   service_type_category = 52,
+  // Payroll Management
+  payroll_period = 54,
+  payroll_employee = 55,
+  payroll_component = 56,
+  payroll_tax = 57,
+  payroll_bank_transfer = 58,
 }
 
 export enum OperationsTransactionId {
@@ -235,7 +240,6 @@ export enum TableName {
   currency_local_dt = "currency_local_dt",
   department = "department",
   employee = "employee",
-  employee_category = "employee_category",
   employee_bank = "employee_bank",
   service_type = "service_type",
   service_type_category = "service_type_category",
