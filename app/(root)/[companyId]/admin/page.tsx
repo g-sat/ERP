@@ -21,7 +21,7 @@ import { toast } from "sonner"
 
 import { User, UserGroup, UserRole } from "@/lib/api-routes"
 import { AdminTransactionId, ModuleId } from "@/lib/utils"
-import { useDelete, useGet, useSave, useUpdate } from "@/hooks/use-common"
+import { useDelete, useGet, usePersist } from "@/hooks/use-common"
 import {
   Dialog,
   DialogContent,
@@ -130,16 +130,16 @@ export default function AdminPage() {
       data: [],
     }
 
-  const saveMutation = useSave(`${User.add}`)
-  const updateMutation = useUpdate(`${User.add}`)
+  const saveMutation = usePersist(`${User.add}`)
+  const updateMutation = usePersist(`${User.add}`)
   const deleteMutation = useDelete(`${User.delete}`)
 
-  const saveGroupMutation = useSave(`${UserGroup.add}`)
-  const updateGroupMutation = useUpdate(`${UserGroup.add}`)
+  const saveGroupMutation = usePersist(`${UserGroup.add}`)
+  const updateGroupMutation = usePersist(`${UserGroup.add}`)
   const deleteGroupMutation = useDelete(`${UserGroup.delete}`)
 
-  const saveRoleMutation = useSave(`${UserRole.add}`)
-  const updateRoleMutation = useUpdate(`${UserRole.add}`)
+  const saveRoleMutation = usePersist(`${UserRole.add}`)
+  const updateRoleMutation = usePersist(`${UserRole.add}`)
   const deleteRoleMutation = useDelete(`${UserRole.delete}`)
 
   const [selectedUser, setSelectedUser] = useState<IUser | undefined>(undefined)

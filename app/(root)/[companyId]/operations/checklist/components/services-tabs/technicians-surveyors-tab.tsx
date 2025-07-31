@@ -19,7 +19,7 @@ import {
   JobOrder_TechnicianSurveyor,
 } from "@/lib/api-routes"
 import { Task } from "@/lib/operations-utils"
-import { useDelete, useGetById, useSave, useUpdate } from "@/hooks/use-common"
+import { useDelete, useGetById, usePersist } from "@/hooks/use-common"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -115,15 +115,17 @@ export function TechniciansSurveyorsTab({
   }
 
   // Mutations
-  const saveMutation = useSave<TechnicianSurveyorFormValues>(
+  const saveMutation = usePersist<TechnicianSurveyorFormValues>(
     `${JobOrder_TechnicianSurveyor.add}`
   )
-  const updateMutation = useUpdate<TechnicianSurveyorFormValues>(
+  const updateMutation = usePersist<TechnicianSurveyorFormValues>(
     `${JobOrder_TechnicianSurveyor.add}`
   )
   const deleteMutation = useDelete(`${JobOrder_TechnicianSurveyor.delete}`)
   // Debit note mutation
-  const debitNoteMutation = useSave<IDebitNoteData>(`${JobOrder_DebitNote.add}`)
+  const debitNoteMutation = usePersist<IDebitNoteData>(
+    `${JobOrder_DebitNote.add}`
+  )
 
   // Debit note delete mutation
   const debitNoteDeleteMutation = useDelete(`${JobOrder_DebitNote.delete}`)

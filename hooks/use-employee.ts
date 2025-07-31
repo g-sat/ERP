@@ -8,8 +8,7 @@ import {
   useGet,
   useGetById,
   useGetByParams,
-  useSave,
-  useUpdate,
+  usePersist,
 } from "@/hooks/use-common"
 
 // Hook for fetching employees
@@ -39,7 +38,7 @@ export function useGetEmployeeByCode(employeeCode: string | undefined) {
 // Hook for saving employee
 export function useSaveEmployee() {
   const queryClient = useQueryClient()
-  const saveMutation = useSave<IEmployee>(Employee.add)
+  const saveMutation = usePersist<IEmployee>(Employee.add)
 
   return {
     ...saveMutation,
@@ -58,7 +57,7 @@ export function useSaveEmployee() {
 // Hook for updating employee
 export function useUpdateEmployee() {
   const queryClient = useQueryClient()
-  const updateMutation = useUpdate<IEmployee>(Employee.add)
+  const updateMutation = usePersist<IEmployee>(Employee.add)
 
   return {
     ...updateMutation,
@@ -140,7 +139,7 @@ export function useEmployeeDuplicateDetection() {
 // Hook for employee photo upload (if needed for future enhancements)
 export function useEmployeePhotoUpload() {
   const queryClient = useQueryClient()
-  const saveMutation = useSave<{ employeeId: number; photo: string }>(
+  const saveMutation = usePersist<{ employeeId: number; photo: string }>(
     `${Employee.add}/photo`
   )
 
@@ -162,10 +161,10 @@ export function useEmployeePhotoUpload() {
 export function useEmployeeBulkOperations() {
   const queryClient = useQueryClient()
 
-  const bulkDelete = useSave<{ employeeIds: number[] }>(
+  const bulkDelete = usePersist<{ employeeIds: number[] }>(
     `${Employee.delete}/bulk`
   )
-  const bulkUpdate = useSave<{
+  const bulkUpdate = usePersist<{
     employeeIds: number[]
     updates: Partial<IEmployee>
   }>(`${Employee.add}/bulk-update`)

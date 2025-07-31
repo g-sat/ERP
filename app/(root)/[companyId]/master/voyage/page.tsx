@@ -10,13 +10,7 @@ import { toast } from "sonner"
 
 import { Voyage } from "@/lib/api-routes"
 import { MasterTransactionId, ModuleId } from "@/lib/utils"
-import {
-  useDelete,
-  useGet,
-  useGetById,
-  useSave,
-  useUpdate,
-} from "@/hooks/use-common"
+import { useDelete, useGet, useGetById, usePersist } from "@/hooks/use-common"
 import {
   Dialog,
   DialogContent,
@@ -62,8 +56,8 @@ export default function VoyagePage() {
     }
   }, [filters.search])
 
-  const saveMutation = useSave<VoyageFormValues>(`${Voyage.add}`)
-  const updateMutation = useUpdate<VoyageFormValues>(`${Voyage.add}`)
+  const saveMutation = usePersist<VoyageFormValues>(`${Voyage.add}`)
+  const updateMutation = usePersist<VoyageFormValues>(`${Voyage.add}`)
   const deleteMutation = useDelete(`${Voyage.delete}`)
 
   const [selectedVoyage, setSelectedVoyage] = useState<IVoyage | null>(null)

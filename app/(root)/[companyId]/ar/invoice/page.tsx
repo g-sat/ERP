@@ -25,7 +25,7 @@ import { toast } from "sonner"
 import { getById } from "@/lib/api-client"
 import { ArInvoice } from "@/lib/api-routes"
 import { clientDateFormat, parseDate } from "@/lib/format"
-import { useDelete, useGetHeader, useSave, useUpdate } from "@/hooks/use-common"
+import { useDelete, useGetWithDates, usePersist } from "@/hooks/use-common"
 import { useGetRequiredFields, useGetVisibleFields } from "@/hooks/use-lookup"
 import { Button } from "@/components/ui/button"
 import {
@@ -169,10 +169,9 @@ export default function InvoicePage() {
     refetch: refetchInvoices,
     isLoading: isLoadingInvoices,
     isRefetching: isRefetchingInvoices,
-  } = useGetHeader<IArInvoiceHd>(
+  } = useGetWithDates<IArInvoiceHd>(
     `${ArInvoice.get}`,
     "arInvoiceHd",
-
     filters.search,
     filters.startDate?.toString(),
     filters.endDate?.toString()
@@ -186,8 +185,8 @@ export default function InvoicePage() {
     }
 
   // Mutations
-  const saveMutation = useSave<ArInvoiceHdFormValues>(`${ArInvoice.add}`)
-  const updateMutation = useUpdate<ArInvoiceHdFormValues>(`${ArInvoice.add}`)
+  const saveMutation = usePersist<ArInvoiceHdFormValues>(`${ArInvoice.add}`)
+  const updateMutation = usePersist<ArInvoiceHdFormValues>(`${ArInvoice.add}`)
   const deleteMutation = useDelete(`${ArInvoice.delete}`)
 
   // Remove the useGetInvoiceById hook for selection
@@ -231,7 +230,7 @@ export default function InvoicePage() {
             // Transform API response back to form values if needed
             if (invoiceData) {
               const updatedFormValues = transformToFormValues(
-                invoiceData as IArInvoiceHd
+                invoiceData as unknown as IArInvoiceHd
               )
               setInvoice(updatedFormValues)
             }

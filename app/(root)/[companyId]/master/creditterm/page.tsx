@@ -18,7 +18,7 @@ import { toast } from "sonner"
 import { getData } from "@/lib/api-client"
 import { CreditTerm, CreditTermDt } from "@/lib/api-routes"
 import { MasterTransactionId, ModuleId } from "@/lib/utils"
-import { useDelete, useGet, useSave, useUpdate } from "@/hooks/use-common"
+import { useDelete, useGet, usePersist } from "@/hooks/use-common"
 import {
   Dialog,
   DialogContent,
@@ -103,12 +103,14 @@ export default function CreditTermPage() {
     (creditTermsDtResponse as ApiResponse<ICreditTermDt>)?.data || []
 
   // Mutations
-  const saveMutation = useSave<CreditTermFormValues>(`${CreditTerm.add}`)
-  const updateMutation = useUpdate<CreditTermFormValues>(`${CreditTerm.add}`)
+  const saveMutation = usePersist<CreditTermFormValues>(`${CreditTerm.add}`)
+  const updateMutation = usePersist<CreditTermFormValues>(`${CreditTerm.add}`)
   const deleteMutation = useDelete(`${CreditTerm.delete}`)
 
-  const saveDtMutation = useSave<CreditTermDtFormValues>(`${CreditTermDt.add}`)
-  const updateDtMutation = useUpdate<CreditTermDtFormValues>(
+  const saveDtMutation = usePersist<CreditTermDtFormValues>(
+    `${CreditTermDt.add}`
+  )
+  const updateDtMutation = usePersist<CreditTermDtFormValues>(
     `${CreditTermDt.add}`
   )
   const deleteDtMutation = useDelete(`${CreditTermDt.delete}`)

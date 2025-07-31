@@ -15,7 +15,7 @@ import {
 import { toast } from "sonner"
 import * as XLSX from "xlsx"
 
-import { useSave } from "@/hooks/use-common"
+import { usePersist } from "@/hooks/use-common"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -95,7 +95,7 @@ export function TableHeader<TData>({
   }
 
   // Add the save mutation for grid settings
-  const saveGridSettings = useSave<IGridSetting>("/setting/saveUserGrid")
+  const saveGridSettings = usePersist<IGridSetting>("/setting/saveUserGrid")
 
   const handleExportExcel = (data: TData[]) => {
     toast.info("Exporting to Excel...", {

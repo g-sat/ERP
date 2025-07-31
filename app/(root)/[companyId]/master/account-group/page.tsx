@@ -10,13 +10,7 @@ import { toast } from "sonner"
 
 import { AccountGroup } from "@/lib/api-routes"
 import { MasterTransactionId, ModuleId } from "@/lib/utils"
-import {
-  useDelete,
-  useGet,
-  useGetById,
-  useSave,
-  useUpdate,
-} from "@/hooks/use-common"
+import { useDelete, useGet, useGetById, usePersist } from "@/hooks/use-common"
 import {
   Dialog,
   DialogContent,
@@ -64,8 +58,8 @@ export default function AccountGroupPage() {
     }
 
   // Define mutations for CRUD operations
-  const saveMutation = useSave<AccountGroupFormValues>(`${AccountGroup.add}`)
-  const updateMutation = useUpdate<AccountGroupFormValues>(
+  const saveMutation = usePersist<AccountGroupFormValues>(`${AccountGroup.add}`)
+  const updateMutation = usePersist<AccountGroupFormValues>(
     `${AccountGroup.add}`
   )
   const deleteMutation = useDelete(`${AccountGroup.delete}`)

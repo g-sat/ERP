@@ -1,12 +1,11 @@
 "use client"
 
 import { IPayrollPeriod } from "@/interfaces/payroll"
-import { PayrollPeriodFormValues } from "@/schemas/payroll"
+import { PayrollPeriodFormData, payrollPeriodSchema } from "@/schemas/payroll"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { format } from "date-fns"
 import { CalendarIcon } from "lucide-react"
 import { useForm } from "react-hook-form"
-import { z } from "zod"
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -30,7 +29,7 @@ import { Switch } from "@/components/ui/switch"
 import { Textarea } from "@/components/ui/textarea"
 
 interface PayrollPeriodFormProps {
-  onSubmit: (data: z.infer<typeof PayrollPeriodFormValues>) => void
+  onSubmit: (data: PayrollPeriodFormData) => void
   initialData?: IPayrollPeriod
   onCancel: () => void
 }
@@ -40,8 +39,8 @@ export function PayrollPeriodForm({
   initialData,
   onCancel,
 }: PayrollPeriodFormProps) {
-  const form = useForm<z.infer<typeof PayrollPeriodFormValues>>({
-    resolver: zodResolver(PayrollPeriodFormValues),
+  const form = useForm<PayrollPeriodFormData>({
+    resolver: zodResolver(payrollPeriodSchema),
     defaultValues: {
       periodName: initialData?.periodName || "",
       startDate: initialData?.startDate
@@ -55,7 +54,7 @@ export function PayrollPeriodForm({
     },
   })
 
-  const handleSubmit = (data: z.infer<typeof PayrollPeriodFormValues>) => {
+  const handleSubmit = (data: PayrollPeriodFormData) => {
     onSubmit(data)
   }
 

@@ -18,7 +18,7 @@ import {
   exportJobOrdersDirect,
   searchJobOrdersDirect,
 } from "@/hooks/use-checklist"
-import { useGetHeader } from "@/hooks/use-common"
+import { useGetWithDates } from "@/hooks/use-common"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -71,7 +71,7 @@ export default function ChecklistPage() {
     isLoading: isLoadingJobOrder,
     isRefetching: isRefetchingJobOrder,
     error: jobOrderError,
-  } = useGetHeader<IJobOrderHd>(
+  } = useGetWithDates<IJobOrderHd>(
     JobOrder.get,
     "jobOrderHd",
     searchQuery,

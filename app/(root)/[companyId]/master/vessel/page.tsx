@@ -10,13 +10,7 @@ import { toast } from "sonner"
 
 import { Vessel } from "@/lib/api-routes"
 import { MasterTransactionId, ModuleId } from "@/lib/utils"
-import {
-  useDelete,
-  useGet,
-  useGetById,
-  useSave,
-  useUpdate,
-} from "@/hooks/use-common"
+import { useDelete, useGet, useGetById, usePersist } from "@/hooks/use-common"
 import {
   Dialog,
   DialogContent,
@@ -62,8 +56,8 @@ export default function VesselPage() {
     }
   }, [filters])
 
-  const saveMutation = useSave<VesselFormValues>(`${Vessel.add}`)
-  const updateMutation = useUpdate<VesselFormValues>(`${Vessel.add}`)
+  const saveMutation = usePersist<VesselFormValues>(`${Vessel.add}`)
+  const updateMutation = usePersist<VesselFormValues>(`${Vessel.add}`)
   const deleteMutation = useDelete(`${Vessel.delete}`)
 
   const [selectedVessel, setSelectedVessel] = useState<IVessel | null>(null)

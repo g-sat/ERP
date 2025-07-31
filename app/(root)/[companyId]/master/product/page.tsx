@@ -10,13 +10,7 @@ import { toast } from "sonner"
 
 import { Product } from "@/lib/api-routes"
 import { MasterTransactionId, ModuleId } from "@/lib/utils"
-import {
-  useDelete,
-  useGet,
-  useGetById,
-  useSave,
-  useUpdate,
-} from "@/hooks/use-common"
+import { useDelete, useGet, useGetById, usePersist } from "@/hooks/use-common"
 import {
   Dialog,
   DialogContent,
@@ -56,8 +50,8 @@ export default function ProductPage() {
       data: [],
     }
 
-  const saveMutation = useSave<ProductFormValues>(`${Product.add}`)
-  const updateMutation = useUpdate<ProductFormValues>(`${Product.add}`)
+  const saveMutation = usePersist<ProductFormValues>(`${Product.add}`)
+  const updateMutation = usePersist<ProductFormValues>(`${Product.add}`)
   const deleteMutation = useDelete(`${Product.delete}`)
 
   const [selectedProduct, setSelectedProduct] = useState<IProduct | null>(null)

@@ -17,8 +17,7 @@ import {
   useGet,
   useGetById,
   useGetByParams,
-  useSave,
-  useUpdate,
+  usePersist,
 } from "@/hooks/use-common"
 
 // ===== LEAVE MANAGEMENT HOOKS =====
@@ -86,7 +85,7 @@ export function useGetLeavesByDateRange(startDate: string, endDate: string) {
 // Hook for saving leave
 export function useSaveLeave() {
   const queryClient = useQueryClient()
-  const saveMutation = useSave<ILeave>(HrLeaveRequest.add)
+  const saveMutation = usePersist<ILeave>(HrLeaveRequest.add)
 
   return {
     ...saveMutation,
@@ -110,7 +109,7 @@ export function useSaveLeave() {
 // Hook for updating leave
 export function useUpdateLeave() {
   const queryClient = useQueryClient()
-  const updateMutation = useUpdate<ILeave>(HrLeaveRequest.add)
+  const updateMutation = usePersist<ILeave>(HrLeaveRequest.add)
 
   return {
     ...updateMutation,
@@ -190,7 +189,7 @@ export function useGetLeaveBalancesByEmployee(employeeId: string | undefined) {
 // Hook for saving leave balance
 export function useSaveLeaveBalance() {
   const queryClient = useQueryClient()
-  const saveMutation = useSave<ILeaveBalance>(HrLeaveBalance.add)
+  const saveMutation = usePersist<ILeaveBalance>(HrLeaveBalance.add)
 
   return {
     ...saveMutation,
@@ -212,7 +211,7 @@ export function useSaveLeaveBalance() {
 // Hook for updating leave balance
 export function useUpdateLeaveBalance() {
   const queryClient = useQueryClient()
-  const updateMutation = useUpdate<ILeaveBalance>(HrLeaveBalance.update)
+  const updateMutation = usePersist<ILeaveBalance>(HrLeaveBalance.update)
 
   return {
     ...updateMutation,
@@ -257,7 +256,9 @@ export function useDeleteLeaveBalance() {
 // Hook for bulk updating leave balances
 export function useBulkUpdateLeaveBalances() {
   const queryClient = useQueryClient()
-  const bulkUpdateMutation = useSave<ILeaveBalance[]>(HrLeaveBalance.bulkUpdate)
+  const bulkUpdateMutation = usePersist<ILeaveBalance[]>(
+    HrLeaveBalance.bulkUpdate
+  )
 
   return {
     ...bulkUpdateMutation,
@@ -279,7 +280,7 @@ export function useBulkUpdateLeaveBalances() {
 // Hook for resetting yearly leave balances
 export function useResetYearlyLeaveBalances() {
   const queryClient = useQueryClient()
-  const resetMutation = useSave<{ year: number; companyId: string }>(
+  const resetMutation = usePersist<{ year: number; companyId: string }>(
     HrLeaveBalance.resetYearly
   )
 
@@ -331,7 +332,7 @@ export function useGetLeavePolicyById(policyId: string | undefined) {
 // Hook for saving leave policy
 export function useSaveLeavePolicy() {
   const queryClient = useQueryClient()
-  const saveMutation = useSave<ILeavePolicy>(HrLeavePolicy.add)
+  const saveMutation = usePersist<ILeavePolicy>(HrLeavePolicy.add)
 
   return {
     ...saveMutation,
@@ -448,7 +449,7 @@ export function useGetRejectedLeaveRequests() {
 // Hook for saving leave request
 export function useSaveLeaveRequest() {
   const queryClient = useQueryClient()
-  const saveMutation = useSave<ILeaveRequest>(HrLeaveRequest.add)
+  const saveMutation = usePersist<ILeaveRequest>(HrLeaveRequest.add)
 
   return {
     ...saveMutation,
@@ -482,7 +483,7 @@ export function useSaveLeaveRequest() {
 // Hook for updating leave request
 export function useUpdateLeaveRequest() {
   const queryClient = useQueryClient()
-  const updateMutation = useUpdate<ILeaveRequest>(HrLeaveRequest.update)
+  const updateMutation = usePersist<ILeaveRequest>(HrLeaveRequest.update)
 
   return {
     ...updateMutation,
@@ -606,7 +607,7 @@ export function useGetPendingLeaveApprovals() {
 // Hook for approving leave
 export function useApproveLeave() {
   const queryClient = useQueryClient()
-  const approveMutation = useSave<{
+  const approveMutation = usePersist<{
     leaveId: string
     approverId: string
     comments?: string
@@ -649,7 +650,7 @@ export function useApproveLeave() {
 // Hook for rejecting leave
 export function useRejectLeave() {
   const queryClient = useQueryClient()
-  const rejectMutation = useSave<{
+  const rejectMutation = usePersist<{
     leaveId: string
     approverId: string
     reason: string
@@ -688,7 +689,7 @@ export function useRejectLeave() {
 // Hook for skipping approval level
 export function useSkipApproval() {
   const queryClient = useQueryClient()
-  const skipMutation = useSave<{ leaveId: string; approverId: string }>(
+  const skipMutation = usePersist<{ leaveId: string; approverId: string }>(
     HrLeaveApproval.skip
   )
 
@@ -722,7 +723,7 @@ export function useSkipApproval() {
 // Hook for cancelling leave approval
 export function useCancelLeaveApproval() {
   const queryClient = useQueryClient()
-  const cancelMutation = useSave<{ leaveId: string; approverId: string }>(
+  const cancelMutation = usePersist<{ leaveId: string; approverId: string }>(
     HrLeaveApproval.cancel
   )
 

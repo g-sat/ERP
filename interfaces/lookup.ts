@@ -464,3 +464,15 @@ export interface ICompanyLookup {
   companyCode: string
   companyName: string
 }
+
+export interface IPayrollComponentLookup {
+  payrollComponentId: number
+  componentName: string
+  componentCode: string
+}
+
+export interface IPayrollComponentGroupLookup {
+  componentGroupId: number
+  groupName: string
+  groupCode: string
+}

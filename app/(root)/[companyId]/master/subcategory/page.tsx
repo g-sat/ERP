@@ -10,13 +10,7 @@ import { toast } from "sonner"
 
 import { SubCategory } from "@/lib/api-routes"
 import { MasterTransactionId, ModuleId } from "@/lib/utils"
-import {
-  useDelete,
-  useGet,
-  useGetById,
-  useSave,
-  useUpdate,
-} from "@/hooks/use-common"
+import { useDelete, useGet, useGetById, usePersist } from "@/hooks/use-common"
 import {
   Dialog,
   DialogContent,
@@ -62,8 +56,8 @@ export default function SubCategoryPage() {
     }
   }, [filters])
 
-  const saveMutation = useSave<SubCategoryFormValues>(`${SubCategory.add}`)
-  const updateMutation = useUpdate<SubCategoryFormValues>(`${SubCategory.add}`)
+  const saveMutation = usePersist<SubCategoryFormValues>(`${SubCategory.add}`)
+  const updateMutation = usePersist<SubCategoryFormValues>(`${SubCategory.add}`)
   const deleteMutation = useDelete(`${SubCategory.delete}`)
 
   const [selectedSubCategory, setSelectedSubCategory] =

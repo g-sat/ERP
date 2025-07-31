@@ -58,7 +58,7 @@ import { getData } from "@/lib/api-client"
 import { BasicSetting } from "@/lib/api-routes"
 import { clientDateFormat } from "@/lib/format"
 import { cn } from "@/lib/utils"
-import { useSave } from "@/hooks/use-common"
+import { usePersist } from "@/hooks/use-common"
 import { useGetGridLayout } from "@/hooks/use-settings"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -495,7 +495,7 @@ export default function InvoiceDetailsTable({
     }
   }, [])
 
-  const saveGridSettings = useSave<IGridSetting>("/setting/saveUserGrid")
+  const saveGridSettings = usePersist<IGridSetting>("/setting/saveUserGrid")
 
   const updateData = <T extends string | number | null>(
     id: string,

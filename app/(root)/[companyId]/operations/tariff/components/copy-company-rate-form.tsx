@@ -10,7 +10,7 @@ import { toast } from "sonner"
 import { z } from "zod"
 
 import { Tariff } from "@/lib/api-routes"
-import { useGetByParams, useSave } from "@/hooks/use-common"
+import { useGetByParams, usePersist } from "@/hooks/use-common"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Form } from "@/components/ui/form"
@@ -64,7 +64,7 @@ export function CopyCompanyRateForm({ onClose }: CopyCompanyRateFormProps) {
   })
 
   // Copy tariff mutation
-  const copyTariffMutation = useSave(Tariff.copyCompanyTariff)
+  const copyTariffMutation = usePersist(Tariff.copyCompanyTariff)
 
   // Watch form values to determine when to show table
   const watchedValues = form.watch([

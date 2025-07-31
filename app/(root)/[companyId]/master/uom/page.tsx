@@ -11,7 +11,7 @@ import { toast } from "sonner"
 import { getData } from "@/lib/api-client"
 import { Uom, UomDt } from "@/lib/api-routes"
 import { MasterTransactionId, ModuleId } from "@/lib/utils"
-import { useDelete, useGet, useSave, useUpdate } from "@/hooks/use-common"
+import { useDelete, useGet, usePersist } from "@/hooks/use-common"
 import {
   Dialog,
   DialogContent,
@@ -90,12 +90,12 @@ export default function UomPage() {
   const uomDtData = (uomDtResponse as ApiResponse<IUomDt>)?.data || []
 
   // Mutations
-  const saveMutation = useSave<UomFormValues>(`${Uom.add}`)
-  const updateMutation = useUpdate<UomFormValues>(`${Uom.add}`)
+  const saveMutation = usePersist<UomFormValues>(`${Uom.add}`)
+  const updateMutation = usePersist<UomFormValues>(`${Uom.add}`)
   const deleteMutation = useDelete(`${Uom.delete}`)
 
-  const saveDtMutation = useSave<UomDtFormValues>(`${UomDt.add}`)
-  const updateDtMutation = useUpdate<UomDtFormValues>(`${UomDt.add}`)
+  const saveDtMutation = usePersist<UomDtFormValues>(`${UomDt.add}`)
+  const updateDtMutation = usePersist<UomDtFormValues>(`${UomDt.add}`)
   const deleteDtMutation = useDelete(`${UomDt.delete}`)
 
   // State management

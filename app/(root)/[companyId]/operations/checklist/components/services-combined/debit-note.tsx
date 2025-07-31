@@ -5,7 +5,7 @@ import { toast } from "sonner"
 
 import { JobOrder_DebitNote } from "@/lib/api-routes"
 import { TaskIdToName } from "@/lib/operations-utils"
-import { useSave } from "@/hooks/use-common"
+import { usePersist } from "@/hooks/use-common"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -49,7 +49,7 @@ const DebitNote = ({
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   // Debit note details save mutation
-  const saveDebitNoteDetailsMutation = useSave<IDebitNoteDt>(
+  const saveDebitNoteDetailsMutation = usePersist<IDebitNoteDt>(
     `${JobOrder_DebitNote.saveDetails}`
   )
 

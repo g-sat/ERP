@@ -1,11 +1,10 @@
 "use client"
 
-import { useState } from "react"
 import {
   IPayrollComponent,
   IPayrollComponentFilter,
 } from "@/interfaces/payroll"
-import { Edit, Eye, MoreHorizontal, Search, Trash2 } from "lucide-react"
+import { Edit, Eye, MoreHorizontal, RefreshCcw, Trash2 } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -17,7 +16,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Input } from "@/components/ui/input"
 import {
   Table,
   TableBody,
@@ -26,7 +24,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { CurrencyFormatter } from "@/components/currencyicons/currency-formatter"
 
 interface PayrollComponentTableProps {
   data: IPayrollComponent[]
@@ -34,6 +31,7 @@ interface PayrollComponentTableProps {
   onDelete?: (componentId: string) => void
   onView: (component: IPayrollComponent | undefined) => void
   onFilterChange: (filters: IPayrollComponentFilter) => void
+  onRefresh?: () => void
 }
 
 export function PayrollComponentTable({
@@ -42,14 +40,8 @@ export function PayrollComponentTable({
   onDelete,
   onView,
   onFilterChange,
+  onRefresh,
 }: PayrollComponentTableProps) {
-  const [searchTerm, setSearchTerm] = useState("")
-
-  const handleSearch = (value: string) => {
-    setSearchTerm(value)
-    onFilterChange({ search: value })
-  }
-
   const getTypeBadge = (component: IPayrollComponent) => {
     if (component.componentType === "EARNING") {
       return <Badge variant="default">Earning</Badge>
@@ -59,18 +51,19 @@ export function PayrollComponentTable({
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center space-x-2">
-        <div className="relative max-w-sm flex-1">
-          <Search className="text-muted-foreground absolute top-2.5 left-2 h-4 w-4" />
-          <Input
-            placeholder="Search components..."
-            value={searchTerm}
-            onChange={(e) => handleSearch(e.target.value)}
-            className="pl-8"
-          />
-        </div>
+      <div className="mb-2 flex justify-end">
+        <Button
+          size="icon"
+          variant="ghost"
+          onClick={() => {
+            console.log("Refresh button clicked for components")
+            onRefresh?.()
+          }}
+          title="Refresh"
+        >
+          <RefreshCcw className="h-4 w-4" />
+        </Button>
       </div>
-
       <div className="rounded-md border">
         <Table>
           <TableHeader>

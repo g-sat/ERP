@@ -13,9 +13,8 @@ import { MasterTransactionId, ModuleId } from "@/lib/utils"
 import {
   useDelete,
   useGet,
-  useGetById,
-  useSave,
-  useUpdate,
+  useGetByParams,
+  usePersist,
 } from "@/hooks/use-common"
 import {
   Dialog,
@@ -78,8 +77,8 @@ export default function CategoryPage() {
     }
   }, [categorysResponse])
 
-  const saveMutation = useSave<CategoryFormValues>(`${Category.add}`)
-  const updateMutation = useUpdate<CategoryFormValues>(`${Category.add}`)
+  const saveMutation = usePersist<CategoryFormValues>(`${Category.add}`)
+  const updateMutation = usePersist<CategoryFormValues>(`${Category.add}`)
   const deleteMutation = useDelete(`${Category.delete}`)
 
   const [selectedCategory, setSelectedCategory] = useState<ICategory | null>(
@@ -108,14 +107,10 @@ export default function CategoryPage() {
   })
 
   // Add API call for checking code availability
-  const { refetch: checkCodeAvailability } = useGetById<ICategory>(
+  const { refetch: checkCodeAvailability } = useGetByParams<ICategory>(
     `${Category.getByCode}`,
     "categoryByCode",
-
-    codeToCheck,
-    {
-      enabled: !!codeToCheck && codeToCheck.trim() !== "",
-    }
+    codeToCheck || ""
   )
 
   const queryClient = useQueryClient()
@@ -150,31 +145,20 @@ export default function CategoryPage() {
           data
         )) as ApiResponse<CategoryFormValues>
         if (response.result === 1) {
-          toast.success("Category created successfully")
           queryClient.invalidateQueries({ queryKey: ["categorys"] })
           setIsModalOpen(false)
-        } else {
-          toast.error(response.message || "Failed to create category")
         }
       } else if (modalMode === "edit" && selectedCategory) {
         const response = (await updateMutation.mutateAsync(
           data
         )) as ApiResponse<CategoryFormValues>
         if (response.result === 1) {
-          toast.success("Category updated successfully")
           queryClient.invalidateQueries({ queryKey: ["categorys"] })
           setIsModalOpen(false)
-        } else {
-          toast.error(response.message || "Failed to update category")
         }
       }
     } catch (error) {
       console.error("Error in form submission:", error)
-      if (error instanceof Error) {
-        toast.error(error.message)
-      } else {
-        toast.error("An unexpected error occurred")
-      }
     }
   }
 

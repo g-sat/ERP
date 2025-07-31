@@ -19,7 +19,7 @@ import { toast } from "sonner"
 import { getData } from "@/lib/api-client"
 import { ServiceType, ServiceTypeCategory } from "@/lib/api-routes"
 import { MasterTransactionId, ModuleId } from "@/lib/utils"
-import { useDelete, useGet, useSave, useUpdate } from "@/hooks/use-common"
+import { useDelete, useGet, usePersist } from "@/hooks/use-common"
 import {
   Dialog,
   DialogContent,
@@ -116,14 +116,14 @@ export default function ServiceTypePage() {
     []
 
   // Mutations
-  const saveMutation = useSave<ServiceTypeFormValues>(`${ServiceType.add}`)
-  const updateMutation = useUpdate<ServiceTypeFormValues>(`${ServiceType.add}`)
+  const saveMutation = usePersist<ServiceTypeFormValues>(`${ServiceType.add}`)
+  const updateMutation = usePersist<ServiceTypeFormValues>(`${ServiceType.add}`)
   const deleteMutation = useDelete(`${ServiceType.delete}`)
 
-  const saveCategoryMutation = useSave<ServiceTypeCategoryFormValues>(
+  const saveCategoryMutation = usePersist<ServiceTypeCategoryFormValues>(
     `${ServiceTypeCategory.add}`
   )
-  const updateCategoryMutation = useUpdate<ServiceTypeCategoryFormValues>(
+  const updateCategoryMutation = usePersist<ServiceTypeCategoryFormValues>(
     `${ServiceTypeCategory.add}`
   )
   const deleteCategoryMutation = useDelete(`${ServiceTypeCategory.delete}`)

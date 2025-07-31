@@ -14,8 +14,8 @@ import {
   useDelete,
   useGet,
   useGetById,
-  useSave,
-  useUpdate,
+  useGetByParams,
+  usePersist,
 } from "@/hooks/use-common"
 import {
   Dialog,
@@ -62,8 +62,8 @@ export default function CountryPage() {
     }
 
   // Define mutations for CRUD operations
-  const saveMutation = useSave<CountryFormValues>(`${Country.add}`)
-  const updateMutation = useUpdate<CountryFormValues>(`${Country.add}`)
+  const saveMutation = usePersist<CountryFormValues>(`${Country.add}`)
+  const updateMutation = usePersist<CountryFormValues>(`${Country.add}`)
   const deleteMutation = useDelete(`${Country.delete}`)
 
   // State for modal and selected country
@@ -89,14 +89,10 @@ export default function CountryPage() {
   })
 
   // Add API call for checking code availability
-  const { refetch: checkCodeAvailability } = useGetById<ICountry>(
+  const { refetch: checkCodeAvailability } = useGetByParams<ICountry>(
     `${Country.getByCode}`,
     "countryByCode",
-
-    codeToCheck,
-    {
-      enabled: !!codeToCheck && codeToCheck.trim() !== "",
-    }
+    codeToCheck || ""
   )
 
   // Handler to Re-fetches data when called
@@ -131,40 +127,28 @@ export default function CountryPage() {
   const handleFormSubmit = async (data: CountryFormValues) => {
     try {
       if (modalMode === "create") {
-        // Create a new country using the save mutation with toast feedback
+        // Create a new country using the save mutation
         const response = (await saveMutation.mutateAsync(
           data
         )) as ApiResponse<ICountry>
 
         if (response.result === 1) {
-          toast.success("Country created successfully")
           queryClient.invalidateQueries({ queryKey: ["countries"] }) // Triggers refetch
           setIsModalOpen(false)
-        } else {
-          toast.error(response.message || "Failed to create country")
         }
       } else if (modalMode === "edit" && selectedCountry) {
-        // Update the selected country using the update mutation with toast feedback
+        // Update the selected country using the update mutation
         const response = (await updateMutation.mutateAsync(
           data
         )) as ApiResponse<ICountry>
 
         if (response.result === 1) {
-          toast.success("Country updated successfully")
           queryClient.invalidateQueries({ queryKey: ["countries"] }) // Triggers refetch
           setIsModalOpen(false)
-        } else {
-          toast.error(response.message || "Failed to update country")
         }
       }
     } catch (error) {
       console.error("Error in form submission:", error)
-      // Handle API error response
-      if (error instanceof Error) {
-        toast.error(error.message)
-      } else {
-        toast.error("An unexpected error occurred")
-      }
     }
   }
 

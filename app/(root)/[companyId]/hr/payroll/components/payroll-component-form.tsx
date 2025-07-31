@@ -1,10 +1,12 @@
 "use client"
 
 import { IPayrollComponent } from "@/interfaces/payroll"
-import { PayrollComponentFormValues } from "@/schemas/payroll"
+import {
+  PayrollComponentFormData,
+  payrollComponentSchema,
+} from "@/schemas/payroll"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
-import { z } from "zod"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -26,10 +28,9 @@ import {
 } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 import { Textarea } from "@/components/ui/textarea"
-import { CurrencyFormatter } from "@/components/currencyicons/currency-formatter"
 
 interface PayrollComponentFormProps {
-  onSubmit: (data: z.infer<typeof PayrollComponentFormValues>) => void
+  onSubmit: (data: PayrollComponentFormData) => void
   initialData?: IPayrollComponent
   onCancel: () => void
 }
@@ -39,8 +40,8 @@ export function PayrollComponentForm({
   initialData,
   onCancel,
 }: PayrollComponentFormProps) {
-  const form = useForm<z.infer<typeof PayrollComponentFormValues>>({
-    resolver: zodResolver(PayrollComponentFormValues),
+  const form = useForm<PayrollComponentFormData>({
+    resolver: zodResolver(payrollComponentSchema),
     defaultValues: {
       componentCode: initialData?.componentCode || "",
       componentName: initialData?.componentName || "",
@@ -61,7 +62,7 @@ export function PayrollComponentForm({
     },
   })
 
-  const handleSubmit = (data: z.infer<typeof PayrollComponentFormValues>) => {
+  const handleSubmit = (data: PayrollComponentFormData) => {
     onSubmit(data)
   }
 

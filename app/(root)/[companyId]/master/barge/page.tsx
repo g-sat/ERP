@@ -10,13 +10,7 @@ import { toast } from "sonner"
 
 import { Barge } from "@/lib/api-routes"
 import { MasterTransactionId, ModuleId } from "@/lib/utils"
-import {
-  useDelete,
-  useGet,
-  useGetById,
-  useSave,
-  useUpdate,
-} from "@/hooks/use-common"
+import { useDelete, useGet, useGetById, usePersist } from "@/hooks/use-common"
 import {
   Dialog,
   DialogContent,
@@ -78,8 +72,8 @@ export default function BargePage() {
     }
   }, [bargesResponse])
 
-  const saveMutation = useSave<BargeFormValues>(`${Barge.add}`)
-  const updateMutation = useUpdate<BargeFormValues>(`${Barge.add}`)
+  const saveMutation = usePersist<BargeFormValues>(`${Barge.add}`)
+  const updateMutation = usePersist<BargeFormValues>(`${Barge.add}`)
   const deleteMutation = useDelete(`${Barge.delete}`)
 
   const [selectedBarge, setSelectedBarge] = useState<IBarge | null>(null)

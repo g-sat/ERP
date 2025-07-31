@@ -10,13 +10,7 @@ import { toast } from "sonner"
 
 import { PaymentType } from "@/lib/api-routes"
 import { MasterTransactionId, ModuleId } from "@/lib/utils"
-import {
-  useDelete,
-  useGet,
-  useGetById,
-  useSave,
-  useUpdate,
-} from "@/hooks/use-common"
+import { useDelete, useGet, useGetById, usePersist } from "@/hooks/use-common"
 import {
   Dialog,
   DialogContent,
@@ -63,8 +57,8 @@ export default function PaymentTypePage() {
     }
   }, [filters])
 
-  const saveMutation = useSave<PaymentTypeFormValues>(`${PaymentType.add}`)
-  const updateMutation = useUpdate<PaymentTypeFormValues>(`${PaymentType.add}`)
+  const saveMutation = usePersist<PaymentTypeFormValues>(`${PaymentType.add}`)
+  const updateMutation = usePersist<PaymentTypeFormValues>(`${PaymentType.add}`)
   const deleteMutation = useDelete(`${PaymentType.delete}`)
 
   const [selectedPaymentType, setSelectedPaymentType] =

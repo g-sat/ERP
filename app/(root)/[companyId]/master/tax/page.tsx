@@ -21,7 +21,7 @@ import { toast } from "sonner"
 import { getData } from "@/lib/api-client"
 import { Tax, TaxCategory, TaxDt } from "@/lib/api-routes"
 import { MasterTransactionId, ModuleId } from "@/lib/utils"
-import { useDelete, useGet, useSave, useUpdate } from "@/hooks/use-common"
+import { useDelete, useGet, usePersist } from "@/hooks/use-common"
 import {
   Dialog,
   DialogContent,
@@ -113,18 +113,18 @@ export default function TaxPage() {
     (taxsCategoryResponse as ApiResponse<ITaxCategory>)?.data || []
 
   // Mutations
-  const saveMutation = useSave<TaxFormValues>(`${Tax.add}`)
-  const updateMutation = useUpdate<TaxFormValues>(`${Tax.add}`)
+  const saveMutation = usePersist<TaxFormValues>(`${Tax.add}`)
+  const updateMutation = usePersist<TaxFormValues>(`${Tax.add}`)
   const deleteMutation = useDelete(`${Tax.delete}`)
 
-  const saveDtMutation = useSave<TaxDtFormValues>(`${TaxDt.add}`)
-  const updateDtMutation = useUpdate<TaxDtFormValues>(`${TaxDt.add}`)
+  const saveDtMutation = usePersist<TaxDtFormValues>(`${TaxDt.add}`)
+  const updateDtMutation = usePersist<TaxDtFormValues>(`${TaxDt.add}`)
   const deleteDtMutation = useDelete(`${TaxDt.delete}`)
 
-  const saveCategoryMutation = useSave<TaxCategoryFormValues>(
+  const saveCategoryMutation = usePersist<TaxCategoryFormValues>(
     `${TaxCategory.add}`
   )
-  const updateCategoryMutation = useUpdate<TaxCategoryFormValues>(
+  const updateCategoryMutation = usePersist<TaxCategoryFormValues>(
     `${TaxCategory.add}`
   )
   const deleteCategoryMutation = useDelete(`${TaxCategory.delete}`)

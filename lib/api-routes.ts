@@ -227,6 +227,8 @@ export const Lookup = {
   getConsignmentType: "/master/getconsignmenttypelookup",
   getCarrierType: "/master/getcarriertypelookup",
   getCompany: "/master/getcompanylookup",
+  getPayrollComponent: "/master/getpayrollcomponentlookup",
+  getPayrollComponentGroup: "/master/getpayrollcomponentgrouplookup",
 }
 
 //Master Endpoints
@@ -1135,6 +1137,22 @@ export const PayrollComponent = {
   delete: "/hr/payroll/deletepayrollcomponent",
   getByType: "/hr/payroll/typepayrollcomponent",
   getActive: "/hr/payroll/activepayrollcomponent",
+}
+
+export const PayrollComponentGroup = {
+  get: "/hr/payroll/getpayrollcomponentgroup",
+  getById: "/hr/payroll/getpayrollcomponentgroupbyid",
+  add: "/hr/payroll/savepayrollcomponentgroup",
+  update: "/hr/payroll/savepayrollcomponentgroup",
+  delete: "/hr/payroll/deletepayrollcomponentgroup",
+}
+
+export const PayrollComponentGLMapping = {
+  get: "/hr/payroll/getpayrollcomponentglmapping",
+  getById: "/hr/payroll/getpayrollcomponentglmappingbyid",
+  add: "/hr/payroll/savepayrollcomponentglmapping",
+  update: "/hr/payroll/savepayrollcomponentglmapping",
+  delete: "/hr/payroll/deletepayrollcomponentglmapping",
 }
 
 export const PayrollEmployeeComponent = {

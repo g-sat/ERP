@@ -19,7 +19,7 @@ import {
   JobOrder_DebitNote,
 } from "@/lib/api-routes"
 import { Task } from "@/lib/operations-utils"
-import { useDelete, useGetById, useSave, useUpdate } from "@/hooks/use-common"
+import { useDelete, useGetById, usePersist } from "@/hooks/use-common"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -115,15 +115,17 @@ export function ConsignmentImportTab({
   }
 
   // Mutations
-  const saveMutation = useSave<ConsignmentImportFormValues>(
+  const saveMutation = usePersist<ConsignmentImportFormValues>(
     `${JobOrder_ConsignmentImport.add}`
   )
-  const updateMutation = useUpdate<ConsignmentImportFormValues>(
+  const updateMutation = usePersist<ConsignmentImportFormValues>(
     `${JobOrder_ConsignmentImport.add}`
   )
   const deleteMutation = useDelete(`${JobOrder_ConsignmentImport.delete}`)
   // Debit note mutation
-  const debitNoteMutation = useSave<IDebitNoteData>(`${JobOrder_DebitNote.add}`)
+  const debitNoteMutation = usePersist<IDebitNoteData>(
+    `${JobOrder_DebitNote.add}`
+  )
 
   // Debit note delete mutation
   const debitNoteDeleteMutation = useDelete(`${JobOrder_DebitNote.delete}`)

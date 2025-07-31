@@ -181,3 +181,58 @@ export interface IPayrollComponentFilter {
   search?: string
   sortOrder?: "asc" | "desc"
 }
+
+export interface IPayrollComponentGroup {
+  componentGroupId: number
+  groupCode: string
+  groupName: string
+  remarks?: string
+  isActive: boolean
+  createById?: number
+  createDate?: Date
+  editById?: number
+  editDate?: Date
+  data_details: IPayrollComponentGroupDt[]
+}
+
+export interface IPayrollComponentGroupDt {
+  componentGroupId: number
+  groupCode: string
+  groupName: string
+  payrollComponentId: number
+  componentCode: string
+  componentName: string
+  componentType: string
+  sortOrder?: number
+}
+
+export interface IPayrollComponentGLMapping {
+  mappingId: number
+  companyId: number
+  companyName: string
+  departmentId: number
+  departmentName: string
+  payrollComponentId: number
+  componentCode: string
+  componentName: string
+  expenseGLId: number
+  expenseGLCode: string
+  expenseGLName: string
+  isActive?: boolean
+  createBy?: string
+  createDate?: Date | string
+  editBy?: string
+  editDate?: Date | string
+}
+
+export interface IPayrollComponentGroupFilter {
+  groupCode?: string
+  groupName?: string
+  isActive?: boolean
+}
+
+export interface IPayrollComponentGLMappingFilter {
+  companyId?: number
+  payrollComponentId?: number
+  isActive?: boolean
+}

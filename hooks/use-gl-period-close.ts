@@ -12,8 +12,7 @@ import {
   useGet,
   useGetById,
   useGetByParams,
-  useSave,
-  useUpdate,
+  usePersist,
 } from "@/hooks/use-common"
 
 // Hook for fetching period close data
@@ -63,7 +62,7 @@ export function useGetGLPeriodCloseByCompanyYear(
 // Hook for saving period close
 export function useSaveGLPeriodClose() {
   const queryClient = useQueryClient()
-  const saveMutation = useSave<IGLPeriodClose>(GLPeriodClose.post)
+  const saveMutation = usePersist<IGLPeriodClose>(GLPeriodClose.post)
 
   return {
     ...saveMutation,
@@ -88,7 +87,7 @@ export function useSaveGLPeriodClose() {
 // Hook for updating period close
 export function useUpdateGLPeriodClose() {
   const queryClient = useQueryClient()
-  const updateMutation = useUpdate<IGLPeriodClose>(GLPeriodClose.put)
+  const updateMutation = usePersist<IGLPeriodClose>(GLPeriodClose.put)
 
   return {
     ...updateMutation,
@@ -138,7 +137,7 @@ export function useDeleteGLPeriodClose() {
 // Hook for bulk actions (close/reopen modules)
 export function useGLPeriodCloseBulkAction() {
   const queryClient = useQueryClient()
-  const bulkActionMutation = useSave<IGLPeriodCloseBulkAction>(
+  const bulkActionMutation = usePersist<IGLPeriodCloseBulkAction>(
     GLPeriodClose.bulkAction
   )
 
@@ -177,7 +176,7 @@ export function useGetGLPeriodCloseSummary(companyId: string | undefined) {
 // Hook for closing specific module
 export function useCloseGLPeriodModule() {
   const queryClient = useQueryClient()
-  const closeMutation = useUpdate<IGLPeriodClose>(GLPeriodClose.put)
+  const closeMutation = usePersist<IGLPeriodClose>(GLPeriodClose.put)
 
   const closeModule = (
     periodId: string,
@@ -292,7 +291,7 @@ export function useCloseGLPeriodModule() {
 // Hook for generating periods for a year
 export function useGenerateGLPeriods() {
   const queryClient = useQueryClient()
-  const generateMutation = useSave<{ companyId: string; year: number }>(
+  const generateMutation = usePersist<{ companyId: string; year: number }>(
     GLPeriodClose.post
   )
 

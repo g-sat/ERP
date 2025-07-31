@@ -9,7 +9,7 @@ import {
   Trash2,
 } from "lucide-react"
 
-import { useSave } from "@/hooks/use-common"
+import { usePersist } from "@/hooks/use-common"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -79,7 +79,7 @@ export function TableHeaderDebitNote<TData>({
   }, [columns])
 
   // Add the save mutation for grid settings
-  const saveGridSettings = useSave<IGridSetting>("/setting/saveUserGrid")
+  const saveGridSettings = usePersist<IGridSetting>("/setting/saveUserGrid")
 
   const handleSaveLayout = useCallback(async () => {
     try {

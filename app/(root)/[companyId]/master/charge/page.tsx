@@ -13,9 +13,8 @@ import { MasterTransactionId, ModuleId } from "@/lib/utils"
 import {
   useDelete,
   useGet,
-  useGetById,
-  useSave,
-  useUpdate,
+  useGetByParams,
+  usePersist,
 } from "@/hooks/use-common"
 import {
   Dialog,
@@ -57,8 +56,8 @@ export default function ChargePage() {
       data: [],
     }
 
-  const saveMutation = useSave<ChargeFormValues>(`${Charge.add}`)
-  const updateMutation = useUpdate<ChargeFormValues>(`${Charge.add}`)
+  const saveMutation = usePersist<ChargeFormValues>(`${Charge.add}`)
+  const updateMutation = usePersist<ChargeFormValues>(`${Charge.add}`)
   const deleteMutation = useDelete(`${Charge.delete}`)
 
   const [selectedCharge, setSelectedCharge] = useState<ICharge | undefined>(
@@ -82,14 +81,10 @@ export default function ChargePage() {
     chargeName: null,
   })
 
-  const { refetch: checkCodeAvailability } = useGetById<ICharge>(
+  const { refetch: checkCodeAvailability } = useGetByParams<ICharge>(
     `${Charge.getByCode}`,
     "chargeByCode",
-
-    codeToCheck,
-    {
-      enabled: !!codeToCheck && codeToCheck.trim() !== "",
-    }
+    codeToCheck || ""
   )
 
   const handleRefresh = () => {
@@ -123,31 +118,20 @@ export default function ChargePage() {
           data
         )) as ApiResponse<ICharge>
         if (response.result === 1) {
-          toast.success("Charge created successfully")
           queryClient.invalidateQueries({ queryKey: ["charges"] })
           setIsModalOpen(false)
-        } else {
-          toast.error(response.message || "Failed to create charge")
         }
       } else if (modalMode === "edit" && selectedCharge) {
         const response = (await updateMutation.mutateAsync(
           data
         )) as ApiResponse<ICharge>
         if (response.result === 1) {
-          toast.success("Charge updated successfully")
           queryClient.invalidateQueries({ queryKey: ["charges"] })
           setIsModalOpen(false)
-        } else {
-          toast.error(response.message || "Failed to update charge")
         }
       }
     } catch (error) {
       console.error("Error in form submission:", error)
-      if (error instanceof Error) {
-        toast.error(error.message)
-      } else {
-        toast.error("An unexpected error occurred")
-      }
     }
   }
 

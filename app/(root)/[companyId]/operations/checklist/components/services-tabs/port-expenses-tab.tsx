@@ -16,7 +16,7 @@ import { toast } from "sonner"
 import { getData } from "@/lib/api-client"
 import { JobOrder_DebitNote, JobOrder_PortExpenses } from "@/lib/api-routes"
 import { Task } from "@/lib/operations-utils"
-import { useDelete, useGetById, useSave, useUpdate } from "@/hooks/use-common"
+import { useDelete, useGetById, usePersist } from "@/hooks/use-common"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -113,15 +113,17 @@ export function PortExpensesTab({
   }
 
   // Mutations
-  const saveMutation = useSave<PortExpensesFormValues>(
+  const saveMutation = usePersist<PortExpensesFormValues>(
     `${JobOrder_PortExpenses.add}`
   )
-  const updateMutation = useUpdate<PortExpensesFormValues>(
+  const updateMutation = usePersist<PortExpensesFormValues>(
     `${JobOrder_PortExpenses.add}`
   )
   const deleteMutation = useDelete(`${JobOrder_PortExpenses.delete}`)
   // Debit note mutation
-  const debitNoteMutation = useSave<IDebitNoteData>(`${JobOrder_DebitNote.add}`)
+  const debitNoteMutation = usePersist<IDebitNoteData>(
+    `${JobOrder_DebitNote.add}`
+  )
 
   // Debit note delete mutation
   const debitNoteDeleteMutation = useDelete(`${JobOrder_DebitNote.delete}`)

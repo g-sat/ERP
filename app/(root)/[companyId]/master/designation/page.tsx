@@ -14,8 +14,8 @@ import {
   useDelete,
   useGet,
   useGetById,
-  useSave,
-  useUpdate,
+  useGetByParams,
+  usePersist,
 } from "@/hooks/use-common"
 import {
   Dialog,
@@ -62,8 +62,8 @@ export default function DesignationPage() {
     }
   }, [filters])
 
-  const saveMutation = useSave<DesignationFormValues>(`${Designation.add}`)
-  const updateMutation = useUpdate<DesignationFormValues>(`${Designation.add}`)
+  const saveMutation = usePersist<DesignationFormValues>(`${Designation.add}`)
+  const updateMutation = usePersist<DesignationFormValues>(`${Designation.add}`)
   const deleteMutation = useDelete(`${Designation.delete}`)
 
   const [selectedDesignation, setSelectedDesignation] =
@@ -90,14 +90,10 @@ export default function DesignationPage() {
   })
 
   // Add API call for checking code availability
-  const { refetch: checkCodeAvailability } = useGetById<IDesignation>(
+  const { refetch: checkCodeAvailability } = useGetByParams<IDesignation>(
     `${Designation.getByCode}`,
     "designationByCode",
-
-    codeToCheck,
-    {
-      enabled: !!codeToCheck && codeToCheck.trim() !== "",
-    }
+    codeToCheck || ""
   )
 
   const queryClient = useQueryClient()
@@ -132,31 +128,20 @@ export default function DesignationPage() {
           data
         )) as ApiResponse<IDesignation>
         if (response.result === 1) {
-          toast.success(response.message || "Designation created successfully")
           queryClient.invalidateQueries({ queryKey: ["designations"] })
           setIsModalOpen(false)
-        } else {
-          toast.error(response.message || "Failed to create designation")
         }
       } else if (modalMode === "edit" && selectedDesignation) {
         const response = (await updateMutation.mutateAsync(
           data
         )) as ApiResponse<IDesignation>
         if (response.result === 1) {
-          toast.success(response.message || "Designation updated successfully")
           queryClient.invalidateQueries({ queryKey: ["designations"] })
           setIsModalOpen(false)
-        } else {
-          toast.error(response.message || "Failed to update designation")
         }
       }
     } catch (error) {
       console.error("Error in form submission:", error)
-      if (error instanceof Error) {
-        toast.error(error.message)
-      } else {
-        toast.error("An unexpected error occurred")
-      }
     }
   }
 

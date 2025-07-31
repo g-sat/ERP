@@ -21,7 +21,7 @@ import { toast } from "sonner"
 import { getData } from "@/lib/api-client"
 import { Gst, GstCategory, GstDt } from "@/lib/api-routes"
 import { MasterTransactionId, ModuleId } from "@/lib/utils"
-import { useDelete, useGet, useSave, useUpdate } from "@/hooks/use-common"
+import { useDelete, useGet, usePersist } from "@/hooks/use-common"
 import {
   Dialog,
   DialogContent,
@@ -113,18 +113,18 @@ export default function GstPage() {
     (gstsCategoryResponse as ApiResponse<IGstCategory>)?.data || []
 
   // Mutations
-  const saveMutation = useSave<GstFormValues>(`${Gst.add}`)
-  const updateMutation = useUpdate<GstFormValues>(`${Gst.add}`)
+  const saveMutation = usePersist<GstFormValues>(`${Gst.add}`)
+  const updateMutation = usePersist<GstFormValues>(`${Gst.add}`)
   const deleteMutation = useDelete(`${Gst.delete}`)
 
-  const saveDtMutation = useSave<GstDtFormValues>(`${GstDt.add}`)
-  const updateDtMutation = useUpdate<GstDtFormValues>(`${GstDt.add}`)
+  const saveDtMutation = usePersist<GstDtFormValues>(`${GstDt.add}`)
+  const updateDtMutation = usePersist<GstDtFormValues>(`${GstDt.add}`)
   const deleteDtMutation = useDelete(`${GstDt.delete}`)
 
-  const saveCategoryMutation = useSave<GstCategoryFormValues>(
+  const saveCategoryMutation = usePersist<GstCategoryFormValues>(
     `${GstCategory.add}`
   )
-  const updateCategoryMutation = useUpdate<GstCategoryFormValues>(
+  const updateCategoryMutation = usePersist<GstCategoryFormValues>(
     `${GstCategory.add}`
   )
   const deleteCategoryMutation = useDelete(`${GstCategory.delete}`)

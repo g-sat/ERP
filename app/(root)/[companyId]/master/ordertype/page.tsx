@@ -19,7 +19,7 @@ import { toast } from "sonner"
 import { getData } from "@/lib/api-client"
 import { OrderType, OrderTypeCategory } from "@/lib/api-routes"
 import { MasterTransactionId, ModuleId } from "@/lib/utils"
-import { useDelete, useGet, useSave, useUpdate } from "@/hooks/use-common"
+import { useDelete, useGet, usePersist } from "@/hooks/use-common"
 import {
   Dialog,
   DialogContent,
@@ -115,14 +115,14 @@ export default function OrderTypePage() {
     (ordertypesCategoryResponse as ApiResponse<IOrderTypeCategory>)?.data || []
 
   // Mutations
-  const saveMutation = useSave<OrderTypeFormValues>(`${OrderType.add}`)
-  const updateMutation = useUpdate<OrderTypeFormValues>(`${OrderType.add}`)
+  const saveMutation = usePersist<OrderTypeFormValues>(`${OrderType.add}`)
+  const updateMutation = usePersist<OrderTypeFormValues>(`${OrderType.add}`)
   const deleteMutation = useDelete(`${OrderType.delete}`)
 
-  const saveCategoryMutation = useSave<OrderTypeCategoryFormValues>(
+  const saveCategoryMutation = usePersist<OrderTypeCategoryFormValues>(
     `${OrderTypeCategory.add}`
   )
-  const updateCategoryMutation = useUpdate<OrderTypeCategoryFormValues>(
+  const updateCategoryMutation = usePersist<OrderTypeCategoryFormValues>(
     `${OrderTypeCategory.add}`
   )
   const deleteCategoryMutation = useDelete(`${OrderTypeCategory.delete}`)

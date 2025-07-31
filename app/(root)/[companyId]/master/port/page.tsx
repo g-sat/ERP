@@ -10,13 +10,7 @@ import { toast } from "sonner"
 
 import { Port } from "@/lib/api-routes"
 import { MasterTransactionId, ModuleId } from "@/lib/utils"
-import {
-  useDelete,
-  useGet,
-  useGetById,
-  useSave,
-  useUpdate,
-} from "@/hooks/use-common"
+import { useDelete, useGet, useGetById, usePersist } from "@/hooks/use-common"
 import {
   Dialog,
   DialogContent,
@@ -56,8 +50,8 @@ export default function PortPage() {
       data: [],
     }
 
-  const saveMutation = useSave<PortFormValues>(`${Port.add}`)
-  const updateMutation = useUpdate<PortFormValues>(`${Port.add}`)
+  const saveMutation = usePersist<PortFormValues>(`${Port.add}`)
+  const updateMutation = usePersist<PortFormValues>(`${Port.add}`)
   const deleteMutation = useDelete(`${Port.delete}`)
 
   const [selectedPort, setSelectedPort] = useState<IPort | null>(null)

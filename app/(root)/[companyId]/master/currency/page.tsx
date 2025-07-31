@@ -20,7 +20,7 @@ import { toast } from "sonner"
 import { getData } from "@/lib/api-client"
 import { Currency } from "@/lib/api-routes"
 import { MasterTransactionId, ModuleId } from "@/lib/utils"
-import { useDelete, useGet, useSave, useUpdate } from "@/hooks/use-common"
+import { useDelete, useGet, usePersist } from "@/hooks/use-common"
 import {
   Dialog,
   DialogContent,
@@ -108,20 +108,20 @@ export default function CurrencyPage() {
 
   // Mutations
   const currencyMutations = {
-    save: useSave<CurrencyFormValues>(`${Currency.add}`),
-    update: useUpdate<CurrencyFormValues>(`${Currency.add}`),
+    save: usePersist<CurrencyFormValues>(`${Currency.add}`),
+    update: usePersist<CurrencyFormValues>(`${Currency.add}`),
     delete: useDelete(`${Currency.delete}`),
   }
 
   const dtMutations = {
-    save: useSave<CurrencyDtFormValues>(`${Currency.addDt}`),
-    update: useUpdate<CurrencyDtFormValues>(`${Currency.addDt}`),
+    save: usePersist<CurrencyDtFormValues>(`${Currency.addDt}`),
+    update: usePersist<CurrencyDtFormValues>(`${Currency.addDt}`),
     delete: useDelete(`${Currency.deleteDt}`),
   }
 
   const localDtMutations = {
-    save: useSave<CurrencyLocalDtFormValues>(`${Currency.addLocalDt}`),
-    update: useUpdate<CurrencyLocalDtFormValues>(`${Currency.addLocalDt}`),
+    save: usePersist<CurrencyLocalDtFormValues>(`${Currency.addLocalDt}`),
+    update: usePersist<CurrencyLocalDtFormValues>(`${Currency.addLocalDt}`),
     delete: useDelete(`${Currency.deleteLocalDt}`),
   }
 

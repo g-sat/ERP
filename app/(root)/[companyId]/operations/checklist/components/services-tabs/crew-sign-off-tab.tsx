@@ -16,7 +16,7 @@ import { toast } from "sonner"
 import { getData } from "@/lib/api-client"
 import { JobOrder_CrewSignOff, JobOrder_DebitNote } from "@/lib/api-routes"
 import { Task } from "@/lib/operations-utils"
-import { useDelete, useGetById, useSave, useUpdate } from "@/hooks/use-common"
+import { useDelete, useGetById, usePersist } from "@/hooks/use-common"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -112,15 +112,17 @@ export function CrewSignOffTab({
   }
 
   // Mutations
-  const saveMutation = useSave<CrewSignOffFormValues>(
+  const saveMutation = usePersist<CrewSignOffFormValues>(
     `${JobOrder_CrewSignOff.add}`
   )
-  const updateMutation = useUpdate<CrewSignOffFormValues>(
+  const updateMutation = usePersist<CrewSignOffFormValues>(
     `${JobOrder_CrewSignOff.add}`
   )
   const deleteMutation = useDelete(`${JobOrder_CrewSignOff.delete}`)
   // Debit note mutation
-  const debitNoteMutation = useSave<IDebitNoteData>(`${JobOrder_DebitNote.add}`)
+  const debitNoteMutation = usePersist<IDebitNoteData>(
+    `${JobOrder_DebitNote.add}`
+  )
 
   // Debit note delete mutation
   const debitNoteDeleteMutation = useDelete(`${JobOrder_DebitNote.delete}`)

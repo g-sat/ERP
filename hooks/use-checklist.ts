@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query"
 import { getData, saveData } from "@/lib/api-client"
 import { JobOrder } from "@/lib/api-routes"
 
-import { useDelete, useGet, useGetById, useSave, useUpdate } from "./use-common"
+import { useDelete, useGet, useGetById, usePersist } from "./use-common"
 
 // Enhanced query hooks using api-client.ts
 export function useGetJobOrders(filters?: string) {
@@ -39,11 +39,11 @@ export function useGetJobOrderByIdNo(jobOrderId: string) {
 
 // Enhanced mutation hooks using api-client.ts
 export function useSaveJobOrder() {
-  return useSave<IJobOrderHd>(JobOrder.add)
+  return usePersist<IJobOrderHd>(JobOrder.add)
 }
 
 export function useUpdateJobOrder() {
-  return useUpdate<IJobOrderHd>(JobOrder.add)
+  return usePersist<IJobOrderHd>(JobOrder.add)
 }
 
 export function useDeleteJobOrder() {
@@ -55,7 +55,7 @@ export function useGetJobOrderDetails(id: string) {
 }
 
 export function useSaveJobOrderDetails() {
-  return useSave<IJobOrderHd>(JobOrder.saveDetails)
+  return usePersist<IJobOrderHd>(JobOrder.saveDetails)
 }
 
 // Enhanced query hooks for better api-client.ts integration

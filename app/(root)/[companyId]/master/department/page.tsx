@@ -14,8 +14,8 @@ import {
   useDelete,
   useGet,
   useGetById,
-  useSave,
-  useUpdate,
+  useGetByParams,
+  usePersist,
 } from "@/hooks/use-common"
 import {
   Dialog,
@@ -62,8 +62,8 @@ export default function DepartmentPage() {
     }
   }, [filters])
 
-  const saveMutation = useSave<DepartmentFormValues>(`${Department.add}`)
-  const updateMutation = useUpdate<DepartmentFormValues>(`${Department.add}`)
+  const saveMutation = usePersist<DepartmentFormValues>(`${Department.add}`)
+  const updateMutation = usePersist<DepartmentFormValues>(`${Department.add}`)
   const deleteMutation = useDelete(`${Department.delete}`)
 
   const [selectedDepartment, setSelectedDepartment] =
@@ -90,14 +90,10 @@ export default function DepartmentPage() {
   })
 
   // Add API call for checking code availability
-  const { refetch: checkCodeAvailability } = useGetById<IDepartment>(
+  const { refetch: checkCodeAvailability } = useGetByParams<IDepartment>(
     `${Department.getByCode}`,
     "departmentByCode",
-
-    codeToCheck,
-    {
-      enabled: !!codeToCheck && codeToCheck.trim() !== "",
-    }
+    codeToCheck || ""
   )
 
   const queryClient = useQueryClient()
@@ -132,31 +128,20 @@ export default function DepartmentPage() {
           data
         )) as ApiResponse<IDepartment>
         if (response.result === 1) {
-          toast.success(response.message || "Department created successfully")
           queryClient.invalidateQueries({ queryKey: ["departments"] })
           setIsModalOpen(false)
-        } else {
-          toast.error(response.message || "Failed to create department")
         }
       } else if (modalMode === "edit" && selectedDepartment) {
         const response = (await updateMutation.mutateAsync(
           data
         )) as ApiResponse<IDepartment>
         if (response.result === 1) {
-          toast.success(response.message || "Department updated successfully")
           queryClient.invalidateQueries({ queryKey: ["departments"] })
           setIsModalOpen(false)
-        } else {
-          toast.error(response.message || "Failed to update department")
         }
       }
     } catch (error) {
       console.error("Error in form submission:", error)
-      if (error instanceof Error) {
-        toast.error(error.message)
-      } else {
-        toast.error("An unexpected error occurred")
-      }
     }
   }
 

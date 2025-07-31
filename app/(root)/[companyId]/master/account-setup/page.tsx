@@ -26,7 +26,7 @@ import {
   AccountSetupDt,
 } from "@/lib/api-routes"
 import { MasterTransactionId, ModuleId } from "@/lib/utils"
-import { useDelete, useGet, useSave, useUpdate } from "@/hooks/use-common"
+import { useDelete, useGet, usePersist } from "@/hooks/use-common"
 import {
   Dialog,
   DialogContent,
@@ -148,28 +148,28 @@ export default function AccountSetupPage() {
   }
 
   // Account Setup Category mutations
-  const saveMutationCategory = useSave<AccountSetupCategoryFormValues>(
+  const saveMutationCategory = usePersist<AccountSetupCategoryFormValues>(
     `${AccountSetupCategory.add}`
   )
-  const updateMutationCategory = useUpdate<AccountSetupCategoryFormValues>(
+  const updateMutationCategory = usePersist<AccountSetupCategoryFormValues>(
     `${AccountSetupCategory.add}`
   )
   const deleteMutationCategory = useDelete(`${AccountSetupCategory.delete}`)
 
   // Account Setup mutations
-  const saveMutationSetup = useSave<AccountSetupFormValues>(
+  const saveMutationSetup = usePersist<AccountSetupFormValues>(
     `${AccountSetup.add}`
   )
-  const updateMutationSetup = useUpdate<AccountSetupFormValues>(
+  const updateMutationSetup = usePersist<AccountSetupFormValues>(
     `${AccountSetup.add}`
   )
   const deleteMutationSetup = useDelete(`${AccountSetup.delete}`)
 
   // Account Setup Dt mutations
-  const saveMutationDt = useSave<AccountSetupDtFormValues>(
+  const saveMutationDt = usePersist<AccountSetupDtFormValues>(
     `${AccountSetupDt.add}`
   )
-  const updateMutationDt = useUpdate<AccountSetupDtFormValues>(
+  const updateMutationDt = usePersist<AccountSetupDtFormValues>(
     `${AccountSetupDt.add}`
   )
   const deleteMutationDt = useDelete(`${AccountSetupDt.delete}`)

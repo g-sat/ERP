@@ -11,7 +11,7 @@ import { toast } from "sonner"
 
 import { Employee } from "@/lib/api-routes"
 import { MasterTransactionId, ModuleId } from "@/lib/utils"
-import { useDelete, useGet, useSave, useUpdate } from "@/hooks/use-common"
+import { useDelete, useGet, usePersist } from "@/hooks/use-common"
 import {
   Dialog,
   DialogContent,
@@ -67,8 +67,8 @@ export default function EmployeePage() {
     : allEmployeesData
 
   // Mutations
-  const saveMutation = useSave<EmployeeFormValues>(`${Employee.add}`)
-  const updateMutation = useUpdate<EmployeeFormValues>(`${Employee.add}`)
+  const saveMutation = usePersist<EmployeeFormValues>(`${Employee.add}`)
+  const updateMutation = usePersist<EmployeeFormValues>(`${Employee.add}`)
   const deleteMutation = useDelete(`${Employee.delete}`)
 
   // State management

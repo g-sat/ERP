@@ -19,13 +19,7 @@ import { toast } from "sonner"
 
 import { Customer, CustomerAddress, CustomerContact } from "@/lib/api-routes"
 import { MasterTransactionId, ModuleId } from "@/lib/utils"
-import {
-  useDelete,
-  useGet,
-  useGetById,
-  useSave,
-  useUpdate,
-} from "@/hooks/use-common"
+import { useDelete, useGet, useGetById, usePersist } from "@/hooks/use-common"
 import { useGetCustomerById } from "@/hooks/use-master"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -113,18 +107,14 @@ export default function CustomerPage() {
     useGetById<ICustomerAddress>(
       `${CustomerAddress.get}`,
       "customeraddresses",
-
-      customer?.customerId?.toString() || "",
-      { enabled: !!customer?.customerId }
+      customer?.customerId?.toString() || ""
     )
 
   const { refetch: refetchContacts, isLoading: isLoadingContacts } =
     useGetById<ICustomerContact>(
       `${CustomerContact.get}`,
       "customercontacts",
-
-      customer?.customerId?.toString() || "",
-      { enabled: !!customer?.customerId }
+      customer?.customerId?.toString() || ""
     )
 
   const { data: customersData } =
@@ -135,20 +125,20 @@ export default function CustomerPage() {
     }
 
   // Mutations
-  const saveMutation = useSave<CustomerFormValues>(`${Customer.add}`)
-  const updateMutation = useUpdate<CustomerFormValues>(`${Customer.add}`)
+  const saveMutation = usePersist<CustomerFormValues>(`${Customer.add}`)
+  const updateMutation = usePersist<CustomerFormValues>(`${Customer.add}`)
   const deleteMutation = useDelete(`${Customer.delete}`)
-  const saveAddressMutation = useSave<CustomerAddressFormValues>(
+  const saveAddressMutation = usePersist<CustomerAddressFormValues>(
     `${CustomerAddress.add}`
   )
-  const updateAddressMutation = useUpdate<CustomerAddressFormValues>(
+  const updateAddressMutation = usePersist<CustomerAddressFormValues>(
     `${CustomerAddress.add}`
   )
   const deleteAddressMutation = useDelete(`${CustomerAddress.delete}`)
-  const saveContactMutation = useSave<CustomerContactFormValues>(
+  const saveContactMutation = usePersist<CustomerContactFormValues>(
     `${CustomerContact.add}`
   )
-  const updateContactMutation = useUpdate<CustomerContactFormValues>(
+  const updateContactMutation = usePersist<CustomerContactFormValues>(
     `${CustomerContact.add}`
   )
   const deleteContactMutation = useDelete(`${CustomerContact.delete}`)

@@ -29,7 +29,7 @@ import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 
 import { clientDateFormat, parseDate } from "@/lib/format"
-import { useGetById, useUpdate } from "@/hooks/use-common"
+import { useGetById, usePersist } from "@/hooks/use-common"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import {
@@ -81,11 +81,11 @@ export default function ProfilePage() {
 
   console.log("Profile Data:", profileData)
 
-  const updateProfileMutation = useUpdate<UserProfileFormValues>(
+  const updateProfileMutation = usePersist<UserProfileFormValues>(
     "/admin/SaveUserProfile"
   )
 
-  const resetPasswordMutation = useUpdate<ResetPasswordFormValues>(
+  const resetPasswordMutation = usePersist<ResetPasswordFormValues>(
     "/admin/ResetPassword"
   )
 
@@ -891,7 +891,7 @@ export default function ProfilePage() {
                       type="button"
                       variant="ghost"
                       size="sm"
-                      className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                      className="absolute top-0 right-0 h-full px-3 py-2 hover:bg-transparent"
                       onClick={() => setShowNewPassword(!showNewPassword)}
                     >
                       {showNewPassword ? (
@@ -921,7 +921,7 @@ export default function ProfilePage() {
                       type="button"
                       variant="ghost"
                       size="sm"
-                      className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                      className="absolute top-0 right-0 h-full px-3 py-2 hover:bg-transparent"
                       onClick={() =>
                         setShowConfirmPassword(!showConfirmPassword)
                       }

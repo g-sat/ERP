@@ -5,14 +5,26 @@ import { ApiResponse } from "@/interfaces/auth"
 import {
   IPayrollComponent,
   IPayrollComponentFilter,
+  IPayrollComponentGLMapping,
+  IPayrollComponentGroup,
   IPayrollEmployee,
   IPayrollPeriod,
   IPayrollPeriodFilter,
 } from "@/interfaces/payroll"
+import {
+  PayrollComponentGLMappingFormData,
+  PayrollComponentGroupFormData,
+} from "@/schemas/payroll"
 import { toast } from "sonner"
 
-import { PayrollComponent, PayrollPeriod } from "@/lib/api-routes"
-import { useDelete, useGet, useSave, useUpdate } from "@/hooks/use-common"
+import {
+  PayrollComponent,
+  PayrollComponentGLMapping,
+  PayrollComponentGroup,
+  PayrollEmployee,
+  PayrollPeriod,
+} from "@/lib/api-routes"
+import { useDelete, useGet, useGetById, usePersist } from "@/hooks/use-common"
 import {
   Dialog,
   DialogContent,
@@ -27,8 +39,12 @@ import { DataTableSkeleton } from "@/components/skeleton/data-table-skeleton"
 import { LockSkeleton } from "@/components/skeleton/lock-skeleton"
 
 import { ComplianceReporting } from "./components/compliance-reporting"
+import { PayrollAccountIntegrationForm } from "./components/payroll-account-integration-form"
+import { PayrollAccountIntegrationTable } from "./components/payroll-account-integration-table"
 import { PayrollCalculation } from "./components/payroll-calculation"
 import { PayrollComponentForm } from "./components/payroll-component-form"
+import { PayrollComponentGroupForm } from "./components/payroll-component-group-form"
+import { PayrollComponentGroupTable } from "./components/payroll-component-group-table"
 import { PayrollComponentTable } from "./components/payroll-component-table"
 import { PayrollDashboard } from "./components/payroll-dashboard"
 import { PayrollEmployeeDetail } from "./components/payroll-employee-detail"
@@ -39,10 +55,6 @@ import { PayslipGeneration } from "./components/payslip-generation"
 import { SalaryPayment } from "./components/salary-payment"
 import { SIFSubmission } from "./components/sif-submission"
 import { WPSSIFGeneration } from "./components/wps-sif-generation"
-import {
-  dummyPayrollComponents,
-  generatePayrollDataForAllEmployees,
-} from "./dummy-employee-data"
 
 export default function PayrollPage() {
   // Permissions
@@ -58,18 +70,19 @@ export default function PayrollPage() {
   const [periodFilters, setPeriodFilters] = useState<IPayrollPeriodFilter>({})
   const [componentFilters, setComponentFilters] =
     useState<IPayrollComponentFilter>({})
-  const [employeeFilters, setEmployeeFilters] = useState<
-    Record<string, unknown>
-  >({})
+  const [employeeFilters, setEmployeeFilters] = useState<{ search?: string }>(
+    {}
+  )
+  const [accountIntegrationFilters, setAccountIntegrationFilters] = useState<{
+    search?: string
+    companyId?: number
+  }>({})
 
-  // Dummy data for demonstration
-  const [payrollEmployeeData, setPayrollEmployeeData] = useState<
-    IPayrollEmployee[]
-  >(generatePayrollDataForAllEmployees())
-
-  // Debug: Log the generated data
-  console.log("Generated payroll employee data:", payrollEmployeeData)
-  console.log("Number of employees:", payrollEmployeeData.length)
+  // Account Integration state
+  const [isAccountIntegrationFormOpen, setIsAccountIntegrationFormOpen] =
+    useState(false)
+  const [editingAccountIntegration, setEditingAccountIntegration] =
+    useState<IPayrollComponentGLMapping | null>(null)
 
   // Data fetching using use-common hooks
   const {
@@ -94,15 +107,60 @@ export default function PayrollPage() {
     componentFilters.search
   )
 
+  const {
+    data: payrollComponentGroupResponse,
+    refetch: refetchPayrollComponentGroup,
+    isLoading: isLoadingPayrollComponentGroup,
+    error: payrollComponentGroupError,
+  } = useGet<IPayrollComponentGroup>(
+    `${PayrollComponentGroup.get}`,
+    "payrollcomponentgroup",
+    componentFilters.search
+  )
+
+  const {
+    data: payrollComponentGLMappingResponse,
+    refetch: refetchPayrollComponentGLMapping,
+    isLoading: isLoadingPayrollComponentGLMapping,
+    error: payrollComponentGLMappingError,
+  } = useGet<IPayrollComponentGLMapping>(
+    `${PayrollComponentGLMapping.get}`,
+    "payrollcomponentglmapping",
+    accountIntegrationFilters.search
+  )
+
+  const {
+    data: payrollEmployeeResponse,
+    refetch: refetchPayrollEmployee,
+    isLoading: isLoadingPayrollEmployee,
+    error: payrollEmployeeError,
+  } = useGet<IPayrollEmployee>(
+    `${PayrollEmployee.get}`,
+    "payrollemployee",
+    (employeeFilters.search as string) || undefined
+  )
+
   // Extract data from responses
   const payrollPeriodData =
     (payrollPeriodResponse as ApiResponse<IPayrollPeriod>)?.data || []
   const payrollComponentData =
     (payrollComponentResponse as ApiResponse<IPayrollComponent>)?.data || []
+  const payrollComponentGroupData =
+    (payrollComponentGroupResponse as ApiResponse<IPayrollComponentGroup>)
+      ?.data || []
+
+  const payrollComponentGLMappingData =
+    (
+      payrollComponentGLMappingResponse as ApiResponse<IPayrollComponentGLMapping>
+    )?.data || []
+  const payrollEmployeeData =
+    (payrollEmployeeResponse as ApiResponse<IPayrollEmployee>)?.data || []
 
   // State for dialogs
   const [isPeriodDialogOpen, setIsPeriodDialogOpen] = useState(false)
   const [isComponentDialogOpen, setIsComponentDialogOpen] = useState(false)
+  const [isComponentGroupDialogOpen, setIsComponentGroupDialogOpen] =
+    useState(false)
   const [isEmployeeDialogOpen, setIsEmployeeDialogOpen] = useState(false)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
 
@@ -113,6 +171,9 @@ export default function PayrollPage() {
   const [selectedComponent, setSelectedComponent] = useState<
     IPayrollComponent | undefined
   >()
+  const [selectedComponentGroupId, setSelectedComponentGroupId] = useState<
+    string | undefined
+  >()
   const [selectedEmployee, setSelectedEmployee] = useState<
     IPayrollEmployee | undefined
   >()
@@ -121,20 +182,64 @@ export default function PayrollPage() {
     type: string
   } | null>(null)
 
+  // Get component group by ID for editing
+  const { data: selectedComponentGroupResponse } =
+    useGetById<IPayrollComponentGroup>(
+      `${PayrollComponentGroup.getById}`,
+      "selectedComponentGroup",
+      selectedComponentGroupId || ""
+    )
+
+  console.log("selectedComponentGroupResponse", selectedComponentGroupResponse)
+
+  // Extract selected component group data from byId response
+  const selectedComponentGroupData = (
+    selectedComponentGroupResponse as ApiResponse<IPayrollComponentGroup>
+  )?.data?.[0]
+
+  console.log("selectedComponentGroupData", selectedComponentGroupData)
+
+  // Extract component group details from the selected component group
+  const selectedComponentGroupDataDetails =
+    selectedComponentGroupData?.data_details || []
+
+  console.log(
+    "selectedComponentGroupDataDetails",
+    selectedComponentGroupDataDetails
+  )
+
   // Mutations using use-common hooks
-  const { mutate: savePeriod } = useSave<IPayrollPeriod>(PayrollPeriod.add)
-  const { mutate: updatePeriod } = useUpdate<IPayrollPeriod>(
+  const { mutate: savePeriod } = usePersist<IPayrollPeriod>(PayrollPeriod.add)
+  const { mutate: updatePeriod } = usePersist<IPayrollPeriod>(
     PayrollPeriod.update
   )
   const { mutate: deletePeriod } = useDelete(PayrollPeriod.delete)
 
-  const { mutate: saveComponent } = useSave<IPayrollComponent>(
+  const { mutate: saveComponent } = usePersist<IPayrollComponent>(
     PayrollComponent.add
   )
-  const { mutate: updateComponent } = useUpdate<IPayrollComponent>(
+  const { mutate: updateComponent } = usePersist<IPayrollComponent>(
     PayrollComponent.update
   )
   const { mutate: deleteComponent } = useDelete(PayrollComponent.delete)
+
+  const { mutate: saveComponentGroup } =
+    usePersist<PayrollComponentGroupFormData>(PayrollComponentGroup.add)
+  const { mutate: updateComponentGroup } =
+    usePersist<PayrollComponentGroupFormData>(PayrollComponentGroup.update)
+  const { mutate: deleteComponentGroup } = useDelete(
+    PayrollComponentGroup.delete
+  )
+
+  const { mutate: saveAccountIntegration } =
+    usePersist<PayrollComponentGLMappingFormData>(PayrollComponentGLMapping.add)
+  const { mutate: updateAccountIntegration } =
+    usePersist<PayrollComponentGLMappingFormData>(
+      PayrollComponentGLMapping.update
+    )
+  const { mutate: deleteAccountIntegration } = useDelete(
+    PayrollComponentGLMapping.delete
+  )
 
   // Handlers for Payroll Period
   const handleCreatePeriod = () => {
@@ -168,6 +273,17 @@ export default function PayrollPage() {
     setIsComponentDialogOpen(true)
   }
 
+  // Handlers for Payroll Component Group
+  const handleCreateComponentGroup = () => {
+    setSelectedComponentGroupId(undefined)
+    setIsComponentGroupDialogOpen(true)
+  }
+
+  const handleEditComponentGroup = (group: IPayrollComponentGroup) => {
+    setSelectedComponentGroupId(group.componentGroupId.toString())
+    setIsComponentGroupDialogOpen(true)
+  }
+
   // Filter handlers
   const handlePeriodFilterChange = (filters: IPayrollPeriodFilter) => {
     setPeriodFilters(filters)
@@ -177,7 +293,7 @@ export default function PayrollPage() {
     setComponentFilters(filters)
   }
 
-  const handleEmployeeFilterChange = (filters: Record<string, unknown>) => {
+  const handleEmployeeFilterChange = (filters: { search?: string }) => {
     setEmployeeFilters(filters)
   }
 
@@ -198,6 +314,8 @@ export default function PayrollPage() {
       setIsComponentDialogOpen(false)
       refetchPayrollPeriod()
       refetchPayrollComponent()
+      refetchPayrollComponentGroup()
+      refetchPayrollEmployee()
     } else {
       toast.error(`${errorPrefix}: ${response.message}`)
     }
@@ -274,6 +392,51 @@ export default function PayrollPage() {
     }
   }
 
+  const handleComponentGroupSubmit = async (
+    data: PayrollComponentGroupFormData
+  ) => {
+    if (selectedComponentGroupData) {
+      // Update existing component group
+      updateComponentGroup(
+        {
+          ...data,
+        },
+        {
+          onSuccess: (response) => {
+            if (response.result === 1) {
+              toast.success("Component group updated successfully")
+              setIsComponentGroupDialogOpen(false)
+              refetchPayrollComponentGroup()
+            } else {
+              toast.error(
+                `Failed to update component group: ${response.message}`
+              )
+            }
+          },
+          onError: () => {
+            toast.error("Failed to update component group")
+          },
+        }
+      )
+    } else {
+      // Create new component group
+      saveComponentGroup(data, {
+        onSuccess: (response) => {
+          if (response.result === 1) {
+            toast.success("Component group created successfully")
+            setIsComponentGroupDialogOpen(false)
+            refetchPayrollComponentGroup()
+          } else {
+            toast.error(`Failed to create component group: ${response.message}`)
+          }
+        },
+        onError: () => {
+          toast.error("Failed to create component group")
+        },
+      })
+    }
+  }
+
   // Delete handlers
   const handleDeletePeriod = (periodId: string) => {
     setItemToDelete({ id: periodId, type: "period" })
@@ -282,6 +445,60 @@ export default function PayrollPage() {
 
   const handleDeleteComponent = (componentId: string) => {
     setItemToDelete({ id: componentId, type: "component" })
+    setIsDeleteDialogOpen(true)
+  }
+
+  const handleDeleteComponentGroup = (group: IPayrollComponentGroup) => {
+    setItemToDelete({
+      id: group.componentGroupId.toString(),
+      type: "componentGroup",
+    })
+    setIsDeleteDialogOpen(true)
+  }
+
+  const handleAccountIntegrationSubmit = async (
+    data: PayrollComponentGLMappingFormData
+  ) => {
+    console.log("Parent handleAccountIntegrationSubmit called with:", data)
+    try {
+      if (data.mappingId && data.mappingId > 0) {
+        // Update existing mapping
+        updateAccountIntegration(data, {
+          onSuccess: (response) => {
+            if (response.result === 1) {
+              refetchPayrollComponentGLMapping()
+            }
+          },
+          onError: () => {
+            toast.error("Failed to update account integration mapping")
+          },
+        })
+      } else {
+        // Create new mapping
+        saveAccountIntegration(data, {
+          onSuccess: (response) => {
+            if (response.result === 1) {
+              refetchPayrollComponentGLMapping()
+            }
+          },
+          onError: () => {
+            toast.error("Failed to create account integration mapping")
+          },
+        })
+      }
+    } catch (error) {
+      console.error("Error in account integration submit:", error)
+      toast.error("An unexpected error occurred")
+    }
+  }
+
+  const handleDeleteAccountIntegration = (
+    mapping: IPayrollComponentGLMapping
+  ) => {
+    setItemToDelete({
+      id: mapping.mappingId.toString(),
+      type: "accountIntegration",
+    })
     setIsDeleteDialogOpen(true)
   }
 
@@ -316,6 +533,36 @@ export default function PayrollPage() {
         },
         onError: () => {
           toast.error("Failed to delete payroll component")
+        },
+      })
+    } else if (itemToDelete.type === "componentGroup") {
+      deleteComponentGroup(itemToDelete.id, {
+        onSuccess: (response) => {
+          if (response.result === 1) {
+            toast.success("Component group deleted successfully")
+            refetchPayrollComponentGroup()
+          } else {
+            toast.error(`Failed to delete component group: ${response.message}`)
+          }
+        },
+        onError: () => {
+          toast.error("Failed to delete component group")
+        },
+      })
+    } else if (itemToDelete.type === "accountIntegration") {
+      deleteAccountIntegration(itemToDelete.id, {
+        onSuccess: (response) => {
+          if (response.result === 1) {
+            toast.success("Account integration mapping deleted successfully")
+            refetchPayrollComponentGLMapping()
+          } else {
+            toast.error(
+              `Failed to delete account integration mapping: ${response.message}`
+            )
+          }
+        },
+        onError: () => {
+          toast.error("Failed to delete account integration mapping")
         },
       })
     }
@@ -374,11 +621,23 @@ export default function PayrollPage() {
                 </div>
               </div>
               <Separator />
-              <PayrollEmployeeTable
-                data={payrollEmployeeData}
-                onView={handleViewEmployee}
-                onFilterChange={handleEmployeeFilterChange}
-              />
+              {payrollEmployeeError && (
+                <div className="bg-destructive/10 text-destructive rounded-md p-4">
+                  <p className="text-sm">
+                    Failed to load payroll employees. Please try again.
+                  </p>
+                </div>
+              )}
+              {isLoadingPayrollEmployee ? (
+                <DataTableSkeleton columnCount={8} />
+              ) : (
+                <PayrollEmployeeTable
+                  data={payrollEmployeeData}
+                  onView={handleViewEmployee}
+                  onFilterChange={handleEmployeeFilterChange}
+                  onRefresh={refetchPayrollEmployee}
+                />
+              )}
             </TabsContent>
           </Tabs>
 
@@ -427,7 +686,7 @@ export default function PayrollPage() {
           <PayrollDashboard
             payrollPeriodData={payrollPeriodData}
             payrollEmployeeData={payrollEmployeeData}
-            payrollComponentData={dummyPayrollComponents}
+            payrollComponentData={payrollComponentData}
             payrollTaxData={[]}
             payrollBankTransferData={[]}
           />
@@ -467,46 +726,114 @@ export default function PayrollPage() {
               onDelete={canEditPeriod ? handleDeletePeriod : undefined}
               onView={handleViewPeriod}
               onFilterChange={handlePeriodFilterChange}
+              onRefresh={refetchPayrollPeriod}
             />
           )}
         </TabsContent>
 
         <TabsContent value="components" className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-lg font-medium">Payroll Components</h3>
-              <p className="text-muted-foreground text-sm">
-                Configure earnings and deductions components
-              </p>
-            </div>
-            {canCreateComponent && (
-              <button
-                onClick={handleCreateComponent}
-                className="ring-offset-background focus-visible:ring-ring bg-primary text-primary-foreground hover:bg-primary/90 inline-flex h-10 items-center justify-center rounded-md px-4 py-2 text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50"
-              >
-                Create Component
-              </button>
-            )}
-          </div>
-          <Separator />
-          {payrollComponentError && (
-            <div className="bg-destructive/10 text-destructive rounded-md p-4">
-              <p className="text-sm">
-                Failed to load payroll components. Please try again.
-              </p>
-            </div>
-          )}
-          {isLoadingPayrollComponent ? (
-            <DataTableSkeleton columnCount={8} />
-          ) : (
-            <PayrollComponentTable
-              data={payrollComponentData}
-              onEdit={canEditComponent ? handleEditComponent : undefined}
-              onDelete={canEditComponent ? handleDeleteComponent : undefined}
-              onView={handleViewComponent}
-              onFilterChange={handleComponentFilterChange}
-            />
-          )}
+          <Tabs defaultValue="components-list" className="w-full">
+            <TabsList>
+              <TabsTrigger value="components-list">Components</TabsTrigger>
+              <TabsTrigger value="groups">Groups</TabsTrigger>
+              <TabsTrigger value="account-integration">
+                Account Integration
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="components-list" className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-medium">Payroll Components</h3>
+                  <p className="text-muted-foreground text-sm">
+                    Configure earnings and deductions components
+                  </p>
+                </div>
+                {canCreateComponent && (
+                  <button
+                    onClick={handleCreateComponent}
+                    className="ring-offset-background focus-visible:ring-ring bg-primary text-primary-foreground hover:bg-primary/90 inline-flex h-10 items-center justify-center rounded-md px-4 py-2 text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50"
+                  >
+                    Create Component
+                  </button>
+                )}
+              </div>
+              <Separator />
+              {payrollComponentError && (
+                <div className="bg-destructive/10 text-destructive rounded-md p-4">
+                  <p className="text-sm">
+                    Failed to load payroll components. Please try again.
+                  </p>
+                </div>
+              )}
+              {isLoadingPayrollComponent ? (
+                <DataTableSkeleton columnCount={8} />
+              ) : (
+                <PayrollComponentTable
+                  data={payrollComponentData}
+                  onEdit={canEditComponent ? handleEditComponent : undefined}
+                  onDelete={
+                    canEditComponent ? handleDeleteComponent : undefined
+                  }
+                  onView={handleViewComponent}
+                  onFilterChange={handleComponentFilterChange}
+                  onRefresh={refetchPayrollComponent}
+                />
+              )}
+            </TabsContent>
+
+            <TabsContent value="groups" className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-medium">Component Groups</h3>
+                  <p className="text-muted-foreground text-sm">
+                    Manage payroll component groups and their configurations
+                  </p>
+                </div>
+                <button
+                  onClick={handleCreateComponentGroup}
+                  className="ring-offset-background focus-visible:ring-ring bg-primary text-primary-foreground hover:bg-primary/90 inline-flex h-10 items-center justify-center rounded-md px-4 py-2 text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50"
+                >
+                  Create Group
+                </button>
+              </div>
+              <Separator />
+              {payrollComponentGroupError && (
+                <div className="bg-destructive/10 text-destructive rounded-md p-4">
+                  <p className="text-sm">
+                    Failed to load payroll component groups. Please try again.
+                  </p>
+                </div>
+              )}
+              {isLoadingPayrollComponentGroup ? (
+                <DataTableSkeleton columnCount={6} />
+              ) : (
+                <PayrollComponentGroupTable
+                  data={payrollComponentGroupData}
+                  onEdit={handleEditComponentGroup}
+                  onDelete={handleDeleteComponentGroup}
+                  onRefresh={refetchPayrollComponentGroup}
+                />
+              )}
+            </TabsContent>
+
+            <TabsContent value="account-integration" className="space-y-4">
+              <PayrollAccountIntegrationTable
+                mappings={payrollComponentGLMappingData}
+                onView={(mapping) => console.log("View mapping:", mapping)}
+                onEdit={(mapping) => {
+                  setEditingAccountIntegration(mapping)
+                  setIsAccountIntegrationFormOpen(true)
+                }}
+                onDelete={handleDeleteAccountIntegration}
+                onCreate={() => {
+                  setEditingAccountIntegration(null)
+                  setIsAccountIntegrationFormOpen(true)
+                }}
+                onRefresh={refetchPayrollComponentGLMapping}
+              />
+            </TabsContent>
+          </Tabs>
         </TabsContent>
 
         <TabsContent value="employees" className="space-y-4">
@@ -519,11 +846,23 @@ export default function PayrollPage() {
             </div>
           </div>
           <Separator />
-          <PayrollEmployeeTable
-            data={payrollEmployeeData}
-            onView={handleViewEmployee}
-            onFilterChange={handleEmployeeFilterChange}
-          />
+          {payrollEmployeeError && (
+            <div className="bg-destructive/10 text-destructive rounded-md p-4">
+              <p className="text-sm">
+                Failed to load payroll employees. Please try again.
+              </p>
+            </div>
+          )}
+          {isLoadingPayrollEmployee ? (
+            <DataTableSkeleton columnCount={8} />
+          ) : (
+            <PayrollEmployeeTable
+              data={payrollEmployeeData}
+              onView={handleViewEmployee}
+              onFilterChange={handleEmployeeFilterChange}
+              onRefresh={refetchPayrollEmployee}
+            />
+          )}
         </TabsContent>
 
         <TabsContent value="calculation" className="space-y-4">
@@ -600,6 +939,34 @@ export default function PayrollPage() {
         </DialogContent>
       </Dialog>
 
+      <Dialog
+        open={isComponentGroupDialogOpen}
+        onOpenChange={setIsComponentGroupDialogOpen}
+      >
+        <DialogContent
+          className="max-h-[80vh] w-[80vw] !max-w-none overflow-y-auto"
+          onPointerDownOutside={(e) => e.preventDefault()}
+        >
+          <DialogHeader>
+            <DialogTitle>
+              {selectedComponentGroupData
+                ? "Edit Component Group"
+                : "Create Component Group"}
+            </DialogTitle>
+            <DialogDescription>
+              {selectedComponentGroupData
+                ? "Update the component group details"
+                : "Create a new component group and select components"}
+            </DialogDescription>
+          </DialogHeader>
+          <PayrollComponentGroupForm
+            onSubmit={handleComponentGroupSubmit}
+            onCancel={() => setIsComponentGroupDialogOpen(false)}
+            initialData={selectedComponentGroupData || undefined}
+          />
+        </DialogContent>
+      </Dialog>
+
       <DeleteConfirmation
         open={isDeleteDialogOpen}
         onOpenChange={(open) => {
@@ -626,6 +993,18 @@ export default function PayrollPage() {
           <PayrollEmployeeDetail employee={selectedEmployee} />
         </DialogContent>
       </Dialog>
+
+      {/* Account Integration Form Dialog */}
+      <PayrollAccountIntegrationForm
+        isOpen={isAccountIntegrationFormOpen}
+        onOpenChange={setIsAccountIntegrationFormOpen}
+        editingMapping={editingAccountIntegration}
+        onSubmit={handleAccountIntegrationSubmit}
+        onCancel={() => {
+          setIsAccountIntegrationFormOpen(false)
+          setEditingAccountIntegration(null)
+        }}
+      />
     </div>
   )
 }

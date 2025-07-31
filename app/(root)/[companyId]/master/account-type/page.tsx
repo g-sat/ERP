@@ -10,13 +10,7 @@ import { toast } from "sonner"
 
 import { AccountType } from "@/lib/api-routes"
 import { MasterTransactionId, ModuleId } from "@/lib/utils"
-import {
-  useDelete,
-  useGet,
-  useGetById,
-  useSave,
-  useUpdate,
-} from "@/hooks/use-common"
+import { useDelete, useGet, useGetById, usePersist } from "@/hooks/use-common"
 import {
   Dialog,
   DialogContent,
@@ -60,8 +54,8 @@ export default function AccountTypePage() {
     }
 
   // Define mutations for CRUD operations
-  const saveMutation = useSave<AccountTypeFormValues>(`${AccountType.add}`)
-  const updateMutation = useUpdate<AccountTypeFormValues>(`${AccountType.add}`)
+  const saveMutation = usePersist<AccountTypeFormValues>(`${AccountType.add}`)
+  const updateMutation = usePersist<AccountTypeFormValues>(`${AccountType.add}`)
   const deleteMutation = useDelete(`${AccountType.delete}`)
 
   // State for modal and selected account type

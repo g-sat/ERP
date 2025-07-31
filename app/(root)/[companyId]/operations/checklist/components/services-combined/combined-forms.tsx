@@ -16,7 +16,7 @@ import {
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 
-import { useSave } from "@/hooks/use-common"
+import { usePersist } from "@/hooks/use-common"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -108,10 +108,10 @@ const CombinedForms = ({
   })
 
   // Bulk Update Hook
-  const bulkUpdateMutation = useSave<BulkUpdateData>("/project/bulkupdate")
+  const bulkUpdateMutation = usePersist<BulkUpdateData>("/project/bulkupdate")
 
   // Task Forward Hook
-  const taskForwardMutation = useSave<TaskForwardData>(
+  const taskForwardMutation = usePersist<TaskForwardData>(
     "/project/savetaskforward"
   )
 

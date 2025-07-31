@@ -10,13 +10,7 @@ import { toast } from "sonner"
 
 import { Task } from "@/lib/api-routes"
 import { MasterTransactionId, ModuleId } from "@/lib/utils"
-import {
-  useDelete,
-  useGet,
-  useGetById,
-  useSave,
-  useUpdate,
-} from "@/hooks/use-common"
+import { useDelete, useGet, useGetById, usePersist } from "@/hooks/use-common"
 import {
   Dialog,
   DialogContent,
@@ -63,8 +57,8 @@ export default function TaskPage() {
     }
   }, [filters])
 
-  const saveMutation = useSave<TaskFormValues>(`${Task.add}`)
-  const updateMutation = useUpdate<TaskFormValues>(`${Task.add}`)
+  const saveMutation = usePersist<TaskFormValues>(`${Task.add}`)
+  const updateMutation = usePersist<TaskFormValues>(`${Task.add}`)
   const deleteMutation = useDelete(`${Task.delete}`)
 
   const [selectedTask, setSelectedTask] = useState<ITask | null>(null)

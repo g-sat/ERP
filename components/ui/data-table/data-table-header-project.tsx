@@ -11,7 +11,7 @@ import {
   SlidersHorizontal,
 } from "lucide-react"
 
-import { useSave } from "@/hooks/use-common"
+import { usePersist } from "@/hooks/use-common"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -133,7 +133,7 @@ export function TableHeaderProject<TData>({
   }, [onCombinedService])
 
   // Add the save mutation for grid settings
-  const saveGridSettings = useSave<IGridSetting>("/setting/saveUserGrid")
+  const saveGridSettings = usePersist<IGridSetting>("/setting/saveUserGrid")
 
   const handleSaveLayout = useCallback(async () => {
     try {

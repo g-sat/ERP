@@ -35,6 +35,8 @@ import {
   IOrderTypeCategoryLookup,
   IOrderTypeLookup,
   IPassTypeLookup,
+  IPayrollComponentGroupLookup,
+  IPayrollComponentLookup,
   IPortLookup,
   IPortRegionLookup,
   IProductLookup,
@@ -1248,5 +1250,37 @@ export const useJobOrderCustomerLookup = (
       }
     },
     enabled: customerId !== 0,
+  })
+}
+
+export const usePayrollComponentLookup = () => {
+  return useQuery<IPayrollComponentLookup[]>({
+    queryKey: ["payrollcomponent-lookUp"],
+    placeholderData: keepPreviousData,
+    queryFn: async () => {
+      try {
+        const data = await getData(Lookup.getPayrollComponent)
+        return data?.data || []
+      } catch (error) {
+        handleApiError(error)
+      }
+    },
+    refetchOnWindowFocus: false,
+  })
+}
+
+export const usePayrollComponentGroupLookup = () => {
+  return useQuery<IPayrollComponentGroupLookup[]>({
+    queryKey: ["payrollcomponentgroup-lookUp"],
+    placeholderData: keepPreviousData,
+    queryFn: async () => {
+      try {
+        const data = await getData(Lookup.getPayrollComponentGroup)
+        return data?.data || []
+      } catch (error) {
+        handleApiError(error)
+      }
+    },
+    refetchOnWindowFocus: false,
   })
 }

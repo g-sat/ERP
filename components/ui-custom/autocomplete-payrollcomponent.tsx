@@ -1,9 +1,9 @@
 "use client"
 
 import React from "react"
-import { ITransactionLookup } from "@/interfaces/lookup"
+import { IPayrollComponentLookup } from "@/interfaces/lookup"
 import { IconCheck, IconChevronDown, IconX } from "@tabler/icons-react"
-import { Path, PathValue } from "react-hook-form"
+import { Path, PathValue, UseFormReturn } from "react-hook-form"
 import Select, {
   ClearIndicatorProps,
   DropdownIndicatorProps,
@@ -15,7 +15,7 @@ import Select, {
 } from "react-select"
 
 import { cn } from "@/lib/utils"
-import { useTransactionLookup } from "@/hooks/use-lookup"
+import { usePayrollComponentLookup } from "@/hooks/use-lookup"
 
 import { FormField, FormItem } from "../ui/form"
 import { Label } from "../ui/label"
@@ -25,7 +25,7 @@ interface FieldOption {
   label: string
 }
 
-export default function TransactionAutocomplete<
+export default function PayrollComponentAutocomplete<
   T extends Record<string, unknown>,
 >({
   form,
@@ -36,26 +36,26 @@ export default function TransactionAutocomplete<
   isRequired = false,
   onChangeEvent,
 }: {
-  form: any
+  form: UseFormReturn<T>
   name?: Path<T>
   label?: string
   className?: string
   isDisabled?: boolean
   isRequired?: boolean
-  onChangeEvent?: (selectedOption: ITransactionLookup | null) => void
+  onChangeEvent?: (selectedOption: IPayrollComponentLookup | null) => void
 }) {
-  const { data: transactions = [], isLoading } = useTransactionLookup(
-    form.getValues().moduleId ?? 0
-  )
+  const { data: tasks = [], isLoading } = usePayrollComponentLookup()
+  // Memoize options to prevent unnecessary recalculations
   const options: FieldOption[] = React.useMemo(
     () =>
-      transactions.map((transaction: ITransactionLookup) => ({
-        value: transaction.transactionId.toString(),
-        label: transaction.transactionName,
+      tasks.map((task: IPayrollComponentLookup) => ({
+        value: task.payrollComponentId.toString(),
+        label: task.componentName,
       })),
-    [transactions]
+    [tasks]
   )
 
+  // Custom components with display names
   const DropdownIndicator = React.memo(
     (props: DropdownIndicatorProps<FieldOption>) => {
       return (
@@ -92,7 +92,7 @@ export default function TransactionAutocomplete<
       </components.Option>
     )
   })
-  Option.displayName = "Option"
+  Option.displayName = "Option" // Custom classNames for React Select (aligned with shadcn select.tsx)
 
   const selectClassNames = React.useMemo(
     () => ({
@@ -122,11 +122,11 @@ export default function TransactionAutocomplete<
         ),
       noOptionsMessage: () => cn("text-muted-foreground py-2 px-3 text-sm"),
       placeholder: () => cn("text-muted-foreground"),
-      singleValue: () => cn("text-foreground"),
+      singleValue: () => cn("text-foreground"), // Fixed to match menu list
       valueContainer: () => cn("px-0 py-0.5 gap-1"),
       input: () =>
         cn("text-foreground placeholder:text-muted-foreground m-0 p-0"),
-      indicatorsContainer: () => cn(""),
+      indicatorsContainer: () => cn(""), // Gap removed
       clearIndicator: () =>
         cn("text-muted-foreground hover:text-foreground p-1 rounded-sm"),
       dropdownIndicator: () => cn("text-muted-foreground p-1 rounded-sm"),
@@ -140,17 +140,19 @@ export default function TransactionAutocomplete<
     [isDisabled]
   )
 
+  // We still need some styles for things that can't be controlled via className
   const customStyles: StylesConfig<FieldOption, boolean> = React.useMemo(
     () => ({
-      control: () => ({}),
-      menu: () => ({}),
-      option: () => ({}),
+      control: () => ({}), // Handled by classNames
+      menu: () => ({}), // Handled by classNames
+      option: () => ({}), // Handled by classNames
       indicatorSeparator: () => ({
-        display: "none",
+        display: "none", // Hide the indicator separator
       }),
+      // These minimal styles ensure proper layout
       valueContainer: (provided) => ({
         ...provided,
-        padding: undefined,
+        padding: undefined, // Use className padding
       }),
       input: (provided) => ({
         ...provided,
@@ -164,6 +166,7 @@ export default function TransactionAutocomplete<
         fontSize: "12px",
         height: "20px",
       }),
+      // Fix for dropdown appearing behind dialog
       menuPortal: (base) => ({
         ...base,
         zIndex: 9999,
@@ -173,6 +176,7 @@ export default function TransactionAutocomplete<
     []
   )
 
+  // Memoize handleChange to prevent unnecessary recreations
   const handleChange = React.useCallback(
     (option: SingleValue<FieldOption> | MultiValue<FieldOption>) => {
       const selectedOption = Array.isArray(option) ? option[0] : option
@@ -182,21 +186,23 @@ export default function TransactionAutocomplete<
         form.setValue(name, value as PathValue<T, Path<T>>)
       }
       if (onChangeEvent) {
-        const selectedTransaction = selectedOption
-          ? transactions.find(
-              (u: ITransactionLookup) =>
-                u.transactionId.toString() === selectedOption.value
+        const selectedTask = selectedOption
+          ? tasks.find(
+              (u: IPayrollComponentLookup) =>
+                u.payrollComponentId.toString() === selectedOption.value
             ) || null
           : null
-        onChangeEvent(selectedTransaction)
+        onChangeEvent(selectedTask)
       }
     },
-    [form, name, onChangeEvent, transactions]
+    [form, name, onChangeEvent, tasks]
   )
 
+  // Memoize getValue to prevent unnecessary recalculations
   const getValue = React.useCallback(() => {
     if (form && name) {
       const formValue = form.getValues(name)
+      // Convert form value to string for comparison
       return (
         options.find((option) => option.value === formValue?.toString()) || null
       )
@@ -226,7 +232,7 @@ export default function TransactionAutocomplete<
                   options={options}
                   value={getValue()}
                   onChange={handleChange}
-                  placeholder="Select Transaction..."
+                  placeholder="Select Task..."
                   isDisabled={isDisabled || isLoading}
                   isClearable={true}
                   isSearchable={true}
@@ -244,7 +250,7 @@ export default function TransactionAutocomplete<
                   }
                   menuPosition="fixed"
                   isLoading={isLoading}
-                  loadingMessage={() => "Loading transactions..."}
+                  loadingMessage={() => "Loading tasks..."}
                 />
                 {showError && (
                   <p className="text-destructive mt-1 text-xs">
@@ -259,6 +265,7 @@ export default function TransactionAutocomplete<
     )
   }
 
+  // Standalone version (no form)
   return (
     <div className={cn("flex flex-col gap-1", className)}>
       {label && (
@@ -279,7 +286,7 @@ export default function TransactionAutocomplete<
       <Select
         options={options}
         onChange={handleChange}
-        placeholder="Select Transaction..."
+        placeholder="Select Task..."
         isDisabled={isDisabled || isLoading}
         isClearable={true}
         isSearchable={true}
@@ -297,7 +304,7 @@ export default function TransactionAutocomplete<
         }
         menuPosition="fixed"
         isLoading={isLoading}
-        loadingMessage={() => "Loading transactions..."}
+        loadingMessage={() => "Loading tasks..."}
       />
     </div>
   )

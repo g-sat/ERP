@@ -19,13 +19,7 @@ import { toast } from "sonner"
 
 import { Bank, BankAddress, BankContact } from "@/lib/api-routes"
 import { MasterTransactionId, ModuleId } from "@/lib/utils"
-import {
-  useDelete,
-  useGet,
-  useGetById,
-  useSave,
-  useUpdate,
-} from "@/hooks/use-common"
+import { useDelete, useGet, useGetById, usePersist } from "@/hooks/use-common"
 import { useGetBankById } from "@/hooks/use-master"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -115,16 +109,14 @@ export default function BankPage() {
     useGetById<IBankAddress>(
       `${BankAddress.get}`,
       "bankaddresses",
-      bank?.bankId?.toString() || "",
-      { enabled: !!bank?.bankId }
+      bank?.bankId?.toString() || ""
     )
 
   const { refetch: refetchContacts, isLoading: isLoadingContacts } =
     useGetById<IBankContact>(
       `${BankContact.get}`,
       "bankcontacts",
-      bank?.bankId?.toString() || "",
-      { enabled: !!bank?.bankId }
+      bank?.bankId?.toString() || ""
     )
 
   const { data: banksData } = (banksResponse as ApiResponse<IBank>) ?? {
@@ -134,20 +126,20 @@ export default function BankPage() {
   }
 
   // Mutations
-  const saveMutation = useSave<BankFormValues>(`${Bank.add}`)
-  const updateMutation = useUpdate<BankFormValues>(`${Bank.add}`)
+  const saveMutation = usePersist<BankFormValues>(`${Bank.add}`)
+  const updateMutation = usePersist<BankFormValues>(`${Bank.add}`)
   const deleteMutation = useDelete(`${Bank.delete}`)
-  const saveAddressMutation = useSave<BankAddressFormValues>(
+  const saveAddressMutation = usePersist<BankAddressFormValues>(
     `${BankAddress.add}`
   )
-  const updateAddressMutation = useUpdate<BankAddressFormValues>(
+  const updateAddressMutation = usePersist<BankAddressFormValues>(
     `${BankAddress.add}`
   )
   const deleteAddressMutation = useDelete(`${BankAddress.delete}`)
-  const saveContactMutation = useSave<BankContactFormValues>(
+  const saveContactMutation = usePersist<BankContactFormValues>(
     `${BankContact.add}`
   )
-  const updateContactMutation = useUpdate<BankContactFormValues>(
+  const updateContactMutation = usePersist<BankContactFormValues>(
     `${BankContact.add}`
   )
   const deleteContactMutation = useDelete(`${BankContact.delete}`)

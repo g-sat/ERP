@@ -3,7 +3,14 @@
 import { useState } from "react"
 import { IPayrollPeriod, IPayrollPeriodFilter } from "@/interfaces/payroll"
 import { format } from "date-fns"
-import { Edit, Eye, MoreHorizontal, Search, Trash2 } from "lucide-react"
+import {
+  Edit,
+  Eye,
+  MoreHorizontal,
+  RefreshCcw,
+  Search,
+  Trash2,
+} from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -24,7 +31,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { CurrencyFormatter } from "@/components/currencyicons/currency-formatter"
 
 interface PayrollPeriodTableProps {
   data: IPayrollPeriod[]
@@ -32,6 +38,7 @@ interface PayrollPeriodTableProps {
   onDelete?: (periodId: string) => void
   onView: (period: IPayrollPeriod | undefined) => void
   onFilterChange: (filters: IPayrollPeriodFilter) => void
+  onRefresh?: () => void
 }
 
 export function PayrollPeriodTable({
@@ -40,6 +47,7 @@ export function PayrollPeriodTable({
   onDelete,
   onView,
   onFilterChange,
+  onRefresh,
 }: PayrollPeriodTableProps) {
   const [searchTerm, setSearchTerm] = useState("")
 
@@ -75,6 +83,17 @@ export function PayrollPeriodTable({
             className="pl-8"
           />
         </div>
+        <Button
+          size="icon"
+          variant="ghost"
+          onClick={() => {
+            console.log("Refresh button clicked for periods")
+            onRefresh?.()
+          }}
+          title="Refresh"
+        >
+          <RefreshCcw className="h-4 w-4" />
+        </Button>
       </div>
 
       <div className="rounded-md border">

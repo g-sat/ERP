@@ -19,13 +19,7 @@ import { toast } from "sonner"
 
 import { Supplier, SupplierAddress, SupplierContact } from "@/lib/api-routes"
 import { MasterTransactionId, ModuleId } from "@/lib/utils"
-import {
-  useDelete,
-  useGet,
-  useGetById,
-  useSave,
-  useUpdate,
-} from "@/hooks/use-common"
+import { useDelete, useGet, useGetById, usePersist } from "@/hooks/use-common"
 import { useGetSupplierById } from "@/hooks/use-master"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -135,20 +129,20 @@ export default function SupplierPage() {
     }
 
   // Mutations
-  const saveMutation = useSave<SupplierFormValues>(`${Supplier.add}`)
-  const updateMutation = useUpdate<SupplierFormValues>(`${Supplier.add}`)
+  const saveMutation = usePersist<SupplierFormValues>(`${Supplier.add}`)
+  const updateMutation = usePersist<SupplierFormValues>(`${Supplier.add}`)
   const deleteMutation = useDelete(`${Supplier.delete}`)
-  const saveAddressMutation = useSave<SupplierAddressFormValues>(
+  const saveAddressMutation = usePersist<SupplierAddressFormValues>(
     `${SupplierAddress.add}`
   )
-  const updateAddressMutation = useUpdate<SupplierAddressFormValues>(
+  const updateAddressMutation = usePersist<SupplierAddressFormValues>(
     `${SupplierAddress.add}`
   )
   const deleteAddressMutation = useDelete(`${SupplierAddress.delete}`)
-  const saveContactMutation = useSave<SupplierContactFormValues>(
+  const saveContactMutation = usePersist<SupplierContactFormValues>(
     `${SupplierContact.add}`
   )
-  const updateContactMutation = useUpdate<SupplierContactFormValues>(
+  const updateContactMutation = usePersist<SupplierContactFormValues>(
     `${SupplierContact.add}`
   )
   const deleteContactMutation = useDelete(`${SupplierContact.delete}`)

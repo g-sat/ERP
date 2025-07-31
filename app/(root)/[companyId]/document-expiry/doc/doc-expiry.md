@@ -154,7 +154,7 @@ public/
 ### Common Hooks Usage
 
 - Uses `useGet` for fetching documents
-- Uses `useSave` for creating/updating documents
+- Uses `usePersist` for creating/updating documents
 - Uses `useDelete` for removing documents
 - Consistent with other modules in the ERP system
 

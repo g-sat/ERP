@@ -15,7 +15,7 @@ import { FormProvider, useForm } from "react-hook-form"
 import { toast } from "sonner"
 
 import { DocumentExpiry } from "@/lib/api-routes"
-import { useSave } from "@/hooks/use-common"
+import { usePersist } from "@/hooks/use-common"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import DocumentTypeAutocomplete from "@/components/ui-custom/autocomplete-documenttype"
@@ -43,7 +43,7 @@ export default function DocumentForm({
 }: DocumentFormProps) {
   const { currentCompany, decimals } = useAuthStore()
   const dateFormat = decimals[0]?.dateFormat || "dd/MM/yyyy"
-  const saveMutation = useSave(`${DocumentExpiry.add}`)
+  const saveMutation = usePersist(`${DocumentExpiry.add}`)
   const [filePath, setFilePath] = useState("")
 
   const form = useForm<DocumentExpiryFormValues>({

@@ -10,13 +10,7 @@ import { toast } from "sonner"
 
 import { PortRegion } from "@/lib/api-routes"
 import { MasterTransactionId, ModuleId } from "@/lib/utils"
-import {
-  useDelete,
-  useGet,
-  useGetById,
-  useSave,
-  useUpdate,
-} from "@/hooks/use-common"
+import { useDelete, useGet, useGetById, usePersist } from "@/hooks/use-common"
 import {
   Dialog,
   DialogContent,
@@ -56,8 +50,8 @@ export default function PortRegionPage() {
       data: [],
     }
 
-  const saveMutation = useSave<PortRegionFormValues>(`${PortRegion.add}`)
-  const updateMutation = useUpdate<PortRegionFormValues>(`${PortRegion.add}`)
+  const saveMutation = usePersist<PortRegionFormValues>(`${PortRegion.add}`)
+  const updateMutation = usePersist<PortRegionFormValues>(`${PortRegion.add}`)
   const deleteMutation = useDelete(`${PortRegion.delete}`)
 
   const [selectedPortRegion, setSelectedPortRegion] =

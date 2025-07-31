@@ -13,7 +13,7 @@ import { CheckCircle, Clock, Users, XCircle } from "lucide-react"
 import { useForm } from "react-hook-form"
 
 import { Employee, Hr_Attendance } from "@/lib/api-routes"
-import { useGet, useGetbyPath } from "@/hooks/use-common"
+import { useGet, useGetByPath } from "@/hooks/use-common"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
   Select,
@@ -56,7 +56,7 @@ export function AttendanceDashboard() {
     data: apiResponse,
     isLoading,
     error,
-  } = useGetbyPath<IActualAttendanceEmployee>(
+  } = useGetByPath<IActualAttendanceEmployee>(
     Hr_Attendance.get,
     "attendance",
     `${currentMonthYear}-01`,

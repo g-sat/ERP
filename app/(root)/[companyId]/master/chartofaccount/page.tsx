@@ -32,7 +32,7 @@ import {
   CoaCategory3,
 } from "@/lib/api-routes"
 import { MasterTransactionId, ModuleId } from "@/lib/utils"
-import { useDelete, useGet, useSave, useUpdate } from "@/hooks/use-common"
+import { useDelete, useGet, usePersist } from "@/hooks/use-common"
 import {
   Dialog,
   DialogContent,
@@ -166,28 +166,34 @@ export default function ChartOfAccountPage() {
     (chartOfAccountsResponse as ApiResponse<IChartofAccount>)?.data || []
 
   // Mutations
-  const saveMutation1 = useSave<CoaCategory1FormValues>(`${CoaCategory1.add}`)
-  const updateMutation1 = useUpdate<CoaCategory1FormValues>(
+  const saveMutation1 = usePersist<CoaCategory1FormValues>(
+    `${CoaCategory1.add}`
+  )
+  const updateMutation1 = usePersist<CoaCategory1FormValues>(
     `${CoaCategory1.add}`
   )
   const deleteMutation1 = useDelete(`${CoaCategory1.delete}`)
 
-  const saveMutation2 = useSave<CoaCategory2FormValues>(`${CoaCategory2.add}`)
-  const updateMutation2 = useUpdate<CoaCategory2FormValues>(
+  const saveMutation2 = usePersist<CoaCategory2FormValues>(
+    `${CoaCategory2.add}`
+  )
+  const updateMutation2 = usePersist<CoaCategory2FormValues>(
     `${CoaCategory2.add}`
   )
   const deleteMutation2 = useDelete(`${CoaCategory2.delete}`)
 
-  const saveMutation3 = useSave<CoaCategory3FormValues>(`${CoaCategory3.add}`)
-  const updateMutation3 = useUpdate<CoaCategory3FormValues>(
+  const saveMutation3 = usePersist<CoaCategory3FormValues>(
+    `${CoaCategory3.add}`
+  )
+  const updateMutation3 = usePersist<CoaCategory3FormValues>(
     `${CoaCategory3.add}`
   )
   const deleteMutation3 = useDelete(`${CoaCategory3.delete}`)
 
-  const saveMutationChart = useSave<ChartofAccountFormValues>(
+  const saveMutationChart = usePersist<ChartofAccountFormValues>(
     `${ChartOfAccount.add}`
   )
-  const updateMutationChart = useUpdate<ChartofAccountFormValues>(
+  const updateMutationChart = usePersist<ChartofAccountFormValues>(
     `${ChartOfAccount.add}`
   )
   const deleteMutationChart = useDelete(`${ChartOfAccount.delete}`)

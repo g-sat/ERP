@@ -12,7 +12,7 @@ import {
   HrLeavePolicy,
   HrLeaveRequest,
 } from "@/lib/api-routes"
-import { useDelete, useGet, useSave, useUpdate } from "@/hooks/use-common"
+import { useDelete, useGet, usePersist } from "@/hooks/use-common"
 
 import { LeaveDashboard } from "./components/leave-dashboard"
 
@@ -32,12 +32,12 @@ export default function LeavePage() {
     useGet<ILeavePolicy>(HrLeavePolicy.get, "leave-policies")
 
   // Initialize mutation hooks using common hooks
-  const saveLeaveRequestMutation = useSave(HrLeaveRequest.add)
+  const saveLeaveRequestMutation = usePersist(HrLeaveRequest.add)
   const deleteLeaveRequestMutation = useDelete(HrLeaveRequest.delete)
-  const approveLeaveMutation = useSave(HrLeaveApproval.approve)
-  const rejectLeaveMutation = useSave(HrLeaveApproval.reject)
-  const savePolicyMutation = useSave(HrLeavePolicy.add)
-  const updatePolicyMutation = useUpdate(HrLeavePolicy.update)
+  const approveLeaveMutation = usePersist(HrLeaveApproval.approve)
+  const rejectLeaveMutation = usePersist(HrLeaveApproval.reject)
+  const savePolicyMutation = usePersist(HrLeavePolicy.add)
+  const updatePolicyMutation = usePersist(HrLeavePolicy.update)
 
   // Extract data from API responses - ensure we get flat arrays
   const leaves = leavesData?.data || []

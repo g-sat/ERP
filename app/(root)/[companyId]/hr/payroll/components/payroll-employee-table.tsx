@@ -2,7 +2,14 @@
 
 import { useState } from "react"
 import { IPayrollEmployee } from "@/interfaces/payroll"
-import { Edit, Eye, MoreHorizontal, Search, Trash2 } from "lucide-react"
+import {
+  Edit,
+  Eye,
+  MoreHorizontal,
+  RefreshCcw,
+  Search,
+  Trash2,
+} from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -31,6 +38,7 @@ interface PayrollEmployeeTableProps {
   onDelete?: (employeeId: string) => void
   onView: (employee: IPayrollEmployee | undefined) => void
   onFilterChange: (filters: any) => void
+  onRefresh?: () => void
 }
 
 export function PayrollEmployeeTable({
@@ -39,6 +47,7 @@ export function PayrollEmployeeTable({
   onDelete,
   onView,
   onFilterChange,
+  onRefresh,
 }: PayrollEmployeeTableProps) {
   const [searchTerm, setSearchTerm] = useState("")
 
@@ -69,6 +78,17 @@ export function PayrollEmployeeTable({
             className="pl-8"
           />
         </div>
+        <Button
+          size="icon"
+          variant="ghost"
+          onClick={() => {
+            console.log("Refresh button clicked for employees")
+            onRefresh?.()
+          }}
+          title="Refresh"
+        >
+          <RefreshCcw className="h-4 w-4" />
+        </Button>
       </div>
 
       <div className="rounded-md border">

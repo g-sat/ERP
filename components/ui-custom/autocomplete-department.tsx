@@ -3,7 +3,7 @@
 import React from "react"
 import { IDepartmentLookup } from "@/interfaces/lookup"
 import { IconCheck, IconChevronDown, IconX } from "@tabler/icons-react"
-import { Path, UseFormReturn } from "react-hook-form"
+import { Path, PathValue, UseFormReturn } from "react-hook-form"
 import Select, {
   ClearIndicatorProps,
   DropdownIndicatorProps,
@@ -181,7 +181,9 @@ export default function DepartmentAutocomplete<
     (option: SingleValue<FieldOption> | MultiValue<FieldOption>) => {
       const selectedOption = Array.isArray(option) ? option[0] : option
       if (form && name) {
-        form.setValue(name, selectedOption?.value || "")
+        // Set the value as a number
+        const value = selectedOption ? Number(selectedOption.value) : 0
+        form.setValue(name, value as PathValue<T, Path<T>>)
       }
       if (onChangeEvent) {
         const selectedDepartment = selectedOption
