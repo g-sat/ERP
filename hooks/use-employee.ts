@@ -1,8 +1,14 @@
-import { IEmployee } from "@/interfaces/employee"
+import {
+  IEmployee,
+  IEmployeeBank,
+  IEmployeeBasic,
+  IEmployeePersonalDetails,
+} from "@/interfaces/employee"
+import { IEmployeeSalaryComponent } from "@/interfaces/payroll"
 import { useQueryClient } from "@tanstack/react-query"
 
 import { getData } from "@/lib/api-client"
-import { Employee } from "@/lib/api-routes"
+import { Employee, EmployeeSalaryComponent } from "@/lib/api-routes"
 import {
   useDelete,
   useGet,
@@ -18,9 +24,36 @@ export function useGetEmployees(filters?: string) {
 
 // Hook for fetching employee by ID
 export function useGetEmployeeById(employeeId: string | undefined) {
-  return useGetById<IEmployee>(Employee.get, "employee", employeeId || "", {
-    enabled: !!employeeId && employeeId !== "0",
-  })
+  return useGetById<IEmployee>(Employee.getById, "employee", employeeId || "")
+}
+
+// Hook for fetching employee basic information by ID
+export function useGetEmployeeBasicById(employeeId: string | undefined) {
+  return useGetById<IEmployeeBasic>(
+    `${Employee.getById}`,
+    "employee-basic",
+    employeeId || ""
+  )
+}
+
+// Hook for fetching employee personal details by ID
+export function useGetEmployeePersonalDetailsById(
+  employeeId: string | undefined
+) {
+  return useGetById<IEmployeePersonalDetails>(
+    `${Employee.getPersonalById}`,
+    "employee-personal",
+    employeeId || ""
+  )
+}
+
+// Hook for fetching employee bank information by ID
+export function useGetEmployeeBankById(employeeId: string | undefined) {
+  return useGetById<IEmployeeBank>(
+    `${Employee.getBankById}`,
+    "employee-bank",
+    employeeId || ""
+  )
 }
 
 // Hook for fetching employee by code
@@ -28,10 +61,7 @@ export function useGetEmployeeByCode(employeeCode: string | undefined) {
   return useGetByParams<IEmployee>(
     Employee.getByCode,
     "employee-by-code",
-    employeeCode || "",
-    {
-      enabled: !!employeeCode && employeeCode.trim() !== "",
-    }
+    employeeCode || ""
   )
 }
 
@@ -47,6 +77,68 @@ export function useSaveEmployee() {
         onSuccess: (response) => {
           if (response.result === 1) {
             queryClient.invalidateQueries({ queryKey: ["employees"] })
+          }
+        },
+      })
+    },
+  }
+}
+
+// Hook for saving employee basic information
+export function useSaveEmployeeBasic() {
+  const queryClient = useQueryClient()
+  const saveMutation = usePersist<IEmployeeBasic>(Employee.add)
+
+  return {
+    ...saveMutation,
+    mutate: (data: Partial<IEmployeeBasic>) => {
+      saveMutation.mutate(data, {
+        onSuccess: (response) => {
+          if (response.result === 1) {
+            queryClient.invalidateQueries({ queryKey: ["employees"] })
+            queryClient.invalidateQueries({ queryKey: ["employee-basic"] })
+          }
+        },
+      })
+    },
+  }
+}
+
+// Hook for saving employee personal details
+export function useSaveEmployeePersonalDetails() {
+  const queryClient = useQueryClient()
+  const saveMutation = usePersist<IEmployeePersonalDetails>(
+    Employee.addPersonal
+  )
+
+  return {
+    ...saveMutation,
+    mutate: (data: Partial<IEmployeePersonalDetails>) => {
+      saveMutation.mutate(data, {
+        onSuccess: (response) => {
+          if (response.result === 1) {
+            queryClient.invalidateQueries({ queryKey: ["employees"] })
+            queryClient.invalidateQueries({ queryKey: ["employee-personal"] })
+          }
+        },
+      })
+    },
+  }
+}
+
+// Hook for saving employee bank information
+export function useSaveEmployeeBank() {
+  const queryClient = useQueryClient()
+  const saveMutation = usePersist<IEmployeeBank>(Employee.addBank)
+
+  return {
+    ...saveMutation,
+    mutate: (data: Partial<IEmployeeBank>) => {
+      saveMutation.mutate(data, {
+        onSuccess: (response) => {
+          if (response.result === 1) {
+            queryClient.invalidateQueries({ queryKey: ["employees"] })
+            queryClient.invalidateQueries({ queryKey: ["employee-bank"] })
           }
         },
       })
@@ -98,10 +190,7 @@ export function useCheckEmployeeCode() {
   return useGetByParams<IEmployee>(
     Employee.getByCode,
     "employee-code-check",
-    "",
-    {
-      enabled: false, // Only run when explicitly called
-    }
+    ""
   )
 }
 
@@ -199,6 +288,43 @@ export function useEmployeeBulkOperations() {
           },
         })
       },
+    },
+  }
+}
+
+//salary details
+
+// Hook for fetching employee salary details by ID
+export function useGetEmployeeSalaryDetailsById(
+  employeeId: string | undefined
+) {
+  return useGetById<IEmployeeSalaryComponent>(
+    `${EmployeeSalaryComponent.getById}`,
+    "employee-salary-details",
+    employeeId || ""
+  )
+}
+
+// Hook for saving employee salary details
+export function useSaveEmployeeSalaryDetails() {
+  const queryClient = useQueryClient()
+  const saveMutation = usePersist<IEmployeeSalaryComponent[]>(
+    `${EmployeeSalaryComponent.add}`
+  )
+
+  return {
+    ...saveMutation,
+    mutate: (data: Partial<IEmployeeSalaryComponent[]>) => {
+      saveMutation.mutate(data, {
+        onSuccess: (response) => {
+          if (response.result === 1) {
+            queryClient.invalidateQueries({ queryKey: ["employees"] })
+            queryClient.invalidateQueries({
+              queryKey: ["employee-salary-details"],
+            })
+          }
+        },
+      })
     },
   }
 }

@@ -24,9 +24,3 @@ export interface IBargeFilter {
   search?: string
   sortOrder?: "asc" | "desc"
 }
-
-export interface IBargeLookup {
-  id: number
-  code: string
-  name: string
-}

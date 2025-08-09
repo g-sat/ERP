@@ -1,9 +1,12 @@
+"use client"
+
 import {
   Manrope as FontManrope,
   Lexend as FontSans,
   Newsreader as FontSerif,
 } from "next/font/google"
 import Link from "next/link"
+import { ArrowLeft } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -16,6 +19,14 @@ const fontManrope = FontManrope({
 })
 
 export default function NotFound() {
+  const handleGoBack = () => {
+    if (window.history.length > 1) {
+      window.history.back()
+    } else {
+      window.location.href = "/"
+    }
+  }
+
   return (
     <div
       className={cn(
@@ -39,8 +50,12 @@ export default function NotFound() {
         </div>
 
         <div className="flex flex-col justify-center gap-2 min-[400px]:flex-row">
+          <Button onClick={handleGoBack}>
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Go back
+          </Button>
           <Button asChild>
-            <Link href="/">Go back home</Link>
+            <Link href="/">Dashboard</Link>
           </Button>
           <Button variant="outline" asChild>
             <Link href="/login">Login</Link>

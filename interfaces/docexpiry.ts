@@ -1,31 +1,22 @@
 export interface IDocumentExpiry {
-  documentId: number
-  companyId: number
+  documentId?: number
   docTypeId: number
-  docTypeName: string
   documentName: string
   filePath?: string
   issueDate?: string | Date
   expiryDate: string | Date
   notificationDaysBefore?: number
-  isExpired: boolean
+  isExpired?: boolean
   remarks?: string
-  createdById?: number
-  createdDate?: string | Date
-  editById?: number
-  editDate?: string | Date
-}
-
-export enum NotificationDays {
-  FIFTEEN_DAYS = 15,
-  THIRTY_DAYS = 30,
-  FORTY_FIVE_DAYS = 45,
-  SIXTY_DAYS = 60,
+  companyId?: number
 }
 
 export const NOTIFICATION_DAYS_OPTIONS = [
-  { value: NotificationDays.FIFTEEN_DAYS, label: "15 days" },
-  { value: NotificationDays.THIRTY_DAYS, label: "30 days" },
-  { value: NotificationDays.FORTY_FIVE_DAYS, label: "45 days" },
-  { value: NotificationDays.SIXTY_DAYS, label: "60 days" },
+  { value: 0, label: "No notification" },
+  { value: 7, label: "7 days before" },
+  { value: 15, label: "15 days before" },
+  { value: 30, label: "30 days before" },
+  { value: 45, label: "45 days before" },
+  { value: 60, label: "60 days before" },
+  { value: 90, label: "90 days before" },
 ]

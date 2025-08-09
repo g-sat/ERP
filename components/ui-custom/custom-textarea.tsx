@@ -9,7 +9,7 @@ import { Label } from "../ui/label"
 
 interface CustomTextareaProps<T extends Record<string, unknown>> {
   form: UseFormReturn<T>
-  name: Path<T>
+  name?: Path<T>
   label?: string
   className?: string
   onBlurEvent?: () => void
@@ -46,7 +46,7 @@ export default function CustomTextarea<T extends Record<string, unknown>>({
       )}
       <FormField
         control={form.control}
-        name={name}
+        name={name || ("" as Path<T>)}
         render={({ field, fieldState }) => {
           const { error } = fieldState
           const showError = !!error

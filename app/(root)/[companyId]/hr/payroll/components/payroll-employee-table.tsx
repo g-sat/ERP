@@ -37,7 +37,7 @@ interface PayrollEmployeeTableProps {
   onEdit?: (employee: IPayrollEmployee) => void
   onDelete?: (employeeId: string) => void
   onView: (employee: IPayrollEmployee | undefined) => void
-  onFilterChange: (filters: any) => void
+  onFilterChange: (filters: Record<string, unknown>) => void
   onRefresh?: () => void
 }
 
@@ -95,10 +95,8 @@ export function PayrollEmployeeTable({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Employee Code</TableHead>
-              <TableHead>Employee Name</TableHead>
-              <TableHead>Department</TableHead>
-              <TableHead>Basic Salary</TableHead>
+              <TableHead>Employee ID</TableHead>
+              <TableHead>Payroll Period ID</TableHead>
               <TableHead>Total Earnings</TableHead>
               <TableHead>Total Deductions</TableHead>
               <TableHead>Net Salary</TableHead>
@@ -110,7 +108,7 @@ export function PayrollEmployeeTable({
             {data.length === 0 ? (
               <TableRow>
                 <TableCell
-                  colSpan={9}
+                  colSpan={7}
                   className="text-muted-foreground text-center"
                 >
                   No employee payroll data found
@@ -120,16 +118,9 @@ export function PayrollEmployeeTable({
               data.map((employee) => (
                 <TableRow key={employee.payrollEmployeeId}>
                   <TableCell className="font-medium">
-                    {employee.employeeCode}
+                    {employee.employeeId}
                   </TableCell>
-                  <TableCell>{employee.employeeName}</TableCell>
-                  <TableCell>{employee.departmentName}</TableCell>
-                  <TableCell>
-                    <CurrencyFormatter
-                      amount={employee.basicSalary}
-                      size="sm"
-                    />
-                  </TableCell>
+                  <TableCell>{employee.payrollPeriodId}</TableCell>
                   <TableCell>
                     <CurrencyFormatter
                       amount={employee.totalEarnings}

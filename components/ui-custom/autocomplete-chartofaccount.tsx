@@ -33,6 +33,7 @@ interface ChartOfAccountAutocompleteProps<T extends Record<string, unknown>> {
   isDisabled?: boolean
   isRequired?: boolean
   onChangeEvent?: (selectedOption: IChartofAccountLookup | null) => void
+  companyId?: number
 }
 
 export default function ChartOfAccountAutocomplete<
@@ -45,8 +46,30 @@ export default function ChartOfAccountAutocomplete<
   className,
   isRequired = false,
   onChangeEvent,
+  companyId = 0,
 }: ChartOfAccountAutocompleteProps<T>) {
-  const { data: chartOfAccounts = [], isLoading } = useChartofAccountLookup()
+  const { data: chartOfAccounts = [], isLoading } = useChartofAccountLookup(
+    companyId || 0
+  )
+
+  // Clear the form field when companyId changes
+  React.useEffect(() => {
+    if (form && name && companyId > 0) {
+      const currentValue = form.getValues(name)
+      if (currentValue && Number(currentValue) > 0) {
+        // Check if the current value is still valid for the new company
+        const isValidForCompany = chartOfAccounts.some(
+          (account) => account.glId === Number(currentValue)
+        )
+        if (!isValidForCompany) {
+          form.setValue(name, 0 as PathValue<T, Path<T>>)
+          if (onChangeEvent) {
+            onChangeEvent(null)
+          }
+        }
+      }
+    }
+  }, [companyId, chartOfAccounts, form, name, onChangeEvent])
 
   const options: FieldOption[] = React.useMemo(
     () =>

@@ -174,6 +174,7 @@ export const Lookup = {
   getServiceType: "/master/getservicetypelookup",
   getServiceTypeCategory: "/master/getservicetypecategorylookup",
   getDepartment: "/master/getdepartmentlookup",
+  getWorkLocation: "/master/getworklocationlookup",
   getCustomer: "/master/getcustomerlookup",
   getCompanyCustomer: "/master/getcompanycustomerlookup",
   getCreditTerm: "/master/getcredittermslookup",
@@ -194,6 +195,7 @@ export const Lookup = {
   getVoyage: "/master/getvoyagelookup",
   getDesignation: "/master/getdesignationlookup",
   getEmployee: "/master/getemployeelookup",
+  getLoanType: "/master/getloantypelookup",
   getLeaveType: "/master/getleavetypelookup",
   getTax: "/master/gettaxlookup",
   getUserGroup: "/master/getusergrouplookup",
@@ -229,6 +231,11 @@ export const Lookup = {
   getCompany: "/master/getcompanylookup",
   getPayrollComponent: "/master/getpayrollcomponentlookup",
   getPayrollComponentGroup: "/master/getpayrollcomponentgrouplookup",
+
+  getApprovalStatusType: "/master/getapprovalstatuslookup",
+  getLoanRequestStatusLookup: "/master/getloanrequeststatuslookup",
+  getDisbursementLookup: "/master/getdisbursementlookup",
+  getRepaymentStatusLookup: "/master/getrepaymentstatuslookup",
 }
 
 //Master Endpoints
@@ -511,6 +518,14 @@ export const Department = {
   delete: "/master/deletedepartment",
 }
 
+// Work Location Endpoints
+export const WorkLocation = {
+  get: "/master/getworklocation",
+  getByCode: "/master/getworklocationbycode",
+  add: "/master/saveworklocation",
+  delete: "/master/deleteworklocation",
+}
+
 // Designation Endpoints
 export const Designation = {
   get: "/master/getdesignation",
@@ -522,9 +537,26 @@ export const Designation = {
 // Employee Endpoints
 export const Employee = {
   get: "/master/getemployee",
+  getById: "/master/GetEmployeebyid",
+  getPersonalById: "/master/GetEmployeePersonalDetailsbyId",
+  getBankById: "/master/getemployeebankbyId",
   getByCode: "/master/getemployeebycode",
   add: "/master/saveemployee",
+  addBasic: "/master/saveemployeebasic",
+  addPersonal: "/master/saveemployeepersonaldetails",
+  addBank: "/master/saveemployeebank",
   delete: "/master/deleteemployee",
+  deleteBasic: "/master/deleteemployeebasic",
+  deletePersonal: "/master/deleteemployeepersonaldetails",
+  deleteBank: "/master/deleteemployeebank",
+}
+
+// Employer Details Endpoints
+export const EmployerDetails = {
+  get: "/hr/getemployerdetails",
+  getByCode: "/hr/getemployerdetailsbycode",
+  add: "/hr/saveemployerdetails",
+  delete: "/hr/deleteemployerdetails",
 }
 
 // GST Endpoints
@@ -1102,6 +1134,11 @@ export const Approval = {
 }
 
 // Payroll Management Endpoints
+export const EmployeeSalaryComponent = {
+  getById: "/hr/getemployeesalarycomponentbyid",
+  add: "/hr/saveemployeesalarycomponent",
+}
+
 export const PayrollPeriod = {
   get: "/hr/payroll/getpayrollperiod",
   getById: "/hr/payroll/getpayrollperiodbyid",
@@ -1131,6 +1168,7 @@ export const PayrollEmployee = {
 
 export const PayrollComponent = {
   get: "/hr/payroll/getpayrollcomponent",
+  getSalary: "/hr/payroll/getsalarypayrollcomponent",
   getById: "/hr/payroll/getpayrollcomponentbyid",
   add: "/hr/payroll/savepayrollcomponent",
   update: "/hr/payroll/savepayrollcomponent",

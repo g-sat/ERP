@@ -1,0 +1,193 @@
+"use client"
+
+import { useState } from "react"
+import { IDesignation } from "@/interfaces/designation"
+import { DesignationFormValues } from "@/schemas/designation"
+
+import { Designation } from "@/lib/api-routes"
+import { useDelete, useGet, usePersist } from "@/hooks/use-common"
+import { Button } from "@/components/ui/button"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import { DeleteConfirmation } from "@/components/delete-confirmation"
+import { DataTableSkeleton } from "@/components/skeleton/data-table-skeleton"
+
+import { DesignationForm } from "./components/designation-form"
+import { DesignationTable } from "./components/designation-table"
+import { DesignationView } from "./components/designation-view"
+
+export default function DesignationPage() {
+  // Permissions
+  const canCreateDesignation = true
+  const canEditDesignation = true
+  const canDeleteDesignation = true
+
+  // Form states
+  const [designationFormOpen, setDesignationFormOpen] = useState(false)
+  const [viewDialogOpen, setViewDialogOpen] = useState(false)
+  const [selectedDesignation, setSelectedDesignation] =
+    useState<IDesignation | null>(null)
+  const [viewingDesignation, setViewingDesignation] =
+    useState<IDesignation | null>(null)
+
+  const [deleteDialog, setDeleteDialog] = useState(false)
+  const [itemToDelete, setItemToDelete] = useState<{
+    id: string
+    name: string
+    type: string
+  } | null>(null)
+
+  // Data fetching
+  const {
+    data: designationData,
+    isLoading: designationLoading,
+    refetch: refetchDesignation,
+  } = useGet<IDesignation>(Designation.get, "designation")
+
+  // Mutations
+  const { mutate: deleteItem, isPending: isDeleting } = useDelete("/api")
+  const createMutation = usePersist(Designation.add)
+  const updateMutation = usePersist(Designation.add)
+
+  // Event handlers
+  const handleCreateDesignation = () => {
+    setSelectedDesignation(null)
+    setDesignationFormOpen(true)
+  }
+
+  const handleEditDesignation = (designation: IDesignation) => {
+    setSelectedDesignation(designation)
+    setDesignationFormOpen(true)
+  }
+
+  const handleViewDesignation = (designation: IDesignation) => {
+    setViewingDesignation(designation)
+    setViewDialogOpen(true)
+  }
+
+  const handleDeleteDesignation = (designation: IDesignation) => {
+    setItemToDelete({
+      id: designation.designationId.toString(),
+      name: "Designation",
+      type: "designation",
+    })
+    setDeleteDialog(true)
+  }
+
+  const handleConfirmDelete = () => {
+    if (itemToDelete) {
+      deleteItem(`${itemToDelete.type}/${itemToDelete.id}`, {
+        onSuccess: () => {
+          refetchDesignation()
+          setDeleteDialog(false)
+          setItemToDelete(null)
+        },
+      })
+    }
+  }
+
+  const handleSave = (values: DesignationFormValues) => {
+    const mutation = selectedDesignation ? updateMutation : createMutation
+    mutation.mutate(values, {
+      onSuccess: () => {
+        setDesignationFormOpen(false)
+        setSelectedDesignation(null)
+        refetchDesignation()
+      },
+    })
+  }
+
+  return (
+    <div>
+      {designationLoading ? (
+        <DataTableSkeleton columnCount={4} />
+      ) : (
+        <DesignationTable
+          data={designationData?.data || []}
+          onEdit={handleEditDesignation}
+          onDelete={handleDeleteDesignation}
+          onCreate={handleCreateDesignation}
+          onView={handleViewDesignation}
+          onRefresh={refetchDesignation}
+          canCreate={canCreateDesignation}
+          canEdit={canEditDesignation}
+          canDelete={canDeleteDesignation}
+        />
+      )}
+
+      {/* Form Dialog */}
+      <Dialog
+        open={designationFormOpen}
+        onOpenChange={(isOpen) => {
+          if (!isOpen) {
+            setDesignationFormOpen(false)
+            setSelectedDesignation(null)
+          }
+        }}
+      >
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>
+              {selectedDesignation ? "Edit Designation" : "Add New Designation"}
+            </DialogTitle>
+            <DialogDescription>
+              {selectedDesignation
+                ? "Update designation information"
+                : "Create a new designation"}
+            </DialogDescription>
+          </DialogHeader>
+
+          <DesignationForm
+            designation={selectedDesignation || undefined}
+            onSave={handleSave}
+          />
+
+          <div className="flex justify-end space-x-2 pt-4">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                setDesignationFormOpen(false)
+                setSelectedDesignation(null)
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              form="designation-form"
+              disabled={createMutation.isPending || updateMutation.isPending}
+            >
+              {createMutation.isPending || updateMutation.isPending
+                ? "Saving..."
+                : selectedDesignation
+                  ? "Update"
+                  : "Create"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* View Dialog */}
+      <DesignationView
+        open={viewDialogOpen}
+        onOpenChange={setViewDialogOpen}
+        designation={viewingDesignation}
+      />
+
+      <DeleteConfirmation
+        open={deleteDialog}
+        onOpenChange={setDeleteDialog}
+        onConfirm={handleConfirmDelete}
+        isDeleting={isDeleting}
+        title={`Delete ${itemToDelete?.name}`}
+        description={`Are you sure you want to delete this ${itemToDelete?.name.toLowerCase()}? This action cannot be undone.`}
+      />
+    </div>
+  )
+}

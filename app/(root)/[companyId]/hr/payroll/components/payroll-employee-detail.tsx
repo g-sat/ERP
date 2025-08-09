@@ -53,178 +53,53 @@ export function PayrollEmployeeDetail({
         <CardContent className="grid grid-cols-2 gap-4">
           <div>
             <p className="text-muted-foreground text-sm font-medium">
-              Employee Code
+              Employee ID
             </p>
-            <p className="text-lg font-semibold">{employee.employeeCode}</p>
+            <p className="text-lg font-semibold">{employee.employeeId}</p>
           </div>
           <div>
             <p className="text-muted-foreground text-sm font-medium">
-              Employee Name
+              Payroll Period ID
             </p>
-            <p className="text-lg font-semibold">{employee.employeeName}</p>
+            <p className="text-lg font-semibold">{employee.payrollPeriodId}</p>
           </div>
           <div>
             <p className="text-muted-foreground text-sm font-medium">
-              Department
+              Payroll Employee ID
             </p>
-            <p className="text-lg">{employee.departmentName}</p>
+            <p className="text-lg">{employee.payrollEmployeeId}</p>
           </div>
           <div>
-            <p className="text-muted-foreground text-sm font-medium">
-              Payroll Period
-            </p>
-            <p className="text-lg">{employee.periodName}</p>
+            <p className="text-muted-foreground text-sm font-medium">Status</p>
+            <p className="text-lg">{getStatusBadge()}</p>
           </div>
         </CardContent>
       </Card>
 
-      {/* Salary Breakdown */}
+      {/* Salary Summary */}
       <Card>
         <CardHeader>
-          <CardTitle>Salary Breakdown</CardTitle>
+          <CardTitle>Salary Summary</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          {/* Earnings */}
-          <div>
-            <h4 className="mb-2 font-semibold text-green-600">Earnings</h4>
-            <div className="space-y-2">
-              <div className="flex justify-between">
-                <span>Basic Salary</span>
-                <span className="font-medium">
-                  <CurrencyFormatter amount={employee.basicSalary} size="sm" />
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span>Housing Allowance</span>
-                <span className="font-medium">
-                  <CurrencyFormatter
-                    amount={employee.housingAllowance}
-                    size="sm"
-                  />
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span>Transport Allowance</span>
-                <span className="font-medium">
-                  <CurrencyFormatter
-                    amount={employee.transportAllowance}
-                    size="sm"
-                  />
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span>Other Allowances</span>
-                <span className="font-medium">
-                  <CurrencyFormatter
-                    amount={employee.otherAllowances}
-                    size="sm"
-                  />
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span>Overtime Pay</span>
-                <span className="font-medium">
-                  <CurrencyFormatter
-                    amount={employee.overtimeAmount || 0}
-                    size="sm"
-                  />
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span>Bonus Amount</span>
-                <span className="font-medium">
-                  <CurrencyFormatter
-                    amount={employee.bonusAmount || 0}
-                    size="sm"
-                  />
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span>Commission</span>
-                <span className="font-medium">
-                  <CurrencyFormatter
-                    amount={employee.commissionAmount || 0}
-                    size="sm"
-                  />
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span>Other Earnings</span>
-                <span className="font-medium">
-                  <CurrencyFormatter
-                    amount={employee.otherEarnings || 0}
-                    size="sm"
-                  />
-                </span>
-              </div>
-              <Separator />
-              <div className="flex justify-between text-lg font-semibold">
-                <span>Total Earnings</span>
-                <span className="text-green-600">
-                  <CurrencyFormatter
-                    amount={employee.totalEarnings}
-                    size="md"
-                  />
-                </span>
-              </div>
+          <div className="space-y-2">
+            <div className="flex justify-between text-lg font-semibold">
+              <span>Total Earnings</span>
+              <span className="text-green-600">
+                <CurrencyFormatter amount={employee.totalEarnings} size="md" />
+              </span>
             </div>
-          </div>
-
-          {/* Deductions */}
-          <div>
-            <h4 className="mb-2 font-semibold text-red-600">Deductions</h4>
-            <div className="space-y-2">
-              <div className="flex justify-between">
-                <span>Social Insurance</span>
-                <span className="font-medium">
-                  <CurrencyFormatter
-                    amount={employee.socialInsurance}
-                    size="sm"
-                  />
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span>Leave Deduction</span>
-                <span className="font-medium">
-                  <CurrencyFormatter
-                    amount={employee.leaveDeduction || 0}
-                    size="sm"
-                  />
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span>Late Deduction</span>
-                <span className="font-medium">
-                  <CurrencyFormatter
-                    amount={employee.lateDeduction || 0}
-                    size="sm"
-                  />
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span>Other Deductions</span>
-                <span className="font-medium">
-                  <CurrencyFormatter
-                    amount={employee.otherDeductions || 0}
-                    size="sm"
-                  />
-                </span>
-              </div>
-              <Separator />
-              <div className="flex justify-between text-lg font-semibold">
-                <span>Total Deductions</span>
-                <span className="text-red-600">
-                  <CurrencyFormatter
-                    amount={employee.totalDeductions}
-                    size="md"
-                  />
-                </span>
-              </div>
+            <Separator />
+            <div className="flex justify-between text-lg font-semibold">
+              <span>Total Deductions</span>
+              <span className="text-red-600">
+                <CurrencyFormatter
+                  amount={employee.totalDeductions}
+                  size="md"
+                />
+              </span>
             </div>
-          </div>
-
-          {/* Net Salary */}
-          <div className="border-t-2 pt-4">
+            <Separator />
             <div className="flex justify-between text-xl font-bold">
               <span>Net Salary</span>
               <span className="text-blue-600">
@@ -235,30 +110,12 @@ export function PayrollEmployeeDetail({
         </CardContent>
       </Card>
 
-      {/* Additional Information */}
+      {/* Payment Information */}
       <Card>
         <CardHeader>
-          <CardTitle>Additional Information</CardTitle>
+          <CardTitle>Payment Information</CardTitle>
         </CardHeader>
         <CardContent className="grid grid-cols-2 gap-4">
-          <div>
-            <p className="text-muted-foreground text-sm font-medium">
-              Overtime Hours
-            </p>
-            <p className="text-lg">{employee.overtimeHours || 0} hours</p>
-          </div>
-          <div>
-            <p className="text-muted-foreground text-sm font-medium">
-              Overtime Rate
-            </p>
-            <p className="text-lg">
-              <CurrencyFormatter
-                amount={employee.overtimeRate || 0}
-                size="sm"
-              />
-              /hour
-            </p>
-          </div>
           <div>
             <p className="text-muted-foreground text-sm font-medium">
               Payment Method

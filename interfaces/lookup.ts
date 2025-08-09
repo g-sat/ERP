@@ -138,6 +138,12 @@ export interface IDepartmentLookup {
   departmentName: string
 }
 
+export interface IWorkLocationLookup {
+  workLocationId: number
+  workLocationCode: string
+  workLocationName: string
+}
+
 export interface ICustomerLookup {
   customerId: number
   customerCode: string
@@ -475,4 +481,16 @@ export interface IPayrollComponentGroupLookup {
   componentGroupId: number
   groupName: string
   groupCode: string
+}
+
+export interface ILoanTypeLookup {
+  loanTypeId: number
+  loanTypeCode: string
+  loanTypeName: string
+}
+
+export interface IStatusTypeLookup {
+  statusTypeId: number
+  statusTypeCode: string
+  statusTypeName: string
 }

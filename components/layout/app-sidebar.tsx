@@ -15,6 +15,7 @@ import {
   ChartArea,
   ChevronRightIcon,
   ClipboardList,
+  Clock,
   Coins,
   CreditCard,
   FileMinus,
@@ -36,10 +37,12 @@ import {
   Shield,
   Ship,
   Sliders,
+  SquareDashedKanbanIcon,
+  TentTree,
   Undo2,
-  User,
   Users,
   Wallet,
+  WalletMinimalIcon,
 } from "lucide-react"
 
 import { useApprovalCounts } from "@/hooks/use-approval"
@@ -88,11 +91,18 @@ export const menuData = {
       url: "/hr",
       icon: GalleryVerticalEnd,
       items: [
-        { title: "Employee", url: "/hr/employee", icon: User },
-        { title: "Attendance", url: "/hr/attendance", icon: Calendar },
-        { title: "Leave", url: "/hr/leave", icon: Calendar },
+        { title: "Employees", url: "/hr/employees", icon: Users },
+        { title: "Loans", url: "/hr/loans", icon: WalletMinimalIcon },
+        { title: "Payruns", url: "/hr/payruns", icon: Calendar },
+        { title: "Time & Attendance", url: "/hr/attendance", icon: Clock },
+        { title: "Leave", url: "/hr/leave", icon: TentTree },
         { title: "Payroll", url: "/hr/payroll", icon: Wallet },
-        { title: "Loan", url: "/hr/loan", icon: CreditCard },
+        { title: "Reports", url: "/hr/reports", icon: SquareDashedKanbanIcon },
+        {
+          title: "Setting",
+          url: "/hr/setting",
+          icon: Settings,
+        },
       ],
     },
     // {

@@ -2,7 +2,7 @@ export interface IEmployee {
   employeeId: number
   companyId: number
   companyName?: string
-  code: string
+  employeeCode: string
   employeeName?: string
   otherName?: string
   photo?: string
@@ -11,11 +11,14 @@ export interface IEmployee {
   departmentName?: string
   designationId: number
   designationName?: string
+  workLocationId?: number
+  workLocationName?: string
   genderId?: number
   genderName?: string
   martialStatus?: string
   dob?: Date | string
   joinDate?: Date | string
+  confirmationDate?: Date | string
   lastDate?: Date | string
   phoneNo?: string
   offPhoneNo?: string
@@ -29,13 +32,26 @@ export interface IEmployee {
   passportExpiry?: Date | string
   visaNo?: string
   visaExpiry?: Date | string
-  nationality?: string
+  isGCCEmployeeNational?: boolean
+  nationalityId?: number
+  nationalityName?: string
   emiratesIDNo?: string
   emiratesIDExpiry?: Date | string
-  mohreContractIDNo?: string
-  mohreContractExpiry?: Date | string
+  moiNo?: string
+  moiExpiry?: Date | string
+  employmentType?: string
+  contractType?: string
   remarks?: string
   isActive?: boolean
+  dateOfBirth?: Date | string
+  fatherName?: string
+  motherName?: string
+  spouseName?: string
+  permanentAddress?: string
+  currentAddress?: string
+  emergencyContactName?: string
+  molId?: string
+  emailAdd?: string
   createDate?: Date | string
   editDate?: Date | string
   createBy?: string
@@ -47,4 +63,66 @@ export interface IEmployeeFilter {
   departmentId?: number
   search?: string
   sortOrder?: "asc" | "desc"
+}
+
+export interface IEmployeeBasic {
+  employeeId: number
+  companyId: number
+  companyName?: string
+  employeeCode: string
+  employeeName?: string
+  otherName?: string
+  photo?: string
+  signature?: string
+  departmentId: number
+  departmentName?: string
+  designationId: number
+  designationName?: string
+  workLocationId?: number
+  workLocationName?: string
+  genderId?: number
+  genderName?: string
+  joinDate?: Date | string
+  confirmationDate?: Date | string
+  lastDate?: Date | string
+  phoneNo?: string
+  offPhoneNo?: string
+  offEmailAdd?: string
+  nationalityId?: number
+  nationalityName?: string
+  employmentType?: string
+  contractType?: string
+  remarks?: string
+  isActive?: boolean
+  createDate?: Date | string
+  editDate?: Date | string
+  createBy?: string
+  editBy?: string
+}
+
+export interface IEmployeePersonalDetails {
+  employeeId: number
+  dateOfBirth?: Date | string
+  fatherName?: string
+  age?: number
+  permanentAddress?: string
+  currentAddress?: string
+  molId?: string
+  emailAdd?: string
+  createDate?: Date | string
+  editDate?: Date | string
+  createBy?: string
+  editBy?: string
+}
+
+export interface IEmployeeBank {
+  employeeId: number
+  bankName: string
+  accountNo: string
+  swiftCode: string
+  iban: string
+  createDate?: Date | string
+  editDate?: Date | string
+  createBy?: string
+  editBy?: string
 }

@@ -30,6 +30,7 @@ import {
   IJobOrderLookup,
   ILandingTypeLookup,
   ILeaveTypeLookup,
+  ILoanTypeLookup,
   IModeTypeLookup,
   IModuleLookup,
   IOrderTypeCategoryLookup,
@@ -44,6 +45,7 @@ import {
   IServiceTypeCategoryLookup,
   IServiceTypeLookup,
   IStatusLookup,
+  IStatusTypeLookup,
   ISubCategoryLookup,
   ISupplierLookup,
   ITaskLookup,
@@ -57,6 +59,7 @@ import {
   IVesselLookup,
   IVisaTypeLookup,
   IVoyageLookup,
+  IWorkLocationLookup,
 } from "@/interfaces/lookup"
 import { IPaymentType } from "@/interfaces/paymenttype"
 import { ISupplierAddress, ISupplierContact } from "@/interfaces/supplier"
@@ -391,6 +394,21 @@ export const useDepartmentLookup = () => {
   })
 }
 
+export const useWorkLocationLookup = () => {
+  return useQuery<IWorkLocationLookup[]>({
+    queryKey: ["work-location-lookup"],
+    ...defaultQueryConfig,
+    queryFn: async () => {
+      try {
+        const data = await getData(Lookup.getWorkLocation)
+        return data?.data || []
+      } catch (error) {
+        handleApiError(error)
+      }
+    },
+  })
+}
+
 export const useProductLookup = () => {
   return useQuery<IProductLookup[]>({
     queryKey: ["product-lookup"],
@@ -443,6 +461,21 @@ export const useEmployeeLookup = () => {
     queryFn: async () => {
       try {
         const data = await getData(Lookup.getEmployee)
+        return data?.data || []
+      } catch (error) {
+        handleApiError(error)
+      }
+    },
+  })
+}
+
+export const useLoanTypeLookup = () => {
+  return useQuery<ILoanTypeLookup[]>({
+    queryKey: ["loan-type-lookup"],
+    ...defaultQueryConfig,
+    queryFn: async () => {
+      try {
+        const data = await getData(Lookup.getLoanType)
         return data?.data || []
       } catch (error) {
         handleApiError(error)
@@ -721,18 +754,24 @@ export const useCreditTermLookup = () => {
   })
 }
 
-export const useChartofAccountLookup = () => {
+export const useChartofAccountLookup = (companyId: number) => {
   return useQuery<IChartofAccountLookup[]>({
-    queryKey: ["chartofaccount-lookup"],
+    queryKey: ["chartofaccount-lookup", companyId],
     ...defaultQueryConfig,
     queryFn: async () => {
       try {
-        const data = await getData(Lookup.getChartOfAccount)
-        return data?.data || []
+        if (companyId > 0) {
+          const data = await getData(`${Lookup.getChartOfAccount}/${companyId}`)
+          return data?.data || []
+        } else {
+          const data = await getData(Lookup.getChartOfAccount)
+          return data?.data || []
+        }
       } catch (error) {
         handleApiError(error)
       }
     },
+    enabled: companyId > 0,
   })
 }
 
@@ -1276,6 +1315,70 @@ export const usePayrollComponentGroupLookup = () => {
     queryFn: async () => {
       try {
         const data = await getData(Lookup.getPayrollComponentGroup)
+        return data?.data || []
+      } catch (error) {
+        handleApiError(error)
+      }
+    },
+    refetchOnWindowFocus: false,
+  })
+}
+
+export const useLoanRequestStatusLookup = () => {
+  return useQuery<IStatusTypeLookup[]>({
+    queryKey: ["loanrequeststatus-lookUp"],
+    placeholderData: keepPreviousData,
+    queryFn: async () => {
+      try {
+        const data = await getData(Lookup.getLoanRequestStatusLookup)
+        return data?.data || []
+      } catch (error) {
+        handleApiError(error)
+      }
+    },
+    refetchOnWindowFocus: false,
+  })
+}
+
+export const useApprovalStatusTypeLookup = () => {
+  return useQuery<IStatusTypeLookup[]>({
+    queryKey: ["landingtype-lookUp"],
+    placeholderData: keepPreviousData,
+    queryFn: async () => {
+      try {
+        const data = await getData(Lookup.getApprovalStatusType)
+        return data?.data || []
+      } catch (error) {
+        handleApiError(error)
+      }
+    },
+    refetchOnWindowFocus: false,
+  })
+}
+
+export const useDisbursementLookup = () => {
+  return useQuery<IStatusTypeLookup[]>({
+    queryKey: ["disbursement-lookUp"],
+    placeholderData: keepPreviousData,
+    queryFn: async () => {
+      try {
+        const data = await getData(Lookup.getDisbursementLookup)
+        return data?.data || []
+      } catch (error) {
+        handleApiError(error)
+      }
+    },
+    refetchOnWindowFocus: false,
+  })
+}
+
+export const useRepaymentStatusLookup = () => {
+  return useQuery<IStatusTypeLookup[]>({
+    queryKey: ["repaymentstatus-lookUp"],
+    placeholderData: keepPreviousData,
+    queryFn: async () => {
+      try {
+        const data = await getData(Lookup.getRepaymentStatusLookup)
         return data?.data || []
       } catch (error) {
         handleApiError(error)
