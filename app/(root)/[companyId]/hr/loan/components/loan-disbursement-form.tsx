@@ -21,7 +21,6 @@ import { Form } from "@/components/ui/form"
 import DisbursementStatusAutocomplete from "@/components/ui-custom/autocomplete-disbursement-status"
 import { CustomDateNoPast } from "@/components/ui-custom/custom-date-no-past"
 import CustomInput from "@/components/ui-custom/custom-input"
-import CustomTextarea from "@/components/ui-custom/custom-textarea"
 
 interface LoanDisbursementFormProps {
   open: boolean
@@ -143,13 +142,6 @@ export function LoanDisbursementForm({
               name="transactionReference"
               label="Reference Number"
               placeholder="Enter reference number"
-              isDisabled={isLoading}
-            />
-
-            <CustomTextarea
-              form={form}
-              name="comments"
-              label="Remarks"
               isDisabled={isLoading}
             />
 

@@ -2,7 +2,10 @@
 export interface ILoanRequest {
   loanRequestId: number
   employeeId: number
+  employeeName?: string
+  employeeCode?: string
   loanTypeId: number
+  loanTypeName?: string
   requestedAmount: number
   requestDate: string | Date
   emiStartDate: string
@@ -65,6 +68,7 @@ export interface ILoanRepayment {
   statusId: number
   statusName: string
   paidDate?: string | Date
+  totalRepaid?: number
   createdById: number
   createdDate: string | Date
   createdBy: string
@@ -103,4 +107,38 @@ export interface ILoanType {
   minTermMonths: number
   createById: number
   createDate?: string
+}
+
+export interface LoanRequestSchedule {
+  loanRequestId: number
+  employeeId: number
+  employeeCode: string
+  employeeName: string
+  loanTypeId: number
+  loanTypeName: string
+  requestDate: string
+  requestedAmount: number
+  emiStartDate: string
+  desiredEMIAmount: number
+  calculatedTermMonths: number
+  statusId: number
+  requestStatus: string
+  remarks: string
+  disbursementDate: string
+  closingDate?: string
+  loanStatus: string
+  nextInstallmentDueDate: string
+
+  dueDate: string // ISO date string
+  paidDate?: string | null // Optional ISO date string
+  emi: number
+  totalAmountRepaid: number
+  remaining_Amount: number
+  installmentStatusId: number
+  installmentStatus: string
+
+  // Aggregates
+  pendingInstallments: number
+  totalRepaidAmount: number
+  totalRemainingAmount: number
 }

@@ -2,7 +2,7 @@
 
 import { ILoanRequest } from "@/interfaces/loans"
 import { ColumnDef } from "@tanstack/react-table"
-import { Eye, MoreHorizontal } from "lucide-react"
+import { Check, MoreHorizontal, X } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -29,16 +29,19 @@ export const columns: ColumnDef<ILoanRequest>[] = [
     },
   },
   {
-    accessorKey: "employeeId",
+    accessorKey: "employeeName",
     header: "Employee",
     cell: ({ row }) => {
-      const employeeId = row.original.employeeId
-      // In real app, you would fetch employee details
+      const employeeName = row.original.employeeName
+      const employeeCode = row.original.employeeCode
       return (
         <div>
-          <div className="font-medium">Employee {employeeId}</div>
+          <div className="font-medium">
+            {employeeName || "Unknown Employee"}
+          </div>
           <div className="text-muted-foreground text-sm">
-            EMP{String(employeeId).padStart(6, "0")}
+            {employeeCode ||
+              `EMP${String(row.original.employeeId).padStart(6, "0")}`}
           </div>
         </div>
       )
@@ -53,21 +56,27 @@ export const columns: ColumnDef<ILoanRequest>[] = [
     },
   },
   {
-    accessorKey: "loanTypeId",
+    accessorKey: "loanTypeName",
     header: "Loan Type",
     cell: ({ row }) => {
-      const loanTypeId = row.original.loanTypeId
-      // In real app, you would fetch loan type details
-      const loanTypes = {
-        1: "Personal Loans",
-        2: "Home Improvement Loan",
-        3: "Car Loan",
-      }
-      return (
-        <span>
-          {loanTypes[loanTypeId as keyof typeof loanTypes] || "Unknown"}
-        </span>
-      )
+      const loanTypeName = row.original.loanTypeName
+      return <span>{loanTypeName || "Unknown"}</span>
+    },
+  },
+  {
+    accessorKey: "desiredEMIAmount",
+    header: "Desired EMI",
+    cell: ({ row }) => {
+      const emi = row.original.desiredEMIAmount
+      return <span>AED {emi.toLocaleString()}</span>
+    },
+  },
+  {
+    accessorKey: "calculatedTermMonths",
+    header: "Term (Months)",
+    cell: ({ row }) => {
+      const term = row.original.calculatedTermMonths
+      return <span>{term} months</span>
     },
   },
   {
@@ -75,8 +84,11 @@ export const columns: ColumnDef<ILoanRequest>[] = [
     header: "Status",
     cell: ({ row }) => {
       const status = row.original.statusName
-      const variant = status === "Rejected" ? "destructive" : "secondary"
-      return <Badge variant={variant}>{status}</Badge>
+      return (
+        <Badge variant={status === "Pending" ? "secondary" : "default"}>
+          {status}
+        </Badge>
+      )
     },
   },
   {
@@ -84,14 +96,6 @@ export const columns: ColumnDef<ILoanRequest>[] = [
     header: "Request Date",
     cell: ({ row }) => {
       const date = row.original.requestDate
-      return <span>{new Date(date).toLocaleDateString()}</span>
-    },
-  },
-  {
-    accessorKey: "createdDate",
-    header: "Processed Date",
-    cell: ({ row }) => {
-      const date = row.original.createdDate
       return <span>{new Date(date).toLocaleDateString()}</span>
     },
   },
@@ -118,11 +122,14 @@ export const columns: ColumnDef<ILoanRequest>[] = [
               Copy request ID
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
-              <Eye className="mr-2 h-4 w-4" />
-              View details
+            <DropdownMenuItem className="text-green-600">
+              <Check className="mr-2 h-4 w-4" />
+              Approve
             </DropdownMenuItem>
-            <DropdownMenuItem>View rejection reason</DropdownMenuItem>
+            <DropdownMenuItem className="text-red-600">
+              <X className="mr-2 h-4 w-4" />
+              Reject
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       )

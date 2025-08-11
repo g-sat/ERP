@@ -46,7 +46,6 @@ import {
 } from "lucide-react"
 
 import { useApprovalCounts } from "@/hooks/use-approval"
-import { Badge } from "@/components/ui/badge"
 import {
   Sidebar,
   SidebarContent,
@@ -92,7 +91,7 @@ export const menuData = {
       icon: GalleryVerticalEnd,
       items: [
         { title: "Employees", url: "/hr/employees", icon: Users },
-        { title: "Loans", url: "/hr/loans", icon: WalletMinimalIcon },
+        { title: "Loan", url: "/hr/loan", icon: WalletMinimalIcon },
         { title: "Payruns", url: "/hr/payruns", icon: Calendar },
         { title: "Time & Attendance", url: "/hr/attendance", icon: Clock },
         { title: "Leave", url: "/hr/leave", icon: TentTree },
@@ -397,21 +396,25 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                         onClick={() => handleMenuClick(item.title)}
                         onMouseEnter={() => setHoveredMenu(item.title)}
                         onMouseLeave={() => setHoveredMenu(null)}
-                        className={`hover:bg-primary/20 hover:text-primary data-[active=true]:bg-primary/20 data-[active=true]:text-primary transition-colors duration-200 ${
+                        className={`hover:bg-primary/20 hover:text-primary data-[active=true]:bg-primary/20 data-[active=true]:text-primary relative transition-colors duration-200 ${
                           isMenuActive(item.title) || hoveredMenu === item.title
                             ? "bg-primary/20 text-primary"
                             : ""
                         }`}
                       >
-                        {item.icon && <item.icon />}
+                        <div className="relative">
+                          {item.icon && <item.icon />}
+                          {item.title === "Approvals" && approvalCount > 0 && (
+                            <span className="absolute -top-1 -right-1 z-20 flex h-4 w-4 animate-bounce items-center justify-center rounded-full bg-red-500 text-xs text-white shadow-sm group-data-[collapsed=false]:hidden group-data-[collapsed=true]:block">
+                              {approvalCount}
+                            </span>
+                          )}
+                        </div>
                         <span>{item.title}</span>
                         {item.title === "Approvals" && approvalCount > 0 && (
-                          <Badge
-                            variant="secondary"
-                            className="ml-auto animate-pulse bg-yellow-100 text-yellow-800"
-                          >
+                          <span className="ml-2 flex h-4 w-4 animate-bounce items-center justify-center rounded-full bg-red-500 text-xs text-white shadow-sm group-data-[collapsed=false]:block group-data-[collapsed=true]:hidden">
                             {approvalCount}
-                          </Badge>
+                          </span>
                         )}
                         <ChevronRightIcon className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
                       </SidebarMenuButton>
@@ -458,22 +461,26 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                   tooltip={item.title}
                   onMouseEnter={() => setHoveredMenu(item.title)}
                   onMouseLeave={() => setHoveredMenu(null)}
-                  className={`hover:bg-primary/20 hover:text-primary data-[active=true]:bg-primary/20 data-[active=true]:text-primary transition-colors duration-200 ${
+                  className={`hover:bg-primary/20 hover:text-primary data-[active=true]:bg-primary/20 data-[active=true]:text-primary relative transition-colors duration-200 ${
                     isMenuActive(item.title) || hoveredMenu === item.title
                       ? "bg-primary/20 text-primary"
                       : ""
                   }`}
                 >
                   <Link href={getUrlWithCompanyId(item.url)}>
-                    {item.icon && <item.icon />}
+                    <div className="relative">
+                      {item.icon && <item.icon />}
+                      {item.title === "Approvals" && approvalCount > 0 && (
+                        <span className="absolute -top-1 -right-1 z-20 flex h-4 w-4 animate-bounce items-center justify-center rounded-full bg-red-500 text-xs text-white shadow-sm group-data-[collapsed=false]:hidden group-data-[collapsed=true]:block">
+                          {approvalCount}
+                        </span>
+                      )}
+                    </div>
                     <span>{item.title}</span>
                     {item.title === "Approvals" && approvalCount > 0 && (
-                      <Badge
-                        variant="secondary"
-                        className="ml-auto animate-pulse bg-yellow-100 text-yellow-800"
-                      >
+                      <span className="ml-2 flex h-4 w-4 animate-bounce items-center justify-center rounded-full bg-red-500 text-xs text-white shadow-sm group-data-[collapsed=false]:block group-data-[collapsed=true]:hidden">
                         {approvalCount}
-                      </Badge>
+                      </span>
                     )}
                   </Link>
                 </SidebarMenuButton>

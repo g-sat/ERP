@@ -1,10 +1,11 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import { ILoanRepayment } from "@/interfaces/loans"
+import { ILoanRepayment, ILoanRequest } from "@/interfaces/loans"
 import { ColumnDef } from "@tanstack/react-table"
 import { Trash2 } from "lucide-react"
 
+import { HrLoan } from "@/lib/api-routes"
+import { useGetById } from "@/hooks/use-common"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -13,71 +14,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 
-// Dummy repayment data
-const dummyRepayments: ILoanRepayment[] = [
-  {
-    repaymentId: 1,
-    loanRequestId: 2,
-    installmentNumber: 1,
-    dueDate: "2025-05-31",
-    emiAmount: 0,
-    principalComponent: 0,
-    interestComponent: 0,
-    outstandingBalance: 5000,
-    statusId: 1,
-    paidDate: undefined,
-  },
-  {
-    repaymentId: 2,
-    loanRequestId: 2,
-    installmentNumber: 2,
-    dueDate: "2025-06-10",
-    emiAmount: 500,
-    principalComponent: 400,
-    interestComponent: 100,
-    outstandingBalance: 4600,
-    statusId: 2,
-    paidDate: "2025-06-10",
-  },
-  {
-    repaymentId: 3,
-    loanRequestId: 2,
-    installmentNumber: 3,
-    dueDate: "2025-06-30",
-    emiAmount: 800,
-    principalComponent: 700,
-    interestComponent: 100,
-    outstandingBalance: 3900,
-    statusId: 3,
-    paidDate: "2025-06-30",
-  },
-  {
-    repaymentId: 4,
-    loanRequestId: 2,
-    installmentNumber: 4,
-    dueDate: "2025-07-31",
-    emiAmount: 800,
-    principalComponent: 700,
-    interestComponent: 100,
-    outstandingBalance: 3200,
-    statusId: 3,
-    paidDate: "2025-07-31",
-  },
-  {
-    repaymentId: 5,
-    loanRequestId: 2,
-    installmentNumber: 5,
-    dueDate: "2025-08-05",
-    emiAmount: 400,
-    principalComponent: 350,
-    interestComponent: 50,
-    outstandingBalance: 2850,
-    statusId: 2,
-    paidDate: "2025-08-05",
-  },
-]
-
-const repaymentColumns: ColumnDef<ILoanRepayment>[] = [
+export const columns: ColumnDef<ILoanRepayment>[] = [
   {
     accessorKey: "dueDate",
     header: "INSTALMENT DATE",
@@ -91,7 +28,7 @@ const repaymentColumns: ColumnDef<ILoanRepayment>[] = [
     header: "EMI",
     cell: ({ row }) => {
       const emi = row.getValue("emiAmount") as number
-      const status = row.original.statusId
+      const status = row.original.statusName
       return (
         <div>
           <div>AED {emi.toLocaleString()}</div>
@@ -105,12 +42,11 @@ const repaymentColumns: ColumnDef<ILoanRepayment>[] = [
     },
   },
   {
-    accessorKey: "outstandingBalance",
+    accessorKey: "totalRepaid",
     header: "TOTAL AMOUNT REPAID",
     cell: ({ row }) => {
-      const loanAmount = 5000 // Total loan amount
-      const outstanding = row.getValue("outstandingBalance") as number
-      const repaid = loanAmount - outstanding
+      // This will be calculated and passed from the parent component
+      const repaid = row.original.totalRepaid || 0
       return (
         <span className="font-medium text-green-600">
           AED {repaid.toLocaleString()}
@@ -148,18 +84,45 @@ export function LoanRepaymentTable({
   onOpenChange,
   loanId,
 }: LoanRepaymentTableProps) {
-  const [repayments, setRepayments] = useState<ILoanRepayment[]>([])
+  // Fetch loan repayments and loan details
+  const { data: repaymentsData } = useGetById<ILoanRepayment[]>(
+    `${HrLoan.getById}`,
+    "loan-repayments",
+    loanId?.toString() || ""
+  )
+  const { data: loanDetailsData } = useGetById<ILoanRequest[]>(
+    `${HrLoan.getById}`,
+    "loan-details",
+    loanId?.toString() || ""
+  )
 
-  useEffect(() => {
-    if (loanId) {
-      // In real app, fetch repayments for the specific loan
-      setRepayments(dummyRepayments)
+  // Helper function to extract repayments safely
+  const extractRepayments = (data: ILoanRepayment[]): ILoanRepayment[] => {
+    if (!data) return []
+    if (Array.isArray(data)) {
+      if (data.length > 0 && Array.isArray(data[0])) {
+        return data[0] as ILoanRepayment[]
+      }
+      return data as ILoanRepayment[]
     }
-  }, [loanId])
+    return []
+  }
 
-  const totalRepaid = 2500 // In real app, calculate from repayments
-  const remainingAmount = 2500 // In real app, calculate from repayments
-  const installmentsRemaining = 4 // In real app, calculate from repayments
+  const repayments = extractRepayments(
+    repaymentsData?.data as unknown as ILoanRepayment[]
+  )
+
+  const loanDetails: ILoanRequest =
+    loanDetailsData?.data as unknown as ILoanRequest
+
+  // Calculate summary statistics
+  const totalRepaid = repayments.reduce((sum, repayment) => {
+    return repayment.paidDate ? sum + repayment.emiAmount : sum
+  }, 0)
+
+  const totalLoanAmount = loanDetails?.requestedAmount || 0
+  const remainingAmount = totalLoanAmount - totalRepaid
+  const installmentsRemaining = repayments.filter((r) => !r.paidDate).length
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

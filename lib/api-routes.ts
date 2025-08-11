@@ -1235,3 +1235,27 @@ export const PayrollReport = {
   getByType: "/hr/payroll/typepayrollreport",
   summary: "/hr/payroll/summarypayrollreport",
 }
+
+export const HrLoan = {
+  //Get DashBoard loan
+  getActive: "/hr/loan/active",
+  getActiveClosed: "/hr/loan/active_close",
+  getHistory: "/hr/loan/all",
+  getPending: "/hr/loan/pending",
+  getLoanDetails: "/hr/loan/getloandetails",
+  getLoanDashboard: "/hr/loan/loan-dashboard",
+
+  //Employee Loan Endpoints
+  getEmployee: "/hr/loan/employee",
+  getDisbursement: "/hr/loan/disbursement",
+  getSkipRequest: "/hr/loan/skiprequest",
+  getApprovedRequest: "/hr/loan/approvedloan",
+  getRejectedRequest: "/hr/loan/rejectedloan",
+  getByDateRange: "/hr/loan/daterangeloan",
+  getByStatus: "/hr/loan/status",
+  get: "/hr/loan/getloan",
+  getById: "/hr/loan/getloanbyid",
+  add: "/hr/loan/saveloan",
+  update: "/hr/loan/saveloan",
+  delete: "/hr/loan/deleteloan",
+}

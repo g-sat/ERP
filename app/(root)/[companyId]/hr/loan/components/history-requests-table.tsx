@@ -2,7 +2,7 @@
 
 import { ILoanRequest } from "@/interfaces/loans"
 import { ColumnDef } from "@tanstack/react-table"
-import { MoreHorizontal } from "lucide-react"
+import { Eye, MoreHorizontal } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -18,27 +18,30 @@ import {
 export const columns: ColumnDef<ILoanRequest>[] = [
   {
     accessorKey: "loanRequestId",
-    header: "Loan ID",
+    header: "Request ID",
     cell: ({ row }) => {
       const loanId = row.original.loanRequestId
       return (
         <span className="font-medium">
-          LOAN-{String(loanId).padStart(5, "0")}
+          REQ-{String(loanId).padStart(5, "0")}
         </span>
       )
     },
   },
   {
-    accessorKey: "employeeId",
+    accessorKey: "employeeName",
     header: "Employee",
     cell: ({ row }) => {
-      const employeeId = row.original.employeeId
-      // In real app, you would fetch employee details
+      const employeeName = row.original.employeeName
+      const employeeCode = row.original.employeeCode
       return (
         <div>
-          <div className="font-medium">Employee {employeeId}</div>
+          <div className="font-medium">
+            {employeeName || "Unknown Employee"}
+          </div>
           <div className="text-muted-foreground text-sm">
-            EMP{String(employeeId).padStart(6, "0")}
+            {employeeCode ||
+              `EMP${String(row.original.employeeId).padStart(6, "0")}`}
           </div>
         </div>
       )
@@ -46,40 +49,27 @@ export const columns: ColumnDef<ILoanRequest>[] = [
   },
   {
     accessorKey: "requestedAmount",
-    header: "Loan Amount",
+    header: "Requested Amount",
     cell: ({ row }) => {
       const amount = row.original.requestedAmount
       return <span className="font-medium">AED {amount.toLocaleString()}</span>
     },
   },
   {
-    accessorKey: "loanTypeId",
+    accessorKey: "loanTypeName",
     header: "Loan Type",
     cell: ({ row }) => {
-      const loanTypeId = row.original.loanTypeId
-      // In real app, you would fetch loan type details
-      const loanTypes = {
-        1: "Personal Loans",
-        2: "Home Improvement Loan",
-        3: "Car Loan",
-      }
-      return (
-        <span>
-          {loanTypes[loanTypeId as keyof typeof loanTypes] || "Unknown"}
-        </span>
-      )
+      const loanTypeName = row.original.loanTypeName
+      return <span>{loanTypeName || "Unknown"}</span>
     },
   },
   {
-    accessorKey: "currentStatus",
+    accessorKey: "statusName",
     header: "Status",
     cell: ({ row }) => {
       const status = row.original.statusName
-      return (
-        <Badge variant={status === "Approved" ? "default" : "secondary"}>
-          {status}
-        </Badge>
-      )
+      const variant = status === "Rejected" ? "destructive" : "secondary"
+      return <Badge variant={variant}>{status}</Badge>
     },
   },
   {
@@ -87,6 +77,14 @@ export const columns: ColumnDef<ILoanRequest>[] = [
     header: "Request Date",
     cell: ({ row }) => {
       const date = row.original.requestDate
+      return <span>{new Date(date).toLocaleDateString()}</span>
+    },
+  },
+  {
+    accessorKey: "createdDate",
+    header: "Processed Date",
+    cell: ({ row }) => {
+      const date = row.original.createdDate
       return <span>{new Date(date).toLocaleDateString()}</span>
     },
   },
@@ -110,11 +108,14 @@ export const columns: ColumnDef<ILoanRequest>[] = [
                 navigator.clipboard.writeText(String(loan.loanRequestId))
               }
             >
-              Copy loan ID
+              Copy request ID
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>View details</DropdownMenuItem>
-            <DropdownMenuItem>Edit loan</DropdownMenuItem>
+            <DropdownMenuItem>
+              <Eye className="mr-2 h-4 w-4" />
+              View details
+            </DropdownMenuItem>
+            <DropdownMenuItem>View rejection reason</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       )

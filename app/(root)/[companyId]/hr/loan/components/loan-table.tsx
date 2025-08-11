@@ -22,11 +22,13 @@ export function LoanTable<T>({ columns, data, onRowClick }: LoanTableProps<T>) {
     <div className="rounded-md border">
       <Table>
         <TableHeader>
-          {columns.map((column) => (
-            <TableHead key={column.id as string}>
-              {typeof column.header === "string" ? column.header : ""}
-            </TableHead>
-          ))}
+          <TableRow>
+            {columns.map((column, index) => (
+              <TableHead key={(column.id as string) || `column-${index}`}>
+                {typeof column.header === "string" ? column.header : ""}
+              </TableHead>
+            ))}
+          </TableRow>
         </TableHeader>
         <TableBody>
           {data.map((row, rowIndex) => (
@@ -38,7 +40,11 @@ export function LoanTable<T>({ columns, data, onRowClick }: LoanTableProps<T>) {
               {columns.map((column, colIndex) => (
                 <TableCell key={colIndex}>
                   {column.cell
-                    ? (column.cell as any)({ row: { original: row } })
+                    ? (
+                        column.cell as (info: {
+                          row: { original: T }
+                        }) => React.ReactNode
+                      )({ row: { original: row } })
                     : ""}
                 </TableCell>
               ))}
