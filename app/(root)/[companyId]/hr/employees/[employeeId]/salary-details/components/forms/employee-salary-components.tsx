@@ -54,7 +54,7 @@ export function EmployeeSalaryComponentsForm({
     resolver: zodResolver(employeeSalaryComponentSchema),
     defaultValues: {
       employeeId: employee?.employeeId || 0,
-      payrollComponentId: employee?.payrollComponentId || 0,
+      componentId: employee?.componentId || 0,
       amount: employee?.amount || 0,
       effectiveFromDate: employee?.effectiveFromDate
         ? parseDate(employee?.effectiveFromDate as string) || new Date()
@@ -76,7 +76,7 @@ export function EmployeeSalaryComponentsForm({
 
     setSalaryComponents((prevComponents) => {
       const updatedComponents = prevComponents.map((component) =>
-        component.payrollComponentId.toString() === id
+        component.componentId.toString() === id
           ? { ...component, amount: newAmount }
           : component
       )
@@ -139,7 +139,7 @@ export function EmployeeSalaryComponentsForm({
               </TableHeader>
               <TableBody>
                 {salaryComponents.map((component) => (
-                  <TableRow key={component.payrollComponentId}>
+                  <TableRow key={component.componentId}>
                     <TableCell className="font-medium">
                       {component.componentName}
                     </TableCell>
@@ -155,7 +155,7 @@ export function EmployeeSalaryComponentsForm({
                         onChange={(e) => {
                           console.log("Input changed:", e.target.value)
                           handleMonthlyAmountChange(
-                            component.payrollComponentId.toString(),
+                            component.componentId.toString(),
                             e.target.value
                           )
                         }}

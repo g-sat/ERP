@@ -1,49 +1,177 @@
-export interface IPayRun {
-  id: number
-  payrollType: string
-  startDate: Date
-  endDate: Date
-  paymentDate: Date
+// Payrun Dashboard Interface
+export interface IPayrollDashboard {
+  payrollRunId: number
+  month: string
+  payPeriodStart: string | Date
+  payPeriodEnd: string | Date
+  paymentDate: string | Date
   employeeCount: number
-  totalAmount: number
-  status: string // 'DRAFT' | 'PROCESSING' | 'APPROVED' | 'PAID' | 'CANCELLED'
-  processedBy?: number
-  processedDate?: Date
-  approvedBy?: number
-  approvedDate?: Date
-  remarks?: string
-  // Related data
-  processedByName?: string
-  approvedByName?: string
-  createDate?: Date
-  createBy?: string
-  editDate?: Date
-  editBy?: string
-}
-
-export interface IPayRunHistory {
-  id: number
-  paymentDate: string
-  payrollType: string
-  payrollPeriod: string
+  totalNetPay: string
   status: string
-  totalAmount: number
+  isPaid: boolean
+  isSubmitted: boolean
+  isPayruns: boolean
+  warningMessage: string
+  showCreatePayRunButton: boolean
+  showViewDetailsButton: boolean
+  showViewDetailsAndPayButton: boolean
+}
+
+export interface IPayrollDashboardDetails {
+  payrollRunId: number
+  payName: string
+  payPeriodStart: string // ISO date string
+  payPeriodEnd: string // ISO date string
+  paymentDate: string // ISO date string
+  payDate: string // ISO date string
+  status: string
+  workingDaysPerMonth: number
+  payDayOfMonth: number
+}
+
+// Payrun Employee Header Interface
+export interface IPayrollEmployeeHd {
+  payrollEmployeeId: number
+  companyId: number
+  companyName: string
+  departmentId: number
+  departmentName: string
+  employeeId: number
+  employeeCode: string
+  employeeName: string
+  presentDays: number
+  basicSalary: number
+  totalEarnings: number
+  totalDeductions: number
+  netSalary: number
+  remarks: string
+  isDraft: boolean
+  isSubmitted: boolean
+  isPaid: boolean
+  isRejected: boolean
+  isPreviousPaid: boolean
+  status: string
+  data_details?: IPayrollEmployeeDt[]
+  paymentMode?: string
+  paymentStatus?: string
+}
+
+// Payrun Employee Detail Interface
+export interface IPayrollEmployeeDt {
+  payrollEmployeeId: number
+  componentId: number
+  componentCode: string
+  componentName: string
+  componentType: string
+  amount: number
+  remarks: string
+}
+
+// Payrun History Interface
+export interface IPayRunHistory {
+  payrollRunId: number
+  payName: string
+  payPeriodStart: string
+  payPeriodEnd: string
+  payDate: string
+  status: string
+}
+
+// Payrun Summary Interface
+export interface IPayRunSummary {
+  id: number
+  payrollType: string
+  period: string
+  baseDays: number
+  payDay: number
+  month: string
+  year: number
   employeeCount: number
+  status: string
+  payrollCost: number
+  totalNetPay: number
+  totalDeductions: number
+  totalBenefits: number
+  totalDonations: number
 }
 
+// Employee Interface for Payrun
+export interface IEmployee {
+  id: number
+  name: string
+  employeeId: string
+  paidDays: number
+  grossPay: number
+  benefits: number
+  netPay: number
+  earnings: {
+    basic: number
+    housingAllowance: number
+    costOfLivingAllowance: number
+    otherAllowance: number
+  }
+  deductions: {
+    personalLoans: number
+    actualLoanAmount: number
+  }
+}
+
+// Payrun Filter Interface
 export interface IPayRunFilter {
-  payrollType?: string
   status?: string
-  dateFrom?: Date
-  dateTo?: Date
-  employeeCount?: number
+  payrollType?: string
+  dateFrom?: string
+  dateTo?: string
+  employeeId?: string
+  search?: string
 }
 
-export interface IPayRunDashboard {
-  totalPayRuns: number
-  activePayRuns: number
-  pendingApprovals: number
+// Payrun Process Interface
+export interface IPayRunProcess {
+  payrollRunId: number
+  action: "process" | "approve" | "reject" | "draft"
+  processedBy: string
+  processedDate: string
+  remarks?: string
+}
+
+// Payrun Payment Interface
+export interface IPayRunPayment {
+  payrollRunId: number
+  employeeIds: number[]
+  paymentMode: string
+  paymentDate: string
   totalAmount: number
-  monthlyPayroll: number
-  recentPayRuns: IPayRun[]
+  paymentReference?: string
+  remarks?: string
+}
+
+// Payrun Component Interface
+export interface IPayRunComponent {
+  componentId: number
+  componentName: string
+  componentType: "EARNING" | "DEDUCTION" | "BENEFIT"
+  amount: number
+  percentage?: number
+  isActive: boolean
+}
+
+// Payrun Settings Interface
+export interface IPayRunSettings {
+  companyId: string
+  defaultPaymentMode: string
+  autoApprove: boolean
+  requireApproval: boolean
+  notificationEnabled: boolean
+  taxCalculationMethod: string
+  roundingMethod: string
+}
+
+export interface ISavePayrunComponentViewModel {
+  payrollEmployeeId: number
+  payrollRunId: number
+  employeeId: number
+  componentId: number
+  amount: number
+  presentDays: number
 }

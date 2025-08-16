@@ -39,9 +39,9 @@ export default function SalaryDetailsPage() {
   } = useGetEmployeeSalaryDetailsById(employeeId)
 
   const {
-    data: payrollComponentsData,
-    isLoading: payrollComponentsLoading,
-    refetch: payrollComponentsRefetch,
+    data: componentsData,
+    isLoading: componentsLoading,
+    refetch: componentsRefetch,
   } = useGet(PayrollComponent.getSalary, "payrollcomponentsalary")
 
   // Get the employee salary details from the response
@@ -49,15 +49,15 @@ export default function SalaryDetailsPage() {
     employeeSalaryDetailsData?.data as unknown as IEmployeeSalaryComponent[]
 
   // Get payroll components data
-  const payrollComponents =
-    (payrollComponentsData?.data as unknown as IPayrollComponent[]) || []
+  const components =
+    (componentsData?.data as unknown as IPayrollComponent[]) || []
 
   // Handle null or empty salary details
   const hasSalaryData =
     employeeSalaryDetails && employeeSalaryDetails.length > 0
 
   // Show loading skeleton
-  if (isLoading || payrollComponentsLoading) {
+  if (isLoading || componentsLoading) {
     return <DataTableSkeleton columnCount={7} />
   }
 
@@ -88,16 +88,16 @@ export default function SalaryDetailsPage() {
   // Function to get fresh default salary components
   const getFreshDefaultSalaryComponents = () => {
     // Refetch payroll components to get latest data
-    payrollComponentsRefetch()
+    componentsRefetch()
 
     // Return current filtered data (will be updated after refetch)
-    return payrollComponents
+    return components
       .filter((component) => component.isSalaryComponent)
       .map((component) => ({
         employeeId: parseInt(employeeId),
         employeeName: "",
         employeeCode: "",
-        payrollComponentId: component.payrollComponentId,
+        componentId: component.componentId,
         componentName: component.componentName,
         componentType: component.componentType,
         amount: 0,

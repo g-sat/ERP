@@ -106,7 +106,7 @@ export function PayrollComponentTable({
           </TableRow>
         ) : (
           filtered.map((component) => (
-            <TableRow key={component.payrollComponentId}>
+            <TableRow key={component.componentId}>
               <TableCell className="font-medium">
                 {component.componentCode}
               </TableCell>

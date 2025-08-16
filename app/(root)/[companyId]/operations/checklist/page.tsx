@@ -266,12 +266,10 @@ export default function ChecklistPage() {
               className="w-[180px]"
             />
             <Button onClick={handleSearchClick}>
-              <SearchIcon className="mr-2 h-4 w-4" />
-              Search
+              <SearchIcon className="h-4 w-4" />
             </Button>
             <Button variant="outline" onClick={handleClear}>
-              <XIcon className="mr-2 h-4 w-4" />
-              Clear
+              <XIcon className="h-4 w-4" />
             </Button>
           </div>
 
@@ -280,8 +278,8 @@ export default function ChecklistPage() {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" disabled={isExporting}>
-                  <DownloadIcon className="mr-2 h-4 w-4" />
-                  {isExporting ? "Exporting..." : "Export"}
+                  <DownloadIcon className="h-4 w-4" />
+                  {isExporting}
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
@@ -294,12 +292,10 @@ export default function ChecklistPage() {
               </DropdownMenuContent>
             </DropdownMenu>
             <Button variant="outline" onClick={handleRefresh}>
-              <RefreshCcwIcon className="mr-2 h-4 w-4" />
-              Refresh
+              <RefreshCcwIcon className="h-4 w-4" />
             </Button>
             <Button onClick={handleAddNew}>
-              <PlusIcon className="mr-2 h-4 w-4" />
-              Add
+              <PlusIcon className="h-4 w-4" />
             </Button>
           </div>
         </div>

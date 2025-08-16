@@ -472,7 +472,7 @@ export interface ICompanyLookup {
 }
 
 export interface IPayrollComponentLookup {
-  payrollComponentId: number
+  componentId: number
   componentName: string
   componentCode: string
 }

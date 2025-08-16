@@ -18,7 +18,8 @@ export default function HRSettingsLayout({
     if (pathname.includes("/designation")) return "designation"
     if (pathname.includes("/department")) return "department"
     if (pathname.includes("/payroll-components")) return "payroll-components"
-    if (pathname.includes("/payroll-periods")) return "payroll-periods"
+
+    if (pathname.includes("/pay-schedule")) return "pay-schedule"
     if (pathname.includes("/account-integration")) return "account-integration"
     if (pathname.includes("/employer-details")) return "employer-details"
     // If we're at the root /hr/setting path, return work-location as default
@@ -52,7 +53,8 @@ export default function HRSettingsLayout({
           <TabsTrigger value="payroll-components">
             Payroll Components
           </TabsTrigger>
-          <TabsTrigger value="payroll-periods">Payroll Periods</TabsTrigger>
+
+          <TabsTrigger value="pay-schedule">Pay Schedule</TabsTrigger>
           <TabsTrigger value="account-integration">
             Account Integration
           </TabsTrigger>

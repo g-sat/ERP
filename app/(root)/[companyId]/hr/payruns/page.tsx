@@ -1,138 +1,103 @@
 "use client"
 
-import { useState } from "react"
-import { useParams, useRouter } from "next/navigation"
+import { useEffect, useState } from "react"
+import { useParams, useRouter, useSearchParams } from "next/navigation"
+import { IPayrollDashboard } from "@/interfaces/payrun"
 
+import { useGet } from "@/hooks/use-common"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
-import { ProcessPayRunCard } from "./components/process-pay-run-card"
-
-// Dummy data for demonstration
-const dummyPayRunHistory = [
-  {
-    id: 1,
-    paymentDate: "2025-07-31",
-    payrollType: "Regular Payroll",
-    payrollPeriod: "01 Jul 2025 - 31 Jul 2025",
-    status: "PAID",
-    totalAmount: 45000,
-    employeeCount: 2,
-  },
-  {
-    id: 2,
-    paymentDate: "2025-06-30",
-    payrollType: "Regular Payroll",
-    payrollPeriod: "01 Jun 2025 - 30 Jun 2025",
-    status: "PAID",
-    totalAmount: 42000,
-    employeeCount: 2,
-  },
-  {
-    id: 3,
-    paymentDate: "2025-05-31",
-    payrollType: "Regular Payroll",
-    payrollPeriod: "01 May 2025 - 31 May 2025",
-    status: "PAID",
-    totalAmount: 41000,
-    employeeCount: 2,
-  },
-  {
-    id: 4,
-    paymentDate: "2025-04-30",
-    payrollType: "Regular Payroll",
-    payrollPeriod: "01 Apr 2025 - 30 Apr 2025",
-    status: "PAID",
-    totalAmount: 40000,
-    employeeCount: 2,
-  },
-  {
-    id: 5,
-    paymentDate: "2025-03-31",
-    payrollType: "Regular Payroll",
-    payrollPeriod: "01 Mar 2025 - 31 Mar 2025",
-    status: "PAID",
-    totalAmount: 39000,
-    employeeCount: 2,
-  },
-]
-
-const currentPayRun = {
-  month: "August 2025",
-  paymentDate: "2025-08-31",
-  employeeCount: 2,
-  status: "READY",
-  netPayStatus: "YET TO PROCESS",
-}
+import { ProcessPayRunCard } from "./components/pay-run-card"
+import { PayRunHistoryTable } from "./components/pay-run-history-table"
 
 export default function PayRunsPage() {
   const router = useRouter()
   const params = useParams()
+  const searchParams = useSearchParams()
   const companyId = params.companyId as string
   const [activeTab, setActiveTab] = useState("run-payroll")
 
-  const handleCreatePayRun = () => {
-    // Generate a new payrun ID (you can replace this with actual ID generation logic)
-    const newPayrunId = Date.now().toString()
-    router.push(`/${companyId}/hr/payruns/${newPayrunId}`)
+  const { data: payRunData, refetch } = useGet<IPayrollDashboard>(
+    `/hr/payrollruns/dashboard`,
+    "pay-run"
+  )
+  const payRun = payRunData?.data as unknown as IPayrollDashboard
+  console.log("payRun", payRun)
+
+  // Check if refetch is requested via URL parameter
+  useEffect(() => {
+    const shouldRefetch = searchParams.get("refetch")
+    if (shouldRefetch === "true") {
+      refetch()
+      // Remove the refetch parameter from URL
+      const newUrl = new URL(window.location.href)
+      newUrl.searchParams.delete("refetch")
+      router.replace(newUrl.pathname + newUrl.search)
+    }
+  }, [searchParams, refetch, router])
+
+  const handleProcess = async (payrollRunId?: number) => {
+    if (payrollRunId) {
+      router.push(`/${companyId}/hr/payruns/${payrollRunId}/preview`)
+    }
   }
 
-  const handleProcessPayRun = async () => {
-    // Generate a new payrun ID (you can replace this with actual ID generation logic)
-    const newPayrunId = Date.now().toString()
-    router.push(`/${companyId}/hr/payruns/${newPayrunId}`)
+  const handleApprove = (payrollRunId?: number) => {
+    if (payrollRunId) {
+      router.push(`/${companyId}/hr/payruns/${payrollRunId}/summary`)
+    }
   }
 
   return (
-    <div className="@container flex-1 space-y-4 p-4 pt-6 md:p-6">
+    <div className="@container flex-1 space-y-3 p-3 pt-4 md:p-4">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Pay Runs</h1>
+          <h1 className="text-xl font-bold tracking-tight">Pay Runs</h1>
           <p className="text-muted-foreground">
             Manage payroll processing and payment history
           </p>
         </div>
-        <Button
-          onClick={handleCreatePayRun}
-          className="bg-blue-600 hover:bg-blue-700"
-        >
-          Create Pay Run
-        </Button>
       </div>
 
       {/* Tabs */}
       <Tabs
         value={activeTab}
         onValueChange={setActiveTab}
-        className="space-y-4"
+        className="space-y-3"
       >
         <TabsList>
           <TabsTrigger value="run-payroll">Run Payroll</TabsTrigger>
           <TabsTrigger value="payroll-history">Payroll History</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="run-payroll" className="space-y-4">
-          <ProcessPayRunCard
-            payRun={currentPayRun}
-            onProcess={handleProcessPayRun}
-            onCreatePayRun={handleCreatePayRun}
-          />
+        <TabsContent value="run-payroll" className="space-y-3">
+          {payRun && !payRun.isPaid && (
+            <ProcessPayRunCard
+              payRun={payRun}
+              onProcess={handleProcess}
+              onDraft={handleProcess}
+              onApprove={handleApprove}
+            />
+          )}
+          {payRun && payRun.isPaid && (
+            <div className="rounded-md border p-4">
+              <p className="text-muted-foreground">
+                Payroll has already been processed and paid.
+              </p>
+            </div>
+          )}
         </TabsContent>
 
-        <TabsContent value="payroll-history" className="space-y-4">
+        <TabsContent value="payroll-history" className="space-y-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
               <span className="text-sm font-medium">Payroll Type:</span>
               <Badge variant="outline">All</Badge>
             </div>
           </div>
-          <div className="rounded-md border p-4">
-            <p className="text-muted-foreground">
-              Payroll history will be displayed here
-            </p>
-          </div>
+          <PayRunHistoryTable />
         </TabsContent>
       </Tabs>
     </div>

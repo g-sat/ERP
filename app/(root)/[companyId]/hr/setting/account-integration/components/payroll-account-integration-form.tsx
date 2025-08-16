@@ -3,7 +3,7 @@
 import React, { useState } from "react"
 import {
   PayrollComponentGLMappingFormData,
-  payrollComponentGLMappingSchema,
+  componentGLMappingSchema,
 } from "@/schemas/payroll"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
@@ -26,10 +26,10 @@ export function PayrollAccountIntegrationForm({ initialData, onSave }: Props) {
   )
 
   const form = useForm<PayrollComponentGLMappingFormData>({
-    resolver: zodResolver(payrollComponentGLMappingSchema),
+    resolver: zodResolver(componentGLMappingSchema),
     defaultValues: {
       mappingId: initialData?.mappingId ?? 0,
-      payrollComponentId: initialData?.payrollComponentId ?? 0,
+      componentId: initialData?.componentId ?? 0,
       companyId: initialData?.companyId ?? 0,
       departmentId: initialData?.departmentId ?? 0,
       expenseGLId: initialData?.expenseGLId ?? 0,
@@ -43,7 +43,7 @@ export function PayrollAccountIntegrationForm({ initialData, onSave }: Props) {
     if (initialData) {
       form.reset({
         mappingId: initialData.mappingId,
-        payrollComponentId: initialData.payrollComponentId,
+        componentId: initialData.componentId,
         companyId: initialData.companyId,
         departmentId: initialData.departmentId,
         expenseGLId: initialData.expenseGLId,
@@ -53,7 +53,7 @@ export function PayrollAccountIntegrationForm({ initialData, onSave }: Props) {
     } else {
       form.reset({
         mappingId: 0,
-        payrollComponentId: 0,
+        componentId: 0,
         companyId: 0,
         departmentId: 0,
         expenseGLId: 0,
@@ -85,7 +85,7 @@ export function PayrollAccountIntegrationForm({ initialData, onSave }: Props) {
           />
           <PayrollComponentAutocomplete
             form={form}
-            name="payrollComponentId"
+            name="componentId"
             label="Payroll Component"
             isRequired
           />

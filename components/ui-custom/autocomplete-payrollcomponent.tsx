@@ -49,7 +49,7 @@ export default function PayrollComponentAutocomplete<
   const options: FieldOption[] = React.useMemo(
     () =>
       tasks.map((task: IPayrollComponentLookup) => ({
-        value: task.payrollComponentId.toString(),
+        value: task.componentId.toString(),
         label: task.componentName,
       })),
     [tasks]
@@ -189,7 +189,7 @@ export default function PayrollComponentAutocomplete<
         const selectedTask = selectedOption
           ? tasks.find(
               (u: IPayrollComponentLookup) =>
-                u.payrollComponentId.toString() === selectedOption.value
+                u.componentId.toString() === selectedOption.value
             ) || null
           : null
         onChangeEvent(selectedTask)

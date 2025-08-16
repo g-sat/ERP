@@ -1,22 +1,5 @@
-export interface IPayrollPeriod {
-  payrollPeriodId: number
-  companyId: number
-  periodName: string
-  startDate: Date | string
-  endDate: Date | string
-  isClosed: boolean
-  closedDate?: Date | string
-  closedBy?: string
-  remarks?: string
-  isActive: boolean
-  createDate?: Date | string
-  editDate?: Date | string
-  createBy?: string
-  editBy?: string
-}
-
 export interface IPayrollComponent {
-  payrollComponentId: number
+  componentId: number
   componentCode: string
   componentName: string
   componentType: "Earning" | "Deduction"
@@ -49,7 +32,7 @@ export interface IPayrollComponentGroupDt {
   componentGroupId: number
   groupCode: string
   groupName: string
-  payrollComponentId: number
+  componentId: number
   componentCode: string
   componentName: string
   componentType: string
@@ -62,7 +45,7 @@ export interface IPayrollComponentGLMapping {
   companyName: string
   departmentId: number
   departmentName: string
-  payrollComponentId: number
+  componentId: number
   componentCode: string
   componentName: string
   expenseGLId: number
@@ -83,14 +66,13 @@ export interface IPayrollComponentGroupFilter {
 
 export interface IPayrollComponentGLMappingFilter {
   companyId?: number
-  payrollComponentId?: number
+  componentId?: number
   isActive?: boolean
 }
 
 export interface IPayrollEmployee {
   payrollEmployeeId: number
   employeeId: number
-  payrollPeriodId: number
   totalEarnings: number
   totalDeductions: number
   netSalary: number
@@ -112,7 +94,7 @@ export interface IPayrollEmployee {
 
 export interface IPayrollEmployeeComponent {
   payrollEmployeeId: number
-  payrollComponentId: number
+  componentId: number
   amount: number
   remarks?: string
   createById?: number
@@ -127,7 +109,7 @@ export interface IEmployeeSalaryComponent {
   employeeId: number
   employeeName: string
   employeeCode: string
-  payrollComponentId: number
+  componentId: number
   componentName: string
   componentType: string
   amount: number

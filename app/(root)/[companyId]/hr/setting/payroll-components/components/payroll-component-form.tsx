@@ -1,9 +1,6 @@
 "use client"
 
-import {
-  PayrollComponentFormData,
-  payrollComponentSchema,
-} from "@/schemas/payroll"
+import { PayrollComponentFormData, componentSchema } from "@/schemas/payroll"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { IconInfoCircle } from "@tabler/icons-react"
 import { useForm } from "react-hook-form"
@@ -21,9 +18,9 @@ interface Props {
 
 export function PayrollComponentForm({ initialData, onSave }: Props) {
   const form = useForm<PayrollComponentFormData>({
-    resolver: zodResolver(payrollComponentSchema),
+    resolver: zodResolver(componentSchema),
     defaultValues: {
-      payrollComponentId: initialData?.payrollComponentId ?? 0,
+      componentId: initialData?.componentId ?? 0,
       componentCode: initialData?.componentCode ?? "",
       componentName: initialData?.componentName ?? "",
       componentType: initialData?.componentType ?? "Earning",

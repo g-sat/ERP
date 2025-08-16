@@ -58,7 +58,7 @@ export default function PayrollComponentsPage() {
 
   const handleDelete = useCallback(() => {
     if (editingItem) {
-      deleteMutation.mutate(editingItem.payrollComponentId.toString())
+      deleteMutation.mutate(editingItem.componentId.toString())
       setDeleteConfirmOpen(false)
     }
   }, [deleteMutation, editingItem])
@@ -151,7 +151,7 @@ export default function PayrollComponentsPage() {
       <PayrollComponentView
         open={viewDialogOpen}
         onOpenChange={setViewDialogOpen}
-        payrollComponent={viewingItem}
+        component={viewingItem}
       />
 
       <DeleteConfirmation

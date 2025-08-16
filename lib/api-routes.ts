@@ -229,8 +229,8 @@ export const Lookup = {
   getConsignmentType: "/master/getconsignmenttypelookup",
   getCarrierType: "/master/getcarriertypelookup",
   getCompany: "/master/getcompanylookup",
-  getPayrollComponent: "/master/getpayrollcomponentlookup",
-  getPayrollComponentGroup: "/master/getpayrollcomponentgrouplookup",
+  getComponent: "/master/getcomponentlookup",
+  getComponentGroup: "/master/getcomponentgrouplookup",
 
   getApprovalStatusType: "/master/getapprovalstatuslookup",
   getLoanRequestStatusLookup: "/master/getloanrequeststatuslookup",
@@ -557,6 +557,13 @@ export const EmployerDetails = {
   getByCode: "/hr/getemployerdetailsbycode",
   add: "/hr/saveemployerdetails",
   delete: "/hr/deleteemployerdetails",
+}
+
+// Pay Schedule Endpoints
+export const PaySchedule = {
+  get: "/hr/setting/getpayschedule",
+  getById: "/hr/setting/getpayschedulebyid",
+  add: "/hr/setting/savepayschedule",
 }
 
 // GST Endpoints
@@ -1139,18 +1146,6 @@ export const EmployeeSalaryComponent = {
   add: "/hr/saveemployeesalarycomponent",
 }
 
-export const PayrollPeriod = {
-  get: "/hr/payroll/getpayrollperiod",
-  getById: "/hr/payroll/getpayrollperiodbyid",
-  add: "/hr/payroll/savepayrollperiod",
-  update: "/hr/payroll/savepayrollperiod",
-  delete: "/hr/payroll/deletepayrollperiod",
-  close: "/hr/payroll/closepayrollperiod",
-  reopen: "/hr/payroll/reopenpayrollperiod",
-  getActive: "/hr/payroll/activepayrollperiod",
-  getByDateRange: "/hr/payroll/daterangepayrollperiod",
-}
-
 export const PayrollEmployee = {
   get: "/hr/payroll/getpayrollemployee",
   getById: "/hr/payroll/getpayrollemployeebyid",
@@ -1167,30 +1162,30 @@ export const PayrollEmployee = {
 }
 
 export const PayrollComponent = {
-  get: "/hr/payroll/getpayrollcomponent",
-  getSalary: "/hr/payroll/getsalarypayrollcomponent",
-  getById: "/hr/payroll/getpayrollcomponentbyid",
-  add: "/hr/payroll/savepayrollcomponent",
-  update: "/hr/payroll/savepayrollcomponent",
-  delete: "/hr/payroll/deletepayrollcomponent",
-  getByType: "/hr/payroll/typepayrollcomponent",
-  getActive: "/hr/payroll/activepayrollcomponent",
+  get: "/hr/payrun/getcomponent",
+  getSalary: "/hr/payrun/getsalarycomponent",
+  getById: "/hr/payrun/getcomponentbyid",
+  add: "/hr/payrun/savecomponent",
+  update: "/hr/payrun/savecomponent",
+  delete: "/hr/payrun/deletecomponent",
+  getByType: "/hr/payrun/typecomponent",
+  getActive: "/hr/payrun/activecomponent",
 }
 
 export const PayrollComponentGroup = {
-  get: "/hr/payroll/getpayrollcomponentgroup",
-  getById: "/hr/payroll/getpayrollcomponentgroupbyid",
-  add: "/hr/payroll/savepayrollcomponentgroup",
-  update: "/hr/payroll/savepayrollcomponentgroup",
-  delete: "/hr/payroll/deletepayrollcomponentgroup",
+  get: "/hr/payrun/getcomponentgroup",
+  getById: "/hr/payrun/getcomponentgroupbyid",
+  add: "/hr/payrun/savecomponentgroup",
+  update: "/hr/payrun/savecomponentgroup",
+  delete: "/hr/payrun/deletecomponentgroup",
 }
 
 export const PayrollComponentGLMapping = {
-  get: "/hr/payroll/getpayrollcomponentglmapping",
-  getById: "/hr/payroll/getpayrollcomponentglmappingbyid",
-  add: "/hr/payroll/savepayrollcomponentglmapping",
-  update: "/hr/payroll/savepayrollcomponentglmapping",
-  delete: "/hr/payroll/deletepayrollcomponentglmapping",
+  get: "/hr/payrun/getcomponentglmapping",
+  getById: "/hr/payrun/getcomponentglmappingbyid",
+  add: "/hr/payrun/savecomponentglmapping",
+  update: "/hr/payrun/savecomponentglmapping",
+  delete: "/hr/payrun/deletecomponentglmapping",
 }
 
 export const PayrollEmployeeComponent = {

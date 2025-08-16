@@ -159,7 +159,7 @@ export function EmployeeSalaryDetailsTable({
               </TableHeader>
               <TableBody>
                 {earnings.map((component) => (
-                  <TableRow key={component.payrollComponentId}>
+                  <TableRow key={component.componentId}>
                     <TableCell className="py-3 font-medium">
                       {component.componentName}
                     </TableCell>
@@ -233,7 +233,7 @@ export function EmployeeSalaryDetailsTable({
               </TableHeader>
               <TableBody>
                 {deductions.map((component) => (
-                  <TableRow key={component.payrollComponentId}>
+                  <TableRow key={component.componentId}>
                     <TableCell className="py-3 font-medium">
                       {component.componentName}
                     </TableCell>

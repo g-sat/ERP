@@ -92,10 +92,10 @@ export const menuData = {
       items: [
         { title: "Employees", url: "/hr/employees", icon: Users },
         { title: "Loan", url: "/hr/loan", icon: WalletMinimalIcon },
-        { title: "Payruns", url: "/hr/payruns", icon: Calendar },
-        { title: "Time & Attendance", url: "/hr/attendance", icon: Clock },
         { title: "Leave", url: "/hr/leave", icon: TentTree },
-        { title: "Payroll", url: "/hr/payroll", icon: Wallet },
+        { title: "Time & Attendance", url: "/hr/attendance", icon: Clock },
+        { title: "Payruns", url: "/hr/payruns", icon: Calendar },
+        // { title: "Payroll", url: "/hr/payroll", icon: Wallet },
         { title: "Reports", url: "/hr/reports", icon: SquareDashedKanbanIcon },
         {
           title: "Setting",

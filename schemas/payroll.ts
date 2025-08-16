@@ -1,26 +1,7 @@
 import * as z from "zod"
 
-export const payrollPeriodSchema = z
-  .object({
-    periodName: z.string().min(1, "Period name is required"),
-    startDate: z.date({
-      required_error: "Start date is required",
-    }),
-    endDate: z.date({
-      required_error: "End date is required",
-    }),
-    remarks: z.string().optional(),
-    isActive: z.boolean().default(true),
-  })
-  .refine((data) => data.endDate > data.startDate, {
-    message: "End date must be after start date",
-    path: ["endDate"],
-  })
-
-export type PayrollPeriodFormData = z.infer<typeof payrollPeriodSchema>
-
-export const payrollComponentSchema = z.object({
-  payrollComponentId: z.number().min(0, "Payroll component ID is required"),
+export const componentSchema = z.object({
+  componentId: z.number().min(0, "Payroll component ID is required"),
   companyId: z.number().min(1, "Company is required"),
   componentCode: z.string().min(1, "Component code is required"),
   componentName: z.string().min(1, "Component name is required"),
@@ -35,34 +16,32 @@ export const payrollComponentSchema = z.object({
   isActive: z.boolean().default(true),
 })
 
-export type PayrollComponentFormData = z.infer<typeof payrollComponentSchema>
+export type PayrollComponentFormData = z.infer<typeof componentSchema>
 
-export const payrollComponentGroupDtSchema = z.object({
-  payrollComponentId: z.number().min(1, "Payroll component is required"),
+export const componentGroupDtSchema = z.object({
+  componentId: z.number().min(1, "Payroll component is required"),
   payrollGroupId: z.number().min(1, "Payroll group is required"),
   sortOrder: z.number().min(1, "Sort order is required"),
 })
 
 export type PayrollComponentGroupDtFormData = z.infer<
-  typeof payrollComponentGroupDtSchema
+  typeof componentGroupDtSchema
 >
 
-export const payrollComponentGroupSchema = z.object({
+export const componentGroupSchema = z.object({
   groupId: z.number().min(1, "Group ID is required"),
   groupCode: z.string().min(1, "Group code is required"),
   groupName: z.string().min(1, "Group name is required"),
   remarks: z.string().optional(),
   isActive: z.boolean().default(true),
-  data_details: z.array(payrollComponentGroupDtSchema).min(1),
+  data_details: z.array(componentGroupDtSchema).min(1),
 })
 
-export type PayrollComponentGroupFormData = z.infer<
-  typeof payrollComponentGroupSchema
->
+export type PayrollComponentGroupFormData = z.infer<typeof componentGroupSchema>
 
-export const payrollComponentGLMappingSchema = z.object({
+export const componentGLMappingSchema = z.object({
   mappingId: z.number().min(0, "Mapping ID must be non-negative"),
-  payrollComponentId: z.number().min(0, "Payroll component is required"),
+  componentId: z.number().min(0, "Payroll component is required"),
   companyId: z.number().min(0, "Company is required"),
   departmentId: z.number().min(0, "Department is required"),
   expenseGLId: z.number().min(0, "Expense GL is required"),
@@ -70,12 +49,12 @@ export const payrollComponentGLMappingSchema = z.object({
 })
 
 export type PayrollComponentGLMappingFormData = z.infer<
-  typeof payrollComponentGLMappingSchema
+  typeof componentGLMappingSchema
 >
 
 export const payrollEmployeeComponentSchema = z.object({
   payrollEmployeeId: z.number().min(0, "Payroll employee is required"),
-  payrollComponentId: z.number().min(1, "Payroll component is required"),
+  componentId: z.number().min(1, "Payroll component is required"),
   amount: z.number().min(0, "Amount must be non-negative"),
   remarks: z.string().optional(),
 })
@@ -89,7 +68,6 @@ export const payrollEmployeeSchema = z.object({
     .number()
     .min(0, "Payroll employee ID must be non-negative"),
   employeeId: z.number().min(1, "Employee is required"),
-  payrollPeriodId: z.number().min(1, "Payroll period is required"),
   totalEarnings: z.number().min(0, "Total earnings must be non-negative"),
   totalDeductions: z.number().min(0, "Total deductions must be non-negative"),
   netSalary: z.number().min(0, "Net salary must be non-negative"),
@@ -116,7 +94,6 @@ export const payrollTaxSchema = z.object({
 export type PayrollTaxFormData = z.infer<typeof payrollTaxSchema>
 
 export const payrollBankTransferSchema = z.object({
-  payrollPeriodId: z.number().min(1, "Payroll period is required"),
   bankName: z.string().min(1, "Bank name is required"),
   accountNumber: z.string().min(1, "Account number is required"),
   transferDate: z.date({
@@ -131,7 +108,6 @@ export type PayrollBankTransferFormData = z.infer<
 >
 
 export const payrollProcessingSchema = z.object({
-  payrollPeriodId: z.number().min(1, "Payroll period is required"),
   employeeIds: z
     .array(z.number())
     .min(1, "At least one employee must be selected"),
@@ -145,7 +121,6 @@ export const payrollProcessingSchema = z.object({
 export type PayrollProcessingFormData = z.infer<typeof payrollProcessingSchema>
 
 export const payrollPaymentSchema = z.object({
-  payrollPeriodId: z.number().min(1, "Payroll period is required"),
   employeeIds: z
     .array(z.number())
     .min(1, "At least one employee must be selected"),
@@ -165,7 +140,7 @@ export type PayrollPaymentFormData = z.infer<typeof payrollPaymentSchema>
 
 export const employeeSalaryComponentSchema = z.object({
   employeeId: z.number().min(1, "Employee is required"),
-  payrollComponentId: z.number().min(1, "Payroll component is required"),
+  componentId: z.number().min(1, "Payroll component is required"),
   amount: z.number().min(0, "Amount must be non-negative"),
   effectiveFromDate: z.date({
     required_error: "Effective from date is required",

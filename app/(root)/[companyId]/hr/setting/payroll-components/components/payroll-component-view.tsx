@@ -14,15 +14,15 @@ import {
 interface PayrollComponentViewProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  payrollComponent: IPayrollComponent | null
+  component: IPayrollComponent | null
 }
 
 export function PayrollComponentView({
   open,
   onOpenChange,
-  payrollComponent,
+  component,
 }: PayrollComponentViewProps) {
-  if (!payrollComponent) return null
+  if (!component) return null
 
   const getTypeBadge = (component: IPayrollComponent) => {
     if (component.componentType === "Earning") {
@@ -50,15 +50,13 @@ export function PayrollComponentView({
                 <label className="text-muted-foreground text-sm font-medium">
                   Component Code
                 </label>
-                <p className="text-sm">{payrollComponent.componentCode}</p>
+                <p className="text-sm">{component.componentCode}</p>
               </div>
               <div>
                 <label className="text-muted-foreground text-sm font-medium">
                   Component Name
                 </label>
-                <p className="text-sm font-medium">
-                  {payrollComponent.componentName}
-                </p>
+                <p className="text-sm font-medium">{component.componentName}</p>
               </div>
             </div>
           </div>
@@ -71,13 +69,13 @@ export function PayrollComponentView({
                 <label className="text-muted-foreground text-sm font-medium">
                   Type
                 </label>
-                <div className="mt-1">{getTypeBadge(payrollComponent)}</div>
+                <div className="mt-1">{getTypeBadge(component)}</div>
               </div>
               <div>
                 <label className="text-muted-foreground text-sm font-medium">
                   Sort Order
                 </label>
-                <p className="text-sm">{payrollComponent.sortOrder}</p>
+                <p className="text-sm">{component.sortOrder}</p>
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
@@ -85,17 +83,13 @@ export function PayrollComponentView({
                 <label className="text-muted-foreground text-sm font-medium">
                   Is Bonus Component
                 </label>
-                <p className="text-sm">
-                  {payrollComponent.isBonus ? "Yes" : "No"}
-                </p>
+                <p className="text-sm">{component.isBonus ? "Yes" : "No"}</p>
               </div>
               <div>
                 <label className="text-muted-foreground text-sm font-medium">
                   Is Leave Component
                 </label>
-                <p className="text-sm">
-                  {payrollComponent.isLeave ? "Yes" : "No"}
-                </p>
+                <p className="text-sm">{component.isLeave ? "Yes" : "No"}</p>
               </div>
             </div>
             <div>
@@ -103,7 +97,7 @@ export function PayrollComponentView({
                 Is Salary Component
               </label>
               <p className="text-sm">
-                {payrollComponent.isSalaryComponent ? "Yes" : "No"}
+                {component.isSalaryComponent ? "Yes" : "No"}
               </p>
             </div>
           </div>
@@ -113,27 +107,27 @@ export function PayrollComponentView({
             <h3 className="text-lg font-semibold">Status</h3>
             <div>
               <Badge
-                variant={payrollComponent.isActive ? "default" : "secondary"}
+                variant={component.isActive ? "default" : "secondary"}
                 className={
-                  payrollComponent.isActive
+                  component.isActive
                     ? "bg-green-100 text-green-800"
                     : "bg-red-100 text-red-800"
                 }
               >
-                {payrollComponent.isActive ? "Active" : "Inactive"}
+                {component.isActive ? "Active" : "Inactive"}
               </Badge>
             </div>
           </div>
 
           {/* Additional Information */}
-          {payrollComponent.remarks && (
+          {component.remarks && (
             <div className="space-y-4">
               <h3 className="text-lg font-semibold">Additional Information</h3>
               <div>
                 <label className="text-muted-foreground text-sm font-medium">
                   Remarks
                 </label>
-                <p className="mt-1 text-sm">{payrollComponent.remarks}</p>
+                <p className="mt-1 text-sm">{component.remarks}</p>
               </div>
             </div>
           )}
@@ -143,35 +137,35 @@ export function PayrollComponentView({
               <label className="text-muted-foreground text-sm font-medium">
                 Created By
               </label>
-              <p className="text-sm">{payrollComponent.createBy || "—"}</p>
+              <p className="text-sm">{component.createBy || "—"}</p>
             </div>
             <div>
               <label className="text-muted-foreground text-sm font-medium">
                 Created Date
               </label>
               <p className="text-sm">
-                {payrollComponent.createDate
-                  ? new Date(payrollComponent.createDate).toLocaleDateString()
+                {component.createDate
+                  ? new Date(component.createDate).toLocaleDateString()
                   : "—"}
               </p>
             </div>
           </div>
 
-          {payrollComponent.editBy && (
+          {component.editBy && (
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="text-muted-foreground text-sm font-medium">
                   Last Modified By
                 </label>
-                <p className="text-sm">{payrollComponent.editBy}</p>
+                <p className="text-sm">{component.editBy}</p>
               </div>
               <div>
                 <label className="text-muted-foreground text-sm font-medium">
                   Last Modified Date
                 </label>
                 <p className="text-sm">
-                  {payrollComponent.editDate
-                    ? new Date(payrollComponent.editDate).toLocaleDateString()
+                  {component.editDate
+                    ? new Date(component.editDate).toLocaleDateString()
                     : "—"}
                 </p>
               </div>
