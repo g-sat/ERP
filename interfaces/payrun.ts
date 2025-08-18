@@ -40,6 +40,7 @@ export interface IPayrollEmployeeHd {
   employeeCode: string
   employeeName: string
   presentDays: number
+  pastDays: number
   basicSalary: number
   totalEarnings: number
   totalDeductions: number
@@ -174,4 +175,5 @@ export interface ISavePayrunComponentViewModel {
   componentId: number
   amount: number
   presentDays: number
+  pastDays: number
 }

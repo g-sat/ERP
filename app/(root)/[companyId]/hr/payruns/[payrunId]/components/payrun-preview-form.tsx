@@ -36,6 +36,21 @@ export function PayRunPreviewForm({
 }: PayRunPreviewFormProps) {
   const [isEditingPayableDays, setIsEditingPayableDays] = useState(false)
   const [editablePayableDays, setEditablePayableDays] = useState(0)
+  const [isEditingPastDays, setIsEditingPastDays] = useState(false)
+  const [editablePastDays, setEditablePastDays] = useState(0)
+  const [editingDeductionId, setEditingDeductionId] = useState<number | null>(
+    null
+  )
+  const [editableDeductionAmounts, setEditableDeductionAmounts] = useState<
+    Record<number, number>
+  >({})
+  const [editingEarningId, setEditingEarningId] = useState<number | null>(null)
+  const [editableEarningAmounts, setEditableEarningAmounts] = useState<
+    Record<number, number>
+  >({})
+  const [updatedEmployeeData, setUpdatedEmployeeData] = useState<
+    IPayrollEmployeeDt[]
+  >([])
   const [showSaveConfirmation, setShowSaveConfirmation] = useState(false)
   const [refreshKey, setRefreshKey] = useState(0)
 
@@ -64,14 +79,35 @@ export function PayRunPreviewForm({
   const employeeData =
     (employeeDetails?.data as unknown as IPayrollEmployeeDt[]) || []
 
+  // Use updated data if available, otherwise use original data
+  const displayData =
+    updatedEmployeeData.length > 0 ? updatedEmployeeData : employeeData
+
+  // Calculate Net Pay based on current edited data
+  const calculateNetPay = () => {
+    const totalEarnings = displayData
+      .filter((item) => item.componentType.toLowerCase() === "earning")
+      .reduce((sum, item) => sum + (item.amount || 0), 0)
+
+    const totalDeductions = displayData
+      .filter((item) => item.componentType.toLowerCase() === "deduction")
+      .reduce((sum, item) => sum + (item.amount || 0), 0)
+
+    return totalEarnings - totalDeductions
+  }
+
+  const currentNetPay = calculateNetPay()
+
   // API call to save employee payroll data
   const { mutate: saveEmployeePayroll, isPending: isSaving } = usePersist(
     `/hr/payrollruns/components/${payrunId}/${employee?.payrollEmployeeId}`
   )
 
   const handleSave = () => {
-    // Create the save payload as a list of components from employeeData
-    const savePayload: ISavePayrunComponentViewModel[] = employeeData.map(
+    console.log("editablePayableDays", editablePayableDays)
+    console.log("editablePastDays", editablePastDays)
+    // Create the save payload as a list of components from displayData
+    const savePayload: ISavePayrunComponentViewModel[] = displayData.map(
       (item) => ({
         payrollEmployeeId: employee?.payrollEmployeeId || 0,
         payrollRunId: parseInt(payrunId),
@@ -79,6 +115,7 @@ export function PayRunPreviewForm({
         componentId: item.componentId,
         amount: item.amount || 0,
         presentDays: editablePayableDays || employee?.presentDays || 0,
+        pastDays: editablePastDays || employee?.pastDays || 0,
       })
     )
 
@@ -115,6 +152,49 @@ export function PayRunPreviewForm({
   const handlePayableDaysCancel = () => {
     setEditablePayableDays(employee?.presentDays || 0)
     setIsEditingPayableDays(false)
+  }
+
+  const handlePastDaysSave = () => {
+    setIsEditingPastDays(false)
+  }
+
+  const handlePastDaysCancel = () => {
+    setEditablePastDays(employee?.pastDays || 0)
+    setIsEditingPastDays(false)
+  }
+
+  const handleDeductionSave = (componentId: number) => {
+    // Update the employeeData with the new amount, preserving existing updates
+    const updatedData = (
+      updatedEmployeeData.length > 0 ? updatedEmployeeData : employeeData
+    ).map((item) =>
+      item.componentId === componentId
+        ? { ...item, amount: editableDeductionAmounts[componentId] || 0 }
+        : item
+    )
+    setUpdatedEmployeeData(updatedData)
+    setEditingDeductionId(null)
+  }
+
+  const handleDeductionCancel = () => {
+    setEditingDeductionId(null)
+  }
+
+  const handleEarningSave = (componentId: number) => {
+    // Update the employeeData with the new amount, preserving existing updates
+    const updatedData = (
+      updatedEmployeeData.length > 0 ? updatedEmployeeData : employeeData
+    ).map((item) =>
+      item.componentId === componentId
+        ? { ...item, amount: editableEarningAmounts[componentId] || 0 }
+        : item
+    )
+    setUpdatedEmployeeData(updatedData)
+    setEditingEarningId(null)
+  }
+
+  const handleEarningCancel = () => {
+    setEditingEarningId(null)
   }
 
   // Show loading state while data is being fetched
@@ -217,6 +297,76 @@ export function PayRunPreviewForm({
           </div>
         </div>
 
+        {/* Past Days Section */}
+        <div>
+          <div className="flex items-center justify-between border-b pb-2">
+            <span className="font-medium">Past Days</span>
+            {isEditingPastDays ? (
+              <div className="flex items-center space-x-2">
+                <Input
+                  type="number"
+                  min="0"
+                  max="30"
+                  value={editablePastDays}
+                  onChange={(e) => {
+                    const value = parseInt(e.target.value) || 0
+                    // Ensure value is between 0 and 30
+                    if (value >= 0 && value <= 30) {
+                      setEditablePastDays(value)
+                    }
+                  }}
+                  className="w-20"
+                />
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handlePastDaysSave}
+                  className="h-6 w-6 p-0 text-green-600"
+                >
+                  ✓
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handlePastDaysCancel}
+                  className="h-6 w-6 p-0 text-red-600"
+                >
+                  ✕
+                </Button>
+              </div>
+            ) : (
+              <div className="flex items-center space-x-2">
+                <span className="font-semibold">
+                  {editablePastDays || employee?.pastDays || 0}
+                </span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setEditablePastDays(employee?.pastDays || 0)
+                    setIsEditingPastDays(true)
+                  }}
+                  className="h-6 w-6 p-0 text-blue-600 hover:text-blue-800"
+                >
+                  <svg
+                    className="h-4 w-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                    />
+                  </svg>
+                </Button>
+              </div>
+            )}
+          </div>
+        </div>
+
         {/* Earnings Section */}
         <div>
           <div className="mb-3 flex items-center justify-between border-b pb-2">
@@ -227,19 +377,83 @@ export function PayRunPreviewForm({
           </div>
 
           <div className="space-y-3">
-            {employeeData
+            {displayData
               .filter((item) => item.componentType.toLowerCase() === "earning")
               .map((item) => (
                 <div key={item.componentId}>
                   <div className="flex items-center justify-between">
                     <span>{item.componentName}</span>
-                    <span className="font-medium">
-                      <CurrencyFormatter amount={item.amount || 0} />
-                    </span>
+                    {editingEarningId === item.componentId ? (
+                      <div className="flex items-center space-x-2">
+                        <Input
+                          type="number"
+                          min="0"
+                          value={editableEarningAmounts[item.componentId] || 0}
+                          onChange={(e) => {
+                            const value = parseFloat(e.target.value) || 0
+                            if (value >= 0) {
+                              setEditableEarningAmounts((prev) => ({
+                                ...prev,
+                                [item.componentId]: value,
+                              }))
+                            }
+                          }}
+                          className="w-24"
+                        />
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleEarningSave(item.componentId)}
+                          className="h-6 w-6 p-0 text-green-600"
+                        >
+                          ✓
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={handleEarningCancel}
+                          className="h-6 w-6 p-0 text-red-600"
+                        >
+                          ✕
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="flex items-center space-x-2">
+                        <span className="font-medium">
+                          <CurrencyFormatter amount={item.amount || 0} />
+                        </span>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            setEditableEarningAmounts((prev) => ({
+                              ...prev,
+                              [item.componentId]: item.amount || 0,
+                            }))
+                            setEditingEarningId(item.componentId)
+                          }}
+                          className="h-6 w-6 p-0 text-blue-600 hover:text-blue-800"
+                        >
+                          <svg
+                            className="h-4 w-4"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                            />
+                          </svg>
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}
-            {employeeData.filter(
+            {displayData.filter(
               (item) => item.componentType.toLowerCase() === "earning"
             ).length === 0 && (
               <div className="text-sm text-gray-500 italic">
@@ -259,7 +473,7 @@ export function PayRunPreviewForm({
           </div>
 
           <div className="space-y-3">
-            {employeeData
+            {displayData
               .filter(
                 (item) => item.componentType.toLowerCase() === "deduction"
               )
@@ -267,20 +481,83 @@ export function PayRunPreviewForm({
                 <div key={item.componentId}>
                   <div className="flex items-center justify-between">
                     <span>{item.componentName}</span>
-                    <span className="font-medium">
-                      <CurrencyFormatter amount={item.amount || 0} />
-                    </span>
+                    {editingDeductionId === item.componentId ? (
+                      <div className="flex items-center space-x-2">
+                        <Input
+                          type="number"
+                          min="0"
+                          value={
+                            editableDeductionAmounts[item.componentId] || 0
+                          }
+                          onChange={(e) => {
+                            const value = parseFloat(e.target.value) || 0
+                            if (value >= 0) {
+                              setEditableDeductionAmounts((prev) => ({
+                                ...prev,
+                                [item.componentId]: value,
+                              }))
+                            }
+                          }}
+                          className="w-24"
+                        />
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDeductionSave(item.componentId)}
+                          className="h-6 w-6 p-0 text-green-600"
+                        >
+                          ✓
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={handleDeductionCancel}
+                          className="h-6 w-6 p-0 text-red-600"
+                        >
+                          ✕
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="flex items-center space-x-2">
+                        <span className="font-medium">
+                          <CurrencyFormatter amount={item.amount || 0} />
+                        </span>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            setEditableDeductionAmounts((prev) => ({
+                              ...prev,
+                              [item.componentId]: item.amount || 0,
+                            }))
+                            setEditingDeductionId(item.componentId)
+                          }}
+                          className="h-6 w-6 p-0 text-blue-600 hover:text-blue-800"
+                        >
+                          <svg
+                            className="h-4 w-4"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                            />
+                          </svg>
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}
-            {employeeData.filter(
+            {displayData.filter(
               (item) => item.componentType.toLowerCase() === "deduction"
             ).length === 0 && (
-              <div className="flex items-center justify-between">
-                <span>Loan Amount</span>
-                <span className="font-medium">
-                  <CurrencyFormatter amount={0} />
-                </span>
+              <div className="text-sm text-gray-500 italic">
+                No earnings found
               </div>
             )}
           </div>
@@ -291,7 +568,7 @@ export function PayRunPreviewForm({
           <div className="flex items-center justify-between">
             <span className="text-lg font-semibold">NET PAY</span>
             <span className="text-xl font-bold">
-              <CurrencyFormatter amount={employee?.netSalary || 0} />
+              <CurrencyFormatter amount={currentNetPay} />
             </span>
           </div>
         </div>

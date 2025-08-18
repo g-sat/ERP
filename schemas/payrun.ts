@@ -160,6 +160,7 @@ export const savePayrunComponentSchema = z.object({
     .number()
     .min(0)
     .max(30, "Present days must be between 0 and 30"),
+  pastDays: z.number().min(0).max(30, "Past days must be between 0 and 30"),
 })
 
 // Payrun Settings Schema
