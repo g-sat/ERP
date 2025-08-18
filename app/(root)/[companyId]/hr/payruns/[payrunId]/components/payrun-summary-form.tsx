@@ -40,6 +40,36 @@ export function PayRunSummaryForm({
   const employeeData =
     (employeeDetails?.data as unknown as IPayrollEmployeeDt[]) || []
 
+  // Calculate Net Pay based on current data
+  const calculateNetPay = () => {
+    const totalEarnings = employeeData
+      .filter((item) => item.componentType.toLowerCase() === "earning")
+      .reduce((sum, item) => sum + (item.amount || 0), 0)
+
+    const totalDeductions = employeeData
+      .filter((item) => item.componentType.toLowerCase() === "deduction")
+      .reduce((sum, item) => sum + (item.amount || 0), 0)
+
+    return totalEarnings - totalDeductions
+  }
+
+  const currentNetPay = calculateNetPay()
+
+  // Calculate Basic Net Pay
+  const calculateBasicNetPay = () => {
+    const totalBasicEarnings = employeeData
+      .filter((item) => item.componentType.toLowerCase() === "earning")
+      .reduce((sum, item) => sum + (item.basicAmount || 0), 0)
+
+    const totalBasicDeductions = employeeData
+      .filter((item) => item.componentType.toLowerCase() === "deduction")
+      .reduce((sum, item) => sum + (item.basicAmount || 0), 0)
+
+    return totalBasicEarnings - totalBasicDeductions
+  }
+
+  const currentBasicNetPay = calculateBasicNetPay()
+
   // Show loading state while data is being fetched
   if (isLoading) {
     return (
@@ -89,39 +119,62 @@ export function PayRunSummaryForm({
       )}
 
       <div className="space-y-6 pt-4">
-        {/* Payable Days Section */}
+        {/* Payable Days and Past Days Section */}
         <div>
-          <div className="flex items-center justify-between border-b pb-2">
-            <span className="font-medium">Payable Days</span>
-            <div className="flex items-center space-x-2">
-              <span className="font-semibold">
-                {formData.presentDays !== undefined
-                  ? formData.presentDays
-                  : employee?.presentDays || 0}
-              </span>
+          <div className="grid grid-cols-2 gap-4 border-b pb-2">
+            {/* Payable Days */}
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium">Payable Days</span>
+              <div className="flex items-center space-x-2">
+                <span className="text-sm font-semibold">
+                  {formData.presentDays !== undefined
+                    ? formData.presentDays
+                    : employee?.presentDays || 0}
+                </span>
+              </div>
+            </div>
+
+            {/* Past Days */}
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium">Past Days</span>
+              <div className="flex items-center space-x-2">
+                <span className="text-sm font-semibold">
+                  {employee?.pastDays || 0}
+                </span>
+              </div>
             </div>
           </div>
         </div>
 
         {/* Earnings Section */}
         <div>
-          <div className="mb-3 flex items-center justify-between border-b pb-2">
-            <h3 className="text-lg font-semibold text-green-600">
+          <div className="mb-2 grid grid-cols-3 gap-2 border-b pb-2">
+            <h3 className="text-sm font-semibold text-green-600">
               (+) EARNINGS
             </h3>
-            <span className="text-sm font-medium">AMOUNT</span>
+            <span className="text-right text-sm font-medium">Basic</span>
+            <span className="text-right text-sm font-medium">Current</span>
           </div>
 
-          <div className="space-y-3">
+          <div className="space-y-1">
             {employeeData
               .filter((item) => item.componentType.toLowerCase() === "earning")
               .map((item) => (
                 <div key={item.componentId}>
-                  <div className="flex items-center justify-between">
-                    <span>{item.componentName}</span>
-                    <span className="font-medium">
-                      <CurrencyFormatter amount={item.amount || 0} />
+                  <div className="grid grid-cols-3 items-center gap-4">
+                    <span className="text-sm font-medium">
+                      {item.componentName}
                     </span>
+                    <div className="flex items-center justify-end space-x-2">
+                      <span className="text-sm font-medium">
+                        <CurrencyFormatter amount={item.basicAmount || 0} />
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-end space-x-2">
+                      <span className="text-sm font-medium">
+                        <CurrencyFormatter amount={item.amount || 0} />
+                      </span>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -137,36 +190,51 @@ export function PayRunSummaryForm({
 
         {/* Deductions Section */}
         <div>
-          <div className="mb-3 flex items-center justify-between border-b pb-2">
-            <h3 className="text-lg font-semibold text-red-600">
+          <div className="mb-2 grid grid-cols-3 gap-2 border-b pb-2">
+            <h3 className="text-sm font-semibold text-red-600">
               (-) DEDUCTIONS
             </h3>
-            <span className="text-sm font-medium">AMOUNT</span>
           </div>
 
-          <div className="space-y-3">
+          <div className="space-y-1">
             {employeeData
               .filter(
                 (item) => item.componentType.toLowerCase() === "deduction"
               )
               .map((item) => (
                 <div key={item.componentId}>
-                  <div className="flex items-center justify-between">
-                    <span>{item.componentName}</span>
-                    <span className="font-medium">
-                      <CurrencyFormatter amount={item.amount || 0} />
+                  <div className="grid grid-cols-3 items-center gap-4">
+                    <span className="text-sm font-medium">
+                      {item.componentName}
                     </span>
+                    <div className="flex items-center justify-end space-x-2">
+                      <span className="text-sm font-medium">
+                        <CurrencyFormatter amount={item.basicAmount || 0} />
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-end space-x-2">
+                      <span className="text-sm font-medium">
+                        <CurrencyFormatter amount={item.amount || 0} />
+                      </span>
+                    </div>
                   </div>
                 </div>
               ))}
             {employeeData.filter(
               (item) => item.componentType.toLowerCase() === "deduction"
             ).length === 0 && (
-              <div className="flex items-center justify-between">
-                <span>Loan Amount</span>
-                <span className="font-medium">
-                  <CurrencyFormatter amount={0} />
-                </span>
+              <div className="grid grid-cols-3 items-center gap-4">
+                <span className="text-sm font-medium">Loan Amount</span>
+                <div className="flex items-center justify-end space-x-2">
+                  <span className="text-sm font-medium">
+                    <CurrencyFormatter amount={0} />
+                  </span>
+                </div>
+                <div className="flex items-center justify-end space-x-2">
+                  <span className="text-sm font-medium">
+                    <CurrencyFormatter amount={0} />
+                  </span>
+                </div>
               </div>
             )}
           </div>
@@ -174,11 +242,18 @@ export function PayRunSummaryForm({
 
         {/* Net Pay Summary */}
         <div className="border-t pt-6">
-          <div className="flex items-center justify-between">
-            <span className="text-lg font-semibold">NET PAY</span>
-            <span className="text-xl font-bold">
-              <CurrencyFormatter amount={employee?.netSalary || 0} />
-            </span>
+          <div className="grid grid-cols-3 items-center gap-2">
+            <span className="text-sm font-medium">NET PAY</span>
+            <div className="flex items-center justify-end space-x-2">
+              <span className="text-sm font-bold">
+                <CurrencyFormatter amount={currentBasicNetPay} />
+              </span>
+            </div>
+            <div className="flex items-center justify-end space-x-2">
+              <span className="text-sm font-bold">
+                <CurrencyFormatter amount={currentNetPay} />
+              </span>
+            </div>
           </div>
         </div>
 

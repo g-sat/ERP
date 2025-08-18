@@ -101,6 +101,7 @@ export function PayRunSummaryTable({
               <TableRow>
                 <TableHead>COMPANY</TableHead>
                 <TableHead>EMPLOYEE</TableHead>
+                <TableHead>BASIC</TableHead>
                 <TableHead>NET SALARY</TableHead>
                 <TableHead>STATUS</TableHead>
                 <TableHead className="w-12"></TableHead>
@@ -119,6 +120,9 @@ export function PayRunSummaryTable({
                       {employee.employeeName} [{employee.employeeCode}] |{" "}
                       {employee.departmentName || "N/A"}
                     </span>
+                  </TableCell>
+                  <TableCell>
+                    <CurrencyFormatter amount={employee.basicSalary} />
                   </TableCell>
                   <TableCell>
                     <CurrencyFormatter amount={employee.netSalary} />

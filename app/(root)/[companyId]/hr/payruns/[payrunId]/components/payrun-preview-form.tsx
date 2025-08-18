@@ -98,6 +98,21 @@ export function PayRunPreviewForm({
 
   const currentNetPay = calculateNetPay()
 
+  // Calculate Basic Net Pay
+  const calculateBasicNetPay = () => {
+    const totalBasicEarnings = displayData
+      .filter((item) => item.componentType.toLowerCase() === "earning")
+      .reduce((sum, item) => sum + (item.basicAmount || 0), 0)
+
+    const totalBasicDeductions = displayData
+      .filter((item) => item.componentType.toLowerCase() === "deduction")
+      .reduce((sum, item) => sum + (item.basicAmount || 0), 0)
+
+    return totalBasicEarnings - totalBasicDeductions
+  }
+
+  const currentBasicNetPay = calculateBasicNetPay()
+
   // API call to save employee payroll data
   const { mutate: saveEmployeePayroll, isPending: isSaving } = usePersist(
     `/hr/payrollruns/components/${payrunId}/${employee?.payrollEmployeeId}`
@@ -374,8 +389,8 @@ export function PayRunPreviewForm({
             <h3 className="text-sm font-semibold text-green-600">
               (+) EARNINGS
             </h3>
-            <span className="text-right text-sm font-medium">Basic Amount</span>
-            <span className="text-right text-sm font-medium">Real Amount</span>
+            <span className="text-right text-sm font-medium">Basic </span>
+            <span className="text-right text-sm font-medium">Current </span>
           </div>
 
           <div className="space-y-1">
@@ -479,8 +494,6 @@ export function PayRunPreviewForm({
             <h3 className="text-sm font-semibold text-red-600">
               (-) DEDUCTIONS
             </h3>
-            <span className="text-right text-sm font-medium">Basic Amount</span>
-            <span className="text-right text-sm font-medium">Real Amount</span>
           </div>
 
           <div className="space-y-1">
@@ -583,11 +596,18 @@ export function PayRunPreviewForm({
 
         {/* Net Pay Summary */}
         <div className="border-t pt-6">
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-semibold">NET PAY</span>
-            <span className="text-sm font-bold">
-              <CurrencyFormatter amount={currentNetPay} />
-            </span>
+          <div className="grid grid-cols-3 items-center gap-2">
+            <span className="text-sm font-medium">NET PAY</span>
+            <div className="flex items-center justify-end space-x-2">
+              <span className="text-sm font-bold">
+                <CurrencyFormatter amount={currentBasicNetPay} />
+              </span>
+            </div>
+            <div className="flex items-center justify-end space-x-2">
+              <span className="text-sm font-bold">
+                <CurrencyFormatter amount={currentNetPay} />
+              </span>
+            </div>
           </div>
         </div>
 
