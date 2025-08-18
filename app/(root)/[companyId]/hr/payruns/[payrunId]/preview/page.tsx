@@ -378,7 +378,7 @@ export default function PayRunPreviewPage() {
       />
 
       <Dialog open={showForm} onOpenChange={() => setShowForm(false)}>
-        <DialogContent className="max-h-[90vh] w-full max-w-2xl overflow-y-auto">
+        <DialogContent className="max-h-[90vh] w-[40vw] !max-w-none overflow-y-auto">
           {isLoading ? (
             <DialogHeader>
               <DialogTitle>Loading Employee Details...</DialogTitle>

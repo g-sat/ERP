@@ -227,164 +227,174 @@ export function PayRunPreviewForm({
   return (
     <>
       <div className="space-y-6 pt-4">
-        {/* Payable Days Section */}
+        {/* Payable Days and Past Days Section */}
         <div>
-          <div className="flex items-center justify-between border-b pb-2">
-            <span className="font-medium">Payable Days</span>
-            {isEditingPayableDays ? (
-              <div className="flex items-center space-x-2">
-                <Input
-                  type="number"
-                  min="0"
-                  max="30"
-                  value={editablePayableDays}
-                  onChange={(e) => {
-                    const value = parseInt(e.target.value) || 0
-                    // Ensure value is between 0 and 30
-                    if (value >= 0 && value <= 30) {
-                      setEditablePayableDays(value)
-                    }
-                  }}
-                  className="w-20"
-                />
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handlePayableDaysSave}
-                  className="h-6 w-6 p-0 text-green-600"
-                >
-                  ✓
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handlePayableDaysCancel}
-                  className="h-6 w-6 p-0 text-red-600"
-                >
-                  ✕
-                </Button>
-              </div>
-            ) : (
-              <div className="flex items-center space-x-2">
-                <span className="font-semibold">
-                  {editablePayableDays || employee?.presentDays || 0}
-                </span>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => {
-                    setEditablePayableDays(employee?.presentDays || 0)
-                    setIsEditingPayableDays(true)
-                  }}
-                  className="h-6 w-6 p-0 text-blue-600 hover:text-blue-800"
-                >
-                  <svg
-                    className="h-4 w-4"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
+          <div className="grid grid-cols-2 gap-4 border-b pb-2">
+            {/* Payable Days */}
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium">Payable Days</span>
+              {isEditingPayableDays ? (
+                <div className="flex items-center space-x-2">
+                  <Input
+                    type="number"
+                    min="0"
+                    max="30"
+                    value={editablePayableDays}
+                    onChange={(e) => {
+                      const value = parseInt(e.target.value) || 0
+                      // Ensure value is between 0 and 30
+                      if (value >= 0 && value <= 30) {
+                        setEditablePayableDays(value)
+                      }
+                    }}
+                    className="w-20 text-sm"
+                  />
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handlePayableDaysSave}
+                    className="h-6 w-6 p-0 text-green-600"
                   >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                    />
-                  </svg>
-                </Button>
-              </div>
-            )}
-          </div>
-        </div>
+                    ✓
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handlePayableDaysCancel}
+                    className="h-6 w-6 p-0 text-red-600"
+                  >
+                    ✕
+                  </Button>
+                </div>
+              ) : (
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm font-semibold">
+                    {editablePayableDays || employee?.presentDays || 0}
+                  </span>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setEditablePayableDays(employee?.presentDays || 0)
+                      setIsEditingPayableDays(true)
+                    }}
+                    className="h-6 w-6 p-0 text-blue-600 hover:text-blue-800"
+                  >
+                    <svg
+                      className="h-4 w-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                      />
+                    </svg>
+                  </Button>
+                </div>
+              )}
+            </div>
 
-        {/* Past Days Section */}
-        <div>
-          <div className="flex items-center justify-between border-b pb-2">
-            <span className="font-medium">Past Days</span>
-            {isEditingPastDays ? (
-              <div className="flex items-center space-x-2">
-                <Input
-                  type="number"
-                  min="0"
-                  max="30"
-                  value={editablePastDays}
-                  onChange={(e) => {
-                    const value = parseInt(e.target.value) || 0
-                    // Ensure value is between 0 and 30
-                    if (value >= 0 && value <= 30) {
-                      setEditablePastDays(value)
-                    }
-                  }}
-                  className="w-20"
-                />
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handlePastDaysSave}
-                  className="h-6 w-6 p-0 text-green-600"
-                >
-                  ✓
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handlePastDaysCancel}
-                  className="h-6 w-6 p-0 text-red-600"
-                >
-                  ✕
-                </Button>
-              </div>
-            ) : (
-              <div className="flex items-center space-x-2">
-                <span className="font-semibold">
-                  {editablePastDays || employee?.pastDays || 0}
-                </span>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => {
-                    setEditablePastDays(employee?.pastDays || 0)
-                    setIsEditingPastDays(true)
-                  }}
-                  className="h-6 w-6 p-0 text-blue-600 hover:text-blue-800"
-                >
-                  <svg
-                    className="h-4 w-4"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
+            {/* Past Days */}
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium">Past Days</span>
+              {isEditingPastDays ? (
+                <div className="flex items-center space-x-2">
+                  <Input
+                    type="number"
+                    min="0"
+                    max="30"
+                    value={editablePastDays}
+                    onChange={(e) => {
+                      const value = parseInt(e.target.value) || 0
+                      // Ensure value is between 0 and 30
+                      if (value >= 0 && value <= 30) {
+                        setEditablePastDays(value)
+                      }
+                    }}
+                    className="w-20 text-sm"
+                  />
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handlePastDaysSave}
+                    className="h-6 w-6 p-0 text-green-600"
                   >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                    />
-                  </svg>
-                </Button>
-              </div>
-            )}
+                    ✓
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handlePastDaysCancel}
+                    className="h-6 w-6 p-0 text-red-600"
+                  >
+                    ✕
+                  </Button>
+                </div>
+              ) : (
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm font-semibold">
+                    {editablePastDays || employee?.pastDays || 0}
+                  </span>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setEditablePastDays(employee?.pastDays || 0)
+                      setIsEditingPastDays(true)
+                    }}
+                    className="h-6 w-6 p-0 text-blue-600 hover:text-blue-800"
+                  >
+                    <svg
+                      className="h-4 w-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                      />
+                    </svg>
+                  </Button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
         {/* Earnings Section */}
         <div>
-          <div className="mb-3 flex items-center justify-between border-b pb-2">
-            <h3 className="text-lg font-semibold text-green-600">
+          <div className="mb-2 grid grid-cols-3 gap-2 border-b pb-2">
+            <h3 className="text-sm font-semibold text-green-600">
               (+) EARNINGS
             </h3>
-            <span className="text-sm font-medium">AMOUNT</span>
+            <span className="text-right text-sm font-medium">Basic Amount</span>
+            <span className="text-right text-sm font-medium">Real Amount</span>
           </div>
 
-          <div className="space-y-3">
+          <div className="space-y-1">
             {displayData
               .filter((item) => item.componentType.toLowerCase() === "earning")
               .map((item) => (
                 <div key={item.componentId}>
-                  <div className="flex items-center justify-between">
-                    <span>{item.componentName}</span>
+                  <div className="grid grid-cols-3 items-center gap-4">
+                    <span className="text-sm font-medium">
+                      {item.componentName}
+                    </span>
+                    <div className="flex items-center justify-end space-x-2">
+                      <span className="text-sm font-medium">
+                        <CurrencyFormatter amount={item.basicAmount || 0} />
+                      </span>
+                    </div>
+
                     {editingEarningId === item.componentId ? (
-                      <div className="flex items-center space-x-2">
+                      <div className="flex items-center justify-end space-x-2">
                         <Input
                           type="number"
                           min="0"
@@ -398,7 +408,7 @@ export function PayRunPreviewForm({
                               }))
                             }
                           }}
-                          className="w-24"
+                          className="w-24 text-sm"
                         />
                         <Button
                           variant="ghost"
@@ -418,8 +428,8 @@ export function PayRunPreviewForm({
                         </Button>
                       </div>
                     ) : (
-                      <div className="flex items-center space-x-2">
-                        <span className="font-medium">
+                      <div className="flex items-center justify-end space-x-2">
+                        <span className="text-sm font-medium">
                           <CurrencyFormatter amount={item.amount || 0} />
                         </span>
                         <Button
@@ -465,24 +475,32 @@ export function PayRunPreviewForm({
 
         {/* Deductions Section */}
         <div>
-          <div className="mb-3 flex items-center justify-between border-b pb-2">
-            <h3 className="text-lg font-semibold text-red-600">
+          <div className="mb-3 grid grid-cols-3 gap-4 border-b pb-2">
+            <h3 className="text-sm font-semibold text-red-600">
               (-) DEDUCTIONS
             </h3>
-            <span className="text-sm font-medium">AMOUNT</span>
+            <span className="text-right text-sm font-medium">Basic Amount</span>
+            <span className="text-right text-sm font-medium">Real Amount</span>
           </div>
 
-          <div className="space-y-3">
+          <div className="space-y-1">
             {displayData
               .filter(
                 (item) => item.componentType.toLowerCase() === "deduction"
               )
               .map((item) => (
                 <div key={item.componentId}>
-                  <div className="flex items-center justify-between">
-                    <span>{item.componentName}</span>
+                  <div className="grid grid-cols-3 items-center gap-4">
+                    <span className="text-sm font-medium">
+                      {item.componentName}
+                    </span>
+                    <div className="flex items-center justify-end space-x-2">
+                      <span className="text-sm font-medium">
+                        <CurrencyFormatter amount={item.basicAmount || 0} />
+                      </span>
+                    </div>
                     {editingDeductionId === item.componentId ? (
-                      <div className="flex items-center space-x-2">
+                      <div className="flex items-center justify-end space-x-2">
                         <Input
                           type="number"
                           min="0"
@@ -498,7 +516,7 @@ export function PayRunPreviewForm({
                               }))
                             }
                           }}
-                          className="w-24"
+                          className="w-24 text-sm"
                         />
                         <Button
                           variant="ghost"
@@ -518,8 +536,8 @@ export function PayRunPreviewForm({
                         </Button>
                       </div>
                     ) : (
-                      <div className="flex items-center space-x-2">
-                        <span className="font-medium">
+                      <div className="flex items-center justify-end space-x-2">
+                        <span className="text-sm font-medium">
                           <CurrencyFormatter amount={item.amount || 0} />
                         </span>
                         <Button
@@ -566,8 +584,8 @@ export function PayRunPreviewForm({
         {/* Net Pay Summary */}
         <div className="border-t pt-6">
           <div className="flex items-center justify-between">
-            <span className="text-lg font-semibold">NET PAY</span>
-            <span className="text-xl font-bold">
+            <span className="text-sm font-semibold">NET PAY</span>
+            <span className="text-sm font-bold">
               <CurrencyFormatter amount={currentNetPay} />
             </span>
           </div>

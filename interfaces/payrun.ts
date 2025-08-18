@@ -65,6 +65,7 @@ export interface IPayrollEmployeeDt {
   componentName: string
   componentType: string
   amount: number
+  basicAmount: number
   remarks: string
 }
 
