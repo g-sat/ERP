@@ -77,6 +77,7 @@ export interface IPayRunHistory {
   payPeriodEnd: string
   payDate: string
   status: string
+  isPost: boolean
 }
 
 // Payrun Summary Interface
@@ -177,4 +178,21 @@ export interface ISavePayrunComponentViewModel {
   amount: number
   presentDays: number
   pastDays: number
+}
+
+export interface ISIFEmployee {
+  companyName: string
+  companyMOLNo: string
+  employeeCode: string
+  employeeName: string
+  workNo: string
+  departmentName: string
+  employeeMOLId: string
+  bankName: string
+  accountNo: string
+  iban: string
+  leaveDays: string
+  fixAmount: number
+  variableAmount: number
+  total: number
 }

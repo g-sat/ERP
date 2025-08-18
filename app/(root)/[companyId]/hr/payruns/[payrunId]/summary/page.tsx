@@ -3,9 +3,10 @@
 import { useState } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { ApiResponse } from "@/interfaces/auth"
-import { IPayrollEmployeeHd } from "@/interfaces/payrun"
-import { ArrowLeft, CheckCircle, CreditCard } from "lucide-react"
+import { IPayrollEmployeeHd, ISIFEmployee } from "@/interfaces/payrun"
+import { ArrowLeft, CheckCircle, CreditCard, Download } from "lucide-react"
 import { toast } from "sonner"
+import * as XLSX from "xlsx"
 
 import { useGetById, usePersist } from "@/hooks/use-common"
 import { Button } from "@/components/ui/button"
@@ -50,6 +51,13 @@ export default function PayRunSummaryPage() {
     "pay-run-summary",
     payrunId
   )
+
+  // SIF API call
+  const {
+    data: sifData,
+    refetch: refetchSIF,
+    isLoading: isSIFLoading,
+  } = useGetById<ISIFEmployee[]>(`/hr/payrollruns/SIF`, "sif-data", payrunId)
 
   // Record payment API call
   const { mutate: recordPayment, isPending: isRecordingPayment } = usePersist(
@@ -96,6 +104,38 @@ export default function PayRunSummaryPage() {
   const handleEmployeeClick = (employee: IPayrollEmployeeHd) => {
     setSelectedEmployee(employee)
     setShowPaymentForm(true)
+  }
+
+  const handleSIF = async () => {
+    toast.info("Generating SIF Excel file...", {
+      description: "Please wait while we prepare the SIF data for download.",
+    })
+
+    try {
+      // Fetch SIF data
+      await refetchSIF()
+
+      // Check if we have SIF data
+      if (sifData?.data && Array.isArray(sifData.data)) {
+        // Create worksheet from SIF data
+        const worksheet = XLSX.utils.json_to_sheet(sifData.data)
+        const workbook = XLSX.utils.book_new()
+        XLSX.utils.book_append_sheet(workbook, worksheet, "SIF Data")
+
+        // Generate filename with current date
+        const currentDate = new Date().toISOString().split("T")[0]
+        const filename = `SIF_${payrunId}_${currentDate}.xlsx`
+
+        // Download the file
+        XLSX.writeFile(workbook, filename)
+        toast.success("SIF Excel file downloaded successfully")
+      } else {
+        toast.error("No SIF data available to download")
+      }
+    } catch (error) {
+      console.error("Error generating SIF Excel:", error)
+      toast.error("Failed to generate SIF Excel file")
+    }
   }
 
   const handleRecordPayment = () => {
@@ -297,8 +337,16 @@ export default function PayRunSummaryPage() {
                     </Button>
                   </>
                 ) : employees[0]?.isPaid ? (
-                  // If payment is recorded, show Send Payslip and Delete Record Payment buttons
+                  // If payment is recorded, show SIF, Send Payslip and Delete Record Payment buttons
                   <>
+                    <Button
+                      onClick={handleSIF}
+                      disabled={isSIFLoading}
+                      className="bg-gradient-to-r from-blue-500 to-indigo-600 shadow-lg hover:from-blue-600 hover:to-indigo-700"
+                    >
+                      <Download className="mr-2 h-4 w-4" />
+                      {isSIFLoading ? "Generating..." : "SIF"}
+                    </Button>
                     <Button
                       onClick={() => setShowSendPayslipConfirmation(true)}
                       className="bg-gradient-to-r from-emerald-500 to-teal-600 shadow-lg hover:from-emerald-600 hover:to-teal-700"
