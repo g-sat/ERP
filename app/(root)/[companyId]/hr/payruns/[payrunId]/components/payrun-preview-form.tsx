@@ -315,7 +315,7 @@ export function PayRunPreviewForm({
 
             {/* Past Days */}
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium">Past Days</span>
+              <span className="text-sm font-medium">Arrears Days</span>
               {isEditingPastDays ? (
                 <div className="flex items-center space-x-2">
                   <Input

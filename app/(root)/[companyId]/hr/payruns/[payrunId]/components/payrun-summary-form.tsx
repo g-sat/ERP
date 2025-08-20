@@ -136,7 +136,7 @@ export function PayRunSummaryForm({
 
             {/* Past Days */}
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium">Past Days</span>
+              <span className="text-sm font-medium">Arrears Days</span>
               <div className="flex items-center space-x-2">
                 <span className="text-sm font-semibold">
                   {employee?.pastDays || 0}
