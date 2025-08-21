@@ -272,7 +272,8 @@ export default function LoanPage() {
       <LoanRequestForm
         open={showLoanRequestForm}
         onOpenChange={setShowLoanRequestForm}
-        onSubmit={async (_data: LoanRequestFormData) => {
+        onSubmit={async (data: LoanRequestFormData) => {
+          console.log(data)
           setShowLoanRequestForm(false)
           toast.success("Loan request submitted successfully")
         }}

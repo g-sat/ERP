@@ -2,6 +2,7 @@
 
 import { useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
+import { IEmployeeBasic } from "@/interfaces/employee"
 import { EmployeeBasicValues } from "@/schemas/employee"
 
 import { useSaveEmployeeBasic } from "@/hooks/use-employee"
@@ -19,11 +20,12 @@ export default function AddEmployeePage() {
   useEffect(() => {
     if (saveMutation.isSuccess && saveMutation.data) {
       console.log("Save response:", saveMutation.data)
-
+      debugger
       // Extract employeeId from the response
-      const employeeDataArray = saveMutation.data?.data
-      const employeeData = employeeDataArray?.[0] // Get the first item from the array
-      const employeeId = employeeData?.employeeId
+      const employeeData = saveMutation.data?.data
+      const employeeId = Array.isArray(employeeData)
+        ? (employeeData as IEmployeeBasic[])[0]?.employeeId
+        : (employeeData as IEmployeeBasic)?.employeeId
 
       if (employeeId) {
         // Redirect to the overview-details page with the actual employeeId

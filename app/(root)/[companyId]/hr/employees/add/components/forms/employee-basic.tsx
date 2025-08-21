@@ -99,27 +99,41 @@ export function EmployeeBasicForm({ employee, onCancel, onSave }: Props) {
             form={form}
             label="Employment Type"
             name="employmentType"
+            isRequired
           />
 
           <DepartmentAutocomplete
             form={form}
             label="Department"
             name="departmentId"
+            isRequired
           />
 
           <DesignationAutocomplete
             form={form}
             label="Designation"
             name="designationId"
+            isRequired
           />
 
           <WorkLocationAutocomplete
             form={form}
             label="Work Location"
             name="workLocationId"
+            isRequired
           />
-          <GenderAutocomplete form={form} label="Gender" name="genderId" />
-          <CustomDateNew form={form} label="Date of Joining" name="joinDate" />
+          <GenderAutocomplete
+            form={form}
+            label="Gender"
+            name="genderId"
+            isRequired
+          />
+          <CustomDateNew
+            form={form}
+            label="Date of Joining"
+            name="joinDate"
+            isRequired
+          />
           <CustomDateNew
             form={form}
             label="Date of Confirmation"
@@ -144,12 +158,14 @@ export function EmployeeBasicForm({ employee, onCancel, onSave }: Props) {
             label="Office Email Address"
             name="offEmailAdd"
             placeholder="Enter office email address"
+            isRequired
           />
 
           <CountryAutocomplete
             form={form}
             label="Nationality"
             name="nationalityId"
+            isRequired
           />
         </div>
 
