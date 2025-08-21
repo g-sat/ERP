@@ -31,14 +31,6 @@ export default function EmployeePage() {
     [router, companyId]
   )
 
-  const handleView = useCallback(
-    (employee: IEmployeeBasic) => {
-      // Navigate to individual employee page using the correct path with company ID
-      router.push(`/${companyId}/hr/employees/${employee.employeeId}`)
-    },
-    [router, companyId]
-  )
-
   const handleDelete = useCallback((employee: IEmployeeBasic) => {
     setEmployeeToDelete(employee)
     setDeleteConfirmOpen(true)
@@ -64,7 +56,6 @@ export default function EmployeePage() {
         <EmployeeListTable
           data={(data?.data as unknown as IEmployeeBasic[]) || []}
           onEdit={handleEdit}
-          onView={handleView}
           onDelete={handleDelete}
           onRefresh={refetch}
         />

@@ -12,6 +12,33 @@ const nextConfig: NextConfig = {
     ignoreBuildErrors: true,
   },
 
+  // Ensure static files are served correctly
+  trailingSlash: false,
+
+  // Configure static file serving
+  async headers() {
+    return [
+      {
+        source: "/uploads/:path*",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=31536000, immutable",
+          },
+        ],
+      },
+      {
+        source: "/documents/:path*",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=31536000, immutable",
+          },
+        ],
+      },
+    ]
+  },
+
   images: {
     remotePatterns: [
       {
@@ -23,6 +50,8 @@ const nextConfig: NextConfig = {
         hostname: "images.unsplash.com",
       },
     ],
+    // Enable unoptimized images for better compatibility
+    unoptimized: true,
   },
 }
 

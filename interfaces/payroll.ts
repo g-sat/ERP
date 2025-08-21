@@ -105,7 +105,7 @@ export interface IPayrollEmployeeComponent {
 
 //payroll setting
 
-export interface IEmployeeSalaryComponent {
+export interface ISalaryComponent {
   employeeId: number
   employeeName: string
   employeeCode: string

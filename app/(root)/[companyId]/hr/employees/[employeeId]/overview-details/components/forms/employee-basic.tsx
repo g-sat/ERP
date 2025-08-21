@@ -41,9 +41,7 @@ export function EmployeeBasicForm({ employee, onCancel }: Props) {
       companyId: employee?.companyId || 0,
       employeeCode: employee?.employeeCode || "",
       employeeName: employee?.employeeName || "",
-      otherName: employee?.otherName || "",
       photo: employee?.photo || "",
-      signature: employee?.signature || "",
       departmentId: employee?.departmentId || 0,
       designationId: employee?.designationId || 0,
       workLocationId: employee?.workLocationId || 0,
@@ -84,9 +82,7 @@ export function EmployeeBasicForm({ employee, onCancel }: Props) {
         companyId: employee.companyId || 0,
         employeeCode: employee.employeeCode || "",
         employeeName: employee.employeeName || "",
-        otherName: employee.otherName || "",
         photo: employee.photo || "",
-        signature: employee.signature || "",
         departmentId: employee.departmentId || 0,
         designationId: employee.designationId || 0,
         workLocationId: employee.workLocationId || 0,
@@ -189,19 +185,6 @@ export function EmployeeBasicForm({ employee, onCancel }: Props) {
             form={form}
             label="Employment Type"
             name="employmentType"
-          />
-          <CustomInput
-            form={form}
-            label="Other Name"
-            name="otherName"
-            placeholder="Enter other name"
-          />
-
-          <CustomInput
-            form={form}
-            label="Signature"
-            name="signature"
-            placeholder="Enter signature"
           />
 
           <DepartmentAutocomplete

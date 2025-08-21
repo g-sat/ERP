@@ -26,7 +26,7 @@ import {
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import {
   Dialog,
   DialogContent,
@@ -82,7 +82,7 @@ export function EmployeeOverview({
               </div>
               <div className="mb-4 flex items-center justify-center">
                 <Badge variant="destructive" className="text-xs">
-                  PORTAL DISABLED
+                  BASIC EMPLOYEE DETAILS
                 </Badge>
               </div>
               <div className="flex flex-col items-center space-y-4">
@@ -109,9 +109,6 @@ export function EmployeeOverview({
             </CardHeader>
             <CardContent className="space-y-6">
               <div>
-                <h4 className="mb-3 text-sm font-medium text-gray-500">
-                  BASIC INFORMATION
-                </h4>
                 <div className="space-y-3">
                   <div className="flex items-center space-x-3">
                     <Building className="h-4 w-4 text-gray-400" />
@@ -201,9 +198,11 @@ export function EmployeeOverview({
                   <Edit className="h-4 w-4" />
                 </Button>
               </div>
-              <CardTitle className="text-lg font-semibold">
-                Personal Information
-              </CardTitle>
+              <div className="mb-4 flex items-center justify-center">
+                <Badge variant="destructive" className="text-xs">
+                  PERSONAL EMPLOYEE DETAILS
+                </Badge>
+              </div>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
@@ -212,10 +211,8 @@ export function EmployeeOverview({
                     Date of Birth
                   </label>
                   <p className="text-sm">
-                    {employeePersonal?.dateOfBirth
-                      ? new Date(
-                          employeePersonal?.dateOfBirth
-                        ).toLocaleDateString()
+                    {employeePersonal?.dob
+                      ? new Date(employeePersonal?.dob).toLocaleDateString()
                       : ""}
                   </p>
                 </div>
@@ -229,9 +226,19 @@ export function EmployeeOverview({
                 </div>
                 <div>
                   <label className="text-sm font-medium text-gray-500">
-                    MOL ID
+                    Work Permit No
                   </label>
-                  <p className="text-sm">{employeePersonal?.molId || ""}</p>
+                  <p className="text-sm">
+                    {employeePersonal?.workPermitNo || ""}
+                  </p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-500">
+                    Personal No
+                  </label>
+                  <p className="text-sm">
+                    {employeePersonal?.personalNo || ""}
+                  </p>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-gray-500">
@@ -273,9 +280,11 @@ export function EmployeeOverview({
                   <Edit className="h-4 w-4" />
                 </Button>
               </div>
-              <CardTitle className="text-lg font-semibold">
-                Payment Information
-              </CardTitle>
+              <div className="mb-4 flex items-center justify-center">
+                <Badge variant="destructive" className="text-xs">
+                  PAYMENT EMPLOYEE DETAILS
+                </Badge>
+              </div>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-2 gap-4">

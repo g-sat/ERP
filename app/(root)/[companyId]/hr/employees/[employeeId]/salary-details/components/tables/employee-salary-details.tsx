@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { IEmployeeSalaryComponent } from "@/interfaces/payroll"
+import { ISalaryComponent } from "@/interfaces/payroll"
 import {
   Calendar,
   DollarSign,
@@ -29,12 +29,12 @@ import {
 } from "@/components/ui/table"
 import { CurrencyFormatter } from "@/components/currencyicons/currency-formatter"
 
-import { EmployeeSalaryComponentsForm } from "../forms/employee-salary-components"
+import { SalaryComponentsForm } from "../forms/employee-salary-components"
 
 export function EmployeeSalaryDetailsTable({
   employeeSalaryDetails,
 }: {
-  employeeSalaryDetails: IEmployeeSalaryComponent[]
+  employeeSalaryDetails: ISalaryComponent[]
 }) {
   const [editSalaryDialogOpen, setEditSalaryDialogOpen] = useState(false)
 
@@ -367,7 +367,7 @@ export function EmployeeSalaryDetailsTable({
             </div>
           </DialogHeader>
           <div className="p-6">
-            <EmployeeSalaryComponentsForm
+            <SalaryComponentsForm
               onCancel={handleCancelEdit}
               employeeSalaryDetails={employeeSalaryDetails}
               onSaveSuccess={() => setEditSalaryDialogOpen(false)}

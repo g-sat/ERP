@@ -2,14 +2,11 @@
 
 import { useState } from "react"
 import { useParams } from "next/navigation"
-import {
-  IEmployeeSalaryComponent,
-  IPayrollComponent,
-} from "@/interfaces/payroll"
+import { IPayrollComponent, ISalaryComponent } from "@/interfaces/payroll"
 import { format } from "date-fns"
 import { Plus } from "lucide-react"
 
-import { PayrollComponent } from "@/lib/api-routes"
+import { SalaryComponent } from "@/lib/api-routes"
 import { clientDateFormat } from "@/lib/format"
 import { useGet } from "@/hooks/use-common"
 import { useGetEmployeeSalaryDetailsById } from "@/hooks/use-employee"
@@ -22,7 +19,7 @@ import {
 } from "@/components/ui/dialog"
 import { DataTableSkeleton } from "@/components/skeleton/data-table-skeleton"
 
-import { EmployeeSalaryComponentsForm } from "./components/forms/employee-salary-components"
+import { SalaryComponentsForm } from "./components/forms/employee-salary-components"
 import { EmployeeSalaryDetailsTable } from "./components/tables/employee-salary-details"
 
 export default function SalaryDetailsPage() {
@@ -42,19 +39,27 @@ export default function SalaryDetailsPage() {
     data: componentsData,
     isLoading: componentsLoading,
     refetch: componentsRefetch,
-  } = useGet(PayrollComponent.getSalary, "payrollcomponentsalary")
+  } = useGet(SalaryComponent.getSalary, "payrollcomponentsalary")
 
   // Get the employee salary details from the response
   const employeeSalaryDetails =
-    employeeSalaryDetailsData?.data as unknown as IEmployeeSalaryComponent[]
+    employeeSalaryDetailsData?.data as unknown as ISalaryComponent[]
 
   // Get payroll components data
   const components =
     (componentsData?.data as unknown as IPayrollComponent[]) || []
 
+  console.log("employeeSalaryDetailsData", employeeSalaryDetailsData)
+  console.log("employeeSalaryDetails", employeeSalaryDetails)
+  console.log("components", components)
+
   // Handle null or empty salary details
   const hasSalaryData =
-    employeeSalaryDetails && employeeSalaryDetails.length > 0
+    employeeSalaryDetails === null
+      ? false
+      : employeeSalaryDetails && employeeSalaryDetails.length > 0
+
+  console.log("hasSalaryData", hasSalaryData)
 
   // Show loading skeleton
   if (isLoading || componentsLoading) {
@@ -87,8 +92,9 @@ export default function SalaryDetailsPage() {
 
   // Function to get fresh default salary components
   const getFreshDefaultSalaryComponents = () => {
+    debugger
     // Refetch payroll components to get latest data
-    componentsRefetch()
+    //componentsRefetch()
 
     // Return current filtered data (will be updated after refetch)
     return components
@@ -107,17 +113,7 @@ export default function SalaryDetailsPage() {
   }
 
   return (
-    <div className="flex-1 space-y-4 p-4 pt-6 md:p-8">
-      <div className="flex items-center justify-between space-y-2">
-        <h2 className="text-3xl font-bold tracking-tight">Salary Details</h2>
-        {!hasSalaryData && (
-          <Button onClick={handleAddSalary}>
-            <Plus className="mr-2 h-4 w-4" />
-            Add Salary Components
-          </Button>
-        )}
-      </div>
-
+    <div className="flex-1 space-y-4">
       {!hasSalaryData ? (
         <div className="flex h-64 items-center justify-center">
           <div className="text-center">
@@ -150,7 +146,7 @@ export default function SalaryDetailsPage() {
           <DialogHeader>
             <DialogTitle>Add Salary Components</DialogTitle>
           </DialogHeader>
-          <EmployeeSalaryComponentsForm
+          <SalaryComponentsForm
             employeeSalaryDetails={
               hasSalaryData
                 ? employeeSalaryDetails

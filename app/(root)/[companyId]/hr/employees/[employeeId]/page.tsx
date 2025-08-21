@@ -12,7 +12,7 @@ export default function EmployeeDetailPage() {
 
   // Redirect to overview tab by default
   useEffect(() => {
-    router.replace(`/${companyId}/hr/employees/${employeeId}/overview`)
+    router.replace(`/${companyId}/hr/employees/${employeeId}/overview-details`)
   }, [router, companyId, employeeId])
 
   // Show loading while redirecting

@@ -4,18 +4,11 @@ import {
   IEmployeeBasic,
   IEmployeePersonalDetails,
 } from "@/interfaces/employee"
-import { IEmployeeSalaryComponent } from "@/interfaces/payroll"
+import { ISalaryComponent } from "@/interfaces/payroll"
 import { useQueryClient } from "@tanstack/react-query"
 
-import { getData } from "@/lib/api-client"
-import { Employee, EmployeeSalaryComponent } from "@/lib/api-routes"
-import {
-  useDelete,
-  useGet,
-  useGetById,
-  useGetByParams,
-  usePersist,
-} from "@/hooks/use-common"
+import { Employee, SalaryComponent } from "@/lib/api-routes"
+import { useDelete, useGet, useGetById, usePersist } from "@/hooks/use-common"
 
 // Hook for fetching employees
 export function useGetEmployees(filters?: string) {
@@ -53,15 +46,6 @@ export function useGetEmployeeBankById(employeeId: string | undefined) {
     `${Employee.getBankById}`,
     "employee-bank",
     employeeId || ""
-  )
-}
-
-// Hook for fetching employee by code
-export function useGetEmployeeByCode(employeeCode: string | undefined) {
-  return useGetByParams<IEmployee>(
-    Employee.getByCode,
-    "employee-by-code",
-    employeeCode || ""
   )
 }
 
@@ -185,46 +169,6 @@ export function useDeleteEmployee() {
   }
 }
 
-// Hook for checking employee code availability (duplicate detection)
-export function useCheckEmployeeCode() {
-  return useGetByParams<IEmployee>(
-    Employee.getByCode,
-    "employee-code-check",
-    ""
-  )
-}
-
-// Hook for employee duplicate detection
-export function useEmployeeDuplicateDetection() {
-  const checkEmployeeCode = useCheckEmployeeCode()
-
-  const checkDuplicates = async (code: string) => {
-    const trimmedCode = code?.trim()
-    if (!trimmedCode) return { employee: null }
-
-    try {
-      const employeeResponse = await getData(
-        `${Employee.getByCode}/${trimmedCode}`
-      )
-
-      return {
-        employee:
-          employeeResponse.data?.result === 1
-            ? employeeResponse.data.data
-            : null,
-      }
-    } catch (error) {
-      console.error("Error checking duplicates:", error)
-      return { employee: null }
-    }
-  }
-
-  return {
-    checkDuplicates,
-    isLoading: checkEmployeeCode.isLoading,
-  }
-}
-
 // Hook for employee photo upload (if needed for future enhancements)
 export function useEmployeePhotoUpload() {
   const queryClient = useQueryClient()
@@ -298,8 +242,8 @@ export function useEmployeeBulkOperations() {
 export function useGetEmployeeSalaryDetailsById(
   employeeId: string | undefined
 ) {
-  return useGetById<IEmployeeSalaryComponent>(
-    `${EmployeeSalaryComponent.getById}`,
+  return useGetById<ISalaryComponent>(
+    `${SalaryComponent.getById}`,
     "employee-salary-details",
     employeeId || ""
   )
@@ -308,13 +252,11 @@ export function useGetEmployeeSalaryDetailsById(
 // Hook for saving employee salary details
 export function useSaveEmployeeSalaryDetails() {
   const queryClient = useQueryClient()
-  const saveMutation = usePersist<IEmployeeSalaryComponent[]>(
-    `${EmployeeSalaryComponent.add}`
-  )
+  const saveMutation = usePersist<ISalaryComponent[]>(`${SalaryComponent.add}`)
 
   return {
     ...saveMutation,
-    mutate: (data: Partial<IEmployeeSalaryComponent[]>) => {
+    mutate: (data: Partial<ISalaryComponent[]>) => {
       saveMutation.mutate(data, {
         onSuccess: (response) => {
           if (response.result === 1) {

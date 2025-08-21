@@ -1,9 +1,9 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { IEmployeeSalaryComponent } from "@/interfaces/payroll"
+import { ISalaryComponent } from "@/interfaces/payroll"
 import {
-  EmployeeSalaryComponentFormData,
+  SalaryComponentFormData,
   employeeSalaryComponentSchema,
 } from "@/schemas/payroll"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -25,13 +25,13 @@ import {
 } from "@/components/ui/table"
 
 interface Props {
-  employee?: IEmployeeSalaryComponent
+  employee?: ISalaryComponent
   onCancel?: () => void
   onSaveSuccess?: () => void
-  employeeSalaryDetails: IEmployeeSalaryComponent[]
+  employeeSalaryDetails: ISalaryComponent[]
 }
 
-export function EmployeeSalaryComponentsForm({
+export function SalaryComponentsForm({
   employee,
   onCancel,
   onSaveSuccess,
@@ -40,9 +40,9 @@ export function EmployeeSalaryComponentsForm({
   const saveMutation = useSaveEmployeeSalaryDetails()
 
   // Create state for salary components to make them editable
-  const [salaryComponents, setSalaryComponents] = useState<
-    IEmployeeSalaryComponent[]
-  >(employeeSalaryDetails)
+  const [salaryComponents, setSalaryComponents] = useState<ISalaryComponent[]>(
+    employeeSalaryDetails
+  )
 
   // Debug: Log initial state
   useEffect(() => {
@@ -50,7 +50,7 @@ export function EmployeeSalaryComponentsForm({
     console.log("Initial salaryComponents state:", salaryComponents)
   }, [employeeSalaryDetails])
 
-  const form = useForm<EmployeeSalaryComponentFormData>({
+  const form = useForm<SalaryComponentFormData>({
     resolver: zodResolver(employeeSalaryComponentSchema),
     defaultValues: {
       employeeId: employee?.employeeId || 0,
@@ -92,7 +92,7 @@ export function EmployeeSalaryComponentsForm({
   )
   const totalAnnual = totalMonthly * 12
 
-  const onSubmit = (data: EmployeeSalaryComponentFormData) => {
+  const onSubmit = (data: SalaryComponentFormData) => {
     console.log("✅ onSubmit function called!")
     console.log("Form data:", data)
     console.log("Updated salary components from table:", salaryComponents)

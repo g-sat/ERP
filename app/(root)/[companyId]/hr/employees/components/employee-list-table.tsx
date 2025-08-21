@@ -3,14 +3,7 @@
 import { useEffect, useState } from "react"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { IEmployeeBasic } from "@/interfaces/employee"
-import {
-  Edit,
-  Eye,
-  MoreHorizontal,
-  RefreshCw,
-  Search,
-  Trash2,
-} from "lucide-react"
+import { Edit, MoreHorizontal, RefreshCw, Search, Trash2 } from "lucide-react"
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
@@ -37,7 +30,6 @@ interface Props {
   onRefresh?(): void
   onEdit(item: IEmployeeBasic): void
   onDelete(item: IEmployeeBasic): void
-  onView(item: IEmployeeBasic): void
 }
 
 export function EmployeeListTable({
@@ -45,7 +37,6 @@ export function EmployeeListTable({
   onRefresh,
   onEdit,
   onDelete,
-  onView,
 }: Props) {
   const router = useRouter()
   const pathname = usePathname()
@@ -236,10 +227,7 @@ export function EmployeeListTable({
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuItem onClick={() => onView(employee)}>
-                          <Eye className="mr-2 h-4 w-4" />
-                          View
-                        </DropdownMenuItem>
+
                         <DropdownMenuItem onClick={() => onEdit(employee)}>
                           <Edit className="mr-2 h-4 w-4" />
                           Edit

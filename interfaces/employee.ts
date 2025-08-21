@@ -4,9 +4,7 @@ export interface IEmployee {
   companyName?: string
   employeeCode: string
   employeeName?: string
-  otherName?: string
   photo?: string
-  signature?: string
   departmentId: number
   departmentName?: string
   designationId: number
@@ -71,9 +69,7 @@ export interface IEmployeeBasic {
   companyName?: string
   employeeCode: string
   employeeName?: string
-  otherName?: string
   photo?: string
-  signature?: string
   departmentId: number
   departmentName?: string
   designationId: number
@@ -102,12 +98,13 @@ export interface IEmployeeBasic {
 
 export interface IEmployeePersonalDetails {
   employeeId: number
-  dateOfBirth?: Date | string
+  dob?: Date | string
   fatherName?: string
   age?: number
   permanentAddress?: string
   currentAddress?: string
-  molId?: string
+  workPermitNo?: string
+  personalNo?: string
   emailAdd?: string
   createDate?: Date | string
   editDate?: Date | string

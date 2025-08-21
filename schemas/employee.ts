@@ -5,9 +5,7 @@ export const employeeSchema = z.object({
   companyId: z.number().min(1, { message: "Company is required" }),
   employeeCode: z.string().min(1, { message: "Employee code is required" }),
   employeeName: z.string().min(1, { message: "Employee name is required" }),
-  otherName: z.string().optional().default(""),
   photo: z.string().optional().default(""),
-  signature: z.string().optional().default(""),
   departmentId: z.number().min(1, { message: "Department is required" }),
   designationId: z.number().min(1, { message: "Designation is required" }),
   workLocationId: z.number().min(1, { message: "Work location is required" }),
@@ -77,9 +75,7 @@ export const employeeBasicSchema = z.object({
   companyName: z.string().optional().default(""),
   employeeCode: z.string().min(1, { message: "Employee code is required" }),
   employeeName: z.string().min(1, { message: "Employee name is required" }),
-  otherName: z.string().optional().default(""),
   photo: z.string().optional().default(""),
-  signature: z.string().optional().default(""),
   departmentId: z.number().min(1, { message: "Department is required" }),
   designationId: z.number().min(1, { message: "Designation is required" }),
   workLocationId: z.number().min(1, { message: "Work location is required" }),
@@ -113,7 +109,7 @@ export type EmployeeBasicValues = z.infer<typeof employeeBasicSchema>
 
 export const employeePersonalDetailsSchema = z.object({
   employeeId: z.number().min(1, { message: "Employee is required" }),
-  dateOfBirth: z
+  dob: z
     .union([z.date(), z.string()])
     .refine((val) => val !== "" && val !== null && val !== undefined, {
       message: "Date of birth is required",
@@ -122,7 +118,8 @@ export const employeePersonalDetailsSchema = z.object({
   age: z.number().optional().default(0),
   permanentAddress: z.string().optional().default(""),
   currentAddress: z.string().optional().default(""),
-  molId: z.string().optional().default(""),
+  workPermitNo: z.string().optional().default(""),
+  personalNo: z.string().optional().default(""),
   emailAdd: z.string().optional().default(""),
 })
 

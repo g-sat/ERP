@@ -33,9 +33,9 @@ export function EmployeePersonalForm({ employee, onCancel }: Props) {
     resolver: zodResolver(employeePersonalDetailsSchema),
     defaultValues: {
       employeeId: employee?.employeeId || 0,
-      dateOfBirth: employee?.dateOfBirth
+      dob: employee?.dob
         ? format(
-            parseDate(employee?.dateOfBirth as string) || new Date(),
+            parseDate(employee?.dob as string) || new Date(),
             clientDateFormat
           )
         : format(new Date(), clientDateFormat),
@@ -43,7 +43,8 @@ export function EmployeePersonalForm({ employee, onCancel }: Props) {
       age: employee?.age || 0,
       permanentAddress: employee?.permanentAddress || "",
       currentAddress: employee?.currentAddress || "",
-      molId: employee?.molId || "",
+      workPermitNo: employee?.workPermitNo || "",
+      personalNo: employee?.personalNo || "",
       emailAdd: employee?.emailAdd || "",
     },
   })
@@ -59,18 +60,16 @@ export function EmployeePersonalForm({ employee, onCancel }: Props) {
   // Reset form when employee data changes and calculate age
   React.useEffect(() => {
     if (employee) {
-      const birthDate = employee.dateOfBirth
-        ? parseDate(employee.dateOfBirth as string)
-        : null
+      const birthDate = employee.dob ? parseDate(employee.dob as string) : null
       const calculatedAge = birthDate
         ? differenceInYears(new Date(), birthDate)
         : 0
 
       form.reset({
         employeeId: employee.employeeId || 0,
-        dateOfBirth: employee.dateOfBirth
+        dob: employee.dob
           ? format(
-              parseDate(employee?.dateOfBirth as string) || new Date(),
+              parseDate(employee?.dob as string) || new Date(),
               clientDateFormat
             )
           : "",
@@ -78,7 +77,8 @@ export function EmployeePersonalForm({ employee, onCancel }: Props) {
         age: calculatedAge,
         permanentAddress: employee.permanentAddress || "",
         currentAddress: employee.currentAddress || "",
-        molId: employee.molId || "",
+        workPermitNo: employee.workPermitNo || "",
+        personalNo: employee.personalNo || "",
         emailAdd: employee.emailAdd || "",
       })
     }
@@ -86,7 +86,7 @@ export function EmployeePersonalForm({ employee, onCancel }: Props) {
 
   // Calculate age when form opens with existing date of birth
   React.useEffect(() => {
-    const currentDateOfBirth = form.getValues("dateOfBirth")
+    const currentDateOfBirth = form.getValues("dob")
     if (currentDateOfBirth && typeof currentDateOfBirth === "string") {
       const birthDate = parseDate(currentDateOfBirth)
       if (birthDate) {
@@ -113,7 +113,7 @@ export function EmployeePersonalForm({ employee, onCancel }: Props) {
           <CustomDateNew
             form={form}
             label="Date of Birth"
-            name="dateOfBirth"
+            name="dob"
             isRequired
             onChangeEvent={handleDateOfBirthChange}
           />
@@ -121,7 +121,8 @@ export function EmployeePersonalForm({ employee, onCancel }: Props) {
 
           <CustomInput form={form} label="Father's Name" name="fatherName" />
 
-          <CustomInput form={form} label="MOL ID" name="molId" />
+          <CustomInput form={form} label="Work Permit No" name="workPermitNo" />
+          <CustomInput form={form} label="Personal No" name="personalNo" />
           <CustomInput
             form={form}
             label="Personal Email Address"

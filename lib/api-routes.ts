@@ -537,18 +537,13 @@ export const Designation = {
 // Employee Endpoints
 export const Employee = {
   get: "/master/getemployee",
-  getById: "/master/GetEmployeebyid",
-  getPersonalById: "/master/GetEmployeePersonalDetailsbyId",
-  getBankById: "/master/getemployeebankbyId",
-  getByCode: "/master/getemployeebycode",
+  getById: "/master/getemployeebyid",
   add: "/master/saveemployee",
-  addBasic: "/master/saveemployeebasic",
-  addPersonal: "/master/saveemployeepersonaldetails",
+  getBankById: "/master/getemployeebankbyid",
   addBank: "/master/saveemployeebank",
+  getPersonalById: "/master/getpersonaldetailsbyid",
+  addPersonal: "/master/savepersonaldetails",
   delete: "/master/deleteemployee",
-  deleteBasic: "/master/deleteemployeebasic",
-  deletePersonal: "/master/deleteemployeepersonaldetails",
-  deleteBank: "/master/deleteemployeebank",
 }
 
 // Employer Details Endpoints
@@ -1141,9 +1136,10 @@ export const Approval = {
 }
 
 // Payroll Management Endpoints
-export const EmployeeSalaryComponent = {
-  getById: "/hr/getemployeesalarycomponentbyid",
-  add: "/hr/saveemployeesalarycomponent",
+export const SalaryComponent = {
+  getById: "/hr/getsalarycomponentbyid",
+  add: "/hr/savesalarycomponent",
+  getSalary: "/hr/getsalarycomponent",
 }
 
 export const PayrollEmployee = {

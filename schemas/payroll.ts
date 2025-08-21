@@ -147,6 +147,6 @@ export const employeeSalaryComponentSchema = z.object({
   }),
 })
 
-export type EmployeeSalaryComponentFormData = z.infer<
+export type SalaryComponentFormData = z.infer<
   typeof employeeSalaryComponentSchema
 >

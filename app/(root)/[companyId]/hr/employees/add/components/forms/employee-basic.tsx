@@ -39,9 +39,7 @@ export function EmployeeBasicForm({ employee, onCancel, onSave }: Props) {
       companyId: 0,
       employeeCode: "",
       employeeName: "",
-      otherName: "",
       photo: "",
-      signature: "",
       departmentId: 0,
       designationId: 0,
       workLocationId: 0,
@@ -101,19 +99,6 @@ export function EmployeeBasicForm({ employee, onCancel, onSave }: Props) {
             form={form}
             label="Employment Type"
             name="employmentType"
-          />
-          <CustomInput
-            form={form}
-            label="Other Name"
-            name="otherName"
-            placeholder="Enter other name"
-          />
-
-          <CustomInput
-            form={form}
-            label="Signature"
-            name="signature"
-            placeholder="Enter signature"
           />
 
           <DepartmentAutocomplete

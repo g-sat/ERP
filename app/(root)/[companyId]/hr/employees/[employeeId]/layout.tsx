@@ -21,7 +21,7 @@ export default function EmployeeDetailLayout({
   const employeeId = params.employeeId as string
   const companyId = params.companyId as string
 
-  // Fetch employee data
+  // Fetch employee data with proper caching
   const { data: employeeData } = useGetEmployeeById(employeeId)
   const employee = employeeData?.data as unknown as {
     employeeName?: string
@@ -37,8 +37,6 @@ export default function EmployeeDetailLayout({
   const getCurrentTab = () => {
     if (pathname.includes("/overview-details")) return "overview-details"
     if (pathname.includes("/salary-details")) return "salary-details"
-    if (pathname.includes("/payslip-details")) return "payslip-details"
-    if (pathname.includes("/loan-details")) return "loan-details"
     if (pathname.includes("/document-details")) return "document-details"
     return "overview-details"
   }
@@ -72,7 +70,9 @@ export default function EmployeeDetailLayout({
             </Button>
             <div className="flex items-center space-x-3">
               <h1 className="text-lg font-semibold">
-                {employee?.employeeName || ""}
+                <Badge variant="destructive" className="text-lg">
+                  {employee?.employeeName || ""}
+                </Badge>
               </h1>
               <Badge variant="secondary" className="text-xs">
                 EMP. ID: {employee?.employeeCode || ""}
@@ -100,15 +100,6 @@ export default function EmployeeDetailLayout({
                 className="text-sm font-medium"
               >
                 Salary Details
-              </TabsTrigger>
-              <TabsTrigger
-                value="payslip-details"
-                className="text-sm font-medium"
-              >
-                Payslips
-              </TabsTrigger>
-              <TabsTrigger value="loan-details" className="text-sm font-medium">
-                Loans
               </TabsTrigger>
               <TabsTrigger
                 value="document-details"
