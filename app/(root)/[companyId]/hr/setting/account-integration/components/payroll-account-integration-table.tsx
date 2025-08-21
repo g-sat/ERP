@@ -255,8 +255,7 @@ export function PayrollAccountIntegrationTable({
                               <TableCell>
                                 <div>
                                   <div className="font-medium">
-                                    {mapping.expenseGLCode ||
-                                      mapping.expenseGLId}
+                                    {mapping.expenseGLCode || mapping.glId}
                                   </div>
                                   <div className="text-muted-foreground text-sm">
                                     {mapping.expenseGLName}
@@ -322,14 +321,14 @@ export function PayrollAccountIntegrationTable({
                                             {mapping.departmentName || "N/A"}
                                           </p>
                                         </div>
-                                        {mapping.expenseGLId && (
+                                        {mapping.glId && (
                                           <div>
                                             <label className="text-muted-foreground text-sm font-medium">
                                               Expense GL Account
                                             </label>
                                             <p className="font-medium">
                                               {mapping.expenseGLCode ||
-                                                mapping.expenseGLId}
+                                                mapping.glId}
                                             </p>
                                           </div>
                                         )}

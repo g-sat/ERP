@@ -48,7 +48,7 @@ export interface IPayrollComponentGLMapping {
   componentId: number
   componentCode: string
   componentName: string
-  expenseGLId: number
+  glId: number
   expenseGLCode: string
   expenseGLName: string
   isActive?: boolean

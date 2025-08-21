@@ -44,7 +44,7 @@ export const componentGLMappingSchema = z.object({
   componentId: z.number().min(0, "Payroll component is required"),
   companyId: z.number().min(0, "Company is required"),
   departmentId: z.number().min(0, "Department is required"),
-  expenseGLId: z.number().min(0, "Expense GL is required"),
+  glId: z.number().min(0, "Expense GL is required"),
   isActive: z.boolean().default(true),
 })
 

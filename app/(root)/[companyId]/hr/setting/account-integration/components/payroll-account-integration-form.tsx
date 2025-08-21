@@ -32,7 +32,7 @@ export function PayrollAccountIntegrationForm({ initialData, onSave }: Props) {
       componentId: initialData?.componentId ?? 0,
       companyId: initialData?.companyId ?? 0,
       departmentId: initialData?.departmentId ?? 0,
-      expenseGLId: initialData?.expenseGLId ?? 0,
+      glId: initialData?.glId ?? 0,
       isActive: initialData?.isActive ?? true,
     },
     mode: "onChange",
@@ -46,7 +46,7 @@ export function PayrollAccountIntegrationForm({ initialData, onSave }: Props) {
         componentId: initialData.componentId,
         companyId: initialData.companyId,
         departmentId: initialData.departmentId,
-        expenseGLId: initialData.expenseGLId,
+        glId: initialData.glId,
         isActive: initialData.isActive,
       })
       setSelectedCompanyId(initialData.companyId)
@@ -56,7 +56,7 @@ export function PayrollAccountIntegrationForm({ initialData, onSave }: Props) {
         componentId: 0,
         companyId: 0,
         departmentId: 0,
-        expenseGLId: 0,
+        glId: 0,
         isActive: true,
       })
       setSelectedCompanyId(null)
@@ -80,7 +80,7 @@ export function PayrollAccountIntegrationForm({ initialData, onSave }: Props) {
               const companyId = company?.companyId || null
               setSelectedCompanyId(companyId)
               form.setValue("departmentId", 0)
-              form.setValue("expenseGLId", 0)
+              form.setValue("glId", 0)
             }}
           />
           <PayrollComponentAutocomplete
@@ -100,7 +100,7 @@ export function PayrollAccountIntegrationForm({ initialData, onSave }: Props) {
           />
           <ChartOfAccountAutocomplete
             form={form}
-            name="expenseGLId"
+            name="glId"
             label="Expense GL Account"
             isRequired
             companyId={selectedCompanyId || 0}

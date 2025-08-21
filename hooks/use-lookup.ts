@@ -1298,7 +1298,7 @@ export const usePayrollComponentLookup = () => {
     placeholderData: keepPreviousData,
     queryFn: async () => {
       try {
-        const data = await getData(Lookup.getPayrollComponent)
+        const data = await getData(Lookup.getComponentLookup)
         return data?.data || []
       } catch (error) {
         handleApiError(error)
@@ -1314,7 +1314,7 @@ export const usePayrollComponentGroupLookup = () => {
     placeholderData: keepPreviousData,
     queryFn: async () => {
       try {
-        const data = await getData(Lookup.getPayrollComponentGroup)
+        const data = await getData(Lookup.getPayrollComponentGroupLookup)
         return data?.data || []
       } catch (error) {
         handleApiError(error)

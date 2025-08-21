@@ -159,10 +159,8 @@ export default function TemplatesPage() {
   }
 
   return (
-    <div className="h-full bg-gray-50 p-6">
-      <h2 className="mb-6 text-2xl font-semibold text-gray-900">
-        Regular Payslips
-      </h2>
+    <div className="h-full p-6">
+      <h2 className="mb-6 text-2xl font-semibold">Regular Payslips</h2>
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
         {filteredTemplates.map((template) => (
@@ -194,49 +192,47 @@ function TemplateCard({
     <Card className="overflow-hidden transition-shadow hover:shadow-lg">
       <CardContent className="p-0">
         {/* Template Preview */}
-        <div className="relative border-b border-gray-200 bg-white">
+        <div className="relative border-b">
           <div className="p-4">
             {/* Company Logo/Icon */}
             <div className="mb-3 flex items-start justify-between">
               <div className="flex h-8 w-8 items-center justify-center rounded-full bg-green-500">
-                <span className="text-sm font-bold text-white">A</span>
+                <span className="text-sm font-bold">A</span>
               </div>
               {template.isDefault && (
-                <Badge className="bg-orange-500 text-xs text-white">
-                  DEFAULT
-                </Badge>
+                <Badge className="bg-orange-500 text-xs">DEFAULT</Badge>
               )}
             </div>
 
             {/* Company Name */}
-            <h3 className="mb-2 font-semibold text-gray-900">
+            <h3 className="mb-2 font-semibold">
               {template.preview.companyName}
             </h3>
 
             {/* Net Pay */}
             <div className="text-right">
-              <span className="text-2xl font-bold text-gray-900">
+              <span className="text-2xl font-bold">
                 {template.preview.currency} {template.preview.netPay}
               </span>
             </div>
 
             {/* Template Sections Preview */}
             <div className="mt-4 space-y-2">
-              <div className="flex justify-between text-xs text-gray-600">
+              <div className="text-muted-foreground flex justify-between text-xs">
                 <span>Basic</span>
                 <span>{template.preview.currency} 60,000.00</span>
               </div>
-              <div className="flex justify-between text-xs text-gray-600">
+              <div className="text-muted-foreground flex justify-between text-xs">
                 <span>Housing Allowance</span>
                 <span>{template.preview.currency} 0.00</span>
               </div>
-              <div className="flex justify-between text-xs text-gray-600">
+              <div className="text-muted-foreground flex justify-between text-xs">
                 <span>Salary Advance</span>
                 <span className="text-red-600">
                   -{template.preview.currency} 1,200.00
                 </span>
               </div>
-              <div className="flex justify-between text-xs text-gray-600">
+              <div className="text-muted-foreground flex justify-between text-xs">
                 <span>EPF</span>
                 <span className="text-red-600">
                   -{template.preview.currency} 1,200.00
@@ -249,7 +245,7 @@ function TemplateCard({
         {/* Template Name and Action Buttons */}
         <div className="p-4">
           <div className="mb-3 flex items-center justify-between">
-            <h4 className="font-medium text-gray-900">{template.name}</h4>
+            <h4 className="font-medium">{template.name}</h4>
             <Button onClick={onEdit} variant="outline" size="sm">
               Edit
             </Button>

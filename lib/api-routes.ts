@@ -236,6 +236,8 @@ export const Lookup = {
   getLoanRequestStatusLookup: "/master/getloanrequeststatuslookup",
   getDisbursementLookup: "/master/getdisbursementlookup",
   getRepaymentStatusLookup: "/master/getrepaymentstatuslookup",
+  getComponentLookup: "/master/GetComponentLookup",
+  getPayrollComponentGroupLookup: "/master/getpayrollcomponentgrouplookup",
 }
 
 //Master Endpoints
@@ -1169,30 +1171,30 @@ export const PayrollEmployee = {
 }
 
 export const PayrollComponent = {
-  get: "/hr/payrun/getcomponent",
-  getSalary: "/hr/payrun/getsalarycomponent",
-  getById: "/hr/payrun/getcomponentbyid",
-  add: "/hr/payrun/savecomponent",
-  update: "/hr/payrun/savecomponent",
-  delete: "/hr/payrun/deletecomponent",
-  getByType: "/hr/payrun/typecomponent",
-  getActive: "/hr/payrun/activecomponent",
+  get: "/hr/setting/getcomponent",
+  getSalary: "/hr/settings/getsalarycomponent",
+  getById: "/hr/settings/getcomponentbyid",
+  add: "/hr/settings/savecomponent",
+  update: "/hr/settings/savecomponent",
+  delete: "/hr/settings/deletecomponent",
+  getByType: "/hr/settings/typecomponent",
+  getActive: "/hr/settings/activecomponent",
 }
 
 export const PayrollComponentGroup = {
-  get: "/hr/payrun/getcomponentgroup",
-  getById: "/hr/payrun/getcomponentgroupbyid",
-  add: "/hr/payrun/savecomponentgroup",
-  update: "/hr/payrun/savecomponentgroup",
-  delete: "/hr/payrun/deletecomponentgroup",
+  get: "/hr/setting/getcomponentgroup",
+  getById: "/hr/setting/getcomponentgroupbyid",
+  add: "/hr/setting/savecomponentgroup",
+  update: "/hr/setting/savecomponentgroup",
+  delete: "/hr/setting/deletecomponentgroup",
 }
 
 export const PayrollComponentGLMapping = {
-  get: "/hr/payrun/getcomponentglmapping",
-  getById: "/hr/payrun/getcomponentglmappingbyid",
-  add: "/hr/payrun/savecomponentglmapping",
-  update: "/hr/payrun/savecomponentglmapping",
-  delete: "/hr/payrun/deletecomponentglmapping",
+  get: "/hr/setting/getcomponentglmapping",
+  getById: "/hr/setting/getcomponentglmappingbyid",
+  add: "/hr/setting/savecomponentglmapping",
+  update: "/hr/setting/savecomponentglmapping",
+  delete: "/hr/setting/deletecomponentglmapping",
 }
 
 export const PayrollEmployeeComponent = {
