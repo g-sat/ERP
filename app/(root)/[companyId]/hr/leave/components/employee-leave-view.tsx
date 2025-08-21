@@ -179,11 +179,9 @@ export function EmployeeLeaveView({
               </AvatarFallback>
             </Avatar>
             <div className="flex-1">
-              <h2 className="text-2xl font-bold">
-                {employee.employeeName}
-              </h2>
+              <h2 className="text-2xl font-bold">{employee.employeeName}</h2>
               <p className="text-muted-foreground">
-                {employee.code} • {employee.departmentName}
+                {employee.employeeCode} • {employee.departmentName}
               </p>
               <p className="text-muted-foreground text-sm">
                 Joined:{" "}
@@ -404,9 +402,7 @@ export function EmployeeLeaveView({
         {/* My Requests Tab */}
         <TabsContent value="requests" className="space-y-4">
           <Card>
-            <CardHeader>
-              <CardTitle>My Leave Requests</CardTitle>
-            </CardHeader>
+            <CardHeader></CardHeader>
             <CardContent>
               <div className="space-y-4">
                 {employeeLeaves.map((leave) => (

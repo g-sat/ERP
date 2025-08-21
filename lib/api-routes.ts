@@ -1076,6 +1076,17 @@ export const GLPeriodClose = {
 
 // Leave Management Endpoints
 
+export const HrUserRequest = {
+  get: "/hr/leave-request",
+  add: "/hr/Saveleaverequest",
+
+  getloan: "/hr/loan/getloanrequestbyemployee",
+  addloan: "/hr/saveloanrequest",
+
+  getpettycash: "/hr/pettycash-request",
+  addpettycash: "/hr/savepettycashrequest",
+}
+
 export const HrLeaveRequest = {
   get: "/hr/leave-request/getleaverequest",
   getById: "/hr/leave-request/getleaverequestbyid",

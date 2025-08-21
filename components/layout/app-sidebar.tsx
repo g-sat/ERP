@@ -12,12 +12,14 @@ import {
   Box,
   Building,
   Calendar,
+  CalendarDays,
   ChartArea,
   ChevronRightIcon,
   ClipboardList,
   Clock,
   Coins,
   CreditCard,
+  FileCheck,
   FileMinus,
   FilePlus,
   FileStack,
@@ -26,9 +28,9 @@ import {
   GalleryVerticalEnd,
   Globe,
   GraduationCap,
+  HandCoins,
   Landmark,
   LayoutDashboard,
-  ListChecks,
   MapPin,
   PlusCircle,
   Receipt,
@@ -37,12 +39,9 @@ import {
   Shield,
   Ship,
   Sliders,
-  SquareDashedKanbanIcon,
-  TentTree,
   Undo2,
   Users,
   Wallet,
-  WalletMinimalIcon,
 } from "lucide-react"
 
 import { useApprovalCounts } from "@/hooks/use-approval"
@@ -86,17 +85,31 @@ export const menuData = {
       icon: FileText,
     },
     {
+      title: "Requests",
+      url: "/requests",
+      icon: FileCheck,
+      items: [
+        { title: "Loan", url: "/requests/loan", icon: Wallet },
+        { title: "Leave", url: "/requests/leave", icon: CalendarDays },
+        {
+          title: "Petty Cash",
+          url: "/requests/pettycash",
+          icon: HandCoins,
+        },
+      ],
+    },
+    {
       title: "HR",
       url: "/hr",
-      icon: GalleryVerticalEnd,
+      icon: Users,
       items: [
         { title: "Employees", url: "/hr/employees", icon: Users },
-        { title: "Loan", url: "/hr/loan", icon: WalletMinimalIcon },
-        { title: "Leave", url: "/hr/leave", icon: TentTree },
+        { title: "Loan", url: "/hr/loan", icon: Wallet },
+        { title: "Leave", url: "/hr/leave", icon: CalendarDays },
         { title: "Time & Attendance", url: "/hr/attendance", icon: Clock },
         { title: "Payruns", url: "/hr/payruns", icon: Calendar },
         // { title: "Payroll", url: "/hr/payroll", icon: Wallet },
-        { title: "Reports", url: "/hr/reports", icon: SquareDashedKanbanIcon },
+        { title: "Reports", url: "/hr/reports", icon: BarChart },
         {
           title: "Setting",
           url: "/hr/setting",
@@ -129,7 +142,7 @@ export const menuData = {
         {
           title: "Account Setup",
           url: "/master/account-setup",
-          icon: Settings,
+          icon: FileCheck,
         },
         { title: "Account Type", url: "/master/account-type", icon: FileText },
         { title: "Bank", url: "/master/bank", icon: Banknote },
@@ -141,7 +154,7 @@ export const menuData = {
           icon: ChartArea,
         },
         { title: "Country", url: "/master/country", icon: Globe },
-        { title: "Task", url: "/master/task", icon: ListChecks },
+        { title: "Task", url: "/master/task", icon: ClipboardList },
         { title: "Charge", url: "/master/charge", icon: CreditCard },
         { title: "Credit Term", url: "/master/creditterm", icon: CreditCard },
         { title: "Currency", url: "/master/currency", icon: Coins },
@@ -403,12 +416,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                         }`}
                       >
                         <div className="relative">
-                          {item.icon && <item.icon />}
-                          {item.title === "Approvals" && approvalCount > 0 && (
-                            <span className="absolute -top-1 -right-1 z-20 flex h-4 w-4 animate-bounce items-center justify-center rounded-full bg-red-500 text-xs text-white shadow-sm group-data-[collapsed=false]:hidden group-data-[collapsed=true]:block">
-                              {approvalCount}
-                            </span>
-                          )}
+                          {item.icon && <item.icon className="h-4 w-4" />}
                         </div>
                         <span>{item.title}</span>
                         {item.title === "Approvals" && approvalCount > 0 && (
@@ -469,12 +477,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                 >
                   <Link href={getUrlWithCompanyId(item.url)}>
                     <div className="relative">
-                      {item.icon && <item.icon />}
-                      {item.title === "Approvals" && approvalCount > 0 && (
-                        <span className="absolute -top-1 -right-1 z-20 flex h-4 w-4 animate-bounce items-center justify-center rounded-full bg-red-500 text-xs text-white shadow-sm group-data-[collapsed=false]:hidden group-data-[collapsed=true]:block">
-                          {approvalCount}
-                        </span>
-                      )}
+                      {item.icon && <item.icon className="h-4 w-4" />}
                     </div>
                     <span>{item.title}</span>
                     {item.title === "Approvals" && approvalCount > 0 && (

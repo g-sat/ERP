@@ -23,7 +23,6 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar"
-import { useThemeConfig } from "@/components/layout/active-theme"
 
 // Constants for storage keys
 const TAB_COMPANY_ID_KEY = "tab_company_id"
@@ -32,7 +31,7 @@ export function CompanySwitcher() {
   const { isMobile } = useSidebar()
   const searchParams = useSearchParams()
   const { companies, currentCompany, getCompanies } = useAuthStore()
-  const { activeTheme } = useThemeConfig()
+
   const [isLoading, setIsLoading] = React.useState(false)
   const [isOpen, setIsOpen] = React.useState(false)
 
@@ -126,33 +125,14 @@ export function CompanySwitcher() {
               size="lg"
               className={cn(
                 "transition-colors duration-200",
-                isLoading && "cursor-not-allowed opacity-50",
-                // Theme-specific styles for open state
-                activeTheme === "blue-scaled"
-                  ? "data-[state=open]:bg-blue-100 data-[state=open]:text-blue-900"
-                  : activeTheme === "green-scaled"
-                    ? "data-[state=open]:bg-emerald-100 data-[state=open]:text-emerald-900"
-                    : activeTheme === "amber-scaled"
-                      ? "data-[state=open]:bg-amber-100 data-[state=open]:text-amber-900"
-                      : activeTheme === "mono-scaled"
-                        ? "data-[state=open]:bg-gray-100 data-[state=open]:text-gray-900"
-                        : "data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+                isLoading && "cursor-not-allowed opacity-50"
               )}
               disabled={isLoading}
             >
               <div
                 className={cn(
                   "flex aspect-square size-8 items-center justify-center rounded-lg",
-                  // Use theme-aware classes based on the activeTheme
-                  activeTheme === "blue-scaled"
-                    ? "bg-blue-600 text-white"
-                    : activeTheme === "green-scaled"
-                      ? "bg-emerald-600 text-white"
-                      : activeTheme === "amber-scaled"
-                        ? "bg-amber-600 text-white"
-                        : activeTheme === "mono-scaled"
-                          ? "bg-gray-800 text-white"
-                          : "bg-sidebar-primary text-sidebar-primary-foreground" // Default fallback
+                  "bg-transparent"
                 )}
               >
                 {isLoading ? (
@@ -205,17 +185,7 @@ export function CompanySwitcher() {
                 onClick={() => handleCompanySwitch(company.companyId)}
                 className={cn(
                   "gap-2 rounded-md p-2 transition-colors duration-200",
-                  company.companyId === currentCompany.companyId
-                    ? activeTheme === "blue-scaled"
-                      ? "bg-blue-100 text-blue-900"
-                      : activeTheme === "green-scaled"
-                        ? "bg-emerald-100 text-emerald-900"
-                        : activeTheme === "amber-scaled"
-                          ? "bg-amber-100 text-amber-900"
-                          : activeTheme === "mono-scaled"
-                            ? "bg-gray-200 text-gray-900"
-                            : "bg-accent text-accent-foreground"
-                    : "hover:bg-accent/50"
+                  "hover:bg-accent/50"
                 )}
                 disabled={
                   isLoading || company.companyId === currentCompany.companyId
@@ -224,18 +194,7 @@ export function CompanySwitcher() {
                 <div
                   className={cn(
                     "flex size-6 items-center justify-center overflow-hidden rounded-xs border transition-transform duration-200 hover:scale-105",
-                    // Use theme-aware background color for company icons in dropdown
-                    company.companyId === currentCompany.companyId
-                      ? activeTheme === "blue-scaled"
-                        ? "bg-blue-100"
-                        : activeTheme === "green-scaled"
-                          ? "bg-emerald-100"
-                          : activeTheme === "amber-scaled"
-                            ? "bg-amber-100"
-                            : activeTheme === "mono-scaled"
-                              ? "bg-gray-100"
-                              : "bg-background"
-                      : "bg-background"
+                    "bg-transparent"
                   )}
                 >
                   <Image
@@ -263,21 +222,7 @@ export function CompanySwitcher() {
                   </span>
                 </div>
                 {company.companyId === currentCompany.companyId ? (
-                  <Check
-                    className={cn(
-                      "h-4 w-4",
-                      // Theme-specific text color for the check icon
-                      activeTheme === "blue-scaled"
-                        ? "text-blue-600"
-                        : activeTheme === "green-scaled"
-                          ? "text-emerald-600"
-                          : activeTheme === "amber-scaled"
-                            ? "text-amber-600"
-                            : activeTheme === "mono-scaled"
-                              ? "text-gray-800"
-                              : "text-accent-foreground"
-                    )}
-                  />
+                  <Check className={cn("h-4 w-4")} />
                 ) : (
                   <DropdownMenuShortcut>⌘{index + 1}</DropdownMenuShortcut>
                 )}
@@ -295,16 +240,7 @@ export function CompanySwitcher() {
             >
               <div
                 className={cn(
-                  "flex size-6 items-center justify-center rounded-md border transition-transform duration-200 hover:scale-105",
-                  activeTheme === "blue-scaled"
-                    ? "hover:border-blue-400 hover:text-blue-600"
-                    : activeTheme === "green-scaled"
-                      ? "hover:border-emerald-400 hover:text-emerald-600"
-                      : activeTheme === "amber-scaled"
-                        ? "hover:border-amber-400 hover:text-amber-600"
-                        : activeTheme === "mono-scaled"
-                          ? "hover:border-gray-400 hover:text-gray-800"
-                          : "bg-transparent"
+                  "flex size-6 items-center justify-center rounded-md border transition-transform duration-200 hover:scale-105"
                 )}
               >
                 <Plus className="size-4" />
