@@ -14,7 +14,10 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { FileText, Plus } from "lucide-react"
 import { useForm } from "react-hook-form"
 
-import { usePersistUniversalDocument } from "@/hooks/use-universal-documents"
+import {
+  usePersistDocumentDetails,
+  usePersistUniversalDocument,
+} from "@/hooks/use-universal-documents"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -24,6 +27,13 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import {
   Form,
   FormControl,
@@ -58,12 +68,10 @@ export function DocumentForm({
   const [editingDetail, setEditingDetail] = useState<
     IUniversalDocumentDt | undefined
   >(undefined)
-  const [editingDetailIndex, setEditingDetailIndex] = useState<
-    number | undefined
-  >(undefined)
 
   const isEditing = !!document
   const persistMutation = usePersistUniversalDocument()
+  const persistDetailsMutation = usePersistDocumentDetails()
 
   const form = useForm<UniversalDocumentHdFormValues>({
     resolver: zodResolver(universalDocumentHdSchema),
@@ -117,20 +125,17 @@ export function DocumentForm({
 
   const handleAddDetail = () => {
     setEditingDetail(undefined)
-    setEditingDetailIndex(undefined)
     setDetailsDialogOpen(true)
   }
 
-  const handleEditDetail = (detail: IUniversalDocumentDt, index: number) => {
+  const handleEditDetail = (detail: IUniversalDocumentDt) => {
     setEditingDetail(detail)
-    setEditingDetailIndex(index)
     setDetailsDialogOpen(true)
   }
 
-  const handleViewDetail = (detail: IUniversalDocumentDt, index: number) => {
+  const handleViewDetail = (detail: IUniversalDocumentDt) => {
     // For now, just show in dialog as read-only
     setEditingDetail(detail)
-    setEditingDetailIndex(index)
     setDetailsDialogOpen(true)
   }
 
@@ -141,24 +146,15 @@ export function DocumentForm({
     }
   }
 
-  const handleSaveDetail = (
-    detail: UniversalDocumentDtFormValues,
-    index?: number
-  ) => {
-    // Convert schema type to interface type by adding missing properties
-    const detailWithInterface: IUniversalDocumentDt = {
-      ...detail,
-      docTypeName: "", // Add the missing property with default value
-    }
+  const handleSubmitDetails = async (data: UniversalDocumentDtFormValues) => {
+    try {
+      const response = await persistDetailsMutation.mutateAsync(data)
 
-    if (index !== undefined) {
-      // Editing existing detail
-      const updatedDetails = [...details]
-      updatedDetails[index] = detailWithInterface
-      setDetails(updatedDetails)
-    } else {
-      // Adding new detail
-      setDetails([...details, detailWithInterface])
+      if (response.result === 1) {
+        setDetailsDialogOpen(false)
+      }
+    } catch (error) {
+      console.error("Error saving document detail:", error)
     }
   }
 
@@ -173,10 +169,16 @@ export function DocumentForm({
         return
       }
 
-      await persistMutation.mutateAsync(data)
-      onSuccess?.()
+      const response = await persistMutation.mutateAsync(data)
+
+      // Only call onSuccess if result === 1 (success)
+      if (response.result === 1) {
+        onSuccess?.()
+      }
+      // If result !== 1, error message is shown via toast and form stays open
     } catch (error) {
       console.error("Error saving document:", error)
+      // Don't call onSuccess on error
     }
   }
 
@@ -366,23 +368,47 @@ export function DocumentForm({
             </div>
             <DocumentDetailsTable
               details={details}
-              onEdit={handleEditDetail}
-              onView={handleViewDetail}
+              onEdit={(detail) => handleEditDetail(detail)}
+              onView={(detail) => handleViewDetail(detail)}
               onDelete={handleDeleteDetail}
             />
           </div>
         </>
       )}
 
-      {/* Details Dialog */}
-      <DocumentDetailsForm
-        open={detailsDialogOpen}
-        onOpenChange={setDetailsDialogOpen}
-        detail={editingDetail}
-        detailIndex={editingDetailIndex}
-        onSave={handleSaveDetail}
-        onCancel={() => setDetailsDialogOpen(false)}
-      />
+      <Dialog open={detailsDialogOpen} onOpenChange={setDetailsDialogOpen}>
+        <DialogContent
+          className="max-h-[90vh] w-[60vw] !max-w-none overflow-y-auto"
+          onPointerDownOutside={(e) => {
+            // Prevent closing when clicking outside
+            e.preventDefault()
+          }}
+          onEscapeKeyDown={(e) => {
+            // Prevent closing on escape key
+            e.preventDefault()
+          }}
+        >
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <FileText className="h-5 w-5" />
+              {isEditing ? "Edit Document Detail" : "Add Document Detail"}
+            </DialogTitle>
+            <DialogDescription>
+              {isEditing
+                ? "Update document detail information"
+                : "Add a new document detail to the system"}
+            </DialogDescription>
+          </DialogHeader>
+          {/* Details Dialog */}
+          <DocumentDetailsForm
+            open={detailsDialogOpen}
+            onOpenChange={setDetailsDialogOpen}
+            detail={editingDetail}
+            onSave={handleSubmitDetails}
+            onCancel={() => setDetailsDialogOpen(false)}
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
