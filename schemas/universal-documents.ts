@@ -2,13 +2,19 @@ import { z } from "zod"
 
 // Schema for UniversalDocumentsDt
 export const universalDocumentDtSchema = z.object({
-  documentId: z.number().int().positive(),
+  documentId: z.number().int().min(0), // Allow 0 for new documents, positive for existing
   docTypeId: z.number().int().min(0).max(255),
-  versionNo: z.number().int().min(1),
+  versionNo: z.number().int().min(0),
   documentNo: z.string().max(100).nullable(),
-  issueOn: z.string().date().nullable(), // ISO date string
-  validFrom: z.string().date().nullable(),
-  expiryOn: z.string().date().nullable(),
+  issueOn: z
+    .union([z.string().date(), z.string().length(0), z.null()])
+    .nullable(), // Handle empty strings and null
+  validFrom: z
+    .union([z.string().date(), z.string().length(0), z.null()])
+    .nullable(),
+  expiryOn: z
+    .union([z.string().date(), z.string().length(0), z.null()])
+    .nullable(),
   filePath: z.string().max(1000).nullable(),
   fileType: z.string().nullable(),
   remarks: z.string().max(500).nullable(),
