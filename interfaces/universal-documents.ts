@@ -24,17 +24,6 @@ export interface IUniversalDocumentDt {
   expiryOn: string | null // date, ISO string
   validFrom: string | null // date, ISO string
   filePath: string | null // nvarchar(1000)
-  fileType:
-    | "PDF"
-    | "JPEG"
-    | "PNG"
-    | "GIF"
-    | "BMP"
-    | "TIFF"
-    | "SVG"
-    | "WEBP"
-    | "HEIC"
-    | null // varchar(50), constrained
   remarks: string | null // nvarchar(500)
   renewalRequired: boolean // bit, default 0,
 }

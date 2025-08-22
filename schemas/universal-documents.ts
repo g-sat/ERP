@@ -16,7 +16,6 @@ export const universalDocumentDtSchema = z.object({
     .union([z.string().date(), z.string().length(0), z.null()])
     .nullable(),
   filePath: z.string().max(1000).nullable(),
-  fileType: z.string().nullable(),
   remarks: z.string().max(500).nullable(),
   renewalRequired: z.boolean(),
 })
