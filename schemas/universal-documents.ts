@@ -4,17 +4,15 @@ import { z } from "zod"
 export const universalDocumentDtSchema = z.object({
   documentId: z.number().int().positive(),
   docTypeId: z.number().int().min(0).max(255),
-  companyId: z.number().int().min(0).max(255),
   versionNo: z.number().int().min(1),
   documentNo: z.string().max(100).nullable(),
-  issueDate: z.string().date().nullable(), // ISO date string
-  expiryDate: z.string().date().nullable(),
+  issueOn: z.string().date().nullable(), // ISO date string
+  validFrom: z.string().date().nullable(),
+  expiryOn: z.string().date().nullable(),
   filePath: z.string().max(1000).nullable(),
-  fileType: z.enum(["PDF", "JPEG", "PNG", "DOCX"]).nullable(),
+  fileType: z.string().nullable(),
   remarks: z.string().max(500).nullable(),
   renewalRequired: z.boolean(),
-  isComplete: z.boolean(),
-  status: z.enum(["Pending", "Verified", "Rejected", "Expired"]),
 })
 
 export type UniversalDocumentDtFormValues = z.infer<

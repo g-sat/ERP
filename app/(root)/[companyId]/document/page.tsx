@@ -293,8 +293,8 @@ function DocumentView({ document }: { document: IUniversalDocumentHd }) {
                       Issue Date
                     </label>
                     <p className="text-sm">
-                      {detail.issueDate
-                        ? new Date(detail.issueDate).toLocaleDateString()
+                      {detail.issueOn
+                        ? new Date(detail.issueOn).toLocaleDateString()
                         : "N/A"}
                     </p>
                   </div>
@@ -303,8 +303,8 @@ function DocumentView({ document }: { document: IUniversalDocumentHd }) {
                       Expiry Date
                     </label>
                     <p className="text-sm">
-                      {detail.expiryDate
-                        ? new Date(detail.expiryDate).toLocaleDateString()
+                      {detail.expiryOn
+                        ? new Date(detail.expiryOn).toLocaleDateString()
                         : "No Expiry"}
                     </p>
                   </div>

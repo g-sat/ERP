@@ -1,17 +1,16 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect } from "react"
 import { IUniversalDocumentDt } from "@/interfaces/universal-documents"
 import {
   UniversalDocumentDtFormValues,
   universalDocumentDtSchema,
 } from "@/schemas/universal-documents"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { FileText } from "lucide-react"
+import { FileText, Upload } from "lucide-react"
 import { useForm } from "react-hook-form"
 
 import { usePersistDocumentDetails } from "@/hooks/use-universal-documents"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -21,10 +20,10 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Form } from "@/components/ui/form"
-import { Label } from "@/components/ui/label"
 import DocumentTypeAutocomplete from "@/components/ui-custom/autocomplete-document-type"
+import FileTypeAutocomplete from "@/components/ui-custom/autocomplete-file-type"
+import { CustomDateNew } from "@/components/ui-custom/custom-date-new"
 import CustomInput from "@/components/ui-custom/custom-input"
-import CustomTextarea from "@/components/ui-custom/custom-textarea"
 
 interface DocumentDetailsDialogProps {
   open: boolean
@@ -43,7 +42,6 @@ export function DocumentDetailsForm({
   onSave,
   onCancel,
 }: DocumentDetailsDialogProps) {
-  const [uploadedFile, setUploadedFile] = useState<File | null>(null)
   const isEditing = !!detail
   const persistDetailsMutation = usePersistDocumentDetails()
 
@@ -52,10 +50,11 @@ export function DocumentDetailsForm({
     defaultValues: {
       documentId: detail?.documentId || 0,
       docTypeId: detail?.docTypeId || 0,
-      versionNo: detail?.versionNo || 0,
+      versionNo: detail?.versionNo || 1,
       documentNo: detail?.documentNo || "",
-      issueDate: detail?.issueDate || "",
-      expiryDate: detail?.expiryDate || "",
+      issueOn: detail?.issueOn || "",
+      validFrom: detail?.validFrom || "",
+      expiryOn: detail?.expiryOn || "",
       filePath: detail?.filePath || "",
       fileType: detail?.fileType || null,
       remarks: detail?.remarks || "",
@@ -71,28 +70,16 @@ export function DocumentDetailsForm({
         docTypeId: detail?.docTypeId || 0,
         versionNo: detail?.versionNo || 1,
         documentNo: detail?.documentNo || "",
-        issueDate: detail?.issueDate || "",
-        expiryDate: detail?.expiryDate || "",
+        issueOn: detail?.issueOn || "",
+        validFrom: detail?.validFrom || "",
+        expiryOn: detail?.expiryOn || "",
         filePath: detail?.filePath || "",
         fileType: detail?.fileType || null,
         remarks: detail?.remarks || "",
         renewalRequired: detail?.renewalRequired || false,
       })
-      setUploadedFile(null)
     }
   }, [open, detail, form])
-
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
-    if (file) {
-      setUploadedFile(file)
-      form.setValue(
-        "fileType",
-        file.type.split("/")[1].toUpperCase() as "PDF" | "JPEG" | "PNG" | "DOCX"
-      )
-      form.setValue("filePath", `public/documents/document-expiry/${file.name}`)
-    }
-  }
 
   const handleSubmit = async (data: UniversalDocumentDtFormValues) => {
     try {
@@ -136,105 +123,88 @@ export function DocumentDetailsForm({
             onSubmit={form.handleSubmit(handleSubmit)}
             className="space-y-6"
           >
-            <div className="grid grid-cols-2 gap-2 md:grid-cols-3 lg:grid-cols-4">
-              <div>
-                <DocumentTypeAutocomplete
-                  form={form}
-                  name="docTypeId"
-                  label="Document Type"
-                  isRequired={true}
-                  onChangeEvent={(selectedOption) => {
-                    form.setValue("docTypeId", selectedOption?.docTypeId || 0)
-                  }}
-                />
-              </div>
-
-              <div>
-                <CustomInput
-                  form={form}
-                  name="documentNo"
-                  label="Document Number"
-                  placeholder="Enter document number"
-                />
-              </div>
-
-              <div>
-                <CustomInput
-                  form={form}
-                  name="versionNo"
-                  label="Version Number *"
-                  type="number"
-                  placeholder="Enter version number"
-                  isDisabled={true}
-                />
-              </div>
-
-              <div>
-                <CustomInput
-                  form={form}
-                  name="issueDate"
-                  label="Issue Date"
-                  type="date"
-                />
-              </div>
-
-              <div>
-                <CustomInput
-                  form={form}
-                  name="expiryDate"
-                  label="Expiry Date"
-                  type="date"
-                />
-              </div>
-
-              <div>
-                <Label>File Upload</Label>
-                <div className="mt-2 flex items-center space-x-2">
-                  <input
-                    type="file"
-                    accept=".pdf,.jpg,.jpeg,.png,.docx"
-                    onChange={handleFileUpload}
-                    className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
-                  />
-                  {uploadedFile && (
-                    <Badge variant="secondary">{uploadedFile.name}</Badge>
-                  )}
+            <div className="grid grid-cols-2 gap-6">
+              {/* Left Section - File Upload */}
+              <div className="space-y-4">
+                <div className="rounded-lg border-2 border-dashed border-gray-300 p-8 text-center">
+                  <div className="space-y-4">
+                    <p className="text-lg font-medium">Drag & Drop File Here</p>
+                    <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-pink-400 to-purple-500">
+                      <Upload className="h-8 w-8 text-white" />
+                    </div>
+                    <p className="text-sm text-gray-500">- or -</p>
+                    <Button variant="outline" type="button">
+                      Choose file to upload
+                    </Button>
+                    <div className="flex items-center space-x-2 text-sm text-gray-500">
+                      <FileText className="h-4 w-4" />
+                      <span>
+                        You can upload a maximum of 2 files. please ensure each
+                        file size should not exceed 7MB.
+                      </span>
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              <div className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  checked={form.getValues("renewalRequired") || false}
-                  onChange={(e) =>
-                    form.setValue("renewalRequired", e.target.checked)
-                  }
-                  className="mt-1"
+              {/* Right Section - Document Details */}
+              <div className="grid grid-cols-2 gap-2">
+                <DocumentTypeAutocomplete
+                  form={form}
+                  label="Document Type"
+                  name="docTypeId"
+                  isRequired
                 />
-                <Label>Renewal Required</Label>
+
+                <CustomInput
+                  form={form}
+                  label="Document Number"
+                  name="documentNo"
+                  placeholder="Enter document number"
+                  isRequired
+                />
+
+                <CustomInput
+                  form={form}
+                  label="Version Number"
+                  name="versionNo"
+                  placeholder="Enter version number"
+                  isRequired
+                  isDisabled={true}
+                />
+                <FileTypeAutocomplete
+                  form={form}
+                  label="File Type"
+                  name="fileType"
+                  isRequired
+                />
+
+                <CustomDateNew
+                  form={form}
+                  label="Issued on"
+                  name="issueOn"
+                  isRequired
+                />
+
+                <CustomDateNew
+                  form={form}
+                  label="Valid from"
+                  name="validFrom"
+                />
+
+                <CustomDateNew
+                  form={form}
+                  label="Expires on"
+                  name="expiryOn"
+                  isRequired
+                />
               </div>
             </div>
 
-            <div>
-              <CustomTextarea
-                form={form}
-                name="remarks"
-                label="Remarks"
-                minRows={3}
-                maxRows={6}
-              />
-            </div>
-
-            <div className="flex justify-end space-x-2">
+            <div className="flex justify-end space-x-2 pt-4">
+              <Button type="submit">Save</Button>
               <Button type="button" variant="outline" onClick={handleCancel}>
                 Cancel
-              </Button>
-              <Button type="submit" disabled={persistDetailsMutation.isPending}>
-                {persistDetailsMutation.isPending
-                  ? "Saving..."
-                  : isEditing
-                    ? "Update"
-                    : "Save"}
               </Button>
             </div>
           </form>

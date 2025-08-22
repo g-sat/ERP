@@ -23,17 +23,12 @@ interface FieldOption {
   label: string
 }
 
-// File type options
+// File type options - PDF and Image formats only
 const fileTypeOptions: FieldOption[] = [
-  { value: "visa", label: "Visa" },
-  { value: "passport", label: "Passport" },
-  { value: "emirates-id", label: "Emirates ID" },
-  { value: "contract", label: "Employment Contract" },
-  { value: "offer-letter", label: "Offer Letter" },
-  { value: "medical-certificate", label: "Medical Certificate" },
-  { value: "educational-certificate", label: "Educational Certificate" },
-  { value: "experience-letter", label: "Experience Letter" },
-  { value: "other", label: "Other" },
+  { value: "PDF", label: "PDF Document (.pdf)" },
+  { value: "JPEG", label: "JPEG Image (.jpeg)" },
+  { value: "PNG", label: "PNG Image (.png)" },
+  { value: "JPG", label: "JPG Image (.jpg)" },
 ]
 
 export default function FileTypeAutocomplete<

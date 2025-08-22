@@ -100,7 +100,7 @@ export function DocumentDetailsTable({
             </TableHeader>
             <TableBody>
               {details.map((detail, index) => {
-                const expiryStatus = getExpiryStatus(detail.expiryDate)
+                const expiryStatus = getExpiryStatus(detail.expiryOn)
                 return (
                   <TableRow key={index}>
                     <TableCell className="font-medium">
@@ -109,13 +109,13 @@ export function DocumentDetailsTable({
                     <TableCell>{detail.documentNo || "N/A"}</TableCell>
                     <TableCell>{detail.versionNo}</TableCell>
                     <TableCell>
-                      {detail.issueDate
-                        ? new Date(detail.issueDate).toLocaleDateString()
+                      {detail.issueOn
+                        ? new Date(detail.issueOn).toLocaleDateString()
                         : "N/A"}
                     </TableCell>
                     <TableCell>
-                      {detail.expiryDate
-                        ? new Date(detail.expiryDate).toLocaleDateString()
+                      {detail.expiryOn
+                        ? new Date(detail.expiryOn).toLocaleDateString()
                         : "No Expiry"}
                     </TableCell>
                     <TableCell>
