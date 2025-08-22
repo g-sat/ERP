@@ -7,9 +7,11 @@ import {
   universalDocumentDtSchema,
 } from "@/schemas/universal-documents"
 import { zodResolver } from "@hookform/resolvers/zod"
+import { format } from "date-fns"
 import { FileText, Upload, X } from "lucide-react"
 import { useForm } from "react-hook-form"
 
+import { clientDateFormat, parseDate } from "@/lib/format"
 import { usePersistDocumentDetails } from "@/hooks/use-universal-documents"
 import { Button } from "@/components/ui/button"
 import { Form } from "@/components/ui/form"
@@ -22,7 +24,7 @@ interface DocumentDetailsDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   detail?: IUniversalDocumentDt
-  onSave?: (detail: UniversalDocumentDtFormValues) => void
+  documentId?: number
   onCancel: () => void
 }
 
@@ -30,24 +32,40 @@ export function DocumentDetailsForm({
   open,
   onOpenChange,
   detail,
-  onSave,
+  documentId,
   onCancel,
 }: DocumentDetailsDialogProps) {
   const [uploadedFile, setUploadedFile] = useState<File | null>(null)
   const [isUploading, setIsUploading] = useState(false)
+  const [isFullscreen, setIsFullscreen] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const persistDetailsMutation = usePersistDocumentDetails()
 
   const form = useForm<UniversalDocumentDtFormValues>({
     resolver: zodResolver(universalDocumentDtSchema),
     defaultValues: {
-      documentId: detail?.documentId || 0,
+      documentId: documentId,
       docTypeId: detail?.docTypeId || 0,
       versionNo: detail?.versionNo || 0,
       documentNo: detail?.documentNo || "",
-      issueOn: detail?.issueOn || null,
-      validFrom: detail?.validFrom || null,
-      expiryOn: detail?.expiryOn || null,
+      issueOn: detail?.issueOn
+        ? format(
+            parseDate(detail.issueOn as string) || new Date(),
+            clientDateFormat
+          )
+        : null,
+      validFrom: detail?.validFrom
+        ? format(
+            parseDate(detail.validFrom as string) || new Date(),
+            clientDateFormat
+          )
+        : null,
+      expiryOn: detail?.expiryOn
+        ? format(
+            parseDate(detail.expiryOn as string) || new Date(),
+            clientDateFormat
+          )
+        : null,
       filePath: detail?.filePath || "",
       fileType: detail?.fileType || null,
       remarks: detail?.remarks || "",
@@ -58,8 +76,8 @@ export function DocumentDetailsForm({
 
   // Debug form validation state
   useEffect(() => {
-    const subscription = form.watch((value, { name, type }) => {
-      console.log("Form values changed:", { name, type, value })
+    const subscription = form.watch((value, { name }) => {
+      console.log("Form values changed:", { name, value })
       console.log("Form errors:", form.formState.errors)
       console.log("Form is valid:", form.formState.isValid)
       console.log("Form is dirty:", form.formState.isDirty)
@@ -67,25 +85,71 @@ export function DocumentDetailsForm({
     return () => subscription.unsubscribe()
   }, [form])
 
+  // Debug documentId usage
+  useEffect(() => {
+    console.log("DocumentDetailsForm - documentId:", documentId)
+    console.log("DocumentDetailsForm - detail:", detail)
+    console.log(
+      "DocumentDetailsForm - final documentId:",
+      detail?.documentId || documentId
+    )
+  }, [documentId, detail])
+
   // Reset form when dialog opens/closes or detail changes
   useEffect(() => {
     if (open) {
       form.reset({
-        documentId: detail?.documentId || 0,
+        documentId: detail?.documentId || documentId,
         docTypeId: detail?.docTypeId || 0,
         versionNo: detail?.versionNo || 0,
         documentNo: detail?.documentNo || "",
-        issueOn: detail?.issueOn || null,
-        validFrom: detail?.validFrom || null,
-        expiryOn: detail?.expiryOn || null,
+        issueOn: detail?.issueOn
+          ? format(
+              parseDate(detail.issueOn as string) || new Date(),
+              clientDateFormat
+            )
+          : null,
+        validFrom: detail?.validFrom
+          ? format(
+              parseDate(detail.validFrom as string) || new Date(),
+              clientDateFormat
+            )
+          : null,
+        expiryOn: detail?.expiryOn
+          ? format(
+              parseDate(detail.expiryOn as string) || new Date(),
+              clientDateFormat
+            )
+          : null,
         filePath: detail?.filePath || "",
         fileType: detail?.fileType || null,
         remarks: detail?.remarks || "",
         renewalRequired: detail?.renewalRequired || false,
       })
-      setUploadedFile(null)
+
+      // Load existing file information for preview
+      if (detail?.filePath && detail?.fileType) {
+        // Create a mock file object for preview
+        const mockFile = new File(
+          [],
+          detail.filePath.split("/").pop() || "document",
+          {
+            type:
+              detail.fileType === "PDF"
+                ? "application/pdf"
+                : detail.fileType === "JPEG"
+                  ? "image/jpeg"
+                  : detail.fileType === "PNG"
+                    ? "image/png"
+                    : "application/octet-stream",
+          }
+        )
+        setUploadedFile(mockFile)
+      } else {
+        setUploadedFile(null)
+      }
     }
-  }, [open, detail, form])
+  }, [open, detail, form, documentId])
 
   // File upload handlers
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -136,7 +200,44 @@ export function DocumentDetailsForm({
     }
   }
 
+  const handleDownloadFile = () => {
+    if (uploadedFile) {
+      // If it's a new file (has size), use the blob URL
+      if (uploadedFile.size > 0) {
+        const url = URL.createObjectURL(uploadedFile)
+        const a = document.createElement("a")
+        a.href = url
+        a.download = uploadedFile.name
+        document.body.appendChild(a)
+        a.click()
+        document.body.removeChild(a)
+        URL.revokeObjectURL(url)
+      } else {
+        // If it's an existing file (mock file), download from server
+        const filePath = uploadedFile.name
+        if (filePath) {
+          const a = document.createElement("a")
+          a.href = `/${filePath}` // Assuming the file is accessible via this path
+          a.download = uploadedFile.name
+          a.target = "_blank"
+          document.body.appendChild(a)
+          a.click()
+          document.body.removeChild(a)
+        }
+      }
+    }
+  }
+
+  const handleToggleFullscreen = () => {
+    setIsFullscreen(!isFullscreen)
+  }
+
+  const handleAddAnotherFile = () => {
+    handleChooseFile()
+  }
+
   const handleSubmit = async (data: UniversalDocumentDtFormValues) => {
+    debugger
     console.log("Form submitted with data:", data)
     console.log("Form errors:", form.formState.errors)
     console.log("Form is valid:", form.formState.isValid)
@@ -178,7 +279,6 @@ export function DocumentDetailsForm({
           tempFilePath = uploadResult.filePath
 
           // Update form with temp file path
-          data.filePath = tempFilePath
         } catch (uploadError) {
           console.error("Error uploading file:", uploadError)
           alert("Failed to upload file. Please try again.")
@@ -186,15 +286,20 @@ export function DocumentDetailsForm({
           return
         }
       }
+      data.filePath = `public/documents/upload/${uploadedFile.name}`
 
       // Step 2: Save document details
       const response = await persistDetailsMutation.mutateAsync(data)
 
       // Step 3: Handle response
       if (response.result === 1) {
+        debugger
         // Success: Move file from temp to final location
         if (uploadedFile && tempFilePath) {
           try {
+            // Use the actual save path for documents
+            const finalFilePath = `public/documents/upload/${uploadedFile.name}`
+
             const moveResponse = await fetch("/api/move-file", {
               method: "POST",
               headers: {
@@ -202,7 +307,7 @@ export function DocumentDetailsForm({
               },
               body: JSON.stringify({
                 fromPath: tempFilePath,
-                toPath: `public/documents/upload/${uploadedFile.name}`,
+                toPath: finalFilePath,
               }),
             })
 
@@ -210,13 +315,15 @@ export function DocumentDetailsForm({
               console.warn(
                 "Failed to move file to final location, but document was saved"
               )
+            } else {
+              // Update the filePath to the final location
+              data.filePath = finalFilePath
             }
           } catch (moveError) {
             console.warn("Error moving file to final location:", moveError)
           }
         }
         debugger
-        onSave?.(data) // Call onSave callback if provided
         onOpenChange(false)
       } else {
         // Failure: Remove temp file if it exists
@@ -286,7 +393,9 @@ export function DocumentDetailsForm({
                 <div className="space-y-4">
                   <p className="text-lg font-medium">
                     {uploadedFile
-                      ? "File Uploaded Successfully"
+                      ? uploadedFile.size > 0
+                        ? "File Uploaded Successfully"
+                        : "Existing File Loaded"
                       : "Drag & Drop File Here"}
                   </p>
                   <div
@@ -319,27 +428,116 @@ export function DocumentDetailsForm({
 
                   {/* Show uploaded file */}
                   {uploadedFile && (
-                    <div className="mt-4 rounded-md border border-green-200 p-3">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-2">
-                          <FileText className="h-4 w-4 text-green-600" />
-                          <span className="text-sm font-medium text-green-800">
-                            {uploadedFile.name}
-                          </span>
-                          <span className="text-xs text-green-600">
-                            ({(uploadedFile.size / 1024 / 1024).toFixed(2)} MB)
-                          </span>
+                    <div className="relative mt-4">
+                      {/* File Preview Container */}
+                      <div className="relative overflow-hidden rounded-lg border border-gray-200 bg-white">
+                        {/* File Preview Area */}
+                        <div className="flex min-h-[200px] items-center justify-center bg-gray-50 p-8">
+                          <div className="text-center">
+                            <div className="mx-auto mb-4">
+                              {/* File Type Icon */}
+                              {uploadedFile.type.includes("pdf") ? (
+                                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-lg bg-red-100">
+                                  <FileText className="h-8 w-8 text-red-600" />
+                                </div>
+                              ) : (
+                                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-lg bg-blue-100">
+                                  <FileText className="h-8 w-8 text-blue-600" />
+                                </div>
+                              )}
+                            </div>
+                            <div className="text-sm font-medium text-gray-900">
+                              {uploadedFile.name}
+                            </div>
+                            <div className="mt-1 text-xs text-gray-500">
+                              {uploadedFile.size > 0
+                                ? `${(uploadedFile.size / 1024 / 1024).toFixed(2)} MB`
+                                : "Existing file"}
+                            </div>
+                            {uploadedFile.size === 0 && (
+                              <div className="mt-1 text-xs text-blue-600">
+                                Click download to retrieve file
+                              </div>
+                            )}
+                          </div>
                         </div>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={handleRemoveFile}
-                          disabled={isUploading}
-                          className="h-6 w-6 p-0 text-green-600 hover:text-green-800"
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
+
+                        {/* Dark Floating Toolbar */}
+                        <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 transform items-center space-x-2 rounded-lg bg-gray-800 p-2 shadow-lg">
+                          {/* Image/File Icon */}
+                          <button className="rounded p-2 text-white hover:bg-gray-700">
+                            <FileText className="h-4 w-4" />
+                          </button>
+
+                          {/* Plus Icon */}
+                          <button
+                            onClick={handleAddAnotherFile}
+                            className="rounded p-2 text-white hover:bg-gray-700"
+                          >
+                            <svg
+                              className="h-4 w-4"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M12 4v16m8-8H4"
+                              />
+                            </svg>
+                          </button>
+
+                          {/* Download Icon */}
+                          <button
+                            onClick={handleDownloadFile}
+                            className="rounded p-2 text-white hover:bg-gray-700"
+                          >
+                            <svg
+                              className="h-4 w-4"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                              />
+                            </svg>
+                          </button>
+
+                          {/* Expand Icon */}
+                          <button
+                            onClick={handleToggleFullscreen}
+                            className="rounded p-2 text-white hover:bg-gray-700"
+                          >
+                            <svg
+                              className="h-4 w-4"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"
+                              />
+                            </svg>
+                          </button>
+
+                          {/* Delete Icon */}
+                          <button
+                            onClick={handleRemoveFile}
+                            disabled={isUploading}
+                            className="rounded p-2 text-white hover:bg-gray-700"
+                          >
+                            <X className="h-4 w-4" />
+                          </button>
+                        </div>
                       </div>
                     </div>
                   )}
@@ -434,58 +632,6 @@ export function DocumentDetailsForm({
             <Button
               type="button"
               variant="outline"
-              onClick={() => {
-                console.log("Current form values:", form.getValues())
-                console.log("Form errors:", form.formState.errors)
-                console.log("Form is valid:", form.formState.isValid)
-                console.log("Form is dirty:", form.formState.isDirty)
-                form.handleSubmit(handleSubmit)()
-              }}
-              disabled={
-                isUploading || persistDetailsMutation.isPending || !uploadedFile
-              }
-            >
-              Debug Submit
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => {
-                const isValid = form.trigger()
-                console.log("Manual validation triggered")
-                isValid.then((valid) => {
-                  console.log("Form is valid:", valid)
-                  console.log(
-                    "Form errors after validation:",
-                    form.formState.errors
-                  )
-                })
-              }}
-              disabled={isUploading || persistDetailsMutation.isPending}
-            >
-              Test Validation
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => {
-                // Bypass form validation and directly call handleSubmit
-                const formData = form.getValues()
-                console.log(
-                  "Bypassing validation, calling handleSubmit directly with:",
-                  formData
-                )
-                handleSubmit(formData)
-              }}
-              disabled={
-                isUploading || persistDetailsMutation.isPending || !uploadedFile
-              }
-            >
-              Force Submit
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
               onClick={handleCancel}
               disabled={isUploading || persistDetailsMutation.isPending}
             >
@@ -494,6 +640,62 @@ export function DocumentDetailsForm({
           </div>
         </form>
       </Form>
+
+      {/* Fullscreen Preview Modal */}
+      {isFullscreen && uploadedFile && (
+        <div className="bg-opacity-75 fixed inset-0 z-50 flex items-center justify-center bg-black">
+          <div className="max-h-[90vh] max-w-4xl overflow-hidden rounded-lg bg-white">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between border-b p-4">
+              <h3 className="text-lg font-medium">{uploadedFile.name}</h3>
+              <button
+                onClick={handleToggleFullscreen}
+                className="rounded p-2 hover:bg-gray-100"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            <div className="flex min-h-[400px] items-center justify-center p-8">
+              <div className="text-center">
+                <div className="mx-auto mb-4">
+                  {/* File Type Icon */}
+                  {uploadedFile.type.includes("pdf") ? (
+                    <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-lg bg-red-100">
+                      <FileText className="h-12 w-12 text-red-600" />
+                    </div>
+                  ) : (
+                    <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-lg bg-blue-100">
+                      <FileText className="h-12 w-12 text-blue-600" />
+                    </div>
+                  )}
+                </div>
+                <div className="mb-2 text-lg font-medium text-gray-900">
+                  {uploadedFile.name}
+                </div>
+                <div className="mb-4 text-sm text-gray-500">
+                  {(uploadedFile.size / 1024 / 1024).toFixed(2)} MB
+                </div>
+                <div className="flex justify-center space-x-2">
+                  <button
+                    onClick={handleDownloadFile}
+                    className="rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
+                  >
+                    Download
+                  </button>
+                  <button
+                    onClick={handleToggleFullscreen}
+                    className="rounded bg-gray-600 px-4 py-2 text-white hover:bg-gray-700"
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

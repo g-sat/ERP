@@ -6,18 +6,14 @@ import {
   IUniversalDocumentHd,
 } from "@/interfaces/universal-documents"
 import {
-  UniversalDocumentDtFormValues,
   UniversalDocumentHdFormValues,
   universalDocumentHdSchema,
 } from "@/schemas/universal-documents"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { FileText, Plus } from "lucide-react"
+import { FileText, Plus, RefreshCw } from "lucide-react"
 import { useForm } from "react-hook-form"
 
-import {
-  usePersistDocumentDetails,
-  usePersistUniversalDocument,
-} from "@/hooks/use-universal-documents"
+import { usePersistUniversalDocument } from "@/hooks/use-universal-documents"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -68,10 +64,10 @@ export function DocumentForm({
   const [editingDetail, setEditingDetail] = useState<
     IUniversalDocumentDt | undefined
   >(undefined)
+  const [isLoadingDetails, setIsLoadingDetails] = useState(false)
 
   const isEditing = !!document
   const persistMutation = usePersistUniversalDocument()
-  const persistDetailsMutation = usePersistDocumentDetails()
 
   const form = useForm<UniversalDocumentHdFormValues>({
     resolver: zodResolver(universalDocumentHdSchema),
@@ -124,6 +120,13 @@ export function DocumentForm({
   ])
 
   const handleAddDetail = () => {
+    console.log("handleAddDetail called")
+    console.log("document?.documentId:", document?.documentId)
+    console.log("form.getValues('documentId'):", form.getValues("documentId"))
+    console.log(
+      "Final documentId:",
+      document?.documentId || form.getValues("documentId") || 0
+    )
     setEditingDetail(undefined)
     setDetailsDialogOpen(true)
   }
@@ -146,15 +149,19 @@ export function DocumentForm({
     }
   }
 
-  const handleSubmitDetails = async (data: UniversalDocumentDtFormValues) => {
-    try {
-      const response = await persistDetailsMutation.mutateAsync(data)
-
-      if (response.result === 1) {
-        setDetailsDialogOpen(false)
+  const refreshDetails = async () => {
+    if (document?.documentId) {
+      setIsLoadingDetails(true)
+      try {
+        // Here you could add an API call to refresh details from server
+        // For now, we'll just simulate a refresh
+        console.log("Refreshing details for document:", document.documentId)
+        // You can add API call here if needed
+      } catch (error) {
+        console.error("Error refreshing details:", error)
+      } finally {
+        setIsLoadingDetails(false)
       }
-    } catch (error) {
-      console.error("Error saving document detail:", error)
     }
   }
 
@@ -354,27 +361,42 @@ export function DocumentForm({
         </CardContent>
       </Card>
 
-      {/* Document Details Section - Only show after header is saved */}
-      {document?.documentId && (
-        <>
-          <Separator />
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-medium">Document Details</h3>
-              <Button onClick={handleAddDetail}>
-                <Plus className="mr-2 h-4 w-4" />
-                Add Detail
-              </Button>
-            </div>
-            <DocumentDetailsTable
-              details={details}
-              onEdit={(detail) => handleEditDetail(detail)}
-              onView={(detail) => handleViewDetail(detail)}
-              onDelete={handleDeleteDetail}
-            />
+      {/* Document Details Section - Show for both new and existing documents */}
+      <Separator />
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-medium">Document Details</h3>
+          <div className="flex space-x-2">
+            <Button
+              onClick={refreshDetails}
+              variant="outline"
+              size="sm"
+              disabled={isLoadingDetails}
+            >
+              <RefreshCw
+                className={`mr-2 h-4 w-4 ${isLoadingDetails ? "animate-spin" : ""}`}
+              />
+              Refresh
+            </Button>
+            <Button
+              onClick={handleAddDetail}
+              disabled={
+                !form.getValues("entityTypeId") || !form.getValues("entity")
+              }
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              Add Detail
+            </Button>
           </div>
-        </>
-      )}
+        </div>
+        <DocumentDetailsTable
+          details={details}
+          onEdit={(detail) => handleEditDetail(detail)}
+          onView={(detail) => handleViewDetail(detail)}
+          onDelete={handleDeleteDetail}
+          isLoading={isLoadingDetails}
+        />
+      </div>
 
       <Dialog open={detailsDialogOpen} onOpenChange={setDetailsDialogOpen}>
         <DialogContent
@@ -404,7 +426,7 @@ export function DocumentForm({
             open={detailsDialogOpen}
             onOpenChange={setDetailsDialogOpen}
             detail={editingDetail}
-            onSave={handleSubmitDetails}
+            documentId={form.getValues("documentId") || 0}
             onCancel={() => setDetailsDialogOpen(false)}
           />
         </DialogContent>

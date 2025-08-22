@@ -28,6 +28,7 @@ interface DocumentDetailsTableProps {
   onEdit?: (detail: IUniversalDocumentDt, index: number) => void
   onView?: (detail: IUniversalDocumentDt, index: number) => void
   onDelete?: (index: number) => void
+  isLoading?: boolean
 }
 
 export function DocumentDetailsTable({
@@ -35,6 +36,7 @@ export function DocumentDetailsTable({
   onEdit,
   onView,
   onDelete,
+  isLoading = false,
 }: DocumentDetailsTableProps) {
   const getExpiryStatus = (expiryDate: string | null) => {
     if (!expiryDate)
@@ -62,16 +64,26 @@ export function DocumentDetailsTable({
           <CardTitle>Document Details</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center justify-center p-8 text-center">
-            <div className="space-y-2">
-              <p className="text-muted-foreground">
-                No document details added yet.
-              </p>
-              <p className="text-muted-foreground text-sm">
-                Click &quot;Add Detail&quot; to add document information.
-              </p>
+          {isLoading ? (
+            <div className="flex items-center justify-center p-8 text-center">
+              <div className="space-y-2">
+                <p className="text-muted-foreground">
+                  Loading document details...
+                </p>
+              </div>
             </div>
-          </div>
+          ) : (
+            <div className="flex items-center justify-center p-8 text-center">
+              <div className="space-y-2">
+                <p className="text-muted-foreground">
+                  No document details added yet.
+                </p>
+                <p className="text-muted-foreground text-sm">
+                  Click &quot;Add Detail&quot; to add document information.
+                </p>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
     )
