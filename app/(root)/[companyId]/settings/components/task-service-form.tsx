@@ -26,7 +26,7 @@ import { LockSkeleton } from "@/components/skeleton/lock-skeleton"
 import CarrierTypeAutocomplete from "@/components/ui-custom/autocomplete-carriertype"
 import ChargeAutocomplete from "@/components/ui-custom/autocomplete-charge"
 import ChartofAccountAutocomplete from "@/components/ui-custom/autocomplete-chartofaccount"
-import DocumentTypeAutocomplete from "@/components/ui-custom/autocomplete-documenttype"
+import DocumentTypeAutocomplete from "@/components/ui-custom/autocomplete-document-type"
 import ModeTypeAutocomplete from "@/components/ui-custom/autocomplete-modetype"
 import UomAutocomplete from "@/components/ui-custom/autocomplete-uom"
 

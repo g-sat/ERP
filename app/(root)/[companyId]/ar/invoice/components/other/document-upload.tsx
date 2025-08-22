@@ -25,7 +25,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import DocumentTypeAutocomplete from "@/components/ui-custom/autocomplete-documenttype"
+import DocumentTypeAutocomplete from "@/components/ui-custom/autocomplete-document-type"
 
 interface DocumentUploadProps {
   moduleId: number

@@ -409,6 +409,12 @@ export interface IDocumentTypeLookup {
   docTypeName: string
 }
 
+export interface IEntityTypeLookup {
+  entityTypeId: number
+  entityTypeCode: string
+  entityTypeName: string
+}
+
 export interface IVisaLookup {
   visaId: number
   visaCode: string

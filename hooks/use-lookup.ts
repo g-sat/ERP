@@ -24,6 +24,7 @@ import {
   IDocumentTypeLookup,
   IDynamicLookup,
   IEmployeeLookup,
+  IEntityTypeLookup,
   IGenderLookup,
   IGstCategoryLookup,
   IGstLookup,
@@ -1073,6 +1074,22 @@ export const useDocumentTypeLookup = () => {
     queryFn: async () => {
       try {
         const data = await getData(Lookup.getDocumentType)
+        return data?.data || []
+      } catch (error) {
+        handleApiError(error)
+      }
+    },
+    refetchOnWindowFocus: false,
+  })
+}
+
+export const useEntityTypeLookup = () => {
+  return useQuery<IEntityTypeLookup[]>({
+    queryKey: ["entitytype-lookUp"],
+    placeholderData: keepPreviousData,
+    queryFn: async () => {
+      try {
+        const data = await getData(Lookup.getEntityType)
         return data?.data || []
       } catch (error) {
         handleApiError(error)

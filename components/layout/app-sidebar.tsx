@@ -85,6 +85,11 @@ export const menuData = {
       icon: FileText,
     },
     {
+      title: "Document",
+      url: "/document",
+      icon: FileText,
+    },
+    {
       title: "Requests",
       url: "/requests",
       icon: FileCheck,

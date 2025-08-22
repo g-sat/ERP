@@ -215,7 +215,6 @@ export const Lookup = {
   getCustomerDynamic: "/master/getcustomerlookupv1",
   getSupplierDynamic: "/master/getsupplierlookupv1",
   getProductDynamic: "/master/getproductlookupv1",
-  getDocumentType: "/master/getdocumenttypelookup",
   getNumberYear: "/master/getnumberformatnextyear",
 
   getStatus: "/master/getstatuslookup",
@@ -238,6 +237,21 @@ export const Lookup = {
   getRepaymentStatusLookup: "/master/getrepaymentstatuslookup",
   getComponentLookup: "/master/GetComponentLookup",
   getPayrollComponentGroupLookup: "/master/getpayrollcomponentgrouplookup",
+
+  getDocumentType: "/master/getdocumenttypelookup",
+  getEntityType: "/master/getentitytypelookup",
+}
+
+// Universal Documents Endpoints
+export const UniversalDocuments = {
+  get: "/document/getuniversaldocuments",
+  getById: "/document/getuniversaldocumentbyid",
+  getByEntity: "/document/getuniversaldocumentsbyentity",
+  add: "/document/saveuniversaldocument",
+  addDetails: "/document/saveuniversaldocumentdetails",
+  delete: "/document/deleteuniversaldocument",
+  getExpiring: "/document/getexpiringdocuments",
+  getExpired: "/document/getexpireddocuments",
 }
 
 //Master Endpoints
