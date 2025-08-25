@@ -238,48 +238,70 @@ export default function ChecklistPage() {
   console.log("statusCounts", statusCounts)
 
   return (
-    <div className="@container flex flex-1 flex-col p-4">
-      <h1 className="mb-4 text-2xl font-bold">Check-List</h1>
+    <div className="container mx-auto space-y-4 px-4 py-4 sm:space-y-6 sm:px-6 sm:py-6">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="space-y-1">
+          <h1 className="text-xl font-bold tracking-tight sm:text-2xl">
+            Check-List
+          </h1>
+          <p className="text-muted-foreground text-sm">
+            Manage job orders and checklists
+          </p>
+        </div>
+      </div>
 
       {/* Enhanced Search and Filter Section */}
-      <div className="mb-4 space-y-4">
+      <div className="space-y-4">
         {/* Basic Search Controls */}
-        <div className="flex gap-2">
-          <div className="flex gap-2">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-col gap-2 sm:flex-row sm:gap-2">
             <Input
               type="date"
               value={startDate}
               onChange={handleStartDateChange}
-              className="w-[180px]"
+              className="w-full sm:w-[180px]"
             />
             <Input
               type="date"
               value={endDate}
               onChange={handleEndDateChange}
-              className="w-[180px]"
+              className="w-full sm:w-[180px]"
             />
             <Input
               type="text"
               placeholder="Search Jobs..."
               value={searchQuery}
               onChange={handleSearch}
-              className="w-[180px]"
+              className="w-full sm:w-[180px]"
             />
-            <Button onClick={handleSearchClick}>
-              <SearchIcon className="h-4 w-4" />
+            <Button onClick={handleSearchClick} className="w-full sm:w-auto">
+              <SearchIcon className="mr-2 h-4 w-4" />
+              <span className="hidden sm:inline">Search</span>
+              <span className="sm:hidden">Search</span>
             </Button>
-            <Button variant="outline" onClick={handleClear}>
-              <XIcon className="h-4 w-4" />
+            <Button
+              variant="outline"
+              onClick={handleClear}
+              className="w-full sm:w-auto"
+            >
+              <XIcon className="mr-2 h-4 w-4" />
+              <span className="hidden sm:inline">Clear</span>
+              <span className="sm:hidden">Clear</span>
             </Button>
           </div>
 
           {/* Right side buttons */}
-          <div className="ml-auto flex gap-2">
+          <div className="flex flex-col gap-2 sm:flex-row sm:gap-2">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" disabled={isExporting}>
-                  <DownloadIcon className="h-4 w-4" />
-                  {isExporting}
+                <Button
+                  variant="outline"
+                  disabled={isExporting}
+                  className="w-full sm:w-auto"
+                >
+                  <DownloadIcon className="mr-2 h-4 w-4" />
+                  <span className="hidden sm:inline">Export</span>
+                  <span className="sm:hidden">Export</span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
@@ -291,11 +313,19 @@ export default function ChecklistPage() {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-            <Button variant="outline" onClick={handleRefresh}>
-              <RefreshCcwIcon className="h-4 w-4" />
+            <Button
+              variant="outline"
+              onClick={handleRefresh}
+              className="w-full sm:w-auto"
+            >
+              <RefreshCcwIcon className="mr-2 h-4 w-4" />
+              <span className="hidden sm:inline">Refresh</span>
+              <span className="sm:hidden">Refresh</span>
             </Button>
-            <Button onClick={handleAddNew}>
-              <PlusIcon className="h-4 w-4" />
+            <Button onClick={handleAddNew} className="w-full sm:w-auto">
+              <PlusIcon className="mr-2 h-4 w-4" />
+              <span className="hidden sm:inline">Add New</span>
+              <span className="sm:hidden">Add</span>
             </Button>
           </div>
         </div>
@@ -305,9 +335,9 @@ export default function ChecklistPage() {
       <Tabs
         value={selectedStatus}
         onValueChange={handleStatusChange}
-        className="mb-4"
+        className="space-y-4"
       >
-        <TabsList className="flex gap-2">
+        <TabsList className="grid w-full grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-7">
           {[
             { value: "All", count: statusCounts.All },
             { value: "Pending", count: statusCounts.Pending },
@@ -323,9 +353,10 @@ export default function ChecklistPage() {
             <TabsTrigger
               key={value}
               value={value}
-              className="relative flex items-center space-x-2 px-4 py-2"
+              className="relative flex items-center space-x-1 px-2 py-2 text-xs sm:space-x-2 sm:px-4 sm:text-sm"
             >
-              {value}
+              <span className="hidden sm:inline">{value}</span>
+              <span className="sm:hidden">{value.split(" ")[0]}</span>
               <Badge
                 variant={
                   count > 0

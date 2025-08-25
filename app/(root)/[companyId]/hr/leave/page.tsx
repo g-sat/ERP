@@ -180,11 +180,13 @@ export default function LeavePage() {
   // Show loading state
   if (leavesLoading || balancesLoading || policiesLoading) {
     return (
-      <div className="container mx-auto p-6">
+      <div className="container mx-auto space-y-4 px-4 py-4 sm:space-y-6 sm:px-6 sm:py-6">
         <div className="flex h-64 items-center justify-center">
           <div className="text-center">
             <div className="mx-auto h-8 w-8 animate-spin rounded-full border-b-2 border-gray-900"></div>
-            <p className="text-muted-foreground mt-2">Loading leave data...</p>
+            <p className="text-muted-foreground mt-2 text-sm">
+              Loading leave data...
+            </p>
           </div>
         </div>
       </div>
@@ -192,7 +194,7 @@ export default function LeavePage() {
   }
 
   return (
-    <div className="container mx-auto p-6">
+    <div className="container mx-auto space-y-4 px-4 py-4 sm:space-y-6 sm:px-6 sm:py-6">
       <LeaveDashboard
         leaves={leaves}
         leaveBalances={leaveBalances}

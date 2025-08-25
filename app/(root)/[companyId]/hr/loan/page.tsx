@@ -105,30 +105,33 @@ export default function LoanPage() {
   }
 
   return (
-    <div className="@container flex-1 space-y-4 p-4 pt-6 md:p-6">
+    <div className="container mx-auto space-y-4 px-4 py-4 sm:space-y-6 sm:px-6 sm:py-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Loan Management</h1>
-          <p className="text-muted-foreground">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="space-y-1">
+          <h1 className="text-xl font-bold tracking-tight sm:text-3xl">
+            Loan Management
+          </h1>
+          <p className="text-muted-foreground text-sm">
             Manage employee loans, requests, and repayments
           </p>
         </div>
-        <Button onClick={handleAddNewLoan}>
+        <Button onClick={handleAddNewLoan} className="w-full sm:w-auto">
           <Plus className="mr-2 h-4 w-4" />
-          Add New Loan
+          <span className="hidden sm:inline">Add New Loan</span>
+          <span className="sm:hidden">Add Loan</span>
         </Button>
       </div>
 
       {/* Dashboard Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Active Loans</CardTitle>
             <CreditCard className="text-muted-foreground h-4 w-4" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className="text-xl font-bold sm:text-2xl">
               {dashboardStats.activeLoans}
             </div>
             <p className="text-muted-foreground text-xs">
@@ -145,7 +148,7 @@ export default function LoanPage() {
             <TrendingUp className="text-muted-foreground h-4 w-4" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className="text-xl font-bold sm:text-2xl">
               <CurrencyFormatter
                 amount={dashboardStats.monthlyRepayments}
                 size="lg"
@@ -165,7 +168,7 @@ export default function LoanPage() {
             <Clock className="text-muted-foreground h-4 w-4" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className="text-xl font-bold sm:text-2xl">
               {dashboardStats.monthlySkipInstallment}
             </div>
             <p className="text-muted-foreground text-xs">Paused this month</p>
@@ -180,7 +183,7 @@ export default function LoanPage() {
             <DollarSign className="text-muted-foreground h-4 w-4" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className="text-xl font-bold sm:text-2xl">
               <CurrencyFormatter
                 amount={dashboardStats.totalLoanAmount}
                 size="lg"
@@ -198,7 +201,7 @@ export default function LoanPage() {
             <DollarSign className="text-muted-foreground h-4 w-4" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className="text-xl font-bold sm:text-2xl">
               <CurrencyFormatter
                 amount={dashboardStats.outstanding}
                 size="lg"
@@ -216,7 +219,9 @@ export default function LoanPage() {
             <CheckCircle className="text-muted-foreground h-4 w-4" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{dashboardStats.closeLoan}</div>
+            <div className="text-xl font-bold sm:text-2xl">
+              {dashboardStats.closeLoan}
+            </div>
             <p className="text-muted-foreground text-xs">
               Completed this month
             </p>
@@ -230,17 +235,25 @@ export default function LoanPage() {
         onValueChange={setActiveTab}
         className="space-y-4"
       >
-        <TabsList>
-          <TabsTrigger value="active-loans">Active Loans</TabsTrigger>
-          <TabsTrigger value="loan-requests" className="relative">
-            New Loan Requests
+        <TabsList className="grid w-full grid-cols-3 gap-2">
+          <TabsTrigger value="active-loans" className="text-xs sm:text-sm">
+            Active Loans
+          </TabsTrigger>
+          <TabsTrigger
+            value="loan-requests"
+            className="relative text-xs sm:text-sm"
+          >
+            <span className="hidden sm:inline">New Loan Requests</span>
+            <span className="sm:hidden">Requests</span>
             {pendingRequestsCount > 0 && (
               <span className="absolute -top-1 -right-1 flex h-4 w-4 animate-bounce items-center justify-center rounded-full bg-red-500 text-xs text-white">
                 {pendingRequestsCount}
               </span>
             )}
           </TabsTrigger>
-          <TabsTrigger value="history-requests">History</TabsTrigger>
+          <TabsTrigger value="history-requests" className="text-xs sm:text-sm">
+            History
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="active-loans" className="space-y-4">

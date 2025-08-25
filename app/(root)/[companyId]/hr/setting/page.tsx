@@ -14,11 +14,11 @@ export default function HRSettingRedirectPage() {
   }, [router, pathname])
 
   return (
-    <div className="flex-1 space-y-4 p-4 pt-6 md:p-8">
+    <div className="container mx-auto space-y-4 px-4 py-4 sm:space-y-6 sm:px-6 sm:py-6">
       <div className="flex h-64 items-center justify-center">
         <div className="text-center">
           <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-b-2 border-gray-900"></div>
-          <p className="text-muted-foreground">
+          <p className="text-muted-foreground text-sm">
             Redirecting to Work Location settings...
           </p>
         </div>

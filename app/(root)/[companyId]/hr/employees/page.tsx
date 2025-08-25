@@ -46,9 +46,16 @@ export default function EmployeePage() {
 
   // Show employee list table
   return (
-    <div className="@container flex-1 space-y-4 p-4 pt-6 md:p-8">
-      <div className="flex items-center justify-between space-y-2">
-        <h2 className="text-3xl font-bold tracking-tight">Employees</h2>
+    <div className="container mx-auto space-y-4 px-4 py-4 sm:space-y-6 sm:px-6 sm:py-6">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="space-y-1">
+          <h2 className="text-xl font-bold tracking-tight sm:text-3xl">
+            Employees
+          </h2>
+          <p className="text-muted-foreground text-sm">
+            Manage employee information and records
+          </p>
+        </div>
       </div>
       {isLoading ? (
         <DataTableSkeleton columnCount={7} />

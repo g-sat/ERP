@@ -178,23 +178,23 @@ export default function GLPeriodClosePage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="container mx-auto space-y-4 px-4 py-4 sm:space-y-6 sm:px-6 sm:py-6">
       {/* Page Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="space-y-1">
+          <h1 className="text-xl font-bold tracking-tight sm:text-3xl">
             Period Close Management
           </h1>
-          <p className="text-muted-foreground">
+          <p className="text-muted-foreground text-sm">
             Manage financial period closing status for AR, AP, CB, and GL
             modules
           </p>
         </div>
-        <div className="flex items-center space-x-2">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:space-x-2">
           <button
             onClick={() => handleGeneratePeriods(selectedYear)}
             disabled={generatePeriodsMutation.isPending}
-            className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-md px-4 py-2 disabled:opacity-50"
+            className="bg-primary text-primary-foreground hover:bg-primary/90 w-full rounded-md px-4 py-2 disabled:opacity-50 sm:w-auto"
           >
             {generatePeriodsMutation.isPending
               ? "Generating..."

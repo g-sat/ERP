@@ -425,22 +425,26 @@ export default function CustomerPage() {
   }
 
   return (
-    <div className="@container flex flex-1 flex-col gap-4 p-4">
-      <div className="flex items-center justify-between">
+    <div className="container mx-auto space-y-4 px-4 py-4 sm:space-y-6 sm:px-6 sm:py-6">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="space-y-1">
-          <h1 className="text-3xl font-bold tracking-tight">Customer</h1>
+          <h1 className="text-xl font-bold tracking-tight sm:text-3xl">
+            Customer
+          </h1>
           <p className="text-muted-foreground text-sm">
             Manage customer information, addresses, and contacts
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-2">
           <Button
             variant="outline"
             size="sm"
             onClick={() => setShowListDialog(true)}
+            className="w-full sm:w-auto"
           >
             <ListFilter className="mr-1 h-4 w-4" />
-            List
+            <span className="hidden sm:inline">List</span>
+            <span className="sm:hidden">List</span>
           </Button>
           <Button
             variant="default"
@@ -449,27 +453,33 @@ export default function CustomerPage() {
               document.getElementById("customer-form-submit")?.click()
             }
             disabled={!customer}
+            className="w-full sm:w-auto"
           >
             <Save className="mr-1 h-4 w-4" />
-            Save
+            <span className="hidden sm:inline">Save</span>
+            <span className="sm:hidden">Save</span>
           </Button>
           <Button
             variant="outline"
             size="sm"
             onClick={handleCustomerReset}
             disabled={!customer}
+            className="w-full sm:w-auto"
           >
             <RotateCcw className="mr-1 h-4 w-4" />
-            Reset
+            <span className="hidden sm:inline">Reset</span>
+            <span className="sm:hidden">Reset</span>
           </Button>
           <Button
             variant="destructive"
             size="sm"
             onClick={handleCustomerDelete}
             disabled={!customer}
+            className="w-full sm:w-auto"
           >
             <Trash2 className="mr-1 h-4 w-4" />
-            Delete
+            <span className="hidden sm:inline">Delete</span>
+            <span className="sm:hidden">Delete</span>
           </Button>
         </div>
       </div>

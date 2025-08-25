@@ -148,14 +148,14 @@ export function LeaveDashboard({
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Header with New Leave Request Button */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-3xl font-bold tracking-tight">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="space-y-1">
+          <h2 className="text-xl font-bold tracking-tight sm:text-3xl">
             Leave Management
           </h2>
-          <p className="text-muted-foreground">
+          <p className="text-muted-foreground text-sm">
             Manage employee leave requests, balances, and policies
           </p>
         </div>
@@ -165,15 +165,16 @@ export function LeaveDashboard({
             const event = new CustomEvent("openLeaveRequestForm")
             window.dispatchEvent(event)
           }}
-          className="flex items-center gap-2"
+          className="flex w-full items-center gap-2 sm:w-auto"
         >
           <Plus className="h-4 w-4" />
-          New Leave Request
+          <span className="hidden sm:inline">New Leave Request</span>
+          <span className="sm:hidden">New Request</span>
         </Button>
       </div>
 
       {/* Statistics Cards */}
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
@@ -182,7 +183,9 @@ export function LeaveDashboard({
             <Calendar className="text-muted-foreground h-4 w-4" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.totalLeaves}</div>
+            <div className="text-xl font-bold sm:text-2xl">
+              {stats.totalLeaves}
+            </div>
             <p className="text-muted-foreground text-xs">
               {stats.totalDays} total days
             </p>
@@ -195,7 +198,7 @@ export function LeaveDashboard({
             <Clock className="text-muted-foreground h-4 w-4" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-yellow-600">
+            <div className="text-xl font-bold text-yellow-600 sm:text-2xl">
               {stats.pendingLeaves}
             </div>
             <p className="text-muted-foreground text-xs">
@@ -210,7 +213,7 @@ export function LeaveDashboard({
             <CheckCircle className="text-muted-foreground h-4 w-4" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">
+            <div className="text-xl font-bold text-green-600 sm:text-2xl">
               {stats.approvedLeaves}
             </div>
             <p className="text-muted-foreground text-xs">
@@ -225,7 +228,7 @@ export function LeaveDashboard({
             <TrendingUp className="text-muted-foreground h-4 w-4" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-red-600">
+            <div className="text-xl font-bold text-red-600 sm:text-2xl">
               {stats.rejectedLeaves}
             </div>
             <p className="text-muted-foreground text-xs">
@@ -241,10 +244,16 @@ export function LeaveDashboard({
         onValueChange={setActiveTab}
         className="space-y-4"
       >
-        <TabsList>
-          <TabsTrigger value="requests">Requests</TabsTrigger>
-          <TabsTrigger value="balances">Balances</TabsTrigger>
-          <TabsTrigger value="policies">Policies</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-3 gap-2">
+          <TabsTrigger value="requests" className="text-xs sm:text-sm">
+            Requests
+          </TabsTrigger>
+          <TabsTrigger value="balances" className="text-xs sm:text-sm">
+            Balances
+          </TabsTrigger>
+          <TabsTrigger value="policies" className="text-xs sm:text-sm">
+            Policies
+          </TabsTrigger>
         </TabsList>
 
         {/* Requests Tab */}

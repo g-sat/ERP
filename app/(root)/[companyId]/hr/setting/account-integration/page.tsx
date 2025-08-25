@@ -104,16 +104,16 @@ export default function AccountIntegrationPage() {
         }}
       >
         <DialogContent
-          className="max-w-2xl"
+          className="max-h-[90vh] w-[95vw] max-w-2xl overflow-y-auto sm:w-[80vw] lg:w-[60vw]"
           onInteractOutside={(e) => e.preventDefault()}
         >
           <DialogHeader>
-            <DialogTitle>
+            <DialogTitle className="text-lg sm:text-xl">
               {editingItem
                 ? "Edit Account Integration"
                 : "Add Account Integration"}
             </DialogTitle>
-            <DialogDescription>
+            <DialogDescription className="text-sm">
               {editingItem
                 ? "Update account integration details"
                 : "Create a new account integration mapping"}
@@ -125,7 +125,7 @@ export default function AccountIntegrationPage() {
             onSave={handleSave}
           />
 
-          <div className="flex justify-end space-x-2 pt-4">
+          <div className="flex flex-col gap-2 pt-4 sm:flex-row sm:justify-end sm:space-x-2">
             <Button
               type="button"
               variant="outline"
@@ -133,6 +133,7 @@ export default function AccountIntegrationPage() {
                 setDialogOpen(false)
                 setEditingItem(null)
               }}
+              className="w-full sm:w-auto"
             >
               Cancel
             </Button>
@@ -140,6 +141,7 @@ export default function AccountIntegrationPage() {
               type="submit"
               form="payroll-account-integration-form"
               disabled={createMutation.isPending || updateMutation.isPending}
+              className="w-full sm:w-auto"
             >
               {createMutation.isPending || updateMutation.isPending
                 ? "Saving..."

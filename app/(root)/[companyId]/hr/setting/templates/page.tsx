@@ -159,10 +159,19 @@ export default function TemplatesPage() {
   }
 
   return (
-    <div className="h-full p-6">
-      <h2 className="mb-6 text-2xl font-semibold">Regular Payslips</h2>
+    <div className="space-y-4 sm:space-y-6">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="space-y-1">
+          <h2 className="text-xl font-bold tracking-tight sm:text-2xl">
+            Regular Payslips
+          </h2>
+          <p className="text-muted-foreground text-sm">
+            Manage payslip templates and preferences
+          </p>
+        </div>
+      </div>
 
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {filteredTemplates.map((template) => (
           <TemplateCard
             key={template.id}
@@ -205,13 +214,13 @@ function TemplateCard({
             </div>
 
             {/* Company Name */}
-            <h3 className="mb-2 font-semibold">
+            <h3 className="mb-2 text-sm font-semibold sm:text-base">
               {template.preview.companyName}
             </h3>
 
             {/* Net Pay */}
             <div className="text-right">
-              <span className="text-2xl font-bold">
+              <span className="text-xl font-bold sm:text-2xl">
                 {template.preview.currency} {template.preview.netPay}
               </span>
             </div>
@@ -244,9 +253,16 @@ function TemplateCard({
 
         {/* Template Name and Action Buttons */}
         <div className="p-4">
-          <div className="mb-3 flex items-center justify-between">
-            <h4 className="font-medium">{template.name}</h4>
-            <Button onClick={onEdit} variant="outline" size="sm">
+          <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <h4 className="text-sm font-medium sm:text-base">
+              {template.name}
+            </h4>
+            <Button
+              onClick={onEdit}
+              variant="outline"
+              size="sm"
+              className="w-full sm:w-auto"
+            >
               Edit
             </Button>
           </div>

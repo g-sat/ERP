@@ -37,9 +37,16 @@ export default function HRSettingsLayout({
   }
 
   return (
-    <div className="flex-1 space-y-4 p-4 pt-6 md:p-8">
-      <div className="flex items-center justify-between space-y-2">
-        <h2 className="text-3xl font-bold tracking-tight">Settings</h2>
+    <div className="container mx-auto space-y-4 px-4 py-4 sm:space-y-6 sm:px-6 sm:py-6">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="space-y-1">
+          <h2 className="text-xl font-bold tracking-tight sm:text-3xl">
+            Settings
+          </h2>
+          <p className="text-muted-foreground text-sm">
+            Manage HR system settings and configurations
+          </p>
+        </div>
       </div>
 
       <Tabs
@@ -47,20 +54,37 @@ export default function HRSettingsLayout({
         className="space-y-4"
         onValueChange={handleTabChange}
       >
-        <TabsList>
-          <TabsTrigger value="work-location">Work Location</TabsTrigger>
-          <TabsTrigger value="designation">Designation</TabsTrigger>
-          <TabsTrigger value="department">Department</TabsTrigger>
-          <TabsTrigger value="payroll-components">
+        <TabsList className="grid w-full grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-8">
+          <TabsTrigger value="work-location" className="text-xs sm:text-sm">
+            Work Location
+          </TabsTrigger>
+          <TabsTrigger value="designation" className="text-xs sm:text-sm">
+            Designation
+          </TabsTrigger>
+          <TabsTrigger value="department" className="text-xs sm:text-sm">
+            Department
+          </TabsTrigger>
+          <TabsTrigger
+            value="payroll-components"
+            className="text-xs sm:text-sm"
+          >
             Payroll Components
           </TabsTrigger>
-
-          <TabsTrigger value="pay-schedule">Pay Schedule</TabsTrigger>
-          <TabsTrigger value="account-integration">
+          <TabsTrigger value="pay-schedule" className="text-xs sm:text-sm">
+            Pay Schedule
+          </TabsTrigger>
+          <TabsTrigger
+            value="account-integration"
+            className="text-xs sm:text-sm"
+          >
             Account Integration
           </TabsTrigger>
-          <TabsTrigger value="employer-details">Employer Details</TabsTrigger>
-          <TabsTrigger value="templates">Templates</TabsTrigger>
+          <TabsTrigger value="employer-details" className="text-xs sm:text-sm">
+            Employer Details
+          </TabsTrigger>
+          <TabsTrigger value="templates" className="text-xs sm:text-sm">
+            Templates
+          </TabsTrigger>
         </TabsList>
       </Tabs>
 

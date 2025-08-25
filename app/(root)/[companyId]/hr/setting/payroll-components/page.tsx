@@ -102,14 +102,14 @@ export default function PayrollComponentsPage() {
         }}
       >
         <DialogContent
-          className="max-w-2xl"
+          className="max-h-[90vh] w-[95vw] max-w-2xl overflow-y-auto sm:w-[80vw] lg:w-[60vw]"
           onInteractOutside={(e) => e.preventDefault()}
         >
           <DialogHeader>
-            <DialogTitle>
+            <DialogTitle className="text-lg sm:text-xl">
               {editingItem ? "Edit Payroll Component" : "Add Payroll Component"}
             </DialogTitle>
-            <DialogDescription>
+            <DialogDescription className="text-sm">
               {editingItem
                 ? "Update payroll component details"
                 : "Create a new payroll component"}
@@ -121,7 +121,7 @@ export default function PayrollComponentsPage() {
             onSave={handleSave}
           />
 
-          <div className="flex justify-end space-x-2 pt-4">
+          <div className="flex flex-col gap-2 pt-4 sm:flex-row sm:justify-end sm:space-x-2">
             <Button
               type="button"
               variant="outline"
@@ -129,6 +129,7 @@ export default function PayrollComponentsPage() {
                 setDialogOpen(false)
                 setEditingItem(null)
               }}
+              className="w-full sm:w-auto"
             >
               Cancel
             </Button>
@@ -136,6 +137,7 @@ export default function PayrollComponentsPage() {
               type="submit"
               form="payroll-component-form"
               disabled={createMutation.isPending || updateMutation.isPending}
+              className="w-full sm:w-auto"
             >
               {createMutation.isPending || updateMutation.isPending
                 ? "Saving..."

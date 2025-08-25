@@ -459,29 +459,49 @@ export default function AdminPage() {
   }
 
   return (
-    <div className="@container flex flex-1 flex-col gap-6 p-6">
-      <div className="flex flex-col justify-between gap-4 @md/main:flex-row @md/main:items-center">
+    <div className="container mx-auto space-y-4 px-4 py-4 sm:space-y-6 sm:px-6 sm:py-6">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="space-y-1">
-          <h1 className="text-3xl font-bold tracking-tight">Admin</h1>
+          <h1 className="text-xl font-bold tracking-tight sm:text-3xl">
+            Admin
+          </h1>
           <p className="text-muted-foreground text-sm">
             Manage users, groups, and permissions
           </p>
         </div>
       </div>
       <Tabs defaultValue="users" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="users">Users</TabsTrigger>
-          <TabsTrigger value="user-roles">User Roles</TabsTrigger>
-          <TabsTrigger value="user-groups">User Groups</TabsTrigger>
-          <TabsTrigger value="user-rights">User Rights</TabsTrigger>
-          <TabsTrigger value="user-wise-rights">User Wise Rights</TabsTrigger>
-          <TabsTrigger value="group-rights">Group Rights</TabsTrigger>
-          <TabsTrigger value="report-rights">Report Rights</TabsTrigger>
-          <TabsTrigger value="notification-preferences">
+        <TabsList className="grid w-full grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-9">
+          <TabsTrigger value="users" className="text-xs sm:text-sm">
+            Users
+          </TabsTrigger>
+          <TabsTrigger value="user-roles" className="text-xs sm:text-sm">
+            User Roles
+          </TabsTrigger>
+          <TabsTrigger value="user-groups" className="text-xs sm:text-sm">
+            User Groups
+          </TabsTrigger>
+          <TabsTrigger value="user-rights" className="text-xs sm:text-sm">
+            User Rights
+          </TabsTrigger>
+          <TabsTrigger value="user-wise-rights" className="text-xs sm:text-sm">
+            User Wise Rights
+          </TabsTrigger>
+          <TabsTrigger value="group-rights" className="text-xs sm:text-sm">
+            Group Rights
+          </TabsTrigger>
+          <TabsTrigger value="report-rights" className="text-xs sm:text-sm">
+            Report Rights
+          </TabsTrigger>
+          <TabsTrigger
+            value="notification-preferences"
+            className="text-xs sm:text-sm"
+          >
             Notification Preferences
           </TabsTrigger>
-
-          <TabsTrigger value="share-data">Company Share Data</TabsTrigger>
+          <TabsTrigger value="share-data" className="text-xs sm:text-sm">
+            Company Share Data
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="users" className="space-y-4">

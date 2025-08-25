@@ -99,14 +99,14 @@ export default function WorkLocationPage() {
         }}
       >
         <DialogContent
-          className="max-w-2xl"
+          className="max-h-[90vh] w-[95vw] max-w-2xl overflow-y-auto sm:w-[80vw] lg:w-[60vw]"
           onInteractOutside={(e) => e.preventDefault()}
         >
           <DialogHeader>
-            <DialogTitle>
+            <DialogTitle className="text-lg sm:text-xl">
               {editingItem ? "Edit Work Location" : "Add Work Location"}
             </DialogTitle>
-            <DialogDescription>
+            <DialogDescription className="text-sm">
               {editingItem
                 ? "Update work location details"
                 : "Create a new work location"}
@@ -118,7 +118,7 @@ export default function WorkLocationPage() {
             onSave={handleSave}
           />
 
-          <div className="flex justify-end space-x-2 pt-4">
+          <div className="flex flex-col gap-2 pt-4 sm:flex-row sm:justify-end sm:space-x-2">
             <Button
               type="button"
               variant="outline"
@@ -126,6 +126,7 @@ export default function WorkLocationPage() {
                 setDialogOpen(false)
                 setEditingItem(null)
               }}
+              className="w-full sm:w-auto"
             >
               Cancel
             </Button>
@@ -133,6 +134,7 @@ export default function WorkLocationPage() {
               type="submit"
               form="work-location-form"
               disabled={createMutation.isPending || updateMutation.isPending}
+              className="w-full sm:w-auto"
             >
               {createMutation.isPending || updateMutation.isPending
                 ? "Saving..."

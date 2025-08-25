@@ -23,10 +23,7 @@ interface DashboardStats {
   expiringSoon: number
   expired: number
   verified: number
-  pending: number
-  rejected: number
   totalDetails: number
-  documentsWithFiles: number
 }
 
 export function DocumentExpiryDashboard() {
@@ -53,19 +50,10 @@ export function DocumentExpiryDashboard() {
     verified: allDocuments.filter((doc: IUniversalDocumentHd) =>
       doc.data_details?.some((detail) => detail.renewalRequired === false)
     ).length,
-    pending: allDocuments.filter((doc: IUniversalDocumentHd) =>
-      doc.data_details?.some((detail) => detail.renewalRequired === true)
-    ).length,
-    rejected: allDocuments.filter((doc: IUniversalDocumentHd) =>
-      doc.data_details?.some((detail) => !detail.filePath)
-    ).length,
     totalDetails: allDocuments.reduce(
       (total, doc) => total + (doc.data_details?.length || 0),
       0
     ),
-    documentsWithFiles: allDocuments.filter((doc: IUniversalDocumentHd) =>
-      doc.data_details?.some((detail) => detail.filePath)
-    ).length,
   }
 
   const expiringPercentage =
@@ -120,9 +108,9 @@ export function DocumentExpiryDashboard() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Statistics Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
@@ -131,7 +119,9 @@ export function DocumentExpiryDashboard() {
             <FileText className="text-muted-foreground h-4 w-4" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.totalDocuments}</div>
+            <div className="text-xl font-bold sm:text-2xl">
+              {stats.totalDocuments}
+            </div>
             <p className="text-muted-foreground text-xs">
               {stats.totalDetails} total details
             </p>
@@ -144,7 +134,7 @@ export function DocumentExpiryDashboard() {
             <Clock className="text-muted-foreground h-4 w-4" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-yellow-600">
+            <div className="text-xl font-bold text-yellow-600 sm:text-2xl">
               {stats.expiringSoon}
             </div>
             <p className="text-muted-foreground text-xs">Within 30 days</p>
@@ -157,7 +147,7 @@ export function DocumentExpiryDashboard() {
             <AlertTriangle className="text-muted-foreground h-4 w-4" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-red-600">
+            <div className="text-xl font-bold text-red-600 sm:text-2xl">
               {stats.expired}
             </div>
             <p className="text-muted-foreground text-xs">Past expiry date</p>
@@ -170,7 +160,7 @@ export function DocumentExpiryDashboard() {
             <CheckCircle className="text-muted-foreground h-4 w-4" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">
+            <div className="text-xl font-bold text-green-600 sm:text-2xl">
               {stats.verified}
             </div>
             <p className="text-muted-foreground text-xs">
@@ -218,33 +208,33 @@ export function DocumentExpiryDashboard() {
       </div>
 
       {/* Recent Activity */}
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-4 sm:grid-cols-1 lg:grid-cols-2">
         <Card>
           <CardHeader>
             <CardTitle className="text-sm font-medium">Expiring Soon</CardTitle>
             <CardDescription>Documents that need attention</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
+            <div className="space-y-3 sm:space-y-4">
               {expiringDocuments
                 .slice(0, 5)
                 .map((doc: IUniversalDocumentHd) => {
                   const earliestExpiry = doc.data_details
-                    ?.filter((detail) => detail.expiryDate)
+                    ?.filter((detail) => detail.expiryOn)
                     .sort(
                       (a, b) =>
-                        new Date(a.expiryDate!).getTime() -
-                        new Date(b.expiryDate!).getTime()
+                        new Date(a.expiryOn!).getTime() -
+                        new Date(b.expiryOn!).getTime()
                     )[0]
 
                   const expiryStatus = getExpiryStatus(
-                    earliestExpiry?.expiryDate || null
+                    earliestExpiry?.expiryOn || null
                   )
 
                   return (
                     <div
                       key={doc?.documentId || Math.random()}
-                      className="flex items-center justify-between"
+                      className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between"
                     >
                       <div className="space-y-1">
                         <p className="text-sm font-medium">
@@ -255,7 +245,7 @@ export function DocumentExpiryDashboard() {
                           {doc?.data_details?.length || 0} detail(s)
                         </p>
                       </div>
-                      <Badge className={expiryStatus.color}>
+                      <Badge className={`${expiryStatus.color} w-fit`}>
                         {expiryStatus.status}
                       </Badge>
                     </div>
@@ -278,7 +268,7 @@ export function DocumentExpiryDashboard() {
             <CardDescription>Latest document updates</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
+            <div className="space-y-3 sm:space-y-4">
               {allDocuments.slice(0, 5).map((doc: IUniversalDocumentHd) => {
                 const hasFiles =
                   doc.data_details?.some((detail) => detail.filePath) || false
@@ -298,7 +288,7 @@ export function DocumentExpiryDashboard() {
                 return (
                   <div
                     key={doc?.documentId || Math.random()}
-                    className="flex items-center justify-between"
+                    className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between"
                   >
                     <div className="space-y-1">
                       <p className="text-sm font-medium">
@@ -309,7 +299,7 @@ export function DocumentExpiryDashboard() {
                         {doc?.detailsCount || 0} detail(s)
                       </p>
                     </div>
-                    <Badge className={getStatusColor(primaryStatus)}>
+                    <Badge className={`${getStatusColor(primaryStatus)} w-fit`}>
                       {primaryStatus}
                     </Badge>
                   </div>

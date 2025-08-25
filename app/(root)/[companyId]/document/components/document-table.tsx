@@ -10,13 +10,6 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
-import {
   Table,
   TableBody,
   TableCell,
@@ -31,15 +24,9 @@ interface DocumentTableProps {
 
 export function DocumentTable({ onEdit }: DocumentTableProps) {
   const [searchTerm, setSearchTerm] = useState("")
-  const [entityTypeFilter, setEntityTypeFilter] = useState<string>("all")
 
   const { data: documentsResponse, isLoading } =
     useGetUniversalDocuments(searchTerm)
-
-  console.log("documentsResponse", documentsResponse)
-  console.log("documentsResponse type:", typeof documentsResponse)
-  console.log("documentsResponse isArray:", Array.isArray(documentsResponse))
-  console.log("documentsResponse.data:", documentsResponse?.data)
 
   // Extract data from API response - handle various response formats
   let documents: IUniversalDocumentHd[] = []
@@ -63,9 +50,6 @@ export function DocumentTable({ onEdit }: DocumentTableProps) {
     }
   }
 
-  console.log("documents", documents)
-  console.log("documents length:", documents.length)
-
   if (isLoading) {
     return (
       <Card>
@@ -85,83 +69,91 @@ export function DocumentTable({ onEdit }: DocumentTableProps) {
     <Card>
       <CardHeader>
         <CardTitle>Documents</CardTitle>
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex flex-1 items-center space-x-2">
             <Search className="text-muted-foreground h-4 w-4" />
             <Input
               placeholder="Search documents..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="h-8 w-[150px] lg:w-[250px]"
+              className="h-8 w-full sm:w-[150px] lg:w-[250px]"
             />
-          </div>
-          <div className="flex items-center space-x-2">
-            <Select
-              value={entityTypeFilter}
-              onValueChange={setEntityTypeFilter}
-            >
-              <SelectTrigger className="h-8 w-[130px]">
-                <SelectValue placeholder="Entity Type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Types</SelectItem>
-                <SelectItem value="1">Employee</SelectItem>
-                <SelectItem value="2">Company</SelectItem>
-                <SelectItem value="4">Vessel</SelectItem>
-              </SelectContent>
-            </Select>
           </div>
         </div>
       </CardHeader>
       <CardContent>
         <div className="rounded-md border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Type</TableHead>
-                <TableHead>Name</TableHead>
-                <TableHead>Details Count</TableHead>
-                <TableHead>Details Name</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {documents.length === 0 ? (
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
                 <TableRow>
-                  <TableCell colSpan={8} className="text-center">
-                    No documents found
-                  </TableCell>
+                  <TableHead className="min-w-[100px]">Type</TableHead>
+                  <TableHead className="min-w-[150px]">Name</TableHead>
+                  <TableHead className="min-w-[120px]">Details Count</TableHead>
+                  <TableHead className="min-w-[120px]">Details Name</TableHead>
+                  <TableHead className="min-w-[80px] text-right">
+                    Actions
+                  </TableHead>
                 </TableRow>
-              ) : (
-                documents.map((doc: IUniversalDocumentHd) => {
-                  return (
-                    <TableRow key={doc?.documentId || Math.random()}>
-                      <TableCell className="font-medium">
-                        {doc?.entityTypeName || "N/A"}
-                      </TableCell>
-                      <TableCell>{doc?.documentName || "N/A"}</TableCell>
-                      <TableCell>{doc?.detailsCount || 0} detail(s)</TableCell>
-                      <TableCell>
-                        <Badge className="bg-gray-100 text-gray-800">
-                          {doc?.detailsName || "N/A"}
-                        </Badge>
-                      </TableCell>
+              </TableHeader>
+              <TableBody>
+                {documents.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={8} className="py-8 text-center">
+                      <div className="text-muted-foreground">
+                        No documents found
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  documents.map((doc: IUniversalDocumentHd) => {
+                    return (
+                      <TableRow key={doc?.documentId || Math.random()}>
+                        <TableCell className="font-medium">
+                          <div
+                            className="max-w-[100px] truncate"
+                            title={doc?.entityTypeName || "N/A"}
+                          >
+                            {doc?.entityTypeName || "N/A"}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div
+                            className="max-w-[150px] truncate"
+                            title={doc?.documentName || "N/A"}
+                          >
+                            {doc?.documentName || "N/A"}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          {doc?.detailsCount || 0} detail(s)
+                        </TableCell>
+                        <TableCell>
+                          <Badge
+                            className="max-w-[120px] truncate bg-gray-100 text-gray-800"
+                            title={doc?.detailsName || "N/A"}
+                          >
+                            {doc?.detailsName || "N/A"}
+                          </Badge>
+                        </TableCell>
 
-                      <TableCell className="text-right">
-                        <Button
-                          variant="outline"
-                          className="h-8 w-8 p-0"
-                          onClick={() => onEdit?.(doc)}
-                        >
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  )
-                })
-              )}
-            </TableBody>
-          </Table>
+                        <TableCell className="text-right">
+                          <Button
+                            variant="outline"
+                            className="h-8 w-8 p-0"
+                            onClick={() => onEdit?.(doc)}
+                            title="View document"
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    )
+                  })
+                )}
+              </TableBody>
+            </Table>
+          </div>
         </div>
       </CardContent>
     </Card>

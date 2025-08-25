@@ -103,41 +103,12 @@ export function DocumentForm({
     }
   }, [document])
 
-  // Debug form validation
-  useEffect(() => {
-    console.log("Form validation state:", {
-      isValid: form.formState.isValid,
-      errors: form.formState.errors,
-      values: form.getValues(),
-      isDirty: form.formState.isDirty,
-      isSubmitting: form.formState.isSubmitting,
-    })
-  }, [
-    form.formState.isValid,
-    form.formState.errors,
-    form.formState.isDirty,
-    form.formState.isSubmitting,
-  ])
-
   const handleAddDetail = () => {
-    console.log("handleAddDetail called")
-    console.log("document?.documentId:", document?.documentId)
-    console.log("form.getValues('documentId'):", form.getValues("documentId"))
-    console.log(
-      "Final documentId:",
-      document?.documentId || form.getValues("documentId") || 0
-    )
     setEditingDetail(undefined)
     setDetailsDialogOpen(true)
   }
 
   const handleEditDetail = (detail: IUniversalDocumentDt) => {
-    setEditingDetail(detail)
-    setDetailsDialogOpen(true)
-  }
-
-  const handleViewDetail = (detail: IUniversalDocumentDt) => {
-    // For now, just show in dialog as read-only
     setEditingDetail(detail)
     setDetailsDialogOpen(true)
   }
@@ -155,7 +126,6 @@ export function DocumentForm({
       try {
         // Here you could add an API call to refresh details from server
         // For now, we'll just simulate a refresh
-        console.log("Refreshing details for document:", document.documentId)
         // You can add API call here if needed
       } catch (error) {
         console.error("Error refreshing details:", error)
@@ -167,10 +137,6 @@ export function DocumentForm({
 
   const onSubmit = async (data: UniversalDocumentHdFormValues) => {
     try {
-      console.log("Form data being submitted:", data)
-      console.log("Form is valid:", form.formState.isValid)
-      console.log("Form errors:", form.formState.errors)
-
       if (!form.formState.isValid) {
         console.error("Form is not valid:", form.formState.errors)
         return
@@ -214,8 +180,8 @@ export function DocumentForm({
               />
 
               {/* Header Information */}
-              <div className="grid grid-cols-1 gap-2 md:grid-cols-4">
-                <div>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                <div className="sm:col-span-1">
                   <EntityTypeAutocomplete
                     form={form}
                     name="entityTypeId"
@@ -230,7 +196,7 @@ export function DocumentForm({
                   />
                 </div>
 
-                <div>
+                <div className="sm:col-span-1">
                   {selectedEntityType === 1 ? (
                     // Employee Entity Type
                     <EmployeeAutocomplete
@@ -274,26 +240,28 @@ export function DocumentForm({
                   )}
                 </div>
 
-                <FormField
-                  control={form.control}
-                  name="documentName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Document Name</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="Enter document Name"
-                          value={field.value || ""}
-                          onChange={field.onChange}
-                          onBlur={field.onBlur}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                <div className="sm:col-span-1">
+                  <FormField
+                    control={form.control}
+                    name="documentName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Document Name</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="Enter document Name"
+                            value={field.value || ""}
+                            onChange={field.onChange}
+                            onBlur={field.onBlur}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
 
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-2 sm:col-span-1">
                   <FormField
                     control={form.control}
                     name="isActive"
@@ -315,8 +283,13 @@ export function DocumentForm({
               </div>
 
               {/* Form Actions */}
-              <div className="flex justify-end space-x-2">
-                <Button type="button" variant="outline" onClick={onCancel}>
+              <div className="flex flex-col gap-2 sm:flex-row sm:justify-end sm:space-x-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={onCancel}
+                  className="w-full sm:w-auto"
+                >
                   Cancel
                 </Button>
                 <Button
@@ -331,6 +304,7 @@ export function DocumentForm({
                       values: form.getValues(),
                     })
                   }}
+                  className="w-full sm:w-auto"
                 >
                   {persistMutation.isPending
                     ? "Saving..."
@@ -364,14 +338,15 @@ export function DocumentForm({
       {/* Document Details Section - Show for both new and existing documents */}
       <Separator />
       <div className="space-y-4">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <h3 className="text-lg font-medium">Document Details</h3>
-          <div className="flex space-x-2">
+          <div className="flex flex-col gap-2 sm:flex-row sm:space-x-2">
             <Button
               onClick={refreshDetails}
               variant="outline"
               size="sm"
               disabled={isLoadingDetails}
+              className="w-full sm:w-auto"
             >
               <RefreshCw
                 className={`mr-2 h-4 w-4 ${isLoadingDetails ? "animate-spin" : ""}`}
@@ -383,6 +358,7 @@ export function DocumentForm({
               disabled={
                 !form.getValues("entityTypeId") || !form.getValues("entity")
               }
+              className="w-full sm:w-auto"
             >
               <Plus className="mr-2 h-4 w-4" />
               Add Detail
@@ -392,7 +368,6 @@ export function DocumentForm({
         <DocumentDetailsTable
           details={details}
           onEdit={(detail) => handleEditDetail(detail)}
-          onView={(detail) => handleViewDetail(detail)}
           onDelete={handleDeleteDetail}
           isLoading={isLoadingDetails}
         />
@@ -400,7 +375,7 @@ export function DocumentForm({
 
       <Dialog open={detailsDialogOpen} onOpenChange={setDetailsDialogOpen}>
         <DialogContent
-          className="max-h-[90vh] w-[60vw] !max-w-none overflow-y-auto"
+          className="max-h-[90vh] w-[95vw] !max-w-none overflow-y-auto sm:w-[80vw] lg:w-[60vw]"
           onPointerDownOutside={(e) => {
             // Prevent closing when clicking outside
             e.preventDefault()

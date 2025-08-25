@@ -130,14 +130,14 @@ export default function EmployerDetailsPage() {
           }
         }}
       >
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-h-[90vh] w-[95vw] max-w-md overflow-y-auto sm:w-[80vw] lg:w-[40vw]">
           <DialogHeader>
-            <DialogTitle>
+            <DialogTitle className="text-lg sm:text-xl">
               {selectedEmployerDetails
                 ? "Edit EmployerDetails"
                 : "Add New EmployerDetails"}
             </DialogTitle>
-            <DialogDescription>
+            <DialogDescription className="text-sm">
               {selectedEmployerDetails
                 ? "Update employerDetails information"
                 : "Create a new employerDetails"}
@@ -149,7 +149,7 @@ export default function EmployerDetailsPage() {
             onSave={handleSave}
           />
 
-          <div className="flex justify-end space-x-2 pt-4">
+          <div className="flex flex-col gap-2 pt-4 sm:flex-row sm:justify-end sm:space-x-2">
             <Button
               type="button"
               variant="outline"
@@ -157,6 +157,7 @@ export default function EmployerDetailsPage() {
                 setEmployerDetailsFormOpen(false)
                 setSelectedEmployerDetails(null)
               }}
+              className="w-full sm:w-auto"
             >
               Cancel
             </Button>
@@ -164,6 +165,7 @@ export default function EmployerDetailsPage() {
               type="submit"
               form="employerDetails-form"
               disabled={createMutation.isPending || updateMutation.isPending}
+              className="w-full sm:w-auto"
             >
               {createMutation.isPending || updateMutation.isPending
                 ? "Saving..."

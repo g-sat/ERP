@@ -50,12 +50,14 @@ export default function PayRunsPage() {
   }
 
   return (
-    <div className="@container flex-1 space-y-3 p-3 pt-4 md:p-4">
+    <div className="container mx-auto space-y-4 px-4 py-4 sm:space-y-6 sm:px-6 sm:py-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-xl font-bold tracking-tight">Pay Runs</h1>
-          <p className="text-muted-foreground">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="space-y-1">
+          <h1 className="text-xl font-bold tracking-tight sm:text-2xl">
+            Pay Runs
+          </h1>
+          <p className="text-muted-foreground text-sm">
             Manage payroll processing and payment history
           </p>
         </div>
@@ -65,14 +67,18 @@ export default function PayRunsPage() {
       <Tabs
         value={activeTab}
         onValueChange={setActiveTab}
-        className="space-y-3"
+        className="space-y-4"
       >
-        <TabsList>
-          <TabsTrigger value="run-payroll">Run Payroll</TabsTrigger>
-          <TabsTrigger value="payroll-history">Payroll History</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-2 gap-2">
+          <TabsTrigger value="run-payroll" className="text-xs sm:text-sm">
+            Run Payroll
+          </TabsTrigger>
+          <TabsTrigger value="payroll-history" className="text-xs sm:text-sm">
+            Payroll History
+          </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="run-payroll" className="space-y-3">
+        <TabsContent value="run-payroll" className="space-y-4">
           {payRun && !payRun.isPaid && (
             <ProcessPayRunCard
               payRun={payRun}
@@ -83,15 +89,15 @@ export default function PayRunsPage() {
           )}
           {payRun && payRun.isPaid && (
             <div className="rounded-md border p-4">
-              <p className="text-muted-foreground">
+              <p className="text-muted-foreground text-sm">
                 Payroll has already been processed and paid.
               </p>
             </div>
           )}
         </TabsContent>
 
-        <TabsContent value="payroll-history" className="space-y-3">
-          <div className="flex items-center justify-between">
+        <TabsContent value="payroll-history" className="space-y-4">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center space-x-2">
               <span className="text-sm font-medium">Payroll Type:</span>
               <Badge variant="outline">All</Badge>

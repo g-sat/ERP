@@ -129,15 +129,21 @@ export default function ApprovalsPage() {
   }
 
   return (
-    <div className="flex flex-1 flex-col gap-4 p-4">
-      {/* Simple Header */}
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Approvals</h1>
+    <div className="container mx-auto space-y-4 px-4 py-4 sm:space-y-6 sm:px-6 sm:py-6">
+      {/* Header */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="space-y-1">
+          <h1 className="text-xl font-bold tracking-tight sm:text-3xl">
+            Approvals
+          </h1>
+          <p className="text-muted-foreground text-sm">
+            Manage approval requests and track their status
+          </p>
+        </div>
         <Button
-          variant="outline"
-          size="sm"
           onClick={handleRefresh}
           disabled={isLoading}
+          className="w-full sm:w-auto"
         >
           <RefreshCw
             className={`mr-2 h-4 w-4 ${isLoading ? "animate-spin" : ""}`}
@@ -146,57 +152,14 @@ export default function ApprovalsPage() {
         </Button>
       </div>
 
-      {/* Simple Stats */}
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-muted-foreground text-sm">Pending</p>
-                <p className="text-2xl font-bold text-yellow-600">
-                  {pendingCount}
-                </p>
-              </div>
-              <Clock className="h-8 w-8 text-yellow-600" />
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-muted-foreground text-sm">My Requests</p>
-                <p className="text-2xl font-bold text-blue-600">
-                  {myRequestsCount}
-                </p>
-              </div>
-              <Eye className="h-8 w-8 text-blue-600" />
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-muted-foreground text-sm">Total</p>
-                <p className="text-2xl font-bold">
-                  {pendingCount + myRequestsCount}
-                </p>
-              </div>
-              <FileText className="h-8 w-8 text-gray-600" />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Error Display */}
+      {/* Stats Cards */}
       {error && (
         <Card className="border-red-200 bg-red-50">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2">
-              <AlertCircle className="h-5 w-5 text-red-600" />
-              <p className="text-red-800">{error}</p>
-            </div>
+          <CardContent className="flex items-center gap-2 p-4">
+            <AlertCircle className="h-5 w-5 text-red-600" />
+            <p className="text-sm text-red-800">
+              Error loading approvals: {error}
+            </p>
           </CardContent>
         </Card>
       )}
@@ -208,23 +171,34 @@ export default function ApprovalsPage() {
         className="space-y-4"
       >
         <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="pending" className="flex items-center gap-2">
-            <Clock className="h-4 w-4" />
-            Pending
+          <TabsTrigger
+            value="pending"
+            className="flex items-center gap-1 sm:gap-2"
+          >
+            <Clock className="h-3 w-3 sm:h-4 sm:w-4" />
+            <span className="hidden sm:inline">Pending</span>
+            <span className="sm:hidden">Pending</span>
             {pendingCount > 0 && (
               <Badge
                 variant="secondary"
-                className="bg-yellow-100 text-yellow-800"
+                className="bg-yellow-100 text-xs text-yellow-800"
               >
                 {pendingCount}
               </Badge>
             )}
           </TabsTrigger>
-          <TabsTrigger value="my-requests" className="flex items-center gap-2">
-            <Eye className="h-4 w-4" />
-            My Requests
+          <TabsTrigger
+            value="my-requests"
+            className="flex items-center gap-1 sm:gap-2"
+          >
+            <Eye className="h-3 w-3 sm:h-4 sm:w-4" />
+            <span className="hidden sm:inline">My Requests</span>
+            <span className="sm:hidden">My Req</span>
             {myRequestsCount > 0 && (
-              <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+              <Badge
+                variant="secondary"
+                className="bg-blue-100 text-xs text-blue-800"
+              >
                 {myRequestsCount}
               </Badge>
             )}
@@ -233,18 +207,18 @@ export default function ApprovalsPage() {
 
         {/* Simple Filters */}
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <div className="relative max-w-sm flex-1">
+          <div className="relative flex-1">
             <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-gray-400" />
             <Input
               placeholder="Search requests..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
+              className="w-full pl-10 sm:max-w-sm"
             />
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-col gap-2 sm:flex-row sm:gap-2">
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-[120px]">
+              <SelectTrigger className="w-full sm:w-[120px]">
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
@@ -255,7 +229,7 @@ export default function ApprovalsPage() {
               </SelectContent>
             </Select>
             <Select value={processFilter} onValueChange={setProcessFilter}>
-              <SelectTrigger className="w-[140px]">
+              <SelectTrigger className="w-full sm:w-[140px]">
                 <SelectValue placeholder="Process" />
               </SelectTrigger>
               <SelectContent>

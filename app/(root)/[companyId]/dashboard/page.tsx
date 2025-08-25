@@ -115,84 +115,112 @@ const products = [
 
 export default function DashboardPage() {
   return (
-    <div className="@container/page flex flex-1 flex-col gap-8 p-6">
-      <Tabs defaultValue="overview" className="gap-6">
+    <div className="container mx-auto space-y-4 px-4 py-4 sm:space-y-6 sm:px-6 sm:py-6">
+      <Tabs defaultValue="overview" className="space-y-4">
         <div
           data-slot="dashboard-header"
-          className="flex items-center justify-between"
+          className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
         >
-          <TabsList className="w-full @3xl/page:w-fit">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="analytics">Analytics</TabsTrigger>
-            <TabsTrigger value="reports">Reports</TabsTrigger>
-            <TabsTrigger value="exports" disabled>
+          <TabsList className="grid w-full grid-cols-2 gap-2 sm:grid-cols-4">
+            <TabsTrigger value="overview" className="text-xs sm:text-sm">
+              Overview
+            </TabsTrigger>
+            <TabsTrigger value="analytics" className="text-xs sm:text-sm">
+              Analytics
+            </TabsTrigger>
+            <TabsTrigger value="reports" className="text-xs sm:text-sm">
+              Reports
+            </TabsTrigger>
+            <TabsTrigger
+              value="exports"
+              disabled
+              className="text-xs sm:text-sm"
+            >
               Exports
             </TabsTrigger>
           </TabsList>
-          <div className="hidden items-center gap-2 @3xl/page:flex">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-2">
             <AnalyticsDatePicker />
-            <Button variant="outline">
-              <FilterIcon />
-              Filter
+            <Button variant="outline" className="w-full sm:w-auto">
+              <FilterIcon className="mr-2 h-4 w-4" />
+              <span className="hidden sm:inline">Filter</span>
+              <span className="sm:hidden">Filter</span>
             </Button>
-            <Button variant="outline">
-              <DownloadIcon />
-              Export
+            <Button variant="outline" className="w-full sm:w-auto">
+              <DownloadIcon className="mr-2 h-4 w-4" />
+              <span className="hidden sm:inline">Export</span>
+              <span className="sm:hidden">Export</span>
             </Button>
           </div>
         </div>
-        <TabsContent value="overview" className="flex flex-col gap-4">
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <TabsContent value="overview" className="space-y-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <Card>
               <CardHeader>
-                <CardTitle>Total Revenue</CardTitle>
-                <CardDescription>$1,250.00 in the last 30 days</CardDescription>
+                <CardTitle className="text-sm sm:text-base">
+                  Total Revenue
+                </CardTitle>
+                <CardDescription className="text-xs sm:text-sm">
+                  $1,250.00 in the last 30 days
+                </CardDescription>
               </CardHeader>
               <CardFooter>
-                <Badge variant="outline">
-                  <TrendingUpIcon />
+                <Badge variant="outline" className="text-xs">
+                  <TrendingUpIcon className="mr-1 h-3 w-3" />
                   +12.5%
                 </Badge>
               </CardFooter>
             </Card>
             <Card>
               <CardHeader>
-                <CardTitle>New Customers</CardTitle>
-                <CardDescription>-12 customers from last month</CardDescription>
+                <CardTitle className="text-sm sm:text-base">
+                  New Customers
+                </CardTitle>
+                <CardDescription className="text-xs sm:text-sm">
+                  -12 customers from last month
+                </CardDescription>
               </CardHeader>
               <CardFooter>
-                <Badge variant="outline">
-                  <TrendingDownIcon />
+                <Badge variant="outline" className="text-xs">
+                  <TrendingDownIcon className="mr-1 h-3 w-3" />
                   -20%
                 </Badge>
               </CardFooter>
             </Card>
             <Card>
               <CardHeader>
-                <CardTitle>Active Accounts</CardTitle>
-                <CardDescription>+2,345 users from last month</CardDescription>
+                <CardTitle className="text-sm sm:text-base">
+                  Active Accounts
+                </CardTitle>
+                <CardDescription className="text-xs sm:text-sm">
+                  +2,345 users from last month
+                </CardDescription>
               </CardHeader>
               <CardFooter>
-                <Badge variant="outline">
-                  <TrendingUpIcon />
+                <Badge variant="outline" className="text-xs">
+                  <TrendingUpIcon className="mr-1 h-3 w-3" />
                   +12.5%
                 </Badge>
               </CardFooter>
             </Card>
             <Card>
               <CardHeader>
-                <CardTitle>Growth Rate</CardTitle>
-                <CardDescription>+12.5% increase per month</CardDescription>
+                <CardTitle className="text-sm sm:text-base">
+                  Growth Rate
+                </CardTitle>
+                <CardDescription className="text-xs sm:text-sm">
+                  +12.5% increase per month
+                </CardDescription>
               </CardHeader>
               <CardFooter>
-                <Badge variant="outline">
-                  <TrendingUpIcon />
+                <Badge variant="outline" className="text-xs">
+                  <TrendingUpIcon className="mr-1 h-3 w-3" />
                   +4.5%
                 </Badge>
               </CardFooter>
             </Card>
           </div>
-          <div className="grid grid-cols-1 gap-4 @4xl/page:grid-cols-[2fr_1fr]">
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-[2fr_1fr]">
             <ChartRevenue />
             <ChartVisitors />
           </div>

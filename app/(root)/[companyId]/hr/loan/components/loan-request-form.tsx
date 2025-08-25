@@ -230,16 +230,18 @@ export function LoanRequestForm({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-[600px]">
+      <DialogContent className="max-h-[90vh] w-[95vw] max-w-[600px] overflow-y-auto sm:w-[80vw] lg:w-[60vw]">
         <DialogHeader>
-          <DialogTitle>New Loan Request</DialogTitle>
+          <DialogTitle className="text-lg sm:text-xl">
+            New Loan Request
+          </DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(handleSubmit)}
             className="space-y-4"
           >
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <LoanTypeAutocomplete
                 form={form}
                 name="loanTypeId"
@@ -256,12 +258,12 @@ export function LoanRequestForm({
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <CustomDateNoPast
                 form={form}
                 name="requestDate"
                 label="Request Date"
-                isRequired={true}
+                isRequired
                 isDisabled={isLoading}
                 onChangeEvent={handleRequestDateChange}
                 placeholder="Select request date"
@@ -270,20 +272,20 @@ export function LoanRequestForm({
               <CustomInput
                 form={form}
                 name="requestedAmount"
-                label="Requested Amount (AED)"
+                label="Requested Amount"
                 type="number"
-                placeholder="Enter amount"
+                placeholder="Enter loan amount"
                 isRequired={true}
                 isDisabled={isLoading}
                 onChangeEvent={handleAmountChange}
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <CustomInput
                 form={form}
                 name="desiredEMIAmount"
-                label="Desired EMI (AED)"
+                label="Desired EMI Amount"
                 type="number"
                 placeholder="Enter EMI amount"
                 isRequired={true}
@@ -294,15 +296,14 @@ export function LoanRequestForm({
                 form={form}
                 name="emiStartDate"
                 label="EMI Start Date"
-                isRequired={true}
+                isRequired
                 isDisabled={isLoading}
-                minDate={getMinEMIDate()}
                 onChangeEvent={handleEMIStartDateChange}
                 placeholder="Select EMI start date"
                 allowToday={true}
               />
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <CustomInput
                 form={form}
                 name="calculatedTermMonths"
@@ -325,10 +326,10 @@ export function LoanRequestForm({
             {form.watch("requestedAmount") > 0 &&
               form.watch("desiredEMIAmount") > 0 && (
                 <div className="rounded-lg border p-4">
-                  <h4 className="mb-3 font-semibold">
+                  <h4 className="mb-3 text-sm font-semibold sm:text-base">
                     Loan Calculation Summary
                   </h4>
-                  <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div className="grid grid-cols-1 gap-4 text-sm sm:grid-cols-2">
                     <div>
                       <span className="font-medium">Total Installments:</span>
                       <span className="ml-2">
@@ -384,16 +385,21 @@ export function LoanRequestForm({
               isDisabled={isLoading}
             />
 
-            <div className="flex justify-end space-x-2">
+            <div className="flex flex-col gap-2 pt-4 sm:flex-row sm:justify-end sm:space-x-2">
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => handleOpenChange(false)}
                 disabled={isLoading}
+                className="w-full sm:w-auto"
               >
                 Cancel
               </Button>
-              <Button type="submit" disabled={isLoading}>
+              <Button
+                type="submit"
+                disabled={isLoading}
+                className="w-full sm:w-auto"
+              >
                 {isLoading ? "Submitting..." : "Submit Request"}
               </Button>
             </div>

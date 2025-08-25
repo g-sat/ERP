@@ -130,12 +130,12 @@ export default function DepartmentPage() {
           }
         }}
       >
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-h-[90vh] w-[95vw] max-w-md overflow-y-auto sm:w-[80vw] lg:w-[40vw]">
           <DialogHeader>
-            <DialogTitle>
+            <DialogTitle className="text-lg sm:text-xl">
               {selectedDepartment ? "Edit Department" : "Add New Department"}
             </DialogTitle>
-            <DialogDescription>
+            <DialogDescription className="text-sm">
               {selectedDepartment
                 ? "Update department information"
                 : "Create a new department"}
@@ -147,7 +147,7 @@ export default function DepartmentPage() {
             onSave={handleSave}
           />
 
-          <div className="flex justify-end space-x-2 pt-4">
+          <div className="flex flex-col gap-2 pt-4 sm:flex-row sm:justify-end sm:space-x-2">
             <Button
               type="button"
               variant="outline"
@@ -155,6 +155,7 @@ export default function DepartmentPage() {
                 setDepartmentFormOpen(false)
                 setSelectedDepartment(null)
               }}
+              className="w-full sm:w-auto"
             >
               Cancel
             </Button>
@@ -162,6 +163,7 @@ export default function DepartmentPage() {
               type="submit"
               form="department-form"
               disabled={createMutation.isPending || updateMutation.isPending}
+              className="w-full sm:w-auto"
             >
               {createMutation.isPending || updateMutation.isPending
                 ? "Saving..."

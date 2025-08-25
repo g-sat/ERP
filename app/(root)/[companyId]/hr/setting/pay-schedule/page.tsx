@@ -59,20 +59,20 @@ export default function PaySchedulePage() {
       {isLoading ? (
         <DataTableSkeleton columnCount={5} />
       ) : (
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6">
           {/* Warning Banner */}
           <Alert className="border-yellow-200 bg-yellow-50">
             <Lightbulb className="h-4 w-4 text-yellow-600" />
-            <AlertDescription className="text-yellow-800">
+            <AlertDescription className="text-sm text-yellow-800">
               Note: Pay Schedule cannot be edited once you process the first pay
               run.
             </AlertDescription>
           </Alert>
 
           {/* Current Schedule */}
-          <div className="bg-card rounded-lg border p-6">
-            <div className="mb-4 flex items-center justify-between">
-              <h3 className="text-lg font-semibold">
+          <div className="bg-card rounded-lg border p-4 sm:p-6">
+            <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <h3 className="text-base font-semibold sm:text-lg">
                 This Organization&apos;s payroll runs on this schedule.
               </h3>
               {paySchedule && (
@@ -80,7 +80,7 @@ export default function PaySchedulePage() {
                   variant="outline"
                   size="sm"
                   onClick={() => openEdit(paySchedule)}
-                  className="flex items-center gap-2"
+                  className="flex w-full items-center gap-2 sm:w-auto"
                 >
                   <Edit className="h-4 w-4" />
                   Edit
@@ -89,12 +89,12 @@ export default function PaySchedulePage() {
             </div>
 
             {paySchedule ? (
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 <div>
                   <p className="text-muted-foreground text-sm font-medium">
                     Pay Frequency
                   </p>
-                  <p className="text-base">
+                  <p className="text-sm sm:text-base">
                     {paySchedule.isMonthly ? "Every month" : "Custom frequency"}
                   </p>
                 </div>
@@ -192,14 +192,14 @@ export default function PaySchedulePage() {
         }}
       >
         <DialogContent
-          className="max-h-[90vh] max-w-4xl overflow-y-auto"
+          className="max-h-[90vh] w-[95vw] max-w-4xl overflow-y-auto sm:w-[80vw] lg:w-[70vw]"
           onInteractOutside={(e) => e.preventDefault()}
         >
           <DialogHeader>
-            <DialogTitle>
+            <DialogTitle className="text-lg sm:text-xl">
               {editingItem ? "Edit Pay Schedule" : "Configure Pay Schedule"}
             </DialogTitle>
-            <DialogDescription>
+            <DialogDescription className="text-sm">
               {editingItem
                 ? "Update pay schedule configuration"
                 : "Set up your organization's pay schedule"}
@@ -211,9 +211,9 @@ export default function PaySchedulePage() {
             onSave={handleSave}
           />
 
-          <div className="flex items-center justify-between pt-4">
+          <div className="flex flex-col gap-4 pt-4 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-sm text-red-600">All fields are mandatory</p>
-            <div className="flex space-x-2">
+            <div className="flex flex-col gap-2 sm:flex-row sm:space-x-2">
               <Button
                 type="button"
                 variant="outline"
@@ -221,6 +221,7 @@ export default function PaySchedulePage() {
                   setDialogOpen(false)
                   setEditingItem(null)
                 }}
+                className="w-full sm:w-auto"
               >
                 Cancel
               </Button>
@@ -228,6 +229,7 @@ export default function PaySchedulePage() {
                 type="submit"
                 form="pay-schedule-form"
                 disabled={createMutation.isPending}
+                className="w-full sm:w-auto"
               >
                 {createMutation.isPending
                   ? "Saving..."
