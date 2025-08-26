@@ -27,52 +27,50 @@ export default function SettingsPage() {
   const [isLoadingVisible, setIsLoadingVisible] = useState(false)
 
   return (
-    <div className="container mx-auto space-y-4 px-4 py-4 sm:space-y-6 sm:px-6 sm:py-6">
+    <div className="container-responsive space-y-4 py-4 sm:space-y-6 sm:py-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="space-y-1">
-          <h1 className="text-xl font-bold tracking-tight sm:text-3xl">
-            Settings
-          </h1>
-          <p className="text-muted-foreground text-sm">
+          <h1 className="text-fluid-2xl font-bold tracking-tight">Settings</h1>
+          <p className="text-muted-foreground text-fluid-sm">
             Manage settings for the application
           </p>
         </div>
       </div>
       <Tabs defaultValue="grid" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-9">
-          <TabsTrigger value="grid" className="text-xs sm:text-sm">
+        <TabsList className="grid w-full grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-9">
+          <TabsTrigger value="grid" className="text-fluid-xs">
             Grid Format
           </TabsTrigger>
-          <TabsTrigger value="document" className="text-xs sm:text-sm">
+          <TabsTrigger value="document" className="text-fluid-xs">
             Document No
           </TabsTrigger>
-          <TabsTrigger value="decimal" className="text-xs sm:text-sm">
+          <TabsTrigger value="decimal" className="text-fluid-xs">
             Decimal
           </TabsTrigger>
-          <TabsTrigger value="finance" className="text-xs sm:text-sm">
+          <TabsTrigger value="finance" className="text-fluid-xs">
             Finance
           </TabsTrigger>
-          <TabsTrigger value="task" className="text-xs sm:text-sm">
+          <TabsTrigger value="task" className="text-fluid-xs">
             TaskService
           </TabsTrigger>
-          <TabsTrigger value="lookup" className="text-xs sm:text-sm">
+          <TabsTrigger value="lookup" className="text-fluid-xs">
             Dynamic Lookup
           </TabsTrigger>
-          <TabsTrigger value="account" className="text-xs sm:text-sm">
+          <TabsTrigger value="account" className="text-fluid-xs">
             Account
           </TabsTrigger>
-          <TabsTrigger value="mandatory" className="text-xs sm:text-sm">
+          <TabsTrigger value="mandatory" className="text-fluid-xs">
             Mandatory Fields
           </TabsTrigger>
-          <TabsTrigger value="visible" className="text-xs sm:text-sm">
+          <TabsTrigger value="visible" className="text-fluid-xs">
             Visible Fields
           </TabsTrigger>
         </TabsList>
 
         <TabsContent value="grid" className="space-y-4">
           <div className="rounded-lg border p-4">
-            <h3 className="text-lg font-medium">Grid Settings</h3>
-            <p className="text-muted-foreground text-sm">
+            <h3 className="text-fluid-lg font-medium">Grid Settings</h3>
+            <p className="text-muted-foreground text-fluid-sm">
               Configure grid display and behavior settings
             </p>
             <div className="mt-4">

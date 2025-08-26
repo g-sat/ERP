@@ -518,10 +518,16 @@ export default function TariffPage() {
     isLoadingCount || isLoadingTariffByTask || isSearching || isTabLoading
 
   return (
-    <div className="container mx-auto p-6">
-      {/* Header with title and action buttons */}
-      <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Tariff Management</h1>
+    <div className="container-responsive flex flex-1 flex-col gap-6 p-6">
+      <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+        <div className="space-y-1">
+          <h1 className="text-fluid-2xl font-bold tracking-tight">
+            Tariff Management
+          </h1>
+          <p className="text-muted-foreground text-fluid-sm">
+            Manage tariff rates and configurations
+          </p>
+        </div>
 
         {/* Top right action buttons */}
         <div className="flex items-center gap-2">
@@ -625,12 +631,12 @@ export default function TariffPage() {
           className="mb-6"
         >
           <div className="overflow-x-auto">
-            <TabsList className="flex h-14 w-max">
+            <TabsList className="flex h-14 w-max touch-target">
               {categories.map((category) => (
                 <TabsTrigger
                   key={category.id}
                   value={category.id}
-                  className="relative flex items-center space-x-2 px-4 py-2"
+                  className="relative flex items-center space-x-2 px-4 py-2 text-fluid-xs"
                   disabled={isTabLoading && activeCategory === category.id}
                 >
                   {category.label}
@@ -646,7 +652,7 @@ export default function TariffPage() {
                           ? "destructive"
                           : "outline"
                     }
-                    className="text-xs font-medium"
+                    className="text-fluid-xs font-medium"
                   >
                     {isLoading ||
                     (isTabLoading && activeCategory === category.id)

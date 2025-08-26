@@ -327,8 +327,9 @@ function getPayloadConfigFromPayload(
     typeof config !== "object" ||
     !key ||
     typeof key !== "string"
-  )
+  ) {
     return undefined
+  }
   return Object.prototype.hasOwnProperty.call(config, key)
     ? config[key]
     : undefined

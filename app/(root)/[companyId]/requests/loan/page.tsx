@@ -1,8 +1,8 @@
 "use client"
 
 import { useState } from "react"
-import { ILoanRequest } from "@/interfaces/loans"
-import { LoanRequestFormData } from "@/schemas/loans"
+import { ILoanRequest } from "@/interfaces/loan"
+import { LoanRequestFormData } from "@/schemas/loan"
 import { useQueryClient } from "@tanstack/react-query"
 import { Plus } from "lucide-react"
 import { toast } from "sonner"

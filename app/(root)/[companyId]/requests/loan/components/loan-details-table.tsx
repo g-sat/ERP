@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { LoanRequestSchedule } from "@/interfaces/loans"
+import { LoanRequestSchedule } from "@/interfaces/loan"
 import { AlertTriangle, SkipForward } from "lucide-react"
 import { toast } from "sonner"
 

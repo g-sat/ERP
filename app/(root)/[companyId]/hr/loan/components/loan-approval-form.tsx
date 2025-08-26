@@ -1,8 +1,8 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { ILoanRequest } from "@/interfaces/loans"
-import { LoanApprovalFormData, loanApprovalSchema } from "@/schemas/loans"
+import { ILoanRequest } from "@/interfaces/loan"
+import { LoanApprovalFormData, loanApprovalSchema } from "@/schemas/loan"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 

@@ -28,7 +28,11 @@ export default function PettyCashPage() {
   const savePettyCashRequestMutation = usePersist(CbPettyCash.add)
 
   // Extract data
-  const pettyCashRequests = pettyCashData?.data || []
+  const pettyCashRequests = Array.isArray(pettyCashData?.data)
+    ? ((Array.isArray(pettyCashData.data[0])
+        ? pettyCashData.data[0]
+        : pettyCashData.data) as IPettyCashRequest[])
+    : []
 
   // Calculate statistics for current year
   const currentYear = new Date().getFullYear()

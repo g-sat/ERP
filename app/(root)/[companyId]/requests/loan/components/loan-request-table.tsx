@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { ILoanRequest } from "@/interfaces/loans"
+import { ILoanRequest } from "@/interfaces/loan"
 import {
   CheckCircle,
   Clock as ClockIcon,
@@ -12,7 +12,7 @@ import {
   XCircle,
 } from "lucide-react"
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {

@@ -12,6 +12,7 @@ interface CustomTextareaProps<T extends Record<string, unknown>> {
   name?: Path<T>
   label?: string
   className?: string
+  placeholder?: string
   onBlurEvent?: () => void
   onChangeEvent?: () => void
   isDisabled?: boolean
@@ -27,6 +28,7 @@ export default function CustomTextarea<T extends Record<string, unknown>>({
   label,
   name,
   className,
+  placeholder,
   onBlurEvent,
   onChangeEvent,
   isDisabled = false,
@@ -58,6 +60,7 @@ export default function CustomTextarea<T extends Record<string, unknown>>({
                 <textarea
                   {...field}
                   value={value || ""}
+                  placeholder={placeholder}
                   disabled={isDisabled}
                   maxLength={maxLength}
                   onBlur={() => {

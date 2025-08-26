@@ -9,6 +9,9 @@ export interface IDocumentExpiry {
   isExpired?: boolean
   remarks?: string
   companyId?: number
+  docTypeName?: string
+  createdDate?: string | Date
+  editDate?: string | Date
 }
 
 export const NOTIFICATION_DAYS_OPTIONS = [

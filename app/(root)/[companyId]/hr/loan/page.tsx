@@ -2,8 +2,8 @@
 
 import { useState } from "react"
 import { useParams, useRouter } from "next/navigation"
-import { ILoanRequest } from "@/interfaces/loans"
-import { LoanRequestFormData } from "@/schemas/loans"
+import { ILoanRequest } from "@/interfaces/loan"
+import { LoanRequestFormData } from "@/schemas/loan"
 import {
   CheckCircle,
   Clock,

@@ -49,3 +49,24 @@ export type IAttendanceStatus =
   | "PL"
   | "WK"
   | "RE"
+
+export interface IAttendanceFilter {
+  type?: string
+  department?: string
+  location?: string
+  employeeId?: string
+  dateFrom?: string
+  dateTo?: string
+  status?: string
+}
+
+export interface IAttendanceSummary {
+  employeeId: string
+  employeeName: string
+  totalDays: number
+  presentDays: number
+  absentDays: number
+  lateDays: number
+  totalWorkingHours: number
+  averageWorkingHours: number
+}

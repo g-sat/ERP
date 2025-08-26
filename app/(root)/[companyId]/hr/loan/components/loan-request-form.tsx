@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { LoanRequestFormData, loanRequestSchema } from "@/schemas/loans"
+import { LoanRequestFormData, loanRequestSchema } from "@/schemas/loan"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 

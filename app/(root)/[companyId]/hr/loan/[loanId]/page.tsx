@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { useParams, useRouter } from "next/navigation"
-import { ILoanRequest, LoanRequestSchedule } from "@/interfaces/loans"
+import { ILoanRequest, LoanRequestSchedule } from "@/interfaces/loan"
 import { AlertTriangle, Edit, MoreHorizontal, Play } from "lucide-react"
 import { toast } from "sonner"
 

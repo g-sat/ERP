@@ -28,6 +28,7 @@ export function useGetGLPeriodCloseById(periodId: string | undefined) {
     periodId || "",
     {
       enabled: !!periodId && periodId !== "0",
+      queryKey: ["gl-period-close", periodId],
     }
   )
 }
@@ -40,6 +41,7 @@ export function useGetGLPeriodCloseByYear(year: number | undefined) {
     year?.toString() || "",
     {
       enabled: !!year && year >= 2020,
+      queryKey: ["gl-period-close-by-year", year],
     }
   )
 }
@@ -55,6 +57,7 @@ export function useGetGLPeriodCloseByCompanyYear(
     `${companyId}/${year}`,
     {
       enabled: !!companyId && !!year && year >= 2020,
+      queryKey: ["gl-period-close-by-company-year", companyId, year],
     }
   )
 }
@@ -169,6 +172,7 @@ export function useGetGLPeriodCloseSummary(companyId: string | undefined) {
     companyId || "",
     {
       enabled: !!companyId && companyId.trim() !== "",
+      queryKey: ["gl-period-close-summary", companyId],
     }
   )
 }

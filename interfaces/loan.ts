@@ -1,3 +1,138 @@
+export interface ILoan {
+  id: number
+  applicationId: number
+  employeeId: number
+  employeeName?: string
+  employeeCode?: string
+  loanType: string
+  loanAmount: number
+  interestRate: number
+  termMonths: number
+  monthlyPayment: number
+  totalInterest: number
+  totalAmount: number
+  startDate: string | Date
+  endDate: string | Date
+  status: string
+  approvedBy?: string
+  approvedDate?: string | Date
+  remarks?: string
+  createdById: number
+  createdDate: string | Date
+  editedById?: number
+  editedDate?: string | Date
+  createdBy?: string
+  editedBy?: string
+}
+
+export interface ILoanApplication {
+  id: number
+  employeeId: number
+  employeeName?: string
+  employeeCode?: string
+  loanType: string
+  requestedAmount: number
+  purpose: string
+  status: string
+  submittedDate?: string | Date
+  approvedBy?: string
+  approvedDate?: string | Date
+  rejectedBy?: string
+  rejectedDate?: string | Date
+  rejectionReason?: string
+  remarks?: string
+  createdById: number
+  createdDate: string | Date
+  editedById?: number
+  editedDate?: string | Date
+  createdBy?: string
+  editedBy?: string
+}
+
+export interface ILoanApplicationFilter {
+  employeeId?: number
+  loanType?: string
+  status?: string
+  dateFrom?: string
+  dateTo?: string
+}
+
+export interface ILoanApplicationFormData {
+  employeeId: number
+  loanType: string
+  requestedAmount: number
+  purpose: string
+  remarks?: string
+}
+
+export interface ILoanApprovalFormData {
+  applicationId: number
+  approvedAmount: number
+  interestRate: number
+  termMonths: number
+  approvedBy: string
+  remarks?: string
+}
+
+export interface ILoanFilter {
+  employeeId?: number
+  loanType?: string
+  status?: string
+  dateFrom?: string
+  dateTo?: string
+}
+
+export interface ILoanRepayment {
+  id: number
+  loanId: number
+  employeeId: number
+  employeeName?: string
+  paymentDate: string | Date
+  amount: number
+  principalAmount: number
+  interestAmount: number
+  remainingBalance: number
+  paymentMethod: string
+  referenceNumber?: string
+  remarks?: string
+  createdById: number
+  createdDate: string | Date
+  editedById?: number
+  editedDate?: string | Date
+  createdBy?: string
+  editedBy?: string
+}
+
+export interface ILoanRepaymentFilter {
+  loanId?: number
+  employeeId?: number
+  dateFrom?: string
+  dateTo?: string
+}
+
+export interface ILoanRepaymentFormData {
+  loanId: number
+  paymentDate: string | Date
+  amount: number
+  paymentMethod: string
+  referenceNumber?: string
+  remarks?: string
+}
+
+export interface ILoanDashboard {
+  totalLoans: number
+  activeLoans: number
+  totalAmount: number
+  totalOutstanding: number
+  totalRepaid: number
+  pendingApplications: number
+  approvedApplications: number
+  rejectedApplications: number
+  monthlyRepayments: number
+  overdueLoans: number
+  overdueAmount: number
+}
+
 // LoanRequests.ts
 export interface ILoanRequest {
   loanRequestId: number
@@ -71,7 +206,7 @@ export interface ILoanRepayment {
   totalRepaid?: number
   createdById: number
   createdDate: string | Date
-  createdBy: string
+  createdBy?: string
   editedById?: number
   editedDate?: string | Date
   editedBy?: string

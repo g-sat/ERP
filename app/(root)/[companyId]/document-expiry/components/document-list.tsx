@@ -144,7 +144,9 @@ export default function DocumentList() {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => handleDelete(document.documentId)}
+            onClick={() =>
+              document.documentId && handleDelete(document.documentId)
+            }
             disabled={deleteMutation.isPending}
             className="text-destructive hover:text-destructive"
           >

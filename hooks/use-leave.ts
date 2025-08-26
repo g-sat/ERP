@@ -31,6 +31,7 @@ export function useGetLeaves(filters?: string) {
 export function useGetLeaveById(leaveId: string | undefined) {
   return useGetById<ILeave>(HrLeaveRequest.getById, "leave", leaveId || "", {
     enabled: !!leaveId && leaveId !== "0",
+    queryKey: ["leave", leaveId],
   })
 }
 
@@ -42,6 +43,7 @@ export function useGetLeavesByEmployee(employeeId: string | undefined) {
     employeeId || "",
     {
       enabled: !!employeeId && employeeId.trim() !== "",
+      queryKey: ["leaves-by-employee", employeeId],
     }
   )
 }
@@ -54,6 +56,7 @@ export function useGetLeavesByDepartment(departmentId: string | undefined) {
     departmentId || "",
     {
       enabled: !!departmentId && departmentId.trim() !== "",
+      queryKey: ["leaves-by-department", departmentId],
     }
   )
 }
@@ -66,6 +69,7 @@ export function useGetLeavesByStatus(status: string | undefined) {
     status || "",
     {
       enabled: !!status && status.trim() !== "",
+      queryKey: ["leaves-by-status", status],
     }
   )
 }
@@ -78,6 +82,7 @@ export function useGetLeavesByDateRange(startDate: string, endDate: string) {
     `${startDate}/${endDate}`,
     {
       enabled: !!startDate && !!endDate,
+      queryKey: ["leaves-by-date-range", startDate, endDate],
     }
   )
 }
@@ -170,6 +175,7 @@ export function useGetLeaveBalanceById(balanceId: string | undefined) {
     balanceId || "",
     {
       enabled: !!balanceId && balanceId !== "0",
+      queryKey: ["leave-balance", balanceId],
     }
   )
 }
@@ -182,6 +188,7 @@ export function useGetLeaveBalancesByEmployee(employeeId: string | undefined) {
     employeeId || "",
     {
       enabled: !!employeeId && employeeId.trim() !== "",
+      queryKey: ["leave-balances-by-employee", employeeId],
     }
   )
 }
@@ -325,6 +332,7 @@ export function useGetLeavePolicyById(policyId: string | undefined) {
     policyId || "",
     {
       enabled: !!policyId && policyId !== "0",
+      queryKey: ["leave-policy", policyId],
     }
   )
 }
@@ -394,6 +402,7 @@ export function useGetLeaveRequestById(requestId: string | undefined) {
     requestId || "",
     {
       enabled: !!requestId && requestId !== "0",
+      queryKey: ["leave-request", requestId],
     }
   )
 }
@@ -406,6 +415,7 @@ export function useGetLeaveRequestsByEmployee(employeeId: string | undefined) {
     employeeId || "",
     {
       enabled: !!employeeId && employeeId.trim() !== "",
+      queryKey: ["leave-requests-by-employee", employeeId],
     }
   )
 }
@@ -418,6 +428,7 @@ export function useGetLeaveRequestsByStatus(status: string | undefined) {
     status || "",
     {
       enabled: !!status && status.trim() !== "",
+      queryKey: ["leave-requests-by-status", status],
     }
   )
 }
@@ -568,6 +579,7 @@ export function useGetLeaveApprovalById(approvalId: string | undefined) {
     approvalId || "",
     {
       enabled: !!approvalId && approvalId !== "0",
+      queryKey: ["leave-approval", approvalId],
     }
   )
 }
@@ -580,6 +592,7 @@ export function useGetLeaveApprovalsByRequest(leaveId: string | undefined) {
     leaveId || "",
     {
       enabled: !!leaveId && leaveId.trim() !== "",
+      queryKey: ["leave-approvals-by-request", leaveId],
     }
   )
 }
@@ -592,6 +605,7 @@ export function useGetLeaveApprovalsByApprover(approverId: string | undefined) {
     approverId || "",
     {
       enabled: !!approverId && approverId.trim() !== "",
+      queryKey: ["leave-approvals-by-approver", approverId],
     }
   )
 }
@@ -762,6 +776,7 @@ export function useGetApprovalWorkflow(leaveId: string | undefined) {
     leaveId || "",
     {
       enabled: !!leaveId && leaveId.trim() !== "",
+      queryKey: ["approval-workflow", leaveId],
     }
   )
 }

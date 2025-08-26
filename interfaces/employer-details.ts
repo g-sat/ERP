@@ -15,4 +15,6 @@ export interface IEmployerDetails {
   createDate: string | Date
   editById?: number
   editDate?: string | Date
+  createBy?: string
+  editBy?: string
 }

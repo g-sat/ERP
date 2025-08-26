@@ -1,6 +1,6 @@
 "use client"
 
-import { ILoanRepayment, ILoanRequest } from "@/interfaces/loans"
+import { ILoanRepayment, ILoanRequest } from "@/interfaces/loan"
 import { ColumnDef } from "@tanstack/react-table"
 import { Trash2 } from "lucide-react"
 

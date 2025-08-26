@@ -1,6 +1,6 @@
 "use client"
 
-import { ILoanRequest } from "@/interfaces/loans"
+import { ILoanRequest } from "@/interfaces/loan"
 import { ColumnDef } from "@tanstack/react-table"
 import { MoreHorizontal } from "lucide-react"
 
