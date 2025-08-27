@@ -14,6 +14,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { CurrencyFormatter } from "@/components/currencyicons/currency-formatter"
 
 export const columns: ColumnDef<ILoanRequest>[] = [
   {
@@ -52,7 +53,11 @@ export const columns: ColumnDef<ILoanRequest>[] = [
     header: "Requested Amount",
     cell: ({ row }) => {
       const amount = row.original.requestedAmount
-      return <span className="font-medium">AED {amount.toLocaleString()}</span>
+      return (
+        <span className="font-medium">
+          <CurrencyFormatter amount={amount} size="sm" />
+        </span>
+      )
     },
   },
   {
@@ -68,7 +73,11 @@ export const columns: ColumnDef<ILoanRequest>[] = [
     header: "Desired EMI",
     cell: ({ row }) => {
       const emi = row.original.desiredEMIAmount
-      return <span>AED {emi.toLocaleString()}</span>
+      return (
+        <span>
+          <CurrencyFormatter amount={emi} size="sm" />
+        </span>
+      )
     },
   },
   {

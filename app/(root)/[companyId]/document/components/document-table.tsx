@@ -130,7 +130,7 @@ export function DocumentTable({ onEdit }: DocumentTableProps) {
                         </TableCell>
                         <TableCell>
                           <Badge
-                            className="max-w-[120px] truncate bg-gray-100 text-gray-800"
+                            className="truncate bg-gray-100 text-gray-800"
                             title={doc?.detailsName || "N/A"}
                           >
                             {doc?.detailsName || "N/A"}

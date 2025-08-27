@@ -58,14 +58,14 @@ export default function DocumentExpiryPage() {
 
       case "list":
         return (
-          <div className="space-y-4">
+          <div className="space-y-2">
             <DocumentTable onEdit={handleEdit} />
           </div>
         )
 
       case "create":
         return (
-          <div className="space-y-4">
+          <div className="space-y-2">
             <div className="flex items-center gap-2">
               <Button
                 variant="ghost"
@@ -84,7 +84,7 @@ export default function DocumentExpiryPage() {
 
       case "edit":
         return (
-          <div className="space-y-4">
+          <div className="space-y-2">
             <div className="flex items-center gap-2">
               <Button
                 variant="ghost"
@@ -137,11 +137,11 @@ export default function DocumentExpiryPage() {
   }
 
   return (
-    <div className="container mx-auto space-y-4 px-4 py-4 sm:space-y-6 sm:px-6 sm:py-6">
+    <div className="container mx-auto space-y-2 px-4 py-2 sm:space-y-3 sm:px-6 sm:py-3">
       {/* Header with Name and Tabs */}
-      <div className="space-y-4">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="space-y-1">
+      <div className="space-y-2">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div className="space-y-0.5">
             <h1 className="text-xl font-bold tracking-tight sm:text-2xl">
               Document Management
             </h1>
@@ -194,7 +194,7 @@ export default function DocumentExpiryPage() {
       </div>
 
       {/* Main Content */}
-      <div className="min-h-[500px] sm:min-h-[600px]">{renderContent()}</div>
+      <div className="min-h-[400px] sm:min-h-[500px]">{renderContent()}</div>
     </div>
   )
 }

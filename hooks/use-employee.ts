@@ -249,6 +249,17 @@ export function useGetEmployeeSalaryDetailsById(
   )
 }
 
+// Hook for fetching employee salary details by ID
+export function useGetEmployeeSalaryDetailsHistoryById(
+  employeeId: string | undefined
+) {
+  return useGetById<ISalaryComponent>(
+    `${SalaryComponent.getHistoryById}`,
+    "employee-salary-details-history",
+    employeeId || ""
+  )
+}
+
 // Hook for saving employee salary details
 export function useSaveEmployeeSalaryDetails() {
   const queryClient = useQueryClient()

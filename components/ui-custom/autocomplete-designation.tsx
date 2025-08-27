@@ -110,10 +110,11 @@ export default function DesignationAutocomplete<
       menu: () =>
         cn(
           "bg-popover text-popover-foreground",
-          "relative z-[9999] min-w-[8rem] overflow-hidden rounded-md border shadow-md animate-in fade-in-80",
+          "relative z-[9999] min-w-[8rem] rounded-md border shadow-md animate-in fade-in-80",
           "mt-1"
         ),
-      menuList: () => cn("p-1 overflow-auto"),
+      menuList: () => cn("p-1 overflow-auto max-h-60"), // allows scrolling
+
       option: (state: { isFocused: boolean; isSelected: boolean }) =>
         cn(
           "relative flex w-full cursor-default select-none items-center rounded-sm py-1.5 pl-2 pr-8 text-sm outline-none",

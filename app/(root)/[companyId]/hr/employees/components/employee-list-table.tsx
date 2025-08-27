@@ -169,7 +169,6 @@ export function EmployeeListTable({
               <TableHead>Employee</TableHead>
               <TableHead>Department</TableHead>
               <TableHead>Designation</TableHead>
-              <TableHead>Phone</TableHead>
               <TableHead>Email</TableHead>
               <TableHead>Status</TableHead>
               <TableHead className="text-right">Actions</TableHead>
@@ -212,7 +211,6 @@ export function EmployeeListTable({
                   </TableCell>
                   <TableCell>{employee.departmentName || "N/A"}</TableCell>
                   <TableCell>{employee.designationName || "N/A"}</TableCell>
-                  <TableCell>{employee.phoneNo || "N/A"}</TableCell>
                   <TableCell>{employee.offEmailAdd || "N/A"}</TableCell>
                   <TableCell>
                     {getStatusBadge(employee.isActive || false)}

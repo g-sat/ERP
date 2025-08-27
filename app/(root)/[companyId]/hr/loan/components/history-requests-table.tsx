@@ -2,18 +2,9 @@
 
 import { ILoanRequest } from "@/interfaces/loan"
 import { ColumnDef } from "@tanstack/react-table"
-import { Eye, MoreHorizontal } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+import { CurrencyFormatter } from "@/components/currencyicons/currency-formatter"
 
 export const columns: ColumnDef<ILoanRequest>[] = [
   {
@@ -52,7 +43,11 @@ export const columns: ColumnDef<ILoanRequest>[] = [
     header: "Requested Amount",
     cell: ({ row }) => {
       const amount = row.original.requestedAmount
-      return <span className="font-medium">AED {amount.toLocaleString()}</span>
+      return (
+        <span className="font-medium">
+          <CurrencyFormatter amount={amount} size="sm" />
+        </span>
+      )
     },
   },
   {
@@ -68,8 +63,39 @@ export const columns: ColumnDef<ILoanRequest>[] = [
     header: "Status",
     cell: ({ row }) => {
       const status = row.original.statusName
-      const variant = status === "Rejected" ? "destructive" : "secondary"
-      return <Badge variant={variant}>{status}</Badge>
+      let variant: "secondary" | "default" | "destructive" = "secondary"
+      let className = ""
+
+      switch (status) {
+        case "Approved":
+          variant = "default"
+          className =
+            "bg-green-100 text-green-800 border-green-200 hover:bg-green-200"
+          break
+        case "Rejected":
+          variant = "destructive"
+          break
+        case "Pending":
+          variant = "secondary"
+          className =
+            "bg-yellow-100 text-yellow-800 border-yellow-200 hover:bg-yellow-200"
+          break
+        case "Completed":
+          variant = "default"
+          className =
+            "bg-blue-100 text-blue-800 border-blue-200 hover:bg-blue-200"
+          break
+        default:
+          variant = "secondary"
+          className =
+            "bg-gray-100 text-gray-800 border-gray-200 hover:bg-gray-200"
+      }
+
+      return (
+        <Badge variant={variant} className={className}>
+          {status}
+        </Badge>
+      )
     },
   },
   {
@@ -86,39 +112,6 @@ export const columns: ColumnDef<ILoanRequest>[] = [
     cell: ({ row }) => {
       const date = row.original.createdDate
       return <span>{new Date(date).toLocaleDateString()}</span>
-    },
-  },
-  {
-    id: "actions",
-    cell: ({ row }) => {
-      const loan = row.original
-
-      return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <span className="sr-only">Open menu</span>
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <DropdownMenuItem
-              onClick={() =>
-                navigator.clipboard.writeText(String(loan.loanRequestId))
-              }
-            >
-              Copy request ID
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem>
-              <Eye className="mr-2 h-4 w-4" />
-              View details
-            </DropdownMenuItem>
-            <DropdownMenuItem>View rejection reason</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      )
     },
   },
 ]

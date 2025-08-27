@@ -36,7 +36,7 @@ export default function CompanyDashboardPage() {
     return (
       <div className="flex h-screen items-center justify-center">
         <div className="text-center">
-          <h1 className="mb-4 text-2xl font-bold">Loading...</h1>
+          <h1 className="mb-2 text-2xl font-bold">Loading...</h1>
           <p>Please wait while we verify your company access...</p>
         </div>
       </div>
@@ -44,10 +44,10 @@ export default function CompanyDashboardPage() {
   }
 
   return (
-    <div className="container mx-auto p-4">
-      <h1 className="mb-4 text-2xl font-bold">Dashboard</h1>
-      <div className="bg-card rounded-lg p-4 shadow">
-        <h2 className="mb-2 text-xl">Company Information</h2>
+    <div className="container mx-auto p-2">
+      <h1 className="mb-2 text-2xl font-bold">Dashboard</h1>
+      <div className="bg-card rounded-lg p-3 shadow">
+        <h2 className="mb-1 text-xl">Company Information</h2>
         <p>Company ID: {companyId}</p>
         {currentCompany && <p>Company Name: {currentCompany.companyName}</p>}
       </div>

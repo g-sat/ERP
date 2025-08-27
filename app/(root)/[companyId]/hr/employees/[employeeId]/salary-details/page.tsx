@@ -9,7 +9,10 @@ import { Plus } from "lucide-react"
 import { SalaryComponent } from "@/lib/api-routes"
 import { clientDateFormat } from "@/lib/format"
 import { useGet } from "@/hooks/use-common"
-import { useGetEmployeeSalaryDetailsById } from "@/hooks/use-employee"
+import {
+  useGetEmployeeSalaryDetailsById,
+  useGetEmployeeSalaryDetailsHistoryById,
+} from "@/hooks/use-employee"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -35,6 +38,14 @@ export default function SalaryDetailsPage() {
     refetch,
   } = useGetEmployeeSalaryDetailsById(employeeId)
 
+  // Use hook to fetch employee data
+  const {
+    data: employeeSalaryDetailsHistoryData,
+    isLoading: isHistoryLoading,
+    error: historyError,
+    refetch: historyRefetch,
+  } = useGetEmployeeSalaryDetailsHistoryById(employeeId)
+
   const {
     data: componentsData,
     isLoading: componentsLoading,
@@ -44,6 +55,9 @@ export default function SalaryDetailsPage() {
   // Get the employee salary details from the response
   const employeeSalaryDetails =
     employeeSalaryDetailsData?.data as unknown as ISalaryComponent[]
+
+  const employeeSalaryDetailsHistory =
+    employeeSalaryDetailsHistoryData?.data as unknown as ISalaryComponent[]
 
   // Get payroll components data
   const components =

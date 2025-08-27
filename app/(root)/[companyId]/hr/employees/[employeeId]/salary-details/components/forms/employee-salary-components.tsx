@@ -8,13 +8,13 @@ import {
 } from "@/schemas/payroll"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
+import { NumericFormat } from "react-number-format"
 
 import { parseDate } from "@/lib/format"
 import { useSaveEmployeeSalaryDetails } from "@/hooks/use-employee"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Form } from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
 import {
   Table,
   TableBody,
@@ -23,6 +23,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { CurrencyFormatter } from "@/components/currencyicons/currency-formatter"
 
 interface Props {
   employee?: ISalaryComponent
@@ -61,6 +62,13 @@ export function SalaryComponentsForm({
         : new Date(),
     },
   })
+
+  // Set form values for each component
+  useEffect(() => {
+    salaryComponents.forEach((component) => {
+      form.setValue("amount", component.amount || 0)
+    })
+  }, [salaryComponents, form])
 
   // Handle monthly amount change
   const handleMonthlyAmountChange = (id: string, value: string) => {
@@ -145,29 +153,40 @@ export function SalaryComponentsForm({
                     </TableCell>
                     <TableCell>{component.componentType}</TableCell>
                     <TableCell>
-                      <Input
-                        type="number"
-                        value={
-                          component.amount !== undefined
-                            ? component.amount.toFixed(2)
-                            : "0.00"
-                        }
-                        onChange={(e) => {
-                          console.log("Input changed:", e.target.value)
-                          handleMonthlyAmountChange(
-                            component.componentId.toString(),
-                            e.target.value
-                          )
-                        }}
-                        className="w-48 text-right"
-                        step="0.01"
-                        min="0"
-                      />
+                      <div className="w-48">
+                        <NumericFormat
+                          value={
+                            component.amount !== undefined
+                              ? component.amount
+                              : 0
+                          }
+                          onValueChange={(values) => {
+                            const { floatValue } = values
+                            const newAmount = floatValue || 0
+                            console.log("Input changed:", newAmount)
+                            handleMonthlyAmountChange(
+                              component.componentId.toString(),
+                              newAmount.toString()
+                            )
+                          }}
+                          decimalScale={2}
+                          fixedDecimalScale={true}
+                          allowLeadingZeros={true}
+                          thousandSeparator={true}
+                          allowNegative={false}
+                          className="border-input bg-background ring-offset-background focus-visible:ring-ring hide-number-spinners flex h-9 w-full rounded-md border px-3 py-1.5 text-right text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
+                        />
+                      </div>
                     </TableCell>
                     <TableCell>
-                      {component.amount
-                        ? (component.amount * 12).toLocaleString()
-                        : "0.00"}
+                      {component.amount ? (
+                        <CurrencyFormatter
+                          amount={component.amount * 12}
+                          size="sm"
+                        />
+                      ) : (
+                        <CurrencyFormatter amount={0} size="sm" />
+                      )}
                     </TableCell>
                   </TableRow>
                 ))}
@@ -177,10 +196,10 @@ export function SalaryComponentsForm({
                     Total Gross Pay
                   </TableCell>
                   <TableCell className="font-semibold">
-                    AED {totalMonthly.toLocaleString()}
+                    <CurrencyFormatter amount={totalMonthly} size="sm" />
                   </TableCell>
                   <TableCell className="font-semibold">
-                    AED {totalAnnual.toLocaleString()}
+                    <CurrencyFormatter amount={totalAnnual} size="sm" />
                   </TableCell>
                 </TableRow>
               </TableBody>

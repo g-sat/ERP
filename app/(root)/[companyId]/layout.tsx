@@ -38,7 +38,7 @@ export default async function AppLayout({
             className="bg-background sticky inset-x-0 top-0 isolate z-10 flex shrink-0 items-center gap-2 border-b"
             role="banner"
           >
-            <div className="flex h-14 w-full items-center gap-2 px-4">
+            <div className="flex h-12 w-full items-center gap-1 px-3">
               {/* Mobile Navigation */}
               <MobileNav />
 
@@ -52,7 +52,7 @@ export default async function AppLayout({
 
               <NavHeader />
 
-              <div className="ml-auto flex items-center gap-2">
+              <div className="ml-auto flex items-center gap-1">
                 <SearchForm className="hidden w-auto sm:flex" />
                 <Notifications />
                 <ThemeSelector />

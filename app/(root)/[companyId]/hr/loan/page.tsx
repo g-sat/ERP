@@ -124,30 +124,30 @@ export default function LoanPage() {
       </div>
 
       {/* Dashboard Cards */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Loans</CardTitle>
-            <CreditCard className="text-muted-foreground h-4 w-4" />
+      <div className="grid grid-cols-6 gap-2">
+        <Card className="border-blue-200 bg-blue-50/50">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
+            <CardTitle className="text-xs font-medium text-blue-700">
+              Active Loans
+            </CardTitle>
+            <CreditCard className="h-3 w-3 text-blue-600" />
           </CardHeader>
-          <CardContent>
-            <div className="text-xl font-bold sm:text-2xl">
+          <CardContent className="p-2">
+            <div className="text-lg font-bold text-blue-900">
               {dashboardStats.activeLoans}
             </div>
-            <p className="text-muted-foreground text-xs">
-              Currently active loans
-            </p>
+            <p className="text-xs text-blue-600">Active loans</p>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
+        <Card className="border-green-200 bg-green-50/50">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
+            <CardTitle className="text-xs font-medium text-green-700">
               Monthly Repayments
             </CardTitle>
-            <TrendingUp className="text-muted-foreground h-4 w-4" />
+            <TrendingUp className="h-3 w-3 text-green-600" />
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-2">
             <div className="text-xl font-bold sm:text-2xl">
               <CurrencyFormatter
                 amount={dashboardStats.monthlyRepayments}
@@ -160,14 +160,14 @@ export default function LoanPage() {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
+        <Card className="border-yellow-200 bg-yellow-50/50">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
+            <CardTitle className="text-xs font-medium text-yellow-700">
               Skip Installments
             </CardTitle>
-            <Clock className="text-muted-foreground h-4 w-4" />
+            <Clock className="h-3 w-3 text-yellow-600" />
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-2">
             <div className="text-xl font-bold sm:text-2xl">
               {dashboardStats.monthlySkipInstallment}
             </div>
@@ -175,14 +175,14 @@ export default function LoanPage() {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
+        <Card className="border-purple-200 bg-purple-50/50">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
+            <CardTitle className="text-xs font-medium text-purple-700">
               Total Loan Amount
             </CardTitle>
-            <DollarSign className="text-muted-foreground h-4 w-4" />
+            <DollarSign className="h-3 w-3 text-purple-600" />
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-2">
             <div className="text-xl font-bold sm:text-2xl">
               <CurrencyFormatter
                 amount={dashboardStats.totalLoanAmount}
@@ -195,12 +195,14 @@ export default function LoanPage() {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Outstanding</CardTitle>
-            <DollarSign className="text-muted-foreground h-4 w-4" />
+        <Card className="border-orange-200 bg-orange-50/50">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
+            <CardTitle className="text-xs font-medium text-orange-700">
+              Outstanding
+            </CardTitle>
+            <DollarSign className="h-3 w-3 text-orange-600" />
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-2">
             <div className="text-xl font-bold sm:text-2xl">
               <CurrencyFormatter
                 amount={dashboardStats.outstanding}
@@ -213,12 +215,14 @@ export default function LoanPage() {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Closed Loans</CardTitle>
-            <CheckCircle className="text-muted-foreground h-4 w-4" />
+        <Card className="border-emerald-200 bg-emerald-50/50">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1">
+            <CardTitle className="text-xs font-medium text-emerald-700">
+              Closed Loans
+            </CardTitle>
+            <CheckCircle className="h-3 w-3 text-emerald-600" />
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-2">
             <div className="text-xl font-bold sm:text-2xl">
               {dashboardStats.closeLoan}
             </div>
@@ -235,23 +239,29 @@ export default function LoanPage() {
         onValueChange={setActiveTab}
         className="space-y-4"
       >
-        <TabsList className="grid w-full grid-cols-3 gap-2">
-          <TabsTrigger value="active-loans" className="text-xs sm:text-sm">
+        <TabsList className="grid w-full grid-cols-3 gap-2 bg-gradient-to-r from-blue-50 to-purple-50">
+          <TabsTrigger
+            value="active-loans"
+            className="text-xs data-[state=active]:border-blue-200 data-[state=active]:bg-blue-100 data-[state=active]:text-blue-700 sm:text-sm"
+          >
             Active Loans
           </TabsTrigger>
           <TabsTrigger
             value="loan-requests"
-            className="relative text-xs sm:text-sm"
+            className="relative text-xs data-[state=active]:border-yellow-200 data-[state=active]:bg-yellow-100 data-[state=active]:text-yellow-700 sm:text-sm"
           >
             <span className="hidden sm:inline">New Loan Requests</span>
             <span className="sm:hidden">Requests</span>
             {pendingRequestsCount > 0 && (
-              <span className="absolute -top-1 -right-1 flex h-4 w-4 animate-bounce items-center justify-center rounded-full bg-red-500 text-xs text-white">
+              <span className="absolute -top-1 -right-1 flex h-4 w-4 animate-bounce items-center justify-center rounded-full bg-red-500 text-xs text-white shadow-lg">
                 {pendingRequestsCount}
               </span>
             )}
           </TabsTrigger>
-          <TabsTrigger value="history-requests" className="text-xs sm:text-sm">
+          <TabsTrigger
+            value="history-requests"
+            className="text-xs data-[state=active]:border-green-200 data-[state=active]:bg-green-100 data-[state=active]:text-green-700 sm:text-sm"
+          >
             History
           </TabsTrigger>
         </TabsList>

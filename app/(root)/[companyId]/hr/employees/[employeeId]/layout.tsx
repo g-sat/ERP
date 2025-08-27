@@ -37,7 +37,6 @@ export default function EmployeeDetailLayout({
   const getCurrentTab = () => {
     if (pathname.includes("/overview-details")) return "overview-details"
     if (pathname.includes("/salary-details")) return "salary-details"
-    if (pathname.includes("/document-details")) return "document-details"
     return "overview-details"
   }
 
@@ -95,7 +94,7 @@ export default function EmployeeDetailLayout({
             onValueChange={handleTabChange}
             className="w-full"
           >
-            <TabsList className="grid w-full grid-cols-3 gap-2">
+            <TabsList className="grid w-full grid-cols-2 gap-2">
               <TabsTrigger
                 value="overview-details"
                 className="text-xs font-medium sm:text-sm"
@@ -107,12 +106,6 @@ export default function EmployeeDetailLayout({
                 className="text-xs font-medium sm:text-sm"
               >
                 Salary Details
-              </TabsTrigger>
-              <TabsTrigger
-                value="document-details"
-                className="text-xs font-medium sm:text-sm"
-              >
-                Documents
               </TabsTrigger>
             </TabsList>
           </Tabs>

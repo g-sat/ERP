@@ -1165,6 +1165,7 @@ export const Approval = {
 // Payroll Management Endpoints
 export const SalaryComponent = {
   getById: "/hr/getsalarycomponentbyid",
+  getHistoryById: "/hr/getsalarycomponenthistorybyid",
   add: "/hr/savesalarycomponent",
   getSalary: "/hr/getsalarycomponent",
 }
