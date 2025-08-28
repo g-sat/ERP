@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { ISalaryComponent } from "@/interfaces/payroll"
+import { ISalaryComponent, ISalaryHistory } from "@/interfaces/payroll"
 import {
   Calendar,
   DollarSign,
@@ -12,7 +12,6 @@ import {
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
   Dialog,
   DialogContent,
@@ -27,16 +26,20 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { CurrencyFormatter } from "@/components/currencyicons/currency-formatter"
 
 import { SalaryComponentsForm } from "../forms/employee-salary-components"
 
 export function EmployeeSalaryDetailsTable({
   employeeSalaryDetails,
+  salaryHistory,
 }: {
   employeeSalaryDetails: ISalaryComponent[]
+  salaryHistory: ISalaryHistory[]
 }) {
   const [editSalaryDialogOpen, setEditSalaryDialogOpen] = useState(false)
+  const [activeTab, setActiveTab] = useState("main")
 
   const handleEditSalary = () => {
     setEditSalaryDialogOpen(true)
@@ -62,317 +65,397 @@ export function EmployeeSalaryDetailsTable({
   )
 
   return (
-    <div className="space-y-6 p-6">
-      {/* Salary Summary */}
-      <Card>
-        <CardHeader className="pb-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100">
-                <DollarSign className="h-5 w-5 text-blue-600" />
-              </div>
-              <div>
-                <CardTitle className="text-xl font-semibold">
-                  Salary Details
-                </CardTitle>
-                <p className="text-sm text-gray-600">
-                  Comprehensive salary breakdown and components
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Button variant="outline" size="sm" onClick={handleEditSalary}>
-                <RefreshCw className="mr-2 h-4 w-4" />
-                Revise
-              </Button>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <div className="rounded-lg border p-4">
-              <div className="mb-3 flex items-center space-x-2">
-                <div className="flex h-8 w-8 items-center justify-center rounded-md bg-emerald-100">
-                  <TrendingUp className="h-4 w-4 text-emerald-600" />
+    <div className="space-y-4">
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList>
+          <TabsTrigger value="main">Main</TabsTrigger>
+          <TabsTrigger value="history">History</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="main" className="space-y-4">
+          {/* Salary Summary */}
+          <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
+            <div className="rounded-lg border p-3">
+              <div className="mb-2 flex items-center gap-2">
+                <div className="flex h-6 w-6 items-center justify-center rounded-md bg-emerald-100">
+                  <TrendingUp className="h-3 w-3 text-emerald-600" />
                 </div>
                 <h3 className="text-sm font-medium">Annual Income</h3>
               </div>
-              <p className="text-2xl font-bold">
-                <CurrencyFormatter amount={totalAnnual} />
+              <p className="text-xl font-bold">
+                <CurrencyFormatter amount={totalAnnual} size="sm" />
               </p>
-              <p className="text-sm text-gray-500">per year</p>
+              <p className="text-muted-foreground text-xs">per year</p>
             </div>
-            <div className="rounded-lg border p-4">
-              <div className="mb-3 flex items-center space-x-2">
-                <div className="flex h-8 w-8 items-center justify-center rounded-md bg-blue-100">
-                  <Calendar className="h-4 w-4 text-blue-600" />
+            <div className="rounded-lg border p-3">
+              <div className="mb-2 flex items-center gap-2">
+                <div className="flex h-6 w-6 items-center justify-center rounded-md bg-blue-100">
+                  <Calendar className="h-3 w-3 text-blue-600" />
                 </div>
                 <h3 className="text-sm font-medium">Monthly Income</h3>
               </div>
-              <p className="text-2xl font-bold">
-                <CurrencyFormatter amount={totalMonthly} />
+              <p className="text-xl font-bold">
+                <CurrencyFormatter amount={totalMonthly} size="sm" />
               </p>
-              <p className="text-sm text-gray-500">per month</p>
+              <p className="text-muted-foreground text-xs">per month</p>
+            </div>
+            <div className="rounded-lg border p-3">
+              <div className="mb-2 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="flex h-6 w-6 items-center justify-center rounded-md bg-purple-100">
+                    <DollarSign className="h-3 w-3 text-purple-600" />
+                  </div>
+                  <h3 className="text-sm font-medium">Actions</h3>
+                </div>
+                <Button variant="outline" size="sm" onClick={handleEditSalary}>
+                  <RefreshCw className="mr-1 h-3 w-3" />
+                  Revise
+                </Button>
+              </div>
+              <p className="text-muted-foreground text-xs">
+                Update salary components
+              </p>
             </div>
           </div>
-        </CardContent>
-      </Card>
 
-      {/* Salary Components - Earnings */}
-      <Card>
-        <CardHeader className="border-b pb-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-100">
-                <TrendingUp className="h-5 w-5 text-emerald-600" />
-              </div>
-              <div>
-                <CardTitle className="text-lg font-semibold">
-                  Salary Components
-                </CardTitle>
-                <p className="text-sm text-gray-600">
-                  Breakdown of earnings and allowances
-                </p>
+          {/* Salary Components - Earnings */}
+          <div className="bg-background rounded-lg border">
+            <div className="border-b p-4">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-100">
+                    <TrendingUp className="h-4 w-4 text-emerald-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-semibold">
+                      Salary Components
+                    </h3>
+                    <p className="text-muted-foreground text-xs">
+                      Breakdown of earnings and allowances
+                    </p>
+                  </div>
+                </div>
+                <Badge variant="secondary" className="text-xs">
+                  {earnings.length} Components
+                </Badge>
               </div>
             </div>
-            <Badge variant="secondary">{earnings.length} Components</Badge>
-          </div>
-        </CardHeader>
-        <CardContent className="p-0">
-          <div className="overflow-hidden">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-1/4 py-3 font-medium">
-                    SALARY COMPONENTS
-                  </TableHead>
-                  <TableHead className="w-1/4 py-3 font-medium">
-                    CALCULATION TYPE
-                  </TableHead>
-                  <TableHead className="w-1/4 py-3 font-medium">
-                    MONTHLY AMOUNT
-                  </TableHead>
-                  <TableHead className="w-1/4 py-3 font-medium">
-                    ANNUAL AMOUNT
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {earnings.map((component) => (
-                  <TableRow key={component.componentId}>
-                    <TableCell className="py-3 font-medium">
-                      {component.componentName}
+
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-1/4 py-2 text-xs font-medium">
+                      COMPONENT
+                    </TableHead>
+                    <TableHead className="w-1/4 py-2 text-xs font-medium">
+                      TYPE
+                    </TableHead>
+                    <TableHead className="w-1/4 py-2 text-xs font-medium">
+                      MONTHLY
+                    </TableHead>
+                    <TableHead className="w-1/4 py-2 text-xs font-medium">
+                      ANNUAL
+                    </TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {earnings.map((component) => (
+                    <TableRow key={component.componentId}>
+                      <TableCell className="py-1 text-xs font-medium">
+                        {component.componentName}
+                      </TableCell>
+                      <TableCell className="py-1">
+                        <Badge variant="outline" className="text-xs">
+                          {component.componentType}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="py-1 text-right text-xs font-medium">
+                        <CurrencyFormatter
+                          amount={component.amount || 0}
+                          size="sm"
+                        />
+                      </TableCell>
+                      <TableCell className="py-1 text-right text-xs font-medium">
+                        <CurrencyFormatter
+                          amount={(component.amount || 0) * 12}
+                          size="sm"
+                        />
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  <TableRow className="border-t-2">
+                    <TableCell colSpan={2} className="py-1 text-sm font-bold">
+                      Total Gross Pay
                     </TableCell>
-                    <TableCell className="py-3">
-                      <Badge variant="outline" className="text-xs">
-                        {component.componentType}
-                      </Badge>
+                    <TableCell className="py-1 text-right text-sm font-bold">
+                      <CurrencyFormatter amount={totalMonthly} size="sm" />
                     </TableCell>
-                    <TableCell className="py-3 text-right font-medium">
-                      <CurrencyFormatter amount={component.amount || 0} />
-                    </TableCell>
-                    <TableCell className="py-3 text-right font-medium">
-                      <CurrencyFormatter
-                        amount={(component.amount || 0) * 12}
-                      />
+                    <TableCell className="py-1 text-right text-sm font-bold">
+                      <CurrencyFormatter amount={totalAnnual} size="sm" />
                     </TableCell>
                   </TableRow>
-                ))}
-                <TableRow className="border-t-2">
-                  <TableCell colSpan={2} className="py-3 text-lg font-bold">
-                    Total Gross Pay
-                  </TableCell>
-                  <TableCell className="py-3 text-right text-lg font-bold">
-                    <CurrencyFormatter amount={totalMonthly} />
-                  </TableCell>
-                  <TableCell className="py-3 text-right text-lg font-bold">
-                    <CurrencyFormatter amount={totalAnnual} />
-                  </TableCell>
-                </TableRow>
-              </TableBody>
-            </Table>
+                </TableBody>
+              </Table>
+            </div>
           </div>
-        </CardContent>
-      </Card>
 
-      {/* Other Deductions */}
-      {deductions.length > 0 && (
-        <Card>
-          <CardHeader className="border-b pb-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-orange-100">
-                  <DollarSign className="h-5 w-5 text-orange-600" />
+          {/* Other Deductions */}
+          {deductions.length > 0 && (
+            <div className="bg-background rounded-lg border">
+              <div className="border-b p-4">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-red-100">
+                      <Edit3 className="h-4 w-4 text-red-600" />
+                    </div>
+                    <div>
+                      <h3 className="text-base font-semibold">Deductions</h3>
+                      <p className="text-muted-foreground text-xs">
+                        Salary deductions and withholdings
+                      </p>
+                    </div>
+                  </div>
+                  <Badge variant="secondary" className="text-xs">
+                    {deductions.length} Deductions
+                  </Badge>
+                </div>
+              </div>
+
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-1/4 py-2 text-xs font-medium">
+                        DEDUCTION
+                      </TableHead>
+                      <TableHead className="w-1/4 py-2 text-xs font-medium">
+                        TYPE
+                      </TableHead>
+                      <TableHead className="w-1/4 py-2 text-xs font-medium">
+                        MONTHLY
+                      </TableHead>
+                      <TableHead className="w-1/4 py-2 text-xs font-medium">
+                        ANNUAL
+                      </TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {deductions.map((component) => (
+                      <TableRow key={component.componentId}>
+                        <TableCell className="py-1 text-xs font-medium">
+                          {component.componentName}
+                        </TableCell>
+                        <TableCell className="py-1">
+                          <Badge variant="outline" className="text-xs">
+                            {component.componentType}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="py-1 text-right text-xs font-medium">
+                          <CurrencyFormatter
+                            amount={component.amount || 0}
+                            size="sm"
+                          />
+                        </TableCell>
+                        <TableCell className="py-1 text-right text-xs font-medium">
+                          <CurrencyFormatter
+                            amount={(component.amount || 0) * 12}
+                            size="sm"
+                          />
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </div>
+          )}
+        </TabsContent>
+
+        <TabsContent value="history" className="space-y-4">
+          {/* Salary History */}
+          <div className="bg-background rounded-lg border">
+            <div className="border-b p-4">
+              <div className="flex items-center gap-3">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-100">
+                  <Calendar className="h-4 w-4 text-blue-600" />
                 </div>
                 <div>
-                  <CardTitle className="text-lg font-semibold">
-                    Other Deductions
-                  </CardTitle>
-                  <p className="text-sm text-gray-600">
-                    Deductions and contributions
+                  <h3 className="text-base font-semibold">Salary History</h3>
+                  <p className="text-muted-foreground text-xs">
+                    Historical salary changes and revisions
                   </p>
                 </div>
               </div>
-              <Badge variant="secondary">{deductions.length} Deductions</Badge>
             </div>
-          </CardHeader>
-          <CardContent className="p-0">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-1/3 py-3 font-medium">
-                    DEDUCTION NAME
-                  </TableHead>
-                  <TableHead className="w-1/3 py-3 font-medium">
-                    CALCULATION TYPE
-                  </TableHead>
-                  <TableHead className="w-1/3 py-3 text-right font-medium">
-                    ACTIONS
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {deductions.map((component) => (
-                  <TableRow key={component.componentId}>
-                    <TableCell className="py-3 font-medium">
-                      {component.componentName}
-                    </TableCell>
-                    <TableCell className="py-3">
-                      <div className="space-y-1">
-                        <div className="text-sm font-medium">
-                          Amount:{" "}
-                          <CurrencyFormatter amount={component.amount || 0} />
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell className="py-3 text-right">
-                      <Button variant="outline" size="sm">
-                        <Edit3 className="mr-2 h-3 w-3" />
-                        Edit
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
-      )}
 
-      {/* Salary Revision History */}
-      {/* <Card>
-        <CardHeader className="border-b pb-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-purple-100">
-                <Calendar className="h-5 w-5 text-purple-600" />
+            {salaryHistory.length === 0 ? (
+              <div className="p-4 text-center">
+                <div className="text-muted-foreground text-sm">
+                  No salary history found
+                </div>
               </div>
-              <div>
-                <CardTitle className="text-lg font-semibold">
-                  Salary Revision History
-                </CardTitle>
-                <p className="text-sm text-gray-600">
-                  Historical salary changes and revisions
-                </p>
+            ) : (
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-[100px] py-2 text-xs font-medium">
+                        EFFECT DATE
+                      </TableHead>
+                      <TableHead className="w-[100px] py-2 text-xs font-medium">
+                        BASIC
+                      </TableHead>
+                      <TableHead className="w-[120px] py-2 text-xs font-medium">
+                        HOUSE ALLOWANCE
+                      </TableHead>
+                      <TableHead className="w-[120px] py-2 text-xs font-medium">
+                        FOOD ALLOWANCE
+                      </TableHead>
+                      <TableHead className="w-[120px] py-2 text-xs font-medium">
+                        OTHER ALLOWANCE
+                      </TableHead>
+                      <TableHead className="w-[100px] py-2 text-xs font-medium">
+                        TOTAL
+                      </TableHead>
+                      <TableHead className="w-[100px] py-2 text-xs font-medium">
+                        INCREMENT
+                      </TableHead>
+                      <TableHead className="w-[80px] py-2 text-xs font-medium">
+                        %
+                      </TableHead>
+                      <TableHead className="w-[80px] py-2 text-xs font-medium">
+                        Created
+                      </TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {salaryHistory.map((record: ISalaryHistory) => (
+                      <TableRow key={record.revisionId}>
+                        <TableCell className="py-1 text-xs font-medium">
+                          {new Date(record.effectDate).toLocaleDateString()}
+                        </TableCell>
+                        <TableCell className="py-1 text-right text-xs font-medium">
+                          <CurrencyFormatter
+                            amount={record.basicAllowance}
+                            size="sm"
+                          />
+                        </TableCell>
+                        <TableCell className="py-1 text-right text-xs font-medium">
+                          <CurrencyFormatter
+                            amount={record.houseAllowance}
+                            size="sm"
+                          />
+                        </TableCell>
+                        <TableCell className="py-1 text-right text-xs font-medium">
+                          <CurrencyFormatter
+                            amount={record.foodAllowance}
+                            size="sm"
+                          />
+                        </TableCell>
+                        <TableCell className="py-1 text-right text-xs font-medium">
+                          <CurrencyFormatter
+                            amount={record.otherAllowance}
+                            size="sm"
+                          />
+                        </TableCell>
+                        <TableCell className="py-1 text-right text-xs font-bold">
+                          <CurrencyFormatter amount={record.total} size="sm" />
+                        </TableCell>
+                        <TableCell className="py-1 text-right text-xs font-medium">
+                          <div className="flex items-center justify-end gap-1">
+                            {record.incrementAmount !== 0 && (
+                              <span
+                                className={
+                                  record.incrementAmount > 0
+                                    ? "text-green-600"
+                                    : record.incrementAmount < 0
+                                      ? "text-red-600"
+                                      : "text-yellow-600"
+                                }
+                              >
+                                {record.incrementAmount > 0 ? "↗" : "↘"}
+                              </span>
+                            )}
+                            <span
+                              className={
+                                record.incrementAmount > 0
+                                  ? "text-green-600"
+                                  : record.incrementAmount < 0
+                                    ? "text-red-600"
+                                    : "text-yellow-600"
+                              }
+                            >
+                              <CurrencyFormatter
+                                amount={record.incrementAmount}
+                                size="sm"
+                              />
+                            </span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="py-1 text-right text-xs font-medium">
+                          <div className="flex items-center justify-end gap-1">
+                            {record.incrementPercentage !== 0 && (
+                              <span
+                                className={
+                                  record.incrementPercentage > 0
+                                    ? "text-green-600"
+                                    : record.incrementPercentage < 0
+                                      ? "text-red-600"
+                                      : "text-yellow-600"
+                                }
+                              >
+                                {record.incrementPercentage > 0 ? "↗" : "↘"}
+                              </span>
+                            )}
+                            <span
+                              className={
+                                record.incrementPercentage > 0
+                                  ? "text-green-600"
+                                  : record.incrementPercentage < 0
+                                    ? "text-red-600"
+                                    : "text-yellow-600"
+                              }
+                            >
+                              {record.incrementPercentage.toFixed(2)}%
+                            </span>
+                          </div>
+                        </TableCell>
+
+                        <TableCell className="py-1 text-right text-xs font-medium">
+                          {record.createdBy} |{" "}
+                          {new Date(record.createdDate).toLocaleDateString()}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
               </div>
-            </div>
+            )}
           </div>
-        </CardHeader>
-        <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-1/4 py-3 font-medium">
-                  PREVIOUS PAY
-                </TableHead>
-                <TableHead className="w-1/4 py-3 font-medium">
-                  REVISED PAY
-                </TableHead>
-                <TableHead className="w-1/4 py-3 font-medium">
-                  EFFECTIVE FROM
-                </TableHead>
-                <TableHead className="w-1/4 py-3 text-right font-medium">
-                  ACTIONS
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {salaryRevisionHistory.map((revision) => (
-                <TableRow key={revision.id}>
-                  <TableCell className="py-3 font-medium">
-                    {revision.previousPay ? (
-                      <CurrencyFormatter amount={revision.previousPay} />
-                    ) : (
-                      "-"
-                    )}
-                  </TableCell>
-                  <TableCell className="py-3">
-                    <div className="flex items-center space-x-2">
-                      <span className="font-medium">
-                        <CurrencyFormatter amount={revision.revisedPay} />
-                      </span>
-                      {revision.percentageChange && (
-                        <div className="flex items-center space-x-1">
-                          <span className="text-sm text-red-600">
-                            {revision.percentageChange}%
-                          </span>
-                          <Minus className="h-3 w-3 text-red-600" />
-                        </div>
-                      )}
-                    </div>
-                  </TableCell>
-                  <TableCell className="py-3">
-                    {revision.effectiveFrom}
-                  </TableCell>
-                  <TableCell className="py-3 text-right">
-                    <div className="flex items-center justify-end space-x-2">
-                      <span className="text-sm text-blue-600 cursor-pointer">
-                        View Details
-                      </span>
-                      <div className="flex h-5 w-5 items-center justify-center rounded-full bg-gray-200">
-                        <Minus className="h-3 w-3 text-gray-600" />
-                      </div>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card> */}
+        </TabsContent>
+      </Tabs>
 
-      {/* Edit Salary Dialog */}
+      {/* Edit Salary Components Dialog */}
       <Dialog
         open={editSalaryDialogOpen}
         onOpenChange={setEditSalaryDialogOpen}
       >
         <DialogContent
-          className="max-h-[90vh] w-[80vw] !max-w-none overflow-y-auto"
+          className="max-h-[90vh] w-[95vw] !max-w-none overflow-y-auto sm:w-[80vw]"
           onPointerDownOutside={(e) => e.preventDefault()}
           onEscapeKeyDown={(e) => e.preventDefault()}
         >
-          <DialogHeader className="border-b p-6">
-            <div className="flex items-center space-x-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100">
-                <Edit3 className="h-5 w-5 text-blue-600" />
-              </div>
-              <div>
-                <DialogTitle className="text-xl font-semibold">
-                  Revise Salary Components
-                </DialogTitle>
-                <p className="text-sm text-gray-600">
-                  Revise employee salary structure and components
-                </p>
-              </div>
-            </div>
+          <DialogHeader>
+            <DialogTitle className="text-lg">
+              Edit Salary Components
+            </DialogTitle>
           </DialogHeader>
-          <div className="p-6">
-            <SalaryComponentsForm
-              onCancel={handleCancelEdit}
-              employeeSalaryDetails={employeeSalaryDetails}
-              onSaveSuccess={() => setEditSalaryDialogOpen(false)}
-            />
-          </div>
+          <SalaryComponentsForm
+            employeeSalaryDetails={employeeSalaryDetails}
+            onCancel={handleCancelEdit}
+            onSaveSuccess={() => setEditSalaryDialogOpen(false)}
+          />
         </DialogContent>
       </Dialog>
     </div>

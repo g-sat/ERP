@@ -80,7 +80,7 @@ export default function EmployeeDetailLayout({
                   {employee?.employeeName || ""}
                 </Badge>
               </h1>
-              <Badge variant="secondary" className="w-fit text-xs">
+              <Badge variant="secondary" className="text-xs sm:text-base">
                 EMP. ID: {employee?.employeeCode || ""}
               </Badge>
             </div>
@@ -89,12 +89,8 @@ export default function EmployeeDetailLayout({
 
         {/* Tabs Navigation - Below employee info */}
         <div className="mt-4">
-          <Tabs
-            value={currentTab}
-            onValueChange={handleTabChange}
-            className="w-full"
-          >
-            <TabsList className="grid w-full grid-cols-2 gap-2">
+          <Tabs value={currentTab} onValueChange={handleTabChange}>
+            <TabsList>
               <TabsTrigger
                 value="overview-details"
                 className="text-xs font-medium sm:text-sm"

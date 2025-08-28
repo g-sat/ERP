@@ -33,7 +33,7 @@ export function CustomTableBody({
             return (
               <TableRow key={row.id}>
                 {row.getVisibleCells().map((cell: any) => (
-                  <TableCell key={cell.id}>
+                  <TableCell key={cell.id} className="py-2">
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </TableCell>
                 ))}

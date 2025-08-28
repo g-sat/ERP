@@ -205,7 +205,7 @@ export function EmployeeOverview({
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-2">
                 <div>
                   <label className="text-sm font-medium text-gray-500">
                     Date of Birth
@@ -238,6 +238,47 @@ export function EmployeeOverview({
                   </label>
                   <p className="text-sm">
                     {employeePersonal?.personalNo || ""}
+                  </p>
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium text-gray-500">
+                    Passport No
+                  </label>
+                  <p className="text-sm">
+                    {employeePersonal?.passportNo || ""}
+                  </p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-500">
+                    Passport Expiry Date
+                  </label>
+                  <p className="text-sm">
+                    {employeePersonal?.passportExpiryDate
+                      ? new Date(
+                          employeePersonal?.passportExpiryDate as string
+                        ).toLocaleDateString()
+                      : ""}
+                  </p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-500">
+                    Emirates ID No
+                  </label>
+                  <p className="text-sm">
+                    {employeePersonal?.emiratesIdNo || ""}
+                  </p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-500">
+                    Emirates ID Expiry Date
+                  </label>
+                  <p className="text-sm">
+                    {employeePersonal?.emiratesIdExpiryDate
+                      ? new Date(
+                          employeePersonal?.emiratesIdExpiryDate as string
+                        ).toLocaleDateString()
+                      : ""}
                   </p>
                 </div>
                 <div>
@@ -280,14 +321,14 @@ export function EmployeeOverview({
                   <Edit className="h-4 w-4" />
                 </Button>
               </div>
-              <div className="mb-4 flex items-center justify-center">
+              <div className="mb-2 flex items-center justify-center">
                 <Badge variant="destructive" className="text-xs">
                   PAYMENT EMPLOYEE DETAILS
                 </Badge>
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-2">
                 <div>
                   <label className="text-sm font-medium text-gray-500">
                     PAYMENT MODE
@@ -336,7 +377,7 @@ export function EmployeeOverview({
                 </div>
                 <div>
                   <label className="text-sm font-medium text-gray-500">
-                    Routing Number
+                    Account Number
                   </label>
                   <p className="text-sm">{employeeBank?.accountNo || ""}</p>
                 </div>
@@ -367,7 +408,7 @@ export function EmployeeOverview({
 
       <Dialog open={personalDialogOpen} onOpenChange={setPersonalDialogOpen}>
         <DialogContent
-          className="max-h-[90vh] w-[50vw] !max-w-none overflow-y-auto"
+          className="max-h-[90vh] w-[70vw] !max-w-none overflow-y-auto"
           onPointerDownOutside={(e) => e.preventDefault()}
         >
           <DialogHeader>

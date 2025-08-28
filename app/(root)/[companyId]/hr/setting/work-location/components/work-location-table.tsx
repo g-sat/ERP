@@ -112,20 +112,32 @@ export function WorkLocationTable({
           ) : (
             filtered.map((loc) => (
               <TableRow key={loc.workLocationId}>
-                <TableCell>{loc.workLocationCode}</TableCell>
-                <TableCell>{loc.workLocationName}</TableCell>
-                <TableCell>{loc.address1 || "—"}</TableCell>
-                <TableCell>{loc.address2 || "—"}</TableCell>
-                <TableCell>{loc.city || "—"}</TableCell>
-                <TableCell>{loc.countryName || "—"}</TableCell>
-                <TableCell>
+                <TableCell className="py-1 text-xs">
+                  {loc.workLocationCode}
+                </TableCell>
+                <TableCell className="py-1 text-xs">
+                  {loc.workLocationName}
+                </TableCell>
+                <TableCell className="py-1 text-xs">
+                  {loc.address1 || "—"}
+                </TableCell>
+                <TableCell className="py-1 text-xs">
+                  {loc.address2 || "—"}
+                </TableCell>
+                <TableCell className="py-1 text-xs">
+                  {loc.city || "—"}
+                </TableCell>
+                <TableCell className="py-1 text-xs">
+                  {loc.countryName || "—"}
+                </TableCell>
+                <TableCell className="py-1">
                   <span
                     className={`rounded-full px-2 text-xs ${loc.isActive ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}
                   >
                     {loc.isActive ? "Active" : "Inactive"}
                   </span>
                 </TableCell>
-                <TableCell className="text-right">
+                <TableCell className="py-1 text-right">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button variant="ghost" size="icon">

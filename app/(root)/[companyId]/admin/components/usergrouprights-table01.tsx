@@ -129,7 +129,7 @@ export function UserGroupRightsTable() {
   }
 
   return (
-    <div className="rounded-md border bg-[#10131c] p-4">
+    <div className="rounded-md border p-4">
       <Form {...form}>
         <form onSubmit={form.handleSubmit(handleSearch)}>
           <div className="mb-4 flex items-center justify-between">

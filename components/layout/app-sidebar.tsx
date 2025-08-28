@@ -111,7 +111,7 @@ export const menuData = {
         { title: "Employees", url: "/hr/employees", icon: Users },
         { title: "Loan", url: "/hr/loan", icon: Wallet },
         { title: "Leave", url: "/hr/leave", icon: CalendarDays },
-        { title: "Time & Attendance", url: "/hr/attendance", icon: Clock },
+        { title: "Attendance", url: "/hr/attendance", icon: Clock },
         { title: "Payruns", url: "/hr/payruns", icon: Calendar },
         // { title: "Payroll", url: "/hr/payroll", icon: Wallet },
         { title: "Reports", url: "/hr/reports", icon: BarChart },

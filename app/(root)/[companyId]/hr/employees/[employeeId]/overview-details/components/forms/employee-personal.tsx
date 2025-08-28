@@ -46,6 +46,20 @@ export function EmployeePersonalForm({ employee, onCancel }: Props) {
       workPermitNo: employee?.workPermitNo || "",
       personalNo: employee?.personalNo || "",
       emailAdd: employee?.emailAdd || "",
+      passportNo: employee?.passportNo || "",
+      passportExpiryDate: employee?.passportExpiryDate
+        ? format(
+            parseDate(employee?.passportExpiryDate as string) || new Date(),
+            clientDateFormat
+          )
+        : "",
+      emiratesIdNo: employee?.emiratesIdNo || "",
+      emiratesIdExpiryDate: employee?.emiratesIdExpiryDate
+        ? format(
+            parseDate(employee?.emiratesIdExpiryDate as string) || new Date(),
+            clientDateFormat
+          )
+        : "",
     },
   })
 
@@ -80,6 +94,20 @@ export function EmployeePersonalForm({ employee, onCancel }: Props) {
         workPermitNo: employee.workPermitNo || "",
         personalNo: employee.personalNo || "",
         emailAdd: employee.emailAdd || "",
+        passportNo: employee.passportNo || "",
+        passportExpiryDate: employee.passportExpiryDate
+          ? format(
+              parseDate(employee?.passportExpiryDate as string) || new Date(),
+              clientDateFormat
+            )
+          : "",
+        emiratesIdNo: employee.emiratesIdNo || "",
+        emiratesIdExpiryDate: employee.emiratesIdExpiryDate
+          ? format(
+              parseDate(employee?.emiratesIdExpiryDate as string) || new Date(),
+              clientDateFormat
+            )
+          : "",
       })
     }
   }, [employee, form])
@@ -108,8 +136,8 @@ export function EmployeePersonalForm({ employee, onCancel }: Props) {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <div className="grid grid-cols-3 gap-4">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <div className="grid grid-cols-4 gap-4">
           <CustomDateNew
             form={form}
             label="Date of Birth"
@@ -127,6 +155,18 @@ export function EmployeePersonalForm({ employee, onCancel }: Props) {
             form={form}
             label="Personal Email Address"
             name="emailAdd"
+          />
+          <CustomInput form={form} label="Passport No" name="passportNo" />
+          <CustomDateNew
+            form={form}
+            label="Passport Expiry Date"
+            name="passportExpiryDate"
+          />
+          <CustomInput form={form} label="Emirates ID No" name="emiratesIdNo" />
+          <CustomDateNew
+            form={form}
+            label="Emirates ID Expiry Date"
+            name="emiratesIdExpiryDate"
           />
         </div>
 

@@ -117,12 +117,16 @@ export function DepartmentTable({
             ) : (
               filteredData.map((department) => (
                 <TableRow key={department.departmentId}>
-                  <TableCell className="font-medium">
+                  <TableCell className="py-1 text-xs font-medium">
                     {department.departmentCode}
                   </TableCell>
-                  <TableCell>{department.departmentName}</TableCell>
-                  <TableCell>{department.remarks || "-"}</TableCell>
-                  <TableCell>
+                  <TableCell className="py-1 text-xs">
+                    {department.departmentName}
+                  </TableCell>
+                  <TableCell className="py-1 text-xs">
+                    {department.remarks || "-"}
+                  </TableCell>
+                  <TableCell className="py-1">
                     <span
                       className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
                         department.isActive
@@ -133,7 +137,7 @@ export function DepartmentTable({
                       {department.isActive ? "Active" : "Inactive"}
                     </span>
                   </TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className="py-1 text-right">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button variant="ghost" size="icon">

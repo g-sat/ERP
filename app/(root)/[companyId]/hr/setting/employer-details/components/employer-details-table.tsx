@@ -2,24 +2,9 @@
 
 import { useState } from "react"
 import { IEmployerDetails } from "@/interfaces/employer-details"
-import {
-  Edit,
-  Eye,
-  MoreHorizontal,
-  Plus,
-  RefreshCw,
-  Search,
-  Trash2,
-} from "lucide-react"
+import { Edit, Plus, RefreshCw, Search, Trash2 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
 import {
   Table,
@@ -35,7 +20,6 @@ interface EmployerDetailsTableProps {
   onEdit?: (employerDetails: IEmployerDetails) => void
   onDelete?: (employerDetails: IEmployerDetails) => void
   onCreate?: () => void
-  onView?: (employerDetails: IEmployerDetails) => void
   onRefresh?: () => void
   canCreate?: boolean
   canEdit?: boolean
@@ -47,7 +31,6 @@ export function EmployerDetailsTable({
   onEdit,
   onDelete,
   onCreate,
-  onView,
   onRefresh,
   canCreate = true,
   canEdit = true,
@@ -58,14 +41,12 @@ export function EmployerDetailsTable({
   const filteredData = data.filter(
     (employerDetails) =>
       employerDetails.establishmentId
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase()) ||
-      employerDetails.employerRefno
         ?.toLowerCase()
         .includes(searchTerm.toLowerCase()) ||
-      employerDetails.wpsBankCode
+      employerDetails.branch
         ?.toLowerCase()
-        .includes(searchTerm.toLowerCase())
+        .includes(searchTerm.toLowerCase()) ||
+      employerDetails.bankName?.toLowerCase().includes(searchTerm.toLowerCase())
   )
 
   return (
@@ -106,11 +87,11 @@ export function EmployerDetailsTable({
           <TableHeader>
             <TableRow>
               <TableHead>Company</TableHead>
+              <TableHead>Branch</TableHead>
               <TableHead>Establishment ID</TableHead>
-              <TableHead>Employer Ref No</TableHead>
-              <TableHead>WPS Bank Code</TableHead>
-              <TableHead>WPS File Reference</TableHead>
               <TableHead>Bank Account</TableHead>
+              <TableHead>Bank Name</TableHead>
+
               <TableHead>Status</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
@@ -125,21 +106,26 @@ export function EmployerDetailsTable({
             ) : (
               filteredData.map((employerDetails) => (
                 <TableRow key={employerDetails.employerDetailsId}>
-                  <TableCell>{employerDetails.companyName || "-"}</TableCell>
-                  <TableCell className="font-medium">
+                  <TableCell className="py-1 text-xs">
+                    {employerDetails.companyName || "-"}
+                  </TableCell>
+                  <TableCell className="py-1 text-xs">
+                    {employerDetails.branch || "-"}
+                  </TableCell>
+                  <TableCell className="py-1 text-xs font-medium">
                     {employerDetails.establishmentId}
                   </TableCell>
-                  <TableCell>{employerDetails.employerRefno || "-"}</TableCell>
-                  <TableCell>{employerDetails.wpsBankCode || "-"}</TableCell>
-                  <TableCell>
-                    {employerDetails.wpsFileReference || "-"}
-                  </TableCell>
-                  <TableCell>
-                    <div className="max-w-[150px] truncate">
+
+                  <TableCell className="py-1">
+                    <div className="max-w-[150px] truncate text-xs">
                       {employerDetails.bankAccountNumber || "-"}
                     </div>
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="py-1 text-xs">
+                    {employerDetails.bankName || "-"}
+                  </TableCell>
+
+                  <TableCell className="py-1">
                     <span
                       className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
                         employerDetails.isActive
@@ -150,40 +136,31 @@ export function EmployerDetailsTable({
                       {employerDetails.isActive ? "Active" : "Inactive"}
                     </span>
                   </TableCell>
-                  <TableCell className="text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="h-8 w-8 p-0">
-                          <span className="sr-only">Open menu</span>
-                          <MoreHorizontal className="h-4 w-4" />
+                  <TableCell className="py-1 text-right">
+                    <div className="flex items-center justify-end gap-2">
+                      {canEdit && onEdit && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => onEdit(employerDetails)}
+                          className="h-8 w-8 p-0"
+                        >
+                          <Edit className="h-4 w-4" />
+                          <span className="sr-only">Edit</span>
                         </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        {onView && (
-                          <DropdownMenuItem
-                            onClick={() => onView(employerDetails)}
-                          >
-                            <Eye className="mr-2" /> View
-                          </DropdownMenuItem>
-                        )}
-                        {canEdit && onEdit && (
-                          <DropdownMenuItem
-                            onClick={() => onEdit(employerDetails)}
-                          >
-                            <Edit className="mr-2" /> Edit
-                          </DropdownMenuItem>
-                        )}
-                        {canDelete && onDelete && (
-                          <DropdownMenuItem
-                            className="text-red-600"
-                            onClick={() => onDelete(employerDetails)}
-                          >
-                            <Trash2 className="mr-2" /> Delete
-                          </DropdownMenuItem>
-                        )}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                      )}
+                      {canDelete && onDelete && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => onDelete(employerDetails)}
+                          className="h-8 w-8 p-0 text-red-600 hover:text-red-700"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                          <span className="sr-only">Delete</span>
+                        </Button>
+                      )}
+                    </div>
                   </TableCell>
                 </TableRow>
               ))

@@ -4,7 +4,7 @@ import {
   IEmployeeBasic,
   IEmployeePersonalDetails,
 } from "@/interfaces/employee"
-import { ISalaryComponent } from "@/interfaces/payroll"
+import { ISalaryComponent, ISalaryHistory } from "@/interfaces/payroll"
 import { useQueryClient } from "@tanstack/react-query"
 
 import { Employee, SalaryComponent } from "@/lib/api-routes"
@@ -249,13 +249,10 @@ export function useGetEmployeeSalaryDetailsById(
   )
 }
 
-// Hook for fetching employee salary details by ID
-export function useGetEmployeeSalaryDetailsHistoryById(
-  employeeId: string | undefined
-) {
-  return useGetById<ISalaryComponent>(
+export function useGetEmployeeSalaryHistory(employeeId: string | undefined) {
+  return useGetById<ISalaryHistory>(
     `${SalaryComponent.getHistoryById}`,
-    "employee-salary-details-history",
+    "employee-salary-history",
     employeeId || ""
   )
 }

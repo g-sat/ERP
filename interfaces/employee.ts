@@ -106,6 +106,10 @@ export interface IEmployeePersonalDetails {
   workPermitNo?: string
   personalNo?: string
   emailAdd?: string
+  passportNo?: string
+  passportExpiryDate?: Date | string
+  emiratesIdNo?: string
+  emiratesIdExpiryDate?: Date | string
   createDate?: Date | string
   editDate?: Date | string
   createBy?: string

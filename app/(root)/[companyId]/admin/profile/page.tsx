@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useState } from "react"
 import {
   ResetPasswordFormValues,
   UserProfileFormValues,
@@ -11,7 +11,6 @@ import { useAuthStore } from "@/stores/auth-store"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { format } from "date-fns"
 import {
-  Camera,
   Eye,
   EyeOff,
   Globe,
@@ -21,9 +20,7 @@ import {
   Phone,
   Save,
   Shield,
-  Upload,
   User,
-  X,
 } from "lucide-react"
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"

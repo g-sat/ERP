@@ -107,13 +107,17 @@ export function PayrollComponentTable({
         ) : (
           filtered.map((component) => (
             <TableRow key={component.componentId}>
-              <TableCell className="font-medium">
+              <TableCell className="py-1 text-xs font-medium">
                 {component.componentCode}
               </TableCell>
-              <TableCell>{component.componentName}</TableCell>
-              <TableCell>{getTypeBadge(component)}</TableCell>
-              <TableCell>{component.sortOrder}</TableCell>
-              <TableCell>
+              <TableCell className="py-1 text-xs">
+                {component.componentName}
+              </TableCell>
+              <TableCell className="py-1">{getTypeBadge(component)}</TableCell>
+              <TableCell className="py-1 text-xs">
+                {component.sortOrder}
+              </TableCell>
+              <TableCell className="py-1">
                 <span
                   className={`rounded-full px-2 text-xs ${
                     component.isActive
@@ -124,7 +128,7 @@ export function PayrollComponentTable({
                   {component.isActive ? "Active" : "Inactive"}
                 </span>
               </TableCell>
-              <TableCell>
+              <TableCell className="py-1">
                 <span
                   className={`rounded-full px-2 text-xs ${
                     component.isSalaryComponent
@@ -135,7 +139,7 @@ export function PayrollComponentTable({
                   {component.isSalaryComponent ? "Yes" : "No"}
                 </span>
               </TableCell>
-              <TableCell className="text-right">
+              <TableCell className="py-1 text-right">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="icon">

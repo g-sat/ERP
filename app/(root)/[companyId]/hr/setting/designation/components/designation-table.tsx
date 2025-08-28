@@ -119,12 +119,16 @@ export function DesignationTable({
             ) : (
               filteredData.map((designation) => (
                 <TableRow key={designation.designationId}>
-                  <TableCell className="font-medium">
+                  <TableCell className="py-1 text-xs font-medium">
                     {designation.designationCode}
                   </TableCell>
-                  <TableCell>{designation.designationName}</TableCell>
-                  <TableCell>{designation.remarks || "-"}</TableCell>
-                  <TableCell>
+                  <TableCell className="py-1 text-xs">
+                    {designation.designationName}
+                  </TableCell>
+                  <TableCell className="py-1 text-xs">
+                    {designation.remarks || "-"}
+                  </TableCell>
+                  <TableCell className="py-1">
                     <span
                       className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
                         designation.isActive
@@ -135,7 +139,7 @@ export function DesignationTable({
                       {designation.isActive ? "Active" : "Inactive"}
                     </span>
                   </TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className="py-1 text-right">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button variant="ghost" size="icon">

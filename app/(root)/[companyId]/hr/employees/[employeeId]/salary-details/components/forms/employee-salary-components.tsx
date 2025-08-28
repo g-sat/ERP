@@ -45,12 +45,6 @@ export function SalaryComponentsForm({
     employeeSalaryDetails
   )
 
-  // Debug: Log initial state
-  useEffect(() => {
-    console.log("Initial employeeSalaryDetails:", employeeSalaryDetails)
-    console.log("Initial salaryComponents state:", salaryComponents)
-  }, [employeeSalaryDetails])
-
   const form = useForm<SalaryComponentFormData>({
     resolver: zodResolver(employeeSalaryComponentSchema),
     defaultValues: {
@@ -73,14 +67,6 @@ export function SalaryComponentsForm({
   // Handle monthly amount change
   const handleMonthlyAmountChange = (id: string, value: string) => {
     const newAmount = parseFloat(value) || 0
-    console.log(
-      "Changing amount for ID:",
-      id,
-      "New value:",
-      value,
-      "Parsed amount:",
-      newAmount
-    )
 
     setSalaryComponents((prevComponents) => {
       const updatedComponents = prevComponents.map((component) =>
@@ -88,7 +74,6 @@ export function SalaryComponentsForm({
           ? { ...component, amount: newAmount }
           : component
       )
-      console.log("Updated components:", updatedComponents)
       return updatedComponents
     })
   }
@@ -101,15 +86,10 @@ export function SalaryComponentsForm({
   const totalAnnual = totalMonthly * 12
 
   const onSubmit = (data: SalaryComponentFormData) => {
-    console.log("✅ onSubmit function called!")
-    console.log("Form data:", data)
-    console.log("Updated salary components from table:", salaryComponents)
+    // Form submission logic if needed
   }
 
   const handleSaveClick = () => {
-    console.log("🔘 Save button clicked!")
-    console.log("Current salary components:", salaryComponents)
-
     // Send the updated salary components array directly
     saveMutation.mutate(salaryComponents)
   }
@@ -117,7 +97,6 @@ export function SalaryComponentsForm({
   // Watch for successful save and close dialog
   useEffect(() => {
     if (saveMutation.isSuccess && !saveMutation.isPending) {
-      console.log("✅ Save successful! Closing dialog...")
       onSaveSuccess?.()
     }
   }, [saveMutation.isSuccess, saveMutation.isPending, onSaveSuccess])
@@ -129,96 +108,112 @@ export function SalaryComponentsForm({
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
         {/* Salary Components Table */}
         <Card>
-          <CardHeader>
-            <CardTitle className="text-lg font-semibold">Earnings</CardTitle>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base font-semibold">Earnings</CardTitle>
           </CardHeader>
           <CardContent className="p-0">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-[200px]">SALARY COMPONENTS</TableHead>
-                  <TableHead className="w-[200px]">CALCULATION TYPE</TableHead>
-                  <TableHead className="w-[200px]">MONTHLY AMOUNT</TableHead>
-                  <TableHead className="w-[200px]">ANNUAL AMOUNT</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {salaryComponents.map((component) => (
-                  <TableRow key={component.componentId}>
-                    <TableCell className="font-medium">
-                      {component.componentName}
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-[200px] py-2 text-xs font-medium">
+                      COMPONENT
+                    </TableHead>
+                    <TableHead className="w-[150px] py-2 text-xs font-medium">
+                      TYPE
+                    </TableHead>
+                    <TableHead className="w-[150px] py-2 text-xs font-medium">
+                      MONTHLY
+                    </TableHead>
+                    <TableHead className="w-[150px] py-2 text-xs font-medium">
+                      ANNUAL
+                    </TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {salaryComponents.map((component) => (
+                    <TableRow key={component.componentId}>
+                      <TableCell className="py-2 text-sm font-medium">
+                        {component.componentName}
+                      </TableCell>
+                      <TableCell className="py-2 text-sm">
+                        {component.componentType}
+                      </TableCell>
+                      <TableCell className="py-2">
+                        <div className="w-32">
+                          <NumericFormat
+                            value={
+                              component.amount !== undefined
+                                ? component.amount
+                                : 0
+                            }
+                            onValueChange={(values) => {
+                              const { floatValue } = values
+                              const newAmount = floatValue || 0
+                              handleMonthlyAmountChange(
+                                component.componentId.toString(),
+                                newAmount.toString()
+                              )
+                            }}
+                            decimalScale={2}
+                            fixedDecimalScale={true}
+                            allowLeadingZeros={true}
+                            thousandSeparator={true}
+                            allowNegative={false}
+                            className="border-input bg-background ring-offset-background focus-visible:ring-ring hide-number-spinners flex h-8 w-full rounded-md border px-2 py-1 text-right text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
+                          />
+                        </div>
+                      </TableCell>
+                      <TableCell className="py-2 text-sm">
+                        {component.amount ? (
+                          <CurrencyFormatter
+                            amount={component.amount * 12}
+                            size="sm"
+                          />
+                        ) : (
+                          <CurrencyFormatter amount={0} size="sm" />
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  {/* Total Gross Pay */}
+                  <TableRow className="border-t-2">
+                    <TableCell colSpan={2} className="py-2 text-sm font-bold">
+                      Total Gross Pay
                     </TableCell>
-                    <TableCell>{component.componentType}</TableCell>
-                    <TableCell>
-                      <div className="w-48">
-                        <NumericFormat
-                          value={
-                            component.amount !== undefined
-                              ? component.amount
-                              : 0
-                          }
-                          onValueChange={(values) => {
-                            const { floatValue } = values
-                            const newAmount = floatValue || 0
-                            console.log("Input changed:", newAmount)
-                            handleMonthlyAmountChange(
-                              component.componentId.toString(),
-                              newAmount.toString()
-                            )
-                          }}
-                          decimalScale={2}
-                          fixedDecimalScale={true}
-                          allowLeadingZeros={true}
-                          thousandSeparator={true}
-                          allowNegative={false}
-                          className="border-input bg-background ring-offset-background focus-visible:ring-ring hide-number-spinners flex h-9 w-full rounded-md border px-3 py-1.5 text-right text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
-                        />
-                      </div>
+                    <TableCell className="py-2 text-sm font-bold">
+                      <CurrencyFormatter amount={totalMonthly} size="sm" />
                     </TableCell>
-                    <TableCell>
-                      {component.amount ? (
-                        <CurrencyFormatter
-                          amount={component.amount * 12}
-                          size="sm"
-                        />
-                      ) : (
-                        <CurrencyFormatter amount={0} size="sm" />
-                      )}
+                    <TableCell className="py-2 text-sm font-bold">
+                      <CurrencyFormatter amount={totalAnnual} size="sm" />
                     </TableCell>
                   </TableRow>
-                ))}
-                {/* Total Gross Pay */}
-                <TableRow className="font-semibold">
-                  <TableCell colSpan={2} className="font-semibold">
-                    Total Gross Pay
-                  </TableCell>
-                  <TableCell className="font-semibold">
-                    <CurrencyFormatter amount={totalMonthly} size="sm" />
-                  </TableCell>
-                  <TableCell className="font-semibold">
-                    <CurrencyFormatter amount={totalAnnual} size="sm" />
-                  </TableCell>
-                </TableRow>
-              </TableBody>
-            </Table>
+                </TableBody>
+              </Table>
+            </div>
           </CardContent>
         </Card>
 
         {/* Note Section */}
-        <div className="text-sm text-gray-600">
+        <div className="text-muted-foreground text-xs">
           Note: Any changes made to the salary components will take effect in
           the current pay run, provided it is not Approved.
         </div>
 
         {/* Action Buttons */}
-        <div className="flex justify-start space-x-2">
-          <Button type="button" onClick={handleSaveClick}>
+        <div className="flex justify-end gap-2">
+          <Button type="button" size="sm" onClick={handleSaveClick}>
             Save
           </Button>
-          <Button type="button" variant="outline" onClick={handleCancel}>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={handleCancel}
+          >
             Cancel
           </Button>
         </div>

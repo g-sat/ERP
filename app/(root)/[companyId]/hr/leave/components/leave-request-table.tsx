@@ -431,25 +431,25 @@ export function LeaveRequestTable({
                 <TableBody>
                   {filteredLeaves.map((leave, index) => (
                     <TableRow key={leave.leaveId || `leave-${index}`}>
-                      <TableCell>
-                        <div className="flex items-center space-x-3">
-                          <Avatar className="h-8 w-8">
+                      <TableCell className="py-2">
+                        <div className="flex items-center space-x-2">
+                          <Avatar className="h-6 w-6">
                             <AvatarImage src={leave.employeePhoto} />
                             <AvatarFallback>
                               {leave.employeeName?.charAt(0) || "?"}
                             </AvatarFallback>
                           </Avatar>
                           <div>
-                            <div className="font-medium">
+                            <div className="text-xs font-medium">
                               {leave.employeeName || "Unknown Employee"}
                             </div>
-                            <div className="text-muted-foreground text-sm">
+                            <div className="text-muted-foreground text-xs">
                               {leave.employeeCode || "No Code"}
                             </div>
                           </div>
                         </div>
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="py-2">
                         <Badge
                           variant="outline"
                           className={getLeaveTypeColor(leave.leaveTypeName)}
@@ -457,34 +457,36 @@ export function LeaveRequestTable({
                           {leave.leaveTypeName || "Unknown Type"}
                         </Badge>
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="py-2">
                         <div className="flex items-center space-x-1">
-                          <Calendar className="text-muted-foreground h-4 w-4" />
-                          <span className="text-sm">
+                          <Calendar className="text-muted-foreground h-3 w-3" />
+                          <span className="text-xs">
                             {formatDateRange(leave.startDate, leave.endDate)}
                           </span>
                         </div>
                       </TableCell>
-                      <TableCell>
-                        <span className="font-medium">
+                      <TableCell className="py-2">
+                        <span className="text-xs font-medium">
                           {leave.totalDays || 0}
                         </span>
-                        <span className="text-muted-foreground text-sm">
+                        <span className="text-muted-foreground text-xs">
                           {" "}
                           days
                         </span>
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="py-2">
                         <Badge
                           variant="outline"
                           className={`flex items-center space-x-1 ${getStatusColor(leave.statusName)}`}
                         >
                           {getStatusIcon(leave.statusName)}
-                          <span>{leave.statusName || "UNKNOWN"}</span>
+                          <span className="text-xs">
+                            {leave.statusName || "UNKNOWN"}
+                          </span>
                         </Badge>
                       </TableCell>
-                      <TableCell>
-                        <div className="max-w-xs truncate text-sm">
+                      <TableCell className="py-2">
+                        <div className="max-w-xs truncate text-xs">
                           {leave.reason || "No reason provided"}
                         </div>
                       </TableCell>

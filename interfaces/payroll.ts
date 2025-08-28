@@ -117,3 +117,18 @@ export interface ISalaryComponent {
   createDate: Date | string
   createBy?: string
 }
+
+export interface ISalaryHistory {
+  revisionId: number
+  effectDate: string | Date
+  basicAllowance: number
+  houseAllowance: number
+  foodAllowance: number
+  otherAllowance: number
+  total: number
+  previousTotal?: number
+  incrementAmount: number
+  incrementPercentage: number
+  createdBy: string
+  createdDate: string | Date
+}

@@ -2,11 +2,9 @@ export interface IEmployerDetails {
   employerDetailsId: number
   companyId: number
   companyName: string
+  branch: string
   establishmentId: string
-  establishmentCardExpiry?: string | Date
-  employerRefno?: string
-  wpsBankCode?: string
-  wpsFileReference?: string
+  bankName?: string
   bankAccountNumber?: string
   iban?: string
   isActive: boolean

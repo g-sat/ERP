@@ -128,7 +128,7 @@ export function ProcessPayRunCard({
                 {Number(currentPayRun.totalNetPay) > 0 ? (
                   <CurrencyFormatter
                     amount={Number(currentPayRun.totalNetPay)}
-                    size="md"
+                    size="sm"
                   />
                 ) : (
                   <span className="text-lg font-semibold text-red-600">

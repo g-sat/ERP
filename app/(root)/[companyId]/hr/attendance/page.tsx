@@ -1,17 +1,20 @@
 "use client"
 
-import { useCallback } from "react"
+import { useCallback, useState } from "react"
 import { IEmployeeAttendance } from "@/interfaces/attendance"
+import { Plus } from "lucide-react"
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 
 import { Hr_Attendance } from "@/lib/api-routes"
 import { useGetByPath } from "@/hooks/use-common"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import MonthAutocomplete from "@/components/ui-custom/autocomplete-month"
 
 import { AttendanceDashboard } from "./components/attendance-dashboard"
+import { AttendanceForm } from "./components/attendance-form"
 import { AttendanceTable } from "./components/attendance-table"
 
 interface AttendancePageForm extends Record<string, unknown> {
@@ -19,6 +22,8 @@ interface AttendancePageForm extends Record<string, unknown> {
 }
 
 export default function AttendancePage() {
+  const [isFormOpen, setIsFormOpen] = useState(false)
+
   const form = useForm<AttendancePageForm>({
     defaultValues: {
       selectedMonth: new Date().toISOString().slice(0, 7), // Current month in YYYY-MM format
@@ -82,6 +87,15 @@ export default function AttendancePage() {
             Monitor and manage employee attendance records
           </p>
         </div>
+        <div className="flex items-center gap-2">
+          <Button
+            onClick={() => setIsFormOpen(true)}
+            className="flex items-center gap-2"
+          >
+            <Plus className="h-4 w-4" />
+            Bulk Attendance
+          </Button>
+        </div>
       </div>
 
       {/* Content */}
@@ -119,6 +133,9 @@ export default function AttendancePage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Bulk Attendance Form Dialog */}
+      <AttendanceForm open={isFormOpen} onOpenChange={setIsFormOpen} />
     </div>
   )
 }

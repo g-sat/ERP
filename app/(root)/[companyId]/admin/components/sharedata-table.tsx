@@ -151,7 +151,7 @@ export function ShareDataTable() {
   }
 
   return (
-    <div className="rounded-md border bg-[#10131c] p-4">
+    <div className="rounded-md border p-4">
       <div className="mb-6">
         <h2 className="mb-2 text-2xl font-bold">Share Data</h2>
         <p className="text-muted-foreground">

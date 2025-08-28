@@ -37,6 +37,7 @@ export const Hr_Attendance = {
   get: "/hr/GetAttendanceEmployee",
   getById: "/hr/GetAttendanceEmployeeById",
   save: "/hr/SaveAttendanceEmployee",
+  saveBulk: "/hr/SaveBulkAttendance",
   delete: "/hr/DeleteAttendanceEmployee",
 }
 

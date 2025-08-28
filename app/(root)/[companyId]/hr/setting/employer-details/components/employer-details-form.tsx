@@ -6,13 +6,10 @@ import {
   employerdetailsschema,
 } from "@/schemas/employer-details"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { format } from "date-fns"
 import { useForm } from "react-hook-form"
 
-import { clientDateFormat, parseDate } from "@/lib/format"
 import { Form } from "@/components/ui/form"
 import CompanyAutocomplete from "@/components/ui-custom/autocomplete-company"
-import { CustomDateNew } from "@/components/ui-custom/custom-date-new"
 import CustomInput from "@/components/ui-custom/custom-input"
 import CustomTextarea from "@/components/ui-custom/custom-textarea"
 
@@ -31,20 +28,12 @@ export function EmployerDetailsForm({
       employerDetailsId: employerDetails?.employerDetailsId || 0,
       companyId: employerDetails?.companyId || 0,
       establishmentId: employerDetails?.establishmentId || "",
-      establishmentCardExpiry: employerDetails?.establishmentCardExpiry
-        ? format(
-            parseDate(employerDetails?.establishmentCardExpiry as string) ||
-              new Date(),
-            clientDateFormat
-          )
-        : "",
-      employerRefno: employerDetails?.employerRefno || "",
-      wpsBankCode: employerDetails?.wpsBankCode || "",
-      wpsFileReference: employerDetails?.wpsFileReference || "",
       bankAccountNumber: employerDetails?.bankAccountNumber || "",
       iban: employerDetails?.iban || "",
       isActive: employerDetails?.isActive ?? true,
       remarks: employerDetails?.remarks || "",
+      bankName: employerDetails?.bankName || "",
+      branch: employerDetails?.branch || "",
     },
   })
 
@@ -72,31 +61,8 @@ export function EmployerDetailsForm({
             label="Establishment ID"
             isRequired={true}
           />
-
-          <CustomDateNew
-            form={form}
-            name="establishmentCardExpiry"
-            label="Establishment Card Expiry"
-          />
-        </div>
-
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <CustomInput
-            form={form}
-            name="employerRefno"
-            label="Employer Ref No"
-          />
-
-          <CustomInput form={form} name="wpsBankCode" label="WPS Bank Code" />
-        </div>
-
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <CustomInput
-            form={form}
-            name="wpsFileReference"
-            label="WPS File Reference"
-          />
-
+          <CustomInput form={form} name="branch" label="Branch" />
+          <CustomInput form={form} name="bankName" label="Bank Name" />
           <CustomInput
             form={form}
             name="bankAccountNumber"

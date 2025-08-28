@@ -19,7 +19,6 @@ import { DataTableSkeleton } from "@/components/skeleton/data-table-skeleton"
 
 import { EmployerDetailsForm } from "./components/employer-details-form"
 import { EmployerDetailsTable } from "./components/employer-details-table"
-import { EmployerDetailsView } from "./components/employer-details-view"
 
 export default function EmployerDetailsPage() {
   // Permissions
@@ -29,10 +28,7 @@ export default function EmployerDetailsPage() {
 
   // Form states
   const [employerDetailsFormOpen, setEmployerDetailsFormOpen] = useState(false)
-  const [viewDialogOpen, setViewDialogOpen] = useState(false)
   const [selectedEmployerDetails, setSelectedEmployerDetails] =
-    useState<IEmployerDetails | null>(null)
-  const [viewingEmployerDetails, setViewingEmployerDetails] =
     useState<IEmployerDetails | null>(null)
 
   const [deleteDialog, setDeleteDialog] = useState(false)
@@ -63,11 +59,6 @@ export default function EmployerDetailsPage() {
   const handleEditEmployerDetails = (employerDetails: IEmployerDetails) => {
     setSelectedEmployerDetails(employerDetails)
     setEmployerDetailsFormOpen(true)
-  }
-
-  const handleViewEmployerDetails = (employerDetails: IEmployerDetails) => {
-    setViewingEmployerDetails(employerDetails)
-    setViewDialogOpen(true)
   }
 
   const handleDeleteEmployerDetails = (employerDetails: IEmployerDetails) => {
@@ -112,7 +103,6 @@ export default function EmployerDetailsPage() {
           onEdit={handleEditEmployerDetails}
           onDelete={handleDeleteEmployerDetails}
           onCreate={handleCreateEmployerDetails}
-          onView={handleViewEmployerDetails}
           onRefresh={refetchEmployerDetails}
           canCreate={canCreateEmployerDetails}
           canEdit={canEditEmployerDetails}
@@ -176,13 +166,6 @@ export default function EmployerDetailsPage() {
           </div>
         </DialogContent>
       </Dialog>
-
-      {/* View Dialog */}
-      <EmployerDetailsView
-        open={viewDialogOpen}
-        onOpenChange={setViewDialogOpen}
-        employerDetails={viewingEmployerDetails}
-      />
 
       <DeleteConfirmation
         open={deleteDialog}

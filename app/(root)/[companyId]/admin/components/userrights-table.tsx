@@ -155,7 +155,7 @@ export function UserRightsTable() {
   }
 
   return (
-    <div className="rounded-md border bg-[#10131c] p-4">
+    <div className="rounded-md border p-4">
       <Form {...form}>
         <form onSubmit={form.handleSubmit(handleSearch)}>
           <div className="mb-4 flex items-center justify-between">
@@ -222,7 +222,7 @@ export function UserRightsTable() {
                     <TableCell>
                       <select
                         className={cn(
-                          "rounded border border-[#232733] bg-[#232733] px-2 py-1 text-white",
+                          "rounded border px-2 py-1",
                           row.isAccess && !row.userGroupId && "border-red-500"
                         )}
                         value={row.userGroupId}

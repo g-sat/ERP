@@ -3,18 +3,11 @@
 import { useEffect, useState } from "react"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { IEmployeeBasic } from "@/interfaces/employee"
-import { Edit, MoreHorizontal, RefreshCw, Search, Trash2 } from "lucide-react"
+import { Edit, RefreshCw, Search, Trash2 } from "lucide-react"
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
 import {
   Table,
@@ -125,7 +118,7 @@ export function EmployeeListTable({
       .map((n) => n[0])
       .join("")
       .toUpperCase()
-      .slice(0, 2)
+      .slice(0, 1)
   }
 
   return (
@@ -167,6 +160,7 @@ export function EmployeeListTable({
           <TableHeader>
             <TableRow>
               <TableHead>Employee</TableHead>
+              <TableHead>Company</TableHead>
               <TableHead>Department</TableHead>
               <TableHead>Designation</TableHead>
               <TableHead>Email</TableHead>
@@ -192,53 +186,56 @@ export function EmployeeListTable({
                       : ""
                   }
                 >
-                  <TableCell>
-                    <div className="flex items-center space-x-3">
-                      <Avatar className="h-8 w-8">
-                        <AvatarFallback>
+                  <TableCell className="py-1">
+                    <div className="flex items-center space-x-2">
+                      <Avatar className="h-4 w-4">
+                        <AvatarFallback className="text-xs">
                           {getInitials(employee.employeeName || "")}
                         </AvatarFallback>
                       </Avatar>
                       <div>
-                        <div className="font-medium">
+                        <div className="text-xs font-medium">
                           {employee.employeeName} ({employee.employeeCode})
-                        </div>
-                        <div className="text-muted-foreground text-sm">
-                          {employee.companyName}
                         </div>
                       </div>
                     </div>
                   </TableCell>
-                  <TableCell>{employee.departmentName || "N/A"}</TableCell>
-                  <TableCell>{employee.designationName || "N/A"}</TableCell>
-                  <TableCell>{employee.offEmailAdd || "N/A"}</TableCell>
-                  <TableCell>
+                  <TableCell className="py-1 text-xs">
+                    {employee.companyName || "N/A"}
+                  </TableCell>
+                  <TableCell className="py-1 text-xs">
+                    {employee.departmentName || "N/A"}
+                  </TableCell>
+                  <TableCell className="py-1 text-xs">
+                    {employee.designationName || "N/A"}
+                  </TableCell>
+                  <TableCell className="py-1 text-xs">
+                    {employee.offEmailAdd || "N/A"}
+                  </TableCell>
+                  <TableCell className="py-1">
                     {getStatusBadge(employee.isActive || false)}
                   </TableCell>
-                  <TableCell className="text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="h-8 w-8 p-0">
-                          <span className="sr-only">Open menu</span>
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
-
-                        <DropdownMenuItem onClick={() => onEdit(employee)}>
-                          <Edit className="mr-2 h-4 w-4" />
-                          Edit
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => onDelete(employee)}
-                          className="text-red-600"
-                        >
-                          <Trash2 className="mr-2 h-4 w-4" />
-                          Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                  <TableCell className="py-1 text-right">
+                    <div className="flex items-center justify-end gap-1">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => onEdit(employee)}
+                        className="h-5 w-5 p-0"
+                      >
+                        <Edit className="h-2.5 w-2.5" />
+                        <span className="sr-only">Edit</span>
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => onDelete(employee)}
+                        className="h-5 w-5 p-0 text-red-600 hover:text-red-700"
+                      >
+                        <Trash2 className="h-2.5 w-2.5" />
+                        <span className="sr-only">Delete</span>
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))

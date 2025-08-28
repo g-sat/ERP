@@ -183,7 +183,7 @@ export function UserWiseRightsTable() {
   }
 
   return (
-    <div className="rounded-md border bg-[#10131c] p-4">
+    <div className="rounded-md border p-4">
       <Form {...form}>
         <form onSubmit={form.handleSubmit(handleSearch)}>
           <div className="mb-4 flex items-center justify-between">
@@ -218,15 +218,15 @@ export function UserWiseRightsTable() {
           <div className="max-h-[460px] overflow-auto">
             <div className="relative">
               <Table>
-                <TableHeader className="sticky top-0 z-20 bg-[#10131c]">
+                <TableHeader className="sticky top-0 z-20">
                   <TableRow>
-                    <TableHead className="sticky left-0 z-30 min-w-[150px] bg-[#10131c]">
+                    <TableHead className="sticky left-0 z-30 min-w-[150px]">
                       Module
                     </TableHead>
-                    <TableHead className="sticky left-[150px] z-30 min-w-[150px] bg-[#10131c]">
+                    <TableHead className="sticky left-[150px] z-30 min-w-[150px]">
                       Transaction
                     </TableHead>
-                    <TableHead className="sticky left-[300px] z-30 min-w-[100px] bg-[#10131c]">
+                    <TableHead className="sticky left-[300px] z-30 min-w-[100px]">
                       <div className="flex items-center gap-2">
                         <span>Select All</span>
                         <Checkbox
@@ -343,13 +343,13 @@ export function UserWiseRightsTable() {
                       <TableRow
                         key={`${right.moduleId}-${right.transactionId}`}
                       >
-                        <TableCell className="sticky left-0 z-20 min-w-[150px] bg-[#10131c]">
+                        <TableCell className="sticky left-0 z-20 min-w-[150px]">
                           {right.moduleName}
                         </TableCell>
-                        <TableCell className="sticky left-[150px] z-20 min-w-[150px] bg-[#10131c]">
+                        <TableCell className="sticky left-[150px] z-20 min-w-[150px]">
                           {right.transactionName}
                         </TableCell>
-                        <TableCell className="sticky left-[300px] z-20 min-w-[100px] bg-[#10131c]">
+                        <TableCell className="sticky left-[300px] z-20 min-w-[100px]">
                           <Checkbox
                             checked={isRowAllSelected(right)}
                             onCheckedChange={(checked) =>
