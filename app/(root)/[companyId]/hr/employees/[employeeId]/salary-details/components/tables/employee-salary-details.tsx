@@ -50,10 +50,11 @@ export function EmployeeSalaryDetailsTable({
   }
 
   // Calculate totals from the array data
-  const totalMonthly = employeeSalaryDetails?.reduce(
-    (sum, component) => sum + (component.amount || 0),
-    0
-  )
+  const totalMonthly =
+    employeeSalaryDetails?.reduce(
+      (sum, component) => sum + (component.amount || 0),
+      0
+    ) || 0
   const totalAnnual = totalMonthly * 12
 
   // Group components by type (Earning/Deduction)
@@ -136,7 +137,7 @@ export function EmployeeSalaryDetailsTable({
                   </div>
                 </div>
                 <Badge variant="secondary" className="text-xs">
-                  {earnings.length} Components
+                  {earnings?.length || 0} Components
                 </Badge>
               </div>
             </div>
@@ -160,7 +161,7 @@ export function EmployeeSalaryDetailsTable({
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {earnings.map((component) => (
+                  {earnings?.map((component) => (
                     <TableRow key={component.componentId}>
                       <TableCell className="py-1 text-xs font-medium">
                         {component.componentName}
@@ -201,7 +202,7 @@ export function EmployeeSalaryDetailsTable({
           </div>
 
           {/* Other Deductions */}
-          {deductions.length > 0 && (
+          {deductions && deductions.length > 0 && (
             <div className="bg-background rounded-lg border">
               <div className="border-b p-4">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -217,7 +218,7 @@ export function EmployeeSalaryDetailsTable({
                     </div>
                   </div>
                   <Badge variant="secondary" className="text-xs">
-                    {deductions.length} Deductions
+                    {deductions?.length || 0} Deductions
                   </Badge>
                 </div>
               </div>
@@ -241,7 +242,7 @@ export function EmployeeSalaryDetailsTable({
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {deductions.map((component) => (
+                    {deductions?.map((component) => (
                       <TableRow key={component.componentId}>
                         <TableCell className="py-1 text-xs font-medium">
                           {component.componentName}
@@ -289,7 +290,7 @@ export function EmployeeSalaryDetailsTable({
               </div>
             </div>
 
-            {salaryHistory.length === 0 ? (
+            {!salaryHistory || salaryHistory.length === 0 ? (
               <div className="p-4 text-center">
                 <div className="text-muted-foreground text-sm">
                   No salary history found
@@ -330,7 +331,7 @@ export function EmployeeSalaryDetailsTable({
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {salaryHistory.map((record: ISalaryHistory) => (
+                    {salaryHistory?.map((record: ISalaryHistory) => (
                       <TableRow key={record.revisionId}>
                         <TableCell className="py-1 text-xs font-medium">
                           {new Date(record.effectDate).toLocaleDateString()}

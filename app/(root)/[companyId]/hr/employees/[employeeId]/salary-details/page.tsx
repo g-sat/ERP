@@ -43,8 +43,10 @@ export default function SalaryDetailsPage() {
   } = useGetEmployeeSalaryDetailsById(employeeId)
 
   // Use hook to fetch employee data
-  const { data: employeeSalaryDetailsHistoryData } =
-    useGetEmployeeSalaryHistory(employeeId)
+  const {
+    data: employeeSalaryDetailsHistoryData,
+    isLoading: salaryHistoryLoading,
+  } = useGetEmployeeSalaryHistory(employeeId)
 
   const { data: componentsData, isLoading: componentsLoading } = useGet(
     SalaryComponent.getSalary,
@@ -53,10 +55,11 @@ export default function SalaryDetailsPage() {
 
   // Get the employee salary details from the response
   const employeeSalaryDetails =
-    employeeSalaryDetailsData?.data as unknown as ISalaryComponent[]
+    (employeeSalaryDetailsData?.data as unknown as ISalaryComponent[]) || []
 
   const salaryHistory =
-    employeeSalaryDetailsHistoryData?.data as unknown as ISalaryHistory[]
+    (employeeSalaryDetailsHistoryData?.data as unknown as ISalaryHistory[]) ||
+    []
 
   // Get payroll components data
   const components =
@@ -69,7 +72,7 @@ export default function SalaryDetailsPage() {
       : employeeSalaryDetails && employeeSalaryDetails.length > 0
 
   // Show loading skeleton
-  if (isLoading || componentsLoading) {
+  if (isLoading || componentsLoading || salaryHistoryLoading) {
     return <DataTableSkeleton columnCount={7} />
   }
 
