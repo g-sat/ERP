@@ -5,6 +5,57 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
+/**
+ * Converts day of week number (1-7) to day name
+ * @param dayNumber - Day number (1 = Sunday, 2 = Monday, ..., 7 = Saturday)
+ * @returns Day name or original value if invalid
+ */
+export function getDayName(dayNumber: string | number | undefined): string {
+  if (!dayNumber) return "Sunday"
+
+  const dayNames = [
+    "Sunday",
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+  ]
+
+  const num =
+    typeof dayNumber === "string" ? parseInt(dayNumber, 10) : dayNumber
+
+  return num >= 1 && num <= 7 ? dayNames[num - 1] : "Sunday"
+}
+
+/**
+ * Converts day of week number to short day name
+ * @param dayNumber - Day number (1 = Sun, 2 = Mon, ..., 7 = Sat)
+ * @returns Short day name or original value if invalid
+ */
+export function getShortDayName(
+  dayNumber: string | number | undefined
+): string {
+  if (!dayNumber) return "Sun"
+
+  const shortDayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+
+  const num =
+    typeof dayNumber === "string" ? parseInt(dayNumber, 10) : dayNumber
+
+  return num >= 1 && num <= 7 ? shortDayNames[num - 1] : "Sun"
+}
+
+/**
+ * Gets the day number from a Date object (1-7, where 1 = Sunday)
+ * @param date - Date object
+ * @returns Day number (1-7)
+ */
+export function getDayNumber(date: Date): number {
+  return date.getDay() + 1 // getDay() returns 0-6, we want 1-7
+}
+
 export function absoluteUrl(path: string) {
   return `${process.env.NEXT_PUBLIC_APP_URL}${path}`
 }

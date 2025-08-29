@@ -14,6 +14,7 @@ import { Form } from "@/components/ui/form"
 import CompanyAutocomplete from "@/components/ui-custom/autocomplete-company"
 import ContractTypeAutocomplete from "@/components/ui-custom/autocomplete-contract-type"
 import CountryAutocomplete from "@/components/ui-custom/autocomplete-country"
+import DayOfWeekAutocomplete from "@/components/ui-custom/autocomplete-day-of-week"
 import DepartmentAutocomplete from "@/components/ui-custom/autocomplete-department"
 import DesignationAutocomplete from "@/components/ui-custom/autocomplete-designation"
 import EmploymentTypeAutocomplete from "@/components/ui-custom/autocomplete-employment-type"
@@ -46,6 +47,7 @@ export function EmployeeBasicForm({ employee, onCancel }: Props) {
       designationId: employee?.designationId || 0,
       workLocationId: employee?.workLocationId || 0,
       genderId: employee?.genderId || 0,
+      dayOfWeek: employee?.dayOfWeek || 0,
       joinDate: employee?.joinDate
         ? format(
             parseDate(employee?.joinDate as string) || new Date(),
@@ -87,6 +89,7 @@ export function EmployeeBasicForm({ employee, onCancel }: Props) {
         designationId: employee.designationId || 0,
         workLocationId: employee.workLocationId || 0,
         genderId: employee.genderId || 0,
+        dayOfWeek: employee.dayOfWeek || 0,
         joinDate: employee?.joinDate
           ? format(
               parseDate(employee?.joinDate as string) || new Date(),
@@ -205,6 +208,12 @@ export function EmployeeBasicForm({ employee, onCancel }: Props) {
             name="workLocationId"
           />
           <GenderAutocomplete form={form} label="Gender" name="genderId" />
+          <DayOfWeekAutocomplete
+            form={form}
+            label="Day of Week"
+            name="dayOfWeek"
+            isRequired
+          />
           <CustomDateNew form={form} label="Date of Joining" name="joinDate" />
           <CustomDateNew
             form={form}

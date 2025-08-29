@@ -57,7 +57,10 @@ const formatMonth = (date: Date) => {
   return formatDate(date).substring(0, 7)
 }
 
-export function AttendanceForm({ open, onOpenChange }: AttendanceFormProps) {
+export function AttendanceBulkForm({
+  open,
+  onOpenChange,
+}: AttendanceFormProps) {
   const [selectedMonthYear, setSelectedMonthYear] = useState<string>(
     formatMonth(new Date())
   )
@@ -231,12 +234,11 @@ export function AttendanceForm({ open, onOpenChange }: AttendanceFormProps) {
             Select employees and mark their attendance for multiple days
           </DialogDescription>
         </DialogHeader>
-
-        <Form {...form}>
-          <div className="space-y-4">
+        <div className="space-y-6">
+          <Form {...form}>
             {/* Header */}
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex items-center space-x-2">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-center gap-3">
                 <FormItem>
                   <FormControl>
                     <MonthAutocomplete
@@ -249,21 +251,58 @@ export function AttendanceForm({ open, onOpenChange }: AttendanceFormProps) {
                   </FormControl>
                   <FormMessage />
                 </FormItem>
+
+                {/* Select All Button */}
+                {bulkData.length > 0 && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setBulkData((prev) =>
+                        prev.map((employee) => ({
+                          ...employee,
+                          days: employee.days.map((day) => ({
+                            ...day,
+                            isPresent: true,
+                          })),
+                        }))
+                      )
+                    }}
+                  >
+                    Select All
+                  </Button>
+                )}
               </div>
 
-              <div className="flex flex-col gap-2 sm:flex-row sm:space-x-2">
+              {/* Summary Badges */}
+              {bulkData.length > 0 && (
+                <div className="flex items-center gap-3">
+                  <Badge variant="outline">{employees.length} Employees</Badge>
+                  <Badge variant="outline">{days.length} Days</Badge>
+                  <Badge
+                    variant="outline"
+                    className="bg-green-100 text-green-800"
+                  >
+                    {getSelectedCount()} Selected
+                  </Badge>
+                </div>
+              )}
+
+              {/* Action Buttons */}
+              <div className="flex items-center gap-2">
                 <Button
                   type="button"
                   variant="outline"
+                  size="sm"
                   onClick={() => onOpenChange(false)}
-                  className="w-full sm:w-auto"
                 >
                   Cancel
                 </Button>
                 <Button
                   type="button"
+                  size="sm"
                   onClick={handleSubmit}
-                  className="w-full sm:w-auto"
                   disabled={
                     bulkData.length === 0 || bulkSaveAttendance.isPending
                   }
@@ -288,128 +327,122 @@ export function AttendanceForm({ open, onOpenChange }: AttendanceFormProps) {
               </div>
             )}
 
-            {/* Summary */}
-            {bulkData.length > 0 && (
-              <div className="flex items-center justify-between rounded-lg border p-3">
-                <div className="flex items-center gap-4">
-                  <Badge variant="outline">{employees.length} Employees</Badge>
-                  <Badge variant="outline">{days.length} Days</Badge>
-                  <Badge
-                    variant="outline"
-                    className="bg-green-100 text-green-800"
-                  >
-                    {getSelectedCount()} Selected
-                  </Badge>
-                </div>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    setBulkData((prev) =>
-                      prev.map((employee) => ({
-                        ...employee,
-                        days: employee.days.map((day) => ({
-                          ...day,
-                          isPresent: true,
-                        })),
-                      }))
-                    )
-                  }}
-                >
-                  Select All
-                </Button>
-              </div>
-            )}
-
             {/* Table */}
             {!isLoading && bulkData.length > 0 && (
-              <div className="overflow-x-auto">
+              <div className="overflow-x-auto rounded-lg border">
                 <Table>
-                  <TableHeader>
-                    <TableRow className="bg-muted/50">
-                      <TableHead className="bg-muted/50 sticky left-0 z-10 w-[200px] min-w-[180px]">
-                        <div className="flex items-center space-x-2">
-                          <span className="font-semibold">Employee</span>
-                        </div>
-                      </TableHead>
+                  {/* Header table */}
+                  <Table className="w-full table-fixed border-collapse">
+                    <colgroup>
+                      <col className="w-[200px] min-w-[180px]" />
                       {days.map((day) => (
-                        <TableHead
-                          key={day.day}
-                          className="w-[50px] min-w-[40px] p-1 text-center"
-                        >
-                          <div className="flex flex-col items-center">
-                            <span className="text-xs font-semibold">
-                              {day.day.toString().padStart(2, "0")}
-                            </span>
-                            <span className="text-muted-foreground text-xs">
-                              {day.dayName}
-                            </span>
-                            <Checkbox
-                              checked={bulkData.every(
-                                (emp) =>
-                                  emp.days.find((d) => d.date === day.fullDate)
-                                    ?.isPresent
-                              )}
-                              onCheckedChange={(isPresent) =>
-                                handleSelectAllEmployees(
-                                  day.fullDate,
-                                  isPresent as boolean
-                                )
-                              }
-                              className="mt-1"
-                            />
+                        <col key={day.day} className="w-[35px] min-w-[30px]" />
+                      ))}
+                    </colgroup>
+                    <TableHeader className="bg-background sticky top-0 z-20">
+                      <TableRow>
+                        <TableHead className="bg-muted/50 sticky left-0 z-30">
+                          <div className="flex items-center space-x-2">
+                            <span className="font-semibold">Employee</span>
                           </div>
                         </TableHead>
-                      ))}
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {bulkData.map((employee) => (
-                      <TableRow key={employee.employeeId} className="group">
-                        <TableCell className="bg-background sticky left-0 z-10 min-w-[180px] py-2">
-                          <div className="flex items-center space-x-2">
-                            <div className="min-w-0 flex-1">
-                              <div className="truncate text-xs font-medium">
-                                {employee.employeeName}
-                              </div>
+                        {days.map((day) => (
+                          <TableHead
+                            key={day.day}
+                            className="p-0.5 text-center"
+                          >
+                            <div className="flex flex-col items-center">
+                              <span className="text-xs font-semibold">
+                                {day.day.toString().padStart(2, "0")}
+                              </span>
+                              <span className="text-muted-foreground text-xs">
+                                {day.dayName}
+                              </span>
+                              <Checkbox
+                                checked={bulkData.every(
+                                  (emp) =>
+                                    emp.days.find(
+                                      (d) => d.date === day.fullDate
+                                    )?.isPresent
+                                )}
+                                onCheckedChange={(isPresent) =>
+                                  handleSelectAllEmployees(
+                                    day.fullDate,
+                                    isPresent as boolean
+                                  )
+                                }
+                                className="mt-1"
+                              />
                             </div>
-                            <Checkbox
-                              checked={employee.days.every(
-                                (day) => day.isPresent
-                              )}
-                              onCheckedChange={(isPresent) =>
-                                handleSelectAllDays(
-                                  employee.employeeId,
-                                  isPresent as boolean
-                                )
-                              }
-                            />
-                          </div>
-                        </TableCell>
-                        {employee.days.map((day) => (
-                          <TableCell key={day.date} className="p-1 text-center">
-                            <Checkbox
-                              checked={day.isPresent}
-                              onCheckedChange={(isPresent) =>
-                                handleDayCheckboxChange(
-                                  employee.employeeId,
-                                  day.date,
-                                  isPresent as boolean
-                                )
-                              }
-                              className="mx-auto"
-                            />
-                          </TableCell>
+                          </TableHead>
                         ))}
                       </TableRow>
-                    ))}
-                  </TableBody>
+                    </TableHeader>
+                  </Table>
+
+                  {/* Scrollable body table */}
+                  <div className="max-h-[400px] overflow-y-auto">
+                    <Table className="w-full table-fixed border-collapse">
+                      <colgroup>
+                        <col className="w-[200px] min-w-[180px]" />
+                        {days.map((day) => (
+                          <col
+                            key={day.day}
+                            className="w-[35px] min-w-[30px]"
+                          />
+                        ))}
+                      </colgroup>
+                      <TableBody>
+                        {bulkData.map((employee) => (
+                          <TableRow key={employee.employeeId} className="group">
+                            <TableCell className="bg-background sticky left-0 z-10 py-2">
+                              <div className="flex items-center space-x-2">
+                                <div className="min-w-0 flex-1">
+                                  <div className="truncate text-xs font-medium">
+                                    {employee.employeeName}
+                                  </div>
+                                </div>
+                                <Checkbox
+                                  checked={employee.days.every(
+                                    (day) => day.isPresent
+                                  )}
+                                  onCheckedChange={(isPresent) =>
+                                    handleSelectAllDays(
+                                      employee.employeeId,
+                                      isPresent as boolean
+                                    )
+                                  }
+                                />
+                              </div>
+                            </TableCell>
+                            {employee.days.map((day) => (
+                              <TableCell
+                                key={day.date}
+                                className="p-0.5 text-center"
+                              >
+                                <Checkbox
+                                  checked={day.isPresent}
+                                  onCheckedChange={(isPresent) =>
+                                    handleDayCheckboxChange(
+                                      employee.employeeId,
+                                      day.date,
+                                      isPresent as boolean
+                                    )
+                                  }
+                                  className="mx-auto"
+                                />
+                              </TableCell>
+                            ))}
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
                 </Table>
               </div>
             )}
-          </div>
-        </Form>
+          </Form>
+        </div>
       </DialogContent>
     </Dialog>
   )

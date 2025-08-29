@@ -12,17 +12,26 @@ import {
   Building,
   Calendar,
   Check,
+  Clock,
+  CreditCard,
   Edit,
   Eye,
   EyeOff,
-  FileText,
   Flag,
+  Globe,
+  Hash,
+  Home,
+  IdCard,
+  Landmark,
   Mail,
   MapPin,
   Phone,
   User,
+  Users,
+  Wallet,
 } from "lucide-react"
 
+import { getDayName } from "@/lib/utils"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -67,7 +76,6 @@ export function EmployeeOverview({
   return (
     <>
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        {/* Left Column - Basic Information */}
         <div className="lg:col-span-1">
           <Card className="border-gray-200 bg-transparent shadow-sm">
             <CardHeader className="relative pb-4">
@@ -173,9 +181,15 @@ export function EmployeeOverview({
                     </span>
                   </div>
                   <div className="flex items-center space-x-3">
-                    <FileText className="h-4 w-4 text-gray-400" />
+                    <Briefcase className="h-4 w-4 text-gray-400" />
                     <span className="text-sm">
                       {employeeBasic?.employmentType || ""}
+                    </span>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <Clock className="h-4 w-4 text-gray-400" />
+                    <span className="text-sm">
+                      {getDayName(employeeBasic?.dayOfWeek)} (WeekOff)
                     </span>
                   </div>
                 </div>
@@ -183,10 +197,8 @@ export function EmployeeOverview({
             </CardContent>
           </Card>
         </div>
-
-        {/* Right Column - Information Cards */}
-        <div className="space-y-6 lg:col-span-2">
-          {/* Personal Information */}
+        {/* Personal Information */}
+        <div className="lg:col-span-1">
           <Card className="border-gray-200 bg-transparent shadow-sm">
             <CardHeader className="relative pb-4">
               <div className="absolute top-4 right-4">
@@ -205,111 +217,133 @@ export function EmployeeOverview({
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <label className="text-sm font-medium text-gray-500">
-                    Date of Birth
-                  </label>
-                  <p className="text-sm">
-                    {employeePersonal?.dob
-                      ? new Date(employeePersonal?.dob).toLocaleDateString()
-                      : ""}
-                  </p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-500">
-                    Father&apos;s Name
-                  </label>
-                  <p className="text-sm">
-                    {employeePersonal?.fatherName || ""}
-                  </p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-500">
-                    Work Permit No
-                  </label>
-                  <p className="text-sm">
-                    {employeePersonal?.workPermitNo || ""}
-                  </p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-500">
-                    Personal No
-                  </label>
-                  <p className="text-sm">
-                    {employeePersonal?.personalNo || ""}
-                  </p>
+              <div className="space-y-4">
+                {/* Personal Information */}
+                <div className="space-y-3">
+                  <div className="flex items-center space-x-3">
+                    <Calendar className="h-4 w-4 text-gray-400" />
+                    <label className="text-sm font-medium text-gray-500">
+                      Date of Birth
+                    </label>
+                    <span className="text-sm">
+                      {employeePersonal?.dob
+                        ? new Date(employeePersonal?.dob).toLocaleDateString()
+                        : ""}
+                    </span>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <Users className="h-4 w-4 text-gray-400" />
+                    <label className="text-sm font-medium text-gray-500">
+                      Father&apos;s Name
+                    </label>
+                    <span className="text-sm">
+                      {employeePersonal?.fatherName || ""}
+                    </span>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <Mail className="h-4 w-4 text-gray-400" />
+                    <label className="text-sm font-medium text-gray-500">
+                      Personal Email
+                    </label>
+                    <span className="text-sm">
+                      {employeePersonal?.emailAdd || ""}
+                    </span>
+                  </div>
                 </div>
 
-                <div>
-                  <label className="text-sm font-medium text-gray-500">
-                    Passport No
-                  </label>
-                  <p className="text-sm">
-                    {employeePersonal?.passportNo || ""}
-                  </p>
+                {/* Document Information */}
+                <div className="space-y-3">
+                  <div className="flex items-center space-x-3">
+                    <IdCard className="h-4 w-4 text-gray-400" />
+                    <label className="text-sm font-medium text-gray-500">
+                      Work Permit No
+                    </label>
+                    <span className="text-sm">
+                      {employeePersonal?.workPermitNo || ""}
+                    </span>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <IdCard className="h-4 w-4 text-gray-400" />
+                    <label className="text-sm font-medium text-gray-500">
+                      Personal No
+                    </label>
+                    <span className="text-sm">
+                      {employeePersonal?.personalNo || ""}
+                    </span>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <Globe className="h-4 w-4 text-gray-400" />
+                    <label className="text-sm font-medium text-gray-500">
+                      Passport No
+                    </label>
+                    <span className="text-sm">
+                      {employeePersonal?.passportNo || ""}
+                    </span>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <Calendar className="h-4 w-4 text-gray-400" />
+                    <label className="text-sm font-medium text-gray-500">
+                      Passport Expiry
+                    </label>
+                    <span className="text-sm">
+                      {employeePersonal?.passportExpiryDate
+                        ? new Date(
+                            employeePersonal?.passportExpiryDate as string
+                          ).toLocaleDateString()
+                        : ""}
+                    </span>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <IdCard className="h-4 w-4 text-gray-400" />
+                    <label className="text-sm font-medium text-gray-500">
+                      Emirates ID No
+                    </label>
+                    <span className="text-sm">
+                      {employeePersonal?.emiratesIdNo || ""}
+                    </span>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <Calendar className="h-4 w-4 text-gray-400" />
+                    <label className="text-sm font-medium text-gray-500">
+                      Emirates ID Expiry
+                    </label>
+                    <span className="text-sm">
+                      {employeePersonal?.emiratesIdExpiryDate
+                        ? new Date(
+                            employeePersonal?.emiratesIdExpiryDate as string
+                          ).toLocaleDateString()
+                        : ""}
+                    </span>
+                  </div>
                 </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-500">
-                    Passport Expiry Date
-                  </label>
-                  <p className="text-sm">
-                    {employeePersonal?.passportExpiryDate
-                      ? new Date(
-                          employeePersonal?.passportExpiryDate as string
-                        ).toLocaleDateString()
-                      : ""}
-                  </p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-500">
-                    Emirates ID No
-                  </label>
-                  <p className="text-sm">
-                    {employeePersonal?.emiratesIdNo || ""}
-                  </p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-500">
-                    Emirates ID Expiry Date
-                  </label>
-                  <p className="text-sm">
-                    {employeePersonal?.emiratesIdExpiryDate
-                      ? new Date(
-                          employeePersonal?.emiratesIdExpiryDate as string
-                        ).toLocaleDateString()
-                      : ""}
-                  </p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-500">
-                    Personal Email Address
-                  </label>
-                  <p className="text-sm">{employeePersonal?.emailAdd || ""}</p>
-                </div>
-              </div>
 
-              <div>
-                <label className="text-sm font-medium text-gray-500">
-                  Present Residential Address
-                </label>
-                <p className="text-sm">
-                  {employeePersonal?.currentAddress || ""}
-                </p>
-              </div>
-
-              <div>
-                <label className="text-sm font-medium text-gray-500">
-                  Permanent Address
-                </label>
-                <p className="text-sm">
-                  {employeePersonal?.permanentAddress || ""}
-                </p>
+                {/* Address Information */}
+                <div className="space-y-3">
+                  <div className="flex items-center space-x-3">
+                    <Home className="h-4 w-4 text-gray-400" />
+                    <label className="text-sm font-medium text-gray-500">
+                      Present Residential Address
+                    </label>
+                  </div>
+                  <p className="ml-7 text-sm">
+                    {employeePersonal?.currentAddress || ""}
+                  </p>
+                  <div className="flex items-center space-x-3">
+                    <Home className="h-4 w-4 text-gray-400" />
+                    <label className="text-sm font-medium text-gray-500">
+                      Permanent Address
+                    </label>
+                  </div>
+                  <p className="ml-7 text-sm">
+                    {employeePersonal?.permanentAddress || ""}
+                  </p>
+                </div>
               </div>
             </CardContent>
           </Card>
-
-          {/* Payment Information */}
+        </div>
+        {/* Payment Information */}
+        <div className="lg:col-span-1">
           <Card className="border-gray-200 bg-transparent shadow-sm">
             <CardHeader className="relative pb-4">
               <div className="absolute top-4 right-4">
@@ -323,63 +357,94 @@ export function EmployeeOverview({
               </div>
               <div className="mb-2 flex items-center justify-center">
                 <Badge variant="destructive" className="text-xs">
-                  PAYMENT EMPLOYEE DETAILS
+                  PAYMENT / ACCOUNT INTEGRATION EMPLOYEE DETAILS
                 </Badge>
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <label className="text-sm font-medium text-gray-500">
-                    PAYMENT MODE
-                  </label>
-                  <p className="text-sm">{"Bank Transfer"}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-500">
-                    IBAN NUMBER
-                  </label>
-                  <div className="flex items-center space-x-2">
-                    <span className="text-sm">
-                      {showIban ? employeeBank?.iban || "" : "AEXXXXXXXX"}
-                    </span>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-auto p-0 text-blue-600 hover:text-blue-700"
-                      onClick={() => setShowIban(!showIban)}
-                    >
-                      {showIban ? (
-                        <Eye className="h-4 w-4" />
-                      ) : (
-                        <EyeOff className="h-4 w-4" />
-                      )}
-                    </Button>
+              <div className="space-y-4">
+                {/* Payment Mode */}
+                <div className="space-y-3">
+                  <div className="flex items-center space-x-3">
+                    <Wallet className="h-4 w-4 text-gray-400" />
+                    <label className="text-sm font-medium text-gray-500">
+                      Payment Mode
+                    </label>
+                    <span className="text-sm">Bank Transfer</span>
                   </div>
                 </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-500">
-                    Account Holder Name
-                  </label>
-                  <p className="text-sm">{employeeBasic?.employeeName || ""}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-500">
-                    Bank Name
-                  </label>
-                  <p className="text-sm">{employeeBank?.bankName || ""}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-500">
-                    SWIFT Code
-                  </label>
-                  <p className="text-sm">{employeeBank?.swiftCode || ""}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-500">
-                    Account Number
-                  </label>
-                  <p className="text-sm">{employeeBank?.accountNo || ""}</p>
+
+                {/* Bank Account Information */}
+                <div className="space-y-3">
+                  <div className="flex items-center space-x-3">
+                    <User className="h-4 w-4 text-gray-400" />
+                    <label className="text-sm font-medium text-gray-500">
+                      Account Holder Name
+                    </label>
+                    <span className="text-sm">
+                      {employeeBasic?.employeeName || ""}
+                    </span>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <Building className="h-4 w-4 text-gray-400" />
+                    <label className="text-sm font-medium text-gray-500">
+                      Bank Name
+                    </label>
+                    <span className="text-sm">
+                      {employeeBank?.bankName || ""}
+                    </span>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <CreditCard className="h-4 w-4 text-gray-400" />
+                    <label className="text-sm font-medium text-gray-500">
+                      Account No
+                    </label>
+                    <span className="text-sm">
+                      {employeeBank?.accountNo || ""}
+                    </span>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <Hash className="h-4 w-4 text-gray-400" />
+                    <label className="text-sm font-medium text-gray-500">
+                      SWIFT Code
+                    </label>
+                    <span className="text-sm">
+                      {employeeBank?.swiftCode || ""}
+                    </span>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <CreditCard className="h-4 w-4 text-gray-400" />
+                    <label className="text-sm font-medium text-gray-500">
+                      IBAN No
+                    </label>
+                    <div className="flex items-center space-x-2">
+                      <span className="text-sm">
+                        {showIban ? employeeBank?.iban || "" : "AEXXXXXXXX"}
+                      </span>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-auto p-0 text-blue-600 hover:text-blue-700"
+                        onClick={() => setShowIban(!showIban)}
+                      >
+                        {showIban ? (
+                          <Eye className="h-4 w-4" />
+                        ) : (
+                          <EyeOff className="h-4 w-4" />
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <Landmark className="h-4 w-4 text-gray-400" />
+                    <label className="text-sm font-medium text-gray-500">
+                      GL Code
+                    </label>
+                    <span className="text-sm">
+                      {employeeBank?.glCode || ""} {"-"}
+                      {employeeBank?.glName || ""}
+                    </span>
+                  </div>
                 </div>
               </div>
             </CardContent>
@@ -438,6 +503,7 @@ export function EmployeeOverview({
           <div className="mt-6">
             <EmployeePaymentForm
               employee={employeeBank}
+              companyId={employee?.companyId || 0}
               onCancel={() => setPaymentDialogOpen(false)}
             />
           </div>

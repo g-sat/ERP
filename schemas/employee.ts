@@ -103,6 +103,7 @@ export const employeeBasicSchema = z.object({
     .optional()
     .default(""),
   isActive: z.boolean().default(true),
+  dayOfWeek: z.number().min(1, { message: "Day of week is required" }),
 })
 
 export type EmployeeBasicValues = z.infer<typeof employeeBasicSchema>
@@ -143,6 +144,7 @@ export const employeeBankSchema = z.object({
     .optional()
     .default(""),
   isActive: z.boolean().default(true),
+  glId: z.number().default(0),
 })
 
 export type EmployeeBankValues = z.infer<typeof employeeBankSchema>

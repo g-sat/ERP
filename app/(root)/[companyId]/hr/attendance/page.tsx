@@ -10,11 +10,10 @@ import { Hr_Attendance } from "@/lib/api-routes"
 import { useGetByPath } from "@/hooks/use-common"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
 import MonthAutocomplete from "@/components/ui-custom/autocomplete-month"
 
-import { AttendanceDashboard } from "./components/attendance-dashboard"
-import { AttendanceForm } from "./components/attendance-form"
+import { AttendanceBulkForm } from "./components/attendance-form-bulk"
+import { AttendanceSingleForm } from "./components/attendance-form-single"
 import { AttendanceTable } from "./components/attendance-table"
 
 interface AttendancePageForm extends Record<string, unknown> {
@@ -22,7 +21,8 @@ interface AttendancePageForm extends Record<string, unknown> {
 }
 
 export default function AttendancePage() {
-  const [isFormOpen, setIsFormOpen] = useState(false)
+  const [isBulkFormOpen, setIsBulkFormOpen] = useState(false)
+  const [isSingleFormOpen, setIsSingleFormOpen] = useState(false)
 
   const form = useForm<AttendancePageForm>({
     defaultValues: {
@@ -87,55 +87,59 @@ export default function AttendancePage() {
             Monitor and manage employee attendance records
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <Button
-            onClick={() => setIsFormOpen(true)}
-            className="flex items-center gap-2"
-          >
-            <Plus className="h-4 w-4" />
-            Bulk Attendance
-          </Button>
-        </div>
-      </div>
-
-      {/* Content */}
-      <AttendanceDashboard employees={employees} />
-
-      {/* Attendance Table Section */}
-      <div className="space-y-4">
-        {/* Table Header with Month Selector */}
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="space-y-1">
-            <h2 className="text-lg font-semibold">Attendance Records</h2>
-          </div>
-          <div className="flex items-center gap-4">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
+          <div className="flex items-center gap-2">
+            <Badge variant="outline" className="text-sm">
+              {employees.length} Employees
+            </Badge>
             <MonthAutocomplete
               form={form}
               name="selectedMonth"
               onChangeEvent={handleMonthChange}
               className="w-48"
             />
-            <div className="flex items-center gap-4">
-              <Badge variant="outline" className="text-sm">
-                {employees.length} Employees
-              </Badge>
-            </div>
+          </div>
+          <div className="flex items-center gap-1">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsSingleFormOpen(true)}
+              className="flex items-center gap-1"
+            >
+              <Plus className="h-3 w-3" />
+              Add Attendance
+            </Button>
+            <Button
+              size="sm"
+              onClick={() => setIsBulkFormOpen(true)}
+              className="flex items-center gap-1"
+            >
+              <Plus className="h-3 w-3" />
+              Bulk Attendance
+            </Button>
           </div>
         </div>
+      </div>
 
-        {/* Attendance Table Card */}
-        <Card>
-          <CardContent className="p-0">
-            <AttendanceTable
-              employees={employees}
-              selectedMonthYear={selectedMonth}
-            />
-          </CardContent>
-        </Card>
+      {/* Attendance Table Section */}
+      <div className="space-y-4">
+        <AttendanceTable
+          employees={employees}
+          selectedMonthYear={selectedMonth}
+        />
       </div>
 
       {/* Bulk Attendance Form Dialog */}
-      <AttendanceForm open={isFormOpen} onOpenChange={setIsFormOpen} />
+      <AttendanceBulkForm
+        open={isBulkFormOpen}
+        onOpenChange={setIsBulkFormOpen}
+      />
+
+      {/* Single Attendance Form Dialog */}
+      <AttendanceSingleForm
+        open={isSingleFormOpen}
+        onOpenChange={setIsSingleFormOpen}
+      />
     </div>
   )
 }

@@ -9,14 +9,16 @@ import { useForm } from "react-hook-form"
 import { useSaveEmployeeBank } from "@/hooks/use-employee"
 import { Button } from "@/components/ui/button"
 import { Form } from "@/components/ui/form"
+import ChartOfAccountAutocomplete from "@/components/ui-custom/autocomplete-chartofaccount"
 import CustomInput from "@/components/ui-custom/custom-input"
 
 interface Props {
   employee?: IEmployeeBank
+  companyId?: number
   onCancel?: () => void
 }
 
-export function EmployeePaymentForm({ employee, onCancel }: Props) {
+export function EmployeePaymentForm({ employee, companyId, onCancel }: Props) {
   const saveMutation = useSaveEmployeeBank()
 
   // Debug logging
@@ -30,6 +32,7 @@ export function EmployeePaymentForm({ employee, onCancel }: Props) {
       accountNo: employee?.accountNo || "",
       swiftCode: employee?.swiftCode || "",
       iban: employee?.iban || "",
+      glId: employee?.glId || 0,
     },
   })
 
@@ -42,6 +45,7 @@ export function EmployeePaymentForm({ employee, onCancel }: Props) {
         accountNo: employee.accountNo || "",
         swiftCode: employee.swiftCode || "",
         iban: employee.iban || "",
+        glId: employee.glId || 0,
       })
     }
   }, [employee, form])
@@ -88,6 +92,12 @@ export function EmployeePaymentForm({ employee, onCancel }: Props) {
             label="IBAN Number"
             name="iban"
             placeholder="Enter IBAN number"
+          />
+          <ChartOfAccountAutocomplete
+            form={form}
+            label="GL Account"
+            name="glId"
+            companyId={companyId || 0}
           />
         </div>
 

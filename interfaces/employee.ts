@@ -50,6 +50,10 @@ export interface IEmployee {
   emergencyContactName?: string
   molId?: string
   emailAdd?: string
+  dayOfWeek?: string
+  glId?: number
+  glName?: string
+  glCode?: string
   createDate?: Date | string
   editDate?: Date | string
   createBy?: string
@@ -94,6 +98,7 @@ export interface IEmployeeBasic {
   editDate?: Date | string
   createBy?: string
   editBy?: string
+  dayOfWeek?: number
 }
 
 export interface IEmployeePersonalDetails {
@@ -122,6 +127,9 @@ export interface IEmployeeBank {
   accountNo: string
   swiftCode: string
   iban: string
+  glId?: number
+  glName?: string
+  glCode?: string
   createDate?: Date | string
   editDate?: Date | string
   createBy?: string
