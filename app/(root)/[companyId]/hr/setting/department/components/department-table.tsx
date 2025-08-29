@@ -2,24 +2,10 @@
 
 import { useState } from "react"
 import { IDepartment } from "@/interfaces/department"
-import {
-  Edit,
-  Eye,
-  MoreHorizontal,
-  Plus,
-  RefreshCw,
-  Search,
-  Trash2,
-} from "lucide-react"
+import { Edit, Eye, Plus, RefreshCw, Search, Trash2 } from "lucide-react"
 
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
 import {
   Table,
@@ -63,8 +49,16 @@ export function DepartmentTable({
       department.departmentCode.toLowerCase().includes(searchTerm.toLowerCase())
   )
 
+  const getStatusBadge = (isActive: boolean) => {
+    return (
+      <Badge variant={isActive ? "default" : "secondary"}>
+        {isActive ? "Active" : "Inactive"}
+      </Badge>
+    )
+  }
+
   return (
-    <div className="space-y-4">
+    <div className="@container space-y-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-2">
           <div className="relative">
@@ -76,6 +70,7 @@ export function DepartmentTable({
               className="pl-8"
             />
           </div>
+          <Badge variant="outline">{filteredData.length} departments</Badge>
         </div>
         <div className="flex items-center space-x-2">
           <Button
@@ -96,79 +91,105 @@ export function DepartmentTable({
         </div>
       </div>
 
-      <div className="rounded-md border">
+      <div className="overflow-x-auto rounded-lg border">
         <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Department Code</TableHead>
-              <TableHead>Department Name</TableHead>
-              <TableHead>Remarks</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filteredData.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={5} className="text-center">
-                  No departments found
-                </TableCell>
+          {/* Header table */}
+          <Table className="w-full table-fixed border-collapse">
+            <colgroup>
+              <col className="w-[120px] min-w-[100px]" />
+              <col className="w-[200px] min-w-[180px]" />
+              <col className="w-[150px] min-w-[120px]" />
+              <col className="w-[100px] min-w-[80px]" />
+              <col className="w-[80px] min-w-[60px]" />
+            </colgroup>
+            <TableHeader className="bg-background sticky top-0 z-20">
+              <TableRow className="bg-muted/50">
+                <TableHead className="bg-muted/50 sticky left-0 z-30">
+                  Code
+                </TableHead>
+                <TableHead>Name</TableHead>
+                <TableHead>Remarks</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
-            ) : (
-              filteredData.map((department) => (
-                <TableRow key={department.departmentId}>
-                  <TableCell className="py-1 text-xs font-medium">
-                    {department.departmentCode}
-                  </TableCell>
-                  <TableCell className="py-1 text-xs">
-                    {department.departmentName}
-                  </TableCell>
-                  <TableCell className="py-1 text-xs">
-                    {department.remarks || "-"}
-                  </TableCell>
-                  <TableCell className="py-1">
-                    <span
-                      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                        department.isActive
-                          ? "bg-green-100 text-green-800"
-                          : "bg-red-100 text-red-800"
-                      }`}
-                    >
-                      {department.isActive ? "Active" : "Inactive"}
-                    </span>
-                  </TableCell>
-                  <TableCell className="py-1 text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon">
-                          <MoreHorizontal />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuItem onClick={() => onView(department)}>
-                          <Eye className="mr-2" /> View
-                        </DropdownMenuItem>
-                        {canEdit && (
-                          <DropdownMenuItem onClick={() => onEdit(department)}>
-                            <Edit className="mr-2" /> Edit
-                          </DropdownMenuItem>
-                        )}
-                        {canDelete && (
-                          <DropdownMenuItem
-                            className="text-red-600"
-                            onClick={() => onDelete(department)}
+            </TableHeader>
+          </Table>
+
+          {/* Scrollable body table */}
+          <div className="max-h-[500px] overflow-y-auto">
+            <Table className="w-full table-fixed border-collapse">
+              <colgroup>
+                <col className="w-[120px] min-w-[100px]" />
+                <col className="w-[200px] min-w-[180px]" />
+                <col className="w-[150px] min-w-[120px]" />
+                <col className="w-[100px] min-w-[80px]" />
+                <col className="w-[80px] min-w-[60px]" />
+              </colgroup>
+              <TableBody>
+                {filteredData.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-center">
+                      No departments found
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  filteredData.map((department) => (
+                    <TableRow key={department.departmentId}>
+                      <TableCell className="bg-background sticky left-0 z-10 py-2">
+                        <div className="text-xs font-medium">
+                          {department.departmentCode}
+                        </div>
+                      </TableCell>
+                      <TableCell className="py-2 text-xs">
+                        {department.departmentName}
+                      </TableCell>
+                      <TableCell className="py-2 text-xs">
+                        {department.remarks || "—"}
+                      </TableCell>
+                      <TableCell className="py-2">
+                        {getStatusBadge(department.isActive || false)}
+                      </TableCell>
+                      <TableCell className="py-2 text-right">
+                        <div className="flex items-center justify-end gap-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => onView(department)}
+                            className="h-5 w-5 p-0"
                           >
-                            <Trash2 className="mr-2" /> Delete
-                          </DropdownMenuItem>
-                        )}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
+                            <Eye className="h-2.5 w-2.5" />
+                            <span className="sr-only">View</span>
+                          </Button>
+                          {canEdit && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => onEdit(department)}
+                              className="h-5 w-5 p-0"
+                            >
+                              <Edit className="h-2.5 w-2.5" />
+                              <span className="sr-only">Edit</span>
+                            </Button>
+                          )}
+                          {canDelete && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => onDelete(department)}
+                              className="h-5 w-5 p-0 text-red-600 hover:text-red-700"
+                            >
+                              <Trash2 className="h-2.5 w-2.5" />
+                              <span className="sr-only">Delete</span>
+                            </Button>
+                          )}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
         </Table>
       </div>
     </div>

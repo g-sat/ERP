@@ -4,6 +4,7 @@ import { useState } from "react"
 import { IEmployerDetails } from "@/interfaces/employer-details"
 import { Edit, Plus, RefreshCw, Search, Trash2 } from "lucide-react"
 
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
@@ -49,8 +50,16 @@ export function EmployerDetailsTable({
       employerDetails.bankName?.toLowerCase().includes(searchTerm.toLowerCase())
   )
 
+  const getStatusBadge = (isActive: boolean) => {
+    return (
+      <Badge variant={isActive ? "default" : "secondary"}>
+        {isActive ? "Active" : "Inactive"}
+      </Badge>
+    )
+  }
+
   return (
-    <div className="space-y-4">
+    <div className="@container space-y-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-2">
           <div className="relative">
@@ -62,6 +71,7 @@ export function EmployerDetailsTable({
               className="pl-8"
             />
           </div>
+          <Badge variant="outline">{filteredData.length} records</Badge>
         </div>
         <div className="flex items-center space-x-2">
           <Button
@@ -82,90 +92,110 @@ export function EmployerDetailsTable({
         </div>
       </div>
 
-      <div className="rounded-md border">
+      <div className="overflow-x-auto rounded-lg border">
         <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Company</TableHead>
-              <TableHead>Branch</TableHead>
-              <TableHead>Establishment ID</TableHead>
-              <TableHead>Bank Account</TableHead>
-              <TableHead>Bank Name</TableHead>
-
-              <TableHead>Status</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filteredData.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={7} className="h-24 text-center">
-                  No employer details found.
-                </TableCell>
+          {/* Header table */}
+          <Table className="w-full table-fixed border-collapse">
+            <colgroup>
+              <col className="w-[150px] min-w-[120px]" />
+              <col className="w-[120px] min-w-[100px]" />
+              <col className="w-[150px] min-w-[120px]" />
+              <col className="w-[150px] min-w-[120px]" />
+              <col className="w-[150px] min-w-[120px]" />
+              <col className="w-[100px] min-w-[80px]" />
+              <col className="w-[100px] min-w-[80px]" />
+            </colgroup>
+            <TableHeader className="bg-background sticky top-0 z-20">
+              <TableRow className="bg-muted/50">
+                <TableHead className="bg-muted/50 sticky left-0 z-30">
+                  Company
+                </TableHead>
+                <TableHead>Branch</TableHead>
+                <TableHead>Establishment ID</TableHead>
+                <TableHead>Bank Account</TableHead>
+                <TableHead>Bank Name</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
-            ) : (
-              filteredData.map((employerDetails) => (
-                <TableRow key={employerDetails.employerDetailsId}>
-                  <TableCell className="py-1 text-xs">
-                    {employerDetails.companyName || "-"}
-                  </TableCell>
-                  <TableCell className="py-1 text-xs">
-                    {employerDetails.branch || "-"}
-                  </TableCell>
-                  <TableCell className="py-1 text-xs font-medium">
-                    {employerDetails.establishmentId}
-                  </TableCell>
+            </TableHeader>
+          </Table>
 
-                  <TableCell className="py-1">
-                    <div className="max-w-[150px] truncate text-xs">
-                      {employerDetails.bankAccountNumber || "-"}
-                    </div>
-                  </TableCell>
-                  <TableCell className="py-1 text-xs">
-                    {employerDetails.bankName || "-"}
-                  </TableCell>
-
-                  <TableCell className="py-1">
-                    <span
-                      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                        employerDetails.isActive
-                          ? "bg-green-100 text-green-800"
-                          : "bg-red-100 text-red-800"
-                      }`}
-                    >
-                      {employerDetails.isActive ? "Active" : "Inactive"}
-                    </span>
-                  </TableCell>
-                  <TableCell className="py-1 text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      {canEdit && onEdit && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => onEdit(employerDetails)}
-                          className="h-8 w-8 p-0"
-                        >
-                          <Edit className="h-4 w-4" />
-                          <span className="sr-only">Edit</span>
-                        </Button>
-                      )}
-                      {canDelete && onDelete && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => onDelete(employerDetails)}
-                          className="h-8 w-8 p-0 text-red-600 hover:text-red-700"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                          <span className="sr-only">Delete</span>
-                        </Button>
-                      )}
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
+          {/* Scrollable body table */}
+          <div className="max-h-[500px] overflow-y-auto">
+            <Table className="w-full table-fixed border-collapse">
+              <colgroup>
+                <col className="w-[150px] min-w-[120px]" />
+                <col className="w-[120px] min-w-[100px]" />
+                <col className="w-[150px] min-w-[120px]" />
+                <col className="w-[150px] min-w-[120px]" />
+                <col className="w-[150px] min-w-[120px]" />
+                <col className="w-[100px] min-w-[80px]" />
+                <col className="w-[100px] min-w-[80px]" />
+              </colgroup>
+              <TableBody>
+                {filteredData.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={7} className="text-center">
+                      No employer details found
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  filteredData.map((employerDetails) => (
+                    <TableRow key={employerDetails.employerDetailsId}>
+                      <TableCell className="bg-background sticky left-0 z-10 py-2">
+                        <div className="text-xs font-medium">
+                          {employerDetails.companyName || "—"}
+                        </div>
+                      </TableCell>
+                      <TableCell className="py-2 text-xs">
+                        {employerDetails.branch || "—"}
+                      </TableCell>
+                      <TableCell className="py-2 text-xs">
+                        {employerDetails.establishmentId || "—"}
+                      </TableCell>
+                      <TableCell className="py-2 text-xs">
+                        <div className="max-w-[150px] truncate">
+                          {employerDetails.bankAccountNumber || "—"}
+                        </div>
+                      </TableCell>
+                      <TableCell className="py-2 text-xs">
+                        {employerDetails.bankName || "—"}
+                      </TableCell>
+                      <TableCell className="py-2">
+                        {getStatusBadge(employerDetails.isActive || false)}
+                      </TableCell>
+                      <TableCell className="py-2 text-right">
+                        <div className="flex items-center justify-end gap-1">
+                          {canEdit && onEdit && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => onEdit(employerDetails)}
+                              className="h-6 w-6 p-0"
+                            >
+                              <Edit className="h-3 w-3" />
+                              <span className="sr-only">Edit</span>
+                            </Button>
+                          )}
+                          {canDelete && onDelete && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => onDelete(employerDetails)}
+                              className="h-6 w-6 p-0 text-red-600 hover:text-red-700"
+                            >
+                              <Trash2 className="h-3 w-3" />
+                              <span className="sr-only">Delete</span>
+                            </Button>
+                          )}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
         </Table>
       </div>
     </div>

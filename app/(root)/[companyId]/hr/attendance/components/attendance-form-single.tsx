@@ -1,13 +1,13 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useState } from "react"
 import { AttendanceFormValue, attendanceFormSchema } from "@/schemas/attendance"
 import { zodResolver } from "@hookform/resolvers/zod"
+import { Calendar, CheckSquare, Square, User } from "lucide-react"
 import { useForm } from "react-hook-form"
 
 import { Hr_Attendance } from "@/lib/api-routes"
 import { usePersist } from "@/hooks/use-common"
-import { useGetEmployees } from "@/hooks/use-employee"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -20,23 +20,18 @@ import {
 } from "@/components/ui/dialog"
 import { Form, FormControl, FormItem, FormMessage } from "@/components/ui/form"
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
+import EmployeeAutocomplete from "@/components/ui-custom/autocomplete-employee"
 import MonthAutocomplete from "@/components/ui-custom/autocomplete-month"
+import { CustomDateNew } from "@/components/ui-custom/custom-date-new"
 
-interface BulkAttendanceData {
-  employeeId: string
-  employeeName: string
-  companyId: number
-  days: {
-    date: string // always YYYY-MM-DD
-    isPresent: boolean
-  }[]
+interface SingleAttendanceData {
+  date: string // YYYY-MM-DD
+  isPresent: boolean
 }
 
 interface AttendanceFormProps {
@@ -57,157 +52,112 @@ const formatMonth = (date: Date) => {
   return formatDate(date).substring(0, 7)
 }
 
+// Generate dates between fromDate and toDate
+const generateDateRange = (fromDate: string, toDate: string): string[] => {
+  const dates: string[] = []
+  const start = new Date(fromDate)
+  const end = new Date(toDate)
+
+  for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+    dates.push(formatDate(d))
+  }
+
+  return dates
+}
+
 export function AttendanceSingleForm({
   open,
   onOpenChange,
 }: AttendanceFormProps) {
+  const [selectedEmployeeId, setSelectedEmployeeId] = useState<number | null>(
+    null
+  )
   const [selectedMonthYear, setSelectedMonthYear] = useState<string>(
     formatMonth(new Date())
   )
-  const [bulkData, setBulkData] = useState<BulkAttendanceData[]>([])
+  const [fromDate, setFromDate] = useState<string>(formatDate(new Date()))
+  const [toDate, setToDate] = useState<string>(formatDate(new Date()))
+  const [attendanceData, setAttendanceData] = useState<SingleAttendanceData[]>(
+    []
+  )
 
-  // Fetch employees
-  const { data: employeesResponse, isLoading } = useGetEmployees()
-  const employees = employeesResponse?.data || []
-
-  // Bulk attendance save hook
-  const bulkSaveAttendance = usePersist<AttendanceFormValue[]>(
+  // Single attendance save hook
+  const saveAttendance = usePersist<AttendanceFormValue[]>(
     Hr_Attendance.saveBulk
   )
 
-  const form = useForm<AttendanceFormValue>({
+  const form = useForm<{
+    employeeId: number
+    date: string
+    isPresent: boolean
+    fromDate: string
+    toDate: string
+  }>({
     resolver: zodResolver(attendanceFormSchema),
     defaultValues: {
       employeeId: 0,
       isPresent: false,
       date: formatDate(new Date()),
+      fromDate: formatDate(new Date()),
+      toDate: formatDate(new Date()),
     },
   })
 
-  // Generate days for selected month
-  const days = useMemo(() => {
-    try {
-      const [year, month] = selectedMonthYear.split("-").map(Number)
-      const daysCount = new Date(year, month, 0).getDate()
-      const daysArray = []
-
-      for (let day = 1; day <= daysCount; day++) {
-        const date = new Date(year, month - 1, day)
-        daysArray.push({
-          day,
-          dayName: date.toLocaleDateString("en-US", { weekday: "narrow" }),
-          fullDate: formatDate(date),
-        })
-      }
-
-      return daysArray
-    } catch {
-      return []
-    }
-  }, [selectedMonthYear])
-
-  // Populate bulk data
+  // Generate attendance data for date range
   useEffect(() => {
-    if (employees && employees.length > 0 && days.length > 0) {
-      const employeeList = Array.isArray(employees[0])
-        ? employees[0]
-        : employees
-
-      const newBulkData = employeeList.map(
-        (employee: {
-          employeeId?: number
-          employeeName?: string
-          companyId?: number
-        }) => ({
-          employeeId: employee.employeeId?.toString() || "",
-          employeeName: employee.employeeName || "",
-          companyId: employee.companyId || 0,
-          days: days.map((day) => ({
-            date: day.fullDate,
-            isPresent: false,
-          })),
-        })
-      )
-
-      setBulkData(newBulkData)
-    } else {
-      setBulkData([])
+    if (fromDate && toDate) {
+      const dates = generateDateRange(fromDate, toDate)
+      const newAttendanceData = dates.map((date) => ({
+        date,
+        isPresent: false,
+      }))
+      setAttendanceData(newAttendanceData)
     }
-  }, [employees, days, selectedMonthYear, isLoading])
+  }, [fromDate, toDate])
 
   // Reset when dialog opens
   useEffect(() => {
     if (open) {
-      const currentMonth = formatMonth(new Date())
+      const currentDate = formatDate(new Date())
       form.reset({
         employeeId: 0,
         isPresent: false,
-        date: currentMonth,
+        date: currentDate,
       })
-      setSelectedMonthYear(currentMonth)
+      setSelectedEmployeeId(null)
+      setSelectedMonthYear(formatMonth(new Date()))
+      setFromDate(currentDate)
+      setToDate(currentDate)
     }
   }, [open, form])
 
   // Handlers
-  const handleDayCheckboxChange = (
-    employeeId: string,
-    date: string,
-    isPresent: boolean
-  ) => {
-    setBulkData((prev) =>
-      prev.map((employee) =>
-        employee.employeeId === employeeId
-          ? {
-              ...employee,
-              days: employee.days.map((day) =>
-                day.date === date ? { ...day, isPresent } : day
-              ),
-            }
-          : employee
-      )
+  const handleAttendanceChange = (date: string, isPresent: boolean) => {
+    setAttendanceData((prev) =>
+      prev.map((item) => (item.date === date ? { ...item, isPresent } : item))
     )
   }
 
-  const handleSelectAllEmployees = (date: string, isPresent: boolean) => {
-    setBulkData((prev) =>
-      prev.map((employee) => ({
-        ...employee,
-        days: employee.days.map((day) =>
-          day.date === date ? { ...day, isPresent } : day
-        ),
-      }))
-    )
-  }
-
-  const handleSelectAllDays = (employeeId: string, isPresent: boolean) => {
-    setBulkData((prev) =>
-      prev.map((employee) =>
-        employee.employeeId === employeeId
-          ? {
-              ...employee,
-              days: employee.days.map((day) => ({ ...day, isPresent })),
-            }
-          : employee
-      )
-    )
+  const handleSelectAll = (isPresent: boolean) => {
+    setAttendanceData((prev) => prev.map((item) => ({ ...item, isPresent })))
   }
 
   const handleSubmit = () => {
-    const attendanceRecords: AttendanceFormValue[] = []
+    if (!selectedEmployeeId) {
+      return
+    }
 
-    bulkData.forEach((employee) => {
-      employee.days.forEach((day) => {
-        attendanceRecords.push({
-          employeeId: Number(employee.employeeId),
-          date: day.date, // already YYYY-MM-DD
-          isPresent: day.isPresent, // send both true and false
-        })
+    const attendanceRecords: AttendanceFormValue[] = attendanceData.map(
+      (item) => ({
+        employeeId: selectedEmployeeId,
+        date: item.date,
+        isPresent: item.isPresent,
       })
-    })
+    )
 
-    console.log("📝 Attendance records:", attendanceRecords)
+    console.log("📝 Single attendance records:", attendanceRecords)
 
-    bulkSaveAttendance.mutate(attendanceRecords, {
+    saveAttendance.mutate(attendanceRecords, {
       onSuccess: (response) => {
         if (response.result === 1) {
           onOpenChange(false)
@@ -216,11 +166,12 @@ export function AttendanceSingleForm({
     })
   }
 
-  const getSelectedCount = () => {
-    return bulkData.reduce(
-      (total, employee) => total + employee.days.length, // count all days (both present and absent)
-      0
-    )
+  const getPresentCount = () => {
+    return attendanceData.filter((item) => item.isPresent).length
+  }
+
+  const getAbsentCount = () => {
+    return attendanceData.filter((item) => !item.isPresent).length
   }
 
   return (
@@ -228,191 +179,212 @@ export function AttendanceSingleForm({
       <DialogContent className="max-h-[90vh] w-[95vw] !max-w-none overflow-y-auto sm:w-[90vw]">
         <DialogHeader>
           <DialogTitle className="text-lg sm:text-xl">
-            Bulk Attendance Entry
+            Single Employee Attendance Entry
           </DialogTitle>
           <DialogDescription className="text-sm">
-            Select employees and mark their attendance for multiple days
+            Select an employee and mark their attendance for specific dates
           </DialogDescription>
         </DialogHeader>
 
-        <Form {...form}>
-          <div className="space-y-4">
-            {/* Header */}
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex items-center space-x-2">
-                <FormItem>
-                  <FormControl>
-                    <MonthAutocomplete
-                      form={form}
-                      name="date"
-                      onChangeEvent={(value) =>
-                        setSelectedMonthYear(value?.value || "")
-                      }
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              </div>
+        <div className="mt-6 space-y-6">
+          <Form {...form}>
+            {/* Employee and Date Selection */}
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              <FormItem>
+                <FormControl>
+                  <EmployeeAutocomplete
+                    form={form}
+                    label="Employee"
+                    name="employeeId"
+                    isRequired
+                    onChangeEvent={(selectedOption) => {
+                      setSelectedEmployeeId(
+                        selectedOption ? selectedOption.employeeId : null
+                      )
+                    }}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
 
-              <div className="flex flex-col gap-2 sm:flex-row sm:space-x-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => onOpenChange(false)}
-                  className="w-full sm:w-auto"
-                >
-                  Cancel
-                </Button>
-                <Button
-                  type="button"
-                  onClick={handleSubmit}
-                  className="w-full sm:w-auto"
-                  disabled={
-                    bulkData.length === 0 || bulkSaveAttendance.isPending
-                  }
-                >
-                  {bulkSaveAttendance.isPending ? "Saving..." : "Save"}{" "}
-                  {bulkData.length > 0 ? `(${getSelectedCount()} records)` : ""}
-                </Button>
-              </div>
+              <FormItem>
+                <FormControl>
+                  <MonthAutocomplete
+                    form={form}
+                    label="Month"
+                    name="date"
+                    onChangeEvent={(value) =>
+                      setSelectedMonthYear(value?.value || "")
+                    }
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+
+              <FormItem>
+                <FormControl>
+                  <CustomDateNew
+                    form={form}
+                    label="From Date"
+                    name="fromDate"
+                    onChangeEvent={(date) => {
+                      if (date) {
+                        setFromDate(formatDate(date))
+                      }
+                    }}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+
+              <FormItem>
+                <FormControl>
+                  <CustomDateNew
+                    form={form}
+                    label="To Date"
+                    name="toDate"
+                    onChangeEvent={(date) => {
+                      if (date) {
+                        setToDate(formatDate(date))
+                      }
+                    }}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
             </div>
 
-            {/* Loading */}
-            {isLoading && (
-              <div className="flex items-center justify-center p-8">
-                <div className="text-center">
-                  <div className="text-lg font-semibold">
-                    Loading employees...
-                  </div>
-                  <div className="text-muted-foreground text-sm">
-                    Please wait while we fetch the employee data
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Summary */}
-            {bulkData.length > 0 && (
-              <div className="flex items-center justify-between rounded-lg border p-3">
+            {/* Summary and Actions */}
+            {selectedEmployeeId && attendanceData.length > 0 && (
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex items-center gap-4">
-                  <Badge variant="outline">{employees.length} Employees</Badge>
-                  <Badge variant="outline">{days.length} Days</Badge>
+                  <Badge variant="outline">{attendanceData.length} Days</Badge>
                   <Badge
                     variant="outline"
                     className="bg-green-100 text-green-800"
                   >
-                    {getSelectedCount()} Selected
+                    {getPresentCount()} Present
+                  </Badge>
+                  <Badge variant="outline" className="bg-red-100 text-red-800">
+                    {getAbsentCount()} Absent
                   </Badge>
                 </div>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    setBulkData((prev) =>
-                      prev.map((employee) => ({
-                        ...employee,
-                        days: employee.days.map((day) => ({
-                          ...day,
-                          isPresent: true,
-                        })),
-                      }))
-                    )
-                  }}
-                >
-                  Select All
-                </Button>
+
+                <div className="flex items-center gap-2">
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleSelectAll(true)}
+                        >
+                          <CheckSquare className="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Mark All Present</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleSelectAll(false)}
+                        >
+                          <Square className="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Mark All Absent</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
               </div>
             )}
 
-            {/* Table */}
-            {!isLoading && bulkData.length > 0 && (
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow className="bg-muted/50">
-                      <TableHead className="bg-muted/50 sticky left-0 z-10 w-[200px] min-w-[180px]">
-                        <div className="flex items-center space-x-2">
-                          <span className="font-semibold">Employee</span>
+            {/* Attendance Grid */}
+            {selectedEmployeeId && attendanceData.length > 0 && (
+              <div className="rounded-lg border p-4">
+                <h3 className="mb-4 text-lg font-semibold">
+                  Attendance Details
+                </h3>
+                <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+                  {attendanceData.map((item) => {
+                    const date = new Date(item.date)
+                    const dayName = date.toLocaleDateString("en-US", {
+                      weekday: "short",
+                    })
+                    const dayNumber = date.getDate()
+
+                    return (
+                      <div
+                        key={item.date}
+                        className="hover:bg-muted/50 flex flex-col items-center rounded-lg border p-3"
+                      >
+                        <div className="mb-2 text-center">
+                          <div className="text-sm font-medium">{dayName}</div>
+                          <div className="text-muted-foreground text-xs">
+                            {dayNumber.toString().padStart(2, "0")}
+                          </div>
                         </div>
-                      </TableHead>
-                      {days.map((day) => (
-                        <TableHead
-                          key={day.day}
-                          className="w-[50px] min-w-[40px] p-1 text-center"
-                        >
-                          <div className="flex flex-col items-center">
-                            <span className="text-xs font-semibold">
-                              {day.day.toString().padStart(2, "0")}
-                            </span>
-                            <span className="text-muted-foreground text-xs">
-                              {day.dayName}
-                            </span>
-                            <Checkbox
-                              checked={bulkData.every(
-                                (emp) =>
-                                  emp.days.find((d) => d.date === day.fullDate)
-                                    ?.isPresent
-                              )}
-                              onCheckedChange={(isPresent) =>
-                                handleSelectAllEmployees(
-                                  day.fullDate,
-                                  isPresent as boolean
-                                )
-                              }
-                              className="mt-1"
-                            />
-                          </div>
-                        </TableHead>
-                      ))}
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {bulkData.map((employee) => (
-                      <TableRow key={employee.employeeId} className="group">
-                        <TableCell className="bg-background sticky left-0 z-10 min-w-[180px] py-2">
-                          <div className="flex items-center space-x-2">
-                            <div className="min-w-0 flex-1">
-                              <div className="truncate text-xs font-medium">
-                                {employee.employeeName}
-                              </div>
-                            </div>
-                            <Checkbox
-                              checked={employee.days.every(
-                                (day) => day.isPresent
-                              )}
-                              onCheckedChange={(isPresent) =>
-                                handleSelectAllDays(
-                                  employee.employeeId,
-                                  isPresent as boolean
-                                )
-                              }
-                            />
-                          </div>
-                        </TableCell>
-                        {employee.days.map((day) => (
-                          <TableCell key={day.date} className="p-1 text-center">
-                            <Checkbox
-                              checked={day.isPresent}
-                              onCheckedChange={(isPresent) =>
-                                handleDayCheckboxChange(
-                                  employee.employeeId,
-                                  day.date,
-                                  isPresent as boolean
-                                )
-                              }
-                              className="mx-auto"
-                            />
-                          </TableCell>
-                        ))}
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                        <Checkbox
+                          checked={item.isPresent}
+                          onCheckedChange={(isPresent) =>
+                            handleAttendanceChange(
+                              item.date,
+                              isPresent as boolean
+                            )
+                          }
+                          className="mx-auto"
+                        />
+                        <div className="mt-1 text-xs">
+                          {item.isPresent ? (
+                            <span className="text-green-600">Present</span>
+                          ) : (
+                            <span className="text-red-600">Absent</span>
+                          )}
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
               </div>
             )}
-          </div>
-        </Form>
+
+            {/* Action Buttons */}
+            <div className="flex items-center justify-end gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => onOpenChange(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="button"
+                onClick={handleSubmit}
+                disabled={
+                  !selectedEmployeeId ||
+                  attendanceData.length === 0 ||
+                  saveAttendance.isPending
+                }
+              >
+                {saveAttendance.isPending ? "Saving..." : "Save"}
+                {attendanceData.length > 0
+                  ? ` (${attendanceData.length} records)`
+                  : ""}
+              </Button>
+            </div>
+          </Form>
+        </div>
       </DialogContent>
     </Dialog>
   )

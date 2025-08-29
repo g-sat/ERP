@@ -2,25 +2,10 @@
 
 import { useState } from "react"
 import { IPayrollComponent } from "@/interfaces/payroll"
-import {
-  Edit,
-  Eye,
-  MoreHorizontal,
-  Plus,
-  RefreshCw,
-  Search,
-  Trash2,
-} from "lucide-react"
+import { Edit, Eye, Plus, RefreshCw, Search, Trash2 } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
 import {
   Table,
@@ -80,109 +65,127 @@ export function PayrollComponentTable({
     return <Badge variant="secondary">Deduction</Badge>
   }
 
+  const getStatusBadge = (isActive: boolean) => {
+    return (
+      <Badge variant={isActive ? "default" : "secondary"}>
+        {isActive ? "Active" : "Inactive"}
+      </Badge>
+    )
+  }
+
+  const getSalaryComponentBadge = (isSalaryComponent: boolean) => {
+    return (
+      <Badge variant={isSalaryComponent ? "default" : "outline"}>
+        {isSalaryComponent ? "Yes" : "No"}
+      </Badge>
+    )
+  }
+
   const renderTable = () => (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          {[
-            "Code",
-            "Name",
-            "Type",
-            "Sort Order",
-            "Status",
-            "Salary Component",
-            "",
-          ].map((h) => (
-            <TableHead key={h}>{h}</TableHead>
-          ))}
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {filtered.length === 0 ? (
-          <TableRow>
-            <TableCell colSpan={7} className="text-center">
-              No items
-            </TableCell>
+    <div className="overflow-x-auto rounded-lg border">
+      <Table>
+        <TableHeader className="bg-background sticky top-0 z-20">
+          <TableRow className="bg-muted/50">
+            <TableHead className="bg-muted/50 sticky left-0 z-30 w-[120px] min-w-[100px]">
+              Code
+            </TableHead>
+            <TableHead className="w-[200px] min-w-[180px]">Name</TableHead>
+            <TableHead className="w-[100px] min-w-[80px]">Type</TableHead>
+            <TableHead className="w-[100px] min-w-[80px]">Sort Order</TableHead>
+            <TableHead className="w-[100px] min-w-[80px]">Status</TableHead>
+            <TableHead className="w-[120px] min-w-[100px]">
+              Salary Component
+            </TableHead>
+            <TableHead className="w-[80px] min-w-[60px] text-right">
+              Actions
+            </TableHead>
           </TableRow>
-        ) : (
-          filtered.map((component) => (
-            <TableRow key={component.componentId}>
-              <TableCell className="py-1 text-xs font-medium">
-                {component.componentCode}
-              </TableCell>
-              <TableCell className="py-1 text-xs">
-                {component.componentName}
-              </TableCell>
-              <TableCell className="py-1">{getTypeBadge(component)}</TableCell>
-              <TableCell className="py-1 text-xs">
-                {component.sortOrder}
-              </TableCell>
-              <TableCell className="py-1">
-                <span
-                  className={`rounded-full px-2 text-xs ${
-                    component.isActive
-                      ? "bg-green-100 text-green-800"
-                      : "bg-red-100 text-red-800"
-                  }`}
-                >
-                  {component.isActive ? "Active" : "Inactive"}
-                </span>
-              </TableCell>
-              <TableCell className="py-1">
-                <span
-                  className={`rounded-full px-2 text-xs ${
-                    component.isSalaryComponent
-                      ? "bg-green-100 text-green-800"
-                      : "bg-red-100 text-red-800"
-                  }`}
-                >
-                  {component.isSalaryComponent ? "Yes" : "No"}
-                </span>
-              </TableCell>
-              <TableCell className="py-1 text-right">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon">
-                      <MoreHorizontal />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                    <DropdownMenuItem onClick={() => onView(component)}>
-                      <Eye className="mr-2" /> View
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => onEdit(component)}>
-                      <Edit className="mr-2" /> Edit
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      className="text-red-600"
-                      onClick={() => onDelete(component)}
-                    >
-                      <Trash2 className="mr-2" /> Delete
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+        </TableHeader>
+        <TableBody className="max-h-[500px] overflow-y-auto">
+          {filtered.length === 0 ? (
+            <TableRow>
+              <TableCell colSpan={7} className="text-center">
+                No components found
               </TableCell>
             </TableRow>
-          ))
-        )}
-      </TableBody>
-    </Table>
+          ) : (
+            filtered.map((component) => (
+              <TableRow key={component.componentId}>
+                <TableCell className="bg-background sticky left-0 z-10 w-[120px] min-w-[100px] py-2">
+                  <span className="text-xs font-medium">
+                    {component.componentCode}
+                  </span>
+                </TableCell>
+                <TableCell className="w-[200px] min-w-[180px] py-2 text-xs">
+                  {component.componentName}
+                </TableCell>
+                <TableCell className="w-[100px] min-w-[80px] py-2">
+                  {getTypeBadge(component)}
+                </TableCell>
+                <TableCell className="w-[100px] min-w-[80px] py-2 text-xs">
+                  {component.sortOrder}
+                </TableCell>
+                <TableCell className="w-[100px] min-w-[80px] py-2">
+                  {getStatusBadge(component.isActive || false)}
+                </TableCell>
+                <TableCell className="w-[120px] min-w-[100px] py-2">
+                  {getSalaryComponentBadge(
+                    component.isSalaryComponent || false
+                  )}
+                </TableCell>
+                <TableCell className="w-[80px] min-w-[60px] py-2 text-right">
+                  <div className="flex items-center justify-end gap-1">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => onView(component)}
+                      className="h-6 w-6 p-0"
+                    >
+                      <Eye className="h-3 w-3" />
+                      <span className="sr-only">View</span>
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => onEdit(component)}
+                      className="h-6 w-6 p-0"
+                    >
+                      <Edit className="h-3 w-3" />
+                      <span className="sr-only">Edit</span>
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => onDelete(component)}
+                      className="h-6 w-6 p-0 text-red-600 hover:text-red-700"
+                    >
+                      <Trash2 className="h-3 w-3" />
+                      <span className="sr-only">Delete</span>
+                    </Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))
+          )}
+        </TableBody>
+      </Table>
+    </div>
   )
 
   return (
-    <div className="space-y-4">
+    <div className="@container space-y-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-2">
           <div className="relative">
             <Search className="text-muted-foreground absolute top-2.5 left-2 h-4 w-4" />
             <Input
-              placeholder="Search payroll components..."
+              placeholder="Search components..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="pl-8"
             />
           </div>
+          <Badge variant="outline">{filtered.length} components</Badge>
         </div>
         <div className="flex items-center space-x-2">
           <Button
@@ -196,7 +199,7 @@ export function PayrollComponentTable({
           </Button>
           <Button size="sm" onClick={onCreate} className="h-8 px-2 lg:px-3">
             <Plus className="mr-2 h-4 w-4" />
-            Add Component
+            Add
           </Button>
         </div>
       </div>
@@ -204,17 +207,11 @@ export function PayrollComponentTable({
       <Tabs
         value={selectedType}
         onValueChange={(value) => setSelectedType(value as ComponentType)}
-        className="w-full"
       >
-        <TabsList>
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="Earning">Earnings</TabsTrigger>
           <TabsTrigger value="Deduction">Deductions</TabsTrigger>
-          <TabsTrigger
-            value="Salary"
-            className="bg-blue-500 text-sm text-white"
-          >
-            Salary Components
-          </TabsTrigger>
+          <TabsTrigger value="Salary">Salary Components</TabsTrigger>
         </TabsList>
         <TabsContent value={selectedType} className="mt-4">
           {renderTable()}

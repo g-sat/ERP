@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { IEmployeeBasic } from "@/interfaces/employee"
 import { Edit, RefreshCw, Search, Trash2 } from "lucide-react"
+import { useForm } from "react-hook-form"
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
@@ -17,6 +18,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import AutocompleteCompany from "@/components/ui-custom/autocomplete-company"
+import DepartmentAutocomplete from "@/components/ui-custom/autocomplete-department"
+import DesignationAutocomplete from "@/components/ui-custom/autocomplete-designation"
 
 interface Props {
   data: IEmployeeBasic[]
@@ -39,6 +43,20 @@ export function EmployeeListTable({
   const urlSearch = searchParams.get("search") || ""
   const highlightedEmployeeId = searchParams.get("highlight") || ""
   const [search, setSearch] = useState(urlSearch)
+
+  // State for autocomplete filters
+  const [selectedCompanyId, setSelectedCompanyId] = useState<number | null>(
+    null
+  )
+  const [selectedDepartmentId, setSelectedDepartmentId] = useState<
+    number | null
+  >(null)
+  const [selectedDesignationId, setSelectedDesignationId] = useState<
+    number | null
+  >(null)
+
+  // Create a form instance for the autocomplete components
+  const form = useForm<Record<string, unknown>>()
 
   // Update URL when search changes
   const updateSearchParams = (newSearch: string) => {
@@ -91,16 +109,26 @@ export function EmployeeListTable({
     }
   }, [highlightedEmployeeId, pathname, searchParams, router])
 
-  // Filter data based on search
+  // Filter data based on search and filters
   const filtered = data.filter((employee) => {
     const searchTerm = search.toLowerCase()
-    return (
+    const matchesSearch =
       employee.employeeCode?.toLowerCase().includes(searchTerm) ||
       employee.employeeName?.toLowerCase().includes(searchTerm) ||
       employee.departmentName?.toLowerCase().includes(searchTerm) ||
       employee.designationName?.toLowerCase().includes(searchTerm) ||
       employee.phoneNo?.toLowerCase().includes(searchTerm) ||
       employee.offEmailAdd?.toLowerCase().includes(searchTerm)
+
+    const matchesCompany =
+      !selectedCompanyId || employee.companyId === selectedCompanyId
+    const matchesDepartment =
+      !selectedDepartmentId || employee.departmentId === selectedDepartmentId
+    const matchesDesignation =
+      !selectedDesignationId || employee.designationId === selectedDesignationId
+
+    return (
+      matchesSearch && matchesCompany && matchesDepartment && matchesDesignation
     )
   })
 
@@ -134,6 +162,31 @@ export function EmployeeListTable({
               className="pl-8"
             />
           </div>
+          <AutocompleteCompany
+            form={form}
+            onChangeEvent={(selectedOption) => {
+              setSelectedCompanyId(
+                selectedOption ? selectedOption.companyId : null
+              )
+            }}
+          />
+          <DepartmentAutocomplete
+            form={form}
+            onChangeEvent={(selectedOption) => {
+              setSelectedDepartmentId(
+                selectedOption ? selectedOption.departmentId : null
+              )
+            }}
+          />
+          <DesignationAutocomplete
+            form={form}
+            onChangeEvent={(selectedOption) => {
+              setSelectedDesignationId(
+                selectedOption ? selectedOption.designationId : null
+              )
+            }}
+          />
+          <Badge variant="outline">{filtered.length} employees</Badge>
         </div>
         <div className="flex items-center space-x-2">
           <Button
@@ -155,92 +208,121 @@ export function EmployeeListTable({
         </div>
       </div>
 
-      <div className="rounded-md border">
+      <div className="overflow-x-auto rounded-lg border">
         <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Employee</TableHead>
-              <TableHead>Company</TableHead>
-              <TableHead>Department</TableHead>
-              <TableHead>Designation</TableHead>
-              <TableHead>Email</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filtered.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={7} className="text-center">
-                  No employees found
-                </TableCell>
+          {/* Header table */}
+          <Table className="w-full table-fixed border-collapse">
+            <colgroup>
+              <col className="w-[200px] min-w-[180px]" />
+              <col className="w-[150px] min-w-[120px]" />
+              <col className="w-[120px] min-w-[100px]" />
+              <col className="w-[120px] min-w-[100px]" />
+              <col className="w-[180px] min-w-[150px]" />
+              <col className="w-[80px] min-w-[70px]" />
+              <col className="w-[100px] min-w-[80px]" />
+            </colgroup>
+            <TableHeader className="bg-background sticky top-0 z-20">
+              <TableRow className="bg-muted/50">
+                <TableHead className="bg-muted/50 sticky left-0 z-30">
+                  Employee
+                </TableHead>
+                <TableHead>Company</TableHead>
+                <TableHead>Department</TableHead>
+                <TableHead>Designation</TableHead>
+                <TableHead>Email</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
-            ) : (
-              filtered.map((employee) => (
-                <TableRow
-                  key={employee.employeeId}
-                  data-employee-id={employee.employeeId}
-                  className={
-                    highlightedEmployeeId === employee.employeeId.toString()
-                      ? "border-l-4 border-l-blue-500 bg-blue-50 dark:bg-blue-950/20"
-                      : ""
-                  }
-                >
-                  <TableCell className="py-1">
-                    <div className="flex items-center space-x-2">
-                      <Avatar className="h-4 w-4">
-                        <AvatarFallback className="text-xs">
-                          {getInitials(employee.employeeName || "")}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <div className="text-xs font-medium">
-                          {employee.employeeName} ({employee.employeeCode})
+            </TableHeader>
+          </Table>
+
+          {/* Scrollable body table */}
+          <div className="max-h-[500px] overflow-y-auto">
+            <Table className="w-full table-fixed border-collapse">
+              <colgroup>
+                <col className="w-[200px] min-w-[180px]" />
+                <col className="w-[150px] min-w-[120px]" />
+                <col className="w-[120px] min-w-[100px]" />
+                <col className="w-[120px] min-w-[100px]" />
+                <col className="w-[180px] min-w-[150px]" />
+                <col className="w-[80px] min-w-[70px]" />
+                <col className="w-[100px] min-w-[80px]" />
+              </colgroup>
+              <TableBody>
+                {filtered.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={7} className="text-center">
+                      No employees found
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  filtered.map((employee) => (
+                    <TableRow
+                      key={employee.employeeId}
+                      data-employee-id={employee.employeeId}
+                      className={
+                        highlightedEmployeeId === employee.employeeId.toString()
+                          ? "border-l-4 border-l-blue-500 bg-blue-50 dark:bg-blue-950/20"
+                          : ""
+                      }
+                    >
+                      <TableCell className="bg-background sticky left-0 z-10 py-2">
+                        <div className="flex items-center space-x-2">
+                          <Avatar className="h-4 w-4">
+                            <AvatarFallback className="text-xs">
+                              {getInitials(employee.employeeName || "")}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <div className="text-xs font-medium">
+                              {employee.employeeName} ({employee.employeeCode})
+                            </div>
+                          </div>
                         </div>
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell className="py-1 text-xs">
-                    {employee.companyName || "N/A"}
-                  </TableCell>
-                  <TableCell className="py-1 text-xs">
-                    {employee.departmentName || "N/A"}
-                  </TableCell>
-                  <TableCell className="py-1 text-xs">
-                    {employee.designationName || "N/A"}
-                  </TableCell>
-                  <TableCell className="py-1 text-xs">
-                    {employee.offEmailAdd || "N/A"}
-                  </TableCell>
-                  <TableCell className="py-1">
-                    {getStatusBadge(employee.isActive || false)}
-                  </TableCell>
-                  <TableCell className="py-1 text-right">
-                    <div className="flex items-center justify-end gap-1">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => onEdit(employee)}
-                        className="h-5 w-5 p-0"
-                      >
-                        <Edit className="h-2.5 w-2.5" />
-                        <span className="sr-only">Edit</span>
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => onDelete(employee)}
-                        className="h-5 w-5 p-0 text-red-600 hover:text-red-700"
-                      >
-                        <Trash2 className="h-2.5 w-2.5" />
-                        <span className="sr-only">Delete</span>
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
+                      </TableCell>
+                      <TableCell className="py-2 text-xs">
+                        {employee.companyName || "N/A"}
+                      </TableCell>
+                      <TableCell className="py-2 text-xs">
+                        {employee.departmentName || "N/A"}
+                      </TableCell>
+                      <TableCell className="py-2 text-xs">
+                        {employee.designationName || "N/A"}
+                      </TableCell>
+                      <TableCell className="py-2 text-xs">
+                        {employee.offEmailAdd || "N/A"}
+                      </TableCell>
+                      <TableCell className="py-2">
+                        {getStatusBadge(employee.isActive || false)}
+                      </TableCell>
+                      <TableCell className="py-2 text-right">
+                        <div className="flex items-center justify-end gap-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => onEdit(employee)}
+                            className="h-5 w-5 p-0"
+                          >
+                            <Edit className="h-2.5 w-2.5" />
+                            <span className="sr-only">Edit</span>
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => onDelete(employee)}
+                            className="h-5 w-5 p-0 text-red-600 hover:text-red-700"
+                          >
+                            <Trash2 className="h-2.5 w-2.5" />
+                            <span className="sr-only">Delete</span>
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
         </Table>
       </div>
     </div>

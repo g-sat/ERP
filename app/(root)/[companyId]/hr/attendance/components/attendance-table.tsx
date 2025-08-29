@@ -253,87 +253,110 @@ export function AttendanceTable({
   return (
     <div>
       {/* Table Content */}
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto rounded-lg border">
         <Table>
-          <TableHeader>
-            <TableRow className="bg-muted/50">
-              <TableHead className="bg-muted/50 sticky left-0 z-10 w-[200px] min-w-[180px]">
-                <div className="flex items-center space-x-2">
-                  <span className="font-semibold">Employee</span>
-                </div>
-              </TableHead>
-
+          {/* Header table */}
+          <Table className="w-full table-fixed border-collapse">
+            <colgroup>
+              <col className="w-[200px] min-w-[180px]" />
               {days.map((day) => (
-                <TableHead
-                  key={day.day}
-                  className="w-[50px] min-w-[40px] p-1 text-center"
-                >
-                  <div className="flex flex-col items-center">
-                    <span className="text-xs font-semibold">
-                      {day.day.toString().padStart(2, "0")}
-                    </span>
-                    <span className="text-muted-foreground text-xs">
-                      {day.dayName}
-                    </span>
+                <col key={day.day} className="w-[35px] min-w-[30px]" />
+              ))}
+            </colgroup>
+            <TableHeader className="bg-background sticky top-0 z-20">
+              <TableRow className="bg-muted/50">
+                <TableHead className="bg-muted/50 sticky left-0 z-30">
+                  <div className="flex items-center space-x-2">
+                    <span className="font-semibold">Employee</span>
                   </div>
                 </TableHead>
-              ))}
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {employees.map((employee) => {
-              const { presentCount } = getAttendanceCounts(employee.employeeId)
 
-              return (
-                <TableRow key={employee.employeeId} className="group">
-                  <TableCell className="bg-background sticky left-0 z-10 min-w-[180px] py-2">
-                    <div className="flex items-center space-x-2">
-                      <div className="min-w-0 flex-1">
-                        <div className="truncate text-xs font-medium">
-                          {employee.employeeName.toWellFormed()}
-                        </div>
-                        <div className="text-muted-foreground truncate text-xs">
-                          {employee.companyName}
-                        </div>
-                      </div>
-                      <Badge
-                        variant="outline"
-                        className="bg-background flex-shrink-0 text-xs"
-                      >
-                        {presentCount}
-                      </Badge>
+                {days.map((day) => (
+                  <TableHead key={day.day} className="p-0.5 text-center">
+                    <div className="flex flex-col items-center">
+                      <span className="text-xs font-semibold">
+                        {day.day.toString().padStart(2, "0")}
+                      </span>
+                      <span className="text-muted-foreground text-xs">
+                        {day.dayName}
+                      </span>
                     </div>
-                  </TableCell>
-                  {days.map((day) => {
-                    const attendance = getAttendanceForDay(
-                      employee.employeeId,
-                      day.fullDate
-                    )
+                  </TableHead>
+                ))}
+              </TableRow>
+            </TableHeader>
+          </Table>
 
-                    return (
-                      <TableCell key={day.day} className="p-1 text-center">
-                        <div className="w-full">
-                          {attendance ? (
-                            <div
-                              className={`flex h-6 w-full cursor-pointer items-center justify-center rounded border text-xs font-medium ${getStatusColor(attendance.status as IAttendanceStatus)}`}
-                            >
-                              <span className="font-semibold">
-                                {attendance.status}
-                              </span>
+          {/* Scrollable body table */}
+          <div className="max-h-[500px] overflow-y-auto">
+            <Table className="w-full table-fixed border-collapse">
+              <colgroup>
+                <col className="w-[200px] min-w-[180px]" />
+                {days.map((day) => (
+                  <col key={day.day} className="w-[35px] min-w-[30px]" />
+                ))}
+              </colgroup>
+              <TableBody>
+                {employees.map((employee) => {
+                  const { presentCount } = getAttendanceCounts(
+                    employee.employeeId
+                  )
+
+                  return (
+                    <TableRow key={employee.employeeId} className="group">
+                      <TableCell className="bg-background sticky left-0 z-10 py-2">
+                        <div className="flex items-center space-x-2">
+                          <div className="min-w-0 flex-1">
+                            <div className="truncate text-xs font-medium">
+                              {employee.employeeName.toWellFormed()}
                             </div>
-                          ) : (
-                            <div className="text-muted-foreground flex h-6 w-full items-center justify-center rounded border border-dashed border-gray-300 text-xs">
-                              No Record
+                            <div className="text-muted-foreground truncate text-xs">
+                              {employee.companyName}
                             </div>
-                          )}
+                          </div>
+                          <Badge
+                            variant="outline"
+                            className="bg-background flex-shrink-0 text-xs"
+                          >
+                            {presentCount}
+                          </Badge>
                         </div>
                       </TableCell>
-                    )
-                  })}
-                </TableRow>
-              )
-            })}
-          </TableBody>
+                      {days.map((day) => {
+                        const attendance = getAttendanceForDay(
+                          employee.employeeId,
+                          day.fullDate
+                        )
+
+                        return (
+                          <TableCell
+                            key={day.day}
+                            className="p-0.5 text-center"
+                          >
+                            <div className="w-full">
+                              {attendance ? (
+                                <div
+                                  className={`flex h-6 w-full cursor-pointer items-center justify-center rounded border text-xs font-medium ${getStatusColor(attendance.status as IAttendanceStatus)}`}
+                                >
+                                  <span className="font-semibold">
+                                    {attendance.status}
+                                  </span>
+                                </div>
+                              ) : (
+                                <div className="text-muted-foreground flex h-6 w-full items-center justify-center rounded border border-dashed border-gray-300 text-xs">
+                                  No Record
+                                </div>
+                              )}
+                            </div>
+                          </TableCell>
+                        )
+                      })}
+                    </TableRow>
+                  )
+                })}
+              </TableBody>
+            </Table>
+          </div>
         </Table>
       </div>
 

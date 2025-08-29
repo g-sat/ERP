@@ -22,6 +22,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 import { CurrencyFormatter } from "@/components/currencyicons/currency-formatter"
 
 interface EmployeeReportData {
@@ -254,158 +260,254 @@ export function EmployeeSalaryReport() {
       </div>
 
       {/* Report Table */}
-      <div className="overflow-x-auto rounded-md border">
-        <div className="min-w-[1200px] sm:min-w-0">
+      <TooltipProvider>
+        <div className="overflow-x-auto rounded-lg border">
           <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-[180px] text-xs sm:text-sm">
-                  Name
-                </TableHead>
-                <TableHead className="w-[140px] text-xs sm:text-sm">
-                  Designation
-                </TableHead>
-                <TableHead className="w-[100px] text-xs sm:text-sm">
-                  Code
-                </TableHead>
-                <TableHead className="w-[140px] text-xs sm:text-sm">
-                  Department
-                </TableHead>
-                <TableHead className="hidden w-[120px] text-xs sm:text-sm md:table-cell">
-                  Company
-                </TableHead>
-                <TableHead className="hidden w-[100px] text-xs sm:text-sm lg:table-cell">
-                  Joining
-                </TableHead>
-                <TableHead className="hidden w-[80px] text-xs sm:text-sm lg:table-cell">
-                  Years
-                </TableHead>
-                <TableHead className="w-[100px] text-xs sm:text-sm">
-                  Basic
-                </TableHead>
-                <TableHead className="hidden w-[100px] text-xs sm:text-sm xl:table-cell">
-                  Food
-                </TableHead>
-                <TableHead className="hidden w-[100px] text-xs sm:text-sm xl:table-cell">
-                  House
-                </TableHead>
-                <TableHead className="hidden w-[100px] text-xs sm:text-sm xl:table-cell">
-                  Other
-                </TableHead>
-                <TableHead className="w-[120px] text-xs font-semibold sm:text-sm">
-                  Total
-                </TableHead>
-                <TableHead className="hidden w-[120px] text-xs sm:text-sm 2xl:table-cell">
-                  Work Permit
-                </TableHead>
-                <TableHead className="hidden w-[120px] text-xs sm:text-sm 2xl:table-cell">
-                  Personal No
-                </TableHead>
-                <TableHead className="hidden w-[120px] text-xs sm:text-sm 2xl:table-cell">
-                  Bank
-                </TableHead>
-                <TableHead className="hidden w-[140px] text-xs sm:text-sm 2xl:table-cell">
-                  Account
-                </TableHead>
-                <TableHead className="hidden w-[160px] text-xs sm:text-sm 2xl:table-cell">
-                  IBAN
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredData.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={18} className="py-8 text-center">
-                    <div className="text-center">
-                      <p className="text-muted-foreground">
-                        No employees found
-                      </p>
-                      <p className="text-muted-foreground mt-1 text-xs">
-                        Try adjusting your search criteria
-                      </p>
-                    </div>
-                  </TableCell>
+            {/* Header table */}
+            <Table className="w-full table-fixed border-collapse">
+              <colgroup>
+                <col className="w-[150px] min-w-[120px]" />
+                <col className="w-[120px] min-w-[100px]" />
+                <col className="w-[80px] min-w-[60px]" />
+                <col className="w-[120px] min-w-[100px]" />
+                <col className="w-[100px] min-w-[80px]" />
+                <col className="w-[80px] min-w-[60px]" />
+                <col className="w-[60px] min-w-[50px]" />
+                <col className="w-[90px] min-w-[70px]" />
+                <col className="w-[90px] min-w-[70px]" />
+                <col className="w-[90px] min-w-[70px]" />
+                <col className="w-[90px] min-w-[70px]" />
+                <col className="w-[100px] min-w-[80px]" />
+                <col className="w-[100px] min-w-[80px]" />
+                <col className="w-[100px] min-w-[80px]" />
+                <col className="w-[100px] min-w-[80px]" />
+                <col className="w-[120px] min-w-[100px]" />
+                <col className="w-[140px] min-w-[120px]" />
+              </colgroup>
+              <TableHeader className="bg-background sticky top-0 z-20">
+                <TableRow className="bg-muted/50">
+                  <TableHead className="bg-muted/50 sticky left-0 z-30 text-xs">
+                    Name
+                  </TableHead>
+                  <TableHead className="text-xs">Designation</TableHead>
+                  <TableHead className="text-xs">Code</TableHead>
+                  <TableHead className="text-xs">Department</TableHead>
+                  <TableHead className="text-xs">Company</TableHead>
+                  <TableHead className="text-xs">Joining</TableHead>
+                  <TableHead className="text-xs">Years</TableHead>
+                  <TableHead className="text-xs">Basic</TableHead>
+                  <TableHead className="text-xs">Food</TableHead>
+                  <TableHead className="text-xs">House</TableHead>
+                  <TableHead className="text-xs">Other</TableHead>
+                  <TableHead className="text-xs font-semibold">Total</TableHead>
+                  <TableHead className="text-xs">Work Permit</TableHead>
+                  <TableHead className="text-xs">Personal No</TableHead>
+                  <TableHead className="text-xs">Bank</TableHead>
+                  <TableHead className="text-xs">Account</TableHead>
+                  <TableHead className="text-xs">IBAN</TableHead>
                 </TableRow>
-              ) : (
-                filteredData.map((employee, index) => (
-                  <TableRow key={`${employee.employeeCode}-${index}`}>
-                    <TableCell className="text-xs font-medium sm:text-sm">
-                      {employee.employeeName}
-                    </TableCell>
-                    <TableCell className="text-xs sm:text-sm">
-                      {employee.designationName}
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="outline" className="text-xs">
-                        {employee.employeeCode}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-xs sm:text-sm">
-                      {employee.departmentName}
-                    </TableCell>
-                    <TableCell className="hidden text-xs sm:text-sm md:table-cell">
-                      {employee.companyName}
-                    </TableCell>
-                    <TableCell className="hidden text-xs sm:text-sm lg:table-cell">
-                      {new Date(employee.joinDate).toLocaleDateString()}
-                    </TableCell>
-                    <TableCell className="hidden lg:table-cell">
-                      <Badge variant="secondary" className="text-xs">
-                        {employee.noOfYear} years
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-xs sm:text-sm">
-                      <CurrencyFormatter
-                        amount={employee.basicAllowance}
-                        size="sm"
-                      />
-                    </TableCell>
-                    <TableCell className="hidden text-xs sm:text-sm xl:table-cell">
-                      <CurrencyFormatter
-                        amount={employee.foodAllowance}
-                        size="sm"
-                      />
-                    </TableCell>
-                    <TableCell className="hidden text-xs sm:text-sm xl:table-cell">
-                      <CurrencyFormatter
-                        amount={employee.houseAllowance}
-                        size="sm"
-                      />
-                    </TableCell>
-                    <TableCell className="hidden text-xs sm:text-sm xl:table-cell">
-                      <CurrencyFormatter
-                        amount={employee.otherAllowances}
-                        size="sm"
-                      />
-                    </TableCell>
-                    <TableCell className="text-xs font-semibold sm:text-sm">
-                      <CurrencyFormatter
-                        amount={employee.totalSalaryAmount}
-                        size="sm"
-                      />
-                    </TableCell>
-                    <TableCell className="hidden text-xs sm:text-sm 2xl:table-cell">
-                      {employee.workPermitNo || "N/A"}
-                    </TableCell>
-                    <TableCell className="hidden text-xs sm:text-sm 2xl:table-cell">
-                      {employee.personalNo || "N/A"}
-                    </TableCell>
-                    <TableCell className="hidden text-xs sm:text-sm 2xl:table-cell">
-                      {employee.bankName || "N/A"}
-                    </TableCell>
-                    <TableCell className="hidden font-mono text-xs 2xl:table-cell">
-                      {employee.accountNo || "N/A"}
-                    </TableCell>
-                    <TableCell className="hidden font-mono text-xs 2xl:table-cell">
-                      {employee.iban || "N/A"}
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
+              </TableHeader>
+            </Table>
+
+            {/* Scrollable body table */}
+            <div className="max-h-[500px] overflow-y-auto">
+              <Table className="w-full table-fixed border-collapse">
+                <colgroup>
+                  <col className="w-[150px] min-w-[120px]" />
+                  <col className="w-[120px] min-w-[100px]" />
+                  <col className="w-[80px] min-w-[60px]" />
+                  <col className="w-[120px] min-w-[100px]" />
+                  <col className="w-[100px] min-w-[80px]" />
+                  <col className="w-[80px] min-w-[60px]" />
+                  <col className="w-[60px] min-w-[50px]" />
+                  <col className="w-[90px] min-w-[70px]" />
+                  <col className="w-[90px] min-w-[70px]" />
+                  <col className="w-[90px] min-w-[70px]" />
+                  <col className="w-[90px] min-w-[70px]" />
+                  <col className="w-[100px] min-w-[80px]" />
+                  <col className="w-[100px] min-w-[80px]" />
+                  <col className="w-[100px] min-w-[80px]" />
+                  <col className="w-[100px] min-w-[80px]" />
+                  <col className="w-[120px] min-w-[100px]" />
+                  <col className="w-[140px] min-w-[120px]" />
+                </colgroup>
+                <TableBody>
+                  {filteredData.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={17} className="py-8 text-center">
+                        <div className="text-center">
+                          <p className="text-muted-foreground">
+                            No employees found
+                          </p>
+                          <p className="text-muted-foreground mt-1 text-xs">
+                            Try adjusting your search criteria
+                          </p>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    filteredData.map((employee, index) => (
+                      <TableRow key={`${employee.employeeCode}-${index}`}>
+                        <TableCell className="bg-background sticky left-0 z-10 py-2">
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <div className="truncate text-xs font-medium">
+                                {employee.employeeName}
+                              </div>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>{employee.employeeName}</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TableCell>
+                        <TableCell className="py-2">
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <div className="truncate text-xs">
+                                {employee.designationName}
+                              </div>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>{employee.designationName}</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TableCell>
+                        <TableCell className="py-2">
+                          <Badge variant="outline" className="text-xs">
+                            {employee.employeeCode}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="py-2">
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <div className="truncate text-xs">
+                                {employee.departmentName}
+                              </div>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>{employee.departmentName}</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TableCell>
+                        <TableCell className="py-2">
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <div className="truncate text-xs">
+                                {employee.companyName}
+                              </div>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>{employee.companyName}</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TableCell>
+                        <TableCell className="py-2 text-xs">
+                          {new Date(employee.joinDate).toLocaleDateString()}
+                        </TableCell>
+                        <TableCell className="py-2">
+                          <Badge variant="secondary" className="text-xs">
+                            {employee.noOfYear}y
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="py-2 text-xs">
+                          <CurrencyFormatter
+                            amount={employee.basicAllowance}
+                            size="sm"
+                          />
+                        </TableCell>
+                        <TableCell className="py-2 text-xs">
+                          <CurrencyFormatter
+                            amount={employee.foodAllowance}
+                            size="sm"
+                          />
+                        </TableCell>
+                        <TableCell className="py-2 text-xs">
+                          <CurrencyFormatter
+                            amount={employee.houseAllowance}
+                            size="sm"
+                          />
+                        </TableCell>
+                        <TableCell className="py-2 text-xs">
+                          <CurrencyFormatter
+                            amount={employee.otherAllowances}
+                            size="sm"
+                          />
+                        </TableCell>
+                        <TableCell className="py-2 text-xs font-semibold">
+                          <CurrencyFormatter
+                            amount={employee.totalSalaryAmount}
+                            size="sm"
+                          />
+                        </TableCell>
+                        <TableCell className="py-2">
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <div className="truncate text-xs">
+                                {employee.workPermitNo || "N/A"}
+                              </div>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>{employee.workPermitNo || "N/A"}</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TableCell>
+                        <TableCell className="py-2">
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <div className="truncate text-xs">
+                                {employee.personalNo || "N/A"}
+                              </div>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>{employee.personalNo || "N/A"}</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TableCell>
+                        <TableCell className="py-2">
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <div className="truncate text-xs">
+                                {employee.bankName || "N/A"}
+                              </div>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>{employee.bankName || "N/A"}</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TableCell>
+                        <TableCell className="py-2">
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <div className="truncate font-mono text-xs">
+                                {employee.accountNo || "N/A"}
+                              </div>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>{employee.accountNo || "N/A"}</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TableCell>
+                        <TableCell className="py-2">
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <div className="truncate font-mono text-xs">
+                                {employee.iban || "N/A"}
+                              </div>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>{employee.iban || "N/A"}</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>
           </Table>
         </div>
-      </div>
+      </TooltipProvider>
     </div>
   )
 }

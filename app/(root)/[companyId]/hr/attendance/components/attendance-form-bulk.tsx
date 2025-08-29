@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react"
 import { AttendanceFormValue, attendanceFormSchema } from "@/schemas/attendance"
 import { zodResolver } from "@hookform/resolvers/zod"
+import { CheckSquare, Square } from "lucide-react"
 import { useForm } from "react-hook-form"
 
 import { Hr_Attendance } from "@/lib/api-routes"
@@ -27,6 +28,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 import MonthAutocomplete from "@/components/ui-custom/autocomplete-month"
 
 interface BulkAttendanceData {
@@ -234,7 +241,7 @@ export function AttendanceBulkForm({
             Select employees and mark their attendance for multiple days
           </DialogDescription>
         </DialogHeader>
-        <div className="space-y-6">
+        <div className="mt-6 space-y-6">
           <Form {...form}>
             {/* Header */}
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -254,24 +261,62 @@ export function AttendanceBulkForm({
 
                 {/* Select All Button */}
                 {bulkData.length > 0 && (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      setBulkData((prev) =>
-                        prev.map((employee) => ({
-                          ...employee,
-                          days: employee.days.map((day) => ({
-                            ...day,
-                            isPresent: true,
-                          })),
-                        }))
-                      )
-                    }}
-                  >
-                    Select All
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setBulkData((prev) =>
+                                prev.map((employee) => ({
+                                  ...employee,
+                                  days: employee.days.map((day) => ({
+                                    ...day,
+                                    isPresent: true,
+                                  })),
+                                }))
+                              )
+                            }}
+                          >
+                            <CheckSquare className="h-4 w-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Select All</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setBulkData((prev) =>
+                                prev.map((employee) => ({
+                                  ...employee,
+                                  days: employee.days.map((day) => ({
+                                    ...day,
+                                    isPresent: false,
+                                  })),
+                                }))
+                              )
+                            }}
+                          >
+                            <Square className="h-4 w-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Unselect All</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
                 )}
               </div>
 
