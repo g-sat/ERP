@@ -194,18 +194,10 @@ export function AttendanceTable({
         return "bg-green-100 text-green-800 border-green-200"
       case "A":
         return "bg-red-100 text-red-800 border-red-200"
-      case "L":
-        return "bg-purple-100 text-purple-800 border-purple-200"
-      case "HL":
-        return "bg-blue-100 text-blue-800 border-blue-200"
-      case "CL":
-        return "bg-orange-100 text-orange-800 border-orange-200"
-      case "PL":
-        return "bg-indigo-100 text-indigo-800 border-indigo-200"
       case "WK":
         return "bg-gray-100 text-gray-800 border-gray-200"
-      case "RE":
-        return "bg-red-200 text-red-900 border-red-300"
+      case "VL":
+        return "bg-purple-100 text-orange-800 border-orange-200"
       default:
         return "bg-gray-100 text-gray-800 border-gray-200"
     }
@@ -245,17 +237,57 @@ export function AttendanceTable({
     const presentCount = monthAttendance.filter(
       (att) => att.status === "P"
     ).length
+    const weekendCount = monthAttendance.filter(
+      (att) => att.status === "WK"
+    ).length
+    const vacationCount = monthAttendance.filter(
+      (att) => att.status === "VL"
+    ).length
     const totalCount = monthAttendance.length
 
-    return { presentCount, totalCount }
+    const totalpresentCount = presentCount + weekendCount + vacationCount
+
+    return { totalpresentCount, totalCount }
   }
 
   return (
     <div>
       {/* Table Content */}
       <div className="overflow-x-auto rounded-lg border">
-        <Table>
-          {/* Header table */}
+        {/* Header table */}
+        <Table className="w-full table-fixed border-collapse">
+          <colgroup>
+            <col className="w-[200px] min-w-[180px]" />
+            {days.map((day) => (
+              <col key={day.day} className="w-[35px] min-w-[30px]" />
+            ))}
+          </colgroup>
+          <TableHeader className="bg-background sticky top-0 z-20">
+            <TableRow className="bg-muted/50">
+              <TableHead className="bg-muted/50 sticky left-0 z-30">
+                <div className="flex items-center space-x-2">
+                  <span className="font-semibold">Employee</span>
+                </div>
+              </TableHead>
+
+              {days.map((day) => (
+                <TableHead key={day.day} className="p-0.5 text-center">
+                  <div className="flex flex-col items-center">
+                    <span className="text-xs font-semibold">
+                      {day.day.toString().padStart(2, "0")}
+                    </span>
+                    <span className="text-muted-foreground text-xs">
+                      {day.dayName}
+                    </span>
+                  </div>
+                </TableHead>
+              ))}
+            </TableRow>
+          </TableHeader>
+        </Table>
+
+        {/* Scrollable body table */}
+        <div className="max-h-[500px] overflow-y-auto">
           <Table className="w-full table-fixed border-collapse">
             <colgroup>
               <col className="w-[200px] min-w-[180px]" />
@@ -263,101 +295,64 @@ export function AttendanceTable({
                 <col key={day.day} className="w-[35px] min-w-[30px]" />
               ))}
             </colgroup>
-            <TableHeader className="bg-background sticky top-0 z-20">
-              <TableRow className="bg-muted/50">
-                <TableHead className="bg-muted/50 sticky left-0 z-30">
-                  <div className="flex items-center space-x-2">
-                    <span className="font-semibold">Employee</span>
-                  </div>
-                </TableHead>
+            <TableBody>
+              {employees.map((employee) => {
+                const { totalpresentCount } = getAttendanceCounts(
+                  employee.employeeId
+                )
 
-                {days.map((day) => (
-                  <TableHead key={day.day} className="p-0.5 text-center">
-                    <div className="flex flex-col items-center">
-                      <span className="text-xs font-semibold">
-                        {day.day.toString().padStart(2, "0")}
-                      </span>
-                      <span className="text-muted-foreground text-xs">
-                        {day.dayName}
-                      </span>
-                    </div>
-                  </TableHead>
-                ))}
-              </TableRow>
-            </TableHeader>
-          </Table>
-
-          {/* Scrollable body table */}
-          <div className="max-h-[500px] overflow-y-auto">
-            <Table className="w-full table-fixed border-collapse">
-              <colgroup>
-                <col className="w-[200px] min-w-[180px]" />
-                {days.map((day) => (
-                  <col key={day.day} className="w-[35px] min-w-[30px]" />
-                ))}
-              </colgroup>
-              <TableBody>
-                {employees.map((employee) => {
-                  const { presentCount } = getAttendanceCounts(
-                    employee.employeeId
-                  )
-
-                  return (
-                    <TableRow key={employee.employeeId} className="group">
-                      <TableCell className="bg-background sticky left-0 z-10 py-2">
-                        <div className="flex items-center space-x-2">
-                          <div className="min-w-0 flex-1">
-                            <div className="truncate text-xs font-medium">
-                              {employee.employeeName.toWellFormed()}
-                            </div>
-                            <div className="text-muted-foreground truncate text-xs">
-                              {employee.companyName}
-                            </div>
+                return (
+                  <TableRow key={employee.employeeId} className="group">
+                    <TableCell className="bg-background sticky left-0 z-10 py-2">
+                      <div className="flex items-center space-x-2">
+                        <div className="min-w-0 flex-1">
+                          <div className="truncate text-xs font-medium">
+                            {employee.employeeName.toWellFormed()}
                           </div>
-                          <Badge
-                            variant="outline"
-                            className="bg-background flex-shrink-0 text-xs"
-                          >
-                            {presentCount}
-                          </Badge>
+                          <div className="text-muted-foreground truncate text-xs">
+                            {employee.companyName}
+                          </div>
                         </div>
-                      </TableCell>
-                      {days.map((day) => {
-                        const attendance = getAttendanceForDay(
-                          employee.employeeId,
-                          day.fullDate
-                        )
+                        <Badge
+                          variant="outline"
+                          className="bg-background flex-shrink-0 text-xs"
+                        >
+                          {totalpresentCount}
+                        </Badge>
+                      </div>
+                    </TableCell>
+                    {days.map((day) => {
+                      const attendance = getAttendanceForDay(
+                        employee.employeeId,
+                        day.fullDate
+                      )
 
-                        return (
-                          <TableCell
-                            key={day.day}
-                            className="p-0.5 text-center"
-                          >
-                            <div className="w-full">
-                              {attendance ? (
-                                <div
-                                  className={`flex h-6 w-full cursor-pointer items-center justify-center rounded border text-xs font-medium ${getStatusColor(attendance.status as IAttendanceStatus)}`}
-                                >
-                                  <span className="font-semibold">
-                                    {attendance.status}
-                                  </span>
-                                </div>
-                              ) : (
-                                <div className="text-muted-foreground flex h-6 w-full items-center justify-center rounded border border-dashed border-gray-300 text-xs">
-                                  No Record
-                                </div>
-                              )}
-                            </div>
-                          </TableCell>
-                        )
-                      })}
-                    </TableRow>
-                  )
-                })}
-              </TableBody>
-            </Table>
-          </div>
-        </Table>
+                      return (
+                        <TableCell key={day.day} className="p-0.5 text-center">
+                          <div className="w-full">
+                            {attendance ? (
+                              <div
+                                className={`flex h-6 w-full cursor-pointer items-center justify-center rounded border text-xs font-medium ${getStatusColor(attendance.status as IAttendanceStatus)}`}
+                              >
+                                <span className="font-semibold">
+                                  {attendance.status}
+                                </span>
+                              </div>
+                            ) : (
+                              <div className="text-muted-foreground flex h-6 w-full items-center justify-center rounded border border-dashed border-gray-300 text-xs">
+                                No Record
+                              </div>
+                            )}
+                          </div>
+                        </TableCell>
+                      )
+                    })}
+                  </TableRow>
+                )
+              })}
+            </TableBody>
+          </Table>
+        </div>
       </div>
 
       {/* Legend */}
@@ -377,7 +372,7 @@ export function AttendanceTable({
           </div>
           <div className="flex items-center gap-2">
             <div className="h-3 w-3 rounded border border-yellow-200 bg-yellow-100"></div>
-            <span>Annual Leave (AL)</span>
+            <span>Vacation Leave (VL)</span>
           </div>
         </div>
       </div>

@@ -36,10 +36,12 @@ import {
 } from "@tanstack/react-table"
 import { useVirtualizer } from "@tanstack/react-virtual"
 import { format, isValid } from "date-fns"
+import { Key } from "lucide-react"
 
 import { AdminTransactionId, TableName } from "@/lib/utils"
 import { useGetGridLayout } from "@/hooks/use-settings"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import {
   DraggableColumnHeader,
   TableActions,
@@ -47,12 +49,21 @@ import {
   TableHeader,
 } from "@/components/ui/data-table"
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import {
   Table,
   TableBody,
   TableCell,
   TableRow,
   TableHeader as TanstackTableHeader,
 } from "@/components/ui/table"
+
+import { ResetPassword } from "./reset-password"
 
 interface UsersTableProps {
   data: IUser[]
@@ -89,6 +100,9 @@ export function UserTable({
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
   const [rowSelection, setRowSelection] = useState({})
+  const [isResetPasswordOpen, setIsResetPasswordOpen] = useState(false)
+  const [selectedUserForReset, setSelectedUserForReset] =
+    useState<IUser | null>(null)
   const tableContainerRef = useRef<HTMLDivElement>(null)
 
   const { data: gridSettings } = useGetGridLayout(
@@ -142,6 +156,22 @@ export function UserTable({
           />
         )
       },
+    },
+    {
+      accessorKey: "resetPassword",
+      header: "Reset Password",
+      cell: ({ row }) => (
+        <Button
+          size="sm"
+          variant="ghost"
+          onClick={(e) => {
+            e.stopPropagation()
+            handleResetPassword(row.original)
+          }}
+        >
+          <Key className="h-4 w-4" />
+        </Button>
+      ),
     },
     {
       accessorKey: "userName",
@@ -358,6 +388,21 @@ export function UserTable({
     table.setPageSize(size)
   }
 
+  const handleResetPassword = (user: IUser) => {
+    setSelectedUserForReset(user)
+    setIsResetPasswordOpen(true)
+  }
+
+  const handleCancelReset = () => {
+    setIsResetPasswordOpen(false)
+    setSelectedUserForReset(null)
+  }
+
+  const handleResetSuccess = () => {
+    setIsResetPasswordOpen(false)
+    setSelectedUserForReset(null)
+  }
+
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event
     if (active && over && active.id !== over.id) {
@@ -387,11 +432,7 @@ export function UserTable({
   }, [sorting, searchQuery])
 
   return (
-    <div
-      ref={tableContainerRef}
-      className="relative overflow-auto"
-      style={{ height: "490px" }}
-    >
+    <>
       <TableHeader
         searchQuery={searchQuery}
         onSearchChange={handleSearch}
@@ -410,64 +451,79 @@ export function UserTable({
         collisionDetection={closestCenter}
         onDragEnd={handleDragEnd}
       >
-        <Table>
-          <TanstackTableHeader className="bg-muted sticky top-0 z-10">
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                <SortableContext
-                  items={headerGroup.headers.map((header) => header.id)}
-                  strategy={horizontalListSortingStrategy}
-                >
-                  {headerGroup.headers.map((header) => (
-                    <DraggableColumnHeader key={header.id} header={header} />
-                  ))}
-                </SortableContext>
-              </TableRow>
-            ))}
-          </TanstackTableHeader>
-          <TableBody className="**:data-[slot=table-cell]:first:w-8">
-            {virtualRows.length > 0 ? (
-              <>
-                <tr style={{ height: `${paddingTop}px` }} />
-                {virtualRows.map((virtualRow) => {
-                  const row = table.getRowModel().rows[virtualRow.index]
-                  return (
-                    <TableRow key={row.id}>
-                      {row.getVisibleCells().map((cell) => (
-                        <TableCell key={cell.id}>
-                          {flexRender(
-                            cell.column.columnDef.cell,
-                            cell.getContext()
-                          )}
-                        </TableCell>
-                      ))}
-                    </TableRow>
-                  )
-                })}
-                <tr style={{ height: `${paddingBottom}px` }} />
-              </>
-            ) : (
-              <>
-                <TableRow>
-                  <TableCell
-                    colSpan={columns.length}
-                    className="h-24 text-center"
+        <div className="overflow-x-auto rounded-lg border">
+          {/* Header table */}
+          <Table className="w-full table-fixed border-collapse">
+            <TanstackTableHeader className="bg-background sticky top-0 z-20">
+              {table.getHeaderGroups().map((headerGroup) => (
+                <TableRow key={headerGroup.id} className="bg-muted/50">
+                  <SortableContext
+                    items={headerGroup.headers.map((header) => header.id)}
+                    strategy={horizontalListSortingStrategy}
                   >
-                    {isLoading ? "Loading..." : "No users found."}
-                  </TableCell>
+                    {headerGroup.headers.map((header) => (
+                      <DraggableColumnHeader key={header.id} header={header} />
+                    ))}
+                  </SortableContext>
                 </TableRow>
-                {Array.from({ length: 9 }).map((_, index) => (
-                  <TableRow key={`empty-${index}`}>
-                    <TableCell
-                      colSpan={columns.length}
-                      className="h-10"
-                    ></TableCell>
-                  </TableRow>
-                ))}
-              </>
-            )}
-          </TableBody>
-        </Table>
+              ))}
+            </TanstackTableHeader>
+          </Table>
+
+          {/* Scrollable body table */}
+          <div
+            ref={tableContainerRef}
+            className="max-h-[400px] overflow-y-auto"
+          >
+            <Table className="w-full table-fixed border-collapse">
+              <TableBody>
+                {virtualRows.length > 0 ? (
+                  <>
+                    <tr style={{ height: `${paddingTop}px` }} />
+                    {virtualRows.map((virtualRow) => {
+                      const row = table.getRowModel().rows[virtualRow.index]
+                      return (
+                        <TableRow key={row.id}>
+                          {row.getVisibleCells().map((cell, cellIndex) => (
+                            <TableCell
+                              key={cell.id}
+                              className={`py-2 ${cellIndex === 0 ? "bg-background sticky left-0 z-10" : ""}`}
+                            >
+                              {flexRender(
+                                cell.column.columnDef.cell,
+                                cell.getContext()
+                              )}
+                            </TableCell>
+                          ))}
+                        </TableRow>
+                      )
+                    })}
+                    <tr style={{ height: `${paddingBottom}px` }} />
+                  </>
+                ) : (
+                  <>
+                    <TableRow>
+                      <TableCell
+                        colSpan={columns.length}
+                        className="h-24 text-center"
+                      >
+                        {isLoading ? "Loading..." : "No users found."}
+                      </TableCell>
+                    </TableRow>
+                    {Array.from({ length: 9 }).map((_, index) => (
+                      <TableRow key={`empty-${index}`}>
+                        <TableCell
+                          colSpan={columns.length}
+                          className="h-10"
+                        ></TableCell>
+                      </TableRow>
+                    ))}
+                  </>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </div>
       </DndContext>
 
       <TableFooter
@@ -479,6 +535,32 @@ export function UserTable({
         onPageSizeChange={handlePageSizeChange}
         pageSizeOptions={[10, 50, 100, 500]}
       />
-    </div>
+
+      {/* Reset Password Dialog */}
+      {selectedUserForReset && (
+        <Dialog
+          open={isResetPasswordOpen}
+          onOpenChange={setIsResetPasswordOpen}
+        >
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Key className="h-5 w-5" />
+                Reset Password
+              </DialogTitle>
+              <DialogDescription>
+                Set a new password for user: {selectedUserForReset.userName}
+              </DialogDescription>
+            </DialogHeader>
+            <ResetPassword
+              userId={selectedUserForReset.userId}
+              userCode={selectedUserForReset.userCode}
+              onCancel={handleCancelReset}
+              onSuccess={handleResetSuccess}
+            />
+          </DialogContent>
+        </Dialog>
+      )}
+    </>
   )
 }

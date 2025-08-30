@@ -77,8 +77,8 @@ export function EmployeeOverview({
     <>
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="lg:col-span-1">
-          <Card className="border-gray-200 bg-transparent shadow-sm">
-            <CardHeader className="relative pb-4">
+          <Card className="border-border bg-card h-full border shadow-sm">
+            <CardHeader className="relative flex-shrink-0 pb-4">
               <div className="absolute top-4 right-4">
                 <Button
                   variant="ghost"
@@ -115,7 +115,7 @@ export function EmployeeOverview({
                 </div>
               </div>
             </CardHeader>
-            <CardContent className="space-y-6">
+            <CardContent className="flex-1 space-y-6">
               <div>
                 <div className="space-y-3">
                   <div className="flex items-center space-x-3">
@@ -199,8 +199,8 @@ export function EmployeeOverview({
         </div>
         {/* Personal Information */}
         <div className="lg:col-span-1">
-          <Card className="border-gray-200 bg-transparent shadow-sm">
-            <CardHeader className="relative pb-4">
+          <Card className="border-border bg-card h-full border shadow-sm">
+            <CardHeader className="relative flex-shrink-0 pb-4">
               <div className="absolute top-4 right-4">
                 <Button
                   variant="ghost"
@@ -216,7 +216,7 @@ export function EmployeeOverview({
                 </Badge>
               </div>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="flex-1 space-y-4">
               <div className="space-y-4">
                 {/* Personal Information */}
                 <div className="space-y-3">
@@ -344,8 +344,8 @@ export function EmployeeOverview({
         </div>
         {/* Payment Information */}
         <div className="lg:col-span-1">
-          <Card className="border-gray-200 bg-transparent shadow-sm">
-            <CardHeader className="relative pb-4">
+          <Card className="border-border bg-card h-full border shadow-sm">
+            <CardHeader className="relative flex-shrink-0 pb-4">
               <div className="absolute top-4 right-4">
                 <Button
                   variant="ghost"
@@ -361,7 +361,7 @@ export function EmployeeOverview({
                 </Badge>
               </div>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="flex-1 space-y-4">
               <div className="space-y-4">
                 {/* Payment Mode */}
                 <div className="space-y-3">

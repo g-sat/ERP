@@ -35,10 +35,10 @@ export default async function AppLayout({
         <SidebarInset className="flex min-h-screen flex-col">
           <header
             id="navigation"
-            className="bg-background sticky inset-x-0 top-0 isolate z-10 flex shrink-0 items-center gap-2 border-b"
+            className="bg-background sticky inset-x-0 top-0 isolate z-10 flex shrink-0 items-center gap-2 border-b shadow-sm"
             role="banner"
           >
-            <div className="flex h-12 w-full items-center gap-1 px-3">
+            <div className="flex h-14 w-full items-center gap-2 px-3 sm:gap-3 sm:px-4 lg:px-6">
               {/* Mobile Navigation */}
               <MobileNav />
 
@@ -47,34 +47,25 @@ export default async function AppLayout({
 
               <Separator
                 orientation="vertical"
-                className="mr-2 hidden data-[orientation=vertical]:h-4 md:block"
+                className="mr-2 hidden h-6 data-[orientation=vertical]:h-6 md:block"
               />
 
               <NavHeader />
 
-              <div className="ml-auto flex items-center gap-1">
-                <SearchForm className="hidden w-auto sm:flex" />
+              <div className="ml-auto flex items-center gap-1 sm:gap-2">
+                <SearchForm className="hidden w-auto sm:flex lg:w-80" />
                 <Notifications />
                 <ThemeSelector />
                 <ModeSwitcher />
                 <ScreenLock />
                 <HeaderUserInfo />
-
-                {/*Why comments because of the useauthstore not a async component*/}
-                {/* <NavUser
-                user={{
-                  name: "shadcn",
-                  email: "m@example.com",
-                  avatar: "/uploads/avatars/shadcn.jpg",
-                }}
-              /> */}
               </div>
             </div>
           </header>
-          <main id="main-content" className="flex-1" role="main">
-            {children}
+          <main id="main-content" className="bg-muted/20 flex-1" role="main">
+            <div className="min-h-full">{children}</div>
           </main>
-          <footer className="mt-auto" role="contentinfo">
+          <footer className="bg-background mt-auto border-t" role="contentinfo">
             <Footer />
           </footer>
         </SidebarInset>

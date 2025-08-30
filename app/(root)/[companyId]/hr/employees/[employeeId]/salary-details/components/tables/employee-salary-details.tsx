@@ -6,6 +6,8 @@ import {
   Calendar,
   DollarSign,
   Edit3,
+  Eye,
+  EyeOff,
   RefreshCw,
   TrendingUp,
 } from "lucide-react"
@@ -40,6 +42,7 @@ export function EmployeeSalaryDetailsTable({
 }) {
   const [editSalaryDialogOpen, setEditSalaryDialogOpen] = useState(false)
   const [activeTab, setActiveTab] = useState("main")
+  const [showAmounts, setShowAmounts] = useState(false)
 
   const handleEditSalary = () => {
     setEditSalaryDialogOpen(true)
@@ -47,6 +50,18 @@ export function EmployeeSalaryDetailsTable({
 
   const handleCancelEdit = () => {
     setEditSalaryDialogOpen(false)
+  }
+
+  const toggleAmountVisibility = () => {
+    setShowAmounts(!showAmounts)
+  }
+
+  // Helper function to format amount with visibility toggle
+  const formatAmount = (amount: number, size: "sm" | "md" | "lg" = "sm") => {
+    if (showAmounts) {
+      return <CurrencyFormatter amount={amount} size={size} />
+    }
+    return <span className="font-mono text-xs">*****</span>
   }
 
   // Calculate totals from the array data
@@ -68,10 +83,24 @@ export function EmployeeSalaryDetailsTable({
   return (
     <div className="space-y-4">
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList>
-          <TabsTrigger value="main">Main</TabsTrigger>
-          <TabsTrigger value="history">History</TabsTrigger>
-        </TabsList>
+        <div className="flex items-center justify-between">
+          <TabsList>
+            <TabsTrigger value="main">Main</TabsTrigger>
+            <TabsTrigger value="history">History</TabsTrigger>
+          </TabsList>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={toggleAmountVisibility}
+            className="h-8 px-2"
+          >
+            {showAmounts ? (
+              <EyeOff className="h-4 w-4" />
+            ) : (
+              <Eye className="h-4 w-4" />
+            )}
+          </Button>
+        </div>
 
         <TabsContent value="main" className="space-y-4">
           {/* Salary Summary */}
@@ -83,9 +112,7 @@ export function EmployeeSalaryDetailsTable({
                 </div>
                 <h3 className="text-sm font-medium">Annual Income</h3>
               </div>
-              <p className="text-xl font-bold">
-                <CurrencyFormatter amount={totalAnnual} size="sm" />
-              </p>
+              <p className="text-xl font-bold">{formatAmount(totalAnnual)}</p>
               <p className="text-muted-foreground text-xs">per year</p>
             </div>
             <div className="rounded-lg border p-3">
@@ -95,9 +122,7 @@ export function EmployeeSalaryDetailsTable({
                 </div>
                 <h3 className="text-sm font-medium">Monthly Income</h3>
               </div>
-              <p className="text-xl font-bold">
-                <CurrencyFormatter amount={totalMonthly} size="sm" />
-              </p>
+              <p className="text-xl font-bold">{formatAmount(totalMonthly)}</p>
               <p className="text-muted-foreground text-xs">per month</p>
             </div>
             <div className="rounded-lg border p-3">
@@ -108,10 +133,16 @@ export function EmployeeSalaryDetailsTable({
                   </div>
                   <h3 className="text-sm font-medium">Actions</h3>
                 </div>
-                <Button variant="outline" size="sm" onClick={handleEditSalary}>
-                  <RefreshCw className="mr-1 h-3 w-3" />
-                  Revise
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleEditSalary}
+                  >
+                    <RefreshCw className="mr-1 h-3 w-3" />
+                    Revise
+                  </Button>
+                </div>
               </div>
               <p className="text-muted-foreground text-xs">
                 Update salary components
@@ -172,16 +203,10 @@ export function EmployeeSalaryDetailsTable({
                         </Badge>
                       </TableCell>
                       <TableCell className="py-1 text-right text-xs font-medium">
-                        <CurrencyFormatter
-                          amount={component.amount || 0}
-                          size="sm"
-                        />
+                        {formatAmount(component.amount || 0)}
                       </TableCell>
                       <TableCell className="py-1 text-right text-xs font-medium">
-                        <CurrencyFormatter
-                          amount={(component.amount || 0) * 12}
-                          size="sm"
-                        />
+                        {formatAmount((component.amount || 0) * 12)}
                       </TableCell>
                     </TableRow>
                   ))}
@@ -190,10 +215,10 @@ export function EmployeeSalaryDetailsTable({
                       Total Gross Pay
                     </TableCell>
                     <TableCell className="py-1 text-right text-sm font-bold">
-                      <CurrencyFormatter amount={totalMonthly} size="sm" />
+                      {formatAmount(totalMonthly)}
                     </TableCell>
                     <TableCell className="py-1 text-right text-sm font-bold">
-                      <CurrencyFormatter amount={totalAnnual} size="sm" />
+                      {formatAmount(totalAnnual)}
                     </TableCell>
                   </TableRow>
                 </TableBody>
@@ -253,16 +278,10 @@ export function EmployeeSalaryDetailsTable({
                           </Badge>
                         </TableCell>
                         <TableCell className="py-1 text-right text-xs font-medium">
-                          <CurrencyFormatter
-                            amount={component.amount || 0}
-                            size="sm"
-                          />
+                          {formatAmount(component.amount || 0)}
                         </TableCell>
                         <TableCell className="py-1 text-right text-xs font-medium">
-                          <CurrencyFormatter
-                            amount={(component.amount || 0) * 12}
-                            size="sm"
-                          />
+                          {formatAmount((component.amount || 0) * 12)}
                         </TableCell>
                       </TableRow>
                     ))}
@@ -337,31 +356,19 @@ export function EmployeeSalaryDetailsTable({
                           {new Date(record.effectDate).toLocaleDateString()}
                         </TableCell>
                         <TableCell className="py-1 text-right text-xs font-medium">
-                          <CurrencyFormatter
-                            amount={record.basicAllowance}
-                            size="sm"
-                          />
+                          {formatAmount(record.basicAllowance)}
                         </TableCell>
                         <TableCell className="py-1 text-right text-xs font-medium">
-                          <CurrencyFormatter
-                            amount={record.houseAllowance}
-                            size="sm"
-                          />
+                          {formatAmount(record.houseAllowance)}
                         </TableCell>
                         <TableCell className="py-1 text-right text-xs font-medium">
-                          <CurrencyFormatter
-                            amount={record.foodAllowance}
-                            size="sm"
-                          />
+                          {formatAmount(record.foodAllowance)}
                         </TableCell>
                         <TableCell className="py-1 text-right text-xs font-medium">
-                          <CurrencyFormatter
-                            amount={record.otherAllowance}
-                            size="sm"
-                          />
+                          {formatAmount(record.otherAllowance)}
                         </TableCell>
                         <TableCell className="py-1 text-right text-xs font-bold">
-                          <CurrencyFormatter amount={record.total} size="sm" />
+                          {formatAmount(record.total)}
                         </TableCell>
                         <TableCell className="py-1 text-right text-xs font-medium">
                           <div className="flex items-center justify-end gap-1">
@@ -387,10 +394,7 @@ export function EmployeeSalaryDetailsTable({
                                     : "text-yellow-600"
                               }
                             >
-                              <CurrencyFormatter
-                                amount={record.incrementAmount}
-                                size="sm"
-                              />
+                              {formatAmount(record.incrementAmount)}
                             </span>
                           </div>
                         </TableCell>

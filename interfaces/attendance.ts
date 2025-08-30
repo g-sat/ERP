@@ -28,15 +28,7 @@ export interface IDailyRecord {
   isPhysical?: boolean
 }
 
-export type IAttendanceStatus =
-  | "P"
-  | "A"
-  | "L"
-  | "HL"
-  | "CL"
-  | "PL"
-  | "WK"
-  | "RE"
+export type IAttendanceStatus = "P" | "A" | "WK" | "VL"
 
 export interface IAttendanceFilter {
   type?: string
