@@ -158,11 +158,56 @@ export default function PayRunSummaryPage() {
     )
   }
 
-  const handleSendPayslip = () => {
-    // TODO: Implement payslip sending functionality
-    toast.success("Payslips sent successfully")
-    refetch() // Refetch the table data
-    router.push(`/${companyId}/hr/payruns/${payrunId}/summary`)
+  const handleSendPayslip = async () => {
+    try {
+      toast.info("Generating payslips...", {
+        description:
+          "Please wait while we generate and send payslips to WhatsApp.",
+      })
+
+      // Get pay period and pay date from the first employee or use defaults
+      const payPeriod = "August 2025"
+      const payDate = "03 SEP, 2025"
+      const companyName = employees[0]?.companyName || "Company Name"
+
+      // Send payslips for all employees
+      const results = await Promise.allSettled(
+        employees.map(async (employee) => {
+          const { handleSendPayslip } = await import("@/lib/payslip-utils")
+          return handleSendPayslip(
+            employee,
+            payrunId,
+            payPeriod,
+            payDate,
+            companyName,
+            "+91 9421185860"
+          )
+        })
+      )
+
+      // Count successful and failed sends
+      const successful = results.filter(
+        (result) => result.status === "fulfilled" && result.value.success
+      ).length
+      const failed = results.length - successful
+
+      if (successful > 0) {
+        toast.success(`Payslips sent successfully!`, {
+          description: `${successful} payslips prepared for WhatsApp sharing. ${failed > 0 ? `${failed} failed.` : ""}`,
+        })
+      } else {
+        toast.error("Failed to send payslips", {
+          description: "Please try again or contact support.",
+        })
+      }
+
+      refetch() // Refetch the table data
+    } catch (error) {
+      console.error("Error sending payslips:", error)
+      toast.error("Failed to send payslips", {
+        description: "An unexpected error occurred.",
+      })
+    }
   }
 
   const handleRejectPayment = () => {
@@ -304,6 +349,18 @@ export default function PayRunSummaryPage() {
                   <p className="text-sm text-gray-600">
                     August 2025 • 30 Base Days
                   </p>
+                  <Button
+                    variant="link"
+                    size="sm"
+                    onClick={() =>
+                      router.push(
+                        `/${companyId}/hr/payruns/${payrunId}/summary/test-payslip`
+                      )
+                    }
+                    className="h-auto p-0 text-xs text-blue-600 hover:text-blue-800"
+                  >
+                    Test Payslip Generation →
+                  </Button>
                 </div>
               </div>
               <div className="flex items-center space-x-4">
@@ -651,14 +708,33 @@ export default function PayRunSummaryPage() {
         open={showSendPayslipConfirmation}
         onOpenChange={setShowSendPayslipConfirmation}
       >
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle>Confirm Send Payslip</DialogTitle>
+            <DialogTitle className="flex items-center gap-2">
+              <CreditCard className="h-5 w-5 text-emerald-600" />
+              Send Payslips to WhatsApp
+            </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
+            <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
+              <h4 className="mb-2 font-semibold text-blue-800">
+                What will happen:
+              </h4>
+              <ul className="space-y-1 text-sm text-blue-700">
+                <li>
+                  • PDF payslips will be generated for all {employees.length}{" "}
+                  employees
+                </li>
+                <li>• WhatsApp will open with the number +91 9421185860</li>
+                <li>• You&apos;ll need to manually attach each PDF file</li>
+                <li>
+                  • Files will also be downloaded to your device as backup
+                </li>
+              </ul>
+            </div>
             <p className="text-muted-foreground">
-              Are you sure you want to send payslips to all employees? This
-              action cannot be undone.
+              Are you sure you want to proceed? This will generate payslips for
+              all employees.
             </p>
             <div className="flex justify-end space-x-2">
               <Button
@@ -674,7 +750,7 @@ export default function PayRunSummaryPage() {
                 }}
                 className="bg-emerald-600 hover:bg-emerald-700"
               >
-                Yes, Send Payslips
+                Yes, Generate & Send
               </Button>
             </div>
           </div>

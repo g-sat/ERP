@@ -2,7 +2,13 @@
 
 import { useState } from "react"
 import { IPayrollEmployeeDt, IPayrollEmployeeHd } from "@/interfaces/payrun"
+import { toast } from "sonner"
 
+import {
+  downloadPayslipPDF,
+  generatePayslipPDF,
+  handleSendPayslip,
+} from "@/lib/payslip-utils"
 import { useGetById } from "@/hooks/use-common"
 import { Button } from "@/components/ui/button"
 import {
@@ -27,6 +33,8 @@ export function PayRunSummaryForm({
   const [showDownloadConfirmation, setShowDownloadConfirmation] =
     useState(false)
   const [showSendConfirmation, setShowSendConfirmation] = useState(false)
+  const [isDownloading, setIsDownloading] = useState(false)
+  const [isSending, setIsSending] = useState(false)
 
   console.log("employee", employee)
 
@@ -69,6 +77,77 @@ export function PayRunSummaryForm({
   }
 
   const currentBasicNetPay = calculateBasicNetPay()
+
+  // Handle download payslip
+  const handleDownloadPayslip = async () => {
+    if (!employee) return
+
+    setIsDownloading(true)
+    try {
+      const payPeriod = "August 2025" // You might want to get this from props or context
+      const payDate = "03 SEP, 2025"
+      const companyName = employee.companyName || "Company Name"
+
+      const pdfBlob = await generatePayslipPDF(
+        employee,
+        payrunId,
+        payPeriod,
+        payDate,
+        companyName
+      )
+
+      downloadPayslipPDF(pdfBlob, employee.employeeName)
+
+      toast.success("Payslip downloaded successfully!", {
+        description: "The payslip PDF has been downloaded to your device.",
+      })
+    } catch (error) {
+      console.error("Error downloading PDF:", error)
+      toast.error("Failed to download PDF", {
+        description: "An unexpected error occurred.",
+      })
+    } finally {
+      setIsDownloading(false)
+    }
+  }
+
+  // Handle send payslip
+  const handleSendPayslipAction = async () => {
+    if (!employee) return
+
+    setIsSending(true)
+    try {
+      const payPeriod = "August 2025" // You might want to get this from props or context
+      const payDate = "03 SEP, 2025"
+      const companyName = employee.companyName || "Company Name"
+
+      const result = await handleSendPayslip(
+        employee,
+        payrunId,
+        payPeriod,
+        payDate,
+        companyName,
+        "+91 9421185860"
+      )
+
+      if (result.success) {
+        toast.success("Payslip sent successfully!", {
+          description: result.message,
+        })
+      } else {
+        toast.error("Failed to send payslip", {
+          description: result.message,
+        })
+      }
+    } catch (error) {
+      console.error("Error sending payslip:", error)
+      toast.error("Failed to send payslip", {
+        description: "An unexpected error occurred.",
+      })
+    } finally {
+      setIsSending(false)
+    }
+  }
 
   // Show loading state while data is being fetched
   if (isLoading) {
@@ -263,15 +342,17 @@ export function PayRunSummaryForm({
             <Button
               variant="outline"
               onClick={() => setShowDownloadConfirmation(true)}
+              disabled={isDownloading}
               className="border-blue-500 text-blue-600 hover:bg-blue-50"
             >
-              Download Payslip
+              {isDownloading ? "Downloading..." : "Download Payslip"}
             </Button>
             <Button
               onClick={() => setShowSendConfirmation(true)}
+              disabled={isSending}
               className="bg-green-600 hover:bg-green-700"
             >
-              Send Payslip
+              {isSending ? "Sending..." : "Send Payslip"}
             </Button>
           </div>
         )}
@@ -282,11 +363,26 @@ export function PayRunSummaryForm({
         open={showDownloadConfirmation}
         onOpenChange={setShowDownloadConfirmation}
       >
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-lg">
           <DialogHeader>
             <DialogTitle>Confirm Download Payslip</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
+            <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
+              <h4 className="mb-2 font-semibold text-blue-800">
+                What will happen:
+              </h4>
+              <ul className="space-y-1 text-sm text-blue-700">
+                <li>
+                  • PDF payslip will be generated for {employee?.employeeName}
+                </li>
+                <li>• File will be downloaded to your device</li>
+                <li>
+                  • Filename: Payslip_
+                  {employee?.employeeName?.replace(/\s+/g, "_")}_today.pdf
+                </li>
+              </ul>
+            </div>
             <p className="text-muted-foreground">
               Are you sure you want to download the payslip for{" "}
               {employee?.employeeName}?
@@ -301,15 +397,12 @@ export function PayRunSummaryForm({
               <Button
                 onClick={() => {
                   setShowDownloadConfirmation(false)
-                  // TODO: Implement download payslip functionality
-                  console.log(
-                    "Download payslip for employee:",
-                    employee?.employeeName
-                  )
+                  handleDownloadPayslip()
                 }}
+                disabled={isDownloading}
                 className="bg-blue-600 hover:bg-blue-700"
               >
-                Yes, Download
+                {isDownloading ? "Downloading..." : "Yes, Download"}
               </Button>
             </div>
           </div>
@@ -321,11 +414,24 @@ export function PayRunSummaryForm({
         open={showSendConfirmation}
         onOpenChange={setShowSendConfirmation}
       >
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-lg">
           <DialogHeader>
             <DialogTitle>Confirm Send Payslip</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
+            <div className="rounded-lg border border-green-200 bg-green-50 p-4">
+              <h4 className="mb-2 font-semibold text-green-800">
+                What will happen:
+              </h4>
+              <ul className="space-y-1 text-sm text-green-700">
+                <li>
+                  • PDF payslip will be generated for {employee?.employeeName}
+                </li>
+                <li>• WhatsApp will open with number +91 9421185860</li>
+                <li>• You&apos;ll need to manually attach the PDF file</li>
+                <li>• File will also be downloaded to your device as backup</li>
+              </ul>
+            </div>
             <p className="text-muted-foreground">
               Are you sure you want to send the payslip to{" "}
               {employee?.employeeName}?
@@ -340,15 +446,12 @@ export function PayRunSummaryForm({
               <Button
                 onClick={() => {
                   setShowSendConfirmation(false)
-                  // TODO: Implement send payslip functionality
-                  console.log(
-                    "Send payslip for employee:",
-                    employee?.employeeName
-                  )
+                  handleSendPayslipAction()
                 }}
+                disabled={isSending}
                 className="bg-green-600 hover:bg-green-700"
               >
-                Yes, Send
+                {isSending ? "Sending..." : "Yes, Send"}
               </Button>
             </div>
           </div>

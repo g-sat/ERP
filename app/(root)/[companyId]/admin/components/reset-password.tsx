@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Eye, EyeOff } from "lucide-react"
 import { toast } from "sonner"
 
@@ -36,12 +36,22 @@ export function ResetPassword({
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
 
-  const resetPasswordMutation = useResetPasswordV1()
-
-  const handleCancelReset = () => {
+  // Reset form when component mounts (dialog opens)
+  const resetForm = () => {
     setResetPasswordData({ password: "", confirmPassword: "" })
     setShowPassword(false)
     setShowConfirmPassword(false)
+  }
+
+  // Reset form on mount
+  useEffect(() => {
+    resetForm()
+  }, [])
+
+  const resetPasswordMutation = useResetPasswordV1()
+
+  const handleCancelReset = () => {
+    resetForm()
     resetPasswordMutation.reset()
     onCancel()
   }
@@ -73,7 +83,7 @@ export function ResetPassword({
       console.log(response)
       if (response.result === 1) {
         toast.success("Password reset successfully")
-        setResetPasswordData({ password: "", confirmPassword: "" })
+        resetForm()
         onSuccess?.()
       } else {
         toast.error("Failed to reset password")

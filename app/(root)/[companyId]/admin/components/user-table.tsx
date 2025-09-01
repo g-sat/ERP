@@ -158,20 +158,35 @@ export function UserTable({
       },
     },
     {
-      accessorKey: "resetPassword",
+      id: "resetPassword",
       header: "Pswd",
-
+      enableSorting: false,
+      enableColumnFilter: false,
+      enableHiding: false,
+      enableResizing: false,
+      size: 80,
+      minSize: 60,
+      maxSize: 100,
       cell: ({ row }) => (
-        <Button
-          size="sm"
-          variant="ghost"
+        <div
+          className="flex justify-center"
           onClick={(e) => {
             e.stopPropagation()
-            handleResetPassword(row.original)
+            e.preventDefault()
           }}
         >
-          <Key className="h-4 w-4" />
-        </Button>
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={(e) => {
+              e.stopPropagation()
+              e.preventDefault()
+              handleResetPassword(row.original)
+            }}
+          >
+            <Key className="h-4 w-4" />
+          </Button>
+        </div>
       ),
     },
     {
@@ -367,6 +382,7 @@ export function UserTable({
   )
 
   const handleSearch = (query: string) => {
+    console.log("handleSearch called with query:", query)
     setSearchQuery(query)
     if (data && data.length > 0) {
       table.setGlobalFilter(query)
@@ -390,6 +406,11 @@ export function UserTable({
   }
 
   const handleResetPassword = (user: IUser) => {
+    // Debug: Log current search state
+    console.log("Reset password clicked - current searchQuery:", searchQuery)
+    console.log("Reset password clicked - user:", user.userName)
+
+    // Simply open the reset password dialog
     setSelectedUserForReset(user)
     setIsResetPasswordOpen(true)
   }
@@ -423,7 +444,7 @@ export function UserTable({
   }
 
   useEffect(() => {
-    if (!data?.length && onFilterChange) {
+    if (!data?.length && onFilterChange && searchQuery) {
       const filters: IUserFilter = {
         search: searchQuery,
         sortOrder: sorting[0]?.desc ? "desc" : "asc",
@@ -482,7 +503,7 @@ export function UserTable({
               </TanstackTableHeader>
             </Table>
 
-            {/* Body table with scroll container */}
+            {/* Scrollable body table */}
             <div
               ref={tableContainerRef}
               className="max-h-[500px] overflow-y-auto"
@@ -494,7 +515,16 @@ export function UserTable({
                   ))}
                 </colgroup>
                 <TableBody>
-                  {virtualRows.length > 0 ? (
+                  {virtualRows.length === 0 ? (
+                    <TableRow>
+                      <TableCell
+                        colSpan={columns.length}
+                        className="text-center"
+                      >
+                        {isLoading ? "Loading..." : "No users found."}
+                      </TableCell>
+                    </TableRow>
+                  ) : (
                     <>
                       <tr style={{ height: `${paddingTop}px` }} />
                       {virtualRows.map((virtualRow) => {
@@ -516,25 +546,6 @@ export function UserTable({
                         )
                       })}
                       <tr style={{ height: `${paddingBottom}px` }} />
-                    </>
-                  ) : (
-                    <>
-                      <TableRow>
-                        <TableCell
-                          colSpan={columns.length}
-                          className="h-24 text-center"
-                        >
-                          {isLoading ? "Loading..." : "No users found."}
-                        </TableCell>
-                      </TableRow>
-                      {Array.from({ length: 9 }).map((_, index) => (
-                        <TableRow key={`empty-${index}`}>
-                          <TableCell
-                            colSpan={columns.length}
-                            className="h-10"
-                          ></TableCell>
-                        </TableRow>
-                      ))}
                     </>
                   )}
                 </TableBody>
