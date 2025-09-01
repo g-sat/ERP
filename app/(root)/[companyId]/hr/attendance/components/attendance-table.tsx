@@ -1,14 +1,13 @@
 "use client"
 
-import { useMemo } from "react"
-import {
-  IAttendance,
-  IAttendanceStatus,
-  IDailyRecord,
-  IEmployeeAttendance,
-} from "@/interfaces/attendance"
+import { useEffect, useMemo, useRef, useState } from "react"
+import { IEmployeeAttendance } from "@/interfaces/attendance"
+import { AttendanceFormValue } from "@/schemas/attendance"
 
+import { Hr_Attendance } from "@/lib/api-routes"
+import { useGetByPath } from "@/hooks/use-common"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import {
   Table,
   TableBody,
@@ -18,232 +17,179 @@ import {
   TableRow,
 } from "@/components/ui/table"
 
-interface AttendanceGridProps {
-  employees: IEmployeeAttendance[]
-  selectedMonthYear?: string
+// Utility to format date -> YYYY-MM-DD (no time)
+const formatDate = (date: Date) => {
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, "0")
+  const day = String(date.getDate()).padStart(2, "0")
+  return `${year}-${month}-${day}`
 }
 
-// Utility function to generate attendance data from employees
-const generateAttendanceData = (
-  employees: IEmployeeAttendance[],
-  selectedMonthYear?: string
-): IAttendance[] => {
-  if (!employees || !Array.isArray(employees)) {
-    console.warn("Invalid employees data:", employees)
-    return []
-  }
+// Utility to format month -> YYYY-MM
+const formatMonth = (date: Date) => {
+  return formatDate(date).substring(0, 7)
+}
 
-  console.log("employees generateAttendanceData", employees)
+interface BulkAttendanceData {
+  employeeId: string
+  employeeName: string
+  companyId: number
+  companyName: string
+  days: {
+    date: string // always YYYY-MM-DD
+    status: "P" | "A" | "WK" | "VL"
+  }[]
+}
 
-  return employees.flatMap((employee: IEmployeeAttendance) => {
-    if (!employee || !employee.employeeId) {
-      console.warn("Invalid employee data:", employee)
-      return []
-    }
-
-    // Handle dailyRecords as either array or object
-    let dailyRecords: IDailyRecord[] = []
-
-    if (Array.isArray(employee.dailyRecords)) {
-      // If it's an array, filter valid records
-      dailyRecords = employee.dailyRecords.filter(
-        (record) => record && record.date
-      )
-    } else if (
-      employee.dailyRecords &&
-      typeof employee.dailyRecords === "object"
-    ) {
-      // If it's an object with numeric keys (day numbers), convert to array format
-      dailyRecords = Object.entries(employee.dailyRecords)
-        .map(([dayNumber, record]) => {
-          const recordData = record as Record<string, unknown>
-
-          // Convert day number to actual date based on selected month
-          const monthYear =
-            selectedMonthYear ||
-            `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, "0")}`
-          const [year, month] = monthYear.split("-").map(Number)
-          const day = parseInt(dayNumber, 10)
-
-          // Create the actual date string
-          const date = new Date(year, month - 1, day)
-            .toISOString()
-            .split("T")[0]
-
-          return {
-            date,
-            status: (recordData.status as string) || "A",
-            isPhysical: (recordData.isPhysical as boolean) || false,
-          }
-        })
-        .filter((record) => record && record.date)
-    }
-
-    return dailyRecords.map((record: IDailyRecord) => {
-      // Normalize date format to YYYY-MM-DD for consistent comparison
-      let recordDate = ""
-      try {
-        recordDate = record.date
-          ? new Date(record.date).toISOString().split("T")[0]
-          : ""
-      } catch {
-        console.warn("Invalid date format:", record.date)
-        recordDate = record.date || "" // Keep original if parsing fails
-      }
-
-      return {
-        id: `${employee.employeeId}-${recordDate}`,
-        employeeId: employee.employeeId,
-        employeeName: employee.employeeName,
-        companyId: employee.companyId,
-        companyName: employee.companyName,
-        photo: employee.photo,
-        date: recordDate,
-        status: record.status || "A", // Default to Absent if no status
-        isPhysical: record.isPhysical || false,
-      }
-    })
-  })
+interface AttendanceGridProps {
+  selectedMonth?: string
+  onAttendanceChange?: (changes: AttendanceFormValue[]) => void
 }
 
 export function AttendanceTable({
-  employees,
-  selectedMonthYear,
+  selectedMonth,
+  onAttendanceChange,
 }: AttendanceGridProps) {
-  // Generate attendance data from employees
-  const attendanceData = useMemo(() => {
-    const data = generateAttendanceData(employees || [], selectedMonthYear)
-    return data
-  }, [employees, selectedMonthYear])
+  // Avoid SSR/client mismatch: only set default month on client
+  const [selectedMonthYear, setSelectedMonthYear] = useState<string>(
+    selectedMonth || ""
+  )
+  const [bulkData, setBulkData] = useState<BulkAttendanceData[]>([])
+  const previousRecordsRef = useRef<AttendanceFormValue[]>([])
 
-  // Generate days for the selected month
+  // Fetch employees data with selected month
+  const { data: employeesResponse, isLoading } =
+    useGetByPath<IEmployeeAttendance>(
+      Hr_Attendance.getV1,
+      "employees",
+      selectedMonthYear
+    )
+
+  const employees = employeesResponse?.data || []
+
+  // Generate days for selected month
   const days = useMemo(() => {
     try {
-      const monthYear =
-        selectedMonthYear ||
-        `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, "0")}`
-
-      const [year, month] = monthYear.split("-").map(Number)
-
-      if (isNaN(year) || isNaN(month)) {
-        throw new Error("Invalid month year format")
-      }
-
+      const [year, month] = selectedMonthYear.split("-").map(Number)
       const daysCount = new Date(year, month, 0).getDate()
-      const monthName = new Date(year, month - 1, 1).toLocaleDateString(
-        "en-US",
-        {
-          month: "short",
-        }
-      )
-
       const daysArray = []
+
       for (let day = 1; day <= daysCount; day++) {
         const date = new Date(year, month - 1, day)
-        const dayName = date.toLocaleDateString("en-US", { weekday: "narrow" })
-        const formattedDate = `${month}/${day.toString().padStart(2, "0")}`
-        const fullDate = date.toISOString().split("T")[0] // YYYY-MM-DD format
-
         daysArray.push({
           day,
-          dayName,
-          formattedDate,
-          fullDate,
-          monthName,
+          dayName: date.toLocaleDateString("en-US", { weekday: "narrow" }),
+          fullDate: formatDate(date),
         })
       }
 
       return daysArray
-    } catch (error) {
-      console.error("Error generating days:", error)
+    } catch {
       return []
     }
   }, [selectedMonthYear])
 
-  // If no employees, show empty state
-  if (!employees || employees.length === 0) {
-    return (
-      <div>
-        <div className="bg-muted/30 border-b px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-lg font-semibold">Attendance Records</h3>
-            </div>
-            <div className="flex items-center gap-4">
-              <Badge variant="outline" className="text-sm">
-                0 Employees
-              </Badge>
-            </div>
-          </div>
-        </div>
-        <div className="flex items-center justify-center py-12">
-          <div className="text-muted-foreground text-center">
-            <div className="mb-2 text-lg font-medium">No employees found</div>
-            <div className="text-sm">
-              There are no employees to display for the selected period.
-            </div>
-          </div>
-        </div>
-      </div>
-    )
-  }
+  // Populate bulk data
+  useEffect(() => {
+    if (employees && employees.length > 0 && days.length > 0) {
+      const employeeList = Array.isArray(employees[0])
+        ? employees[0]
+        : employees
 
-  const getStatusColor = (status: IAttendanceStatus) => {
-    switch (status) {
-      case "P":
-        return "bg-green-100 text-green-800 border-green-200"
-      case "A":
-        return "bg-red-100 text-red-800 border-red-200"
-      case "WK":
-        return "bg-gray-100 text-gray-800 border-gray-200"
-      case "VL":
-        return "bg-purple-100 text-orange-800 border-orange-200"
-      default:
-        return "bg-gray-100 text-gray-800 border-gray-200"
+      const newBulkData = employeeList.map((employee: IEmployeeAttendance) => ({
+        employeeId: employee.employeeId || "",
+        employeeName: employee.employeeName || "",
+        companyId: employee.companyId || 0,
+        companyName: employee.companyName || "",
+        days: days.map((day) => {
+          // Find existing attendance record for this day
+          let existingRecord = undefined
+
+          if (Array.isArray(employee.dailyRecords)) {
+            // If it's an array, use find method
+            existingRecord = employee.dailyRecords.find(
+              (record) => record.date === day.fullDate
+            )
+          } else if (
+            employee.dailyRecords &&
+            typeof employee.dailyRecords === "object"
+          ) {
+            // If it's an object with numeric keys, find by day number
+            const dayNumber = day.day
+            existingRecord =
+              employee.dailyRecords[
+                dayNumber as keyof typeof employee.dailyRecords
+              ]
+          }
+
+          return {
+            date: day.fullDate,
+            status: (existingRecord?.status || "A") as "P" | "A" | "WK" | "VL",
+          }
+        }),
+      }))
+
+      setBulkData(newBulkData)
+    } else {
+      setBulkData([])
     }
-  }
+  }, [employees, days, selectedMonthYear, isLoading])
 
-  const getAttendanceForDay = (employeeId: string, date: string) => {
-    const attendance = attendanceData.find((att) => {
-      return att.employeeId === employeeId && att.date === date
+  // Set initial month on client only
+  useEffect(() => {
+    if (selectedMonth) {
+      setSelectedMonthYear(selectedMonth)
+    } else if (selectedMonthYear === "") {
+      setSelectedMonthYear(formatMonth(new Date()))
+    }
+  }, [selectedMonth, selectedMonthYear])
+
+  // Memoize attendance records to prevent unnecessary recalculations
+  const attendanceRecords = useMemo(() => {
+    if (bulkData.length === 0) return []
+
+    const records: AttendanceFormValue[] = []
+    bulkData.forEach((employee) => {
+      employee.days.forEach((day) => {
+        records.push({
+          employeeId: Number(employee.employeeId),
+          date: day.date,
+          status: day.status,
+        })
+      })
     })
+    return records
+  }, [bulkData])
 
-    return attendance
-  }
+  // Update parent's attendance changes when attendanceRecords change
+  useEffect(() => {
+    if (onAttendanceChange && attendanceRecords.length > 0) {
+      // Only call onAttendanceChange if the records have actually changed
+      const previousRecords = previousRecordsRef.current
+      const hasChanged =
+        JSON.stringify(previousRecords) !== JSON.stringify(attendanceRecords)
 
-  // Calculate attendance counts for selected month
-  const getAttendanceCounts = (employeeId: string) => {
-    const monthYear =
-      selectedMonthYear ||
-      `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, "0")}`
-
-    const [year, month] = monthYear.split("-").map(Number)
-
-    const monthAttendance = attendanceData.filter((att) => {
-      if (!att.date) return false
-
-      try {
-        const attDate = new Date(att.date)
-        return (
-          att.employeeId === employeeId &&
-          attDate.getMonth() === month - 1 &&
-          attDate.getFullYear() === year
-        )
-      } catch {
-        return false
+      if (hasChanged) {
+        previousRecordsRef.current = attendanceRecords
+        onAttendanceChange(attendanceRecords)
       }
-    })
+    }
+  }, [attendanceRecords]) // Remove onAttendanceChange from dependencies to prevent infinite loop
 
-    const presentCount = monthAttendance.filter(
-      (att) => att.status === "P"
+  const getAttendanceCounts = (employeeId: string) => {
+    const employee = bulkData.find((emp) => emp.employeeId === employeeId)
+    if (!employee) return { totalpresentCount: 0, totalCount: 0 }
+
+    const presentCount = employee.days.filter(
+      (day) => day.status === "P"
     ).length
-    const weekendCount = monthAttendance.filter(
-      (att) => att.status === "WK"
+    const weekendCount = employee.days.filter(
+      (day) => day.status === "WK"
     ).length
-    const vacationCount = monthAttendance.filter(
-      (att) => att.status === "VL"
+    const vacationCount = employee.days.filter(
+      (day) => day.status === "VL"
     ).length
-    const totalCount = monthAttendance.length
+    const totalCount = employee.days.length
 
     const totalpresentCount = presentCount + weekendCount + vacationCount
 
@@ -251,129 +197,231 @@ export function AttendanceTable({
   }
 
   return (
-    <div>
-      {/* Table Content */}
+    <div className="@container space-y-4">
       <div className="overflow-x-auto rounded-lg border">
-        {/* Header table */}
-        <Table className="w-full table-fixed border-collapse">
-          <colgroup>
-            <col className="w-[200px] min-w-[180px]" />
-            {days.map((day) => (
-              <col key={day.day} className="w-[35px] min-w-[30px]" />
-            ))}
-          </colgroup>
-          <TableHeader className="bg-background sticky top-0 z-20">
-            <TableRow className="bg-muted/50">
-              <TableHead className="bg-muted/50 sticky left-0 z-30">
-                <div className="flex items-center space-x-2">
-                  <span className="font-semibold">Employee</span>
-                </div>
-              </TableHead>
-
-              {days.map((day) => (
-                <TableHead key={day.day} className="p-0.5 text-center">
-                  <div className="flex flex-col items-center">
-                    <span className="text-xs font-semibold">
-                      {day.day.toString().padStart(2, "0")}
-                    </span>
-                    <span className="text-muted-foreground text-xs">
-                      {day.dayName}
-                    </span>
-                  </div>
-                </TableHead>
-              ))}
-            </TableRow>
-          </TableHeader>
-        </Table>
-
-        {/* Scrollable body table */}
-        <div className="max-h-[500px] overflow-y-auto">
+        <Table>
+          {/* Header table */}
           <Table className="w-full table-fixed border-collapse">
             <colgroup>
               <col className="w-[200px] min-w-[180px]" />
               {days.map((day) => (
-                <col key={day.day} className="w-[35px] min-w-[30px]" />
+                <col key={day.day} className="w-[45px] min-w-[40px]" />
               ))}
             </colgroup>
-            <TableBody>
-              {employees.map((employee) => {
-                const { totalpresentCount } = getAttendanceCounts(
-                  employee.employeeId
-                )
-
-                return (
-                  <TableRow key={employee.employeeId} className="group">
-                    <TableCell className="bg-background sticky left-0 z-10 py-2">
-                      <div className="flex items-center space-x-2">
-                        <div className="min-w-0 flex-1">
-                          <div className="truncate text-xs font-medium">
-                            {employee.employeeName.toWellFormed()}
-                          </div>
-                          <div className="text-muted-foreground truncate text-xs">
-                            {employee.companyName}
-                          </div>
-                        </div>
-                        <Badge
+            <TableHeader className="bg-background sticky top-0 z-20">
+              <TableRow className="bg-muted/50">
+                <TableHead className="bg-muted/50 sticky left-0 z-30">
+                  Employee
+                </TableHead>
+                {days.map((day) => (
+                  <TableHead
+                    key={day.day}
+                    className="border-muted-foreground/10 bg-muted/30 border-l px-0 py-1 text-center"
+                  >
+                    <div className="flex flex-col items-center gap-0.5">
+                      <span className="text-[11px] leading-none font-bold">
+                        {day.day.toString().padStart(2, "0")}
+                      </span>
+                      <span className="text-muted-foreground text-[10px] leading-none">
+                        {day.dayName}
+                      </span>
+                      <div className="mt-0.5 flex flex-col gap-0.5">
+                        <Button
+                          type="button"
                           variant="outline"
-                          className="bg-background flex-shrink-0 text-xs"
+                          size="icon"
+                          className="h-5 w-5 border-green-200 bg-green-100 p-0 text-[10px] text-green-800 hover:bg-green-200"
+                          onClick={() => {
+                            setBulkData((prev) =>
+                              prev.map((employee) => ({
+                                ...employee,
+                                days: employee.days.map((d) =>
+                                  d.date === day.fullDate
+                                    ? { ...d, status: "P" as const }
+                                    : d
+                                ),
+                              }))
+                            )
+                          }}
                         >
-                          {totalpresentCount}
-                        </Badge>
+                          P
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="icon"
+                          className="h-5 w-5 border-red-200 bg-red-100 p-0 text-[10px] text-red-800 hover:bg-red-200"
+                          onClick={() => {
+                            setBulkData((prev) =>
+                              prev.map((employee) => ({
+                                ...employee,
+                                days: employee.days.map((d) =>
+                                  d.date === day.fullDate
+                                    ? { ...d, status: "A" as const }
+                                    : d
+                                ),
+                              }))
+                            )
+                          }}
+                        >
+                          A
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="icon"
+                          className="h-5 w-5 border-blue-200 bg-blue-100 p-0 text-[10px] text-blue-800 hover:bg-blue-200"
+                          onClick={() => {
+                            setBulkData((prev) =>
+                              prev.map((employee) => ({
+                                ...employee,
+                                days: employee.days.map((d) =>
+                                  d.date === day.fullDate
+                                    ? { ...d, status: "WK" as const }
+                                    : d
+                                ),
+                              }))
+                            )
+                          }}
+                        >
+                          WK
+                        </Button>
                       </div>
+                    </div>
+                  </TableHead>
+                ))}
+              </TableRow>
+            </TableHeader>
+          </Table>
+          {/* Scrollable body table */}
+          <div className="max-h-[500px] overflow-y-auto">
+            <Table className="w-full table-fixed border-collapse">
+              <colgroup>
+                <col className="w-[200px] min-w-[180px]" />
+                {days.map((day) => (
+                  <col key={day.day} className="w-[45px] min-w-[40px]" />
+                ))}
+              </colgroup>
+              <TableBody>
+                {bulkData.length === 0 ? (
+                  <TableRow>
+                    <TableCell
+                      colSpan={days.length + 1}
+                      className="text-center"
+                    >
+                      No employees found
                     </TableCell>
-                    {days.map((day) => {
-                      const attendance = getAttendanceForDay(
-                        employee.employeeId,
-                        day.fullDate
-                      )
-
-                      return (
-                        <TableCell key={day.day} className="p-0.5 text-center">
-                          <div className="w-full">
-                            {attendance ? (
-                              <div
-                                className={`flex h-6 w-full cursor-pointer items-center justify-center rounded border text-xs font-medium ${getStatusColor(attendance.status as IAttendanceStatus)}`}
-                              >
-                                <span className="font-semibold">
-                                  {attendance.status}
-                                </span>
+                  </TableRow>
+                ) : (
+                  bulkData.map((employee) => {
+                    const { totalpresentCount } = getAttendanceCounts(
+                      employee.employeeId
+                    )
+                    return (
+                      <TableRow key={employee.employeeId} className="group">
+                        <TableCell className="bg-background sticky left-0 z-10 py-2">
+                          <div className="flex items-center space-x-2">
+                            <div className="min-w-0 flex-1">
+                              <div className="truncate text-xs font-medium">
+                                {employee.employeeName}
                               </div>
-                            ) : (
-                              <div className="text-muted-foreground flex h-6 w-full items-center justify-center rounded border border-dashed border-gray-300 text-xs">
-                                No Record
+                              <div className="text-muted-foreground truncate text-xs">
+                                {employee.companyName}
                               </div>
-                            )}
+                            </div>
+                            <Badge
+                              variant="outline"
+                              className="bg-background flex-shrink-0 text-xs"
+                            >
+                              {totalpresentCount}
+                            </Badge>
                           </div>
                         </TableCell>
-                      )
-                    })}
-                  </TableRow>
-                )
-              })}
-            </TableBody>
-          </Table>
-        </div>
+                        {employee.days.map((day) => (
+                          <TableCell
+                            key={day.date}
+                            className="border-muted-foreground/10 border-l bg-white px-0 py-1 text-center dark:bg-black/10"
+                          >
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="icon"
+                              className={`h-6 w-6 rounded p-0 text-[11px] font-semibold ${
+                                day.status === "P"
+                                  ? "border-green-200 bg-green-100 text-green-800"
+                                  : day.status === "A"
+                                    ? "border-red-200 bg-red-100 text-red-800"
+                                    : day.status === "WK"
+                                      ? "border-blue-200 bg-blue-100 text-blue-800"
+                                      : "border-yellow-200 bg-yellow-100 text-yellow-800"
+                              }`}
+                              onClick={() => {
+                                const statusCycle = [
+                                  "P",
+                                  "A",
+                                  "WK",
+                                  "VL",
+                                ] as const
+                                const currentIndex = statusCycle.indexOf(
+                                  day.status
+                                )
+                                const nextIndex =
+                                  (currentIndex + 1) % statusCycle.length
+                                const nextStatus = statusCycle[nextIndex]
+                                setBulkData((prev) =>
+                                  prev.map((emp) =>
+                                    emp.employeeId === employee.employeeId
+                                      ? {
+                                          ...emp,
+                                          days: emp.days.map((d) =>
+                                            d.date === day.date
+                                              ? { ...d, status: nextStatus }
+                                              : d
+                                          ),
+                                        }
+                                      : emp
+                                  )
+                                )
+                              }}
+                            >
+                              {day.status}
+                            </Button>
+                          </TableCell>
+                        ))}
+                      </TableRow>
+                    )
+                  })
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </Table>
       </div>
-
       {/* Legend */}
       <div className="bg-muted/30 border-t p-4">
-        <div className="flex flex-wrap gap-4 text-xs">
-          <div className="flex items-center gap-2">
-            <div className="h-3 w-3 rounded border border-green-200 bg-green-100"></div>
-            <span>Present (P)</span>
+        <div className="flex items-center justify-between">
+          <div className="flex flex-wrap gap-4 text-xs">
+            <div className="flex items-center gap-2">
+              <div className="h-3 w-3 rounded border border-green-200 bg-green-100"></div>
+              <span>Present (P)</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="h-3 w-3 rounded border border-red-200 bg-red-100"></div>
+              <span>Absent (A)</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="h-3 w-3 rounded border border-blue-200 bg-blue-100"></div>
+              <span>Weekend (WK)</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="h-3 w-3 rounded border border-yellow-200 bg-yellow-100"></div>
+              <span>Vacation Leave (VL)</span>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="h-3 w-3 rounded border border-red-200 bg-red-100"></div>
-            <span>Absent (A)</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="h-3 w-3 rounded border border-gray-200 bg-gray-100"></div>
-            <span>Weekend (WK)</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="h-3 w-3 rounded border border-yellow-200 bg-yellow-100"></div>
-            <span>Vacation Leave (VL)</span>
-          </div>
+          {/* Employee Count Badge - Always on the Right */}
+          <Badge variant="outline" className="text-sm">
+            {bulkData.length} Employees
+          </Badge>
         </div>
       </div>
     </div>

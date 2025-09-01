@@ -452,77 +452,82 @@ export function UserTable({
         onDragEnd={handleDragEnd}
       >
         <div className="overflow-x-auto rounded-lg border">
-          {/* Header table */}
-          <Table className="w-full table-fixed border-collapse">
-            <TanstackTableHeader className="bg-background sticky top-0 z-20">
-              {table.getHeaderGroups().map((headerGroup) => (
-                <TableRow key={headerGroup.id} className="bg-muted/50">
-                  <SortableContext
-                    items={headerGroup.headers.map((header) => header.id)}
-                    strategy={horizontalListSortingStrategy}
-                  >
-                    {headerGroup.headers.map((header) => (
-                      <DraggableColumnHeader key={header.id} header={header} />
-                    ))}
-                  </SortableContext>
-                </TableRow>
-              ))}
-            </TanstackTableHeader>
-          </Table>
-
-          {/* Scrollable body table */}
-          <div
-            ref={tableContainerRef}
-            className="max-h-[400px] overflow-y-auto"
-          >
+          <Table>
+            {/* Header table */}
             <Table className="w-full table-fixed border-collapse">
-              <TableBody>
-                {virtualRows.length > 0 ? (
-                  <>
-                    <tr style={{ height: `${paddingTop}px` }} />
-                    {virtualRows.map((virtualRow) => {
-                      const row = table.getRowModel().rows[virtualRow.index]
-                      return (
-                        <TableRow key={row.id}>
-                          {row.getVisibleCells().map((cell, cellIndex) => (
-                            <TableCell
-                              key={cell.id}
-                              className={`py-2 ${cellIndex === 0 ? "bg-background sticky left-0 z-10" : ""}`}
-                            >
-                              {flexRender(
-                                cell.column.columnDef.cell,
-                                cell.getContext()
-                              )}
-                            </TableCell>
-                          ))}
-                        </TableRow>
-                      )
-                    })}
-                    <tr style={{ height: `${paddingBottom}px` }} />
-                  </>
-                ) : (
-                  <>
-                    <TableRow>
-                      <TableCell
-                        colSpan={columns.length}
-                        className="h-24 text-center"
-                      >
-                        {isLoading ? "Loading..." : "No users found."}
-                      </TableCell>
-                    </TableRow>
-                    {Array.from({ length: 9 }).map((_, index) => (
-                      <TableRow key={`empty-${index}`}>
+              <TanstackTableHeader className="bg-background sticky top-0 z-20">
+                {table.getHeaderGroups().map((headerGroup) => (
+                  <TableRow key={headerGroup.id} className="bg-muted/50">
+                    <SortableContext
+                      items={headerGroup.headers.map((header) => header.id)}
+                      strategy={horizontalListSortingStrategy}
+                    >
+                      {headerGroup.headers.map((header) => (
+                        <DraggableColumnHeader
+                          key={header.id}
+                          header={header}
+                        />
+                      ))}
+                    </SortableContext>
+                  </TableRow>
+                ))}
+              </TanstackTableHeader>
+            </Table>
+
+            {/* Scrollable body table */}
+            <div
+              ref={tableContainerRef}
+              className="max-h-[400px] overflow-y-auto"
+            >
+              <Table className="w-full table-fixed border-collapse">
+                <TableBody>
+                  {virtualRows.length > 0 ? (
+                    <>
+                      <tr style={{ height: `${paddingTop}px` }} />
+                      {virtualRows.map((virtualRow) => {
+                        const row = table.getRowModel().rows[virtualRow.index]
+                        return (
+                          <TableRow key={row.id}>
+                            {row.getVisibleCells().map((cell, cellIndex) => (
+                              <TableCell
+                                key={cell.id}
+                                className={`py-2 ${cellIndex === 0 ? "bg-background sticky left-0 z-10" : ""}`}
+                              >
+                                {flexRender(
+                                  cell.column.columnDef.cell,
+                                  cell.getContext()
+                                )}
+                              </TableCell>
+                            ))}
+                          </TableRow>
+                        )
+                      })}
+                      <tr style={{ height: `${paddingBottom}px` }} />
+                    </>
+                  ) : (
+                    <>
+                      <TableRow>
                         <TableCell
                           colSpan={columns.length}
-                          className="h-10"
-                        ></TableCell>
+                          className="h-24 text-center"
+                        >
+                          {isLoading ? "Loading..." : "No users found."}
+                        </TableCell>
                       </TableRow>
-                    ))}
-                  </>
-                )}
-              </TableBody>
-            </Table>
-          </div>
+                      {Array.from({ length: 9 }).map((_, index) => (
+                        <TableRow key={`empty-${index}`}>
+                          <TableCell
+                            colSpan={columns.length}
+                            className="h-10"
+                          ></TableCell>
+                        </TableRow>
+                      ))}
+                    </>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          </Table>
         </div>
       </DndContext>
 

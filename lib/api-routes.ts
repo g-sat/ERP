@@ -35,6 +35,7 @@ export const DocumentExpiry = {
 // Attendance Endpoints
 export const Hr_Attendance = {
   get: "/hr/GetAttendanceEmployee",
+  getV1: "/hr/GetBulkAttendance",
   getById: "/hr/GetAttendanceEmployeeById",
   save: "/hr/SaveAttendanceEmployee",
   saveBulk: "/hr/SaveBulkAttendance",

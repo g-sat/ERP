@@ -115,6 +115,8 @@ export interface IEmployeePersonalDetails {
   passportExpiryDate?: Date | string
   emiratesIdNo?: string
   emiratesIdExpiryDate?: Date | string
+  emergencyContactNo?: string
+  personalContactNo?: string
   createDate?: Date | string
   editDate?: Date | string
   createBy?: string

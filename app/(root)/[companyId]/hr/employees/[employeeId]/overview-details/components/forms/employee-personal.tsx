@@ -108,6 +108,8 @@ export function EmployeePersonalForm({ employee, onCancel }: Props) {
               clientDateFormat
             )
           : "",
+        emergencyContactNo: employee.emergencyContactNo || "",
+        personalContactNo: employee.personalContactNo || "",
       })
     }
   }, [employee, form])
@@ -167,6 +169,16 @@ export function EmployeePersonalForm({ employee, onCancel }: Props) {
             form={form}
             label="Emirates ID Expiry Date"
             name="emiratesIdExpiryDate"
+          />
+          <CustomInput
+            form={form}
+            label="Emergency Contact No"
+            name="emergencyContactNo"
+          />
+          <CustomInput
+            form={form}
+            label="Personal Contact No"
+            name="personalContactNo"
           />
         </div>
 

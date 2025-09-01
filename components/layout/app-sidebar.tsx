@@ -28,6 +28,7 @@ import {
   GalleryVerticalEnd,
   Globe,
   GraduationCap,
+  Grid,
   HandCoins,
   Landmark,
   LayoutDashboard,
@@ -35,8 +36,9 @@ import {
   PlusCircle,
   Receipt,
   Scale,
+  Search,
   Settings,
-  Shield,
+  Share,
   Ship,
   Sliders,
   Undo2,
@@ -48,7 +50,6 @@ import { useApprovalCounts } from "@/hooks/use-approval"
 import {
   Sidebar,
   SidebarContent,
-  SidebarFooter,
   SidebarGroup,
   SidebarGroupLabel,
   SidebarHeader,
@@ -79,11 +80,7 @@ export const menuData = {
       url: "/approvals",
       icon: BarChart,
     },
-    {
-      title: "Document Expiry",
-      url: "/document-expiry",
-      icon: FileText,
-    },
+
     {
       title: "Document",
       url: "/document",
@@ -113,7 +110,6 @@ export const menuData = {
         { title: "Leave", url: "/hr/leave", icon: CalendarDays },
         { title: "Attendance", url: "/hr/attendance", icon: Clock },
         { title: "Payruns", url: "/hr/payruns", icon: Calendar },
-        // { title: "Payroll", url: "/hr/payroll", icon: Wallet },
         { title: "Reports", url: "/hr/reports", icon: BarChart },
         {
           title: "Setting",
@@ -122,16 +118,6 @@ export const menuData = {
         },
       ],
     },
-    // {
-    //   title: "Chat",
-    //   url: "/chat",
-    //   icon: MessageCircle,
-    // },
-    // {
-    //   title: "Todo",
-    //   url: "/todo",
-    //   icon: ClipboardList,
-    // },
   ],
   masterNav: [
     {
@@ -281,33 +267,52 @@ export const menuData = {
     //   ],
     // },
   ],
-  // hrmsNav: [
-  //   {
-  //     title: "HRMS",
-  //     url: "/hrms",
-  //     icon: Users,
-  //     items: [
-  //       { title: "Dashboard", url: "/hrms/dashboard", icon: LayoutDashboard },
-  //       { title: "Leave & Attendance", url: "/hrms/leav", icon: CalendarCheck },
-  //       { title: "Employee", url: "/hrms/employee", icon: User },
-  //       { title: "Loan", url: "/hrms/loans", icon: Wallet },
-  //       { title: "Services", url: "/hrms/services", icon: ListChecks },
-  //     ],
-  //   },
-  // ],
-  // documentNav: [
-  //   {
-  //     title: "Documentation",
-  //     url: "/docs",
-  //     icon: BookOpen,
-  //     items: [
-  //       { title: "Introduction", url: "/docs/introduction", icon: FileText },
-  //       { title: "Get Started", url: "/docs/get-started", icon: PlayCircle },
-  //       { title: "Tutorials", url: "/docs/tutorials", icon: GraduationCap },
-  //       { title: "Changelog", url: "/docs/changelog", icon: ListChecks },
-  //     ],
-  //   },
-  // ],
+
+  settingNav: [
+    {
+      title: "Admin",
+      url: "/admin",
+      icon: Landmark,
+      items: [
+        { title: "User", url: "/admin/users", icon: Users },
+        { title: "User Role", url: "/admin/user-roles", icon: Landmark },
+        { title: "User Group", url: "/admin/user-groups", icon: Users },
+        {
+          title: "User Rights",
+          url: "/admin/user-rights",
+          icon: Scale,
+        },
+        {
+          title: "User Wise Rights",
+          url: "/admin/user-wise-rights",
+          icon: Users,
+        },
+        { title: "Group Rights", url: "/admin/group-rights", icon: Users },
+        { title: "Report Rights", url: "/admin/report-rights", icon: BarChart },
+        { title: "Share Data", url: "/admin/share-data", icon: Share },
+      ],
+    },
+    {
+      title: "Setting",
+      url: "/settings",
+      icon: Settings,
+      items: [
+        { title: "grid", url: "/settings/grid", icon: Grid },
+        { title: "document", url: "/settings/document", icon: FileText },
+        { title: "decimal", url: "/settings/decimal", icon: Scale },
+        { title: "finance", url: "/settings/finance", icon: Wallet },
+        { title: "task", url: "/settings/task", icon: ClipboardList },
+        { title: "dynamic lookup", url: "/settings/lookup", icon: Search },
+        { title: "account", url: "/settings/account", icon: Landmark },
+        {
+          title: "mandatory fields",
+          url: "/settings/mandatory",
+          icon: FileMinus,
+        },
+        { title: "visible fields", url: "/settings/visible", icon: FilePlus },
+      ],
+    },
+  ],
 }
 
 export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
@@ -334,6 +339,8 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
     ],
     []
   )
+
+  const settingNavs = React.useMemo(() => menuData.settingNav, [])
 
   const getUrlWithCompanyId = React.useCallback(
     (url: string) => {
@@ -572,8 +579,78 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
             ))}
           </SidebarMenu>
         </SidebarGroup>
+        <SidebarGroupLabel>Settings</SidebarGroupLabel>
+        <SidebarGroup className="p-1">
+          <SidebarMenu className="gap-0.5">
+            {settingNavs.map((group) => (
+              <Collapsible
+                key={group.title}
+                asChild
+                open={openMenu === group.title}
+                className="group/collapsible"
+              >
+                <SidebarMenuItem>
+                  <CollapsibleTrigger asChild>
+                    <SidebarMenuButton
+                      tooltip={group.title}
+                      onClick={() => handleMenuClick(group.title)}
+                      onMouseEnter={() => setHoveredMenu(group.title)}
+                      onMouseLeave={() => setHoveredMenu(null)}
+                      className={`hover:bg-primary/20 hover:text-primary data-[active=true]:bg-primary/20 data-[active=true]:text-primary transition-colors duration-200 ${
+                        isMenuActive(group.title) || hoveredMenu === group.title
+                          ? "bg-primary/20 text-primary"
+                          : ""
+                      }`}
+                    >
+                      {group.icon && <group.icon />}
+                      <span>{group.title}</span>
+                      {group.items && (
+                        <ChevronRightIcon className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
+                      )}
+                    </SidebarMenuButton>
+                  </CollapsibleTrigger>
+                  {group.items && (
+                    <CollapsibleContent>
+                      <SidebarMenuSub>
+                        {group.items.map((subItem) => (
+                          <SidebarMenuSubItem key={subItem.title}>
+                            <SidebarMenuSubButton
+                              asChild
+                              onMouseEnter={() =>
+                                setHoveredSubMenu(subItem.title)
+                              }
+                              onMouseLeave={() => setHoveredSubMenu(null)}
+                              className={`hover:bg-primary/20 hover:text-primary data-[active=true]:bg-primary/20 data-[active=true]:text-primary transition-colors duration-200 ${
+                                isSubMenuActive(subItem.title) ||
+                                hoveredSubMenu === subItem.title
+                                  ? "bg-primary/20 text-primary"
+                                  : ""
+                              }`}
+                            >
+                              <Link
+                                href={getUrlWithCompanyId(subItem.url)}
+                                onClick={() =>
+                                  handleSubMenuClick(group.title, subItem.title)
+                                }
+                              >
+                                {subItem.icon && (
+                                  <subItem.icon className="h-4 w-4" />
+                                )}
+                                <span>{subItem.title}</span>
+                              </Link>
+                            </SidebarMenuSubButton>
+                          </SidebarMenuSubItem>
+                        ))}
+                      </SidebarMenuSub>
+                    </CollapsibleContent>
+                  )}
+                </SidebarMenuItem>
+              </Collapsible>
+            ))}
+          </SidebarMenu>
+        </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter>
+      {/* <SidebarFooter>
         <SidebarGroup className="p-1">
           <div className="mt-2 border-t pt-2">
             <SidebarMenu className="gap-0.5">
@@ -613,7 +690,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
-              {/*
+             
               <SidebarMenuItem>
                 <SidebarMenuButton
                   asChild
@@ -632,11 +709,11 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
-               */}
+             
             </SidebarMenu>
           </div>
         </SidebarGroup>
-      </SidebarFooter>
+      </SidebarFooter>  */}
     </Sidebar>
   )
 }

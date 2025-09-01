@@ -4,7 +4,8 @@ import { z } from "zod"
 export const attendanceFormSchema = z.object({
   employeeId: z.number().min(1, "Employee is required"),
   date: z.string().min(1, "Date is required"),
-  isPresent: z.boolean(), // Match C# bool (non-nullable boolean)
+  status: z.enum(["P", "A", "WK", "VL"]).default("P"), // Attendance status
+  isPresent: z.boolean().optional(), // Optional for backward compatibility
 })
 
 export type AttendanceFormValue = z.infer<typeof attendanceFormSchema>

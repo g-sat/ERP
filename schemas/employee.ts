@@ -126,6 +126,8 @@ export const employeePersonalDetailsSchema = z.object({
   passportExpiryDate: z.union([z.date(), z.string()]).optional().default(""),
   emiratesIdNo: z.string().optional().default(""),
   emiratesIdExpiryDate: z.union([z.date(), z.string()]).optional().default(""),
+  emergencyContactNo: z.string().optional().default(""),
+  personalContactNo: z.string().optional().default(""),
 })
 
 export type EmployeePersonalDetailsValues = z.infer<

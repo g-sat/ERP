@@ -173,6 +173,13 @@ export function AttendanceBulkForm({
     })
   }
 
+  const getSelectedCount = () => {
+    return bulkData.reduce(
+      (total, employee) => total + employee.days.length, // count all days (both present and absent)
+      0
+    )
+  }
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[90vh] w-[95vw] !max-w-none overflow-y-auto sm:w-[90vw]">
@@ -208,6 +215,12 @@ export function AttendanceBulkForm({
                 <div className="flex items-center gap-3">
                   <Badge variant="outline">{employees.length} Employees</Badge>
                   <Badge variant="outline">{days.length} Days</Badge>
+                  <Badge
+                    variant="outline"
+                    className="bg-green-100 text-green-800"
+                  >
+                    {getSelectedCount()} Selected
+                  </Badge>
                 </div>
               )}
 
@@ -230,6 +243,7 @@ export function AttendanceBulkForm({
                   }
                 >
                   {bulkSaveAttendance.isPending ? "Saving..." : "Save"}{" "}
+                  {bulkData.length > 0 ? `(${getSelectedCount()} records)` : ""}
                 </Button>
               </div>
             </div>

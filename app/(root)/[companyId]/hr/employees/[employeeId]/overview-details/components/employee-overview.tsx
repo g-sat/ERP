@@ -249,6 +249,24 @@ export function EmployeeOverview({
                       {employeePersonal?.emailAdd || ""}
                     </span>
                   </div>
+                  <div className="flex items-center space-x-3">
+                    <Phone className="h-4 w-4 text-gray-400" />
+                    <label className="text-sm font-medium text-gray-500">
+                      Emergency Contact No
+                    </label>
+                    <span className="text-sm">
+                      {employeePersonal?.emergencyContactNo || "-"}
+                    </span>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <Phone className="h-4 w-4 text-gray-400" />
+                    <label className="text-sm font-medium text-gray-500">
+                      Personal Contact No
+                    </label>
+                    <span className="text-sm">
+                      {employeePersonal?.personalContactNo || "-"}
+                    </span>
+                  </div>
                 </div>
 
                 {/* Document Information */}

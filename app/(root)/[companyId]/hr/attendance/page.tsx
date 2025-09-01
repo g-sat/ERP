@@ -1,19 +1,16 @@
 "use client"
 
 import { useCallback, useState } from "react"
-import { IEmployeeAttendance } from "@/interfaces/attendance"
-import { Plus } from "lucide-react"
+import { AttendanceFormValue } from "@/schemas/attendance"
+import { Save } from "lucide-react"
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 
 import { Hr_Attendance } from "@/lib/api-routes"
-import { useGetByPath } from "@/hooks/use-common"
-import { Badge } from "@/components/ui/badge"
+import { usePersist } from "@/hooks/use-common"
 import { Button } from "@/components/ui/button"
 import MonthAutocomplete from "@/components/ui-custom/autocomplete-month"
 
-import { AttendanceBulkForm } from "./components/attendance-form-bulk"
-import { AttendanceSingleForm } from "./components/attendance-form-single"
 import { AttendanceTable } from "./components/attendance-table"
 
 interface AttendancePageForm extends Record<string, unknown> {
@@ -21,8 +18,14 @@ interface AttendancePageForm extends Record<string, unknown> {
 }
 
 export default function AttendancePage() {
-  const [isBulkFormOpen, setIsBulkFormOpen] = useState(false)
-  const [isSingleFormOpen, setIsSingleFormOpen] = useState(false)
+  const [attendanceChanges, setAttendanceChanges] = useState<
+    AttendanceFormValue[]
+  >([])
+
+  // Save attendance hook
+  const saveAttendance = usePersist<AttendanceFormValue[]>(
+    Hr_Attendance.saveBulk
+  )
 
   const form = useForm<AttendancePageForm>({
     defaultValues: {
@@ -31,16 +34,6 @@ export default function AttendancePage() {
   })
 
   const selectedMonth = form.watch("selectedMonth")
-
-  // Fetch employees data with selected month
-  const { data: employeesResponse, isLoading } =
-    useGetByPath<IEmployeeAttendance>(
-      Hr_Attendance.get,
-      "employees",
-      selectedMonth
-    )
-
-  const employees = employeesResponse?.data || []
 
   const handleMonthChange = useCallback(
     (selectedOption: { value: string; label: string } | null) => {
@@ -52,28 +45,33 @@ export default function AttendancePage() {
     [form]
   )
 
-  // Show loading state while data is being fetched
-  if (isLoading) {
-    return (
-      <div className="container mx-auto space-y-4 px-4 py-4 sm:space-y-6 sm:px-6 sm:py-6">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="space-y-1">
-            <h1 className="text-xl font-bold tracking-tight sm:text-3xl">
-              Attendance Management
-            </h1>
-            <p className="text-muted-foreground text-sm">
-              Monitor and manage employee attendance records
-            </p>
-          </div>
-        </div>
-        <div className="flex items-center justify-center py-8">
-          <div className="text-muted-foreground">
-            Loading attendance data...
-          </div>
-        </div>
-      </div>
-    )
-  }
+  const handleAttendanceChange = useCallback(
+    (changes: AttendanceFormValue[]) => {
+      setAttendanceChanges(changes)
+    },
+    []
+  )
+
+  const handleSaveAttendance = useCallback(() => {
+    if (attendanceChanges.length === 0) {
+      toast.warning("No changes to save")
+      return
+    }
+
+    saveAttendance.mutate(attendanceChanges, {
+      onSuccess: (response) => {
+        if (response.result === 1) {
+          toast.success("Attendance saved successfully")
+          setAttendanceChanges([]) // Clear changes after successful save
+        } else {
+          toast.error("Failed to save attendance")
+        }
+      },
+      onError: () => {
+        toast.error("Failed to save attendance")
+      },
+    })
+  }, [attendanceChanges, saveAttendance])
 
   return (
     <div className="container mx-auto space-y-4 px-4 py-4 sm:space-y-6 sm:px-6 sm:py-6">
@@ -89,9 +87,6 @@ export default function AttendancePage() {
         </div>
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
           <div className="flex items-center gap-2">
-            <Badge variant="outline" className="text-sm">
-              {employees.length} Employees
-            </Badge>
             <MonthAutocomplete
               form={form}
               name="selectedMonth"
@@ -99,23 +94,17 @@ export default function AttendancePage() {
               className="w-48"
             />
           </div>
-          <div className="flex items-center gap-1">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setIsSingleFormOpen(true)}
-              className="flex items-center gap-1"
-            >
-              <Plus className="h-3 w-3" />
-              Add Attendance
-            </Button>
+          <div className="flex items-center gap-2">
             <Button
               size="sm"
-              onClick={() => setIsBulkFormOpen(true)}
+              onClick={handleSaveAttendance}
+              disabled={
+                attendanceChanges.length === 0 || saveAttendance.isPending
+              }
               className="flex items-center gap-1"
             >
-              <Plus className="h-3 w-3" />
-              Bulk Attendance
+              <Save className="h-3 w-3" />
+              {saveAttendance.isPending ? "Saving..." : `Save`}
             </Button>
           </div>
         </div>
@@ -124,22 +113,10 @@ export default function AttendancePage() {
       {/* Attendance Table Section */}
       <div className="space-y-4">
         <AttendanceTable
-          employees={employees}
-          selectedMonthYear={selectedMonth}
+          selectedMonth={selectedMonth}
+          onAttendanceChange={handleAttendanceChange}
         />
       </div>
-
-      {/* Bulk Attendance Form Dialog */}
-      <AttendanceBulkForm
-        open={isBulkFormOpen}
-        onOpenChange={setIsBulkFormOpen}
-      />
-
-      {/* Single Attendance Form Dialog */}
-      <AttendanceSingleForm
-        open={isSingleFormOpen}
-        onOpenChange={setIsSingleFormOpen}
-      />
     </div>
   )
 }
