@@ -159,7 +159,8 @@ export function UserTable({
     },
     {
       accessorKey: "resetPassword",
-      header: "Reset Password",
+      header: "Pswd",
+
       cell: ({ row }) => (
         <Button
           size="sm"
@@ -431,6 +432,8 @@ export function UserTable({
     }
   }, [sorting, searchQuery])
 
+  const visibleLeafColumns = table.getVisibleLeafColumns()
+
   return (
     <>
       <TableHeader
@@ -455,6 +458,11 @@ export function UserTable({
           <Table>
             {/* Header table */}
             <Table className="w-full table-fixed border-collapse">
+              <colgroup>
+                {visibleLeafColumns.map((col) => (
+                  <col key={col.id} style={{ width: `${col.getSize()}px` }} />
+                ))}
+              </colgroup>
               <TanstackTableHeader className="bg-background sticky top-0 z-20">
                 {table.getHeaderGroups().map((headerGroup) => (
                   <TableRow key={headerGroup.id} className="bg-muted/50">
@@ -474,12 +482,17 @@ export function UserTable({
               </TanstackTableHeader>
             </Table>
 
-            {/* Scrollable body table */}
+            {/* Body table with scroll container */}
             <div
               ref={tableContainerRef}
-              className="max-h-[400px] overflow-y-auto"
+              className="max-h-[500px] overflow-y-auto"
             >
               <Table className="w-full table-fixed border-collapse">
+                <colgroup>
+                  {visibleLeafColumns.map((col) => (
+                    <col key={col.id} style={{ width: `${col.getSize()}px` }} />
+                  ))}
+                </colgroup>
                 <TableBody>
                   {virtualRows.length > 0 ? (
                     <>
