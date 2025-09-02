@@ -2,27 +2,17 @@
 
 import { useState } from "react"
 import { IPayrollEmployeeDt, IPayrollEmployeeHd } from "@/interfaces/payrun"
+import { Download, Mail, MessageSquare } from "lucide-react"
 import { toast } from "sonner"
 
-import {
-  downloadPayslipPDF,
-  generatePayslipPDF,
-  handleSendPayslip,
-} from "@/lib/payslip-utils"
+import { payslipPDFGenerator } from "@/lib/payslip-pdf-generator"
 import { useGetById } from "@/hooks/use-common"
 import { Button } from "@/components/ui/button"
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
 import { CurrencyFormatter } from "@/components/currencyicons/currency-formatter"
 
 interface PayRunSummaryFormProps {
   employee: IPayrollEmployeeHd | null
   payrunId: string
-  onClose: () => void
 }
 
 export function PayRunSummaryForm({
@@ -30,11 +20,7 @@ export function PayRunSummaryForm({
   payrunId,
 }: PayRunSummaryFormProps) {
   const [formData] = useState<Partial<IPayrollEmployeeHd>>(employee || {})
-  const [showDownloadConfirmation, setShowDownloadConfirmation] =
-    useState(false)
-  const [showSendConfirmation, setShowSendConfirmation] = useState(false)
-  const [isDownloading, setIsDownloading] = useState(false)
-  const [isSending, setIsSending] = useState(false)
+  const [isSendingWhatsApp, setIsSendingWhatsApp] = useState(false)
 
   console.log("employee", employee)
 
@@ -78,74 +64,155 @@ export function PayRunSummaryForm({
 
   const currentBasicNetPay = calculateBasicNetPay()
 
-  // Handle download payslip
-  const handleDownloadPayslip = async () => {
-    if (!employee) return
+  // Generate PDF payslip
+  const generatePayslipPDF = () => {
+    const earnings = employeeData
+      .filter((item) => item.componentType.toLowerCase() === "earning")
+      .map((item) => ({
+        componentName: item.componentName,
+        basicAmount: item.basicAmount || 0,
+        currentAmount: item.amount || 0,
+      }))
 
-    setIsDownloading(true)
-    try {
-      const payPeriod = "August 2025" // You might want to get this from props or context
-      const payDate = "03 SEP, 2025"
-      const companyName = employee.companyName || "Company Name"
+    const deductions = employeeData
+      .filter((item) => item.componentType.toLowerCase() === "deduction")
+      .map((item) => ({
+        componentName: item.componentName,
+        basicAmount: item.basicAmount || 0,
+        currentAmount: item.amount || 0,
+      }))
 
-      const pdfBlob = await generatePayslipPDF(
-        employee,
-        payrunId,
-        payPeriod,
-        payDate,
-        companyName
-      )
-
-      downloadPayslipPDF(pdfBlob, employee.employeeName)
-
-      toast.success("Payslip downloaded successfully!", {
-        description: "The payslip PDF has been downloaded to your device.",
-      })
-    } catch (error) {
-      console.error("Error downloading PDF:", error)
-      toast.error("Failed to download PDF", {
-        description: "An unexpected error occurred.",
-      })
-    } finally {
-      setIsDownloading(false)
+    const payslipData = {
+      employeeName: employee?.employeeName || "Unknown",
+      employeeId: employee?.payrollEmployeeId?.toString() || "N/A",
+      payPeriod: "Current Month",
+      presentDays:
+        formData.presentDays !== undefined
+          ? formData.presentDays
+          : employee?.presentDays || 0,
+      pastDays: employee?.pastDays || 0,
+      earnings,
+      deductions,
+      netPay: currentNetPay,
+      basicNetPay: currentBasicNetPay,
     }
+
+    return payslipPDFGenerator.generatePayslip(payslipData)
   }
 
-  // Handle send payslip
-  const handleSendPayslipAction = async () => {
-    if (!employee) return
-
-    setIsSending(true)
+  // WhatsApp API function - Send PDF payslip
+  const sendWhatsAppPayslip = async (phoneNumber: string) => {
     try {
-      const payPeriod = "August 2025" // You might want to get this from props or context
-      const payDate = "03 SEP, 2025"
-      const companyName = employee.companyName || "Company Name"
+      setIsSendingWhatsApp(true)
 
-      const result = await handleSendPayslip(
-        employee,
-        payrunId,
-        payPeriod,
-        payDate,
-        companyName,
-        "+91 9421185860"
-      )
+      // Generate PDF
+      const pdfBlob = generatePayslipPDF()
 
-      if (result.success) {
+      // Convert to base64
+      const base64 = await new Promise<string>((resolve) => {
+        const reader = new FileReader()
+        reader.onloadend = () => {
+          const base64String = reader.result as string
+          resolve(base64String.split(",")[1]) // Remove data:application/pdf;base64, prefix
+        }
+        reader.readAsDataURL(pdfBlob)
+      })
+
+      const sanitizedName =
+        employee?.employeeName?.replace(/\s+/g, "_") ?? "unknown"
+      const filename = `payslip_${sanitizedName}_${new Date().toISOString().split("T")[0]}.pdf`
+
+      // Step 1: Upload PDF to server
+      const uploadResponse = await fetch("/api/upload-payslip", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          documentBase64: base64,
+          filename: filename,
+        }),
+      })
+
+      const uploadResult = await uploadResponse.json()
+
+      if (!uploadResult.success) {
+        throw new Error(uploadResult.error || "Failed to upload payslip")
+      }
+
+      // Step 2: Send via WhatsApp using the uploaded file path
+      const whatsappResponse = await fetch("/api/send-whatsapp", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          phoneNumber,
+          filePath: uploadResult.data.url, // This is the relative path like /uploads/payslips/123_file.pdf
+          caption: `Payslip for ${employee?.employeeName} - ${new Date().toLocaleDateString("en-US", { month: "long", year: "numeric" })}`,
+          filename: filename,
+        }),
+      })
+
+      const whatsappResult = await whatsappResponse.json()
+
+      console.log("sendWhatsAppPayslip result", whatsappResult)
+
+      if (whatsappResult.success) {
+        // Clean up the uploaded file
+        try {
+          await fetch("/api/cleanup-payslip", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              filename: uploadResult.data.filename,
+            }),
+          })
+        } catch (cleanupError) {
+          console.warn("Failed to cleanup payslip file:", cleanupError)
+          // Don't fail the whole operation if cleanup fails
+        }
+
         toast.success("Payslip sent successfully!", {
-          description: result.message,
+          description: "The PDF payslip has been sent via WhatsApp.",
         })
       } else {
-        toast.error("Failed to send payslip", {
-          description: result.message,
-        })
+        throw new Error(whatsappResult.error || "Failed to send payslip")
       }
     } catch (error) {
-      console.error("Error sending payslip:", error)
-      toast.error("Failed to send payslip", {
-        description: "An unexpected error occurred.",
+      console.error("WhatsApp API error:", error)
+
+      // Show more detailed error message
+      let errorMessage = "Failed to send payslip"
+      let errorDescription = "Please try again later."
+
+      if (error instanceof Error) {
+        errorMessage = error.message
+        if (error.message.includes("not configured")) {
+          errorDescription =
+            "WhatsApp API is not properly configured. Please check environment variables."
+        } else if (
+          error.message.includes("Access Token") ||
+          error.message.includes("expired")
+        ) {
+          errorDescription =
+            "WhatsApp access token has expired. Please refresh your token in Meta for Developers."
+        } else if (error.message.includes("Phone Number")) {
+          errorDescription =
+            "Invalid phone number format. Please check the number."
+        } else if (error.message.includes("upload")) {
+          errorDescription =
+            "Failed to upload payslip to server. Please try again."
+        }
+      }
+
+      toast.error(errorMessage, {
+        description: errorDescription,
       })
     } finally {
-      setIsSending(false)
+      setIsSendingWhatsApp(false)
     }
   }
 
@@ -336,127 +403,89 @@ export function PayRunSummaryForm({
           </div>
         </div>
 
-        {/* Action Buttons - Only show when paid */}
-        {employee?.isPaid && (
-          <div className="flex justify-end space-x-3 border-t pt-6">
-            <Button
-              variant="outline"
-              onClick={() => setShowDownloadConfirmation(true)}
-              disabled={isDownloading}
-              className="border-blue-500 text-blue-600 hover:bg-blue-50"
-            >
-              {isDownloading ? "Downloading..." : "Download Payslip"}
-            </Button>
-            <Button
-              onClick={() => setShowSendConfirmation(true)}
-              disabled={isSending}
-              className="bg-green-600 hover:bg-green-700"
-            >
-              {isSending ? "Sending..." : "Send Payslip"}
-            </Button>
-          </div>
-        )}
+        {/* Action Buttons */}
+        <div className="flex space-x-3">
+          {/* Download Payslip Button */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              try {
+                const pdfBlob = generatePayslipPDF()
+                const url = URL.createObjectURL(pdfBlob)
+                const link = document.createElement("a")
+                link.href = url
+                link.download = `payslip_${employee?.employeeName}_${new Date().toISOString().split("T")[0]}.pdf`
+                document.body.appendChild(link)
+                link.click()
+                document.body.removeChild(link)
+                URL.revokeObjectURL(url)
+
+                toast.success("Payslip downloaded successfully!", {
+                  description: "The PDF payslip has been downloaded.",
+                })
+              } catch (error) {
+                console.error("PDF generation error:", error)
+                toast.error("Failed to download payslip", {
+                  description: "Please try again later.",
+                })
+              }
+            }}
+            className="flex-1 border-blue-500 text-blue-600 hover:bg-blue-50"
+          >
+            <Download className="mr-2 h-3 w-3" />
+            Download
+          </Button>
+
+          {/* Send via WhatsApp Button */}
+          <Button
+            size="sm"
+            onClick={() => {
+              const phoneNumber = employee?.whatsUpPhoneNo
+              if (!phoneNumber || phoneNumber.trim() === "") {
+                toast.error(
+                  `${employee?.employeeName || "Employee"} have no whats up contact number`,
+                  {
+                    description: "Please add a phone number for this employee",
+                  }
+                )
+                return
+              }
+              sendWhatsAppPayslip(phoneNumber)
+            }}
+            disabled={
+              isSendingWhatsApp ||
+              !employee?.whatsUpPhoneNo ||
+              employee?.whatsUpPhoneNo?.trim() === ""
+            }
+            className="flex-1 bg-green-600 hover:bg-green-700 disabled:opacity-50"
+          >
+            <MessageSquare className="mr-2 h-3 w-3" />
+            {isSendingWhatsApp ? "Sending..." : "WhatsApp"}
+          </Button>
+
+          {/* Send via Email Button */}
+          <Button
+            size="sm"
+            onClick={() => {
+              toast.info("Email Sharing", {
+                description: "Opening email client to share payslip...",
+              })
+              // Open default email client
+              const subject = `Payslip for ${employee?.employeeName}`
+              const body = `Dear ${employee?.employeeName},\n\nPlease find attached your payslip.\n\nBest regards,\nHR Department`
+              window.open(
+                `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`,
+                "_blank"
+              )
+            }}
+            className="flex-1 bg-blue-600 hover:bg-blue-700"
+          >
+            <Mail className="mr-2 h-3 w-3" />
+            Email
+          </Button>
+        </div>
       </div>
-
-      {/* Download Payslip Confirmation Dialog */}
-      <Dialog
-        open={showDownloadConfirmation}
-        onOpenChange={setShowDownloadConfirmation}
-      >
-        <DialogContent className="max-w-lg">
-          <DialogHeader>
-            <DialogTitle>Confirm Download Payslip</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
-              <h4 className="mb-2 font-semibold text-blue-800">
-                What will happen:
-              </h4>
-              <ul className="space-y-1 text-sm text-blue-700">
-                <li>
-                  • PDF payslip will be generated for {employee?.employeeName}
-                </li>
-                <li>• File will be downloaded to your device</li>
-                <li>
-                  • Filename: Payslip_
-                  {employee?.employeeName?.replace(/\s+/g, "_")}_today.pdf
-                </li>
-              </ul>
-            </div>
-            <p className="text-muted-foreground">
-              Are you sure you want to download the payslip for{" "}
-              {employee?.employeeName}?
-            </p>
-            <div className="flex justify-end space-x-2">
-              <Button
-                variant="outline"
-                onClick={() => setShowDownloadConfirmation(false)}
-              >
-                No, Cancel
-              </Button>
-              <Button
-                onClick={() => {
-                  setShowDownloadConfirmation(false)
-                  handleDownloadPayslip()
-                }}
-                disabled={isDownloading}
-                className="bg-blue-600 hover:bg-blue-700"
-              >
-                {isDownloading ? "Downloading..." : "Yes, Download"}
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* Send Payslip Confirmation Dialog */}
-      <Dialog
-        open={showSendConfirmation}
-        onOpenChange={setShowSendConfirmation}
-      >
-        <DialogContent className="max-w-lg">
-          <DialogHeader>
-            <DialogTitle>Confirm Send Payslip</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="rounded-lg border border-green-200 bg-green-50 p-4">
-              <h4 className="mb-2 font-semibold text-green-800">
-                What will happen:
-              </h4>
-              <ul className="space-y-1 text-sm text-green-700">
-                <li>
-                  • PDF payslip will be generated for {employee?.employeeName}
-                </li>
-                <li>• WhatsApp will open with number +91 9421185860</li>
-                <li>• You&apos;ll need to manually attach the PDF file</li>
-                <li>• File will also be downloaded to your device as backup</li>
-              </ul>
-            </div>
-            <p className="text-muted-foreground">
-              Are you sure you want to send the payslip to{" "}
-              {employee?.employeeName}?
-            </p>
-            <div className="flex justify-end space-x-2">
-              <Button
-                variant="outline"
-                onClick={() => setShowSendConfirmation(false)}
-              >
-                No, Cancel
-              </Button>
-              <Button
-                onClick={() => {
-                  setShowSendConfirmation(false)
-                  handleSendPayslipAction()
-                }}
-                disabled={isSending}
-                className="bg-green-600 hover:bg-green-700"
-              >
-                {isSending ? "Sending..." : "Yes, Send"}
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
     </>
   )
 }

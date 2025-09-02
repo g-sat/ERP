@@ -1,10 +1,18 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { ApiResponse } from "@/interfaces/auth"
 import { IPayrollEmployeeHd, ISIFEmployee } from "@/interfaces/payrun"
-import { ArrowLeft, CheckCircle, CreditCard, Download } from "lucide-react"
+import {
+  ArrowLeft,
+  CheckCircle,
+  CreditCard,
+  Download,
+  Mail,
+  MessageSquare,
+  MoreHorizontal,
+} from "lucide-react"
 import { toast } from "sonner"
 import * as XLSX from "xlsx"
 
@@ -40,6 +48,25 @@ export default function PayRunSummaryPage() {
   const [showRejectConfirmation, setShowRejectConfirmation] = useState(false)
   const [showRecordPaymentConfirmation, setShowRecordPaymentConfirmation] =
     useState(false)
+  const [showPayslipDropdown, setShowPayslipDropdown] = useState(false)
+  const payslipDropdownRef = useRef<HTMLDivElement>(null)
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        payslipDropdownRef.current &&
+        !payslipDropdownRef.current.contains(event.target as Node)
+      ) {
+        setShowPayslipDropdown(false)
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside)
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside)
+    }
+  }, [])
 
   // API call to get pay run summary data
   const {
@@ -156,58 +183,6 @@ export default function PayRunSummaryPage() {
         },
       }
     )
-  }
-
-  const handleSendPayslip = async () => {
-    try {
-      toast.info("Generating payslips...", {
-        description:
-          "Please wait while we generate and send payslips to WhatsApp.",
-      })
-
-      // Get pay period and pay date from the first employee or use defaults
-      const payPeriod = "August 2025"
-      const payDate = "03 SEP, 2025"
-      const companyName = employees[0]?.companyName || "Company Name"
-
-      // Send payslips for all employees
-      const results = await Promise.allSettled(
-        employees.map(async (employee) => {
-          const { handleSendPayslip } = await import("@/lib/payslip-utils")
-          return handleSendPayslip(
-            employee,
-            payrunId,
-            payPeriod,
-            payDate,
-            companyName,
-            "+91 9421185860"
-          )
-        })
-      )
-
-      // Count successful and failed sends
-      const successful = results.filter(
-        (result) => result.status === "fulfilled" && result.value.success
-      ).length
-      const failed = results.length - successful
-
-      if (successful > 0) {
-        toast.success(`Payslips sent successfully!`, {
-          description: `${successful} payslips prepared for WhatsApp sharing. ${failed > 0 ? `${failed} failed.` : ""}`,
-        })
-      } else {
-        toast.error("Failed to send payslips", {
-          description: "Please try again or contact support.",
-        })
-      }
-
-      refetch() // Refetch the table data
-    } catch (error) {
-      console.error("Error sending payslips:", error)
-      toast.error("Failed to send payslips", {
-        description: "An unexpected error occurred.",
-      })
-    }
   }
 
   const handleRejectPayment = () => {
@@ -349,18 +324,6 @@ export default function PayRunSummaryPage() {
                   <p className="text-sm text-gray-600">
                     August 2025 • 30 Base Days
                   </p>
-                  <Button
-                    variant="link"
-                    size="sm"
-                    onClick={() =>
-                      router.push(
-                        `/${companyId}/hr/payruns/${payrunId}/summary/test-payslip`
-                      )
-                    }
-                    className="h-auto p-0 text-xs text-blue-600 hover:text-blue-800"
-                  >
-                    Test Payslip Generation →
-                  </Button>
                 </div>
               </div>
               <div className="flex items-center space-x-4">
@@ -404,13 +367,62 @@ export default function PayRunSummaryPage() {
                       <Download className="mr-2 h-4 w-4" />
                       {isSIFLoading ? "Generating..." : "SIF"}
                     </Button>
-                    <Button
-                      onClick={() => setShowSendPayslipConfirmation(true)}
-                      className="bg-gradient-to-r from-emerald-500 to-teal-600 shadow-lg hover:from-emerald-600 hover:to-teal-700"
-                    >
-                      <CreditCard className="mr-2 h-4 w-4" />
-                      Send Payslip
-                    </Button>
+                    <div className="relative" ref={payslipDropdownRef}>
+                      <Button
+                        onClick={() =>
+                          setShowPayslipDropdown(!showPayslipDropdown)
+                        }
+                        className="bg-gradient-to-r from-emerald-500 to-teal-600 shadow-lg hover:from-emerald-600 hover:to-teal-700"
+                      >
+                        <CreditCard className="mr-2 h-4 w-4" />
+                        Share Payslip
+                        <MoreHorizontal className="ml-2 h-4 w-4" />
+                      </Button>
+
+                      {/* Dropdown Menu */}
+                      {showPayslipDropdown && (
+                        <div className="ring-opacity-5 absolute top-full right-0 z-10 mt-1 w-48 rounded-md border border-gray-200 bg-white shadow-lg ring-1 ring-black">
+                          <div className="py-1">
+                            <button
+                              onClick={() => {
+                                setShowPayslipDropdown(false)
+                                toast.info("WhatsApp sharing", {
+                                  description:
+                                    "Opening WhatsApp to share payslip...",
+                                })
+                                // Open WhatsApp with the number
+                                window.open(
+                                  `https://wa.me/971554849060?text=Hi! Here's the payslip.`,
+                                  "_blank"
+                                )
+                              }}
+                              className="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                            >
+                              <MessageSquare className="mr-3 h-4 w-4 text-green-600" />
+                              Share via WhatsApp
+                            </button>
+                            <button
+                              onClick={() => {
+                                setShowPayslipDropdown(false)
+                                toast.info("Email sharing", {
+                                  description:
+                                    "Opening email client to share payslip...",
+                                })
+                                // Open default email client
+                                window.open(
+                                  `mailto:?subject=Payslip&body=Please find attached the payslip.`,
+                                  "_blank"
+                                )
+                              }}
+                              className="flex w-full items-center px-4 py-4 text-sm text-gray-700 hover:bg-gray-100"
+                            >
+                              <Mail className="mr-3 h-4 w-4 text-blue-600" />
+                              Share via Email
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
                     {!employees[0]?.isPreviousPaid && (
                       <Button
                         onClick={() => setShowDeletePaymentConfirmation(true)}
@@ -621,10 +633,6 @@ export default function PayRunSummaryPage() {
               <PayRunSummaryForm
                 employee={selectedEmployee}
                 payrunId={payrunId}
-                onClose={() => {
-                  setShowPaymentForm(false)
-                  setSelectedEmployee(null)
-                }}
               />
             </>
           )}
@@ -712,45 +720,75 @@ export default function PayRunSummaryPage() {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <CreditCard className="h-5 w-5 text-emerald-600" />
-              Send Payslips to WhatsApp
+              Share Payslip
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
               <h4 className="mb-2 font-semibold text-blue-800">
-                What will happen:
+                Choose sharing method:
               </h4>
-              <ul className="space-y-1 text-sm text-blue-700">
-                <li>
-                  • PDF payslips will be generated for all {employees.length}{" "}
-                  employees
-                </li>
-                <li>• WhatsApp will open with the number +91 9421185860</li>
-                <li>• You&apos;ll need to manually attach each PDF file</li>
-                <li>
-                  • Files will also be downloaded to your device as backup
-                </li>
-              </ul>
+              <p className="text-sm text-blue-700">
+                Select how you would like to share the payslip with employees.
+              </p>
             </div>
-            <p className="text-muted-foreground">
-              Are you sure you want to proceed? This will generate payslips for
-              all employees.
-            </p>
+
+            <div className="grid grid-cols-1 gap-3">
+              <button
+                onClick={() => {
+                  setShowSendPayslipConfirmation(false)
+                  toast.info("WhatsApp sharing", {
+                    description: "Opening WhatsApp to share payslip...",
+                  })
+                  window.open(
+                    `https://wa.me/971554849060?text=Hi! Here's the payslip.`,
+                    "_blank"
+                  )
+                }}
+                className="flex items-center rounded-lg border border-gray-200 p-4 transition-colors hover:bg-gray-50"
+              >
+                <MessageSquare className="mr-3 h-6 w-6 text-green-600" />
+                <div className="text-left">
+                  <div className="font-medium text-gray-900">
+                    Share via WhatsApp
+                  </div>
+                  <div className="text-sm text-gray-500">
+                    Send payslip via WhatsApp message
+                  </div>
+                </div>
+              </button>
+
+              <button
+                onClick={() => {
+                  setShowSendPayslipConfirmation(false)
+                  toast.info("Email sharing", {
+                    description: "Opening email client to share payslip...",
+                  })
+                  window.open(
+                    `mailto:?subject=Payslip&body=Please find attached the payslip.`,
+                    "_blank"
+                  )
+                }}
+                className="flex items-center rounded-lg border border-gray-200 p-4 transition-colors hover:bg-gray-50"
+              >
+                <Mail className="mr-3 h-6 w-6 text-blue-600" />
+                <div className="text-left">
+                  <div className="font-medium text-gray-900">
+                    Share via Email
+                  </div>
+                  <div className="text-sm text-gray-500">
+                    Send payslip via email attachment
+                  </div>
+                </div>
+              </button>
+            </div>
+
             <div className="flex justify-end space-x-2">
               <Button
                 variant="outline"
                 onClick={() => setShowSendPayslipConfirmation(false)}
               >
-                No, Cancel
-              </Button>
-              <Button
-                onClick={() => {
-                  setShowSendPayslipConfirmation(false)
-                  handleSendPayslip()
-                }}
-                className="bg-emerald-600 hover:bg-emerald-700"
-              >
-                Yes, Generate & Send
+                Cancel
               </Button>
             </div>
           </div>

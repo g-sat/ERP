@@ -55,6 +55,8 @@ export interface IPayrollEmployeeHd {
   data_details?: IPayrollEmployeeDt[]
   paymentMode?: string
   paymentStatus?: string
+  whatsUpPhoneNo?: string
+  emailAdd?: string
 }
 
 // Payrun Employee Detail Interface
