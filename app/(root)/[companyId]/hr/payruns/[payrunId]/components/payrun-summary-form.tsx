@@ -149,7 +149,7 @@ export function PayRunSummaryForm({
         body: JSON.stringify({
           phoneNumber,
           filePath: uploadResult.data.url, // This is the relative path like /uploads/payslips/123_file.pdf
-          caption: `Payslip for ${employee?.employeeName} - ${new Date().toLocaleDateString("en-US", { month: "long", year: "numeric" })}`,
+          caption: `Hi ${employee?.employeeName}! Your payslip for ${new Date().toLocaleDateString("en-US", { month: "long", year: "numeric" })} is ready.`,
           filename: filename,
         }),
       })
