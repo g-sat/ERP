@@ -16,6 +16,7 @@ import {
 import { toast } from "sonner"
 import * as XLSX from "xlsx"
 
+import { payslipPDFGenerator } from "@/lib/payslip-pdf-generator"
 import { useGetById, usePersist } from "@/hooks/use-common"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -273,13 +274,72 @@ export default function PayRunSummaryPage() {
     )
   }
 
+  // Generate PDF payslip
+  const generatePayslipPDF = (employee: IPayrollEmployeeHd) => {
+    const earnings = (employee?.data_details || [])
+      .filter((item) => item.componentType.toLowerCase() === "earning")
+      .map((item) => ({
+        componentName: item.componentName || "",
+        basicAmount: item.basicAmount || 0,
+        currentAmount: item.amount || 0,
+      })) as Array<{
+      componentName: string
+      basicAmount: number
+      currentAmount: number
+    }>
+
+    const deductions = (employee?.data_details || [])
+      .filter((item) => item.componentType.toLowerCase() === "deduction")
+      .map((item) => ({
+        componentName: item.componentName || "",
+        basicAmount: item.basicAmount || 0,
+        currentAmount: item.amount || 0,
+      })) as Array<{
+      componentName: string
+      basicAmount: number
+      currentAmount: number
+    }>
+
+    const payslipData = {
+      employeeName: employee.employeeName || "",
+      employeeId: employee.payrollEmployeeId?.toString() || "",
+      payPeriod: employee.payName || "",
+      companyName: employee.companyName || "",
+      companyId: employee.companyId?.toString() || "",
+      employeeCode: employee.employeeCode || "",
+      designationName: employee.designationName || "",
+      departmentName: employee.departmentName || "",
+      emailAdd: employee.emailAdd || "",
+      workPermitNo: employee.workPermitNo || "",
+      personalNo: employee.personalNo || "",
+      iban: employee.iban || "",
+      bankName: employee.bankName || "",
+      address: employee.address || "",
+      phoneNo: employee.phoneNo || "",
+      email: employee.email || "",
+      joinDate: employee.joinDate || "",
+      whatsUpPhoneNo: employee.whatsUpPhoneNo || "",
+      presentDays:
+        employee.presentDays !== undefined
+          ? employee.presentDays
+          : employee.presentDays || 0,
+      pastDays: employee.pastDays || 0,
+      earnings,
+      deductions,
+      netPay: employee.netSalary,
+      basicNetPay: employee.basicSalary,
+    }
+
+    return payslipPDFGenerator.generatePayslip(payslipData)
+  }
+
   // Helper method to send WhatsApp payslip for a single employee
   const sendWhatsAppPayslipForEmployee = async (
     employee: IPayrollEmployeeHd
   ): Promise<boolean> => {
     try {
       // Generate PDF
-      const pdfBlob = generatePayslipPDF()
+      const pdfBlob = generatePayslipPDF(employee)
 
       // Convert to base64
       const base64 = await new Promise<string>((resolve) => {
@@ -292,7 +352,7 @@ export default function PayRunSummaryPage() {
       })
 
       const sanitizedName =
-        employee?.employeeName?.replace(/\s+/g, "_") ?? "unknown"
+        employee.employeeName?.replace(/\s+/g, "_") ?? "unknown"
       const filename = `payslip_${sanitizedName}_${new Date().toISOString().split("T")[0]}.pdf`
 
       // Step 1: Upload PDF to server
@@ -320,7 +380,7 @@ export default function PayRunSummaryPage() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          phoneNumber: employee.whatsUpPhoneNo,
+          phoneNumber: employee.whatsUpPhoneNo || "",
           filePath: uploadResult.data.url, // This is the relative path like /uploads/payslips/123_file.pdf
           caption: `Hi ${employee?.employeeName}! Your payslip for ${new Date().toLocaleDateString("en-US", { month: "long", year: "numeric" })} is ready.`,
           filename: filename,
@@ -348,14 +408,16 @@ export default function PayRunSummaryPage() {
           // Don't fail the whole operation if cleanup fails
         }
 
-        console.log(`Successfully sent WhatsApp to ${employee.employeeName}`)
+        console.log(
+          `Successfully sent WhatsApp to ${employee.employeeName || ""}`
+        )
         return true
       } else {
         throw new Error(whatsappResult.error || "Failed to send payslip")
       }
     } catch (error) {
       console.error(
-        `Error sending WhatsApp to ${employee.employeeName}:`,
+        `Error sending WhatsApp to ${employee.employeeName || ""}:`,
         error
       )
       return false
@@ -437,29 +499,6 @@ export default function PayRunSummaryPage() {
     } finally {
       setIsSendingAllPayslips(false)
     }
-  }
-
-  // Generate PDF payslip function
-  const generatePayslipPDF = (): Blob => {
-    // Create a simple PDF using jsPDF
-    // Note: This is a placeholder implementation
-    // In production, you should use the actual payslipPDFGenerator utility
-    const doc = {
-      output: (type: string): Blob => {
-        if (type === "blob") {
-          // Create a dummy blob for now
-          return new Blob(["PDF content placeholder"], {
-            type: "application/pdf",
-          })
-        }
-        // Return empty blob as fallback
-        return new Blob([], { type: "application/pdf" })
-      },
-    }
-
-    // Convert to blob
-    const pdfBlob = doc.output("blob")
-    return pdfBlob
   }
 
   // Method to send payslips to all employees via Email
@@ -905,7 +944,7 @@ export default function PayRunSummaryPage() {
                               : "bg-gray-100 text-gray-800"
                       }`}
                     >
-                      {selectedEmployee?.status || "N/A"}
+                      {selectedEmployee?.status || ""}
                     </span>
                   </div>
                 </DialogTitle>

@@ -83,9 +83,24 @@ export function PayRunSummaryForm({
       }))
 
     const payslipData = {
-      employeeName: employee?.employeeName || "Unknown",
-      employeeId: employee?.payrollEmployeeId?.toString() || "N/A",
-      payPeriod: "Current Month",
+      employeeName: employee?.employeeName || "",
+      employeeId: employee?.payrollEmployeeId?.toString() || "",
+      payPeriod: employee?.payName || "",
+      companyName: employee?.companyName || "",
+      companyId: employee?.companyId?.toString() || "",
+      employeeCode: employee?.employeeCode || "",
+      designationName: employee?.designationName || "",
+      departmentName: employee?.departmentName || "",
+      emailAdd: employee?.emailAdd || "",
+      workPermitNo: employee?.workPermitNo || "",
+      personalNo: employee?.personalNo || "",
+      iban: employee?.iban || "",
+      bankName: employee?.bankName || "",
+      address: employee?.address || "",
+      phoneNo: employee?.phoneNo || "",
+      email: employee?.email || "",
+      joinDate: employee?.joinDate || "",
+      whatsUpPhoneNo: employee?.whatsUpPhoneNo || "",
       presentDays:
         formData.presentDays !== undefined
           ? formData.presentDays
@@ -118,8 +133,7 @@ export function PayRunSummaryForm({
         reader.readAsDataURL(pdfBlob)
       })
 
-      const sanitizedName =
-        employee?.employeeName?.replace(/\s+/g, "_") ?? "unknown"
+      const sanitizedName = employee?.employeeName?.replace(/\s+/g, "_") || ""
       const filename = `payslip_${sanitizedName}_${new Date().toISOString().split("T")[0]}.pdf`
 
       // Step 1: Upload PDF to server
@@ -149,7 +163,7 @@ export function PayRunSummaryForm({
         body: JSON.stringify({
           phoneNumber,
           filePath: uploadResult.data.url, // This is the relative path like /uploads/payslips/123_file.pdf
-          caption: `Hi ${employee?.employeeName}! Your payslip for ${new Date().toLocaleDateString("en-US", { month: "long", year: "numeric" })} is ready.`,
+          caption: `Hi ${employee?.employeeName || ""}! Your payslip for ${new Date().toLocaleDateString("en-US", { month: "long", year: "numeric" })} is ready.`,
           filename: filename,
         }),
       })
@@ -441,7 +455,7 @@ export function PayRunSummaryForm({
           <Button
             size="sm"
             onClick={() => {
-              const phoneNumber = employee?.whatsUpPhoneNo
+              const phoneNumber = employee?.whatsUpPhoneNo || ""
               if (!phoneNumber || phoneNumber.trim() === "") {
                 toast.error(
                   `${employee?.employeeName || "Employee"} have no whats up contact number`,

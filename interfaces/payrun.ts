@@ -32,10 +32,13 @@ export interface IPayrollDashboardDetails {
 // Payrun Employee Header Interface
 export interface IPayrollEmployeeHd {
   payrollEmployeeId: number
+  payName: string
   companyId: number
   companyName: string
   departmentId: number
   departmentName: string
+  designationId: number
+  designationName: string
   employeeId: number
   employeeCode: string
   employeeName: string
@@ -57,6 +60,14 @@ export interface IPayrollEmployeeHd {
   paymentStatus?: string
   whatsUpPhoneNo?: string
   emailAdd?: string
+  workPermitNo?: string
+  personalNo?: string
+  iban?: string
+  bankName?: string
+  address?: string
+  phoneNo?: string
+  email?: string
+  joinDate?: string
 }
 
 // Payrun Employee Detail Interface
