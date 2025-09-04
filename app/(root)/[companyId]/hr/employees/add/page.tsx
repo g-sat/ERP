@@ -19,8 +19,6 @@ export default function AddEmployeePage() {
   // Handle successful save and redirect
   useEffect(() => {
     if (saveMutation.isSuccess && saveMutation.data) {
-      console.log("Save response:", saveMutation.data)
-      debugger
       // Extract employeeId from the response
       const employeeData = saveMutation.data?.data
       const employeeId = Array.isArray(employeeData)
@@ -39,13 +37,11 @@ export default function AddEmployeePage() {
   // Handle save error
   useEffect(() => {
     if (saveMutation.isError) {
-      console.error("Save error:", saveMutation.error)
+      // Handle error silently or show toast notification
     }
-  }, [saveMutation.isError, saveMutation.error])
+  }, [saveMutation.isError])
 
   const handleSave = (data: EmployeeBasicValues) => {
-    console.log("Employee data to save:", data)
-
     // Use the mutation to save the data
     saveMutation.mutate(data)
   }

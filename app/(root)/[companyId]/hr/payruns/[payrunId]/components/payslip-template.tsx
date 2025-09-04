@@ -794,13 +794,12 @@ const PayslipTemplate: React.FC<PayslipTemplateProps> = ({ data }) => {
  * @returns Promise<Blob> - PDF as a Blob
  */
 export const generatePayslipPDF = async (data: PayslipData): Promise<Blob> => {
+  console.log("📄 PayslipTemplate: generatePayslipPDF called with data:", data)
   try {
     // Check if we're in the browser
     if (typeof window === "undefined") {
       throw new Error("PDF generation is only available in the browser")
     }
-
-    console.log("Starting PDF generation with data:", data)
 
     // Validate required data
     if (!data.employeeName || !data.payPeriod) {
@@ -811,17 +810,15 @@ export const generatePayslipPDF = async (data: PayslipData): Promise<Blob> => {
       console.warn("No earnings data provided, using defaults")
     }
 
-    console.log("Rendering PDF template...")
-    const pdfDoc = pdf(<PayslipTemplate data={data} />)
-    const stream = await pdfDoc.toBlob()
-    console.log("PDF blob created:", stream.size, "bytes")
-
-    if (stream.size === 0) {
-      throw new Error("PDF blob is empty")
-    }
-
+    const stream = await pdf(<PayslipTemplate data={data} />).toBlob()
+    console.log(
+      "✅ PayslipTemplate: PDF generated successfully, size:",
+      stream.size,
+      "bytes"
+    )
     return stream
   } catch (error) {
+    console.log("❌ PayslipTemplate: PDF generation error:", error)
     console.error("Error generating payslip PDF:", error)
     throw new Error("Failed to generate payslip PDF")
   }
@@ -836,37 +833,28 @@ export const downloadPayslipPDF = async (
   data: PayslipData,
   filename?: string
 ): Promise<void> => {
+  console.log("📥 PayslipTemplate: downloadPayslipPDF called with data:", data)
   try {
-    console.log("Starting PDF download process...")
-
     const pdfBlob = await generatePayslipPDF(data)
-    console.log("PDF blob received for download:", pdfBlob.size, "bytes")
 
     // Create download link
     const url = URL.createObjectURL(pdfBlob)
-    console.log("Object URL created:", url)
 
     const link = document.createElement("a")
     link.href = url
     link.download =
       filename || `payslip-${data.employeeName}-${data.payPeriod}.pdf`
 
-    console.log("Download filename:", link.download)
-
     // Trigger download
     document.body.appendChild(link)
-    console.log("Download link added to DOM")
-
     link.click()
-    console.log("Download link clicked")
-
     document.body.removeChild(link)
-    console.log("Download link removed from DOM")
 
     // Cleanup
     URL.revokeObjectURL(url)
-    console.log("Object URL revoked")
+    console.log("✅ PayslipTemplate: Download triggered successfully")
   } catch (error) {
+    console.log("❌ PayslipTemplate: Download error:", error)
     console.error("Error downloading payslip PDF:", error)
     throw new Error("Failed to download payslip PDF")
   }

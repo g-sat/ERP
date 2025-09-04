@@ -1,8 +1,12 @@
-export interface IEmployerDetails {
-  employerDetailsId: number
+export interface IEmployer {
+  employerId: number
   companyId: number
   companyName: string
   branch: string
+
+  address: string
+  phone: string
+  email: string
   establishmentId: string
   bankName?: string
   bankAccountNumber?: string

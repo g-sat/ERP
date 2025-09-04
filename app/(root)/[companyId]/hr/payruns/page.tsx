@@ -12,38 +12,48 @@ import { ProcessPayRunCard } from "./components/pay-run-card"
 import { PayRunHistoryTable } from "./components/pay-run-history-table"
 
 export default function PayRunsPage() {
+  console.log("🔄 PayRunsPage: Component rendered")
+
   const router = useRouter()
   const params = useParams()
   const searchParams = useSearchParams()
   const companyId = params.companyId as string
   const [activeTab, setActiveTab] = useState("run-payroll")
 
+  console.log("📡 PayRunsPage: Calling useGet hook for dashboard data")
   const { data: payRunData, refetch } = useGet<IPayrollDashboard>(
     `/hr/payrollruns/dashboard`,
     "pay-run"
   )
   const payRun = payRunData?.data as unknown as IPayrollDashboard
-  console.log("payRun", payRun)
+
+  console.log("📊 PayRunsPage: Dashboard data received:", payRunData)
+  console.log("👥 PayRunsPage: Processed payRun:", payRun)
 
   // Check if refetch is requested via URL parameter
   useEffect(() => {
-    const shouldRefetch = searchParams.get("refetch")
-    if (shouldRefetch === "true") {
+    console.log(
+      "🔄 PayRunsPage: useEffect triggered - checking refetch parameter"
+    )
+    if (searchParams.get("refetch") === "true") {
+      console.log("🔄 PayRunsPage: Refetch requested, calling refetch()")
       refetch()
       // Remove the refetch parameter from URL
-      const newUrl = new URL(window.location.href)
-      newUrl.searchParams.delete("refetch")
-      router.replace(newUrl.pathname + newUrl.search)
+      const newSearchParams = new URLSearchParams(searchParams)
+      newSearchParams.delete("refetch")
+      router.replace(`/${companyId}/hr/payruns?${newSearchParams.toString()}`)
     }
-  }, [searchParams, refetch, router])
+  }, [searchParams, refetch, companyId, router])
 
   const handleProcess = async (payrollRunId?: number) => {
+    console.log("🚀 PayRunsPage: handleProcess called with ID:", payrollRunId)
     if (payrollRunId) {
       router.push(`/${companyId}/hr/payruns/${payrollRunId}/preview`)
     }
   }
 
   const handleApprove = (payrollRunId?: number) => {
+    console.log("✅ PayRunsPage: handleApprove called with ID:", payrollRunId)
     if (payrollRunId) {
       router.push(`/${companyId}/hr/payruns/${payrollRunId}/summary`)
     }

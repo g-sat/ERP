@@ -24,6 +24,7 @@ import {
   IDocumentTypeLookup,
   IDynamicLookup,
   IEmployeeLookup,
+  IEmployerLookup,
   IEntityTypeLookup,
   IGenderLookup,
   IGstCategoryLookup,
@@ -467,6 +468,22 @@ export const useEmployeeLookup = () => {
         handleApiError(error)
       }
     },
+  })
+}
+
+export const useEmployerLookup = (CompanyId: number) => {
+  return useQuery<IEmployerLookup[]>({
+    queryKey: ["employer-lookup", CompanyId],
+    ...defaultQueryConfig,
+    queryFn: async () => {
+      try {
+        const data = await getData(`${Lookup.getEmployer}/${CompanyId}`)
+        return data?.data || []
+      } catch (error) {
+        handleApiError(error)
+      }
+    },
+    enabled: CompanyId > 0,
   })
 }
 

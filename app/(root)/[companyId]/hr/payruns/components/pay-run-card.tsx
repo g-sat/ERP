@@ -1,5 +1,6 @@
 "use client"
 
+import { ApiResponse } from "@/interfaces/auth"
 import { IPayrollDashboard } from "@/interfaces/payrun"
 import { AlertCircle, Calendar, Users } from "lucide-react"
 import { toast } from "sonner"
@@ -23,6 +24,8 @@ export function ProcessPayRunCard({
   onDraft,
   onApprove,
 }: ProcessPayRunCardProps) {
+  console.log("🔄 ProcessPayRunCard: Component rendered with payRun:", payRun)
+
   // Default values when payRun is undefined
   const defaultPayRun = {
     payrollRunId: 0,
@@ -43,8 +46,12 @@ export function ProcessPayRunCard({
   }
 
   const currentPayRun = payRun || defaultPayRun
+  console.log("👥 ProcessPayRunCard: Current pay run:", currentPayRun)
 
   // Generate pay run API call
+  console.log(
+    "📡 ProcessPayRunCard: Calling usePersist hook for generatePayRun"
+  )
   const { mutate: generatePayRun, isPending: isGenerating } = usePersist(
     `/hr/payrollruns/generate/${currentPayRun.payrollRunId}`
   )
@@ -85,15 +92,43 @@ export function ProcessPayRunCard({
     }
     return {
       text: isGenerating ? "Creating..." : "Create Pay Run",
-      action: async () => {
-        try {
-          await generatePayRun({})
-          toast.success("Pay run created successfully")
-          onProcess?.(currentPayRun.payrollRunId)
-        } catch (error) {
-          toast.error("Failed to create pay run")
-          console.error("Error creating pay run:", error)
-        }
+      action: () => {
+        console.log("🚀 ProcessPayRunCard: Create Pay Run button clicked")
+        console.log("📡 ProcessPayRunCard: Calling generatePayRun API")
+        generatePayRun(
+          {},
+          {
+            onSuccess: (response: ApiResponse<unknown>) => {
+              console.log(
+                "✅ ProcessPayRunCard: generatePayRun API success:",
+                response
+              )
+              const typedResponse = response as ApiResponse<IPayrollDashboard>
+              if (typedResponse.result > 0) {
+                console.log(
+                  "🎯 ProcessPayRunCard: Pay run created successfully, calling onProcess"
+                )
+                debugger
+                onProcess?.(typedResponse.result)
+              } else {
+                console.log(
+                  "❌ ProcessPayRunCard: Invalid response result:",
+                  typedResponse.result
+                )
+                toast.error("Failed to create pay run - invalid response")
+              }
+            },
+            onError: (error: unknown) => {
+              console.log(
+                "❌ ProcessPayRunCard: generatePayRun API error:",
+                error
+              )
+              toast.error("Failed to create pay run")
+              console.error("Error creating pay run:", error)
+              // Don't navigate on failure - stay on current page
+            },
+          }
+        )
       },
       color: "bg-blue-600 hover:bg-blue-700",
       loading: isGenerating,

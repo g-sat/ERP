@@ -22,7 +22,7 @@ export default function HRSettingsLayout({
 
     if (pathname.includes("/pay-schedule")) return "pay-schedule"
     if (pathname.includes("/account-integration")) return "account-integration"
-    if (pathname.includes("/employer-details")) return "employer-details"
+    if (pathname.includes("/employer")) return "employer"
     // If we're at the root /hr/setting path, return work-location as default
     if (pathname.endsWith("/hr/setting") || pathname.endsWith("/hr/setting/")) {
       return "work-location"
@@ -79,7 +79,7 @@ export default function HRSettingsLayout({
           >
             Account Integration
           </TabsTrigger>
-          <TabsTrigger value="employer-details" className="text-xs sm:text-sm">
+          <TabsTrigger value="employer" className="text-xs sm:text-sm">
             Employer Details
           </TabsTrigger>
           <TabsTrigger value="templates" className="text-xs sm:text-sm">

@@ -34,6 +34,13 @@ export function PayRunPreviewForm({
   onRefetch,
   payrunId,
 }: PayRunPreviewFormProps) {
+  console.log(
+    "🔄 PayRunPreviewForm: Component rendered with employee:",
+    employee,
+    "payrunId:",
+    payrunId
+  )
+
   const [isEditingPayableDays, setIsEditingPayableDays] = useState(false)
   const [editablePayableDays, setEditablePayableDays] = useState(0)
   const [isEditingPastDays, setIsEditingPastDays] = useState(false)
@@ -52,29 +59,49 @@ export function PayRunPreviewForm({
     IPayrollEmployeeDt[]
   >([])
   const [showSaveConfirmation, setShowSaveConfirmation] = useState(false)
-  const [refreshKey, setRefreshKey] = useState(0)
+  // Removed refreshKey since it's not needed anymore
 
-  console.log("employee", employee)
-  console.log("employee?.payrollEmployeeId", employee?.payrollEmployeeId)
-  console.log("refreshKey", refreshKey)
-
-  // Increment refresh key when employee changes to force fresh API call
   useEffect(() => {
-    if (employee?.payrollEmployeeId) {
-      console.log("Employee changed, incrementing refresh key")
-      setRefreshKey((prev) => prev + 1)
-    }
+    console.log("🔄 PayRunPreviewForm: useEffect triggered - employee changed")
+    console.log("🔄 PayRunPreviewForm: New employee:", employee)
+    console.log(
+      "🔄 PayRunPreviewForm: Employee ID:",
+      employee?.payrollEmployeeId
+    )
+
+    // Don't automatically force refresh - this was causing double API calls
+    // Only refresh when explicitly needed (after save operations)
+
+    // Don't automatically increment refreshKey on mount
+    // Only increment when we actually need to refresh data (after save)
   }, [employee?.payrollEmployeeId])
 
-  // API call to get detailed employee data - called when form is opened
-  // Add refresh key to query key to force fresh data on each open
+  console.log(
+    "📡 PayRunPreviewForm: Calling useGetById hook for employee details"
+  )
+  // refreshKey is included in query key to force refresh after save operations
+  // but not auto-incremented on mount to avoid double API calls
+
+  // Check if we have the required data to make the API call
+  const hasRequiredData = Boolean(employee?.payrollEmployeeId && payrunId)
+  console.log(
+    "🔍 PayRunPreviewForm: Has required data for API call:",
+    hasRequiredData
+  )
+  console.log("🔍 PayRunPreviewForm: Employee ID:", employee?.payrollEmployeeId)
+  console.log("🔍 PayRunPreviewForm: Payrun ID:", payrunId)
+
   const { data: employeeDetails, isLoading } = useGetById<IPayrollEmployeeDt[]>(
     `/hr/payrollruns/payrundetailslist/${payrunId}`,
-    `employee-details-${employee?.payrollEmployeeId || "none"}-${refreshKey}`,
+    `employee-details-${employee?.payrollEmployeeId || "none"}`, // Removed refreshKey to prevent unnecessary API calls
     employee?.payrollEmployeeId?.toString() || ""
   )
 
-  console.log("employeeDetails", employeeDetails)
+  console.log(
+    "📊 PayRunPreviewForm: Employee details received:",
+    employeeDetails
+  )
+  console.log("⏳ PayRunPreviewForm: Loading state:", isLoading)
 
   const employeeData =
     (employeeDetails?.data as unknown as IPayrollEmployeeDt[]) || []
@@ -113,14 +140,68 @@ export function PayRunPreviewForm({
 
   const currentBasicNetPay = calculateBasicNetPay()
 
+  // Helper function for number formatting without currency symbol
+  const formatNumber = (amount: number) => {
+    return new Intl.NumberFormat("en-US", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(amount || 0)
+  }
+
   // API call to save employee payroll data
-  const { mutate: saveEmployeePayroll, isPending: isSaving } = usePersist(
-    `/hr/payrollruns/components/${payrunId}/${employee?.payrollEmployeeId}`
+  console.log(
+    "📡 PayRunPreviewForm: Calling usePersist hook for saveEmployeePayroll"
   )
+  const apiEndpoint = `/hr/payrollruns/components/${payrunId}/${employee?.payrollEmployeeId}`
+  console.log("🌐 PayRunPreviewForm: API endpoint:", apiEndpoint)
+
+  const { mutate: saveEmployeePayroll, isPending: isSaving } =
+    usePersist(apiEndpoint)
+
+  // Expose the refresh function to parent component
+  useEffect(() => {
+    if (employee?.payrollEmployeeId) {
+      // You can call this function from parent component
+      console.log(
+        "🔄 PayRunPreviewForm: Exposing forceRefresh function for employee:",
+        employee.payrollEmployeeId
+      )
+      // Example: Call forceRefresh when employee changes (this will trigger data refresh)
+      // forceRefresh()
+      // Alternative: Use React Query's refetch
+      // forceRefetch()
+    }
+  }, [employee?.payrollEmployeeId])
 
   const handleSave = () => {
-    console.log("editablePayableDays", editablePayableDays)
-    console.log("editablePastDays", editablePastDays)
+    console.log("💾 PayRunPreviewForm: handleSave called")
+    console.log("📊 PayRunPreviewForm: Current display data:", displayData)
+    console.log("👤 PayRunPreviewForm: Employee data:", employee)
+    console.log(
+      "🆔 PayRunPreviewForm: Employee ID:",
+      employee?.payrollEmployeeId
+    )
+    console.log("🆔 PayRunPreviewForm: Payrun ID:", payrunId)
+
+    // Check if required data exists
+    if (!employee?.payrollEmployeeId) {
+      console.log("❌ PayRunPreviewForm: Missing employee ID")
+      toast.error("Employee ID is missing")
+      return
+    }
+
+    if (!payrunId) {
+      console.log("❌ PayRunPreviewForm: Missing payrun ID")
+      toast.error("Payrun ID is missing")
+      return
+    }
+
+    if (displayData.length === 0) {
+      console.log("❌ PayRunPreviewForm: No display data to save")
+      toast.error("No payroll data to save")
+      return
+    }
+
     // Create the save payload as a list of components from displayData
     const savePayload: ISavePayrunComponentViewModel[] = displayData.map(
       (item) => ({
@@ -134,27 +215,54 @@ export function PayRunPreviewForm({
       })
     )
 
+    console.log("📦 PayRunPreviewForm: Save payload created:", savePayload)
+
     // Validate the payload using the schema
     try {
       const validatedData = savePayrunComponentSchema.array().parse(savePayload)
+      console.log(
+        "✅ PayRunPreviewForm: Data validation successful:",
+        validatedData
+      )
+
+      console.log("📡 PayRunPreviewForm: Calling saveEmployeePayroll API")
+      console.log("📡 PayRunPreviewForm: API endpoint:", apiEndpoint)
+      console.log("📡 PayRunPreviewForm: Data being sent:", validatedData)
 
       saveEmployeePayroll(validatedData, {
         onSuccess: (response: ApiResponse<unknown>) => {
+          console.log(
+            "✅ PayRunPreviewForm: saveEmployeePayroll API success:",
+            response
+          )
           if (response.result === 1) {
             toast.success("Employee payroll updated successfully")
-            // Refetch table data after successful save
+            // No need to increment refreshKey since it's not in query key anymore
+            // Just call onRefetch to refresh the parent table data
             onRefetch()
             onClose()
           } else {
+            console.log(
+              "❌ PayRunPreviewForm: Save failed with result:",
+              response.result
+            )
             toast.error("Failed to update employee payroll")
           }
         },
         onError: (error: unknown) => {
+          console.log(
+            "❌ PayRunPreviewForm: saveEmployeePayroll API error:",
+            error
+          )
           toast.error("Failed to update employee payroll")
           console.error("Error updating employee payroll:", error)
         },
       })
     } catch (validationError) {
+      console.log(
+        "❌ PayRunPreviewForm: Data validation failed:",
+        validationError
+      )
       toast.error("Invalid data format")
       console.error("Validation error:", validationError)
     }
@@ -404,7 +512,7 @@ export function PayRunPreviewForm({
                     </span>
                     <div className="flex items-center justify-end space-x-2">
                       <span className="text-sm font-medium">
-                        <CurrencyFormatter amount={item.basicAmount || 0} />
+                        {formatNumber(item.basicAmount || 0)}
                       </span>
                     </div>
 
@@ -445,7 +553,7 @@ export function PayRunPreviewForm({
                     ) : (
                       <div className="flex items-center justify-end space-x-2">
                         <span className="text-sm font-medium">
-                          <CurrencyFormatter amount={item.amount || 0} />
+                          {formatNumber(item.amount || 0)}
                         </span>
                         <Button
                           variant="ghost"
@@ -509,7 +617,7 @@ export function PayRunPreviewForm({
                     </span>
                     <div className="flex items-center justify-end space-x-2">
                       <span className="text-sm font-medium">
-                        <CurrencyFormatter amount={item.basicAmount || 0} />
+                        {formatNumber(item.basicAmount || 0)}
                       </span>
                     </div>
                     {editingDeductionId === item.componentId ? (
@@ -551,7 +659,7 @@ export function PayRunPreviewForm({
                     ) : (
                       <div className="flex items-center justify-end space-x-2">
                         <span className="text-sm font-medium">
-                          <CurrencyFormatter amount={item.amount || 0} />
+                          {formatNumber(item.amount || 0)}
                         </span>
                         <Button
                           variant="ghost"

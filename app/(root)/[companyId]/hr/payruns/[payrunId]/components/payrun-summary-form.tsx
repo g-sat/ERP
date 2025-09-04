@@ -23,19 +23,33 @@ export function PayRunSummaryForm({
   employee,
   payrunId,
 }: PayRunSummaryFormProps) {
+  console.log(
+    "🔄 PayRunSummaryForm: Component rendered with employee:",
+    employee,
+    "payrunId:",
+    payrunId
+  )
+
   const [formData] = useState<Partial<IPayrollEmployeeHd>>(employee || {})
   // Remove unused state variables
   // const [isSendingWhatsApp, setIsSendingWhatsApp] = useState(false)
   // const [isSendingEmail, setIsSendingEmail] = useState(false)
 
-  console.log("employee", employee)
-
   // API call to get detailed employee data - only when form is open and employee is selected
+  console.log(
+    "📡 PayRunSummaryForm: Calling useGetById hook for employee details"
+  )
   const { data: employeeDetails, isLoading } = useGetById<IPayrollEmployeeDt[]>(
     `/hr/payrollruns/payrundetailslist/${payrunId}`,
     "employee-details",
     employee?.payrollEmployeeId?.toString() || ""
   )
+
+  console.log(
+    "📊 PayRunSummaryForm: Employee details received:",
+    employeeDetails
+  )
+  console.log("⏳ PayRunSummaryForm: Loading state:", isLoading)
 
   const employeeData =
     (employeeDetails?.data as unknown as IPayrollEmployeeDt[]) || []
@@ -70,15 +84,31 @@ export function PayRunSummaryForm({
 
   const currentBasicNetPay = calculateBasicNetPay()
 
+  // Helper function for number formatting without currency symbol
+  const formatNumber = (amount: number) => {
+    return new Intl.NumberFormat("en-US", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(amount || 0)
+  }
+
   const handleSendWhatsAppPayslip = async () => {
+    console.log("📱 PayRunSummaryForm: handleSendWhatsAppPayslip called")
     try {
-      if (!employee || !payrunId) return
+      if (!employee || !payrunId) {
+        console.log("❌ PayRunSummaryForm: Missing employee or payrunId")
+        return
+      }
 
       if (!employee.phoneNo) {
+        console.log(
+          "❌ PayRunSummaryForm: Employee WhatsApp number not available"
+        )
         toast.error("Employee WhatsApp number not available")
         return
       }
 
+      console.log("📊 PayRunSummaryForm: Creating payslip data for WhatsApp")
       const payslipData = {
         employeeName: employee.employeeName || "",
         employeeId: employee.payrollEmployeeId?.toString() || "",
@@ -118,9 +148,11 @@ export function PayRunSummaryForm({
         basicNetPay: currentBasicNetPay,
       }
 
+      console.log("📄 PayRunSummaryForm: Getting PDF as array buffer")
       // Get PDF as array buffer for WhatsApp API
       const pdfBuffer = await getPayslipPDFAsArrayBuffer(payslipData)
 
+      console.log("🔄 PayRunSummaryForm: Converting PDF to base64")
       // Convert to base64
       const base64 = await new Promise<string>((resolve) => {
         const reader = new FileReader()
@@ -137,6 +169,7 @@ export function PayRunSummaryForm({
         employee.employeeName?.replace(/\s+/g, "_") ?? "unknown"
       const filename = `payslip_${sanitizedName}_${new Date().toISOString().split("T")[0]}.pdf`
 
+      console.log("📤 PayRunSummaryForm: Uploading PDF to server")
       // Step 1: Upload PDF to server
       const uploadResponse = await fetch("/api/upload-payslip", {
         method: "POST",
@@ -150,11 +183,13 @@ export function PayRunSummaryForm({
       })
 
       const uploadResult = await uploadResponse.json()
+      console.log("📤 PayRunSummaryForm: Upload result:", uploadResult)
 
       if (!uploadResult.success) {
         throw new Error(uploadResult.error || "Failed to upload payslip")
       }
 
+      console.log("📱 PayRunSummaryForm: Sending via WhatsApp API")
       // Step 2: Send via WhatsApp using the uploaded file path
       const whatsappResponse = await fetch("/api/send-whatsapp", {
         method: "POST",
@@ -170,8 +205,7 @@ export function PayRunSummaryForm({
       })
 
       const whatsappResult = await whatsappResponse.json()
-
-      console.log("sendWhatsAppPayslipForEmployee result", whatsappResult)
+      console.log("📱 PayRunSummaryForm: WhatsApp API result:", whatsappResult)
 
       if (whatsappResult.success) {
         // Clean up the uploaded file
@@ -190,9 +224,6 @@ export function PayRunSummaryForm({
           // Don't fail the whole operation if cleanup fails
         }
 
-        console.log(
-          `Successfully sent WhatsApp to ${employee?.employeeName || ""}`
-        )
         return true
       } else {
         throw new Error(whatsappResult.error || "Failed to send payslip")
@@ -207,24 +238,26 @@ export function PayRunSummaryForm({
   }
 
   const handleDownloadPayslip = async () => {
+    console.log("📥 PayRunSummaryForm: handleDownloadPayslip called")
     try {
       if (!employee || !payrunId) {
+        console.log(
+          "❌ PayRunSummaryForm: Missing employee or payrunId for download"
+        )
         toast.error("Employee data not available")
         return
       }
 
-      // Debug: Log the data being used
-      console.log("Employee data:", employee)
-      console.log("Employee details:", employeeData)
-      console.log("Current net pay:", currentNetPay)
-      console.log("Current basic net pay:", currentBasicNetPay)
-
       // Check if we have earnings/deductions data
       if (!employeeData || employeeData.length === 0) {
+        console.log(
+          "❌ PayRunSummaryForm: No payroll details available for download"
+        )
         toast.error("No payroll details available for this employee")
         return
       }
 
+      console.log("📊 PayRunSummaryForm: Creating payslip data for download")
       const earnings = employeeData
         .filter((item) => item.componentType.toLowerCase() === "earning")
         .map((item) => ({
@@ -240,9 +273,6 @@ export function PayRunSummaryForm({
           basicAmount: item.basicAmount || 0,
           currentAmount: item.amount || 0,
         }))
-
-      console.log("Earnings:", earnings)
-      console.log("Deductions:", deductions)
 
       const payslipData = {
         employeeName: employee.employeeName || "",
@@ -271,16 +301,17 @@ export function PayRunSummaryForm({
         basicNetPay: currentBasicNetPay,
       }
 
-      console.log("Payslip data being sent:", payslipData)
-
+      console.log("📄 PayRunSummaryForm: Calling downloadPayslipPDF function")
       // Show loading toast
       toast.info("Generating PDF...", {
         description: "Please wait while we create your payslip",
       })
 
       await downloadPayslipPDF(payslipData)
+      console.log("✅ PayRunSummaryForm: Payslip downloaded successfully")
       toast.success("Payslip downloaded successfully!")
     } catch (error) {
+      console.log("❌ PayRunSummaryForm: Download error:", error)
       console.error("Error downloading payslip:", error)
 
       // More specific error messages
@@ -395,12 +426,12 @@ export function PayRunSummaryForm({
                     </span>
                     <div className="flex items-center justify-end space-x-2">
                       <span className="text-sm font-medium">
-                        <CurrencyFormatter amount={item.basicAmount || 0} />
+                        {formatNumber(item.basicAmount || 0)}
                       </span>
                     </div>
                     <div className="flex items-center justify-end space-x-2">
                       <span className="text-sm font-medium">
-                        <CurrencyFormatter amount={item.amount || 0} />
+                        {formatNumber(item.amount || 0)}
                       </span>
                     </div>
                   </div>
@@ -437,12 +468,12 @@ export function PayRunSummaryForm({
                     </span>
                     <div className="flex items-center justify-end space-x-2">
                       <span className="text-sm font-medium">
-                        <CurrencyFormatter amount={item.basicAmount || 0} />
+                        {formatNumber(item.basicAmount || 0)}
                       </span>
                     </div>
                     <div className="flex items-center justify-end space-x-2">
                       <span className="text-sm font-medium">
-                        <CurrencyFormatter amount={item.amount || 0} />
+                        {formatNumber(item.amount || 0)}
                       </span>
                     </div>
                   </div>
@@ -454,14 +485,10 @@ export function PayRunSummaryForm({
               <div className="grid grid-cols-3 items-center gap-4">
                 <span className="text-sm font-medium">Loan Amount</span>
                 <div className="flex items-center justify-end space-x-2">
-                  <span className="text-sm font-medium">
-                    <CurrencyFormatter amount={0} />
-                  </span>
+                  <span className="text-sm font-medium">{formatNumber(0)}</span>
                 </div>
                 <div className="flex items-center justify-end space-x-2">
-                  <span className="text-sm font-medium">
-                    <CurrencyFormatter amount={0} />
-                  </span>
+                  <span className="text-sm font-medium">{formatNumber(0)}</span>
                 </div>
               </div>
             )}
@@ -485,7 +512,7 @@ export function PayRunSummaryForm({
           </div>
         </div>
 
-        {/* Action Buttons */}
+        {/* Action Buttons - Disabled when payrun is approved */}
         <div className="space-y-3">
           <div className="flex space-x-3">
             {/* Download Payslip Button */}
@@ -493,7 +520,8 @@ export function PayRunSummaryForm({
               variant="outline"
               size="sm"
               onClick={handleDownloadPayslip}
-              className="flex-1 border-blue-500 text-blue-600 hover:bg-blue-50"
+              disabled={employee?.status === "Approved"}
+              className="flex-1 border-blue-500 text-blue-600 hover:bg-blue-50 disabled:cursor-not-allowed disabled:opacity-50"
             >
               <Download className="mr-2 h-3 w-3" />
               Download
@@ -504,10 +532,12 @@ export function PayRunSummaryForm({
               size="sm"
               onClick={handleSendWhatsAppPayslip}
               disabled={
+                employee?.status === "Approved" ||
                 // isSendingWhatsApp ||
-                !employee?.phoneNo || employee?.phoneNo?.trim() === ""
+                !employee?.phoneNo ||
+                employee?.phoneNo?.trim() === ""
               }
-              className="flex-1 bg-green-600 hover:bg-green-700 disabled:opacity-50"
+              className="flex-1 bg-green-600 hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50"
             >
               <MessageSquare className="mr-2 h-3 w-3" />
               {/* {isSendingWhatsApp ? "Sending..." : "WhatsApp"} */}
@@ -518,18 +548,28 @@ export function PayRunSummaryForm({
             <Button
               size="sm"
               onClick={() => {
+                console.log("📧 PayRunSummaryForm: Email button clicked")
+                console.log(
+                  "👤 PayRunSummaryForm: Employee for email:",
+                  employee?.employeeName
+                )
                 toast.info("Email Sharing", {
                   description: "Opening email client to share payslip...",
                 })
                 // Open default email client
                 const subject = `Payslip for ${employee?.employeeName}`
                 const body = `Dear ${employee?.employeeName},\n\nPlease find attached your payslip.\n\nBest regards,\nHR Department`
+                console.log(
+                  "📧 PayRunSummaryForm: Opening email client with subject:",
+                  subject
+                )
                 window.open(
                   `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`,
                   "_blank"
                 )
               }}
-              className="flex-1 bg-blue-600 hover:bg-blue-700"
+              disabled={employee?.status === "Approved"}
+              className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
             >
               <Mail className="mr-2 h-3 w-3" />
               Email

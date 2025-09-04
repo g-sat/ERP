@@ -17,11 +17,13 @@ import CountryAutocomplete from "@/components/ui-custom/autocomplete-country"
 import DayOfWeekAutocomplete from "@/components/ui-custom/autocomplete-day-of-week"
 import DepartmentAutocomplete from "@/components/ui-custom/autocomplete-department"
 import DesignationAutocomplete from "@/components/ui-custom/autocomplete-designation"
+import EmployerAutocomplete from "@/components/ui-custom/autocomplete-employer"
 import EmploymentTypeAutocomplete from "@/components/ui-custom/autocomplete-employment-type"
 import GenderAutocomplete from "@/components/ui-custom/autocomplete-gender"
 import WorkLocationAutocomplete from "@/components/ui-custom/autocomplete-worklocation"
 import { CustomDateNew } from "@/components/ui-custom/custom-date-new"
 import CustomInput from "@/components/ui-custom/custom-input"
+import CustomSwitch from "@/components/ui-custom/custom-switch"
 import CustomTextarea from "@/components/ui-custom/custom-textarea"
 
 interface Props {
@@ -40,6 +42,7 @@ export function EmployeeBasicForm({ employee, onCancel }: Props) {
     defaultValues: {
       employeeId: employee?.employeeId || 0,
       companyId: employee?.companyId || 0,
+      employerId: employee?.employerId || 0,
       employeeCode: employee?.employeeCode || "",
       employeeName: employee?.employeeName || "",
       photo: employee?.photo || "",
@@ -82,6 +85,7 @@ export function EmployeeBasicForm({ employee, onCancel }: Props) {
       const formData = {
         employeeId: employee.employeeId || 0,
         companyId: employee.companyId || 0,
+        employerId: employee.employerId || 0,
         employeeCode: employee.employeeCode || "",
         employeeName: employee.employeeName || "",
         photo: employee.photo || "",
@@ -170,6 +174,13 @@ export function EmployeeBasicForm({ employee, onCancel }: Props) {
             name="companyId"
             isRequired
           />
+          <EmployerAutocomplete
+            form={form}
+            label="Employer"
+            name="employerId"
+            companyId={form.getValues("companyId")}
+            isRequired={true}
+          />
           <CustomInput
             form={form}
             label="Employee Code"
@@ -247,6 +258,7 @@ export function EmployeeBasicForm({ employee, onCancel }: Props) {
             name="nationalityId"
           />
         </div>
+        <CustomSwitch form={form} label="Is Active" name="isActive" />
 
         <CustomTextarea form={form} label="Remarks" name="remarks" />
 

@@ -242,6 +242,7 @@ export const Lookup = {
 
   getDocumentType: "/master/getdocumenttypelookup",
   getEntityType: "/master/getentitytypelookup",
+  getEmployer: "/master/getemployerlookup",
 }
 
 // Universal Documents Endpoints
@@ -565,11 +566,11 @@ export const Employee = {
 }
 
 // Employer Details Endpoints
-export const EmployerDetails = {
-  get: "/hr/getemployerdetails",
-  getByCode: "/hr/getemployerdetailsbycode",
-  add: "/hr/saveemployerdetails",
-  delete: "/hr/deleteemployerdetails",
+export const Employer = {
+  get: "/hr/getemployer",
+  getByCode: "/hr/getemployerbycode",
+  add: "/hr/saveemployer",
+  delete: "/hr/deleteemployer",
 }
 
 // Pay Schedule Endpoints
@@ -1189,13 +1190,13 @@ export const PayrollEmployee = {
 
 export const PayrollComponent = {
   get: "/hr/setting/getcomponent",
-  getSalary: "/hr/settings/getsalarycomponent",
-  getById: "/hr/settings/getcomponentbyid",
-  add: "/hr/settings/savecomponent",
-  update: "/hr/settings/savecomponent",
-  delete: "/hr/settings/deletecomponent",
-  getByType: "/hr/settings/typecomponent",
-  getActive: "/hr/settings/activecomponent",
+  getSalary: "/hr/setting/getsalarycomponent",
+  getById: "/hr/setting/getcomponentbyid",
+  add: "/hr/setting/savecomponent",
+  update: "/hr/setting/savecomponent",
+  delete: "/hr/setting/deletecomponent",
+  getByType: "/hr/setting/typecomponent",
+  getActive: "/hr/setting/activecomponent",
 }
 
 export const PayrollComponentGroup = {

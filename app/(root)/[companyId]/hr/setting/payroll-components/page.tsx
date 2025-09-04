@@ -33,7 +33,7 @@ export default function PayrollComponentsPage() {
     "payrollcomponent"
   )
   const createMutation = usePersist(PayrollComponent.add)
-  const updateMutation = usePersist(PayrollComponent.add)
+  const updateMutation = usePersist(PayrollComponent.update)
   const deleteMutation = useDelete(PayrollComponent.delete)
 
   const openCreate = useCallback(() => {
@@ -65,12 +65,21 @@ export default function PayrollComponentsPage() {
 
   const handleSave = useCallback(
     (values: PayrollComponentFormData) => {
+      console.log("handleSave called with values:", values)
+      console.log("editingItem:", editingItem)
+
       const mutation = editingItem ? updateMutation : createMutation
+      console.log("Using mutation:", editingItem ? "update" : "create")
+
       mutation.mutate(values, {
         onSuccess: () => {
+          console.log("Mutation successful")
           setDialogOpen(false)
           setEditingItem(null)
           refetch()
+        },
+        onError: (error) => {
+          console.error("Mutation failed:", error)
         },
       })
     },

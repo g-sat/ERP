@@ -135,7 +135,6 @@ export default function PayRunPreviewPage() {
         {
           onSuccess: (response: ApiResponse<unknown>) => {
             if (response.result === 1) {
-              toast.success("Pay run submitted and approved successfully")
               refetch() // Refetch the table data
               // Navigate to summary page after successful submission
               router.push(`/${companyId}/hr/payruns/${payrunId}/summary`)
@@ -159,8 +158,8 @@ export default function PayRunPreviewPage() {
       {
         onSuccess: (response: ApiResponse<unknown>) => {
           if (response.result === 1) {
-            toast.success("Pay run deleted successfully")
-            router.push(`/${companyId}/hr/payruns`)
+            // Navigate back with refetch parameter to reload the pay-run-card
+            router.push(`/${companyId}/hr/payruns?refetch=true`)
           }
         },
         onError: (error: unknown) => {

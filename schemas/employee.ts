@@ -72,7 +72,7 @@ export type EmployeeFiltersValues = z.infer<typeof employeeFiltersSchema>
 export const employeeBasicSchema = z.object({
   employeeId: z.number().min(0, { message: "Employee is required" }),
   companyId: z.number().min(1, { message: "Company is required" }),
-  companyName: z.string().optional().default(""),
+  employerId: z.number().min(1, { message: "Employer is required" }),
   employeeCode: z.string().min(1, { message: "Employee code is required" }),
   employeeName: z.string().min(1, { message: "Employee name is required" }),
   photo: z.string().optional().default(""),

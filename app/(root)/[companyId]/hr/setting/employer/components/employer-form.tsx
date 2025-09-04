@@ -1,10 +1,7 @@
 "use client"
 
-import { IEmployerDetails } from "@/interfaces/employer-details"
-import {
-  EmployerDetailsFormValues,
-  employerdetailsschema,
-} from "@/schemas/employer-details"
+import { IEmployer } from "@/interfaces/employer"
+import { EmployerFormValues, employerschema } from "@/schemas/employer"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 
@@ -13,38 +10,38 @@ import CompanyAutocomplete from "@/components/ui-custom/autocomplete-company"
 import CustomInput from "@/components/ui-custom/custom-input"
 import CustomTextarea from "@/components/ui-custom/custom-textarea"
 
-interface EmployerDetailsFormProps {
-  employerDetails?: IEmployerDetails
-  onSave: (data: EmployerDetailsFormValues) => void
+interface EmployerFormProps {
+  employer?: IEmployer
+  onSave: (data: EmployerFormValues) => void
 }
 
-export function EmployerDetailsForm({
-  employerDetails,
-  onSave,
-}: EmployerDetailsFormProps) {
-  const form = useForm<EmployerDetailsFormValues>({
-    resolver: zodResolver(employerdetailsschema),
+export function EmployerForm({ employer, onSave }: EmployerFormProps) {
+  const form = useForm<EmployerFormValues>({
+    resolver: zodResolver(employerschema),
     defaultValues: {
-      employerDetailsId: employerDetails?.employerDetailsId || 0,
-      companyId: employerDetails?.companyId || 0,
-      establishmentId: employerDetails?.establishmentId || "",
-      bankAccountNumber: employerDetails?.bankAccountNumber || "",
-      iban: employerDetails?.iban || "",
-      isActive: employerDetails?.isActive ?? true,
-      remarks: employerDetails?.remarks || "",
-      bankName: employerDetails?.bankName || "",
-      branch: employerDetails?.branch || "",
+      employerId: employer?.employerId || 0,
+      companyId: employer?.companyId || 0,
+      address: employer?.address || "",
+      phone: employer?.phone || "",
+      email: employer?.email || "",
+      establishmentId: employer?.establishmentId || "",
+      bankAccountNumber: employer?.bankAccountNumber || "",
+      iban: employer?.iban || "",
+      isActive: employer?.isActive ?? true,
+      remarks: employer?.remarks || "",
+      bankName: employer?.bankName || "",
+      branch: employer?.branch || "",
     },
   })
 
-  const onSubmit = (data: EmployerDetailsFormValues) => {
+  const onSubmit = (data: EmployerFormValues) => {
     onSave(data)
   }
 
   return (
     <Form {...form}>
       <form
-        id="employerDetails-form"
+        id="employer-form"
         onSubmit={form.handleSubmit(onSubmit)}
         className="space-y-4"
       >
@@ -61,6 +58,9 @@ export function EmployerDetailsForm({
             label="Establishment ID"
             isRequired={true}
           />
+          <CustomInput form={form} name="address" label="Address" />
+          <CustomInput form={form} name="phone" label="Phone" />
+          <CustomInput form={form} name="email" label="Email" />
           <CustomInput form={form} name="branch" label="Branch" />
           <CustomInput form={form} name="bankName" label="Bank Name" />
           <CustomInput

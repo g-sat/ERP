@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { IEmployerDetails } from "@/interfaces/employer-details"
+import { IEmployer } from "@/interfaces/employer"
 import { Edit, Plus, RefreshCw, Search, Trash2 } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
@@ -16,10 +16,10 @@ import {
   TableRow,
 } from "@/components/ui/table"
 
-interface EmployerDetailsTableProps {
-  data: IEmployerDetails[]
-  onEdit?: (employerDetails: IEmployerDetails) => void
-  onDelete?: (employerDetails: IEmployerDetails) => void
+interface EmployerTableProps {
+  data: IEmployer[]
+  onEdit?: (employer: IEmployer) => void
+  onDelete?: (employer: IEmployer) => void
   onCreate?: () => void
   onRefresh?: () => void
   canCreate?: boolean
@@ -27,7 +27,7 @@ interface EmployerDetailsTableProps {
   canDelete?: boolean
 }
 
-export function EmployerDetailsTable({
+export function EmployerTable({
   data,
   onEdit,
   onDelete,
@@ -36,18 +36,16 @@ export function EmployerDetailsTable({
   canCreate = true,
   canEdit = true,
   canDelete = true,
-}: EmployerDetailsTableProps) {
+}: EmployerTableProps) {
   const [searchTerm, setSearchTerm] = useState("")
 
   const filteredData = data.filter(
-    (employerDetails) =>
-      employerDetails.establishmentId
+    (employer) =>
+      employer.establishmentId
         ?.toLowerCase()
         .includes(searchTerm.toLowerCase()) ||
-      employerDetails.branch
-        ?.toLowerCase()
-        .includes(searchTerm.toLowerCase()) ||
-      employerDetails.bankName?.toLowerCase().includes(searchTerm.toLowerCase())
+      employer.branch?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      employer.bankName?.toLowerCase().includes(searchTerm.toLowerCase())
   )
 
   const getStatusBadge = (isActive: boolean) => {
@@ -97,12 +95,15 @@ export function EmployerDetailsTable({
           {/* Header table */}
           <Table className="w-full table-fixed border-collapse">
             <colgroup>
-              <col className="w-[150px] min-w-[120px]" />
+              <col className="w-[250px] min-w-[120px]" />
               <col className="w-[120px] min-w-[100px]" />
+              <col className="w-[200px] min-w-[120px]" />
+              <col className="w-[200px] min-w-[120px]" />
               <col className="w-[150px] min-w-[120px]" />
               <col className="w-[150px] min-w-[120px]" />
               <col className="w-[150px] min-w-[120px]" />
-              <col className="w-[100px] min-w-[80px]" />
+              <col className="w-[150px] min-w-[120px]" />
+              <col className="w-[150px] min-w-[120px]" />
               <col className="w-[100px] min-w-[80px]" />
             </colgroup>
             <TableHeader className="bg-background sticky top-0 z-20">
@@ -111,6 +112,9 @@ export function EmployerDetailsTable({
                   Company
                 </TableHead>
                 <TableHead>Branch</TableHead>
+                <TableHead>Address</TableHead>
+                <TableHead>Phone</TableHead>
+                <TableHead>Email</TableHead>
                 <TableHead>Establishment ID</TableHead>
                 <TableHead>Bank Account</TableHead>
                 <TableHead>Bank Name</TableHead>
@@ -124,12 +128,15 @@ export function EmployerDetailsTable({
           <div className="max-h-[500px] overflow-y-auto">
             <Table className="w-full table-fixed border-collapse">
               <colgroup>
-                <col className="w-[150px] min-w-[120px]" />
+                <col className="w-[250px] min-w-[120px]" />
                 <col className="w-[120px] min-w-[100px]" />
+                <col className="w-[200px] min-w-[120px]" />
+                <col className="w-[200px] min-w-[120px]" />
                 <col className="w-[150px] min-w-[120px]" />
                 <col className="w-[150px] min-w-[120px]" />
                 <col className="w-[150px] min-w-[120px]" />
-                <col className="w-[100px] min-w-[80px]" />
+                <col className="w-[150px] min-w-[120px]" />
+                <col className="w-[150px] min-w-[120px]" />
                 <col className="w-[100px] min-w-[80px]" />
               </colgroup>
               <TableBody>
@@ -140,29 +147,38 @@ export function EmployerDetailsTable({
                     </TableCell>
                   </TableRow>
                 ) : (
-                  filteredData.map((employerDetails) => (
-                    <TableRow key={employerDetails.employerDetailsId}>
+                  filteredData.map((employer) => (
+                    <TableRow key={employer.employerId}>
                       <TableCell className="bg-background sticky left-0 z-10 py-2">
                         <div className="text-xs font-medium">
-                          {employerDetails.companyName || "—"}
+                          {employer.companyName || "—"}
                         </div>
                       </TableCell>
                       <TableCell className="py-2 text-xs">
-                        {employerDetails.branch || "—"}
+                        {employer.branch || "—"}
                       </TableCell>
                       <TableCell className="py-2 text-xs">
-                        {employerDetails.establishmentId || "—"}
+                        {employer.address || "—"}
+                      </TableCell>
+                      <TableCell className="py-2 text-xs">
+                        {employer.phone || "—"}
+                      </TableCell>
+                      <TableCell className="py-2 text-xs">
+                        {employer.email || "—"}
+                      </TableCell>
+                      <TableCell className="py-2 text-xs">
+                        {employer.establishmentId || "—"}
                       </TableCell>
                       <TableCell className="py-2 text-xs">
                         <div className="max-w-[150px] truncate">
-                          {employerDetails.bankAccountNumber || "—"}
+                          {employer.bankAccountNumber || "—"}
                         </div>
                       </TableCell>
                       <TableCell className="py-2 text-xs">
-                        {employerDetails.bankName || "—"}
+                        {employer.bankName || "—"}
                       </TableCell>
                       <TableCell className="py-2">
-                        {getStatusBadge(employerDetails.isActive || false)}
+                        {getStatusBadge(employer.isActive || false)}
                       </TableCell>
                       <TableCell className="py-2 text-right">
                         <div className="flex items-center justify-end gap-1">
@@ -170,7 +186,7 @@ export function EmployerDetailsTable({
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => onEdit(employerDetails)}
+                              onClick={() => onEdit(employer)}
                               className="h-6 w-6 p-0"
                             >
                               <Edit className="h-3 w-3" />
@@ -181,7 +197,7 @@ export function EmployerDetailsTable({
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => onDelete(employerDetails)}
+                              onClick={() => onDelete(employer)}
                               className="h-6 w-6 p-0 text-red-600 hover:text-red-700"
                             >
                               <Trash2 className="h-3 w-3" />

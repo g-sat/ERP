@@ -2,6 +2,7 @@
 
 import { useEffect } from "react"
 import { useParams, usePathname, useRouter } from "next/navigation"
+import { IEmployee } from "@/interfaces/employee"
 import { ArrowLeft } from "lucide-react"
 
 import { useGetEmployeeById } from "@/hooks/use-employee"
@@ -23,10 +24,7 @@ export default function EmployeeDetailLayout({
 
   // Fetch employee data with proper caching
   const { data: employeeData } = useGetEmployeeById(employeeId)
-  const employee = employeeData?.data as unknown as {
-    employeeName?: string
-    employeeCode?: string
-  }
+  const employee = employeeData?.data as unknown as IEmployee
 
   // Handle back button click
   const handleBack = () => {
@@ -76,13 +74,31 @@ export default function EmployeeDetailLayout({
             </Button>
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:space-x-3">
               <h1 className="text-base font-semibold sm:text-lg">
-                <Badge variant="destructive" className="text-sm sm:text-lg">
+                <Badge
+                  variant="destructive"
+                  className="flex h-8 items-center border border-gray-300 bg-gray-50 px-3 text-sm text-gray-700 hover:bg-gray-100 sm:text-lg dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
+                >
                   {employee?.employeeName || ""}
                 </Badge>
               </h1>
-              <Badge variant="secondary" className="text-xs sm:text-base">
+              <Badge
+                variant="secondary"
+                className="flex h-8 items-center border border-slate-300 bg-slate-50 px-3 text-xs text-slate-700 hover:bg-slate-100 sm:text-base dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+              >
                 EMP. ID: {employee?.employeeCode || ""}
               </Badge>
+              {employee?.isActive !== undefined && (
+                <Badge
+                  variant={employee.isActive ? "default" : "destructive"}
+                  className={`flex h-8 items-center px-3 text-xs sm:text-sm ${
+                    employee.isActive
+                      ? "border border-emerald-300 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:border-emerald-600 dark:bg-emerald-900 dark:text-emerald-200 dark:hover:bg-emerald-800"
+                      : "border border-amber-300 bg-amber-50 text-amber-700 hover:bg-amber-100 dark:border-amber-600 dark:bg-amber-900 dark:text-amber-200 dark:hover:bg-amber-800"
+                  }`}
+                >
+                  {employee.isActive ? "Active" : "Inactive"}
+                </Badge>
+              )}
             </div>
           </div>
         </div>

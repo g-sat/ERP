@@ -194,6 +194,12 @@ export interface IEmployeeLookup {
   employeeName: string
 }
 
+export interface IEmployerLookup {
+  employerId: number
+  employerCode: string
+  employerName: string
+}
+
 export interface ILeaveTypeLookup {
   leaveTypeId: number
   leaveTypeName: string

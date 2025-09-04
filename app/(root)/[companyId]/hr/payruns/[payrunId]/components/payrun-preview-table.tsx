@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { ICompanyLookup, IDepartmentLookup } from "@/interfaces/lookup"
 import { IPayrollEmployeeHd } from "@/interfaces/payrun"
 import { Edit } from "lucide-react"
@@ -22,7 +22,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
-import { CurrencyFormatter } from "@/components/currencyicons/currency-formatter"
 import CompanyAutocomplete from "@/components/ui-custom/autocomplete-company"
 import DepartmentAutocomplete from "@/components/ui-custom/autocomplete-department"
 
@@ -35,29 +34,52 @@ export function PayRunPreviewTable({
   employees,
   onEmployeeClick,
 }: PayRunPreviewTableProps) {
+  console.log(
+    "🔄 PayRunPreviewTable: Component rendered with employees:",
+    employees
+  )
+
+  // Helper function for number formatting without currency symbol
+  const formatNumber = (amount: number) => {
+    return new Intl.NumberFormat("en-US", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(amount || 0)
+  }
+
   const [selectedCompany, setSelectedCompany] = useState<ICompanyLookup | null>(
     null
   )
   const [selectedDepartment, setSelectedDepartment] =
     useState<IDepartmentLookup | null>(null)
+  const [filteredEmployees, setFilteredEmployees] = useState<
+    IPayrollEmployeeHd[]
+  >([])
 
   // Mock form object for autocomplete components
   const mockForm = {} as UseFormReturn<Record<string, unknown>>
 
-  console.log("employees in preview table", employees)
+  useEffect(() => {
+    console.log(
+      "🔄 PayRunPreviewTable: useEffect triggered - filtering employees"
+    )
+    if (employees && employees.length > 0) {
+      const filtered = employees.filter((employee) => {
+        // Company filter
+        const matchesCompany =
+          !selectedCompany || employee.companyId === selectedCompany.companyId
 
-  const filteredEmployees = employees.filter((employee) => {
-    // Company filter
-    const matchesCompany =
-      !selectedCompany || employee.companyId === selectedCompany.companyId
+        // Department filter
+        const matchesDepartment =
+          !selectedDepartment ||
+          employee.departmentId === selectedDepartment.departmentId
 
-    // Department filter
-    const matchesDepartment =
-      !selectedDepartment ||
-      employee.departmentId === selectedDepartment.departmentId
-
-    return matchesCompany && matchesDepartment
-  })
+        return matchesCompany && matchesDepartment
+      })
+      console.log("🔍 PayRunPreviewTable: Filtered employees:", filtered)
+      setFilteredEmployees(filtered)
+    }
+  }, [employees, selectedCompany, selectedDepartment])
 
   return (
     <div className="flex h-full flex-col">
@@ -70,26 +92,28 @@ export function PayRunPreviewTable({
               {filteredEmployees.length} employees
             </Badge>
           </div>
-        </div>
 
-        {/* Filters Row */}
-        <div className="flex items-center space-x-4">
-          <div className="w-48">
-            <CompanyAutocomplete
-              form={mockForm}
-              label=""
-              onChangeEvent={(company) => setSelectedCompany(company)}
-              className="w-full"
-            />
-          </div>
+          {/* Filters Row */}
+          <div className="flex items-center space-x-4">
+            <div className="w-48">
+              <CompanyAutocomplete
+                form={mockForm}
+                label=""
+                onChangeEvent={(company) => setSelectedCompany(company)}
+                className="w-full"
+              />
+            </div>
 
-          <div className="w-48">
-            <DepartmentAutocomplete
-              form={mockForm}
-              label=""
-              onChangeEvent={(department) => setSelectedDepartment(department)}
-              className="w-full"
-            />
+            <div className="w-48">
+              <DepartmentAutocomplete
+                form={mockForm}
+                label=""
+                onChangeEvent={(department) =>
+                  setSelectedDepartment(department)
+                }
+                className="w-full"
+              />
+            </div>
           </div>
         </div>
       </div>
@@ -120,19 +144,19 @@ export function PayRunPreviewTable({
                   <TableHead className="w-[220px] min-w-[180px]">
                     EMPLOYEE
                   </TableHead>
-                  <TableHead className="w-[130px] min-w-[110px]">
+                  <TableHead className="w-[130px] min-w-[110px] text-right">
                     BASIC SALARY
                   </TableHead>
                   <TableHead className="w-[110px] min-w-[90px]">
                     PRESENT DAYS
                   </TableHead>
-                  <TableHead className="w-[130px] min-w-[110px]">
+                  <TableHead className="w-[130px] min-w-[110px] text-right">
                     GROSS SALARY
                   </TableHead>
-                  <TableHead className="w-[130px] min-w-[110px]">
+                  <TableHead className="w-[130px] min-w-[110px] text-right">
                     DEDUCTIONS
                   </TableHead>
-                  <TableHead className="w-[130px] min-w-[110px]">
+                  <TableHead className="w-[130px] min-w-[110px] text-right">
                     NET SALARY
                   </TableHead>
                   <TableHead className="w-[160px] min-w-[130px]">
@@ -206,11 +230,8 @@ export function PayRunPreviewTable({
                         </Tooltip>
                       </TableCell>
                       <TableCell className="py-1">
-                        <div className="text-xs">
-                          <CurrencyFormatter
-                            amount={employee.basicSalary}
-                            className="text-xs"
-                          />
+                        <div className="text-right text-xs">
+                          {formatNumber(employee.basicSalary || 0)}
                         </div>
                       </TableCell>
                       <TableCell className="py-1">
@@ -219,27 +240,18 @@ export function PayRunPreviewTable({
                         </div>
                       </TableCell>
                       <TableCell className="py-1">
-                        <div className="text-xs">
-                          <CurrencyFormatter
-                            amount={employee.totalEarnings}
-                            className="text-xs"
-                          />
+                        <div className="text-right text-xs">
+                          {formatNumber(employee.totalEarnings || 0)}
                         </div>
                       </TableCell>
                       <TableCell className="py-1">
-                        <div className="text-xs">
-                          <CurrencyFormatter
-                            amount={employee.totalDeductions}
-                            className="text-xs"
-                          />
+                        <div className="text-right text-xs">
+                          {formatNumber(employee.totalDeductions || 0)}
                         </div>
                       </TableCell>
                       <TableCell className="py-1">
-                        <div className="text-xs">
-                          <CurrencyFormatter
-                            amount={employee.netSalary}
-                            className="text-xs"
-                          />
+                        <div className="text-right text-xs">
+                          {formatNumber(employee.netSalary || 0)}
                         </div>
                       </TableCell>
                       <TableCell className="py-1">

@@ -1,7 +1,5 @@
 "use client"
 
-import React from "react"
-import { IEmployeeBasic } from "@/interfaces/employee"
 import { EmployeeBasicValues, employeeBasicSchema } from "@/schemas/employee"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { format } from "date-fns"
@@ -15,6 +13,7 @@ import ContractTypeAutocomplete from "@/components/ui-custom/autocomplete-contra
 import CountryAutocomplete from "@/components/ui-custom/autocomplete-country"
 import DepartmentAutocomplete from "@/components/ui-custom/autocomplete-department"
 import DesignationAutocomplete from "@/components/ui-custom/autocomplete-designation"
+import EmployerAutocomplete from "@/components/ui-custom/autocomplete-employer"
 import EmploymentTypeAutocomplete from "@/components/ui-custom/autocomplete-employment-type"
 import GenderAutocomplete from "@/components/ui-custom/autocomplete-gender"
 import WorkLocationAutocomplete from "@/components/ui-custom/autocomplete-worklocation"
@@ -23,20 +22,17 @@ import CustomInput from "@/components/ui-custom/custom-input"
 import CustomTextarea from "@/components/ui-custom/custom-textarea"
 
 interface Props {
-  employee?: IEmployeeBasic
   onCancel?: () => void
   onSave?: (data: EmployeeBasicValues) => void
 }
 
-export function EmployeeBasicForm({ employee, onCancel, onSave }: Props) {
-  // Debug logging
-  console.log("Employee data in basic dialog:", employee)
-
+export function EmployeeBasicForm({ onCancel, onSave }: Props) {
   const form = useForm<EmployeeBasicValues>({
     resolver: zodResolver(employeeBasicSchema),
     defaultValues: {
       employeeId: 0,
       companyId: 0,
+      employerId: 0,
       employeeCode: "",
       employeeName: "",
       photo: "",
@@ -58,11 +54,6 @@ export function EmployeeBasicForm({ employee, onCancel, onSave }: Props) {
   })
 
   const onSubmit = (data: EmployeeBasicValues) => {
-    console.log("🔘 Submit button clicked!")
-    console.log("Form data:", data)
-    console.log("Form is valid:", form.formState.isValid)
-    console.log("Form errors:", form.formState.errors)
-
     onSave?.(data)
   }
 
@@ -79,7 +70,14 @@ export function EmployeeBasicForm({ employee, onCancel, onSave }: Props) {
             form={form}
             label="Company"
             name="companyId"
-            isRequired
+            isRequired={true}
+          />
+          <EmployerAutocomplete
+            form={form}
+            label="Employer"
+            name="employerId"
+            companyId={form.watch("companyId")}
+            isRequired={true}
           />
           <CustomInput
             form={form}

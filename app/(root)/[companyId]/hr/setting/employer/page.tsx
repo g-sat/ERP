@@ -1,10 +1,10 @@
 "use client"
 
 import { useState } from "react"
-import { IEmployerDetails } from "@/interfaces/employer-details"
-import { EmployerDetailsFormValues } from "@/schemas/employer-details"
+import { IEmployer } from "@/interfaces/employer"
+import { EmployerFormValues } from "@/schemas/employer"
 
-import { EmployerDetails } from "@/lib/api-routes"
+import { Employer } from "@/lib/api-routes"
 import { useDelete, useGet, usePersist } from "@/hooks/use-common"
 import { Button } from "@/components/ui/button"
 import {
@@ -17,19 +17,20 @@ import {
 import { DeleteConfirmation } from "@/components/delete-confirmation"
 import { DataTableSkeleton } from "@/components/skeleton/data-table-skeleton"
 
-import { EmployerDetailsForm } from "./components/employer-details-form"
-import { EmployerDetailsTable } from "./components/employer-details-table"
+import { EmployerTable } from "./components/employer-table"
+import { EmployerForm } from "./components/employer-form"
 
-export default function EmployerDetailsPage() {
+export default function EmployerPage() {
   // Permissions
-  const canCreateEmployerDetails = true
-  const canEditEmployerDetails = true
-  const canDeleteEmployerDetails = true
+  const canCreateEmployer = true
+  const canEditEmployer = true
+  const canDeleteEmployer = true
 
   // Form states
-  const [employerDetailsFormOpen, setEmployerDetailsFormOpen] = useState(false)
-  const [selectedEmployerDetails, setSelectedEmployerDetails] =
-    useState<IEmployerDetails | null>(null)
+  const [employerFormOpen, setEmployerFormOpen] = useState(false)
+  const [selectedEmployer, setSelectedEmployer] = useState<IEmployer | null>(
+    null
+  )
 
   const [deleteDialog, setDeleteDialog] = useState(false)
   const [itemToDelete, setItemToDelete] = useState<{
@@ -40,32 +41,32 @@ export default function EmployerDetailsPage() {
 
   // Data fetching
   const {
-    data: employerDetailsData,
-    isLoading: employerDetailsLoading,
-    refetch: refetchEmployerDetails,
-  } = useGet<IEmployerDetails>(EmployerDetails.get, "employerDetails")
+    data: employerData,
+    isLoading: employerLoading,
+    refetch: refetchEmployer,
+  } = useGet<IEmployer>(Employer.get, "employer")
 
   // Mutations
   const { mutate: deleteItem, isPending: isDeleting } = useDelete("/api")
-  const createMutation = usePersist(EmployerDetails.add)
-  const updateMutation = usePersist(EmployerDetails.add)
+  const createMutation = usePersist(Employer.add)
+  const updateMutation = usePersist(Employer.add)
 
   // Event handlers
-  const handleCreateEmployerDetails = () => {
-    setSelectedEmployerDetails(null)
-    setEmployerDetailsFormOpen(true)
+  const handleCreateEmployer = () => {
+    setSelectedEmployer(null)
+    setEmployerFormOpen(true)
   }
 
-  const handleEditEmployerDetails = (employerDetails: IEmployerDetails) => {
-    setSelectedEmployerDetails(employerDetails)
-    setEmployerDetailsFormOpen(true)
+  const handleEditEmployer = (employer: IEmployer) => {
+    setSelectedEmployer(employer)
+    setEmployerFormOpen(true)
   }
 
-  const handleDeleteEmployerDetails = (employerDetails: IEmployerDetails) => {
+  const handleDeleteEmployer = (employer: IEmployer) => {
     setItemToDelete({
-      id: employerDetails.employerDetailsId.toString(),
-      name: "EmployerDetails",
-      type: "employerDetails",
+      id: employer.employerId.toString(),
+      name: "Employer",
+      type: "employer",
     })
     setDeleteDialog(true)
   }
@@ -74,7 +75,7 @@ export default function EmployerDetailsPage() {
     if (itemToDelete) {
       deleteItem(`${itemToDelete.type}/${itemToDelete.id}`, {
         onSuccess: () => {
-          refetchEmployerDetails()
+          refetchEmployer()
           setDeleteDialog(false)
           setItemToDelete(null)
         },
@@ -82,60 +83,58 @@ export default function EmployerDetailsPage() {
     }
   }
 
-  const handleSave = (values: EmployerDetailsFormValues) => {
-    const mutation = selectedEmployerDetails ? updateMutation : createMutation
+  const handleSave = (values: EmployerFormValues) => {
+    const mutation = selectedEmployer ? updateMutation : createMutation
     mutation.mutate(values, {
       onSuccess: () => {
-        setEmployerDetailsFormOpen(false)
-        setSelectedEmployerDetails(null)
-        refetchEmployerDetails()
+        setEmployerFormOpen(false)
+        setSelectedEmployer(null)
+        refetchEmployer()
       },
     })
   }
 
   return (
     <div>
-      {employerDetailsLoading ? (
+      {employerLoading ? (
         <DataTableSkeleton columnCount={4} />
       ) : (
-        <EmployerDetailsTable
-          data={employerDetailsData?.data || []}
-          onEdit={handleEditEmployerDetails}
-          onDelete={handleDeleteEmployerDetails}
-          onCreate={handleCreateEmployerDetails}
-          onRefresh={refetchEmployerDetails}
-          canCreate={canCreateEmployerDetails}
-          canEdit={canEditEmployerDetails}
-          canDelete={canDeleteEmployerDetails}
+        <EmployerTable
+          data={employerData?.data || []}
+          onEdit={handleEditEmployer}
+          onDelete={handleDeleteEmployer}
+          onCreate={handleCreateEmployer}
+          onRefresh={refetchEmployer}
+          canCreate={canCreateEmployer}
+          canEdit={canEditEmployer}
+          canDelete={canDeleteEmployer}
         />
       )}
 
       {/* Form Dialog */}
       <Dialog
-        open={employerDetailsFormOpen}
+        open={employerFormOpen}
         onOpenChange={(isOpen) => {
           if (!isOpen) {
-            setEmployerDetailsFormOpen(false)
-            setSelectedEmployerDetails(null)
+            setEmployerFormOpen(false)
+            setSelectedEmployer(null)
           }
         }}
       >
         <DialogContent className="max-h-[90vh] w-[95vw] max-w-md overflow-y-auto sm:w-[80vw] lg:w-[40vw]">
           <DialogHeader>
             <DialogTitle className="text-lg sm:text-xl">
-              {selectedEmployerDetails
-                ? "Edit EmployerDetails"
-                : "Add New EmployerDetails"}
+              {selectedEmployer ? "Edit Employer" : "Add New Employer"}
             </DialogTitle>
             <DialogDescription className="text-sm">
-              {selectedEmployerDetails
-                ? "Update employerDetails information"
-                : "Create a new employerDetails"}
+              {selectedEmployer
+                ? "Update employer information"
+                : "Create a new employer"}
             </DialogDescription>
           </DialogHeader>
 
-          <EmployerDetailsForm
-            employerDetails={selectedEmployerDetails || undefined}
+          <EmployerForm
+            employer={selectedEmployer || undefined}
             onSave={handleSave}
           />
 
@@ -144,8 +143,8 @@ export default function EmployerDetailsPage() {
               type="button"
               variant="outline"
               onClick={() => {
-                setEmployerDetailsFormOpen(false)
-                setSelectedEmployerDetails(null)
+                setEmployerFormOpen(false)
+                setSelectedEmployer(null)
               }}
               className="w-full sm:w-auto"
             >
@@ -153,13 +152,13 @@ export default function EmployerDetailsPage() {
             </Button>
             <Button
               type="submit"
-              form="employerDetails-form"
+              form="employer-form"
               disabled={createMutation.isPending || updateMutation.isPending}
               className="w-full sm:w-auto"
             >
               {createMutation.isPending || updateMutation.isPending
                 ? "Saving..."
-                : selectedEmployerDetails
+                : selectedEmployer
                   ? "Update"
                   : "Create"}
             </Button>

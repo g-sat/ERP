@@ -74,9 +74,7 @@ export default function EmployeeOverviewPage() {
   if (!employeeData?.data) {
     return (
       <div className="flex h-64 items-center justify-center">
-        <div className="text-lg text-red-600">
-          Employee not found. Data: {JSON.stringify(employeeData)}
-        </div>
+        <div className="text-lg text-red-600">Employee not found.</div>
       </div>
     )
   }

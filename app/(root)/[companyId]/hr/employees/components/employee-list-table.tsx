@@ -112,6 +112,7 @@ export function EmployeeListTable({
   // Filter data based on search and filters
   const filtered = data.filter((employee) => {
     const searchTerm = search.toLowerCase()
+
     const matchesSearch =
       employee.employeeCode?.toLowerCase().includes(searchTerm) ||
       employee.employeeName?.toLowerCase().includes(searchTerm) ||
@@ -186,7 +187,10 @@ export function EmployeeListTable({
               )
             }}
           />
-          <Badge variant="outline">{filtered.length} employees</Badge>
+          <Badge variant="outline">
+            {filtered.length} employees
+            {search && ` (filtered from ${data.length})`}
+          </Badge>
         </div>
         <div className="flex items-center space-x-2">
           <Button

@@ -2,7 +2,6 @@ import * as z from "zod"
 
 export const componentSchema = z.object({
   componentId: z.number().min(0, "Payroll component ID is required"),
-  companyId: z.number().min(1, "Company is required"),
   componentCode: z.string().min(1, "Component code is required"),
   componentName: z.string().min(1, "Component name is required"),
   componentType: z.enum(["Earning", "Deduction"], {
