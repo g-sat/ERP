@@ -15,6 +15,22 @@ const nextConfig: NextConfig = {
   // Ensure static files are served correctly
   trailingSlash: false,
 
+  // Webpack configuration for React-PDF
+  webpack: (config, { isServer }) => {
+    if (!isServer) {
+      // Configure React-PDF for client-side usage
+      config.resolve.alias = {
+        ...config.resolve.alias,
+        canvas: false,
+        fs: false,
+        path: false,
+        stream: false,
+        util: false,
+      }
+    }
+    return config
+  },
+
   // Configure static file serving
   async headers() {
     return [

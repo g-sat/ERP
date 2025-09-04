@@ -16,7 +16,6 @@ import {
 import { toast } from "sonner"
 import * as XLSX from "xlsx"
 
-import { payslipPDFGenerator } from "@/lib/payslip-pdf-generator"
 import { useGetById, usePersist } from "@/hooks/use-common"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -30,6 +29,7 @@ import { CurrencyFormatter } from "@/components/currencyicons/currency-formatter
 
 import { PayRunSummaryForm } from "../components/payrun-summary-form"
 import { PayRunSummaryTable } from "../components/payrun-summary-table"
+import { getPayslipPDFAsArrayBuffer } from "../components/payslip-template"
 
 export default function PayRunSummaryPage() {
   const params = useParams()
@@ -274,72 +274,65 @@ export default function PayRunSummaryPage() {
     )
   }
 
-  // Generate PDF payslip
-  const generatePayslipPDF = (employee: IPayrollEmployeeHd) => {
-    const earnings = (employee?.data_details || [])
-      .filter((item) => item.componentType.toLowerCase() === "earning")
-      .map((item) => ({
-        componentName: item.componentName || "",
-        basicAmount: item.basicAmount || 0,
-        currentAmount: item.amount || 0,
-      })) as Array<{
-      componentName: string
-      basicAmount: number
-      currentAmount: number
-    }>
-
-    const deductions = (employee?.data_details || [])
-      .filter((item) => item.componentType.toLowerCase() === "deduction")
-      .map((item) => ({
-        componentName: item.componentName || "",
-        basicAmount: item.basicAmount || 0,
-        currentAmount: item.amount || 0,
-      })) as Array<{
-      componentName: string
-      basicAmount: number
-      currentAmount: number
-    }>
-
-    const payslipData = {
-      employeeName: employee.employeeName || "",
-      employeeId: employee.payrollEmployeeId?.toString() || "",
-      payPeriod: employee.payName || "",
-      companyName: employee.companyName || "",
-      companyId: employee.companyId?.toString() || "",
-      employeeCode: employee.employeeCode || "",
-      designationName: employee.designationName || "",
-      departmentName: employee.departmentName || "",
-      emailAdd: employee.emailAdd || "",
-      workPermitNo: employee.workPermitNo || "",
-      personalNo: employee.personalNo || "",
-      iban: employee.iban || "",
-      bankName: employee.bankName || "",
-      address: employee.address || "",
-      phoneNo: employee.phoneNo || "",
-      email: employee.email || "",
-      joinDate: employee.joinDate || "",
-      whatsUpPhoneNo: employee.whatsUpPhoneNo || "",
-      presentDays:
-        employee.presentDays !== undefined
-          ? employee.presentDays
-          : employee.presentDays || 0,
-      pastDays: employee.pastDays || 0,
-      earnings,
-      deductions,
-      netPay: employee.netSalary,
-      basicNetPay: employee.basicSalary,
-    }
-
-    return payslipPDFGenerator.generatePayslip(payslipData)
-  }
-
   // Helper method to send WhatsApp payslip for a single employee
   const sendWhatsAppPayslipForEmployee = async (
     employee: IPayrollEmployeeHd
   ): Promise<boolean> => {
     try {
       // Generate PDF
-      const pdfBlob = generatePayslipPDF(employee)
+      const earnings = (employee?.data_details || [])
+        .filter((item) => item.componentType.toLowerCase() === "earning")
+        .map((item) => ({
+          componentName: item.componentName || "",
+          basicAmount: item.basicAmount || 0,
+          currentAmount: item.amount || 0,
+        })) as Array<{
+        componentName: string
+        basicAmount: number
+        currentAmount: number
+      }>
+
+      const deductions = (employee?.data_details || [])
+        .filter((item) => item.componentType.toLowerCase() === "deduction")
+        .map((item) => ({
+          componentName: item.componentName || "",
+          basicAmount: item.basicAmount || 0,
+          currentAmount: item.amount || 0,
+        })) as Array<{
+        componentName: string
+        basicAmount: number
+        currentAmount: number
+      }>
+
+      // Get company info from the first employee (assuming all employees are from same company)
+      const payslipData = {
+        employeeName: employee.employeeName || "",
+        employeeId: employee.payrollEmployeeId?.toString() || "",
+        payPeriod: employee.payName || "",
+        companyName: employee.companyName || "",
+        companyId: employee.companyId?.toString() || "",
+        address: employee.address || "",
+        phoneNo: employee.phoneNo || "",
+        email: employee.email || "",
+        employeeCode: employee.employeeCode || "",
+        designationName: employee.designationName || "",
+        departmentName: employee.departmentName || "",
+        emailAdd: employee.emailAdd || "",
+        workPermitNo: employee.workPermitNo || "",
+        personalNo: employee.personalNo || "",
+        iban: employee.iban || "",
+        bankName: employee.bankName || "",
+        presentDays: employee.presentDays || 0,
+        pastDays: employee.pastDays || 0,
+        joinDate: employee.joinDate || "",
+        whatsUpPhoneNo: employee.whatsUpPhoneNo || "",
+        earnings,
+        deductions,
+        netPay: employee.netSalary || 0,
+        basicNetPay: employee.basicSalary || 0,
+      }
+
+      const pdfBlob = await getPayslipPDFAsArrayBuffer(payslipData)
 
       // Convert to base64
       const base64 = await new Promise<string>((resolve) => {
@@ -348,7 +341,9 @@ export default function PayRunSummaryPage() {
           const base64String = reader.result as string
           resolve(base64String.split(",")[1]) // Remove data:application/pdf;base64, prefix
         }
-        reader.readAsDataURL(pdfBlob)
+        // Convert ArrayBuffer to Blob for FileReader
+        const blob = new Blob([pdfBlob], { type: "application/pdf" })
+        reader.readAsDataURL(blob)
       })
 
       const sanitizedName =

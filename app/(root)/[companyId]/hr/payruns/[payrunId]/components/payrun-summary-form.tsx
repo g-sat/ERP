@@ -5,10 +5,14 @@ import { IPayrollEmployeeDt, IPayrollEmployeeHd } from "@/interfaces/payrun"
 import { Download, Mail, MessageSquare } from "lucide-react"
 import { toast } from "sonner"
 
-import { payslipPDFGenerator } from "@/lib/payslip-pdf-generator"
 import { useGetById } from "@/hooks/use-common"
 import { Button } from "@/components/ui/button"
 import { CurrencyFormatter } from "@/components/currencyicons/currency-formatter"
+
+import {
+  downloadPayslipPDF,
+  getPayslipPDFAsArrayBuffer,
+} from "./payslip-template"
 
 interface PayRunSummaryFormProps {
   employee: IPayrollEmployeeHd | null
@@ -20,7 +24,9 @@ export function PayRunSummaryForm({
   payrunId,
 }: PayRunSummaryFormProps) {
   const [formData] = useState<Partial<IPayrollEmployeeHd>>(employee || {})
-  const [isSendingWhatsApp, setIsSendingWhatsApp] = useState(false)
+  // Remove unused state variables
+  // const [isSendingWhatsApp, setIsSendingWhatsApp] = useState(false)
+  // const [isSendingEmail, setIsSendingEmail] = useState(false)
 
   console.log("employee", employee)
 
@@ -64,64 +70,56 @@ export function PayRunSummaryForm({
 
   const currentBasicNetPay = calculateBasicNetPay()
 
-  // Generate PDF payslip
-  const generatePayslipPDF = () => {
-    const earnings = employeeData
-      .filter((item) => item.componentType.toLowerCase() === "earning")
-      .map((item) => ({
-        componentName: item.componentName,
-        basicAmount: item.basicAmount || 0,
-        currentAmount: item.amount || 0,
-      }))
-
-    const deductions = employeeData
-      .filter((item) => item.componentType.toLowerCase() === "deduction")
-      .map((item) => ({
-        componentName: item.componentName,
-        basicAmount: item.basicAmount || 0,
-        currentAmount: item.amount || 0,
-      }))
-
-    const payslipData = {
-      employeeName: employee?.employeeName || "",
-      employeeId: employee?.payrollEmployeeId?.toString() || "",
-      payPeriod: employee?.payName || "",
-      companyName: employee?.companyName || "",
-      companyId: employee?.companyId?.toString() || "",
-      employeeCode: employee?.employeeCode || "",
-      designationName: employee?.designationName || "",
-      departmentName: employee?.departmentName || "",
-      emailAdd: employee?.emailAdd || "",
-      workPermitNo: employee?.workPermitNo || "",
-      personalNo: employee?.personalNo || "",
-      iban: employee?.iban || "",
-      bankName: employee?.bankName || "",
-      address: employee?.address || "",
-      phoneNo: employee?.phoneNo || "",
-      email: employee?.email || "",
-      joinDate: employee?.joinDate || "",
-      whatsUpPhoneNo: employee?.whatsUpPhoneNo || "",
-      presentDays:
-        formData.presentDays !== undefined
-          ? formData.presentDays
-          : employee?.presentDays || 0,
-      pastDays: employee?.pastDays || 0,
-      earnings,
-      deductions,
-      netPay: currentNetPay,
-      basicNetPay: currentBasicNetPay,
-    }
-
-    return payslipPDFGenerator.generatePayslip(payslipData)
-  }
-
-  // WhatsApp API function - Send PDF payslip
-  const sendWhatsAppPayslip = async (phoneNumber: string) => {
+  const handleSendWhatsAppPayslip = async () => {
     try {
-      setIsSendingWhatsApp(true)
+      if (!employee || !payrunId) return
 
-      // Generate PDF
-      const pdfBlob = generatePayslipPDF()
+      if (!employee.phoneNo) {
+        toast.error("Employee WhatsApp number not available")
+        return
+      }
+
+      const payslipData = {
+        employeeName: employee.employeeName || "",
+        employeeId: employee.payrollEmployeeId?.toString() || "",
+        payPeriod: employee.payName || "",
+        companyName: employee.companyName || "",
+        companyId: employee.companyId?.toString() || "",
+        address: employee.address || "",
+        phoneNo: employee.phoneNo || "",
+        email: employee.email || "",
+        employeeCode: employee.employeeCode || "",
+        designationName: employee.designationName || "",
+        departmentName: employee.departmentName || "",
+        emailAdd: employee.emailAdd || "",
+        workPermitNo: employee.workPermitNo || "",
+        personalNo: employee.personalNo || "",
+        iban: employee.iban || "",
+        bankName: employee.bankName || "",
+        presentDays: employee.presentDays || 0,
+        pastDays: employee.pastDays || 0,
+        joinDate: employee.joinDate || "",
+        whatsUpPhoneNo: employee.whatsUpPhoneNo || "",
+        earnings: employeeData
+          .filter((item) => item.componentType.toLowerCase() === "earning")
+          .map((item) => ({
+            componentName: item.componentName,
+            basicAmount: item.basicAmount || 0,
+            currentAmount: item.amount || 0,
+          })),
+        deductions: employeeData
+          .filter((item) => item.componentType.toLowerCase() === "deduction")
+          .map((item) => ({
+            componentName: item.componentName,
+            basicAmount: item.basicAmount || 0,
+            currentAmount: item.amount || 0,
+          })),
+        netPay: currentNetPay,
+        basicNetPay: currentBasicNetPay,
+      }
+
+      // Get PDF as array buffer for WhatsApp API
+      const pdfBuffer = await getPayslipPDFAsArrayBuffer(payslipData)
 
       // Convert to base64
       const base64 = await new Promise<string>((resolve) => {
@@ -130,10 +128,13 @@ export function PayRunSummaryForm({
           const base64String = reader.result as string
           resolve(base64String.split(",")[1]) // Remove data:application/pdf;base64, prefix
         }
-        reader.readAsDataURL(pdfBlob)
+        // Convert ArrayBuffer to Blob for FileReader
+        const blob = new Blob([pdfBuffer], { type: "application/pdf" })
+        reader.readAsDataURL(blob)
       })
 
-      const sanitizedName = employee?.employeeName?.replace(/\s+/g, "_") || ""
+      const sanitizedName =
+        employee.employeeName?.replace(/\s+/g, "_") ?? "unknown"
       const filename = `payslip_${sanitizedName}_${new Date().toISOString().split("T")[0]}.pdf`
 
       // Step 1: Upload PDF to server
@@ -161,16 +162,16 @@ export function PayRunSummaryForm({
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          phoneNumber,
+          phoneNumber: employee.whatsUpPhoneNo || "",
           filePath: uploadResult.data.url, // This is the relative path like /uploads/payslips/123_file.pdf
-          caption: `Hi ${employee?.employeeName || ""}! Your payslip for ${new Date().toLocaleDateString("en-US", { month: "long", year: "numeric" })} is ready.`,
+          caption: `Hi ${employee?.employeeName}! Your payslip for ${new Date().toLocaleDateString("en-US", { month: "long", year: "numeric" })} is ready.`,
           filename: filename,
         }),
       })
 
       const whatsappResult = await whatsappResponse.json()
 
-      console.log("sendWhatsAppPayslip result", whatsappResult)
+      console.log("sendWhatsAppPayslipForEmployee result", whatsappResult)
 
       if (whatsappResult.success) {
         // Clean up the uploaded file
@@ -189,44 +190,111 @@ export function PayRunSummaryForm({
           // Don't fail the whole operation if cleanup fails
         }
 
-        toast.success("Payslip sent successfully!", {
-          description: "The PDF payslip has been sent via WhatsApp.",
-        })
+        console.log(
+          `Successfully sent WhatsApp to ${employee?.employeeName || ""}`
+        )
+        return true
       } else {
         throw new Error(whatsappResult.error || "Failed to send payslip")
       }
     } catch (error) {
-      console.error("WhatsApp API error:", error)
+      console.error(
+        `Error sending WhatsApp to ${employee?.employeeName || ""}:`,
+        error
+      )
+      return false
+    }
+  }
 
-      // Show more detailed error message
-      let errorMessage = "Failed to send payslip"
-      let errorDescription = "Please try again later."
-
-      if (error instanceof Error) {
-        errorMessage = error.message
-        if (error.message.includes("not configured")) {
-          errorDescription =
-            "WhatsApp API is not properly configured. Please check environment variables."
-        } else if (
-          error.message.includes("Access Token") ||
-          error.message.includes("expired")
-        ) {
-          errorDescription =
-            "WhatsApp access token has expired. Please refresh your token in Meta for Developers."
-        } else if (error.message.includes("Phone Number")) {
-          errorDescription =
-            "Invalid phone number format. Please check the number."
-        } else if (error.message.includes("upload")) {
-          errorDescription =
-            "Failed to upload payslip to server. Please try again."
-        }
+  const handleDownloadPayslip = async () => {
+    try {
+      if (!employee || !payrunId) {
+        toast.error("Employee data not available")
+        return
       }
 
-      toast.error(errorMessage, {
-        description: errorDescription,
+      // Debug: Log the data being used
+      console.log("Employee data:", employee)
+      console.log("Employee details:", employeeData)
+      console.log("Current net pay:", currentNetPay)
+      console.log("Current basic net pay:", currentBasicNetPay)
+
+      // Check if we have earnings/deductions data
+      if (!employeeData || employeeData.length === 0) {
+        toast.error("No payroll details available for this employee")
+        return
+      }
+
+      const earnings = employeeData
+        .filter((item) => item.componentType.toLowerCase() === "earning")
+        .map((item) => ({
+          componentName: item.componentName,
+          basicAmount: item.basicAmount || 0,
+          currentAmount: item.amount || 0,
+        }))
+
+      const deductions = employeeData
+        .filter((item) => item.componentType.toLowerCase() === "deduction")
+        .map((item) => ({
+          componentName: item.componentName,
+          basicAmount: item.basicAmount || 0,
+          currentAmount: item.amount || 0,
+        }))
+
+      console.log("Earnings:", earnings)
+      console.log("Deductions:", deductions)
+
+      const payslipData = {
+        employeeName: employee.employeeName || "",
+        employeeId: employee.payrollEmployeeId?.toString() || "",
+        payPeriod: employee.payName || "",
+        companyName: employee.companyName || "",
+        companyId: employee.companyId?.toString() || "",
+        address: employee.address || "",
+        phoneNo: employee.phoneNo || "",
+        email: employee.email || "",
+        employeeCode: employee.employeeCode || "",
+        designationName: employee.designationName || "",
+        departmentName: employee.departmentName || "",
+        emailAdd: employee.emailAdd || "",
+        workPermitNo: employee.workPermitNo || "",
+        personalNo: employee.personalNo || "",
+        iban: employee.iban || "",
+        presentDays: employee.presentDays || 0,
+        pastDays: employee.pastDays || 0,
+        bankName: employee.bankName || "",
+        joinDate: employee.joinDate || "",
+        whatsUpPhoneNo: employee.whatsUpPhoneNo || "",
+        earnings,
+        deductions,
+        netPay: currentNetPay,
+        basicNetPay: currentBasicNetPay,
+      }
+
+      console.log("Payslip data being sent:", payslipData)
+
+      // Show loading toast
+      toast.info("Generating PDF...", {
+        description: "Please wait while we create your payslip",
       })
-    } finally {
-      setIsSendingWhatsApp(false)
+
+      await downloadPayslipPDF(payslipData)
+      toast.success("Payslip downloaded successfully!")
+    } catch (error) {
+      console.error("Error downloading payslip:", error)
+
+      // More specific error messages
+      if (error instanceof Error) {
+        if (error.message.includes("Failed to generate payslip PDF")) {
+          toast.error("PDF generation failed. Please try again.")
+        } else if (error.message.includes("Failed to download payslip PDF")) {
+          toast.error("Download failed. Please check your browser settings.")
+        } else {
+          toast.error(`Download failed: ${error.message}`)
+        }
+      } else {
+        toast.error("Failed to download payslip. Please try again.")
+      }
     }
   }
 
@@ -418,86 +486,55 @@ export function PayRunSummaryForm({
         </div>
 
         {/* Action Buttons */}
-        <div className="flex space-x-3">
-          {/* Download Payslip Button */}
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              try {
-                const pdfBlob = generatePayslipPDF()
-                const url = URL.createObjectURL(pdfBlob)
-                const link = document.createElement("a")
-                link.href = url
-                link.download = `payslip_${employee?.employeeName}_${new Date().toISOString().split("T")[0]}.pdf`
-                document.body.appendChild(link)
-                link.click()
-                document.body.removeChild(link)
-                URL.revokeObjectURL(url)
+        <div className="space-y-3">
+          <div className="flex space-x-3">
+            {/* Download Payslip Button */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleDownloadPayslip}
+              className="flex-1 border-blue-500 text-blue-600 hover:bg-blue-50"
+            >
+              <Download className="mr-2 h-3 w-3" />
+              Download
+            </Button>
 
-                toast.success("Payslip downloaded successfully!", {
-                  description: "The PDF payslip has been downloaded.",
-                })
-              } catch (error) {
-                console.error("PDF generation error:", error)
-                toast.error("Failed to download payslip", {
-                  description: "Please try again later.",
-                })
+            {/* Send via WhatsApp Button */}
+            <Button
+              size="sm"
+              onClick={handleSendWhatsAppPayslip}
+              disabled={
+                // isSendingWhatsApp ||
+                !employee?.phoneNo || employee?.phoneNo?.trim() === ""
               }
-            }}
-            className="flex-1 border-blue-500 text-blue-600 hover:bg-blue-50"
-          >
-            <Download className="mr-2 h-3 w-3" />
-            Download
-          </Button>
+              className="flex-1 bg-green-600 hover:bg-green-700 disabled:opacity-50"
+            >
+              <MessageSquare className="mr-2 h-3 w-3" />
+              {/* {isSendingWhatsApp ? "Sending..." : "WhatsApp"} */}
+              WhatsApp
+            </Button>
 
-          {/* Send via WhatsApp Button */}
-          <Button
-            size="sm"
-            onClick={() => {
-              const phoneNumber = employee?.whatsUpPhoneNo || ""
-              if (!phoneNumber || phoneNumber.trim() === "") {
-                toast.error(
-                  `${employee?.employeeName || "Employee"} have no whats up contact number`,
-                  {
-                    description: "Please add a phone number for this employee",
-                  }
+            {/* Send via Email Button */}
+            <Button
+              size="sm"
+              onClick={() => {
+                toast.info("Email Sharing", {
+                  description: "Opening email client to share payslip...",
+                })
+                // Open default email client
+                const subject = `Payslip for ${employee?.employeeName}`
+                const body = `Dear ${employee?.employeeName},\n\nPlease find attached your payslip.\n\nBest regards,\nHR Department`
+                window.open(
+                  `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`,
+                  "_blank"
                 )
-                return
-              }
-              sendWhatsAppPayslip(phoneNumber)
-            }}
-            disabled={
-              isSendingWhatsApp ||
-              !employee?.whatsUpPhoneNo ||
-              employee?.whatsUpPhoneNo?.trim() === ""
-            }
-            className="flex-1 bg-green-600 hover:bg-green-700 disabled:opacity-50"
-          >
-            <MessageSquare className="mr-2 h-3 w-3" />
-            {isSendingWhatsApp ? "Sending..." : "WhatsApp"}
-          </Button>
-
-          {/* Send via Email Button */}
-          <Button
-            size="sm"
-            onClick={() => {
-              toast.info("Email Sharing", {
-                description: "Opening email client to share payslip...",
-              })
-              // Open default email client
-              const subject = `Payslip for ${employee?.employeeName}`
-              const body = `Dear ${employee?.employeeName},\n\nPlease find attached your payslip.\n\nBest regards,\nHR Department`
-              window.open(
-                `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`,
-                "_blank"
-              )
-            }}
-            className="flex-1 bg-blue-600 hover:bg-blue-700"
-          >
-            <Mail className="mr-2 h-3 w-3" />
-            Email
-          </Button>
+              }}
+              className="flex-1 bg-blue-600 hover:bg-blue-700"
+            >
+              <Mail className="mr-2 h-3 w-3" />
+              Email
+            </Button>
+          </div>
         </div>
       </div>
     </>
