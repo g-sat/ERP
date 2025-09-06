@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { IEmployeeBasic } from "@/interfaces/employee"
-import { Edit, RefreshCw, Search, Trash2 } from "lucide-react"
+import { RefreshCw, Search } from "lucide-react"
 import { useForm } from "react-hook-form"
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
@@ -18,23 +18,17 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import AutocompleteCompany from "@/components/ui-custom/autocomplete-company"
 import DepartmentAutocomplete from "@/components/ui-custom/autocomplete-department"
 import DesignationAutocomplete from "@/components/ui-custom/autocomplete-designation"
+import EmployerAutocomplete from "@/components/ui-custom/autocomplete-employer"
 
 interface Props {
   data: IEmployeeBasic[]
   onRefresh?(): void
   onEdit(item: IEmployeeBasic): void
-  onDelete(item: IEmployeeBasic): void
 }
 
-export function EmployeeListTable({
-  data,
-  onRefresh,
-  onEdit,
-  onDelete,
-}: Props) {
+export function EmployeeListTable({ data, onRefresh, onEdit }: Props) {
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
@@ -45,7 +39,7 @@ export function EmployeeListTable({
   const [search, setSearch] = useState(urlSearch)
 
   // State for autocomplete filters
-  const [selectedCompanyId, setSelectedCompanyId] = useState<number | null>(
+  const [selectedEmployerId, setSelectedEmployerId] = useState<number | null>(
     null
   )
   const [selectedDepartmentId, setSelectedDepartmentId] = useState<
@@ -122,7 +116,7 @@ export function EmployeeListTable({
       employee.offEmailAdd?.toLowerCase().includes(searchTerm)
 
     const matchesCompany =
-      !selectedCompanyId || employee.companyId === selectedCompanyId
+      !selectedEmployerId || employee.employerId === selectedEmployerId
     const matchesDepartment =
       !selectedDepartmentId || employee.departmentId === selectedDepartmentId
     const matchesDesignation =
@@ -135,7 +129,7 @@ export function EmployeeListTable({
 
   const getStatusBadge = (isActive: boolean) => {
     return (
-      <Badge variant={isActive ? "default" : "secondary"}>
+      <Badge variant={isActive ? "default" : "destructive"}>
         {isActive ? "Active" : "Inactive"}
       </Badge>
     )
@@ -163,11 +157,11 @@ export function EmployeeListTable({
               className="pl-8"
             />
           </div>
-          <AutocompleteCompany
+          <EmployerAutocomplete
             form={form}
             onChangeEvent={(selectedOption) => {
-              setSelectedCompanyId(
-                selectedOption ? selectedOption.companyId : null
+              setSelectedEmployerId(
+                selectedOption ? selectedOption.employerId : null
               )
             }}
           />
@@ -221,21 +215,17 @@ export function EmployeeListTable({
               <col className="w-[150px] min-w-[120px]" />
               <col className="w-[120px] min-w-[100px]" />
               <col className="w-[120px] min-w-[100px]" />
-              <col className="w-[180px] min-w-[150px]" />
               <col className="w-[80px] min-w-[70px]" />
-              <col className="w-[100px] min-w-[80px]" />
             </colgroup>
             <TableHeader className="bg-background sticky top-0 z-20">
               <TableRow className="bg-muted/50">
                 <TableHead className="bg-muted/50 sticky left-0 z-30">
                   Employee
                 </TableHead>
-                <TableHead>Company</TableHead>
+                <TableHead>Employer</TableHead>
                 <TableHead>Department</TableHead>
                 <TableHead>Designation</TableHead>
-                <TableHead>Email</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
           </Table>
@@ -248,14 +238,12 @@ export function EmployeeListTable({
                 <col className="w-[150px] min-w-[120px]" />
                 <col className="w-[120px] min-w-[100px]" />
                 <col className="w-[120px] min-w-[100px]" />
-                <col className="w-[180px] min-w-[150px]" />
                 <col className="w-[80px] min-w-[70px]" />
-                <col className="w-[100px] min-w-[80px]" />
               </colgroup>
               <TableBody>
                 {filtered.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center">
+                    <TableCell colSpan={5} className="text-center">
                       No employees found
                     </TableCell>
                   </TableRow>
@@ -264,11 +252,12 @@ export function EmployeeListTable({
                     <TableRow
                       key={employee.employeeId}
                       data-employee-id={employee.employeeId}
-                      className={
+                      className={`hover:bg-muted/50 cursor-pointer ${
                         highlightedEmployeeId === employee.employeeId.toString()
                           ? "border-l-4 border-l-blue-500 bg-blue-50 dark:bg-blue-950/20"
                           : ""
-                      }
+                      }`}
+                      onClick={() => onEdit(employee)}
                     >
                       <TableCell className="bg-background sticky left-0 z-10 py-2">
                         <div className="flex items-center space-x-2">
@@ -285,7 +274,7 @@ export function EmployeeListTable({
                         </div>
                       </TableCell>
                       <TableCell className="py-2 text-xs">
-                        {employee.companyName || "N/A"}
+                        {employee.employerName || "N/A"}
                       </TableCell>
                       <TableCell className="py-2 text-xs">
                         {employee.departmentName || "N/A"}
@@ -293,33 +282,8 @@ export function EmployeeListTable({
                       <TableCell className="py-2 text-xs">
                         {employee.designationName || "N/A"}
                       </TableCell>
-                      <TableCell className="py-2 text-xs">
-                        {employee.offEmailAdd || "N/A"}
-                      </TableCell>
                       <TableCell className="py-2">
                         {getStatusBadge(employee.isActive || false)}
-                      </TableCell>
-                      <TableCell className="py-2 text-right">
-                        <div className="flex items-center justify-end gap-1">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => onEdit(employee)}
-                            className="h-5 w-5 p-0"
-                          >
-                            <Edit className="h-2.5 w-2.5" />
-                            <span className="sr-only">Edit</span>
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => onDelete(employee)}
-                            className="h-5 w-5 p-0 text-red-600 hover:text-red-700"
-                          >
-                            <Trash2 className="h-2.5 w-2.5" />
-                            <span className="sr-only">Delete</span>
-                          </Button>
-                        </div>
                       </TableCell>
                     </TableRow>
                   ))

@@ -11,7 +11,6 @@ import { clientDateFormat, parseDate } from "@/lib/format"
 import { useSaveEmployeeBasic } from "@/hooks/use-employee"
 import { Button } from "@/components/ui/button"
 import { Form } from "@/components/ui/form"
-import CompanyAutocomplete from "@/components/ui-custom/autocomplete-company"
 import ContractTypeAutocomplete from "@/components/ui-custom/autocomplete-contract-type"
 import CountryAutocomplete from "@/components/ui-custom/autocomplete-country"
 import DayOfWeekAutocomplete from "@/components/ui-custom/autocomplete-day-of-week"
@@ -41,7 +40,6 @@ export function EmployeeBasicForm({ employee, onCancel }: Props) {
     resolver: zodResolver(employeeBasicSchema),
     defaultValues: {
       employeeId: employee?.employeeId || 0,
-      companyId: employee?.companyId || 0,
       employerId: employee?.employerId || 0,
       employeeCode: employee?.employeeCode || "",
       employeeName: employee?.employeeName || "",
@@ -84,7 +82,6 @@ export function EmployeeBasicForm({ employee, onCancel }: Props) {
     if (employee) {
       const formData = {
         employeeId: employee.employeeId || 0,
-        companyId: employee.companyId || 0,
         employerId: employee.employerId || 0,
         employeeCode: employee.employeeCode || "",
         employeeName: employee.employeeName || "",
@@ -168,17 +165,10 @@ export function EmployeeBasicForm({ employee, onCancel }: Props) {
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
         <div className="grid grid-cols-3 gap-4">
-          <CompanyAutocomplete
-            form={form}
-            label="Company"
-            name="companyId"
-            isRequired
-          />
           <EmployerAutocomplete
             form={form}
-            label="Employer"
+            label="Company"
             name="employerId"
-            companyId={form.getValues("companyId")}
             isRequired={true}
           />
           <CustomInput

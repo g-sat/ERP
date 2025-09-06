@@ -79,7 +79,7 @@ export function EmployeeOverview({
         <div className="lg:col-span-1">
           <Card className="border-border bg-card h-full border shadow-sm">
             <CardHeader className="relative flex-shrink-0 pb-4">
-              <div className="absolute top-4 right-4">
+              <div className="absolute right-4">
                 <Button
                   variant="ghost"
                   size="sm"
@@ -93,7 +93,7 @@ export function EmployeeOverview({
                   variant="destructive"
                   className="border border-gray-300 bg-gray-50 text-xs text-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
                 >
-                  BASIC EMPLOYEE DETAILS
+                  BASIC DETAILS
                 </Badge>
               </div>
               <div className="flex flex-col items-center space-y-4">
@@ -124,7 +124,7 @@ export function EmployeeOverview({
                   <div className="flex items-center space-x-3">
                     <Building className="h-4 w-4 text-blue-500" />
                     <span className="text-sm">
-                      {employeeBasic?.companyName || ""}
+                      {employeeBasic?.employerName || ""}
                     </span>
                   </div>
                   <div className="flex items-center space-x-3">
@@ -221,7 +221,7 @@ export function EmployeeOverview({
         <div className="lg:col-span-1">
           <Card className="border-border bg-card h-full border shadow-sm">
             <CardHeader className="relative flex-shrink-0 pb-4">
-              <div className="absolute top-4 right-4">
+              <div className="absolute right-4">
                 <Button
                   variant="ghost"
                   size="sm"
@@ -235,7 +235,7 @@ export function EmployeeOverview({
                   variant="destructive"
                   className="border border-slate-300 bg-slate-50 text-xs text-slate-700 hover:bg-slate-100 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
                 >
-                  PERSONAL EMPLOYEE DETAILS
+                  PERSONAL DETAILS
                 </Badge>
               </div>
             </CardHeader>
@@ -387,7 +387,7 @@ export function EmployeeOverview({
         <div className="lg:col-span-1">
           <Card className="border-border bg-card h-full border shadow-sm">
             <CardHeader className="relative flex-shrink-0 pb-4">
-              <div className="absolute top-4 right-4">
+              <div className="absolute right-4">
                 <Button
                   variant="ghost"
                   size="sm"
@@ -401,7 +401,7 @@ export function EmployeeOverview({
                   variant="destructive"
                   className="border border-emerald-300 bg-emerald-50 text-xs text-emerald-700 hover:bg-emerald-100 dark:border-emerald-600 dark:bg-emerald-900 dark:text-emerald-200 dark:hover:bg-emerald-800"
                 >
-                  PAYMENT / ACCOUNT INTEGRATION EMPLOYEE DETAILS
+                  PAYMENT DETAILS
                 </Badge>
               </div>
             </CardHeader>
@@ -479,15 +479,33 @@ export function EmployeeOverview({
                       </Button>
                     </div>
                   </div>
+                </div>
+
+                {/* Account Integration */}
+                <div className="space-y-3">
+                  <div className="mb-2 flex items-center justify-center">
+                    <Badge
+                      variant="destructive"
+                      className="border border-emerald-300 bg-emerald-50 text-xs text-emerald-700 hover:bg-emerald-100 dark:border-emerald-600 dark:bg-emerald-900 dark:text-emerald-200 dark:hover:bg-emerald-800"
+                    >
+                      ACCOUNT INTEGRATION
+                    </Badge>
+                  </div>
                   <div className="flex items-center space-x-3">
                     <Landmark className="h-4 w-4 text-teal-600" />
                     <label className="text-sm font-medium text-gray-500">
                       GL Code
                     </label>
-                    <span className="text-sm">
-                      {employeeBank?.glCode || ""} {"-"}
-                      {employeeBank?.glName || ""}
-                    </span>
+                    {employeeBank?.glId && employeeBank.glId > 0 ? (
+                      <span className="text-sm">
+                        {employeeBank?.glCode || ""} {"-"}
+                        {employeeBank?.glName || ""}
+                      </span>
+                    ) : (
+                      <span className="animate-pulse text-sm font-medium text-red-500">
+                        Not Integrated
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>

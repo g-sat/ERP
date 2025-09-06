@@ -8,7 +8,6 @@ import { useForm } from "react-hook-form"
 import { clientDateFormat } from "@/lib/format"
 import { Button } from "@/components/ui/button"
 import { Form } from "@/components/ui/form"
-import CompanyAutocomplete from "@/components/ui-custom/autocomplete-company"
 import ContractTypeAutocomplete from "@/components/ui-custom/autocomplete-contract-type"
 import CountryAutocomplete from "@/components/ui-custom/autocomplete-country"
 import DepartmentAutocomplete from "@/components/ui-custom/autocomplete-department"
@@ -31,7 +30,6 @@ export function EmployeeBasicForm({ onCancel, onSave }: Props) {
     resolver: zodResolver(employeeBasicSchema),
     defaultValues: {
       employeeId: 0,
-      companyId: 0,
       employerId: 0,
       employeeCode: "",
       employeeName: "",
@@ -66,17 +64,10 @@ export function EmployeeBasicForm({ onCancel, onSave }: Props) {
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
         <div className="grid grid-cols-3 gap-4">
-          <CompanyAutocomplete
-            form={form}
-            label="Company"
-            name="companyId"
-            isRequired={true}
-          />
           <EmployerAutocomplete
             form={form}
-            label="Employer"
+            label="Company"
             name="employerId"
-            companyId={form.watch("companyId")}
             isRequired={true}
           />
           <CustomInput

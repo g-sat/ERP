@@ -31,7 +31,6 @@ export default function EmployerAutocomplete<
   form,
   label,
   name,
-  companyId,
   isDisabled = false,
   className,
   isRequired = false,
@@ -40,13 +39,12 @@ export default function EmployerAutocomplete<
   form: UseFormReturn<T>
   name?: Path<T>
   label?: string
-  companyId?: number
   className?: string
   isDisabled?: boolean
   isRequired?: boolean
   onChangeEvent?: (selectedOption: IEmployerLookup | null) => void
 }) {
-  const { data: employers = [], isLoading } = useEmployerLookup(companyId || 0)
+  const { data: employers = [], isLoading } = useEmployerLookup()
 
   // Memoize options to prevent unnecessary recalculations
   const options: FieldOption[] = React.useMemo(

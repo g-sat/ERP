@@ -1,7 +1,7 @@
 "use client"
 
-import { useCallback, useState } from "react"
-import { useParams, useRouter } from "next/navigation"
+import { useCallback, useEffect, useState } from "react"
+import { useParams, useRouter, useSearchParams } from "next/navigation"
 import { IEmployeeBasic } from "@/interfaces/employee"
 
 import { useDeleteEmployee, useGetEmployees } from "@/hooks/use-employee"
@@ -13,6 +13,7 @@ import { EmployeeListTable } from "./components/employee-list-table"
 export default function EmployeePage() {
   const params = useParams()
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
   const [employeeToDelete, setEmployeeToDelete] =
     useState<IEmployeeBasic | null>(null)
@@ -22,6 +23,21 @@ export default function EmployeePage() {
   // Use hooks for data fetching and mutations
   const { data, isLoading, refetch } = useGetEmployees()
   const deleteMutation = useDeleteEmployee()
+
+  // Check for refresh parameter and trigger refetch
+  useEffect(() => {
+    const refreshParam = searchParams.get("refresh")
+    if (refreshParam) {
+      refetch()
+      // Remove the refresh parameter from URL after refetch
+      const newSearchParams = new URLSearchParams(searchParams.toString())
+      newSearchParams.delete("refresh")
+      const newUrl = newSearchParams.toString()
+        ? `${window.location.pathname}?${newSearchParams.toString()}`
+        : window.location.pathname
+      router.replace(newUrl)
+    }
+  }, [searchParams, refetch, router])
 
   const handleEdit = useCallback(
     (employee: IEmployeeBasic) => {
@@ -58,12 +74,11 @@ export default function EmployeePage() {
         </div>
       </div>
       {isLoading ? (
-        <DataTableSkeleton columnCount={7} />
+        <DataTableSkeleton columnCount={5} />
       ) : (
         <EmployeeListTable
           data={(data?.data as unknown as IEmployeeBasic[]) || []}
           onEdit={handleEdit}
-          onDelete={handleDelete}
           onRefresh={refetch}
         />
       )}

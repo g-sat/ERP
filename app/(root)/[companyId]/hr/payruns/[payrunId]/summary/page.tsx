@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { ApiResponse } from "@/interfaces/auth"
+import { IPayrollAccountViewModel } from "@/interfaces/payroll-account"
 import { IPayrollEmployeeHd, ISIFEmployee } from "@/interfaces/payrun"
 import {
   ArrowLeft,
@@ -25,10 +26,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { CurrencyFormatter } from "@/components/currencyicons/currency-formatter"
 
 import { PayRunSummaryForm } from "../components/payrun-summary-form"
 import { PayRunSummaryTable } from "../components/payrun-summary-table"
+import { PayRunsAccountingTable } from "../components/payruns-accounting-table"
 import { getPayslipPDFAsArrayBuffer } from "../components/payslip-template"
 
 export default function PayRunSummaryPage() {
@@ -92,6 +95,11 @@ export default function PayRunSummaryPage() {
     isLoading: isSIFLoading,
   } = useGetById<ISIFEmployee[]>(`/hr/payrollruns/SIF`, "sif-data", payrunId)
 
+  // Accounting data API call
+  const { data: accountingData, isLoading: isAccountingLoading } = useGetById<
+    IPayrollAccountViewModel[]
+  >(`/hr/payrollruns/account-data`, "accounting-data", payrunId)
+
   // Record payment API call
   const { mutate: recordPayment, isPending: isRecordingPayment } = usePersist(
     `/hr/payrollruns/record-payment/${payrunId}`
@@ -119,6 +127,8 @@ export default function PayRunSummaryPage() {
 
   // Cast the data to the correct type
   const employees = (payRunData?.data as unknown as IPayrollEmployeeHd[]) || []
+  const accounts =
+    (accountingData?.data as unknown as IPayrollAccountViewModel[]) || []
 
   // Calculate totals from actual data
   const totalEarnings = employees.reduce(
@@ -891,11 +901,35 @@ export default function PayRunSummaryPage() {
         </Card>
       </div>
 
-      {/* Employee Table */}
-      <PayRunSummaryTable
-        employees={employees}
-        onEmployeeClick={handleEmployeeClick}
-      />
+      {/* Tabs for Employee Summary and Accounting */}
+      <Tabs defaultValue="employees" className="w-full">
+        <TabsList>
+          <TabsTrigger value="employees">Employee Summary</TabsTrigger>
+          <TabsTrigger value="accounting">Accounting Data</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="employees" className="mt-4">
+          <PayRunSummaryTable
+            employees={employees}
+            onEmployeeClick={handleEmployeeClick}
+          />
+        </TabsContent>
+
+        <TabsContent value="accounting" className="mt-4">
+          {isAccountingLoading ? (
+            <div className="flex h-64 items-center justify-center">
+              <div className="text-center">
+                <div className="border-primary mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-b-2"></div>
+                <p className="text-muted-foreground">
+                  Loading accounting data...
+                </p>
+              </div>
+            </div>
+          ) : (
+            <PayRunsAccountingTable accounts={accounts} />
+          )}
+        </TabsContent>
+      </Tabs>
 
       <Dialog
         open={showPaymentForm}

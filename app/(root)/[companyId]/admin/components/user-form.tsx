@@ -20,6 +20,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Form } from "@/components/ui/form"
+import EmployeeAutocomplete from "@/components/ui-custom/autocomplete-employee"
 import UserGroupAutocomplete from "@/components/ui-custom/autocomplete-usergroup"
 import UserRoleAutocomplete from "@/components/ui-custom/autocomplete-userrole"
 import CustomAccordion, {
@@ -64,6 +65,7 @@ export function UserForm({
           userEmail: "",
           userGroupId: 0,
           userRoleId: 0,
+          employeeId: 0,
           isActive: true,
           isLocked: false,
           remarks: "",
@@ -98,7 +100,7 @@ export function UserForm({
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit, onError)}
-          className="space-y-6"
+          className="space-y-6 pt-6"
         >
           <fieldset className="grid gap-2">
             <div className="grid grid-cols-3 gap-2">
@@ -131,7 +133,7 @@ export function UserForm({
                 />
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-3 gap-2">
               <div>
                 <UserGroupAutocomplete
                   form={form}
@@ -145,6 +147,14 @@ export function UserForm({
                   form={form}
                   name="userRoleId"
                   label="Role"
+                  isRequired={true}
+                />
+              </div>
+              <div>
+                <EmployeeAutocomplete
+                  form={form}
+                  name="employeeId"
+                  label="Employee"
                   isRequired={true}
                 />
               </div>
@@ -180,90 +190,128 @@ export function UserForm({
               </div>
             </div>
 
+            {/* Audit Information Section */}
             {initialData &&
               (initialData.createBy ||
                 initialData.createDate ||
                 initialData.editBy ||
                 initialData.editDate) && (
-                <CustomAccordion
-                  type="single"
-                  collapsible
-                  className="rounded-md border"
-                >
-                  <CustomAccordionItem value="audit-info">
-                    <CustomAccordionTrigger className="px-4">
-                      Audit Information
-                    </CustomAccordionTrigger>
-                    <CustomAccordionContent className="px-2">
-                      <div className="grid grid-cols-2 gap-4">
-                        {initialData.createDate && (
-                          <div className="flex items-center justify-between">
-                            <span className="text-muted-foreground text-sm">
-                              Created By
-                            </span>
-                            <div className="flex items-center gap-2">
-                              <Badge variant="outline" className="font-normal">
-                                {initialData.createBy}
-                              </Badge>
-                              <span className="text-muted-foreground text-sm">
+                <div className="space-y-6">
+                  <div className="border-border border-b pb-4"></div>
+
+                  <CustomAccordion
+                    type="single"
+                    collapsible
+                    className="border-border bg-muted/50 rounded-lg border"
+                  >
+                    <CustomAccordionItem
+                      value="audit-info"
+                      className="border-none"
+                    >
+                      <CustomAccordionTrigger className="hover:bg-muted rounded-lg px-6 py-4">
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium">View Audit Trail</span>
+                          <Badge variant="secondary" className="text-xs">
+                            {initialData.createDate ? "Created" : ""}
+                            {initialData.editDate ? " • Modified" : ""}
+                          </Badge>
+                        </div>
+                      </CustomAccordionTrigger>
+                      <CustomAccordionContent className="px-6 pb-4">
+                        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                          {initialData.createDate && (
+                            <div className="space-y-2">
+                              <div className="flex items-center justify-between">
+                                <span className="text-foreground text-sm font-medium">
+                                  Created By
+                                </span>
+                                <Badge
+                                  variant="outline"
+                                  className="font-normal"
+                                >
+                                  {initialData.createBy}
+                                </Badge>
+                              </div>
+                              <div className="text-muted-foreground text-sm">
                                 {format(
                                   new Date(initialData.createDate),
                                   datetimeFormat
                                 )}
-                              </span>
+                              </div>
                             </div>
-                          </div>
-                        )}
-                        {initialData.editBy && (
-                          <div className="flex items-center justify-between">
-                            <span className="text-muted-foreground text-sm">
-                              Last Edited By
-                            </span>
-                            <div className="flex items-center gap-2">
-                              <Badge variant="outline" className="font-normal">
-                                {initialData.editBy}
-                              </Badge>
-                              <span className="text-muted-foreground text-sm">
+                          )}
+                          {initialData.editBy && (
+                            <div className="space-y-2">
+                              <div className="flex items-center justify-between">
+                                <span className="text-foreground text-sm font-medium">
+                                  Last Modified By
+                                </span>
+                                <Badge
+                                  variant="outline"
+                                  className="font-normal"
+                                >
+                                  {initialData.editBy}
+                                </Badge>
+                              </div>
+                              <div className="text-muted-foreground text-sm">
                                 {initialData.editDate
                                   ? format(
                                       new Date(initialData.editDate),
                                       datetimeFormat
                                     )
                                   : "—"}
-                              </span>
+                              </div>
                             </div>
-                          </div>
-                        )}
-                      </div>
-                    </CustomAccordionContent>
-                  </CustomAccordionItem>
-                </CustomAccordion>
+                          )}
+                        </div>
+                      </CustomAccordionContent>
+                    </CustomAccordionItem>
+                  </CustomAccordion>
+                </div>
               )}
           </fieldset>
-          <div className="flex justify-end gap-2">
-            {initialData && !isReadOnly && (
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setIsResetPasswordOpen(true)}
-                className="flex items-center gap-2"
-              >
-                <Key className="h-4 w-4" />
-                Reset Password
-              </Button>
-            )}
-            <Button variant="outline" type="button" onClick={onCancel}>
-              {isReadOnly ? "Close" : "Cancel"}
-            </Button>
-            {!isReadOnly && (
-              <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting
-                  ? "Saving..."
-                  : initialData
-                    ? "Update User"
-                    : "Create User"}
-              </Button>
-            )}
+          {/* Action Buttons Section */}
+          <div className="border-border border-t pt-6">
+            <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
+              <div className="flex flex-col gap-3 sm:flex-row">
+                {initialData && !isReadOnly && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setIsResetPasswordOpen(true)}
+                    className="flex items-center gap-2 border-orange-200 text-orange-700 hover:border-orange-300 hover:bg-orange-50"
+                  >
+                    <Key className="h-4 w-4" />
+                    Reset Password
+                  </Button>
+                )}
+              </div>
+
+              <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
+                <Button
+                  variant="outline"
+                  type="button"
+                  onClick={onCancel}
+                  className="w-full sm:w-auto"
+                >
+                  {isReadOnly ? "Close" : "Cancel"}
+                </Button>
+                {!isReadOnly && (
+                  <Button type="submit" disabled={isSubmitting}>
+                    {isSubmitting ? (
+                      <div className="flex items-center gap-2">
+                        <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                        {initialData ? "Updating..." : "Creating..."}
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        {initialData ? "Update User" : "Create User"}
+                      </div>
+                    )}
+                  </Button>
+                )}
+              </div>
+            </div>
           </div>
         </form>
       </Form>

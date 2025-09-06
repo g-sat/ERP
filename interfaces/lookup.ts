@@ -204,6 +204,8 @@ export interface ILeaveTypeLookup {
   leaveTypeId: number
   leaveTypeName: string
   leaveTypeCode: string
+  defaultDays: number
+  maxDays: number
 }
 
 export interface ITaxLookup {

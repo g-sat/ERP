@@ -557,6 +557,7 @@ export const Designation = {
 export const Employee = {
   get: "/master/getemployee",
   getById: "/master/getemployeebyid",
+  getByUserId: "/master/getemployeebyuserid",
   add: "/master/saveemployee",
   getBankById: "/master/getemployeebankbyid",
   addBank: "/master/saveemployeebank",

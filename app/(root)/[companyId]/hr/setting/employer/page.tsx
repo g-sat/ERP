@@ -17,8 +17,8 @@ import {
 import { DeleteConfirmation } from "@/components/delete-confirmation"
 import { DataTableSkeleton } from "@/components/skeleton/data-table-skeleton"
 
-import { EmployerTable } from "./components/employer-table"
 import { EmployerForm } from "./components/employer-form"
+import { EmployerTable } from "./components/employer-table"
 
 export default function EmployerPage() {
   // Permissions
@@ -37,6 +37,7 @@ export default function EmployerPage() {
     id: string
     name: string
     type: string
+    employerId?: number
   } | null>(null)
 
   // Data fetching
@@ -47,7 +48,9 @@ export default function EmployerPage() {
   } = useGet<IEmployer>(Employer.get, "employer")
 
   // Mutations
-  const { mutate: deleteItem, isPending: isDeleting } = useDelete("/api")
+  const { mutate: deleteItem, isPending: isDeleting } = useDelete(
+    Employer.delete
+  )
   const createMutation = usePersist(Employer.add)
   const updateMutation = usePersist(Employer.add)
 
@@ -67,13 +70,16 @@ export default function EmployerPage() {
       id: employer.employerId.toString(),
       name: "Employer",
       type: "employer",
+      employerId: employer.employerId, // Explicitly include employerId
     })
     setDeleteDialog(true)
   }
 
   const handleConfirmDelete = () => {
     if (itemToDelete) {
-      deleteItem(`${itemToDelete.type}/${itemToDelete.id}`, {
+      // Use employerId explicitly in the delete request
+      const deleteId = itemToDelete.employerId?.toString() || itemToDelete.id
+      deleteItem(`${deleteId}`, {
         onSuccess: () => {
           refetchEmployer()
           setDeleteDialog(false)

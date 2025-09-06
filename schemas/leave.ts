@@ -93,7 +93,7 @@ export type LeaveBalanceFormValues = z.infer<typeof leaveBalanceSchema>
 export const leaveRequestSchema = z
   .object({
     leaveRequestId: z.number().min(1, "Request ID must be greater than 0"),
-    employeeId: z.number().min(1, "Employee ID must be greater than 0"),
+    employeeId: z.number().min(0, "Employee ID must be greater than 0"),
     leaveTypeId: z.number().min(1, "Leave type ID must be greater than 0"),
     startDate: z.union([z.string(), z.date()]).refine((date) => {
       const startDate = new Date(date)
@@ -123,7 +123,8 @@ export const leaveRequestSchema = z
     attachments: z
       .string()
       .max(1000, "Attachments path must be less than 1000 characters")
-      .optional(),
+      .optional()
+      .default(""),
   })
   .refine(
     (data) => {

@@ -85,9 +85,10 @@ export function WorkLocationTable({
         <Table>
           <TableHeader className="bg-background sticky top-0 z-20">
             <TableRow className="bg-muted/50">
-              <TableHead className="bg-muted/50 sticky left-0 z-30 w-[120px] min-w-[100px]">
-                Code
+              <TableHead className="bg-muted/50 sticky left-0 z-30 w-[80px] min-w-[60px] text-left">
+                Actions
               </TableHead>
+              <TableHead className="w-[120px] min-w-[100px]">Code</TableHead>
               <TableHead className="w-[200px] min-w-[180px]">Name</TableHead>
               <TableHead className="w-[150px] min-w-[120px]">
                 Address 1
@@ -98,9 +99,6 @@ export function WorkLocationTable({
               <TableHead className="w-[120px] min-w-[100px]">City</TableHead>
               <TableHead className="w-[120px] min-w-[100px]">Country</TableHead>
               <TableHead className="w-[100px] min-w-[80px]">Status</TableHead>
-              <TableHead className="w-[80px] min-w-[60px] text-right">
-                Actions
-              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody className="max-h-[500px] overflow-y-auto">
@@ -113,31 +111,8 @@ export function WorkLocationTable({
             ) : (
               filtered.map((loc) => (
                 <TableRow key={loc.workLocationId}>
-                  <TableCell className="bg-background sticky left-0 z-10 w-[120px] min-w-[100px] py-2">
-                    <span className="text-xs font-medium">
-                      {loc.workLocationCode}
-                    </span>
-                  </TableCell>
-                  <TableCell className="w-[200px] min-w-[180px] py-2 text-xs">
-                    {loc.workLocationName}
-                  </TableCell>
-                  <TableCell className="w-[150px] min-w-[120px] py-2 text-xs">
-                    {loc.address1 || "—"}
-                  </TableCell>
-                  <TableCell className="w-[150px] min-w-[120px] py-2 text-xs">
-                    {loc.address2 || "—"}
-                  </TableCell>
-                  <TableCell className="w-[120px] min-w-[100px] py-2 text-xs">
-                    {loc.city || "—"}
-                  </TableCell>
-                  <TableCell className="w-[120px] min-w-[100px] py-2 text-xs">
-                    {loc.countryName || "—"}
-                  </TableCell>
-                  <TableCell className="w-[100px] min-w-[80px] py-2">
-                    {getStatusBadge(loc.isActive || false)}
-                  </TableCell>
-                  <TableCell className="w-[80px] min-w-[60px] py-2 text-right">
-                    <div className="flex items-center justify-end gap-1">
+                  <TableCell className="bg-background sticky left-0 z-10 w-[80px] min-w-[60px] py-2 text-left">
+                    <div className="flex items-center justify-start gap-1">
                       <Button
                         variant="ghost"
                         size="sm"
@@ -166,6 +141,29 @@ export function WorkLocationTable({
                         <span className="sr-only">Delete</span>
                       </Button>
                     </div>
+                  </TableCell>
+                  <TableCell className="w-[120px] min-w-[100px] py-2">
+                    <span className="text-xs font-medium">
+                      {loc.workLocationCode}
+                    </span>
+                  </TableCell>
+                  <TableCell className="w-[200px] min-w-[180px] py-2 text-xs">
+                    {loc.workLocationName}
+                  </TableCell>
+                  <TableCell className="w-[150px] min-w-[120px] py-2 text-xs">
+                    {loc.address1 || "—"}
+                  </TableCell>
+                  <TableCell className="w-[150px] min-w-[120px] py-2 text-xs">
+                    {loc.address2 || "—"}
+                  </TableCell>
+                  <TableCell className="w-[120px] min-w-[100px] py-2 text-xs">
+                    {loc.city || "—"}
+                  </TableCell>
+                  <TableCell className="w-[120px] min-w-[100px] py-2 text-xs">
+                    {loc.countryName || "—"}
+                  </TableCell>
+                  <TableCell className="w-[100px] min-w-[80px] py-2">
+                    {getStatusBadge(loc.isActive || false)}
                   </TableCell>
                 </TableRow>
               ))

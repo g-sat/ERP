@@ -1,12 +1,12 @@
 "use client"
 
-import React, { useEffect, useState } from "react"
-import { IEmployeeLookup, ILeaveTypeLookup } from "@/interfaces/lookup"
+import { useEffect, useState } from "react"
+import { ILeaveTypeLookup } from "@/interfaces/lookup"
 import { LeaveRequestFormValues, leaveRequestSchema } from "@/schemas/leave"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { FileText, Upload, X } from "lucide-react"
 import { useForm } from "react-hook-form"
 
+import { useLeaveTypeLookup } from "@/hooks/use-lookup"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -16,8 +16,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { Form, FormLabel } from "@/components/ui/form"
-import EmployeeAutocomplete from "@/components/ui-custom/autocomplete-employee"
+import { Form } from "@/components/ui/form"
 import LeaveTypeAutocomplete from "@/components/ui-custom/autocomplete-leavetype"
 import { CustomDateNew } from "@/components/ui-custom/custom-date-new"
 import CustomTextarea from "@/components/ui-custom/custom-textarea"
@@ -26,18 +25,42 @@ interface LeaveRequestFormProps {
   open?: boolean
   onOpenChange?: (open: boolean) => void
   onSubmit: (data: LeaveRequestFormValues) => Promise<void>
+  employeeId?: string
 }
 
 export function LeaveRequestForm({
   open: externalOpen,
   onOpenChange,
   onSubmit,
+  employeeId,
 }: LeaveRequestFormProps) {
   const [internalOpen, setInternalOpen] = useState(false)
   const open = externalOpen !== undefined ? externalOpen : internalOpen
   const setOpen = onOpenChange || setInternalOpen
   const [loading, setLoading] = useState(false)
-  const [attachments, setAttachments] = useState<string[]>([])
+  const [selectedLeaveTypeDefaultDays, setSelectedLeaveTypeDefaultDays] =
+    useState<number>(0)
+  const [selectedLeaveTypeMaxDays, setSelectedLeaveTypeMaxDays] = useState<
+    number | null
+  >(null)
+
+  // Get leave types for initial default days
+  const { data: leaveTypes = [] } = useLeaveTypeLookup()
+
+  const form = useForm<LeaveRequestFormValues>({
+    resolver: zodResolver(leaveRequestSchema),
+    defaultValues: {
+      leaveRequestId: 0, // Will be auto-generated on server
+      employeeId: employeeId ? parseInt(employeeId) : 33, // Use passed employeeId or default to 33
+      leaveTypeId: 1,
+      startDate: "",
+      endDate: "",
+      totalDays: 0,
+      reason: "",
+      statusId: 1, // Default to pending status
+      attachments: "",
+    },
+  })
 
   // Listen for custom event to open the form (only if not controlled externally)
   useEffect(() => {
@@ -53,18 +76,30 @@ export function LeaveRequestForm({
     }
   }, [externalOpen])
 
-  const form = useForm<LeaveRequestFormValues>({
-    resolver: zodResolver(leaveRequestSchema),
-    defaultValues: {
-      employeeId: 0,
-      leaveTypeId: 1,
-      startDate: "",
-      endDate: "",
-      totalDays: 0,
-      reason: "",
-      attachments: "",
-    },
-  })
+  // Set initial default days when leave types are loaded
+  useEffect(() => {
+    if (leaveTypes.length > 0) {
+      const defaultLeaveType = leaveTypes.find((lt) => lt.leaveTypeId === 1)
+      if (defaultLeaveType && defaultLeaveType.defaultDays > 0) {
+        setSelectedLeaveTypeDefaultDays(defaultLeaveType.defaultDays)
+        form.setValue("totalDays", defaultLeaveType.defaultDays)
+      }
+      if (
+        defaultLeaveType &&
+        defaultLeaveType.maxDays !== undefined &&
+        defaultLeaveType.maxDays > 0
+      ) {
+        setSelectedLeaveTypeMaxDays(defaultLeaveType.maxDays)
+      }
+    }
+  }, [leaveTypes, form])
+
+  // Update employeeId when prop changes
+  useEffect(() => {
+    if (employeeId) {
+      form.setValue("employeeId", parseInt(employeeId))
+    }
+  }, [employeeId, form])
 
   // Watch for date changes and update totalDays
   useEffect(() => {
@@ -85,16 +120,17 @@ export function LeaveRequestForm({
 
       // Ensure totalDays is calculated and included
       const calculatedDays = calculateDays()
-      const formData = {
+
+      // Convert form data to the expected format for submission
+      const formData: LeaveRequestFormValues = {
         ...data,
         totalDays: calculatedDays,
-        attachments: attachments.join(","),
+        attachments: "",
       }
 
       await onSubmit(formData)
       setOpen(false)
-      form.reset()
-      setAttachments([])
+      resetForm()
     } catch (error) {
       console.error("Failed to submit leave request:", error)
     } finally {
@@ -102,19 +138,15 @@ export function LeaveRequestForm({
     }
   }
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = event.target.files
-    if (files) {
-      // In a real app, you would upload files to server and get URLs
-      const newAttachments = Array.from(files).map((file) =>
-        URL.createObjectURL(file)
-      )
-      setAttachments((prev) => [...prev, ...newAttachments])
-    }
+  const resetForm = () => {
+    form.reset()
+    setSelectedLeaveTypeDefaultDays(0)
+    setSelectedLeaveTypeMaxDays(null)
   }
 
-  const removeAttachment = (index: number) => {
-    setAttachments((prev) => prev.filter((_, i) => i !== index))
+  const handleCancel = () => {
+    setOpen(false)
+    resetForm()
   }
 
   const calculateDays = () => {
@@ -131,24 +163,42 @@ export function LeaveRequestForm({
     return 0
   }
 
-  const handleEmployeeChange = (selectedOption: IEmployeeLookup | null) => {
-    if (selectedOption) {
-      form.setValue("employeeId", selectedOption.employeeId)
-    } else {
-      form.setValue("employeeId", 0)
-    }
-  }
-
   const handleLeaveTypeChange = (selectedOption: ILeaveTypeLookup | null) => {
     if (selectedOption) {
       form.setValue("leaveTypeId", selectedOption.leaveTypeId)
+
+      // Set default days if available
+      if (selectedOption.defaultDays && selectedOption.defaultDays > 0) {
+        setSelectedLeaveTypeDefaultDays(selectedOption.defaultDays)
+        form.setValue("totalDays", selectedOption.defaultDays)
+      } else {
+        setSelectedLeaveTypeDefaultDays(0)
+        form.setValue("totalDays", 0)
+      }
+
+      // Set max days if available
+      if (selectedOption.maxDays !== undefined && selectedOption.maxDays > 0) {
+        setSelectedLeaveTypeMaxDays(selectedOption.maxDays)
+      } else {
+        setSelectedLeaveTypeMaxDays(null)
+      }
     } else {
       form.setValue("leaveTypeId", 1)
+      setSelectedLeaveTypeDefaultDays(0)
+      setSelectedLeaveTypeMaxDays(null)
+      form.setValue("totalDays", 0)
     }
   }
 
+  const handleOpenChange = (open: boolean) => {
+    if (!open) {
+      resetForm()
+    }
+    setOpen(open)
+  }
+
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle>Request Leave</DialogTitle>
@@ -158,26 +208,55 @@ export function LeaveRequestForm({
             onSubmit={form.handleSubmit(handleSubmit)}
             className="space-y-4 pt-4"
           >
-            {/* Employee Selection */}
-            <EmployeeAutocomplete
-              form={form}
-              name="employeeId"
-              label=""
-              isRequired={true}
-              onChangeEvent={handleEmployeeChange}
-            />
-
             {/* Leave Type Selection */}
             <LeaveTypeAutocomplete
               form={form}
               name="leaveTypeId"
-              label=""
+              label="Leave Type"
               isRequired={true}
               onChangeEvent={handleLeaveTypeChange}
             />
 
-            {/* Date Range */}
+            {/* Leave Type Details Display */}
+            {(selectedLeaveTypeDefaultDays > 0 ||
+              selectedLeaveTypeMaxDays !== null) && (
+              <div className="grid grid-cols-2 gap-3">
+                <Card className="bg-muted/30 border-0">
+                  <CardContent className="p-2">
+                    <div className="flex flex-col gap-1">
+                      <span className="text-muted-foreground text-xs font-medium">
+                        Default Days
+                      </span>
+                      <div className="flex items-center gap-2">
+                        <Badge
+                          variant="secondary"
+                          className="px-2 py-1 text-xs"
+                        >
+                          {selectedLeaveTypeDefaultDays || "N/A"} days
+                        </Badge>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
 
+                <Card className="bg-muted/30 border-0">
+                  <CardContent className="p-2">
+                    <div className="flex flex-col gap-1">
+                      <span className="text-muted-foreground text-xs font-medium">
+                        Max Days
+                      </span>
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline" className="px-2 py-1 text-xs">
+                          {selectedLeaveTypeMaxDays || "N/A"} days
+                        </Badge>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+
+            {/* Date Range */}
             <CustomDateNew
               form={form}
               name="startDate"
@@ -216,61 +295,12 @@ export function LeaveRequestForm({
               isRequired={true}
             />
 
-            {/* Attachments */}
-            <div className="space-y-2">
-              <FormLabel>Attachments (Optional)</FormLabel>
-              <div className="flex items-center space-x-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() =>
-                    document.getElementById("file-upload")?.click()
-                  }
-                >
-                  <Upload className="mr-2 h-4 w-4" />
-                  Upload Files
-                </Button>
-                <input
-                  id="file-upload"
-                  type="file"
-                  multiple
-                  className="hidden"
-                  onChange={handleFileUpload}
-                  accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                />
-              </div>
-              {attachments.length > 0 && (
-                <div className="space-y-2">
-                  {attachments.map((attachment, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center justify-between rounded-lg border p-2"
-                    >
-                      <div className="flex items-center space-x-2">
-                        <FileText className="text-muted-foreground h-4 w-4" />
-                        <span className="text-sm">Attachment {index + 1}</span>
-                      </div>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => removeAttachment(index)}
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
             {/* Submit Button */}
             <div className="flex justify-end space-x-2">
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => setOpen(false)}
+                onClick={handleCancel}
                 disabled={loading}
               >
                 Cancel

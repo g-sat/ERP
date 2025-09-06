@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { ILeave } from "@/interfaces/leave"
 import { LeaveRequestFormValues } from "@/schemas/leave"
 import { useQueryClient } from "@tanstack/react-query"
@@ -9,6 +9,7 @@ import { toast } from "sonner"
 
 import { HrUserRequest } from "@/lib/api-routes"
 import { useGetById, usePersist } from "@/hooks/use-common"
+import { useGetEmployeeByUserId } from "@/hooks/use-employee"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
@@ -19,11 +20,33 @@ export default function LeavePage() {
   const queryClient = useQueryClient()
   const [showRequestForm, setShowRequestForm] = useState(false)
 
+  const { data: employeeData, isLoading: employeeLoading } =
+    useGetEmployeeByUserId()
+
+  console.log("employeeData", employeeData)
+  const employeeId = employeeData?.result?.toString() || ""
+
+  console.log("employeeId", employeeId)
+
+  // Show toast notification when employee ID is not available
+  useEffect(() => {
+    if (!employeeLoading && !employeeId) {
+      toast.error(
+        "Access Restricted: Employee information not found. Please contact your administrator or HR team.",
+        {
+          duration: 5000,
+          description:
+            "You need to be associated with an employee record to access leave management.",
+        }
+      )
+    }
+  }, [employeeLoading, employeeId])
+
   // Fetch leave data
   const { data: leavesData, isLoading: leavesLoading } = useGetById<ILeave>(
     HrUserRequest.get,
     "leaves",
-    "33"
+    employeeId
   )
 
   // Initialize mutation hook
@@ -60,7 +83,7 @@ export default function LeavePage() {
         ) + 1
 
       const leaveRequestData = {
-        employeeId: "33",
+        employeeId: employeeId,
         leaveTypeId: data.leaveTypeId,
         startDate: data.startDate,
         endDate: data.endDate,
@@ -81,7 +104,61 @@ export default function LeavePage() {
     }
   }
 
-  // Show loading state
+  // Show loading state while fetching employee data
+  if (employeeLoading) {
+    return (
+      <div className="flex-1 space-y-4 p-4 pt-6 md:p-8">
+        <div className="flex h-64 items-center justify-center">
+          <div className="text-center">
+            <div className="mx-auto h-8 w-8 animate-spin rounded-full border-b-2 border-gray-900"></div>
+            <p className="text-muted-foreground mt-2">
+              Loading employee data...
+            </p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // Show locked state when no employee ID is available
+  if (!employeeId) {
+    return (
+      <div className="flex-1 space-y-4 p-4 pt-6 md:p-8">
+        <div className="flex h-64 items-center justify-center">
+          <div className="text-center">
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gray-100">
+              <svg
+                className="h-8 w-8 text-gray-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                />
+              </svg>
+            </div>
+            <h3 className="mb-2 text-lg font-semibold text-gray-900">
+              Access Restricted
+            </h3>
+            <p className="text-muted-foreground mb-4">
+              Employee information not found. Please contact your administrator
+              or HR team.
+            </p>
+            <p className="text-sm text-gray-500">
+              You need to be associated with an employee record to access leave
+              management.
+            </p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // Show loading state for leave data
   if (leavesLoading && leaves.length === 0) {
     return (
       <div className="flex-1 space-y-4 p-4 pt-6 md:p-8">
@@ -106,7 +183,7 @@ export default function LeavePage() {
       </div>
 
       {/* Statistics Cards */}
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
@@ -140,6 +217,22 @@ export default function LeavePage() {
             <p className="text-muted-foreground text-xs">{currentYear}</p>
           </CardContent>
         </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              User Integration
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {employeeId ? "Active" : "Inactive"}
+            </div>
+            <p className="text-muted-foreground text-xs">
+              {employeeId ? "Employee linked" : "No employee record"}
+            </p>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Leave Requests Table */}
@@ -158,6 +251,7 @@ export default function LeavePage() {
         open={showRequestForm}
         onOpenChange={setShowRequestForm}
         onSubmit={handleLeaveSubmit}
+        employeeId={employeeId?.toString() || ""}
       />
     </div>
   )

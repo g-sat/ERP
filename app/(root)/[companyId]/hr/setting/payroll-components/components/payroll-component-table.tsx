@@ -86,18 +86,16 @@ export function PayrollComponentTable({
       <Table>
         <TableHeader className="bg-background sticky top-0 z-20">
           <TableRow className="bg-muted/50">
-            <TableHead className="bg-muted/50 sticky left-0 z-30 w-[120px] min-w-[100px]">
-              Code
+            <TableHead className="bg-muted/50 sticky left-0 z-30 w-[80px] min-w-[60px] text-right">
+              Actions
             </TableHead>
+            <TableHead className="w-[120px] min-w-[100px]">Code</TableHead>
             <TableHead className="w-[200px] min-w-[180px]">Name</TableHead>
             <TableHead className="w-[100px] min-w-[80px]">Type</TableHead>
             <TableHead className="w-[100px] min-w-[80px]">Sort Order</TableHead>
             <TableHead className="w-[100px] min-w-[80px]">Status</TableHead>
             <TableHead className="w-[120px] min-w-[100px]">
               Salary Component
-            </TableHead>
-            <TableHead className="w-[80px] min-w-[60px] text-right">
-              Actions
             </TableHead>
           </TableRow>
         </TableHeader>
@@ -111,29 +109,7 @@ export function PayrollComponentTable({
           ) : (
             filtered.map((component) => (
               <TableRow key={component.componentId}>
-                <TableCell className="bg-background sticky left-0 z-10 w-[120px] min-w-[100px] py-2">
-                  <span className="text-xs font-medium">
-                    {component.componentCode}
-                  </span>
-                </TableCell>
-                <TableCell className="w-[200px] min-w-[180px] py-2 text-xs">
-                  {component.componentName}
-                </TableCell>
-                <TableCell className="w-[100px] min-w-[80px] py-2">
-                  {getTypeBadge(component)}
-                </TableCell>
-                <TableCell className="w-[100px] min-w-[80px] py-2 text-xs">
-                  {component.sortOrder}
-                </TableCell>
-                <TableCell className="w-[100px] min-w-[80px] py-2">
-                  {getStatusBadge(component.isActive || false)}
-                </TableCell>
-                <TableCell className="w-[120px] min-w-[100px] py-2">
-                  {getSalaryComponentBadge(
-                    component.isSalaryComponent || false
-                  )}
-                </TableCell>
-                <TableCell className="w-[80px] min-w-[60px] py-2 text-right">
+                <TableCell className="bg-background sticky left-0 z-10 w-[80px] min-w-[60px] py-2 text-right">
                   <div className="flex items-center justify-end gap-1">
                     <Button
                       variant="ghost"
@@ -163,6 +139,28 @@ export function PayrollComponentTable({
                       <span className="sr-only">Delete</span>
                     </Button>
                   </div>
+                </TableCell>
+                <TableCell className="w-[120px] min-w-[100px] py-2">
+                  <span className="text-xs font-medium">
+                    {component.componentCode}
+                  </span>
+                </TableCell>
+                <TableCell className="w-[200px] min-w-[180px] py-2 text-xs">
+                  {component.componentName}
+                </TableCell>
+                <TableCell className="w-[100px] min-w-[80px] py-2">
+                  {getTypeBadge(component)}
+                </TableCell>
+                <TableCell className="w-[100px] min-w-[80px] py-2 text-xs">
+                  {component.sortOrder}
+                </TableCell>
+                <TableCell className="w-[100px] min-w-[80px] py-2">
+                  {getStatusBadge(component.isActive || false)}
+                </TableCell>
+                <TableCell className="w-[120px] min-w-[100px] py-2">
+                  {getSalaryComponentBadge(
+                    component.isSalaryComponent || false
+                  )}
                 </TableCell>
               </TableRow>
             ))

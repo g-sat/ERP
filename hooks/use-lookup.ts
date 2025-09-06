@@ -471,19 +471,19 @@ export const useEmployeeLookup = () => {
   })
 }
 
-export const useEmployerLookup = (CompanyId: number) => {
+export const useEmployerLookup = () => {
   return useQuery<IEmployerLookup[]>({
-    queryKey: ["employer-lookup", CompanyId],
+    queryKey: ["employer-lookup"],
     ...defaultQueryConfig,
     queryFn: async () => {
       try {
-        const data = await getData(`${Lookup.getEmployer}/${CompanyId}`)
+        //const data = await getData(`${Lookup.getEmployer}/${CompanyId}`)
+        const data = await getData(`${Lookup.getEmployer}`)
         return data?.data || []
       } catch (error) {
         handleApiError(error)
       }
     },
-    enabled: CompanyId > 0,
   })
 }
 

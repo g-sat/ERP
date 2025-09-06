@@ -18,7 +18,6 @@ export default function HRSettingsLayout({
     if (pathname.includes("/designation")) return "designation"
     if (pathname.includes("/department")) return "department"
     if (pathname.includes("/payroll-components")) return "payroll-components"
-    if (pathname.includes("/templates")) return "templates"
 
     if (pathname.includes("/pay-schedule")) return "pay-schedule"
     if (pathname.includes("/account-integration")) return "account-integration"
@@ -81,9 +80,6 @@ export default function HRSettingsLayout({
           </TabsTrigger>
           <TabsTrigger value="employer" className="text-xs sm:text-sm">
             Employer Details
-          </TabsTrigger>
-          <TabsTrigger value="templates" className="text-xs sm:text-sm">
-            Templates
           </TabsTrigger>
         </TabsList>
       </Tabs>

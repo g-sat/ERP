@@ -69,8 +69,6 @@ export interface IEmployeeFilter {
 
 export interface IEmployeeBasic {
   employeeId: number
-  companyId: number
-  companyName?: string
   employerId: number
   employerName?: string
   employeeCode: string

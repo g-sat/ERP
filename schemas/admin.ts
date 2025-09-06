@@ -7,6 +7,7 @@ export const userSchema = z.object({
   userEmail: z.string().email({ message: "Invalid email format" }),
   userGroupId: z.number().min(0, { message: "User group is required" }),
   userRoleId: z.number().min(0, { message: "User role is required" }),
+  employeeId: z.number().min(0, { message: "Employee is required" }),
   remarks: z
     .string()
     .max(255, { message: "Remarks cannot exceed 255 characters" })

@@ -96,21 +96,21 @@ export function DepartmentTable({
           {/* Header table */}
           <Table className="w-full table-fixed border-collapse">
             <colgroup>
+              <col className="w-[80px] min-w-[60px]" />
               <col className="w-[120px] min-w-[100px]" />
               <col className="w-[200px] min-w-[180px]" />
               <col className="w-[150px] min-w-[120px]" />
               <col className="w-[100px] min-w-[80px]" />
-              <col className="w-[80px] min-w-[60px]" />
             </colgroup>
             <TableHeader className="bg-background sticky top-0 z-20">
               <TableRow className="bg-muted/50">
-                <TableHead className="bg-muted/50 sticky left-0 z-30">
-                  Code
+                <TableHead className="bg-muted/50 sticky left-0 z-30 text-left">
+                  Actions
                 </TableHead>
+                <TableHead>Code</TableHead>
                 <TableHead>Name</TableHead>
                 <TableHead>Remarks</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
           </Table>
@@ -119,11 +119,11 @@ export function DepartmentTable({
           <div className="max-h-[500px] overflow-y-auto">
             <Table className="w-full table-fixed border-collapse">
               <colgroup>
+                <col className="w-[80px] min-w-[60px]" />
                 <col className="w-[120px] min-w-[100px]" />
                 <col className="w-[200px] min-w-[180px]" />
                 <col className="w-[150px] min-w-[120px]" />
                 <col className="w-[100px] min-w-[80px]" />
-                <col className="w-[80px] min-w-[60px]" />
               </colgroup>
               <TableBody>
                 {filteredData.length === 0 ? (
@@ -135,22 +135,8 @@ export function DepartmentTable({
                 ) : (
                   filteredData.map((department) => (
                     <TableRow key={department.departmentId}>
-                      <TableCell className="bg-background sticky left-0 z-10 py-2">
-                        <div className="text-xs font-medium">
-                          {department.departmentCode}
-                        </div>
-                      </TableCell>
-                      <TableCell className="py-2 text-xs">
-                        {department.departmentName}
-                      </TableCell>
-                      <TableCell className="py-2 text-xs">
-                        {department.remarks || "—"}
-                      </TableCell>
-                      <TableCell className="py-2">
-                        {getStatusBadge(department.isActive || false)}
-                      </TableCell>
-                      <TableCell className="py-2 text-right">
-                        <div className="flex items-center justify-end gap-1">
+                      <TableCell className="bg-background sticky left-0 z-10 py-2 text-left">
+                        <div className="flex items-center justify-start gap-1">
                           <Button
                             variant="ghost"
                             size="sm"
@@ -183,6 +169,20 @@ export function DepartmentTable({
                             </Button>
                           )}
                         </div>
+                      </TableCell>
+                      <TableCell className="py-2">
+                        <div className="text-xs font-medium">
+                          {department.departmentCode}
+                        </div>
+                      </TableCell>
+                      <TableCell className="py-2 text-xs">
+                        {department.departmentName}
+                      </TableCell>
+                      <TableCell className="py-2 text-xs">
+                        {department.remarks || "—"}
+                      </TableCell>
+                      <TableCell className="py-2">
+                        {getStatusBadge(department.isActive || false)}
                       </TableCell>
                     </TableRow>
                   ))

@@ -228,64 +228,84 @@ export function TechniciansSurveyorsForm({
               />
             </div>
 
+            {/* Audit Information Section */}
             {initialData &&
               (initialData.createBy ||
                 initialData.createDate ||
                 initialData.editBy ||
                 initialData.editDate) && (
-                <CustomAccordion
-                  type="single"
-                  collapsible
-                  className="rounded-md border"
-                >
-                  <CustomAccordionItem value="audit-info">
-                    <CustomAccordionTrigger className="px-4">
-                      Audit Information
-                    </CustomAccordionTrigger>
-                    <CustomAccordionContent className="px-2">
-                      <div className="grid grid-cols-2 gap-4">
-                        {initialData.createDate && (
-                          <div className="flex items-center justify-between">
-                            <span className="text-muted-foreground text-sm">
-                              Created By
-                            </span>
-                            <div className="flex items-center gap-2">
-                              <Badge variant="outline" className="font-normal">
-                                {initialData.createBy}
-                              </Badge>
-                              <span className="text-muted-foreground text-sm">
+                <div className="space-y-6">
+                  <div className="border-border border-b pb-4"></div>
+
+                  <CustomAccordion
+                    type="single"
+                    collapsible
+                    className="border-border bg-muted/50 rounded-lg border"
+                  >
+                    <CustomAccordionItem
+                      value="audit-info"
+                      className="border-none"
+                    >
+                      <CustomAccordionTrigger className="hover:bg-muted rounded-lg px-6 py-4">
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium">View Audit Trail</span>
+                          <Badge variant="secondary" className="text-xs">
+                            {initialData.createDate ? "Created" : ""}
+                            {initialData.editDate ? " • Modified" : ""}
+                          </Badge>
+                        </div>
+                      </CustomAccordionTrigger>
+                      <CustomAccordionContent className="px-6 pb-4">
+                        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                          {initialData.createDate && (
+                            <div className="space-y-2">
+                              <div className="flex items-center justify-between">
+                                <span className="text-foreground text-sm font-medium">
+                                  Created By
+                                </span>
+                                <Badge
+                                  variant="outline"
+                                  className="font-normal"
+                                >
+                                  {initialData.createBy}
+                                </Badge>
+                              </div>
+                              <div className="text-muted-foreground text-sm">
                                 {format(
                                   new Date(initialData.createDate),
                                   datetimeFormat
                                 )}
-                              </span>
+                              </div>
                             </div>
-                          </div>
-                        )}
-                        {initialData.editBy && (
-                          <div className="flex items-center justify-between">
-                            <span className="text-muted-foreground text-sm">
-                              Last Edited By
-                            </span>
-                            <div className="flex items-center gap-2">
-                              <Badge variant="outline" className="font-normal">
-                                {initialData.editBy}
-                              </Badge>
-                              <span className="text-muted-foreground text-sm">
+                          )}
+                          {initialData.editBy && (
+                            <div className="space-y-2">
+                              <div className="flex items-center justify-between">
+                                <span className="text-foreground text-sm font-medium">
+                                  Last Modified By
+                                </span>
+                                <Badge
+                                  variant="outline"
+                                  className="font-normal"
+                                >
+                                  {initialData.editBy}
+                                </Badge>
+                              </div>
+                              <div className="text-muted-foreground text-sm">
                                 {initialData.editDate
                                   ? format(
                                       new Date(initialData.editDate),
                                       datetimeFormat
                                     )
                                   : "—"}
-                              </span>
+                              </div>
                             </div>
-                          </div>
-                        )}
-                      </div>
-                    </CustomAccordionContent>
-                  </CustomAccordionItem>
-                </CustomAccordion>
+                          )}
+                        </div>
+                      </CustomAccordionContent>
+                    </CustomAccordionItem>
+                  </CustomAccordion>
+                </div>
               )}
           </div>
 

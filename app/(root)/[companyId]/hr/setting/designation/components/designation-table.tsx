@@ -98,21 +98,21 @@ export function DesignationTable({
           {/* Header table */}
           <Table className="w-full table-fixed border-collapse">
             <colgroup>
+              <col className="w-[80px] min-w-[60px]" />
               <col className="w-[120px] min-w-[100px]" />
               <col className="w-[200px] min-w-[180px]" />
               <col className="w-[150px] min-w-[120px]" />
               <col className="w-[100px] min-w-[80px]" />
-              <col className="w-[80px] min-w-[60px]" />
             </colgroup>
             <TableHeader className="bg-background sticky top-0 z-20">
               <TableRow className="bg-muted/50">
-                <TableHead className="bg-muted/50 sticky left-0 z-30">
-                  Code
+                <TableHead className="bg-muted/50 sticky left-0 z-30 text-left">
+                  Actions
                 </TableHead>
+                <TableHead>Code</TableHead>
                 <TableHead>Name</TableHead>
                 <TableHead>Remarks</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
           </Table>
@@ -121,11 +121,11 @@ export function DesignationTable({
           <div className="max-h-[500px] overflow-y-auto">
             <Table className="w-full table-fixed border-collapse">
               <colgroup>
+                <col className="w-[80px] min-w-[60px]" />
                 <col className="w-[120px] min-w-[100px]" />
                 <col className="w-[200px] min-w-[180px]" />
                 <col className="w-[150px] min-w-[120px]" />
                 <col className="w-[100px] min-w-[80px]" />
-                <col className="w-[80px] min-w-[60px]" />
               </colgroup>
               <TableBody>
                 {filteredData.length === 0 ? (
@@ -137,22 +137,8 @@ export function DesignationTable({
                 ) : (
                   filteredData.map((designation) => (
                     <TableRow key={designation.designationId}>
-                      <TableCell className="bg-background sticky left-0 z-10 py-2">
-                        <div className="text-xs font-medium">
-                          {designation.designationCode}
-                        </div>
-                      </TableCell>
-                      <TableCell className="py-2 text-xs">
-                        {designation.designationName}
-                      </TableCell>
-                      <TableCell className="py-2 text-xs">
-                        {designation.remarks || "—"}
-                      </TableCell>
-                      <TableCell className="py-2">
-                        {getStatusBadge(designation.isActive || false)}
-                      </TableCell>
-                      <TableCell className="py-2 text-right">
-                        <div className="flex items-center justify-end gap-1">
+                      <TableCell className="bg-background sticky left-0 z-10 py-2 text-left">
+                        <div className="flex items-center justify-start gap-1">
                           <Button
                             variant="ghost"
                             size="sm"
@@ -185,6 +171,20 @@ export function DesignationTable({
                             </Button>
                           )}
                         </div>
+                      </TableCell>
+                      <TableCell className="py-2">
+                        <div className="text-xs font-medium">
+                          {designation.designationCode}
+                        </div>
+                      </TableCell>
+                      <TableCell className="py-2 text-xs">
+                        {designation.designationName}
+                      </TableCell>
+                      <TableCell className="py-2 text-xs">
+                        {designation.remarks || "—"}
+                      </TableCell>
+                      <TableCell className="py-2">
+                        {getStatusBadge(designation.isActive || false)}
                       </TableCell>
                     </TableRow>
                   ))

@@ -28,7 +28,8 @@ export default function EmployeeDetailLayout({
 
   // Handle back button click
   const handleBack = () => {
-    router.push(`/${companyId}/hr/employees`)
+    // Navigate back and add a refresh parameter to trigger data refresh
+    router.push(`/${companyId}/hr/employees?refresh=${Date.now()}`)
   }
 
   // Get current tab from pathname
@@ -126,7 +127,7 @@ export default function EmployeeDetailLayout({
 
       {/* Main Content Area */}
       <div className="container mx-auto space-y-4 px-4 py-4 sm:space-y-6 sm:px-6 sm:py-6">
-        <div className="mx-auto max-w-7xl">{children}</div>
+        <div className="mx-auto max-w-full">{children}</div>
       </div>
     </div>
   )

@@ -1,3 +1,4 @@
+import { ApiResponse } from "@/interfaces/auth"
 import {
   IEmployee,
   IEmployeeBank,
@@ -5,10 +6,26 @@ import {
   IEmployeePersonalDetails,
 } from "@/interfaces/employee"
 import { ISalaryComponent, ISalaryHistory } from "@/interfaces/payroll"
-import { useQueryClient } from "@tanstack/react-query"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
 
+import { getById } from "@/lib/api-client"
 import { Employee, SalaryComponent } from "@/lib/api-routes"
 import { useDelete, useGet, useGetById, usePersist } from "@/hooks/use-common"
+
+// Hook for fetching employee by userId
+export function useGetEmployeeByUserId() {
+  return useQuery<ApiResponse<IEmployee>>({
+    queryKey: ["employee-by-user", ""],
+    queryFn: async () => {
+      return await getById(Employee.getByUserId)
+    },
+    enabled: true, // Always enabled to allow API call with empty string
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+  })
+}
 
 // Hook for fetching employees
 export function useGetEmployees(filters?: string) {

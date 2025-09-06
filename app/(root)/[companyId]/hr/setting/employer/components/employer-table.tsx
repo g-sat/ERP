@@ -94,32 +94,20 @@ export function EmployerTable({
         <Table>
           {/* Header table */}
           <Table className="w-full table-fixed border-collapse">
-            <colgroup>
-              <col className="w-[250px] min-w-[120px]" />
-              <col className="w-[120px] min-w-[100px]" />
-              <col className="w-[200px] min-w-[120px]" />
-              <col className="w-[200px] min-w-[120px]" />
-              <col className="w-[150px] min-w-[120px]" />
-              <col className="w-[150px] min-w-[120px]" />
-              <col className="w-[150px] min-w-[120px]" />
-              <col className="w-[150px] min-w-[120px]" />
-              <col className="w-[150px] min-w-[120px]" />
-              <col className="w-[100px] min-w-[80px]" />
-            </colgroup>
             <TableHeader className="bg-background sticky top-0 z-20">
               <TableRow className="bg-muted/50">
-                <TableHead className="bg-muted/50 sticky left-0 z-30">
-                  Company
+                <TableHead className="bg-muted/50 sticky left-0 z-30 w-[80px] text-left">
+                  Actions
                 </TableHead>
-                <TableHead>Branch</TableHead>
-                <TableHead>Address</TableHead>
-                <TableHead>Phone</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Establishment ID</TableHead>
-                <TableHead>Bank Account</TableHead>
-                <TableHead>Bank Name</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead className="w-[200px]">Company</TableHead>
+                <TableHead className="w-[80px]">Branch</TableHead>
+                <TableHead className="w-[200px]">Address</TableHead>
+                <TableHead className="w-[80px]">Phone</TableHead>
+                <TableHead className="w-[150px]">Email</TableHead>
+                <TableHead className="w-[120px]">Establishment ID</TableHead>
+                <TableHead className="w-[150px]">Bank Account</TableHead>
+                <TableHead className="w-[120px]">Bank Name</TableHead>
+                <TableHead className="w-[80px]">Status</TableHead>
               </TableRow>
             </TableHeader>
           </Table>
@@ -128,60 +116,29 @@ export function EmployerTable({
           <div className="max-h-[500px] overflow-y-auto">
             <Table className="w-full table-fixed border-collapse">
               <colgroup>
-                <col className="w-[250px] min-w-[120px]" />
-                <col className="w-[120px] min-w-[100px]" />
-                <col className="w-[200px] min-w-[120px]" />
-                <col className="w-[200px] min-w-[120px]" />
-                <col className="w-[150px] min-w-[120px]" />
-                <col className="w-[150px] min-w-[120px]" />
-                <col className="w-[150px] min-w-[120px]" />
-                <col className="w-[150px] min-w-[120px]" />
-                <col className="w-[150px] min-w-[120px]" />
-                <col className="w-[100px] min-w-[80px]" />
+                <col className="w-[80px]" />
+                <col className="w-[200px]" />
+                <col className="w-[80px]" />
+                <col className="w-[200px]" />
+                <col className="w-[80px]" />
+                <col className="w-[150px]" />
+                <col className="w-[120px]" />
+                <col className="w-[150px]" />
+                <col className="w-[120px]" />
+                <col className="w-[80px]" />
               </colgroup>
               <TableBody>
                 {filteredData.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center">
+                    <TableCell colSpan={10} className="text-center">
                       No employer details found
                     </TableCell>
                   </TableRow>
                 ) : (
                   filteredData.map((employer) => (
                     <TableRow key={employer.employerId}>
-                      <TableCell className="bg-background sticky left-0 z-10 py-2">
-                        <div className="text-xs font-medium">
-                          {employer.companyName || "—"}
-                        </div>
-                      </TableCell>
-                      <TableCell className="py-2 text-xs">
-                        {employer.branch || "—"}
-                      </TableCell>
-                      <TableCell className="py-2 text-xs">
-                        {employer.address || "—"}
-                      </TableCell>
-                      <TableCell className="py-2 text-xs">
-                        {employer.phone || "—"}
-                      </TableCell>
-                      <TableCell className="py-2 text-xs">
-                        {employer.email || "—"}
-                      </TableCell>
-                      <TableCell className="py-2 text-xs">
-                        {employer.establishmentId || "—"}
-                      </TableCell>
-                      <TableCell className="py-2 text-xs">
-                        <div className="max-w-[150px] truncate">
-                          {employer.bankAccountNumber || "—"}
-                        </div>
-                      </TableCell>
-                      <TableCell className="py-2 text-xs">
-                        {employer.bankName || "—"}
-                      </TableCell>
-                      <TableCell className="py-2">
-                        {getStatusBadge(employer.isActive || false)}
-                      </TableCell>
-                      <TableCell className="py-2 text-right">
-                        <div className="flex items-center justify-end gap-1">
+                      <TableCell className="bg-background sticky left-0 z-10 w-[80px] py-2 text-left">
+                        <div className="flex items-center justify-start gap-1">
                           {canEdit && onEdit && (
                             <Button
                               variant="ghost"
@@ -205,6 +162,49 @@ export function EmployerTable({
                             </Button>
                           )}
                         </div>
+                      </TableCell>
+                      <TableCell className="w-[150px] py-2 text-xs">
+                        <div className="text-xs font-medium break-words">
+                          {employer.companyName || "—"}
+                        </div>
+                      </TableCell>
+                      <TableCell className="w-[80px] py-2 text-xs">
+                        <div className="break-words">
+                          {employer.branch || "—"}
+                        </div>
+                      </TableCell>
+                      <TableCell className="w-[200px] py-2 text-xs">
+                        <div className="break-words">
+                          {employer.address || "—"}
+                        </div>
+                      </TableCell>
+                      <TableCell className="w-[80px] py-2 text-xs">
+                        <div className="break-words">
+                          {employer.phone || "—"}
+                        </div>
+                      </TableCell>
+                      <TableCell className="w-[150px] py-2 text-xs">
+                        <div className="break-words">
+                          {employer.email || "—"}
+                        </div>
+                      </TableCell>
+                      <TableCell className="w-[120px] py-2 text-xs">
+                        <div className="break-words">
+                          {employer.establishmentId || "—"}
+                        </div>
+                      </TableCell>
+                      <TableCell className="w-[150px] py-2 text-xs">
+                        <div className="break-words">
+                          {employer.bankAccountNumber || "—"}
+                        </div>
+                      </TableCell>
+                      <TableCell className="w-[120px] py-2 text-xs">
+                        <div className="break-words">
+                          {employer.bankName || "—"}
+                        </div>
+                      </TableCell>
+                      <TableCell className="w-[80px] py-2">
+                        {getStatusBadge(employer.isActive || false)}
                       </TableCell>
                     </TableRow>
                   ))
