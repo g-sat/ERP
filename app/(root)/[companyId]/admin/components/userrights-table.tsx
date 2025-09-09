@@ -12,6 +12,13 @@ import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Form } from "@/components/ui/form"
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import {
   Table,
   TableBody,
   TableCell,
@@ -36,7 +43,14 @@ export function UserRightsTable() {
   const [saving, setSaving] = useState(false)
 
   // Fetch user groups for dropdown
-  const { data: userGroups = [] } = useUserGroupLookup()
+  const {
+    data: userGroups = [],
+    isLoading: isLoadingUserGroups,
+    error: userGroupsError,
+  } = useUserGroupLookup()
+
+
+
   // Fetch user rights for selected user
   const {
     data: userRightsData,
@@ -52,7 +66,7 @@ export function UserRightsTable() {
       const rightsWithState = userRightsData.map((right) => ({
         ...right,
         isAccess: Boolean(right.isAccess),
-        userGroupId: right.userGroupId || "",
+        userGroupId: right.userGroupId ? right.userGroupId.toString() : "",
       }))
       setCompanyRights(rightsWithState)
     } else {
@@ -220,24 +234,46 @@ export function UserRightsTable() {
                       />
                     </TableCell>
                     <TableCell>
-                      <select
-                        className={cn(
-                          "rounded border px-2 py-1",
-                          row.isAccess && !row.userGroupId && "border-red-500"
-                        )}
+                      <Select
                         value={row.userGroupId}
-                        onChange={(e) =>
-                          handleGroupChange(row.companyId, e.target.value)
+                        onValueChange={(value) =>
+                          handleGroupChange(row.companyId, value)
                         }
                         disabled={!row.isAccess}
                       >
-                        <option value="">Select Group</option>
-                        {userGroups.map((g) => (
-                          <option key={g.userGroupId} value={g.userGroupId}>
-                            {g.userGroupName}
-                          </option>
-                        ))}
-                      </select>
+                        <SelectTrigger
+                          className={cn(
+                            "w-full",
+                            row.isAccess && !row.userGroupId && "border-red-500"
+                          )}
+                        >
+                          <SelectValue placeholder="Select Group" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {isLoadingUserGroups ? (
+                            <SelectItem value="loading" disabled>
+                              Loading groups...
+                            </SelectItem>
+                          ) : userGroupsError ? (
+                            <SelectItem value="error" disabled>
+                              Error loading groups
+                            </SelectItem>
+                          ) : userGroups.length === 0 ? (
+                            <SelectItem value="no-groups" disabled>
+                              No groups available
+                            </SelectItem>
+                          ) : (
+                            userGroups.map((g) => (
+                              <SelectItem
+                                key={g.userGroupId}
+                                value={g.userGroupId.toString()}
+                              >
+                                {g.userGroupName}
+                              </SelectItem>
+                            ))
+                          )}
+                        </SelectContent>
+                      </Select>
                     </TableCell>
                   </TableRow>
                 ))

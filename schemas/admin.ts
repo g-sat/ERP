@@ -2,11 +2,20 @@ import * as z from "zod"
 
 export const userSchema = z.object({
   userId: z.number().min(0),
-  userCode: z.string().min(1, { message: "User code is required" }),
-  userName: z.string().min(1, { message: "User name is required" }),
-  userEmail: z.string().email({ message: "Invalid email format" }),
-  userGroupId: z.number().min(0, { message: "User group is required" }),
-  userRoleId: z.number().min(0, { message: "User role is required" }),
+  userCode: z
+    .string()
+    .min(5, { message: "User code must be at least 5 characters" })
+    .max(50, { message: "User code must be less than 50 characters" }),
+  userName: z
+    .string()
+    .min(5, { message: "User name must be at least 5 characters" })
+    .max(150, { message: "User name must be less than 150 characters" }),
+  userEmail: z
+    .string()
+    .email({ message: "Invalid email format" })
+    .max(50, { message: "User email must be less than 150 characters" }),
+  userGroupId: z.number().min(1, { message: "User group is required" }),
+  userRoleId: z.number().min(1, { message: "User role is required" }),
   employeeId: z.number().min(0, { message: "Employee is required" }),
   remarks: z
     .string()

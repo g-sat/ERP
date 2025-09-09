@@ -197,15 +197,16 @@ export enum GLTransactionId {
 
 export enum AdminTransactionId {
   user = 1,
-  user_rights = 2,
-  user_group = 3,
-  user_group_rights = 4,
-  document_no = 5,
-  modules = 6,
-  transaction = 7,
+  userrights = 2,
+  usergroup = 3,
+  usergrouprights = 4,
+  userroles = 5,
+  userprofile = 6,
+  sharedata = 7,
+
   document = 8,
-  user_role = 9,
-  share_data = 10,
+  modules = 9,
+  transaction = 10,
 }
 
 export enum SettingTransactionId {

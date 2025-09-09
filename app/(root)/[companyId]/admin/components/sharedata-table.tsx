@@ -36,7 +36,7 @@ export function ShareDataTable() {
   // Save user group rights mutation
   const shareDataSave = useShareDataSave()
 
-  // Update ghareData when shareDataResponse changes
+  // Update shareData when shareDataResponse changes
   useEffect(() => {
     if (shareDataResponse) {
       const response = shareDataResponse as ApiResponse<IShareData>
@@ -126,7 +126,6 @@ export function ShareDataTable() {
         shareToAll: right.shareToAll,
       }))
 
-      console.log("rightsToSave :", rightsToSave)
       const response = await shareDataSave.mutateAsync({
         data: rightsToSave,
       })

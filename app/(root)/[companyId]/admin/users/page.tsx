@@ -67,7 +67,7 @@ export default function AdminUsersPage() {
     if (filters.search !== undefined) {
       refetchUsers()
     }
-  }, [filters.search])
+  }, [filters.search, refetchUsers])
 
   const handleCreateUser = () => {
     setModalMode("create")
@@ -207,7 +207,7 @@ export default function AdminUsersPage() {
         }}
       >
         <DialogContent
-          className="sm:max-w-2xl"
+          className="overflow-visible sm:max-w-2xl" // Added overflow-visible
           onPointerDownOutside={(e) => {
             e.preventDefault()
           }}

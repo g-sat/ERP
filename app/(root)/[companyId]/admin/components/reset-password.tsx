@@ -80,7 +80,6 @@ export function ResetPassword({
         confirmPassword: resetPasswordData.confirmPassword,
       })
 
-      console.log(response)
       if (response.result === 1) {
         toast.success("Password reset successfully")
         resetForm()

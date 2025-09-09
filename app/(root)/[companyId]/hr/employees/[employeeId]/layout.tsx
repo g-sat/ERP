@@ -91,11 +91,7 @@ export default function EmployeeDetailLayout({
               {employee?.isActive !== undefined && (
                 <Badge
                   variant={employee.isActive ? "default" : "destructive"}
-                  className={`flex h-8 items-center px-3 text-xs sm:text-sm ${
-                    employee.isActive
-                      ? "border border-emerald-300 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:border-emerald-600 dark:bg-emerald-900 dark:text-emerald-200 dark:hover:bg-emerald-800"
-                      : "border border-amber-300 bg-amber-50 text-amber-700 hover:bg-amber-100 dark:border-amber-600 dark:bg-amber-900 dark:text-amber-200 dark:hover:bg-amber-800"
-                  }`}
+                  className="flex h-8 items-center px-3 text-xs sm:text-sm"
                 >
                   {employee.isActive ? "Active" : "Inactive"}
                 </Badge>

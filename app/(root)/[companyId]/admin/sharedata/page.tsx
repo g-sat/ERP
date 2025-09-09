@@ -1,7 +1,6 @@
 "use client"
 
 import { IUser } from "@/interfaces/admin"
-import { ApiResponse } from "@/interfaces/auth"
 
 import { User } from "@/lib/api-routes"
 import { useGet } from "@/hooks/use-common"

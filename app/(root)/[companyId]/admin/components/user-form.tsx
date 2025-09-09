@@ -107,8 +107,8 @@ export function UserForm({
               <div>
                 <CustomInput
                   form={form}
-                  name="userName"
-                  label="Username"
+                  name="userCode"
+                  label="User Code"
                   isRequired
                   isDisabled={isReadOnly}
                 />
@@ -116,8 +116,8 @@ export function UserForm({
               <div>
                 <CustomInput
                   form={form}
-                  name="userCode"
-                  label="User Code"
+                  name="userName"
+                  label="Username"
                   isRequired
                   isDisabled={isReadOnly}
                 />
@@ -155,7 +155,6 @@ export function UserForm({
                   form={form}
                   name="employeeId"
                   label="Employee"
-                  isRequired={true}
                 />
               </div>
             </div>

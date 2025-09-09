@@ -86,7 +86,7 @@ export function PayrollComponentTable({
       <Table>
         <TableHeader className="bg-background sticky top-0 z-20">
           <TableRow className="bg-muted/50">
-            <TableHead className="bg-muted/50 sticky left-0 z-30 w-[80px] min-w-[60px] text-right">
+            <TableHead className="bg-muted/50 sticky left-0 z-30 w-[80px] min-w-[60px]">
               Actions
             </TableHead>
             <TableHead className="w-[120px] min-w-[100px]">Code</TableHead>
@@ -109,8 +109,8 @@ export function PayrollComponentTable({
           ) : (
             filtered.map((component) => (
               <TableRow key={component.componentId}>
-                <TableCell className="bg-background sticky left-0 z-10 w-[80px] min-w-[60px] py-2 text-right">
-                  <div className="flex items-center justify-end gap-1">
+                <TableCell className="bg-background sticky left-0 z-10 w-[80px] min-w-[60px] py-2">
+                  <div className="flex items-center justify-start gap-1">
                     <Button
                       variant="ghost"
                       size="sm"

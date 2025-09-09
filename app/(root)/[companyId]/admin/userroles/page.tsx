@@ -27,7 +27,7 @@ import { UserRoleTable } from "../components/user-role-table"
 
 export default function AdminUserRolesPage() {
   const moduleId = ModuleId.admin
-  const transactionIdRole = AdminTransactionId.user_role
+  const transactionIdRole = AdminTransactionId.userroles
 
   const { hasPermission } = usePermissionStore()
 
@@ -78,7 +78,7 @@ export default function AdminUserRolesPage() {
     if (roleFilters.search !== undefined) {
       refetchUserRoles()
     }
-  }, [roleFilters.search])
+  }, [roleFilters.search, refetchUserRoles])
 
   const handleCreateUserRole = () => {
     setModalMode("create")

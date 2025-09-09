@@ -32,31 +32,31 @@ type PermissionType =
 export function UserWiseRightsTable() {
   const form = useForm()
   const [selectedUser, setSelectedUser] = useState<IUserLookup | null>(null)
-  const [groupRights, setGroupRights] = useState<IUserRightsv1[]>([])
+  const [userRights, setUserRights] = useState<IUserRightsv1[]>([])
   const [saving, setSaving] = useState(false)
 
-  // Fetch user group rights for selected group
+  // Fetch user rights for selected user
   const {
     data: userRightsResponse,
     refetch: refetchUserRights,
     isFetching: isRightsLoading,
   } = useUserRightbyidGetV1(selectedUser?.userId || 0)
 
-  // Save user group rights mutation
+  // Save user rights mutation
   const userRightSave = useUserRightSaveV1()
 
-  // Update groupRights when userRightsResponse changes
+  // Update userRights when userRightsResponse changes
   useEffect(() => {
     if (userRightsResponse) {
       const response = userRightsResponse as ApiResponse<IUserRightsv1>
 
       if (response.data && Array.isArray(response.data)) {
-        setGroupRights(response.data)
+        setUserRights(response.data)
       } else {
-        setGroupRights([])
+        setUserRights([])
       }
     } else {
-      setGroupRights([])
+      setUserRights([])
     }
   }, [userRightsResponse])
 
@@ -65,7 +65,7 @@ export function UserWiseRightsTable() {
     if (selectedUser?.userId) {
       refetchUserRights()
     } else {
-      setGroupRights([])
+      setUserRights([])
     }
   }, [selectedUser?.userId, refetchUserRights])
 
@@ -76,7 +76,7 @@ export function UserWiseRightsTable() {
     permission: PermissionType,
     checked: boolean
   ) => {
-    setGroupRights((prev) =>
+    setUserRights((prev) =>
       prev.map((right) =>
         right.moduleId === moduleId && right.transactionId === transactionId
           ? { ...right, [permission]: checked }
@@ -91,7 +91,7 @@ export function UserWiseRightsTable() {
     transactionId: number,
     checked: boolean
   ) => {
-    setGroupRights((prev) =>
+    setUserRights((prev) =>
       prev.map((right) =>
         right.moduleId === moduleId && right.transactionId === transactionId
           ? {
@@ -113,7 +113,7 @@ export function UserWiseRightsTable() {
     permission: PermissionType,
     checked: boolean
   ) => {
-    setGroupRights((prev) =>
+    setUserRights((prev) =>
       prev.map((right) => ({
         ...right,
         [permission]: checked,
@@ -136,20 +136,20 @@ export function UserWiseRightsTable() {
   // Check if all permissions in a column are selected
   const isColumnAllSelected = (permission: PermissionType) => {
     return (
-      groupRights.length > 0 && groupRights.every((right) => right[permission])
+      userRights.length > 0 && userRights.every((right) => right[permission])
     )
   }
 
   // Handle save button click
   const handleSave = async () => {
     if (!selectedUser) {
-      toast.error("Please select a user group first")
+      toast.error("Please select a user first")
       return
     }
 
     try {
       setSaving(true)
-      const rightsToSave = groupRights.map((right) => ({
+      const rightsToSave = userRights.map((right) => ({
         ...right,
         userId: selectedUser.userId,
       }))
@@ -175,8 +175,8 @@ export function UserWiseRightsTable() {
   // Handle search
   const handleSearch = async () => {
     if (!selectedUser) {
-      setGroupRights([])
-      toast.warning("Please select a user group first")
+      setUserRights([])
+      toast.warning("Please select a user first")
       return
     }
     refetchUserRights()
@@ -231,12 +231,12 @@ export function UserWiseRightsTable() {
                         <span>Select All</span>
                         <Checkbox
                           checked={
-                            groupRights.length > 0 &&
-                            groupRights.every(isRowAllSelected)
+                            userRights.length > 0 &&
+                            userRights.every(isRowAllSelected)
                           }
                           onCheckedChange={(checked) => {
                             const isChecked = Boolean(checked)
-                            setGroupRights((prev) =>
+                            setUserRights((prev) =>
                               prev.map((right) => ({
                                 ...right,
                                 isRead: isChecked,
@@ -329,17 +329,17 @@ export function UserWiseRightsTable() {
                         Loading...
                       </TableCell>
                     </TableRow>
-                  ) : groupRights.length === 0 ? (
+                  ) : userRights.length === 0 ? (
                     <TableRow>
                       <TableCell
                         colSpan={9}
                         className="text-muted-foreground text-center"
                       >
-                        No data. Please select a user group.
+                        No data. Please select a user.
                       </TableCell>
                     </TableRow>
                   ) : (
-                    groupRights.map((right) => (
+                    userRights.map((right) => (
                       <TableRow
                         key={`${right.moduleId}-${right.transactionId}`}
                       >

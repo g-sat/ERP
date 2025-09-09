@@ -1,9 +1,3 @@
-export interface UserGroupLookup {
-  userGroupId: number
-  userGroupCode: string
-  userGroupName: string
-}
-
 export interface IUserLookup {
   userId: number
   userCode: string
@@ -120,18 +114,6 @@ export interface IAccountGroupLookup {
   accGroupName: string
 }
 
-export interface IPortRegionLookup {
-  portRegionId: number
-  portRegionCode: string
-  portRegionName: string
-}
-
-export interface IOrderTypeCategoryLookup {
-  orderTypeCategoryId: number
-  orderTypeCategoryCode: string
-  orderTypeCategoryName: string
-}
-
 export interface IDepartmentLookup {
   departmentId: number
   departmentCode: string
@@ -168,12 +150,6 @@ export interface IYearLookup {
   yearId: number
   yearCode: string
   yearName: string
-}
-
-export interface IGSTCategoryLookup {
-  gstCategoryId: number
-  gstCategoryCode: string
-  gstCategoryName: string
 }
 
 export interface ITaxCategoryLookup {
@@ -241,17 +217,6 @@ export interface IVoyageLookup {
   voyageId: number
   voyageNo: string
   referenceNo: string
-}
-
-export interface IEmployeeLookup {
-  employeeId: number
-  employeeCode: string
-  employeeName: string
-}
-export interface IUserGroupLookup {
-  userGroupId: number
-  userGroupCode: string
-  userGroupName: string
 }
 
 export interface ITransactionLookup {
@@ -344,18 +309,6 @@ export interface IDocumentType {
   docTypeName: string
 }
 
-export interface ITransactionLookup {
-  transactionId: number
-  transactionCode: string
-  transactionName: string
-}
-
-export interface IModuleLookup {
-  moduleId: number
-  moduleCode: string
-  moduleName: string
-}
-
 export interface IUserGroupLookup {
   userGroupId: number
   userGroupCode: string
@@ -366,12 +319,6 @@ export interface IUserRoleLookup {
   userRoleId: number
   userRoleCode: string
   userRoleName: string
-}
-
-export interface IUserLookup {
-  userId: number
-  userCode: string
-  userName: string
 }
 
 export interface ISubCategoryLookup {

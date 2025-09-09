@@ -382,7 +382,6 @@ export function UserTable({
   )
 
   const handleSearch = (query: string) => {
-    console.log("handleSearch called with query:", query)
     setSearchQuery(query)
     if (data && data.length > 0) {
       table.setGlobalFilter(query)
@@ -406,10 +405,6 @@ export function UserTable({
   }
 
   const handleResetPassword = (user: IUser) => {
-    // Debug: Log current search state
-    console.log("Reset password clicked - current searchQuery:", searchQuery)
-    console.log("Reset password clicked - user:", user.userName)
-
     // Simply open the reset password dialog
     setSelectedUserForReset(user)
     setIsResetPasswordOpen(true)

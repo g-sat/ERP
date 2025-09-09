@@ -76,8 +76,6 @@ export default function ProfilePage() {
     user?.userId || "0"
   )
 
-  console.log("Profile Data:", profileData)
-
   const updateProfileMutation = usePersist<UserProfileFormValues>(
     "/admin/SaveUserProfile"
   )
@@ -85,10 +83,6 @@ export default function ProfilePage() {
   const resetPasswordMutation = usePersist<ResetPasswordFormValues>(
     "/admin/ResetPassword"
   )
-
-  // Debug mutations
-  console.log("Profile mutation pending:", updateProfileMutation.isPending)
-  console.log("Password mutation pending:", resetPasswordMutation.isPending)
 
   // Profile form
   const profileForm = useForm<UserProfileFormValues>({
@@ -118,27 +112,15 @@ export default function ProfilePage() {
     mode: "onChange", // Enable real-time validation
   })
 
-  // Debug form state
-  console.log("📝 Form state:", {
-    isValid: profileForm.formState.isValid,
-    isDirty: profileForm.formState.isDirty,
-    errors: profileForm.formState.errors,
-    values: profileForm.getValues(),
-  })
-
   // Update form when profile data is loaded
   useEffect(() => {
     if (profileData?.data) {
-      console.log("Profile API Response:", profileData)
-
       // Handle both array and single object responses
       const profile = Array.isArray(profileData.data)
         ? profileData.data[0]
         : profileData.data
 
       if (profile) {
-        console.log("Profile Data:", profile)
-
         // Set current profile picture for avatar display
         setCurrentProfilePicture(profile.profilePicture || "")
 
@@ -195,30 +177,17 @@ export default function ProfilePage() {
 
   // Profile form submission
   const onProfileSubmit = async (data: UserProfileFormValues) => {
-    console.log("🎯 onProfileSubmit called!")
-    console.log("Profile form data:", data)
-    console.log("Profile form errors:", profileForm.formState.errors)
-
     if (Object.keys(profileForm.formState.errors).length > 0) {
-      console.error("Form validation errors:", profileForm.formState.errors)
       toast.error("Please fix the form errors before submitting")
       return
     }
 
-    console.log("✅ Form validation passed, calling API...")
     updateProfileMutation.mutate(data)
   }
 
   // Password form submission
   const onPasswordSubmit = async (data: ResetPasswordFormValues) => {
-    console.log("Password form data:", data)
-    console.log("Form errors:", passwordForm.formState.errors)
-
     if (Object.keys(passwordForm.formState.errors).length > 0) {
-      console.error(
-        "Password form validation errors:",
-        passwordForm.formState.errors
-      )
       toast.error("Please fix the password form errors before submitting")
       return
     }
@@ -438,10 +407,7 @@ export default function ProfilePage() {
             </CardHeader>
             <CardContent>
               <form
-                onSubmit={(e) => {
-                  console.log("🚀 Form submit event triggered!")
-                  profileForm.handleSubmit(onProfileSubmit)(e)
-                }}
+                onSubmit={profileForm.handleSubmit(onProfileSubmit)}
                 className="space-y-6"
               >
                 {/* Basic Information */}

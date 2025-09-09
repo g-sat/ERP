@@ -37,7 +37,7 @@ import {
 import { useVirtualizer } from "@tanstack/react-virtual"
 import { format, isValid } from "date-fns"
 
-import { AdminTransactionId, ModuleId, TableName } from "@/lib/utils"
+import { AdminTransactionId, TableName } from "@/lib/utils"
 import { useGetGridLayout } from "@/hooks/use-settings"
 import { Badge } from "@/components/ui/badge"
 import {
@@ -331,11 +331,7 @@ export function UserRoleTable({
   }, [sorting, searchQuery])
 
   return (
-    <div
-      ref={tableContainerRef}
-      className="relative overflow-auto"
-      style={{ height: "490px" }}
-    >
+    <>
       <TableHeader
         searchQuery={searchQuery}
         onSearchChange={handleSearch}
@@ -343,10 +339,10 @@ export function UserRoleTable({
         onCreate={onCreateUserRole}
         columns={table.getAllLeafColumns()}
         data={data}
-        tableName={TableName.user_role}
+        tableName={TableName.user}
         hideCreateButton={false}
-        moduleId={moduleId || ModuleId.admin}
-        transactionId={transactionId || AdminTransactionId.user_role}
+        moduleId={moduleId || 1}
+        transactionId={transactionId || AdminTransactionId.user}
       />
 
       <DndContext
@@ -354,64 +350,84 @@ export function UserRoleTable({
         collisionDetection={closestCenter}
         onDragEnd={handleDragEnd}
       >
-        <Table>
-          <TanstackTableHeader className="bg-muted sticky top-0 z-10">
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                <SortableContext
-                  items={headerGroup.headers.map((header) => header.id)}
-                  strategy={horizontalListSortingStrategy}
-                >
-                  {headerGroup.headers.map((header) => (
-                    <DraggableColumnHeader key={header.id} header={header} />
-                  ))}
-                </SortableContext>
-              </TableRow>
-            ))}
-          </TanstackTableHeader>
-          <TableBody className="**:data-[slot=table-cell]:first:w-8">
-            {virtualRows.length > 0 ? (
-              <>
-                <tr style={{ height: `${paddingTop}px` }} />
-                {virtualRows.map((virtualRow) => {
-                  const row = table.getRowModel().rows[virtualRow.index]
-                  return (
-                    <TableRow key={row.id}>
-                      {row.getVisibleCells().map((cell) => (
-                        <TableCell key={cell.id}>
-                          {flexRender(
-                            cell.column.columnDef.cell,
-                            cell.getContext()
-                          )}
-                        </TableCell>
+        <div className="overflow-x-auto rounded-lg border">
+          <Table>
+            {/* Header table */}
+            <Table className="w-full table-fixed border-collapse">
+              <colgroup>
+                {table.getAllLeafColumns().map((col) => (
+                  <col key={col.id} style={{ width: `${col.getSize()}px` }} />
+                ))}
+              </colgroup>
+              <TanstackTableHeader className="bg-background sticky top-0 z-20">
+                {table.getHeaderGroups().map((headerGroup) => (
+                  <TableRow key={headerGroup.id} className="bg-muted/50">
+                    <SortableContext
+                      items={headerGroup.headers.map((header) => header.id)}
+                      strategy={horizontalListSortingStrategy}
+                    >
+                      {headerGroup.headers.map((header) => (
+                        <DraggableColumnHeader
+                          key={header.id}
+                          header={header}
+                        />
                       ))}
-                    </TableRow>
-                  )
-                })}
-                <tr style={{ height: `${paddingBottom}px` }} />
-              </>
-            ) : (
-              <>
-                <TableRow>
-                  <TableCell
-                    colSpan={columns.length}
-                    className="h-24 text-center"
-                  >
-                    {isLoading ? "Loading..." : "No user roles found."}
-                  </TableCell>
-                </TableRow>
-                {Array.from({ length: 9 }).map((_, index) => (
-                  <TableRow key={`empty-${index}`}>
-                    <TableCell
-                      colSpan={columns.length}
-                      className="h-10"
-                    ></TableCell>
+                    </SortableContext>
                   </TableRow>
                 ))}
-              </>
-            )}
-          </TableBody>
-        </Table>
+              </TanstackTableHeader>
+            </Table>
+
+            {/* Scrollable body table */}
+            <div
+              ref={tableContainerRef}
+              className="max-h-[500px] overflow-y-auto"
+            >
+              <Table className="w-full table-fixed border-collapse">
+                <colgroup>
+                  {table.getAllLeafColumns().map((col) => (
+                    <col key={col.id} style={{ width: `${col.getSize()}px` }} />
+                  ))}
+                </colgroup>
+                <TableBody>
+                  {virtualRows.length === 0 ? (
+                    <TableRow>
+                      <TableCell
+                        colSpan={columns.length}
+                        className="text-center"
+                      >
+                        {isLoading ? "Loading..." : "No users found."}
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    <>
+                      <tr style={{ height: `${paddingTop}px` }} />
+                      {virtualRows.map((virtualRow) => {
+                        const row = table.getRowModel().rows[virtualRow.index]
+                        return (
+                          <TableRow key={row.id}>
+                            {row.getVisibleCells().map((cell, cellIndex) => (
+                              <TableCell
+                                key={cell.id}
+                                className={`py-2 ${cellIndex === 0 ? "bg-background sticky left-0 z-10" : ""}`}
+                              >
+                                {flexRender(
+                                  cell.column.columnDef.cell,
+                                  cell.getContext()
+                                )}
+                              </TableCell>
+                            ))}
+                          </TableRow>
+                        )
+                      })}
+                      <tr style={{ height: `${paddingBottom}px` }} />
+                    </>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          </Table>
+        </div>
       </DndContext>
 
       <TableFooter
@@ -423,6 +439,6 @@ export function UserRoleTable({
         onPageSizeChange={handlePageSizeChange}
         pageSizeOptions={[10, 50, 100, 500]}
       />
-    </div>
+    </>
   )
 }

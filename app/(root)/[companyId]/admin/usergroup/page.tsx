@@ -27,7 +27,7 @@ import { UserGroupTable } from "../components/user-group-table"
 
 export default function AdminUserGroupsPage() {
   const moduleId = ModuleId.admin
-  const transactionIdGroup = AdminTransactionId.user_group
+  const transactionIdGroup = AdminTransactionId.usergroup
 
   const { hasPermission } = usePermissionStore()
 
@@ -78,7 +78,7 @@ export default function AdminUserGroupsPage() {
     if (groupFilters.search !== undefined) {
       refetchUserGroups()
     }
-  }, [groupFilters.search])
+  }, [groupFilters.search, refetchUserGroups])
 
   const handleCreateUserGroup = () => {
     setModalMode("create")
