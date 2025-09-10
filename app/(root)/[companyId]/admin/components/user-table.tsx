@@ -99,7 +99,6 @@ export function UserTable({
   const [searchQuery, setSearchQuery] = useState("")
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
-  const [rowSelection, setRowSelection] = useState({})
   const [isResetPasswordOpen, setIsResetPasswordOpen] = useState(false)
   const [selectedUserForReset, setSelectedUserForReset] =
     useState<IUser | null>(null)
@@ -115,7 +114,6 @@ export function UserTable({
     if (gridSettings) {
       try {
         const colVisible = JSON.parse(gridSettings.grdColVisible || "{}")
-        const colOrder = JSON.parse(gridSettings.grdColOrder || "[]")
         const colSize = JSON.parse(gridSettings.grdColSize || "{}")
         const sort = JSON.parse(gridSettings.grdSort || "[]")
 
@@ -125,10 +123,6 @@ export function UserTable({
         // Apply column sizing if available
         if (Object.keys(colSize).length > 0) {
           setColumnSizing(colSize)
-        }
-
-        if (colOrder.length > 0) {
-          table.setColumnOrder(colOrder)
         }
       } catch (error) {
         console.error("Error parsing grid settings:", error)
@@ -342,16 +336,13 @@ export function UserTable({
     getFilteredRowModel: getFilteredRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
     onColumnSizingChange: setColumnSizing,
-    onRowSelectionChange: setRowSelection,
     enableColumnResizing: true,
-    enableRowSelection: true,
     columnResizeMode: "onChange",
     state: {
       sorting,
       columnFilters,
       columnVisibility,
       columnSizing,
-      rowSelection,
       pagination: {
         pageIndex: currentPage - 1,
         pageSize,
@@ -359,6 +350,20 @@ export function UserTable({
       globalFilter: searchQuery,
     },
   })
+
+  // Apply column order after table is defined
+  useEffect(() => {
+    if (gridSettings) {
+      try {
+        const colOrder = JSON.parse(gridSettings.grdColOrder || "[]")
+        if (colOrder.length > 0) {
+          table.setColumnOrder(colOrder)
+        }
+      } catch (error) {
+        console.error("Error parsing column order:", error)
+      }
+    }
+  }, [gridSettings, table])
 
   const rowVirtualizer = useVirtualizer({
     count: table.getRowModel().rows.length,
@@ -405,7 +410,6 @@ export function UserTable({
   }
 
   const handleResetPassword = (user: IUser) => {
-    // Simply open the reset password dialog
     setSelectedUserForReset(user)
     setIsResetPasswordOpen(true)
   }
@@ -446,7 +450,7 @@ export function UserTable({
       }
       onFilterChange(filters)
     }
-  }, [sorting, searchQuery])
+  }, [sorting, searchQuery, data?.length, onFilterChange])
 
   const visibleLeafColumns = table.getVisibleLeafColumns()
 
@@ -564,7 +568,12 @@ export function UserTable({
       {selectedUserForReset && (
         <Dialog
           open={isResetPasswordOpen}
-          onOpenChange={setIsResetPasswordOpen}
+          onOpenChange={(open) => {
+            if (!open) {
+              setIsResetPasswordOpen(false)
+              setSelectedUserForReset(null)
+            }
+          }}
         >
           <DialogContent className="sm:max-w-md">
             <DialogHeader>

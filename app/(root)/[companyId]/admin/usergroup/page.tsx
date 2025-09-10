@@ -6,7 +6,6 @@ import { ApiResponse } from "@/interfaces/auth"
 import { UserGroupFormValues } from "@/schemas/admin"
 import { usePermissionStore } from "@/stores/permission-store"
 import { useQueryClient } from "@tanstack/react-query"
-import { toast } from "sonner"
 
 import { UserGroup } from "@/lib/api-routes"
 import { AdminTransactionId, ModuleId } from "@/lib/utils"
@@ -50,7 +49,6 @@ export default function AdminUserGroupsPage() {
     data: userGroupsResponse,
     refetch: refetchUserGroups,
     isLoading: isLoadingUserGroups,
-    isRefetching: isRefetchingUserGroups,
   } = useGet<IUserGroup>(`${UserGroup.get}`, "usergroups", groupFilters.search)
 
   const { data: userGroupsData } =
@@ -104,10 +102,9 @@ export default function AdminUserGroupsPage() {
       (g) => g.userGroupId.toString() === groupId
     )
     if (!groupToDelete) return
-    toast.promise(deleteGroupMutation.mutateAsync(groupId), {
-      loading: `Deleting ${groupToDelete.userGroupName}...`,
-      success: `${groupToDelete.userGroupName} has been deleted`,
-      error: `Failed to delete user group`,
+    deleteGroupMutation.mutateAsync(groupId).then(() => {
+      // Invalidate and refetch the usergroups query after successful deletion
+      queryClient.invalidateQueries({ queryKey: ["usergroups"] })
     })
   }
 
@@ -116,49 +113,19 @@ export default function AdminUserGroupsPage() {
       if (modalMode === "create") {
         const response = await saveGroupMutation.mutateAsync(data)
         if (response.result === 1) {
-          toast.success(response.message || "User group created successfully")
-          queryClient.setQueryData<ApiResponse<IUserGroup>>(
-            ["usergroups"],
-            (old) => {
-              if (!old) return { result: 1, message: "", data: [] }
-              const newData = { ...old, data: [...old.data, response.data] }
-              return newData as ApiResponse<IUserGroup>
-            }
-          )
-        } else {
-          toast.error(response.message || "Failed to create user group")
+          // Invalidate and refetch the usergroups query
+          queryClient.invalidateQueries({ queryKey: ["usergroups"] })
         }
       } else if (modalMode === "edit" && selectedUserGroup) {
         const response = await updateGroupMutation.mutateAsync(data)
         if (response.result === 1) {
-          toast.success(response.message || "User group updated successfully")
-          queryClient.setQueryData<ApiResponse<IUserGroup>>(
-            ["usergroups"],
-            (old) => {
-              if (!old) return { result: 1, message: "", data: [] }
-              const newData = {
-                ...old,
-                data: old.data.map((group) =>
-                  group.userGroupId === selectedUserGroup.userGroupId
-                    ? response.data
-                    : group
-                ),
-              }
-              return newData as ApiResponse<IUserGroup>
-            }
-          )
-        } else {
-          toast.error(response.message || "Failed to update user group")
+          // Invalidate and refetch the usergroups query
+          queryClient.invalidateQueries({ queryKey: ["usergroups"] })
         }
       }
       setIsGroupModalOpen(false)
     } catch (error) {
       console.error("Error in user group form submission:", error)
-      if (error instanceof Error) {
-        toast.error(error.message)
-      } else {
-        toast.error("An unexpected error occurred")
-      }
     }
   }
 
@@ -173,7 +140,7 @@ export default function AdminUserGroupsPage() {
         </div>
       </div>
 
-      {isLoadingUserGroups || isRefetchingUserGroups ? (
+      {isLoadingUserGroups ? (
         <DataTableSkeleton
           columnCount={8}
           filterCount={2}

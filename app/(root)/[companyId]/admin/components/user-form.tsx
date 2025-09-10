@@ -7,7 +7,7 @@ import { useAuthStore } from "@/stores/auth-store"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { format } from "date-fns"
 import { Key } from "lucide-react"
-import { FieldErrors, useForm } from "react-hook-form"
+import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 
 import { Badge } from "@/components/ui/badge"
@@ -73,35 +73,16 @@ export function UserForm({
   })
 
   const onSubmit = (data: UserFormValues) => {
-    try {
-      submitAction(data)
-    } catch {
-      toast.error("Failed to submit form. Please check all required fields.")
-    }
+    submitAction(data)
   }
 
-  const onError = (errors: FieldErrors<UserFormValues>) => {
-    const errorMessages = Object.values(errors)
-      .filter((error) => error.message)
-      .map((error) => error.message as string)
-    toast.error(errorMessages.join("\n"))
-  }
-
-  const handleCancelReset = () => {
-    setIsResetPasswordOpen(false)
-  }
-
-  const handleResetSuccess = () => {
-    setIsResetPasswordOpen(false)
-  }
+  const handleCancelReset = () => setIsResetPasswordOpen(false)
+  const handleResetSuccess = () => setIsResetPasswordOpen(false)
 
   return (
     <div className="max-w flex flex-col gap-2">
       <Form {...form}>
-        <form
-          onSubmit={form.handleSubmit(onSubmit, onError)}
-          className="space-y-6 pt-6"
-        >
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pt-6">
           <fieldset className="grid gap-2">
             <div className="grid grid-cols-3 gap-2">
               <div>
@@ -316,7 +297,14 @@ export function UserForm({
       </Form>
 
       {/* Reset Password Dialog */}
-      <Dialog open={isResetPasswordOpen} onOpenChange={setIsResetPasswordOpen}>
+      <Dialog
+        open={isResetPasswordOpen}
+        onOpenChange={(open) => {
+          if (!open) {
+            setIsResetPasswordOpen(false)
+          }
+        }}
+      >
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">

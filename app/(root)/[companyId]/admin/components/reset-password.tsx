@@ -43,10 +43,10 @@ export function ResetPassword({
     setShowConfirmPassword(false)
   }
 
-  // Reset form on mount
+  // Reset form on mount and when userId changes (dialog opens for different user)
   useEffect(() => {
     resetForm()
-  }, [])
+  }, [userId])
 
   const resetPasswordMutation = useResetPasswordV1()
 

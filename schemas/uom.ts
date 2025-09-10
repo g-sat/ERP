@@ -9,7 +9,11 @@ export const uomSchema = z.object({
     .max(150),
 
   isActive: z.boolean().default(true),
-  remarks: z.string().max(255).optional(),
+  remarks: z
+    .string()
+    .max(255, { message: "Remarks cannot exceed 255 characters" })
+    .optional()
+    .default(""),
 })
 
 export type UomFormValues = z.infer<typeof uomSchema>

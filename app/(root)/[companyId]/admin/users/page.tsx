@@ -6,7 +6,6 @@ import { ApiResponse } from "@/interfaces/auth"
 import { UserFormValues } from "@/schemas/admin"
 import { usePermissionStore } from "@/stores/permission-store"
 import { useQueryClient } from "@tanstack/react-query"
-import { toast } from "sonner"
 
 import { User } from "@/lib/api-routes"
 import { AdminTransactionId, ModuleId } from "@/lib/utils"
@@ -42,7 +41,6 @@ export default function AdminUsersPage() {
     data: usersResponse,
     refetch: refetchUsers,
     isLoading: isLoadingUsers,
-    isRefetching: isRefetchingUsers,
   } = useGet<IUser>(`${User.get}`, "users", filters.search)
 
   const { data: usersData } = (usersResponse as ApiResponse<IUser>) ?? {
@@ -91,10 +89,9 @@ export default function AdminUsersPage() {
   const handleDeleteUser = (userId: string) => {
     const userToDelete = usersData?.find((u) => u.userId.toString() === userId)
     if (!userToDelete) return
-    toast.promise(deleteMutation.mutateAsync(userId), {
-      loading: `Deleting ${userToDelete.userName}...`,
-      success: `${userToDelete.userName} has been deleted`,
-      error: `Failed to delete user`,
+    deleteMutation.mutateAsync(userId).then(() => {
+      // Invalidate and refetch the users query after successful deletion
+      queryClient.invalidateQueries({ queryKey: ["users"] })
     })
   }
 
@@ -103,41 +100,19 @@ export default function AdminUsersPage() {
       if (modalMode === "create") {
         const response = await saveMutation.mutateAsync(data)
         if (response.result === 1) {
-          toast.success(response.message || "User created successfully")
-          queryClient.setQueryData<ApiResponse<IUser>>(["users"], (old) => {
-            if (!old) return { result: 1, message: "", data: [] }
-            const newData = { ...old, data: [...old.data, response.data] }
-            return newData as ApiResponse<IUser>
-          })
-        } else {
-          toast.error(response.message || "Failed to create user")
+          // Invalidate and refetch the users query
+          queryClient.invalidateQueries({ queryKey: ["users"] })
         }
       } else if (modalMode === "edit" && selectedUser) {
         const response = await updateMutation.mutateAsync(data)
         if (response.result === 1) {
-          toast.success(response.message || "User updated successfully")
-          queryClient.setQueryData<ApiResponse<IUser>>(["users"], (old) => {
-            if (!old) return { result: 1, message: "", data: [] }
-            const newData = {
-              ...old,
-              data: old.data.map((user) =>
-                user.userId === selectedUser.userId ? response.data : user
-              ),
-            }
-            return newData as ApiResponse<IUser>
-          })
-        } else {
-          toast.error(response.message || "Failed to update user")
+          // Invalidate and refetch the users query
+          queryClient.invalidateQueries({ queryKey: ["users"] })
         }
       }
       setIsUserModalOpen(false)
     } catch (error) {
       console.error("Error in user form submission:", error)
-      if (error instanceof Error) {
-        toast.error(error.message)
-      } else {
-        toast.error("An unexpected error occurred")
-      }
     }
   }
 
@@ -152,7 +127,7 @@ export default function AdminUsersPage() {
         </div>
       </div>
 
-      {isLoadingUsers || isRefetchingUsers ? (
+      {isLoadingUsers ? (
         <DataTableSkeleton
           columnCount={8}
           filterCount={2}

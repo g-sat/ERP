@@ -6,7 +6,6 @@ import { ApiResponse } from "@/interfaces/auth"
 import { UserRoleFormValues } from "@/schemas/admin"
 import { usePermissionStore } from "@/stores/permission-store"
 import { useQueryClient } from "@tanstack/react-query"
-import { toast } from "sonner"
 
 import { UserRole } from "@/lib/api-routes"
 import { AdminTransactionId, ModuleId } from "@/lib/utils"
@@ -50,7 +49,6 @@ export default function AdminUserRolesPage() {
     data: userRolesResponse,
     refetch: refetchUserRoles,
     isLoading: isLoadingUserRoles,
-    isRefetching: isRefetchingUserRoles,
   } = useGet<IUserRole>(`${UserRole.get}`, "userroles", roleFilters.search)
 
   const { data: userRolesData } =
@@ -104,10 +102,9 @@ export default function AdminUserRolesPage() {
       (r) => r.userRoleId.toString() === roleId
     )
     if (!roleToDelete) return
-    toast.promise(deleteRoleMutation.mutateAsync(roleId), {
-      loading: `Deleting ${roleToDelete.userRoleName}...`,
-      success: `${roleToDelete.userRoleName} has been deleted`,
-      error: `Failed to delete role`,
+    deleteRoleMutation.mutateAsync(roleId).then(() => {
+      // Invalidate and refetch the userroles query after successful deletion
+      queryClient.invalidateQueries({ queryKey: ["userroles"] })
     })
   }
 
@@ -116,49 +113,19 @@ export default function AdminUserRolesPage() {
       if (modalMode === "create") {
         const response = await saveRoleMutation.mutateAsync(data)
         if (response.result === 1) {
-          toast.success(response.message || "User role created successfully")
-          queryClient.setQueryData<ApiResponse<IUserRole>>(
-            ["userroles"],
-            (old) => {
-              if (!old) return { result: 1, message: "", data: [] }
-              const newData = { ...old, data: [...old.data, response.data] }
-              return newData as ApiResponse<IUserRole>
-            }
-          )
-        } else {
-          toast.error(response.message || "Failed to create user role")
+          // Invalidate and refetch the userroles query
+          queryClient.invalidateQueries({ queryKey: ["userroles"] })
         }
       } else if (modalMode === "edit" && selectedUserRole) {
         const response = await updateRoleMutation.mutateAsync(data)
         if (response.result === 1) {
-          toast.success(response.message || "User role updated successfully")
-          queryClient.setQueryData<ApiResponse<IUserRole>>(
-            ["userroles"],
-            (old) => {
-              if (!old) return { result: 1, message: "", data: [] }
-              const newData = {
-                ...old,
-                data: old.data.map((role) =>
-                  role.userRoleId === selectedUserRole.userRoleId
-                    ? response.data
-                    : role
-                ),
-              }
-              return newData as ApiResponse<IUserRole>
-            }
-          )
-        } else {
-          toast.error(response.message || "Failed to update user role")
+          // Invalidate and refetch the userroles query
+          queryClient.invalidateQueries({ queryKey: ["userroles"] })
         }
       }
       setIsRoleModalOpen(false)
     } catch (error) {
       console.error("Error in user role form submission:", error)
-      if (error instanceof Error) {
-        toast.error(error.message)
-      } else {
-        toast.error("An unexpected error occurred")
-      }
     }
   }
 
@@ -173,7 +140,7 @@ export default function AdminUserRolesPage() {
         </div>
       </div>
 
-      {isLoadingUserRoles || isRefetchingUserRoles ? (
+      {isLoadingUserRoles ? (
         <DataTableSkeleton
           columnCount={8}
           filterCount={2}

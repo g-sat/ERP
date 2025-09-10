@@ -22,8 +22,12 @@ export const supplierSchema = z.object({
   isTrader: z.boolean().optional().default(false),
   isCustomer: z.boolean().optional().default(false),
 
-  remarks: z.string().optional().default(""),
-  isActive: z.boolean().optional().default(true),
+  remarks: z
+    .string()
+    .max(255, { message: "Remarks cannot exceed 255 characters" })
+    .optional()
+    .default(""),
+  isActive: z.boolean().default(true),
 })
 export type SupplierFormValues = z.infer<typeof supplierSchema>
 

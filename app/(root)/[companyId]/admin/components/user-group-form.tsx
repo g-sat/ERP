@@ -41,6 +41,7 @@ export function UserGroupForm({
     defaultValues: initialData
       ? { ...initialData }
       : {
+          userGroupId: 0,
           userGroupCode: "",
           userGroupName: "",
           remarks: "",
@@ -55,7 +56,7 @@ export function UserGroupForm({
   return (
     <div className="max-w flex flex-col gap-2">
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pt-6">
           <div className="grid gap-2">
             <div className="grid grid-cols-2 gap-2">
               <CustomInput
@@ -96,15 +97,6 @@ export function UserGroupForm({
                 initialData.editBy ||
                 initialData.editDate) && (
                 <div className="space-y-6">
-                  <div className="border-border border-b pb-4">
-                    <h3 className="text-foreground text-lg font-semibold">
-                      Audit Information
-                    </h3>
-                    <p className="text-muted-foreground text-sm">
-                      Track record of changes and modifications
-                    </p>
-                  </div>
-
                   <CustomAccordion
                     type="single"
                     collapsible
@@ -177,11 +169,20 @@ export function UserGroupForm({
               )}
           </div>
           <div className="flex justify-end gap-2">
-            <Button variant="outline" type="button" onClick={onCancel}>
+            <Button
+              variant="outline"
+              type="button"
+              onClick={onCancel}
+              className="w-full sm:w-auto"
+            >
               {isReadOnly ? "Close" : "Cancel"}
             </Button>
             {!isReadOnly && (
-              <Button type="submit" disabled={isSubmitting}>
+              <Button
+                type="submit"
+                disabled={isSubmitting}
+                className="w-full sm:w-auto"
+              >
                 {isSubmitting
                   ? "Saving..."
                   : initialData

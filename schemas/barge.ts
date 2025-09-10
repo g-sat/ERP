@@ -37,7 +37,8 @@ export const bargeSchema = z.object({
   remarks: z
     .string()
     .max(255, { message: "Remarks cannot exceed 255 characters" })
-    .optional(),
+    .optional()
+    .default(""),
   isActive: z.boolean().default(true),
   isOwn: z.boolean().default(true),
 })

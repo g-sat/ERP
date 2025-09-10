@@ -88,7 +88,6 @@ export function UserRoleTable({
   const [searchQuery, setSearchQuery] = useState("")
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
-  const [rowSelection, setRowSelection] = useState({})
   const tableContainerRef = useRef<HTMLDivElement>(null)
 
   const { data: gridSettings } = useGetGridLayout(
@@ -240,16 +239,13 @@ export function UserRoleTable({
     getFilteredRowModel: getFilteredRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
     onColumnSizingChange: setColumnSizing,
-    onRowSelectionChange: setRowSelection,
     enableColumnResizing: true,
-    enableRowSelection: true,
     columnResizeMode: "onChange",
     state: {
       sorting,
       columnFilters,
       columnVisibility,
       columnSizing,
-      rowSelection,
       pagination: {
         pageIndex: currentPage - 1,
         pageSize,
@@ -339,10 +335,10 @@ export function UserRoleTable({
         onCreate={onCreateUserRole}
         columns={table.getAllLeafColumns()}
         data={data}
-        tableName={TableName.user}
+        tableName={TableName.user_role}
         hideCreateButton={false}
         moduleId={moduleId || 1}
-        transactionId={transactionId || AdminTransactionId.user}
+        transactionId={transactionId || AdminTransactionId.userroles}
       />
 
       <DndContext

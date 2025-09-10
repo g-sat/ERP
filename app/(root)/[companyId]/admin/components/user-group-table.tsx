@@ -88,7 +88,6 @@ export function UserGroupTable({
   const [searchQuery, setSearchQuery] = useState("")
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
-  const [rowSelection, setRowSelection] = useState({})
   const tableContainerRef = useRef<HTMLDivElement>(null)
 
   const { data: gridSettings } = useGetGridLayout(
@@ -240,16 +239,13 @@ export function UserGroupTable({
     getFilteredRowModel: getFilteredRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
     onColumnSizingChange: setColumnSizing,
-    onRowSelectionChange: setRowSelection,
     enableColumnResizing: true,
-    enableRowSelection: true,
     columnResizeMode: "onChange",
     state: {
       sorting,
       columnFilters,
       columnVisibility,
       columnSizing,
-      rowSelection,
       pagination: {
         pageIndex: currentPage - 1,
         pageSize,

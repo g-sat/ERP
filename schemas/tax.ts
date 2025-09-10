@@ -13,7 +13,11 @@ export const taxSchema = z.object({
   taxCategoryName: z.string().max(150),
 
   isActive: z.boolean().default(true),
-  remarks: z.string().max(255).optional(),
+  remarks: z
+    .string()
+    .max(255, { message: "Remarks cannot exceed 255 characters" })
+    .optional()
+    .default(""),
 })
 
 export type TaxFormValues = z.infer<typeof taxSchema>
@@ -50,7 +54,11 @@ export const taxCategorySchema = z.object({
   taxCategoryCode: z.string().max(50),
   taxCategoryName: z.string().max(150),
   isActive: z.boolean().default(true),
-  remarks: z.string().max(255).optional(),
+  remarks: z
+    .string()
+    .max(255, { message: "Remarks cannot exceed 255 characters" })
+    .optional()
+    .default(""),
 })
 
 export type TaxCategoryFormValues = z.infer<typeof taxCategorySchema>

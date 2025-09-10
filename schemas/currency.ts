@@ -12,9 +12,12 @@ export const currencySchema = z.object({
     .max(150, { message: "Maximum length is 150" }),
   currencySign: z.string().nullable(),
   isMultiply: z.boolean(),
-  createDate: z.date().default(new Date()),
-  isActive: z.boolean(),
-  remarks: z.string().max(255, { message: "Maximum length is 255" }).optional(),
+  isActive: z.boolean().default(true),
+  remarks: z
+    .string()
+    .max(255, { message: "Remarks cannot exceed 255 characters" })
+    .optional()
+    .default(""),
 })
 
 export type CurrencyFormValues = z.infer<typeof currencySchema>

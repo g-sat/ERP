@@ -20,7 +20,8 @@ export const userSchema = z.object({
   remarks: z
     .string()
     .max(255, { message: "Remarks cannot exceed 255 characters" })
-    .optional(),
+    .optional()
+    .default(""),
   isActive: z.boolean().default(true),
   isLocked: z.boolean().default(false),
 })
@@ -30,14 +31,21 @@ export type UserFormValues = z.infer<typeof userSchema>
 export const userGroupSchema = z.object({
   userGroupId: z
     .number()
-    .min(1, { message: "User group ID must be greater than 0" }),
-  userGroupCode: z.string().min(1, { message: "User group code is required" }),
-  userGroupName: z.string().min(1, { message: "User group name is required" }),
+    .min(0, { message: "User group ID must be 0 or greater" }),
+  userGroupCode: z
+    .string()
+    .min(5, { message: "User group code must be at least 5 characters" })
+    .max(50, { message: "User group code must be less than 50 characters" }),
+  userGroupName: z
+    .string()
+    .min(5, { message: "User group name must be at least 5 characters" })
+    .max(100, { message: "User group name must be less than 10 characters" }),
   remarks: z
     .string()
     .max(255, { message: "Remarks cannot exceed 255 characters" })
-    .optional(),
-  isActive: z.boolean(),
+    .optional()
+    .default(""),
+  isActive: z.boolean().default(true),
 })
 
 export type UserGroupFormValues = z.infer<typeof userGroupSchema>
@@ -45,14 +53,21 @@ export type UserGroupFormValues = z.infer<typeof userGroupSchema>
 export const userRoleSchema = z.object({
   userRoleId: z
     .number()
-    .min(1, { message: "User role ID must be greater than 0" }),
-  userRoleCode: z.string().min(1, { message: "User role code is required" }),
-  userRoleName: z.string().min(1, { message: "User role name is required" }),
+    .min(0, { message: "User role ID must be 0 or greater" }),
+  userRoleCode: z
+    .string()
+    .min(5, { message: "User role code must be at least 5 characters" })
+    .max(50, { message: "User role code must be less than 50 characters" }),
+  userRoleName: z
+    .string()
+    .min(5, { message: "User role name must be at least 5 characters" })
+    .max(100, { message: "User role name must be less than 100 characters" }),
   remarks: z
     .string()
     .max(255, { message: "Remarks cannot exceed 255 characters" })
-    .optional(),
-  isActive: z.boolean(),
+    .optional()
+    .default(""),
+  isActive: z.boolean().default(true),
 })
 
 export type UserRoleFormValues = z.infer<typeof userRoleSchema>
@@ -106,12 +121,12 @@ export const userGroupRightsSchema = z.object({
   transactionName: z
     .string()
     .min(1, { message: "Transaction name is required" }),
-  isRead: z.boolean(),
-  isCreate: z.boolean(),
-  isEdit: z.boolean(),
-  isDelete: z.boolean(),
-  isExport: z.boolean(),
-  isPrint: z.boolean(),
+  isRead: z.boolean().default(false),
+  isCreate: z.boolean().default(false),
+  isEdit: z.boolean().default(false),
+  isDelete: z.boolean().default(false),
+  isExport: z.boolean().default(false),
+  isPrint: z.boolean().default(false),
 })
 
 export type UserGroupRightsFormValues = z.infer<typeof userGroupRightsSchema>
@@ -122,13 +137,9 @@ export const userRightsSchema = z.object({
     .min(1, { message: "Company ID must be greater than 0" }),
   companyCode: z.string().min(1, { message: "Company code is required" }),
   companyName: z.string().min(1, { message: "Company name is required" }),
-  isAccess: z.boolean(),
+  isAccess: z.boolean().default(false),
   userId: z.number(),
   userGroupId: z.number(),
-  createById: z
-    .number()
-    .min(1, { message: "Creator ID must be greater than 0" }),
-  createBy: z.string().min(1, { message: "Creator name is required" }),
 })
 
 export type UserRightsFormValues = z.infer<typeof userRightsSchema>

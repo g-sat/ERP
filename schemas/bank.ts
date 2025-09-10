@@ -10,15 +10,31 @@ export const bankSchema = z.object({
 
   accountNo: z.string().optional().default(""),
   swiftCode: z.string().optional().default(""),
-  remarks1: z.string().optional().default(""),
-  remarks2: z.string().optional().default(""),
-  remarks3: z.string().optional().default(""),
+  remarks1: z
+    .string()
+    .max(255, { message: "Remarks1 cannot exceed 255 characters" })
+    .optional()
+    .default(""),
+  remarks2: z
+    .string()
+    .max(255, { message: "Remarks2 cannot exceed 255 characters" })
+    .optional()
+    .default(""),
+  remarks3: z
+    .string()
+    .max(255, { message: "Remarks3 cannot exceed 255 characters" })
+    .optional()
+    .default(""),
   glId: z.number().optional().default(0),
 
   isPettyCashBank: z.boolean().optional().default(false),
   isOwnBank: z.boolean().optional().default(false),
-  remarks: z.string().optional().default(""),
-  isActive: z.boolean().optional().default(true),
+  remarks: z
+    .string()
+    .max(255, { message: "Remarks cannot exceed 255 characters" })
+    .optional()
+    .default(""),
+  isActive: z.boolean().default(true),
 })
 export type BankFormValues = z.infer<typeof bankSchema>
 

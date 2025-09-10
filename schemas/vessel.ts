@@ -39,7 +39,8 @@ export const vesselSchema = z.object({
   remarks: z
     .string()
     .max(255, { message: "Remarks cannot exceed 255 characters" })
-    .optional(),
+    .optional()
+    .default(""),
 })
 
 export type VesselFormValues = z.infer<typeof vesselSchema>
