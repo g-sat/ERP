@@ -13,7 +13,6 @@ import {
 } from "@/schemas/creditterm"
 import { usePermissionStore } from "@/stores/permission-store"
 import { useQueryClient } from "@tanstack/react-query"
-import { toast } from "sonner"
 
 import { getData } from "@/lib/api-client"
 import { CreditTerm, CreditTermDt } from "@/lib/api-routes"
@@ -29,6 +28,7 @@ import {
 import { Separator } from "@/components/ui/separator"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { DeleteConfirmation } from "@/components/delete-confirmation"
+import { SaveConfirmation } from "@/components/save-confirmation"
 import { DataTableSkeleton } from "@/components/skeleton/data-table-skeleton"
 import { LockSkeleton } from "@/components/skeleton/lock-skeleton"
 import { LoadExistingDialog } from "@/components/ui-custom/master-loadexisting-dialog"
@@ -206,10 +206,8 @@ export default function CreditTermPage() {
     errorPrefix: string
   ) => {
     if (response.result === 1) {
-      toast.success(response.message || successMessage)
       return true
     } else {
-      toast.error(response.message || `${errorPrefix} failed`)
       return false
     }
   }
@@ -246,7 +244,6 @@ export default function CreditTermPage() {
       }
     } catch (error) {
       console.error("Credit term form submission error:", error)
-      toast.error("Failed to process credit term request")
     }
   }
 
@@ -281,7 +278,6 @@ export default function CreditTermPage() {
       }
     } catch (error) {
       console.error("Credit term details form submission error:", error)
-      toast.error("Failed to process credit term details request")
     }
   }
 
@@ -299,7 +295,6 @@ export default function CreditTermPage() {
       }
     } catch (error) {
       console.error("Form submission error:", error)
-      toast.error("An unexpected error occurred during form submission")
     }
   }
 
@@ -345,10 +340,8 @@ export default function CreditTermPage() {
         return
     }
 
-    toast.promise(mutation.mutateAsync(deleteConfirmation.id), {
-      loading: `Deleting ${deleteConfirmation.name}...`,
-      success: `${deleteConfirmation.name} has been deleted`,
-      error: `Failed to delete ${deleteConfirmation.name}`,
+    mutation.mutateAsync(deleteConfirmation.id).then(() => {
+      queryClient.invalidateQueries({ queryKey: [deleteConfirmation.queryKey] })
     })
 
     setDeleteConfirmation({

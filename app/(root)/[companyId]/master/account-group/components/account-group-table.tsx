@@ -101,7 +101,6 @@ export function AccountGroupsTable({
     if (gridSettings) {
       try {
         const colVisible = JSON.parse(gridSettings.grdColVisible || "{}")
-        const colOrder = JSON.parse(gridSettings.grdColOrder || "[]")
         const colSize = JSON.parse(gridSettings.grdColSize || "{}")
         const sort = JSON.parse(gridSettings.grdSort || "[]")
 
@@ -111,10 +110,6 @@ export function AccountGroupsTable({
         // Apply column sizing if available
         if (Object.keys(colSize).length > 0) {
           setColumnSizing(colSize)
-        }
-
-        if (colOrder.length > 0) {
-          table.setColumnOrder(colOrder)
         }
       } catch (error) {
         console.error("Error parsing grid settings:", error)
@@ -279,10 +274,24 @@ export function AccountGroupsTable({
     },
   })
 
+  // Apply column order after table is defined
+  useEffect(() => {
+    if (gridSettings && table) {
+      try {
+        const colOrder = JSON.parse(gridSettings.grdColOrder || "[]")
+        if (colOrder.length > 0) {
+          table.setColumnOrder(colOrder)
+        }
+      } catch (error) {
+        console.error("Error parsing column order:", error)
+      }
+    }
+  }, [gridSettings, table])
+
   const rowVirtualizer = useVirtualizer({
     count: table.getRowModel().rows.length,
     getScrollElement: () => tableContainerRef.current,
-    estimateSize: () => 48,
+    estimateSize: () => 40,
     overscan: 5,
   })
 
@@ -349,14 +358,10 @@ export function AccountGroupsTable({
       }
       onFilterChange(filters)
     }
-  }, [sorting, searchQuery])
+  }, [sorting, searchQuery, data?.length, onFilterChange])
 
   return (
-    <div
-      ref={tableContainerRef}
-      className="relative overflow-auto"
-      style={{ height: "490px" }}
-    >
+    <>
       <TableHeader
         searchQuery={searchQuery}
         onSearchChange={handleSearch}
@@ -375,64 +380,84 @@ export function AccountGroupsTable({
         collisionDetection={closestCenter}
         onDragEnd={handleDragEnd}
       >
-        <Table>
-          <TanstackTableHeader className="bg-muted sticky top-0 z-10">
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                <SortableContext
-                  items={headerGroup.headers.map((header) => header.id)}
-                  strategy={horizontalListSortingStrategy}
-                >
-                  {headerGroup.headers.map((header) => (
-                    <DraggableColumnHeader key={header.id} header={header} />
-                  ))}
-                </SortableContext>
-              </TableRow>
-            ))}
-          </TanstackTableHeader>
-          <TableBody className="**:data-[slot=table-cell]:first:w-8">
-            {virtualRows.length > 0 ? (
-              <>
-                <tr style={{ height: `${paddingTop}px` }} />
-                {virtualRows.map((virtualRow) => {
-                  const row = table.getRowModel().rows[virtualRow.index]
-                  return (
-                    <TableRow key={row.id}>
-                      {row.getVisibleCells().map((cell) => (
-                        <TableCell key={cell.id}>
-                          {flexRender(
-                            cell.column.columnDef.cell,
-                            cell.getContext()
-                          )}
-                        </TableCell>
+        <div className="overflow-x-auto rounded-lg border">
+          <Table>
+            {/* Header table */}
+            <Table className="w-full table-fixed border-collapse">
+              <colgroup>
+                {table.getAllLeafColumns().map((col) => (
+                  <col key={col.id} style={{ width: `${col.getSize()}px` }} />
+                ))}
+              </colgroup>
+              <TanstackTableHeader className="bg-background sticky top-0 z-20">
+                {table.getHeaderGroups().map((headerGroup) => (
+                  <TableRow key={headerGroup.id} className="bg-muted/50">
+                    <SortableContext
+                      items={headerGroup.headers.map((header) => header.id)}
+                      strategy={horizontalListSortingStrategy}
+                    >
+                      {headerGroup.headers.map((header) => (
+                        <DraggableColumnHeader
+                          key={header.id}
+                          header={header}
+                        />
                       ))}
-                    </TableRow>
-                  )
-                })}
-                <tr style={{ height: `${paddingBottom}px` }} />
-              </>
-            ) : (
-              <>
-                <TableRow>
-                  <TableCell
-                    colSpan={columns.length}
-                    className="h-24 text-center"
-                  >
-                    {isLoading ? "Loading..." : "No account groups found."}
-                  </TableCell>
-                </TableRow>
-                {Array.from({ length: 9 }).map((_, index) => (
-                  <TableRow key={`empty-${index}`}>
-                    <TableCell
-                      colSpan={columns.length}
-                      className="h-10"
-                    ></TableCell>
+                    </SortableContext>
                   </TableRow>
                 ))}
-              </>
-            )}
-          </TableBody>
-        </Table>
+              </TanstackTableHeader>
+            </Table>
+
+            {/* Scrollable body table */}
+            <div
+              ref={tableContainerRef}
+              className="max-h-[500px] overflow-y-auto"
+            >
+              <Table className="w-full table-fixed border-collapse">
+                <colgroup>
+                  {table.getAllLeafColumns().map((col) => (
+                    <col key={col.id} style={{ width: `${col.getSize()}px` }} />
+                  ))}
+                </colgroup>
+                <TableBody>
+                  {virtualRows.length === 0 ? (
+                    <TableRow>
+                      <TableCell
+                        colSpan={columns.length}
+                        className="text-center"
+                      >
+                        {isLoading ? "Loading..." : "No account groups found."}
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    <>
+                      <tr style={{ height: `${paddingTop}px` }} />
+                      {virtualRows.map((virtualRow) => {
+                        const row = table.getRowModel().rows[virtualRow.index]
+                        return (
+                          <TableRow key={row.id}>
+                            {row.getVisibleCells().map((cell, cellIndex) => (
+                              <TableCell
+                                key={cell.id}
+                                className={`py-1 ${cellIndex === 0 ? "bg-background sticky left-0 z-10" : ""}`}
+                              >
+                                {flexRender(
+                                  cell.column.columnDef.cell,
+                                  cell.getContext()
+                                )}
+                              </TableCell>
+                            ))}
+                          </TableRow>
+                        )
+                      })}
+                      <tr style={{ height: `${paddingBottom}px` }} />
+                    </>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          </Table>
+        </div>
       </DndContext>
 
       <TableFooter
@@ -444,6 +469,6 @@ export function AccountGroupsTable({
         onPageSizeChange={handlePageSizeChange}
         pageSizeOptions={[10, 50, 100, 500]}
       />
-    </div>
+    </>
   )
 }

@@ -6,7 +6,6 @@ import { ICountry, ICountryFilter } from "@/interfaces/country"
 import { CountryFiltersValues, CountryFormValues } from "@/schemas/country"
 import { usePermissionStore } from "@/stores/permission-store"
 import { useQueryClient } from "@tanstack/react-query"
-import { toast } from "sonner"
 
 import { Country } from "@/lib/api-routes"
 import { MasterTransactionId, ModuleId } from "@/lib/utils"
@@ -27,6 +26,7 @@ import {
 import { Separator } from "@/components/ui/separator"
 // Import the CRUD hooks
 import { DeleteConfirmation } from "@/components/delete-confirmation"
+import { SaveConfirmation } from "@/components/save-confirmation"
 import { DataTableSkeleton } from "@/components/skeleton/data-table-skeleton"
 import { LoadExistingDialog } from "@/components/ui-custom/master-loadexisting-dialog"
 
@@ -169,13 +169,8 @@ export default function CountryPage() {
 
   const handleConfirmDelete = () => {
     if (deleteConfirmation.countryId) {
-      toast.promise(deleteMutation.mutateAsync(deleteConfirmation.countryId), {
-        loading: `Deleting ${deleteConfirmation.countryName}...`,
-        success: () => {
-          queryClient.invalidateQueries({ queryKey: ["countries"] }) // Triggers refetch
-          return `${deleteConfirmation.countryName} has been deleted`
-        },
-        error: "Failed to delete country",
+      deleteMutation.mutateAsync(deleteConfirmation.countryId).then(() => {
+        queryClient.invalidateQueries({ queryKey: ["countries"] })
       })
       setDeleteConfirmation({
         isOpen: false,
@@ -312,7 +307,6 @@ export default function CountryPage() {
           onCreateCountry={handleCreateCountry}
           onRefresh={() => {
             handleRefresh()
-            toast("Refreshing data...Fetching the latest country data.")
           }}
           onFilterChange={setFilters}
           moduleId={moduleId}

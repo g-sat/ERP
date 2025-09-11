@@ -6,7 +6,6 @@ import { IVoyage, IVoyageFilter } from "@/interfaces/voyage"
 import { VoyageFormValues } from "@/schemas/voyage"
 import { usePermissionStore } from "@/stores/permission-store"
 import { useQueryClient } from "@tanstack/react-query"
-import { toast } from "sonner"
 
 import { Voyage } from "@/lib/api-routes"
 import { MasterTransactionId, ModuleId } from "@/lib/utils"
@@ -54,7 +53,7 @@ export default function VoyagePage() {
     if (filters.search !== undefined) {
       refetch()
     }
-  }, [filters.search])
+  }, [filters.search, refetch])
 
   const saveMutation = usePersist<VoyageFormValues>(`${Voyage.add}`)
   const updateMutation = usePersist<VoyageFormValues>(`${Voyage.add}`)
@@ -121,31 +120,20 @@ export default function VoyagePage() {
           data
         )) as ApiResponse<VoyageFormValues>
         if (response.result === 1) {
-          toast.success(response.message || "Voyage created successfully")
           queryClient.invalidateQueries({ queryKey: ["voyages"] })
           setIsModalOpen(false)
-        } else {
-          toast.error(response.message || "Failed to create voyage")
         }
       } else if (modalMode === "edit" && selectedVoyage) {
         const response = (await updateMutation.mutateAsync(
           data
         )) as ApiResponse<VoyageFormValues>
         if (response.result === 1) {
-          toast.success(response.message || "Voyage updated successfully")
           queryClient.invalidateQueries({ queryKey: ["voyages"] })
           setIsModalOpen(false)
-        } else {
-          toast.error(response.message || "Failed to update voyage")
         }
       }
     } catch (error) {
       console.error("Error in form submission:", error)
-      if (error instanceof Error) {
-        toast.error(error.message)
-      } else {
-        toast.error("An unexpected error occurred")
-      }
     }
   }
 
@@ -163,13 +151,8 @@ export default function VoyagePage() {
 
   const handleConfirmDelete = () => {
     if (deleteConfirmation.voyageId) {
-      toast.promise(deleteMutation.mutateAsync(deleteConfirmation.voyageId), {
-        loading: `Deleting ${deleteConfirmation.voyageNo}...`,
-        success: () => {
-          queryClient.invalidateQueries({ queryKey: ["voyages"] })
-          return `${deleteConfirmation.voyageNo} has been deleted`
-        },
-        error: "Failed to delete voyage",
+      deleteMutation.mutateAsync(deleteConfirmation.voyageId).then(() => {
+        queryClient.invalidateQueries({ queryKey: ["voyages"] })
       })
       setDeleteConfirmation({
         isOpen: false,
@@ -284,7 +267,6 @@ export default function VoyagePage() {
           onCreateVoyage={handleCreateVoyage}
           onRefresh={() => {
             handleRefresh()
-            toast("Refreshing data...Fetching the latest voyage data.")
           }}
           onFilterChange={setFilters}
           moduleId={moduleId}

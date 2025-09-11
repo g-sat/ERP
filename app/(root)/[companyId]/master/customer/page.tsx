@@ -15,7 +15,6 @@ import {
 } from "@/schemas/customer"
 import { usePermissionStore } from "@/stores/permission-store"
 import { ListFilter, RotateCcw, Save, Trash2 } from "lucide-react"
-import { toast } from "sonner"
 
 import { Customer, CustomerAddress, CustomerContact } from "@/lib/api-routes"
 import { MasterTransactionId, ModuleId } from "@/lib/utils"
@@ -170,7 +169,6 @@ export default function CustomerPage() {
           setCustomer(updatedCustomer as ICustomer)
         }
       } else {
-        toast.error(response?.message || "Failed to fetch customer details")
       }
 
       const [addressesResponse, contactsResponse] = await Promise.all([
@@ -186,7 +184,6 @@ export default function CustomerPage() {
         setContacts(contactsResponse.data.data)
       else setContacts([])
     } catch {
-      toast.error("Network error while fetching data")
       setAddresses([])
       setContacts([])
     }
@@ -204,14 +201,10 @@ export default function CustomerPage() {
           ? response.data[0]
           : response.data
         setCustomer(customerData as ICustomer)
-        toast.success("Customer saved successfully")
         refetchCustomers()
       } else {
-        toast.error(response.message || "Failed to save customer")
       }
-    } catch {
-      toast.error("Network error while saving customer")
-    }
+    } catch {}
   }
 
   const handleCustomerReset = () => {
@@ -242,14 +235,10 @@ export default function CustomerPage() {
         setCustomer(null)
         setAddresses([])
         setContacts([])
-        toast.success("Customer deleted successfully")
         refetchCustomers()
       } else {
-        toast.error(response.message || "Failed to delete customer")
       }
-    } catch {
-      toast.error("Network error while deleting customer")
-    }
+    } catch {}
   }
 
   const handleAddressSave = async (data: CustomerAddressFormValues) => {
@@ -263,18 +252,14 @@ export default function CustomerPage() {
           : await updateAddressMutation.mutateAsync(data)
 
       if (response.result === 1) {
-        toast.success("Address saved successfully")
         const refreshedAddresses = await refetchAddresses()
         if (refreshedAddresses?.data?.result === 1)
           setAddresses(refreshedAddresses.data.data)
         setShowAddressForm(false)
         setSelectedAddress(null)
       } else {
-        toast.error(response.message || "Failed to save address")
       }
-    } catch {
-      toast.error("Network error while saving address")
-    }
+    } catch {}
   }
 
   const handleContactSave = async (data: CustomerContactFormValues) => {
@@ -288,18 +273,14 @@ export default function CustomerPage() {
           : await updateContactMutation.mutateAsync(data)
 
       if (response.result === 1) {
-        toast.success("Contact saved successfully")
         const refreshedContacts = await refetchContacts()
         if (refreshedContacts?.data?.result === 1)
           setContacts(refreshedContacts.data.data)
         setShowContactForm(false)
         setSelectedContact(null)
       } else {
-        toast.error(response.message || "Failed to save contact")
       }
-    } catch {
-      toast.error("Network error while saving contact")
-    }
+    } catch {}
   }
 
   const handleAddressSelect = (address: ICustomerAddress | undefined) => {
@@ -350,32 +331,24 @@ export default function CustomerPage() {
     try {
       const response = await deleteAddressMutation.mutateAsync(addressId)
       if (response.result === 1) {
-        toast.success("Address deleted successfully")
         const refreshedAddresses = await refetchAddresses()
         if (refreshedAddresses?.data?.result === 1)
           setAddresses(refreshedAddresses.data.data)
       } else {
-        toast.error(response.message || "Failed to delete address")
       }
-    } catch {
-      toast.error("Network error while deleting address")
-    }
+    } catch {}
   }
 
   const handleContactDelete = async (contactId: string) => {
     try {
       const response = await deleteContactMutation.mutateAsync(contactId)
       if (response.result === 1) {
-        toast.success("Contact deleted successfully")
         const refreshedContacts = await refetchContacts()
         if (refreshedContacts?.data?.result === 1)
           setContacts(refreshedContacts.data.data)
       } else {
-        toast.error(response.message || "Failed to delete contact")
       }
-    } catch {
-      toast.error("Network error while deleting contact")
-    }
+    } catch {}
   }
 
   const handleFilterChange = (newFilters: ICustomerFilter) =>
@@ -386,7 +359,6 @@ export default function CustomerPage() {
     customerName: string
   ) => {
     if (!customerCode && !customerName) {
-      toast.error("Please provide a customer code or name")
       return
     }
 
@@ -411,13 +383,10 @@ export default function CustomerPage() {
           }
           setCustomer(updatedCustomer as ICustomer)
         } else {
-          toast.error("No customer found with the provided details")
         }
       } else {
-        toast.error(response?.message || "Failed to fetch customer")
       }
     } catch {
-      toast.error("Network error while fetching customer")
       setCustomer(null)
       setAddresses([])
       setContacts([])

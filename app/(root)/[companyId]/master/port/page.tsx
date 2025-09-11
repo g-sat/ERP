@@ -6,7 +6,6 @@ import { IPort, IPortFilter } from "@/interfaces/port"
 import { PortFormValues } from "@/schemas/port"
 import { usePermissionStore } from "@/stores/permission-store"
 import { useQueryClient } from "@tanstack/react-query"
-import { toast } from "sonner"
 
 import { Port } from "@/lib/api-routes"
 import { MasterTransactionId, ModuleId } from "@/lib/utils"
@@ -20,6 +19,7 @@ import {
 } from "@/components/ui/dialog"
 import { Separator } from "@/components/ui/separator"
 import { DeleteConfirmation } from "@/components/delete-confirmation"
+import { SaveConfirmation } from "@/components/save-confirmation"
 import { DataTableSkeleton } from "@/components/skeleton/data-table-skeleton"
 import { LoadExistingDialog } from "@/components/ui-custom/master-loadexisting-dialog"
 
@@ -113,31 +113,20 @@ export default function PortPage() {
           data
         )) as ApiResponse<IPort>
         if (response.result === 1) {
-          toast.success("Port created successfully")
           queryClient.invalidateQueries({ queryKey: ["ports"] })
           setIsModalOpen(false)
-        } else {
-          toast.error(response.message || "Failed to create port")
         }
       } else if (modalMode === "edit" && selectedPort) {
         const response = (await updateMutation.mutateAsync(
           data
         )) as ApiResponse<IPort>
         if (response.result === 1) {
-          toast.success("Port updated successfully")
           queryClient.invalidateQueries({ queryKey: ["ports"] })
           setIsModalOpen(false)
-        } else {
-          toast.error(response.message || "Failed to update port")
         }
       }
     } catch (error) {
       console.error("Error in form submission:", error)
-      if (error instanceof Error) {
-        toast.error(error.message)
-      } else {
-        toast.error("An unexpected error occurred")
-      }
     }
   }
 
@@ -153,13 +142,8 @@ export default function PortPage() {
 
   const handleConfirmDelete = () => {
     if (deleteConfirmation.portId) {
-      toast.promise(deleteMutation.mutateAsync(deleteConfirmation.portId), {
-        loading: `Deleting ${deleteConfirmation.portName}...`,
-        success: () => {
-          queryClient.invalidateQueries({ queryKey: ["ports"] })
-          return `${deleteConfirmation.portName} has been deleted`
-        },
-        error: "Failed to delete port",
+      deleteMutation.mutateAsync(deleteConfirmation.portId).then(() => {
+        queryClient.invalidateQueries({ queryKey: ["ports"] })
       })
       setDeleteConfirmation({
         isOpen: false,
@@ -283,7 +267,6 @@ export default function PortPage() {
           onCreatePort={handleCreatePort}
           onRefresh={() => {
             handleRefresh()
-            toast("Refreshing data...Fetching the latest port data.")
           }}
           onFilterChange={setFilters}
           moduleId={moduleId}

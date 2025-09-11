@@ -6,7 +6,6 @@ import { IPaymentType, IPaymentTypeFilter } from "@/interfaces/paymenttype"
 import { PaymentTypeFormValues } from "@/schemas/paymenttype"
 import { usePermissionStore } from "@/stores/permission-store"
 import { useQueryClient } from "@tanstack/react-query"
-import { toast } from "sonner"
 
 import { PaymentType } from "@/lib/api-routes"
 import { MasterTransactionId, ModuleId } from "@/lib/utils"
@@ -20,6 +19,7 @@ import {
 } from "@/components/ui/dialog"
 import { Separator } from "@/components/ui/separator"
 import { DeleteConfirmation } from "@/components/delete-confirmation"
+import { SaveConfirmation } from "@/components/save-confirmation"
 import { DataTableSkeleton } from "@/components/skeleton/data-table-skeleton"
 import { LockSkeleton } from "@/components/skeleton/lock-skeleton"
 import { LoadExistingDialog } from "@/components/ui-custom/master-loadexisting-dialog"
@@ -127,31 +127,20 @@ export default function PaymentTypePage() {
           data
         )) as unknown as ApiResponse<IPaymentType>
         if (response.result === 1) {
-          toast.success("Payment type created successfully")
           queryClient.invalidateQueries({ queryKey: ["paymentTypes"] })
           setIsModalOpen(false)
-        } else {
-          toast.error(response.message || "Failed to create payment type")
         }
       } else if (modalMode === "edit" && selectedPaymentType) {
         const response = (await updateMutation.mutateAsync(
           data
         )) as unknown as ApiResponse<IPaymentType>
         if (response.result === 1) {
-          toast.success("Payment type updated successfully")
           queryClient.invalidateQueries({ queryKey: ["paymentTypes"] })
           setIsModalOpen(false)
-        } else {
-          toast.error(response.message || "Failed to update payment type")
         }
       }
     } catch (error) {
       console.error("Error in form submission:", error)
-      if (error instanceof Error) {
-        toast.error(error.message)
-      } else {
-        toast.error("An unexpected error occurred")
-      }
     }
   }
 
@@ -169,17 +158,9 @@ export default function PaymentTypePage() {
 
   const handleConfirmDelete = () => {
     if (deleteConfirmation.paymentTypeId) {
-      toast.promise(
-        deleteMutation.mutateAsync(deleteConfirmation.paymentTypeId),
-        {
-          loading: `Deleting ${deleteConfirmation.paymentTypeName}...`,
-          success: () => {
-            queryClient.invalidateQueries({ queryKey: ["paymentTypes"] })
-            return `${deleteConfirmation.paymentTypeName} has been deleted`
-          },
-          error: "Failed to delete payment type",
-        }
-      )
+      deleteMutation.mutateAsync(deleteConfirmation.paymentTypeId).then(() => {
+        queryClient.invalidateQueries({ queryKey: ["paymentTypes"] })
+      })
       setDeleteConfirmation({
         isOpen: false,
         paymentTypeId: null,
@@ -295,7 +276,6 @@ export default function PaymentTypePage() {
             onCreatePaymentType={handleCreatePaymentType}
             onRefresh={() => {
               handleRefresh()
-              toast("Refreshing data...Fetching the latest payment type data.")
             }}
             onFilterChange={setFilters}
             moduleId={moduleId}
@@ -311,7 +291,6 @@ export default function PaymentTypePage() {
           onCreatePaymentType={handleCreatePaymentType}
           onRefresh={() => {
             handleRefresh()
-            toast("Refreshing data...Fetching the latest payment type data.")
           }}
           onFilterChange={setFilters}
           moduleId={moduleId}

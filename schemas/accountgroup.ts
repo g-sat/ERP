@@ -1,8 +1,9 @@
 import * as z from "zod"
 
 export const accountGroupSchema = z.object({
-  accGroupId: z.number(),
-
+  accGroupId: z
+    .number()
+    .min(0, { message: "account group ID must be 0 or greater" }),
   accGroupCode: z
     .string()
     .min(1, { message: "account group code is required" })

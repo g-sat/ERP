@@ -6,7 +6,6 @@ import { IVessel, IVesselFilter } from "@/interfaces/vessel"
 import { VesselFormValues } from "@/schemas/vessel"
 import { usePermissionStore } from "@/stores/permission-store"
 import { useQueryClient } from "@tanstack/react-query"
-import { toast } from "sonner"
 
 import { Vessel } from "@/lib/api-routes"
 import { MasterTransactionId, ModuleId } from "@/lib/utils"
@@ -20,6 +19,7 @@ import {
 } from "@/components/ui/dialog"
 import { Separator } from "@/components/ui/separator"
 import { DeleteConfirmation } from "@/components/delete-confirmation"
+import { SaveConfirmation } from "@/components/save-confirmation"
 import { DataTableSkeleton } from "@/components/skeleton/data-table-skeleton"
 import { LoadExistingDialog } from "@/components/ui-custom/master-loadexisting-dialog"
 
@@ -81,6 +81,15 @@ export default function VesselPage() {
     vesselName: null,
   })
 
+  // State for save confirmation
+  const [saveConfirmation, setSaveConfirmation] = useState<{
+    isOpen: boolean
+    data: VesselFormValues | null
+  }>({
+    isOpen: false,
+    data: null,
+  })
+
   // Add API call for checking code availability
   const { refetch: checkCodeAvailability } = useGetById<IVessel>(
     `${Vessel.getByCode}`,
@@ -117,38 +126,31 @@ export default function VesselPage() {
     setIsModalOpen(true)
   }
 
-  const handleFormSubmit = async (data: VesselFormValues) => {
+  // Handler for form submission (create or edit) - shows confirmation first
+  const handleFormSubmit = (data: VesselFormValues) => {
+    setSaveConfirmation({
+      isOpen: true,
+      data: data,
+    })
+  }
+
+  // Handler for confirmed form submission
+  const handleConfirmedFormSubmit = async (data: VesselFormValues) => {
     try {
       if (modalMode === "create") {
-        const response = (await saveMutation.mutateAsync(
-          data
-        )) as unknown as ApiResponse<IVessel>
+        const response = await saveMutation.mutateAsync(data)
         if (response.result === 1) {
-          toast.success("Vessel created successfully")
           queryClient.invalidateQueries({ queryKey: ["vessels"] })
-          setIsModalOpen(false)
-        } else {
-          toast.error(response.message || "Failed to create vessel")
         }
       } else if (modalMode === "edit" && selectedVessel) {
-        const response = (await updateMutation.mutateAsync(
-          data
-        )) as unknown as ApiResponse<IVessel>
+        const response = await updateMutation.mutateAsync(data)
         if (response.result === 1) {
-          toast.success("Vessel updated successfully")
           queryClient.invalidateQueries({ queryKey: ["vessels"] })
-          setIsModalOpen(false)
-        } else {
-          toast.error(response.message || "Failed to update vessel")
         }
       }
+      setIsModalOpen(false)
     } catch (error) {
       console.error("Error in form submission:", error)
-      if (error instanceof Error) {
-        toast.error(error.message)
-      } else {
-        toast.error("An unexpected error occurred")
-      }
     }
   }
 
@@ -166,13 +168,8 @@ export default function VesselPage() {
 
   const handleConfirmDelete = () => {
     if (deleteConfirmation.vesselId) {
-      toast.promise(deleteMutation.mutateAsync(deleteConfirmation.vesselId), {
-        loading: `Deleting ${deleteConfirmation.vesselName}...`,
-        success: () => {
-          queryClient.invalidateQueries({ queryKey: ["vessels"] })
-          return `${deleteConfirmation.vesselName} has been deleted`
-        },
-        error: "Failed to delete vessel",
+      deleteMutation.mutateAsync(deleteConfirmation.vesselId).then(() => {
+        queryClient.invalidateQueries({ queryKey: ["vessels"] })
       })
       setDeleteConfirmation({
         isOpen: false,
@@ -292,7 +289,6 @@ export default function VesselPage() {
           onCreateVessel={handleCreateVessel}
           onRefresh={() => {
             handleRefresh()
-            toast("Refreshing data...Fetching the latest vessel data.")
           }}
           onFilterChange={setFilters}
           moduleId={moduleId}
@@ -375,6 +371,33 @@ export default function VesselPage() {
           })
         }
         isDeleting={deleteMutation.isPending}
+      />
+
+      {/* Save Confirmation Dialog */}
+      <SaveConfirmation
+        open={saveConfirmation.isOpen}
+        onOpenChange={(isOpen) =>
+          setSaveConfirmation((prev) => ({ ...prev, isOpen }))
+        }
+        title={modalMode === "create" ? "Create Vessel" : "Update Vessel"}
+        itemName={saveConfirmation.data?.vesselName || ""}
+        operationType={modalMode === "create" ? "create" : "update"}
+        onConfirm={() => {
+          if (saveConfirmation.data) {
+            handleConfirmedFormSubmit(saveConfirmation.data)
+          }
+          setSaveConfirmation({
+            isOpen: false,
+            data: null,
+          })
+        }}
+        onCancel={() =>
+          setSaveConfirmation({
+            isOpen: false,
+            data: null,
+          })
+        }
+        isSaving={saveMutation.isPending || updateMutation.isPending}
       />
     </div>
   )

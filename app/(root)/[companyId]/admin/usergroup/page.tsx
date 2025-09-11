@@ -18,6 +18,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Separator } from "@/components/ui/separator"
+import { DeleteConfirmation } from "@/components/delete-confirmation"
 import { DataTableSkeleton } from "@/components/skeleton/data-table-skeleton"
 import { LockSkeleton } from "@/components/skeleton/lock-skeleton"
 
@@ -70,6 +71,26 @@ export default function AdminUserGroupsPage() {
     "create"
   )
 
+  // State for delete confirmation
+  const [deleteConfirmation, setDeleteConfirmation] = useState<{
+    isOpen: boolean
+    groupId: string | null
+    groupName: string | null
+  }>({
+    isOpen: false,
+    groupId: null,
+    groupName: null,
+  })
+
+  // State for save confirmation
+  const [saveConfirmation, setSaveConfirmation] = useState<{
+    isOpen: boolean
+    data: UserGroupFormValues | null
+  }>({
+    isOpen: false,
+    data: null,
+  })
+
   const queryClient = useQueryClient()
 
   useEffect(() => {
@@ -102,10 +123,27 @@ export default function AdminUserGroupsPage() {
       (g) => g.userGroupId.toString() === groupId
     )
     if (!groupToDelete) return
-    deleteGroupMutation.mutateAsync(groupId).then(() => {
-      // Invalidate and refetch the usergroups query after successful deletion
-      queryClient.invalidateQueries({ queryKey: ["usergroups"] })
+
+    // Open delete confirmation dialog with group details
+    setDeleteConfirmation({
+      isOpen: true,
+      groupId,
+      groupName: groupToDelete.userGroupName,
     })
+  }
+
+  const handleConfirmDelete = () => {
+    if (deleteConfirmation.groupId) {
+      deleteGroupMutation.mutateAsync(deleteConfirmation.groupId).then(() => {
+        // Invalidate and refetch the usergroups query after successful deletion
+        queryClient.invalidateQueries({ queryKey: ["usergroups"] })
+      })
+      setDeleteConfirmation({
+        isOpen: false,
+        groupId: null,
+        groupName: null,
+      })
+    }
   }
 
   const handleUserGroupFormSubmit = async (data: UserGroupFormValues) => {
@@ -240,6 +278,61 @@ export default function AdminUserGroupsPage() {
           />
         </DialogContent>
       </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <DeleteConfirmation
+        open={deleteConfirmation.isOpen}
+        onOpenChange={(isOpen) =>
+          setDeleteConfirmation((prev) => ({ ...prev, isOpen }))
+        }
+        title="Delete User Group"
+        description="This action cannot be undone. This will permanently delete the user group from our servers."
+        itemName={deleteConfirmation.groupName || ""}
+        onConfirm={handleConfirmDelete}
+        onCancel={() =>
+          setDeleteConfirmation({
+            isOpen: false,
+            groupId: null,
+            groupName: null,
+          })
+        }
+        isDeleting={deleteGroupMutation.isPending}
+      />
+
+      {/* Save Confirmation Dialog */}
+      <DeleteConfirmation
+        open={saveConfirmation.isOpen}
+        onOpenChange={(isOpen) =>
+          setSaveConfirmation((prev) => ({ ...prev, isOpen }))
+        }
+        title={
+          modalMode === "create" ? "Create User Group" : "Update User Group"
+        }
+        description={
+          modalMode === "create"
+            ? "Are you sure you want to create this user group?"
+            : "Are you sure you want to update this user group?"
+        }
+        itemName={saveConfirmation.data?.userGroupName || ""}
+        onConfirm={() => {
+          if (saveConfirmation.data) {
+            handleUserGroupFormSubmit(saveConfirmation.data)
+          }
+          setSaveConfirmation({
+            isOpen: false,
+            data: null,
+          })
+        }}
+        onCancel={() =>
+          setSaveConfirmation({
+            isOpen: false,
+            data: null,
+          })
+        }
+        isDeleting={
+          saveGroupMutation.isPending || updateGroupMutation.isPending
+        }
+      />
     </div>
   )
 }

@@ -6,7 +6,6 @@ import { IBarge, IBargeFilter } from "@/interfaces/barge"
 import { BargeFormValues } from "@/schemas/barge"
 import { usePermissionStore } from "@/stores/permission-store"
 import { useQueryClient } from "@tanstack/react-query"
-import { toast } from "sonner"
 
 import { Barge } from "@/lib/api-routes"
 import { MasterTransactionId, ModuleId } from "@/lib/utils"
@@ -65,12 +64,11 @@ export default function BargePage() {
       setFilters({})
     } else if (bargesResponse.result === -2 && !isLocked) {
       setIsLocked(true)
-      toast.error("This section is locked. Please contact administrator.")
     } else if (bargesResponse.result !== -2) {
       setIsLocked(false)
       setIsEmpty(false)
     }
-  }, [bargesResponse])
+  }, [bargesResponse, isLocked])
 
   const saveMutation = usePersist<BargeFormValues>(`${Barge.add}`)
   const updateMutation = usePersist<BargeFormValues>(`${Barge.add}`)
@@ -137,31 +135,20 @@ export default function BargePage() {
           data
         )) as ApiResponse<IBarge>
         if (response.result === 1) {
-          toast.success("Barge created successfully")
           queryClient.invalidateQueries({ queryKey: ["barges"] })
           setIsModalOpen(false)
-        } else {
-          toast.error(response.message || "Failed to create barge")
         }
       } else if (modalMode === "edit" && selectedBarge) {
         const response = (await updateMutation.mutateAsync(
           data
         )) as ApiResponse<IBarge>
         if (response.result === 1) {
-          toast.success("Barge updated successfully")
           queryClient.invalidateQueries({ queryKey: ["barges"] })
           setIsModalOpen(false)
-        } else {
-          toast.error(response.message || "Failed to update barge")
         }
       }
     } catch (error) {
       console.error("Error in form submission:", error)
-      if (error instanceof Error) {
-        toast.error(error.message)
-      } else {
-        toast.error("An unexpected error occurred")
-      }
     }
   }
 
@@ -180,13 +167,8 @@ export default function BargePage() {
 
   const handleConfirmDelete = () => {
     if (deleteConfirmation.bargeId) {
-      toast.promise(deleteMutation.mutateAsync(deleteConfirmation.bargeId), {
-        loading: `Deleting ${deleteConfirmation.bargeName}...`,
-        success: () => {
-          queryClient.invalidateQueries({ queryKey: ["barges"] })
-          return `${deleteConfirmation.bargeName} has been deleted`
-        },
-        error: "Failed to delete barge",
+      deleteMutation.mutateAsync(deleteConfirmation.bargeId).then(() => {
+        queryClient.invalidateQueries({ queryKey: ["barges"] })
       })
       setDeleteConfirmation({
         isOpen: false,
@@ -264,7 +246,6 @@ export default function BargePage() {
             onCreateBarge={canCreate ? handleCreateBarge : undefined}
             onRefresh={() => {
               handleRefresh()
-              toast("Refreshing data...Fetching the latest barge data.")
             }}
             onFilterChange={setFilters}
             moduleId={moduleId}
@@ -280,7 +261,6 @@ export default function BargePage() {
           onCreateBarge={canCreate ? handleCreateBarge : undefined}
           onRefresh={() => {
             handleRefresh()
-            toast("Refreshing data...Fetching the latest barge data.")
           }}
           onFilterChange={setFilters}
           moduleId={moduleId}

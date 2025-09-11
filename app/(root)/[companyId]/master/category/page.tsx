@@ -6,7 +6,6 @@ import { ICategory, ICategoryFilter } from "@/interfaces/category"
 import { CategoryFormValues } from "@/schemas/category"
 import { usePermissionStore } from "@/stores/permission-store"
 import { useQueryClient } from "@tanstack/react-query"
-import { toast } from "sonner"
 
 import { Category } from "@/lib/api-routes"
 import { MasterTransactionId, ModuleId } from "@/lib/utils"
@@ -25,6 +24,7 @@ import {
 } from "@/components/ui/dialog"
 import { Separator } from "@/components/ui/separator"
 import { DeleteConfirmation } from "@/components/delete-confirmation"
+import { SaveConfirmation } from "@/components/save-confirmation"
 import { DataTableSkeleton } from "@/components/skeleton/data-table-skeleton"
 import { LockSkeleton } from "@/components/skeleton/lock-skeleton"
 import { LoadExistingDialog } from "@/components/ui-custom/master-loadexisting-dialog"
@@ -70,12 +70,11 @@ export default function CategoryPage() {
       setFilters({})
     } else if (categorysResponse.result === -2 && !isLocked) {
       setIsLocked(true)
-      toast.error("This section is locked. Please contact administrator.")
     } else if (categorysResponse.result !== -2) {
       setIsLocked(false)
       setIsEmpty(false)
     }
-  }, [categorysResponse])
+  }, [categorysResponse, isLocked])
 
   const saveMutation = usePersist<CategoryFormValues>(`${Category.add}`)
   const updateMutation = usePersist<CategoryFormValues>(`${Category.add}`)
@@ -104,6 +103,15 @@ export default function CategoryPage() {
     isOpen: false,
     categoryId: null,
     categoryName: null,
+  })
+
+  // State for save confirmation
+  const [saveConfirmation, setSaveConfirmation] = useState<{
+    isOpen: boolean
+    data: CategoryFormValues | null
+  }>({
+    isOpen: false,
+    data: null,
   })
 
   // Add API call for checking code availability
@@ -138,25 +146,29 @@ export default function CategoryPage() {
     setIsModalOpen(true)
   }
 
-  const handleFormSubmit = async (data: CategoryFormValues) => {
+  // Handler for form submission (create or edit) - shows confirmation first
+  const handleFormSubmit = (data: CategoryFormValues) => {
+    setSaveConfirmation({
+      isOpen: true,
+      data: data,
+    })
+  }
+
+  // Handler for confirmed form submission
+  const handleConfirmedFormSubmit = async (data: CategoryFormValues) => {
     try {
       if (modalMode === "create") {
-        const response = (await saveMutation.mutateAsync(
-          data
-        )) as ApiResponse<CategoryFormValues>
+        const response = await saveMutation.mutateAsync(data)
         if (response.result === 1) {
           queryClient.invalidateQueries({ queryKey: ["categorys"] })
-          setIsModalOpen(false)
         }
       } else if (modalMode === "edit" && selectedCategory) {
-        const response = (await updateMutation.mutateAsync(
-          data
-        )) as ApiResponse<CategoryFormValues>
+        const response = await updateMutation.mutateAsync(data)
         if (response.result === 1) {
           queryClient.invalidateQueries({ queryKey: ["categorys"] })
-          setIsModalOpen(false)
         }
       }
+      setIsModalOpen(false)
     } catch (error) {
       console.error("Error in form submission:", error)
     }
@@ -177,13 +189,8 @@ export default function CategoryPage() {
 
   const handleConfirmDelete = () => {
     if (deleteConfirmation.categoryId) {
-      toast.promise(deleteMutation.mutateAsync(deleteConfirmation.categoryId), {
-        loading: `Deleting ${deleteConfirmation.categoryName}...`,
-        success: () => {
-          queryClient.invalidateQueries({ queryKey: ["categorys"] })
-          return `${deleteConfirmation.categoryName} has been deleted`
-        },
-        error: "Failed to delete category",
+      deleteMutation.mutateAsync(deleteConfirmation.categoryId).then(() => {
+        queryClient.invalidateQueries({ queryKey: ["categorys"] })
       })
       setDeleteConfirmation({
         isOpen: false,
@@ -261,7 +268,6 @@ export default function CategoryPage() {
             onCreateCategory={canCreate ? handleCreateCategory : undefined}
             onRefresh={() => {
               handleRefresh()
-              toast("Refreshing data...Fetching the latest category data.")
             }}
             onFilterChange={setFilters}
             moduleId={moduleId}
@@ -277,7 +283,6 @@ export default function CategoryPage() {
           onCreateCategory={canCreate ? handleCreateCategory : undefined}
           onRefresh={() => {
             handleRefresh()
-            toast("Refreshing data...Fetching the latest category data.")
           }}
           onFilterChange={setFilters}
           moduleId={moduleId}
@@ -348,6 +353,33 @@ export default function CategoryPage() {
           })
         }
         isDeleting={deleteMutation.isPending}
+      />
+
+      {/* Save Confirmation Dialog */}
+      <SaveConfirmation
+        open={saveConfirmation.isOpen}
+        onOpenChange={(isOpen) =>
+          setSaveConfirmation((prev) => ({ ...prev, isOpen }))
+        }
+        title={modalMode === "create" ? "Create Category" : "Update Category"}
+        itemName={saveConfirmation.data?.categoryName || ""}
+        operationType={modalMode === "create" ? "create" : "update"}
+        onConfirm={() => {
+          if (saveConfirmation.data) {
+            handleConfirmedFormSubmit(saveConfirmation.data)
+          }
+          setSaveConfirmation({
+            isOpen: false,
+            data: null,
+          })
+        }}
+        onCancel={() =>
+          setSaveConfirmation({
+            isOpen: false,
+            data: null,
+          })
+        }
+        isSaving={saveMutation.isPending || updateMutation.isPending}
       />
 
       {/* Load Existing Category Dialog */}

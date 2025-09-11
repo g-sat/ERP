@@ -14,7 +14,6 @@ import {
 } from "@/schemas/servicetype"
 import { usePermissionStore } from "@/stores/permission-store"
 import { useQueryClient } from "@tanstack/react-query"
-import { toast } from "sonner"
 
 import { getData } from "@/lib/api-client"
 import { ServiceType, ServiceTypeCategory } from "@/lib/api-routes"
@@ -30,6 +29,7 @@ import {
 import { Separator } from "@/components/ui/separator"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { DeleteConfirmation } from "@/components/delete-confirmation"
+import { SaveConfirmation } from "@/components/save-confirmation"
 import { DataTableSkeleton } from "@/components/skeleton/data-table-skeleton"
 import { LockSkeleton } from "@/components/skeleton/lock-skeleton"
 import { LoadExistingDialog } from "@/components/ui-custom/master-loadexisting-dialog"
@@ -222,10 +222,8 @@ export default function ServiceTypePage() {
     errorPrefix: string
   ) => {
     if (response.result === 1) {
-      toast.success(response.message || successMessage)
       return true
     } else {
-      toast.error(response.message || `${errorPrefix} failed`)
       return false
     }
   }
@@ -262,7 +260,6 @@ export default function ServiceTypePage() {
       }
     } catch (error) {
       console.error("ServiceType form submission error:", error)
-      toast.error("Failed to process service type request")
     }
   }
 
@@ -299,7 +296,6 @@ export default function ServiceTypePage() {
       }
     } catch (error) {
       console.error("ServiceType Category form submission error:", error)
-      toast.error("Failed to process service type category request")
     }
   }
 
@@ -319,7 +315,6 @@ export default function ServiceTypePage() {
       }
     } catch (error) {
       console.error("Form submission error:", error)
-      toast.error("An unexpected error occurred during form submission")
     }
   }
 
@@ -365,10 +360,8 @@ export default function ServiceTypePage() {
         return
     }
 
-    toast.promise(mutation.mutateAsync(deleteConfirmation.id), {
-      loading: `Deleting ${deleteConfirmation.name}...`,
-      success: `${deleteConfirmation.name} has been deleted`,
-      error: `Failed to delete ${deleteConfirmation.name}`,
+    mutation.mutateAsync(deleteConfirmation.id).then(() => {
+      queryClient.invalidateQueries({ queryKey: [deleteConfirmation.queryKey] })
     })
 
     setDeleteConfirmation({

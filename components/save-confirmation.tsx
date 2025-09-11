@@ -13,35 +13,35 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 
-interface DeleteConfirmationProps {
+interface SaveConfirmationProps {
   // Title of the confirmation dialog
   title?: string
-  // Description of the confirmation dialog
-  description?: string
-  // Name of the item to delete (will be shown in the description)
+  // Name of the item to save (will be shown in the description)
   itemName?: string
   // Whether the dialog is open
   open?: boolean
   // Called when the dialog open state changes
   onOpenChange?: (open: boolean) => void
-  // Called when the user confirms the deletion
+  // Called when the user confirms the save
   onConfirm: () => void
-  // Called when the user cancels the deletion
+  // Called when the user cancels the save
   onCancel?: () => void
-  // Whether the delete operation is in progress
-  isDeleting?: boolean
+  // Whether the save operation is in progress
+  isSaving?: boolean
+  // Type of operation (create, update, etc.)
+  operationType?: "create" | "update" | "save"
 }
 
-export function DeleteConfirmation({
+export function SaveConfirmation({
   title = "Are you sure?",
-  description = "This action cannot be undone.",
   itemName,
   open,
   onOpenChange,
   onConfirm,
   onCancel,
-  isDeleting = false,
-}: DeleteConfirmationProps) {
+  isSaving = false,
+  operationType = "save",
+}: SaveConfirmationProps) {
   // Use internal state if open/onOpenChange are not provided
   const [internalOpen, setInternalOpen] = useState(false)
 
@@ -63,8 +63,31 @@ export function DeleteConfirmation({
 
   // Construct the full description
   const fullDescription = itemName
-    ? `You are about to delete "${itemName}". ${description}`
-    : description
+    ? `Do you want to ${operationType} "${itemName}"?`
+    : `Do you want to ${operationType} this item?`
+
+  // Get the appropriate button text based on operation type
+  const getButtonText = () => {
+    if (isSaving) {
+      switch (operationType) {
+        case "create":
+          return "Creating..."
+        case "update":
+          return "Updating..."
+        default:
+          return "Saving..."
+      }
+    }
+
+    switch (operationType) {
+      case "create":
+        return "Yes, Create"
+      case "update":
+        return "Yes, Update"
+      default:
+        return "Yes, Save"
+    }
+  }
 
   return (
     <AlertDialog open={isOpen} onOpenChange={setIsOpen}>
@@ -74,15 +97,15 @@ export function DeleteConfirmation({
           <AlertDialogDescription>{fullDescription}</AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel onClick={handleCancel} disabled={isDeleting}>
-            Cancel
+          <AlertDialogCancel onClick={handleCancel} disabled={isSaving}>
+            No
           </AlertDialogCancel>
           <AlertDialogAction
             onClick={handleConfirm}
-            disabled={isDeleting}
-            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            disabled={isSaving}
+            className="bg-primary text-primary-foreground hover:bg-primary/90"
           >
-            {isDeleting ? "Deleting..." : "Delete"}
+            {getButtonText()}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

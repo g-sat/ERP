@@ -6,7 +6,6 @@ import { ISubCategory, ISubCategoryFilter } from "@/interfaces/subcategory"
 import { SubCategoryFormValues } from "@/schemas/subcategory"
 import { usePermissionStore } from "@/stores/permission-store"
 import { useQueryClient } from "@tanstack/react-query"
-import { toast } from "sonner"
 
 import { SubCategory } from "@/lib/api-routes"
 import { MasterTransactionId, ModuleId } from "@/lib/utils"
@@ -20,6 +19,7 @@ import {
 } from "@/components/ui/dialog"
 import { Separator } from "@/components/ui/separator"
 import { DeleteConfirmation } from "@/components/delete-confirmation"
+import { SaveConfirmation } from "@/components/save-confirmation"
 import { DataTableSkeleton } from "@/components/skeleton/data-table-skeleton"
 import { LoadExistingDialog } from "@/components/ui-custom/master-loadexisting-dialog"
 
@@ -83,6 +83,15 @@ export default function SubCategoryPage() {
     subcategoryName: null,
   })
 
+  // State for save confirmation
+  const [saveConfirmation, setSaveConfirmation] = useState<{
+    isOpen: boolean
+    data: SubCategoryFormValues | null
+  }>({
+    isOpen: false,
+    data: null,
+  })
+
   // Add API call for checking code availability
   const { refetch: checkCodeAvailability } = useGetById<ISubCategory>(
     `${SubCategory.getByCode}`,
@@ -119,38 +128,31 @@ export default function SubCategoryPage() {
     setIsModalOpen(true)
   }
 
-  const handleFormSubmit = async (data: SubCategoryFormValues) => {
+  // Handler for form submission (create or edit) - shows confirmation first
+  const handleFormSubmit = (data: SubCategoryFormValues) => {
+    setSaveConfirmation({
+      isOpen: true,
+      data: data,
+    })
+  }
+
+  // Handler for confirmed form submission
+  const handleConfirmedFormSubmit = async (data: SubCategoryFormValues) => {
     try {
       if (modalMode === "create") {
-        const response = (await saveMutation.mutateAsync(
-          data
-        )) as unknown as ApiResponse<ISubCategory>
+        const response = await saveMutation.mutateAsync(data)
         if (response.result === 1) {
-          toast.success("SubCategory created successfully")
           queryClient.invalidateQueries({ queryKey: ["subcategorys"] })
-          setIsModalOpen(false)
-        } else {
-          toast.error(response.message || "Failed to create subcategory")
         }
       } else if (modalMode === "edit" && selectedSubCategory) {
-        const response = (await updateMutation.mutateAsync(
-          data
-        )) as unknown as ApiResponse<ISubCategory>
+        const response = await updateMutation.mutateAsync(data)
         if (response.result === 1) {
-          toast.success("SubCategory updated successfully")
           queryClient.invalidateQueries({ queryKey: ["subcategorys"] })
-          setIsModalOpen(false)
-        } else {
-          toast.error(response.message || "Failed to update subcategory")
         }
       }
+      setIsModalOpen(false)
     } catch (error) {
       console.error("Error in form submission:", error)
-      if (error instanceof Error) {
-        toast.error(error.message)
-      } else {
-        toast.error("An unexpected error occurred")
-      }
     }
   }
 
@@ -168,17 +170,9 @@ export default function SubCategoryPage() {
 
   const handleConfirmDelete = () => {
     if (deleteConfirmation.subcategoryId) {
-      toast.promise(
-        deleteMutation.mutateAsync(deleteConfirmation.subcategoryId),
-        {
-          loading: `Deleting ${deleteConfirmation.subcategoryName}...`,
-          success: () => {
-            queryClient.invalidateQueries({ queryKey: ["subcategorys"] })
-            return `${deleteConfirmation.subcategoryName} has been deleted`
-          },
-          error: "Failed to delete subcategory",
-        }
-      )
+      deleteMutation.mutateAsync(deleteConfirmation.subcategoryId).then(() => {
+        queryClient.invalidateQueries({ queryKey: ["subcategorys"] })
+      })
       setDeleteConfirmation({
         isOpen: false,
         subcategoryId: null,
@@ -293,7 +287,6 @@ export default function SubCategoryPage() {
           onCreateSubCategory={handleCreateSubCategory}
           onRefresh={() => {
             handleRefresh()
-            toast("Refreshing data...Fetching the latest subcategory data.")
           }}
           onFilterChange={setFilters}
           moduleId={moduleId}
@@ -376,6 +369,35 @@ export default function SubCategoryPage() {
           })
         }
         isDeleting={deleteMutation.isPending}
+      />
+
+      {/* Save Confirmation Dialog */}
+      <SaveConfirmation
+        open={saveConfirmation.isOpen}
+        onOpenChange={(isOpen) =>
+          setSaveConfirmation((prev) => ({ ...prev, isOpen }))
+        }
+        title={
+          modalMode === "create" ? "Create SubCategory" : "Update SubCategory"
+        }
+        itemName={saveConfirmation.data?.subcategoryName || ""}
+        operationType={modalMode === "create" ? "create" : "update"}
+        onConfirm={() => {
+          if (saveConfirmation.data) {
+            handleConfirmedFormSubmit(saveConfirmation.data)
+          }
+          setSaveConfirmation({
+            isOpen: false,
+            data: null,
+          })
+        }}
+        onCancel={() =>
+          setSaveConfirmation({
+            isOpen: false,
+            data: null,
+          })
+        }
+        isSaving={saveMutation.isPending || updateMutation.isPending}
       />
     </div>
   )

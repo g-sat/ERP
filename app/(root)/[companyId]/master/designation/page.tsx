@@ -6,7 +6,6 @@ import { IDesignation, IDesignationFilter } from "@/interfaces/designation"
 import { DesignationFormValues } from "@/schemas/designation"
 import { usePermissionStore } from "@/stores/permission-store"
 import { useQueryClient } from "@tanstack/react-query"
-import { toast } from "sonner"
 
 import { Designation } from "@/lib/api-routes"
 import { MasterTransactionId, ModuleId } from "@/lib/utils"
@@ -26,6 +25,7 @@ import {
 } from "@/components/ui/dialog"
 import { Separator } from "@/components/ui/separator"
 import { DeleteConfirmation } from "@/components/delete-confirmation"
+import { SaveConfirmation } from "@/components/save-confirmation"
 import { DataTableSkeleton } from "@/components/skeleton/data-table-skeleton"
 import { LoadExistingDialog } from "@/components/ui-custom/master-loadexisting-dialog"
 
@@ -159,17 +159,9 @@ export default function DesignationPage() {
 
   const handleConfirmDelete = () => {
     if (deleteConfirmation.designationId) {
-      toast.promise(
-        deleteMutation.mutateAsync(deleteConfirmation.designationId),
-        {
-          loading: `Deleting ${deleteConfirmation.designationName}...`,
-          success: () => {
-            queryClient.invalidateQueries({ queryKey: ["designations"] })
-            return `${deleteConfirmation.designationName} has been deleted`
-          },
-          error: "Failed to delete designation",
-        }
-      )
+      deleteMutation.mutateAsync(deleteConfirmation.designationId).then(() => {
+        queryClient.invalidateQueries({ queryKey: ["designations"] })
+      })
       setDeleteConfirmation({
         isOpen: false,
         designationId: null,
@@ -282,7 +274,6 @@ export default function DesignationPage() {
           onCreateDesignation={handleCreateDesignation}
           onRefresh={() => {
             handleRefresh()
-            toast("Refreshing data...Fetching the latest designation data.")
           }}
           onFilterChange={setFilters}
           moduleId={moduleId}

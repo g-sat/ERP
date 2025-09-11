@@ -15,7 +15,6 @@ import {
 } from "@/schemas/bank"
 import { usePermissionStore } from "@/stores/permission-store"
 import { ListFilter, RotateCcw, Save, Trash2 } from "lucide-react"
-import { toast } from "sonner"
 
 import { Bank, BankAddress, BankContact } from "@/lib/api-routes"
 import { MasterTransactionId, ModuleId } from "@/lib/utils"
@@ -167,7 +166,6 @@ export default function BankPage() {
           setBank(updatedBank as IBank)
         }
       } else {
-        toast.error(response?.message || "Failed to fetch bank details")
       }
 
       const [addressesResponse, contactsResponse] = await Promise.all([
@@ -183,7 +181,6 @@ export default function BankPage() {
         setContacts(contactsResponse.data.data)
       else setContacts([])
     } catch {
-      toast.error("Network error while fetching data")
       setAddresses([])
       setContacts([])
     }
@@ -201,14 +198,10 @@ export default function BankPage() {
           ? response.data[0]
           : response.data
         setBank(bankData as IBank)
-        toast.success("Bank saved successfully")
         refetchBanks()
       } else {
-        toast.error(response.message || "Failed to save bank")
       }
-    } catch {
-      toast.error("Network error while saving bank")
-    }
+    } catch {}
   }
 
   const handleBankSelect = (selectedBank: IBank | undefined) => {
@@ -231,14 +224,10 @@ export default function BankPage() {
         setBank(null)
         setAddresses([])
         setContacts([])
-        toast.success("Bank deleted successfully")
         refetchBanks()
       } else {
-        toast.error(response.message || "Failed to delete bank")
       }
-    } catch {
-      toast.error("Network error while deleting bank")
-    }
+    } catch {}
   }
 
   const handleBankReset = () => {
@@ -258,18 +247,14 @@ export default function BankPage() {
           : await updateAddressMutation.mutateAsync(data)
 
       if (response.result === 1) {
-        toast.success("Address saved successfully")
         const refreshedAddresses = await refetchAddresses()
         if (refreshedAddresses?.data?.result === 1)
           setAddresses(refreshedAddresses.data.data)
         setShowAddressForm(false)
         setSelectedAddress(null)
       } else {
-        toast.error(response.message || "Failed to save address")
       }
-    } catch {
-      toast.error("Network error while saving address")
-    }
+    } catch {}
   }
 
   const handleContactSave = async (data: BankContactFormValues) => {
@@ -283,18 +268,14 @@ export default function BankPage() {
           : await updateContactMutation.mutateAsync(data)
 
       if (response.result === 1) {
-        toast.success("Contact saved successfully")
         const refreshedContacts = await refetchContacts()
         if (refreshedContacts?.data?.result === 1)
           setContacts(refreshedContacts.data.data)
         setShowContactForm(false)
         setSelectedContact(null)
       } else {
-        toast.error(response.message || "Failed to save contact")
       }
-    } catch {
-      toast.error("Network error while saving contact")
-    }
+    } catch {}
   }
 
   const handleAddressSelect = (address: IBankAddress | undefined) => {
@@ -345,39 +326,30 @@ export default function BankPage() {
     try {
       const response = await deleteAddressMutation.mutateAsync(addressId)
       if (response.result === 1) {
-        toast.success("Address deleted successfully")
         const refreshedAddresses = await refetchAddresses()
         if (refreshedAddresses?.data?.result === 1)
           setAddresses(refreshedAddresses.data.data)
       } else {
-        toast.error(response.message || "Failed to delete address")
       }
-    } catch {
-      toast.error("Network error while deleting address")
-    }
+    } catch {}
   }
 
   const handleContactDelete = async (contactId: string) => {
     try {
       const response = await deleteContactMutation.mutateAsync(contactId)
       if (response.result === 1) {
-        toast.success("Contact deleted successfully")
         const refreshedContacts = await refetchContacts()
         if (refreshedContacts?.data?.result === 1)
           setContacts(refreshedContacts.data.data)
       } else {
-        toast.error(response.message || "Failed to delete contact")
       }
-    } catch {
-      toast.error("Network error while deleting contact")
-    }
+    } catch {}
   }
 
   const handleFilterChange = (newFilters: IBankFilter) => setFilters(newFilters)
 
   const handleBankLookup = async (bankCode: string, bankName: string) => {
     if (!bankCode && !bankName) {
-      toast.error("Please provide a bank code or name")
       return
     }
 
@@ -398,13 +370,10 @@ export default function BankPage() {
           }
           setBank(updatedBank as IBank)
         } else {
-          toast.error("No bank found with the provided details")
         }
       } else {
-        toast.error(response?.message || "Failed to fetch bank")
       }
     } catch {
-      toast.error("Network error while fetching bank")
       setBank(null)
       setAddresses([])
       setContacts([])

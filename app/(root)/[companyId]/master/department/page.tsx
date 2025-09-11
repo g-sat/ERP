@@ -6,7 +6,6 @@ import { IDepartment, IDepartmentFilter } from "@/interfaces/department"
 import { DepartmentFormValues } from "@/schemas/department"
 import { usePermissionStore } from "@/stores/permission-store"
 import { useQueryClient } from "@tanstack/react-query"
-import { toast } from "sonner"
 
 import { Department } from "@/lib/api-routes"
 import { MasterTransactionId, ModuleId } from "@/lib/utils"
@@ -26,6 +25,7 @@ import {
 } from "@/components/ui/dialog"
 import { Separator } from "@/components/ui/separator"
 import { DeleteConfirmation } from "@/components/delete-confirmation"
+import { SaveConfirmation } from "@/components/save-confirmation"
 import { DataTableSkeleton } from "@/components/skeleton/data-table-skeleton"
 import { LoadExistingDialog } from "@/components/ui-custom/master-loadexisting-dialog"
 
@@ -159,17 +159,9 @@ export default function DepartmentPage() {
 
   const handleConfirmDelete = () => {
     if (deleteConfirmation.departmentId) {
-      toast.promise(
-        deleteMutation.mutateAsync(deleteConfirmation.departmentId),
-        {
-          loading: `Deleting ${deleteConfirmation.departmentName}...`,
-          success: () => {
-            queryClient.invalidateQueries({ queryKey: ["departments"] })
-            return `${deleteConfirmation.departmentName} has been deleted`
-          },
-          error: "Failed to delete department",
-        }
-      )
+      deleteMutation.mutateAsync(deleteConfirmation.departmentId).then(() => {
+        queryClient.invalidateQueries({ queryKey: ["departments"] })
+      })
       setDeleteConfirmation({
         isOpen: false,
         departmentId: null,
@@ -282,7 +274,6 @@ export default function DepartmentPage() {
           onCreateDepartment={handleCreateDepartment}
           onRefresh={() => {
             handleRefresh()
-            toast("Refreshing data...Fetching the latest department data.")
           }}
           onFilterChange={setFilters}
           moduleId={moduleId}

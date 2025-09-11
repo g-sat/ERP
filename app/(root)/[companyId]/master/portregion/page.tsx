@@ -6,7 +6,6 @@ import { IPortRegion, IPortRegionFilter } from "@/interfaces/portregion"
 import { PortRegionFormValues } from "@/schemas/portregion"
 import { usePermissionStore } from "@/stores/permission-store"
 import { useQueryClient } from "@tanstack/react-query"
-import { toast } from "sonner"
 
 import { PortRegion } from "@/lib/api-routes"
 import { MasterTransactionId, ModuleId } from "@/lib/utils"
@@ -78,10 +77,7 @@ export default function PortRegionPage() {
   const { refetch: checkCodeAvailability } = useGetById<IPortRegion>(
     `${PortRegion.getByCode}`,
     "portRegionByCode",
-    codeToCheck,
-    {
-      enabled: !!codeToCheck && codeToCheck.trim() !== "",
-    }
+    codeToCheck
   )
 
   const handleRefresh = () => {
@@ -116,11 +112,8 @@ export default function PortRegionPage() {
         )) as ApiResponse<IPortRegion>
 
         if (response.result === 1) {
-          toast.success("PortRegion created successfully")
           queryClient.invalidateQueries({ queryKey: ["portregions"] })
           setIsModalOpen(false)
-        } else {
-          toast.error(response.message || "Failed to create portregion")
         }
       } else if (modalMode === "edit" && selectedPortRegion) {
         const response = (await updateMutation.mutateAsync(
@@ -128,20 +121,12 @@ export default function PortRegionPage() {
         )) as ApiResponse<IPortRegion>
 
         if (response.result === 1) {
-          toast.success("PortRegion updated successfully")
           queryClient.invalidateQueries({ queryKey: ["portregions"] })
           setIsModalOpen(false)
-        } else {
-          toast.error(response.message || "Failed to update portregion")
         }
       }
     } catch (error) {
       console.error("Error in form submission:", error)
-      if (error instanceof Error) {
-        toast.error(error.message)
-      } else {
-        toast.error("An unexpected error occurred")
-      }
     }
   }
 
@@ -160,17 +145,9 @@ export default function PortRegionPage() {
 
   const handleConfirmDelete = () => {
     if (deleteConfirmation.portRegionId) {
-      toast.promise(
-        deleteMutation.mutateAsync(deleteConfirmation.portRegionId),
-        {
-          loading: `Deleting ${deleteConfirmation.portRegionName}...`,
-          success: () => {
-            queryClient.invalidateQueries({ queryKey: ["portregions"] })
-            return `${deleteConfirmation.portRegionName} has been deleted`
-          },
-          error: "Failed to delete portregion",
-        }
-      )
+      deleteMutation.mutateAsync(deleteConfirmation.portRegionId).then(() => {
+        queryClient.invalidateQueries({ queryKey: ["portregions"] })
+      })
       setDeleteConfirmation({
         isOpen: false,
         portRegionId: null,
@@ -290,7 +267,6 @@ export default function PortRegionPage() {
           onCreatePortRegion={handleCreatePortRegion}
           onRefresh={() => {
             handleRefresh()
-            toast("Refreshing data...Fetching the latest portregion data.")
           }}
           onFilterChange={setFilters}
           moduleId={moduleId}

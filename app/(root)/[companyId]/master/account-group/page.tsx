@@ -6,7 +6,6 @@ import { ApiResponse } from "@/interfaces/auth"
 import { AccountGroupFormValues } from "@/schemas/accountgroup"
 import { usePermissionStore } from "@/stores/permission-store"
 import { useQueryClient } from "@tanstack/react-query"
-import { toast } from "sonner"
 
 import { AccountGroup } from "@/lib/api-routes"
 import { MasterTransactionId, ModuleId } from "@/lib/utils"
@@ -20,6 +19,7 @@ import {
 } from "@/components/ui/dialog"
 import { Separator } from "@/components/ui/separator"
 import { DeleteConfirmation } from "@/components/delete-confirmation"
+import { SaveConfirmation } from "@/components/save-confirmation"
 import { DataTableSkeleton } from "@/components/skeleton/data-table-skeleton"
 import { LoadExistingDialog } from "@/components/ui-custom/master-loadexisting-dialog"
 
@@ -42,7 +42,6 @@ export default function AccountGroupPage() {
     data: accountGroupsResponse,
     refetch,
     isLoading,
-    isRefetching,
   } = useGet<IAccountGroup>(
     `${AccountGroup.get}`,
     "accountGroups",
@@ -89,6 +88,15 @@ export default function AccountGroupPage() {
     accountGroupName: null,
   })
 
+  // State for save confirmation
+  const [saveConfirmation, setSaveConfirmation] = useState<{
+    isOpen: boolean
+    data: AccountGroupFormValues | null
+  }>({
+    isOpen: false,
+    data: null,
+  })
+
   // Add API call for checking code availability
   const { refetch: checkCodeAvailability } = useGetById<IAccountGroup>(
     `${AccountGroup.getByCode}`,
@@ -124,44 +132,33 @@ export default function AccountGroupPage() {
     setIsModalOpen(true)
   }
 
-  // Handler for form submission (create or edit)
-  const handleFormSubmit = async (data: AccountGroupFormValues) => {
+  // Handler for form submission (create or edit) - shows confirmation first
+  const handleFormSubmit = (data: AccountGroupFormValues) => {
+    setSaveConfirmation({
+      isOpen: true,
+      data: data,
+    })
+  }
+
+  // Handler for confirmed form submission
+  const handleConfirmedFormSubmit = async (data: AccountGroupFormValues) => {
     try {
       if (modalMode === "create") {
-        // Create a new account group using the save mutation with toast feedback
-        const response = (await saveMutation.mutateAsync(
-          data
-        )) as ApiResponse<IAccountGroup>
-
+        const response = await saveMutation.mutateAsync(data)
         if (response.result === 1) {
-          toast.success("Account Group created successfully")
-          queryClient.invalidateQueries({ queryKey: ["accountGroups"] }) // Triggers refetch
-          setIsModalOpen(false)
-        } else {
-          toast.error(response.message || "Failed to create account group")
+          // Invalidate and refetch the accountGroups query
+          queryClient.invalidateQueries({ queryKey: ["accountGroups"] })
         }
       } else if (modalMode === "edit" && selectedAccountGroup) {
-        // Update the selected account group using the update mutation with toast feedback
-        const response = (await updateMutation.mutateAsync(
-          data
-        )) as ApiResponse<IAccountGroup>
-
+        const response = await updateMutation.mutateAsync(data)
         if (response.result === 1) {
-          toast.success("Account Group updated successfully")
-          queryClient.invalidateQueries({ queryKey: ["accountGroups"] }) // Triggers refetch
-          setIsModalOpen(false)
-        } else {
-          toast.error(response.message || "Failed to update account group")
+          // Invalidate and refetch the accountGroups query
+          queryClient.invalidateQueries({ queryKey: ["accountGroups"] })
         }
       }
+      setIsModalOpen(false)
     } catch (error) {
       console.error("Error in form submission:", error)
-      // Handle API error response
-      if (error instanceof Error) {
-        toast.error(error.message)
-      } else {
-        toast.error("An unexpected error occurred")
-      }
     }
   }
 
@@ -182,17 +179,10 @@ export default function AccountGroupPage() {
 
   const handleConfirmDelete = () => {
     if (deleteConfirmation.accountGroupId) {
-      toast.promise(
-        deleteMutation.mutateAsync(deleteConfirmation.accountGroupId),
-        {
-          loading: `Deleting ${deleteConfirmation.accountGroupName}...`,
-          success: () => {
-            queryClient.invalidateQueries({ queryKey: ["accountGroups"] }) // Triggers refetch
-            return `${deleteConfirmation.accountGroupName} has been deleted`
-          },
-          error: "Failed to delete account group",
-        }
-      )
+      deleteMutation.mutateAsync(deleteConfirmation.accountGroupId).then(() => {
+        // Invalidate and refetch the accountGroups query after successful deletion
+        queryClient.invalidateQueries({ queryKey: ["accountGroups"] })
+      })
       setDeleteConfirmation({
         isOpen: false,
         accountGroupId: null,
@@ -303,7 +293,7 @@ export default function AccountGroupPage() {
       </div>
 
       {/* Account Groups Table */}
-      {isLoading || isRefetching ? (
+      {isLoading ? (
         <DataTableSkeleton
           columnCount={7}
           filterCount={2}
@@ -327,10 +317,7 @@ export default function AccountGroupPage() {
           }
           onEditAccountGroup={canEdit ? handleEditAccountGroup : undefined}
           onCreateAccountGroup={handleCreateAccountGroup}
-          onRefresh={() => {
-            handleRefresh()
-            toast("Refreshing data...Fetching the latest account group data.")
-          }}
+          onRefresh={handleRefresh}
           onFilterChange={setFilters}
           moduleId={moduleId}
           transactionId={transactionId}
@@ -402,8 +389,8 @@ export default function AccountGroupPage() {
         onOpenChange={(isOpen) =>
           setDeleteConfirmation((prev) => ({ ...prev, isOpen }))
         }
-        title="Delete Account Group"
-        description="This action cannot be undone. This will permanently delete the account group from our servers."
+        title="Delete Account Type"
+        description="This action cannot be undone. This will permanently delete the account type from our servers."
         itemName={deleteConfirmation.accountGroupName || ""}
         onConfirm={handleConfirmDelete}
         onCancel={() =>
@@ -414,6 +401,37 @@ export default function AccountGroupPage() {
           })
         }
         isDeleting={deleteMutation.isPending}
+      />
+
+      {/* Save Confirmation Dialog */}
+      <SaveConfirmation
+        open={saveConfirmation.isOpen}
+        onOpenChange={(isOpen) =>
+          setSaveConfirmation((prev) => ({ ...prev, isOpen }))
+        }
+        title={
+          modalMode === "create"
+            ? "Create Account Group"
+            : "Update Account Group"
+        }
+        itemName={saveConfirmation.data?.accGroupName || ""}
+        operationType={modalMode === "create" ? "create" : "update"}
+        onConfirm={() => {
+          if (saveConfirmation.data) {
+            handleConfirmedFormSubmit(saveConfirmation.data)
+          }
+          setSaveConfirmation({
+            isOpen: false,
+            data: null,
+          })
+        }}
+        onCancel={() =>
+          setSaveConfirmation({
+            isOpen: false,
+            data: null,
+          })
+        }
+        isSaving={saveMutation.isPending || updateMutation.isPending}
       />
     </div>
   )

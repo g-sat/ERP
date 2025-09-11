@@ -20,6 +20,7 @@ import {
 import { Separator } from "@/components/ui/separator"
 import { DataTableSkeleton } from "@/components/skeleton/data-table-skeleton"
 import { LockSkeleton } from "@/components/skeleton/lock-skeleton"
+import { DeleteConfirmation } from "@/components/delete-confirmation"
 
 import { UserForm } from "../components/user-form"
 import { UserTable } from "../components/user-table"
@@ -59,6 +60,26 @@ export default function AdminUsersPage() {
     "create"
   )
 
+  // State for delete confirmation
+  const [deleteConfirmation, setDeleteConfirmation] = useState<{
+    isOpen: boolean
+    userId: string | null
+    userName: string | null
+  }>({
+    isOpen: false,
+    userId: null,
+    userName: null,
+  })
+
+  // State for save confirmation
+  const [saveConfirmation, setSaveConfirmation] = useState<{
+    isOpen: boolean
+    data: UserFormValues | null
+  }>({
+    isOpen: false,
+    data: null,
+  })
+
   const queryClient = useQueryClient()
 
   useEffect(() => {
@@ -89,10 +110,27 @@ export default function AdminUsersPage() {
   const handleDeleteUser = (userId: string) => {
     const userToDelete = usersData?.find((u) => u.userId.toString() === userId)
     if (!userToDelete) return
-    deleteMutation.mutateAsync(userId).then(() => {
-      // Invalidate and refetch the users query after successful deletion
-      queryClient.invalidateQueries({ queryKey: ["users"] })
+
+    // Open delete confirmation dialog with user details
+    setDeleteConfirmation({
+      isOpen: true,
+      userId,
+      userName: userToDelete.userName,
     })
+  }
+
+  const handleConfirmDelete = () => {
+    if (deleteConfirmation.userId) {
+      deleteMutation.mutateAsync(deleteConfirmation.userId).then(() => {
+        // Invalidate and refetch the users query after successful deletion
+        queryClient.invalidateQueries({ queryKey: ["users"] })
+      })
+      setDeleteConfirmation({
+        isOpen: false,
+        userId: null,
+        userName: null,
+      })
+    }
   }
 
   const handleUserFormSubmit = async (data: UserFormValues) => {
@@ -215,6 +253,57 @@ export default function AdminUsersPage() {
           />
         </DialogContent>
       </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <DeleteConfirmation
+        open={deleteConfirmation.isOpen}
+        onOpenChange={(isOpen) =>
+          setDeleteConfirmation((prev) => ({ ...prev, isOpen }))
+        }
+        title="Delete User"
+        description="This action cannot be undone. This will permanently delete the user from our servers."
+        itemName={deleteConfirmation.userName || ""}
+        onConfirm={handleConfirmDelete}
+        onCancel={() =>
+          setDeleteConfirmation({
+            isOpen: false,
+            userId: null,
+            userName: null,
+          })
+        }
+        isDeleting={deleteMutation.isPending}
+      />
+
+      {/* Save Confirmation Dialog */}
+      <DeleteConfirmation
+        open={saveConfirmation.isOpen}
+        onOpenChange={(isOpen) =>
+          setSaveConfirmation((prev) => ({ ...prev, isOpen }))
+        }
+        title={modalMode === "create" ? "Create User" : "Update User"}
+        description={
+          modalMode === "create"
+            ? "Are you sure you want to create this user?"
+            : "Are you sure you want to update this user?"
+        }
+        itemName={saveConfirmation.data?.userName || ""}
+        onConfirm={() => {
+          if (saveConfirmation.data) {
+            handleUserFormSubmit(saveConfirmation.data)
+          }
+          setSaveConfirmation({
+            isOpen: false,
+            data: null,
+          })
+        }}
+        onCancel={() =>
+          setSaveConfirmation({
+            isOpen: false,
+            data: null,
+          })
+        }
+        isDeleting={saveMutation.isPending || updateMutation.isPending}
+      />
     </div>
   )
 }

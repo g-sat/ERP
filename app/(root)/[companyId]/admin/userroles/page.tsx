@@ -18,6 +18,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Separator } from "@/components/ui/separator"
+import { DeleteConfirmation } from "@/components/delete-confirmation"
 import { DataTableSkeleton } from "@/components/skeleton/data-table-skeleton"
 import { LockSkeleton } from "@/components/skeleton/lock-skeleton"
 
@@ -70,6 +71,26 @@ export default function AdminUserRolesPage() {
     "create"
   )
 
+  // State for delete confirmation
+  const [deleteConfirmation, setDeleteConfirmation] = useState<{
+    isOpen: boolean
+    roleId: string | null
+    roleName: string | null
+  }>({
+    isOpen: false,
+    roleId: null,
+    roleName: null,
+  })
+
+  // State for save confirmation
+  const [saveConfirmation, setSaveConfirmation] = useState<{
+    isOpen: boolean
+    data: UserRoleFormValues | null
+  }>({
+    isOpen: false,
+    data: null,
+  })
+
   const queryClient = useQueryClient()
 
   useEffect(() => {
@@ -102,10 +123,27 @@ export default function AdminUserRolesPage() {
       (r) => r.userRoleId.toString() === roleId
     )
     if (!roleToDelete) return
-    deleteRoleMutation.mutateAsync(roleId).then(() => {
-      // Invalidate and refetch the userroles query after successful deletion
-      queryClient.invalidateQueries({ queryKey: ["userroles"] })
+
+    // Open delete confirmation dialog with role details
+    setDeleteConfirmation({
+      isOpen: true,
+      roleId,
+      roleName: roleToDelete.userRoleName,
     })
+  }
+
+  const handleConfirmDelete = () => {
+    if (deleteConfirmation.roleId) {
+      deleteRoleMutation.mutateAsync(deleteConfirmation.roleId).then(() => {
+        // Invalidate and refetch the userroles query after successful deletion
+        queryClient.invalidateQueries({ queryKey: ["userroles"] })
+      })
+      setDeleteConfirmation({
+        isOpen: false,
+        roleId: null,
+        roleName: null,
+      })
+    }
   }
 
   const handleUserRoleFormSubmit = async (data: UserRoleFormValues) => {
@@ -238,6 +276,57 @@ export default function AdminUserRolesPage() {
           />
         </DialogContent>
       </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <DeleteConfirmation
+        open={deleteConfirmation.isOpen}
+        onOpenChange={(isOpen) =>
+          setDeleteConfirmation((prev) => ({ ...prev, isOpen }))
+        }
+        title="Delete User Role"
+        description="This action cannot be undone. This will permanently delete the user role from our servers."
+        itemName={deleteConfirmation.roleName || ""}
+        onConfirm={handleConfirmDelete}
+        onCancel={() =>
+          setDeleteConfirmation({
+            isOpen: false,
+            roleId: null,
+            roleName: null,
+          })
+        }
+        isDeleting={deleteRoleMutation.isPending}
+      />
+
+      {/* Save Confirmation Dialog */}
+      <DeleteConfirmation
+        open={saveConfirmation.isOpen}
+        onOpenChange={(isOpen) =>
+          setSaveConfirmation((prev) => ({ ...prev, isOpen }))
+        }
+        title={modalMode === "create" ? "Create User Role" : "Update User Role"}
+        description={
+          modalMode === "create"
+            ? "Are you sure you want to create this user role?"
+            : "Are you sure you want to update this user role?"
+        }
+        itemName={saveConfirmation.data?.userRoleName || ""}
+        onConfirm={() => {
+          if (saveConfirmation.data) {
+            handleUserRoleFormSubmit(saveConfirmation.data)
+          }
+          setSaveConfirmation({
+            isOpen: false,
+            data: null,
+          })
+        }}
+        onCancel={() =>
+          setSaveConfirmation({
+            isOpen: false,
+            data: null,
+          })
+        }
+        isDeleting={saveRoleMutation.isPending || updateRoleMutation.isPending}
+      />
     </div>
   )
 }

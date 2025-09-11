@@ -6,7 +6,6 @@ import { ITask, ITaskFilter } from "@/interfaces/task"
 import { TaskFormValues } from "@/schemas/task"
 import { usePermissionStore } from "@/stores/permission-store"
 import { useQueryClient } from "@tanstack/react-query"
-import { toast } from "sonner"
 
 import { Task } from "@/lib/api-routes"
 import { MasterTransactionId, ModuleId } from "@/lib/utils"
@@ -20,6 +19,7 @@ import {
 } from "@/components/ui/dialog"
 import { Separator } from "@/components/ui/separator"
 import { DeleteConfirmation } from "@/components/delete-confirmation"
+import { SaveConfirmation } from "@/components/save-confirmation"
 import { DataTableSkeleton } from "@/components/skeleton/data-table-skeleton"
 import { LockSkeleton } from "@/components/skeleton/lock-skeleton"
 import { LoadExistingDialog } from "@/components/ui-custom/master-loadexisting-dialog"
@@ -82,6 +82,15 @@ export default function TaskPage() {
     taskName: null,
   })
 
+  // State for save confirmation
+  const [saveConfirmation, setSaveConfirmation] = useState<{
+    isOpen: boolean
+    data: TaskFormValues | null
+  }>({
+    isOpen: false,
+    data: null,
+  })
+
   // Add API call for checking code availability
   const { refetch: checkCodeAvailability } = useGetById<ITask>(
     `${Task.getByCode}`,
@@ -118,38 +127,31 @@ export default function TaskPage() {
     setIsModalOpen(true)
   }
 
-  const handleFormSubmit = async (data: TaskFormValues) => {
+  // Handler for form submission (create or edit) - shows confirmation first
+  const handleFormSubmit = (data: TaskFormValues) => {
+    setSaveConfirmation({
+      isOpen: true,
+      data: data,
+    })
+  }
+
+  // Handler for confirmed form submission
+  const handleConfirmedFormSubmit = async (data: TaskFormValues) => {
     try {
       if (modalMode === "create") {
-        const response = (await saveMutation.mutateAsync(
-          data
-        )) as unknown as ApiResponse<ITask>
+        const response = await saveMutation.mutateAsync(data)
         if (response.result === 1) {
-          toast.success("Task created successfully")
           queryClient.invalidateQueries({ queryKey: ["tasks"] })
-          setIsModalOpen(false)
-        } else {
-          toast.error(response.message || "Failed to create task")
         }
       } else if (modalMode === "edit" && selectedTask) {
-        const response = (await updateMutation.mutateAsync(
-          data
-        )) as unknown as ApiResponse<ITask>
+        const response = await updateMutation.mutateAsync(data)
         if (response.result === 1) {
-          toast.success("Task updated successfully")
           queryClient.invalidateQueries({ queryKey: ["tasks"] })
-          setIsModalOpen(false)
-        } else {
-          toast.error(response.message || "Failed to update task")
         }
       }
+      setIsModalOpen(false)
     } catch (error) {
       console.error("Error in form submission:", error)
-      if (error instanceof Error) {
-        toast.error(error.message)
-      } else {
-        toast.error("An unexpected error occurred")
-      }
     }
   }
 
@@ -165,13 +167,8 @@ export default function TaskPage() {
 
   const handleConfirmDelete = () => {
     if (deleteConfirmation.taskId) {
-      toast.promise(deleteMutation.mutateAsync(deleteConfirmation.taskId), {
-        loading: `Deleting ${deleteConfirmation.taskName}...`,
-        success: () => {
-          queryClient.invalidateQueries({ queryKey: ["tasks"] })
-          return `${deleteConfirmation.taskName} has been deleted`
-        },
-        error: "Failed to delete task",
+      deleteMutation.mutateAsync(deleteConfirmation.taskId).then(() => {
+        queryClient.invalidateQueries({ queryKey: ["tasks"] })
       })
       setDeleteConfirmation({
         isOpen: false,
@@ -290,7 +287,6 @@ export default function TaskPage() {
             onCreateTask={handleCreateTask}
             onRefresh={() => {
               handleRefresh()
-              toast("Refreshing data...Fetching the latest task data.")
             }}
             onFilterChange={setFilters}
             moduleId={moduleId}
@@ -306,7 +302,6 @@ export default function TaskPage() {
           onCreateTask={handleCreateTask}
           onRefresh={() => {
             handleRefresh()
-            toast("Refreshing data...Fetching the latest task data.")
           }}
           onFilterChange={setFilters}
           moduleId={moduleId}
@@ -387,6 +382,33 @@ export default function TaskPage() {
           })
         }
         isDeleting={deleteMutation.isPending}
+      />
+
+      {/* Save Confirmation Dialog */}
+      <SaveConfirmation
+        open={saveConfirmation.isOpen}
+        onOpenChange={(isOpen) =>
+          setSaveConfirmation((prev) => ({ ...prev, isOpen }))
+        }
+        title={modalMode === "create" ? "Create Task" : "Update Task"}
+        itemName={saveConfirmation.data?.taskName || ""}
+        operationType={modalMode === "create" ? "create" : "update"}
+        onConfirm={() => {
+          if (saveConfirmation.data) {
+            handleConfirmedFormSubmit(saveConfirmation.data)
+          }
+          setSaveConfirmation({
+            isOpen: false,
+            data: null,
+          })
+        }}
+        onCancel={() =>
+          setSaveConfirmation({
+            isOpen: false,
+            data: null,
+          })
+        }
+        isSaving={saveMutation.isPending || updateMutation.isPending}
       />
     </div>
   )

@@ -6,7 +6,6 @@ import { ICharge, IChargeFilter } from "@/interfaces/charge"
 import { ChargeFormValues } from "@/schemas/charge"
 import { usePermissionStore } from "@/stores/permission-store"
 import { useQueryClient } from "@tanstack/react-query"
-import { toast } from "sonner"
 
 import { Charge } from "@/lib/api-routes"
 import { MasterTransactionId, ModuleId } from "@/lib/utils"
@@ -25,6 +24,7 @@ import {
 } from "@/components/ui/dialog"
 import { Separator } from "@/components/ui/separator"
 import { DeleteConfirmation } from "@/components/delete-confirmation"
+import { SaveConfirmation } from "@/components/save-confirmation"
 import { DataTableSkeleton } from "@/components/skeleton/data-table-skeleton"
 import { LoadExistingDialog } from "@/components/ui-custom/master-loadexisting-dialog"
 
@@ -149,13 +149,8 @@ export default function ChargePage() {
 
   const handleConfirmDelete = () => {
     if (deleteConfirmation.chargeId) {
-      toast.promise(deleteMutation.mutateAsync(deleteConfirmation.chargeId), {
-        loading: `Deleting ${deleteConfirmation.chargeName}...`,
-        success: () => {
-          queryClient.invalidateQueries({ queryKey: ["charges"] })
-          return `${deleteConfirmation.chargeName} has been deleted`
-        },
-        error: "Failed to delete charge",
+      deleteMutation.mutateAsync(deleteConfirmation.chargeId).then(() => {
+        queryClient.invalidateQueries({ queryKey: ["charges"] })
       })
       setDeleteConfirmation({
         isOpen: false,
@@ -275,7 +270,6 @@ export default function ChargePage() {
           onCreateCharge={handleCreateCharge}
           onRefresh={() => {
             handleRefresh()
-            toast("Refreshing data...Fetching the latest charge data.")
           }}
           onFilterChange={setFilters}
           moduleId={moduleId}

@@ -6,7 +6,6 @@ import { ApiResponse } from "@/interfaces/auth"
 import { AccountTypeFormValues } from "@/schemas/accounttype"
 import { usePermissionStore } from "@/stores/permission-store"
 import { useQueryClient } from "@tanstack/react-query"
-import { toast } from "sonner"
 
 import { AccountType } from "@/lib/api-routes"
 import { MasterTransactionId, ModuleId } from "@/lib/utils"
@@ -20,6 +19,7 @@ import {
 } from "@/components/ui/dialog"
 import { Separator } from "@/components/ui/separator"
 import { DeleteConfirmation } from "@/components/delete-confirmation"
+import { SaveConfirmation } from "@/components/save-confirmation"
 import { DataTableSkeleton } from "@/components/skeleton/data-table-skeleton"
 import { LoadExistingDialog } from "@/components/ui-custom/master-loadexisting-dialog"
 
@@ -83,6 +83,15 @@ export default function AccountTypePage() {
     accountTypeName: null,
   })
 
+  // State for save confirmation
+  const [saveConfirmation, setSaveConfirmation] = useState<{
+    isOpen: boolean
+    data: AccountTypeFormValues | null
+  }>({
+    isOpen: false,
+    data: null,
+  })
+
   // Add API call for checking code availability
   const { refetch: checkCodeAvailability } = useGetById<IAccountType>(
     `${AccountType.getByCode}`,
@@ -119,44 +128,31 @@ export default function AccountTypePage() {
     setIsModalOpen(true)
   }
 
-  // Handler for form submission (create or edit)
-  const handleFormSubmit = async (data: AccountTypeFormValues) => {
+  // Handler for form submission (create or edit) - shows confirmation first
+  const handleFormSubmit = (data: AccountTypeFormValues) => {
+    setSaveConfirmation({
+      isOpen: true,
+      data: data,
+    })
+  }
+
+  // Handler for confirmed form submission
+  const handleConfirmedFormSubmit = async (data: AccountTypeFormValues) => {
     try {
       if (modalMode === "create") {
-        // Create a new account type using the save mutation with toast feedback
-        const response = (await saveMutation.mutateAsync(
-          data
-        )) as ApiResponse<IAccountType>
-
+        const response = await saveMutation.mutateAsync(data)
         if (response.result === 1) {
-          toast.success("Account Type created successfully")
-          queryClient.invalidateQueries({ queryKey: ["accountTypes"] }) // Triggers refetch
-          setIsModalOpen(false)
-        } else {
-          toast.error(response.message || "Failed to create account type")
+          queryClient.invalidateQueries({ queryKey: ["accountTypes"] })
         }
       } else if (modalMode === "edit" && selectedAccountType) {
-        // Update the selected account type using the update mutation with toast feedback
-        const response = (await updateMutation.mutateAsync(
-          data
-        )) as ApiResponse<IAccountType>
-
+        const response = await updateMutation.mutateAsync(data)
         if (response.result === 1) {
-          toast.success("Account Type updated successfully")
-          queryClient.invalidateQueries({ queryKey: ["accountTypes"] }) // Triggers refetch
-          setIsModalOpen(false)
-        } else {
-          toast.error(response.message || "Failed to update account type")
+          queryClient.invalidateQueries({ queryKey: ["accountTypes"] })
         }
       }
+      setIsModalOpen(false)
     } catch (error) {
       console.error("Error in form submission:", error)
-      // Handle API error response
-      if (error instanceof Error) {
-        toast.error(error.message)
-      } else {
-        toast.error("An unexpected error occurred")
-      }
     }
   }
 
@@ -177,17 +173,9 @@ export default function AccountTypePage() {
 
   const handleConfirmDelete = () => {
     if (deleteConfirmation.accountTypeId) {
-      toast.promise(
-        deleteMutation.mutateAsync(deleteConfirmation.accountTypeId),
-        {
-          loading: `Deleting ${deleteConfirmation.accountTypeName}...`,
-          success: () => {
-            queryClient.invalidateQueries({ queryKey: ["accountTypes"] }) // Triggers refetch
-            return `${deleteConfirmation.accountTypeName} has been deleted`
-          },
-          error: "Failed to delete account type",
-        }
-      )
+      deleteMutation.mutateAsync(deleteConfirmation.accountTypeId).then(() => {
+        queryClient.invalidateQueries({ queryKey: ["accountTypes"] })
+      })
       setDeleteConfirmation({
         isOpen: false,
         accountTypeId: null,
@@ -323,7 +311,6 @@ export default function AccountTypePage() {
           onCreateAccountType={handleCreateAccountType}
           onRefresh={() => {
             handleRefresh()
-            toast("Refreshing data...Fetching the latest account type data.")
           }}
           onFilterChange={setFilters}
           moduleId={moduleId}
@@ -408,6 +395,35 @@ export default function AccountTypePage() {
           })
         }
         isDeleting={deleteMutation.isPending}
+      />
+
+      {/* Save Confirmation Dialog */}
+      <SaveConfirmation
+        open={saveConfirmation.isOpen}
+        onOpenChange={(isOpen) =>
+          setSaveConfirmation((prev) => ({ ...prev, isOpen }))
+        }
+        title={
+          modalMode === "create" ? "Create Account Type" : "Update Account Type"
+        }
+        itemName={saveConfirmation.data?.accTypeName || ""}
+        operationType={modalMode === "create" ? "create" : "update"}
+        onConfirm={() => {
+          if (saveConfirmation.data) {
+            handleConfirmedFormSubmit(saveConfirmation.data)
+          }
+          setSaveConfirmation({
+            isOpen: false,
+            data: null,
+          })
+        }}
+        onCancel={() =>
+          setSaveConfirmation({
+            isOpen: false,
+            data: null,
+          })
+        }
+        isSaving={saveMutation.isPending || updateMutation.isPending}
       />
     </div>
   )

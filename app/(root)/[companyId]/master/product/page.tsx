@@ -6,7 +6,6 @@ import { IProduct, IProductFilter } from "@/interfaces/product"
 import { ProductFormValues } from "@/schemas/product"
 import { usePermissionStore } from "@/stores/permission-store"
 import { useQueryClient } from "@tanstack/react-query"
-import { toast } from "sonner"
 
 import { Product } from "@/lib/api-routes"
 import { MasterTransactionId, ModuleId } from "@/lib/utils"
@@ -20,6 +19,7 @@ import {
 } from "@/components/ui/dialog"
 import { Separator } from "@/components/ui/separator"
 import { DeleteConfirmation } from "@/components/delete-confirmation"
+import { SaveConfirmation } from "@/components/save-confirmation"
 import { DataTableSkeleton } from "@/components/skeleton/data-table-skeleton"
 import { LoadExistingDialog } from "@/components/ui-custom/master-loadexisting-dialog"
 
@@ -31,6 +31,7 @@ export default function ProductPage() {
   const transactionId = MasterTransactionId.product
 
   const { hasPermission } = usePermissionStore()
+  const queryClient = useQueryClient()
 
   const canEdit = hasPermission(moduleId, transactionId, "isEdit")
   const canDelete = hasPermission(moduleId, transactionId, "isDelete")
@@ -73,14 +74,19 @@ export default function ProductPage() {
     productName: null,
   })
 
+  // State for save confirmation
+  const [saveConfirmation, setSaveConfirmation] = useState<{
+    isOpen: boolean
+    data: ProductFormValues | null
+  }>({
+    isOpen: false,
+    data: null,
+  })
+
   const { refetch: checkCodeAvailability } = useGetById<IProduct>(
     `${Product.getByCode}`,
     "productByCode",
-
-    codeToCheck,
-    {
-      enabled: !!codeToCheck && codeToCheck.trim() !== "",
-    }
+    codeToCheck
   )
 
   const handleRefresh = () => {
@@ -107,40 +113,31 @@ export default function ProductPage() {
     setIsModalOpen(true)
   }
 
-  const handleFormSubmit = async (data: ProductFormValues) => {
+  // Handler for form submission (create or edit) - shows confirmation first
+  const handleFormSubmit = (data: ProductFormValues) => {
+    setSaveConfirmation({
+      isOpen: true,
+      data: data,
+    })
+  }
+
+  // Handler for confirmed form submission
+  const handleConfirmedFormSubmit = async (data: ProductFormValues) => {
     try {
       if (modalMode === "create") {
-        const response = (await saveMutation.mutateAsync(
-          data
-        )) as ApiResponse<IProduct>
-
+        const response = await saveMutation.mutateAsync(data)
         if (response.result === 1) {
-          toast.success("Product created successfully")
           queryClient.invalidateQueries({ queryKey: ["products"] })
-          setIsModalOpen(false)
-        } else {
-          toast.error(response.message || "Failed to create product")
         }
       } else if (modalMode === "edit" && selectedProduct) {
-        const response = (await updateMutation.mutateAsync(
-          data
-        )) as ApiResponse<IProduct>
-
+        const response = await updateMutation.mutateAsync(data)
         if (response.result === 1) {
-          toast.success("Product updated successfully")
           queryClient.invalidateQueries({ queryKey: ["products"] })
-          setIsModalOpen(false)
-        } else {
-          toast.error(response.message || "Failed to update product")
         }
       }
+      setIsModalOpen(false)
     } catch (error) {
       console.error("Error in form submission:", error)
-      if (error instanceof Error) {
-        toast.error(error.message)
-      } else {
-        toast.error("An unexpected error occurred")
-      }
     }
   }
 
@@ -159,13 +156,8 @@ export default function ProductPage() {
 
   const handleConfirmDelete = () => {
     if (deleteConfirmation.productId) {
-      toast.promise(deleteMutation.mutateAsync(deleteConfirmation.productId), {
-        loading: `Deleting ${deleteConfirmation.productName}...`,
-        success: () => {
-          queryClient.invalidateQueries({ queryKey: ["products"] })
-          return `${deleteConfirmation.productName} has been deleted`
-        },
-        error: "Failed to delete product",
+      deleteMutation.mutateAsync(deleteConfirmation.productId).then(() => {
+        queryClient.invalidateQueries({ queryKey: ["products"] })
       })
       setDeleteConfirmation({
         isOpen: false,
@@ -234,8 +226,6 @@ export default function ProductPage() {
     }
   }
 
-  const queryClient = useQueryClient()
-
   useEffect(() => {
     console.log("Modal Mode Updated:", modalMode)
   }, [modalMode])
@@ -286,7 +276,6 @@ export default function ProductPage() {
           onCreateProduct={handleCreateProduct}
           onRefresh={() => {
             handleRefresh()
-            toast("Refreshing data...Fetching the latest product data.")
           }}
           onFilterChange={setFilters}
           moduleId={moduleId}
@@ -368,6 +357,33 @@ export default function ProductPage() {
           })
         }
         isDeleting={deleteMutation.isPending}
+      />
+
+      {/* Save Confirmation Dialog */}
+      <SaveConfirmation
+        open={saveConfirmation.isOpen}
+        onOpenChange={(isOpen) =>
+          setSaveConfirmation((prev) => ({ ...prev, isOpen }))
+        }
+        title={modalMode === "create" ? "Create Product" : "Update Product"}
+        itemName={saveConfirmation.data?.productName || ""}
+        operationType={modalMode === "create" ? "create" : "update"}
+        onConfirm={() => {
+          if (saveConfirmation.data) {
+            handleConfirmedFormSubmit(saveConfirmation.data)
+          }
+          setSaveConfirmation({
+            isOpen: false,
+            data: null,
+          })
+        }}
+        onCancel={() =>
+          setSaveConfirmation({
+            isOpen: false,
+            data: null,
+          })
+        }
+        isSaving={saveMutation.isPending || updateMutation.isPending}
       />
     </div>
   )

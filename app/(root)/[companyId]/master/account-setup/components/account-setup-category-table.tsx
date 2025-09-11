@@ -30,6 +30,7 @@ import {
   ColumnFiltersState,
   SortingState,
   VisibilityState,
+  flexRender,
   getCoreRowModel,
   getFilteredRowModel,
   getPaginationRowModel,
@@ -48,9 +49,10 @@ import {
   TableFooter,
   TableHeader,
 } from "@/components/ui/data-table"
-import { CustomTableBody } from "@/components/ui/data-table/data-table-body"
 import {
   Table,
+  TableBody,
+  TableCell,
   TableRow,
   TableHeader as TanstackTableHeader,
 } from "@/components/ui/table"
@@ -106,7 +108,6 @@ export function AccountSetupCategoryTable({
     if (gridSettings) {
       try {
         const colVisible = JSON.parse(gridSettings.grdColVisible || "{}")
-        const colOrder = JSON.parse(gridSettings.grdColOrder || "[]")
         const colSize = JSON.parse(gridSettings.grdColSize || "{}")
         const sort = JSON.parse(gridSettings.grdSort || "[]")
 
@@ -116,10 +117,6 @@ export function AccountSetupCategoryTable({
         // Apply column sizing if available
         if (Object.keys(colSize).length > 0) {
           setColumnSizing(colSize)
-        }
-
-        if (colOrder.length > 0) {
-          table.setColumnOrder(colOrder)
         }
       } catch (error) {
         console.error("Error parsing grid settings:", error)
@@ -264,10 +261,24 @@ export function AccountSetupCategoryTable({
     },
   })
 
+  // Apply column order after table is defined
+  useEffect(() => {
+    if (gridSettings && table) {
+      try {
+        const colOrder = JSON.parse(gridSettings.grdColOrder || "[]")
+        if (colOrder.length > 0) {
+          table.setColumnOrder(colOrder)
+        }
+      } catch (error) {
+        console.error("Error parsing column order:", error)
+      }
+    }
+  }, [gridSettings, table])
+
   const rowVirtualizer = useVirtualizer({
     count: table.getRowModel().rows.length,
     getScrollElement: () => tableContainerRef.current,
-    estimateSize: () => 48,
+    estimateSize: () => 40,
     overscan: 5,
   })
 
@@ -334,10 +345,10 @@ export function AccountSetupCategoryTable({
       }
       onFilterChange(filters)
     }
-  }, [sorting, searchQuery, data, onFilterChange])
+  }, [sorting, searchQuery, data?.length, onFilterChange])
 
   return (
-    <div>
+    <>
       <TableHeader
         searchQuery={searchQuery}
         onSearchChange={handleSearch}
@@ -353,42 +364,92 @@ export function AccountSetupCategoryTable({
         }
       />
 
-      <div
-        ref={tableContainerRef}
-        className="relative overflow-auto"
-        style={{ height: "490px" }}
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragEnd={handleDragEnd}
       >
-        <DndContext
-          sensors={sensors}
-          collisionDetection={closestCenter}
-          onDragEnd={handleDragEnd}
-        >
+        <div className="overflow-x-auto rounded-lg border">
           <Table>
-            <TanstackTableHeader className="bg-muted sticky top-0 z-10">
-              {table.getHeaderGroups().map((headerGroup) => (
-                <TableRow key={headerGroup.id}>
-                  <SortableContext
-                    items={headerGroup.headers.map((header) => header.id)}
-                    strategy={horizontalListSortingStrategy}
-                  >
-                    {headerGroup.headers.map((header) => (
-                      <DraggableColumnHeader key={header.id} header={header} />
-                    ))}
-                  </SortableContext>
-                </TableRow>
-              ))}
-            </TanstackTableHeader>
-            <CustomTableBody
-              table={table}
-              virtualRows={virtualRows}
-              paddingTop={paddingTop}
-              paddingBottom={paddingBottom}
-              isLoading={isLoading}
-              columns={columns}
-            />
+            {/* Header table */}
+            <Table className="w-full table-fixed border-collapse">
+              <colgroup>
+                {table.getAllLeafColumns().map((col) => (
+                  <col key={col.id} style={{ width: `${col.getSize()}px` }} />
+                ))}
+              </colgroup>
+              <TanstackTableHeader className="bg-background sticky top-0 z-20">
+                {table.getHeaderGroups().map((headerGroup) => (
+                  <TableRow key={headerGroup.id} className="bg-muted/50">
+                    <SortableContext
+                      items={headerGroup.headers.map((header) => header.id)}
+                      strategy={horizontalListSortingStrategy}
+                    >
+                      {headerGroup.headers.map((header) => (
+                        <DraggableColumnHeader
+                          key={header.id}
+                          header={header}
+                        />
+                      ))}
+                    </SortableContext>
+                  </TableRow>
+                ))}
+              </TanstackTableHeader>
+            </Table>
+
+            {/* Scrollable body table */}
+            <div
+              ref={tableContainerRef}
+              className="max-h-[500px] overflow-y-auto"
+            >
+              <Table className="w-full table-fixed border-collapse">
+                <colgroup>
+                  {table.getAllLeafColumns().map((col) => (
+                    <col key={col.id} style={{ width: `${col.getSize()}px` }} />
+                  ))}
+                </colgroup>
+                <TableBody>
+                  {virtualRows.length === 0 ? (
+                    <TableRow>
+                      <TableCell
+                        colSpan={columns.length}
+                        className="text-center"
+                      >
+                        {isLoading
+                          ? "Loading..."
+                          : "No account setup categories found."}
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    <>
+                      <tr style={{ height: `${paddingTop}px` }} />
+                      {virtualRows.map((virtualRow) => {
+                        const row = table.getRowModel().rows[virtualRow.index]
+                        return (
+                          <TableRow key={row.id}>
+                            {row.getVisibleCells().map((cell, cellIndex) => (
+                              <TableCell
+                                key={cell.id}
+                                className={`py-1 ${cellIndex === 0 ? "bg-background sticky left-0 z-10" : ""}`}
+                              >
+                                {flexRender(
+                                  cell.column.columnDef.cell,
+                                  cell.getContext()
+                                )}
+                              </TableCell>
+                            ))}
+                          </TableRow>
+                        )
+                      })}
+                      <tr style={{ height: `${paddingBottom}px` }} />
+                    </>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
           </Table>
-        </DndContext>
-      </div>
+        </div>
+      </DndContext>
 
       <TableFooter
         currentPage={currentPage}
@@ -399,6 +460,6 @@ export function AccountSetupCategoryTable({
         onPageSizeChange={handlePageSizeChange}
         pageSizeOptions={[10, 50, 100, 500]}
       />
-    </div>
+    </>
   )
 }

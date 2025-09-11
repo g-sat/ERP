@@ -17,7 +17,6 @@ import {
 } from "@/schemas/accountsetup"
 import { usePermissionStore } from "@/stores/permission-store"
 import { useQueryClient } from "@tanstack/react-query"
-import { toast } from "sonner"
 
 import { getData } from "@/lib/api-client"
 import {
@@ -37,6 +36,7 @@ import {
 import { Separator } from "@/components/ui/separator"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { DeleteConfirmation } from "@/components/delete-confirmation"
+import { SaveConfirmation } from "@/components/save-confirmation"
 import { DataTableSkeleton } from "@/components/skeleton/data-table-skeleton"
 import { LockSkeleton } from "@/components/skeleton/lock-skeleton"
 import { LoadExistingDialog } from "@/components/ui-custom/master-loadexisting-dialog"
@@ -213,6 +213,31 @@ export default function AccountSetupPage() {
     type: "setup",
   })
 
+  // State for save confirmations
+  const [saveConfirmationCategory, setSaveConfirmationCategory] = useState<{
+    isOpen: boolean
+    data: AccountSetupCategoryFormValues | null
+  }>({
+    isOpen: false,
+    data: null,
+  })
+
+  const [saveConfirmationSetup, setSaveConfirmationSetup] = useState<{
+    isOpen: boolean
+    data: AccountSetupFormValues | null
+  }>({
+    isOpen: false,
+    data: null,
+  })
+
+  const [saveConfirmationDt, setSaveConfirmationDt] = useState<{
+    isOpen: boolean
+    data: AccountSetupDtFormValues | null
+  }>({
+    isOpen: false,
+    data: null,
+  })
+
   // State for code availability check
   const [showLoadDialogCategory, setShowLoadDialogCategory] = useState(false)
   const [existingCategory, setExistingCategory] =
@@ -227,19 +252,19 @@ export default function AccountSetupPage() {
     if (filtersCategory.search !== undefined) {
       refetchCategory()
     }
-  }, [filtersCategory.search])
+  }, [filtersCategory.search, refetchCategory])
 
   useEffect(() => {
     if (filtersSetup.search !== undefined) {
       refetchSetup()
     }
-  }, [filtersSetup.search])
+  }, [filtersSetup.search, refetchSetup])
 
   useEffect(() => {
     if (filtersDt.search !== undefined) {
       refetchDt()
     }
-  }, [filtersDt.search])
+  }, [filtersDt.search, refetchDt])
 
   const handleCategorySelect = (category: IAccountSetupCategory | null) => {
     if (!category) return
@@ -273,53 +298,37 @@ export default function AccountSetupPage() {
     })
   }
 
-  const handleFormSubmitCategory = async (
+  // Handler for form submission (create or edit) - shows confirmation first
+  const handleFormSubmitCategory = (data: AccountSetupCategoryFormValues) => {
+    setSaveConfirmationCategory({
+      isOpen: true,
+      data: data,
+    })
+  }
+
+  // Handler for confirmed form submission
+  const handleConfirmedFormSubmitCategory = async (
     data: AccountSetupCategoryFormValues
   ) => {
     try {
       if (modalCategoryMode === "create") {
-        const response = (await saveMutationCategory.mutateAsync(
-          data
-        )) as ApiResponse<IAccountSetupCategory>
+        const response = await saveMutationCategory.mutateAsync(data)
         if (response.result === 1) {
-          toast.success(
-            response.message || "Account Setup Category created successfully"
-          )
           queryClient.invalidateQueries({
             queryKey: ["accountSetupCategories"],
-          }) // Triggers refetch
-          setIsModalCategoryOpen(false)
-        } else {
-          toast.error(
-            response.message || "Failed to create account setup category"
-          )
+          })
         }
       } else if (modalCategoryMode === "edit" && selectedCategory) {
-        const response = (await updateMutationCategory.mutateAsync(
-          data
-        )) as ApiResponse<IAccountSetupCategory>
+        const response = await updateMutationCategory.mutateAsync(data)
         if (response.result === 1) {
-          toast.success(
-            response.message || "Account Setup Category updated successfully"
-          )
           queryClient.invalidateQueries({
             queryKey: ["accountSetupCategories"],
-          }) // Triggers refetch
-          setIsModalCategoryOpen(false)
-        } else {
-          toast.error(
-            response.message || "Failed to update account setup category"
-          )
+          })
         }
       }
       setIsModalCategoryOpen(false)
     } catch (error) {
       console.error("Error in form submission:", error)
-      if (error instanceof Error) {
-        toast.error(error.message)
-      } else {
-        toast.error("An unexpected error occurred")
-      }
     }
   }
 
@@ -353,45 +362,35 @@ export default function AccountSetupPage() {
     })
   }
 
-  const handleFormSubmitSetup = async (data: AccountSetupFormValues) => {
+  // Handler for form submission (create or edit) - shows confirmation first
+  const handleFormSubmitSetup = (data: AccountSetupFormValues) => {
+    setSaveConfirmationSetup({
+      isOpen: true,
+      data: data,
+    })
+  }
+
+  // Handler for confirmed form submission
+  const handleConfirmedFormSubmitSetup = async (
+    data: AccountSetupFormValues
+  ) => {
     try {
       if (modalSetupMode === "create") {
-        const response = (await saveMutationSetup.mutateAsync(
-          data
-        )) as ApiResponse<IAccountSetup>
+        const response = await saveMutationSetup.mutateAsync(data)
         if (response.result === 1) {
-          toast.success(
-            response.message || "Account Setup created successfully"
-          )
           queryClient.invalidateQueries({
             queryKey: ["accountSetups"],
-          }) // Triggers refetch
-          setIsModalSetupOpen(false)
-        } else {
-          toast.error(response.message || "Failed to create account setup")
+          })
         }
       } else if (modalSetupMode === "edit" && selectedSetup) {
-        const response = (await updateMutationSetup.mutateAsync(
-          data
-        )) as ApiResponse<IAccountSetup>
+        const response = await updateMutationSetup.mutateAsync(data)
         if (response.result === 1) {
-          toast.success(
-            response.message || "Account Setup updated successfully"
-          )
-          queryClient.invalidateQueries({ queryKey: ["accountSetups"] }) // Triggers refetch
-          setIsModalSetupOpen(false)
-        } else {
-          toast.error(response.message || "Failed to update account setup")
+          queryClient.invalidateQueries({ queryKey: ["accountSetups"] })
         }
       }
       setIsModalSetupOpen(false)
     } catch (error) {
       console.error("Error in form submission:", error)
-      if (error instanceof Error) {
-        toast.error(error.message)
-      } else {
-        toast.error("An unexpected error occurred")
-      }
     }
   }
 
@@ -425,47 +424,33 @@ export default function AccountSetupPage() {
     })
   }
 
-  const handleFormSubmitDt = async (data: AccountSetupDtFormValues) => {
+  // Handler for form submission (create or edit) - shows confirmation first
+  const handleFormSubmitDt = (data: AccountSetupDtFormValues) => {
+    setSaveConfirmationDt({
+      isOpen: true,
+      data: data,
+    })
+  }
+
+  // Handler for confirmed form submission
+  const handleConfirmedFormSubmitDt = async (
+    data: AccountSetupDtFormValues
+  ) => {
     try {
       if (modalDtMode === "create") {
-        const response = (await saveMutationDt.mutateAsync(
-          data
-        )) as ApiResponse<IAccountSetupDt>
+        const response = await saveMutationDt.mutateAsync(data)
         if (response.result === 1) {
-          toast.success(
-            response.message || "Account Setup Detail created successfully"
-          )
-          queryClient.invalidateQueries({ queryKey: ["accountSetupDts"] }) // Triggers refetch
-          setIsModalDtOpen(false)
-        } else {
-          toast.error(
-            response.message || "Failed to create account setup detail"
-          )
+          queryClient.invalidateQueries({ queryKey: ["accountSetupDts"] })
         }
       } else if (modalDtMode === "edit" && selectedDt) {
-        const response = (await updateMutationDt.mutateAsync(
-          data
-        )) as ApiResponse<IAccountSetupDt>
+        const response = await updateMutationDt.mutateAsync(data)
         if (response.result === 1) {
-          toast.success(
-            response.message || "Account Setup Detail updated successfully"
-          )
-          queryClient.invalidateQueries({ queryKey: ["accountSetupDts"] }) // Triggers refetch
-          setIsModalDtOpen(false)
-        } else {
-          toast.error(
-            response.message || "Failed to update account setup detail"
-          )
+          queryClient.invalidateQueries({ queryKey: ["accountSetupDts"] })
         }
       }
       setIsModalDtOpen(false)
     } catch (error) {
       console.error("Error in form submission:", error)
-      if (error instanceof Error) {
-        toast.error(error.message)
-      } else {
-        toast.error("An unexpected error occurred")
-      }
     }
   }
 
@@ -473,24 +458,26 @@ export default function AccountSetupPage() {
     if (!deleteConfirmation.id) return
 
     let mutation
+    let queryKey
     switch (deleteConfirmation.type) {
       case "setup":
         mutation = deleteMutationSetup
+        queryKey = ["accountSetups"]
         break
       case "category":
         mutation = deleteMutationCategory
+        queryKey = ["accountSetupCategories"]
         break
       case "dt":
         mutation = deleteMutationDt
+        queryKey = ["accountSetupDts"]
         break
       default:
         return
     }
 
-    toast.promise(mutation.mutateAsync(deleteConfirmation.id), {
-      loading: `Deleting ${deleteConfirmation.name}...`,
-      success: `${deleteConfirmation.name} has been deleted`,
-      error: `Failed to delete ${deleteConfirmation.type}`,
+    mutation.mutateAsync(deleteConfirmation.id).then(() => {
+      queryClient.invalidateQueries({ queryKey })
     })
     setDeleteConfirmation({
       isOpen: false,
@@ -972,6 +959,99 @@ export default function AccountSetupPage() {
               ? deleteMutationCategory.isPending
               : deleteMutationDt.isPending
         }
+      />
+
+      {/* Save Confirmation Dialogs */}
+      <SaveConfirmation
+        open={saveConfirmationCategory.isOpen}
+        onOpenChange={(isOpen) =>
+          setSaveConfirmationCategory((prev) => ({ ...prev, isOpen }))
+        }
+        title={
+          modalCategoryMode === "create"
+            ? "Create Account Setup Category"
+            : "Update Account Setup Category"
+        }
+        itemName={saveConfirmationCategory.data?.accSetupCategoryName || ""}
+        operationType={modalCategoryMode === "create" ? "create" : "update"}
+        onConfirm={() => {
+          if (saveConfirmationCategory.data) {
+            handleConfirmedFormSubmitCategory(saveConfirmationCategory.data)
+          }
+          setSaveConfirmationCategory({
+            isOpen: false,
+            data: null,
+          })
+        }}
+        onCancel={() =>
+          setSaveConfirmationCategory({
+            isOpen: false,
+            data: null,
+          })
+        }
+        isSaving={
+          saveMutationCategory.isPending || updateMutationCategory.isPending
+        }
+      />
+
+      <SaveConfirmation
+        open={saveConfirmationSetup.isOpen}
+        onOpenChange={(isOpen) =>
+          setSaveConfirmationSetup((prev) => ({ ...prev, isOpen }))
+        }
+        title={
+          modalSetupMode === "create"
+            ? "Create Account Setup"
+            : "Update Account Setup"
+        }
+        itemName={saveConfirmationSetup.data?.accSetupName || ""}
+        operationType={modalSetupMode === "create" ? "create" : "update"}
+        onConfirm={() => {
+          if (saveConfirmationSetup.data) {
+            handleConfirmedFormSubmitSetup(saveConfirmationSetup.data)
+          }
+          setSaveConfirmationSetup({
+            isOpen: false,
+            data: null,
+          })
+        }}
+        onCancel={() =>
+          setSaveConfirmationSetup({
+            isOpen: false,
+            data: null,
+          })
+        }
+        isSaving={saveMutationSetup.isPending || updateMutationSetup.isPending}
+      />
+
+      <SaveConfirmation
+        open={saveConfirmationDt.isOpen}
+        onOpenChange={(isOpen) =>
+          setSaveConfirmationDt((prev) => ({ ...prev, isOpen }))
+        }
+        title={
+          modalDtMode === "create"
+            ? "Create Account Setup Detail"
+            : "Update Account Setup Detail"
+        }
+        itemName={saveConfirmationDt.data?.currencyId?.toString() || ""}
+        operationType={modalDtMode === "create" ? "create" : "update"}
+        onConfirm={() => {
+          if (saveConfirmationDt.data) {
+            handleConfirmedFormSubmitDt(saveConfirmationDt.data)
+          }
+          setSaveConfirmationDt({
+            isOpen: false,
+            data: null,
+          })
+        }}
+        onCancel={() =>
+          setSaveConfirmationDt({
+            isOpen: false,
+            data: null,
+          })
+        }
+        isSaving={saveMutationDt.isPending || updateMutationDt.isPending}
       />
     </div>
   )
