@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from "react"
 import { ApiResponse } from "@/interfaces/auth"
-import { ICountry, ICountryFilter } from "@/interfaces/country"
-import { CountryFiltersValues, CountryFormValues } from "@/schemas/country"
+import { ICountry } from "@/interfaces/country"
+import { CountryFormValues } from "@/schemas/country"
 import { usePermissionStore } from "@/stores/permission-store"
 import { useQueryClient } from "@tanstack/react-query"
 
@@ -12,7 +12,6 @@ import { MasterTransactionId, ModuleId } from "@/lib/utils"
 import {
   useDelete,
   useGet,
-  useGetById,
   useGetByParams,
   usePersist,
 } from "@/hooks/use-common"
@@ -41,16 +40,30 @@ export default function CountryPage() {
 
   const canEdit = hasPermission(moduleId, transactionId, "isEdit")
   const canDelete = hasPermission(moduleId, transactionId, "isDelete")
+  const canView = hasPermission(moduleId, transactionId, "isRead")
+  const canCreate = hasPermission(moduleId, transactionId, "isCreate")
+
+  // Debug: Log permissions
+  console.log("Country Page Permissions:", {
+    moduleId,
+    transactionId,
+    canEdit,
+    canDelete,
+    canView,
+    canCreate,
+  })
 
   // Fetch countries from the API using useGet
-  const [filters, setFilters] = useState<ICountryFilter>({})
+  const [filters, setFilters] = useState<{
+    search?: string
+    sortOrder?: string
+  }>({})
 
   // page.tsx
   const {
     data: countriesResponse,
     refetch,
     isLoading,
-    isRefetching,
   } = useGet<ICountry>(`${Country.get}`, "countries", filters.search)
 
   // Destructure with fallback values
@@ -88,11 +101,24 @@ export default function CountryPage() {
     countryName: null,
   })
 
+  // State for save confirmation
+  const [saveConfirmation, setSaveConfirmation] = useState<{
+    isOpen: boolean
+    data: CountryFormValues | null
+  }>({
+    isOpen: false,
+    data: null,
+  })
+
   // Add API call for checking code availability
   const { refetch: checkCodeAvailability } = useGetByParams<ICountry>(
     `${Country.getByCode}`,
     "countryByCode",
-    codeToCheck || ""
+    codeToCheck || "",
+    {
+      enabled: !!codeToCheck?.trim(), // Only call when codeToCheck is not empty
+      queryKey: ["countryByCode", codeToCheck || ""],
+    }
   )
 
   // Handler to Re-fetches data when called
@@ -123,30 +149,31 @@ export default function CountryPage() {
     setIsModalOpen(true)
   }
 
-  // Handler for form submission (create or edit)
-  const handleFormSubmit = async (data: CountryFormValues) => {
+  // Handler for form submission (create or edit) - shows confirmation first
+  const handleFormSubmit = (data: CountryFormValues) => {
+    setSaveConfirmation({
+      isOpen: true,
+      data: data,
+    })
+  }
+
+  // Handler for confirmed form submission
+  const handleConfirmedFormSubmit = async (data: CountryFormValues) => {
     try {
       if (modalMode === "create") {
-        // Create a new country using the save mutation
-        const response = (await saveMutation.mutateAsync(
-          data
-        )) as ApiResponse<ICountry>
-
+        const response = await saveMutation.mutateAsync(data)
         if (response.result === 1) {
-          queryClient.invalidateQueries({ queryKey: ["countries"] }) // Triggers refetch
-          setIsModalOpen(false)
+          // Invalidate and refetch the countries query
+          queryClient.invalidateQueries({ queryKey: ["countries"] })
         }
       } else if (modalMode === "edit" && selectedCountry) {
-        // Update the selected country using the update mutation
-        const response = (await updateMutation.mutateAsync(
-          data
-        )) as ApiResponse<ICountry>
-
+        const response = await updateMutation.mutateAsync(data)
         if (response.result === 1) {
-          queryClient.invalidateQueries({ queryKey: ["countries"] }) // Triggers refetch
-          setIsModalOpen(false)
+          // Invalidate and refetch the countries query
+          queryClient.invalidateQueries({ queryKey: ["countries"] })
         }
       }
+      setIsModalOpen(false)
     } catch (error) {
       console.error("Error in form submission:", error)
     }
@@ -282,7 +309,7 @@ export default function CountryPage() {
       </div>
 
       {/* Countries Table */}
-      {isLoading || isRefetching ? (
+      {isLoading ? (
         <DataTableSkeleton
           columnCount={7}
           filterCount={2}
@@ -297,29 +324,30 @@ export default function CountryPage() {
           ]}
           shrinkZero
         />
-      ) : countriesResult ? (
+      ) : countriesResult === 1 ||
+        (countriesdata && countriesdata.length > 0) ? (
         <CountriesTable
           data={countriesdata || []}
-          isLoading={isLoading || isRefetching}
-          onCountrySelect={handleViewCountry}
+          onCountrySelect={canView ? handleViewCountry : undefined}
           onDeleteCountry={canDelete ? handleDeleteCountry : undefined}
           onEditCountry={canEdit ? handleEditCountry : undefined}
-          onCreateCountry={handleCreateCountry}
-          onRefresh={() => {
-            handleRefresh()
-          }}
+          onCreateCountry={canCreate ? handleCreateCountry : undefined}
+          onRefresh={handleRefresh}
           onFilterChange={setFilters}
           moduleId={moduleId}
           transactionId={transactionId}
-
-          // onFilterChange={(filters) => {
-          //   toast.info("Filter applied", {
-          //     description: `Search: ${filters.search || "none"}, Sort: ${filters.sortBy || "none"} ${filters.sortOrder || ""}`,
-          //   })
-          // }}
+          // Pass permissions to table
+          canEdit={canEdit}
+          canDelete={canDelete}
+          canView={canView}
+          canCreate={canCreate}
         />
       ) : (
-        <div>No data available</div>
+        <div className="py-8 text-center">
+          <p className="text-muted-foreground">
+            {countriesResult === 0 ? "No data available" : "Loading..."}
+          </p>
+        </div>
       )}
 
       {/* Modal for Create, Edit, and View */}
@@ -377,6 +405,33 @@ export default function CountryPage() {
         name={existingCountry?.countryName}
         typeLabel="Country"
         isLoading={saveMutation.isPending || updateMutation.isPending}
+      />
+
+      {/* Save Confirmation Dialog */}
+      <SaveConfirmation
+        open={saveConfirmation.isOpen}
+        onOpenChange={(isOpen) =>
+          setSaveConfirmation((prev) => ({ ...prev, isOpen }))
+        }
+        title={modalMode === "create" ? "Create Country" : "Update Country"}
+        itemName={saveConfirmation.data?.countryName || ""}
+        operationType={modalMode === "create" ? "create" : "update"}
+        onConfirm={() => {
+          if (saveConfirmation.data) {
+            handleConfirmedFormSubmit(saveConfirmation.data)
+          }
+          setSaveConfirmation({
+            isOpen: false,
+            data: null,
+          })
+        }}
+        onCancel={() =>
+          setSaveConfirmation({
+            isOpen: false,
+            data: null,
+          })
+        }
+        isSaving={saveMutation.isPending || updateMutation.isPending}
       />
 
       {/* Delete Confirmation Dialog */}
