@@ -70,10 +70,10 @@ import {
   TableBody,
   // Table body component
   TableCell,
+  // Table row component
+  TableHeader, // Table header component (renamed to avoid conflicts)
   // Table cell component
   TableRow,
-  // Table row component
-  TableHeader as TanstackTableHeader, // Table header component (renamed to avoid conflicts)
 } from "@/components/ui/table"
 
 // Custom table components
@@ -578,7 +578,7 @@ export function MainDataTable<T>({
               </colgroup>
 
               {/* Sticky table header */}
-              <TanstackTableHeader className="bg-background sticky top-0 z-20">
+              <TableHeader className="bg-background sticky top-0 z-20">
                 {table.getHeaderGroups().map((headerGroup) => (
                   <TableRow key={headerGroup.id} className="bg-muted/50">
                     {/* Sortable context for drag and drop */}
@@ -593,7 +593,7 @@ export function MainDataTable<T>({
                     </SortableContext>
                   </TableRow>
                 ))}
-              </TanstackTableHeader>
+              </TableHeader>
             </Table>
 
             {/* ============================================================================
