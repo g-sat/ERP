@@ -111,19 +111,19 @@ export const useNotificationStore = create<NotificationState>()(
 
         // Initialize notification system with optimized loading order
         initialize: async () => {
-          console.log(
-            "🔔 [NotificationStore] Initializing notification system..."
-          )
+          // console.log(
+          //   "🔔 [NotificationStore] Initializing notification system..."
+          // )
           set({ isLoading: true, error: null })
 
           try {
             // Step 1: Load preferences first (critical for UI rendering)
-            console.log("📋 [NotificationStore] Step 1: Loading preferences...")
+            // console.log("📋 [NotificationStore] Step 1: Loading preferences...")
             try {
               await get().loadPreferences()
-              console.log(
-                "✅ [NotificationStore] Preferences loaded successfully"
-              )
+              // console.log(
+              //   "✅ [NotificationStore] Preferences loaded successfully"
+              // )
             } catch (error) {
               console.error(
                 "❌ [NotificationStore] Step 1 FAILED - Preferences API Error:",
@@ -135,14 +135,14 @@ export const useNotificationStore = create<NotificationState>()(
             }
 
             // Step 2: Load notifications (most important for user experience)
-            console.log(
-              "📬 [NotificationStore] Step 2: Loading notifications..."
-            )
+            // console.log(
+            //   "📬 [NotificationStore] Step 2: Loading notifications..."
+            // )
             try {
               await get().fetchNotifications()
-              console.log(
-                "✅ [NotificationStore] Notifications loaded successfully"
-              )
+              // console.log(
+              //   "✅ [NotificationStore] Notifications loaded successfully"
+              // )
             } catch (error) {
               console.error(
                 "❌ [NotificationStore] Step 2 FAILED - Notifications API Error:",
@@ -154,10 +154,10 @@ export const useNotificationStore = create<NotificationState>()(
             }
 
             // Step 3: Load stats (less critical, can be loaded last)
-            console.log("📊 [NotificationStore] Step 3: Loading stats...")
+            // console.log("📊 [NotificationStore] Step 3: Loading stats...")
             try {
               await get().fetchStats()
-              console.log("✅ [NotificationStore] Stats loaded successfully")
+              // console.log("✅ [NotificationStore] Stats loaded successfully")
             } catch (error) {
               console.error(
                 "❌ [NotificationStore] Step 3 FAILED - Stats API Error:",
@@ -168,9 +168,9 @@ export const useNotificationStore = create<NotificationState>()(
               )
             }
 
-            console.log(
-              "✅ [NotificationStore] Initialization completed successfully"
-            )
+            // console.log(
+            //   "✅ [NotificationStore] Initialization completed successfully"
+            // )
           } catch (error) {
             console.error(
               "❌ [NotificationStore] Initialization failed:",
@@ -195,7 +195,7 @@ export const useNotificationStore = create<NotificationState>()(
 
         // Reset store to initial state
         reset: () => {
-          console.log("🔄 [NotificationStore] Resetting store to initial state")
+          // console.log("🔄 [NotificationStore] Resetting store to initial state")
           set({
             isLoading: false,
             error: null,
@@ -220,7 +220,7 @@ export const useNotificationStore = create<NotificationState>()(
 
         // Test individual API endpoints
         testApi: async (apiName: "preferences" | "notifications" | "stats") => {
-          console.log(`🧪 [NotificationStore] Testing ${apiName} API...`)
+          // console.log(`🧪 [NotificationStore] Testing ${apiName} API...`)
           try {
             switch (apiName) {
               case "preferences":
@@ -233,7 +233,7 @@ export const useNotificationStore = create<NotificationState>()(
                 await get().fetchStats()
                 break
             }
-            console.log(`✅ [NotificationStore] ${apiName} API test PASSED`)
+            // console.log(`✅ [NotificationStore] ${apiName} API test PASSED`)
             return true
           } catch (error) {
             console.error(
@@ -248,24 +248,24 @@ export const useNotificationStore = create<NotificationState>()(
         updatePreferences: async (
           updates: Partial<NotificationPreferences>
         ) => {
-          console.log("🔔 [NotificationStore] Updating preferences:", updates)
+          // console.log("🔔 [NotificationStore] Updating preferences:", updates)
           set({ isLoading: true, error: null })
 
           try {
             const currentPreferences = get().preferences || defaultPreferences
             const newPreferences = { ...currentPreferences, ...updates }
-            console.log(
-              "📝 [NotificationStore] New preferences to save:",
-              newPreferences
-            )
+            // console.log(
+            //   "📝 [NotificationStore] New preferences to save:",
+            //   newPreferences
+            // )
 
             // Save to server
             await get().savePreferences(newPreferences)
 
             set({ preferences: newPreferences })
-            console.log(
-              "✅ [NotificationStore] Preferences updated successfully"
-            )
+            // console.log(
+            //   "✅ [NotificationStore] Preferences updated successfully"
+            // )
           } catch (error) {
             console.error(
               "❌ [NotificationStore] Failed to update preferences:",
@@ -284,9 +284,9 @@ export const useNotificationStore = create<NotificationState>()(
 
         // Fetch notifications
         fetchNotifications: async (pageNumber = 1, pageSize = 20) => {
-          console.log(
-            `🔔 [NotificationStore] Fetching notifications - Page: ${pageNumber}, Size: ${pageSize}`
-          )
+          // console.log(
+          //   `🔔 [NotificationStore] Fetching notifications - Page: ${pageNumber}, Size: ${pageSize}`
+          // )
 
           // Only set loading if not already loading (to avoid conflicts during initialization)
           if (!get().isLoading) {
@@ -295,17 +295,17 @@ export const useNotificationStore = create<NotificationState>()(
 
           try {
             const endpoint = `notifications/getnotifications?pageNumber=${pageNumber}&pageSize=${pageSize}`
-            console.log("🌐 [NotificationStore] API Endpoint:", endpoint)
+            // console.log("🌐 [NotificationStore] API Endpoint:", endpoint)
 
             const response = await getData(endpoint)
-            console.log("📡 [NotificationStore] API Response:", response)
+            // console.log("📡 [NotificationStore] API Response:", response)
 
             // Handle the expected response format: { result: 1, message: "Success", data: [...], totalRecords: 0 }
             if (response.result === 1) {
-              console.log(
-                "📊 [NotificationStore] Raw notifications data:",
-                response.data
-              )
+              // console.log(
+              //   "📊 [NotificationStore] Raw notifications data:",
+              //   response.data
+              // )
 
               // Ensure data is an array
               const notificationsArray = Array.isArray(response.data)
@@ -324,10 +324,10 @@ export const useNotificationStore = create<NotificationState>()(
                 })
               )
 
-              console.log(
-                "📅 [NotificationStore] Processed notifications:",
-                notificationsWithDates
-              )
+              // console.log(
+              //   "📅 [NotificationStore] Processed notifications:",
+              //   notificationsWithDates
+              // )
 
               // Extract counts from response or use defaults
               const totalCount =
@@ -342,15 +342,15 @@ export const useNotificationStore = create<NotificationState>()(
                 unreadCount: unreadCount,
               })
 
-              console.log(
-                "✅ [NotificationStore] Notifications fetched successfully"
-              )
-              console.log(
-                "📈 [NotificationStore] Stats - Total:",
-                totalCount,
-                "Unread:",
-                unreadCount
-              )
+              // console.log(
+              //   "✅ [NotificationStore] Notifications fetched successfully"
+              // )
+              // console.log(
+              //   "📈 [NotificationStore] Stats - Total:",
+              //   totalCount,
+              //   "Unread:",
+              //   unreadCount
+              // )
             } else {
               const errorMessage =
                 response.message || "Failed to fetch notifications"
@@ -378,21 +378,21 @@ export const useNotificationStore = create<NotificationState>()(
 
         // Get notification by ID
         getNotificationById: async (notificationId: string) => {
-          console.log(
-            `🔔 [NotificationStore] Getting notification by ID: ${notificationId}`
-          )
+          // console.log(
+          //   `🔔 [NotificationStore] Getting notification by ID: ${notificationId}`
+          // )
           try {
             const endpoint = `notifications/getnotificationbyid?notificationId=${notificationId}`
-            console.log("🌐 [NotificationStore] API Endpoint:", endpoint)
+            // console.log("🌐 [NotificationStore] API Endpoint:", endpoint)
 
             const response = await getData(endpoint)
-            console.log("📡 [NotificationStore] API Response:", response)
+            // console.log("📡 [NotificationStore] API Response:", response)
 
             if (response.result === 1) {
-              console.log(
-                "📊 [NotificationStore] Raw notification data:",
-                response.data
-              )
+              // console.log(
+              //   "📊 [NotificationStore] Raw notification data:",
+              //   response.data
+              // )
 
               const notification = response.data
               // Convert string dates back to Date objects
@@ -405,13 +405,13 @@ export const useNotificationStore = create<NotificationState>()(
                   : undefined,
               } as NotificationHistory
 
-              console.log(
-                "📅 [NotificationStore] Processed notification:",
-                processedNotification
-              )
-              console.log(
-                "✅ [NotificationStore] Notification fetched successfully"
-              )
+              // console.log(
+              //   "📅 [NotificationStore] Processed notification:",
+              //   processedNotification
+              // )
+              // console.log(
+              //   "✅ [NotificationStore] Notification fetched successfully"
+              // )
 
               return processedNotification
             } else {
@@ -436,21 +436,21 @@ export const useNotificationStore = create<NotificationState>()(
         saveNotification: async (
           notification: Partial<NotificationHistory>
         ) => {
-          console.log(
-            "🔔 [NotificationStore] Saving notification:",
-            notification
-          )
+          // console.log(
+          //   "🔔 [NotificationStore] Saving notification:",
+          //   notification
+          // )
           try {
             const endpoint = `notifications/savenotification`
-            console.log("🌐 [NotificationStore] API Endpoint:", endpoint)
+            // console.log("🌐 [NotificationStore] API Endpoint:", endpoint)
 
             const response = await saveData(endpoint, notification)
-            console.log("📡 [NotificationStore] API Response:", response)
+            // console.log("📡 [NotificationStore] API Response:", response)
 
             if (response.result === 1) {
-              console.log(
-                "✅ [NotificationStore] Notification saved successfully"
-              )
+              // console.log(
+              //   "✅ [NotificationStore] Notification saved successfully"
+              // )
               // If successful, refresh the notifications list
               await get().fetchNotifications()
             } else {
@@ -473,22 +473,22 @@ export const useNotificationStore = create<NotificationState>()(
 
         // Mark notification as read
         markAsRead: async (notificationId: string) => {
-          console.log(
-            `🔔 [NotificationStore] Marking notification as read: ${notificationId}`
-          )
+          // console.log(
+          //   `🔔 [NotificationStore] Marking notification as read: ${notificationId}`
+          // )
           try {
             const endpoint = `notifications/markread`
             const payload = { notificationId }
-            console.log("🌐 [NotificationStore] API Endpoint:", endpoint)
-            console.log("📤 [NotificationStore] Request payload:", payload)
+            // console.log("🌐 [NotificationStore] API Endpoint:", endpoint)
+            // console.log("📤 [NotificationStore] Request payload:", payload)
 
             const response = await saveData(endpoint, payload)
-            console.log("📡 [NotificationStore] API Response:", response)
+            // console.log("📡 [NotificationStore] API Response:", response)
 
             if (response.result === 1) {
-              console.log(
-                "✅ [NotificationStore] Notification marked as read successfully"
-              )
+              // console.log(
+              //   "✅ [NotificationStore] Notification marked as read successfully"
+              // )
               get().updateNotification(notificationId, {
                 status: "read",
                 readDate: new Date(),
@@ -512,20 +512,20 @@ export const useNotificationStore = create<NotificationState>()(
 
         // Mark all notifications as read
         markAllAsRead: async () => {
-          console.log(
-            "🔔 [NotificationStore] Marking all notifications as read"
-          )
+          // console.log(
+          //   "🔔 [NotificationStore] Marking all notifications as read"
+          // )
           try {
             const endpoint = `notifications/markallread`
-            console.log("🌐 [NotificationStore] API Endpoint:", endpoint)
+            // console.log("🌐 [NotificationStore] API Endpoint:", endpoint)
 
             const response = await saveData(endpoint, {})
-            console.log("📡 [NotificationStore] API Response:", response)
+            // console.log("📡 [NotificationStore] API Response:", response)
 
             if (response.result === 1) {
-              console.log(
-                "✅ [NotificationStore] All notifications marked as read successfully"
-              )
+              // console.log(
+              //   "✅ [NotificationStore] All notifications marked as read successfully"
+              // )
               const updatedNotifications = get().notifications.map(
                 (notification) => ({
                   ...notification,
@@ -556,22 +556,22 @@ export const useNotificationStore = create<NotificationState>()(
 
         // Delete notification
         deleteNotification: async (notificationId: string) => {
-          console.log(
-            `🔔 [NotificationStore] Deleting notification: ${notificationId}`
-          )
+          // console.log(
+          //   `🔔 [NotificationStore] Deleting notification: ${notificationId}`
+          // )
           try {
             const endpoint = `notifications/delete`
             const payload = { notificationId }
-            console.log("🌐 [NotificationStore] API Endpoint:", endpoint)
-            console.log("📤 [NotificationStore] Request payload:", payload)
+            // console.log("🌐 [NotificationStore] API Endpoint:", endpoint)
+            // console.log("📤 [NotificationStore] Request payload:", payload)
 
             const response = await saveData(endpoint, payload)
-            console.log("📡 [NotificationStore] API Response:", response)
+            // console.log("📡 [NotificationStore] API Response:", response)
 
             if (response.result === 1) {
-              console.log(
-                "✅ [NotificationStore] Notification deleted successfully"
-              )
+              // console.log(
+              //   "✅ [NotificationStore] Notification deleted successfully"
+              // )
               get().removeNotification(notificationId)
             } else {
               const errorMessage =
@@ -591,18 +591,18 @@ export const useNotificationStore = create<NotificationState>()(
 
         // Clear all notifications
         clearAllNotifications: async () => {
-          console.log("🔔 [NotificationStore] Clearing all notifications")
+          // console.log("🔔 [NotificationStore] Clearing all notifications")
           try {
             const endpoint = `notifications/clearall`
-            console.log("🌐 [NotificationStore] API Endpoint:", endpoint)
+            // console.log("🌐 [NotificationStore] API Endpoint:", endpoint)
 
             const response = await saveData(endpoint, {})
-            console.log("📡 [NotificationStore] API Response:", response)
+            // console.log("📡 [NotificationStore] API Response:", response)
 
             if (response.result === 1) {
-              console.log(
-                "✅ [NotificationStore] All notifications cleared successfully"
-              )
+              // console.log(
+              //   "✅ [NotificationStore] All notifications cleared successfully"
+              // )
               set({
                 notifications: [],
                 unreadCount: 0,
@@ -626,18 +626,18 @@ export const useNotificationStore = create<NotificationState>()(
 
         // Fetch notification stats
         fetchStats: async () => {
-          console.log("🔔 [NotificationStore] Fetching notification stats")
+          // console.log("🔔 [NotificationStore] Fetching notification stats")
           try {
             const endpoint = `notifications/stats`
-            console.log("🌐 [NotificationStore] API Endpoint:", endpoint)
+            // console.log("🌐 [NotificationStore] API Endpoint:", endpoint)
 
             const response = await getData(endpoint)
-            console.log("📡 [NotificationStore] API Response:", response)
+            // console.log("📡 [NotificationStore] API Response:", response)
 
             if (response.result === 1) {
-              console.log("📊 [NotificationStore] Stats data:", response.data)
+              // console.log("📊 [NotificationStore] Stats data:", response.data)
               set({ stats: response.data })
-              console.log("✅ [NotificationStore] Stats fetched successfully")
+              // console.log("✅ [NotificationStore] Stats fetched successfully")
             } else {
               const errorMessage =
                 response.message || "Failed to fetch notification stats"
@@ -656,10 +656,10 @@ export const useNotificationStore = create<NotificationState>()(
 
         // Local state updates
         addNotification: (notification: NotificationHistory) => {
-          console.log(
-            "🔔 [NotificationStore] Adding notification locally:",
-            notification
-          )
+          // console.log(
+          //   "🔔 [NotificationStore] Adding notification locally:",
+          //   notification
+          // )
           set((state) => ({
             notifications: [notification, ...state.notifications],
             totalCount: state.totalCount + 1,
@@ -672,10 +672,10 @@ export const useNotificationStore = create<NotificationState>()(
           notificationId: string,
           updates: Partial<NotificationHistory>
         ) => {
-          console.log(
-            `🔔 [NotificationStore] Updating notification locally: ${notificationId}`,
-            updates
-          )
+          // console.log(
+          //   `🔔 [NotificationStore] Updating notification locally: ${notificationId}`,
+          //   updates
+          // )
           set((state) => ({
             notifications: state.notifications.map((notification) =>
               notification.id === notificationId
@@ -686,9 +686,9 @@ export const useNotificationStore = create<NotificationState>()(
         },
 
         removeNotification: (notificationId: string) => {
-          console.log(
-            `🔔 [NotificationStore] Removing notification locally: ${notificationId}`
-          )
+          // console.log(
+          //   `🔔 [NotificationStore] Removing notification locally: ${notificationId}`
+          // )
           set((state) => {
             const notification = state.notifications.find(
               (n) => n.id === notificationId
@@ -708,44 +708,44 @@ export const useNotificationStore = create<NotificationState>()(
         },
 
         setUnreadCount: (count: number) => {
-          console.log(`🔔 [NotificationStore] Setting unread count: ${count}`)
+          // console.log(`🔔 [NotificationStore] Setting unread count: ${count}`)
           set({ unreadCount: count })
         },
 
         setError: (error: string | null) => {
-          console.log(`🔔 [NotificationStore] Setting error: ${error}`)
+          // console.log(`🔔 [NotificationStore] Setting error: ${error}`)
           set({ error })
         },
 
         setLoading: (loading: boolean) => {
-          console.log(`🔔 [NotificationStore] Setting loading: ${loading}`)
+          // console.log(`🔔 [NotificationStore] Setting loading: ${loading}`)
           set({ isLoading: loading })
         },
 
         // Helper methods (not exposed in interface)
         loadPreferences: async () => {
-          console.log("🔔 [NotificationStore] Loading preferences")
+          // console.log("🔔 [NotificationStore] Loading preferences")
           try {
             const endpoint = `notifications/getpreferences`
-            console.log("🌐 [NotificationStore] API Endpoint:", endpoint)
+            // console.log("🌐 [NotificationStore] API Endpoint:", endpoint)
 
             const response = await getData(endpoint)
-            console.log("📡 [NotificationStore] API Response:", response)
+            // console.log("📡 [NotificationStore] API Response:", response)
 
             if (response.result === 1) {
-              console.log(
-                "📊 [NotificationStore] Preferences data:",
-                response.data
-              )
+              // console.log(
+              //   "📊 [NotificationStore] Preferences data:",
+              //   response.data
+              // )
               set({ preferences: response.data })
-              console.log(
-                "✅ [NotificationStore] Preferences loaded successfully"
-              )
+              // console.log(
+              //   "✅ [NotificationStore] Preferences loaded successfully"
+              // )
             } else {
-              const errorMessage = response.message || "No preferences found"
-              console.log(
-                `⚠️ [NotificationStore] ${errorMessage}, using defaults`
-              )
+              // const errorMessage = response.message || "No preferences found"
+              // console.log(
+              //   `⚠️ [NotificationStore] ${errorMessage}, using defaults`
+              // )
               // Use default preferences if no settings found
               set({ preferences: defaultPreferences })
             }
@@ -754,26 +754,26 @@ export const useNotificationStore = create<NotificationState>()(
               "❌ [NotificationStore] Failed to load preferences:",
               error
             )
-            console.log(
-              "⚠️ [NotificationStore] Using default preferences due to error"
-            )
+            // console.log(
+            //   "⚠️ [NotificationStore] Using default preferences due to error"
+            // )
             set({ preferences: defaultPreferences })
           }
         },
 
         savePreferences: async (preferences: NotificationPreferences) => {
-          console.log("🔔 [NotificationStore] Saving preferences:", preferences)
+          // console.log("🔔 [NotificationStore] Saving preferences:", preferences)
           try {
             const endpoint = `notifications/savepreferences`
-            console.log("🌐 [NotificationStore] API Endpoint:", endpoint)
+            // console.log("🌐 [NotificationStore] API Endpoint:", endpoint)
 
             const response = await saveData(endpoint, preferences)
-            console.log("📡 [NotificationStore] API Response:", response)
+            // console.log("📡 [NotificationStore] API Response:", response)
 
             if (response.result === 1) {
-              console.log(
-                "✅ [NotificationStore] Preferences saved successfully"
-              )
+              // console.log(
+              //   "✅ [NotificationStore] Preferences saved successfully"
+              // )
             } else {
               const errorMessage =
                 response.message || "Failed to save preferences"

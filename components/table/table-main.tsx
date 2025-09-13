@@ -195,23 +195,6 @@ export function MainDataTable<T>({
   canDelete = true, // Delete permission
 }: MainDataTableProps<T>) {
   // ============================================================================
-  // STATE MANAGEMENT
-  // ============================================================================
-
-  // Table state management using React hooks
-  const [sorting, setSorting] = useState<SortingState>([]) // Current sorting configuration
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]) // Active column filters
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({}) // Column visibility state
-  const [columnSizing, setColumnSizing] = useState({}) // Column width settings
-  const [searchQuery, setSearchQuery] = useState("") // Global search query
-  const [currentPage, setCurrentPage] = useState(1) // Current page number
-  const [pageSize, setPageSize] = useState(10) // Number of items per page
-  const [rowSelection, setRowSelection] = useState({}) // Selected rows state
-
-  // Reference to table container for virtual scrolling
-  const tableContainerRef = useRef<HTMLDivElement>(null)
-
-  // ============================================================================
   // GRID LAYOUT SETTINGS
   // ============================================================================
 
@@ -223,36 +206,108 @@ export function MainDataTable<T>({
     tableName // Table name for settings lookup
   )
 
+  //console.log(gridSettings, "gridSettings")
+
+  const gridSettingsData = gridSettings?.data
+
   // ============================================================================
-  // EFFECT: LOAD SAVED GRID SETTINGS
+  // STATE MANAGEMENT WITH GRID SETTINGS
+  // ============================================================================
+
+  // Initialize table state with grid settings if available
+  const getInitialSorting = (): SortingState => {
+    if (gridSettingsData?.grdSort) {
+      try {
+        return JSON.parse(gridSettingsData.grdSort) || []
+      } catch {
+        return []
+      }
+    }
+    return []
+  }
+
+  const getInitialColumnVisibility = (): VisibilityState => {
+    if (gridSettingsData?.grdColVisible) {
+      try {
+        return JSON.parse(gridSettingsData.grdColVisible) || {}
+      } catch {
+        return {}
+      }
+    }
+    return {}
+  }
+
+  const getInitialColumnSizing = () => {
+    if (gridSettingsData?.grdColSize) {
+      try {
+        return JSON.parse(gridSettingsData.grdColSize) || {}
+      } catch {
+        return {}
+      }
+    }
+    return {}
+  }
+
+  // Table state management using React hooks with grid settings initialization
+  const [sorting, setSorting] = useState<SortingState>(getInitialSorting) // Current sorting configuration
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]) // Active column filters
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(
+    getInitialColumnVisibility
+  ) // Column visibility state
+  const [columnSizing, setColumnSizing] = useState(getInitialColumnSizing) // Column width settings
+  const [searchQuery, setSearchQuery] = useState("") // Global search query
+  const [currentPage, setCurrentPage] = useState(1) // Current page number
+  const [pageSize, setPageSize] = useState(10) // Number of items per page
+  const [rowSelection, setRowSelection] = useState({}) // Selected rows state
+
+  // Reference to table container for virtual scrolling
+  const tableContainerRef = useRef<HTMLDivElement>(null)
+
+  // ============================================================================
+  // EFFECT: UPDATE STATE WHEN GRID SETTINGS CHANGE
   // ============================================================================
 
   /**
-   * Load and apply saved grid layout settings when they become available
-   * This includes column visibility, sizing, and sorting preferences
+   * Update table state when grid settings change (for dynamic updates)
+   * This handles cases where grid settings are loaded after component mount
    */
   useEffect(() => {
-    if (gridSettings) {
+    if (gridSettingsData) {
       try {
         // Parse saved settings from JSON strings
-        const colVisible = JSON.parse(gridSettings.grdColVisible || "{}") // Column visibility settings
-        const colSize = JSON.parse(gridSettings.grdColSize || "{}") // Column width settings
-        const sort = JSON.parse(gridSettings.grdSort || "[]") // Sorting configuration
+        const colVisible = JSON.parse(gridSettingsData.grdColVisible || "{}") // Column visibility settings
+        const colSize = JSON.parse(gridSettingsData.grdColSize || "{}") // Column width settings
+        const sort = JSON.parse(gridSettingsData.grdSort || "[]") // Sorting configuration
 
-        // Apply the parsed settings to component state
-        setColumnVisibility(colVisible) // Set which columns are visible
-        setSorting(sort) // Set current sorting
+        // Update state only if it's different from current state
+        setColumnVisibility((prev) => {
+          const newVisibility =
+            JSON.stringify(prev) !== JSON.stringify(colVisible)
+              ? colVisible
+              : prev
+          return newVisibility
+        })
+
+        setSorting((prev) => {
+          const newSorting =
+            JSON.stringify(prev) !== JSON.stringify(sort) ? sort : prev
+          return newSorting
+        })
 
         // Apply column sizing if available (only if there are saved sizes)
         if (Object.keys(colSize).length > 0) {
-          setColumnSizing(colSize) // Set column widths
+          setColumnSizing((prev: Record<string, number>) => {
+            const newSizing =
+              JSON.stringify(prev) !== JSON.stringify(colSize) ? colSize : prev
+            return newSizing
+          })
         }
       } catch (error) {
         // Handle JSON parsing errors gracefully
         console.error("Error parsing grid settings:", error)
       }
     }
-  }, [gridSettings]) // Re-run when grid settings change
+  }, [gridSettingsData]) // Re-run when grid settings change
 
   // ============================================================================
   // COLUMN CONFIGURATION
@@ -272,12 +327,13 @@ export function MainDataTable<T>({
             id: "actions", // Unique identifier for the actions column
             header: "Actions", // Column header text
             enableHiding: false, // Actions column cannot be hidden
-            size: 100, // Default column width
+            size: 120, // Default column width
             minSize: 80, // Minimum allowed width
             maxSize: 150, // Maximum allowed width
             cell: (
               { row } // Cell renderer function
             ) => (
+              //I'll add more actions here later
               <DataTableActions
                 row={row.original} // Pass the row data
                 idAccessor={accessorId} // Pass the ID accessor key
@@ -363,10 +419,10 @@ export function MainDataTable<T>({
    * requires the table instance to be available
    */
   useEffect(() => {
-    if (gridSettings && table) {
+    if (gridSettingsData && table) {
       try {
         // Parse saved column order from JSON string
-        const colOrder = JSON.parse(gridSettings.grdColOrder || "[]")
+        const colOrder = JSON.parse(gridSettingsData.grdColOrder || "[]")
 
         // Apply column order if there are saved column positions
         if (colOrder.length > 0) {
@@ -377,7 +433,7 @@ export function MainDataTable<T>({
         console.error("Error parsing column order:", error)
       }
     }
-  }, [gridSettings, table]) // Re-run when grid settings or table instance changes
+  }, [gridSettingsData, table]) // Re-run when grid settings or table instance changes
 
   // ============================================================================
   // VIRTUAL SCROLLING SETUP

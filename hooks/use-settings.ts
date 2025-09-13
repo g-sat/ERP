@@ -389,15 +389,6 @@ export const useGetGridLayout = (
   transactionId: string,
   gridName: string
 ) => {
-  // Debug logging for useGetGridLayout
-  console.log("🔍 useGetGridLayout Debug:", {
-    moduleId,
-    transactionId,
-    gridName,
-    moduleIdType: typeof moduleId,
-    transactionIdType: typeof transactionId,
-  })
-
   return useQuery({
     queryKey: ["gridlayout", moduleId, transactionId, gridName],
     placeholderData: keepPreviousData,
