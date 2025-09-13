@@ -34,6 +34,8 @@ export default function PortPage() {
 
   const canEdit = hasPermission(moduleId, transactionId, "isEdit")
   const canDelete = hasPermission(moduleId, transactionId, "isDelete")
+  const canView = hasPermission(moduleId, transactionId, "isRead")
+  const canCreate = hasPermission(moduleId, transactionId, "isCreate")
 
   const [filters, setFilters] = useState<IPortFilter>({})
   const {
@@ -106,25 +108,38 @@ export default function PortPage() {
     setIsModalOpen(true)
   }
 
-  const handleFormSubmit = async (data: PortFormValues) => {
+  // State for save confirmation
+  const [saveConfirmation, setSaveConfirmation] = useState<{
+    isOpen: boolean
+    data: PortFormValues | null
+  }>({
+    isOpen: false,
+    data: null,
+  })
+
+  // Handler for form submission (create or edit) - shows confirmation first
+  const handleFormSubmit = (data: PortFormValues) => {
+    setSaveConfirmation({
+      isOpen: true,
+      data: data,
+    })
+  }
+
+  // Handler for confirmed form submission
+  const handleConfirmedFormSubmit = async (data: PortFormValues) => {
     try {
       if (modalMode === "create") {
-        const response = (await saveMutation.mutateAsync(
-          data
-        )) as ApiResponse<IPort>
+        const response = await saveMutation.mutateAsync(data)
         if (response.result === 1) {
           queryClient.invalidateQueries({ queryKey: ["ports"] })
-          setIsModalOpen(false)
         }
       } else if (modalMode === "edit" && selectedPort) {
-        const response = (await updateMutation.mutateAsync(
-          data
-        )) as ApiResponse<IPort>
+        const response = await updateMutation.mutateAsync(data)
         if (response.result === 1) {
           queryClient.invalidateQueries({ queryKey: ["ports"] })
-          setIsModalOpen(false)
         }
       }
+      setIsModalOpen(false)
     } catch (error) {
       console.error("Error in form submission:", error)
     }
@@ -261,19 +276,26 @@ export default function PortPage() {
       ) : portsResult ? (
         <PortsTable
           data={portsData || []}
-          onPortSelect={handleViewPort}
-          onDeletePort={canDelete ? handleDeletePort : undefined}
-          onEditPort={canEdit ? handleEditPort : undefined}
-          onCreatePort={handleCreatePort}
-          onRefresh={() => {
-            handleRefresh()
-          }}
+          onSelect={canView ? handleViewPort : undefined}
+          onDelete={canDelete ? handleDeletePort : undefined}
+          onEdit={canEdit ? handleEditPort : undefined}
+          onCreate={canCreate ? handleCreatePort : undefined}
+          onRefresh={handleRefresh}
           onFilterChange={setFilters}
           moduleId={moduleId}
           transactionId={transactionId}
+          // Pass permissions to table
+          canEdit={canEdit}
+          canDelete={canDelete}
+          canView={canView}
+          canCreate={canCreate}
         />
       ) : (
-        <div>No data available</div>
+        <div className="py-8 text-center">
+          <p className="text-muted-foreground">
+            {portsResult === 0 ? "No data available" : "Loading..."}
+          </p>
+        </div>
       )}
 
       <Dialog
@@ -346,6 +368,33 @@ export default function PortPage() {
           })
         }
         isDeleting={deleteMutation.isPending}
+      />
+
+      {/* Save Confirmation Dialog */}
+      <SaveConfirmation
+        open={saveConfirmation.isOpen}
+        onOpenChange={(isOpen) =>
+          setSaveConfirmation((prev) => ({ ...prev, isOpen }))
+        }
+        title={modalMode === "create" ? "Create Port" : "Update Port"}
+        itemName={saveConfirmation.data?.portName || ""}
+        operationType={modalMode === "create" ? "create" : "update"}
+        onConfirm={() => {
+          if (saveConfirmation.data) {
+            handleConfirmedFormSubmit(saveConfirmation.data)
+          }
+          setSaveConfirmation({
+            isOpen: false,
+            data: null,
+          })
+        }}
+        onCancel={() =>
+          setSaveConfirmation({
+            isOpen: false,
+            data: null,
+          })
+        }
+        isSaving={saveMutation.isPending || updateMutation.isPending}
       />
     </div>
   )

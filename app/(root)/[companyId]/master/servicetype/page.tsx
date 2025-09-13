@@ -545,22 +545,22 @@ export default function ServiceTypePage() {
               <ServiceTypeCategoryTable
                 data={servicetypesCategoryData}
                 isLoading={isLoadingServiceTypeCategory}
-                onServiceTypeCategorySelect={handleViewServiceTypeCategory}
-                onDeleteServiceTypeCategory={
+                onSelect={handleViewServiceTypeCategory}
+                onDelete={
                   canDeleteCategory
                     ? handleDeleteServiceTypeCategory
                     : undefined
                 }
-                onEditServiceTypeCategory={
+                onEdit={
                   canEditCategory ? handleEditServiceTypeCategory : undefined
                 }
-                onCreateServiceTypeCategory={
+                onCreate={
                   canCreateCategory
                     ? handleCreateServiceTypeCategory
                     : undefined
                 }
                 onRefresh={refetchServiceTypeCategory}
-                onFilterChange={setCategoryFilters}
+                onFilterChange={(filters) => setCategoryFilters(filters)}
                 moduleId={moduleId}
                 transactionId={transactionId}
               />
@@ -569,18 +569,18 @@ export default function ServiceTypePage() {
             <ServiceTypeCategoryTable
               data={servicetypesCategoryData}
               isLoading={isLoadingServiceTypeCategory}
-              onServiceTypeCategorySelect={handleViewServiceTypeCategory}
-              onDeleteServiceTypeCategory={
+              onSelect={handleViewServiceTypeCategory}
+              onDelete={
                 canDeleteCategory ? handleDeleteServiceTypeCategory : undefined
               }
-              onEditServiceTypeCategory={
+              onEdit={
                 canEditCategory ? handleEditServiceTypeCategory : undefined
               }
-              onCreateServiceTypeCategory={
+              onCreate={
                 canCreateCategory ? handleCreateServiceTypeCategory : undefined
               }
               onRefresh={refetchServiceTypeCategory}
-              onFilterChange={setCategoryFilters}
+              onFilterChange={(filters) => setCategoryFilters(filters)}
               moduleId={moduleId}
               transactionId={transactionId}
             />

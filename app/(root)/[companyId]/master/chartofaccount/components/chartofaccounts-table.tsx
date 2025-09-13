@@ -1,141 +1,60 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
 import {
   IChartofAccount,
   IChartofAccountFilter,
 } from "@/interfaces/chartofaccount"
 import { useAuthStore } from "@/stores/auth-store"
 import {
-  DndContext,
-  DragEndEvent,
-  KeyboardSensor,
-  MouseSensor,
-  TouchSensor,
-  closestCenter,
-  useSensor,
-  useSensors,
-} from "@dnd-kit/core"
-import {
-  SortableContext,
-  arrayMove,
-  horizontalListSortingStrategy,
-} from "@dnd-kit/sortable"
-import {
   IconCircleCheckFilled,
   IconSquareRoundedXFilled,
 } from "@tabler/icons-react"
-import {
-  ColumnDef,
-  ColumnFiltersState,
-  SortingState,
-  VisibilityState,
-  flexRender,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-  useReactTable,
-} from "@tanstack/react-table"
-import { useVirtualizer } from "@tanstack/react-virtual"
+import { ColumnDef } from "@tanstack/react-table"
 import { format, isValid } from "date-fns"
 
-import { MasterTransactionId, TableName } from "@/lib/utils"
-import { useGetGridLayout } from "@/hooks/use-settings"
+import { TableName } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
-import {
-  DraggableColumnHeader,
-  TableActions,
-  TableFooter,
-  TableHeader,
-} from "@/components/ui/data-table"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableRow,
-  TableHeader as TanstackTableHeader,
-} from "@/components/ui/table"
+import { MainDataTable } from "@/components/table/table-main"
 
 interface ChartOfAccountsTableProps {
   data: IChartofAccount[]
   isLoading?: boolean
-  onChartOfAccountSelect?: (chartOfAccount: IChartofAccount | null) => void
-  onDeleteChartOfAccount?: (chartOfAccountId: number) => void
-  onEditChartOfAccount?: (chartOfAccount: IChartofAccount) => void
-  onCreateChartOfAccount?: () => void
+  onSelect?: (chartOfAccount: IChartofAccount | null) => void
+  onDelete?: (chartOfAccountId: string) => void
+  onEdit?: (chartOfAccount: IChartofAccount) => void
+  onCreate?: () => void
   onRefresh?: () => void
-  onFilterChange?: (filters: IChartofAccountFilter) => void
+  onFilterChange?: (filters: { search?: string; sortOrder?: string }) => void
   moduleId?: number
   transactionId?: number
+  // Permission props
+  canView?: boolean
+  canCreate?: boolean
+  canEdit?: boolean
+  canDelete?: boolean
 }
 
 export function ChartOfAccountsTable({
   data,
   isLoading = false,
-  onChartOfAccountSelect,
-  onDeleteChartOfAccount,
-  onEditChartOfAccount,
-  onCreateChartOfAccount,
+  onSelect,
+  onDelete,
+  onEdit,
+  onCreate,
   onRefresh,
   onFilterChange,
   moduleId,
   transactionId,
+  // Permission props
+  canView = true,
+  canCreate = true,
+  canEdit = true,
+  canDelete = true,
 }: ChartOfAccountsTableProps) {
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
-  const [sorting, setSorting] = useState<SortingState>([])
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
-  const [columnSizing, setColumnSizing] = useState({})
-  const [searchQuery, setSearchQuery] = useState("")
-  const [currentPage, setCurrentPage] = useState(1)
-  const [pageSize, setPageSize] = useState(10)
-  const [rowSelection, setRowSelection] = useState({})
-  const tableContainerRef = useRef<HTMLDivElement>(null)
-
-  const { data: gridSettings } = useGetGridLayout(
-    moduleId?.toString() || "",
-    transactionId?.toString() || "",
-    TableName.chart_of_account
-  )
-
-  useEffect(() => {
-    if (gridSettings) {
-      try {
-        const colVisible = JSON.parse(gridSettings.grdColVisible || "{}")
-        const colSize = JSON.parse(gridSettings.grdColSize || "{}")
-        const sort = JSON.parse(gridSettings.grdSort || "[]")
-
-        setColumnVisibility(colVisible)
-        setSorting(sort)
-        if (Object.keys(colSize).length > 0) {
-          setColumnSizing(colSize)
-        }
-      } catch (error) {
-        console.error("Error parsing grid settings:", error)
-      }
-    }
-  }, [gridSettings])
 
   const columns: ColumnDef<IChartofAccount>[] = [
-    {
-      id: "actions",
-      header: "Actions",
-      enableHiding: false,
-      size: 120,
-      minSize: 100,
-      maxSize: 130,
-      cell: ({ row }) => (
-        <TableActions
-          row={row.original}
-          idAccessor="glId"
-          onView={onChartOfAccountSelect}
-          onEdit={onEditChartOfAccount}
-          onDelete={(id) => onDeleteChartOfAccount?.(Number(id))}
-        />
-      ),
-    },
     {
       accessorKey: "glCode",
       header: "GL Code",
@@ -146,7 +65,6 @@ export function ChartOfAccountsTable({
       ),
       size: 120,
       minSize: 100,
-      maxSize: 150,
       enableColumnFilter: true,
     },
     {
@@ -159,7 +77,6 @@ export function ChartOfAccountsTable({
       ),
       size: 200,
       minSize: 150,
-      maxSize: 300,
       enableColumnFilter: true,
     },
     {
@@ -172,7 +89,6 @@ export function ChartOfAccountsTable({
       ),
       size: 120,
       minSize: 100,
-      maxSize: 150,
     },
     {
       accessorKey: "accGroupName",
@@ -184,7 +100,6 @@ export function ChartOfAccountsTable({
       ),
       size: 120,
       minSize: 100,
-      maxSize: 150,
     },
     {
       accessorKey: "coaCategoryName1",
@@ -199,7 +114,6 @@ export function ChartOfAccountsTable({
       ),
       size: 120,
       minSize: 100,
-      maxSize: 150,
     },
     {
       accessorKey: "coaCategoryName2",
@@ -214,7 +128,6 @@ export function ChartOfAccountsTable({
       ),
       size: 120,
       minSize: 100,
-      maxSize: 150,
     },
     {
       accessorKey: "coaCategoryName3",
@@ -229,13 +142,14 @@ export function ChartOfAccountsTable({
       ),
       size: 120,
       minSize: 100,
-      maxSize: 150,
     },
     {
       accessorKey: "isSysControl",
       header: "System Control",
       cell: ({ row }) => (
-        <Badge variant={row.getValue("isSysControl") ? "default" : "secondary"}>
+        <Badge
+          variant={row.getValue("isSysControl") ? "default" : "destructive"}
+        >
           {row.getValue("isSysControl") ? (
             <IconCircleCheckFilled className="mr-1 fill-green-500 dark:fill-green-400" />
           ) : (
@@ -246,26 +160,24 @@ export function ChartOfAccountsTable({
       ),
       size: 120,
       minSize: 100,
-      maxSize: 150,
     },
     {
       accessorKey: "isHeading",
       header: "Heading",
       cell: ({ row }) => (
-        <Badge variant={row.getValue("isHeading") ? "default" : "secondary"}>
+        <Badge variant={row.getValue("isHeading") ? "default" : "destructive"}>
           {row.getValue("isHeading") ? "Yes" : "No"}
         </Badge>
       ),
       size: 120,
       minSize: 100,
-      maxSize: 150,
     },
     {
       accessorKey: "isDeptMandatory",
       header: "Dept Mandatory",
       cell: ({ row }) => (
         <Badge
-          variant={row.getValue("isDeptMandatory") ? "default" : "secondary"}
+          variant={row.getValue("isDeptMandatory") ? "default" : "destructive"}
         >
           {row.getValue("isDeptMandatory") ? (
             <IconCircleCheckFilled className="mr-1 fill-green-500 dark:fill-green-400" />
@@ -277,14 +189,13 @@ export function ChartOfAccountsTable({
       ),
       size: 120,
       minSize: 100,
-      maxSize: 150,
     },
     {
       accessorKey: "isBargeMandatory",
       header: "Barge Mandatory",
       cell: ({ row }) => (
         <Badge
-          variant={row.getValue("isBargeMandatory") ? "default" : "secondary"}
+          variant={row.getValue("isBargeMandatory") ? "default" : "destructive"}
         >
           {row.getValue("isBargeMandatory") ? (
             <IconCircleCheckFilled className="mr-1 fill-green-500 dark:fill-green-400" />
@@ -296,13 +207,14 @@ export function ChartOfAccountsTable({
       ),
       size: 120,
       minSize: 100,
-      maxSize: 150,
     },
     {
       accessorKey: "isJobControl",
       header: "Job Control",
       cell: ({ row }) => (
-        <Badge variant={row.getValue("isJobControl") ? "default" : "secondary"}>
+        <Badge
+          variant={row.getValue("isJobControl") ? "default" : "destructive"}
+        >
           {row.getValue("isJobControl") ? (
             <IconCircleCheckFilled className="mr-1 fill-green-500 dark:fill-green-400" />
           ) : (
@@ -313,14 +225,13 @@ export function ChartOfAccountsTable({
       ),
       size: 120,
       minSize: 100,
-      maxSize: 150,
     },
     {
       accessorKey: "isBankControl",
       header: "Bank Control",
       cell: ({ row }) => (
         <Badge
-          variant={row.getValue("isBankControl") ? "default" : "secondary"}
+          variant={row.getValue("isBankControl") ? "default" : "destructive"}
         >
           {row.getValue("isBankControl") ? (
             <IconCircleCheckFilled className="mr-1 fill-green-500 dark:fill-green-400" />
@@ -332,13 +243,12 @@ export function ChartOfAccountsTable({
       ),
       size: 120,
       minSize: 100,
-      maxSize: 150,
     },
     {
       accessorKey: "isActive",
       header: "Status",
       cell: ({ row }) => (
-        <Badge variant={row.getValue("isActive") ? "default" : "secondary"}>
+        <Badge variant={row.getValue("isActive") ? "default" : "destructive"}>
           {row.getValue("isActive") ? (
             <IconCircleCheckFilled className="mr-1 fill-green-500 dark:fill-green-400" />
           ) : (
@@ -349,7 +259,6 @@ export function ChartOfAccountsTable({
       ),
       size: 120,
       minSize: 100,
-      maxSize: 150,
     },
     {
       accessorKey: "seqNo",
@@ -373,7 +282,6 @@ export function ChartOfAccountsTable({
       ),
       size: 200,
       minSize: 150,
-      maxSize: 300,
     },
     {
       accessorKey: "createBy",
@@ -385,7 +293,6 @@ export function ChartOfAccountsTable({
       ),
       size: 120,
       minSize: 100,
-      maxSize: 150,
     },
     {
       accessorKey: "createDate",
@@ -405,7 +312,6 @@ export function ChartOfAccountsTable({
       },
       size: 180,
       minSize: 150,
-      maxSize: 200,
     },
     {
       accessorKey: "editBy",
@@ -417,7 +323,6 @@ export function ChartOfAccountsTable({
       ),
       size: 120,
       minSize: 100,
-      maxSize: 150,
     },
     {
       accessorKey: "editDate",
@@ -437,207 +342,36 @@ export function ChartOfAccountsTable({
       },
       size: 180,
       minSize: 150,
-      maxSize: 200,
     },
   ]
 
-  const table = useReactTable({
-    data,
-    columns,
-    pageCount: Math.ceil(data.length / pageSize),
-    onSortingChange: setSorting,
-    onColumnFiltersChange: setColumnFilters,
-    getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    onColumnVisibilityChange: setColumnVisibility,
-    onColumnSizingChange: setColumnSizing,
-    onRowSelectionChange: setRowSelection,
-    enableColumnResizing: true,
-    enableRowSelection: true,
-    columnResizeMode: "onChange",
-    state: {
-      sorting,
-      columnFilters,
-      columnVisibility,
-      columnSizing,
-      rowSelection,
-      pagination: { pageIndex: currentPage - 1, pageSize },
-      globalFilter: searchQuery,
-    },
-  })
-
-  const rowVirtualizer = useVirtualizer({
-    count: table.getRowModel().rows.length,
-    getScrollElement: () => tableContainerRef.current,
-    estimateSize: () => 48,
-    overscan: 5,
-  })
-
-  const virtualRows = rowVirtualizer.getVirtualItems()
-  const totalSize = rowVirtualizer.getTotalSize()
-  const paddingTop = virtualRows.length > 0 ? virtualRows[0].start : 0
-  const paddingBottom =
-    virtualRows.length > 0
-      ? totalSize - virtualRows[virtualRows.length - 1].end
-      : 0
-
-  const sensors = useSensors(
-    useSensor(MouseSensor, {}),
-    useSensor(TouchSensor, {}),
-    useSensor(KeyboardSensor, {})
-  )
-
-  const handleSearch = (query: string) => {
-    setSearchQuery(query)
-    if (data && data.length > 0) {
-      table.setGlobalFilter(query)
-    } else if (onFilterChange) {
-      const newFilters: IChartofAccountFilter = {
-        search: query,
-        sortOrder: sorting[0]?.desc ? "desc" : "asc",
-      }
-      onFilterChange(newFilters)
-    }
-  }
-
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page)
-    table.setPageIndex(page - 1)
-  }
-
-  const handlePageSizeChange = (size: number) => {
-    setPageSize(size)
-    table.setPageSize(size)
-  }
-
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event
-    if (active && over && active.id !== over.id) {
-      const oldIndex = table
-        .getAllColumns()
-        .findIndex((col) => col.id === active.id)
-      const newIndex = table
-        .getAllColumns()
-        .findIndex((col) => col.id === over.id)
-      const newColumnOrder = arrayMove(
-        table.getAllColumns(),
-        oldIndex,
-        newIndex
-      )
-      table.setColumnOrder(newColumnOrder.map((col) => col.id))
-    }
-  }
-
   return (
-    <div>
-      <TableHeader
-        searchQuery={searchQuery}
-        onSearchChange={handleSearch}
-        onRefresh={onRefresh}
-        onCreate={onCreateChartOfAccount}
-        columns={table.getAllLeafColumns()}
-        data={data}
-        tableName={TableName.chart_of_account}
-        hideCreateButton={false}
-        moduleId={moduleId || 1}
-        transactionId={transactionId || MasterTransactionId.chart_of_account}
-      />
-
-      <div
-        ref={tableContainerRef}
-        className="relative w-full overflow-auto"
-        style={{ height: "470px" }}
-      >
-        <DndContext
-          sensors={sensors}
-          collisionDetection={closestCenter}
-          onDragEnd={handleDragEnd}
-        >
-          <Table className="relative w-full table-fixed">
-            <TanstackTableHeader className="bg-muted">
-              {table.getHeaderGroups().map((headerGroup) => (
-                <TableRow key={headerGroup.id}>
-                  <SortableContext
-                    items={headerGroup.headers.map((header) => header.id)}
-                    strategy={horizontalListSortingStrategy}
-                  >
-                    {headerGroup.headers.map((header) => (
-                      <DraggableColumnHeader key={header.id} header={header} />
-                    ))}
-                  </SortableContext>
-                </TableRow>
-              ))}
-            </TanstackTableHeader>
-            <TableBody>
-              {virtualRows.length > 0 ? (
-                <>
-                  <tr style={{ height: `${paddingTop}px` }} />
-                  {virtualRows.map((virtualRow) => {
-                    const row = table.getRowModel().rows[virtualRow.index]
-                    return (
-                      <TableRow key={row.id}>
-                        {row.getVisibleCells().map((cell) => {
-                          const isActions = cell.column.id === "actions"
-                          return (
-                            <TableCell
-                              key={cell.id}
-                              className={
-                                isActions
-                                  ? "bg-background sticky left-0 z-10"
-                                  : ""
-                              }
-                              style={{
-                                position: isActions ? "sticky" : "relative",
-                                left: isActions ? 0 : "auto",
-                                zIndex: isActions ? 10 : 1,
-                                width: cell.column.getSize(),
-                              }}
-                            >
-                              {flexRender(
-                                cell.column.columnDef.cell,
-                                cell.getContext()
-                              )}
-                            </TableCell>
-                          )
-                        })}
-                      </TableRow>
-                    )
-                  })}
-                  <tr style={{ height: `${paddingBottom}px` }} />
-                </>
-              ) : (
-                <>
-                  <TableRow>
-                    <TableCell
-                      colSpan={columns.length}
-                      className="h-24 text-center"
-                    >
-                      {isLoading ? "Loading..." : "No data found."}
-                    </TableCell>
-                  </TableRow>
-                  {Array.from({ length: 9 }).map((_, index) => (
-                    <TableRow key={`empty-${index}`}>
-                      <TableCell colSpan={columns.length} className="h-10" />
-                    </TableRow>
-                  ))}
-                </>
-              )}
-            </TableBody>
-          </Table>
-        </DndContext>
-      </div>
-
-      <TableFooter
-        currentPage={currentPage}
-        totalPages={Math.ceil(data.length / pageSize)}
-        pageSize={pageSize}
-        totalRecords={data.length}
-        onPageChange={handlePageChange}
-        onPageSizeChange={handlePageSizeChange}
-        pageSizeOptions={[10, 50, 100, 500]}
-      />
-    </div>
+    <MainDataTable
+      data={data}
+      columns={columns}
+      isLoading={isLoading}
+      moduleId={moduleId}
+      transactionId={transactionId}
+      tableName={TableName.chart_of_account}
+      emptyMessage="No chart of accounts found."
+      accessorId="glId"
+      // Add handlers if provided
+      onRefresh={onRefresh}
+      onFilterChange={onFilterChange}
+      //handler column props
+      onItemSelect={onSelect}
+      onCreateItem={onCreate}
+      onEditItem={onEdit}
+      onDeleteItem={onDelete}
+      //show props
+      showHeader={true}
+      showFooter={true}
+      showActions={true}
+      // Permission props
+      canView={canView}
+      canCreate={canCreate}
+      canEdit={canEdit}
+      canDelete={canDelete}
+    />
   )
 }

@@ -192,6 +192,17 @@ export default function UomPage() {
     }
   }
 
+  // State for save confirmation
+  const [saveConfirmation, setSaveConfirmation] = useState<{
+    isOpen: boolean
+    data: UomFormValues | UomDtFormValues | null
+    type: "uom" | "uomdt"
+  }>({
+    isOpen: false,
+    data: null,
+    type: "uom",
+  })
+
   // Specialized form handlers
   const handleUomSubmit = async (data: UomFormValues) => {
     try {
@@ -253,10 +264,21 @@ export default function UomPage() {
     }
   }
 
-  // Main form submit handler
-  const handleFormSubmit = async (data: UomFormValues | UomDtFormValues) => {
+  // Main form submit handler - shows confirmation first
+  const handleFormSubmit = (data: UomFormValues | UomDtFormValues) => {
+    setSaveConfirmation({
+      isOpen: true,
+      data: data,
+      type: isDtModalOpen ? "uomdt" : "uom",
+    })
+  }
+
+  // Handler for confirmed form submission
+  const handleConfirmedFormSubmit = async (
+    data: UomFormValues | UomDtFormValues
+  ) => {
     try {
-      if (isDtModalOpen) {
+      if (saveConfirmation.type === "uomdt") {
         await handleUomDtSubmit(data as UomDtFormValues)
         setIsDtModalOpen(false)
       } else {
@@ -571,6 +593,47 @@ export default function UomPage() {
           deleteConfirmation.type === "uom"
             ? deleteMutation.isPending
             : deleteDtMutation.isPending
+        }
+      />
+
+      {/* Save Confirmation Dialog */}
+      <SaveConfirmation
+        open={saveConfirmation.isOpen}
+        onOpenChange={(isOpen) =>
+          setSaveConfirmation((prev) => ({ ...prev, isOpen }))
+        }
+        title={
+          modalMode === "create"
+            ? `Create ${saveConfirmation.type.toUpperCase()}`
+            : `Update ${saveConfirmation.type.toUpperCase()}`
+        }
+        itemName={
+          saveConfirmation.type === "uom"
+            ? (saveConfirmation.data as UomFormValues)?.uomName || ""
+            : (saveConfirmation.data as UomDtFormValues)?.uomName || ""
+        }
+        operationType={modalMode === "create" ? "create" : "update"}
+        onConfirm={() => {
+          if (saveConfirmation.data) {
+            handleConfirmedFormSubmit(saveConfirmation.data)
+          }
+          setSaveConfirmation({
+            isOpen: false,
+            data: null,
+            type: "uom",
+          })
+        }}
+        onCancel={() =>
+          setSaveConfirmation({
+            isOpen: false,
+            data: null,
+            type: "uom",
+          })
+        }
+        isSaving={
+          saveConfirmation.type === "uom"
+            ? saveMutation.isPending || updateMutation.isPending
+            : saveDtMutation.isPending || updateDtMutation.isPending
         }
       />
     </div>

@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/dialog"
 import { Separator } from "@/components/ui/separator"
 import { DeleteConfirmation } from "@/components/delete-confirmation"
+import { SaveConfirmation } from "@/components/save-confirmation"
 import { DataTableSkeleton } from "@/components/skeleton/data-table-skeleton"
 import { LockSkeleton } from "@/components/skeleton/lock-skeleton"
 
@@ -31,18 +32,10 @@ export default function AdminUserRolesPage() {
 
   const { hasPermission } = usePermissionStore()
 
-  const canEditUserRole = hasPermission(moduleId, transactionIdRole, "isEdit")
-  const canDeleteUserRole = hasPermission(
-    moduleId,
-    transactionIdRole,
-    "isDelete"
-  )
-  const canViewUserRole = hasPermission(moduleId, transactionIdRole, "isRead")
-  const canCreateUserRole = hasPermission(
-    moduleId,
-    transactionIdRole,
-    "isCreate"
-  )
+  const canEdit = hasPermission(moduleId, transactionIdRole, "isEdit")
+  const canDelete = hasPermission(moduleId, transactionIdRole, "isDelete")
+  const canView = hasPermission(moduleId, transactionIdRole, "isRead")
+  const canCreate = hasPermission(moduleId, transactionIdRole, "isCreate")
 
   const [roleFilters, setRoleFilters] = useState<IUserRoleFilter>({})
 
@@ -111,7 +104,7 @@ export default function AdminUserRolesPage() {
     setIsRoleModalOpen(true)
   }
 
-  const handleViewUserRole = (role: IUserRole | undefined) => {
+  const handleViewUserRole = (role: IUserRole | null) => {
     if (!role) return
     setModalMode("view")
     setSelectedUserRole(role)
@@ -167,6 +160,34 @@ export default function AdminUserRolesPage() {
     }
   }
 
+  const handleSaveConfirmation = (data: UserRoleFormValues) => {
+    setSaveConfirmation({
+      isOpen: true,
+      data,
+    })
+  }
+
+  const handleConfirmedFormSubmit = async (data: UserRoleFormValues) => {
+    try {
+      if (modalMode === "create") {
+        const response = await saveRoleMutation.mutateAsync(data)
+        if (response.result === 1) {
+          // Invalidate and refetch the userroles query
+          queryClient.invalidateQueries({ queryKey: ["userroles"] })
+        }
+      } else if (modalMode === "edit" && selectedUserRole) {
+        const response = await updateRoleMutation.mutateAsync(data)
+        if (response.result === 1) {
+          // Invalidate and refetch the userroles query
+          queryClient.invalidateQueries({ queryKey: ["userroles"] })
+        }
+      }
+      setIsRoleModalOpen(false)
+    } catch (error) {
+      console.error("Error in user role form submission:", error)
+    }
+  }
+
   return (
     <div className="container mx-auto space-y-4 px-4 py-4 sm:space-y-6 sm:px-6 sm:py-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -199,36 +220,40 @@ export default function AdminUserRolesPage() {
           <UserRoleTable
             data={userRolesData || []}
             isLoading={isLoadingUserRoles}
-            onUserRoleSelect={canViewUserRole ? handleViewUserRole : undefined}
-            onDeleteUserRole={
-              canDeleteUserRole ? handleDeleteUserRole : undefined
-            }
-            onEditUserRole={canEditUserRole ? handleEditUserRole : undefined}
-            onCreateUserRole={
-              canCreateUserRole ? handleCreateUserRole : undefined
-            }
+            onSelect={canView ? handleViewUserRole : undefined}
+            onDelete={canDelete ? handleDeleteUserRole : undefined}
+            onEdit={canEdit ? handleEditUserRole : undefined}
+            onCreate={canCreate ? handleCreateUserRole : undefined}
             onRefresh={refetchUserRoles}
-            onFilterChange={setRoleFilters}
+            onFilterChange={(filters) =>
+              setRoleFilters(filters as IUserRoleFilter)
+            }
             moduleId={moduleId}
             transactionId={transactionIdRole}
+            canEdit={canEdit}
+            canDelete={canDelete}
+            canView={canView}
+            canCreate={canCreate}
           />
         </LockSkeleton>
       ) : (
         <UserRoleTable
           data={userRolesData || []}
           isLoading={isLoadingUserRoles}
-          onUserRoleSelect={canViewUserRole ? handleViewUserRole : undefined}
-          onDeleteUserRole={
-            canDeleteUserRole ? handleDeleteUserRole : undefined
-          }
-          onEditUserRole={canEditUserRole ? handleEditUserRole : undefined}
-          onCreateUserRole={
-            canCreateUserRole ? handleCreateUserRole : undefined
-          }
+          onSelect={canView ? handleViewUserRole : undefined}
+          onDelete={canDelete ? handleDeleteUserRole : undefined}
+          onEdit={canEdit ? handleEditUserRole : undefined}
+          onCreate={canCreate ? handleCreateUserRole : undefined}
           onRefresh={refetchUserRoles}
-          onFilterChange={setRoleFilters}
+          onFilterChange={(filters) =>
+            setRoleFilters(filters as IUserRoleFilter)
+          }
           moduleId={moduleId}
           transactionId={transactionIdRole}
+          canEdit={canEdit}
+          canDelete={canDelete}
+          canView={canView}
+          canCreate={canCreate}
         />
       )}
 
@@ -272,7 +297,8 @@ export default function AdminUserRolesPage() {
             isSubmitting={
               saveRoleMutation.isPending || updateRoleMutation.isPending
             }
-            isReadOnly={modalMode === "view"}
+            isReadOnly={modalMode === "view" || modalMode === "edit"}
+            onSaveConfirmation={handleSaveConfirmation}
           />
         </DialogContent>
       </Dialog>
@@ -283,8 +309,8 @@ export default function AdminUserRolesPage() {
         onOpenChange={(isOpen) =>
           setDeleteConfirmation((prev) => ({ ...prev, isOpen }))
         }
-        title="Delete User Role"
-        description="This action cannot be undone. This will permanently delete the user role from our servers."
+        title="Delete Account Type"
+        description="This action cannot be undone. This will permanently delete the account type from our servers."
         itemName={deleteConfirmation.roleName || ""}
         onConfirm={handleConfirmDelete}
         onCancel={() =>
@@ -298,21 +324,21 @@ export default function AdminUserRolesPage() {
       />
 
       {/* Save Confirmation Dialog */}
-      <DeleteConfirmation
+      <SaveConfirmation
         open={saveConfirmation.isOpen}
         onOpenChange={(isOpen) =>
           setSaveConfirmation((prev) => ({ ...prev, isOpen }))
         }
-        title={modalMode === "create" ? "Create User Role" : "Update User Role"}
-        description={
+        title={
           modalMode === "create"
-            ? "Are you sure you want to create this user role?"
-            : "Are you sure you want to update this user role?"
+            ? "Create Account Group"
+            : "Update Account Group"
         }
         itemName={saveConfirmation.data?.userRoleName || ""}
+        operationType={modalMode === "create" ? "create" : "update"}
         onConfirm={() => {
           if (saveConfirmation.data) {
-            handleUserRoleFormSubmit(saveConfirmation.data)
+            handleConfirmedFormSubmit(saveConfirmation.data)
           }
           setSaveConfirmation({
             isOpen: false,
@@ -325,7 +351,7 @@ export default function AdminUserRolesPage() {
             data: null,
           })
         }
-        isDeleting={saveRoleMutation.isPending || updateRoleMutation.isPending}
+        isSaving={saveRoleMutation.isPending || updateRoleMutation.isPending}
       />
     </div>
   )

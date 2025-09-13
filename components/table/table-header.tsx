@@ -3,7 +3,9 @@ import { IGridSetting } from "@/interfaces/setting"
 import { Column } from "@tanstack/react-table"
 // Import jsPDF properly
 import jsPDF from "jspdf"
-// Import autoTable separately - the ordering matters!
+
+// Import autoTable plugin
+import "jspdf-autotable"
 import {
   FileSpreadsheet,
   FileText,
@@ -12,7 +14,6 @@ import {
   RefreshCw,
   SlidersHorizontal,
 } from "lucide-react"
-import { toast } from "sonner"
 import * as XLSX from "xlsx"
 
 import { usePersist } from "@/hooks/use-common"
@@ -25,6 +26,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
+import { SaveConfirmation } from "@/components/save-confirmation"
 
 // Extend jsPDF to include autoTable with a more specific type
 declare module "jspdf" {
@@ -74,6 +76,7 @@ export function DataTableHeader<TData>({
 }: TableHeaderProps<TData>) {
   const [columnSearch, setColumnSearch] = useState("")
   const [activeButton, setActiveButton] = useState<"show" | "hide" | null>(null)
+  const [isSaveLayoutOpen, setIsSaveLayoutOpen] = useState(false)
 
   // Filter columns based on search
   const filteredColumns = columns.filter((column) => {
@@ -97,13 +100,42 @@ export function DataTableHeader<TData>({
   // Add the save mutation for grid settings
   const saveGridSettings = usePersist<IGridSetting>("/setting/saveUserGrid")
 
-  const handleExportExcel = (data: TData[]) => {
-    toast.info("Exporting to Excel...", {
-      description: "Generating Excel file with country data.",
-    })
+  // Handle save layout confirmation
+  const handleSaveLayoutConfirm = async () => {
+    try {
+      console.log(moduleId, transactionId, "moduleId, transactionId")
+      const grdName = tableName
 
+      // Get column visibility and order
+      const columnVisibility = Object.fromEntries(
+        columns.map((col) => [col.id, col.getIsVisible()])
+      )
+      const columnSize = Object.fromEntries(
+        columns.map((col) => [col.id, col.getSize()])
+      )
+      const columnOrder = columns.map((col) => col.id)
+      const sorting: { id: string; desc: boolean }[] = [] // Add sorting if needed
+
+      const gridSettings: IGridSetting = {
+        moduleId,
+        transactionId,
+        grdName,
+        grdKey: grdName,
+        grdColVisible: JSON.stringify(columnVisibility),
+        grdColOrder: JSON.stringify(columnOrder),
+        grdColSize: JSON.stringify(columnSize),
+        grdSort: JSON.stringify(sorting),
+        grdString: "",
+      }
+
+      await saveGridSettings.mutateAsync(gridSettings)
+    } catch (error) {
+      console.error("Error saving layout:", error)
+    }
+  }
+
+  const handleExportExcel = (data: TData[]) => {
     if (!data || data.length === 0) {
-      toast.error("No data available to export")
       return
     }
 
@@ -127,19 +159,13 @@ export function DataTableHeader<TData>({
       const workbook = XLSX.utils.book_new()
       XLSX.utils.book_append_sheet(workbook, worksheet, "Sheet1")
       XLSX.writeFile(workbook, `${tableName}.xlsx`)
-      toast.success("Excel file downloaded successfully")
     } catch (error) {
       console.error("Error exporting Excel:", error)
-      toast.error("Failed to export Excel")
     }
   }
 
   const handleExportPdf = (data: TData[]) => {
-    toast.info("Exporting to PDF...", {
-      description: "Generating PDF file with table data.",
-    })
     if (!data || data.length === 0) {
-      toast.error("No data available to export")
       return
     }
     try {
@@ -164,9 +190,16 @@ export function DataTableHeader<TData>({
       const headers =
         filteredData.length > 0 ? Object.keys(filteredData[0]) : []
 
-      // Create the table body
+      if (headers.length === 0) {
+        return
+      }
+
+      // Create the table body and convert all values to strings
       const body = filteredData.map((row) =>
-        headers.map((header) => (row as Record<string, unknown>)[header])
+        headers.map((header) => {
+          const value = (row as Record<string, unknown>)[header]
+          return value !== null && value !== undefined ? String(value) : ""
+        })
       )
 
       // Use autoTable as a method on the jsPDF instance
@@ -174,15 +207,25 @@ export function DataTableHeader<TData>({
         head: [headers],
         body: body,
         theme: "grid",
-        styles: { fontSize: 8 },
-        headStyles: { fillColor: [66, 139, 202] },
+        styles: {
+          fontSize: 8,
+          cellPadding: 3,
+          overflow: "linebreak",
+        },
+        headStyles: {
+          fillColor: [66, 139, 202],
+          textColor: [255, 255, 255],
+          fontStyle: "bold",
+        },
+        alternateRowStyles: {
+          fillColor: [245, 245, 245],
+        },
+        margin: { top: 20, right: 10, bottom: 20, left: 10 },
       })
 
-      doc.save(`table_data.pdf`)
-      toast.success("PDF file downloaded successfully")
+      doc.save(`${tableName}.pdf`)
     } catch (error) {
       console.error("Error exporting PDF:", error)
-      toast.error("Failed to export PDF")
     }
   }
 
@@ -224,38 +267,7 @@ export function DataTableHeader<TData>({
         <Button
           variant="outline"
           title="Save Layout"
-          onClick={async () => {
-            try {
-              console.log(moduleId, transactionId, "moduleId, transactionId")
-              const grdName = tableName
-
-              // Get column visibility and order
-              const columnVisibility = Object.fromEntries(
-                columns.map((col) => [col.id, col.getIsVisible()])
-              )
-              const columnSize = Object.fromEntries(
-                columns.map((col) => [col.id, col.getSize()])
-              )
-              const columnOrder = columns.map((col) => col.id)
-              const sorting: { id: string; desc: boolean }[] = [] // Add sorting if needed
-
-              const gridSettings: IGridSetting = {
-                moduleId,
-                transactionId,
-                grdName,
-                grdKey: grdName,
-                grdColVisible: JSON.stringify(columnVisibility),
-                grdColOrder: JSON.stringify(columnOrder),
-                grdColSize: JSON.stringify(columnSize),
-                grdSort: JSON.stringify(sorting),
-                grdString: "",
-              }
-
-              await saveGridSettings.mutateAsync(gridSettings)
-            } catch (error) {
-              console.error("Error saving layout:", error)
-            }
-          }}
+          onClick={() => setIsSaveLayoutOpen(true)}
         >
           <Layout className="h-4 w-4" />
           Save Layout
@@ -322,6 +334,17 @@ export function DataTableHeader<TData>({
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
+
+      {/* Save Layout Confirmation Dialog */}
+      <SaveConfirmation
+        title="Save Layout"
+        itemName={`${tableName} layout`}
+        open={isSaveLayoutOpen}
+        onOpenChange={setIsSaveLayoutOpen}
+        onConfirm={handleSaveLayoutConfirm}
+        isSaving={saveGridSettings.isPending}
+        operationType="save"
+      />
     </div>
   )
 }

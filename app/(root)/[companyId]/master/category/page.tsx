@@ -262,34 +262,44 @@ export default function CategoryPage() {
         <LockSkeleton locked={true}>
           <CategorysTable
             data={isEmpty ? [] : categorysData || []}
-            onCategorySelect={canView ? handleViewCategory : undefined}
-            onDeleteCategory={canDelete ? handleDeleteCategory : undefined}
-            onEditCategory={canEdit ? handleEditCategory : undefined}
-            onCreateCategory={canCreate ? handleCreateCategory : undefined}
-            onRefresh={() => {
-              handleRefresh()
-            }}
+            onSelect={canView ? handleViewCategory : undefined}
+            onDelete={canDelete ? handleDeleteCategory : undefined}
+            onEdit={canEdit ? handleEditCategory : undefined}
+            onCreate={canCreate ? handleCreateCategory : undefined}
+            onRefresh={handleRefresh}
             onFilterChange={setFilters}
             moduleId={moduleId}
             transactionId={transactionId}
+            // Pass permissions to table
+            canEdit={canEdit}
+            canDelete={canDelete}
+            canView={canView}
+            canCreate={canCreate}
           />
         </LockSkeleton>
       ) : categorysResult ? (
         <CategorysTable
           data={isEmpty ? [] : categorysData || []}
-          onCategorySelect={canView ? handleViewCategory : undefined}
-          onDeleteCategory={canDelete ? handleDeleteCategory : undefined}
-          onEditCategory={canEdit ? handleEditCategory : undefined}
-          onCreateCategory={canCreate ? handleCreateCategory : undefined}
-          onRefresh={() => {
-            handleRefresh()
-          }}
+          onSelect={canView ? handleViewCategory : undefined}
+          onDelete={canDelete ? handleDeleteCategory : undefined}
+          onEdit={canEdit ? handleEditCategory : undefined}
+          onCreate={canCreate ? handleCreateCategory : undefined}
+          onRefresh={handleRefresh}
           onFilterChange={setFilters}
           moduleId={moduleId}
           transactionId={transactionId}
+          // Pass permissions to table
+          canEdit={canEdit}
+          canDelete={canDelete}
+          canView={canView}
+          canCreate={canCreate}
         />
       ) : (
-        <div>No data available</div>
+        <div className="py-8 text-center">
+          <p className="text-muted-foreground">
+            {categorysResult === 0 ? "No data available" : "Loading..."}
+          </p>
+        </div>
       )}
 
       <Dialog
@@ -325,7 +335,7 @@ export default function CategoryPage() {
             initialData={
               modalMode === "edit" || modalMode === "view"
                 ? selectedCategory
-                : undefined
+                : null
             }
             submitAction={handleFormSubmit}
             onCancel={() => setIsModalOpen(false)}

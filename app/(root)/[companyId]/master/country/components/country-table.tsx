@@ -16,48 +16,40 @@ import { MainDataTable } from "@/components/table/table-main"
 interface CountriesTableProps {
   data: ICountry[]
   isLoading?: boolean
-  onCountrySelect?: (country: ICountry | null) => void
-  onDeleteCountry?: (countryId: string) => void
-  onEditCountry?: (country: ICountry) => void
-  onCreateCountry?: () => void
+  onSelect?: (country: ICountry | null) => void
+  onCreate?: () => void
+  onEdit?: (country: ICountry) => void
+  onDelete?: (countryId: string) => void
   onRefresh?: () => void
   onFilterChange?: (filters: { search?: string; sortOrder?: string }) => void
   moduleId?: number
   transactionId?: number
   // Permission props
-  canEdit?: boolean
-  canDelete?: boolean
   canView?: boolean
   canCreate?: boolean
+  canEdit?: boolean
+  canDelete?: boolean
 }
 
 export function CountriesTable({
   data,
   isLoading = false,
-  onCountrySelect,
-  onDeleteCountry,
-  onEditCountry,
-  onCreateCountry,
+  onSelect,
+  onCreate,
+  onEdit,
+  onDelete,
   onRefresh,
   onFilterChange,
   moduleId,
   transactionId,
   // Permission props
-  canEdit = true,
-  canDelete = true,
   canView = true,
   canCreate = true,
+  canEdit = true,
+  canDelete = true,
 }: CountriesTableProps) {
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
-
-  // Debug: Log received permissions
-  console.log("CountriesTable received permissions:", {
-    canEdit,
-    canDelete,
-    canView,
-    canCreate,
-  })
 
   const columns: ColumnDef<ICountry>[] = [
     {
@@ -88,7 +80,7 @@ export function CountriesTable({
       accessorKey: "isActive",
       header: "Status",
       cell: ({ row }) => (
-        <Badge variant={row.getValue("isActive") ? "default" : "secondary"}>
+        <Badge variant={row.getValue("isActive") ? "default" : "destructive"}>
           {row.getValue("isActive") ? (
             <IconCircleCheckFilled className="mr-1 fill-green-500 dark:fill-green-400" />
           ) : (
@@ -169,19 +161,20 @@ export function CountriesTable({
       onRefresh={onRefresh}
       onFilterChange={onFilterChange}
       //handler column props
-      onItemSelect={onCountrySelect}
-      onCreateItem={onCreateCountry}
-      onEditItem={onEditCountry}
-      onDeleteItem={onDeleteCountry}
+      onItemSelect={onSelect}
+      onCreateItem={onCreate}
+      onEditItem={onEdit}
+      onDeleteItem={onDelete}
       //show props
       showHeader={true}
       showFooter={true}
       showActions={true}
       // Permission props
-      canEdit={canEdit}
-      canDelete={canDelete}
+
       canView={canView}
       canCreate={canCreate}
+      canEdit={canEdit}
+      canDelete={canDelete}
     />
   )
 }

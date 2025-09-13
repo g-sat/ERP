@@ -43,16 +43,6 @@ export default function CountryPage() {
   const canView = hasPermission(moduleId, transactionId, "isRead")
   const canCreate = hasPermission(moduleId, transactionId, "isCreate")
 
-  // Debug: Log permissions
-  console.log("Country Page Permissions:", {
-    moduleId,
-    transactionId,
-    canEdit,
-    canDelete,
-    canView,
-    canCreate,
-  })
-
   // Fetch countries from the API using useGet
   const [filters, setFilters] = useState<{
     search?: string
@@ -328,19 +318,19 @@ export default function CountryPage() {
         (countriesdata && countriesdata.length > 0) ? (
         <CountriesTable
           data={countriesdata || []}
-          onCountrySelect={canView ? handleViewCountry : undefined}
-          onDeleteCountry={canDelete ? handleDeleteCountry : undefined}
-          onEditCountry={canEdit ? handleEditCountry : undefined}
-          onCreateCountry={canCreate ? handleCreateCountry : undefined}
+          onSelect={canView ? handleViewCountry : undefined}
+          onCreate={canCreate ? handleCreateCountry : undefined}
+          onEdit={canEdit ? handleEditCountry : undefined}
+          onDelete={canDelete ? handleDeleteCountry : undefined}
           onRefresh={handleRefresh}
           onFilterChange={setFilters}
           moduleId={moduleId}
           transactionId={transactionId}
           // Pass permissions to table
-          canEdit={canEdit}
-          canDelete={canDelete}
           canView={canView}
           canCreate={canCreate}
+          canEdit={canEdit}
+          canDelete={canDelete}
         />
       ) : (
         <div className="py-8 text-center">

@@ -35,6 +35,8 @@ export default function TaskPage() {
 
   const canEdit = hasPermission(moduleId, transactionId, "isEdit")
   const canDelete = hasPermission(moduleId, transactionId, "isDelete")
+  const canView = hasPermission(moduleId, transactionId, "isRead")
+  const canCreate = hasPermission(moduleId, transactionId, "isCreate")
 
   const [filters, setFilters] = useState<ITaskFilter>({})
   const {
@@ -281,13 +283,11 @@ export default function TaskPage() {
         <LockSkeleton locked={true}>
           <TasksTable
             data={tasksData || []}
-            onTaskSelect={handleViewTask}
+            onTaskSelect={canView ? handleViewTask : undefined}
             onDeleteTask={canDelete ? handleDeleteTask : undefined}
             onEditTask={canEdit ? handleEditTask : undefined}
-            onCreateTask={handleCreateTask}
-            onRefresh={() => {
-              handleRefresh()
-            }}
+            onCreateTask={canCreate ? handleCreateTask : undefined}
+            onRefresh={handleRefresh}
             onFilterChange={setFilters}
             moduleId={moduleId}
             transactionId={transactionId}
@@ -296,19 +296,21 @@ export default function TaskPage() {
       ) : tasksResult ? (
         <TasksTable
           data={tasksData || []}
-          onTaskSelect={handleViewTask}
+          onTaskSelect={canView ? handleViewTask : undefined}
           onDeleteTask={canDelete ? handleDeleteTask : undefined}
           onEditTask={canEdit ? handleEditTask : undefined}
-          onCreateTask={handleCreateTask}
-          onRefresh={() => {
-            handleRefresh()
-          }}
+          onCreateTask={canCreate ? handleCreateTask : undefined}
+          onRefresh={handleRefresh}
           onFilterChange={setFilters}
           moduleId={moduleId}
           transactionId={transactionId}
         />
       ) : (
-        <div>No data available</div>
+        <div className="py-8 text-center">
+          <p className="text-muted-foreground">
+            {tasksResult === 0 ? "No data available" : "Loading..."}
+          </p>
+        </div>
       )}
 
       <Dialog

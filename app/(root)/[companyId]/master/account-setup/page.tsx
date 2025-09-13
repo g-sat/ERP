@@ -629,27 +629,37 @@ export default function AccountSetupPage() {
             <LockSkeleton locked={true}>
               <AccountSetupTable
                 data={setupData || []}
-                onAccountSetupSelect={canView ? handleSetupSelect : undefined}
-                onDeleteAccountSetup={canDelete ? handleDeleteSetup : undefined}
-                onEditAccountSetup={canEdit ? handleEditSetup : undefined}
-                onCreateAccountSetup={canCreate ? handleCreateSetup : undefined}
+                onSelect={canView ? handleSetupSelect : undefined}
+                onDelete={canDelete ? handleDeleteSetup : undefined}
+                onEdit={canEdit ? handleEditSetup : undefined}
+                onCreate={canCreate ? handleCreateSetup : undefined}
                 onRefresh={refetchSetup}
                 onFilterChange={setFiltersSetup}
                 moduleId={moduleId}
                 transactionId={transactionId}
+                // Pass permissions to table
+                canEdit={canEdit}
+                canDelete={canDelete}
+                canView={canView}
+                canCreate={canCreate}
               />
             </LockSkeleton>
           ) : (
             <AccountSetupTable
               data={setupData || []}
-              onAccountSetupSelect={canView ? handleSetupSelect : undefined}
-              onDeleteAccountSetup={canDelete ? handleDeleteSetup : undefined}
-              onEditAccountSetup={canEdit ? handleEditSetup : undefined}
-              onCreateAccountSetup={canCreate ? handleCreateSetup : undefined}
+              onSelect={canView ? handleSetupSelect : undefined}
+              onDelete={canDelete ? handleDeleteSetup : undefined}
+              onEdit={canEdit ? handleEditSetup : undefined}
+              onCreate={canCreate ? handleCreateSetup : undefined}
               onRefresh={refetchSetup}
               onFilterChange={setFiltersSetup}
               moduleId={moduleId}
               transactionId={transactionId}
+              // Pass permissions to table
+              canEdit={canEdit}
+              canDelete={canDelete}
+              canView={canView}
+              canCreate={canCreate}
             />
           )}
         </TabsContent>

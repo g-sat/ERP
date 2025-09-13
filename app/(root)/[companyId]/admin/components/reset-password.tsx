@@ -14,6 +14,11 @@ interface ResetPasswordData {
   confirmPassword: string
 }
 
+interface FormErrors {
+  password?: string
+  confirmPassword?: string
+}
+
 interface ResetPasswordProps {
   userId: number
   userCode: string
@@ -35,12 +40,14 @@ export function ResetPassword({
   )
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  const [formErrors, setFormErrors] = useState<FormErrors>({})
 
   // Reset form when component mounts (dialog opens)
   const resetForm = () => {
     setResetPasswordData({ password: "", confirmPassword: "" })
     setShowPassword(false)
     setShowConfirmPassword(false)
+    setFormErrors({})
   }
 
   // Reset form on mount and when userId changes (dialog opens for different user)
@@ -56,19 +63,28 @@ export function ResetPassword({
     onCancel()
   }
 
+  const validateForm = () => {
+    const errors: FormErrors = {}
+
+    if (resetPasswordData.password.length < 3) {
+      errors.password = "Password must be at least 3 characters long"
+    }
+
+    if (resetPasswordData.password !== resetPasswordData.confirmPassword) {
+      errors.confirmPassword = "Passwords do not match"
+    }
+
+    setFormErrors(errors)
+    return Object.keys(errors).length === 0
+  }
+
   const handleResetPassword = async () => {
     if (!userId) {
       toast.error("User ID is required for password reset")
       return
     }
 
-    if (resetPasswordData.password !== resetPasswordData.confirmPassword) {
-      toast.error("Passwords do not match")
-      return
-    }
-
-    if (resetPasswordData.password.length < 6) {
-      toast.error("Password must be at least 6 characters long")
+    if (!validateForm()) {
       return
     }
 
@@ -106,13 +122,17 @@ export function ResetPassword({
             type={showPassword ? "text" : "password"}
             placeholder="Enter new password"
             value={resetPasswordData.password}
-            onChange={(e) =>
+            onChange={(e) => {
               setResetPasswordData({
                 ...resetPasswordData,
                 password: e.target.value,
               })
-            }
-            className="pr-10"
+              // Clear error when user starts typing
+              if (formErrors.password) {
+                setFormErrors({ ...formErrors, password: undefined })
+              }
+            }}
+            className={`pr-10 ${formErrors.password ? "border-red-500" : ""}`}
           />
           <Button
             type="button"
@@ -128,6 +148,9 @@ export function ResetPassword({
             )}
           </Button>
         </div>
+        {formErrors.password && (
+          <p className="text-sm text-red-500">{formErrors.password}</p>
+        )}
       </div>
       <div className="space-y-2">
         <Label htmlFor="confirmPassword">Confirm Password</Label>
@@ -137,13 +160,17 @@ export function ResetPassword({
             type={showConfirmPassword ? "text" : "password"}
             placeholder="Confirm new password"
             value={resetPasswordData.confirmPassword}
-            onChange={(e) =>
+            onChange={(e) => {
               setResetPasswordData({
                 ...resetPasswordData,
                 confirmPassword: e.target.value,
               })
-            }
-            className="pr-10"
+              // Clear error when user starts typing
+              if (formErrors.confirmPassword) {
+                setFormErrors({ ...formErrors, confirmPassword: undefined })
+              }
+            }}
+            className={`pr-10 ${formErrors.confirmPassword ? "border-red-500" : ""}`}
           />
           <Button
             type="button"
@@ -159,6 +186,9 @@ export function ResetPassword({
             )}
           </Button>
         </div>
+        {formErrors.confirmPassword && (
+          <p className="text-sm text-red-500">{formErrors.confirmPassword}</p>
+        )}
       </div>
       <div className="flex justify-end gap-2 pt-4">
         <Button

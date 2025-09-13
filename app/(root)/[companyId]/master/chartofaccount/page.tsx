@@ -229,6 +229,7 @@ export default function ChartOfAccountPage() {
       | "category1"
       | "category2"
       | "category3",
+    queryKey: "" as string,
   })
 
   // Duplicate detection states
@@ -343,20 +344,32 @@ export default function ChartOfAccountPage() {
   }
 
   // Filter handlers
-  const handleChartFilterChange = (filters: IChartofAccountFilter) => {
-    setFiltersChart(filters)
+  const handleChartFilterChange = (filters: {
+    search?: string
+    sortOrder?: string
+  }) => {
+    setFiltersChart(filters as IChartofAccountFilter)
   }
 
-  const handleCategory1FilterChange = (filters: ICoaCategory1Filter) => {
-    setFilters1(filters)
+  const handleCategory1FilterChange = (filters: {
+    search?: string
+    sortOrder?: string
+  }) => {
+    setFilters1(filters as ICoaCategory1Filter)
   }
 
-  const handleCategory2FilterChange = (filters: ICoaCategory2Filter) => {
-    setFilters2(filters)
+  const handleCategory2FilterChange = (filters: {
+    search?: string
+    sortOrder?: string
+  }) => {
+    setFilters2(filters as ICoaCategory2Filter)
   }
 
-  const handleCategory3FilterChange = (filters: ICoaCategory3Filter) => {
-    setFilters3(filters)
+  const handleCategory3FilterChange = (filters: {
+    search?: string
+    sortOrder?: string
+  }) => {
+    setFilters3(filters as ICoaCategory3Filter)
   }
 
   // Helper function for API responses
@@ -511,8 +524,45 @@ export default function ChartOfAccountPage() {
     }
   }
 
-  // Main form submit handler
-  const handleFormSubmit = async (
+  // State for save confirmations
+  const [saveConfirmation, setSaveConfirmation] = useState<{
+    isOpen: boolean
+    data:
+      | ChartofAccountFormValues
+      | CoaCategory1FormValues
+      | CoaCategory2FormValues
+      | CoaCategory3FormValues
+      | null
+    type: "chartofaccount" | "category1" | "category2" | "category3"
+  }>({
+    isOpen: false,
+    data: null,
+    type: "chartofaccount",
+  })
+
+  // Main form submit handler - shows confirmation first
+  const handleFormSubmit = (
+    data:
+      | ChartofAccountFormValues
+      | CoaCategory1FormValues
+      | CoaCategory2FormValues
+      | CoaCategory3FormValues
+  ) => {
+    let type: "chartofaccount" | "category1" | "category2" | "category3" =
+      "chartofaccount"
+    if (isModalCategory1Open) type = "category1"
+    else if (isModalCategory2Open) type = "category2"
+    else if (isModalCategory3Open) type = "category3"
+
+    setSaveConfirmation({
+      isOpen: true,
+      data: data,
+      type: type,
+    })
+  }
+
+  // Handler for confirmed form submission
+  const handleConfirmedFormSubmit = async (
     data:
       | ChartofAccountFormValues
       | CoaCategory1FormValues
@@ -520,16 +570,16 @@ export default function ChartOfAccountPage() {
       | CoaCategory3FormValues
   ) => {
     try {
-      if (isModalChartOpen) {
+      if (saveConfirmation.type === "chartofaccount") {
         await handleChartSubmit(data as ChartofAccountFormValues)
         setIsModalChartOpen(false)
-      } else if (isModalCategory1Open) {
+      } else if (saveConfirmation.type === "category1") {
         await handleCategory1Submit(data as CoaCategory1FormValues)
         setIsModalCategory1Open(false)
-      } else if (isModalCategory2Open) {
+      } else if (saveConfirmation.type === "category2") {
         await handleCategory2Submit(data as CoaCategory2FormValues)
         setIsModalCategory2Open(false)
-      } else if (isModalCategory3Open) {
+      } else if (saveConfirmation.type === "category3") {
         await handleCategory3Submit(data as CoaCategory3FormValues)
         setIsModalCategory3Open(false)
       }
@@ -539,9 +589,9 @@ export default function ChartOfAccountPage() {
   }
 
   // Delete handlers
-  const handleDeleteChartOfAccount = (chartOfAccountId: number) => {
+  const handleDeleteChartOfAccount = (chartOfAccountId: string) => {
     const chartOfAccountToDelete = chartOfAccountsData.find(
-      (b) => b.glId === chartOfAccountId
+      (b) => b.glId === Number(chartOfAccountId)
     )
     if (!chartOfAccountToDelete) return
 
@@ -550,6 +600,7 @@ export default function ChartOfAccountPage() {
       id: chartOfAccountId.toString(),
       name: chartOfAccountToDelete.glName,
       type: "chartofaccount",
+      queryKey: "chartofaccounts",
     })
   }
 
@@ -564,6 +615,7 @@ export default function ChartOfAccountPage() {
       id: id,
       name: categoryToDelete.coaCategoryName,
       type: "category1",
+      queryKey: "coacategory1",
     })
   }
 
@@ -578,6 +630,7 @@ export default function ChartOfAccountPage() {
       id: id,
       name: categoryToDelete.coaCategoryName,
       type: "category2",
+      queryKey: "coacategory2",
     })
   }
 
@@ -592,6 +645,7 @@ export default function ChartOfAccountPage() {
       id: id,
       name: categoryToDelete.coaCategoryName,
       type: "category3",
+      queryKey: "coacategory3",
     })
   }
 
@@ -625,6 +679,7 @@ export default function ChartOfAccountPage() {
       id: null,
       name: null,
       type: "chartofaccount",
+      queryKey: "",
     })
   }
 
@@ -793,18 +848,10 @@ export default function ChartOfAccountPage() {
             <LockSkeleton locked={true}>
               <ChartOfAccountsTable
                 data={chartOfAccountsData}
-                onChartOfAccountSelect={
-                  canView ? handleViewChartOfAccount : undefined
-                }
-                onDeleteChartOfAccount={
-                  canDelete ? handleDeleteChartOfAccount : undefined
-                }
-                onEditChartOfAccount={
-                  canEdit ? handleEditChartOfAccount : undefined
-                }
-                onCreateChartOfAccount={
-                  canCreate ? handleCreateChartOfAccount : undefined
-                }
+                onSelect={canView ? handleViewChartOfAccount : undefined}
+                onDelete={canDelete ? handleDeleteChartOfAccount : undefined}
+                onEdit={canEdit ? handleEditChartOfAccount : undefined}
+                onCreate={canCreate ? handleCreateChartOfAccount : undefined}
                 onRefresh={refetchChart}
                 onFilterChange={handleChartFilterChange}
                 moduleId={moduleId}
@@ -814,18 +861,10 @@ export default function ChartOfAccountPage() {
           ) : (
             <ChartOfAccountsTable
               data={chartOfAccountsData}
-              onChartOfAccountSelect={
-                canView ? handleViewChartOfAccount : undefined
-              }
-              onDeleteChartOfAccount={
-                canDelete ? handleDeleteChartOfAccount : undefined
-              }
-              onEditChartOfAccount={
-                canEdit ? handleEditChartOfAccount : undefined
-              }
-              onCreateChartOfAccount={
-                canCreate ? handleCreateChartOfAccount : undefined
-              }
+              onSelect={canView ? handleViewChartOfAccount : undefined}
+              onDelete={canDelete ? handleDeleteChartOfAccount : undefined}
+              onEdit={canEdit ? handleEditChartOfAccount : undefined}
+              onCreate={canCreate ? handleCreateChartOfAccount : undefined}
               onRefresh={refetchChart}
               onFilterChange={handleChartFilterChange}
               moduleId={moduleId}
@@ -856,16 +895,12 @@ export default function ChartOfAccountPage() {
             <LockSkeleton locked={true}>
               <CoaCategory1Table
                 data={category1Data}
-                onCoaCategory1Select={handleViewCategory1}
-                onDeleteCoaCategory1={
+                onSelect={handleViewCategory1}
+                onDelete={
                   canDeleteCategory1 ? handleDeleteCategory1 : undefined
                 }
-                onEditCoaCategory1={
-                  canEditCategory1 ? handleEditCategory1 : undefined
-                }
-                onCreateCoaCategory1={
-                  canCreate ? handleCreateChartOfAccount : undefined
-                }
+                onEdit={canEditCategory1 ? handleEditCategory1 : undefined}
+                onCreate={canCreate ? handleCreateChartOfAccount : undefined}
                 onRefresh={refetchChart}
                 onFilterChange={handleChartFilterChange}
                 moduleId={moduleId}
@@ -875,14 +910,10 @@ export default function ChartOfAccountPage() {
           ) : (
             <CoaCategory1Table
               data={category1Data}
-              onCoaCategory1Select={canView ? handleViewCategory1 : undefined}
-              onDeleteCoaCategory1={
-                canDeleteCategory1 ? handleDeleteCategory1 : undefined
-              }
-              onEditCoaCategory1={canEdit ? handleEditCategory1 : undefined}
-              onCreateCoaCategory1={
-                canCreate ? handleCreateCategory1 : undefined
-              }
+              onSelect={canView ? handleViewCategory1 : undefined}
+              onDelete={canDeleteCategory1 ? handleDeleteCategory1 : undefined}
+              onEdit={canEdit ? handleEditCategory1 : undefined}
+              onCreate={canCreate ? handleCreateCategory1 : undefined}
               onRefresh={refetch1}
               onFilterChange={handleCategory1FilterChange}
               moduleId={moduleId}
@@ -913,16 +944,12 @@ export default function ChartOfAccountPage() {
             <LockSkeleton locked={true}>
               <CoaCategory2Table
                 data={category2Data}
-                onCoaCategory2Select={handleViewCategory2}
-                onDeleteCoaCategory2={
+                onSelect={handleViewCategory2}
+                onDelete={
                   canDeleteCategory2 ? handleDeleteCategory2 : undefined
                 }
-                onEditCoaCategory2={
-                  canEditCategory2 ? handleEditCategory2 : undefined
-                }
-                onCreateCoaCategory2={
-                  canCreate ? handleCreateChartOfAccount : undefined
-                }
+                onEdit={canEditCategory2 ? handleEditCategory2 : undefined}
+                onCreate={canCreate ? handleCreateChartOfAccount : undefined}
                 onRefresh={refetch2}
                 onFilterChange={handleCategory2FilterChange}
                 moduleId={moduleId}
@@ -932,14 +959,10 @@ export default function ChartOfAccountPage() {
           ) : (
             <CoaCategory2Table
               data={category2Data}
-              onCoaCategory2Select={canView ? handleViewCategory2 : undefined}
-              onDeleteCoaCategory2={
-                canDeleteCategory2 ? handleDeleteCategory2 : undefined
-              }
-              onEditCoaCategory2={canEdit ? handleEditCategory2 : undefined}
-              onCreateCoaCategory2={
-                canCreate ? handleCreateCategory2 : undefined
-              }
+              onSelect={canView ? handleViewCategory2 : undefined}
+              onDelete={canDeleteCategory2 ? handleDeleteCategory2 : undefined}
+              onEdit={canEdit ? handleEditCategory2 : undefined}
+              onCreate={canCreate ? handleCreateCategory2 : undefined}
               onRefresh={refetch2}
               onFilterChange={handleCategory2FilterChange}
               moduleId={moduleId}
@@ -970,16 +993,12 @@ export default function ChartOfAccountPage() {
             <LockSkeleton locked={true}>
               <CoaCategory3Table
                 data={category3Data}
-                onCoaCategory3Select={handleViewCategory3}
-                onDeleteCoaCategory3={
+                onSelect={handleViewCategory3}
+                onDelete={
                   canDeleteCategory3 ? handleDeleteCategory3 : undefined
                 }
-                onEditCoaCategory3={
-                  canEditCategory3 ? handleEditCategory3 : undefined
-                }
-                onCreateCoaCategory3={
-                  canCreate ? handleCreateCategory3 : undefined
-                }
+                onEdit={canEditCategory3 ? handleEditCategory3 : undefined}
+                onCreate={canCreate ? handleCreateCategory3 : undefined}
                 onRefresh={refetch3}
                 onFilterChange={handleCategory3FilterChange}
                 moduleId={moduleId}
@@ -989,14 +1008,10 @@ export default function ChartOfAccountPage() {
           ) : (
             <CoaCategory3Table
               data={category3Data}
-              onCoaCategory3Select={canView ? handleViewCategory3 : undefined}
-              onDeleteCoaCategory3={
-                canDeleteCategory1 ? handleDeleteCategory1 : undefined
-              }
-              onEditCoaCategory3={canEdit ? handleEditCategory3 : undefined}
-              onCreateCoaCategory3={
-                canCreate ? handleCreateCategory1 : undefined
-              }
+              onSelect={canView ? handleViewCategory3 : undefined}
+              onDelete={canDeleteCategory1 ? handleDeleteCategory1 : undefined}
+              onEdit={canEdit ? handleEditCategory3 : undefined}
+              onCreate={canCreate ? handleCreateCategory1 : undefined}
               onRefresh={refetch3}
               onFilterChange={handleCategory3FilterChange}
               moduleId={moduleId}
@@ -1208,6 +1223,7 @@ export default function ChartOfAccountPage() {
             id: null,
             name: null,
             type: "chartofaccount",
+            queryKey: "",
           })
         }
         isDeleting={
@@ -1218,6 +1234,58 @@ export default function ChartOfAccountPage() {
               : deleteConfirmation.type === "category2"
                 ? deleteMutation2.isPending
                 : deleteMutation3.isPending
+        }
+      />
+
+      {/* Save Confirmation Dialog */}
+      <SaveConfirmation
+        open={saveConfirmation.isOpen}
+        onOpenChange={(isOpen) =>
+          setSaveConfirmation((prev) => ({ ...prev, isOpen }))
+        }
+        title={
+          modalMode === "create"
+            ? `Create ${saveConfirmation.type.toUpperCase()}`
+            : `Update ${saveConfirmation.type.toUpperCase()}`
+        }
+        itemName={
+          saveConfirmation.type === "chartofaccount"
+            ? (saveConfirmation.data as ChartofAccountFormValues)?.glName || ""
+            : saveConfirmation.type === "category1"
+              ? (saveConfirmation.data as CoaCategory1FormValues)
+                  ?.coaCategoryName || ""
+              : saveConfirmation.type === "category2"
+                ? (saveConfirmation.data as CoaCategory2FormValues)
+                    ?.coaCategoryName || ""
+                : (saveConfirmation.data as CoaCategory3FormValues)
+                    ?.coaCategoryName || ""
+        }
+        operationType={modalMode === "create" ? "create" : "update"}
+        onConfirm={() => {
+          if (saveConfirmation.data) {
+            handleConfirmedFormSubmit(saveConfirmation.data)
+          }
+          setSaveConfirmation({
+            isOpen: false,
+            data: null,
+            type: "chartofaccount",
+          })
+        }}
+        onCancel={() =>
+          setSaveConfirmation({
+            isOpen: false,
+            data: null,
+            type: "chartofaccount",
+          })
+        }
+        isSaving={
+          saveConfirmation.type === "chartofaccount"
+            ? saveMutationChart.isPending || updateMutationChart.isPending
+            : saveConfirmation.type === "category1"
+              ? saveMutation1.isPending || updateMutation1.isPending
+              : saveConfirmation.type === "category2"
+                ? saveMutation2.isPending || updateMutation2.isPending
+                : saveMutation3.isPending || updateMutation3.isPending
         }
       />
     </div>

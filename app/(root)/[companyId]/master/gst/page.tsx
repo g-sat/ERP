@@ -54,6 +54,7 @@ export default function GstPage() {
 
   // Permissions
   const canCreate = hasPermission(moduleId, transactionId, "isCreate")
+  const canView = hasPermission(moduleId, transactionId, "isRead")
   const canEdit = hasPermission(moduleId, transactionId, "isEdit")
   const canDelete = hasPermission(moduleId, transactionId, "isDelete")
   const canCreateCategory = hasPermission(
@@ -71,10 +72,15 @@ export default function GstPage() {
     transactionIdCategory,
     "isDelete"
   )
+  const canViewCategory = hasPermission(
+    moduleId,
+    transactionIdCategory,
+    "isRead"
+  )
   const canCreateDt = hasPermission(moduleId, transactionIdDt, "isCreate")
   const canEditDt = hasPermission(moduleId, transactionIdDt, "isEdit")
   const canDeleteDt = hasPermission(moduleId, transactionIdDt, "isDelete")
-
+  const canViewDt = hasPermission(moduleId, transactionIdDt, "isRead")
   // State for filters
   const [filters, setFilters] = useState<IGstFilter>({})
   const [dtFilters, setDtFilters] = useState<IGstFilter>({})
@@ -336,15 +342,41 @@ export default function GstPage() {
     }
   }
 
-  // Main form submit handler
-  const handleFormSubmit = async (
+  // State for save confirmations
+  const [saveConfirmation, setSaveConfirmation] = useState<{
+    isOpen: boolean
+    data: GstFormValues | GstDtFormValues | GstCategoryFormValues | null
+    type: "gst" | "gstdt" | "gstcategory"
+  }>({
+    isOpen: false,
+    data: null,
+    type: "gst",
+  })
+
+  // Main form submit handler - shows confirmation first
+  const handleFormSubmit = (
+    data: GstFormValues | GstDtFormValues | GstCategoryFormValues
+  ) => {
+    let type: "gst" | "gstdt" | "gstcategory" = "gst"
+    if (isDtModalOpen) type = "gstdt"
+    else if (isCategoryModalOpen) type = "gstcategory"
+
+    setSaveConfirmation({
+      isOpen: true,
+      data: data,
+      type: type,
+    })
+  }
+
+  // Handler for confirmed form submission
+  const handleConfirmedFormSubmit = async (
     data: GstFormValues | GstDtFormValues | GstCategoryFormValues
   ) => {
     try {
-      if (isDtModalOpen) {
+      if (saveConfirmation.type === "gstdt") {
         await handleGstDtSubmit(data as GstDtFormValues)
         setIsDtModalOpen(false)
-      } else if (isCategoryModalOpen) {
+      } else if (saveConfirmation.type === "gstcategory") {
         await handleGstCategorySubmit(data as GstCategoryFormValues)
         setIsCategoryModalOpen(false)
       } else {
@@ -522,28 +554,36 @@ export default function GstPage() {
               <GstTable
                 data={gstsData}
                 isLoading={isLoadingGst}
-                onGstSelect={handleViewGst}
-                onDeleteGst={canDelete ? handleDeleteGst : undefined}
-                onEditGst={canEdit ? handleEditGst : undefined}
-                onCreateGst={canCreate ? handleCreateGst : undefined}
+                onSelect={handleViewGst}
+                onDelete={canDelete ? handleDeleteGst : undefined}
+                onEdit={canEdit ? handleEditGst : undefined}
+                onCreate={canCreate ? handleCreateGst : undefined}
                 onRefresh={refetchGst}
-                onFilterChange={setFilters}
+                onFilterChange={(filters) => setFilters(filters)}
                 moduleId={moduleId}
                 transactionId={transactionId}
+                canEdit={canEdit}
+                canDelete={canDelete}
+                canView={canView}
+                canCreate={canCreate}
               />
             </LockSkeleton>
           ) : (
             <GstTable
               data={gstsData}
               isLoading={isLoadingGst}
-              onGstSelect={handleViewGst}
-              onDeleteGst={canDelete ? handleDeleteGst : undefined}
-              onEditGst={canEdit ? handleEditGst : undefined}
-              onCreateGst={canCreate ? handleCreateGst : undefined}
+              onSelect={handleViewGst}
+              onDelete={canDelete ? handleDeleteGst : undefined}
+              onEdit={canEdit ? handleEditGst : undefined}
+              onCreate={canCreate ? handleCreateGst : undefined}
               onRefresh={refetchGst}
-              onFilterChange={setFilters}
+              onFilterChange={(filters) => setFilters(filters)}
               moduleId={moduleId}
               transactionId={transactionId}
+              canEdit={canEdit}
+              canDelete={canDelete}
+              canView={canView}
+              canCreate={canCreate}
             />
           )}
         </TabsContent>
@@ -570,28 +610,36 @@ export default function GstPage() {
               <GstDtTable
                 data={gstsDtData}
                 isLoading={isLoadingGstDt}
-                onGstDtSelect={handleViewGstDt}
-                onDeleteGstDt={canDeleteDt ? handleDeleteGstDt : undefined}
-                onEditGstDt={canEditDt ? handleEditGstDt : undefined}
-                onCreateGstDt={canCreateDt ? handleCreateGstDt : undefined}
+                onSelect={handleViewGstDt}
+                onDelete={canDeleteDt ? handleDeleteGstDt : undefined}
+                onEdit={canEditDt ? handleEditGstDt : undefined}
+                onCreate={canCreateDt ? handleCreateGstDt : undefined}
                 onRefresh={refetchGstDt}
-                onFilterChange={setDtFilters}
+                onFilterChange={(filters) => setDtFilters(filters)}
                 moduleId={moduleId}
                 transactionId={transactionIdDt}
+                canEdit={canEditDt}
+                canDelete={canDeleteDt}
+                canView={canViewDt}
+                canCreate={canCreateDt}
               />
             </LockSkeleton>
           ) : (
             <GstDtTable
               data={gstsDtData}
               isLoading={isLoadingGstDt}
-              onGstDtSelect={handleViewGstDt}
-              onDeleteGstDt={canDeleteDt ? handleDeleteGstDt : undefined}
-              onEditGstDt={canEditDt ? handleEditGstDt : undefined}
-              onCreateGstDt={canCreateDt ? handleCreateGstDt : undefined}
+              onSelect={handleViewGstDt}
+              onDelete={canDeleteDt ? handleDeleteGstDt : undefined}
+              onEdit={canEditDt ? handleEditGstDt : undefined}
+              onCreate={canCreateDt ? handleCreateGstDt : undefined}
               onRefresh={refetchGstDt}
-              onFilterChange={setDtFilters}
+              onFilterChange={(filters) => setDtFilters(filters)}
               moduleId={moduleId}
               transactionId={transactionIdDt}
+              canEdit={canEditDt}
+              canDelete={canDeleteDt}
+              canView={canViewDt}
+              canCreate={canCreateDt}
             />
           )}
         </TabsContent>
@@ -619,40 +667,40 @@ export default function GstPage() {
               <GstCategoryTable
                 data={gstsCategoryData}
                 isLoading={isLoadingGstCategory}
-                onGstCategorySelect={handleViewGstCategory}
-                onDeleteGstCategory={
+                onSelect={handleViewGstCategory}
+                onDelete={
                   canDeleteCategory ? handleDeleteGstCategory : undefined
                 }
-                onEditGstCategory={
-                  canEditCategory ? handleEditGstCategory : undefined
-                }
-                onCreateGstCategory={
+                onEdit={canEditCategory ? handleEditGstCategory : undefined}
+                onCreate={
                   canCreateCategory ? handleCreateGstCategory : undefined
                 }
                 onRefresh={refetchGstCategory}
-                onFilterChange={setCategoryFilters}
+                onFilterChange={(filters) => setCategoryFilters(filters)}
                 moduleId={moduleId}
                 transactionId={transactionIdCategory}
+                canEdit={canEditCategory}
+                canDelete={canDeleteCategory}
+                canView={canViewCategory}
+                canCreate={canCreateCategory}
               />
             </LockSkeleton>
           ) : (
             <GstCategoryTable
               data={gstsCategoryData}
               isLoading={isLoadingGstCategory}
-              onGstCategorySelect={handleViewGstCategory}
-              onDeleteGstCategory={
-                canDeleteCategory ? handleDeleteGstCategory : undefined
-              }
-              onEditGstCategory={
-                canEditCategory ? handleEditGstCategory : undefined
-              }
-              onCreateGstCategory={
-                canCreateCategory ? handleCreateGstCategory : undefined
-              }
+              onSelect={handleViewGstCategory}
+              onDelete={canDeleteCategory ? handleDeleteGstCategory : undefined}
+              onEdit={canEditCategory ? handleEditGstCategory : undefined}
+              onCreate={canCreateCategory ? handleCreateGstCategory : undefined}
               onRefresh={refetchGstCategory}
               onFilterChange={setCategoryFilters}
               moduleId={moduleId}
               transactionId={transactionIdCategory}
+              canEdit={canEditCategory}
+              canDelete={canDeleteCategory}
+              canView={canViewCategory}
+              canCreate={canCreateCategory}
             />
           )}
         </TabsContent>
@@ -808,6 +856,53 @@ export default function GstPage() {
             : deleteConfirmation.type === "gstdt"
               ? deleteDtMutation.isPending
               : deleteCategoryMutation.isPending
+        }
+      />
+
+      {/* Save Confirmation Dialog */}
+      <SaveConfirmation
+        open={saveConfirmation.isOpen}
+        onOpenChange={(isOpen) =>
+          setSaveConfirmation((prev) => ({ ...prev, isOpen }))
+        }
+        title={
+          modalMode === "create"
+            ? `Create ${saveConfirmation.type.toUpperCase()}`
+            : `Update ${saveConfirmation.type.toUpperCase()}`
+        }
+        itemName={
+          saveConfirmation.type === "gst"
+            ? (saveConfirmation.data as GstFormValues)?.gstName || ""
+            : saveConfirmation.type === "gstdt"
+              ? (saveConfirmation.data as GstDtFormValues)?.gstPercentage || ""
+              : (saveConfirmation.data as GstCategoryFormValues)
+                  ?.gstCategoryName || ""
+        }
+        operationType={modalMode === "create" ? "create" : "update"}
+        onConfirm={() => {
+          if (saveConfirmation.data) {
+            handleConfirmedFormSubmit(saveConfirmation.data)
+          }
+          setSaveConfirmation({
+            isOpen: false,
+            data: null,
+            type: "gst",
+          })
+        }}
+        onCancel={() =>
+          setSaveConfirmation({
+            isOpen: false,
+            data: null,
+            type: "gst",
+          })
+        }
+        isSaving={
+          saveConfirmation.type === "gst"
+            ? saveMutation.isPending || updateMutation.isPending
+            : saveConfirmation.type === "gstdt"
+              ? saveDtMutation.isPending || updateDtMutation.isPending
+              : saveCategoryMutation.isPending ||
+                updateCategoryMutation.isPending
         }
       />
     </div>

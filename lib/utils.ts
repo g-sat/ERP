@@ -332,7 +332,7 @@ export enum TableName {
   coa_category2 = "coa_category2",
   coa_category3 = "coa_category3",
   chart_of_account = "chart_of_account",
-  payment_type = "payment_type",
+  payment_type = "paymentType",
   customer = "customer",
   customer_address = "customer_address",
   customer_contact = "customer_contact",

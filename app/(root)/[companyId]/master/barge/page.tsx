@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/dialog"
 import { Separator } from "@/components/ui/separator"
 import { DeleteConfirmation } from "@/components/delete-confirmation"
+import { SaveConfirmation } from "@/components/save-confirmation"
 import { DataTableSkeleton } from "@/components/skeleton/data-table-skeleton"
 import { LockSkeleton } from "@/components/skeleton/lock-skeleton"
 import { LoadExistingDialog } from "@/components/ui-custom/master-loadexisting-dialog"
@@ -40,6 +41,14 @@ export default function BargePage() {
   const [filters, setFilters] = useState<IBargeFilter>({})
   const [isLocked, setIsLocked] = useState(false)
   const [isEmpty, setIsEmpty] = useState(false)
+
+  // Filter handler wrapper
+  const handleFilterChange = (newFilters: {
+    search?: string
+    sortOrder?: string
+  }) => {
+    setFilters(newFilters as IBargeFilter)
+  }
 
   const {
     data: bargesResponse,
@@ -128,25 +137,38 @@ export default function BargePage() {
     setIsModalOpen(true)
   }
 
-  const handleFormSubmit = async (data: BargeFormValues) => {
+  // State for save confirmation
+  const [saveConfirmation, setSaveConfirmation] = useState<{
+    isOpen: boolean
+    data: BargeFormValues | null
+  }>({
+    isOpen: false,
+    data: null,
+  })
+
+  // Handler for form submission (create or edit) - shows confirmation first
+  const handleFormSubmit = (data: BargeFormValues) => {
+    setSaveConfirmation({
+      isOpen: true,
+      data: data,
+    })
+  }
+
+  // Handler for confirmed form submission
+  const handleConfirmedFormSubmit = async (data: BargeFormValues) => {
     try {
       if (modalMode === "create") {
-        const response = (await saveMutation.mutateAsync(
-          data
-        )) as ApiResponse<IBarge>
+        const response = await saveMutation.mutateAsync(data)
         if (response.result === 1) {
           queryClient.invalidateQueries({ queryKey: ["barges"] })
-          setIsModalOpen(false)
         }
       } else if (modalMode === "edit" && selectedBarge) {
-        const response = (await updateMutation.mutateAsync(
-          data
-        )) as ApiResponse<IBarge>
+        const response = await updateMutation.mutateAsync(data)
         if (response.result === 1) {
           queryClient.invalidateQueries({ queryKey: ["barges"] })
-          setIsModalOpen(false)
         }
       }
+      setIsModalOpen(false)
     } catch (error) {
       console.error("Error in form submission:", error)
     }
@@ -240,31 +262,37 @@ export default function BargePage() {
         <LockSkeleton locked={true}>
           <BargesTable
             data={isEmpty ? [] : bargesData || []}
-            onBargeSelect={canView ? handleViewBarge : undefined}
-            onDeleteBarge={canDelete ? handleDeleteBarge : undefined}
-            onEditBarge={canEdit ? handleEditBarge : undefined}
-            onCreateBarge={canCreate ? handleCreateBarge : undefined}
-            onRefresh={() => {
-              handleRefresh()
-            }}
-            onFilterChange={setFilters}
+            onSelect={canView ? handleViewBarge : undefined}
+            onDelete={canDelete ? handleDeleteBarge : undefined}
+            onEdit={canEdit ? handleEditBarge : undefined}
+            onCreate={canCreate ? handleCreateBarge : undefined}
+            onRefresh={handleRefresh}
+            onFilterChange={handleFilterChange}
             moduleId={moduleId}
             transactionId={transactionId}
+            // Pass permissions to table
+            canEdit={canEdit}
+            canDelete={canDelete}
+            canView={canView}
+            canCreate={canCreate}
           />
         </LockSkeleton>
       ) : bargesResult ? (
         <BargesTable
           data={isEmpty ? [] : bargesData || []}
-          onBargeSelect={canView ? handleViewBarge : undefined}
-          onDeleteBarge={canDelete ? handleDeleteBarge : undefined}
-          onEditBarge={canEdit ? handleEditBarge : undefined}
-          onCreateBarge={canCreate ? handleCreateBarge : undefined}
-          onRefresh={() => {
-            handleRefresh()
-          }}
-          onFilterChange={setFilters}
+          onSelect={canView ? handleViewBarge : undefined}
+          onDelete={canDelete ? handleDeleteBarge : undefined}
+          onEdit={canEdit ? handleEditBarge : undefined}
+          onCreate={canCreate ? handleCreateBarge : undefined}
+          onRefresh={handleRefresh}
+          onFilterChange={handleFilterChange}
           moduleId={moduleId}
           transactionId={transactionId}
+          // Pass permissions to table
+          canEdit={canEdit}
+          canDelete={canDelete}
+          canView={canView}
+          canCreate={canCreate}
         />
       ) : (
         <div>No data available</div>
@@ -331,6 +359,33 @@ export default function BargePage() {
           })
         }
         isDeleting={deleteMutation.isPending}
+      />
+
+      {/* Save Confirmation Dialog */}
+      <SaveConfirmation
+        open={saveConfirmation.isOpen}
+        onOpenChange={(isOpen) =>
+          setSaveConfirmation((prev) => ({ ...prev, isOpen }))
+        }
+        title={modalMode === "create" ? "Create Barge" : "Update Barge"}
+        itemName={saveConfirmation.data?.bargeName || ""}
+        operationType={modalMode === "create" ? "create" : "update"}
+        onConfirm={() => {
+          if (saveConfirmation.data) {
+            handleConfirmedFormSubmit(saveConfirmation.data)
+          }
+          setSaveConfirmation({
+            isOpen: false,
+            data: null,
+          })
+        }}
+        onCancel={() =>
+          setSaveConfirmation({
+            isOpen: false,
+            data: null,
+          })
+        }
+        isSaving={saveMutation.isPending || updateMutation.isPending}
       />
 
       {/* Load Existing Barge Dialog */}

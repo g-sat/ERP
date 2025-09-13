@@ -40,6 +40,8 @@ export default function DesignationPage() {
 
   const canEdit = hasPermission(moduleId, transactionId, "isEdit")
   const canDelete = hasPermission(moduleId, transactionId, "isDelete")
+  const canView = hasPermission(moduleId, transactionId, "isRead")
+  const canCreate = hasPermission(moduleId, transactionId, "isCreate")
 
   const [filters, setFilters] = useState<IDesignationFilter>({})
   const {
@@ -121,25 +123,38 @@ export default function DesignationPage() {
     setIsModalOpen(true)
   }
 
-  const handleFormSubmit = async (data: DesignationFormValues) => {
+  // State for save confirmation
+  const [saveConfirmation, setSaveConfirmation] = useState<{
+    isOpen: boolean
+    data: DesignationFormValues | null
+  }>({
+    isOpen: false,
+    data: null,
+  })
+
+  // Handler for form submission (create or edit) - shows confirmation first
+  const handleFormSubmit = (data: DesignationFormValues) => {
+    setSaveConfirmation({
+      isOpen: true,
+      data: data,
+    })
+  }
+
+  // Handler for confirmed form submission
+  const handleConfirmedFormSubmit = async (data: DesignationFormValues) => {
     try {
       if (modalMode === "create") {
-        const response = (await saveMutation.mutateAsync(
-          data
-        )) as ApiResponse<IDesignation>
+        const response = await saveMutation.mutateAsync(data)
         if (response.result === 1) {
           queryClient.invalidateQueries({ queryKey: ["designations"] })
-          setIsModalOpen(false)
         }
       } else if (modalMode === "edit" && selectedDesignation) {
-        const response = (await updateMutation.mutateAsync(
-          data
-        )) as ApiResponse<IDesignation>
+        const response = await updateMutation.mutateAsync(data)
         if (response.result === 1) {
           queryClient.invalidateQueries({ queryKey: ["designations"] })
-          setIsModalOpen(false)
         }
       }
+      setIsModalOpen(false)
     } catch (error) {
       console.error("Error in form submission:", error)
     }
@@ -268,19 +283,21 @@ export default function DesignationPage() {
       ) : designationsResult ? (
         <DesignationsTable
           data={designationsData || []}
-          onDesignationSelect={handleViewDesignation}
+          onDesignationSelect={canView ? handleViewDesignation : undefined}
           onDeleteDesignation={canDelete ? handleDeleteDesignation : undefined}
           onEditDesignation={canEdit ? handleEditDesignation : undefined}
-          onCreateDesignation={handleCreateDesignation}
-          onRefresh={() => {
-            handleRefresh()
-          }}
+          onCreateDesignation={canCreate ? handleCreateDesignation : undefined}
+          onRefresh={handleRefresh}
           onFilterChange={setFilters}
           moduleId={moduleId}
           transactionId={transactionId}
         />
       ) : (
-        <div>No data available</div>
+        <div className="py-8 text-center">
+          <p className="text-muted-foreground">
+            {designationsResult === 0 ? "No data available" : "Loading..."}
+          </p>
+        </div>
       )}
 
       <Dialog
@@ -356,6 +373,35 @@ export default function DesignationPage() {
           })
         }
         isDeleting={deleteMutation.isPending}
+      />
+
+      {/* Save Confirmation Dialog */}
+      <SaveConfirmation
+        open={saveConfirmation.isOpen}
+        onOpenChange={(isOpen) =>
+          setSaveConfirmation((prev) => ({ ...prev, isOpen }))
+        }
+        title={
+          modalMode === "create" ? "Create Designation" : "Update Designation"
+        }
+        itemName={saveConfirmation.data?.designationName || ""}
+        operationType={modalMode === "create" ? "create" : "update"}
+        onConfirm={() => {
+          if (saveConfirmation.data) {
+            handleConfirmedFormSubmit(saveConfirmation.data)
+          }
+          setSaveConfirmation({
+            isOpen: false,
+            data: null,
+          })
+        }}
+        onCancel={() =>
+          setSaveConfirmation({
+            isOpen: false,
+            data: null,
+          })
+        }
+        isSaving={saveMutation.isPending || updateMutation.isPending}
       />
     </div>
   )

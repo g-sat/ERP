@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/dialog"
 import { Separator } from "@/components/ui/separator"
 import { DeleteConfirmation } from "@/components/delete-confirmation"
+import { SaveConfirmation } from "@/components/save-confirmation"
 import { DataTableSkeleton } from "@/components/skeleton/data-table-skeleton"
 import { LockSkeleton } from "@/components/skeleton/lock-skeleton"
 
@@ -31,18 +32,10 @@ export default function AdminUserGroupsPage() {
 
   const { hasPermission } = usePermissionStore()
 
-  const canEditUserGroup = hasPermission(moduleId, transactionIdGroup, "isEdit")
-  const canDeleteUserGroup = hasPermission(
-    moduleId,
-    transactionIdGroup,
-    "isDelete"
-  )
-  const canViewUserGroup = hasPermission(moduleId, transactionIdGroup, "isRead")
-  const canCreateUserGroup = hasPermission(
-    moduleId,
-    transactionIdGroup,
-    "isCreate"
-  )
+  const canEdit = hasPermission(moduleId, transactionIdGroup, "isEdit")
+  const canDelete = hasPermission(moduleId, transactionIdGroup, "isDelete")
+  const canView = hasPermission(moduleId, transactionIdGroup, "isRead")
+  const canCreate = hasPermission(moduleId, transactionIdGroup, "isCreate")
 
   const [groupFilters, setGroupFilters] = useState<IUserGroupFilter>({})
 
@@ -111,7 +104,7 @@ export default function AdminUserGroupsPage() {
     setIsGroupModalOpen(true)
   }
 
-  const handleViewUserGroup = (group: IUserGroup | undefined) => {
+  const handleViewUserGroup = (group: IUserGroup | null) => {
     if (!group) return
     setModalMode("view")
     setSelectedUserGroup(group)
@@ -167,6 +160,34 @@ export default function AdminUserGroupsPage() {
     }
   }
 
+  const handleSaveConfirmation = (data: UserGroupFormValues) => {
+    setSaveConfirmation({
+      isOpen: true,
+      data,
+    })
+  }
+
+  const handleConfirmedFormSubmit = async (data: UserGroupFormValues) => {
+    try {
+      if (modalMode === "create") {
+        const response = await saveGroupMutation.mutateAsync(data)
+        if (response.result === 1) {
+          // Invalidate and refetch the usergroups query
+          queryClient.invalidateQueries({ queryKey: ["usergroups"] })
+        }
+      } else if (modalMode === "edit" && selectedUserGroup) {
+        const response = await updateGroupMutation.mutateAsync(data)
+        if (response.result === 1) {
+          // Invalidate and refetch the usergroups query
+          queryClient.invalidateQueries({ queryKey: ["usergroups"] })
+        }
+      }
+      setIsGroupModalOpen(false)
+    } catch (error) {
+      console.error("Error in user group form submission:", error)
+    }
+  }
+
   return (
     <div className="container mx-auto space-y-4 px-4 py-4 sm:space-y-6 sm:px-6 sm:py-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -199,38 +220,40 @@ export default function AdminUserGroupsPage() {
           <UserGroupTable
             data={userGroupsData || []}
             isLoading={isLoadingUserGroups}
-            onUserGroupSelect={
-              canViewUserGroup ? handleViewUserGroup : undefined
-            }
-            onDeleteUserGroup={
-              canDeleteUserGroup ? handleDeleteUserGroup : undefined
-            }
-            onEditUserGroup={canEditUserGroup ? handleEditUserGroup : undefined}
-            onCreateUserGroup={
-              canCreateUserGroup ? handleCreateUserGroup : undefined
-            }
+            onSelect={canView ? handleViewUserGroup : undefined}
+            onDelete={canDelete ? handleDeleteUserGroup : undefined}
+            onEdit={canEdit ? handleEditUserGroup : undefined}
+            onCreate={canCreate ? handleCreateUserGroup : undefined}
             onRefresh={refetchUserGroups}
-            onFilterChange={setGroupFilters}
+            onFilterChange={(filters) =>
+              setGroupFilters(filters as IUserGroupFilter)
+            }
             moduleId={moduleId}
             transactionId={transactionIdGroup}
+            canEdit={canEdit}
+            canDelete={canDelete}
+            canView={canView}
+            canCreate={canCreate}
           />
         </LockSkeleton>
       ) : (
         <UserGroupTable
           data={userGroupsData || []}
           isLoading={isLoadingUserGroups}
-          onUserGroupSelect={canViewUserGroup ? handleViewUserGroup : undefined}
-          onDeleteUserGroup={
-            canDeleteUserGroup ? handleDeleteUserGroup : undefined
-          }
-          onEditUserGroup={canEditUserGroup ? handleEditUserGroup : undefined}
-          onCreateUserGroup={
-            canCreateUserGroup ? handleCreateUserGroup : undefined
-          }
+          onSelect={canView ? handleViewUserGroup : undefined}
+          onDelete={canDelete ? handleDeleteUserGroup : undefined}
+          onEdit={canEdit ? handleEditUserGroup : undefined}
+          onCreate={canCreate ? handleCreateUserGroup : undefined}
           onRefresh={refetchUserGroups}
-          onFilterChange={setGroupFilters}
+          onFilterChange={(filters) =>
+            setGroupFilters(filters as IUserGroupFilter)
+          }
           moduleId={moduleId}
           transactionId={transactionIdGroup}
+          canEdit={canEdit}
+          canDelete={canDelete}
+          canView={canView}
+          canCreate={canCreate}
         />
       )}
 
@@ -274,7 +297,8 @@ export default function AdminUserGroupsPage() {
             isSubmitting={
               saveGroupMutation.isPending || updateGroupMutation.isPending
             }
-            isReadOnly={modalMode === "view"}
+            isReadOnly={modalMode === "view" || modalMode === "edit"}
+            onSaveConfirmation={handleSaveConfirmation}
           />
         </DialogContent>
       </Dialog>
@@ -285,8 +309,8 @@ export default function AdminUserGroupsPage() {
         onOpenChange={(isOpen) =>
           setDeleteConfirmation((prev) => ({ ...prev, isOpen }))
         }
-        title="Delete User Group"
-        description="This action cannot be undone. This will permanently delete the user group from our servers."
+        title="Delete Account Type"
+        description="This action cannot be undone. This will permanently delete the account type from our servers."
         itemName={deleteConfirmation.groupName || ""}
         onConfirm={handleConfirmDelete}
         onCancel={() =>
@@ -300,23 +324,21 @@ export default function AdminUserGroupsPage() {
       />
 
       {/* Save Confirmation Dialog */}
-      <DeleteConfirmation
+      <SaveConfirmation
         open={saveConfirmation.isOpen}
         onOpenChange={(isOpen) =>
           setSaveConfirmation((prev) => ({ ...prev, isOpen }))
         }
         title={
-          modalMode === "create" ? "Create User Group" : "Update User Group"
-        }
-        description={
           modalMode === "create"
-            ? "Are you sure you want to create this user group?"
-            : "Are you sure you want to update this user group?"
+            ? "Create Account Group"
+            : "Update Account Group"
         }
         itemName={saveConfirmation.data?.userGroupName || ""}
+        operationType={modalMode === "create" ? "create" : "update"}
         onConfirm={() => {
           if (saveConfirmation.data) {
-            handleUserGroupFormSubmit(saveConfirmation.data)
+            handleConfirmedFormSubmit(saveConfirmation.data)
           }
           setSaveConfirmation({
             isOpen: false,
@@ -329,9 +351,7 @@ export default function AdminUserGroupsPage() {
             data: null,
           })
         }
-        isDeleting={
-          saveGroupMutation.isPending || updateGroupMutation.isPending
-        }
+        isSaving={saveGroupMutation.isPending || updateGroupMutation.isPending}
       />
     </div>
   )

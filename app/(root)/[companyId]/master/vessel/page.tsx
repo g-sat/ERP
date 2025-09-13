@@ -34,6 +34,8 @@ export default function VesselPage() {
 
   const canEdit = hasPermission(moduleId, transactionId, "isEdit")
   const canDelete = hasPermission(moduleId, transactionId, "isDelete")
+  const canView = hasPermission(moduleId, transactionId, "isRead")
+  const canCreate = hasPermission(moduleId, transactionId, "isCreate")
 
   const [filters, setFilters] = useState<IVesselFilter>({})
   const {
@@ -283,19 +285,21 @@ export default function VesselPage() {
       ) : vesselsResult ? (
         <VesselsTable
           data={vesselsData || []}
-          onVesselSelect={handleViewVessel}
+          onVesselSelect={canView ? handleViewVessel : undefined}
           onDeleteVessel={canDelete ? handleDeleteVessel : undefined}
           onEditVessel={canEdit ? handleEditVessel : undefined}
-          onCreateVessel={handleCreateVessel}
-          onRefresh={() => {
-            handleRefresh()
-          }}
+          onCreateVessel={canCreate ? handleCreateVessel : undefined}
+          onRefresh={handleRefresh}
           onFilterChange={setFilters}
           moduleId={moduleId}
           transactionId={transactionId}
         />
       ) : (
-        <div>No data available</div>
+        <div className="py-8 text-center">
+          <p className="text-muted-foreground">
+            {vesselsResult === 0 ? "No data available" : "Loading..."}
+          </p>
+        </div>
       )}
 
       <Dialog
@@ -350,7 +354,7 @@ export default function VesselPage() {
         onCancel={() => setExistingVessel(null)}
         code={existingVessel?.vesselCode}
         name={existingVessel?.vesselName}
-        typeLabel="Account Type"
+        typeLabel="Vessel"
         isLoading={saveMutation.isPending || updateMutation.isPending}
       />
 

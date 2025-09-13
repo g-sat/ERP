@@ -24,7 +24,7 @@ import { DataTableSkeleton } from "@/components/skeleton/data-table-skeleton"
 import { LoadExistingDialog } from "@/components/ui-custom/master-loadexisting-dialog"
 
 import { AccountGroupForm } from "./components/account-group-form"
-import { AccountGroupsTable } from "./components/account-group-table"
+import { AccountGroupTable } from "./components/account-group-table"
 
 export default function AccountGroupPage() {
   const moduleId = ModuleId.master
@@ -32,11 +32,21 @@ export default function AccountGroupPage() {
 
   const { hasPermission } = usePermissionStore()
 
+  const canView = hasPermission(moduleId, transactionId, "isRead")
   const canEdit = hasPermission(moduleId, transactionId, "isEdit")
   const canDelete = hasPermission(moduleId, transactionId, "isDelete")
+  const canCreate = hasPermission(moduleId, transactionId, "isCreate")
 
   // Fetch account groups from the API using useGet
   const [filters, setFilters] = useState<IAccountGroupFilter>({})
+
+  // Filter handler wrapper
+  const handleFilterChange = (newFilters: {
+    search?: string
+    sortOrder?: string
+  }) => {
+    setFilters(newFilters as IAccountGroupFilter)
+  }
 
   const {
     data: accountGroupsResponse,
@@ -125,7 +135,7 @@ export default function AccountGroupPage() {
   }
 
   // Handler to open modal for viewing an account group
-  const handleViewAccountGroup = (accountGroup: IAccountGroup | undefined) => {
+  const handleViewAccountGroup = (accountGroup: IAccountGroup | null) => {
     if (!accountGroup) return
     setModalMode("view")
     setSelectedAccountGroup(accountGroup)
@@ -309,16 +319,14 @@ export default function AccountGroupPage() {
           shrinkZero
         />
       ) : accountGroupsResult ? (
-        <AccountGroupsTable
+        <AccountGroupTable
           data={accountGroupsData || []}
-          onAccountGroupSelect={handleViewAccountGroup}
-          onDeleteAccountGroup={
-            canDelete ? handleDeleteAccountGroup : undefined
-          }
-          onEditAccountGroup={canEdit ? handleEditAccountGroup : undefined}
-          onCreateAccountGroup={handleCreateAccountGroup}
+          onSelect={canView ? handleViewAccountGroup : undefined}
+          onDelete={canDelete ? handleDeleteAccountGroup : undefined}
+          onEdit={canEdit ? handleEditAccountGroup : undefined}
+          onCreate={canCreate ? handleCreateAccountGroup : undefined}
           onRefresh={handleRefresh}
-          onFilterChange={setFilters}
+          onFilterChange={handleFilterChange}
           moduleId={moduleId}
           transactionId={transactionId}
         />

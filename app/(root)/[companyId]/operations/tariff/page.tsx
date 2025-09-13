@@ -518,7 +518,7 @@ export default function TariffPage() {
     isLoadingCount || isLoadingTariffByTask || isSearching || isTabLoading
 
   return (
-    <div className="container-responsive flex flex-1 flex-col gap-6 p-6">
+    <div className="container mx-auto flex flex-1 flex-col gap-6 p-6">
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div className="space-y-1">
           <h1 className="text-fluid-2xl font-bold tracking-tight">
@@ -631,12 +631,12 @@ export default function TariffPage() {
           className="mb-6"
         >
           <div className="overflow-x-auto">
-            <TabsList className="flex h-14 w-max touch-target">
+            <TabsList className="touch-target flex h-14 w-max">
               {categories.map((category) => (
                 <TabsTrigger
                   key={category.id}
                   value={category.id}
-                  className="relative flex items-center space-x-2 px-4 py-2 text-fluid-xs"
+                  className="text-fluid-xs relative flex items-center space-x-2 px-4 py-2"
                   disabled={isTabLoading && activeCategory === category.id}
                 >
                   {category.label}

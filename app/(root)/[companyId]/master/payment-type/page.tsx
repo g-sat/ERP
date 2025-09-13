@@ -35,6 +35,8 @@ export default function PaymentTypePage() {
 
   const canEdit = hasPermission(moduleId, transactionId, "isEdit")
   const canDelete = hasPermission(moduleId, transactionId, "isDelete")
+  const canView = hasPermission(moduleId, transactionId, "isRead")
+  const canCreate = hasPermission(moduleId, transactionId, "isCreate")
 
   const [filters, setFilters] = useState<IPaymentTypeFilter>({})
   const {
@@ -120,25 +122,38 @@ export default function PaymentTypePage() {
     setIsModalOpen(true)
   }
 
-  const handleFormSubmit = async (data: PaymentTypeFormValues) => {
+  // State for save confirmation
+  const [saveConfirmation, setSaveConfirmation] = useState<{
+    isOpen: boolean
+    data: PaymentTypeFormValues | null
+  }>({
+    isOpen: false,
+    data: null,
+  })
+
+  // Handler for form submission (create or edit) - shows confirmation first
+  const handleFormSubmit = (data: PaymentTypeFormValues) => {
+    setSaveConfirmation({
+      isOpen: true,
+      data: data,
+    })
+  }
+
+  // Handler for confirmed form submission
+  const handleConfirmedFormSubmit = async (data: PaymentTypeFormValues) => {
     try {
       if (modalMode === "create") {
-        const response = (await saveMutation.mutateAsync(
-          data
-        )) as unknown as ApiResponse<IPaymentType>
+        const response = await saveMutation.mutateAsync(data)
         if (response.result === 1) {
           queryClient.invalidateQueries({ queryKey: ["paymentTypes"] })
-          setIsModalOpen(false)
         }
       } else if (modalMode === "edit" && selectedPaymentType) {
-        const response = (await updateMutation.mutateAsync(
-          data
-        )) as unknown as ApiResponse<IPaymentType>
+        const response = await updateMutation.mutateAsync(data)
         if (response.result === 1) {
           queryClient.invalidateQueries({ queryKey: ["paymentTypes"] })
-          setIsModalOpen(false)
         }
       }
+      setIsModalOpen(false)
     } catch (error) {
       console.error("Error in form submission:", error)
     }
@@ -268,36 +283,44 @@ export default function PaymentTypePage() {
         <LockSkeleton locked={true}>
           <PaymentTypesTable
             data={paymentTypesData || []}
-            onPaymentTypeSelect={handleViewPaymentType}
-            onDeletePaymentType={
-              canDelete ? handleDeletePaymentType : undefined
-            }
-            onEditPaymentType={canEdit ? handleEditPaymentType : undefined}
-            onCreatePaymentType={handleCreatePaymentType}
-            onRefresh={() => {
-              handleRefresh()
-            }}
+            onSelect={canView ? handleViewPaymentType : undefined}
+            onDelete={canDelete ? handleDeletePaymentType : undefined}
+            onEdit={canEdit ? handleEditPaymentType : undefined}
+            onCreate={canCreate ? handleCreatePaymentType : undefined}
+            onRefresh={handleRefresh}
             onFilterChange={setFilters}
             moduleId={moduleId}
             transactionId={transactionId}
+            // Pass permissions to table
+            canEdit={canEdit}
+            canDelete={canDelete}
+            canView={canView}
+            canCreate={canCreate}
           />
         </LockSkeleton>
       ) : paymentTypesResult ? (
         <PaymentTypesTable
           data={paymentTypesData || []}
-          onPaymentTypeSelect={handleViewPaymentType}
-          onDeletePaymentType={canDelete ? handleDeletePaymentType : undefined}
-          onEditPaymentType={canEdit ? handleEditPaymentType : undefined}
-          onCreatePaymentType={handleCreatePaymentType}
-          onRefresh={() => {
-            handleRefresh()
-          }}
+          onSelect={canView ? handleViewPaymentType : undefined}
+          onDelete={canDelete ? handleDeletePaymentType : undefined}
+          onEdit={canEdit ? handleEditPaymentType : undefined}
+          onCreate={canCreate ? handleCreatePaymentType : undefined}
+          onRefresh={handleRefresh}
           onFilterChange={setFilters}
           moduleId={moduleId}
           transactionId={transactionId}
+          // Pass permissions to table
+          canEdit={canEdit}
+          canDelete={canDelete}
+          canView={canView}
+          canCreate={canCreate}
         />
       ) : (
-        <div>No data available</div>
+        <div className="py-8 text-center">
+          <p className="text-muted-foreground">
+            {paymentTypesResult === 0 ? "No data available" : "Loading..."}
+          </p>
+        </div>
       )}
 
       <Dialog
@@ -373,6 +396,35 @@ export default function PaymentTypePage() {
           })
         }
         isDeleting={deleteMutation.isPending}
+      />
+
+      {/* Save Confirmation Dialog */}
+      <SaveConfirmation
+        open={saveConfirmation.isOpen}
+        onOpenChange={(isOpen) =>
+          setSaveConfirmation((prev) => ({ ...prev, isOpen }))
+        }
+        title={
+          modalMode === "create" ? "Create Payment Type" : "Update Payment Type"
+        }
+        itemName={saveConfirmation.data?.paymentTypeName || ""}
+        operationType={modalMode === "create" ? "create" : "update"}
+        onConfirm={() => {
+          if (saveConfirmation.data) {
+            handleConfirmedFormSubmit(saveConfirmation.data)
+          }
+          setSaveConfirmation({
+            isOpen: false,
+            data: null,
+          })
+        }}
+        onCancel={() =>
+          setSaveConfirmation({
+            isOpen: false,
+            data: null,
+          })
+        }
+        isSaving={saveMutation.isPending || updateMutation.isPending}
       />
     </div>
   )

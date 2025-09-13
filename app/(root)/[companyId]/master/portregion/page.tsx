@@ -33,6 +33,8 @@ export default function PortRegionPage() {
 
   const canEdit = hasPermission(moduleId, transactionId, "isEdit")
   const canDelete = hasPermission(moduleId, transactionId, "isDelete")
+  const canView = hasPermission(moduleId, transactionId, "isRead")
+  const canCreate = hasPermission(moduleId, transactionId, "isCreate")
 
   const [filters, setFilters] = useState<IPortRegionFilter>({})
   const {
@@ -104,7 +106,25 @@ export default function PortRegionPage() {
     setIsModalOpen(true)
   }
 
-  const handleFormSubmit = async (data: PortRegionFormValues) => {
+  // State for save confirmation
+  const [saveConfirmation, setSaveConfirmation] = useState<{
+    isOpen: boolean
+    data: PortRegionFormValues | null
+  }>({
+    isOpen: false,
+    data: null,
+  })
+
+  // Handler for form submission (create or edit) - shows confirmation first
+  const handleFormSubmit = (data: PortRegionFormValues) => {
+    setSaveConfirmation({
+      isOpen: true,
+      data: data,
+    })
+  }
+
+  // Handler for confirmed form submission
+  const handleConfirmedFormSubmit = async (data: PortRegionFormValues) => {
     try {
       if (modalMode === "create") {
         const response = (await saveMutation.mutateAsync(
@@ -113,7 +133,6 @@ export default function PortRegionPage() {
 
         if (response.result === 1) {
           queryClient.invalidateQueries({ queryKey: ["portregions"] })
-          setIsModalOpen(false)
         }
       } else if (modalMode === "edit" && selectedPortRegion) {
         const response = (await updateMutation.mutateAsync(
@@ -122,9 +141,9 @@ export default function PortRegionPage() {
 
         if (response.result === 1) {
           queryClient.invalidateQueries({ queryKey: ["portregions"] })
-          setIsModalOpen(false)
         }
       }
+      setIsModalOpen(false)
     } catch (error) {
       console.error("Error in form submission:", error)
     }
@@ -261,10 +280,10 @@ export default function PortRegionPage() {
       ) : portregionsResult ? (
         <PortRegionsTable
           data={portregionsData || []}
-          onPortRegionSelect={handleViewPortRegion}
-          onDeletePortRegion={canDelete ? handleDeletePortRegion : undefined}
-          onEditPortRegion={canEdit ? handleEditPortRegion : undefined}
-          onCreatePortRegion={handleCreatePortRegion}
+          onSelect={canView ? handleViewPortRegion : undefined}
+          onDelete={canDelete ? handleDeletePortRegion : undefined}
+          onEdit={canEdit ? handleEditPortRegion : undefined}
+          onCreate={canCreate ? handleCreatePortRegion : undefined}
           onRefresh={() => {
             handleRefresh()
           }}
@@ -348,6 +367,35 @@ export default function PortRegionPage() {
           })
         }
         isDeleting={deleteMutation.isPending}
+      />
+
+      {/* Save Confirmation Dialog */}
+      <SaveConfirmation
+        open={saveConfirmation.isOpen}
+        onOpenChange={(isOpen) =>
+          setSaveConfirmation((prev) => ({ ...prev, isOpen }))
+        }
+        title={
+          modalMode === "create" ? "Create Port Region" : "Update Port Region"
+        }
+        itemName={saveConfirmation.data?.portRegionName || ""}
+        operationType={modalMode === "create" ? "create" : "update"}
+        onConfirm={() => {
+          if (saveConfirmation.data) {
+            handleConfirmedFormSubmit(saveConfirmation.data)
+          }
+          setSaveConfirmation({
+            isOpen: false,
+            data: null,
+          })
+        }}
+        onCancel={() =>
+          setSaveConfirmation({
+            isOpen: false,
+            data: null,
+          })
+        }
+        isSaving={saveMutation.isPending || updateMutation.isPending}
       />
     </div>
   )

@@ -34,9 +34,19 @@ export default function AccountTypePage() {
 
   const canEdit = hasPermission(moduleId, transactionId, "isEdit")
   const canDelete = hasPermission(moduleId, transactionId, "isDelete")
+  const canView = hasPermission(moduleId, transactionId, "isRead")
+  const canCreate = hasPermission(moduleId, transactionId, "isCreate")
 
   // Fetch account types from the API using useGet
   const [filters, setFilters] = useState<IAccountTypeFilter>({})
+
+  // Filter handler wrapper
+  const handleFilterChange = (newFilters: {
+    search?: string
+    sortOrder?: string
+  }) => {
+    setFilters(newFilters as IAccountTypeFilter)
+  }
 
   const {
     data: accountTypesResponse,
@@ -59,9 +69,8 @@ export default function AccountTypePage() {
   const deleteMutation = useDelete(`${AccountType.delete}`)
 
   // State for modal and selected account type
-  const [selectedAccountType, setSelectedAccountType] = useState<
-    IAccountType | undefined
-  >(undefined)
+  const [selectedAccountType, setSelectedAccountType] =
+    useState<IAccountType | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [modalMode, setModalMode] = useState<"create" | "edit" | "view">(
     "create"
@@ -108,7 +117,7 @@ export default function AccountTypePage() {
   // Handler to open modal for creating a new account type
   const handleCreateAccountType = () => {
     setModalMode("create")
-    setSelectedAccountType(undefined)
+    setSelectedAccountType(null)
     setIsModalOpen(true)
   }
 
@@ -121,7 +130,7 @@ export default function AccountTypePage() {
   }
 
   // Handler to open modal for viewing an account type
-  const handleViewAccountType = (accountType: IAccountType | undefined) => {
+  const handleViewAccountType = (accountType: IAccountType | null) => {
     if (!accountType) return
     setModalMode("view")
     setSelectedAccountType(accountType)
@@ -305,19 +314,26 @@ export default function AccountTypePage() {
       ) : accountTypesResult ? (
         <AccountTypesTable
           data={accountTypesData || []}
-          onAccountTypeSelect={handleViewAccountType}
-          onDeleteAccountType={canDelete ? handleDeleteAccountType : undefined}
-          onEditAccountType={canEdit ? handleEditAccountType : undefined}
-          onCreateAccountType={handleCreateAccountType}
-          onRefresh={() => {
-            handleRefresh()
-          }}
-          onFilterChange={setFilters}
+          onSelect={canView ? handleViewAccountType : undefined}
+          onDelete={canDelete ? handleDeleteAccountType : undefined}
+          onEdit={canEdit ? handleEditAccountType : undefined}
+          onCreate={canCreate ? handleCreateAccountType : undefined}
+          onRefresh={handleRefresh}
+          onFilterChange={handleFilterChange}
           moduleId={moduleId}
           transactionId={transactionId}
+          // Pass permissions to table
+          canEdit={canEdit}
+          canDelete={canDelete}
+          canView={canView}
+          canCreate={canCreate}
         />
       ) : (
-        <div>No data available</div>
+        <div className="py-8 text-center">
+          <p className="text-muted-foreground">
+            {accountTypesResult === 0 ? "No data available" : "Loading..."}
+          </p>
+        </div>
       )}
 
       {/* Modal for Create, Edit, and View */}
@@ -353,7 +369,7 @@ export default function AccountTypePage() {
           <AccountTypeForm
             initialData={
               modalMode === "edit" || modalMode === "view"
-                ? selectedAccountType
+                ? selectedAccountType || undefined
                 : undefined
             }
             submitAction={handleFormSubmit}

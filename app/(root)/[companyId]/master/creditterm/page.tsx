@@ -281,12 +281,37 @@ export default function CreditTermPage() {
     }
   }
 
-  // Main form submit handler
-  const handleFormSubmit = async (
+  // State for save confirmations
+  const [saveConfirmation, setSaveConfirmation] = useState<{
+    isOpen: boolean
+    data: CreditTermFormValues | CreditTermDtFormValues | null
+    type: "creditterm" | "credittermdt"
+  }>({
+    isOpen: false,
+    data: null,
+    type: "creditterm",
+  })
+
+  // Main form submit handler - shows confirmation first
+  const handleFormSubmit = (
+    data: CreditTermFormValues | CreditTermDtFormValues
+  ) => {
+    let type: "creditterm" | "credittermdt" = "creditterm"
+    if (isDtModalOpen) type = "credittermdt"
+
+    setSaveConfirmation({
+      isOpen: true,
+      data: data,
+      type: type,
+    })
+  }
+
+  // Handler for confirmed form submission
+  const handleConfirmedFormSubmit = async (
     data: CreditTermFormValues | CreditTermDtFormValues
   ) => {
     try {
-      if (isDtModalOpen) {
+      if (saveConfirmation.type === "credittermdt") {
         await handleCreditTermDtSubmit(data as CreditTermDtFormValues)
         setIsDtModalOpen(false)
       } else {
@@ -638,6 +663,49 @@ export default function CreditTermPage() {
           deleteConfirmation.type === "creditterm"
             ? deleteMutation.isPending
             : deleteDtMutation.isPending
+        }
+      />
+
+      {/* Save Confirmation Dialog */}
+      <SaveConfirmation
+        open={saveConfirmation.isOpen}
+        onOpenChange={(isOpen) =>
+          setSaveConfirmation((prev) => ({ ...prev, isOpen }))
+        }
+        title={
+          modalMode === "create"
+            ? `Create ${saveConfirmation.type.toUpperCase()}`
+            : `Update ${saveConfirmation.type.toUpperCase()}`
+        }
+        itemName={
+          saveConfirmation.type === "creditterm"
+            ? (saveConfirmation.data as CreditTermFormValues)?.creditTermName ||
+              ""
+            : (saveConfirmation.data as CreditTermDtFormValues)
+                ?.creditTermName || ""
+        }
+        operationType={modalMode === "create" ? "create" : "update"}
+        onConfirm={() => {
+          if (saveConfirmation.data) {
+            handleConfirmedFormSubmit(saveConfirmation.data)
+          }
+          setSaveConfirmation({
+            isOpen: false,
+            data: null,
+            type: "creditterm",
+          })
+        }}
+        onCancel={() =>
+          setSaveConfirmation({
+            isOpen: false,
+            data: null,
+            type: "creditterm",
+          })
+        }
+        isSaving={
+          saveConfirmation.type === "creditterm"
+            ? saveMutation.isPending || updateMutation.isPending
+            : saveDtMutation.isPending || updateDtMutation.isPending
         }
       />
     </div>

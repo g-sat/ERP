@@ -18,9 +18,10 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Separator } from "@/components/ui/separator"
+import { DeleteConfirmation } from "@/components/delete-confirmation"
+import { SaveConfirmation } from "@/components/save-confirmation"
 import { DataTableSkeleton } from "@/components/skeleton/data-table-skeleton"
 import { LockSkeleton } from "@/components/skeleton/lock-skeleton"
-import { DeleteConfirmation } from "@/components/delete-confirmation"
 
 import { UserForm } from "../components/user-form"
 import { UserTable } from "../components/user-table"
@@ -31,10 +32,10 @@ export default function AdminUsersPage() {
 
   const { hasPermission } = usePermissionStore()
 
-  const canEditUser = hasPermission(moduleId, transactionId, "isEdit")
-  const canDeleteUser = hasPermission(moduleId, transactionId, "isDelete")
-  const canViewUser = hasPermission(moduleId, transactionId, "isRead")
-  const canCreateUser = hasPermission(moduleId, transactionId, "isCreate")
+  const canEdit = hasPermission(moduleId, transactionId, "isEdit")
+  const canDelete = hasPermission(moduleId, transactionId, "isDelete")
+  const canView = hasPermission(moduleId, transactionId, "isRead")
+  const canCreate = hasPermission(moduleId, transactionId, "isCreate")
 
   const [filters, setFilters] = useState<IUserFilter>({})
 
@@ -100,7 +101,7 @@ export default function AdminUsersPage() {
     setIsUserModalOpen(true)
   }
 
-  const handleViewUser = (user: IUser | undefined) => {
+  const handleViewUser = (user: IUser | null) => {
     if (!user) return
     setModalMode("view")
     setSelectedUser(user)
@@ -154,6 +155,34 @@ export default function AdminUsersPage() {
     }
   }
 
+  const handleSaveConfirmation = (data: UserFormValues) => {
+    setSaveConfirmation({
+      isOpen: true,
+      data,
+    })
+  }
+
+  const handleConfirmedFormSubmit = async (data: UserFormValues) => {
+    try {
+      if (modalMode === "create") {
+        const response = await saveMutation.mutateAsync(data)
+        if (response.result === 1) {
+          // Invalidate and refetch the users query
+          queryClient.invalidateQueries({ queryKey: ["users"] })
+        }
+      } else if (modalMode === "edit" && selectedUser) {
+        const response = await updateMutation.mutateAsync(data)
+        if (response.result === 1) {
+          // Invalidate and refetch the users query
+          queryClient.invalidateQueries({ queryKey: ["users"] })
+        }
+      }
+      setIsUserModalOpen(false)
+    } catch (error) {
+      console.error("Error in user form submission:", error)
+    }
+  }
+
   return (
     <div className="container mx-auto space-y-4 px-4 py-4 sm:space-y-6 sm:px-6 sm:py-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -186,28 +215,36 @@ export default function AdminUsersPage() {
           <UserTable
             data={usersData || []}
             isLoading={isLoadingUsers}
-            onUserSelect={canViewUser ? handleViewUser : undefined}
-            onDeleteUser={canDeleteUser ? handleDeleteUser : undefined}
-            onEditUser={canEditUser ? handleEditUser : undefined}
-            onCreateUser={canCreateUser ? handleCreateUser : undefined}
+            onSelect={canView ? handleViewUser : undefined}
+            onDelete={canDelete ? handleDeleteUser : undefined}
+            onEdit={canEdit ? handleEditUser : undefined}
+            onCreate={canCreate ? handleCreateUser : undefined}
             onRefresh={refetchUsers}
-            onFilterChange={setFilters}
+            onFilterChange={(filters) => setFilters(filters as IUserFilter)}
             moduleId={moduleId}
             transactionId={transactionId}
+            canEdit={canEdit}
+            canDelete={canDelete}
+            canView={canView}
+            canCreate={canCreate}
           />
         </LockSkeleton>
       ) : (
         <UserTable
           data={usersData || []}
           isLoading={isLoadingUsers}
-          onUserSelect={canViewUser ? handleViewUser : undefined}
-          onDeleteUser={canDeleteUser ? handleDeleteUser : undefined}
-          onEditUser={canEditUser ? handleEditUser : undefined}
-          onCreateUser={canCreateUser ? handleCreateUser : undefined}
+          onSelect={canView ? handleViewUser : undefined}
+          onDelete={canDelete ? handleDeleteUser : undefined}
+          onEdit={canEdit ? handleEditUser : undefined}
+          onCreate={canCreate ? handleCreateUser : undefined}
           onRefresh={refetchUsers}
-          onFilterChange={setFilters}
+          onFilterChange={(filters) => setFilters(filters as IUserFilter)}
           moduleId={moduleId}
           transactionId={transactionId}
+          canEdit={canEdit}
+          canDelete={canDelete}
+          canView={canView}
+          canCreate={canCreate}
         />
       )}
 
@@ -250,6 +287,7 @@ export default function AdminUsersPage() {
             onCancel={() => setIsUserModalOpen(false)}
             isSubmitting={saveMutation.isPending || updateMutation.isPending}
             isReadOnly={modalMode === "view"}
+            onSaveConfirmation={handleSaveConfirmation}
           />
         </DialogContent>
       </Dialog>
@@ -260,8 +298,8 @@ export default function AdminUsersPage() {
         onOpenChange={(isOpen) =>
           setDeleteConfirmation((prev) => ({ ...prev, isOpen }))
         }
-        title="Delete User"
-        description="This action cannot be undone. This will permanently delete the user from our servers."
+        title="Delete Account Type"
+        description="This action cannot be undone. This will permanently delete the account type from our servers."
         itemName={deleteConfirmation.userName || ""}
         onConfirm={handleConfirmDelete}
         onCancel={() =>
@@ -275,21 +313,21 @@ export default function AdminUsersPage() {
       />
 
       {/* Save Confirmation Dialog */}
-      <DeleteConfirmation
+      <SaveConfirmation
         open={saveConfirmation.isOpen}
         onOpenChange={(isOpen) =>
           setSaveConfirmation((prev) => ({ ...prev, isOpen }))
         }
-        title={modalMode === "create" ? "Create User" : "Update User"}
-        description={
+        title={
           modalMode === "create"
-            ? "Are you sure you want to create this user?"
-            : "Are you sure you want to update this user?"
+            ? "Create Account Group"
+            : "Update Account Group"
         }
         itemName={saveConfirmation.data?.userName || ""}
+        operationType={modalMode === "create" ? "create" : "update"}
         onConfirm={() => {
           if (saveConfirmation.data) {
-            handleUserFormSubmit(saveConfirmation.data)
+            handleConfirmedFormSubmit(saveConfirmation.data)
           }
           setSaveConfirmation({
             isOpen: false,
@@ -302,7 +340,7 @@ export default function AdminUsersPage() {
             data: null,
           })
         }
-        isDeleting={saveMutation.isPending || updateMutation.isPending}
+        isSaving={saveMutation.isPending || updateMutation.isPending}
       />
     </div>
   )

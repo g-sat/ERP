@@ -66,6 +66,7 @@ export default function OrderTypePage() {
 
   // Permissions
   const canCreate = hasPermission(moduleId, transactionId, "isCreate")
+  const canView = hasPermission(moduleId, transactionId, "isRead")
   const canEdit = hasPermission(moduleId, transactionId, "isEdit")
   const canDelete = hasPermission(moduleId, transactionId, "isDelete")
   const canCreateCategory = hasPermission(
@@ -299,12 +300,37 @@ export default function OrderTypePage() {
     }
   }
 
-  // Main form submit handler
-  const handleFormSubmit = async (
+  // State for save confirmations
+  const [saveConfirmation, setSaveConfirmation] = useState<{
+    isOpen: boolean
+    data: OrderTypeFormValues | OrderTypeCategoryFormValues | null
+    type: "ordertype" | "ordertypecategory"
+  }>({
+    isOpen: false,
+    data: null,
+    type: "ordertype",
+  })
+
+  // Main form submit handler - shows confirmation first
+  const handleFormSubmit = (
+    data: OrderTypeFormValues | OrderTypeCategoryFormValues
+  ) => {
+    let type: "ordertype" | "ordertypecategory" = "ordertype"
+    if (isCategoryModalOpen) type = "ordertypecategory"
+
+    setSaveConfirmation({
+      isOpen: true,
+      data: data,
+      type: type,
+    })
+  }
+
+  // Handler for confirmed form submission
+  const handleConfirmedFormSubmit = async (
     data: OrderTypeFormValues | OrderTypeCategoryFormValues
   ) => {
     try {
-      if (isCategoryModalOpen) {
+      if (saveConfirmation.type === "ordertypecategory") {
         await handleOrderTypeCategorySubmit(data as OrderTypeCategoryFormValues)
         setIsCategoryModalOpen(false)
       } else {
@@ -689,6 +715,49 @@ export default function OrderTypePage() {
           deleteConfirmation.type === "ordertype"
             ? deleteMutation.isPending
             : deleteCategoryMutation.isPending
+        }
+      />
+
+      {/* Save Confirmation Dialog */}
+      <SaveConfirmation
+        open={saveConfirmation.isOpen}
+        onOpenChange={(isOpen) =>
+          setSaveConfirmation((prev) => ({ ...prev, isOpen }))
+        }
+        title={
+          modalMode === "create"
+            ? `Create ${saveConfirmation.type.toUpperCase()}`
+            : `Update ${saveConfirmation.type.toUpperCase()}`
+        }
+        itemName={
+          saveConfirmation.type === "ordertype"
+            ? (saveConfirmation.data as OrderTypeFormValues)?.orderTypeName ||
+              ""
+            : (saveConfirmation.data as OrderTypeCategoryFormValues)
+                ?.orderTypeCategoryName || ""
+        }
+        operationType={modalMode === "create" ? "create" : "update"}
+        onConfirm={() => {
+          if (saveConfirmation.data) {
+            handleConfirmedFormSubmit(saveConfirmation.data)
+          }
+          setSaveConfirmation({
+            isOpen: false,
+            data: null,
+            type: "ordertype",
+          })
+        }}
+        onCancel={() =>
+          setSaveConfirmation({
+            isOpen: false,
+            data: null,
+            type: "ordertype",
+          })
+        }
+        isSaving={
+          saveConfirmation.type === "ordertype"
+            ? saveMutation.isPending || updateMutation.isPending
+            : saveCategoryMutation.isPending || updateCategoryMutation.isPending
         }
       />
     </div>

@@ -35,6 +35,8 @@ export default function ProductPage() {
 
   const canEdit = hasPermission(moduleId, transactionId, "isEdit")
   const canDelete = hasPermission(moduleId, transactionId, "isDelete")
+  const canView = hasPermission(moduleId, transactionId, "isRead")
+  const canCreate = hasPermission(moduleId, transactionId, "isCreate")
 
   const [filters, setFilters] = useState<IProductFilter>({})
   const {
@@ -270,19 +272,21 @@ export default function ProductPage() {
       ) : productsResult ? (
         <ProductsTable
           data={productsData || []}
-          onProductSelect={handleViewProduct}
+          onProductSelect={canView ? handleViewProduct : undefined}
           onDeleteProduct={canDelete ? handleDeleteProduct : undefined}
           onEditProduct={canEdit ? handleEditProduct : undefined}
-          onCreateProduct={handleCreateProduct}
-          onRefresh={() => {
-            handleRefresh()
-          }}
+          onCreateProduct={canCreate ? handleCreateProduct : undefined}
+          onRefresh={handleRefresh}
           onFilterChange={setFilters}
           moduleId={moduleId}
           transactionId={transactionId}
         />
       ) : (
-        <div>No data available</div>
+        <div className="py-8 text-center">
+          <p className="text-muted-foreground">
+            {productsResult === 0 ? "No data available" : "Loading..."}
+          </p>
+        </div>
       )}
 
       <Dialog

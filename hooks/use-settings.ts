@@ -274,7 +274,7 @@ export const useUserGridSettingbyidGet = (userId: number, options = {}) => {
     placeholderData: keepPreviousData,
     staleTime: 600000,
     queryFn: async () => {
-      return await getData(`${UserGrid.getById}/${userId}`)
+      return await getData(`${UserGrid.getByUserId}/${userId}`)
     },
     refetchOnWindowFocus: false,
     ...options,

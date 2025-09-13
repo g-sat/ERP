@@ -39,8 +39,18 @@ export default function ChargePage() {
 
   const canEdit = hasPermission(moduleId, transactionId, "isEdit")
   const canDelete = hasPermission(moduleId, transactionId, "isDelete")
+  const canView = hasPermission(moduleId, transactionId, "isRead")
+  const canCreate = hasPermission(moduleId, transactionId, "isCreate")
 
   const [filters, setFilters] = useState<IChargeFilter>({})
+
+  // Filter handler wrapper
+  const handleFilterChange = (newFilters: {
+    search?: string
+    sortOrder?: string
+  }) => {
+    setFilters(newFilters as IChargeFilter)
+  }
 
   const {
     data: chargesResponse,
@@ -60,9 +70,7 @@ export default function ChargePage() {
   const updateMutation = usePersist<ChargeFormValues>(`${Charge.add}`)
   const deleteMutation = useDelete(`${Charge.delete}`)
 
-  const [selectedCharge, setSelectedCharge] = useState<ICharge | undefined>(
-    undefined
-  )
+  const [selectedCharge, setSelectedCharge] = useState<ICharge | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [modalMode, setModalMode] = useState<"create" | "edit" | "view">(
     "create"
@@ -93,7 +101,7 @@ export default function ChargePage() {
 
   const handleCreateCharge = () => {
     setModalMode("create")
-    setSelectedCharge(undefined)
+    setSelectedCharge(null)
     setIsModalOpen(true)
   }
 
@@ -104,32 +112,45 @@ export default function ChargePage() {
     setIsModalOpen(true)
   }
 
-  const handleViewCharge = (charge: ICharge | undefined) => {
+  const handleViewCharge = (charge: ICharge | null) => {
     if (!charge) return
     setModalMode("view")
     setSelectedCharge(charge)
     setIsModalOpen(true)
   }
 
-  const handleFormSubmit = async (data: ChargeFormValues) => {
+  // State for save confirmation
+  const [saveConfirmation, setSaveConfirmation] = useState<{
+    isOpen: boolean
+    data: ChargeFormValues | null
+  }>({
+    isOpen: false,
+    data: null,
+  })
+
+  // Handler for form submission (create or edit) - shows confirmation first
+  const handleFormSubmit = (data: ChargeFormValues) => {
+    setSaveConfirmation({
+      isOpen: true,
+      data: data,
+    })
+  }
+
+  // Handler for confirmed form submission
+  const handleConfirmedFormSubmit = async (data: ChargeFormValues) => {
     try {
       if (modalMode === "create") {
-        const response = (await saveMutation.mutateAsync(
-          data
-        )) as ApiResponse<ICharge>
+        const response = await saveMutation.mutateAsync(data)
         if (response.result === 1) {
           queryClient.invalidateQueries({ queryKey: ["charges"] })
-          setIsModalOpen(false)
         }
       } else if (modalMode === "edit" && selectedCharge) {
-        const response = (await updateMutation.mutateAsync(
-          data
-        )) as ApiResponse<ICharge>
+        const response = await updateMutation.mutateAsync(data)
         if (response.result === 1) {
           queryClient.invalidateQueries({ queryKey: ["charges"] })
-          setIsModalOpen(false)
         }
       }
+      setIsModalOpen(false)
     } catch (error) {
       console.error("Error in form submission:", error)
     }
@@ -264,19 +285,21 @@ export default function ChargePage() {
       ) : chargesResult ? (
         <ChargesTable
           data={chargesData || []}
-          onChargeSelect={handleViewCharge}
-          onDeleteCharge={canDelete ? handleDeleteCharge : undefined}
-          onEditCharge={canEdit ? handleEditCharge : undefined}
-          onCreateCharge={handleCreateCharge}
-          onRefresh={() => {
-            handleRefresh()
-          }}
-          onFilterChange={setFilters}
+          onSelect={canView ? handleViewCharge : undefined}
+          onDelete={canDelete ? handleDeleteCharge : undefined}
+          onEdit={canEdit ? handleEditCharge : undefined}
+          onCreate={canCreate ? handleCreateCharge : undefined}
+          onRefresh={handleRefresh}
+          onFilterChange={handleFilterChange}
           moduleId={moduleId}
           transactionId={transactionId}
         />
       ) : (
-        <div>No data available</div>
+        <div className="py-8 text-center">
+          <p className="text-muted-foreground">
+            {chargesResult === 0 ? "No data available" : "Loading..."}
+          </p>
+        </div>
       )}
 
       <Dialog
@@ -311,7 +334,7 @@ export default function ChargePage() {
           <ChargeForm
             initialData={
               modalMode === "edit" || modalMode === "view"
-                ? selectedCharge
+                ? selectedCharge || undefined
                 : undefined
             }
             submitAction={handleFormSubmit}
@@ -351,6 +374,33 @@ export default function ChargePage() {
           })
         }
         isDeleting={deleteMutation.isPending}
+      />
+
+      {/* Save Confirmation Dialog */}
+      <SaveConfirmation
+        open={saveConfirmation.isOpen}
+        onOpenChange={(isOpen) =>
+          setSaveConfirmation((prev) => ({ ...prev, isOpen }))
+        }
+        title={modalMode === "create" ? "Create Charge" : "Update Charge"}
+        itemName={saveConfirmation.data?.chargeName || ""}
+        operationType={modalMode === "create" ? "create" : "update"}
+        onConfirm={() => {
+          if (saveConfirmation.data) {
+            handleConfirmedFormSubmit(saveConfirmation.data)
+          }
+          setSaveConfirmation({
+            isOpen: false,
+            data: null,
+          })
+        }}
+        onCancel={() =>
+          setSaveConfirmation({
+            isOpen: false,
+            data: null,
+          })
+        }
+        isSaving={saveMutation.isPending || updateMutation.isPending}
       />
     </div>
   )

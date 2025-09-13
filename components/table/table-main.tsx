@@ -71,7 +71,8 @@ import {
   // Table body component
   TableCell,
   // Table row component
-  TableHeader, // Table header component (renamed to avoid conflicts)
+  TableHeader,
+  // Table header component (renamed to avoid conflicts)
   // Table cell component
   TableRow,
 } from "@/components/ui/table"
@@ -132,10 +133,11 @@ interface MainDataTableProps<T> {
   // ============================================================================
   // PERMISSION CONTROL PROPS
   // ============================================================================
-  canEdit?: boolean // Permission to edit items
-  canDelete?: boolean // Permission to delete items
+
   canView?: boolean // Permission to view items
   canCreate?: boolean // Permission to create new items
+  canEdit?: boolean // Permission to edit items
+  canDelete?: boolean // Permission to delete items
 }
 
 // ============================================================================
@@ -187,10 +189,10 @@ export function MainDataTable<T>({
   showActions = true, // Show actions by default
 
   // Permission props with defaults (all permissions enabled by default)
-  canEdit = true, // Edit permission
-  canDelete = true, // Delete permission
   canView = true, // View permission
   canCreate = true, // Create permission
+  canEdit = true, // Edit permission
+  canDelete = true, // Delete permission
 }: MainDataTableProps<T>) {
   // ============================================================================
   // STATE MANAGEMENT

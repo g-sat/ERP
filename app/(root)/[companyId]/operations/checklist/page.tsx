@@ -238,7 +238,7 @@ export default function ChecklistPage() {
   console.log("statusCounts", statusCounts)
 
   return (
-    <div className="container-responsive flex flex-1 flex-col gap-6 p-6">
+    <div className="container mx-auto flex flex-1 flex-col gap-6 p-6">
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div className="space-y-1">
           <h1 className="text-fluid-2xl font-bold tracking-tight">

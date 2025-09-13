@@ -25,6 +25,7 @@ interface UserGroupFormProps {
   onCancel?: () => void
   isSubmitting?: boolean
   isReadOnly?: boolean
+  onSaveConfirmation?: (data: UserGroupFormValues) => void
 }
 
 export function UserGroupForm({
@@ -33,6 +34,7 @@ export function UserGroupForm({
   onCancel,
   isSubmitting = false,
   isReadOnly = false,
+  onSaveConfirmation,
 }: UserGroupFormProps) {
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
@@ -50,45 +52,59 @@ export function UserGroupForm({
   })
 
   const onSubmit = (data: UserGroupFormValues) => {
-    submitAction(data)
+    if (onSaveConfirmation) {
+      onSaveConfirmation(data)
+    } else {
+      submitAction(data)
+    }
   }
 
   return (
     <div className="max-w flex flex-col gap-2">
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pt-6">
-          <div className="grid gap-2">
+          <fieldset className="grid gap-2">
             <div className="grid grid-cols-2 gap-2">
-              <CustomInput
+              <div>
+                <CustomInput
+                  form={form}
+                  name="userGroupCode"
+                  label="Group Code"
+                  isRequired
+                  isDisabled={isReadOnly || Boolean(initialData)}
+                />
+              </div>
+              <div>
+                <CustomInput
+                  form={form}
+                  name="userGroupName"
+                  label="Group Name"
+                  isRequired
+                  isDisabled={isReadOnly}
+                />
+              </div>
+            </div>
+
+            <div>
+              <CustomTextarea
                 form={form}
-                name="userGroupCode"
-                label="Group Code"
-                isRequired
-                isDisabled={isReadOnly}
-              />
-              <CustomInput
-                form={form}
-                name="userGroupName"
-                label="Group Name"
-                isRequired
+                name="remarks"
+                label="Remarks"
                 isDisabled={isReadOnly}
               />
             </div>
 
-            <CustomTextarea
-              form={form}
-              name="remarks"
-              label="Remarks"
-              isDisabled={isReadOnly}
-            />
-
-            <CustomSwitch
-              form={form}
-              name="isActive"
-              label="Active Status"
-              activeColor="success"
-              isDisabled={isReadOnly}
-            />
+            <div className="grid grid-cols-1 gap-2">
+              <div>
+                <CustomSwitch
+                  form={form}
+                  name="isActive"
+                  label="Active Status"
+                  activeColor="success"
+                  isDisabled={isReadOnly}
+                />
+              </div>
+            </div>
 
             {/* Audit Information Section */}
             {initialData &&
@@ -167,29 +183,41 @@ export function UserGroupForm({
                   </CustomAccordion>
                 </div>
               )}
-          </div>
-          <div className="flex justify-end gap-2">
-            <Button
-              variant="outline"
-              type="button"
-              onClick={onCancel}
-              className="w-full sm:w-auto"
-            >
-              {isReadOnly ? "Close" : "Cancel"}
-            </Button>
-            {!isReadOnly && (
-              <Button
-                type="submit"
-                disabled={isSubmitting}
-                className="w-full sm:w-auto"
-              >
-                {isSubmitting
-                  ? "Saving..."
-                  : initialData
-                    ? "Update User Group"
-                    : "Create User Group"}
-              </Button>
-            )}
+          </fieldset>
+          {/* Action Buttons Section */}
+          <div className="border-border border-t pt-6">
+            <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
+              <div className="flex flex-col gap-3 sm:flex-row">
+                {/* Additional action buttons can be added here if needed */}
+              </div>
+
+              <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
+                <Button
+                  variant="outline"
+                  type="button"
+                  onClick={onCancel}
+                  className="w-full sm:w-auto"
+                >
+                  {isReadOnly ? "Close" : "Cancel"}
+                </Button>
+                {!isReadOnly && (
+                  <Button type="submit" disabled={isSubmitting}>
+                    {isSubmitting ? (
+                      <div className="flex items-center gap-2">
+                        <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                        {initialData ? "Updating..." : "Creating..."}
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        {initialData
+                          ? "Update User Group"
+                          : "Create User Group"}
+                      </div>
+                    )}
+                  </Button>
+                )}
+              </div>
+            </div>
           </div>
         </form>
       </Form>

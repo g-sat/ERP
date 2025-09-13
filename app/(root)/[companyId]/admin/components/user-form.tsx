@@ -8,7 +8,6 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { format } from "date-fns"
 import { Key } from "lucide-react"
 import { useForm } from "react-hook-form"
-import { toast } from "sonner"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -40,6 +39,7 @@ interface UserFormProps {
   onCancel?: () => void
   isSubmitting?: boolean
   isReadOnly?: boolean
+  onSaveConfirmation?: (data: UserFormValues) => void
 }
 
 export function UserForm({
@@ -48,6 +48,7 @@ export function UserForm({
   onCancel,
   isSubmitting = false,
   isReadOnly = false,
+  onSaveConfirmation,
 }: UserFormProps) {
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
@@ -73,7 +74,11 @@ export function UserForm({
   })
 
   const onSubmit = (data: UserFormValues) => {
-    submitAction(data)
+    if (onSaveConfirmation) {
+      onSaveConfirmation(data)
+    } else {
+      submitAction(data)
+    }
   }
 
   const handleCancelReset = () => setIsResetPasswordOpen(false)
@@ -91,7 +96,7 @@ export function UserForm({
                   name="userCode"
                   label="User Code"
                   isRequired
-                  isDisabled={isReadOnly}
+                  isDisabled={isReadOnly || Boolean(initialData)}
                 />
               </div>
               <div>
