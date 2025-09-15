@@ -192,7 +192,7 @@ export function GstForm({
                                       new Date(initialData.editDate),
                                       datetimeFormat
                                     )
-                                  : "—"}
+                                  : "-"}
                               </div>
                             </div>
                           )}

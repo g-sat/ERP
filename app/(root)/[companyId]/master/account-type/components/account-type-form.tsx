@@ -206,7 +206,7 @@ export function AccountTypeForm({
                                       new Date(initialData.editDate),
                                       datetimeFormat
                                     )
-                                  : "—"}
+                                  : "-"}
                               </div>
                             </div>
                           )}

@@ -204,7 +204,7 @@ export function ConsignmentImportTable({
         accessorKey: "debitNoteNo",
         header: "Debit Note No",
         cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("debitNoteNo") || "—"}</div>
+          <div className="text-wrap">{row.getValue("debitNoteNo") || "-"}</div>
         ),
         size: 120,
         minSize: 100,
@@ -215,7 +215,7 @@ export function ConsignmentImportTable({
         accessorKey: "awbNo",
         header: "AWB Number",
         cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("awbNo") || "—"}</div>
+          <div className="text-wrap">{row.getValue("awbNo") || "-"}</div>
         ),
         size: 150,
         minSize: 100,
@@ -226,7 +226,7 @@ export function ConsignmentImportTable({
         accessorKey: "chargeName",
         header: "Charge",
         cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("chargeName") || "—"}</div>
+          <div className="text-wrap">{row.getValue("chargeName") || "-"}</div>
         ),
         size: 150,
         minSize: 100,
@@ -238,7 +238,7 @@ export function ConsignmentImportTable({
         header: "Carrier Type",
         cell: ({ row }) => (
           <div className="text-wrap">
-            {row.getValue("carrierTypeName") || "—"}
+            {row.getValue("carrierTypeName") || "-"}
           </div>
         ),
         size: 120,
@@ -250,7 +250,7 @@ export function ConsignmentImportTable({
         accessorKey: "modeTypeName",
         header: "Mode Type",
         cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("modeTypeName") || "—"}</div>
+          <div className="text-wrap">{row.getValue("modeTypeName") || "-"}</div>
         ),
         size: 120,
         minSize: 100,
@@ -261,7 +261,7 @@ export function ConsignmentImportTable({
         header: "Consignment Type",
         cell: ({ row }) => (
           <div className="text-wrap">
-            {row.getValue("consignmentTypeName") || "—"}
+            {row.getValue("consignmentTypeName") || "-"}
           </div>
         ),
         size: 150,
@@ -273,7 +273,7 @@ export function ConsignmentImportTable({
         header: "Landing Type",
         cell: ({ row }) => (
           <div className="text-wrap">
-            {row.getValue("landingTypeName") || "—"}
+            {row.getValue("landingTypeName") || "-"}
           </div>
         ),
         size: 120,
@@ -284,7 +284,7 @@ export function ConsignmentImportTable({
         accessorKey: "uomName",
         header: "UOM",
         cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("uomName") || "—"}</div>
+          <div className="text-wrap">{row.getValue("uomName") || "-"}</div>
         ),
         size: 100,
         minSize: 80,
@@ -294,7 +294,7 @@ export function ConsignmentImportTable({
         accessorKey: "noOfPcs",
         header: "Number of Pieces",
         cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("noOfPcs") || "—"}</div>
+          <div className="text-wrap">{row.getValue("noOfPcs") || "-"}</div>
         ),
         size: 120,
         minSize: 100,
@@ -304,7 +304,7 @@ export function ConsignmentImportTable({
         accessorKey: "weight",
         header: "Weight",
         cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("weight") || "—"}</div>
+          <div className="text-wrap">{row.getValue("weight") || "-"}</div>
         ),
         size: 100,
         minSize: 80,
@@ -315,7 +315,7 @@ export function ConsignmentImportTable({
         header: "Pickup Location",
         cell: ({ row }) => (
           <div className="text-wrap">
-            {row.getValue("pickupLocation") || "—"}
+            {row.getValue("pickupLocation") || "-"}
           </div>
         ),
         size: 150,
@@ -327,7 +327,7 @@ export function ConsignmentImportTable({
         header: "Delivery Location",
         cell: ({ row }) => (
           <div className="text-wrap">
-            {row.getValue("deliveryLocation") || "—"}
+            {row.getValue("deliveryLocation") || "-"}
           </div>
         ),
         size: 150,
@@ -338,7 +338,7 @@ export function ConsignmentImportTable({
         accessorKey: "clearedBy",
         header: "Cleared By",
         cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("clearedBy") || "—"}</div>
+          <div className="text-wrap">{row.getValue("clearedBy") || "-"}</div>
         ),
         size: 120,
         minSize: 100,
@@ -348,7 +348,7 @@ export function ConsignmentImportTable({
         accessorKey: "billEntryNo",
         header: "Bill Entry No",
         cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("billEntryNo") || "—"}</div>
+          <div className="text-wrap">{row.getValue("billEntryNo") || "-"}</div>
         ),
         size: 120,
         minSize: 100,
@@ -359,7 +359,7 @@ export function ConsignmentImportTable({
         header: "Declaration No",
         cell: ({ row }) => (
           <div className="text-wrap">
-            {row.getValue("declarationNo") || "—"}
+            {row.getValue("declarationNo") || "-"}
           </div>
         ),
         size: 120,
@@ -371,7 +371,7 @@ export function ConsignmentImportTable({
         header: "Date Received",
         cell: ({ row }) => {
           const raw = row.getValue("receiveDate")
-          if (!raw) return "—"
+          if (!raw) return "-"
           let date: Date | null = null
           if (typeof raw === "string") {
             date = new Date(raw)
@@ -393,7 +393,7 @@ export function ConsignmentImportTable({
         header: "Date Delivered",
         cell: ({ row }) => {
           const raw = row.getValue("deliverDate")
-          if (!raw) return "—"
+          if (!raw) return "-"
           let date: Date | null = null
           if (typeof raw === "string") {
             date = new Date(raw)
@@ -415,7 +415,7 @@ export function ConsignmentImportTable({
         header: "Date Arrived",
         cell: ({ row }) => {
           const raw = row.getValue("arrivalDate")
-          if (!raw) return "—"
+          if (!raw) return "-"
           let date: Date | null = null
           if (typeof raw === "string") {
             date = new Date(raw)
@@ -431,7 +431,7 @@ export function ConsignmentImportTable({
       {
         accessorKey: "referenceNo",
         header: "Reference No",
-        cell: ({ row }) => <div>{row.getValue("referenceNo") || "—"}</div>,
+        cell: ({ row }) => <div>{row.getValue("referenceNo") || "-"}</div>,
         size: 120,
         minSize: 50,
         maxSize: 150,
@@ -455,7 +455,7 @@ export function ConsignmentImportTable({
       {
         accessorKey: "amountDeposited",
         header: "Amount Deposited",
-        cell: ({ row }) => <div>{row.getValue("amountDeposited") || "—"}</div>,
+        cell: ({ row }) => <div>{row.getValue("amountDeposited") || "-"}</div>,
         size: 130,
         minSize: 50,
         maxSize: 150,
@@ -464,7 +464,7 @@ export function ConsignmentImportTable({
         accessorKey: "refundInstrumentNo",
         header: "Refund Instrument No",
         cell: ({ row }) => (
-          <div>{row.getValue("refundInstrumentNo") || "—"}</div>
+          <div>{row.getValue("refundInstrumentNo") || "-"}</div>
         ),
         size: 150,
         minSize: 50,
@@ -474,7 +474,7 @@ export function ConsignmentImportTable({
         accessorKey: "statusName",
         header: "Status",
         cell: ({ row }) => (
-          <Badge variant="default">{row.getValue("statusName") || "—"}</Badge>
+          <Badge variant="default">{row.getValue("statusName") || "-"}</Badge>
         ),
         size: 120,
         minSize: 50,
@@ -484,7 +484,7 @@ export function ConsignmentImportTable({
       {
         accessorKey: "remarks",
         header: "Remarks",
-        cell: ({ row }) => <div>{row.getValue("remarks") || "—"}</div>,
+        cell: ({ row }) => <div>{row.getValue("remarks") || "-"}</div>,
         size: 200,
         minSize: 50,
         maxSize: 300,
@@ -492,7 +492,7 @@ export function ConsignmentImportTable({
       {
         accessorKey: "createBy",
         header: "Create By",
-        cell: ({ row }) => <div>{row.getValue("createBy") || "—"}</div>,
+        cell: ({ row }) => <div>{row.getValue("createBy") || "-"}</div>,
         size: 120,
         minSize: 50,
         maxSize: 150,
@@ -517,7 +517,7 @@ export function ConsignmentImportTable({
       {
         accessorKey: "editBy",
         header: "Edit By",
-        cell: ({ row }) => <div>{row.getValue("editBy") || "—"}</div>,
+        cell: ({ row }) => <div>{row.getValue("editBy") || "-"}</div>,
         size: 120,
         minSize: 50,
         maxSize: 150,

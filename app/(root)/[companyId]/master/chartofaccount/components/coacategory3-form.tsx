@@ -195,7 +195,7 @@ export function CoaCategory3Form({
                                       new Date(initialData.editDate),
                                       datetimeFormat
                                     )
-                                  : "—"}
+                                  : "-"}
                               </div>
                             </div>
                           )}

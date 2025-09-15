@@ -173,7 +173,7 @@ export function UserGroupForm({
                                       new Date(initialData.editDate),
                                       datetimeFormat
                                     )
-                                  : "—"}
+                                  : "-"}
                               </div>
                             </div>
                           )}

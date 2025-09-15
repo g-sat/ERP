@@ -179,7 +179,7 @@ export function DepartmentTable({
                         {department.departmentName}
                       </TableCell>
                       <TableCell className="py-2 text-xs">
-                        {department.remarks || "—"}
+                        {department.remarks || "-"}
                       </TableCell>
                       <TableCell className="py-2">
                         {getStatusBadge(department.isActive || false)}

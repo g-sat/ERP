@@ -86,7 +86,7 @@ export function CurrencyDtsTable({
     {
       accessorKey: "createBy",
       header: "Create By",
-      cell: ({ row }) => <div>{row.getValue("createBy") || "—"}</div>,
+      cell: ({ row }) => <div>{row.getValue("createBy") || "-"}</div>,
       size: 120,
       minSize: 50,
     },
@@ -109,7 +109,7 @@ export function CurrencyDtsTable({
     {
       accessorKey: "editBy",
       header: "Edit By",
-      cell: ({ row }) => <div>{row.getValue("editBy") || "—"}</div>,
+      cell: ({ row }) => <div>{row.getValue("editBy") || "-"}</div>,
       size: 120,
       minSize: 50,
     },

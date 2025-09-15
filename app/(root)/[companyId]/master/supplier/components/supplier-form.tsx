@@ -308,7 +308,7 @@ export default function SupplierForm({
                                       new Date(initialData.editDate),
                                       datetimeFormat
                                     )
-                                  : "—"}
+                                  : "-"}
                               </div>
                             </div>
                           )}

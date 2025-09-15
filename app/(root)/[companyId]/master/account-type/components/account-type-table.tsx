@@ -74,7 +74,7 @@ export function AccountTypesTable({
     {
       accessorKey: "accGroupName",
       header: "Account Group",
-      cell: ({ row }) => <div>{row.getValue("accGroupName") || "—"}</div>,
+      cell: ({ row }) => <div>{row.getValue("accGroupName") || "-"}</div>,
       size: 150,
       minSize: 50,
       maxSize: 200,
@@ -82,7 +82,7 @@ export function AccountTypesTable({
     {
       accessorKey: "seqNo",
       header: "Sequence",
-      cell: ({ row }) => <div>{row.getValue("seqNo") || "—"}</div>,
+      cell: ({ row }) => <div>{row.getValue("seqNo") || "-"}</div>,
       size: 100,
       minSize: 50,
       maxSize: 150,
@@ -107,7 +107,7 @@ export function AccountTypesTable({
     {
       accessorKey: "remarks",
       header: "Remarks",
-      cell: ({ row }) => <div>{row.getValue("remarks") || "—"}</div>,
+      cell: ({ row }) => <div>{row.getValue("remarks") || "-"}</div>,
       size: 200,
       minSize: 50,
       maxSize: 300,
@@ -115,7 +115,7 @@ export function AccountTypesTable({
     {
       accessorKey: "createBy",
       header: "Create By",
-      cell: ({ row }) => <div>{row.getValue("createBy") || "—"}</div>,
+      cell: ({ row }) => <div>{row.getValue("createBy") || "-"}</div>,
       size: 120,
       minSize: 50,
       maxSize: 150,
@@ -137,7 +137,7 @@ export function AccountTypesTable({
     {
       accessorKey: "editBy",
       header: "Edit By",
-      cell: ({ row }) => <div>{row.getValue("editBy") || "—"}</div>,
+      cell: ({ row }) => <div>{row.getValue("editBy") || "-"}</div>,
       size: 120,
       minSize: 50,
       maxSize: 150,

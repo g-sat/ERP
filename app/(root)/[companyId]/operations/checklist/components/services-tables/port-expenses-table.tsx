@@ -199,7 +199,7 @@ export function PortExpensesTable({
         accessorKey: "debitNoteNo",
         header: "Debit Note No",
         cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("debitNoteNo") || "—"}</div>
+          <div className="text-wrap">{row.getValue("debitNoteNo") || "-"}</div>
         ),
         size: 120,
         minSize: 100,
@@ -209,7 +209,7 @@ export function PortExpensesTable({
         accessorKey: "supplierName",
         header: "Supplier Name",
         cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("supplierName") || "—"}</div>
+          <div className="text-wrap">{row.getValue("supplierName") || "-"}</div>
         ),
         size: 200,
         minSize: 150,
@@ -220,7 +220,7 @@ export function PortExpensesTable({
         accessorKey: "chargeName",
         header: "Charge Name",
         cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("chargeName") || "—"}</div>
+          <div className="text-wrap">{row.getValue("chargeName") || "-"}</div>
         ),
         size: 200,
         minSize: 150,
@@ -241,7 +241,7 @@ export function PortExpensesTable({
         accessorKey: "uomName",
         header: "UOM",
         cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("uomName") || "—"}</div>
+          <div className="text-wrap">{row.getValue("uomName") || "-"}</div>
         ),
         size: 100,
         minSize: 80,
@@ -252,7 +252,7 @@ export function PortExpensesTable({
         header: "Deliver Date",
         cell: ({ row }) => {
           const raw = row.getValue("deliverDate")
-          if (!raw) return "—"
+          if (!raw) return "-"
           let date: Date | null = null
           if (typeof raw === "string") {
             date = new Date(raw)
@@ -274,7 +274,7 @@ export function PortExpensesTable({
         header: "Status",
         cell: ({ row }) => (
           <div className="text-wrap">
-            <Badge variant="default">{row.getValue("statusName") || "—"}</Badge>
+            <Badge variant="default">{row.getValue("statusName") || "-"}</Badge>
           </div>
         ),
         size: 120,
@@ -285,7 +285,7 @@ export function PortExpensesTable({
         accessorKey: "remarks",
         header: "Remarks",
         cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("remarks") || "—"}</div>
+          <div className="text-wrap">{row.getValue("remarks") || "-"}</div>
         ),
         size: 200,
         minSize: 150,
@@ -295,7 +295,7 @@ export function PortExpensesTable({
         accessorKey: "createBy",
         header: "Create By",
         cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("createBy") || "—"}</div>
+          <div className="text-wrap">{row.getValue("createBy") || "-"}</div>
         ),
         size: 120,
         minSize: 100,
@@ -326,7 +326,7 @@ export function PortExpensesTable({
         accessorKey: "editBy",
         header: "Edit By",
         cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("editBy") || "—"}</div>
+          <div className="text-wrap">{row.getValue("editBy") || "-"}</div>
         ),
         size: 120,
         minSize: 100,

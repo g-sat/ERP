@@ -143,7 +143,7 @@ export function UomDtForm({
                                     new Date(initialData.editDate),
                                     datetimeFormat
                                   )
-                                : "—"}
+                                : "-"}
                             </span>
                           </div>
                         </div>

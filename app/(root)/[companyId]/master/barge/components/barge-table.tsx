@@ -74,7 +74,7 @@ export function BargesTable({
     {
       accessorKey: "callSign",
       header: "Call Sign",
-      cell: ({ row }) => <div>{row.getValue("callSign") || "—"}</div>,
+      cell: ({ row }) => <div>{row.getValue("callSign") || "-"}</div>,
       size: 120,
       minSize: 50,
       maxSize: 150,
@@ -82,7 +82,7 @@ export function BargesTable({
     {
       accessorKey: "imoCode",
       header: "IMO Code",
-      cell: ({ row }) => <div>{row.getValue("imoCode") || "—"}</div>,
+      cell: ({ row }) => <div>{row.getValue("imoCode") || "-"}</div>,
       size: 120,
       minSize: 50,
       maxSize: 150,
@@ -90,7 +90,7 @@ export function BargesTable({
     {
       accessorKey: "grt",
       header: "GRT",
-      cell: ({ row }) => <div>{row.getValue("grt") || "—"}</div>,
+      cell: ({ row }) => <div>{row.getValue("grt") || "-"}</div>,
       size: 120,
       minSize: 50,
       maxSize: 150,
@@ -98,7 +98,7 @@ export function BargesTable({
     {
       accessorKey: "licenseNo",
       header: "License No",
-      cell: ({ row }) => <div>{row.getValue("licenseNo") || "—"}</div>,
+      cell: ({ row }) => <div>{row.getValue("licenseNo") || "-"}</div>,
       size: 120,
       minSize: 50,
       maxSize: 150,
@@ -106,7 +106,7 @@ export function BargesTable({
     {
       accessorKey: "bargeType",
       header: "Type",
-      cell: ({ row }) => <div>{row.getValue("bargeType") || "—"}</div>,
+      cell: ({ row }) => <div>{row.getValue("bargeType") || "-"}</div>,
       size: 120,
       minSize: 50,
       maxSize: 150,
@@ -114,7 +114,7 @@ export function BargesTable({
     {
       accessorKey: "flag",
       header: "Flag",
-      cell: ({ row }) => <div>{row.getValue("flag") || "—"}</div>,
+      cell: ({ row }) => <div>{row.getValue("flag") || "-"}</div>,
       size: 120,
       minSize: 50,
       maxSize: 150,
@@ -156,7 +156,7 @@ export function BargesTable({
     {
       accessorKey: "remarks",
       header: "Remarks",
-      cell: ({ row }) => <div>{row.getValue("remarks") || "—"}</div>,
+      cell: ({ row }) => <div>{row.getValue("remarks") || "-"}</div>,
       size: 200,
       minSize: 50,
       maxSize: 300,
@@ -164,7 +164,7 @@ export function BargesTable({
     {
       accessorKey: "createBy",
       header: "Create By",
-      cell: ({ row }) => <div>{row.getValue("createBy") || "—"}</div>,
+      cell: ({ row }) => <div>{row.getValue("createBy") || "-"}</div>,
       size: 120,
       minSize: 50,
       maxSize: 150,
@@ -186,7 +186,7 @@ export function BargesTable({
     {
       accessorKey: "editBy",
       header: "Edit By",
-      cell: ({ row }) => <div>{row.getValue("editBy") || "—"}</div>,
+      cell: ({ row }) => <div>{row.getValue("editBy") || "-"}</div>,
       size: 120,
       minSize: 50,
       maxSize: 150,

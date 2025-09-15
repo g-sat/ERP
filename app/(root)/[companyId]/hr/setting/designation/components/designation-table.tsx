@@ -181,7 +181,7 @@ export function DesignationTable({
                         {designation.designationName}
                       </TableCell>
                       <TableCell className="py-2 text-xs">
-                        {designation.remarks || "—"}
+                        {designation.remarks || "-"}
                       </TableCell>
                       <TableCell className="py-2">
                         {getStatusBadge(designation.isActive || false)}

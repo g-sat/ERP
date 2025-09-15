@@ -199,7 +199,7 @@ export function LaunchServiceTable({
         accessorKey: "debitNoteNo",
         header: "Debit Note No",
         cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("debitNoteNo") || "—"}</div>
+          <div className="text-wrap">{row.getValue("debitNoteNo") || "-"}</div>
         ),
         size: 120,
         minSize: 100,
@@ -210,7 +210,7 @@ export function LaunchServiceTable({
         header: "Service Date",
         cell: ({ row }) => {
           const raw = row.getValue("date")
-          if (!raw) return "—"
+          if (!raw) return "-"
           let date: Date | null = null
           if (typeof raw === "string") {
             date = new Date(raw)
@@ -232,7 +232,7 @@ export function LaunchServiceTable({
         accessorKey: "chargeName",
         header: "Charge Name",
         cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("chargeName") || "—"}</div>
+          <div className="text-wrap">{row.getValue("chargeName") || "-"}</div>
         ),
         size: 200,
         minSize: 150,
@@ -243,7 +243,7 @@ export function LaunchServiceTable({
         accessorKey: "uomName",
         header: "UOM",
         cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("uomName") || "—"}</div>
+          <div className="text-wrap">{row.getValue("uomName") || "-"}</div>
         ),
         size: 100,
         minSize: 80,
@@ -253,7 +253,7 @@ export function LaunchServiceTable({
         accessorKey: "ameTally",
         header: "AME Tally",
         cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("ameTally") || "—"}</div>
+          <div className="text-wrap">{row.getValue("ameTally") || "-"}</div>
         ),
         size: 120,
         minSize: 100,
@@ -263,7 +263,7 @@ export function LaunchServiceTable({
         accessorKey: "boatopTally",
         header: "Boat Operator Tally",
         cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("boatopTally") || "—"}</div>
+          <div className="text-wrap">{row.getValue("boatopTally") || "-"}</div>
         ),
         size: 150,
         minSize: 120,
@@ -273,7 +273,7 @@ export function LaunchServiceTable({
         accessorKey: "boatOperator",
         header: "Boat Operator",
         cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("boatOperator") || "—"}</div>
+          <div className="text-wrap">{row.getValue("boatOperator") || "-"}</div>
         ),
         size: 150,
         minSize: 120,
@@ -284,7 +284,7 @@ export function LaunchServiceTable({
         header: "Distance from Jetty",
         cell: ({ row }) => {
           const value = row.getValue("distance") as number
-          return <div className="text-wrap">{value ? `${value} NM` : "—"}</div>
+          return <div className="text-wrap">{value ? `${value} NM` : "-"}</div>
         },
         size: 150,
         minSize: 120,
@@ -296,7 +296,7 @@ export function LaunchServiceTable({
         header: "Cargo Delivered",
         cell: ({ row }) => {
           const value = row.getValue("deliveredWeight") as number
-          return <div className="text-wrap">{value ? `${value} MT` : "—"}</div>
+          return <div className="text-wrap">{value ? `${value} MT` : "-"}</div>
         },
         size: 150,
         minSize: 120,
@@ -307,7 +307,7 @@ export function LaunchServiceTable({
         header: "Cargo Landed",
         cell: ({ row }) => {
           const value = row.getValue("landedWeight") as number
-          return <div className="text-wrap">{value ? `${value} MT` : "—"}</div>
+          return <div className="text-wrap">{value ? `${value} MT` : "-"}</div>
         },
         size: 150,
         minSize: 120,
@@ -362,7 +362,7 @@ export function LaunchServiceTable({
         header: "Waiting Time",
         cell: ({ row }) => {
           const value = row.getValue("waitingTime") as number
-          return <div className="text-wrap">{value ? `${value} min` : "—"}</div>
+          return <div className="text-wrap">{value ? `${value} min` : "-"}</div>
         },
         size: 120,
         minSize: 100,
@@ -416,7 +416,7 @@ export function LaunchServiceTable({
         header: "Time Difference",
         cell: ({ row }) => {
           const value = row.getValue("timeDiff") as number
-          return <div className="text-wrap">{value ? `${value} min` : "—"}</div>
+          return <div className="text-wrap">{value ? `${value} min` : "-"}</div>
         },
         size: 120,
         minSize: 100,
@@ -449,7 +449,7 @@ export function LaunchServiceTable({
         accessorKey: "bargeName",
         header: "Barge Name",
         cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("bargeName") || "—"}</div>
+          <div className="text-wrap">{row.getValue("bargeName") || "-"}</div>
         ),
         size: 150,
         minSize: 120,
@@ -460,7 +460,7 @@ export function LaunchServiceTable({
         accessorKey: "invoiceNo",
         header: "Invoice No",
         cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("invoiceNo") || "—"}</div>
+          <div className="text-wrap">{row.getValue("invoiceNo") || "-"}</div>
         ),
         size: 120,
         minSize: 100,
@@ -472,7 +472,7 @@ export function LaunchServiceTable({
         header: "Status",
         cell: ({ row }) => (
           <div className="text-wrap">
-            <Badge variant="default">{row.getValue("statusName") || "—"}</Badge>
+            <Badge variant="default">{row.getValue("statusName") || "-"}</Badge>
           </div>
         ),
         size: 120,
@@ -483,7 +483,7 @@ export function LaunchServiceTable({
         accessorKey: "remarks",
         header: "Remarks",
         cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("remarks") || "—"}</div>
+          <div className="text-wrap">{row.getValue("remarks") || "-"}</div>
         ),
         size: 200,
         minSize: 150,
@@ -493,7 +493,7 @@ export function LaunchServiceTable({
         accessorKey: "createBy",
         header: "Create By",
         cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("createBy") || "—"}</div>
+          <div className="text-wrap">{row.getValue("createBy") || "-"}</div>
         ),
         size: 120,
         minSize: 100,
@@ -524,7 +524,7 @@ export function LaunchServiceTable({
         accessorKey: "editBy",
         header: "Edit By",
         cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("editBy") || "—"}</div>
+          <div className="text-wrap">{row.getValue("editBy") || "-"}</div>
         ),
         size: 120,
         minSize: 100,

@@ -71,8 +71,8 @@ export function ChartOfAccountsTable({
       accessorKey: "glName",
       header: "GL Name",
       cell: ({ row }) => (
-        <div className="truncate" title={row.getValue("glName") || "—"}>
-          {row.getValue("glName") || "—"}
+        <div className="truncate" title={row.getValue("glName") || "-"}>
+          {row.getValue("glName") || "-"}
         </div>
       ),
       size: 200,
@@ -83,8 +83,8 @@ export function ChartOfAccountsTable({
       accessorKey: "accTypeName",
       header: "Account Type",
       cell: ({ row }) => (
-        <div className="truncate" title={row.getValue("accTypeName") || "—"}>
-          {row.getValue("accTypeName") || "—"}
+        <div className="truncate" title={row.getValue("accTypeName") || "-"}>
+          {row.getValue("accTypeName") || "-"}
         </div>
       ),
       size: 120,
@@ -94,8 +94,8 @@ export function ChartOfAccountsTable({
       accessorKey: "accGroupName",
       header: "Account Group",
       cell: ({ row }) => (
-        <div className="truncate" title={row.getValue("accGroupName") || "—"}>
-          {row.getValue("accGroupName") || "—"}
+        <div className="truncate" title={row.getValue("accGroupName") || "-"}>
+          {row.getValue("accGroupName") || "-"}
         </div>
       ),
       size: 120,
@@ -107,9 +107,9 @@ export function ChartOfAccountsTable({
       cell: ({ row }) => (
         <div
           className="truncate"
-          title={row.getValue("coaCategoryName1") || "—"}
+          title={row.getValue("coaCategoryName1") || "-"}
         >
-          {row.getValue("coaCategoryName1") || "—"}
+          {row.getValue("coaCategoryName1") || "-"}
         </div>
       ),
       size: 120,
@@ -121,9 +121,9 @@ export function ChartOfAccountsTable({
       cell: ({ row }) => (
         <div
           className="truncate"
-          title={row.getValue("coaCategoryName2") || "—"}
+          title={row.getValue("coaCategoryName2") || "-"}
         >
-          {row.getValue("coaCategoryName2") || "—"}
+          {row.getValue("coaCategoryName2") || "-"}
         </div>
       ),
       size: 120,
@@ -135,9 +135,9 @@ export function ChartOfAccountsTable({
       cell: ({ row }) => (
         <div
           className="truncate"
-          title={row.getValue("coaCategoryName3") || "—"}
+          title={row.getValue("coaCategoryName3") || "-"}
         >
-          {row.getValue("coaCategoryName3") || "—"}
+          {row.getValue("coaCategoryName3") || "-"}
         </div>
       ),
       size: 120,
@@ -276,8 +276,8 @@ export function ChartOfAccountsTable({
       accessorKey: "remarks",
       header: "Remarks",
       cell: ({ row }) => (
-        <div className="truncate" title={row.getValue("remarks") || "—"}>
-          {row.getValue("remarks") || "—"}
+        <div className="truncate" title={row.getValue("remarks") || "-"}>
+          {row.getValue("remarks") || "-"}
         </div>
       ),
       size: 200,
@@ -287,8 +287,8 @@ export function ChartOfAccountsTable({
       accessorKey: "createBy",
       header: "Create By",
       cell: ({ row }) => (
-        <div className="truncate" title={row.getValue("createBy") || "—"}>
-          {row.getValue("createBy") || "—"}
+        <div className="truncate" title={row.getValue("createBy") || "-"}>
+          {row.getValue("createBy") || "-"}
         </div>
       ),
       size: 120,
@@ -317,8 +317,8 @@ export function ChartOfAccountsTable({
       accessorKey: "editBy",
       header: "Edit By",
       cell: ({ row }) => (
-        <div className="truncate" title={row.getValue("editBy") || "—"}>
-          {row.getValue("editBy") || "—"}
+        <div className="truncate" title={row.getValue("editBy") || "-"}>
+          {row.getValue("editBy") || "-"}
         </div>
       ),
       size: 120,

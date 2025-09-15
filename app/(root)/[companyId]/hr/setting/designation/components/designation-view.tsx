@@ -40,7 +40,7 @@ export function DesignationView({ open, onOpenChange, designation }: Props) {
                 <label className="text-muted-foreground text-sm font-medium">
                   Designation Code
                 </label>
-                <p className="text-sm">{designation.designationCode || "—"}</p>
+                <p className="text-sm">{designation.designationCode || "-"}</p>
               </div>
               <div>
                 <label className="text-muted-foreground text-sm font-medium">

@@ -107,7 +107,7 @@ export default function LeavePage() {
   // Show loading state while fetching employee data
   if (employeeLoading) {
     return (
-      <div className="flex-1 space-y-4 p-4 pt-6 md:p-8">
+      <div className="container mx-auto space-y-4 px-4 py-4 sm:space-y-6 sm:px-6 sm:py-6">
         <div className="flex h-64 items-center justify-center">
           <div className="text-center">
             <div className="mx-auto h-8 w-8 animate-spin rounded-full border-b-2 border-gray-900"></div>
@@ -123,7 +123,7 @@ export default function LeavePage() {
   // Show locked state when no employee ID is available
   if (!employeeId) {
     return (
-      <div className="flex-1 space-y-4 p-4 pt-6 md:p-8">
+      <div className="container mx-auto space-y-4 px-4 py-4 sm:space-y-6 sm:px-6 sm:py-6">
         <div className="flex h-64 items-center justify-center">
           <div className="text-center">
             <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gray-100">
@@ -161,7 +161,7 @@ export default function LeavePage() {
   // Show loading state for leave data
   if (leavesLoading && leaves.length === 0) {
     return (
-      <div className="flex-1 space-y-4 p-4 pt-6 md:p-8">
+      <div className="container mx-auto space-y-4 px-4 py-4 sm:space-y-6 sm:px-6 sm:py-6">
         <div className="flex h-64 items-center justify-center">
           <div className="text-center">
             <div className="mx-auto h-8 w-8 animate-spin rounded-full border-b-2 border-gray-900"></div>
@@ -173,9 +173,17 @@ export default function LeavePage() {
   }
 
   return (
-    <div className="flex-1 space-y-4 p-4 pt-6 md:p-8">
-      <div className="flex items-center justify-between space-y-2">
-        <h2 className="text-3xl font-bold tracking-tight">Leave Dashboard</h2>
+    <div className="container mx-auto space-y-4 px-4 py-4 sm:space-y-6 sm:px-6 sm:py-6">
+      {/* Header Section */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="space-y-1">
+          <h1 className="text-xl font-bold tracking-tight sm:text-3xl">
+            Leave Dashboard
+          </h1>
+          <p className="text-muted-foreground text-sm">
+            Manage leave requests and approvals
+          </p>
+        </div>
         <Button onClick={handleAddNewRequest}>
           <Plus className="mr-2 h-4 w-4" />
           Add

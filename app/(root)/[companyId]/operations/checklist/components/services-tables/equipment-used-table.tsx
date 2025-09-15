@@ -200,7 +200,7 @@ export function EquipmentUsedTable({
         accessorKey: "debitNoteNo",
         header: "Debit Note No",
         cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("debitNoteNo") || "—"}</div>
+          <div className="text-wrap">{row.getValue("debitNoteNo") || "-"}</div>
         ),
         size: 120,
         minSize: 100,
@@ -232,7 +232,7 @@ export function EquipmentUsedTable({
         accessorKey: "chargeName",
         header: "Charge Name",
         cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("chargeName") || "—"}</div>
+          <div className="text-wrap">{row.getValue("chargeName") || "-"}</div>
         ),
         size: 200,
         minSize: 150,
@@ -243,7 +243,7 @@ export function EquipmentUsedTable({
         accessorKey: "referenceNo",
         header: "Reference No",
         cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("referenceNo") || "—"}</div>
+          <div className="text-wrap">{row.getValue("referenceNo") || "-"}</div>
         ),
         size: 200,
         minSize: 150,
@@ -256,7 +256,7 @@ export function EquipmentUsedTable({
         header: "Crane Charge Name",
         cell: ({ row }) => (
           <div className="text-wrap">
-            {row.getValue("craneChargeName") || "—"}
+            {row.getValue("craneChargeName") || "-"}
           </div>
         ),
         size: 200,
@@ -269,7 +269,7 @@ export function EquipmentUsedTable({
         header: "Forklift Charge Name",
         cell: ({ row }) => (
           <div className="text-wrap">
-            {row.getValue("forkliftChargeName") || "—"}
+            {row.getValue("forkliftChargeName") || "-"}
           </div>
         ),
         size: 200,
@@ -282,7 +282,7 @@ export function EquipmentUsedTable({
         header: "Stevedor Charge Name",
         cell: ({ row }) => (
           <div className="text-wrap">
-            {row.getValue("stevedoreChargeName") || "—"}
+            {row.getValue("stevedoreChargeName") || "-"}
           </div>
         ),
         size: 200,
@@ -295,7 +295,7 @@ export function EquipmentUsedTable({
         header: "Status",
         cell: ({ row }) => (
           <div className="text-wrap">
-            <Badge variant="default">{row.getValue("statusName") || "—"}</Badge>
+            <Badge variant="default">{row.getValue("statusName") || "-"}</Badge>
           </div>
         ),
         size: 120,
@@ -306,7 +306,7 @@ export function EquipmentUsedTable({
         accessorKey: "loadingRefNo",
         header: "Loading Reference No",
         cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("loadingRefNo") || "—"}</div>
+          <div className="text-wrap">{row.getValue("loadingRefNo") || "-"}</div>
         ),
         size: 200,
         minSize: 150,
@@ -316,7 +316,7 @@ export function EquipmentUsedTable({
         accessorKey: "craneloading",
         header: "Crane Loading",
         cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("craneloading") || "—"}</div>
+          <div className="text-wrap">{row.getValue("craneloading") || "-"}</div>
         ),
         size: 200,
         minSize: 150,
@@ -327,7 +327,7 @@ export function EquipmentUsedTable({
         header: "Forklift Loading",
         cell: ({ row }) => (
           <div className="text-wrap">
-            {row.getValue("forkliftloading") || "—"}
+            {row.getValue("forkliftloading") || "-"}
           </div>
         ),
         size: 200,
@@ -339,7 +339,7 @@ export function EquipmentUsedTable({
         header: "Stevedor Loading",
         cell: ({ row }) => (
           <div className="text-wrap">
-            {row.getValue("stevedoreloading") || "—"}
+            {row.getValue("stevedoreloading") || "-"}
           </div>
         ),
         size: 200,
@@ -351,7 +351,7 @@ export function EquipmentUsedTable({
         header: "Offloading Reference No",
         cell: ({ row }) => (
           <div className="text-wrap">
-            {row.getValue("offloadingRefNo") || "—"}
+            {row.getValue("offloadingRefNo") || "-"}
           </div>
         ),
         size: 200,
@@ -363,7 +363,7 @@ export function EquipmentUsedTable({
         header: "Crane Offloading",
         cell: ({ row }) => (
           <div className="text-wrap">
-            {row.getValue("craneOffloading") || "—"}
+            {row.getValue("craneOffloading") || "-"}
           </div>
         ),
         size: 200,
@@ -375,7 +375,7 @@ export function EquipmentUsedTable({
         header: "Forklift Offloading",
         cell: ({ row }) => (
           <div className="text-wrap">
-            {row.getValue("forkliftOffloading") || "—"}
+            {row.getValue("forkliftOffloading") || "-"}
           </div>
         ),
         size: 200,
@@ -387,7 +387,7 @@ export function EquipmentUsedTable({
         header: "Stevedor Offloading",
         cell: ({ row }) => (
           <div className="text-wrap">
-            {row.getValue("stevedoreOffloading") || "—"}
+            {row.getValue("stevedoreOffloading") || "-"}
           </div>
         ),
         size: 200,
@@ -398,7 +398,7 @@ export function EquipmentUsedTable({
         accessorKey: "mafi",
         header: "MAFI",
         cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("mafi") || "—"}</div>
+          <div className="text-wrap">{row.getValue("mafi") || "-"}</div>
         ),
         size: 200,
         minSize: 150,
@@ -408,7 +408,7 @@ export function EquipmentUsedTable({
         accessorKey: "others",
         header: "Others",
         cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("others") || "—"}</div>
+          <div className="text-wrap">{row.getValue("others") || "-"}</div>
         ),
         size: 200,
         minSize: 150,
@@ -419,7 +419,7 @@ export function EquipmentUsedTable({
         accessorKey: "remarks",
         header: "Remarks",
         cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("remarks") || "—"}</div>
+          <div className="text-wrap">{row.getValue("remarks") || "-"}</div>
         ),
         size: 200,
         minSize: 150,
@@ -429,7 +429,7 @@ export function EquipmentUsedTable({
         accessorKey: "createBy",
         header: "Create By",
         cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("createBy") || "—"}</div>
+          <div className="text-wrap">{row.getValue("createBy") || "-"}</div>
         ),
         size: 120,
         minSize: 100,
@@ -460,7 +460,7 @@ export function EquipmentUsedTable({
         accessorKey: "editBy",
         header: "Edit By",
         cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("editBy") || "—"}</div>
+          <div className="text-wrap">{row.getValue("editBy") || "-"}</div>
         ),
         size: 120,
         minSize: 100,

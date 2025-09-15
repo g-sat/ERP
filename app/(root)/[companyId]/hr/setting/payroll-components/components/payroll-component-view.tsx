@@ -137,7 +137,7 @@ export function PayrollComponentView({
               <label className="text-muted-foreground text-sm font-medium">
                 Created By
               </label>
-              <p className="text-sm">{component.createBy || "—"}</p>
+              <p className="text-sm">{component.createBy || "-"}</p>
             </div>
             <div>
               <label className="text-muted-foreground text-sm font-medium">
@@ -146,7 +146,7 @@ export function PayrollComponentView({
               <p className="text-sm">
                 {component.createDate
                   ? new Date(component.createDate).toLocaleDateString()
-                  : "—"}
+                  : "-"}
               </p>
             </div>
           </div>
@@ -166,7 +166,7 @@ export function PayrollComponentView({
                 <p className="text-sm">
                   {component.editDate
                     ? new Date(component.editDate).toLocaleDateString()
-                    : "—"}
+                    : "-"}
                 </p>
               </div>
             </div>

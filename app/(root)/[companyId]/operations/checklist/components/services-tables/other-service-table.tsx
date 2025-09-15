@@ -148,7 +148,7 @@ export function OtherServiceTable({
         accessorKey: "debitNoteNo",
         header: "Debit Note No",
         cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("debitNoteNo") || "—"}</div>
+          <div className="text-wrap">{row.getValue("debitNoteNo") || "-"}</div>
         ),
         size: 120,
         minSize: 100,
@@ -180,7 +180,7 @@ export function OtherServiceTable({
         accessorKey: "chargeName",
         header: "Charge Name",
         cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("chargeName") || "—"}</div>
+          <div className="text-wrap">{row.getValue("chargeName") || "-"}</div>
         ),
         size: 200,
         minSize: 150,
@@ -191,7 +191,7 @@ export function OtherServiceTable({
         accessorKey: "quantity",
         header: "Quantity",
         cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("quantity") || "—"}</div>
+          <div className="text-wrap">{row.getValue("quantity") || "-"}</div>
         ),
         size: 100,
         minSize: 80,
@@ -201,7 +201,7 @@ export function OtherServiceTable({
         accessorKey: "amount",
         header: "Amount",
         cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("amount") || "—"}</div>
+          <div className="text-wrap">{row.getValue("amount") || "-"}</div>
         ),
         size: 120,
         minSize: 100,
@@ -211,7 +211,7 @@ export function OtherServiceTable({
         accessorKey: "uomName",
         header: "UOM",
         cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("uomName") || "—"}</div>
+          <div className="text-wrap">{row.getValue("uomName") || "-"}</div>
         ),
         size: 100,
         minSize: 80,
@@ -222,7 +222,7 @@ export function OtherServiceTable({
         header: "Status",
         cell: ({ row }) => (
           <div className="text-wrap">
-            <Badge variant="default">{row.getValue("statusName") || "—"}</Badge>
+            <Badge variant="default">{row.getValue("statusName") || "-"}</Badge>
           </div>
         ),
         size: 120,
@@ -233,7 +233,7 @@ export function OtherServiceTable({
         accessorKey: "remarks",
         header: "Remarks",
         cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("remarks") || "—"}</div>
+          <div className="text-wrap">{row.getValue("remarks") || "-"}</div>
         ),
         size: 200,
         minSize: 150,
@@ -243,7 +243,7 @@ export function OtherServiceTable({
         accessorKey: "createBy",
         header: "Create By",
         cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("createBy") || "—"}</div>
+          <div className="text-wrap">{row.getValue("createBy") || "-"}</div>
         ),
         size: 120,
         minSize: 100,
@@ -274,7 +274,7 @@ export function OtherServiceTable({
         accessorKey: "editBy",
         header: "Edit By",
         cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("editBy") || "—"}</div>
+          <div className="text-wrap">{row.getValue("editBy") || "-"}</div>
         ),
         size: 120,
         minSize: 100,

@@ -154,7 +154,7 @@ export function MedicalAssistanceTable({
         accessorKey: "debitNoteNo",
         header: "Debit Note No",
         cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("debitNoteNo") || "—"}</div>
+          <div className="text-wrap">{row.getValue("debitNoteNo") || "-"}</div>
         ),
         size: 120,
         minSize: 100,
@@ -165,7 +165,7 @@ export function MedicalAssistanceTable({
         accessorKey: "chargeName",
         header: "Charge Name",
         cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("chargeName") || "—"}</div>
+          <div className="text-wrap">{row.getValue("chargeName") || "-"}</div>
         ),
         size: 200,
         minSize: 150,
@@ -176,7 +176,7 @@ export function MedicalAssistanceTable({
         accessorKey: "crewName",
         header: "Crew Name",
         cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("crewName") || "—"}</div>
+          <div className="text-wrap">{row.getValue("crewName") || "-"}</div>
         ),
         size: 150,
         minSize: 120,
@@ -186,7 +186,7 @@ export function MedicalAssistanceTable({
         accessorKey: "nationality",
         header: "Nationality",
         cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("nationality") || "—"}</div>
+          <div className="text-wrap">{row.getValue("nationality") || "-"}</div>
         ),
         size: 200,
         minSize: 150,
@@ -196,7 +196,7 @@ export function MedicalAssistanceTable({
         accessorKey: "rankName",
         header: "Rank",
         cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("rankName") || "—"}</div>
+          <div className="text-wrap">{row.getValue("rankName") || "-"}</div>
         ),
         size: 200,
         minSize: 150,
@@ -206,7 +206,7 @@ export function MedicalAssistanceTable({
         accessorKey: "visaTypeName",
         header: "Visa Type",
         cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("visaTypeName") || "—"}</div>
+          <div className="text-wrap">{row.getValue("visaTypeName") || "-"}</div>
         ),
         size: 120,
         minSize: 100,
@@ -216,7 +216,7 @@ export function MedicalAssistanceTable({
         accessorKey: "reason",
         header: "Reason",
         cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("reason") || "—"}</div>
+          <div className="text-wrap">{row.getValue("reason") || "-"}</div>
         ),
         size: 120,
         minSize: 100,
@@ -269,7 +269,7 @@ export function MedicalAssistanceTable({
         header: "Status",
         cell: ({ row }) => (
           <div className="text-wrap">
-            <Badge variant="default">{row.getValue("statusName") || "—"}</Badge>
+            <Badge variant="default">{row.getValue("statusName") || "-"}</Badge>
           </div>
         ),
         size: 120,
@@ -280,7 +280,7 @@ export function MedicalAssistanceTable({
         accessorKey: "remarks",
         header: "Remarks",
         cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("remarks") || "—"}</div>
+          <div className="text-wrap">{row.getValue("remarks") || "-"}</div>
         ),
         size: 200,
         minSize: 150,
@@ -290,7 +290,7 @@ export function MedicalAssistanceTable({
         accessorKey: "createBy",
         header: "Create By",
         cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("createBy") || "—"}</div>
+          <div className="text-wrap">{row.getValue("createBy") || "-"}</div>
         ),
         size: 120,
         minSize: 100,
@@ -321,7 +321,7 @@ export function MedicalAssistanceTable({
         accessorKey: "editBy",
         header: "Edit By",
         cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("editBy") || "—"}</div>
+          <div className="text-wrap">{row.getValue("editBy") || "-"}</div>
         ),
         size: 120,
         minSize: 100,

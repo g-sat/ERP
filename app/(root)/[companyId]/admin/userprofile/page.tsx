@@ -222,14 +222,18 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="@container flex flex-1 flex-col gap-6 p-6">
-      {/* Header */}
-      <div className="flex flex-col space-y-2">
-        <h1 className="text-3xl font-bold tracking-tight">Account Profile</h1>
-        <p className="text-muted-foreground">
-          Manage your account settings, personal information, and security
-          preferences.
-        </p>
+    <div className="container mx-auto space-y-4 px-4 py-4 sm:space-y-6 sm:px-6 sm:py-6">
+      {/* Header Section */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="space-y-1">
+          <h1 className="text-xl font-bold tracking-tight sm:text-3xl">
+            Account Profile
+          </h1>
+          <p className="text-muted-foreground text-sm">
+            Manage your account settings, personal information, and security
+            preferences.
+          </p>
+        </div>
       </div>
 
       {isLoadingProfile && (
@@ -751,7 +755,7 @@ export default function ProfilePage() {
                     type="button"
                     variant="outline"
                     onClick={() => {
-                      console.log("🧪 Testing API call...")
+                      // console.log("🧪 Testing API call...")
                       const testData = {
                         userId: parseInt(user?.userId || "0"),
                         firstName: "Test",
@@ -774,7 +778,7 @@ export default function ProfilePage() {
                         themePreference: "system" as const,
                         timezonePreference: "UTC",
                       }
-                      console.log("Test data:", testData)
+                      // console.log("Test data:", testData)
                       updateProfileMutation.mutate(testData)
                     }}
                   >
@@ -784,9 +788,9 @@ export default function ProfilePage() {
                     type="button"
                     variant="outline"
                     onClick={() => {
-                      console.log("🔍 Testing form submission...")
+                      // console.log("🔍 Testing form submission...")
                       const formData = profileForm.getValues()
-                      console.log("Form data:", formData)
+                      // console.log("Form data:", formData)
                       onProfileSubmit(formData)
                     }}
                   >
@@ -796,16 +800,16 @@ export default function ProfilePage() {
                     type="submit"
                     disabled={updateProfileMutation.isPending}
                     onClick={() => {
-                      console.log("🔘 Save Changes button clicked!")
-                      console.log(
-                        "Current form values:",
-                        profileForm.getValues()
-                      )
-                      console.log(
-                        "Form is valid:",
-                        profileForm.formState.isValid
-                      )
-                      console.log("Form errors:", profileForm.formState.errors)
+                      // console.log("🔘 Save Changes button clicked!")
+                      // console.log(
+                      //   "Current form values:",
+                      //   profileForm.getValues()
+                      // )
+                      // console.log(
+                      //   "Form is valid:",
+                      //   profileForm.formState.isValid
+                      // )
+                      // console.log("Form errors:", profileForm.formState.errors)
                     }}
                   >
                     {updateProfileMutation.isPending ? (

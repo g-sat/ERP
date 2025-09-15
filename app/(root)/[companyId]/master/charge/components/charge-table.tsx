@@ -71,7 +71,7 @@ export function ChargesTable({
     {
       accessorKey: "taskName",
       header: "Task Name",
-      cell: ({ row }) => <div>{row.getValue("taskName") || "—"}</div>,
+      cell: ({ row }) => <div>{row.getValue("taskName") || "-"}</div>,
       size: 120,
       minSize: 50,
       maxSize: 150,
@@ -79,7 +79,7 @@ export function ChargesTable({
     {
       accessorKey: "glName",
       header: "GL Name",
-      cell: ({ row }) => <div>{row.getValue("glName") || "—"}</div>,
+      cell: ({ row }) => <div>{row.getValue("glName") || "-"}</div>,
       size: 120,
       minSize: 50,
       maxSize: 150,
@@ -87,7 +87,7 @@ export function ChargesTable({
     {
       accessorKey: "chargeOrder",
       header: "Charge Order",
-      cell: ({ row }) => <div>{row.getValue("chargeOrder") || "—"}</div>,
+      cell: ({ row }) => <div>{row.getValue("chargeOrder") || "-"}</div>,
       size: 120,
       minSize: 50,
       maxSize: 150,
@@ -95,7 +95,7 @@ export function ChargesTable({
     {
       accessorKey: "itemNo",
       header: "Item No",
-      cell: ({ row }) => <div>{row.getValue("itemNo") || "—"}</div>,
+      cell: ({ row }) => <div>{row.getValue("itemNo") || "-"}</div>,
       size: 120,
       minSize: 50,
       maxSize: 150,
@@ -120,7 +120,7 @@ export function ChargesTable({
     {
       accessorKey: "remarks",
       header: "Remarks",
-      cell: ({ row }) => <div>{row.getValue("remarks") || "—"}</div>,
+      cell: ({ row }) => <div>{row.getValue("remarks") || "-"}</div>,
       size: 200,
       minSize: 50,
       maxSize: 300,
@@ -128,7 +128,7 @@ export function ChargesTable({
     {
       accessorKey: "createBy",
       header: "Create By",
-      cell: ({ row }) => <div>{row.getValue("createBy") || "—"}</div>,
+      cell: ({ row }) => <div>{row.getValue("createBy") || "-"}</div>,
       size: 120,
       minSize: 50,
       maxSize: 150,
@@ -150,7 +150,7 @@ export function ChargesTable({
     {
       accessorKey: "editBy",
       header: "Edit By",
-      cell: ({ row }) => <div>{row.getValue("editBy") || "—"}</div>,
+      cell: ({ row }) => <div>{row.getValue("editBy") || "-"}</div>,
       size: 120,
       minSize: 50,
       maxSize: 150,

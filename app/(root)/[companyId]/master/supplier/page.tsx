@@ -400,10 +400,13 @@ export default function SupplierPage() {
   }
 
   return (
-    <div className="@container flex flex-1 flex-col gap-4 p-4">
-      <div className="flex items-center justify-between">
+    <div className="container mx-auto space-y-4 px-4 py-4 sm:space-y-6 sm:px-6 sm:py-6">
+      {/* Header Section */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="space-y-1">
-          <h1 className="text-3xl font-bold tracking-tight">Supplier</h1>
+          <h1 className="text-xl font-bold tracking-tight sm:text-3xl">
+            Supplier
+          </h1>
           <p className="text-muted-foreground text-sm">
             Manage supplier information, addresses, and contacts
           </p>

@@ -204,7 +204,7 @@ export function FreshWaterTable({
         accessorKey: "debitNoteNo",
         header: "Debit Note No",
         cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("debitNoteNo") || "—"}</div>
+          <div className="text-wrap">{row.getValue("debitNoteNo") || "-"}</div>
         ),
         size: 120,
         minSize: 100,
@@ -235,7 +235,7 @@ export function FreshWaterTable({
         accessorKey: "bargeName",
         header: "Barge Name",
         cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("bargeName") || "—"}</div>
+          <div className="text-wrap">{row.getValue("bargeName") || "-"}</div>
         ),
         size: 200,
         minSize: 150,
@@ -246,7 +246,7 @@ export function FreshWaterTable({
         accessorKey: "chargeName",
         header: "Charge Name",
         cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("chargeName") || "—"}</div>
+          <div className="text-wrap">{row.getValue("chargeName") || "-"}</div>
         ),
         size: 200,
         minSize: 150,
@@ -258,7 +258,7 @@ export function FreshWaterTable({
         accessorKey: "operatorName",
         header: "Operator Name",
         cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("operatorName") || "—"}</div>
+          <div className="text-wrap">{row.getValue("operatorName") || "-"}</div>
         ),
         size: 200,
         minSize: 150,
@@ -269,7 +269,7 @@ export function FreshWaterTable({
         accessorKey: "supplyBarge",
         header: "Supply Barge",
         cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("supplyBarge") || "—"}</div>
+          <div className="text-wrap">{row.getValue("supplyBarge") || "-"}</div>
         ),
         size: 200,
         minSize: 150,
@@ -280,7 +280,7 @@ export function FreshWaterTable({
         accessorKey: "distance",
         header: "Distance",
         cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("distance") || "—"}</div>
+          <div className="text-wrap">{row.getValue("distance") || "-"}</div>
         ),
         size: 100,
         minSize: 80,
@@ -290,7 +290,7 @@ export function FreshWaterTable({
         accessorKey: "quantity",
         header: "Quantity",
         cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("quantity") || "—"}</div>
+          <div className="text-wrap">{row.getValue("quantity") || "-"}</div>
         ),
         size: 100,
         minSize: 80,
@@ -300,7 +300,7 @@ export function FreshWaterTable({
         accessorKey: "receiptNo",
         header: "Receipt No",
         cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("receiptNo") || "—"}</div>
+          <div className="text-wrap">{row.getValue("receiptNo") || "-"}</div>
         ),
         size: 100,
         minSize: 80,
@@ -310,7 +310,7 @@ export function FreshWaterTable({
         accessorKey: "uomName",
         header: "UOM",
         cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("uomName") || "—"}</div>
+          <div className="text-wrap">{row.getValue("uomName") || "-"}</div>
         ),
         size: 100,
         minSize: 80,
@@ -322,7 +322,7 @@ export function FreshWaterTable({
         header: "Status",
         cell: ({ row }) => (
           <div className="text-wrap">
-            <Badge variant="default">{row.getValue("statusName") || "—"}</Badge>
+            <Badge variant="default">{row.getValue("statusName") || "-"}</Badge>
           </div>
         ),
         size: 120,
@@ -333,7 +333,7 @@ export function FreshWaterTable({
         accessorKey: "remarks",
         header: "Remarks",
         cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("remarks") || "—"}</div>
+          <div className="text-wrap">{row.getValue("remarks") || "-"}</div>
         ),
         size: 200,
         minSize: 150,
@@ -343,7 +343,7 @@ export function FreshWaterTable({
         accessorKey: "createBy",
         header: "Create By",
         cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("createBy") || "—"}</div>
+          <div className="text-wrap">{row.getValue("createBy") || "-"}</div>
         ),
         size: 120,
         minSize: 100,
@@ -374,7 +374,7 @@ export function FreshWaterTable({
         accessorKey: "editBy",
         header: "Edit By",
         cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("editBy") || "—"}</div>
+          <div className="text-wrap">{row.getValue("editBy") || "-"}</div>
         ),
         size: 120,
         minSize: 100,

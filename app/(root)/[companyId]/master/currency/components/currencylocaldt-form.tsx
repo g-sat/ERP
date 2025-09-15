@@ -180,7 +180,7 @@ export function CurrencyLocalDtForm({
                                     new Date(initialData.editDate),
                                     datetimeFormat
                                   )
-                                : "—"}
+                                : "-"}
                             </span>
                           </div>
                         </div>

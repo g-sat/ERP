@@ -80,7 +80,19 @@ export default function AccountIntegrationPage() {
   )
 
   return (
-    <>
+    <div className="container mx-auto space-y-4 px-4 py-4 sm:space-y-6 sm:px-6 sm:py-6">
+      {/* Header Section */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="space-y-1">
+          <h1 className="text-xl font-bold tracking-tight sm:text-3xl">
+            Account Integration Management
+          </h1>
+          <p className="text-muted-foreground text-sm">
+            Manage payroll account integration settings
+          </p>
+        </div>
+      </div>
+
       {isLoading ? (
         <DataTableSkeleton columnCount={7} />
       ) : (
@@ -170,6 +182,6 @@ export default function AccountIntegrationPage() {
         onCancel={() => setDeleteConfirmOpen(false)}
         isDeleting={deleteMutation.isPending}
       />
-    </>
+    </div>
   )
 }

@@ -199,7 +199,7 @@ export function LandingItemsTable({
         accessorKey: "debitNoteNo",
         header: "Debit Note No",
         cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("debitNoteNo") || "—"}</div>
+          <div className="text-wrap">{row.getValue("debitNoteNo") || "-"}</div>
         ),
         size: 120,
         minSize: 100,
@@ -231,7 +231,7 @@ export function LandingItemsTable({
         accessorKey: "chargeName",
         header: "Charge",
         cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("chargeName") || "—"}</div>
+          <div className="text-wrap">{row.getValue("chargeName") || "-"}</div>
         ),
         size: 120,
         minSize: 100,
@@ -242,7 +242,7 @@ export function LandingItemsTable({
         header: "Status",
         cell: ({ row }) => (
           <div className="text-wrap">
-            <Badge variant="default">{row.getValue("statusName") || "—"}</Badge>
+            <Badge variant="default">{row.getValue("statusName") || "-"}</Badge>
           </div>
         ),
         size: 120,
@@ -254,7 +254,7 @@ export function LandingItemsTable({
         header: "Landing Type",
         cell: ({ row }) => (
           <div className="text-wrap">
-            {row.getValue("landingTypeName") || "—"}
+            {row.getValue("landingTypeName") || "-"}
           </div>
         ),
         size: 120,
@@ -265,7 +265,7 @@ export function LandingItemsTable({
         accessorKey: "name",
         header: "Name",
         cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("name") || "—"}</div>
+          <div className="text-wrap">{row.getValue("name") || "-"}</div>
         ),
         size: 200,
         minSize: 150,
@@ -276,7 +276,7 @@ export function LandingItemsTable({
         accessorKey: "uomName",
         header: "UOM",
         cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("uomName") || "—"}</div>
+          <div className="text-wrap">{row.getValue("uomName") || "-"}</div>
         ),
         size: 120,
         minSize: 100,
@@ -286,7 +286,7 @@ export function LandingItemsTable({
         accessorKey: "quantity",
         header: "Quantity",
         cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("quantity") || "—"}</div>
+          <div className="text-wrap">{row.getValue("quantity") || "-"}</div>
         ),
         size: 100,
         minSize: 80,
@@ -296,7 +296,7 @@ export function LandingItemsTable({
         accessorKey: "weight",
         header: "Weight",
         cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("weight") || "—"}</div>
+          <div className="text-wrap">{row.getValue("weight") || "-"}</div>
         ),
         size: 100,
         minSize: 80,
@@ -306,7 +306,7 @@ export function LandingItemsTable({
         accessorKey: "locationName",
         header: "Location",
         cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("locationName") || "—"}</div>
+          <div className="text-wrap">{row.getValue("locationName") || "-"}</div>
         ),
         size: 150,
         minSize: 120,
@@ -337,7 +337,7 @@ export function LandingItemsTable({
         accessorKey: "remarks",
         header: "Remarks",
         cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("remarks") || "—"}</div>
+          <div className="text-wrap">{row.getValue("remarks") || "-"}</div>
         ),
         size: 200,
         minSize: 150,
@@ -347,7 +347,7 @@ export function LandingItemsTable({
         accessorKey: "createBy",
         header: "Create By",
         cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("createBy") || "—"}</div>
+          <div className="text-wrap">{row.getValue("createBy") || "-"}</div>
         ),
         size: 120,
         minSize: 100,
@@ -373,7 +373,7 @@ export function LandingItemsTable({
       {
         accessorKey: "editBy",
         header: "Edit By",
-        cell: ({ row }) => <div>{row.getValue("editBy") || "—"}</div>,
+        cell: ({ row }) => <div>{row.getValue("editBy") || "-"}</div>,
         size: 120,
         minSize: 50,
         maxSize: 150,

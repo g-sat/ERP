@@ -72,7 +72,7 @@ export function OrderTypeTable({
       accessorKey: "ordertypeCategoryName",
       header: "Category",
       cell: ({ row }) => (
-        <div>{row.getValue("ordertypeCategoryName") || "—"}</div>
+        <div>{row.getValue("ordertypeCategoryName") || "-"}</div>
       ),
       size: 120,
       minSize: 50,
@@ -98,7 +98,7 @@ export function OrderTypeTable({
     {
       accessorKey: "remarks",
       header: "Remarks",
-      cell: ({ row }) => <div>{row.getValue("remarks") || "—"}</div>,
+      cell: ({ row }) => <div>{row.getValue("remarks") || "-"}</div>,
       size: 200,
       minSize: 50,
       maxSize: 300,
@@ -106,7 +106,7 @@ export function OrderTypeTable({
     {
       accessorKey: "createBy",
       header: "Create By",
-      cell: ({ row }) => <div>{row.getValue("createBy") || "—"}</div>,
+      cell: ({ row }) => <div>{row.getValue("createBy") || "-"}</div>,
       size: 120,
       minSize: 50,
       maxSize: 150,
@@ -128,7 +128,7 @@ export function OrderTypeTable({
     {
       accessorKey: "editBy",
       header: "Edit By",
-      cell: ({ row }) => <div>{row.getValue("editBy") || "—"}</div>,
+      cell: ({ row }) => <div>{row.getValue("editBy") || "-"}</div>,
       size: 120,
       minSize: 50,
       maxSize: 150,

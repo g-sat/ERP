@@ -40,7 +40,7 @@ export function DepartmentView({ open, onOpenChange, department }: Props) {
                 <label className="text-muted-foreground text-sm font-medium">
                   Department Code
                 </label>
-                <p className="text-sm">{department.departmentCode || "—"}</p>
+                <p className="text-sm">{department.departmentCode || "-"}</p>
               </div>
               <div>
                 <label className="text-muted-foreground text-sm font-medium">

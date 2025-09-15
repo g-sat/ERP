@@ -71,7 +71,7 @@ export function TaxTable({
     {
       accessorKey: "taxCategoryName",
       header: "Category",
-      cell: ({ row }) => <div>{row.getValue("taxCategoryName") || "—"}</div>,
+      cell: ({ row }) => <div>{row.getValue("taxCategoryName") || "-"}</div>,
       size: 120,
       minSize: 50,
       maxSize: 150,
@@ -96,7 +96,7 @@ export function TaxTable({
     {
       accessorKey: "remarks",
       header: "Remarks",
-      cell: ({ row }) => <div>{row.getValue("remarks") || "—"}</div>,
+      cell: ({ row }) => <div>{row.getValue("remarks") || "-"}</div>,
       size: 200,
       minSize: 50,
       maxSize: 300,
@@ -104,7 +104,7 @@ export function TaxTable({
     {
       accessorKey: "createBy",
       header: "Create By",
-      cell: ({ row }) => <div>{row.getValue("createBy") || "—"}</div>,
+      cell: ({ row }) => <div>{row.getValue("createBy") || "-"}</div>,
       size: 120,
       minSize: 50,
       maxSize: 150,
@@ -126,7 +126,7 @@ export function TaxTable({
     {
       accessorKey: "editBy",
       header: "Edit By",
-      cell: ({ row }) => <div>{row.getValue("editBy") || "—"}</div>,
+      cell: ({ row }) => <div>{row.getValue("editBy") || "-"}</div>,
       size: 120,
       minSize: 50,
       maxSize: 150,

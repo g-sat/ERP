@@ -151,16 +151,16 @@ export function WorkLocationTable({
                     {loc.workLocationName}
                   </TableCell>
                   <TableCell className="w-[150px] min-w-[120px] py-2 text-xs">
-                    {loc.address1 || "—"}
+                    {loc.address1 || "-"}
                   </TableCell>
                   <TableCell className="w-[150px] min-w-[120px] py-2 text-xs">
-                    {loc.address2 || "—"}
+                    {loc.address2 || "-"}
                   </TableCell>
                   <TableCell className="w-[120px] min-w-[100px] py-2 text-xs">
-                    {loc.city || "—"}
+                    {loc.city || "-"}
                   </TableCell>
                   <TableCell className="w-[120px] min-w-[100px] py-2 text-xs">
-                    {loc.countryName || "—"}
+                    {loc.countryName || "-"}
                   </TableCell>
                   <TableCell className="w-[100px] min-w-[80px] py-2">
                     {getStatusBadge(loc.isActive || false)}

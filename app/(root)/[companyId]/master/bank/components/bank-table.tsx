@@ -135,7 +135,7 @@ export function BankTable({
     {
       accessorKey: "accountNo",
       header: "Account No",
-      cell: ({ row }) => <div>{row.getValue("accountNo") || "—"}</div>,
+      cell: ({ row }) => <div>{row.getValue("accountNo") || "-"}</div>,
       size: 120,
       minSize: 50,
       maxSize: 150,
@@ -143,7 +143,7 @@ export function BankTable({
     {
       accessorKey: "swiftCode",
       header: "Swift Code",
-      cell: ({ row }) => <div>{row.getValue("swiftCode") || "—"}</div>,
+      cell: ({ row }) => <div>{row.getValue("swiftCode") || "-"}</div>,
       size: 120,
       minSize: 50,
       maxSize: 150,
@@ -152,7 +152,7 @@ export function BankTable({
     {
       accessorKey: "currencyName",
       header: "Currency",
-      cell: ({ row }) => <div>{row.getValue("currencyName") || "—"}</div>,
+      cell: ({ row }) => <div>{row.getValue("currencyName") || "-"}</div>,
       size: 120,
       minSize: 50,
       maxSize: 150,
@@ -194,7 +194,7 @@ export function BankTable({
     {
       accessorKey: "remarks1",
       header: "Remarks 1",
-      cell: ({ row }) => <div>{row.getValue("remarks1") || "—"}</div>,
+      cell: ({ row }) => <div>{row.getValue("remarks1") || "-"}</div>,
       size: 200,
       minSize: 50,
       maxSize: 300,
@@ -202,7 +202,7 @@ export function BankTable({
     {
       accessorKey: "remarks2",
       header: "Remarks 2",
-      cell: ({ row }) => <div>{row.getValue("remarks2") || "—"}</div>,
+      cell: ({ row }) => <div>{row.getValue("remarks2") || "-"}</div>,
       size: 200,
       minSize: 50,
       maxSize: 300,
@@ -210,7 +210,7 @@ export function BankTable({
     {
       accessorKey: "remarks3",
       header: "Remarks 3",
-      cell: ({ row }) => <div>{row.getValue("remarks3") || "—"}</div>,
+      cell: ({ row }) => <div>{row.getValue("remarks3") || "-"}</div>,
       size: 200,
       minSize: 50,
       maxSize: 300,
@@ -218,7 +218,7 @@ export function BankTable({
     {
       accessorKey: "createBy",
       header: "Create By",
-      cell: ({ row }) => <div>{row.getValue("createBy") || "—"}</div>,
+      cell: ({ row }) => <div>{row.getValue("createBy") || "-"}</div>,
       size: 120,
       minSize: 50,
       maxSize: 150,
@@ -243,7 +243,7 @@ export function BankTable({
     {
       accessorKey: "editBy",
       header: "Edit By",
-      cell: ({ row }) => <div>{row.getValue("editBy") || "—"}</div>,
+      cell: ({ row }) => <div>{row.getValue("editBy") || "-"}</div>,
       size: 120,
       minSize: 50,
       maxSize: 150,

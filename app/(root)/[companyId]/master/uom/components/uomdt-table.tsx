@@ -64,14 +64,14 @@ export function UomDtTable({
     {
       accessorKey: "uomFactor",
       header: "UOM Factor",
-      cell: ({ row }) => <div>{row.getValue("uomFactor") || "—"}</div>,
+      cell: ({ row }) => <div>{row.getValue("uomFactor") || "-"}</div>,
       size: 120,
       minSize: 50,
     },
     {
       accessorKey: "createBy",
       header: "Create By",
-      cell: ({ row }) => <div>{row.getValue("createBy") || "—"}</div>,
+      cell: ({ row }) => <div>{row.getValue("createBy") || "-"}</div>,
       size: 120,
       minSize: 50,
     },
@@ -94,7 +94,7 @@ export function UomDtTable({
     {
       accessorKey: "editBy",
       header: "Edit By",
-      cell: ({ row }) => <div>{row.getValue("editBy") || "—"}</div>,
+      cell: ({ row }) => <div>{row.getValue("editBy") || "-"}</div>,
       size: 120,
       minSize: 50,
     },

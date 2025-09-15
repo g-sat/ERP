@@ -198,7 +198,7 @@ export function ThirdPartyTable({
         accessorKey: "debitNoteNo",
         header: "Debit Note No",
         cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("debitNoteNo") || "—"}</div>
+          <div className="text-wrap">{row.getValue("debitNoteNo") || "-"}</div>
         ),
         size: 120,
         minSize: 100,
@@ -208,7 +208,7 @@ export function ThirdPartyTable({
         accessorKey: "supplierName",
         header: "Supplier Name",
         cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("supplierName") || "—"}</div>
+          <div className="text-wrap">{row.getValue("supplierName") || "-"}</div>
         ),
         size: 200,
         minSize: 150,
@@ -219,7 +219,7 @@ export function ThirdPartyTable({
         accessorKey: "chargeName",
         header: "Charge Name",
         cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("chargeName") || "—"}</div>
+          <div className="text-wrap">{row.getValue("chargeName") || "-"}</div>
         ),
         size: 200,
         minSize: 150,
@@ -230,7 +230,7 @@ export function ThirdPartyTable({
         accessorKey: "quantity",
         header: "Quantity",
         cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("quantity") || "—"}</div>
+          <div className="text-wrap">{row.getValue("quantity") || "-"}</div>
         ),
         size: 100,
         minSize: 80,
@@ -240,7 +240,7 @@ export function ThirdPartyTable({
         accessorKey: "uomName",
         header: "UOM",
         cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("uomName") || "—"}</div>
+          <div className="text-wrap">{row.getValue("uomName") || "-"}</div>
         ),
         size: 100,
         minSize: 80,
@@ -251,7 +251,7 @@ export function ThirdPartyTable({
         header: "Status",
         cell: ({ row }) => (
           <div className="text-wrap">
-            <Badge variant="default">{row.getValue("statusName") || "—"}</Badge>
+            <Badge variant="default">{row.getValue("statusName") || "-"}</Badge>
           </div>
         ),
         size: 120,
@@ -262,7 +262,7 @@ export function ThirdPartyTable({
         accessorKey: "remarks",
         header: "Remarks",
         cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("remarks") || "—"}</div>
+          <div className="text-wrap">{row.getValue("remarks") || "-"}</div>
         ),
         size: 200,
         minSize: 150,
@@ -293,7 +293,7 @@ export function ThirdPartyTable({
         accessorKey: "createBy",
         header: "Create By",
         cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("createBy") || "—"}</div>
+          <div className="text-wrap">{row.getValue("createBy") || "-"}</div>
         ),
         size: 120,
         minSize: 100,
@@ -324,7 +324,7 @@ export function ThirdPartyTable({
         accessorKey: "editBy",
         header: "Edit By",
         cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("editBy") || "—"}</div>
+          <div className="text-wrap">{row.getValue("editBy") || "-"}</div>
         ),
         size: 120,
         minSize: 100,

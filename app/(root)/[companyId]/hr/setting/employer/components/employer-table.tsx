@@ -165,42 +165,42 @@ export function EmployerTable({
                       </TableCell>
                       <TableCell className="w-[150px] py-2 text-xs">
                         <div className="text-xs font-medium break-words">
-                          {employer.companyName || "—"}
+                          {employer.companyName || "-"}
                         </div>
                       </TableCell>
                       <TableCell className="w-[80px] py-2 text-xs">
                         <div className="break-words">
-                          {employer.branch || "—"}
+                          {employer.branch || "-"}
                         </div>
                       </TableCell>
                       <TableCell className="w-[200px] py-2 text-xs">
                         <div className="break-words">
-                          {employer.address || "—"}
+                          {employer.address || "-"}
                         </div>
                       </TableCell>
                       <TableCell className="w-[80px] py-2 text-xs">
                         <div className="break-words">
-                          {employer.phone || "—"}
+                          {employer.phone || "-"}
                         </div>
                       </TableCell>
                       <TableCell className="w-[150px] py-2 text-xs">
                         <div className="break-words">
-                          {employer.email || "—"}
+                          {employer.email || "-"}
                         </div>
                       </TableCell>
                       <TableCell className="w-[120px] py-2 text-xs">
                         <div className="break-words">
-                          {employer.establishmentId || "—"}
+                          {employer.establishmentId || "-"}
                         </div>
                       </TableCell>
                       <TableCell className="w-[150px] py-2 text-xs">
                         <div className="break-words">
-                          {employer.bankAccountNumber || "—"}
+                          {employer.bankAccountNumber || "-"}
                         </div>
                       </TableCell>
                       <TableCell className="w-[120px] py-2 text-xs">
                         <div className="break-words">
-                          {employer.bankName || "—"}
+                          {employer.bankName || "-"}
                         </div>
                       </TableCell>
                       <TableCell className="w-[80px] py-2">

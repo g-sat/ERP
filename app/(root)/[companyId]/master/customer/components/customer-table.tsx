@@ -136,7 +136,7 @@ export function CustomerTable({
     {
       accessorKey: "customerRegNo",
       header: "Registration No",
-      cell: ({ row }) => <div>{row.getValue("customerRegNo") || "—"}</div>,
+      cell: ({ row }) => <div>{row.getValue("customerRegNo") || "-"}</div>,
       size: 120,
       minSize: 50,
       maxSize: 150,
@@ -144,7 +144,7 @@ export function CustomerTable({
     {
       accessorKey: "creditTermName",
       header: "Credit Term",
-      cell: ({ row }) => <div>{row.getValue("creditTermName") || "—"}</div>,
+      cell: ({ row }) => <div>{row.getValue("creditTermName") || "-"}</div>,
       size: 120,
       minSize: 50,
       maxSize: 150,
@@ -152,7 +152,7 @@ export function CustomerTable({
     {
       accessorKey: "bankName",
       header: "Bank",
-      cell: ({ row }) => <div>{row.getValue("bankName") || "—"}</div>,
+      cell: ({ row }) => <div>{row.getValue("bankName") || "-"}</div>,
       size: 120,
       minSize: 50,
       maxSize: 150,
@@ -160,7 +160,7 @@ export function CustomerTable({
     {
       accessorKey: "currencyName",
       header: "Currency",
-      cell: ({ row }) => <div>{row.getValue("currencyName") || "—"}</div>,
+      cell: ({ row }) => <div>{row.getValue("currencyName") || "-"}</div>,
       size: 120,
       minSize: 50,
       maxSize: 150,
@@ -185,7 +185,7 @@ export function CustomerTable({
     {
       accessorKey: "accSetupName",
       header: "Account Setup",
-      cell: ({ row }) => <div>{row.getValue("accSetupName") || "—"}</div>,
+      cell: ({ row }) => <div>{row.getValue("accSetupName") || "-"}</div>,
       size: 120,
       minSize: 50,
       maxSize: 150,
@@ -193,7 +193,7 @@ export function CustomerTable({
     {
       accessorKey: "supplierName",
       header: "Supplier",
-      cell: ({ row }) => <div>{row.getValue("supplierName") || "—"}</div>,
+      cell: ({ row }) => <div>{row.getValue("supplierName") || "-"}</div>,
       size: 120,
       minSize: 50,
       maxSize: 150,
@@ -201,7 +201,7 @@ export function CustomerTable({
     {
       accessorKey: "customerOtherName",
       header: "Other Name",
-      cell: ({ row }) => <div>{row.getValue("customerOtherName") || "—"}</div>,
+      cell: ({ row }) => <div>{row.getValue("customerOtherName") || "-"}</div>,
       size: 200,
       minSize: 50,
       maxSize: 300,
@@ -209,7 +209,7 @@ export function CustomerTable({
     {
       accessorKey: "customerShortName",
       header: "Short Name",
-      cell: ({ row }) => <div>{row.getValue("customerShortName") || "—"}</div>,
+      cell: ({ row }) => <div>{row.getValue("customerShortName") || "-"}</div>,
       size: 120,
       minSize: 50,
       maxSize: 150,
@@ -217,7 +217,7 @@ export function CustomerTable({
     {
       accessorKey: "remarks",
       header: "Remarks",
-      cell: ({ row }) => <div>{row.getValue("remarks") || "—"}</div>,
+      cell: ({ row }) => <div>{row.getValue("remarks") || "-"}</div>,
       size: 200,
       minSize: 50,
       maxSize: 300,
@@ -225,7 +225,7 @@ export function CustomerTable({
     {
       accessorKey: "createBy",
       header: "Create By",
-      cell: ({ row }) => <div>{row.getValue("createBy") || "—"}</div>,
+      cell: ({ row }) => <div>{row.getValue("createBy") || "-"}</div>,
       size: 120,
       minSize: 50,
       maxSize: 150,
@@ -250,7 +250,7 @@ export function CustomerTable({
     {
       accessorKey: "editBy",
       header: "Edit By",
-      cell: ({ row }) => <div>{row.getValue("editBy") || "—"}</div>,
+      cell: ({ row }) => <div>{row.getValue("editBy") || "-"}</div>,
       size: 120,
       minSize: 50,
       maxSize: 150,

@@ -41,7 +41,7 @@ export function WorkLocationView({ open, onOpenChange, workLocation }: Props) {
                   Code
                 </label>
                 <p className="text-sm">
-                  {workLocation.workLocationCode || "—"}
+                  {workLocation.workLocationCode || "-"}
                 </p>
               </div>
               <div>
@@ -63,33 +63,33 @@ export function WorkLocationView({ open, onOpenChange, workLocation }: Props) {
                 <label className="text-muted-foreground text-sm font-medium">
                   Address Line 1
                 </label>
-                <p className="text-sm">{workLocation.address1 || "—"}</p>
+                <p className="text-sm">{workLocation.address1 || "-"}</p>
               </div>
               <div>
                 <label className="text-muted-foreground text-sm font-medium">
                   Address Line 2
                 </label>
-                <p className="text-sm">{workLocation.address2 || "—"}</p>
+                <p className="text-sm">{workLocation.address2 || "-"}</p>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="text-muted-foreground text-sm font-medium">
                     City
                   </label>
-                  <p className="text-sm">{workLocation.city || "—"}</p>
+                  <p className="text-sm">{workLocation.city || "-"}</p>
                 </div>
                 <div>
                   <label className="text-muted-foreground text-sm font-medium">
                     Postal Code
                   </label>
-                  <p className="text-sm">{workLocation.postalCode || "—"}</p>
+                  <p className="text-sm">{workLocation.postalCode || "-"}</p>
                 </div>
               </div>
               <div>
                 <label className="text-muted-foreground text-sm font-medium">
                   Country
                 </label>
-                <p className="text-sm">{workLocation.countryName || "—"}</p>
+                <p className="text-sm">{workLocation.countryName || "-"}</p>
               </div>
             </div>
           </div>

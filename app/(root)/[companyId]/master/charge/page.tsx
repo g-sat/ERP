@@ -257,10 +257,13 @@ export default function ChargePage() {
   }, [selectedCharge])
 
   return (
-    <div className="@container flex flex-1 flex-col gap-6 p-6">
-      <div className="flex flex-col justify-between gap-4 @md/main:flex-row @md/main:items-center">
+    <div className="container mx-auto space-y-4 px-4 py-4 sm:space-y-6 sm:px-6 sm:py-6">
+      {/* Header Section */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="space-y-1">
-          <h1 className="text-3xl font-bold tracking-tight">Charges</h1>
+          <h1 className="text-xl font-bold tracking-tight sm:text-3xl">
+            Charges
+          </h1>
           <p className="text-muted-foreground text-sm">
             Manage charge information and settings
           </p>

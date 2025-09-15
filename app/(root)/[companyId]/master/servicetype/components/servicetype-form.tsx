@@ -155,7 +155,7 @@ export function ServiceTypeForm({
                                       new Date(initialData.editDate),
                                       datetimeFormat
                                     )
-                                  : "—"}
+                                  : "-"}
                               </span>
                             </div>
                           </div>

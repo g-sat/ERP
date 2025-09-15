@@ -470,7 +470,7 @@ export function DebitNoteTable({
         ),
         cell: ({ row }) => (
           <div className="text-right font-medium">
-            {row.getValue("itemNo") || "—"}
+            {row.getValue("itemNo") || "-"}
           </div>
         ),
         size: 80,
@@ -482,7 +482,7 @@ export function DebitNoteTable({
         header: "Remarks",
         cell: ({ row }) => (
           <div className="max-w-xs truncate">
-            {row.getValue("remarks") || "—"}
+            {row.getValue("remarks") || "-"}
           </div>
         ),
         size: 200,
