@@ -1,6 +1,6 @@
 "use client"
 
-import { IUomDt, IUomFilter } from "@/interfaces/uom"
+import { IUomDt } from "@/interfaces/uom"
 import { useAuthStore } from "@/stores/auth-store"
 import { ColumnDef } from "@tanstack/react-table"
 import { format, isValid } from "date-fns"
@@ -11,12 +11,12 @@ import { MainDataTable } from "@/components/table/table-main"
 interface UomDtTableProps {
   data: IUomDt[]
   isLoading?: boolean
-  onSelect?: (uomdt: IUomDt | undefined) => void
+  onSelect?: (uomdt: IUomDt | null) => void
   onDelete?: (uomId: string) => void
   onEdit?: (uomdt: IUomDt) => void
   onCreate?: () => void
   onRefresh?: () => void
-  onFilterChange?: (filters: IUomFilter) => void
+  onFilterChange?: (filters: { search?: string; sortOrder?: string }) => void
   moduleId?: number
   transactionId?: number
   // Permission props

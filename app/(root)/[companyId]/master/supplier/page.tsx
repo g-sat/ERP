@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { ApiResponse } from "@/interfaces/auth"
 import {
   ISupplier,
@@ -31,8 +31,6 @@ import {
 } from "@/components/ui/dialog"
 import { Separator } from "@/components/ui/separator"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { DeleteConfirmation } from "@/components/delete-confirmation"
-import { SaveConfirmation } from "@/components/save-confirmation"
 
 import { SupplierAddressForm } from "./components/address-form"
 import { AddresssTable } from "./components/address-table"
@@ -108,18 +106,22 @@ export default function SupplierPage() {
     useGetById<ISupplierAddress>(
       `${SupplierAddress.get}`,
       "supplieraddresses",
-
       supplier?.supplierId?.toString() || "",
-      { enabled: !!supplier?.supplierId }
+      {
+        enabled: !!supplier?.supplierId,
+        queryKey: ["supplieraddresses", supplier?.supplierId],
+      }
     )
 
   const { refetch: refetchContacts, isLoading: isLoadingContacts } =
     useGetById<ISupplierContact>(
       `${SupplierContact.get}`,
       "suppliercontacts",
-
       supplier?.supplierId?.toString() || "",
-      { enabled: !!supplier?.supplierId }
+      {
+        enabled: !!supplier?.supplierId,
+        queryKey: ["suppliercontacts", supplier?.supplierId],
+      }
     )
 
   const { data: suppliersData } =
@@ -148,14 +150,7 @@ export default function SupplierPage() {
   )
   const deleteContactMutation = useDelete(`${SupplierContact.delete}`)
 
-  // Fetch supplier details, addresses, and contacts when supplier changes
-  useEffect(() => {
-    if (supplier?.supplierId) {
-      fetchSupplierData()
-    }
-  }, [supplier?.supplierId])
-
-  const fetchSupplierData = async () => {
+  const fetchSupplierData = useCallback(async () => {
     try {
       const { data: response } = await refetchSupplierDetails()
       if (response?.result === 1) {
@@ -193,7 +188,14 @@ export default function SupplierPage() {
       setAddresses([])
       setContacts([])
     }
-  }
+  }, [refetchSupplierDetails, refetchAddresses, refetchContacts])
+
+  // Fetch supplier details, addresses, and contacts when supplier changes
+  useEffect(() => {
+    if (supplier?.supplierId) {
+      fetchSupplierData()
+    }
+  }, [supplier?.supplierId, fetchSupplierData])
 
   const handleSupplierSave = async (savedSupplier: SupplierFormValues) => {
     try {
@@ -550,7 +552,7 @@ export default function SupplierPage() {
           </DialogHeader>
           <SupplierTable
             data={suppliersData || []}
-            isLoading={isLoadingSuppliers || isRefetchingSuppliers}
+            isLoading={isLoadingSuppliers}
             onSupplierSelect={handleSupplierSelect}
             onFilterChange={handleFilterChange}
             onRefresh={() => refetchSuppliers()}

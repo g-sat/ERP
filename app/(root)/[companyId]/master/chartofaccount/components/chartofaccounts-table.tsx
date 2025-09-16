@@ -262,7 +262,7 @@ export function ChartOfAccountsTable({
     },
     {
       accessorKey: "seqNo",
-      header: "Sequence",
+      header: "Seq No",
       cell: ({ row }) => (
         <div className="truncate" title={String(row.getValue("seqNo"))}>
           {row.getValue("seqNo")}

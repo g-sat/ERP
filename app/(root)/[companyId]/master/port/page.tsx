@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { ApiResponse } from "@/interfaces/auth"
 import { IPort, IPortFilter } from "@/interfaces/port"
 import { PortFormValues } from "@/schemas/port"
@@ -38,6 +38,15 @@ export default function PortPage() {
   const canCreate = hasPermission(moduleId, transactionId, "isCreate")
 
   const [filters, setFilters] = useState<IPortFilter>({})
+
+  // Filter handler wrapper
+  const handleFilterChange = useCallback(
+    (newFilters: { search?: string; sortOrder?: string }) => {
+      console.log("Filter change called with:", newFilters)
+      setFilters(newFilters as IPortFilter)
+    },
+    []
+  )
   const {
     data: portsResponse,
     refetch,
@@ -78,10 +87,7 @@ export default function PortPage() {
   const { refetch: checkCodeAvailability } = useGetById<IPort>(
     `${Port.getByCode}`,
     "portByCode",
-    codeToCheck,
-    {
-      enabled: !!codeToCheck && codeToCheck.trim() !== "",
-    }
+    codeToCheck
   )
 
   const handleRefresh = () => {
@@ -261,7 +267,7 @@ export default function PortPage() {
         </div>
       </div>
 
-      {isLoading || isRefetching ? (
+      {isLoading ? (
         <DataTableSkeleton
           columnCount={7}
           filterCount={2}
@@ -276,17 +282,36 @@ export default function PortPage() {
           ]}
           shrinkZero
         />
-      ) : portsResult ? (
+      ) : portsResult === -2 ? (
         <PortsTable
-          data={portsData || []}
+          data={[]}
           onSelect={canView ? handleViewPort : undefined}
           onDelete={canDelete ? handleDeletePort : undefined}
           onEdit={canEdit ? handleEditPort : undefined}
           onCreate={canCreate ? handleCreatePort : undefined}
           onRefresh={handleRefresh}
-          onFilterChange={setFilters}
+          onFilterChange={handleFilterChange}
           moduleId={moduleId}
           transactionId={transactionId}
+          isLoading={false}
+          // Pass permissions to table
+          canEdit={canEdit}
+          canDelete={canDelete}
+          canView={canView}
+          canCreate={canCreate}
+        />
+      ) : portsResult ? (
+        <PortsTable
+          data={filters.search ? [] : portsData || []}
+          onSelect={canView ? handleViewPort : undefined}
+          onDelete={canDelete ? handleDeletePort : undefined}
+          onEdit={canEdit ? handleEditPort : undefined}
+          onCreate={canCreate ? handleCreatePort : undefined}
+          onRefresh={handleRefresh}
+          onFilterChange={handleFilterChange}
+          moduleId={moduleId}
+          transactionId={transactionId}
+          isLoading={isLoading}
           // Pass permissions to table
           canEdit={canEdit}
           canDelete={canDelete}

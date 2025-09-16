@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { ApiResponse } from "@/interfaces/auth"
 import { IUom, IUomDt, IUomFilter } from "@/interfaces/uom"
 import { UomDtFormValues, UomFormValues } from "@/schemas/uom"
@@ -30,23 +30,6 @@ import { UomForm } from "./components/uom-form"
 import { UomTable } from "./components/uom-table"
 import { UomDtForm } from "./components/uomdt-form"
 import { UomDtTable } from "./components/uomdt-table"
-
-// Skeleton configuration for consistent loading states
-const tableSkeletonProps = {
-  columnCount: 8,
-  filterCount: 2,
-  cellWidths: [
-    "10rem",
-    "30rem",
-    "10rem",
-    "10rem",
-    "10rem",
-    "10rem",
-    "6rem",
-    "6rem",
-  ],
-  shrinkZero: true,
-}
 
 export default function UomPage() {
   const moduleId = ModuleId.master
@@ -122,11 +105,11 @@ export default function UomPage() {
   // Refetch when filters change
   useEffect(() => {
     if (filters.search !== undefined) refetchUom()
-  }, [filters.search])
+  }, [filters.search, refetchUom])
 
   useEffect(() => {
     if (dtFilters.search !== undefined) refetchUomDt()
-  }, [dtFilters.search])
+  }, [dtFilters.search, refetchUomDt])
 
   // Action handlers
   const handleCreateUom = () => {
@@ -141,7 +124,7 @@ export default function UomPage() {
     setIsModalOpen(true)
   }
 
-  const handleViewUom = (uom: IUom | undefined) => {
+  const handleViewUom = (uom: IUom | null) => {
     if (!uom) return
     setModalMode("view")
     setSelectedUom(uom)
@@ -168,23 +151,22 @@ export default function UomPage() {
   }
 
   // Filter handlers
-  const handleUomFilterChange = (filters: IUomFilter) => {
-    setFilters({
-      search: filters.search,
-      sortOrder: filters.sortOrder,
-    })
-  }
+  const handleUomFilterChange = useCallback(
+    (newFilters: { search?: string; sortOrder?: string }) => {
+      setFilters(newFilters as IUomFilter)
+    },
+    []
+  )
 
-  const handleUomDtFilterChange = (filters: IUomFilter) => {
-    setDtFilters(filters)
-  }
+  const handleUomDtFilterChange = useCallback(
+    (newFilters: { search?: string; sortOrder?: string }) => {
+      setDtFilters(newFilters as IUomFilter)
+    },
+    []
+  )
 
   // Helper function for API responses
-  const handleApiResponse = (
-    response: ApiResponse<IUom | IUomDt>,
-    successMessage: string,
-    errorPrefix: string
-  ) => {
+  const handleApiResponse = (response: ApiResponse<IUom | IUomDt>) => {
     if (response.result === 1) {
       return true
     } else {
@@ -210,18 +192,14 @@ export default function UomPage() {
         const response = (await saveMutation.mutateAsync(
           data
         )) as ApiResponse<IUom>
-        if (
-          handleApiResponse(response, "UOM created successfully", "Create UOM")
-        ) {
+        if (handleApiResponse(response)) {
           queryClient.invalidateQueries({ queryKey: ["uoms"] })
         }
       } else if (modalMode === "edit" && selectedUom) {
         const response = (await updateMutation.mutateAsync(
           data
         )) as ApiResponse<IUom>
-        if (
-          handleApiResponse(response, "UOM updated successfully", "Update UOM")
-        ) {
+        if (handleApiResponse(response)) {
           queryClient.invalidateQueries({ queryKey: ["uoms"] })
         }
       }
@@ -236,26 +214,14 @@ export default function UomPage() {
         const response = (await saveDtMutation.mutateAsync(
           data
         )) as ApiResponse<IUomDt>
-        if (
-          handleApiResponse(
-            response,
-            "UOM Details created successfully",
-            "Create UOM Details"
-          )
-        ) {
+        if (handleApiResponse(response)) {
           queryClient.invalidateQueries({ queryKey: ["uomsdt"] })
         }
       } else if (modalMode === "edit" && selectedUomDt) {
         const response = (await updateDtMutation.mutateAsync(
           data
         )) as ApiResponse<IUomDt>
-        if (
-          handleApiResponse(
-            response,
-            "UOM Details updated successfully",
-            "Update UOM Details"
-          )
-        ) {
+        if (handleApiResponse(response)) {
           queryClient.invalidateQueries({ queryKey: ["uomsdt"] })
         }
       }
@@ -329,7 +295,7 @@ export default function UomPage() {
     }
 
     mutation.mutateAsync(deleteConfirmation.id).then(() => {
-      queryClient.invalidateQueries({ queryKey: [deleteConfirmation.queryKey] })
+      queryClient.invalidateQueries({ queryKey: [deleteConfirmation.type] })
     })
 
     setDeleteConfirmation({
@@ -375,11 +341,6 @@ export default function UomPage() {
       setShowLoadDialogUom(false)
       setExistingUom(null)
     }
-  }
-
-  // Loading state
-  if (isLoadingUom || isRefetchingUom || isLoadingUomDt || isRefetchingUomDt) {
-    return <DataTableSkeleton {...tableSkeletonProps} />
   }
 
   return (
@@ -469,27 +430,35 @@ export default function UomPage() {
             <LockSkeleton locked={true}>
               <UomDtTable
                 data={uomDtData}
-                onUomDtSelect={canViewDt ? handleViewUomDt : undefined}
-                onDeleteUomDt={canDeleteDt ? handleDeleteUomDt : undefined}
-                onEditUomDt={canEditDt ? handleEditUomDt : undefined}
-                onCreateUomDt={canCreateDt ? handleCreateUomDt : undefined}
+                onSelect={canViewDt ? handleViewUomDt : undefined}
+                onDelete={canDeleteDt ? handleDeleteUomDt : undefined}
+                onEdit={canEditDt ? handleEditUomDt : undefined}
+                onCreate={canCreateDt ? handleCreateUomDt : undefined}
                 onRefresh={refetchUomDt}
                 onFilterChange={handleUomDtFilterChange}
                 moduleId={moduleId}
                 transactionId={transactionIdDt}
+                canView={canViewDt}
+                canCreate={canCreateDt}
+                canEdit={canEditDt}
+                canDelete={canDeleteDt}
               />
             </LockSkeleton>
           ) : (
             <UomDtTable
               data={uomDtData}
-              onUomDtSelect={canViewDt ? handleViewUomDt : undefined}
-              onDeleteUomDt={canDeleteDt ? handleDeleteUomDt : undefined}
-              onEditUomDt={canEditDt ? handleEditUomDt : undefined}
-              onCreateUomDt={canCreateDt ? handleCreateUomDt : undefined}
+              onSelect={canViewDt ? handleViewUomDt : undefined}
+              onDelete={canDeleteDt ? handleDeleteUomDt : undefined}
+              onEdit={canEditDt ? handleEditUomDt : undefined}
+              onCreate={canCreateDt ? handleCreateUomDt : undefined}
               onRefresh={refetchUomDt}
               onFilterChange={handleUomDtFilterChange}
               moduleId={moduleId}
               transactionId={transactionIdDt}
+              canView={canViewDt}
+              canCreate={canCreateDt}
+              canEdit={canEditDt}
+              canDelete={canDeleteDt}
             />
           )}
         </TabsContent>
@@ -611,7 +580,8 @@ export default function UomPage() {
         itemName={
           saveConfirmation.type === "uom"
             ? (saveConfirmation.data as UomFormValues)?.uomName || ""
-            : (saveConfirmation.data as UomDtFormValues)?.uomName || ""
+            : (saveConfirmation.data as UomDtFormValues)?.uomId?.toString() ||
+              ""
         }
         operationType={modalMode === "create" ? "create" : "update"}
         onConfirm={() => {

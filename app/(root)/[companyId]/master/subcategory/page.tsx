@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { ApiResponse } from "@/interfaces/auth"
 import { ISubCategory, ISubCategoryFilter } from "@/interfaces/subcategory"
 import { SubCategoryFormValues } from "@/schemas/subcategory"
@@ -34,8 +34,19 @@ export default function SubCategoryPage() {
 
   const canEdit = hasPermission(moduleId, transactionId, "isEdit")
   const canDelete = hasPermission(moduleId, transactionId, "isDelete")
+  const canView = hasPermission(moduleId, transactionId, "isRead")
+  const canCreate = hasPermission(moduleId, transactionId, "isCreate")
 
   const [filters, setFilters] = useState<ISubCategoryFilter>({})
+
+  // Filter handler wrapper
+  const handleFilterChange = useCallback(
+    (newFilters: { search?: string; sortOrder?: string }) => {
+      console.log("Filter change called with:", newFilters)
+      setFilters(newFilters as ISubCategoryFilter)
+    },
+    []
+  )
   const {
     data: subcategorysResponse,
     refetch,
@@ -97,10 +108,7 @@ export default function SubCategoryPage() {
     `${SubCategory.getByCode}`,
     "subcategoryByCode",
 
-    codeToCheck,
-    {
-      enabled: !!codeToCheck && codeToCheck.trim() !== "",
-    }
+    codeToCheck
   )
 
   const queryClient = useQueryClient()
@@ -266,7 +274,7 @@ export default function SubCategoryPage() {
         </div>
       </div>
 
-      {isLoading || isRefetching ? (
+      {isLoading ? (
         <DataTableSkeleton
           columnCount={7}
           filterCount={2}
@@ -281,22 +289,48 @@ export default function SubCategoryPage() {
           ]}
           shrinkZero
         />
-      ) : subcategorysResult ? (
+      ) : subcategorysResult === -2 ? (
         <SubCategorysTable
-          data={subcategorysData || []}
-          onSubCategorySelect={handleViewSubCategory}
-          onDeleteSubCategory={canDelete ? handleDeleteSubCategory : undefined}
-          onEditSubCategory={canEdit ? handleEditSubCategory : undefined}
-          onCreateSubCategory={handleCreateSubCategory}
-          onRefresh={() => {
-            handleRefresh()
-          }}
-          onFilterChange={setFilters}
+          data={[]}
+          onSelect={canView ? handleViewSubCategory : undefined}
+          onDelete={canDelete ? handleDeleteSubCategory : undefined}
+          onEdit={canEdit ? handleEditSubCategory : undefined}
+          onCreate={canCreate ? handleCreateSubCategory : undefined}
+          onRefresh={handleRefresh}
+          onFilterChange={handleFilterChange}
           moduleId={moduleId}
           transactionId={transactionId}
+          isLoading={false}
+          // Pass permissions to table
+          canEdit={canEdit}
+          canDelete={canDelete}
+          canView={canView}
+          canCreate={canCreate}
+        />
+      ) : subcategorysResult ? (
+        <SubCategorysTable
+          data={filters.search ? [] : subcategorysData || []}
+          onSelect={canView ? handleViewSubCategory : undefined}
+          onDelete={canDelete ? handleDeleteSubCategory : undefined}
+          onEdit={canEdit ? handleEditSubCategory : undefined}
+          onCreate={canCreate ? handleCreateSubCategory : undefined}
+          onRefresh={handleRefresh}
+          onFilterChange={handleFilterChange}
+          moduleId={moduleId}
+          transactionId={transactionId}
+          isLoading={isLoading}
+          // Pass permissions to table
+          canEdit={canEdit}
+          canDelete={canDelete}
+          canView={canView}
+          canCreate={canCreate}
         />
       ) : (
-        <div>No data available</div>
+        <div className="py-8 text-center">
+          <p className="text-muted-foreground">
+            {subcategorysResult === 0 ? "No data available" : "Loading..."}
+          </p>
+        </div>
       )}
 
       <Dialog

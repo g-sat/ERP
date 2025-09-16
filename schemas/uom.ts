@@ -1,12 +1,15 @@
 import * as z from "zod"
 
 export const uomSchema = z.object({
-  uomId: z.number(),
-  uomCode: z.string().min(1, { message: "UOM code is required" }).max(50),
+  uomId: z.number().min(0, { message: "UOM id is required" }),
+  uomCode: z
+    .string()
+    .min(1, { message: "UOM code is required" })
+    .max(50, { message: "UOM code cannot exceed 50 characters" }),
   uomName: z
     .string()
     .min(2, { message: "UOM name must be at least 2 characters" })
-    .max(150),
+    .max(150, { message: "UOM name cannot exceed 150 characters" }),
 
   isActive: z.boolean().default(true),
   remarks: z
@@ -27,9 +30,8 @@ export const uomFiltersSchema = z.object({
 export type UomFiltersValues = z.infer<typeof uomFiltersSchema>
 
 export const uomDtSchema = z.object({
-  uomId: z.number(),
-
-  packUomId: z.number(),
+  uomId: z.number().min(1, { message: "UOM id is required" }),
+  packUomId: z.number().min(1, { message: "Pack UOM id is required" }),
   uomFactor: z.number().min(0, { message: "Factor must be non-negative" }),
 })
 

@@ -51,6 +51,14 @@ export function AccountSetupCategoryTable({
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
 
+  console.log(
+    "Permission details of account setup category",
+    canCreate,
+    canDelete,
+    canEdit,
+    canView
+  )
+
   const columns: ColumnDef<IAccountSetupCategory>[] = [
     {
       accessorKey: "accSetupCategoryCode",

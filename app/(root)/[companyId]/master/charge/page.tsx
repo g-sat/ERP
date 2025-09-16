@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { ApiResponse } from "@/interfaces/auth"
 import { ICharge, IChargeFilter } from "@/interfaces/charge"
 import { ChargeFormValues } from "@/schemas/charge"
@@ -45,12 +45,13 @@ export default function ChargePage() {
   const [filters, setFilters] = useState<IChargeFilter>({})
 
   // Filter handler wrapper
-  const handleFilterChange = (newFilters: {
-    search?: string
-    sortOrder?: string
-  }) => {
-    setFilters(newFilters as IChargeFilter)
-  }
+  const handleFilterChange = useCallback(
+    (newFilters: { search?: string; sortOrder?: string }) => {
+      console.log("Filter change called with:", newFilters)
+      setFilters(newFilters as IChargeFilter)
+    },
+    []
+  )
 
   const {
     data: chargesResponse,
@@ -270,7 +271,7 @@ export default function ChargePage() {
         </div>
       </div>
 
-      {isLoading || isRefetching ? (
+      {isLoading ? (
         <DataTableSkeleton
           columnCount={7}
           filterCount={2}
@@ -285,9 +286,10 @@ export default function ChargePage() {
           ]}
           shrinkZero
         />
-      ) : chargesResult ? (
+      ) : chargesResult === -2 ? (
         <ChargesTable
-          data={chargesData || []}
+          data={[]}
+          isLoading={false}
           onSelect={canView ? handleViewCharge : undefined}
           onDelete={canDelete ? handleDeleteCharge : undefined}
           onEdit={canEdit ? handleEditCharge : undefined}
@@ -296,13 +298,30 @@ export default function ChargePage() {
           onFilterChange={handleFilterChange}
           moduleId={moduleId}
           transactionId={transactionId}
+          // Pass permissions to table
+          canEdit={canEdit}
+          canDelete={canDelete}
+          canView={canView}
+          canCreate={canCreate}
         />
       ) : (
-        <div className="py-8 text-center">
-          <p className="text-muted-foreground">
-            {chargesResult === 0 ? "No data available" : "Loading..."}
-          </p>
-        </div>
+        <ChargesTable
+          data={filters.search ? [] : chargesData || []}
+          isLoading={isLoading}
+          onSelect={canView ? handleViewCharge : undefined}
+          onDelete={canDelete ? handleDeleteCharge : undefined}
+          onEdit={canEdit ? handleEditCharge : undefined}
+          onCreate={canCreate ? handleCreateCharge : undefined}
+          onRefresh={handleRefresh}
+          onFilterChange={handleFilterChange}
+          moduleId={moduleId}
+          transactionId={transactionId}
+          // Pass permissions to table
+          canEdit={canEdit}
+          canDelete={canDelete}
+          canView={canView}
+          canCreate={canCreate}
+        />
       )}
 
       <Dialog

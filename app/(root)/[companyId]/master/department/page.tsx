@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { ApiResponse } from "@/interfaces/auth"
 import { IDepartment, IDepartmentFilter } from "@/interfaces/department"
 import { DepartmentFormValues } from "@/schemas/department"
@@ -12,7 +12,6 @@ import { MasterTransactionId, ModuleId } from "@/lib/utils"
 import {
   useDelete,
   useGet,
-  useGetById,
   useGetByParams,
   usePersist,
 } from "@/hooks/use-common"
@@ -44,6 +43,15 @@ export default function DepartmentPage() {
   const canCreate = hasPermission(moduleId, transactionId, "isCreate")
 
   const [filters, setFilters] = useState<IDepartmentFilter>({})
+
+  // Filter handler wrapper
+  const handleFilterChange = useCallback(
+    (newFilters: { search?: string; sortOrder?: string }) => {
+      console.log("Filter change called with:", newFilters)
+      setFilters(newFilters as IDepartmentFilter)
+    },
+    []
+  )
   const {
     data: departmentsResponse,
     refetch,
@@ -62,7 +70,7 @@ export default function DepartmentPage() {
     if (departmentsData?.length > 0) {
       refetch()
     }
-  }, [filters])
+  }, [filters, departmentsData?.length, refetch])
 
   const saveMutation = usePersist<DepartmentFormValues>(`${Department.add}`)
   const updateMutation = usePersist<DepartmentFormValues>(`${Department.add}`)
@@ -268,7 +276,7 @@ export default function DepartmentPage() {
         </div>
       </div>
 
-      {isLoading || isRefetching ? (
+      {isLoading ? (
         <DataTableSkeleton
           columnCount={7}
           filterCount={2}
@@ -283,17 +291,41 @@ export default function DepartmentPage() {
           ]}
           shrinkZero
         />
-      ) : departmentsResult ? (
+      ) : departmentsResult === -2 ? (
         <DepartmentsTable
-          data={departmentsData || []}
-          onDepartmentSelect={canView ? handleViewDepartment : undefined}
-          onDeleteDepartment={canDelete ? handleDeleteDepartment : undefined}
-          onEditDepartment={canEdit ? handleEditDepartment : undefined}
-          onCreateDepartment={canCreate ? handleCreateDepartment : undefined}
+          data={[]}
+          onSelect={canView ? handleViewDepartment : undefined}
+          onDelete={canDelete ? handleDeleteDepartment : undefined}
+          onEdit={canEdit ? handleEditDepartment : undefined}
+          onCreate={canCreate ? handleCreateDepartment : undefined}
           onRefresh={handleRefresh}
-          onFilterChange={setFilters}
+          onFilterChange={handleFilterChange}
           moduleId={moduleId}
           transactionId={transactionId}
+          isLoading={false}
+          // Pass permissions to table
+          canEdit={canEdit}
+          canDelete={canDelete}
+          canView={canView}
+          canCreate={canCreate}
+        />
+      ) : departmentsResult ? (
+        <DepartmentsTable
+          data={filters.search ? [] : departmentsData || []}
+          onSelect={canView ? handleViewDepartment : undefined}
+          onDelete={canDelete ? handleDeleteDepartment : undefined}
+          onEdit={canEdit ? handleEditDepartment : undefined}
+          onCreate={canCreate ? handleCreateDepartment : undefined}
+          onRefresh={handleRefresh}
+          onFilterChange={handleFilterChange}
+          moduleId={moduleId}
+          transactionId={transactionId}
+          isLoading={isLoading}
+          // Pass permissions to table
+          canEdit={canEdit}
+          canDelete={canDelete}
+          canView={canView}
+          canCreate={canCreate}
         />
       ) : (
         <div className="py-8 text-center">

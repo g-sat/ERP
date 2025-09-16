@@ -23,7 +23,7 @@ import CustomTextarea from "@/components/ui-custom/custom-textarea"
 
 interface TaxFormProps {
   initialData?: ITax | null
-  submitAction: (data: TaxFormValues) => Promise<void>
+  submitAction: (data: TaxFormValues) => void
   onCancel: () => void
   isSubmitting: boolean
   isReadOnly?: boolean
@@ -75,14 +75,14 @@ export function TaxForm({
     onCodeBlur?.(code)
   }
 
-  const onSubmit = async (data: TaxFormValues) => {
-    await submitAction(data)
+  const onSubmit = (data: TaxFormValues) => {
+    submitAction(data)
   }
 
   return (
     <div className="max-w flex flex-col gap-2">
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pt-6">
           <div className="grid gap-2">
             <div className="grid grid-cols-3 gap-2">
               <TaxCategoryAutocomplete
@@ -98,7 +98,7 @@ export function TaxForm({
                 name="taxCode"
                 label="Tax Code"
                 isRequired
-                isDisabled={isReadOnly || isSubmitting}
+                isDisabled={isReadOnly || Boolean(initialData)}
                 onBlurEvent={handleCodeBlur}
               />
 
@@ -130,7 +130,7 @@ export function TaxForm({
                 initialData.createDate ||
                 initialData.editBy ||
                 initialData.editDate) && (
-                <div className="space-y-6">
+                <div className="space-y-6 pt-6">
                   <div className="border-border border-b pb-4"></div>
 
                   <CustomAccordion
@@ -205,18 +205,17 @@ export function TaxForm({
               )}
           </div>
 
-          <div className="flex justify-end space-x-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onCancel}
-              disabled={isSubmitting}
-            >
-              Cancel
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" type="button" onClick={onCancel}>
+              {isReadOnly ? "Close" : "Cancel"}
             </Button>
             {!isReadOnly && (
               <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? "Submitting..." : "Submit"}
+                {isSubmitting
+                  ? "Saving..."
+                  : initialData
+                    ? "Update Tax"
+                    : "Create Tax"}
               </Button>
             )}
           </div>

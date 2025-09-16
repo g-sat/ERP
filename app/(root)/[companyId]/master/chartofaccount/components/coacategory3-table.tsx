@@ -1,6 +1,6 @@
 "use client"
 
-import { ICoaCategory3, ICoaCategory3Filter } from "@/interfaces/coacategory"
+import { ICoaCategory3 } from "@/interfaces/coacategory"
 import { useAuthStore } from "@/stores/auth-store"
 import {
   IconCircleCheckFilled,
@@ -71,7 +71,7 @@ export function CoaCategory3Table({
     },
     {
       accessorKey: "seqNo",
-      header: "Sequence No",
+      header: "Seq No",
       cell: ({ row }) => <div>{row.getValue("seqNo") || "-"}</div>,
       size: 120,
       minSize: 50,

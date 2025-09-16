@@ -22,7 +22,7 @@ import CustomTextarea from "@/components/ui-custom/custom-textarea"
 
 interface OrderTypeFormProps {
   initialData?: IOrderType
-  submitAction: (data: OrderTypeFormValues) => Promise<void>
+  submitAction: (data: OrderTypeFormValues) => void
   onCancel: () => void
   isSubmitting: boolean
   isReadOnly?: boolean
@@ -51,8 +51,8 @@ export function OrderTypeForm({
     },
   })
 
-  const onSubmit = async (data: OrderTypeFormValues) => {
-    await submitAction(data)
+  const onSubmit = (data: OrderTypeFormValues) => {
+    submitAction(data)
   }
 
   const handleCodeBlur = () => {
@@ -63,7 +63,7 @@ export function OrderTypeForm({
   return (
     <div className="max-w flex flex-col gap-2">
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pt-6">
           <div className="grid gap-2">
             <div className="grid grid-cols-3 gap-2">
               <OrderTypeCategoryAutocomplete
@@ -79,7 +79,7 @@ export function OrderTypeForm({
                 name="orderTypeCode"
                 label="OrderType Code"
                 isRequired
-                isDisabled={isReadOnly || isSubmitting}
+                isDisabled={isReadOnly || Boolean(initialData)}
                 onBlurEvent={handleCodeBlur}
               />
 
@@ -112,7 +112,7 @@ export function OrderTypeForm({
                 initialData.createDate ||
                 initialData.editBy ||
                 initialData.editDate) && (
-                <div className="space-y-6">
+                <div className="space-y-6 pt-6">
                   <div className="border-border border-b pb-4"></div>
 
                   <CustomAccordion
@@ -187,18 +187,17 @@ export function OrderTypeForm({
               )}
           </div>
 
-          <div className="flex justify-end space-x-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onCancel}
-              disabled={isSubmitting}
-            >
-              Cancel
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" type="button" onClick={onCancel}>
+              {isReadOnly ? "Close" : "Cancel"}
             </Button>
             {!isReadOnly && (
               <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? "Submitting..." : "Submit"}
+                {isSubmitting
+                  ? "Saving..."
+                  : initialData
+                    ? "Update Order Type"
+                    : "Create Order Type"}
               </Button>
             )}
           </div>

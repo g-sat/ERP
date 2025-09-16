@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useCallback, useState } from "react"
 import { IUserGroup, IUserGroupFilter } from "@/interfaces/admin"
 import { ApiResponse } from "@/interfaces/auth"
 import { UserGroupFormValues } from "@/schemas/admin"
@@ -86,11 +86,13 @@ export default function AdminUserGroupsPage() {
 
   const queryClient = useQueryClient()
 
-  useEffect(() => {
-    if (groupFilters.search !== undefined) {
-      refetchUserGroups()
-    }
-  }, [groupFilters.search, refetchUserGroups])
+  const handleFilterChange = useCallback(
+    (filters: { search?: string; sortOrder?: string }) => {
+      console.log("Filter change called with:", filters)
+      setGroupFilters(filters as IUserGroupFilter)
+    },
+    []
+  )
 
   const handleCreateUserGroup = () => {
     setModalMode("create")
@@ -218,16 +220,14 @@ export default function AdminUserGroupsPage() {
       ) : (userGroupsResponse as ApiResponse<IUserGroup>)?.result === -2 ? (
         <LockSkeleton locked={true}>
           <UserGroupTable
-            data={userGroupsData || []}
-            isLoading={isLoadingUserGroups}
+            data={[]}
+            isLoading={false}
             onSelect={canView ? handleViewUserGroup : undefined}
             onDelete={canDelete ? handleDeleteUserGroup : undefined}
             onEdit={canEdit ? handleEditUserGroup : undefined}
             onCreate={canCreate ? handleCreateUserGroup : undefined}
             onRefresh={refetchUserGroups}
-            onFilterChange={(filters) =>
-              setGroupFilters(filters as IUserGroupFilter)
-            }
+            onFilterChange={handleFilterChange}
             moduleId={moduleId}
             transactionId={transactionIdGroup}
             canEdit={canEdit}
@@ -238,16 +238,14 @@ export default function AdminUserGroupsPage() {
         </LockSkeleton>
       ) : (
         <UserGroupTable
-          data={userGroupsData || []}
+          data={groupFilters.search ? [] : userGroupsData || []}
           isLoading={isLoadingUserGroups}
           onSelect={canView ? handleViewUserGroup : undefined}
           onDelete={canDelete ? handleDeleteUserGroup : undefined}
           onEdit={canEdit ? handleEditUserGroup : undefined}
           onCreate={canCreate ? handleCreateUserGroup : undefined}
           onRefresh={refetchUserGroups}
-          onFilterChange={(filters) =>
-            setGroupFilters(filters as IUserGroupFilter)
-          }
+          onFilterChange={handleFilterChange}
           moduleId={moduleId}
           transactionId={transactionIdGroup}
           canEdit={canEdit}
@@ -297,7 +295,7 @@ export default function AdminUserGroupsPage() {
             isSubmitting={
               saveGroupMutation.isPending || updateGroupMutation.isPending
             }
-            isReadOnly={modalMode === "view" || modalMode === "edit"}
+            isReadOnly={modalMode === "view"}
             onSaveConfirmation={handleSaveConfirmation}
           />
         </DialogContent>

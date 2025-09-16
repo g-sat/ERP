@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { ApiResponse } from "@/interfaces/auth"
 import { IPortRegion, IPortRegionFilter } from "@/interfaces/portregion"
 import { PortRegionFormValues } from "@/schemas/portregion"
@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/dialog"
 import { Separator } from "@/components/ui/separator"
 import { DeleteConfirmation } from "@/components/delete-confirmation"
+import { SaveConfirmation } from "@/components/save-confirmation"
 import { DataTableSkeleton } from "@/components/skeleton/data-table-skeleton"
 import { LoadExistingDialog } from "@/components/ui-custom/master-loadexisting-dialog"
 
@@ -37,6 +38,15 @@ export default function PortRegionPage() {
   const canCreate = hasPermission(moduleId, transactionId, "isCreate")
 
   const [filters, setFilters] = useState<IPortRegionFilter>({})
+
+  // Filter handler wrapper
+  const handleFilterChange = useCallback(
+    (newFilters: { search?: string; sortOrder?: string }) => {
+      console.log("Filter change called with:", newFilters)
+      setFilters(newFilters as IPortRegionFilter)
+    },
+    []
+  )
   const {
     data: portRegionsResponse,
     refetch,
@@ -265,7 +275,7 @@ export default function PortRegionPage() {
         </div>
       </div>
 
-      {isLoading || isRefetching ? (
+      {isLoading ? (
         <DataTableSkeleton
           columnCount={7}
           filterCount={2}
@@ -280,19 +290,41 @@ export default function PortRegionPage() {
           ]}
           shrinkZero
         />
-      ) : portregionsResult ? (
+      ) : portregionsResult === -2 ? (
         <PortRegionsTable
-          data={portregionsData || []}
+          data={[]}
           onSelect={canView ? handleViewPortRegion : undefined}
           onDelete={canDelete ? handleDeletePortRegion : undefined}
           onEdit={canEdit ? handleEditPortRegion : undefined}
           onCreate={canCreate ? handleCreatePortRegion : undefined}
-          onRefresh={() => {
-            handleRefresh()
-          }}
-          onFilterChange={setFilters}
+          onRefresh={handleRefresh}
+          onFilterChange={handleFilterChange}
           moduleId={moduleId}
           transactionId={transactionId}
+          isLoading={false}
+          // Pass permissions to table
+          canEdit={canEdit}
+          canDelete={canDelete}
+          canView={canView}
+          canCreate={canCreate}
+        />
+      ) : portregionsResult ? (
+        <PortRegionsTable
+          data={filters.search ? [] : portregionsData || []}
+          onSelect={canView ? handleViewPortRegion : undefined}
+          onDelete={canDelete ? handleDeletePortRegion : undefined}
+          onEdit={canEdit ? handleEditPortRegion : undefined}
+          onCreate={canCreate ? handleCreatePortRegion : undefined}
+          onRefresh={handleRefresh}
+          onFilterChange={handleFilterChange}
+          moduleId={moduleId}
+          transactionId={transactionId}
+          isLoading={isLoading}
+          // Pass permissions to table
+          canEdit={canEdit}
+          canDelete={canDelete}
+          canView={canView}
+          canCreate={canCreate}
         />
       ) : (
         <div>No data available</div>

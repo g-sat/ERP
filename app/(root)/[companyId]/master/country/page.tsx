@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { ApiResponse } from "@/interfaces/auth"
 import { ICountry } from "@/interfaces/country"
 import { CountryFormValues } from "@/schemas/country"
@@ -48,6 +48,15 @@ export default function CountryPage() {
     search?: string
     sortOrder?: string
   }>({})
+
+  // Filter handler wrapper
+  const handleFilterChange = useCallback(
+    (newFilters: { search?: string; sortOrder?: string }) => {
+      console.log("Filter change called with:", newFilters)
+      setFilters(newFilters)
+    },
+    []
+  )
 
   // page.tsx
   const {
@@ -316,16 +325,34 @@ export default function CountryPage() {
           ]}
           shrinkZero
         />
-      ) : countriesResult === 1 ||
-        (countriesdata && countriesdata.length > 0) ? (
+      ) : countriesResult === -2 ? (
         <CountriesTable
-          data={countriesdata || []}
+          data={[]}
+          isLoading={false}
           onSelect={canView ? handleViewCountry : undefined}
           onCreate={canCreate ? handleCreateCountry : undefined}
           onEdit={canEdit ? handleEditCountry : undefined}
           onDelete={canDelete ? handleDeleteCountry : undefined}
           onRefresh={handleRefresh}
-          onFilterChange={setFilters}
+          onFilterChange={handleFilterChange}
+          moduleId={moduleId}
+          transactionId={transactionId}
+          // Pass permissions to table
+          canView={canView}
+          canCreate={canCreate}
+          canEdit={canEdit}
+          canDelete={canDelete}
+        />
+      ) : countriesResult ? (
+        <CountriesTable
+          data={filters.search ? [] : countriesdata || []}
+          isLoading={isLoading}
+          onSelect={canView ? handleViewCountry : undefined}
+          onCreate={canCreate ? handleCreateCountry : undefined}
+          onEdit={canEdit ? handleEditCountry : undefined}
+          onDelete={canDelete ? handleDeleteCountry : undefined}
+          onRefresh={handleRefresh}
+          onFilterChange={handleFilterChange}
           moduleId={moduleId}
           transactionId={transactionId}
           // Pass permissions to table

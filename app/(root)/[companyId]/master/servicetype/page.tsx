@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { ApiResponse } from "@/interfaces/auth"
 import {
   IServiceType,
@@ -29,7 +29,6 @@ import {
 import { Separator } from "@/components/ui/separator"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { DeleteConfirmation } from "@/components/delete-confirmation"
-import { SaveConfirmation } from "@/components/save-confirmation"
 import { DataTableSkeleton } from "@/components/skeleton/data-table-skeleton"
 import { LockSkeleton } from "@/components/skeleton/lock-skeleton"
 import { LoadExistingDialog } from "@/components/ui-custom/master-loadexisting-dialog"
@@ -68,6 +67,8 @@ export default function ServiceTypePage() {
   const canCreate = hasPermission(moduleId, transactionId, "isCreate")
   const canEdit = hasPermission(moduleId, transactionId, "isEdit")
   const canDelete = hasPermission(moduleId, transactionId, "isDelete")
+  const canView = hasPermission(moduleId, transactionId, "isRead")
+
   const canCreateCategory = hasPermission(
     moduleId,
     transactionIdCategory,
@@ -83,11 +84,33 @@ export default function ServiceTypePage() {
     transactionIdCategory,
     "isDelete"
   )
+  const canViewCategory = hasPermission(
+    moduleId,
+    transactionIdCategory,
+    "isRead"
+  )
 
   // State for filters
   const [filters, setFilters] = useState<IServiceTypeFilter>({})
   const [categoryFilters, setCategoryFilters] =
     useState<IServiceTypeCategoryFilter>({})
+
+  // Filter change handlers
+  const handleFilterChange = useCallback(
+    (newFilters: { search?: string; sortOrder?: string }) => {
+      console.log("ServiceType filter change called with:", newFilters)
+      setFilters(newFilters as IServiceTypeFilter)
+    },
+    []
+  )
+
+  const handleCategoryFilterChange = useCallback(
+    (newFilters: { search?: string; sortOrder?: string }) => {
+      console.log("ServiceType Category filter change called with:", newFilters)
+      setCategoryFilters(newFilters as IServiceTypeCategoryFilter)
+    },
+    []
+  )
 
   // Data fetching
   const {
@@ -108,12 +131,19 @@ export default function ServiceTypePage() {
     categoryFilters.search
   )
 
-  // Extract data from responses
-  const servicetypesData =
-    (servicetypesResponse as ApiResponse<IServiceType>)?.data || []
-  const servicetypesCategoryData =
-    (servicetypesCategoryResponse as ApiResponse<IServiceTypeCategory>)?.data ||
-    []
+  // Extract data from responses with fallback values
+  const { result: servicetypesResult, data: servicetypesData } =
+    (servicetypesResponse as ApiResponse<IServiceType>) ?? {
+      result: 0,
+      message: "",
+      data: [],
+    }
+  const { result: servicetypesCategoryResult, data: servicetypesCategoryData } =
+    (servicetypesCategoryResponse as ApiResponse<IServiceTypeCategory>) ?? {
+      result: 0,
+      message: "",
+      data: [],
+    }
 
   // Mutations
   const saveMutation = usePersist<ServiceTypeFormValues>(`${ServiceType.add}`)
@@ -161,11 +191,11 @@ export default function ServiceTypePage() {
   // Refetch when filters change
   useEffect(() => {
     if (filters.search !== undefined) refetchServiceType()
-  }, [filters.search])
+  }, [filters.search, refetchServiceType])
 
   useEffect(() => {
     if (categoryFilters.search !== undefined) refetchServiceTypeCategory()
-  }, [categoryFilters.search])
+  }, [categoryFilters.search, refetchServiceTypeCategory])
 
   // Action handlers
   const handleCreateServiceType = () => {
@@ -180,7 +210,7 @@ export default function ServiceTypePage() {
     setIsModalOpen(true)
   }
 
-  const handleViewServiceType = (servicetype: IServiceType | undefined) => {
+  const handleViewServiceType = (servicetype: IServiceType | null) => {
     if (!servicetype) return
     setModalMode("view")
     setSelectedServiceType(servicetype)
@@ -202,7 +232,7 @@ export default function ServiceTypePage() {
   }
 
   const handleViewServiceTypeCategory = (
-    servicetypeCategory: IServiceTypeCategory | undefined
+    servicetypeCategory: IServiceTypeCategory | null
   ) => {
     if (!servicetypeCategory) return
     setModalMode("view")
@@ -210,16 +240,9 @@ export default function ServiceTypePage() {
     setIsCategoryModalOpen(true)
   }
 
-  // Filter handlers
-  const handleServiceTypeFilterChange = (filters: IServiceTypeFilter) => {
-    setFilters(filters)
-  }
-
   // Helper function for API responses
   const handleApiResponse = (
-    response: ApiResponse<IServiceType | IServiceTypeCategory>,
-    successMessage: string,
-    errorPrefix: string
+    response: ApiResponse<IServiceType | IServiceTypeCategory>
   ) => {
     if (response.result === 1) {
       return true
@@ -235,26 +258,14 @@ export default function ServiceTypePage() {
         const response = (await saveMutation.mutateAsync(
           data
         )) as ApiResponse<IServiceType>
-        if (
-          handleApiResponse(
-            response,
-            "ServiceType created successfully",
-            "Create ServiceType"
-          )
-        ) {
+        if (handleApiResponse(response)) {
           queryClient.invalidateQueries({ queryKey: ["servicetypes"] })
         }
       } else if (modalMode === "edit" && selectedServiceType) {
         const response = (await updateMutation.mutateAsync(
           data
         )) as ApiResponse<IServiceType>
-        if (
-          handleApiResponse(
-            response,
-            "ServiceType updated successfully",
-            "Update ServiceType"
-          )
-        ) {
+        if (handleApiResponse(response)) {
           queryClient.invalidateQueries({ queryKey: ["servicetypes"] })
         }
       }
@@ -271,26 +282,14 @@ export default function ServiceTypePage() {
         const response = (await saveCategoryMutation.mutateAsync(
           data
         )) as ApiResponse<IServiceTypeCategory>
-        if (
-          handleApiResponse(
-            response,
-            "ServiceType Category created successfully",
-            "Create ServiceType Category"
-          )
-        ) {
+        if (handleApiResponse(response)) {
           queryClient.invalidateQueries({ queryKey: ["servicetypecategory"] })
         }
       } else if (modalMode === "edit" && selectedServiceTypeCategory) {
         const response = (await updateCategoryMutation.mutateAsync(
           data
         )) as ApiResponse<IServiceTypeCategory>
-        if (
-          handleApiResponse(
-            response,
-            "ServiceType Category updated successfully",
-            "Update ServiceType Category"
-          )
-        ) {
+        if (handleApiResponse(response)) {
           queryClient.invalidateQueries({ queryKey: ["servicetypecategory"] })
         }
       }
@@ -361,7 +360,7 @@ export default function ServiceTypePage() {
     }
 
     mutation.mutateAsync(deleteConfirmation.id).then(() => {
-      queryClient.invalidateQueries({ queryKey: [deleteConfirmation.queryKey] })
+      queryClient.invalidateQueries({ queryKey: [deleteConfirmation.type] })
     })
 
     setDeleteConfirmation({
@@ -468,7 +467,7 @@ export default function ServiceTypePage() {
         </TabsList>
 
         <TabsContent value="servicetype" className="space-y-4">
-          {isLoadingServiceType || isRefetchingServiceType ? (
+          {isLoadingServiceType ? (
             <DataTableSkeleton
               columnCount={8}
               filterCount={2}
@@ -484,48 +483,53 @@ export default function ServiceTypePage() {
               ]}
               shrinkZero
             />
-          ) : (servicetypesResponse as ApiResponse<IServiceType>)?.result ===
-            -2 ? (
+          ) : servicetypesResult === -2 ? (
             <LockSkeleton locked={true}>
               <ServiceTypeTable
-                data={servicetypesData}
-                isLoading={isLoadingServiceType}
-                onServiceTypeSelect={handleViewServiceType}
-                onDeleteServiceType={
-                  canDelete ? handleDeleteServiceType : undefined
-                }
-                onEditServiceType={canEdit ? handleEditServiceType : undefined}
-                onCreateServiceType={
-                  canCreate ? handleCreateServiceType : undefined
-                }
+                data={[]}
+                isLoading={false}
+                onSelect={canView ? handleViewServiceType : undefined}
+                onDelete={canDelete ? handleDeleteServiceType : undefined}
+                onEdit={canEdit ? handleEditServiceType : undefined}
+                onCreate={canCreate ? handleCreateServiceType : undefined}
                 onRefresh={refetchServiceType}
-                onFilterChange={handleServiceTypeFilterChange}
+                onFilterChange={handleFilterChange}
                 moduleId={moduleId}
                 transactionId={transactionId}
+                canEdit={canEdit}
+                canDelete={canDelete}
+                canView={canView}
+                canCreate={canCreate}
               />
             </LockSkeleton>
-          ) : (
+          ) : servicetypesResult ? (
             <ServiceTypeTable
-              data={servicetypesData}
+              data={filters.search ? [] : servicetypesData || []}
               isLoading={isLoadingServiceType}
-              onServiceTypeSelect={handleViewServiceType}
-              onDeleteServiceType={
-                canDelete ? handleDeleteServiceType : undefined
-              }
-              onEditServiceType={canEdit ? handleEditServiceType : undefined}
-              onCreateServiceType={
-                canCreate ? handleCreateServiceType : undefined
-              }
+              onSelect={canView ? handleViewServiceType : undefined}
+              onDelete={canDelete ? handleDeleteServiceType : undefined}
+              onEdit={canEdit ? handleEditServiceType : undefined}
+              onCreate={canCreate ? handleCreateServiceType : undefined}
               onRefresh={refetchServiceType}
-              onFilterChange={handleServiceTypeFilterChange}
+              onFilterChange={handleFilterChange}
               moduleId={moduleId}
               transactionId={transactionId}
+              canEdit={canEdit}
+              canDelete={canDelete}
+              canView={canView}
+              canCreate={canCreate}
             />
+          ) : (
+            <div className="py-8 text-center">
+              <p className="text-muted-foreground">
+                {servicetypesResult === 0 ? "No data available" : "Loading..."}
+              </p>
+            </div>
           )}
         </TabsContent>
 
         <TabsContent value="servicetypecategory" className="space-y-4">
-          {isLoadingServiceTypeCategory || isRefetchingServiceTypeCategory ? (
+          {isLoadingServiceTypeCategory ? (
             <DataTableSkeleton
               columnCount={8}
               filterCount={2}
@@ -541,14 +545,14 @@ export default function ServiceTypePage() {
               ]}
               shrinkZero
             />
-          ) : (
-              servicetypesCategoryResponse as ApiResponse<IServiceTypeCategory>
-            )?.result === -2 ? (
+          ) : servicetypesCategoryResult === -2 ? (
             <LockSkeleton locked={true}>
               <ServiceTypeCategoryTable
-                data={servicetypesCategoryData}
-                isLoading={isLoadingServiceTypeCategory}
-                onSelect={handleViewServiceTypeCategory}
+                data={[]}
+                isLoading={false}
+                onSelect={
+                  canViewCategory ? handleViewServiceTypeCategory : undefined
+                }
                 onDelete={
                   canDeleteCategory
                     ? handleDeleteServiceTypeCategory
@@ -563,16 +567,24 @@ export default function ServiceTypePage() {
                     : undefined
                 }
                 onRefresh={refetchServiceTypeCategory}
-                onFilterChange={(filters) => setCategoryFilters(filters)}
+                onFilterChange={handleCategoryFilterChange}
                 moduleId={moduleId}
                 transactionId={transactionId}
+                canEdit={canEditCategory}
+                canDelete={canDeleteCategory}
+                canView={canViewCategory}
+                canCreate={canCreateCategory}
               />
             </LockSkeleton>
-          ) : (
+          ) : servicetypesCategoryResult ? (
             <ServiceTypeCategoryTable
-              data={servicetypesCategoryData}
+              data={
+                categoryFilters.search ? [] : servicetypesCategoryData || []
+              }
               isLoading={isLoadingServiceTypeCategory}
-              onSelect={handleViewServiceTypeCategory}
+              onSelect={
+                canViewCategory ? handleViewServiceTypeCategory : undefined
+              }
               onDelete={
                 canDeleteCategory ? handleDeleteServiceTypeCategory : undefined
               }
@@ -583,10 +595,22 @@ export default function ServiceTypePage() {
                 canCreateCategory ? handleCreateServiceTypeCategory : undefined
               }
               onRefresh={refetchServiceTypeCategory}
-              onFilterChange={(filters) => setCategoryFilters(filters)}
+              onFilterChange={handleCategoryFilterChange}
               moduleId={moduleId}
               transactionId={transactionId}
+              canEdit={canEditCategory}
+              canDelete={canDeleteCategory}
+              canView={canViewCategory}
+              canCreate={canCreateCategory}
             />
+          ) : (
+            <div className="py-8 text-center">
+              <p className="text-muted-foreground">
+                {servicetypesCategoryResult === 0
+                  ? "No data available"
+                  : "Loading..."}
+              </p>
+            </div>
           )}
         </TabsContent>
       </Tabs>

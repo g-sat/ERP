@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { ApiResponse } from "@/interfaces/auth"
 import {
   IGst,
@@ -86,6 +86,31 @@ export default function GstPage() {
   const [dtFilters, setDtFilters] = useState<IGstFilter>({})
   const [categoryFilters, setCategoryFilters] = useState<IGstCategoryFilter>({})
 
+  // Filter change handlers
+  const handleFilterChange = useCallback(
+    (newFilters: { search?: string; sortOrder?: string }) => {
+      console.log("GST filter change called with:", newFilters)
+      setFilters(newFilters as IGstFilter)
+    },
+    []
+  )
+
+  const handleDtFilterChange = useCallback(
+    (newFilters: { search?: string; sortOrder?: string }) => {
+      console.log("GST Dt filter change called with:", newFilters)
+      setDtFilters(newFilters as IGstFilter)
+    },
+    []
+  )
+
+  const handleCategoryFilterChange = useCallback(
+    (newFilters: { search?: string; sortOrder?: string }) => {
+      console.log("GST Category filter change called with:", newFilters)
+      setCategoryFilters(newFilters as IGstCategoryFilter)
+    },
+    []
+  )
+
   // Data fetching
   const {
     data: gstsResponse,
@@ -112,11 +137,25 @@ export default function GstPage() {
     categoryFilters.search
   )
 
-  // Extract data from responses
-  const gstsData = (gstsResponse as ApiResponse<IGst>)?.data || []
-  const gstsDtData = (gstsDtResponse as ApiResponse<IGstDt>)?.data || []
-  const gstsCategoryData =
-    (gstsCategoryResponse as ApiResponse<IGstCategory>)?.data || []
+  // Extract data from responses with fallback values
+  const { result: gstsResult, data: gstsData } =
+    (gstsResponse as ApiResponse<IGst>) ?? {
+      result: 0,
+      message: "",
+      data: [],
+    }
+  const { result: gstsDtResult, data: gstsDtData } =
+    (gstsDtResponse as ApiResponse<IGstDt>) ?? {
+      result: 0,
+      message: "",
+      data: [],
+    }
+  const { result: gstsCategoryResult, data: gstsCategoryData } =
+    (gstsCategoryResponse as ApiResponse<IGstCategory>) ?? {
+      result: 0,
+      message: "",
+      data: [],
+    }
 
   // Mutations
   const saveMutation = usePersist<GstFormValues>(`${Gst.add}`)
@@ -166,15 +205,15 @@ export default function GstPage() {
   // Refetch when filters change
   useEffect(() => {
     if (filters.search !== undefined) refetchGst()
-  }, [filters.search])
+  }, [filters.search, refetchGst])
 
   useEffect(() => {
     if (dtFilters.search !== undefined) refetchGstDt()
-  }, [dtFilters.search])
+  }, [dtFilters.search, refetchGstDt])
 
   useEffect(() => {
     if (categoryFilters.search !== undefined) refetchGstCategory()
-  }, [categoryFilters.search])
+  }, [categoryFilters.search, refetchGstCategory])
 
   // Action handlers
   const handleCreateGst = () => {
@@ -236,9 +275,7 @@ export default function GstPage() {
 
   // Helper function for API responses
   const handleApiResponse = (
-    response: ApiResponse<any>,
-    successMessage: string,
-    errorPrefix: string
+    response: ApiResponse<IGst | IGstDt | IGstCategory>
   ) => {
     if (response.result === 1) {
       return true
@@ -254,18 +291,14 @@ export default function GstPage() {
         const response = (await saveMutation.mutateAsync(
           data
         )) as ApiResponse<IGst>
-        if (
-          handleApiResponse(response, "GST created successfully", "Create GST")
-        ) {
+        if (handleApiResponse(response)) {
           queryClient.invalidateQueries({ queryKey: ["gsts"] })
         }
       } else if (modalMode === "edit" && selectedGst) {
         const response = (await updateMutation.mutateAsync(
           data
         )) as ApiResponse<IGst>
-        if (
-          handleApiResponse(response, "GST updated successfully", "Update GST")
-        ) {
+        if (handleApiResponse(response)) {
           queryClient.invalidateQueries({ queryKey: ["gsts"] })
         }
       }
@@ -280,26 +313,14 @@ export default function GstPage() {
         const response = (await saveDtMutation.mutateAsync(
           data
         )) as ApiResponse<IGstDt>
-        if (
-          handleApiResponse(
-            response,
-            "GST Details created successfully",
-            "Create GST Details"
-          )
-        ) {
+        if (handleApiResponse(response)) {
           queryClient.invalidateQueries({ queryKey: ["gstsdt"] })
         }
       } else if (modalMode === "edit" && selectedGstDt) {
         const response = (await updateDtMutation.mutateAsync(
           data
         )) as ApiResponse<IGstDt>
-        if (
-          handleApiResponse(
-            response,
-            "GST Details updated successfully",
-            "Update GST Details"
-          )
-        ) {
+        if (handleApiResponse(response)) {
           queryClient.invalidateQueries({ queryKey: ["gstsdt"] })
         }
       }
@@ -314,26 +335,14 @@ export default function GstPage() {
         const response = (await saveCategoryMutation.mutateAsync(
           data
         )) as ApiResponse<IGstCategory>
-        if (
-          handleApiResponse(
-            response,
-            "GST Category created successfully",
-            "Create GST Category"
-          )
-        ) {
+        if (handleApiResponse(response)) {
           queryClient.invalidateQueries({ queryKey: ["gstcategory"] })
         }
       } else if (modalMode === "edit" && selectedGstCategory) {
         const response = (await updateCategoryMutation.mutateAsync(
           data
         )) as ApiResponse<IGstCategory>
-        if (
-          handleApiResponse(
-            response,
-            "GST Category updated successfully",
-            "Update GST Category"
-          )
-        ) {
+        if (handleApiResponse(response)) {
           queryClient.invalidateQueries({ queryKey: ["gstcategory"] })
         }
       }
@@ -395,7 +404,7 @@ export default function GstPage() {
     setDeleteConfirmation({
       isOpen: true,
       id: gstId,
-      name: gstToDelete.gstName,
+      name: gstToDelete.gstCode,
       type: "gst",
     })
   }
@@ -406,7 +415,7 @@ export default function GstPage() {
     setDeleteConfirmation({
       isOpen: true,
       id: gstId,
-      name: gstDtToDelete.gstName,
+      name: gstDtToDelete.gstCode,
       type: "gstdt",
     })
   }
@@ -443,7 +452,9 @@ export default function GstPage() {
     }
 
     mutation.mutateAsync(deleteConfirmation.id).then(() => {
-      queryClient.invalidateQueries({ queryKey: [deleteConfirmation.queryKey] })
+      queryClient.invalidateQueries({ queryKey: ["gsts"] })
+      queryClient.invalidateQueries({ queryKey: ["gstsdt"] })
+      queryClient.invalidateQueries({ queryKey: ["gstcategory"] })
     })
 
     setDeleteConfirmation({
@@ -534,7 +545,7 @@ export default function GstPage() {
         </TabsList>
 
         <TabsContent value="gsts" className="space-y-4">
-          {isLoadingGst || isRefetchingGst ? (
+          {isLoadingGst ? (
             <DataTableSkeleton
               columnCount={8}
               filterCount={2}
@@ -550,17 +561,17 @@ export default function GstPage() {
               ]}
               shrinkZero
             />
-          ) : (gstsResponse as ApiResponse<IGst>)?.result === -2 ? (
+          ) : gstsResult === -2 ? (
             <LockSkeleton locked={true}>
               <GstTable
-                data={gstsData}
-                isLoading={isLoadingGst}
-                onSelect={handleViewGst}
+                data={[]}
+                isLoading={false}
+                onSelect={canView ? handleViewGst : undefined}
                 onDelete={canDelete ? handleDeleteGst : undefined}
                 onEdit={canEdit ? handleEditGst : undefined}
                 onCreate={canCreate ? handleCreateGst : undefined}
                 onRefresh={refetchGst}
-                onFilterChange={(filters) => setFilters(filters)}
+                onFilterChange={handleFilterChange}
                 moduleId={moduleId}
                 transactionId={transactionId}
                 canEdit={canEdit}
@@ -569,16 +580,16 @@ export default function GstPage() {
                 canCreate={canCreate}
               />
             </LockSkeleton>
-          ) : (
+          ) : gstsResult ? (
             <GstTable
-              data={gstsData}
+              data={filters.search ? [] : gstsData || []}
               isLoading={isLoadingGst}
-              onSelect={handleViewGst}
+              onSelect={canView ? handleViewGst : undefined}
               onDelete={canDelete ? handleDeleteGst : undefined}
               onEdit={canEdit ? handleEditGst : undefined}
               onCreate={canCreate ? handleCreateGst : undefined}
               onRefresh={refetchGst}
-              onFilterChange={(filters) => setFilters(filters)}
+              onFilterChange={handleFilterChange}
               moduleId={moduleId}
               transactionId={transactionId}
               canEdit={canEdit}
@@ -586,11 +597,17 @@ export default function GstPage() {
               canView={canView}
               canCreate={canCreate}
             />
+          ) : (
+            <div className="py-8 text-center">
+              <p className="text-muted-foreground">
+                {gstsResult === 0 ? "No data available" : "Loading..."}
+              </p>
+            </div>
           )}
         </TabsContent>
 
         <TabsContent value="gstsdt" className="space-y-4">
-          {isLoadingGstDt || isRefetchingGstDt ? (
+          {isLoadingGstDt ? (
             <DataTableSkeleton
               columnCount={8}
               filterCount={2}
@@ -606,17 +623,17 @@ export default function GstPage() {
               ]}
               shrinkZero
             />
-          ) : (gstsDtResponse as ApiResponse<IGstDt>)?.result === -2 ? (
+          ) : gstsDtResult === -2 ? (
             <LockSkeleton locked={true}>
               <GstDtTable
-                data={gstsDtData}
-                isLoading={isLoadingGstDt}
-                onSelect={handleViewGstDt}
+                data={[]}
+                isLoading={false}
+                onSelect={canViewDt ? handleViewGstDt : undefined}
                 onDelete={canDeleteDt ? handleDeleteGstDt : undefined}
                 onEdit={canEditDt ? handleEditGstDt : undefined}
                 onCreate={canCreateDt ? handleCreateGstDt : undefined}
                 onRefresh={refetchGstDt}
-                onFilterChange={(filters) => setDtFilters(filters)}
+                onFilterChange={handleDtFilterChange}
                 moduleId={moduleId}
                 transactionId={transactionIdDt}
                 canEdit={canEditDt}
@@ -625,16 +642,16 @@ export default function GstPage() {
                 canCreate={canCreateDt}
               />
             </LockSkeleton>
-          ) : (
+          ) : gstsDtResult ? (
             <GstDtTable
-              data={gstsDtData}
+              data={dtFilters.search ? [] : gstsDtData || []}
               isLoading={isLoadingGstDt}
-              onSelect={handleViewGstDt}
+              onSelect={canViewDt ? handleViewGstDt : undefined}
               onDelete={canDeleteDt ? handleDeleteGstDt : undefined}
               onEdit={canEditDt ? handleEditGstDt : undefined}
               onCreate={canCreateDt ? handleCreateGstDt : undefined}
               onRefresh={refetchGstDt}
-              onFilterChange={(filters) => setDtFilters(filters)}
+              onFilterChange={handleDtFilterChange}
               moduleId={moduleId}
               transactionId={transactionIdDt}
               canEdit={canEditDt}
@@ -642,11 +659,17 @@ export default function GstPage() {
               canView={canViewDt}
               canCreate={canCreateDt}
             />
+          ) : (
+            <div className="py-8 text-center">
+              <p className="text-muted-foreground">
+                {gstsDtResult === 0 ? "No data available" : "Loading..."}
+              </p>
+            </div>
           )}
         </TabsContent>
 
         <TabsContent value="gstscategory" className="space-y-4">
-          {isLoadingGstCategory || isRefetchingGstCategory ? (
+          {isLoadingGstCategory ? (
             <DataTableSkeleton
               columnCount={8}
               filterCount={2}
@@ -662,13 +685,12 @@ export default function GstPage() {
               ]}
               shrinkZero
             />
-          ) : (gstsCategoryResponse as ApiResponse<IGstCategory>)?.result ===
-            -2 ? (
+          ) : gstsCategoryResult === -2 ? (
             <LockSkeleton locked={true}>
               <GstCategoryTable
-                data={gstsCategoryData}
-                isLoading={isLoadingGstCategory}
-                onSelect={handleViewGstCategory}
+                data={[]}
+                isLoading={false}
+                onSelect={canViewCategory ? handleViewGstCategory : undefined}
                 onDelete={
                   canDeleteCategory ? handleDeleteGstCategory : undefined
                 }
@@ -677,7 +699,7 @@ export default function GstPage() {
                   canCreateCategory ? handleCreateGstCategory : undefined
                 }
                 onRefresh={refetchGstCategory}
-                onFilterChange={(filters) => setCategoryFilters(filters)}
+                onFilterChange={handleCategoryFilterChange}
                 moduleId={moduleId}
                 transactionId={transactionIdCategory}
                 canEdit={canEditCategory}
@@ -686,16 +708,16 @@ export default function GstPage() {
                 canCreate={canCreateCategory}
               />
             </LockSkeleton>
-          ) : (
+          ) : gstsCategoryResult ? (
             <GstCategoryTable
-              data={gstsCategoryData}
+              data={categoryFilters.search ? [] : gstsCategoryData || []}
               isLoading={isLoadingGstCategory}
-              onSelect={handleViewGstCategory}
+              onSelect={canViewCategory ? handleViewGstCategory : undefined}
               onDelete={canDeleteCategory ? handleDeleteGstCategory : undefined}
               onEdit={canEditCategory ? handleEditGstCategory : undefined}
               onCreate={canCreateCategory ? handleCreateGstCategory : undefined}
               onRefresh={refetchGstCategory}
-              onFilterChange={setCategoryFilters}
+              onFilterChange={handleCategoryFilterChange}
               moduleId={moduleId}
               transactionId={transactionIdCategory}
               canEdit={canEditCategory}
@@ -703,6 +725,12 @@ export default function GstPage() {
               canView={canViewCategory}
               canCreate={canCreateCategory}
             />
+          ) : (
+            <div className="py-8 text-center">
+              <p className="text-muted-foreground">
+                {gstsCategoryResult === 0 ? "No data available" : "Loading..."}
+              </p>
+            </div>
           )}
         </TabsContent>
       </Tabs>
@@ -875,7 +903,9 @@ export default function GstPage() {
           saveConfirmation.type === "gst"
             ? (saveConfirmation.data as GstFormValues)?.gstName || ""
             : saveConfirmation.type === "gstdt"
-              ? (saveConfirmation.data as GstDtFormValues)?.gstPercentage || ""
+              ? (
+                  saveConfirmation.data as GstDtFormValues
+                )?.gstPercentage?.toString() || ""
               : (saveConfirmation.data as GstCategoryFormValues)
                   ?.gstCategoryName || ""
         }

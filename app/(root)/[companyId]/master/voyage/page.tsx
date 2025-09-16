@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { ApiResponse } from "@/interfaces/auth"
 import { IVoyage, IVoyageFilter } from "@/interfaces/voyage"
 import { VoyageFormValues } from "@/schemas/voyage"
@@ -20,6 +20,7 @@ import {
 import { Separator } from "@/components/ui/separator"
 import { DeleteConfirmation } from "@/components/delete-confirmation"
 import { DataTableSkeleton } from "@/components/skeleton/data-table-skeleton"
+import { LockSkeleton } from "@/components/skeleton/lock-skeleton"
 import { LoadExistingDialog } from "@/components/ui-custom/master-loadexisting-dialog"
 
 import { VoyageForm } from "./components/voyage-form"
@@ -33,8 +34,19 @@ export default function VoyagePage() {
 
   const canEdit = hasPermission(moduleId, transactionId, "isEdit")
   const canDelete = hasPermission(moduleId, transactionId, "isDelete")
+  const canView = hasPermission(moduleId, transactionId, "isRead")
+  const canCreate = hasPermission(moduleId, transactionId, "isCreate")
 
   const [filters, setFilters] = useState<IVoyageFilter>({})
+
+  // Filter handler wrapper
+  const handleFilterChange = useCallback(
+    (newFilters: { search?: string; sortOrder?: string }) => {
+      console.log("Filter change called with:", newFilters)
+      setFilters(newFilters as IVoyageFilter)
+    },
+    []
+  )
   const {
     data: voyagesResponse,
     refetch,
@@ -84,7 +96,6 @@ export default function VoyagePage() {
   const { refetch: checkCodeAvailability } = useGetById<IVoyage>(
     `${Voyage.getByCode}`,
     "voyageByCode",
-
     codeToCheck
   )
 
@@ -246,7 +257,7 @@ export default function VoyagePage() {
         </div>
       </div>
 
-      {isLoading || isRefetching ? (
+      {isLoading ? (
         <DataTableSkeleton
           columnCount={7}
           filterCount={2}
@@ -261,22 +272,44 @@ export default function VoyagePage() {
           ]}
           shrinkZero
         />
-      ) : voyagesResult ? (
+      ) : voyagesResult === -2 ? (
+        <LockSkeleton locked={true}>
+          <VoyagesTable
+            data={[]}
+            onSelect={canView ? handleViewVoyage : undefined}
+            onDelete={canDelete ? handleDeleteVoyage : undefined}
+            onEdit={canEdit ? handleEditVoyage : undefined}
+            onCreate={canCreate ? handleCreateVoyage : undefined}
+            onRefresh={handleRefresh}
+            onFilterChange={handleFilterChange}
+            moduleId={moduleId}
+            transactionId={transactionId}
+            isLoading={false}
+            // Pass permissions to table
+            canEdit={canEdit}
+            canDelete={canDelete}
+            canView={canView}
+            canCreate={canCreate}
+          />
+        </LockSkeleton>
+      ) : (
         <VoyagesTable
-          data={voyagesData || []}
-          onVoyageSelect={handleViewVoyage}
-          onDeleteVoyage={canDelete ? handleDeleteVoyage : undefined}
-          onEditVoyage={canEdit ? handleEditVoyage : undefined}
-          onCreateVoyage={handleCreateVoyage}
-          onRefresh={() => {
-            handleRefresh()
-          }}
-          onFilterChange={setFilters}
+          data={filters.search ? [] : voyagesData || []}
+          onSelect={canView ? handleViewVoyage : undefined}
+          onDelete={canDelete ? handleDeleteVoyage : undefined}
+          onEdit={canEdit ? handleEditVoyage : undefined}
+          onCreate={canCreate ? handleCreateVoyage : undefined}
+          onRefresh={handleRefresh}
+          onFilterChange={handleFilterChange}
           moduleId={moduleId}
           transactionId={transactionId}
+          isLoading={isLoading}
+          // Pass permissions to table
+          canEdit={canEdit}
+          canDelete={canDelete}
+          canView={canView}
+          canCreate={canCreate}
         />
-      ) : (
-        <div>No data available</div>
       )}
 
       <Dialog

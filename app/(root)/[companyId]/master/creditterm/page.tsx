@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { ApiResponse } from "@/interfaces/auth"
 import {
   ICreditTerm,
@@ -96,11 +96,19 @@ export default function CreditTermPage() {
     dtFilters.search
   )
 
-  // Extract data from responses
-  const creditTermsData =
-    (creditTermsResponse as ApiResponse<ICreditTerm>)?.data || []
-  const creditTermsDtData =
-    (creditTermsDtResponse as ApiResponse<ICreditTermDt>)?.data || []
+  // Extract data from responses with fallback values
+  const { result: creditTermsResult, data: creditTermsData } =
+    (creditTermsResponse as ApiResponse<ICreditTerm>) ?? {
+      result: 0,
+      message: "",
+      data: [],
+    }
+  const { result: creditTermsDtResult, data: creditTermsDtData } =
+    (creditTermsDtResponse as ApiResponse<ICreditTermDt>) ?? {
+      result: 0,
+      message: "",
+      data: [],
+    }
 
   // Mutations
   const saveMutation = usePersist<CreditTermFormValues>(`${CreditTerm.add}`)
@@ -190,20 +198,26 @@ export default function CreditTermPage() {
     setIsDtModalOpen(true)
   }
 
-  // Filter handlers
-  const handleCreditTermFilterChange = (filters: ICreditTermFilter) => {
-    setFilters(filters)
-  }
+  // Filter change handlers
+  const handleFilterChange = useCallback(
+    (newFilters: { search?: string; sortOrder?: string }) => {
+      console.log("CreditTerm filter change called with:", newFilters)
+      setFilters(newFilters as ICreditTermFilter)
+    },
+    []
+  )
 
-  const handleCreditTermDtFilterChange = (filters: ICreditTermFilter) => {
-    setDtFilters(filters)
-  }
+  const handleDtFilterChange = useCallback(
+    (newFilters: { search?: string; sortOrder?: string }) => {
+      console.log("CreditTerm Dt filter change called with:", newFilters)
+      setDtFilters(newFilters as ICreditTermFilter)
+    },
+    []
+  )
 
   // Helper function for API responses
   const handleApiResponse = (
-    response: ApiResponse<ICreditTerm | ICreditTermDt>,
-    successMessage: string,
-    errorPrefix: string
+    response: ApiResponse<ICreditTerm | ICreditTermDt>
   ) => {
     if (response.result === 1) {
       return true
@@ -219,26 +233,14 @@ export default function CreditTermPage() {
         const response = (await saveMutation.mutateAsync(
           data
         )) as ApiResponse<ICreditTerm>
-        if (
-          handleApiResponse(
-            response,
-            "Credit term created successfully",
-            "Create Credit Term"
-          )
-        ) {
+        if (handleApiResponse(response)) {
           queryClient.invalidateQueries({ queryKey: ["creditterms"] })
         }
       } else if (modalMode === "edit" && selectedCreditTerm) {
         const response = (await updateMutation.mutateAsync(
           data
         )) as ApiResponse<ICreditTerm>
-        if (
-          handleApiResponse(
-            response,
-            "Credit term updated successfully",
-            "Update Credit Term"
-          )
-        ) {
+        if (handleApiResponse(response)) {
           queryClient.invalidateQueries({ queryKey: ["creditterms"] })
         }
       }
@@ -253,26 +255,14 @@ export default function CreditTermPage() {
         const response = (await saveDtMutation.mutateAsync(
           data
         )) as ApiResponse<ICreditTermDt>
-        if (
-          handleApiResponse(
-            response,
-            "Credit term details created successfully",
-            "Create Credit Term Details"
-          )
-        ) {
+        if (handleApiResponse(response)) {
           queryClient.invalidateQueries({ queryKey: ["credittermsdt"] })
         }
       } else if (modalMode === "edit" && selectedCreditTermDt) {
         const response = (await updateDtMutation.mutateAsync(
           data
         )) as ApiResponse<ICreditTermDt>
-        if (
-          handleApiResponse(
-            response,
-            "Credit term details updated successfully",
-            "Update Credit Term Details"
-          )
-        ) {
+        if (handleApiResponse(response)) {
           queryClient.invalidateQueries({ queryKey: ["credittermsdt"] })
         }
       }
@@ -332,7 +322,7 @@ export default function CreditTermPage() {
     setDeleteConfirmation({
       isOpen: true,
       id: creditTermId,
-      name: creditTermToDelete.creditTermName,
+      name: creditTermToDelete.creditTermCode,
       type: "creditterm",
     })
   }
@@ -345,7 +335,7 @@ export default function CreditTermPage() {
     setDeleteConfirmation({
       isOpen: true,
       id: creditTermId,
-      name: creditTermDtToDelete.creditTermName,
+      name: creditTermDtToDelete.creditTermCode,
       type: "credittermdt",
     })
   }
@@ -366,7 +356,7 @@ export default function CreditTermPage() {
     }
 
     mutation.mutateAsync(deleteConfirmation.id).then(() => {
-      queryClient.invalidateQueries({ queryKey: [deleteConfirmation.queryKey] })
+      queryClient.invalidateQueries({ queryKey: [deleteConfirmation.type] })
     })
 
     setDeleteConfirmation({
@@ -443,7 +433,7 @@ export default function CreditTermPage() {
         </TabsList>
 
         <TabsContent value="creditterm" className="space-y-4">
-          {isLoadingCreditTerm || isRefetchingCreditTerm ? (
+          {isLoadingCreditTerm ? (
             <DataTableSkeleton
               columnCount={8}
               filterCount={2}
@@ -459,46 +449,53 @@ export default function CreditTermPage() {
               ]}
               shrinkZero
             />
-          ) : (creditTermsResponse as ApiResponse<ICreditTerm>)?.result ===
-            -2 ? (
+          ) : creditTermsResult === -2 ? (
             <LockSkeleton locked={true}>
               <CreditTermsTable
-                data={creditTermsData}
-                onCreditTermSelect={canView ? handleViewCreditTerm : undefined}
-                onDeleteCreditTerm={
-                  canDelete ? handleDeleteCreditTerm : undefined
-                }
-                onEditCreditTerm={canEdit ? handleEditCreditTerm : undefined}
-                onCreateCreditTerm={
-                  canCreate ? handleCreateCreditTerm : undefined
-                }
+                data={[]}
+                isLoading={false}
+                onSelect={canView ? handleViewCreditTerm : undefined}
+                onDelete={canDelete ? handleDeleteCreditTerm : undefined}
+                onEdit={canEdit ? handleEditCreditTerm : undefined}
+                onCreate={canCreate ? handleCreateCreditTerm : undefined}
                 onRefresh={refetchCreditTerm}
-                onFilterChange={handleCreditTermFilterChange}
+                onFilterChange={handleFilterChange}
                 moduleId={moduleId}
                 transactionId={transactionId}
+                canEdit={canEdit}
+                canDelete={canDelete}
+                canView={canView}
+                canCreate={canCreate}
               />
             </LockSkeleton>
-          ) : (
+          ) : creditTermsResult ? (
             <CreditTermsTable
-              data={creditTermsData}
-              onCreditTermSelect={canView ? handleViewCreditTerm : undefined}
-              onDeleteCreditTerm={
-                canDelete ? handleDeleteCreditTerm : undefined
-              }
-              onEditCreditTerm={canEdit ? handleEditCreditTerm : undefined}
-              onCreateCreditTerm={
-                canCreate ? handleCreateCreditTerm : undefined
-              }
+              data={filters.search ? [] : creditTermsData || []}
+              isLoading={isLoadingCreditTerm}
+              onSelect={canView ? handleViewCreditTerm : undefined}
+              onDelete={canDelete ? handleDeleteCreditTerm : undefined}
+              onEdit={canEdit ? handleEditCreditTerm : undefined}
+              onCreate={canCreate ? handleCreateCreditTerm : undefined}
               onRefresh={refetchCreditTerm}
-              onFilterChange={handleCreditTermFilterChange}
+              onFilterChange={handleFilterChange}
               moduleId={moduleId}
               transactionId={transactionId}
+              canEdit={canEdit}
+              canDelete={canDelete}
+              canView={canView}
+              canCreate={canCreate}
             />
+          ) : (
+            <div className="py-8 text-center">
+              <p className="text-muted-foreground">
+                {creditTermsResult === 0 ? "No data available" : "Loading..."}
+              </p>
+            </div>
           )}
         </TabsContent>
 
         <TabsContent value="credittermdt" className="space-y-4">
-          {isLoadingCreditTermDt || isRefetchingCreditTermDt ? (
+          {isLoadingCreditTermDt ? (
             <DataTableSkeleton
               columnCount={8}
               filterCount={2}
@@ -514,51 +511,48 @@ export default function CreditTermPage() {
               ]}
               shrinkZero
             />
-          ) : (creditTermsDtResponse as ApiResponse<ICreditTermDt>)?.result ===
-            -2 ? (
+          ) : creditTermsDtResult === -2 ? (
             <LockSkeleton locked={true}>
               <CreditTermDtsTable
-                data={creditTermsDtData}
-                isLoading={isLoadingCreditTermDt}
-                onCreditTermDtSelect={
-                  canViewDt ? handleViewCreditTermDt : undefined
-                }
-                onDeleteCreditTermDt={
-                  canDeleteDt ? handleDeleteCreditTermDt : undefined
-                }
-                onEditCreditTermDt={
-                  canEditDt ? handleEditCreditTermDt : undefined
-                }
-                onCreateCreditTermDt={
-                  canCreateDt ? handleCreateCreditTermDt : undefined
-                }
+                data={[]}
+                isLoading={false}
+                onSelect={canViewDt ? handleViewCreditTermDt : undefined}
+                onDelete={canDeleteDt ? handleDeleteCreditTermDt : undefined}
+                onEdit={canEditDt ? handleEditCreditTermDt : undefined}
+                onCreate={canCreateDt ? handleCreateCreditTermDt : undefined}
                 onRefresh={refetchCreditTermDt}
-                onFilterChange={handleCreditTermDtFilterChange}
+                onFilterChange={handleDtFilterChange}
                 moduleId={moduleId}
-                transactionId={transactionId}
+                transactionId={transactionIdDt}
+                canEdit={canEditDt}
+                canDelete={canDeleteDt}
+                canView={canViewDt}
+                canCreate={canCreateDt}
               />
             </LockSkeleton>
-          ) : (
+          ) : creditTermsDtResult ? (
             <CreditTermDtsTable
-              data={creditTermsDtData}
+              data={dtFilters.search ? [] : creditTermsDtData || []}
               isLoading={isLoadingCreditTermDt}
-              onCreditTermDtSelect={
-                canViewDt ? handleViewCreditTermDt : undefined
-              }
-              onDeleteCreditTermDt={
-                canDeleteDt ? handleDeleteCreditTermDt : undefined
-              }
-              onEditCreditTermDt={
-                canEditDt ? handleEditCreditTermDt : undefined
-              }
-              onCreateCreditTermDt={
-                canCreateDt ? handleCreateCreditTermDt : undefined
-              }
+              onSelect={canViewDt ? handleViewCreditTermDt : undefined}
+              onDelete={canDeleteDt ? handleDeleteCreditTermDt : undefined}
+              onEdit={canEditDt ? handleEditCreditTermDt : undefined}
+              onCreate={canCreateDt ? handleCreateCreditTermDt : undefined}
               onRefresh={refetchCreditTermDt}
-              onFilterChange={handleCreditTermDtFilterChange}
+              onFilterChange={handleDtFilterChange}
               moduleId={moduleId}
-              transactionId={transactionId}
+              transactionId={transactionIdDt}
+              canEdit={canEditDt}
+              canDelete={canDeleteDt}
+              canView={canViewDt}
+              canCreate={canCreateDt}
             />
+          ) : (
+            <div className="py-8 text-center">
+              <p className="text-muted-foreground">
+                {creditTermsDtResult === 0 ? "No data available" : "Loading..."}
+              </p>
+            </div>
           )}
         </TabsContent>
       </Tabs>
@@ -682,15 +676,20 @@ export default function CreditTermPage() {
         }
         itemName={
           saveConfirmation.type === "creditterm"
-            ? (saveConfirmation.data as CreditTermFormValues)?.creditTermName ||
+            ? (saveConfirmation.data as CreditTermFormValues)?.creditTermCode ||
               ""
-            : (saveConfirmation.data as CreditTermDtFormValues)
-                ?.creditTermName || ""
+            : (
+                saveConfirmation.data as CreditTermDtFormValues
+              )?.creditTermId.toString() || ""
         }
         operationType={modalMode === "create" ? "create" : "update"}
         onConfirm={() => {
           if (saveConfirmation.data) {
-            handleConfirmedFormSubmit(saveConfirmation.data)
+            handleConfirmedFormSubmit(
+              saveConfirmation.data as
+                | CreditTermFormValues
+                | CreditTermDtFormValues
+            )
           }
           setSaveConfirmation({
             isOpen: false,

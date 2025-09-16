@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useCallback, useState } from "react"
 import { IAccountGroup, IAccountGroupFilter } from "@/interfaces/accountgroup"
 import { ApiResponse } from "@/interfaces/auth"
 import { AccountGroupFormValues } from "@/schemas/accountgroup"
@@ -41,12 +41,13 @@ export default function AccountGroupPage() {
   const [filters, setFilters] = useState<IAccountGroupFilter>({})
 
   // Filter handler wrapper
-  const handleFilterChange = (newFilters: {
-    search?: string
-    sortOrder?: string
-  }) => {
-    setFilters(newFilters as IAccountGroupFilter)
-  }
+  const handleFilterChange = useCallback(
+    (newFilters: { search?: string; sortOrder?: string }) => {
+      console.log("Filter change called with:", newFilters)
+      setFilters(newFilters as IAccountGroupFilter)
+    },
+    []
+  )
 
   const {
     data: accountGroupsResponse,
@@ -273,23 +274,6 @@ export default function AccountGroupPage() {
 
   const queryClient = useQueryClient()
 
-  // Add useEffect hooks to track state changes
-  useEffect(() => {
-    console.log("Modal Mode Updated:", modalMode)
-  }, [modalMode])
-
-  useEffect(() => {
-    if (selectedAccountGroup) {
-      console.log("Selected Account Group Updated:", {
-        accGroupId: selectedAccountGroup.accGroupId,
-        accGroupCode: selectedAccountGroup.accGroupCode,
-        accGroupName: selectedAccountGroup.accGroupName,
-        // Log all other relevant fields
-        fullObject: selectedAccountGroup,
-      })
-    }
-  }, [selectedAccountGroup])
-
   return (
     <div className="container mx-auto space-y-4 px-4 py-4 sm:space-y-6 sm:px-6 sm:py-6">
       {/* Header Section */}
@@ -320,9 +304,10 @@ export default function AccountGroupPage() {
           ]}
           shrinkZero
         />
-      ) : accountGroupsResult ? (
+      ) : accountGroupsResult === -2 ? (
         <AccountGroupTable
-          data={accountGroupsData || []}
+          data={[]}
+          isLoading={false}
           onSelect={canView ? handleViewAccountGroup : undefined}
           onDelete={canDelete ? handleDeleteAccountGroup : undefined}
           onEdit={canEdit ? handleEditAccountGroup : undefined}
@@ -331,9 +316,30 @@ export default function AccountGroupPage() {
           onFilterChange={handleFilterChange}
           moduleId={moduleId}
           transactionId={transactionId}
+          // Pass permissions to table
+          canEdit={canEdit}
+          canDelete={canDelete}
+          canView={canView}
+          canCreate={canCreate}
         />
       ) : (
-        <div>No data available</div>
+        <AccountGroupTable
+          data={filters.search ? [] : accountGroupsData || []}
+          isLoading={isLoading}
+          onSelect={canView ? handleViewAccountGroup : undefined}
+          onDelete={canDelete ? handleDeleteAccountGroup : undefined}
+          onEdit={canEdit ? handleEditAccountGroup : undefined}
+          onCreate={canCreate ? handleCreateAccountGroup : undefined}
+          onRefresh={handleRefresh}
+          onFilterChange={handleFilterChange}
+          moduleId={moduleId}
+          transactionId={transactionId}
+          // Pass permissions to table
+          canEdit={canEdit}
+          canDelete={canDelete}
+          canView={canView}
+          canCreate={canCreate}
+        />
       )}
 
       {/* Modal for Create, Edit, and View */}

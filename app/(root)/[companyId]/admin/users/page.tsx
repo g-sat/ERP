@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useCallback, useState } from "react"
 import { IUser, IUserFilter } from "@/interfaces/admin"
 import { ApiResponse } from "@/interfaces/auth"
 import { UserFormValues } from "@/schemas/admin"
@@ -83,11 +83,13 @@ export default function AdminUsersPage() {
 
   const queryClient = useQueryClient()
 
-  useEffect(() => {
-    if (filters.search !== undefined) {
-      refetchUsers()
-    }
-  }, [filters.search, refetchUsers])
+  const handleFilterChange = useCallback(
+    (filters: { search?: string; sortOrder?: string }) => {
+      console.log("Filter change called with:", filters)
+      setFilters(filters as IUserFilter)
+    },
+    []
+  )
 
   const handleCreateUser = () => {
     setModalMode("create")
@@ -213,14 +215,14 @@ export default function AdminUsersPage() {
       ) : (usersResponse as ApiResponse<IUser>)?.result === -2 ? (
         <LockSkeleton locked={true}>
           <UserTable
-            data={usersData || []}
-            isLoading={isLoadingUsers}
+            data={[]}
+            isLoading={false}
             onSelect={canView ? handleViewUser : undefined}
             onDelete={canDelete ? handleDeleteUser : undefined}
             onEdit={canEdit ? handleEditUser : undefined}
             onCreate={canCreate ? handleCreateUser : undefined}
             onRefresh={refetchUsers}
-            onFilterChange={(filters) => setFilters(filters as IUserFilter)}
+            onFilterChange={handleFilterChange}
             moduleId={moduleId}
             transactionId={transactionId}
             canEdit={canEdit}
@@ -231,14 +233,14 @@ export default function AdminUsersPage() {
         </LockSkeleton>
       ) : (
         <UserTable
-          data={usersData || []}
+          data={filters.search ? [] : usersData || []}
           isLoading={isLoadingUsers}
           onSelect={canView ? handleViewUser : undefined}
           onDelete={canDelete ? handleDeleteUser : undefined}
           onEdit={canEdit ? handleEditUser : undefined}
           onCreate={canCreate ? handleCreateUser : undefined}
           onRefresh={refetchUsers}
-          onFilterChange={(filters) => setFilters(filters as IUserFilter)}
+          onFilterChange={handleFilterChange}
           moduleId={moduleId}
           transactionId={transactionId}
           canEdit={canEdit}

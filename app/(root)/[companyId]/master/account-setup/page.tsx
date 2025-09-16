@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useCallback, useState } from "react"
 import {
   IAccountSetup,
   IAccountSetupCategory,
@@ -97,7 +97,6 @@ export default function AccountSetupPage() {
     data: categoryResponse,
     refetch: refetchCategory,
     isLoading: isLoadingCategory,
-    isRefetching: isRefetchingCategory,
   } = useGet<IAccountSetupCategory>(
     `${AccountSetupCategory.get}`,
     "accountSetupCategories",
@@ -109,7 +108,6 @@ export default function AccountSetupPage() {
     data: setupResponse,
     refetch: refetchSetup,
     isLoading: isLoadingSetup,
-    isRefetching: isRefetchingSetup,
   } = useGet<IAccountSetup>(
     `${AccountSetup.get}`,
     "accountSetups",
@@ -121,31 +119,32 @@ export default function AccountSetupPage() {
     data: dtResponse,
     refetch: refetchDt,
     isLoading: isLoadingDt,
-    isRefetching: isRefetchingDt,
   } = useGet<IAccountSetupDt>(
     `${AccountSetupDt.get}`,
     "accountSetupDts",
     filtersDt.search
   )
 
-  const { data: categoryData } =
+  const { result: categoryResult, data: categoryData } =
     (categoryResponse as ApiResponse<IAccountSetupCategory>) ?? {
       result: 0,
       message: "",
       data: [],
     }
 
-  const { data: setupData } = (setupResponse as ApiResponse<IAccountSetup>) ?? {
-    result: 0,
-    message: "",
-    data: [],
-  }
+  const { result: setupResult, data: setupData } =
+    (setupResponse as ApiResponse<IAccountSetup>) ?? {
+      result: 0,
+      message: "",
+      data: [],
+    }
 
-  const { data: dtData } = (dtResponse as ApiResponse<IAccountSetupDt>) ?? {
-    result: 0,
-    message: "",
-    data: [],
-  }
+  const { result: dtResult, data: dtData } =
+    (dtResponse as ApiResponse<IAccountSetupDt>) ?? {
+      result: 0,
+      message: "",
+      data: [],
+    }
 
   // Account Setup Category mutations
   const saveMutationCategory = usePersist<AccountSetupCategoryFormValues>(
@@ -246,25 +245,30 @@ export default function AccountSetupPage() {
   const [showLoadDialogSetup, setShowLoadDialogSetup] = useState(false)
   const [existingSetup, setExistingSetup] = useState<IAccountSetup | null>(null)
 
-  const queryClient = useQueryClient()
+  // Filter change handlers
+  const handleCategoryFilterChange = useCallback(
+    (newFilters: { search?: string; sortOrder?: string }) => {
+      console.log("Category filter change called with:", newFilters)
+      setFiltersCategory(newFilters as IAccountSetupCategoryFilter)
+    },
+    []
+  )
 
-  useEffect(() => {
-    if (filtersCategory.search !== undefined) {
-      refetchCategory()
-    }
-  }, [filtersCategory.search, refetchCategory])
+  const handleSetupFilterChange = useCallback(
+    (newFilters: { search?: string; sortOrder?: string }) => {
+      console.log("Setup filter change called with:", newFilters)
+      setFiltersSetup(newFilters as IAccountSetupFilter)
+    },
+    []
+  )
 
-  useEffect(() => {
-    if (filtersSetup.search !== undefined) {
-      refetchSetup()
-    }
-  }, [filtersSetup.search, refetchSetup])
-
-  useEffect(() => {
-    if (filtersDt.search !== undefined) {
-      refetchDt()
-    }
-  }, [filtersDt.search, refetchDt])
+  const handleDtFilterChange = useCallback(
+    (newFilters: { search?: string; sortOrder?: string }) => {
+      console.log("Dt filter change called with:", newFilters)
+      setFiltersDt(newFilters as IAccountSetupDtFilter)
+    },
+    []
+  )
 
   const handleCategorySelect = (category: IAccountSetupCategory | null) => {
     if (!category) return
@@ -586,6 +590,8 @@ export default function AccountSetupPage() {
     }
   }
 
+  const queryClient = useQueryClient()
+
   return (
     <div className="container mx-auto space-y-4 px-4 py-4 sm:space-y-6 sm:px-6 sm:py-6">
       {/* Header Section */}
@@ -612,7 +618,7 @@ export default function AccountSetupPage() {
         </TabsList>
 
         <TabsContent value="account-setup" className="space-y-4">
-          {isLoadingSetup || isRefetchingSetup ? (
+          {isLoadingSetup ? (
             <DataTableSkeleton
               columnCount={8}
               filterCount={2}
@@ -628,16 +634,17 @@ export default function AccountSetupPage() {
               ]}
               shrinkZero
             />
-          ) : (setupResponse as ApiResponse<IAccountSetup>)?.result === -2 ? (
+          ) : setupResult === -2 ? (
             <LockSkeleton locked={true}>
               <AccountSetupTable
-                data={setupData || []}
+                data={[]}
+                isLoading={false}
                 onSelect={canView ? handleSetupSelect : undefined}
                 onDelete={canDelete ? handleDeleteSetup : undefined}
                 onEdit={canEdit ? handleEditSetup : undefined}
                 onCreate={canCreate ? handleCreateSetup : undefined}
                 onRefresh={refetchSetup}
-                onFilterChange={setFiltersSetup}
+                onFilterChange={handleSetupFilterChange}
                 moduleId={moduleId}
                 transactionId={transactionId}
                 // Pass permissions to table
@@ -649,13 +656,13 @@ export default function AccountSetupPage() {
             </LockSkeleton>
           ) : (
             <AccountSetupTable
-              data={setupData || []}
+              data={filtersSetup.search ? [] : setupData || []}
               onSelect={canView ? handleSetupSelect : undefined}
               onDelete={canDelete ? handleDeleteSetup : undefined}
               onEdit={canEdit ? handleEditSetup : undefined}
               onCreate={canCreate ? handleCreateSetup : undefined}
               onRefresh={refetchSetup}
-              onFilterChange={setFiltersSetup}
+              onFilterChange={handleSetupFilterChange}
               moduleId={moduleId}
               transactionId={transactionId}
               // Pass permissions to table
@@ -668,7 +675,7 @@ export default function AccountSetupPage() {
         </TabsContent>
 
         <TabsContent value="account-setup-dt" className="space-y-4">
-          {isLoadingDt || isRefetchingDt ? (
+          {isLoadingDt ? (
             <DataTableSkeleton
               columnCount={8}
               filterCount={2}
@@ -684,41 +691,46 @@ export default function AccountSetupPage() {
               ]}
               shrinkZero
             />
-          ) : (dtResponse as ApiResponse<IAccountSetupDt>)?.result === -2 ? (
+          ) : dtResult === -2 ? (
             <LockSkeleton locked={true}>
               <AccountSetupDtTable
-                data={dtData || []}
-                onAccountSetupDtSelect={canViewDt ? handleDtSelect : undefined}
-                onDeleteAccountSetupDt={
-                  canDeleteDt ? handleDeleteDt : undefined
-                }
-                onEditAccountSetupDt={canEditDt ? handleEditDt : undefined}
-                onCreateAccountSetupDt={
-                  canCreateDt ? handleCreateDt : undefined
-                }
+                data={[]}
+                isLoading={false}
+                onSelect={canViewDt ? handleDtSelect : undefined}
+                onDelete={canDeleteDt ? handleDeleteDt : undefined}
+                onEdit={canEditDt ? handleEditDt : undefined}
+                onCreate={canCreateDt ? handleCreateDt : undefined}
                 onRefresh={refetchDt}
-                onFilterChange={setFiltersDt}
+                onFilterChange={handleDtFilterChange}
                 moduleId={moduleId}
                 transactionId={transactionIdDt}
+                canEdit={canEditDt}
+                canDelete={canDeleteDt}
+                canView={canViewDt}
+                canCreate={canCreateDt}
               />
             </LockSkeleton>
           ) : (
             <AccountSetupDtTable
-              data={dtData || []}
-              onAccountSetupDtSelect={canViewDt ? handleDtSelect : undefined}
-              onDeleteAccountSetupDt={canDeleteDt ? handleDeleteDt : undefined}
-              onEditAccountSetupDt={canEditDt ? handleEditDt : undefined}
-              onCreateAccountSetupDt={canCreateDt ? handleCreateDt : undefined}
+              data={filtersDt.search ? [] : dtData || []}
+              onSelect={canViewDt ? handleDtSelect : undefined}
+              onDelete={canDeleteDt ? handleDeleteDt : undefined}
+              onEdit={canEditDt ? handleEditDt : undefined}
+              onCreate={canCreateDt ? handleCreateDt : undefined}
               onRefresh={refetchDt}
-              onFilterChange={setFiltersDt}
+              onFilterChange={handleDtFilterChange}
               moduleId={moduleId}
               transactionId={transactionIdDt}
+              canEdit={canEditDt}
+              canDelete={canDeleteDt}
+              canView={canViewDt}
+              canCreate={canCreateDt}
             />
           )}
         </TabsContent>
 
         <TabsContent value="account-setup-category" className="space-y-4">
-          {isLoadingCategory || isRefetchingCategory ? (
+          {isLoadingCategory ? (
             <DataTableSkeleton
               columnCount={8}
               filterCount={2}
@@ -734,48 +746,39 @@ export default function AccountSetupPage() {
               ]}
               shrinkZero
             />
-          ) : (categoryResponse as ApiResponse<IAccountSetupCategory>)
-              ?.result === -2 ? (
+          ) : categoryResult === -2 ? (
             <LockSkeleton locked={true}>
               <AccountSetupCategoryTable
-                data={categoryData || []}
-                onAccountSetupCategorySelect={
-                  canViewCategory ? handleCategorySelect : undefined
-                }
-                onDeleteAccountSetupCategory={
-                  canDeleteCategory ? handleDeleteCategory : undefined
-                }
-                onEditAccountSetupCategory={
-                  canEditCategory ? handleEditCategory : undefined
-                }
-                onCreateAccountSetupCategory={
-                  canCreateCategory ? handleCreateCategory : undefined
-                }
+                data={[]}
+                onSelect={canViewCategory ? handleCategorySelect : undefined}
+                onDelete={canDeleteCategory ? handleDeleteCategory : undefined}
+                onEdit={canEditCategory ? handleEditCategory : undefined}
+                onCreate={canCreateCategory ? handleCreateCategory : undefined}
                 onRefresh={refetchCategory}
-                onFilterChange={setFiltersCategory}
+                onFilterChange={handleCategoryFilterChange}
                 moduleId={moduleId}
                 transactionId={transactionIdCategory}
+                canEdit={canEditCategory}
+                canDelete={canDeleteCategory}
+                canView={canViewCategory}
+                canCreate={canCreateCategory}
               />
             </LockSkeleton>
           ) : (
             <AccountSetupCategoryTable
-              data={categoryData || []}
-              onAccountSetupCategorySelect={
-                canViewCategory ? handleCategorySelect : undefined
-              }
-              onDeleteAccountSetupCategory={
-                canDeleteCategory ? handleDeleteCategory : undefined
-              }
-              onEditAccountSetupCategory={
-                canEditCategory ? handleEditCategory : undefined
-              }
-              onCreateAccountSetupCategory={
-                canCreateCategory ? handleCreateCategory : undefined
-              }
+              data={filtersCategory.search ? [] : categoryData || []}
+              onSelect={canViewCategory ? handleCategorySelect : undefined}
+              onDelete={canDeleteCategory ? handleDeleteCategory : undefined}
+              onEdit={canEditCategory ? handleEditCategory : undefined}
+              onCreate={canCreateCategory ? handleCreateCategory : undefined}
               onRefresh={refetchCategory}
-              onFilterChange={setFiltersCategory}
+              onFilterChange={handleCategoryFilterChange}
               moduleId={moduleId}
               transactionId={transactionIdCategory}
+              canEdit={canEditCategory}
+              canDelete={canDeleteCategory}
+              canView={canViewCategory}
+              canCreate={canCreateCategory}
             />
           )}
         </TabsContent>

@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { ApiResponse } from "@/interfaces/auth"
 import { IDesignation, IDesignationFilter } from "@/interfaces/designation"
 import { DesignationFormValues } from "@/schemas/designation"
@@ -12,7 +12,6 @@ import { MasterTransactionId, ModuleId } from "@/lib/utils"
 import {
   useDelete,
   useGet,
-  useGetById,
   useGetByParams,
   usePersist,
 } from "@/hooks/use-common"
@@ -44,6 +43,15 @@ export default function DesignationPage() {
   const canCreate = hasPermission(moduleId, transactionId, "isCreate")
 
   const [filters, setFilters] = useState<IDesignationFilter>({})
+
+  // Filter handler wrapper
+  const handleFilterChange = useCallback(
+    (newFilters: { search?: string; sortOrder?: string }) => {
+      console.log("Filter change called with:", newFilters)
+      setFilters(newFilters as IDesignationFilter)
+    },
+    []
+  )
   const {
     data: designationsResponse,
     refetch,
@@ -62,7 +70,7 @@ export default function DesignationPage() {
     if (designationsData?.length > 0) {
       refetch()
     }
-  }, [filters])
+  }, [filters, designationsData?.length, refetch])
 
   const saveMutation = usePersist<DesignationFormValues>(`${Designation.add}`)
   const updateMutation = usePersist<DesignationFormValues>(`${Designation.add}`)
@@ -268,7 +276,7 @@ export default function DesignationPage() {
         </div>
       </div>
 
-      {isLoading || isRefetching ? (
+      {isLoading ? (
         <DataTableSkeleton
           columnCount={7}
           filterCount={2}
@@ -283,17 +291,39 @@ export default function DesignationPage() {
           ]}
           shrinkZero
         />
-      ) : designationsResult ? (
+      ) : designationsResult === -2 ? (
         <DesignationsTable
-          data={designationsData || []}
-          onDesignationSelect={canView ? handleViewDesignation : undefined}
-          onDeleteDesignation={canDelete ? handleDeleteDesignation : undefined}
-          onEditDesignation={canEdit ? handleEditDesignation : undefined}
-          onCreateDesignation={canCreate ? handleCreateDesignation : undefined}
+          data={[]}
+          onSelect={canView ? handleViewDesignation : undefined}
+          onDelete={canDelete ? handleDeleteDesignation : undefined}
+          onEdit={canEdit ? handleEditDesignation : undefined}
+          onCreate={canCreate ? handleCreateDesignation : undefined}
           onRefresh={handleRefresh}
-          onFilterChange={setFilters}
+          onFilterChange={handleFilterChange}
           moduleId={moduleId}
           transactionId={transactionId}
+          isLoading={false}
+          canEdit={canEdit}
+          canDelete={canDelete}
+          canView={canView}
+          canCreate={canCreate}
+        />
+      ) : designationsResult ? (
+        <DesignationsTable
+          data={filters.search ? [] : designationsData || []}
+          onSelect={canView ? handleViewDesignation : undefined}
+          onDelete={canDelete ? handleDeleteDesignation : undefined}
+          onEdit={canEdit ? handleEditDesignation : undefined}
+          onCreate={canCreate ? handleCreateDesignation : undefined}
+          onRefresh={handleRefresh}
+          onFilterChange={handleFilterChange}
+          moduleId={moduleId}
+          transactionId={transactionId}
+          isLoading={isLoading}
+          canEdit={canEdit}
+          canDelete={canDelete}
+          canView={canView}
+          canCreate={canCreate}
         />
       ) : (
         <div className="py-8 text-center">

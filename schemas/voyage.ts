@@ -1,14 +1,14 @@
 import * as z from "zod"
 
 export const voyageSchema = z.object({
-  voyageId: z.number(),
+  voyageId: z.number().min(0, { message: "voyage id is required" }),
   voyageNo: z
     .string()
     .min(1, { message: "voyage number is required" })
     .max(50, { message: "voyage number cannot exceed 50 characters" }),
   referenceNo: z
     .string()
-    .max(50, { message: "reference number cannot exceed 50 characters" })
+    .max(100, { message: "reference number cannot exceed 100 characters" })
     .optional(),
   vesselId: z.number().default(0),
   bargeId: z.number().default(0),

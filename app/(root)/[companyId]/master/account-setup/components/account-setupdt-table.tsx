@@ -52,6 +52,8 @@ export function AccountSetupDtTable({
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
 
+  console.log("Permission details", canCreate, canDelete, canEdit, canView)
+
   const columns: ColumnDef<IAccountSetupDt>[] = [
     {
       accessorKey: "accSetupName",

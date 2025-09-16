@@ -71,7 +71,7 @@ export function CoaCategory1Table({
     },
     {
       accessorKey: "seqNo",
-      header: "Sequence No",
+      header: "Seq No",
       cell: ({ row }) => <div>{row.getValue("seqNo") || "-"}</div>,
       size: 120,
       minSize: 50,

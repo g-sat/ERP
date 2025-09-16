@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { ApiResponse } from "@/interfaces/auth"
 import {
   IOrderType,
@@ -74,6 +74,11 @@ export default function OrderTypePage() {
     transactionIdCategory,
     "isCreate"
   )
+  const canViewCategory = hasPermission(
+    moduleId,
+    transactionIdCategory,
+    "isRead"
+  )
   const canEditCategory = hasPermission(
     moduleId,
     transactionIdCategory,
@@ -89,6 +94,23 @@ export default function OrderTypePage() {
   const [filters, setFilters] = useState<IOrderTypeFilter>({})
   const [categoryFilters, setCategoryFilters] =
     useState<IOrderTypeCategoryFilter>({})
+
+  // Filter change handlers
+  const handleFilterChange = useCallback(
+    (newFilters: { search?: string; sortOrder?: string }) => {
+      console.log("OrderType filter change called with:", newFilters)
+      setFilters(newFilters as IOrderTypeFilter)
+    },
+    []
+  )
+
+  const handleCategoryFilterChange = useCallback(
+    (newFilters: { search?: string; sortOrder?: string }) => {
+      console.log("OrderType Category filter change called with:", newFilters)
+      setCategoryFilters(newFilters as IOrderTypeCategoryFilter)
+    },
+    []
+  )
 
   // Data fetching
   const {
@@ -109,11 +131,19 @@ export default function OrderTypePage() {
     categoryFilters.search
   )
 
-  // Extract data from responses
-  const ordertypesData =
-    (ordertypesResponse as ApiResponse<IOrderType>)?.data || []
-  const ordertypesCategoryData =
-    (ordertypesCategoryResponse as ApiResponse<IOrderTypeCategory>)?.data || []
+  // Extract data from responses with fallback values
+  const { result: ordertypesResult, data: ordertypesData } =
+    (ordertypesResponse as ApiResponse<IOrderType>) ?? {
+      result: 0,
+      message: "",
+      data: [],
+    }
+  const { result: ordertypesCategoryResult, data: ordertypesCategoryData } =
+    (ordertypesCategoryResponse as ApiResponse<IOrderTypeCategory>) ?? {
+      result: 0,
+      message: "",
+      data: [],
+    }
 
   // Mutations
   const saveMutation = usePersist<OrderTypeFormValues>(`${OrderType.add}`)
@@ -181,7 +211,7 @@ export default function OrderTypePage() {
     setIsModalOpen(true)
   }
 
-  const handleViewOrderType = (ordertype: IOrderType | undefined) => {
+  const handleViewOrderType = (ordertype: IOrderType | null) => {
     if (!ordertype) return
     setModalMode("view")
     setSelectedOrderType(ordertype)
@@ -203,7 +233,7 @@ export default function OrderTypePage() {
   }
 
   const handleViewOrderTypeCategory = (
-    ordertypeCategory: IOrderTypeCategory | undefined
+    ordertypeCategory: IOrderTypeCategory | null
   ) => {
     if (!ordertypeCategory) return
     setModalMode("view")
@@ -211,16 +241,9 @@ export default function OrderTypePage() {
     setIsCategoryModalOpen(true)
   }
 
-  // Filter handlers
-  const handleOrderTypeFilterChange = (filters: IOrderTypeFilter) => {
-    setFilters(filters)
-  }
-
   // Helper function for API responses
   const handleApiResponse = (
-    response: ApiResponse<IOrderType | IOrderTypeCategory>,
-    successMessage: string,
-    errorPrefix: string
+    response: ApiResponse<IOrderType | IOrderTypeCategory>
   ) => {
     if (response.result === 1) {
       return true
@@ -236,26 +259,14 @@ export default function OrderTypePage() {
         const response = (await saveMutation.mutateAsync(
           data
         )) as ApiResponse<IOrderType>
-        if (
-          handleApiResponse(
-            response,
-            "OrderType created successfully",
-            "Create OrderType"
-          )
-        ) {
+        if (handleApiResponse(response)) {
           queryClient.invalidateQueries({ queryKey: ["ordertypes"] })
         }
       } else if (modalMode === "edit" && selectedOrderType) {
         const response = (await updateMutation.mutateAsync(
           data
         )) as ApiResponse<IOrderType>
-        if (
-          handleApiResponse(
-            response,
-            "OrderType updated successfully",
-            "Update OrderType"
-          )
-        ) {
+        if (handleApiResponse(response)) {
           queryClient.invalidateQueries({ queryKey: ["ordertypes"] })
         }
       }
@@ -272,26 +283,14 @@ export default function OrderTypePage() {
         const response = (await saveCategoryMutation.mutateAsync(
           data
         )) as ApiResponse<IOrderTypeCategory>
-        if (
-          handleApiResponse(
-            response,
-            "OrderType Category created successfully",
-            "Create OrderType Category"
-          )
-        ) {
+        if (handleApiResponse(response)) {
           queryClient.invalidateQueries({ queryKey: ["ordertypecategory"] })
         }
       } else if (modalMode === "edit" && selectedOrderTypeCategory) {
         const response = (await updateCategoryMutation.mutateAsync(
           data
         )) as ApiResponse<IOrderTypeCategory>
-        if (
-          handleApiResponse(
-            response,
-            "OrderType Category updated successfully",
-            "Update OrderType Category"
-          )
-        ) {
+        if (handleApiResponse(response)) {
           queryClient.invalidateQueries({ queryKey: ["ordertypecategory"] })
         }
       }
@@ -310,20 +309,6 @@ export default function OrderTypePage() {
     data: null,
     type: "ordertype",
   })
-
-  // Main form submit handler - shows confirmation first
-  const handleFormSubmit = (
-    data: OrderTypeFormValues | OrderTypeCategoryFormValues
-  ) => {
-    let type: "ordertype" | "ordertypecategory" = "ordertype"
-    if (isCategoryModalOpen) type = "ordertypecategory"
-
-    setSaveConfirmation({
-      isOpen: true,
-      data: data,
-      type: type,
-    })
-  }
 
   // Handler for confirmed form submission
   const handleConfirmedFormSubmit = async (
@@ -385,7 +370,7 @@ export default function OrderTypePage() {
     }
 
     mutation.mutateAsync(deleteConfirmation.id).then(() => {
-      queryClient.invalidateQueries({ queryKey: [deleteConfirmation.queryKey] })
+      queryClient.invalidateQueries({ queryKey: ["ordertypes"] })
     })
 
     setDeleteConfirmation({
@@ -490,7 +475,7 @@ export default function OrderTypePage() {
         </TabsList>
 
         <TabsContent value="ordertype" className="space-y-4">
-          {isLoadingOrderType || isRefetchingOrderType ? (
+          {isLoadingOrderType  ? (
             <DataTableSkeleton
               columnCount={8}
               filterCount={2}
@@ -506,43 +491,53 @@ export default function OrderTypePage() {
               ]}
               shrinkZero
             />
-          ) : (ordertypesResponse as ApiResponse<IOrderType>)?.result === -2 ? (
+          ) : ordertypesResult === -2 ? (
             <LockSkeleton locked={true}>
               <OrderTypeTable
-                data={ordertypesData}
-                isLoading={isLoadingOrderType}
-                onOrderTypeSelect={handleViewOrderType}
-                onDeleteOrderType={
-                  canDelete ? handleDeleteOrderType : undefined
-                }
-                onEditOrderType={canEdit ? handleEditOrderType : undefined}
-                onCreateOrderType={
-                  canCreate ? handleCreateOrderType : undefined
-                }
+                data={[]}
+                isLoading={false}
+                onSelect={canView ? handleViewOrderType : undefined}
+                onDelete={canDelete ? handleDeleteOrderType : undefined}
+                onEdit={canEdit ? handleEditOrderType : undefined}
+                onCreate={canCreate ? handleCreateOrderType : undefined}
                 onRefresh={refetchOrderType}
-                onFilterChange={handleOrderTypeFilterChange}
+                onFilterChange={handleFilterChange}
                 moduleId={moduleId}
                 transactionId={transactionId}
+                canEdit={canEdit}
+                canDelete={canDelete}
+                canView={canView}
+                canCreate={canCreate}
               />
             </LockSkeleton>
-          ) : (
+          ) : ordertypesResult ? (
             <OrderTypeTable
-              data={ordertypesData}
+              data={filters.search ? [] : ordertypesData || []}
               isLoading={isLoadingOrderType}
-              onOrderTypeSelect={handleViewOrderType}
-              onDeleteOrderType={canDelete ? handleDeleteOrderType : undefined}
-              onEditOrderType={canEdit ? handleEditOrderType : undefined}
-              onCreateOrderType={canCreate ? handleCreateOrderType : undefined}
+              onSelect={canView ? handleViewOrderType : undefined}
+              onDelete={canDelete ? handleDeleteOrderType : undefined}
+              onEdit={canEdit ? handleEditOrderType : undefined}
+              onCreate={canCreate ? handleCreateOrderType : undefined}
               onRefresh={refetchOrderType}
-              onFilterChange={handleOrderTypeFilterChange}
+              onFilterChange={handleFilterChange}
               moduleId={moduleId}
               transactionId={transactionId}
+              canEdit={canEdit}
+              canDelete={canDelete}
+              canView={canView}
+              canCreate={canCreate}
             />
+          ) : (
+            <div className="py-8 text-center">
+              <p className="text-muted-foreground">
+                {ordertypesResult === 0 ? "No data available" : "Loading..."}
+              </p>
+            </div>
           )}
         </TabsContent>
 
         <TabsContent value="ordertypecategory" className="space-y-4">
-          {isLoadingOrderTypeCategory || isRefetchingOrderTypeCategory ? (
+          {isLoadingOrderTypeCategory  ? (
             <DataTableSkeleton
               columnCount={8}
               filterCount={2}
@@ -558,47 +553,64 @@ export default function OrderTypePage() {
               ]}
               shrinkZero
             />
-          ) : (ordertypesCategoryResponse as ApiResponse<IOrderTypeCategory>)
-              ?.result === -2 ? (
+          ) : ordertypesCategoryResult === -2 ? (
             <LockSkeleton locked={true}>
               <OrderTypeCategoryTable
-                data={ordertypesCategoryData}
-                isLoading={isLoadingOrderTypeCategory}
-                onOrderTypeCategorySelect={handleViewOrderTypeCategory}
-                onDeleteOrderTypeCategory={
+                data={[]}
+                isLoading={false}
+                onSelect={
+                  canViewCategory ? handleViewOrderTypeCategory : undefined
+                }
+                onDelete={
                   canDeleteCategory ? handleDeleteOrderTypeCategory : undefined
                 }
-                onEditOrderTypeCategory={
+                onEdit={
                   canEditCategory ? handleEditOrderTypeCategory : undefined
                 }
-                onCreateOrderTypeCategory={
+                onCreate={
                   canCreateCategory ? handleCreateOrderTypeCategory : undefined
                 }
                 onRefresh={refetchOrderTypeCategory}
-                onFilterChange={setCategoryFilters}
+                onFilterChange={handleCategoryFilterChange}
                 moduleId={moduleId}
-                transactionId={transactionId}
+                transactionId={transactionIdCategory}
+                canEdit={canEditCategory}
+                canDelete={canDeleteCategory}
+                canView={canViewCategory}
+                canCreate={canCreateCategory}
               />
             </LockSkeleton>
-          ) : (
+          ) : ordertypesCategoryResult ? (
             <OrderTypeCategoryTable
-              data={ordertypesCategoryData}
+              data={categoryFilters.search ? [] : ordertypesCategoryData || []}
               isLoading={isLoadingOrderTypeCategory}
-              onOrderTypeCategorySelect={handleViewOrderTypeCategory}
-              onDeleteOrderTypeCategory={
+              onSelect={
+                canViewCategory ? handleViewOrderTypeCategory : undefined
+              }
+              onDelete={
                 canDeleteCategory ? handleDeleteOrderTypeCategory : undefined
               }
-              onEditOrderTypeCategory={
-                canEditCategory ? handleEditOrderTypeCategory : undefined
-              }
-              onCreateOrderTypeCategory={
+              onEdit={canEditCategory ? handleEditOrderTypeCategory : undefined}
+              onCreate={
                 canCreateCategory ? handleCreateOrderTypeCategory : undefined
               }
               onRefresh={refetchOrderTypeCategory}
-              onFilterChange={setCategoryFilters}
+              onFilterChange={handleCategoryFilterChange}
               moduleId={moduleId}
-              transactionId={transactionId}
+              transactionId={transactionIdCategory}
+              canEdit={canEditCategory}
+              canDelete={canDeleteCategory}
+              canView={canViewCategory}
+              canCreate={canCreateCategory}
             />
+          ) : (
+            <div className="py-8 text-center">
+              <p className="text-muted-foreground">
+                {ordertypesCategoryResult === 0
+                  ? "No data available"
+                  : "Loading..."}
+              </p>
+            </div>
           )}
         </TabsContent>
       </Tabs>
@@ -626,7 +638,7 @@ export default function OrderTypePage() {
           <Separator />
           <OrderTypeForm
             initialData={modalMode !== "create" ? selectedOrderType : undefined}
-            submitAction={handleFormSubmit}
+            submitAction={handleOrderTypeSubmit}
             onCancel={() => setIsModalOpen(false)}
             isSubmitting={saveMutation.isPending || updateMutation.isPending}
             isReadOnly={modalMode === "view"}
@@ -660,7 +672,7 @@ export default function OrderTypePage() {
             initialData={
               modalMode !== "create" ? selectedOrderTypeCategory : undefined
             }
-            submitAction={handleFormSubmit}
+            submitAction={handleOrderTypeCategorySubmit}
             onCancel={() => setIsCategoryModalOpen(false)}
             isSubmitting={
               saveCategoryMutation.isPending || updateCategoryMutation.isPending

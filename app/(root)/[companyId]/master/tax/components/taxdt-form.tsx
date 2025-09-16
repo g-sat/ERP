@@ -22,7 +22,7 @@ import CustomNumberInput from "@/components/ui-custom/custom-number-input"
 
 interface TaxDtFormProps {
   initialData?: ITaxDt | null
-  submitAction: (data: TaxDtFormValues) => Promise<void>
+  submitAction: (data: TaxDtFormValues) => void
   onCancel: () => void
   isSubmitting: boolean
   isReadOnly?: boolean
@@ -55,14 +55,14 @@ export function TaxDtForm({
     },
   })
 
-  const onSubmit = async (data: TaxDtFormValues) => {
-    await submitAction(data)
+  const onSubmit = (data: TaxDtFormValues) => {
+    submitAction(data)
   }
 
   return (
     <div className="max-w flex flex-col gap-2">
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pt-6">
           <div className="grid gap-3">
             <div className="grid grid-cols-3 gap-2">
               <TaxAutocomplete
@@ -97,7 +97,7 @@ export function TaxDtForm({
                 initialData.createDate ||
                 initialData.editBy ||
                 initialData.editDate) && (
-                <div className="space-y-6">
+                <div className="space-y-6 pt-6">
                   <div className="border-border border-b pb-4"></div>
 
                   <CustomAccordion

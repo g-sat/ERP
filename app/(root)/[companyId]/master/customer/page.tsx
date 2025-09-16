@@ -551,7 +551,7 @@ export default function CustomerPage() {
           </DialogHeader>
           <CustomerTable
             data={customersData || []}
-            isLoading={isLoadingCustomers || isRefetchingCustomers}
+            isLoading={isLoadingCustomers}
             onCustomerSelect={handleCustomerSelect}
             onFilterChange={handleFilterChange}
             onRefresh={() => refetchCustomers()}

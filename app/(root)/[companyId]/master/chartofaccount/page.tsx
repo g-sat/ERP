@@ -115,7 +115,6 @@ export default function ChartOfAccountPage() {
     data: category1Response,
     refetch: refetch1,
     isLoading: isLoading1,
-    isRefetching: isRefetching1,
   } = useGet<ICoaCategory1>(
     `${CoaCategory1.get}`,
     "coacategory1",
@@ -126,7 +125,6 @@ export default function ChartOfAccountPage() {
     data: category2Response,
     refetch: refetch2,
     isLoading: isLoading2,
-    isRefetching: isRefetching2,
   } = useGet<ICoaCategory2>(
     `${CoaCategory2.get}`,
     "coacategory2",
@@ -137,7 +135,6 @@ export default function ChartOfAccountPage() {
     data: category3Response,
     refetch: refetch3,
     isLoading: isLoading3,
-    isRefetching: isRefetching3,
   } = useGet<ICoaCategory3>(
     `${CoaCategory3.get}`,
     "coacategory3",
@@ -148,7 +145,6 @@ export default function ChartOfAccountPage() {
     data: chartOfAccountsResponse,
     refetch: refetchChart,
     isLoading: isLoadingChart,
-    isRefetching: isRefetchingChart,
   } = useGet<IChartofAccount>(
     `${ChartOfAccount.get}`,
     "chartofaccounts",
@@ -252,19 +248,19 @@ export default function ChartOfAccountPage() {
   // Refetch when filters change
   useEffect(() => {
     if (filters1.search !== undefined) refetch1()
-  }, [filters1.search])
+  }, [filters1.search, refetch1])
 
   useEffect(() => {
     if (filters2.search !== undefined) refetch2()
-  }, [filters2.search])
+  }, [filters2.search, refetch2])
 
   useEffect(() => {
     if (filters3.search !== undefined) refetch3()
-  }, [filters3.search])
+  }, [filters3.search, refetch3])
 
   useEffect(() => {
     if (filtersChart.search !== undefined) refetchChart()
-  }, [filtersChart.search])
+  }, [filtersChart.search, refetchChart])
 
   // Action handlers
   const handleCreateChartOfAccount = () => {
@@ -376,9 +372,7 @@ export default function ChartOfAccountPage() {
   const handleApiResponse = (
     response: ApiResponse<
       IChartofAccount | ICoaCategory1 | ICoaCategory2 | ICoaCategory3
-    >,
-    successMessage: string,
-    errorPrefix: string
+    >
   ) => {
     if (response.result === 1) {
       return true
@@ -394,26 +388,14 @@ export default function ChartOfAccountPage() {
         const response = (await saveMutationChart.mutateAsync(
           data
         )) as ApiResponse<IChartofAccount>
-        if (
-          handleApiResponse(
-            response,
-            "Chart of Account created successfully",
-            "Create Chart of Account"
-          )
-        ) {
+        if (handleApiResponse(response)) {
           queryClient.invalidateQueries({ queryKey: ["chartofaccounts"] })
         }
       } else if (modalMode === "edit" && selectedChartOfAccount) {
         const response = (await updateMutationChart.mutateAsync(
           data
         )) as ApiResponse<IChartofAccount>
-        if (
-          handleApiResponse(
-            response,
-            "Chart of Account updated successfully",
-            "Update Chart of Account"
-          )
-        ) {
+        if (handleApiResponse(response)) {
           queryClient.invalidateQueries({ queryKey: ["chartofaccounts"] })
         }
       }
@@ -428,26 +410,14 @@ export default function ChartOfAccountPage() {
         const response = (await saveMutation1.mutateAsync(
           data
         )) as ApiResponse<ICoaCategory1>
-        if (
-          handleApiResponse(
-            response,
-            "Category 1 created successfully",
-            "Create Category 1"
-          )
-        ) {
+        if (handleApiResponse(response)) {
           queryClient.invalidateQueries({ queryKey: ["coacategory1"] })
         }
       } else if (modalMode === "edit" && selectedCategory1) {
         const response = (await updateMutation1.mutateAsync(
           data
         )) as ApiResponse<ICoaCategory1>
-        if (
-          handleApiResponse(
-            response,
-            "Category 1 updated successfully",
-            "Update Category 1"
-          )
-        ) {
+        if (handleApiResponse(response)) {
           queryClient.invalidateQueries({ queryKey: ["coacategory1"] })
         }
       }
@@ -462,26 +432,14 @@ export default function ChartOfAccountPage() {
         const response = (await saveMutation2.mutateAsync(
           data
         )) as ApiResponse<ICoaCategory2>
-        if (
-          handleApiResponse(
-            response,
-            "Category 2 created successfully",
-            "Create Category 2"
-          )
-        ) {
+        if (handleApiResponse(response)) {
           queryClient.invalidateQueries({ queryKey: ["coacategory2"] })
         }
       } else if (modalMode === "edit" && selectedCategory2) {
         const response = (await updateMutation2.mutateAsync(
           data
         )) as ApiResponse<ICoaCategory2>
-        if (
-          handleApiResponse(
-            response,
-            "Category 2 updated successfully",
-            "Update Category 2"
-          )
-        ) {
+        if (handleApiResponse(response)) {
           queryClient.invalidateQueries({ queryKey: ["coacategory2"] })
         }
       }
@@ -496,26 +454,14 @@ export default function ChartOfAccountPage() {
         const response = (await saveMutation3.mutateAsync(
           data
         )) as ApiResponse<ICoaCategory3>
-        if (
-          handleApiResponse(
-            response,
-            "Category 3 created successfully",
-            "Create Category 3"
-          )
-        ) {
+        if (handleApiResponse(response)) {
           queryClient.invalidateQueries({ queryKey: ["coacategory3"] })
         }
       } else if (modalMode === "edit" && selectedCategory3) {
         const response = (await updateMutation3.mutateAsync(
           data
         )) as ApiResponse<ICoaCategory3>
-        if (
-          handleApiResponse(
-            response,
-            "Category 3 updated successfully",
-            "Update Category 3"
-          )
-        ) {
+        if (handleApiResponse(response)) {
           queryClient.invalidateQueries({ queryKey: ["coacategory3"] })
         }
       }
@@ -828,7 +774,7 @@ export default function ChartOfAccountPage() {
         </TabsList>
 
         <TabsContent value="chartofaccount" className="space-y-4">
-          {isLoadingChart || isRefetchingChart ? (
+          {isLoadingChart ? (
             <DataTableSkeleton
               columnCount={8}
               filterCount={2}
@@ -875,7 +821,7 @@ export default function ChartOfAccountPage() {
         </TabsContent>
 
         <TabsContent value="category1" className="space-y-4">
-          {isLoading1 || isRefetching1 ? (
+          {isLoading1 ? (
             <DataTableSkeleton
               columnCount={8}
               filterCount={2}
@@ -924,7 +870,7 @@ export default function ChartOfAccountPage() {
         </TabsContent>
 
         <TabsContent value="category2" className="space-y-4">
-          {isLoading2 || isRefetching2 ? (
+          {isLoading2 ? (
             <DataTableSkeleton
               columnCount={8}
               filterCount={2}
@@ -973,7 +919,7 @@ export default function ChartOfAccountPage() {
         </TabsContent>
 
         <TabsContent value="category3" className="space-y-4">
-          {isLoading3 || isRefetching3 ? (
+          {isLoading3 ? (
             <DataTableSkeleton
               columnCount={8}
               filterCount={2}

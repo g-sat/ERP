@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { ApiResponse } from "@/interfaces/auth"
 import { ICategory, ICategoryFilter } from "@/interfaces/category"
 import { CategoryFormValues } from "@/schemas/category"
@@ -45,7 +45,15 @@ export default function CategoryPage() {
 
   const [filters, setFilters] = useState<ICategoryFilter>({})
   const [isLocked, setIsLocked] = useState(false)
-  const [isEmpty, setIsEmpty] = useState(false)
+
+  // Filter handler wrapper
+  const handleFilterChange = useCallback(
+    (newFilters: { search?: string; sortOrder?: string }) => {
+      console.log("Filter change called with:", newFilters)
+      setFilters(newFilters as ICategoryFilter)
+    },
+    []
+  )
 
   const {
     data: categorysResponse,
@@ -66,13 +74,11 @@ export default function CategoryPage() {
     if (!categorysResponse) return
 
     if (categorysResponse.result === -1) {
-      setIsEmpty(true)
       setFilters({})
     } else if (categorysResponse.result === -2 && !isLocked) {
       setIsLocked(true)
     } else if (categorysResponse.result !== -2) {
       setIsLocked(false)
-      setIsEmpty(false)
     }
   }, [categorysResponse, isLocked])
 
@@ -246,7 +252,7 @@ export default function CategoryPage() {
         </div>
       </div>
 
-      {isLoading || isRefetching ? (
+      {isLoading ? (
         <DataTableSkeleton
           columnCount={7}
           filterCount={2}
@@ -264,13 +270,13 @@ export default function CategoryPage() {
       ) : categorysResult === -2 ? (
         <LockSkeleton locked={true}>
           <CategorysTable
-            data={isEmpty ? [] : categorysData || []}
+            data={filters.search ? [] : categorysData || []}
             onSelect={canView ? handleViewCategory : undefined}
             onDelete={canDelete ? handleDeleteCategory : undefined}
             onEdit={canEdit ? handleEditCategory : undefined}
             onCreate={canCreate ? handleCreateCategory : undefined}
             onRefresh={handleRefresh}
-            onFilterChange={setFilters}
+            onFilterChange={handleFilterChange}
             moduleId={moduleId}
             transactionId={transactionId}
             // Pass permissions to table
@@ -282,13 +288,14 @@ export default function CategoryPage() {
         </LockSkeleton>
       ) : categorysResult ? (
         <CategorysTable
-          data={isEmpty ? [] : categorysData || []}
+          data={filters.search ? [] : categorysData || []}
+          isLoading={isLoading}
           onSelect={canView ? handleViewCategory : undefined}
           onDelete={canDelete ? handleDeleteCategory : undefined}
           onEdit={canEdit ? handleEditCategory : undefined}
           onCreate={canCreate ? handleCreateCategory : undefined}
           onRefresh={handleRefresh}
-          onFilterChange={setFilters}
+          onFilterChange={handleFilterChange}
           moduleId={moduleId}
           transactionId={transactionId}
           // Pass permissions to table

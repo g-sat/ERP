@@ -527,7 +527,7 @@ export default function BankPage() {
           </DialogHeader>
           <BankTable
             data={banksData || []}
-            isLoading={isLoadingBanks || isRefetchingBanks}
+            isLoading={isLoadingBanks}
             onBankSelect={handleBankSelect}
             onFilterChange={handleFilterChange}
             onRefresh={() => refetchBanks()}

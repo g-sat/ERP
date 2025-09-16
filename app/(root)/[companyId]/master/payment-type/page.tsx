@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { ApiResponse } from "@/interfaces/auth"
 import { IPaymentType, IPaymentTypeFilter } from "@/interfaces/paymenttype"
 import { PaymentTypeFormValues } from "@/schemas/paymenttype"
@@ -39,6 +39,15 @@ export default function PaymentTypePage() {
   const canCreate = hasPermission(moduleId, transactionId, "isCreate")
 
   const [filters, setFilters] = useState<IPaymentTypeFilter>({})
+
+  // Filter handler wrapper
+  const handleFilterChange = useCallback(
+    (newFilters: { search?: string; sortOrder?: string }) => {
+      console.log("Filter change called with:", newFilters)
+      setFilters(newFilters as IPaymentTypeFilter)
+    },
+    []
+  )
   const {
     data: paymentTypesResponse,
     refetch,
@@ -91,10 +100,7 @@ export default function PaymentTypePage() {
     `${PaymentType.getByCode}`,
     "paymentTypeByCode",
 
-    codeToCheck,
-    {
-      enabled: !!codeToCheck && codeToCheck.trim() !== "",
-    }
+    codeToCheck
   )
 
   const queryClient = useQueryClient()
@@ -267,7 +273,7 @@ export default function PaymentTypePage() {
         </div>
       </div>
 
-      {isLoading || isRefetching ? (
+      {isLoading ? (
         <DataTableSkeleton
           columnCount={7}
           filterCount={2}
@@ -285,15 +291,16 @@ export default function PaymentTypePage() {
       ) : paymentTypesResult === -2 ? (
         <LockSkeleton locked={true}>
           <PaymentTypesTable
-            data={paymentTypesData || []}
+            data={[]}
             onSelect={canView ? handleViewPaymentType : undefined}
             onDelete={canDelete ? handleDeletePaymentType : undefined}
             onEdit={canEdit ? handleEditPaymentType : undefined}
             onCreate={canCreate ? handleCreatePaymentType : undefined}
             onRefresh={handleRefresh}
-            onFilterChange={setFilters}
+            onFilterChange={handleFilterChange}
             moduleId={moduleId}
             transactionId={transactionId}
+            isLoading={false}
             // Pass permissions to table
             canEdit={canEdit}
             canDelete={canDelete}
@@ -303,15 +310,16 @@ export default function PaymentTypePage() {
         </LockSkeleton>
       ) : paymentTypesResult ? (
         <PaymentTypesTable
-          data={paymentTypesData || []}
+          data={filters.search ? [] : paymentTypesData || []}
           onSelect={canView ? handleViewPaymentType : undefined}
           onDelete={canDelete ? handleDeletePaymentType : undefined}
           onEdit={canEdit ? handleEditPaymentType : undefined}
           onCreate={canCreate ? handleCreatePaymentType : undefined}
           onRefresh={handleRefresh}
-          onFilterChange={setFilters}
+          onFilterChange={handleFilterChange}
           moduleId={moduleId}
           transactionId={transactionId}
+          isLoading={isLoading}
           // Pass permissions to table
           canEdit={canEdit}
           canDelete={canDelete}

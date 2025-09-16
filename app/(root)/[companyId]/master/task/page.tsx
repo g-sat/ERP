@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { ApiResponse } from "@/interfaces/auth"
 import { ITask, ITaskFilter } from "@/interfaces/task"
 import { TaskFormValues } from "@/schemas/task"
@@ -39,6 +39,15 @@ export default function TaskPage() {
   const canCreate = hasPermission(moduleId, transactionId, "isCreate")
 
   const [filters, setFilters] = useState<ITaskFilter>({})
+
+  // Filter handler wrapper
+  const handleFilterChange = useCallback(
+    (newFilters: { search?: string; sortOrder?: string }) => {
+      console.log("Filter change called with:", newFilters)
+      setFilters(newFilters as ITaskFilter)
+    },
+    []
+  )
   const {
     data: tasksResponse,
     refetch,
@@ -97,11 +106,7 @@ export default function TaskPage() {
   const { refetch: checkCodeAvailability } = useGetById<ITask>(
     `${Task.getByCode}`,
     "taskByCode",
-
-    codeToCheck,
-    {
-      enabled: !!codeToCheck && codeToCheck.trim() !== "",
-    }
+    codeToCheck
   )
 
   const queryClient = useQueryClient()
@@ -267,7 +272,7 @@ export default function TaskPage() {
         </div>
       </div>
 
-      {isLoading || isRefetching ? (
+      {isLoading ? (
         <DataTableSkeleton
           columnCount={7}
           filterCount={2}
@@ -285,28 +290,40 @@ export default function TaskPage() {
       ) : tasksResult === -2 ? (
         <LockSkeleton locked={true}>
           <TasksTable
-            data={tasksData || []}
-            onTaskSelect={canView ? handleViewTask : undefined}
-            onDeleteTask={canDelete ? handleDeleteTask : undefined}
-            onEditTask={canEdit ? handleEditTask : undefined}
-            onCreateTask={canCreate ? handleCreateTask : undefined}
+            data={[]}
+            onSelect={canView ? handleViewTask : undefined}
+            onDelete={canDelete ? handleDeleteTask : undefined}
+            onEdit={canEdit ? handleEditTask : undefined}
+            onCreate={canCreate ? handleCreateTask : undefined}
             onRefresh={handleRefresh}
-            onFilterChange={setFilters}
+            onFilterChange={handleFilterChange}
             moduleId={moduleId}
             transactionId={transactionId}
+            isLoading={false}
+            // Pass permissions to table
+            canEdit={canEdit}
+            canDelete={canDelete}
+            canView={canView}
+            canCreate={canCreate}
           />
         </LockSkeleton>
       ) : tasksResult ? (
         <TasksTable
-          data={tasksData || []}
-          onTaskSelect={canView ? handleViewTask : undefined}
-          onDeleteTask={canDelete ? handleDeleteTask : undefined}
-          onEditTask={canEdit ? handleEditTask : undefined}
-          onCreateTask={canCreate ? handleCreateTask : undefined}
+          data={filters.search ? [] : tasksData || []}
+          onSelect={canView ? handleViewTask : undefined}
+          onDelete={canDelete ? handleDeleteTask : undefined}
+          onEdit={canEdit ? handleEditTask : undefined}
+          onCreate={canCreate ? handleCreateTask : undefined}
           onRefresh={handleRefresh}
-          onFilterChange={setFilters}
+          onFilterChange={handleFilterChange}
           moduleId={moduleId}
           transactionId={transactionId}
+          isLoading={isLoading}
+          // Pass permissions to table
+          canEdit={canEdit}
+          canDelete={canDelete}
+          canView={canView}
+          canCreate={canCreate}
         />
       ) : (
         <div className="py-8 text-center">

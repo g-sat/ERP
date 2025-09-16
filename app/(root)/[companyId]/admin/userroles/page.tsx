@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useCallback, useState } from "react"
 import { IUserRole, IUserRoleFilter } from "@/interfaces/admin"
 import { ApiResponse } from "@/interfaces/auth"
 import { UserRoleFormValues } from "@/schemas/admin"
@@ -37,7 +37,14 @@ export default function AdminUserRolesPage() {
   const canView = hasPermission(moduleId, transactionIdRole, "isRead")
   const canCreate = hasPermission(moduleId, transactionIdRole, "isCreate")
 
+  console.log("Current canEdit:", canEdit)
+  console.log("Current canDelete:", canDelete)
+  console.log("Current canView:", canView)
+  console.log("Current canCreate:", canCreate)
+
   const [roleFilters, setRoleFilters] = useState<IUserRoleFilter>({})
+
+  console.log("Current roleFilters:", roleFilters)
 
   const {
     data: userRolesResponse,
@@ -67,11 +74,11 @@ export default function AdminUserRolesPage() {
   // State for delete confirmation
   const [deleteConfirmation, setDeleteConfirmation] = useState<{
     isOpen: boolean
-    roleId: string | null
+    userRoleId: string | null
     roleName: string | null
   }>({
     isOpen: false,
-    roleId: null,
+    userRoleId: null,
     roleName: null,
   })
 
@@ -86,11 +93,13 @@ export default function AdminUserRolesPage() {
 
   const queryClient = useQueryClient()
 
-  useEffect(() => {
-    if (roleFilters.search !== undefined) {
-      refetchUserRoles()
-    }
-  }, [roleFilters.search, refetchUserRoles])
+  const handleFilterChange = useCallback(
+    (filters: { search?: string; sortOrder?: string }) => {
+      console.log("Filter change called with:", filters)
+      setRoleFilters(filters as IUserRoleFilter)
+    },
+    []
+  )
 
   const handleCreateUserRole = () => {
     setModalMode("create")
@@ -111,29 +120,29 @@ export default function AdminUserRolesPage() {
     setIsRoleModalOpen(true)
   }
 
-  const handleDeleteUserRole = (roleId: string) => {
+  const handleDeleteUserRole = (userRoleId: string) => {
     const roleToDelete = userRolesData?.find(
-      (r) => r.userRoleId.toString() === roleId
+      (r) => r.userRoleId.toString() === userRoleId
     )
     if (!roleToDelete) return
 
     // Open delete confirmation dialog with role details
     setDeleteConfirmation({
       isOpen: true,
-      roleId,
+      userRoleId: userRoleId,
       roleName: roleToDelete.userRoleName,
     })
   }
 
   const handleConfirmDelete = () => {
-    if (deleteConfirmation.roleId) {
-      deleteRoleMutation.mutateAsync(deleteConfirmation.roleId).then(() => {
+    if (deleteConfirmation.userRoleId) {
+      deleteRoleMutation.mutateAsync(deleteConfirmation.userRoleId).then(() => {
         // Invalidate and refetch the userroles query after successful deletion
         queryClient.invalidateQueries({ queryKey: ["userroles"] })
       })
       setDeleteConfirmation({
         isOpen: false,
-        roleId: null,
+        userRoleId: null,
         roleName: null,
       })
     }
@@ -218,16 +227,14 @@ export default function AdminUserRolesPage() {
       ) : (userRolesResponse as ApiResponse<IUserRole>)?.result === -2 ? (
         <LockSkeleton locked={true}>
           <UserRoleTable
-            data={userRolesData || []}
-            isLoading={isLoadingUserRoles}
+            data={[]}
+            isLoading={false}
             onSelect={canView ? handleViewUserRole : undefined}
             onDelete={canDelete ? handleDeleteUserRole : undefined}
             onEdit={canEdit ? handleEditUserRole : undefined}
             onCreate={canCreate ? handleCreateUserRole : undefined}
             onRefresh={refetchUserRoles}
-            onFilterChange={(filters) =>
-              setRoleFilters(filters as IUserRoleFilter)
-            }
+            onFilterChange={handleFilterChange}
             moduleId={moduleId}
             transactionId={transactionIdRole}
             canEdit={canEdit}
@@ -238,16 +245,14 @@ export default function AdminUserRolesPage() {
         </LockSkeleton>
       ) : (
         <UserRoleTable
-          data={userRolesData || []}
+          data={roleFilters.search ? [] : userRolesData || []}
           isLoading={isLoadingUserRoles}
           onSelect={canView ? handleViewUserRole : undefined}
           onDelete={canDelete ? handleDeleteUserRole : undefined}
           onEdit={canEdit ? handleEditUserRole : undefined}
           onCreate={canCreate ? handleCreateUserRole : undefined}
           onRefresh={refetchUserRoles}
-          onFilterChange={(filters) =>
-            setRoleFilters(filters as IUserRoleFilter)
-          }
+          onFilterChange={handleFilterChange}
           moduleId={moduleId}
           transactionId={transactionIdRole}
           canEdit={canEdit}
@@ -297,7 +302,7 @@ export default function AdminUserRolesPage() {
             isSubmitting={
               saveRoleMutation.isPending || updateRoleMutation.isPending
             }
-            isReadOnly={modalMode === "view" || modalMode === "edit"}
+            isReadOnly={modalMode === "view"}
             onSaveConfirmation={handleSaveConfirmation}
           />
         </DialogContent>
@@ -316,7 +321,7 @@ export default function AdminUserRolesPage() {
         onCancel={() =>
           setDeleteConfirmation({
             isOpen: false,
-            roleId: null,
+            userRoleId: null,
             roleName: null,
           })
         }

@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useCallback, useState } from "react"
 import { IAccountType, IAccountTypeFilter } from "@/interfaces/accounttype"
 import { ApiResponse } from "@/interfaces/auth"
 import { AccountTypeFormValues } from "@/schemas/accounttype"
@@ -41,18 +41,18 @@ export default function AccountTypePage() {
   const [filters, setFilters] = useState<IAccountTypeFilter>({})
 
   // Filter handler wrapper
-  const handleFilterChange = (newFilters: {
-    search?: string
-    sortOrder?: string
-  }) => {
-    setFilters(newFilters as IAccountTypeFilter)
-  }
+  const handleFilterChange = useCallback(
+    (newFilters: { search?: string; sortOrder?: string }) => {
+      console.log("Filter change called with:", newFilters)
+      setFilters(newFilters as IAccountTypeFilter)
+    },
+    []
+  )
 
   const {
     data: accountTypesResponse,
     refetch,
     isLoading,
-    isRefetching,
   } = useGet<IAccountType>(`${AccountType.get}`, "accountTypes", filters.search)
 
   // Destructure with fallback values
@@ -105,7 +105,6 @@ export default function AccountTypePage() {
   const { refetch: checkCodeAvailability } = useGetById<IAccountType>(
     `${AccountType.getByCode}`,
     "accountTypeByCode",
-
     codeToCheck
   )
 
@@ -266,23 +265,6 @@ export default function AccountTypePage() {
 
   const queryClient = useQueryClient()
 
-  // Add useEffect hooks to track state changes
-  useEffect(() => {
-    console.log("Modal Mode Updated:", modalMode)
-  }, [modalMode])
-
-  useEffect(() => {
-    if (selectedAccountType) {
-      console.log("Selected Account Type Updated:", {
-        accTypeId: selectedAccountType.accTypeId,
-        accTypeCode: selectedAccountType.accTypeCode,
-        accTypeName: selectedAccountType.accTypeName,
-        // Log all other relevant fields
-        fullObject: selectedAccountType,
-      })
-    }
-  }, [selectedAccountType])
-
   return (
     <div className="container mx-auto space-y-4 px-4 py-4 sm:space-y-6 sm:px-6 sm:py-6">
       {/* Header Section */}
@@ -298,7 +280,7 @@ export default function AccountTypePage() {
       </div>
 
       {/* Account Types Table */}
-      {isLoading || isRefetching ? (
+      {isLoading ? (
         <DataTableSkeleton
           columnCount={7}
           filterCount={2}
@@ -313,9 +295,10 @@ export default function AccountTypePage() {
           ]}
           shrinkZero
         />
-      ) : accountTypesResult ? (
+      ) : accountTypesResult === -2 ? (
         <AccountTypesTable
-          data={accountTypesData || []}
+          data={[]}
+          isLoading={false}
           onSelect={canView ? handleViewAccountType : undefined}
           onDelete={canDelete ? handleDeleteAccountType : undefined}
           onEdit={canEdit ? handleEditAccountType : undefined}
@@ -331,11 +314,23 @@ export default function AccountTypePage() {
           canCreate={canCreate}
         />
       ) : (
-        <div className="py-8 text-center">
-          <p className="text-muted-foreground">
-            {accountTypesResult === 0 ? "No data available" : "Loading..."}
-          </p>
-        </div>
+        <AccountTypesTable
+          data={filters.search ? [] : accountTypesData || []}
+          isLoading={isLoading}
+          onSelect={canView ? handleViewAccountType : undefined}
+          onDelete={canDelete ? handleDeleteAccountType : undefined}
+          onEdit={canEdit ? handleEditAccountType : undefined}
+          onCreate={canCreate ? handleCreateAccountType : undefined}
+          onRefresh={handleRefresh}
+          onFilterChange={handleFilterChange}
+          moduleId={moduleId}
+          transactionId={transactionId}
+          // Pass permissions to table
+          canEdit={canEdit}
+          canDelete={canDelete}
+          canView={canView}
+          canCreate={canCreate}
+        />
       )}
 
       {/* Modal for Create, Edit, and View */}

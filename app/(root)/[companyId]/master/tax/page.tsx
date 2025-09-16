@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { ApiResponse } from "@/interfaces/auth"
 import {
   ITax,
@@ -71,12 +71,45 @@ export default function TaxPage() {
     transactionIdCategory,
     "isDelete"
   )
+  const canView = hasPermission(moduleId, transactionId, "isRead")
   const canCreateDt = hasPermission(moduleId, transactionIdDt, "isCreate")
   const canEditDt = hasPermission(moduleId, transactionIdDt, "isEdit")
   const canDeleteDt = hasPermission(moduleId, transactionIdDt, "isDelete")
+  const canViewDt = hasPermission(moduleId, transactionIdDt, "isRead")
+  const canViewCategory = hasPermission(
+    moduleId,
+    transactionIdCategory,
+    "isRead"
+  )
 
   // State for filters
   const [filters, setFilters] = useState<ITaxFilter>({})
+
+  // Filter change handlers
+  const handleFilterChange = useCallback(
+    (newFilters: { search?: string; sortOrder?: string }) => {
+      console.log("Tax filter change called with:", newFilters)
+      setFilters(newFilters as ITaxFilter)
+    },
+    []
+  )
+
+  const handleDtFilterChange = useCallback(
+    (newFilters: { search?: string; sortOrder?: string }) => {
+      console.log("Tax Dt filter change called with:", newFilters)
+      setDtFilters(newFilters as ITaxFilter)
+    },
+    []
+  )
+
+  const handleCategoryFilterChange = useCallback(
+    (newFilters: { search?: string; sortOrder?: string }) => {
+      console.log("Tax Category filter change called with:", newFilters)
+      setCategoryFilters(newFilters as ITaxCategoryFilter)
+    },
+    []
+  )
+
   const [dtFilters, setDtFilters] = useState<ITaxFilter>({})
   const [categoryFilters, setCategoryFilters] = useState<ITaxCategoryFilter>({})
 
@@ -85,32 +118,43 @@ export default function TaxPage() {
     data: taxsResponse,
     refetch: refetchTax,
     isLoading: isLoadingTax,
-    isRefetching: isRefetchingTax,
   } = useGet<ITax>(`${Tax.get}`, "taxs", filters.search)
 
   const {
     data: taxsDtResponse,
     refetch: refetchTaxDt,
     isLoading: isLoadingTaxDt,
-    isRefetching: isRefetchingTaxDt,
   } = useGet<ITaxDt>(`${TaxDt.get}`, "taxsdt", dtFilters.search)
 
   const {
     data: taxsCategoryResponse,
     refetch: refetchTaxCategory,
     isLoading: isLoadingTaxCategory,
-    isRefetching: isRefetchingTaxCategory,
   } = useGet<ITaxCategory>(
     `${TaxCategory.get}`,
     "taxcategory",
     categoryFilters.search
   )
 
-  // Extract data from responses
-  const taxsData = (taxsResponse as ApiResponse<ITax>)?.data || []
-  const taxsDtData = (taxsDtResponse as ApiResponse<ITaxDt>)?.data || []
-  const taxsCategoryData =
-    (taxsCategoryResponse as ApiResponse<ITaxCategory>)?.data || []
+  // Extract data from responses with fallback values
+  const { result: taxsResult, data: taxsData } =
+    (taxsResponse as ApiResponse<ITax>) ?? {
+      result: 0,
+      message: "",
+      data: [],
+    }
+  const { result: taxsDtResult, data: taxsDtData } =
+    (taxsDtResponse as ApiResponse<ITaxDt>) ?? {
+      result: 0,
+      message: "",
+      data: [],
+    }
+  const { result: taxsCategoryResult, data: taxsCategoryData } =
+    (taxsCategoryResponse as ApiResponse<ITaxCategory>) ?? {
+      result: 0,
+      message: "",
+      data: [],
+    }
 
   // Mutations
   const saveMutation = usePersist<TaxFormValues>(`${Tax.add}`)
@@ -230,9 +274,7 @@ export default function TaxPage() {
 
   // Helper function for API responses
   const handleApiResponse = (
-    response: ApiResponse<any>,
-    successMessage: string,
-    errorPrefix: string
+    response: ApiResponse<ITax | ITaxDt | ITaxCategory>
   ) => {
     if (response.result === 1) {
       return true
@@ -248,18 +290,14 @@ export default function TaxPage() {
         const response = (await saveMutation.mutateAsync(
           data
         )) as ApiResponse<ITax>
-        if (
-          handleApiResponse(response, "GST created successfully", "Create GST")
-        ) {
+        if (handleApiResponse(response)) {
           queryClient.invalidateQueries({ queryKey: ["taxs"] })
         }
       } else if (modalMode === "edit" && selectedTax) {
         const response = (await updateMutation.mutateAsync(
           data
         )) as ApiResponse<ITax>
-        if (
-          handleApiResponse(response, "GST updated successfully", "Update GST")
-        ) {
+        if (handleApiResponse(response)) {
           queryClient.invalidateQueries({ queryKey: ["taxs"] })
         }
       }
@@ -274,26 +312,14 @@ export default function TaxPage() {
         const response = (await saveDtMutation.mutateAsync(
           data
         )) as ApiResponse<ITaxDt>
-        if (
-          handleApiResponse(
-            response,
-            "GST Details created successfully",
-            "Create GST Details"
-          )
-        ) {
+        if (handleApiResponse(response)) {
           queryClient.invalidateQueries({ queryKey: ["taxsdt"] })
         }
       } else if (modalMode === "edit" && selectedTaxDt) {
         const response = (await updateDtMutation.mutateAsync(
           data
         )) as ApiResponse<ITaxDt>
-        if (
-          handleApiResponse(
-            response,
-            "GST Details updated successfully",
-            "Update GST Details"
-          )
-        ) {
+        if (handleApiResponse(response)) {
           queryClient.invalidateQueries({ queryKey: ["taxsdt"] })
         }
       }
@@ -308,26 +334,14 @@ export default function TaxPage() {
         const response = (await saveCategoryMutation.mutateAsync(
           data
         )) as ApiResponse<ITaxCategory>
-        if (
-          handleApiResponse(
-            response,
-            "GST Category created successfully",
-            "Create GST Category"
-          )
-        ) {
+        if (handleApiResponse(response)) {
           queryClient.invalidateQueries({ queryKey: ["taxcategory"] })
         }
       } else if (modalMode === "edit" && selectedTaxCategory) {
         const response = (await updateCategoryMutation.mutateAsync(
           data
         )) as ApiResponse<ITaxCategory>
-        if (
-          handleApiResponse(
-            response,
-            "GST Category updated successfully",
-            "Update GST Category"
-          )
-        ) {
+        if (handleApiResponse(response)) {
           queryClient.invalidateQueries({ queryKey: ["taxcategory"] })
         }
       }
@@ -336,15 +350,41 @@ export default function TaxPage() {
     }
   }
 
-  // Main form submit handler
-  const handleFormSubmit = async (
+  // State for save confirmations
+  const [saveConfirmation, setSaveConfirmation] = useState<{
+    isOpen: boolean
+    data: TaxFormValues | TaxDtFormValues | TaxCategoryFormValues | null
+    type: "tax" | "taxdt" | "taxcategory"
+  }>({
+    isOpen: false,
+    data: null,
+    type: "tax",
+  })
+
+  // Main form submit handler - shows confirmation first
+  const handleFormSubmit = (
+    data: TaxFormValues | TaxDtFormValues | TaxCategoryFormValues
+  ) => {
+    let type: "tax" | "taxdt" | "taxcategory" = "tax"
+    if (isDtModalOpen) type = "taxdt"
+    else if (isCategoryModalOpen) type = "taxcategory"
+
+    setSaveConfirmation({
+      isOpen: true,
+      data: data,
+      type: type,
+    })
+  }
+
+  // Handler for confirmed form submission
+  const handleConfirmedFormSubmit = async (
     data: TaxFormValues | TaxDtFormValues | TaxCategoryFormValues
   ) => {
     try {
-      if (isDtModalOpen) {
+      if (saveConfirmation.type === "taxdt") {
         await handleTaxDtSubmit(data as TaxDtFormValues)
         setIsDtModalOpen(false)
-      } else if (isCategoryModalOpen) {
+      } else if (saveConfirmation.type === "taxcategory") {
         await handleTaxCategorySubmit(data as TaxCategoryFormValues)
         setIsCategoryModalOpen(false)
       } else {
@@ -411,14 +451,14 @@ export default function TaxPage() {
     }
 
     mutation.mutateAsync(deleteConfirmation.id).then(() => {
-      queryClient.invalidateQueries({ queryKey: [deleteConfirmation.queryKey] })
+      queryClient.invalidateQueries({ queryKey: [deleteConfirmation.type] })
     })
 
     setDeleteConfirmation({
       isOpen: false,
       id: null,
       name: null,
-      type: "tax",
+      type: deleteConfirmation.type,
     })
   }
 
@@ -502,7 +542,7 @@ export default function TaxPage() {
         </TabsList>
 
         <TabsContent value="taxs" className="space-y-4">
-          {isLoadingTax || isRefetchingTax ? (
+          {isLoadingTax ? (
             <DataTableSkeleton
               columnCount={8}
               filterCount={2}
@@ -518,39 +558,53 @@ export default function TaxPage() {
               ]}
               shrinkZero
             />
-          ) : (taxsResponse as ApiResponse<ITax>)?.result === -2 ? (
+          ) : taxsResult === -2 ? (
             <LockSkeleton locked={true}>
               <TaxTable
-                data={taxsData}
-                isLoading={isLoadingTax}
-                onTaxSelect={handleViewTax}
-                onDeleteTax={canDelete ? handleDeleteTax : undefined}
-                onEditTax={canEdit ? handleEditTax : undefined}
-                onCreateTax={canCreate ? handleCreateTax : undefined}
+                data={[]}
+                isLoading={false}
+                onSelect={canView ? handleViewTax : undefined}
+                onDelete={canDelete ? handleDeleteTax : undefined}
+                onEdit={canEdit ? handleEditTax : undefined}
+                onCreate={canCreate ? handleCreateTax : undefined}
                 onRefresh={refetchTax}
-                onFilterChange={setFilters}
+                onFilterChange={handleFilterChange}
                 moduleId={moduleId}
                 transactionId={transactionId}
+                canEdit={canEdit}
+                canDelete={canDelete}
+                canView={canView}
+                canCreate={canCreate}
               />
             </LockSkeleton>
-          ) : (
+          ) : taxsResult ? (
             <TaxTable
-              data={taxsData}
+              data={filters.search ? [] : taxsData || []}
               isLoading={isLoadingTax}
-              onTaxSelect={handleViewTax}
-              onDeleteTax={canDelete ? handleDeleteTax : undefined}
-              onEditTax={canEdit ? handleEditTax : undefined}
-              onCreateTax={canCreate ? handleCreateTax : undefined}
+              onSelect={canView ? handleViewTax : undefined}
+              onDelete={canDelete ? handleDeleteTax : undefined}
+              onEdit={canEdit ? handleEditTax : undefined}
+              onCreate={canCreate ? handleCreateTax : undefined}
               onRefresh={refetchTax}
-              onFilterChange={setFilters}
+              onFilterChange={handleFilterChange}
               moduleId={moduleId}
               transactionId={transactionId}
+              canEdit={canEdit}
+              canDelete={canDelete}
+              canView={canView}
+              canCreate={canCreate}
             />
+          ) : (
+            <div className="py-8 text-center">
+              <p className="text-muted-foreground">
+                {taxsResult === 0 ? "No data available" : "Loading..."}
+              </p>
+            </div>
           )}
         </TabsContent>
 
         <TabsContent value="taxsdt" className="space-y-4">
-          {isLoadingTaxDt || isRefetchingTaxDt ? (
+          {isLoadingTaxDt ? (
             <DataTableSkeleton
               columnCount={8}
               filterCount={2}
@@ -566,39 +620,53 @@ export default function TaxPage() {
               ]}
               shrinkZero
             />
-          ) : (taxsDtResponse as ApiResponse<ITaxDt>)?.result === -2 ? (
+          ) : taxsDtResult === -2 ? (
             <LockSkeleton locked={true}>
               <TaxDtTable
-                data={taxsDtData}
-                isLoading={isLoadingTaxDt}
-                onTaxDtSelect={handleViewTaxDt}
-                onDeleteTaxDt={canDeleteDt ? handleDeleteTaxDt : undefined}
-                onEditTaxDt={canEditDt ? handleEditTaxDt : undefined}
-                onCreateTaxDt={canCreateDt ? handleCreateTaxDt : undefined}
+                data={[]}
+                isLoading={false}
+                onSelect={canViewDt ? handleViewTaxDt : undefined}
+                onDelete={canDeleteDt ? handleDeleteTaxDt : undefined}
+                onEdit={canEditDt ? handleEditTaxDt : undefined}
+                onCreate={canCreateDt ? handleCreateTaxDt : undefined}
                 onRefresh={refetchTaxDt}
-                onFilterChange={setDtFilters}
+                onFilterChange={handleDtFilterChange}
                 moduleId={moduleId}
                 transactionId={transactionIdDt}
+                canEdit={canEditDt}
+                canDelete={canDeleteDt}
+                canView={canViewDt}
+                canCreate={canCreateDt}
               />
             </LockSkeleton>
-          ) : (
+          ) : taxsDtResult ? (
             <TaxDtTable
-              data={taxsDtData}
+              data={dtFilters.search ? [] : taxsDtData || []}
               isLoading={isLoadingTaxDt}
-              onTaxDtSelect={handleViewTaxDt}
-              onDeleteTaxDt={canDeleteDt ? handleDeleteTaxDt : undefined}
-              onEditTaxDt={canEditDt ? handleEditTaxDt : undefined}
-              onCreateTaxDt={canCreateDt ? handleCreateTaxDt : undefined}
+              onSelect={canViewDt ? handleViewTaxDt : undefined}
+              onDelete={canDeleteDt ? handleDeleteTaxDt : undefined}
+              onEdit={canEditDt ? handleEditTaxDt : undefined}
+              onCreate={canCreateDt ? handleCreateTaxDt : undefined}
               onRefresh={refetchTaxDt}
-              onFilterChange={setDtFilters}
+              onFilterChange={handleDtFilterChange}
               moduleId={moduleId}
               transactionId={transactionIdDt}
+              canEdit={canEditDt}
+              canDelete={canDeleteDt}
+              canView={canViewDt}
+              canCreate={canCreateDt}
             />
+          ) : (
+            <div className="py-8 text-center">
+              <p className="text-muted-foreground">
+                {taxsDtResult === 0 ? "No data available" : "Loading..."}
+              </p>
+            </div>
           )}
         </TabsContent>
 
         <TabsContent value="taxscategory" className="space-y-4">
-          {isLoadingTaxCategory || isRefetchingTaxCategory ? (
+          {isLoadingTaxCategory ? (
             <DataTableSkeleton
               columnCount={8}
               filterCount={2}
@@ -614,47 +682,52 @@ export default function TaxPage() {
               ]}
               shrinkZero
             />
-          ) : (taxsCategoryResponse as ApiResponse<ITaxCategory>)?.result ===
-            -2 ? (
+          ) : taxsCategoryResult === -2 ? (
             <LockSkeleton locked={true}>
               <TaxCategoryTable
-                data={taxsCategoryData}
-                isLoading={isLoadingTaxCategory}
-                onTaxCategorySelect={handleViewTaxCategory}
-                onDeleteTaxCategory={
+                data={[]}
+                isLoading={false}
+                onSelect={canViewCategory ? handleViewTaxCategory : undefined}
+                onDelete={
                   canDeleteCategory ? handleDeleteTaxCategory : undefined
                 }
-                onEditTaxCategory={
-                  canEditCategory ? handleEditTaxCategory : undefined
-                }
-                onCreateTaxCategory={
+                onEdit={canEditCategory ? handleEditTaxCategory : undefined}
+                onCreate={
                   canCreateCategory ? handleCreateTaxCategory : undefined
                 }
                 onRefresh={refetchTaxCategory}
-                onFilterChange={setCategoryFilters}
+                onFilterChange={handleCategoryFilterChange}
                 moduleId={moduleId}
                 transactionId={transactionIdCategory}
+                canEdit={canEditCategory}
+                canDelete={canDeleteCategory}
+                canView={canViewCategory}
+                canCreate={canCreateCategory}
               />
             </LockSkeleton>
-          ) : (
+          ) : taxsCategoryResult ? (
             <TaxCategoryTable
-              data={taxsCategoryData}
+              data={categoryFilters.search ? [] : taxsCategoryData || []}
               isLoading={isLoadingTaxCategory}
-              onTaxCategorySelect={handleViewTaxCategory}
-              onDeleteTaxCategory={
-                canDeleteCategory ? handleDeleteTaxCategory : undefined
-              }
-              onEditTaxCategory={
-                canEditCategory ? handleEditTaxCategory : undefined
-              }
-              onCreateTaxCategory={
-                canCreateCategory ? handleCreateTaxCategory : undefined
-              }
+              onSelect={canViewCategory ? handleViewTaxCategory : undefined}
+              onDelete={canDeleteCategory ? handleDeleteTaxCategory : undefined}
+              onEdit={canEditCategory ? handleEditTaxCategory : undefined}
+              onCreate={canCreateCategory ? handleCreateTaxCategory : undefined}
               onRefresh={refetchTaxCategory}
-              onFilterChange={setCategoryFilters}
+              onFilterChange={handleCategoryFilterChange}
               moduleId={moduleId}
               transactionId={transactionIdCategory}
+              canEdit={canEditCategory}
+              canDelete={canDeleteCategory}
+              canView={canViewCategory}
+              canCreate={canCreateCategory}
             />
+          ) : (
+            <div className="py-8 text-center">
+              <p className="text-muted-foreground">
+                {taxsCategoryResult === 0 ? "No data available" : "Loading..."}
+              </p>
+            </div>
           )}
         </TabsContent>
       </Tabs>
@@ -809,6 +882,55 @@ export default function TaxPage() {
             : deleteConfirmation.type === "taxdt"
               ? deleteDtMutation.isPending
               : deleteCategoryMutation.isPending
+        }
+      />
+
+      {/* Save Confirmation Dialog */}
+      <SaveConfirmation
+        open={saveConfirmation.isOpen}
+        onOpenChange={(isOpen) =>
+          setSaveConfirmation((prev) => ({ ...prev, isOpen }))
+        }
+        title={
+          modalMode === "create"
+            ? `Create ${saveConfirmation.type.toUpperCase()}`
+            : `Update ${saveConfirmation.type.toUpperCase()}`
+        }
+        itemName={
+          saveConfirmation.type === "tax"
+            ? (saveConfirmation.data as TaxFormValues)?.taxName || ""
+            : saveConfirmation.type === "taxdt"
+              ? (
+                  saveConfirmation.data as TaxDtFormValues
+                )?.taxPercentage?.toString() || ""
+              : (saveConfirmation.data as TaxCategoryFormValues)
+                  ?.taxCategoryName || ""
+        }
+        operationType={modalMode === "create" ? "create" : "update"}
+        onConfirm={() => {
+          if (saveConfirmation.data) {
+            handleConfirmedFormSubmit(saveConfirmation.data)
+          }
+          setSaveConfirmation({
+            isOpen: false,
+            data: null,
+            type: "tax",
+          })
+        }}
+        onCancel={() =>
+          setSaveConfirmation({
+            isOpen: false,
+            data: null,
+            type: "tax",
+          })
+        }
+        isSaving={
+          saveConfirmation.type === "tax"
+            ? saveMutation.isPending || updateMutation.isPending
+            : saveConfirmation.type === "taxdt"
+              ? saveDtMutation.isPending || updateDtMutation.isPending
+              : saveCategoryMutation.isPending ||
+                updateCategoryMutation.isPending
         }
       />
     </div>

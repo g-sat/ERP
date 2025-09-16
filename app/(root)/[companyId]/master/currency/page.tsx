@@ -154,39 +154,39 @@ export default function CurrencyPage() {
   // Refetch when filters change
   useEffect(() => {
     if (filters.search !== undefined) currencyQuery.refetch()
-  }, [filters.search])
+  }, [filters.search, currencyQuery])
 
   useEffect(() => {
     if (dtFilters.search !== undefined) currencyDtQuery.refetch()
-  }, [dtFilters.search])
+  }, [dtFilters.search, currencyDtQuery])
 
   useEffect(() => {
     if (localDtFilters.search !== undefined) currencyLocalDtQuery.refetch()
-  }, [localDtFilters.search])
+  }, [localDtFilters.search, currencyLocalDtQuery])
 
   // Action handlers
   const handleCurrencyAction = useCallback(
-    (action: "create" | "edit" | "view", currency?: ICurrency) => {
+    (action: "create" | "edit" | "view", currency?: ICurrency | null) => {
       setModalStates({
         currency: true,
         dt: false,
         localDt: false,
         mode: action,
       })
-      setSelectedCurrency(currency)
+      setSelectedCurrency(currency || undefined)
     },
     []
   )
 
   const handleCurrencyDtAction = useCallback(
-    (action: "create" | "edit" | "view", currencyDt?: ICurrencyDt) => {
+    (action: "create" | "edit" | "view", currencyDt?: ICurrencyDt | null) => {
       setModalStates({
         currency: false,
         dt: true,
         localDt: false,
         mode: action,
       })
-      setSelectedCurrencyDt(currencyDt)
+      setSelectedCurrencyDt(currencyDt || undefined)
     },
     []
   )
@@ -194,7 +194,7 @@ export default function CurrencyPage() {
   const handleCurrencyLocalDtAction = useCallback(
     (
       action: "create" | "edit" | "view",
-      currencyLocalDt?: ICurrencyLocalDt
+      currencyLocalDt?: ICurrencyLocalDt | null
     ) => {
       setModalStates({
         currency: false,
@@ -202,37 +202,36 @@ export default function CurrencyPage() {
         localDt: true,
         mode: action,
       })
-      setSelectedCurrencyLocalDt(currencyLocalDt)
+      setSelectedCurrencyLocalDt(currencyLocalDt || undefined)
     },
     []
   )
 
   // Filter handlers
-  const handleCurrencyFilterChange = useCallback((filters: ICurrencyFilter) => {
-    setFilters(filters)
-  }, [])
+  const handleCurrencyFilterChange = useCallback(
+    (newFilters: { search?: string; sortOrder?: string }) => {
+      setFilters(newFilters as ICurrencyFilter)
+    },
+    []
+  )
 
   const handleCurrencyDtFilterChange = useCallback(
-    (filters: ICurrencyFilter) => {
-      setDtFilters(filters)
+    (newFilters: { search?: string; sortOrder?: string }) => {
+      setDtFilters(newFilters as ICurrencyFilter)
     },
     []
   )
 
   const handleCurrencyLocalDtFilterChange = useCallback(
-    (filters: ICurrencyFilter) => {
-      setLocalDtFilters(filters)
+    (newFilters: { search?: string; sortOrder?: string }) => {
+      setLocalDtFilters(newFilters as ICurrencyFilter)
     },
     []
   )
 
   // Helper function for API responses
   const handleApiResponse = useCallback(
-    (
-      response: ApiResponse<ICurrency | ICurrencyDt | ICurrencyLocalDt>,
-      successMessage: string,
-      errorPrefix: string
-    ) => {
+    (response: ApiResponse<ICurrency | ICurrencyDt | ICurrencyLocalDt>) => {
       if (response.result === 1) {
         return true
       } else {
@@ -241,6 +240,21 @@ export default function CurrencyPage() {
     },
     []
   )
+
+  // State for save confirmations
+  const [saveConfirmation, setSaveConfirmation] = useState<{
+    isOpen: boolean
+    data:
+      | CurrencyFormValues
+      | CurrencyDtFormValues
+      | CurrencyLocalDtFormValues
+      | null
+    type: "currency" | "currencydt" | "currencylocaldt"
+  }>({
+    isOpen: false,
+    data: null,
+    type: "currency",
+  })
 
   // Form submission handlers
   const handleCurrencySubmit = useCallback(
@@ -255,17 +269,7 @@ export default function CurrencyPage() {
           data
         )) as ApiResponse<ICurrency>
 
-        if (
-          handleApiResponse(
-            response,
-            modalStates.mode === "create"
-              ? "Currency created successfully"
-              : "Currency updated successfully",
-            modalStates.mode === "create"
-              ? "Create Currency"
-              : "Update Currency"
-          )
-        ) {
+        if (handleApiResponse(response)) {
           queryClient.invalidateQueries({ queryKey: ["currencies"] })
           setModalStates((prev) => ({ ...prev, currency: false }))
         }
@@ -273,7 +277,13 @@ export default function CurrencyPage() {
         console.error("Currency form submission error:", error)
       }
     },
-    [modalStates.mode, handleApiResponse]
+    [
+      modalStates.mode,
+      handleApiResponse,
+      currencyMutations.save,
+      currencyMutations.update,
+      queryClient,
+    ]
   )
 
   const handleCurrencyDtSubmit = useCallback(
@@ -286,17 +296,7 @@ export default function CurrencyPage() {
           data
         )) as ApiResponse<ICurrencyDt>
 
-        if (
-          handleApiResponse(
-            response,
-            modalStates.mode === "create"
-              ? "Currency details created successfully"
-              : "Currency details updated successfully",
-            modalStates.mode === "create"
-              ? "Create Currency Details"
-              : "Update Currency Details"
-          )
-        ) {
+        if (handleApiResponse(response)) {
           queryClient.invalidateQueries({ queryKey: ["currencyDt"] })
           setModalStates((prev) => ({ ...prev, dt: false }))
         }
@@ -304,7 +304,13 @@ export default function CurrencyPage() {
         console.error("Currency details form submission error:", error)
       }
     },
-    [modalStates.mode, handleApiResponse]
+    [
+      modalStates.mode,
+      handleApiResponse,
+      dtMutations.save,
+      dtMutations.update,
+      queryClient,
+    ]
   )
 
   const handleCurrencyLocalDtSubmit = useCallback(
@@ -319,17 +325,7 @@ export default function CurrencyPage() {
           data
         )) as ApiResponse<ICurrencyLocalDt>
 
-        if (
-          handleApiResponse(
-            response,
-            modalStates.mode === "create"
-              ? "Local currency details created successfully"
-              : "Local currency details updated successfully",
-            modalStates.mode === "create"
-              ? "Create Local Currency Details"
-              : "Update Local Currency Details"
-          )
-        ) {
+        if (handleApiResponse(response)) {
           queryClient.invalidateQueries({ queryKey: ["currencyLocalDt"] })
           setModalStates((prev) => ({ ...prev, localDt: false }))
         }
@@ -337,8 +333,46 @@ export default function CurrencyPage() {
         console.error("Local currency details form submission error:", error)
       }
     },
-    [modalStates.mode, handleApiResponse]
+    [
+      modalStates.mode,
+      handleApiResponse,
+      localDtMutations.save,
+      localDtMutations.update,
+      queryClient,
+    ]
   )
+
+  // Main form submit handler - shows confirmation first
+  const handleFormSubmit = (
+    data: CurrencyFormValues | CurrencyDtFormValues | CurrencyLocalDtFormValues
+  ) => {
+    let type: "currency" | "currencydt" | "currencylocaldt" = "currency"
+    if (modalStates.dt) type = "currencydt"
+    else if (modalStates.localDt) type = "currencylocaldt"
+
+    setSaveConfirmation({
+      isOpen: true,
+      data: data,
+      type: type,
+    })
+  }
+
+  // Handler for confirmed form submission
+  const handleConfirmedFormSubmit = async (
+    data: CurrencyFormValues | CurrencyDtFormValues | CurrencyLocalDtFormValues
+  ) => {
+    try {
+      if (saveConfirmation.type === "currencydt") {
+        await handleCurrencyDtSubmit(data as CurrencyDtFormValues)
+      } else if (saveConfirmation.type === "currencylocaldt") {
+        await handleCurrencyLocalDtSubmit(data as CurrencyLocalDtFormValues)
+      } else {
+        await handleCurrencySubmit(data as CurrencyFormValues)
+      }
+    } catch (error) {
+      console.error("Form submission error:", error)
+    }
+  }
 
   // Delete handlers
   const handleDelete = useCallback(
@@ -370,7 +404,7 @@ export default function CurrencyPage() {
     try {
       await mutation.mutateAsync(deleteConfirmation.id).then(() => {
         queryClient.invalidateQueries({
-          queryKey: [deleteConfirmation.queryKey],
+          queryKey: [deleteConfirmation.type],
         })
       })
 
@@ -394,7 +428,13 @@ export default function CurrencyPage() {
         type: "currency",
       })
     }
-  }, [deleteConfirmation])
+  }, [
+    deleteConfirmation,
+    currencyMutations.delete,
+    dtMutations.delete,
+    localDtMutations.delete,
+    queryClient,
+  ])
 
   // Duplicate detection
   const handleCodeBlur = useCallback(
@@ -538,14 +578,15 @@ export default function CurrencyPage() {
             <LockSkeleton locked={true}>
               <CurrenciesTable
                 data={currenciesData || []}
-                onCurrencySelect={
+                onSelect={
                   permissions.currency.view
-                    ? (currency) => handleCurrencyAction("view", currency)
+                    ? (currency: ICurrency | null) =>
+                        handleCurrencyAction("view", currency)
                     : undefined
                 }
-                onDeleteCurrency={
+                onDelete={
                   permissions.currency.delete
-                    ? (id) =>
+                    ? (id: string) =>
                         handleDelete(
                           "currency",
                           id,
@@ -555,12 +596,13 @@ export default function CurrencyPage() {
                         )
                     : undefined
                 }
-                onEditCurrency={
+                onEdit={
                   permissions.currency.edit
-                    ? (currency) => handleCurrencyAction("edit", currency)
+                    ? (currency: ICurrency) =>
+                        handleCurrencyAction("edit", currency)
                     : undefined
                 }
-                onCreateCurrency={
+                onCreate={
                   permissions.currency.create
                     ? () => handleCurrencyAction("create")
                     : undefined
@@ -574,14 +616,15 @@ export default function CurrencyPage() {
           ) : (
             <CurrenciesTable
               data={currenciesData || []}
-              onCurrencySelect={
+              onSelect={
                 permissions.currency.view
-                  ? (currency) => handleCurrencyAction("view", currency)
+                  ? (currency: ICurrency | null) =>
+                      handleCurrencyAction("view", currency)
                   : undefined
               }
-              onDeleteCurrency={
+              onDelete={
                 permissions.currency.delete
-                  ? (id) =>
+                  ? (id: string) =>
                       handleDelete(
                         "currency",
                         id,
@@ -591,12 +634,13 @@ export default function CurrencyPage() {
                       )
                   : undefined
               }
-              onEditCurrency={
+              onEdit={
                 permissions.currency.edit
-                  ? (currency) => handleCurrencyAction("edit", currency)
+                  ? (currency: ICurrency) =>
+                      handleCurrencyAction("edit", currency)
                   : undefined
               }
-              onCreateCurrency={
+              onCreate={
                 permissions.currency.create
                   ? () => handleCurrencyAction("create")
                   : undefined
@@ -633,14 +677,15 @@ export default function CurrencyPage() {
               <CurrencyDtsTable
                 data={currencyDtData || []}
                 isLoading={isLoadingStates.dt}
-                onCurrencyDtSelect={
+                onSelect={
                   permissions.dt.view
-                    ? (dt) => handleCurrencyDtAction("view", dt)
+                    ? (dt: ICurrencyDt | null) =>
+                        handleCurrencyDtAction("view", dt)
                     : undefined
                 }
-                onDeleteCurrencyDt={
+                onDelete={
                   permissions.dt.delete
-                    ? (id) =>
+                    ? (id: string) =>
                         handleDelete(
                           "currencydt",
                           id,
@@ -650,12 +695,12 @@ export default function CurrencyPage() {
                         )
                     : undefined
                 }
-                onEditCurrencyDt={
+                onEdit={
                   permissions.dt.edit
-                    ? (dt) => handleCurrencyDtAction("edit", dt)
+                    ? (dt: ICurrencyDt) => handleCurrencyDtAction("edit", dt)
                     : undefined
                 }
-                onCreateCurrencyDt={
+                onCreate={
                   permissions.dt.create
                     ? () => handleCurrencyDtAction("create")
                     : undefined
@@ -670,14 +715,15 @@ export default function CurrencyPage() {
             <CurrencyDtsTable
               data={currencyDtData || []}
               isLoading={isLoadingStates.dt}
-              onCurrencyDtSelect={
+              onSelect={
                 permissions.dt.view
-                  ? (dt) => handleCurrencyDtAction("view", dt)
+                  ? (dt: ICurrencyDt | null) =>
+                      handleCurrencyDtAction("view", dt)
                   : undefined
               }
-              onDeleteCurrencyDt={
+              onDelete={
                 permissions.dt.delete
-                  ? (id) =>
+                  ? (id: string) =>
                       handleDelete(
                         "currencydt",
                         id,
@@ -687,12 +733,12 @@ export default function CurrencyPage() {
                       )
                   : undefined
               }
-              onEditCurrencyDt={
+              onEdit={
                 permissions.dt.edit
-                  ? (dt) => handleCurrencyDtAction("edit", dt)
+                  ? (dt: ICurrencyDt) => handleCurrencyDtAction("edit", dt)
                   : undefined
               }
-              onCreateCurrencyDt={
+              onCreate={
                 permissions.dt.create
                   ? () => handleCurrencyDtAction("create")
                   : undefined
@@ -729,14 +775,15 @@ export default function CurrencyPage() {
               <CurrencyLocalDtsTable
                 data={currencyLocalDtData || []}
                 isLoading={isLoadingStates.localDt}
-                onCurrencyLocalDtSelect={
+                onSelect={
                   permissions.localDt.view
-                    ? (localDt) => handleCurrencyLocalDtAction("view", localDt)
+                    ? (localDt: ICurrencyLocalDt | null) =>
+                        handleCurrencyLocalDtAction("view", localDt)
                     : undefined
                 }
-                onDeleteCurrencyLocalDt={
+                onDelete={
                   permissions.localDt.delete
-                    ? (id) =>
+                    ? (id: string) =>
                         handleDelete(
                           "currencylocaldt",
                           id,
@@ -746,12 +793,13 @@ export default function CurrencyPage() {
                         )
                     : undefined
                 }
-                onEditCurrencyLocalDt={
+                onEdit={
                   permissions.localDt.edit
-                    ? (localDt) => handleCurrencyLocalDtAction("edit", localDt)
+                    ? (localDt: ICurrencyLocalDt) =>
+                        handleCurrencyLocalDtAction("edit", localDt)
                     : undefined
                 }
-                onCreateCurrencyLocalDt={
+                onCreate={
                   permissions.localDt.create
                     ? () => handleCurrencyLocalDtAction("create")
                     : undefined
@@ -766,14 +814,15 @@ export default function CurrencyPage() {
             <CurrencyLocalDtsTable
               data={currencyLocalDtData || []}
               isLoading={isLoadingStates.localDt}
-              onCurrencyLocalDtSelect={
+              onSelect={
                 permissions.localDt.view
-                  ? (localDt) => handleCurrencyLocalDtAction("view", localDt)
+                  ? (localDt: ICurrencyLocalDt | null) =>
+                      handleCurrencyLocalDtAction("view", localDt)
                   : undefined
               }
-              onDeleteCurrencyLocalDt={
+              onDelete={
                 permissions.localDt.delete
-                  ? (id) =>
+                  ? (id: string) =>
                       handleDelete(
                         "currencylocaldt",
                         id,
@@ -783,12 +832,13 @@ export default function CurrencyPage() {
                       )
                   : undefined
               }
-              onEditCurrencyLocalDt={
+              onEdit={
                 permissions.localDt.edit
-                  ? (localDt) => handleCurrencyLocalDtAction("edit", localDt)
+                  ? (localDt: ICurrencyLocalDt) =>
+                      handleCurrencyLocalDtAction("edit", localDt)
                   : undefined
               }
-              onCreateCurrencyLocalDt={
+              onCreate={
                 permissions.localDt.create
                   ? () => handleCurrencyLocalDtAction("create")
                   : undefined
@@ -824,7 +874,7 @@ export default function CurrencyPage() {
             initialData={
               modalStates.mode !== "create" ? selectedCurrency : undefined
             }
-            submitAction={handleCurrencySubmit}
+            submitAction={handleFormSubmit}
             onCancel={() =>
               setModalStates((prev) => ({ ...prev, currency: false }))
             }
@@ -860,7 +910,7 @@ export default function CurrencyPage() {
             initialData={
               modalStates.mode !== "create" ? selectedCurrencyDt : undefined
             }
-            submitAction={handleCurrencyDtSubmit}
+            submitAction={handleFormSubmit}
             onCancel={() => setModalStates((prev) => ({ ...prev, dt: false }))}
             isSubmitting={
               (modalStates.mode === "create" && dtMutations.save.isPending) ||
@@ -895,7 +945,7 @@ export default function CurrencyPage() {
                 ? selectedCurrencyLocalDt
                 : undefined
             }
-            submitAction={handleCurrencyLocalDtSubmit}
+            submitAction={handleFormSubmit}
             onCancel={() =>
               setModalStates((prev) => ({ ...prev, localDt: false }))
             }
@@ -947,6 +997,57 @@ export default function CurrencyPage() {
             : deleteConfirmation.type === "currencydt"
               ? dtMutations.delete.isPending
               : localDtMutations.delete.isPending
+        }
+      />
+
+      {/* Save Confirmation Dialog */}
+      <SaveConfirmation
+        open={saveConfirmation.isOpen}
+        onOpenChange={(isOpen) =>
+          setSaveConfirmation((prev) => ({ ...prev, isOpen }))
+        }
+        title={
+          modalStates.mode === "create"
+            ? `Create ${saveConfirmation.type.toUpperCase()}`
+            : `Update ${saveConfirmation.type.toUpperCase()}`
+        }
+        itemName={
+          saveConfirmation.type === "currency"
+            ? (saveConfirmation.data as CurrencyFormValues)?.currencyName || ""
+            : saveConfirmation.type === "currencydt"
+              ? (
+                  saveConfirmation.data as CurrencyDtFormValues
+                )?.currencyId?.toString() || ""
+              : (
+                  saveConfirmation.data as CurrencyLocalDtFormValues
+                )?.currencyId?.toString() || ""
+        }
+        operationType={modalStates.mode === "create" ? "create" : "update"}
+        onConfirm={() => {
+          if (saveConfirmation.data) {
+            handleConfirmedFormSubmit(saveConfirmation.data)
+          }
+          setSaveConfirmation({
+            isOpen: false,
+            data: null,
+            type: "currency",
+          })
+        }}
+        onCancel={() =>
+          setSaveConfirmation({
+            isOpen: false,
+            data: null,
+            type: "currency",
+          })
+        }
+        isSaving={
+          saveConfirmation.type === "currency"
+            ? currencyMutations.save.isPending ||
+              currencyMutations.update.isPending
+            : saveConfirmation.type === "currencydt"
+              ? dtMutations.save.isPending || dtMutations.update.isPending
+              : localDtMutations.save.isPending ||
+                localDtMutations.update.isPending
         }
       />
     </div>

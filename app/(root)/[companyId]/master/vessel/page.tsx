@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { ApiResponse } from "@/interfaces/auth"
 import { IVessel, IVesselFilter } from "@/interfaces/vessel"
 import { VesselFormValues } from "@/schemas/vessel"
@@ -38,6 +38,15 @@ export default function VesselPage() {
   const canCreate = hasPermission(moduleId, transactionId, "isCreate")
 
   const [filters, setFilters] = useState<IVesselFilter>({})
+
+  // Filter handler wrapper
+  const handleFilterChange = useCallback(
+    (newFilters: { search?: string; sortOrder?: string }) => {
+      console.log("Filter change called with:", newFilters)
+      setFilters(newFilters as IVesselFilter)
+    },
+    []
+  )
   const {
     data: vesselsResponse,
     refetch,
@@ -96,11 +105,7 @@ export default function VesselPage() {
   const { refetch: checkCodeAvailability } = useGetById<IVessel>(
     `${Vessel.getByCode}`,
     "vesselByCode",
-
-    codeToCheck,
-    {
-      enabled: !!codeToCheck && codeToCheck.trim() !== "",
-    }
+    codeToCheck
   )
 
   const queryClient = useQueryClient()
@@ -270,7 +275,7 @@ export default function VesselPage() {
         </div>
       </div>
 
-      {isLoading || isRefetching ? (
+      {isLoading ? (
         <DataTableSkeleton
           columnCount={7}
           filterCount={2}
@@ -285,17 +290,41 @@ export default function VesselPage() {
           ]}
           shrinkZero
         />
-      ) : vesselsResult ? (
+      ) : vesselsResult === -2 ? (
         <VesselsTable
-          data={vesselsData || []}
-          onVesselSelect={canView ? handleViewVessel : undefined}
-          onDeleteVessel={canDelete ? handleDeleteVessel : undefined}
-          onEditVessel={canEdit ? handleEditVessel : undefined}
-          onCreateVessel={canCreate ? handleCreateVessel : undefined}
+          data={[]}
+          onSelect={canView ? handleViewVessel : undefined}
+          onDelete={canDelete ? handleDeleteVessel : undefined}
+          onEdit={canEdit ? handleEditVessel : undefined}
+          onCreate={canCreate ? handleCreateVessel : undefined}
           onRefresh={handleRefresh}
-          onFilterChange={setFilters}
+          onFilterChange={handleFilterChange}
           moduleId={moduleId}
           transactionId={transactionId}
+          isLoading={false}
+          // Pass permissions to table
+          canEdit={canEdit}
+          canDelete={canDelete}
+          canView={canView}
+          canCreate={canCreate}
+        />
+      ) : vesselsResult ? (
+        <VesselsTable
+          data={filters.search ? [] : vesselsData || []}
+          onSelect={canView ? handleViewVessel : undefined}
+          onDelete={canDelete ? handleDeleteVessel : undefined}
+          onEdit={canEdit ? handleEditVessel : undefined}
+          onCreate={canCreate ? handleCreateVessel : undefined}
+          onRefresh={handleRefresh}
+          onFilterChange={handleFilterChange}
+          moduleId={moduleId}
+          transactionId={transactionId}
+          isLoading={isLoading}
+          // Pass permissions to table
+          canEdit={canEdit}
+          canDelete={canDelete}
+          canView={canView}
+          canCreate={canCreate}
         />
       ) : (
         <div className="py-8 text-center">

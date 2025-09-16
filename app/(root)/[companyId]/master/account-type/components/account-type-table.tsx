@@ -81,7 +81,7 @@ export function AccountTypesTable({
     },
     {
       accessorKey: "seqNo",
-      header: "Sequence",
+      header: "Seq No",
       cell: ({ row }) => <div>{row.getValue("seqNo") || "-"}</div>,
       size: 100,
       minSize: 50,

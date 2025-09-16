@@ -63,14 +63,14 @@ export function ServiceTypeForm({
   return (
     <div className="max-w flex flex-col gap-2">
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pt-6">
           <div className="grid gap-2">
             <div className="grid grid-cols-3 gap-2">
               <ServiceTypeCategoryAutocomplete
                 form={form}
                 name="serviceTypeCategoryId"
                 label="ServiceType Category"
-                isDisabled={isReadOnly || isSubmitting}
+                isDisabled={isReadOnly || Boolean(initialData)}
                 isRequired={true}
               />
 
@@ -78,8 +78,8 @@ export function ServiceTypeForm({
                 form={form}
                 name="serviceTypeCode"
                 label="ServiceType Code"
-                isRequired
-                isDisabled={isReadOnly || isSubmitting}
+                isRequired={true}
+                isDisabled={isReadOnly}
                 onBlurEvent={handleCodeBlur}
               />
 
@@ -87,8 +87,8 @@ export function ServiceTypeForm({
                 form={form}
                 name="serviceTypeName"
                 label="ServiceType Name"
-                isRequired
-                isDisabled={isReadOnly || isSubmitting}
+                isRequired={true}
+                isDisabled={isReadOnly}
               />
 
               <CustomSwitch
@@ -96,7 +96,7 @@ export function ServiceTypeForm({
                 name="isActive"
                 label="Active Status"
                 activeColor="success"
-                isDisabled={isReadOnly || isSubmitting}
+                isDisabled={isReadOnly}
               />
             </div>
 
@@ -104,7 +104,7 @@ export function ServiceTypeForm({
               form={form}
               name="remarks"
               label="Remarks"
-              isDisabled={isReadOnly || isSubmitting}
+              isDisabled={isReadOnly}
             />
             {initialData &&
               (initialData.createBy ||

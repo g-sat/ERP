@@ -60,122 +60,143 @@ export function UomForm({
   }
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <div className="grid gap-2">
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <CustomInput
+    <div className="max-w flex flex-col gap-2">
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pt-6">
+          <div className="grid gap-2">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <CustomInput
+                form={form}
+                name="uomCode"
+                label="UOM Code"
+                placeholder="Enter UOM Code"
+                isRequired={true}
+                isDisabled={isReadOnly || Boolean(initialData)}
+                onBlurEvent={handleCodeBlur}
+              />
+
+              <CustomInput
+                form={form}
+                name="uomName"
+                label="UOM Name"
+                placeholder="Enter UOM Name"
+                isRequired={true}
+                isDisabled={isReadOnly}
+              />
+            </div>
+
+            <CustomTextarea
               form={form}
-              name="uomCode"
-              label="UOM Code"
-              placeholder="Enter UOM Code"
-              isRequired
+              name="remarks"
+              label="Description"
               isDisabled={isReadOnly}
-              onBlurEvent={handleCodeBlur}
             />
 
-            <CustomInput
+            <CustomSwitch
               form={form}
-              name="uomName"
-              label="UOM Name"
-              placeholder="Enter UOM Name"
-              isRequired
+              name="isActive"
+              label="Active Status"
+              activeColor="success"
               isDisabled={isReadOnly}
             />
+
+            {/* Audit Information Section */}
+            {initialData &&
+              (initialData.createBy ||
+                initialData.createDate ||
+                initialData.editBy ||
+                initialData.editDate) && (
+                <div className="space-y-6 pt-6">
+                  <div className="border-border border-b pb-4"></div>
+
+                  <CustomAccordion
+                    type="single"
+                    collapsible
+                    className="border-border bg-muted/50 rounded-lg border"
+                  >
+                    <CustomAccordionItem
+                      value="audit-info"
+                      className="border-none"
+                    >
+                      <CustomAccordionTrigger className="hover:bg-muted rounded-lg px-6 py-4">
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium">View Audit Trail</span>
+                          <Badge variant="secondary" className="text-xs">
+                            {initialData.createDate ? "Created" : ""}
+                            {initialData.editDate ? " • Modified" : ""}
+                          </Badge>
+                        </div>
+                      </CustomAccordionTrigger>
+                      <CustomAccordionContent className="px-6 pb-4">
+                        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                          {initialData.createDate && (
+                            <div className="space-y-2">
+                              <div className="flex items-center justify-between">
+                                <span className="text-foreground text-sm font-medium">
+                                  Created By
+                                </span>
+                                <Badge
+                                  variant="outline"
+                                  className="font-normal"
+                                >
+                                  {initialData.createBy}
+                                </Badge>
+                              </div>
+                              <div className="text-muted-foreground text-sm">
+                                {format(
+                                  new Date(initialData.createDate),
+                                  datetimeFormat
+                                )}
+                              </div>
+                            </div>
+                          )}
+                          {initialData.editBy && (
+                            <div className="space-y-2">
+                              <div className="flex items-center justify-between">
+                                <span className="text-foreground text-sm font-medium">
+                                  Last Modified By
+                                </span>
+                                <Badge
+                                  variant="outline"
+                                  className="font-normal"
+                                >
+                                  {initialData.editBy}
+                                </Badge>
+                              </div>
+                              <div className="text-muted-foreground text-sm">
+                                {initialData.editDate
+                                  ? format(
+                                      new Date(initialData.editDate),
+                                      datetimeFormat
+                                    )
+                                  : "-"}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </CustomAccordionContent>
+                    </CustomAccordionItem>
+                  </CustomAccordion>
+                </div>
+              )}
           </div>
 
-          <CustomTextarea
-            form={form}
-            name="remarks"
-            label="Description"
-            isDisabled={isReadOnly}
-          />
-
-          <CustomSwitch
-            form={form}
-            name="isActive"
-            label="Active Status"
-            activeColor="success"
-            isDisabled={isReadOnly}
-          />
-
-          {initialData &&
-            (initialData.createBy ||
-              initialData.createDate ||
-              initialData.editBy ||
-              initialData.editDate) && (
-              <CustomAccordion
-                type="single"
-                collapsible
-                className="rounded-md border"
-              >
-                <CustomAccordionItem value="audit-info">
-                  <CustomAccordionTrigger className="px-4">
-                    Audit Information
-                  </CustomAccordionTrigger>
-                  <CustomAccordionContent className="px-2">
-                    <div className="grid grid-cols-2 gap-4">
-                      {initialData.createDate && (
-                        <div className="flex items-center justify-between">
-                          <span className="text-muted-foreground text-sm">
-                            Created By
-                          </span>
-                          <div className="flex items-center gap-2">
-                            <Badge variant="outline" className="font-normal">
-                              {initialData.createBy}
-                            </Badge>
-                            <span className="text-muted-foreground text-sm">
-                              {format(
-                                new Date(initialData.createDate),
-                                datetimeFormat
-                              )}
-                            </span>
-                          </div>
-                        </div>
-                      )}
-                      {initialData.editBy && (
-                        <div className="flex items-center justify-between">
-                          <span className="text-muted-foreground text-sm">
-                            Last Edited By
-                          </span>
-                          <div className="flex items-center gap-2">
-                            <Badge variant="outline" className="font-normal">
-                              {initialData.editBy}
-                            </Badge>
-                            <span className="text-muted-foreground text-sm">
-                              {initialData.editDate
-                                ? format(
-                                    new Date(initialData.editDate),
-                                    datetimeFormat
-                                  )
-                                : "-"}
-                            </span>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </CustomAccordionContent>
-                </CustomAccordionItem>
-              </CustomAccordion>
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" type="button" onClick={onCancel}>
+              {isReadOnly ? "Close" : "Cancel"}
+            </Button>
+            {!isReadOnly && (
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting
+                  ? "Saving..."
+                  : initialData
+                    ? "Update UOM"
+                    : "Create UOM"}
+              </Button>
             )}
-        </div>
-
-        {!isReadOnly && (
-          <div className="flex justify-end space-x-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onCancel}
-              disabled={isSubmitting}
-            >
-              Cancel
-            </Button>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Saving..." : "Save"}
-            </Button>
           </div>
-        )}
-      </form>
-    </Form>
+        </form>
+      </Form>
+    </div>
   )
 }

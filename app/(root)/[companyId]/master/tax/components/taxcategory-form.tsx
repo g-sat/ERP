@@ -22,7 +22,7 @@ import CustomTextarea from "@/components/ui-custom/custom-textarea"
 
 interface TaxCategoryFormProps {
   initialData?: ITaxCategory | null
-  submitAction: (data: TaxCategoryFormValues) => Promise<void>
+  submitAction: (data: TaxCategoryFormValues) => void
   onCancel: () => void
   isSubmitting: boolean
   isReadOnly?: boolean
@@ -73,14 +73,14 @@ export function TaxCategoryForm({
     onCodeBlur?.(code)
   }
 
-  const onSubmit = async (data: TaxCategoryFormValues) => {
-    await submitAction(data)
+  const onSubmit = (data: TaxCategoryFormValues) => {
+    submitAction(data)
   }
 
   return (
     <div className="max-w flex flex-col gap-2">
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pt-6">
           <div className="grid gap-3">
             <div className="grid grid-cols-2 gap-2">
               <CustomInput
@@ -88,7 +88,7 @@ export function TaxCategoryForm({
                 name="taxCategoryCode"
                 label="Tax Category Code"
                 isRequired
-                isDisabled={isReadOnly || isSubmitting}
+                isDisabled={isReadOnly || Boolean(initialData)}
                 onBlurEvent={handleCodeBlur}
               />
 
@@ -122,7 +122,7 @@ export function TaxCategoryForm({
                 initialData.createDate ||
                 initialData.editBy ||
                 initialData.editDate) && (
-                <div className="space-y-6">
+                <div className="space-y-6 pt-6">
                   <div className="border-border border-b pb-4"></div>
 
                   <CustomAccordion

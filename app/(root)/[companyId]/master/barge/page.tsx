@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useCallback, useState } from "react"
 import { ApiResponse } from "@/interfaces/auth"
 import { IBarge, IBargeFilter } from "@/interfaces/barge"
 import { BargeFormValues } from "@/schemas/barge"
@@ -39,16 +39,15 @@ export default function BargePage() {
   const canView = hasPermission(moduleId, transactionId, "isRead")
 
   const [filters, setFilters] = useState<IBargeFilter>({})
-  const [isLocked, setIsLocked] = useState(false)
-  const [isEmpty, setIsEmpty] = useState(false)
 
   // Filter handler wrapper
-  const handleFilterChange = (newFilters: {
-    search?: string
-    sortOrder?: string
-  }) => {
-    setFilters(newFilters as IBargeFilter)
-  }
+  const handleFilterChange = useCallback(
+    (newFilters: { search?: string; sortOrder?: string }) => {
+      console.log("Filter change called with:", newFilters)
+      setFilters(newFilters as IBargeFilter)
+    },
+    []
+  )
 
   const {
     data: bargesResponse,
@@ -63,21 +62,6 @@ export default function BargePage() {
       message: "",
       data: [],
     }
-
-  // Handle result = -1 and result = -2 cases
-  useEffect(() => {
-    if (!bargesResponse) return
-
-    if (bargesResponse.result === -1) {
-      setIsEmpty(true)
-      setFilters({})
-    } else if (bargesResponse.result === -2 && !isLocked) {
-      setIsLocked(true)
-    } else if (bargesResponse.result !== -2) {
-      setIsLocked(false)
-      setIsEmpty(false)
-    }
-  }, [bargesResponse, isLocked])
 
   const saveMutation = usePersist<BargeFormValues>(`${Barge.add}`)
   const updateMutation = usePersist<BargeFormValues>(`${Barge.add}`)
@@ -246,7 +230,7 @@ export default function BargePage() {
         </div>
       </div>
 
-      {isLoading || isRefetching ? (
+      {isLoading ? (
         <DataTableSkeleton
           columnCount={7}
           filterCount={2}
@@ -264,7 +248,8 @@ export default function BargePage() {
       ) : bargesResult === -2 ? (
         <LockSkeleton locked={true}>
           <BargesTable
-            data={isEmpty ? [] : bargesData || []}
+            data={[]}
+            isLoading={false}
             onSelect={canView ? handleViewBarge : undefined}
             onDelete={canDelete ? handleDeleteBarge : undefined}
             onEdit={canEdit ? handleEditBarge : undefined}
@@ -280,9 +265,10 @@ export default function BargePage() {
             canCreate={canCreate}
           />
         </LockSkeleton>
-      ) : bargesResult ? (
+      ) : bargesResult === 1 ? (
         <BargesTable
-          data={isEmpty ? [] : bargesData || []}
+          data={filters.search ? [] : bargesData || []}
+          isLoading={isLoading}
           onSelect={canView ? handleViewBarge : undefined}
           onDelete={canDelete ? handleDeleteBarge : undefined}
           onEdit={canEdit ? handleEditBarge : undefined}
@@ -298,7 +284,23 @@ export default function BargePage() {
           canCreate={canCreate}
         />
       ) : (
-        <div>No data available</div>
+        <BargesTable
+          data={[]}
+          isLoading={false}
+          onSelect={canView ? handleViewBarge : undefined}
+          onDelete={canDelete ? handleDeleteBarge : undefined}
+          onEdit={canEdit ? handleEditBarge : undefined}
+          onCreate={canCreate ? handleCreateBarge : undefined}
+          onRefresh={handleRefresh}
+          onFilterChange={handleFilterChange}
+          moduleId={moduleId}
+          transactionId={transactionId}
+          // Pass permissions to table
+          canEdit={canEdit}
+          canDelete={canDelete}
+          canView={canView}
+          canCreate={canCreate}
+        />
       )}
 
       <Dialog

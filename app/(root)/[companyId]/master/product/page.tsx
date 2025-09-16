@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { ApiResponse } from "@/interfaces/auth"
 import { IProduct, IProductFilter } from "@/interfaces/product"
 import { ProductFormValues } from "@/schemas/product"
@@ -39,6 +39,15 @@ export default function ProductPage() {
   const canCreate = hasPermission(moduleId, transactionId, "isCreate")
 
   const [filters, setFilters] = useState<IProductFilter>({})
+
+  // Filter handler wrapper
+  const handleFilterChange = useCallback(
+    (newFilters: { search?: string; sortOrder?: string }) => {
+      console.log("Filter change called with:", newFilters)
+      setFilters(newFilters as IProductFilter)
+    },
+    []
+  )
   const {
     data: productsResponse,
     refetch,
@@ -257,7 +266,7 @@ export default function ProductPage() {
         </div>
       </div>
 
-      {isLoading || isRefetching ? (
+      {isLoading ? (
         <DataTableSkeleton
           columnCount={7}
           filterCount={2}
@@ -272,17 +281,41 @@ export default function ProductPage() {
           ]}
           shrinkZero
         />
-      ) : productsResult ? (
+      ) : productsResult === -2 ? (
         <ProductsTable
-          data={productsData || []}
-          onProductSelect={canView ? handleViewProduct : undefined}
-          onDeleteProduct={canDelete ? handleDeleteProduct : undefined}
-          onEditProduct={canEdit ? handleEditProduct : undefined}
-          onCreateProduct={canCreate ? handleCreateProduct : undefined}
+          data={[]}
+          onSelect={canView ? handleViewProduct : undefined}
+          onDelete={canDelete ? handleDeleteProduct : undefined}
+          onEdit={canEdit ? handleEditProduct : undefined}
+          onCreate={canCreate ? handleCreateProduct : undefined}
           onRefresh={handleRefresh}
-          onFilterChange={setFilters}
+          onFilterChange={handleFilterChange}
           moduleId={moduleId}
           transactionId={transactionId}
+          isLoading={false}
+          // Pass permissions to table
+          canEdit={canEdit}
+          canDelete={canDelete}
+          canView={canView}
+          canCreate={canCreate}
+        />
+      ) : productsResult ? (
+        <ProductsTable
+          data={filters.search ? [] : productsData || []}
+          onSelect={canView ? handleViewProduct : undefined}
+          onDelete={canDelete ? handleDeleteProduct : undefined}
+          onEdit={canEdit ? handleEditProduct : undefined}
+          onCreate={canCreate ? handleCreateProduct : undefined}
+          onRefresh={handleRefresh}
+          onFilterChange={handleFilterChange}
+          moduleId={moduleId}
+          transactionId={transactionId}
+          isLoading={isLoading}
+          // Pass permissions to table
+          canEdit={canEdit}
+          canDelete={canDelete}
+          canView={canView}
+          canCreate={canCreate}
         />
       ) : (
         <div className="py-8 text-center">
