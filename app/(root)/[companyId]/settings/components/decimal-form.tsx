@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { IApiSuccessResponse } from "@/interfaces/auth"
 import { IDecFormat } from "@/interfaces/setting"
 import { DecimalFormValues, decimalFormSchema } from "@/schemas/setting"
@@ -27,12 +27,14 @@ import {
 } from "@/components/ui/select"
 import { Separator } from "@/components/ui/separator"
 import { Skeleton } from "@/components/ui/skeleton"
+import { SaveConfirmation } from "@/components/save-confirmation"
 import { LockSkeleton } from "@/components/skeleton/lock-skeleton"
 import CustomNumberInput from "@/components/ui-custom/custom-number-input"
 
 type DecimalResponse = IApiSuccessResponse<DecimalFormValues>
 
 export function DecimalForm() {
+  const [showSaveConfirmation, setShowSaveConfirmation] = useState(false)
   const { data: decimalResponse, isLoading, isError, refetch } = useDecimalGet()
 
   const { mutate: saveDecimalSettings, isPending } = useDecimalSave()
@@ -80,7 +82,12 @@ export function DecimalForm() {
     }
   }, [decimalResponse, form])
 
-  function onSubmit(formData: DecimalFormValues) {
+  function onSubmit() {
+    setShowSaveConfirmation(true)
+  }
+
+  function handleConfirmSave() {
+    const formData = form.getValues()
     const decimalSettings: IDecFormat = {
       amtDec: formData.amtDec!,
       locAmtDec: formData.locAmtDec!,
@@ -149,76 +156,81 @@ export function DecimalForm() {
 
   const formContent = (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-        <div className="space-y-6">
-          <div className="flex flex-col space-y-2">
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-medium">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-xl font-semibold">
+                {" "}
                 Amount & Quantity Decimal Settings
               </h3>
+              <p className="text-muted-foreground text-sm">
+                Configure the number of decimal places for different types of
+                values in the system
+              </p>
+            </div>
+            {/* Submit Button */}
+            <div className="flex justify-end">
               <Button type="submit" size="sm" disabled={isPending}>
                 {isPending ? "Saving..." : "Save Changes"}
               </Button>
             </div>
-            <p className="text-muted-foreground text-sm">
-              Configure the number of decimal places for different types of
-              values in the system
-            </p>
           </div>
-          <Separator />
-          <div className="grid gap-6 md:grid-cols-3">
-            {[
-              {
-                name: "amtDec" as const,
-                label: "Amount Decimals",
-                round: 0,
-                description: "Number of decimal places for general amounts",
-              },
-              {
-                name: "locAmtDec" as const,
-                label: "Local Amount Decimals",
-                round: 0,
-                description:
-                  "Number of decimal places for local currency amounts",
-              },
-              {
-                name: "ctyAmtDec" as const,
-                label: "Currency Amount Decimals",
-                round: 0,
-                description:
-                  "Number of decimal places for foreign currency amounts",
-              },
-              {
-                name: "priceDec" as const,
-                label: "Price Decimals",
-                round: 0,
-                description: "Number of decimal places for price values",
-              },
-              {
-                name: "qtyDec" as const,
-                label: "Quantity Decimals",
-                round: 0,
-                description: "Number of decimal places for quantity values",
-              },
-              {
-                name: "exhRateDec" as const,
-                label: "Exchange Rate Decimals",
-                round: 0,
-                description: "Number of decimal places for exchange rates",
-              },
-            ].map(({ name, label, round, description }) => (
-              <div key={name} className="space-y-2">
-                <CustomNumberInput
-                  form={form}
-                  name={name}
-                  label={label}
-                  isRequired
-                  round={round}
-                />
-                <p className="text-muted-foreground text-xs">{description}</p>
-              </div>
-            ))}
-          </div>
+        </div>
+
+        <Separator />
+        <div className="grid gap-6 md:grid-cols-3">
+          {[
+            {
+              name: "amtDec" as const,
+              label: "Amount Decimals",
+              round: 0,
+              description: "Number of decimal places for general amounts",
+            },
+            {
+              name: "locAmtDec" as const,
+              label: "Local Amount Decimals",
+              round: 0,
+              description:
+                "Number of decimal places for local currency amounts",
+            },
+            {
+              name: "ctyAmtDec" as const,
+              label: "Currency Amount Decimals",
+              round: 0,
+              description:
+                "Number of decimal places for foreign currency amounts",
+            },
+            {
+              name: "priceDec" as const,
+              label: "Price Decimals",
+              round: 0,
+              description: "Number of decimal places for price values",
+            },
+            {
+              name: "qtyDec" as const,
+              label: "Quantity Decimals",
+              round: 0,
+              description: "Number of decimal places for quantity values",
+            },
+            {
+              name: "exhRateDec" as const,
+              label: "Exchange Rate Decimals",
+              round: 0,
+              description: "Number of decimal places for exchange rates",
+            },
+          ].map(({ name, label, round, description }) => (
+            <div key={name} className="space-y-2">
+              <CustomNumberInput
+                form={form}
+                name={name}
+                label={label}
+                isRequired
+                round={round}
+              />
+              <p className="text-muted-foreground text-xs">{description}</p>
+            </div>
+          ))}
         </div>
 
         {/* Date Format Settings */}
@@ -322,6 +334,15 @@ export function DecimalForm() {
       ) : (
         formContent
       )}
+      <SaveConfirmation
+        title="Save Decimal Settings"
+        itemName="decimal settings"
+        open={showSaveConfirmation}
+        onOpenChange={setShowSaveConfirmation}
+        onConfirm={handleConfirmSave}
+        isSaving={isPending}
+        operationType="save"
+      />
     </div>
   )
 }

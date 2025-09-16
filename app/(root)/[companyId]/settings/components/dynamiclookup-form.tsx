@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { IApiSuccessResponse } from "@/interfaces/auth"
 import {
   DynamicLookupFormValues,
@@ -19,13 +19,16 @@ import {
   FormItem,
   FormLabel,
 } from "@/components/ui/form"
+import { Separator } from "@/components/ui/separator"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Switch } from "@/components/ui/switch"
+import { SaveConfirmation } from "@/components/save-confirmation"
 import { LockSkeleton } from "@/components/skeleton/lock-skeleton"
 
 type DynamicLookupResponse = IApiSuccessResponse<DynamicLookupFormValues>
 
 export function DynamicLookupForm() {
+  const [showSaveConfirmation, setShowSaveConfirmation] = useState(false)
   const {
     data: dynamicLookupResponse,
     isLoading,
@@ -76,9 +79,14 @@ export function DynamicLookupForm() {
     }
   }, [dynamicLookupResponse, form])
 
-  function onSubmit(formData: DynamicLookupFormValues) {
+  function onSubmit() {
+    setShowSaveConfirmation(true)
+  }
+
+  function handleConfirmSave() {
+    const formData = form.getValues()
     saveDynamicLookupSettings(
-      { data: [formData] },
+      { data: formData },
       {
         onSuccess: (response) => {
           const { result, message } = response as DynamicLookupResponse
@@ -142,20 +150,25 @@ export function DynamicLookupForm() {
   const formContent = (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <div className="flex flex-col space-y-2">
+        <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <h3 className="text-xl font-semibold">Dynamic Lookup Settings</h3>
+            <div>
+              <h3 className="text-xl font-semibold">Dynamic Lookup Settings</h3>
+              <p className="text-muted-foreground text-sm">
+                Configure dynamic lookup settings
+              </p>
+            </div>
             {/* Submit Button */}
-            <div className="flex justify-end pt-4">
+            <div className="flex justify-end">
               <Button type="submit" size="sm" disabled={isPending}>
                 {isPending ? "Saving..." : "Save Changes"}
               </Button>
             </div>
           </div>
-          <p className="text-muted-foreground text-sm">
-            Configure dynamic lookup settings
-          </p>
         </div>
+
+        <Separator />
+
         <div className="grid gap-6 md:grid-cols-2">
           <div className="space-y-4">
             <h3 className="text-lg font-medium">Shipping Related</h3>
@@ -251,7 +264,7 @@ export function DynamicLookupForm() {
                   <div className="space-y-0.5">
                     <FormLabel>Supplier Lookup</FormLabel>
                     <div className="text-muted-foreground text-sm">
-                      Enable dynamic lookup for customers
+                      Enable dynamic lookup for suppliers
                     </div>
                   </div>
                   <FormControl>
@@ -296,6 +309,15 @@ export function DynamicLookupForm() {
       ) : (
         formContent
       )}
+      <SaveConfirmation
+        title="Save Dynamic Lookup Settings"
+        itemName="dynamic lookup settings"
+        open={showSaveConfirmation}
+        onOpenChange={setShowSaveConfirmation}
+        onConfirm={handleConfirmSave}
+        isSaving={isPending}
+        operationType="save"
+      />
     </div>
   )
 }

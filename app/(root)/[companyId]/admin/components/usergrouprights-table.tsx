@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import { IUserGroupRights } from "@/interfaces/admin"
 import { ApiResponse } from "@/interfaces/auth"
+import { ColumnDef } from "@tanstack/react-table"
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 
@@ -13,14 +14,8 @@ import {
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Form } from "@/components/ui/form"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
+import { SaveConfirmation } from "@/components/save-confirmation"
+import { RightsTable } from "@/components/table/table-rights"
 import UserGroupAutocomplete from "@/components/ui-custom/autocomplete-usergroup"
 
 type UserGroup = {
@@ -41,6 +36,7 @@ export function UserGroupRightsTable() {
   const [selectedGroup, setSelectedGroup] = useState<UserGroup | null>(null)
   const [groupRights, setGroupRights] = useState<IUserGroupRights[]>([])
   const [saving, setSaving] = useState(false)
+  const [showSaveConfirmation, setShowSaveConfirmation] = useState(false)
 
   // Fetch user group rights for selected group
   const {
@@ -146,8 +142,238 @@ export function UserGroupRightsTable() {
     )
   }
 
+  // Define columns for the table
+  const columns: ColumnDef<IUserGroupRights>[] = [
+    {
+      accessorKey: "moduleName",
+      header: "Module",
+      size: 150,
+    },
+    {
+      accessorKey: "transactionName",
+      header: "Transaction",
+      size: 150,
+    },
+    {
+      id: "selectAll",
+      header: () => (
+        <div className="flex items-center gap-2">
+          <span>Select All</span>
+          <Checkbox
+            checked={
+              groupRights.length > 0 && groupRights.every(isRowAllSelected)
+            }
+            onCheckedChange={(checked) => {
+              const isChecked = Boolean(checked)
+              setGroupRights((prev) =>
+                prev.map((right) => ({
+                  ...right,
+                  isRead: isChecked,
+                  isCreate: isChecked,
+                  isEdit: isChecked,
+                  isDelete: isChecked,
+                  isExport: isChecked,
+                  isPrint: isChecked,
+                }))
+              )
+            }}
+          />
+        </div>
+      ),
+      cell: ({ row }) => (
+        <Checkbox
+          checked={isRowAllSelected(row.original)}
+          onCheckedChange={(checked) =>
+            handleRowSelectAll(
+              row.original.moduleId,
+              row.original.transactionId,
+              Boolean(checked)
+            )
+          }
+        />
+      ),
+      size: 100,
+    },
+    {
+      id: "isRead",
+      header: () => (
+        <div className="flex items-center gap-2">
+          <span>View</span>
+          <Checkbox
+            checked={isColumnAllSelected("isRead")}
+            onCheckedChange={(checked) =>
+              handleColumnSelectAll("isRead", Boolean(checked))
+            }
+          />
+        </div>
+      ),
+      cell: ({ row }) => (
+        <Checkbox
+          checked={row.original.isRead}
+          onCheckedChange={(checked) =>
+            handlePermissionChange(
+              row.original.moduleId,
+              row.original.transactionId,
+              "isRead",
+              Boolean(checked)
+            )
+          }
+        />
+      ),
+      size: 100,
+    },
+    {
+      id: "isCreate",
+      header: () => (
+        <div className="flex items-center gap-2">
+          <span>Create</span>
+          <Checkbox
+            checked={isColumnAllSelected("isCreate")}
+            onCheckedChange={(checked) =>
+              handleColumnSelectAll("isCreate", Boolean(checked))
+            }
+          />
+        </div>
+      ),
+      cell: ({ row }) => (
+        <Checkbox
+          checked={row.original.isCreate}
+          onCheckedChange={(checked) =>
+            handlePermissionChange(
+              row.original.moduleId,
+              row.original.transactionId,
+              "isCreate",
+              Boolean(checked)
+            )
+          }
+        />
+      ),
+      size: 100,
+    },
+    {
+      id: "isEdit",
+      header: () => (
+        <div className="flex items-center gap-2">
+          <span>Edit</span>
+          <Checkbox
+            checked={isColumnAllSelected("isEdit")}
+            onCheckedChange={(checked) =>
+              handleColumnSelectAll("isEdit", Boolean(checked))
+            }
+          />
+        </div>
+      ),
+      cell: ({ row }) => (
+        <Checkbox
+          checked={row.original.isEdit}
+          onCheckedChange={(checked) =>
+            handlePermissionChange(
+              row.original.moduleId,
+              row.original.transactionId,
+              "isEdit",
+              Boolean(checked)
+            )
+          }
+        />
+      ),
+      size: 100,
+    },
+    {
+      id: "isDelete",
+      header: () => (
+        <div className="flex items-center gap-2">
+          <span>Delete</span>
+          <Checkbox
+            checked={isColumnAllSelected("isDelete")}
+            onCheckedChange={(checked) =>
+              handleColumnSelectAll("isDelete", Boolean(checked))
+            }
+          />
+        </div>
+      ),
+      cell: ({ row }) => (
+        <Checkbox
+          checked={row.original.isDelete}
+          onCheckedChange={(checked) =>
+            handlePermissionChange(
+              row.original.moduleId,
+              row.original.transactionId,
+              "isDelete",
+              Boolean(checked)
+            )
+          }
+        />
+      ),
+      size: 100,
+    },
+    {
+      id: "isExport",
+      header: () => (
+        <div className="flex items-center gap-2">
+          <span>Export</span>
+          <Checkbox
+            checked={isColumnAllSelected("isExport")}
+            onCheckedChange={(checked) =>
+              handleColumnSelectAll("isExport", Boolean(checked))
+            }
+          />
+        </div>
+      ),
+      cell: ({ row }) => (
+        <Checkbox
+          checked={row.original.isExport}
+          onCheckedChange={(checked) =>
+            handlePermissionChange(
+              row.original.moduleId,
+              row.original.transactionId,
+              "isExport",
+              Boolean(checked)
+            )
+          }
+        />
+      ),
+      size: 100,
+    },
+    {
+      id: "isPrint",
+      header: () => (
+        <div className="flex items-center gap-2">
+          <span>Print</span>
+          <Checkbox
+            checked={isColumnAllSelected("isPrint")}
+            onCheckedChange={(checked) =>
+              handleColumnSelectAll("isPrint", Boolean(checked))
+            }
+          />
+        </div>
+      ),
+      cell: ({ row }) => (
+        <Checkbox
+          checked={row.original.isPrint}
+          onCheckedChange={(checked) =>
+            handlePermissionChange(
+              row.original.moduleId,
+              row.original.transactionId,
+              "isPrint",
+              Boolean(checked)
+            )
+          }
+        />
+      ),
+      size: 100,
+    },
+  ]
+
   // Handle save button click
   const handleSave = async () => {
+    if (!selectedGroup) {
+      toast.error("Please select a user group first")
+      return
+    }
+    setShowSaveConfirmation(true)
+  }
+
+  const handleConfirmSave = async () => {
     if (!selectedGroup) {
       toast.error("Please select a user group first")
       return
@@ -221,270 +447,24 @@ export function UserGroupRightsTable() {
               {saving ? "Saving..." : "Save"}
             </Button>
           </div>
-          <div className="overflow-x-auto rounded-lg border">
-            <Table>
-              {/* Fixed header table with column sizing */}
-              <Table className="w-full table-fixed border-collapse">
-                {/* Column group for consistent sizing */}
-                <colgroup>
-                  <col style={{ width: "150px" }} />
-                  <col style={{ width: "150px" }} />
-                  <col style={{ width: "100px" }} />
-                  <col style={{ width: "100px" }} />
-                  <col style={{ width: "100px" }} />
-                  <col style={{ width: "100px" }} />
-                  <col style={{ width: "100px" }} />
-                  <col style={{ width: "100px" }} />
-                  <col style={{ width: "100px" }} />
-                </colgroup>
-
-                {/* Sticky table header */}
-                <TableHeader className="bg-background sticky top-0 z-20">
-                  <TableRow className="bg-muted/50">
-                    <TableHead>Module</TableHead>
-                    <TableHead>Transaction</TableHead>
-                    <TableHead>
-                      <div className="flex items-center gap-2">
-                        <span>Select All</span>
-                        <Checkbox
-                          checked={
-                            groupRights.length > 0 &&
-                            groupRights.every(isRowAllSelected)
-                          }
-                          onCheckedChange={(checked) => {
-                            const isChecked = Boolean(checked)
-                            setGroupRights((prev) =>
-                              prev.map((right) => ({
-                                ...right,
-                                isRead: isChecked,
-                                isCreate: isChecked,
-                                isEdit: isChecked,
-                                isDelete: isChecked,
-                                isExport: isChecked,
-                                isPrint: isChecked,
-                              }))
-                            )
-                          }}
-                        />
-                      </div>
-                    </TableHead>
-                    <TableHead>
-                      <div className="flex items-center gap-2">
-                        <span>View</span>
-                        <Checkbox
-                          checked={isColumnAllSelected("isRead")}
-                          onCheckedChange={(checked) =>
-                            handleColumnSelectAll("isRead", Boolean(checked))
-                          }
-                        />
-                      </div>
-                    </TableHead>
-                    <TableHead>
-                      <div className="flex items-center gap-2">
-                        <span>Create</span>
-                        <Checkbox
-                          checked={isColumnAllSelected("isCreate")}
-                          onCheckedChange={(checked) =>
-                            handleColumnSelectAll("isCreate", Boolean(checked))
-                          }
-                        />
-                      </div>
-                    </TableHead>
-                    <TableHead>
-                      <div className="flex items-center gap-2">
-                        <span>Edit</span>
-                        <Checkbox
-                          checked={isColumnAllSelected("isEdit")}
-                          onCheckedChange={(checked) =>
-                            handleColumnSelectAll("isEdit", Boolean(checked))
-                          }
-                        />
-                      </div>
-                    </TableHead>
-                    <TableHead>
-                      <div className="flex items-center gap-2">
-                        <span>Delete</span>
-                        <Checkbox
-                          checked={isColumnAllSelected("isDelete")}
-                          onCheckedChange={(checked) =>
-                            handleColumnSelectAll("isDelete", Boolean(checked))
-                          }
-                        />
-                      </div>
-                    </TableHead>
-                    <TableHead>
-                      <div className="flex items-center gap-2">
-                        <span>Export</span>
-                        <Checkbox
-                          checked={isColumnAllSelected("isExport")}
-                          onCheckedChange={(checked) =>
-                            handleColumnSelectAll("isExport", Boolean(checked))
-                          }
-                        />
-                      </div>
-                    </TableHead>
-                    <TableHead>
-                      <div className="flex items-center gap-2">
-                        <span>Print</span>
-                        <Checkbox
-                          checked={isColumnAllSelected("isPrint")}
-                          onCheckedChange={(checked) =>
-                            handleColumnSelectAll("isPrint", Boolean(checked))
-                          }
-                        />
-                      </div>
-                    </TableHead>
-                  </TableRow>
-                </TableHeader>
-              </Table>
-
-              {/* Scrollable body container */}
-              <div className="max-h-[460px] overflow-y-auto">
-                {/* Body table with same column sizing as header */}
-                <Table className="w-full table-fixed border-collapse">
-                  {/* Column group matching header for alignment */}
-                  <colgroup>
-                    <col style={{ width: "150px" }} />
-                    <col style={{ width: "150px" }} />
-                    <col style={{ width: "100px" }} />
-                    <col style={{ width: "100px" }} />
-                    <col style={{ width: "100px" }} />
-                    <col style={{ width: "100px" }} />
-                    <col style={{ width: "100px" }} />
-                    <col style={{ width: "100px" }} />
-                    <col style={{ width: "100px" }} />
-                  </colgroup>
-
-                  <TableBody>
-                    {isRightsLoading ? (
-                      <TableRow>
-                        <TableCell
-                          colSpan={9}
-                          className="text-muted-foreground text-center"
-                        >
-                          Loading...
-                        </TableCell>
-                      </TableRow>
-                    ) : groupRights.length === 0 ? (
-                      <TableRow>
-                        <TableCell
-                          colSpan={9}
-                          className="text-muted-foreground text-center"
-                        >
-                          No data. Please select a user group.
-                        </TableCell>
-                      </TableRow>
-                    ) : (
-                      groupRights.map((right) => (
-                        <TableRow
-                          key={`${right.moduleId}-${right.transactionId}`}
-                        >
-                          <TableCell className="py-1">
-                            {right.moduleName}
-                          </TableCell>
-                          <TableCell className="py-1">
-                            {right.transactionName}
-                          </TableCell>
-                          <TableCell className="py-1">
-                            <Checkbox
-                              checked={isRowAllSelected(right)}
-                              onCheckedChange={(checked) =>
-                                handleRowSelectAll(
-                                  right.moduleId,
-                                  right.transactionId,
-                                  Boolean(checked)
-                                )
-                              }
-                            />
-                          </TableCell>
-                          <TableCell className="py-1">
-                            <Checkbox
-                              checked={right.isRead}
-                              onCheckedChange={(checked) =>
-                                handlePermissionChange(
-                                  right.moduleId,
-                                  right.transactionId,
-                                  "isRead",
-                                  Boolean(checked)
-                                )
-                              }
-                            />
-                          </TableCell>
-                          <TableCell className="py-1">
-                            <Checkbox
-                              checked={right.isCreate}
-                              onCheckedChange={(checked) =>
-                                handlePermissionChange(
-                                  right.moduleId,
-                                  right.transactionId,
-                                  "isCreate",
-                                  Boolean(checked)
-                                )
-                              }
-                            />
-                          </TableCell>
-                          <TableCell className="py-1">
-                            <Checkbox
-                              checked={right.isEdit}
-                              onCheckedChange={(checked) =>
-                                handlePermissionChange(
-                                  right.moduleId,
-                                  right.transactionId,
-                                  "isEdit",
-                                  Boolean(checked)
-                                )
-                              }
-                            />
-                          </TableCell>
-                          <TableCell className="py-1">
-                            <Checkbox
-                              checked={right.isDelete}
-                              onCheckedChange={(checked) =>
-                                handlePermissionChange(
-                                  right.moduleId,
-                                  right.transactionId,
-                                  "isDelete",
-                                  Boolean(checked)
-                                )
-                              }
-                            />
-                          </TableCell>
-                          <TableCell className="py-1">
-                            <Checkbox
-                              checked={right.isExport}
-                              onCheckedChange={(checked) =>
-                                handlePermissionChange(
-                                  right.moduleId,
-                                  right.transactionId,
-                                  "isExport",
-                                  Boolean(checked)
-                                )
-                              }
-                            />
-                          </TableCell>
-                          <TableCell className="py-1">
-                            <Checkbox
-                              checked={right.isPrint}
-                              onCheckedChange={(checked) =>
-                                handlePermissionChange(
-                                  right.moduleId,
-                                  right.transactionId,
-                                  "isPrint",
-                                  Boolean(checked)
-                                )
-                              }
-                            />
-                          </TableCell>
-                        </TableRow>
-                      ))
-                    )}
-                  </TableBody>
-                </Table>
-              </div>
-            </Table>
-          </div>
+          <RightsTable
+            data={groupRights}
+            columns={columns}
+            isLoading={isRightsLoading}
+            emptyMessage="No data. Please select a user group."
+            maxHeight="460px"
+          />
         </form>
       </Form>
+      <SaveConfirmation
+        title="Save User Group Rights"
+        itemName={`user group rights for ${selectedGroup?.userGroupName || "selected group"}`}
+        open={showSaveConfirmation}
+        onOpenChange={setShowSaveConfirmation}
+        onConfirm={handleConfirmSave}
+        isSaving={saving}
+        operationType="save"
+      />
     </div>
   )
 }

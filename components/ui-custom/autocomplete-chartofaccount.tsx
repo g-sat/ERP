@@ -220,12 +220,16 @@ export default function ChartOfAccountAutocomplete<
   const getValue = React.useCallback(() => {
     if (form && name) {
       const formValue = form.getValues(name)
+      // If still loading or no options available, return null to show placeholder
+      if (isLoading || options.length === 0) {
+        return null
+      }
       return (
         options.find((option) => option.value === formValue?.toString()) || null
       )
     }
     return null
-  }, [form, name, options])
+  }, [form, name, options, isLoading])
 
   if (form && name) {
     return (

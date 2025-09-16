@@ -1,12 +1,14 @@
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
+import { useParams } from "next/navigation"
 import { IApiSuccessResponse } from "@/interfaces/auth"
 import { UserSettingFormValues, userSettingSchema } from "@/schemas/setting"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 
+import { useChartofAccountLookup } from "@/hooks/use-lookup"
 import { useUserSettingGet, useUserSettingSave } from "@/hooks/use-settings"
 import { Button } from "@/components/ui/button"
 import {
@@ -19,6 +21,7 @@ import {
 } from "@/components/ui/form"
 import { Separator } from "@/components/ui/separator"
 import { Skeleton } from "@/components/ui/skeleton"
+import { SaveConfirmation } from "@/components/save-confirmation"
 import { LockSkeleton } from "@/components/skeleton/lock-skeleton"
 import ChartofAccountAutocomplete from "@/components/ui-custom/autocomplete-chartofaccount"
 import CustomNumberInput from "@/components/ui-custom/custom-number-input"
@@ -26,12 +29,20 @@ import CustomNumberInput from "@/components/ui-custom/custom-number-input"
 type UserSettingResponse = IApiSuccessResponse<UserSettingFormValues>
 
 export function AccountForm() {
+  const params = useParams()
+  const companyId = params.companyId as string
+  const [showSaveConfirmation, setShowSaveConfirmation] = useState(false)
+
   const {
     data: userSettingResponse,
     isLoading,
     isError,
     refetch,
   } = useUserSettingGet()
+
+  // Get chart of account data to ensure it's loaded before setting form values
+  const { data: chartOfAccounts = [], isLoading: isLoadingChartOfAccounts } =
+    useChartofAccountLookup(Number(companyId))
 
   const { mutate: saveUserSettings, isPending } = useUserSettingSave()
 
@@ -49,18 +60,23 @@ export function AccountForm() {
     },
   })
 
-  // Update form values when data is loaded
+  // Update form values when both user settings data and chart of account data are loaded
   useEffect(() => {
-    if (userSettingResponse) {
+    if (
+      userSettingResponse &&
+      !isLoadingChartOfAccounts &&
+      chartOfAccounts.length > 0
+    ) {
       const { result, message, data } =
         userSettingResponse as UserSettingResponse
 
       if (result === -2) {
+        toast.error("This record is locked and cannot be modified")
         return
       }
 
       if (result === -1) {
-        toast.error(message || "No data available")
+        toast.error(message || "Failed to load account settings")
         return
       }
 
@@ -75,11 +91,18 @@ export function AccountForm() {
           ap_CN_GLId: data.ap_CN_GLId ?? 0,
           ap_DN_GLId: data.ap_DN_GLId ?? 0,
         })
+      } else if (result === 1 && !data) {
+        toast.warning("No account settings data available")
       }
     }
-  }, [userSettingResponse, form])
+  }, [userSettingResponse, form, isLoadingChartOfAccounts, chartOfAccounts])
 
-  function onSubmit(formData: UserSettingFormValues) {
+  function onSubmit() {
+    setShowSaveConfirmation(true)
+  }
+
+  function handleConfirmSave() {
+    const formData = form.getValues()
     // Ensure all values are non-optional before sending to API
     const data = {
       trn_Grd_TotRec: formData.trn_Grd_TotRec ?? 0,
@@ -122,7 +145,7 @@ export function AccountForm() {
     })
   }
 
-  if (isLoading) {
+  if (isLoading || isLoadingChartOfAccounts) {
     return (
       <div className="space-y-4">
         <div className="flex items-center justify-between">
@@ -149,63 +172,70 @@ export function AccountForm() {
 
   const formContent = (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
         {/* Grid Records Section */}
-        <div className="space-y-6">
-          <div className="flex flex-col space-y-2">
-            <div className="flex items-center justify-between">
+
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <div>
               <h3 className="text-xl font-semibold">Account Settings</h3>
-              {/* Submit Button */}
-              <div className="flex justify-end pt-4">
-                <Button type="submit" size="sm" disabled={isPending}>
-                  {isPending ? "Saving..." : "Save Changes"}
-                </Button>
-              </div>
+              <p className="text-muted-foreground text-sm">
+                Configure how many records are displayed in transaction and
+                master data grids
+              </p>
             </div>
-            <p className="text-muted-foreground text-sm">
-              Configure how many records are displayed in transaction and master
-              data grids
+            {/* Submit Button */}
+            <div className="flex justify-end">
+              <Button type="submit" size="sm" disabled={isPending}>
+                {isPending ? "Saving..." : "Save Changes"}
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        <Separator />
+
+        <div className="grid gap-6 md:grid-cols-2">
+          <div className="space-y-2">
+            <CustomNumberInput
+              form={form}
+              name="trn_Grd_TotRec"
+              label="Transaction Grid Records"
+              isRequired
+              round={0}
+            />
+            <p className="text-muted-foreground text-xs">
+              Number of records to display in transaction-related grids (e.g.,
+              invoices, orders)
             </p>
           </div>
-          <Separator />
-          <div className="grid gap-6 md:grid-cols-2">
-            <div className="space-y-2">
-              <CustomNumberInput
-                form={form}
-                name="trn_Grd_TotRec"
-                label="Transaction Grid Records"
-                isRequired
-                round={0}
-              />
-              <p className="text-muted-foreground text-xs">
-                Number of records to display in transaction-related grids (e.g.,
-                invoices, orders)
-              </p>
-            </div>
-            <div className="space-y-2">
-              <CustomNumberInput
-                form={form}
-                name="m_Grd_TotRec"
-                label="Master Grid Records"
-                isRequired
-                round={0}
-              />
-              <p className="text-muted-foreground text-xs">
-                Number of records to display in master data grids (e.g.,
-                customers, products)
-              </p>
-            </div>
+          <div className="space-y-2">
+            <CustomNumberInput
+              form={form}
+              name="m_Grd_TotRec"
+              label="Master Grid Records"
+              isRequired
+              round={0}
+            />
+            <p className="text-muted-foreground text-xs">
+              Number of records to display in master data grids (e.g.,
+              customers, products)
+            </p>
           </div>
         </div>
 
         {/* GL Accounts Section */}
         <div className="space-y-6">
           <div className="space-y-2">
-            <h3 className="text-xl font-semibold">GL Account Mappings</h3>
-            <p className="text-muted-foreground text-sm">
-              Map document types to their corresponding general ledger accounts
-              for proper accounting
-            </p>
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-xl font-semibold">GL Account Mappings</h3>
+                <p className="text-muted-foreground text-sm">
+                  Map document types to their corresponding general ledger
+                  accounts for proper accounting
+                </p>
+              </div>
+            </div>
           </div>
           <Separator />
           <div className="space-y-6">
@@ -226,6 +256,7 @@ export function AccountForm() {
                             name="ar_IN_GLId"
                             label=""
                             isRequired
+                            companyId={Number(companyId)}
                           />
                         </FormControl>
                         <p className="text-muted-foreground text-xs">
@@ -249,6 +280,7 @@ export function AccountForm() {
                             name="ar_CN_GLId"
                             label=""
                             isRequired
+                            companyId={Number(companyId)}
                           />
                         </FormControl>
                         <p className="text-muted-foreground text-xs">
@@ -272,6 +304,7 @@ export function AccountForm() {
                             name="ar_DN_GLId"
                             label=""
                             isRequired
+                            companyId={Number(companyId)}
                           />
                         </FormControl>
                         <p className="text-muted-foreground text-xs">
@@ -302,6 +335,7 @@ export function AccountForm() {
                             name="ap_IN_GLId"
                             label=""
                             isRequired
+                            companyId={Number(companyId)}
                           />
                         </FormControl>
                         <p className="text-muted-foreground text-xs">
@@ -325,6 +359,7 @@ export function AccountForm() {
                             name="ap_CN_GLId"
                             label=""
                             isRequired
+                            companyId={Number(companyId)}
                           />
                         </FormControl>
                         <p className="text-muted-foreground text-xs">
@@ -348,6 +383,7 @@ export function AccountForm() {
                             name="ap_DN_GLId"
                             label=""
                             isRequired
+                            companyId={Number(companyId)}
                           />
                         </FormControl>
                         <p className="text-muted-foreground text-xs">
@@ -373,6 +409,15 @@ export function AccountForm() {
       ) : (
         formContent
       )}
+      <SaveConfirmation
+        title="Save Account Settings"
+        itemName="account settings"
+        open={showSaveConfirmation}
+        onOpenChange={setShowSaveConfirmation}
+        onConfirm={handleConfirmSave}
+        isSaving={isPending}
+        operationType="save"
+      />
     </div>
   )
 }

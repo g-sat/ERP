@@ -5,7 +5,6 @@ import { useParams, useRouter } from "next/navigation"
 import { useAuthStore } from "@/stores/auth-store"
 import { Building, Calendar, TrendingUp, Users } from "lucide-react"
 
-import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
 export default function CompanyDashboardPage() {

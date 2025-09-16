@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { ColumnDef } from "@tanstack/react-table"
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 
@@ -11,14 +12,8 @@ import {
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Form } from "@/components/ui/form"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
+import { SaveConfirmation } from "@/components/save-confirmation"
+import { RightsTable } from "@/components/table/table-rights"
 import ModuleAutocomplete from "@/components/ui-custom/autocomplete-module"
 
 interface IVisibleField {
@@ -53,6 +48,7 @@ export function VisibleTable() {
   } | null>(null)
   const [visibleFields, setVisibleFields] = useState<IVisibleField[]>([])
   const [saving, setSaving] = useState(false)
+  const [showSaveConfirmation, setShowSaveConfirmation] = useState(false)
 
   // Fetch visible fields for selected module
   const {
@@ -96,7 +92,300 @@ export function VisibleTable() {
     )
   }
 
+  // Define columns for the table
+  const columns: ColumnDef<IVisibleField>[] = [
+    {
+      accessorKey: "moduleName",
+      header: "Module Name",
+      size: 150,
+    },
+    {
+      accessorKey: "transactionName",
+      header: "Transaction Name",
+      size: 150,
+    },
+    {
+      accessorKey: "m_ProductId",
+      header: "Product",
+      cell: ({ row }) => (
+        <div className="text-center">
+          <Checkbox
+            checked={row.original.m_ProductId}
+            onCheckedChange={(checked) =>
+              handleFieldChange(row.original, "m_ProductId", checked as boolean)
+            }
+          />
+        </div>
+      ),
+      size: 100,
+    },
+    {
+      accessorKey: "m_QTY",
+      header: "QTY",
+      cell: ({ row }) => (
+        <div className="text-center">
+          <Checkbox
+            checked={row.original.m_QTY}
+            onCheckedChange={(checked) =>
+              handleFieldChange(row.original, "m_QTY", checked as boolean)
+            }
+          />
+        </div>
+      ),
+      size: 100,
+    },
+    {
+      accessorKey: "m_BillQTY",
+      header: "Bill QTY",
+      cell: ({ row }) => (
+        <div className="text-center">
+          <Checkbox
+            checked={row.original.m_BillQTY}
+            onCheckedChange={(checked) =>
+              handleFieldChange(row.original, "m_BillQTY", checked as boolean)
+            }
+          />
+        </div>
+      ),
+      size: 100,
+    },
+    {
+      accessorKey: "m_UomId",
+      header: "UOM",
+      cell: ({ row }) => (
+        <div className="text-center">
+          <Checkbox
+            checked={row.original.m_UomId}
+            onCheckedChange={(checked) =>
+              handleFieldChange(row.original, "m_UomId", checked as boolean)
+            }
+          />
+        </div>
+      ),
+      size: 100,
+    },
+    {
+      accessorKey: "m_UnitPrice",
+      header: "Unit Price",
+      cell: ({ row }) => (
+        <div className="text-center">
+          <Checkbox
+            checked={row.original.m_UnitPrice}
+            onCheckedChange={(checked) =>
+              handleFieldChange(row.original, "m_UnitPrice", checked as boolean)
+            }
+          />
+        </div>
+      ),
+      size: 100,
+    },
+    {
+      accessorKey: "m_Remarks",
+      header: "Remarks",
+      cell: ({ row }) => (
+        <div className="text-center">
+          <Checkbox
+            checked={row.original.m_Remarks}
+            onCheckedChange={(checked) =>
+              handleFieldChange(row.original, "m_Remarks", checked as boolean)
+            }
+          />
+        </div>
+      ),
+      size: 100,
+    },
+    {
+      accessorKey: "m_GstId",
+      header: "GST",
+      cell: ({ row }) => (
+        <div className="text-center">
+          <Checkbox
+            checked={row.original.m_GstId}
+            onCheckedChange={(checked) =>
+              handleFieldChange(row.original, "m_GstId", checked as boolean)
+            }
+          />
+        </div>
+      ),
+      size: 100,
+    },
+    {
+      accessorKey: "m_DeliveryDate",
+      header: "Delivery Date",
+      cell: ({ row }) => (
+        <div className="text-center">
+          <Checkbox
+            checked={row.original.m_DeliveryDate}
+            onCheckedChange={(checked) =>
+              handleFieldChange(
+                row.original,
+                "m_DeliveryDate",
+                checked as boolean
+              )
+            }
+          />
+        </div>
+      ),
+      size: 100,
+    },
+    {
+      accessorKey: "m_DepartmentId",
+      header: "Department",
+      cell: ({ row }) => (
+        <div className="text-center">
+          <Checkbox
+            checked={row.original.m_DepartmentId}
+            onCheckedChange={(checked) =>
+              handleFieldChange(
+                row.original,
+                "m_DepartmentId",
+                checked as boolean
+              )
+            }
+          />
+        </div>
+      ),
+      size: 100,
+    },
+    {
+      accessorKey: "m_EmployeeId",
+      header: "Employee",
+      cell: ({ row }) => (
+        <div className="text-center">
+          <Checkbox
+            checked={row.original.m_EmployeeId}
+            onCheckedChange={(checked) =>
+              handleFieldChange(
+                row.original,
+                "m_EmployeeId",
+                checked as boolean
+              )
+            }
+          />
+        </div>
+      ),
+      size: 100,
+    },
+    {
+      accessorKey: "m_PortId",
+      header: "Port",
+      cell: ({ row }) => (
+        <div className="text-center">
+          <Checkbox
+            checked={row.original.m_PortId}
+            onCheckedChange={(checked) =>
+              handleFieldChange(row.original, "m_PortId", checked as boolean)
+            }
+          />
+        </div>
+      ),
+      size: 100,
+    },
+    {
+      accessorKey: "m_VesselId",
+      header: "Vessel",
+      cell: ({ row }) => (
+        <div className="text-center">
+          <Checkbox
+            checked={row.original.m_VesselId}
+            onCheckedChange={(checked) =>
+              handleFieldChange(row.original, "m_VesselId", checked as boolean)
+            }
+          />
+        </div>
+      ),
+      size: 100,
+    },
+    {
+      accessorKey: "m_BargeId",
+      header: "Barge",
+      cell: ({ row }) => (
+        <div className="text-center">
+          <Checkbox
+            checked={row.original.m_BargeId}
+            onCheckedChange={(checked) =>
+              handleFieldChange(row.original, "m_BargeId", checked as boolean)
+            }
+          />
+        </div>
+      ),
+      size: 100,
+    },
+    {
+      accessorKey: "m_VoyageId",
+      header: "Voyage",
+      cell: ({ row }) => (
+        <div className="text-center">
+          <Checkbox
+            checked={row.original.m_VoyageId}
+            onCheckedChange={(checked) =>
+              handleFieldChange(row.original, "m_VoyageId", checked as boolean)
+            }
+          />
+        </div>
+      ),
+      size: 100,
+    },
+    {
+      accessorKey: "m_SupplyDate",
+      header: "Supply Date",
+      cell: ({ row }) => (
+        <div className="text-center">
+          <Checkbox
+            checked={row.original.m_SupplyDate}
+            onCheckedChange={(checked) =>
+              handleFieldChange(
+                row.original,
+                "m_SupplyDate",
+                checked as boolean
+              )
+            }
+          />
+        </div>
+      ),
+      size: 100,
+    },
+    {
+      accessorKey: "m_BankId",
+      header: "Bank",
+      cell: ({ row }) => (
+        <div className="text-center">
+          <Checkbox
+            checked={row.original.m_BankId}
+            onCheckedChange={(checked) =>
+              handleFieldChange(row.original, "m_BankId", checked as boolean)
+            }
+          />
+        </div>
+      ),
+      size: 100,
+    },
+    {
+      accessorKey: "m_CtyCurr",
+      header: "City Currency",
+      cell: ({ row }) => (
+        <div className="text-center">
+          <Checkbox
+            checked={row.original.m_CtyCurr}
+            onCheckedChange={(checked) =>
+              handleFieldChange(row.original, "m_CtyCurr", checked as boolean)
+            }
+          />
+        </div>
+      ),
+      size: 100,
+    },
+  ]
+
   const handleSave = async () => {
+    if (!selectedModule) {
+      toast.error("Please select a module first")
+      return
+    }
+    setShowSaveConfirmation(true)
+  }
+
+  const handleConfirmSave = async () => {
     if (!selectedModule) {
       toast.error("Please select a module first")
       return
@@ -167,239 +456,22 @@ export function VisibleTable() {
         </form>
       </Form>
 
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-[150px]">Module Name</TableHead>
-              <TableHead className="w-[150px]">Transaction Name</TableHead>
-              <TableHead>Product</TableHead>
-              <TableHead>QTY</TableHead>
-              <TableHead>Bill QTY</TableHead>
-              <TableHead>UOM</TableHead>
-              <TableHead>Unit Price</TableHead>
-              <TableHead>Remarks</TableHead>
-              <TableHead>GST</TableHead>
-              <TableHead>Delivery Date</TableHead>
-              <TableHead>Department</TableHead>
-              <TableHead>Employee</TableHead>
-              <TableHead>Port</TableHead>
-              <TableHead>Vessel</TableHead>
-              <TableHead>Barge</TableHead>
-              <TableHead>Voyage</TableHead>
-              <TableHead>Supply Date</TableHead>
-              <TableHead>Bank</TableHead>
-              <TableHead>City Currency</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {isFieldsLoading ? (
-              <TableRow>
-                <TableCell colSpan={19} className="text-center">
-                  Loading...
-                </TableCell>
-              </TableRow>
-            ) : visibleFields.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={19} className="text-center">
-                  No visible fields found. Please select a module.
-                </TableCell>
-              </TableRow>
-            ) : (
-              visibleFields.map((field, index) => (
-                <TableRow key={index}>
-                  <TableCell>{field.moduleName}</TableCell>
-                  <TableCell>{field.transactionName}</TableCell>
-                  <TableCell className="text-center">
-                    <Checkbox
-                      checked={field.m_ProductId}
-                      onCheckedChange={(checked) =>
-                        handleFieldChange(
-                          field,
-                          "m_ProductId",
-                          checked as boolean
-                        )
-                      }
-                    />
-                  </TableCell>
-                  <TableCell className="text-center">
-                    <Checkbox
-                      checked={field.m_QTY}
-                      onCheckedChange={(checked) =>
-                        handleFieldChange(field, "m_QTY", checked as boolean)
-                      }
-                    />
-                  </TableCell>
-                  <TableCell className="text-center">
-                    <Checkbox
-                      checked={field.m_BillQTY}
-                      onCheckedChange={(checked) =>
-                        handleFieldChange(
-                          field,
-                          "m_BillQTY",
-                          checked as boolean
-                        )
-                      }
-                    />
-                  </TableCell>
-                  <TableCell className="text-center">
-                    <Checkbox
-                      checked={field.m_UomId}
-                      onCheckedChange={(checked) =>
-                        handleFieldChange(field, "m_UomId", checked as boolean)
-                      }
-                    />
-                  </TableCell>
-                  <TableCell className="text-center">
-                    <Checkbox
-                      checked={field.m_UnitPrice}
-                      onCheckedChange={(checked) =>
-                        handleFieldChange(
-                          field,
-                          "m_UnitPrice",
-                          checked as boolean
-                        )
-                      }
-                    />
-                  </TableCell>
-                  <TableCell className="text-center">
-                    <Checkbox
-                      checked={field.m_Remarks}
-                      onCheckedChange={(checked) =>
-                        handleFieldChange(
-                          field,
-                          "m_Remarks",
-                          checked as boolean
-                        )
-                      }
-                    />
-                  </TableCell>
-                  <TableCell className="text-center">
-                    <Checkbox
-                      checked={field.m_GstId}
-                      onCheckedChange={(checked) =>
-                        handleFieldChange(field, "m_GstId", checked as boolean)
-                      }
-                    />
-                  </TableCell>
-                  <TableCell className="text-center">
-                    <Checkbox
-                      checked={field.m_DeliveryDate}
-                      onCheckedChange={(checked) =>
-                        handleFieldChange(
-                          field,
-                          "m_DeliveryDate",
-                          checked as boolean
-                        )
-                      }
-                    />
-                  </TableCell>
-                  <TableCell className="text-center">
-                    <Checkbox
-                      checked={field.m_DepartmentId}
-                      onCheckedChange={(checked) =>
-                        handleFieldChange(
-                          field,
-                          "m_DepartmentId",
-                          checked as boolean
-                        )
-                      }
-                    />
-                  </TableCell>
-                  <TableCell className="text-center">
-                    <Checkbox
-                      checked={field.m_EmployeeId}
-                      onCheckedChange={(checked) =>
-                        handleFieldChange(
-                          field,
-                          "m_EmployeeId",
-                          checked as boolean
-                        )
-                      }
-                    />
-                  </TableCell>
-                  <TableCell className="text-center">
-                    <Checkbox
-                      checked={field.m_PortId}
-                      onCheckedChange={(checked) =>
-                        handleFieldChange(field, "m_PortId", checked as boolean)
-                      }
-                    />
-                  </TableCell>
-                  <TableCell className="text-center">
-                    <Checkbox
-                      checked={field.m_VesselId}
-                      onCheckedChange={(checked) =>
-                        handleFieldChange(
-                          field,
-                          "m_VesselId",
-                          checked as boolean
-                        )
-                      }
-                    />
-                  </TableCell>
-                  <TableCell className="text-center">
-                    <Checkbox
-                      checked={field.m_BargeId}
-                      onCheckedChange={(checked) =>
-                        handleFieldChange(
-                          field,
-                          "m_BargeId",
-                          checked as boolean
-                        )
-                      }
-                    />
-                  </TableCell>
-                  <TableCell className="text-center">
-                    <Checkbox
-                      checked={field.m_VoyageId}
-                      onCheckedChange={(checked) =>
-                        handleFieldChange(
-                          field,
-                          "m_VoyageId",
-                          checked as boolean
-                        )
-                      }
-                    />
-                  </TableCell>
-                  <TableCell className="text-center">
-                    <Checkbox
-                      checked={field.m_SupplyDate}
-                      onCheckedChange={(checked) =>
-                        handleFieldChange(
-                          field,
-                          "m_SupplyDate",
-                          checked as boolean
-                        )
-                      }
-                    />
-                  </TableCell>
-                  <TableCell className="text-center">
-                    <Checkbox
-                      checked={field.m_BankId}
-                      onCheckedChange={(checked) =>
-                        handleFieldChange(field, "m_BankId", checked as boolean)
-                      }
-                    />
-                  </TableCell>
-                  <TableCell className="text-center">
-                    <Checkbox
-                      checked={field.m_CtyCurr}
-                      onCheckedChange={(checked) =>
-                        handleFieldChange(
-                          field,
-                          "m_CtyCurr",
-                          checked as boolean
-                        )
-                      }
-                    />
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </div>
+      <RightsTable
+        data={visibleFields}
+        columns={columns}
+        isLoading={isFieldsLoading}
+        emptyMessage="No visible fields found. Please select a module."
+        maxHeight="460px"
+      />
+      <SaveConfirmation
+        title="Save Visible Fields"
+        itemName={`visible fields for ${selectedModule?.moduleName || "selected module"}`}
+        open={showSaveConfirmation}
+        onOpenChange={setShowSaveConfirmation}
+        onConfirm={handleConfirmSave}
+        isSaving={saving}
+        operationType="save"
+      />
     </div>
   )
 }

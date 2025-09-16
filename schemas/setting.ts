@@ -2,14 +2,32 @@ import * as z from "zod"
 
 export const decimalFormSchema = z
   .object({
-    amtDec: z.number().min(0),
-    locAmtDec: z.number().min(0),
-    ctyAmtDec: z.number().min(0),
-    priceDec: z.number().min(0),
-    qtyDec: z.number().min(0),
-    exhRateDec: z.number().min(0),
-    dateFormat: z.string(),
-    longDateFormat: z.string(),
+    amtDec: z
+      .number()
+      .min(2, "Amount Decimals is required at least 2 digits")
+      .default(2),
+    locAmtDec: z
+      .number()
+      .min(2, "Local Amount Decimals is required at least 2 digits")
+      .default(2),
+    ctyAmtDec: z
+      .number()
+      .min(2, "Currency Amount Decimals is required at least 2 digits")
+      .default(2),
+    priceDec: z
+      .number()
+      .min(2, "Price Decimals is required at least 2 digits")
+      .default(2),
+    qtyDec: z
+      .number()
+      .min(2, "Quantity Decimals is required at least 2 digits")
+      .default(2),
+    exhRateDec: z
+      .number()
+      .min(3, "Exchange Rate Decimals is required at least 3 digits")
+      .default(4),
+    dateFormat: z.string().default("DD/MM/YYYY"),
+    longDateFormat: z.string().default("DD/MM/YYYY HH:mm:ss"),
   })
   .partial()
 
@@ -110,17 +128,44 @@ export type visibleFieldsFormValues = z.infer<typeof visibleFieldsSchema>
 
 export const financeSettingSchema = z
   .object({
-    base_CurrencyId: z.number().default(0),
-    local_CurrencyId: z.number().default(0),
-    exhGain_GlId: z.number().default(0),
-    exhLoss_GlId: z.number().default(0),
-    bankCharge_GlId: z.number().default(0),
-    profitLoss_GlId: z.number().default(0),
-    retEarning_GlId: z.number().default(0),
-    saleGst_GlId: z.number().default(0),
-    purGst_GlId: z.number().default(0),
-    saleDef_GlId: z.number().default(0),
-    purDef_GlId: z.number().default(0),
+    base_CurrencyId: z.number().min(0, "Base Currency is required").default(0),
+    local_CurrencyId: z
+      .number()
+      .min(0, "Local Currency is required")
+      .default(0),
+    exhGain_GlId: z
+      .number()
+      .min(0, "Exchange Gain Account is required")
+      .default(0),
+    exhLoss_GlId: z
+      .number()
+      .min(0, "Exchange Loss Account is required")
+      .default(0),
+    bankCharge_GlId: z
+      .number()
+      .min(0, "Bank Charges Account is required")
+      .default(0),
+    profitLoss_GlId: z
+      .number()
+      .min(0, "Profit & Loss Account is required")
+      .default(0),
+    retEarning_GlId: z
+      .number()
+      .min(0, "Retained Earnings Account is required")
+      .default(0),
+    saleGst_GlId: z.number().min(0, "Sales GST Account is required").default(0),
+    purGst_GlId: z
+      .number()
+      .min(0, "Purchase GST Account is required")
+      .default(0),
+    saleDef_GlId: z
+      .number()
+      .min(0, "Sales Deferred Account is required")
+      .default(0),
+    purDef_GlId: z
+      .number()
+      .min(0, "Purchase Deferred Account is required")
+      .default(0),
   })
   .partial()
 

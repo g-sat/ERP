@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import { IShareData } from "@/interfaces/admin"
 import { ApiResponse } from "@/interfaces/auth"
+import { ColumnDef } from "@tanstack/react-table"
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 
@@ -10,14 +11,8 @@ import { useShareDataGet, useShareDataSave } from "@/hooks/use-admin"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Form } from "@/components/ui/form"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
+import { SaveConfirmation } from "@/components/save-confirmation"
+import { RightsTable } from "@/components/table/table-rights"
 
 type PermissionType = "shareToAll"
 
@@ -25,6 +20,7 @@ export function ShareDataTable() {
   const form = useForm()
   const [shareData, setShareData] = useState<IShareData[]>([])
   const [saving, setSaving] = useState(false)
+  const [showSaveConfirmation, setShowSaveConfirmation] = useState(false)
 
   // Fetch user group rights for selected group
   const {
@@ -76,8 +72,64 @@ export function ShareDataTable() {
     return shareData.length > 0 && shareData.every((right) => right[permission])
   }
 
+  // Define columns for the table
+  const columns: ColumnDef<IShareData>[] = [
+    {
+      accessorKey: "moduleName",
+      header: "Module",
+      size: 200,
+    },
+    {
+      accessorKey: "transactionName",
+      header: "Transaction",
+      size: 200,
+    },
+    {
+      id: "shareToAll",
+      header: () => (
+        <div className="flex items-center gap-2">
+          <span>Share To All</span>
+          <Checkbox
+            checked={isColumnAllSelected("shareToAll")}
+            onCheckedChange={(checked) => {
+              const isChecked = Boolean(checked)
+              setShareData((prev) =>
+                prev.map((right) => ({
+                  ...right,
+                  shareToAll: isChecked,
+                }))
+              )
+            }}
+          />
+        </div>
+      ),
+      cell: ({ row }) => (
+        <Checkbox
+          checked={row.original.shareToAll}
+          onCheckedChange={(checked) =>
+            handlePermissionChange(
+              row.original.moduleId,
+              row.original.transactionId,
+              "shareToAll",
+              Boolean(checked)
+            )
+          }
+        />
+      ),
+      size: 150,
+    },
+  ]
+
   // Handle save button click
   const handleSave = async () => {
+    if (shareData.length === 0) {
+      toast.error("No data to save")
+      return
+    }
+    setShowSaveConfirmation(true)
+  }
+
+  const handleConfirmSave = async () => {
     if (shareData.length === 0) {
       toast.error("No data to save")
       return
@@ -129,107 +181,24 @@ export function ShareDataTable() {
               {saving ? "Saving..." : "Save"}
             </Button>
           </div>
-          <div className="overflow-x-auto rounded-lg border">
-            <Table>
-              {/* Fixed header table with column sizing */}
-              <Table className="w-full table-fixed border-collapse">
-                {/* Column group for consistent sizing */}
-                <colgroup>
-                  <col style={{ width: "200px" }} />
-                  <col style={{ width: "200px" }} />
-                  <col style={{ width: "150px" }} />
-                </colgroup>
-
-                {/* Sticky table header */}
-                <TableHeader className="bg-background sticky top-0 z-20">
-                  <TableRow className="bg-muted/50">
-                    <TableHead>Module</TableHead>
-                    <TableHead>Transaction</TableHead>
-                    <TableHead>
-                      <div className="flex items-center gap-2">
-                        <span>Share To All</span>
-                        <Checkbox
-                          checked={isColumnAllSelected("shareToAll")}
-                          onCheckedChange={(checked) => {
-                            const isChecked = Boolean(checked)
-                            setShareData((prev) =>
-                              prev.map((right) => ({
-                                ...right,
-                                shareToAll: isChecked,
-                              }))
-                            )
-                          }}
-                        />
-                      </div>
-                    </TableHead>
-                  </TableRow>
-                </TableHeader>
-              </Table>
-
-              {/* Scrollable body container */}
-              <div className="max-h-[460px] overflow-y-auto">
-                {/* Body table with same column sizing as header */}
-                <Table className="w-full table-fixed border-collapse">
-                  {/* Column group matching header for alignment */}
-                  <colgroup>
-                    <col style={{ width: "200px" }} />
-                    <col style={{ width: "200px" }} />
-                    <col style={{ width: "150px" }} />
-                  </colgroup>
-
-                  <TableBody>
-                    {isRightsLoading ? (
-                      <TableRow>
-                        <TableCell
-                          colSpan={3}
-                          className="text-muted-foreground text-center"
-                        >
-                          Loading...
-                        </TableCell>
-                      </TableRow>
-                    ) : shareData.length === 0 ? (
-                      <TableRow>
-                        <TableCell
-                          colSpan={3}
-                          className="text-muted-foreground text-center"
-                        >
-                          No data. Please select a user group.
-                        </TableCell>
-                      </TableRow>
-                    ) : (
-                      shareData.map((right) => (
-                        <TableRow
-                          key={`${right.moduleId}-${right.transactionId}`}
-                        >
-                          <TableCell className="py-1">
-                            {right.moduleName}
-                          </TableCell>
-                          <TableCell className="py-1">
-                            {right.transactionName}
-                          </TableCell>
-                          <TableCell className="py-1">
-                            <Checkbox
-                              checked={right.shareToAll}
-                              onCheckedChange={(checked) =>
-                                handlePermissionChange(
-                                  right.moduleId,
-                                  right.transactionId,
-                                  "shareToAll",
-                                  Boolean(checked)
-                                )
-                              }
-                            />
-                          </TableCell>
-                        </TableRow>
-                      ))
-                    )}
-                  </TableBody>
-                </Table>
-              </div>
-            </Table>
-          </div>
+          <RightsTable
+            data={shareData}
+            columns={columns}
+            isLoading={isRightsLoading}
+            emptyMessage="No data. Please select a user group."
+            maxHeight="460px"
+          />
         </form>
       </Form>
+      <SaveConfirmation
+        title="Save Share Data"
+        itemName="share data settings"
+        open={showSaveConfirmation}
+        onOpenChange={setShowSaveConfirmation}
+        onConfirm={handleConfirmSave}
+        isSaving={saving}
+        operationType="save"
+      />
     </div>
   )
 }

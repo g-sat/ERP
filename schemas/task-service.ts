@@ -1,14 +1,13 @@
 import { z } from "zod"
 
 const serviceFieldSchema = z.object({
+  taskId: z.number().min(1, "Task is required"),
   chargeId: z.number().min(1, "Charge is required"),
   glId: z.number().min(1, "GL Account is required"),
   uomId: z.number().min(1, "UOM is required"),
-  carrierTypeId: z.number().optional(),
-  modeTypeId: z.number().optional(),
-  documentTypeId: z.number().optional(),
-  vesselTypeId: z.number().optional(),
-  portTypeId: z.number().optional(),
+  carrierTypeId: z.number().optional().default(0),
+  modeTypeId: z.number().optional().default(0),
+  documentTypeId: z.number().optional().default(0),
 })
 
 export const taskServiceFormSchema = z.object({

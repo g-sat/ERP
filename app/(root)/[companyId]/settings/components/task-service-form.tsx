@@ -1,6 +1,7 @@
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
+import { useParams } from "next/navigation"
 import { IApiSuccessResponse } from "@/interfaces/auth"
 import {
   ITaskService,
@@ -15,6 +16,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 
+import { useChartofAccountLookup } from "@/hooks/use-lookup"
 import { useTaskServiceGet, useTaskServiceSave } from "@/hooks/use-task-service"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -22,6 +24,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Form } from "@/components/ui/form"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { SaveConfirmation } from "@/components/save-confirmation"
 import { LockSkeleton } from "@/components/skeleton/lock-skeleton"
 import CarrierTypeAutocomplete from "@/components/ui-custom/autocomplete-carriertype"
 import ChargeAutocomplete from "@/components/ui-custom/autocomplete-charge"
@@ -33,12 +36,19 @@ import UomAutocomplete from "@/components/ui-custom/autocomplete-uom"
 type TaskServiceResponse = IApiSuccessResponse<ITaskService[]>
 
 export function TaskServiceForm() {
+  const params = useParams()
+  const companyId = params.companyId as string
+  const [showSaveConfirmation, setShowSaveConfirmation] = useState(false)
   const {
     data: taskServiceResponse,
     isLoading,
     isError,
     refetch,
   } = useTaskServiceGet()
+
+  // Get chart of account data to ensure it's loaded before setting form values
+  const { data: chartOfAccounts = [], isLoading: isLoadingChartOfAccounts } =
+    useChartofAccountLookup(Number(companyId))
 
   const { mutate: saveTaskServiceSettings, isPending } = useTaskServiceSave()
 
@@ -48,37 +58,39 @@ export function TaskServiceForm() {
       services: Object.keys(TASK_SERVICES).reduce(
         (acc, serviceKey) => {
           acc[serviceKey] = {
+            taskId: 0,
             chargeId: 0,
             glId: 0,
             uomId: 0,
             carrierTypeId: 0,
             modeTypeId: 0,
             documentTypeId: 0,
-            vesselTypeId: 0,
-            portTypeId: 0,
           }
           return acc
         },
         {} as Record<
           string,
           {
+            taskId: number
             chargeId: number
             glId: number
             uomId: number
             carrierTypeId: number
             modeTypeId: number
             documentTypeId: number
-            vesselTypeId: number
-            portTypeId: number
           }
         >
       ),
     },
   })
 
-  // Update form values when data is loaded
+  // Update form values when both task service data and chart of account data are loaded
   useEffect(() => {
-    if (taskServiceResponse) {
+    if (
+      taskServiceResponse &&
+      !isLoadingChartOfAccounts &&
+      chartOfAccounts.length > 0
+    ) {
       const { result, message, data } =
         taskServiceResponse as TaskServiceResponse
 
@@ -98,14 +110,13 @@ export function TaskServiceForm() {
         const servicesData: Record<
           string,
           {
+            taskId: number
             chargeId: number
             glId: number
             uomId: number
             carrierTypeId: number
             modeTypeId: number
             documentTypeId: number
-            vesselTypeId: number
-            portTypeId: number
           }
         > = {}
 
@@ -121,14 +132,13 @@ export function TaskServiceForm() {
 
           if (serviceKey) {
             servicesData[serviceKey] = {
+              taskId: service.taskId || 0,
               chargeId: service.chargeId || 0,
               glId: service.glId || 0,
               uomId: service.uomId || 0,
               carrierTypeId: service.carrierTypeId || 0,
               modeTypeId: service.modeTypeId || 0,
               documentTypeId: service.documentTypeId || 0,
-              vesselTypeId: service.vesselTypeId || 0,
-              portTypeId: service.portTypeId || 0,
             }
           } else {
             console.log(
@@ -143,9 +153,14 @@ export function TaskServiceForm() {
         form.reset({ services: servicesData })
       }
     }
-  }, [taskServiceResponse, form])
+  }, [taskServiceResponse, form, isLoadingChartOfAccounts, chartOfAccounts])
 
-  function onSubmit(formData: TaskServiceFormValues) {
+  function onSubmit() {
+    setShowSaveConfirmation(true)
+  }
+
+  function handleConfirmSave() {
+    const formData = form.getValues()
     console.log(formData)
 
     saveTaskServiceSettings(formData, {
@@ -179,7 +194,7 @@ export function TaskServiceForm() {
     })
   }
 
-  if (isLoading) {
+  if (isLoading || isLoadingChartOfAccounts) {
     return (
       <div className="space-y-4">
         <div className="flex items-center justify-between">
@@ -230,6 +245,7 @@ export function TaskServiceForm() {
               name={`services.${serviceKey}.glId`}
               label="GL Account"
               isRequired={true}
+              companyId={Number(companyId)}
             />
             <UomAutocomplete
               form={form}
@@ -265,18 +281,6 @@ export function TaskServiceForm() {
               label="Document Type"
               isRequired={false}
             />
-          )}
-
-          {service.hasVesselType && (
-            <div className="text-muted-foreground text-sm">
-              Vessel Type field will be available when component is created
-            </div>
-          )}
-
-          {service.hasPortType && (
-            <div className="text-muted-foreground text-sm">
-              Port Type field will be available when component is created
-            </div>
           )}
         </CardContent>
       </Card>
@@ -379,6 +383,15 @@ export function TaskServiceForm() {
       ) : (
         formContent
       )}
+      <SaveConfirmation
+        title="Save Task Service Settings"
+        itemName="task service settings"
+        open={showSaveConfirmation}
+        onOpenChange={setShowSaveConfirmation}
+        onConfirm={handleConfirmSave}
+        isSaving={isPending}
+        operationType="save"
+      />
     </div>
   )
 }

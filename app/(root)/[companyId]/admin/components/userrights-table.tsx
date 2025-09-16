@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { IUserLookup } from "@/interfaces/lookup"
+import { ColumnDef } from "@tanstack/react-table"
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 
@@ -18,14 +19,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
+import { SaveConfirmation } from "@/components/save-confirmation"
+import { RightsTable } from "@/components/table/table-rights"
 import UserAutocomplete from "@/components/ui-custom/autocomplete-user"
 
 type CompanyRight = {
@@ -41,6 +36,7 @@ export function UserRightsTable() {
   const [selectedUser, setSelectedUser] = useState<IUserLookup | null>(null)
   const [companyRights, setCompanyRights] = useState<CompanyRight[]>([])
   const [saving, setSaving] = useState(false)
+  const [showSaveConfirmation, setShowSaveConfirmation] = useState(false)
 
   // Fetch user groups for dropdown
   const {
@@ -122,8 +118,97 @@ export function UserRightsTable() {
     return true
   }
 
+  // Define columns for the table
+  const columns: ColumnDef<CompanyRight>[] = [
+    {
+      accessorKey: "companyCode",
+      header: "Company Code",
+      size: 150,
+    },
+    {
+      accessorKey: "companyName",
+      header: "Company Name",
+      size: 200,
+    },
+    {
+      id: "isAccess",
+      header: "Is Access",
+      cell: ({ row }) => (
+        <Checkbox
+          checked={row.original.isAccess}
+          onCheckedChange={(checked) =>
+            handleAccessChange(row.original.companyId, Boolean(checked))
+          }
+        />
+      ),
+      size: 120,
+    },
+    {
+      id: "userGroupId",
+      header: "User Group",
+      cell: ({ row }) => (
+        <Select
+          value={row.original.userGroupId}
+          onValueChange={(value) =>
+            handleGroupChange(row.original.companyId, value)
+          }
+          disabled={!row.original.isAccess}
+        >
+          <SelectTrigger
+            className={cn(
+              "w-full",
+              row.original.isAccess &&
+                !row.original.userGroupId &&
+                "border-red-500"
+            )}
+          >
+            <SelectValue placeholder="Select Group" />
+          </SelectTrigger>
+          <SelectContent>
+            {isLoadingUserGroups ? (
+              <SelectItem value="loading" disabled>
+                Loading groups...
+              </SelectItem>
+            ) : userGroupsError ? (
+              <SelectItem value="error" disabled>
+                Error loading groups
+              </SelectItem>
+            ) : userGroups.length === 0 ? (
+              <SelectItem value="no-groups" disabled>
+                No groups available
+              </SelectItem>
+            ) : (
+              userGroups.map((g) => (
+                <SelectItem
+                  key={g.userGroupId}
+                  value={g.userGroupId.toString()}
+                >
+                  {g.userGroupName}
+                </SelectItem>
+              ))
+            )}
+          </SelectContent>
+        </Select>
+      ),
+      size: 200,
+    },
+  ]
+
   // Handle save button click
   const handleSave = async () => {
+    if (!selectedUser) {
+      toast.error("Please select a user first")
+      return
+    }
+
+    // Validate before saving
+    if (!validateCompanyRights()) {
+      return
+    }
+    setShowSaveConfirmation(true)
+  }
+
+  const handleConfirmSave = async () => {
     if (!selectedUser) {
       toast.error("Please select a user first")
       return
@@ -199,125 +284,24 @@ export function UserRightsTable() {
               {saving ? "Saving..." : "Save"}
             </Button>
           </div>
-          <div className="overflow-x-auto rounded-lg border">
-            <Table>
-              {/* Fixed header table with column sizing */}
-              <Table className="w-full table-fixed border-collapse">
-                {/* Column group for consistent sizing */}
-                <colgroup>
-                  <col style={{ width: "150px" }} />
-                  <col style={{ width: "200px" }} />
-                  <col style={{ width: "120px" }} />
-                  <col style={{ width: "200px" }} />
-                </colgroup>
-
-                {/* Sticky table header */}
-                <TableHeader className="bg-background sticky top-0 z-20">
-                  <TableRow className="bg-muted/50">
-                    <TableHead>Company Code</TableHead>
-                    <TableHead>Company Name</TableHead>
-                    <TableHead>Is Access</TableHead>
-                    <TableHead>User Group</TableHead>
-                  </TableRow>
-                </TableHeader>
-              </Table>
-
-              {/* Scrollable body container */}
-              <div className="max-h-[460px] overflow-y-auto">
-                {/* Body table with same column sizing as header */}
-                <Table className="w-full table-fixed border-collapse">
-                  {/* Column group matching header for alignment */}
-                  <colgroup>
-                    <col style={{ width: "150px" }} />
-                    <col style={{ width: "200px" }} />
-                    <col style={{ width: "120px" }} />
-                    <col style={{ width: "200px" }} />
-                  </colgroup>
-
-                  <TableBody>
-                    {companyRights.length === 0 ? (
-                      <TableRow>
-                        <TableCell
-                          colSpan={4}
-                          className="text-muted-foreground text-center"
-                        >
-                          No data. Please select a user.
-                        </TableCell>
-                      </TableRow>
-                    ) : (
-                      companyRights.map((row) => (
-                        <TableRow key={row.companyId}>
-                          <TableCell className="py-1">
-                            {row.companyCode}
-                          </TableCell>
-                          <TableCell className="py-1">
-                            {row.companyName}
-                          </TableCell>
-                          <TableCell className="py-1">
-                            <Checkbox
-                              checked={row.isAccess}
-                              onCheckedChange={(checked) =>
-                                handleAccessChange(
-                                  row.companyId,
-                                  Boolean(checked)
-                                )
-                              }
-                            />
-                          </TableCell>
-                          <TableCell className="py-1">
-                            <Select
-                              value={row.userGroupId}
-                              onValueChange={(value) =>
-                                handleGroupChange(row.companyId, value)
-                              }
-                              disabled={!row.isAccess}
-                            >
-                              <SelectTrigger
-                                className={cn(
-                                  "w-full",
-                                  row.isAccess &&
-                                    !row.userGroupId &&
-                                    "border-red-500"
-                                )}
-                              >
-                                <SelectValue placeholder="Select Group" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {isLoadingUserGroups ? (
-                                  <SelectItem value="loading" disabled>
-                                    Loading groups...
-                                  </SelectItem>
-                                ) : userGroupsError ? (
-                                  <SelectItem value="error" disabled>
-                                    Error loading groups
-                                  </SelectItem>
-                                ) : userGroups.length === 0 ? (
-                                  <SelectItem value="no-groups" disabled>
-                                    No groups available
-                                  </SelectItem>
-                                ) : (
-                                  userGroups.map((g) => (
-                                    <SelectItem
-                                      key={g.userGroupId}
-                                      value={g.userGroupId.toString()}
-                                    >
-                                      {g.userGroupName}
-                                    </SelectItem>
-                                  ))
-                                )}
-                              </SelectContent>
-                            </Select>
-                          </TableCell>
-                        </TableRow>
-                      ))
-                    )}
-                  </TableBody>
-                </Table>
-              </div>
-            </Table>
-          </div>
+          <RightsTable
+            data={companyRights}
+            columns={columns}
+            isLoading={isRightsLoading}
+            emptyMessage="No data. Please select a user."
+            maxHeight="460px"
+          />
         </form>
       </Form>
+      <SaveConfirmation
+        title="Save User Rights"
+        itemName={`user rights for ${selectedUser?.userName || "selected user"}`}
+        open={showSaveConfirmation}
+        onOpenChange={setShowSaveConfirmation}
+        onConfirm={handleConfirmSave}
+        isSaving={saving}
+        operationType="save"
+      />
     </div>
   )
 }

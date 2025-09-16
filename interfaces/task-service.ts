@@ -3,14 +3,13 @@ export interface ITaskService {
   companyId: number
   serviceId: number
   serviceName: string
+  taskId?: number | null
   chargeId?: number | null
   glId?: number | null
   uomId?: number | null
   carrierTypeId?: number | null
   modeTypeId?: number | null
   documentTypeId?: number | null
-  vesselTypeId?: number | null
-  portTypeId?: number | null
   isActive: boolean
   createdDate?: string
   editDate?: string | null
@@ -21,14 +20,13 @@ export interface ITaskService {
 export interface ITaskServiceFormValues {
   services: {
     [key: string]: {
+      taskId: number
       chargeId: number
       glId: number
       uomId: number
       carrierTypeId?: number
       modeTypeId?: number
       documentTypeId?: number
-      vesselTypeId?: number
-      portTypeId?: number
     }
   }
 }
@@ -39,8 +37,6 @@ interface TaskServiceConfig {
   hasCarrierType?: boolean
   hasModeType?: boolean
   hasDocumentType?: boolean
-  hasVesselType?: boolean
-  hasPortType?: boolean
 }
 
 export const TASK_SERVICES: Record<string, TaskServiceConfig> = {
@@ -76,13 +72,11 @@ export const TASK_SERVICES: Record<string, TaskServiceConfig> = {
     id: 8,
     name: "Consignment Import",
     hasDocumentType: true,
-    hasPortType: true,
   },
   Ser_ConsignmentExport: {
     id: 9,
     name: "Consignment Export",
     hasDocumentType: true,
-    hasPortType: true,
   },
   Ser_ThirdParty: { id: 10, name: "Third Party" },
   Ser_FreshWater: { id: 11, name: "Fresh Water" },

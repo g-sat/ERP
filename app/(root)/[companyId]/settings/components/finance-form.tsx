@@ -1,6 +1,7 @@
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
+import { useParams } from "next/navigation"
 import { IApiSuccessResponse } from "@/interfaces/auth"
 import {
   FinanceSettingFormValues,
@@ -10,10 +11,13 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 
+import { useChartofAccountLookup } from "@/hooks/use-lookup"
 import { useFinanceGet, useFinanceSave } from "@/hooks/use-settings"
 import { Button } from "@/components/ui/button"
 import { Form } from "@/components/ui/form"
+import { Separator } from "@/components/ui/separator"
 import { Skeleton } from "@/components/ui/skeleton"
+import { SaveConfirmation } from "@/components/save-confirmation"
 import { LockSkeleton } from "@/components/skeleton/lock-skeleton"
 import ChartofAccountAutocomplete from "@/components/ui-custom/autocomplete-chartofaccount"
 import CurrencyAutocomplete from "@/components/ui-custom/autocomplete-currency"
@@ -21,12 +25,19 @@ import CurrencyAutocomplete from "@/components/ui-custom/autocomplete-currency"
 type FinanceResponse = IApiSuccessResponse<FinanceSettingFormValues>
 
 export function FinanceForm() {
+  const params = useParams()
+  const companyId = params.companyId as string
+  const [showSaveConfirmation, setShowSaveConfirmation] = useState(false)
   const {
     data: financeResponse,
     isLoading: isLoadingfinance,
     isError,
     refetch,
   } = useFinanceGet()
+
+  // Get chart of account data to ensure it's loaded before setting form values
+  const { data: chartOfAccounts = [], isLoading: isLoadingChartOfAccounts } =
+    useChartofAccountLookup(Number(companyId))
 
   const { mutate: saveFinanceSettings, isPending } = useFinanceSave()
 
@@ -47,9 +58,13 @@ export function FinanceForm() {
     },
   })
 
-  // Update form values when data is loaded
+  // Update form values when both finance data and chart of account data are loaded
   useEffect(() => {
-    if (financeResponse) {
+    if (
+      financeResponse &&
+      !isLoadingChartOfAccounts &&
+      chartOfAccounts.length > 0
+    ) {
       const { result, message, data } = financeResponse as FinanceResponse
 
       if (result === -2) {
@@ -77,9 +92,14 @@ export function FinanceForm() {
         })
       }
     }
-  }, [financeResponse, form])
+  }, [financeResponse, form, isLoadingChartOfAccounts, chartOfAccounts])
 
-  function onSubmit(formData: FinanceSettingFormValues) {
+  function onSubmit() {
+    setShowSaveConfirmation(true)
+  }
+
+  function handleConfirmSave() {
+    const formData = form.getValues()
     // Ensure all fields are non-optional numbers
     const data = {
       base_CurrencyId: formData.base_CurrencyId ?? 0,
@@ -125,7 +145,7 @@ export function FinanceForm() {
     })
   }
 
-  if (isLoadingfinance) {
+  if (isLoadingfinance || isLoadingChartOfAccounts) {
     return (
       <div className="space-y-4">
         <div className="flex items-center justify-between">
@@ -153,17 +173,24 @@ export function FinanceForm() {
   const formContent = (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <div className="flex flex-col space-y-2">
+        <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <h3 className="text-lg font-medium">Finance Settings</h3>
-            <Button type="submit" size="sm" disabled={isPending}>
-              {isPending ? "Saving..." : "Save Changes"}
-            </Button>
+            <div>
+              <h3 className="text-xl font-semibold">Finance Settings</h3>
+              <p className="text-muted-foreground text-sm">
+                Configure finance settings
+              </p>
+            </div>
+            {/* Submit Button */}
+            <div className="flex justify-end">
+              <Button type="submit" size="sm" disabled={isPending}>
+                {isPending ? "Saving..." : "Save Changes"}
+              </Button>
+            </div>
           </div>
-          <p className="text-muted-foreground text-sm">
-            Configure finance settings for your company
-          </p>
         </div>
+
+        <Separator />
         <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
           <CurrencyAutocomplete
             form={form}
@@ -182,54 +209,63 @@ export function FinanceForm() {
             name="exhGain_GlId"
             label="Exchange Gain Account"
             isRequired={true}
+            companyId={Number(companyId)}
           />
           <ChartofAccountAutocomplete
             form={form}
             name="exhLoss_GlId"
             label="Exchange Loss Account"
             isRequired={true}
+            companyId={Number(companyId)}
           />
           <ChartofAccountAutocomplete
             form={form}
             name="bankCharge_GlId"
             label="Bank Charges Account"
             isRequired={true}
+            companyId={Number(companyId)}
           />
           <ChartofAccountAutocomplete
             form={form}
             name="profitLoss_GlId"
             label="Profit & Loss Account"
             isRequired={true}
+            companyId={Number(companyId)}
           />
           <ChartofAccountAutocomplete
             form={form}
             name="retEarning_GlId"
             label="Retained Earnings Account"
             isRequired={true}
+            companyId={Number(companyId)}
           />
           <ChartofAccountAutocomplete
             form={form}
             name="saleGst_GlId"
             label="Sales GST Account"
             isRequired={true}
+            companyId={Number(companyId)}
           />
           <ChartofAccountAutocomplete
             form={form}
             name="purGst_GlId"
             label="Purchase GST Account"
             isRequired={true}
+            companyId={Number(companyId)}
           />
           <ChartofAccountAutocomplete
             form={form}
             name="saleDef_GlId"
             label="Sales Deferred Account"
             isRequired={true}
+            companyId={Number(companyId)}
           />
           <ChartofAccountAutocomplete
             form={form}
             name="purDef_GlId"
             label="Purchase Deferred Account"
             isRequired={true}
+            companyId={Number(companyId)}
           />
         </div>
       </form>
@@ -243,6 +279,15 @@ export function FinanceForm() {
       ) : (
         formContent
       )}
+      <SaveConfirmation
+        title="Save Finance Settings"
+        itemName="finance settings"
+        open={showSaveConfirmation}
+        onOpenChange={setShowSaveConfirmation}
+        onConfirm={handleConfirmSave}
+        isSaving={isPending}
+        operationType="save"
+      />
     </div>
   )
 }

@@ -14,6 +14,7 @@ import {
   useReactTable,
 } from "@tanstack/react-table"
 import { useForm } from "react-hook-form"
+import { toast } from "sonner"
 
 import {
   useCloneUserSettingSave,
@@ -36,6 +37,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { SaveConfirmation } from "@/components/save-confirmation"
 import UserAutocomplete from "@/components/ui-custom/autocomplete-user"
 
 type GridSetting = {
@@ -61,6 +63,7 @@ export function GridFormatTable() {
   const [targetUser, setTargetUser] = useState<IUserLookup | null>(null)
   const [gridSettings, setGridSettings] = useState<GridSetting[]>([])
   const [isCloneDialogOpen, setIsCloneDialogOpen] = useState(false)
+  const [showSaveConfirmation, setShowSaveConfirmation] = useState(false)
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
   // Fetch grid settings for selected user
@@ -77,8 +80,28 @@ export function GridFormatTable() {
 
   // Update gridSettings when gridSettingsData changes
   useEffect(() => {
-    if (gridSettingsData && Array.isArray(gridSettingsData)) {
-      setGridSettings(gridSettingsData)
+    console.log("Grid settings data received:", gridSettingsData)
+    if (gridSettingsData) {
+      // Check if the response has the expected structure
+      if (Array.isArray(gridSettingsData)) {
+        setGridSettings(gridSettingsData)
+      } else if (
+        gridSettingsData.data &&
+        Array.isArray(gridSettingsData.data)
+      ) {
+        // Handle case where data is wrapped in a response object
+        setGridSettings(gridSettingsData.data)
+      } else if (
+        gridSettingsData.result === 1 &&
+        gridSettingsData.data &&
+        Array.isArray(gridSettingsData.data)
+      ) {
+        // Handle API response format with result and data
+        setGridSettings(gridSettingsData.data)
+      } else {
+        console.log("Unexpected data structure:", gridSettingsData)
+        setGridSettings([])
+      }
     } else {
       setGridSettings([])
     }
@@ -86,13 +109,20 @@ export function GridFormatTable() {
 
   // When user changes, refetch settings
   useEffect(() => {
+    console.log("Selected user changed:", selectedUser)
     if (selectedUser) {
+      console.log("Refetching grid settings for user ID:", selectedUser.userId)
       refetchGridSettings()
     } else {
       setGridSettings([])
     }
   }, [selectedUser, refetchGridSettings])
   const handleClone = async () => {
+    if (!selectedUser || !targetUser) return
+    setShowSaveConfirmation(true)
+  }
+
+  const handleConfirmClone = async () => {
     if (!selectedUser || !targetUser) return
 
     try {
@@ -107,9 +137,8 @@ export function GridFormatTable() {
       setTargetUser(null)
       form.resetField("targetUserId")
 
-      // Show a success message (you can implement a toast notification here)
-      // For now, we'll just log it
-      console.log(
+      // Show a success message
+      toast.success(
         `Settings cloned from ${selectedUser.userName} to ${targetUser.userName}`
       )
 
@@ -119,15 +148,18 @@ export function GridFormatTable() {
       }
     } catch (error) {
       console.error("Error cloning user settings:", error)
-      // Show an error message (you can implement a toast notification here)
+      toast.error("Failed to clone user settings")
     }
   }
 
   const handleSearch = async () => {
+    console.log("Search button clicked, selected user:", selectedUser)
     if (!selectedUser) {
+      console.log("No user selected, clearing grid settings")
       setGridSettings([])
       return
     }
+    console.log("Refetching grid settings for user:", selectedUser.userId)
     refetchGridSettings()
   }
 
@@ -217,13 +249,22 @@ export function GridFormatTable() {
                 {isSettingsLoading ? "Loading..." : "Search"}
               </Button>
             </div>
-            <Button
-              onClick={() => setIsCloneDialogOpen(true)}
-              disabled={!selectedUser}
-              size="sm"
-            >
-              Clone Setting
-            </Button>
+            <div className="flex items-center gap-2">
+              {/* Debug info */}
+              <div className="text-muted-foreground text-xs">
+                {selectedUser
+                  ? `User: ${selectedUser.userName} (${selectedUser.userId})`
+                  : "No user selected"}{" "}
+                | Settings: {gridSettings.length} rows
+              </div>
+              <Button
+                onClick={() => setIsCloneDialogOpen(true)}
+                disabled={!selectedUser}
+                size="sm"
+              >
+                Clone Setting
+              </Button>
+            </div>
           </div>
 
           <div className="relative overflow-auto" style={{ height: "490px" }}>
@@ -253,28 +294,31 @@ export function GridFormatTable() {
               </TableHeader>
               <TableBody className="**:data-[slot=table-cell]:first:w-8">
                 {table.getRowModel().rows?.length ? (
-                  table.getRowModel().rows.map((row) => (
-                    <TableRow
-                      key={row.id}
-                      data-state={row.getIsSelected() && "selected"}
-                    >
-                      {row.getVisibleCells().map((cell) => (
-                        <TableCell
-                          key={cell.id}
-                          style={{
-                            width: `${cell.column.getSize()}px`,
-                            minWidth: `${cell.column.getSize()}px`,
-                          }}
-                          className="truncate"
-                        >
-                          {flexRender(
-                            cell.column.columnDef.cell,
-                            cell.getContext()
-                          )}
-                        </TableCell>
-                      ))}
-                    </TableRow>
-                  ))
+                  table.getRowModel().rows.map((row) => {
+                    console.log("Rendering row:", row.original)
+                    return (
+                      <TableRow
+                        key={row.id}
+                        data-state={row.getIsSelected() && "selected"}
+                      >
+                        {row.getVisibleCells().map((cell) => (
+                          <TableCell
+                            key={cell.id}
+                            style={{
+                              width: `${cell.column.getSize()}px`,
+                              minWidth: `${cell.column.getSize()}px`,
+                            }}
+                            className="truncate"
+                          >
+                            {flexRender(
+                              cell.column.columnDef.cell,
+                              cell.getContext()
+                            )}
+                          </TableCell>
+                        ))}
+                      </TableRow>
+                    )
+                  })
                 ) : (
                   <>
                     <TableRow>
@@ -354,6 +398,15 @@ export function GridFormatTable() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      <SaveConfirmation
+        title="Clone Grid Settings"
+        itemName={`grid settings from ${selectedUser?.userName || "selected user"} to ${targetUser?.userName || "target user"}`}
+        open={showSaveConfirmation}
+        onOpenChange={setShowSaveConfirmation}
+        onConfirm={handleConfirmClone}
+        isSaving={cloneUserSetting.isPending}
+        operationType="save"
+      />
     </>
   )
 }

@@ -1,25 +1,12 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useState } from "react"
 import { ApiResponse } from "@/interfaces/auth"
 import { IMandatoryFields } from "@/interfaces/setting"
-import {
-  ColumnDef,
-  ColumnFiltersState,
-  SortingState,
-  VisibilityState,
-  flexRender,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-  useReactTable,
-} from "@tanstack/react-table"
-import { useVirtualizer } from "@tanstack/react-virtual"
+import { ColumnDef } from "@tanstack/react-table"
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 
-import { cn } from "@/lib/utils"
 import {
   useMandatoryFieldSave,
   useMandatoryFieldbyidGet,
@@ -27,14 +14,8 @@ import {
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Form } from "@/components/ui/form"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableRow,
-  TableHeader as TanstackTableHeader,
-} from "@/components/ui/table"
+import { SaveConfirmation } from "@/components/save-confirmation"
+import { RightsTable } from "@/components/table/table-rights"
 import ModuleAutocomplete from "@/components/ui-custom/autocomplete-module"
 
 export function MandatoryTable() {
@@ -45,12 +26,7 @@ export function MandatoryTable() {
   } | null>(null)
   const [mandatoryFields, setMandatoryFields] = useState<IMandatoryFields[]>([])
   const [saving, setSaving] = useState(false)
-  const [sorting, setSorting] = useState<SortingState>([])
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
-  const [columnSizing, setColumnSizing] = useState({})
-  const [rowSelection, setRowSelection] = useState({})
-  const tableContainerRef = useRef<HTMLDivElement>(null)
+  const [showSaveConfirmation, setShowSaveConfirmation] = useState(false)
 
   // Fetch mandatory fields for selected module
   const {
@@ -93,6 +69,20 @@ export function MandatoryTable() {
       setMandatoryFields([])
     }
   }, [selectedModule?.moduleId, refetchMandatoryFields])
+
+  const handleFieldChange = (
+    field: IMandatoryFields,
+    key: string,
+    checked: boolean
+  ) => {
+    setMandatoryFields((prev) =>
+      prev.map((f) =>
+        f.moduleId === field.moduleId && f.transactionId === field.transactionId
+          ? { ...f, [key]: checked }
+          : f
+      )
+    )
+  }
 
   const columns: ColumnDef<IMandatoryFields>[] = [
     {
@@ -593,59 +583,15 @@ export function MandatoryTable() {
     },
   ]
 
-  const table = useReactTable({
-    data: mandatoryFields,
-    columns,
-    onSortingChange: setSorting,
-    onColumnFiltersChange: setColumnFilters,
-    getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    onColumnVisibilityChange: setColumnVisibility,
-    onColumnSizingChange: setColumnSizing,
-    onRowSelectionChange: setRowSelection,
-    enableColumnResizing: true,
-    columnResizeMode: "onChange",
-    state: {
-      sorting,
-      columnFilters,
-      columnVisibility,
-      columnSizing,
-      rowSelection,
-    },
-  })
-
-  const rowVirtualizer = useVirtualizer({
-    count: table.getRowModel().rows.length,
-    getScrollElement: () => tableContainerRef.current,
-    estimateSize: () => 48,
-    overscan: 5,
-  })
-
-  const virtualRows = rowVirtualizer.getVirtualItems()
-  const totalSize = rowVirtualizer.getTotalSize()
-  const paddingTop = virtualRows.length > 0 ? virtualRows[0].start : 0
-  const paddingBottom =
-    virtualRows.length > 0
-      ? totalSize - virtualRows[virtualRows.length - 1].end
-      : 0
-
-  const handleFieldChange = (
-    field: IMandatoryFields,
-    key: string,
-    checked: boolean
-  ) => {
-    setMandatoryFields((prev) =>
-      prev.map((f) =>
-        f.moduleId === field.moduleId && f.transactionId === field.transactionId
-          ? { ...f, [key]: checked }
-          : f
-      )
-    )
+  const handleSave = async () => {
+    if (!selectedModule) {
+      toast.error("Please select a module first")
+      return
+    }
+    setShowSaveConfirmation(true)
   }
 
-  const handleSave = async () => {
+  const handleConfirmSave = async () => {
     if (!selectedModule) {
       toast.error("Please select a module first")
       return
@@ -716,98 +662,22 @@ export function MandatoryTable() {
         </form>
       </Form>
 
-      <div
-        ref={tableContainerRef}
-        className="relative overflow-auto"
-        style={{ height: "490px" }}
-      >
-        <Table>
-          <TanstackTableHeader className="bg-muted sticky top-0 z-10">
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
-                  <TableHead
-                    key={header.id}
-                    colSpan={header.colSpan}
-                    style={{
-                      width: header.getSize(),
-                      minWidth: header.column.columnDef.minSize,
-                      maxWidth: header.column.columnDef.maxSize,
-                    }}
-                    className="bg-muted group hover:bg-muted/80 relative transition-colors"
-                  >
-                    <div className="flex items-center justify-between">
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
-                    </div>
-
-                    {header.column.getCanResize() && (
-                      <div
-                        onMouseDown={header.getResizeHandler()}
-                        onTouchStart={header.getResizeHandler()}
-                        className={cn(
-                          "resizer bg-border absolute top-0 right-0 h-full w-1 cursor-col-resize opacity-0 transition-opacity",
-                          "group-hover:opacity-100",
-                          header.column.getIsResizing() &&
-                            "bg-primary opacity-100"
-                        )}
-                      />
-                    )}
-                  </TableHead>
-                ))}
-              </TableRow>
-            ))}
-          </TanstackTableHeader>
-          <TableBody>
-            {virtualRows.length > 0 ? (
-              <>
-                <tr style={{ height: `${paddingTop}px` }} />
-                {virtualRows.map((virtualRow) => {
-                  const row = table.getRowModel().rows[virtualRow.index]
-                  return (
-                    <TableRow key={row.id}>
-                      {row.getVisibleCells().map((cell) => (
-                        <TableCell key={cell.id}>
-                          {flexRender(
-                            cell.column.columnDef.cell,
-                            cell.getContext()
-                          )}
-                        </TableCell>
-                      ))}
-                    </TableRow>
-                  )
-                })}
-                <tr style={{ height: `${paddingBottom}px` }} />
-              </>
-            ) : (
-              <>
-                <TableRow>
-                  <TableCell
-                    colSpan={columns.length}
-                    className="h-24 text-center"
-                  >
-                    {isFieldsLoading
-                      ? "Loading..."
-                      : "No mandatory fields found."}
-                  </TableCell>
-                </TableRow>
-                {Array.from({ length: 9 }).map((_, index) => (
-                  <TableRow key={`empty-${index}`}>
-                    <TableCell
-                      colSpan={columns.length}
-                      className="h-10"
-                    ></TableCell>
-                  </TableRow>
-                ))}
-              </>
-            )}
-          </TableBody>
-        </Table>
-      </div>
+      <RightsTable
+        data={mandatoryFields}
+        columns={columns}
+        isLoading={isFieldsLoading}
+        emptyMessage="No mandatory fields found."
+        maxHeight="460px"
+      />
+      <SaveConfirmation
+        title="Save Mandatory Fields"
+        itemName={`mandatory fields for ${selectedModule?.moduleName || "selected module"}`}
+        open={showSaveConfirmation}
+        onOpenChange={setShowSaveConfirmation}
+        onConfirm={handleConfirmSave}
+        isSaving={saving}
+        operationType="save"
+      />
     </div>
   )
 }
