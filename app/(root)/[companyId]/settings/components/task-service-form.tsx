@@ -3,12 +3,9 @@
 import { useEffect, useState } from "react"
 import { useParams } from "next/navigation"
 import { IApiSuccessResponse } from "@/interfaces/auth"
+import { ITaskService } from "@/interfaces/task-service"
 import {
-  ITaskService,
-  TASK_SERVICES,
-  TaskServiceKey,
-} from "@/interfaces/task-service"
-import {
+  ServiceFieldValues,
   TaskServiceFormValues,
   taskServiceFormSchema,
 } from "@/schemas/task-service"
@@ -18,33 +15,55 @@ import { toast } from "sonner"
 
 import { useChartofAccountLookup } from "@/hooks/use-lookup"
 import { useTaskServiceGet, useTaskServiceSave } from "@/hooks/use-task-service"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Form } from "@/components/ui/form"
 import { Skeleton } from "@/components/ui/skeleton"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { SaveConfirmation } from "@/components/save-confirmation"
 import { LockSkeleton } from "@/components/skeleton/lock-skeleton"
 import CarrierTypeAutocomplete from "@/components/ui-custom/autocomplete-carriertype"
 import ChargeAutocomplete from "@/components/ui-custom/autocomplete-charge"
 import ChartofAccountAutocomplete from "@/components/ui-custom/autocomplete-chartofaccount"
 import DocumentTypeAutocomplete from "@/components/ui-custom/autocomplete-document-type"
 import ModeTypeAutocomplete from "@/components/ui-custom/autocomplete-modetype"
+import StatusAutocomplete from "@/components/ui-custom/autocomplete-status"
 import UomAutocomplete from "@/components/ui-custom/autocomplete-uom"
+import VisaTypeAutocomplete from "@/components/ui-custom/autocomplete-visatype"
+import WorkLocationAutocomplete from "@/components/ui-custom/autocomplete-worklocation"
 
 type TaskServiceResponse = IApiSuccessResponse<ITaskService[]>
+
+// Default task services configuration
+const DEFAULT_TASK_SERVICES = [
+  { taskId: 1, taskName: "Port Expenses" },
+  { taskId: 2, taskName: "Launch Service" },
+  { taskId: 3, taskName: "Equipment Used" },
+  { taskId: 4, taskName: "Crew SignOn" },
+  { taskId: 5, taskName: "Crew SignOff" },
+  { taskId: 6, taskName: "Crew Miscellaneous" },
+  { taskId: 7, taskName: "Medical Assistance" },
+  { taskId: 8, taskName: "Consignment Import" },
+  { taskId: 9, taskName: "Consignment Export" },
+  { taskId: 10, taskName: "Third Party" },
+  { taskId: 11, taskName: "Fresh Water" },
+  { taskId: 12, taskName: "Technician Surveyor" },
+  { taskId: 13, taskName: "Landing Items" },
+  { taskId: 14, taskName: "Other Service" },
+  { taskId: 15, taskName: "Agency Remuneration" },
+  { taskId: 16, taskName: "Visa Service" },
+]
 
 export function TaskServiceForm() {
   const params = useParams()
   const companyId = params.companyId as string
-  const [showSaveConfirmation, setShowSaveConfirmation] = useState(false)
+  const [savingService, setSavingService] = useState<string | null>(null)
+  const [recentlySaved, setRecentlySaved] = useState<string | null>(null)
   const {
     data: taskServiceResponse,
     isLoading,
     isError,
     refetch,
   } = useTaskServiceGet()
+
+  console.log("taskServiceResponse", taskServiceResponse)
 
   // Get chart of account data to ensure it's loaded before setting form values
   const { data: chartOfAccounts = [], isLoading: isLoadingChartOfAccounts } =
@@ -55,16 +74,19 @@ export function TaskServiceForm() {
   const form = useForm<TaskServiceFormValues>({
     resolver: zodResolver(taskServiceFormSchema),
     defaultValues: {
-      services: Object.keys(TASK_SERVICES).reduce(
-        (acc, serviceKey) => {
-          acc[serviceKey] = {
-            taskId: 0,
+      services: DEFAULT_TASK_SERVICES.reduce(
+        (acc, service) => {
+          acc[`service_${service.taskId}`] = {
+            taskId: service.taskId,
             chargeId: 0,
             glId: 0,
             uomId: 0,
             carrierTypeId: 0,
             modeTypeId: 0,
             documentTypeId: 0,
+            visaTypeId: 0,
+            locationTypeId: 0,
+            statusTypeId: 0,
           }
           return acc
         },
@@ -78,6 +100,9 @@ export function TaskServiceForm() {
             carrierTypeId: number
             modeTypeId: number
             documentTypeId: number
+            visaTypeId: number
+            locationTypeId: number
+            statusTypeId: number
           }
         >
       ),
@@ -105,7 +130,6 @@ export function TaskServiceForm() {
 
       if (result === 1 && data) {
         console.log("API Response data:", data)
-        console.log("TASK_SERVICES:", TASK_SERVICES)
 
         const servicesData: Record<
           string,
@@ -117,34 +141,30 @@ export function TaskServiceForm() {
             carrierTypeId: number
             modeTypeId: number
             documentTypeId: number
+            visaTypeId: number
+            locationTypeId: number
+            statusTypeId: number
           }
         > = {}
 
         data.forEach((service) => {
           console.log("Processing service:", service)
-          console.log("Service ID:", service.id)
+          console.log("Service TaskId:", service.taskId)
 
-          const serviceKey = Object.keys(TASK_SERVICES).find(
-            (key) => TASK_SERVICES[key as TaskServiceKey].id === service.id
-          ) as TaskServiceKey
+          // Use taskId as the key since we don't have TASK_SERVICES mapping
+          const serviceKey = `service_${service.taskId}`
 
-          console.log("Found serviceKey:", serviceKey)
-
-          if (serviceKey) {
-            servicesData[serviceKey] = {
-              taskId: service.taskId || 0,
-              chargeId: service.chargeId || 0,
-              glId: service.glId || 0,
-              uomId: service.uomId || 0,
-              carrierTypeId: service.carrierTypeId || 0,
-              modeTypeId: service.modeTypeId || 0,
-              documentTypeId: service.documentTypeId || 0,
-            }
-          } else {
-            console.log(
-              "No matching serviceKey found for serviceId:",
-              service.id
-            )
+          servicesData[serviceKey] = {
+            taskId: service.taskId || 0,
+            chargeId: service.chargeId || 0,
+            glId: service.glId || 0,
+            uomId: service.uomId || 0,
+            carrierTypeId: service.carrierTypeId || 0,
+            modeTypeId: service.modeTypeId || 0,
+            documentTypeId: service.documentTypeId || 0,
+            visaTypeId: service.visaTypeId || 0,
+            locationTypeId: service.locationTypeId || 0,
+            statusTypeId: service.statusTypeId || 0,
           }
         })
 
@@ -155,15 +175,54 @@ export function TaskServiceForm() {
     }
   }, [taskServiceResponse, form, isLoadingChartOfAccounts, chartOfAccounts])
 
-  function onSubmit() {
-    setShowSaveConfirmation(true)
-  }
-
-  function handleConfirmSave() {
+  function handleSaveIndividualService(serviceKey: string) {
+    setSavingService(serviceKey)
     const formData = form.getValues()
-    console.log(formData)
+    const serviceData = formData.services[serviceKey]
 
-    saveTaskServiceSettings(formData, {
+    // Validate mandatory fields
+    const errors: string[] = []
+
+    if (!serviceData.chargeId || serviceData.chargeId === 0) {
+      errors.push("Charge is required")
+    }
+
+    if (!serviceData.glId || serviceData.glId === 0) {
+      errors.push("GL Account is required")
+    }
+
+    if (!serviceData.uomId || serviceData.uomId === 0) {
+      errors.push("UOM is required")
+    }
+
+    // Find the service name for error messages
+    const serviceInfo = DEFAULT_TASK_SERVICES.find(
+      (s) => s.taskId === serviceData.taskId
+    )
+    const serviceName = serviceInfo?.taskName || `Service ${serviceData.taskId}`
+
+    if (errors.length > 0) {
+      toast.error(`${serviceName}: ${errors.join(", ")}`)
+      setSavingService(null)
+      return
+    }
+
+    const individualPayload: ServiceFieldValues = {
+      taskId: serviceData.taskId,
+      chargeId: serviceData.chargeId,
+      glId: serviceData.glId,
+      uomId: serviceData.uomId,
+      carrierTypeId: serviceData.carrierTypeId,
+      modeTypeId: serviceData.modeTypeId,
+      documentTypeId: serviceData.documentTypeId,
+      visaTypeId: serviceData.visaTypeId,
+      locationTypeId: serviceData.locationTypeId,
+      statusTypeId: serviceData.statusTypeId,
+    }
+
+    console.log(`Saving individual service ${serviceKey}:`, individualPayload)
+
+    saveTaskServiceSettings(individualPayload, {
       onSuccess: (response) => {
         const { result, message } = response as IApiSuccessResponse<{
           success: boolean
@@ -175,21 +234,47 @@ export function TaskServiceForm() {
         }
 
         if (result === -1) {
-          toast.error(message || "Failed to save task service settings")
+          // Find the service name for the error message
+          const serviceInfo = DEFAULT_TASK_SERVICES.find(
+            (s) => s.taskId === serviceData.taskId
+          )
+          const serviceName =
+            serviceInfo?.taskName || `Service ${serviceData.taskId}`
+
+          toast.error(message || `Failed to save ${serviceName} settings`)
           return
         }
 
         if (result === 1) {
-          toast.success(message || "Task service settings saved successfully")
+          // Find the service name for the success message
+          const serviceInfo = DEFAULT_TASK_SERVICES.find(
+            (s) => s.taskId === serviceData.taskId
+          )
+          const serviceName =
+            serviceInfo?.taskName || `Service ${serviceData.taskId}`
+
+          toast.success(`${serviceName} settings saved successfully`)
+          setRecentlySaved(serviceKey)
+          setTimeout(() => setRecentlySaved(null), 3000) // Clear after 3 seconds
           refetch()
         }
       },
       onError: (error) => {
+        // Find the service name for the error message
+        const serviceInfo = DEFAULT_TASK_SERVICES.find(
+          (s) => s.taskId === serviceData.taskId
+        )
+        const serviceName =
+          serviceInfo?.taskName || `Service ${serviceData.taskId}`
+
         toast.error(
           error instanceof Error
             ? error.message
-            : "Failed to save task service settings"
+            : `Failed to save ${serviceName} settings`
         )
+      },
+      onSettled: () => {
+        setSavingService(null)
       },
     })
   }
@@ -219,25 +304,84 @@ export function TaskServiceForm() {
     )
   }
 
-  const ServiceCard = ({ serviceKey }: { serviceKey: TaskServiceKey }) => {
-    const service = TASK_SERVICES[serviceKey]
+  const ServiceCard = ({
+    serviceKey,
+    serviceData,
+  }: {
+    serviceKey: string
+    serviceData: {
+      taskId: number
+      chargeId: number
+      glId: number
+      uomId: number
+      carrierTypeId: number
+      modeTypeId: number
+      documentTypeId: number
+      visaTypeId: number
+      locationTypeId: number
+      statusTypeId: number
+    }
+  }) => {
+    const isSaving = savingService === serviceKey
+    const wasRecentlySaved = recentlySaved === serviceKey
+
+    // Find the service name from DEFAULT_TASK_SERVICES
+    const serviceInfo = DEFAULT_TASK_SERVICES.find(
+      (s) => s.taskId === serviceData.taskId
+    )
+    const serviceName = serviceInfo?.taskName || `Service ${serviceData.taskId}`
 
     return (
-      <Card className="p-4">
-        <CardHeader className="pb-3">
+      <div
+        className={`rounded-lg border p-4 transition-all duration-300 ${wasRecentlySaved ? "bg-green-50 ring-2 ring-green-500 dark:bg-green-950" : ""}`}
+      >
+        <div className="mb-3 border-b pb-3">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-base">{service.name}</CardTitle>
-            <Badge variant="secondary">{serviceKey}</Badge>
+            <div className="flex-1">
+              <div className="flex items-center gap-2">
+                <h3 className="text-base font-semibold">{serviceName}</h3>
+                {wasRecentlySaved && (
+                  <div className="flex items-center gap-1 text-green-600 dark:text-green-400">
+                    <div className="h-2 w-2 rounded-full bg-green-500" />
+                    <span className="text-xs font-medium">Saved</span>
+                  </div>
+                )}
+              </div>
+            </div>
+            <Button
+              size="sm"
+              variant={
+                isSaving
+                  ? "secondary"
+                  : wasRecentlySaved
+                    ? "outline"
+                    : "default"
+              }
+              onClick={() => handleSaveIndividualService(serviceKey)}
+              disabled={isSaving || isPending}
+              className="ml-2 min-w-[80px]"
+            >
+              {isSaving ? (
+                <>
+                  <div className="mr-2 h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                  Saving...
+                </>
+              ) : wasRecentlySaved ? (
+                "Saved ✓"
+              ) : (
+                "Save"
+              )}
+            </Button>
           </div>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          {/* Common Fields */}
+        </div>
+        <div className="space-y-3">
+          {/* Common Fields - Always show for all services */}
           <div className="grid grid-cols-1 gap-3">
             <ChargeAutocomplete
               form={form}
               name={`services.${serviceKey}.chargeId`}
               label="Charge"
-              taskId={service.id}
+              taskId={serviceData.taskId}
               isRequired={true}
             />
             <ChartofAccountAutocomplete
@@ -255,124 +399,101 @@ export function TaskServiceForm() {
             />
           </div>
 
-          {/* Service-specific Fields */}
-          {service.hasCarrierType && (
-            <CarrierTypeAutocomplete
+          {/* Conditional Fields based on taskId */}
+
+          {/* Visa Type - Show for taskId 4,5 */}
+          {[4, 5].includes(serviceData.taskId) && (
+            <VisaTypeAutocomplete
               form={form}
-              name={`services.${serviceKey}.carrierTypeId`}
-              label="Carrier Type"
+              name={`services.${serviceKey}.visaTypeId`}
+              label="Visa Type"
               isRequired={false}
             />
           )}
 
-          {service.hasModeType && (
-            <ModeTypeAutocomplete
-              form={form}
-              name={`services.${serviceKey}.modeTypeId`}
-              label="Mode Type"
-              isRequired={false}
-            />
+          {/* Carrier Type, Mode Type, Document Type, Location Type - Show for taskId 8,9 */}
+          {[8, 9].includes(serviceData.taskId) && (
+            <>
+              <CarrierTypeAutocomplete
+                form={form}
+                name={`services.${serviceKey}.carrierTypeId`}
+                label="Carrier Type"
+                isRequired={false}
+              />
+
+              <ModeTypeAutocomplete
+                form={form}
+                name={`services.${serviceKey}.modeTypeId`}
+                label="Mode Type"
+                isRequired={false}
+              />
+
+              <DocumentTypeAutocomplete
+                form={form}
+                name={`services.${serviceKey}.documentTypeId`}
+                label="Document Type"
+                isRequired={false}
+              />
+
+              <WorkLocationAutocomplete
+                form={form}
+                name={`services.${serviceKey}.locationTypeId`}
+                label="Location Type"
+                isRequired={false}
+              />
+            </>
           )}
 
-          {service.hasDocumentType && (
-            <DocumentTypeAutocomplete
-              form={form}
-              name={`services.${serviceKey}.documentTypeId`}
-              label="Document Type"
-              isRequired={false}
-            />
-          )}
-        </CardContent>
-      </Card>
+          {/* Status Type - Show for all services */}
+          <StatusAutocomplete
+            form={form}
+            name={`services.${serviceKey}.statusTypeId`}
+            label="Status Type"
+            isRequired={false}
+          />
+        </div>
+      </div>
     )
   }
 
   const formContent = (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h3 className="text-lg font-medium">Task Service Settings</h3>
-            <p className="text-muted-foreground text-sm">
-              Configure default values for all task services
-            </p>
-          </div>
-          <Button type="submit" size="sm" disabled={isPending}>
-            {isPending ? "Saving..." : "Save All Settings"}
-          </Button>
+      <div className="space-y-6">
+        <div>
+          <h3 className="text-lg font-medium">Task Service Settings</h3>
+          <p className="text-muted-foreground text-sm">
+            Configure default values for all task services. Save individual
+            services using the save button on each card.
+          </p>
         </div>
 
-        <Tabs defaultValue="all" className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="all">All Services</TabsTrigger>
-            <TabsTrigger value="crew">Crew Services</TabsTrigger>
-            <TabsTrigger value="cargo">Cargo Services</TabsTrigger>
-            <TabsTrigger value="other">Other Services</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="all" className="space-y-4">
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {Object.keys(TASK_SERVICES).map((serviceKey) => (
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {DEFAULT_TASK_SERVICES.map((service) => {
+              const serviceKey = `service_${service.taskId}`
+              const serviceData = form.getValues().services[serviceKey] || {
+                taskId: service.taskId,
+                chargeId: 0,
+                glId: 0,
+                uomId: 0,
+                carrierTypeId: 0,
+                modeTypeId: 0,
+                documentTypeId: 0,
+                visaTypeId: 0,
+                locationTypeId: 0,
+                statusTypeId: 0,
+              }
+              return (
                 <ServiceCard
                   key={serviceKey}
-                  serviceKey={serviceKey as TaskServiceKey}
+                  serviceKey={serviceKey}
+                  serviceData={serviceData}
                 />
-              ))}
-            </div>
-          </TabsContent>
-
-          <TabsContent value="crew" className="space-y-4">
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {[
-                "Ser_CrewSignOn",
-                "Ser_CrewSignOff",
-                "Ser_CrewMiscellaneous",
-                "Ser_MedicalAssistance",
-              ].map((serviceKey) => (
-                <ServiceCard
-                  key={serviceKey}
-                  serviceKey={serviceKey as TaskServiceKey}
-                />
-              ))}
-            </div>
-          </TabsContent>
-
-          <TabsContent value="cargo" className="space-y-4">
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {[
-                "Ser_ConsignmentImport",
-                "Ser_ConsignmentExport",
-                "Ser_LandingItems",
-              ].map((serviceKey) => (
-                <ServiceCard
-                  key={serviceKey}
-                  serviceKey={serviceKey as TaskServiceKey}
-                />
-              ))}
-            </div>
-          </TabsContent>
-
-          <TabsContent value="other" className="space-y-4">
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {[
-                "Ser_PortExpenses",
-                "Ser_LaunchService",
-                "Ser_EquipmentUsed",
-                "Ser_ThirdParty",
-                "Ser_FreshWater",
-                "Ser_TechnicianSurveyor",
-                "Ser_OtherService",
-                "Ser_AgencyRemuneration",
-              ].map((serviceKey) => (
-                <ServiceCard
-                  key={serviceKey}
-                  serviceKey={serviceKey as TaskServiceKey}
-                />
-              ))}
-            </div>
-          </TabsContent>
-        </Tabs>
-      </form>
+              )
+            })}
+          </div>
+        </div>
+      </div>
     </Form>
   )
 
@@ -383,15 +504,6 @@ export function TaskServiceForm() {
       ) : (
         formContent
       )}
-      <SaveConfirmation
-        title="Save Task Service Settings"
-        itemName="task service settings"
-        open={showSaveConfirmation}
-        onOpenChange={setShowSaveConfirmation}
-        onConfirm={handleConfirmSave}
-        isSaving={isPending}
-        operationType="save"
-      />
     </div>
   )
 }

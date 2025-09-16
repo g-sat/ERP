@@ -1,5 +1,6 @@
 import { IApiSuccessResponse } from "@/interfaces/auth"
-import { ITaskService, ITaskServiceFormValues } from "@/interfaces/task-service"
+import { ITaskService } from "@/interfaces/task-service"
+import { ServiceFieldValues } from "@/schemas/task-service"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 
 import { getData, saveData } from "@/lib/api-client"
@@ -22,7 +23,7 @@ export const useTaskServiceSave = () => {
 
   return useMutation({
     mutationFn: async (
-      data: ITaskServiceFormValues
+      data: ServiceFieldValues
     ): Promise<IApiSuccessResponse<{ success: boolean }>> => {
       const response = await saveData(TaskServiceSetting.add, data)
       return response

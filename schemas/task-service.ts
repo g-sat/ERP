@@ -8,6 +8,9 @@ const serviceFieldSchema = z.object({
   carrierTypeId: z.number().optional().default(0),
   modeTypeId: z.number().optional().default(0),
   documentTypeId: z.number().optional().default(0),
+  visaTypeId: z.number().optional().default(0),
+  locationTypeId: z.number().optional().default(0),
+  statusTypeId: z.number().optional().default(0),
 })
 
 export const taskServiceFormSchema = z.object({
@@ -15,3 +18,4 @@ export const taskServiceFormSchema = z.object({
 })
 
 export type TaskServiceFormValues = z.infer<typeof taskServiceFormSchema>
+export type ServiceFieldValues = z.infer<typeof serviceFieldSchema>
