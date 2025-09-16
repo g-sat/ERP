@@ -4,11 +4,11 @@ export const userSchema = z.object({
   userId: z.number().min(0),
   userCode: z
     .string()
-    .min(5, { message: "User code must be at least 5 characters" })
+    .min(3, { message: "User code must be at least 3 characters" })
     .max(50, { message: "User code must be less than 50 characters" }),
   userName: z
     .string()
-    .min(5, { message: "User name must be at least 5 characters" })
+    .min(3, { message: "User name must be at least 3 characters" })
     .max(150, { message: "User name must be less than 150 characters" }),
   userEmail: z
     .string()

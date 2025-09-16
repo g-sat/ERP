@@ -71,42 +71,6 @@ export function ShareDataTable() {
     )
   }
 
-  // Handle select all for a row
-  const handleRowSelectAll = (
-    moduleId: number,
-    transactionId: number,
-    checked: boolean
-  ) => {
-    setShareData((prev) =>
-      prev.map((right) =>
-        right.moduleId === moduleId && right.transactionId === transactionId
-          ? {
-              ...right,
-              shareToAll: checked,
-            }
-          : right
-      )
-    )
-  }
-
-  // Handle select all for a column
-  const handleColumnSelectAll = (
-    permission: PermissionType,
-    checked: boolean
-  ) => {
-    setShareData((prev) =>
-      prev.map((right) => ({
-        ...right,
-        [permission]: checked,
-      }))
-    )
-  }
-
-  // Check if all permissions in a row are selected
-  const isRowAllSelected = (right: IShareData) => {
-    return right.shareToAll
-  }
-
   // Check if all permissions in a column are selected
   const isColumnAllSelected = (permission: PermissionType) => {
     return shareData.length > 0 && shareData.every((right) => right[permission])
@@ -150,7 +114,7 @@ export function ShareDataTable() {
   }
 
   return (
-    <div className="rounded-md border p-4">
+    <div>
       <div className="mb-6">
         <h2 className="mb-2 text-2xl font-bold">Share Data</h2>
         <p className="text-muted-foreground">
@@ -165,11 +129,20 @@ export function ShareDataTable() {
               {saving ? "Saving..." : "Save"}
             </Button>
           </div>
-          <div className="max-h-[460px] overflow-auto">
-            <div className="relative">
-              <Table>
-                <TableHeader>
-                  <TableRow>
+          <div className="overflow-x-auto rounded-lg border">
+            <Table>
+              {/* Fixed header table with column sizing */}
+              <Table className="w-full table-fixed border-collapse">
+                {/* Column group for consistent sizing */}
+                <colgroup>
+                  <col style={{ width: "200px" }} />
+                  <col style={{ width: "200px" }} />
+                  <col style={{ width: "150px" }} />
+                </colgroup>
+
+                {/* Sticky table header */}
+                <TableHeader className="bg-background sticky top-0 z-20">
+                  <TableRow className="bg-muted/50">
                     <TableHead>Module</TableHead>
                     <TableHead>Transaction</TableHead>
                     <TableHead>
@@ -191,51 +164,69 @@ export function ShareDataTable() {
                     </TableHead>
                   </TableRow>
                 </TableHeader>
-                <TableBody>
-                  {isRightsLoading ? (
-                    <TableRow>
-                      <TableCell
-                        colSpan={9}
-                        className="text-muted-foreground text-center"
-                      >
-                        Loading...
-                      </TableCell>
-                    </TableRow>
-                  ) : shareData.length === 0 ? (
-                    <TableRow>
-                      <TableCell
-                        colSpan={9}
-                        className="text-muted-foreground text-center"
-                      >
-                        No data. Please select a user group.
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    shareData.map((right) => (
-                      <TableRow
-                        key={`${right.moduleId}-${right.transactionId}`}
-                      >
-                        <TableCell>{right.moduleName}</TableCell>
-                        <TableCell>{right.transactionName}</TableCell>
-                        <TableCell>
-                          <Checkbox
-                            checked={right.shareToAll}
-                            onCheckedChange={(checked) =>
-                              handlePermissionChange(
-                                right.moduleId,
-                                right.transactionId,
-                                "shareToAll",
-                                Boolean(checked)
-                              )
-                            }
-                          />
+              </Table>
+
+              {/* Scrollable body container */}
+              <div className="max-h-[460px] overflow-y-auto">
+                {/* Body table with same column sizing as header */}
+                <Table className="w-full table-fixed border-collapse">
+                  {/* Column group matching header for alignment */}
+                  <colgroup>
+                    <col style={{ width: "200px" }} />
+                    <col style={{ width: "200px" }} />
+                    <col style={{ width: "150px" }} />
+                  </colgroup>
+
+                  <TableBody>
+                    {isRightsLoading ? (
+                      <TableRow>
+                        <TableCell
+                          colSpan={3}
+                          className="text-muted-foreground text-center"
+                        >
+                          Loading...
                         </TableCell>
                       </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
-            </div>
+                    ) : shareData.length === 0 ? (
+                      <TableRow>
+                        <TableCell
+                          colSpan={3}
+                          className="text-muted-foreground text-center"
+                        >
+                          No data. Please select a user group.
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      shareData.map((right) => (
+                        <TableRow
+                          key={`${right.moduleId}-${right.transactionId}`}
+                        >
+                          <TableCell className="py-1">
+                            {right.moduleName}
+                          </TableCell>
+                          <TableCell className="py-1">
+                            {right.transactionName}
+                          </TableCell>
+                          <TableCell className="py-1">
+                            <Checkbox
+                              checked={right.shareToAll}
+                              onCheckedChange={(checked) =>
+                                handlePermissionChange(
+                                  right.moduleId,
+                                  right.transactionId,
+                                  "shareToAll",
+                                  Boolean(checked)
+                                )
+                              }
+                            />
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            </Table>
           </div>
         </form>
       </Form>

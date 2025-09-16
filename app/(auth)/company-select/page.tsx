@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import AccessDenied from "@/app/access-denied"
 
 export default function CompanySelectPage() {
   const {
@@ -33,6 +34,7 @@ export default function CompanySelectPage() {
   } = useAuthStore()
   const [selectedCompanyId, setSelectedCompanyId] = useState<string>("")
   const [isLoading, setIsLoading] = useState(false)
+  const [showAccessDenied, setShowAccessDenied] = useState(false)
   const router = useRouter()
   const [error, setError] = useState<string | null>(null) // Memoize handleLogout to avoid dependency issues in useEffect
   const handleLogout = useCallback(async () => {
@@ -60,9 +62,17 @@ export default function CompanySelectPage() {
         console.log("No companies loaded, fetching companies")
         try {
           await getCompanies()
+          // Check if companies is still null/empty after fetching
+          if (!companies || companies.length === 0) {
+            console.log(
+              "No companies available after fetch, showing access denied"
+            )
+            setShowAccessDenied(true)
+            return
+          }
         } catch (error) {
           console.error("Failed to fetch companies:", error)
-          handleLogout()
+          setShowAccessDenied(true)
           return
         }
       }
@@ -132,6 +142,10 @@ export default function CompanySelectPage() {
     return (company.companyCode || company.companyName || "?")
       .charAt(0)
       .toUpperCase()
+  }
+
+  if (showAccessDenied) {
+    return <AccessDenied />
   }
 
   if (!isAuthenticated || companies.length === 0) {

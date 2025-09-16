@@ -183,7 +183,7 @@ export function UserWiseRightsTable() {
   }
 
   return (
-    <div className="rounded-md border p-4">
+    <div>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(handleSearch)}>
           <div className="mb-4 flex items-center justify-between">
@@ -215,18 +215,33 @@ export function UserWiseRightsTable() {
               {saving ? "Saving..." : "Save"}
             </Button>
           </div>
-          <div className="max-h-[460px] overflow-auto">
-            <div className="relative">
-              <Table>
-                <TableHeader className="sticky top-0 z-20">
-                  <TableRow>
-                    <TableHead className="sticky left-0 z-30 min-w-[150px]">
+          <div className="overflow-x-auto rounded-lg border">
+            <Table>
+              {/* Fixed header table with column sizing */}
+              <Table className="w-full table-fixed border-collapse">
+                {/* Column group for consistent sizing */}
+                <colgroup>
+                  <col style={{ width: "150px" }} />
+                  <col style={{ width: "150px" }} />
+                  <col style={{ width: "100px" }} />
+                  <col style={{ width: "100px" }} />
+                  <col style={{ width: "100px" }} />
+                  <col style={{ width: "100px" }} />
+                  <col style={{ width: "100px" }} />
+                  <col style={{ width: "100px" }} />
+                  <col style={{ width: "100px" }} />
+                </colgroup>
+
+                {/* Sticky table header */}
+                <TableHeader className="bg-background sticky top-0 z-20">
+                  <TableRow className="bg-muted/50">
+                    <TableHead className="bg-background sticky left-0 z-30">
                       Module
                     </TableHead>
-                    <TableHead className="sticky left-[150px] z-30 min-w-[150px]">
+                    <TableHead className="bg-background sticky left-[150px] z-30">
                       Transaction
                     </TableHead>
-                    <TableHead className="sticky left-[300px] z-30 min-w-[100px]">
+                    <TableHead className="bg-background sticky left-[300px] z-30">
                       <div className="flex items-center gap-2">
                         <span>Select All</span>
                         <Checkbox
@@ -251,7 +266,7 @@ export function UserWiseRightsTable() {
                         />
                       </div>
                     </TableHead>
-                    <TableHead className="min-w-[100px]">
+                    <TableHead>
                       <div className="flex items-center gap-2">
                         <span>View</span>
                         <Checkbox
@@ -262,7 +277,7 @@ export function UserWiseRightsTable() {
                         />
                       </div>
                     </TableHead>
-                    <TableHead className="min-w-[100px]">
+                    <TableHead>
                       <div className="flex items-center gap-2">
                         <span>Create</span>
                         <Checkbox
@@ -273,7 +288,7 @@ export function UserWiseRightsTable() {
                         />
                       </div>
                     </TableHead>
-                    <TableHead className="min-w-[100px]">
+                    <TableHead>
                       <div className="flex items-center gap-2">
                         <span>Edit</span>
                         <Checkbox
@@ -284,7 +299,7 @@ export function UserWiseRightsTable() {
                         />
                       </div>
                     </TableHead>
-                    <TableHead className="min-w-[100px]">
+                    <TableHead>
                       <div className="flex items-center gap-2">
                         <span>Delete</span>
                         <Checkbox
@@ -295,7 +310,7 @@ export function UserWiseRightsTable() {
                         />
                       </div>
                     </TableHead>
-                    <TableHead className="min-w-[100px]">
+                    <TableHead>
                       <div className="flex items-center gap-2">
                         <span>Export</span>
                         <Checkbox
@@ -306,7 +321,7 @@ export function UserWiseRightsTable() {
                         />
                       </div>
                     </TableHead>
-                    <TableHead className="min-w-[100px]">
+                    <TableHead>
                       <div className="flex items-center gap-2">
                         <span>Print</span>
                         <Checkbox
@@ -319,132 +334,152 @@ export function UserWiseRightsTable() {
                     </TableHead>
                   </TableRow>
                 </TableHeader>
-                <TableBody>
-                  {isRightsLoading ? (
-                    <TableRow>
-                      <TableCell
-                        colSpan={9}
-                        className="text-muted-foreground text-center"
-                      >
-                        Loading...
-                      </TableCell>
-                    </TableRow>
-                  ) : userRights.length === 0 ? (
-                    <TableRow>
-                      <TableCell
-                        colSpan={9}
-                        className="text-muted-foreground text-center"
-                      >
-                        No data. Please select a user.
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    userRights.map((right) => (
-                      <TableRow
-                        key={`${right.moduleId}-${right.transactionId}`}
-                      >
-                        <TableCell className="sticky left-0 z-20 min-w-[150px]">
-                          {right.moduleName}
-                        </TableCell>
-                        <TableCell className="sticky left-[150px] z-20 min-w-[150px]">
-                          {right.transactionName}
-                        </TableCell>
-                        <TableCell className="sticky left-[300px] z-20 min-w-[100px]">
-                          <Checkbox
-                            checked={isRowAllSelected(right)}
-                            onCheckedChange={(checked) =>
-                              handleRowSelectAll(
-                                right.moduleId,
-                                right.transactionId,
-                                Boolean(checked)
-                              )
-                            }
-                          />
-                        </TableCell>
-                        <TableCell className="min-w-[100px]">
-                          <Checkbox
-                            checked={right.isRead}
-                            onCheckedChange={(checked) =>
-                              handlePermissionChange(
-                                right.moduleId,
-                                right.transactionId,
-                                "isRead",
-                                Boolean(checked)
-                              )
-                            }
-                          />
-                        </TableCell>
-                        <TableCell className="min-w-[100px]">
-                          <Checkbox
-                            checked={right.isCreate}
-                            onCheckedChange={(checked) =>
-                              handlePermissionChange(
-                                right.moduleId,
-                                right.transactionId,
-                                "isCreate",
-                                Boolean(checked)
-                              )
-                            }
-                          />
-                        </TableCell>
-                        <TableCell className="min-w-[100px]">
-                          <Checkbox
-                            checked={right.isEdit}
-                            onCheckedChange={(checked) =>
-                              handlePermissionChange(
-                                right.moduleId,
-                                right.transactionId,
-                                "isEdit",
-                                Boolean(checked)
-                              )
-                            }
-                          />
-                        </TableCell>
-                        <TableCell className="min-w-[100px]">
-                          <Checkbox
-                            checked={right.isDelete}
-                            onCheckedChange={(checked) =>
-                              handlePermissionChange(
-                                right.moduleId,
-                                right.transactionId,
-                                "isDelete",
-                                Boolean(checked)
-                              )
-                            }
-                          />
-                        </TableCell>
-                        <TableCell className="min-w-[100px]">
-                          <Checkbox
-                            checked={right.isExport}
-                            onCheckedChange={(checked) =>
-                              handlePermissionChange(
-                                right.moduleId,
-                                right.transactionId,
-                                "isExport",
-                                Boolean(checked)
-                              )
-                            }
-                          />
-                        </TableCell>
-                        <TableCell className="min-w-[100px]">
-                          <Checkbox
-                            checked={right.isPrint}
-                            onCheckedChange={(checked) =>
-                              handlePermissionChange(
-                                right.moduleId,
-                                right.transactionId,
-                                "isPrint",
-                                Boolean(checked)
-                              )
-                            }
-                          />
+              </Table>
+
+              {/* Scrollable body container */}
+              <div className="max-h-[460px] overflow-y-auto">
+                {/* Body table with same column sizing as header */}
+                <Table className="w-full table-fixed border-collapse">
+                  {/* Column group matching header for alignment */}
+                  <colgroup>
+                    <col style={{ width: "150px" }} />
+                    <col style={{ width: "150px" }} />
+                    <col style={{ width: "100px" }} />
+                    <col style={{ width: "100px" }} />
+                    <col style={{ width: "100px" }} />
+                    <col style={{ width: "100px" }} />
+                    <col style={{ width: "100px" }} />
+                    <col style={{ width: "100px" }} />
+                    <col style={{ width: "100px" }} />
+                  </colgroup>
+
+                  <TableBody>
+                    {isRightsLoading ? (
+                      <TableRow>
+                        <TableCell
+                          colSpan={9}
+                          className="text-muted-foreground text-center"
+                        >
+                          Loading...
                         </TableCell>
                       </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
-            </div>
+                    ) : userRights.length === 0 ? (
+                      <TableRow>
+                        <TableCell
+                          colSpan={9}
+                          className="text-muted-foreground text-center"
+                        >
+                          No data. Please select a user.
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      userRights.map((right) => (
+                        <TableRow
+                          key={`${right.moduleId}-${right.transactionId}`}
+                        >
+                          <TableCell className="bg-background sticky left-0 z-20 py-1">
+                            {right.moduleName}
+                          </TableCell>
+                          <TableCell className="bg-background sticky left-[150px] z-20 py-1">
+                            {right.transactionName}
+                          </TableCell>
+                          <TableCell className="bg-background sticky left-[300px] z-20 py-1">
+                            <Checkbox
+                              checked={isRowAllSelected(right)}
+                              onCheckedChange={(checked) =>
+                                handleRowSelectAll(
+                                  right.moduleId,
+                                  right.transactionId,
+                                  Boolean(checked)
+                                )
+                              }
+                            />
+                          </TableCell>
+                          <TableCell className="py-1">
+                            <Checkbox
+                              checked={right.isRead}
+                              onCheckedChange={(checked) =>
+                                handlePermissionChange(
+                                  right.moduleId,
+                                  right.transactionId,
+                                  "isRead",
+                                  Boolean(checked)
+                                )
+                              }
+                            />
+                          </TableCell>
+                          <TableCell className="py-1">
+                            <Checkbox
+                              checked={right.isCreate}
+                              onCheckedChange={(checked) =>
+                                handlePermissionChange(
+                                  right.moduleId,
+                                  right.transactionId,
+                                  "isCreate",
+                                  Boolean(checked)
+                                )
+                              }
+                            />
+                          </TableCell>
+                          <TableCell className="py-1">
+                            <Checkbox
+                              checked={right.isEdit}
+                              onCheckedChange={(checked) =>
+                                handlePermissionChange(
+                                  right.moduleId,
+                                  right.transactionId,
+                                  "isEdit",
+                                  Boolean(checked)
+                                )
+                              }
+                            />
+                          </TableCell>
+                          <TableCell className="py-1">
+                            <Checkbox
+                              checked={right.isDelete}
+                              onCheckedChange={(checked) =>
+                                handlePermissionChange(
+                                  right.moduleId,
+                                  right.transactionId,
+                                  "isDelete",
+                                  Boolean(checked)
+                                )
+                              }
+                            />
+                          </TableCell>
+                          <TableCell className="py-1">
+                            <Checkbox
+                              checked={right.isExport}
+                              onCheckedChange={(checked) =>
+                                handlePermissionChange(
+                                  right.moduleId,
+                                  right.transactionId,
+                                  "isExport",
+                                  Boolean(checked)
+                                )
+                              }
+                            />
+                          </TableCell>
+                          <TableCell className="py-1">
+                            <Checkbox
+                              checked={right.isPrint}
+                              onCheckedChange={(checked) =>
+                                handlePermissionChange(
+                                  right.moduleId,
+                                  right.transactionId,
+                                  "isPrint",
+                                  Boolean(checked)
+                                )
+                              }
+                            />
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            </Table>
           </div>
         </form>
       </Form>
