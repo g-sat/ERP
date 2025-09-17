@@ -34,7 +34,6 @@ export default function UserGroupAutocomplete<
   isDisabled = false,
   className,
   isRequired = false,
-  onChangeEvent,
 }: {
   form: UseFormReturn<T>
   name?: Path<T>
@@ -42,7 +41,6 @@ export default function UserGroupAutocomplete<
   className?: string
   isDisabled?: boolean
   isRequired?: boolean
-  onChangeEvent?: (selectedOption: IUserGroupLookup | null) => void
 }) {
   const { data: userGroups = [], isLoading } = useUserGroupLookup()
   // Memoize options to prevent unnecessary recalculations
@@ -137,7 +135,7 @@ export default function UserGroupAutocomplete<
           "hover:bg-destructive/90 hover:text-destructive-foreground px-1 rounded-sm"
         ),
     }),
-    [isDisabled]
+    []
   )
 
   // We still need some styles for things that can't be controlled via className
@@ -181,21 +179,16 @@ export default function UserGroupAutocomplete<
     (option: SingleValue<FieldOption> | MultiValue<FieldOption>) => {
       const selectedOption = Array.isArray(option) ? option[0] : option
       if (form && name) {
-        // Set the value as a number
+        // Set the value as a number and trigger validation/re-render
         const value = selectedOption ? Number(selectedOption.value) : 0
-        form.setValue(name, value as PathValue<T, Path<T>>)
-      }
-      if (onChangeEvent) {
-        const selectedUserGroup = selectedOption
-          ? userGroups.find(
-              (u: IUserGroupLookup) =>
-                u.userGroupId.toString() === selectedOption.value
-            ) || null
-          : null
-        onChangeEvent(selectedUserGroup)
+        form.setValue(
+          name,
+          value as PathValue<T, Path<T>>,
+          { shouldValidate: true, shouldDirty: true } // <-- added options
+        )
       }
     },
-    [form, name, onChangeEvent, userGroups]
+    [form, name]
   )
 
   // Memoize getValue to prevent unnecessary recalculations
@@ -251,6 +244,7 @@ export default function UserGroupAutocomplete<
                   menuPosition="fixed"
                   isLoading={isLoading}
                   loadingMessage={() => "Loading userGroups..."}
+                  instanceId={name || "usergroup-autocomplete"} // <-- add this line
                 />
                 {showError && (
                   <p className="text-destructive mt-1 text-xs">
@@ -305,6 +299,7 @@ export default function UserGroupAutocomplete<
         menuPosition="fixed"
         isLoading={isLoading}
         loadingMessage={() => "Loading userGroups..."}
+        instanceId={name || "usergroup-autocomplete"} // <-- add this line
       />
     </div>
   )

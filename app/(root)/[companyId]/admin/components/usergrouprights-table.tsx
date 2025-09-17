@@ -11,6 +11,7 @@ import {
   useUserGroupRightSave,
   useUserGroupRightbyidGet,
 } from "@/hooks/use-admin"
+import { useUserGroupLookup } from "@/hooks/use-lookup"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Form } from "@/components/ui/form"
@@ -37,6 +38,27 @@ export function UserGroupRightsTable() {
   const [groupRights, setGroupRights] = useState<IUserGroupRights[]>([])
   const [saving, setSaving] = useState(false)
   const [showSaveConfirmation, setShowSaveConfirmation] = useState(false)
+
+  // Fetch user group lookup for name resolution
+  const { data: userGroups = [] } = useUserGroupLookup()
+
+  // Watch userGroupId to trigger re-render and update selectedGroup
+  const watchedUserGroupId = form.watch("userGroupId")
+
+  useEffect(() => {
+    if (watchedUserGroupId) {
+      const foundGroup = userGroups.find(
+        (g) => g.userGroupId === watchedUserGroupId
+      )
+      setSelectedGroup(
+        foundGroup
+          ? { userGroupId: foundGroup.userGroupId, userGroupName: foundGroup.userGroupName }
+          : { userGroupId: watchedUserGroupId, userGroupName: "" }
+      )
+    } else {
+      setSelectedGroup(null)
+    }
+  }, [watchedUserGroupId, userGroups])
 
   // Fetch user group rights for selected group
   const {
@@ -425,9 +447,7 @@ export function UserGroupRightsTable() {
                   form={form}
                   name="userGroupId"
                   label="User Group"
-                  onChangeEvent={(group: UserGroup | null) =>
-                    setSelectedGroup(group)
-                  }
+                  // onChangeEvent removed
                 />
               </div>
               <Button
