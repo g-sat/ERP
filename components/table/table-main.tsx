@@ -618,121 +618,111 @@ export function MainDataTable<T>({
 
         {/* Main table container with horizontal scrolling */}
         <div className="overflow-x-auto rounded-lg border">
-          <Table>
-            {/* ============================================================================
-                TABLE HEADER SECTION
-                ============================================================================ */}
+          {/* Fixed header table with column sizing */}
+          <Table className="w-full table-fixed border-collapse">
+            {/* Column group for consistent sizing */}
+            <colgroup>
+              {table.getAllLeafColumns().map((col) => (
+                <col
+                  key={col.id}
+                  style={{ width: `${col.getSize()}px` }} // Set column width from table state
+                />
+              ))}
+            </colgroup>
 
-            {/* Fixed header table with column sizing */}
+            {/* Sticky table header */}
+            <TableHeader className="bg-background sticky top-0 z-20">
+              {table.getHeaderGroups().map((headerGroup) => (
+                <TableRow key={headerGroup.id} className="bg-muted/50">
+                  {/* Sortable context for drag and drop */}
+                  <SortableContext
+                    items={headerGroup.headers.map((header) => header.id)} // Column IDs for sorting
+                    strategy={horizontalListSortingStrategy} // Horizontal sorting strategy
+                  >
+                    {/* Render each sortable header */}
+                    {headerGroup.headers.map((header) => (
+                      <SortableTableHeader key={header.id} header={header} />
+                    ))}
+                  </SortableContext>
+                </TableRow>
+              ))}
+            </TableHeader>
+          </Table>
+
+          {/* Scrollable body container with virtual scrolling */}
+          <div
+            ref={tableContainerRef} // Reference for virtual scrolling
+            className="max-h-[500px] overflow-y-auto" // Fixed height with vertical scrolling
+          >
+            {/* Body table with same column sizing as header */}
             <Table className="w-full table-fixed border-collapse">
-              {/* Column group for consistent sizing */}
+              {/* Column group matching header for alignment */}
               <colgroup>
                 {table.getAllLeafColumns().map((col) => (
                   <col
                     key={col.id}
-                    style={{ width: `${col.getSize()}px` }} // Set column width from table state
+                    style={{ width: `${col.getSize()}px` }} // Match header column widths
                   />
                 ))}
               </colgroup>
 
-              {/* Sticky table header */}
-              <TableHeader className="bg-background sticky top-0 z-20">
-                {table.getHeaderGroups().map((headerGroup) => (
-                  <TableRow key={headerGroup.id} className="bg-muted/50">
-                    {/* Sortable context for drag and drop */}
-                    <SortableContext
-                      items={headerGroup.headers.map((header) => header.id)} // Column IDs for sorting
-                      strategy={horizontalListSortingStrategy} // Horizontal sorting strategy
+              <TableBody>
+                {/* ============================================================================
+                    EMPTY STATE OR LOADING
+                    ============================================================================ */}
+
+                {/* Show empty state or loading message when no virtual rows */}
+                {virtualRows.length === 0 ? (
+                  <TableRow>
+                    <TableCell
+                      colSpan={tableColumns.length} // Span all columns
+                      className="text-center" // Center the message
                     >
-                      {/* Render each sortable header */}
-                      {headerGroup.headers.map((header) => (
-                        <SortableTableHeader key={header.id} header={header} />
-                      ))}
-                    </SortableContext>
+                      {isLoading ? "Loading..." : emptyMessage}
+                    </TableCell>
                   </TableRow>
-                ))}
-              </TableHeader>
+                ) : (
+                  /* ============================================================================
+                      VIRTUAL ROWS RENDERING
+                      ============================================================================ */
+
+                  <>
+                    {/* Top padding for virtual scrolling */}
+                    <tr style={{ height: `${paddingTop}px` }} />
+
+                    {/* Render only visible virtual rows for performance */}
+                    {virtualRows.map((virtualRow) => {
+                      const row = table.getRowModel().rows[virtualRow.index] // Get actual row data
+                      return (
+                        <TableRow key={row.id}>
+                          {/* Render each visible cell in the row */}
+                          {row.getVisibleCells().map((cell, cellIndex) => (
+                            <TableCell
+                              key={cell.id}
+                              className={`py-1 ${
+                                cellIndex === 0
+                                  ? "bg-background sticky left-0 z-10" // Make first column sticky
+                                  : ""
+                              }`}
+                            >
+                              {/* Render cell content using column definition */}
+                              {flexRender(
+                                cell.column.columnDef.cell, // Cell renderer from column definition
+                                cell.getContext() // Cell context with row data
+                              )}
+                            </TableCell>
+                          ))}
+                        </TableRow>
+                      )
+                    })}
+
+                    {/* Bottom padding for virtual scrolling */}
+                    <tr style={{ height: `${paddingBottom}px` }} />
+                  </>
+                )}
+              </TableBody>
             </Table>
-
-            {/* ============================================================================
-                TABLE BODY SECTION (VIRTUAL SCROLLING)
-                ============================================================================ */}
-
-            {/* Scrollable body container with virtual scrolling */}
-            <div
-              ref={tableContainerRef} // Reference for virtual scrolling
-              className="max-h-[500px] overflow-y-auto" // Fixed height with vertical scrolling
-            >
-              {/* Body table with same column sizing as header */}
-              <Table className="w-full table-fixed border-collapse">
-                {/* Column group matching header for alignment */}
-                <colgroup>
-                  {table.getAllLeafColumns().map((col) => (
-                    <col
-                      key={col.id}
-                      style={{ width: `${col.getSize()}px` }} // Match header column widths
-                    />
-                  ))}
-                </colgroup>
-
-                <TableBody>
-                  {/* ============================================================================
-                      EMPTY STATE OR LOADING
-                      ============================================================================ */}
-
-                  {/* Show empty state or loading message when no virtual rows */}
-                  {virtualRows.length === 0 ? (
-                    <TableRow>
-                      <TableCell
-                        colSpan={tableColumns.length} // Span all columns
-                        className="text-center" // Center the message
-                      >
-                        {isLoading ? "Loading..." : emptyMessage}
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    /* ============================================================================
-                        VIRTUAL ROWS RENDERING
-                        ============================================================================ */
-
-                    <>
-                      {/* Top padding for virtual scrolling */}
-                      <tr style={{ height: `${paddingTop}px` }} />
-
-                      {/* Render only visible virtual rows for performance */}
-                      {virtualRows.map((virtualRow) => {
-                        const row = table.getRowModel().rows[virtualRow.index] // Get actual row data
-                        return (
-                          <TableRow key={row.id}>
-                            {/* Render each visible cell in the row */}
-                            {row.getVisibleCells().map((cell, cellIndex) => (
-                              <TableCell
-                                key={cell.id}
-                                className={`py-1 ${
-                                  cellIndex === 0
-                                    ? "bg-background sticky left-0 z-10" // Make first column sticky
-                                    : ""
-                                }`}
-                              >
-                                {/* Render cell content using column definition */}
-                                {flexRender(
-                                  cell.column.columnDef.cell, // Cell renderer from column definition
-                                  cell.getContext() // Cell context with row data
-                                )}
-                              </TableCell>
-                            ))}
-                          </TableRow>
-                        )
-                      })}
-
-                      {/* Bottom padding for virtual scrolling */}
-                      <tr style={{ height: `${paddingBottom}px` }} />
-                    </>
-                  )}
-                </TableBody>
-              </Table>
-            </div>
-          </Table>
+          </div>
         </div>
       </DndContext>
 

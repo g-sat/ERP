@@ -57,6 +57,7 @@ export function UserTable({
       header: "Name",
       size: 200,
       minSize: 50,
+      maxSize: 250,
       enableColumnFilter: true,
     },
     {
@@ -67,13 +68,15 @@ export function UserTable({
       ),
       size: 120,
       minSize: 50,
+      maxSize: 150,
       enableColumnFilter: true,
     },
     {
       accessorKey: "userEmail",
       header: "Email",
-      size: 200,
+      size: 100,
       minSize: 50,
+      maxSize: 150,
       enableColumnFilter: true,
     },
 
@@ -82,6 +85,7 @@ export function UserTable({
       header: "Role",
       size: 200,
       minSize: 50,
+      maxSize: 250,
       enableColumnFilter: true,
     },
 
@@ -90,6 +94,7 @@ export function UserTable({
       header: "Group",
       size: 200,
       minSize: 50,
+      maxSize: 250,
       enableColumnFilter: true,
     },
 
@@ -108,6 +113,7 @@ export function UserTable({
       ),
       size: 120,
       minSize: 50,
+      maxSize: 150,
     },
     {
       accessorKey: "isLocked",
@@ -124,6 +130,7 @@ export function UserTable({
       ),
       size: 120,
       minSize: 50,
+      maxSize: 150,
     },
 
     {
@@ -132,6 +139,7 @@ export function UserTable({
       cell: ({ row }) => <div>{row.getValue("remarks") || "-"}</div>,
       size: 200,
       minSize: 50,
+      maxSize: 250,
     },
     {
       accessorKey: "createBy",
@@ -139,6 +147,7 @@ export function UserTable({
       cell: ({ row }) => <div>{row.getValue("createBy") || "-"}</div>,
       size: 120,
       minSize: 50,
+      maxSize: 150,
     },
     {
       accessorKey: "createDate",
@@ -155,6 +164,7 @@ export function UserTable({
       },
       size: 180,
       minSize: 150,
+      maxSize: 220,
     },
     {
       accessorKey: "editBy",
@@ -162,6 +172,7 @@ export function UserTable({
       cell: ({ row }) => <div>{row.getValue("editBy") || "-"}</div>,
       size: 120,
       minSize: 50,
+      maxSize: 150,
     },
     {
       accessorKey: "editDate",
@@ -178,6 +189,7 @@ export function UserTable({
       },
       size: 180,
       minSize: 150,
+      maxSize: 220,
     },
   ]
 

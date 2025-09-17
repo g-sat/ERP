@@ -58,13 +58,16 @@ export function SettingTable<T>({
   return (
     <div className="overflow-x-auto rounded-lg border">
       <Table>
+        {/* Fixed header table with column sizing */}
         <Table className="w-full table-fixed border-collapse">
+          {/* Column group for consistent sizing */}
           <colgroup>
             {table.getAllLeafColumns().map((col) => (
               <col key={col.id} style={{ width: `${col.getSize()}px` }} />
             ))}
           </colgroup>
 
+          {/* Sticky table header */}
           <TableHeader className="bg-background sticky top-0 z-20">
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id} className="bg-muted/50">
@@ -83,12 +86,15 @@ export function SettingTable<T>({
           </TableHeader>
         </Table>
 
+        {/* Scrollable body container */}
         <div
           ref={tableContainerRef}
           className="overflow-y-auto"
           style={{ maxHeight }}
         >
+          {/* Body table with same column sizing as header */}
           <Table className="w-full table-fixed border-collapse">
+            {/* Column group matching header for alignment */}
             <colgroup>
               {table.getAllLeafColumns().map((col) => (
                 <col key={col.id} style={{ width: `${col.getSize()}px` }} />
@@ -96,6 +102,7 @@ export function SettingTable<T>({
             </colgroup>
 
             <TableBody>
+              {/* Show empty state or loading message when no virtual rows */}
               {virtualRows.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={columns.length} className="text-center">
@@ -104,11 +111,15 @@ export function SettingTable<T>({
                 </TableRow>
               ) : (
                 <>
+                  {/* Top padding for virtual scrolling */}
                   <tr style={{ height: `${paddingTop}px` }} />
+
+                  {/* Render only visible virtual rows for performance */}
                   {virtualRows.map((virtualRow) => {
                     const row = table.getRowModel().rows[virtualRow.index]
                     return (
                       <TableRow key={row.id}>
+                        {/* Render each visible cell in the row */}
                         {row.getVisibleCells().map((cell, cellIndex) => (
                           <TableCell
                             key={cell.id}
@@ -118,6 +129,7 @@ export function SettingTable<T>({
                                 : ""
                             }`}
                           >
+                            {/* Render cell content using column definition */}
                             {flexRender(
                               cell.column.columnDef.cell,
                               cell.getContext()
@@ -128,6 +140,7 @@ export function SettingTable<T>({
                     )
                   })}
 
+                  {/* Bottom padding for virtual scrolling */}
                   <tr style={{ height: `${paddingBottom}px` }} />
                 </>
               )}
