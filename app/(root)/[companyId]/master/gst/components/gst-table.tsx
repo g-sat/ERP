@@ -13,7 +13,7 @@ import { TableName } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import { MainDataTable } from "@/components/table/table-main"
 
-interface GstsTableProps {
+interface GstTableProps {
   data: IGst[]
   isLoading?: boolean
   onSelect?: (gst: IGst | null) => void
@@ -47,7 +47,7 @@ export function GstTable({
   canDelete = true,
   canView = true,
   canCreate = true,
-}: GstsTableProps) {
+}: GstTableProps) {
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
 
@@ -57,6 +57,7 @@ export function GstTable({
       header: "Code",
       size: 120,
       minSize: 50,
+
       enableColumnFilter: true,
     },
     {
@@ -64,7 +65,22 @@ export function GstTable({
       header: "Name",
       size: 200,
       minSize: 50,
+
       enableColumnFilter: true,
+    },
+    {
+      accessorKey: "gstCategoryName",
+      header: "Category",
+      cell: ({ row }) => <div>{row.getValue("gstCategoryName") || "-"}</div>,
+      size: 120,
+      minSize: 50,
+    },
+    {
+      accessorKey: "remarks",
+      header: "Remarks",
+      cell: ({ row }) => <div>{row.getValue("remarks") || "-"}</div>,
+      size: 200,
+      minSize: 50,
     },
     {
       accessorKey: "isActive",
@@ -80,13 +96,6 @@ export function GstTable({
         </Badge>
       ),
       size: 120,
-      minSize: 50,
-    },
-    {
-      accessorKey: "remarks",
-      header: "Remarks",
-      cell: ({ row }) => <div>{row.getValue("remarks") || "-"}</div>,
-      size: 200,
       minSize: 50,
     },
     {
@@ -139,7 +148,7 @@ export function GstTable({
       moduleId={moduleId}
       transactionId={transactionId}
       tableName={TableName.gst}
-      emptyMessage="No GSTs found."
+      emptyMessage="No gstes found."
       accessorId="gstId"
       // Add handlers if provided
       onRefresh={onRefresh}

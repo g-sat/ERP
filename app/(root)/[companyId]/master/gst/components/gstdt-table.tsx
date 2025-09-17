@@ -137,7 +137,7 @@ export function GstDtTable({
       moduleId={moduleId}
       transactionId={transactionId}
       tableName={TableName.gst_dt}
-      emptyMessage="No GST details found."
+      emptyMessage="No gst details found."
       accessorId="gstId"
       // Add handlers if provided
       onRefresh={onRefresh}

@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useState } from "react"
 import { ApiResponse } from "@/interfaces/auth"
 import { IPaymentType, IPaymentTypeFilter } from "@/interfaces/paymenttype"
 import { PaymentTypeFormValues } from "@/schemas/paymenttype"
@@ -52,7 +52,7 @@ export default function PaymentTypePage() {
     data: paymentTypesResponse,
     refetch,
     isLoading,
-  } = useGet<IPaymentType>(`${PaymentType.get}`, "paymenttypes", filters.search)
+  } = useGet<IPaymentType>(`${PaymentType.get}`, "paymentTypes", filters.search)
 
   const { result: paymentTypesResult, data: paymentTypesData } =
     (paymentTypesResponse as ApiResponse<IPaymentType>) ?? {
@@ -60,12 +60,6 @@ export default function PaymentTypePage() {
       message: "",
       data: [],
     }
-
-  useEffect(() => {
-    if (paymentTypesData?.length > 0) {
-      refetch()
-    }
-  }, [filters])
 
   const saveMutation = usePersist<PaymentTypeFormValues>(`${PaymentType.add}`)
   const updateMutation = usePersist<PaymentTypeFormValues>(`${PaymentType.add}`)
@@ -151,14 +145,15 @@ export default function PaymentTypePage() {
         const response = await saveMutation.mutateAsync(data)
         if (response.result === 1) {
           queryClient.invalidateQueries({ queryKey: ["paymentTypes"] })
+          setIsModalOpen(false)
         }
       } else if (modalMode === "edit" && selectedPaymentType) {
         const response = await updateMutation.mutateAsync(data)
         if (response.result === 1) {
           queryClient.invalidateQueries({ queryKey: ["paymentTypes"] })
+          setIsModalOpen(false)
         }
       }
-      setIsModalOpen(false)
     } catch (error) {
       console.error("Error in form submission:", error)
     }
@@ -291,6 +286,7 @@ export default function PaymentTypePage() {
         <LockSkeleton locked={true}>
           <PaymentTypesTable
             data={[]}
+            isLoading={false}
             onSelect={canView ? handleViewPaymentType : undefined}
             onDelete={canDelete ? handleDeletePaymentType : undefined}
             onEdit={canEdit ? handleEditPaymentType : undefined}
@@ -299,7 +295,6 @@ export default function PaymentTypePage() {
             onFilterChange={handleFilterChange}
             moduleId={moduleId}
             transactionId={transactionId}
-            isLoading={false}
             // Pass permissions to table
             canEdit={canEdit}
             canDelete={canDelete}
@@ -307,9 +302,10 @@ export default function PaymentTypePage() {
             canCreate={canCreate}
           />
         </LockSkeleton>
-      ) : paymentTypesResult ? (
+      ) : (
         <PaymentTypesTable
           data={filters.search ? [] : paymentTypesData || []}
+          isLoading={isLoading}
           onSelect={canView ? handleViewPaymentType : undefined}
           onDelete={canDelete ? handleDeletePaymentType : undefined}
           onEdit={canEdit ? handleEditPaymentType : undefined}
@@ -318,19 +314,12 @@ export default function PaymentTypePage() {
           onFilterChange={handleFilterChange}
           moduleId={moduleId}
           transactionId={transactionId}
-          isLoading={isLoading}
           // Pass permissions to table
           canEdit={canEdit}
           canDelete={canDelete}
           canView={canView}
           canCreate={canCreate}
         />
-      ) : (
-        <div className="py-8 text-center">
-          <p className="text-muted-foreground">
-            {paymentTypesResult === 0 ? "No data available" : "Loading..."}
-          </p>
-        </div>
       )}
 
       <Dialog
@@ -365,8 +354,8 @@ export default function PaymentTypePage() {
           <PaymentTypeForm
             initialData={
               modalMode === "edit" || modalMode === "view"
-                ? selectedPaymentType
-                : null
+                ? selectedPaymentType || undefined
+                : undefined
             }
             submitAction={handleFormSubmit}
             onCancel={() => setIsModalOpen(false)}

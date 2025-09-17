@@ -60,6 +60,7 @@ export function GstForm({
       form.reset(initialData)
     } else {
       form.reset({
+        gstId: 0,
         gstCode: "",
         gstName: "",
         gstCategoryId: 0,
@@ -213,8 +214,8 @@ export function GstForm({
                 {isSubmitting
                   ? "Saving..."
                   : initialData
-                    ? "Update GST"
-                    : "Create GST"}
+                    ? "Update Gst"
+                    : "Create Gst"}
               </Button>
             )}
           </div>

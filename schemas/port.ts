@@ -10,7 +10,7 @@ export const portSchema = z.object({
     .string()
     .min(1, { message: "port code is required" })
     .max(50, { message: "port code cannot exceed 50 characters" }),
-  portRegionId: z.number().optional(),
+  portRegionId: z.number().min(1, { message: "port region id is required" }),
 
   remarks: z
     .string()

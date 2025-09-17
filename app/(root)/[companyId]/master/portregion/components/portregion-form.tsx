@@ -11,6 +11,7 @@ import { useForm } from "react-hook-form"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Form } from "@/components/ui/form"
+import CountryAutocomplete from "@/components/ui-custom/autocomplete-country"
 import CustomAccordion, {
   CustomAccordionContent,
   CustomAccordionItem,
@@ -48,6 +49,7 @@ export function PortRegionForm({
           portRegionId: 0,
           portRegionName: "",
           portRegionCode: "",
+          countryId: 0,
           remarks: "",
           isActive: true,
         },
@@ -62,6 +64,7 @@ export function PortRegionForm({
         portRegionId: 0,
         portRegionName: "",
         portRegionCode: "",
+        countryId: 0,
         remarks: "",
         isActive: true,
       })
@@ -99,6 +102,12 @@ export function PortRegionForm({
                 isDisabled={isReadOnly}
               />
             </div>
+            <CountryAutocomplete
+              form={form}
+              name="countryId"
+              label="Country"
+              isRequired
+            />
             <CustomTextarea
               form={form}
               name="remarks"

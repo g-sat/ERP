@@ -148,7 +148,7 @@ export function GstCategoryTable({
       moduleId={moduleId}
       transactionId={transactionId}
       tableName={TableName.gst_category}
-      emptyMessage="No GST categories found."
+      emptyMessage="No gst categories found."
       accessorId="gstCategoryId"
       // Add handlers if provided
       onRefresh={onRefresh}

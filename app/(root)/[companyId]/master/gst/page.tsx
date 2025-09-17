@@ -54,7 +54,6 @@ export default function GstPage() {
 
   // Permissions
   const canCreate = hasPermission(moduleId, transactionId, "isCreate")
-  const canView = hasPermission(moduleId, transactionId, "isRead")
   const canEdit = hasPermission(moduleId, transactionId, "isEdit")
   const canDelete = hasPermission(moduleId, transactionId, "isDelete")
   const canCreateCategory = hasPermission(
@@ -72,24 +71,24 @@ export default function GstPage() {
     transactionIdCategory,
     "isDelete"
   )
+  const canView = hasPermission(moduleId, transactionId, "isRead")
+  const canCreateDt = hasPermission(moduleId, transactionIdDt, "isCreate")
+  const canEditDt = hasPermission(moduleId, transactionIdDt, "isEdit")
+  const canDeleteDt = hasPermission(moduleId, transactionIdDt, "isDelete")
+  const canViewDt = hasPermission(moduleId, transactionIdDt, "isRead")
   const canViewCategory = hasPermission(
     moduleId,
     transactionIdCategory,
     "isRead"
   )
-  const canCreateDt = hasPermission(moduleId, transactionIdDt, "isCreate")
-  const canEditDt = hasPermission(moduleId, transactionIdDt, "isEdit")
-  const canDeleteDt = hasPermission(moduleId, transactionIdDt, "isDelete")
-  const canViewDt = hasPermission(moduleId, transactionIdDt, "isRead")
+
   // State for filters
   const [filters, setFilters] = useState<IGstFilter>({})
-  const [dtFilters, setDtFilters] = useState<IGstFilter>({})
-  const [categoryFilters, setCategoryFilters] = useState<IGstCategoryFilter>({})
 
   // Filter change handlers
   const handleFilterChange = useCallback(
     (newFilters: { search?: string; sortOrder?: string }) => {
-      console.log("GST filter change called with:", newFilters)
+      console.log("Gst filter change called with:", newFilters)
       setFilters(newFilters as IGstFilter)
     },
     []
@@ -97,7 +96,7 @@ export default function GstPage() {
 
   const handleDtFilterChange = useCallback(
     (newFilters: { search?: string; sortOrder?: string }) => {
-      console.log("GST Dt filter change called with:", newFilters)
+      console.log("Gst Dt filter change called with:", newFilters)
       setDtFilters(newFilters as IGstFilter)
     },
     []
@@ -105,32 +104,32 @@ export default function GstPage() {
 
   const handleCategoryFilterChange = useCallback(
     (newFilters: { search?: string; sortOrder?: string }) => {
-      console.log("GST Category filter change called with:", newFilters)
+      console.log("Gst Category filter change called with:", newFilters)
       setCategoryFilters(newFilters as IGstCategoryFilter)
     },
     []
   )
+
+  const [dtFilters, setDtFilters] = useState<IGstFilter>({})
+  const [categoryFilters, setCategoryFilters] = useState<IGstCategoryFilter>({})
 
   // Data fetching
   const {
     data: gstsResponse,
     refetch: refetchGst,
     isLoading: isLoadingGst,
-    isRefetching: isRefetchingGst,
   } = useGet<IGst>(`${Gst.get}`, "gsts", filters.search)
 
   const {
     data: gstsDtResponse,
     refetch: refetchGstDt,
     isLoading: isLoadingGstDt,
-    isRefetching: isRefetchingGstDt,
   } = useGet<IGstDt>(`${GstDt.get}`, "gstsdt", dtFilters.search)
 
   const {
     data: gstsCategoryResponse,
     refetch: refetchGstCategory,
     isLoading: isLoadingGstCategory,
-    isRefetching: isRefetchingGstCategory,
   } = useGet<IGstCategory>(
     `${GstCategory.get}`,
     "gstcategory",
@@ -205,15 +204,15 @@ export default function GstPage() {
   // Refetch when filters change
   useEffect(() => {
     if (filters.search !== undefined) refetchGst()
-  }, [filters.search, refetchGst])
+  }, [filters.search])
 
   useEffect(() => {
     if (dtFilters.search !== undefined) refetchGstDt()
-  }, [dtFilters.search, refetchGstDt])
+  }, [dtFilters.search])
 
   useEffect(() => {
     if (categoryFilters.search !== undefined) refetchGstCategory()
-  }, [categoryFilters.search, refetchGstCategory])
+  }, [categoryFilters.search])
 
   // Action handlers
   const handleCreateGst = () => {
@@ -303,7 +302,7 @@ export default function GstPage() {
         }
       }
     } catch (error) {
-      console.error("GST form submission error:", error)
+      console.error("Gst form submission error:", error)
     }
   }
 
@@ -325,7 +324,7 @@ export default function GstPage() {
         }
       }
     } catch (error) {
-      console.error("GST Details form submission error:", error)
+      console.error("Gst Details form submission error:", error)
     }
   }
 
@@ -347,7 +346,7 @@ export default function GstPage() {
         }
       }
     } catch (error) {
-      console.error("GST Category form submission error:", error)
+      console.error("Gst Category form submission error:", error)
     }
   }
 
@@ -404,7 +403,7 @@ export default function GstPage() {
     setDeleteConfirmation({
       isOpen: true,
       id: gstId,
-      name: gstToDelete.gstCode,
+      name: gstToDelete.gstName,
       type: "gst",
     })
   }
@@ -415,7 +414,7 @@ export default function GstPage() {
     setDeleteConfirmation({
       isOpen: true,
       id: gstId,
-      name: gstDtToDelete.gstCode,
+      name: gstDtToDelete.gstName,
       type: "gstdt",
     })
   }
@@ -452,16 +451,14 @@ export default function GstPage() {
     }
 
     mutation.mutateAsync(deleteConfirmation.id).then(() => {
-      queryClient.invalidateQueries({ queryKey: ["gsts"] })
-      queryClient.invalidateQueries({ queryKey: ["gstsdt"] })
-      queryClient.invalidateQueries({ queryKey: ["gstcategory"] })
+      queryClient.invalidateQueries({ queryKey: [deleteConfirmation.type] })
     })
 
     setDeleteConfirmation({
       isOpen: false,
       id: null,
       name: null,
-      type: "gst",
+      type: deleteConfirmation.type,
     })
   }
 
@@ -530,9 +527,9 @@ export default function GstPage() {
       {/* Header Section */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="space-y-1">
-          <h1 className="text-xl font-bold tracking-tight sm:text-3xl">GST</h1>
+          <h1 className="text-xl font-bold tracking-tight sm:text-3xl">Gst</h1>
           <p className="text-muted-foreground text-sm">
-            Manage GST information and settings
+            Manage Gst information and settings
           </p>
         </div>
       </div>
@@ -735,7 +732,7 @@ export default function GstPage() {
         </TabsContent>
       </Tabs>
 
-      {/* GST Form Dialog */}
+      {/* Gst Form Dialog */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogContent
           className="sm:max-w-2xl"
@@ -767,7 +764,7 @@ export default function GstPage() {
         </DialogContent>
       </Dialog>
 
-      {/* GST Details Form Dialog */}
+      {/* Gst Details Form Dialog */}
       <Dialog open={isDtModalOpen} onOpenChange={setIsDtModalOpen}>
         <DialogContent
           className="sm:max-w-2xl"
@@ -781,10 +778,10 @@ export default function GstPage() {
             </DialogTitle>
             <DialogDescription>
               {modalMode === "create"
-                ? "Add new GST details to the system database."
+                ? "Add new Gst details to the system database."
                 : modalMode === "edit"
-                  ? "Update GST details information."
-                  : "View GST details."}
+                  ? "Update Gst details information."
+                  : "View Gst details."}
             </DialogDescription>
           </DialogHeader>
           <Separator />
@@ -800,7 +797,7 @@ export default function GstPage() {
         </DialogContent>
       </Dialog>
 
-      {/* GST Category Form Dialog */}
+      {/* Gst Category Form Dialog */}
       <Dialog open={isCategoryModalOpen} onOpenChange={setIsCategoryModalOpen}>
         <DialogContent
           className="sm:max-w-2xl"
@@ -808,16 +805,16 @@ export default function GstPage() {
         >
           <DialogHeader>
             <DialogTitle>
-              {modalMode === "create" && "Create GST Category"}
-              {modalMode === "edit" && "Update GST Category"}
-              {modalMode === "view" && "View GST Category"}
+              {modalMode === "create" && "Create Gst Category"}
+              {modalMode === "edit" && "Update Gst Category"}
+              {modalMode === "view" && "View Gst Category"}
             </DialogTitle>
             <DialogDescription>
               {modalMode === "create"
-                ? "Add a new GST category to the system database."
+                ? "Add a new Gst category to the system database."
                 : modalMode === "edit"
-                  ? "Update GST category information."
-                  : "View GST category details."}
+                  ? "Update Gst category information."
+                  : "View Gst category details."}
             </DialogDescription>
           </DialogHeader>
           <Separator />
@@ -844,7 +841,7 @@ export default function GstPage() {
         onCancel={() => setExistingGst(null)}
         code={existingGst?.gstCode}
         name={existingGst?.gstName}
-        typeLabel="GST"
+        typeLabel="Gst"
         isLoading={saveMutation.isPending || updateMutation.isPending}
       />
 
@@ -855,7 +852,7 @@ export default function GstPage() {
         onCancel={() => setExistingGstCategory(null)}
         code={existingGstCategory?.gstCategoryCode}
         name={existingGstCategory?.gstCategoryName}
-        typeLabel="GST Category"
+        typeLabel="Gst Category"
         isLoading={
           saveCategoryMutation.isPending || updateCategoryMutation.isPending
         }

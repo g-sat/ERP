@@ -69,6 +69,13 @@ export function ProductsTable({
       enableColumnFilter: true,
     },
     {
+      accessorKey: "remarks",
+      header: "Remarks",
+      cell: ({ row }) => <div>{row.getValue("remarks") || "-"}</div>,
+      size: 200,
+      minSize: 50,
+    },
+    {
       accessorKey: "isActive",
       header: "Status",
       cell: ({ row }) => (
@@ -82,13 +89,6 @@ export function ProductsTable({
         </Badge>
       ),
       size: 120,
-      minSize: 50,
-    },
-    {
-      accessorKey: "remarks",
-      header: "Remarks",
-      cell: ({ row }) => <div>{row.getValue("remarks") || "-"}</div>,
-      size: 200,
       minSize: 50,
     },
     {

@@ -76,7 +76,7 @@ export function TaxDtForm({
               <CustomNumberInput
                 form={form}
                 name="taxPercentage"
-                label="GST Percentage"
+                label="Tax Percentage"
                 isRequired
                 isDisabled={isReadOnly || isSubmitting}
                 round={priceDec}

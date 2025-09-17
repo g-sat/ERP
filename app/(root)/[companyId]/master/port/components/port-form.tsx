@@ -85,14 +85,14 @@ export function PortForm({
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pt-6">
           <div className="grid gap-2">
+            <PortregionAutocomplete
+              form={form}
+              name="portRegionId"
+              label="Port Region"
+              isDisabled={isReadOnly}
+              isRequired
+            />
             <div className="grid grid-cols-2 gap-2">
-              <PortregionAutocomplete
-                form={form}
-                name="portRegionId"
-                label="Port Region"
-                isDisabled={isReadOnly}
-                isRequired
-              />
               <CustomInput
                 form={form}
                 name="portCode"
@@ -101,14 +101,15 @@ export function PortForm({
                 isDisabled={isReadOnly || Boolean(initialData)}
                 onBlurEvent={handleCodeBlur}
               />
+
+              <CustomInput
+                form={form}
+                name="portName"
+                label="Port Name"
+                isRequired
+                isDisabled={isReadOnly}
+              />
             </div>
-            <CustomInput
-              form={form}
-              name="portName"
-              label="Port Name"
-              isRequired
-              isDisabled={isReadOnly}
-            />
             <CustomTextarea
               form={form}
               name="remarks"

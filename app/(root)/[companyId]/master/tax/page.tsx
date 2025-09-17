@@ -302,7 +302,7 @@ export default function TaxPage() {
         }
       }
     } catch (error) {
-      console.error("GST form submission error:", error)
+      console.error("Tax form submission error:", error)
     }
   }
 
@@ -324,7 +324,7 @@ export default function TaxPage() {
         }
       }
     } catch (error) {
-      console.error("GST Details form submission error:", error)
+      console.error("Tax Details form submission error:", error)
     }
   }
 
@@ -346,7 +346,7 @@ export default function TaxPage() {
         }
       }
     } catch (error) {
-      console.error("GST Category form submission error:", error)
+      console.error("Tax Category form submission error:", error)
     }
   }
 
@@ -527,9 +527,9 @@ export default function TaxPage() {
       {/* Header Section */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="space-y-1">
-          <h1 className="text-xl font-bold tracking-tight sm:text-3xl">GST</h1>
+          <h1 className="text-xl font-bold tracking-tight sm:text-3xl">Tax</h1>
           <p className="text-muted-foreground text-sm">
-            Manage GST information and settings
+            Manage Tax information and settings
           </p>
         </div>
       </div>
@@ -732,7 +732,7 @@ export default function TaxPage() {
         </TabsContent>
       </Tabs>
 
-      {/* GST Form Dialog */}
+      {/* Tax Form Dialog */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogContent
           className="sm:max-w-2xl"
@@ -764,7 +764,7 @@ export default function TaxPage() {
         </DialogContent>
       </Dialog>
 
-      {/* GST Details Form Dialog */}
+      {/* Tax Details Form Dialog */}
       <Dialog open={isDtModalOpen} onOpenChange={setIsDtModalOpen}>
         <DialogContent
           className="sm:max-w-2xl"
@@ -778,10 +778,10 @@ export default function TaxPage() {
             </DialogTitle>
             <DialogDescription>
               {modalMode === "create"
-                ? "Add new GST details to the system database."
+                ? "Add new Tax details to the system database."
                 : modalMode === "edit"
-                  ? "Update GST details information."
-                  : "View GST details."}
+                  ? "Update Tax details information."
+                  : "View Tax details."}
             </DialogDescription>
           </DialogHeader>
           <Separator />
@@ -797,7 +797,7 @@ export default function TaxPage() {
         </DialogContent>
       </Dialog>
 
-      {/* GST Category Form Dialog */}
+      {/* Tax Category Form Dialog */}
       <Dialog open={isCategoryModalOpen} onOpenChange={setIsCategoryModalOpen}>
         <DialogContent
           className="sm:max-w-2xl"
@@ -805,16 +805,16 @@ export default function TaxPage() {
         >
           <DialogHeader>
             <DialogTitle>
-              {modalMode === "create" && "Create GST Category"}
-              {modalMode === "edit" && "Update GST Category"}
-              {modalMode === "view" && "View GST Category"}
+              {modalMode === "create" && "Create Tax Category"}
+              {modalMode === "edit" && "Update Tax Category"}
+              {modalMode === "view" && "View Tax Category"}
             </DialogTitle>
             <DialogDescription>
               {modalMode === "create"
-                ? "Add a new GST category to the system database."
+                ? "Add a new Tax category to the system database."
                 : modalMode === "edit"
-                  ? "Update GST category information."
-                  : "View GST category details."}
+                  ? "Update Tax category information."
+                  : "View Tax category details."}
             </DialogDescription>
           </DialogHeader>
           <Separator />
@@ -841,7 +841,7 @@ export default function TaxPage() {
         onCancel={() => setExistingTax(null)}
         code={existingTax?.taxCode}
         name={existingTax?.taxName}
-        typeLabel="GST"
+        typeLabel="Tax"
         isLoading={saveMutation.isPending || updateMutation.isPending}
       />
 
@@ -852,7 +852,7 @@ export default function TaxPage() {
         onCancel={() => setExistingTaxCategory(null)}
         code={existingTaxCategory?.taxCategoryCode}
         name={existingTaxCategory?.taxCategoryName}
-        typeLabel="GST Category"
+        typeLabel="Tax Category"
         isLoading={
           saveCategoryMutation.isPending || updateCategoryMutation.isPending
         }

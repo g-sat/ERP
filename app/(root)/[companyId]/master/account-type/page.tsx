@@ -21,6 +21,7 @@ import { Separator } from "@/components/ui/separator"
 import { DeleteConfirmation } from "@/components/delete-confirmation"
 import { SaveConfirmation } from "@/components/save-confirmation"
 import { DataTableSkeleton } from "@/components/skeleton/data-table-skeleton"
+import { LockSkeleton } from "@/components/skeleton/lock-skeleton"
 import { LoadExistingDialog } from "@/components/ui-custom/master-loadexisting-dialog"
 
 import { AccountTypeForm } from "./components/account-type-form"
@@ -296,23 +297,25 @@ export default function AccountTypePage() {
           shrinkZero
         />
       ) : accountTypesResult === -2 ? (
-        <AccountTypesTable
-          data={[]}
-          isLoading={false}
-          onSelect={canView ? handleViewAccountType : undefined}
-          onDelete={canDelete ? handleDeleteAccountType : undefined}
-          onEdit={canEdit ? handleEditAccountType : undefined}
-          onCreate={canCreate ? handleCreateAccountType : undefined}
-          onRefresh={handleRefresh}
-          onFilterChange={handleFilterChange}
-          moduleId={moduleId}
-          transactionId={transactionId}
-          // Pass permissions to table
-          canEdit={canEdit}
-          canDelete={canDelete}
-          canView={canView}
-          canCreate={canCreate}
-        />
+        <LockSkeleton locked={true}>
+          <AccountTypesTable
+            data={[]}
+            isLoading={false}
+            onSelect={canView ? handleViewAccountType : undefined}
+            onDelete={canDelete ? handleDeleteAccountType : undefined}
+            onEdit={canEdit ? handleEditAccountType : undefined}
+            onCreate={canCreate ? handleCreateAccountType : undefined}
+            onRefresh={handleRefresh}
+            onFilterChange={handleFilterChange}
+            moduleId={moduleId}
+            transactionId={transactionId}
+            // Pass permissions to table
+            canEdit={canEdit}
+            canDelete={canDelete}
+            canView={canView}
+            canCreate={canCreate}
+          />
+        </LockSkeleton>
       ) : (
         <AccountTypesTable
           data={filters.search ? [] : accountTypesData || []}
