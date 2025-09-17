@@ -121,7 +121,7 @@ export function MedicalAssistanceTable({
         enableHiding: false,
         size: 100,
         minSize: 80,
-        maxSize: 150,
+
         cell: ({ row }) => {
           const medicalAssistance = row.original
           const isSelected = row.getIsSelected()
@@ -158,7 +158,6 @@ export function MedicalAssistanceTable({
         ),
         size: 120,
         minSize: 100,
-        maxSize: 150,
       },
 
       {
@@ -169,7 +168,7 @@ export function MedicalAssistanceTable({
         ),
         size: 200,
         minSize: 150,
-        maxSize: 300,
+
         enableColumnFilter: true,
       },
       {
@@ -190,7 +189,6 @@ export function MedicalAssistanceTable({
         ),
         size: 200,
         minSize: 150,
-        maxSize: 300,
       },
       {
         accessorKey: "rankName",
@@ -200,7 +198,6 @@ export function MedicalAssistanceTable({
         ),
         size: 200,
         minSize: 150,
-        maxSize: 300,
       },
       {
         accessorKey: "visaTypeName",
@@ -210,7 +207,6 @@ export function MedicalAssistanceTable({
         ),
         size: 120,
         minSize: 100,
-        maxSize: 150,
       },
       {
         accessorKey: "reason",
@@ -220,7 +216,6 @@ export function MedicalAssistanceTable({
         ),
         size: 120,
         minSize: 100,
-        maxSize: 150,
       },
       {
         accessorKey: "admittedDate",
@@ -274,7 +269,6 @@ export function MedicalAssistanceTable({
         ),
         size: 120,
         minSize: 100,
-        maxSize: 150,
       },
       {
         accessorKey: "remarks",
@@ -284,7 +278,6 @@ export function MedicalAssistanceTable({
         ),
         size: 200,
         minSize: 150,
-        maxSize: 300,
       },
       {
         accessorKey: "createBy",
@@ -294,7 +287,6 @@ export function MedicalAssistanceTable({
         ),
         size: 120,
         minSize: 100,
-        maxSize: 150,
       },
       {
         accessorKey: "createDate",
@@ -325,7 +317,6 @@ export function MedicalAssistanceTable({
         ),
         size: 120,
         minSize: 100,
-        maxSize: 150,
       },
       {
         accessorKey: "editDate",

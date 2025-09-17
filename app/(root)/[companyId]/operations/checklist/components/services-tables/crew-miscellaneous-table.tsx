@@ -121,7 +121,7 @@ export function CrewMiscellaneousTable({
         enableHiding: false,
         size: 100,
         minSize: 80,
-        maxSize: 150,
+
         cell: ({ row }) => {
           const crewMiscellaneous = row.original
           const isSelected = row.getIsSelected()
@@ -158,7 +158,6 @@ export function CrewMiscellaneousTable({
         ),
         size: 120,
         minSize: 100,
-        maxSize: 150,
       },
       {
         accessorKey: "quantity",
@@ -168,7 +167,6 @@ export function CrewMiscellaneousTable({
         ),
         size: 100,
         minSize: 80,
-        maxSize: 150,
       },
       {
         accessorKey: "description",
@@ -178,7 +176,7 @@ export function CrewMiscellaneousTable({
         ),
         size: 200,
         minSize: 150,
-        maxSize: 300,
+
         enableColumnFilter: true,
       },
 
@@ -190,7 +188,7 @@ export function CrewMiscellaneousTable({
         ),
         size: 200,
         minSize: 150,
-        maxSize: 300,
+
         enableColumnFilter: true,
       },
       {
@@ -203,7 +201,6 @@ export function CrewMiscellaneousTable({
         ),
         size: 120,
         minSize: 100,
-        maxSize: 150,
       },
 
       {
@@ -214,7 +211,6 @@ export function CrewMiscellaneousTable({
         ),
         size: 200,
         minSize: 150,
-        maxSize: 300,
       },
       {
         accessorKey: "createBy",
@@ -224,7 +220,6 @@ export function CrewMiscellaneousTable({
         ),
         size: 120,
         minSize: 100,
-        maxSize: 150,
       },
       {
         accessorKey: "createDate",
@@ -255,7 +250,6 @@ export function CrewMiscellaneousTable({
         ),
         size: 120,
         minSize: 100,
-        maxSize: 150,
       },
       {
         accessorKey: "editDate",

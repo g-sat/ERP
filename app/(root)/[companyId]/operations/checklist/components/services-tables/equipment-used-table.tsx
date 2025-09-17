@@ -166,7 +166,7 @@ export function EquipmentUsedTable({
         enableHiding: false,
         size: 100,
         minSize: 80,
-        maxSize: 150,
+
         cell: ({ row }) => {
           const equipmentUsed = row.original
           const isSelected = row.getIsSelected()
@@ -204,7 +204,6 @@ export function EquipmentUsedTable({
         ),
         size: 120,
         minSize: 100,
-        maxSize: 150,
       },
       {
         accessorKey: "date",
@@ -225,7 +224,6 @@ export function EquipmentUsedTable({
         },
         size: 120,
         minSize: 100,
-        maxSize: 150,
       },
 
       {
@@ -236,7 +234,7 @@ export function EquipmentUsedTable({
         ),
         size: 200,
         minSize: 150,
-        maxSize: 300,
+
         enableColumnFilter: true,
       },
       {
@@ -247,7 +245,7 @@ export function EquipmentUsedTable({
         ),
         size: 200,
         minSize: 150,
-        maxSize: 300,
+
         enableColumnFilter: true,
       },
 
@@ -261,7 +259,7 @@ export function EquipmentUsedTable({
         ),
         size: 200,
         minSize: 150,
-        maxSize: 300,
+
         enableColumnFilter: true,
       },
       {
@@ -274,7 +272,7 @@ export function EquipmentUsedTable({
         ),
         size: 200,
         minSize: 150,
-        maxSize: 300,
+
         enableColumnFilter: true,
       },
       {
@@ -287,7 +285,7 @@ export function EquipmentUsedTable({
         ),
         size: 200,
         minSize: 150,
-        maxSize: 300,
+
         enableColumnFilter: true,
       },
       {
@@ -300,7 +298,6 @@ export function EquipmentUsedTable({
         ),
         size: 120,
         minSize: 100,
-        maxSize: 150,
       },
       {
         accessorKey: "loadingRefNo",
@@ -310,7 +307,6 @@ export function EquipmentUsedTable({
         ),
         size: 200,
         minSize: 150,
-        maxSize: 300,
       },
       {
         accessorKey: "craneloading",
@@ -320,7 +316,6 @@ export function EquipmentUsedTable({
         ),
         size: 200,
         minSize: 150,
-        maxSize: 300,
       },
       {
         accessorKey: "forkliftloading",
@@ -332,7 +327,6 @@ export function EquipmentUsedTable({
         ),
         size: 200,
         minSize: 150,
-        maxSize: 300,
       },
       {
         accessorKey: "stevedoreloading",
@@ -344,7 +338,6 @@ export function EquipmentUsedTable({
         ),
         size: 200,
         minSize: 150,
-        maxSize: 300,
       },
       {
         accessorKey: "offloadingRefNo",
@@ -356,7 +349,6 @@ export function EquipmentUsedTable({
         ),
         size: 200,
         minSize: 150,
-        maxSize: 300,
       },
       {
         accessorKey: "craneOffloading",
@@ -368,7 +360,6 @@ export function EquipmentUsedTable({
         ),
         size: 200,
         minSize: 150,
-        maxSize: 300,
       },
       {
         accessorKey: "forkliftOffloading",
@@ -380,7 +371,6 @@ export function EquipmentUsedTable({
         ),
         size: 200,
         minSize: 150,
-        maxSize: 300,
       },
       {
         accessorKey: "stevedoreOffloading",
@@ -392,7 +382,6 @@ export function EquipmentUsedTable({
         ),
         size: 200,
         minSize: 150,
-        maxSize: 300,
       },
       {
         accessorKey: "mafi",
@@ -402,7 +391,6 @@ export function EquipmentUsedTable({
         ),
         size: 200,
         minSize: 150,
-        maxSize: 300,
       },
       {
         accessorKey: "others",
@@ -412,7 +400,6 @@ export function EquipmentUsedTable({
         ),
         size: 200,
         minSize: 150,
-        maxSize: 300,
       },
 
       {
@@ -423,7 +410,6 @@ export function EquipmentUsedTable({
         ),
         size: 200,
         minSize: 150,
-        maxSize: 300,
       },
       {
         accessorKey: "createBy",
@@ -433,7 +419,6 @@ export function EquipmentUsedTable({
         ),
         size: 120,
         minSize: 100,
-        maxSize: 150,
       },
       {
         accessorKey: "createDate",
@@ -444,7 +429,7 @@ export function EquipmentUsedTable({
           if (typeof raw === "string") {
             date = new Date(raw)
           } else if (raw instanceof Date) {
-            date = raw
+            w
           }
           return (
             <div className="text-wrap">
@@ -464,7 +449,6 @@ export function EquipmentUsedTable({
         ),
         size: 120,
         minSize: 100,
-        maxSize: 150,
       },
       {
         accessorKey: "editDate",
@@ -475,7 +459,7 @@ export function EquipmentUsedTable({
           if (typeof raw === "string") {
             date = new Date(raw)
           } else if (raw instanceof Date) {
-            date = raw
+            w
           }
           return (
             <div className="text-wrap">

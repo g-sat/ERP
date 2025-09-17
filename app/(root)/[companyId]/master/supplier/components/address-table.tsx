@@ -126,7 +126,7 @@ export function AddresssTable({
       enableHiding: false,
       size: 100,
       minSize: 80,
-      maxSize: 150,
+
       cell: ({ row }) => {
         const address = row.original
         return (
@@ -155,14 +155,13 @@ export function AddresssTable({
       ),
       size: 120,
       minSize: 50,
-      maxSize: 150,
     },
     {
       accessorKey: "address1",
       header: "Address 1",
       size: 200,
       minSize: 50,
-      maxSize: 300,
+
       enableColumnFilter: true,
     },
     {
@@ -170,7 +169,7 @@ export function AddresssTable({
       header: "Address 2",
       size: 120,
       minSize: 50,
-      maxSize: 150,
+
       enableColumnFilter: true,
     },
     {
@@ -178,7 +177,7 @@ export function AddresssTable({
       header: "Address 3",
       size: 120,
       minSize: 50,
-      maxSize: 150,
+
       enableColumnFilter: true,
     },
     {
@@ -186,7 +185,7 @@ export function AddresssTable({
       header: "Address 4",
       size: 120,
       minSize: 50,
-      maxSize: 150,
+
       enableColumnFilter: true,
     },
     {
@@ -194,7 +193,7 @@ export function AddresssTable({
       header: "Pin Code",
       size: 120,
       minSize: 50,
-      maxSize: 150,
+
       enableColumnFilter: true,
     },
     {
@@ -202,7 +201,7 @@ export function AddresssTable({
       header: "Fax",
       size: 120,
       minSize: 50,
-      maxSize: 150,
+
       enableColumnFilter: true,
     },
     {
@@ -210,7 +209,7 @@ export function AddresssTable({
       header: "Email",
       size: 120,
       minSize: 50,
-      maxSize: 150,
+
       enableColumnFilter: true,
     },
     {
@@ -218,7 +217,7 @@ export function AddresssTable({
       header: "Url",
       size: 120,
       minSize: 50,
-      maxSize: 150,
+
       enableColumnFilter: true,
     },
 
@@ -239,7 +238,6 @@ export function AddresssTable({
       ),
       size: 120,
       minSize: 50,
-      maxSize: 150,
     },
     {
       accessorKey: "isFinAdd",
@@ -256,7 +254,6 @@ export function AddresssTable({
       ),
       size: 120,
       minSize: 50,
-      maxSize: 150,
     },
     {
       accessorKey: "isSalesAdd",
@@ -273,7 +270,6 @@ export function AddresssTable({
       ),
       size: 120,
       minSize: 50,
-      maxSize: 150,
     },
 
     {
@@ -291,7 +287,6 @@ export function AddresssTable({
       ),
       size: 120,
       minSize: 50,
-      maxSize: 150,
     },
 
     {
@@ -300,7 +295,6 @@ export function AddresssTable({
       cell: ({ row }) => <div>{row.getValue("remarks") || "-"}</div>,
       size: 200,
       minSize: 50,
-      maxSize: 300,
     },
     {
       accessorKey: "createBy",
@@ -308,7 +302,6 @@ export function AddresssTable({
       cell: ({ row }) => <div>{row.getValue("createBy") || "-"}</div>,
       size: 120,
       minSize: 50,
-      maxSize: 150,
     },
     {
       accessorKey: "createDate",
@@ -325,7 +318,6 @@ export function AddresssTable({
       },
       size: 180,
       minSize: 150,
-      maxSize: 200,
     },
     {
       accessorKey: "editBy",
@@ -333,7 +325,6 @@ export function AddresssTable({
       cell: ({ row }) => <div>{row.getValue("editBy") || "-"}</div>,
       size: 120,
       minSize: 50,
-      maxSize: 150,
     },
     {
       accessorKey: "editDate",
@@ -350,7 +341,6 @@ export function AddresssTable({
       },
       size: 180,
       minSize: 150,
-      maxSize: 200,
     },
   ]
 

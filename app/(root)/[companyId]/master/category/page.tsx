@@ -59,7 +59,6 @@ export default function CategoryPage() {
     data: categorysResponse,
     refetch,
     isLoading,
-    isRefetching,
   } = useGet<ICategory>(`${Category.get}`, "categorys", filters.search)
 
   const { result: categorysResult, data: categorysData } =

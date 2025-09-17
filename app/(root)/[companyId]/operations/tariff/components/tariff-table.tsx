@@ -124,7 +124,7 @@ export function TariffTable({
       enableHiding: false,
       size: 100,
       minSize: 80,
-      maxSize: 150,
+
       cell: ({ row }) => (
         <TableActions
           row={row.original}

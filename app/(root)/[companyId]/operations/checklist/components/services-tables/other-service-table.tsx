@@ -115,7 +115,7 @@ export function OtherServiceTable({
         enableHiding: false,
         size: 100,
         minSize: 80,
-        maxSize: 150,
+
         cell: ({ row }) => {
           const otherService = row.original
           const isSelected = row.getIsSelected()
@@ -152,7 +152,6 @@ export function OtherServiceTable({
         ),
         size: 120,
         minSize: 100,
-        maxSize: 150,
       },
       {
         accessorKey: "date",
@@ -184,7 +183,7 @@ export function OtherServiceTable({
         ),
         size: 200,
         minSize: 150,
-        maxSize: 300,
+
         enableColumnFilter: true,
       },
       {
@@ -195,7 +194,6 @@ export function OtherServiceTable({
         ),
         size: 100,
         minSize: 80,
-        maxSize: 150,
       },
       {
         accessorKey: "amount",
@@ -205,7 +203,6 @@ export function OtherServiceTable({
         ),
         size: 120,
         minSize: 100,
-        maxSize: 150,
       },
       {
         accessorKey: "uomName",
@@ -215,7 +212,6 @@ export function OtherServiceTable({
         ),
         size: 100,
         minSize: 80,
-        maxSize: 150,
       },
       {
         accessorKey: "statusName",
@@ -227,7 +223,6 @@ export function OtherServiceTable({
         ),
         size: 120,
         minSize: 100,
-        maxSize: 150,
       },
       {
         accessorKey: "remarks",
@@ -237,7 +232,6 @@ export function OtherServiceTable({
         ),
         size: 200,
         minSize: 150,
-        maxSize: 300,
       },
       {
         accessorKey: "createBy",
@@ -247,7 +241,6 @@ export function OtherServiceTable({
         ),
         size: 120,
         minSize: 100,
-        maxSize: 150,
       },
       {
         accessorKey: "createDate",
@@ -278,7 +271,6 @@ export function OtherServiceTable({
         ),
         size: 120,
         minSize: 100,
-        maxSize: 150,
       },
       {
         accessorKey: "editDate",

@@ -15,7 +15,7 @@ import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Form } from "@/components/ui/form"
 import { SaveConfirmation } from "@/components/save-confirmation"
-import { RightsTable } from "@/components/table/table-rights"
+import { SettingTable } from "@/components/table/table-setting-main"
 import ModuleAutocomplete from "@/components/ui-custom/autocomplete-module"
 
 export function MandatoryTable() {
@@ -662,7 +662,7 @@ export function MandatoryTable() {
         </form>
       </Form>
 
-      <RightsTable
+      <SettingTable
         data={mandatoryFields}
         columns={columns}
         isLoading={isFieldsLoading}

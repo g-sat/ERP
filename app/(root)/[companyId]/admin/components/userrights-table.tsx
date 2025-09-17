@@ -20,7 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { SaveConfirmation } from "@/components/save-confirmation"
-import { RightsTable } from "@/components/table/table-rights"
+import { SettingTable } from "@/components/table/table-setting-main"
 import UserAutocomplete from "@/components/ui-custom/autocomplete-user"
 
 type CompanyRight = {
@@ -31,7 +31,7 @@ type CompanyRight = {
   userGroupId: string
 }
 
-export function UserRightsTable() {
+export function UserSettingTable() {
   const form = useForm()
   const [selectedUser, setSelectedUser] = useState<IUserLookup | null>(null)
   const [companyRights, setCompanyRights] = useState<CompanyRight[]>([])
@@ -284,7 +284,7 @@ export function UserRightsTable() {
               {saving ? "Saving..." : "Save"}
             </Button>
           </div>
-          <RightsTable
+          <SettingTable
             data={companyRights}
             columns={columns}
             isLoading={isRightsLoading}

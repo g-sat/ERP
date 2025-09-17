@@ -45,9 +45,9 @@ export function SubCategoryForm({
     defaultValues: initialData
       ? { ...initialData }
       : {
-          subcategoryId: 0,
-          subcategoryName: "",
-          subcategoryCode: "",
+          subCategoryId: 0,
+          subCategoryName: "",
+          subCategoryCode: "",
           remarks: "",
           isActive: true,
         },
@@ -59,9 +59,9 @@ export function SubCategoryForm({
       form.reset(initialData)
     } else {
       form.reset({
-        subcategoryId: 0,
-        subcategoryName: "",
-        subcategoryCode: "",
+        subCategoryId: 0,
+        subCategoryName: "",
+        subCategoryCode: "",
         remarks: "",
         isActive: true,
       })
@@ -69,7 +69,7 @@ export function SubCategoryForm({
   }, [initialData, form])
 
   const handleCodeBlur = () => {
-    const code = form.getValues("subcategoryCode")
+    const code = form.getValues("subCategoryCode")
     onCodeBlur?.(code)
   }
 
@@ -85,7 +85,7 @@ export function SubCategoryForm({
             <div className="grid grid-cols-2 gap-2">
               <CustomInput
                 form={form}
-                name="subcategoryCode"
+                name="subCategoryCode"
                 label="SubCategory Code"
                 isRequired
                 isDisabled={isReadOnly || Boolean(initialData)}
@@ -93,7 +93,7 @@ export function SubCategoryForm({
               />
               <CustomInput
                 form={form}
-                name="subcategoryName"
+                name="subCategoryName"
                 label="SubCategory Name"
                 isRequired
                 isDisabled={isReadOnly}

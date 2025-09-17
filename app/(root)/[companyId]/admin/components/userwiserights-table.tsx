@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Form } from "@/components/ui/form"
 import { SaveConfirmation } from "@/components/save-confirmation"
-import { RightsTable } from "@/components/table/table-rights"
+import { SettingTable } from "@/components/table/table-setting-main"
 import UserAutocomplete from "@/components/ui-custom/autocomplete-user"
 
 type PermissionType =
@@ -24,7 +24,7 @@ type PermissionType =
   | "isExport"
   | "isPrint"
 
-export function UserWiseRightsTable() {
+export function UserWiseSettingTable() {
   const form = useForm()
   const [selectedUser, setSelectedUser] = useState<IUserLookup | null>(null)
   const [userRights, setUserRights] = useState<IUserRightsv1[]>([])
@@ -441,7 +441,7 @@ export function UserWiseRightsTable() {
               {saving ? "Saving..." : "Save"}
             </Button>
           </div>
-          <RightsTable
+          <SettingTable
             data={userRights}
             columns={columns}
             isLoading={isRightsLoading}

@@ -57,7 +57,7 @@ export function VesselsTable({
       header: "Code",
       size: 120,
       minSize: 50,
-      maxSize: 150,
+
       enableColumnFilter: true,
     },
     {
@@ -65,16 +65,15 @@ export function VesselsTable({
       header: "Name",
       size: 200,
       minSize: 50,
-      maxSize: 300,
+
       enableColumnFilter: true,
     },
     {
       accessorKey: "vesselType",
       header: "Type",
       cell: ({ row }) => <div>{row.getValue("vesselType") || "-"}</div>,
-      size: 150,
+      size: 80,
       minSize: 50,
-      maxSize: 200,
     },
     {
       accessorKey: "callSign",
@@ -82,7 +81,6 @@ export function VesselsTable({
       cell: ({ row }) => <div>{row.getValue("callSign") || "-"}</div>,
       size: 120,
       minSize: 50,
-      maxSize: 150,
     },
     {
       accessorKey: "imoCode",
@@ -90,7 +88,6 @@ export function VesselsTable({
       cell: ({ row }) => <div>{row.getValue("imoCode") || "-"}</div>,
       size: 120,
       minSize: 50,
-      maxSize: 150,
     },
     {
       accessorKey: "grt",
@@ -98,15 +95,14 @@ export function VesselsTable({
       cell: ({ row }) => <div>{row.getValue("grt") || "-"}</div>,
       size: 120,
       minSize: 50,
-      maxSize: 150,
     },
+
     {
       accessorKey: "licenseNo",
       header: "License No",
       cell: ({ row }) => <div>{row.getValue("licenseNo") || "-"}</div>,
       size: 150,
       minSize: 50,
-      maxSize: 200,
     },
     {
       accessorKey: "flag",
@@ -114,7 +110,6 @@ export function VesselsTable({
       cell: ({ row }) => <div>{row.getValue("flag") || "-"}</div>,
       size: 120,
       minSize: 50,
-      maxSize: 150,
     },
     {
       accessorKey: "isActive",
@@ -131,7 +126,6 @@ export function VesselsTable({
       ),
       size: 120,
       minSize: 50,
-      maxSize: 150,
     },
     {
       accessorKey: "remarks",
@@ -139,7 +133,6 @@ export function VesselsTable({
       cell: ({ row }) => <div>{row.getValue("remarks") || "-"}</div>,
       size: 200,
       minSize: 50,
-      maxSize: 300,
     },
     {
       accessorKey: "createBy",
@@ -147,7 +140,6 @@ export function VesselsTable({
       cell: ({ row }) => <div>{row.getValue("createBy") || "-"}</div>,
       size: 120,
       minSize: 50,
-      maxSize: 150,
     },
     {
       accessorKey: "createDate",
@@ -161,7 +153,6 @@ export function VesselsTable({
       },
       size: 180,
       minSize: 150,
-      maxSize: 200,
     },
     {
       accessorKey: "editBy",
@@ -169,7 +160,6 @@ export function VesselsTable({
       cell: ({ row }) => <div>{row.getValue("editBy") || "-"}</div>,
       size: 120,
       minSize: 50,
-      maxSize: 150,
     },
     {
       accessorKey: "editDate",
@@ -183,7 +173,6 @@ export function VesselsTable({
       },
       size: 180,
       minSize: 150,
-      maxSize: 200,
     },
   ]
 

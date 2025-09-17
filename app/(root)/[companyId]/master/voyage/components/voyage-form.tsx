@@ -44,6 +44,7 @@ export function VoyageForm({
 
   const form = useForm<VoyageFormValues>({
     resolver: zodResolver(voyageSchema),
+    mode: "onChange",
     defaultValues: initialData
       ? { ...initialData }
       : {
@@ -57,7 +58,6 @@ export function VoyageForm({
         },
   })
 
-  // Reset form when initialData changes
   useEffect(() => {
     if (initialData) {
       form.reset(initialData)
@@ -80,6 +80,7 @@ export function VoyageForm({
   }
 
   const onSubmit = (data: VoyageFormValues) => {
+    console.log("onSubmit :", data)
     submitAction(data)
   }
 
@@ -93,35 +94,33 @@ export function VoyageForm({
                 form={form}
                 name="voyageNo"
                 label="Voyage No"
-                placeholder="Enter voyage number"
+                isRequired
                 isDisabled={isReadOnly || Boolean(initialData)}
-                isRequired={true}
                 onBlurEvent={handleCodeBlur}
               />
               <CustomInput
                 form={form}
                 name="referenceNo"
                 label="Reference No"
-                placeholder="Enter reference number"
+                isRequired
                 isDisabled={isReadOnly}
-                isRequired={true}
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-2">
               <VesselAutocomplete
                 form={form}
                 name="vesselId"
                 label="Vessel"
                 isDisabled={isReadOnly}
-                isRequired={true}
+                isRequired
               />
               <BargeAutocomplete
                 form={form}
                 name="bargeId"
                 label="Barge"
                 isDisabled={isReadOnly}
-                isRequired={true}
+                isRequired
               />
             </div>
 
@@ -132,15 +131,16 @@ export function VoyageForm({
               isDisabled={isReadOnly}
             />
 
-            <CustomSwitch
-              form={form}
-              name="isActive"
-              label="Active Status"
-              activeColor="success"
-              isDisabled={isReadOnly}
-            />
+            <div className="grid grid-cols-1 gap-2">
+              <CustomSwitch
+                form={form}
+                name="isActive"
+                label="Active Status"
+                activeColor="success"
+                isDisabled={isReadOnly}
+              />
+            </div>
 
-            {/* Audit Information Section */}
             {initialData &&
               (initialData.createBy ||
                 initialData.createDate ||
@@ -222,12 +222,7 @@ export function VoyageForm({
           </div>
 
           <div className="flex justify-end gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onCancel}
-              disabled={isSubmitting}
-            >
+            <Button variant="outline" type="button" onClick={onCancel}>
               {isReadOnly ? "Close" : "Cancel"}
             </Button>
             {!isReadOnly && (

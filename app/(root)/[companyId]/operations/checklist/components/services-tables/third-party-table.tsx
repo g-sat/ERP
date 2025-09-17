@@ -165,7 +165,7 @@ export function ThirdPartyTable({
         enableHiding: false,
         size: 100,
         minSize: 80,
-        maxSize: 150,
+
         cell: ({ row }) => {
           const thirdParty = row.original
           const isSelected = row.getIsSelected()
@@ -202,7 +202,6 @@ export function ThirdPartyTable({
         ),
         size: 120,
         minSize: 100,
-        maxSize: 150,
       },
       {
         accessorKey: "supplierName",
@@ -212,7 +211,7 @@ export function ThirdPartyTable({
         ),
         size: 200,
         minSize: 150,
-        maxSize: 300,
+
         enableColumnFilter: true,
       },
       {
@@ -223,7 +222,7 @@ export function ThirdPartyTable({
         ),
         size: 200,
         minSize: 150,
-        maxSize: 300,
+
         enableColumnFilter: true,
       },
       {
@@ -234,7 +233,6 @@ export function ThirdPartyTable({
         ),
         size: 100,
         minSize: 80,
-        maxSize: 150,
       },
       {
         accessorKey: "uomName",
@@ -244,7 +242,6 @@ export function ThirdPartyTable({
         ),
         size: 100,
         minSize: 80,
-        maxSize: 150,
       },
       {
         accessorKey: "statusName",
@@ -256,7 +253,6 @@ export function ThirdPartyTable({
         ),
         size: 120,
         minSize: 100,
-        maxSize: 150,
       },
       {
         accessorKey: "remarks",
@@ -266,7 +262,6 @@ export function ThirdPartyTable({
         ),
         size: 200,
         minSize: 150,
-        maxSize: 300,
       },
       {
         accessorKey: "deliverDate",
@@ -297,7 +292,6 @@ export function ThirdPartyTable({
         ),
         size: 120,
         minSize: 100,
-        maxSize: 150,
       },
       {
         accessorKey: "createDate",
@@ -328,7 +322,6 @@ export function ThirdPartyTable({
         ),
         size: 120,
         minSize: 100,
-        maxSize: 150,
       },
       {
         accessorKey: "editDate",

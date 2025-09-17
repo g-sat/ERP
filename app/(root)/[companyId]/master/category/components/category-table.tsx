@@ -60,7 +60,6 @@ export function CategorysTable({
       ),
       size: 120,
       minSize: 50,
-      maxSize: 150,
       enableColumnFilter: true,
     },
     {
@@ -68,7 +67,6 @@ export function CategorysTable({
       header: "Name",
       size: 200,
       minSize: 50,
-      maxSize: 300,
       enableColumnFilter: true,
     },
     {
@@ -86,7 +84,6 @@ export function CategorysTable({
       ),
       size: 120,
       minSize: 50,
-      maxSize: 150,
     },
     {
       accessorKey: "remarks",
@@ -94,7 +91,6 @@ export function CategorysTable({
       cell: ({ row }) => <div>{row.getValue("remarks") || "-"}</div>,
       size: 200,
       minSize: 50,
-      maxSize: 300,
     },
     {
       accessorKey: "createBy",
@@ -102,7 +98,6 @@ export function CategorysTable({
       cell: ({ row }) => <div>{row.getValue("createBy") || "-"}</div>,
       size: 120,
       minSize: 50,
-      maxSize: 150,
     },
     {
       accessorKey: "createDate",
@@ -116,7 +111,6 @@ export function CategorysTable({
       },
       size: 180,
       minSize: 150,
-      maxSize: 200,
     },
     {
       accessorKey: "editBy",
@@ -124,7 +118,6 @@ export function CategorysTable({
       cell: ({ row }) => <div>{row.getValue("editBy") || "-"}</div>,
       size: 120,
       minSize: 50,
-      maxSize: 150,
     },
     {
       accessorKey: "editDate",
@@ -138,7 +131,6 @@ export function CategorysTable({
       },
       size: 180,
       minSize: 150,
-      maxSize: 200,
     },
   ]
 

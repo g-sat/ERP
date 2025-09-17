@@ -1,6 +1,6 @@
 "use client"
 
-import { UserWiseRightsTable } from "../components/userwiserights-table"
+import { UserWiseSettingTable } from "../components/userwiserights-table"
 
 export default function AdminUserWiseRightsPage() {
   return (
@@ -11,7 +11,7 @@ export default function AdminUserWiseRightsPage() {
         </h1>
         <p className="text-muted-foreground text-sm">Manage user-wise rights</p>
       </div>
-      <UserWiseRightsTable />
+      <UserWiseSettingTable />
     </div>
   )
 }

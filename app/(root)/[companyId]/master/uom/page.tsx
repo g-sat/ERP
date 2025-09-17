@@ -37,7 +37,6 @@ export default function UomPage() {
   const transactionIdDt = MasterTransactionId.uom_dt
 
   const { hasPermission } = usePermissionStore()
-  const queryClient = useQueryClient()
 
   // Permissions
   const canCreate = hasPermission(moduleId, transactionId, "isCreate")
@@ -58,14 +57,12 @@ export default function UomPage() {
     data: uomsResponse,
     refetch: refetchUom,
     isLoading: isLoadingUom,
-    isRefetching: isRefetchingUom,
   } = useGet<IUom>(`${Uom.get}`, "uoms", filters.search)
 
   const {
     data: uomDtResponse,
     refetch: refetchUomDt,
     isLoading: isLoadingUomDt,
-    isRefetching: isRefetchingUomDt,
   } = useGet<IUomDt>(`${UomDt.get}`, "uomsdt", dtFilters.search)
 
   // Extract data from responses
@@ -143,7 +140,7 @@ export default function UomPage() {
     setIsDtModalOpen(true)
   }
 
-  const handleViewUomDt = (uomDt: IUomDt | undefined) => {
+  const handleViewUomDt = (uomDt: IUomDt | null) => {
     if (!uomDt) return
     setModalMode("view")
     setSelectedUomDt(uomDt)
@@ -343,6 +340,8 @@ export default function UomPage() {
     }
   }
 
+  const queryClient = useQueryClient()
+
   return (
     <div className="container mx-auto space-y-4 px-4 py-4 sm:space-y-6 sm:px-6 sm:py-6">
       {/* Header Section */}
@@ -362,7 +361,7 @@ export default function UomPage() {
         </TabsList>
 
         <TabsContent value="uom" className="space-y-4">
-          {isLoadingUom || isRefetchingUom ? (
+          {isLoadingUom ? (
             <DataTableSkeleton
               columnCount={8}
               filterCount={2}
@@ -410,7 +409,7 @@ export default function UomPage() {
         </TabsContent>
 
         <TabsContent value="uomdt" className="space-y-4">
-          {isLoadingUomDt || isRefetchingUomDt ? (
+          {isLoadingUomDt ? (
             <DataTableSkeleton
               columnCount={8}
               filterCount={2}

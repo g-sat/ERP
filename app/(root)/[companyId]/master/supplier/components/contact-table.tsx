@@ -123,7 +123,7 @@ export function ContactsTable({
       enableHiding: false,
       size: 100,
       minSize: 80,
-      maxSize: 150,
+
       cell: ({ row }) => {
         const contact = row.original
         return (
@@ -152,14 +152,13 @@ export function ContactsTable({
       ),
       size: 120,
       minSize: 50,
-      maxSize: 150,
     },
     {
       accessorKey: "contactName",
       header: "Conatact Name",
       size: 200,
       minSize: 50,
-      maxSize: 300,
+
       enableColumnFilter: true,
     },
     {
@@ -168,7 +167,7 @@ export function ContactsTable({
 
       size: 120,
       minSize: 50,
-      maxSize: 150,
+
       enableColumnFilter: true,
     },
     {
@@ -177,7 +176,7 @@ export function ContactsTable({
 
       size: 120,
       minSize: 50,
-      maxSize: 150,
+
       enableColumnFilter: true,
     },
     {
@@ -186,7 +185,7 @@ export function ContactsTable({
 
       size: 120,
       minSize: 50,
-      maxSize: 150,
+
       enableColumnFilter: true,
     },
     {
@@ -195,7 +194,7 @@ export function ContactsTable({
 
       size: 120,
       minSize: 50,
-      maxSize: 150,
+
       enableColumnFilter: true,
     },
 
@@ -214,7 +213,6 @@ export function ContactsTable({
       ),
       size: 120,
       minSize: 50,
-      maxSize: 150,
     },
     {
       accessorKey: "isFinance",
@@ -231,7 +229,6 @@ export function ContactsTable({
       ),
       size: 120,
       minSize: 50,
-      maxSize: 150,
     },
     {
       accessorKey: "isSales",
@@ -248,7 +245,6 @@ export function ContactsTable({
       ),
       size: 120,
       minSize: 50,
-      maxSize: 150,
     },
     {
       accessorKey: "remarks",
@@ -256,7 +252,6 @@ export function ContactsTable({
       cell: ({ row }) => <div>{row.getValue("remarks") || "-"}</div>,
       size: 200,
       minSize: 50,
-      maxSize: 300,
     },
     {
       accessorKey: "createBy",
@@ -264,7 +259,6 @@ export function ContactsTable({
       cell: ({ row }) => <div>{row.getValue("createBy") || "-"}</div>,
       size: 120,
       minSize: 50,
-      maxSize: 150,
     },
     {
       accessorKey: "createDate",
@@ -281,7 +275,6 @@ export function ContactsTable({
       },
       size: 180,
       minSize: 150,
-      maxSize: 200,
     },
     {
       accessorKey: "editBy",
@@ -289,7 +282,6 @@ export function ContactsTable({
       cell: ({ row }) => <div>{row.getValue("editBy") || "-"}</div>,
       size: 120,
       minSize: 50,
-      maxSize: 150,
     },
     {
       accessorKey: "editDate",
@@ -306,7 +298,6 @@ export function ContactsTable({
       },
       size: 180,
       minSize: 150,
-      maxSize: 200,
     },
   ]
 

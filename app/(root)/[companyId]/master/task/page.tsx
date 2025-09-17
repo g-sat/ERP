@@ -52,7 +52,6 @@ export default function TaskPage() {
     data: tasksResponse,
     refetch,
     isLoading,
-    isRefetching,
   } = useGet<ITask>(`${Task.get}`, "tasks", filters.search)
 
   const { result: tasksResult, data: tasksData } =

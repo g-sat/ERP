@@ -52,7 +52,6 @@ export default function PaymentTypePage() {
     data: paymentTypesResponse,
     refetch,
     isLoading,
-    isRefetching,
   } = useGet<IPaymentType>(`${PaymentType.get}`, "paymenttypes", filters.search)
 
   const { result: paymentTypesResult, data: paymentTypesData } =

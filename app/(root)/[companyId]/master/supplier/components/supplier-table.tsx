@@ -118,7 +118,7 @@ export function SupplierTable({
       header: "Name",
       size: 200,
       minSize: 50,
-      maxSize: 300,
+
       enableColumnFilter: true,
     },
     {
@@ -129,7 +129,7 @@ export function SupplierTable({
       ),
       size: 120,
       minSize: 50,
-      maxSize: 150,
+
       enableColumnFilter: true,
     },
 
@@ -139,7 +139,6 @@ export function SupplierTable({
       cell: ({ row }) => <div>{row.getValue("supplierRegNo") || "-"}</div>,
       size: 120,
       minSize: 50,
-      maxSize: 150,
     },
     {
       accessorKey: "creditTermName",
@@ -147,7 +146,6 @@ export function SupplierTable({
       cell: ({ row }) => <div>{row.getValue("creditTermName") || "-"}</div>,
       size: 120,
       minSize: 50,
-      maxSize: 150,
     },
     {
       accessorKey: "bankName",
@@ -155,7 +153,6 @@ export function SupplierTable({
       cell: ({ row }) => <div>{row.getValue("bankName") || "-"}</div>,
       size: 120,
       minSize: 50,
-      maxSize: 150,
     },
     {
       accessorKey: "currencyName",
@@ -163,7 +160,6 @@ export function SupplierTable({
       cell: ({ row }) => <div>{row.getValue("currencyName") || "-"}</div>,
       size: 120,
       minSize: 50,
-      maxSize: 150,
     },
     {
       accessorKey: "isActive",
@@ -180,7 +176,6 @@ export function SupplierTable({
       ),
       size: 120,
       minSize: 50,
-      maxSize: 150,
     },
     {
       accessorKey: "accSetupName",
@@ -188,7 +183,6 @@ export function SupplierTable({
       cell: ({ row }) => <div>{row.getValue("accSetupName") || "-"}</div>,
       size: 120,
       minSize: 50,
-      maxSize: 150,
     },
     {
       accessorKey: "customerName",
@@ -196,7 +190,6 @@ export function SupplierTable({
       cell: ({ row }) => <div>{row.getValue("customerName") || "-"}</div>,
       size: 120,
       minSize: 50,
-      maxSize: 150,
     },
     {
       accessorKey: "supplierOtherName",
@@ -204,7 +197,6 @@ export function SupplierTable({
       cell: ({ row }) => <div>{row.getValue("supplierOtherName") || "-"}</div>,
       size: 200,
       minSize: 50,
-      maxSize: 300,
     },
     {
       accessorKey: "supplierShortName",
@@ -212,7 +204,6 @@ export function SupplierTable({
       cell: ({ row }) => <div>{row.getValue("supplierShortName") || "-"}</div>,
       size: 120,
       minSize: 50,
-      maxSize: 150,
     },
     {
       accessorKey: "remarks",
@@ -220,7 +211,6 @@ export function SupplierTable({
       cell: ({ row }) => <div>{row.getValue("remarks") || "-"}</div>,
       size: 200,
       minSize: 50,
-      maxSize: 300,
     },
     {
       accessorKey: "createBy",
@@ -228,7 +218,6 @@ export function SupplierTable({
       cell: ({ row }) => <div>{row.getValue("createBy") || "-"}</div>,
       size: 120,
       minSize: 50,
-      maxSize: 150,
     },
     {
       accessorKey: "createDate",
@@ -245,7 +234,6 @@ export function SupplierTable({
       },
       size: 180,
       minSize: 150,
-      maxSize: 200,
     },
     {
       accessorKey: "editBy",
@@ -253,7 +241,6 @@ export function SupplierTable({
       cell: ({ row }) => <div>{row.getValue("editBy") || "-"}</div>,
       size: 120,
       minSize: 50,
-      maxSize: 150,
     },
     {
       accessorKey: "editDate",
@@ -270,7 +257,6 @@ export function SupplierTable({
       },
       size: 180,
       minSize: 150,
-      maxSize: 200,
     },
   ]
 

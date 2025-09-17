@@ -1,6 +1,6 @@
 "use client"
 
-import { ITaxDt, ITaxFilter } from "@/interfaces/tax"
+import { ITaxDt } from "@/interfaces/tax"
 import { useAuthStore } from "@/stores/auth-store"
 import { ColumnDef } from "@tanstack/react-table"
 import { format, isValid } from "date-fns"

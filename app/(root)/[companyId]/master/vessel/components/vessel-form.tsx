@@ -100,13 +100,12 @@ export function VesselForm({
                 isRequired
                 isDisabled={isReadOnly}
               />
-            </div>
 
-            <div className="grid grid-cols-2 gap-2">
               <CustomInput
                 form={form}
                 name="callSign"
                 label="Call Sign"
+                isRequired
                 isDisabled={isReadOnly}
               />
               <CustomInput
@@ -116,36 +115,32 @@ export function VesselForm({
                 isRequired
                 isDisabled={isReadOnly}
               />
-            </div>
 
-            <div className="grid grid-cols-2 gap-2">
               <CustomInput
                 form={form}
                 name="grt"
                 label="GRT"
                 isDisabled={isReadOnly}
-              />
-              <CustomInput
-                form={form}
-                name="licenseNo"
-                label="License No"
                 isRequired
-                isDisabled={isReadOnly}
               />
-            </div>
-
-            <div className="grid grid-cols-2 gap-2">
               <CustomInput
                 form={form}
                 name="vesselType"
                 label="Vessel Type"
+                isDisabled={isReadOnly}
+                isRequired
+              />
+
+              <CustomInput
+                form={form}
+                name="licenseNo"
+                label="License No"
                 isDisabled={isReadOnly}
               />
               <CustomInput
                 form={form}
                 name="flag"
                 label="Flag"
-                isRequired
                 isDisabled={isReadOnly}
               />
             </div>

@@ -1,6 +1,6 @@
 "use client"
 
-import { UserGroupRightsTable } from "../components/usergrouprights-table"
+import { UserGroupSettingTable } from "../components/usergrouprights-table"
 
 export default function AdminGroupRightsPage() {
   return (
@@ -11,7 +11,7 @@ export default function AdminGroupRightsPage() {
         </h1>
         <p className="text-muted-foreground text-sm">Manage group rights</p>
       </div>
-      <UserGroupRightsTable />
+      <UserGroupSettingTable />
     </div>
   )
 }

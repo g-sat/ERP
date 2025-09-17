@@ -1,0 +1,467 @@
+"use client"
+
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import {
+  DndContext,
+  DragEndEvent,
+  KeyboardSensor,
+  MouseSensor,
+  TouchSensor,
+  closestCenter,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core"
+import {
+  SortableContext,
+  arrayMove,
+  horizontalListSortingStrategy,
+} from "@dnd-kit/sortable"
+import {
+  ColumnDef,
+  ColumnFiltersState,
+  SortingState,
+  VisibilityState,
+  flexRender,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getSortedRowModel,
+  useReactTable,
+} from "@tanstack/react-table"
+import { useVirtualizer } from "@tanstack/react-virtual"
+
+import { TableName } from "@/lib/utils"
+import { useGetGridLayout } from "@/hooks/use-settings"
+import { DraggableColumnHeader } from "@/components/ui/data-table"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableRow,
+  TableHeader as TanstackTableHeader,
+} from "@/components/ui/table"
+
+import { TaskDataTableActions } from "./table-task-action"
+import { TaskDataTableHeader } from "./table-task-header"
+
+interface MainTaskDataTableProps<T> {
+  data: T[]
+  columns: ColumnDef<T>[]
+  isLoading?: boolean
+  moduleId?: number
+  transactionId?: number
+  tableName: TableName
+  emptyMessage?: string
+  accessorId: keyof T
+  onRefresh?: () => void
+  onFilterChange?: (filters: { search?: string; sortOrder?: string }) => void
+  onItemSelect?: (item: T | null) => void
+  onCreateItem?: () => void
+  onEditItem?: (item: T) => void
+  onDeleteItem?: (itemId: string) => void
+  onDebitNote?: (itemId: string, debitNoteNo?: string) => void
+  onPurchase?: (itemId: string) => void
+  onCombinedService?: (selectedIds: string[]) => void
+  isConfirmed?: boolean
+  showHeader?: boolean
+  showActions?: boolean
+}
+
+export function MainTaskDataTable<T>({
+  data,
+  columns,
+  isLoading,
+  moduleId,
+  transactionId,
+  tableName,
+  emptyMessage = "No data found.",
+  accessorId,
+  onRefresh,
+  onFilterChange,
+  onItemSelect,
+  onCreateItem,
+  onEditItem,
+  onDeleteItem,
+  onDebitNote,
+  onPurchase,
+  onCombinedService,
+  isConfirmed,
+  showHeader = true,
+  showActions = true,
+}: MainTaskDataTableProps<T>) {
+  const { data: gridSettings } = useGetGridLayout(
+    moduleId?.toString() || "",
+    transactionId?.toString() || "",
+    tableName
+  )
+
+  const gridSettingsData = gridSettings?.data
+  const getInitialSorting = (): SortingState => {
+    if (gridSettingsData?.grdSort) {
+      try {
+        return JSON.parse(gridSettingsData.grdSort) || []
+      } catch {
+        return []
+      }
+    }
+    return []
+  }
+
+  const getInitialColumnVisibility = (): VisibilityState => {
+    if (gridSettingsData?.grdColVisible) {
+      try {
+        return JSON.parse(gridSettingsData.grdColVisible) || {}
+      } catch {
+        return {}
+      }
+    }
+    return {}
+  }
+
+  const getInitialColumnSizing = () => {
+    if (gridSettingsData?.grdColSize) {
+      try {
+        return JSON.parse(gridSettingsData.grdColSize) || {}
+      } catch {
+        return {}
+      }
+    }
+    return {}
+  }
+
+  const [sorting, setSorting] = useState<SortingState>(getInitialSorting)
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(
+    getInitialColumnVisibility
+  )
+  const [columnSizing, setColumnSizing] = useState(getInitialColumnSizing)
+  const [searchQuery, setSearchQuery] = useState("")
+  const [rowSelection, setRowSelection] = useState({})
+  const tableContainerRef = useRef<HTMLDivElement>(null)
+
+  const selectedRowsCount = Object.keys(rowSelection).length
+  const hasSelectedRows = selectedRowsCount > 0
+  const hasValidDebitNoteIds = useMemo(() => {
+    if (!hasSelectedRows || !data) return false
+
+    const selectedRowIds = Object.keys(rowSelection)
+    const selectedRows = data.filter((_, index) =>
+      selectedRowIds.includes(index.toString())
+    )
+
+    return selectedRows.every(
+      (row) =>
+        (row as T & { debitNoteId?: number }).debitNoteId &&
+        (row as T & { debitNoteId?: number }).debitNoteId! > 0
+    )
+  }, [hasSelectedRows, data, rowSelection])
+  const selectedRowIds = useMemo(() => {
+    if (!hasSelectedRows || !data) return []
+
+    const selectedIndices = Object.keys(rowSelection)
+    return selectedIndices.map((index) => {
+      const item = data[parseInt(index)]
+      const id =
+        (item as T & { id?: number; taskId?: number; portExpenseId?: number })
+          .id ||
+        (item as T & { id?: number; taskId?: number; portExpenseId?: number })
+          .taskId ||
+        (item as T & { id?: number; taskId?: number; portExpenseId?: number })
+          .portExpenseId ||
+        index
+      return id.toString()
+    })
+  }, [hasSelectedRows, data, rowSelection])
+
+  const actionsColumnRef = useRef<HTMLTableCellElement>(null)
+  const [actionsColumnWidth, setActionsColumnWidth] = useState(100)
+
+  useEffect(() => {
+    if (actionsColumnRef.current) {
+      setActionsColumnWidth(actionsColumnRef.current.offsetWidth)
+    }
+  }, [columnSizing])
+
+  const handleCombinedService = useCallback(() => {
+    console.log("Combined Services clicked - Selected Row IDs:", selectedRowIds)
+    if (selectedRowIds.length === 0) {
+      console.log("No items selected for Combined Services")
+      return
+    }
+    if (onCombinedService) {
+      onCombinedService(selectedRowIds)
+    }
+  }, [selectedRowIds, onCombinedService])
+
+  const handleDebitNoteFromActions = useCallback(
+    (id: string) => {
+      if (onDebitNote) {
+        onDebitNote(id, "")
+      }
+    },
+    [onDebitNote]
+  )
+
+  useEffect(() => {
+    if (gridSettingsData) {
+      try {
+        const colVisible = JSON.parse(gridSettingsData.grdColVisible || "{}")
+        const colSize = JSON.parse(gridSettingsData.grdColSize || "{}")
+        const sort = JSON.parse(gridSettingsData.grdSort || "[]")
+
+        setColumnVisibility(colVisible)
+        setSorting(sort)
+
+        if (Object.keys(colSize).length > 0) {
+          setColumnSizing(colSize)
+        }
+      } catch (error) {
+        console.error("Error parsing grid settings:", error)
+      }
+    }
+  }, [gridSettingsData])
+
+  const tableColumns: ColumnDef<T>[] = [
+    ...(showActions && (onItemSelect || onEditItem || onDeleteItem)
+      ? [
+          {
+            id: "actions",
+            header: "Actions",
+            enableHiding: false,
+            size: 120,
+            minSize: 80,
+
+            cell: ({ row }) => {
+              const item = row.original
+              const isSelected = row.getIsSelected()
+
+              return (
+                <TaskDataTableActions
+                  row={item as T & { debitNoteId?: number }}
+                  idAccessor={accessorId}
+                  onView={onItemSelect}
+                  onEdit={onEditItem}
+                  onDelete={onDeleteItem}
+                  onDebitNote={handleDebitNoteFromActions}
+                  onPurchase={onPurchase}
+                  onSelect={(_, checked) => {
+                    console.log(
+                      "Row selection toggled:",
+                      checked,
+                      "Row ID:",
+                      row.id
+                    )
+                    row.toggleSelected(checked)
+                  }}
+                  isSelected={isSelected}
+                  isConfirmed={isConfirmed}
+                />
+              )
+            },
+          } as ColumnDef<T>,
+        ]
+      : []),
+    ...columns,
+  ]
+
+  const table = useReactTable({
+    data,
+    columns: tableColumns,
+    onSortingChange: setSorting,
+    onColumnFiltersChange: setColumnFilters,
+    getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    onColumnVisibilityChange: setColumnVisibility,
+    onColumnSizingChange: setColumnSizing,
+    onRowSelectionChange: setRowSelection,
+    enableColumnResizing: true,
+    enableRowSelection: true,
+    columnResizeMode: "onChange",
+    state: {
+      sorting,
+      columnFilters,
+      columnVisibility,
+      columnSizing,
+      rowSelection,
+      globalFilter: searchQuery,
+    },
+  })
+
+  const rowVirtualizer = useVirtualizer({
+    count: table.getRowModel().rows.length,
+    getScrollElement: () => tableContainerRef.current,
+    estimateSize: () => 48,
+    overscan: 5,
+  })
+
+  const virtualRows = rowVirtualizer.getVirtualItems()
+  const totalSize = rowVirtualizer.getTotalSize()
+  const paddingTop = virtualRows.length > 0 ? virtualRows[0].start : 0
+  const paddingBottom =
+    virtualRows.length > 0
+      ? totalSize - virtualRows[virtualRows.length - 1].end
+      : 0
+  const sensors = useSensors(
+    useSensor(MouseSensor, {}),
+    useSensor(TouchSensor, {}),
+    useSensor(KeyboardSensor, {})
+  )
+  const handleSearch = (query: string) => {
+    setSearchQuery(query)
+    if (data && data.length > 0) {
+      table.setGlobalFilter(query)
+    } else if (onFilterChange) {
+      const newFilters = {
+        search: query,
+        sortOrder: sorting[0]?.desc ? "desc" : "asc",
+      }
+      onFilterChange(newFilters)
+    }
+  }
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event
+    if (active && over && active.id !== over.id) {
+      const oldIndex = table
+        .getAllColumns()
+        .findIndex((col) => col.id === active.id)
+      const newIndex = table
+        .getAllColumns()
+        .findIndex((col) => col.id === over.id)
+      const newColumnOrder = arrayMove(
+        table.getAllColumns(),
+        oldIndex,
+        newIndex
+      )
+      table.setColumnOrder(newColumnOrder.map((col) => col.id))
+    }
+  }
+  useEffect(() => {
+    if (!data?.length && onFilterChange) {
+      const filters = {
+        search: searchQuery,
+        sortOrder: sorting[0]?.desc ? "desc" : "asc",
+      }
+      onFilterChange(filters)
+    }
+  }, [sorting, searchQuery, data?.length, onFilterChange])
+
+  return (
+    <div
+      ref={tableContainerRef}
+      className="relative overflow-auto"
+      style={{ height: "430px" }}
+    >
+      {showHeader && (
+        <TaskDataTableHeader
+          searchQuery={searchQuery}
+          onSearchChange={handleSearch}
+          onRefresh={onRefresh}
+          onCreate={onCreateItem}
+          columns={table.getAllLeafColumns()}
+          tableName={tableName}
+          moduleId={moduleId || 1}
+          transactionId={transactionId || 1}
+          onCombinedService={handleCombinedService}
+          onDebitNote={(debitNoteNo, selectedIds) => {
+            if (selectedIds && selectedIds.length > 0 && onDebitNote) {
+              onDebitNote(selectedIds.join(","), debitNoteNo || "")
+            }
+          }}
+          hasSelectedRows={hasSelectedRows}
+          selectedRowsCount={selectedRowsCount}
+          hasValidDebitNoteIds={hasValidDebitNoteIds}
+          isConfirmed={isConfirmed}
+          selectedRowIds={selectedRowIds}
+        />
+      )}
+
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragEnd={handleDragEnd}
+      >
+        <div className="overflow-x-auto">
+          <Table className="relative w-full">
+            <TanstackTableHeader className="bg-muted sticky top-0 z-10">
+              {table.getHeaderGroups().map((headerGroup) => (
+                <TableRow key={headerGroup.id}>
+                  <SortableContext
+                    items={headerGroup.headers.map((header) => header.id)}
+                    strategy={horizontalListSortingStrategy}
+                  >
+                    {headerGroup.headers.map((header) => (
+                      <DraggableColumnHeader key={header.id} header={header} />
+                    ))}
+                  </SortableContext>
+                </TableRow>
+              ))}
+            </TanstackTableHeader>
+
+            <TableBody className="**:data-[slot=table-cell]:first:w-8">
+              {virtualRows.length === 0 ? (
+                <>
+                  <TableRow>
+                    <TableCell
+                      colSpan={tableColumns.length}
+                      className="h-24 text-center"
+                    >
+                      {isLoading ? "Loading..." : emptyMessage}
+                    </TableCell>
+                  </TableRow>
+                  {Array.from({ length: 9 }).map((_, index) => (
+                    <TableRow key={`empty-${index}`}>
+                      <TableCell
+                        colSpan={tableColumns.length}
+                        className="h-10"
+                      />
+                    </TableRow>
+                  ))}
+                </>
+              ) : (
+                <>
+                  <tr style={{ height: `${paddingTop}px` }} />
+                  {virtualRows.map((virtualRow) => {
+                    const row = table.getRowModel().rows[virtualRow.index]
+                    return (
+                      <TableRow key={row.id}>
+                        {row.getVisibleCells().map((cell) => {
+                          const isActions = cell.column.id === "actions"
+                          return (
+                            <TableCell
+                              key={cell.id}
+                              ref={isActions ? actionsColumnRef : null}
+                              className={
+                                isActions
+                                  ? "bg-background sticky left-0 z-10"
+                                  : ""
+                              }
+                              style={{
+                                position: isActions ? "sticky" : "relative",
+                                left: isActions ? 0 : "auto",
+                                zIndex: isActions ? 10 : 1,
+                                width: isActions
+                                  ? actionsColumnWidth
+                                  : cell.column.getSize(),
+                              }}
+                            >
+                              {flexRender(
+                                cell.column.columnDef.cell,
+                                cell.getContext()
+                              )}
+                            </TableCell>
+                          )
+                        })}
+                      </TableRow>
+                    )
+                  })}
+
+                  <tr style={{ height: `${paddingBottom}px` }} />
+                </>
+              )}
+            </TableBody>
+          </Table>
+        </div>
+      </DndContext>
+    </div>
+  )
+}

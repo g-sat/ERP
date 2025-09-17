@@ -1,6 +1,6 @@
 "use client"
 
-import { UserRightsTable } from "../components/userrights-table"
+import { UserSettingTable } from "../components/userrights-table"
 
 export default function AdminUserRightsPage() {
   return (
@@ -11,7 +11,7 @@ export default function AdminUserRightsPage() {
         </h1>
         <p className="text-muted-foreground text-sm">Manage user rights</p>
       </div>
-      <UserRightsTable />
+      <UserSettingTable />
     </div>
   )
 }

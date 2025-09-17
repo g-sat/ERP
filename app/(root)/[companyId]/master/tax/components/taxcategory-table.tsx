@@ -1,6 +1,6 @@
 "use client"
 
-import { ITaxCategory, ITaxFilter } from "@/interfaces/tax"
+import { ITaxCategory } from "@/interfaces/tax"
 import { useAuthStore } from "@/stores/auth-store"
 import {
   IconCircleCheckFilled,

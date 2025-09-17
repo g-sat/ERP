@@ -60,7 +60,6 @@ export function AccountTypesTable({
       ),
       size: 120,
       minSize: 50,
-      maxSize: 150,
       enableColumnFilter: true,
     },
     {
@@ -68,7 +67,6 @@ export function AccountTypesTable({
       header: "Name",
       size: 200,
       minSize: 50,
-      maxSize: 300,
       enableColumnFilter: true,
     },
     {
@@ -77,7 +75,6 @@ export function AccountTypesTable({
       cell: ({ row }) => <div>{row.getValue("accGroupName") || "-"}</div>,
       size: 150,
       minSize: 50,
-      maxSize: 200,
     },
     {
       accessorKey: "seqNo",
@@ -85,7 +82,6 @@ export function AccountTypesTable({
       cell: ({ row }) => <div>{row.getValue("seqNo") || "-"}</div>,
       size: 100,
       minSize: 50,
-      maxSize: 150,
     },
     {
       accessorKey: "isActive",
@@ -102,7 +98,6 @@ export function AccountTypesTable({
       ),
       size: 120,
       minSize: 50,
-      maxSize: 150,
     },
     {
       accessorKey: "remarks",
@@ -110,7 +105,6 @@ export function AccountTypesTable({
       cell: ({ row }) => <div>{row.getValue("remarks") || "-"}</div>,
       size: 200,
       minSize: 50,
-      maxSize: 300,
     },
     {
       accessorKey: "createBy",
@@ -118,7 +112,6 @@ export function AccountTypesTable({
       cell: ({ row }) => <div>{row.getValue("createBy") || "-"}</div>,
       size: 120,
       minSize: 50,
-      maxSize: 150,
     },
     {
       accessorKey: "createDate",
@@ -132,7 +125,6 @@ export function AccountTypesTable({
       },
       size: 180,
       minSize: 150,
-      maxSize: 200,
     },
     {
       accessorKey: "editBy",
@@ -140,7 +132,6 @@ export function AccountTypesTable({
       cell: ({ row }) => <div>{row.getValue("editBy") || "-"}</div>,
       size: 120,
       minSize: 50,
-      maxSize: 150,
     },
     {
       accessorKey: "editDate",
@@ -154,7 +145,6 @@ export function AccountTypesTable({
       },
       size: 180,
       minSize: 150,
-      maxSize: 200,
     },
   ]
 

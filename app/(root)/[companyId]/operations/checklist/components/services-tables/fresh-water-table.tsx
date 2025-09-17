@@ -166,7 +166,7 @@ export function FreshWaterTable({
         enableHiding: false,
         size: 100,
         minSize: 80,
-        maxSize: 150,
+
         cell: ({ row }) => {
           const freshWater = row.original
           const isSelected = row.getIsSelected()
@@ -208,7 +208,6 @@ export function FreshWaterTable({
         ),
         size: 120,
         minSize: 100,
-        maxSize: 150,
       },
       {
         accessorKey: "date",
@@ -229,7 +228,6 @@ export function FreshWaterTable({
         },
         size: 120,
         minSize: 100,
-        maxSize: 150,
       },
       {
         accessorKey: "bargeName",
@@ -239,7 +237,7 @@ export function FreshWaterTable({
         ),
         size: 200,
         minSize: 150,
-        maxSize: 300,
+
         enableColumnFilter: true,
       },
       {
@@ -250,7 +248,7 @@ export function FreshWaterTable({
         ),
         size: 200,
         minSize: 150,
-        maxSize: 300,
+
         enableColumnFilter: true,
       },
 
@@ -262,7 +260,7 @@ export function FreshWaterTable({
         ),
         size: 200,
         minSize: 150,
-        maxSize: 300,
+
         enableColumnFilter: true,
       },
       {
@@ -273,7 +271,7 @@ export function FreshWaterTable({
         ),
         size: 200,
         minSize: 150,
-        maxSize: 300,
+
         enableColumnFilter: true,
       },
       {
@@ -284,7 +282,6 @@ export function FreshWaterTable({
         ),
         size: 100,
         minSize: 80,
-        maxSize: 150,
       },
       {
         accessorKey: "quantity",
@@ -294,7 +291,6 @@ export function FreshWaterTable({
         ),
         size: 100,
         minSize: 80,
-        maxSize: 150,
       },
       {
         accessorKey: "receiptNo",
@@ -304,7 +300,6 @@ export function FreshWaterTable({
         ),
         size: 100,
         minSize: 80,
-        maxSize: 150,
       },
       {
         accessorKey: "uomName",
@@ -314,7 +309,6 @@ export function FreshWaterTable({
         ),
         size: 100,
         minSize: 80,
-        maxSize: 150,
       },
 
       {
@@ -327,7 +321,6 @@ export function FreshWaterTable({
         ),
         size: 120,
         minSize: 100,
-        maxSize: 150,
       },
       {
         accessorKey: "remarks",
@@ -337,7 +330,6 @@ export function FreshWaterTable({
         ),
         size: 200,
         minSize: 150,
-        maxSize: 300,
       },
       {
         accessorKey: "createBy",
@@ -347,7 +339,6 @@ export function FreshWaterTable({
         ),
         size: 120,
         minSize: 100,
-        maxSize: 150,
       },
       {
         accessorKey: "createDate",
@@ -378,7 +369,6 @@ export function FreshWaterTable({
         ),
         size: 120,
         minSize: 100,
-        maxSize: 150,
       },
       {
         accessorKey: "editDate",

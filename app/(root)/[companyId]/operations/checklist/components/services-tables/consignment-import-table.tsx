@@ -171,7 +171,7 @@ export function ConsignmentImportTable({
         enableHiding: false,
         size: 100,
         minSize: 80,
-        maxSize: 150,
+
         cell: ({ row }) => {
           const consignmentImport = row.original
           const isSelected = row.getIsSelected()
@@ -208,7 +208,6 @@ export function ConsignmentImportTable({
         ),
         size: 120,
         minSize: 100,
-        maxSize: 150,
       },
 
       {
@@ -243,7 +242,6 @@ export function ConsignmentImportTable({
         ),
         size: 120,
         minSize: 100,
-        maxSize: 150,
       },
 
       {
@@ -254,7 +252,6 @@ export function ConsignmentImportTable({
         ),
         size: 120,
         minSize: 100,
-        maxSize: 150,
       },
       {
         accessorKey: "consignmentTypeName",
@@ -278,7 +275,6 @@ export function ConsignmentImportTable({
         ),
         size: 120,
         minSize: 100,
-        maxSize: 150,
       },
       {
         accessorKey: "uomName",
@@ -288,7 +284,6 @@ export function ConsignmentImportTable({
         ),
         size: 100,
         minSize: 80,
-        maxSize: 150,
       },
       {
         accessorKey: "noOfPcs",
@@ -298,7 +293,6 @@ export function ConsignmentImportTable({
         ),
         size: 120,
         minSize: 100,
-        maxSize: 150,
       },
       {
         accessorKey: "weight",
@@ -308,7 +302,6 @@ export function ConsignmentImportTable({
         ),
         size: 100,
         minSize: 80,
-        maxSize: 150,
       },
       {
         accessorKey: "pickupLocation",
@@ -342,7 +335,6 @@ export function ConsignmentImportTable({
         ),
         size: 120,
         minSize: 100,
-        maxSize: 150,
       },
       {
         accessorKey: "billEntryNo",
@@ -352,7 +344,6 @@ export function ConsignmentImportTable({
         ),
         size: 120,
         minSize: 100,
-        maxSize: 150,
       },
       {
         accessorKey: "declarationNo",
@@ -364,7 +355,6 @@ export function ConsignmentImportTable({
         ),
         size: 120,
         minSize: 100,
-        maxSize: 150,
       },
       {
         accessorKey: "receiveDate",
@@ -386,7 +376,6 @@ export function ConsignmentImportTable({
         },
         size: 120,
         minSize: 100,
-        maxSize: 150,
       },
       {
         accessorKey: "deliverDate",
@@ -408,7 +397,6 @@ export function ConsignmentImportTable({
         },
         size: 120,
         minSize: 100,
-        maxSize: 150,
       },
       {
         accessorKey: "arrivalDate",
@@ -426,7 +414,6 @@ export function ConsignmentImportTable({
         },
         size: 120,
         minSize: 100,
-        maxSize: 150,
       },
       {
         accessorKey: "referenceNo",
@@ -434,7 +421,6 @@ export function ConsignmentImportTable({
         cell: ({ row }) => <div>{row.getValue("referenceNo") || "-"}</div>,
         size: 120,
         minSize: 50,
-        maxSize: 150,
       },
       {
         accessorKey: "isRefundedExpected",
@@ -450,7 +436,6 @@ export function ConsignmentImportTable({
         ),
         size: 120,
         minSize: 50,
-        maxSize: 150,
       },
       {
         accessorKey: "amountDeposited",
@@ -458,7 +443,6 @@ export function ConsignmentImportTable({
         cell: ({ row }) => <div>{row.getValue("amountDeposited") || "-"}</div>,
         size: 130,
         minSize: 50,
-        maxSize: 150,
       },
       {
         accessorKey: "refundInstrumentNo",
@@ -478,7 +462,6 @@ export function ConsignmentImportTable({
         ),
         size: 120,
         minSize: 50,
-        maxSize: 150,
       },
 
       {
@@ -487,7 +470,6 @@ export function ConsignmentImportTable({
         cell: ({ row }) => <div>{row.getValue("remarks") || "-"}</div>,
         size: 200,
         minSize: 50,
-        maxSize: 300,
       },
       {
         accessorKey: "createBy",
@@ -495,7 +477,6 @@ export function ConsignmentImportTable({
         cell: ({ row }) => <div>{row.getValue("createBy") || "-"}</div>,
         size: 120,
         minSize: 50,
-        maxSize: 150,
       },
       {
         accessorKey: "createDate",
@@ -520,7 +501,6 @@ export function ConsignmentImportTable({
         cell: ({ row }) => <div>{row.getValue("editBy") || "-"}</div>,
         size: 120,
         minSize: 50,
-        maxSize: 150,
       },
       {
         accessorKey: "editDate",

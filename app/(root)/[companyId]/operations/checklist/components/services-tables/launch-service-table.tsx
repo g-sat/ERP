@@ -203,7 +203,6 @@ export function LaunchServiceTable({
         ),
         size: 120,
         minSize: 100,
-        maxSize: 150,
       },
       {
         accessorKey: "date",
@@ -225,7 +224,6 @@ export function LaunchServiceTable({
         },
         size: 120,
         minSize: 100,
-        maxSize: 150,
       },
 
       {
@@ -236,7 +234,7 @@ export function LaunchServiceTable({
         ),
         size: 200,
         minSize: 150,
-        maxSize: 300,
+
         enableColumnFilter: true,
       },
       {
@@ -257,7 +255,6 @@ export function LaunchServiceTable({
         ),
         size: 120,
         minSize: 100,
-        maxSize: 150,
       },
       {
         accessorKey: "boatopTally",
@@ -366,7 +363,6 @@ export function LaunchServiceTable({
         },
         size: 120,
         minSize: 100,
-        maxSize: 150,
       },
       {
         accessorKey: "alongsideVessel",
@@ -420,7 +416,6 @@ export function LaunchServiceTable({
         },
         size: 120,
         minSize: 100,
-        maxSize: 150,
       },
 
       {
@@ -464,7 +459,6 @@ export function LaunchServiceTable({
         ),
         size: 120,
         minSize: 100,
-        maxSize: 150,
       },
 
       {
@@ -477,7 +471,6 @@ export function LaunchServiceTable({
         ),
         size: 120,
         minSize: 100,
-        maxSize: 150,
       },
       {
         accessorKey: "remarks",
@@ -487,7 +480,6 @@ export function LaunchServiceTable({
         ),
         size: 200,
         minSize: 150,
-        maxSize: 300,
       },
       {
         accessorKey: "createBy",

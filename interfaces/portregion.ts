@@ -3,6 +3,9 @@ export interface IPortRegion {
   portRegionId: number
   portRegionCode: string
   portRegionName: string
+  countryId: number
+  countryCode: string
+  countryName: string
   createBy: string
   editBy: string | null
   createDate: Date | string

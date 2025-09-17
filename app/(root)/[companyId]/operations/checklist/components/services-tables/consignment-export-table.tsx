@@ -171,7 +171,7 @@ export function ConsignmentExportTable({
         enableHiding: false,
         size: 100,
         minSize: 80,
-        maxSize: 150,
+
         cell: ({ row }) => {
           const consignmentExport = row.original
           const isSelected = row.getIsSelected()
@@ -208,7 +208,6 @@ export function ConsignmentExportTable({
         ),
         size: 120,
         minSize: 100,
-        maxSize: 150,
       },
 
       {
@@ -243,7 +242,6 @@ export function ConsignmentExportTable({
         ),
         size: 120,
         minSize: 100,
-        maxSize: 150,
       },
 
       {
@@ -254,7 +252,6 @@ export function ConsignmentExportTable({
         ),
         size: 120,
         minSize: 100,
-        maxSize: 150,
       },
       {
         accessorKey: "consignmentTypeName",
@@ -278,7 +275,6 @@ export function ConsignmentExportTable({
         ),
         size: 120,
         minSize: 100,
-        maxSize: 150,
       },
       {
         accessorKey: "uomName",
@@ -288,7 +284,6 @@ export function ConsignmentExportTable({
         ),
         size: 100,
         minSize: 80,
-        maxSize: 150,
       },
       {
         accessorKey: "noOfPcs",
@@ -298,7 +293,6 @@ export function ConsignmentExportTable({
         ),
         size: 120,
         minSize: 100,
-        maxSize: 150,
       },
       {
         accessorKey: "weight",
@@ -308,7 +302,6 @@ export function ConsignmentExportTable({
         ),
         size: 100,
         minSize: 80,
-        maxSize: 150,
       },
       {
         accessorKey: "pickupLocation",
@@ -342,7 +335,6 @@ export function ConsignmentExportTable({
         ),
         size: 120,
         minSize: 100,
-        maxSize: 150,
       },
       {
         accessorKey: "billEntryNo",
@@ -352,7 +344,6 @@ export function ConsignmentExportTable({
         ),
         size: 120,
         minSize: 100,
-        maxSize: 150,
       },
       {
         accessorKey: "declarationNo",
@@ -364,7 +355,6 @@ export function ConsignmentExportTable({
         ),
         size: 120,
         minSize: 100,
-        maxSize: 150,
       },
       {
         accessorKey: "receiveDate",
@@ -386,7 +376,6 @@ export function ConsignmentExportTable({
         },
         size: 120,
         minSize: 100,
-        maxSize: 150,
       },
       {
         accessorKey: "deliverDate",
@@ -408,7 +397,6 @@ export function ConsignmentExportTable({
         },
         size: 120,
         minSize: 100,
-        maxSize: 150,
       },
       {
         accessorKey: "arrivalDate",
@@ -430,7 +418,6 @@ export function ConsignmentExportTable({
         },
         size: 120,
         minSize: 100,
-        maxSize: 150,
       },
       {
         accessorKey: "referenceNo",
@@ -440,7 +427,6 @@ export function ConsignmentExportTable({
         ),
         size: 120,
         minSize: 100,
-        maxSize: 150,
       },
       {
         accessorKey: "isRefundedExpected",
@@ -458,7 +444,6 @@ export function ConsignmentExportTable({
         ),
         size: 120,
         minSize: 100,
-        maxSize: 150,
       },
       {
         accessorKey: "amountDeposited",
@@ -470,7 +455,6 @@ export function ConsignmentExportTable({
         ),
         size: 130,
         minSize: 100,
-        maxSize: 150,
       },
       {
         accessorKey: "refundInstrumentNo",
@@ -494,7 +478,6 @@ export function ConsignmentExportTable({
         ),
         size: 120,
         minSize: 100,
-        maxSize: 150,
       },
 
       {
@@ -505,7 +488,6 @@ export function ConsignmentExportTable({
         ),
         size: 200,
         minSize: 150,
-        maxSize: 300,
       },
       {
         accessorKey: "createBy",
@@ -515,7 +497,6 @@ export function ConsignmentExportTable({
         ),
         size: 120,
         minSize: 100,
-        maxSize: 150,
       },
       {
         accessorKey: "createDate",
@@ -546,7 +527,6 @@ export function ConsignmentExportTable({
         ),
         size: 120,
         minSize: 100,
-        maxSize: 150,
       },
       {
         accessorKey: "editDate",

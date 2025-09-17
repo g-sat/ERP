@@ -118,7 +118,6 @@ export function CoaCategory1Table({
       },
       size: 150,
       minSize: 50,
-      maxSize: 180,
     },
     {
       accessorKey: "editBy",

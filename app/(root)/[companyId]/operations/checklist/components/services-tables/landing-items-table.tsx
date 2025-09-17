@@ -166,7 +166,7 @@ export function LandingItemsTable({
         enableHiding: false,
         size: 100,
         minSize: 80,
-        maxSize: 150,
+
         cell: ({ row }) => {
           const landingItems = row.original
           const isSelected = row.getIsSelected()
@@ -203,7 +203,6 @@ export function LandingItemsTable({
         ),
         size: 120,
         minSize: 100,
-        maxSize: 150,
       },
       {
         accessorKey: "date",
@@ -224,7 +223,6 @@ export function LandingItemsTable({
         },
         size: 120,
         minSize: 100,
-        maxSize: 150,
       },
 
       {
@@ -235,7 +233,6 @@ export function LandingItemsTable({
         ),
         size: 120,
         minSize: 100,
-        maxSize: 150,
       },
       {
         accessorKey: "statusName",
@@ -247,7 +244,6 @@ export function LandingItemsTable({
         ),
         size: 120,
         minSize: 100,
-        maxSize: 150,
       },
       {
         accessorKey: "landingTypeName",
@@ -259,7 +255,6 @@ export function LandingItemsTable({
         ),
         size: 120,
         minSize: 100,
-        maxSize: 150,
       },
       {
         accessorKey: "name",
@@ -269,7 +264,7 @@ export function LandingItemsTable({
         ),
         size: 200,
         minSize: 150,
-        maxSize: 300,
+
         enableColumnFilter: true,
       },
       {
@@ -280,7 +275,6 @@ export function LandingItemsTable({
         ),
         size: 120,
         minSize: 100,
-        maxSize: 150,
       },
       {
         accessorKey: "quantity",
@@ -290,7 +284,6 @@ export function LandingItemsTable({
         ),
         size: 100,
         minSize: 80,
-        maxSize: 150,
       },
       {
         accessorKey: "weight",
@@ -300,7 +293,6 @@ export function LandingItemsTable({
         ),
         size: 100,
         minSize: 80,
-        maxSize: 150,
       },
       {
         accessorKey: "locationName",
@@ -341,7 +333,6 @@ export function LandingItemsTable({
         ),
         size: 200,
         minSize: 150,
-        maxSize: 300,
       },
       {
         accessorKey: "createBy",
@@ -351,7 +342,6 @@ export function LandingItemsTable({
         ),
         size: 120,
         minSize: 100,
-        maxSize: 150,
       },
       {
         accessorKey: "createDate",
@@ -376,7 +366,6 @@ export function LandingItemsTable({
         cell: ({ row }) => <div>{row.getValue("editBy") || "-"}</div>,
         size: 120,
         minSize: 50,
-        maxSize: 150,
       },
       {
         accessorKey: "editDate",

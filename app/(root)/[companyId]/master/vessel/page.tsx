@@ -51,7 +51,6 @@ export default function VesselPage() {
     data: vesselsResponse,
     refetch,
     isLoading,
-    isRefetching,
   } = useGet<IVessel>(`${Vessel.get}`, "vessels", filters.search)
 
   const { result: vesselsResult, data: vesselsData } =

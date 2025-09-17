@@ -487,7 +487,6 @@ export function DebitNoteTable({
         ),
         size: 200,
         minSize: 150,
-        maxSize: 300,
       },
       {
         accessorKey: "qty",
@@ -511,7 +510,6 @@ export function DebitNoteTable({
         ),
         size: 120,
         minSize: 100,
-        maxSize: 150,
       },
       {
         accessorKey: "totAmt",
@@ -525,7 +523,6 @@ export function DebitNoteTable({
         ),
         size: 130,
         minSize: 100,
-        maxSize: 150,
       },
       {
         accessorKey: "gstPercentage",
@@ -553,7 +550,6 @@ export function DebitNoteTable({
         ),
         size: 120,
         minSize: 100,
-        maxSize: 150,
       },
       {
         accessorKey: "totAftGstAmt",
@@ -592,7 +588,7 @@ export function DebitNoteTable({
         enableHiding: false,
         size: 100,
         minSize: 80,
-        maxSize: 150,
+
         cell: ({ row }) => {
           const debitNote = row.original
           return (

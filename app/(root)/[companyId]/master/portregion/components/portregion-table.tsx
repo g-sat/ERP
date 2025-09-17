@@ -57,7 +57,7 @@ export function PortRegionsTable({
       header: "Code",
       size: 120,
       minSize: 50,
-      maxSize: 150,
+
       enableColumnFilter: true,
     },
     {
@@ -65,8 +65,23 @@ export function PortRegionsTable({
       header: "Name",
       size: 200,
       minSize: 50,
-      maxSize: 300,
+
       enableColumnFilter: true,
+    },
+    {
+      accessorKey: "countryName",
+      header: "Country",
+      size: 200,
+      minSize: 50,
+
+      enableColumnFilter: true,
+    },
+    {
+      accessorKey: "remarks",
+      header: "Remarks",
+      cell: ({ row }) => <div>{row.getValue("remarks") || "-"}</div>,
+      size: 200,
+      minSize: 50,
     },
     {
       accessorKey: "isActive",
@@ -83,15 +98,6 @@ export function PortRegionsTable({
       ),
       size: 120,
       minSize: 50,
-      maxSize: 150,
-    },
-    {
-      accessorKey: "remarks",
-      header: "Remarks",
-      cell: ({ row }) => <div>{row.getValue("remarks") || "-"}</div>,
-      size: 200,
-      minSize: 50,
-      maxSize: 300,
     },
     {
       accessorKey: "createBy",
@@ -99,7 +105,6 @@ export function PortRegionsTable({
       cell: ({ row }) => <div>{row.getValue("createBy") || "-"}</div>,
       size: 120,
       minSize: 50,
-      maxSize: 150,
     },
     {
       accessorKey: "createDate",
@@ -113,7 +118,6 @@ export function PortRegionsTable({
       },
       size: 180,
       minSize: 150,
-      maxSize: 200,
     },
     {
       accessorKey: "editBy",
@@ -121,7 +125,6 @@ export function PortRegionsTable({
       cell: ({ row }) => <div>{row.getValue("editBy") || "-"}</div>,
       size: 120,
       minSize: 50,
-      maxSize: 150,
     },
     {
       accessorKey: "editDate",
@@ -135,7 +138,6 @@ export function PortRegionsTable({
       },
       size: 180,
       minSize: 150,
-      maxSize: 200,
     },
   ]
 

@@ -10,7 +10,7 @@ export const portregionSchema = z.object({
     .string()
     .min(1, { message: "port region code is required" })
     .max(50, { message: "port region code cannot exceed 50 characters" }),
-
+  countryId: z.number().min(1, { message: "country id is required" }),
   remarks: z
     .string()
     .max(255, { message: "Remarks cannot exceed 255 characters" })

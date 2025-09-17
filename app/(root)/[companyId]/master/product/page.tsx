@@ -52,7 +52,6 @@ export default function ProductPage() {
     data: productsResponse,
     refetch,
     isLoading,
-    isRefetching,
   } = useGet<IProduct>(`${Product.get}`, "products", filters.search)
 
   const { result: productsResult, data: productsData } =

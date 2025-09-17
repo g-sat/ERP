@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Form } from "@/components/ui/form"
 import { SaveConfirmation } from "@/components/save-confirmation"
-import { RightsTable } from "@/components/table/table-rights"
+import { SettingTable } from "@/components/table/table-setting-main"
 import ModuleAutocomplete from "@/components/ui-custom/autocomplete-module"
 
 interface IVisibleField {
@@ -456,7 +456,7 @@ export function VisibleTable() {
         </form>
       </Form>
 
-      <RightsTable
+      <SettingTable
         data={visibleFields}
         columns={columns}
         isLoading={isFieldsLoading}

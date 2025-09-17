@@ -51,7 +51,6 @@ export default function SubCategoryPage() {
     data: subcategorysResponse,
     refetch,
     isLoading,
-    isRefetching,
   } = useGet<ISubCategory>(`${SubCategory.get}`, "subcategorys", filters.search)
 
   const { result: subcategorysResult, data: subcategorysData } =
@@ -86,11 +85,11 @@ export default function SubCategoryPage() {
 
   const [deleteConfirmation, setDeleteConfirmation] = useState<{
     isOpen: boolean
-    subcategoryId: string | null
+    subCategoryId: string | null
     subcategoryName: string | null
   }>({
     isOpen: false,
-    subcategoryId: null,
+    subCategoryId: null,
     subcategoryName: null,
   })
 
@@ -164,26 +163,26 @@ export default function SubCategoryPage() {
     }
   }
 
-  const handleDeleteSubCategory = (subcategoryId: string) => {
+  const handleDeleteSubCategory = (subCategoryId: string) => {
     const subcategoryToDelete = subcategorysData?.find(
-      (b) => b.subcategoryId.toString() === subcategoryId
+      (b) => b.subCategoryId.toString() === subCategoryId
     )
     if (!subcategoryToDelete) return
     setDeleteConfirmation({
       isOpen: true,
-      subcategoryId,
-      subcategoryName: subcategoryToDelete.subcategoryName,
+      subCategoryId,
+      subcategoryName: subcategoryToDelete.subCategoryName,
     })
   }
 
   const handleConfirmDelete = () => {
-    if (deleteConfirmation.subcategoryId) {
-      deleteMutation.mutateAsync(deleteConfirmation.subcategoryId).then(() => {
+    if (deleteConfirmation.subCategoryId) {
+      deleteMutation.mutateAsync(deleteConfirmation.subCategoryId).then(() => {
         queryClient.invalidateQueries({ queryKey: ["subcategorys"] })
       })
       setDeleteConfirmation({
         isOpen: false,
-        subcategoryId: null,
+        subCategoryId: null,
         subcategoryName: null,
       })
     }
@@ -218,9 +217,9 @@ export default function SubCategoryPage() {
         if (subcategoryData) {
           // Ensure all required fields are present
           const validSubCategoryData: ISubCategory = {
-            subcategoryId: subcategoryData.subcategoryId,
-            subcategoryCode: subcategoryData.subcategoryCode,
-            subcategoryName: subcategoryData.subcategoryName,
+            subCategoryId: subcategoryData.subCategoryId,
+            subCategoryCode: subcategoryData.subCategoryCode,
+            subCategoryName: subcategoryData.subCategoryName,
             companyId: subcategoryData.companyId,
             remarks: subcategoryData.remarks || "",
             isActive: subcategoryData.isActive ?? true,
@@ -383,8 +382,8 @@ export default function SubCategoryPage() {
         onOpenChange={setShowLoadDialog}
         onLoad={handleLoadExistingSubCategory}
         onCancel={() => setExistingSubCategory(null)}
-        code={existingSubCategory?.subcategoryCode}
-        name={existingSubCategory?.subcategoryName}
+        code={existingSubCategory?.subCategoryCode}
+        name={existingSubCategory?.subCategoryName}
         typeLabel="SubCategory"
         isLoading={saveMutation.isPending || updateMutation.isPending}
       />
@@ -401,7 +400,7 @@ export default function SubCategoryPage() {
         onCancel={() =>
           setDeleteConfirmation({
             isOpen: false,
-            subcategoryId: null,
+            subCategoryId: null,
             subcategoryName: null,
           })
         }
@@ -417,7 +416,7 @@ export default function SubCategoryPage() {
         title={
           modalMode === "create" ? "Create SubCategory" : "Update SubCategory"
         }
-        itemName={saveConfirmation.data?.subcategoryName || ""}
+        itemName={saveConfirmation.data?.subCategoryName || ""}
         operationType={modalMode === "create" ? "create" : "update"}
         onConfirm={() => {
           if (saveConfirmation.data) {

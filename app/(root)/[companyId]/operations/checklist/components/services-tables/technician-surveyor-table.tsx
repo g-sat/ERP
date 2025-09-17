@@ -170,7 +170,7 @@ export function TechnicianSurveyorTable({
         enableHiding: false,
         size: 100,
         minSize: 80,
-        maxSize: 150,
+
         cell: ({ row }) => {
           const technicianSurveyor = row.original
           const isSelected = row.getIsSelected()
@@ -207,7 +207,6 @@ export function TechnicianSurveyorTable({
         ),
         size: 120,
         minSize: 100,
-        maxSize: 150,
       },
 
       {
@@ -218,7 +217,7 @@ export function TechnicianSurveyorTable({
         ),
         size: 200,
         minSize: 150,
-        maxSize: 300,
+
         enableColumnFilter: true,
       },
       {
@@ -240,7 +239,6 @@ export function TechnicianSurveyorTable({
         ),
         size: 100,
         minSize: 80,
-        maxSize: 150,
       },
       {
         accessorKey: "uomName",
@@ -250,7 +248,6 @@ export function TechnicianSurveyorTable({
         ),
         size: 100,
         minSize: 80,
-        maxSize: 150,
       },
       {
         accessorKey: "natureOfAttendance",
@@ -282,7 +279,6 @@ export function TechnicianSurveyorTable({
         ),
         size: 120,
         minSize: 100,
-        maxSize: 150,
       },
       {
         accessorKey: "embarked",
@@ -303,7 +299,6 @@ export function TechnicianSurveyorTable({
         },
         size: 120,
         minSize: 100,
-        maxSize: 150,
       },
       {
         accessorKey: "disembarked",
@@ -324,7 +319,6 @@ export function TechnicianSurveyorTable({
         },
         size: 120,
         minSize: 100,
-        maxSize: 150,
       },
       {
         accessorKey: "portRequestNo",
@@ -336,7 +330,6 @@ export function TechnicianSurveyorTable({
         ),
         size: 120,
         minSize: 100,
-        maxSize: 150,
       },
       {
         accessorKey: "statusName",
@@ -348,7 +341,6 @@ export function TechnicianSurveyorTable({
         ),
         size: 120,
         minSize: 100,
-        maxSize: 150,
       },
 
       {
@@ -357,7 +349,6 @@ export function TechnicianSurveyorTable({
         cell: ({ row }) => <div>{row.getValue("remarks") || "-"}</div>,
         size: 200,
         minSize: 50,
-        maxSize: 300,
       },
       {
         accessorKey: "createBy",
@@ -365,7 +356,6 @@ export function TechnicianSurveyorTable({
         cell: ({ row }) => <div>{row.getValue("createBy") || "-"}</div>,
         size: 120,
         minSize: 50,
-        maxSize: 150,
       },
       {
         accessorKey: "createDate",
@@ -390,7 +380,6 @@ export function TechnicianSurveyorTable({
         cell: ({ row }) => <div>{row.getValue("editBy") || "-"}</div>,
         size: 120,
         minSize: 50,
-        maxSize: 150,
       },
       {
         accessorKey: "editDate",

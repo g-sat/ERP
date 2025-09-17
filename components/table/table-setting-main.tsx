@@ -18,50 +18,28 @@ import {
   TableRow,
 } from "@/components/ui/table"
 
-/**
- * Props interface for the SimpleTable component
- * @template T - The type of data items in the table
- */
-interface RightsTableProps<T> {
-  data: T[] // Array of data items to display in the table
-  columns: ColumnDef<T>[] // Column definitions for the table structure
-  isLoading?: boolean // Loading state indicator
-  emptyMessage?: string // Message to show when no data is available
-  maxHeight?: string // Maximum height for the table container
+interface SettingTableProps<T> {
+  data: T[]
+  columns: ColumnDef<T>[]
+  isLoading?: boolean
+  emptyMessage?: string
+  maxHeight?: string
 }
 
-/**
- * SimpleTable - A simplified data table component with sticky header
- *
- * Features:
- * - Virtual scrolling for performance with large datasets
- * - Sticky header that remains visible while scrolling
- * - Column sizing and alignment
- * - Loading states and empty state handling
- * - No header controls, footer, or action columns
- *
- * @template T - The type of data items in the table
- * @param props - Component props as defined in SimpleTableProps
- * @returns JSX element representing the data table
- */
-export function RightsTable<T>({
+export function SettingTable<T>({
   data,
   columns,
   isLoading = false,
   emptyMessage = "No data found.",
   maxHeight = "460px",
-}: RightsTableProps<T>) {
-  // Reference to table container for virtual scrolling
+}: SettingTableProps<T>) {
   const tableContainerRef = useRef<HTMLDivElement>(null)
-
-  // Create the TanStack Table instance with basic configuration
   const table = useReactTable({
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
   })
 
-  // Set up virtual scrolling for performance with large datasets
   const rowVirtualizer = useVirtualizer({
     count: table.getRowModel().rows.length,
     getScrollElement: () => tableContainerRef.current,
@@ -69,13 +47,8 @@ export function RightsTable<T>({
     overscan: 5,
   })
 
-  // Get the currently visible virtual rows
   const virtualRows = rowVirtualizer.getVirtualItems()
-
-  // Calculate total height of all rows (visible + invisible)
   const totalSize = rowVirtualizer.getTotalSize()
-
-  // Calculate padding for smooth scrolling
   const paddingTop = virtualRows.length > 0 ? virtualRows[0].start : 0
   const paddingBottom =
     virtualRows.length > 0
@@ -85,16 +58,13 @@ export function RightsTable<T>({
   return (
     <div className="overflow-x-auto rounded-lg border">
       <Table>
-        {/* Fixed header table with column sizing */}
         <Table className="w-full table-fixed border-collapse">
-          {/* Column group for consistent sizing */}
           <colgroup>
             {table.getAllLeafColumns().map((col) => (
               <col key={col.id} style={{ width: `${col.getSize()}px` }} />
             ))}
           </colgroup>
 
-          {/* Sticky table header */}
           <TableHeader className="bg-background sticky top-0 z-20">
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id} className="bg-muted/50">
@@ -113,15 +83,12 @@ export function RightsTable<T>({
           </TableHeader>
         </Table>
 
-        {/* Scrollable body container */}
         <div
           ref={tableContainerRef}
           className="overflow-y-auto"
           style={{ maxHeight }}
         >
-          {/* Body table with same column sizing as header */}
           <Table className="w-full table-fixed border-collapse">
-            {/* Column group matching header for alignment */}
             <colgroup>
               {table.getAllLeafColumns().map((col) => (
                 <col key={col.id} style={{ width: `${col.getSize()}px` }} />
@@ -129,7 +96,6 @@ export function RightsTable<T>({
             </colgroup>
 
             <TableBody>
-              {/* Show empty state or loading message when no virtual rows */}
               {virtualRows.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={columns.length} className="text-center">
@@ -138,15 +104,11 @@ export function RightsTable<T>({
                 </TableRow>
               ) : (
                 <>
-                  {/* Top padding for virtual scrolling */}
                   <tr style={{ height: `${paddingTop}px` }} />
-
-                  {/* Render only visible virtual rows for performance */}
                   {virtualRows.map((virtualRow) => {
                     const row = table.getRowModel().rows[virtualRow.index]
                     return (
                       <TableRow key={row.id}>
-                        {/* Render each visible cell in the row */}
                         {row.getVisibleCells().map((cell, cellIndex) => (
                           <TableCell
                             key={cell.id}
@@ -156,7 +118,6 @@ export function RightsTable<T>({
                                 : ""
                             }`}
                           >
-                            {/* Render cell content using column definition */}
                             {flexRender(
                               cell.column.columnDef.cell,
                               cell.getContext()
@@ -167,7 +128,6 @@ export function RightsTable<T>({
                     )
                   })}
 
-                  {/* Bottom padding for virtual scrolling */}
                   <tr style={{ height: `${paddingBottom}px` }} />
                 </>
               )}

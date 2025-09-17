@@ -57,7 +57,6 @@ export function ChargesTable({
       header: "Code",
       size: 120,
       minSize: 50,
-      maxSize: 150,
       enableColumnFilter: true,
     },
     {
@@ -65,7 +64,6 @@ export function ChargesTable({
       header: "Name",
       size: 200,
       minSize: 50,
-      maxSize: 300,
       enableColumnFilter: true,
     },
     {
@@ -74,7 +72,6 @@ export function ChargesTable({
       cell: ({ row }) => <div>{row.getValue("taskName") || "-"}</div>,
       size: 120,
       minSize: 50,
-      maxSize: 150,
     },
     {
       accessorKey: "glName",
@@ -82,7 +79,6 @@ export function ChargesTable({
       cell: ({ row }) => <div>{row.getValue("glName") || "-"}</div>,
       size: 120,
       minSize: 50,
-      maxSize: 150,
     },
     {
       accessorKey: "chargeOrder",
@@ -90,7 +86,6 @@ export function ChargesTable({
       cell: ({ row }) => <div>{row.getValue("chargeOrder") || "-"}</div>,
       size: 120,
       minSize: 50,
-      maxSize: 150,
     },
     {
       accessorKey: "itemNo",
@@ -98,7 +93,6 @@ export function ChargesTable({
       cell: ({ row }) => <div>{row.getValue("itemNo") || "-"}</div>,
       size: 120,
       minSize: 50,
-      maxSize: 150,
     },
     {
       accessorKey: "isActive",
@@ -115,7 +109,6 @@ export function ChargesTable({
       ),
       size: 120,
       minSize: 50,
-      maxSize: 150,
     },
     {
       accessorKey: "remarks",
@@ -123,7 +116,6 @@ export function ChargesTable({
       cell: ({ row }) => <div>{row.getValue("remarks") || "-"}</div>,
       size: 200,
       minSize: 50,
-      maxSize: 300,
     },
     {
       accessorKey: "createBy",
@@ -131,7 +123,6 @@ export function ChargesTable({
       cell: ({ row }) => <div>{row.getValue("createBy") || "-"}</div>,
       size: 120,
       minSize: 50,
-      maxSize: 150,
     },
     {
       accessorKey: "createDate",
@@ -145,7 +136,6 @@ export function ChargesTable({
       },
       size: 180,
       minSize: 150,
-      maxSize: 200,
     },
     {
       accessorKey: "editBy",
@@ -153,7 +143,6 @@ export function ChargesTable({
       cell: ({ row }) => <div>{row.getValue("editBy") || "-"}</div>,
       size: 120,
       minSize: 50,
-      maxSize: 150,
     },
     {
       accessorKey: "editDate",
@@ -167,7 +156,6 @@ export function ChargesTable({
       },
       size: 180,
       minSize: 150,
-      maxSize: 200,
     },
   ]
 

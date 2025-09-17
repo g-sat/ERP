@@ -117,7 +117,7 @@ export function CrewSignOnTable({
         enableHiding: false,
         size: 100,
         minSize: 80,
-        maxSize: 150,
+
         cell: ({ row }) => {
           const crewSignOn = row.original
           const isSelected = row.getIsSelected()
@@ -154,7 +154,6 @@ export function CrewSignOnTable({
         ),
         size: 120,
         minSize: 100,
-        maxSize: 150,
       },
 
       {
@@ -165,7 +164,7 @@ export function CrewSignOnTable({
         ),
         size: 200,
         minSize: 150,
-        maxSize: 300,
+
         enableColumnFilter: true,
       },
       {
@@ -176,7 +175,7 @@ export function CrewSignOnTable({
         ),
         size: 200,
         minSize: 150,
-        maxSize: 300,
+
         enableColumnFilter: true,
       },
       {
@@ -187,7 +186,6 @@ export function CrewSignOnTable({
         ),
         size: 120,
         minSize: 100,
-        maxSize: 150,
       },
       {
         accessorKey: "nationality",
@@ -197,7 +195,6 @@ export function CrewSignOnTable({
         ),
         size: 120,
         minSize: 100,
-        maxSize: 150,
       },
       {
         accessorKey: "rankName",
@@ -207,7 +204,6 @@ export function CrewSignOnTable({
         ),
         size: 120,
         minSize: 100,
-        maxSize: 150,
       },
       {
         accessorKey: "flightDetails",
@@ -241,7 +237,6 @@ export function CrewSignOnTable({
         ),
         size: 120,
         minSize: 100,
-        maxSize: 150,
       },
       {
         accessorKey: "transportName",
@@ -263,7 +258,6 @@ export function CrewSignOnTable({
         ),
         size: 120,
         minSize: 100,
-        maxSize: 150,
       },
       {
         accessorKey: "overStayRemark",
@@ -275,7 +269,6 @@ export function CrewSignOnTable({
         ),
         size: 120,
         minSize: 100,
-        maxSize: 150,
       },
       {
         accessorKey: "modificationRemark",
@@ -287,7 +280,6 @@ export function CrewSignOnTable({
         ),
         size: 120,
         minSize: 100,
-        maxSize: 150,
       },
       {
         accessorKey: "cidClearance",
@@ -297,7 +289,6 @@ export function CrewSignOnTable({
         ),
         size: 120,
         minSize: 100,
-        maxSize: 150,
       },
       {
         accessorKey: "statusName",
@@ -309,7 +300,6 @@ export function CrewSignOnTable({
         ),
         size: 120,
         minSize: 100,
-        maxSize: 150,
       },
       {
         accessorKey: "remarks",
@@ -319,7 +309,6 @@ export function CrewSignOnTable({
         ),
         size: 200,
         minSize: 150,
-        maxSize: 300,
       },
       {
         accessorKey: "createBy",
@@ -329,7 +318,6 @@ export function CrewSignOnTable({
         ),
         size: 120,
         minSize: 100,
-        maxSize: 150,
       },
       {
         accessorKey: "createDate",
@@ -360,7 +348,6 @@ export function CrewSignOnTable({
         ),
         size: 120,
         minSize: 100,
-        maxSize: 150,
       },
       {
         accessorKey: "editDate",

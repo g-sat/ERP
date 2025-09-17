@@ -57,7 +57,7 @@ export function UomTable({
       header: "Code",
       size: 120,
       minSize: 50,
-      maxSize: 150,
+
       enableColumnFilter: true,
     },
     {
@@ -65,7 +65,7 @@ export function UomTable({
       header: "Name",
       size: 200,
       minSize: 50,
-      maxSize: 300,
+
       enableColumnFilter: true,
     },
     {
@@ -83,7 +83,6 @@ export function UomTable({
       ),
       size: 120,
       minSize: 50,
-      maxSize: 150,
     },
     {
       accessorKey: "remarks",
@@ -91,7 +90,6 @@ export function UomTable({
       cell: ({ row }) => <div>{row.getValue("remarks") || "-"}</div>,
       size: 200,
       minSize: 50,
-      maxSize: 300,
     },
     {
       accessorKey: "createBy",
@@ -99,7 +97,6 @@ export function UomTable({
       cell: ({ row }) => <div>{row.getValue("createBy") || "-"}</div>,
       size: 120,
       minSize: 50,
-      maxSize: 150,
     },
     {
       accessorKey: "createDate",
@@ -113,7 +110,6 @@ export function UomTable({
       },
       size: 180,
       minSize: 150,
-      maxSize: 200,
     },
     {
       accessorKey: "editBy",
@@ -121,7 +117,6 @@ export function UomTable({
       cell: ({ row }) => <div>{row.getValue("editBy") || "-"}</div>,
       size: 120,
       minSize: 50,
-      maxSize: 150,
     },
     {
       accessorKey: "editDate",
@@ -135,7 +130,6 @@ export function UomTable({
       },
       size: 180,
       minSize: 150,
-      maxSize: 200,
     },
   ]
 

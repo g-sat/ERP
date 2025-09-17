@@ -329,7 +329,7 @@ export function MainDataTable<T>({
             enableHiding: false, // Actions column cannot be hidden
             size: 120, // Default column width
             minSize: 80, // Minimum allowed width
-            maxSize: 150, // Maximum allowed width
+            // Maximum allowed width
             cell: (
               { row } // Cell renderer function
             ) => (

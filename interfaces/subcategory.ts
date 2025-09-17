@@ -1,8 +1,8 @@
 export interface ISubCategory {
-  subcategoryId: number
+  subCategoryId: number
   companyId: number
-  subcategoryCode: string
-  subcategoryName: string
+  subCategoryCode: string
+  subCategoryName: string
   createById: number
   editById: number
   createBy: string

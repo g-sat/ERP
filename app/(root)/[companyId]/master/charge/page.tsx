@@ -57,7 +57,6 @@ export default function ChargePage() {
     data: chargesResponse,
     refetch,
     isLoading,
-    isRefetching,
   } = useGet<ICharge>(`${Charge.get}`, "charges", filters.search)
 
   const { result: chargesResult, data: chargesData } =

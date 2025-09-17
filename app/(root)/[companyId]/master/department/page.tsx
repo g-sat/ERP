@@ -56,7 +56,6 @@ export default function DepartmentPage() {
     data: departmentsResponse,
     refetch,
     isLoading,
-    isRefetching,
   } = useGet<IDepartment>(`${Department.get}`, "departments", filters.search)
 
   const { result: departmentsResult, data: departmentsData } =

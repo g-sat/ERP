@@ -51,7 +51,6 @@ export default function VoyagePage() {
     data: voyagesResponse,
     refetch,
     isLoading,
-    isRefetching,
   } = useGet<IVoyage>(`${Voyage.get}`, "voyages", filters.search)
 
   const { result: voyagesResult, data: voyagesData } =

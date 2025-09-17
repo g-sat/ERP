@@ -56,7 +56,6 @@ export default function DesignationPage() {
     data: designationsResponse,
     refetch,
     isLoading,
-    isRefetching,
   } = useGet<IDesignation>(`${Designation.get}`, "designations", filters.search)
 
   const { result: designationsResult, data: designationsData } =

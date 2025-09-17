@@ -51,7 +51,6 @@ export default function PortPage() {
     data: portsResponse,
     refetch,
     isLoading,
-    isRefetching,
   } = useGet<IPort>(`${Port.get}`, "ports", filters.search)
 
   const { result: portsResult, data: portsData } =

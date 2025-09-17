@@ -15,7 +15,7 @@ import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Form } from "@/components/ui/form"
 import { SaveConfirmation } from "@/components/save-confirmation"
-import { RightsTable } from "@/components/table/table-rights"
+import { SettingTable } from "@/components/table/table-setting-main"
 import UserGroupAutocomplete from "@/components/ui-custom/autocomplete-usergroup"
 
 type UserGroup = {
@@ -31,7 +31,7 @@ type PermissionType =
   | "isExport"
   | "isPrint"
 
-export function UserGroupRightsTable() {
+export function UserGroupSettingTable() {
   const form = useForm()
   const [selectedGroup, setSelectedGroup] = useState<UserGroup | null>(null)
   const [groupRights, setGroupRights] = useState<IUserGroupRights[]>([])
@@ -447,7 +447,7 @@ export function UserGroupRightsTable() {
               {saving ? "Saving..." : "Save"}
             </Button>
           </div>
-          <RightsTable
+          <SettingTable
             data={groupRights}
             columns={columns}
             isLoading={isRightsLoading}

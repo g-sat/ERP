@@ -270,7 +270,6 @@ export function ChartOfAccountsTable({
       ),
       size: 100,
       minSize: 80,
-      maxSize: 120,
     },
     {
       accessorKey: "remarks",

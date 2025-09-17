@@ -51,7 +51,6 @@ export default function PortRegionPage() {
     data: portRegionsResponse,
     refetch,
     isLoading,
-    isRefetching,
   } = useGet<IPortRegion>(`${PortRegion.get}`, "portregions", filters.search)
 
   const { result: portregionsResult, data: portregionsData } =
@@ -210,6 +209,9 @@ export default function PortRegionPage() {
             portRegionId: portregionData.portRegionId,
             portRegionCode: portregionData.portRegionCode,
             portRegionName: portregionData.portRegionName,
+            countryId: portregionData.countryId,
+            countryCode: portregionData.countryCode,
+            countryName: portregionData.countryName,
             companyId: portregionData.companyId,
             remarks: portregionData.remarks || "",
             isActive: portregionData.isActive ?? true,

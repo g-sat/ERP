@@ -53,7 +53,6 @@ export default function BargePage() {
     data: bargesResponse,
     refetch,
     isLoading,
-    isRefetching,
   } = useGet<IBarge>(`${Barge.get}`, "barges", filters.search)
 
   const { result: bargesResult, data: bargesData } =

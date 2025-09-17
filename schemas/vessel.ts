@@ -12,16 +12,17 @@ export const vesselSchema = z.object({
     .max(150, { message: "vessel name cannot exceed 150 characters" }),
   callSign: z
     .string()
+    .min(1, { message: "call sign is required" })
     .max(150, { message: "call sign cannot exceed 150 characters" })
-    .optional()
     .default(""),
   imoCode: z
     .string()
+    .min(1, { message: "IMO code is required" })
     .max(150, { message: "IMO code cannot exceed 150 characters" })
-    .optional()
     .default(""),
   grt: z
     .string()
+    .min(1, { message: "GRT is required" })
     .max(150, { message: "GRT cannot exceed 150 characters" })
     .optional()
     .default(""),
@@ -32,6 +33,7 @@ export const vesselSchema = z.object({
     .default(""),
   vesselType: z
     .string()
+    .min(1, { message: "vessel type is required" })
     .max(150, { message: "vessel type cannot exceed 150 characters" })
     .optional()
     .default(""),
@@ -40,7 +42,6 @@ export const vesselSchema = z.object({
     .max(150, { message: "flag cannot exceed 150 characters" })
     .optional()
     .default(""),
-
   isActive: z.boolean().default(true),
   remarks: z
     .string()

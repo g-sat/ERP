@@ -53,19 +53,31 @@ export function VoyagesTable({
 
   const columns: ColumnDef<IVoyage>[] = [
     {
-      accessorKey: "voyageCode",
-      header: "Code",
+      accessorKey: "voyageNo",
+      header: "Voyage No",
       size: 120,
       minSize: 50,
-      maxSize: 150,
       enableColumnFilter: true,
     },
     {
-      accessorKey: "voyageName",
-      header: "Name",
+      accessorKey: "referenceNo",
+      header: "Reference No",
       size: 200,
       minSize: 50,
-      maxSize: 300,
+      enableColumnFilter: true,
+    },
+    {
+      accessorKey: "vesselName",
+      header: "Vessel",
+      size: 200,
+      minSize: 50,
+      enableColumnFilter: true,
+    },
+    {
+      accessorKey: "bargeName",
+      header: "Barge",
+      size: 200,
+      minSize: 50,
       enableColumnFilter: true,
     },
     {
@@ -83,7 +95,6 @@ export function VoyagesTable({
       ),
       size: 120,
       minSize: 50,
-      maxSize: 150,
     },
     {
       accessorKey: "remarks",
@@ -91,7 +102,6 @@ export function VoyagesTable({
       cell: ({ row }) => <div>{row.getValue("remarks") || "-"}</div>,
       size: 200,
       minSize: 50,
-      maxSize: 300,
     },
     {
       accessorKey: "createBy",
@@ -99,7 +109,6 @@ export function VoyagesTable({
       cell: ({ row }) => <div>{row.getValue("createBy") || "-"}</div>,
       size: 120,
       minSize: 50,
-      maxSize: 150,
     },
     {
       accessorKey: "createDate",
@@ -113,7 +122,6 @@ export function VoyagesTable({
       },
       size: 180,
       minSize: 150,
-      maxSize: 200,
     },
     {
       accessorKey: "editBy",
@@ -121,7 +129,6 @@ export function VoyagesTable({
       cell: ({ row }) => <div>{row.getValue("editBy") || "-"}</div>,
       size: 120,
       minSize: 50,
-      maxSize: 150,
     },
     {
       accessorKey: "editDate",
@@ -135,7 +142,6 @@ export function VoyagesTable({
       },
       size: 180,
       minSize: 150,
-      maxSize: 200,
     },
   ]
 
