@@ -64,7 +64,7 @@ export function TaskDataTableActions<T>({
         <Button
           variant="ghost"
           size="icon"
-          className="h-8 w-8"
+          className="h-6 w-6"
           onClick={() => onView(row)}
         >
           <Eye className="h-4 w-4" />
@@ -75,7 +75,7 @@ export function TaskDataTableActions<T>({
         <Button
           variant="ghost"
           size="icon"
-          className={`h-8 w-8 ${
+          className={`h-6 w-6 ${
             hasValidDebitNoteId
               ? "cursor-not-allowed text-gray-400 opacity-50"
               : ""
@@ -94,7 +94,7 @@ export function TaskDataTableActions<T>({
         <Button
           variant="ghost"
           size="icon"
-          className={`h-8 w-8 ${
+          className={`h-6 w-6 ${
             hasValidDebitNoteId
               ? "cursor-not-allowed text-gray-400 opacity-50"
               : "text-destructive hover:bg-destructive/10"
@@ -115,7 +115,7 @@ export function TaskDataTableActions<T>({
         <Button
           variant="ghost"
           size="icon"
-          className="h-8 w-8 text-purple-600 hover:bg-purple-100"
+          className="h-6 w-6 text-purple-600 hover:bg-purple-100"
           onClick={() => onPurchase(String(row[idAccessor]))}
         >
           <ShoppingCart className="h-4 w-4" />
@@ -126,7 +126,7 @@ export function TaskDataTableActions<T>({
         <Button
           variant="ghost"
           size="icon"
-          className={`h-8 w-8 ${
+          className={`h-6 w-6 ${
             hasValidDebitNoteId
               ? "text-orange-600 hover:bg-orange-100"
               : "cursor-not-allowed text-gray-400 opacity-50"

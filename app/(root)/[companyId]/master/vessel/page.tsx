@@ -37,6 +37,8 @@ export default function VesselPage() {
   const canView = hasPermission(moduleId, transactionId, "isRead")
   const canCreate = hasPermission(moduleId, transactionId, "isCreate")
 
+  console.log("permissions vessel", canEdit, canDelete, canView, canCreate)
+
   const [filters, setFilters] = useState<IVesselFilter>({})
 
   // Filter handler wrapper
@@ -261,7 +263,7 @@ export default function VesselPage() {
   }
 
   return (
-    <div className="container mx-auto space-y-4 px-4 py-4 sm:space-y-6 sm:px-6 sm:py-6">
+    <div className="container mx-auto space-y-2 px-4 pt-2 pb-4 sm:space-y-3 sm:px-6 sm:pt-3 sm:pb-6">
       {/* Header Section */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="space-y-1">

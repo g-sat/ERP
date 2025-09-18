@@ -31,10 +31,10 @@ export function DataTableFooter({
   totalRecords,
   onPageChange,
   onPageSizeChange,
-  pageSizeOptions = [10, 20, 30, 50, 100],
+  pageSizeOptions = [15, 50, 100, 500],
 }: TableFooterProps) {
   return (
-    <div className="flex items-center justify-between py-4">
+    <div className="flex items-center justify-between">
       <div className="text-muted-foreground flex-1 text-sm">
         <span>
           {totalRecords} record{totalRecords !== 1 ? "s" : ""} | Page{" "}

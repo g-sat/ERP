@@ -257,7 +257,7 @@ export function MainDataTable<T>({
   const [columnSizing, setColumnSizing] = useState(getInitialColumnSizing) // Column width settings
   const [searchQuery, setSearchQuery] = useState("") // Global search query
   const [currentPage, setCurrentPage] = useState(1) // Current page number
-  const [pageSize, setPageSize] = useState(10) // Number of items per page
+  const [pageSize, setPageSize] = useState(15) // Number of items per page
   const [rowSelection, setRowSelection] = useState({}) // Selected rows state
 
   // Reference to table container for virtual scrolling
@@ -581,7 +581,7 @@ export function MainDataTable<T>({
   // ============================================================================
 
   return (
-    <>
+    <div className="space-y-4">
       {/* ============================================================================
           TABLE HEADER SECTION
           ============================================================================ */}
@@ -773,10 +773,10 @@ export function MainDataTable<T>({
           totalRecords={data.length} // Total number of records
           onPageChange={handlePageChange} // Page change handler
           onPageSizeChange={handlePageSizeChange} // Page size change handler
-          pageSizeOptions={[10, 50, 100, 500]} // Available page size options
+          pageSizeOptions={[15, 50, 100, 500]} // Available page size options
         />
       )}
-    </>
+    </div>
   )
 }
 

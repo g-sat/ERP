@@ -4,7 +4,7 @@ import { create } from "zustand"
 import { devtools, persist } from "zustand/middleware"
 
 import { getData } from "@/lib/api-client"
-import { DecimalSetting } from "@/lib/api-routes"
+import { Admin, DecimalSetting } from "@/lib/api-routes"
 
 import { usePermissionStore } from "./permission-store"
 
@@ -420,7 +420,7 @@ export const useAuthStore = create<AuthState>()(
 
           try {
             const response = await fetch(
-              `${BACKEND_API_URL}/admin/GetUserCompany`,
+              `${BACKEND_API_URL}${Admin.getCompanies}`,
               {
                 headers: {
                   Authorization: `Bearer ${token}`,
@@ -520,7 +520,7 @@ export const useAuthStore = create<AuthState>()(
 
           try {
             const response = await fetch(
-              `${BACKEND_API_URL}/admin/GetUserRightsbyUser`,
+              `${BACKEND_API_URL}${Admin.getUserRights}`,
               {
                 headers: {
                   Authorization: `Bearer ${token}`,

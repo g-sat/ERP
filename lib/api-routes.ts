@@ -6,6 +6,8 @@ export const Admin = {
   getUserModules: "/admin/getusersmodules",
   getUserTransactions: "/admin/getuserstransactions",
   getCompanies: "/admin/getusercompany",
+  getCompany: "/admin/GetUserCompany",
+  getUserRights: "/admin/GetUserRightsbyUser",
 }
 
 // User Rights Endpoints
@@ -1180,21 +1182,6 @@ export const SalaryComponent = {
   getSalary: "/hr/getsalarycomponent",
 }
 
-export const PayrollEmployee = {
-  get: "/hr/payroll/getpayrollemployee",
-  getById: "/hr/payroll/getpayrollemployeebyid",
-  add: "/hr/payroll/savepayrollemployee",
-  update: "/hr/payroll/savepayrollemployee",
-  delete: "/hr/payroll/deletepayrollemployee",
-  getByPeriod: "/hr/payroll/periodpayrollemployee",
-  getByEmployee: "/hr/payroll/employeepayrollemployee",
-  process: "/hr/payroll/processpayrollemployee",
-  bulkProcess: "/hr/payroll/bulkprocesspayrollemployee",
-  pay: "/hr/payroll/paypayrollemployee",
-  bulkPay: "/hr/payroll/bulkpaypayrollemployee",
-  summary: "/hr/payroll/summarypayrollemployee",
-}
-
 export const PayrollComponent = {
   get: "/hr/setting/getcomponent",
   getSalary: "/hr/setting/getsalarycomponent",
@@ -1206,63 +1193,12 @@ export const PayrollComponent = {
   getActive: "/hr/setting/activecomponent",
 }
 
-export const PayrollComponentGroup = {
-  get: "/hr/setting/getcomponentgroup",
-  getById: "/hr/setting/getcomponentgroupbyid",
-  add: "/hr/setting/savecomponentgroup",
-  update: "/hr/setting/savecomponentgroup",
-  delete: "/hr/setting/deletecomponentgroup",
-}
-
 export const PayrollComponentGLMapping = {
   get: "/hr/setting/getcomponentglmapping",
   getById: "/hr/setting/getcomponentglmappingbyid",
   add: "/hr/setting/savecomponentglmapping",
   update: "/hr/setting/savecomponentglmapping",
   delete: "/hr/setting/deletecomponentglmapping",
-}
-
-export const PayrollEmployeeComponent = {
-  get: "/hr/payroll/getpayrollemployeecomponent",
-  getById: "/hr/payroll/getpayrollemployeecomponentbyid",
-  add: "/hr/payroll/savepayrollemployeecomponent",
-  update: "/hr/payroll/savepayrollemployeecomponent",
-  delete: "/hr/payroll/deletepayrollemployeecomponent",
-  getByEmployee: "/hr/payroll/employeepayrollemployeecomponent",
-  bulkSave: "/hr/payroll/bulksavepayrollemployeecomponent",
-}
-
-export const PayrollTax = {
-  get: "/hr/payroll/getpayrolltax",
-  getById: "/hr/payroll/getpayrolltaxbyid",
-  add: "/hr/payroll/savepayrolltax",
-  update: "/hr/payroll/savepayrolltax",
-  delete: "/hr/payroll/deletepayrolltax",
-  getByType: "/hr/payroll/typepayrolltax",
-  getActive: "/hr/payroll/activepayrolltax",
-  calculate: "/hr/payroll/calculatepayrolltax",
-}
-
-export const PayrollBankTransfer = {
-  get: "/hr/payroll/getpayrollbanktransfer",
-  getById: "/hr/payroll/getpayrollbanktransferbyid",
-  add: "/hr/payroll/savepayrollbanktransfer",
-  update: "/hr/payroll/savepayrollbanktransfer",
-  delete: "/hr/payroll/deletepayrollbanktransfer",
-  getByPeriod: "/hr/payroll/periodpayrollbanktransfer",
-  process: "/hr/payroll/processpayrollbanktransfer",
-  complete: "/hr/payroll/completepayrollbanktransfer",
-  fail: "/hr/payroll/failpayrollbanktransfer",
-}
-
-export const PayrollReport = {
-  get: "/hr/payroll/getpayrollreport",
-  getById: "/hr/payroll/getpayrollreportbyid",
-  generate: "/hr/payroll/generatepayrollreport",
-  download: "/hr/payroll/downloadpayrollreport",
-  getByPeriod: "/hr/payroll/periodpayrollreport",
-  getByType: "/hr/payroll/typepayrollreport",
-  summary: "/hr/payroll/summarypayrollreport",
 }
 
 export const HrLoan = {
