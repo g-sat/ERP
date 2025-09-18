@@ -51,7 +51,6 @@ export function TaskForm({
           taskOrder: 0,
           remarks: "",
           isActive: true,
-          isOwn: true,
         },
   })
 
@@ -67,7 +66,6 @@ export function TaskForm({
         taskOrder: 0,
         remarks: "",
         isActive: true,
-        isOwn: true,
       })
     }
   }, [initialData, form])
@@ -123,13 +121,6 @@ export function TaskForm({
                 form={form}
                 name="isActive"
                 label="Active Status"
-                activeColor="success"
-                isDisabled={isReadOnly}
-              />
-              <CustomSwitch
-                form={form}
-                name="isOwn"
-                label="Own Status"
                 activeColor="success"
                 isDisabled={isReadOnly}
               />

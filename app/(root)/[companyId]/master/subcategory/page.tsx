@@ -28,7 +28,7 @@ import { SubCategorysTable } from "./components/subcategory-table"
 
 export default function SubCategoryPage() {
   const moduleId = ModuleId.master
-  const transactionId = MasterTransactionId.sub_category
+  const transactionId = MasterTransactionId.subCategory
 
   const { hasPermission } = usePermissionStore()
 

@@ -1,6 +1,7 @@
 "use client"
 
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useState } from "react"
+import { useParams } from "next/navigation"
 import { ApiResponse } from "@/interfaces/auth"
 import { ICharge, IChargeFilter } from "@/interfaces/charge"
 import { ChargeFormValues } from "@/schemas/charge"
@@ -26,12 +27,14 @@ import { Separator } from "@/components/ui/separator"
 import { DeleteConfirmation } from "@/components/delete-confirmation"
 import { SaveConfirmation } from "@/components/save-confirmation"
 import { DataTableSkeleton } from "@/components/skeleton/data-table-skeleton"
+import { LockSkeleton } from "@/components/skeleton/lock-skeleton"
 import { LoadExistingDialog } from "@/components/ui-custom/master-loadexisting-dialog"
 
 import { ChargeForm } from "./components/charge-form"
 import { ChargesTable } from "./components/charge-table"
 
 export default function ChargePage() {
+  const { companyId } = useParams()
   const moduleId = ModuleId.master
   const transactionId = MasterTransactionId.charge
 
@@ -241,21 +244,6 @@ export default function ChargePage() {
 
   const queryClient = useQueryClient()
 
-  useEffect(() => {
-    console.log("Modal Mode Updated:", modalMode)
-  }, [modalMode])
-
-  useEffect(() => {
-    if (selectedCharge) {
-      console.log("Selected Charge Updated:", {
-        chargeId: selectedCharge.chargeId,
-        chargeCode: selectedCharge.chargeCode,
-        chargeName: selectedCharge.chargeName,
-        fullObject: selectedCharge,
-      })
-    }
-  }, [selectedCharge])
-
   return (
     <div className="container mx-auto space-y-4 px-4 py-4 sm:space-y-6 sm:px-6 sm:py-6">
       {/* Header Section */}
@@ -270,6 +258,7 @@ export default function ChargePage() {
         </div>
       </div>
 
+      {/* Charges Table */}
       {isLoading ? (
         <DataTableSkeleton
           columnCount={7}
@@ -286,23 +275,25 @@ export default function ChargePage() {
           shrinkZero
         />
       ) : chargesResult === -2 ? (
-        <ChargesTable
-          data={[]}
-          isLoading={false}
-          onSelect={canView ? handleViewCharge : undefined}
-          onDelete={canDelete ? handleDeleteCharge : undefined}
-          onEdit={canEdit ? handleEditCharge : undefined}
-          onCreate={canCreate ? handleCreateCharge : undefined}
-          onRefresh={handleRefresh}
-          onFilterChange={handleFilterChange}
-          moduleId={moduleId}
-          transactionId={transactionId}
-          // Pass permissions to table
-          canEdit={canEdit}
-          canDelete={canDelete}
-          canView={canView}
-          canCreate={canCreate}
-        />
+        <LockSkeleton locked={true}>
+          <ChargesTable
+            data={[]}
+            isLoading={false}
+            onSelect={canView ? handleViewCharge : undefined}
+            onDelete={canDelete ? handleDeleteCharge : undefined}
+            onEdit={canEdit ? handleEditCharge : undefined}
+            onCreate={canCreate ? handleCreateCharge : undefined}
+            onRefresh={handleRefresh}
+            onFilterChange={handleFilterChange}
+            moduleId={moduleId}
+            transactionId={transactionId}
+            // Pass permissions to table
+            canEdit={canEdit}
+            canDelete={canDelete}
+            canView={canView}
+            canCreate={canCreate}
+          />
+        </LockSkeleton>
       ) : (
         <ChargesTable
           data={filters.search ? [] : chargesData || []}
@@ -323,6 +314,7 @@ export default function ChargePage() {
         />
       )}
 
+      {/* Modal for Create, Edit, and View */}
       <Dialog
         open={isModalOpen}
         onOpenChange={(open) => {
@@ -363,10 +355,12 @@ export default function ChargePage() {
             isSubmitting={saveMutation.isPending || updateMutation.isPending}
             isReadOnly={modalMode === "view"}
             onCodeBlur={handleCodeBlur}
+            companyId={companyId as string}
           />
         </DialogContent>
       </Dialog>
 
+      {/* Load Existing Charge Dialog */}
       <LoadExistingDialog
         open={showLoadDialog}
         onOpenChange={setShowLoadDialog}
@@ -378,6 +372,7 @@ export default function ChargePage() {
         isLoading={saveMutation.isPending || updateMutation.isPending}
       />
 
+      {/* Delete Confirmation Dialog */}
       <DeleteConfirmation
         open={deleteConfirmation.isOpen}
         onOpenChange={(isOpen) =>

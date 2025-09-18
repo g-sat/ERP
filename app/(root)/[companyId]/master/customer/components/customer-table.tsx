@@ -162,22 +162,6 @@ export function CustomerTable({
       minSize: 50,
     },
     {
-      accessorKey: "isActive",
-      header: "Status",
-      cell: ({ row }) => (
-        <Badge variant={row.getValue("isActive") ? "default" : "secondary"}>
-          {row.getValue("isActive") ? (
-            <IconCircleCheckFilled className="mr-1 fill-green-500 dark:fill-green-400" />
-          ) : (
-            <IconSquareRoundedXFilled className="mr-1 fill-red-500 dark:fill-red-400" />
-          )}
-          {row.getValue("isActive") ? "Active" : "Inactive"}
-        </Badge>
-      ),
-      size: 120,
-      minSize: 50,
-    },
-    {
       accessorKey: "accSetupName",
       header: "Account Setup",
       cell: ({ row }) => <div>{row.getValue("accSetupName") || "-"}</div>,
@@ -209,7 +193,23 @@ export function CustomerTable({
       accessorKey: "remarks",
       header: "Remarks",
       cell: ({ row }) => <div>{row.getValue("remarks") || "-"}</div>,
-      size: 200,
+      size: 250,
+      minSize: 50,
+    },
+    {
+      accessorKey: "isActive",
+      header: "Status",
+      cell: ({ row }) => (
+        <Badge variant={row.getValue("isActive") ? "default" : "secondary"}>
+          {row.getValue("isActive") ? (
+            <IconCircleCheckFilled className="mr-1 fill-green-500 dark:fill-green-400" />
+          ) : (
+            <IconSquareRoundedXFilled className="mr-1 fill-red-500 dark:fill-red-400" />
+          )}
+          {row.getValue("isActive") ? "Active" : "Inactive"}
+        </Badge>
+      ),
+      size: 120,
       minSize: 50,
     },
     {

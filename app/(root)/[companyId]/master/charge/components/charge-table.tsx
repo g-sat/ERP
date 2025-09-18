@@ -69,36 +69,31 @@ export function ChargesTable({
     {
       accessorKey: "taskName",
       header: "Task Name",
-      cell: ({ row }) => <div>{row.getValue("taskName") || "-"}</div>,
       size: 120,
       minSize: 50,
     },
     {
       accessorKey: "glName",
       header: "GL Name",
-      cell: ({ row }) => <div>{row.getValue("glName") || "-"}</div>,
       size: 120,
       minSize: 50,
     },
     {
       accessorKey: "chargeOrder",
-      header: "Charge Order",
-      cell: ({ row }) => <div>{row.getValue("chargeOrder") || "-"}</div>,
+      header: "Order",
       size: 120,
       minSize: 50,
     },
     {
       accessorKey: "itemNo",
       header: "Item No",
-      cell: ({ row }) => <div>{row.getValue("itemNo") || "-"}</div>,
       size: 120,
       minSize: 50,
     },
     {
       accessorKey: "remarks",
       header: "Remarks",
-      cell: ({ row }) => <div>{row.getValue("remarks") || "-"}</div>,
-      size: 200,
+      size: 250,
       minSize: 50,
     },
     {
@@ -120,7 +115,6 @@ export function ChargesTable({
     {
       accessorKey: "createBy",
       header: "Create By",
-      cell: ({ row }) => <div>{row.getValue("createBy") || "-"}</div>,
       size: 120,
       minSize: 50,
     },
@@ -140,7 +134,6 @@ export function ChargesTable({
     {
       accessorKey: "editBy",
       header: "Edit By",
-      cell: ({ row }) => <div>{row.getValue("editBy") || "-"}</div>,
       size: 120,
       minSize: 50,
     },
@@ -152,7 +145,7 @@ export function ChargesTable({
         let date: Date | null = null
         if (typeof raw === "string") date = new Date(raw)
         else if (raw instanceof Date) date = raw
-        return date && isValid(date) ? format(date, datetimeFormat) : "-"
+        return date && isValid(date) ? format(date, datetimeFormat) : ""
       },
       size: 180,
       minSize: 150,

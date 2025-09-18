@@ -38,27 +38,10 @@ import { CreditTermsTable } from "./components/creditterm-table"
 import { CreditTermDtForm } from "./components/credittermdt-form"
 import { CreditTermDtsTable } from "./components/credittermdt-table"
 
-// Skeleton configuration for consistent loading states
-const tableSkeletonProps = {
-  columnCount: 8,
-  filterCount: 2,
-  cellWidths: [
-    "10rem",
-    "30rem",
-    "10rem",
-    "10rem",
-    "10rem",
-    "10rem",
-    "6rem",
-    "6rem",
-  ],
-  shrinkZero: true,
-}
-
 export default function CreditTermPage() {
   const moduleId = ModuleId.master
-  const transactionId = MasterTransactionId.credit_terms
-  const transactionIdDt = MasterTransactionId.credit_term_dt
+  const transactionId = MasterTransactionId.creditTerm
+  const transactionIdDt = MasterTransactionId.creditTermDt
 
   const { hasPermission } = usePermissionStore()
   const queryClient = useQueryClient()
@@ -82,14 +65,12 @@ export default function CreditTermPage() {
     data: creditTermsResponse,
     refetch: refetchCreditTerm,
     isLoading: isLoadingCreditTerm,
-    isRefetching: isRefetchingCreditTerm,
   } = useGet<ICreditTerm>(`${CreditTerm.get}`, "creditterms", filters.search)
 
   const {
     data: creditTermsDtResponse,
     refetch: refetchCreditTermDt,
     isLoading: isLoadingCreditTermDt,
-    isRefetching: isRefetchingCreditTermDt,
   } = useGet<ICreditTermDt>(
     `${CreditTermDt.get}`,
     "credittermsdt",
@@ -153,11 +134,11 @@ export default function CreditTermPage() {
   // Refetch when filters change
   useEffect(() => {
     if (filters.search !== undefined) refetchCreditTerm()
-  }, [filters.search])
+  }, [filters.search, refetchCreditTerm])
 
   useEffect(() => {
     if (dtFilters.search !== undefined) refetchCreditTermDt()
-  }, [dtFilters.search])
+  }, [dtFilters.search, refetchCreditTermDt])
 
   // Action handlers
   const handleCreateCreditTerm = () => {
@@ -400,16 +381,6 @@ export default function CreditTermPage() {
       setShowLoadDialogCreditTerm(false)
       setExistingCreditTerm(null)
     }
-  }
-
-  // Loading state
-  if (
-    isLoadingCreditTerm ||
-    isRefetchingCreditTerm ||
-    isLoadingCreditTermDt ||
-    isRefetchingCreditTermDt
-  ) {
-    return <DataTableSkeleton {...tableSkeletonProps} />
   }
 
   return (

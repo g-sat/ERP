@@ -1,23 +1,22 @@
 import * as z from "zod"
 
 export const taskSchema = z.object({
-  taskId: z.number().optional(),
-  taskName: z
-    .string()
-    .min(2, { message: "task name must be at least 2 characters" })
-    .max(150, { message: "task name cannot exceed 150 characters" }),
+  taskId: z.number(),
   taskCode: z
     .string()
     .min(1, { message: "task code is required" })
     .max(50, { message: "task code cannot exceed 50 characters" }),
+  taskName: z
+    .string()
+    .min(2, { message: "task name must be at least 2 characters" })
+    .max(150, { message: "task name cannot exceed 150 characters" }),
 
-  taskOrder: z.number().optional(),
+  taskOrder: z.number().min(0, { message: "task order is required" }),
   remarks: z
     .string()
     .max(255, { message: "Remarks cannot exceed 255 characters" })
     .optional(),
   isActive: z.boolean().default(true),
-  isOwn: z.boolean().default(true),
 })
 
 export type TaskFormValues = z.infer<typeof taskSchema>

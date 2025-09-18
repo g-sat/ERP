@@ -89,7 +89,7 @@ export function UserGroupTable({
       accessorKey: "remarks",
       header: "Remarks",
       cell: ({ row }) => <div>{row.getValue("remarks") || "-"}</div>,
-      size: 200,
+      size: 250,
       minSize: 50,
     },
     {
@@ -147,7 +147,7 @@ export function UserGroupTable({
       isLoading={isLoading}
       moduleId={moduleId}
       transactionId={transactionId}
-      tableName={TableName.user_group}
+      tableName={TableName.userGroup}
       emptyMessage="No User group found."
       accessorId="userGroupId"
       // Add handlers if provided

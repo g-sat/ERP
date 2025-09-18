@@ -46,8 +46,8 @@ import { GstDtTable } from "./components/gstdt-table"
 export default function GstPage() {
   const moduleId = ModuleId.master
   const transactionId = MasterTransactionId.gst
-  const transactionIdCategory = MasterTransactionId.gst_category
-  const transactionIdDt = MasterTransactionId.gst_dt
+  const transactionIdCategory = MasterTransactionId.gstCategory
+  const transactionIdDt = MasterTransactionId.gstDt
 
   const { hasPermission } = usePermissionStore()
   const queryClient = useQueryClient()

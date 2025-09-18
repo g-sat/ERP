@@ -169,22 +169,6 @@ export function BankTable({
       minSize: 50,
     },
     {
-      accessorKey: "isActive",
-      header: "Status",
-      cell: ({ row }) => (
-        <Badge variant={row.getValue("isActive") ? "default" : "secondary"}>
-          {row.getValue("isActive") ? (
-            <IconCircleCheckFilled className="mr-1 fill-green-500 dark:fill-green-400" />
-          ) : (
-            <IconSquareRoundedXFilled className="mr-1 fill-red-500 dark:fill-red-400" />
-          )}
-          {row.getValue("isActive") ? "Active" : "Inactive"}
-        </Badge>
-      ),
-      size: 120,
-      minSize: 50,
-    },
-    {
       accessorKey: "remarks1",
       header: "Remarks 1",
       cell: ({ row }) => <div>{row.getValue("remarks1") || "-"}</div>,
@@ -203,6 +187,22 @@ export function BankTable({
       header: "Remarks 3",
       cell: ({ row }) => <div>{row.getValue("remarks3") || "-"}</div>,
       size: 200,
+      minSize: 50,
+    },
+    {
+      accessorKey: "isActive",
+      header: "Status",
+      cell: ({ row }) => (
+        <Badge variant={row.getValue("isActive") ? "default" : "secondary"}>
+          {row.getValue("isActive") ? (
+            <IconCircleCheckFilled className="mr-1 fill-green-500 dark:fill-green-400" />
+          ) : (
+            <IconSquareRoundedXFilled className="mr-1 fill-red-500 dark:fill-red-400" />
+          )}
+          {row.getValue("isActive") ? "Active" : "Inactive"}
+        </Badge>
+      ),
+      size: 120,
       minSize: 50,
     },
     {

@@ -58,8 +58,8 @@ const tableSkeletonProps = {
 
 export default function OrderTypePage() {
   const moduleId = ModuleId.master
-  const transactionId = MasterTransactionId.order_type
-  const transactionIdCategory = MasterTransactionId.order_type_category
+  const transactionId = MasterTransactionId.orderType
+  const transactionIdCategory = MasterTransactionId.orderTypeCategory
 
   const { hasPermission } = usePermissionStore()
   const queryClient = useQueryClient()
@@ -475,7 +475,7 @@ export default function OrderTypePage() {
         </TabsList>
 
         <TabsContent value="ordertype" className="space-y-4">
-          {isLoadingOrderType  ? (
+          {isLoadingOrderType ? (
             <DataTableSkeleton
               columnCount={8}
               filterCount={2}
@@ -537,7 +537,7 @@ export default function OrderTypePage() {
         </TabsContent>
 
         <TabsContent value="ordertypecategory" className="space-y-4">
-          {isLoadingOrderTypeCategory  ? (
+          {isLoadingOrderTypeCategory ? (
             <DataTableSkeleton
               columnCount={8}
               filterCount={2}

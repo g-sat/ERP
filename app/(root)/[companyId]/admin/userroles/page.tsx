@@ -28,7 +28,7 @@ import { UserRoleTable } from "../components/user-role-table"
 
 export default function AdminUserRolesPage() {
   const moduleId = ModuleId.admin
-  const transactionIdRole = AdminTransactionId.userroles
+  const transactionIdRole = AdminTransactionId.userRoles
 
   const { hasPermission } = usePermissionStore()
 

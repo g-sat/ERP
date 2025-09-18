@@ -34,7 +34,7 @@ import { UomDtTable } from "./components/uomdt-table"
 export default function UomPage() {
   const moduleId = ModuleId.master
   const transactionId = MasterTransactionId.uom
-  const transactionIdDt = MasterTransactionId.uom_dt
+  const transactionIdDt = MasterTransactionId.uomDt
 
   const { hasPermission } = usePermissionStore()
 

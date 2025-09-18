@@ -11,7 +11,6 @@ export interface ITask {
   createDate: Date | string
   editDate: Date | string
   isActive: boolean
-  isOwn: boolean
   remarks: string
 }
 

@@ -21,6 +21,7 @@ import { Separator } from "@/components/ui/separator"
 import { DeleteConfirmation } from "@/components/delete-confirmation"
 import { SaveConfirmation } from "@/components/save-confirmation"
 import { DataTableSkeleton } from "@/components/skeleton/data-table-skeleton"
+import { LockSkeleton } from "@/components/skeleton/lock-skeleton"
 import { LoadExistingDialog } from "@/components/ui-custom/master-loadexisting-dialog"
 
 import { AccountGroupForm } from "./components/account-group-form"
@@ -28,7 +29,7 @@ import { AccountGroupTable } from "./components/account-group-table"
 
 export default function AccountGroupPage() {
   const moduleId = ModuleId.master
-  const transactionId = MasterTransactionId.account_group
+  const transactionId = MasterTransactionId.accountGroup
 
   const { hasPermission } = usePermissionStore()
 
@@ -305,23 +306,25 @@ export default function AccountGroupPage() {
           shrinkZero
         />
       ) : accountGroupsResult === -2 ? (
-        <AccountGroupTable
-          data={[]}
-          isLoading={false}
-          onSelect={canView ? handleViewAccountGroup : undefined}
-          onDelete={canDelete ? handleDeleteAccountGroup : undefined}
-          onEdit={canEdit ? handleEditAccountGroup : undefined}
-          onCreate={canCreate ? handleCreateAccountGroup : undefined}
-          onRefresh={handleRefresh}
-          onFilterChange={handleFilterChange}
-          moduleId={moduleId}
-          transactionId={transactionId}
-          // Pass permissions to table
-          canEdit={canEdit}
-          canDelete={canDelete}
-          canView={canView}
-          canCreate={canCreate}
-        />
+        <LockSkeleton locked={true}>
+          <AccountGroupTable
+            data={[]}
+            isLoading={false}
+            onSelect={canView ? handleViewAccountGroup : undefined}
+            onDelete={canDelete ? handleDeleteAccountGroup : undefined}
+            onEdit={canEdit ? handleEditAccountGroup : undefined}
+            onCreate={canCreate ? handleCreateAccountGroup : undefined}
+            onRefresh={handleRefresh}
+            onFilterChange={handleFilterChange}
+            moduleId={moduleId}
+            transactionId={transactionId}
+            // Pass permissions to table
+            canEdit={canEdit}
+            canDelete={canDelete}
+            canView={canView}
+            canCreate={canCreate}
+          />
+        </LockSkeleton>
       ) : (
         <AccountGroupTable
           data={filters.search ? [] : accountGroupsData || []}

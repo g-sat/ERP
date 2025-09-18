@@ -69,10 +69,18 @@ export function CreditTermsTable({
       enableColumnFilter: true,
     },
     {
+      accessorKey: "noDays",
+      header: "Days",
+      size: 80,
+      minSize: 50,
+
+      enableColumnFilter: true,
+    },
+    {
       accessorKey: "remarks",
       header: "Remarks",
       cell: ({ row }) => <div>{row.getValue("remarks") || "-"}</div>,
-      size: 200,
+      size: 250,
       minSize: 50,
     },
     {
@@ -88,7 +96,7 @@ export function CreditTermsTable({
           {row.getValue("isActive") ? "Active" : "Inactive"}
         </Badge>
       ),
-      size: 120,
+      size: 110,
       minSize: 50,
     },
     {
@@ -108,7 +116,7 @@ export function CreditTermsTable({
         else if (raw instanceof Date) date = raw
         return date && isValid(date) ? format(date, datetimeFormat) : "-"
       },
-      size: 180,
+      size: 160,
       minSize: 150,
     },
     {
@@ -128,7 +136,7 @@ export function CreditTermsTable({
         else if (raw instanceof Date) date = raw
         return date && isValid(date) ? format(date, datetimeFormat) : "-"
       },
-      size: 180,
+      size: 160,
       minSize: 150,
     },
   ]
@@ -140,7 +148,7 @@ export function CreditTermsTable({
       isLoading={isLoading}
       moduleId={moduleId}
       transactionId={transactionId}
-      tableName={TableName.credit_term}
+      tableName={TableName.creditTerm}
       emptyMessage="No credit terms found."
       accessorId="creditTermId"
       // Add handlers if provided

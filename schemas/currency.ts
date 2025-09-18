@@ -10,8 +10,8 @@ export const currencySchema = z.object({
     .string({ required_error: "Currency name is required" })
     .min(2)
     .max(150, { message: "Maximum length is 150" }),
-  currencySign: z.string().nullable(),
-  isMultiply: z.boolean(),
+  currencySign: z.string().optional().default(""),
+  isMultiply: z.boolean().default(false),
   isActive: z.boolean().default(true),
   remarks: z
     .string()
@@ -31,17 +31,33 @@ export const currencyFiltersSchema = z.object({
 export type CurrencyFiltersValues = z.infer<typeof currencyFiltersSchema>
 
 export const currencyDtSchema = z.object({
-  currencyId: z.number({ required_error: "Currency is required" }),
+  currencyId: z.number().min(1, { message: "Currency is required" }),
   exhRate: z.number().min(0.0000000001).max(99999999.9999999999),
-  validFrom: z.union([z.date(), z.string()]),
+  validFrom: z.union([z.string(), z.date()]).refine(
+    (val) => {
+      // Ensure it's not empty string or invalid date
+      if (typeof val === "string") return val.trim().length > 0
+      if (val instanceof Date) return !isNaN(val.getTime())
+      return false
+    },
+    { message: "Valid from is required and must be a valid date" }
+  ),
 })
 
 export type CurrencyDtFormValues = z.infer<typeof currencyDtSchema>
 
 export const currencyLocalDtSchema = z.object({
-  currencyId: z.number({ required_error: "Currency is required" }),
+  currencyId: z.number().min(1, { message: "Currency is required" }),
   exhRate: z.number().min(0.0000000001).max(99999999.9999999999),
-  validFrom: z.union([z.date(), z.string()]),
+  validFrom: z.union([z.string(), z.date()]).refine(
+    (val) => {
+      // Ensure it's not empty string or invalid date
+      if (typeof val === "string") return val.trim().length > 0
+      if (val instanceof Date) return !isNaN(val.getTime())
+      return false
+    },
+    { message: "Valid from is required and must be a valid date" }
+  ),
 })
 
 export type CurrencyLocalDtFormValues = z.infer<typeof currencyLocalDtSchema>

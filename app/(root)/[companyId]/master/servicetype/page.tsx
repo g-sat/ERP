@@ -57,8 +57,8 @@ const tableSkeletonProps = {
 
 export default function ServiceTypePage() {
   const moduleId = ModuleId.master
-  const transactionId = MasterTransactionId.service_type
-  const transactionIdCategory = MasterTransactionId.service_type_category
+  const transactionId = MasterTransactionId.serviceType
+  const transactionIdCategory = MasterTransactionId.serviceTypeCategory
 
   const { hasPermission } = usePermissionStore()
   const queryClient = useQueryClient()

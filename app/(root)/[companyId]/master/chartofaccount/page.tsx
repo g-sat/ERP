@@ -58,10 +58,10 @@ import { CoaCategory3Table } from "./components/coacategory3-table"
 
 export default function ChartOfAccountPage() {
   const moduleId = ModuleId.master
-  const transactionId = MasterTransactionId.chart_of_account
-  const transactionIdCategory1 = MasterTransactionId.coa_category1
-  const transactionIdCategory2 = MasterTransactionId.coa_category2
-  const transactionIdCategory3 = MasterTransactionId.coa_category3
+  const transactionId = MasterTransactionId.chartOfAccount
+  const transactionIdCategory1 = MasterTransactionId.coaCategory1
+  const transactionIdCategory2 = MasterTransactionId.coaCategory2
+  const transactionIdCategory3 = MasterTransactionId.coaCategory3
 
   const { hasPermission } = usePermissionStore()
   const queryClient = useQueryClient()

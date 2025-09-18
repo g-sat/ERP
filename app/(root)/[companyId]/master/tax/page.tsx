@@ -46,8 +46,8 @@ import { TaxDtTable } from "./components/taxdt-table"
 export default function TaxPage() {
   const moduleId = ModuleId.master
   const transactionId = MasterTransactionId.tax
-  const transactionIdCategory = MasterTransactionId.tax_category
-  const transactionIdDt = MasterTransactionId.tax_dt
+  const transactionIdCategory = MasterTransactionId.taxCategory
+  const transactionIdDt = MasterTransactionId.taxDt
 
   const { hasPermission } = usePermissionStore()
   const queryClient = useQueryClient()

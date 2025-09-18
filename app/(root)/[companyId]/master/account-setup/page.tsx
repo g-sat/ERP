@@ -50,9 +50,9 @@ import { AccountSetupDtTable } from "./components/account-setupdt-table"
 
 export default function AccountSetupPage() {
   const moduleId = ModuleId.master
-  const transactionId = MasterTransactionId.account_setup
-  const transactionIdCategory = MasterTransactionId.account_setup_category
-  const transactionIdDt = MasterTransactionId.account_setup_dt
+  const transactionId = MasterTransactionId.accountSetup
+  const transactionIdCategory = MasterTransactionId.accountSetupCategory
+  const transactionIdDt = MasterTransactionId.accountSetupDt
 
   const { hasPermission } = usePermissionStore()
 

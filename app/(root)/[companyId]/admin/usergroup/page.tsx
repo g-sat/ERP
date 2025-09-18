@@ -28,7 +28,7 @@ import { UserGroupTable } from "../components/user-group-table"
 
 export default function AdminUserGroupsPage() {
   const moduleId = ModuleId.admin
-  const transactionIdGroup = AdminTransactionId.usergroup
+  const transactionIdGroup = AdminTransactionId.userGroup
 
   const { hasPermission } = usePermissionStore()
 

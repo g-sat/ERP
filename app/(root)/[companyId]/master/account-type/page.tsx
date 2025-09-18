@@ -21,7 +21,6 @@ import { Separator } from "@/components/ui/separator"
 import { DeleteConfirmation } from "@/components/delete-confirmation"
 import { SaveConfirmation } from "@/components/save-confirmation"
 import { DataTableSkeleton } from "@/components/skeleton/data-table-skeleton"
-import { LockSkeleton } from "@/components/skeleton/lock-skeleton"
 import { LoadExistingDialog } from "@/components/ui-custom/master-loadexisting-dialog"
 
 import { AccountTypeForm } from "./components/account-type-form"
@@ -29,7 +28,7 @@ import { AccountTypesTable } from "./components/account-type-table"
 
 export default function AccountTypePage() {
   const moduleId = ModuleId.master
-  const transactionId = MasterTransactionId.account_type
+  const transactionId = MasterTransactionId.accountType
 
   const { hasPermission } = usePermissionStore()
 
@@ -297,25 +296,23 @@ export default function AccountTypePage() {
           shrinkZero
         />
       ) : accountTypesResult === -2 ? (
-        <LockSkeleton locked={true}>
-          <AccountTypesTable
-            data={[]}
-            isLoading={false}
-            onSelect={canView ? handleViewAccountType : undefined}
-            onDelete={canDelete ? handleDeleteAccountType : undefined}
-            onEdit={canEdit ? handleEditAccountType : undefined}
-            onCreate={canCreate ? handleCreateAccountType : undefined}
-            onRefresh={handleRefresh}
-            onFilterChange={handleFilterChange}
-            moduleId={moduleId}
-            transactionId={transactionId}
-            // Pass permissions to table
-            canEdit={canEdit}
-            canDelete={canDelete}
-            canView={canView}
-            canCreate={canCreate}
-          />
-        </LockSkeleton>
+        <AccountTypesTable
+          data={[]}
+          isLoading={false}
+          onSelect={canView ? handleViewAccountType : undefined}
+          onDelete={canDelete ? handleDeleteAccountType : undefined}
+          onEdit={canEdit ? handleEditAccountType : undefined}
+          onCreate={canCreate ? handleCreateAccountType : undefined}
+          onRefresh={handleRefresh}
+          onFilterChange={handleFilterChange}
+          moduleId={moduleId}
+          transactionId={transactionId}
+          // Pass permissions to table
+          canEdit={canEdit}
+          canDelete={canDelete}
+          canView={canView}
+          canCreate={canCreate}
+        />
       ) : (
         <AccountTypesTable
           data={filters.search ? [] : accountTypesData || []}

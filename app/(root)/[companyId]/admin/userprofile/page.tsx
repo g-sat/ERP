@@ -8,6 +8,7 @@ import {
   userProfileSchema,
 } from "@/schemas/admin"
 import { useAuthStore } from "@/stores/auth-store"
+import { usePermissionStore } from "@/stores/permission-store"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { format } from "date-fns"
 import {
@@ -26,6 +27,7 @@ import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 
 import { clientDateFormat, parseDate } from "@/lib/format"
+import { AdminTransactionId, ModuleId } from "@/lib/utils"
 import { useGetById, usePersist } from "@/hooks/use-common"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
@@ -53,6 +55,16 @@ import PhotoUpload from "@/components/ui-custom/photo-upload"
 export default function ProfilePage() {
   const { user } = useAuthStore()
   const [currentProfilePicture, setCurrentProfilePicture] = useState<string>("")
+
+  const moduleId = ModuleId.admin
+  const transactionIdProfile = AdminTransactionId.userProfile
+
+  const { hasPermission } = usePermissionStore()
+
+  const canEdit = hasPermission(moduleId, transactionIdProfile, "isEdit")
+  const canDelete = hasPermission(moduleId, transactionIdProfile, "isDelete")
+  const canView = hasPermission(moduleId, transactionIdProfile, "isRead")
+  const canCreate = hasPermission(moduleId, transactionIdProfile, "isCreate")
 
   // Password visibility states
   const [showNewPassword, setShowNewPassword] = useState(false)

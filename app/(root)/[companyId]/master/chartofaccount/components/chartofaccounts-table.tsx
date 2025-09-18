@@ -58,11 +58,6 @@ export function ChartOfAccountsTable({
     {
       accessorKey: "glCode",
       header: "GL Code",
-      cell: ({ row }) => (
-        <div className="truncate font-medium" title={row.getValue("glCode")}>
-          {row.getValue("glCode")}
-        </div>
-      ),
       size: 120,
       minSize: 100,
       enableColumnFilter: true,
@@ -70,11 +65,6 @@ export function ChartOfAccountsTable({
     {
       accessorKey: "glName",
       header: "GL Name",
-      cell: ({ row }) => (
-        <div className="truncate" title={row.getValue("glName") || "-"}>
-          {row.getValue("glName") || "-"}
-        </div>
-      ),
       size: 200,
       minSize: 150,
       enableColumnFilter: true,
@@ -82,22 +72,12 @@ export function ChartOfAccountsTable({
     {
       accessorKey: "accTypeName",
       header: "Account Type",
-      cell: ({ row }) => (
-        <div className="truncate" title={row.getValue("accTypeName") || "-"}>
-          {row.getValue("accTypeName") || "-"}
-        </div>
-      ),
       size: 120,
       minSize: 100,
     },
     {
       accessorKey: "accGroupName",
       header: "Account Group",
-      cell: ({ row }) => (
-        <div className="truncate" title={row.getValue("accGroupName") || "-"}>
-          {row.getValue("accGroupName") || "-"}
-        </div>
-      ),
       size: 120,
       minSize: 100,
     },
@@ -245,22 +225,6 @@ export function ChartOfAccountsTable({
       minSize: 100,
     },
     {
-      accessorKey: "isActive",
-      header: "Status",
-      cell: ({ row }) => (
-        <Badge variant={row.getValue("isActive") ? "default" : "destructive"}>
-          {row.getValue("isActive") ? (
-            <IconCircleCheckFilled className="mr-1 fill-green-500 dark:fill-green-400" />
-          ) : (
-            <IconSquareRoundedXFilled className="mr-1 fill-red-500 dark:fill-red-400" />
-          )}
-          {row.getValue("isActive") ? "Active" : "Inactive"}
-        </Badge>
-      ),
-      size: 120,
-      minSize: 100,
-    },
-    {
       accessorKey: "seqNo",
       header: "Seq No",
       cell: ({ row }) => (
@@ -281,6 +245,22 @@ export function ChartOfAccountsTable({
       ),
       size: 200,
       minSize: 150,
+    },
+    {
+      accessorKey: "isActive",
+      header: "Status",
+      cell: ({ row }) => (
+        <Badge variant={row.getValue("isActive") ? "default" : "destructive"}>
+          {row.getValue("isActive") ? (
+            <IconCircleCheckFilled className="mr-1 fill-green-500 dark:fill-green-400" />
+          ) : (
+            <IconSquareRoundedXFilled className="mr-1 fill-red-500 dark:fill-red-400" />
+          )}
+          {row.getValue("isActive") ? "Active" : "Inactive"}
+        </Badge>
+      ),
+      size: 120,
+      minSize: 100,
     },
     {
       accessorKey: "createBy",

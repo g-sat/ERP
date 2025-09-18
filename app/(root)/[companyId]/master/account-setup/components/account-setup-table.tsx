@@ -55,9 +55,6 @@ export function AccountSetupTable({
     {
       accessorKey: "accSetupCode",
       header: "Code",
-      cell: ({ row }) => (
-        <div className="font-medium">{row.getValue("accSetupCode")}</div>
-      ),
       size: 120,
       minSize: 50,
       enableColumnFilter: true,
@@ -72,10 +69,13 @@ export function AccountSetupTable({
     {
       accessorKey: "accSetupCategoryName",
       header: "Category",
-      cell: ({ row }) => (
-        <div>{row.getValue("accSetupCategoryName") || "-"}</div>
-      ),
       size: 120,
+      minSize: 50,
+    },
+    {
+      accessorKey: "remarks",
+      header: "Remarks",
+      size: 250,
       minSize: 50,
     },
     {
@@ -95,16 +95,8 @@ export function AccountSetupTable({
       minSize: 50,
     },
     {
-      accessorKey: "remarks",
-      header: "Remarks",
-      cell: ({ row }) => <div>{row.getValue("remarks") || "-"}</div>,
-      size: 200,
-      minSize: 50,
-    },
-    {
       accessorKey: "createBy",
       header: "Create By",
-      cell: ({ row }) => <div>{row.getValue("createBy") || "-"}</div>,
       size: 120,
       minSize: 50,
     },
@@ -124,7 +116,6 @@ export function AccountSetupTable({
     {
       accessorKey: "editBy",
       header: "Edit By",
-      cell: ({ row }) => <div>{row.getValue("editBy") || "-"}</div>,
       size: 120,
       minSize: 50,
     },

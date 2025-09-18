@@ -43,6 +43,12 @@ export const Hr_Attendance = {
 }
 
 // User Endpoints
+export const AuditLog = {
+  getauditlog: "/admin/getauditlog",
+  geterrorlog: "/admin/geterrorlog",
+}
+
+// User Endpoints
 export const User = {
   get: "/admin/getuser",
   getbyid: "/admin/GetUserbyid",
@@ -431,10 +437,10 @@ export const Category = {
 
 // Country Endpoints
 export const Country = {
-  get: "/master/country/getcountry",
-  getByCode: "/master/country/getcountrybycode",
-  add: "/master/country/savecountry",
-  delete: "/master/country/deletecountry",
+  get: "/master/getcountry",
+  getByCode: "/master/getcountrybycode",
+  add: "/master/savecountry",
+  delete: "/master/deletecountry",
 }
 
 // Credit Term Details Endpoints

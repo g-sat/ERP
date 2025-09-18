@@ -114,7 +114,6 @@ export function CurrencyForm({
                 form={form}
                 name="currencySign"
                 label="Currency Sign"
-                isRequired
                 isDisabled={isReadOnly}
               />
             </div>

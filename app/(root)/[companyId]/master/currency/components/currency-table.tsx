@@ -69,9 +69,9 @@ export function CurrenciesTable({
       enableColumnFilter: true,
     },
     {
-      accessorKey: "symbol",
+      accessorKey: "currencySign",
       header: "Symbol",
-      cell: ({ row }) => <div>{row.getValue("symbol") || "-"}</div>,
+      cell: ({ row }) => <div>{row.getValue("currencySign") || "-"}</div>,
       size: 120,
       minSize: 50,
     },
@@ -79,7 +79,7 @@ export function CurrenciesTable({
       accessorKey: "remarks",
       header: "Remarks",
       cell: ({ row }) => <div>{row.getValue("remarks") || "-"}</div>,
-      size: 200,
+      size: 250,
       minSize: 50,
     },
     {

@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useState } from "react"
 import { ApiResponse } from "@/interfaces/auth"
 import { ITask, ITaskFilter } from "@/interfaces/task"
 import { TaskFormValues } from "@/schemas/task"
@@ -38,6 +38,11 @@ export default function TaskPage() {
   const canView = hasPermission(moduleId, transactionId, "isRead")
   const canCreate = hasPermission(moduleId, transactionId, "isCreate")
 
+  console.log("canEdit", canEdit)
+  console.log("canDelete", canDelete)
+  console.log("canView", canView)
+  console.log("canCreate", canCreate)
+
   const [filters, setFilters] = useState<ITaskFilter>({})
 
   // Filter handler wrapper
@@ -60,12 +65,6 @@ export default function TaskPage() {
       message: "",
       data: [],
     }
-
-  useEffect(() => {
-    if (tasksData?.length > 0) {
-      refetch()
-    }
-  }, [filters])
 
   const saveMutation = usePersist<TaskFormValues>(`${Task.add}`)
   const updateMutation = usePersist<TaskFormValues>(`${Task.add}`)
@@ -220,7 +219,6 @@ export default function TaskPage() {
             companyId: taskData.companyId,
             remarks: taskData.remarks || "",
             isActive: taskData.isActive ?? true,
-            isOwn: taskData.isOwn ?? true,
             createBy: taskData.createBy,
             editBy: taskData.editBy,
             createDate: taskData.createDate,
@@ -271,6 +269,7 @@ export default function TaskPage() {
         </div>
       </div>
 
+      {/* Tasks Table */}
       {isLoading ? (
         <DataTableSkeleton
           columnCount={7}
@@ -290,6 +289,7 @@ export default function TaskPage() {
         <LockSkeleton locked={true}>
           <TasksTable
             data={[]}
+            isLoading={false}
             onSelect={canView ? handleViewTask : undefined}
             onDelete={canDelete ? handleDeleteTask : undefined}
             onEdit={canEdit ? handleEditTask : undefined}
@@ -298,7 +298,6 @@ export default function TaskPage() {
             onFilterChange={handleFilterChange}
             moduleId={moduleId}
             transactionId={transactionId}
-            isLoading={false}
             // Pass permissions to table
             canEdit={canEdit}
             canDelete={canDelete}
@@ -306,9 +305,10 @@ export default function TaskPage() {
             canCreate={canCreate}
           />
         </LockSkeleton>
-      ) : tasksResult ? (
+      ) : (
         <TasksTable
           data={filters.search ? [] : tasksData || []}
+          isLoading={isLoading}
           onSelect={canView ? handleViewTask : undefined}
           onDelete={canDelete ? handleDeleteTask : undefined}
           onEdit={canEdit ? handleEditTask : undefined}
@@ -317,21 +317,15 @@ export default function TaskPage() {
           onFilterChange={handleFilterChange}
           moduleId={moduleId}
           transactionId={transactionId}
-          isLoading={isLoading}
           // Pass permissions to table
           canEdit={canEdit}
           canDelete={canDelete}
           canView={canView}
           canCreate={canCreate}
         />
-      ) : (
-        <div className="py-8 text-center">
-          <p className="text-muted-foreground">
-            {tasksResult === 0 ? "No data available" : "Loading..."}
-          </p>
-        </div>
       )}
 
+      {/* Modal for Create, Edit, and View */}
       <Dialog
         open={isModalOpen}
         onOpenChange={(open) => {
@@ -386,6 +380,7 @@ export default function TaskPage() {
         isLoading={saveMutation.isPending || updateMutation.isPending}
       />
 
+      {/* Delete Confirmation Dialog */}
       <DeleteConfirmation
         open={deleteConfirmation.isOpen}
         onOpenChange={(isOpen) =>

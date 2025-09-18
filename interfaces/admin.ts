@@ -36,6 +36,32 @@ export interface IUserRole {
   editDate: Date | string
 }
 
+export interface IAuditLog {
+  companyName: string
+  moduleName: string
+  transactionName: string
+  documentId: string
+  documentNo: string
+  tableName: string
+  modeType: string
+  remarks: string
+  createBy: string
+  createDate: Date | string
+}
+
+export interface IErrorLog {
+  companyName: string
+  moduleName: string
+  transactionName: string
+  documentId: string
+  documentNo: string
+  tableName: string
+  modeType: string
+  remarks: string
+  createBy: string
+  createDate: Date | string
+}
+
 export interface IUserFilter {
   isActive?: boolean
   search?: string

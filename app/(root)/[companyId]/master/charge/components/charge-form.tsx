@@ -8,6 +8,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { format } from "date-fns"
 import { useForm } from "react-hook-form"
 
+import { useChartofAccountLookup } from "@/hooks/use-lookup"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Form } from "@/components/ui/form"
@@ -29,6 +30,7 @@ interface ChargeFormProps {
   isSubmitting?: boolean
   isReadOnly?: boolean
   onCodeBlur?: (code: string) => void
+  companyId: string
 }
 
 export function ChargeForm({
@@ -38,9 +40,13 @@ export function ChargeForm({
   isSubmitting = false,
   isReadOnly = false,
   onCodeBlur,
+  companyId,
 }: ChargeFormProps) {
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
+
+  // Get chart of account data to ensure it's loaded before setting form values
+  useChartofAccountLookup(Number(companyId))
 
   const form = useForm<ChargeFormValues>({
     resolver: zodResolver(chargeSchema),
@@ -135,6 +141,7 @@ export function ChargeForm({
                 name="glId"
                 label="Account"
                 isRequired={true}
+                companyId={Number(companyId)}
               />
             </div>
 

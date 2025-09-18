@@ -29,7 +29,7 @@ import { PaymentTypesTable } from "./components/payment-type-table"
 
 export default function PaymentTypePage() {
   const moduleId = ModuleId.master
-  const transactionId = MasterTransactionId.payment_type
+  const transactionId = MasterTransactionId.paymentType
 
   const { hasPermission } = usePermissionStore()
 

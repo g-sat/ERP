@@ -75,6 +75,13 @@ export function ServiceTypeCategoryTable({
       enableColumnFilter: true,
     },
     {
+      accessorKey: "remarks",
+      header: "Remarks",
+      cell: ({ row }) => <div>{row.getValue("remarks") || "-"}</div>,
+      size: 250,
+      minSize: 50,
+    },
+    {
       accessorKey: "isActive",
       header: "Status",
       cell: ({ row }) => (
@@ -88,13 +95,6 @@ export function ServiceTypeCategoryTable({
         </Badge>
       ),
       size: 120,
-      minSize: 50,
-    },
-    {
-      accessorKey: "remarks",
-      header: "Remarks",
-      cell: ({ row }) => <div>{row.getValue("remarks") || "-"}</div>,
-      size: 200,
       minSize: 50,
     },
     {

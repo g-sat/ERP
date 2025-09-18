@@ -28,7 +28,7 @@ import { PortRegionsTable } from "./components/portregion-table"
 
 export default function PortRegionPage() {
   const moduleId = ModuleId.master
-  const transactionId = MasterTransactionId.port_region
+  const transactionId = MasterTransactionId.portRegion
 
   const { hasPermission } = usePermissionStore()
 

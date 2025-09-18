@@ -71,8 +71,13 @@ export function AccountGroupTable({
     {
       accessorKey: "seqNo",
       header: "Seq No",
-      cell: ({ row }) => <div>{row.getValue("seqNo") || "-"}</div>,
       size: 120,
+      minSize: 50,
+    },
+    {
+      accessorKey: "remarks",
+      header: "Remarks",
+      size: 250,
       minSize: 50,
     },
     {
@@ -92,16 +97,8 @@ export function AccountGroupTable({
       minSize: 50,
     },
     {
-      accessorKey: "remarks",
-      header: "Remarks",
-      cell: ({ row }) => <div>{row.getValue("remarks") || "-"}</div>,
-      size: 200,
-      minSize: 50,
-    },
-    {
       accessorKey: "createBy",
       header: "Create By",
-      cell: ({ row }) => <div>{row.getValue("createBy") || "-"}</div>,
       size: 120,
       minSize: 50,
     },
@@ -121,7 +118,6 @@ export function AccountGroupTable({
     {
       accessorKey: "editBy",
       header: "Edit By",
-      cell: ({ row }) => <div>{row.getValue("editBy") || "-"}</div>,
       size: 120,
       minSize: 50,
     },
@@ -147,7 +143,7 @@ export function AccountGroupTable({
       isLoading={isLoading}
       moduleId={moduleId}
       transactionId={transactionId}
-      tableName={TableName.account_group}
+      tableName={TableName.accountGroup}
       emptyMessage="No account groups found."
       accessorId="accGroupId"
       // Add handlers if provided

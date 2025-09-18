@@ -89,7 +89,7 @@ export function UserRoleTable({
       accessorKey: "remarks",
       header: "Remarks",
       cell: ({ row }) => <div>{row.getValue("remarks") || "-"}</div>,
-      size: 200,
+      size: 250,
       minSize: 50,
     },
     {
@@ -147,7 +147,7 @@ export function UserRoleTable({
       isLoading={isLoading}
       moduleId={moduleId}
       transactionId={transactionId}
-      tableName={TableName.user_role}
+      tableName={TableName.userRole}
       emptyMessage="No User role found."
       accessorId="userRoleId"
       // Add handlers if provided
