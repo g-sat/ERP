@@ -1,9 +1,6 @@
 "use client"
 
-import {
-  IServiceTypeCategory,
-  IServiceTypeFilter,
-} from "@/interfaces/servicetype"
+import { IServiceTypeCategory } from "@/interfaces/servicetype"
 import { useAuthStore } from "@/stores/auth-store"
 import {
   IconCircleCheckFilled,
@@ -56,19 +53,15 @@ export function ServiceTypeCategoryTable({
 
   const columns: ColumnDef<IServiceTypeCategory>[] = [
     {
-      accessorKey: "servicetypeCategoryCode",
+      accessorKey: "serviceTypeCategoryCode",
       header: "Code",
-      cell: ({ row }) => (
-        <div className="font-medium">
-          {row.getValue("servicetypeCategoryCode")}
-        </div>
-      ),
+
       size: 120,
       minSize: 50,
       enableColumnFilter: true,
     },
     {
-      accessorKey: "servicetypeCategoryName",
+      accessorKey: "serviceTypeCategoryName",
       header: "Name",
       size: 200,
       minSize: 50,
@@ -77,7 +70,7 @@ export function ServiceTypeCategoryTable({
     {
       accessorKey: "remarks",
       header: "Remarks",
-      cell: ({ row }) => <div>{row.getValue("remarks") || "-"}</div>,
+
       size: 250,
       minSize: 50,
     },
@@ -100,7 +93,7 @@ export function ServiceTypeCategoryTable({
     {
       accessorKey: "createBy",
       header: "Create By",
-      cell: ({ row }) => <div>{row.getValue("createBy") || "-"}</div>,
+
       size: 120,
       minSize: 50,
     },
@@ -123,7 +116,7 @@ export function ServiceTypeCategoryTable({
     {
       accessorKey: "editBy",
       header: "Edit By",
-      cell: ({ row }) => <div>{row.getValue("editBy") || "-"}</div>,
+
       size: 120,
       minSize: 50,
     },
@@ -152,7 +145,7 @@ export function ServiceTypeCategoryTable({
       isLoading={isLoading}
       moduleId={moduleId}
       transactionId={transactionId}
-      tableName={TableName.service_type_category}
+      tableName={TableName.serviceTypeCategory}
       emptyMessage="No service type categories found."
       accessorId="serviceTypeCategoryId"
       // Add handlers if provided

@@ -894,7 +894,7 @@ export const useServiceTypeCategoryLookup = () => {
     ...defaultQueryConfig,
     queryFn: async () => {
       try {
-        const data = await getData(Lookup.getOrderTypeCategory)
+        const data = await getData(Lookup.getServiceTypeCategory)
         return data?.data || []
       } catch (error) {
         handleApiError(error)

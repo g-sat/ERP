@@ -82,7 +82,7 @@ export function AccountSetupTable({
       accessorKey: "isActive",
       header: "Status",
       cell: ({ row }) => (
-        <Badge variant={row.getValue("isActive") ? "default" : "secondary"}>
+        <Badge variant={row.getValue("isActive") ? "default" : "destructive"}>
           {row.getValue("isActive") ? (
             <IconCircleCheckFilled className="mr-1 fill-green-500 dark:fill-green-400" />
           ) : (
@@ -141,7 +141,7 @@ export function AccountSetupTable({
       isLoading={isLoading}
       moduleId={moduleId}
       transactionId={transactionId}
-      tableName={TableName.account_setup}
+      tableName={TableName.accountSetup}
       emptyMessage="No account setup found."
       accessorId="accSetupId"
       // Add handlers if provided

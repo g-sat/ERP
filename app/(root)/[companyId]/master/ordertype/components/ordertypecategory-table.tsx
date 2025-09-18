@@ -1,6 +1,6 @@
 "use client"
 
-import { IOrderTypeCategory, IOrderTypeFilter } from "@/interfaces/ordertype"
+import { IOrderTypeCategory } from "@/interfaces/ordertype"
 import { useAuthStore } from "@/stores/auth-store"
 import {
   IconCircleCheckFilled,
@@ -74,7 +74,7 @@ export function OrderTypeCategoryTable({
     {
       accessorKey: "remarks",
       header: "Remarks",
-      cell: ({ row }) => <div>{row.getValue("remarks") || "-"}</div>,
+
       size: 250,
       minSize: 50,
     },
@@ -97,7 +97,7 @@ export function OrderTypeCategoryTable({
     {
       accessorKey: "createBy",
       header: "Create By",
-      cell: ({ row }) => <div>{row.getValue("createBy") || "-"}</div>,
+
       size: 120,
       minSize: 50,
     },
@@ -120,7 +120,7 @@ export function OrderTypeCategoryTable({
     {
       accessorKey: "editBy",
       header: "Edit By",
-      cell: ({ row }) => <div>{row.getValue("editBy") || "-"}</div>,
+
       size: 120,
       minSize: 50,
     },
@@ -149,7 +149,7 @@ export function OrderTypeCategoryTable({
       isLoading={isLoading}
       moduleId={moduleId}
       transactionId={transactionId}
-      tableName={TableName.order_type_category}
+      tableName={TableName.orderTypeCategory}
       emptyMessage="No order type categories found."
       accessorId="orderTypeCategoryId"
       // Add handlers if provided

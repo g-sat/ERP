@@ -4,7 +4,7 @@ export const categorySchema = z.object({
   categoryId: z.number().optional(),
   categoryName: z
     .string()
-    .min(2, { message: "category name must be at least 2 characters" })
+    .min(1, { message: "category name must be at least 1 characters" })
     .max(150, { message: "category name cannot exceed 150 characters" }),
   categoryCode: z
     .string()

@@ -55,9 +55,7 @@ export function AccountTypesTable({
     {
       accessorKey: "accTypeCode",
       header: "Code",
-      cell: ({ row }) => (
-        <div className="font-medium">{row.getValue("accTypeCode")}</div>
-      ),
+
       size: 120,
       minSize: 50,
       enableColumnFilter: true,
@@ -72,21 +70,18 @@ export function AccountTypesTable({
     {
       accessorKey: "accGroupName",
       header: "Account Group",
-      cell: ({ row }) => <div>{row.getValue("accGroupName") || "-"}</div>,
       size: 150,
       minSize: 50,
     },
     {
       accessorKey: "seqNo",
       header: "Seq No",
-      cell: ({ row }) => <div>{row.getValue("seqNo") || "-"}</div>,
       size: 100,
       minSize: 50,
     },
     {
       accessorKey: "remarks",
       header: "Remarks",
-      cell: ({ row }) => <div>{row.getValue("remarks") || "-"}</div>,
       size: 250,
       minSize: 50,
     },
@@ -109,7 +104,7 @@ export function AccountTypesTable({
     {
       accessorKey: "createBy",
       header: "Create By",
-      cell: ({ row }) => <div>{row.getValue("createBy") || "-"}</div>,
+
       size: 120,
       minSize: 50,
     },
@@ -129,7 +124,7 @@ export function AccountTypesTable({
     {
       accessorKey: "editBy",
       header: "Edit By",
-      cell: ({ row }) => <div>{row.getValue("editBy") || "-"}</div>,
+
       size: 120,
       minSize: 50,
     },
@@ -155,7 +150,7 @@ export function AccountTypesTable({
       isLoading={isLoading}
       moduleId={moduleId}
       transactionId={transactionId}
-      tableName={TableName.account_type}
+      tableName={TableName.accountType}
       emptyMessage="No account types found."
       accessorId="accTypeId"
       // Add handlers if provided

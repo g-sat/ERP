@@ -10,11 +10,11 @@ export const chartofAccountSchema = z.object({
     .string()
     .min(2, { message: "GL name must be at least 2 characters" })
     .max(150, { message: "GL name cannot exceed 150 characters" }),
-  accTypeId: z.number(),
-  accGroupId: z.number(),
-  coaCategoryId1: z.number(),
-  coaCategoryId2: z.number(),
-  coaCategoryId3: z.number(),
+  accTypeId: z.number().min(1, { message: "Account type is required" }),
+  accGroupId: z.number().min(1, { message: "Account group is required" }),
+  coaCategoryId1: z.number().min(1, { message: "Category 1 is required" }),
+  coaCategoryId2: z.number().min(0, { message: "Category 2 is required" }),
+  coaCategoryId3: z.number().min(0, { message: "Category 3 is required" }),
   isSysControl: z.boolean().default(false),
   isDeptMandatory: z.boolean().default(false),
   isBargeMandatory: z.boolean().default(false),
@@ -25,7 +25,8 @@ export const chartofAccountSchema = z.object({
   remarks: z
     .string()
     .max(255, { message: "Remarks cannot exceed 255 characters" })
-    .optional(),
+    .optional()
+    .default(""),
 })
 
 export type ChartofAccountFormValues = z.infer<typeof chartofAccountSchema>

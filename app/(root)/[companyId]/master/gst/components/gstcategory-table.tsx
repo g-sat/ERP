@@ -88,14 +88,14 @@ export function GstCategoryTable({
     {
       accessorKey: "remarks",
       header: "Remarks",
-      cell: ({ row }) => <div>{row.getValue("remarks") || "-"}</div>,
+
       size: 250,
       minSize: 50,
     },
     {
       accessorKey: "createBy",
       header: "Create By",
-      cell: ({ row }) => <div>{row.getValue("createBy") || "-"}</div>,
+
       size: 120,
       minSize: 50,
     },
@@ -118,7 +118,7 @@ export function GstCategoryTable({
     {
       accessorKey: "editBy",
       header: "Edit By",
-      cell: ({ row }) => <div>{row.getValue("editBy") || "-"}</div>,
+
       size: 120,
       minSize: 50,
     },
@@ -147,7 +147,7 @@ export function GstCategoryTable({
       isLoading={isLoading}
       moduleId={moduleId}
       transactionId={transactionId}
-      tableName={TableName.gst_category}
+      tableName={TableName.gstCategory}
       emptyMessage="No gst categories found."
       accessorId="gstCategoryId"
       // Add handlers if provided

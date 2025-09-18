@@ -55,9 +55,7 @@ export function BargesTable({
     {
       accessorKey: "bargeCode",
       header: "Code",
-      cell: ({ row }) => (
-        <div className="font-medium">{row.getValue("bargeCode")}</div>
-      ),
+
       size: 120,
       minSize: 50,
       enableColumnFilter: true,
@@ -72,49 +70,47 @@ export function BargesTable({
     {
       accessorKey: "callSign",
       header: "Call Sign",
-      cell: ({ row }) => <div>{row.getValue("callSign") || "-"}</div>,
       size: 120,
       minSize: 50,
     },
     {
       accessorKey: "imoCode",
       header: "IMO Code",
-      cell: ({ row }) => <div>{row.getValue("imoCode") || "-"}</div>,
       size: 120,
       minSize: 50,
     },
     {
       accessorKey: "grt",
       header: "GRT",
-      cell: ({ row }) => <div>{row.getValue("grt") || "-"}</div>,
+
       size: 120,
       minSize: 50,
     },
     {
       accessorKey: "licenseNo",
       header: "License No",
-      cell: ({ row }) => <div>{row.getValue("licenseNo") || "-"}</div>,
+
       size: 120,
       minSize: 50,
     },
     {
       accessorKey: "bargeType",
       header: "Type",
-      cell: ({ row }) => <div>{row.getValue("bargeType") || "-"}</div>,
+
       size: 120,
       minSize: 50,
     },
     {
       accessorKey: "flag",
       header: "Flag",
-      cell: ({ row }) => <div>{row.getValue("flag") || "-"}</div>,
+
       size: 120,
       minSize: 50,
     },
     {
       accessorKey: "remarks",
       header: "Remarks",
-      cell: ({ row }) => <div>{row.getValue("remarks") || "-"}</div>,
+
       size: 250,
       minSize: 50,
     },
@@ -153,7 +149,7 @@ export function BargesTable({
     {
       accessorKey: "createBy",
       header: "Create By",
-      cell: ({ row }) => <div>{row.getValue("createBy") || "-"}</div>,
+
       size: 120,
       minSize: 50,
     },
@@ -173,7 +169,7 @@ export function BargesTable({
     {
       accessorKey: "editBy",
       header: "Edit By",
-      cell: ({ row }) => <div>{row.getValue("editBy") || "-"}</div>,
+
       size: 120,
       minSize: 50,
     },

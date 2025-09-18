@@ -95,14 +95,14 @@ export function CoaCategory1Table({
     {
       accessorKey: "remarks",
       header: "Remarks",
-      cell: ({ row }) => <div>{row.getValue("remarks") || "-"}</div>,
+
       size: 250,
       minSize: 50,
     },
     {
       accessorKey: "createBy",
       header: "Create By",
-      cell: ({ row }) => <div>{row.getValue("createBy") || "-"}</div>,
+
       size: 120,
       minSize: 50,
     },
@@ -122,7 +122,7 @@ export function CoaCategory1Table({
     {
       accessorKey: "editBy",
       header: "Edit By",
-      cell: ({ row }) => <div>{row.getValue("editBy") || "-"}</div>,
+
       size: 120,
       minSize: 50,
     },
@@ -148,7 +148,7 @@ export function CoaCategory1Table({
       isLoading={isLoading}
       moduleId={moduleId}
       transactionId={transactionId}
-      tableName={TableName.coa_category1}
+      tableName={TableName.coaCategory1}
       emptyMessage="No COA categories found."
       accessorId="coaCategoryId"
       // Add handlers if provided

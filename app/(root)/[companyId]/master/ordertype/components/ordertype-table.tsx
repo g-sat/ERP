@@ -71,16 +71,14 @@ export function OrderTypeTable({
     {
       accessorKey: "ordertypeCategoryName",
       header: "Category",
-      cell: ({ row }) => (
-        <div>{row.getValue("ordertypeCategoryName") || "-"}</div>
-      ),
+
       size: 120,
       minSize: 50,
     },
     {
       accessorKey: "remarks",
       header: "Remarks",
-      cell: ({ row }) => <div>{row.getValue("remarks") || "-"}</div>,
+
       size: 250,
       minSize: 50,
     },
@@ -103,7 +101,7 @@ export function OrderTypeTable({
     {
       accessorKey: "createBy",
       header: "Create By",
-      cell: ({ row }) => <div>{row.getValue("createBy") || "-"}</div>,
+
       size: 120,
       minSize: 50,
     },
@@ -123,7 +121,7 @@ export function OrderTypeTable({
     {
       accessorKey: "editBy",
       header: "Edit By",
-      cell: ({ row }) => <div>{row.getValue("editBy") || "-"}</div>,
+
       size: 120,
       minSize: 50,
     },
@@ -149,7 +147,7 @@ export function OrderTypeTable({
       isLoading={isLoading}
       moduleId={moduleId}
       transactionId={transactionId}
-      tableName={TableName.order_type}
+      tableName={TableName.orderType}
       emptyMessage="No order types found."
       accessorId="orderTypeId"
       // Add handlers if provided

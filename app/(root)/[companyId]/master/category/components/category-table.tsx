@@ -55,9 +55,7 @@ export function CategorysTable({
     {
       accessorKey: "categoryCode",
       header: "Code",
-      cell: ({ row }) => (
-        <div className="font-medium">{row.getValue("categoryCode")}</div>
-      ),
+
       size: 120,
       minSize: 50,
       enableColumnFilter: true,
@@ -72,7 +70,7 @@ export function CategorysTable({
     {
       accessorKey: "remarks",
       header: "Remarks",
-      cell: ({ row }) => <div>{row.getValue("remarks") || "-"}</div>,
+
       size: 250,
       minSize: 50,
     },
@@ -95,7 +93,7 @@ export function CategorysTable({
     {
       accessorKey: "createBy",
       header: "Create By",
-      cell: ({ row }) => <div>{row.getValue("createBy") || "-"}</div>,
+
       size: 120,
       minSize: 50,
     },
@@ -115,7 +113,7 @@ export function CategorysTable({
     {
       accessorKey: "editBy",
       header: "Edit By",
-      cell: ({ row }) => <div>{row.getValue("editBy") || "-"}</div>,
+
       size: 120,
       minSize: 50,
     },

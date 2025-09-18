@@ -1,13 +1,14 @@
 "use client"
 
-import { useRef } from "react"
+// React imports removed as not needed
 import {
   ColumnDef,
   flexRender,
   getCoreRowModel,
   useReactTable,
 } from "@tanstack/react-table"
-import { useVirtualizer } from "@tanstack/react-virtual"
+
+// Virtual scrolling removed - using empty rows instead
 
 import {
   Table,
@@ -24,6 +25,7 @@ interface SettingTableProps<T> {
   isLoading?: boolean
   emptyMessage?: string
   maxHeight?: string
+  pageSize?: number
 }
 
 export function SettingTable<T>({
@@ -32,28 +34,13 @@ export function SettingTable<T>({
   isLoading = false,
   emptyMessage = "No data found.",
   maxHeight = "460px",
+  pageSize = 15,
 }: SettingTableProps<T>) {
-  const tableContainerRef = useRef<HTMLDivElement>(null)
   const table = useReactTable({
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
   })
-
-  const rowVirtualizer = useVirtualizer({
-    count: table.getRowModel().rows.length,
-    getScrollElement: () => tableContainerRef.current,
-    estimateSize: () => 28,
-    overscan: 5,
-  })
-
-  const virtualRows = rowVirtualizer.getVirtualItems()
-  const totalSize = rowVirtualizer.getTotalSize()
-  const paddingTop = virtualRows.length > 0 ? virtualRows[0].start : 0
-  const paddingBottom =
-    virtualRows.length > 0
-      ? totalSize - virtualRows[virtualRows.length - 1].end
-      : 0
 
   return (
     <div className="overflow-x-auto rounded-lg border">
@@ -87,11 +74,7 @@ export function SettingTable<T>({
         </Table>
 
         {/* Scrollable body container */}
-        <div
-          ref={tableContainerRef}
-          className="overflow-y-auto"
-          style={{ maxHeight }}
-        >
+        <div className="overflow-y-auto" style={{ maxHeight }}>
           {/* Body table with same column sizing as header */}
           <Table className="w-full table-fixed border-collapse">
             {/* Column group matching header for alignment */}
@@ -102,47 +85,71 @@ export function SettingTable<T>({
             </colgroup>
 
             <TableBody>
-              {/* Show empty state or loading message when no virtual rows */}
-              {virtualRows.length === 0 ? (
+              {/* Render data rows */}
+              {table.getRowModel().rows.map((row) => {
+                return (
+                  <TableRow key={row.id}>
+                    {row.getVisibleCells().map((cell, cellIndex) => (
+                      <TableCell
+                        key={cell.id}
+                        className={`py-1 ${
+                          cellIndex === 0
+                            ? "bg-background sticky left-0 z-10"
+                            : ""
+                        }`}
+                      >
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                )
+              })}
+
+              {/* Add empty rows to fill the remaining space based on page size */}
+              {Array.from({
+                length: Math.max(0, pageSize - table.getRowModel().rows.length),
+              }).map((_, index) => (
+                <TableRow key={`empty-${index}`} className="h-7">
+                  {table.getAllLeafColumns().map((column, cellIndex) => {
+                    const isFirstColumn = cellIndex === 0
+
+                    return (
+                      <TableCell
+                        key={`empty-${index}-${column.id}`}
+                        className={`py-1 ${
+                          isFirstColumn
+                            ? "bg-background sticky left-0 z-10"
+                            : ""
+                        }`}
+                        style={{
+                          width: `${column.getSize()}px`,
+                          minWidth: `${column.getSize()}px`,
+                          maxWidth: `${column.getSize()}px`,
+                          position: isFirstColumn ? "sticky" : "relative",
+                          left: isFirstColumn ? 0 : "auto",
+                          zIndex: isFirstColumn ? 10 : 1,
+                        }}
+                      >
+                        {/* Empty cell content */}
+                      </TableCell>
+                    )
+                  })}
+                </TableRow>
+              ))}
+
+              {/* Show empty state or loading message when no data */}
+              {table.getRowModel().rows.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={columns.length} className="text-center">
+                  <TableCell
+                    colSpan={columns.length}
+                    className="h-7 text-center"
+                  >
                     {isLoading ? "Loading..." : emptyMessage}
                   </TableCell>
                 </TableRow>
-              ) : (
-                <>
-                  {/* Top padding for virtual scrolling */}
-                  <tr style={{ height: `${paddingTop}px` }} />
-
-                  {/* Render only visible virtual rows for performance */}
-                  {virtualRows.map((virtualRow) => {
-                    const row = table.getRowModel().rows[virtualRow.index]
-                    return (
-                      <TableRow key={row.id}>
-                        {/* Render each visible cell in the row */}
-                        {row.getVisibleCells().map((cell, cellIndex) => (
-                          <TableCell
-                            key={cell.id}
-                            className={`py-1 ${
-                              cellIndex === 0
-                                ? "bg-background sticky left-0 z-10"
-                                : ""
-                            }`}
-                          >
-                            {/* Render cell content using column definition */}
-                            {flexRender(
-                              cell.column.columnDef.cell,
-                              cell.getContext()
-                            )}
-                          </TableCell>
-                        ))}
-                      </TableRow>
-                    )
-                  })}
-
-                  {/* Bottom padding for virtual scrolling */}
-                  <tr style={{ height: `${paddingBottom}px` }} />
-                </>
               )}
             </TableBody>
           </Table>

@@ -27,7 +27,8 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table"
-import { useVirtualizer } from "@tanstack/react-virtual"
+
+// Virtual scrolling removed - using empty rows instead
 
 import { TableName } from "@/lib/utils"
 import { useGetGridLayout } from "@/hooks/use-settings"
@@ -287,20 +288,8 @@ export function MainTaskDataTable<T>({
     },
   })
 
-  const rowVirtualizer = useVirtualizer({
-    count: table.getRowModel().rows.length,
-    getScrollElement: () => tableContainerRef.current,
-    estimateSize: () => 48,
-    overscan: 5,
-  })
-
-  const virtualRows = rowVirtualizer.getVirtualItems()
-  const totalSize = rowVirtualizer.getTotalSize()
-  const paddingTop = virtualRows.length > 0 ? virtualRows[0].start : 0
-  const paddingBottom =
-    virtualRows.length > 0
-      ? totalSize - virtualRows[virtualRows.length - 1].end
-      : 0
+  // Virtual scrolling removed - using empty rows instead
+  const [pageSize] = useState(15) // Fixed page size for empty rows
   const sensors = useSensors(
     useSensor(MouseSensor, {}),
     useSensor(TouchSensor, {}),
@@ -357,7 +346,11 @@ export function MainTaskDataTable<T>({
           onSearchChange={handleSearch}
           onRefresh={onRefresh}
           onCreate={onCreateItem}
-          columns={table.getAllLeafColumns()}
+          //columns={table.getAllLeafColumns()}
+          columns={table
+            .getHeaderGroups()
+            .flatMap((group) => group.headers)
+            .map((header) => header.column)}
           tableName={tableName}
           moduleId={moduleId || 1}
           transactionId={transactionId || 1}
@@ -398,65 +391,83 @@ export function MainTaskDataTable<T>({
             </TanstackTableHeader>
 
             <TableBody className="**:data-[slot=table-cell]:first:w-8">
-              {virtualRows.length === 0 ? (
-                <>
-                  <TableRow>
-                    <TableCell
-                      colSpan={tableColumns.length}
-                      className="h-24 text-center"
-                    >
-                      {isLoading ? "Loading..." : emptyMessage}
-                    </TableCell>
+              {/* Render data rows */}
+              {table.getRowModel().rows.map((row) => {
+                return (
+                  <TableRow key={row.id}>
+                    {row.getVisibleCells().map((cell) => {
+                      const isActions = cell.column.id === "actions"
+                      return (
+                        <TableCell
+                          key={cell.id}
+                          ref={isActions ? actionsColumnRef : null}
+                          className={
+                            isActions ? "bg-background sticky left-0 z-10" : ""
+                          }
+                          style={{
+                            position: isActions ? "sticky" : "relative",
+                            left: isActions ? 0 : "auto",
+                            zIndex: isActions ? 10 : 1,
+                            width: isActions
+                              ? actionsColumnWidth
+                              : cell.column.getSize(),
+                          }}
+                        >
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext()
+                          )}
+                        </TableCell>
+                      )
+                    })}
                   </TableRow>
-                  {Array.from({ length: 9 }).map((_, index) => (
-                    <TableRow key={`empty-${index}`}>
-                      <TableCell
-                        colSpan={tableColumns.length}
-                        className="h-10"
-                      />
-                    </TableRow>
-                  ))}
-                </>
-              ) : (
-                <>
-                  <tr style={{ height: `${paddingTop}px` }} />
-                  {virtualRows.map((virtualRow) => {
-                    const row = table.getRowModel().rows[virtualRow.index]
+                )
+              })}
+
+              {/* Add empty rows to fill the remaining space based on page size */}
+              {Array.from({
+                length: Math.max(0, pageSize - table.getRowModel().rows.length),
+              }).map((_, index) => (
+                <TableRow key={`empty-${index}`} className="h-12">
+                  {table.getAllLeafColumns().map((column, cellIndex) => {
+                    const isActions = column.id === "actions"
+                    const isFirstColumn = cellIndex === 0
+
                     return (
-                      <TableRow key={row.id}>
-                        {row.getVisibleCells().map((cell) => {
-                          const isActions = cell.column.id === "actions"
-                          return (
-                            <TableCell
-                              key={cell.id}
-                              ref={isActions ? actionsColumnRef : null}
-                              className={
-                                isActions
-                                  ? "bg-background sticky left-0 z-10"
-                                  : ""
-                              }
-                              style={{
-                                position: isActions ? "sticky" : "relative",
-                                left: isActions ? 0 : "auto",
-                                zIndex: isActions ? 10 : 1,
-                                width: isActions
-                                  ? actionsColumnWidth
-                                  : cell.column.getSize(),
-                              }}
-                            >
-                              {flexRender(
-                                cell.column.columnDef.cell,
-                                cell.getContext()
-                              )}
-                            </TableCell>
-                          )
-                        })}
-                      </TableRow>
+                      <TableCell
+                        key={`empty-${index}-${column.id}`}
+                        className={`py-1 ${
+                          isFirstColumn || isActions
+                            ? "bg-background sticky left-0 z-10"
+                            : ""
+                        }`}
+                        style={{
+                          width: `${column.getSize()}px`,
+                          minWidth: `${column.getSize()}px`,
+                          maxWidth: `${column.getSize()}px`,
+                          position:
+                            isFirstColumn || isActions ? "sticky" : "relative",
+                          left: isFirstColumn || isActions ? 0 : "auto",
+                          zIndex: isFirstColumn || isActions ? 10 : 1,
+                        }}
+                      >
+                        {/* Empty cell content */}
+                      </TableCell>
                     )
                   })}
+                </TableRow>
+              ))}
 
-                  <tr style={{ height: `${paddingBottom}px` }} />
-                </>
+              {/* Show empty state or loading message when no data */}
+              {table.getRowModel().rows.length === 0 && (
+                <TableRow>
+                  <TableCell
+                    colSpan={tableColumns.length}
+                    className="h-24 text-center"
+                  >
+                    {isLoading ? "Loading..." : emptyMessage}
+                  </TableCell>
+                </TableRow>
               )}
             </TableBody>
           </Table>

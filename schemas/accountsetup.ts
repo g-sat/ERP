@@ -4,7 +4,7 @@ export const accountSetupSchema = z.object({
   accSetupCode: z.string().min(1, { message: "Code is required" }),
   accSetupName: z.string().min(1, { message: "Name is required" }),
   accSetupId: z.number().min(0, { message: "ID must be 0 or greater" }),
-  accSetupCategoryId: z.number().min(0, { message: "ID must be 0 or greater" }),
+  accSetupCategoryId: z.number().min(1, { message: "Category is required" }),
   isActive: z.boolean().default(true),
   remarks: z.string().optional(),
 })
@@ -22,7 +22,7 @@ export type AccountSetupFiltersValues = z.infer<
 >
 
 export const accountSetupCategorySchema = z.object({
-  accSetupCategoryId: z.number().min(0, { message: "ID must be 0 or greater" }),
+  accSetupCategoryId: z.number().min(1, { message: "Category is required" }),
   accSetupCategoryCode: z.string().min(1, { message: "Code is required" }),
   accSetupCategoryName: z.string().min(1, { message: "Name is required" }),
   isActive: z.boolean().default(true),
@@ -43,9 +43,9 @@ export type AccountSetupCategoryFiltersValues = z.infer<
 >
 
 export const accountSetupDtSchema = z.object({
-  accSetupId: z.number().min(1),
-  currencyId: z.number().min(1),
-  glId: z.number().min(1),
+  accSetupId: z.number().min(1, { message: "Account Setup is required" }),
+  currencyId: z.number().min(1, { message: "Currency is required" }),
+  glId: z.number().min(1, { message: "GL is required" }),
   applyAllCurr: z.boolean(),
 })
 

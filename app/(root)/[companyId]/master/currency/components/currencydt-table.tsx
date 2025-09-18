@@ -1,6 +1,6 @@
 "use client"
 
-import { ICurrencyDt, ICurrencyDtFilter } from "@/interfaces/currency"
+import { ICurrencyDt } from "@/interfaces/currency"
 import { useAuthStore } from "@/stores/auth-store"
 import { ColumnDef } from "@tanstack/react-table"
 import { format, isValid } from "date-fns"
@@ -86,7 +86,7 @@ export function CurrencyDtsTable({
     {
       accessorKey: "createBy",
       header: "Create By",
-      cell: ({ row }) => <div>{row.getValue("createBy") || "-"}</div>,
+
       size: 120,
       minSize: 50,
     },
@@ -109,7 +109,7 @@ export function CurrencyDtsTable({
     {
       accessorKey: "editBy",
       header: "Edit By",
-      cell: ({ row }) => <div>{row.getValue("editBy") || "-"}</div>,
+
       size: 120,
       minSize: 50,
     },
@@ -138,7 +138,7 @@ export function CurrencyDtsTable({
       isLoading={isLoading}
       moduleId={moduleId}
       transactionId={transactionId}
-      tableName={TableName.currency_dt}
+      tableName={TableName.currencyDt}
       emptyMessage="No currency details found."
       accessorId="currencyId"
       // Add handlers if provided

@@ -86,7 +86,7 @@ export function ContactsTable({
   const { data: gridSettings } = useGetGridLayout(
     moduleId?.toString() || "",
     transactionId?.toString() || "",
-    TableName.customer_contact
+    TableName.customerContact
   )
 
   useEffect(() => {
@@ -200,7 +200,7 @@ export function ContactsTable({
       accessorKey: "isActive",
       header: "Status",
       cell: ({ row }) => (
-        <Badge variant={row.getValue("isActive") ? "default" : "secondary"}>
+        <Badge variant={row.getValue("isActive") ? "default" : "destructive"}>
           {row.getValue("isActive") ? (
             <IconCircleCheckFilled className="mr-1 fill-green-500 dark:fill-green-400" />
           ) : (
@@ -247,14 +247,14 @@ export function ContactsTable({
     {
       accessorKey: "remarks",
       header: "Remarks",
-      cell: ({ row }) => <div>{row.getValue("remarks") || "-"}</div>,
+
       size: 200,
       minSize: 50,
     },
     {
       accessorKey: "createBy",
       header: "Create By",
-      cell: ({ row }) => <div>{row.getValue("createBy") || "-"}</div>,
+
       size: 120,
       minSize: 50,
     },
@@ -277,7 +277,7 @@ export function ContactsTable({
     {
       accessorKey: "editBy",
       header: "Edit By",
-      cell: ({ row }) => <div>{row.getValue("editBy") || "-"}</div>,
+
       size: 120,
       minSize: 50,
     },
@@ -395,7 +395,7 @@ export function ContactsTable({
         onCreate={onCreateContact}
         columns={table.getAllLeafColumns()}
         data={data}
-        tableName={TableName.customer_contact}
+        tableName={TableName.customerContact}
         hideCreateButton={false}
         moduleId={moduleId || ModuleId.master}
         transactionId={transactionId || MasterTransactionId.customer}

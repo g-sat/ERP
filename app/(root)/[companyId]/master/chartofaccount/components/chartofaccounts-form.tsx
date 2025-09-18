@@ -11,6 +11,13 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { format } from "date-fns"
 import { useForm } from "react-hook-form"
 
+import {
+  useAccountGroupLookup,
+  useAccountTypeLookup,
+  useCOACategory1Lookup,
+  useCOACategory2Lookup,
+  useCOACategory3Lookup,
+} from "@/hooks/use-lookup"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Form } from "@/components/ui/form"
@@ -70,6 +77,12 @@ export function ChartOfAccountForm({
           isActive: true,
         },
   })
+
+  useAccountTypeLookup()
+  useAccountGroupLookup()
+  useCOACategory1Lookup()
+  useCOACategory2Lookup()
+  useCOACategory3Lookup()
 
   // Reset form when initialData changes
   useEffect(() => {
@@ -165,14 +178,12 @@ export function ChartOfAccountForm({
                 form={form}
                 name="coaCategoryId2"
                 label="Category 2"
-                isRequired={true}
                 isDisabled={isReadOnly}
               />
               <COACategory3Autocomplete
                 form={form}
                 name="coaCategoryId3"
                 label="Category 3"
-                isRequired={true}
                 isDisabled={isReadOnly}
               />
             </div>

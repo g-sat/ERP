@@ -1,6 +1,7 @@
 "use client"
 
 import { useCallback, useState } from "react"
+import { useParams } from "next/navigation"
 import {
   IAccountSetup,
   IAccountSetupCategory,
@@ -49,6 +50,8 @@ import { AccountSetupDtForm } from "./components/account-setupdt-form"
 import { AccountSetupDtTable } from "./components/account-setupdt-table"
 
 export default function AccountSetupPage() {
+  const companyId = useParams().companyId as string
+
   const moduleId = ModuleId.master
   const transactionId = MasterTransactionId.accountSetup
   const transactionIdCategory = MasterTransactionId.accountSetupCategory
@@ -921,6 +924,7 @@ export default function AccountSetupPage() {
               saveMutationDt.isPending || updateMutationDt.isPending
             }
             isReadOnly={modalDtMode === "view"}
+            companyId={companyId}
           />
         </DialogContent>
       </Dialog>

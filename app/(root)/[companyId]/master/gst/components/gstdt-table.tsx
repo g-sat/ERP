@@ -84,7 +84,7 @@ export function GstDtTable({
     {
       accessorKey: "createBy",
       header: "Create By",
-      cell: ({ row }) => <div>{row.getValue("createBy") || "-"}</div>,
+
       size: 120,
       minSize: 50,
     },
@@ -107,7 +107,7 @@ export function GstDtTable({
     {
       accessorKey: "editBy",
       header: "Edit By",
-      cell: ({ row }) => <div>{row.getValue("editBy") || "-"}</div>,
+
       size: 120,
       minSize: 50,
     },
@@ -136,7 +136,7 @@ export function GstDtTable({
       isLoading={isLoading}
       moduleId={moduleId}
       transactionId={transactionId}
-      tableName={TableName.gst_dt}
+      tableName={TableName.gstDt}
       emptyMessage="No gst details found."
       accessorId="gstId"
       // Add handlers if provided

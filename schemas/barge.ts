@@ -2,38 +2,44 @@ import * as z from "zod"
 
 export const bargeSchema = z.object({
   bargeId: z.number().optional(),
-  bargeName: z
-    .string()
-    .min(2, { message: "barge name must be at least 2 characters" })
-    .max(150, { message: "barge name cannot exceed 150 characters" }),
   bargeCode: z
     .string()
     .min(1, { message: "barge code is required" })
     .max(50, { message: "barge code cannot exceed 50 characters" }),
+  bargeName: z
+    .string()
+    .min(2, { message: "barge name must be at least 2 characters" })
+    .max(150, { message: "barge name cannot exceed 150 characters" }),
   callSign: z
     .string()
-    .max(50, { message: "call sign cannot exceed 50 characters" })
-    .optional(),
+    .max(150, { message: "call sign cannot exceed 150 characters" })
+    .optional()
+    .default(""),
   imoCode: z
     .string()
-    .max(50, { message: "IMO code cannot exceed 50 characters" })
-    .optional(),
+    .max(150, { message: "IMO code cannot exceed 150 characters" })
+    .optional()
+    .default(""),
   grt: z
     .string()
-    .max(50, { message: "GRT cannot exceed 50 characters" })
-    .optional(),
+    .max(150, { message: "GRT cannot exceed 150 characters" })
+    .optional()
+    .default(""),
   licenseNo: z
     .string()
-    .max(50, { message: "license number cannot exceed 50 characters" })
-    .optional(),
+    .max(150, { message: "license number cannot exceed 150 characters" })
+    .optional()
+    .default(""),
   bargeType: z
     .string()
-    .max(50, { message: "barge type cannot exceed 50 characters" })
-    .optional(),
+    .max(150, { message: "barge type cannot exceed 150 characters" })
+    .optional()
+    .default(""),
   flag: z
     .string()
-    .max(50, { message: "flag cannot exceed 50 characters" })
-    .optional(),
+    .max(150, { message: "flag cannot exceed 150 characters" })
+    .optional()
+    .default(""),
   remarks: z
     .string()
     .max(255, { message: "Remarks cannot exceed 255 characters" })

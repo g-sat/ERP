@@ -39,23 +39,6 @@ import { OrderTypeTable } from "./components/ordertype-table"
 import { OrderTypeCategoryForm } from "./components/ordertypecategory-form"
 import { OrderTypeCategoryTable } from "./components/ordertypecategory-table"
 
-// Skeleton configuration for consistent loading states
-const tableSkeletonProps = {
-  columnCount: 8,
-  filterCount: 2,
-  cellWidths: [
-    "10rem",
-    "30rem",
-    "10rem",
-    "10rem",
-    "10rem",
-    "10rem",
-    "6rem",
-    "6rem",
-  ],
-  shrinkZero: true,
-}
-
 export default function OrderTypePage() {
   const moduleId = ModuleId.master
   const transactionId = MasterTransactionId.orderType
@@ -117,14 +100,12 @@ export default function OrderTypePage() {
     data: ordertypesResponse,
     refetch: refetchOrderType,
     isLoading: isLoadingOrderType,
-    isRefetching: isRefetchingOrderType,
   } = useGet<IOrderType>(`${OrderType.get}`, "ordertypes", filters.search)
 
   const {
     data: ordertypesCategoryResponse,
     refetch: refetchOrderTypeCategory,
     isLoading: isLoadingOrderTypeCategory,
-    isRefetching: isRefetchingOrderTypeCategory,
   } = useGet<IOrderTypeCategory>(
     `${OrderTypeCategory.get}`,
     "ordertypecategory",
@@ -192,11 +173,11 @@ export default function OrderTypePage() {
   // Refetch when filters change
   useEffect(() => {
     if (filters.search !== undefined) refetchOrderType()
-  }, [filters.search])
+  }, [filters.search, refetchOrderType])
 
   useEffect(() => {
     if (categoryFilters.search !== undefined) refetchOrderTypeCategory()
-  }, [categoryFilters.search])
+  }, [categoryFilters.search, refetchOrderTypeCategory])
 
   // Action handlers
   const handleCreateOrderType = () => {
@@ -442,15 +423,7 @@ export default function OrderTypePage() {
     }
   }
 
-  // Loading state
-  if (
-    isLoadingOrderType ||
-    isRefetchingOrderType ||
-    isLoadingOrderTypeCategory ||
-    isRefetchingOrderTypeCategory
-  ) {
-    return <DataTableSkeleton {...tableSkeletonProps} />
-  }
+  // Loading state removed - individual tables handle their own loading states
 
   return (
     <div className="container mx-auto space-y-2 px-4 pt-2 pb-4 sm:space-y-3 sm:px-6 sm:pt-3 sm:pb-6">
@@ -510,10 +483,9 @@ export default function OrderTypePage() {
                 canCreate={canCreate}
               />
             </LockSkeleton>
-          ) : ordertypesResult ? (
+          ) : (
             <OrderTypeTable
               data={filters.search ? [] : ordertypesData || []}
-              isLoading={isLoadingOrderType}
               onSelect={canView ? handleViewOrderType : undefined}
               onDelete={canDelete ? handleDeleteOrderType : undefined}
               onEdit={canEdit ? handleEditOrderType : undefined}
@@ -527,12 +499,6 @@ export default function OrderTypePage() {
               canView={canView}
               canCreate={canCreate}
             />
-          ) : (
-            <div className="py-8 text-center">
-              <p className="text-muted-foreground">
-                {ordertypesResult === 0 ? "No data available" : "Loading..."}
-              </p>
-            </div>
           )}
         </TabsContent>
 
@@ -580,10 +546,9 @@ export default function OrderTypePage() {
                 canCreate={canCreateCategory}
               />
             </LockSkeleton>
-          ) : ordertypesCategoryResult ? (
+          ) : (
             <OrderTypeCategoryTable
               data={categoryFilters.search ? [] : ordertypesCategoryData || []}
-              isLoading={isLoadingOrderTypeCategory}
               onSelect={
                 canViewCategory ? handleViewOrderTypeCategory : undefined
               }
@@ -603,14 +568,6 @@ export default function OrderTypePage() {
               canView={canViewCategory}
               canCreate={canCreateCategory}
             />
-          ) : (
-            <div className="py-8 text-center">
-              <p className="text-muted-foreground">
-                {ordertypesCategoryResult === 0
-                  ? "No data available"
-                  : "Loading..."}
-              </p>
-            </div>
           )}
         </TabsContent>
       </Tabs>

@@ -24,7 +24,6 @@ export interface IServiceTypeFilter {
 
 export interface IServiceTypeCategory {
   serviceTypeCategoryId: number
-  companyId: number
   serviceTypeCategoryCode: string
   serviceTypeCategoryName: string
   createById: number

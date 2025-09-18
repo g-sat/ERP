@@ -79,7 +79,7 @@ export function PortRegionsTable({
     {
       accessorKey: "remarks",
       header: "Remarks",
-      cell: ({ row }) => <div>{row.getValue("remarks") || "-"}</div>,
+
       size: 200,
       minSize: 50,
     },
@@ -102,7 +102,7 @@ export function PortRegionsTable({
     {
       accessorKey: "createBy",
       header: "Create By",
-      cell: ({ row }) => <div>{row.getValue("createBy") || "-"}</div>,
+
       size: 120,
       minSize: 50,
     },
@@ -122,7 +122,7 @@ export function PortRegionsTable({
     {
       accessorKey: "editBy",
       header: "Edit By",
-      cell: ({ row }) => <div>{row.getValue("editBy") || "-"}</div>,
+
       size: 120,
       minSize: 50,
     },
@@ -148,7 +148,7 @@ export function PortRegionsTable({
       isLoading={isLoading}
       moduleId={moduleId}
       transactionId={transactionId}
-      tableName={TableName.port_region}
+      tableName={TableName.portRegion}
       emptyMessage="No port regions found."
       accessorId="portRegionId"
       // Add handlers if provided

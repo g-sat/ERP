@@ -67,9 +67,16 @@ export function ServiceTypeTable({
       enableColumnFilter: true,
     },
     {
+      accessorKey: "serviceTypeCategoryName",
+      header: "Category",
+      size: 200,
+      minSize: 50,
+      enableColumnFilter: true,
+    },
+    {
       accessorKey: "remarks",
       header: "Remarks",
-      cell: ({ row }) => <div>{row.getValue("remarks") || "-"}</div>,
+
       size: 250,
       minSize: 50,
     },
@@ -92,7 +99,7 @@ export function ServiceTypeTable({
     {
       accessorKey: "createBy",
       header: "Create By",
-      cell: ({ row }) => <div>{row.getValue("createBy") || "-"}</div>,
+
       size: 120,
       minSize: 50,
     },
@@ -112,7 +119,7 @@ export function ServiceTypeTable({
     {
       accessorKey: "editBy",
       header: "Edit By",
-      cell: ({ row }) => <div>{row.getValue("editBy") || "-"}</div>,
+
       size: 120,
       minSize: 50,
     },
@@ -138,7 +145,7 @@ export function ServiceTypeTable({
       isLoading={isLoading}
       moduleId={moduleId}
       transactionId={transactionId}
-      tableName={TableName.service_type}
+      tableName={TableName.serviceType}
       emptyMessage="No service types found."
       accessorId="serviceTypeId"
       // Add handlers if provided

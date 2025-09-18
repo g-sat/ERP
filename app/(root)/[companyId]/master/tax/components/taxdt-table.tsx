@@ -84,7 +84,7 @@ export function TaxDtTable({
     {
       accessorKey: "createBy",
       header: "Create By",
-      cell: ({ row }) => <div>{row.getValue("createBy") || "-"}</div>,
+
       size: 120,
       minSize: 50,
     },
@@ -107,7 +107,7 @@ export function TaxDtTable({
     {
       accessorKey: "editBy",
       header: "Edit By",
-      cell: ({ row }) => <div>{row.getValue("editBy") || "-"}</div>,
+
       size: 120,
       minSize: 50,
     },
@@ -136,7 +136,7 @@ export function TaxDtTable({
       isLoading={isLoading}
       moduleId={moduleId}
       transactionId={transactionId}
-      tableName={TableName.tax_dt}
+      tableName={TableName.taxDt}
       emptyMessage="No tax details found."
       accessorId="taxId"
       // Add handlers if provided

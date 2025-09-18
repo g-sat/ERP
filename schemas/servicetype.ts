@@ -6,17 +6,20 @@ export const serviceTypeSchema = z.object({
   serviceTypeCode: z
     .string()
     .min(1, { message: "Service type code is required" })
-    .max(50),
+    .max(50, { message: "Service type code cannot exceed 50 characters" }),
   serviceTypeName: z
     .string()
     .min(2, { message: "Service type name must be at least 2 characters" })
-    .max(150),
-  serviceTypeCategoryId: z.number(),
-  serviceTypeCategoryCode: z.string().max(50),
-  serviceTypeCategoryName: z.string().max(150),
-
+    .max(150, { message: "Service type name cannot exceed 150 characters" }),
+  serviceTypeCategoryId: z
+    .number()
+    .min(1, { message: "Service type category is required" }),
+  remarks: z
+    .string()
+    .max(255, { message: "Remarks cannot exceed 255 characters" })
+    .optional()
+    .default(""),
   isActive: z.boolean().default(true),
-  remarks: z.string().max(255).optional(),
 })
 
 export type ServiceTypeFormValues = z.infer<typeof serviceTypeSchema>
@@ -32,16 +35,26 @@ export type ServiceTypeFiltersValues = z.infer<typeof serviceTypeFiltersSchema>
 export const serviceTypeCategorySchema = z.object({
   serviceTypeCategoryId: z.number(),
 
-  serviceTypeCategoryCode: z.string().max(50),
-  serviceTypeCategoryName: z.string().max(150),
-  createById: z.number(),
-  editById: z.number(),
-  createBy: z.string(),
-  editBy: z.string().nullable(),
-  createDate: z.union([z.string(), z.date()]),
-  editDate: z.union([z.string(), z.date()]).nullable(),
+  serviceTypeCategoryCode: z
+    .string()
+    .min(1, { message: "Service type category code is required" })
+    .max(50, {
+      message: "Service type category code cannot exceed 50 characters",
+    }),
+  serviceTypeCategoryName: z
+    .string()
+    .min(2, {
+      message: "Service type category name must be at least 2 characters",
+    })
+    .max(150, {
+      message: "Service type category name cannot exceed 150 characters",
+    }),
+  remarks: z
+    .string()
+    .max(255, { message: "Remarks cannot exceed 255 characters" })
+    .optional()
+    .default(""),
   isActive: z.boolean().default(true),
-  remarks: z.string().max(255).optional(),
 })
 
 export type ServiceTypeCategoryFormValues = z.infer<

@@ -21,8 +21,36 @@ export const UserRights = {
 // Document Endpoints
 export const DocumentType = {
   get: "/admin/getdocumentbyid",
+  getByCode: "/admin/getdocumentbycode",
   add: "/admin/savedocument",
   delete: "/admin/deletedocument",
+}
+
+// Document Endpoints
+export const LeaveType = {
+  get: "/master/getleavetype",
+  getbyId: "/master/getleavetypebyid",
+  getByCode: "/master/getleavetypebycode",
+  add: "/master/saveleavetype",
+  delete: "/master/deleteleavetype",
+}
+
+// Document Endpoints
+export const EntityType = {
+  get: "/master/getentitytype",
+  getbyId: "/master/getentitytypebyid",
+  getByCode: "/master/getentitytypebycode",
+  add: "/master/saveentitytype",
+  delete: "/master/deleteentitytype",
+}
+
+// Document Endpoints
+export const LoanType = {
+  get: "/master/getloantype",
+  getbyId: "/master/getloantypebyid",
+  getByCode: "/master/getloantypebycode",
+  add: "/master/saveloantype",
+  delete: "/master/deleteloantype",
 }
 
 // Document Expiry Endpoints

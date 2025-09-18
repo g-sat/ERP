@@ -74,7 +74,7 @@ export function PaymentTypesTable({
     {
       accessorKey: "remarks",
       header: "Remarks",
-      cell: ({ row }) => <div>{row.getValue("remarks") || "-"}</div>,
+
       size: 200,
       minSize: 50,
     },
@@ -97,7 +97,7 @@ export function PaymentTypesTable({
     {
       accessorKey: "createBy",
       header: "Create By",
-      cell: ({ row }) => <div>{row.getValue("createBy") || "-"}</div>,
+
       size: 120,
       minSize: 50,
     },
@@ -120,7 +120,7 @@ export function PaymentTypesTable({
     {
       accessorKey: "editBy",
       header: "Edit By",
-      cell: ({ row }) => <div>{row.getValue("editBy") || "-"}</div>,
+
       size: 120,
       minSize: 50,
     },
@@ -149,7 +149,7 @@ export function PaymentTypesTable({
       isLoading={isLoading}
       moduleId={moduleId}
       transactionId={transactionId}
-      tableName={TableName.payment_type}
+      tableName={TableName.paymentType}
       emptyMessage="No payment types found."
       accessorId="paymentTypeId"
       // Add handlers if provided

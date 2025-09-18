@@ -5,7 +5,7 @@
 // ============================================================================
 
 // React hooks for component state and lifecycle management
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useState } from "react"
 // Drag and Drop functionality for column reordering
 import {
   DndContext,
@@ -54,8 +54,8 @@ import {
   // Row model with sorting capabilities
   useReactTable, // Main hook to create table instance
 } from "@tanstack/react-table"
-// Virtual scrolling for performance with large datasets
-import { useVirtualizer } from "@tanstack/react-virtual"
+
+// Virtual scrolling removed - using empty rows instead
 
 // Utility types and custom hooks
 import { TableName } from "@/lib/utils"
@@ -260,8 +260,7 @@ export function MainDataTable<T>({
   const [pageSize, setPageSize] = useState(15) // Number of items per page
   const [rowSelection, setRowSelection] = useState({}) // Selected rows state
 
-  // Reference to table container for virtual scrolling
-  const tableContainerRef = useRef<HTMLDivElement>(null)
+  // Reference to table container (removed as not needed)
 
   // ============================================================================
   // EFFECT: UPDATE STATE WHEN GRID SETTINGS CHANGE
@@ -436,36 +435,8 @@ export function MainDataTable<T>({
   }, [gridSettingsData, table]) // Re-run when grid settings or table instance changes
 
   // ============================================================================
-  // VIRTUAL SCROLLING SETUP
+  // TABLE RENDERING SETUP
   // ============================================================================
-
-  /**
-   * Set up virtual scrolling for performance with large datasets
-   * Only renders visible rows plus a small buffer, dramatically improving performance
-   */
-  const rowVirtualizer = useVirtualizer({
-    count: table.getRowModel().rows.length, // Total number of rows to virtualize
-    getScrollElement: () => tableContainerRef.current, // Container element for scrolling
-    estimateSize: () => 28, // Estimated height of each row in pixels
-    overscan: 5, // Number of extra rows to render outside viewport
-  })
-
-  // ============================================================================
-  // VIRTUAL SCROLLING CALCULATIONS
-  // ============================================================================
-
-  // Get the currently visible virtual rows
-  const virtualRows = rowVirtualizer.getVirtualItems()
-
-  // Calculate total height of all rows (visible + invisible)
-  const totalSize = rowVirtualizer.getTotalSize()
-
-  // Calculate padding for smooth scrolling
-  const paddingTop = virtualRows.length > 0 ? virtualRows[0].start : 0 // Top padding
-  const paddingBottom = // Bottom padding
-    virtualRows.length > 0
-      ? totalSize - virtualRows[virtualRows.length - 1].end
-      : 0
 
   // ============================================================================
   // DRAG AND DROP SENSORS
@@ -593,7 +564,11 @@ export function MainDataTable<T>({
           onSearchChange={handleSearch} // Search change handler
           onRefresh={onRefresh} // Refresh button handler
           onCreate={onCreateItem} // Create button handler
-          columns={table.getAllLeafColumns()} // All available columns for visibility toggle
+          //columns={table.getAllLeafColumns()}
+          columns={table
+            .getHeaderGroups()
+            .flatMap((group) => group.headers)
+            .map((header) => header.column)} // All columns in display order
           data={data} // Current data for export functionality
           tableName={tableName} // Table name for settings
           hideCreateButton={!canCreate} // Hide create button if no permission
@@ -656,10 +631,9 @@ export function MainDataTable<T>({
               </TableHeader>
             </Table>
 
-            {/* Scrollable body container with virtual scrolling */}
+            {/* Scrollable body container */}
             <div
-              ref={tableContainerRef} // Reference for virtual scrolling
-              className="max-h-[500px] overflow-y-auto" // Fixed height with vertical scrolling
+              className="overflow-y-auto" // Allow vertical scrolling if needed
             >
               {/* Body table with same column sizing as header */}
               <Table
@@ -682,77 +656,110 @@ export function MainDataTable<T>({
 
                 <TableBody>
                   {/* ============================================================================
+                    DATA ROWS RENDERING
+                    ============================================================================ */}
+
+                  {/* Render data rows */}
+                  {table.getRowModel().rows.map((row) => {
+                    return (
+                      <TableRow key={row.id}>
+                        {/* Render each visible cell in the row */}
+                        {row.getVisibleCells().map((cell, cellIndex) => {
+                          const isActions = cell.column.id === "actions"
+                          const isFirstColumn = cellIndex === 0
+
+                          return (
+                            <TableCell
+                              key={cell.id}
+                              className={`py-1 ${
+                                isFirstColumn || isActions
+                                  ? "bg-background sticky left-0 z-10" // Make first column and actions sticky
+                                  : ""
+                              }`}
+                              style={{
+                                width: `${cell.column.getSize()}px`,
+                                minWidth: `${cell.column.getSize()}px`,
+                                maxWidth: `${cell.column.getSize()}px`,
+                                overflow: "hidden",
+                                textOverflow: "ellipsis",
+                                whiteSpace: "nowrap",
+                                position:
+                                  isFirstColumn || isActions
+                                    ? "sticky"
+                                    : "relative",
+                                left: isFirstColumn || isActions ? 0 : "auto",
+                                zIndex: isFirstColumn || isActions ? 10 : 1,
+                              }}
+                            >
+                              {/* Render cell content using column definition */}
+                              {flexRender(
+                                cell.column.columnDef.cell, // Cell renderer from column definition
+                                cell.getContext() // Cell context with row data
+                              )}
+                            </TableCell>
+                          )
+                        })}
+                      </TableRow>
+                    )
+                  })}
+
+                  {/* ============================================================================
+                    EMPTY ROWS TO FILL PAGE SIZE
+                    ============================================================================ */}
+
+                  {/* Add empty rows to fill the remaining space based on page size */}
+                  {Array.from({
+                    length: Math.max(
+                      0,
+                      pageSize - table.getRowModel().rows.length
+                    ),
+                  }).map((_, index) => (
+                    <TableRow key={`empty-${index}`} className="h-7">
+                      {table.getAllLeafColumns().map((column, cellIndex) => {
+                        const isActions = column.id === "actions"
+                        const isFirstColumn = cellIndex === 0
+
+                        return (
+                          <TableCell
+                            key={`empty-${index}-${column.id}`}
+                            className={`py-1 ${
+                              isFirstColumn || isActions
+                                ? "bg-background sticky left-0 z-10" // Make first column and actions sticky
+                                : ""
+                            }`}
+                            style={{
+                              width: `${column.getSize()}px`,
+                              minWidth: `${column.getSize()}px`,
+                              maxWidth: `${column.getSize()}px`,
+                              position:
+                                isFirstColumn || isActions
+                                  ? "sticky"
+                                  : "relative",
+                              left: isFirstColumn || isActions ? 0 : "auto",
+                              zIndex: isFirstColumn || isActions ? 10 : 1,
+                            }}
+                          >
+                            {/* Empty cell content */}
+                          </TableCell>
+                        )
+                      })}
+                    </TableRow>
+                  ))}
+
+                  {/* ============================================================================
                     EMPTY STATE OR LOADING
                     ============================================================================ */}
 
-                  {/* Show empty state or loading message when no virtual rows */}
-                  {virtualRows.length === 0 ? (
+                  {/* Show empty state or loading message when no data */}
+                  {table.getRowModel().rows.length === 0 && (
                     <TableRow>
                       <TableCell
                         colSpan={tableColumns.length} // Span all columns
-                        className="text-center" // Center the message
+                        className="h-7 text-center" // Center the message
                       >
                         {isLoading ? "Loading..." : emptyMessage}
                       </TableCell>
                     </TableRow>
-                  ) : (
-                    /* ============================================================================
-                      VIRTUAL ROWS RENDERING
-                      ============================================================================ */
-
-                    <>
-                      {/* Top padding for virtual scrolling */}
-                      <tr style={{ height: `${paddingTop}px` }} />
-
-                      {/* Render only visible virtual rows for performance */}
-                      {virtualRows.map((virtualRow) => {
-                        const row = table.getRowModel().rows[virtualRow.index] // Get actual row data
-                        return (
-                          <TableRow key={row.id}>
-                            {/* Render each visible cell in the row */}
-                            {row.getVisibleCells().map((cell, cellIndex) => {
-                              const isActions = cell.column.id === "actions"
-                              const isFirstColumn = cellIndex === 0
-
-                              return (
-                                <TableCell
-                                  key={cell.id}
-                                  className={`py-1 ${
-                                    isFirstColumn || isActions
-                                      ? "bg-background sticky left-0 z-10" // Make first column and actions sticky
-                                      : ""
-                                  }`}
-                                  style={{
-                                    width: `${cell.column.getSize()}px`,
-                                    minWidth: `${cell.column.getSize()}px`,
-                                    maxWidth: `${cell.column.getSize()}px`,
-                                    overflow: "hidden",
-                                    textOverflow: "ellipsis",
-                                    whiteSpace: "nowrap",
-                                    position:
-                                      isFirstColumn || isActions
-                                        ? "sticky"
-                                        : "relative",
-                                    left:
-                                      isFirstColumn || isActions ? 0 : "auto",
-                                    zIndex: isFirstColumn || isActions ? 10 : 1,
-                                  }}
-                                >
-                                  {/* Render cell content using column definition */}
-                                  {flexRender(
-                                    cell.column.columnDef.cell, // Cell renderer from column definition
-                                    cell.getContext() // Cell context with row data
-                                  )}
-                                </TableCell>
-                              )
-                            })}
-                          </TableRow>
-                        )
-                      })}
-
-                      {/* Bottom padding for virtual scrolling */}
-                      <tr style={{ height: `${paddingBottom}px` }} />
-                    </>
                   )}
                 </TableBody>
               </Table>

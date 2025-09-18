@@ -102,7 +102,7 @@ export function UserTable({
       accessorKey: "isActive",
       header: "Status",
       cell: ({ row }) => (
-        <Badge variant={row.getValue("isActive") ? "default" : "secondary"}>
+        <Badge variant={row.getValue("isActive") ? "default" : "destructive"}>
           {row.getValue("isActive") ? (
             <IconCircleCheckFilled className="mr-1 fill-green-500 dark:fill-green-400" />
           ) : (
@@ -136,7 +136,7 @@ export function UserTable({
     {
       accessorKey: "remarks",
       header: "Remarks",
-      cell: ({ row }) => <div>{row.getValue("remarks") || "-"}</div>,
+
       size: 200,
       minSize: 50,
       maxSize: 250,
@@ -144,7 +144,7 @@ export function UserTable({
     {
       accessorKey: "createBy",
       header: "Create By",
-      cell: ({ row }) => <div>{row.getValue("createBy") || "-"}</div>,
+
       size: 120,
       minSize: 50,
       maxSize: 150,
@@ -169,7 +169,7 @@ export function UserTable({
     {
       accessorKey: "editBy",
       header: "Edit By",
-      cell: ({ row }) => <div>{row.getValue("editBy") || "-"}</div>,
+
       size: 120,
       minSize: 50,
       maxSize: 150,

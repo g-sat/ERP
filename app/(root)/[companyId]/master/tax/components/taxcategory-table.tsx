@@ -72,7 +72,7 @@ export function TaxCategoryTable({
     {
       accessorKey: "remarks",
       header: "Remarks",
-      cell: ({ row }) => <div>{row.getValue("remarks") || "-"}</div>,
+
       size: 250,
       minSize: 50,
     },
@@ -95,7 +95,7 @@ export function TaxCategoryTable({
     {
       accessorKey: "createBy",
       header: "Create By",
-      cell: ({ row }) => <div>{row.getValue("createBy") || "-"}</div>,
+
       size: 120,
       minSize: 50,
     },
@@ -118,7 +118,7 @@ export function TaxCategoryTable({
     {
       accessorKey: "editBy",
       header: "Edit By",
-      cell: ({ row }) => <div>{row.getValue("editBy") || "-"}</div>,
+
       size: 120,
       minSize: 50,
     },
@@ -147,7 +147,7 @@ export function TaxCategoryTable({
       isLoading={isLoading}
       moduleId={moduleId}
       transactionId={transactionId}
-      tableName={TableName.tax_category}
+      tableName={TableName.taxCategory}
       emptyMessage="No tax categories found."
       accessorId="taxCategoryId"
       // Add handlers if provided

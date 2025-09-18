@@ -71,7 +71,7 @@ export function UomDtTable({
     {
       accessorKey: "createBy",
       header: "Create By",
-      cell: ({ row }) => <div>{row.getValue("createBy") || "-"}</div>,
+
       size: 120,
       minSize: 50,
     },
@@ -94,7 +94,7 @@ export function UomDtTable({
     {
       accessorKey: "editBy",
       header: "Edit By",
-      cell: ({ row }) => <div>{row.getValue("editBy") || "-"}</div>,
+
       size: 120,
       minSize: 50,
     },
@@ -123,7 +123,7 @@ export function UomDtTable({
       isLoading={isLoading}
       moduleId={moduleId}
       transactionId={transactionId}
-      tableName={TableName.uom_dt}
+      tableName={TableName.uomDt}
       emptyMessage="No UOM details found."
       accessorId="uomId"
       // Add handlers if provided

@@ -363,7 +363,7 @@ export function LandingItemsTable({
       {
         accessorKey: "editBy",
         header: "Edit By",
-        cell: ({ row }) => <div>{row.getValue("editBy") || "-"}</div>,
+
         size: 120,
         minSize: 50,
       },

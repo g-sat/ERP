@@ -1,6 +1,6 @@
 "use client"
 
-import { ICreditTermDt, ICreditTermFilter } from "@/interfaces/creditterm"
+import { ICreditTermDt } from "@/interfaces/creditterm"
 import { useAuthStore } from "@/stores/auth-store"
 import {
   IconCircleCheckFilled,
@@ -118,7 +118,7 @@ export function CreditTermDtsTable({
     {
       accessorKey: "createBy",
       header: "Create By",
-      cell: ({ row }) => <div>{row.getValue("createBy") || "-"}</div>,
+
       size: 120,
       minSize: 50,
     },
@@ -141,7 +141,7 @@ export function CreditTermDtsTable({
     {
       accessorKey: "editBy",
       header: "Edit By",
-      cell: ({ row }) => <div>{row.getValue("editBy") || "-"}</div>,
+
       size: 120,
       minSize: 50,
     },
@@ -170,7 +170,7 @@ export function CreditTermDtsTable({
       isLoading={isLoading}
       moduleId={moduleId}
       transactionId={transactionId}
-      tableName={TableName.credit_term_dt}
+      tableName={TableName.creditTermDt}
       emptyMessage="No credit term details found."
       accessorId="creditTermId"
       // Add handlers if provided

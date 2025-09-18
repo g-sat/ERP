@@ -63,11 +63,6 @@ export function AccountSetupCategoryTable({
     {
       accessorKey: "accSetupCategoryCode",
       header: "Code",
-      cell: ({ row }) => (
-        <div className="font-medium">
-          {row.getValue("accSetupCategoryCode")}
-        </div>
-      ),
       size: 120,
       minSize: 50,
       enableColumnFilter: true,
@@ -98,14 +93,12 @@ export function AccountSetupCategoryTable({
     {
       accessorKey: "remarks",
       header: "Remarks",
-      cell: ({ row }) => <div>{row.getValue("remarks") || "-"}</div>,
       size: 250,
       minSize: 50,
     },
     {
       accessorKey: "createBy",
       header: "Create By",
-      cell: ({ row }) => <div>{row.getValue("createBy") || "-"}</div>,
       size: 120,
       minSize: 50,
     },
@@ -125,7 +118,6 @@ export function AccountSetupCategoryTable({
     {
       accessorKey: "editBy",
       header: "Edit By",
-      cell: ({ row }) => <div>{row.getValue("editBy") || "-"}</div>,
       size: 120,
       minSize: 50,
     },
@@ -151,7 +143,7 @@ export function AccountSetupCategoryTable({
       isLoading={isLoading}
       moduleId={moduleId}
       transactionId={transactionId}
-      tableName={TableName.account_setup_category}
+      tableName={TableName.accountSetupCategory}
       emptyMessage="No account setup categories found."
       accessorId="accSetupCategoryId"
       // Add handlers if provided

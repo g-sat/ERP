@@ -58,42 +58,41 @@ export function AccountSetupDtTable({
     {
       accessorKey: "accSetupName",
       header: "Account Setup",
-      cell: ({ row }) => <div>{row.getValue("accSetupName") || "-"}</div>,
-      size: 120,
-      minSize: 50,
+
+      size: 200,
+      minSize: 100,
     },
     {
       accessorKey: "currencyName",
       header: "Currency",
-      cell: ({ row }) => <div>{row.getValue("currencyName") || "-"}</div>,
       size: 120,
       minSize: 50,
     },
     {
       accessorKey: "glCode",
-      header: "GL Code",
-      cell: ({ row }) => <div>{row.getValue("glCode") || "-"}</div>,
-      size: 120,
+      header: "Account Code",
+      size: 100,
       minSize: 50,
     },
     {
       accessorKey: "glName",
-      header: "GL Name",
-      cell: ({ row }) => <div>{row.getValue("glName") || "-"}</div>,
-      size: 120,
+      header: "Account",
+      size: 150,
       minSize: 50,
     },
     {
-      accessorKey: "isActive",
+      accessorKey: "applyAllCurr",
       header: "Status",
       cell: ({ row }) => (
-        <Badge variant={row.getValue("isActive") ? "default" : "secondary"}>
-          {row.getValue("isActive") ? (
+        <Badge
+          variant={row.getValue("applyAllCurr") ? "default" : "destructive"}
+        >
+          {row.getValue("applyAllCurr") ? (
             <IconCircleCheckFilled className="mr-1 fill-green-500 dark:fill-green-400" />
           ) : (
             <IconSquareRoundedXFilled className="mr-1 fill-red-500 dark:fill-red-400" />
           )}
-          {row.getValue("isActive") ? "Active" : "Inactive"}
+          {row.getValue("applyAllCurr") ? "Yes" : "No"}
         </Badge>
       ),
       size: 120,
@@ -102,14 +101,12 @@ export function AccountSetupDtTable({
     {
       accessorKey: "remarks",
       header: "Remarks",
-      cell: ({ row }) => <div>{row.getValue("remarks") || "-"}</div>,
       size: 200,
       minSize: 50,
     },
     {
       accessorKey: "createBy",
       header: "Create By",
-      cell: ({ row }) => <div>{row.getValue("createBy") || "-"}</div>,
       size: 120,
       minSize: 50,
     },
@@ -129,7 +126,6 @@ export function AccountSetupDtTable({
     {
       accessorKey: "editBy",
       header: "Edit By",
-      cell: ({ row }) => <div>{row.getValue("editBy") || "-"}</div>,
       size: 120,
       minSize: 50,
     },
@@ -155,7 +151,7 @@ export function AccountSetupDtTable({
       isLoading={isLoading}
       moduleId={moduleId}
       transactionId={transactionId}
-      tableName={TableName.account_setup_dt}
+      tableName={TableName.accountSetupDt}
       emptyMessage="No account setup details found."
       accessorId="accSetupId"
       // Add handlers if provided

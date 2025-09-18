@@ -38,23 +38,6 @@ import { ServiceTypeTable } from "./components/servicetype-table"
 import { ServiceTypeCategoryForm } from "./components/servicetypecategory-form"
 import { ServiceTypeCategoryTable } from "./components/servicetypecategory-table"
 
-// Skeleton configuration for consistent loading states
-const tableSkeletonProps = {
-  columnCount: 8,
-  filterCount: 2,
-  cellWidths: [
-    "10rem",
-    "30rem",
-    "10rem",
-    "10rem",
-    "10rem",
-    "10rem",
-    "6rem",
-    "6rem",
-  ],
-  shrinkZero: true,
-}
-
 export default function ServiceTypePage() {
   const moduleId = ModuleId.master
   const transactionId = MasterTransactionId.serviceType
@@ -117,14 +100,12 @@ export default function ServiceTypePage() {
     data: servicetypesResponse,
     refetch: refetchServiceType,
     isLoading: isLoadingServiceType,
-    isRefetching: isRefetchingServiceType,
   } = useGet<IServiceType>(`${ServiceType.get}`, "servicetypes", filters.search)
 
   const {
     data: servicetypesCategoryResponse,
     refetch: refetchServiceTypeCategory,
     isLoading: isLoadingServiceTypeCategory,
-    isRefetching: isRefetchingServiceTypeCategory,
   } = useGet<IServiceTypeCategory>(
     `${ServiceTypeCategory.get}`,
     "servicetypecategory",
@@ -434,15 +415,7 @@ export default function ServiceTypePage() {
     }
   }
 
-  // Loading state
-  if (
-    isLoadingServiceType ||
-    isRefetchingServiceType ||
-    isLoadingServiceTypeCategory ||
-    isRefetchingServiceTypeCategory
-  ) {
-    return <DataTableSkeleton {...tableSkeletonProps} />
-  }
+  // Loading state removed - individual tables handle their own loading states
 
   return (
     <div className="container mx-auto space-y-2 px-4 pt-2 pb-4 sm:space-y-3 sm:px-6 sm:pt-3 sm:pb-6">
@@ -502,10 +475,9 @@ export default function ServiceTypePage() {
                 canCreate={canCreate}
               />
             </LockSkeleton>
-          ) : servicetypesResult ? (
+          ) : (
             <ServiceTypeTable
               data={filters.search ? [] : servicetypesData || []}
-              isLoading={isLoadingServiceType}
               onSelect={canView ? handleViewServiceType : undefined}
               onDelete={canDelete ? handleDeleteServiceType : undefined}
               onEdit={canEdit ? handleEditServiceType : undefined}
@@ -519,12 +491,6 @@ export default function ServiceTypePage() {
               canView={canView}
               canCreate={canCreate}
             />
-          ) : (
-            <div className="py-8 text-center">
-              <p className="text-muted-foreground">
-                {servicetypesResult === 0 ? "No data available" : "Loading..."}
-              </p>
-            </div>
           )}
         </TabsContent>
 
@@ -576,12 +542,11 @@ export default function ServiceTypePage() {
                 canCreate={canCreateCategory}
               />
             </LockSkeleton>
-          ) : servicetypesCategoryResult ? (
+          ) : (
             <ServiceTypeCategoryTable
               data={
                 categoryFilters.search ? [] : servicetypesCategoryData || []
               }
-              isLoading={isLoadingServiceTypeCategory}
               onSelect={
                 canViewCategory ? handleViewServiceTypeCategory : undefined
               }
@@ -603,14 +568,6 @@ export default function ServiceTypePage() {
               canView={canViewCategory}
               canCreate={canCreateCategory}
             />
-          ) : (
-            <div className="py-8 text-center">
-              <p className="text-muted-foreground">
-                {servicetypesCategoryResult === 0
-                  ? "No data available"
-                  : "Loading..."}
-              </p>
-            </div>
           )}
         </TabsContent>
       </Tabs>

@@ -1,9 +1,6 @@
 "use client"
 
-import {
-  IChartofAccount,
-  IChartofAccountFilter,
-} from "@/interfaces/chartofaccount"
+import { IChartofAccount } from "@/interfaces/chartofaccount"
 import { useAuthStore } from "@/stores/auth-store"
 import {
   IconCircleCheckFilled,
@@ -84,42 +81,21 @@ export function ChartOfAccountsTable({
     {
       accessorKey: "coaCategoryName1",
       header: "Category 1",
-      cell: ({ row }) => (
-        <div
-          className="truncate"
-          title={row.getValue("coaCategoryName1") || "-"}
-        >
-          {row.getValue("coaCategoryName1") || "-"}
-        </div>
-      ),
+
       size: 120,
       minSize: 100,
     },
     {
       accessorKey: "coaCategoryName2",
       header: "Category 2",
-      cell: ({ row }) => (
-        <div
-          className="truncate"
-          title={row.getValue("coaCategoryName2") || "-"}
-        >
-          {row.getValue("coaCategoryName2") || "-"}
-        </div>
-      ),
+
       size: 120,
       minSize: 100,
     },
     {
       accessorKey: "coaCategoryName3",
       header: "Category 3",
-      cell: ({ row }) => (
-        <div
-          className="truncate"
-          title={row.getValue("coaCategoryName3") || "-"}
-        >
-          {row.getValue("coaCategoryName3") || "-"}
-        </div>
-      ),
+
       size: 120,
       minSize: 100,
     },
@@ -146,6 +122,11 @@ export function ChartOfAccountsTable({
       header: "Heading",
       cell: ({ row }) => (
         <Badge variant={row.getValue("isHeading") ? "default" : "destructive"}>
+          {row.getValue("isHeading") ? (
+            <IconCircleCheckFilled className="mr-1 fill-green-500 dark:fill-green-400" />
+          ) : (
+            <IconSquareRoundedXFilled className="mr-1 fill-red-500 dark:fill-red-400" />
+          )}
           {row.getValue("isHeading") ? "Yes" : "No"}
         </Badge>
       ),
@@ -238,11 +219,7 @@ export function ChartOfAccountsTable({
     {
       accessorKey: "remarks",
       header: "Remarks",
-      cell: ({ row }) => (
-        <div className="truncate" title={row.getValue("remarks") || "-"}>
-          {row.getValue("remarks") || "-"}
-        </div>
-      ),
+
       size: 200,
       minSize: 150,
     },
@@ -265,11 +242,7 @@ export function ChartOfAccountsTable({
     {
       accessorKey: "createBy",
       header: "Create By",
-      cell: ({ row }) => (
-        <div className="truncate" title={row.getValue("createBy") || "-"}>
-          {row.getValue("createBy") || "-"}
-        </div>
-      ),
+
       size: 120,
       minSize: 100,
     },
@@ -295,11 +268,7 @@ export function ChartOfAccountsTable({
     {
       accessorKey: "editBy",
       header: "Edit By",
-      cell: ({ row }) => (
-        <div className="truncate" title={row.getValue("editBy") || "-"}>
-          {row.getValue("editBy") || "-"}
-        </div>
-      ),
+
       size: 120,
       minSize: 100,
     },
@@ -331,7 +300,7 @@ export function ChartOfAccountsTable({
       isLoading={isLoading}
       moduleId={moduleId}
       transactionId={transactionId}
-      tableName={TableName.chart_of_account}
+      tableName={TableName.chartOfAccount}
       emptyMessage="No chart of accounts found."
       accessorId="glId"
       // Add handlers if provided
