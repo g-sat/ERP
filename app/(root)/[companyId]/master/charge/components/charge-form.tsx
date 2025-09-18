@@ -29,7 +29,7 @@ interface ChargeFormProps {
   onCancel?: () => void
   isSubmitting?: boolean
   isReadOnly?: boolean
-  onCodeBlur?: (code: string) => void
+  onCodeBlur?: (code: string, taskId?: number) => void
   companyId: string
 }
 
@@ -86,7 +86,17 @@ export function ChargeForm({
 
   const handleCodeBlur = () => {
     const code = form.getValues("chargeCode")
-    onCodeBlur?.(code)
+    const taskId = form.getValues("taskId")
+    onCodeBlur?.(code, taskId)
+  }
+
+  const handleTaskChange = () => {
+    const code = form.getValues("chargeCode")
+    const taskId = form.getValues("taskId")
+    // Only check if both code and taskId are available
+    if (code && taskId && taskId > 0) {
+      onCodeBlur?.(code, taskId)
+    }
   }
 
   const onSubmit = (data: ChargeFormValues) => {
@@ -104,6 +114,7 @@ export function ChargeForm({
                 name="taskId"
                 label="Task"
                 isRequired={true}
+                onChangeEvent={handleTaskChange}
               />
               <CustomInput
                 form={form}

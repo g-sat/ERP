@@ -81,21 +81,24 @@ export default function ChargePage() {
   const [showLoadDialog, setShowLoadDialog] = useState(false)
   const [existingCharge, setExistingCharge] = useState<ICharge | null>(null)
   const [codeToCheck, setCodeToCheck] = useState<string>("")
+  const [taskIdToCheck, setTaskIdToCheck] = useState<number>(0)
 
   const [deleteConfirmation, setDeleteConfirmation] = useState<{
     isOpen: boolean
     chargeId: string | null
     chargeName: string | null
+    taskId: number | null
   }>({
     isOpen: false,
     chargeId: null,
     chargeName: null,
+    taskId: null,
   })
 
   const { refetch: checkCodeAvailability } = useGetByParams<ICharge>(
     `${Charge.getByCode}`,
-    "chargeByCode",
-    codeToCheck || ""
+    "chargeByCodeAndTask",
+    `${codeToCheck || ""}/${taskIdToCheck || 0}`
   )
 
   const handleRefresh = () => {
@@ -168,29 +171,34 @@ export default function ChargePage() {
       isOpen: true,
       chargeId,
       chargeName: chargeToDelete.chargeName,
+      taskId: chargeToDelete.taskId,
     })
   }
 
   const handleConfirmDelete = () => {
-    if (deleteConfirmation.chargeId) {
-      deleteMutation.mutateAsync(deleteConfirmation.chargeId).then(() => {
+    if (deleteConfirmation.chargeId && deleteConfirmation.taskId) {
+      // Pass both chargeId and taskId for delete operation
+      const deleteParams = `${deleteConfirmation.chargeId}/${deleteConfirmation.taskId}`
+      deleteMutation.mutateAsync(deleteParams).then(() => {
         queryClient.invalidateQueries({ queryKey: ["charges"] })
       })
       setDeleteConfirmation({
         isOpen: false,
         chargeId: null,
         chargeName: null,
+        taskId: null,
       })
     }
   }
 
-  const handleCodeBlur = async (code: string) => {
+  const handleCodeBlur = async (code: string, taskId?: number) => {
     if (modalMode === "edit" || modalMode === "view") return
 
     const trimmedCode = code?.trim()
-    if (!trimmedCode) return
+    if (!trimmedCode || !taskId) return
 
     setCodeToCheck(trimmedCode)
+    setTaskIdToCheck(taskId)
     try {
       const response = await checkCodeAvailability()
       console.log("Full API Response:", response)
@@ -387,6 +395,7 @@ export default function ChargePage() {
             isOpen: false,
             chargeId: null,
             chargeName: null,
+            taskId: null,
           })
         }
         isDeleting={deleteMutation.isPending}
