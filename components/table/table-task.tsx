@@ -41,10 +41,10 @@ import {
   TableHeader as TanstackTableHeader,
 } from "@/components/ui/table"
 
-import { TaskDataTableActions } from "./table-task-action"
-import { TaskDataTableHeader } from "./table-task-header"
+import { TaskTableActions } from "./table-task-action"
+import { TaskTableHeader } from "./table-task-header"
 
-interface MainTaskDataTableProps<T> {
+interface TaskTableProps<T> {
   data: T[]
   columns: ColumnDef<T>[]
   isLoading?: boolean
@@ -67,7 +67,7 @@ interface MainTaskDataTableProps<T> {
   showActions?: boolean
 }
 
-export function MainTaskDataTable<T>({
+export function TaskTable<T>({
   data,
   columns,
   isLoading,
@@ -88,7 +88,7 @@ export function MainTaskDataTable<T>({
   isConfirmed,
   showHeader = true,
   showActions = true,
-}: MainTaskDataTableProps<T>) {
+}: TaskTableProps<T>) {
   const { data: gridSettings } = useGetGridLayout(
     moduleId?.toString() || "",
     transactionId?.toString() || "",
@@ -236,7 +236,7 @@ export function MainTaskDataTable<T>({
               const isSelected = row.getIsSelected()
 
               return (
-                <TaskDataTableActions
+                <TaskTableActions
                   row={item as T & { debitNoteId?: number }}
                   idAccessor={accessorId}
                   onView={onItemSelect}
@@ -341,7 +341,7 @@ export function MainTaskDataTable<T>({
       style={{ height: "430px" }}
     >
       {showHeader && (
-        <TaskDataTableHeader
+        <TaskTableHeader
           searchQuery={searchQuery}
           onSearchChange={handleSearch}
           onRefresh={onRefresh}
@@ -373,7 +373,7 @@ export function MainTaskDataTable<T>({
         collisionDetection={closestCenter}
         onDragEnd={handleDragEnd}
       >
-        <div className="overflow-x-auto">
+        <div className="max-h-[460px] overflow-x-auto">
           <Table className="relative w-full">
             <TanstackTableHeader className="bg-muted sticky top-0 z-10">
               {table.getHeaderGroups().map((headerGroup) => (

@@ -10,7 +10,6 @@ import {
   FileSpreadsheet,
   FileText,
   Layout,
-  Plus,
   RefreshCw,
   SlidersHorizontal,
 } from "lucide-react"
@@ -47,9 +46,8 @@ declare module "jspdf" {
 }
 
 // Define types for clarity
-type TableHeaderProps<TData> = {
+type BasicTableHeaderProps<TData> = {
   onRefresh?: () => void
-  onCreate?: () => void
   onFilterToggle?: () => void
   searchQuery: string
   onSearchChange: (query: string) => void
@@ -57,23 +55,20 @@ type TableHeaderProps<TData> = {
   isFilterOpen?: boolean
   data?: TData[] // Add data prop
   tableName?: string // Optional table name prop
-  hideCreateButton?: boolean // Add hideCreateButton prop
   moduleId: number
   transactionId: number
 }
 
-export function DataTableHeader<TData>({
+export function BasicTableHeader<TData>({
   onRefresh,
-  onCreate,
   searchQuery,
   onSearchChange,
   columns,
   data = [], // Default to empty array
   tableName = "Table",
-  hideCreateButton = false, // Default to false
   moduleId,
   transactionId,
-}: TableHeaderProps<TData>) {
+}: BasicTableHeaderProps<TData>) {
   const [columnSearch, setColumnSearch] = useState("")
   const [activeButton, setActiveButton] = useState<"show" | "hide" | null>(null)
   const [isSaveLayoutOpen, setIsSaveLayoutOpen] = useState(false)
@@ -232,12 +227,6 @@ export function DataTableHeader<TData>({
   return (
     <div className="mb-4 flex items-center justify-between">
       <div className="flex items-center gap-2">
-        {onCreate && !hideCreateButton && (
-          <Button onClick={onCreate}>
-            <Plus className="mr-2 h-4 w-4" />
-            Create
-          </Button>
-        )}
         {onRefresh && (
           <Button variant="outline" size="icon" onClick={onRefresh}>
             <RefreshCw className="h-4 w-4" />

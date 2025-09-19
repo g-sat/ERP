@@ -50,6 +50,14 @@ export default function CustomerPage() {
   const canEdit = hasPermission(moduleId, transactionId, "isEdit")
   const canDelete = hasPermission(moduleId, transactionId, "isDelete")
 
+  console.log(
+    "Permission customer details",
+    canCreate,
+    canDelete,
+    canEdit,
+    canView
+  )
+
   const [showListDialog, setShowListDialog] = useState(false)
   const [customer, setCustomer] = useState<ICustomer | null>(null)
   const [addresses, setAddresses] = useState<ICustomerAddress[]>([])
@@ -91,7 +99,6 @@ export default function CustomerPage() {
     data: customersResponse,
     refetch: refetchCustomers,
     isLoading: isLoadingCustomers,
-    isRefetching: isRefetchingCustomers,
   } = useGet<ICustomer>(`${Customer.get}`, "customers", filters.search)
 
   const { refetch: refetchCustomerDetails } = useGetCustomerById<ICustomer>(
@@ -500,16 +507,16 @@ export default function CustomerPage() {
                       key={`address-${customer?.customerId || "new"}`}
                       data={addresses}
                       isLoading={isLoadingAddresses}
-                      onAddressSelect={
-                        canView ? handleAddressSelect : undefined
-                      }
-                      onDeleteAddress={
-                        canDelete ? handleAddressDelete : undefined
-                      }
-                      onEditAddress={canEdit ? handleAddressEdit : undefined}
-                      onCreateAddress={canCreate ? handleAddressAdd : undefined}
+                      onSelect={canView ? handleAddressSelect : undefined}
+                      onDelete={canDelete ? handleAddressDelete : undefined}
+                      onEdit={canEdit ? handleAddressEdit : undefined}
+                      onCreate={canCreate ? handleAddressAdd : undefined}
                       moduleId={moduleId}
                       transactionId={transactionId}
+                      canEdit={canEdit}
+                      canDelete={canDelete}
+                      canView={canView}
+                      canCreate={canCreate}
                     />
                   </div>
                 </TabsContent>
@@ -519,16 +526,16 @@ export default function CustomerPage() {
                       key={`contact-${customer?.customerId || "new"}`}
                       data={contacts}
                       isLoading={isLoadingContacts}
-                      onContactSelect={
-                        canView ? handleContactSelect : undefined
-                      }
-                      onDeleteContact={
-                        canDelete ? handleContactDelete : undefined
-                      }
-                      onEditContact={canEdit ? handleContactEdit : undefined}
-                      onCreateContact={canCreate ? handleContactAdd : undefined}
+                      onSelect={canView ? handleContactSelect : undefined}
+                      onDelete={canDelete ? handleContactDelete : undefined}
+                      onEdit={canEdit ? handleContactEdit : undefined}
+                      onCreate={canCreate ? handleContactAdd : undefined}
                       moduleId={moduleId}
                       transactionId={transactionId}
+                      canEdit={canEdit}
+                      canDelete={canDelete}
+                      canView={canView}
+                      canCreate={canCreate}
                     />
                   </div>
                 </TabsContent>
@@ -539,8 +546,8 @@ export default function CustomerPage() {
       </div>
 
       <Dialog open={showListDialog} onOpenChange={setShowListDialog}>
-        <DialogContent className="@container h-[90vh] w-[90vw] !max-w-none overflow-y-auto rounded-lg p-4">
-          <DialogHeader className="pb-4">
+        <DialogContent className="container mx-auto h-[85vh] w-[90vw] !max-w-none space-y-2 overflow-y-auto rounded-lg p-4 px-4 pt-2 pb-4 sm:space-y-3 sm:px-6 sm:pt-3 sm:pb-6">
+          <DialogHeader>
             <DialogTitle className="text-2xl font-bold tracking-tight">
               Customer List
             </DialogTitle>

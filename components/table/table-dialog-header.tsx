@@ -46,7 +46,7 @@ declare module "jspdf" {
 }
 
 // Define types for clarity
-type SimpleDataTableHeaderProps<TData> = {
+type DialogDataTableHeaderProps<TData> = {
   onRefresh?: () => void
   onFilterToggle?: () => void
   searchQuery: string
@@ -59,7 +59,7 @@ type SimpleDataTableHeaderProps<TData> = {
   transactionId: number
 }
 
-export function SimpleDataTableHeader<TData>({
+export function DialogDataTableHeader<TData>({
   onRefresh,
   searchQuery,
   onSearchChange,
@@ -68,7 +68,7 @@ export function SimpleDataTableHeader<TData>({
   tableName = "Table",
   moduleId,
   transactionId,
-}: SimpleDataTableHeaderProps<TData>) {
+}: DialogDataTableHeaderProps<TData>) {
   const [columnSearch, setColumnSearch] = useState("")
   const [activeButton, setActiveButton] = useState<"show" | "hide" | null>(null)
   const [isSaveLayoutOpen, setIsSaveLayoutOpen] = useState(false)

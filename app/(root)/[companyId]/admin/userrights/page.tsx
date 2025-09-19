@@ -4,7 +4,7 @@ import { usePermissionStore } from "@/stores/permission-store"
 
 import { AdminTransactionId, ModuleId } from "@/lib/utils"
 
-import { UserSettingTable } from "../components/userrights-table"
+import { UserRightsTable } from "../components/userrights-table"
 
 export default function AdminUserRightsPage() {
   const moduleId = ModuleId.admin
@@ -25,7 +25,7 @@ export default function AdminUserRightsPage() {
         </h1>
         <p className="text-muted-foreground text-sm">Manage user rights</p>
       </div>
-      <UserSettingTable />
+      <UserRightsTable />
     </div>
   )
 }

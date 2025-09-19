@@ -42,10 +42,10 @@ import {
 } from "@/components/ui/table"
 
 import { SortableTableHeader } from "./sortable-table-header"
-import { DataTableFooter } from "./table-footer"
-import { SimpleDataTableHeader } from "./table-simple-header"
+import { DialogDataTableHeader } from "./table-dialog-header"
+import { MainTableFooter } from "./table-main-footer"
 
-interface SimpleDataTableProps<T> {
+interface DialogDataTableProps<T> {
   data: T[]
   columns: ColumnDef<T>[]
   isLoading?: boolean
@@ -55,9 +55,10 @@ interface SimpleDataTableProps<T> {
   emptyMessage?: string
   onRefresh?: () => void
   onFilterChange?: (filters: { search?: string; sortOrder?: string }) => void
+  onRowSelect?: (row: T | undefined) => void
 }
 
-export function SimpleDataTable<T>({
+export function DialogDataTable<T>({
   data,
   columns,
   isLoading,
@@ -67,7 +68,8 @@ export function SimpleDataTable<T>({
   emptyMessage = "No data found.",
   onRefresh,
   onFilterChange,
-}: SimpleDataTableProps<T>) {
+  onRowSelect,
+}: DialogDataTableProps<T>) {
   const { data: gridSettings } = useGetGridLayout(
     moduleId?.toString() || "",
     transactionId?.toString() || "",
@@ -117,7 +119,7 @@ export function SimpleDataTable<T>({
   const [columnSizing, setColumnSizing] = useState(getInitialColumnSizing)
   const [searchQuery, setSearchQuery] = useState("")
   const [currentPage, setCurrentPage] = useState(1)
-  const [pageSize, setPageSize] = useState(50)
+  const [pageSize, setPageSize] = useState(15)
   const [rowSelection, setRowSelection] = useState({})
 
   // Reference removed as not needed without virtual scrolling
@@ -255,6 +257,13 @@ export function SimpleDataTable<T>({
     }
   }
 
+  // Handle row click
+  const handleRowClick = (row: T) => {
+    if (onRowSelect) {
+      onRowSelect(row)
+    }
+  }
+
   useEffect(() => {
     if (!data?.length && onFilterChange) {
       const filters = {
@@ -267,7 +276,7 @@ export function SimpleDataTable<T>({
 
   return (
     <>
-      <SimpleDataTableHeader
+      <DialogDataTableHeader
         searchQuery={searchQuery}
         onSearchChange={handleSearch}
         onRefresh={onRefresh}
@@ -321,7 +330,7 @@ export function SimpleDataTable<T>({
               </TableHeader>
             </Table>
 
-            <div className="overflow-y-auto">
+            <div className="max-h-[480px] overflow-y-auto">
               <Table
                 className="w-full table-fixed border-collapse"
                 style={{ minWidth: "100%" }}
@@ -343,7 +352,11 @@ export function SimpleDataTable<T>({
                   {/* Render data rows */}
                   {table.getRowModel().rows.map((row) => {
                     return (
-                      <TableRow key={row.id}>
+                      <TableRow
+                        key={row.id}
+                        onClick={() => handleRowClick(row.original)}
+                        className={`py-1 ${onRowSelect ? "hover:bg-muted/50 cursor-pointer" : ""}`}
+                      >
                         {row.getVisibleCells().map((cell, cellIndex) => {
                           const isActions = cell.column.id === "actions"
                           const isFirstColumn = cellIndex === 0
@@ -351,7 +364,7 @@ export function SimpleDataTable<T>({
                           return (
                             <TableCell
                               key={cell.id}
-                              className={`py-1 ${
+                              className={`px-2 py-1 ${
                                 isFirstColumn || isActions
                                   ? "bg-background sticky left-0 z-10"
                                   : ""
@@ -384,9 +397,9 @@ export function SimpleDataTable<T>({
 
                   {/* Add empty rows to fill the remaining space based on page size */}
                   {Array.from({
-                    length: Math.max(
-                      0,
-                      pageSize - table.getRowModel().rows.length
+                    length: Math.min(
+                      Math.max(0, pageSize - table.getRowModel().rows.length),
+                      10 // Limit to maximum 10 empty rows to prevent excessive height
                     ),
                   }).map((_, index) => (
                     <TableRow key={`empty-${index}`} className="h-7">
@@ -397,7 +410,7 @@ export function SimpleDataTable<T>({
                         return (
                           <TableCell
                             key={`empty-${index}-${column.id}`}
-                            className={`py-1 ${
+                            className={`px-2 py-1 ${
                               isFirstColumn || isActions
                                 ? "bg-background sticky left-0 z-10"
                                 : ""
@@ -426,7 +439,7 @@ export function SimpleDataTable<T>({
                     <TableRow>
                       <TableCell
                         colSpan={tableColumns.length}
-                        className="h-7 text-center"
+                        className="h-7 py-2 text-center"
                       >
                         {isLoading ? "Loading..." : emptyMessage}
                       </TableCell>
@@ -439,14 +452,14 @@ export function SimpleDataTable<T>({
         </DndContext>
       </Table>
 
-      <DataTableFooter
+      <MainTableFooter
         currentPage={currentPage}
         totalPages={Math.ceil(data.length / pageSize)}
         pageSize={pageSize}
         totalRecords={data.length}
         onPageChange={handlePageChange}
         onPageSizeChange={handlePageSizeChange}
-        pageSizeOptions={[10, 50, 100, 500]}
+        pageSizeOptions={[15, 50, 100, 500]}
       />
     </>
   )

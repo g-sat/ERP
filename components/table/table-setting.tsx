@@ -74,7 +74,7 @@ export function SettingTable<T>({
         </Table>
 
         {/* Scrollable body container */}
-        <div className="overflow-y-auto" style={{ maxHeight }}>
+        <div className="max-h-[460px] overflow-y-auto" style={{ maxHeight }}>
           {/* Body table with same column sizing as header */}
           <Table className="w-full table-fixed border-collapse">
             {/* Column group matching header for alignment */}

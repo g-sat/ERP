@@ -80,11 +80,11 @@ import {
 // Custom table components
 import { SortableTableHeader } from "./sortable-table-header"
 // Header with drag and drop
-import { DataTableActions } from "./table-actions"
+import { MainTableActions } from "./table-main-actions"
 // Action buttons (view/edit/delete)
-import { DataTableFooter } from "./table-footer"
+import { MainTableFooter } from "./table-main-footer"
 // Pagination and page size controls
-import { DataTableHeader } from "./table-header"
+import { MainTableHeader } from "./table-main-header"
 
 // Search, refresh, and create buttons
 
@@ -93,10 +93,10 @@ import { DataTableHeader } from "./table-header"
 // ============================================================================
 
 /**
- * Props interface for the MainDataTable component
+ * Props interface for the MainTable component
  * @template T - The type of data items in the table
  */
-interface MainDataTableProps<T> {
+interface MainTableProps<T> {
   // ============================================================================
   // CORE DATA PROPS
   // ============================================================================
@@ -145,7 +145,7 @@ interface MainDataTableProps<T> {
 // ============================================================================
 
 /**
- * MainDataTable - A comprehensive data table component with advanced features
+ * MainTable - A comprehensive data table component with advanced features
  *
  * Features:
  * - Virtual scrolling for performance with large datasets
@@ -157,10 +157,10 @@ interface MainDataTableProps<T> {
  * - Permission-based access control
  *
  * @template T - The type of data items in the table
- * @param props - Component props as defined in MainDataTableProps
+ * @param props - Component props as defined in MainTableProps
  * @returns JSX element representing the data table
  */
-export function MainDataTable<T>({
+export function MainTable<T>({
   // ============================================================================
   // DESTRUCTURE PROPS WITH DEFAULT VALUES
   // ============================================================================
@@ -193,7 +193,7 @@ export function MainDataTable<T>({
   canCreate = true, // Create permission
   canEdit = true, // Edit permission
   canDelete = true, // Delete permission
-}: MainDataTableProps<T>) {
+}: MainTableProps<T>) {
   // ============================================================================
   // GRID LAYOUT SETTINGS
   // ============================================================================
@@ -317,10 +317,9 @@ export function MainDataTable<T>({
    * This includes the actions column (if enabled) plus all user-defined columns
    */
   const tableColumns: ColumnDef<T>[] = [
-    // Conditionally add actions column if:
-    // 1. showActions is true AND
-    // 2. At least one action handler is provided
-    ...(showActions && (onItemSelect || onEditItem || onDeleteItem)
+    // Conditionally add actions column if showActions is true
+    // The MainTableActions component will handle individual button visibility based on permissions
+    ...(showActions
       ? [
           {
             id: "actions", // Unique identifier for the actions column
@@ -333,7 +332,7 @@ export function MainDataTable<T>({
               { row } // Cell renderer function
             ) => (
               //I'll add more actions here later
-              <DataTableActions
+              <MainTableActions
                 row={row.original} // Pass the row data
                 idAccessor={accessorId} // Pass the ID accessor key
                 onView={onItemSelect} // View/select handler
@@ -559,7 +558,7 @@ export function MainDataTable<T>({
 
       {/* Conditionally render table header with search, refresh, and create functionality */}
       {showHeader && (
-        <DataTableHeader
+        <MainTableHeader
           searchQuery={searchQuery} // Current search query
           onSearchChange={handleSearch} // Search change handler
           onRefresh={onRefresh} // Refresh button handler
@@ -633,7 +632,7 @@ export function MainDataTable<T>({
 
             {/* Scrollable body container */}
             <div
-              className="overflow-y-auto" // Allow vertical scrolling if needed
+              className="max-h-[460px] overflow-y-auto" // Allow vertical scrolling if needed
             >
               {/* Body table with same column sizing as header */}
               <Table
@@ -773,7 +772,7 @@ export function MainDataTable<T>({
 
       {/* Conditionally render table footer with pagination controls */}
       {showFooter && (
-        <DataTableFooter
+        <MainTableFooter
           currentPage={currentPage} // Current page number
           totalPages={Math.ceil(data.length / pageSize)} // Total number of pages
           pageSize={pageSize} // Current page size
@@ -796,7 +795,7 @@ export function MainDataTable<T>({
  *
  * 1. BASIC USAGE:
  * ```tsx
- * <MainDataTable
+ * <MainTable
  *   data={employees}
  *   columns={employeeColumns}
  *   tableName="employees"
@@ -808,7 +807,7 @@ export function MainDataTable<T>({
  *
  * 2. WITH PERMISSIONS:
  * ```tsx
- * <MainDataTable
+ * <MainTable
  *   data={products}
  *   columns={productColumns}
  *   tableName="products"
@@ -822,7 +821,7 @@ export function MainDataTable<T>({
  *
  * 3. WITH SERVER-SIDE FILTERING:
  * ```tsx
- * <MainDataTable
+ * <MainTable
  *   data={[]} // Empty array for server-side data
  *   columns={orderColumns}
  *   tableName="orders"
@@ -834,7 +833,7 @@ export function MainDataTable<T>({
  *
  * 4. CUSTOMIZED DISPLAY:
  * ```tsx
- * <MainDataTable
+ * <MainTable
  *   data={customers}
  *   columns={customerColumns}
  *   tableName="customers"

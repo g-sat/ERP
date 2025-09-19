@@ -133,6 +133,7 @@ export function CustomerAddressForm({
                 name="address1"
                 label="Address Line 1"
                 isDisabled={isReadOnly}
+                isRequired={true}
               />
 
               <CustomTextarea
@@ -140,6 +141,7 @@ export function CustomerAddressForm({
                 name="address2"
                 label="Address Line 2"
                 isDisabled={isReadOnly}
+                isRequired={true}
               />
             </div>
             <div className="grid grid-cols-2 gap-2">
@@ -176,6 +178,7 @@ export function CustomerAddressForm({
                 name="phoneNo"
                 label="Phone Number"
                 isDisabled={isReadOnly}
+                isRequired={true}
               />
 
               <CustomInput

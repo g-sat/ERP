@@ -3,7 +3,7 @@ import { Eye, Pencil, Receipt, ShoppingCart, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 
-interface TaskDataTableActionsProps<T> {
+interface TaskTableActionsProps<T> {
   row: T & { debitNoteId?: number }
   onView?: (row: T) => void
   onEdit?: (row: T) => void
@@ -21,7 +21,7 @@ interface TaskDataTableActionsProps<T> {
   isConfirmed?: boolean
 }
 
-export function TaskDataTableActions<T>({
+export function TaskTableActions<T>({
   row,
   onView,
   onEdit,
@@ -37,7 +37,7 @@ export function TaskDataTableActions<T>({
   hidePurchase,
   isSelected = true,
   isConfirmed = false,
-}: TaskDataTableActionsProps<T>) {
+}: TaskTableActionsProps<T>) {
   const handleCheckboxChange = (checked: boolean) => {
     console.log("Checkbox changed:", checked, "Row:", row)
     if (onSelect) {

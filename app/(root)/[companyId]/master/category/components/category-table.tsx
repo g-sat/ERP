@@ -11,7 +11,7 @@ import { format, isValid } from "date-fns"
 
 import { TableName } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
-import { MainDataTable } from "@/components/table/table-main"
+import { MainTable } from "@/components/table/table-main"
 
 interface CategorysTableProps {
   data: ICategory[]
@@ -133,7 +133,7 @@ export function CategorysTable({
   ]
 
   return (
-    <MainDataTable
+    <MainTable
       data={data}
       columns={columns}
       isLoading={isLoading}

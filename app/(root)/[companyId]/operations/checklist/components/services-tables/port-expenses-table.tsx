@@ -8,7 +8,7 @@ import { format, isValid } from "date-fns"
 
 import { TableName } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
-import { MainTaskDataTable } from "@/components/table/table-task-main"
+import { MainTaskDataTable } from "@/components/table/table-task"
 
 interface PortExpensesTableProps {
   data: IPortExpenses[]

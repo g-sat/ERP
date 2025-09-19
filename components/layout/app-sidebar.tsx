@@ -161,7 +161,7 @@ export const menuData = {
           url: "/master/designation",
           icon: GraduationCap,
         },
-        { title: "Document Type", url: "/master/documenttype", icon: FileX },
+        { title: "Document Type", url: "/master/document-type", icon: FileX },
         //{ title: "Employee", url: "/master/employee", icon: User },
         { title: "Entity Types", url: "/master/entitytypes", icon: Building },
         { title: "Gst", url: "/master/gst", icon: FileText },

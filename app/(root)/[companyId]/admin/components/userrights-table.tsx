@@ -1,6 +1,8 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { IUserRights } from "@/interfaces/admin"
+import { ApiResponse } from "@/interfaces/auth"
 import { IUserLookup } from "@/interfaces/lookup"
 import { ColumnDef } from "@tanstack/react-table"
 import { useForm } from "react-hook-form"
@@ -20,7 +22,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { SaveConfirmation } from "@/components/save-confirmation"
-import { SettingTable } from "@/components/table/table-setting-main"
+import { SettingTable } from "@/components/table/table-setting"
 import UserAutocomplete from "@/components/ui-custom/autocomplete-user"
 
 type CompanyRight = {
@@ -31,7 +33,7 @@ type CompanyRight = {
   userGroupId: string
 }
 
-export function UserSettingTable() {
+export function UserRightsTable() {
   const form = useForm()
   const [selectedUser, setSelectedUser] = useState<IUserLookup | null>(null)
   const [companyRights, setCompanyRights] = useState<CompanyRight[]>([])
@@ -51,18 +53,28 @@ export function UserSettingTable() {
     refetch: refetchUserRights,
     isFetching: isRightsLoading,
   } = useUserRightbyidGet(Number(selectedUser?.userId) || 0)
-  // Save user rights mutation
+  // Save user rights muuseUserRightSave()
+
   const userRightSave = useUserRightSave()
 
-  // Update companyRights when userRightsData changes
+  // Update companyRights when userRightsData cs
   useEffect(() => {
-    if (userRightsData && Array.isArray(userRightsData)) {
-      const rightsWithState = userRightsData.map((right) => ({
-        ...right,
-        isAccess: Boolean(right.isAccess),
-        userGroupId: right.userGroupId ? right.userGroupId.toString() : "",
-      }))
-      setCompanyRights(rightsWithState)
+    if (userRightsData) {
+      const response = userRightsData as ApiResponse<IUserRights>
+
+      if (response.data && Array.isArray(response.data)) {
+        setCompanyRights(
+          response.data.map((right) => ({
+            companyId: right.companyId.toString(),
+            companyCode: right.companyCode,
+            companyName: right.companyName,
+            isAccess: right.isAccess,
+            userGroupId: right.userGroupId.toString(),
+          }))
+        )
+      } else {
+        setCompanyRights([])
+      }
     } else {
       setCompanyRights([])
     }

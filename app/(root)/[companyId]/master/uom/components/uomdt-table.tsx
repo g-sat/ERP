@@ -6,7 +6,7 @@ import { ColumnDef } from "@tanstack/react-table"
 import { format, isValid } from "date-fns"
 
 import { TableName } from "@/lib/utils"
-import { MainDataTable } from "@/components/table/table-main"
+import { MainTable } from "@/components/table/table-main"
 
 interface UomDtTableProps {
   data: IUomDt[]
@@ -117,7 +117,7 @@ export function UomDtTable({
   ]
 
   return (
-    <MainDataTable
+    <MainTable
       data={data}
       columns={columns}
       isLoading={isLoading}

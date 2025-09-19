@@ -14,7 +14,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 
-interface TableFooterProps {
+interface MainTableFooterProps {
   currentPage: number
   totalPages: number
   pageSize: number
@@ -24,7 +24,7 @@ interface TableFooterProps {
   pageSizeOptions?: number[]
 }
 
-export function DataTableFooter({
+export function MainTableFooter({
   currentPage,
   totalPages,
   pageSize,
@@ -32,9 +32,9 @@ export function DataTableFooter({
   onPageChange,
   onPageSizeChange,
   pageSizeOptions = [15, 50, 100, 500],
-}: TableFooterProps) {
+}: MainTableFooterProps) {
   return (
-    <div className="flex items-center justify-between">
+    <div className="flex items-center justify-between pt-2">
       <div className="text-muted-foreground flex-1 text-sm">
         <span>
           {totalRecords} record{totalRecords !== 1 ? "s" : ""} | Page{" "}

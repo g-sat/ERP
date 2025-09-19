@@ -81,12 +81,12 @@ export interface ICustomerAddress {
   address2: string
   address3: string
   address4: string
-  pinCode: null | string | number
+  pinCode: string
   countryId: number
   phoneNo: string
-  faxNo: string | null
+  faxNo: string
   emailAdd: string
-  webUrl: string | null
+  webUrl: string
   isDefaultAdd: boolean
   isDeliveryAdd: boolean
   isFinAdd: boolean

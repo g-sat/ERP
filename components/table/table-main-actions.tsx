@@ -3,7 +3,7 @@ import { Eye, Pencil, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 // Updated interface
-interface TableActionsProps<T> {
+interface MainTableActionsProps<T> {
   row: T
   onView?: (row: T) => void
   onEdit?: (row: T) => void
@@ -15,7 +15,7 @@ interface TableActionsProps<T> {
 }
 
 // Updated component
-export function DataTableActions<T>({
+export function MainTableActions<T>({
   row,
   onView,
   onEdit,
@@ -24,7 +24,7 @@ export function DataTableActions<T>({
   hideView,
   hideEdit,
   hideDelete,
-}: TableActionsProps<T>) {
+}: MainTableActionsProps<T>) {
   return (
     <div className="flex items-center gap-2">
       {onView && !hideView && (

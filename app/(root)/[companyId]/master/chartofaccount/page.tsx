@@ -629,8 +629,8 @@ export default function ChartOfAccountPage() {
     })
   }
 
-  // Duplicate detection
-  const handleCodeBlur = async (code: string) => {
+  // Duplicate detection - Chart of Account
+  const handleChartCodeBlur = async (code: string) => {
     if (modalMode === "edit" || modalMode === "view") return
 
     const trimmedCode = code?.trim()
@@ -651,45 +651,81 @@ export default function ChartOfAccountPage() {
           setShowLoadDialogChart(true)
         }
       }
+    } catch (error) {
+      console.error("Error checking Chart of Account code availability:", error)
+    }
+  }
 
-      const responseCategory1 = (await getData(
+  // Duplicate detection - Category 1
+  const handleCategory1CodeBlur = async (code: string) => {
+    if (modalMode === "edit" || modalMode === "view") return
+
+    const trimmedCode = code?.trim()
+    if (!trimmedCode) return
+
+    try {
+      const response = (await getData(
         `${CoaCategory1.getByCode}/${trimmedCode}`
       )) as ApiResponse<ICoaCategory1>
 
-      if (responseCategory1.result === 1 && responseCategory1.data) {
-        const category1Data = Array.isArray(responseCategory1.data)
-          ? responseCategory1.data[0]
-          : responseCategory1.data
+      if (response.result === 1 && response.data) {
+        const category1Data = Array.isArray(response.data)
+          ? response.data[0]
+          : response.data
 
         if (category1Data) {
           setExistingCoaCategory1(category1Data as ICoaCategory1)
           setShowLoadDialogCategory1(true)
         }
       }
+    } catch (error) {
+      console.error("Error checking Category 1 code availability:", error)
+    }
+  }
 
-      const responseCategory2 = (await getData(
+  // Duplicate detection - Category 2
+  const handleCategory2CodeBlur = async (code: string) => {
+    if (modalMode === "edit" || modalMode === "view") return
+
+    const trimmedCode = code?.trim()
+    if (!trimmedCode) return
+
+    try {
+      const response = (await getData(
         `${CoaCategory2.getByCode}/${trimmedCode}`
       )) as ApiResponse<ICoaCategory2>
 
-      if (responseCategory2.result === 1 && responseCategory2.data) {
-        const category2Data = Array.isArray(responseCategory2.data)
-          ? responseCategory2.data[0]
-          : responseCategory2.data
+      if (response.result === 1 && response.data) {
+        const category2Data = Array.isArray(response.data)
+          ? response.data[0]
+          : response.data
 
         if (category2Data) {
           setExistingCoaCategory2(category2Data as ICoaCategory2)
           setShowLoadDialogCategory2(true)
         }
       }
+    } catch (error) {
+      console.error("Error checking Category 2 code availability:", error)
+    }
+  }
 
-      const responseCategory3 = (await getData(
+  // Duplicate detection - Category 3
+  const handleCategory3CodeBlur = async (code: string) => {
+    if (modalMode === "edit" || modalMode === "view") return
+
+    const trimmedCode = code?.trim()
+    if (!trimmedCode) return
+
+    try {
+      const response = (await getData(
         `${CoaCategory3.getByCode}/${trimmedCode}`
       )) as ApiResponse<ICoaCategory3>
 
-      if (responseCategory3.result === 1 && responseCategory3.data) {
-        const category3Data = Array.isArray(responseCategory3.data)
-          ? responseCategory3.data[0]
-          : responseCategory3.data
+      if (response.result === 1 && response.data) {
+        const category3Data = Array.isArray(response.data)
+          ? response.data[0]
+          : response.data
 
         if (category3Data) {
           setExistingCoaCategory3(category3Data as ICoaCategory3)
@@ -697,7 +733,7 @@ export default function ChartOfAccountPage() {
         }
       }
     } catch (error) {
-      console.error("Error checking code availability:", error)
+      console.error("Error checking Category 3 code availability:", error)
     }
   }
 
@@ -956,9 +992,9 @@ export default function ChartOfAccountPage() {
             <CoaCategory3Table
               data={category3Data}
               onSelect={canView ? handleViewCategory3 : undefined}
-              onDelete={canDeleteCategory1 ? handleDeleteCategory1 : undefined}
+              onDelete={canDeleteCategory3 ? handleDeleteCategory3 : undefined}
               onEdit={canEdit ? handleEditCategory3 : undefined}
-              onCreate={canCreate ? handleCreateCategory1 : undefined}
+              onCreate={canCreate ? handleCreateCategory3 : undefined}
               onRefresh={refetch3}
               onFilterChange={handleCategory3FilterChange}
               moduleId={moduleId}
@@ -999,7 +1035,7 @@ export default function ChartOfAccountPage() {
               saveMutationChart.isPending || updateMutationChart.isPending
             }
             isReadOnly={modalMode === "view" || !canEdit}
-            onCodeBlur={handleCodeBlur}
+            onCodeBlur={handleChartCodeBlur}
           />
         </DialogContent>
       </Dialog>
@@ -1034,7 +1070,7 @@ export default function ChartOfAccountPage() {
             onCancel={() => setIsModalCategory1Open(false)}
             isSubmitting={saveMutation1.isPending || updateMutation1.isPending}
             isReadOnly={modalMode === "view"}
-            onCodeBlur={handleCodeBlur}
+            onCodeBlur={handleCategory1CodeBlur}
           />
         </DialogContent>
       </Dialog>
@@ -1069,7 +1105,7 @@ export default function ChartOfAccountPage() {
             onCancel={() => setIsModalCategory2Open(false)}
             isSubmitting={saveMutation2.isPending || updateMutation2.isPending}
             isReadOnly={modalMode === "view"}
-            onCodeBlur={handleCodeBlur}
+            onCodeBlur={handleCategory2CodeBlur}
           />
         </DialogContent>
       </Dialog>
@@ -1104,7 +1140,7 @@ export default function ChartOfAccountPage() {
             onCancel={() => setIsModalCategory3Open(false)}
             isSubmitting={saveMutation3.isPending || updateMutation3.isPending}
             isReadOnly={modalMode === "view"}
-            onCodeBlur={handleCodeBlur}
+            onCodeBlur={handleCategory3CodeBlur}
           />
         </DialogContent>
       </Dialog>

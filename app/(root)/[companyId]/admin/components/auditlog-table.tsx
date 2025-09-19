@@ -6,7 +6,7 @@ import { ColumnDef } from "@tanstack/react-table"
 import { format, isValid } from "date-fns"
 
 import { TableName } from "@/lib/utils"
-import { SimpleDataTable } from "@/components/table/table-simple"
+import { BasicTable } from "@/components/table/table-basic"
 
 interface AuditLogTableProps {
   data: IAuditLog[]
@@ -67,7 +67,7 @@ export function AuditLogTable({
       enableColumnFilter: true,
     },
     {
-      accessorKey: "modeType",
+      accessorKey: "modeName",
       header: "Mode",
       size: 100,
       minSize: 50,
@@ -106,7 +106,7 @@ export function AuditLogTable({
   ]
 
   return (
-    <SimpleDataTable
+    <BasicTable
       data={data}
       columns={columns}
       isLoading={isLoading}

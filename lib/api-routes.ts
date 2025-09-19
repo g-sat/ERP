@@ -20,10 +20,11 @@ export const UserRights = {
 
 // Document Endpoints
 export const DocumentType = {
-  get: "/admin/getdocumentbyid",
-  getByCode: "/admin/getdocumentbycode",
-  add: "/admin/savedocument",
-  delete: "/admin/deletedocument",
+  get: "/master/getdocumenttype",
+  getbyId: "/master/getdocumenttypebyid",
+  getByCode: "/master/getdocumenttypebycode",
+  add: "/master/savedocumenttype",
+  delete: "/master/deletedocumenttype",
 }
 
 // Document Endpoints
@@ -347,7 +348,7 @@ export const BankContact = {
 
 // Customer Endpoints
 export const Customer = {
-  get: "/master/getcustomers",
+  get: "/master/getcustomer",
   getById: "/master/getcustomerbyid",
   add: "/master/savecustomer",
   delete: "/master/deletecustomer",

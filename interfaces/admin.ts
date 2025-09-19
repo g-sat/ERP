@@ -43,7 +43,7 @@ export interface IAuditLog {
   documentId: string
   documentNo: string
   tableName: string
-  modeType: string
+  modeName: string
   remarks: string
   createBy: string
   createDate: Date | string
@@ -56,7 +56,7 @@ export interface IErrorLog {
   documentId: string
   documentNo: string
   tableName: string
-  modeType: string
+  modeName: string
   remarks: string
   createBy: string
   createDate: Date | string

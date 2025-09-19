@@ -32,7 +32,7 @@ import {
 import { Input } from "@/components/ui/input"
 
 // Define types for clarity
-type TaskDataTableHeaderProps<TData> = {
+type TaskTableHeaderProps<TData> = {
   onRefresh?: () => void
   onCreate?: () => void
   onCombinedService?: () => void
@@ -51,7 +51,7 @@ type TaskDataTableHeaderProps<TData> = {
   selectedRowIds?: string[]
 }
 
-export function TaskDataTableHeader<TData>({
+export function TaskTableHeader<TData>({
   onRefresh,
   onCreate,
   onCombinedService,
@@ -67,7 +67,7 @@ export function TaskDataTableHeader<TData>({
   hasValidDebitNoteIds = false,
   isConfirmed = false,
   selectedRowIds = [],
-}: TaskDataTableHeaderProps<TData>) {
+}: TaskTableHeaderProps<TData>) {
   const [columnSearch, setColumnSearch] = useState("")
   const [activeButton, setActiveButton] = useState<"show" | "hide" | null>(null)
   const [debitNoteNo, setDebitNoteNo] = useState("")

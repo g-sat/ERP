@@ -6,7 +6,7 @@ import { ColumnDef } from "@tanstack/react-table"
 import { format, isValid } from "date-fns"
 
 import { TableName } from "@/lib/utils"
-import { MainDataTable } from "@/components/table/table-main"
+import { MainTable } from "@/components/table/table-main"
 
 interface CurrencyDtsTableProps {
   data: ICurrencyDt[]
@@ -132,7 +132,7 @@ export function CurrencyDtsTable({
   ]
 
   return (
-    <MainDataTable
+    <MainTable
       data={data}
       columns={columns}
       isLoading={isLoading}

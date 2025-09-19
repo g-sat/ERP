@@ -16,7 +16,7 @@ import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Form } from "@/components/ui/form"
 import { SaveConfirmation } from "@/components/save-confirmation"
-import { SettingTable } from "@/components/table/table-setting-main"
+import { SettingTable } from "@/components/table/table-setting"
 import UserGroupAutocomplete from "@/components/ui-custom/autocomplete-usergroup"
 
 type UserGroup = {
@@ -52,7 +52,10 @@ export function UserGroupSettingTable() {
       )
       setSelectedGroup(
         foundGroup
-          ? { userGroupId: foundGroup.userGroupId, userGroupName: foundGroup.userGroupName }
+          ? {
+              userGroupId: foundGroup.userGroupId,
+              userGroupName: foundGroup.userGroupName,
+            }
           : { userGroupId: watchedUserGroupId, userGroupName: "" }
       )
     } else {

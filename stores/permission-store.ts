@@ -25,10 +25,17 @@ export const usePermissionStore = create<PermissionState>()(
       setPermissions: (permissions: IUserRightsv1[]) =>
         set(() => {
           const newPermissions: Record<string, IUserRightsv1> = {}
-          permissions.forEach((permission) => {
-            const key = `${permission.moduleId}-${permission.transactionId}`
-            newPermissions[key] = permission
-          })
+
+          // Check if permissions is an array before calling forEach
+          if (Array.isArray(permissions)) {
+            permissions.forEach((permission) => {
+              const key = `${permission.moduleId}-${permission.transactionId}`
+              newPermissions[key] = permission
+            })
+          } else {
+            console.warn("setPermissions received non-array data:", permissions)
+          }
+
           return {
             permissions: newPermissions,
           }

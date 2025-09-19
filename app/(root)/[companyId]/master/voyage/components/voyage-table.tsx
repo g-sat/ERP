@@ -11,7 +11,7 @@ import { format, isValid } from "date-fns"
 
 import { TableName } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
-import { MainDataTable } from "@/components/table/table-main"
+import { MainTable } from "@/components/table/table-main"
 
 interface VoyagesTableProps {
   data: IVoyage[]
@@ -146,7 +146,7 @@ export function VoyagesTable({
   ]
 
   return (
-    <MainDataTable
+    <MainTable
       data={data}
       columns={columns}
       isLoading={isLoading}

@@ -537,11 +537,22 @@ export const useAuthStore = create<AuthState>()(
               throw new Error(`Failed to fetch permissions: ${response.status}`)
             }
 
+            // Improved error handling for permissions data
             if (data.result === 1 && data.data) {
-              usePermissionStore.getState().setPermissions(data.data)
+              if (Array.isArray(data.data)) {
+                usePermissionStore.getState().setPermissions(data.data)
+              } else {
+                console.warn("Permissions data is not an array:", data.data)
+                usePermissionStore.getState().setPermissions([])
+              }
+            } else {
+              console.warn("Invalid permissions response:", data)
+              usePermissionStore.getState().setPermissions([])
             }
           } catch (error) {
             console.error("Error fetching user permissions:", error)
+            // Set empty permissions on error to prevent app crashes
+            usePermissionStore.getState().setPermissions([])
           }
         },
 

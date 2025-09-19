@@ -229,6 +229,9 @@ export const useUserRightbyidGet = (userId: number) => {
         .then((response) => response.data)
     },
     refetchOnWindowFocus: false,
+    placeholderData: keepPreviousData,
+    staleTime: 600000,
+    enabled: userId > 0,
   })
 }
 
