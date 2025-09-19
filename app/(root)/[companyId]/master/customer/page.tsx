@@ -31,6 +31,8 @@ import {
 } from "@/components/ui/dialog"
 import { Separator } from "@/components/ui/separator"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { DeleteConfirmation } from "@/components/delete-confirmation"
+import { SaveConfirmation } from "@/components/save-confirmation"
 
 import { CustomerAddressForm } from "./components/address-form"
 import { AddresssTable } from "./components/address-table"
@@ -80,6 +82,40 @@ export default function CustomerPage() {
     sortOrder: "asc",
   })
   const [key, setKey] = useState(0)
+
+  // Save confirmation states
+  const [showCustomerSaveConfirmation, setShowCustomerSaveConfirmation] =
+    useState(false)
+  const [showAddressSaveConfirmation, setShowAddressSaveConfirmation] =
+    useState(false)
+  const [showContactSaveConfirmation, setShowContactSaveConfirmation] =
+    useState(false)
+  const [pendingCustomerData, setPendingCustomerData] =
+    useState<CustomerFormValues | null>(null)
+  const [pendingAddressData, setPendingAddressData] =
+    useState<CustomerAddressFormValues | null>(null)
+  const [pendingContactData, setPendingContactData] =
+    useState<CustomerContactFormValues | null>(null)
+
+  // Delete confirmation states
+  const [showCustomerDeleteConfirmation, setShowCustomerDeleteConfirmation] =
+    useState(false)
+  const [showAddressDeleteConfirmation, setShowAddressDeleteConfirmation] =
+    useState(false)
+  const [showContactDeleteConfirmation, setShowContactDeleteConfirmation] =
+    useState(false)
+  const [pendingDeleteCustomer, setPendingDeleteCustomer] =
+    useState<ICustomer | null>(null)
+  const [pendingDeleteAddressId, setPendingDeleteAddressId] = useState<
+    string | null
+  >(null)
+  const [pendingDeleteContactId, setPendingDeleteContactId] = useState<
+    string | null
+  >(null)
+  const [pendingDeleteAddress, setPendingDeleteAddress] =
+    useState<ICustomerAddress | null>(null)
+  const [pendingDeleteContact, setPendingDeleteContact] =
+    useState<ICustomerContact | null>(null)
 
   // Helper function to reset all form and table data
   const resetAllData = () => {
@@ -196,12 +232,19 @@ export default function CustomerPage() {
     }
   }, [customer?.customerId, fetchCustomerData])
 
-  const handleCustomerSave = async (savedCustomer: CustomerFormValues) => {
+  const handleCustomerSave = (savedCustomer: CustomerFormValues) => {
+    setPendingCustomerData(savedCustomer)
+    setShowCustomerSaveConfirmation(true)
+  }
+
+  const handleCustomerSaveConfirm = async () => {
+    if (!pendingCustomerData) return
+
     try {
       const response =
-        savedCustomer.customerId === 0
-          ? await saveMutation.mutateAsync(savedCustomer)
-          : await updateMutation.mutateAsync(savedCustomer)
+        pendingCustomerData.customerId === 0
+          ? await saveMutation.mutateAsync(pendingCustomerData)
+          : await updateMutation.mutateAsync(pendingCustomerData)
 
       if (response.result === 1) {
         const customerData = Array.isArray(response.data)
@@ -211,7 +254,11 @@ export default function CustomerPage() {
         refetchCustomers()
       } else {
       }
-    } catch {}
+    } catch {
+    } finally {
+      setPendingCustomerData(null)
+      setShowCustomerSaveConfirmation(false)
+    }
   }
 
   const handleCustomerReset = () => {
@@ -231,12 +278,18 @@ export default function CustomerPage() {
     }
   }
 
-  const handleCustomerDelete = async () => {
+  const handleCustomerDelete = () => {
     if (!customer) return
+    setPendingDeleteCustomer(customer)
+    setShowCustomerDeleteConfirmation(true)
+  }
+
+  const handleCustomerDeleteConfirm = async () => {
+    if (!pendingDeleteCustomer) return
 
     try {
       const response = await deleteMutation.mutateAsync(
-        customer.customerId.toString()
+        pendingDeleteCustomer.customerId.toString()
       )
       if (response.result === 1) {
         setCustomer(null)
@@ -245,20 +298,31 @@ export default function CustomerPage() {
         refetchCustomers()
       } else {
       }
-    } catch {}
+    } catch {
+    } finally {
+      setPendingDeleteCustomer(null)
+      setShowCustomerDeleteConfirmation(false)
+    }
   }
 
-  const handleAddressSave = async (data: CustomerAddressFormValues) => {
+  const handleAddressSave = (data: CustomerAddressFormValues) => {
+    setPendingAddressData(data)
+    setShowAddressSaveConfirmation(true)
+  }
+
+  const handleAddressSaveConfirm = async () => {
+    if (!pendingAddressData) return
+
     try {
-      console.log("Address data:", data)
+      console.log("Address data:", pendingAddressData)
 
       const response =
-        data.addressId === 0
+        pendingAddressData.addressId === 0
           ? await saveAddressMutation.mutateAsync({
-              ...data,
+              ...pendingAddressData,
               customerId: customer?.customerId || 0,
             })
-          : await updateAddressMutation.mutateAsync(data)
+          : await updateAddressMutation.mutateAsync(pendingAddressData)
 
       if (response.result === 1) {
         const refreshedAddresses = await refetchAddresses()
@@ -268,19 +332,30 @@ export default function CustomerPage() {
         setSelectedAddress(null)
       } else {
       }
-    } catch {}
+    } catch {
+    } finally {
+      setPendingAddressData(null)
+      setShowAddressSaveConfirmation(false)
+    }
   }
 
-  const handleContactSave = async (data: CustomerContactFormValues) => {
+  const handleContactSave = (data: CustomerContactFormValues) => {
+    setPendingContactData(data)
+    setShowContactSaveConfirmation(true)
+  }
+
+  const handleContactSaveConfirm = async () => {
+    if (!pendingContactData) return
+
     try {
-      console.log("Contact data:", data)
+      console.log("Contact data:", pendingContactData)
       const response =
-        data.contactId === 0
+        pendingContactData.contactId === 0
           ? await saveContactMutation.mutateAsync({
-              ...data,
+              ...pendingContactData,
               customerId: customer?.customerId || 0,
             })
-          : await updateContactMutation.mutateAsync(data)
+          : await updateContactMutation.mutateAsync(pendingContactData)
 
       if (response.result === 1) {
         const refreshedContacts = await refetchContacts()
@@ -290,7 +365,11 @@ export default function CustomerPage() {
         setSelectedContact(null)
       } else {
       }
-    } catch {}
+    } catch {
+    } finally {
+      setPendingContactData(null)
+      setShowContactSaveConfirmation(false)
+    }
   }
 
   const handleAddressSelect = (address: ICustomerAddress | null) => {
@@ -338,27 +417,63 @@ export default function CustomerPage() {
   }
 
   const handleAddressDelete = async (addressId: string) => {
+    const addressToDelete = addresses.find(
+      (addr) => addr.addressId.toString() === addressId
+    )
+    setPendingDeleteAddressId(addressId)
+    setPendingDeleteAddress(addressToDelete || null)
+    setShowAddressDeleteConfirmation(true)
+  }
+
+  const handleAddressDeleteConfirm = async () => {
+    if (!pendingDeleteAddressId || !customer?.customerId) return
+
     try {
-      const response = await deleteAddressMutation.mutateAsync(addressId)
+      const response = await deleteAddressMutation.mutateAsync(
+        `${customer.customerId}/${pendingDeleteAddressId}`
+      )
       if (response.result === 1) {
         const refreshedAddresses = await refetchAddresses()
         if (refreshedAddresses?.data?.result === 1)
           setAddresses(refreshedAddresses.data.data)
       } else {
       }
-    } catch {}
+    } catch {
+    } finally {
+      setPendingDeleteAddressId(null)
+      setPendingDeleteAddress(null)
+      setShowAddressDeleteConfirmation(false)
+    }
   }
 
   const handleContactDelete = async (contactId: string) => {
+    const contactToDelete = contacts.find(
+      (contact) => contact.contactId.toString() === contactId
+    )
+    setPendingDeleteContactId(contactId)
+    setPendingDeleteContact(contactToDelete || null)
+    setShowContactDeleteConfirmation(true)
+  }
+
+  const handleContactDeleteConfirm = async () => {
+    if (!pendingDeleteContactId || !customer?.customerId) return
+
     try {
-      const response = await deleteContactMutation.mutateAsync(contactId)
+      const response = await deleteContactMutation.mutateAsync(
+        `${customer.customerId}/${pendingDeleteContactId}`
+      )
       if (response.result === 1) {
         const refreshedContacts = await refetchContacts()
         if (refreshedContacts?.data?.result === 1)
           setContacts(refreshedContacts.data.data)
       } else {
       }
-    } catch {}
+    } catch {
+    } finally {
+      setPendingDeleteContactId(null)
+      setPendingDeleteContact(null)
+      setShowContactDeleteConfirmation(false)
+    }
   }
 
   const handleFilterChange = (newFilters: ICustomerFilter) =>
@@ -530,6 +645,7 @@ export default function CustomerPage() {
                       onDelete={canDelete ? handleAddressDelete : undefined}
                       onEdit={canEdit ? handleAddressEdit : undefined}
                       onCreate={canCreate ? handleAddressAdd : undefined}
+                      onRefresh={() => refetchAddresses()}
                       moduleId={moduleId}
                       transactionId={transactionId}
                       canEdit={canEdit}
@@ -549,6 +665,7 @@ export default function CustomerPage() {
                       onDelete={canDelete ? handleContactDelete : undefined}
                       onEdit={canEdit ? handleContactEdit : undefined}
                       onCreate={canCreate ? handleContactAdd : undefined}
+                      onRefresh={() => refetchContacts()}
                       moduleId={moduleId}
                       transactionId={transactionId}
                       canEdit={canEdit}
@@ -674,6 +791,101 @@ export default function CustomerPage() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Save Confirmation Dialogs */}
+      <SaveConfirmation
+        open={showCustomerSaveConfirmation}
+        onOpenChange={setShowCustomerSaveConfirmation}
+        onConfirm={handleCustomerSaveConfirm}
+        onCancel={() => {
+          setPendingCustomerData(null)
+          setShowCustomerSaveConfirmation(false)
+        }}
+        title="Save Customer"
+        itemName={pendingCustomerData?.customerName || "Customer"}
+        operationType={
+          pendingCustomerData?.customerId === 0 ? "create" : "update"
+        }
+        isSaving={saveMutation.isPending || updateMutation.isPending}
+      />
+
+      <SaveConfirmation
+        open={showAddressSaveConfirmation}
+        onOpenChange={setShowAddressSaveConfirmation}
+        onConfirm={handleAddressSaveConfirm}
+        onCancel={() => {
+          setPendingAddressData(null)
+          setShowAddressSaveConfirmation(false)
+        }}
+        title="Save Address"
+        itemName={pendingAddressData?.address1 || "Address"}
+        operationType={
+          pendingAddressData?.addressId === 0 ? "create" : "update"
+        }
+        isSaving={
+          saveAddressMutation.isPending || updateAddressMutation.isPending
+        }
+      />
+
+      <SaveConfirmation
+        open={showContactSaveConfirmation}
+        onOpenChange={setShowContactSaveConfirmation}
+        onConfirm={handleContactSaveConfirm}
+        onCancel={() => {
+          setPendingContactData(null)
+          setShowContactSaveConfirmation(false)
+        }}
+        title="Save Contact"
+        itemName={pendingContactData?.contactName || "Contact"}
+        operationType={
+          pendingContactData?.contactId === 0 ? "create" : "update"
+        }
+        isSaving={
+          saveContactMutation.isPending || updateContactMutation.isPending
+        }
+      />
+
+      {/* Delete Confirmation Dialogs */}
+      <DeleteConfirmation
+        open={showCustomerDeleteConfirmation}
+        onOpenChange={setShowCustomerDeleteConfirmation}
+        onConfirm={handleCustomerDeleteConfirm}
+        onCancel={() => {
+          setPendingDeleteCustomer(null)
+          setShowCustomerDeleteConfirmation(false)
+        }}
+        title="Delete Customer"
+        itemName={pendingDeleteCustomer?.customerName || "Customer"}
+        isDeleting={deleteMutation.isPending}
+      />
+
+      <DeleteConfirmation
+        open={showAddressDeleteConfirmation}
+        onOpenChange={setShowAddressDeleteConfirmation}
+        onConfirm={handleAddressDeleteConfirm}
+        onCancel={() => {
+          setPendingDeleteAddressId(null)
+          setPendingDeleteAddress(null)
+          setShowAddressDeleteConfirmation(false)
+        }}
+        title="Delete Address"
+        itemName={pendingDeleteAddress?.address1 || "Address"}
+        isDeleting={deleteAddressMutation.isPending}
+      />
+
+      <DeleteConfirmation
+        open={showContactDeleteConfirmation}
+        onOpenChange={setShowContactDeleteConfirmation}
+        onConfirm={handleContactDeleteConfirm}
+        onCancel={() => {
+          setPendingDeleteContactId(null)
+          setPendingDeleteContact(null)
+          setShowContactDeleteConfirmation(false)
+        }}
+        title="Delete Contact"
+        itemName={pendingDeleteContact?.contactName || "Contact"}
+        isDeleting={deleteContactMutation.isPending}
+      />
     </div>
   )
 }

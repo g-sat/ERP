@@ -31,11 +31,11 @@ export interface ICustomer {
   remarks: string
   isActive: boolean
   createById: number
-  createDate: string | Date
-  editById: string | null
-  editDate: string | null
+  editById: number
   createBy: string
   editBy: string | null
+  createDate: Date | string
+  editDate: Date | string
 }
 export interface ICustomerFilter {
   isActive?: boolean
@@ -61,11 +61,11 @@ export interface ICustomerContact {
   isSales: boolean
   isActive: boolean
   createById: number
-  createDate: string | Date
-  editById: string | null
-  editDate: string | null | Date
-  createBy: string | null
+  editById: number
+  createBy: string
   editBy: string | null
+  createDate: Date | string
+  editDate: Date | string
 }
 
 export interface ICustomerContactFilter {
@@ -93,11 +93,11 @@ export interface ICustomerAddress {
   isSalesAdd: boolean
   isActive: boolean
   createById: number
-  createDate: string | Date
-  editById: number | null
-  editDate: string | Date | null
-  createBy: string | null
+  editById: number
+  createBy: string
   editBy: string | null
+  createDate: Date | string
+  editDate: Date | string
 }
 
 export interface ICustomerAddressFilter {

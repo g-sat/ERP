@@ -179,7 +179,6 @@ export function ContactsTable({
     {
       accessorKey: "createBy",
       header: "Create By",
-
       size: 120,
       minSize: 50,
     },
