@@ -270,7 +270,7 @@ export default function CustomerPage() {
     setKey((prev) => prev + 1)
   }
 
-  const handleCustomerSelect = (selectedCustomer: ICustomer | undefined) => {
+  const handleCustomerSelect = (selectedCustomer: ICustomer | null) => {
     if (selectedCustomer) {
       // Reset all data before setting new customer
       resetAllData()
@@ -727,7 +727,7 @@ export default function CustomerPage() {
           <CustomerTable
             data={customersData || []}
             isLoading={isLoadingCustomers}
-            onCustomerSelect={handleCustomerSelect}
+            onSelect={handleCustomerSelect}
             onFilterChange={handleFilterChange}
             onRefresh={() => refetchCustomers()}
             moduleId={moduleId}

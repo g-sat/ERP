@@ -55,7 +55,7 @@ interface DialogDataTableProps<T> {
   emptyMessage?: string
   onRefresh?: () => void
   onFilterChange?: (filters: { search?: string; sortOrder?: string }) => void
-  onRowSelect?: (row: T | undefined) => void
+  onRowSelect?: (row: T | null) => void
 }
 
 export function DialogDataTable<T>({

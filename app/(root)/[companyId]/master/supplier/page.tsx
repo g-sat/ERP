@@ -272,7 +272,7 @@ export default function SupplierPage() {
     }
   }
 
-  const handleSupplierSelect = (selectedSupplier: ISupplier | undefined) => {
+  const handleSupplierSelect = (selectedSupplier: ISupplier | null) => {
     if (selectedSupplier) {
       // Reset all data before setting new supplier
       resetAllData()
@@ -720,7 +720,7 @@ export default function SupplierPage() {
           <SupplierTable
             data={suppliersData || []}
             isLoading={isLoadingSuppliers}
-            onSupplierSelect={handleSupplierSelect}
+            onSelect={handleSupplierSelect}
             onFilterChange={handleFilterChange}
             onRefresh={() => refetchSuppliers()}
             moduleId={moduleId}

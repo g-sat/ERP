@@ -259,7 +259,7 @@ export default function BankPage() {
     }
   }
 
-  const handleBankSelect = (selectedBank: IBank | undefined) => {
+  const handleBankSelect = (selectedBank: IBank | null) => {
     if (selectedBank) {
       // Reset all data before setting new bank
       resetAllData()
@@ -695,7 +695,7 @@ export default function BankPage() {
           <BankTable
             data={banksData || []}
             isLoading={isLoadingBanks}
-            onBankSelect={handleBankSelect}
+            onSelect={handleBankSelect}
             onFilterChange={handleFilterChange}
             onRefresh={() => refetchBanks()}
             moduleId={moduleId}
