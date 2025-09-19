@@ -17,11 +17,11 @@ export interface IBank {
   remarks: string
   isActive: boolean
   createById: number
-  createDate: string | Date
-  editById: string | null
-  editDate: string | null
+  editById: number
   createBy: string
   editBy: string | null
+  createDate: Date | string
+  editDate: Date | string
 }
 
 export interface IBankFilter {
@@ -33,6 +33,8 @@ export interface IBankFilter {
 export interface IBankContact {
   contactId: number
   bankId: number
+  bankCode: string
+  bankName: string
   contactName: string
   otherName: string
   mobileNo: string
@@ -46,11 +48,11 @@ export interface IBankContact {
   isSales: boolean
   isActive: boolean
   createById: number
-  createDate: string | Date
-  editById: string | null
-  editDate: string | null | Date
-  createBy: string | null
+  editById: number
+  createBy: string
   editBy: string | null
+  createDate: Date | string
+  editDate: Date | string
 }
 
 export interface IBankContactFilter {
@@ -61,30 +63,32 @@ export interface IBankContactFilter {
 
 export interface IBankAddress {
   bankId: number
+  bankCode: string
+  bankName: string
   addressId: number
   address1: string
   address2: string
   address3: string
   address4: string
-  pinCode: null | string | number
+  pinCode: string
   countryId: number
-  countryCode: string | null
-  countryName: string | null
+  countryCode: string
+  countryName: string
   phoneNo: string
-  faxNo: string | null
+  faxNo: string
   emailAdd: string
-  webUrl: string | null
+  webUrl: string
   isDefaultAdd: boolean
   isDeliveryAdd: boolean
   isFinAdd: boolean
   isSalesAdd: boolean
   isActive: boolean
   createById: number
-  createDate: string | Date
-  editById: number | null
-  editDate: string | Date | null
-  createBy: string | null
+  editById: number
+  createBy: string
   editBy: string | null
+  createDate: Date | string
+  editDate: Date | string
 }
 
 export interface IBankAddressFilter {

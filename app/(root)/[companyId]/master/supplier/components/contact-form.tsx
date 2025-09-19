@@ -22,8 +22,27 @@ import CustomAccordion, {
 import CustomInput from "@/components/ui-custom/custom-input"
 import CustomSwitch from "@/components/ui-custom/custom-switch"
 
+// Default values for the contact form
+const defaultContactFormValues: SupplierContactFormValues = {
+  supplierId: 0,
+  contactId: 0,
+  contactName: "",
+  otherName: "",
+  mobileNo: "",
+  offNo: "",
+  faxNo: "",
+  emailAdd: "",
+  isActive: true,
+  isSales: false,
+  isFinance: false,
+  isDefault: false,
+  messId: "",
+  contactMessType: "",
+}
+
 interface SupplierContactFormProps {
   initialData?: ISupplierContact
+  supplierId?: number
   submitAction: (data: SupplierContactFormValues) => void
   onCancel?: () => void
   isSubmitting?: boolean
@@ -32,6 +51,7 @@ interface SupplierContactFormProps {
 
 export function SupplierContactForm({
   initialData,
+  supplierId,
   submitAction,
   onCancel,
   isSubmitting = false,
@@ -44,20 +64,8 @@ export function SupplierContactForm({
     defaultValues: initialData
       ? { ...initialData }
       : {
-          supplierId: 0,
-          contactId: 0,
-          contactName: "",
-          otherName: "",
-          mobileNo: "",
-          offNo: "",
-          faxNo: "",
-          emailAdd: "",
-          isActive: true,
-          isSales: false,
-          isFinance: false,
-          isDefault: false,
-          messId: "",
-          contactMessType: "",
+          ...defaultContactFormValues,
+          supplierId: supplierId || 0,
         },
   })
 

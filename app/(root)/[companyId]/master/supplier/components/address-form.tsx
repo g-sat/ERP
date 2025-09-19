@@ -24,8 +24,30 @@ import CustomInput from "@/components/ui-custom/custom-input"
 import CustomSwitch from "@/components/ui-custom/custom-switch"
 import CustomTextarea from "@/components/ui-custom/custom-textarea"
 
+// Default values for the address form
+const defaultAddressFormValues: SupplierAddressFormValues = {
+  supplierId: 0,
+  addressId: 0,
+  address1: "",
+  address2: "",
+  address3: "",
+  address4: "",
+  pinCode: "",
+  countryId: 0,
+  phoneNo: "",
+  faxNo: "",
+  emailAdd: "",
+  webUrl: "",
+  isActive: true,
+  isDefaultAdd: false,
+  isDeliveryAdd: false,
+  isFinAdd: false,
+  isSalesAdd: false,
+}
+
 interface SupplierAddressFormProps {
   initialData?: ISupplierAddress
+  supplierId?: number
   submitAction: (data: SupplierAddressFormValues) => void
   onCancel?: () => void
   isSubmitting?: boolean
@@ -34,6 +56,7 @@ interface SupplierAddressFormProps {
 
 export function SupplierAddressForm({
   initialData,
+  supplierId,
   submitAction,
   onCancel,
   isSubmitting = false,
@@ -46,23 +69,8 @@ export function SupplierAddressForm({
     defaultValues: initialData
       ? { ...initialData }
       : {
-          supplierId: 0,
-          addressId: 0,
-          address1: "",
-          address2: "",
-          address3: "",
-          address4: "",
-          pinCode: "",
-          countryId: 0,
-          phoneNo: "",
-          faxNo: "",
-          emailAdd: "",
-          webUrl: "",
-          isActive: true,
-          isDefaultAdd: false,
-          isDeliveryAdd: false,
-          isFinAdd: false,
-          isSalesAdd: false,
+          ...defaultAddressFormValues,
+          supplierId: supplierId || 0,
         },
   })
 

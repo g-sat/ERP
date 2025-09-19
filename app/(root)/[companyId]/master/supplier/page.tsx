@@ -31,6 +31,9 @@ import {
 } from "@/components/ui/dialog"
 import { Separator } from "@/components/ui/separator"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { DeleteConfirmation } from "@/components/delete-confirmation"
+import { LoadConfirmation } from "@/components/load-confirmation"
+import { SaveConfirmation } from "@/components/save-confirmation"
 
 import { SupplierAddressForm } from "./components/address-form"
 import { AddresssTable } from "./components/address-table"
@@ -73,6 +76,46 @@ export default function SupplierPage() {
   })
   const [key, setKey] = useState(0)
 
+  // State for code availability check
+  const [showLoadDialog, setShowLoadDialog] = useState(false)
+  const [existingSupplier, setExistingSupplier] = useState<ISupplier | null>(
+    null
+  )
+
+  // Save confirmation states
+  const [showSupplierSaveConfirmation, setShowSupplierSaveConfirmation] =
+    useState(false)
+  const [showAddressSaveConfirmation, setShowAddressSaveConfirmation] =
+    useState(false)
+  const [showContactSaveConfirmation, setShowContactSaveConfirmation] =
+    useState(false)
+  const [pendingSupplierData, setPendingSupplierData] =
+    useState<SupplierFormValues | null>(null)
+  const [pendingAddressData, setPendingAddressData] =
+    useState<SupplierAddressFormValues | null>(null)
+  const [pendingContactData, setPendingContactData] =
+    useState<SupplierContactFormValues | null>(null)
+
+  // Delete confirmation states
+  const [showSupplierDeleteConfirmation, setShowSupplierDeleteConfirmation] =
+    useState(false)
+  const [showAddressDeleteConfirmation, setShowAddressDeleteConfirmation] =
+    useState(false)
+  const [showContactDeleteConfirmation, setShowContactDeleteConfirmation] =
+    useState(false)
+  const [pendingDeleteSupplier, setPendingDeleteSupplier] =
+    useState<ISupplier | null>(null)
+  const [pendingDeleteAddressId, setPendingDeleteAddressId] = useState<
+    string | null
+  >(null)
+  const [pendingDeleteContactId, setPendingDeleteContactId] = useState<
+    string | null
+  >(null)
+  const [pendingDeleteAddress, setPendingDeleteAddress] =
+    useState<ISupplierAddress | null>(null)
+  const [pendingDeleteContact, setPendingDeleteContact] =
+    useState<ISupplierContact | null>(null)
+
   // Helper function to reset all form and table data
   const resetAllData = () => {
     setAddresses([])
@@ -91,7 +134,6 @@ export default function SupplierPage() {
     data: suppliersResponse,
     refetch: refetchSuppliers,
     isLoading: isLoadingSuppliers,
-    isRefetching: isRefetchingSuppliers,
   } = useGet<ISupplier>(`${Supplier.get}`, "suppliers", filters.search)
 
   const { refetch: refetchSupplierDetails } = useGetSupplierById<ISupplier>(
@@ -170,6 +212,7 @@ export default function SupplierPage() {
           setSupplier(updatedSupplier as ISupplier)
         }
       } else {
+        console.error("Failed to fetch supplier details:", response?.message)
       }
 
       const [addressesResponse, contactsResponse] = await Promise.all([
@@ -184,7 +227,8 @@ export default function SupplierPage() {
       if (contactsResponse?.data?.result === 1)
         setContacts(contactsResponse.data.data)
       else setContacts([])
-    } catch {
+    } catch (error) {
+      console.error("Error fetching supplier data:", error)
       setAddresses([])
       setContacts([])
     }
@@ -197,12 +241,19 @@ export default function SupplierPage() {
     }
   }, [supplier?.supplierId, fetchSupplierData])
 
-  const handleSupplierSave = async (savedSupplier: SupplierFormValues) => {
+  const handleSupplierSave = (savedSupplier: SupplierFormValues) => {
+    setPendingSupplierData(savedSupplier)
+    setShowSupplierSaveConfirmation(true)
+  }
+
+  const handleSupplierSaveConfirm = async () => {
+    if (!pendingSupplierData) return
+
     try {
       const response =
-        savedSupplier.supplierId === 0
-          ? await saveMutation.mutateAsync(savedSupplier)
-          : await updateMutation.mutateAsync(savedSupplier)
+        pendingSupplierData.supplierId === 0
+          ? await saveMutation.mutateAsync(pendingSupplierData)
+          : await updateMutation.mutateAsync(pendingSupplierData)
 
       if (response.result === 1) {
         const supplierData = Array.isArray(response.data)
@@ -211,8 +262,14 @@ export default function SupplierPage() {
         setSupplier(supplierData as ISupplier)
         refetchSuppliers()
       } else {
+        console.error("Failed to save supplier:", response?.message)
       }
-    } catch {}
+    } catch (error) {
+      console.error("Error saving supplier:", error)
+    } finally {
+      setPendingSupplierData(null)
+      setShowSupplierSaveConfirmation(false)
+    }
   }
 
   const handleSupplierSelect = (selectedSupplier: ISupplier | undefined) => {
@@ -226,12 +283,18 @@ export default function SupplierPage() {
     }
   }
 
-  const handleSupplierDelete = async () => {
+  const handleSupplierDelete = () => {
     if (!supplier) return
+    setPendingDeleteSupplier(supplier)
+    setShowSupplierDeleteConfirmation(true)
+  }
+
+  const handleSupplierDeleteConfirm = async () => {
+    if (!pendingDeleteSupplier) return
 
     try {
       const response = await deleteMutation.mutateAsync(
-        supplier.supplierId.toString()
+        pendingDeleteSupplier.supplierId.toString()
       )
       if (response.result === 1) {
         setSupplier(null)
@@ -239,8 +302,14 @@ export default function SupplierPage() {
         setContacts([])
         refetchSuppliers()
       } else {
+        console.error("Failed to delete supplier:", response?.message)
       }
-    } catch {}
+    } catch (error) {
+      console.error("Error deleting supplier:", error)
+    } finally {
+      setPendingDeleteSupplier(null)
+      setShowSupplierDeleteConfirmation(false)
+    }
   }
 
   const handleSupplierReset = () => {
@@ -249,15 +318,22 @@ export default function SupplierPage() {
     setKey((prev) => prev + 1)
   }
 
-  const handleAddressSave = async (data: SupplierAddressFormValues) => {
+  const handleAddressSave = (data: SupplierAddressFormValues) => {
+    setPendingAddressData(data)
+    setShowAddressSaveConfirmation(true)
+  }
+
+  const handleAddressSaveConfirm = async () => {
+    if (!pendingAddressData) return
+
     try {
       const response =
-        data.addressId === 0
+        pendingAddressData.addressId === 0
           ? await saveAddressMutation.mutateAsync({
-              ...data,
+              ...pendingAddressData,
               supplierId: supplier?.supplierId || 0,
             })
-          : await updateAddressMutation.mutateAsync(data)
+          : await updateAddressMutation.mutateAsync(pendingAddressData)
 
       if (response.result === 1) {
         const refreshedAddresses = await refetchAddresses()
@@ -266,19 +342,32 @@ export default function SupplierPage() {
         setShowAddressForm(false)
         setSelectedAddress(null)
       } else {
+        console.error("Failed to save address:", response?.message)
       }
-    } catch {}
+    } catch (error) {
+      console.error("Error saving address:", error)
+    } finally {
+      setPendingAddressData(null)
+      setShowAddressSaveConfirmation(false)
+    }
   }
 
-  const handleContactSave = async (data: SupplierContactFormValues) => {
+  const handleContactSave = (data: SupplierContactFormValues) => {
+    setPendingContactData(data)
+    setShowContactSaveConfirmation(true)
+  }
+
+  const handleContactSaveConfirm = async () => {
+    if (!pendingContactData) return
+
     try {
       const response =
-        data.contactId === 0
+        pendingContactData.contactId === 0
           ? await saveContactMutation.mutateAsync({
-              ...data,
+              ...pendingContactData,
               supplierId: supplier?.supplierId || 0,
             })
-          : await updateContactMutation.mutateAsync(data)
+          : await updateContactMutation.mutateAsync(pendingContactData)
 
       if (response.result === 1) {
         const refreshedContacts = await refetchContacts()
@@ -287,11 +376,17 @@ export default function SupplierPage() {
         setShowContactForm(false)
         setSelectedContact(null)
       } else {
+        console.error("Failed to save contact:", response?.message)
       }
-    } catch {}
+    } catch (error) {
+      console.error("Error saving contact:", error)
+    } finally {
+      setPendingContactData(null)
+      setShowContactSaveConfirmation(false)
+    }
   }
 
-  const handleAddressSelect = (address: ISupplierAddress | undefined) => {
+  const handleAddressSelect = (address: ISupplierAddress | null) => {
     if (address) {
       setSelectedAddress(address)
       setAddressMode("view")
@@ -299,7 +394,7 @@ export default function SupplierPage() {
     }
   }
 
-  const handleContactSelect = (contact: ISupplierContact | undefined) => {
+  const handleContactSelect = (contact: ISupplierContact | null) => {
     if (contact) {
       setSelectedContact(contact)
       setContactMode("view")
@@ -307,7 +402,7 @@ export default function SupplierPage() {
     }
   }
 
-  const handleAddressEdit = (address: ISupplierAddress | undefined) => {
+  const handleAddressEdit = (address: ISupplierAddress | null) => {
     if (address) {
       setSelectedAddress(address)
       setAddressMode("edit")
@@ -315,7 +410,7 @@ export default function SupplierPage() {
     }
   }
 
-  const handleContactEdit = (contact: ISupplierContact | undefined) => {
+  const handleContactEdit = (contact: ISupplierContact | null) => {
     if (contact) {
       setSelectedContact(contact)
       setContactMode("edit")
@@ -336,27 +431,67 @@ export default function SupplierPage() {
   }
 
   const handleAddressDelete = async (addressId: string) => {
+    const addressToDelete = addresses.find(
+      (addr) => addr.addressId.toString() === addressId
+    )
+    setPendingDeleteAddressId(addressId)
+    setPendingDeleteAddress(addressToDelete || null)
+    setShowAddressDeleteConfirmation(true)
+  }
+
+  const handleAddressDeleteConfirm = async () => {
+    if (!pendingDeleteAddressId || !supplier?.supplierId) return
+
     try {
-      const response = await deleteAddressMutation.mutateAsync(addressId)
+      const response = await deleteAddressMutation.mutateAsync(
+        `${supplier.supplierId}/${pendingDeleteAddressId}`
+      )
       if (response.result === 1) {
         const refreshedAddresses = await refetchAddresses()
         if (refreshedAddresses?.data?.result === 1)
           setAddresses(refreshedAddresses.data.data)
       } else {
+        console.error("Failed to delete address:", response?.message)
       }
-    } catch {}
+    } catch (error) {
+      console.error("Error deleting address:", error)
+    } finally {
+      setPendingDeleteAddressId(null)
+      setPendingDeleteAddress(null)
+      setShowAddressDeleteConfirmation(false)
+    }
   }
 
   const handleContactDelete = async (contactId: string) => {
+    const contactToDelete = contacts.find(
+      (contact) => contact.contactId.toString() === contactId
+    )
+    setPendingDeleteContactId(contactId)
+    setPendingDeleteContact(contactToDelete || null)
+    setShowContactDeleteConfirmation(true)
+  }
+
+  const handleContactDeleteConfirm = async () => {
+    if (!pendingDeleteContactId || !supplier?.supplierId) return
+
     try {
-      const response = await deleteContactMutation.mutateAsync(contactId)
+      const response = await deleteContactMutation.mutateAsync(
+        `${supplier.supplierId}/${pendingDeleteContactId}`
+      )
       if (response.result === 1) {
         const refreshedContacts = await refetchContacts()
         if (refreshedContacts?.data?.result === 1)
           setContacts(refreshedContacts.data.data)
       } else {
+        console.error("Failed to delete contact:", response?.message)
       }
-    } catch {}
+    } catch (error) {
+      console.error("Error deleting contact:", error)
+    } finally {
+      setPendingDeleteContactId(null)
+      setPendingDeleteContact(null)
+      setShowContactDeleteConfirmation(false)
+    }
   }
 
   const handleFilterChange = (newFilters: ISupplierFilter) =>
@@ -370,15 +505,33 @@ export default function SupplierPage() {
       return
     }
 
-    // Reset all data before fetching new supplier
-    resetAllData()
+    // Validate input parameters
+    if (
+      supplierCode &&
+      supplierCode.trim().length === 0 &&
+      supplierName &&
+      supplierName.trim().length === 0
+    ) {
+      return
+    }
+
+    // Skip if supplier is already loaded (edit mode)
+    if (supplier?.supplierId && supplier.supplierId > 0) {
+      return
+    }
 
     try {
-      const { data: response } = await refetchSupplierDetails()
+      // Make direct API call with lookup parameters
+      const { getById } = await import("@/lib/api-client")
+      const response = await getById(
+        `${Supplier.getById}/0/${supplierCode}/${supplierName}`
+      )
+
       if (response?.result === 1) {
         const detailedSupplier = Array.isArray(response.data)
           ? response.data[0] || null
           : response.data || null
+
         if (detailedSupplier?.supplierId) {
           const updatedSupplier = {
             ...detailedSupplier,
@@ -389,15 +542,35 @@ export default function SupplierPage() {
             accSetupId: detailedSupplier.accSetupId || 0,
             supplierId: detailedSupplier.supplierId || 0,
           }
-          setSupplier(updatedSupplier as ISupplier)
+
+          // Show load confirmation dialog instead of directly setting supplier
+          setExistingSupplier(updatedSupplier as ISupplier)
+          setShowLoadDialog(true)
         } else {
+          // No supplier found, clear any existing data
+          setSupplier(null)
         }
       } else {
+        // No supplier found, clear any existing data
+        setSupplier(null)
       }
-    } catch {
+    } catch (error) {
+      console.error("Error in supplier lookup:", error)
       setSupplier(null)
       setAddresses([])
       setContacts([])
+    }
+  }
+
+  // Handler for loading existing supplier
+  const handleLoadExistingSupplier = () => {
+    if (existingSupplier) {
+      // Set the supplier and close dialog
+      setSupplier(existingSupplier)
+      setShowLoadDialog(false)
+      setExistingSupplier(null)
+      // Reset the form key to trigger re-render with new data
+      setKey((prev) => prev + 1)
     }
   }
 
@@ -501,14 +674,11 @@ export default function SupplierPage() {
                       key={`address-${supplier?.supplierId || "new"}`}
                       data={addresses}
                       isLoading={isLoadingAddresses}
-                      onAddressSelect={
-                        canView ? handleAddressSelect : undefined
-                      }
-                      onDeleteAddress={
-                        canDelete ? handleAddressDelete : undefined
-                      }
-                      onEditAddress={canEdit ? handleAddressEdit : undefined}
-                      onCreateAddress={canCreate ? handleAddressAdd : undefined}
+                      onSelect={canView ? handleAddressSelect : undefined}
+                      onDelete={canDelete ? handleAddressDelete : undefined}
+                      onEdit={canEdit ? handleAddressEdit : undefined}
+                      onCreate={canCreate ? handleAddressAdd : undefined}
+                      onRefresh={() => refetchAddresses()}
                       moduleId={moduleId}
                       transactionId={transactionId}
                     />
@@ -520,14 +690,11 @@ export default function SupplierPage() {
                       key={`contact-${supplier?.supplierId || "new"}`}
                       data={contacts}
                       isLoading={isLoadingContacts}
-                      onContactSelect={
-                        canView ? handleContactSelect : undefined
-                      }
-                      onDeleteContact={
-                        canDelete ? handleContactDelete : undefined
-                      }
-                      onEditContact={canEdit ? handleContactEdit : undefined}
-                      onCreateContact={canCreate ? handleContactAdd : undefined}
+                      onSelect={canView ? handleContactSelect : undefined}
+                      onDelete={canDelete ? handleContactDelete : undefined}
+                      onEdit={canEdit ? handleContactEdit : undefined}
+                      onCreate={canCreate ? handleContactAdd : undefined}
+                      onRefresh={() => refetchContacts()}
                       moduleId={moduleId}
                       transactionId={transactionId}
                     />
@@ -643,6 +810,116 @@ export default function SupplierPage() {
           />
         </DialogContent>
       </Dialog>
+
+      {/* Load Existing Supplier Dialog */}
+      <LoadConfirmation
+        open={showLoadDialog}
+        onOpenChange={setShowLoadDialog}
+        onLoad={handleLoadExistingSupplier}
+        onCancel={() => {
+          setExistingSupplier(null)
+          setShowLoadDialog(false)
+        }}
+        code={existingSupplier?.supplierCode}
+        name={existingSupplier?.supplierName}
+        typeLabel="Supplier"
+        isLoading={saveMutation.isPending || updateMutation.isPending}
+      />
+
+      {/* Save Confirmation Dialogs */}
+      <SaveConfirmation
+        open={showSupplierSaveConfirmation}
+        onOpenChange={setShowSupplierSaveConfirmation}
+        onConfirm={handleSupplierSaveConfirm}
+        onCancel={() => {
+          setPendingSupplierData(null)
+          setShowSupplierSaveConfirmation(false)
+        }}
+        title="Save Supplier"
+        itemName={pendingSupplierData?.supplierName || "Supplier"}
+        operationType={
+          pendingSupplierData?.supplierId === 0 ? "create" : "update"
+        }
+        isSaving={saveMutation.isPending || updateMutation.isPending}
+      />
+
+      <SaveConfirmation
+        open={showAddressSaveConfirmation}
+        onOpenChange={setShowAddressSaveConfirmation}
+        onConfirm={handleAddressSaveConfirm}
+        onCancel={() => {
+          setPendingAddressData(null)
+          setShowAddressSaveConfirmation(false)
+        }}
+        title="Save Address"
+        itemName={pendingAddressData?.address1 || "Address"}
+        operationType={
+          pendingAddressData?.addressId === 0 ? "create" : "update"
+        }
+        isSaving={
+          saveAddressMutation.isPending || updateAddressMutation.isPending
+        }
+      />
+
+      <SaveConfirmation
+        open={showContactSaveConfirmation}
+        onOpenChange={setShowContactSaveConfirmation}
+        onConfirm={handleContactSaveConfirm}
+        onCancel={() => {
+          setPendingContactData(null)
+          setShowContactSaveConfirmation(false)
+        }}
+        title="Save Contact"
+        itemName={pendingContactData?.contactName || "Contact"}
+        operationType={
+          pendingContactData?.contactId === 0 ? "create" : "update"
+        }
+        isSaving={
+          saveContactMutation.isPending || updateContactMutation.isPending
+        }
+      />
+
+      {/* Delete Confirmation Dialogs */}
+      <DeleteConfirmation
+        open={showSupplierDeleteConfirmation}
+        onOpenChange={setShowSupplierDeleteConfirmation}
+        onConfirm={handleSupplierDeleteConfirm}
+        onCancel={() => {
+          setPendingDeleteSupplier(null)
+          setShowSupplierDeleteConfirmation(false)
+        }}
+        title="Delete Supplier"
+        itemName={pendingDeleteSupplier?.supplierName || "Supplier"}
+        isDeleting={deleteMutation.isPending}
+      />
+
+      <DeleteConfirmation
+        open={showAddressDeleteConfirmation}
+        onOpenChange={setShowAddressDeleteConfirmation}
+        onConfirm={handleAddressDeleteConfirm}
+        onCancel={() => {
+          setPendingDeleteAddressId(null)
+          setPendingDeleteAddress(null)
+          setShowAddressDeleteConfirmation(false)
+        }}
+        title="Delete Address"
+        itemName={pendingDeleteAddress?.address1 || "Address"}
+        isDeleting={deleteAddressMutation.isPending}
+      />
+
+      <DeleteConfirmation
+        open={showContactDeleteConfirmation}
+        onOpenChange={setShowContactDeleteConfirmation}
+        onConfirm={handleContactDeleteConfirm}
+        onCancel={() => {
+          setPendingDeleteContactId(null)
+          setPendingDeleteContact(null)
+          setShowContactDeleteConfirmation(false)
+        }}
+        title="Delete Contact"
+        itemName={pendingDeleteContact?.contactName || "Contact"}
+        isDeleting={deleteContactMutation.isPending}
+      />
     </div>
   )
 }

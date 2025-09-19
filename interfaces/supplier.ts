@@ -31,11 +31,11 @@ export interface ISupplier {
   remarks: string
   isActive: boolean
   createById: number
-  createDate: string | Date
-  editById: string | null
-  editDate: string | null
+  editById: number
   createBy: string
   editBy: string | null
+  createDate: Date | string
+  editDate: Date | string
 }
 export interface ISupplierFilter {
   isActive?: boolean
@@ -61,11 +61,11 @@ export interface ISupplierContact {
   isSales: boolean
   isActive: boolean
   createById: number
-  createDate: string | Date
-  editById: string | null
-  editDate: string | null | Date
-  createBy: string | null
+  editById: number
+  createBy: string
   editBy: string | null
+  createDate: Date | string
+  editDate: Date | string
 }
 
 export interface ISupplierContactFilter {
@@ -76,30 +76,32 @@ export interface ISupplierContactFilter {
 
 export interface ISupplierAddress {
   supplierId: number
+  supplierCode: string
+  supplierName: string
   addressId: number
   address1: string
   address2: string
   address3: string
   address4: string
-  pinCode: null | string | number
+  pinCode: string
   countryId: number
-  countryCode: string | null
-  countryName: string | null
+  countryCode: string
+  countryName: string
   phoneNo: string
-  faxNo: string | null
+  faxNo: string
   emailAdd: string
-  webUrl: string | null
+  webUrl: string
   isDefaultAdd: boolean
   isDeliveryAdd: boolean
   isFinAdd: boolean
   isSalesAdd: boolean
   isActive: boolean
   createById: number
-  createDate: string | Date
-  editById: number | null
-  editDate: string | Date | null
-  createBy: string | null
+  editById: number
+  createBy: string
   editBy: string | null
+  createDate: Date | string
+  editDate: Date | string
 }
 
 export interface ISupplierAddressFilter {

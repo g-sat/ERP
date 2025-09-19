@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { ApiResponse } from "@/interfaces/auth"
 import {
   IBank,
@@ -31,6 +31,9 @@ import {
 } from "@/components/ui/dialog"
 import { Separator } from "@/components/ui/separator"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { DeleteConfirmation } from "@/components/delete-confirmation"
+import { LoadConfirmation } from "@/components/load-confirmation"
+import { SaveConfirmation } from "@/components/save-confirmation"
 
 import { BankAddressForm } from "./components/address-form"
 import { AddresssTable } from "./components/address-table"
@@ -75,6 +78,44 @@ export default function BankPage() {
   })
   const [key, setKey] = useState(0)
 
+  // State for code availability check
+  const [showLoadDialog, setShowLoadDialog] = useState(false)
+  const [existingBank, setExistingBank] = useState<IBank | null>(null)
+
+  // Save confirmation states
+  const [showBankSaveConfirmation, setShowBankSaveConfirmation] =
+    useState(false)
+  const [showAddressSaveConfirmation, setShowAddressSaveConfirmation] =
+    useState(false)
+  const [showContactSaveConfirmation, setShowContactSaveConfirmation] =
+    useState(false)
+  const [pendingBankData, setPendingBankData] = useState<BankFormValues | null>(
+    null
+  )
+  const [pendingAddressData, setPendingAddressData] =
+    useState<BankAddressFormValues | null>(null)
+  const [pendingContactData, setPendingContactData] =
+    useState<BankContactFormValues | null>(null)
+
+  // Delete confirmation states
+  const [showBankDeleteConfirmation, setShowBankDeleteConfirmation] =
+    useState(false)
+  const [showAddressDeleteConfirmation, setShowAddressDeleteConfirmation] =
+    useState(false)
+  const [showContactDeleteConfirmation, setShowContactDeleteConfirmation] =
+    useState(false)
+  const [pendingDeleteBank, setPendingDeleteBank] = useState<IBank | null>(null)
+  const [pendingDeleteAddressId, setPendingDeleteAddressId] = useState<
+    string | null
+  >(null)
+  const [pendingDeleteContactId, setPendingDeleteContactId] = useState<
+    string | null
+  >(null)
+  const [pendingDeleteAddress, setPendingDeleteAddress] =
+    useState<IBankAddress | null>(null)
+  const [pendingDeleteContact, setPendingDeleteContact] =
+    useState<IBankContact | null>(null)
+
   // Helper function to reset all form and table data
   const resetAllData = () => {
     setAddresses([])
@@ -93,7 +134,6 @@ export default function BankPage() {
     data: banksResponse,
     refetch: refetchBanks,
     isLoading: isLoadingBanks,
-    isRefetching: isRefetchingBanks,
   } = useGet<IBank>(`${Bank.get}`, "banks", filters.search)
 
   const { refetch: refetchBankDetails } = useGetBankById<IBank>(
@@ -143,14 +183,7 @@ export default function BankPage() {
   )
   const deleteContactMutation = useDelete(`${BankContact.delete}`)
 
-  // Fetch bank details, addresses, and contacts when bank changes
-  useEffect(() => {
-    if (bank?.bankId) {
-      fetchBankData()
-    }
-  }, [bank?.bankId])
-
-  const fetchBankData = async () => {
+  const fetchBankData = useCallback(async () => {
     try {
       const { data: response } = await refetchBankDetails()
       if (response?.result === 1) {
@@ -166,6 +199,7 @@ export default function BankPage() {
           setBank(updatedBank as IBank)
         }
       } else {
+        console.error("Failed to fetch bank details:", response?.message)
       }
 
       const [addressesResponse, contactsResponse] = await Promise.all([
@@ -180,18 +214,33 @@ export default function BankPage() {
       if (contactsResponse?.data?.result === 1)
         setContacts(contactsResponse.data.data)
       else setContacts([])
-    } catch {
+    } catch (error) {
+      console.error("Error fetching bank data:", error)
       setAddresses([])
       setContacts([])
     }
+  }, [refetchBankDetails, refetchAddresses, refetchContacts])
+
+  // Fetch bank details, addresses, and contacts when bank changes
+  useEffect(() => {
+    if (bank?.bankId) {
+      fetchBankData()
+    }
+  }, [bank?.bankId, fetchBankData])
+
+  const handleBankSave = (savedBank: BankFormValues) => {
+    setPendingBankData(savedBank)
+    setShowBankSaveConfirmation(true)
   }
 
-  const handleBankSave = async (savedBank: BankFormValues) => {
+  const handleBankSaveConfirm = async () => {
+    if (!pendingBankData) return
+
     try {
       const response =
-        savedBank.bankId === 0
-          ? await saveMutation.mutateAsync(savedBank)
-          : await updateMutation.mutateAsync(savedBank)
+        pendingBankData.bankId === 0
+          ? await saveMutation.mutateAsync(pendingBankData)
+          : await updateMutation.mutateAsync(pendingBankData)
 
       if (response.result === 1) {
         const bankData = Array.isArray(response.data)
@@ -200,8 +249,14 @@ export default function BankPage() {
         setBank(bankData as IBank)
         refetchBanks()
       } else {
+        console.error("Failed to save bank:", response?.message)
       }
-    } catch {}
+    } catch (error) {
+      console.error("Error saving bank:", error)
+    } finally {
+      setPendingBankData(null)
+      setShowBankSaveConfirmation(false)
+    }
   }
 
   const handleBankSelect = (selectedBank: IBank | undefined) => {
@@ -215,19 +270,33 @@ export default function BankPage() {
     }
   }
 
-  const handleBankDelete = async () => {
+  const handleBankDelete = () => {
     if (!bank) return
+    setPendingDeleteBank(bank)
+    setShowBankDeleteConfirmation(true)
+  }
+
+  const handleBankDeleteConfirm = async () => {
+    if (!pendingDeleteBank) return
 
     try {
-      const response = await deleteMutation.mutateAsync(bank.bankId.toString())
+      const response = await deleteMutation.mutateAsync(
+        pendingDeleteBank.bankId.toString()
+      )
       if (response.result === 1) {
         setBank(null)
         setAddresses([])
         setContacts([])
         refetchBanks()
       } else {
+        console.error("Failed to delete bank:", response?.message)
       }
-    } catch {}
+    } catch (error) {
+      console.error("Error deleting bank:", error)
+    } finally {
+      setPendingDeleteBank(null)
+      setShowBankDeleteConfirmation(false)
+    }
   }
 
   const handleBankReset = () => {
@@ -236,15 +305,22 @@ export default function BankPage() {
     setKey((prev) => prev + 1)
   }
 
-  const handleAddressSave = async (data: BankAddressFormValues) => {
+  const handleAddressSave = (data: BankAddressFormValues) => {
+    setPendingAddressData(data)
+    setShowAddressSaveConfirmation(true)
+  }
+
+  const handleAddressSaveConfirm = async () => {
+    if (!pendingAddressData) return
+
     try {
       const response =
-        data.addressId === 0
+        pendingAddressData.addressId === 0
           ? await saveAddressMutation.mutateAsync({
-              ...data,
+              ...pendingAddressData,
               bankId: bank?.bankId || 0,
             })
-          : await updateAddressMutation.mutateAsync(data)
+          : await updateAddressMutation.mutateAsync(pendingAddressData)
 
       if (response.result === 1) {
         const refreshedAddresses = await refetchAddresses()
@@ -253,19 +329,32 @@ export default function BankPage() {
         setShowAddressForm(false)
         setSelectedAddress(null)
       } else {
+        console.error("Failed to save address:", response?.message)
       }
-    } catch {}
+    } catch (error) {
+      console.error("Error saving address:", error)
+    } finally {
+      setPendingAddressData(null)
+      setShowAddressSaveConfirmation(false)
+    }
   }
 
-  const handleContactSave = async (data: BankContactFormValues) => {
+  const handleContactSave = (data: BankContactFormValues) => {
+    setPendingContactData(data)
+    setShowContactSaveConfirmation(true)
+  }
+
+  const handleContactSaveConfirm = async () => {
+    if (!pendingContactData) return
+
     try {
       const response =
-        data.contactId === 0
+        pendingContactData.contactId === 0
           ? await saveContactMutation.mutateAsync({
-              ...data,
+              ...pendingContactData,
               bankId: bank?.bankId || 0,
             })
-          : await updateContactMutation.mutateAsync(data)
+          : await updateContactMutation.mutateAsync(pendingContactData)
 
       if (response.result === 1) {
         const refreshedContacts = await refetchContacts()
@@ -274,11 +363,17 @@ export default function BankPage() {
         setShowContactForm(false)
         setSelectedContact(null)
       } else {
+        console.error("Failed to save contact:", response?.message)
       }
-    } catch {}
+    } catch (error) {
+      console.error("Error saving contact:", error)
+    } finally {
+      setPendingContactData(null)
+      setShowContactSaveConfirmation(false)
+    }
   }
 
-  const handleAddressSelect = (address: IBankAddress | undefined) => {
+  const handleAddressSelect = (address: IBankAddress | null) => {
     if (address) {
       setSelectedAddress(address)
       setAddressMode("view")
@@ -286,7 +381,7 @@ export default function BankPage() {
     }
   }
 
-  const handleContactSelect = (contact: IBankContact | undefined) => {
+  const handleContactSelect = (contact: IBankContact | null) => {
     if (contact) {
       setSelectedContact(contact)
       setContactMode("view")
@@ -294,7 +389,7 @@ export default function BankPage() {
     }
   }
 
-  const handleAddressEdit = (address: IBankAddress | undefined) => {
+  const handleAddressEdit = (address: IBankAddress | null) => {
     if (address) {
       setSelectedAddress(address)
       setAddressMode("edit")
@@ -302,7 +397,7 @@ export default function BankPage() {
     }
   }
 
-  const handleContactEdit = (contact: IBankContact | undefined) => {
+  const handleContactEdit = (contact: IBankContact | null) => {
     if (contact) {
       setSelectedContact(contact)
       setContactMode("edit")
@@ -323,27 +418,67 @@ export default function BankPage() {
   }
 
   const handleAddressDelete = async (addressId: string) => {
+    const addressToDelete = addresses.find(
+      (addr) => addr.addressId.toString() === addressId
+    )
+    setPendingDeleteAddressId(addressId)
+    setPendingDeleteAddress(addressToDelete || null)
+    setShowAddressDeleteConfirmation(true)
+  }
+
+  const handleAddressDeleteConfirm = async () => {
+    if (!pendingDeleteAddressId || !bank?.bankId) return
+
     try {
-      const response = await deleteAddressMutation.mutateAsync(addressId)
+      const response = await deleteAddressMutation.mutateAsync(
+        `${bank.bankId}/${pendingDeleteAddressId}`
+      )
       if (response.result === 1) {
         const refreshedAddresses = await refetchAddresses()
         if (refreshedAddresses?.data?.result === 1)
           setAddresses(refreshedAddresses.data.data)
       } else {
+        console.error("Failed to delete address:", response?.message)
       }
-    } catch {}
+    } catch (error) {
+      console.error("Error deleting address:", error)
+    } finally {
+      setPendingDeleteAddressId(null)
+      setPendingDeleteAddress(null)
+      setShowAddressDeleteConfirmation(false)
+    }
   }
 
   const handleContactDelete = async (contactId: string) => {
+    const contactToDelete = contacts.find(
+      (contact) => contact.contactId.toString() === contactId
+    )
+    setPendingDeleteContactId(contactId)
+    setPendingDeleteContact(contactToDelete || null)
+    setShowContactDeleteConfirmation(true)
+  }
+
+  const handleContactDeleteConfirm = async () => {
+    if (!pendingDeleteContactId || !bank?.bankId) return
+
     try {
-      const response = await deleteContactMutation.mutateAsync(contactId)
+      const response = await deleteContactMutation.mutateAsync(
+        `${bank.bankId}/${pendingDeleteContactId}`
+      )
       if (response.result === 1) {
         const refreshedContacts = await refetchContacts()
         if (refreshedContacts?.data?.result === 1)
           setContacts(refreshedContacts.data.data)
       } else {
+        console.error("Failed to delete contact:", response?.message)
       }
-    } catch {}
+    } catch (error) {
+      console.error("Error deleting contact:", error)
+    } finally {
+      setPendingDeleteContactId(null)
+      setPendingDeleteContact(null)
+      setShowContactDeleteConfirmation(false)
+    }
   }
 
   const handleFilterChange = (newFilters: IBankFilter) => setFilters(newFilters)
@@ -353,30 +488,68 @@ export default function BankPage() {
       return
     }
 
-    // Reset all data before fetching new bank
-    resetAllData()
+    // Validate input parameters
+    if (
+      bankCode &&
+      bankCode.trim().length === 0 &&
+      bankName &&
+      bankName.trim().length === 0
+    ) {
+      return
+    }
+
+    // Skip if bank is already loaded (edit mode)
+    if (bank?.bankId && bank.bankId > 0) {
+      return
+    }
 
     try {
-      const { data: response } = await refetchBankDetails()
+      // Make direct API call with lookup parameters
+      const { getById } = await import("@/lib/api-client")
+      const response = await getById(
+        `${Bank.getById}/0/${bankCode}/${bankName}`
+      )
+
       if (response?.result === 1) {
         const detailedBank = Array.isArray(response.data)
           ? response.data[0] || null
           : response.data || null
+
         if (detailedBank?.bankId) {
           const updatedBank = {
             ...detailedBank,
             currencyId: detailedBank.currencyId || 0,
             bankId: detailedBank.bankId || 0,
           }
-          setBank(updatedBank as IBank)
+
+          // Show load confirmation dialog instead of directly setting bank
+          setExistingBank(updatedBank as IBank)
+          setShowLoadDialog(true)
         } else {
+          // No bank found, clear any existing data
+          setBank(null)
         }
       } else {
+        // No bank found, clear any existing data
+        setBank(null)
       }
-    } catch {
+    } catch (error) {
+      console.error("Error in bank lookup:", error)
       setBank(null)
       setAddresses([])
       setContacts([])
+    }
+  }
+
+  // Handler for loading existing bank
+  const handleLoadExistingBank = () => {
+    if (existingBank) {
+      // Set the bank and close dialog
+      setBank(existingBank)
+      setShowLoadDialog(false)
+      setExistingBank(null)
+      // Reset the form key to trigger re-render with new data
+      setKey((prev) => prev + 1)
     }
   }
 
@@ -476,14 +649,11 @@ export default function BankPage() {
                       key={`address-${bank?.bankId || "new"}`}
                       data={addresses}
                       isLoading={isLoadingAddresses}
-                      onAddressSelect={
-                        canView ? handleAddressSelect : undefined
-                      }
-                      onDeleteAddress={
-                        canDelete ? handleAddressDelete : undefined
-                      }
-                      onEditAddress={canEdit ? handleAddressEdit : undefined}
-                      onCreateAddress={canCreate ? handleAddressAdd : undefined}
+                      onSelect={canView ? handleAddressSelect : undefined}
+                      onDelete={canDelete ? handleAddressDelete : undefined}
+                      onEdit={canEdit ? handleAddressEdit : undefined}
+                      onCreate={canCreate ? handleAddressAdd : undefined}
+                      onRefresh={() => refetchAddresses()}
                       moduleId={moduleId}
                       transactionId={transactionId}
                     />
@@ -495,14 +665,11 @@ export default function BankPage() {
                       key={`contact-${bank?.bankId || "new"}`}
                       data={contacts}
                       isLoading={isLoadingContacts}
-                      onContactSelect={
-                        canView ? handleContactSelect : undefined
-                      }
-                      onDeleteContact={
-                        canDelete ? handleContactDelete : undefined
-                      }
-                      onEditContact={canEdit ? handleContactEdit : undefined}
-                      onCreateContact={canCreate ? handleContactAdd : undefined}
+                      onSelect={canView ? handleContactSelect : undefined}
+                      onDelete={canDelete ? handleContactDelete : undefined}
+                      onEdit={canEdit ? handleContactEdit : undefined}
+                      onCreate={canCreate ? handleContactAdd : undefined}
+                      onRefresh={() => refetchContacts()}
                       moduleId={moduleId}
                       transactionId={transactionId}
                     />
@@ -618,6 +785,114 @@ export default function BankPage() {
           />
         </DialogContent>
       </Dialog>
+
+      {/* Load Existing Bank Dialog */}
+      <LoadConfirmation
+        open={showLoadDialog}
+        onOpenChange={setShowLoadDialog}
+        onLoad={handleLoadExistingBank}
+        onCancel={() => {
+          setExistingBank(null)
+          setShowLoadDialog(false)
+        }}
+        code={existingBank?.bankCode}
+        name={existingBank?.bankName}
+        typeLabel="Bank"
+        isLoading={saveMutation.isPending || updateMutation.isPending}
+      />
+
+      {/* Save Confirmation Dialogs */}
+      <SaveConfirmation
+        open={showBankSaveConfirmation}
+        onOpenChange={setShowBankSaveConfirmation}
+        onConfirm={handleBankSaveConfirm}
+        onCancel={() => {
+          setPendingBankData(null)
+          setShowBankSaveConfirmation(false)
+        }}
+        title="Save Bank"
+        itemName={pendingBankData?.bankName || "Bank"}
+        operationType={pendingBankData?.bankId === 0 ? "create" : "update"}
+        isSaving={saveMutation.isPending || updateMutation.isPending}
+      />
+
+      <SaveConfirmation
+        open={showAddressSaveConfirmation}
+        onOpenChange={setShowAddressSaveConfirmation}
+        onConfirm={handleAddressSaveConfirm}
+        onCancel={() => {
+          setPendingAddressData(null)
+          setShowAddressSaveConfirmation(false)
+        }}
+        title="Save Address"
+        itemName={pendingAddressData?.address1 || "Address"}
+        operationType={
+          pendingAddressData?.addressId === 0 ? "create" : "update"
+        }
+        isSaving={
+          saveAddressMutation.isPending || updateAddressMutation.isPending
+        }
+      />
+
+      <SaveConfirmation
+        open={showContactSaveConfirmation}
+        onOpenChange={setShowContactSaveConfirmation}
+        onConfirm={handleContactSaveConfirm}
+        onCancel={() => {
+          setPendingContactData(null)
+          setShowContactSaveConfirmation(false)
+        }}
+        title="Save Contact"
+        itemName={pendingContactData?.contactName || "Contact"}
+        operationType={
+          pendingContactData?.contactId === 0 ? "create" : "update"
+        }
+        isSaving={
+          saveContactMutation.isPending || updateContactMutation.isPending
+        }
+      />
+
+      {/* Delete Confirmation Dialogs */}
+      <DeleteConfirmation
+        open={showBankDeleteConfirmation}
+        onOpenChange={setShowBankDeleteConfirmation}
+        onConfirm={handleBankDeleteConfirm}
+        onCancel={() => {
+          setPendingDeleteBank(null)
+          setShowBankDeleteConfirmation(false)
+        }}
+        title="Delete Bank"
+        itemName={pendingDeleteBank?.bankName || "Bank"}
+        isDeleting={deleteMutation.isPending}
+      />
+
+      <DeleteConfirmation
+        open={showAddressDeleteConfirmation}
+        onOpenChange={setShowAddressDeleteConfirmation}
+        onConfirm={handleAddressDeleteConfirm}
+        onCancel={() => {
+          setPendingDeleteAddressId(null)
+          setPendingDeleteAddress(null)
+          setShowAddressDeleteConfirmation(false)
+        }}
+        title="Delete Address"
+        itemName={pendingDeleteAddress?.address1 || "Address"}
+        isDeleting={deleteAddressMutation.isPending}
+      />
+
+      <DeleteConfirmation
+        open={showContactDeleteConfirmation}
+        onOpenChange={setShowContactDeleteConfirmation}
+        onConfirm={handleContactDeleteConfirm}
+        onCancel={() => {
+          setPendingDeleteContactId(null)
+          setPendingDeleteContact(null)
+          setShowContactDeleteConfirmation(false)
+        }}
+        title="Delete Contact"
+        itemName={pendingDeleteContact?.contactName || "Contact"}
+        isDeleting={deleteContactMutation.isPending}
+      />
     </div>
   )
 }

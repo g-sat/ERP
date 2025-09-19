@@ -21,8 +21,30 @@ import CustomInput from "@/components/ui-custom/custom-input"
 import CustomSwitch from "@/components/ui-custom/custom-switch"
 import CustomTextarea from "@/components/ui-custom/custom-textarea"
 
+// Default values for the address form
+const defaultAddressFormValues: BankAddressFormValues = {
+  bankId: 0,
+  addressId: 0,
+  address1: "",
+  address2: "",
+  address3: "",
+  address4: "",
+  pinCode: "",
+  countryId: 0,
+  phoneNo: "",
+  faxNo: "",
+  emailAdd: "",
+  webUrl: "",
+  isActive: true,
+  isDefaultAdd: false,
+  isDeliveryAdd: false,
+  isFinAdd: false,
+  isSalesAdd: false,
+}
+
 interface BankAddressFormProps {
   initialData?: IBankAddress
+  bankId?: number
   submitAction: (data: BankAddressFormValues) => void
   onCancel?: () => void
   isSubmitting?: boolean
@@ -31,6 +53,7 @@ interface BankAddressFormProps {
 
 export function BankAddressForm({
   initialData,
+  bankId,
   submitAction,
   onCancel,
   isSubmitting = false,
@@ -43,23 +66,8 @@ export function BankAddressForm({
     defaultValues: initialData
       ? { ...initialData }
       : {
-          bankId: 0,
-          addressId: 0,
-          address1: "",
-          address2: "",
-          address3: "",
-          address4: "",
-          pinCode: "",
-          countryId: 0,
-          phoneNo: "",
-          faxNo: "",
-          emailAdd: "",
-          webUrl: "",
-          isActive: true,
-          isDefaultAdd: false,
-          isDeliveryAdd: false,
-          isFinAdd: false,
-          isSalesAdd: false,
+          ...defaultAddressFormValues,
+          bankId: bankId || 0,
         },
   })
 

@@ -19,8 +19,27 @@ import CustomAccordion, {
 import CustomInput from "@/components/ui-custom/custom-input"
 import CustomSwitch from "@/components/ui-custom/custom-switch"
 
+// Default values for the contact form
+const defaultContactFormValues: BankContactFormValues = {
+  bankId: 0,
+  contactId: 0,
+  contactName: "",
+  otherName: "",
+  mobileNo: "",
+  offNo: "",
+  faxNo: "",
+  emailAdd: "",
+  isActive: true,
+  isSales: false,
+  isFinance: false,
+  isDefault: false,
+  messId: "",
+  contactMessType: "",
+}
+
 interface BankContactFormProps {
   initialData?: IBankContact
+  bankId?: number
   submitAction: (data: BankContactFormValues) => void
   onCancel?: () => void
   isSubmitting?: boolean
@@ -29,6 +48,7 @@ interface BankContactFormProps {
 
 export function BankContactForm({
   initialData,
+  bankId,
   submitAction,
   onCancel,
   isSubmitting = false,
@@ -41,20 +61,8 @@ export function BankContactForm({
     defaultValues: initialData
       ? { ...initialData }
       : {
-          bankId: 0,
-          contactId: 0,
-          contactName: "",
-          otherName: "",
-          mobileNo: "",
-          offNo: "",
-          faxNo: "",
-          emailAdd: "",
-          isActive: true,
-          isSales: false,
-          isFinance: false,
-          isDefault: false,
-          messId: "",
-          contactMessType: "",
+          ...defaultContactFormValues,
+          bankId: bankId || 0,
         },
   })
 
