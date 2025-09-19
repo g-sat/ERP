@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { ApiResponse } from "@/interfaces/auth"
 import {
   ICustomer,
@@ -149,14 +149,7 @@ export default function CustomerPage() {
   )
   const deleteContactMutation = useDelete(`${CustomerContact.delete}`)
 
-  // Fetch customer details, addresses, and contacts when customer changes
-  useEffect(() => {
-    if (customer?.customerId) {
-      fetchCustomerData()
-    }
-  }, [customer?.customerId])
-
-  const fetchCustomerData = async () => {
+  const fetchCustomerData = useCallback(async () => {
     try {
       const { data: response } = await refetchCustomerDetails()
       if (response?.result === 1) {
@@ -194,7 +187,14 @@ export default function CustomerPage() {
       setAddresses([])
       setContacts([])
     }
-  }
+  }, [refetchCustomerDetails, refetchAddresses, refetchContacts])
+
+  // Fetch customer details, addresses, and contacts when customer changes
+  useEffect(() => {
+    if (customer?.customerId) {
+      fetchCustomerData()
+    }
+  }, [customer?.customerId, fetchCustomerData])
 
   const handleCustomerSave = async (savedCustomer: CustomerFormValues) => {
     try {
@@ -293,7 +293,7 @@ export default function CustomerPage() {
     } catch {}
   }
 
-  const handleAddressSelect = (address: ICustomerAddress | undefined) => {
+  const handleAddressSelect = (address: ICustomerAddress | null) => {
     if (address) {
       setSelectedAddress(address)
       setAddressMode("view")
@@ -301,7 +301,7 @@ export default function CustomerPage() {
     }
   }
 
-  const handleContactSelect = (contact: ICustomerContact | undefined) => {
+  const handleContactSelect = (contact: ICustomerContact | null) => {
     if (contact) {
       setSelectedContact(contact)
       setContactMode("view")
@@ -309,7 +309,7 @@ export default function CustomerPage() {
     }
   }
 
-  const handleAddressEdit = (address: ICustomerAddress | undefined) => {
+  const handleAddressEdit = (address: ICustomerAddress | null) => {
     if (address) {
       setSelectedAddress(address)
       setAddressMode("edit")
@@ -317,7 +317,7 @@ export default function CustomerPage() {
     }
   }
 
-  const handleContactEdit = (contact: ICustomerContact | undefined) => {
+  const handleContactEdit = (contact: ICustomerContact | null) => {
     if (contact) {
       setSelectedContact(contact)
       setContactMode("edit")
@@ -372,15 +372,25 @@ export default function CustomerPage() {
       return
     }
 
+    console.log("Customer lookup called with:", { customerCode, customerName })
+
     // Reset all data before fetching new customer
     resetAllData()
 
     try {
-      const { data: response } = await refetchCustomerDetails()
+      // Make direct API call with lookup parameters
+      const { getById } = await import("@/lib/api-client")
+      const response = await getById(
+        `${Customer.getById}/0/${customerCode}/${customerName}`
+      )
+
+      console.log("Customer lookup response:", response)
+
       if (response?.result === 1) {
         const detailedCustomer = Array.isArray(response.data)
           ? response.data[0] || null
           : response.data || null
+
         if (detailedCustomer?.customerId) {
           const updatedCustomer = {
             ...detailedCustomer,
@@ -391,12 +401,18 @@ export default function CustomerPage() {
             accSetupId: detailedCustomer.accSetupId || 0,
             customerId: detailedCustomer.customerId || 0,
           }
+          console.log("Setting customer from lookup:", updatedCustomer)
           setCustomer(updatedCustomer as ICustomer)
         } else {
+          console.log("No customer found for lookup parameters")
+          setCustomer(null)
         }
       } else {
+        console.log("Customer lookup failed:", response)
+        setCustomer(null)
       }
-    } catch {
+    } catch (error) {
+      console.error("Error in customer lookup:", error)
       setCustomer(null)
       setAddresses([])
       setContacts([])
@@ -591,25 +607,27 @@ export default function CustomerPage() {
             </p>
           </DialogHeader>
           <Separator />
-          <CustomerAddressForm
-            key={`address-form-${selectedAddress?.addressId || "new"}-${addressMode}`}
-            initialData={
-              addressMode === "edit" || addressMode === "view"
-                ? selectedAddress || undefined
-                : undefined
-            }
-            customerId={customer?.customerId}
-            submitAction={handleAddressSave}
-            onCancel={() => {
-              setShowAddressForm(false)
-              setSelectedAddress(null)
-              setAddressMode("view")
-            }}
-            isSubmitting={
-              saveAddressMutation.isPending || updateAddressMutation.isPending
-            }
-            isReadOnly={addressMode === "view"}
-          />
+          {customer?.customerId && customer.customerId > 0 && (
+            <CustomerAddressForm
+              key={`address-form-${selectedAddress?.addressId || "new"}-${addressMode}`}
+              initialData={
+                addressMode === "edit" || addressMode === "view"
+                  ? selectedAddress || undefined
+                  : undefined
+              }
+              customerId={customer.customerId}
+              submitAction={handleAddressSave}
+              onCancel={() => {
+                setShowAddressForm(false)
+                setSelectedAddress(null)
+                setAddressMode("view")
+              }}
+              isSubmitting={
+                saveAddressMutation.isPending || updateAddressMutation.isPending
+              }
+              isReadOnly={addressMode === "view"}
+            />
+          )}
         </DialogContent>
       </Dialog>
 
@@ -633,25 +651,27 @@ export default function CustomerPage() {
             </p>
           </DialogHeader>
           <Separator />
-          <CustomerContactForm
-            key={`contact-form-${selectedContact?.contactId || "new"}-${contactMode}`}
-            initialData={
-              contactMode === "edit" || contactMode === "view"
-                ? selectedContact || undefined
-                : undefined
-            }
-            customerId={customer?.customerId}
-            submitAction={handleContactSave}
-            onCancel={() => {
-              setShowContactForm(false)
-              setSelectedContact(null)
-              setContactMode("view")
-            }}
-            isSubmitting={
-              saveContactMutation.isPending || updateContactMutation.isPending
-            }
-            isReadOnly={contactMode === "view"}
-          />
+          {customer?.customerId && customer.customerId > 0 && (
+            <CustomerContactForm
+              key={`contact-form-${selectedContact?.contactId || "new"}-${contactMode}`}
+              initialData={
+                contactMode === "edit" || contactMode === "view"
+                  ? selectedContact || undefined
+                  : undefined
+              }
+              customerId={customer.customerId}
+              submitAction={handleContactSave}
+              onCancel={() => {
+                setShowContactForm(false)
+                setSelectedContact(null)
+                setContactMode("view")
+              }}
+              isSubmitting={
+                saveContactMutation.isPending || updateContactMutation.isPending
+              }
+              isReadOnly={contactMode === "view"}
+            />
+          )}
         </DialogContent>
       </Dialog>
     </div>
