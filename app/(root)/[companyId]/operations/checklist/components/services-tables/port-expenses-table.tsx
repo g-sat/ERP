@@ -8,7 +8,7 @@ import { format, isValid } from "date-fns"
 
 import { TableName } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
-import { MainTaskDataTable } from "@/components/table/table-task"
+import { TaskTable } from "@/components/table/table-task"
 
 interface PortExpensesTableProps {
   data: IPortExpenses[]
@@ -245,7 +245,7 @@ export function PortExpensesTable({
   }
 
   return (
-    <MainTaskDataTable
+    <TaskTable
       data={data}
       columns={columns}
       isLoading={isLoading}
