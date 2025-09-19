@@ -109,6 +109,14 @@ export function AddresssTable({
       enableColumnFilter: true,
     },
     {
+      accessorKey: "phoneNo",
+      header: "Phone",
+      size: 120,
+      minSize: 50,
+
+      enableColumnFilter: true,
+    },
+    {
       accessorKey: "faxNo",
       header: "Fax",
       size: 120,

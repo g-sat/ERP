@@ -51,8 +51,8 @@ export const customerSchema = z.object({
 export type CustomerFormValues = z.infer<typeof customerSchema>
 
 export const customerContactSchema = z.object({
-  contactId: z.number(),
   customerId: z.number().min(1, "Customer is required"),
+  contactId: z.number(),
   contactName: z
     .string()
     .min(1, "Contact name is required")
@@ -77,7 +77,13 @@ export const customerContactSchema = z.object({
     .max(150, "Fax number cannot exceed 150 characters")
     .optional()
     .default(""),
-  emailAdd: z.string().email("Invalid email format").optional().default(""),
+  emailAdd: z
+    .string()
+    .optional()
+    .default("")
+    .refine((val) => !val || z.string().email().safeParse(val).success, {
+      message: "Invalid email format",
+    }),
   messId: z
     .string()
     .max(150, "Mess ID cannot exceed 150 characters")
@@ -135,7 +141,10 @@ export const customerAddressSchema = z.object({
     .string()
     .max(150, "Email address cannot exceed 150 characters")
     .optional()
-    .default(""),
+    .default("")
+    .refine((val) => !val || z.string().email().safeParse(val).success, {
+      message: "Invalid email format",
+    }),
   webUrl: z
     .string()
     .max(150, "Web URL cannot exceed 150 characters")

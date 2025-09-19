@@ -22,8 +22,27 @@ import CustomAccordion, {
 import CustomInput from "@/components/ui-custom/custom-input"
 import CustomSwitch from "@/components/ui-custom/custom-switch"
 
+// Default values for the contact form
+const defaultContactFormValues: CustomerContactFormValues = {
+  customerId: 0,
+  contactId: 0,
+  contactName: "",
+  otherName: "",
+  mobileNo: "",
+  offNo: "",
+  faxNo: "",
+  emailAdd: "",
+  isActive: true,
+  isSales: false,
+  isFinance: false,
+  isDefault: false,
+  messId: "",
+  contactMessType: "",
+}
+
 interface CustomerContactFormProps {
   initialData?: ICustomerContact
+  customerId?: number
   submitAction: (data: CustomerContactFormValues) => void
   onCancel?: () => void
   isSubmitting?: boolean
@@ -32,6 +51,7 @@ interface CustomerContactFormProps {
 
 export function CustomerContactForm({
   initialData,
+  customerId,
   submitAction,
   onCancel,
   isSubmitting = false,
@@ -39,34 +59,45 @@ export function CustomerContactForm({
 }: CustomerContactFormProps) {
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
+
+  // Validate that customerId is provided and valid
+  if (!customerId || customerId <= 0) {
+    throw new Error("Valid customerId is required for contact form")
+  }
   const form = useForm<CustomerContactFormValues>({
     resolver: zodResolver(customerContactSchema),
     defaultValues: initialData
-      ? { ...initialData }
+      ? {
+          customerId: initialData.customerId ?? customerId,
+          contactId: initialData.contactId ?? 0,
+          contactName: initialData.contactName ?? "",
+          otherName: initialData.otherName ?? "",
+          mobileNo: initialData.mobileNo ?? "",
+          offNo: initialData.offNo ?? "",
+          faxNo: initialData.faxNo ?? "",
+          emailAdd: initialData.emailAdd ?? "",
+          isActive: initialData.isActive ?? true,
+          isSales: initialData.isSales ?? false,
+          isFinance: initialData.isFinance ?? false,
+          isDefault: initialData.isDefault ?? false,
+          messId: initialData.messId ?? "",
+          contactMessType: initialData.contactMessType ?? "",
+        }
       : {
-          customerId: 0,
-          contactId: 0,
-          contactName: "",
-          otherName: "",
-          mobileNo: "",
-          offNo: "",
-          faxNo: "",
-          emailAdd: "",
-          isActive: true,
-          isSales: false,
-          isFinance: false,
-          isDefault: false,
-          messId: "",
-          contactMessType: "",
+          ...defaultContactFormValues,
+          customerId: customerId,
         },
   })
 
   const onSubmit = (data: CustomerContactFormValues) => {
+    console.log("Form submitted with data:", data)
+    console.log("Form validation errors:", form.formState.errors)
+
     // Process and handle null values according to CustomerContactFormValues schema
     const contactData = {
       ...data,
       // Convert numeric fields
-      customerId: data.customerId ? Number(data.customerId) : 0,
+      customerId: data.customerId ? Number(data.customerId) : customerId,
       contactId: data.contactId ? Number(data.contactId) : 0,
 
       // Handle string fields
@@ -85,35 +116,46 @@ export function CustomerContactForm({
       isFinance: data.isFinance ?? false,
       isSales: data.isSales ?? false,
     }
-    console.log("Contact data:", contactData)
+    console.log("Processed contact data:", contactData)
+    console.log("Calling submitAction...")
     submitAction(contactData)
   }
 
   useEffect(() => {
     form.reset(
-      initialData || {
-        customerId: 0,
-        contactId: 0,
-        contactName: "",
-        otherName: "",
-        mobileNo: "",
-        offNo: "",
-        faxNo: "",
-        emailAdd: "",
-        isActive: true,
-        isSales: false,
-        isFinance: false,
-        isDefault: false,
-        messId: "",
-        contactMessType: "",
-      }
+      initialData
+        ? {
+            customerId: initialData.customerId ?? customerId,
+            contactId: initialData.contactId ?? 0,
+            contactName: initialData.contactName ?? "",
+            otherName: initialData.otherName ?? "",
+            mobileNo: initialData.mobileNo ?? "",
+            offNo: initialData.offNo ?? "",
+            faxNo: initialData.faxNo ?? "",
+            emailAdd: initialData.emailAdd ?? "",
+            isActive: initialData.isActive ?? true,
+            isSales: initialData.isSales ?? false,
+            isFinance: initialData.isFinance ?? false,
+            isDefault: initialData.isDefault ?? false,
+            messId: initialData.messId ?? "",
+            contactMessType: initialData.contactMessType ?? "",
+          }
+        : {
+            ...defaultContactFormValues,
+            customerId: customerId,
+          }
     )
-  }, [initialData, form])
+  }, [initialData, customerId, form])
 
   return (
     <div className="max-w flex flex-col gap-2">
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pt-6">
+        <form
+          onSubmit={form.handleSubmit(onSubmit, (errors) => {
+            console.log("Form validation failed:", errors)
+          })}
+          className="space-y-6 pt-6"
+        >
           <div className="grid gap-2">
             <div className="grid grid-cols-3 gap-2">
               <CustomInput

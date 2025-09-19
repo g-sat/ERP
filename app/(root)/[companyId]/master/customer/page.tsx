@@ -250,6 +250,8 @@ export default function CustomerPage() {
 
   const handleAddressSave = async (data: CustomerAddressFormValues) => {
     try {
+      console.log("Address data:", data)
+
       const response =
         data.addressId === 0
           ? await saveAddressMutation.mutateAsync({
@@ -271,6 +273,7 @@ export default function CustomerPage() {
 
   const handleContactSave = async (data: CustomerContactFormValues) => {
     try {
+      console.log("Contact data:", data)
       const response =
         data.contactId === 0
           ? await saveContactMutation.mutateAsync({
@@ -595,6 +598,7 @@ export default function CustomerPage() {
                 ? selectedAddress || undefined
                 : undefined
             }
+            customerId={customer?.customerId}
             submitAction={handleAddressSave}
             onCancel={() => {
               setShowAddressForm(false)
@@ -636,6 +640,7 @@ export default function CustomerPage() {
                 ? selectedContact || undefined
                 : undefined
             }
+            customerId={customer?.customerId}
             submitAction={handleContactSave}
             onCancel={() => {
               setShowContactForm(false)

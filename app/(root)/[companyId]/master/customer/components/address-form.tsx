@@ -24,8 +24,30 @@ import CustomInput from "@/components/ui-custom/custom-input"
 import CustomSwitch from "@/components/ui-custom/custom-switch"
 import CustomTextarea from "@/components/ui-custom/custom-textarea"
 
+// Default values for the address form
+const defaultAddressFormValues: CustomerAddressFormValues = {
+  customerId: 0,
+  addressId: 0,
+  address1: "",
+  address2: "",
+  address3: "",
+  address4: "",
+  pinCode: "",
+  countryId: 0,
+  phoneNo: "",
+  faxNo: "",
+  emailAdd: "",
+  webUrl: "",
+  isActive: true,
+  isDefaultAdd: false,
+  isDeliveryAdd: false,
+  isFinAdd: false,
+  isSalesAdd: false,
+}
+
 interface CustomerAddressFormProps {
   initialData?: ICustomerAddress
+  customerId?: number
   submitAction: (data: CustomerAddressFormValues) => void
   onCancel?: () => void
   isSubmitting?: boolean
@@ -34,6 +56,7 @@ interface CustomerAddressFormProps {
 
 export function CustomerAddressForm({
   initialData,
+  customerId,
   submitAction,
   onCancel,
   isSubmitting = false,
@@ -41,37 +64,48 @@ export function CustomerAddressForm({
 }: CustomerAddressFormProps) {
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
+
+  // Validate that customerId is provided and valid
+  if (!customerId || customerId <= 0) {
+    throw new Error("Valid customerId is required for address form")
+  }
   const form = useForm<CustomerAddressFormValues>({
     resolver: zodResolver(customerAddressSchema),
     defaultValues: initialData
-      ? { ...initialData }
+      ? {
+          customerId: initialData.customerId ?? customerId,
+          addressId: initialData.addressId ?? 0,
+          address1: initialData.address1 ?? "",
+          address2: initialData.address2 ?? "",
+          address3: initialData.address3 ?? "",
+          address4: initialData.address4 ?? "",
+          pinCode: initialData.pinCode ?? "",
+          countryId: initialData.countryId ?? 0,
+          phoneNo: initialData.phoneNo ?? "",
+          faxNo: initialData.faxNo ?? "",
+          emailAdd: initialData.emailAdd ?? "",
+          webUrl: initialData.webUrl ?? "",
+          isActive: initialData.isActive ?? true,
+          isDefaultAdd: initialData.isDefaultAdd ?? false,
+          isDeliveryAdd: initialData.isDeliveryAdd ?? false,
+          isFinAdd: initialData.isFinAdd ?? false,
+          isSalesAdd: initialData.isSalesAdd ?? false,
+        }
       : {
-          customerId: 0,
-          addressId: 0,
-          address1: "",
-          address2: "",
-          address3: "",
-          address4: "",
-          pinCode: "",
-          countryId: 0,
-          phoneNo: "",
-          faxNo: "",
-          emailAdd: "",
-          webUrl: "",
-          isActive: true,
-          isDefaultAdd: false,
-          isDeliveryAdd: false,
-          isFinAdd: false,
-          isSalesAdd: false,
+          ...defaultAddressFormValues,
+          customerId: customerId,
         },
   })
 
   const onSubmit = (data: CustomerAddressFormValues) => {
+    console.log("Form submitted with data:", data)
+    console.log("Form validation errors:", form.formState.errors)
+
     // Process the form data according to CustomerAddressFormValues schema
     const addressData = {
       ...data,
       // Convert numeric fields and handle null values
-      customerId: data.customerId ? Number(data.customerId) : 0,
+      customerId: data.customerId ? Number(data.customerId) : customerId,
       addressId: data.addressId ? Number(data.addressId) : 0,
       countryId: data.countryId ? Number(data.countryId) : 0,
 
@@ -94,38 +128,49 @@ export function CustomerAddressForm({
       isSalesAdd: data.isSalesAdd ?? false,
     }
 
-    console.log("Address data:", addressData)
+    console.log("Processed address data:", addressData)
+    console.log("Calling submitAction...")
     submitAction(addressData)
   }
 
   useEffect(() => {
     form.reset(
-      initialData || {
-        customerId: 0,
-        addressId: 0,
-        address1: "",
-        address2: "",
-        address3: "",
-        address4: "",
-        pinCode: "",
-        countryId: 0,
-        phoneNo: "",
-        faxNo: "",
-        emailAdd: "",
-        webUrl: "",
-        isActive: true,
-        isDefaultAdd: false,
-        isDeliveryAdd: false,
-        isFinAdd: false,
-        isSalesAdd: false,
-      }
+      initialData
+        ? {
+            customerId: initialData.customerId ?? customerId,
+            addressId: initialData.addressId ?? 0,
+            address1: initialData.address1 ?? "",
+            address2: initialData.address2 ?? "",
+            address3: initialData.address3 ?? "",
+            address4: initialData.address4 ?? "",
+            pinCode: initialData.pinCode ?? "",
+            countryId: initialData.countryId ?? 0,
+            phoneNo: initialData.phoneNo ?? "",
+            faxNo: initialData.faxNo ?? "",
+            emailAdd: initialData.emailAdd ?? "",
+            webUrl: initialData.webUrl ?? "",
+            isActive: initialData.isActive ?? true,
+            isDefaultAdd: initialData.isDefaultAdd ?? false,
+            isDeliveryAdd: initialData.isDeliveryAdd ?? false,
+            isFinAdd: initialData.isFinAdd ?? false,
+            isSalesAdd: initialData.isSalesAdd ?? false,
+          }
+        : {
+            ...defaultAddressFormValues,
+            customerId: customerId,
+          }
     )
-  }, [initialData, form])
+  }, [initialData, customerId, form])
 
   return (
     <div className="max-w flex flex-col gap-2">
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <form
+          onSubmit={form.handleSubmit(onSubmit, (errors) => {
+            console.log("Form validation failed:", errors)
+          })}
+          className="space-y-4"
+        >
           <div className="grid gap-2">
             <div className="grid grid-cols-2 gap-2">
               <CustomTextarea
