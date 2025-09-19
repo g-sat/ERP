@@ -1,6 +1,6 @@
 "use client"
 
-import { ISupplierContact } from "@/interfaces/supplier"
+import { ISupplierContact, ISupplierContactFilter } from "@/interfaces/supplier"
 import { useAuthStore } from "@/stores/auth-store"
 import {
   IconCircleCheckFilled,
@@ -20,7 +20,7 @@ interface ContactsTableProps {
   onDelete?: (contactId: string) => Promise<void>
   onEdit?: (contact: ISupplierContact | null) => void
   onCreate?: () => void
-  onFilterChange?: (filters: { search?: string; sortOrder?: string }) => void
+  onFilterChange?: (filters: ISupplierContactFilter) => void
   onRefresh?: () => void
   moduleId: number
   transactionId: number
@@ -203,6 +203,20 @@ export function ContactsTable({
     },
   ]
 
+  // Handle filter change for dialog table - convert generic filters to ICustomerFilter
+  const handleDialogFilterChange = (filters: {
+    search?: string
+    sortOrder?: string
+  }) => {
+    if (onFilterChange) {
+      const newFilters: ISupplierContactFilter = {
+        search: filters.search,
+        sortOrder: filters.sortOrder as "asc" | "desc" | undefined,
+      }
+      onFilterChange(newFilters)
+    }
+  }
+
   return (
     <MainTable
       data={data}
@@ -215,7 +229,7 @@ export function ContactsTable({
       accessorId="contactId"
       // Add handlers if provided
       onRefresh={onRefresh}
-      onFilterChange={onFilterChange}
+      onFilterChange={handleDialogFilterChange}
       //handler column props
       onItemSelect={onSelect}
       onCreateItem={onCreate}

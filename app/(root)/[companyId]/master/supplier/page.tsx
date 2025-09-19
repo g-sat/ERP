@@ -707,8 +707,8 @@ export default function SupplierPage() {
       </div>
 
       <Dialog open={showListDialog} onOpenChange={setShowListDialog}>
-        <DialogContent className="@container h-[90vh] w-[90vw] !max-w-none overflow-y-auto rounded-lg p-4">
-          <DialogHeader className="pb-4">
+        <DialogContent className="container mx-auto h-[85vh] w-[90vw] !max-w-none space-y-2 overflow-y-auto rounded-lg p-4 px-4 pt-2 pb-4 sm:space-y-3 sm:px-6 sm:pt-3 sm:pb-6">
+          <DialogHeader>
             <DialogTitle className="text-2xl font-bold tracking-tight">
               Supplier List
             </DialogTitle>

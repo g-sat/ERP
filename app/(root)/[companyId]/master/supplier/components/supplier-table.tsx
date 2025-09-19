@@ -11,7 +11,7 @@ import { format, isValid } from "date-fns"
 
 import { TableName } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
-import { MainTable } from "@/components/table/table-main"
+import { DialogDataTable } from "@/components/table/table-dialog"
 
 interface SupplierTableProps {
   data: ISupplier[]
@@ -53,63 +53,54 @@ export function SupplierTable({
     {
       accessorKey: "supplierOtherName",
       header: "Other Name",
-      cell: ({ row }) => <div>{row.getValue("supplierOtherName") || "-"}</div>,
       size: 200,
       minSize: 50,
     },
     {
       accessorKey: "supplierShortName",
       header: "Short Name",
-      cell: ({ row }) => <div>{row.getValue("supplierShortName") || "-"}</div>,
       size: 120,
       minSize: 50,
     },
     {
       accessorKey: "supplierRegNo",
       header: "Registration No",
-      cell: ({ row }) => <div>{row.getValue("supplierRegNo") || "-"}</div>,
       size: 120,
       minSize: 50,
     },
     {
       accessorKey: "currencyName",
       header: "Currency",
-      cell: ({ row }) => <div>{row.getValue("currencyName") || "-"}</div>,
       size: 120,
       minSize: 50,
     },
     {
       accessorKey: "bankName",
       header: "Bank",
-      cell: ({ row }) => <div>{row.getValue("bankName") || "-"}</div>,
       size: 120,
       minSize: 50,
     },
     {
       accessorKey: "creditTermName",
       header: "Credit Term",
-      cell: ({ row }) => <div>{row.getValue("creditTermName") || "-"}</div>,
       size: 120,
       minSize: 50,
     },
     {
       accessorKey: "accSetupName",
       header: "Account Setup",
-      cell: ({ row }) => <div>{row.getValue("accSetupName") || "-"}</div>,
       size: 120,
       minSize: 50,
     },
     {
       accessorKey: "customerName",
       header: "Customer",
-      cell: ({ row }) => <div>{row.getValue("customerName") || "-"}</div>,
       size: 120,
       minSize: 50,
     },
     {
       accessorKey: "parentSupplierName",
       header: "Parent Supplier",
-      cell: ({ row }) => <div>{row.getValue("parentSupplierName") || "-"}</div>,
       size: 120,
       minSize: 50,
     },
@@ -260,7 +251,7 @@ export function SupplierTable({
   }
 
   return (
-    <MainTable
+    <DialogDataTable
       data={data}
       columns={columns}
       isLoading={isLoading}
@@ -268,16 +259,9 @@ export function SupplierTable({
       transactionId={transactionId}
       tableName={TableName.supplier}
       emptyMessage="No suppliers found."
-      accessorId="supplierId"
-      // Add handlers if provided
       onRefresh={onRefresh}
       onFilterChange={handleDialogFilterChange}
-      //handler column props
-      onItemSelect={onSelect}
-      //show props
-      showHeader={true}
-      showFooter={false}
-      showActions={false}
+      onRowSelect={onSelect}
     />
   )
 }

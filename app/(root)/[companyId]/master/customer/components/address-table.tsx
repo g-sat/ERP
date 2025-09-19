@@ -1,6 +1,6 @@
 "use client"
 
-import { ICustomerAddress } from "@/interfaces/customer"
+import { ICustomerAddress, ICustomerAddressFilter } from "@/interfaces/customer"
 import { useAuthStore } from "@/stores/auth-store"
 import {
   IconCircleCheckFilled,
@@ -20,7 +20,7 @@ interface AddresssTableProps {
   onDelete?: (addressId: string) => Promise<void>
   onEdit?: (address: ICustomerAddress | null) => void
   onCreate?: () => void
-  onFilterChange?: (filters: { search?: string; sortOrder?: string }) => void
+  onFilterChange?: (filters: ICustomerAddressFilter) => void
   onRefresh?: () => void
   moduleId: number
   transactionId: number
@@ -263,6 +263,19 @@ export function AddresssTable({
       minSize: 150,
     },
   ]
+  // Handle filter change for dialog table - convert generic filters to ICustomerFilter
+  const handleDialogFilterChange = (filters: {
+    search?: string
+    sortOrder?: string
+  }) => {
+    if (onFilterChange) {
+      const newFilters: ICustomerAddressFilter = {
+        search: filters.search,
+        sortOrder: filters.sortOrder as "asc" | "desc" | undefined,
+      }
+      onFilterChange(newFilters)
+    }
+  }
 
   return (
     <MainTable
@@ -276,7 +289,7 @@ export function AddresssTable({
       accessorId="addressId"
       // Add handlers if provided
       onRefresh={onRefresh}
-      onFilterChange={onFilterChange}
+      onFilterChange={handleDialogFilterChange}
       //handler column props
       onItemSelect={onSelect}
       onCreateItem={onCreate}

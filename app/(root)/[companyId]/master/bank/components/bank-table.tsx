@@ -11,7 +11,7 @@ import { format, isValid } from "date-fns"
 
 import { TableName } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
-import { MainTable } from "@/components/table/table-main"
+import { DialogDataTable } from "@/components/table/table-dialog"
 
 interface BankTableProps {
   data: IBank[]
@@ -53,21 +53,18 @@ export function BankTable({
     {
       accessorKey: "accountNo",
       header: "Account No",
-      cell: ({ row }) => <div>{row.getValue("accountNo") || "-"}</div>,
       size: 120,
       minSize: 50,
     },
     {
       accessorKey: "swiftCode",
       header: "Swift Code",
-      cell: ({ row }) => <div>{row.getValue("swiftCode") || "-"}</div>,
       size: 120,
       minSize: 50,
     },
     {
       accessorKey: "currencyName",
       header: "Currency",
-      cell: ({ row }) => <div>{row.getValue("currencyName") || "-"}</div>,
       size: 120,
       minSize: 50,
     },
@@ -108,21 +105,18 @@ export function BankTable({
     {
       accessorKey: "remarks1",
       header: "Remarks 1",
-      cell: ({ row }) => <div>{row.getValue("remarks1") || "-"}</div>,
       size: 200,
       minSize: 50,
     },
     {
       accessorKey: "remarks2",
       header: "Remarks 2",
-      cell: ({ row }) => <div>{row.getValue("remarks2") || "-"}</div>,
       size: 200,
       minSize: 50,
     },
     {
       accessorKey: "remarks3",
       header: "Remarks 3",
-      cell: ({ row }) => <div>{row.getValue("remarks3") || "-"}</div>,
       size: 200,
       minSize: 50,
     },
@@ -209,7 +203,7 @@ export function BankTable({
   }
 
   return (
-    <MainTable
+    <DialogDataTable
       data={data}
       columns={columns}
       isLoading={isLoading}
@@ -217,16 +211,9 @@ export function BankTable({
       transactionId={transactionId}
       tableName={TableName.bank}
       emptyMessage="No banks found."
-      accessorId="bankId"
-      // Add handlers if provided
       onRefresh={onRefresh}
       onFilterChange={handleDialogFilterChange}
-      //handler column props
-      onItemSelect={onSelect}
-      //show props
-      showHeader={true}
-      showFooter={false}
-      showActions={false}
+      onRowSelect={onSelect}
     />
   )
 }
