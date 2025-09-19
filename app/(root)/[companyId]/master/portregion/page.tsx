@@ -19,9 +19,9 @@ import {
 } from "@/components/ui/dialog"
 import { Separator } from "@/components/ui/separator"
 import { DeleteConfirmation } from "@/components/delete-confirmation"
+import { LoadConfirmation } from "@/components/load-confirmation"
 import { SaveConfirmation } from "@/components/save-confirmation"
 import { DataTableSkeleton } from "@/components/skeleton/data-table-skeleton"
-import { LoadExistingDialog } from "@/components/ui-custom/master-loadexisting-dialog"
 
 import { PortRegionForm } from "./components/portregion-form"
 import { PortRegionsTable } from "./components/portregion-table"
@@ -376,7 +376,7 @@ export default function PortRegionPage() {
         </DialogContent>
       </Dialog>
 
-      <LoadExistingDialog
+      <LoadConfirmation
         open={showLoadDialog}
         onOpenChange={setShowLoadDialog}
         onLoad={handleLoadExistingPortRegion}

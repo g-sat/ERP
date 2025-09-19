@@ -19,9 +19,9 @@ import {
 } from "@/components/ui/dialog"
 import { Separator } from "@/components/ui/separator"
 import { DeleteConfirmation } from "@/components/delete-confirmation"
+import { LoadConfirmation } from "@/components/load-confirmation"
 import { SaveConfirmation } from "@/components/save-confirmation"
 import { DataTableSkeleton } from "@/components/skeleton/data-table-skeleton"
-import { LoadExistingDialog } from "@/components/ui-custom/master-loadexisting-dialog"
 
 import { VesselForm } from "./components/vessel-form"
 import { VesselsTable } from "./components/vessel-table"
@@ -380,7 +380,7 @@ export default function VesselPage() {
       </Dialog>
 
       {/* Load Existing Vessel Dialog */}
-      <LoadExistingDialog
+      <LoadConfirmation
         open={showLoadDialog}
         onOpenChange={setShowLoadDialog}
         onLoad={handleLoadExistingVessel}

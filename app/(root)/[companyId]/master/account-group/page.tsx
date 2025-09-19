@@ -19,10 +19,10 @@ import {
 } from "@/components/ui/dialog"
 import { Separator } from "@/components/ui/separator"
 import { DeleteConfirmation } from "@/components/delete-confirmation"
+import { LoadConfirmation } from "@/components/load-confirmation"
 import { SaveConfirmation } from "@/components/save-confirmation"
 import { DataTableSkeleton } from "@/components/skeleton/data-table-skeleton"
 import { LockSkeleton } from "@/components/skeleton/lock-skeleton"
-import { LoadExistingDialog } from "@/components/ui-custom/master-loadexisting-dialog"
 
 import { AccountGroupForm } from "./components/account-group-form"
 import { AccountGroupTable } from "./components/account-group-table"
@@ -391,7 +391,7 @@ export default function AccountGroupPage() {
       </Dialog>
 
       {/* Load Existing Account Group Dialog */}
-      <LoadExistingDialog
+      <LoadConfirmation
         open={showLoadDialog}
         onOpenChange={setShowLoadDialog}
         onLoad={handleLoadExistingAccountGroup}

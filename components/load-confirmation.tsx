@@ -4,16 +4,16 @@
 
 import { Loader2 } from "lucide-react"
 
-import { Button } from "../ui/button"
+import { Button } from "./ui/button"
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "../ui/dialog"
+} from "./ui/dialog"
 
-type LoadExistingDialogProps = {
+type LoadConfirmationProps = {
   open: boolean
   onOpenChange: (open: boolean) => void
   onLoad: () => void
@@ -27,7 +27,7 @@ type LoadExistingDialogProps = {
   showDetails?: boolean
 }
 
-export const LoadExistingDialog = ({
+export const LoadConfirmation = ({
   open,
   onOpenChange,
   onLoad,
@@ -39,7 +39,7 @@ export const LoadExistingDialog = ({
   className,
   description,
   showDetails = true,
-}: LoadExistingDialogProps) => {
+}: LoadConfirmationProps) => {
   const handleCancel = () => {
     onCancel?.()
     onOpenChange(false)

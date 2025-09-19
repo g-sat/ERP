@@ -25,9 +25,9 @@ import {
 import { Separator } from "@/components/ui/separator"
 // Import the CRUD hooks
 import { DeleteConfirmation } from "@/components/delete-confirmation"
+import { LoadConfirmation } from "@/components/load-confirmation"
 import { SaveConfirmation } from "@/components/save-confirmation"
 import { DataTableSkeleton } from "@/components/skeleton/data-table-skeleton"
-import { LoadExistingDialog } from "@/components/ui-custom/master-loadexisting-dialog"
 
 import { CountryForm } from "./components/country-form"
 import { CountriesTable } from "./components/country-table"
@@ -415,7 +415,7 @@ export default function CountryPage() {
       </Dialog>
 
       {/* Load Existing Country Dialog */}
-      <LoadExistingDialog
+      <LoadConfirmation
         open={showLoadDialog}
         onOpenChange={setShowLoadDialog}
         onLoad={handleLoadExistingCountry}

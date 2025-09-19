@@ -19,9 +19,9 @@ import {
 } from "@/components/ui/dialog"
 import { Separator } from "@/components/ui/separator"
 import { DeleteConfirmation } from "@/components/delete-confirmation"
+import { LoadConfirmation } from "@/components/load-confirmation"
 import { SaveConfirmation } from "@/components/save-confirmation"
 import { DataTableSkeleton } from "@/components/skeleton/data-table-skeleton"
-import { LoadExistingDialog } from "@/components/ui-custom/master-loadexisting-dialog"
 
 import { LoanTypeForm } from "./components/loan-type-form"
 import { LoanTypesTable } from "./components/loan-type-table"
@@ -379,7 +379,7 @@ export default function LoanTypePage() {
       </Dialog>
 
       {/* Load Existing Loan Type Dialog */}
-      <LoadExistingDialog
+      <LoadConfirmation
         open={showLoadDialog}
         onOpenChange={setShowLoadDialog}
         onLoad={handleLoadExistingLoanType}

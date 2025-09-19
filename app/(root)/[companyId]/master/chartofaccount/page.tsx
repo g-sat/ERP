@@ -42,10 +42,10 @@ import {
 import { Separator } from "@/components/ui/separator"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { DeleteConfirmation } from "@/components/delete-confirmation"
+import { LoadConfirmation } from "@/components/load-confirmation"
 import { SaveConfirmation } from "@/components/save-confirmation"
 import { DataTableSkeleton } from "@/components/skeleton/data-table-skeleton"
 import { LockSkeleton } from "@/components/skeleton/lock-skeleton"
-import { LoadExistingDialog } from "@/components/ui-custom/master-loadexisting-dialog"
 
 import { ChartOfAccountForm } from "./components/chartofaccounts-form"
 import { ChartOfAccountsTable } from "./components/chartofaccounts-table"
@@ -1146,7 +1146,7 @@ export default function ChartOfAccountPage() {
       </Dialog>
 
       {/* Duplicate Record Dialogs */}
-      <LoadExistingDialog
+      <LoadConfirmation
         open={showLoadDialogChart}
         onOpenChange={setShowLoadDialogChart}
         onLoad={handleLoadExistingChartofAccount}
@@ -1157,7 +1157,7 @@ export default function ChartOfAccountPage() {
         isLoading={saveMutationChart.isPending || updateMutationChart.isPending}
       />
 
-      <LoadExistingDialog
+      <LoadConfirmation
         open={showLoadDialogCategory1}
         onOpenChange={setShowLoadDialogCategory1}
         onLoad={handleLoadExistingCoaCategory1}
@@ -1168,7 +1168,7 @@ export default function ChartOfAccountPage() {
         isLoading={saveMutation1.isPending || updateMutation1.isPending}
       />
 
-      <LoadExistingDialog
+      <LoadConfirmation
         open={showLoadDialogCategory2}
         onOpenChange={setShowLoadDialogCategory2}
         onLoad={handleLoadExistingCoaCategory2}
@@ -1179,7 +1179,7 @@ export default function ChartOfAccountPage() {
         isLoading={saveMutation2.isPending || updateMutation2.isPending}
       />
 
-      <LoadExistingDialog
+      <LoadConfirmation
         open={showLoadDialogCategory3}
         onOpenChange={setShowLoadDialogCategory3}
         onLoad={handleLoadExistingCoaCategory3}

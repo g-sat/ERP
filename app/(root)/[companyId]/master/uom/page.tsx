@@ -21,10 +21,10 @@ import {
 import { Separator } from "@/components/ui/separator"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { DeleteConfirmation } from "@/components/delete-confirmation"
+import { LoadConfirmation } from "@/components/load-confirmation"
 import { SaveConfirmation } from "@/components/save-confirmation"
 import { DataTableSkeleton } from "@/components/skeleton/data-table-skeleton"
 import { LockSkeleton } from "@/components/skeleton/lock-skeleton"
-import { LoadExistingDialog } from "@/components/ui-custom/master-loadexisting-dialog"
 
 import { UomForm } from "./components/uom-form"
 import { UomTable } from "./components/uom-table"
@@ -529,7 +529,7 @@ export default function UomPage() {
       </Dialog>
 
       {/* Duplicate Record Dialog */}
-      <LoadExistingDialog
+      <LoadConfirmation
         open={showLoadDialogUom}
         onOpenChange={setShowLoadDialogUom}
         onLoad={handleLoadExistingUom}

@@ -51,14 +51,6 @@ export function ContactsTable({
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
 
-  console.log(
-    "Permission contact details",
-    canCreate,
-    canDelete,
-    canEdit,
-    canView
-  )
-
   const columns: ColumnDef<ICustomerContact>[] = [
     {
       accessorKey: "isDefault",

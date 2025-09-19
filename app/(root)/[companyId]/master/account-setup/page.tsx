@@ -37,10 +37,10 @@ import {
 import { Separator } from "@/components/ui/separator"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { DeleteConfirmation } from "@/components/delete-confirmation"
+import { LoadConfirmation } from "@/components/load-confirmation"
 import { SaveConfirmation } from "@/components/save-confirmation"
 import { DataTableSkeleton } from "@/components/skeleton/data-table-skeleton"
 import { LockSkeleton } from "@/components/skeleton/lock-skeleton"
-import { LoadExistingDialog } from "@/components/ui-custom/master-loadexisting-dialog"
 
 import { AccountSetupCategoryForm } from "./components/account-setup-category-form"
 import { AccountSetupCategoryTable } from "./components/account-setup-category-table"
@@ -930,7 +930,7 @@ export default function AccountSetupPage() {
       </Dialog>
 
       {/* Dialog for existing Account Setup Category record */}
-      <LoadExistingDialog
+      <LoadConfirmation
         open={showLoadDialogCategory}
         onOpenChange={setShowLoadDialogCategory}
         onLoad={handleLoadExistingCategory}
@@ -944,7 +944,7 @@ export default function AccountSetupPage() {
       />
 
       {/* Dialog for existing Account Setup record */}
-      <LoadExistingDialog
+      <LoadConfirmation
         open={showLoadDialogSetup}
         onOpenChange={setShowLoadDialogSetup}
         onLoad={handleLoadExistingSetup}

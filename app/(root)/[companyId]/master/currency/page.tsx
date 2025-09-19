@@ -30,10 +30,10 @@ import {
 import { Separator } from "@/components/ui/separator"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { DeleteConfirmation } from "@/components/delete-confirmation"
+import { LoadConfirmation } from "@/components/load-confirmation"
 import { SaveConfirmation } from "@/components/save-confirmation"
 import { DataTableSkeleton } from "@/components/skeleton/data-table-skeleton"
 import { LockSkeleton } from "@/components/skeleton/lock-skeleton"
-import { LoadExistingDialog } from "@/components/ui-custom/master-loadexisting-dialog"
 
 import { CurrencyForm } from "./components/currency-form"
 import { CurrenciesTable } from "./components/currency-table"
@@ -859,7 +859,7 @@ export default function CurrencyPage() {
       </Dialog>
 
       {/* Duplicate Record Dialog */}
-      <LoadExistingDialog
+      <LoadConfirmation
         open={showLoadDialogCurrency}
         onOpenChange={setShowLoadDialogCurrency}
         onLoad={handleLoadExistingCurrency}

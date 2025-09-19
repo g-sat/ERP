@@ -28,10 +28,10 @@ import {
 import { Separator } from "@/components/ui/separator"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { DeleteConfirmation } from "@/components/delete-confirmation"
+import { LoadConfirmation } from "@/components/load-confirmation"
 import { SaveConfirmation } from "@/components/save-confirmation"
 import { DataTableSkeleton } from "@/components/skeleton/data-table-skeleton"
 import { LockSkeleton } from "@/components/skeleton/lock-skeleton"
-import { LoadExistingDialog } from "@/components/ui-custom/master-loadexisting-dialog"
 
 import { CreditTermForm } from "./components/creditterm-form"
 import { CreditTermsTable } from "./components/creditterm-table"
@@ -598,7 +598,7 @@ export default function CreditTermPage() {
       </Dialog>
 
       {/* Duplicate Record Dialog */}
-      <LoadExistingDialog
+      <LoadConfirmation
         open={showLoadDialogCreditTerm}
         onOpenChange={setShowLoadDialogCreditTerm}
         onLoad={handleLoadExistingCreditTerm}

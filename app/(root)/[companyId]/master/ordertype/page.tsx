@@ -29,10 +29,10 @@ import {
 import { Separator } from "@/components/ui/separator"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { DeleteConfirmation } from "@/components/delete-confirmation"
+import { LoadConfirmation } from "@/components/load-confirmation"
 import { SaveConfirmation } from "@/components/save-confirmation"
 import { DataTableSkeleton } from "@/components/skeleton/data-table-skeleton"
 import { LockSkeleton } from "@/components/skeleton/lock-skeleton"
-import { LoadExistingDialog } from "@/components/ui-custom/master-loadexisting-dialog"
 
 import { OrderTypeForm } from "./components/ordertype-form"
 import { OrderTypeTable } from "./components/ordertype-table"
@@ -641,7 +641,7 @@ export default function OrderTypePage() {
       </Dialog>
 
       {/* Duplicate Record Dialogs */}
-      <LoadExistingDialog
+      <LoadConfirmation
         open={showLoadDialogOrderType}
         onOpenChange={setShowLoadDialogOrderType}
         onLoad={handleLoadExistingOrderType}
@@ -652,7 +652,7 @@ export default function OrderTypePage() {
         isLoading={saveMutation.isPending || updateMutation.isPending}
       />
 
-      <LoadExistingDialog
+      <LoadConfirmation
         open={showLoadDialogCategory}
         onOpenChange={setShowLoadDialogCategory}
         onLoad={handleLoadExistingCategory}

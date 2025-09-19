@@ -29,9 +29,9 @@ import {
 import { Separator } from "@/components/ui/separator"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { DeleteConfirmation } from "@/components/delete-confirmation"
+import { LoadConfirmation } from "@/components/load-confirmation"
 import { DataTableSkeleton } from "@/components/skeleton/data-table-skeleton"
 import { LockSkeleton } from "@/components/skeleton/lock-skeleton"
-import { LoadExistingDialog } from "@/components/ui-custom/master-loadexisting-dialog"
 
 import { ServiceTypeForm } from "./components/servicetype-form"
 import { ServiceTypeTable } from "./components/servicetype-table"
@@ -643,7 +643,7 @@ export default function ServiceTypePage() {
       </Dialog>
 
       {/* Duplicate Record Dialogs */}
-      <LoadExistingDialog
+      <LoadConfirmation
         open={showLoadDialogServiceType}
         onOpenChange={setShowLoadDialogServiceType}
         onLoad={handleLoadExistingServiceType}
@@ -654,7 +654,7 @@ export default function ServiceTypePage() {
         isLoading={saveMutation.isPending || updateMutation.isPending}
       />
 
-      <LoadExistingDialog
+      <LoadConfirmation
         open={showLoadDialogCategory}
         onOpenChange={setShowLoadDialogCategory}
         onLoad={handleLoadExistingCategory}

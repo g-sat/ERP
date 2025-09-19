@@ -32,6 +32,7 @@ import {
 import { Separator } from "@/components/ui/separator"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { DeleteConfirmation } from "@/components/delete-confirmation"
+import { LoadConfirmation } from "@/components/load-confirmation"
 import { SaveConfirmation } from "@/components/save-confirmation"
 
 import { CustomerAddressForm } from "./components/address-form"
@@ -51,14 +52,6 @@ export default function CustomerPage() {
   const canView = hasPermission(moduleId, transactionId, "isRead")
   const canEdit = hasPermission(moduleId, transactionId, "isEdit")
   const canDelete = hasPermission(moduleId, transactionId, "isDelete")
-
-  console.log(
-    "Permission customer details",
-    canCreate,
-    canDelete,
-    canEdit,
-    canView
-  )
 
   const [showListDialog, setShowListDialog] = useState(false)
   const [customer, setCustomer] = useState<ICustomer | null>(null)
@@ -82,6 +75,12 @@ export default function CustomerPage() {
     sortOrder: "asc",
   })
   const [key, setKey] = useState(0)
+
+  // State for code availability check
+  const [showLoadDialog, setShowLoadDialog] = useState(false)
+  const [existingCustomer, setExistingCustomer] = useState<ICustomer | null>(
+    null
+  )
 
   // Save confirmation states
   const [showCustomerSaveConfirmation, setShowCustomerSaveConfirmation] =
@@ -205,6 +204,7 @@ export default function CustomerPage() {
           setCustomer(updatedCustomer as ICustomer)
         }
       } else {
+        console.error("Failed to fetch customer details:", response?.message)
       }
 
       const [addressesResponse, contactsResponse] = await Promise.all([
@@ -219,7 +219,8 @@ export default function CustomerPage() {
       if (contactsResponse?.data?.result === 1)
         setContacts(contactsResponse.data.data)
       else setContacts([])
-    } catch {
+    } catch (error) {
+      console.error("Error fetching customer data:", error)
       setAddresses([])
       setContacts([])
     }
@@ -253,8 +254,10 @@ export default function CustomerPage() {
         setCustomer(customerData as ICustomer)
         refetchCustomers()
       } else {
+        console.error("Failed to save customer:", response?.message)
       }
-    } catch {
+    } catch (error) {
+      console.error("Error saving customer:", error)
     } finally {
       setPendingCustomerData(null)
       setShowCustomerSaveConfirmation(false)
@@ -297,8 +300,10 @@ export default function CustomerPage() {
         setContacts([])
         refetchCustomers()
       } else {
+        console.error("Failed to delete customer:", response?.message)
       }
-    } catch {
+    } catch (error) {
+      console.error("Error deleting customer:", error)
     } finally {
       setPendingDeleteCustomer(null)
       setShowCustomerDeleteConfirmation(false)
@@ -314,8 +319,6 @@ export default function CustomerPage() {
     if (!pendingAddressData) return
 
     try {
-      console.log("Address data:", pendingAddressData)
-
       const response =
         pendingAddressData.addressId === 0
           ? await saveAddressMutation.mutateAsync({
@@ -331,8 +334,10 @@ export default function CustomerPage() {
         setShowAddressForm(false)
         setSelectedAddress(null)
       } else {
+        console.error("Failed to save address:", response?.message)
       }
-    } catch {
+    } catch (error) {
+      console.error("Error saving address:", error)
     } finally {
       setPendingAddressData(null)
       setShowAddressSaveConfirmation(false)
@@ -348,7 +353,6 @@ export default function CustomerPage() {
     if (!pendingContactData) return
 
     try {
-      console.log("Contact data:", pendingContactData)
       const response =
         pendingContactData.contactId === 0
           ? await saveContactMutation.mutateAsync({
@@ -364,8 +368,10 @@ export default function CustomerPage() {
         setShowContactForm(false)
         setSelectedContact(null)
       } else {
+        console.error("Failed to save contact:", response?.message)
       }
-    } catch {
+    } catch (error) {
+      console.error("Error saving contact:", error)
     } finally {
       setPendingContactData(null)
       setShowContactSaveConfirmation(false)
@@ -437,8 +443,10 @@ export default function CustomerPage() {
         if (refreshedAddresses?.data?.result === 1)
           setAddresses(refreshedAddresses.data.data)
       } else {
+        console.error("Failed to delete address:", response?.message)
       }
-    } catch {
+    } catch (error) {
+      console.error("Error deleting address:", error)
     } finally {
       setPendingDeleteAddressId(null)
       setPendingDeleteAddress(null)
@@ -467,8 +475,10 @@ export default function CustomerPage() {
         if (refreshedContacts?.data?.result === 1)
           setContacts(refreshedContacts.data.data)
       } else {
+        console.error("Failed to delete contact:", response?.message)
       }
-    } catch {
+    } catch (error) {
+      console.error("Error deleting contact:", error)
     } finally {
       setPendingDeleteContactId(null)
       setPendingDeleteContact(null)
@@ -487,10 +497,20 @@ export default function CustomerPage() {
       return
     }
 
-    console.log("Customer lookup called with:", { customerCode, customerName })
+    // Validate input parameters
+    if (
+      customerCode &&
+      customerCode.trim().length === 0 &&
+      customerName &&
+      customerName.trim().length === 0
+    ) {
+      return
+    }
 
-    // Reset all data before fetching new customer
-    resetAllData()
+    // Skip if customer is already loaded (edit mode)
+    if (customer?.customerId && customer.customerId > 0) {
+      return
+    }
 
     try {
       // Make direct API call with lookup parameters
@@ -498,8 +518,6 @@ export default function CustomerPage() {
       const response = await getById(
         `${Customer.getById}/0/${customerCode}/${customerName}`
       )
-
-      console.log("Customer lookup response:", response)
 
       if (response?.result === 1) {
         const detailedCustomer = Array.isArray(response.data)
@@ -516,14 +534,16 @@ export default function CustomerPage() {
             accSetupId: detailedCustomer.accSetupId || 0,
             customerId: detailedCustomer.customerId || 0,
           }
-          console.log("Setting customer from lookup:", updatedCustomer)
-          setCustomer(updatedCustomer as ICustomer)
+
+          // Show load confirmation dialog instead of directly setting customer
+          setExistingCustomer(updatedCustomer as ICustomer)
+          setShowLoadDialog(true)
         } else {
-          console.log("No customer found for lookup parameters")
+          // No customer found, clear any existing data
           setCustomer(null)
         }
       } else {
-        console.log("Customer lookup failed:", response)
+        // No customer found, clear any existing data
         setCustomer(null)
       }
     } catch (error) {
@@ -531,6 +551,18 @@ export default function CustomerPage() {
       setCustomer(null)
       setAddresses([])
       setContacts([])
+    }
+  }
+
+  // Handler for loading existing customer
+  const handleLoadExistingCustomer = () => {
+    if (existingCustomer) {
+      // Set the customer and close dialog
+      setCustomer(existingCustomer)
+      setShowLoadDialog(false)
+      setExistingCustomer(null)
+      // Reset the form key to trigger re-render with new data
+      setKey((prev) => prev + 1)
     }
   }
 
@@ -791,6 +823,21 @@ export default function CustomerPage() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Load Existing Customer Dialog */}
+      <LoadConfirmation
+        open={showLoadDialog}
+        onOpenChange={setShowLoadDialog}
+        onLoad={handleLoadExistingCustomer}
+        onCancel={() => {
+          setExistingCustomer(null)
+          setShowLoadDialog(false)
+        }}
+        code={existingCustomer?.customerCode}
+        name={existingCustomer?.customerName}
+        typeLabel="Customer"
+        isLoading={saveMutation.isPending || updateMutation.isPending}
+      />
 
       {/* Save Confirmation Dialogs */}
       <SaveConfirmation

@@ -31,10 +31,10 @@ import {
 import { Separator } from "@/components/ui/separator"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { DeleteConfirmation } from "@/components/delete-confirmation"
+import { LoadConfirmation } from "@/components/load-confirmation"
 import { SaveConfirmation } from "@/components/save-confirmation"
 import { DataTableSkeleton } from "@/components/skeleton/data-table-skeleton"
 import { LockSkeleton } from "@/components/skeleton/lock-skeleton"
-import { LoadExistingDialog } from "@/components/ui-custom/master-loadexisting-dialog"
 
 import { GstForm } from "./components/gst-form"
 import { GstTable } from "./components/gst-table"
@@ -834,7 +834,7 @@ export default function GstPage() {
       </Dialog>
 
       {/* Duplicate Record Dialogs */}
-      <LoadExistingDialog
+      <LoadConfirmation
         open={showLoadDialogGst}
         onOpenChange={setShowLoadDialogGst}
         onLoad={handleLoadExistingGst}
@@ -845,7 +845,7 @@ export default function GstPage() {
         isLoading={saveMutation.isPending || updateMutation.isPending}
       />
 
-      <LoadExistingDialog
+      <LoadConfirmation
         open={showLoadDialogCategory}
         onOpenChange={setShowLoadDialogCategory}
         onLoad={handleLoadExistingGstCategory}
