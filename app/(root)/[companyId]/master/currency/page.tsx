@@ -551,23 +551,24 @@ export default function CurrencyPage() {
               ]}
               shrinkZero
             />
-          ) : currenciesResult === -2 ? (
+          ) : currenciesResult === -2 ||
+            (!canView && !canEdit && !canDelete && !canCreate) ? (
             <LockSkeleton locked={true}>
               <CurrenciesTable
                 data={[]}
                 isLoading={false}
-                onSelect={canView ? handleViewCurrency : undefined}
-                onDelete={canDelete ? handleDeleteCurrency : undefined}
-                onEdit={canEdit ? handleEditCurrency : undefined}
-                onCreate={canCreate ? handleCreateCurrency : undefined}
-                onRefresh={refetchCurrency}
-                onFilterChange={handleCurrencyFilterChange}
+                onSelect={() => {}}
+                onDelete={() => {}}
+                onEdit={() => {}}
+                onCreate={() => {}}
+                onRefresh={() => {}}
+                onFilterChange={() => {}}
                 moduleId={MODULE_ID}
                 transactionId={TRANSACTION_ID}
-                canEdit={canEdit}
-                canDelete={canDelete}
-                canView={canView}
-                canCreate={canCreate}
+                canEdit={false}
+                canDelete={false}
+                canView={false}
+                canCreate={false}
               />
             </LockSkeleton>
           ) : currenciesResult ? (
@@ -614,23 +615,24 @@ export default function CurrencyPage() {
               ]}
               shrinkZero
             />
-          ) : currencyDtResult === -2 ? (
+          ) : currencyDtResult === -2 ||
+            (!canViewDt && !canEditDt && !canDeleteDt && !canCreateDt) ? (
             <LockSkeleton locked={true}>
               <CurrencyDtsTable
                 data={[]}
                 isLoading={false}
-                onSelect={canViewDt ? handleViewCurrencyDt : undefined}
-                onDelete={canDeleteDt ? handleDeleteCurrencyDt : undefined}
-                onEdit={canEditDt ? handleEditCurrencyDt : undefined}
-                onCreate={canCreateDt ? handleCreateCurrencyDt : undefined}
-                onRefresh={refetchCurrencyDt}
-                onFilterChange={handleCurrencyDtFilterChange}
+                onSelect={() => {}}
+                onDelete={() => {}}
+                onEdit={() => {}}
+                onCreate={() => {}}
+                onRefresh={() => {}}
+                onFilterChange={() => {}}
                 moduleId={MODULE_ID}
                 transactionId={TRANSACTION_ID_DT}
-                canEdit={canEditDt}
-                canDelete={canDeleteDt}
-                canView={canViewDt}
-                canCreate={canCreateDt}
+                canEdit={false}
+                canDelete={false}
+                canView={false}
+                canCreate={false}
               />
             </LockSkeleton>
           ) : currencyDtResult ? (
@@ -677,26 +679,24 @@ export default function CurrencyPage() {
               ]}
               shrinkZero
             />
-          ) : currencyLocalDtResult === -2 ? (
+          ) : currencyLocalDtResult === -2 ||
+            (!canViewLocalDt &&
+              !canEditLocalDt &&
+              !canDeleteLocalDt &&
+              !canCreateLocalDt) ? (
             <LockSkeleton locked={true}>
               <CurrencyLocalDtsTable
                 data={[]}
                 isLoading={false}
-                onSelect={
-                  canViewLocalDt ? handleViewCurrencyLocalDt : undefined
-                }
-                onDelete={
-                  canDeleteLocalDt ? handleDeleteCurrencyLocalDt : undefined
-                }
-                onEdit={canEditLocalDt ? handleEditCurrencyLocalDt : undefined}
-                onCreate={
-                  canCreateLocalDt ? handleCreateCurrencyLocalDt : undefined
-                }
-                onRefresh={refetchCurrencyLocalDt}
-                onFilterChange={handleCurrencyLocalDtFilterChange}
+                onSelect={() => {}}
+                onDelete={() => {}}
+                onEdit={() => {}}
+                onCreate={() => {}}
+                onRefresh={() => {}}
+                onFilterChange={() => {}}
                 moduleId={MODULE_ID}
                 transactionId={TRANSACTION_ID_LOCAL_DT}
-                canEdit={canEditLocalDt}
+                canEdit={false}
                 canDelete={canDeleteLocalDt}
                 canView={canViewLocalDt}
                 canCreate={canCreateLocalDt}

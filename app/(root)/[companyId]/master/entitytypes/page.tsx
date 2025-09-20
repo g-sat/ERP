@@ -22,6 +22,7 @@ import { DeleteConfirmation } from "@/components/delete-confirmation"
 import { LoadConfirmation } from "@/components/load-confirmation"
 import { SaveConfirmation } from "@/components/save-confirmation"
 import { DataTableSkeleton } from "@/components/skeleton/data-table-skeleton"
+import { LockSkeleton } from "@/components/skeleton/lock-skeleton"
 
 import { EntityTypeForm } from "./components/entity-type-form"
 import { EntityTypesTable } from "./components/entity-type-table"
@@ -291,24 +292,26 @@ export default function EntityTypePage() {
           ]}
           shrinkZero
         />
-      ) : entityTypesResult === -2 ? (
-        <EntityTypesTable
-          data={[]}
-          isLoading={false}
-          onSelect={canView ? handleViewEntityType : undefined}
-          onDelete={canDelete ? handleDeleteEntityType : undefined}
-          onEdit={canEdit ? handleEditEntityType : undefined}
-          onCreate={canCreate ? handleCreateEntityType : undefined}
-          onRefresh={handleRefresh}
-          onFilterChange={handleFilterChange}
-          moduleId={moduleId}
-          transactionId={transactionId}
-          // Pass permissions to table
-          canEdit={canEdit}
-          canDelete={canDelete}
-          canView={canView}
-          canCreate={canCreate}
-        />
+      ) : entityTypesResult === -2 ||
+        (!canView && !canEdit && !canDelete && !canCreate) ? (
+        <LockSkeleton locked={true}>
+          <EntityTypesTable
+            data={[]}
+            isLoading={false}
+            onSelect={() => {}}
+            onDelete={() => {}}
+            onEdit={() => {}}
+            onCreate={() => {}}
+            onRefresh={() => {}}
+            onFilterChange={() => {}}
+            moduleId={moduleId}
+            transactionId={transactionId}
+            canEdit={false}
+            canDelete={false}
+            canView={false}
+            canCreate={false}
+          />
+        </LockSkeleton>
       ) : (
         <EntityTypesTable
           data={filters.search ? [] : entityTypesData || []}

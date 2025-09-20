@@ -420,23 +420,24 @@ export default function CreditTermPage() {
               ]}
               shrinkZero
             />
-          ) : creditTermsResult === -2 ? (
+          ) : creditTermsResult === -2 ||
+            (!canView && !canEdit && !canDelete && !canCreate) ? (
             <LockSkeleton locked={true}>
               <CreditTermsTable
                 data={[]}
                 isLoading={false}
-                onSelect={canView ? handleViewCreditTerm : undefined}
-                onDelete={canDelete ? handleDeleteCreditTerm : undefined}
-                onEdit={canEdit ? handleEditCreditTerm : undefined}
-                onCreate={canCreate ? handleCreateCreditTerm : undefined}
-                onRefresh={refetchCreditTerm}
-                onFilterChange={handleFilterChange}
+                onSelect={() => {}}
+                onDelete={() => {}}
+                onEdit={() => {}}
+                onCreate={() => {}}
+                onRefresh={() => {}}
+                onFilterChange={() => {}}
                 moduleId={moduleId}
                 transactionId={transactionId}
-                canEdit={canEdit}
-                canDelete={canDelete}
-                canView={canView}
-                canCreate={canCreate}
+                canEdit={false}
+                canDelete={false}
+                canView={false}
+                canCreate={false}
               />
             </LockSkeleton>
           ) : creditTermsResult ? (
@@ -482,23 +483,24 @@ export default function CreditTermPage() {
               ]}
               shrinkZero
             />
-          ) : creditTermsDtResult === -2 ? (
+          ) : creditTermsDtResult === -2 ||
+            (!canViewDt && !canEditDt && !canDeleteDt && !canCreateDt) ? (
             <LockSkeleton locked={true}>
               <CreditTermDtsTable
                 data={[]}
                 isLoading={false}
-                onSelect={canViewDt ? handleViewCreditTermDt : undefined}
-                onDelete={canDeleteDt ? handleDeleteCreditTermDt : undefined}
-                onEdit={canEditDt ? handleEditCreditTermDt : undefined}
-                onCreate={canCreateDt ? handleCreateCreditTermDt : undefined}
-                onRefresh={refetchCreditTermDt}
-                onFilterChange={handleDtFilterChange}
+                onSelect={() => {}}
+                onDelete={() => {}}
+                onEdit={() => {}}
+                onCreate={() => {}}
+                onRefresh={() => {}}
+                onFilterChange={() => {}}
                 moduleId={moduleId}
                 transactionId={transactionIdDt}
-                canEdit={canEditDt}
-                canDelete={canDeleteDt}
-                canView={canViewDt}
-                canCreate={canCreateDt}
+                canEdit={false}
+                canDelete={false}
+                canView={false}
+                canCreate={false}
               />
             </LockSkeleton>
           ) : creditTermsDtResult ? (

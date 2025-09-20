@@ -282,24 +282,24 @@ export default function ChargePage() {
           ]}
           shrinkZero
         />
-      ) : chargesResult === -2 ? (
+      ) : chargesResult === -2 ||
+        (!canView && !canEdit && !canDelete && !canCreate) ? (
         <LockSkeleton locked={true}>
           <ChargesTable
             data={[]}
             isLoading={false}
-            onSelect={canView ? handleViewCharge : undefined}
-            onDelete={canDelete ? handleDeleteCharge : undefined}
-            onEdit={canEdit ? handleEditCharge : undefined}
-            onCreate={canCreate ? handleCreateCharge : undefined}
-            onRefresh={handleRefresh}
-            onFilterChange={handleFilterChange}
+            onSelect={() => {}}
+            onDelete={() => {}}
+            onEdit={() => {}}
+            onCreate={() => {}}
+            onRefresh={() => {}}
+            onFilterChange={() => {}}
             moduleId={moduleId}
             transactionId={transactionId}
-            // Pass permissions to table
-            canEdit={canEdit}
-            canDelete={canDelete}
-            canView={canView}
-            canCreate={canCreate}
+            canView={false}
+            canCreate={false}
+            canEdit={false}
+            canDelete={false}
           />
         </LockSkeleton>
       ) : (

@@ -282,24 +282,24 @@ export default function PaymentTypePage() {
           ]}
           shrinkZero
         />
-      ) : paymentTypesResult === -2 ? (
+      ) : paymentTypesResult === -2 ||
+        (!canView && !canEdit && !canDelete && !canCreate) ? (
         <LockSkeleton locked={true}>
           <PaymentTypesTable
             data={[]}
             isLoading={false}
-            onSelect={canView ? handleViewPaymentType : undefined}
-            onDelete={canDelete ? handleDeletePaymentType : undefined}
-            onEdit={canEdit ? handleEditPaymentType : undefined}
-            onCreate={canCreate ? handleCreatePaymentType : undefined}
-            onRefresh={handleRefresh}
-            onFilterChange={handleFilterChange}
+            onSelect={() => {}}
+            onDelete={() => {}}
+            onEdit={() => {}}
+            onCreate={() => {}}
+            onRefresh={() => {}}
+            onFilterChange={() => {}}
             moduleId={moduleId}
             transactionId={transactionId}
-            // Pass permissions to table
-            canEdit={canEdit}
-            canDelete={canDelete}
-            canView={canView}
-            canCreate={canCreate}
+            canEdit={false}
+            canDelete={false}
+            canView={false}
+            canCreate={false}
           />
         </LockSkeleton>
       ) : (

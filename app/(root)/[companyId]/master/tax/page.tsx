@@ -558,23 +558,24 @@ export default function TaxPage() {
               ]}
               shrinkZero
             />
-          ) : taxsResult === -2 ? (
+          ) : taxsResult === -2 ||
+            (!canView && !canEdit && !canDelete && !canCreate) ? (
             <LockSkeleton locked={true}>
               <TaxTable
                 data={[]}
                 isLoading={false}
-                onSelect={canView ? handleViewTax : undefined}
-                onDelete={canDelete ? handleDeleteTax : undefined}
-                onEdit={canEdit ? handleEditTax : undefined}
-                onCreate={canCreate ? handleCreateTax : undefined}
-                onRefresh={refetchTax}
-                onFilterChange={handleFilterChange}
+                onSelect={() => {}}
+                onDelete={() => {}}
+                onEdit={() => {}}
+                onCreate={() => {}}
+                onRefresh={() => {}}
+                onFilterChange={() => {}}
                 moduleId={moduleId}
                 transactionId={transactionId}
-                canEdit={canEdit}
-                canDelete={canDelete}
-                canView={canView}
-                canCreate={canCreate}
+                canEdit={false}
+                canDelete={false}
+                canView={false}
+                canCreate={false}
               />
             </LockSkeleton>
           ) : taxsResult ? (
@@ -620,23 +621,24 @@ export default function TaxPage() {
               ]}
               shrinkZero
             />
-          ) : taxsDtResult === -2 ? (
+          ) : taxsDtResult === -2 ||
+            (!canViewDt && !canEditDt && !canDeleteDt && !canCreateDt) ? (
             <LockSkeleton locked={true}>
               <TaxDtTable
                 data={[]}
                 isLoading={false}
-                onSelect={canViewDt ? handleViewTaxDt : undefined}
-                onDelete={canDeleteDt ? handleDeleteTaxDt : undefined}
-                onEdit={canEditDt ? handleEditTaxDt : undefined}
-                onCreate={canCreateDt ? handleCreateTaxDt : undefined}
-                onRefresh={refetchTaxDt}
-                onFilterChange={handleDtFilterChange}
+                onSelect={() => {}}
+                onDelete={() => {}}
+                onEdit={() => {}}
+                onCreate={() => {}}
+                onRefresh={() => {}}
+                onFilterChange={() => {}}
                 moduleId={moduleId}
                 transactionId={transactionIdDt}
-                canEdit={canEditDt}
-                canDelete={canDeleteDt}
-                canView={canViewDt}
-                canCreate={canCreateDt}
+                canEdit={false}
+                canDelete={false}
+                canView={false}
+                canCreate={false}
               />
             </LockSkeleton>
           ) : taxsDtResult ? (
@@ -682,26 +684,26 @@ export default function TaxPage() {
               ]}
               shrinkZero
             />
-          ) : taxsCategoryResult === -2 ? (
+          ) : taxsCategoryResult === -2 ||
+            (!canViewCategory &&
+              !canEditCategory &&
+              !canDeleteCategory &&
+              !canCreateCategory) ? (
             <LockSkeleton locked={true}>
               <TaxCategoryTable
                 data={[]}
                 isLoading={false}
-                onSelect={canViewCategory ? handleViewTaxCategory : undefined}
-                onDelete={
-                  canDeleteCategory ? handleDeleteTaxCategory : undefined
-                }
-                onEdit={canEditCategory ? handleEditTaxCategory : undefined}
-                onCreate={
-                  canCreateCategory ? handleCreateTaxCategory : undefined
-                }
-                onRefresh={refetchTaxCategory}
-                onFilterChange={handleCategoryFilterChange}
+                onSelect={() => {}}
+                onDelete={() => {}}
+                onEdit={() => {}}
+                onCreate={() => {}}
+                onRefresh={() => {}}
+                onFilterChange={() => {}}
                 moduleId={moduleId}
                 transactionId={transactionIdCategory}
-                canEdit={canEditCategory}
-                canDelete={canDeleteCategory}
-                canView={canViewCategory}
+                canEdit={false}
+                canDelete={false}
+                canView={false}
                 canCreate={canCreateCategory}
               />
             </LockSkeleton>

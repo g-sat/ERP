@@ -59,9 +59,9 @@ import { CoaCategory3Table } from "./components/coacategory3-table"
 export default function ChartOfAccountPage() {
   const moduleId = ModuleId.master
   const transactionId = MasterTransactionId.chartOfAccount
-  const transactionIdCategory1 = MasterTransactionId.coaCategory1
-  const transactionIdCategory2 = MasterTransactionId.coaCategory2
-  const transactionIdCategory3 = MasterTransactionId.coaCategory3
+  const transactionId1 = MasterTransactionId.coaCategory1
+  const transactionId2 = MasterTransactionId.coaCategory2
+  const transactionId3 = MasterTransactionId.coaCategory3
 
   const { hasPermission } = usePermissionStore()
   const queryClient = useQueryClient()
@@ -71,37 +71,18 @@ export default function ChartOfAccountPage() {
   const canEdit = hasPermission(moduleId, transactionId, "isEdit")
   const canDelete = hasPermission(moduleId, transactionId, "isDelete")
   const canView = hasPermission(moduleId, transactionId, "isRead")
-
-  const canEditCategory1 = hasPermission(
-    moduleId,
-    transactionIdCategory1,
-    "isEdit"
-  )
-  const canDeleteCategory1 = hasPermission(
-    moduleId,
-    transactionIdCategory1,
-    "isDelete"
-  )
-  const canEditCategory2 = hasPermission(
-    moduleId,
-    transactionIdCategory2,
-    "isEdit"
-  )
-  const canDeleteCategory2 = hasPermission(
-    moduleId,
-    transactionIdCategory2,
-    "isDelete"
-  )
-  const canEditCategory3 = hasPermission(
-    moduleId,
-    transactionIdCategory3,
-    "isEdit"
-  )
-  const canDeleteCategory3 = hasPermission(
-    moduleId,
-    transactionIdCategory3,
-    "isDelete"
-  )
+  const canEdit1 = hasPermission(moduleId, transactionId1, "isEdit")
+  const canDelete1 = hasPermission(moduleId, transactionId1, "isDelete")
+  const canCreate1 = hasPermission(moduleId, transactionId1, "isCreate")
+  const canView1 = hasPermission(moduleId, transactionId1, "isRead")
+  const canEdit2 = hasPermission(moduleId, transactionId2, "isEdit")
+  const canDelete2 = hasPermission(moduleId, transactionId2, "isDelete")
+  const canView2 = hasPermission(moduleId, transactionId2, "isRead")
+  const canCreate2 = hasPermission(moduleId, transactionId2, "isCreate")
+  const canEdit3 = hasPermission(moduleId, transactionId3, "isEdit")
+  const canDelete3 = hasPermission(moduleId, transactionId3, "isDelete")
+  const canView3 = hasPermission(moduleId, transactionId3, "isRead")
+  const canCreate3 = hasPermission(moduleId, transactionId3, "isCreate")
 
   // State for filters
   const [filters1, setFilters1] = useState<ICoaCategory1Filter>({})
@@ -288,7 +269,7 @@ export default function ChartOfAccountPage() {
     setIsModalCategory1Open(true)
   }
 
-  const handleEditCategory1 = (category: ICoaCategory1) => {
+  const handleEdit1 = (category: ICoaCategory1) => {
     setModalMode("edit")
     setSelectedCategory1(category)
     setIsModalCategory1Open(true)
@@ -307,7 +288,7 @@ export default function ChartOfAccountPage() {
     setIsModalCategory2Open(true)
   }
 
-  const handleEditCategory2 = (category: ICoaCategory2) => {
+  const handleEdit2 = (category: ICoaCategory2) => {
     setModalMode("edit")
     setSelectedCategory2(category)
     setIsModalCategory2Open(true)
@@ -326,7 +307,7 @@ export default function ChartOfAccountPage() {
     setIsModalCategory3Open(true)
   }
 
-  const handleEditCategory3 = (category: ICoaCategory3) => {
+  const handleEdit3 = (category: ICoaCategory3) => {
     setModalMode("edit")
     setSelectedCategory3(category)
     setIsModalCategory3Open(true)
@@ -550,7 +531,7 @@ export default function ChartOfAccountPage() {
     })
   }
 
-  const handleDeleteCategory1 = (id: string) => {
+  const handleDelete1 = (id: string) => {
     const categoryToDelete = category1Data.find(
       (c) => c.coaCategoryId === Number(id)
     )
@@ -565,7 +546,7 @@ export default function ChartOfAccountPage() {
     })
   }
 
-  const handleDeleteCategory2 = (id: string) => {
+  const handleDelete2 = (id: string) => {
     const categoryToDelete = category2Data.find(
       (c) => c.coaCategoryId === Number(id)
     )
@@ -580,7 +561,7 @@ export default function ChartOfAccountPage() {
     })
   }
 
-  const handleDeleteCategory3 = (id: string) => {
+  const handleDelete3 = (id: string) => {
     const categoryToDelete = category3Data.find(
       (c) => c.coaCategoryId === Number(id)
     )
@@ -827,18 +808,27 @@ export default function ChartOfAccountPage() {
               shrinkZero
             />
           ) : (chartOfAccountsResponse as ApiResponse<IChartofAccount>)
-              ?.result === -2 ? (
+              ?.result === -2 ||
+            !canView ||
+            !canEdit ||
+            !canDelete ||
+            !canCreate ? (
             <LockSkeleton locked={true}>
               <ChartOfAccountsTable
-                data={chartOfAccountsData}
-                onSelect={canView ? handleViewChartOfAccount : undefined}
-                onDelete={canDelete ? handleDeleteChartOfAccount : undefined}
-                onEdit={canEdit ? handleEditChartOfAccount : undefined}
-                onCreate={canCreate ? handleCreateChartOfAccount : undefined}
-                onRefresh={refetchChart}
-                onFilterChange={handleChartFilterChange}
+                data={[]}
+                isLoading={false}
+                onSelect={() => {}}
+                onDelete={() => {}}
+                onEdit={() => {}}
+                onCreate={() => {}}
+                onRefresh={() => {}}
+                onFilterChange={() => {}}
                 moduleId={moduleId}
                 transactionId={transactionId}
+                canView={false}
+                canCreate={false}
+                canEdit={false}
+                canDelete={false}
               />
             </LockSkeleton>
           ) : (
@@ -852,6 +842,10 @@ export default function ChartOfAccountPage() {
               onFilterChange={handleChartFilterChange}
               moduleId={moduleId}
               transactionId={transactionId}
+              canView={canView}
+              canCreate={canCreate}
+              canEdit={canEdit}
+              canDelete={canDelete}
             />
           )}
         </TabsContent>
@@ -874,33 +868,45 @@ export default function ChartOfAccountPage() {
               shrinkZero
             />
           ) : (category1Response as ApiResponse<ICoaCategory1>)?.result ===
-            -2 ? (
+              -2 ||
+            !canView1 ||
+            !canEdit1 ||
+            !canDelete1 ||
+            !canCreate1 ? (
             <LockSkeleton locked={true}>
               <CoaCategory1Table
-                data={category1Data}
-                onSelect={handleViewCategory1}
-                onDelete={
-                  canDeleteCategory1 ? handleDeleteCategory1 : undefined
-                }
-                onEdit={canEditCategory1 ? handleEditCategory1 : undefined}
-                onCreate={canCreate ? handleCreateChartOfAccount : undefined}
-                onRefresh={refetchChart}
-                onFilterChange={handleChartFilterChange}
+                data={[]}
+                isLoading={false}
+                onSelect={() => {}}
+                onDelete={() => {}}
+                onEdit={() => {}}
+                onCreate={() => {}}
+                onRefresh={() => {}}
+                onFilterChange={() => {}}
                 moduleId={moduleId}
                 transactionId={transactionId}
+                canView={false}
+                canCreate={false}
+                canEdit={false}
+                canDelete={false}
               />
             </LockSkeleton>
           ) : (
             <CoaCategory1Table
               data={category1Data}
+              isLoading={isLoading1}
               onSelect={canView ? handleViewCategory1 : undefined}
-              onDelete={canDeleteCategory1 ? handleDeleteCategory1 : undefined}
-              onEdit={canEdit ? handleEditCategory1 : undefined}
+              onDelete={canDelete1 ? handleDelete1 : undefined}
+              onEdit={canEdit ? handleEdit1 : undefined}
               onCreate={canCreate ? handleCreateCategory1 : undefined}
               onRefresh={refetch1}
               onFilterChange={handleCategory1FilterChange}
               moduleId={moduleId}
               transactionId={transactionId}
+              canView={canView1}
+              canCreate={canCreate1}
+              canEdit={canEdit1}
+              canDelete={canDelete1}
             />
           )}
         </TabsContent>
@@ -923,33 +929,45 @@ export default function ChartOfAccountPage() {
               shrinkZero
             />
           ) : (category2Response as ApiResponse<ICoaCategory2>)?.result ===
-            -2 ? (
+              -2 ||
+            !canView2 ||
+            !canEdit2 ||
+            !canDelete2 ||
+            !canCreate2 ? (
             <LockSkeleton locked={true}>
               <CoaCategory2Table
-                data={category2Data}
-                onSelect={handleViewCategory2}
-                onDelete={
-                  canDeleteCategory2 ? handleDeleteCategory2 : undefined
-                }
-                onEdit={canEditCategory2 ? handleEditCategory2 : undefined}
-                onCreate={canCreate ? handleCreateChartOfAccount : undefined}
-                onRefresh={refetch2}
-                onFilterChange={handleCategory2FilterChange}
+                data={[]}
+                isLoading={false}
+                onSelect={() => {}}
+                onDelete={() => {}}
+                onEdit={() => {}}
+                onCreate={() => {}}
+                onRefresh={() => {}}
+                onFilterChange={() => {}}
                 moduleId={moduleId}
                 transactionId={transactionId}
+                canView={false}
+                canCreate={false}
+                canEdit={false}
+                canDelete={false}
               />
             </LockSkeleton>
           ) : (
             <CoaCategory2Table
               data={category2Data}
+              isLoading={isLoading2}
               onSelect={canView ? handleViewCategory2 : undefined}
-              onDelete={canDeleteCategory2 ? handleDeleteCategory2 : undefined}
-              onEdit={canEdit ? handleEditCategory2 : undefined}
+              onDelete={canDelete2 ? handleDelete2 : undefined}
+              onEdit={canEdit ? handleEdit2 : undefined}
               onCreate={canCreate ? handleCreateCategory2 : undefined}
               onRefresh={refetch2}
               onFilterChange={handleCategory2FilterChange}
               moduleId={moduleId}
               transactionId={transactionId}
+              canView={canView2}
+              canCreate={canCreate2}
+              canEdit={canEdit2}
+              canDelete={canDelete2}
             />
           )}
         </TabsContent>
@@ -972,33 +990,45 @@ export default function ChartOfAccountPage() {
               shrinkZero
             />
           ) : (category3Response as ApiResponse<ICoaCategory3>)?.result ===
-            -2 ? (
+              -2 ||
+            !canView3 ||
+            !canEdit3 ||
+            !canDelete3 ||
+            !canCreate3 ? (
             <LockSkeleton locked={true}>
               <CoaCategory3Table
-                data={category3Data}
-                onSelect={handleViewCategory3}
-                onDelete={
-                  canDeleteCategory3 ? handleDeleteCategory3 : undefined
-                }
-                onEdit={canEditCategory3 ? handleEditCategory3 : undefined}
-                onCreate={canCreate ? handleCreateCategory3 : undefined}
-                onRefresh={refetch3}
-                onFilterChange={handleCategory3FilterChange}
+                data={[]}
+                isLoading={false}
+                onSelect={() => {}}
+                onDelete={() => {}}
+                onEdit={() => {}}
+                onCreate={() => {}}
+                onRefresh={() => {}}
+                onFilterChange={() => {}}
                 moduleId={moduleId}
                 transactionId={transactionId}
+                canView={false}
+                canCreate={false}
+                canEdit={false}
+                canDelete={false}
               />
             </LockSkeleton>
           ) : (
             <CoaCategory3Table
               data={category3Data}
+              isLoading={isLoading3}
               onSelect={canView ? handleViewCategory3 : undefined}
-              onDelete={canDeleteCategory3 ? handleDeleteCategory3 : undefined}
-              onEdit={canEdit ? handleEditCategory3 : undefined}
+              onDelete={canDelete3 ? handleDelete3 : undefined}
+              onEdit={canEdit ? handleEdit3 : undefined}
               onCreate={canCreate ? handleCreateCategory3 : undefined}
               onRefresh={refetch3}
               onFilterChange={handleCategory3FilterChange}
               moduleId={moduleId}
               transactionId={transactionId}
+              canView={canView3}
+              canCreate={canCreate3}
+              canEdit={canEdit3}
+              canDelete={canDelete3}
             />
           )}
         </TabsContent>

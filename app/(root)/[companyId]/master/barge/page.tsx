@@ -244,24 +244,24 @@ export default function BargePage() {
           ]}
           shrinkZero
         />
-      ) : bargesResult === -2 ? (
+      ) : bargesResult === -2 ||
+        (!canView && !canEdit && !canDelete && !canCreate) ? (
         <LockSkeleton locked={true}>
           <BargesTable
             data={[]}
             isLoading={false}
-            onSelect={canView ? handleViewBarge : undefined}
-            onDelete={canDelete ? handleDeleteBarge : undefined}
-            onEdit={canEdit ? handleEditBarge : undefined}
-            onCreate={canCreate ? handleCreateBarge : undefined}
-            onRefresh={handleRefresh}
-            onFilterChange={handleFilterChange}
+            onSelect={() => {}}
+            onDelete={() => {}}
+            onEdit={() => {}}
+            onCreate={() => {}}
+            onRefresh={() => {}}
+            onFilterChange={() => {}}
             moduleId={moduleId}
             transactionId={transactionId}
-            // Pass permissions to table
-            canEdit={canEdit}
-            canDelete={canDelete}
-            canView={canView}
-            canCreate={canCreate}
+            canEdit={false}
+            canDelete={false}
+            canView={false}
+            canCreate={false}
           />
         </LockSkeleton>
       ) : bargesResult === 1 ? (

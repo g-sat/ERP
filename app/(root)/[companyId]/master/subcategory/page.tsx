@@ -22,6 +22,7 @@ import { DeleteConfirmation } from "@/components/delete-confirmation"
 import { LoadConfirmation } from "@/components/load-confirmation"
 import { SaveConfirmation } from "@/components/save-confirmation"
 import { DataTableSkeleton } from "@/components/skeleton/data-table-skeleton"
+import { LockSkeleton } from "@/components/skeleton/lock-skeleton"
 
 import { SubCategoryForm } from "./components/subcategory-form"
 import { SubCategorysTable } from "./components/subcategory-table"
@@ -288,24 +289,26 @@ export default function SubCategoryPage() {
           ]}
           shrinkZero
         />
-      ) : subcategorysResult === -2 ? (
-        <SubCategorysTable
-          data={[]}
-          onSelect={canView ? handleViewSubCategory : undefined}
-          onDelete={canDelete ? handleDeleteSubCategory : undefined}
-          onEdit={canEdit ? handleEditSubCategory : undefined}
-          onCreate={canCreate ? handleCreateSubCategory : undefined}
-          onRefresh={handleRefresh}
-          onFilterChange={handleFilterChange}
-          moduleId={moduleId}
-          transactionId={transactionId}
-          isLoading={false}
-          // Pass permissions to table
-          canEdit={canEdit}
-          canDelete={canDelete}
-          canView={canView}
-          canCreate={canCreate}
-        />
+      ) : subcategorysResult === -2 ||
+        (!canView && !canEdit && !canDelete && !canCreate) ? (
+        <LockSkeleton locked={true}>
+          <SubCategorysTable
+            data={[]}
+            onSelect={() => {}}
+            onDelete={() => {}}
+            onEdit={() => {}}
+            onCreate={() => {}}
+            onRefresh={() => {}}
+            onFilterChange={() => {}}
+            moduleId={moduleId}
+            transactionId={transactionId}
+            isLoading={false}
+            canEdit={false}
+            canDelete={false}
+            canView={false}
+            canCreate={false}
+          />
+        </LockSkeleton>
       ) : subcategorysResult ? (
         <SubCategorysTable
           data={filters.search ? [] : subcategorysData || []}

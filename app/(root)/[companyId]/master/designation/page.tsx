@@ -27,6 +27,7 @@ import { DeleteConfirmation } from "@/components/delete-confirmation"
 import { LoadConfirmation } from "@/components/load-confirmation"
 import { SaveConfirmation } from "@/components/save-confirmation"
 import { DataTableSkeleton } from "@/components/skeleton/data-table-skeleton"
+import { LockSkeleton } from "@/components/skeleton/lock-skeleton"
 
 import { DesignationForm } from "./components/designation-form"
 import { DesignationsTable } from "./components/designation-table"
@@ -290,23 +291,26 @@ export default function DesignationPage() {
           ]}
           shrinkZero
         />
-      ) : designationsResult === -2 ? (
-        <DesignationsTable
-          data={[]}
-          onSelect={canView ? handleViewDesignation : undefined}
-          onDelete={canDelete ? handleDeleteDesignation : undefined}
-          onEdit={canEdit ? handleEditDesignation : undefined}
-          onCreate={canCreate ? handleCreateDesignation : undefined}
-          onRefresh={handleRefresh}
-          onFilterChange={handleFilterChange}
-          moduleId={moduleId}
-          transactionId={transactionId}
-          isLoading={false}
-          canEdit={canEdit}
-          canDelete={canDelete}
-          canView={canView}
-          canCreate={canCreate}
-        />
+      ) : designationsResult === -2 ||
+        (!canView && !canEdit && !canDelete && !canCreate) ? (
+        <LockSkeleton locked={true}>
+          <DesignationsTable
+            data={[]}
+            onSelect={() => {}}
+            onDelete={() => {}}
+            onEdit={() => {}}
+            onCreate={() => {}}
+            onRefresh={() => {}}
+            onFilterChange={() => {}}
+            moduleId={moduleId}
+            transactionId={transactionId}
+            isLoading={false}
+            canEdit={false}
+            canDelete={false}
+            canView={false}
+            canCreate={false}
+          />
+        </LockSkeleton>
       ) : designationsResult ? (
         <DesignationsTable
           data={filters.search ? [] : designationsData || []}

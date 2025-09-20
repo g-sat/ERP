@@ -266,26 +266,27 @@ export default function CategoryPage() {
           ]}
           shrinkZero
         />
-      ) : categorysResult === -2 ? (
+      ) : categorysResult === -2 ||
+        (!canView && !canEdit && !canDelete && !canCreate) ? (
         <LockSkeleton locked={true}>
           <CategorysTable
-            data={filters.search ? [] : categorysData || []}
-            onSelect={canView ? handleViewCategory : undefined}
-            onDelete={canDelete ? handleDeleteCategory : undefined}
-            onEdit={canEdit ? handleEditCategory : undefined}
-            onCreate={canCreate ? handleCreateCategory : undefined}
-            onRefresh={handleRefresh}
-            onFilterChange={handleFilterChange}
+            data={[]}
+            isLoading={false}
+            onSelect={() => {}}
+            onDelete={() => {}}
+            onEdit={() => {}}
+            onCreate={() => {}}
+            onRefresh={() => {}}
+            onFilterChange={() => {}}
             moduleId={moduleId}
             transactionId={transactionId}
-            // Pass permissions to table
-            canEdit={canEdit}
-            canDelete={canDelete}
-            canView={canView}
-            canCreate={canCreate}
+            canView={false}
+            canCreate={false}
+            canEdit={false}
+            canDelete={false}
           />
         </LockSkeleton>
-      ) : categorysResult ? (
+      ) : (
         <CategorysTable
           data={filters.search ? [] : categorysData || []}
           isLoading={isLoading}
@@ -303,12 +304,6 @@ export default function CategoryPage() {
           canView={canView}
           canCreate={canCreate}
         />
-      ) : (
-        <div className="py-8 text-center">
-          <p className="text-muted-foreground">
-            {categorysResult === 0 ? "No data available" : "Loading..."}
-          </p>
-        </div>
       )}
 
       <Dialog

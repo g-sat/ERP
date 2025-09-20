@@ -63,7 +63,6 @@ export default function AccountSetupPage() {
   const canView = hasPermission(moduleId, transactionId, "isRead")
   const canEdit = hasPermission(moduleId, transactionId, "isEdit")
   const canDelete = hasPermission(moduleId, transactionId, "isDelete")
-
   const canCreateCategory = hasPermission(
     moduleId,
     transactionIdCategory,
@@ -84,7 +83,6 @@ export default function AccountSetupPage() {
     transactionIdCategory,
     "isDelete"
   )
-
   const canCreateDt = hasPermission(moduleId, transactionIdDt, "isCreate")
   const canViewDt = hasPermission(moduleId, transactionIdDt, "isRead")
   const canEditDt = hasPermission(moduleId, transactionIdDt, "isEdit")
@@ -637,24 +635,24 @@ export default function AccountSetupPage() {
               ]}
               shrinkZero
             />
-          ) : setupResult === -2 ? (
+          ) : setupResult === -2 ||
+            (!canView && !canEdit && !canDelete && !canCreate) ? (
             <LockSkeleton locked={true}>
               <AccountSetupTable
                 data={[]}
                 isLoading={false}
-                onSelect={canView ? handleSetupSelect : undefined}
-                onDelete={canDelete ? handleDeleteSetup : undefined}
-                onEdit={canEdit ? handleEditSetup : undefined}
-                onCreate={canCreate ? handleCreateSetup : undefined}
-                onRefresh={refetchSetup}
-                onFilterChange={handleSetupFilterChange}
+                onSelect={() => {}}
+                onDelete={() => {}}
+                onEdit={() => {}}
+                onCreate={() => {}}
+                onRefresh={() => {}}
+                onFilterChange={() => {}}
                 moduleId={moduleId}
                 transactionId={transactionId}
-                // Pass permissions to table
-                canEdit={canEdit}
-                canDelete={canDelete}
-                canView={canView}
-                canCreate={canCreate}
+                canView={false}
+                canCreate={false}
+                canEdit={false}
+                canDelete={false}
               />
             </LockSkeleton>
           ) : (
@@ -694,23 +692,24 @@ export default function AccountSetupPage() {
               ]}
               shrinkZero
             />
-          ) : dtResult === -2 ? (
+          ) : dtResult === -2 ||
+            (!canViewDt && !canEditDt && !canDeleteDt && !canCreateDt) ? (
             <LockSkeleton locked={true}>
               <AccountSetupDtTable
                 data={[]}
                 isLoading={false}
-                onSelect={canViewDt ? handleDtSelect : undefined}
-                onDelete={canDeleteDt ? handleDeleteDt : undefined}
-                onEdit={canEditDt ? handleEditDt : undefined}
-                onCreate={canCreateDt ? handleCreateDt : undefined}
-                onRefresh={refetchDt}
-                onFilterChange={handleDtFilterChange}
+                onSelect={() => {}}
+                onDelete={() => {}}
+                onEdit={() => {}}
+                onCreate={() => {}}
+                onRefresh={() => {}}
+                onFilterChange={() => {}}
                 moduleId={moduleId}
                 transactionId={transactionIdDt}
-                canEdit={canEditDt}
-                canDelete={canDeleteDt}
-                canView={canViewDt}
-                canCreate={canCreateDt}
+                canView={false}
+                canCreate={false}
+                canEdit={false}
+                canDelete={false}
               />
             </LockSkeleton>
           ) : (
@@ -749,22 +748,27 @@ export default function AccountSetupPage() {
               ]}
               shrinkZero
             />
-          ) : categoryResult === -2 ? (
+          ) : categoryResult === -2 ||
+            (!canViewCategory &&
+              !canEditCategory &&
+              !canDeleteCategory &&
+              !canCreateCategory) ? (
             <LockSkeleton locked={true}>
               <AccountSetupCategoryTable
                 data={[]}
-                onSelect={canViewCategory ? handleCategorySelect : undefined}
-                onDelete={canDeleteCategory ? handleDeleteCategory : undefined}
-                onEdit={canEditCategory ? handleEditCategory : undefined}
-                onCreate={canCreateCategory ? handleCreateCategory : undefined}
-                onRefresh={refetchCategory}
-                onFilterChange={handleCategoryFilterChange}
+                isLoading={false}
+                onSelect={() => {}}
+                onDelete={() => {}}
+                onEdit={() => {}}
+                onCreate={() => {}}
+                onRefresh={() => {}}
+                onFilterChange={() => {}}
                 moduleId={moduleId}
                 transactionId={transactionIdCategory}
-                canEdit={canEditCategory}
-                canDelete={canDeleteCategory}
-                canView={canViewCategory}
-                canCreate={canCreateCategory}
+                canView={false}
+                canCreate={false}
+                canEdit={false}
+                canDelete={false}
               />
             </LockSkeleton>
           ) : (

@@ -22,6 +22,7 @@ import { DeleteConfirmation } from "@/components/delete-confirmation"
 import { LoadConfirmation } from "@/components/load-confirmation"
 import { SaveConfirmation } from "@/components/save-confirmation"
 import { DataTableSkeleton } from "@/components/skeleton/data-table-skeleton"
+import { LockSkeleton } from "@/components/skeleton/lock-skeleton"
 
 import { LoanTypeForm } from "./components/loan-type-form"
 import { LoanTypesTable } from "./components/loan-type-table"
@@ -295,24 +296,26 @@ export default function LoanTypePage() {
           ]}
           shrinkZero
         />
-      ) : loanTypesResult === -2 ? (
-        <LoanTypesTable
-          data={[]}
-          isLoading={false}
-          onSelect={canView ? handleViewLoanType : undefined}
-          onDelete={canDelete ? handleDeleteLoanType : undefined}
-          onEdit={canEdit ? handleEditLoanType : undefined}
-          onCreate={canCreate ? handleCreateLoanType : undefined}
-          onRefresh={handleRefresh}
-          onFilterChange={handleFilterChange}
-          moduleId={moduleId}
-          transactionId={transactionId}
-          // Pass permissions to table
-          canEdit={canEdit}
-          canDelete={canDelete}
-          canView={canView}
-          canCreate={canCreate}
-        />
+      ) : loanTypesResult === -2 ||
+        (!canView && !canEdit && !canDelete && !canCreate) ? (
+        <LockSkeleton locked={true}>
+          <LoanTypesTable
+            data={[]}
+            isLoading={false}
+            onSelect={() => {}}
+            onDelete={() => {}}
+            onEdit={() => {}}
+            onCreate={() => {}}
+            onRefresh={() => {}}
+            onFilterChange={() => {}}
+            moduleId={moduleId}
+            transactionId={transactionId}
+            canEdit={false}
+            canDelete={false}
+            canView={false}
+            canCreate={false}
+          />
+        </LockSkeleton>
       ) : (
         <LoanTypesTable
           data={filters.search ? [] : loanTypesData || []}

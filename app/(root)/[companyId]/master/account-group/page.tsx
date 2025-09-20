@@ -305,24 +305,24 @@ export default function AccountGroupPage() {
           ]}
           shrinkZero
         />
-      ) : accountGroupsResult === -2 ? (
+      ) : accountGroupsResult === -2 ||
+        (!canView && !canEdit && !canDelete && !canCreate) ? (
         <LockSkeleton locked={true}>
           <AccountGroupTable
             data={[]}
             isLoading={false}
-            onSelect={canView ? handleViewAccountGroup : undefined}
-            onDelete={canDelete ? handleDeleteAccountGroup : undefined}
-            onEdit={canEdit ? handleEditAccountGroup : undefined}
-            onCreate={canCreate ? handleCreateAccountGroup : undefined}
-            onRefresh={handleRefresh}
-            onFilterChange={handleFilterChange}
+            onSelect={() => {}}
+            onDelete={() => {}}
+            onEdit={() => {}}
+            onCreate={() => {}}
+            onRefresh={() => {}}
+            onFilterChange={() => {}}
             moduleId={moduleId}
             transactionId={transactionId}
-            // Pass permissions to table
-            canEdit={canEdit}
-            canDelete={canDelete}
-            canView={canView}
-            canCreate={canCreate}
+            canView={false}
+            canCreate={false}
+            canEdit={false}
+            canDelete={false}
           />
         </LockSkeleton>
       ) : (

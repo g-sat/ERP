@@ -464,23 +464,24 @@ export default function OrderTypePage() {
               ]}
               shrinkZero
             />
-          ) : ordertypesResult === -2 ? (
+          ) : ordertypesResult === -2 ||
+            (!canView && !canEdit && !canDelete && !canCreate) ? (
             <LockSkeleton locked={true}>
               <OrderTypeTable
                 data={[]}
                 isLoading={false}
-                onSelect={canView ? handleViewOrderType : undefined}
-                onDelete={canDelete ? handleDeleteOrderType : undefined}
-                onEdit={canEdit ? handleEditOrderType : undefined}
-                onCreate={canCreate ? handleCreateOrderType : undefined}
-                onRefresh={refetchOrderType}
-                onFilterChange={handleFilterChange}
+                onSelect={() => {}}
+                onDelete={() => {}}
+                onEdit={() => {}}
+                onCreate={() => {}}
+                onRefresh={() => {}}
+                onFilterChange={() => {}}
                 moduleId={moduleId}
                 transactionId={transactionId}
-                canEdit={canEdit}
-                canDelete={canDelete}
-                canView={canView}
-                canCreate={canCreate}
+                canEdit={false}
+                canDelete={false}
+                canView={false}
+                canCreate={false}
               />
             </LockSkeleton>
           ) : (
@@ -519,29 +520,25 @@ export default function OrderTypePage() {
               ]}
               shrinkZero
             />
-          ) : ordertypesCategoryResult === -2 ? (
+          ) : ordertypesCategoryResult === -2 ||
+            (!canViewCategory &&
+              !canEditCategory &&
+              !canDeleteCategory &&
+              !canCreateCategory) ? (
             <LockSkeleton locked={true}>
               <OrderTypeCategoryTable
                 data={[]}
                 isLoading={false}
-                onSelect={
-                  canViewCategory ? handleViewOrderTypeCategory : undefined
-                }
-                onDelete={
-                  canDeleteCategory ? handleDeleteOrderTypeCategory : undefined
-                }
-                onEdit={
-                  canEditCategory ? handleEditOrderTypeCategory : undefined
-                }
-                onCreate={
-                  canCreateCategory ? handleCreateOrderTypeCategory : undefined
-                }
-                onRefresh={refetchOrderTypeCategory}
-                onFilterChange={handleCategoryFilterChange}
+                onSelect={() => {}}
+                onDelete={() => {}}
+                onEdit={() => {}}
+                onCreate={() => {}}
+                onRefresh={() => {}}
+                onFilterChange={() => {}}
                 moduleId={moduleId}
                 transactionId={transactionIdCategory}
-                canEdit={canEditCategory}
-                canDelete={canDeleteCategory}
+                canEdit={false}
+                canDelete={false}
                 canView={canViewCategory}
                 canCreate={canCreateCategory}
               />

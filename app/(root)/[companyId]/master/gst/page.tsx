@@ -558,23 +558,24 @@ export default function GstPage() {
               ]}
               shrinkZero
             />
-          ) : gstsResult === -2 ? (
+          ) : gstsResult === -2 ||
+            (!canView && !canEdit && !canDelete && !canCreate) ? (
             <LockSkeleton locked={true}>
               <GstTable
                 data={[]}
                 isLoading={false}
-                onSelect={canView ? handleViewGst : undefined}
-                onDelete={canDelete ? handleDeleteGst : undefined}
-                onEdit={canEdit ? handleEditGst : undefined}
-                onCreate={canCreate ? handleCreateGst : undefined}
-                onRefresh={refetchGst}
-                onFilterChange={handleFilterChange}
+                onSelect={() => {}}
+                onDelete={() => {}}
+                onEdit={() => {}}
+                onCreate={() => {}}
+                onRefresh={() => {}}
+                onFilterChange={() => {}}
                 moduleId={moduleId}
                 transactionId={transactionId}
-                canEdit={canEdit}
-                canDelete={canDelete}
-                canView={canView}
-                canCreate={canCreate}
+                canEdit={false}
+                canDelete={false}
+                canView={false}
+                canCreate={false}
               />
             </LockSkeleton>
           ) : gstsResult ? (
@@ -620,23 +621,24 @@ export default function GstPage() {
               ]}
               shrinkZero
             />
-          ) : gstsDtResult === -2 ? (
+          ) : gstsDtResult === -2 ||
+            (!canViewDt && !canEditDt && !canDeleteDt && !canCreateDt) ? (
             <LockSkeleton locked={true}>
               <GstDtTable
                 data={[]}
                 isLoading={false}
-                onSelect={canViewDt ? handleViewGstDt : undefined}
-                onDelete={canDeleteDt ? handleDeleteGstDt : undefined}
-                onEdit={canEditDt ? handleEditGstDt : undefined}
-                onCreate={canCreateDt ? handleCreateGstDt : undefined}
-                onRefresh={refetchGstDt}
-                onFilterChange={handleDtFilterChange}
+                onSelect={() => {}}
+                onDelete={() => {}}
+                onEdit={() => {}}
+                onCreate={() => {}}
+                onRefresh={() => {}}
+                onFilterChange={() => {}}
                 moduleId={moduleId}
                 transactionId={transactionIdDt}
-                canEdit={canEditDt}
-                canDelete={canDeleteDt}
-                canView={canViewDt}
-                canCreate={canCreateDt}
+                canEdit={false}
+                canDelete={false}
+                canView={false}
+                canCreate={false}
               />
             </LockSkeleton>
           ) : gstsDtResult ? (
@@ -682,25 +684,25 @@ export default function GstPage() {
               ]}
               shrinkZero
             />
-          ) : gstsCategoryResult === -2 ? (
+          ) : gstsCategoryResult === -2 ||
+            (!canViewCategory &&
+              !canEditCategory &&
+              !canDeleteCategory &&
+              !canCreateCategory) ? (
             <LockSkeleton locked={true}>
               <GstCategoryTable
                 data={[]}
                 isLoading={false}
-                onSelect={canViewCategory ? handleViewGstCategory : undefined}
-                onDelete={
-                  canDeleteCategory ? handleDeleteGstCategory : undefined
-                }
-                onEdit={canEditCategory ? handleEditGstCategory : undefined}
-                onCreate={
-                  canCreateCategory ? handleCreateGstCategory : undefined
-                }
-                onRefresh={refetchGstCategory}
-                onFilterChange={handleCategoryFilterChange}
+                onSelect={() => {}}
+                onDelete={() => {}}
+                onEdit={() => {}}
+                onCreate={() => {}}
+                onRefresh={() => {}}
+                onFilterChange={() => {}}
                 moduleId={moduleId}
                 transactionId={transactionIdCategory}
-                canEdit={canEditCategory}
-                canDelete={canDeleteCategory}
+                canEdit={false}
+                canDelete={false}
                 canView={canViewCategory}
                 canCreate={canCreateCategory}
               />

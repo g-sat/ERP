@@ -377,19 +377,24 @@ export default function UomPage() {
               ]}
               shrinkZero
             />
-          ) : (uomsResponse as ApiResponse<IUom>)?.result === -2 ? (
+          ) : (uomsResponse as ApiResponse<IUom>)?.result === -2 ||
+            (!canView && !canEdit && !canDelete && !canCreate) ? (
             <LockSkeleton locked={true}>
               <UomTable
-                data={uomsData}
-                isLoading={isLoadingUom}
-                onSelect={canView ? handleViewUom : undefined}
-                onDelete={canDelete ? handleDeleteUom : undefined}
-                onEdit={canEdit ? handleEditUom : undefined}
-                onCreate={canCreate ? handleCreateUom : undefined}
-                onRefresh={refetchUom}
-                onFilterChange={handleUomFilterChange}
+                data={[]}
+                isLoading={false}
+                onSelect={() => {}}
+                onDelete={() => {}}
+                onEdit={() => {}}
+                onCreate={() => {}}
+                onRefresh={() => {}}
+                onFilterChange={() => {}}
                 moduleId={moduleId}
                 transactionId={transactionId}
+                canView={false}
+                canCreate={false}
+                canEdit={false}
+                canDelete={false}
               />
             </LockSkeleton>
           ) : (
@@ -425,22 +430,23 @@ export default function UomPage() {
               ]}
               shrinkZero
             />
-          ) : (uomDtResponse as ApiResponse<IUomDt>)?.result === -2 ? (
+          ) : (uomDtResponse as ApiResponse<IUomDt>)?.result === -2 ||
+            (!canViewDt && !canEditDt && !canDeleteDt && !canCreateDt) ? (
             <LockSkeleton locked={true}>
               <UomDtTable
-                data={uomDtData}
-                onSelect={canViewDt ? handleViewUomDt : undefined}
-                onDelete={canDeleteDt ? handleDeleteUomDt : undefined}
-                onEdit={canEditDt ? handleEditUomDt : undefined}
-                onCreate={canCreateDt ? handleCreateUomDt : undefined}
-                onRefresh={refetchUomDt}
-                onFilterChange={handleUomDtFilterChange}
+                data={[]}
+                onSelect={() => {}}
+                onDelete={() => {}}
+                onEdit={() => {}}
+                onCreate={() => {}}
+                onRefresh={() => {}}
+                onFilterChange={() => {}}
                 moduleId={moduleId}
                 transactionId={transactionIdDt}
-                canView={canViewDt}
-                canCreate={canCreateDt}
-                canEdit={canEditDt}
-                canDelete={canDeleteDt}
+                canView={false}
+                canCreate={false}
+                canEdit={false}
+                canDelete={false}
               />
             </LockSkeleton>
           ) : (

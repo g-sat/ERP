@@ -22,6 +22,7 @@ import { DeleteConfirmation } from "@/components/delete-confirmation"
 import { LoadConfirmation } from "@/components/load-confirmation"
 import { SaveConfirmation } from "@/components/save-confirmation"
 import { DataTableSkeleton } from "@/components/skeleton/data-table-skeleton"
+import { LockSkeleton } from "@/components/skeleton/lock-skeleton"
 
 import { DocumentTypeForm } from "./components/document-type-form"
 import { DocumentTypesTable } from "./components/document-type-table"
@@ -299,24 +300,26 @@ export default function DocumentTypePage() {
           ]}
           shrinkZero
         />
-      ) : documentTypesResult === -2 ? (
-        <DocumentTypesTable
-          data={[]}
-          isLoading={false}
-          onSelect={canView ? handleViewDocumentType : undefined}
-          onDelete={canDelete ? handleDeleteDocumentType : undefined}
-          onEdit={canEdit ? handleEditDocumentType : undefined}
-          onCreate={canCreate ? handleCreateDocumentType : undefined}
-          onRefresh={handleRefresh}
-          onFilterChange={handleFilterChange}
-          moduleId={moduleId}
-          transactionId={transactionId}
-          // Pass permissions to table
-          canEdit={canEdit}
-          canDelete={canDelete}
-          canView={canView}
-          canCreate={canCreate}
-        />
+      ) : documentTypesResult === -2 ||
+        (!canView && !canEdit && !canDelete && !canCreate) ? (
+        <LockSkeleton locked={true}>
+          <DocumentTypesTable
+            data={[]}
+            isLoading={false}
+            onSelect={() => {}}
+            onDelete={() => {}}
+            onEdit={() => {}}
+            onCreate={() => {}}
+            onRefresh={() => {}}
+            onFilterChange={() => {}}
+            moduleId={moduleId}
+            transactionId={transactionId}
+            canEdit={false}
+            canDelete={false}
+            canView={false}
+            canCreate={false}
+          />
+        </LockSkeleton>
       ) : (
         <DocumentTypesTable
           data={filters.search ? [] : documentTypesData || []}

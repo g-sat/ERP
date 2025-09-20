@@ -22,6 +22,7 @@ import { DeleteConfirmation } from "@/components/delete-confirmation"
 import { LoadConfirmation } from "@/components/load-confirmation"
 import { SaveConfirmation } from "@/components/save-confirmation"
 import { DataTableSkeleton } from "@/components/skeleton/data-table-skeleton"
+import { LockSkeleton } from "@/components/skeleton/lock-skeleton"
 
 import { AccountTypeForm } from "./components/account-type-form"
 import { AccountTypesTable } from "./components/account-type-table"
@@ -295,24 +296,26 @@ export default function AccountTypePage() {
           ]}
           shrinkZero
         />
-      ) : accountTypesResult === -2 ? (
-        <AccountTypesTable
-          data={[]}
-          isLoading={false}
-          onSelect={canView ? handleViewAccountType : undefined}
-          onDelete={canDelete ? handleDeleteAccountType : undefined}
-          onEdit={canEdit ? handleEditAccountType : undefined}
-          onCreate={canCreate ? handleCreateAccountType : undefined}
-          onRefresh={handleRefresh}
-          onFilterChange={handleFilterChange}
-          moduleId={moduleId}
-          transactionId={transactionId}
-          // Pass permissions to table
-          canEdit={canEdit}
-          canDelete={canDelete}
-          canView={canView}
-          canCreate={canCreate}
-        />
+      ) : accountTypesResult === -2 ||
+        (!canView && !canEdit && !canDelete && !canCreate) ? (
+        <LockSkeleton locked={true}>
+          <AccountTypesTable
+            data={[]}
+            isLoading={false}
+            onSelect={() => {}}
+            onDelete={() => {}}
+            onEdit={() => {}}
+            onCreate={() => {}}
+            onRefresh={() => {}}
+            onFilterChange={() => {}}
+            moduleId={moduleId}
+            transactionId={transactionId}
+            canView={false}
+            canCreate={false}
+            canEdit={false}
+            canDelete={false}
+          />
+        </LockSkeleton>
       ) : (
         <AccountTypesTable
           data={filters.search ? [] : accountTypesData || []}

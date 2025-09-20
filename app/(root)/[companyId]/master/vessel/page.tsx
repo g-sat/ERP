@@ -22,6 +22,7 @@ import { DeleteConfirmation } from "@/components/delete-confirmation"
 import { LoadConfirmation } from "@/components/load-confirmation"
 import { SaveConfirmation } from "@/components/save-confirmation"
 import { DataTableSkeleton } from "@/components/skeleton/data-table-skeleton"
+import { LockSkeleton } from "@/components/skeleton/lock-skeleton"
 
 import { VesselForm } from "./components/vessel-form"
 import { VesselsTable } from "./components/vessel-table"
@@ -291,24 +292,26 @@ export default function VesselPage() {
           ]}
           shrinkZero
         />
-      ) : vesselsResult === -2 ? (
-        <VesselsTable
-          data={[]}
-          onSelect={canView ? handleViewVessel : undefined}
-          onDelete={canDelete ? handleDeleteVessel : undefined}
-          onEdit={canEdit ? handleEditVessel : undefined}
-          onCreate={canCreate ? handleCreateVessel : undefined}
-          onRefresh={handleRefresh}
-          onFilterChange={handleFilterChange}
-          moduleId={moduleId}
-          transactionId={transactionId}
-          isLoading={false}
-          // Pass permissions to table
-          canEdit={canEdit}
-          canDelete={canDelete}
-          canView={canView}
-          canCreate={canCreate}
-        />
+      ) : vesselsResult === -2 ||
+        (!canView && !canEdit && !canDelete && !canCreate) ? (
+        <LockSkeleton locked={true}>
+          <VesselsTable
+            data={[]}
+            onSelect={() => {}}
+            onDelete={() => {}}
+            onEdit={() => {}}
+            onCreate={() => {}}
+            onRefresh={() => {}}
+            onFilterChange={() => {}}
+            moduleId={moduleId}
+            transactionId={transactionId}
+            isLoading={false}
+            canEdit={false}
+            canDelete={false}
+            canView={false}
+            canCreate={false}
+          />
+        </LockSkeleton>
       ) : vesselsResult ? (
         <VesselsTable
           data={filters.search ? [] : vesselsData || []}

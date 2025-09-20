@@ -28,6 +28,7 @@ import { DeleteConfirmation } from "@/components/delete-confirmation"
 import { LoadConfirmation } from "@/components/load-confirmation"
 import { SaveConfirmation } from "@/components/save-confirmation"
 import { DataTableSkeleton } from "@/components/skeleton/data-table-skeleton"
+import { LockSkeleton } from "@/components/skeleton/lock-skeleton"
 
 import { CountryForm } from "./components/country-form"
 import { CountriesTable } from "./components/country-table"
@@ -325,24 +326,26 @@ export default function CountryPage() {
           ]}
           shrinkZero
         />
-      ) : countriesResult === -2 ? (
-        <CountriesTable
-          data={[]}
-          isLoading={false}
-          onSelect={canView ? handleViewCountry : undefined}
-          onCreate={canCreate ? handleCreateCountry : undefined}
-          onEdit={canEdit ? handleEditCountry : undefined}
-          onDelete={canDelete ? handleDeleteCountry : undefined}
-          onRefresh={handleRefresh}
-          onFilterChange={handleFilterChange}
-          moduleId={moduleId}
-          transactionId={transactionId}
-          // Pass permissions to table
-          canView={canView}
-          canCreate={canCreate}
-          canEdit={canEdit}
-          canDelete={canDelete}
-        />
+      ) : countriesResult === -2 ||
+        (!canView && !canEdit && !canDelete && !canCreate) ? (
+        <LockSkeleton locked={true}>
+          <CountriesTable
+            data={[]}
+            isLoading={false}
+            onSelect={() => {}}
+            onCreate={() => {}}
+            onEdit={() => {}}
+            onDelete={() => {}}
+            onRefresh={() => {}}
+            onFilterChange={() => {}}
+            moduleId={moduleId}
+            transactionId={transactionId}
+            canView={false}
+            canCreate={false}
+            canEdit={false}
+            canDelete={false}
+          />
+        </LockSkeleton>
       ) : countriesResult ? (
         <CountriesTable
           data={filters.search ? [] : countriesdata || []}

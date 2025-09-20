@@ -22,6 +22,7 @@ import { DeleteConfirmation } from "@/components/delete-confirmation"
 import { LoadConfirmation } from "@/components/load-confirmation"
 import { SaveConfirmation } from "@/components/save-confirmation"
 import { DataTableSkeleton } from "@/components/skeleton/data-table-skeleton"
+import { LockSkeleton } from "@/components/skeleton/lock-skeleton"
 
 import { ProductForm } from "./components/product-form"
 import { ProductsTable } from "./components/product-table"
@@ -280,24 +281,26 @@ export default function ProductPage() {
           ]}
           shrinkZero
         />
-      ) : productsResult === -2 ? (
-        <ProductsTable
-          data={[]}
-          onSelect={canView ? handleViewProduct : undefined}
-          onDelete={canDelete ? handleDeleteProduct : undefined}
-          onEdit={canEdit ? handleEditProduct : undefined}
-          onCreate={canCreate ? handleCreateProduct : undefined}
-          onRefresh={handleRefresh}
-          onFilterChange={handleFilterChange}
-          moduleId={moduleId}
-          transactionId={transactionId}
-          isLoading={false}
-          // Pass permissions to table
-          canEdit={canEdit}
-          canDelete={canDelete}
-          canView={canView}
-          canCreate={canCreate}
-        />
+      ) : productsResult === -2 ||
+        (!canView && !canEdit && !canDelete && !canCreate) ? (
+        <LockSkeleton locked={true}>
+          <ProductsTable
+            data={[]}
+            onSelect={() => {}}
+            onDelete={() => {}}
+            onEdit={() => {}}
+            onCreate={() => {}}
+            onRefresh={() => {}}
+            onFilterChange={() => {}}
+            moduleId={moduleId}
+            transactionId={transactionId}
+            isLoading={false}
+            canEdit={false}
+            canDelete={false}
+            canView={false}
+            canCreate={false}
+          />
+        </LockSkeleton>
       ) : productsResult ? (
         <ProductsTable
           data={filters.search ? [] : productsData || []}

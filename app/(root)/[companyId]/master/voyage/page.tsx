@@ -271,24 +271,24 @@ export default function VoyagePage() {
           ]}
           shrinkZero
         />
-      ) : voyagesResult === -2 ? (
+      ) : voyagesResult === -2 ||
+        (!canView && !canEdit && !canDelete && !canCreate) ? (
         <LockSkeleton locked={true}>
           <VoyagesTable
             data={[]}
-            onSelect={canView ? handleViewVoyage : undefined}
-            onDelete={canDelete ? handleDeleteVoyage : undefined}
-            onEdit={canEdit ? handleEditVoyage : undefined}
-            onCreate={canCreate ? handleCreateVoyage : undefined}
-            onRefresh={handleRefresh}
-            onFilterChange={handleFilterChange}
+            onSelect={() => {}}
+            onDelete={() => {}}
+            onEdit={() => {}}
+            onCreate={() => {}}
+            onRefresh={() => {}}
+            onFilterChange={() => {}}
             moduleId={moduleId}
             transactionId={transactionId}
             isLoading={false}
-            // Pass permissions to table
-            canEdit={canEdit}
-            canDelete={canDelete}
-            canView={canView}
-            canCreate={canCreate}
+            canEdit={false}
+            canDelete={false}
+            canView={false}
+            canCreate={false}
           />
         </LockSkeleton>
       ) : (

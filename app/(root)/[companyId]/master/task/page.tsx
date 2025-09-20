@@ -285,24 +285,24 @@ export default function TaskPage() {
           ]}
           shrinkZero
         />
-      ) : tasksResult === -2 ? (
+      ) : tasksResult === -2 ||
+        (!canView && !canEdit && !canDelete && !canCreate) ? (
         <LockSkeleton locked={true}>
           <TasksTable
             data={[]}
             isLoading={false}
-            onSelect={canView ? handleViewTask : undefined}
-            onDelete={canDelete ? handleDeleteTask : undefined}
-            onEdit={canEdit ? handleEditTask : undefined}
-            onCreate={canCreate ? handleCreateTask : undefined}
-            onRefresh={handleRefresh}
-            onFilterChange={handleFilterChange}
+            onSelect={() => {}}
+            onDelete={() => {}}
+            onEdit={() => {}}
+            onCreate={() => {}}
+            onRefresh={() => {}}
+            onFilterChange={() => {}}
             moduleId={moduleId}
             transactionId={transactionId}
-            // Pass permissions to table
-            canEdit={canEdit}
-            canDelete={canDelete}
-            canView={canView}
-            canCreate={canCreate}
+            canEdit={false}
+            canDelete={false}
+            canView={false}
+            canCreate={false}
           />
         </LockSkeleton>
       ) : (

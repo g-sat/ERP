@@ -456,23 +456,24 @@ export default function ServiceTypePage() {
               ]}
               shrinkZero
             />
-          ) : servicetypesResult === -2 ? (
+          ) : servicetypesResult === -2 ||
+            (!canView && !canEdit && !canDelete && !canCreate) ? (
             <LockSkeleton locked={true}>
               <ServiceTypeTable
                 data={[]}
                 isLoading={false}
-                onSelect={canView ? handleViewServiceType : undefined}
-                onDelete={canDelete ? handleDeleteServiceType : undefined}
-                onEdit={canEdit ? handleEditServiceType : undefined}
-                onCreate={canCreate ? handleCreateServiceType : undefined}
-                onRefresh={refetchServiceType}
-                onFilterChange={handleFilterChange}
+                onSelect={() => {}}
+                onDelete={() => {}}
+                onEdit={() => {}}
+                onCreate={() => {}}
+                onRefresh={() => {}}
+                onFilterChange={() => {}}
                 moduleId={moduleId}
                 transactionId={transactionId}
-                canEdit={canEdit}
-                canDelete={canDelete}
-                canView={canView}
-                canCreate={canCreate}
+                canEdit={false}
+                canDelete={false}
+                canView={false}
+                canCreate={false}
               />
             </LockSkeleton>
           ) : (
@@ -511,27 +512,19 @@ export default function ServiceTypePage() {
               ]}
               shrinkZero
             />
-          ) : servicetypesCategoryResult === -2 ? (
+          ) : servicetypesCategoryResult === -2 ||
+            (!canViewCategory &&
+              !canEditCategory &&
+              !canDeleteCategory &&
+              !canCreateCategory) ? (
             <LockSkeleton locked={true}>
               <ServiceTypeCategoryTable
                 data={[]}
                 isLoading={false}
-                onSelect={
-                  canViewCategory ? handleViewServiceTypeCategory : undefined
-                }
-                onDelete={
-                  canDeleteCategory
-                    ? handleDeleteServiceTypeCategory
-                    : undefined
-                }
-                onEdit={
-                  canEditCategory ? handleEditServiceTypeCategory : undefined
-                }
-                onCreate={
-                  canCreateCategory
-                    ? handleCreateServiceTypeCategory
-                    : undefined
-                }
+                onSelect={() => {}}
+                onDelete={() => {}}
+                onEdit={() => {}}
+                onCreate={() => {}}
                 onRefresh={refetchServiceTypeCategory}
                 onFilterChange={handleCategoryFilterChange}
                 moduleId={moduleId}
