@@ -55,10 +55,10 @@ interface TaskTableProps<T> {
   accessorId: keyof T
   onRefresh?: () => void
   onFilterChange?: (filters: { search?: string; sortOrder?: string }) => void
-  onItemSelect?: (item: T | null) => void
-  onCreateItem?: () => void
-  onEditItem?: (item: T) => void
-  onDeleteItem?: (itemId: string) => void
+  onSelect?: (item: T | null) => void
+  onCreate?: () => void
+  onEdit?: (item: T) => void
+  onDelete?: (itemId: string) => void
   onDebitNote?: (itemId: string, debitNoteNo?: string) => void
   onPurchase?: (itemId: string) => void
   onCombinedService?: (selectedIds: string[]) => void
@@ -78,10 +78,10 @@ export function TaskTable<T>({
   accessorId,
   onRefresh,
   onFilterChange,
-  onItemSelect,
-  onCreateItem,
-  onEditItem,
-  onDeleteItem,
+  onSelect,
+  onCreate,
+  onEdit,
+  onDelete,
   onDebitNote,
   onPurchase,
   onCombinedService,
@@ -222,7 +222,7 @@ export function TaskTable<T>({
   }, [gridSettingsData])
 
   const tableColumns: ColumnDef<T>[] = [
-    ...(showActions && (onItemSelect || onEditItem || onDeleteItem)
+    ...(showActions && (onSelect || onEdit || onDelete)
       ? [
           {
             id: "actions",
@@ -239,9 +239,9 @@ export function TaskTable<T>({
                 <TaskTableActions
                   row={item as T & { debitNoteId?: number }}
                   idAccessor={accessorId}
-                  onView={onItemSelect}
-                  onEdit={onEditItem}
-                  onDelete={onDeleteItem}
+                  onView={onSelect}
+                  onEdit={onEdit}
+                  onDelete={onDelete}
                   onDebitNote={handleDebitNoteFromActions}
                   onPurchase={onPurchase}
                   onSelect={(_, checked) => {
@@ -345,7 +345,7 @@ export function TaskTable<T>({
           searchQuery={searchQuery}
           onSearchChange={handleSearch}
           onRefresh={onRefresh}
-          onCreate={onCreateItem}
+          onCreate={onCreate}
           //columns={table.getAllLeafColumns()}
           columns={table
             .getHeaderGroups()

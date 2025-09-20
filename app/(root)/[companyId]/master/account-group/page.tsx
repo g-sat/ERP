@@ -329,10 +329,10 @@ export default function AccountGroupPage() {
         <AccountGroupTable
           data={filters.search ? [] : accountGroupsData || []}
           isLoading={isLoading}
-          onSelect={canView ? handleViewAccountGroup : undefined}
-          onDelete={canDelete ? handleDeleteAccountGroup : undefined}
-          onEdit={canEdit ? handleEditAccountGroup : undefined}
-          onCreate={canCreate ? handleCreateAccountGroup : undefined}
+          onSelect={handleViewAccountGroup}
+          onDelete={handleDeleteAccountGroup}
+          onEdit={handleEditAccountGroup}
+          onCreate={handleCreateAccountGroup}
           onRefresh={handleRefresh}
           onFilterChange={handleFilterChange}
           moduleId={moduleId}

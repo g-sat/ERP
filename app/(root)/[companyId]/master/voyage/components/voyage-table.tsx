@@ -159,10 +159,10 @@ export function VoyagesTable({
       onRefresh={onRefresh}
       onFilterChange={onFilterChange}
       //handler column props
-      onItemSelect={onSelect}
-      onCreateItem={onCreate}
-      onEditItem={onEdit}
-      onDeleteItem={onDelete}
+      onSelect={onSelect}
+      onCreate={onCreate}
+      onEdit={onEdit}
+      onDelete={onDelete}
       //show props
       showHeader={true}
       showFooter={true}

@@ -112,10 +112,10 @@ export function EntityTypesTable({
       transactionId={transactionId}
       tableName={TableName.entityTypes}
       accessorId="entityTypeId"
-      onItemSelect={onSelect}
-      onEditItem={onEdit}
-      onDeleteItem={onDelete}
-      onCreateItem={onCreate}
+      onSelect={onSelect}
+      onEdit={onEdit}
+      onDelete={onDelete}
+      onCreate={onCreate}
       onRefresh={onRefresh}
       onFilterChange={onFilterChange}
       canView={canView}

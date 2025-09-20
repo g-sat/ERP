@@ -231,10 +231,10 @@ export function ContactsTable({
       onRefresh={onRefresh}
       onFilterChange={handleDialogFilterChange}
       //handler column props
-      onItemSelect={onSelect}
-      onCreateItem={onCreate}
-      onEditItem={onEdit}
-      onDeleteItem={onDelete}
+      onSelect={onSelect}
+      onCreate={onCreate}
+      onEdit={onEdit}
+      onDelete={onDelete}
       //show props
       showHeader={true}
       showFooter={false}

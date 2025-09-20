@@ -60,90 +60,80 @@ export function TaskTableActions<T>({
         }
       />
 
-      {onView && !hideView && (
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-6 w-6"
-          onClick={() => onView(row)}
-        >
-          <Eye className="h-4 w-4" />
-        </Button>
-      )}
+      <Button
+        variant="ghost"
+        size="icon"
+        className="h-6 w-6"
+        disabled={hideView}
+        onClick={() => onView?.(row)}
+      >
+        <Eye className="h-4 w-4" />
+      </Button>
 
-      {onEdit && !hideEdit && (
-        <Button
-          variant="ghost"
-          size="icon"
-          className={`h-6 w-6 ${
-            hasValidDebitNoteId
-              ? "cursor-not-allowed text-gray-400 opacity-50"
-              : ""
-          }`}
-          onClick={() => !hasValidDebitNoteId && onEdit(row)}
-          disabled={Boolean(hasValidDebitNoteId) || isConfirmed}
-          title={
-            hasValidDebitNoteId ? "Cannot edit - Debit Note exists" : "Edit"
-          }
-        >
-          <Pencil className="h-4 w-4" />
-        </Button>
-      )}
+      <Button
+        variant="ghost"
+        size="icon"
+        className={`h-6 w-6 ${
+          hasValidDebitNoteId
+            ? "cursor-not-allowed text-gray-400 opacity-50"
+            : ""
+        }`}
+        onClick={() => !hasValidDebitNoteId && onEdit?.(row)}
+        disabled={hideEdit || Boolean(hasValidDebitNoteId) || isConfirmed}
+        title={hasValidDebitNoteId ? "Cannot edit - Debit Note exists" : "Edit"}
+      >
+        <Pencil className="h-4 w-4" />
+      </Button>
 
-      {onDelete && !hideDelete && (
-        <Button
-          variant="ghost"
-          size="icon"
-          className={`h-6 w-6 ${
-            hasValidDebitNoteId
-              ? "cursor-not-allowed text-gray-400 opacity-50"
-              : "text-destructive hover:bg-destructive/10"
-          }`}
-          onClick={() =>
-            !hasValidDebitNoteId && onDelete(String(row[idAccessor]))
-          }
-          disabled={Boolean(hasValidDebitNoteId) || isConfirmed}
-          title={
-            hasValidDebitNoteId ? "Cannot delete - Debit Note exists" : "Delete"
-          }
-        >
-          <Trash2 className="h-4 w-4" />
-        </Button>
-      )}
+      <Button
+        variant="ghost"
+        size="icon"
+        className={`h-6 w-6 ${
+          hasValidDebitNoteId
+            ? "cursor-not-allowed text-gray-400 opacity-50"
+            : "text-destructive hover:bg-destructive/10"
+        }`}
+        onClick={() =>
+          !hasValidDebitNoteId && onDelete?.(String(row[idAccessor]))
+        }
+        disabled={hideDelete || Boolean(hasValidDebitNoteId) || isConfirmed}
+        title={
+          hasValidDebitNoteId ? "Cannot delete - Debit Note exists" : "Delete"
+        }
+      >
+        <Trash2 className="h-4 w-4" />
+      </Button>
 
-      {onPurchase && !hidePurchase && (
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-6 w-6 text-purple-600 hover:bg-purple-100"
-          onClick={() => onPurchase(String(row[idAccessor]))}
-        >
-          <ShoppingCart className="h-4 w-4" />
-        </Button>
-      )}
+      <Button
+        variant="ghost"
+        size="icon"
+        className="h-6 w-6 text-purple-600 hover:bg-purple-100"
+        disabled={hidePurchase}
+        onClick={() => onPurchase?.(String(row[idAccessor]))}
+      >
+        <ShoppingCart className="h-4 w-4" />
+      </Button>
 
-      {onDebitNote && !hideDebitNote && (
-        <Button
-          variant="ghost"
-          size="icon"
-          className={`h-6 w-6 ${
-            hasValidDebitNoteId
-              ? "text-orange-600 hover:bg-orange-100"
-              : "cursor-not-allowed text-gray-400 opacity-50"
-          }`}
-          onClick={() =>
-            hasValidDebitNoteId && onDebitNote(String(row[idAccessor]))
-          }
-          disabled={!hasValidDebitNoteId}
-          title={
-            hasValidDebitNoteId
-              ? "Debit Note"
-              : "Debit Note ID is zero or invalid"
-          }
-        >
-          <Receipt className="h-4 w-4" />
-        </Button>
-      )}
+      <Button
+        variant="ghost"
+        size="icon"
+        className={`h-6 w-6 ${
+          hasValidDebitNoteId
+            ? "text-orange-600 hover:bg-orange-100"
+            : "cursor-not-allowed text-gray-400 opacity-50"
+        }`}
+        onClick={() =>
+          hasValidDebitNoteId && onDebitNote?.(String(row[idAccessor]))
+        }
+        disabled={hideDebitNote || !hasValidDebitNoteId}
+        title={
+          hasValidDebitNoteId
+            ? "Debit Note"
+            : "Debit Note ID is zero or invalid"
+        }
+      >
+        <Receipt className="h-4 w-4" />
+      </Button>
     </div>
   )
 }

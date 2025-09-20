@@ -362,6 +362,7 @@ export enum TableName {
   workLocation = "M_WorkLocation",
 
   // operations
+  checklist = "checklist",
   port_expenses = "port_expenses",
   launch_service = "launch_service",
   equipment_used = "equipment_used",

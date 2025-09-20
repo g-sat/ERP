@@ -118,10 +118,10 @@ interface MainTableProps<T> {
   // ============================================================================
   // ACTION HANDLER PROPS
   // ============================================================================
-  onItemSelect?: (item: T | null) => void // Callback when item is selected/viewed
-  onCreateItem?: () => void // Callback for creating new item
-  onEditItem?: (item: T) => void // Callback for editing existing item
-  onDeleteItem?: (itemId: string) => void // Callback for deleting item
+  onSelect?: (item: T | null) => void // Callback when item is selected/viewed
+  onCreate?: () => void // Callback for creating new item
+  onEdit?: (item: T) => void // Callback for editing existing item
+  onDelete?: (itemId: string) => void // Callback for deleting item
 
   // ============================================================================
   // VISIBILITY CONTROL PROPS
@@ -178,10 +178,10 @@ export function MainTable<T>({
   onFilterChange, // Filter change callback
 
   // Action handler props
-  onItemSelect, // Item selection callback
-  onCreateItem, // Create item callback
-  onEditItem, // Edit item callback
-  onDeleteItem, // Delete item callback
+  onSelect, // Item selection callback
+  onCreate, // Create item callback
+  onEdit, // Edit item callback
+  onDelete, // Delete item callback
 
   // Visibility control props with defaults
   showHeader = true, // Show header by default
@@ -335,9 +335,9 @@ export function MainTable<T>({
               <MainTableActions
                 row={row.original} // Pass the row data
                 idAccessor={accessorId} // Pass the ID accessor key
-                onView={onItemSelect} // View/select handler
-                onEdit={onEditItem} // Edit handler
-                onDelete={onDeleteItem} // Delete handler
+                onView={onSelect} // View/select handler
+                onEdit={onEdit} // Edit handler
+                onDelete={onDelete} // Delete handler
                 hideView={!canView} // Hide view button if no permission
                 hideEdit={!canEdit} // Hide edit button if no permission
                 hideDelete={!canDelete} // Hide delete button if no permission
@@ -562,7 +562,7 @@ export function MainTable<T>({
           searchQuery={searchQuery} // Current search query
           onSearchChange={handleSearch} // Search change handler
           onRefresh={onRefresh} // Refresh button handler
-          onCreate={onCreateItem} // Create button handler
+          onCreate={onCreate} // Create button handler
           //columns={table.getAllLeafColumns()}
           columns={table
             .getHeaderGroups()
@@ -800,8 +800,8 @@ export function MainTable<T>({
  *   columns={employeeColumns}
  *   tableName="employees"
  *   accessorId="id"
- *   onEditItem={(employee) => setEditingEmployee(employee)}
- *   onDeleteItem={(id) => deleteEmployee(id)}
+ *   onEdit={(employee) => setEditingEmployee(employee)}
+ *   onDelete={(id) => deleteEmployee(id)}
  * />
  * ```
  *
@@ -815,7 +815,7 @@ export function MainTable<T>({
  *   canEdit={userPermissions.canEditProducts}
  *   canDelete={userPermissions.canDeleteProducts}
  *   canCreate={userPermissions.canCreateProducts}
- *   onCreateItem={() => setShowCreateModal(true)}
+ *   onCreate={() => setShowCreateModal(true)}
  * />
  * ```
  *
@@ -827,6 +827,9 @@ export function MainTable<T>({
  *   tableName="orders"
  *   accessorId="orderId"
  *   onFilterChange={(filters) => fetchOrders(filters)}
+ *   onCreate={() => setShowCreateModal(true)}
+ *   onEdit={(order) => setEditingOrder(order)}
+ *   onDelete={(id) => deleteOrder(id)}
  *   onRefresh={() => fetchOrders()}
  * />
  * ```

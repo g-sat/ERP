@@ -256,10 +256,10 @@ export function PortExpensesTable({
       accessorId="portExpenseId"
       onRefresh={onRefresh}
       onFilterChange={handleFilterChange}
-      onItemSelect={handleItemSelect}
-      onCreateItem={onCreatePortExpenses}
-      onEditItem={onEditPortExpenses}
-      onDeleteItem={onDeletePortExpenses}
+      onSelect={handleItemSelect}
+      onCreate={onCreatePortExpenses}
+      onEdit={onEditPortExpenses}
+      onDelete={onDeletePortExpenses}
       onDebitNote={handleDebitNote}
       onPurchase={onPurchase}
       onCombinedService={onCombinedService}

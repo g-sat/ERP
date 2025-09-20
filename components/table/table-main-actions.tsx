@@ -27,38 +27,35 @@ export function MainTableActions<T>({
 }: MainTableActionsProps<T>) {
   return (
     <div className="flex items-center gap-2">
-      {onView && !hideView && (
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-6 w-6"
-          onClick={() => onView(row)}
-        >
-          <Eye className="h-4 w-4" />
-        </Button>
-      )}
+      <Button
+        variant="ghost"
+        size="icon"
+        className="h-6 w-6"
+        disabled={hideView}
+        onClick={() => onView?.(row)}
+      >
+        <Eye className="h-4 w-4" />
+      </Button>
 
-      {onEdit && !hideEdit && (
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-6 w-6"
-          onClick={() => onEdit(row)}
-        >
-          <Pencil className="h-4 w-4" />
-        </Button>
-      )}
+      <Button
+        variant="ghost"
+        size="icon"
+        className="h-6 w-6"
+        disabled={hideEdit}
+        onClick={() => onEdit?.(row)}
+      >
+        <Pencil className="h-4 w-4" />
+      </Button>
 
-      {onDelete && !hideDelete && (
-        <Button
-          variant="ghost"
-          size="icon"
-          className="text-destructive hover:bg-destructive/10 h-6 w-6"
-          onClick={() => onDelete(String(row[idAccessor]))}
-        >
-          <Trash2 className="h-4 w-4" />
-        </Button>
-      )}
+      <Button
+        variant="ghost"
+        size="icon"
+        className="text-destructive hover:bg-destructive/10 h-6 w-6"
+        disabled={hideDelete}
+        onClick={() => onDelete?.(String(row[idAccessor]))}
+      >
+        <Trash2 className="h-4 w-4" />
+      </Button>
     </div>
   )
 }

@@ -21,7 +21,6 @@ import {
 import { useGetWithDates } from "@/hooks/use-common"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
 import { DataTableSkeleton } from "@/components/ui/data-table/data-table-skeleton"
 import {
   Dialog,
@@ -148,12 +147,12 @@ export default function ChecklistPage() {
     setIsFormOpen(true)
   }
 
-  const handleEditJob = (jobData: IJobOrderHd) => {
-    console.log("edit job", jobData)
-    setSelectedJobData(jobData)
-    setIsEditMode(true)
-    setIsFormOpen(true)
-  }
+  //const handleEditJob = (jobData: IJobOrderHd) => {
+  //console.log("edit job", jobData)
+  //setSelectedJobData(jobData)
+  //setIsEditMode(true)
+  //setIsFormOpen(true)
+  //}
 
   const handleFormSuccess = () => {
     // Don't close the dialog after successful save
@@ -338,7 +337,7 @@ export default function ChecklistPage() {
         onValueChange={handleStatusChange}
         className="space-y-4"
       >
-        <TabsList className="grid w-full grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-7">
+        <TabsList>
           {[
             { value: "All", count: statusCounts.All },
             { value: "Pending", count: statusCounts.Pending },
@@ -407,24 +406,22 @@ export default function ChecklistPage() {
       </Tabs>
 
       {/* Data Table */}
-      <Card>
-        <CardContent className="pt-6">
-          {isLoading || isLoadingJobOrder ? (
-            <DataTableSkeleton columnCount={13} />
-          ) : jobOrderError ? (
-            <div className="flex items-center justify-center p-8 text-red-600">
-              <p>Error loading job orders. Please try refreshing the page.</p>
-            </div>
-          ) : (
-            <ChecklistTable
-              data={apiData}
-              isLoading={isRefetchingJobOrder}
-              selectedStatus={selectedStatus}
-              onEditJob={handleEditJob}
-            />
-          )}
-        </CardContent>
-      </Card>
+      <>
+        {isLoading || isLoadingJobOrder ? (
+          <DataTableSkeleton columnCount={13} />
+        ) : jobOrderError ? (
+          <div className="flex items-center justify-center p-8 text-red-600">
+            <p>Error loading job orders. Please try refreshing the page.</p>
+          </div>
+        ) : (
+          <ChecklistTable
+            data={apiData}
+            isLoading={isRefetchingJobOrder}
+            selectedStatus={selectedStatus}
+            //onEditJob={handleEditJob}
+          />
+        )}
+      </>
 
       {/* Job Order Form Dialog */}
       <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
