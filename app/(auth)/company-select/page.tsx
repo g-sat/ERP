@@ -77,6 +77,34 @@ export default function CompanySelectPage() {
         }
       }
 
+      // If only one company, automatically select and redirect
+      if (companies.length === 1) {
+        console.log(
+          "Only one company available, auto-selecting and redirecting"
+        )
+        const singleCompany = companies[0]
+
+        // Switch to the single company if not already selected
+        if (currentCompany?.companyId !== singleCompany.companyId) {
+          console.log("Switching to single company:", singleCompany.companyId)
+          await switchCompany(singleCompany.companyId)
+        }
+
+        // Fetch decimal settings
+        console.log(
+          "Fetching decimal settings for company:",
+          singleCompany.companyId
+        )
+        await getDecimals()
+
+        // Redirect to dashboard
+        router.push(`/${singleCompany.companyId}/dashboard`)
+        return
+      }
+
+      // Multiple companies - show selection page
+      console.log("Multiple companies available, showing selection page")
+
       // First try to get the company ID from the current tab
       const tabCompanyId = getCurrentTabCompanyId()
       if (tabCompanyId) {
@@ -102,6 +130,8 @@ export default function CompanySelectPage() {
     companies,
     getCompanies,
     getCurrentTabCompanyId,
+    switchCompany,
+    getDecimals,
     router,
     handleLogout,
   ])
@@ -148,7 +178,7 @@ export default function CompanySelectPage() {
     return <AccessDenied />
   }
 
-  if (!isAuthenticated || companies.length === 0) {
+  if (!isAuthenticated || companies.length === 0 || companies.length === 1) {
     return (
       <div className="flex h-screen items-center justify-center">
         <Loader2 className="text-muted-foreground h-8 w-8 animate-spin" />
@@ -162,7 +192,7 @@ export default function CompanySelectPage() {
         <CardHeader>
           <CardTitle>Select Your Company</CardTitle>
           <CardDescription>
-            Choose one of your companies below to continue.
+            You have access to multiple companies. Choose one below to continue.
           </CardDescription>
         </CardHeader>
         <CardContent>
