@@ -52,6 +52,13 @@ export interface IAuditLog {
   createDate: Date | string
 }
 
+export interface IUserLog {
+  userName: string
+  isLogin: boolean
+  loginDate: Date | string
+  remarks: string
+}
+
 export interface IErrorLog {
   companyName: string
   moduleName: string

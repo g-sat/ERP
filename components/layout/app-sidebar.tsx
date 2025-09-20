@@ -17,6 +17,7 @@ import {
   CalendarDays,
   ChartArea,
   ChevronRightIcon,
+  CircleUserRound,
   ClipboardList,
   Clock,
   Coins,
@@ -301,6 +302,11 @@ export const menuData = {
         { title: "Profile", url: "/admin/profile", icon: UserRoundPen },
         { title: "Audit Log", url: "/admin/auditlog", icon: History },
         { title: "Error Log", url: "/admin/errorlog", icon: AlertTriangle },
+        {
+          title: "User Log",
+          url: "/admin/userlog",
+          icon: CircleUserRound,
+        },
       ],
     },
     {

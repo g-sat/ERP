@@ -284,6 +284,7 @@ export enum TableName {
   //admin
   auditlog = "AdmAuditLog",
   errorlog = "AdmErrorLog",
+  userlog = "AdmUserLog",
   user = "AdmUser",
   userRole = "AdmUserRole",
   userGroup = "AdmUserGroup",

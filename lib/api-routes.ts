@@ -76,6 +76,7 @@ export const Hr_Attendance = {
 // User Endpoints
 export const AuditLog = {
   getauditlog: "/admin/getauditlog",
+  getuserlog: "/admin/getuserlog",
   geterrorlog: "/admin/geterrorlog",
 }
 
