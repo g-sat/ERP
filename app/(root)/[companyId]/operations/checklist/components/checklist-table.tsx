@@ -3,8 +3,12 @@
 import { useMemo, useState } from "react"
 import { IJobOrderHd } from "@/interfaces/checklist"
 import { useAuthStore } from "@/stores/auth-store"
+import {
+  IconCircleCheckFilled,
+  IconSquareRoundedXFilled,
+} from "@tabler/icons-react"
 import { ColumnDef } from "@tanstack/react-table"
-import { format } from "date-fns"
+import { format, isValid } from "date-fns"
 
 import { OperationsStatus } from "@/lib/operations-utils"
 import { TableName } from "@/lib/utils"
@@ -26,6 +30,8 @@ interface ChecklistTableProps {
   selectedStatus?: string
   moduleId?: number
   transactionId?: number
+  onCreate?: () => void
+  onRefresh?: () => void
 }
 
 export function ChecklistTable({
@@ -34,9 +40,12 @@ export function ChecklistTable({
   selectedStatus = "All",
   moduleId,
   transactionId,
+  onCreate,
+  onRefresh,
 }: ChecklistTableProps) {
   const { decimals } = useAuthStore()
   const dateFormat = decimals[0]?.dateFormat || "dd/MM/yyyy"
+  const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
   const [selectedJob, setSelectedJob] = useState<IJobOrderHd | null>(null)
   const [isDetailsOpen, setIsDetailsOpen] = useState(false)
 
@@ -88,6 +97,9 @@ export function ChecklistTable({
             </button>
           )
         },
+        size: 150,
+        minSize: 120,
+        maxSize: 180,
       },
       {
         accessorKey: "jobOrderDate",
@@ -98,18 +110,32 @@ export function ChecklistTable({
             : null
           return date ? format(date, dateFormat) : "-"
         },
+        size: 100,
+        minSize: 80,
       },
       {
         accessorKey: "customerName",
         header: "Customer",
+        size: 180,
+        minSize: 140,
       },
       {
-        accessorKey: "currencyName",
+        accessorKey: "currencyCode",
         header: "Curr.",
+        size: 50,
+        minSize: 50,
+      },
+      {
+        accessorKey: "portName",
+        header: "Port",
+        size: 120,
+        minSize: 100,
       },
       {
         accessorKey: "vesselName",
         header: "Vessel",
+        size: 140,
+        minSize: 100,
       },
       {
         accessorKey: "statusName",
@@ -128,12 +154,14 @@ export function ChecklistTable({
           }
           return (
             <Badge
-              className={`px-2 py-1 text-xs font-semibold ${statusColors[status] || "bg-gray-100 text-gray-800"}`}
+              className={`px-1.5 py-0.5 text-xs font-medium ${statusColors[status] || "bg-gray-100 text-gray-800"}`}
             >
               {status}
             </Badge>
           )
         },
+        size: 120,
+        minSize: 80,
       },
       {
         accessorKey: "etaDate",
@@ -158,14 +186,77 @@ export function ChecklistTable({
       {
         accessorKey: "vesselDistance",
         header: "Dist. In.",
+        size: 80,
+        minSize: 60,
       },
-      {
-        accessorKey: "portName",
-        header: "Port",
-      },
+
       {
         accessorKey: "remarks",
         header: "Remarks",
+        size: 150,
+        minSize: 50,
+      },
+      {
+        accessorKey: "lastPortName",
+        header: "Last Port",
+        size: 120,
+        minSize: 100,
+      },
+      {
+        accessorKey: "nextPortName",
+        header: "Next Port",
+        size: 120,
+        minSize: 100,
+      },
+      {
+        accessorKey: "istaxable",
+        header: "Tax",
+        cell: ({ row }) => (
+          <Badge
+            variant={row.getValue("istaxable") ? "default" : "destructive"}
+          >
+            {row.getValue("istaxable") ? (
+              <IconCircleCheckFilled className="mr-1 fill-green-500 dark:fill-green-400" />
+            ) : (
+              <IconSquareRoundedXFilled className="mr-1 fill-red-500 dark:fill-red-400" />
+            )}
+            {row.getValue("istaxable") ? "Yes" : "No"}
+          </Badge>
+        ),
+        size: 120,
+        minSize: 50,
+      },
+      {
+        accessorKey: "isPost",
+        header: "Post",
+        cell: ({ row }) => (
+          <Badge variant={row.getValue("isPost") ? "default" : "destructive"}>
+            {row.getValue("isPost") ? (
+              <IconCircleCheckFilled className="mr-1 fill-green-500 dark:fill-green-400" />
+            ) : (
+              <IconSquareRoundedXFilled className="mr-1 fill-red-500 dark:fill-red-400" />
+            )}
+            {row.getValue("isPost") ? "Yes" : "No"}
+          </Badge>
+        ),
+        size: 120,
+        minSize: 50,
+      },
+      {
+        accessorKey: "isActive",
+        header: "Status",
+        cell: ({ row }) => (
+          <Badge variant={row.getValue("isActive") ? "default" : "destructive"}>
+            {row.getValue("isActive") ? (
+              <IconCircleCheckFilled className="mr-1 fill-green-500 dark:fill-green-400" />
+            ) : (
+              <IconSquareRoundedXFilled className="mr-1 fill-red-500 dark:fill-red-400" />
+            )}
+            {row.getValue("isActive") ? "Active" : "Inactive"}
+          </Badge>
+        ),
+        size: 120,
+        minSize: 50,
       },
       {
         accessorKey: "editVersion",
@@ -187,8 +278,46 @@ export function ChecklistTable({
         minSize: 60,
         maxSize: 100,
       },
+      {
+        accessorKey: "createBy",
+        header: "Create By",
+        size: 120,
+        minSize: 50,
+      },
+      {
+        accessorKey: "createDate",
+        header: "Create Date",
+        cell: ({ row }) => {
+          const raw = row.getValue("createDate")
+          let date: Date | null = null
+          if (typeof raw === "string") date = new Date(raw)
+          else if (raw instanceof Date) date = raw
+          return date && isValid(date) ? format(date, datetimeFormat) : "-"
+        },
+        size: 180,
+        minSize: 150,
+      },
+      {
+        accessorKey: "editBy",
+        header: "Edit By",
+        size: 120,
+        minSize: 50,
+      },
+      {
+        accessorKey: "editDate",
+        header: "Edit Date",
+        cell: ({ row }) => {
+          const raw = row.getValue("editDate")
+          let date: Date | null = null
+          if (typeof raw === "string") date = new Date(raw)
+          else if (raw instanceof Date) date = raw
+          return date && isValid(date) ? format(date, datetimeFormat) : "-"
+        },
+        size: 180,
+        minSize: 150,
+      },
     ],
-    [dateFormat]
+    [dateFormat, datetimeFormat]
   )
 
   const statusColors: Record<string, string> = {
@@ -208,10 +337,8 @@ export function ChecklistTable({
         transactionId={transactionId}
         tableName={TableName.checklist}
         emptyMessage="No job orders found."
-        accessorId="jobOrderId"
-        onRefresh={() => {}}
-        onFilterChange={() => {}}
-        onSelect={() => {}}
+        onRefresh={onRefresh}
+        onCreate={onCreate}
       />
 
       <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>

@@ -57,7 +57,6 @@ type JobTableHeaderProps<TData> = {
   isFilterOpen?: boolean
   data?: TData[] // Add data prop
   tableName?: string // Optional table name prop
-  hideCreateButton?: boolean // Add hideCreateButton prop
   moduleId: number
   transactionId: number
 }
@@ -70,7 +69,6 @@ export function JobTableHeader<TData>({
   columns,
   data = [], // Default to empty array
   tableName = "Table",
-  hideCreateButton = false, // Default to false
   moduleId,
   transactionId,
 }: JobTableHeaderProps<TData>) {
@@ -232,7 +230,7 @@ export function JobTableHeader<TData>({
   return (
     <div className="mb-4 flex items-center justify-between">
       <div className="flex items-center gap-2">
-        {onCreate && !hideCreateButton && (
+        {onCreate && (
           <Button onClick={onCreate}>
             <Plus className="mr-2 h-4 w-4" />
             Create

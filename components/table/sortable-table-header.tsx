@@ -44,6 +44,8 @@ import { TableHead } from "@/components/ui/table"
 
 interface SortableTableHeaderProps<TData> {
   header: Header<TData, unknown> // TanStack Table header object
+  className?: string
+  style?: React.CSSProperties
 }
 
 // ============================================================================
@@ -67,6 +69,8 @@ interface SortableTableHeaderProps<TData> {
  */
 export function SortableTableHeader<TData>({
   header,
+  className,
+  style,
 }: SortableTableHeaderProps<TData>) {
   const {
     attributes,
@@ -104,10 +108,12 @@ export function SortableTableHeader<TData>({
         transform: CSS.Transform.toString(transform),
         transition,
         opacity: isDragging ? 0.5 : 1,
+        ...style,
       }}
       className={cn(
         "bg-muted group hover:bg-muted/80 relative transition-colors",
-        isDragging && "z-10 cursor-grabbing"
+        isDragging && "z-10 cursor-grabbing",
+        className
       )}
     >
       <div className="flex items-center justify-between pl-3">

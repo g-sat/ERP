@@ -40,6 +40,7 @@ import {
 } from "@/components/ui/table"
 
 import { SortableTableHeader } from "./sortable-table-header"
+import { JobTableHeader } from "./table-job-header"
 import { MainTableFooter } from "./table-main-footer"
 
 interface JobTableProps<T> {
@@ -50,10 +51,9 @@ interface JobTableProps<T> {
   transactionId?: number
   tableName: TableName
   emptyMessage?: string
-  accessorId: keyof T
   onRefresh?: () => void
-  onFilterChange?: (filters: { search?: string; sortOrder?: string }) => void
-  onSelect?: (item: T | null) => void
+  onCreate?: () => void
+  hideCreateButton?: boolean
 }
 
 export function JobTable<T>({
@@ -64,10 +64,8 @@ export function JobTable<T>({
   transactionId,
   tableName,
   emptyMessage = "No data found.",
-  accessorId,
   onRefresh,
-  onFilterChange,
-  onSelect,
+  onCreate,
 }: JobTableProps<T>) {
   const { data: gridSettings } = useGetGridLayout(
     moduleId?.toString() || "",
@@ -119,6 +117,7 @@ export function JobTable<T>({
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState(15)
   const [rowSelection, setRowSelection] = useState({})
+  const [searchQuery, setSearchQuery] = useState("")
 
   useEffect(() => {
     if (gridSettingsData) {
@@ -165,12 +164,14 @@ export function JobTable<T>({
     onColumnVisibilityChange: setColumnVisibility,
     onColumnSizingChange: setColumnSizing,
     onRowSelectionChange: setRowSelection,
+    onGlobalFilterChange: setSearchQuery,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     enableColumnResizing: true,
     enableRowSelection: true,
+    enableGlobalFilter: true,
     columnResizeMode: "onChange",
     state: {
       sorting,
@@ -178,6 +179,7 @@ export function JobTable<T>({
       columnVisibility,
       columnSizing,
       rowSelection,
+      globalFilter: searchQuery,
       pagination: {
         pageIndex: currentPage - 1,
         pageSize,
@@ -214,6 +216,12 @@ export function JobTable<T>({
     table.setPageSize(size)
   }
 
+  const handleSearch = (query: string) => {
+    setSearchQuery(query)
+    // Apply global search across all columns
+    table.setGlobalFilter(query)
+  }
+
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event
 
@@ -238,51 +246,85 @@ export function JobTable<T>({
 
   return (
     <div className="space-y-4">
+      {/* Table Header with Search, Export, and Column Management */}
+      <JobTableHeader
+        onRefresh={onRefresh}
+        onCreate={onCreate}
+        searchQuery={searchQuery}
+        onSearchChange={handleSearch}
+        columns={table.getAllColumns()}
+        data={data}
+        tableName={tableName}
+        moduleId={moduleId || 0}
+        transactionId={transactionId || 0}
+      />
+
       <Table>
         <DndContext
           sensors={sensors}
           collisionDetection={closestCenter}
           onDragEnd={handleDragEnd}
         >
-          <div className="overflow-x-auto rounded-lg border">
-            <Table
-              className="w-full table-fixed border-collapse"
-              style={{ minWidth: "100%" }}
-            >
-              <colgroup>
-                {table.getAllLeafColumns().map((col) => (
-                  <col
-                    key={col.id}
-                    style={{
-                      width: `${col.getSize()}px`,
-                      minWidth: `${col.getSize()}px`,
-                      maxWidth: `${col.getSize()}px`,
-                    }}
-                  />
-                ))}
-              </colgroup>
+          <div className="rounded-lg border">
+            {/* Fixed Header */}
+            <div className="overflow-x-auto">
+              <Table className="w-full table-fixed border-collapse">
+                <colgroup>
+                  {table.getAllLeafColumns().map((col) => (
+                    <col
+                      key={col.id}
+                      style={{
+                        width: `${col.getSize()}px`,
+                        minWidth: `${col.getSize()}px`,
+                        maxWidth: `${col.getSize()}px`,
+                      }}
+                    />
+                  ))}
+                </colgroup>
 
-              <TableHeader className="bg-background sticky top-0 z-20">
-                {table.getHeaderGroups().map((headerGroup) => (
-                  <TableRow key={headerGroup.id} className="bg-muted/50">
-                    <SortableContext
-                      items={headerGroup.headers.map((header) => header.id)}
-                      strategy={horizontalListSortingStrategy}
-                    >
-                      {headerGroup.headers.map((header) => (
-                        <SortableTableHeader key={header.id} header={header} />
-                      ))}
-                    </SortableContext>
-                  </TableRow>
-                ))}
-              </TableHeader>
-            </Table>
+                <TableHeader className="bg-background">
+                  {table.getHeaderGroups().map((headerGroup) => (
+                    <TableRow key={headerGroup.id} className="bg-muted/50">
+                      <SortableContext
+                        items={headerGroup.headers.map((header) => header.id)}
+                        strategy={horizontalListSortingStrategy}
+                      >
+                        {headerGroup.headers.map((header, headerIndex) => {
+                          const isFirstColumn = headerIndex === 0
+                          const isActions = header.id === "actions"
+                          const isJobNo = header.id === "jobOrderNo"
 
-            <div className="max-h-[460px] overflow-y-auto">
-              <Table
-                className="w-full table-fixed border-collapse"
-                style={{ minWidth: "100%" }}
-              >
+                          return (
+                            <SortableTableHeader
+                              key={header.id}
+                              header={header}
+                              className={
+                                isFirstColumn || isActions || isJobNo
+                                  ? "bg-background sticky left-0 z-40"
+                                  : ""
+                              }
+                              style={
+                                isFirstColumn || isActions || isJobNo
+                                  ? {
+                                      position: "sticky",
+                                      left: 0,
+                                      zIndex: 40,
+                                    }
+                                  : {}
+                              }
+                            />
+                          )
+                        })}
+                      </SortableContext>
+                    </TableRow>
+                  ))}
+                </TableHeader>
+              </Table>
+            </div>
+
+            {/* Scrollable Body */}
+            <div className="max-h-[460px] overflow-auto">
+              <Table className="w-full table-fixed border-collapse">
                 <colgroup>
                   {table.getAllLeafColumns().map((col) => (
                     <col
@@ -303,13 +345,14 @@ export function JobTable<T>({
                         {row.getVisibleCells().map((cell, cellIndex) => {
                           const isActions = cell.column.id === "actions"
                           const isFirstColumn = cellIndex === 0
+                          const isJobNo = cell.column.id === "jobOrderNo"
 
                           return (
                             <TableCell
                               key={cell.id}
                               className={`py-1 ${
-                                isFirstColumn || isActions
-                                  ? "bg-background sticky left-0 z-10"
+                                isFirstColumn || isActions || isJobNo
+                                  ? "bg-background sticky left-0 z-20"
                                   : ""
                               }`}
                               style={{
@@ -320,11 +363,17 @@ export function JobTable<T>({
                                 textOverflow: "ellipsis",
                                 whiteSpace: "nowrap",
                                 position:
-                                  isFirstColumn || isActions
+                                  isFirstColumn || isActions || isJobNo
                                     ? "sticky"
                                     : "relative",
-                                left: isFirstColumn || isActions ? 0 : "auto",
-                                zIndex: isFirstColumn || isActions ? 10 : 1,
+                                left:
+                                  isFirstColumn || isActions || isJobNo
+                                    ? 0
+                                    : "auto",
+                                zIndex:
+                                  isFirstColumn || isActions || isJobNo
+                                    ? 20
+                                    : 1,
                               }}
                             >
                               {flexRender(
@@ -348,13 +397,14 @@ export function JobTable<T>({
                       {table.getAllLeafColumns().map((column, cellIndex) => {
                         const isActions = column.id === "actions"
                         const isFirstColumn = cellIndex === 0
+                        const isJobNo = column.id === "jobOrderNo"
 
                         return (
                           <TableCell
                             key={`empty-${index}-${column.id}`}
                             className={`py-1 ${
-                              isFirstColumn || isActions
-                                ? "bg-background sticky left-0 z-10"
+                              isFirstColumn || isActions || isJobNo
+                                ? "bg-background sticky left-0 z-20"
                                 : ""
                             }`}
                             style={{
@@ -362,11 +412,15 @@ export function JobTable<T>({
                               minWidth: `${column.getSize()}px`,
                               maxWidth: `${column.getSize()}px`,
                               position:
-                                isFirstColumn || isActions
+                                isFirstColumn || isActions || isJobNo
                                   ? "sticky"
                                   : "relative",
-                              left: isFirstColumn || isActions ? 0 : "auto",
-                              zIndex: isFirstColumn || isActions ? 10 : 1,
+                              left:
+                                isFirstColumn || isActions || isJobNo
+                                  ? 0
+                                  : "auto",
+                              zIndex:
+                                isFirstColumn || isActions || isJobNo ? 20 : 1,
                             }}
                           />
                         )
@@ -390,7 +444,6 @@ export function JobTable<T>({
           </div>
         </DndContext>
       </Table>
-
       <MainTableFooter
         currentPage={currentPage}
         totalPages={Math.ceil(data.length / pageSize)}

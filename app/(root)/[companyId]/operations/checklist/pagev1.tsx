@@ -2,12 +2,22 @@
 
 import { useEffect, useMemo, useState, type ChangeEvent } from "react"
 import type { IJobOrderHd } from "@/interfaces/checklist"
+import {
+  DownloadIcon,
+  PlusIcon,
+  RefreshCcwIcon,
+  SearchIcon,
+  XIcon,
+} from "lucide-react"
 import { toast } from "sonner"
 
 import { JobOrder } from "@/lib/api-routes"
 import { OperationsStatus } from "@/lib/operations-utils"
 import { cn } from "@/lib/utils"
-import { searchJobOrdersDirect } from "@/hooks/use-checklist"
+import {
+  exportJobOrdersDirect,
+  searchJobOrdersDirect,
+} from "@/hooks/use-checklist"
 import { useGetWithDates } from "@/hooks/use-common"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -18,6 +28,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
@@ -33,6 +49,7 @@ export default function ChecklistPage() {
     null
   )
   const [isEditMode, setIsEditMode] = useState(false)
+  const [isExporting, setIsExporting] = useState(false)
 
   // Add this at the top of your component
   const today = new Date()
@@ -152,6 +169,35 @@ export default function ChecklistPage() {
     setIsFormOpen(true)
   }
 
+  // Enhanced export functionality using api-client.ts
+  const handleExport = async (format: "pdf" | "excel") => {
+    setIsExporting(true)
+    try {
+      const filters = {
+        searchString: searchQuery,
+        startDate: startDate,
+        endDate: endDate,
+      }
+
+      const response = await exportJobOrdersDirect(format, filters)
+
+      if (response?.result === 1) {
+        toast.success(`${format.toUpperCase()} export completed successfully`)
+        // Handle file download if needed
+        if (response.data?.downloadUrl) {
+          window.open(response.data.downloadUrl, "_blank")
+        }
+      } else {
+        toast.error(response?.message || `Failed to export ${format}`)
+      }
+    } catch (error) {
+      console.error("Export error:", error)
+      toast.error(`Failed to export ${format}. Please try again.`)
+    } finally {
+      setIsExporting(false)
+    }
+  }
+
   // Use API data with proper error handling
   const apiData = jobOrderResponse?.data || []
 
@@ -229,6 +275,7 @@ export default function ChecklistPage() {
               className="w-full sm:w-[180px]"
             />
             <Button onClick={handleSearchClick} className="w-full sm:w-auto">
+              <SearchIcon className="mr-2 h-4 w-4" />
               <span className="hidden sm:inline">Search</span>
               <span className="sm:hidden">Search</span>
             </Button>
@@ -237,8 +284,48 @@ export default function ChecklistPage() {
               onClick={handleClear}
               className="w-full sm:w-auto"
             >
+              <XIcon className="mr-2 h-4 w-4" />
               <span className="hidden sm:inline">Clear</span>
               <span className="sm:hidden">Clear</span>
+            </Button>
+          </div>
+
+          {/* Right side buttons */}
+          <div className="flex flex-col gap-2 sm:flex-row sm:gap-2">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outline"
+                  disabled={isExporting}
+                  className="w-full sm:w-auto"
+                >
+                  <DownloadIcon className="mr-2 h-4 w-4" />
+                  <span className="hidden sm:inline">Export</span>
+                  <span className="sm:hidden">Export</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => handleExport("pdf")}>
+                  Export as PDF
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleExport("excel")}>
+                  Export as Excel
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <Button
+              variant="outline"
+              onClick={handleRefresh}
+              className="w-full sm:w-auto"
+            >
+              <RefreshCcwIcon className="mr-2 h-4 w-4" />
+              <span className="hidden sm:inline">Refresh</span>
+              <span className="sm:hidden">Refresh</span>
+            </Button>
+            <Button onClick={handleAddNew} className="w-full sm:w-auto">
+              <PlusIcon className="mr-2 h-4 w-4" />
+              <span className="hidden sm:inline">Add New</span>
+              <span className="sm:hidden">Add</span>
             </Button>
           </div>
         </div>
@@ -331,10 +418,6 @@ export default function ChecklistPage() {
             data={apiData}
             isLoading={isRefetchingJobOrder}
             selectedStatus={selectedStatus}
-            moduleId={1}
-            transactionId={1}
-            onCreate={handleAddNew}
-            onRefresh={handleRefresh}
             //onEditJob={handleEditJob}
           />
         )}
@@ -342,12 +425,7 @@ export default function ChecklistPage() {
 
       {/* Job Order Form Dialog */}
       <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-        <DialogContent
-          className="@container h-[90vh] w-[90vw] !max-w-none overflow-y-auto"
-          onPointerDownOutside={(e) => {
-            e.preventDefault()
-          }}
-        >
+        <DialogContent className="@container h-[90vh] w-[90vw] !max-w-none overflow-y-auto">
           <DialogHeader className="flex items-center justify-between">
             <DialogTitle>
               {isEditMode ? "Edit Job Order" : "Add Job Order"}
