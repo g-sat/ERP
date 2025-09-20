@@ -20,6 +20,15 @@ import CustomInput from "@/components/ui-custom/custom-input"
 import CustomSwitch from "@/components/ui-custom/custom-switch"
 import CustomTextarea from "@/components/ui-custom/custom-textarea"
 
+const defaultValues = {
+  currencyId: 0,
+  currencyCode: "",
+  currencyName: "",
+  currencySign: "",
+  isMultiply: false,
+  isActive: true,
+  remarks: "",
+}
 interface CurrencyFormProps {
   initialData?: ICurrency | null
   submitAction: (data: CurrencyFormValues) => void
@@ -42,40 +51,38 @@ export function CurrencyForm({
 
   const form = useForm<CurrencyFormValues>({
     resolver: zodResolver(currencySchema),
-    defaultValues: {
-      currencyId: initialData?.currencyId || 0,
-      currencyCode: initialData?.currencyCode || "",
-      currencyName: initialData?.currencyName || "",
-      currencySign: initialData?.currencySign || "",
-      isMultiply: initialData?.isMultiply ?? false,
-      isActive: initialData?.isActive ?? true,
-      remarks: initialData?.remarks || "",
-    },
+    defaultValues: initialData
+      ? {
+          currencyId: initialData.currencyId ?? 0,
+          currencyCode: initialData.currencyCode ?? "",
+          currencyName: initialData.currencyName ?? "",
+          currencySign: initialData.currencySign ?? "",
+          isMultiply: initialData.isMultiply ?? false,
+          isActive: initialData.isActive ?? true,
+          remarks: initialData.remarks ?? "",
+        }
+      : {
+          ...defaultValues,
+        },
   })
 
   // Reset form when initialData changes
   useEffect(() => {
-    if (initialData) {
-      form.reset({
-        currencyId: initialData.currencyId || 0,
-        currencyCode: initialData.currencyCode || "",
-        currencyName: initialData.currencyName || "",
-        currencySign: initialData.currencySign || "",
-        isMultiply: initialData.isMultiply ?? false,
-        isActive: initialData.isActive ?? true,
-        remarks: initialData.remarks || "",
-      })
-    } else {
-      form.reset({
-        currencyId: 0,
-        currencyCode: "",
-        currencyName: "",
-        currencySign: "",
-        isMultiply: false,
-        isActive: true,
-        remarks: "",
-      })
-    }
+    form.reset(
+      initialData
+        ? {
+            currencyId: initialData.currencyId ?? 0,
+            currencyCode: initialData.currencyCode ?? "",
+            currencyName: initialData.currencyName ?? "",
+            currencySign: initialData.currencySign ?? "",
+            isMultiply: initialData.isMultiply ?? false,
+            isActive: initialData.isActive ?? true,
+            remarks: initialData.remarks ?? "",
+          }
+        : {
+            ...defaultValues,
+          }
+    )
   }, [initialData, form])
 
   const handleCodeBlur = () => {

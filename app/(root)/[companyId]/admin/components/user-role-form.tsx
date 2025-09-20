@@ -1,5 +1,6 @@
 "use client"
 
+import { useEffect } from "react"
 import { IUserRole } from "@/interfaces/admin"
 import { UserRoleFormValues, userRoleSchema } from "@/schemas/admin"
 import { useAuthStore } from "@/stores/auth-store"
@@ -18,6 +19,14 @@ import CustomAccordion, {
 import CustomInput from "@/components/ui-custom/custom-input"
 import CustomSwitch from "@/components/ui-custom/custom-switch"
 import CustomTextarea from "@/components/ui-custom/custom-textarea"
+
+const defaultValues = {
+  userRoleId: 0,
+  userRoleCode: "",
+  userRoleName: "",
+  remarks: "",
+  isActive: true,
+}
 
 interface UserRoleFormProps {
   initialData?: IUserRole
@@ -41,15 +50,31 @@ export function UserRoleForm({
   const form = useForm<UserRoleFormValues>({
     resolver: zodResolver(userRoleSchema),
     defaultValues: initialData
-      ? { ...initialData }
+      ? {
+          userRoleId: initialData.userRoleId ?? 0,
+          userRoleCode: initialData.userRoleCode ?? "",
+          userRoleName: initialData.userRoleName ?? "",
+          remarks: initialData.remarks ?? "",
+          isActive: initialData.isActive ?? true,
+        }
       : {
-          userRoleId: 0,
-          userRoleCode: "",
-          userRoleName: "",
-          remarks: "",
-          isActive: true,
+          ...defaultValues,
         },
   })
+
+  useEffect(() => {
+    form.reset(
+      initialData
+        ? {
+            userRoleId: initialData.userRoleId ?? 0,
+            userRoleCode: initialData.userRoleCode ?? "",
+            userRoleName: initialData.userRoleName ?? "",
+            remarks: initialData.remarks ?? "",
+            isActive: initialData.isActive ?? true,
+          }
+        : { ...defaultValues }
+    )
+  }, [initialData, form])
 
   const onSubmit = (data: UserRoleFormValues) => {
     if (onSaveConfirmation) {

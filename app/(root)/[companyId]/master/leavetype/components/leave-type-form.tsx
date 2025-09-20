@@ -20,6 +20,13 @@ import CustomInput from "@/components/ui-custom/custom-input"
 import CustomSwitch from "@/components/ui-custom/custom-switch"
 import CustomTextarea from "@/components/ui-custom/custom-textarea"
 
+const defaultValues = {
+  leaveTypeId: 0,
+  leaveTypeCode: "",
+  leaveTypeName: "",
+  isActive: true,
+  remarks: "",
+}
 interface LeaveTypeFormProps {
   initialData?: ILeaveType
   submitAction: (data: LeaveTypeFormValues) => void
@@ -43,31 +50,33 @@ export function LeaveTypeForm({
   const form = useForm<LeaveTypeFormValues>({
     resolver: zodResolver(leaveTypeSchema),
     defaultValues: initialData
-      ? { ...initialData }
+      ? {
+          leaveTypeId: initialData.leaveTypeId ?? 0,
+          leaveTypeCode: initialData.leaveTypeCode ?? "",
+          leaveTypeName: initialData.leaveTypeName ?? "",
+          isActive: initialData.isActive ?? true,
+          remarks: initialData.remarks ?? "",
+        }
       : {
-          leaveTypeId: 0,
-          leaveTypeCode: "",
-          leaveTypeName: "",
-
-          isActive: true,
-          remarks: "",
+          ...defaultValues,
         },
   })
 
   // Reset form when initialData changes
   useEffect(() => {
-    if (initialData) {
-      form.reset(initialData)
-    } else {
-      form.reset({
-        leaveTypeId: 0,
-        leaveTypeCode: "",
-        leaveTypeName: "",
-
-        isActive: true,
-        remarks: "",
-      })
-    }
+    form.reset(
+      initialData
+        ? {
+            leaveTypeId: initialData.leaveTypeId ?? 0,
+            leaveTypeCode: initialData.leaveTypeCode ?? "",
+            leaveTypeName: initialData.leaveTypeName ?? "",
+            isActive: initialData.isActive ?? true,
+            remarks: initialData.remarks ?? "",
+          }
+        : {
+            ...defaultValues,
+          }
+    )
   }, [initialData, form])
 
   const handleCodeBlur = () => {

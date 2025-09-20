@@ -4,6 +4,7 @@ export interface IUser {
   userName: string
   userEmail: string
   userRoleId: number
+  userGroupId: number
   employeeId: number
   remarks: string
   isActive: boolean
@@ -16,6 +17,7 @@ export interface IUser {
 
 export interface IUserGroup {
   userGroupId: number
+  userGroupCode: string
   userGroupName: string
   remarks: string
   isActive: boolean
@@ -27,6 +29,7 @@ export interface IUserGroup {
 
 export interface IUserRole {
   userRoleId: number
+  userRoleCode: string
   userRoleName: string
   remarks: string
   isActive: boolean

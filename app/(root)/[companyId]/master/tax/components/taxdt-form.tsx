@@ -1,5 +1,6 @@
 "use client"
 
+import { useEffect } from "react"
 import { ITaxDt } from "@/interfaces/tax"
 import { TaxDtFormValues, taxDtSchema } from "@/schemas/tax"
 import { useAuthStore } from "@/stores/auth-store"
@@ -41,19 +42,49 @@ export function TaxDtForm({
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
 
   console.log("initialData TaxDtForm", initialData)
+  const defaultValues = {
+    taxId: 0,
+    taxPercentage: 0,
+    validFrom: new Date(),
+  }
+
   const form = useForm<TaxDtFormValues>({
     resolver: zodResolver(taxDtSchema),
-    defaultValues: {
-      taxId: initialData?.taxId || 0,
-      taxPercentage: initialData?.taxPercentage || 0,
-      validFrom: initialData?.validFrom
-        ? format(
-            parseDate(initialData.validFrom as string) || new Date(),
-            dateFormat
-          )
-        : new Date(),
-    },
+    defaultValues: initialData
+      ? {
+          taxId: initialData.taxId ?? 0,
+          taxPercentage: initialData.taxPercentage ?? 0,
+          validFrom: initialData.validFrom
+            ? format(
+                parseDate(initialData.validFrom as string) || new Date(),
+                dateFormat
+              )
+            : new Date(),
+        }
+      : {
+          ...defaultValues,
+        },
   })
+
+  // Reset form when initialData changes
+  useEffect(() => {
+    form.reset(
+      initialData
+        ? {
+            taxId: initialData.taxId ?? 0,
+            taxPercentage: initialData.taxPercentage ?? 0,
+            validFrom: initialData.validFrom
+              ? format(
+                  parseDate(initialData.validFrom as string) || new Date(),
+                  dateFormat
+                )
+              : new Date(),
+          }
+        : {
+            ...defaultValues,
+          }
+    )
+  }, [initialData, form])
 
   const onSubmit = (data: TaxDtFormValues) => {
     submitAction(data)

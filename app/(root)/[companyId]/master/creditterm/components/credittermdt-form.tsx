@@ -42,39 +42,47 @@ export function CreditTermDtForm({
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
   const amtDec = decimals[0]?.amtDec || 2
 
+  const defaultValues = {
+    creditTermId: 0,
+    fromDay: 0,
+    toDay: 0,
+    dueDay: 0,
+    noMonth: 0,
+    isEndOfMonth: false,
+  }
+
   const form = useForm<CreditTermDtFormValues>({
     resolver: zodResolver(credittermDtSchema),
-    defaultValues: {
-      creditTermId: initialData?.creditTermId || 0,
-      fromDay: initialData?.fromDay || 0,
-      toDay: initialData?.toDay || 0,
-      dueDay: initialData?.dueDay || 0,
-      noMonth: initialData?.noMonth || 0,
-      isEndOfMonth: initialData?.isEndOfMonth || false,
-    },
+    defaultValues: initialData
+      ? {
+          creditTermId: initialData.creditTermId ?? 0,
+          fromDay: initialData.fromDay ?? 0,
+          toDay: initialData.toDay ?? 0,
+          dueDay: initialData.dueDay ?? 0,
+          noMonth: initialData.noMonth ?? 0,
+          isEndOfMonth: initialData.isEndOfMonth ?? false,
+        }
+      : {
+          ...defaultValues,
+        },
   })
 
   // Reset form when initialData changes
   useEffect(() => {
-    if (initialData) {
-      form.reset({
-        creditTermId: initialData.creditTermId || 0,
-        fromDay: initialData.fromDay || 0,
-        toDay: initialData.toDay || 0,
-        dueDay: initialData.dueDay || 0,
-        noMonth: initialData.noMonth || 0,
-        isEndOfMonth: initialData.isEndOfMonth || false,
-      })
-    } else {
-      form.reset({
-        creditTermId: 0,
-        fromDay: 0,
-        toDay: 0,
-        dueDay: 0,
-        noMonth: 0,
-        isEndOfMonth: false,
-      })
-    }
+    form.reset(
+      initialData
+        ? {
+            creditTermId: initialData.creditTermId ?? 0,
+            fromDay: initialData.fromDay ?? 0,
+            toDay: initialData.toDay ?? 0,
+            dueDay: initialData.dueDay ?? 0,
+            noMonth: initialData.noMonth ?? 0,
+            isEndOfMonth: initialData.isEndOfMonth ?? false,
+          }
+        : {
+            ...defaultValues,
+          }
+    )
   }, [initialData, form])
 
   const onSubmit = (data: CreditTermDtFormValues) => {

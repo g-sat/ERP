@@ -44,15 +44,24 @@ export function AccountSetupDtForm({
 }: AccountSetupDtFormProps) {
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
+  const defaultValues = {
+    accSetupId: 0,
+    currencyId: 0,
+    glId: 0,
+    applyAllCurr: false,
+  }
+
   const form = useForm<AccountSetupDtFormValues>({
     resolver: zodResolver(accountSetupDtSchema),
     defaultValues: initialData
-      ? { ...initialData }
+      ? {
+          accSetupId: initialData.accSetupId ?? 0,
+          currencyId: initialData.currencyId ?? 0,
+          glId: initialData.glId ?? 0,
+          applyAllCurr: initialData.applyAllCurr ?? false,
+        }
       : {
-          accSetupId: 0,
-          currencyId: 0,
-          glId: 0,
-          applyAllCurr: false,
+          ...defaultValues,
         },
   })
 
@@ -60,16 +69,18 @@ export function AccountSetupDtForm({
 
   // Reset form when initialData changes
   useEffect(() => {
-    if (initialData) {
-      form.reset(initialData)
-    } else {
-      form.reset({
-        accSetupId: 0,
-        currencyId: 0,
-        glId: 0,
-        applyAllCurr: false,
-      })
-    }
+    form.reset(
+      initialData
+        ? {
+            accSetupId: initialData.accSetupId ?? 0,
+            currencyId: initialData.currencyId ?? 0,
+            glId: initialData.glId ?? 0,
+            applyAllCurr: initialData.applyAllCurr ?? false,
+          }
+        : {
+            ...defaultValues,
+          }
+    )
   }, [initialData, form])
 
   const onSubmit = (data: AccountSetupDtFormValues) => {

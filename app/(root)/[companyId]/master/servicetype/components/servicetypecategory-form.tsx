@@ -1,5 +1,6 @@
 "use client"
 
+import { useEffect } from "react"
 import { IServiceTypeCategory } from "@/interfaces/servicetype"
 import {
   ServiceTypeCategoryFormValues,
@@ -41,16 +42,45 @@ export function ServiceTypeCategoryForm({
 }: ServiceTypeCategoryFormProps) {
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
+  const defaultValues = {
+    serviceTypeCategoryId: 0,
+    serviceTypeCategoryCode: "",
+    serviceTypeCategoryName: "",
+    isActive: true,
+    remarks: "",
+  }
+
   const form = useForm<ServiceTypeCategoryFormValues>({
     resolver: zodResolver(serviceTypeCategorySchema),
-    defaultValues: {
-      serviceTypeCategoryId: initialData?.serviceTypeCategoryId || 0,
-      serviceTypeCategoryCode: initialData?.serviceTypeCategoryCode || "",
-      serviceTypeCategoryName: initialData?.serviceTypeCategoryName || "",
-      isActive: initialData?.isActive ?? true,
-      remarks: initialData?.remarks || "",
-    },
+    defaultValues: initialData
+      ? {
+          serviceTypeCategoryId: initialData.serviceTypeCategoryId ?? 0,
+          serviceTypeCategoryCode: initialData.serviceTypeCategoryCode ?? "",
+          serviceTypeCategoryName: initialData.serviceTypeCategoryName ?? "",
+          isActive: initialData.isActive ?? true,
+          remarks: initialData.remarks ?? "",
+        }
+      : {
+          ...defaultValues,
+        },
   })
+
+  // Reset form when initialData changes
+  useEffect(() => {
+    form.reset(
+      initialData
+        ? {
+            serviceTypeCategoryId: initialData.serviceTypeCategoryId ?? 0,
+            serviceTypeCategoryCode: initialData.serviceTypeCategoryCode ?? "",
+            serviceTypeCategoryName: initialData.serviceTypeCategoryName ?? "",
+            isActive: initialData.isActive ?? true,
+            remarks: initialData.remarks ?? "",
+          }
+        : {
+            ...defaultValues,
+          }
+    )
+  }, [initialData, form])
 
   const onSubmit = async (data: ServiceTypeCategoryFormValues) => {
     await submitAction(data)

@@ -40,32 +40,44 @@ export function SubCategoryForm({
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
 
+  const defaultValues = {
+    subCategoryId: 0,
+    subCategoryName: "",
+    subCategoryCode: "",
+    remarks: "",
+    isActive: true,
+  }
+
   const form = useForm<SubCategoryFormValues>({
     resolver: zodResolver(subcategorySchema),
     defaultValues: initialData
-      ? { ...initialData }
+      ? {
+          subCategoryId: initialData.subCategoryId ?? 0,
+          subCategoryName: initialData.subCategoryName ?? "",
+          subCategoryCode: initialData.subCategoryCode ?? "",
+          remarks: initialData.remarks ?? "",
+          isActive: initialData.isActive ?? true,
+        }
       : {
-          subCategoryId: 0,
-          subCategoryName: "",
-          subCategoryCode: "",
-          remarks: "",
-          isActive: true,
+          ...defaultValues,
         },
   })
 
   // Reset form when initialData changes
   useEffect(() => {
-    if (initialData) {
-      form.reset(initialData)
-    } else {
-      form.reset({
-        subCategoryId: 0,
-        subCategoryName: "",
-        subCategoryCode: "",
-        remarks: "",
-        isActive: true,
-      })
-    }
+    form.reset(
+      initialData
+        ? {
+            subCategoryId: initialData.subCategoryId ?? 0,
+            subCategoryName: initialData.subCategoryName ?? "",
+            subCategoryCode: initialData.subCategoryCode ?? "",
+            remarks: initialData.remarks ?? "",
+            isActive: initialData.isActive ?? true,
+          }
+        : {
+            ...defaultValues,
+          }
+    )
   }, [initialData, form])
 
   const handleCodeBlur = () => {

@@ -1,5 +1,6 @@
 "use client"
 
+import { useEffect } from "react"
 import { IOrderType } from "@/interfaces/ordertype"
 import { OrderTypeFormValues, orderTypeSchema } from "@/schemas/ordertype"
 import { useAuthStore } from "@/stores/auth-store"
@@ -39,17 +40,48 @@ export function OrderTypeForm({
 }: OrderTypeFormProps) {
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
+  const defaultValues = {
+    orderTypeId: 0,
+    orderTypeCode: "",
+    orderTypeName: "",
+    orderTypeCategoryId: 0,
+    isActive: true,
+    remarks: "",
+  }
+
   const form = useForm<OrderTypeFormValues>({
     resolver: zodResolver(orderTypeSchema),
-    defaultValues: {
-      orderTypeId: initialData?.orderTypeId || 0,
-      orderTypeCode: initialData?.orderTypeCode || "",
-      orderTypeName: initialData?.orderTypeName || "",
-      orderTypeCategoryId: initialData?.orderTypeCategoryId || 0,
-      isActive: initialData?.isActive ?? true,
-      remarks: initialData?.remarks || "",
-    },
+    defaultValues: initialData
+      ? {
+          orderTypeId: initialData.orderTypeId ?? 0,
+          orderTypeCode: initialData.orderTypeCode ?? "",
+          orderTypeName: initialData.orderTypeName ?? "",
+          orderTypeCategoryId: initialData.orderTypeCategoryId ?? 0,
+          isActive: initialData.isActive ?? true,
+          remarks: initialData.remarks ?? "",
+        }
+      : {
+          ...defaultValues,
+        },
   })
+
+  // Reset form when initialData changes
+  useEffect(() => {
+    form.reset(
+      initialData
+        ? {
+            orderTypeId: initialData.orderTypeId ?? 0,
+            orderTypeCode: initialData.orderTypeCode ?? "",
+            orderTypeName: initialData.orderTypeName ?? "",
+            orderTypeCategoryId: initialData.orderTypeCategoryId ?? 0,
+            isActive: initialData.isActive ?? true,
+            remarks: initialData.remarks ?? "",
+          }
+        : {
+            ...defaultValues,
+          }
+    )
+  }, [initialData, form])
 
   const onSubmit = (data: OrderTypeFormValues) => {
     submitAction(data)

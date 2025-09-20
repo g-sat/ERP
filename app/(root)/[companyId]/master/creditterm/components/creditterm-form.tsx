@@ -40,39 +40,47 @@ export function CreditTermForm({
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
 
+  const defaultValues = {
+    creditTermId: 0,
+    creditTermCode: "",
+    creditTermName: "",
+    noDays: 0,
+    isActive: true,
+    remarks: "",
+  }
+
   const form = useForm<CreditTermFormValues>({
     resolver: zodResolver(credittermSchema),
-    defaultValues: {
-      creditTermId: initialData?.creditTermId || 0,
-      creditTermCode: initialData?.creditTermCode || "",
-      creditTermName: initialData?.creditTermName || "",
-      noDays: initialData?.noDays || 0,
-      isActive: initialData?.isActive ?? true,
-      remarks: initialData?.remarks || "",
-    },
+    defaultValues: initialData
+      ? {
+          creditTermId: initialData.creditTermId ?? 0,
+          creditTermCode: initialData.creditTermCode ?? "",
+          creditTermName: initialData.creditTermName ?? "",
+          noDays: initialData.noDays ?? 0,
+          isActive: initialData.isActive ?? true,
+          remarks: initialData.remarks ?? "",
+        }
+      : {
+          ...defaultValues,
+        },
   })
 
   // Reset form when initialData changes
   useEffect(() => {
-    if (initialData) {
-      form.reset({
-        creditTermId: initialData.creditTermId || 0,
-        creditTermCode: initialData.creditTermCode || "",
-        creditTermName: initialData.creditTermName || "",
-        noDays: initialData.noDays || 0,
-        isActive: initialData.isActive ?? true,
-        remarks: initialData.remarks || "",
-      })
-    } else {
-      form.reset({
-        creditTermId: 0,
-        creditTermCode: "",
-        creditTermName: "",
-        noDays: 0,
-        isActive: true,
-        remarks: "",
-      })
-    }
+    form.reset(
+      initialData
+        ? {
+            creditTermId: initialData.creditTermId ?? 0,
+            creditTermCode: initialData.creditTermCode ?? "",
+            creditTermName: initialData.creditTermName ?? "",
+            noDays: initialData.noDays ?? 0,
+            isActive: initialData.isActive ?? true,
+            remarks: initialData.remarks ?? "",
+          }
+        : {
+            ...defaultValues,
+          }
+    )
   }, [initialData, form])
 
   const handleCodeBlur = () => {

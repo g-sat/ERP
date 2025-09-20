@@ -41,34 +41,47 @@ export function PortRegionForm({
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
 
+  const defaultValues = {
+    portRegionId: 0,
+    portRegionName: "",
+    portRegionCode: "",
+    countryId: 0,
+    remarks: "",
+    isActive: true,
+  }
+
   const form = useForm<PortRegionFormValues>({
     resolver: zodResolver(portregionSchema),
     defaultValues: initialData
-      ? { ...initialData }
+      ? {
+          portRegionId: initialData.portRegionId ?? 0,
+          portRegionName: initialData.portRegionName ?? "",
+          portRegionCode: initialData.portRegionCode ?? "",
+          countryId: initialData.countryId ?? 0,
+          remarks: initialData.remarks ?? "",
+          isActive: initialData.isActive ?? true,
+        }
       : {
-          portRegionId: 0,
-          portRegionName: "",
-          portRegionCode: "",
-          countryId: 0,
-          remarks: "",
-          isActive: true,
+          ...defaultValues,
         },
   })
 
   // Reset form when initialData changes
   useEffect(() => {
-    if (initialData) {
-      form.reset(initialData)
-    } else {
-      form.reset({
-        portRegionId: 0,
-        portRegionName: "",
-        portRegionCode: "",
-        countryId: 0,
-        remarks: "",
-        isActive: true,
-      })
-    }
+    form.reset(
+      initialData
+        ? {
+            portRegionId: initialData.portRegionId ?? 0,
+            portRegionName: initialData.portRegionName ?? "",
+            portRegionCode: initialData.portRegionCode ?? "",
+            countryId: initialData.countryId ?? 0,
+            remarks: initialData.remarks ?? "",
+            isActive: initialData.isActive ?? true,
+          }
+        : {
+            ...defaultValues,
+          }
+    )
   }, [initialData, form])
 
   const handleCodeBlur = () => {

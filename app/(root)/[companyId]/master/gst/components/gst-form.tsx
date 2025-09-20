@@ -42,32 +42,47 @@ export function GstForm({
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
 
   console.log("initialData GstForm", initialData)
+  const defaultValues = {
+    gstId: 0,
+    gstCode: "",
+    gstName: "",
+    gstCategoryId: 0,
+    isActive: true,
+    remarks: "",
+  }
+
   const form = useForm<GstFormValues>({
     resolver: zodResolver(gstSchema),
-    defaultValues: {
-      gstId: initialData?.gstId || 0,
-      gstCode: initialData?.gstCode || "",
-      gstName: initialData?.gstName || "",
-      gstCategoryId: initialData?.gstCategoryId || 0,
-      isActive: initialData?.isActive || true,
-      remarks: initialData?.remarks || "",
-    },
+    defaultValues: initialData
+      ? {
+          gstId: initialData.gstId ?? 0,
+          gstCode: initialData.gstCode ?? "",
+          gstName: initialData.gstName ?? "",
+          gstCategoryId: initialData.gstCategoryId ?? 0,
+          isActive: initialData.isActive ?? true,
+          remarks: initialData.remarks ?? "",
+        }
+      : {
+          ...defaultValues,
+        },
   })
 
   // Reset form when initialData changes
   useEffect(() => {
-    if (initialData) {
-      form.reset(initialData)
-    } else {
-      form.reset({
-        gstId: 0,
-        gstCode: "",
-        gstName: "",
-        gstCategoryId: 0,
-        remarks: "",
-        isActive: true,
-      })
-    }
+    form.reset(
+      initialData
+        ? {
+            gstId: initialData.gstId ?? 0,
+            gstCode: initialData.gstCode ?? "",
+            gstName: initialData.gstName ?? "",
+            gstCategoryId: initialData.gstCategoryId ?? 0,
+            isActive: initialData.isActive ?? true,
+            remarks: initialData.remarks ?? "",
+          }
+        : {
+            ...defaultValues,
+          }
+    )
   }, [initialData, form])
 
   const handleCodeBlur = () => {

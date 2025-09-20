@@ -1,5 +1,6 @@
 "use client"
 
+import { useEffect } from "react"
 import { IServiceType } from "@/interfaces/servicetype"
 import { ServiceTypeFormValues, serviceTypeSchema } from "@/schemas/servicetype"
 import { useAuthStore } from "@/stores/auth-store"
@@ -39,17 +40,48 @@ export function ServiceTypeForm({
 }: ServiceTypeFormProps) {
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
+  const defaultValues = {
+    serviceTypeId: 0,
+    serviceTypeCode: "",
+    serviceTypeName: "",
+    serviceTypeCategoryId: 0,
+    isActive: true,
+    remarks: "",
+  }
+
   const form = useForm<ServiceTypeFormValues>({
     resolver: zodResolver(serviceTypeSchema),
-    defaultValues: {
-      serviceTypeId: initialData?.serviceTypeId || 0,
-      serviceTypeCode: initialData?.serviceTypeCode || "",
-      serviceTypeName: initialData?.serviceTypeName || "",
-      serviceTypeCategoryId: initialData?.serviceTypeCategoryId || 0,
-      isActive: initialData?.isActive ?? true,
-      remarks: initialData?.remarks || "",
-    },
+    defaultValues: initialData
+      ? {
+          serviceTypeId: initialData.serviceTypeId ?? 0,
+          serviceTypeCode: initialData.serviceTypeCode ?? "",
+          serviceTypeName: initialData.serviceTypeName ?? "",
+          serviceTypeCategoryId: initialData.serviceTypeCategoryId ?? 0,
+          isActive: initialData.isActive ?? true,
+          remarks: initialData.remarks ?? "",
+        }
+      : {
+          ...defaultValues,
+        },
   })
+
+  // Reset form when initialData changes
+  useEffect(() => {
+    form.reset(
+      initialData
+        ? {
+            serviceTypeId: initialData.serviceTypeId ?? 0,
+            serviceTypeCode: initialData.serviceTypeCode ?? "",
+            serviceTypeName: initialData.serviceTypeName ?? "",
+            serviceTypeCategoryId: initialData.serviceTypeCategoryId ?? 0,
+            isActive: initialData.isActive ?? true,
+            remarks: initialData.remarks ?? "",
+          }
+        : {
+            ...defaultValues,
+          }
+    )
+  }, [initialData, form])
 
   const onSubmit = async (data: ServiceTypeFormValues) => {
     await submitAction(data)

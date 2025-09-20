@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { IUser } from "@/interfaces/admin"
 import { UserFormValues, userSchema } from "@/schemas/admin"
 import { useAuthStore } from "@/stores/auth-store"
@@ -33,6 +33,18 @@ import CustomTextarea from "@/components/ui-custom/custom-textarea"
 
 import { ResetPassword } from "./reset-password"
 
+const defaultValues = {
+  userId: 0,
+  userCode: "",
+  userName: "",
+  userEmail: "",
+  userGroupId: 0,
+  userRoleId: 0,
+  employeeId: 0,
+  isActive: true,
+  isLocked: false,
+  remarks: "",
+}
 interface UserFormProps {
   initialData?: IUser
   submitAction: (data: UserFormValues) => void
@@ -58,20 +70,43 @@ export function UserForm({
   const form = useForm<UserFormValues>({
     resolver: zodResolver(userSchema),
     defaultValues: initialData
-      ? { ...initialData }
+      ? {
+          userId: initialData.userId ?? 0,
+          userCode: initialData.userCode ?? "",
+          userName: initialData.userName ?? "",
+          userEmail: initialData.userEmail ?? "",
+          userGroupId: initialData.userGroupId ?? 0,
+          userRoleId: initialData.userRoleId ?? 0,
+          employeeId: initialData.employeeId ?? 0,
+          isActive: initialData.isActive ?? true,
+          isLocked: initialData.isLocked ?? false,
+          remarks: initialData.remarks ?? "",
+        }
       : {
-          userId: 0,
-          userName: "",
-          userCode: "",
-          userEmail: "",
-          userGroupId: 0,
-          userRoleId: 0,
-          employeeId: 0,
-          isActive: true,
-          isLocked: false,
-          remarks: "",
+          ...defaultValues,
         },
   })
+
+  useEffect(() => {
+    form.reset(
+      initialData
+        ? {
+            userId: initialData.userId ?? 0,
+            userCode: initialData.userCode ?? "",
+            userName: initialData.userName ?? "",
+            userEmail: initialData.userEmail ?? "",
+            userGroupId: initialData.userGroupId ?? 0,
+            userRoleId: initialData.userRoleId ?? 0,
+            employeeId: initialData.employeeId ?? 0,
+            isActive: initialData.isActive ?? true,
+            isLocked: initialData.isLocked ?? false,
+            remarks: initialData.remarks ?? "",
+          }
+        : {
+            ...defaultValues,
+          }
+    )
+  }, [initialData, form])
 
   const onSubmit = (data: UserFormValues) => {
     if (onSaveConfirmation) {

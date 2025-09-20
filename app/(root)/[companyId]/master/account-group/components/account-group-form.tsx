@@ -23,6 +23,15 @@ import CustomInput from "@/components/ui-custom/custom-input"
 import CustomSwitch from "@/components/ui-custom/custom-switch"
 import CustomTextarea from "@/components/ui-custom/custom-textarea"
 
+// Default values for the address form
+const defaultValues: AccountGroupFormValues = {
+  accGroupId: 0,
+  accGroupName: "",
+  accGroupCode: "",
+  seqNo: 0,
+  remarks: "",
+  isActive: true,
+}
 interface AccountGroupFormProps {
   initialData?: IAccountGroup
   submitAction: (data: AccountGroupFormValues) => void
@@ -47,31 +56,35 @@ export function AccountGroupForm({
     resolver: zodResolver(accountGroupSchema),
     mode: "onChange", // Validate on every change
     defaultValues: initialData
-      ? { ...initialData }
+      ? {
+          accGroupId: initialData.accGroupId ?? 0,
+          accGroupCode: initialData.accGroupCode ?? "",
+          accGroupName: initialData.accGroupName ?? "",
+          seqNo: initialData.seqNo ?? 0,
+          remarks: initialData.remarks ?? "",
+          isActive: initialData.isActive ?? true,
+        }
       : {
-          accGroupId: 0,
-          accGroupName: "",
-          accGroupCode: "",
-          seqNo: 0,
-          remarks: "",
-          isActive: true,
+          ...defaultValues,
         },
   })
 
   // Reset form when initialData changes
   useEffect(() => {
-    if (initialData) {
-      form.reset(initialData)
-    } else {
-      form.reset({
-        accGroupId: 0,
-        accGroupCode: "",
-        accGroupName: "",
-        seqNo: 0,
-        remarks: "",
-        isActive: true,
-      })
-    }
+    form.reset(
+      initialData
+        ? {
+            accGroupId: initialData.accGroupId ?? 0,
+            accGroupCode: initialData.accGroupCode ?? "",
+            accGroupName: initialData.accGroupName ?? "",
+            seqNo: initialData.seqNo ?? 0,
+            remarks: initialData.remarks ?? "",
+            isActive: initialData.isActive ?? true,
+          }
+        : {
+            ...defaultValues,
+          }
+    )
   }, [initialData, form])
 
   const handleCodeBlur = () => {

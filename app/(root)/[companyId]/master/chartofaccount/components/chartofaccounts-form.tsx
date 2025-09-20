@@ -54,27 +54,48 @@ export function ChartOfAccountForm({
 }: ChartOfAccountFormProps) {
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
+  const defaultValues = {
+    glId: 0,
+    glCode: "",
+    glName: "",
+    accTypeId: 0,
+    accGroupId: 0,
+    coaCategoryId1: 0,
+    coaCategoryId2: 0,
+    coaCategoryId3: 0,
+    isSysControl: false,
+    isDeptMandatory: false,
+    isBargeMandatory: false,
+    isBankControl: false,
+    isJobControl: false,
+    seqNo: 0,
+    remarks: "",
+    isActive: true,
+  }
+
   const form = useForm<ChartofAccountFormValues>({
     resolver: zodResolver(chartofAccountSchema),
     defaultValues: initialData
-      ? { ...initialData }
+      ? {
+          glId: initialData.glId ?? 0,
+          glCode: initialData.glCode ?? "",
+          glName: initialData.glName ?? "",
+          accTypeId: initialData.accTypeId ?? 0,
+          accGroupId: initialData.accGroupId ?? 0,
+          coaCategoryId1: initialData.coaCategoryId1 ?? 0,
+          coaCategoryId2: initialData.coaCategoryId2 ?? 0,
+          coaCategoryId3: initialData.coaCategoryId3 ?? 0,
+          isSysControl: initialData.isSysControl ?? false,
+          isDeptMandatory: initialData.isDeptMandatory ?? false,
+          isBargeMandatory: initialData.isBargeMandatory ?? false,
+          isBankControl: initialData.isBankControl ?? false,
+          isJobControl: initialData.isJobControl ?? false,
+          seqNo: initialData.seqNo ?? 0,
+          remarks: initialData.remarks ?? "",
+          isActive: initialData.isActive ?? true,
+        }
       : {
-          glId: 0,
-          glCode: "",
-          glName: "",
-          accTypeId: 0,
-          accGroupId: 0,
-          coaCategoryId1: 0,
-          coaCategoryId2: 0,
-          coaCategoryId3: 0,
-          isSysControl: false,
-          isDeptMandatory: false,
-          isBargeMandatory: false,
-          isBankControl: false,
-          isJobControl: false,
-          seqNo: 0,
-          remarks: "",
-          isActive: true,
+          ...defaultValues,
         },
   })
 

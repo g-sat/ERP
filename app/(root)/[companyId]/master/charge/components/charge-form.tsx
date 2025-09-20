@@ -23,6 +23,17 @@ import CustomInput from "@/components/ui-custom/custom-input"
 import CustomSwitch from "@/components/ui-custom/custom-switch"
 import CustomTextarea from "@/components/ui-custom/custom-textarea"
 
+const defaultValues = {
+  chargeId: 0,
+  chargeName: "",
+  chargeCode: "",
+  taskId: 0,
+  chargeOrder: 0,
+  itemNo: 0,
+  glId: 0,
+  remarks: "",
+  isActive: true,
+}
 interface ChargeFormProps {
   initialData?: ICharge
   submitAction: (data: ChargeFormValues) => void
@@ -51,37 +62,41 @@ export function ChargeForm({
   const form = useForm<ChargeFormValues>({
     resolver: zodResolver(chargeSchema),
     defaultValues: initialData
-      ? { ...initialData }
+      ? {
+          chargeId: initialData.chargeId ?? 0,
+          chargeName: initialData.chargeName ?? "",
+          chargeCode: initialData.chargeCode ?? "",
+          taskId: initialData.taskId ?? 0,
+          chargeOrder: initialData.chargeOrder ?? 0,
+          itemNo: initialData.itemNo ?? 0,
+          glId: initialData.glId ?? 0,
+          remarks: initialData.remarks ?? "",
+          isActive: initialData.isActive ?? true,
+        }
       : {
-          chargeId: 0,
-          chargeName: "",
-          chargeCode: "",
-          taskId: 0,
-          chargeOrder: 0,
-          itemNo: 0,
-          glId: 0,
-          remarks: "",
-          isActive: true,
+          ...defaultValues,
         },
   })
 
   // Reset form when initialData changes
   useEffect(() => {
-    if (initialData) {
-      form.reset(initialData)
-    } else {
-      form.reset({
-        chargeId: 0,
-        chargeName: "",
-        chargeCode: "",
-        taskId: 0,
-        chargeOrder: 0,
-        itemNo: 0,
-        glId: 0,
-        remarks: "",
-        isActive: true,
-      })
-    }
+    form.reset(
+      initialData
+        ? {
+            chargeId: initialData.chargeId ?? 0,
+            chargeName: initialData.chargeName ?? "",
+            chargeCode: initialData.chargeCode ?? "",
+            taskId: initialData.taskId ?? 0,
+            chargeOrder: initialData.chargeOrder ?? 0,
+            itemNo: initialData.itemNo ?? 0,
+            glId: initialData.glId ?? 0,
+            remarks: initialData.remarks ?? "",
+            isActive: initialData.isActive ?? true,
+          }
+        : {
+            ...defaultValues,
+          }
+    )
   }, [initialData, form])
 
   const handleCodeBlur = () => {

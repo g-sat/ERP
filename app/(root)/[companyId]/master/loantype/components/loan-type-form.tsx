@@ -38,34 +38,47 @@ export function LoanTypeForm({
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
 
+  const defaultValues = {
+    loanTypeId: 0,
+    loanTypeCode: "",
+    loanTypeName: "",
+    interestRatePct: 0,
+    maxTermMonths: 0,
+    minTermMonths: 0,
+  }
+
   const form = useForm<LoanTypeFormValues>({
     resolver: zodResolver(loanTypeSchema),
     defaultValues: initialData
-      ? { ...initialData }
+      ? {
+          loanTypeId: initialData.loanTypeId ?? 0,
+          loanTypeCode: initialData.loanTypeCode ?? "",
+          loanTypeName: initialData.loanTypeName ?? "",
+          interestRatePct: initialData.interestRatePct ?? 0,
+          maxTermMonths: initialData.maxTermMonths ?? 0,
+          minTermMonths: initialData.minTermMonths ?? 0,
+        }
       : {
-          loanTypeId: 0,
-          loanTypeCode: "",
-          loanTypeName: "",
-          interestRatePct: 0,
-          maxTermMonths: 0,
-          minTermMonths: 0,
+          ...defaultValues,
         },
   })
 
   // Reset form when initialData changes
   useEffect(() => {
-    if (initialData) {
-      form.reset(initialData)
-    } else {
-      form.reset({
-        loanTypeId: 0,
-        loanTypeCode: "",
-        loanTypeName: "",
-        interestRatePct: 0,
-        maxTermMonths: 0,
-        minTermMonths: 0,
-      })
-    }
+    form.reset(
+      initialData
+        ? {
+            loanTypeId: initialData.loanTypeId ?? 0,
+            loanTypeCode: initialData.loanTypeCode ?? "",
+            loanTypeName: initialData.loanTypeName ?? "",
+            interestRatePct: initialData.interestRatePct ?? 0,
+            maxTermMonths: initialData.maxTermMonths ?? 0,
+            minTermMonths: initialData.minTermMonths ?? 0,
+          }
+        : {
+            ...defaultValues,
+          }
+    )
   }, [initialData, form])
 
   const handleCodeBlur = () => {

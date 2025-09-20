@@ -55,36 +55,44 @@ export function CurrencyDtForm({
     )
   )
 
+  const defaultValues = {
+    currencyId: 0,
+    exhRate: exhRateDec || 9,
+    validFrom: format(new Date(), clientDateFormat),
+  }
+
   const form = useForm<CurrencyDtFormValues>({
     resolver: zodResolver(currencyDtSchema),
-    defaultValues: {
-      currencyId: initialData?.currencyId || 0,
-      exhRate: initialData?.exhRate || exhRateDec || 9,
-      validFrom: format(
-        parseDate(initialData?.validFrom as string) || new Date(),
-        clientDateFormat
-      ),
-    },
+    defaultValues: initialData
+      ? {
+          currencyId: initialData.currencyId ?? 0,
+          exhRate: initialData.exhRate ?? exhRateDec ?? 9,
+          validFrom: format(
+            parseDate(initialData?.validFrom as string) || new Date(),
+            clientDateFormat
+          ),
+        }
+      : {
+          ...defaultValues,
+        },
   })
 
   // Reset form when initialData changes
   useEffect(() => {
-    if (initialData) {
-      form.reset({
-        currencyId: initialData.currencyId || 0,
-        exhRate: initialData.exhRate || exhRateDec || 9,
-        validFrom: format(
-          parseDate(initialData?.validFrom as string) || new Date(),
-          clientDateFormat
-        ),
-      })
-    } else {
-      form.reset({
-        currencyId: 0,
-        exhRate: exhRateDec || 9,
-        validFrom: format(new Date(), clientDateFormat),
-      })
-    }
+    form.reset(
+      initialData
+        ? {
+            currencyId: initialData.currencyId ?? 0,
+            exhRate: initialData.exhRate ?? exhRateDec ?? 9,
+            validFrom: format(
+              parseDate(initialData?.validFrom as string) || new Date(),
+              clientDateFormat
+            ),
+          }
+        : {
+            ...defaultValues,
+          }
+    )
   }, [initialData, form])
 
   const onSubmit = (data: CurrencyDtFormValues) => {

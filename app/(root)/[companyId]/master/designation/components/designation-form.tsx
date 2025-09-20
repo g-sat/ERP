@@ -39,32 +39,44 @@ export function DesignationForm({
 }: DesignationFormProps) {
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
+  const defaultValues = {
+    designationId: 0,
+    designationName: "",
+    designationCode: "",
+    remarks: "",
+    isActive: true,
+  }
+
   const form = useForm<DesignationFormValues>({
     resolver: zodResolver(designationSchema),
     defaultValues: initialData
-      ? { ...initialData }
+      ? {
+          designationId: initialData.designationId ?? 0,
+          designationName: initialData.designationName ?? "",
+          designationCode: initialData.designationCode ?? "",
+          remarks: initialData.remarks ?? "",
+          isActive: initialData.isActive ?? true,
+        }
       : {
-          designationId: 0,
-          designationName: "",
-          designationCode: "",
-          remarks: "",
-          isActive: true,
+          ...defaultValues,
         },
   })
 
   // Reset form when initialData changes
   useEffect(() => {
-    if (initialData) {
-      form.reset(initialData)
-    } else {
-      form.reset({
-        designationId: 0,
-        designationName: "",
-        designationCode: "",
-        remarks: "",
-        isActive: true,
-      })
-    }
+    form.reset(
+      initialData
+        ? {
+            designationId: initialData.designationId ?? 0,
+            designationName: initialData.designationName ?? "",
+            designationCode: initialData.designationCode ?? "",
+            remarks: initialData.remarks ?? "",
+            isActive: initialData.isActive ?? true,
+          }
+        : {
+            ...defaultValues,
+          }
+    )
   }, [initialData, form])
 
   const handleCodeBlur = () => {

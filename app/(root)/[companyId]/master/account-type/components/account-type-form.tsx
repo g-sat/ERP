@@ -40,36 +40,50 @@ export function AccountTypeForm({
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
 
+  const defaultValues = {
+    accTypeId: 0,
+    accTypeCode: "",
+    accTypeName: "",
+    seqNo: 0,
+    accGroupName: "",
+    isActive: true,
+    remarks: "",
+  }
+
   const form = useForm<AccountTypeFormValues>({
     resolver: zodResolver(accountTypeSchema),
     defaultValues: initialData
-      ? { ...initialData }
+      ? {
+          accTypeId: initialData.accTypeId ?? 0,
+          accTypeCode: initialData.accTypeCode ?? "",
+          accTypeName: initialData.accTypeName ?? "",
+          seqNo: initialData.seqNo ?? 0,
+          accGroupName: initialData.accGroupName ?? "",
+          isActive: initialData.isActive ?? true,
+          remarks: initialData.remarks ?? "",
+        }
       : {
-          accTypeId: 0,
-          accTypeCode: "",
-          accTypeName: "",
-          seqNo: 0,
-          accGroupName: "",
-          isActive: true,
-          remarks: "",
+          ...defaultValues,
         },
   })
 
   // Reset form when initialData changes
   useEffect(() => {
-    if (initialData) {
-      form.reset(initialData)
-    } else {
-      form.reset({
-        accTypeId: 0,
-        accTypeCode: "",
-        accTypeName: "",
-        seqNo: 0,
-        accGroupName: "",
-        isActive: true,
-        remarks: "",
-      })
-    }
+    form.reset(
+      initialData
+        ? {
+            accTypeId: initialData.accTypeId ?? 0,
+            accTypeCode: initialData.accTypeCode ?? "",
+            accTypeName: initialData.accTypeName ?? "",
+            seqNo: initialData.seqNo ?? 0,
+            accGroupName: initialData.accGroupName ?? "",
+            isActive: initialData.isActive ?? true,
+            remarks: initialData.remarks ?? "",
+          }
+        : {
+            ...defaultValues,
+          }
+    )
   }, [initialData, form])
 
   const handleCodeBlur = () => {

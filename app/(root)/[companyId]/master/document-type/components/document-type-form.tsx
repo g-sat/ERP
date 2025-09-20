@@ -43,34 +43,44 @@ export function DocumentTypeForm({
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
 
+  const defaultValues = {
+    docTypeId: 0,
+    docTypeCode: "",
+    docTypeName: "",
+    isActive: true,
+    remarks: "",
+  }
+
   const form = useForm<DocumentTypeFormValues>({
     resolver: zodResolver(documentTypeSchema),
     defaultValues: initialData
-      ? { ...initialData }
+      ? {
+          docTypeId: initialData.docTypeId ?? 0,
+          docTypeCode: initialData.docTypeCode ?? "",
+          docTypeName: initialData.docTypeName ?? "",
+          isActive: initialData.isActive ?? true,
+          remarks: initialData.remarks ?? "",
+        }
       : {
-          docTypeId: 0,
-          docTypeCode: "",
-          docTypeName: "",
-
-          isActive: true,
-          remarks: "",
+          ...defaultValues,
         },
   })
 
   // Reset form when initialData changes
   useEffect(() => {
-    if (initialData) {
-      form.reset(initialData)
-    } else {
-      form.reset({
-        docTypeId: 0,
-        docTypeCode: "",
-        docTypeName: "",
-
-        isActive: true,
-        remarks: "",
-      })
-    }
+    form.reset(
+      initialData
+        ? {
+            docTypeId: initialData.docTypeId ?? 0,
+            docTypeCode: initialData.docTypeCode ?? "",
+            docTypeName: initialData.docTypeName ?? "",
+            isActive: initialData.isActive ?? true,
+            remarks: initialData.remarks ?? "",
+          }
+        : {
+            ...defaultValues,
+          }
+    )
   }, [initialData, form])
 
   const handleCodeBlur = () => {

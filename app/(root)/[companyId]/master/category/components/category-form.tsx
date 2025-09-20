@@ -20,6 +20,13 @@ import CustomInput from "@/components/ui-custom/custom-input"
 import CustomSwitch from "@/components/ui-custom/custom-switch"
 import CustomTextarea from "@/components/ui-custom/custom-textarea"
 
+const defaultValues = {
+  categoryId: 0,
+  categoryName: "",
+  categoryCode: "",
+  remarks: "",
+  isActive: true,
+}
 interface CategoryFormProps {
   initialData?: ICategory | null
   submitAction: (data: CategoryFormValues) => void
@@ -42,29 +49,31 @@ export function CategoryForm({
   const form = useForm<CategoryFormValues>({
     resolver: zodResolver(categorySchema),
     defaultValues: initialData
-      ? { ...initialData }
+      ? {
+          categoryId: initialData.categoryId ?? 0,
+          categoryName: initialData.categoryName ?? "",
+          categoryCode: initialData.categoryCode ?? "",
+          remarks: initialData.remarks ?? "",
+          isActive: initialData.isActive ?? true,
+        }
       : {
-          categoryId: 0,
-          categoryName: "",
-          categoryCode: "",
-          remarks: "",
-          isActive: true,
+          ...defaultValues,
         },
   })
 
   // Reset form when initialData changes
   useEffect(() => {
-    if (initialData) {
-      form.reset(initialData)
-    } else {
-      form.reset({
-        categoryId: 0,
-        categoryName: "",
-        categoryCode: "",
-        remarks: "",
-        isActive: true,
-      })
-    }
+    form.reset(
+      initialData
+        ? {
+            categoryId: initialData.categoryId ?? 0,
+            categoryName: initialData.categoryName ?? "",
+            categoryCode: initialData.categoryCode ?? "",
+            remarks: initialData.remarks ?? "",
+            isActive: initialData.isActive ?? true,
+          }
+        : { ...defaultValues }
+    )
   }, [initialData, form])
 
   const handleCodeBlur = () => {

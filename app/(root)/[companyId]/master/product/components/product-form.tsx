@@ -40,32 +40,44 @@ export function ProductForm({
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
 
+  const defaultValues = {
+    productId: 0,
+    productName: "",
+    productCode: "",
+    remarks: "",
+    isActive: true,
+  }
+
   const form = useForm<ProductFormValues>({
     resolver: zodResolver(productSchema),
     defaultValues: initialData
-      ? { ...initialData }
+      ? {
+          productId: initialData.productId ?? 0,
+          productName: initialData.productName ?? "",
+          productCode: initialData.productCode ?? "",
+          remarks: initialData.remarks ?? "",
+          isActive: initialData.isActive ?? true,
+        }
       : {
-          productId: 0,
-          productName: "",
-          productCode: "",
-          remarks: "",
-          isActive: true,
+          ...defaultValues,
         },
   })
 
   // Reset form when initialData changes
   useEffect(() => {
-    if (initialData) {
-      form.reset(initialData)
-    } else {
-      form.reset({
-        productId: 0,
-        productName: "",
-        productCode: "",
-        remarks: "",
-        isActive: true,
-      })
-    }
+    form.reset(
+      initialData
+        ? {
+            productId: initialData.productId ?? 0,
+            productName: initialData.productName ?? "",
+            productCode: initialData.productCode ?? "",
+            remarks: initialData.remarks ?? "",
+            isActive: initialData.isActive ?? true,
+          }
+        : {
+            ...defaultValues,
+          }
+    )
   }, [initialData, form])
 
   const handleCodeBlur = () => {

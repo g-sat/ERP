@@ -1,5 +1,6 @@
 "use client"
 
+import { useEffect } from "react"
 import { IUserGroup } from "@/interfaces/admin"
 import { UserGroupFormValues, userGroupSchema } from "@/schemas/admin"
 import { useAuthStore } from "@/stores/auth-store"
@@ -19,6 +20,13 @@ import CustomInput from "@/components/ui-custom/custom-input"
 import CustomSwitch from "@/components/ui-custom/custom-switch"
 import CustomTextarea from "@/components/ui-custom/custom-textarea"
 
+const defaultValues = {
+  userGroupId: 0,
+  userGroupCode: "",
+  userGroupName: "",
+  remarks: "",
+  isActive: true,
+}
 interface UserGroupFormProps {
   initialData?: IUserGroup
   submitAction: (data: UserGroupFormValues) => void
@@ -41,15 +49,32 @@ export function UserGroupForm({
   const form = useForm<UserGroupFormValues>({
     resolver: zodResolver(userGroupSchema),
     defaultValues: initialData
-      ? { ...initialData }
+      ? {
+          userGroupId: initialData.userGroupId ?? 0,
+          userGroupCode: initialData.userGroupCode ?? "",
+          userGroupName: initialData.userGroupName ?? "",
+          remarks: initialData.remarks ?? "",
+          isActive: initialData.isActive ?? true,
+        }
       : {
-          userGroupId: 0,
-          userGroupCode: "",
-          userGroupName: "",
-          remarks: "",
-          isActive: true,
+          ...defaultValues,
         },
   })
+  useEffect(() => {
+    form.reset(
+      initialData
+        ? {
+            userGroupId: initialData.userGroupId ?? 0,
+            userGroupCode: initialData.userGroupCode ?? "",
+            userGroupName: initialData.userGroupName ?? "",
+            remarks: initialData.remarks ?? "",
+            isActive: initialData.isActive ?? true,
+          }
+        : {
+            ...defaultValues,
+          }
+    )
+  }, [initialData, form])
 
   const onSubmit = (data: UserGroupFormValues) => {
     if (onSaveConfirmation) {

@@ -39,32 +39,44 @@ export function DepartmentForm({
 }: DepartmentFormProps) {
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
+  const defaultValues = {
+    departmentId: 0,
+    departmentName: "",
+    departmentCode: "",
+    remarks: "",
+    isActive: true,
+  }
+
   const form = useForm<DepartmentFormValues>({
     resolver: zodResolver(departmentSchema),
     defaultValues: initialData
-      ? { ...initialData }
+      ? {
+          departmentId: initialData.departmentId ?? 0,
+          departmentName: initialData.departmentName ?? "",
+          departmentCode: initialData.departmentCode ?? "",
+          remarks: initialData.remarks ?? "",
+          isActive: initialData.isActive ?? true,
+        }
       : {
-          departmentId: 0,
-          departmentName: "",
-          departmentCode: "",
-          remarks: "",
-          isActive: true,
+          ...defaultValues,
         },
   })
 
   // Reset form when initialData changes
   useEffect(() => {
-    if (initialData) {
-      form.reset(initialData)
-    } else {
-      form.reset({
-        departmentId: 0,
-        departmentName: "",
-        departmentCode: "",
-        remarks: "",
-        isActive: true,
-      })
-    }
+    form.reset(
+      initialData
+        ? {
+            departmentId: initialData.departmentId ?? 0,
+            departmentName: initialData.departmentName ?? "",
+            departmentCode: initialData.departmentCode ?? "",
+            remarks: initialData.remarks ?? "",
+            isActive: initialData.isActive ?? true,
+          }
+        : {
+            ...defaultValues,
+          }
+    )
   }, [initialData, form])
 
   const handleCodeBlur = () => {

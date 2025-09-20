@@ -1,5 +1,6 @@
 "use client"
 
+import { useEffect } from "react"
 import { IOrderTypeCategory } from "@/interfaces/ordertype"
 import {
   OrderTypeCategoryFormValues,
@@ -41,16 +42,45 @@ export function OrderTypeCategoryForm({
 }: OrderTypeCategoryFormProps) {
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
+  const defaultValues = {
+    orderTypeCategoryId: 0,
+    orderTypeCategoryCode: "",
+    orderTypeCategoryName: "",
+    isActive: true,
+    remarks: "",
+  }
+
   const form = useForm<OrderTypeCategoryFormValues>({
     resolver: zodResolver(orderTypeCategorySchema),
-    defaultValues: {
-      orderTypeCategoryId: initialData?.orderTypeCategoryId || 0,
-      orderTypeCategoryCode: initialData?.orderTypeCategoryCode || "",
-      orderTypeCategoryName: initialData?.orderTypeCategoryName || "",
-      isActive: initialData?.isActive ?? true,
-      remarks: initialData?.remarks || "",
-    },
+    defaultValues: initialData
+      ? {
+          orderTypeCategoryId: initialData.orderTypeCategoryId ?? 0,
+          orderTypeCategoryCode: initialData.orderTypeCategoryCode ?? "",
+          orderTypeCategoryName: initialData.orderTypeCategoryName ?? "",
+          isActive: initialData.isActive ?? true,
+          remarks: initialData.remarks ?? "",
+        }
+      : {
+          ...defaultValues,
+        },
   })
+
+  // Reset form when initialData changes
+  useEffect(() => {
+    form.reset(
+      initialData
+        ? {
+            orderTypeCategoryId: initialData.orderTypeCategoryId ?? 0,
+            orderTypeCategoryCode: initialData.orderTypeCategoryCode ?? "",
+            orderTypeCategoryName: initialData.orderTypeCategoryName ?? "",
+            isActive: initialData.isActive ?? true,
+            remarks: initialData.remarks ?? "",
+          }
+        : {
+            ...defaultValues,
+          }
+    )
+  }, [initialData, form])
 
   const onSubmit = (data: OrderTypeCategoryFormValues) => {
     submitAction(data)

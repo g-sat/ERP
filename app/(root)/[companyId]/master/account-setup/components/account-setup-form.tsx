@@ -44,34 +44,47 @@ export function AccountSetupForm({
   console.log("initialData AccountSetupForm", initialData)
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
+  const defaultValues = {
+    accSetupId: 0,
+    accSetupCode: "",
+    accSetupName: "",
+    accSetupCategoryId: 0,
+    isActive: true,
+    remarks: "",
+  }
+
   const form = useForm<AccountSetupFormValues>({
     resolver: zodResolver(accountSetupSchema),
     defaultValues: initialData
-      ? { ...initialData }
+      ? {
+          accSetupId: initialData.accSetupId ?? 0,
+          accSetupCode: initialData.accSetupCode ?? "",
+          accSetupName: initialData.accSetupName ?? "",
+          accSetupCategoryId: initialData.accSetupCategoryId ?? 0,
+          isActive: initialData.isActive ?? true,
+          remarks: initialData.remarks ?? "",
+        }
       : {
-          accSetupId: 0,
-          accSetupCode: "",
-          accSetupName: "",
-          accSetupCategoryId: 0,
-          isActive: true,
-          remarks: "",
+          ...defaultValues,
         },
   })
 
   // Reset form when initialData changes
   useEffect(() => {
-    if (initialData) {
-      form.reset(initialData)
-    } else {
-      form.reset({
-        accSetupId: 0,
-        accSetupCode: "",
-        accSetupName: "",
-        accSetupCategoryId: 0,
-        isActive: true,
-        remarks: "",
-      })
-    }
+    form.reset(
+      initialData
+        ? {
+            accSetupId: initialData.accSetupId ?? 0,
+            accSetupCode: initialData.accSetupCode ?? "",
+            accSetupName: initialData.accSetupName ?? "",
+            accSetupCategoryId: initialData.accSetupCategoryId ?? 0,
+            isActive: initialData.isActive ?? true,
+            remarks: initialData.remarks ?? "",
+          }
+        : {
+            ...defaultValues,
+          }
+    )
   }, [initialData, form])
 
   const handleCodeBlur = () => {

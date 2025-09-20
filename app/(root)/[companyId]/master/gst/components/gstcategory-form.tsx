@@ -40,32 +40,44 @@ export function GstCategoryForm({
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
 
+  const defaultValues = {
+    gstCategoryId: 0,
+    gstCategoryCode: "",
+    gstCategoryName: "",
+    remarks: "",
+    isActive: true,
+  }
+
   const form = useForm<GstCategoryFormValues>({
     resolver: zodResolver(gstCategorySchema),
     defaultValues: initialData
-      ? { ...initialData }
+      ? {
+          gstCategoryId: initialData.gstCategoryId ?? 0,
+          gstCategoryCode: initialData.gstCategoryCode ?? "",
+          gstCategoryName: initialData.gstCategoryName ?? "",
+          remarks: initialData.remarks ?? "",
+          isActive: initialData.isActive ?? true,
+        }
       : {
-          gstCategoryId: 0,
-          gstCategoryCode: "",
-          gstCategoryName: "",
-          remarks: "",
-          isActive: true,
+          ...defaultValues,
         },
   })
 
   // Reset form when initialData changes
   useEffect(() => {
-    if (initialData) {
-      form.reset(initialData)
-    } else {
-      form.reset({
-        gstCategoryId: 0,
-        gstCategoryCode: "",
-        gstCategoryName: "",
-        remarks: "",
-        isActive: true,
-      })
-    }
+    form.reset(
+      initialData
+        ? {
+            gstCategoryId: initialData.gstCategoryId ?? 0,
+            gstCategoryCode: initialData.gstCategoryCode ?? "",
+            gstCategoryName: initialData.gstCategoryName ?? "",
+            remarks: initialData.remarks ?? "",
+            isActive: initialData.isActive ?? true,
+          }
+        : {
+            ...defaultValues,
+          }
+    )
   }, [initialData, form])
 
   const handleCodeBlur = () => {

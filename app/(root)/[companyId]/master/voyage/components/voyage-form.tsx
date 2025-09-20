@@ -42,36 +42,50 @@ export function VoyageForm({
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
 
+  const defaultValues = {
+    voyageId: 0,
+    voyageNo: "",
+    referenceNo: "",
+    vesselId: 0,
+    bargeId: 0,
+    remarks: "",
+    isActive: true,
+  }
+
   const form = useForm<VoyageFormValues>({
     resolver: zodResolver(voyageSchema),
     mode: "onChange",
     defaultValues: initialData
-      ? { ...initialData }
+      ? {
+          voyageId: initialData.voyageId ?? 0,
+          voyageNo: initialData.voyageNo ?? "",
+          referenceNo: initialData.referenceNo ?? "",
+          vesselId: initialData.vesselId ?? 0,
+          bargeId: initialData.bargeId ?? 0,
+          remarks: initialData.remarks ?? "",
+          isActive: initialData.isActive ?? true,
+        }
       : {
-          voyageId: 0,
-          voyageNo: "",
-          referenceNo: "",
-          vesselId: 0,
-          bargeId: 0,
-          remarks: "",
-          isActive: true,
+          ...defaultValues,
         },
   })
 
   useEffect(() => {
-    if (initialData) {
-      form.reset(initialData)
-    } else {
-      form.reset({
-        voyageId: 0,
-        voyageNo: "",
-        referenceNo: "",
-        vesselId: 0,
-        bargeId: 0,
-        remarks: "",
-        isActive: true,
-      })
-    }
+    form.reset(
+      initialData
+        ? {
+            voyageId: initialData.voyageId ?? 0,
+            voyageNo: initialData.voyageNo ?? "",
+            referenceNo: initialData.referenceNo ?? "",
+            vesselId: initialData.vesselId ?? 0,
+            bargeId: initialData.bargeId ?? 0,
+            remarks: initialData.remarks ?? "",
+            isActive: initialData.isActive ?? true,
+          }
+        : {
+            ...defaultValues,
+          }
+    )
   }, [initialData, form])
 
   const handleCodeBlur = () => {

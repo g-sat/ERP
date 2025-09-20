@@ -42,32 +42,47 @@ export function TaxForm({
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
 
   console.log("initialData TaxForm", initialData)
+  const defaultValues = {
+    taxId: 0,
+    taxCode: "",
+    taxName: "",
+    taxCategoryId: 0,
+    isActive: true,
+    remarks: "",
+  }
+
   const form = useForm<TaxFormValues>({
     resolver: zodResolver(taxSchema),
-    defaultValues: {
-      taxId: initialData?.taxId || 0,
-      taxCode: initialData?.taxCode || "",
-      taxName: initialData?.taxName || "",
-      taxCategoryId: initialData?.taxCategoryId || 0,
-      isActive: initialData?.isActive || true,
-      remarks: initialData?.remarks || "",
-    },
+    defaultValues: initialData
+      ? {
+          taxId: initialData.taxId ?? 0,
+          taxCode: initialData.taxCode ?? "",
+          taxName: initialData.taxName ?? "",
+          taxCategoryId: initialData.taxCategoryId ?? 0,
+          isActive: initialData.isActive ?? true,
+          remarks: initialData.remarks ?? "",
+        }
+      : {
+          ...defaultValues,
+        },
   })
 
   // Reset form when initialData changes
   useEffect(() => {
-    if (initialData) {
-      form.reset(initialData)
-    } else {
-      form.reset({
-        taxId: 0,
-        taxCode: "",
-        taxName: "",
-        taxCategoryId: 0,
-        remarks: "",
-        isActive: true,
-      })
-    }
+    form.reset(
+      initialData
+        ? {
+            taxId: initialData.taxId ?? 0,
+            taxCode: initialData.taxCode ?? "",
+            taxName: initialData.taxName ?? "",
+            taxCategoryId: initialData.taxCategoryId ?? 0,
+            isActive: initialData.isActive ?? true,
+            remarks: initialData.remarks ?? "",
+          }
+        : {
+            ...defaultValues,
+          }
+    )
   }, [initialData, form])
 
   const handleCodeBlur = () => {

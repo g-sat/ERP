@@ -38,28 +38,38 @@ export function EntityTypeForm({
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
 
+  const defaultValues = {
+    entityTypeId: 0,
+    entityTypeCode: "",
+    entityTypeName: "",
+  }
+
   const form = useForm<EntityTypeFormValues>({
     resolver: zodResolver(entityTypeSchema),
     defaultValues: initialData
-      ? { ...initialData }
+      ? {
+          entityTypeId: initialData.entityTypeId ?? 0,
+          entityTypeCode: initialData.entityTypeCode ?? "",
+          entityTypeName: initialData.entityTypeName ?? "",
+        }
       : {
-          entityTypeId: 0,
-          entityTypeCode: "",
-          entityTypeName: "",
+          ...defaultValues,
         },
   })
 
   // Reset form when initialData changes
   useEffect(() => {
-    if (initialData) {
-      form.reset(initialData)
-    } else {
-      form.reset({
-        entityTypeId: 0,
-        entityTypeCode: "",
-        entityTypeName: "",
-      })
-    }
+    form.reset(
+      initialData
+        ? {
+            entityTypeId: initialData.entityTypeId ?? 0,
+            entityTypeCode: initialData.entityTypeCode ?? "",
+            entityTypeName: initialData.entityTypeName ?? "",
+          }
+        : {
+            ...defaultValues,
+          }
+    )
   }, [initialData, form])
 
   const handleCodeBlur = () => {

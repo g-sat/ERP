@@ -1,5 +1,6 @@
 "use client"
 
+import { useEffect } from "react"
 import { IGstDt } from "@/interfaces/gst"
 import { GstDtFormValues, gstDtSchema } from "@/schemas/gst"
 import { useAuthStore } from "@/stores/auth-store"
@@ -41,19 +42,49 @@ export function GstDtForm({
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
 
   console.log("initialData GstDtForm", initialData)
+  const defaultValues = {
+    gstId: 0,
+    gstPercentage: 0,
+    validFrom: new Date(),
+  }
+
   const form = useForm<GstDtFormValues>({
     resolver: zodResolver(gstDtSchema),
-    defaultValues: {
-      gstId: initialData?.gstId || 0,
-      gstPercentage: initialData?.gstPercentage || 0,
-      validFrom: initialData?.validFrom
-        ? format(
-            parseDate(initialData.validFrom as string) || new Date(),
-            dateFormat
-          )
-        : new Date(),
-    },
+    defaultValues: initialData
+      ? {
+          gstId: initialData.gstId ?? 0,
+          gstPercentage: initialData.gstPercentage ?? 0,
+          validFrom: initialData.validFrom
+            ? format(
+                parseDate(initialData.validFrom as string) || new Date(),
+                dateFormat
+              )
+            : new Date(),
+        }
+      : {
+          ...defaultValues,
+        },
   })
+
+  // Reset form when initialData changes
+  useEffect(() => {
+    form.reset(
+      initialData
+        ? {
+            gstId: initialData.gstId ?? 0,
+            gstPercentage: initialData.gstPercentage ?? 0,
+            validFrom: initialData.validFrom
+              ? format(
+                  parseDate(initialData.validFrom as string) || new Date(),
+                  dateFormat
+                )
+              : new Date(),
+          }
+        : {
+            ...defaultValues,
+          }
+    )
+  }, [initialData, form])
 
   const onSubmit = (data: GstDtFormValues) => {
     submitAction(data)

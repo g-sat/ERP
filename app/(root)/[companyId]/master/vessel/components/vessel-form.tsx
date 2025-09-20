@@ -40,34 +40,47 @@ export function VesselForm({
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
 
+  const defaultValues = {
+    vesselId: 0,
+    vesselName: "",
+    vesselCode: "",
+    vesselType: "",
+    remarks: "",
+    isActive: true,
+  }
+
   const form = useForm<VesselFormValues>({
     resolver: zodResolver(vesselSchema),
     defaultValues: initialData
-      ? { ...initialData }
+      ? {
+          vesselId: initialData.vesselId ?? 0,
+          vesselName: initialData.vesselName ?? "",
+          vesselCode: initialData.vesselCode ?? "",
+          vesselType: initialData.vesselType ?? "",
+          remarks: initialData.remarks ?? "",
+          isActive: initialData.isActive ?? true,
+        }
       : {
-          vesselId: 0,
-          vesselName: "",
-          vesselCode: "",
-          vesselType: "",
-          remarks: "",
-          isActive: true,
+          ...defaultValues,
         },
   })
 
   // Reset form when initialData changes
   useEffect(() => {
-    if (initialData) {
-      form.reset(initialData)
-    } else {
-      form.reset({
-        vesselId: 0,
-        vesselName: "",
-        vesselCode: "",
-        vesselType: "",
-        remarks: "",
-        isActive: true,
-      })
-    }
+    form.reset(
+      initialData
+        ? {
+            vesselId: initialData.vesselId ?? 0,
+            vesselName: initialData.vesselName ?? "",
+            vesselCode: initialData.vesselCode ?? "",
+            vesselType: initialData.vesselType ?? "",
+            remarks: initialData.remarks ?? "",
+            isActive: initialData.isActive ?? true,
+          }
+        : {
+            ...defaultValues,
+          }
+    )
   }, [initialData, form])
 
   const handleCodeBlur = () => {

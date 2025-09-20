@@ -20,6 +20,13 @@ import CustomInput from "@/components/ui-custom/custom-input"
 import CustomSwitch from "@/components/ui-custom/custom-switch"
 import CustomTextarea from "@/components/ui-custom/custom-textarea"
 
+const defaultValues = {
+  paymentTypeId: 0,
+  paymentTypeName: "",
+  paymentTypeCode: "",
+  remarks: "",
+  isActive: true,
+}
 interface PaymentTypeFormProps {
   initialData?: IPaymentType | null
   submitAction: (data: PaymentTypeFormValues) => void
@@ -43,29 +50,33 @@ export function PaymentTypeForm({
   const form = useForm<PaymentTypeFormValues>({
     resolver: zodResolver(paymentTypeSchema),
     defaultValues: initialData
-      ? { ...initialData }
+      ? {
+          paymentTypeId: initialData.paymentTypeId ?? 0,
+          paymentTypeName: initialData.paymentTypeName ?? "",
+          paymentTypeCode: initialData.paymentTypeCode ?? "",
+          remarks: initialData.remarks ?? "",
+          isActive: initialData.isActive ?? true,
+        }
       : {
-          paymentTypeId: 0,
-          paymentTypeName: "",
-          paymentTypeCode: "",
-          remarks: "",
-          isActive: true,
+          ...defaultValues,
         },
   })
 
   // Reset form when initialData changes
   useEffect(() => {
-    if (initialData) {
-      form.reset(initialData)
-    } else {
-      form.reset({
-        paymentTypeId: 0,
-        paymentTypeName: "",
-        paymentTypeCode: "",
-        remarks: "",
-        isActive: true,
-      })
-    }
+    form.reset(
+      initialData
+        ? {
+            paymentTypeId: initialData.paymentTypeId ?? 0,
+            paymentTypeName: initialData.paymentTypeName ?? "",
+            paymentTypeCode: initialData.paymentTypeCode ?? "",
+            remarks: initialData.remarks ?? "",
+            isActive: initialData.isActive ?? true,
+          }
+        : {
+            ...defaultValues,
+          }
+    )
   }, [initialData, form])
 
   const handleCodeBlur = () => {

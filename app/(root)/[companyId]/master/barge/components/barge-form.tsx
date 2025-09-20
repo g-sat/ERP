@@ -40,44 +40,62 @@ export function BargeForm({
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
 
+  const defaultValues = {
+    bargeName: "",
+    bargeCode: "",
+    callSign: "",
+    imoCode: "",
+    grt: "",
+    licenseNo: "",
+    bargeType: "",
+    flag: "",
+    remarks: "",
+    isActive: true,
+    isOwn: true,
+  }
+
   const form = useForm<BargeFormValues>({
     resolver: zodResolver(bargeSchema),
     defaultValues: initialData
-      ? { ...initialData }
+      ? {
+          bargeName: initialData.bargeName ?? "",
+          bargeCode: initialData.bargeCode ?? "",
+          callSign: initialData.callSign ?? "",
+          imoCode: initialData.imoCode ?? "",
+          grt: initialData.grt ?? "",
+          licenseNo: initialData.licenseNo ?? "",
+          bargeType: initialData.bargeType ?? "",
+          flag: initialData.flag ?? "",
+          remarks: initialData.remarks ?? "",
+          isActive: initialData.isActive ?? true,
+          isOwn: initialData.isOwn ?? true,
+        }
       : {
-          bargeName: "",
-          bargeCode: "",
-          callSign: "",
-          imoCode: "",
-          grt: "",
-          licenseNo: "",
-          bargeType: "",
-          flag: "",
-          remarks: "",
-          isActive: true,
-          isOwn: true,
+          ...defaultValues,
         },
   })
 
   // Reset form when initialData changes
   useEffect(() => {
-    if (initialData) {
-      form.reset(initialData)
-    } else {
-      form.reset({
-        bargeName: "",
-        bargeCode: "",
-        callSign: "",
-        imoCode: "",
-        grt: "",
-        licenseNo: "",
-        bargeType: "",
-        flag: "",
-        remarks: "",
-        isActive: true,
-        isOwn: true,
-      })
-    }
+    form.reset(
+      initialData
+        ? {
+            bargeName: initialData.bargeName ?? "",
+            bargeCode: initialData.bargeCode ?? "",
+            callSign: initialData.callSign ?? "",
+            imoCode: initialData.imoCode ?? "",
+            grt: initialData.grt ?? "",
+            licenseNo: initialData.licenseNo ?? "",
+            bargeType: initialData.bargeType ?? "",
+            flag: initialData.flag ?? "",
+            remarks: initialData.remarks ?? "",
+            isActive: initialData.isActive ?? true,
+            isOwn: initialData.isOwn ?? true,
+          }
+        : {
+            ...defaultValues,
+          }
+    )
   }, [initialData, form])
 
   const handleCodeBlur = () => {

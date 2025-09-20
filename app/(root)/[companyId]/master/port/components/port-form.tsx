@@ -21,6 +21,14 @@ import CustomInput from "@/components/ui-custom/custom-input"
 import CustomSwitch from "@/components/ui-custom/custom-switch"
 import CustomTextarea from "@/components/ui-custom/custom-textarea"
 
+const defaultValues = {
+  portId: 0,
+  portName: "",
+  portCode: "",
+  portRegionId: 0,
+  remarks: "",
+  isActive: true,
+}
 interface PortFormProps {
   initialData?: IPort | null
   submitAction: (data: PortFormValues) => void
@@ -44,31 +52,35 @@ export function PortForm({
   const form = useForm<PortFormValues>({
     resolver: zodResolver(portSchema),
     defaultValues: initialData
-      ? { ...initialData }
+      ? {
+          portId: initialData.portId ?? 0,
+          portName: initialData.portName ?? "",
+          portCode: initialData.portCode ?? "",
+          portRegionId: initialData.portRegionId ?? 0,
+          remarks: initialData.remarks ?? "",
+          isActive: initialData.isActive ?? true,
+        }
       : {
-          portId: 0,
-          portName: "",
-          portCode: "",
-          portRegionId: 0,
-          remarks: "",
-          isActive: true,
+          ...defaultValues,
         },
   })
 
   // Reset form when initialData changes
   useEffect(() => {
-    if (initialData) {
-      form.reset(initialData)
-    } else {
-      form.reset({
-        portId: 0,
-        portName: "",
-        portCode: "",
-        portRegionId: 0,
-        remarks: "",
-        isActive: true,
-      })
-    }
+    form.reset(
+      initialData
+        ? {
+            portId: initialData.portId ?? 0,
+            portName: initialData.portName ?? "",
+            portCode: initialData.portCode ?? "",
+            portRegionId: initialData.portRegionId ?? 0,
+            remarks: initialData.remarks ?? "",
+            isActive: initialData.isActive ?? true,
+          }
+        : {
+            ...defaultValues,
+          }
+    )
   }, [initialData, form])
 
   const handleCodeBlur = () => {

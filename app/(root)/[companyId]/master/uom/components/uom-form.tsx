@@ -1,5 +1,6 @@
 "use client"
 
+import { useEffect } from "react"
 import { IUom } from "@/interfaces/uom"
 import { UomFormValues, uomSchema } from "@/schemas/uom"
 import { useAuthStore } from "@/stores/auth-store"
@@ -20,6 +21,13 @@ import CustomInput from "@/components/ui-custom/custom-input"
 import CustomSwitch from "@/components/ui-custom/custom-switch"
 import CustomTextarea from "@/components/ui-custom/custom-textarea"
 
+const defaultValues = {
+  uomId: 0,
+  uomCode: "",
+  uomName: "",
+  remarks: "",
+  isActive: true,
+}
 interface UomFormProps {
   initialData?: IUom | null
   submitAction: (data: z.infer<typeof uomSchema>) => void
@@ -39,16 +47,38 @@ export function UomForm({
 }: UomFormProps) {
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
+
   const form = useForm<z.infer<typeof uomSchema>>({
     resolver: zodResolver(uomSchema),
-    defaultValues: {
-      uomId: initialData?.uomId || 0,
-      uomCode: initialData?.uomCode || "",
-      uomName: initialData?.uomName || "",
-      remarks: initialData?.remarks || "",
-      isActive: initialData?.isActive ?? true,
-    },
+    defaultValues: initialData
+      ? {
+          uomId: initialData.uomId ?? 0,
+          uomCode: initialData.uomCode ?? "",
+          uomName: initialData.uomName ?? "",
+          remarks: initialData.remarks ?? "",
+          isActive: initialData.isActive ?? true,
+        }
+      : {
+          ...defaultValues,
+        },
   })
+
+  // Reset form when initialData changes
+  useEffect(() => {
+    form.reset(
+      initialData
+        ? {
+            uomId: initialData.uomId ?? 0,
+            uomCode: initialData.uomCode ?? "",
+            uomName: initialData.uomName ?? "",
+            remarks: initialData.remarks ?? "",
+            isActive: initialData.isActive ?? true,
+          }
+        : {
+            ...defaultValues,
+          }
+    )
+  }, [initialData, form])
 
   const handleCodeBlur = () => {
     const code = form.getValues("uomCode")

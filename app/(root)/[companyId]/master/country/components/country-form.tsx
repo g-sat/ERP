@@ -20,6 +20,14 @@ import CustomInput from "@/components/ui-custom/custom-input"
 import CustomSwitch from "@/components/ui-custom/custom-switch"
 import CustomTextarea from "@/components/ui-custom/custom-textarea"
 
+const defaultValues = {
+  countryId: 0,
+  countryCode: "",
+  countryName: "",
+  phoneCode: "",
+  remarks: "",
+  isActive: true,
+}
 interface CountryFormProps {
   initialData?: ICountry | null
   submitAction: (data: CountryFormValues) => void
@@ -43,31 +51,35 @@ export function CountryForm({
   const form = useForm<CountryFormValues>({
     resolver: zodResolver(countrySchema),
     defaultValues: initialData
-      ? { ...initialData }
+      ? {
+          countryId: initialData.countryId ?? 0,
+          countryCode: initialData.countryCode ?? "",
+          countryName: initialData.countryName ?? "",
+          phoneCode: initialData.phoneCode ?? "",
+          remarks: initialData.remarks ?? "",
+          isActive: initialData.isActive ?? true,
+        }
       : {
-          countryId: 0,
-          countryCode: "",
-          countryName: "",
-          phoneCode: "",
-          remarks: "",
-          isActive: true,
+          ...defaultValues,
         },
   })
 
   // Reset form when initialData changes
   useEffect(() => {
-    if (initialData) {
-      form.reset(initialData)
-    } else {
-      form.reset({
-        countryId: 0,
-        countryCode: "",
-        countryName: "",
-        phoneCode: "",
-        remarks: "",
-        isActive: true,
-      })
-    }
+    form.reset(
+      initialData
+        ? {
+            countryId: initialData.countryId ?? 0,
+            countryCode: initialData.countryCode ?? "",
+            countryName: initialData.countryName ?? "",
+            phoneCode: initialData.phoneCode ?? "",
+            remarks: initialData.remarks ?? "",
+            isActive: initialData.isActive ?? true,
+          }
+        : {
+            ...defaultValues,
+          }
+    )
   }, [initialData, form])
 
   const handleCodeBlur = () => {

@@ -42,34 +42,47 @@ export function CoaCategory2Form({
 }: CoaCategory2FormProps) {
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
+  const defaultValues = {
+    coaCategoryId: 0,
+    coaCategoryCode: "",
+    coaCategoryName: "",
+    seqNo: 0,
+    isActive: true,
+    remarks: "",
+  }
+
   const form = useForm<CoaCategory2FormValues>({
     resolver: zodResolver(coaCategory2Schema),
     defaultValues: initialData
-      ? { ...initialData }
+      ? {
+          coaCategoryId: initialData.coaCategoryId ?? 0,
+          coaCategoryCode: initialData.coaCategoryCode ?? "",
+          coaCategoryName: initialData.coaCategoryName ?? "",
+          seqNo: initialData.seqNo ?? 0,
+          isActive: initialData.isActive ?? true,
+          remarks: initialData.remarks ?? "",
+        }
       : {
-          coaCategoryId: 0,
-          coaCategoryCode: "",
-          coaCategoryName: "",
-          seqNo: 0,
-          isActive: true,
-          remarks: "",
+          ...defaultValues,
         },
   })
 
   // Reset form when initialData changes
   useEffect(() => {
-    if (initialData) {
-      form.reset(initialData)
-    } else {
-      form.reset({
-        coaCategoryId: 0,
-        coaCategoryCode: "",
-        coaCategoryName: "",
-        seqNo: 0,
-        isActive: true,
-        remarks: "",
-      })
-    }
+    form.reset(
+      initialData
+        ? {
+            coaCategoryId: initialData.coaCategoryId ?? 0,
+            coaCategoryCode: initialData.coaCategoryCode ?? "",
+            coaCategoryName: initialData.coaCategoryName ?? "",
+            seqNo: initialData.seqNo ?? 0,
+            isActive: initialData.isActive ?? true,
+            remarks: initialData.remarks ?? "",
+          }
+        : {
+            ...defaultValues,
+          }
+    )
   }, [initialData, form])
 
   const handleCodeBlur = () => {

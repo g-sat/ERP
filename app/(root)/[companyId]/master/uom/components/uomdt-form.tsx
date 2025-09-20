@@ -42,23 +42,37 @@ export function UomDtForm({
   const qtyDec = decimals[0]?.qtyDec || 2
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
 
+  const defaultValues = {
+    uomId: 0,
+    packUomId: 0,
+    uomFactor: 1,
+  }
+
   const form = useForm<FormValues>({
     resolver: zodResolver(uomDtSchema),
-    defaultValues: {
-      uomId: 0,
-      packUomId: 0,
-      uomFactor: 1,
-    },
+    defaultValues: initialData
+      ? {
+          uomId: initialData.uomId ?? 0,
+          packUomId: initialData.packUomId ?? 0,
+          uomFactor: initialData.uomFactor ?? 1,
+        }
+      : {
+          ...defaultValues,
+        },
   })
 
   useEffect(() => {
-    if (initialData) {
-      form.reset({
-        uomId: initialData.uomId,
-        packUomId: initialData.packUomId,
-        uomFactor: initialData.uomFactor,
-      })
-    }
+    form.reset(
+      initialData
+        ? {
+            uomId: initialData.uomId ?? 0,
+            packUomId: initialData.packUomId ?? 0,
+            uomFactor: initialData.uomFactor ?? 1,
+          }
+        : {
+            ...defaultValues,
+          }
+    )
   }, [form, initialData])
 
   const onSubmit = (data: UomDtFormValues) => {

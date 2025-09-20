@@ -42,32 +42,44 @@ export function AccountSetupCategoryForm({
 }: AccountSetupCategoryFormProps) {
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
+  const defaultValues = {
+    accSetupCategoryId: 0,
+    accSetupCategoryCode: "",
+    accSetupCategoryName: "",
+    isActive: true,
+    remarks: "",
+  }
+
   const form = useForm<AccountSetupCategoryFormValues>({
     resolver: zodResolver(accountSetupCategorySchema),
     defaultValues: initialData
-      ? { ...initialData }
+      ? {
+          accSetupCategoryId: initialData.accSetupCategoryId ?? 0,
+          accSetupCategoryCode: initialData.accSetupCategoryCode ?? "",
+          accSetupCategoryName: initialData.accSetupCategoryName ?? "",
+          isActive: initialData.isActive ?? true,
+          remarks: initialData.remarks ?? "",
+        }
       : {
-          accSetupCategoryId: 0,
-          accSetupCategoryCode: "",
-          accSetupCategoryName: "",
-          isActive: true,
-          remarks: "",
+          ...defaultValues,
         },
   })
 
   // Reset form when initialData changes
   useEffect(() => {
-    if (initialData) {
-      form.reset(initialData)
-    } else {
-      form.reset({
-        accSetupCategoryId: 0,
-        accSetupCategoryCode: "",
-        accSetupCategoryName: "",
-        isActive: true,
-        remarks: "",
-      })
-    }
+    form.reset(
+      initialData
+        ? {
+            accSetupCategoryId: initialData.accSetupCategoryId ?? 0,
+            accSetupCategoryCode: initialData.accSetupCategoryCode ?? "",
+            accSetupCategoryName: initialData.accSetupCategoryName ?? "",
+            isActive: initialData.isActive ?? true,
+            remarks: initialData.remarks ?? "",
+          }
+        : {
+            ...defaultValues,
+          }
+    )
   }, [initialData, form])
 
   const handleCodeBlur = () => {

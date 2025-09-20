@@ -40,32 +40,44 @@ export function TaxCategoryForm({
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
 
+  const defaultValues = {
+    taxCategoryId: 0,
+    taxCategoryCode: "",
+    taxCategoryName: "",
+    remarks: "",
+    isActive: true,
+  }
+
   const form = useForm<TaxCategoryFormValues>({
     resolver: zodResolver(taxCategorySchema),
     defaultValues: initialData
-      ? { ...initialData }
+      ? {
+          taxCategoryId: initialData.taxCategoryId ?? 0,
+          taxCategoryCode: initialData.taxCategoryCode ?? "",
+          taxCategoryName: initialData.taxCategoryName ?? "",
+          remarks: initialData.remarks ?? "",
+          isActive: initialData.isActive ?? true,
+        }
       : {
-          taxCategoryId: 0,
-          taxCategoryCode: "",
-          taxCategoryName: "",
-          remarks: "",
-          isActive: true,
+          ...defaultValues,
         },
   })
 
   // Reset form when initialData changes
   useEffect(() => {
-    if (initialData) {
-      form.reset(initialData)
-    } else {
-      form.reset({
-        taxCategoryId: 0,
-        taxCategoryCode: "",
-        taxCategoryName: "",
-        remarks: "",
-        isActive: true,
-      })
-    }
+    form.reset(
+      initialData
+        ? {
+            taxCategoryId: initialData.taxCategoryId ?? 0,
+            taxCategoryCode: initialData.taxCategoryCode ?? "",
+            taxCategoryName: initialData.taxCategoryName ?? "",
+            remarks: initialData.remarks ?? "",
+            isActive: initialData.isActive ?? true,
+          }
+        : {
+            ...defaultValues,
+          }
+    )
   }, [initialData, form])
 
   const handleCodeBlur = () => {

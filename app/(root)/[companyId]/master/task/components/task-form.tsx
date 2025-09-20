@@ -40,34 +40,47 @@ export function TaskForm({
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
 
+  const defaultValues = {
+    taskId: 0,
+    taskName: "",
+    taskCode: "",
+    taskOrder: 0,
+    remarks: "",
+    isActive: true,
+  }
+
   const form = useForm<TaskFormValues>({
     resolver: zodResolver(taskSchema),
     defaultValues: initialData
-      ? { ...initialData }
+      ? {
+          taskId: initialData.taskId ?? 0,
+          taskName: initialData.taskName ?? "",
+          taskCode: initialData.taskCode ?? "",
+          taskOrder: initialData.taskOrder ?? 0,
+          remarks: initialData.remarks ?? "",
+          isActive: initialData.isActive ?? true,
+        }
       : {
-          taskId: 0,
-          taskName: "",
-          taskCode: "",
-          taskOrder: 0,
-          remarks: "",
-          isActive: true,
+          ...defaultValues,
         },
   })
 
   // Reset form when initialData changes
   useEffect(() => {
-    if (initialData) {
-      form.reset(initialData)
-    } else {
-      form.reset({
-        taskId: 0,
-        taskName: "",
-        taskCode: "",
-        taskOrder: 0,
-        remarks: "",
-        isActive: true,
-      })
-    }
+    form.reset(
+      initialData
+        ? {
+            taskId: initialData.taskId ?? 0,
+            taskName: initialData.taskName ?? "",
+            taskCode: initialData.taskCode ?? "",
+            taskOrder: initialData.taskOrder ?? 0,
+            remarks: initialData.remarks ?? "",
+            isActive: initialData.isActive ?? true,
+          }
+        : {
+            ...defaultValues,
+          }
+    )
   }, [initialData, form])
 
   const handleCodeBlur = () => {
