@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { ApiResponse } from "@/interfaces/auth"
 import { IModuleTransactionLookup } from "@/interfaces/lookup"
 import { INumberFormatDetails, INumberFormatGrid } from "@/interfaces/setting"
@@ -17,14 +17,7 @@ import {
 } from "@/hooks/use-settings"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormMessage,
-} from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
+import { Form } from "@/components/ui/form"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import {
   Select,
@@ -33,7 +26,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import CustomSwitch from "@/components/ui-custom/custom-switch"
+import CustomCheckbox from "@/components/ui-custom/custom-checkbox"
+import CustomInput from "@/components/ui-custom/custom-input"
+import SelectCommon from "@/components/ui-custom/select-common"
 
 interface ModuleGroup {
   id: number
@@ -192,6 +187,30 @@ export function DocumentNoForm() {
         dIgitSeq: numberFormatDataResponse.data.dIgitSeq ?? 4,
         resetYearly: numberFormatDataResponse.data.resetYearly ?? false,
       })
+    } else if (
+      numberFormatDataResponse?.result !== undefined &&
+      (numberFormatDataResponse.result < 0 || !numberFormatDataResponse.data)
+    ) {
+      // Clear form when result is negative or data is null
+      form.reset({
+        numberId: 0,
+        moduleId: 0,
+        transactionId: 0,
+        prefix: "",
+        prefixDelimiter: "-",
+        prefixSeq: 1,
+        includeYear: true,
+        yearDelimiter: "-",
+        yearSeq: 2,
+        yearFormat: "YYYY",
+        includeMonth: true,
+        monthDelimiter: "",
+        monthSeq: 3,
+        monthFormat: "MM",
+        noDIgits: 4,
+        dIgitSeq: 4,
+        resetYearly: false,
+      })
     }
   }, [numberFormatDataResponse, form])
 
@@ -272,8 +291,11 @@ export function DocumentNoForm() {
     "December",
   ]
 
+  // Watch form values to make preview reactive
+  const watchedValues = form.watch()
+
   const previewDocumentNo = () => {
-    const values = form.getValues()
+    const values = watchedValues
     const now = new Date()
     const year = now.getFullYear()
     const month = now.getMonth() + 1 // 1-12
@@ -344,7 +366,7 @@ export function DocumentNoForm() {
   return (
     <div className="flex h-[calc(100vh-12rem)] flex-col gap-4 lg:flex-row">
       {/* Left Panel - Module List */}
-      <Card className="bg-muted/10 lg:w-80">
+      <Card className="lg:w-[20%]">
         <CardContent className="p-4">
           <div className="mb-4 text-lg font-semibold">List</div>
           {isModuleListLoading ? (
@@ -423,7 +445,7 @@ export function DocumentNoForm() {
       </Card>
 
       {/* Middle Panel - Form */}
-      <Card className="flex-1">
+      <Card className="lg:w-[55%]">
         <CardContent className="p-6">
           {isNumberFormatLoading ? (
             <div>Loading...</div>
@@ -440,335 +462,246 @@ export function DocumentNoForm() {
                     <div className="text-destructive">Select a Module</div>
                   ) : !selectedTransaction ? (
                     <div className="text-destructive">Select a Transaction</div>
-                  ) : (
-                    <div className="flex items-center gap-2">
-                      <span className="text-base font-medium">
-                        {selectedModuleName} - {selectedTransactionName} :
-                      </span>
-                      {numberFormatData ? (
-                        <span className="inline-block rounded-full bg-green-500 px-3 py-1 text-sm font-semibold text-white">
-                          Set
-                        </span>
-                      ) : (
-                        <span className="inline-block rounded-full bg-red-500 px-3 py-1 text-sm font-semibold text-white">
-                          Not set
-                        </span>
-                      )}
-                    </div>
-                  )}
+                  ) : null}
                 </div>
 
                 <div className="grid grid-cols-1 gap-6">
                   <div className="space-y-6">
                     {/* Length and Document Number section */}
                     <div className="space-y-4">
-                      <div className="bg-muted/5 rounded-lg border p-4">
-                        <div className="mb-2 font-medium">Preview</div>
-                        <div className="font-mono text-xl">
-                          {previewDocumentNo()}
+                      <div className="rounded-lg border-2 border-blue-200 bg-gradient-to-r from-blue-50 to-purple-50 p-6 dark:border-blue-800 dark:from-blue-950/20 dark:to-purple-950/20">
+                        <div className="mb-3 flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <span className="text-lg">👁️</span>
+                            <h3 className="text-lg font-semibold text-blue-700 dark:text-blue-300">
+                              Live Preview
+                            </h3>
+                          </div>
+                          {selectedModule && selectedTransaction && (
+                            <div className="flex items-center gap-2">
+                              <span className="text-base font-bold">
+                                {selectedModuleName} - {selectedTransactionName}{" "}
+                                :
+                              </span>
+                              {numberFormatData ? (
+                                <span className="inline-block rounded-full bg-green-500 px-3 py-1 text-sm font-semibold text-white">
+                                  Set
+                                </span>
+                              ) : (
+                                <span className="inline-block rounded-full bg-red-500 px-3 py-1 text-sm font-semibold text-white">
+                                  Not set
+                                </span>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                        <p className="text-muted-foreground mb-4 text-sm">
+                          See how your document number will look with current
+                          settings
+                        </p>
+                        <div className="rounded-md border-2 border-dashed border-gray-300 bg-white p-4 text-center dark:border-gray-600 dark:bg-gray-900">
+                          <div className="text-primary font-mono text-2xl font-bold">
+                            {previewDocumentNo()}
+                          </div>
                         </div>
                       </div>
                     </div>
 
                     {/* Main Configuration Grid */}
-                    <div className="space-y-4">
-                      <div className="text-muted-foreground text-sm font-medium">
-                        Configuration
+                    <div className="space-y-6">
+                      <div className="border-b pb-2">
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <h3 className="text-foreground text-lg font-semibold">
+                              Document Number Configuration
+                            </h3>
+                            <p className="text-muted-foreground mt-1 text-sm">
+                              Configure how your document numbers will be
+                              formatted
+                            </p>
+                          </div>
+                          <div className="flex gap-2">
+                            <Button
+                              variant="outline"
+                              type="button"
+                              onClick={() => {
+                                form.reset()
+                                setSelectedModule(null)
+                                setSelectedTransaction(null)
+                              }}
+                            >
+                              Clear
+                            </Button>
+                            <Button type="submit" disabled={isPending}>
+                              {isPending ? "Saving..." : "Save"}
+                            </Button>
+                          </div>
+                        </div>
                       </div>
-                      <div className="grid grid-cols-4 gap-4">
-                        {/* Column 1: Prefix */}
-                        <div className="space-y-4">
-                          <div className="text-sm font-medium">Prefix</div>
-                          <FormField
-                            control={form.control}
-                            name="prefix"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormControl>
-                                  <Input
-                                    className="bg-muted/5"
-                                    placeholder="Enter prefix"
-                                    {...field}
-                                  />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
 
-                          <CustomSwitch
-                            form={form}
-                            name="includeYear"
-                            label="Year Status"
-                          />
-                          <CustomSwitch
-                            form={form}
-                            name="includeMonth"
-                            label="Month Status"
-                          />
+                      <div>
+                        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4">
+                          {/* Column 1: Prefix */}
+                          <div className="flex h-full w-full min-w-0 flex-col space-y-4">
+                            <div className="bg-primary/10 flex h-full w-full flex-col rounded-md p-3">
+                              <h4 className="text-primary mb-3 flex items-center gap-2 text-sm font-semibold">
+                                📝 Prefix Settings
+                              </h4>
+                              <CustomInput
+                                form={form}
+                                name="prefix"
+                                placeholder="Enter prefix (e.g., INV)"
+                              />
 
-                          <FormField
-                            control={form.control}
-                            name="noDIgits"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormControl>
-                                  <Input
-                                    type="number"
-                                    className="bg-muted/5"
-                                    placeholder="Number of digits"
-                                    {...field}
-                                  />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                        </div>
+                              <div className="space-y-3">
+                                <CustomCheckbox
+                                  form={form}
+                                  name="includeYear"
+                                  label="Year"
+                                />
+                                <CustomCheckbox
+                                  form={form}
+                                  name="includeMonth"
+                                  label="Month"
+                                />
+                              </div>
 
-                        {/* Column 2: Delimiter */}
-                        <div className="space-y-4">
-                          <div className="text-sm font-medium">Delimiter</div>
-                          <FormField
-                            control={form.control}
-                            name="prefixDelimiter"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormControl>
-                                  <Input
-                                    className="bg-muted/5"
-                                    maxLength={1}
-                                    placeholder="-"
-                                    {...field}
-                                  />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={form.control}
-                            name="yearDelimiter"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormControl>
-                                  <Input
-                                    className="bg-muted/5"
-                                    maxLength={1}
-                                    placeholder="-"
-                                    {...field}
-                                  />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={form.control}
-                            name="monthDelimiter"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormControl>
-                                  <Input
-                                    className="bg-muted/5"
-                                    maxLength={1}
-                                    placeholder="-"
-                                    {...field}
-                                  />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                        </div>
-
-                        {/* Column 3: Sequence Number */}
-                        <div className="space-y-4">
-                          <div className="text-sm font-medium">Sq.No</div>
-                          <FormField
-                            control={form.control}
-                            name="prefixSeq"
-                            render={({ field }) => (
-                              <FormItem>
-                                <Select
+                              <CustomInput
+                                form={form}
+                                name="noDIgits"
+                                type="number"
+                                placeholder="Number of digits (e.g., 4)"
+                              />
+                            </div>
+                          </div>
+                          {/* Column 2: Delimiter */}
+                          <div className="flex h-full w-full min-w-0 flex-col space-y-4">
+                            <div className="flex h-full w-full flex-col rounded-md bg-blue-500/10 p-3">
+                              <h4 className="mb-3 flex items-center gap-2 text-sm font-semibold text-blue-600">
+                                🔗 Delimiter Settings
+                              </h4>
+                              <div className="space-y-3">
+                                <CustomInput
+                                  form={form}
+                                  name="prefixDelimiter"
+                                  placeholder="Prefix delimiter (e.g., -)"
+                                />
+                                <CustomInput
+                                  form={form}
+                                  name="yearDelimiter"
+                                  placeholder="Year delimiter (e.g., -)"
+                                />
+                                <CustomInput
+                                  form={form}
+                                  name="monthDelimiter"
+                                  placeholder="Month delimiter (e.g., -)"
+                                />
+                              </div>
+                            </div>
+                          </div>
+                          {/* Column 3: Sequence Number */}
+                          <div className="flex h-full w-full min-w-0 flex-col space-y-4">
+                            <div className="flex h-full w-full flex-col rounded-md bg-green-500/10 p-3">
+                              <h4 className="mb-3 flex items-center gap-2 text-sm font-semibold text-green-600">
+                                🔢 Sequence Order
+                              </h4>
+                              <div className="w-full space-y-3">
+                                <SelectCommon
+                                  form={form}
+                                  name="prefixSeq"
+                                  options={[
+                                    { value: "1", label: "Position 1" },
+                                    { value: "2", label: "Position 2" },
+                                    { value: "3", label: "Position 3" },
+                                    { value: "4", label: "Position 4" },
+                                  ]}
+                                  placeholder="Prefix position"
                                   onValueChange={(value) =>
-                                    field.onChange(Number(value))
+                                    form.setValue("prefixSeq", Number(value))
                                   }
-                                  defaultValue={String(field.value)}
-                                >
-                                  <FormControl>
-                                    <SelectTrigger className="bg-muted/5">
-                                      <SelectValue placeholder="1" />
-                                    </SelectTrigger>
-                                  </FormControl>
-                                  <SelectContent>
-                                    {[1, 2, 3, 4].map((num) => (
-                                      <SelectItem key={num} value={String(num)}>
-                                        {num}
-                                      </SelectItem>
-                                    ))}
-                                  </SelectContent>
-                                </Select>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={form.control}
-                            name="yearSeq"
-                            render={({ field }) => (
-                              <FormItem>
-                                <Select
+                                />
+                                <SelectCommon
+                                  form={form}
+                                  name="yearSeq"
+                                  options={[
+                                    { value: "1", label: "Position 1" },
+                                    { value: "2", label: "Position 2" },
+                                    { value: "3", label: "Position 3" },
+                                    { value: "4", label: "Position 4" },
+                                  ]}
+                                  placeholder="Year position"
                                   onValueChange={(value) =>
-                                    field.onChange(Number(value))
+                                    form.setValue("yearSeq", Number(value))
                                   }
-                                  defaultValue={String(field.value)}
-                                >
-                                  <FormControl>
-                                    <SelectTrigger className="bg-muted/5">
-                                      <SelectValue placeholder="2" />
-                                    </SelectTrigger>
-                                  </FormControl>
-                                  <SelectContent>
-                                    {[1, 2, 3, 4].map((num) => (
-                                      <SelectItem key={num} value={String(num)}>
-                                        {num}
-                                      </SelectItem>
-                                    ))}
-                                  </SelectContent>
-                                </Select>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={form.control}
-                            name="monthSeq"
-                            render={({ field }) => (
-                              <FormItem>
-                                <Select
+                                />
+                                <SelectCommon
+                                  form={form}
+                                  name="monthSeq"
+                                  options={[
+                                    { value: "1", label: "Position 1" },
+                                    { value: "2", label: "Position 2" },
+                                    { value: "3", label: "Position 3" },
+                                    { value: "4", label: "Position 4" },
+                                  ]}
+                                  placeholder="Month position"
                                   onValueChange={(value) =>
-                                    field.onChange(Number(value))
+                                    form.setValue("monthSeq", Number(value))
                                   }
-                                  defaultValue={String(field.value)}
-                                >
-                                  <FormControl>
-                                    <SelectTrigger className="bg-muted/5">
-                                      <SelectValue placeholder="3" />
-                                    </SelectTrigger>
-                                  </FormControl>
-                                  <SelectContent>
-                                    {[1, 2, 3, 4].map((num) => (
-                                      <SelectItem key={num} value={String(num)}>
-                                        {num}
-                                      </SelectItem>
-                                    ))}
-                                  </SelectContent>
-                                </Select>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={form.control}
-                            name="dIgitSeq"
-                            render={({ field }) => (
-                              <FormItem>
-                                <Select
+                                />
+                                <SelectCommon
+                                  form={form}
+                                  name="dIgitSeq"
+                                  options={[
+                                    { value: "1", label: "Position 1" },
+                                    { value: "2", label: "Position 2" },
+                                    { value: "3", label: "Position 3" },
+                                    { value: "4", label: "Position 4" },
+                                  ]}
+                                  placeholder="Digits position"
                                   onValueChange={(value) =>
-                                    field.onChange(Number(value))
+                                    form.setValue("dIgitSeq", Number(value))
                                   }
-                                  defaultValue={String(field.value)}
-                                >
-                                  <FormControl>
-                                    <SelectTrigger className="bg-muted/5">
-                                      <SelectValue placeholder="3" />
-                                    </SelectTrigger>
-                                  </FormControl>
-                                  <SelectContent>
-                                    {[1, 2, 3, 4].map((num) => (
-                                      <SelectItem key={num} value={String(num)}>
-                                        {num}
-                                      </SelectItem>
-                                    ))}
-                                  </SelectContent>
-                                </Select>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                        </div>
-
-                        {/* Column 4: Format */}
-                        <div className="space-y-4">
-                          <div className="text-sm font-medium">Format</div>
-                          <FormField
-                            control={form.control}
-                            name="yearFormat"
-                            render={({ field }) => (
-                              <FormItem>
-                                <Select
-                                  onValueChange={field.onChange}
-                                  defaultValue={field.value}
-                                >
-                                  <FormControl>
-                                    <SelectTrigger className="bg-muted/5">
-                                      <SelectValue placeholder="Select format" />
-                                    </SelectTrigger>
-                                  </FormControl>
-                                  <SelectContent>
-                                    <SelectItem value="YY">YY</SelectItem>
-                                    <SelectItem value="YYYY">YYYY</SelectItem>
-                                  </SelectContent>
-                                </Select>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={form.control}
-                            name="monthFormat"
-                            render={({ field }) => (
-                              <FormItem>
-                                <Select
-                                  onValueChange={field.onChange}
-                                  defaultValue={field.value}
-                                >
-                                  <FormControl>
-                                    <SelectTrigger className="bg-muted/5">
-                                      <SelectValue placeholder="Select format" />
-                                    </SelectTrigger>
-                                  </FormControl>
-                                  <SelectContent>
-                                    <SelectItem value="MM">MM</SelectItem>
-                                    <SelectItem value="MMMM">MMMM</SelectItem>
-                                  </SelectContent>
-                                </Select>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
+                                />
+                              </div>
+                            </div>
+                          </div>
+                          {/* Column 4: Format */}
+                          <div className="flex h-full w-full min-w-0 flex-col space-y-4">
+                            <div className="flex h-full w-full flex-col rounded-md bg-purple-500/10 p-3">
+                              <h4 className="mb-3 flex items-center gap-2 text-sm font-semibold text-purple-600">
+                                🎨 Format Settings
+                              </h4>
+                              <div className="w-full space-y-3">
+                                <SelectCommon
+                                  form={form}
+                                  name="yearFormat"
+                                  options={[
+                                    { value: "YY", label: "YY (25)" },
+                                    { value: "YYYY", label: "YYYY (2025)" },
+                                  ]}
+                                  placeholder="Year format"
+                                />
+                                <SelectCommon
+                                  form={form}
+                                  name="monthFormat"
+                                  options={[
+                                    { value: "MM", label: "MM (01-12)" },
+                                    { value: "MMMM", label: "MMMM (January)" },
+                                  ]}
+                                  placeholder="Month format"
+                                />
+                                <CustomCheckbox
+                                  form={form}
+                                  name="resetYearly"
+                                  label="Sequence yearly"
+                                />
+                              </div>
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </div>
                   </div>
-                </div>
-
-                <div className="flex justify-end gap-4 pt-4">
-                  <Button
-                    variant="outline"
-                    type="button"
-                    onClick={() => {
-                      form.reset()
-                      setSelectedModule(null)
-                      setSelectedTransaction(null)
-                    }}
-                  >
-                    Clear
-                  </Button>
-                  <Button type="submit" disabled={isPending}>
-                    {isPending ? "Saving..." : "Save"}
-                  </Button>
                 </div>
               </form>
             </Form>
@@ -777,7 +710,7 @@ export function DocumentNoForm() {
       </Card>
 
       {/* Right Panel - Document Content */}
-      <Card className="lg:w-90">
+      <Card className="lg:w-[25%]">
         <CardContent className="p-4">
           <div className="mb-4 font-semibold">Document Content</div>
           <div className="mb-4">
@@ -802,17 +735,21 @@ export function DocumentNoForm() {
           </div>
           <ScrollArea className="h-[440px]">
             <div className="space-y-2">
-              <table className="w-full">
+              <table className="w-full text-sm">
                 <thead>
                   <tr className="bg-muted/50 border-b">
-                    <th className="p-2 text-left font-medium">Month</th>
-                    <th className="p-2 text-left font-medium">Count</th>
+                    <th className="px-2 py-1 text-left text-xs font-medium">
+                      Month
+                    </th>
+                    <th className="px-2 py-1 text-left text-xs font-medium">
+                      Count
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
                   {isDetailsLoading ? (
                     <tr>
-                      <td colSpan={2} className="p-2 text-center">
+                      <td colSpan={2} className="px-2 py-1 text-center text-xs">
                         Loading...
                       </td>
                     </tr>
@@ -820,7 +757,7 @@ export function DocumentNoForm() {
                     <tr>
                       <td
                         colSpan={2}
-                        className="text-destructive p-2 text-center"
+                        className="text-destructive px-2 py-1 text-center text-xs"
                       >
                         Failed to load details
                       </td>
@@ -832,8 +769,8 @@ export function DocumentNoForm() {
                         key={`month-row-${i}`}
                         className={i % 2 === 1 ? "bg-muted/20" : ""}
                       >
-                        <td className="p-2">{row.month}</td>
-                        <td className="text-muted-foreground p-2">
+                        <td className="px-2 py-1 text-xs">{row.month}</td>
+                        <td className="text-muted-foreground px-2 py-1 text-xs">
                           {row.count.toLocaleString()}
                         </td>
                       </tr>
@@ -842,7 +779,7 @@ export function DocumentNoForm() {
                     <tr>
                       <td
                         colSpan={2}
-                        className="text-muted-foreground p-2 text-center"
+                        className="text-muted-foreground px-2 py-1 text-center text-xs"
                       >
                         No data available
                       </td>

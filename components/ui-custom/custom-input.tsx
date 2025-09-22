@@ -59,7 +59,9 @@ export default function CustomInput<T extends Record<string, unknown>>({
           <FormItem>
             <FormControl>
               <Input
-                onKeyDown={e => { console.log('KeyDown:', e.key); handleKeyPress(e); }}
+                onKeyDown={(e) => {
+                  handleKeyPress(e)
+                }}
                 type={type}
                 placeholder={placeholder}
                 disabled={isDisabled}
@@ -88,6 +90,7 @@ export default function CustomInput<T extends Record<string, unknown>>({
                     onBlurEvent(e)
                   }
                 }}
+                className={cn("bg-muted/5", className)} //Newly added harshad
                 tabIndex={0}
               />
             </FormControl>
