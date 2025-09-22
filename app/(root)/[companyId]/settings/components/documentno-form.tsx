@@ -15,6 +15,7 @@ import {
   useNumberFormatDetailsDataGet,
   useNumberFormatSave,
 } from "@/hooks/use-settings"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Form } from "@/components/ui/form"
@@ -364,17 +365,26 @@ export function DocumentNoForm() {
   }
 
   return (
-    <div className="flex h-[calc(100vh-12rem)] flex-col gap-4 lg:flex-row">
+    <div className="flex min-h-[calc(100vh-12rem)] flex-col gap-4 xl:h-[calc(100vh-12rem)] xl:flex-row">
       {/* Left Panel - Module List */}
-      <Card className="lg:w-[20%]">
-        <CardContent className="p-4">
-          <div className="mb-4 text-lg font-semibold">List</div>
+      <Card className="w-full lg:w-[25%] xl:w-[20%]">
+        <CardContent className="p-3 sm:p-4">
+          <div className="mb-4 flex items-center gap-2">
+            <span className="text-lg">📋</span>
+            <span className="text-lg font-semibold">Modules</span>
+          </div>
           {isModuleListLoading ? (
-            <div>Loading...</div>
+            <div className="text-muted-foreground flex items-center gap-2 text-sm">
+              <div className="border-primary h-4 w-4 animate-spin rounded-full border-2 border-t-transparent"></div>
+              Loading...
+            </div>
           ) : isModuleListError ? (
-            <div className="text-destructive">Failed to load modules</div>
+            <div className="text-destructive flex items-center gap-2 text-sm">
+              <span>❌</span>
+              Failed to load modules
+            </div>
           ) : moduleTrnsData && moduleTrnsData.length > 0 ? (
-            <div className="space-y-1">
+            <div className="space-y-2">
               {moduleTrnsData
                 .reduce<ModuleGroup[]>((acc, curr) => {
                   const existingModule = acc.find((m) => m.id === curr.moduleId)
@@ -398,12 +408,12 @@ export function DocumentNoForm() {
                   return acc
                 }, [])
                 .map((module) => (
-                  <div key={module.id}>
+                  <div key={module.id} className="space-y-1">
                     <div
-                      className={`flex cursor-pointer items-center gap-2 rounded-md p-2 ${
+                      className={`flex cursor-pointer items-center justify-between gap-2 rounded-md p-3 transition-all duration-200 ${
                         selectedModule === module.id
-                          ? "bg-primary/10"
-                          : "hover:bg-accent/50"
+                          ? "bg-primary/10 border-primary/20 border"
+                          : "hover:bg-accent/50 border border-transparent"
                       }`}
                       onClick={() =>
                         setSelectedModule((prev) =>
@@ -411,25 +421,49 @@ export function DocumentNoForm() {
                         )
                       }
                     >
-                      <span className="font-medium">{module.name}</span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm">📁</span>
+                        <span className="text-sm font-medium">
+                          {module.name}
+                        </span>
+                      </div>
+                      <Badge
+                        variant="secondary"
+                        className="bg-blue-100 text-xs text-blue-800 dark:bg-blue-900 dark:text-blue-200"
+                      >
+                        {module.transactions.length}
+                      </Badge>
                     </div>
                     {selectedModule === module.id && (
-                      <div className="text-muted-foreground space-y-1 pl-4 text-sm">
+                      <div className="space-y-1 pl-4">
                         {module.transactions.map(
                           (transaction: { id: number; name: string }) => (
                             <div
                               key={transaction.id}
-                              className={`hover:bg-accent cursor-pointer rounded p-1.5 ${
+                              className={`flex cursor-pointer items-center justify-between gap-2 rounded-md p-2 transition-all duration-200 ${
                                 selectedTransaction === transaction.id
-                                  ? "bg-accent"
-                                  : ""
+                                  ? "bg-accent border-accent-foreground/20 border"
+                                  : "hover:bg-accent/30 border border-transparent"
                               }`}
                               onClick={(e) => {
                                 e.stopPropagation()
                                 setSelectedTransaction(transaction.id)
                               }}
                             >
-                              - {transaction.name}
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs">📄</span>
+                                <span className="text-xs font-medium">
+                                  {transaction.name}
+                                </span>
+                              </div>
+                              {selectedTransaction === transaction.id && (
+                                <Badge
+                                  variant="default"
+                                  className="bg-green-500 text-xs text-white"
+                                >
+                                  Active
+                                </Badge>
+                              )}
                             </div>
                           )
                         )}
@@ -439,88 +473,122 @@ export function DocumentNoForm() {
                 ))}
             </div>
           ) : (
-            <div className="text-muted-foreground">No modules available</div>
+            <div className="text-muted-foreground flex items-center gap-2 text-sm">
+              <span>📭</span>
+              No modules available
+            </div>
           )}
         </CardContent>
       </Card>
 
       {/* Middle Panel - Form */}
-      <Card className="lg:w-[55%]">
-        <CardContent className="p-6">
+      <Card className="w-full lg:w-[50%] xl:w-[55%]">
+        <CardContent className="p-4 sm:p-6">
           {isNumberFormatLoading ? (
-            <div>Loading...</div>
+            <div className="flex items-center justify-center gap-2 py-8">
+              <div className="border-primary h-6 w-6 animate-spin rounded-full border-2 border-t-transparent"></div>
+              <span className="text-muted-foreground">
+                Loading configuration...
+              </span>
+            </div>
           ) : isNumberFormatError ? (
-            <div className="text-destructive">Failed to load number format</div>
+            <div className="text-destructive flex items-center justify-center gap-2 py-8">
+              <span>❌</span>
+              <span>Failed to load number format</span>
+            </div>
           ) : (
             <Form {...form}>
               <form
                 onSubmit={form.handleSubmit(onSubmit)}
                 className="space-y-6"
               >
+                {/* Selection Status */}
                 <div className="mb-4">
                   {!selectedModule ? (
-                    <div className="text-destructive">Select a Module</div>
+                    <div className="flex items-center gap-2 rounded-lg bg-red-50 p-3 text-red-700 dark:bg-red-950/20 dark:text-red-400">
+                      <span>⚠️</span>
+                      <span className="text-xs font-medium sm:text-sm">
+                        Please select a Module from the left panel
+                      </span>
+                    </div>
                   ) : !selectedTransaction ? (
-                    <div className="text-destructive">Select a Transaction</div>
-                  ) : null}
+                    <div className="flex items-center gap-2 rounded-lg bg-yellow-50 p-3 text-yellow-700 dark:bg-yellow-950/20 dark:text-yellow-400">
+                      <span>⚠️</span>
+                      <span className="text-xs font-medium sm:text-sm">
+                        Please select a Transaction from the left panel
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2 rounded-lg bg-green-50 p-3 text-green-700 dark:bg-green-950/20 dark:text-green-400">
+                      <span>✅</span>
+                      <span className="text-xs font-medium sm:text-sm">
+                        Ready to configure: {selectedModuleName} -{" "}
+                        {selectedTransactionName}
+                      </span>
+                    </div>
+                  )}
                 </div>
 
                 <div className="grid grid-cols-1 gap-6">
                   <div className="space-y-6">
-                    {/* Length and Document Number section */}
+                    {/* Live Preview Section */}
                     <div className="space-y-4">
-                      <div className="rounded-lg border-2 border-blue-200 bg-gradient-to-r from-blue-50 to-purple-50 p-6 dark:border-blue-800 dark:from-blue-950/20 dark:to-purple-950/20">
-                        <div className="mb-3 flex items-center justify-between">
+                      <div className="rounded-lg border-2 border-blue-200 bg-gradient-to-r from-blue-50 to-purple-50 p-4 sm:p-6 dark:border-blue-800 dark:from-blue-950/20 dark:to-purple-950/20">
+                        <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                           <div className="flex items-center gap-2">
                             <span className="text-lg">👁️</span>
-                            <h3 className="text-lg font-semibold text-blue-700 dark:text-blue-300">
+                            <h3 className="text-base font-semibold text-blue-700 sm:text-lg dark:text-blue-300">
                               Live Preview
                             </h3>
                           </div>
                           {selectedModule && selectedTransaction && (
-                            <div className="flex items-center gap-2">
-                              <span className="text-base font-bold">
-                                {selectedModuleName} - {selectedTransactionName}{" "}
-                                :
+                            <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-2">
+                              <span className="text-sm font-bold sm:text-base">
+                                {selectedModuleName} - {selectedTransactionName}
                               </span>
-                              {numberFormatData ? (
-                                <span className="inline-block rounded-full bg-green-500 px-3 py-1 text-sm font-semibold text-white">
-                                  Set
-                                </span>
-                              ) : (
-                                <span className="inline-block rounded-full bg-red-500 px-3 py-1 text-sm font-semibold text-white">
-                                  Not set
-                                </span>
-                              )}
+                              <Badge
+                                className={`inline-block rounded-full px-2 py-1 text-xs font-semibold text-white sm:px-3 sm:py-1 sm:text-sm ${
+                                  numberFormatData
+                                    ? "bg-green-500"
+                                    : "bg-red-500"
+                                }`}
+                              >
+                                {numberFormatData ? "Set" : "Not set"}
+                              </Badge>
                             </div>
                           )}
                         </div>
-                        <p className="text-muted-foreground mb-4 text-sm">
+                        <p className="text-muted-foreground mb-4 text-xs sm:text-sm">
                           See how your document number will look with current
                           settings
                         </p>
-                        <div className="rounded-md border-2 border-dashed border-gray-300 bg-white p-4 text-center dark:border-gray-600 dark:bg-gray-900">
-                          <div className="text-primary font-mono text-2xl font-bold">
+                        <div className="rounded-md border-2 border-dashed border-gray-300 bg-white p-4 text-center sm:p-6 dark:border-gray-600 dark:bg-gray-900">
+                          <div className="text-primary font-mono text-xl font-bold tracking-wider break-all sm:text-2xl lg:text-3xl">
                             {previewDocumentNo()}
                           </div>
                         </div>
                       </div>
                     </div>
 
-                    {/* Main Configuration Grid */}
+                    {/* Configuration Header */}
                     <div className="space-y-6">
-                      <div className="border-b pb-2">
-                        <div className="flex items-start justify-between">
-                          <div>
-                            <h3 className="text-foreground text-lg font-semibold">
-                              Document Number Configuration
-                            </h3>
-                            <p className="text-muted-foreground mt-1 text-sm">
-                              Configure how your document numbers will be
-                              formatted
-                            </p>
+                      <div className="border-b pb-4">
+                        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className="bg-primary/10 flex h-8 w-8 items-center justify-center rounded-full sm:h-10 sm:w-10">
+                              <span className="text-sm sm:text-lg">⚙️</span>
+                            </div>
+                            <div>
+                              <h3 className="text-foreground text-base font-semibold sm:text-lg">
+                                Document Number Configuration
+                              </h3>
+                              <p className="text-muted-foreground mt-1 text-xs sm:text-sm">
+                                Configure how your document numbers will be
+                                formatted
+                              </p>
+                            </div>
                           </div>
-                          <div className="flex gap-2">
+                          <div className="flex flex-col gap-2 sm:flex-row">
                             <Button
                               variant="outline"
                               type="button"
@@ -529,18 +597,40 @@ export function DocumentNoForm() {
                                 setSelectedModule(null)
                                 setSelectedTransaction(null)
                               }}
+                              className="flex items-center gap-2 text-xs sm:text-sm"
                             >
-                              Clear
+                              <span>🗑️</span>
+                              <span className="hidden sm:inline">Clear</span>
                             </Button>
-                            <Button type="submit" disabled={isPending}>
-                              {isPending ? "Saving..." : "Save"}
+                            <Button
+                              type="submit"
+                              disabled={isPending}
+                              className="flex items-center gap-2 text-xs sm:text-sm"
+                            >
+                              {isPending ? (
+                                <>
+                                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                                  <span className="hidden sm:inline">
+                                    Saving...
+                                  </span>
+                                  <span className="sm:hidden">Save...</span>
+                                </>
+                              ) : (
+                                <>
+                                  <span>💾</span>
+                                  <span className="hidden sm:inline">
+                                    Save Configuration
+                                  </span>
+                                  <span className="sm:hidden">Save</span>
+                                </>
+                              )}
                             </Button>
                           </div>
                         </div>
                       </div>
 
                       <div>
-                        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4">
+                        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
                           {/* Column 1: Prefix */}
                           <div className="flex h-full w-full min-w-0 flex-col space-y-4">
                             <div className="bg-primary/10 flex h-full w-full flex-col rounded-md p-3">
@@ -710,78 +800,183 @@ export function DocumentNoForm() {
       </Card>
 
       {/* Right Panel - Document Content */}
-      <Card className="lg:w-[25%]">
-        <CardContent className="p-4">
-          <div className="mb-4 font-semibold">Document Content</div>
+      <Card className="w-full lg:w-[25%] xl:w-[25%]">
+        <CardContent className="p-3 sm:p-4">
+          <div className="mb-4 flex items-center gap-2">
+            <span className="text-lg">📊</span>
+            <span className="text-base font-semibold sm:text-lg">
+              Document Statistics
+            </span>
+          </div>
+
+          {/* Year Selector with Enhanced UI */}
           <div className="mb-4">
+            <div className="mb-2 flex items-center gap-2">
+              <span className="text-sm">📅</span>
+              <span className="text-xs font-medium sm:text-sm">
+                Select Year
+              </span>
+            </div>
             <Select
               value={String(selectedYear)}
               onValueChange={(value) => setSelectedYear(Number(value))}
             >
-              <SelectTrigger>
+              <SelectTrigger className="w-full">
                 <SelectValue placeholder="Select year" />
               </SelectTrigger>
               <SelectContent>
                 {Array.from({ length: 5 }, (_, i) => {
                   const year = new Date().getFullYear() + i
+                  const isCurrentYear = year === new Date().getFullYear()
                   return (
                     <SelectItem key={year} value={String(year)}>
-                      {year}
+                      <div className="flex items-center gap-2">
+                        <span>{year}</span>
+                        {isCurrentYear && (
+                          <Badge
+                            variant="default"
+                            className="bg-green-500 text-xs text-white"
+                          >
+                            Current
+                          </Badge>
+                        )}
+                      </div>
                     </SelectItem>
                   )
                 })}
               </SelectContent>
             </Select>
           </div>
-          <ScrollArea className="h-[440px]">
-            <div className="space-y-2">
+
+          {/* Summary Stats */}
+          {numberFormatGridData && numberFormatGridData.length > 0 && (
+            <div className="mb-4 rounded-lg bg-gradient-to-r from-blue-50 to-purple-50 p-3 dark:from-blue-950/20 dark:to-purple-950/20">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm">📈</span>
+                  <span className="text-xs font-medium sm:text-sm">
+                    Total Documents
+                  </span>
+                </div>
+                <Badge className="bg-purple-500 text-xs text-white sm:text-sm">
+                  {numberFormatGridData
+                    .filter((row) => row.month !== "Last Number")
+                    .reduce((sum, row) => sum + row.count, 0)
+                    .toLocaleString()}
+                </Badge>
+              </div>
+            </div>
+          )}
+
+          <ScrollArea className="h-[300px] sm:h-[380px]">
+            <div className="space-y-1">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="bg-muted/50 border-b">
-                    <th className="px-2 py-1 text-left text-xs font-medium">
-                      Month
+                  <tr className="border-b bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900">
+                    <th className="px-2 py-2 text-left text-xs font-semibold text-gray-700 sm:px-3 dark:text-gray-300">
+                      <div className="flex items-center gap-1 sm:gap-2">
+                        <span className="text-xs">📅</span>
+                        <span className="hidden sm:inline">Month</span>
+                        <span className="sm:hidden">M</span>
+                      </div>
                     </th>
-                    <th className="px-2 py-1 text-left text-xs font-medium">
-                      Count
+                    <th className="px-2 py-2 text-left text-xs font-semibold text-gray-700 sm:px-3 dark:text-gray-300">
+                      <div className="flex items-center gap-1 sm:gap-2">
+                        <span className="text-xs">📊</span>
+                        <span className="hidden sm:inline">Count</span>
+                        <span className="sm:hidden">#</span>
+                      </div>
                     </th>
                   </tr>
                 </thead>
                 <tbody>
                   {isDetailsLoading ? (
                     <tr>
-                      <td colSpan={2} className="px-2 py-1 text-center text-xs">
-                        Loading...
+                      <td colSpan={2} className="px-3 py-4 text-center">
+                        <div className="text-muted-foreground flex items-center justify-center gap-2 text-sm">
+                          <div className="border-primary h-4 w-4 animate-spin rounded-full border-2 border-t-transparent"></div>
+                          Loading statistics...
+                        </div>
                       </td>
                     </tr>
                   ) : isDetailsError ? (
                     <tr>
-                      <td
-                        colSpan={2}
-                        className="text-destructive px-2 py-1 text-center text-xs"
-                      >
-                        Failed to load details
+                      <td colSpan={2} className="px-3 py-4 text-center">
+                        <div className="text-destructive flex items-center justify-center gap-2 text-sm">
+                          <span>❌</span>
+                          Failed to load details
+                        </div>
                       </td>
                     </tr>
                   ) : numberFormatGridData &&
                     numberFormatGridData.length > 0 ? (
-                    numberFormatGridData.map((row, i) => (
-                      <tr
-                        key={`month-row-${i}`}
-                        className={i % 2 === 1 ? "bg-muted/20" : ""}
-                      >
-                        <td className="px-2 py-1 text-xs">{row.month}</td>
-                        <td className="text-muted-foreground px-2 py-1 text-xs">
-                          {row.count.toLocaleString()}
-                        </td>
-                      </tr>
-                    ))
+                    numberFormatGridData.map((row, i) => {
+                      const isLastNumber = row.month === "Last Number"
+                      const isCurrentMonth =
+                        !isLastNumber &&
+                        Number(row.month) === new Date().getMonth() + 1
+
+                      return (
+                        <tr
+                          key={`month-row-${i}`}
+                          className={`transition-colors duration-200 ${
+                            isLastNumber
+                              ? "border-l-4 border-yellow-400 bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-950/20 dark:to-orange-950/20"
+                              : i % 2 === 1
+                                ? "bg-muted/20"
+                                : "bg-background"
+                          } ${isCurrentMonth ? "ring-2 ring-blue-200 dark:ring-blue-800" : ""}`}
+                        >
+                          <td className="px-2 py-2 text-xs sm:px-3">
+                            <div className="flex items-center gap-1 sm:gap-2">
+                              <span
+                                className={
+                                  isLastNumber
+                                    ? "text-yellow-600"
+                                    : "text-gray-600"
+                                }
+                              >
+                                {isLastNumber ? "🔢" : "📅"}
+                              </span>
+                              <span
+                                className={`font-medium ${isLastNumber ? "text-yellow-800 dark:text-yellow-200" : ""}`}
+                              >
+                                {row.month}
+                              </span>
+                              {isCurrentMonth && (
+                                <Badge
+                                  variant="default"
+                                  className="hidden bg-blue-500 text-xs text-white sm:inline-flex"
+                                >
+                                  Current
+                                </Badge>
+                              )}
+                            </div>
+                          </td>
+                          <td className="px-2 py-2 text-xs sm:px-3">
+                            <Badge
+                              variant="secondary"
+                              className={`text-xs ${
+                                isLastNumber
+                                  ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
+                                  : row.count > 0
+                                    ? "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
+                                    : "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400"
+                              }`}
+                            >
+                              {row.count.toLocaleString()}
+                            </Badge>
+                          </td>
+                        </tr>
+                      )
+                    })
                   ) : (
                     <tr>
-                      <td
-                        colSpan={2}
-                        className="text-muted-foreground px-2 py-1 text-center text-xs"
-                      >
-                        No data available
+                      <td colSpan={2} className="px-3 py-4 text-center">
+                        <div className="text-muted-foreground flex items-center justify-center gap-2 text-sm">
+                          <span>📭</span>
+                          No data available
+                        </div>
                       </td>
                     </tr>
                   )}
