@@ -1,11 +1,12 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { IJobOrderHd, ITaskDetails } from "@/interfaces/checklist"
 //import { useAuthStore } from "@/stores/auth-store"
 import { useQueryClient } from "@tanstack/react-query"
 
-import { JobOrder } from "@/lib/api-routes"
+import { getData } from "@/lib/api-client"
+import { JobOrder, TaskServiceSetting } from "@/lib/api-routes"
 import { ModuleId, OperationsTransactionId } from "@/lib/utils"
 import { useGetById } from "@/hooks/use-common"
 import { Badge } from "@/components/ui/badge"
@@ -39,6 +40,18 @@ export function ChecklistDetailsForm({
   //const { decimals } = useAuthStore()
   const [activeTab, setActiveTab] = useState("port-expenses")
   const queryClient = useQueryClient()
+
+  // Prefetch task service settings when component mounts
+  useEffect(() => {
+    queryClient.prefetchQuery({
+      queryKey: ["task-service-settings"],
+      queryFn: async () => {
+        const data = await getData(TaskServiceSetting.get)
+        return data
+      },
+      staleTime: 5 * 60 * 1000,
+    })
+  }, [queryClient])
 
   const moduleId = ModuleId.operations
   const transactionId = OperationsTransactionId.job_order
@@ -79,345 +92,447 @@ export function ChecklistDetailsForm({
 
   console.log("Task count data:", data)
   return (
-    <div className="@container w-full">
-      {/* <JobDetailsGrid jobData={jobData} decimals={decimals} /> */}
-      {/* <div className="my-2" /> */}
+    <div className="@container w-full space-y-2">
+      <Tabs
+        value={activeTab}
+        onValueChange={setActiveTab}
+        className="space-y-2"
+      >
+        <div className="bg-card rounded-lg border p-3 shadow-sm">
+          <div className="mb-3 flex items-center gap-2">
+            <span className="text-sm">📊</span>
+            <span className="text-sm font-medium">Service Categories</span>
+          </div>
+          <div className="overflow-x-auto">
+            <TabsList className="flex h-auto w-max flex-wrap gap-1 p-1">
+              <TabsTrigger
+                value="port-expenses"
+                className="relative flex flex-col items-center space-y-1 px-3 py-2 text-xs sm:flex-row sm:space-y-0 sm:space-x-2 sm:px-4 sm:text-sm"
+              >
+                <div className="flex items-center gap-1">
+                  <span className="text-xs">🏢</span>
+                  <span className="hidden sm:inline">Port Expenses</span>
+                  <span className="sm:hidden">Port</span>
+                </div>
+                <Badge
+                  variant={
+                    isLoading
+                      ? "secondary"
+                      : data?.portExpense && data?.portExpense > 0
+                        ? "destructive"
+                        : "outline"
+                  }
+                  className="text-xs font-medium"
+                >
+                  {isLoading ? "..." : data?.portExpense || 0}
+                </Badge>
+              </TabsTrigger>
+              <TabsTrigger
+                value="launch-services"
+                className="relative flex flex-col items-center space-y-1 px-3 py-2 text-xs sm:flex-row sm:space-y-0 sm:space-x-2 sm:px-4 sm:text-sm"
+              >
+                <div className="flex items-center gap-1">
+                  <span className="text-xs">🚤</span>
+                  <span className="hidden sm:inline">Launch Services</span>
+                  <span className="sm:hidden">Launch</span>
+                </div>
+                <Badge
+                  variant={
+                    isLoading
+                      ? "secondary"
+                      : data?.launchService && data?.launchService > 0
+                        ? "destructive"
+                        : "outline"
+                  }
+                  className="text-xs font-medium"
+                >
+                  {isLoading ? "..." : data?.launchService || 0}
+                </Badge>
+              </TabsTrigger>
+              <TabsTrigger
+                value="equipment-used"
+                className="relative flex flex-col items-center space-y-1 px-3 py-2 text-xs sm:flex-row sm:space-y-0 sm:space-x-2 sm:px-4 sm:text-sm"
+              >
+                <div className="flex items-center gap-1">
+                  <span className="text-xs">🔧</span>
+                  <span className="hidden sm:inline">Equipment Used</span>
+                  <span className="sm:hidden">Equipment</span>
+                </div>
+                <Badge
+                  variant={
+                    isLoading
+                      ? "secondary"
+                      : data?.equipmentUsed && data?.equipmentUsed > 0
+                        ? "destructive"
+                        : "outline"
+                  }
+                  className="text-xs font-medium"
+                >
+                  {isLoading ? "..." : data?.equipmentUsed || 0}
+                </Badge>
+              </TabsTrigger>
+              <TabsTrigger
+                value="crew-sign-on"
+                className="relative flex flex-col items-center space-y-1 px-3 py-2 text-xs sm:flex-row sm:space-y-0 sm:space-x-2 sm:px-4 sm:text-sm"
+              >
+                <div className="flex items-center gap-1">
+                  <span className="text-xs">👥</span>
+                  <span className="hidden sm:inline">Crew Sign On</span>
+                  <span className="sm:hidden">Sign On</span>
+                </div>
+                <Badge
+                  variant={
+                    isLoading
+                      ? "secondary"
+                      : data?.crewSignOn && data?.crewSignOn > 0
+                        ? "destructive"
+                        : "outline"
+                  }
+                  className="text-xs font-medium"
+                >
+                  {isLoading ? "..." : data?.crewSignOn || 0}
+                </Badge>
+              </TabsTrigger>
+              <TabsTrigger
+                value="crew-sign-off"
+                className="relative flex flex-col items-center space-y-1 px-3 py-2 text-xs sm:flex-row sm:space-y-0 sm:space-x-2 sm:px-4 sm:text-sm"
+              >
+                <div className="flex items-center gap-1">
+                  <span className="text-xs">👋</span>
+                  <span className="hidden sm:inline">Crew Sign Off</span>
+                  <span className="sm:hidden">Sign Off</span>
+                </div>
+                <Badge
+                  variant={
+                    isLoading
+                      ? "secondary"
+                      : data?.crewSignOff && data?.crewSignOff > 0
+                        ? "destructive"
+                        : "outline"
+                  }
+                  className="text-xs font-medium"
+                >
+                  {isLoading ? "..." : data?.crewSignOff || 0}
+                </Badge>
+              </TabsTrigger>
+              <TabsTrigger
+                value="crew-miscellaneous"
+                className="relative flex flex-col items-center space-y-1 px-3 py-2 text-xs sm:flex-row sm:space-y-0 sm:space-x-2 sm:px-4 sm:text-sm"
+              >
+                <div className="flex items-center gap-1">
+                  <span className="text-xs">📋</span>
+                  <span className="hidden sm:inline">Crew Miscellaneous</span>
+                  <span className="sm:hidden">Misc</span>
+                </div>
+                <Badge
+                  variant={
+                    isLoading
+                      ? "secondary"
+                      : data?.crewMiscellaneous && data?.crewMiscellaneous > 0
+                        ? "destructive"
+                        : "outline"
+                  }
+                  className="text-xs font-medium"
+                >
+                  {isLoading ? "..." : data?.crewMiscellaneous || 0}
+                </Badge>
+              </TabsTrigger>
+              <TabsTrigger
+                value="medical-assistance"
+                className="relative flex flex-col items-center space-y-1 px-3 py-2 text-xs sm:flex-row sm:space-y-0 sm:space-x-2 sm:px-4 sm:text-sm"
+              >
+                <div className="flex items-center gap-1">
+                  <span className="text-xs">🏥</span>
+                  <span className="hidden sm:inline">Medical Assistance</span>
+                  <span className="sm:hidden">Medical</span>
+                </div>
+                <Badge
+                  variant={
+                    isLoading
+                      ? "secondary"
+                      : data?.medicalAssistance && data?.medicalAssistance > 0
+                        ? "destructive"
+                        : "outline"
+                  }
+                  className="text-xs font-medium"
+                >
+                  {isLoading ? "..." : data?.medicalAssistance || 0}
+                </Badge>
+              </TabsTrigger>
+              <TabsTrigger
+                value="consignment-import"
+                className="relative flex flex-col items-center space-y-1 px-3 py-2 text-xs sm:flex-row sm:space-y-0 sm:space-x-2 sm:px-4 sm:text-sm"
+              >
+                <div className="flex items-center gap-1">
+                  <span className="text-xs">📥</span>
+                  <span className="hidden sm:inline">Consignment Import</span>
+                  <span className="sm:hidden">Import</span>
+                </div>
+                <Badge
+                  variant={
+                    isLoading
+                      ? "secondary"
+                      : data?.consignmentImport && data?.consignmentImport > 0
+                        ? "destructive"
+                        : "outline"
+                  }
+                  className="text-xs font-medium"
+                >
+                  {isLoading ? "..." : data?.consignmentImport || 0}
+                </Badge>
+              </TabsTrigger>
+              <TabsTrigger
+                value="consignment-export"
+                className="relative flex flex-col items-center space-y-1 px-3 py-2 text-xs sm:flex-row sm:space-y-0 sm:space-x-2 sm:px-4 sm:text-sm"
+              >
+                <div className="flex items-center gap-1">
+                  <span className="text-xs">📤</span>
+                  <span className="hidden sm:inline">Consignment Export</span>
+                  <span className="sm:hidden">Export</span>
+                </div>
+                <Badge
+                  variant={
+                    isLoading
+                      ? "secondary"
+                      : data?.consignmentExport && data?.consignmentExport > 0
+                        ? "destructive"
+                        : "outline"
+                  }
+                  className="text-xs font-medium"
+                >
+                  {isLoading ? "..." : data?.consignmentExport || 0}
+                </Badge>
+              </TabsTrigger>
+              <TabsTrigger
+                value="third-party"
+                className="relative flex flex-col items-center space-y-1 px-3 py-2 text-xs sm:flex-row sm:space-y-0 sm:space-x-2 sm:px-4 sm:text-sm"
+              >
+                <div className="flex items-center gap-1">
+                  <span className="text-xs">🤝</span>
+                  <span className="hidden sm:inline">Third Party</span>
+                  <span className="sm:hidden">3rd Party</span>
+                </div>
+                <Badge
+                  variant={
+                    isLoading
+                      ? "secondary"
+                      : data?.thirdParty && data?.thirdParty > 0
+                        ? "destructive"
+                        : "outline"
+                  }
+                  className="text-xs font-medium"
+                >
+                  {isLoading ? "..." : data?.thirdParty || 0}
+                </Badge>
+              </TabsTrigger>
+              <TabsTrigger
+                value="fresh-water"
+                className="relative flex flex-col items-center space-y-1 px-3 py-2 text-xs sm:flex-row sm:space-y-0 sm:space-x-2 sm:px-4 sm:text-sm"
+              >
+                <div className="flex items-center gap-1">
+                  <span className="text-xs">💧</span>
+                  <span className="hidden sm:inline">Fresh Water</span>
+                  <span className="sm:hidden">Water</span>
+                </div>
+                <Badge
+                  variant={
+                    isLoading
+                      ? "secondary"
+                      : data?.freshWater && data?.freshWater > 0
+                        ? "destructive"
+                        : "outline"
+                  }
+                  className="text-xs font-medium"
+                >
+                  {isLoading ? "..." : data?.freshWater || 0}
+                </Badge>
+              </TabsTrigger>
+              <TabsTrigger
+                value="technician-surveyor"
+                className="relative flex flex-col items-center space-y-1 px-3 py-2 text-xs sm:flex-row sm:space-y-0 sm:space-x-2 sm:px-4 sm:text-sm"
+              >
+                <div className="flex items-center gap-1">
+                  <span className="text-xs">🔍</span>
+                  <span className="hidden sm:inline">Technician Surveyor</span>
+                  <span className="sm:hidden">Surveyor</span>
+                </div>
+                <Badge
+                  variant={
+                    isLoading
+                      ? "secondary"
+                      : data?.technicianSurveyor && data?.technicianSurveyor > 0
+                        ? "destructive"
+                        : "outline"
+                  }
+                  className="text-xs font-medium"
+                >
+                  {isLoading ? "..." : data?.technicianSurveyor || 0}
+                </Badge>
+              </TabsTrigger>
+              <TabsTrigger
+                value="landing-items"
+                className="relative flex flex-col items-center space-y-1 px-3 py-2 text-xs sm:flex-row sm:space-y-0 sm:space-x-2 sm:px-4 sm:text-sm"
+              >
+                <div className="flex items-center gap-1">
+                  <span className="text-xs">📦</span>
+                  <span className="hidden sm:inline">Landing Items</span>
+                  <span className="sm:hidden">Landing</span>
+                </div>
+                <Badge
+                  variant={
+                    isLoading
+                      ? "secondary"
+                      : data?.landingItems && data?.landingItems > 0
+                        ? "destructive"
+                        : "outline"
+                  }
+                  className="text-xs font-medium"
+                >
+                  {isLoading ? "..." : data?.landingItems || 0}
+                </Badge>
+              </TabsTrigger>
+              <TabsTrigger
+                value="other-service"
+                className="relative flex flex-col items-center space-y-1 px-3 py-2 text-xs sm:flex-row sm:space-y-0 sm:space-x-2 sm:px-4 sm:text-sm"
+              >
+                <div className="flex items-center gap-1">
+                  <span className="text-xs">⚙️</span>
+                  <span className="hidden sm:inline">Other Service</span>
+                  <span className="sm:hidden">Other</span>
+                </div>
+                <Badge
+                  variant={
+                    isLoading
+                      ? "secondary"
+                      : data?.otherService && data?.otherService > 0
+                        ? "destructive"
+                        : "outline"
+                  }
+                  className="text-xs font-medium"
+                >
+                  {isLoading ? "..." : data?.otherService || 0}
+                </Badge>
+              </TabsTrigger>
+              <TabsTrigger
+                value="agency-remuneration"
+                className="relative flex flex-col items-center space-y-1 px-3 py-2 text-xs sm:flex-row sm:space-y-0 sm:space-x-2 sm:px-4 sm:text-sm"
+              >
+                <div className="flex items-center gap-1">
+                  <span className="text-xs">💰</span>
+                  <span className="hidden sm:inline">Agency Remuneration</span>
+                  <span className="sm:hidden">Remuneration</span>
+                </div>
+                <Badge
+                  variant={
+                    isLoading
+                      ? "secondary"
+                      : data?.agencyRemuneration && data?.agencyRemuneration > 0
+                        ? "destructive"
+                        : "outline"
+                  }
+                  className="text-xs font-medium"
+                >
+                  {isLoading ? "..." : data?.agencyRemuneration || 0}
+                </Badge>
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <div className="overflow-x-auto">
-          <TabsList className="flex h-14 w-max">
-            <TabsTrigger
-              value="port-expenses"
-              className="relative flex items-center space-x-2 px-4 py-2"
-            >
-              Port Expenses
-              <Badge
-                variant={
-                  isLoading
-                    ? "secondary"
-                    : data?.portExpense && data?.portExpense > 0
-                      ? "destructive"
-                      : "outline"
-                }
-                className="text-xs font-medium"
-              >
-                {isLoading ? "..." : data?.portExpense || 0}
-              </Badge>
-            </TabsTrigger>
-            <TabsTrigger
-              value="launch-services"
-              className="relative flex items-center space-x-2 px-4 py-2"
-            >
-              Launch Services
-              <Badge
-                variant={
-                  isLoading
-                    ? "secondary"
-                    : data?.launchService && data?.launchService > 0
-                      ? "destructive"
-                      : "outline"
-                }
-                className="text-xs font-medium"
-              >
-                {isLoading ? "..." : data?.launchService || 0}
-              </Badge>
-            </TabsTrigger>
-            <TabsTrigger
-              value="equipment-used"
-              className="relative flex items-center space-x-2 px-4 py-2"
-            >
-              Equipment Used
-              <Badge
-                variant={
-                  isLoading
-                    ? "secondary"
-                    : data?.equipmentUsed && data?.equipmentUsed > 0
-                      ? "destructive"
-                      : "outline"
-                }
-                className="text-xs font-medium"
-              >
-                {isLoading ? "..." : data?.equipmentUsed || 0}
-              </Badge>
-            </TabsTrigger>
-            <TabsTrigger
-              value="crew-sign-on"
-              className="relative flex items-center space-x-2 px-4 py-2"
-            >
-              Crew Sign On
-              <Badge
-                variant={
-                  isLoading
-                    ? "secondary"
-                    : data?.crewSignOn && data?.crewSignOn > 0
-                      ? "destructive"
-                      : "outline"
-                }
-                className="text-xs font-medium"
-              >
-                {isLoading ? "..." : data?.crewSignOn || 0}
-              </Badge>
-            </TabsTrigger>
-            <TabsTrigger
-              value="crew-sign-off"
-              className="relative flex items-center space-x-2 px-4 py-2"
-            >
-              Crew Sign Off
-              <Badge
-                variant={
-                  isLoading
-                    ? "secondary"
-                    : data?.crewSignOff && data?.crewSignOff > 0
-                      ? "destructive"
-                      : "outline"
-                }
-                className="text-xs font-medium"
-              >
-                {isLoading ? "..." : data?.crewSignOff || 0}
-              </Badge>
-            </TabsTrigger>
-            <TabsTrigger
-              value="crew-miscellaneous"
-              className="relative flex items-center space-x-2 px-4 py-2"
-            >
-              Crew Miscellaneous
-              <Badge
-                variant={
-                  isLoading
-                    ? "secondary"
-                    : data?.crewMiscellaneous && data?.crewMiscellaneous > 0
-                      ? "destructive"
-                      : "outline"
-                }
-                className="text-xs font-medium"
-              >
-                {isLoading ? "..." : data?.crewMiscellaneous || 0}
-              </Badge>
-            </TabsTrigger>
-            <TabsTrigger
-              value="medical-assistance"
-              className="relative flex items-center space-x-2 px-4 py-2"
-            >
-              Medical Assistance
-              <Badge
-                variant={
-                  isLoading
-                    ? "secondary"
-                    : data?.medicalAssistance && data?.medicalAssistance > 0
-                      ? "destructive"
-                      : "outline"
-                }
-                className="text-xs font-medium"
-              >
-                {isLoading ? "..." : data?.medicalAssistance || 0}
-              </Badge>
-            </TabsTrigger>
-            <TabsTrigger
-              value="consignment-import"
-              className="relative flex items-center space-x-2 px-4 py-2"
-            >
-              Consignment Import
-              <Badge
-                variant={
-                  isLoading
-                    ? "secondary"
-                    : data?.consignmentImport && data?.consignmentImport > 0
-                      ? "destructive"
-                      : "outline"
-                }
-                className="text-xs font-medium"
-              >
-                {isLoading ? "..." : data?.consignmentImport || 0}
-              </Badge>
-            </TabsTrigger>
-            <TabsTrigger
-              value="consignment-export"
-              className="relative flex items-center space-x-2 px-4 py-2"
-            >
-              Consignment Export
-              <Badge
-                variant={
-                  isLoading
-                    ? "secondary"
-                    : data?.consignmentExport && data?.consignmentExport > 0
-                      ? "destructive"
-                      : "outline"
-                }
-                className="text-xs font-medium"
-              >
-                {isLoading ? "..." : data?.consignmentExport || 0}
-              </Badge>
-            </TabsTrigger>
-            <TabsTrigger
-              value="third-party"
-              className="relative flex items-center space-x-2 px-4 py-2"
-            >
-              Third Party
-              <Badge
-                variant={
-                  isLoading
-                    ? "secondary"
-                    : data?.thirdParty && data?.thirdParty > 0
-                      ? "destructive"
-                      : "outline"
-                }
-                className="text-xs font-medium"
-              >
-                {isLoading ? "..." : data?.thirdParty || 0}
-              </Badge>
-            </TabsTrigger>
-            <TabsTrigger
-              value="fresh-water"
-              className="relative flex items-center space-x-2 px-4 py-2"
-            >
-              Fresh Water
-              <Badge
-                variant={
-                  isLoading
-                    ? "secondary"
-                    : data?.freshWater && data?.freshWater > 0
-                      ? "destructive"
-                      : "outline"
-                }
-                className="text-xs font-medium"
-              >
-                {isLoading ? "..." : data?.freshWater || 0}
-              </Badge>
-            </TabsTrigger>
-            <TabsTrigger
-              value="technician-surveyor"
-              className="relative flex items-center space-x-2 px-4 py-2"
-            >
-              Technician Surveyor
-              <Badge
-                variant={
-                  isLoading
-                    ? "secondary"
-                    : data?.technicianSurveyor && data?.technicianSurveyor > 0
-                      ? "destructive"
-                      : "outline"
-                }
-                className="text-xs font-medium"
-              >
-                {isLoading ? "..." : data?.technicianSurveyor || 0}
-              </Badge>
-            </TabsTrigger>
-            <TabsTrigger
-              value="landing-items"
-              className="relative flex items-center space-x-2 px-4 py-2"
-            >
-              Landing Items
-              <Badge
-                variant={
-                  isLoading
-                    ? "secondary"
-                    : data?.landingItems && data?.landingItems > 0
-                      ? "destructive"
-                      : "outline"
-                }
-                className="text-xs font-medium"
-              >
-                {isLoading ? "..." : data?.landingItems || 0}
-              </Badge>
-            </TabsTrigger>
-            <TabsTrigger
-              value="other-service"
-              className="relative flex items-center space-x-2 px-4 py-2"
-            >
-              Other Service
-              <Badge
-                variant={
-                  isLoading
-                    ? "secondary"
-                    : data?.otherService && data?.otherService > 0
-                      ? "destructive"
-                      : "outline"
-                }
-                className="text-xs font-medium"
-              >
-                {isLoading ? "..." : data?.otherService || 0}
-              </Badge>
-            </TabsTrigger>
-            <TabsTrigger
-              value="agency-remuneration"
-              className="relative flex items-center space-x-2 px-4 py-2"
-            >
-              Agency Remuneration
-              <Badge
-                variant={
-                  isLoading
-                    ? "secondary"
-                    : data?.agencyRemuneration && data?.agencyRemuneration > 0
-                      ? "destructive"
-                      : "outline"
-                }
-                className="text-xs font-medium"
-              >
-                {isLoading ? "..." : data?.agencyRemuneration || 0}
-              </Badge>
-            </TabsTrigger>
-          </TabsList>
+          {/* Summary Section */}
+          {data && (
+            <div className="mt-4 rounded-lg border bg-gradient-to-r from-blue-50 to-purple-50 p-3 dark:from-blue-950/20 dark:to-purple-950/20">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm">📊</span>
+                  <span className="text-sm font-medium">Task Summary</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Badge variant="outline" className="text-xs">
+                    Total Tasks:{" "}
+                    {Object.values(data).reduce(
+                      (sum, count) => sum + (count || 0),
+                      0
+                    )}
+                  </Badge>
+                  <Badge
+                    variant={
+                      Object.values(data).some((count) => count > 0)
+                        ? "destructive"
+                        : "default"
+                    }
+                    className="text-xs"
+                  >
+                    {Object.values(data).some((count) => count > 0)
+                      ? "Has Tasks"
+                      : "No Tasks"}
+                  </Badge>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
-        <TabsContent value="port-expenses">
-          <PortExpensesTab {...tabProps} />
-        </TabsContent>
+        <div className="bg-card rounded-lg border shadow-sm">
+          <TabsContent value="port-expenses" className="p-3">
+            <PortExpensesTab {...tabProps} />
+          </TabsContent>
 
-        <TabsContent value="launch-services">
-          <LaunchServicesTab {...tabProps} />
-        </TabsContent>
+          <TabsContent value="launch-services" className="p-3">
+            <LaunchServicesTab {...tabProps} />
+          </TabsContent>
 
-        <TabsContent value="equipment-used">
-          <EquipmentUsedTab {...tabProps} />
-        </TabsContent>
+          <TabsContent value="equipment-used" className="p-3">
+            <EquipmentUsedTab {...tabProps} />
+          </TabsContent>
 
-        <TabsContent value="crew-sign-on">
-          <CrewSignOnTab {...tabProps} />
-        </TabsContent>
+          <TabsContent value="crew-sign-on" className="p-3">
+            <CrewSignOnTab {...tabProps} />
+          </TabsContent>
 
-        <TabsContent value="crew-sign-off">
-          <CrewSignOffTab {...tabProps} />
-        </TabsContent>
+          <TabsContent value="crew-sign-off" className="p-3">
+            <CrewSignOffTab {...tabProps} />
+          </TabsContent>
 
-        <TabsContent value="crew-miscellaneous">
-          <CrewMiscellaneousTab {...tabProps} />
-        </TabsContent>
+          <TabsContent value="crew-miscellaneous" className="p-3">
+            <CrewMiscellaneousTab {...tabProps} />
+          </TabsContent>
 
-        <TabsContent value="medical-assistance">
-          <MedicalAssistanceTab {...tabProps} />
-        </TabsContent>
+          <TabsContent value="medical-assistance" className="p-3">
+            <MedicalAssistanceTab {...tabProps} />
+          </TabsContent>
 
-        <TabsContent value="consignment-import">
-          <ConsignmentImportTab {...tabProps} />
-        </TabsContent>
+          <TabsContent value="consignment-import" className="p-3">
+            <ConsignmentImportTab {...tabProps} />
+          </TabsContent>
 
-        <TabsContent value="consignment-export">
-          <ConsignmentExportTab {...tabProps} />
-        </TabsContent>
+          <TabsContent value="consignment-export" className="p-3">
+            <ConsignmentExportTab {...tabProps} />
+          </TabsContent>
 
-        <TabsContent value="third-party">
-          <ThirdPartyTab {...tabProps} />
-        </TabsContent>
+          <TabsContent value="third-party" className="p-3">
+            <ThirdPartyTab {...tabProps} />
+          </TabsContent>
 
-        <TabsContent value="fresh-water">
-          <FreshWaterTab {...tabProps} />
-        </TabsContent>
+          <TabsContent value="fresh-water" className="p-3">
+            <FreshWaterTab {...tabProps} />
+          </TabsContent>
 
-        <TabsContent value="technician-surveyor">
-          <TechniciansSurveyorsTab {...tabProps} />
-        </TabsContent>
+          <TabsContent value="technician-surveyor" className="p-3">
+            <TechniciansSurveyorsTab {...tabProps} />
+          </TabsContent>
 
-        <TabsContent value="landing-items">
-          <LandingItemsTab {...tabProps} />
-        </TabsContent>
+          <TabsContent value="landing-items" className="p-3">
+            <LandingItemsTab {...tabProps} />
+          </TabsContent>
 
-        <TabsContent value="other-service">
-          <OtherServiceTab {...tabProps} />
-        </TabsContent>
+          <TabsContent value="other-service" className="p-3">
+            <OtherServiceTab {...tabProps} />
+          </TabsContent>
 
-        <TabsContent value="agency-remuneration">
-          <AgencyRemunerationTab {...tabProps} />
-        </TabsContent>
+          <TabsContent value="agency-remuneration" className="p-3">
+            <AgencyRemunerationTab {...tabProps} />
+          </TabsContent>
+        </div>
       </Tabs>
     </div>
   )

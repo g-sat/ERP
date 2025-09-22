@@ -17,6 +17,7 @@ import { getData } from "@/lib/api-client"
 import { JobOrder_DebitNote, JobOrder_LaunchServices } from "@/lib/api-routes"
 import { Task } from "@/lib/operations-utils"
 import { useDelete, useGetById, usePersist } from "@/hooks/use-common"
+import { useTaskServiceDefaults } from "@/hooks/use-task-service"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -50,6 +51,9 @@ export function LaunchServicesTab({
 }: LaunchServicesTabProps) {
   const jobOrderId = jobData.jobOrderId
   const queryClient = useQueryClient()
+
+  // Get default values for Launch Services task
+  const { defaults: taskDefaults } = useTaskServiceDefaults(Task.LaunchServices)
   //states
   const [selectedItem, setSelectedItem] = useState<ILaunchService | undefined>(
     undefined
@@ -458,6 +462,7 @@ export function LaunchServicesTab({
                 ? selectedItem
                 : undefined
             }
+            taskDefaults={taskDefaults} // Pass defaults to form
             submitAction={handleSubmit}
             onCancel={() => setIsModalOpen(false)}
             isSubmitting={saveMutation.isPending || updateMutation.isPending}

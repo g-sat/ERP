@@ -10,6 +10,7 @@ import { useForm } from "react-hook-form"
 
 import { clientDateFormat, parseDate } from "@/lib/format"
 import { Task } from "@/lib/operations-utils"
+import { useChartofAccountLookup, useSupplierLookup } from "@/hooks/use-lookup"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Form } from "@/components/ui/form"
@@ -30,6 +31,7 @@ import CustomTextarea from "@/components/ui-custom/custom-textarea"
 interface PortExpensesFormProps {
   jobData: IJobOrderHd
   initialData?: IPortExpenses
+  taskDefaults?: Record<string, number> // Add taskDefaults prop
   submitAction: (data: PortExpensesFormValues) => void
   onCancel?: () => void
   isSubmitting?: boolean
@@ -39,6 +41,7 @@ interface PortExpensesFormProps {
 export function PortExpensesForm({
   jobData,
   initialData,
+  taskDefaults = {}, // Default to empty object
   submitAction,
   onCancel,
   isSubmitting = false,
@@ -48,14 +51,20 @@ export function PortExpensesForm({
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
   const dateFormat = decimals[0]?.dateFormat || "dd/MM/yyyy"
 
-  console.log("initialData :", initialData)
+  // Get chart of account data to ensure it's loaded before setting form values
+  useChartofAccountLookup(Number(jobData.companyId))
+
+  // Get supplier data to ensure it's loaded before setting form values
+  useSupplierLookup()
+
+  console.log("taskDefaults :", taskDefaults)
   console.log("deliverDate :", initialData?.deliverDate)
   console.log("deliverDate :", parseDate(initialData?.deliverDate as string))
   console.log(
     "deliverDate :",
     format(
       parseDate(initialData?.deliverDate as string) || new Date(),
-      clientDateFormat
+      dateFormat
     )
   )
   const form = useForm<PortExpensesFormValues>({
@@ -66,16 +75,17 @@ export function PortExpensesForm({
       jobOrderNo: jobData.jobOrderNo,
       quantity: initialData?.quantity ?? 1,
       supplierId: initialData?.supplierId ?? 0,
-      chargeId: initialData?.chargeId ?? 0,
-      statusId: initialData?.statusId ?? 802,
-      uomId: initialData?.uomId ?? 0,
+      // Use task defaults when no initial data
+      chargeId: initialData?.chargeId ?? taskDefaults.chargeId ?? 0,
+      statusId: initialData?.statusId ?? taskDefaults.statusTypeId ?? 802,
+      uomId: initialData?.uomId ?? taskDefaults.uomId ?? 0,
+      glId: initialData?.glId ?? taskDefaults.glId ?? 0,
       deliverDate: initialData?.deliverDate
         ? format(
             parseDate(initialData.deliverDate as string) || new Date(),
             clientDateFormat
           )
         : format(new Date(), clientDateFormat),
-      glId: initialData?.glId ?? 0,
       debitNoteId: initialData?.debitNoteId ?? 0,
       debitNoteNo: initialData?.debitNoteNo ?? "",
       remarks: initialData?.remarks ?? "",
@@ -89,21 +99,22 @@ export function PortExpensesForm({
       jobOrderNo: jobData.jobOrderNo,
       quantity: initialData?.quantity ?? 1,
       supplierId: initialData?.supplierId ?? 0,
-      chargeId: initialData?.chargeId ?? 0,
-      statusId: initialData?.statusId ?? 802,
-      uomId: initialData?.uomId ?? 0,
+      // Use task defaults when no initial data
+      chargeId: initialData?.chargeId ?? taskDefaults.chargeId ?? 0,
+      statusId: initialData?.statusId ?? taskDefaults.statusTypeId ?? 802,
+      uomId: initialData?.uomId ?? taskDefaults.uomId ?? 0,
+      glId: initialData?.glId ?? taskDefaults.glId ?? 0,
       deliverDate: initialData?.deliverDate
         ? format(
             parseDate(initialData.deliverDate as string) || new Date(),
             clientDateFormat
           )
         : format(new Date(), clientDateFormat),
-      glId: initialData?.glId ?? 0,
       debitNoteId: initialData?.debitNoteId ?? 0,
       debitNoteNo: initialData?.debitNoteNo ?? "",
       remarks: initialData?.remarks ?? "",
     })
-  }, [initialData, form, jobData.jobOrderId, jobData.jobOrderNo])
+  }, [initialData, taskDefaults, form, jobData.jobOrderId, jobData.jobOrderNo])
 
   const onSubmit = (data: PortExpensesFormValues) => {
     submitAction(data)
@@ -112,9 +123,9 @@ export function PortExpensesForm({
   return (
     <div className="max-w flex flex-col gap-2">
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pt-6">
           <div className="grid gap-2">
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-3 gap-2">
               <SupplierAutocomplete
                 form={form}
                 name="supplierId"
@@ -129,6 +140,7 @@ export function PortExpensesForm({
                 taskId={Task.PortExpenses}
                 isRequired={true}
                 isDisabled={isConfirmed}
+                companyId={jobData.companyId}
               />
               <ChartOfAccountAutocomplete
                 form={form}
@@ -136,13 +148,23 @@ export function PortExpensesForm({
                 label="GL Account"
                 isRequired={true}
                 isDisabled={isConfirmed}
+                companyId={jobData.companyId}
               />
 
               <UomAutocomplete
+                key={`uom-${jobData.companyId}`}
                 form={form}
                 name="uomId"
                 label="UOM"
                 isRequired={true}
+                isDisabled={isConfirmed}
+              />
+              <CustomInput
+                form={form}
+                name="quantity"
+                label="Quantity"
+                type="number"
+                isRequired
                 isDisabled={isConfirmed}
               />
               <CustomDateNew
@@ -154,29 +176,21 @@ export function PortExpensesForm({
                 isDisabled={isConfirmed}
               />
               <StatusTaskAutocomplete
+                key={`status-${jobData.companyId}`}
                 form={form}
                 name="statusId"
                 label="Status"
                 isRequired={true}
                 isDisabled={isConfirmed}
               />
-
-              <CustomInput
-                form={form}
-                name="quantity"
-                label="Quantity"
-                type="number"
-                isRequired
-                isDisabled={isConfirmed}
-              />
-
-              <CustomTextarea
-                form={form}
-                name="remarks"
-                label="Remarks"
-                isDisabled={isConfirmed}
-              />
             </div>
+
+            <CustomTextarea
+              form={form}
+              name="remarks"
+              label="Remarks"
+              isDisabled={isConfirmed}
+            />
 
             {/* Audit Information Section */}
             {initialData &&
@@ -184,7 +198,7 @@ export function PortExpensesForm({
                 initialData.createDate ||
                 initialData.editBy ||
                 initialData.editDate) && (
-                <div className="space-y-6">
+                <div className="space-y-6 pt-6">
                   <div className="border-border border-b pb-4"></div>
 
                   <CustomAccordion

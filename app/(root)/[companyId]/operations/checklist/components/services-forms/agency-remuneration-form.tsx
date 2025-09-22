@@ -30,6 +30,7 @@ import CustomTextarea from "@/components/ui-custom/custom-textarea"
 interface AgencyRemunerationFormProps {
   jobData: IJobOrderHd
   initialData?: IAgencyRemuneration
+  taskDefaults?: Record<string, number> // Add taskDefaults prop
   submitAction: (data: AgencyRemunerationFormValues) => void
   onCancel?: () => void
   isSubmitting?: boolean
@@ -39,6 +40,7 @@ interface AgencyRemunerationFormProps {
 export function AgencyRemunerationForm({
   jobData,
   initialData,
+  taskDefaults = {}, // Default to empty object
   submitAction,
   onCancel,
   isSubmitting = false,
@@ -62,7 +64,7 @@ export function AgencyRemunerationForm({
             dateFormat
           )
         : format(new Date(), dateFormat),
-      glId: initialData?.glId ?? 0,
+      glId: initialData?.glId ?? taskDefaults.glId ?? 0,
       chargeId: initialData?.chargeId ?? 4,
       statusId: initialData?.statusId ?? 802,
       remarks: initialData?.remarks ?? "",
@@ -81,7 +83,7 @@ export function AgencyRemunerationForm({
             dateFormat
           )
         : format(new Date(), dateFormat),
-      glId: initialData?.glId ?? 0,
+      glId: initialData?.glId ?? taskDefaults.glId ?? 0,
       chargeId: initialData?.chargeId ?? 4,
       statusId: initialData?.statusId ?? 802,
       remarks: initialData?.remarks ?? "",
@@ -95,7 +97,7 @@ export function AgencyRemunerationForm({
   return (
     <div className="max-w flex flex-col gap-2">
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pt-6">
           <div className="grid gap-2">
             <div className="grid grid-cols-2 gap-2">
               <CustomDateNew
@@ -113,6 +115,7 @@ export function AgencyRemunerationForm({
                 taskId={Task.AgencyRemuneration}
                 isRequired={true}
                 isDisabled={isConfirmed}
+                companyId={jobData.companyId}
               />
               <ChartOfAccountAutocomplete
                 form={form}
@@ -120,6 +123,7 @@ export function AgencyRemunerationForm({
                 label="GL Account"
                 isRequired={true}
                 isDisabled={isConfirmed}
+                companyId={jobData.companyId}
               />
 
               <StatusTaskAutocomplete
@@ -145,7 +149,7 @@ export function AgencyRemunerationForm({
                 initialData.createDate ||
                 initialData.editBy ||
                 initialData.editDate) && (
-                <div className="space-y-6">
+                <div className="space-y-6 pt-6">
                   <div className="border-border border-b pb-4"></div>
 
                   <CustomAccordion

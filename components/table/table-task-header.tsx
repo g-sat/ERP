@@ -203,7 +203,13 @@ export function TaskTableHeader<TData>({
 
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Button onClick={onCreate} disabled={isConfirmed}>
+            <Button
+              onClick={onCreate}
+              disabled={isConfirmed}
+              title={
+                isConfirmed ? "Cannot create when confirmed" : "Create new item"
+              }
+            >
               <Plus className="mr-2 h-4 w-4" />
               Create
             </Button>
@@ -212,6 +218,9 @@ export function TaskTableHeader<TData>({
               size="icon"
               onClick={onRefresh}
               disabled={isConfirmed}
+              title={
+                isConfirmed ? "Cannot refresh when confirmed" : "Refresh data"
+              }
             >
               <RefreshCw className="h-4 w-4" />
             </Button>
@@ -297,7 +306,11 @@ export function TaskTableHeader<TData>({
             {/* Column Visibility Toggle */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="icon">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  title="Column visibility settings"
+                >
                   <SlidersHorizontal className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
@@ -316,6 +329,7 @@ export function TaskTableHeader<TData>({
                     size="sm"
                     className="flex-1"
                     onClick={handleShowAll}
+                    title="Show all columns"
                   >
                     Show All
                   </Button>
@@ -324,6 +338,7 @@ export function TaskTableHeader<TData>({
                     size="sm"
                     className="flex-1"
                     onClick={handleHideAll}
+                    title="Hide all columns"
                   >
                     Hide All
                   </Button>
@@ -379,10 +394,21 @@ export function TaskTableHeader<TData>({
             </DialogDescription>
           </DialogHeader>
           <div className="flex justify-end space-x-2">
-            <Button variant="outline" onClick={handleCancelDebitNote}>
+            <Button
+              variant="outline"
+              onClick={handleCancelDebitNote}
+              title="Cancel debit note operation"
+            >
               No
             </Button>
-            <Button onClick={handleConfirmDebitNote}>
+            <Button
+              onClick={handleConfirmDebitNote}
+              title={
+                hasValidDebitNoteIds
+                  ? "Open existing debit note"
+                  : "Create new debit note"
+              }
+            >
               {hasValidDebitNoteIds ? "Open" : "Yes"}
             </Button>
           </div>

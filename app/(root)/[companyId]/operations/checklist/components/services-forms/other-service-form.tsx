@@ -30,6 +30,7 @@ import CustomTextarea from "@/components/ui-custom/custom-textarea"
 interface OtherServiceFormProps {
   jobData: IJobOrderHd
   initialData?: IOtherService
+  taskDefaults?: Record<string, number> // Add taskDefaults prop
   submitAction: (data: OtherServiceFormValues) => void
   onCancel?: () => void
   isSubmitting?: boolean
@@ -39,6 +40,7 @@ interface OtherServiceFormProps {
 export function OtherServiceForm({
   jobData,
   initialData,
+  taskDefaults = {}, // Default to empty object
   submitAction,
   onCancel,
   isSubmitting = false,
@@ -65,8 +67,8 @@ export function OtherServiceForm({
             clientDateFormat
           )
         : format(new Date(), clientDateFormat),
-      chargeId: initialData?.chargeId ?? 0,
-      glId: initialData?.glId ?? 0,
+      chargeId: initialData?.chargeId ?? taskDefaults.chargeId ?? 0,
+      glId: initialData?.glId ?? taskDefaults.glId ?? 0,
       statusId: initialData?.statusId ?? 802,
       uomId: initialData?.uomId ?? 0,
       debitNoteId: initialData?.debitNoteId ?? 0,
@@ -112,8 +114,8 @@ export function OtherServiceForm({
             clientDateFormat
           )
         : format(new Date(), clientDateFormat),
-      chargeId: initialData?.chargeId ?? 0,
-      glId: initialData?.glId ?? 0,
+      chargeId: initialData?.chargeId ?? taskDefaults.chargeId ?? 0,
+      glId: initialData?.glId ?? taskDefaults.glId ?? 0,
       statusId: initialData?.statusId ?? 802,
       uomId: initialData?.uomId ?? 0,
       debitNoteId: initialData?.debitNoteId ?? 0,
@@ -142,7 +144,7 @@ export function OtherServiceForm({
   return (
     <div className="max-w flex flex-col gap-2">
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pt-6">
           <div className="grid gap-2">
             <div className="grid grid-cols-2 gap-2">
               <CustomInput
@@ -160,6 +162,7 @@ export function OtherServiceForm({
                 isRequired={true}
                 isDisabled={isConfirmed}
                 onChangeEvent={handleChargeChange}
+                companyId={jobData.companyId}
               />
               <ChartOfAccountAutocomplete
                 form={form}
@@ -167,6 +170,7 @@ export function OtherServiceForm({
                 label="GL Account"
                 isRequired={true}
                 isDisabled={isConfirmed}
+                companyId={jobData.companyId}
               />
               <UomAutocomplete
                 form={form}
@@ -230,7 +234,7 @@ export function OtherServiceForm({
                 initialData.createDate ||
                 initialData.editBy ||
                 initialData.editDate) && (
-                <div className="space-y-6">
+                <div className="space-y-6 pt-6">
                   <div className="border-border border-b pb-4"></div>
 
                   <CustomAccordion

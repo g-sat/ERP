@@ -28,6 +28,7 @@ import CustomTextarea from "@/components/ui-custom/custom-textarea"
 interface CrewSignOffFormProps {
   jobData: IJobOrderHd
   initialData?: ICrewSignOff
+  taskDefaults?: Record<string, number> // Add taskDefaults prop
   submitAction: (data: CrewSignOffFormValues) => void
   onCancel?: () => void
   isSubmitting?: boolean
@@ -37,6 +38,7 @@ interface CrewSignOffFormProps {
 export function CrewSignOffForm({
   jobData,
   initialData,
+  taskDefaults = {}, // Default to empty object
   submitAction,
   onCancel,
   isSubmitting = false,
@@ -53,8 +55,8 @@ export function CrewSignOffForm({
       jobOrderId: jobData.jobOrderId,
       jobOrderNo: jobData.jobOrderNo,
       taskId: Task.CrewSignOff,
-      chargeId: initialData?.chargeId ?? 0,
-      glId: initialData?.glId ?? 0,
+      chargeId: initialData?.chargeId ?? taskDefaults.chargeId ?? 0,
+      glId: initialData?.glId ?? taskDefaults.glId ?? 0,
       visaTypeId: initialData?.visaTypeId ?? 0,
       crewName: initialData?.crewName ?? "",
       nationality: initialData?.nationality ?? "",
@@ -78,8 +80,8 @@ export function CrewSignOffForm({
       jobOrderId: jobData.jobOrderId,
       jobOrderNo: jobData.jobOrderNo,
       taskId: Task.CrewSignOff,
-      chargeId: initialData?.chargeId ?? 0,
-      glId: initialData?.glId ?? 0,
+      chargeId: initialData?.chargeId ?? taskDefaults.chargeId ?? 0,
+      glId: initialData?.glId ?? taskDefaults.glId ?? 0,
       visaTypeId: initialData?.visaTypeId ?? 0,
       crewName: initialData?.crewName ?? "",
       nationality: initialData?.nationality ?? "",
@@ -110,7 +112,7 @@ export function CrewSignOffForm({
   return (
     <div className="max-w flex flex-col gap-2">
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pt-6">
           <div className="grid gap-4">
             {/* Main Information Card */}
 
@@ -188,6 +190,7 @@ export function CrewSignOffForm({
                 taskId={Task.CrewSignOff}
                 isRequired={true}
                 isDisabled={isConfirmed}
+                companyId={jobData.companyId}
               />
               <ChartOfAccountAutocomplete
                 form={form}
@@ -195,6 +198,7 @@ export function CrewSignOffForm({
                 label="GL Account"
                 isRequired={true}
                 isDisabled={isConfirmed}
+                companyId={jobData.companyId}
               />
 
               <CustomTextarea
@@ -233,7 +237,7 @@ export function CrewSignOffForm({
                 initialData.createDate ||
                 initialData.editBy ||
                 initialData.editDate) && (
-                <div className="space-y-6">
+                <div className="space-y-6 pt-6">
                   <div className="border-border border-b pb-4"></div>
 
                   <CustomAccordion

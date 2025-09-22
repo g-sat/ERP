@@ -32,6 +32,7 @@ import CustomTextarea from "@/components/ui-custom/custom-textarea"
 interface EquipmentUsedFormProps {
   jobData: IJobOrderHd
   initialData?: IEquipmentUsed
+  taskDefaults?: Record<string, number> // Add taskDefaults prop
   submitAction: (data: EquipmentUsedFormValues) => void
   onCancel?: () => void
   isSubmitting?: boolean
@@ -41,6 +42,7 @@ interface EquipmentUsedFormProps {
 export function EquipmentUsedForm({
   jobData,
   initialData,
+  taskDefaults = {}, // Default to empty object
   submitAction,
   onCancel,
   isSubmitting = false,
@@ -78,8 +80,8 @@ export function EquipmentUsedForm({
       jobOrderId: jobData.jobOrderId,
       jobOrderNo: jobData.jobOrderNo,
       taskId: Task.EquipmentUsed,
-      chargeId: initialData?.chargeId ?? 0,
-      glId: initialData?.glId ?? 0,
+      chargeId: initialData?.chargeId ?? taskDefaults.chargeId ?? 0,
+      glId: initialData?.glId ?? taskDefaults.glId ?? 0,
       referenceNo: initialData?.referenceNo ?? "",
       mafi: initialData?.mafi ?? "",
       others: initialData?.others ?? "",
@@ -116,8 +118,8 @@ export function EquipmentUsedForm({
       jobOrderId: jobData.jobOrderId,
       jobOrderNo: jobData.jobOrderNo,
       taskId: Task.EquipmentUsed,
-      chargeId: initialData?.chargeId ?? 0,
-      glId: initialData?.glId ?? 0,
+      chargeId: initialData?.chargeId ?? taskDefaults.chargeId ?? 0,
+      glId: initialData?.glId ?? taskDefaults.glId ?? 0,
       referenceNo: initialData?.referenceNo ?? "",
       mafi: initialData?.mafi ?? "",
       others: initialData?.others ?? "",
@@ -169,7 +171,7 @@ export function EquipmentUsedForm({
   return (
     <div className="max-w flex flex-col gap-2">
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pt-6">
           <div className="grid gap-2">
             <div className="grid grid-cols-4 gap-2">
               <CustomDateNew
@@ -194,6 +196,7 @@ export function EquipmentUsedForm({
                 taskId={Task.EquipmentUsed}
                 isRequired={true}
                 isDisabled={isConfirmed}
+                companyId={jobData.companyId}
               />
               <ChartOfAccountAutocomplete
                 form={form}
@@ -201,6 +204,7 @@ export function EquipmentUsedForm({
                 label="GL Account"
                 isRequired={true}
                 isDisabled={isConfirmed}
+                companyId={jobData.companyId}
               />
               <CustomInput
                 form={form}
@@ -259,6 +263,7 @@ export function EquipmentUsedForm({
                   label="Crane Charge"
                   taskId={Task.EquipmentUsed}
                   isDisabled={isConfirmed}
+                  companyId={jobData.companyId}
                 />
                 <CustomInput
                   form={form}
@@ -285,6 +290,7 @@ export function EquipmentUsedForm({
                   label="ForkLift Charge"
                   taskId={Task.EquipmentUsed}
                   isDisabled={isConfirmed}
+                  companyId={jobData.companyId}
                 />
                 <CustomInput
                   form={form}
@@ -311,6 +317,7 @@ export function EquipmentUsedForm({
                   label="Stevedore Charge"
                   taskId={Task.EquipmentUsed}
                   isDisabled={isConfirmed}
+                  companyId={jobData.companyId}
                 />
                 <CustomInput
                   form={form}
@@ -360,7 +367,7 @@ export function EquipmentUsedForm({
                 initialData.createDate ||
                 initialData.editBy ||
                 initialData.editDate) && (
-                <div className="space-y-6">
+                <div className="space-y-6 pt-6">
                   <div className="border-border border-b pb-4"></div>
 
                   <CustomAccordion

@@ -35,6 +35,7 @@ import CustomTextarea from "@/components/ui-custom/custom-textarea"
 interface LaunchServiceFormProps {
   jobData: IJobOrderHd
   initialData?: ILaunchService
+  taskDefaults?: Record<string, number> // Add taskDefaults prop
   submitAction: (data: LaunchServiceFormValues) => void
   onCancel?: () => void
   isSubmitting?: boolean
@@ -44,6 +45,7 @@ interface LaunchServiceFormProps {
 export function LaunchServiceForm({
   jobData,
   initialData,
+  taskDefaults = {}, // Default to empty object
   submitAction,
   onCancel,
   isSubmitting = false,
@@ -97,7 +99,7 @@ export function LaunchServiceForm({
       invoiceNo: initialData?.invoiceNo ?? "",
       portId: initialData?.portId ?? 0,
       bargeId: initialData?.bargeId ?? 0,
-      statusId: initialData?.statusId ?? 802,
+      statusId: initialData?.statusId ?? taskDefaults.statusTypeId ?? 802,
       debitNoteId: initialData?.debitNoteId ?? 0,
       debitNoteNo: initialData?.debitNoteNo ?? "",
       remarks: initialData?.remarks ?? "",
@@ -139,7 +141,7 @@ export function LaunchServiceForm({
       portId: initialData?.portId ?? 0,
       bargeId: initialData?.bargeId ?? 0,
       remarks: initialData?.remarks ?? "",
-      statusId: initialData?.statusId ?? 802,
+      statusId: initialData?.statusId ?? taskDefaults.statusTypeId ?? 802,
       debitNoteId: initialData?.debitNoteId ?? 0,
       debitNoteNo: initialData?.debitNoteNo ?? "",
     })
@@ -203,6 +205,7 @@ export function LaunchServiceForm({
                 taskId={Task.LaunchServices}
                 isRequired={true}
                 isDisabled={isConfirmed}
+                companyId={jobData.companyId}
               />
               <ChartOfAccountAutocomplete
                 form={form}
@@ -210,6 +213,7 @@ export function LaunchServiceForm({
                 label="GL Account"
                 isRequired={true}
                 isDisabled={isConfirmed}
+                companyId={jobData.companyId}
               />
               <UomAutocomplete
                 form={form}

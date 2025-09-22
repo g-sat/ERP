@@ -30,6 +30,7 @@ import CustomTextarea from "@/components/ui-custom/custom-textarea"
 interface ThirdPartyFormProps {
   jobData: IJobOrderHd
   initialData?: IThirdParty
+  taskDefaults?: Record<string, number> // Add taskDefaults prop
   submitAction: (data: ThirdPartyFormValues) => void
   onCancel?: () => void
   isSubmitting?: boolean
@@ -39,6 +40,7 @@ interface ThirdPartyFormProps {
 export function ThirdPartyForm({
   jobData,
   initialData,
+  taskDefaults = {}, // Default to empty object
   submitAction,
   onCancel,
   isSubmitting = false,
@@ -60,8 +62,8 @@ export function ThirdPartyForm({
       debitNoteNo: initialData?.debitNoteNo ?? "",
       remarks: initialData?.remarks ?? "",
       quantity: initialData?.quantity ?? 0,
-      glId: initialData?.glId ?? 0,
-      chargeId: initialData?.chargeId ?? 0,
+      glId: initialData?.glId ?? taskDefaults.glId ?? 0,
+      chargeId: initialData?.chargeId ?? taskDefaults.chargeId ?? 0,
       statusId: initialData?.statusId ?? 802,
       supplierId: initialData?.supplierId ?? 0,
       supplierMobileNumber: initialData?.supplierMobileNumber ?? "",
@@ -85,8 +87,8 @@ export function ThirdPartyForm({
       debitNoteNo: initialData?.debitNoteNo ?? "",
       remarks: initialData?.remarks ?? "",
       quantity: initialData?.quantity ?? 0,
-      glId: initialData?.glId ?? 0,
-      chargeId: initialData?.chargeId ?? 0,
+      glId: initialData?.glId ?? taskDefaults.glId ?? 0,
+      chargeId: initialData?.chargeId ?? taskDefaults.chargeId ?? 0,
       statusId: initialData?.statusId ?? 802,
       supplierId: initialData?.supplierId ?? 0,
       supplierMobileNumber: initialData?.supplierMobileNumber ?? "",
@@ -107,7 +109,7 @@ export function ThirdPartyForm({
   return (
     <div className="max-w flex flex-col gap-2">
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pt-6">
           <div className="grid gap-2">
             <div className="grid grid-cols-4 gap-2">
               <SupplierAutocomplete
@@ -123,6 +125,7 @@ export function ThirdPartyForm({
                 taskId={Task.ThirdParty}
                 isRequired={true}
                 isDisabled={isConfirmed}
+                companyId={jobData.companyId}
               />
               <ChartOfAccountAutocomplete
                 form={form}
@@ -130,6 +133,7 @@ export function ThirdPartyForm({
                 label="GL Account"
                 isRequired={true}
                 isDisabled={isConfirmed}
+                companyId={jobData.companyId}
               />
               <CustomInput
                 form={form}
@@ -176,7 +180,7 @@ export function ThirdPartyForm({
                 initialData.createDate ||
                 initialData.editBy ||
                 initialData.editDate) && (
-                <div className="space-y-6">
+                <div className="space-y-6 pt-6">
                   <div className="border-border border-b pb-4"></div>
 
                   <CustomAccordion

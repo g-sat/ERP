@@ -17,6 +17,7 @@ import { getData } from "@/lib/api-client"
 import { JobOrder_DebitNote, JobOrder_PortExpenses } from "@/lib/api-routes"
 import { Task } from "@/lib/operations-utils"
 import { useDelete, useGetById, usePersist } from "@/hooks/use-common"
+import { useTaskServiceDefaults } from "@/hooks/use-task-service"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -25,6 +26,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import { Separator } from "@/components/ui/separator"
 import { DeleteConfirmation } from "@/components/delete-confirmation"
 
 import CombinedForms from "../services-combined/combined-forms"
@@ -48,6 +50,9 @@ export function PortExpensesTab({
   onTaskAdded,
   isConfirmed,
 }: PortExpensesTabProps) {
+  // Get default values for Port Expenses task
+  const { defaults: taskDefaults } = useTaskServiceDefaults(Task.PortExpenses)
+
   const jobOrderId = jobData.jobOrderId
 
   const queryClient = useQueryClient()
@@ -452,7 +457,7 @@ export function PortExpensesTab({
 
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogContent
-          className="max-h-[90vh] w-[80vw] !max-w-none overflow-y-auto"
+          className="max-h-[80vh] w-[60vw] !max-w-none overflow-y-auto"
           onPointerDownOutside={(e) => {
             e.preventDefault()
           }}
@@ -463,6 +468,7 @@ export function PortExpensesTab({
               Add or edit port expenses details for this job order.
             </DialogDescription>
           </DialogHeader>
+          <Separator />
           <PortExpensesForm
             jobData={jobData}
             initialData={
@@ -470,6 +476,7 @@ export function PortExpensesTab({
                 ? selectedItem
                 : undefined
             }
+            taskDefaults={taskDefaults} // Pass defaults to form
             submitAction={handleSubmit}
             onCancel={() => setIsModalOpen(false)}
             isSubmitting={saveMutation.isPending || updateMutation.isPending}

@@ -86,7 +86,7 @@ export default function EmployeeDetailLayout({
                 variant="secondary"
                 className="flex h-8 items-center border border-slate-300 bg-slate-50 px-3 text-xs text-slate-700 hover:bg-slate-100 sm:text-base dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
               >
-                EMP. ID: {employee?.employeeCode || ""}
+                EMP. Code : {employee?.employeeCode || ""}
               </Badge>
               {employee?.isActive !== undefined && (
                 <Badge

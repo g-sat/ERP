@@ -36,6 +36,7 @@ import CustomTextarea from "@/components/ui-custom/custom-textarea"
 interface ConsignmentImportFormProps {
   jobData: IJobOrderHd
   initialData?: IConsignmentImport
+  taskDefaults?: Record<string, number> // Add taskDefaults prop
   submitAction: (data: ConsignmentImportFormValues) => void
   onCancel?: () => void
   isSubmitting?: boolean
@@ -45,6 +46,7 @@ interface ConsignmentImportFormProps {
 export function ConsignmentImportForm({
   jobData,
   initialData,
+  taskDefaults = {}, // Default to empty object
   submitAction,
   onCancel,
   isSubmitting = false,
@@ -62,8 +64,8 @@ export function ConsignmentImportForm({
       jobOrderId: jobData.jobOrderId,
       jobOrderNo: jobData.jobOrderNo,
       taskId: Task.ConsignmentImport,
-      chargeId: initialData?.chargeId ?? 0,
-      glId: initialData?.glId ?? 0,
+      chargeId: initialData?.chargeId ?? taskDefaults.chargeId ?? 0,
+      glId: initialData?.glId ?? taskDefaults.glId ?? 0,
       awbNo: initialData?.awbNo ?? "",
       carrierTypeId: initialData?.carrierTypeId ?? 0,
       uomId: initialData?.uomId ?? 0,
@@ -110,8 +112,8 @@ export function ConsignmentImportForm({
       jobOrderId: jobData.jobOrderId,
       jobOrderNo: jobData.jobOrderNo,
       taskId: Task.ConsignmentImport,
-      chargeId: initialData?.chargeId ?? 0,
-      glId: initialData?.glId ?? 0,
+      chargeId: initialData?.chargeId ?? taskDefaults.chargeId ?? 0,
+      glId: initialData?.glId ?? taskDefaults.glId ?? 0,
       awbNo: initialData?.awbNo ?? "",
       carrierTypeId: initialData?.carrierTypeId ?? 0,
       uomId: initialData?.uomId ?? 0,
@@ -159,7 +161,7 @@ export function ConsignmentImportForm({
   return (
     <div className="max-w flex flex-col gap-2">
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pt-6">
           <div className="grid gap-2">
             <div className="grid grid-cols-5 gap-2">
               <CustomInput
@@ -236,6 +238,7 @@ export function ConsignmentImportForm({
                 taskId={Task.ConsignmentImport}
                 isRequired={true}
                 isDisabled={isConfirmed}
+                companyId={jobData.companyId}
               />
               <ChartOfAccountAutocomplete
                 form={form}
@@ -243,6 +246,7 @@ export function ConsignmentImportForm({
                 label="GL Account"
                 isRequired={true}
                 isDisabled={isConfirmed}
+                companyId={jobData.companyId}
               />
             </div>
             <div className="grid grid-cols-3 gap-2">
@@ -329,7 +333,7 @@ export function ConsignmentImportForm({
                 initialData.createDate ||
                 initialData.editBy ||
                 initialData.editDate) && (
-                <div className="space-y-6">
+                <div className="space-y-6 pt-6">
                   <div className="border-border border-b pb-4"></div>
 
                   <CustomAccordion

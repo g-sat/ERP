@@ -30,6 +30,7 @@ import CustomTextarea from "@/components/ui-custom/custom-textarea"
 interface FreshWaterFormProps {
   jobData: IJobOrderHd
   initialData?: IFreshWater
+  taskDefaults?: Record<string, number> // Add taskDefaults prop
   submitAction: (data: FreshWaterFormValues) => void
   onCancel?: () => void
   isSubmitting?: boolean
@@ -39,6 +40,7 @@ interface FreshWaterFormProps {
 export function FreshWaterForm({
   jobData,
   initialData,
+  taskDefaults = {}, // Default to empty object
   submitAction,
   onCancel,
   isSubmitting = false,
@@ -65,8 +67,8 @@ export function FreshWaterForm({
       quantity: initialData?.quantity ?? 0,
       receiptNo: initialData?.receiptNo ?? "",
       distance: initialData?.distance ?? 0,
-      glId: initialData?.glId ?? 0,
-      chargeId: initialData?.chargeId ?? 0,
+      glId: initialData?.glId ?? taskDefaults.glId ?? 0,
+      chargeId: initialData?.chargeId ?? taskDefaults.chargeId ?? 0,
       statusId: initialData?.statusId ?? 802,
       uomId: initialData?.uomId ?? 0,
       remarks: initialData?.remarks ?? "",
@@ -93,8 +95,8 @@ export function FreshWaterForm({
       quantity: initialData?.quantity ?? 0,
       receiptNo: initialData?.receiptNo ?? "",
       distance: initialData?.distance ?? 0,
-      glId: initialData?.glId ?? 0,
-      chargeId: initialData?.chargeId ?? 0,
+      glId: initialData?.glId ?? taskDefaults.glId ?? 0,
+      chargeId: initialData?.chargeId ?? taskDefaults.chargeId ?? 0,
       statusId: initialData?.statusId ?? 802,
       uomId: initialData?.uomId ?? 0,
       remarks: initialData?.remarks ?? "",
@@ -113,7 +115,7 @@ export function FreshWaterForm({
   return (
     <div className="max-w flex flex-col gap-2">
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pt-6">
           <div className="grid gap-2">
             <div className="grid grid-cols-3 gap-2">
               <CustomDateNew
@@ -186,6 +188,7 @@ export function FreshWaterForm({
                 label="GL Account"
                 isRequired={true}
                 isDisabled={isConfirmed}
+                companyId={jobData.companyId}
               />
               <ChargeAutocomplete
                 form={form}
@@ -194,6 +197,7 @@ export function FreshWaterForm({
                 taskId={Task.FreshWater}
                 isRequired={true}
                 isDisabled={isConfirmed}
+                companyId={jobData.companyId}
               />
             </div>
             <div className="grid grid-cols-1 gap-2">
@@ -211,7 +215,7 @@ export function FreshWaterForm({
                 initialData.createDate ||
                 initialData.editBy ||
                 initialData.editDate) && (
-                <div className="space-y-6">
+                <div className="space-y-6 pt-6">
                   <div className="border-border border-b pb-4"></div>
 
                   <CustomAccordion

@@ -20,6 +20,7 @@ import {
 } from "@/lib/api-routes"
 import { Task } from "@/lib/operations-utils"
 import { useDelete, useGetById, usePersist } from "@/hooks/use-common"
+import { useTaskServiceDefaults } from "@/hooks/use-task-service"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -53,6 +54,11 @@ export function ConsignmentExportTab({
 }: ConsignmentExportTabProps) {
   const jobOrderId = jobData.jobOrderId
   const queryClient = useQueryClient()
+
+  // Get default values for Consignment Export task
+  const { defaults: taskDefaults } = useTaskServiceDefaults(
+    Task.ConsignmentExport
+  )
   //states
   const [selectedItem, setSelectedItem] = useState<
     IConsignmentExport | undefined
@@ -474,6 +480,7 @@ export function ConsignmentExportTab({
                 ? selectedItem
                 : undefined
             }
+            taskDefaults={taskDefaults} // Pass defaults to form
             submitAction={handleSubmit}
             onCancel={() => setIsModalOpen(false)}
             isSubmitting={saveMutation.isPending || updateMutation.isPending}

@@ -1,3 +1,4 @@
+import { useMemo } from "react"
 import { IApiSuccessResponse } from "@/interfaces/auth"
 import { ITaskService } from "@/interfaces/task-service"
 import { ServiceFieldValues } from "@/schemas/task-service"
@@ -14,7 +15,44 @@ export const useTaskServiceGet = () => {
       const data = await getData(TaskServiceSetting.get)
       return data
     },
+    staleTime: 5 * 60 * 1000, // 5 minutes - data doesn't change often
+    gcTime: 10 * 60 * 1000, // 10 minutes (formerly cacheTime)
+    refetchOnWindowFocus: false, // Don't refetch on window focus
+    refetchOnMount: false, // Don't refetch if data is fresh
   })
+}
+
+// Get default values for a specific task
+export const useTaskServiceDefaults = (taskId: number) => {
+  const { data, isLoading, error } = useTaskServiceGet()
+
+  const defaults = useMemo((): Record<string, number> => {
+    if (!data?.data) return {}
+
+    const taskSettings = data.data.find(
+      (settings: ITaskService) => settings.taskId === taskId
+    )
+    if (!taskSettings) return {}
+
+    return {
+      chargeId: taskSettings.chargeId || 0,
+      glId: taskSettings.glId || 0,
+      uomId: taskSettings.uomId || 0,
+      statusTypeId: taskSettings.statusTypeId || 802, // Default status
+      carrierTypeId: taskSettings.carrierTypeId || 0,
+      modeTypeId: taskSettings.modeTypeId || 0,
+      documentTypeId: taskSettings.documentTypeId || 0,
+      visaTypeId: taskSettings.visaTypeId || 0,
+      locationTypeId: taskSettings.locationTypeId || 0,
+    }
+  }, [data?.data, taskId])
+
+  return {
+    defaults,
+    isLoading,
+    error,
+    hasDefaults: Object.values(defaults).some((value) => value !== 0),
+  }
 }
 
 // Save task service settings

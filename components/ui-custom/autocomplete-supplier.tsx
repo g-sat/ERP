@@ -45,40 +45,19 @@ export default function SupplierAutocomplete<
   onChangeEvent?: (selectedOption: ISupplierLookup | null) => void
 }) {
   const { data: suppliers = [], isLoading } = useSupplierLookup()
-
   // Memoize options to prevent unnecessary recalculations
-  const options: FieldOption[] = React.useMemo(() => {
-    const allOptions = suppliers
-      .filter(
-        (supplier: ISupplierLookup) =>
-          supplier &&
-          supplier.supplierId != null &&
-          supplier.supplierName != null
-      )
-      .map((supplier: ISupplierLookup) => ({
-        value: String(supplier.supplierId),
-        label: String(supplier.supplierName),
-      }))
-
-    // Get current selected value
-    const currentValue = form && name ? form.getValues(name)?.toString() : null
-
-    if (currentValue) {
-      // Find the selected option
-      const selectedOption = allOptions.find(
-        (option) => option.value === currentValue
-      )
-      if (selectedOption) {
-        // Remove the selected option from the list and add it at the beginning
-        const filteredOptions = allOptions.filter(
-          (option) => option.value !== currentValue
+  const options: FieldOption[] = React.useMemo(
+    () =>
+      suppliers
+        .filter(
+          (supplier: ISupplierLookup) => supplier && supplier.supplierId != null
         )
-        return [selectedOption, ...filteredOptions]
-      }
-    }
-
-    return allOptions
-  }, [suppliers, form, name])
+        .map((supplier: ISupplierLookup) => ({
+          value: supplier.supplierId.toString(),
+          label: `${supplier.supplierCode} - ${supplier.supplierName}`,
+        })),
+    [suppliers]
+  )
 
   // Custom components with display names
   const DropdownIndicator = React.memo(
@@ -104,33 +83,17 @@ export default function SupplierAutocomplete<
   ClearIndicator.displayName = "ClearIndicator"
 
   const Option = React.memo((props: OptionProps<FieldOption>) => {
-    const isSelected = props.isSelected
-    const currentValue = form && name ? form.getValues(name)?.toString() : null
-    const isCurrentlySelected = currentValue === props.data.value
-
     return (
-      <>
-        <components.Option {...props}>
-          <div className="flex items-center gap-2">
-            <span
-              className={cn(
-                isCurrentlySelected && "text-primary font-semibold"
-              )}
-            >
-              {props.data.label}
-            </span>
-            {isCurrentlySelected && (
-              <span className="text-muted-foreground text-xs">(Current)</span>
-            )}
-          </div>
-          {isSelected && (
-            <span className="absolute right-2 flex size-3.5 items-center justify-center">
-              <IconCheck className="size-4" />
-            </span>
-          )}
-        </components.Option>
-        {isCurrentlySelected && <div className="bg-border mx-2 my-1 h-px" />}
-      </>
+      <components.Option {...props}>
+        <div className="flex items-center gap-2">
+          <span>{props.data.label}</span>
+        </div>
+        {props.isSelected && (
+          <span className="absolute right-2 flex size-3.5 items-center justify-center">
+            <IconCheck className="size-4" />
+          </span>
+        )}
+      </components.Option>
     )
   })
   Option.displayName = "Option" // Custom classNames for React Select (aligned with shadcn select.tsx)
@@ -154,10 +117,7 @@ export default function SupplierAutocomplete<
           "relative z-[9999] min-w-[8rem] overflow-hidden rounded-md border shadow-md animate-in fade-in-80",
           "mt-1"
         ),
-      menuList: () =>
-        cn(
-          "p-1 overflow-auto max-h-[200px] scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent"
-        ),
+      menuList: () => cn("p-1 overflow-auto"),
       option: (state: { isFocused: boolean; isSelected: boolean }) =>
         cn(
           "relative flex w-full cursor-default select-none items-center rounded-sm py-1.5 pl-2 pr-8 text-sm outline-none",
@@ -181,7 +141,7 @@ export default function SupplierAutocomplete<
           "hover:bg-destructive/90 hover:text-destructive-foreground px-1 rounded-sm"
         ),
     }),
-    [isDisabled]
+    []
   )
 
   // We still need some styles for things that can't be controlled via className
@@ -210,26 +170,11 @@ export default function SupplierAutocomplete<
         fontSize: "12px",
         height: "20px",
       }),
-      // Enhanced menuList styles for better scrolling
-      menuList: (base) => ({
+      // Fix for dropdown appearing behind dialog
+      menuPortal: (base) => ({
         ...base,
-        maxHeight: "200px",
-        overflowY: "auto",
-        scrollbarWidth: "thin",
-        scrollbarColor: "var(--border) transparent",
-        "&::-webkit-scrollbar": {
-          width: "6px",
-        },
-        "&::-webkit-scrollbar-track": {
-          background: "transparent",
-        },
-        "&::-webkit-scrollbar-thumb": {
-          background: "var(--border)",
-          borderRadius: "3px",
-        },
-        "&::-webkit-scrollbar-thumb:hover": {
-          background: "var(--muted-foreground)",
-        },
+        zIndex: 9999,
+        pointerEvents: "auto",
       }),
     }),
     []
@@ -245,15 +190,15 @@ export default function SupplierAutocomplete<
         form.setValue(name, value as PathValue<T, Path<T>>)
       }
       if (onChangeEvent) {
-        const selectedSupplier = selectedOption
+        const selectedUser = selectedOption
           ? suppliers.find(
               (u: ISupplierLookup) =>
                 u &&
                 u.supplierId != null &&
-                String(u.supplierId) === selectedOption.value
+                u.supplierId.toString() === selectedOption.value
             ) || null
           : null
-        onChangeEvent(selectedSupplier)
+        onChangeEvent(selectedUser)
       }
     },
     [form, name, onChangeEvent, suppliers]
@@ -263,31 +208,12 @@ export default function SupplierAutocomplete<
   const getValue = React.useCallback(() => {
     if (form && name) {
       const formValue = form.getValues(name)
-      // Convert form value to string for comparison
       return (
         options.find((option) => option.value === formValue?.toString()) || null
       )
     }
     return null
   }, [form, name, options])
-
-  // Custom filter function to always include the selected item
-  const customFilter = React.useCallback(
-    (option: FieldOption, inputValue: string) => {
-      const currentValue =
-        form && name ? form.getValues(name)?.toString() : null
-      const isCurrentlySelected = currentValue === option.value
-
-      // Always include the currently selected item
-      if (isCurrentlySelected) {
-        return true
-      }
-
-      // Filter other items based on input
-      return option.label.toLowerCase().includes(inputValue.toLowerCase())
-    },
-    [form, name]
-  )
 
   if (form && name) {
     return (
@@ -308,6 +234,7 @@ export default function SupplierAutocomplete<
             return (
               <FormItem className={cn("flex flex-col", className)}>
                 <Select
+                  instanceId={name || "supplier-select"}
                   options={options}
                   value={getValue()}
                   onChange={handleChange}
@@ -324,14 +251,12 @@ export default function SupplierAutocomplete<
                   }}
                   className="react-select-container"
                   classNamePrefix="react-select__"
-                  menuPortalTarget={null}
-                  menuPosition="absolute"
+                  menuPortalTarget={
+                    typeof document !== "undefined" ? document.body : null
+                  }
+                  menuPosition="fixed"
                   isLoading={isLoading}
                   loadingMessage={() => "Loading suppliers..."}
-                  maxMenuHeight={200}
-                  menuShouldScrollIntoView={true}
-                  menuShouldBlockScroll={false}
-                  filterOption={customFilter}
                 />
                 {showError && (
                   <p className="text-destructive mt-1 text-xs">
@@ -365,6 +290,7 @@ export default function SupplierAutocomplete<
         </div>
       )}
       <Select
+        instanceId={name || "supplier-select"}
         options={options}
         onChange={handleChange}
         placeholder="Select Supplier..."
@@ -380,14 +306,12 @@ export default function SupplierAutocomplete<
         }}
         className="react-select-container"
         classNamePrefix="react-select__"
-        menuPortalTarget={null}
-        menuPosition="absolute"
+        menuPortalTarget={
+          typeof document !== "undefined" ? document.body : null
+        }
+        menuPosition="fixed"
         isLoading={isLoading}
         loadingMessage={() => "Loading suppliers..."}
-        maxMenuHeight={200}
-        menuShouldScrollIntoView={true}
-        menuShouldBlockScroll={false}
-        filterOption={customFilter}
       />
     </div>
   )

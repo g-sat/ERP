@@ -16,7 +16,6 @@ import { Badge } from "@/components/ui/badge"
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
@@ -350,19 +349,38 @@ export function ChecklistTable({
             <div className="flex items-center justify-between">
               <div className="flex-1">
                 <DialogTitle>
-                  <div className="text-foreground text-2xl font-bold tracking-tight">
-                    Job Order Details :{" "}
-                    <span
-                      className={`ml-auto rounded-full px-5 py-1 text-sm font-medium ${statusColors[selectedJob?.statusName as keyof typeof statusColors] || "bg-gray-100 text-gray-800"}`}
-                    >
-                      {selectedJob?.statusName}
-                    </span>
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-3">
+                      <div className="bg-primary/10 flex h-10 w-10 items-center justify-center rounded-full">
+                        <span className="text-lg">📋</span>
+                      </div>
+                      <div>
+                        <h2 className="text-2xl font-bold tracking-tight">
+                          Job Order Details
+                        </h2>
+                        <p className="text-muted-foreground text-sm">
+                          Manage job order services and tasks
+                        </p>
+                      </div>
+
+                      <div className="flex justify-center gap-2">
+                        <Badge
+                          variant="outline"
+                          className="flex h-8 items-center border-2 border-blue-200 bg-gradient-to-r from-blue-50 to-blue-100 px-4 text-sm font-semibold text-blue-800 shadow-sm transition-all duration-300 hover:scale-105 hover:border-blue-300 hover:bg-gradient-to-r hover:from-blue-100 hover:to-blue-200 hover:shadow-md dark:border-blue-700 dark:from-blue-900 dark:to-blue-800 dark:text-blue-200 dark:hover:from-blue-800 dark:hover:to-blue-700"
+                        >
+                          <span className="mr-1 text-blue-600">📋</span>
+                          {selectedJob?.jobOrderNo}
+                        </Badge>
+                        <Badge
+                          className={`flex h-8 items-center border-2 px-4 text-sm font-semibold shadow-sm transition-all duration-300 hover:scale-105 hover:shadow-lg ${statusColors[selectedJob?.statusName as keyof typeof statusColors] || "border-gray-300 bg-gradient-to-r from-gray-100 to-gray-200 text-gray-800 hover:from-gray-200 hover:to-gray-300"}`}
+                        >
+                          <span className="mr-1">⚡</span>
+                          {selectedJob?.statusName}
+                        </Badge>
+                      </div>
+                    </div>
                   </div>
                 </DialogTitle>
-                <DialogDescription>
-                  View and manage job order details and their associated
-                  services.
-                </DialogDescription>
               </div>
             </div>
           </DialogHeader>

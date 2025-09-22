@@ -52,18 +52,12 @@ export function PortExpensesTable({
       {
         accessorKey: "debitNoteNo",
         header: "Debit Note No",
-        cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("debitNoteNo") || "-"}</div>
-        ),
-        size: 120,
-        minSize: 100,
+        size: 160,
+        minSize: 140,
       },
       {
         accessorKey: "supplierName",
         header: "Supplier Name",
-        cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("supplierName") || "-"}</div>
-        ),
         size: 200,
         minSize: 150,
 
@@ -72,9 +66,6 @@ export function PortExpensesTable({
       {
         accessorKey: "chargeName",
         header: "Charge Name",
-        cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("chargeName") || "-"}</div>
-        ),
         size: 200,
         minSize: 150,
 
@@ -83,9 +74,6 @@ export function PortExpensesTable({
       {
         accessorKey: "quantity",
         header: "Quantity",
-        cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("quantity") || "0"}</div>
-        ),
         size: 100,
         minSize: 80,
         maxSize: 120,
@@ -93,9 +81,6 @@ export function PortExpensesTable({
       {
         accessorKey: "uomName",
         header: "UOM",
-        cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("uomName") || "-"}</div>
-        ),
         size: 100,
         minSize: 80,
         maxSize: 120,
@@ -135,18 +120,14 @@ export function PortExpensesTable({
       {
         accessorKey: "remarks",
         header: "Remarks",
-        cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("remarks") || "-"}</div>
-        ),
+
         size: 200,
         minSize: 150,
       },
       {
         accessorKey: "createBy",
         header: "Create By",
-        cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("createBy") || "-"}</div>
-        ),
+
         size: 120,
         minSize: 100,
       },
@@ -174,9 +155,7 @@ export function PortExpensesTable({
       {
         accessorKey: "editBy",
         header: "Edit By",
-        cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("editBy") || "-"}</div>
-        ),
+
         size: 120,
         minSize: 100,
       },

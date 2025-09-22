@@ -34,6 +34,7 @@ export default function ChargeAutocomplete<T extends Record<string, unknown>>({
   className,
   isRequired = false,
   onChangeEvent,
+  companyId,
 }: {
   form: UseFormReturn<T>
   name?: Path<T>
@@ -43,6 +44,7 @@ export default function ChargeAutocomplete<T extends Record<string, unknown>>({
   isDisabled?: boolean
   isRequired?: boolean
   onChangeEvent?: (selectedOption: IChargeLookup | null) => void
+  companyId?: number
 }) {
   const { data: allCharges = [], isLoading: isLoadingAll } = useChargeLookup(
     taskId || 0
