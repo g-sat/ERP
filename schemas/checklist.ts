@@ -7,8 +7,9 @@ export const JobOrderHdSchema = z
     jobOrderId: z.number(),
     jobOrderNo: z
       .string()
-      .min(1, "Job Order No is required")
-      .max(20, "Job Order No must be less than 20 characters"),
+      .max(20, "Job Order No must be less than 20 characters")
+      .optional()
+      .default(""),
     jobOrderDate: z
       .union([z.date(), z.string()])
       .refine(
@@ -70,8 +71,8 @@ export const JobOrderHdSchema = z
     invoiceNo: z.string().optional().default(""),
     invoiceDate: z.union([z.date(), z.string()]).optional(),
     seriesDate: z.union([z.date(), z.string()]).optional(),
-    addressId: z.number().optional(),
-    contactId: z.number().optional(),
+    addressId: z.number().min(1, "Address is required"),
+    contactId: z.number().min(1, "Contact is required"),
     remarks: z
       .string()
       .max(255, "Remarks must be less than 250 characters")

@@ -257,6 +257,7 @@ export function ChecklistMain({
                 name="customerId"
                 label="Customer"
                 isRequired={true}
+                isDisabled={isEdit}
                 onChangeEvent={(selectedCustomer) => {
                   // Reset address and contact when customer changes
                   if (selectedCustomer?.customerId !== customerId) {
@@ -311,12 +312,7 @@ export function ChecklistMain({
                 isRequired={true}
               />
 
-              <CustomInput
-                form={form}
-                name="jobOrderNo"
-                label="Job Order No"
-                isRequired={true}
-              />
+              <CustomInput form={form} name="jobOrderNo" label="Job Order No" />
               <VesselAutocomplete
                 form={form}
                 name="vesselId"

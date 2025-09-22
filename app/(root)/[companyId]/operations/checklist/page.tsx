@@ -6,7 +6,7 @@ import { toast } from "sonner"
 
 import { JobOrder } from "@/lib/api-routes"
 import { OperationsStatus } from "@/lib/operations-utils"
-import { cn } from "@/lib/utils"
+import { ModuleId, OperationsTransactionId, cn } from "@/lib/utils"
 import { searchJobOrdersDirect } from "@/hooks/use-checklist"
 import { useGetWithDates } from "@/hooks/use-common"
 import { Badge } from "@/components/ui/badge"
@@ -25,6 +25,9 @@ import { ChecklistTable } from "./components/checklist-table"
 import { ChecklistTabs } from "./components/checklist-tabs"
 
 export default function ChecklistPage() {
+  const moduleId = ModuleId.operations
+  const transactionId = OperationsTransactionId.checklist
+
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedStatus, setSelectedStatus] = useState("All")
   const [isLoading, setIsLoading] = useState(true)
@@ -195,150 +198,230 @@ export default function ChecklistPage() {
       {/* Header Section */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="space-y-1">
-          <h1 className="text-xl font-bold tracking-tight sm:text-3xl">
-            Checklist Management
-          </h1>
-          <p className="text-muted-foreground text-sm">
-            Manage job orders and checklists
-          </p>
+          <div className="flex items-center gap-3">
+            <div className="bg-primary/10 flex h-10 w-10 items-center justify-center rounded-full">
+              <span className="text-lg">📋</span>
+            </div>
+            <div>
+              <h1 className="text-xl font-bold tracking-tight sm:text-3xl">
+                Checklist Management
+              </h1>
+              <p className="text-muted-foreground text-sm">
+                Manage job orders and checklists efficiently
+              </p>
+            </div>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <Badge variant="outline" className="text-xs">
+            Total: {statusCounts.All}
+          </Badge>
+          {isRefetchingJobOrder && (
+            <div className="text-muted-foreground flex items-center gap-2 text-xs">
+              <div className="border-primary h-3 w-3 animate-spin rounded-full border-2 border-t-transparent"></div>
+              Updating...
+            </div>
+          )}
         </div>
       </div>
 
       {/* Enhanced Search and Filter Section */}
-      <div className="space-y-4">
-        {/* Basic Search Controls */}
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="bg-card rounded-lg border p-4 shadow-sm">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex flex-col gap-2 sm:flex-row sm:gap-2">
-            <Input
-              type="date"
-              value={startDate}
-              onChange={handleStartDateChange}
-              className="w-full sm:w-[180px]"
-            />
-            <Input
-              type="date"
-              value={endDate}
-              onChange={handleEndDateChange}
-              className="w-full sm:w-[180px]"
-            />
-            <Input
-              type="text"
-              placeholder="Search Jobs..."
-              value={searchQuery}
-              onChange={handleSearch}
-              className="w-full sm:w-[180px]"
-            />
-            <Button onClick={handleSearchClick} className="w-full sm:w-auto">
+            <div className="flex items-center gap-2">
+              <span className="text-muted-foreground text-xs">📅</span>
+              <Input
+                type="date"
+                value={startDate}
+                onChange={handleStartDateChange}
+                className="w-full sm:w-[160px]"
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-muted-foreground text-xs">📅</span>
+              <Input
+                type="date"
+                value={endDate}
+                onChange={handleEndDateChange}
+                className="w-full sm:w-[160px]"
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-muted-foreground text-xs">🔎</span>
+              <Input
+                type="text"
+                placeholder="Search Jobs..."
+                value={searchQuery}
+                onChange={handleSearch}
+                className="w-full sm:w-[180px]"
+              />
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <Button
+              onClick={handleSearchClick}
+              className="flex w-full items-center gap-2 sm:w-auto"
+            >
+              <span>🔍</span>
               <span className="hidden sm:inline">Search</span>
-              <span className="sm:hidden">Search</span>
             </Button>
             <Button
               variant="outline"
               onClick={handleClear}
-              className="w-full sm:w-auto"
+              className="flex w-full items-center gap-2 sm:w-auto"
             >
+              <span>🗑️</span>
               <span className="hidden sm:inline">Clear</span>
-              <span className="sm:hidden">Clear</span>
+            </Button>
+            <Button
+              variant="outline"
+              onClick={handleRefresh}
+              className="flex w-full items-center gap-2 sm:w-auto"
+            >
+              <span>🔄</span>
+              <span className="hidden sm:inline">Refresh</span>
             </Button>
           </div>
         </div>
       </div>
 
       {/* Status Tabs */}
-      <Tabs
-        value={selectedStatus}
-        onValueChange={handleStatusChange}
-        className="space-y-4"
-      >
-        <TabsList>
-          {[
-            { value: "All", count: statusCounts.All },
-            { value: "Pending", count: statusCounts.Pending },
-            { value: "Completed", count: statusCounts.Completed },
-            { value: "Cancelled", count: statusCounts.Cancelled },
-            {
-              value: "Cancel With Service",
-              count: statusCounts["Cancel With Service"],
-            },
-            { value: "Confirmed", count: statusCounts.Confirmed },
-            { value: "Posted", count: statusCounts.Posted },
-          ].map(({ value, count }) => (
-            <TabsTrigger
-              key={value}
-              value={value}
-              className="relative flex items-center space-x-1 px-2 py-2 text-xs sm:space-x-2 sm:px-4 sm:text-sm"
-            >
-              <span className="hidden sm:inline">{value}</span>
-              <span className="sm:hidden">{value.split(" ")[0]}</span>
-              <Badge
-                variant={
-                  count > 0
-                    ? value === "All"
-                      ? "default"
-                      : value === "Pending"
-                        ? "secondary"
-                        : value === "Confirmed"
-                          ? "default"
-                          : value === "Completed"
-                            ? "default"
-                            : value === "Cancelled"
-                              ? "destructive"
-                              : value === "Cancel With Service"
-                                ? "secondary"
-                                : "default"
-                    : "outline"
-                }
-                className={cn(
-                  "text-xs font-medium",
-                  // Custom colors for different statuses
-                  value === "Pending" &&
-                    count > 0 &&
-                    "bg-yellow-100 text-yellow-800 hover:bg-yellow-200",
-                  value === "Confirmed" &&
-                    count > 0 &&
-                    "bg-green-100 text-green-800 hover:bg-green-200",
-                  value === "Completed" &&
-                    count > 0 &&
-                    "bg-blue-100 text-blue-800 hover:bg-blue-200",
-                  value === "Cancelled" &&
-                    count > 0 &&
-                    "bg-red-100 text-black hover:bg-red-200",
-                  value === "Cancel With Service" &&
-                    count > 0 &&
-                    "bg-purple-100 text-purple-800 hover:bg-purple-200",
-                  value === "Posted" &&
-                    count > 0 &&
-                    "bg-cyan-100 text-cyan-800 hover:bg-cyan-800"
-                )}
+      <div>
+        <Tabs
+          value={selectedStatus}
+          onValueChange={handleStatusChange}
+          className="space-y-4"
+        >
+          <TabsList className="w-full">
+            {[
+              { value: "All", count: statusCounts.All, icon: "📋" },
+              { value: "Pending", count: statusCounts.Pending, icon: "⏳" },
+              { value: "Completed", count: statusCounts.Completed, icon: "✅" },
+              { value: "Cancelled", count: statusCounts.Cancelled, icon: "❌" },
+              {
+                value: "Cancel With Service",
+                count: statusCounts["Cancel With Service"],
+                icon: "⚠️",
+              },
+              { value: "Confirmed", count: statusCounts.Confirmed, icon: "✔️" },
+              { value: "Posted", count: statusCounts.Posted, icon: "📤" },
+            ].map(({ value, count, icon }) => (
+              <TabsTrigger
+                key={value}
+                value={value}
+                className="relative flex flex-col items-center space-y-1 px-2 py-3 text-xs sm:flex-row sm:space-y-0 sm:space-x-2 sm:px-4 sm:text-sm"
               >
-                {count}
-              </Badge>
-            </TabsTrigger>
-          ))}
-        </TabsList>
-      </Tabs>
+                <div className="flex items-center gap-1">
+                  <span className="text-xs">{icon}</span>
+                  <span className="hidden sm:inline">{value}</span>
+                  <span className="sm:hidden">{value.split(" ")[0]}</span>
+                </div>
+                <Badge
+                  variant={
+                    count > 0
+                      ? value === "All"
+                        ? "default"
+                        : value === "Pending"
+                          ? "secondary"
+                          : value === "Confirmed"
+                            ? "default"
+                            : value === "Completed"
+                              ? "default"
+                              : value === "Cancelled"
+                                ? "destructive"
+                                : value === "Cancel With Service"
+                                  ? "secondary"
+                                  : "default"
+                      : "outline"
+                  }
+                  className={cn(
+                    "text-xs font-medium",
+                    // Custom colors for different statuses
+                    value === "Pending" &&
+                      count > 0 &&
+                      "bg-yellow-100 text-yellow-800 hover:bg-yellow-200",
+                    value === "Confirmed" &&
+                      count > 0 &&
+                      "bg-green-100 text-green-800 hover:bg-green-200",
+                    value === "Completed" &&
+                      count > 0 &&
+                      "bg-blue-100 text-blue-800 hover:bg-blue-200",
+                    value === "Cancelled" &&
+                      count > 0 &&
+                      "bg-red-100 text-red-800 hover:bg-red-200",
+                    value === "Cancel With Service" &&
+                      count > 0 &&
+                      "bg-purple-100 text-purple-800 hover:bg-purple-200",
+                    value === "Posted" &&
+                      count > 0 &&
+                      "bg-cyan-100 text-cyan-800 hover:bg-cyan-200"
+                  )}
+                >
+                  {count}
+                </Badge>
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </Tabs>
+      </div>
 
       {/* Data Table */}
-      <>
+      <div className="bg-card rounded-lg border shadow-sm">
         {isLoading || isLoadingJobOrder ? (
-          <DataTableSkeleton columnCount={13} />
+          <div className="p-6">
+            <div className="mb-4 flex items-center gap-2">
+              <span className="text-sm">⏳</span>
+              <span className="text-sm font-medium">Loading Data</span>
+            </div>
+            <DataTableSkeleton columnCount={13} />
+          </div>
         ) : jobOrderError ? (
-          <div className="flex items-center justify-center p-8 text-red-600">
-            <p>Error loading job orders. Please try refreshing the page.</p>
+          <div className="flex flex-col items-center justify-center p-8 text-center">
+            <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/20">
+              <span className="text-2xl">❌</span>
+            </div>
+            <h3 className="mb-2 text-lg font-semibold text-red-600">
+              Loading Failed
+            </h3>
+            <p className="text-muted-foreground mb-4 text-sm">
+              Unable to load job orders. Please check your connection and try
+              again.
+            </p>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                onClick={handleRefresh}
+                className="flex items-center gap-2"
+              >
+                <span>🔄</span>
+                Refresh Page
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={() => window.location.reload()}
+                className="flex items-center gap-2"
+              >
+                <span>🔄</span>
+                Reload Page
+              </Button>
+            </div>
           </div>
         ) : (
-          <ChecklistTable
-            data={apiData}
-            isLoading={isRefetchingJobOrder}
-            selectedStatus={selectedStatus}
-            moduleId={1}
-            transactionId={1}
-            onCreate={handleAddNew}
-            onRefresh={handleRefresh}
-            //onEditJob={handleEditJob}
-          />
+          <div className="p-4">
+            <ChecklistTable
+              data={apiData}
+              isLoading={isRefetchingJobOrder}
+              selectedStatus={selectedStatus}
+              moduleId={moduleId}
+              transactionId={transactionId}
+              onCreate={handleAddNew}
+              onRefresh={handleRefresh}
+              //onEditJob={handleEditJob}
+            />
+          </div>
         )}
-      </>
+      </div>
 
       {/* Job Order Form Dialog */}
       <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
@@ -349,9 +432,17 @@ export default function ChecklistPage() {
           }}
         >
           <DialogHeader className="flex items-center justify-between">
-            <DialogTitle>
-              {isEditMode ? "Edit Job Order" : "Add Job Order"}
-            </DialogTitle>
+            <div className="flex items-center gap-3">
+              <div className="bg-primary/10 flex h-8 w-8 items-center justify-center rounded-full">
+                <span className="text-sm">{isEditMode ? "✏️" : "➕"}</span>
+              </div>
+              <DialogTitle className="text-lg font-semibold">
+                {"Job Order Details"}{" "}
+                <Badge variant="outline" className="text-xs">
+                  {selectedJobData ? "Edit Mode" : "Create Mode"}
+                </Badge>
+              </DialogTitle>
+            </div>
           </DialogHeader>
           {selectedJobData ? (
             <ChecklistTabs
