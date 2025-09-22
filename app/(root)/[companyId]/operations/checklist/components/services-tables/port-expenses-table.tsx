@@ -251,7 +251,7 @@ export function PortExpensesTable({
       isLoading={isLoading}
       moduleId={moduleId}
       transactionId={transactionId}
-      tableName={TableName.port_expenses}
+      tableName={TableName.portExpense}
       emptyMessage="No port expenses found."
       accessorId="portExpenseId"
       onRefresh={onRefresh}

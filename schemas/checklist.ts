@@ -5,7 +5,10 @@ import { Task } from "@/lib/operations-utils"
 export const JobOrderHdSchema = z
   .object({
     jobOrderId: z.number(),
-    jobOrderNo: z.string().min(1, "Job Order No is required"),
+    jobOrderNo: z
+      .string()
+      .min(1, "Job Order No is required")
+      .max(20, "Job Order No must be less than 20 characters"),
     jobOrderDate: z
       .union([z.date(), z.string()])
       .refine(
@@ -13,31 +16,67 @@ export const JobOrderHdSchema = z
         "Job Order Date is required"
       ),
     customerId: z.number().min(1, "Customer is required"),
-    currencyId: z.number().optional(),
-    exhRate: z.number().optional(),
+    currencyId: z.number().min(1, "Currency is required"),
+    exhRate: z.number().min(0, "Exchange rate must be 0 or greater"),
     vesselId: z.number().min(1, "Vessel is required"),
-    imoCode: z.string().optional(),
+    imoCode: z
+      .string()
+      .max(10, "IMO Code must be less than 10 characters")
+      .optional()
+      .default(""),
     vesselDistance: z.number().min(0, "Vessel Distance must be 0 or greater"),
     portId: z.number().min(1, "Port is required"),
     lastPortId: z.number().optional(),
     nextPortId: z.number().optional(),
     voyageId: z.number().optional(),
-    natureOfCall: z.string().optional(),
-    isps: z.string().optional(),
+    natureOfCall: z
+      .string()
+      .max(50, "Nature of Call must be less than 50 characters")
+      .optional()
+      .default(""),
+    isps: z
+      .string()
+      .max(20, "ISPS must be less than 20 characters")
+      .optional()
+      .default(""),
     etaDate: z.union([z.date(), z.string()]).optional(),
     etdDate: z.union([z.date(), z.string()]).optional(),
-    ownerName: z.string().optional(),
-    ownerAgent: z.string().optional(),
-    masterName: z.string().optional(),
-    charters: z.string().optional(),
-    chartersAgent: z.string().optional(),
-    invoiceId: z.number().optional(),
-    invoiceNo: z.string().optional(),
+    ownerName: z
+      .string()
+      .max(200, "Owner Name must be less than 200 characters")
+      .optional()
+      .default(""),
+    ownerAgent: z
+      .string()
+      .max(200, "Owner Agent must be less than 200 characters")
+      .optional()
+      .default(""),
+    masterName: z
+      .string()
+      .max(200, "Master Name must be less than 200 characters")
+      .optional()
+      .default(""),
+    charters: z
+      .string()
+      .max(200, "Charters must be less than 200 characters")
+      .optional()
+      .default(""),
+    chartersAgent: z
+      .string()
+      .max(200, "Charters Agent must be less than 200 characters")
+      .optional()
+      .default(""),
+    invoiceId: z.number().optional().default(0),
+    invoiceNo: z.string().optional().default(""),
     invoiceDate: z.union([z.date(), z.string()]).optional(),
     seriesDate: z.union([z.date(), z.string()]).optional(),
     addressId: z.number().optional(),
     contactId: z.number().optional(),
-    remarks: z.string().optional(),
+    remarks: z
+      .string()
+      .max(255, "Remarks must be less than 250 characters")
+      .optional()
+      .default(""),
     statusId: z.number().min(1, "Status is required"),
     gstId: z.number().optional(),
     gstPercentage: z.number().optional(),

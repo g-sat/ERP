@@ -971,7 +971,7 @@ export const Checklist = {
 // Job Order Endpoints
 export const JobOrder = {
   get: "/operations/getjoborder",
-  getByIdNo: "/operations/GetjoborderbyIdNo",
+  getById: "/operations/getjoborderbyid",
   add: "/operations/savejoborder",
   delete: "/operations/deletejoborder",
   getDetails: "/operations/getdetails",

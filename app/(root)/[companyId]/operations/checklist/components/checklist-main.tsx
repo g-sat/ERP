@@ -262,7 +262,10 @@ export function ChecklistMain({
                   if (selectedCustomer?.customerId !== customerId) {
                     form.setValue("addressId", 0)
                     form.setValue("contactId", 0)
-                    form.setValue("currencyId", selectedCustomer?.currencyId)
+                    form.setValue(
+                      "currencyId",
+                      selectedCustomer?.currencyId ?? 0
+                    )
 
                     // Trigger currency change to update exchange rate
                     if (selectedCustomer?.currencyId) {

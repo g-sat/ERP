@@ -12,7 +12,7 @@ export function useGetJobOrders(filters?: string) {
 }
 
 export function useGetJobOrderById(id: string) {
-  return useGetById<IJobOrderHd>(JobOrder.getByIdNo, "joborder", id)
+  return useGetById<IJobOrderHd>(JobOrder.getById, "joborder", id)
 }
 
 export function useGetJobOrderByIdNo(jobOrderId: string) {
@@ -25,7 +25,7 @@ export function useGetJobOrderByIdNo(jobOrderId: string) {
     queryKey: ["joborder", jobOrderId],
     queryFn: async () => {
       // Using the api-client.ts getData function for consistent API calls
-      const data = await getData(`${JobOrder.getByIdNo}/${jobOrderId}`)
+      const data = await getData(`${JobOrder.getById}/${jobOrderId}`)
       console.log("Job order details response:", data)
       return data
     },
@@ -121,7 +121,7 @@ export const deleteJobOrderDirect = async (jobOrderId: string) => {
 
 export const getJobOrderByIdNoDirect = async (jobOrderId: string) => {
   try {
-    const response = await getData(`${JobOrder.getByIdNo}/${jobOrderId}`)
+    const response = await getData(`${JobOrder.getById}/${jobOrderId}`)
     return response
   } catch (error) {
     console.error("Error fetching job order by ID:", error)
