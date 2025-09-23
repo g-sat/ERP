@@ -132,7 +132,11 @@ export const AgencyRemunerationSchema = z.object({
   debitNoteId: z.number().default(0),
   debitNoteNo: z.string().default(""),
   statusId: z.number().min(1, "Status is required"),
-  remarks: z.string().default(""),
+  remarks: z
+    .string()
+    .max(500, "Remarks must be less than 500 characters")
+    .optional()
+    .default(""),
 })
 
 export type AgencyRemunerationFormValues = z.infer<
@@ -171,7 +175,11 @@ export const ConsignmentExportSchema = z.object({
     .default(0),
   refundInstrumentNo: z.string().default(""),
   statusId: z.number().min(1, "Status is required"),
-  remarks: z.string().default(""),
+  remarks: z
+    .string()
+    .max(500, "Remarks must be less than 500 characters")
+    .optional()
+    .default(""),
   debitNoteId: z.number().default(0),
   debitNoteNo: z.string().default(""),
 })
@@ -212,7 +220,11 @@ export const ConsignmentImportSchema = z.object({
     .default(0),
   refundInstrumentNo: z.string().default(""),
   statusId: z.number().min(1, "Status is required"),
-  remarks: z.string().default(""),
+  remarks: z
+    .string()
+    .max(500, "Remarks must be less than 500 characters")
+    .optional()
+    .default(""),
   debitNoteId: z.number().default(0),
   debitNoteNo: z.string().default(""),
 })
@@ -232,7 +244,11 @@ export const CrewMiscellaneousSchema = z.object({
   glId: z.number().min(1, "GL Account is required"),
   quantity: z.number().min(0, "Quantity must be 0 or greater").default(0),
   chargeId: z.number().default(0),
-  remarks: z.string().default(""),
+  remarks: z
+    .string()
+    .max(500, "Remarks must be less than 500 characters")
+    .optional()
+    .default(""),
   statusId: z.number().min(1, "Status is required"),
 })
 
@@ -262,7 +278,11 @@ export const CrewSignOffSchema = z.object({
   overStayRemark: z.string().optional().default(""),
   modificationRemark: z.string().optional().default(""),
   cidClearance: z.string().optional().default(""),
-  remarks: z.string().default(""),
+  remarks: z
+    .string()
+    .max(500, "Remarks must be less than 500 characters")
+    .optional()
+    .default(""),
 })
 
 export type CrewSignOffFormValues = z.infer<typeof CrewSignOffSchema>
@@ -289,7 +309,11 @@ export const CrewSignOnSchema = z.object({
   overStayRemark: z.string().optional().default(""),
   modificationRemark: z.string().optional().default(""),
   cidClearance: z.string().optional().default(""),
-  remarks: z.string().default(""),
+  remarks: z
+    .string()
+    .max(500, "Remarks must be less than 500 characters")
+    .optional()
+    .default(""),
 })
 
 export type CrewSignOnFormValues = z.infer<typeof CrewSignOnSchema>
@@ -333,7 +357,11 @@ export const LandingItemsSchema = z.object({
   uomId: z.number().min(1, "UOM is required"),
   returnDate: z.string().default(""),
   statusId: z.number().min(1, "Status is required"),
-  remarks: z.string().default(""),
+  remarks: z
+    .string()
+    .max(500, "Remarks must be less than 500 characters")
+    .optional()
+    .default(""),
   debitNoteId: z.number().default(0),
   debitNoteNo: z.string().default(""),
 })
@@ -355,7 +383,11 @@ export const MedicalAssistanceSchema = z.object({
   dischargedDate: z.union([z.string(), z.date()]).default(""),
   visaTypeId: z.number().default(0),
   statusId: z.number().min(1, "Status is required"),
-  remarks: z.string().default(""),
+  remarks: z
+    .string()
+    .max(500, "Remarks must be less than 500 characters")
+    .optional()
+    .default(""),
   debitNoteId: z.number().default(0),
   debitNoteNo: z.string().default(""),
 })
@@ -379,7 +411,11 @@ export const OtherServiceSchema = z.object({
   statusId: z.number().min(1, "Status is required"),
   debitNoteId: z.number().default(0),
   debitNoteNo: z.string().default(""),
-  remarks: z.string().default(""),
+  remarks: z
+    .string()
+    .max(500, "Remarks must be less than 500 characters")
+    .optional()
+    .default(""),
 })
 
 export type OtherServiceFormValues = z.infer<typeof OtherServiceSchema>
@@ -395,9 +431,14 @@ export const PortExpensesSchema = z.object({
   uomId: z.number().min(1, "UOM is required"),
   deliverDate: z.string().min(1, "Deliver Date is required"),
   glId: z.number().min(1, "GL Account is required"),
-  debitNoteId: z.number().default(0),
-  debitNoteNo: z.string().default(""),
-  remarks: z.string().default(""),
+  debitNoteId: z.number().optional().default(0),
+  debitNoteNo: z.string().optional().default(""),
+  remarks: z
+    .string()
+    .max(500, "Remarks must be less than 500 characters")
+    .optional()
+    .default(""),
+  editVersion: z.number().default(0),
 })
 
 export type PortExpensesFormValues = z.infer<typeof PortExpensesSchema>
@@ -466,7 +507,11 @@ export const EquipmentUsedSchema = z.object({
   forkliftOffloading: z.number().optional().default(0),
   stevedoreOffloading: z.number().optional().default(0),
   launchServiceId: z.number().optional().default(0),
-  remarks: z.string().default(""),
+  remarks: z
+    .string()
+    .max(500, "Remarks must be less than 500 characters")
+    .optional()
+    .default(""),
   statusId: z.number().min(1, "Status is required"),
   isEquimentFooter: z.boolean().default(false),
   equimentFooter: z.string().optional().default(""),
@@ -493,9 +538,14 @@ export const TechnicianSurveyorSchema = z.object({
   disembarked: z.union([z.string(), z.date()]).default(""),
   portRequestNo: z.string().default(""),
   statusId: z.number().min(1, "Status is required"),
-  remarks: z.string().default(""),
+  remarks: z
+    .string()
+    .max(500, "Remarks must be less than 500 characters")
+    .optional()
+    .default(""),
   debitNoteId: z.number().default(0),
   debitNoteNo: z.string().default(""),
+  editVersion: z.number().default(0),
 })
 
 export type TechnicianSurveyorFormValues = z.infer<
@@ -509,7 +559,11 @@ export const ThirdPartySchema = z.object({
   taskId: z.number().min(1, "Task ID is required"),
   debitNoteId: z.number().default(0),
   debitNoteNo: z.string().default(""),
-  remarks: z.string().default(""),
+  remarks: z
+    .string()
+    .max(500, "Remarks must be less than 500 characters")
+    .optional()
+    .default(""),
   quantity: z.number().min(0, "Quantity must be 0 or greater").default(0),
   glId: z.number().min(1, "GL Account is required"),
   chargeId: z.number().min(1, "Charge is required"),
@@ -518,6 +572,7 @@ export const ThirdPartySchema = z.object({
   supplierMobileNumber: z.string().default(""),
   uomId: z.number().min(1, "UOM is required"),
   deliverDate: z.union([z.string(), z.date()]).default(""),
+  editVersion: z.number().default(0),
 })
 
 export type ThirdPartyFormValues = z.infer<typeof ThirdPartySchema>
@@ -591,7 +646,11 @@ export const DebitNoteDtSchema = z.object({
     .number()
     .min(0, "Total after GST must be 0 or greater")
     .default(0),
-  remarks: z.string().default(""),
+  remarks: z
+    .string()
+    .max(500, "Remarks must be less than 500 characters")
+    .optional()
+    .default(""),
   editVersion: z
     .number()
     .min(0, "Edit version must be 0 or greater")

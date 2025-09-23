@@ -14,6 +14,7 @@ import { useChartofAccountLookup, useSupplierLookup } from "@/hooks/use-lookup"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Form } from "@/components/ui/form"
+import { FormLoadingSpinner } from "@/components/loading-spinner"
 import ChargeAutocomplete from "@/components/ui-custom/autocomplete-charge"
 import ChartOfAccountAutocomplete from "@/components/ui-custom/autocomplete-chartofaccount"
 import StatusTaskAutocomplete from "@/components/ui-custom/autocomplete-status-task"
@@ -52,16 +53,21 @@ export function PortExpensesForm({
   const dateFormat = decimals[0]?.dateFormat || "dd/MM/yyyy"
 
   // Get chart of account data to ensure it's loaded before setting form values
-  useChartofAccountLookup(Number(jobData.companyId))
+  const { isLoading: isChartOfAccountLoading } = useChartofAccountLookup(
+    Number(jobData.companyId)
+  )
 
   // Get supplier data to ensure it's loaded before setting form values
-  useSupplierLookup()
+  const { isLoading: isSupplierLoading } = useSupplierLookup()
 
   console.log("taskDefaults :", taskDefaults)
   console.log("deliverDate :", initialData?.deliverDate)
-  console.log("deliverDate :", parseDate(initialData?.deliverDate as string))
   console.log(
-    "deliverDate :",
+    "deliverDate format :",
+    parseDate(initialData?.deliverDate as string)
+  )
+  console.log(
+    "deliverDate format initial data :",
     format(
       parseDate(initialData?.deliverDate as string) || new Date(),
       dateFormat
@@ -89,35 +95,60 @@ export function PortExpensesForm({
       debitNoteId: initialData?.debitNoteId ?? 0,
       debitNoteNo: initialData?.debitNoteNo ?? "",
       remarks: initialData?.remarks ?? "",
+      editVersion: initialData?.editVersion ?? 0,
     },
   })
 
+  console.log("deliverDate format form :", form.getValues("deliverDate"))
+  console.log("forms : ", form.getValues())
+
   useEffect(() => {
-    form.reset({
-      portExpenseId: initialData?.portExpenseId ?? 0,
-      jobOrderId: jobData.jobOrderId,
-      jobOrderNo: jobData.jobOrderNo,
-      quantity: initialData?.quantity ?? 1,
-      supplierId: initialData?.supplierId ?? 0,
-      // Use task defaults when no initial data
-      chargeId: initialData?.chargeId ?? taskDefaults.chargeId ?? 0,
-      statusId: initialData?.statusId ?? taskDefaults.statusTypeId ?? 802,
-      uomId: initialData?.uomId ?? taskDefaults.uomId ?? 0,
-      glId: initialData?.glId ?? taskDefaults.glId ?? 0,
-      deliverDate: initialData?.deliverDate
-        ? format(
-            parseDate(initialData.deliverDate as string) || new Date(),
-            clientDateFormat
-          )
-        : format(new Date(), clientDateFormat),
-      debitNoteId: initialData?.debitNoteId ?? 0,
-      debitNoteNo: initialData?.debitNoteNo ?? "",
-      remarks: initialData?.remarks ?? "",
-    })
-  }, [initialData, taskDefaults, form, jobData.jobOrderId, jobData.jobOrderNo])
+    // Only reset form when data is loaded to prevent race conditions
+    if (!isChartOfAccountLoading && !isSupplierLoading) {
+      form.reset({
+        portExpenseId: initialData?.portExpenseId ?? 0,
+        jobOrderId: jobData.jobOrderId,
+        jobOrderNo: jobData.jobOrderNo,
+        quantity: initialData?.quantity ?? 1,
+        supplierId: initialData?.supplierId ?? 0,
+        // Use task defaults when no initial data
+        chargeId: initialData?.chargeId ?? taskDefaults.chargeId ?? 0,
+        statusId: initialData?.statusId ?? taskDefaults.statusTypeId ?? 802,
+        uomId: initialData?.uomId ?? taskDefaults.uomId ?? 0,
+        glId: initialData?.glId ?? taskDefaults.glId ?? 0,
+        deliverDate: initialData?.deliverDate
+          ? format(
+              parseDate(initialData.deliverDate as string) || new Date(),
+              clientDateFormat
+            )
+          : format(new Date(), clientDateFormat),
+        debitNoteId: initialData?.debitNoteId ?? 0,
+        debitNoteNo: initialData?.debitNoteNo ?? "",
+        remarks: initialData?.remarks ?? "",
+        editVersion: initialData?.editVersion ?? 0,
+      })
+    }
+  }, [
+    initialData,
+    taskDefaults,
+    form,
+    jobData.jobOrderId,
+    jobData.jobOrderNo,
+    isChartOfAccountLoading,
+    isSupplierLoading,
+  ])
 
   const onSubmit = (data: PortExpensesFormValues) => {
     submitAction(data)
+  }
+
+  // Show loading state while data is being fetched
+  if (isChartOfAccountLoading || isSupplierLoading) {
+    return (
+      <div className="max-w flex flex-col gap-2">
+        <FormLoadingSpinner text="Loading form data..." />
+      </div>
+    )
   }
 
   return (
@@ -198,77 +229,95 @@ export function PortExpensesForm({
                 initialData.createDate ||
                 initialData.editBy ||
                 initialData.editDate) && (
-                <div className="space-y-6 pt-6">
-                  <div className="border-border border-b pb-4"></div>
-
-                  <CustomAccordion
-                    type="single"
-                    collapsible
-                    className="border-border bg-muted/50 rounded-lg border"
-                  >
-                    <CustomAccordionItem
-                      value="audit-info"
-                      className="border-none"
+                <div className="space-y-3 pt-4">
+                  <div className="border-t pt-4">
+                    <CustomAccordion
+                      type="single"
+                      collapsible
+                      className="bg-muted/30 rounded-lg border-0"
                     >
-                      <CustomAccordionTrigger className="hover:bg-muted rounded-lg px-6 py-4">
-                        <div className="flex items-center gap-2">
-                          <span className="font-medium">View Audit Trail</span>
-                          <Badge variant="secondary" className="text-xs">
-                            {initialData.createDate ? "Created" : ""}
-                            {initialData.editDate ? " • Modified" : ""}
-                          </Badge>
-                        </div>
-                      </CustomAccordionTrigger>
-                      <CustomAccordionContent className="px-6 pb-4">
-                        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                          {initialData.createDate && (
-                            <div className="space-y-2">
-                              <div className="flex items-center justify-between">
-                                <span className="text-foreground text-sm font-medium">
-                                  Created By
-                                </span>
+                      <CustomAccordionItem
+                        value="audit-info"
+                        className="border-none"
+                      >
+                        <CustomAccordionTrigger className="hover:bg-muted/50 rounded-lg px-4 py-3">
+                          <div className="flex items-center gap-3">
+                            <span className="text-sm font-medium">
+                              Audit Trail
+                            </span>
+                            <div className="flex items-center gap-2">
+                              {initialData.createDate && (
                                 <Badge
-                                  variant="outline"
-                                  className="font-normal"
+                                  variant="secondary"
+                                  className="px-2 py-1 text-xs"
                                 >
-                                  {initialData.createBy}
+                                  Created
                                 </Badge>
-                              </div>
-                              <div className="text-muted-foreground text-sm">
-                                {format(
-                                  new Date(initialData.createDate),
-                                  datetimeFormat
-                                )}
-                              </div>
+                              )}
+                              {initialData.editDate && (
+                                <Badge
+                                  variant="secondary"
+                                  className="px-2 py-1 text-xs"
+                                >
+                                  Modified
+                                </Badge>
+                              )}
+                              {initialData.editVersion > 0 && (
+                                <Badge
+                                  variant="destructive"
+                                  className="px-2 py-1 text-xs"
+                                >
+                                  Edit Version No. {initialData.editVersion}
+                                </Badge>
+                              )}
                             </div>
-                          )}
-                          {initialData.editBy && (
-                            <div className="space-y-2">
-                              <div className="flex items-center justify-between">
-                                <span className="text-foreground text-sm font-medium">
-                                  Last Modified By
-                                </span>
-                                <Badge
-                                  variant="outline"
-                                  className="font-normal"
-                                >
-                                  {initialData.editBy}
-                                </Badge>
-                              </div>
-                              <div className="text-muted-foreground text-sm">
-                                {initialData.editDate
-                                  ? format(
-                                      new Date(initialData.editDate),
+                          </div>
+                        </CustomAccordionTrigger>
+                        <CustomAccordionContent className="px-4 pb-4">
+                          <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                            {initialData.createDate && (
+                              <div className="bg-background rounded-md border p-2">
+                                <div className="space-y-1">
+                                  <p className="text-muted-foreground text-xs">
+                                    Created By
+                                  </p>
+                                  <p className="text-sm font-semibold">
+                                    {initialData.createBy}
+                                  </p>
+                                  <p className="text-muted-foreground text-xs">
+                                    {format(
+                                      new Date(initialData.createDate),
                                       datetimeFormat
-                                    )
-                                  : "-"}
+                                    )}
+                                  </p>
+                                </div>
                               </div>
-                            </div>
-                          )}
-                        </div>
-                      </CustomAccordionContent>
-                    </CustomAccordionItem>
-                  </CustomAccordion>
+                            )}
+                            {initialData.editBy && (
+                              <div className="bg-background rounded-md border p-2">
+                                <div className="space-y-1">
+                                  <p className="text-muted-foreground text-xs">
+                                    Modified By
+                                  </p>
+                                  <p className="text-sm font-semibold">
+                                    {initialData.editBy}
+                                  </p>
+                                  <p className="text-muted-foreground text-xs">
+                                    {initialData.editDate
+                                      ? format(
+                                          new Date(initialData.editDate),
+                                          datetimeFormat
+                                        )
+                                      : "-"}
+                                  </p>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </CustomAccordionContent>
+                      </CustomAccordionItem>
+                    </CustomAccordion>
+                  </div>
                 </div>
               )}
           </div>

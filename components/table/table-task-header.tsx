@@ -16,13 +16,6 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
-import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
@@ -30,6 +23,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
+import { DebitNoteConfirmation } from "@/components/debitnote-confirmation"
 
 // Define types for clarity
 type TaskTableHeaderProps<TData> = {
@@ -375,45 +369,16 @@ export function TaskTableHeader<TData>({
         </div>
       </div>
 
-      {/* Debit Note Confirmation Dialog */}
-      <Dialog
+      {/* Debit Note Confirmation */}
+      <DebitNoteConfirmation
         open={showDebitNoteConfirmation}
         onOpenChange={setShowDebitNoteConfirmation}
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>
-              {hasValidDebitNoteIds
-                ? "Open Existing Debit Note"
-                : "Create Debit Note"}
-            </DialogTitle>
-            <DialogDescription>
-              {hasValidDebitNoteIds
-                ? "Selected items have existing debit notes. Do you want to open the existing debit note?"
-                : "Do you want to create a debit note?"}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="flex justify-end space-x-2">
-            <Button
-              variant="outline"
-              onClick={handleCancelDebitNote}
-              title="Cancel debit note operation"
-            >
-              No
-            </Button>
-            <Button
-              onClick={handleConfirmDebitNote}
-              title={
-                hasValidDebitNoteIds
-                  ? "Open existing debit note"
-                  : "Create new debit note"
-              }
-            >
-              {hasValidDebitNoteIds ? "Open" : "Yes"}
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+        itemName={`${selectedRowsCount} selected item${selectedRowsCount !== 1 ? "s" : ""}`}
+        hasExistingDebitNote={hasValidDebitNoteIds}
+        onConfirm={handleConfirmDebitNote}
+        onCancel={handleCancelDebitNote}
+        isCreating={false} // You can add loading state here if needed
+      />
     </>
   )
 }

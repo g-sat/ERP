@@ -11,6 +11,7 @@ import { ModuleId, OperationsTransactionId } from "@/lib/utils"
 import { useGetById } from "@/hooks/use-common"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { PageLoadingSpinner } from "@/components/loading-spinner"
 
 import { AgencyRemunerationTab } from "./services-tabs/agency-remuneration-tab"
 import { ConsignmentExportTab } from "./services-tabs/consignment-export-tab"
@@ -57,15 +58,51 @@ export function ChecklistDetailsForm({
   const transactionId = OperationsTransactionId.job_order
 
   // Data fetching
+  console.log("jobData.jobOrderId:", jobData.jobOrderId)
+  const jobOrderIdString = `${jobData.jobOrderId || ""}`
+  console.log("jobOrderIdString:", jobOrderIdString)
+
   const {
     data: response,
     isLoading,
     refetch,
+    isError,
+    error,
   } = useGetById<ITaskDetails>(
     `${JobOrder.getTaskCount}`,
     "taskCount",
-    `${jobData.jobOrderId || ""}`
+    jobOrderIdString
   )
+
+  console.log(
+    "Query state - isLoading:",
+    isLoading,
+    "isError:",
+    isError,
+    "error:",
+    error
+  )
+  console.log("Response:", response)
+
+  // Force refetch when jobOrderId becomes available or when component mounts
+  useEffect(() => {
+    if (jobData.jobOrderId) {
+      console.log("JobOrderId available, forcing refetch...")
+      // Invalidate the query cache to force fresh data
+      queryClient.invalidateQueries({
+        queryKey: ["taskCount", jobOrderIdString],
+      })
+      refetch()
+    }
+  }, [jobData.jobOrderId, queryClient, jobOrderIdString, refetch])
+
+  // Also refetch on component mount to ensure fresh data
+  useEffect(() => {
+    if (jobData.jobOrderId) {
+      console.log("Component mounted, ensuring fresh data...")
+      refetch()
+    }
+  }, [jobData.jobOrderId, refetch]) // Include dependencies to avoid warnings
 
   // Handle both array and single object responses
   const rawData = response?.data
@@ -91,6 +128,37 @@ export function ChecklistDetailsForm({
   }
 
   console.log("Task count data:", data)
+
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="@container w-full space-y-2">
+        <PageLoadingSpinner text="Loading task counts..." />
+      </div>
+    )
+  }
+
+  // Show error state
+  if (isError) {
+    return (
+      <div className="@container w-full space-y-2">
+        <div className="flex items-center justify-center p-8">
+          <div className="text-center">
+            <p className="text-destructive mb-2 text-sm">
+              Failed to load task counts
+            </p>
+            <button
+              onClick={() => refetch()}
+              className="text-primary text-xs hover:underline"
+            >
+              Retry
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="@container w-full space-y-2">
       <Tabs
@@ -437,39 +505,6 @@ export function ChecklistDetailsForm({
               </TabsTrigger>
             </TabsList>
           </div>
-
-          {/* Summary Section */}
-          {data && (
-            <div className="mt-4 rounded-lg border bg-gradient-to-r from-blue-50 to-purple-50 p-3 dark:from-blue-950/20 dark:to-purple-950/20">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm">📊</span>
-                  <span className="text-sm font-medium">Task Summary</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Badge variant="outline" className="text-xs">
-                    Total Tasks:{" "}
-                    {Object.values(data).reduce(
-                      (sum, count) => sum + (count || 0),
-                      0
-                    )}
-                  </Badge>
-                  <Badge
-                    variant={
-                      Object.values(data).some((count) => count > 0)
-                        ? "destructive"
-                        : "default"
-                    }
-                    className="text-xs"
-                  >
-                    {Object.values(data).some((count) => count > 0)
-                      ? "Has Tasks"
-                      : "No Tasks"}
-                  </Badge>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
 
         <div className="bg-card rounded-lg border shadow-sm">
