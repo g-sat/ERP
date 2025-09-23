@@ -137,6 +137,7 @@ export const AgencyRemunerationSchema = z.object({
     .max(500, "Remarks must be less than 500 characters")
     .optional()
     .default(""),
+  editVersion: z.number().default(0),
 })
 
 export type AgencyRemunerationFormValues = z.infer<
@@ -182,6 +183,7 @@ export const ConsignmentExportSchema = z.object({
     .default(""),
   debitNoteId: z.number().default(0),
   debitNoteNo: z.string().default(""),
+  editVersion: z.number().default(0),
 })
 
 export type ConsignmentExportFormValues = z.infer<
@@ -227,6 +229,7 @@ export const ConsignmentImportSchema = z.object({
     .default(""),
   debitNoteId: z.number().default(0),
   debitNoteNo: z.string().default(""),
+  editVersion: z.number().default(0),
 })
 
 export type ConsignmentImportFormValues = z.infer<
@@ -250,6 +253,7 @@ export const CrewMiscellaneousSchema = z.object({
     .optional()
     .default(""),
   statusId: z.number().min(1, "Status is required"),
+  editVersion: z.number().default(0),
 })
 
 export type CrewMiscellaneousFormValues = z.infer<
@@ -283,6 +287,7 @@ export const CrewSignOffSchema = z.object({
     .max(500, "Remarks must be less than 500 characters")
     .optional()
     .default(""),
+  editVersion: z.number().default(0),
 })
 
 export type CrewSignOffFormValues = z.infer<typeof CrewSignOffSchema>
@@ -314,6 +319,7 @@ export const CrewSignOnSchema = z.object({
     .max(500, "Remarks must be less than 500 characters")
     .optional()
     .default(""),
+  editVersion: z.number().default(0),
 })
 
 export type CrewSignOnFormValues = z.infer<typeof CrewSignOnSchema>
@@ -337,6 +343,7 @@ export const FreshWaterSchema = z.object({
   debitNoteNo: z.string().optional().default(""),
   remarks: z.string().optional().default(""),
   statusId: z.number().min(1, "Status is required"),
+  editVersion: z.number().default(0),
 })
 
 export type FreshWaterFormValues = z.infer<typeof FreshWaterSchema>
@@ -364,6 +371,7 @@ export const LandingItemsSchema = z.object({
     .default(""),
   debitNoteId: z.number().default(0),
   debitNoteNo: z.string().default(""),
+  editVersion: z.number().default(0),
 })
 
 export type LandingItemsFormValues = z.infer<typeof LandingItemsSchema>
@@ -390,6 +398,7 @@ export const MedicalAssistanceSchema = z.object({
     .default(""),
   debitNoteId: z.number().default(0),
   debitNoteNo: z.string().default(""),
+  editVersion: z.number().default(0),
 })
 
 export type MedicalAssistanceFormValues = z.infer<
@@ -416,6 +425,7 @@ export const OtherServiceSchema = z.object({
     .max(500, "Remarks must be less than 500 characters")
     .optional()
     .default(""),
+  editVersion: z.number().default(0),
 })
 
 export type OtherServiceFormValues = z.infer<typeof OtherServiceSchema>
@@ -480,6 +490,7 @@ export const LaunchServiceSchema = z.object({
   debitNoteId: z.number().optional().default(0),
   debitNoteNo: z.string().optional().default(""),
   remarks: z.string().optional().default(""),
+  editVersion: z.number().default(0),
 })
 
 export type LaunchServiceFormValues = z.infer<typeof LaunchServiceSchema>
@@ -517,6 +528,7 @@ export const EquipmentUsedSchema = z.object({
   equimentFooter: z.string().optional().default(""),
   debitNoteId: z.number().optional().default(0),
   debitNoteNo: z.string().optional().default(""),
+  editVersion: z.number().default(0),
 })
 
 export type EquipmentUsedFormValues = z.infer<typeof EquipmentUsedSchema>

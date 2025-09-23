@@ -9,9 +9,11 @@ import { format } from "date-fns"
 import { useForm } from "react-hook-form"
 
 import { Task } from "@/lib/operations-utils"
+import { useChartofAccountLookup } from "@/hooks/use-lookup"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Form } from "@/components/ui/form"
+import { FormLoadingSpinner } from "@/components/loading-spinner"
 import ChargeAutocomplete from "@/components/ui-custom/autocomplete-charge"
 import ChartOfAccountAutocomplete from "@/components/ui-custom/autocomplete-chartofaccount"
 import RankAutocomplete from "@/components/ui-custom/autocomplete-rank"
@@ -47,6 +49,11 @@ export function CrewSignOffForm({
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
 
+  // Get chart of account data to ensure it's loaded before setting form values
+  const { isLoading: isChartOfAccountLoading } = useChartofAccountLookup(
+    Number(jobData.companyId)
+  )
+
   console.log("initialData :", initialData)
   const form = useForm<CrewSignOffFormValues>({
     resolver: zodResolver(CrewSignOffSchema),
@@ -71,42 +78,65 @@ export function CrewSignOffForm({
       overStayRemark: initialData?.overStayRemark ?? "",
       modificationRemark: initialData?.modificationRemark ?? "",
       cidClearance: initialData?.cidClearance ?? "",
+      editVersion: initialData?.editVersion ?? 0,
     },
   })
 
   useEffect(() => {
-    form.reset({
-      crewSignOffId: initialData?.crewSignOffId ?? 0,
-      jobOrderId: jobData.jobOrderId,
-      jobOrderNo: jobData.jobOrderNo,
-      taskId: Task.CrewSignOff,
-      chargeId: initialData?.chargeId ?? taskDefaults.chargeId ?? 0,
-      glId: initialData?.glId ?? taskDefaults.glId ?? 0,
-      visaTypeId: initialData?.visaTypeId ?? 0,
-      crewName: initialData?.crewName ?? "",
-      nationality: initialData?.nationality ?? "",
-      rankId: initialData?.rankId ?? 0,
-      flightDetails: initialData?.flightDetails ?? "",
-      hotelName: initialData?.hotelName ?? "",
-      departureDetails: initialData?.departureDetails ?? "",
-      transportName: initialData?.transportName ?? "",
-      clearing: initialData?.clearing ?? "",
-      statusId: initialData?.statusId ?? 804,
-      remarks: initialData?.remarks ?? "",
-      overStayRemark: initialData?.overStayRemark ?? "",
-      modificationRemark: initialData?.modificationRemark ?? "",
-      cidClearance: initialData?.cidClearance ?? "",
-    })
+    // Only reset form when data is loaded to prevent race conditions
+    if (!isChartOfAccountLoading) {
+      form.reset({
+        crewSignOffId: initialData?.crewSignOffId ?? 0,
+        jobOrderId: jobData.jobOrderId,
+        jobOrderNo: jobData.jobOrderNo,
+        taskId: Task.CrewSignOff,
+        chargeId: initialData?.chargeId ?? taskDefaults.chargeId ?? 0,
+        glId: initialData?.glId ?? taskDefaults.glId ?? 0,
+        visaTypeId: initialData?.visaTypeId ?? 0,
+        crewName: initialData?.crewName ?? "",
+        nationality: initialData?.nationality ?? "",
+        rankId: initialData?.rankId ?? 0,
+        flightDetails: initialData?.flightDetails ?? "",
+        hotelName: initialData?.hotelName ?? "",
+        departureDetails: initialData?.departureDetails ?? "",
+        transportName: initialData?.transportName ?? "",
+        clearing: initialData?.clearing ?? "",
+        statusId: initialData?.statusId ?? 804,
+        remarks: initialData?.remarks ?? "",
+        overStayRemark: initialData?.overStayRemark ?? "",
+        modificationRemark: initialData?.modificationRemark ?? "",
+        cidClearance: initialData?.cidClearance ?? "",
+        editVersion: initialData?.editVersion ?? 0,
+      })
+    }
   }, [
     initialData,
+    taskDefaults,
     form,
-    jobData.companyId,
     jobData.jobOrderId,
     jobData.jobOrderNo,
+    isChartOfAccountLoading,
   ])
 
+  // Show loading state while data is being fetched
+  if (isChartOfAccountLoading) {
+    return (
+      <div className="max-w flex flex-col gap-2">
+        <FormLoadingSpinner text="Loading form data..." />
+      </div>
+    )
+  }
   const onSubmit = (data: CrewSignOffFormValues) => {
     submitAction(data)
+  }
+
+  // Show loading state while data is being fetched
+  if (isChartOfAccountLoading) {
+    return (
+      <div className="max-w flex flex-col gap-2">
+        <FormLoadingSpinner text="Loading form data..." />
+      </div>
+    )
   }
 
   return (
@@ -330,12 +360,119 @@ export function CrewSignOffForm({
               )}
           </div>
 
+          {/* Audit Information Section */}
+          {initialData &&
+            (initialData.createBy ||
+              initialData.createDate ||
+              initialData.editBy ||
+              initialData.editDate) && (
+              <div className="space-y-3 pt-4">
+                <div className="border-t pt-4">
+                  <CustomAccordion
+                    type="single"
+                    collapsible
+                    className="bg-muted/30 rounded-lg border-0"
+                  >
+                    <CustomAccordionItem
+                      value="audit-info"
+                      className="border-none"
+                    >
+                      <CustomAccordionTrigger className="hover:bg-muted/50 rounded-lg px-4 py-3">
+                        <div className="flex items-center gap-3">
+                          <span className="text-sm font-medium">
+                            Audit Trail
+                          </span>
+                          <div className="flex items-center gap-2">
+                            {initialData.createDate && (
+                              <Badge
+                                variant="secondary"
+                                className="px-2 py-1 text-xs"
+                              >
+                                Created
+                              </Badge>
+                            )}
+                            {initialData.editDate && (
+                              <Badge
+                                variant="secondary"
+                                className="px-2 py-1 text-xs"
+                              >
+                                Modified
+                              </Badge>
+                            )}
+                            {initialData.editVersion &&
+                              initialData.editVersion > 0 && (
+                                <Badge
+                                  variant="destructive"
+                                  className="px-2 py-1 text-xs"
+                                >
+                                  Edit Version No. {initialData.editVersion}
+                                </Badge>
+                              )}
+                          </div>
+                        </div>
+                      </CustomAccordionTrigger>
+                      <CustomAccordionContent className="px-4 pb-4">
+                        <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                          {initialData.createDate && (
+                            <div className="bg-background rounded-md border p-2">
+                              <div className="space-y-1">
+                                <p className="text-muted-foreground text-xs">
+                                  Created By
+                                </p>
+                                <p className="text-sm font-semibold">
+                                  {initialData.createBy}
+                                </p>
+                                <p className="text-muted-foreground text-xs">
+                                  {format(
+                                    new Date(initialData.createDate),
+                                    datetimeFormat
+                                  )}
+                                </p>
+                              </div>
+                            </div>
+                          )}
+                          {initialData.editBy && (
+                            <div className="bg-background rounded-md border p-2">
+                              <div className="space-y-1">
+                                <p className="text-muted-foreground text-xs">
+                                  Modified By
+                                </p>
+                                <p className="text-sm font-semibold">
+                                  {initialData.editBy}
+                                </p>
+                                <p className="text-muted-foreground text-xs">
+                                  {initialData.editDate
+                                    ? format(
+                                        new Date(initialData.editDate),
+                                        datetimeFormat
+                                      )
+                                    : "-"}
+                                </p>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </CustomAccordionContent>
+                    </CustomAccordionItem>
+                  </CustomAccordion>
+                </div>
+              </div>
+            )}
+
           <div className="flex justify-end gap-2">
             <Button variant="outline" type="button" onClick={onCancel}>
               {isConfirmed ? "Close" : "Cancel"}
             </Button>
             {!isConfirmed && (
-              <Button type="submit" disabled={isSubmitting}>
+              <Button
+                type="submit"
+                disabled={isSubmitting}
+                className={
+                  initialData
+                    ? "bg-orange-600 hover:bg-orange-700"
+                    : "bg-green-600 hover:bg-green-700"
+                }
+              >
                 {isSubmitting
                   ? "Saving..."
                   : initialData

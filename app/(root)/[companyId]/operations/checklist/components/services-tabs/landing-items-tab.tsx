@@ -11,7 +11,6 @@ import {
 import { LandingItemsFormValues } from "@/schemas/checklist"
 import { useQueryClient } from "@tanstack/react-query"
 import { Loader2 } from "lucide-react"
-import { toast } from "sonner"
 
 import { getData } from "@/lib/api-client"
 import { JobOrder_DebitNote, JobOrder_LandingItems } from "@/lib/api-routes"
@@ -27,6 +26,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { DeleteConfirmation } from "@/components/delete-confirmation"
+import { SaveConfirmation } from "@/components/save-confirmation"
 
 import CombinedForms from "../services-combined/combined-forms"
 import DebitNote from "../services-combined/debit-note"
@@ -71,11 +71,24 @@ export function LandingItemsTab({
   const [deleteConfirmation, setDeleteConfirmation] = useState<{
     isOpen: boolean
     landingItemId: string | null
+    jobOrderId: number | null
     landingItemName: string | null
   }>({
     isOpen: false,
     landingItemId: null,
+    jobOrderId: null,
     landingItemName: null,
+  })
+
+  // State for save confirmation
+  const [saveConfirmation, setSaveConfirmation] = useState<{
+    isOpen: boolean
+    formData: Partial<ILandingItems> | null
+    operationType: "create" | "update"
+  }>({
+    isOpen: false,
+    formData: null,
+    operationType: "create",
   })
 
   // State for debit note delete confirmation
@@ -151,10 +164,10 @@ export function LandingItemsTab({
             setIsModalOpen(true)
           }
         } else {
-          toast.error("Failed to load details")
+          console.error("Failed to load details")
         }
       } catch (error) {
-        toast.error("An error occurred while fetching details")
+        console.error("An error occurred while fetching details")
         console.error("Error fetching item:", error)
       }
     },
@@ -170,29 +183,29 @@ export function LandingItemsTab({
     setDeleteConfirmation({
       isOpen: true,
       landingItemId: id,
+      jobOrderId: jobData.jobOrderId,
       landingItemName: `Landing Item ${itemToDelete.name}`,
     })
   }
 
-  const handleConfirmDelete = () => {
-    if (deleteConfirmation.landingItemId) {
-      toast.promise(
-        deleteMutation.mutateAsync(deleteConfirmation.landingItemId),
-        {
-          loading: `Deleting ${deleteConfirmation.landingItemName}...`,
-          success: () => {
-            queryClient.invalidateQueries({ queryKey: ["landingItems"] })
-            onTaskAdded?.()
-            return `${deleteConfirmation.landingItemName} has been deleted`
-          },
-          error: "Failed to delete landing item",
-        }
-      )
-      setDeleteConfirmation({
-        isOpen: false,
-        landingItemId: null,
-        landingItemName: null,
-      })
+  const handleConfirmDelete = async () => {
+    if (deleteConfirmation.landingItemId && deleteConfirmation.jobOrderId) {
+      try {
+        await deleteMutation.mutateAsync(
+          `${deleteConfirmation.jobOrderId}/${deleteConfirmation.landingItemId}`
+        )
+        queryClient.invalidateQueries({ queryKey: ["landingItems"] })
+        onTaskAdded?.()
+      } catch (error) {
+        console.error("Failed to delete landing item:", error)
+      } finally {
+        setDeleteConfirmation({
+          isOpen: false,
+          landingItemId: null,
+          jobOrderId: jobData.jobOrderId,
+          landingItemName: null,
+        })
+      }
     }
   }
 
@@ -288,7 +301,7 @@ export function LandingItemsTab({
         )
 
         if (!foundItems || foundItems.length === 0) {
-          toast.error("Landing item(s) not found")
+          console.error("Landing item(s) not found")
           return
         }
 
@@ -322,7 +335,7 @@ export function LandingItemsTab({
             setDebitNoteHd(debitNoteData)
           }
 
-          toast.info("Opening existing debit note")
+          console.log("Opening existing debit note")
           return
         }
 
@@ -366,13 +379,12 @@ export function LandingItemsTab({
             setDebitNoteHd(debitNoteData)
           }
 
-          toast.success(
+          console.log(
             `Debit note created successfully for ${foundItems.length} item(s)`
           )
         }
       } catch (error) {
         console.error("Error handling debit note:", error)
-        toast.error("Failed to handle debit note")
       }
     },
     [debitNoteMutation, data, jobData]
@@ -400,30 +412,26 @@ export function LandingItemsTab({
     []
   )
 
-  const handleConfirmDeleteDebitNote = useCallback(() => {
+  const handleConfirmDeleteDebitNote = useCallback(async () => {
     if (debitNoteDeleteConfirmation.debitNoteId) {
-      toast.promise(
-        debitNoteDeleteMutation.mutateAsync(
+      try {
+        await debitNoteDeleteMutation.mutateAsync(
           `${jobData.jobOrderId}/${Task.LandingItems}/${debitNoteDeleteConfirmation.debitNoteId}`
-        ),
-        {
-          loading: `Deleting debit note ${debitNoteDeleteConfirmation.debitNoteNo}...`,
-          success: () => {
-            queryClient.invalidateQueries({ queryKey: ["landingItems"] })
-            queryClient.invalidateQueries({ queryKey: ["debitNote"] })
-            onTaskAdded?.()
-            setShowDebitNoteModal(false)
-            setDebitNoteHd(null)
-            return `Debit note ${debitNoteDeleteConfirmation.debitNoteNo} has been deleted`
-          },
-          error: "Failed to delete debit note",
-        }
-      )
-      setDebitNoteDeleteConfirmation({
-        isOpen: false,
-        debitNoteId: null,
-        debitNoteNo: null,
-      })
+        )
+        queryClient.invalidateQueries({ queryKey: ["landingItems"] })
+        queryClient.invalidateQueries({ queryKey: ["debitNote"] })
+        onTaskAdded?.()
+        setShowDebitNoteModal(false)
+        setDebitNoteHd(null)
+      } catch (error) {
+        console.error("Failed to delete debit note:", error)
+      } finally {
+        setDebitNoteDeleteConfirmation({
+          isOpen: false,
+          debitNoteId: null,
+          debitNoteNo: null,
+        })
+      }
     }
   }, [
     debitNoteDeleteConfirmation,
@@ -569,6 +577,7 @@ export function LandingItemsTab({
             isOpen: false,
             landingItemId: null,
             landingItemName: null,
+            jobOrderId: jobData.jobOrderId,
           })
         }
         isDeleting={deleteMutation.isPending}
@@ -617,6 +626,55 @@ export function LandingItemsTab({
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Save Confirmation */}
+      <SaveConfirmation
+        open={saveConfirmation.isOpen}
+        onOpenChange={(isOpen) =>
+          setSaveConfirmation((prev) => ({ ...prev, isOpen }))
+        }
+        title="Confirm Save"
+        itemName={
+          saveConfirmation.operationType === "update"
+            ? `Landing Items ${selectedItem?.name || ""}`
+            : "New Landing Items"
+        }
+        operationType={saveConfirmation.operationType}
+        onConfirm={() => {
+          if (saveConfirmation.formData) {
+            handleSubmit(saveConfirmation.formData)
+          }
+        }}
+        onCancel={() =>
+          setSaveConfirmation({
+            isOpen: false,
+            formData: null,
+            operationType: "create",
+          })
+        }
+        isSaving={saveMutation.isPending || updateMutation.isPending}
+      />
+
+      {/* Delete Confirmation */}
+      <DeleteConfirmation
+        open={deleteConfirmation.isOpen}
+        onOpenChange={(isOpen) =>
+          setDeleteConfirmation((prev) => ({ ...prev, isOpen }))
+        }
+        title="Delete Landing Item"
+        description="This action cannot be undone. This will permanently delete the landing item from our servers."
+        itemName={deleteConfirmation.landingItemName || ""}
+        onConfirm={handleConfirmDelete}
+        onCancel={() =>
+          setDeleteConfirmation({
+            isOpen: false,
+            landingItemId: null,
+            jobOrderId: null,
+            landingItemName: null,
+          })
+        }
+        isDeleting={deleteMutation.isPending}
+      />
     </>
   )
 }

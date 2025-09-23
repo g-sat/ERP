@@ -133,10 +133,16 @@ export function CrewMiscellaneousTable({
         minSize: 80,
       },
       {
+        accessorKey: "remarks",
+        header: "Remarks",
+        size: 200,
+        minSize: 150,
+      },
+      {
         accessorKey: "statusName",
         header: "Status",
         cell: ({ row }) => (
-          <div className="text-wrap">
+          <div className="text-center">
             <Badge variant="default">{row.getValue("statusName") || "-"}</Badge>
           </div>
         ),
@@ -144,13 +150,18 @@ export function CrewMiscellaneousTable({
         minSize: 100,
       },
       {
-        accessorKey: "remarks",
-        header: "Remarks",
+        accessorKey: "editVersion",
+        header: "Version",
         cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("remarks") || "-"}</div>
+          <div className="text-center">
+            <Badge variant="destructive">
+              {row.getValue("editVersion") || "0"}
+            </Badge>
+          </div>
         ),
-        size: 200,
-        minSize: 150,
+        size: 70,
+        minSize: 60,
+        maxSize: 80,
       },
       {
         accessorKey: "createBy",
@@ -211,20 +222,6 @@ export function CrewMiscellaneousTable({
         size: 180,
         minSize: 150,
         maxSize: 200,
-      },
-      {
-        accessorKey: "editVersion",
-        header: "Edit Version",
-        cell: ({ row }) => (
-          <div className="text-wrap">
-            <Badge variant="default">
-              {row.getValue("editVersion") || "0"}
-            </Badge>
-          </div>
-        ),
-        size: 70,
-        minSize: 60,
-        maxSize: 80,
       },
     ],
     [dateFormat, datetimeFormat]

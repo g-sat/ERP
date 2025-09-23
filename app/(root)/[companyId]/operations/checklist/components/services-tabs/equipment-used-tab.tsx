@@ -11,13 +11,13 @@ import {
 import { EquipmentUsedFormValues } from "@/schemas/checklist"
 import { useQueryClient } from "@tanstack/react-query"
 import { Loader2 } from "lucide-react"
-import { toast } from "sonner"
 
 import { getData } from "@/lib/api-client"
 import { JobOrder_DebitNote, JobOrder_EquipmentUsed } from "@/lib/api-routes"
 import { Task } from "@/lib/operations-utils"
 import { useDelete, useGetById, usePersist } from "@/hooks/use-common"
 import { useTaskServiceDefaults } from "@/hooks/use-task-service"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -26,7 +26,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import { Separator } from "@/components/ui/separator"
 import { DeleteConfirmation } from "@/components/delete-confirmation"
+import { SaveConfirmation } from "@/components/save-confirmation"
 
 import CombinedForms from "../services-combined/combined-forms"
 import DebitNote from "../services-combined/debit-note"
@@ -49,12 +51,12 @@ export function EquipmentUsedTab({
   onTaskAdded,
   isConfirmed,
 }: EquipmentUsedTabProps) {
+  // Get default values for Equipment Used task
+  const { defaults: taskDefaults } = useTaskServiceDefaults(Task.EquipmentUsed)
+
   const jobOrderId = jobData.jobOrderId
 
   const queryClient = useQueryClient()
-
-  // Get default values for Equipment Used task
-  const { defaults: taskDefaults } = useTaskServiceDefaults(Task.EquipmentUsed)
   //states
   const [selectedItem, setSelectedItem] = useState<IEquipmentUsed | undefined>(
     undefined
@@ -72,11 +74,24 @@ export function EquipmentUsedTab({
   const [deleteConfirmation, setDeleteConfirmation] = useState<{
     isOpen: boolean
     equipmentUsedId: string | null
+    jobOrderId: number | null
     equipmentUsedName: string | null
   }>({
     isOpen: false,
     equipmentUsedId: null,
+    jobOrderId: null,
     equipmentUsedName: null,
+  })
+
+  // State for save confirmation
+  const [saveConfirmation, setSaveConfirmation] = useState<{
+    isOpen: boolean
+    formData: Partial<IEquipmentUsed> | null
+    operationType: "create" | "update"
+  }>({
+    isOpen: false,
+    formData: null,
+    operationType: "create",
   })
 
   // State for debit note delete confirmation
@@ -152,11 +167,10 @@ export function EquipmentUsedTab({
             setIsModalOpen(true)
           }
         } else {
-          toast.error("Failed to load details")
+          console.error("Failed to load details")
         }
       } catch (error) {
-        toast.error("An error occurred while fetching details")
-        console.error("Error fetching item:", error)
+        console.error("An error occurred while fetching details:", error)
       }
     },
     [jobOrderId]
@@ -171,29 +185,29 @@ export function EquipmentUsedTab({
     setDeleteConfirmation({
       isOpen: true,
       equipmentUsedId: id,
+      jobOrderId: jobData.jobOrderId,
       equipmentUsedName: `Equipment Used ${itemToDelete.chargeName}`,
     })
   }
 
-  const handleConfirmDelete = () => {
-    if (deleteConfirmation.equipmentUsedId) {
-      toast.promise(
-        deleteMutation.mutateAsync(deleteConfirmation.equipmentUsedId),
-        {
-          loading: `Deleting ${deleteConfirmation.equipmentUsedName}...`,
-          success: () => {
-            queryClient.invalidateQueries({ queryKey: ["equipmentUsed"] })
-            onTaskAdded?.()
-            return `${deleteConfirmation.equipmentUsedName} has been deleted`
-          },
-          error: "Failed to delete equipment used",
-        }
-      )
-      setDeleteConfirmation({
-        isOpen: false,
-        equipmentUsedId: null,
-        equipmentUsedName: null,
-      })
+  const handleConfirmDelete = async () => {
+    if (deleteConfirmation.equipmentUsedId && deleteConfirmation.jobOrderId) {
+      try {
+        await deleteMutation.mutateAsync(
+          `${deleteConfirmation.jobOrderId}/${deleteConfirmation.equipmentUsedId}`
+        )
+        queryClient.invalidateQueries({ queryKey: ["equipmentUsed"] })
+        onTaskAdded?.()
+      } catch (error) {
+        console.error("Failed to delete equipment used:", error)
+      } finally {
+        setDeleteConfirmation({
+          isOpen: false,
+          equipmentUsedId: null,
+          jobOrderId: null,
+          equipmentUsedName: null,
+        })
+      }
     }
   }
 
@@ -227,56 +241,68 @@ export function EquipmentUsedTab({
   )
 
   const handleSubmit = useCallback(
-    async (formData: Partial<IEquipmentUsed>) => {
-      try {
-        console.log("Handling form submission:", formData)
-        console.log("Current modal mode:", modalMode)
-        console.log("Selected item:", selectedItem)
-
-        const processedData = {
-          ...formData,
-          date: formData.date
-            ? typeof formData.date === "string"
-              ? formData.date
-              : formData.date.toISOString()
-            : undefined,
-        }
-        const submitData = { ...processedData, ...jobDataProps }
-        console.log("Final data to submit:", submitData)
-
-        if (modalMode === "edit" && selectedItem) {
-          console.log(
-            "Updating existing item with ID:",
-            selectedItem.equipmentUsedId
-          )
-          await updateMutation.mutateAsync({
-            ...submitData,
-            equipmentUsedId: selectedItem.equipmentUsedId,
-          })
-        } else {
-          console.log("Creating new item")
-          await saveMutation.mutateAsync(submitData)
-        }
-
-        setIsModalOpen(false)
-        setSelectedItem(undefined)
-        setModalMode("create")
-        refetch()
-        onTaskAdded?.()
-      } catch (error) {
-        console.error("Error submitting form:", error)
-      }
+    (formData: Partial<IEquipmentUsed>) => {
+      // Show save confirmation instead of directly submitting
+      setSaveConfirmation({
+        isOpen: true,
+        formData,
+        operationType: modalMode === "edit" ? "update" : "create",
+      })
     },
-    [
-      jobDataProps,
-      modalMode,
-      selectedItem,
-      updateMutation,
-      saveMutation,
-      refetch,
-      onTaskAdded,
-    ]
+    [modalMode]
   )
+
+  // Actual save function that gets called after confirmation
+  const handleConfirmSave = useCallback(async () => {
+    if (!saveConfirmation.formData) return
+
+    try {
+      const processedData = {
+        ...saveConfirmation.formData,
+        date: saveConfirmation.formData.date
+          ? typeof saveConfirmation.formData.date === "string"
+            ? saveConfirmation.formData.date
+            : saveConfirmation.formData.date.toISOString()
+          : undefined,
+      }
+      const submitData = { ...processedData, ...jobDataProps }
+
+      if (saveConfirmation.operationType === "update" && selectedItem) {
+        await updateMutation.mutateAsync({
+          ...submitData,
+          equipmentUsedId: selectedItem.equipmentUsedId,
+        })
+      } else {
+        await saveMutation.mutateAsync(submitData)
+      }
+
+      // Only close modal and reset state on successful submission
+      setIsModalOpen(false)
+      setSelectedItem(undefined)
+      setModalMode("create")
+      refetch()
+      onTaskAdded?.()
+    } catch (error) {
+      console.error("Error submitting form:", error)
+      // Don't close the modal on error - let user fix the issue and retry
+    } finally {
+      // Close the save confirmation dialog
+      setSaveConfirmation({
+        isOpen: false,
+        formData: null,
+        operationType: "create",
+      })
+    }
+  }, [
+    saveConfirmation.formData,
+    saveConfirmation.operationType,
+    jobDataProps,
+    selectedItem,
+    updateMutation,
+    saveMutation,
+    refetch,
+    onTaskAdded,
+  ])
 
   const handleCombinedService = useCallback((selectedIds: string[]) => {
     setSelectedItems(selectedIds)
@@ -304,7 +330,7 @@ export function EquipmentUsedTab({
         )
 
         if (!foundItems || foundItems.length === 0) {
-          toast.error("Equipment used(s) not found")
+          console.error("Equipment used(s) not found")
           return
         }
 
@@ -338,7 +364,7 @@ export function EquipmentUsedTab({
             setDebitNoteHd(debitNoteData)
           }
 
-          toast.info("Opening existing debit note")
+          console.log("Opening existing debit note")
           return
         }
 
@@ -382,13 +408,12 @@ export function EquipmentUsedTab({
             setDebitNoteHd(debitNoteData)
           }
 
-          toast.success(
+          console.log(
             `Debit note created successfully for ${foundItems.length} item(s)`
           )
         }
       } catch (error) {
         console.error("Error handling debit note:", error)
-        toast.error("Failed to handle debit note")
       }
     },
     [debitNoteMutation, data, jobData]
@@ -414,30 +439,26 @@ export function EquipmentUsedTab({
     []
   )
 
-  const handleConfirmDeleteDebitNote = useCallback(() => {
+  const handleConfirmDeleteDebitNote = useCallback(async () => {
     if (debitNoteDeleteConfirmation.debitNoteId) {
-      toast.promise(
-        debitNoteDeleteMutation.mutateAsync(
+      try {
+        await debitNoteDeleteMutation.mutateAsync(
           `${jobData.jobOrderId}/${Task.EquipmentUsed}/${debitNoteDeleteConfirmation.debitNoteId}`
-        ),
-        {
-          loading: `Deleting debit note ${debitNoteDeleteConfirmation.debitNoteNo}...`,
-          success: () => {
-            queryClient.invalidateQueries({ queryKey: ["equipmentUsed"] })
-            queryClient.invalidateQueries({ queryKey: ["debitNote"] })
-            onTaskAdded?.()
-            setShowDebitNoteModal(false)
-            setDebitNoteHd(null)
-            return `Debit note ${debitNoteDeleteConfirmation.debitNoteNo} has been deleted`
-          },
-          error: "Failed to delete debit note",
-        }
-      )
-      setDebitNoteDeleteConfirmation({
-        isOpen: false,
-        debitNoteId: null,
-        debitNoteNo: null,
-      })
+        )
+        queryClient.invalidateQueries({ queryKey: ["equipmentUsed"] })
+        queryClient.invalidateQueries({ queryKey: ["debitNote"] })
+        onTaskAdded?.()
+        setShowDebitNoteModal(false)
+        setDebitNoteHd(null)
+      } catch (error) {
+        console.error("Failed to delete debit note:", error)
+      } finally {
+        setDebitNoteDeleteConfirmation({
+          isOpen: false,
+          debitNoteId: null,
+          debitNoteNo: null,
+        })
+      }
     }
   }, [
     debitNoteDeleteConfirmation,
@@ -470,18 +491,46 @@ export function EquipmentUsedTab({
 
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogContent
-          //className="w-[80vw] !max-w-none"
-          className="max-h-[90vh] w-[80vw] !max-w-none overflow-y-auto"
+          className="max-h-[80vh] w-[60vw] !max-w-none overflow-y-auto"
           onPointerDownOutside={(e) => {
             e.preventDefault()
           }}
         >
           <DialogHeader>
-            <DialogTitle>Equipment Used</DialogTitle>
+            <div className="flex items-center gap-3">
+              <DialogTitle>Equipment Used</DialogTitle>
+              <Badge
+                variant={
+                  modalMode === "create"
+                    ? "default"
+                    : modalMode === "edit"
+                      ? "secondary"
+                      : "outline"
+                }
+                className={
+                  modalMode === "create"
+                    ? "border-green-200 bg-green-100 text-green-800"
+                    : modalMode === "edit"
+                      ? "border-orange-200 bg-orange-100 text-orange-800"
+                      : "border-blue-200 bg-blue-100 text-blue-800"
+                }
+              >
+                {modalMode === "create"
+                  ? "New"
+                  : modalMode === "edit"
+                    ? "Edit"
+                    : "View"}
+              </Badge>
+            </div>
             <DialogDescription>
-              Add or edit equipment used details for this job order.
+              {modalMode === "create"
+                ? "Add a new equipment used to this job order."
+                : modalMode === "edit"
+                  ? "Update the equipment used details."
+                  : "View equipment used details (read-only)."}
             </DialogDescription>
           </DialogHeader>
+          <Separator />
           <EquipmentUsedForm
             jobData={jobData}
             initialData={
@@ -493,6 +542,7 @@ export function EquipmentUsedTab({
             onCancel={() => setIsModalOpen(false)}
             isSubmitting={saveMutation.isPending || updateMutation.isPending}
             isConfirmed={modalMode === "view"}
+            taskDefaults={taskDefaults}
           />
         </DialogContent>
       </Dialog>
@@ -569,25 +619,6 @@ export function EquipmentUsedTab({
         </DialogContent>
       </Dialog>
 
-      <DeleteConfirmation
-        open={deleteConfirmation.isOpen}
-        onOpenChange={(isOpen) =>
-          setDeleteConfirmation((prev) => ({ ...prev, isOpen }))
-        }
-        title="Delete Equipment Used"
-        description="This action cannot be undone. This will permanently delete the equipment used from our servers."
-        itemName={deleteConfirmation.equipmentUsedName || ""}
-        onConfirm={handleConfirmDelete}
-        onCancel={() =>
-          setDeleteConfirmation({
-            isOpen: false,
-            equipmentUsedId: null,
-            equipmentUsedName: null,
-          })
-        }
-        isDeleting={deleteMutation.isPending}
-      />
-
       {/* Debit Note Delete Confirmation */}
       <Dialog
         open={debitNoteDeleteConfirmation.isOpen}
@@ -631,6 +662,51 @@ export function EquipmentUsedTab({
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Save Confirmation */}
+      <SaveConfirmation
+        open={saveConfirmation.isOpen}
+        onOpenChange={(isOpen) =>
+          setSaveConfirmation((prev) => ({ ...prev, isOpen }))
+        }
+        title="Confirm Save"
+        itemName={
+          saveConfirmation.operationType === "update"
+            ? `Equipment Used ${selectedItem?.chargeName || ""}`
+            : "New Equipment Used"
+        }
+        operationType={saveConfirmation.operationType}
+        onConfirm={handleConfirmSave}
+        onCancel={() =>
+          setSaveConfirmation({
+            isOpen: false,
+            formData: null,
+            operationType: "create",
+          })
+        }
+        isSaving={saveMutation.isPending || updateMutation.isPending}
+      />
+
+      {/* Delete Confirmation */}
+      <DeleteConfirmation
+        open={deleteConfirmation.isOpen}
+        onOpenChange={(isOpen) =>
+          setDeleteConfirmation((prev) => ({ ...prev, isOpen }))
+        }
+        title="Delete Equipment Used"
+        description="This action cannot be undone. This will permanently delete the equipment used from our servers."
+        itemName={deleteConfirmation.equipmentUsedName || ""}
+        onConfirm={handleConfirmDelete}
+        onCancel={() =>
+          setDeleteConfirmation({
+            isOpen: false,
+            equipmentUsedId: null,
+            jobOrderId: null,
+            equipmentUsedName: null,
+          })
+        }
+        isDeleting={deleteMutation.isPending}
+      />
     </>
   )
 }

@@ -11,11 +11,13 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { format } from "date-fns"
 import { useForm } from "react-hook-form"
 
-import { parseDate } from "@/lib/format"
+import { clientDateFormat, parseDate } from "@/lib/format"
 import { Task } from "@/lib/operations-utils"
+import { useChartofAccountLookup } from "@/hooks/use-lookup"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Form } from "@/components/ui/form"
+import { FormLoadingSpinner } from "@/components/loading-spinner"
 import ChargeAutocomplete from "@/components/ui-custom/autocomplete-charge"
 import ChartOfAccountAutocomplete from "@/components/ui-custom/autocomplete-chartofaccount"
 import StatusTaskAutocomplete from "@/components/ui-custom/autocomplete-status-task"
@@ -50,6 +52,11 @@ export function AgencyRemunerationForm({
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
   const dateFormat = decimals[0]?.dateFormat || "dd/MM/yyyy"
 
+  // Get chart of account data to ensure it's loaded before setting form values
+  const { isLoading: isChartOfAccountLoading } = useChartofAccountLookup(
+    Number(jobData.companyId)
+  )
+
   console.log("initialData :", initialData)
   const form = useForm<AgencyRemunerationFormValues>({
     resolver: zodResolver(AgencyRemunerationSchema),
@@ -61,13 +68,14 @@ export function AgencyRemunerationForm({
       date: initialData?.date
         ? format(
             parseDate(initialData.date as string) || new Date(),
-            dateFormat
+            clientDateFormat
           )
-        : format(new Date(), dateFormat),
+        : format(new Date(), clientDateFormat),
       glId: initialData?.glId ?? taskDefaults.glId ?? 0,
-      chargeId: initialData?.chargeId ?? 4,
+      chargeId: initialData?.chargeId ?? taskDefaults.chargeId ?? 4,
       statusId: initialData?.statusId ?? 802,
       remarks: initialData?.remarks ?? "",
+      editVersion: initialData?.editVersion ?? 0,
     },
   })
 
@@ -80,18 +88,35 @@ export function AgencyRemunerationForm({
       date: initialData?.date
         ? format(
             parseDate(initialData.date as string) || new Date(),
-            dateFormat
+            clientDateFormat
           )
-        : format(new Date(), dateFormat),
+        : format(new Date(), clientDateFormat),
       glId: initialData?.glId ?? taskDefaults.glId ?? 0,
-      chargeId: initialData?.chargeId ?? 4,
+      chargeId: initialData?.chargeId ?? taskDefaults.chargeId ?? 4,
       statusId: initialData?.statusId ?? 802,
       remarks: initialData?.remarks ?? "",
+      editVersion: initialData?.editVersion ?? 0,
     })
-  }, [initialData, form, jobData.jobOrderId, jobData.jobOrderNo])
+  }, [
+    initialData,
+    taskDefaults,
+    form,
+    jobData.jobOrderId,
+    jobData.jobOrderNo,
+    isChartOfAccountLoading,
+  ])
 
   const onSubmit = (data: AgencyRemunerationFormValues) => {
     submitAction(data)
+  }
+
+  // Show loading state while data is being fetched
+  if (isChartOfAccountLoading) {
+    return (
+      <div className="max-w flex flex-col gap-2">
+        <FormLoadingSpinner text="Loading form data..." />
+      </div>
+    )
   }
 
   return (

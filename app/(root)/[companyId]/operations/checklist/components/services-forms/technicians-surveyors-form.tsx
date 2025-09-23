@@ -13,9 +13,11 @@ import { useForm } from "react-hook-form"
 
 import { clientDateFormat, parseDate } from "@/lib/format"
 import { Task } from "@/lib/operations-utils"
+import { useChartofAccountLookup } from "@/hooks/use-lookup"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Form } from "@/components/ui/form"
+import { FormLoadingSpinner } from "@/components/loading-spinner"
 import ChargeAutocomplete from "@/components/ui-custom/autocomplete-charge"
 import ChartOfAccountAutocomplete from "@/components/ui-custom/autocomplete-chartofaccount"
 import PassTypeAutocomplete from "@/components/ui-custom/autocomplete-passtype"
@@ -53,6 +55,11 @@ export function TechniciansSurveyorsForm({
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
   const dateFormat = decimals[0]?.dateFormat || "dd/MM/yyyy"
 
+  // Get chart of account data to ensure it's loaded before setting form values
+  const { isLoading: isChartOfAccountLoading } = useChartofAccountLookup(
+    Number(jobData.companyId)
+  )
+
   console.log("initialData :", initialData)
   const form = useForm<TechnicianSurveyorFormValues>({
     resolver: zodResolver(TechnicianSurveyorSchema),
@@ -86,6 +93,7 @@ export function TechniciansSurveyorsForm({
       remarks: initialData?.remarks ?? "",
       debitNoteId: initialData?.debitNoteId ?? 0,
       debitNoteNo: initialData?.debitNoteNo ?? "",
+      editVersion: initialData?.editVersion ?? 0,
     },
   })
 
@@ -120,8 +128,25 @@ export function TechniciansSurveyorsForm({
       remarks: initialData?.remarks ?? "",
       debitNoteId: initialData?.debitNoteId ?? 0,
       debitNoteNo: initialData?.debitNoteNo ?? "",
+      editVersion: initialData?.editVersion ?? 0,
     })
-  }, [clientDateFormat, initialData, form, jobData])
+  }, [
+    initialData,
+    taskDefaults,
+    form,
+    jobData.jobOrderId,
+    jobData.jobOrderNo,
+    isChartOfAccountLoading,
+  ])
+
+  // Show loading state while data is being fetched
+  if (isChartOfAccountLoading) {
+    return (
+      <div className="max-w flex flex-col gap-2">
+        <FormLoadingSpinner text="Loading form data..." />
+      </div>
+    )
+  }
 
   const onSubmit = (data: TechnicianSurveyorFormValues) => {
     submitAction(data)

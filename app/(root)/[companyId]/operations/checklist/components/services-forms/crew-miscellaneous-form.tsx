@@ -12,6 +12,7 @@ import { format } from "date-fns"
 import { useForm } from "react-hook-form"
 
 import { Task } from "@/lib/operations-utils"
+import { useChartofAccountLookup } from "@/hooks/use-lookup"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Form } from "@/components/ui/form"
@@ -49,6 +50,11 @@ export function CrewMiscellaneousForm({
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
 
+  // Get chart of account data to ensure it's loaded before setting form values
+  const { isLoading: isChartOfAccountLoading } = useChartofAccountLookup(
+    Number(jobData.companyId)
+  )
+
   console.log("initialData :", initialData)
   const form = useForm<CrewMiscellaneousFormValues>({
     resolver: zodResolver(CrewMiscellaneousSchema),
@@ -63,6 +69,7 @@ export function CrewMiscellaneousForm({
       glId: initialData?.glId ?? taskDefaults.glId ?? 0,
       chargeId: initialData?.chargeId ?? taskDefaults.chargeId ?? 0,
       remarks: initialData?.remarks ?? "",
+      editVersion: initialData?.editVersion ?? 0,
     },
   })
 
@@ -78,14 +85,25 @@ export function CrewMiscellaneousForm({
       glId: initialData?.glId ?? taskDefaults.glId ?? 0,
       chargeId: initialData?.chargeId ?? taskDefaults.chargeId ?? 0,
       remarks: initialData?.remarks ?? "",
+      editVersion: initialData?.editVersion ?? 0,
     })
   }, [
     initialData,
+    taskDefaults,
     form,
-    jobData.companyId,
     jobData.jobOrderId,
     jobData.jobOrderNo,
+    isChartOfAccountLoading,
   ])
+
+  // Show loading state while data is being fetched
+  if (isChartOfAccountLoading) {
+    return (
+      <div className="max-w flex flex-col gap-2">
+        <FormLoadingSpinner text="Loading form data..." />
+      </div>
+    )
+  }
 
   const onSubmit = (data: CrewMiscellaneousFormValues) => {
     submitAction(data)

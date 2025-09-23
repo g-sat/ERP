@@ -11,13 +11,13 @@ import {
 import { LaunchServiceFormValues } from "@/schemas/checklist"
 import { useQueryClient } from "@tanstack/react-query"
 import { Loader2 } from "lucide-react"
-import { toast } from "sonner"
 
 import { getData } from "@/lib/api-client"
 import { JobOrder_DebitNote, JobOrder_LaunchServices } from "@/lib/api-routes"
 import { Task } from "@/lib/operations-utils"
 import { useDelete, useGetById, usePersist } from "@/hooks/use-common"
 import { useTaskServiceDefaults } from "@/hooks/use-task-service"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -26,7 +26,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import { Separator } from "@/components/ui/separator"
 import { DeleteConfirmation } from "@/components/delete-confirmation"
+import { SaveConfirmation } from "@/components/save-confirmation"
 
 import CombinedForms from "../services-combined/combined-forms"
 import DebitNote from "../services-combined/debit-note"
@@ -67,14 +69,27 @@ export function LaunchServicesTab({
   const [showDebitNoteModal, setShowDebitNoteModal] = useState(false)
   const [showPurchaseModal, setShowPurchaseModal] = useState(false)
   const [debitNoteHd, setDebitNoteHd] = useState<IDebitNoteHd | null>(null)
+
+  // State for save confirmation
+  const [saveConfirmation, setSaveConfirmation] = useState<{
+    isOpen: boolean
+    formData: Partial<ILaunchService> | null
+    operationType: "create" | "update"
+  }>({
+    isOpen: false,
+    formData: null,
+    operationType: "create",
+  })
   // State for delete confirmation
   const [deleteConfirmation, setDeleteConfirmation] = useState<{
     isOpen: boolean
     launchServiceId: string | null
+    jobOrderId: number | null
     launchServiceName: string | null
   }>({
     isOpen: false,
     launchServiceId: null,
+    jobOrderId: null,
     launchServiceName: null,
   })
 
@@ -151,10 +166,10 @@ export function LaunchServicesTab({
             setIsModalOpen(true)
           }
         } else {
-          toast.error("Failed to load details")
+          console.error("Failed to load details")
         }
       } catch (error) {
-        toast.error("An error occurred while fetching details")
+        console.error("An error occurred while fetching details")
         console.error("Error fetching item:", error)
       }
     },
@@ -170,29 +185,29 @@ export function LaunchServicesTab({
     setDeleteConfirmation({
       isOpen: true,
       launchServiceId: id,
+      jobOrderId: jobData.jobOrderId,
       launchServiceName: `Launch Service ${itemToDelete.chargeName}`,
     })
   }
 
-  const handleConfirmDelete = () => {
-    if (deleteConfirmation.launchServiceId) {
-      toast.promise(
-        deleteMutation.mutateAsync(deleteConfirmation.launchServiceId),
-        {
-          loading: `Deleting ${deleteConfirmation.launchServiceName}...`,
-          success: () => {
-            queryClient.invalidateQueries({ queryKey: ["launchServices"] })
-            onTaskAdded?.()
-            return `${deleteConfirmation.launchServiceName} has been deleted`
-          },
-          error: "Failed to delete launch service",
-        }
-      )
-      setDeleteConfirmation({
-        isOpen: false,
-        launchServiceId: null,
-        launchServiceName: null,
-      })
+  const handleConfirmDelete = async () => {
+    if (deleteConfirmation.launchServiceId && deleteConfirmation.jobOrderId) {
+      try {
+        await deleteMutation.mutateAsync(
+          `${deleteConfirmation.jobOrderId}/${deleteConfirmation.launchServiceId}`
+        )
+        queryClient.invalidateQueries({ queryKey: ["launchServices"] })
+        onTaskAdded?.()
+      } catch (error) {
+        console.error("Failed to delete launch service:", error)
+      } finally {
+        setDeleteConfirmation({
+          isOpen: false,
+          launchServiceId: null,
+          jobOrderId: null,
+          launchServiceName: null,
+        })
+      }
     }
   }
 
@@ -285,7 +300,7 @@ export function LaunchServicesTab({
         )
 
         if (!foundItems || foundItems.length === 0) {
-          toast.error("Launch service(s) not found")
+          console.error("Launch service(s) not found")
           return
         }
 
@@ -319,7 +334,7 @@ export function LaunchServicesTab({
             setDebitNoteHd(debitNoteData)
           }
 
-          toast.info("Opening existing debit note")
+          console.log("Opening existing debit note")
           return
         }
 
@@ -363,13 +378,12 @@ export function LaunchServicesTab({
             setDebitNoteHd(debitNoteData)
           }
 
-          toast.success(
+          console.log(
             `Debit note created successfully for ${foundItems.length} item(s)`
           )
         }
       } catch (error) {
         console.error("Error handling debit note:", error)
-        toast.error("Failed to handle debit note")
       }
     },
     [debitNoteMutation, data, jobData]
@@ -388,30 +402,26 @@ export function LaunchServicesTab({
     []
   )
 
-  const handleConfirmDeleteDebitNote = useCallback(() => {
+  const handleConfirmDeleteDebitNote = useCallback(async () => {
     if (debitNoteDeleteConfirmation.debitNoteId) {
-      toast.promise(
-        debitNoteDeleteMutation.mutateAsync(
+      try {
+        await debitNoteDeleteMutation.mutateAsync(
           `${jobData.jobOrderId}/${Task.LaunchServices}/${debitNoteDeleteConfirmation.debitNoteId}`
-        ),
-        {
-          loading: `Deleting debit note ${debitNoteDeleteConfirmation.debitNoteNo}...`,
-          success: () => {
-            queryClient.invalidateQueries({ queryKey: ["launchServices"] })
-            queryClient.invalidateQueries({ queryKey: ["debitNote"] })
-            onTaskAdded?.()
-            setShowDebitNoteModal(false)
-            setDebitNoteHd(null)
-            return `Debit note ${debitNoteDeleteConfirmation.debitNoteNo} has been deleted`
-          },
-          error: "Failed to delete debit note",
-        }
-      )
-      setDebitNoteDeleteConfirmation({
-        isOpen: false,
-        debitNoteId: null,
-        debitNoteNo: null,
-      })
+        )
+        queryClient.invalidateQueries({ queryKey: ["launchServices"] })
+        queryClient.invalidateQueries({ queryKey: ["debitNote"] })
+        onTaskAdded?.()
+        setShowDebitNoteModal(false)
+        setDebitNoteHd(null)
+      } catch (error) {
+        console.error("Failed to delete debit note:", error)
+      } finally {
+        setDebitNoteDeleteConfirmation({
+          isOpen: false,
+          debitNoteId: null,
+          debitNoteNo: null,
+        })
+      }
     }
   }, [
     debitNoteDeleteConfirmation,
@@ -450,11 +460,40 @@ export function LaunchServicesTab({
           }}
         >
           <DialogHeader>
-            <DialogTitle>Launch Services</DialogTitle>
+            <div className="flex items-center gap-3">
+              <DialogTitle>Launch Services</DialogTitle>
+              <Badge
+                variant={
+                  modalMode === "create"
+                    ? "default"
+                    : modalMode === "edit"
+                      ? "secondary"
+                      : "outline"
+                }
+                className={
+                  modalMode === "create"
+                    ? "border-green-200 bg-green-100 text-green-800"
+                    : modalMode === "edit"
+                      ? "border-orange-200 bg-orange-100 text-orange-800"
+                      : "border-blue-200 bg-blue-100 text-blue-800"
+                }
+              >
+                {modalMode === "create"
+                  ? "New"
+                  : modalMode === "edit"
+                    ? "Edit"
+                    : "View"}
+              </Badge>
+            </div>
             <DialogDescription>
-              Add or edit launch services details for this job order.
+              {modalMode === "create"
+                ? "Add a new launch service to this job order."
+                : modalMode === "edit"
+                  ? "Update the launch service details."
+                  : "View launch service details (read-only)."}
             </DialogDescription>
           </DialogHeader>
+          <Separator />
           <LaunchServiceForm
             jobData={jobData}
             initialData={
@@ -557,6 +596,7 @@ export function LaunchServicesTab({
             isOpen: false,
             launchServiceId: null,
             launchServiceName: null,
+            jobOrderId: jobData.jobOrderId,
           })
         }
         isDeleting={deleteMutation.isPending}
@@ -605,6 +645,55 @@ export function LaunchServicesTab({
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Save Confirmation */}
+      <SaveConfirmation
+        open={saveConfirmation.isOpen}
+        onOpenChange={(isOpen) =>
+          setSaveConfirmation((prev) => ({ ...prev, isOpen }))
+        }
+        title="Confirm Save"
+        itemName={
+          saveConfirmation.operationType === "update"
+            ? `Launch Service ${selectedItem?.chargeName || ""}`
+            : "New Launch Service"
+        }
+        operationType={saveConfirmation.operationType}
+        onConfirm={() => {
+          if (saveConfirmation.formData) {
+            handleSubmit(saveConfirmation.formData as LaunchServiceFormValues)
+          }
+        }}
+        onCancel={() =>
+          setSaveConfirmation({
+            isOpen: false,
+            formData: null,
+            operationType: "create",
+          })
+        }
+        isSaving={saveMutation.isPending || updateMutation.isPending}
+      />
+
+      {/* Delete Confirmation */}
+      <DeleteConfirmation
+        open={deleteConfirmation.isOpen}
+        onOpenChange={(isOpen) =>
+          setDeleteConfirmation((prev) => ({ ...prev, isOpen }))
+        }
+        title="Delete Launch Service"
+        description="This action cannot be undone. This will permanently delete the launch service from our servers."
+        itemName={deleteConfirmation.launchServiceName || ""}
+        onConfirm={handleConfirmDelete}
+        onCancel={() =>
+          setDeleteConfirmation({
+            isOpen: false,
+            launchServiceId: null,
+            jobOrderId: null,
+            launchServiceName: null,
+          })
+        }
+        isDeleting={deleteMutation.isPending}
+      />
     </>
   )
 }

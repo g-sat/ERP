@@ -11,7 +11,6 @@ import {
 import { MedicalAssistanceFormValues } from "@/schemas/checklist"
 import { useQueryClient } from "@tanstack/react-query"
 import { Loader2 } from "lucide-react"
-import { toast } from "sonner"
 
 import { getData } from "@/lib/api-client"
 import {
@@ -30,6 +29,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { DeleteConfirmation } from "@/components/delete-confirmation"
+import { SaveConfirmation } from "@/components/save-confirmation"
 
 import CombinedForms from "../services-combined/combined-forms"
 import DebitNote from "../services-combined/debit-note"
@@ -72,15 +72,28 @@ export function MedicalAssistanceTab({
   const [showDebitNoteModal, setShowDebitNoteModal] = useState(false)
   const [showPurchaseModal, setShowPurchaseModal] = useState(false)
   const [debitNoteHd, setDebitNoteHd] = useState<IDebitNoteHd | null>(null)
+
+  // State for save confirmation
+  const [saveConfirmation, setSaveConfirmation] = useState<{
+    isOpen: boolean
+    formData: Partial<IMedicalAssistance> | null
+    operationType: "create" | "update"
+  }>({
+    isOpen: false,
+    formData: null,
+    operationType: "create",
+  })
   // State for delete confirmation
   const [deleteConfirmation, setDeleteConfirmation] = useState<{
     isOpen: boolean
     medicalAssistanceId: string | null
     medicalAssistanceName: string | null
+    jobOrderId: number | null
   }>({
     isOpen: false,
     medicalAssistanceId: null,
     medicalAssistanceName: null,
+    jobOrderId: null,
   })
 
   // State for debit note delete confirmation
@@ -156,10 +169,10 @@ export function MedicalAssistanceTab({
             setIsModalOpen(true)
           }
         } else {
-          toast.error("Failed to load details")
+          console.error("Failed to load details")
         }
       } catch (error) {
-        toast.error("An error occurred while fetching details")
+        console.error("An error occurred while fetching details")
         console.error("Error fetching item:", error)
       }
     },
@@ -176,28 +189,31 @@ export function MedicalAssistanceTab({
       isOpen: true,
       medicalAssistanceId: id,
       medicalAssistanceName: `Medical Assistance ${itemToDelete.crewName}`,
+      jobOrderId: jobData.jobOrderId,
     })
   }
 
-  const handleConfirmDelete = () => {
-    if (deleteConfirmation.medicalAssistanceId) {
-      toast.promise(
-        deleteMutation.mutateAsync(deleteConfirmation.medicalAssistanceId),
-        {
-          loading: `Deleting ${deleteConfirmation.medicalAssistanceName}...`,
-          success: () => {
-            queryClient.invalidateQueries({ queryKey: ["medicalAssistance"] })
-            onTaskAdded?.()
-            return `${deleteConfirmation.medicalAssistanceName} has been deleted`
-          },
-          error: "Failed to delete medical assistance",
-        }
-      )
-      setDeleteConfirmation({
-        isOpen: false,
-        medicalAssistanceId: null,
-        medicalAssistanceName: null,
-      })
+  const handleConfirmDelete = async () => {
+    if (
+      deleteConfirmation.medicalAssistanceId &&
+      deleteConfirmation.jobOrderId
+    ) {
+      try {
+        await deleteMutation.mutateAsync(
+          `${deleteConfirmation.jobOrderId}/${deleteConfirmation.medicalAssistanceId}`
+        )
+        queryClient.invalidateQueries({ queryKey: ["medicalAssistance"] })
+        onTaskAdded?.()
+      } catch (error) {
+        console.error("Failed to delete medical assistance:", error)
+      } finally {
+        setDeleteConfirmation({
+          isOpen: false,
+          medicalAssistanceId: null,
+          jobOrderId: null,
+          medicalAssistanceName: null,
+        })
+      }
     }
   }
 
@@ -293,7 +309,7 @@ export function MedicalAssistanceTab({
         )
 
         if (!foundItems || foundItems.length === 0) {
-          toast.error("Medical assistance(s) not found")
+          console.error("Medical assistance(s) not found")
           return
         }
 
@@ -327,7 +343,7 @@ export function MedicalAssistanceTab({
             setDebitNoteHd(debitNoteData)
           }
 
-          toast.info("Opening existing debit note")
+          console.log("Opening existing debit note")
           return
         }
 
@@ -371,13 +387,12 @@ export function MedicalAssistanceTab({
             setDebitNoteHd(debitNoteData)
           }
 
-          toast.success(
+          console.log(
             `Debit note created successfully for ${foundItems.length} item(s)`
           )
         }
       } catch (error) {
         console.error("Error handling debit note:", error)
-        toast.error("Failed to handle debit note")
       }
     },
     [debitNoteMutation, data, jobData]
@@ -405,30 +420,26 @@ export function MedicalAssistanceTab({
     []
   )
 
-  const handleConfirmDeleteDebitNote = useCallback(() => {
+  const handleConfirmDeleteDebitNote = useCallback(async () => {
     if (debitNoteDeleteConfirmation.debitNoteId) {
-      toast.promise(
-        debitNoteDeleteMutation.mutateAsync(
+      try {
+        await debitNoteDeleteMutation.mutateAsync(
           `${jobData.jobOrderId}/${Task.MedicalAssistance}/${debitNoteDeleteConfirmation.debitNoteId}`
-        ),
-        {
-          loading: `Deleting debit note ${debitNoteDeleteConfirmation.debitNoteNo}...`,
-          success: () => {
-            queryClient.invalidateQueries({ queryKey: ["medicalAssistance"] })
-            queryClient.invalidateQueries({ queryKey: ["debitNote"] })
-            onTaskAdded?.()
-            setShowDebitNoteModal(false)
-            setDebitNoteHd(null)
-            return `Debit note ${debitNoteDeleteConfirmation.debitNoteNo} has been deleted`
-          },
-          error: "Failed to delete debit note",
-        }
-      )
-      setDebitNoteDeleteConfirmation({
-        isOpen: false,
-        debitNoteId: null,
-        debitNoteNo: null,
-      })
+        )
+        queryClient.invalidateQueries({ queryKey: ["medicalAssistance"] })
+        queryClient.invalidateQueries({ queryKey: ["debitNote"] })
+        onTaskAdded?.()
+        setShowDebitNoteModal(false)
+        setDebitNoteHd(null)
+      } catch (error) {
+        console.error("Failed to delete debit note:", error)
+      } finally {
+        setDebitNoteDeleteConfirmation({
+          isOpen: false,
+          debitNoteId: null,
+          debitNoteNo: null,
+        })
+      }
     }
   }, [
     debitNoteDeleteConfirmation,
@@ -574,6 +585,7 @@ export function MedicalAssistanceTab({
             isOpen: false,
             medicalAssistanceId: null,
             medicalAssistanceName: null,
+            jobOrderId: null,
           })
         }
         isDeleting={deleteMutation.isPending}
@@ -622,6 +634,55 @@ export function MedicalAssistanceTab({
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Save Confirmation */}
+      <SaveConfirmation
+        open={saveConfirmation.isOpen}
+        onOpenChange={(isOpen) =>
+          setSaveConfirmation((prev) => ({ ...prev, isOpen }))
+        }
+        title="Confirm Save"
+        itemName={
+          saveConfirmation.operationType === "update"
+            ? `Medical Assistance ${selectedItem?.crewName || ""}`
+            : "New Medical Assistance"
+        }
+        operationType={saveConfirmation.operationType}
+        onConfirm={() => {
+          if (saveConfirmation.formData) {
+            handleSubmit(saveConfirmation.formData)
+          }
+        }}
+        onCancel={() =>
+          setSaveConfirmation({
+            isOpen: false,
+            formData: null,
+            operationType: "create",
+          })
+        }
+        isSaving={saveMutation.isPending || updateMutation.isPending}
+      />
+
+      {/* Delete Confirmation */}
+      <DeleteConfirmation
+        open={deleteConfirmation.isOpen}
+        onOpenChange={(isOpen) =>
+          setDeleteConfirmation((prev) => ({ ...prev, isOpen }))
+        }
+        title="Delete Medical Assistance"
+        description="This action cannot be undone. This will permanently delete the medical assistance from our servers."
+        itemName={deleteConfirmation.medicalAssistanceName || ""}
+        onConfirm={handleConfirmDelete}
+        onCancel={() =>
+          setDeleteConfirmation({
+            isOpen: false,
+            medicalAssistanceId: null,
+            jobOrderId: null,
+            medicalAssistanceName: null,
+          })
+        }
+        isDeleting={deleteMutation.isPending}
+      />
     </>
   )
 }

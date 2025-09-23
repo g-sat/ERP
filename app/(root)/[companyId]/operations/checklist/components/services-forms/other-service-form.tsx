@@ -11,6 +11,7 @@ import { useForm } from "react-hook-form"
 
 import { clientDateFormat, parseDate } from "@/lib/format"
 import { Task } from "@/lib/operations-utils"
+import { useChartofAccountLookup } from "@/hooks/use-lookup"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Form } from "@/components/ui/form"
@@ -54,6 +55,11 @@ export function OtherServiceForm({
   // State to track if selected charge is "Cash to master" type
   const [isCashToMaster, setIsCashToMaster] = useState(false)
 
+  // Get chart of account data to ensure it's loaded before setting form values
+  const { isLoading: isChartOfAccountLoading } = useChartofAccountLookup(
+    Number(jobData.companyId)
+  )
+
   console.log("initialData :", initialData)
   const form = useForm<OtherServiceFormValues>({
     resolver: zodResolver(OtherServiceSchema),
@@ -78,6 +84,7 @@ export function OtherServiceForm({
       quantity: initialData?.quantity ?? 1,
       amount: initialData?.amount ?? 0,
       remarks: initialData?.remarks ?? "",
+      editVersion: initialData?.editVersion ?? 0,
     },
   })
 
@@ -125,18 +132,25 @@ export function OtherServiceForm({
       quantity: initialData?.quantity ?? 1,
       amount: initialData?.amount ?? 0,
       remarks: initialData?.remarks ?? "",
+      editVersion: initialData?.editVersion ?? 0,
     })
-  }, [initialData, form, jobData.jobOrderId, jobData.jobOrderNo])
+  }, [
+    initialData,
+    taskDefaults,
+    form,
+    jobData.jobOrderId,
+    jobData.jobOrderNo,
+    isChartOfAccountLoading,
+  ])
 
-  // Handle initial charge selection when form loads with existing data
-  useEffect(() => {
-    if (initialData?.chargeId && initialData?.chargeName) {
-      const isCashToMasterCharge = initialData.chargeName
-        .toLowerCase()
-        .includes("cash to master")
-      setIsCashToMaster(isCashToMasterCharge)
-    }
-  }, [initialData])
+  // Show loading state while data is being fetched
+  if (isChartOfAccountLoading) {
+    return (
+      <div className="max-w flex flex-col gap-2">
+        <FormLoadingSpinner text="Loading form data..." />
+      </div>
+    )
+  }
 
   const onSubmit = (data: OtherServiceFormValues) => {
     submitAction(data)

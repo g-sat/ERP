@@ -11,7 +11,6 @@ import {
 import { ThirdPartyFormValues } from "@/schemas/checklist"
 import { useQueryClient } from "@tanstack/react-query"
 import { Loader2 } from "lucide-react"
-import { toast } from "sonner"
 
 import { getData } from "@/lib/api-client"
 import { JobOrder_DebitNote, JobOrder_ThirdParty } from "@/lib/api-routes"
@@ -27,6 +26,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { DeleteConfirmation } from "@/components/delete-confirmation"
+import { SaveConfirmation } from "@/components/save-confirmation"
 
 import CombinedForms from "../services-combined/combined-forms"
 import DebitNote from "../services-combined/debit-note"
@@ -73,10 +73,12 @@ export function ThirdPartyTab({
     isOpen: boolean
     thirdPartyId: string | null
     thirdPartyName: string | null
+    jobOrderId: number | null
   }>({
     isOpen: false,
     thirdPartyId: null,
     thirdPartyName: null,
+    jobOrderId: null,
   })
 
   // State for debit note delete confirmation
@@ -90,6 +92,16 @@ export function ThirdPartyTab({
       debitNoteId: null,
       debitNoteNo: null,
     })
+  // State for save confirmation
+  const [saveConfirmation, setSaveConfirmation] = useState<{
+    isOpen: boolean
+    formData: Partial<IThirdParty> | null
+    operationType: "create" | "update"
+  }>({
+    isOpen: false,
+    formData: null,
+    operationType: "create",
+  })
   // State for selected items (for bulk operations)
   const [selectedItems, setSelectedItems] = useState<string[]>([])
 
@@ -152,10 +164,10 @@ export function ThirdPartyTab({
             setIsModalOpen(true)
           }
         } else {
-          toast.error("Failed to load details")
+          console.error("Failed to load details")
         }
       } catch (error) {
-        toast.error("An error occurred while fetching details")
+        console.error("An error occurred while fetching details")
         console.error("Error fetching item:", error)
       }
     },
@@ -171,29 +183,29 @@ export function ThirdPartyTab({
     setDeleteConfirmation({
       isOpen: true,
       thirdPartyId: id,
+      jobOrderId: jobData.jobOrderId,
       thirdPartyName: `Third Party ${itemToDelete.supplierName}`,
     })
   }
 
-  const handleConfirmDelete = () => {
-    if (deleteConfirmation.thirdPartyId) {
-      toast.promise(
-        deleteMutation.mutateAsync(deleteConfirmation.thirdPartyId),
-        {
-          loading: `Deleting ${deleteConfirmation.thirdPartyName}...`,
-          success: () => {
-            queryClient.invalidateQueries({ queryKey: ["thirdParty"] })
-            onTaskAdded?.()
-            return `${deleteConfirmation.thirdPartyName} has been deleted`
-          },
-          error: "Failed to delete third party",
-        }
-      )
-      setDeleteConfirmation({
-        isOpen: false,
-        thirdPartyId: null,
-        thirdPartyName: null,
-      })
+  const handleConfirmDelete = async () => {
+    if (deleteConfirmation.thirdPartyId && deleteConfirmation.jobOrderId) {
+      try {
+        await deleteMutation.mutateAsync(
+          `${deleteConfirmation.jobOrderId}/${deleteConfirmation.thirdPartyId}`
+        )
+        queryClient.invalidateQueries({ queryKey: ["thirdParty"] })
+        onTaskAdded?.()
+      } catch (error) {
+        console.error("Failed to delete third party:", error)
+      } finally {
+        setDeleteConfirmation({
+          isOpen: false,
+          thirdPartyId: null,
+          thirdPartyName: null,
+          jobOrderId: null,
+        })
+      }
     }
   }
 
@@ -285,7 +297,7 @@ export function ThirdPartyTab({
         )
 
         if (!foundItems || foundItems.length === 0) {
-          toast.error("Third party(s) not found")
+          console.error("Third party(s) not found")
           return
         }
 
@@ -319,7 +331,7 @@ export function ThirdPartyTab({
             setDebitNoteHd(debitNoteData)
           }
 
-          toast.info("Opening existing debit note")
+          console.log("Opening existing debit note")
           return
         }
 
@@ -363,13 +375,12 @@ export function ThirdPartyTab({
             setDebitNoteHd(debitNoteData)
           }
 
-          toast.success(
+          console.log(
             `Debit note created successfully for ${foundItems.length} item(s)`
           )
         }
       } catch (error) {
         console.error("Error handling debit note:", error)
-        toast.error("Failed to handle debit note")
       }
     },
     [debitNoteMutation, data, jobData]
@@ -392,30 +403,26 @@ export function ThirdPartyTab({
     []
   )
 
-  const handleConfirmDeleteDebitNote = useCallback(() => {
+  const handleConfirmDeleteDebitNote = useCallback(async () => {
     if (debitNoteDeleteConfirmation.debitNoteId) {
-      toast.promise(
-        debitNoteDeleteMutation.mutateAsync(
+      try {
+        await debitNoteDeleteMutation.mutateAsync(
           `${jobData.jobOrderId}/${Task.ThirdParty}/${debitNoteDeleteConfirmation.debitNoteId}`
-        ),
-        {
-          loading: `Deleting debit note ${debitNoteDeleteConfirmation.debitNoteNo}...`,
-          success: () => {
-            queryClient.invalidateQueries({ queryKey: ["thirdParty"] })
-            queryClient.invalidateQueries({ queryKey: ["debitNote"] })
-            onTaskAdded?.()
-            setShowDebitNoteModal(false)
-            setDebitNoteHd(null)
-            return `Debit note ${debitNoteDeleteConfirmation.debitNoteNo} has been deleted`
-          },
-          error: "Failed to delete debit note",
-        }
-      )
-      setDebitNoteDeleteConfirmation({
-        isOpen: false,
-        debitNoteId: null,
-        debitNoteNo: null,
-      })
+        )
+        queryClient.invalidateQueries({ queryKey: ["thirdParty"] })
+        queryClient.invalidateQueries({ queryKey: ["debitNote"] })
+        onTaskAdded?.()
+        setShowDebitNoteModal(false)
+        setDebitNoteHd(null)
+      } catch (error) {
+        console.error("Failed to delete debit note:", error)
+      } finally {
+        setDebitNoteDeleteConfirmation({
+          isOpen: false,
+          debitNoteId: null,
+          debitNoteNo: null,
+        })
+      }
     }
   }, [
     debitNoteDeleteConfirmation,
@@ -547,6 +554,7 @@ export function ThirdPartyTab({
         </DialogContent>
       </Dialog>
 
+      {/* Delete Confirmation */}
       <DeleteConfirmation
         open={deleteConfirmation.isOpen}
         onOpenChange={(isOpen) =>
@@ -561,6 +569,7 @@ export function ThirdPartyTab({
             isOpen: false,
             thirdPartyId: null,
             thirdPartyName: null,
+            jobOrderId: null,
           })
         }
         isDeleting={deleteMutation.isPending}
@@ -609,6 +618,51 @@ export function ThirdPartyTab({
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Save Confirmation */}
+      <SaveConfirmation
+        open={saveConfirmation.isOpen}
+        onOpenChange={(isOpen) =>
+          setSaveConfirmation((prev) => ({ ...prev, isOpen }))
+        }
+        title="Confirm Save"
+        itemName={
+          saveConfirmation.operationType === "update"
+            ? `Third Party ${selectedItem?.supplierName || ""}`
+            : "New Third Party"
+        }
+        operationType={saveConfirmation.operationType}
+        onConfirm={handleConfirmDelete}
+        onCancel={() =>
+          setSaveConfirmation({
+            isOpen: false,
+            formData: null,
+            operationType: "create",
+          })
+        }
+        isSaving={saveMutation.isPending || updateMutation.isPending}
+      />
+
+      {/* Delete Confirmation */}
+      <DeleteConfirmation
+        open={deleteConfirmation.isOpen}
+        onOpenChange={(isOpen) =>
+          setDeleteConfirmation((prev) => ({ ...prev, isOpen }))
+        }
+        title="Delete Third Party"
+        description="This action cannot be undone. This will permanently delete the third party from our servers."
+        itemName={deleteConfirmation.thirdPartyName || ""}
+        onConfirm={handleConfirmDelete}
+        onCancel={() =>
+          setDeleteConfirmation({
+            isOpen: false,
+            thirdPartyId: null,
+            jobOrderId: null,
+            thirdPartyName: null,
+          })
+        }
+        isDeleting={deleteMutation.isPending}
+      />
     </>
   )
 }

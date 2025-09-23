@@ -11,7 +11,6 @@ import {
 import { FreshWaterFormValues } from "@/schemas/checklist"
 import { useQueryClient } from "@tanstack/react-query"
 import { Loader2 } from "lucide-react"
-import { toast } from "sonner"
 
 import { getData } from "@/lib/api-client"
 import { JobOrder_DebitNote, JobOrder_FreshWater } from "@/lib/api-routes"
@@ -27,6 +26,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { DeleteConfirmation } from "@/components/delete-confirmation"
+import { SaveConfirmation } from "@/components/save-confirmation"
 
 import CombinedForms from "../services-combined/combined-forms"
 import DebitNote from "../services-combined/debit-note"
@@ -72,10 +72,23 @@ export function FreshWaterTab({
     isOpen: boolean
     freshWaterId: string | null
     freshWaterName: string | null
+    jobOrderId: number | null
   }>({
     isOpen: false,
     freshWaterId: null,
     freshWaterName: null,
+    jobOrderId: null,
+  })
+
+  // State for save confirmation
+  const [saveConfirmation, setSaveConfirmation] = useState<{
+    isOpen: boolean
+    formData: Partial<IFreshWater> | null
+    operationType: "create" | "update"
+  }>({
+    isOpen: false,
+    formData: null,
+    operationType: "create",
   })
 
   // State for debit note delete confirmation
@@ -151,10 +164,10 @@ export function FreshWaterTab({
             setIsModalOpen(true)
           }
         } else {
-          toast.error("Failed to load details")
+          console.error("Failed to load details")
         }
       } catch (error) {
-        toast.error("An error occurred while fetching details")
+        console.error("An error occurred while fetching details")
         console.error("Error fetching item:", error)
       }
     },
@@ -171,28 +184,28 @@ export function FreshWaterTab({
       isOpen: true,
       freshWaterId: id,
       freshWaterName: `Fresh Water ${itemToDelete.chargeName}`,
+      jobOrderId: jobData.jobOrderId,
     })
   }
 
-  const handleConfirmDelete = () => {
-    if (deleteConfirmation.freshWaterId) {
-      toast.promise(
-        deleteMutation.mutateAsync(deleteConfirmation.freshWaterId),
-        {
-          loading: `Deleting ${deleteConfirmation.freshWaterName}...`,
-          success: () => {
-            queryClient.invalidateQueries({ queryKey: ["freshWater"] })
-            onTaskAdded?.()
-            return `${deleteConfirmation.freshWaterName} has been deleted`
-          },
-          error: "Failed to delete fresh water",
-        }
-      )
-      setDeleteConfirmation({
-        isOpen: false,
-        freshWaterId: null,
-        freshWaterName: null,
-      })
+  const handleConfirmDelete = async () => {
+    if (deleteConfirmation.freshWaterId && deleteConfirmation.jobOrderId) {
+      try {
+        await deleteMutation.mutateAsync(
+          `${deleteConfirmation.jobOrderId}/${deleteConfirmation.freshWaterId}`
+        )
+        queryClient.invalidateQueries({ queryKey: ["freshWater"] })
+        onTaskAdded?.()
+      } catch (error) {
+        console.error("Failed to delete fresh water:", error)
+      } finally {
+        setDeleteConfirmation({
+          isOpen: false,
+          freshWaterId: null,
+          jobOrderId: jobData.jobOrderId,
+          freshWaterName: null,
+        })
+      }
     }
   }
 
@@ -299,7 +312,7 @@ export function FreshWaterTab({
         )
 
         if (!foundItems || foundItems.length === 0) {
-          toast.error("Fresh water(s) not found")
+          console.error("Fresh water(s) not found")
           return
         }
 
@@ -333,7 +346,7 @@ export function FreshWaterTab({
             setDebitNoteHd(debitNoteData)
           }
 
-          toast.info("Opening existing debit note")
+          console.log("Opening existing debit note")
           return
         }
 
@@ -377,13 +390,12 @@ export function FreshWaterTab({
             setDebitNoteHd(debitNoteData)
           }
 
-          toast.success(
+          console.log(
             `Debit note created successfully for ${foundItems.length} item(s)`
           )
         }
       } catch (error) {
         console.error("Error handling debit note:", error)
-        toast.error("Failed to handle debit note")
       }
     },
     [debitNoteMutation, data, jobData]
@@ -411,30 +423,26 @@ export function FreshWaterTab({
     []
   )
 
-  const handleConfirmDeleteDebitNote = useCallback(() => {
+  const handleConfirmDeleteDebitNote = useCallback(async () => {
     if (debitNoteDeleteConfirmation.debitNoteId) {
-      toast.promise(
-        debitNoteDeleteMutation.mutateAsync(
+      try {
+        await debitNoteDeleteMutation.mutateAsync(
           `${jobData.jobOrderId}/${Task.FreshWater}/${debitNoteDeleteConfirmation.debitNoteId}`
-        ),
-        {
-          loading: `Deleting debit note ${debitNoteDeleteConfirmation.debitNoteNo}...`,
-          success: () => {
-            queryClient.invalidateQueries({ queryKey: ["freshWater"] })
-            queryClient.invalidateQueries({ queryKey: ["debitNote"] })
-            onTaskAdded?.()
-            setShowDebitNoteModal(false)
-            setDebitNoteHd(null)
-            return `Debit note ${debitNoteDeleteConfirmation.debitNoteNo} has been deleted`
-          },
-          error: "Failed to delete debit note",
-        }
-      )
-      setDebitNoteDeleteConfirmation({
-        isOpen: false,
-        debitNoteId: null,
-        debitNoteNo: null,
-      })
+        )
+        queryClient.invalidateQueries({ queryKey: ["freshWater"] })
+        queryClient.invalidateQueries({ queryKey: ["debitNote"] })
+        onTaskAdded?.()
+        setShowDebitNoteModal(false)
+        setDebitNoteHd(null)
+      } catch (error) {
+        console.error("Failed to delete debit note:", error)
+      } finally {
+        setDebitNoteDeleteConfirmation({
+          isOpen: false,
+          debitNoteId: null,
+          debitNoteNo: null,
+        })
+      }
     }
   }, [
     debitNoteDeleteConfirmation,
@@ -580,6 +588,7 @@ export function FreshWaterTab({
             isOpen: false,
             freshWaterId: null,
             freshWaterName: null,
+            jobOrderId: null,
           })
         }
         isDeleting={deleteMutation.isPending}
@@ -628,6 +637,55 @@ export function FreshWaterTab({
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Save Confirmation */}
+      <SaveConfirmation
+        open={saveConfirmation.isOpen}
+        onOpenChange={(isOpen) =>
+          setSaveConfirmation((prev) => ({ ...prev, isOpen }))
+        }
+        title="Confirm Save"
+        itemName={
+          saveConfirmation.operationType === "update"
+            ? `Fresh Water ${selectedItem?.chargeName || ""}`
+            : "New Fresh Water"
+        }
+        operationType={saveConfirmation.operationType}
+        onConfirm={() => {
+          if (saveConfirmation.formData) {
+            handleSubmit(saveConfirmation.formData)
+          }
+        }}
+        onCancel={() =>
+          setSaveConfirmation({
+            isOpen: false,
+            formData: null,
+            operationType: "create",
+          })
+        }
+        isSaving={saveMutation.isPending || updateMutation.isPending}
+      />
+
+      {/* Delete Confirmation */}
+      <DeleteConfirmation
+        open={deleteConfirmation.isOpen}
+        onOpenChange={(isOpen) =>
+          setDeleteConfirmation((prev) => ({ ...prev, isOpen }))
+        }
+        title="Delete Fresh Water"
+        description="This action cannot be undone. This will permanently delete the fresh water from our servers."
+        itemName={deleteConfirmation.freshWaterName || ""}
+        onConfirm={handleConfirmDelete}
+        onCancel={() =>
+          setDeleteConfirmation({
+            isOpen: false,
+            freshWaterId: null,
+            jobOrderId: jobData.jobOrderId,
+            freshWaterName: null,
+          })
+        }
+        isDeleting={deleteMutation.isPending}
+      />
     </>
   )
 }

@@ -11,13 +11,13 @@ import {
 import { CrewSignOnFormValues } from "@/schemas/checklist"
 import { useQueryClient } from "@tanstack/react-query"
 import { Loader2 } from "lucide-react"
-import { toast } from "sonner"
 
 import { getData } from "@/lib/api-client"
 import { JobOrder_CrewSignOn, JobOrder_DebitNote } from "@/lib/api-routes"
 import { Task } from "@/lib/operations-utils"
 import { useDelete, useGetById, usePersist } from "@/hooks/use-common"
 import { useTaskServiceDefaults } from "@/hooks/use-task-service"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -26,7 +26,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import { Separator } from "@/components/ui/separator"
 import { DeleteConfirmation } from "@/components/delete-confirmation"
+import { SaveConfirmation } from "@/components/save-confirmation"
 
 import CombinedForms from "../services-combined/combined-forms"
 import DebitNote from "../services-combined/debit-note"
@@ -49,11 +51,12 @@ export function CrewSignOnTab({
   onTaskAdded,
   isConfirmed,
 }: CrewSignOnTabProps) {
-  const jobOrderId = jobData.jobOrderId
-  const queryClient = useQueryClient()
-
   // Get default values for Crew Sign On task
   const { defaults: taskDefaults } = useTaskServiceDefaults(Task.CrewSignOn)
+
+  const jobOrderId = jobData.jobOrderId
+
+  const queryClient = useQueryClient()
   //states
   const [selectedItem, setSelectedItem] = useState<ICrewSignOn | undefined>(
     undefined
@@ -73,11 +76,24 @@ export function CrewSignOnTab({
   const [deleteConfirmation, setDeleteConfirmation] = useState<{
     isOpen: boolean
     crewSignOnId: string | null
+    jobOrderId: number | null
     crewSignOnName: string | null
   }>({
     isOpen: false,
     crewSignOnId: null,
+    jobOrderId: null,
     crewSignOnName: null,
+  })
+
+  // State for save confirmation
+  const [saveConfirmation, setSaveConfirmation] = useState<{
+    isOpen: boolean
+    formData: Partial<ICrewSignOn> | null
+    operationType: "create" | "update"
+  }>({
+    isOpen: false,
+    formData: null,
+    operationType: "create",
   })
 
   // State for debit note delete confirmation
@@ -151,10 +167,10 @@ export function CrewSignOnTab({
             setIsModalOpen(true)
           }
         } else {
-          toast.error("Failed to load details")
+          console.error("Failed to load details")
         }
       } catch (error) {
-        toast.error("An error occurred while fetching details")
+        console.error("An error occurred while fetching details")
         console.error("Error fetching item:", error)
       }
     },
@@ -170,29 +186,29 @@ export function CrewSignOnTab({
     setDeleteConfirmation({
       isOpen: true,
       crewSignOnId: id,
+      jobOrderId: jobData.jobOrderId,
       crewSignOnName: `Crew Sign On ${itemToDelete.crewName}`,
     })
   }
 
-  const handleConfirmDelete = () => {
-    if (deleteConfirmation.crewSignOnId) {
-      toast.promise(
-        deleteMutation.mutateAsync(deleteConfirmation.crewSignOnId),
-        {
-          loading: `Deleting ${deleteConfirmation.crewSignOnName}...`,
-          success: () => {
-            queryClient.invalidateQueries({ queryKey: ["crewSignOn"] })
-            onTaskAdded?.()
-            return `${deleteConfirmation.crewSignOnName} has been deleted`
-          },
-          error: "Failed to delete crew sign on",
-        }
-      )
-      setDeleteConfirmation({
-        isOpen: false,
-        crewSignOnId: null,
-        crewSignOnName: null,
-      })
+  const handleConfirmDelete = async () => {
+    if (deleteConfirmation.crewSignOnId && deleteConfirmation.jobOrderId) {
+      try {
+        await deleteMutation.mutateAsync(
+          `${deleteConfirmation.jobOrderId}/${deleteConfirmation.crewSignOnId}`
+        )
+        queryClient.invalidateQueries({ queryKey: ["crewSignOn"] })
+        onTaskAdded?.()
+      } catch (error) {
+        console.error("Failed to delete crew sign on:", error)
+      } finally {
+        setDeleteConfirmation({
+          isOpen: false,
+          crewSignOnId: null,
+          jobOrderId: null,
+          crewSignOnName: null,
+        })
+      }
     }
   }
 
@@ -217,41 +233,63 @@ export function CrewSignOnTab({
   )
 
   const handleSubmit = useCallback(
-    async (formData: Partial<ICrewSignOn>) => {
-      try {
-        const processedData = {
-          ...formData,
-        }
-        const submitData = { ...processedData, ...jobDataProps }
-
-        if (modalMode === "edit" && selectedItem) {
-          await updateMutation.mutateAsync({
-            ...submitData,
-            crewSignOnId: selectedItem.crewSignOnId,
-          })
-        } else {
-          await saveMutation.mutateAsync(submitData)
-        }
-
-        setIsModalOpen(false)
-        setSelectedItem(undefined)
-        setModalMode("create")
-        refetch()
-        onTaskAdded?.()
-      } catch (error) {
-        console.error("Error submitting form:", error)
-      }
+    (formData: Partial<ICrewSignOn>) => {
+      // Show save confirmation instead of directly submitting
+      setSaveConfirmation({
+        isOpen: true,
+        formData,
+        operationType: modalMode === "edit" ? "update" : "create",
+      })
     },
-    [
-      jobDataProps,
-      modalMode,
-      selectedItem,
-      updateMutation,
-      saveMutation,
-      refetch,
-      onTaskAdded,
-    ]
+    [modalMode]
   )
+
+  // Actual save function that gets called after confirmation
+  const handleConfirmSave = useCallback(async () => {
+    if (!saveConfirmation.formData) return
+
+    try {
+      const processedData = {
+        ...saveConfirmation.formData,
+      }
+      const submitData = { ...processedData, ...jobDataProps }
+
+      if (saveConfirmation.operationType === "update" && selectedItem) {
+        await updateMutation.mutateAsync({
+          ...submitData,
+          crewSignOnId: selectedItem.crewSignOnId,
+        })
+      } else {
+        await saveMutation.mutateAsync(submitData)
+      }
+
+      // Only close modal and reset state on successful submission
+      setIsModalOpen(false)
+      setSelectedItem(undefined)
+      setModalMode("create")
+      refetch()
+      onTaskAdded?.()
+    } catch (error) {
+      console.error("Error submitting form:", error)
+      // Don't close the modal on error - let user fix the issue and retry
+    } finally {
+      // Close the save confirmation dialog
+      setSaveConfirmation({
+        isOpen: false,
+        formData: null,
+        operationType: "create",
+      })
+    }
+  }, [
+    saveConfirmation.formData,
+    saveConfirmation.operationType,
+    jobDataProps,
+    selectedItem,
+    updateMutation,
+    saveMutation,
+    refetch,
+    onTaskAdded,
+  ])
 
   const handleCombinedService = useCallback((selectedIds: string[]) => {
     setSelectedItems(selectedIds)
@@ -279,7 +317,7 @@ export function CrewSignOnTab({
         )
 
         if (!foundItems || foundItems.length === 0) {
-          toast.error("Crew sign on(s) not found")
+          console.error("Crew sign on(s) not found")
           return
         }
 
@@ -313,7 +351,7 @@ export function CrewSignOnTab({
             setDebitNoteHd(debitNoteData)
           }
 
-          toast.info("Opening existing debit note")
+          console.log("Opening existing debit note")
           return
         }
 
@@ -357,24 +395,23 @@ export function CrewSignOnTab({
             setDebitNoteHd(debitNoteData)
           }
 
-          toast.success(
+          console.log(
             `Debit note created successfully for ${foundItems.length} item(s)`
           )
         }
       } catch (error) {
         console.error("Error handling debit note:", error)
-        toast.error("Failed to handle debit note")
       }
     },
     [debitNoteMutation, data, jobData]
   )
 
   const handlePurchase = useCallback(() => setShowPurchaseModal(true), [])
-  const handleCreateCrewSignOn = useCallback(() => {
+  const handleCreate = () => {
     setSelectedItem(undefined)
     setModalMode("create")
     setIsModalOpen(true)
-  }, [])
+  }
 
   const handleRefreshCrewSignOn = useCallback(() => {
     refetch()
@@ -392,30 +429,26 @@ export function CrewSignOnTab({
     []
   )
 
-  const handleConfirmDeleteDebitNote = useCallback(() => {
+  const handleConfirmDeleteDebitNote = useCallback(async () => {
     if (debitNoteDeleteConfirmation.debitNoteId) {
-      toast.promise(
-        debitNoteDeleteMutation.mutateAsync(
+      try {
+        await debitNoteDeleteMutation.mutateAsync(
           `${jobData.jobOrderId}/${Task.CrewSignOn}/${debitNoteDeleteConfirmation.debitNoteId}`
-        ),
-        {
-          loading: `Deleting debit note ${debitNoteDeleteConfirmation.debitNoteNo}...`,
-          success: () => {
-            queryClient.invalidateQueries({ queryKey: ["crewSignOn"] })
-            queryClient.invalidateQueries({ queryKey: ["debitNote"] })
-            onTaskAdded?.()
-            setShowDebitNoteModal(false)
-            setDebitNoteHd(null)
-            return `Debit note ${debitNoteDeleteConfirmation.debitNoteNo} has been deleted`
-          },
-          error: "Failed to delete debit note",
-        }
-      )
-      setDebitNoteDeleteConfirmation({
-        isOpen: false,
-        debitNoteId: null,
-        debitNoteNo: null,
-      })
+        )
+        queryClient.invalidateQueries({ queryKey: ["crewSignOn"] })
+        queryClient.invalidateQueries({ queryKey: ["debitNote"] })
+        onTaskAdded?.()
+        setShowDebitNoteModal(false)
+        setDebitNoteHd(null)
+      } catch (error) {
+        console.error("Failed to delete debit note:", error)
+      } finally {
+        setDebitNoteDeleteConfirmation({
+          isOpen: false,
+          debitNoteId: null,
+          debitNoteNo: null,
+        })
+      }
     }
   }, [
     debitNoteDeleteConfirmation,
@@ -434,7 +467,7 @@ export function CrewSignOnTab({
             onCrewSignOnSelect={handleSelect}
             onDeleteCrewSignOn={handleDelete}
             onEditCrewSignOn={handleEdit}
-            onCreateCrewSignOn={handleCreateCrewSignOn}
+            onCreateCrewSignOn={handleCreate}
             onCombinedService={handleCombinedService}
             onDebitNote={handleDebitNote}
             onPurchase={handlePurchase}
@@ -448,17 +481,46 @@ export function CrewSignOnTab({
 
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogContent
-          className="max-h-[90vh] w-[80vw] !max-w-none overflow-y-auto"
+          className="max-h-[80vh] w-[60vw] !max-w-none overflow-y-auto"
           onPointerDownOutside={(e) => {
             e.preventDefault()
           }}
         >
           <DialogHeader>
-            <DialogTitle>Crew Sign On</DialogTitle>
+            <div className="flex items-center gap-3">
+              <DialogTitle>Crew Sign On</DialogTitle>
+              <Badge
+                variant={
+                  modalMode === "create"
+                    ? "default"
+                    : modalMode === "edit"
+                      ? "secondary"
+                      : "outline"
+                }
+                className={
+                  modalMode === "create"
+                    ? "border-green-200 bg-green-100 text-green-800"
+                    : modalMode === "edit"
+                      ? "border-orange-200 bg-orange-100 text-orange-800"
+                      : "border-blue-200 bg-blue-100 text-blue-800"
+                }
+              >
+                {modalMode === "create"
+                  ? "New"
+                  : modalMode === "edit"
+                    ? "Edit"
+                    : "View"}
+              </Badge>
+            </div>
             <DialogDescription>
-              Add or edit crew sign on details for this job order.
+              {modalMode === "create"
+                ? "Add a new crew sign on to this job order."
+                : modalMode === "edit"
+                  ? "Update the crew sign on details."
+                  : "View crew sign on details (read-only)."}
             </DialogDescription>
           </DialogHeader>
+          <Separator />
           <CrewSignOnForm
             jobData={jobData}
             initialData={
@@ -560,6 +622,7 @@ export function CrewSignOnTab({
           setDeleteConfirmation({
             isOpen: false,
             crewSignOnId: null,
+            jobOrderId: null,
             crewSignOnName: null,
           })
         }
@@ -609,6 +672,51 @@ export function CrewSignOnTab({
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Save Confirmation */}
+      <SaveConfirmation
+        open={saveConfirmation.isOpen}
+        onOpenChange={(isOpen) =>
+          setSaveConfirmation((prev) => ({ ...prev, isOpen }))
+        }
+        title="Confirm Save"
+        itemName={
+          saveConfirmation.operationType === "update"
+            ? `Crew Sign On ${selectedItem?.crewName || ""}`
+            : "New Crew Sign On"
+        }
+        operationType={saveConfirmation.operationType}
+        onConfirm={handleConfirmSave}
+        onCancel={() =>
+          setSaveConfirmation({
+            isOpen: false,
+            formData: null,
+            operationType: "create",
+          })
+        }
+        isSaving={saveMutation.isPending || updateMutation.isPending}
+      />
+
+      {/* Delete Confirmation */}
+      <DeleteConfirmation
+        open={deleteConfirmation.isOpen}
+        onOpenChange={(isOpen) =>
+          setDeleteConfirmation((prev) => ({ ...prev, isOpen }))
+        }
+        title="Delete Crew Sign On"
+        description="This action cannot be undone. This will permanently delete the crew sign on from our servers."
+        itemName={deleteConfirmation.crewSignOnName || ""}
+        onConfirm={handleConfirmDelete}
+        onCancel={() =>
+          setDeleteConfirmation({
+            isOpen: false,
+            crewSignOnId: null,
+            jobOrderId: null,
+            crewSignOnName: null,
+          })
+        }
+        isDeleting={deleteMutation.isPending}
+      />
     </>
   )
 }

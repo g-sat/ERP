@@ -11,7 +11,6 @@ import {
 import { TechnicianSurveyorFormValues } from "@/schemas/checklist"
 import { useQueryClient } from "@tanstack/react-query"
 import { Loader2 } from "lucide-react"
-import { toast } from "sonner"
 
 import { getData } from "@/lib/api-client"
 import {
@@ -30,6 +29,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { DeleteConfirmation } from "@/components/delete-confirmation"
+import { SaveConfirmation } from "@/components/save-confirmation"
 
 import CombinedForms from "../services-combined/combined-forms"
 import DebitNote from "../services-combined/debit-note"
@@ -77,12 +77,23 @@ export function TechniciansSurveyorsTab({
     isOpen: boolean
     technicianSurveyorId: string | null
     technicianSurveyorName: string | null
+    jobOrderId: number | null
   }>({
     isOpen: false,
     technicianSurveyorId: null,
     technicianSurveyorName: null,
+    jobOrderId: null,
   })
-
+  // State for save confirmation
+  const [saveConfirmation, setSaveConfirmation] = useState<{
+    isOpen: boolean
+    formData: Partial<ITechnicianSurveyor> | null
+    operationType: "create" | "update"
+  }>({
+    isOpen: false,
+    formData: null,
+    operationType: "create",
+  })
   // State for debit note delete confirmation
   const [debitNoteDeleteConfirmation, setDebitNoteDeleteConfirmation] =
     useState<{
@@ -138,7 +149,7 @@ export function TechniciansSurveyorsTab({
 
   // Handlers
   const handleSelect = useCallback(
-    async (item: ITechnicianSurveyor | undefined) => {
+    async (item: ITechnicianSurveyor | null) => {
       if (!item) return
 
       try {
@@ -156,10 +167,10 @@ export function TechniciansSurveyorsTab({
             setIsModalOpen(true)
           }
         } else {
-          toast.error("Failed to load details")
+          console.error("Failed to load details")
         }
       } catch (error) {
-        toast.error("An error occurred while fetching details")
+        console.error("An error occurred while fetching details")
         console.error("Error fetching item:", error)
       }
     },
@@ -176,28 +187,32 @@ export function TechniciansSurveyorsTab({
       isOpen: true,
       technicianSurveyorId: id,
       technicianSurveyorName: `Technician Surveyor ${itemToDelete.name}`,
+      jobOrderId: jobData.jobOrderId,
     })
   }
 
-  const handleConfirmDelete = () => {
-    if (deleteConfirmation.technicianSurveyorId) {
-      toast.promise(
-        deleteMutation.mutateAsync(deleteConfirmation.technicianSurveyorId),
-        {
-          loading: `Deleting ${deleteConfirmation.technicianSurveyorName}...`,
-          success: () => {
-            queryClient.invalidateQueries({ queryKey: ["technicianSurveyor"] })
-            onTaskAdded?.()
-            return `${deleteConfirmation.technicianSurveyorName} has been deleted`
-          },
-          error: "Failed to delete technician surveyor",
-        }
-      )
-      setDeleteConfirmation({
-        isOpen: false,
-        technicianSurveyorId: null,
-        technicianSurveyorName: null,
-      })
+  const handleConfirmDelete = async () => {
+    if (
+      deleteConfirmation.technicianSurveyorId &&
+      deleteConfirmation.jobOrderId &&
+      deleteConfirmation.technicianSurveyorId
+    ) {
+      try {
+        await deleteMutation.mutateAsync(
+          `${deleteConfirmation.jobOrderId}/${deleteConfirmation.technicianSurveyorId}`
+        )
+        queryClient.invalidateQueries({ queryKey: ["technicianSurveyor"] })
+        onTaskAdded?.()
+      } catch (error) {
+        console.error("Failed to delete technician surveyor:", error)
+      } finally {
+        setDeleteConfirmation({
+          isOpen: false,
+          technicianSurveyorId: null,
+          jobOrderId: jobData.jobOrderId,
+          technicianSurveyorName: null,
+        })
+      }
     }
   }
 
@@ -299,7 +314,7 @@ export function TechniciansSurveyorsTab({
         )
 
         if (!foundItems || foundItems.length === 0) {
-          toast.error("Technician surveyor(s) not found")
+          console.error("Technician surveyor(s) not found")
           return
         }
 
@@ -333,7 +348,7 @@ export function TechniciansSurveyorsTab({
             setDebitNoteHd(debitNoteData as IDebitNoteHd)
           }
 
-          toast.info("Opening existing debit note")
+          console.log("Opening existing debit note")
           return
         }
 
@@ -377,13 +392,12 @@ export function TechniciansSurveyorsTab({
             setDebitNoteHd(debitNoteData as IDebitNoteHd)
           }
 
-          toast.success(
+          console.log(
             `Debit note created successfully for ${foundItems.length} item(s)`
           )
         }
       } catch (error) {
         console.error("Error handling debit note:", error)
-        toast.error("Failed to handle debit note")
       }
     },
     [debitNoteMutation, data, jobData]
@@ -406,30 +420,26 @@ export function TechniciansSurveyorsTab({
     []
   )
 
-  const handleConfirmDeleteDebitNote = useCallback(() => {
+  const handleConfirmDeleteDebitNote = useCallback(async () => {
     if (debitNoteDeleteConfirmation.debitNoteId) {
-      toast.promise(
-        debitNoteDeleteMutation.mutateAsync(
+      try {
+        await debitNoteDeleteMutation.mutateAsync(
           `${jobData.jobOrderId}/${Task.TechniciansSurveyors}/${debitNoteDeleteConfirmation.debitNoteId}`
-        ),
-        {
-          loading: `Deleting debit note ${debitNoteDeleteConfirmation.debitNoteNo}...`,
-          success: () => {
-            queryClient.invalidateQueries({ queryKey: ["technicianSurveyor"] })
-            queryClient.invalidateQueries({ queryKey: ["debitNote"] })
-            onTaskAdded?.()
-            setShowDebitNoteModal(false)
-            setDebitNoteHd(null)
-            return `Debit note ${debitNoteDeleteConfirmation.debitNoteNo} has been deleted`
-          },
-          error: "Failed to delete debit note",
-        }
-      )
-      setDebitNoteDeleteConfirmation({
-        isOpen: false,
-        debitNoteId: null,
-        debitNoteNo: null,
-      })
+        )
+        queryClient.invalidateQueries({ queryKey: ["technicianSurveyor"] })
+        queryClient.invalidateQueries({ queryKey: ["debitNote"] })
+        onTaskAdded?.()
+        setShowDebitNoteModal(false)
+        setDebitNoteHd(null)
+      } catch (error) {
+        console.error("Failed to delete debit note:", error)
+      } finally {
+        setDebitNoteDeleteConfirmation({
+          isOpen: false,
+          debitNoteId: null,
+          debitNoteNo: null,
+        })
+      }
     }
   }, [
     debitNoteDeleteConfirmation,
@@ -561,25 +571,6 @@ export function TechniciansSurveyorsTab({
         </DialogContent>
       </Dialog>
 
-      <DeleteConfirmation
-        open={deleteConfirmation.isOpen}
-        onOpenChange={(isOpen) =>
-          setDeleteConfirmation((prev) => ({ ...prev, isOpen }))
-        }
-        title="Delete Technician Surveyor"
-        description="This action cannot be undone. This will permanently delete the technician surveyor from our servers."
-        itemName={deleteConfirmation.technicianSurveyorName || ""}
-        onConfirm={handleConfirmDelete}
-        onCancel={() =>
-          setDeleteConfirmation({
-            isOpen: false,
-            technicianSurveyorId: null,
-            technicianSurveyorName: null,
-          })
-        }
-        isDeleting={deleteMutation.isPending}
-      />
-
       {/* Debit Note Delete Confirmation */}
       <Dialog
         open={debitNoteDeleteConfirmation.isOpen}
@@ -623,6 +614,51 @@ export function TechniciansSurveyorsTab({
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Save Confirmation */}
+      <SaveConfirmation
+        open={saveConfirmation.isOpen}
+        onOpenChange={(isOpen) =>
+          setSaveConfirmation((prev) => ({ ...prev, isOpen }))
+        }
+        title="Confirm Save"
+        itemName={
+          saveConfirmation.operationType === "update"
+            ? `Technicians Surveyors ${selectedItem?.name || ""}`
+            : "New Technicians Surveyors"
+        }
+        operationType={saveConfirmation.operationType}
+        onConfirm={handleConfirmDelete}
+        onCancel={() =>
+          setSaveConfirmation({
+            isOpen: false,
+            formData: null,
+            operationType: "create",
+          })
+        }
+        isSaving={saveMutation.isPending || updateMutation.isPending}
+      />
+
+      {/* Delete Confirmation */}
+      <DeleteConfirmation
+        open={deleteConfirmation.isOpen}
+        onOpenChange={(isOpen) =>
+          setDeleteConfirmation((prev) => ({ ...prev, isOpen }))
+        }
+        title="Delete Port Expense"
+        description="This action cannot be undone. This will permanently delete the port expense from our servers."
+        itemName={deleteConfirmation.technicianSurveyorName || ""}
+        onConfirm={handleConfirmDelete}
+        onCancel={() =>
+          setDeleteConfirmation({
+            isOpen: false,
+            technicianSurveyorId: null,
+            jobOrderId: null,
+            technicianSurveyorName: null,
+          })
+        }
+        isDeleting={deleteMutation.isPending}
+      />
     </>
   )
 }

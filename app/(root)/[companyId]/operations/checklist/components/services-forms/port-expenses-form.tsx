@@ -60,19 +60,6 @@ export function PortExpensesForm({
   // Get supplier data to ensure it's loaded before setting form values
   const { isLoading: isSupplierLoading } = useSupplierLookup()
 
-  console.log("taskDefaults :", taskDefaults)
-  console.log("deliverDate :", initialData?.deliverDate)
-  console.log(
-    "deliverDate format :",
-    parseDate(initialData?.deliverDate as string)
-  )
-  console.log(
-    "deliverDate format initial data :",
-    format(
-      parseDate(initialData?.deliverDate as string) || new Date(),
-      dateFormat
-    )
-  )
   const form = useForm<PortExpensesFormValues>({
     resolver: zodResolver(PortExpensesSchema),
     defaultValues: {
