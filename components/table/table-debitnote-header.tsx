@@ -10,6 +10,7 @@ import {
   Plus,
   RefreshCw,
   SlidersHorizontal,
+  Trash2,
 } from "lucide-react"
 
 import { usePersist } from "@/hooks/use-common"
@@ -49,6 +50,7 @@ declare module "jspdf" {
 type DebitNoteTableHeaderProps<TData> = {
   onRefresh?: () => void
   onCreate?: () => void
+  onBulkDelete?: () => void
   searchQuery: string
   onSearchChange: (query: string) => void
   columns: Column<TData, unknown>[]
@@ -65,6 +67,7 @@ type DebitNoteTableHeaderProps<TData> = {
 export function DebitNoteTableHeader<TData>({
   onRefresh,
   onCreate,
+  onBulkDelete,
   searchQuery,
   onSearchChange,
   columns,
@@ -234,14 +237,6 @@ export function DebitNoteTableHeader<TData>({
   return (
     <>
       <div className="mb-4 space-y-2">
-        {/* Selected items count */}
-        {hasSelectedRows && selectedRowsCount > 0 && (
-          <div className="text-muted-foreground text-sm">
-            {selectedRowsCount} item{selectedRowsCount !== 1 ? "s" : ""}{" "}
-            selected
-          </div>
-        )}
-
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Button
@@ -254,6 +249,24 @@ export function DebitNoteTableHeader<TData>({
               <Plus className="mr-2 h-4 w-4" />
               Create
             </Button>
+
+            {/* Bulk Delete Button - only show when items are selected */}
+            {hasSelectedRows && selectedRowsCount > 0 && (
+              <Button
+                variant="destructive"
+                onClick={onBulkDelete}
+                disabled={isConfirmed}
+                title={
+                  isConfirmed
+                    ? "Cannot delete when confirmed"
+                    : `Delete ${selectedRowsCount} selected item${selectedRowsCount !== 1 ? "s" : ""}`
+                }
+              >
+                <Trash2 className="mr-2 h-4 w-4" />
+                Delete ({selectedRowsCount})
+              </Button>
+            )}
+
             <Button
               variant="outline"
               size="icon"

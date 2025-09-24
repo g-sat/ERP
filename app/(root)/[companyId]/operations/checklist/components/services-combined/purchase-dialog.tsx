@@ -10,6 +10,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { PageLoadingSpinner } from "@/components/loading-spinner"
 
 const mockAllocated = [
   {
@@ -176,6 +177,24 @@ export function PurchaseDialog({
   title = "Purchase",
   description = "Manage purchase details for this service.",
 }: PurchaseDialogProps) {
+  // Show loading state when dialog is opening
+  if (open) {
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent
+          className="max-h-[95vh] w-[95vw] !max-w-none overflow-y-auto"
+          onPointerDownOutside={(e) => {
+            e.preventDefault()
+          }}
+        >
+          <div className="flex items-center justify-center py-8">
+            <PageLoadingSpinner text="Loading purchase details..." />
+          </div>
+        </DialogContent>
+      </Dialog>
+    )
+  }
+
   const allocatedCount = mockAllocated.length
   const unallocatedCount = mockUnallocated.length
 

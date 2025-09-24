@@ -7,7 +7,7 @@ import { toast } from "sonner"
 
 import { JobOrder_DebitNote } from "@/lib/api-routes"
 import { TaskIdToName } from "@/lib/operations-utils"
-import { usePersist } from "@/hooks/use-common"
+import { useDelete, usePersist } from "@/hooks/use-common"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/dialog"
 import { Separator } from "@/components/ui/separator"
 import { DeleteConfirmation } from "@/components/delete-confirmation"
+import { PageLoadingSpinner } from "@/components/loading-spinner"
 import { SaveConfirmation } from "@/components/save-confirmation"
 
 import DebitNoteForm from "./debit-note-form"
@@ -32,7 +33,7 @@ interface DebitNoteDialogProps {
   title?: string
   description?: string
   onOpenChange: (open: boolean) => void
-  onDeleteDebitNote?: (debitNoteId: number) => void
+  onDelete?: (debitNoteId: number) => void
 }
 
 export function DebitNoteDialog({
@@ -43,7 +44,7 @@ export function DebitNoteDialog({
   title = "Debit Note",
   description = "Manage debit note details for this service.",
   onOpenChange,
-  onDeleteDebitNote,
+  onDelete,
 }: DebitNoteDialogProps) {
   const [details, setDetails] = useState<IDebitNoteDt[]>(
     debitNoteHd?.debitNoteDetails ?? []
@@ -66,8 +67,19 @@ export function DebitNoteDialog({
     setDetails(debitNoteHd?.debitNoteDetails ?? [])
   }, [debitNoteHd])
 
-  // State for delete confirmation
+  // State for delete confirmation (for debit note details)
   const [deleteConfirmation, setDeleteConfirmation] = useState<{
+    isOpen: boolean
+    debitNoteId: number | null
+    debitNoteNo: string | null
+  }>({
+    isOpen: false,
+    debitNoteId: null,
+    debitNoteNo: null,
+  })
+
+  // State for main debit note delete confirmation
+  const [mainDeleteConfirmation, setMainDeleteConfirmation] = useState<{
     isOpen: boolean
     debitNoteId: number | null
     debitNoteNo: string | null
@@ -86,6 +98,17 @@ export function DebitNoteDialog({
     data: null,
   })
 
+  // State for bulk delete confirmation
+  const [bulkDeleteConfirmation, setBulkDeleteConfirmation] = useState<{
+    isOpen: boolean
+    selectedIds: string[]
+    count: number
+  }>({
+    isOpen: false,
+    selectedIds: [],
+    count: 0,
+  })
+
   // Define mutations for CRUD operations
   const saveMutation = usePersist<IDebitNoteDt>(
     `${JobOrder_DebitNote.saveDetails}`
@@ -93,6 +116,7 @@ export function DebitNoteDialog({
   const updateMutation = usePersist<IDebitNoteDt>(
     `${JobOrder_DebitNote.saveDetails}`
   )
+  const bulkDeleteMutation = useDelete(`${JobOrder_DebitNote.deleteDetails}`)
 
   // Handler to open modal for creating a new debit note detail
   const handleCreateDebitNoteDetail = useCallback(() => {
@@ -242,15 +266,99 @@ export function DebitNoteDialog({
     }
   }, [deleteConfirmation])
 
-  // Handler for deleting the entire debit note
+  // Handler for deleting the entire debit note - shows confirmation first
   const handleDeleteDebitNote = useCallback(() => {
-    if (debitNoteHd?.debitNoteId && onDeleteDebitNote) {
-      onDeleteDebitNote(debitNoteHd.debitNoteId)
+    if (debitNoteHd?.debitNoteId) {
+      setMainDeleteConfirmation({
+        isOpen: true,
+        debitNoteId: debitNoteHd.debitNoteId,
+        debitNoteNo: debitNoteHd.debitNoteNo,
+      })
     }
-  }, [debitNoteHd, onDeleteDebitNote])
+  }, [debitNoteHd])
+
+  // Handler for confirmed main debit note deletion
+  const handleConfirmMainDelete = useCallback(() => {
+    if (mainDeleteConfirmation.debitNoteId && onDelete) {
+      onDelete(mainDeleteConfirmation.debitNoteId)
+      setMainDeleteConfirmation({
+        isOpen: false,
+        debitNoteId: null,
+        debitNoteNo: null,
+      })
+    }
+  }, [mainDeleteConfirmation, onDelete])
+
+  // Handler for bulk delete of debit note details
+  const handleBulkDeleteDebitNoteDetails = useCallback(
+    (selectedIds: string[]) => {
+      setBulkDeleteConfirmation({
+        isOpen: true,
+        selectedIds,
+        count: selectedIds.length,
+      })
+    },
+    []
+  )
+
+  // Handler for confirmed bulk delete
+  const handleConfirmBulkDelete = useCallback(async () => {
+    if (
+      !bulkDeleteConfirmation.selectedIds.length ||
+      !debitNoteHd?.debitNoteId
+    ) {
+      return
+    }
+
+    try {
+      const multipleId = bulkDeleteConfirmation.selectedIds.join(",")
+      const deleteUrl = `${JobOrder_DebitNote.deleteDetails}/${debitNoteHd.jobOrderId}/${taskId}/${debitNoteHd.debitNoteId}/${multipleId}`
+
+      await bulkDeleteMutation.mutateAsync(deleteUrl)
+
+      // Remove deleted items from local state
+      setDetails((prev) =>
+        prev.filter(
+          (item) =>
+            !bulkDeleteConfirmation.selectedIds.includes(item.itemNo.toString())
+        )
+      )
+
+      toast.success(
+        `Successfully deleted ${bulkDeleteConfirmation.count} item(s)`
+      )
+
+      setBulkDeleteConfirmation({
+        isOpen: false,
+        selectedIds: [],
+        count: 0,
+      })
+    } catch (error) {
+      console.error("Error deleting debit note details:", error)
+      toast.error("Failed to delete selected items")
+    }
+  }, [bulkDeleteConfirmation, debitNoteHd, taskId, bulkDeleteMutation])
 
   // Get task name by task ID from the debit note header
   const taskName = TaskIdToName[taskId] || "Unknown Task"
+
+  // Show loading state when dialog is opening and no debit note data is available
+  if (open && !debitNoteHd) {
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent
+          className="max-h-[95vh] w-[95vw] !max-w-none overflow-y-auto"
+          onPointerDownOutside={(e) => {
+            e.preventDefault()
+          }}
+        >
+          <div className="flex items-center justify-center py-8">
+            <PageLoadingSpinner text="Loading debit note..." />
+          </div>
+        </DialogContent>
+      </Dialog>
+    )
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -434,10 +542,11 @@ export function DebitNoteDialog({
             <div className="p-4">
               <DebitNoteTable
                 data={details}
-                onDebitNoteSelect={handleViewDebitNoteDetail}
-                onEditDebitNote={handleEditDebitNoteDetail}
-                onDeleteDebitNote={handleDeleteDebitNoteDetail}
-                onCreateDebitNote={handleCreateDebitNoteDetail}
+                onSelect={handleViewDebitNoteDetail}
+                onEdit={handleEditDebitNoteDetail}
+                onDelete={handleDeleteDebitNoteDetail}
+                onBulkDelete={handleBulkDeleteDebitNoteDetails}
+                onCreate={handleCreateDebitNoteDetail}
                 onRefresh={() => {}}
                 onFilterChange={() => {}}
                 moduleId={taskId}
@@ -516,6 +625,26 @@ export function DebitNoteDialog({
             isDeleting={false}
           />
 
+          {/* Delete Confirmation Dialog for Main Debit Note */}
+          <DeleteConfirmation
+            open={mainDeleteConfirmation.isOpen}
+            onOpenChange={(isOpen) =>
+              setMainDeleteConfirmation((prev) => ({ ...prev, isOpen }))
+            }
+            title="Delete Debit Note"
+            description="This action cannot be undone. This will permanently delete the entire debit note and all its details from our servers."
+            itemName={mainDeleteConfirmation.debitNoteNo || ""}
+            onConfirm={handleConfirmMainDelete}
+            onCancel={() =>
+              setMainDeleteConfirmation({
+                isOpen: false,
+                debitNoteId: null,
+                debitNoteNo: null,
+              })
+            }
+            isDeleting={false}
+          />
+
           {/* Save Confirmation Dialog */}
           <SaveConfirmation
             open={saveConfirmation.isOpen}
@@ -545,6 +674,26 @@ export function DebitNoteDialog({
               })
             }
             isSaving={saveMutation.isPending || updateMutation.isPending}
+          />
+
+          {/* Bulk Delete Confirmation Dialog */}
+          <DeleteConfirmation
+            open={bulkDeleteConfirmation.isOpen}
+            onOpenChange={(isOpen) =>
+              setBulkDeleteConfirmation((prev) => ({ ...prev, isOpen }))
+            }
+            title="Delete Selected Items"
+            description="This action cannot be undone. This will permanently delete the selected debit note details from our servers."
+            itemName={`${bulkDeleteConfirmation.count} selected item${bulkDeleteConfirmation.count !== 1 ? "s" : ""}`}
+            onConfirm={handleConfirmBulkDelete}
+            onCancel={() =>
+              setBulkDeleteConfirmation({
+                isOpen: false,
+                selectedIds: [],
+                count: 0,
+              })
+            }
+            isDeleting={bulkDeleteMutation.isPending}
           />
         </div>
       </DialogContent>

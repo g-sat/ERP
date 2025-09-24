@@ -14,7 +14,7 @@ interface DebitNoteTableActionsProps<T> {
   hideEdit?: boolean
   hideDelete?: boolean
   isSelected?: boolean
-  isConfirmed?: boolean
+  disableOnDebitNoteExists?: boolean
 }
 
 export function DebitNoteTableActions<T>({
@@ -28,7 +28,7 @@ export function DebitNoteTableActions<T>({
   hideEdit,
   hideDelete,
   isSelected = true,
-  isConfirmed = false,
+  disableOnDebitNoteExists = true,
 }: DebitNoteTableActionsProps<T>) {
   const handleCheckboxChange = (checked: boolean) => {
     console.log("Checkbox changed:", checked, "Row:", row)
@@ -36,14 +36,14 @@ export function DebitNoteTableActions<T>({
       onSelect(row, checked)
     }
   }
-  const hasValidDebitNoteId = row.debitNoteId && row.debitNoteId > 0
+  const hasValidDebitNoteId =
+    disableOnDebitNoteExists && row.debitNoteId && row.debitNoteId > 0
 
   return (
     <div className="flex items-center gap-2">
       <Checkbox
         checked={isSelected}
         onCheckedChange={handleCheckboxChange}
-        disabled={Boolean(hasValidDebitNoteId) || isConfirmed}
         className={hasValidDebitNoteId ? "cursor-not-allowed opacity-50" : ""}
         title={
           hasValidDebitNoteId
@@ -71,7 +71,7 @@ export function DebitNoteTableActions<T>({
             : ""
         }`}
         onClick={() => !hasValidDebitNoteId && onEdit?.(row)}
-        disabled={hideEdit || Boolean(hasValidDebitNoteId) || isConfirmed}
+        disabled={hideEdit}
         title={hasValidDebitNoteId ? "Cannot edit - Debit Note exists" : "Edit"}
       >
         <Pencil className="h-4 w-4" />
@@ -88,7 +88,7 @@ export function DebitNoteTableActions<T>({
         onClick={() =>
           !hasValidDebitNoteId && onDelete?.(String(row[idAccessor]))
         }
-        disabled={hideDelete || Boolean(hasValidDebitNoteId) || isConfirmed}
+        disabled={hideDelete}
         title={
           hasValidDebitNoteId ? "Cannot delete - Debit Note exists" : "Delete"
         }

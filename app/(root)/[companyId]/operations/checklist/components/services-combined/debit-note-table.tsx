@@ -13,10 +13,11 @@ import { DebitNoteBaseTable } from "@/components/table/table-debitnote"
 interface DebitNoteTableProps {
   data: IDebitNoteDt[]
   isLoading?: boolean
-  onDebitNoteSelect?: (debitNote: IDebitNoteDt | null) => void
-  onDeleteDebitNote?: (debitNoteId: string) => void
-  onEditDebitNote?: (debitNote: IDebitNoteDt) => void
-  onCreateDebitNote?: () => void
+  onSelect?: (debitNote: IDebitNoteDt | null) => void
+  onDelete?: (debitNoteId: string) => void
+  onBulkDelete?: (selectedIds: string[]) => void
+  onEdit?: (debitNote: IDebitNoteDt) => void
+  onCreate?: () => void
   onRefresh?: () => void
   onFilterChange?: (filters: { search?: string; sortOrder?: string }) => void
   moduleId?: number
@@ -27,10 +28,11 @@ interface DebitNoteTableProps {
 export function DebitNoteTable({
   data,
   isLoading = false,
-  onDebitNoteSelect,
-  onDeleteDebitNote,
-  onEditDebitNote,
-  onCreateDebitNote,
+  onSelect,
+  onDelete,
+  onBulkDelete,
+  onEdit,
+  onCreate,
   onRefresh,
   onFilterChange,
   moduleId,
@@ -186,13 +188,18 @@ export function DebitNoteTable({
       accessorId="itemNo"
       onRefresh={onRefresh}
       onFilterChange={onFilterChange}
-      onSelect={onDebitNoteSelect}
-      onCreate={onCreateDebitNote}
-      onEdit={onEditDebitNote}
-      onDelete={onDeleteDebitNote}
+      onSelect={onSelect}
+      onCreate={onCreate}
+      onEdit={onEdit}
+      onDelete={onDelete}
+      onBulkDelete={onBulkDelete}
       isConfirmed={isConfirmed}
       showHeader={true}
       showActions={true}
+      hideView={false}
+      hideEdit={false}
+      hideDelete={false}
+      disableOnDebitNoteExists={false}
     />
   )
 }

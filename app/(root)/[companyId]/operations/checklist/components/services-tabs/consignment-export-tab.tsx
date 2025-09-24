@@ -540,7 +540,7 @@ export function ConsignmentExportTab({
         taskId={Task.PortExpenses}
         debitNoteHd={debitNoteHd ?? undefined}
         isConfirmed={isConfirmed}
-        onDeleteDebitNote={handleDeleteDebitNote}
+        onDelete={handleDeleteDebitNote}
         title="Debit Note"
         description="Manage debit note details for this port expenses."
       />

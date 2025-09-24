@@ -2,7 +2,6 @@ import { useCallback, useMemo, useState } from "react"
 import { IGridSetting } from "@/interfaces/setting"
 import { Column } from "@tanstack/react-table"
 import {
-  AlertCircle,
   Forward,
   Layout,
   Plus,
@@ -12,7 +11,6 @@ import {
 } from "lucide-react"
 
 import { usePersist } from "@/hooks/use-common"
-import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import {
@@ -165,36 +163,6 @@ export function TaskTableHeader<TData>({
   return (
     <>
       <div className="mb-4 space-y-2">
-        {/* Alert message when no rows are selected */}
-        {!hasSelectedRows && (onCombinedService || onDebitNote) && (
-          <Alert className="border-amber-200 bg-amber-50">
-            <AlertCircle className="h-4 w-4 text-amber-600" />
-            <AlertDescription className="text-amber-800">
-              Please select at least one item from the table to use Combined
-              Services or Debit Note features.
-            </AlertDescription>
-          </Alert>
-        )}
-
-        {/* Alert message when selected rows have valid debitNoteId */}
-        {hasSelectedRows && onDebitNote && hasValidDebitNoteIds && (
-          <Alert className="border-red-200 bg-red-50">
-            <AlertCircle className="h-4 w-4 text-red-600" />
-            <AlertDescription className="text-red-800">
-              Selected items have valid Debit Note IDs. Cannot create new debit
-              notes for items that already have debit notes.
-            </AlertDescription>
-          </Alert>
-        )}
-
-        {/* Selected items count */}
-        {hasSelectedRows && selectedRowsCount > 0 && (
-          <div className="text-muted-foreground text-sm">
-            {selectedRowsCount} item{selectedRowsCount !== 1 ? "s" : ""}{" "}
-            selected
-          </div>
-        )}
-
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Button

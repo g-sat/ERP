@@ -1006,6 +1006,7 @@ export const JobOrder_LaunchServices = {
   getById: "/operations/getlaunchservicesbyid",
   add: "/operations/savelaunchservices",
   delete: "/operations/deletelaunchservices",
+  getByIdHistory: "/operations/GetLaunchServicesByIdHistory",
 }
 
 // Equipment Used Endpoints
@@ -1014,6 +1015,7 @@ export const JobOrder_EquipmentUsed = {
   getById: "/operations/getequipmentusedbyid",
   add: "/operations/saveequipmentused",
   delete: "/operations/deleteequipmentused",
+  getByIdHistory: "/operations/GetEquipmentUsedByIdHistory",
 }
 
 // Crew Sign On Endpoints
@@ -1022,6 +1024,7 @@ export const JobOrder_CrewSignOn = {
   getById: "/operations/getcrewsignonbyid",
   add: "/operations/savecrewsignon",
   delete: "/operations/deletecrewsignon",
+  getByIdHistory: "/operations/GetCrewSignOnByIdHistory",
 }
 
 // Crew Sign Off Endpoints
@@ -1030,6 +1033,7 @@ export const JobOrder_CrewSignOff = {
   getById: "/operations/getcrewsignoffbyid",
   add: "/operations/savecrewsignoff",
   delete: "/operations/deletecrewsignoff",
+  getByIdHistory: "/operations/GetCrewSignOffByIdHistory",
 }
 
 // Crew Miscellaneous Endpoints
@@ -1038,6 +1042,7 @@ export const JobOrder_CrewMiscellaneous = {
   getById: "/operations/getcrewmiscellaneousbyid",
   add: "/operations/savecrewmiscellaneous",
   delete: "/operations/deletecrewmiscellaneous",
+  getByIdHistory: "/operations/GetCrewMiscellaneousByIdHistory",
 }
 
 // Medical Assistance Endpoints
@@ -1046,6 +1051,7 @@ export const JobOrder_MedicalAssistance = {
   getById: "/operations/getmedicalassistancebyid",
   add: "/operations/savemedicalassistance",
   delete: "/operations/deletemedicalassistance",
+  getByIdHistory: "/operations/GetMedicalAssistanceByIdHistory",
 }
 
 // Consignment Import Endpoints
@@ -1054,6 +1060,7 @@ export const JobOrder_ConsignmentImport = {
   getById: "/operations/getconsignmentimportbyid",
   add: "/operations/saveconsignmentimport",
   delete: "/operations/deleteconsignmentimport",
+  getByIdHistory: "/operations/GetConsignmentImportByIdHistory",
 }
 
 // Consignment Export Endpoints
@@ -1062,6 +1069,7 @@ export const JobOrder_ConsignmentExport = {
   getById: "/operations/getconsignmentexportbyid",
   add: "/operations/saveconsignmentexport",
   delete: "/operations/deleteconsignmentexport",
+  getByIdHistory: "/operations/GetConsignmentExportByIdHistory",
 }
 
 // Third Party Endpoints
@@ -1070,6 +1078,7 @@ export const JobOrder_ThirdParty = {
   getById: "/operations/getthirdpartybyid",
   add: "/operations/savethirdparty",
   delete: "/operations/deletethirdparty",
+  getByIdHistory: "/operations/GetThirdPartyByIdHistory",
 }
 
 // Fresh Water Endpoints
@@ -1078,6 +1087,7 @@ export const JobOrder_FreshWater = {
   getById: "/operations/getfreshwaterbyid",
   add: "/operations/savefreshwater",
   delete: "/operations/deletefreshwater",
+  getByIdHistory: "/operations/GetFreshWaterByIdHistory",
 }
 
 // Technicians Surveyors Endpoints
@@ -1086,6 +1096,7 @@ export const JobOrder_TechnicianSurveyor = {
   getById: "/operations/gettechniciansurveyorbyid",
   add: "/operations/savetechniciansurveyor",
   delete: "/operations/deletetechniciansurveyor",
+  getByIdHistory: "/operations/GetTechnicianSurveyorByIdHistory",
 }
 
 // Landing Items Endpoints
@@ -1094,6 +1105,7 @@ export const JobOrder_LandingItems = {
   getById: "/operations/getlandingitemsbyid",
   add: "/operations/savelandingitems",
   delete: "/operations/deletelandingitems",
+  getByIdHistory: "/operations/GetLandingItemsByIdHistory",
 }
 
 // Other Service Endpoints
@@ -1102,6 +1114,7 @@ export const JobOrder_OtherService = {
   getById: "/operations/getotherservicebyid",
   add: "/operations/saveotherservice",
   delete: "/operations/deleteotherservice",
+  getByIdHistory: "/operations/GetOtherServiceByIdHistory",
 }
 
 // Agency Remuneration Endpoints
@@ -1110,6 +1123,7 @@ export const JobOrder_AgencyRemuneration = {
   getById: "/operations/getagencyremunerationbyid",
   add: "/operations/saveagencyremuneration",
   delete: "/operations/deleteagencyremuneration",
+  getByIdHistory: "/operations/GetAgencyRemunerationByIdHistory",
 }
 
 // Debit Note Endpoints

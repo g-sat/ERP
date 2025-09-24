@@ -21,6 +21,7 @@ import { toast } from "sonner"
 import { usePersist } from "@/hooks/use-common"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { PageLoadingSpinner } from "@/components/loading-spinner"
 import {
   Card,
   CardContent,
@@ -100,6 +101,24 @@ export function CombinedFormsDialog({
   title = "Combined Services",
   description = "Manage bulk updates and task forwarding operations",
 }: CombinedFormsDialogProps) {
+  // Show loading state when dialog is opening
+  if (open) {
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent
+          className="max-h-[95vh] w-[95vw] !max-w-none overflow-y-auto"
+          onPointerDownOutside={(e) => {
+            e.preventDefault()
+          }}
+        >
+          <div className="flex items-center justify-center py-8">
+            <PageLoadingSpinner text="Loading combined services..." />
+          </div>
+        </DialogContent>
+      </Dialog>
+    )
+  }
+
   const queryClient = useQueryClient()
 
   console.log(isConfirmed, "isConfirmed combined forms")

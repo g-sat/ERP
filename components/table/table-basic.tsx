@@ -55,6 +55,8 @@ interface BasicTableProps<T> {
   emptyMessage?: string
   onRefresh?: () => void
   onFilterChange?: (filters: { search?: string; sortOrder?: string }) => void
+  showHeader?: boolean
+  showFooter?: boolean
 }
 
 export function BasicTable<T>({
@@ -67,6 +69,8 @@ export function BasicTable<T>({
   emptyMessage = "No data found.",
   onRefresh,
   onFilterChange,
+  showHeader = true,
+  showFooter = true,
 }: BasicTableProps<T>) {
   const { data: gridSettings } = useGetGridLayout(
     moduleId?.toString() || "",
@@ -267,20 +271,22 @@ export function BasicTable<T>({
 
   return (
     <>
-      <BasicTableHeader
-        searchQuery={searchQuery}
-        onSearchChange={handleSearch}
-        onRefresh={onRefresh}
-        //columns={table.getAllLeafColumns()}
-        columns={table
-          .getHeaderGroups()
-          .flatMap((group) => group.headers)
-          .map((header) => header.column)}
-        data={data}
-        tableName={tableName}
-        moduleId={moduleId || 1}
-        transactionId={transactionId || 1}
-      />
+      {showHeader && (
+        <BasicTableHeader
+          searchQuery={searchQuery}
+          onSearchChange={handleSearch}
+          onRefresh={onRefresh}
+          //columns={table.getAllLeafColumns()}
+          columns={table
+            .getHeaderGroups()
+            .flatMap((group) => group.headers)
+            .map((header) => header.column)}
+          data={data}
+          tableName={tableName}
+          moduleId={moduleId || 1}
+          transactionId={transactionId || 1}
+        />
+      )}
       <Table>
         <DndContext
           sensors={sensors}
@@ -439,15 +445,17 @@ export function BasicTable<T>({
         </DndContext>
       </Table>
 
-      <MainTableFooter
-        currentPage={currentPage}
-        totalPages={Math.ceil(data.length / pageSize)}
-        pageSize={pageSize}
-        totalRecords={data.length}
-        onPageChange={handlePageChange}
-        onPageSizeChange={handlePageSizeChange}
-        pageSizeOptions={[10, 50, 100, 500]}
-      />
+      {showFooter && (
+        <MainTableFooter
+          currentPage={currentPage}
+          totalPages={Math.ceil(data.length / pageSize)}
+          pageSize={pageSize}
+          totalRecords={data.length}
+          onPageChange={handlePageChange}
+          onPageSizeChange={handlePageSizeChange}
+          pageSizeOptions={[10, 50, 100, 500]}
+        />
+      )}
     </>
   )
 }

@@ -59,10 +59,15 @@ interface DebitNoteBaseTableProps<T> {
   onCreate?: () => void
   onEdit?: (item: T) => void
   onDelete?: (itemId: string) => void
+  onBulkDelete?: (selectedIds: string[]) => void
   onPurchase?: (itemId: string) => void
   isConfirmed?: boolean
   showHeader?: boolean
   showActions?: boolean
+  hideView?: boolean
+  hideEdit?: boolean
+  hideDelete?: boolean
+  disableOnDebitNoteExists?: boolean
 }
 
 export function DebitNoteBaseTable<T>({
@@ -80,9 +85,14 @@ export function DebitNoteBaseTable<T>({
   onCreate,
   onEdit,
   onDelete,
+  onBulkDelete,
   isConfirmed,
   showHeader = true,
   showActions = true,
+  hideView = false,
+  hideEdit = false,
+  hideDelete = false,
+  disableOnDebitNoteExists = true,
 }: DebitNoteBaseTableProps<T>) {
   const { data: gridSettings } = useGetGridLayout(
     moduleId?.toString() || "",
@@ -162,8 +172,8 @@ export function DebitNoteBaseTable<T>({
             id: "actions",
             header: "Actions",
             enableHiding: false,
-            size: 150,
-            minSize: 120,
+            size: 110,
+            minSize: 100,
 
             cell: ({ row }) => {
               const item = row.original
@@ -172,7 +182,6 @@ export function DebitNoteBaseTable<T>({
               return (
                 <DebitNoteTableActions
                   row={item as T & { debitNoteId?: number }}
-                  idAccessor={accessorId}
                   onView={onSelect}
                   onEdit={onEdit}
                   onDelete={onDelete}
@@ -185,8 +194,12 @@ export function DebitNoteBaseTable<T>({
                     )
                     row.toggleSelected(checked)
                   }}
+                  idAccessor={accessorId}
+                  hideView={hideView}
+                  hideEdit={hideEdit}
+                  hideDelete={hideDelete}
                   isSelected={isSelected}
-                  isConfirmed={isConfirmed}
+                  disableOnDebitNoteExists={disableOnDebitNoteExists}
                 />
               )
             },
@@ -256,6 +269,23 @@ export function DebitNoteBaseTable<T>({
       table.setColumnOrder(newColumnOrder.map((col) => col.id))
     }
   }
+
+  // Handle bulk delete
+  const handleBulkDelete = () => {
+    if (!onBulkDelete) return
+
+    const selectedRowIds = Object.keys(rowSelection)
+    const selectedItems = data.filter((_, index) =>
+      selectedRowIds.includes(index.toString())
+    )
+
+    // Extract IDs using the accessorId
+    const selectedIds = selectedItems.map((item) =>
+      String((item as Record<string, unknown>)[accessorId as string])
+    )
+
+    onBulkDelete(selectedIds)
+  }
   useEffect(() => {
     if (!data?.length && onFilterChange) {
       const filters = {
@@ -274,6 +304,7 @@ export function DebitNoteBaseTable<T>({
           onSearchChange={handleSearch}
           onRefresh={onRefresh}
           onCreate={onCreate}
+          onBulkDelete={handleBulkDelete}
           //columns={table.getAllLeafColumns()}
           columns={table
             .getHeaderGroups()

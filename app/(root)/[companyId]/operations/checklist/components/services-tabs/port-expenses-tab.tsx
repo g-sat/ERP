@@ -340,11 +340,13 @@ export function PortExpensesTab({
           const firstItem = itemsWithExistingDebitNotes[0]
           setSelectedItem(firstItem)
           setShowDebitNoteModal(true)
-
+          debugger
           // Fetch the existing debit note data
           const debitNoteResponse = (await getData(
             `${JobOrder_DebitNote.getById}/${jobData.jobOrderId}/${Task.PortExpenses}/${firstItem.debitNoteId}`
           )) as ApiResponse<IDebitNoteHd>
+
+          console.log("Debit note response:", debitNoteResponse)
 
           if (debitNoteResponse.result === 1 && debitNoteResponse.data) {
             console.log("Existing debit note data:", debitNoteResponse.data)
@@ -353,6 +355,7 @@ export function PortExpensesTab({
               : debitNoteResponse.data
 
             console.log("Existing debitNoteData", debitNoteData)
+            queryClient.invalidateQueries({ queryKey: ["portExpenses"] })
             setDebitNoteHd(debitNoteData)
           }
 
@@ -403,6 +406,7 @@ export function PortExpensesTab({
           console.log(
             `Debit note created successfully for ${foundItems.length} item(s)`
           )
+          queryClient.invalidateQueries({ queryKey: ["portExpenses"] })
         }
       } catch (error) {
         console.error("Error handling debit note:", error)
@@ -518,41 +522,47 @@ export function PortExpensesTab({
       </Dialog>
 
       {/* Combined Services Modal */}
-      <CombinedFormsDialog
-        open={showCombinedServiceModal}
-        onOpenChange={setShowCombinedServiceModal}
-        jobData={jobData}
-        moduleId={moduleId}
-        transactionId={transactionId}
-        isConfirmed={isConfirmed}
-        taskId={Task.PortExpenses}
-        multipleId={selectedItems.join(",")}
-        onTaskAdded={onTaskAdded}
-        onClearSelection={handleClearSelection}
-        onCancel={() => setShowCombinedServiceModal(false)}
-        title="Combined Services"
-        description="Manage bulk updates and task forwarding operations"
-      />
+      {showCombinedServiceModal && (
+        <CombinedFormsDialog
+          open={showCombinedServiceModal}
+          onOpenChange={setShowCombinedServiceModal}
+          jobData={jobData}
+          moduleId={moduleId}
+          transactionId={transactionId}
+          isConfirmed={isConfirmed}
+          taskId={Task.PortExpenses}
+          multipleId={selectedItems.join(",")}
+          onTaskAdded={onTaskAdded}
+          onClearSelection={handleClearSelection}
+          onCancel={() => setShowCombinedServiceModal(false)}
+          title="Combined Services"
+          description="Manage bulk updates and task forwarding operations"
+        />
+      )}
 
       {/* Debit Note Modal */}
-      <DebitNoteDialog
-        open={showDebitNoteModal}
-        onOpenChange={setShowDebitNoteModal}
-        taskId={Task.PortExpenses}
-        debitNoteHd={debitNoteHd ?? undefined}
-        isConfirmed={isConfirmed}
-        onDeleteDebitNote={handleDeleteDebitNote}
-        title="Debit Note"
-        description="Manage debit note details for this port expenses."
-      />
+      {showDebitNoteModal && (
+        <DebitNoteDialog
+          open={showDebitNoteModal}
+          onOpenChange={setShowDebitNoteModal}
+          taskId={Task.PortExpenses}
+          debitNoteHd={debitNoteHd ?? undefined}
+          isConfirmed={isConfirmed}
+          onDelete={handleDeleteDebitNote}
+          title="Debit Note"
+          description="Manage debit note details for this port expenses."
+        />
+      )}
 
       {/* Purchase Table Modal */}
-      <PurchaseDialog
-        open={showPurchaseModal}
-        onOpenChange={setShowPurchaseModal}
-        title="Purchase"
-        description="Manage purchase details for this port expenses."
-      />
+      {showPurchaseModal && (
+        <PurchaseDialog
+          open={showPurchaseModal}
+          onOpenChange={setShowPurchaseModal}
+          title="Purchase"
+          description="Manage purchase details for this port expenses."
+        />
+      )}
 
       {/* Save Confirmation of Port Expense */}
       <SaveConfirmation
