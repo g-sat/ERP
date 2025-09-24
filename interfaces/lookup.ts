@@ -32,6 +32,7 @@ export interface IChargeLookup {
   chargeId: number
   chargeName: string
   chargeCode: string
+  glId: number
 }
 
 export interface IBargeLookup {

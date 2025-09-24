@@ -442,7 +442,6 @@ export const PortExpensesSchema = z.object({
   deliverDate: z.string().min(1, "Deliver Date is required"),
   glId: z.number().min(1, "GL Account is required"),
   debitNoteId: z.number().optional().default(0),
-  debitNoteNo: z.string().optional().default(""),
   remarks: z
     .string()
     .max(500, "Remarks must be less than 500 characters")

@@ -378,4 +378,5 @@ export enum TableName {
   otherService = "otherService",
   thirdParty = "thirdParty",
   techniciansSurveyors = "techniciansSurveyors",
+  debitNote = "debitNote",
 }

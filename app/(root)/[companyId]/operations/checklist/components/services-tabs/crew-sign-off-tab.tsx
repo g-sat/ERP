@@ -10,7 +10,6 @@ import {
 } from "@/interfaces/checklist"
 import { CrewSignOffFormValues } from "@/schemas/checklist"
 import { useQueryClient } from "@tanstack/react-query"
-import { Loader2 } from "lucide-react"
 
 import { getData } from "@/lib/api-client"
 import { JobOrder_CrewSignOff, JobOrder_DebitNote } from "@/lib/api-routes"
@@ -18,7 +17,6 @@ import { Task } from "@/lib/operations-utils"
 import { useDelete, useGetById, usePersist } from "@/hooks/use-common"
 import { useTaskServiceDefaults } from "@/hooks/use-task-service"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
 import {
   Dialog,
   DialogContent,
@@ -30,9 +28,9 @@ import { Separator } from "@/components/ui/separator"
 import { DeleteConfirmation } from "@/components/delete-confirmation"
 import { SaveConfirmation } from "@/components/save-confirmation"
 
-import CombinedForms from "../services-combined/combined-forms"
-import DebitNote from "../services-combined/debit-note"
-import PurchaseTable from "../services-combined/purchase-table"
+import CombinedFormsDialog from "../services-combined/combined-forms-dialog"
+import DebitNoteDialog from "../services-combined/debit-note-dialog"
+import PurchaseDialog from "../services-combined/purchase-dialog"
 import { CrewSignOffForm } from "../services-forms/crew-sign-off-form"
 import { CrewSignOffTable } from "../services-tables/crew-sign-off-table"
 
@@ -95,18 +93,6 @@ export function CrewSignOffTab({
     formData: null,
     operationType: "create",
   })
-
-  // State for debit note delete confirmation
-  const [debitNoteDeleteConfirmation, setDebitNoteDeleteConfirmation] =
-    useState<{
-      isOpen: boolean
-      debitNoteId: number | null
-      debitNoteNo: string | null
-    }>({
-      isOpen: false,
-      debitNoteId: null,
-      debitNoteNo: null,
-    })
 
   const jobDataProps = useMemo(
     () => ({
@@ -418,21 +404,10 @@ export function CrewSignOffTab({
 
   // Handle debit note delete
   const handleDeleteDebitNote = useCallback(
-    (debitNoteId: number, debitNoteNo: string) => {
-      setDebitNoteDeleteConfirmation({
-        isOpen: true,
-        debitNoteId,
-        debitNoteNo,
-      })
-    },
-    []
-  )
-
-  const handleConfirmDeleteDebitNote = useCallback(async () => {
-    if (debitNoteDeleteConfirmation.debitNoteId) {
+    async (debitNoteId: number) => {
       try {
         await debitNoteDeleteMutation.mutateAsync(
-          `${jobData.jobOrderId}/${Task.CrewSignOff}/${debitNoteDeleteConfirmation.debitNoteId}`
+          `${jobData.jobOrderId}/${Task.CrewSignOff}/${debitNoteId}`
         )
         queryClient.invalidateQueries({ queryKey: ["crewSignOff"] })
         queryClient.invalidateQueries({ queryKey: ["debitNote"] })
@@ -441,21 +416,10 @@ export function CrewSignOffTab({
         setDebitNoteHd(null)
       } catch (error) {
         console.error("Failed to delete debit note:", error)
-      } finally {
-        setDebitNoteDeleteConfirmation({
-          isOpen: false,
-          debitNoteId: null,
-          debitNoteNo: null,
-        })
       }
-    }
-  }, [
-    debitNoteDeleteConfirmation,
-    debitNoteDeleteMutation,
-    jobData.jobOrderId,
-    queryClient,
-    onTaskAdded,
-  ])
+    },
+    [debitNoteDeleteMutation, jobData.jobOrderId, queryClient, onTaskAdded]
+  )
 
   return (
     <>
@@ -477,7 +441,6 @@ export function CrewSignOffTab({
           />
         </div>
       </div>
-
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogContent
           className="max-h-[80vh] w-[60vw] !max-w-none overflow-y-auto"
@@ -535,123 +498,42 @@ export function CrewSignOffTab({
           />
         </DialogContent>
       </Dialog>
-
-      <Dialog
+      {/* Combined Services Modal */}
+      <CombinedFormsDialog
         open={showCombinedServiceModal}
         onOpenChange={setShowCombinedServiceModal}
-      >
-        <DialogContent
-          className="max-h-[90vh] w-[90vw] max-w-6xl overflow-y-auto"
-          onPointerDownOutside={(e) => {
-            e.preventDefault()
-          }}
-        >
-          <DialogHeader>
-            <DialogTitle>Combined Services</DialogTitle>
-            <DialogDescription>
-              Manage bulk updates and task forwarding operations
-            </DialogDescription>
-          </DialogHeader>
-          <CombinedForms
-            onCancel={() => setShowCombinedServiceModal(false)}
-            jobData={jobData}
-            moduleId={moduleId}
-            transactionId={transactionId}
-            isConfirmed={isConfirmed}
-            taskId={Task.CrewSignOff}
-            multipleId={selectedItems.join(",")}
-            onTaskAdded={onTaskAdded}
-            onClearSelection={handleClearSelection}
-            onClose={() => setShowCombinedServiceModal(false)}
-          />
-        </DialogContent>
-      </Dialog>
+        jobData={jobData}
+        moduleId={moduleId}
+        transactionId={transactionId}
+        isConfirmed={isConfirmed}
+        taskId={Task.PortExpenses}
+        multipleId={selectedItems.join(",")}
+        onTaskAdded={onTaskAdded}
+        onClearSelection={handleClearSelection}
+        onCancel={() => setShowCombinedServiceModal(false)}
+        title="Combined Services"
+        description="Manage bulk updates and task forwarding operations"
+      />
 
       {/* Debit Note Modal */}
-      <Dialog open={showDebitNoteModal} onOpenChange={setShowDebitNoteModal}>
-        <DialogContent
-          className="max-h-[95vh] w-[95vw] !max-w-none overflow-y-auto"
-          onPointerDownOutside={(e) => {
-            e.preventDefault()
-          }}
-        >
-          <DialogHeader>
-            <DialogTitle>Debit Note</DialogTitle>
-            <DialogDescription>
-              Manage debit note details for this crew sign off.
-            </DialogDescription>
-          </DialogHeader>
-          <DebitNote
-            taskId={Task.CrewSignOff}
-            debitNoteHd={debitNoteHd ?? undefined}
-            isConfirmed={isConfirmed}
-            onDeleteDebitNote={handleDeleteDebitNote}
-          />
-        </DialogContent>
-      </Dialog>
+      <DebitNoteDialog
+        open={showDebitNoteModal}
+        onOpenChange={setShowDebitNoteModal}
+        taskId={Task.PortExpenses}
+        debitNoteHd={debitNoteHd ?? undefined}
+        isConfirmed={isConfirmed}
+        onDeleteDebitNote={handleDeleteDebitNote}
+        title="Debit Note"
+        description="Manage debit note details for this port expenses."
+      />
 
       {/* Purchase Table Modal */}
-      <Dialog open={showPurchaseModal} onOpenChange={setShowPurchaseModal}>
-        <DialogContent
-          className="max-h-[95vh] w-[95vw] !max-w-none overflow-y-auto"
-          onPointerDownOutside={(e) => {
-            e.preventDefault()
-          }}
-        >
-          <DialogHeader>
-            <DialogTitle>Purchase</DialogTitle>
-            <DialogDescription>
-              Manage purchase details for this crew sign off.
-            </DialogDescription>
-          </DialogHeader>
-          <PurchaseTable />
-        </DialogContent>
-      </Dialog>
-
-      {/* Debit Note Delete Confirmation */}
-      <Dialog
-        open={debitNoteDeleteConfirmation.isOpen}
-        onOpenChange={(isOpen) =>
-          setDebitNoteDeleteConfirmation((prev) => ({ ...prev, isOpen }))
-        }
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Confirm Deletion</DialogTitle>
-            <DialogDescription>
-              Are you sure you want to delete debit note{" "}
-              <strong>{debitNoteDeleteConfirmation.debitNoteNo}</strong>? This
-              action cannot be undone.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="flex justify-end gap-2">
-            <Button
-              variant="outline"
-              onClick={() =>
-                setDebitNoteDeleteConfirmation({
-                  isOpen: false,
-                  debitNoteId: null,
-                  debitNoteNo: null,
-                })
-              }
-            >
-              Cancel
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={handleConfirmDeleteDebitNote}
-              disabled={debitNoteDeleteMutation.isPending}
-            >
-              {debitNoteDeleteMutation.isPending ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              ) : (
-                "Delete"
-              )}
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-
+      <PurchaseDialog
+        open={showPurchaseModal}
+        onOpenChange={setShowPurchaseModal}
+        title="Purchase"
+        description="Manage purchase details for this port expenses."
+      />
       {/* Save Confirmation */}
       <SaveConfirmation
         open={saveConfirmation.isOpen}
@@ -675,7 +557,6 @@ export function CrewSignOffTab({
         }
         isSaving={saveMutation.isPending || updateMutation.isPending}
       />
-
       {/* Delete Confirmation */}
       <DeleteConfirmation
         open={deleteConfirmation.isOpen}

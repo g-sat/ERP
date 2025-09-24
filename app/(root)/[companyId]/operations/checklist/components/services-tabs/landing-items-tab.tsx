@@ -10,14 +10,12 @@ import {
 } from "@/interfaces/checklist"
 import { LandingItemsFormValues } from "@/schemas/checklist"
 import { useQueryClient } from "@tanstack/react-query"
-import { Loader2 } from "lucide-react"
 
 import { getData } from "@/lib/api-client"
 import { JobOrder_DebitNote, JobOrder_LandingItems } from "@/lib/api-routes"
 import { Task } from "@/lib/operations-utils"
 import { useDelete, useGetById, usePersist } from "@/hooks/use-common"
 import { useTaskServiceDefaults } from "@/hooks/use-task-service"
-import { Button } from "@/components/ui/button"
 import {
   Dialog,
   DialogContent,
@@ -28,9 +26,9 @@ import {
 import { DeleteConfirmation } from "@/components/delete-confirmation"
 import { SaveConfirmation } from "@/components/save-confirmation"
 
-import CombinedForms from "../services-combined/combined-forms"
-import DebitNote from "../services-combined/debit-note"
-import PurchaseTable from "../services-combined/purchase-table"
+import CombinedFormsDialog from "../services-combined/combined-forms-dialog"
+import DebitNoteDialog from "../services-combined/debit-note-dialog"
+import PurchaseDialog from "../services-combined/purchase-dialog"
 import { LandingItemsForm } from "../services-forms/landing-items-form"
 import { LandingItemsTable } from "../services-tables/landing-items-table"
 
@@ -91,17 +89,6 @@ export function LandingItemsTab({
     operationType: "create",
   })
 
-  // State for debit note delete confirmation
-  const [debitNoteDeleteConfirmation, setDebitNoteDeleteConfirmation] =
-    useState<{
-      isOpen: boolean
-      debitNoteId: number | null
-      debitNoteNo: string | null
-    }>({
-      isOpen: false,
-      debitNoteId: null,
-      debitNoteNo: null,
-    })
   // State for selected items (for bulk operations)
   const [selectedItems, setSelectedItems] = useState<string[]>([])
 
@@ -402,21 +389,10 @@ export function LandingItemsTab({
 
   // Handle debit note delete
   const handleDeleteDebitNote = useCallback(
-    (debitNoteId: number, debitNoteNo: string) => {
-      setDebitNoteDeleteConfirmation({
-        isOpen: true,
-        debitNoteId,
-        debitNoteNo,
-      })
-    },
-    []
-  )
-
-  const handleConfirmDeleteDebitNote = useCallback(async () => {
-    if (debitNoteDeleteConfirmation.debitNoteId) {
+    async (debitNoteId: number) => {
       try {
         await debitNoteDeleteMutation.mutateAsync(
-          `${jobData.jobOrderId}/${Task.LandingItems}/${debitNoteDeleteConfirmation.debitNoteId}`
+          `${jobData.jobOrderId}/${Task.LandingItems}/${debitNoteId}`
         )
         queryClient.invalidateQueries({ queryKey: ["landingItems"] })
         queryClient.invalidateQueries({ queryKey: ["debitNote"] })
@@ -425,21 +401,10 @@ export function LandingItemsTab({
         setDebitNoteHd(null)
       } catch (error) {
         console.error("Failed to delete debit note:", error)
-      } finally {
-        setDebitNoteDeleteConfirmation({
-          isOpen: false,
-          debitNoteId: null,
-          debitNoteNo: null,
-        })
       }
-    }
-  }, [
-    debitNoteDeleteConfirmation,
-    debitNoteDeleteMutation,
-    jobData.jobOrderId,
-    queryClient,
-    onTaskAdded,
-  ])
+    },
+    [debitNoteDeleteMutation, jobData.jobOrderId, queryClient, onTaskAdded]
+  )
 
   return (
     <>
@@ -461,7 +426,6 @@ export function LandingItemsTab({
           />
         </div>
       </div>
-
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogContent
           className="max-h-[90vh] w-[80vw] !max-w-none overflow-y-auto"
@@ -490,143 +454,42 @@ export function LandingItemsTab({
           />
         </DialogContent>
       </Dialog>
-
-      <Dialog
+      {/* Combined Services Modal */}
+      <CombinedFormsDialog
         open={showCombinedServiceModal}
         onOpenChange={setShowCombinedServiceModal}
-      >
-        <DialogContent
-          className="max-h-[90vh] w-[90vw] max-w-6xl overflow-y-auto"
-          onPointerDownOutside={(e) => {
-            e.preventDefault()
-          }}
-        >
-          <DialogHeader>
-            <DialogTitle>Combined Services</DialogTitle>
-            <DialogDescription>
-              Manage bulk updates and task forwarding operations
-            </DialogDescription>
-          </DialogHeader>
-          <CombinedForms
-            onCancel={() => setShowCombinedServiceModal(false)}
-            jobData={jobData}
-            moduleId={moduleId}
-            transactionId={transactionId}
-            isConfirmed={isConfirmed}
-            taskId={Task.LandingItems}
-            multipleId={selectedItems.join(",")}
-            onTaskAdded={onTaskAdded}
-            onClearSelection={handleClearSelection}
-            onClose={() => setShowCombinedServiceModal(false)}
-          />
-        </DialogContent>
-      </Dialog>
-
-      {/* Debit Note Modal */}
-      <Dialog open={showDebitNoteModal} onOpenChange={setShowDebitNoteModal}>
-        <DialogContent
-          className="max-h-[95vh] w-[95vw] !max-w-none overflow-y-auto"
-          onPointerDownOutside={(e) => {
-            e.preventDefault()
-          }}
-        >
-          <DialogHeader>
-            <DialogTitle>Debit Note</DialogTitle>
-            <DialogDescription>
-              Manage debit note details for this landing items.
-            </DialogDescription>
-          </DialogHeader>
-          <DebitNote
-            taskId={Task.LandingItems}
-            debitNoteHd={debitNoteHd ?? undefined}
-            isConfirmed={isConfirmed}
-            onDeleteDebitNote={handleDeleteDebitNote}
-          />
-        </DialogContent>
-      </Dialog>
-
-      {/* Purchase Table Modal */}
-      <Dialog open={showPurchaseModal} onOpenChange={setShowPurchaseModal}>
-        <DialogContent
-          className="max-h-[95vh] w-[95vw] !max-w-none overflow-y-auto"
-          onPointerDownOutside={(e) => {
-            e.preventDefault()
-          }}
-        >
-          <DialogHeader>
-            <DialogTitle>Purchase</DialogTitle>
-            <DialogDescription>
-              Manage purchase details for this landing items.
-            </DialogDescription>
-          </DialogHeader>
-          <PurchaseTable />
-        </DialogContent>
-      </Dialog>
-
-      <DeleteConfirmation
-        open={deleteConfirmation.isOpen}
-        onOpenChange={(isOpen) =>
-          setDeleteConfirmation((prev) => ({ ...prev, isOpen }))
-        }
-        title="Delete Landing Item"
-        description="This action cannot be undone. This will permanently delete the landing item from our servers."
-        itemName={deleteConfirmation.landingItemName || ""}
-        onConfirm={handleConfirmDelete}
-        onCancel={() =>
-          setDeleteConfirmation({
-            isOpen: false,
-            landingItemId: null,
-            landingItemName: null,
-            jobOrderId: jobData.jobOrderId,
-          })
-        }
-        isDeleting={deleteMutation.isPending}
+        jobData={jobData}
+        moduleId={moduleId}
+        transactionId={transactionId}
+        isConfirmed={isConfirmed}
+        taskId={Task.PortExpenses}
+        multipleId={selectedItems.join(",")}
+        onTaskAdded={onTaskAdded}
+        onClearSelection={handleClearSelection}
+        onCancel={() => setShowCombinedServiceModal(false)}
+        title="Combined Services"
+        description="Manage bulk updates and task forwarding operations"
       />
 
-      {/* Debit Note Delete Confirmation */}
-      <Dialog
-        open={debitNoteDeleteConfirmation.isOpen}
-        onOpenChange={(isOpen) =>
-          setDebitNoteDeleteConfirmation((prev) => ({ ...prev, isOpen }))
-        }
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Confirm Deletion</DialogTitle>
-            <DialogDescription>
-              Are you sure you want to delete debit note{" "}
-              <strong>{debitNoteDeleteConfirmation.debitNoteNo}</strong>? This
-              action cannot be undone.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="flex justify-end gap-2">
-            <Button
-              variant="outline"
-              onClick={() =>
-                setDebitNoteDeleteConfirmation({
-                  isOpen: false,
-                  debitNoteId: null,
-                  debitNoteNo: null,
-                })
-              }
-            >
-              Cancel
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={handleConfirmDeleteDebitNote}
-              disabled={debitNoteDeleteMutation.isPending}
-            >
-              {debitNoteDeleteMutation.isPending ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              ) : (
-                "Delete"
-              )}
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+      {/* Debit Note Modal */}
+      <DebitNoteDialog
+        open={showDebitNoteModal}
+        onOpenChange={setShowDebitNoteModal}
+        taskId={Task.PortExpenses}
+        debitNoteHd={debitNoteHd ?? undefined}
+        isConfirmed={isConfirmed}
+        onDeleteDebitNote={handleDeleteDebitNote}
+        title="Debit Note"
+        description="Manage debit note details for this port expenses."
+      />
 
+      {/* Purchase Table Modal */}
+      <PurchaseDialog
+        open={showPurchaseModal}
+        onOpenChange={setShowPurchaseModal}
+        title="Purchase"
+        description="Manage purchase details for this port expenses."
+      />
       {/* Save Confirmation */}
       <SaveConfirmation
         open={saveConfirmation.isOpen}
@@ -654,7 +517,6 @@ export function LandingItemsTab({
         }
         isSaving={saveMutation.isPending || updateMutation.isPending}
       />
-
       {/* Delete Confirmation */}
       <DeleteConfirmation
         open={deleteConfirmation.isOpen}

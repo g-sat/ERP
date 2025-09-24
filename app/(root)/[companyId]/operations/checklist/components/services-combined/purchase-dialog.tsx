@@ -1,5 +1,14 @@
+"use client"
+
 import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 const mockAllocated = [
@@ -154,7 +163,19 @@ const columns = [
   { key: "debitNote", label: "Debit Note" },
 ]
 
-const PurchaseTable = () => {
+interface PurchaseDialogProps {
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  title?: string
+  description?: string
+}
+
+export function PurchaseDialog({
+  open,
+  onOpenChange,
+  title = "Purchase",
+  description = "Manage purchase details for this service.",
+}: PurchaseDialogProps) {
   const allocatedCount = mockAllocated.length
   const unallocatedCount = mockUnallocated.length
 
@@ -261,27 +282,40 @@ const PurchaseTable = () => {
   )
 
   return (
-    <div>
-      <Tabs defaultValue="allocated">
-        <TabsList>
-          <TabsTrigger value="allocated">
-            Allocated ({allocatedCount})
-          </TabsTrigger>
-          <TabsTrigger value="unallocated">
-            Un-Allocated ({unallocatedCount})
-          </TabsTrigger>
-        </TabsList>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent
+        className="max-h-[95vh] w-[95vw] !max-w-none overflow-y-auto"
+        onPointerDownOutside={(e) => {
+          e.preventDefault()
+        }}
+      >
+        <DialogHeader>
+          <DialogTitle>{title}</DialogTitle>
+          <DialogDescription>{description}</DialogDescription>
+        </DialogHeader>
+        <div>
+          <Tabs defaultValue="allocated">
+            <TabsList>
+              <TabsTrigger value="allocated">
+                Allocated ({allocatedCount})
+              </TabsTrigger>
+              <TabsTrigger value="unallocated">
+                Un-Allocated ({unallocatedCount})
+              </TabsTrigger>
+            </TabsList>
 
-        <TabsContent value="allocated">
-          {renderTable(allocatedData, allocatedTotals)}
-        </TabsContent>
+            <TabsContent value="allocated">
+              {renderTable(allocatedData, allocatedTotals)}
+            </TabsContent>
 
-        <TabsContent value="unallocated">
-          {renderTable(unallocatedData, unallocatedTotals)}
-        </TabsContent>
-      </Tabs>
-    </div>
+            <TabsContent value="unallocated">
+              {renderTable(unallocatedData, unallocatedTotals)}
+            </TabsContent>
+          </Tabs>
+        </div>
+      </DialogContent>
+    </Dialog>
   )
 }
 
-export default PurchaseTable
+export default PurchaseDialog

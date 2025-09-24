@@ -997,6 +997,7 @@ export const JobOrder_PortExpenses = {
   getById: "/operations/GetPortExpensesById",
   add: "/operations/saveportexpenses",
   delete: "/operations/deleteportexpenses",
+  getByIdHistory: "/operations/GetPortExpensesByIdHistory",
 }
 
 // Launch Services Endpoints

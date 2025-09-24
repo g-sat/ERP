@@ -2,7 +2,7 @@
 
 import { useEffect } from "react"
 import { IDebitNoteDt } from "@/interfaces/checklist"
-import { IGstLookup } from "@/interfaces/lookup"
+import { IChargeLookup, IGstLookup } from "@/interfaces/lookup"
 import { DebitNoteDtFormValues, DebitNoteDtSchema } from "@/schemas/checklist"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
@@ -24,6 +24,7 @@ interface DebitNoteFormProps {
   isConfirmed?: boolean
   taskId: number
   exchangeRate?: number // Add exchange rate prop
+  companyId?: number
 }
 
 export function DebitNoteForm({
@@ -34,6 +35,7 @@ export function DebitNoteForm({
   isConfirmed,
   taskId,
   exchangeRate = 1, // Default to 1 if not provided
+  companyId,
 }: DebitNoteFormProps) {
   console.log("taskId :", taskId)
   console.log("initialData :", initialData)
@@ -147,6 +149,21 @@ export function DebitNoteForm({
     }
   }, [watchedValues.totLocalAmt, exchangeRate, form])
 
+  // Effect for charge autocomplete changes (to update GL ID)
+  const handleChargeChange = (selectedCharge: IChargeLookup | null) => {
+    if (selectedCharge) {
+      form.setValue("chargeId", selectedCharge.chargeId)
+      form.setValue("chargeName", selectedCharge.chargeName)
+      // Automatically set the GL ID from the selected charge
+      form.setValue("glId", selectedCharge.glId)
+    } else {
+      // Clear related data when charge is cleared
+      form.setValue("chargeId", 0)
+      form.setValue("chargeName", "")
+      form.setValue("glId", 0)
+    }
+  }
+
   // Effect for GST autocomplete changes (to update GST percentage)
   const handleGSTChange = (selectedGst: IGstLookup | null) => {
     if (selectedGst) {
@@ -198,7 +215,7 @@ export function DebitNoteForm({
   }
 
   return (
-    <div className="max-w flex flex-col gap-2">
+    <div className="flex flex-col gap-2">
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           <div className="grid gap-4">
@@ -219,6 +236,7 @@ export function DebitNoteForm({
                 taskId={taskId}
                 isRequired={true}
                 isDisabled={isConfirmed}
+                onChangeEvent={handleChargeChange}
               />
 
               <ChartOfAccountAutocomplete
@@ -226,6 +244,8 @@ export function DebitNoteForm({
                 name="glId"
                 label="GL Account"
                 isDisabled={isConfirmed}
+                isRequired={true}
+                companyId={companyId}
               />
 
               <CustomNumberInput

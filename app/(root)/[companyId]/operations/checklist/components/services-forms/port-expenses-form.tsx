@@ -80,7 +80,6 @@ export function PortExpensesForm({
           )
         : format(new Date(), clientDateFormat),
       debitNoteId: initialData?.debitNoteId ?? 0,
-      debitNoteNo: initialData?.debitNoteNo ?? "",
       remarks: initialData?.remarks ?? "",
       editVersion: initialData?.editVersion ?? 0,
     },
@@ -110,7 +109,6 @@ export function PortExpensesForm({
             )
           : format(new Date(), clientDateFormat),
         debitNoteId: initialData?.debitNoteId ?? 0,
-        debitNoteNo: initialData?.debitNoteNo ?? "",
         remarks: initialData?.remarks ?? "",
         editVersion: initialData?.editVersion ?? 0,
       })
