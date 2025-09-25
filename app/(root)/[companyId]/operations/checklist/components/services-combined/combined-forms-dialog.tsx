@@ -21,7 +21,6 @@ import { toast } from "sonner"
 import { usePersist } from "@/hooks/use-common"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { PageLoadingSpinner } from "@/components/loading-spinner"
 import {
   Card,
   CardContent,
@@ -47,6 +46,7 @@ import {
 } from "@/components/ui/select"
 import { Separator } from "@/components/ui/separator"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { PageLoadingSpinner } from "@/components/loading-spinner"
 import JobOrderCustomerAutocomplete from "@/components/ui-custom/autocomplete-joborder-customer"
 
 interface TaskForwardFormValues extends Record<string, unknown> {
@@ -107,7 +107,7 @@ export function CombinedFormsDialog({
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent
           className="max-h-[95vh] w-[95vw] !max-w-none overflow-y-auto"
-          onPointerDownOutside={(e) => {
+          onPointerDownOutside={(e: any) => {
             e.preventDefault()
           }}
         >
@@ -306,7 +306,7 @@ export function CombinedFormsDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         className="max-h-[90vh] w-[90vw] max-w-6xl overflow-y-auto"
-        onPointerDownOutside={(e) => {
+        onPointerDownOutside={(e: any) => {
           e.preventDefault()
         }}
       >

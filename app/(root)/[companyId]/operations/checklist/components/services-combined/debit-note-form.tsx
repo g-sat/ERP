@@ -7,6 +7,7 @@ import { DebitNoteDtFormValues, DebitNoteDtSchema } from "@/schemas/checklist"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 
+import { useChartofAccountLookup } from "@/hooks/use-lookup"
 import { Button } from "@/components/ui/button"
 import { Form } from "@/components/ui/form"
 import ChargeAutocomplete from "@/components/ui-custom/autocomplete-charge"
@@ -41,6 +42,10 @@ export function DebitNoteForm({
   console.log("initialData :", initialData)
   console.log("isConfirmed DebitNoteForm :", isConfirmed)
   console.log("exchangeRate :", exchangeRate)
+
+  const { isLoading: isChartOfAccountLoading } = useChartofAccountLookup(
+    Number(companyId)
+  )
 
   const form = useForm<DebitNoteDtFormValues>({
     resolver: zodResolver(DebitNoteDtSchema),
@@ -206,7 +211,7 @@ export function DebitNoteForm({
       isServiceCharge: initialData?.isServiceCharge ?? false,
       serviceCharge: initialData?.serviceCharge ?? 0,
     })
-  }, [initialData, form, taskId])
+  }, [initialData, form, taskId, isChartOfAccountLoading])
 
   const onSubmit = (data: DebitNoteDtFormValues) => {
     console.log("data :", data)

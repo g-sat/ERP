@@ -977,6 +977,7 @@ export const JobOrder = {
   getDetails: "/operations/getdetails",
   saveDetails: "/operations/savedetails",
   getTaskCount: "/operations/gettaskcount",
+  getHistory: "/operations/getjoborderbyidhistory",
 }
 
 // Tariff Endpoints

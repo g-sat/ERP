@@ -46,6 +46,13 @@ export function TaskTableActions<T>({
   }
   const hasValidDebitNoteId = row.debitNoteId && row.debitNoteId > 0
 
+  // Check if certain actions should be hidden based on debit note status
+  const shouldHideEdit = hideEdit || Boolean(hasValidDebitNoteId) || isConfirmed
+  const shouldHideDelete =
+    hideDelete || Boolean(hasValidDebitNoteId) || isConfirmed
+  const shouldHidePurchase =
+    hidePurchase || Boolean(hasValidDebitNoteId) || isConfirmed
+
   return (
     <div className="flex items-center gap-2">
       <Checkbox
@@ -79,7 +86,7 @@ export function TaskTableActions<T>({
             : ""
         }`}
         onClick={() => !hasValidDebitNoteId && onEdit?.(row)}
-        disabled={hideEdit || Boolean(hasValidDebitNoteId) || isConfirmed}
+        disabled={Boolean(hasValidDebitNoteId) || isConfirmed}
         title={hasValidDebitNoteId ? "Cannot edit - Debit Note exists" : "Edit"}
       >
         <Pencil className="h-4 w-4" />
@@ -96,7 +103,7 @@ export function TaskTableActions<T>({
         onClick={() =>
           !hasValidDebitNoteId && onDelete?.(String(row[idAccessor]))
         }
-        disabled={hideDelete || Boolean(hasValidDebitNoteId) || isConfirmed}
+        disabled={Boolean(hasValidDebitNoteId) || isConfirmed}
         title={
           hasValidDebitNoteId ? "Cannot delete - Debit Note exists" : "Delete"
         }
@@ -108,8 +115,15 @@ export function TaskTableActions<T>({
         variant="ghost"
         size="icon"
         className="h-6 w-6 text-purple-600 hover:bg-purple-100"
-        disabled={hidePurchase}
-        onClick={() => onPurchase?.(String(row[idAccessor]))}
+        disabled={isConfirmed}
+        onClick={() =>
+          !hasValidDebitNoteId && onPurchase?.(String(row[idAccessor]))
+        }
+        title={
+          hasValidDebitNoteId
+            ? "Cannot purchase - Debit Note exists"
+            : "Purchase"
+        }
       >
         <ShoppingCart className="h-4 w-4" />
       </Button>

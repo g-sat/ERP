@@ -41,6 +41,9 @@ type TaskTableHeaderProps<TData> = {
   hasValidDebitNoteIds?: boolean
   isConfirmed?: boolean
   selectedRowIds?: string[]
+  // Props for column visibility control
+  hideColumnsOnDebitNote?: string[] // Array of column IDs to hide when debit note exists
+  hasDebitNoteInSelection?: boolean // Whether any selected row has debit note
 }
 
 export function TaskTableHeader<TData>({
@@ -59,6 +62,8 @@ export function TaskTableHeader<TData>({
   hasValidDebitNoteIds = false,
   isConfirmed = false,
   selectedRowIds = [],
+  hideColumnsOnDebitNote = [],
+  hasDebitNoteInSelection = false,
 }: TaskTableHeaderProps<TData>) {
   const [columnSearch, setColumnSearch] = useState("")
   const [activeButton, setActiveButton] = useState<"show" | "hide" | null>(null)
@@ -68,16 +73,25 @@ export function TaskTableHeader<TData>({
   const [showDebitNoteConfirmation, setShowDebitNoteConfirmation] =
     useState(false)
 
-  // Filter columns based on search - memoized to prevent re-renders
+  // Filter columns based on search and debit note status - memoized to prevent re-renders
   const filteredColumns = useMemo(() => {
     return columns.filter((column) => {
+      // First check if column should be hidden due to debit note
+      if (
+        hasDebitNoteInSelection &&
+        hideColumnsOnDebitNote.includes(column.id)
+      ) {
+        return false
+      }
+
+      // Then filter by search
       const headerText =
         typeof column.columnDef.header === "string"
           ? column.columnDef.header
           : column.id
       return headerText.toLowerCase().includes(columnSearch.toLowerCase())
     })
-  }, [columns, columnSearch])
+  }, [columns, columnSearch, hasDebitNoteInSelection, hideColumnsOnDebitNote])
 
   const handleShowAll = useCallback(() => {
     columns.forEach((column) => column.toggleVisibility(true))
@@ -194,7 +208,8 @@ export function TaskTableHeader<TData>({
                   ? "Combined Services"
                   : "Please select at least one item first"
               }
-              disabled={isConfirmed || !hasSelectedRows}
+              //disabled={isConfirmed || !hasSelectedRows}
+              disabled={!hasSelectedRows || hasValidDebitNoteIds}
               className={
                 !hasSelectedRows || isConfirmed
                   ? "cursor-not-allowed opacity-50"
