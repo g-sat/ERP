@@ -18,9 +18,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Separator } from "@/components/ui/separator"
-import { DeleteConfirmation } from "@/components/delete-confirmation"
-import { PageLoadingSpinner } from "@/components/loading-spinner"
-import { SaveConfirmation } from "@/components/save-confirmation"
+import { DeleteConfirmation } from "@/components/confirmation/delete-confirmation"
+import { PageLoadingSpinner } from "@/components/skeleton/loading-spinner"
+import { SaveConfirmation } from "@/components/confirmation/save-confirmation"
 
 import DebitNoteForm from "./debit-note-form"
 import DebitNoteTable from "./debit-note-table"

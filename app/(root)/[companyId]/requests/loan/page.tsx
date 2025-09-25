@@ -11,7 +11,7 @@ import { HrUserRequest } from "@/lib/api-routes"
 import { useGetById, usePersist } from "@/hooks/use-common"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { CurrencyFormatter } from "@/components/currencyicons/currency-formatter"
+import { CurrencyFormatter } from "@/components/currency-icons/currency-formatter"
 
 import { LoanRequestForm } from "./components/loan-request-form"
 import { LoanRequestTable } from "./components/loan-request-table"

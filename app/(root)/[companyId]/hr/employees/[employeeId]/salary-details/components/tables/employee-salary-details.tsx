@@ -29,7 +29,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { CurrencyFormatter } from "@/components/currencyicons/currency-formatter"
+import { CurrencyFormatter } from "@/components/currency-icons/currency-formatter"
 
 import { SalaryComponentsForm } from "../forms/employee-salary-components"
 

@@ -17,10 +17,10 @@ import { Button } from "@/components/ui/button"
 import { Form } from "@/components/ui/form"
 import { Separator } from "@/components/ui/separator"
 import { Skeleton } from "@/components/ui/skeleton"
-import { SaveConfirmation } from "@/components/save-confirmation"
+import { SaveConfirmation } from "@/components/confirmation/save-confirmation"
 import { LockSkeleton } from "@/components/skeleton/lock-skeleton"
-import ChartofAccountAutocomplete from "@/components/ui-custom/autocomplete-chartofaccount"
-import CurrencyAutocomplete from "@/components/ui-custom/autocomplete-currency"
+import ChartofAccountAutocomplete from "@/components/autocomplete/autocomplete-chartofaccount"
+import CurrencyAutocomplete from "@/components/autocomplete/autocomplete-currency"
 
 type FinanceResponse = IApiSuccessResponse<FinanceSettingFormValues>
 

@@ -279,7 +279,7 @@ export function TaskTable<T>({
   })
 
   // Virtual scrolling removed - using empty rows instead
-  const [pageSize] = useState(15) // Fixed page size for empty rows
+  const [pageSize] = useState(20) // Fixed page size for empty rows
   const sensors = useSensors(
     useSensor(MouseSensor, {}),
     useSensor(TouchSensor, {}),

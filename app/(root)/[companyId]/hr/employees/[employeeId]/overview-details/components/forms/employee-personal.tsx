@@ -14,9 +14,9 @@ import { clientDateFormat, parseDate } from "@/lib/format"
 import { useSaveEmployeePersonalDetails } from "@/hooks/use-employee"
 import { Button } from "@/components/ui/button"
 import { Form } from "@/components/ui/form"
-import { CustomDateNew } from "@/components/ui-custom/custom-date-new"
-import CustomInput from "@/components/ui-custom/custom-input"
-import CustomTextarea from "@/components/ui-custom/custom-textarea"
+import { CustomDateNew } from "@/components/custom/custom-date-new"
+import CustomInput from "@/components/custom/custom-input"
+import CustomTextarea from "@/components/custom/custom-textarea"
 
 interface Props {
   employee?: IEmployeePersonalDetails

@@ -18,7 +18,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { PageLoadingSpinner } from "@/components/loading-spinner"
+import { PageLoadingSpinner } from "@/components/skeleton/loading-spinner"
 import { BasicTable } from "@/components/table/table-basic"
 
 interface PortExpensesHistoryDialogProps {

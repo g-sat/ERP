@@ -21,9 +21,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { SaveConfirmation } from "@/components/save-confirmation"
+import { SaveConfirmation } from "@/components/confirmation/save-confirmation"
 import { SettingTable } from "@/components/table/table-setting"
-import UserAutocomplete from "@/components/ui-custom/autocomplete-user"
+import UserAutocomplete from "@/components/autocomplete/autocomplete-user"
 
 type CompanyRight = {
   companyId: string

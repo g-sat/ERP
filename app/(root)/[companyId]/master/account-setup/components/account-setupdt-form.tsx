@@ -15,15 +15,15 @@ import { useChartofAccountLookup } from "@/hooks/use-lookup"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Form } from "@/components/ui/form"
-import AccountSetupAutocomplete from "@/components/ui-custom/autocomplete-accountsetup"
-import ChartofAccountAutocomplete from "@/components/ui-custom/autocomplete-chartofaccount"
-import CurrencyAutocomplete from "@/components/ui-custom/autocomplete-currency"
+import AccountSetupAutocomplete from "@/components/autocomplete/autocomplete-accountsetup"
+import ChartofAccountAutocomplete from "@/components/autocomplete/autocomplete-chartofaccount"
+import CurrencyAutocomplete from "@/components/autocomplete/autocomplete-currency"
 import CustomAccordion, {
   CustomAccordionContent,
   CustomAccordionItem,
   CustomAccordionTrigger,
-} from "@/components/ui-custom/custom-accordion"
-import CustomSwitch from "@/components/ui-custom/custom-switch"
+} from "@/components/custom/custom-accordion"
+import CustomSwitch from "@/components/custom/custom-switch"
 
 interface AccountSetupDtFormProps {
   initialData?: IAccountSetupDt | null

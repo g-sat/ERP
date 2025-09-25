@@ -21,10 +21,10 @@ import {
 } from "@/components/ui/form"
 import { Separator } from "@/components/ui/separator"
 import { Skeleton } from "@/components/ui/skeleton"
-import { SaveConfirmation } from "@/components/save-confirmation"
+import { SaveConfirmation } from "@/components/confirmation/save-confirmation"
 import { LockSkeleton } from "@/components/skeleton/lock-skeleton"
-import ChartofAccountAutocomplete from "@/components/ui-custom/autocomplete-chartofaccount"
-import CustomNumberInput from "@/components/ui-custom/custom-number-input"
+import ChartofAccountAutocomplete from "@/components/autocomplete/autocomplete-chartofaccount"
+import CustomNumberInput from "@/components/custom/custom-number-input"
 
 type UserSettingResponse = IApiSuccessResponse<UserSettingFormValues>
 

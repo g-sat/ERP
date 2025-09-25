@@ -8,7 +8,7 @@ import { toast } from "sonner"
 import { useGetDocumentType } from "@/hooks/use-admin"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { TableHeaderCustom } from "@/components/ui/data-table/data-table-header-custom"
+import { TableHeaderCustom } from "@/components/table/data-table-header-custom"
 import {
   Dialog,
   DialogContent,
@@ -25,7 +25,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import DocumentTypeAutocomplete from "@/components/ui-custom/autocomplete-document-type"
+import DocumentTypeAutocomplete from "@/components/autocomplete/autocomplete-document-type"
 
 interface DocumentUploadProps {
   moduleId: number

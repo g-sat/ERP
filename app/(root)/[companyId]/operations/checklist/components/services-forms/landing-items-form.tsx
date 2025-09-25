@@ -14,20 +14,20 @@ import { useChartofAccountLookup } from "@/hooks/use-lookup"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Form } from "@/components/ui/form"
-import { FormLoadingSpinner } from "@/components/loading-spinner"
-import ChargeAutocomplete from "@/components/ui-custom/autocomplete-charge"
-import ChartOfAccountAutocomplete from "@/components/ui-custom/autocomplete-chartofaccount"
-import LandingTypeAutocomplete from "@/components/ui-custom/autocomplete-landingtype"
-import StatusTaskAutocomplete from "@/components/ui-custom/autocomplete-status-task"
-import UomAutocomplete from "@/components/ui-custom/autocomplete-uom"
+import { FormLoadingSpinner } from "@/components/skeleton/loading-spinner"
+import ChargeAutocomplete from "@/components/autocomplete/autocomplete-charge"
+import ChartOfAccountAutocomplete from "@/components/autocomplete/autocomplete-chartofaccount"
+import LandingTypeAutocomplete from "@/components/autocomplete/autocomplete-landingtype"
+import StatusTaskAutocomplete from "@/components/autocomplete/autocomplete-status-task"
+import UomAutocomplete from "@/components/autocomplete/autocomplete-uom"
 import CustomAccordion, {
   CustomAccordionContent,
   CustomAccordionItem,
   CustomAccordionTrigger,
-} from "@/components/ui-custom/custom-accordion"
-import { CustomDateNew } from "@/components/ui-custom/custom-date-new"
-import CustomInput from "@/components/ui-custom/custom-input"
-import CustomTextarea from "@/components/ui-custom/custom-textarea"
+} from "@/components/custom/custom-accordion"
+import { CustomDateNew } from "@/components/custom/custom-date-new"
+import CustomInput from "@/components/custom/custom-input"
+import CustomTextarea from "@/components/custom/custom-textarea"
 
 interface LandingItemsFormProps {
   jobData: IJobOrderHd

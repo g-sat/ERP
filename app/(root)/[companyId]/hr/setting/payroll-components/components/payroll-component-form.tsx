@@ -6,10 +6,10 @@ import { IconInfoCircle } from "@tabler/icons-react"
 import { FormProvider, useForm } from "react-hook-form"
 
 import { Form } from "@/components/ui/form"
-import CustomInput from "@/components/ui-custom/custom-input"
-import CustomSelect from "@/components/ui-custom/custom-select"
-import CustomSwitch from "@/components/ui-custom/custom-switch"
-import CustomTextarea from "@/components/ui-custom/custom-textarea"
+import CustomInput from "@/components/custom/custom-input"
+import CustomSelect from "@/components/custom/custom-select"
+import CustomSwitch from "@/components/custom/custom-switch"
+import CustomTextarea from "@/components/custom/custom-textarea"
 
 interface Props {
   initialData?: PayrollComponentFormData

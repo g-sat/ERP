@@ -11,16 +11,16 @@ import { z } from "zod"
 
 import { Badge } from "@/components/ui/badge"
 import { Form } from "@/components/ui/form"
-import ChartofAccountAutocomplete from "@/components/ui-custom/autocomplete-chartofaccount"
-import CurrencyAutocomplete from "@/components/ui-custom/autocomplete-currency"
+import ChartofAccountAutocomplete from "@/components/autocomplete/autocomplete-chartofaccount"
+import CurrencyAutocomplete from "@/components/autocomplete/autocomplete-currency"
 import CustomAccordion, {
   CustomAccordionContent,
   CustomAccordionItem,
   CustomAccordionTrigger,
-} from "@/components/ui-custom/custom-accordion"
-import CustomInput from "@/components/ui-custom/custom-input"
-import CustomSwitch from "@/components/ui-custom/custom-switch"
-import CustomTextarea from "@/components/ui-custom/custom-textarea"
+} from "@/components/custom/custom-accordion"
+import CustomInput from "@/components/custom/custom-input"
+import CustomSwitch from "@/components/custom/custom-switch"
+import CustomTextarea from "@/components/custom/custom-textarea"
 
 interface BankFormProps {
   initialData?: IBank | null

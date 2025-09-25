@@ -44,8 +44,8 @@ import {
   TableActions,
   TableFooter,
   TableHeader,
-} from "@/components/ui/data-table"
-import { CustomTableBody } from "@/components/ui/data-table/data-table-body"
+} from "@/components/table"
+import { CustomTableBody } from "@/components/table/data-table-body"
 import {
   Table,
   TableRow,

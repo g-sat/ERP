@@ -5,7 +5,7 @@ import { useParams, useRouter, useSearchParams } from "next/navigation"
 import { IEmployeeBasic } from "@/interfaces/employee"
 
 import { useDeleteEmployee, useGetEmployees } from "@/hooks/use-employee"
-import { DeleteConfirmation } from "@/components/delete-confirmation"
+import { DeleteConfirmation } from "@/components/confirmation/delete-confirmation"
 import { DataTableSkeleton } from "@/components/skeleton/data-table-skeleton"
 
 import { EmployeeListTable } from "./components/employee-list-table"

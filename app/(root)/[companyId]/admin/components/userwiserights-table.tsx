@@ -12,9 +12,9 @@ import { useUserRightSaveV1, useUserRightbyidGetV1 } from "@/hooks/use-admin"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Form } from "@/components/ui/form"
-import { SaveConfirmation } from "@/components/save-confirmation"
+import { SaveConfirmation } from "@/components/confirmation/save-confirmation"
 import { SettingTable } from "@/components/table/table-setting"
-import UserAutocomplete from "@/components/ui-custom/autocomplete-user"
+import UserAutocomplete from "@/components/autocomplete/autocomplete-user"
 
 type PermissionType =
   | "isRead"

@@ -18,9 +18,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Form } from "@/components/ui/form"
-import DisbursementStatusAutocomplete from "@/components/ui-custom/autocomplete-disbursement-status"
-import { CustomDateNoPast } from "@/components/ui-custom/custom-date-no-past"
-import CustomInput from "@/components/ui-custom/custom-input"
+import DisbursementStatusAutocomplete from "@/components/autocomplete/autocomplete-disbursement-status"
+import { CustomDateNoPast } from "@/components/custom/custom-date-no-past"
+import CustomInput from "@/components/custom/custom-input"
 
 interface LoanDisbursementFormProps {
   open: boolean

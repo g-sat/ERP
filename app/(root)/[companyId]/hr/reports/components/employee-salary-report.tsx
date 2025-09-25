@@ -28,7 +28,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
-import { CurrencyFormatter } from "@/components/currencyicons/currency-formatter"
+import { CurrencyFormatter } from "@/components/currency-icons/currency-formatter"
 
 interface EmployeeReportData {
   employeeName: string

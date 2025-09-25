@@ -33,10 +33,10 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { DeleteConfirmation } from "@/components/delete-confirmation"
+import { DeleteConfirmation } from "@/components/confirmation/delete-confirmation"
 import { DataTableSkeleton } from "@/components/skeleton/data-table-skeleton"
-import CustomerAutocomplete from "@/components/ui-custom/autocomplete-customer"
-import PortAutocomplete from "@/components/ui-custom/autocomplete-port"
+import CustomerAutocomplete from "@/components/autocomplete/autocomplete-customer"
+import PortAutocomplete from "@/components/autocomplete/autocomplete-port"
 
 import { CopyCompanyRateForm } from "./components/copy-company-rate-form"
 import { CopyRateForm } from "./components/copy-rate-form"

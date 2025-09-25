@@ -10,7 +10,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { PageLoadingSpinner } from "@/components/loading-spinner"
+import { PageLoadingSpinner } from "@/components/skeleton/loading-spinner"
 
 const mockAllocated = [
   {

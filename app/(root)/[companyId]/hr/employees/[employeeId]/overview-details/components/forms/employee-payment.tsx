@@ -9,8 +9,8 @@ import { useForm } from "react-hook-form"
 import { useSaveEmployeeBank } from "@/hooks/use-employee"
 import { Button } from "@/components/ui/button"
 import { Form } from "@/components/ui/form"
-import ChartOfAccountAutocomplete from "@/components/ui-custom/autocomplete-chartofaccount"
-import CustomInput from "@/components/ui-custom/custom-input"
+import ChartOfAccountAutocomplete from "@/components/autocomplete/autocomplete-chartofaccount"
+import CustomInput from "@/components/custom/custom-input"
 
 interface Props {
   employee?: IEmployeeBank

@@ -21,7 +21,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
-import { DebitNoteConfirmation } from "@/components/debitnote-confirmation"
+import { DebitNoteConfirmation } from "@/components/confirmation/debitnote-confirmation"
 
 // Define types for clarity
 type TaskTableHeaderProps<TData> = {

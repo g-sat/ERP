@@ -16,20 +16,20 @@ import { BasicSetting } from "@/lib/api-routes"
 import { clientDateFormat, parseDate } from "@/lib/format"
 import { saveJobOrderDirect, updateJobOrderDirect } from "@/hooks/use-checklist"
 import { Form } from "@/components/ui/form"
-import AddressAutocomplete from "@/components/ui-custom/autocomplete-address"
-import ContactAutocomplete from "@/components/ui-custom/autocomplete-contact"
-import CurrencyAutocomplete from "@/components/ui-custom/autocomplete-currency"
-import CustomerAutocomplete from "@/components/ui-custom/autocomplete-customer"
-import GstAutocomplete from "@/components/ui-custom/autocomplete-gst"
-import PortAutocomplete from "@/components/ui-custom/autocomplete-port"
-import StatusAutocomplete from "@/components/ui-custom/autocomplete-status"
-import VesselAutocomplete from "@/components/ui-custom/autocomplete-vessel"
-import VoyageAutocomplete from "@/components/ui-custom/autocomplete-voyage"
-import { CustomDateNew } from "@/components/ui-custom/custom-date-new"
-import CustomInput from "@/components/ui-custom/custom-input"
-import CustomNumberInput from "@/components/ui-custom/custom-number-input"
-import CustomSwitch from "@/components/ui-custom/custom-switch"
-import CustomTextarea from "@/components/ui-custom/custom-textarea"
+import AddressAutocomplete from "@/components/autocomplete/autocomplete-address"
+import ContactAutocomplete from "@/components/autocomplete/autocomplete-contact"
+import CurrencyAutocomplete from "@/components/autocomplete/autocomplete-currency"
+import CustomerAutocomplete from "@/components/autocomplete/autocomplete-customer"
+import GstAutocomplete from "@/components/autocomplete/autocomplete-gst"
+import PortAutocomplete from "@/components/autocomplete/autocomplete-port"
+import StatusAutocomplete from "@/components/autocomplete/autocomplete-status"
+import VesselAutocomplete from "@/components/autocomplete/autocomplete-vessel"
+import VoyageAutocomplete from "@/components/autocomplete/autocomplete-voyage"
+import { CustomDateNew } from "@/components/custom/custom-date-new"
+import CustomInput from "@/components/custom/custom-input"
+import CustomNumberInput from "@/components/custom/custom-number-input"
+import CustomSwitch from "@/components/custom/custom-switch"
+import CustomTextarea from "@/components/custom/custom-textarea"
 
 interface ChecklistMainProps {
   jobData?: IJobOrderHd | null
@@ -57,11 +57,8 @@ export function ChecklistMain({
       jobOrderId: jobData?.jobOrderId ?? 0,
       jobOrderNo: jobData?.jobOrderNo ?? "",
       jobOrderDate: jobData?.jobOrderDate
-        ? format(
-            parseDate(jobData.jobOrderDate as string) || new Date(),
-            clientDateFormat
-          )
-        : format(new Date(), clientDateFormat),
+        ? parseDate(jobData.jobOrderDate as string) || new Date()
+        : new Date(),
       imoCode: jobData?.imoCode ?? "",
       vesselDistance: jobData?.vesselDistance ?? 10,
       portId: jobData?.portId ?? 0,
@@ -72,15 +69,15 @@ export function ChecklistMain({
       voyageId: jobData?.voyageId ?? 0,
       lastPortId: jobData?.lastPortId ?? 0,
       nextPortId: jobData?.nextPortId ?? 0,
-      etaDate: jobData?.etaDate ?? "",
-      etdDate: jobData?.etdDate ?? "",
+      etaDate: jobData?.etaDate ? parseDate(jobData.etaDate as string) || undefined : undefined,
+      etdDate: jobData?.etdDate ? parseDate(jobData.etdDate as string) || undefined : undefined,
       ownerName: jobData?.ownerName ?? "",
       ownerAgent: jobData?.ownerAgent ?? "",
       masterName: jobData?.masterName ?? "",
       charters: jobData?.charters ?? "",
       chartersAgent: jobData?.chartersAgent ?? "",
-      invoiceDate: jobData?.invoiceDate ?? "",
-      seriesDate: jobData?.seriesDate ?? "",
+      invoiceDate: jobData?.invoiceDate ? parseDate(jobData.invoiceDate as string) || undefined : undefined,
+      seriesDate: jobData?.seriesDate ? parseDate(jobData.seriesDate as string) || undefined : undefined,
       addressId: jobData?.addressId ?? 0,
       contactId: jobData?.contactId ?? 0,
       natureOfCall: jobData?.natureOfCall ?? "",
@@ -108,11 +105,8 @@ export function ChecklistMain({
       jobOrderId: jobData?.jobOrderId ?? 0,
       jobOrderNo: jobData?.jobOrderNo ?? "",
       jobOrderDate: jobData?.jobOrderDate
-        ? format(
-            parseDate(jobData.jobOrderDate as string) || new Date(),
-            clientDateFormat
-          )
-        : format(new Date(), clientDateFormat),
+        ? parseDate(jobData.jobOrderDate as string) || new Date()
+        : new Date(),
       portId: jobData?.portId ?? 0,
       customerId: jobData?.customerId ?? 0,
       currencyId: jobData?.currencyId ?? 0,
@@ -121,15 +115,15 @@ export function ChecklistMain({
       voyageId: jobData?.voyageId ?? 0,
       lastPortId: jobData?.lastPortId ?? 0,
       nextPortId: jobData?.nextPortId ?? 0,
-      etaDate: jobData?.etaDate ?? "",
-      etdDate: jobData?.etdDate ?? "",
+      etaDate: jobData?.etaDate ? parseDate(jobData.etaDate as string) || undefined : undefined,
+      etdDate: jobData?.etdDate ? parseDate(jobData.etdDate as string) || undefined : undefined,
       ownerName: jobData?.ownerName ?? "",
       ownerAgent: jobData?.ownerAgent ?? "",
       masterName: jobData?.masterName ?? "",
       charters: jobData?.charters ?? "",
       chartersAgent: jobData?.chartersAgent ?? "",
-      invoiceDate: jobData?.invoiceDate ?? "",
-      seriesDate: jobData?.seriesDate ?? "",
+      invoiceDate: jobData?.invoiceDate ? parseDate(jobData.invoiceDate as string) || undefined : undefined,
+      seriesDate: jobData?.seriesDate ? parseDate(jobData.seriesDate as string) || undefined : undefined,
       addressId: jobData?.addressId ?? 0,
       contactId: jobData?.contactId ?? 0,
       natureOfCall: jobData?.natureOfCall ?? "",
@@ -216,7 +210,7 @@ export function ChecklistMain({
 
       if (currencyId && jobOrderDate) {
         const dt = format(
-          parseDate(jobOrderDate as string) || new Date(),
+          jobOrderDate instanceof Date ? jobOrderDate : parseDate(jobOrderDate as string) || new Date(),
           clientDateFormat
         )
         const res = await getData(
@@ -227,7 +221,7 @@ export function ChecklistMain({
         form.setValue("exhRate", +Number(exhRate).toFixed(exhRateDec))
       }
     },
-    []
+    [exhRateDec, form]
   )
 
   return (
@@ -250,7 +244,6 @@ export function ChecklistMain({
                 name="jobOrderDate"
                 label="Job Order Date"
                 isRequired={true}
-                dateFormat="dd/MM/yyyy"
               />
               <CustomerAutocomplete
                 form={form}
@@ -378,14 +371,12 @@ export function ChecklistMain({
                 form={form}
                 name="etaDate"
                 label="ETA Date"
-                dateFormat="dd/MM/yyyy"
                 isRequired={false}
               />
               <CustomDateNew
                 form={form}
                 name="etdDate"
                 label="ETD Date"
-                dateFormat="dd/MM/yyyy"
                 isRequired={false}
               />
               <CustomInput
@@ -448,13 +439,11 @@ export function ChecklistMain({
                 form={form}
                 name="invoiceDate"
                 label="Invoice Date"
-                dateFormat="dd/MM/yyyy"
               />
               <CustomDateNew
                 form={form}
                 name="seriesDate"
                 label="Series Date"
-                dateFormat="dd/MM/yyyy"
               />
               <AddressAutocomplete
                 form={form}

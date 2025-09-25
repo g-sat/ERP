@@ -12,14 +12,14 @@ import { parseDate } from "@/lib/format"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Form } from "@/components/ui/form"
-import GstAutocomplete from "@/components/ui-custom/autocomplete-gst"
+import GstAutocomplete from "@/components/autocomplete/autocomplete-gst"
 import CustomAccordion, {
   CustomAccordionContent,
   CustomAccordionItem,
   CustomAccordionTrigger,
-} from "@/components/ui-custom/custom-accordion"
-import { CustomDateNew } from "@/components/ui-custom/custom-date-new"
-import CustomNumberInput from "@/components/ui-custom/custom-number-input"
+} from "@/components/custom/custom-accordion"
+import { CustomDateNew } from "@/components/custom/custom-date-new"
+import CustomNumberInput from "@/components/custom/custom-number-input"
 
 interface GstDtFormProps {
   initialData?: IGstDt | null
@@ -38,7 +38,6 @@ export function GstDtForm({
 }: GstDtFormProps) {
   const { decimals } = useAuthStore()
   const priceDec = decimals[0]?.priceDec || 2
-  const dateFormat = decimals[0]?.dateFormat || "dd/MM/yyyy"
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
 
   console.log("initialData GstDtForm", initialData)
@@ -55,10 +54,7 @@ export function GstDtForm({
           gstId: initialData.gstId ?? 0,
           gstPercentage: initialData.gstPercentage ?? 0,
           validFrom: initialData.validFrom
-            ? format(
-                parseDate(initialData.validFrom as string) || new Date(),
-                dateFormat
-              )
+            ? parseDate(initialData.validFrom as string) || new Date()
             : new Date(),
         }
       : {
@@ -74,10 +70,7 @@ export function GstDtForm({
             gstId: initialData.gstId ?? 0,
             gstPercentage: initialData.gstPercentage ?? 0,
             validFrom: initialData.validFrom
-              ? format(
-                  parseDate(initialData.validFrom as string) || new Date(),
-                  dateFormat
-                )
+              ? parseDate(initialData.validFrom as string) || new Date()
               : new Date(),
           }
         : {
@@ -119,7 +112,6 @@ export function GstDtForm({
                 label="Valid From"
                 isDisabled={isReadOnly || isSubmitting}
                 isRequired
-                dateFormat={dateFormat}
               />
             </div>
             {/* Audit Information Section */}

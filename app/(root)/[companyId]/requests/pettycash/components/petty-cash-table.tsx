@@ -36,7 +36,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Textarea } from "@/components/ui/textarea"
-import { CurrencyFormatter } from "@/components/currencyicons/currency-formatter"
+import { CurrencyFormatter } from "@/components/currency-icons/currency-formatter"
 
 interface PettyCashTableProps {
   pettyCashRequests: IPettyCashRequest[]

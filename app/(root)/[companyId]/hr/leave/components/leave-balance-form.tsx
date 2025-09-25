@@ -15,9 +15,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Form } from "@/components/ui/form"
-import EmployeeAutocomplete from "@/components/ui-custom/autocomplete-employee"
-import LeaveTypeAutocomplete from "@/components/ui-custom/autocomplete-leavetype"
-import CustomInput from "@/components/ui-custom/custom-input"
+import EmployeeAutocomplete from "@/components/autocomplete/autocomplete-employee"
+import LeaveTypeAutocomplete from "@/components/autocomplete/autocomplete-leavetype"
+import CustomInput from "@/components/custom/custom-input"
 
 interface LeaveBalanceFormProps {
   onSubmit: (

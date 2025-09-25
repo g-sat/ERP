@@ -24,9 +24,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Separator } from "@/components/ui/separator"
-import { DeleteConfirmation } from "@/components/delete-confirmation"
-import { LoadConfirmation } from "@/components/load-confirmation"
-import { SaveConfirmation } from "@/components/save-confirmation"
+import { DeleteConfirmation } from "@/components/confirmation/delete-confirmation"
+import { LoadConfirmation } from "@/components/confirmation/load-confirmation"
+import { SaveConfirmation } from "@/components/confirmation/save-confirmation"
 import { DataTableSkeleton } from "@/components/skeleton/data-table-skeleton"
 import { LockSkeleton } from "@/components/skeleton/lock-skeleton"
 

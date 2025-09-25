@@ -12,16 +12,16 @@ import { useChartofAccountLookup } from "@/hooks/use-lookup"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Form } from "@/components/ui/form"
-import ChartofAccountAutocomplete from "@/components/ui-custom/autocomplete-chartofaccount"
-import TaskAutocomplete from "@/components/ui-custom/autocomplete-task"
+import ChartofAccountAutocomplete from "@/components/autocomplete/autocomplete-chartofaccount"
+import TaskAutocomplete from "@/components/autocomplete/autocomplete-task"
 import CustomAccordion, {
   CustomAccordionContent,
   CustomAccordionItem,
   CustomAccordionTrigger,
-} from "@/components/ui-custom/custom-accordion"
-import CustomInput from "@/components/ui-custom/custom-input"
-import CustomSwitch from "@/components/ui-custom/custom-switch"
-import CustomTextarea from "@/components/ui-custom/custom-textarea"
+} from "@/components/custom/custom-accordion"
+import CustomInput from "@/components/custom/custom-input"
+import CustomSwitch from "@/components/custom/custom-switch"
+import CustomTextarea from "@/components/custom/custom-textarea"
 
 const defaultValues = {
   chargeId: 0,

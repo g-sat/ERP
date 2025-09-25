@@ -1,17 +1,16 @@
 "use client"
 
-import { useEffect, useState } from "react"
 import { APPROVAL_STATUS } from "@/interfaces/approval"
 import {
   AlertCircle,
   Clock,
   Eye,
-  FileText,
   RefreshCw,
-  Search,
+  Search
 } from "lucide-react"
+import { useEffect, useState } from "react"
 
-import { useApproval } from "@/hooks/use-approval"
+import { LoadingSkeleton } from "@/components/skeleton/loading-skeleton"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -24,7 +23,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { LoadingSkeleton } from "@/components/loading-skeleton"
+import { useApproval } from "@/hooks/use-approval"
 
 import { ApprovalDetailDialog } from "./components/approval-detail-dialog"
 import { ApprovalRequestTable } from "./components/approval-request-table"

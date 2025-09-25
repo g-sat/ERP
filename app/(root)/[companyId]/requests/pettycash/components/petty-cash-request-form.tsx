@@ -13,9 +13,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Form } from "@/components/ui/form"
-import { CustomDateNew } from "@/components/ui-custom/custom-date-new"
-import CustomInput from "@/components/ui-custom/custom-input"
-import CustomTextarea from "@/components/ui-custom/custom-textarea"
+import { CustomDateNew } from "@/components/custom/custom-date-new"
+import CustomInput from "@/components/custom/custom-input"
+import CustomTextarea from "@/components/custom/custom-textarea"
 
 // Schema for petty cash request form
 const pettyCashRequestSchema = z.object({

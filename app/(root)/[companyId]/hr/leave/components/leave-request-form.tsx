@@ -17,10 +17,10 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Form, FormLabel } from "@/components/ui/form"
-import EmployeeAutocomplete from "@/components/ui-custom/autocomplete-employee"
-import LeaveTypeAutocomplete from "@/components/ui-custom/autocomplete-leavetype"
-import { CustomDateNew } from "@/components/ui-custom/custom-date-new"
-import CustomTextarea from "@/components/ui-custom/custom-textarea"
+import EmployeeAutocomplete from "@/components/autocomplete/autocomplete-employee"
+import LeaveTypeAutocomplete from "@/components/autocomplete/autocomplete-leavetype"
+import { CustomDateNew } from "@/components/custom/custom-date-new"
+import CustomTextarea from "@/components/custom/custom-textarea"
 
 interface LeaveRequestFormProps {
   onSubmit: (data: LeaveRequestFormValues) => Promise<void>

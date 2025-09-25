@@ -15,9 +15,9 @@ import CustomAccordion, {
   CustomAccordionContent,
   CustomAccordionItem,
   CustomAccordionTrigger,
-} from "@/components/ui-custom/custom-accordion"
-import CustomInput from "@/components/ui-custom/custom-input"
-import CustomSwitch from "@/components/ui-custom/custom-switch"
+} from "@/components/custom/custom-accordion"
+import CustomInput from "@/components/custom/custom-input"
+import CustomSwitch from "@/components/custom/custom-switch"
 
 // Default values for the contact form
 const defaultContactFormValues: BankContactFormValues = {

@@ -12,14 +12,14 @@ import { clientDateFormat, parseDate } from "@/lib/format"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Form } from "@/components/ui/form"
-import CurrencyAutocomplete from "@/components/ui-custom/autocomplete-currency"
+import CurrencyAutocomplete from "@/components/autocomplete/autocomplete-currency"
 import CustomAccordion, {
   CustomAccordionContent,
   CustomAccordionItem,
   CustomAccordionTrigger,
-} from "@/components/ui-custom/custom-accordion"
-import { CustomDateNew } from "@/components/ui-custom/custom-date-new"
-import CustomNumberInput from "@/components/ui-custom/custom-number-input"
+} from "@/components/custom/custom-accordion"
+import { CustomDateNew } from "@/components/custom/custom-date-new"
+import CustomNumberInput from "@/components/custom/custom-number-input"
 
 interface CurrencyDtFormProps {
   initialData?: ICurrencyDt | null

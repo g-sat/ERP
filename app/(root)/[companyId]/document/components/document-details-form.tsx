@@ -15,9 +15,9 @@ import { clientDateFormat, parseDate } from "@/lib/format"
 import { usePersistDocumentDetails } from "@/hooks/use-universal-documents"
 import { Button } from "@/components/ui/button"
 import { Form } from "@/components/ui/form"
-import DocumentTypeAutocomplete from "@/components/ui-custom/autocomplete-document-type"
-import { CustomDateNew } from "@/components/ui-custom/custom-date-new"
-import CustomInput from "@/components/ui-custom/custom-input"
+import DocumentTypeAutocomplete from "@/components/autocomplete/autocomplete-document-type"
+import { CustomDateNew } from "@/components/custom/custom-date-new"
+import CustomInput from "@/components/custom/custom-input"
 
 interface DocumentDetailsDialogProps {
   open: boolean

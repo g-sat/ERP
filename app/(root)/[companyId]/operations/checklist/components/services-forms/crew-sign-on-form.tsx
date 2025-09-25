@@ -13,19 +13,19 @@ import { useChartofAccountLookup } from "@/hooks/use-lookup"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Form } from "@/components/ui/form"
-import { FormLoadingSpinner } from "@/components/loading-spinner"
-import ChargeAutocomplete from "@/components/ui-custom/autocomplete-charge"
-import ChartOfAccountAutocomplete from "@/components/ui-custom/autocomplete-chartofaccount"
-import RankAutocomplete from "@/components/ui-custom/autocomplete-rank"
-import StatusTaskAutocomplete from "@/components/ui-custom/autocomplete-status-task"
-import VisaTypeAutocomplete from "@/components/ui-custom/autocomplete-visatype"
+import { FormLoadingSpinner } from "@/components/skeleton/loading-spinner"
+import ChargeAutocomplete from "@/components/autocomplete/autocomplete-charge"
+import ChartOfAccountAutocomplete from "@/components/autocomplete/autocomplete-chartofaccount"
+import RankAutocomplete from "@/components/autocomplete/autocomplete-rank"
+import StatusTaskAutocomplete from "@/components/autocomplete/autocomplete-status-task"
+import VisaTypeAutocomplete from "@/components/autocomplete/autocomplete-visatype"
 import CustomAccordion, {
   CustomAccordionContent,
   CustomAccordionItem,
   CustomAccordionTrigger,
-} from "@/components/ui-custom/custom-accordion"
-import CustomInput from "@/components/ui-custom/custom-input"
-import CustomTextarea from "@/components/ui-custom/custom-textarea"
+} from "@/components/custom/custom-accordion"
+import CustomInput from "@/components/custom/custom-input"
+import CustomTextarea from "@/components/custom/custom-textarea"
 
 interface CrewSignOnFormProps {
   jobData: IJobOrderHd

@@ -11,7 +11,7 @@ import { ModuleId, OperationsTransactionId } from "@/lib/utils"
 import { useGetById } from "@/hooks/use-common"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { PageLoadingSpinner } from "@/components/loading-spinner"
+import { PageLoadingSpinner } from "@/components/skeleton/loading-spinner"
 
 import { AgencyRemunerationTab } from "./services-tabs/agency-remuneration-tab"
 import { ConsignmentExportTab } from "./services-tabs/consignment-export-tab"

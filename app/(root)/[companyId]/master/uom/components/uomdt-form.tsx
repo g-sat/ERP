@@ -12,13 +12,13 @@ import { z } from "zod"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Form } from "@/components/ui/form"
-import UomAutocomplete from "@/components/ui-custom/autocomplete-uom"
+import UomAutocomplete from "@/components/autocomplete/autocomplete-uom"
 import CustomAccordion, {
   CustomAccordionContent,
   CustomAccordionItem,
   CustomAccordionTrigger,
-} from "@/components/ui-custom/custom-accordion"
-import CustomNumberInput from "@/components/ui-custom/custom-number-input"
+} from "@/components/custom/custom-accordion"
+import CustomNumberInput from "@/components/custom/custom-number-input"
 
 type FormValues = z.infer<typeof uomDtSchema>
 

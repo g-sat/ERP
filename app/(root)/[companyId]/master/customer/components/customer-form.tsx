@@ -11,22 +11,22 @@ import { z } from "zod"
 
 import { Badge } from "@/components/ui/badge"
 import { Form } from "@/components/ui/form"
-import AccountSetAutocomplete from "@/components/ui-custom/autocomplete-accountsetup"
-import BankAutocomplete from "@/components/ui-custom/autocomplete-bank"
-import CreditTermAutocomplete from "@/components/ui-custom/autocomplete-creditterm"
-import CurrencyAutocomplete from "@/components/ui-custom/autocomplete-currency"
+import AccountSetAutocomplete from "@/components/autocomplete/autocomplete-accountsetup"
+import BankAutocomplete from "@/components/autocomplete/autocomplete-bank"
+import CreditTermAutocomplete from "@/components/autocomplete/autocomplete-creditterm"
+import CurrencyAutocomplete from "@/components/autocomplete/autocomplete-currency"
 import {
   default as CustomerAutocomplete,
   default as SupplierAutocomplete,
-} from "@/components/ui-custom/autocomplete-customer"
+} from "@/components/autocomplete/autocomplete-customer"
 import CustomAccordion, {
   CustomAccordionContent,
   CustomAccordionItem,
   CustomAccordionTrigger,
-} from "@/components/ui-custom/custom-accordion"
-import CustomInput from "@/components/ui-custom/custom-input"
-import CustomSwitch from "@/components/ui-custom/custom-switch"
-import CustomTextarea from "@/components/ui-custom/custom-textarea"
+} from "@/components/custom/custom-accordion"
+import CustomInput from "@/components/custom/custom-input"
+import CustomSwitch from "@/components/custom/custom-switch"
+import CustomTextarea from "@/components/custom/custom-textarea"
 
 interface CustomerFormProps {
   initialData?: ICustomer | null

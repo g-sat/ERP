@@ -15,8 +15,8 @@ import CustomAccordion, {
   CustomAccordionContent,
   CustomAccordionItem,
   CustomAccordionTrigger,
-} from "@/components/ui-custom/custom-accordion"
-import CustomInput from "@/components/ui-custom/custom-input"
+} from "@/components/custom/custom-accordion"
+import CustomInput from "@/components/custom/custom-input"
 
 interface LoanTypeFormProps {
   initialData?: ILoanType

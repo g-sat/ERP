@@ -14,7 +14,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { CurrencyFormatter } from "@/components/currencyicons/currency-formatter"
+import { CurrencyFormatter } from "@/components/currency-icons/currency-formatter"
 
 export const columns: ColumnDef<ILoanRequest>[] = [
   {

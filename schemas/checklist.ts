@@ -637,17 +637,17 @@ export const DebitNoteDtSchema = z.object({
   debitNoteNo: z.string().min(1, "Debit Note Number is required"),
   itemNo: z.number().min(1, "Item Number is required"),
   taskId: z.number().min(1, "Task ID is required"),
-  taskName: z.string().default(""),
+  taskName: z.string().optional().default(""),
   chargeId: z.number().min(1, "Charge is required"),
-  chargeName: z.string().default(""),
+  chargeName: z.string().optional().default(""),
   glId: z.number().min(1, "GL Account is required"),
-  glName: z.string().default(""),
+  glName: z.string().optional().default(""),
   qty: z.number().min(0, "Quantity must be 0 or greater").default(0),
   unitPrice: z.number().min(0, "Unit price must be 0 or greater").default(0),
   totLocalAmt: z.number().default(0),
   totAmt: z.number().min(0, "Total amount must be 0 or greater").default(0),
   gstId: z.number().min(1, "GST ID is required"),
-  gstName: z.string().default(""),
+  gstName: z.string().optional().default(""),
   gstPercentage: z
     .number()
     .min(0, "GST percentage must be 0 or greater")

@@ -9,7 +9,7 @@ import { toast } from "sonner"
 import { Hr_Attendance } from "@/lib/api-routes"
 import { usePersist } from "@/hooks/use-common"
 import { Button } from "@/components/ui/button"
-import MonthAutocomplete from "@/components/ui-custom/autocomplete-month"
+import MonthAutocomplete from "@/components/autocomplete/autocomplete-month"
 
 import { AttendanceTable } from "./components/attendance-table"
 

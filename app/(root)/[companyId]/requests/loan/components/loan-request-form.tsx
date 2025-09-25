@@ -13,12 +13,12 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Form } from "@/components/ui/form"
-import EmployeeAutocomplete from "@/components/ui-custom/autocomplete-employee"
-import LoanRequestStatusAutocomplete from "@/components/ui-custom/autocomplete-loanrequest-status"
-import LoanTypeAutocomplete from "@/components/ui-custom/autocomplete-loantype"
-import { CustomDateNoPast } from "@/components/ui-custom/custom-date-no-past"
-import CustomInput from "@/components/ui-custom/custom-input"
-import CustomTextarea from "@/components/ui-custom/custom-textarea"
+import EmployeeAutocomplete from "@/components/autocomplete/autocomplete-employee"
+import LoanRequestStatusAutocomplete from "@/components/autocomplete/autocomplete-loanrequest-status"
+import LoanTypeAutocomplete from "@/components/autocomplete/autocomplete-loantype"
+import { CustomDateNoPast } from "@/components/custom/custom-date-no-past"
+import CustomInput from "@/components/custom/custom-input"
+import CustomTextarea from "@/components/custom/custom-textarea"
 
 interface LoanRequestFormProps {
   open: boolean

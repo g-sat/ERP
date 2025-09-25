@@ -28,14 +28,14 @@ import { ArInvoiceDtFormValues, ArInvoiceHdFormValues } from "@/schemas/invoice"
 import { useAuthStore } from "@/stores/auth-store"
 import { FormProvider, UseFormReturn } from "react-hook-form"
 
-import BankAutocomplete from "@/components/ui-custom/autocomplete-bank"
-import CreditTermAutocomplete from "@/components/ui-custom/autocomplete-creditterm"
-import CurrencyAutocomplete from "@/components/ui-custom/autocomplete-currency"
-import CustomerAutocomplete from "@/components/ui-custom/autocomplete-customer"
-import { CustomDateNew } from "@/components/ui-custom/custom-date-new"
-import CustomInput from "@/components/ui-custom/custom-input"
-import CustomNumberInput from "@/components/ui-custom/custom-number-input"
-import CustomTextarea from "@/components/ui-custom/custom-textarea"
+import BankAutocomplete from "@/components/autocomplete/autocomplete-bank"
+import CreditTermAutocomplete from "@/components/autocomplete/autocomplete-creditterm"
+import CurrencyAutocomplete from "@/components/autocomplete/autocomplete-currency"
+import CustomerAutocomplete from "@/components/autocomplete/autocomplete-customer"
+import { CustomDateNew } from "@/components/custom/custom-date-new"
+import CustomInput from "@/components/custom/custom-input"
+import CustomNumberInput from "@/components/custom/custom-number-input"
+import CustomTextarea from "@/components/custom/custom-textarea"
 
 interface InvoiceFormProps {
   form: UseFormReturn<ArInvoiceHdFormValues>

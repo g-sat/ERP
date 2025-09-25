@@ -1,14 +1,6 @@
 import { cookies } from "next/headers"
 
-import { SkipLink } from "@/components/ui/accessibility"
-import { Separator } from "@/components/ui/separator"
-import {
-  SidebarInset,
-  SidebarProvider,
-  SidebarTrigger,
-} from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/layout/app-sidebar"
-import { Footer } from "@/components/layout/footer"
 import { HeaderUserInfo } from "@/components/layout/header-userinfo"
 import { MobileNav } from "@/components/layout/mobile-nav"
 import { ModeSwitcher } from "@/components/layout/mode-switcher"
@@ -17,6 +9,13 @@ import { Notifications } from "@/components/layout/notifications"
 import { ScreenLock } from "@/components/layout/screen-lock"
 import { SearchForm } from "@/components/layout/search-form"
 import { ThemeSelector } from "@/components/layout/theme-selector"
+import { SkipLink } from "@/components/ui/accessibility"
+import { Separator } from "@/components/ui/separator"
+import {
+  SidebarInset,
+  SidebarProvider,
+  SidebarTrigger,
+} from "@/components/ui/sidebar"
 
 export default async function AppLayout({
   children,
@@ -65,9 +64,7 @@ export default async function AppLayout({
           <main id="main-content" className="bg-muted/20 flex-1" role="main">
             <div className="min-h-full">{children}</div>
           </main>
-          <footer className="bg-background mt-auto border-t" role="contentinfo">
-            <Footer />
-          </footer>
+          
         </SidebarInset>
       </SidebarProvider>
     </>

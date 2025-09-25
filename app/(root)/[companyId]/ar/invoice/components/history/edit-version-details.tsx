@@ -18,8 +18,8 @@ import {
 } from "@/hooks/use-ar"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { DataTableCustom } from "@/components/ui/data-table/data-table-custom"
-import { TableHeaderCustom } from "@/components/ui/data-table/data-table-header-custom"
+import { DataTableCustom } from "@/components/table/data-table-custom"
+import { TableHeaderCustom } from "@/components/table/data-table-header-custom"
 import {
   Dialog,
   DialogContent,

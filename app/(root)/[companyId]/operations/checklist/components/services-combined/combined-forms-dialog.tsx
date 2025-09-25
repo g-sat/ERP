@@ -46,8 +46,8 @@ import {
 } from "@/components/ui/select"
 import { Separator } from "@/components/ui/separator"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { PageLoadingSpinner } from "@/components/loading-spinner"
-import JobOrderCustomerAutocomplete from "@/components/ui-custom/autocomplete-joborder-customer"
+import { PageLoadingSpinner } from "@/components/skeleton/loading-spinner"
+import JobOrderCustomerAutocomplete from "@/components/autocomplete/autocomplete-joborder-customer"
 
 interface TaskForwardFormValues extends Record<string, unknown> {
   customerId: number

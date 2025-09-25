@@ -10,7 +10,7 @@ import { useRouter } from "next/navigation"
 import { useAuthStore } from "@/stores/auth-store"
 
 import { cn } from "@/lib/utils"
-import { LoginForm } from "@/components/login-form"
+import { LoginForm } from "@/components/forms/login-form"
 
 const fontSans = FontSans({ subsets: ["latin"], variable: "--font-sans" })
 const fontSerif = FontSerif({ subsets: ["latin"], variable: "--font-serif" })

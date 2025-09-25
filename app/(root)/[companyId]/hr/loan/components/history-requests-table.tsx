@@ -4,7 +4,7 @@ import { ILoanRequest } from "@/interfaces/loan"
 import { ColumnDef } from "@tanstack/react-table"
 
 import { Badge } from "@/components/ui/badge"
-import { CurrencyFormatter } from "@/components/currencyicons/currency-formatter"
+import { CurrencyFormatter } from "@/components/currency-icons/currency-formatter"
 
 export const columns: ColumnDef<ILoanRequest>[] = [
   {

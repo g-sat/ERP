@@ -22,7 +22,7 @@ import {
 import { Separator } from "@/components/ui/separator"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Switch } from "@/components/ui/switch"
-import { SaveConfirmation } from "@/components/save-confirmation"
+import { SaveConfirmation } from "@/components/confirmation/save-confirmation"
 import { LockSkeleton } from "@/components/skeleton/lock-skeleton"
 
 type DynamicLookupResponse = IApiSuccessResponse<DynamicLookupFormValues>

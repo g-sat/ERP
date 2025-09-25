@@ -14,7 +14,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { DeleteConfirmation } from "@/components/delete-confirmation"
+import { DeleteConfirmation } from "@/components/confirmation/delete-confirmation"
 import { DataTableSkeleton } from "@/components/skeleton/data-table-skeleton"
 
 import { PayrollAccountIntegrationForm } from "./components/payroll-account-integration-form"

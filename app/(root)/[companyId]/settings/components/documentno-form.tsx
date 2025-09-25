@@ -27,9 +27,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import CustomCheckbox from "@/components/ui-custom/custom-checkbox"
-import CustomInput from "@/components/ui-custom/custom-input"
-import SelectCommon from "@/components/ui-custom/select-common"
+import CustomCheckbox from "@/components/custom/custom-checkbox"
+import CustomInput from "@/components/custom/custom-input"
+import SelectCommon from "@/components/custom/select-common"
 
 interface ModuleGroup {
   id: number

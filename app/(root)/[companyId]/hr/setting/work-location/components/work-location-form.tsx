@@ -8,10 +8,10 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 
 import { Form } from "@/components/ui/form"
-import CountryAutocomplete from "@/components/ui-custom/autocomplete-country"
-import CustomInput from "@/components/ui-custom/custom-input"
-import CustomSwitch from "@/components/ui-custom/custom-switch"
-import CustomTextarea from "@/components/ui-custom/custom-textarea"
+import CountryAutocomplete from "@/components/autocomplete/autocomplete-country"
+import CustomInput from "@/components/custom/custom-input"
+import CustomSwitch from "@/components/custom/custom-switch"
+import CustomTextarea from "@/components/custom/custom-textarea"
 
 interface Props {
   initialData?: WorkLocationFormData

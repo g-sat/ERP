@@ -15,9 +15,9 @@ import { useUserGroupLookup } from "@/hooks/use-lookup"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Form } from "@/components/ui/form"
-import { SaveConfirmation } from "@/components/save-confirmation"
+import { SaveConfirmation } from "@/components/confirmation/save-confirmation"
 import { SettingTable } from "@/components/table/table-setting"
-import UserGroupAutocomplete from "@/components/ui-custom/autocomplete-usergroup"
+import UserGroupAutocomplete from "@/components/autocomplete/autocomplete-usergroup"
 
 type UserGroup = {
   userGroupId: number

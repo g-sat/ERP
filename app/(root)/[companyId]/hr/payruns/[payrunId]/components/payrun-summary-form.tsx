@@ -7,7 +7,7 @@ import { toast } from "sonner"
 
 import { useGetById } from "@/hooks/use-common"
 import { Button } from "@/components/ui/button"
-import { CurrencyFormatter } from "@/components/currencyicons/currency-formatter"
+import { CurrencyFormatter } from "@/components/currency-icons/currency-formatter"
 
 import {
   downloadPayslipPDF,

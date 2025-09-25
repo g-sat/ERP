@@ -27,9 +27,9 @@ import {
 } from "@/components/ui/select"
 import { Separator } from "@/components/ui/separator"
 import { Skeleton } from "@/components/ui/skeleton"
-import { SaveConfirmation } from "@/components/save-confirmation"
+import { SaveConfirmation } from "@/components/confirmation/save-confirmation"
 import { LockSkeleton } from "@/components/skeleton/lock-skeleton"
-import CustomNumberInput from "@/components/ui-custom/custom-number-input"
+import CustomNumberInput from "@/components/custom/custom-number-input"
 
 type DecimalResponse = IApiSuccessResponse<DecimalFormValues>
 

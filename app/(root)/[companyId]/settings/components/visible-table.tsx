@@ -12,9 +12,9 @@ import {
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Form } from "@/components/ui/form"
-import { SaveConfirmation } from "@/components/save-confirmation"
+import { SaveConfirmation } from "@/components/confirmation/save-confirmation"
 import { SettingTable } from "@/components/table/table-setting"
-import ModuleAutocomplete from "@/components/ui-custom/autocomplete-module"
+import ModuleAutocomplete from "@/components/autocomplete/autocomplete-module"
 
 interface IVisibleField {
   moduleId: number

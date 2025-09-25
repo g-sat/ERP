@@ -28,8 +28,8 @@ import { format, subMonths } from "date-fns"
 import { FormProvider, useForm } from "react-hook-form"
 
 import { Button } from "@/components/ui/button"
-import { TableFooter } from "@/components/ui/data-table/data-table-footer"
-import { TableHeaderCustom } from "@/components/ui/data-table/data-table-header-custom"
+import { TableFooter } from "@/components/table/data-table-footer"
+import { TableHeaderCustom } from "@/components/table/data-table-header-custom"
 import { Separator } from "@/components/ui/separator"
 import {
   Table,
@@ -39,7 +39,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { CustomDateNew } from "@/components/ui-custom/custom-date-new"
+import { CustomDateNew } from "@/components/custom/custom-date-new"
 
 export interface InvoiceTableProps {
   data: IArInvoiceHd[]

@@ -19,17 +19,17 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Form } from "@/components/ui/form"
-import EmployeeAutocomplete from "@/components/ui-custom/autocomplete-employee"
-import UserGroupAutocomplete from "@/components/ui-custom/autocomplete-usergroup"
-import UserRoleAutocomplete from "@/components/ui-custom/autocomplete-userrole"
+import EmployeeAutocomplete from "@/components/autocomplete/autocomplete-employee"
+import UserGroupAutocomplete from "@/components/autocomplete/autocomplete-usergroup"
+import UserRoleAutocomplete from "@/components/autocomplete/autocomplete-userrole"
 import CustomAccordion, {
   CustomAccordionContent,
   CustomAccordionItem,
   CustomAccordionTrigger,
-} from "@/components/ui-custom/custom-accordion"
-import CustomInput from "@/components/ui-custom/custom-input"
-import CustomSwitch from "@/components/ui-custom/custom-switch"
-import CustomTextarea from "@/components/ui-custom/custom-textarea"
+} from "@/components/custom/custom-accordion"
+import CustomInput from "@/components/custom/custom-input"
+import CustomSwitch from "@/components/custom/custom-switch"
+import CustomTextarea from "@/components/custom/custom-textarea"
 
 import { ResetPassword } from "./reset-password"
 

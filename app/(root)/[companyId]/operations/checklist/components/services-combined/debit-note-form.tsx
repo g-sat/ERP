@@ -10,12 +10,12 @@ import { useForm } from "react-hook-form"
 import { useChartofAccountLookup } from "@/hooks/use-lookup"
 import { Button } from "@/components/ui/button"
 import { Form } from "@/components/ui/form"
-import ChargeAutocomplete from "@/components/ui-custom/autocomplete-charge"
-import ChartOfAccountAutocomplete from "@/components/ui-custom/autocomplete-chartofaccount"
-import GstAutocomplete from "@/components/ui-custom/autocomplete-gst"
-import CustomNumberInput from "@/components/ui-custom/custom-number-input"
-import CustomSwitch from "@/components/ui-custom/custom-switch"
-import CustomTextArea from "@/components/ui-custom/custom-textarea"
+import ChargeAutocomplete from "@/components/autocomplete/autocomplete-charge"
+import ChartOfAccountAutocomplete from "@/components/autocomplete/autocomplete-chartofaccount"
+import GstAutocomplete from "@/components/autocomplete/autocomplete-gst"
+import CustomNumberInput from "@/components/custom/custom-number-input"
+import CustomSwitch from "@/components/custom/custom-switch"
+import CustomTextArea from "@/components/custom/custom-textarea"
 
 interface DebitNoteFormProps {
   initialData?: IDebitNoteDt

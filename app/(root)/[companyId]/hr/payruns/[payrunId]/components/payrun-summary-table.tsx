@@ -22,8 +22,8 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
-import CompanyAutocomplete from "@/components/ui-custom/autocomplete-company"
-import DepartmentAutocomplete from "@/components/ui-custom/autocomplete-department"
+import CompanyAutocomplete from "@/components/autocomplete/autocomplete-company"
+import DepartmentAutocomplete from "@/components/autocomplete/autocomplete-department"
 
 interface PayRunSummaryTableProps {
   employees: IPayrollEmployeeHd[]

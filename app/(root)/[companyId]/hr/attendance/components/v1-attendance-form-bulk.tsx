@@ -26,7 +26,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import MonthAutocomplete from "@/components/ui-custom/autocomplete-month"
+import MonthAutocomplete from "@/components/autocomplete/autocomplete-month"
 
 interface BulkAttendanceData {
   employeeId: string

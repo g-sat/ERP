@@ -14,14 +14,14 @@ import { useForm } from "react-hook-form"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Form } from "@/components/ui/form"
-import CreditTermAutocomplete from "@/components/ui-custom/autocomplete-creditterm"
+import CreditTermAutocomplete from "@/components/autocomplete/autocomplete-creditterm"
 import CustomAccordion, {
   CustomAccordionContent,
   CustomAccordionItem,
   CustomAccordionTrigger,
-} from "@/components/ui-custom/custom-accordion"
-import CustomNumberInput from "@/components/ui-custom/custom-number-input"
-import CustomSwitch from "@/components/ui-custom/custom-switch"
+} from "@/components/custom/custom-accordion"
+import CustomNumberInput from "@/components/custom/custom-number-input"
+import CustomSwitch from "@/components/custom/custom-switch"
 
 interface CreditTermDtFormProps {
   initialData?: ICreditTermDt | null

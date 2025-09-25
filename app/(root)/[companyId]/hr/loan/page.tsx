@@ -19,7 +19,7 @@ import { useGet } from "@/hooks/use-common"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { CurrencyFormatter } from "@/components/currencyicons/currency-formatter"
+import { CurrencyFormatter } from "@/components/currency-icons/currency-formatter"
 
 import { columns as activeLoansColumns } from "./components/active-loans-table"
 import { columns as historyRequestsColumns } from "./components/history-requests-table"

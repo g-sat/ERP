@@ -12,7 +12,7 @@ import { format } from "date-fns"
 
 import { useGetPaymentDetails } from "@/hooks/use-histoy"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { TableHeaderCustom } from "@/components/ui/data-table/data-table-header-custom"
+import { TableHeaderCustom } from "@/components/table/data-table-header-custom"
 import {
   Table,
   TableBody,

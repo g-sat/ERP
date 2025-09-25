@@ -13,7 +13,7 @@ import { format } from "date-fns"
 import { useGetGlPostDetails } from "@/hooks/use-histoy"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { TableHeaderCustom } from "@/components/ui/data-table/data-table-header-custom"
+import { TableHeaderCustom } from "@/components/table/data-table-header-custom"
 import {
   Table,
   TableBody,

@@ -23,9 +23,9 @@ import {
   FormLabel,
 } from "@/components/ui/form"
 import { Switch } from "@/components/ui/switch"
-import LeaveTypeAutocomplete from "@/components/ui-custom/autocomplete-leavetype"
-import CustomInput from "@/components/ui-custom/custom-input"
-import CustomTextarea from "@/components/ui-custom/custom-textarea"
+import LeaveTypeAutocomplete from "@/components/autocomplete/autocomplete-leavetype"
+import CustomInput from "@/components/custom/custom-input"
+import CustomTextarea from "@/components/custom/custom-textarea"
 
 interface LeavePolicyFormProps {
   policies: ILeavePolicy[]

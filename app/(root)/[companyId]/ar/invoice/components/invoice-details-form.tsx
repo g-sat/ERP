@@ -13,14 +13,14 @@ import { useAuthStore } from "@/stores/auth-store"
 import { FormProvider, useForm } from "react-hook-form"
 
 import { Button } from "@/components/ui/button"
-import BargeAutocomplete from "@/components/ui-custom/autocomplete-barge"
-import ChartOfAccountAutocomplete from "@/components/ui-custom/autocomplete-chartofaccount"
-import DepartmentAutocomplete from "@/components/ui-custom/autocomplete-department"
-import EmployeeAutocomplete from "@/components/ui-custom/autocomplete-employee"
-import GSTAutocomplete from "@/components/ui-custom/autocomplete-gst"
-import ProductAutocomplete from "@/components/ui-custom/autocomplete-product"
-import CustomNumberInput from "@/components/ui-custom/custom-number-input"
-import CustomTextarea from "@/components/ui-custom/custom-textarea"
+import BargeAutocomplete from "@/components/autocomplete/autocomplete-barge"
+import ChartOfAccountAutocomplete from "@/components/autocomplete/autocomplete-chartofaccount"
+import DepartmentAutocomplete from "@/components/autocomplete/autocomplete-department"
+import EmployeeAutocomplete from "@/components/autocomplete/autocomplete-employee"
+import GSTAutocomplete from "@/components/autocomplete/autocomplete-gst"
+import ProductAutocomplete from "@/components/autocomplete/autocomplete-product"
+import CustomNumberInput from "@/components/custom/custom-number-input"
+import CustomTextarea from "@/components/custom/custom-textarea"
 
 export default function InvoiceDetailsForm() {
   const { decimals } = useAuthStore()

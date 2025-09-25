@@ -37,8 +37,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { SaveConfirmation } from "@/components/save-confirmation"
-import UserAutocomplete from "@/components/ui-custom/autocomplete-user"
+import { SaveConfirmation } from "@/components/confirmation/save-confirmation"
+import UserAutocomplete from "@/components/autocomplete/autocomplete-user"
 
 type GridSetting = {
   id: string

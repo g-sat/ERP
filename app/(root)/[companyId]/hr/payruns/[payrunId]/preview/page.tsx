@@ -19,7 +19,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { CurrencyFormatter } from "@/components/currencyicons/currency-formatter"
+import { CurrencyFormatter } from "@/components/currency-icons/currency-formatter"
 
 import { PayRunPreviewForm } from "../components/payrun-preview-form"
 import { PayRunPreviewTable } from "../components/payrun-preview-table"
