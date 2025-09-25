@@ -25,7 +25,7 @@ export function PDFMerger() {
     if (files.length < 2) return
     setIsProcessing(true)
     try {
-      const merger = new (PDFMergerJS as any)()
+      const merger = new (PDFMergerJS as unknown)()
       for (const file of files) {
         const arrayBuffer = await file.arrayBuffer()
         await merger.add(arrayBuffer)

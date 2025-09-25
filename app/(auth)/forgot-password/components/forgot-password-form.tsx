@@ -1,5 +1,6 @@
 import { useState } from "react"
 import Image from "next/image"
+import Link from "next/link"
 import { useRouter } from "next/navigation"
 
 import { cn } from "@/lib/utils"
@@ -95,9 +96,9 @@ export function ForgotPasswordForm({
 
               <div className="text-center text-sm">
                 Remember your password?{" "}
-                <a href="/login" className="underline underline-offset-4">
+                <Link href="/login" className="underline underline-offset-4">
                   Back to login
-                </a>
+                </Link>
               </div>
 
               {success && (

@@ -54,7 +54,7 @@ export default function PettyCashPage() {
     setShowRequestForm(true)
   }
 
-  const handlePettyCashSubmit = async (data: any) => {
+  const handlePettyCashSubmit = async (data: unknown) => {
     try {
       const pettyCashRequestData = {
         employeeId: "33",

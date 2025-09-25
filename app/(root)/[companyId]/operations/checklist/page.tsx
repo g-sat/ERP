@@ -11,7 +11,6 @@ import { searchJobOrdersDirect } from "@/hooks/use-checklist"
 import { useGetWithDates } from "@/hooks/use-common"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { DataTableSkeleton } from "@/components/table/data-table-skeleton"
 import {
   Dialog,
   DialogContent,
@@ -20,6 +19,7 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { DataTableSkeleton } from "@/components/skeleton/data-table-skeleton"
 
 import { ChecklistTable } from "./components/checklist-table"
 import { ChecklistTabs } from "./components/checklist-tabs"

@@ -3,37 +3,25 @@
 import { useState } from "react"
 import { IArInvoiceDt, IArInvoiceHd } from "@/interfaces/invoice"
 import { useAuthStore } from "@/stores/auth-store"
-import {
-  ColumnDef,
-  flexRender,
-  getCoreRowModel,
-  useReactTable,
-} from "@tanstack/react-table"
+import { ColumnDef } from "@tanstack/react-table"
 import { format } from "date-fns"
 import { AlertCircle } from "lucide-react"
 
+import { TableName } from "@/lib/utils"
 import {
   useGetARInvoiceHistoryDetails,
   useGetARInvoiceHistoryList,
 } from "@/hooks/use-ar"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { DataTableCustom } from "@/components/table/data-table-custom"
-import { TableHeaderCustom } from "@/components/table/data-table-header-custom"
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
+import { BasicTable } from "@/components/table/table-basic"
+import { DialogDataTable } from "@/components/table/table-dialog"
 
 interface EditVersionDetailsProps {
   invoiceId: string
@@ -48,7 +36,6 @@ export default function EditVersionDetails({
   const dateFormat = decimals[0]?.dateFormat || "dd/MM/yyyy"
   const exhRateDec = decimals[0]?.exhRateDec || 2
 
-  const [searchQuery, setSearchQuery] = useState("")
   const [selectedInvoice, setSelectedInvoice] = useState<IArInvoiceHd | null>(
     null
   )
@@ -330,16 +317,6 @@ export default function EditVersionDetails({
     { accessorKey: "remarks", header: "Remarks" },
   ]
 
-  const table = useReactTable<IArInvoiceHd>({
-    data: tableData,
-    columns,
-    getCoreRowModel: getCoreRowModel(),
-  })
-
-  const handleSearch = (value: string) => {
-    setSearchQuery(value)
-  }
-
   const handleRefresh = async () => {
     try {
       // Only refetch if we don't have a "Data does not exist" error
@@ -387,64 +364,19 @@ export default function EditVersionDetails({
               </AlertDescription>
             </Alert>
           )}
-
-          <TableHeaderCustom
-            searchQuery={searchQuery}
-            onSearchChange={handleSearch}
-            onRefresh={handleRefresh}
-            columns={table.getAllLeafColumns()}
+          <DialogDataTable
             data={tableData}
-            tableName="Edit Version Details"
+            columns={columns}
+            isLoading={false}
+            moduleId={25}
+            transactionId={1}
+            tableName={TableName.notDefine}
+            emptyMessage={
+              hasHistoryError ? "Error loading data" : "No results."
+            }
+            onRefresh={handleRefresh}
+            onRowSelect={(invoice) => setSelectedInvoice(invoice)}
           />
-          <div className="rounded-md border">
-            <Table>
-              <TableHeader>
-                {table.getHeaderGroups().map((headerGroup) => (
-                  <TableRow key={headerGroup.id}>
-                    {headerGroup.headers.map((header) => (
-                      <TableHead key={header.id}>
-                        {header.isPlaceholder
-                          ? null
-                          : flexRender(
-                              header.column.columnDef.header,
-                              header.getContext()
-                            )}
-                      </TableHead>
-                    ))}
-                  </TableRow>
-                ))}
-              </TableHeader>
-              <TableBody>
-                {table.getRowModel().rows?.length ? (
-                  table.getRowModel().rows.map((row) => (
-                    <TableRow
-                      key={row.id}
-                      className="hover:bg-muted/50 cursor-pointer"
-                      onClick={() => setSelectedInvoice(row.original)}
-                    >
-                      {row.getVisibleCells().map((cell) => (
-                        <TableCell key={cell.id}>
-                          {flexRender(
-                            cell.column.columnDef.cell,
-                            cell.getContext()
-                          )}
-                        </TableCell>
-                      ))}
-                    </TableRow>
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell
-                      colSpan={columns.length}
-                      className="h-24 text-center"
-                    >
-                      {hasHistoryError ? "Error loading data" : "No results."}
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </div>
         </CardContent>
       </Card>
 
@@ -509,14 +441,16 @@ export default function EditVersionDetails({
                 <CardTitle>Invoice Details</CardTitle>
               </CardHeader>
               <CardContent>
-                <DataTableCustom
+                <BasicTable
+                  data={dialogData?.data_details || []}
                   columns={detailsColumns}
-                  data={
-                    dialogData && Array.isArray(dialogData.data_details)
-                      ? dialogData.data_details
-                      : []
-                  }
-                  isLoading={false}
+                  moduleId={25}
+                  transactionId={1}
+                  tableName={TableName.arInvoice}
+                  emptyMessage="No invoice details available"
+                  onRefresh={handleRefresh}
+                  showHeader={true}
+                  showFooter={false}
                 />
               </CardContent>
             </Card>

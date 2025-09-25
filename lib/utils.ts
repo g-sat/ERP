@@ -157,22 +157,22 @@ export enum SettingTransactionId {
 export enum OperationsTransactionId {
   checklist = 1,
   tariff = 2,
-  job_order = 1,
-  port_expenses = 1,
-  launch_service = 2,
-  equipment_used = 3,
-  crew_sign_on = 4,
-  crew_sign_off = 5,
-  agency_remuneration = 6,
-  consignment_export = 7,
-  consignment_import = 8,
-  crew_miscellaneous = 9,
-  fresh_water = 10,
-  landing_items = 11,
-  medical_assistance = 12,
-  other_service = 13,
-  third_party = 14,
-  technicians_surveyors = 15,
+  job_order = 3,
+  port_expenses = 4,
+  launch_service = 5,
+  equipment_used = 6,
+  crew_sign_on = 7,
+  crew_sign_off = 8,
+  agency_remuneration = 9,
+  consignment_export = 10,
+  consignment_import = 11,
+  crew_miscellaneous = 12,
+  fresh_water = 13,
+  landing_items = 14,
+  medical_assistance = 15,
+  other_service = 16,
+  third_party = 17,
+  technicians_surveyors = 18,
 }
 
 export enum ARTransactionId {
@@ -379,4 +379,38 @@ export enum TableName {
   thirdParty = "thirdParty",
   techniciansSurveyors = "techniciansSurveyors",
   debitNote = "debitNote",
+  tariff = "tariff",
+
+  //AR
+  arInvoice = "arInvoice",
+  arDebitNote = "arDebitNote",
+  arCreditNote = "arCreditNote",
+  arAdjustment = "arAdjustment",
+  arReceipt = "arReceipt",
+  arRefund = "arRefund",
+  arDocSetoff = "arDocSetoff",
+
+  //AP
+  apInvoice = "apInvoice",
+  apDebitNote = "apDebitNote",
+  apCreditNote = "apCreditNote",
+  apAdjustment = "apAdjustment",
+  apPayment = "apPayment",
+  apRefund = "apRefund",
+  apDocSetoff = "apDocSetoff",
+
+  //CB
+  cbReceipt = "cbReceipt",
+  cbPayment = "cbPayment",
+  cbPattyCash = "cbPattyCash",
+  cbBankTransfer = "cbBankTransfer",
+  cbBankRecon = "cbBankRecon",
+
+  //GL
+  journalEntry = "journalEntry",
+  arApContra = "arApContra",
+  fixedAsset = "fixedAsset",
+  openingBalance = "openingBalance",
+  yearEndProcess = "yearEndProcess",
+  periodClose = "periodClose",
 }

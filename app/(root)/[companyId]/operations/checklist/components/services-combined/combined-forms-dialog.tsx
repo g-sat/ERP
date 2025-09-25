@@ -46,8 +46,8 @@ import {
 } from "@/components/ui/select"
 import { Separator } from "@/components/ui/separator"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { PageLoadingSpinner } from "@/components/skeleton/loading-spinner"
 import JobOrderCustomerAutocomplete from "@/components/autocomplete/autocomplete-joborder-customer"
+import { PageLoadingSpinner } from "@/components/skeleton/loading-spinner"
 
 interface TaskForwardFormValues extends Record<string, unknown> {
   customerId: number
@@ -101,24 +101,6 @@ export function CombinedFormsDialog({
   title = "Combined Services",
   description = "Manage bulk updates and task forwarding operations",
 }: CombinedFormsDialogProps) {
-  // Show loading state when dialog is opening
-  if (open) {
-    return (
-      <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent
-          className="max-h-[95vh] w-[95vw] !max-w-none overflow-y-auto"
-          onPointerDownOutside={(e: any) => {
-            e.preventDefault()
-          }}
-        >
-          <div className="flex items-center justify-center py-8">
-            <PageLoadingSpinner text="Loading combined services..." />
-          </div>
-        </DialogContent>
-      </Dialog>
-    )
-  }
-
   const queryClient = useQueryClient()
 
   console.log(isConfirmed, "isConfirmed combined forms")
@@ -306,7 +288,7 @@ export function CombinedFormsDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         className="max-h-[90vh] w-[90vw] max-w-6xl overflow-y-auto"
-        onPointerDownOutside={(e: any) => {
+        onPointerDownOutside={(e) => {
           e.preventDefault()
         }}
       >

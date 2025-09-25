@@ -1,26 +1,13 @@
-import { useState } from "react"
 import { ApiResponse } from "@/interfaces/auth"
 import { IPaymentDetails } from "@/interfaces/history"
 import { useAuthStore } from "@/stores/auth-store"
-import {
-  ColumnDef,
-  flexRender,
-  getCoreRowModel,
-  useReactTable,
-} from "@tanstack/react-table"
+import { ColumnDef } from "@tanstack/react-table"
 import { format } from "date-fns"
 
+import { TableName } from "@/lib/utils"
 import { useGetPaymentDetails } from "@/hooks/use-histoy"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { TableHeaderCustom } from "@/components/table/data-table-header-custom"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
+import { BasicTable } from "@/components/table/table-basic"
 
 interface PaymentDetailsProps {
   invoiceId: string
@@ -38,7 +25,6 @@ export default function PaymentDetails({
   const locAmtDec = decimals[0]?.locAmtDec || 2
   const dateFormat = decimals[0]?.dateFormat || "dd/MM/yyyy"
 
-  const [searchQuery, setSearchQuery] = useState("")
   const { data: paymentDetails, refetch: refetchPayment } =
     //useGetPaymentDetails<IPaymentDetails>(25, 1, "14120250100024")
     useGetPaymentDetails<IPaymentDetails>(
@@ -111,16 +97,6 @@ export default function PaymentDetails({
     },
   ]
 
-  const table = useReactTable({
-    data: paymentDetailsData || [],
-    columns,
-    getCoreRowModel: getCoreRowModel(),
-  })
-
-  const handleSearch = (value: string) => {
-    setSearchQuery(value)
-  }
-
   const handleRefresh = async () => {
     try {
       await refetchPayment()
@@ -135,59 +111,18 @@ export default function PaymentDetails({
         <CardTitle>Payment Details</CardTitle>
       </CardHeader>
       <CardContent>
-        <TableHeaderCustom
-          searchQuery={searchQuery}
-          onSearchChange={handleSearch}
-          onRefresh={handleRefresh}
-          columns={table.getAllLeafColumns()}
+        <BasicTable
           data={paymentDetailsData || []}
-          tableName="Payment Details"
+          columns={columns}
+          isLoading={false}
+          moduleId={moduleId}
+          transactionId={transactionId}
+          tableName={TableName.notDefine}
+          onRefresh={handleRefresh}
+          showHeader={true}
+          showFooter={false}
+          emptyMessage="No results."
         />
-        <div className="rounded-md border">
-          <Table>
-            <TableHeader>
-              {table.getHeaderGroups().map((headerGroup) => (
-                <TableRow key={headerGroup.id}>
-                  {headerGroup.headers.map((header) => (
-                    <TableHead key={header.id}>
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
-                    </TableHead>
-                  ))}
-                </TableRow>
-              ))}
-            </TableHeader>
-            <TableBody>
-              {table.getRowModel().rows?.length ? (
-                table.getRowModel().rows.map((row) => (
-                  <TableRow key={row.id}>
-                    {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id}>
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext()
-                        )}
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell
-                    colSpan={columns.length}
-                    className="h-24 text-center"
-                  >
-                    No results.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </div>
       </CardContent>
     </Card>
   )

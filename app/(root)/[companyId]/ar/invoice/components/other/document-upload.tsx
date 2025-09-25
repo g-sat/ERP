@@ -5,10 +5,10 @@ import { format } from "date-fns"
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 
+import { TableName } from "@/lib/utils"
 import { useGetDocumentType } from "@/hooks/use-admin"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { TableHeaderCustom } from "@/components/table/data-table-header-custom"
 import {
   Dialog,
   DialogContent,
@@ -17,15 +17,8 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
 import DocumentTypeAutocomplete from "@/components/autocomplete/autocomplete-document-type"
+import { BasicTable } from "@/components/table/table-basic"
 
 interface DocumentUploadProps {
   moduleId: number
@@ -52,7 +45,7 @@ export default function DocumentUpload({
     data: documents,
     isLoading,
     refetch,
-  } = useGetDocumentType<IDocType[]>(moduleId, transactionId, "", {})
+  } = useGetDocumentType(moduleId, transactionId, "", {})
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -182,68 +175,22 @@ export default function DocumentUpload({
           <CardTitle>Uploaded Documents</CardTitle>
         </CardHeader>
         <CardContent>
-          <TableHeaderCustom
-            searchQuery=""
-            onSearchChange={() => {}}
+          <BasicTable
+            data={
+              Array.isArray(documents?.data)
+                ? (documents.data as IDocType[])
+                : []
+            }
+            columns={columns}
+            isLoading={isLoading}
+            moduleId={moduleId}
+            transactionId={transactionId}
+            tableName={TableName.notDefine}
             onRefresh={refetch}
-            columns={[]}
-            data={documents?.data || []}
-            tableName="Documents"
+            showHeader={true}
+            showFooter={false}
+            emptyMessage="No documents found"
           />
-          <div className="rounded-md border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  {columns.map((column) => (
-                    <TableHead key={column.accessorKey || column.id}>
-                      {column.header}
-                    </TableHead>
-                  ))}
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {isLoading ? (
-                  <TableRow>
-                    <TableCell
-                      colSpan={columns.length}
-                      className="h-24 text-center"
-                    >
-                      Loading...
-                    </TableCell>
-                  </TableRow>
-                ) : documents?.data?.length ? (
-                  (documents.data as unknown as IDocType[]).map((document) => (
-                    <TableRow
-                      key={document.documentId}
-                      className="hover:bg-muted/50 cursor-pointer"
-                      onClick={() => setSelectedDocument(document)}
-                    >
-                      {columns.map((column) => (
-                        <TableCell key={column.accessorKey || column.id}>
-                          {column.cell
-                            ? column.cell({ row: { original: document } })
-                            : String(
-                                document[
-                                  column.accessorKey as keyof IDocType
-                                ] || "-"
-                              )}
-                        </TableCell>
-                      ))}
-                    </TableRow>
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell
-                      colSpan={columns.length}
-                      className="h-24 text-center"
-                    >
-                      No documents found
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </div>
         </CardContent>
       </Card>
 

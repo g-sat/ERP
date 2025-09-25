@@ -1,27 +1,14 @@
-import { useState } from "react"
 import { ApiResponse } from "@/interfaces/auth"
 import { IGlTransactionDetails } from "@/interfaces/history"
 import { useAuthStore } from "@/stores/auth-store"
-import {
-  ColumnDef,
-  flexRender,
-  getCoreRowModel,
-  useReactTable,
-} from "@tanstack/react-table"
+import { ColumnDef } from "@tanstack/react-table"
 import { format } from "date-fns"
 
+import { TableName } from "@/lib/utils"
 import { useGetGlPostDetails } from "@/hooks/use-histoy"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { TableHeaderCustom } from "@/components/table/data-table-header-custom"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
+import { BasicTable } from "@/components/table/table-basic"
 
 interface GLPostDetailsProps {
   invoiceId: string
@@ -40,7 +27,6 @@ export default function GLPostDetails({
   const exhRateDec = decimals[0]?.exhRateDec || 6
   const dateFormat = decimals[0]?.dateFormat || "dd/MM/yyyy"
 
-  const [searchQuery, setSearchQuery] = useState("")
   const { data: glPostDetails, refetch: refetchGlPost } =
     //useGetGlPostDetails<IGlTransactionDetails>(25, 1, "14120250100024")
     useGetGlPostDetails<IGlTransactionDetails>(
@@ -268,16 +254,6 @@ export default function GLPostDetails({
     },
   ]
 
-  const table = useReactTable({
-    data: glPostDetailsData || [],
-    columns,
-    getCoreRowModel: getCoreRowModel(),
-  })
-
-  const handleSearch = (value: string) => {
-    setSearchQuery(value)
-  }
-
   const handleRefresh = async () => {
     try {
       await refetchGlPost()
@@ -292,59 +268,18 @@ export default function GLPostDetails({
         <CardTitle>GL Post Details</CardTitle>
       </CardHeader>
       <CardContent>
-        <TableHeaderCustom
-          searchQuery={searchQuery}
-          onSearchChange={handleSearch}
-          onRefresh={handleRefresh}
-          columns={table.getAllLeafColumns()}
+        <BasicTable
           data={glPostDetailsData || []}
-          tableName="GL Post Details"
+          columns={columns}
+          isLoading={false}
+          moduleId={moduleId}
+          transactionId={transactionId}
+          tableName={TableName.notDefine}
+          emptyMessage="No results."
+          onRefresh={handleRefresh}
+          showHeader={true}
+          showFooter={false}
         />
-        <div className="rounded-md border">
-          <Table>
-            <TableHeader>
-              {table.getHeaderGroups().map((headerGroup) => (
-                <TableRow key={headerGroup.id}>
-                  {headerGroup.headers.map((header) => (
-                    <TableHead key={header.id}>
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
-                    </TableHead>
-                  ))}
-                </TableRow>
-              ))}
-            </TableHeader>
-            <TableBody>
-              {table.getRowModel().rows?.length ? (
-                table.getRowModel().rows.map((row) => (
-                  <TableRow key={row.id}>
-                    {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id}>
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext()
-                        )}
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell
-                    colSpan={columns.length}
-                    className="h-24 text-center"
-                  >
-                    No results.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </div>
       </CardContent>
     </Card>
   )

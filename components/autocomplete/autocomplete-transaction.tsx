@@ -36,7 +36,7 @@ export default function TransactionAutocomplete<
   isRequired = false,
   onChangeEvent,
 }: {
-  form: any
+  form: UseFormReturn<T>
   name?: Path<T>
   label?: string
   className?: string

@@ -34,7 +34,7 @@ export default function LoanPage() {
   const [activeTab, setActiveTab] = useState("active-loans")
 
   // Extract data with fallbacks - handle API response structure
-  const extractLoanRequests = (data: any): ILoanRequest[] => {
+  const extractLoanRequests = (data: unknown): ILoanRequest[] => {
     if (!data) return []
     if (Array.isArray(data)) {
       if (data.length > 0 && Array.isArray(data[0])) {

@@ -121,25 +121,33 @@ export default function AttendanceStatusAutocomplete<
   })
   Option.displayName = "Option"
 
-  const SingleValue = React.memo(({ children, ...props }: any) => {
-    const selectedOption = attendanceStatusOptions.find(
-      (option) => option.value === props.data?.value
-    )
-    return (
-      <components.SingleValue {...props}>
-        <div className="flex items-center gap-2">
-          {selectedOption && (
-            <div
-              className={`flex h-5 w-5 items-center justify-center rounded text-xs font-medium ${selectedOption.color}`}
-            >
-              {selectedOption.value}
-            </div>
-          )}
-          <span>{selectedOption?.label || children}</span>
-        </div>
-      </components.SingleValue>
-    )
-  })
+  const SingleValue = React.memo(
+    ({
+      children,
+      ...props
+    }: {
+      children: React.ReactNode
+      data?: { value: string }
+    }) => {
+      const selectedOption = attendanceStatusOptions.find(
+        (option) => option.value === props.data?.value
+      )
+      return (
+        <components.SingleValue {...props}>
+          <div className="flex items-center gap-2">
+            {selectedOption && (
+              <div
+                className={`flex h-5 w-5 items-center justify-center rounded text-xs font-medium ${selectedOption.color}`}
+              >
+                {selectedOption.value}
+              </div>
+            )}
+            <span>{selectedOption?.label || children}</span>
+          </div>
+        </components.SingleValue>
+      )
+    }
+  )
   SingleValue.displayName = "SingleValue"
 
   const selectClassNames = React.useMemo(

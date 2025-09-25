@@ -18,7 +18,7 @@ export default function CustomSwitch({
   isDisabled = false,
   activeColor = "primary",
 }: {
-  form: any
+  form: UseFormReturn<Record<string, unknown>>
   label?: string
   name: string
   onBlurEvent?: () => void

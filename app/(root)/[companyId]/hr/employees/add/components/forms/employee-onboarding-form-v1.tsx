@@ -21,13 +21,13 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Separator } from "@/components/ui/separator"
-import { CurrencyFormatter } from "@/components/currency-icons/currency-formatter"
 import CountryAutocomplete from "@/components/autocomplete/autocomplete-country"
 import DepartmentAutocomplete from "@/components/autocomplete/autocomplete-department"
 import DesignationAutocomplete from "@/components/autocomplete/autocomplete-designation"
 import EmploymentTypeAutocomplete from "@/components/autocomplete/autocomplete-employment-type"
 import GenderAutocomplete from "@/components/autocomplete/autocomplete-gender"
 import WorkLocationAutocomplete from "@/components/autocomplete/autocomplete-worklocation"
+import { CurrencyFormatter } from "@/components/currency-icons/currency-formatter"
 import { CustomDateNew } from "@/components/custom/custom-date-new"
 // Import custom components
 import CustomInput from "@/components/custom/custom-input"
@@ -718,9 +718,9 @@ export function EmployeeOnboardingForm({
                   <div className="flex-1">
                     <div className="font-medium">Manual Bank Transfer</div>
                     <div className="text-sm text-gray-600">
-                      Download the bank advice to make payments via your bank's
-                      website, or download the SIF file to pay through the Wage
-                      Protection System (WPS).
+                      Download the bank advice to make payments via your
+                      bank&apos;s website, or download the SIF file to pay
+                      through the Wage Protection System (WPS).
                     </div>
                   </div>
                   {field.value === "manual-bank-transfer" && (
@@ -826,7 +826,7 @@ export function EmployeeOnboardingForm({
         <div className="flex items-center space-x-2">
           <Info className="h-4 w-4 text-yellow-500" />
           <span className="text-sm text-gray-600">
-            Don't know where to start, you can upload documents like these
+            Don&apos;t know where to start, you can upload documents like these
           </span>
         </div>
 
@@ -871,7 +871,7 @@ export function EmployeeOnboardingForm({
     <div className="mx-auto max-w-4xl p-6">
       <div className="mb-6">
         <h1 className="mb-2 text-center text-2xl font-bold">
-          {employeeName}'s Profile
+          {employeeName}&apos;s Profile
         </h1>
         {renderStepIndicator()}
       </div>

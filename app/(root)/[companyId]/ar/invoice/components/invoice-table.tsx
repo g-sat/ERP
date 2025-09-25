@@ -1,45 +1,15 @@
-import { useRef, useState } from "react"
+import { useState } from "react"
 import { IArInvoiceFilter, IArInvoiceHd } from "@/interfaces/invoice"
 import { useAuthStore } from "@/stores/auth-store"
-import {
-  DndContext,
-  DragEndEvent,
-  KeyboardSensor,
-  MouseSensor,
-  TouchSensor,
-  closestCenter,
-  useSensor,
-  useSensors,
-} from "@dnd-kit/core"
-import { arrayMove } from "@dnd-kit/sortable"
-import {
-  ColumnDef,
-  ColumnFiltersState,
-  SortingState,
-  VisibilityState,
-  flexRender,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-  useReactTable,
-} from "@tanstack/react-table"
+import { ColumnDef } from "@tanstack/react-table"
 import { format, subMonths } from "date-fns"
 import { FormProvider, useForm } from "react-hook-form"
 
+import { TableName } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import { TableFooter } from "@/components/table/data-table-footer"
-import { TableHeaderCustom } from "@/components/table/data-table-header-custom"
 import { Separator } from "@/components/ui/separator"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
 import { CustomDateNew } from "@/components/custom/custom-date-new"
+import { DialogDataTable } from "@/components/table/table-dialog"
 
 export interface InvoiceTableProps {
   data: IArInvoiceHd[]
@@ -74,15 +44,9 @@ export default function InvoiceTable({
     },
   })
 
-  const [sorting, setSorting] = useState<SortingState>([])
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
-  const [searchQuery, setSearchQuery] = useState("")
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
-  const [columnSizing, setColumnSizing] = useState({})
-  const [currentPage, setCurrentPage] = useState(1)
-  const [pageSize, setPageSize] = useState(10)
-  const [rowSelection, setRowSelection] = useState({})
-  const tableContainerRef = useRef<HTMLDivElement>(null)
+  const [searchQuery] = useState("")
+  const [currentPage] = useState(1)
+  const [pageSize] = useState(10)
 
   const formatNumber = (value: number, decimals: number) => {
     return value.toLocaleString(undefined, {
@@ -294,91 +258,34 @@ export default function InvoiceTable({
     },
   ]
 
-  const table = useReactTable({
-    data,
-    columns,
-    pageCount: Math.ceil(data.length / pageSize),
-    onSortingChange: setSorting,
-    onColumnFiltersChange: setColumnFilters,
-    getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    onColumnVisibilityChange: setColumnVisibility,
-    onColumnSizingChange: setColumnSizing,
-    onRowSelectionChange: setRowSelection,
-    enableColumnResizing: true,
-    enableRowSelection: true,
-    columnResizeMode: "onChange",
-    state: {
-      sorting,
-      columnFilters,
-      columnVisibility,
-      columnSizing,
-      rowSelection,
-      pagination: {
-        pageIndex: currentPage - 1,
-        pageSize,
-      },
-      globalFilter: searchQuery,
-    },
-  })
-
-  const handleRowClick = (row: IArInvoiceHd) => {
-    onInvoiceSelect(row)
-  }
-
-  const handleSearch = (query: string) => {
-    setSearchQuery(query)
-    if (data && data.length > 0) {
-      table.setGlobalFilter(query)
-    }
-  }
-
   const handleSearchInvoice = () => {
     const newFilters: IArInvoiceFilter = {
       startDate: form.getValues("startDate"),
       endDate: form.getValues("endDate"),
       search: searchQuery,
-      sortBy: sorting[0]?.id || "invoiceNo",
-      sortOrder: sorting[0]?.desc ? "desc" : "asc",
+      sortBy: "invoiceNo",
+      sortOrder: "asc",
       pageNumber: currentPage,
       pageSize: pageSize,
     }
     onFilterChange(newFilters)
   }
 
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page)
-    table.setPageIndex(page - 1)
-  }
-
-  const handlePageSizeChange = (size: number) => {
-    setPageSize(size)
-    table.setPageSize(size)
-  }
-
-  const sensors = useSensors(
-    useSensor(MouseSensor, {}),
-    useSensor(TouchSensor, {}),
-    useSensor(KeyboardSensor, {})
-  )
-
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event
-    if (active && over && active.id !== over.id) {
-      const oldIndex = table
-        .getAllColumns()
-        .findIndex((col) => col.id === active.id)
-      const newIndex = table
-        .getAllColumns()
-        .findIndex((col) => col.id === over.id)
-      const newColumnOrder = arrayMove(
-        table.getAllColumns(),
-        oldIndex,
-        newIndex
-      )
-      table.setColumnOrder(newColumnOrder.map((col) => col.id))
+  const handleDialogFilterChange = (filters: {
+    search?: string
+    sortOrder?: string
+  }) => {
+    if (onFilterChange) {
+      const newFilters: IArInvoiceFilter = {
+        startDate: form.getValues("startDate"),
+        endDate: form.getValues("endDate"),
+        search: filters.search || "",
+        sortBy: "invoiceNo",
+        sortOrder: (filters.sortOrder as "asc" | "desc") || "asc",
+        pageNumber: currentPage,
+        pageSize: pageSize,
+      }
+      onFilterChange(newFilters)
     }
   }
 
@@ -393,7 +300,6 @@ export default function InvoiceTable({
               form={form}
               name="startDate"
               isRequired={true}
-              dateFormat={dateFormat}
               size="sm"
             />
           </div>
@@ -405,7 +311,6 @@ export default function InvoiceTable({
               form={form}
               name="endDate"
               isRequired={true}
-              dateFormat={dateFormat}
               size="sm"
             />
           </div>
@@ -416,88 +321,18 @@ export default function InvoiceTable({
         </div>
       </FormProvider>
       <Separator className="mb-4" />
-      <TableHeaderCustom
-        searchQuery={searchQuery}
-        onSearchChange={handleSearch}
-        onRefresh={onRefresh}
-        columns={table.getAllLeafColumns()}
+
+      <DialogDataTable
         data={data}
-        tableName="Invoices"
-      />
-      <div
-        ref={tableContainerRef}
-        className="relative overflow-auto rounded-md border"
-        style={{ height: "490px" }}
-      >
-        <DndContext
-          sensors={sensors}
-          collisionDetection={closestCenter}
-          onDragEnd={handleDragEnd}
-        >
-          <Table>
-            <TableHeader className="bg-muted/30">
-              {table.getHeaderGroups().map((headerGroup) => (
-                <TableRow key={headerGroup.id}>
-                  {headerGroup.headers.map((header) => (
-                    <TableHead key={header.id}>
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
-                    </TableHead>
-                  ))}
-                </TableRow>
-              ))}
-            </TableHeader>
-            <TableBody>
-              {isLoading ? (
-                <TableRow>
-                  <TableCell colSpan={columns.length} className="text-center">
-                    Loading...
-                  </TableCell>
-                </TableRow>
-              ) : table.getRowModel().rows?.length ? (
-                table.getRowModel().rows.map((row) => (
-                  <TableRow
-                    key={row.id}
-                    data-state={row.getIsSelected() && "selected"}
-                    className="hover:bg-muted/50 cursor-pointer"
-                    onClick={() => handleRowClick(row.original)}
-                  >
-                    {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id}>
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext()
-                        )}
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell
-                    colSpan={columns.length}
-                    className="h-24 text-center"
-                  >
-                    No records to display
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </DndContext>
-      </div>
-      <TableFooter
-        currentPage={currentPage}
-        totalPages={Math.ceil(data.length / pageSize)}
-        pageSize={pageSize}
-        totalRecords={data.length}
-        onPageChange={handlePageChange}
-        onPageSizeChange={handlePageSizeChange}
-        pageSizeOptions={[10, 50, 100, 500]}
+        columns={columns}
+        isLoading={isLoading}
+        moduleId={1}
+        transactionId={1}
+        tableName={TableName.arInvoice}
+        emptyMessage="No data found."
+        onRefresh={onRefresh}
+        onFilterChange={handleDialogFilterChange}
+        onRowSelect={(row) => onInvoiceSelect(row || undefined)}
       />
     </div>
   )
