@@ -20,6 +20,7 @@ interface DebitNoteTableProps {
   onCreate?: () => void
   onRefresh?: () => void
   onFilterChange?: (filters: { search?: string; sortOrder?: string }) => void
+  onDataReorder?: (newData: IDebitNoteDt[]) => void
   moduleId?: number
   transactionId?: number
   isConfirmed?: boolean
@@ -35,6 +36,7 @@ export function DebitNoteTable({
   onCreate,
   onRefresh,
   onFilterChange,
+  onDataReorder,
   moduleId,
   transactionId,
   isConfirmed,
@@ -193,6 +195,7 @@ export function DebitNoteTable({
       onEdit={onEdit}
       onDelete={onDelete}
       onBulkDelete={onBulkDelete}
+      onDataReorder={onDataReorder}
       isConfirmed={isConfirmed}
       showHeader={true}
       showActions={true}

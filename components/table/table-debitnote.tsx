@@ -14,11 +14,14 @@ import {
 import {
   SortableContext,
   arrayMove,
-  horizontalListSortingStrategy,
+  useSortable,
+  verticalListSortingStrategy,
 } from "@dnd-kit/sortable"
+import { IconGripVertical } from "@tabler/icons-react"
 import {
   ColumnDef,
   ColumnFiltersState,
+  Row,
   SortingState,
   VisibilityState,
   flexRender,
@@ -30,6 +33,7 @@ import {
 
 import { TableName } from "@/lib/utils"
 import { useGetGridLayout } from "@/hooks/use-settings"
+import { Button } from "@/components/ui/button"
 // Virtual scrolling removed - using empty rows instead
 
 import {
@@ -61,6 +65,7 @@ interface DebitNoteBaseTableProps<T> {
   onDelete?: (itemId: string) => void
   onBulkDelete?: (selectedIds: string[]) => void
   onPurchase?: (itemId: string) => void
+  onDataReorder?: (newData: T[]) => void
   isConfirmed?: boolean
   showHeader?: boolean
   showActions?: boolean
@@ -87,6 +92,7 @@ export function DebitNoteBaseTable<T>({
   onEdit,
   onDelete,
   onBulkDelete,
+  onDataReorder,
   isConfirmed,
   showHeader = true,
   showActions = true,
@@ -148,6 +154,43 @@ export function DebitNoteBaseTable<T>({
   const selectedRowsCount = Object.keys(rowSelection).length
   const hasSelectedRows = selectedRowsCount > 0
 
+  // Create a separate component for the drag handle
+  function DragHandle({ id }: { id: string | number }) {
+    const {
+      attributes,
+      listeners,
+      setNodeRef,
+      transform,
+      transition,
+      isDragging,
+    } = useSortable({
+      id: String(id),
+    })
+
+    const style = {
+      transform: transform
+        ? `translate3d(${transform.x}px, ${transform.y}px, 0)`
+        : undefined,
+      transition,
+      opacity: isDragging ? 0.5 : 1,
+    }
+
+    return (
+      <Button
+        ref={setNodeRef}
+        style={style}
+        {...attributes}
+        {...listeners}
+        variant="ghost"
+        size="icon"
+        className="text-muted-foreground size-7 cursor-grab hover:bg-transparent active:cursor-grabbing"
+      >
+        <IconGripVertical className="text-muted-foreground size-3" />
+        <span className="sr-only">Drag to reorder</span>
+      </Button>
+    )
+  }
+
   useEffect(() => {
     if (gridSettingsData) {
       try {
@@ -171,13 +214,28 @@ export function DebitNoteBaseTable<T>({
     ...(showActions && (onSelect || onEdit || onDelete)
       ? [
           {
+            id: "drag",
+            header: () => null,
+            size: 30,
+            minSize: 30,
+            cell: ({ row }: { row: Row<T> }) => (
+              <DragHandle
+                id={String(
+                  (row.original as Record<string, unknown>)[
+                    accessorId as string
+                  ]
+                )}
+              />
+            ),
+          },
+          {
             id: "actions",
             header: "Actions",
             enableHiding: false,
             size: 110,
             minSize: 100,
 
-            cell: ({ row }) => {
+            cell: ({ row }: { row: Row<T> }) => {
               const item = row.original
               const isSelected = row.getIsSelected()
 
@@ -256,19 +314,31 @@ export function DebitNoteBaseTable<T>({
   }
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event
+
     if (active && over && active.id !== over.id) {
-      const oldIndex = table
-        .getAllColumns()
-        .findIndex((col) => col.id === active.id)
-      const newIndex = table
-        .getAllColumns()
-        .findIndex((col) => col.id === over.id)
-      const newColumnOrder = arrayMove(
-        table.getAllColumns(),
-        oldIndex,
-        newIndex
+      const oldIndex = data.findIndex(
+        (item) =>
+          String((item as Record<string, unknown>)[accessorId as string]) ===
+          active.id
       )
-      table.setColumnOrder(newColumnOrder.map((col) => col.id))
+      const newIndex = data.findIndex(
+        (item) =>
+          String((item as Record<string, unknown>)[accessorId as string]) ===
+          over.id
+      )
+
+      if (oldIndex !== -1 && newIndex !== -1) {
+        const newData = arrayMove(data, oldIndex, newIndex)
+
+        // Call the callback to update the parent component's data
+        if (onDataReorder) {
+          onDataReorder(newData)
+        } else {
+          console.warn(
+            "onDataReorder callback not provided. Row reordering will not persist."
+          )
+        }
+      }
     }
   }
 
@@ -330,9 +400,9 @@ export function DebitNoteBaseTable<T>({
 
         {/* Wrap table in drag and drop context for column reordering */}
         <DndContext
-          sensors={sensors} // Configured drag sensors
-          collisionDetection={closestCenter} // Collision detection algorithm
-          onDragEnd={handleDragEnd} // Handle drag end events
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd}
         >
           {/* ============================================================================
             TABLE CONTAINER
@@ -363,16 +433,10 @@ export function DebitNoteBaseTable<T>({
               <TableHeader className="bg-background sticky top-0 z-20">
                 {table.getHeaderGroups().map((headerGroup) => (
                   <TableRow key={headerGroup.id} className="bg-muted/50">
-                    {/* Sortable context for drag and drop */}
-                    <SortableContext
-                      items={headerGroup.headers.map((header) => header.id)} // Column IDs for sorting
-                      strategy={horizontalListSortingStrategy} // Horizontal sorting strategy
-                    >
-                      {/* Render each sortable header */}
-                      {headerGroup.headers.map((header) => (
-                        <SortableTableHeader key={header.id} header={header} />
-                      ))}
-                    </SortableContext>
+                    {/* Render each header */}
+                    {headerGroup.headers.map((header) => (
+                      <SortableTableHeader key={header.id} header={header} />
+                    ))}
                   </TableRow>
                 ))}
               </TableHeader>
@@ -406,49 +470,59 @@ export function DebitNoteBaseTable<T>({
                     DATA ROWS RENDERING
                     ============================================================================ */}
 
-                  {/* Render data rows */}
-                  {table.getRowModel().rows.map((row) => {
-                    return (
-                      <TableRow key={row.id}>
-                        {/* Render each visible cell in the row */}
-                        {row.getVisibleCells().map((cell, cellIndex) => {
-                          const isActions = cell.column.id === "actions"
-                          const isFirstColumn = cellIndex === 0
+                  {/* Sortable context for row dragging */}
+                  <SortableContext
+                    items={data.map((item) =>
+                      String(
+                        (item as Record<string, unknown>)[accessorId as string]
+                      )
+                    )}
+                    strategy={verticalListSortingStrategy}
+                  >
+                    {/* Render data rows */}
+                    {table.getRowModel().rows.map((row) => {
+                      return (
+                        <TableRow key={row.id}>
+                          {/* Render each visible cell in the row */}
+                          {row.getVisibleCells().map((cell, cellIndex) => {
+                            const isActions = cell.column.id === "actions"
+                            const isFirstColumn = cellIndex === 0
 
-                          return (
-                            <TableCell
-                              key={cell.id}
-                              className={`py-1 ${
-                                isFirstColumn || isActions
-                                  ? "bg-background sticky left-0 z-10" // Make first column and actions sticky
-                                  : ""
-                              }`}
-                              style={{
-                                width: `${cell.column.getSize()}px`,
-                                minWidth: `${cell.column.getSize()}px`,
-                                maxWidth: `${cell.column.getSize()}px`,
-                                overflow: "hidden",
-                                textOverflow: "ellipsis",
-                                whiteSpace: "nowrap",
-                                position:
+                            return (
+                              <TableCell
+                                key={cell.id}
+                                className={`py-1 ${
                                   isFirstColumn || isActions
-                                    ? "sticky"
-                                    : "relative",
-                                left: isFirstColumn || isActions ? 0 : "auto",
-                                zIndex: isFirstColumn || isActions ? 10 : 1,
-                              }}
-                            >
-                              {/* Render cell content using column definition */}
-                              {flexRender(
-                                cell.column.columnDef.cell, // Cell renderer from column definition
-                                cell.getContext() // Cell context with row data
-                              )}
-                            </TableCell>
-                          )
-                        })}
-                      </TableRow>
-                    )
-                  })}
+                                    ? "bg-background sticky left-0 z-10" // Make first column and actions sticky
+                                    : ""
+                                }`}
+                                style={{
+                                  width: `${cell.column.getSize()}px`,
+                                  minWidth: `${cell.column.getSize()}px`,
+                                  maxWidth: `${cell.column.getSize()}px`,
+                                  overflow: "hidden",
+                                  textOverflow: "ellipsis",
+                                  whiteSpace: "nowrap",
+                                  position:
+                                    isFirstColumn || isActions
+                                      ? "sticky"
+                                      : "relative",
+                                  left: isFirstColumn || isActions ? 0 : "auto",
+                                  zIndex: isFirstColumn || isActions ? 10 : 1,
+                                }}
+                              >
+                                {/* Render cell content using column definition */}
+                                {flexRender(
+                                  cell.column.columnDef.cell, // Cell renderer from column definition
+                                  cell.getContext() // Cell context with row data
+                                )}
+                              </TableCell>
+                            )
+                          })}
+                        </TableRow>
+                      )
+                    })}
+                  </SortableContext>
 
                   {/* ============================================================================
                     EMPTY ROWS TO FILL PAGE SIZE

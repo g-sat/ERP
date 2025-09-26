@@ -368,6 +368,12 @@ export function DebitNoteDialog({
     // For example, refetch data from API, etc.
   }, [])
 
+  // Handler for data reordering
+  const handleDataReorder = useCallback((newData: IDebitNoteDt[]) => {
+    console.log("Data reordered:", newData)
+    setDetails(newData)
+  }, [])
+
   // Get task name by task ID from the debit note header
   const taskName = TaskIdToName[taskId] || "Unknown Task"
 
@@ -579,6 +585,7 @@ export function DebitNoteDialog({
                 onCreate={handleCreateDebitNoteDetail}
                 onRefresh={handleRefresh}
                 onFilterChange={() => {}}
+                onDataReorder={handleDataReorder}
                 moduleId={taskId}
                 transactionId={taskId}
                 isConfirmed={isConfirmed}
