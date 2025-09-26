@@ -11,11 +11,7 @@ import {
   useSensor,
   useSensors,
 } from "@dnd-kit/core"
-import {
-  SortableContext,
-  arrayMove,
-  horizontalListSortingStrategy,
-} from "@dnd-kit/sortable"
+import { arrayMove } from "@dnd-kit/sortable"
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -36,10 +32,12 @@ import {
   Table,
   TableBody,
   TableCell,
+  TableHead,
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
 
+import { Checkbox } from "../ui/checkbox"
 import { SortableTableHeader } from "./sortable-table-header"
 import { TaskTableActions } from "./table-task-action"
 import { TaskTableHeader } from "./table-task-header"
@@ -216,7 +214,33 @@ export function TaskTable<T>({
       ? [
           {
             id: "actions",
-            header: "Actions",
+            header: ({ table }) => {
+              const isAllSelected = table.getIsAllRowsSelected()
+              const hasSelectedRows =
+                table.getSelectedRowModel().rows.length > 0
+              const isIndeterminate = hasSelectedRows && !isAllSelected
+
+              // Header checkbox should be checked if any rows are selected
+              const headerChecked = hasSelectedRows
+
+              return (
+                <div className="flex items-center gap-2">
+                  {/* ✅ Header "Select All" Checkbox */}
+                  <Checkbox
+                    checked={headerChecked}
+                    onCheckedChange={(checked) => {
+                      table.toggleAllPageRowsSelected(!!checked)
+                    }}
+                    className={
+                      isIndeterminate
+                        ? "data-[state=indeterminate]:bg-primary/50"
+                        : ""
+                    }
+                  />
+                  <span className="font-medium">Actions</span>
+                </div>
+              )
+            },
             enableHiding: false,
             size: 190,
             minSize: 160,
@@ -396,16 +420,42 @@ export function TaskTable<T>({
               <TableHeader className="bg-background sticky top-0 z-20">
                 {table.getHeaderGroups().map((headerGroup) => (
                   <TableRow key={headerGroup.id} className="bg-muted/50">
-                    {/* Sortable context for drag and drop */}
-                    <SortableContext
-                      items={headerGroup.headers.map((header) => header.id)} // Column IDs for sorting
-                      strategy={horizontalListSortingStrategy} // Horizontal sorting strategy
-                    >
-                      {/* Render each sortable header */}
-                      {headerGroup.headers.map((header) => (
+                    {/* Render each header */}
+                    {headerGroup.headers.map((header) => {
+                      // Don't use SortableTableHeader for actions column
+                      if (header.id === "actions") {
+                        return (
+                          <TableHead
+                            key={header.id}
+                            colSpan={header.colSpan}
+                            style={{
+                              width: header.getSize(),
+                              minWidth: header.column.columnDef.minSize,
+                              maxWidth: header.column.columnDef.maxSize,
+                            }}
+                            className="bg-muted group hover:bg-muted/80 relative transition-colors"
+                          >
+                            {header.isPlaceholder ? null : (
+                              <div className="flex items-center justify-between pl-3">
+                                <div className="flex items-center">
+                                  <span className="font-medium">
+                                    {flexRender(
+                                      header.column.columnDef.header,
+                                      header.getContext()
+                                    )}
+                                  </span>
+                                </div>
+                              </div>
+                            )}
+                          </TableHead>
+                        )
+                      }
+
+                      // Use SortableTableHeader for regular columns
+                      return (
                         <SortableTableHeader key={header.id} header={header} />
-                      ))}
-                    </SortableContext>
+                      )
+                    })}
                   </TableRow>
                 ))}
               </TableHeader>
