@@ -67,6 +67,7 @@ interface DebitNoteBaseTableProps<T> {
   hideView?: boolean
   hideEdit?: boolean
   hideDelete?: boolean
+  hideCreate?: boolean
   disableOnDebitNoteExists?: boolean
 }
 
@@ -92,6 +93,7 @@ export function DebitNoteBaseTable<T>({
   hideView = false,
   hideEdit = false,
   hideDelete = false,
+  hideCreate = false,
   disableOnDebitNoteExists = true,
 }: DebitNoteBaseTableProps<T>) {
   const { data: gridSettings } = useGetGridLayout(
@@ -317,6 +319,7 @@ export function DebitNoteBaseTable<T>({
           selectedRowsCount={selectedRowsCount}
           isConfirmed={isConfirmed}
           data={data}
+          hideCreate={hideCreate}
         />
       )}
 

@@ -199,7 +199,7 @@ export function DebitNoteTable({
       hideView={false}
       hideEdit={false}
       hideDelete={false}
-      hideCreate={false}
+      hideCreate={true}
       disableOnDebitNoteExists={false}
     />
   )

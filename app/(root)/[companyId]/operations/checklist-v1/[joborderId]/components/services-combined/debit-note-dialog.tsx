@@ -1,9 +1,10 @@
 "use client"
 
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
+import { calculateDebitNoteSummary } from "@/helpers/debit-note-calculations"
 import { IDebitNoteDt, IDebitNoteHd } from "@/interfaces/checklist"
 import { DebitNoteDtFormValues } from "@/schemas/checklist"
-import { toast } from "sonner"
+import { useQueryClient } from "@tanstack/react-query"
 
 import { JobOrder_DebitNote } from "@/lib/api-routes"
 import { TaskIdToName } from "@/lib/operations-utils"
@@ -17,10 +18,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { Separator } from "@/components/ui/separator"
 import { DeleteConfirmation } from "@/components/confirmation/delete-confirmation"
 import { SaveConfirmation } from "@/components/confirmation/save-confirmation"
-import { PageLoadingSpinner } from "@/components/skeleton/loading-spinner"
 
 import DebitNoteForm from "./debit-note-form"
 import DebitNoteTable from "./debit-note-table"
@@ -49,6 +48,7 @@ export function DebitNoteDialog({
   const [details, setDetails] = useState<IDebitNoteDt[]>(
     debitNoteHd?.debitNoteDetails ?? []
   )
+  const detailsRef = useRef(details)
   console.log(isConfirmed, "isConfirmed debit note")
   console.log("debitNoteHd from debit note", debitNoteHd)
   console.log("details from debit note", debitNoteHd?.debitNoteDetails)
@@ -57,15 +57,20 @@ export function DebitNoteDialog({
   const [selectedDebitNoteDetail, setSelectedDebitNoteDetail] = useState<
     IDebitNoteDt | undefined
   >(undefined)
-  const [isFormModalOpen, setIsFormModalOpen] = useState(false)
   const [modalMode, setModalMode] = useState<"create" | "edit" | "view">(
     "create"
   )
+  const queryClient = useQueryClient()
 
   // Update details when debitNoteHd changes
   useEffect(() => {
     setDetails(debitNoteHd?.debitNoteDetails ?? [])
   }, [debitNoteHd])
+
+  // Update ref when details change
+  useEffect(() => {
+    detailsRef.current = details
+  }, [details])
 
   // State for delete confirmation (for debit note details)
   const [deleteConfirmation, setDeleteConfirmation] = useState<{
@@ -98,6 +103,19 @@ export function DebitNoteDialog({
     data: null,
   })
 
+  // State to track the selected charge name
+  const [selectedChargeName, setSelectedChargeName] = useState<string>("")
+
+  // State to trigger form reset
+  const [shouldResetForm, setShouldResetForm] = useState<boolean>(false)
+
+  // Reset the shouldResetForm flag after it's been used
+  useEffect(() => {
+    if (shouldResetForm) {
+      setShouldResetForm(false)
+    }
+  }, [shouldResetForm])
+
   // State for bulk delete confirmation
   const [bulkDeleteConfirmation, setBulkDeleteConfirmation] = useState<{
     isOpen: boolean
@@ -122,7 +140,7 @@ export function DebitNoteDialog({
   const handleCreateDebitNoteDetail = useCallback(() => {
     setModalMode("create")
     setSelectedDebitNoteDetail(undefined)
-    setIsFormModalOpen(true)
+    setSelectedChargeName("")
   }, [])
 
   // Handler to open modal for editing a debit note detail
@@ -131,7 +149,7 @@ export function DebitNoteDialog({
       console.log("Edit Debit Note Detail:", debitNoteDetail)
       setModalMode("edit")
       setSelectedDebitNoteDetail(debitNoteDetail)
-      setIsFormModalOpen(true)
+      setSelectedChargeName(debitNoteDetail.chargeName || "")
     },
     []
   )
@@ -142,7 +160,6 @@ export function DebitNoteDialog({
       if (!debitNoteDetail) return
       setModalMode("view")
       setSelectedDebitNoteDetail(debitNoteDetail)
-      setIsFormModalOpen(true)
     },
     []
   )
@@ -160,7 +177,7 @@ export function DebitNoteDialog({
     async (data: DebitNoteDtFormValues) => {
       try {
         if (!debitNoteHd?.debitNoteId) {
-          toast.error("Debit note header not found")
+          console.error("Debit note header not found")
           return
         }
 
@@ -170,7 +187,7 @@ export function DebitNoteDialog({
           debitNoteNo: debitNoteHd.debitNoteNo,
           itemNo: selectedDebitNoteDetail
             ? selectedDebitNoteDetail.itemNo
-            : details.length + 1,
+            : detailsRef.current.length + 1,
           taskId: data.taskId,
           chargeId: data.chargeId,
           glId: data.glId,
@@ -194,10 +211,23 @@ export function DebitNoteDialog({
             // Add new item to local state
             const newItem: IDebitNoteDt = {
               ...debitNoteDetailData,
-              itemNo: details.length + 1,
+              itemNo: detailsRef.current.length + 1,
             }
             setDetails((prev) => [...prev, newItem])
-            toast.success("Debit note detail added successfully")
+
+            queryClient.invalidateQueries({
+              queryKey: [
+                JobOrder_DebitNote.getDetails,
+                debitNoteHd.jobOrderId,
+                taskId,
+                debitNoteHd.debitNoteId,
+              ],
+            })
+            queryClient.invalidateQueries({ queryKey: ["debit-note-details"] })
+            // Reset form after successful creation
+            setSelectedDebitNoteDetail(undefined)
+            setSelectedChargeName("")
+            setShouldResetForm(true)
           }
         } else if (modalMode === "edit" && selectedDebitNoteDetail) {
           const response = await updateMutation.mutateAsync(debitNoteDetailData)
@@ -210,42 +240,40 @@ export function DebitNoteDialog({
                   : item
               )
             )
-            toast.success("Debit note detail updated successfully")
+            // Reset form after successful update
+            queryClient.invalidateQueries({ queryKey: ["debit-note-details"] })
+            setSelectedDebitNoteDetail(undefined)
+            setSelectedChargeName("")
+            setShouldResetForm(true)
           }
         }
-        setIsFormModalOpen(false)
       } catch (error) {
         console.error("Error in form submission:", error)
-        toast.error("Failed to save debit note detail")
       }
     },
     [
       modalMode,
       selectedDebitNoteDetail,
       debitNoteHd,
-      details,
       saveMutation,
       updateMutation,
     ]
   )
 
   // Handler for deleting a debit note detail
-  const handleDeleteDebitNoteDetail = useCallback(
-    (itemNo: string) => {
-      const detailToDelete = details.find(
-        (detail) => detail.itemNo.toString() === itemNo
-      )
-      if (!detailToDelete) return
+  const handleDeleteDebitNoteDetail = useCallback((itemNo: string) => {
+    const detailToDelete = detailsRef.current.find(
+      (detail) => detail.itemNo.toString() === itemNo
+    )
+    if (!detailToDelete) return
 
-      // Open delete confirmation dialog with detail information
-      setDeleteConfirmation({
-        isOpen: true,
-        debitNoteId: detailToDelete.itemNo,
-        debitNoteNo: `Item ${detailToDelete.itemNo}`,
-      })
-    },
-    [details]
-  )
+    // Open delete confirmation dialog with detail information
+    setDeleteConfirmation({
+      isOpen: true,
+      debitNoteId: detailToDelete.itemNo,
+      debitNoteNo: `Item ${detailToDelete.itemNo}`,
+    })
+  }, [])
 
   const handleConfirmDelete = useCallback(() => {
     if (deleteConfirmation.debitNoteId) {
@@ -253,7 +281,6 @@ export function DebitNoteDialog({
       setDetails((prev) =>
         prev.filter((item) => item.itemNo !== deleteConfirmation.debitNoteId)
       )
-      toast.success("Debit note detail deleted successfully")
       setDeleteConfirmation({
         isOpen: false,
         debitNoteId: null,
@@ -320,10 +347,6 @@ export function DebitNoteDialog({
         )
       )
 
-      toast.success(
-        `Successfully deleted ${bulkDeleteConfirmation.count} item(s)`
-      )
-
       setBulkDeleteConfirmation({
         isOpen: false,
         selectedIds: [],
@@ -331,30 +354,25 @@ export function DebitNoteDialog({
       })
     } catch (error) {
       console.error("Error deleting debit note details:", error)
-      toast.error("Failed to delete selected items")
     }
   }, [bulkDeleteConfirmation, debitNoteHd, taskId, bulkDeleteMutation])
+
+  // Handler for refreshing the table data
+  const handleRefresh = useCallback(() => {
+    // Reset the form state
+    setSelectedDebitNoteDetail(undefined)
+    setSelectedChargeName("")
+    setShouldResetForm(true)
+
+    // You can add additional refresh logic here if needed
+    // For example, refetch data from API, etc.
+  }, [])
 
   // Get task name by task ID from the debit note header
   const taskName = TaskIdToName[taskId] || "Unknown Task"
 
-  // Show loading state when dialog is opening and no debit note data is available
-  if (open && !debitNoteHd) {
-    return (
-      <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent
-          className="max-h-[95vh] w-[95vw] !max-w-none overflow-y-auto"
-          onPointerDownOutside={(e) => {
-            e.preventDefault()
-          }}
-        >
-          <div className="flex items-center justify-center py-8">
-            <PageLoadingSpinner text="Loading debit note..." />
-          </div>
-        </DialogContent>
-      </Dialog>
-    )
-  }
+  // Calculate summary totals using helper function
+  const summaryTotals = calculateDebitNoteSummary(details, { amtDec: 2 })
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -364,7 +382,7 @@ export function DebitNoteDialog({
           e.preventDefault()
         }}
       >
-        <DialogHeader className="border-b pb-4">
+        <DialogHeader className="border-b pb-2">
           <div className="flex items-center justify-between">
             <div>
               <DialogTitle className="text-2xl font-bold">{title}</DialogTitle>
@@ -400,87 +418,82 @@ export function DebitNoteDialog({
             </div>
           </div>
         </DialogHeader>
+
         <div className="@container">
           {/* Summary Section */}
-          <div className="bg-card mb-5 rounded-lg border p-4 shadow-sm">
+          <div className="bg-card mb-2 rounded-lg border p-4 shadow-sm">
             <div className="flex flex-col space-y-5 lg:flex-row lg:items-center lg:justify-between lg:space-y-0">
               {/* Financial Summary */}
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-                <div className="bg-card rounded-lg border p-3 shadow-sm">
-                  <div className="flex items-center gap-3">
-                    <div className="rounded-full bg-blue-100 p-2">
-                      <svg
-                        className="h-4 w-4 text-blue-600"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"
-                        />
-                      </svg>
-                    </div>
-                    <div>
-                      <p className="text-xs font-medium">Total Amount</p>
-                      <p className="text-lg font-bold">
-                        ${(debitNoteHd?.totAmt || 0).toLocaleString()}
-                      </p>
-                    </div>
+                <div className="flex items-center gap-3">
+                  <div className="rounded-full bg-blue-100 p-2">
+                    <svg
+                      className="h-4 w-4 text-blue-600"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"
+                      />
+                    </svg>
+                  </div>
+                  <div>
+                    <p className="text-xs font-medium">Total Amount</p>
+                    <p className="text-lg font-bold">
+                      ${summaryTotals.totalAmount.toLocaleString()}
+                    </p>
                   </div>
                 </div>
 
-                <div className="bg-card rounded-lg border p-3 shadow-sm">
-                  <div className="flex items-center gap-3">
-                    <div className="rounded-full bg-green-100 p-2">
-                      <svg
-                        className="h-4 w-4 text-green-600"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"
-                        />
-                      </svg>
-                    </div>
-                    <div>
-                      <p className="text-xs font-medium">GST Amount</p>
-                      <p className="text-lg font-bold">
-                        ${(debitNoteHd?.gstAmt || 0).toLocaleString()}
-                      </p>
-                    </div>
+                <div className="flex items-center gap-3">
+                  <div className="rounded-full bg-green-100 p-2">
+                    <svg
+                      className="h-4 w-4 text-green-600"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"
+                      />
+                    </svg>
+                  </div>
+                  <div>
+                    <p className="text-xs font-medium">VAT Amount</p>
+                    <p className="text-lg font-bold">
+                      ${summaryTotals.vatAmount.toLocaleString()}
+                    </p>
                   </div>
                 </div>
 
-                <div className="bg-card rounded-lg border p-3 shadow-sm">
-                  <div className="flex items-center gap-3">
-                    <div className="rounded-full bg-purple-100 p-2">
-                      <svg
-                        className="h-4 w-4 text-purple-600"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
-                        />
-                      </svg>
-                    </div>
-                    <div>
-                      <p className="text-xs font-medium">Total After GST</p>
-                      <p className="text-lg font-bold">
-                        ${(debitNoteHd?.totAftGstAmt || 0).toLocaleString()}
-                      </p>
-                    </div>
+                <div className="flex items-center gap-3">
+                  <div className="rounded-full bg-purple-100 p-2">
+                    <svg
+                      className="h-4 w-4 text-purple-600"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
+                      />
+                    </svg>
+                  </div>
+                  <div>
+                    <p className="text-xs font-medium">Total After VAT</p>
+                    <p className="text-lg font-bold">
+                      ${summaryTotals.totalAfterVat.toLocaleString()}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -533,6 +546,27 @@ export function DebitNoteDialog({
             </div>
           </div>
 
+          {/* form Section */}
+          <div className="bg-card mb-2 rounded-lg border p-4 shadow-sm">
+            <DebitNoteForm
+              debitNoteHd={debitNoteHd}
+              initialData={
+                modalMode === "edit" || modalMode === "view"
+                  ? selectedDebitNoteDetail
+                  : undefined
+              }
+              submitAction={handleFormSubmit}
+              onCancel={() => setSelectedDebitNoteDetail(undefined)}
+              isSubmitting={saveMutation.isPending || updateMutation.isPending}
+              isConfirmed={isConfirmed}
+              taskId={taskId}
+              exchangeRate={debitNoteHd?.exhRate || 1}
+              companyId={debitNoteHd?.companyId || 0}
+              onChargeChange={setSelectedChargeName}
+              shouldReset={shouldResetForm}
+            />
+          </div>
+
           {/* Table Section */}
           <div className="bg-card rounded-lg border shadow-sm">
             <div className="p-4">
@@ -543,7 +577,7 @@ export function DebitNoteDialog({
                 onDelete={handleDeleteDebitNoteDetail}
                 onBulkDelete={handleBulkDeleteDebitNoteDetails}
                 onCreate={handleCreateDebitNoteDetail}
-                onRefresh={() => {}}
+                onRefresh={handleRefresh}
                 onFilterChange={() => {}}
                 moduleId={taskId}
                 transactionId={taskId}
@@ -551,55 +585,6 @@ export function DebitNoteDialog({
               />
             </div>
           </div>
-
-          {/* Debit Note Form Dialog */}
-          <Dialog
-            open={isFormModalOpen}
-            onOpenChange={(open) => {
-              if (!open) {
-                setIsFormModalOpen(false)
-              }
-            }}
-          >
-            <DialogContent
-              className="w-[80vw] !max-w-none"
-              onPointerDownOutside={(e) => {
-                e.preventDefault()
-              }}
-            >
-              <DialogHeader>
-                <DialogTitle>
-                  {modalMode === "create" && "Create Debit Note Detail"}
-                  {modalMode === "edit" && "Update Debit Note Detail"}
-                  {modalMode === "view" && "View Debit Note Detail"}
-                </DialogTitle>
-                <DialogDescription>
-                  {modalMode === "create"
-                    ? "Add a new debit note detail to the system database."
-                    : modalMode === "edit"
-                      ? "Update debit note detail information in the system database."
-                      : "View debit note detail information."}
-                </DialogDescription>
-              </DialogHeader>
-              <Separator />
-              <DebitNoteForm
-                initialData={
-                  modalMode === "edit" || modalMode === "view"
-                    ? selectedDebitNoteDetail
-                    : undefined
-                }
-                submitAction={handleFormSubmit}
-                onCancel={() => setIsFormModalOpen(false)}
-                isSubmitting={
-                  saveMutation.isPending || updateMutation.isPending
-                }
-                isConfirmed={isConfirmed}
-                taskId={taskId}
-                exchangeRate={debitNoteHd?.exhRate || 1}
-                companyId={debitNoteHd?.companyId || 0}
-              />
-            </DialogContent>
-          </Dialog>
 
           {/* Delete Confirmation Dialog for Debit Note Detail */}
           <DeleteConfirmation
@@ -652,7 +637,11 @@ export function DebitNoteDialog({
                 ? "Create Debit Note Detail"
                 : "Update Debit Note Detail"
             }
-            itemName={`Item ${selectedDebitNoteDetail?.itemNo || details.length + 1}`}
+            itemName={
+              selectedChargeName ||
+              selectedDebitNoteDetail?.chargeName ||
+              `Item ${selectedDebitNoteDetail?.itemNo || details.length + 1}`
+            }
             operationType={modalMode === "create" ? "create" : "update"}
             onConfirm={() => {
               if (saveConfirmation.data) {

@@ -207,6 +207,11 @@ export const menuData = {
           url: "/operations/checklist",
           icon: ClipboardList,
         },
+        {
+          title: "checklist-v1",
+          url: "/operations/checklist-v1",
+          icon: ClipboardList,
+        },
         { title: "Tariff", url: "/operations/tariff", icon: Coins },
       ],
     },

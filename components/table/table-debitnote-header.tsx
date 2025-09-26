@@ -62,6 +62,7 @@ type DebitNoteTableHeaderProps<TData> = {
   selectedRowsCount?: number
   isConfirmed?: boolean
   data?: TData[] // Add data prop for export functionality
+  hideCreate?: boolean
 }
 
 export function DebitNoteTableHeader<TData>({
@@ -78,6 +79,7 @@ export function DebitNoteTableHeader<TData>({
   selectedRowsCount = 0,
   isConfirmed = false,
   data = [],
+  hideCreate = false,
 }: DebitNoteTableHeaderProps<TData>) {
   const [columnSearch, setColumnSearch] = useState("")
   const [activeButton, setActiveButton] = useState<"show" | "hide" | null>(null)
@@ -239,17 +241,20 @@ export function DebitNoteTableHeader<TData>({
       <div className="mb-4 space-y-2">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Button
-              onClick={onCreate}
-              disabled={isConfirmed}
-              title={
-                isConfirmed ? "Cannot create when confirmed" : "Create new item"
-              }
-            >
-              <Plus className="mr-2 h-4 w-4" />
-              Create
-            </Button>
-
+            {!hideCreate && (
+              <Button
+                onClick={onCreate}
+                disabled={isConfirmed}
+                title={
+                  isConfirmed
+                    ? "Cannot create when confirmed"
+                    : "Create new item"
+                }
+              >
+                <Plus className="mr-2 h-4 w-4" />
+                Create
+              </Button>
+            )}
             {/* Bulk Delete Button - only show when items are selected */}
             {hasSelectedRows && selectedRowsCount > 0 && (
               <Button

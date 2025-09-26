@@ -632,42 +632,54 @@ export const DebitNoteHdSchema = z.object({
 
 export type DebitNoteHdFormValues = z.infer<typeof DebitNoteHdSchema>
 
-export const DebitNoteDtSchema = z.object({
-  debitNoteId: z.number().min(1, "Debit Note ID is required"),
-  debitNoteNo: z.string().min(1, "Debit Note Number is required"),
-  itemNo: z.number().min(1, "Item Number is required"),
-  taskId: z.number().min(1, "Task ID is required"),
-  taskName: z.string().optional().default(""),
-  chargeId: z.number().min(1, "Charge is required"),
-  chargeName: z.string().optional().default(""),
-  glId: z.number().min(1, "GL Account is required"),
-  glName: z.string().optional().default(""),
-  qty: z.number().min(0, "Quantity must be 0 or greater").default(0),
-  unitPrice: z.number().min(0, "Unit price must be 0 or greater").default(0),
-  totLocalAmt: z.number().default(0),
-  totAmt: z.number().min(0, "Total amount must be 0 or greater").default(0),
-  gstId: z.number().min(1, "GST ID is required"),
-  gstName: z.string().optional().default(""),
-  gstPercentage: z
-    .number()
-    .min(0, "GST percentage must be 0 or greater")
-    .default(0),
-  gstAmt: z.number().min(0, "GST amount must be 0 or greater").default(0),
-  totAftGstAmt: z
-    .number()
-    .min(0, "Total after GST must be 0 or greater")
-    .default(0),
-  remarks: z
-    .string()
-    .max(500, "Remarks must be less than 500 characters")
-    .optional()
-    .default(""),
-  editVersion: z
-    .number()
-    .min(0, "Edit version must be 0 or greater")
-    .default(0),
-  isServiceCharge: z.boolean().default(false),
-  serviceCharge: z.number().default(0),
-})
+export const DebitNoteDtSchema = z
+  .object({
+    debitNoteId: z.number().min(1, "Debit Note ID is required"),
+    debitNoteNo: z.string().min(1, "Debit Note Number is required"),
+    itemNo: z.number().min(0, "Item Number is required").default(0),
+    taskId: z.number().min(1, "Task ID is required"),
+    chargeId: z.number().min(1, "Charge is required"),
+    glId: z.number().min(1, "GL Account is required"),
+    qty: z.number().min(0, "Quantity must be 0 or greater").default(0),
+    unitPrice: z.number().min(0, "Unit price must be 0 or greater").default(0),
+    totLocalAmt: z.number().default(0),
+    totAmt: z.number().min(0, "Total amount must be 0 or greater").default(0),
+    gstId: z.number().min(1, "GST ID is required"),
+    gstPercentage: z
+      .number()
+      .min(0, "GST percentage must be 0 or greater")
+      .default(0),
+    gstAmt: z.number().min(0, "GST amount must be 0 or greater").default(0),
+    totAftGstAmt: z
+      .number()
+      .min(0, "Total after GST must be 0 or greater")
+      .default(0),
+    remarks: z
+      .string()
+      .max(500, "Remarks must be less than 500 characters")
+      .optional()
+      .default(""),
+    editVersion: z
+      .number()
+      .min(0, "Edit version must be 0 or greater")
+      .default(0),
+    isServiceCharge: z.boolean().default(false),
+    serviceCharge: z.number().default(0),
+  })
+  .superRefine((data, ctx) => {
+    if (
+      data.isServiceCharge &&
+      (data.serviceCharge === 0 ||
+        data.serviceCharge === undefined ||
+        data.serviceCharge === null)
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          "Service charge amount is required when service charge is enabled",
+        path: ["serviceCharge"],
+      })
+    }
+  })
 
 export type DebitNoteDtFormValues = z.infer<typeof DebitNoteDtSchema>
