@@ -371,7 +371,15 @@ export function DebitNoteDialog({
   // Handler for data reordering
   const handleDataReorder = useCallback((newData: IDebitNoteDt[]) => {
     console.log("Data reordered:", newData)
-    setDetails(newData)
+
+    // Update itemNo to reflect the new order (1, 2, 3, 4, 5, 6...)
+    const updatedData = newData.map((item, index) => ({
+      ...item,
+      itemNo: index + 1,
+    }))
+
+    console.log("Updated data with new itemNo:", updatedData)
+    setDetails(updatedData)
   }, [])
 
   // Get task name by task ID from the debit note header
