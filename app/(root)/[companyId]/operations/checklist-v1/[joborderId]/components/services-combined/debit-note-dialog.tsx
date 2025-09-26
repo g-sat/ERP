@@ -8,6 +8,7 @@ import {
   DebitNoteHdFormValues,
 } from "@/schemas/checklist"
 import { useQueryClient } from "@tanstack/react-query"
+import { Printer, Save, Trash } from "lucide-react"
 
 import { JobOrder_DebitNote } from "@/lib/api-routes"
 import { TaskIdToName } from "@/lib/operations-utils"
@@ -504,69 +505,28 @@ export default function DebitNoteDialog({
 
               {/* Action Buttons */}
               <div className="flex flex-col gap-3 sm:flex-row">
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="border-blue-200 text-blue-700 transition-colors hover:border-blue-300 hover:bg-blue-50"
-                >
-                  <svg
-                    className="mr-2 h-4 w-4"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"
-                    />
-                  </svg>
+                <Button size="sm" variant="outline">
+                  <Printer className="mr-2 h-4 w-4" />
                   Print
                 </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="border-green-200 text-green-700 transition-colors hover:border-green-300 hover:bg-green-50"
-                  disabled={isConfirmed || !debitNoteHd?.debitNoteId}
-                  onClick={() => setSaveConfirmation({ isOpen: true })}
-                >
-                  <svg
-                    className="mr-2 h-4 w-4"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"
-                    />
-                  </svg>
-                  Save
-                </Button>
+
                 <Button
                   variant="destructive"
                   size="sm"
-                  className="bg-red-600 transition-colors hover:bg-red-700"
                   disabled={isConfirmed || !debitNoteHd?.debitNoteId}
                   onClick={handleDeleteDebitNote}
                 >
-                  <svg
-                    className="mr-2 h-4 w-4"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                    />
-                  </svg>
+                  <Trash className="mr-2 h-4 w-4" />
                   Delete
+                </Button>
+                <Button
+                  size="sm"
+                  variant="default"
+                  disabled={isConfirmed || !debitNoteHd?.debitNoteId}
+                  onClick={() => setSaveConfirmation({ isOpen: true })}
+                >
+                  <Save className="mr-2 h-4 w-4" />
+                  Save
                 </Button>
               </div>
             </div>

@@ -162,9 +162,6 @@ export function ChecklistHistory({
   return (
     <div className="space-y-4">
       <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Record History</CardTitle>
-        </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             {/* Creation Information */}
@@ -214,9 +211,6 @@ export function ChecklistHistory({
 
       {/* History Table */}
       <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Version History</CardTitle>
-        </CardHeader>
         <CardContent>
           <BasicTable
             data={historyData}

@@ -35,6 +35,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ChecklistDetailsForm } from "./checklist-details-form"
 import { ChecklistHistory } from "./checklist-history"
 import { ChecklistMain } from "./checklist-main"
+import { DebitNoteItemsTable } from "./debit-note-items-table"
 
 interface ChecklistTabsProps {
   jobData: IJobOrderHd
@@ -186,6 +187,10 @@ export function ChecklistTabs({
               </DropdownMenuContent>
             </DropdownMenu>
           )}
+
+          {/* Debit Note Items Table Component */}
+
+          <DebitNoteItemsTable jobOrderId={jobOrderId} />
 
           {/* Invoice Create button - only show when status is confirmed */}
           {isEdit && isConfirmed && (
