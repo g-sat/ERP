@@ -216,57 +216,70 @@ export function DebitNoteBaseTable<T>({
     ...(showActions && (onSelect || onEdit || onDelete)
       ? [
           {
-            id: "drag",
-            header: () => null,
-            size: 30,
-            minSize: 30,
-            cell: ({ row }: { row: Row<T> }) => (
-              <DragHandle
-                id={String(
-                  (row.original as Record<string, unknown>)[
-                    accessorId as string
-                  ]
-                )}
-              />
-            ),
-          },
-          {
-            id: "actions",
-            header: ({ table }) => (
-              <div className="flex items-center justify-center">
-                {/* ✅ Header "Select All" Checkbox */}
-                <Checkbox
-                  checked={table.getIsAllRowsSelected()}
-                  onCheckedChange={(checked) => {
-                    table.toggleAllPageRowsSelected(!!checked)
-                  }}
-                />
-              </div>
-            ),
+            id: "drag-actions",
+            header: ({ table }) => {
+              const isAllSelected = table.getIsAllRowsSelected()
+              const hasSelectedRows =
+                table.getSelectedRowModel().rows.length > 0
+              const isIndeterminate = hasSelectedRows && !isAllSelected
+
+              // Header checkbox should be checked if any rows are selected
+              const headerChecked = hasSelectedRows
+
+              return (
+                <div className="flex items-center gap-2 pl-5">
+                  {/* ✅ Header "Select All" Checkbox */}
+                  <Checkbox
+                    checked={headerChecked}
+                    onCheckedChange={(checked) => {
+                      table.toggleAllPageRowsSelected(!!checked)
+                    }}
+                    className={
+                      isIndeterminate
+                        ? "data-[state=indeterminate]:bg-primary/50"
+                        : ""
+                    }
+                  />
+                  <span className="font-medium">Actions</span>
+                </div>
+              )
+            },
             enableHiding: false,
-            size: 110,
-            minSize: 100,
+            size: 140,
+            minSize: 120,
 
             cell: ({ row }: { row: Row<T> }) => {
               const item = row.original
 
               return (
-                <DebitNoteTableActions
-                  row={item as T & { debitNoteId?: number }}
-                  onView={onSelect}
-                  onEdit={onEdit}
-                  onDelete={onDelete}
-                  onSelect={(_, checked) => {
-                    row.toggleSelected(checked)
-                  }}
-                  idAccessor={accessorId}
-                  hideView={hideView}
-                  hideEdit={hideEdit}
-                  hideDelete={hideDelete}
-                  isSelected={row.getIsSelected()}
-                  onCheckboxChange={row.getToggleSelectedHandler()}
-                  disableOnDebitNoteExists={disableOnDebitNoteExists}
-                />
+                <div className="flex items-center gap-2">
+                  {/* Drag Handle */}
+                  <DragHandle
+                    id={String(
+                      (row.original as Record<string, unknown>)[
+                        accessorId as string
+                      ]
+                    )}
+                  />
+
+                  {/* Action Buttons */}
+                  <DebitNoteTableActions
+                    row={item as T & { debitNoteId?: number }}
+                    onView={onSelect}
+                    onEdit={onEdit}
+                    onDelete={onDelete}
+                    onSelect={(_, checked) => {
+                      row.toggleSelected(checked)
+                    }}
+                    idAccessor={accessorId}
+                    hideView={hideView}
+                    hideEdit={hideEdit}
+                    hideDelete={hideDelete}
+                    isSelected={row.getIsSelected()}
+                    onCheckboxChange={row.getToggleSelectedHandler()}
+                    disableOnDebitNoteExists={disableOnDebitNoteExists}
+                  />
+                </div>
               )
             },
           } as ColumnDef<T>,
@@ -441,8 +454,8 @@ export function DebitNoteBaseTable<T>({
                   <TableRow key={headerGroup.id} className="bg-muted/50">
                     {/* Render each header */}
                     {headerGroup.headers.map((header) => {
-                      // Don't use SortableTableHeader for drag and actions columns
-                      if (header.id === "drag" || header.id === "actions") {
+                      // Don't use SortableTableHeader for drag-actions column
+                      if (header.id === "drag-actions") {
                         return (
                           <TableHead
                             key={header.id}
@@ -523,7 +536,7 @@ export function DebitNoteBaseTable<T>({
                         <TableRow key={row.id}>
                           {/* Render each visible cell in the row */}
                           {row.getVisibleCells().map((cell, cellIndex) => {
-                            const isActions = cell.column.id === "actions"
+                            const isActions = cell.column.id === "drag-actions"
                             const isFirstColumn = cellIndex === 0
 
                             return (
@@ -575,7 +588,7 @@ export function DebitNoteBaseTable<T>({
                   }).map((_, index) => (
                     <TableRow key={`empty-${index}`} className="h-7">
                       {table.getAllLeafColumns().map((column, cellIndex) => {
-                        const isActions = column.id === "actions"
+                        const isActions = column.id === "drag-actions"
                         const isFirstColumn = cellIndex === 0
 
                         return (
