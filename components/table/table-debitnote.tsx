@@ -40,10 +40,12 @@ import {
   Table,
   TableBody,
   TableCell,
+  TableHead,
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
 
+import { Checkbox } from "../ui/checkbox"
 import { SortableTableHeader } from "./sortable-table-header"
 import { DebitNoteTableActions } from "./table-debitnote-action"
 import { DebitNoteTableHeader } from "./table-debitnote-header"
@@ -230,14 +232,23 @@ export function DebitNoteBaseTable<T>({
           },
           {
             id: "actions",
-            header: "Actions",
+            header: ({ table }) => (
+              <div className="flex items-center justify-center">
+                {/* ✅ Header "Select All" Checkbox */}
+                <Checkbox
+                  checked={table.getIsAllRowsSelected()}
+                  onCheckedChange={(checked) => {
+                    table.toggleAllPageRowsSelected(!!checked)
+                  }}
+                />
+              </div>
+            ),
             enableHiding: false,
             size: 110,
             minSize: 100,
 
             cell: ({ row }: { row: Row<T> }) => {
               const item = row.original
-              const isSelected = row.getIsSelected()
 
               return (
                 <DebitNoteTableActions
@@ -246,19 +257,14 @@ export function DebitNoteBaseTable<T>({
                   onEdit={onEdit}
                   onDelete={onDelete}
                   onSelect={(_, checked) => {
-                    console.log(
-                      "Row selection toggled:",
-                      checked,
-                      "Row ID:",
-                      row.id
-                    )
                     row.toggleSelected(checked)
                   }}
                   idAccessor={accessorId}
                   hideView={hideView}
                   hideEdit={hideEdit}
                   hideDelete={hideDelete}
-                  isSelected={isSelected}
+                  isSelected={row.getIsSelected()}
+                  onCheckboxChange={row.getToggleSelectedHandler()}
                   disableOnDebitNoteExists={disableOnDebitNoteExists}
                 />
               )
@@ -434,9 +440,41 @@ export function DebitNoteBaseTable<T>({
                 {table.getHeaderGroups().map((headerGroup) => (
                   <TableRow key={headerGroup.id} className="bg-muted/50">
                     {/* Render each header */}
-                    {headerGroup.headers.map((header) => (
-                      <SortableTableHeader key={header.id} header={header} />
-                    ))}
+                    {headerGroup.headers.map((header) => {
+                      // Don't use SortableTableHeader for drag and actions columns
+                      if (header.id === "drag" || header.id === "actions") {
+                        return (
+                          <TableHead
+                            key={header.id}
+                            colSpan={header.colSpan}
+                            style={{
+                              width: header.getSize(),
+                              minWidth: header.column.columnDef.minSize,
+                              maxWidth: header.column.columnDef.maxSize,
+                            }}
+                            className="bg-muted group hover:bg-muted/80 relative transition-colors"
+                          >
+                            {header.isPlaceholder ? null : (
+                              <div className="flex items-center justify-between pl-3">
+                                <div className="flex items-center">
+                                  <span className="font-medium">
+                                    {flexRender(
+                                      header.column.columnDef.header,
+                                      header.getContext()
+                                    )}
+                                  </span>
+                                </div>
+                              </div>
+                            )}
+                          </TableHead>
+                        )
+                      }
+
+                      // Use SortableTableHeader for regular columns
+                      return (
+                        <SortableTableHeader key={header.id} header={header} />
+                      )
+                    })}
                   </TableRow>
                 ))}
               </TableHeader>

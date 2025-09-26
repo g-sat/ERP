@@ -13,7 +13,8 @@ interface DebitNoteTableActionsProps<T> {
   hideView?: boolean
   hideEdit?: boolean
   hideDelete?: boolean
-  isSelected?: boolean
+  isSelected: boolean
+  onCheckboxChange?: (checked: boolean) => void // ✅ Make optional
   disableOnDebitNoteExists?: boolean
 }
 
@@ -27,23 +28,27 @@ export function DebitNoteTableActions<T>({
   hideView,
   hideEdit,
   hideDelete,
-  isSelected = true,
+  isSelected,
+  onCheckboxChange,
   disableOnDebitNoteExists = true,
 }: DebitNoteTableActionsProps<T>) {
+  const hasValidDebitNoteId =
+    disableOnDebitNoteExists && row.debitNoteId && row.debitNoteId > 0
+
   const handleCheckboxChange = (checked: boolean) => {
-    console.log("Checkbox changed:", checked, "Row:", row)
-    if (onSelect) {
+    if (onCheckboxChange) {
+      onCheckboxChange(checked)
+    } else if (onSelect) {
       onSelect(row, checked)
     }
   }
-  const hasValidDebitNoteId =
-    disableOnDebitNoteExists && row.debitNoteId && row.debitNoteId > 0
 
   return (
     <div className="flex items-center gap-2">
       <Checkbox
         checked={isSelected}
-        onCheckedChange={handleCheckboxChange}
+        onCheckedChange={(checked) => handleCheckboxChange(!!checked)}
+        disabled={!!hasValidDebitNoteId}
         className={hasValidDebitNoteId ? "cursor-not-allowed opacity-50" : ""}
         title={
           hasValidDebitNoteId
@@ -52,49 +57,55 @@ export function DebitNoteTableActions<T>({
         }
       />
 
-      <Button
-        variant="ghost"
-        size="icon"
-        className="h-6 w-6"
-        disabled={hideView}
-        onClick={() => onView?.(row)}
-      >
-        <Eye className="h-4 w-4" />
-      </Button>
+      {/* Action buttons (unchanged) */}
+      {!hideView && (
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-6 w-6"
+          onClick={() => onView?.(row)}
+        >
+          <Eye className="h-4 w-4" />
+        </Button>
+      )}
 
-      <Button
-        variant="ghost"
-        size="icon"
-        className={`h-6 w-6 ${
-          hasValidDebitNoteId
-            ? "cursor-not-allowed text-gray-400 opacity-50"
-            : ""
-        }`}
-        onClick={() => !hasValidDebitNoteId && onEdit?.(row)}
-        disabled={hideEdit}
-        title={hasValidDebitNoteId ? "Cannot edit - Debit Note exists" : "Edit"}
-      >
-        <Pencil className="h-4 w-4" />
-      </Button>
+      {!hideEdit && (
+        <Button
+          variant="ghost"
+          size="icon"
+          className={`h-6 w-6 ${
+            hasValidDebitNoteId
+              ? "cursor-not-allowed text-gray-400 opacity-50"
+              : ""
+          }`}
+          onClick={() => !hasValidDebitNoteId && onEdit?.(row)}
+          title={
+            hasValidDebitNoteId ? "Cannot edit - Debit Note exists" : "Edit"
+          }
+        >
+          <Pencil className="h-4 w-4" />
+        </Button>
+      )}
 
-      <Button
-        variant="ghost"
-        size="icon"
-        className={`h-6 w-6 ${
-          hasValidDebitNoteId
-            ? "cursor-not-allowed text-gray-400 opacity-50"
-            : "text-destructive hover:bg-destructive/10"
-        }`}
-        onClick={() =>
-          !hasValidDebitNoteId && onDelete?.(String(row[idAccessor]))
-        }
-        disabled={hideDelete}
-        title={
-          hasValidDebitNoteId ? "Cannot delete - Debit Note exists" : "Delete"
-        }
-      >
-        <Trash2 className="h-4 w-4" />
-      </Button>
+      {!hideDelete && (
+        <Button
+          variant="ghost"
+          size="icon"
+          className={`h-6 w-6 ${
+            hasValidDebitNoteId
+              ? "cursor-not-allowed text-gray-400 opacity-50"
+              : "text-destructive hover:bg-destructive/10"
+          }`}
+          onClick={() =>
+            !hasValidDebitNoteId && onDelete?.(String(row[idAccessor]))
+          }
+          title={
+            hasValidDebitNoteId ? "Cannot delete - Debit Note exists" : "Delete"
+          }
+        >
+          <Trash2 className="h-4 w-4" />
+        </Button>
+      )}
     </div>
   )
 }
