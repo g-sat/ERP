@@ -3,7 +3,7 @@
 import { useEffect } from "react"
 import { IDebitNoteDt } from "@/interfaces/checklist"
 import { IChargeLookup, IGstLookup } from "@/interfaces/lookup"
-import { DebitNoteDtFormValues, DebitNoteDtSchema } from "@/schemas/checklist"
+import { DebitNoteDtFormValues, debitNoteDtSchema } from "@/schemas/checklist"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 
@@ -48,7 +48,7 @@ export function DebitNoteForm({
   )
 
   const form = useForm<DebitNoteDtFormValues>({
-    resolver: zodResolver(DebitNoteDtSchema),
+    resolver: zodResolver(debitNoteDtSchema),
     defaultValues: {
       debitNoteId: initialData?.debitNoteId ?? 0,
       debitNoteNo: initialData?.debitNoteNo ?? "",

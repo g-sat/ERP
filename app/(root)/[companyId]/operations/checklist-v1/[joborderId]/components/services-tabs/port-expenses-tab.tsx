@@ -29,7 +29,7 @@ import { DeleteConfirmation } from "@/components/confirmation/delete-confirmatio
 import { SaveConfirmation } from "@/components/confirmation/save-confirmation"
 
 import { CombinedFormsDialog } from "../services-combined/combined-forms-dialog"
-import { DebitNoteDialog } from "../services-combined/debit-note-dialog"
+import DebitNoteDialog from "../services-combined/debit-note-dialog"
 import { PurchaseDialog } from "../services-combined/purchase-dialog"
 import { PortExpensesForm } from "../services-forms/port-expenses-form"
 import { PortExpensesTable } from "../services-tables/port-expenses-table"
@@ -338,10 +338,8 @@ export function PortExpensesTab({
           // For now, open the first item's debit note
           // In the future, you might want to handle multiple debit notes differently
           const firstItem = itemsWithExistingDebitNotes[0]
-          setSelectedItem(firstItem)
-          setShowDebitNoteModal(true)
-          debugger
-          // Fetch the existing debit note data
+
+          // Fetch the existing debit note data FIRST
           const debitNoteResponse = (await getData(
             `${JobOrder_DebitNote.getById}/${jobData.jobOrderId}/${Task.PortExpenses}/${firstItem.debitNoteId}`
           )) as ApiResponse<IDebitNoteHd>
@@ -355,11 +353,17 @@ export function PortExpensesTab({
               : debitNoteResponse.data
 
             console.log("Existing debitNoteData", debitNoteData)
-            queryClient.invalidateQueries({ queryKey: ["portExpenses"] })
             setDebitNoteHd(debitNoteData)
-          }
 
-          console.log("Opening existing debit note")
+            // Set the selected item and open the modal AFTER data is fetched
+            setSelectedItem(firstItem)
+            setShowDebitNoteModal(true)
+
+            queryClient.invalidateQueries({ queryKey: ["portExpenses"] })
+            console.log("Opening existing debit note")
+          } else {
+            console.error("Failed to fetch existing debit note data")
+          }
           return
         }
 
@@ -384,11 +388,7 @@ export function PortExpensesTab({
 
         // Check if the mutation was successful
         if (response.result > 0) {
-          // Set the first selected item and open the debit note modal
-          setSelectedItem(foundItems[0])
-          setShowDebitNoteModal(true)
-
-          // Fetch the debit note data using the returned ID
+          // Fetch the debit note data using the returned ID FIRST
           const debitNoteResponse = (await getData(
             `${JobOrder_DebitNote.getById}/${jobData.jobOrderId}/${Task.PortExpenses}/${response.result}`
           )) as ApiResponse<IDebitNoteHd>
@@ -401,6 +401,12 @@ export function PortExpensesTab({
 
             console.log("New debitNoteData", debitNoteData)
             setDebitNoteHd(debitNoteData)
+
+            // Set the first selected item and open the debit note modal AFTER data is fetched
+            setSelectedItem(foundItems[0])
+            setShowDebitNoteModal(true)
+          } else {
+            console.error("Failed to fetch debit note data after creation")
           }
 
           console.log(
@@ -412,7 +418,7 @@ export function PortExpensesTab({
         console.error("Error handling debit note:", error)
       }
     },
-    [debitNoteMutation, data, jobData]
+    [debitNoteMutation, data, jobData, queryClient]
   )
 
   const handlePurchase = useCallback(() => {

@@ -588,51 +588,8 @@ export const ThirdPartySchema = z.object({
 
 export type ThirdPartyFormValues = z.infer<typeof ThirdPartySchema>
 
-export const DebitNoteHdSchema = z.object({
-  debitNoteId: z.number().default(0),
-  debitNoteNo: z.string().min(1, "Debit Note Number is required"),
-  debitNoteDate: z.string().min(1, "Debit Note Date is required"),
-  jobOrderId: z.number().min(1, "Job Order ID is required"),
-  jobOrderNo: z.string().min(1, "Job Order No is required"),
-  taskId: z.number().min(1, "Task ID is required"),
-  taskName: z.string().default(""),
-  serviceId: z.number().min(1, "Service ID is required"),
-  serviceName: z.string().default(""),
-  chargeId: z.number().min(1, "Charge is required"),
-  chargeName: z.string().default(""),
-  currencyId: z.number().min(1, "Currency is required"),
-  currencyName: z.string().default(""),
-  exhRate: z.number().min(0, "Exchange rate must be 0 or greater").default(0),
-  totAmt: z.number().min(0, "Total amount must be 0 or greater").default(0),
-  serviceAmt: z
-    .number()
-    .min(0, "Service amount must be 0 or greater")
-    .default(0),
-  gstAmt: z.number().min(0, "GST amount must be 0 or greater").default(0),
-  totAftGstAmt: z
-    .number()
-    .min(0, "Total after GST must be 0 or greater")
-    .default(0),
-  glId: z.number().min(1, "GL Account is required"),
-  glName: z.string().default(""),
-  taxableAmt: z
-    .number()
-    .min(0, "Taxable amount must be 0 or greater")
-    .default(0),
-  nonTaxableAmt: z
-    .number()
-    .min(0, "Non-taxable amount must be 0 or greater")
-    .default(0),
-  editVersion: z
-    .number()
-    .min(0, "Edit version must be 0 or greater")
-    .default(0),
-  debitNoteDetails: z.array(z.object({})).default([]), // Placeholder for DebitNoteDtViewModel structure
-})
-
-export type DebitNoteHdFormValues = z.infer<typeof DebitNoteHdSchema>
-
-export const DebitNoteDtSchema = z
+// Define debitNoteDtSchema first since it's referenced by debitNoteHdSchema
+export const debitNoteDtSchema = z
   .object({
     debitNoteId: z.number().min(1, "Debit Note ID is required"),
     debitNoteNo: z.string().min(1, "Debit Note Number is required"),
@@ -682,4 +639,42 @@ export const DebitNoteDtSchema = z
     }
   })
 
-export type DebitNoteDtFormValues = z.infer<typeof DebitNoteDtSchema>
+export type DebitNoteDtFormValues = z.infer<typeof debitNoteDtSchema>
+
+// Define debitNoteHdSchema after debitNoteDtSchema
+export const debitNoteHdSchema = z.object({
+  debitNoteId: z.number().default(0),
+  debitNoteNo: z.string().min(1, "Debit Note Number is required"),
+  debitNoteDate: z.union([z.string(), z.date()]).default(""),
+  jobOrderId: z.number().min(1, "Job Order ID is required"),
+  itemNo: z.number().min(0, "Item Number is required").default(0),
+  taskId: z.number().min(1, "Task ID is required"),
+  serviceId: z.number().min(1, "Service ID is required"),
+  chargeId: z.number().min(1, "Charge is required"),
+  currencyId: z.number().min(1, "Currency is required"),
+  exhRate: z.number().min(0, "Exchange rate must be 0 or greater").default(0),
+  totAmt: z.number().min(0, "Total amount must be 0 or greater").default(0),
+  gstAmt: z.number().min(0, "GST amount must be 0 or greater").default(0),
+  totAftGstAmt: z
+    .number()
+    .min(0, "Total after GST must be 0 or greater")
+    .default(0),
+  glId: z.number().min(1, "GL Account is required"),
+  taxableAmt: z
+    .number()
+    .min(0, "Taxable amount must be 0 or greater")
+    .default(0),
+  nonTaxableAmt: z
+    .number()
+    .min(0, "Non-taxable amount must be 0 or greater")
+    .default(0),
+  isLocked: z.boolean().default(false),
+  editVersion: z
+    .number()
+    .min(0, "Edit version must be 0 or greater")
+    .default(0),
+  // Nested Details
+  data_details: z.array(debitNoteDtSchema).optional().default([]),
+})
+
+export type DebitNoteHdFormValues = z.infer<typeof debitNoteHdSchema>

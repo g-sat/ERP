@@ -3,7 +3,10 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 import { calculateDebitNoteSummary } from "@/helpers/debit-note-calculations"
 import { IDebitNoteDt, IDebitNoteHd } from "@/interfaces/checklist"
-import { DebitNoteDtFormValues } from "@/schemas/checklist"
+import {
+  DebitNoteDtFormValues,
+  DebitNoteHdFormValues,
+} from "@/schemas/checklist"
 import { useQueryClient } from "@tanstack/react-query"
 
 import { JobOrder_DebitNote } from "@/lib/api-routes"
@@ -35,7 +38,7 @@ interface DebitNoteDialogProps {
   onDelete?: (debitNoteId: number) => void
 }
 
-export function DebitNoteDialog({
+export default function DebitNoteDialog({
   open,
   taskId,
   debitNoteHd,
@@ -46,12 +49,9 @@ export function DebitNoteDialog({
   onDelete,
 }: DebitNoteDialogProps) {
   const [details, setDetails] = useState<IDebitNoteDt[]>(
-    debitNoteHd?.debitNoteDetails ?? []
+    debitNoteHd?.data_details ?? []
   )
   const detailsRef = useRef(details)
-  console.log(isConfirmed, "isConfirmed debit note")
-  console.log("debitNoteHd from debit note", debitNoteHd)
-  console.log("details from debit note", debitNoteHd?.debitNoteDetails)
 
   // State for modal and selected debit note detail
   const [selectedDebitNoteDetail, setSelectedDebitNoteDetail] = useState<
@@ -64,7 +64,7 @@ export function DebitNoteDialog({
 
   // Update details when debitNoteHd changes
   useEffect(() => {
-    setDetails(debitNoteHd?.debitNoteDetails ?? [])
+    setDetails(debitNoteHd?.data_details ?? [])
   }, [debitNoteHd])
 
   // Update ref when details change
@@ -94,18 +94,6 @@ export function DebitNoteDialog({
     debitNoteNo: null,
   })
 
-  // State for save confirmation
-  const [saveConfirmation, setSaveConfirmation] = useState<{
-    isOpen: boolean
-    data: DebitNoteDtFormValues | null
-  }>({
-    isOpen: false,
-    data: null,
-  })
-
-  // State to track the selected charge name
-  const [selectedChargeName, setSelectedChargeName] = useState<string>("")
-
   // State to trigger form reset
   const [shouldResetForm, setShouldResetForm] = useState<boolean>(false)
 
@@ -127,29 +115,31 @@ export function DebitNoteDialog({
     count: 0,
   })
 
+  // State for save confirmation
+  const [saveConfirmation, setSaveConfirmation] = useState<{
+    isOpen: boolean
+  }>({
+    isOpen: false,
+  })
+
+  const saveMutationV1 = usePersist<DebitNoteHdFormValues>(
+    `${JobOrder_DebitNote.addV1}`
+  )
+
   // Define mutations for CRUD operations
-  const saveMutation = usePersist<IDebitNoteDt>(
-    `${JobOrder_DebitNote.saveDetails}`
-  )
-  const updateMutation = usePersist<IDebitNoteDt>(
-    `${JobOrder_DebitNote.saveDetails}`
-  )
   const bulkDeleteMutation = useDelete(`${JobOrder_DebitNote.deleteDetails}`)
 
   // Handler to open modal for creating a new debit note detail
   const handleCreateDebitNoteDetail = useCallback(() => {
     setModalMode("create")
     setSelectedDebitNoteDetail(undefined)
-    setSelectedChargeName("")
   }, [])
 
   // Handler to open modal for editing a debit note detail
   const handleEditDebitNoteDetail = useCallback(
     (debitNoteDetail: IDebitNoteDt) => {
-      console.log("Edit Debit Note Detail:", debitNoteDetail)
       setModalMode("edit")
       setSelectedDebitNoteDetail(debitNoteDetail)
-      setSelectedChargeName(debitNoteDetail.chargeName || "")
     },
     []
   )
@@ -164,100 +154,38 @@ export function DebitNoteDialog({
     []
   )
 
-  // Handler for form submission (create or edit) - shows confirmation first
-  const handleFormSubmit = useCallback((data: DebitNoteDtFormValues) => {
-    setSaveConfirmation({
-      isOpen: true,
-      data: data,
-    })
-  }, [])
-
-  // Handler for confirmed form submission
-  const handleConfirmedFormSubmit = useCallback(
-    async (data: DebitNoteDtFormValues) => {
-      try {
-        if (!debitNoteHd?.debitNoteId) {
-          console.error("Debit note header not found")
-          return
-        }
-
-        // Prepare the data for the API call
-        const debitNoteDetailData: IDebitNoteDt = {
-          debitNoteId: debitNoteHd.debitNoteId,
-          debitNoteNo: debitNoteHd.debitNoteNo,
-          itemNo: selectedDebitNoteDetail
-            ? selectedDebitNoteDetail.itemNo
-            : detailsRef.current.length + 1,
-          taskId: data.taskId,
-          chargeId: data.chargeId,
-          glId: data.glId,
-          qty: data.qty,
-          unitPrice: data.unitPrice,
-          totLocalAmt: data.totLocalAmt,
-          totAmt: data.totAmt,
-          gstId: data.gstId,
-          gstPercentage: data.gstPercentage,
-          gstAmt: data.gstAmt,
-          totAftGstAmt: data.totAftGstAmt,
-          remarks: data.remarks,
-          editVersion: data.editVersion,
-          isServiceCharge: data.isServiceCharge,
-          serviceCharge: data.serviceCharge,
-        }
-
-        if (modalMode === "create") {
-          const response = await saveMutation.mutateAsync(debitNoteDetailData)
-          if (response.result > 0) {
-            // Add new item to local state
-            const newItem: IDebitNoteDt = {
-              ...debitNoteDetailData,
-              itemNo: detailsRef.current.length + 1,
-            }
-            setDetails((prev) => [...prev, newItem])
-
-            queryClient.invalidateQueries({
-              queryKey: [
-                JobOrder_DebitNote.getDetails,
-                debitNoteHd.jobOrderId,
-                taskId,
-                debitNoteHd.debitNoteId,
-              ],
-            })
-            queryClient.invalidateQueries({ queryKey: ["debit-note-details"] })
-            // Reset form after successful creation
-            setSelectedDebitNoteDetail(undefined)
-            setSelectedChargeName("")
-            setShouldResetForm(true)
-          }
-        } else if (modalMode === "edit" && selectedDebitNoteDetail) {
-          const response = await updateMutation.mutateAsync(debitNoteDetailData)
-          if (response.result > 0) {
-            // Update existing item in local state
-            setDetails((prev) =>
-              prev.map((item) =>
-                item.itemNo === selectedDebitNoteDetail.itemNo
-                  ? { ...item, ...data }
-                  : item
-              )
-            )
-            // Reset form after successful update
-            queryClient.invalidateQueries({ queryKey: ["debit-note-details"] })
-            setSelectedDebitNoteDetail(undefined)
-            setSelectedChargeName("")
-            setShouldResetForm(true)
-          }
-        }
-      } catch (error) {
-        console.error("Error in form submission:", error)
+  // Handler for form submission (create or edit) - add to table directly
+  const handleFormSubmit = useCallback(
+    (data: DebitNoteDtFormValues) => {
+      // Add new item to local state directly (no confirmation needed for add)
+      const newItem: IDebitNoteDt = {
+        debitNoteId: debitNoteHd?.debitNoteId || 0,
+        debitNoteNo: debitNoteHd?.debitNoteNo || "",
+        itemNo: detailsRef.current.length + 1,
+        taskId: data.taskId,
+        chargeId: data.chargeId,
+        glId: data.glId,
+        qty: data.qty,
+        unitPrice: data.unitPrice,
+        totLocalAmt: data.totLocalAmt,
+        totAmt: data.totAmt,
+        gstId: data.gstId,
+        gstPercentage: data.gstPercentage,
+        gstAmt: data.gstAmt,
+        totAftGstAmt: data.totAftGstAmt,
+        remarks: data.remarks,
+        editVersion: data.editVersion,
+        isServiceCharge: data.isServiceCharge,
+        serviceCharge: data.serviceCharge,
       }
+
+      setDetails((prev) => [...prev, newItem])
+
+      // Reset form after successful addition
+      setSelectedDebitNoteDetail(undefined)
+      setShouldResetForm(true)
     },
-    [
-      modalMode,
-      selectedDebitNoteDetail,
-      debitNoteHd,
-      saveMutation,
-      updateMutation,
-    ]
+    [debitNoteHd]
   )
 
   // Handler for deleting a debit note detail
@@ -288,6 +216,75 @@ export function DebitNoteDialog({
       })
     }
   }, [deleteConfirmation])
+
+  // Handler for saving the debit note
+  const handleSaveDebitNote = useCallback(async () => {
+    try {
+      if (!debitNoteHd?.debitNoteId) {
+        console.error("Debit note header not found")
+        return
+      }
+
+      // Calculate totals from details
+      const totalAmount = details.reduce(
+        (sum, detail) => sum + (detail.totAmt || 0),
+        0
+      )
+      const totalGstAmount = details.reduce(
+        (sum, detail) => sum + (detail.gstAmt || 0),
+        0
+      )
+      const totalAfterGst = details.reduce(
+        (sum, detail) => sum + (detail.totAftGstAmt || 0),
+        0
+      )
+
+      // Create the complete debit note header with details
+      const newDebitNoteHd: DebitNoteHdFormValues = {
+        debitNoteId: debitNoteHd.debitNoteId,
+        debitNoteNo: debitNoteHd.debitNoteNo,
+        jobOrderId: debitNoteHd.jobOrderId,
+        debitNoteDate: debitNoteHd.debitNoteDate,
+        itemNo: debitNoteHd.itemNo,
+        taskId: debitNoteHd.taskId,
+        serviceId: debitNoteHd.serviceId,
+        chargeId: debitNoteHd.chargeId,
+        currencyId: debitNoteHd.currencyId,
+        exhRate: debitNoteHd.exhRate,
+        glId: debitNoteHd.glId,
+        taxableAmt: debitNoteHd.taxableAmt,
+        nonTaxableAmt: debitNoteHd.nonTaxableAmt,
+        editVersion: debitNoteHd.editVersion,
+        totAmt: totalAmount,
+        gstAmt: totalGstAmount,
+        totAftGstAmt: totalAfterGst,
+        isLocked: debitNoteHd.isLocked,
+        data_details: details, // Include all details
+      }
+
+      // Save the complete debit note (header + details) using the new API
+      const response = await saveMutationV1.mutateAsync(newDebitNoteHd)
+
+      if (response.result > 0) {
+        // Close the save confirmation dialog
+        setSaveConfirmation({ isOpen: false })
+
+        // Invalidate queries to refresh data
+        queryClient.invalidateQueries({
+          queryKey: [
+            JobOrder_DebitNote.getDetails,
+            debitNoteHd.jobOrderId,
+            taskId,
+            debitNoteHd.debitNoteId,
+          ],
+        })
+        queryClient.invalidateQueries({ queryKey: ["debit-note-details"] })
+      }
+    } catch (error) {
+      console.error("Error saving debit note:", error)
+      alert("Error saving debit note. Please try again.")
+    }
+  }, [debitNoteHd, details, saveMutationV1, queryClient, taskId])
 
   // Handler for deleting the entire debit note - shows confirmation first
   const handleDeleteDebitNote = useCallback(() => {
@@ -361,24 +358,17 @@ export function DebitNoteDialog({
   const handleRefresh = useCallback(() => {
     // Reset the form state
     setSelectedDebitNoteDetail(undefined)
-    setSelectedChargeName("")
     setShouldResetForm(true)
-
-    // You can add additional refresh logic here if needed
-    // For example, refetch data from API, etc.
   }, [])
 
   // Handler for data reordering
   const handleDataReorder = useCallback((newData: IDebitNoteDt[]) => {
-    console.log("Data reordered:", newData)
-
     // Update itemNo to reflect the new order (1, 2, 3, 4, 5, 6...)
     const updatedData = newData.map((item, index) => ({
       ...item,
       itemNo: index + 1,
     }))
 
-    console.log("Updated data with new itemNo:", updatedData)
     setDetails(updatedData)
   }, [])
 
@@ -535,6 +525,28 @@ export function DebitNoteDialog({
                   Print
                 </Button>
                 <Button
+                  size="sm"
+                  variant="outline"
+                  className="border-green-200 text-green-700 transition-colors hover:border-green-300 hover:bg-green-50"
+                  disabled={isConfirmed || !debitNoteHd?.debitNoteId}
+                  onClick={() => setSaveConfirmation({ isOpen: true })}
+                >
+                  <svg
+                    className="mr-2 h-4 w-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"
+                    />
+                  </svg>
+                  Save
+                </Button>
+                <Button
                   variant="destructive"
                   size="sm"
                   className="bg-red-600 transition-colors hover:bg-red-700"
@@ -571,12 +583,12 @@ export function DebitNoteDialog({
               }
               submitAction={handleFormSubmit}
               onCancel={() => setSelectedDebitNoteDetail(undefined)}
-              isSubmitting={saveMutation.isPending || updateMutation.isPending}
+              isSubmitting={false}
               isConfirmed={isConfirmed}
               taskId={taskId}
               exchangeRate={debitNoteHd?.exhRate || 1}
               companyId={debitNoteHd?.companyId || 0}
-              onChargeChange={setSelectedChargeName}
+              onChargeChange={() => {}}
               shouldReset={shouldResetForm}
             />
           </div>
@@ -641,41 +653,6 @@ export function DebitNoteDialog({
             isDeleting={false}
           />
 
-          {/* Save Confirmation Dialog */}
-          <SaveConfirmation
-            open={saveConfirmation.isOpen}
-            onOpenChange={(isOpen) =>
-              setSaveConfirmation((prev) => ({ ...prev, isOpen }))
-            }
-            title={
-              modalMode === "create"
-                ? "Create Debit Note Detail"
-                : "Update Debit Note Detail"
-            }
-            itemName={
-              selectedChargeName ||
-              selectedDebitNoteDetail?.chargeName ||
-              `Item ${selectedDebitNoteDetail?.itemNo || details.length + 1}`
-            }
-            operationType={modalMode === "create" ? "create" : "update"}
-            onConfirm={() => {
-              if (saveConfirmation.data) {
-                handleConfirmedFormSubmit(saveConfirmation.data)
-              }
-              setSaveConfirmation({
-                isOpen: false,
-                data: null,
-              })
-            }}
-            onCancel={() =>
-              setSaveConfirmation({
-                isOpen: false,
-                data: null,
-              })
-            }
-            isSaving={saveMutation.isPending || updateMutation.isPending}
-          />
-
           {/* Bulk Delete Confirmation Dialog */}
           <DeleteConfirmation
             open={bulkDeleteConfirmation.isOpen}
@@ -695,10 +672,26 @@ export function DebitNoteDialog({
             }
             isDeleting={bulkDeleteMutation.isPending}
           />
+
+          {/* Save Confirmation Dialog */}
+          <SaveConfirmation
+            open={saveConfirmation.isOpen}
+            onOpenChange={(isOpen) =>
+              setSaveConfirmation((prev) => ({ ...prev, isOpen }))
+            }
+            title="Save Debit Note"
+            operationType="save"
+            itemName={`Debit Note ${debitNoteHd?.debitNoteNo || ""}`}
+            onConfirm={handleSaveDebitNote}
+            onCancel={() =>
+              setSaveConfirmation({
+                isOpen: false,
+              })
+            }
+            isSaving={saveMutationV1.isPending}
+          />
         </div>
       </DialogContent>
     </Dialog>
   )
 }
-
-export default DebitNoteDialog

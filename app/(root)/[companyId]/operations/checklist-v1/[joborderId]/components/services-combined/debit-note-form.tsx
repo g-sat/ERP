@@ -4,7 +4,7 @@ import { useEffect, useMemo } from "react"
 import { calculateDebitNoteDetailAmounts } from "@/helpers/debit-note-calculations"
 import { IDebitNoteDt, IDebitNoteHd } from "@/interfaces/checklist"
 import { IChargeLookup, IGstLookup } from "@/interfaces/lookup"
-import { DebitNoteDtFormValues, DebitNoteDtSchema } from "@/schemas/checklist"
+import { DebitNoteDtFormValues, debitNoteDtSchema } from "@/schemas/checklist"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { format } from "date-fns"
 import { useForm } from "react-hook-form"
@@ -84,7 +84,7 @@ export default function DebitNoteForm({
   )
 
   const form = useForm<DebitNoteDtFormValues>({
-    resolver: zodResolver(DebitNoteDtSchema),
+    resolver: zodResolver(debitNoteDtSchema),
     mode: "onChange", // Validate on blur to show errors after user interaction
     defaultValues: initialData
       ? {
@@ -218,18 +218,14 @@ export default function DebitNoteForm({
       form.setValue("remarks", newRemarks)
 
       // Notify parent component of charge name change
-      if (onChargeChange) {
-        onChargeChange(selectedCharge.chargeName)
-      }
+      onChargeChange?.(selectedCharge.chargeName)
     } else {
       // Clear related data when charge is cleared
       form.setValue("chargeId", 0)
       form.setValue("glId", 0)
 
       // Notify parent component that charge is cleared
-      if (onChargeChange) {
-        onChargeChange("")
-      }
+      onChargeChange?.("")
     }
   }
 
@@ -340,9 +336,7 @@ export default function DebitNoteForm({
         ...defaultValues,
       })
       // Notify parent that charge is cleared
-      if (onChargeChange) {
-        onChargeChange("")
-      }
+      onChargeChange?.("")
     }
   }, [shouldReset, form, defaultValues, onChargeChange])
 
@@ -500,6 +494,7 @@ export default function DebitNoteForm({
                 name="remarks"
                 label="Remarks"
                 isDisabled={isConfirmed}
+                isRequired={true}
               />
             </div>
 

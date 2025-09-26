@@ -47,11 +47,11 @@ export function DebitNoteDialog({
   onDelete,
 }: DebitNoteDialogProps) {
   const [details, setDetails] = useState<IDebitNoteDt[]>(
-    debitNoteHd?.debitNoteDetails ?? []
+    debitNoteHd?.data_details ?? []
   )
   console.log(isConfirmed, "isConfirmed debit note")
   console.log("debitNoteHd from debit note", debitNoteHd)
-  console.log("details from debit note", debitNoteHd?.debitNoteDetails)
+  console.log("details from debit note", debitNoteHd?.data_details)
 
   // State for modal and selected debit note detail
   const [selectedDebitNoteDetail, setSelectedDebitNoteDetail] = useState<
@@ -64,7 +64,7 @@ export function DebitNoteDialog({
 
   // Update details when debitNoteHd changes
   useEffect(() => {
-    setDetails(debitNoteHd?.debitNoteDetails ?? [])
+    setDetails(debitNoteHd?.data_details ?? [])
   }, [debitNoteHd])
 
   // State for delete confirmation (for debit note details)

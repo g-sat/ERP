@@ -750,9 +750,9 @@ export interface IDebitNoteHd {
   companyId: number
   debitNoteId: number
   debitNoteNo: string
-  debitNoteDate: Date
+  debitNoteDate: Date | string
+  itemNo: number
   jobOrderId: number
-  jobOrderNo: string
   taskId: number
   taskName?: string
   serviceId: number
@@ -769,8 +769,9 @@ export interface IDebitNoteHd {
   glName?: string
   taxableAmt: number
   nonTaxableAmt: number
+  isLocked: boolean
   editVersion: number
-  debitNoteDetails?: IDebitNoteDt[]
+  data_details?: IDebitNoteDt[]
 }
 
 export interface IDebitNoteDt {

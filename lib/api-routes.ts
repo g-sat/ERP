@@ -1135,6 +1135,7 @@ export const JobOrder_DebitNote = {
   getDetails: "/operations/getdebitnotedetails",
   saveDetails: "/operations/savedebitnotedetails",
   deleteDetails: "/operations/deletedebitnotedetails",
+  addV1: "/operations/savedebitnoteV1",
 }
 
 // GL Period Close Endpoints
