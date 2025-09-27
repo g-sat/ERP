@@ -65,9 +65,8 @@ export function DebitNoteTable({
             {row.getValue("itemNo") || "-"}
           </div>
         ),
-        size: 80,
-        minSize: 60,
-        maxSize: 100,
+        size: 60,
+        minSize: 50,
       },
       {
         accessorKey: "remarks",
@@ -77,18 +76,17 @@ export function DebitNoteTable({
             {row.getValue("remarks") || "-"}
           </div>
         ),
-        size: 200,
-        minSize: 150,
+        size: 350,
+        minSize: 250,
       },
       {
         accessorKey: "qty",
-        header: "Quantity",
+        header: "Qty",
         cell: ({ row }) => (
           <div className="text-right">{row.getValue("qty") || "0"}</div>
         ),
-        size: 100,
-        minSize: 80,
-        maxSize: 120,
+        size: 60,
+        minSize: 60,
       },
       {
         accessorKey: "unitPrice",
@@ -100,12 +98,12 @@ export function DebitNoteTable({
               : "0.00"}
           </div>
         ),
-        size: 120,
-        minSize: 100,
+        size: 100,
+        minSize: 80,
       },
       {
         accessorKey: "totAmt",
-        header: "Total Amount",
+        header: "Amount",
         cell: ({ row }) => (
           <div className="text-right font-medium">
             {typeof row.getValue("totAmt") === "number"
@@ -113,12 +111,12 @@ export function DebitNoteTable({
               : "0.00"}
           </div>
         ),
-        size: 130,
+        size: 120,
         minSize: 100,
       },
       {
         accessorKey: "gstPercentage",
-        header: "GST %",
+        header: "VAT %",
         cell: ({ row }) => (
           <div className="text-right">
             {typeof row.getValue("gstPercentage") === "number"
@@ -126,13 +124,12 @@ export function DebitNoteTable({
               : "0%"}
           </div>
         ),
-        size: 80,
-        minSize: 60,
-        maxSize: 100,
+        size: 60,
+        minSize: 50,
       },
       {
         accessorKey: "gstAmt",
-        header: "GST Amount",
+        header: "VAT",
         cell: ({ row }) => (
           <div className="text-right">
             {typeof row.getValue("gstAmt") === "number"
@@ -140,12 +137,12 @@ export function DebitNoteTable({
               : "0.00"}
           </div>
         ),
-        size: 120,
-        minSize: 100,
+        size: 80,
+        minSize: 60,
       },
       {
         accessorKey: "totAftGstAmt",
-        header: "Total After GST",
+        header: "Total",
         cell: ({ row }) => (
           <div className="text-right font-medium">
             {typeof row.getValue("totAftGstAmt") === "number"
@@ -153,9 +150,8 @@ export function DebitNoteTable({
               : "0.00"}
           </div>
         ),
-        size: 140,
-        minSize: 120,
-        maxSize: 160,
+        size: 120,
+        minSize: 100,
       },
       {
         accessorKey: "editVersion",

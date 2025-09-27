@@ -71,7 +71,22 @@ export function DeleteConfirmation({
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>{title}</AlertDialogTitle>
-          <AlertDialogDescription>{fullDescription}</AlertDialogDescription>
+          <AlertDialogDescription>
+            {itemName && itemName.includes("<br/>") ? (
+              <div>
+                <p className="mb-2 font-medium text-red-600">
+                  You are about to delete:
+                </p>
+                <div
+                  className="font-medium text-red-700"
+                  dangerouslySetInnerHTML={{ __html: itemName }}
+                />
+                <p className="mt-2 text-red-600">{description}</p>
+              </div>
+            ) : (
+              <div className="text-red-600">{fullDescription}</div>
+            )}
+          </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel onClick={handleCancel} disabled={isDeleting}>

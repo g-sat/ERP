@@ -8,11 +8,19 @@ import {
   DebitNoteHdFormValues,
 } from "@/schemas/checklist"
 import { useQueryClient } from "@tanstack/react-query"
-import { Printer, Save, Trash } from "lucide-react"
+import {
+  DollarSign,
+  ListChecks,
+  Printer,
+  Receipt,
+  Save,
+  Trash,
+  TrendingUp,
+} from "lucide-react"
 
 import { JobOrder_DebitNote } from "@/lib/api-routes"
 import { TaskIdToName } from "@/lib/operations-utils"
-import { useDelete, usePersist } from "@/hooks/use-common"
+import { usePersist } from "@/hooks/use-common"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -74,7 +82,7 @@ export default function DebitNoteDialog({
   }, [details])
 
   // State for delete confirmation (for debit note details)
-  const [deleteConfirmation, setDeleteConfirmation] = useState<{
+  const [detailsDeleteConfirmation, setDetailsDeleteConfirmation] = useState<{
     isOpen: boolean
     debitNoteId: number | null
     debitNoteNo: string | null
@@ -110,10 +118,12 @@ export default function DebitNoteDialog({
     isOpen: boolean
     selectedIds: string[]
     count: number
+    itemsList?: string
   }>({
     isOpen: false,
     selectedIds: [],
     count: 0,
+    itemsList: "",
   })
 
   // State for save confirmation
@@ -123,12 +133,9 @@ export default function DebitNoteDialog({
     isOpen: false,
   })
 
-  const saveMutationV1 = usePersist<DebitNoteHdFormValues>(
-    `${JobOrder_DebitNote.addV1}`
+  const saveMutation = usePersist<DebitNoteHdFormValues>(
+    `${JobOrder_DebitNote.add}`
   )
-
-  // Define mutations for CRUD operations
-  const bulkDeleteMutation = useDelete(`${JobOrder_DebitNote.deleteDetails}`)
 
   // Handler to open modal for creating a new debit note detail
   const handleCreateDebitNoteDetail = useCallback(() => {
@@ -194,29 +201,37 @@ export default function DebitNoteDialog({
     const detailToDelete = detailsRef.current.find(
       (detail) => detail.itemNo.toString() === itemNo
     )
+
     if (!detailToDelete) return
 
     // Open delete confirmation dialog with detail information
-    setDeleteConfirmation({
+    setDetailsDeleteConfirmation({
       isOpen: true,
       debitNoteId: detailToDelete.itemNo,
-      debitNoteNo: `Item ${detailToDelete.itemNo}`,
+      debitNoteNo: `Item ${detailToDelete.itemNo}${detailToDelete.remarks ? ` - ${detailToDelete.remarks}` : ""}`,
     })
   }, [])
 
-  const handleConfirmDelete = useCallback(() => {
-    if (deleteConfirmation.debitNoteId) {
-      // Remove from local state
-      setDetails((prev) =>
-        prev.filter((item) => item.itemNo !== deleteConfirmation.debitNoteId)
-      )
-      setDeleteConfirmation({
+  const handleConfirmDeleteDetails = useCallback(() => {
+    if (detailsDeleteConfirmation.debitNoteId) {
+      // Remove from local state and rearrange itemNo
+      setDetails((prev) => {
+        const filtered = prev.filter(
+          (item) => item.itemNo !== detailsDeleteConfirmation.debitNoteId
+        )
+        // Rearrange itemNo to maintain sequential order (1, 2, 3, 4...)
+        return filtered.map((item, index) => ({
+          ...item,
+          itemNo: index + 1,
+        }))
+      })
+      setDetailsDeleteConfirmation({
         isOpen: false,
         debitNoteId: null,
         debitNoteNo: null,
       })
     }
-  }, [deleteConfirmation])
+  }, [detailsDeleteConfirmation])
 
   // Handler for saving the debit note
   const handleSaveDebitNote = useCallback(async () => {
@@ -264,7 +279,7 @@ export default function DebitNoteDialog({
       }
 
       // Save the complete debit note (header + details) using the new API
-      const response = await saveMutationV1.mutateAsync(newDebitNoteHd)
+      const response = await saveMutation.mutateAsync(newDebitNoteHd)
 
       if (response.result > 0) {
         // Close the save confirmation dialog
@@ -285,7 +300,7 @@ export default function DebitNoteDialog({
       console.error("Error saving debit note:", error)
       alert("Error saving debit note. Please try again.")
     }
-  }, [debitNoteHd, details, saveMutationV1, queryClient, taskId])
+  }, [debitNoteHd, details, saveMutation, queryClient, taskId])
 
   // Handler for deleting the entire debit note - shows confirmation first
   const handleDeleteDebitNote = useCallback(() => {
@@ -299,7 +314,7 @@ export default function DebitNoteDialog({
   }, [debitNoteHd])
 
   // Handler for confirmed main debit note deletion
-  const handleConfirmMainDelete = useCallback(() => {
+  const handleConfirmMainDeleteMain = useCallback(() => {
     if (mainDeleteConfirmation.debitNoteId && onDelete) {
       onDelete(mainDeleteConfirmation.debitNoteId)
       setMainDeleteConfirmation({
@@ -313,47 +328,55 @@ export default function DebitNoteDialog({
   // Handler for bulk delete of debit note details
   const handleBulkDeleteDebitNoteDetails = useCallback(
     (selectedIds: string[]) => {
+      // Get details for selected items
+      const selectedDetails = detailsRef.current.filter((detail) =>
+        selectedIds.includes(detail.itemNo.toString())
+      )
+
+      // Create numbered list of items with remarks
+      const itemsList = selectedDetails
+        .map((detail, index) => {
+          const itemInfo = `Item ${detail.itemNo}`
+          const remarks = detail.remarks?.trim()
+          return `${index + 1}. ${itemInfo}${remarks ? ` - ${remarks}` : ""}`
+        })
+        .join("<br/>")
+
       setBulkDeleteConfirmation({
         isOpen: true,
         selectedIds,
         count: selectedIds.length,
+        itemsList, // Add the formatted list
       })
     },
     []
   )
 
   // Handler for confirmed bulk delete
-  const handleConfirmBulkDelete = useCallback(async () => {
-    if (
-      !bulkDeleteConfirmation.selectedIds.length ||
-      !debitNoteHd?.debitNoteId
-    ) {
+  const handleConfirmBulkDeleteBulk = useCallback(() => {
+    if (!bulkDeleteConfirmation.selectedIds.length) {
       return
     }
 
-    try {
-      const multipleId = bulkDeleteConfirmation.selectedIds.join(",")
-      const deleteUrl = `${JobOrder_DebitNote.deleteDetails}/${debitNoteHd.jobOrderId}/${taskId}/${debitNoteHd.debitNoteId}/${multipleId}`
-
-      await bulkDeleteMutation.mutateAsync(deleteUrl)
-
-      // Remove deleted items from local state
-      setDetails((prev) =>
-        prev.filter(
-          (item) =>
-            !bulkDeleteConfirmation.selectedIds.includes(item.itemNo.toString())
-        )
+    // Remove deleted items from local state and rearrange itemNo
+    setDetails((prev) => {
+      const filtered = prev.filter(
+        (item) =>
+          !bulkDeleteConfirmation.selectedIds.includes(item.itemNo.toString())
       )
+      // Rearrange itemNo to maintain sequential order (1, 2, 3, 4...)
+      return filtered.map((item, index) => ({
+        ...item,
+        itemNo: index + 1,
+      }))
+    })
 
-      setBulkDeleteConfirmation({
-        isOpen: false,
-        selectedIds: [],
-        count: 0,
-      })
-    } catch (error) {
-      console.error("Error deleting debit note details:", error)
-    }
-  }, [bulkDeleteConfirmation, debitNoteHd, taskId, bulkDeleteMutation])
+    setBulkDeleteConfirmation({
+      isOpen: false,
+      selectedIds: [],
+      count: 0,
+    })
+  }, [bulkDeleteConfirmation])
 
   // Handler for refreshing the table data
   const handleRefresh = useCallback(() => {
@@ -432,19 +455,7 @@ export default function DebitNoteDialog({
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                 <div className="flex items-center gap-3">
                   <div className="rounded-full bg-blue-100 p-2">
-                    <svg
-                      className="h-4 w-4 text-blue-600"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"
-                      />
-                    </svg>
+                    <DollarSign className="h-4 w-4 text-blue-600" />
                   </div>
                   <div>
                     <p className="text-xs font-medium">Total Amount</p>
@@ -456,19 +467,7 @@ export default function DebitNoteDialog({
 
                 <div className="flex items-center gap-3">
                   <div className="rounded-full bg-green-100 p-2">
-                    <svg
-                      className="h-4 w-4 text-green-600"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"
-                      />
-                    </svg>
+                    <Receipt className="h-4 w-4 text-green-600" />
                   </div>
                   <div>
                     <p className="text-xs font-medium">VAT Amount</p>
@@ -480,19 +479,7 @@ export default function DebitNoteDialog({
 
                 <div className="flex items-center gap-3">
                   <div className="rounded-full bg-purple-100 p-2">
-                    <svg
-                      className="h-4 w-4 text-purple-600"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
-                      />
-                    </svg>
+                    <TrendingUp className="h-4 w-4 text-purple-600" />
                   </div>
                   <div>
                     <p className="text-xs font-medium">Total After VAT</p>
@@ -505,6 +492,11 @@ export default function DebitNoteDialog({
 
               {/* Action Buttons */}
               <div className="flex flex-col gap-3 sm:flex-row">
+                <Button size="sm" variant="outline">
+                  <ListChecks className="mr-2 h-4 w-4" />
+                  Bulk Charges
+                </Button>
+
                 <Button size="sm" variant="outline">
                   <Printer className="mr-2 h-4 w-4" />
                   Print
@@ -573,26 +565,6 @@ export default function DebitNoteDialog({
             </div>
           </div>
 
-          {/* Delete Confirmation Dialog for Debit Note Detail */}
-          <DeleteConfirmation
-            open={deleteConfirmation.isOpen}
-            onOpenChange={(isOpen) =>
-              setDeleteConfirmation((prev) => ({ ...prev, isOpen }))
-            }
-            title="Delete Debit Note Detail"
-            description="This action cannot be undone. This will permanently delete the debit note detail from our servers."
-            itemName={deleteConfirmation.debitNoteNo || ""}
-            onConfirm={handleConfirmDelete}
-            onCancel={() =>
-              setDeleteConfirmation({
-                isOpen: false,
-                debitNoteId: null,
-                debitNoteNo: null,
-              })
-            }
-            isDeleting={false}
-          />
-
           {/* Delete Confirmation Dialog for Main Debit Note */}
           <DeleteConfirmation
             open={mainDeleteConfirmation.isOpen}
@@ -602,9 +574,29 @@ export default function DebitNoteDialog({
             title="Delete Debit Note"
             description="This action cannot be undone. This will permanently delete the entire debit note and all its details from our servers."
             itemName={mainDeleteConfirmation.debitNoteNo || ""}
-            onConfirm={handleConfirmMainDelete}
+            onConfirm={handleConfirmMainDeleteMain}
             onCancel={() =>
               setMainDeleteConfirmation({
+                isOpen: false,
+                debitNoteId: null,
+                debitNoteNo: null,
+              })
+            }
+            isDeleting={false}
+          />
+
+          {/* Delete Confirmation Dialog for Debit Note Detail */}
+          <DeleteConfirmation
+            open={detailsDeleteConfirmation.isOpen}
+            onOpenChange={(isOpen) =>
+              setDetailsDeleteConfirmation((prev) => ({ ...prev, isOpen }))
+            }
+            title="Delete Debit Note Detail"
+            description="This action cannot be undone. This will permanently delete the debit note detail from our servers."
+            itemName={detailsDeleteConfirmation.debitNoteNo || ""}
+            onConfirm={handleConfirmDeleteDetails}
+            onCancel={() =>
+              setDetailsDeleteConfirmation({
                 isOpen: false,
                 debitNoteId: null,
                 debitNoteNo: null,
@@ -621,16 +613,20 @@ export default function DebitNoteDialog({
             }
             title="Delete Selected Items"
             description="This action cannot be undone. This will permanently delete the selected debit note details from our servers."
-            itemName={`${bulkDeleteConfirmation.count} selected item${bulkDeleteConfirmation.count !== 1 ? "s" : ""}`}
-            onConfirm={handleConfirmBulkDelete}
+            itemName={
+              bulkDeleteConfirmation.itemsList ||
+              `${bulkDeleteConfirmation.count} selected item${bulkDeleteConfirmation.count !== 1 ? "s" : ""}`
+            }
+            onConfirm={handleConfirmBulkDeleteBulk}
             onCancel={() =>
               setBulkDeleteConfirmation({
                 isOpen: false,
                 selectedIds: [],
                 count: 0,
+                itemsList: "",
               })
             }
-            isDeleting={bulkDeleteMutation.isPending}
+            isDeleting={false}
           />
 
           {/* Save Confirmation Dialog */}
@@ -640,7 +636,7 @@ export default function DebitNoteDialog({
               setSaveConfirmation((prev) => ({ ...prev, isOpen }))
             }
             title="Save Debit Note"
-            operationType="save"
+            operationType={"update"}
             itemName={`Debit Note ${debitNoteHd?.debitNoteNo || ""}`}
             onConfirm={handleSaveDebitNote}
             onCancel={() =>
@@ -648,7 +644,7 @@ export default function DebitNoteDialog({
                 isOpen: false,
               })
             }
-            isSaving={saveMutationV1.isPending}
+            isSaving={saveMutation.isPending}
           />
         </div>
       </DialogContent>

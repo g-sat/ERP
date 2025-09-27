@@ -89,6 +89,18 @@ export function SaveConfirmation({
     }
   }
 
+  // Get the appropriate button color based on operation type
+  const getButtonColor = () => {
+    switch (operationType) {
+      case "create":
+        return "!bg-green-600 !text-white hover:!bg-green-700"
+      case "update":
+        return "!bg-blue-600 !text-white hover:!bg-blue-700"
+      default:
+        return "bg-primary text-primary-foreground hover:bg-primary/90"
+    }
+  }
+
   return (
     <AlertDialog open={isOpen} onOpenChange={setIsOpen}>
       <AlertDialogContent>
@@ -103,7 +115,7 @@ export function SaveConfirmation({
           <AlertDialogAction
             onClick={handleConfirm}
             disabled={isSaving}
-            className="bg-primary text-primary-foreground hover:bg-primary/90"
+            className={getButtonColor()}
           >
             {getButtonText()}
           </AlertDialogAction>
