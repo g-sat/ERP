@@ -66,6 +66,7 @@ interface DebitNoteBaseTableProps<T> {
   onEdit?: (item: T) => void
   onDelete?: (itemId: string) => void
   onBulkDelete?: (selectedIds: string[]) => void
+  onBulkSelectionChange?: (selectedIds: string[]) => void
   onPurchase?: (itemId: string) => void
   onDataReorder?: (newData: T[]) => void
   isConfirmed?: boolean
@@ -94,6 +95,7 @@ export function DebitNoteBaseTable<T>({
   onEdit,
   onDelete,
   onBulkDelete,
+  onBulkSelectionChange,
   onDataReorder,
   isConfirmed,
   showHeader = true,
@@ -371,12 +373,35 @@ export function DebitNoteBaseTable<T>({
     )
 
     // Extract IDs using the accessorId
-    const selectedIds = selectedItems.map((item) =>
-      String((item as Record<string, unknown>)[accessorId as string])
-    )
+    const selectedIds = selectedItems
+      .map((item) => {
+        const id = (item as Record<string, unknown>)[accessorId as string]
+        return id ? String(id) : ""
+      })
+      .filter((id) => id !== "")
 
     onBulkDelete(selectedIds)
   }
+
+  // Handle bulk selection change
+  useEffect(() => {
+    if (onBulkSelectionChange) {
+      const selectedRowIds = Object.keys(rowSelection)
+      const selectedItems = data.filter((_, index) =>
+        selectedRowIds.includes(index.toString())
+      )
+
+      // Extract IDs using the accessorId
+      const selectedIds = selectedItems
+        .map((item) => {
+          const id = (item as Record<string, unknown>)[accessorId as string]
+          return id ? String(id) : ""
+        })
+        .filter((id) => id !== "")
+
+      onBulkSelectionChange(selectedIds)
+    }
+  }, [rowSelection, data, accessorId, onBulkSelectionChange])
   useEffect(() => {
     if (!data?.length && onFilterChange) {
       const filters = {

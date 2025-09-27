@@ -2,7 +2,11 @@
 
 import { useCallback, useEffect, useRef, useState } from "react"
 import { calculateDebitNoteSummary } from "@/helpers/debit-note-calculations"
-import { IDebitNoteDt, IDebitNoteHd } from "@/interfaces/checklist"
+import {
+  IBulkChargeData,
+  IDebitNoteDt,
+  IDebitNoteHd,
+} from "@/interfaces/checklist"
 import {
   DebitNoteDtFormValues,
   DebitNoteHdFormValues,
@@ -20,7 +24,7 @@ import {
 
 import { JobOrder_DebitNote } from "@/lib/api-routes"
 import { TaskIdToName } from "@/lib/operations-utils"
-import { usePersist } from "@/hooks/use-common"
+import { useGet, usePersist } from "@/hooks/use-common"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -33,6 +37,7 @@ import {
 import { DeleteConfirmation } from "@/components/confirmation/delete-confirmation"
 import { SaveConfirmation } from "@/components/confirmation/save-confirmation"
 
+import { BulkDebitNoteDialog } from "./debit-note-bulk-table"
 import DebitNoteForm from "./debit-note-form"
 import DebitNoteTable from "./debit-note-table"
 
@@ -140,9 +145,23 @@ export default function DebitNoteDialog({
     isOpen: false,
   })
 
+  // State for bulk charges dialog
+  const [bulkChargesDialog, setBulkChargesDialog] = useState<{
+    isOpen: boolean
+  }>({
+    isOpen: false,
+  })
+
   const saveMutation = usePersist<DebitNoteHdFormValues>(
     `${JobOrder_DebitNote.add}`
   )
+
+  // Fetch bulk charges when dialog opens
+  const { data: bulkChargesResponse, isLoading: isBulkChargesLoading } =
+    useGet<IBulkChargeData>(
+      `${JobOrder_DebitNote.getBulkDetails}/${taskId}`,
+      "bulk-charges"
+    )
 
   // Handler to open modal for creating a new debit note detail
   const handleCreateDebitNoteDetail = useCallback(() => {
@@ -427,6 +446,36 @@ export default function DebitNoteDialog({
     setDetails(updatedData)
   }, [])
 
+  // Handler for adding bulk charges
+  const handleAddBulkCharges = useCallback(
+    (selectedItems: IBulkChargeData[]) => {
+      // Convert bulk charges to debit note details
+      const newDetails: IDebitNoteDt[] = selectedItems.map((item, index) => ({
+        debitNoteId: debitNoteHdState?.debitNoteId || 0,
+        debitNoteNo: debitNoteHdState?.debitNoteNo || "",
+        itemNo: detailsRef.current.length + index + 1,
+        taskId: taskId,
+        chargeId: item.chargeId,
+        glId: item.glId,
+        qty: 1, // Default quantity
+        unitPrice: 0, // Default unit price
+        totLocalAmt: 0,
+        totAmt: 0,
+        gstId: 0,
+        gstPercentage: 0,
+        gstAmt: 0,
+        totAftGstAmt: 0,
+        remarks: item.remarks || item.chargeName || "",
+        editVersion: 0,
+        isServiceCharge: false,
+        serviceCharge: 0,
+      }))
+
+      setDetails((prev) => [...prev, ...newDetails])
+    },
+    [debitNoteHdState, taskId]
+  )
+
   // Get task name by task ID from the debit note header
   const taskName =
     TaskIdToName[debitNoteHdState?.taskId || taskId] || "Unknown Task"
@@ -526,7 +575,11 @@ export default function DebitNoteDialog({
 
               {/* Action Buttons */}
               <div className="flex flex-col gap-3 sm:flex-row">
-                <Button size="sm" variant="outline">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setBulkChargesDialog({ isOpen: true })}
+                >
                   <ListChecks className="mr-2 h-4 w-4" />
                   Bulk Charges
                 </Button>
@@ -671,7 +724,7 @@ export default function DebitNoteDialog({
             }
             title="Save Debit Note"
             operationType={"update"}
-            itemName={`Debit Note ${debitNoteHd?.debitNoteNo || ""}`}
+            itemName={`Debit Note ${debitNoteHdState?.debitNoteNo || ""}`}
             onConfirm={handleSaveDebitNote}
             onCancel={() =>
               setSaveConfirmation({
@@ -679,6 +732,24 @@ export default function DebitNoteDialog({
               })
             }
             isSaving={saveMutation.isPending}
+          />
+
+          {/* Bulk Charges Dialog */}
+          <BulkDebitNoteDialog
+            open={bulkChargesDialog.isOpen}
+            onOpenChange={(isOpen) =>
+              setBulkChargesDialog((prev) => ({ ...prev, isOpen }))
+            }
+            data={
+              Array.isArray(bulkChargesResponse?.data)
+                ? (bulkChargesResponse.data as IBulkChargeData[])
+                : []
+            }
+            isLoading={isBulkChargesLoading}
+            onAddSelected={handleAddBulkCharges}
+            moduleId={taskId}
+            transactionId={taskId}
+            isConfirmed={isConfirmed}
           />
         </div>
       </DialogContent>
