@@ -2,12 +2,12 @@
 
 import { useEffect } from "react"
 import { ApiResponse } from "@/interfaces/auth"
-import { IEquipmentUsed } from "@/interfaces/checklist"
+import { ILaunchService } from "@/interfaces/checklist"
 import { useAuthStore } from "@/stores/auth-store"
 import { ColumnDef } from "@tanstack/react-table"
 import { format, isValid } from "date-fns"
 
-import { JobOrder_EquipmentUsed } from "@/lib/api-routes"
+import { JobOrder_LaunchServices } from "@/lib/api-routes"
 import { TableName } from "@/lib/utils"
 import { useGet } from "@/hooks/use-common"
 import { Badge } from "@/components/ui/badge"
@@ -20,21 +20,21 @@ import {
 } from "@/components/ui/dialog"
 import { BasicTable } from "@/components/table/table-basic"
 
-interface EquipmentUsedHistoryDialogProps {
+interface LaunchServiceHistoryDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   jobOrderId: number
-  equipmentUsedId: number
-  equipmentUsedIdDisplay?: number
+  launchServiceId: number
+  launchServiceIdDisplay?: number
 }
 
-export function EquipmentUsedHistoryDialog({
+export function LaunchServiceHistoryDialog({
   open,
   onOpenChange,
   jobOrderId,
-  equipmentUsedId,
-  equipmentUsedIdDisplay,
-}: EquipmentUsedHistoryDialogProps) {
+  launchServiceId,
+  launchServiceIdDisplay,
+}: LaunchServiceHistoryDialogProps) {
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
 
@@ -43,21 +43,21 @@ export function EquipmentUsedHistoryDialog({
     data: historyResponse,
     isLoading,
     refetch,
-  } = useGet<IEquipmentUsed>(
-    `${JobOrder_EquipmentUsed.getByIdHistory}/${jobOrderId}/${equipmentUsedId}`,
-    "equipmentUsedHistory"
+  } = useGet<ILaunchService>(
+    `${JobOrder_LaunchServices.getByIdHistory}/${jobOrderId}/${launchServiceId}`,
+    "launchServiceHistory"
   )
 
   // Destructure with fallback values
   const { data: historyData } =
-    (historyResponse as ApiResponse<IEquipmentUsed>) ?? {
+    (historyResponse as ApiResponse<ILaunchService>) ?? {
       result: 0,
       message: "",
       data: [],
     }
 
   // Define columns for the history table
-  const columns: ColumnDef<IEquipmentUsed>[] = [
+  const columns: ColumnDef<ILaunchService>[] = [
     {
       accessorKey: "editVersion",
       header: "Version",
@@ -90,86 +90,65 @@ export function EquipmentUsedHistoryDialog({
       minSize: 100,
     },
     {
-      accessorKey: "referenceNo",
-      header: "Reference No",
+      accessorKey: "bargeName",
+      header: "Barge",
       cell: ({ row }) => (
-        <div className="text-center font-medium">
-          {row.getValue("referenceNo") || "-"}
+        <div className="max-w-xs truncate">
+          {row.getValue("bargeName") || "-"}
         </div>
-      ),
-      size: 130,
-      minSize: 110,
-    },
-    {
-      accessorKey: "mafi",
-      header: "MAFI",
-      cell: ({ row }) => (
-        <div className="text-center">{row.getValue("mafi") || "-"}</div>
-      ),
-      size: 100,
-      minSize: 80,
-    },
-    {
-      accessorKey: "others",
-      header: "Others",
-      cell: ({ row }) => (
-        <div className="max-w-xs truncate">{row.getValue("others") || "-"}</div>
       ),
       size: 120,
       minSize: 100,
     },
     {
-      accessorKey: "craneChargeName",
-      header: "Crane Charge",
+      accessorKey: "boatOperator",
+      header: "Boat Operator",
       cell: ({ row }) => (
         <div className="max-w-xs truncate">
-          {row.getValue("craneChargeName") || "-"}
+          {row.getValue("boatOperator") || "-"}
         </div>
       ),
       size: 130,
       minSize: 110,
     },
     {
-      accessorKey: "forkliftChargeName",
-      header: "Forklift Charge",
+      accessorKey: "deliveredWeight",
+      header: "Delivered Weight",
       cell: ({ row }) => (
-        <div className="max-w-xs truncate">
-          {row.getValue("forkliftChargeName") || "-"}
+        <div className="text-right">
+          {typeof row.getValue("deliveredWeight") === "number"
+            ? (row.getValue("deliveredWeight") as number).toFixed(2)
+            : "0.00"}
         </div>
       ),
       size: 130,
       minSize: 110,
     },
     {
-      accessorKey: "stevedoreChargeName",
-      header: "Stevedore Charge",
+      accessorKey: "landedWeight",
+      header: "Landed Weight",
       cell: ({ row }) => (
-        <div className="max-w-xs truncate">
-          {row.getValue("stevedoreChargeName") || "-"}
+        <div className="text-right">
+          {typeof row.getValue("landedWeight") === "number"
+            ? (row.getValue("landedWeight") as number).toFixed(2)
+            : "0.00"}
         </div>
       ),
       size: 130,
       minSize: 110,
     },
     {
-      accessorKey: "loadingRefNo",
-      header: "Loading Ref No",
+      accessorKey: "distance",
+      header: "Distance",
       cell: ({ row }) => (
-        <div className="text-center">{row.getValue("loadingRefNo") || "-"}</div>
-      ),
-      size: 130,
-      minSize: 110,
-    },
-    {
-      accessorKey: "offloadingRefNo",
-      header: "Offloading Ref No",
-      cell: ({ row }) => (
-        <div className="text-center">
-          {row.getValue("offloadingRefNo") || "-"}
+        <div className="text-right">
+          {typeof row.getValue("distance") === "number"
+            ? (row.getValue("distance") as number).toFixed(2)
+            : "0.00"}
         </div>
       ),
-      size: 140,
-      minSize: 120,
+      size: 100,
+      minSize: 80,
     },
     {
       accessorKey: "totAmt",
@@ -211,36 +190,17 @@ export function EquipmentUsedHistoryDialog({
       minSize: 120,
     },
     {
-      accessorKey: "statusName",
-      header: "Status",
-      cell: ({ row }) => (
-        <div className="text-center">
-          <Badge variant="outline">{row.getValue("statusName") || "-"}</Badge>
-        </div>
-      ),
-      size: 100,
-      minSize: 80,
-    },
-    {
       accessorKey: "debitNoteNo",
       header: "Debit Note",
-      cell: ({ row }) => {
-        const debitNoteNo = row.getValue("debitNoteNo")
-        return (
-          <div className="text-center">
-            {debitNoteNo ? (
-              <Badge
-                variant="secondary"
-                className="bg-green-100 text-green-800"
-              >
-                {debitNoteNo}
-              </Badge>
-            ) : (
-              <span className="text-muted-foreground">-</span>
-            )}
-          </div>
-        )
-      },
+      size: 120,
+      minSize: 100,
+    },
+    {
+      accessorKey: "invoiceNo",
+      header: "Invoice No",
+      cell: ({ row }) => (
+        <div className="text-center">{row.getValue("invoiceNo") || "-"}</div>
+      ),
       size: 120,
       minSize: 100,
     },
@@ -333,20 +293,20 @@ export function EquipmentUsedHistoryDialog({
         }}
       >
         <DialogHeader>
-          <DialogTitle>Equipment Used History</DialogTitle>
+          <DialogTitle>Launch Service History</DialogTitle>
           <DialogDescription>
-            View version history for Equipment Used ID:{" "}
-            {equipmentUsedIdDisplay || equipmentUsedId}
+            View version history for Launch Service ID:{" "}
+            {launchServiceIdDisplay || launchServiceId}
           </DialogDescription>
         </DialogHeader>
 
         <div className="mt-4">
-          <BasicTable<IEquipmentUsed>
+          <BasicTable<ILaunchService>
             data={historyData || []}
             columns={columns}
             isLoading={isLoading}
-            emptyMessage="No history found for this equipment used record."
-            tableName={TableName.equipmentUsed}
+            emptyMessage="No history found for this launch service."
+            tableName={TableName.launchService}
             showHeader={false}
             showFooter={false}
           />
@@ -356,4 +316,4 @@ export function EquipmentUsedHistoryDialog({
   )
 }
 
-export default EquipmentUsedHistoryDialog
+export default LaunchServiceHistoryDialog

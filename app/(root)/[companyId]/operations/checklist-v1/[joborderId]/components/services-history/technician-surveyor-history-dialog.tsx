@@ -2,12 +2,12 @@
 
 import { useEffect } from "react"
 import { ApiResponse } from "@/interfaces/auth"
-import { IFreshWater } from "@/interfaces/checklist"
+import { ITechnicianSurveyor } from "@/interfaces/checklist"
 import { useAuthStore } from "@/stores/auth-store"
 import { ColumnDef } from "@tanstack/react-table"
 import { format, isValid } from "date-fns"
 
-import { JobOrder_FreshWater } from "@/lib/api-routes"
+import { JobOrder_TechnicianSurveyor } from "@/lib/api-routes"
 import { TableName } from "@/lib/utils"
 import { useGet } from "@/hooks/use-common"
 import { Badge } from "@/components/ui/badge"
@@ -20,21 +20,21 @@ import {
 } from "@/components/ui/dialog"
 import { BasicTable } from "@/components/table/table-basic"
 
-interface FreshWaterHistoryDialogProps {
+interface TechnicianSurveyorHistoryDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   jobOrderId: number
-  freshWaterId: number
-  freshWaterIdDisplay?: number
+  technicianSurveyorId: number
+  technicianSurveyorIdDisplay?: number
 }
 
-export function FreshWaterHistoryDialog({
+export function TechnicianSurveyorHistoryDialog({
   open,
   onOpenChange,
   jobOrderId,
-  freshWaterId,
-  freshWaterIdDisplay,
-}: FreshWaterHistoryDialogProps) {
+  technicianSurveyorId,
+  technicianSurveyorIdDisplay,
+}: TechnicianSurveyorHistoryDialogProps) {
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
 
@@ -43,21 +43,21 @@ export function FreshWaterHistoryDialog({
     data: historyResponse,
     isLoading,
     refetch,
-  } = useGet<IFreshWater>(
-    `${JobOrder_FreshWater.getByIdHistory}/${jobOrderId}/${freshWaterId}`,
-    "freshWaterHistory"
+  } = useGet<ITechnicianSurveyor>(
+    `${JobOrder_TechnicianSurveyor.getByIdHistory}/${jobOrderId}/${technicianSurveyorId}`,
+    "technicianSurveyorHistory"
   )
 
   // Destructure with fallback values
   const { data: historyData } =
-    (historyResponse as ApiResponse<IFreshWater>) ?? {
+    (historyResponse as ApiResponse<ITechnicianSurveyor>) ?? {
       result: 0,
       message: "",
       data: [],
     }
 
   // Define columns for the history table
-  const columns: ColumnDef<IFreshWater>[] = [
+  const columns: ColumnDef<ITechnicianSurveyor>[] = [
     {
       accessorKey: "editVersion",
       header: "Version",
@@ -73,10 +73,61 @@ export function FreshWaterHistoryDialog({
       maxSize: 80,
     },
     {
-      accessorKey: "date",
-      header: "Date",
+      accessorKey: "name",
+      header: "Name",
+      cell: ({ row }) => (
+        <div className="max-w-xs truncate font-medium">
+          {row.getValue("name") || "-"}
+        </div>
+      ),
+      size: 150,
+      minSize: 120,
+    },
+    {
+      accessorKey: "companyInfo",
+      header: "Company",
+      cell: ({ row }) => (
+        <div className="max-w-xs truncate">
+          {row.getValue("companyInfo") || "-"}
+        </div>
+      ),
+      size: 150,
+      minSize: 120,
+    },
+    {
+      accessorKey: "natureOfAttendance",
+      header: "Nature of Attendance",
+      cell: ({ row }) => (
+        <div className="max-w-xs truncate">
+          {row.getValue("natureOfAttendance") || "-"}
+        </div>
+      ),
+      size: 150,
+      minSize: 120,
+    },
+    {
+      accessorKey: "passTypeName",
+      header: "Pass Type",
+      cell: ({ row }) => (
+        <div className="text-center">{row.getValue("passTypeName") || "-"}</div>
+      ),
+      size: 120,
+      minSize: 100,
+    },
+    {
+      accessorKey: "quantity",
+      header: "Quantity",
+      cell: ({ row }) => (
+        <div className="text-right">{row.getValue("quantity") || "0"}</div>
+      ),
+      size: 100,
+      minSize: 80,
+    },
+    {
+      accessorKey: "embarked",
+      header: "Embarked",
       cell: ({ row }) => {
-        const dateValue = row.getValue("date")
+        const dateValue = row.getValue("embarked")
         if (!dateValue) return <div>-</div>
 
         const date = new Date(dateValue as string)
@@ -90,81 +141,32 @@ export function FreshWaterHistoryDialog({
       minSize: 100,
     },
     {
-      accessorKey: "bargeName",
-      header: "Barge",
-      cell: ({ row }) => (
-        <div className="max-w-xs truncate">
-          {row.getValue("bargeName") || "-"}
-        </div>
-      ),
+      accessorKey: "disembarked",
+      header: "Disembarked",
+      cell: ({ row }) => {
+        const dateValue = row.getValue("disembarked")
+        if (!dateValue) return <div>-</div>
+
+        const date = new Date(dateValue as string)
+        return (
+          <div className="text-center">
+            {isValid(date) ? format(date, "dd/MM/yyyy") : "-"}
+          </div>
+        )
+      },
       size: 120,
       minSize: 100,
     },
     {
-      accessorKey: "operatorName",
-      header: "Operator",
+      accessorKey: "portRequestNo",
+      header: "Port Request No",
       cell: ({ row }) => (
-        <div className="max-w-xs truncate">
-          {row.getValue("operatorName") || "-"}
+        <div className="text-center">
+          {row.getValue("portRequestNo") || "-"}
         </div>
       ),
-      size: 120,
-      minSize: 100,
-    },
-    {
-      accessorKey: "supplyBarge",
-      header: "Supply Barge",
-      cell: ({ row }) => (
-        <div className="max-w-xs truncate">
-          {row.getValue("supplyBarge") || "-"}
-        </div>
-      ),
-      size: 120,
-      minSize: 100,
-    },
-    {
-      accessorKey: "quantity",
-      header: "Quantity",
-      cell: ({ row }) => (
-        <div className="text-right">
-          {typeof row.getValue("quantity") === "number"
-            ? (row.getValue("quantity") as number).toFixed(2)
-            : "0.00"}
-        </div>
-      ),
-      size: 100,
-      minSize: 80,
-    },
-    {
-      accessorKey: "uomName",
-      header: "UOM",
-      cell: ({ row }) => (
-        <div className="text-center">{row.getValue("uomName") || "-"}</div>
-      ),
-      size: 80,
-      minSize: 60,
-    },
-    {
-      accessorKey: "distance",
-      header: "Distance",
-      cell: ({ row }) => (
-        <div className="text-right">
-          {typeof row.getValue("distance") === "number"
-            ? (row.getValue("distance") as number).toFixed(2)
-            : "0.00"}
-        </div>
-      ),
-      size: 100,
-      minSize: 80,
-    },
-    {
-      accessorKey: "receiptNo",
-      header: "Receipt No",
-      cell: ({ row }) => (
-        <div className="text-center">{row.getValue("receiptNo") || "-"}</div>
-      ),
-      size: 120,
-      minSize: 100,
+      size: 130,
+      minSize: 110,
     },
     {
       accessorKey: "totAmt",
@@ -219,23 +221,6 @@ export function FreshWaterHistoryDialog({
     {
       accessorKey: "debitNoteNo",
       header: "Debit Note",
-      cell: ({ row }) => {
-        const debitNoteNo = row.getValue("debitNoteNo")
-        return (
-          <div className="text-center">
-            {debitNoteNo ? (
-              <Badge
-                variant="secondary"
-                className="bg-green-100 text-green-800"
-              >
-                {debitNoteNo}
-              </Badge>
-            ) : (
-              <span className="text-muted-foreground">-</span>
-            )}
-          </div>
-        )
-      },
       size: 120,
       minSize: 100,
     },
@@ -328,20 +313,20 @@ export function FreshWaterHistoryDialog({
         }}
       >
         <DialogHeader>
-          <DialogTitle>Fresh Water History</DialogTitle>
+          <DialogTitle>Technician Surveyor History</DialogTitle>
           <DialogDescription>
-            View version history for Fresh Water ID:{" "}
-            {freshWaterIdDisplay || freshWaterId}
+            View version history for Technician Surveyor ID:{" "}
+            {technicianSurveyorIdDisplay || technicianSurveyorId}
           </DialogDescription>
         </DialogHeader>
 
         <div className="mt-4">
-          <BasicTable<IFreshWater>
+          <BasicTable<ITechnicianSurveyor>
             data={historyData || []}
             columns={columns}
             isLoading={isLoading}
-            emptyMessage="No history found for this fresh water record."
-            tableName={TableName.freshWater}
+            emptyMessage="No history found for this technician surveyor record."
+            tableName={TableName.techniciansSurveyors}
             showHeader={false}
             showFooter={false}
           />
@@ -351,4 +336,4 @@ export function FreshWaterHistoryDialog({
   )
 }
 
-export default FreshWaterHistoryDialog
+export default TechnicianSurveyorHistoryDialog

@@ -2,12 +2,12 @@
 
 import { useEffect } from "react"
 import { ApiResponse } from "@/interfaces/auth"
-import { ICrewSignOff } from "@/interfaces/checklist"
+import { IOtherService } from "@/interfaces/checklist"
 import { useAuthStore } from "@/stores/auth-store"
 import { ColumnDef } from "@tanstack/react-table"
 import { format, isValid } from "date-fns"
 
-import { JobOrder_CrewSignOff } from "@/lib/api-routes"
+import { JobOrder_OtherService } from "@/lib/api-routes"
 import { TableName } from "@/lib/utils"
 import { useGet } from "@/hooks/use-common"
 import { Badge } from "@/components/ui/badge"
@@ -20,21 +20,21 @@ import {
 } from "@/components/ui/dialog"
 import { BasicTable } from "@/components/table/table-basic"
 
-interface CrewSignOffHistoryDialogProps {
+interface OtherServiceHistoryDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   jobOrderId: number
-  crewSignOffId: number
-  crewSignOffIdDisplay?: number
+  otherServiceId: number
+  otherServiceIdDisplay?: number
 }
 
-export function CrewSignOffHistoryDialog({
+export function OtherServiceHistoryDialog({
   open,
   onOpenChange,
   jobOrderId,
-  crewSignOffId,
-  crewSignOffIdDisplay,
-}: CrewSignOffHistoryDialogProps) {
+  otherServiceId,
+  otherServiceIdDisplay,
+}: OtherServiceHistoryDialogProps) {
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
 
@@ -43,21 +43,21 @@ export function CrewSignOffHistoryDialog({
     data: historyResponse,
     isLoading,
     refetch,
-  } = useGet<ICrewSignOff>(
-    `${JobOrder_CrewSignOff.getByIdHistory}/${jobOrderId}/${crewSignOffId}`,
-    "crewSignOffHistory"
+  } = useGet<IOtherService>(
+    `${JobOrder_OtherService.getByIdHistory}/${jobOrderId}/${otherServiceId}`,
+    "otherServiceHistory"
   )
 
   // Destructure with fallback values
   const { data: historyData } =
-    (historyResponse as ApiResponse<ICrewSignOff>) ?? {
+    (historyResponse as ApiResponse<IOtherService>) ?? {
       result: 0,
       message: "",
       data: [],
     }
 
   // Define columns for the history table
-  const columns: ColumnDef<ICrewSignOff>[] = [
+  const columns: ColumnDef<IOtherService>[] = [
     {
       accessorKey: "editVersion",
       header: "Version",
@@ -73,92 +73,71 @@ export function CrewSignOffHistoryDialog({
       maxSize: 80,
     },
     {
-      accessorKey: "crewName",
-      header: "Crew Name",
+      accessorKey: "date",
+      header: "Date",
+      cell: ({ row }) => {
+        const dateValue = row.getValue("date")
+        if (!dateValue) return <div>-</div>
+
+        const date = new Date(dateValue as string)
+        return (
+          <div className="text-center">
+            {isValid(date) ? format(date, "dd/MM/yyyy") : "-"}
+          </div>
+        )
+      },
+      size: 120,
+      minSize: 100,
+    },
+    {
+      accessorKey: "serviceProvider",
+      header: "Service Provider",
       cell: ({ row }) => (
         <div className="max-w-xs truncate font-medium">
-          {row.getValue("crewName") || "-"}
+          {row.getValue("serviceProvider") || "-"}
         </div>
       ),
       size: 150,
       minSize: 120,
     },
     {
-      accessorKey: "nationality",
-      header: "Nationality",
+      accessorKey: "chargeName",
+      header: "Charge",
       cell: ({ row }) => (
-        <div className="text-center">{row.getValue("nationality") || "-"}</div>
+        <div className="max-w-xs truncate">
+          {row.getValue("chargeName") || "-"}
+        </div>
       ),
-      size: 120,
-      minSize: 100,
+      size: 150,
+      minSize: 120,
     },
     {
-      accessorKey: "rankName",
-      header: "Rank",
+      accessorKey: "quantity",
+      header: "Quantity",
       cell: ({ row }) => (
-        <div className="text-center">{row.getValue("rankName") || "-"}</div>
+        <div className="text-right">{row.getValue("quantity") || "0"}</div>
       ),
       size: 100,
       minSize: 80,
     },
     {
-      accessorKey: "flightDetails",
-      header: "Flight Details",
+      accessorKey: "uomName",
+      header: "UOM",
       cell: ({ row }) => (
-        <div className="max-w-xs truncate">
-          {row.getValue("flightDetails") || "-"}
+        <div className="text-center">{row.getValue("uomName") || "-"}</div>
+      ),
+      size: 80,
+      minSize: 60,
+    },
+    {
+      accessorKey: "amount",
+      header: "Amount",
+      cell: ({ row }) => (
+        <div className="text-right">
+          {typeof row.getValue("amount") === "number"
+            ? (row.getValue("amount") as number).toFixed(2)
+            : "0.00"}
         </div>
-      ),
-      size: 150,
-      minSize: 120,
-    },
-    {
-      accessorKey: "hotelName",
-      header: "Hotel Name",
-      cell: ({ row }) => (
-        <div className="max-w-xs truncate">
-          {row.getValue("hotelName") || "-"}
-        </div>
-      ),
-      size: 150,
-      minSize: 120,
-    },
-    {
-      accessorKey: "departureDetails",
-      header: "Departure Details",
-      cell: ({ row }) => (
-        <div className="max-w-xs truncate">
-          {row.getValue("departureDetails") || "-"}
-        </div>
-      ),
-      size: 150,
-      minSize: 120,
-    },
-    {
-      accessorKey: "transportName",
-      header: "Transport",
-      cell: ({ row }) => (
-        <div className="max-w-xs truncate">
-          {row.getValue("transportName") || "-"}
-        </div>
-      ),
-      size: 120,
-      minSize: 100,
-    },
-    {
-      accessorKey: "clearing",
-      header: "Clearing",
-      cell: ({ row }) => (
-        <div className="text-center">{row.getValue("clearing") || "-"}</div>
-      ),
-      size: 100,
-      minSize: 80,
-    },
-    {
-      accessorKey: "cidClearance",
-      header: "CID Clearance",
-      cell: ({ row }) => (
-        <div className="text-center">{row.getValue("cidClearance") || "-"}</div>
       ),
       size: 120,
       minSize: 100,
@@ -216,44 +195,14 @@ export function CrewSignOffHistoryDialog({
     {
       accessorKey: "debitNoteNo",
       header: "Debit Note",
-      cell: ({ row }) => {
-        const debitNoteNo = row.getValue("debitNoteNo")
-        return (
-          <div className="text-center">
-            {debitNoteNo ? (
-              <Badge
-                variant="secondary"
-                className="bg-green-100 text-green-800"
-              >
-                {debitNoteNo}
-              </Badge>
-            ) : (
-              <span className="text-muted-foreground">-</span>
-            )}
-          </div>
-        )
-      },
       size: 120,
       minSize: 100,
     },
     {
-      accessorKey: "overStayRemark",
-      header: "Over Stay Remark",
+      accessorKey: "glName",
+      header: "GL Account",
       cell: ({ row }) => (
-        <div className="max-w-xs truncate">
-          {row.getValue("overStayRemark") || "-"}
-        </div>
-      ),
-      size: 150,
-      minSize: 120,
-    },
-    {
-      accessorKey: "modificationRemark",
-      header: "Modification Remark",
-      cell: ({ row }) => (
-        <div className="max-w-xs truncate">
-          {row.getValue("modificationRemark") || "-"}
-        </div>
+        <div className="max-w-xs truncate">{row.getValue("glName") || "-"}</div>
       ),
       size: 150,
       minSize: 120,
@@ -347,20 +296,20 @@ export function CrewSignOffHistoryDialog({
         }}
       >
         <DialogHeader>
-          <DialogTitle>Crew Sign Off History</DialogTitle>
+          <DialogTitle>Other Service History</DialogTitle>
           <DialogDescription>
-            View version history for Crew Sign Off ID:{" "}
-            {crewSignOffIdDisplay || crewSignOffId}
+            View version history for Other Service ID:{" "}
+            {otherServiceIdDisplay || otherServiceId}
           </DialogDescription>
         </DialogHeader>
 
         <div className="mt-4">
-          <BasicTable<ICrewSignOff>
+          <BasicTable<IOtherService>
             data={historyData || []}
             columns={columns}
             isLoading={isLoading}
-            emptyMessage="No history found for this crew sign off record."
-            tableName={TableName.crewSignOff}
+            emptyMessage="No history found for this other service record."
+            tableName={TableName.otherService}
             showHeader={false}
             showFooter={false}
           />
@@ -370,4 +319,4 @@ export function CrewSignOffHistoryDialog({
   )
 }
 
-export default CrewSignOffHistoryDialog
+export default OtherServiceHistoryDialog

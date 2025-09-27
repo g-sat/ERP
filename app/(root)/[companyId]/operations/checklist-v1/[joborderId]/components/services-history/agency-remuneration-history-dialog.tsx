@@ -2,12 +2,12 @@
 
 import { useEffect } from "react"
 import { ApiResponse } from "@/interfaces/auth"
-import { ILandingItems } from "@/interfaces/checklist"
+import { IAgencyRemuneration } from "@/interfaces/checklist"
 import { useAuthStore } from "@/stores/auth-store"
 import { ColumnDef } from "@tanstack/react-table"
 import { format, isValid } from "date-fns"
 
-import { JobOrder_LandingItems } from "@/lib/api-routes"
+import { JobOrder_AgencyRemuneration } from "@/lib/api-routes"
 import { TableName } from "@/lib/utils"
 import { useGet } from "@/hooks/use-common"
 import { Badge } from "@/components/ui/badge"
@@ -20,21 +20,21 @@ import {
 } from "@/components/ui/dialog"
 import { BasicTable } from "@/components/table/table-basic"
 
-interface LandingItemsHistoryDialogProps {
+interface AgencyRemunerationHistoryDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   jobOrderId: number
-  landingItemId: number
-  landingItemIdDisplay?: number
+  agencyRemunerationId: number
+  agencyRemunerationIdDisplay?: number
 }
 
-export function LandingItemsHistoryDialog({
+export function AgencyRemunerationHistoryDialog({
   open,
   onOpenChange,
   jobOrderId,
-  landingItemId,
-  landingItemIdDisplay,
-}: LandingItemsHistoryDialogProps) {
+  agencyRemunerationId,
+  agencyRemunerationIdDisplay,
+}: AgencyRemunerationHistoryDialogProps) {
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
 
@@ -43,21 +43,21 @@ export function LandingItemsHistoryDialog({
     data: historyResponse,
     isLoading,
     refetch,
-  } = useGet<ILandingItems>(
-    `${JobOrder_LandingItems.getByIdHistory}/${jobOrderId}/${landingItemId}`,
-    "landingItemsHistory"
+  } = useGet<IAgencyRemuneration>(
+    `${JobOrder_AgencyRemuneration.getByIdHistory}/${jobOrderId}/${agencyRemunerationId}`,
+    "agencyRemunerationHistory"
   )
 
   // Destructure with fallback values
   const { data: historyData } =
-    (historyResponse as ApiResponse<ILandingItems>) ?? {
+    (historyResponse as ApiResponse<IAgencyRemuneration>) ?? {
       result: 0,
       message: "",
       data: [],
     }
 
   // Define columns for the history table
-  const columns: ColumnDef<ILandingItems>[] = [
+  const columns: ColumnDef<IAgencyRemuneration>[] = [
     {
       accessorKey: "editVersion",
       header: "Version",
@@ -90,85 +90,15 @@ export function LandingItemsHistoryDialog({
       minSize: 100,
     },
     {
-      accessorKey: "name",
-      header: "Item Name",
-      cell: ({ row }) => (
-        <div className="max-w-xs truncate font-medium">
-          {row.getValue("name") || "-"}
-        </div>
-      ),
-      size: 150,
-      minSize: 120,
-    },
-    {
-      accessorKey: "landingTypeName",
-      header: "Landing Type",
-      cell: ({ row }) => (
-        <div className="text-center">
-          {row.getValue("landingTypeName") || "-"}
-        </div>
-      ),
-      size: 130,
-      minSize: 110,
-    },
-    {
-      accessorKey: "locationName",
-      header: "Location",
+      accessorKey: "chargeName",
+      header: "Charge",
       cell: ({ row }) => (
         <div className="max-w-xs truncate">
-          {row.getValue("locationName") || "-"}
+          {row.getValue("chargeName") || "-"}
         </div>
       ),
       size: 150,
       minSize: 120,
-    },
-    {
-      accessorKey: "quantity",
-      header: "Quantity",
-      cell: ({ row }) => (
-        <div className="text-right">{row.getValue("quantity") || "0"}</div>
-      ),
-      size: 100,
-      minSize: 80,
-    },
-    {
-      accessorKey: "weight",
-      header: "Weight",
-      cell: ({ row }) => (
-        <div className="text-right">
-          {typeof row.getValue("weight") === "number"
-            ? (row.getValue("weight") as number).toFixed(2)
-            : "0.00"}
-        </div>
-      ),
-      size: 100,
-      minSize: 80,
-    },
-    {
-      accessorKey: "uomName",
-      header: "UOM",
-      cell: ({ row }) => (
-        <div className="text-center">{row.getValue("uomName") || "-"}</div>
-      ),
-      size: 80,
-      minSize: 60,
-    },
-    {
-      accessorKey: "returnDate",
-      header: "Return Date",
-      cell: ({ row }) => {
-        const dateValue = row.getValue("returnDate")
-        if (!dateValue) return <div>-</div>
-
-        const date = new Date(dateValue as string)
-        return (
-          <div className="text-center">
-            {isValid(date) ? format(date, "dd/MM/yyyy") : "-"}
-          </div>
-        )
-      },
-      size: 120,
-      minSize: 100,
     },
     {
       accessorKey: "totAmt",
@@ -223,23 +153,6 @@ export function LandingItemsHistoryDialog({
     {
       accessorKey: "debitNoteNo",
       header: "Debit Note",
-      cell: ({ row }) => {
-        const debitNoteNo = row.getValue("debitNoteNo")
-        return (
-          <div className="text-center">
-            {debitNoteNo ? (
-              <Badge
-                variant="secondary"
-                className="bg-green-100 text-green-800"
-              >
-                {debitNoteNo}
-              </Badge>
-            ) : (
-              <span className="text-muted-foreground">-</span>
-            )}
-          </div>
-        )
-      },
       size: 120,
       minSize: 100,
     },
@@ -341,20 +254,20 @@ export function LandingItemsHistoryDialog({
         }}
       >
         <DialogHeader>
-          <DialogTitle>Landing Items History</DialogTitle>
+          <DialogTitle>Agency Remuneration History</DialogTitle>
           <DialogDescription>
-            View version history for Landing Item ID:{" "}
-            {landingItemIdDisplay || landingItemId}
+            View version history for Agency Remuneration ID:{" "}
+            {agencyRemunerationIdDisplay || agencyRemunerationId}
           </DialogDescription>
         </DialogHeader>
 
         <div className="mt-4">
-          <BasicTable<ILandingItems>
+          <BasicTable<IAgencyRemuneration>
             data={historyData || []}
             columns={columns}
             isLoading={isLoading}
-            emptyMessage="No history found for this landing item record."
-            tableName={TableName.landingItems}
+            emptyMessage="No history found for this agency remuneration."
+            tableName={TableName.agencyRemuneration}
             showHeader={false}
             showFooter={false}
           />
@@ -364,4 +277,4 @@ export function LandingItemsHistoryDialog({
   )
 }
 
-export default LandingItemsHistoryDialog
+export default AgencyRemunerationHistoryDialog

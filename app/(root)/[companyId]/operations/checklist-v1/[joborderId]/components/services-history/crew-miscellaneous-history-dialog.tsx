@@ -2,12 +2,12 @@
 
 import { useEffect } from "react"
 import { ApiResponse } from "@/interfaces/auth"
-import { IMedicalAssistance } from "@/interfaces/checklist"
+import { ICrewMiscellaneous } from "@/interfaces/checklist"
 import { useAuthStore } from "@/stores/auth-store"
 import { ColumnDef } from "@tanstack/react-table"
 import { format, isValid } from "date-fns"
 
-import { JobOrder_MedicalAssistance } from "@/lib/api-routes"
+import { JobOrder_CrewMiscellaneous } from "@/lib/api-routes"
 import { TableName } from "@/lib/utils"
 import { useGet } from "@/hooks/use-common"
 import { Badge } from "@/components/ui/badge"
@@ -20,21 +20,21 @@ import {
 } from "@/components/ui/dialog"
 import { BasicTable } from "@/components/table/table-basic"
 
-interface MedicalAssistanceHistoryDialogProps {
+interface CrewMiscellaneousHistoryDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   jobOrderId: number
-  medicalAssistanceId: number
-  medicalAssistanceIdDisplay?: number
+  crewMiscellaneousId: number
+  crewMiscellaneousIdDisplay?: number
 }
 
-export function MedicalAssistanceHistoryDialog({
+export function CrewMiscellaneousHistoryDialog({
   open,
   onOpenChange,
   jobOrderId,
-  medicalAssistanceId,
-  medicalAssistanceIdDisplay,
-}: MedicalAssistanceHistoryDialogProps) {
+  crewMiscellaneousId,
+  crewMiscellaneousIdDisplay,
+}: CrewMiscellaneousHistoryDialogProps) {
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
 
@@ -43,21 +43,21 @@ export function MedicalAssistanceHistoryDialog({
     data: historyResponse,
     isLoading,
     refetch,
-  } = useGet<IMedicalAssistance>(
-    `${JobOrder_MedicalAssistance.getByIdHistory}/${jobOrderId}/${medicalAssistanceId}`,
-    "medicalAssistanceHistory"
+  } = useGet<ICrewMiscellaneous>(
+    `${JobOrder_CrewMiscellaneous.getByIdHistory}/${jobOrderId}/${crewMiscellaneousId}`,
+    "crewMiscellaneousHistory"
   )
 
   // Destructure with fallback values
   const { data: historyData } =
-    (historyResponse as ApiResponse<IMedicalAssistance>) ?? {
+    (historyResponse as ApiResponse<ICrewMiscellaneous>) ?? {
       result: 0,
       message: "",
       data: [],
     }
 
   // Define columns for the history table
-  const columns: ColumnDef<IMedicalAssistance>[] = [
+  const columns: ColumnDef<ICrewMiscellaneous>[] = [
     {
       accessorKey: "editVersion",
       header: "Version",
@@ -73,85 +73,74 @@ export function MedicalAssistanceHistoryDialog({
       maxSize: 80,
     },
     {
-      accessorKey: "crewName",
-      header: "Crew Name",
+      accessorKey: "description",
+      header: "Description",
       cell: ({ row }) => (
         <div className="max-w-xs truncate font-medium">
-          {row.getValue("crewName") || "-"}
+          {row.getValue("description") || "-"}
+        </div>
+      ),
+      size: 200,
+      minSize: 150,
+    },
+    {
+      accessorKey: "chargeName",
+      header: "Charge",
+      cell: ({ row }) => (
+        <div className="max-w-xs truncate">
+          {row.getValue("chargeName") || "-"}
         </div>
       ),
       size: 150,
       minSize: 120,
     },
     {
-      accessorKey: "nationality",
-      header: "Nationality",
+      accessorKey: "quantity",
+      header: "Quantity",
       cell: ({ row }) => (
-        <div className="text-center">{row.getValue("nationality") || "-"}</div>
-      ),
-      size: 120,
-      minSize: 100,
-    },
-    {
-      accessorKey: "rankName",
-      header: "Rank",
-      cell: ({ row }) => (
-        <div className="text-center">{row.getValue("rankName") || "-"}</div>
+        <div className="text-right">{row.getValue("quantity") || "0"}</div>
       ),
       size: 100,
       minSize: 80,
     },
     {
-      accessorKey: "visaTypeName",
-      header: "Visa Type",
+      accessorKey: "totAmt",
+      header: "Total Amount",
       cell: ({ row }) => (
-        <div className="text-center">{row.getValue("visaTypeName") || "-"}</div>
+        <div className="text-right font-medium">
+          {typeof row.getValue("totAmt") === "number"
+            ? (row.getValue("totAmt") as number).toFixed(2)
+            : "0.00"}
+        </div>
+      ),
+      size: 130,
+      minSize: 100,
+    },
+    {
+      accessorKey: "gstAmt",
+      header: "GST Amount",
+      cell: ({ row }) => (
+        <div className="text-right">
+          {typeof row.getValue("gstAmt") === "number"
+            ? (row.getValue("gstAmt") as number).toFixed(2)
+            : "0.00"}
+        </div>
       ),
       size: 120,
       minSize: 100,
     },
     {
-      accessorKey: "reason",
-      header: "Reason",
+      accessorKey: "totAmtAftGst",
+      header: "Total After GST",
       cell: ({ row }) => (
-        <div className="max-w-xs truncate">{row.getValue("reason") || "-"}</div>
+        <div className="text-right font-medium">
+          {typeof row.getValue("totAmtAftGst") === "number"
+            ? (row.getValue("totAmtAftGst") as number).toFixed(2)
+            : "0.00"}
+        </div>
       ),
-      size: 150,
+      size: 140,
       minSize: 120,
-    },
-    {
-      accessorKey: "admittedDate",
-      header: "Admitted Date",
-      cell: ({ row }) => {
-        const dateValue = row.getValue("admittedDate")
-        if (!dateValue) return <div>-</div>
-
-        const date = new Date(dateValue as string)
-        return (
-          <div className="text-center">
-            {isValid(date) ? format(date, "dd/MM/yyyy") : "-"}
-          </div>
-        )
-      },
-      size: 130,
-      minSize: 110,
-    },
-    {
-      accessorKey: "dischargedDate",
-      header: "Discharged Date",
-      cell: ({ row }) => {
-        const dateValue = row.getValue("dischargedDate")
-        if (!dateValue) return <div>-</div>
-
-        const date = new Date(dateValue as string)
-        return (
-          <div className="text-center">
-            {isValid(date) ? format(date, "dd/MM/yyyy") : "-"}
-          </div>
-        )
-      },
-      size: 130,
-      minSize: 110,
     },
     {
       accessorKey: "statusName",
@@ -167,23 +156,6 @@ export function MedicalAssistanceHistoryDialog({
     {
       accessorKey: "debitNoteNo",
       header: "Debit Note",
-      cell: ({ row }) => {
-        const debitNoteNo = row.getValue("debitNoteNo")
-        return (
-          <div className="text-center">
-            {debitNoteNo ? (
-              <Badge
-                variant="secondary"
-                className="bg-green-100 text-green-800"
-              >
-                {debitNoteNo}
-              </Badge>
-            ) : (
-              <span className="text-muted-foreground">-</span>
-            )}
-          </div>
-        )
-      },
       size: 120,
       minSize: 100,
     },
@@ -285,20 +257,20 @@ export function MedicalAssistanceHistoryDialog({
         }}
       >
         <DialogHeader>
-          <DialogTitle>Medical Assistance History</DialogTitle>
+          <DialogTitle>Crew Miscellaneous History</DialogTitle>
           <DialogDescription>
-            View version history for Medical Assistance ID:{" "}
-            {medicalAssistanceIdDisplay || medicalAssistanceId}
+            View version history for Crew Miscellaneous ID:{" "}
+            {crewMiscellaneousIdDisplay || crewMiscellaneousId}
           </DialogDescription>
         </DialogHeader>
 
         <div className="mt-4">
-          <BasicTable<IMedicalAssistance>
+          <BasicTable<ICrewMiscellaneous>
             data={historyData || []}
             columns={columns}
             isLoading={isLoading}
-            emptyMessage="No history found for this medical assistance record."
-            tableName={TableName.medicalAssistance}
+            emptyMessage="No history found for this crew miscellaneous record."
+            tableName={TableName.crewMiscellaneous}
             showHeader={false}
             showFooter={false}
           />
@@ -308,4 +280,4 @@ export function MedicalAssistanceHistoryDialog({
   )
 }
 
-export default MedicalAssistanceHistoryDialog
+export default CrewMiscellaneousHistoryDialog

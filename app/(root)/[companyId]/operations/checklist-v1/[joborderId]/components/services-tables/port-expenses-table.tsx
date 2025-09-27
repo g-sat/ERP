@@ -10,7 +10,7 @@ import { TableName } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import { TaskTable } from "@/components/table/table-task"
 
-import PortExpensesHistoryDialog from "../services-tables-history/port-expenses-history-dialog"
+import PortExpensesHistoryDialog from "../services-history/port-expenses-history-dialog"
 
 interface PortExpensesTableProps {
   data: IPortExpenses[]

@@ -2,12 +2,12 @@
 
 import { useEffect } from "react"
 import { ApiResponse } from "@/interfaces/auth"
-import { IAgencyRemuneration } from "@/interfaces/checklist"
+import { IMedicalAssistance } from "@/interfaces/checklist"
 import { useAuthStore } from "@/stores/auth-store"
 import { ColumnDef } from "@tanstack/react-table"
 import { format, isValid } from "date-fns"
 
-import { JobOrder_AgencyRemuneration } from "@/lib/api-routes"
+import { JobOrder_MedicalAssistance } from "@/lib/api-routes"
 import { TableName } from "@/lib/utils"
 import { useGet } from "@/hooks/use-common"
 import { Badge } from "@/components/ui/badge"
@@ -20,21 +20,21 @@ import {
 } from "@/components/ui/dialog"
 import { BasicTable } from "@/components/table/table-basic"
 
-interface AgencyRemunerationHistoryDialogProps {
+interface MedicalAssistanceHistoryDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   jobOrderId: number
-  agencyRemunerationId: number
-  agencyRemunerationIdDisplay?: number
+  medicalAssistanceId: number
+  medicalAssistanceIdDisplay?: number
 }
 
-export function AgencyRemunerationHistoryDialog({
+export function MedicalAssistanceHistoryDialog({
   open,
   onOpenChange,
   jobOrderId,
-  agencyRemunerationId,
-  agencyRemunerationIdDisplay,
-}: AgencyRemunerationHistoryDialogProps) {
+  medicalAssistanceId,
+  medicalAssistanceIdDisplay,
+}: MedicalAssistanceHistoryDialogProps) {
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
 
@@ -43,21 +43,21 @@ export function AgencyRemunerationHistoryDialog({
     data: historyResponse,
     isLoading,
     refetch,
-  } = useGet<IAgencyRemuneration>(
-    `${JobOrder_AgencyRemuneration.getByIdHistory}/${jobOrderId}/${agencyRemunerationId}`,
-    "agencyRemunerationHistory"
+  } = useGet<IMedicalAssistance>(
+    `${JobOrder_MedicalAssistance.getByIdHistory}/${jobOrderId}/${medicalAssistanceId}`,
+    "medicalAssistanceHistory"
   )
 
   // Destructure with fallback values
   const { data: historyData } =
-    (historyResponse as ApiResponse<IAgencyRemuneration>) ?? {
+    (historyResponse as ApiResponse<IMedicalAssistance>) ?? {
       result: 0,
       message: "",
       data: [],
     }
 
   // Define columns for the history table
-  const columns: ColumnDef<IAgencyRemuneration>[] = [
+  const columns: ColumnDef<IMedicalAssistance>[] = [
     {
       accessorKey: "editVersion",
       header: "Version",
@@ -73,10 +73,57 @@ export function AgencyRemunerationHistoryDialog({
       maxSize: 80,
     },
     {
-      accessorKey: "date",
-      header: "Date",
+      accessorKey: "crewName",
+      header: "Crew Name",
+      cell: ({ row }) => (
+        <div className="max-w-xs truncate font-medium">
+          {row.getValue("crewName") || "-"}
+        </div>
+      ),
+      size: 150,
+      minSize: 120,
+    },
+    {
+      accessorKey: "nationality",
+      header: "Nationality",
+      cell: ({ row }) => (
+        <div className="text-center">{row.getValue("nationality") || "-"}</div>
+      ),
+      size: 120,
+      minSize: 100,
+    },
+    {
+      accessorKey: "rankName",
+      header: "Rank",
+      cell: ({ row }) => (
+        <div className="text-center">{row.getValue("rankName") || "-"}</div>
+      ),
+      size: 100,
+      minSize: 80,
+    },
+    {
+      accessorKey: "visaTypeName",
+      header: "Visa Type",
+      cell: ({ row }) => (
+        <div className="text-center">{row.getValue("visaTypeName") || "-"}</div>
+      ),
+      size: 120,
+      minSize: 100,
+    },
+    {
+      accessorKey: "reason",
+      header: "Reason",
+      cell: ({ row }) => (
+        <div className="max-w-xs truncate">{row.getValue("reason") || "-"}</div>
+      ),
+      size: 150,
+      minSize: 120,
+    },
+    {
+      accessorKey: "admittedDate",
+      header: "Admitted Date",
       cell: ({ row }) => {
-        const dateValue = row.getValue("date")
+        const dateValue = row.getValue("admittedDate")
         if (!dateValue) return <div>-</div>
 
         const date = new Date(dateValue as string)
@@ -86,58 +133,25 @@ export function AgencyRemunerationHistoryDialog({
           </div>
         )
       },
-      size: 120,
-      minSize: 100,
-    },
-    {
-      accessorKey: "chargeName",
-      header: "Charge",
-      cell: ({ row }) => (
-        <div className="max-w-xs truncate">
-          {row.getValue("chargeName") || "-"}
-        </div>
-      ),
-      size: 150,
-      minSize: 120,
-    },
-    {
-      accessorKey: "totAmt",
-      header: "Total Amount",
-      cell: ({ row }) => (
-        <div className="text-right font-medium">
-          {typeof row.getValue("totAmt") === "number"
-            ? (row.getValue("totAmt") as number).toFixed(2)
-            : "0.00"}
-        </div>
-      ),
       size: 130,
-      minSize: 100,
+      minSize: 110,
     },
     {
-      accessorKey: "gstAmt",
-      header: "GST Amount",
-      cell: ({ row }) => (
-        <div className="text-right">
-          {typeof row.getValue("gstAmt") === "number"
-            ? (row.getValue("gstAmt") as number).toFixed(2)
-            : "0.00"}
-        </div>
-      ),
-      size: 120,
-      minSize: 100,
-    },
-    {
-      accessorKey: "totAmtAftGst",
-      header: "Total After GST",
-      cell: ({ row }) => (
-        <div className="text-right font-medium">
-          {typeof row.getValue("totAmtAftGst") === "number"
-            ? (row.getValue("totAmtAftGst") as number).toFixed(2)
-            : "0.00"}
-        </div>
-      ),
-      size: 140,
-      minSize: 120,
+      accessorKey: "dischargedDate",
+      header: "Discharged Date",
+      cell: ({ row }) => {
+        const dateValue = row.getValue("dischargedDate")
+        if (!dateValue) return <div>-</div>
+
+        const date = new Date(dateValue as string)
+        return (
+          <div className="text-center">
+            {isValid(date) ? format(date, "dd/MM/yyyy") : "-"}
+          </div>
+        )
+      },
+      size: 130,
+      minSize: 110,
     },
     {
       accessorKey: "statusName",
@@ -153,23 +167,6 @@ export function AgencyRemunerationHistoryDialog({
     {
       accessorKey: "debitNoteNo",
       header: "Debit Note",
-      cell: ({ row }) => {
-        const debitNoteNo = row.getValue("debitNoteNo")
-        return (
-          <div className="text-center">
-            {debitNoteNo ? (
-              <Badge
-                variant="secondary"
-                className="bg-green-100 text-green-800"
-              >
-                {debitNoteNo}
-              </Badge>
-            ) : (
-              <span className="text-muted-foreground">-</span>
-            )}
-          </div>
-        )
-      },
       size: 120,
       minSize: 100,
     },
@@ -271,20 +268,20 @@ export function AgencyRemunerationHistoryDialog({
         }}
       >
         <DialogHeader>
-          <DialogTitle>Agency Remuneration History</DialogTitle>
+          <DialogTitle>Medical Assistance History</DialogTitle>
           <DialogDescription>
-            View version history for Agency Remuneration ID:{" "}
-            {agencyRemunerationIdDisplay || agencyRemunerationId}
+            View version history for Medical Assistance ID:{" "}
+            {medicalAssistanceIdDisplay || medicalAssistanceId}
           </DialogDescription>
         </DialogHeader>
 
         <div className="mt-4">
-          <BasicTable<IAgencyRemuneration>
+          <BasicTable<IMedicalAssistance>
             data={historyData || []}
             columns={columns}
             isLoading={isLoading}
-            emptyMessage="No history found for this agency remuneration."
-            tableName={TableName.agencyRemuneration}
+            emptyMessage="No history found for this medical assistance record."
+            tableName={TableName.medicalAssistance}
             showHeader={false}
             showFooter={false}
           />
@@ -294,4 +291,4 @@ export function AgencyRemunerationHistoryDialog({
   )
 }
 
-export default AgencyRemunerationHistoryDialog
+export default MedicalAssistanceHistoryDialog

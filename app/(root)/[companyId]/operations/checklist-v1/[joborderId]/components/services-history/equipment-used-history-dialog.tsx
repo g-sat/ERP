@@ -2,12 +2,12 @@
 
 import { useEffect } from "react"
 import { ApiResponse } from "@/interfaces/auth"
-import { IConsignmentImport } from "@/interfaces/checklist"
+import { IEquipmentUsed } from "@/interfaces/checklist"
 import { useAuthStore } from "@/stores/auth-store"
 import { ColumnDef } from "@tanstack/react-table"
 import { format, isValid } from "date-fns"
 
-import { JobOrder_ConsignmentImport } from "@/lib/api-routes"
+import { JobOrder_EquipmentUsed } from "@/lib/api-routes"
 import { TableName } from "@/lib/utils"
 import { useGet } from "@/hooks/use-common"
 import { Badge } from "@/components/ui/badge"
@@ -20,21 +20,21 @@ import {
 } from "@/components/ui/dialog"
 import { BasicTable } from "@/components/table/table-basic"
 
-interface ConsignmentImportHistoryDialogProps {
+interface EquipmentUsedHistoryDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   jobOrderId: number
-  consignmentImportId: number
-  consignmentImportIdDisplay?: number
+  equipmentUsedId: number
+  equipmentUsedIdDisplay?: number
 }
 
-export function ConsignmentImportHistoryDialog({
+export function EquipmentUsedHistoryDialog({
   open,
   onOpenChange,
   jobOrderId,
-  consignmentImportId,
-  consignmentImportIdDisplay,
-}: ConsignmentImportHistoryDialogProps) {
+  equipmentUsedId,
+  equipmentUsedIdDisplay,
+}: EquipmentUsedHistoryDialogProps) {
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
 
@@ -43,21 +43,21 @@ export function ConsignmentImportHistoryDialog({
     data: historyResponse,
     isLoading,
     refetch,
-  } = useGet<IConsignmentImport>(
-    `${JobOrder_ConsignmentImport.getByIdHistory}/${jobOrderId}/${consignmentImportId}`,
-    "consignmentImportHistory"
+  } = useGet<IEquipmentUsed>(
+    `${JobOrder_EquipmentUsed.getByIdHistory}/${jobOrderId}/${equipmentUsedId}`,
+    "equipmentUsedHistory"
   )
 
   // Destructure with fallback values
   const { data: historyData } =
-    (historyResponse as ApiResponse<IConsignmentImport>) ?? {
+    (historyResponse as ApiResponse<IEquipmentUsed>) ?? {
       result: 0,
       message: "",
       data: [],
     }
 
   // Define columns for the history table
-  const columns: ColumnDef<IConsignmentImport>[] = [
+  const columns: ColumnDef<IEquipmentUsed>[] = [
     {
       accessorKey: "editVersion",
       header: "Version",
@@ -73,205 +73,103 @@ export function ConsignmentImportHistoryDialog({
       maxSize: 80,
     },
     {
-      accessorKey: "awbNo",
-      header: "AWB No",
+      accessorKey: "date",
+      header: "Date",
+      cell: ({ row }) => {
+        const dateValue = row.getValue("date")
+        if (!dateValue) return <div>-</div>
+
+        const date = new Date(dateValue as string)
+        return (
+          <div className="text-center">
+            {isValid(date) ? format(date, "dd/MM/yyyy") : "-"}
+          </div>
+        )
+      },
+      size: 120,
+      minSize: 100,
+    },
+    {
+      accessorKey: "referenceNo",
+      header: "Reference No",
       cell: ({ row }) => (
         <div className="text-center font-medium">
-          {row.getValue("awbNo") || "-"}
-        </div>
-      ),
-      size: 120,
-      minSize: 100,
-    },
-    {
-      accessorKey: "carrierTypeName",
-      header: "Carrier Type",
-      cell: ({ row }) => (
-        <div className="text-center">
-          {row.getValue("carrierTypeName") || "-"}
-        </div>
-      ),
-      size: 120,
-      minSize: 100,
-    },
-    {
-      accessorKey: "consignmentTypeName",
-      header: "Consignment Type",
-      cell: ({ row }) => (
-        <div className="text-center">
-          {row.getValue("consignmentTypeName") || "-"}
-        </div>
-      ),
-      size: 140,
-      minSize: 120,
-    },
-    {
-      accessorKey: "landingTypeName",
-      header: "Landing Type",
-      cell: ({ row }) => (
-        <div className="text-center">
-          {row.getValue("landingTypeName") || "-"}
-        </div>
-      ),
-      size: 120,
-      minSize: 100,
-    },
-    {
-      accessorKey: "noOfPcs",
-      header: "No of Pcs",
-      cell: ({ row }) => (
-        <div className="text-right">{row.getValue("noOfPcs") || "0"}</div>
-      ),
-      size: 100,
-      minSize: 80,
-    },
-    {
-      accessorKey: "weight",
-      header: "Weight",
-      cell: ({ row }) => (
-        <div className="text-right">
-          {typeof row.getValue("weight") === "number"
-            ? (row.getValue("weight") as number).toFixed(2)
-            : "0.00"}
-        </div>
-      ),
-      size: 100,
-      minSize: 80,
-    },
-    {
-      accessorKey: "uomName",
-      header: "UOM",
-      cell: ({ row }) => (
-        <div className="text-center">{row.getValue("uomName") || "-"}</div>
-      ),
-      size: 80,
-      minSize: 60,
-    },
-    {
-      accessorKey: "pickupLocation",
-      header: "Pickup Location",
-      cell: ({ row }) => (
-        <div className="max-w-xs truncate">
-          {row.getValue("pickupLocation") || "-"}
-        </div>
-      ),
-      size: 150,
-      minSize: 120,
-    },
-    {
-      accessorKey: "deliveryLocation",
-      header: "Delivery Location",
-      cell: ({ row }) => (
-        <div className="max-w-xs truncate">
-          {row.getValue("deliveryLocation") || "-"}
-        </div>
-      ),
-      size: 150,
-      minSize: 120,
-    },
-    {
-      accessorKey: "clearedBy",
-      header: "Cleared By",
-      cell: ({ row }) => (
-        <div className="text-center">{row.getValue("clearedBy") || "-"}</div>
-      ),
-      size: 120,
-      minSize: 100,
-    },
-    {
-      accessorKey: "billEntryNo",
-      header: "Bill Entry No",
-      cell: ({ row }) => (
-        <div className="text-center">{row.getValue("billEntryNo") || "-"}</div>
-      ),
-      size: 130,
-      minSize: 110,
-    },
-    {
-      accessorKey: "declarationNo",
-      header: "Declaration No",
-      cell: ({ row }) => (
-        <div className="text-center">
-          {row.getValue("declarationNo") || "-"}
+          {row.getValue("referenceNo") || "-"}
         </div>
       ),
       size: 130,
       minSize: 110,
     },
     {
-      accessorKey: "receiveDate",
-      header: "Receive Date",
-      cell: ({ row }) => {
-        const dateValue = row.getValue("receiveDate")
-        if (!dateValue) return <div>-</div>
-
-        const date = new Date(dateValue as string)
-        return (
-          <div className="text-center">
-            {isValid(date) ? format(date, "dd/MM/yyyy") : "-"}
-          </div>
-        )
-      },
-      size: 120,
-      minSize: 100,
-    },
-    {
-      accessorKey: "deliverDate",
-      header: "Deliver Date",
-      cell: ({ row }) => {
-        const dateValue = row.getValue("deliverDate")
-        if (!dateValue) return <div>-</div>
-
-        const date = new Date(dateValue as string)
-        return (
-          <div className="text-center">
-            {isValid(date) ? format(date, "dd/MM/yyyy") : "-"}
-          </div>
-        )
-      },
-      size: 120,
-      minSize: 100,
-    },
-    {
-      accessorKey: "arrivalDate",
-      header: "Arrival Date",
-      cell: ({ row }) => {
-        const dateValue = row.getValue("arrivalDate")
-        if (!dateValue) return <div>-</div>
-
-        const date = new Date(dateValue as string)
-        return (
-          <div className="text-center">
-            {isValid(date) ? format(date, "dd/MM/yyyy") : "-"}
-          </div>
-        )
-      },
-      size: 120,
-      minSize: 100,
-    },
-    {
-      accessorKey: "amountDeposited",
-      header: "Amount Deposited",
+      accessorKey: "mafi",
+      header: "MAFI",
       cell: ({ row }) => (
-        <div className="text-right">
-          {typeof row.getValue("amountDeposited") === "number"
-            ? (row.getValue("amountDeposited") as number).toFixed(2)
-            : "0.00"}
+        <div className="text-center">{row.getValue("mafi") || "-"}</div>
+      ),
+      size: 100,
+      minSize: 80,
+    },
+    {
+      accessorKey: "others",
+      header: "Others",
+      cell: ({ row }) => (
+        <div className="max-w-xs truncate">{row.getValue("others") || "-"}</div>
+      ),
+      size: 120,
+      minSize: 100,
+    },
+    {
+      accessorKey: "craneChargeName",
+      header: "Crane Charge",
+      cell: ({ row }) => (
+        <div className="max-w-xs truncate">
+          {row.getValue("craneChargeName") || "-"}
+        </div>
+      ),
+      size: 130,
+      minSize: 110,
+    },
+    {
+      accessorKey: "forkliftChargeName",
+      header: "Forklift Charge",
+      cell: ({ row }) => (
+        <div className="max-w-xs truncate">
+          {row.getValue("forkliftChargeName") || "-"}
+        </div>
+      ),
+      size: 130,
+      minSize: 110,
+    },
+    {
+      accessorKey: "stevedoreChargeName",
+      header: "Stevedore Charge",
+      cell: ({ row }) => (
+        <div className="max-w-xs truncate">
+          {row.getValue("stevedoreChargeName") || "-"}
+        </div>
+      ),
+      size: 130,
+      minSize: 110,
+    },
+    {
+      accessorKey: "loadingRefNo",
+      header: "Loading Ref No",
+      cell: ({ row }) => (
+        <div className="text-center">{row.getValue("loadingRefNo") || "-"}</div>
+      ),
+      size: 130,
+      minSize: 110,
+    },
+    {
+      accessorKey: "offloadingRefNo",
+      header: "Offloading Ref No",
+      cell: ({ row }) => (
+        <div className="text-center">
+          {row.getValue("offloadingRefNo") || "-"}
         </div>
       ),
       size: 140,
       minSize: 120,
-    },
-    {
-      accessorKey: "refundInstrumentNo",
-      header: "Refund Instrument No",
-      cell: ({ row }) => (
-        <div className="text-center">
-          {row.getValue("refundInstrumentNo") || "-"}
-        </div>
-      ),
-      size: 150,
-      minSize: 130,
     },
     {
       accessorKey: "totAmt",
@@ -326,34 +224,8 @@ export function ConsignmentImportHistoryDialog({
     {
       accessorKey: "debitNoteNo",
       header: "Debit Note",
-      cell: ({ row }) => {
-        const debitNoteNo = row.getValue("debitNoteNo")
-        return (
-          <div className="text-center">
-            {debitNoteNo ? (
-              <Badge
-                variant="secondary"
-                className="bg-green-100 text-green-800"
-              >
-                {debitNoteNo}
-              </Badge>
-            ) : (
-              <span className="text-muted-foreground">-</span>
-            )}
-          </div>
-        )
-      },
       size: 120,
       minSize: 100,
-    },
-    {
-      accessorKey: "glName",
-      header: "GL Account",
-      cell: ({ row }) => (
-        <div className="max-w-xs truncate">{row.getValue("glName") || "-"}</div>
-      ),
-      size: 150,
-      minSize: 120,
     },
     {
       accessorKey: "remarks",
@@ -444,20 +316,20 @@ export function ConsignmentImportHistoryDialog({
         }}
       >
         <DialogHeader>
-          <DialogTitle>Consignment Import History</DialogTitle>
+          <DialogTitle>Equipment Used History</DialogTitle>
           <DialogDescription>
-            View version history for Consignment Import ID:{" "}
-            {consignmentImportIdDisplay || consignmentImportId}
+            View version history for Equipment Used ID:{" "}
+            {equipmentUsedIdDisplay || equipmentUsedId}
           </DialogDescription>
         </DialogHeader>
 
         <div className="mt-4">
-          <BasicTable<IConsignmentImport>
+          <BasicTable<IEquipmentUsed>
             data={historyData || []}
             columns={columns}
             isLoading={isLoading}
-            emptyMessage="No history found for this consignment import record."
-            tableName={TableName.consignmentImport}
+            emptyMessage="No history found for this equipment used record."
+            tableName={TableName.equipmentUsed}
             showHeader={false}
             showFooter={false}
           />
@@ -467,4 +339,4 @@ export function ConsignmentImportHistoryDialog({
   )
 }
 
-export default ConsignmentImportHistoryDialog
+export default EquipmentUsedHistoryDialog

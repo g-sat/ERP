@@ -2,12 +2,12 @@
 
 import { useEffect } from "react"
 import { ApiResponse } from "@/interfaces/auth"
-import { ILaunchService } from "@/interfaces/checklist"
+import { IThirdParty } from "@/interfaces/checklist"
 import { useAuthStore } from "@/stores/auth-store"
 import { ColumnDef } from "@tanstack/react-table"
 import { format, isValid } from "date-fns"
 
-import { JobOrder_LaunchServices } from "@/lib/api-routes"
+import { JobOrder_ThirdParty } from "@/lib/api-routes"
 import { TableName } from "@/lib/utils"
 import { useGet } from "@/hooks/use-common"
 import { Badge } from "@/components/ui/badge"
@@ -20,21 +20,21 @@ import {
 } from "@/components/ui/dialog"
 import { BasicTable } from "@/components/table/table-basic"
 
-interface LaunchServiceHistoryDialogProps {
+interface ThirdPartyHistoryDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   jobOrderId: number
-  launchServiceId: number
-  launchServiceIdDisplay?: number
+  thirdPartyId: number
+  thirdPartyIdDisplay?: number
 }
 
-export function LaunchServiceHistoryDialog({
+export function ThirdPartyHistoryDialog({
   open,
   onOpenChange,
   jobOrderId,
-  launchServiceId,
-  launchServiceIdDisplay,
-}: LaunchServiceHistoryDialogProps) {
+  thirdPartyId,
+  thirdPartyIdDisplay,
+}: ThirdPartyHistoryDialogProps) {
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
 
@@ -43,21 +43,21 @@ export function LaunchServiceHistoryDialog({
     data: historyResponse,
     isLoading,
     refetch,
-  } = useGet<ILaunchService>(
-    `${JobOrder_LaunchServices.getByIdHistory}/${jobOrderId}/${launchServiceId}`,
-    "launchServiceHistory"
+  } = useGet<IThirdParty>(
+    `${JobOrder_ThirdParty.getByIdHistory}/${jobOrderId}/${thirdPartyId}`,
+    "thirdPartyHistory"
   )
 
   // Destructure with fallback values
   const { data: historyData } =
-    (historyResponse as ApiResponse<ILaunchService>) ?? {
+    (historyResponse as ApiResponse<IThirdParty>) ?? {
       result: 0,
       message: "",
       data: [],
     }
 
   // Define columns for the history table
-  const columns: ColumnDef<ILaunchService>[] = [
+  const columns: ColumnDef<IThirdParty>[] = [
     {
       accessorKey: "editVersion",
       header: "Version",
@@ -73,10 +73,61 @@ export function LaunchServiceHistoryDialog({
       maxSize: 80,
     },
     {
-      accessorKey: "date",
-      header: "Date",
+      accessorKey: "supplierName",
+      header: "Supplier",
+      cell: ({ row }) => (
+        <div className="max-w-xs truncate">
+          {row.getValue("supplierName") || "-"}
+        </div>
+      ),
+      size: 150,
+      minSize: 120,
+    },
+    {
+      accessorKey: "supplierMobileNumber",
+      header: "Mobile Number",
+      cell: ({ row }) => (
+        <div className="text-center">
+          {row.getValue("supplierMobileNumber") || "-"}
+        </div>
+      ),
+      size: 130,
+      minSize: 110,
+    },
+    {
+      accessorKey: "chargeName",
+      header: "Charge",
+      cell: ({ row }) => (
+        <div className="max-w-xs truncate">
+          {row.getValue("chargeName") || "-"}
+        </div>
+      ),
+      size: 150,
+      minSize: 120,
+    },
+    {
+      accessorKey: "quantity",
+      header: "Quantity",
+      cell: ({ row }) => (
+        <div className="text-right">{row.getValue("quantity") || "0"}</div>
+      ),
+      size: 100,
+      minSize: 80,
+    },
+    {
+      accessorKey: "uomName",
+      header: "UOM",
+      cell: ({ row }) => (
+        <div className="text-center">{row.getValue("uomName") || "-"}</div>
+      ),
+      size: 80,
+      minSize: 60,
+    },
+    {
+      accessorKey: "deliverDate",
+      header: "Deliver Date",
       cell: ({ row }) => {
-        const dateValue = row.getValue("date")
+        const dateValue = row.getValue("deliverDate")
         if (!dateValue) return <div>-</div>
 
         const date = new Date(dateValue as string)
@@ -88,67 +139,6 @@ export function LaunchServiceHistoryDialog({
       },
       size: 120,
       minSize: 100,
-    },
-    {
-      accessorKey: "bargeName",
-      header: "Barge",
-      cell: ({ row }) => (
-        <div className="max-w-xs truncate">
-          {row.getValue("bargeName") || "-"}
-        </div>
-      ),
-      size: 120,
-      minSize: 100,
-    },
-    {
-      accessorKey: "boatOperator",
-      header: "Boat Operator",
-      cell: ({ row }) => (
-        <div className="max-w-xs truncate">
-          {row.getValue("boatOperator") || "-"}
-        </div>
-      ),
-      size: 130,
-      minSize: 110,
-    },
-    {
-      accessorKey: "deliveredWeight",
-      header: "Delivered Weight",
-      cell: ({ row }) => (
-        <div className="text-right">
-          {typeof row.getValue("deliveredWeight") === "number"
-            ? (row.getValue("deliveredWeight") as number).toFixed(2)
-            : "0.00"}
-        </div>
-      ),
-      size: 130,
-      minSize: 110,
-    },
-    {
-      accessorKey: "landedWeight",
-      header: "Landed Weight",
-      cell: ({ row }) => (
-        <div className="text-right">
-          {typeof row.getValue("landedWeight") === "number"
-            ? (row.getValue("landedWeight") as number).toFixed(2)
-            : "0.00"}
-        </div>
-      ),
-      size: 130,
-      minSize: 110,
-    },
-    {
-      accessorKey: "distance",
-      header: "Distance",
-      cell: ({ row }) => (
-        <div className="text-right">
-          {typeof row.getValue("distance") === "number"
-            ? (row.getValue("distance") as number).toFixed(2)
-            : "0.00"}
-        </div>
-      ),
-      size: 100,
-      minSize: 80,
     },
     {
       accessorKey: "totAmt",
@@ -190,36 +180,30 @@ export function LaunchServiceHistoryDialog({
       minSize: 120,
     },
     {
+      accessorKey: "statusName",
+      header: "Status",
+      cell: ({ row }) => (
+        <div className="text-center">
+          <Badge variant="outline">{row.getValue("statusName") || "-"}</Badge>
+        </div>
+      ),
+      size: 100,
+      minSize: 80,
+    },
+    {
       accessorKey: "debitNoteNo",
       header: "Debit Note",
-      cell: ({ row }) => {
-        const debitNoteNo = row.getValue("debitNoteNo")
-        return (
-          <div className="text-center">
-            {debitNoteNo ? (
-              <Badge
-                variant="secondary"
-                className="bg-green-100 text-green-800"
-              >
-                {debitNoteNo}
-              </Badge>
-            ) : (
-              <span className="text-muted-foreground">-</span>
-            )}
-          </div>
-        )
-      },
       size: 120,
       minSize: 100,
     },
     {
-      accessorKey: "invoiceNo",
-      header: "Invoice No",
+      accessorKey: "glName",
+      header: "GL Account",
       cell: ({ row }) => (
-        <div className="text-center">{row.getValue("invoiceNo") || "-"}</div>
+        <div className="max-w-xs truncate">{row.getValue("glName") || "-"}</div>
       ),
-      size: 120,
-      minSize: 100,
+      size: 150,
+      minSize: 120,
     },
     {
       accessorKey: "remarks",
@@ -310,20 +294,20 @@ export function LaunchServiceHistoryDialog({
         }}
       >
         <DialogHeader>
-          <DialogTitle>Launch Service History</DialogTitle>
+          <DialogTitle>Third Party History</DialogTitle>
           <DialogDescription>
-            View version history for Launch Service ID:{" "}
-            {launchServiceIdDisplay || launchServiceId}
+            View version history for Third Party ID:{" "}
+            {thirdPartyIdDisplay || thirdPartyId}
           </DialogDescription>
         </DialogHeader>
 
         <div className="mt-4">
-          <BasicTable<ILaunchService>
+          <BasicTable<IThirdParty>
             data={historyData || []}
             columns={columns}
             isLoading={isLoading}
-            emptyMessage="No history found for this launch service."
-            tableName={TableName.launchService}
+            emptyMessage="No history found for this third party record."
+            tableName={TableName.thirdParty}
             showHeader={false}
             showFooter={false}
           />
@@ -333,4 +317,4 @@ export function LaunchServiceHistoryDialog({
   )
 }
 
-export default LaunchServiceHistoryDialog
+export default ThirdPartyHistoryDialog

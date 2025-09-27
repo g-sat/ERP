@@ -2,12 +2,12 @@
 
 import { useEffect } from "react"
 import { ApiResponse } from "@/interfaces/auth"
-import { ITechnicianSurveyor } from "@/interfaces/checklist"
+import { ICrewSignOn } from "@/interfaces/checklist"
 import { useAuthStore } from "@/stores/auth-store"
 import { ColumnDef } from "@tanstack/react-table"
 import { format, isValid } from "date-fns"
 
-import { JobOrder_TechnicianSurveyor } from "@/lib/api-routes"
+import { JobOrder_CrewSignOn } from "@/lib/api-routes"
 import { TableName } from "@/lib/utils"
 import { useGet } from "@/hooks/use-common"
 import { Badge } from "@/components/ui/badge"
@@ -20,21 +20,21 @@ import {
 } from "@/components/ui/dialog"
 import { BasicTable } from "@/components/table/table-basic"
 
-interface TechnicianSurveyorHistoryDialogProps {
+interface CrewSignOnHistoryDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   jobOrderId: number
-  technicianSurveyorId: number
-  technicianSurveyorIdDisplay?: number
+  crewSignOnId: number
+  crewSignOnIdDisplay?: number
 }
 
-export function TechnicianSurveyorHistoryDialog({
+export function CrewSignOnHistoryDialog({
   open,
   onOpenChange,
   jobOrderId,
-  technicianSurveyorId,
-  technicianSurveyorIdDisplay,
-}: TechnicianSurveyorHistoryDialogProps) {
+  crewSignOnId,
+  crewSignOnIdDisplay,
+}: CrewSignOnHistoryDialogProps) {
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
 
@@ -43,21 +43,21 @@ export function TechnicianSurveyorHistoryDialog({
     data: historyResponse,
     isLoading,
     refetch,
-  } = useGet<ITechnicianSurveyor>(
-    `${JobOrder_TechnicianSurveyor.getByIdHistory}/${jobOrderId}/${technicianSurveyorId}`,
-    "technicianSurveyorHistory"
+  } = useGet<ICrewSignOn>(
+    `${JobOrder_CrewSignOn.getByIdHistory}/${jobOrderId}/${crewSignOnId}`,
+    "crewSignOnHistory"
   )
 
   // Destructure with fallback values
   const { data: historyData } =
-    (historyResponse as ApiResponse<ITechnicianSurveyor>) ?? {
+    (historyResponse as ApiResponse<ICrewSignOn>) ?? {
       result: 0,
       message: "",
       data: [],
     }
 
   // Define columns for the history table
-  const columns: ColumnDef<ITechnicianSurveyor>[] = [
+  const columns: ColumnDef<ICrewSignOn>[] = [
     {
       accessorKey: "editVersion",
       header: "Version",
@@ -73,100 +73,95 @@ export function TechnicianSurveyorHistoryDialog({
       maxSize: 80,
     },
     {
-      accessorKey: "name",
-      header: "Name",
+      accessorKey: "crewName",
+      header: "Crew Name",
       cell: ({ row }) => (
         <div className="max-w-xs truncate font-medium">
-          {row.getValue("name") || "-"}
+          {row.getValue("crewName") || "-"}
         </div>
       ),
       size: 150,
       minSize: 120,
     },
     {
-      accessorKey: "companyInfo",
-      header: "Company",
+      accessorKey: "nationality",
+      header: "Nationality",
       cell: ({ row }) => (
-        <div className="max-w-xs truncate">
-          {row.getValue("companyInfo") || "-"}
-        </div>
-      ),
-      size: 150,
-      minSize: 120,
-    },
-    {
-      accessorKey: "natureOfAttendance",
-      header: "Nature of Attendance",
-      cell: ({ row }) => (
-        <div className="max-w-xs truncate">
-          {row.getValue("natureOfAttendance") || "-"}
-        </div>
-      ),
-      size: 150,
-      minSize: 120,
-    },
-    {
-      accessorKey: "passTypeName",
-      header: "Pass Type",
-      cell: ({ row }) => (
-        <div className="text-center">{row.getValue("passTypeName") || "-"}</div>
+        <div className="text-center">{row.getValue("nationality") || "-"}</div>
       ),
       size: 120,
       minSize: 100,
     },
     {
-      accessorKey: "quantity",
-      header: "Quantity",
+      accessorKey: "rankName",
+      header: "Rank",
       cell: ({ row }) => (
-        <div className="text-right">{row.getValue("quantity") || "0"}</div>
+        <div className="text-center">{row.getValue("rankName") || "-"}</div>
       ),
       size: 100,
       minSize: 80,
     },
     {
-      accessorKey: "embarked",
-      header: "Embarked",
-      cell: ({ row }) => {
-        const dateValue = row.getValue("embarked")
-        if (!dateValue) return <div>-</div>
-
-        const date = new Date(dateValue as string)
-        return (
-          <div className="text-center">
-            {isValid(date) ? format(date, "dd/MM/yyyy") : "-"}
-          </div>
-        )
-      },
-      size: 120,
-      minSize: 100,
-    },
-    {
-      accessorKey: "disembarked",
-      header: "Disembarked",
-      cell: ({ row }) => {
-        const dateValue = row.getValue("disembarked")
-        if (!dateValue) return <div>-</div>
-
-        const date = new Date(dateValue as string)
-        return (
-          <div className="text-center">
-            {isValid(date) ? format(date, "dd/MM/yyyy") : "-"}
-          </div>
-        )
-      },
-      size: 120,
-      minSize: 100,
-    },
-    {
-      accessorKey: "portRequestNo",
-      header: "Port Request No",
+      accessorKey: "flightDetails",
+      header: "Flight Details",
       cell: ({ row }) => (
-        <div className="text-center">
-          {row.getValue("portRequestNo") || "-"}
+        <div className="max-w-xs truncate">
+          {row.getValue("flightDetails") || "-"}
         </div>
       ),
-      size: 130,
-      minSize: 110,
+      size: 150,
+      minSize: 120,
+    },
+    {
+      accessorKey: "hotelName",
+      header: "Hotel Name",
+      cell: ({ row }) => (
+        <div className="max-w-xs truncate">
+          {row.getValue("hotelName") || "-"}
+        </div>
+      ),
+      size: 150,
+      minSize: 120,
+    },
+    {
+      accessorKey: "departureDetails",
+      header: "Departure Details",
+      cell: ({ row }) => (
+        <div className="max-w-xs truncate">
+          {row.getValue("departureDetails") || "-"}
+        </div>
+      ),
+      size: 150,
+      minSize: 120,
+    },
+    {
+      accessorKey: "transportName",
+      header: "Transport",
+      cell: ({ row }) => (
+        <div className="max-w-xs truncate">
+          {row.getValue("transportName") || "-"}
+        </div>
+      ),
+      size: 120,
+      minSize: 100,
+    },
+    {
+      accessorKey: "clearing",
+      header: "Clearing",
+      cell: ({ row }) => (
+        <div className="text-center">{row.getValue("clearing") || "-"}</div>
+      ),
+      size: 100,
+      minSize: 80,
+    },
+    {
+      accessorKey: "cidClearance",
+      header: "CID Clearance",
+      cell: ({ row }) => (
+        <div className="text-center">{row.getValue("cidClearance") || "-"}</div>
+      ),
+      size: 120,
+      minSize: 100,
     },
     {
       accessorKey: "totAmt",
@@ -221,25 +216,30 @@ export function TechnicianSurveyorHistoryDialog({
     {
       accessorKey: "debitNoteNo",
       header: "Debit Note",
-      cell: ({ row }) => {
-        const debitNoteNo = row.getValue("debitNoteNo")
-        return (
-          <div className="text-center">
-            {debitNoteNo ? (
-              <Badge
-                variant="secondary"
-                className="bg-green-100 text-green-800"
-              >
-                {debitNoteNo}
-              </Badge>
-            ) : (
-              <span className="text-muted-foreground">-</span>
-            )}
-          </div>
-        )
-      },
       size: 120,
       minSize: 100,
+    },
+    {
+      accessorKey: "overStayRemark",
+      header: "Over Stay Remark",
+      cell: ({ row }) => (
+        <div className="max-w-xs truncate">
+          {row.getValue("overStayRemark") || "-"}
+        </div>
+      ),
+      size: 150,
+      minSize: 120,
+    },
+    {
+      accessorKey: "modificationRemark",
+      header: "Modification Remark",
+      cell: ({ row }) => (
+        <div className="max-w-xs truncate">
+          {row.getValue("modificationRemark") || "-"}
+        </div>
+      ),
+      size: 150,
+      minSize: 120,
     },
     {
       accessorKey: "remarks",
@@ -330,20 +330,20 @@ export function TechnicianSurveyorHistoryDialog({
         }}
       >
         <DialogHeader>
-          <DialogTitle>Technician Surveyor History</DialogTitle>
+          <DialogTitle>Crew Sign On History</DialogTitle>
           <DialogDescription>
-            View version history for Technician Surveyor ID:{" "}
-            {technicianSurveyorIdDisplay || technicianSurveyorId}
+            View version history for Crew Sign On ID:{" "}
+            {crewSignOnIdDisplay || crewSignOnId}
           </DialogDescription>
         </DialogHeader>
 
         <div className="mt-4">
-          <BasicTable<ITechnicianSurveyor>
+          <BasicTable<ICrewSignOn>
             data={historyData || []}
             columns={columns}
             isLoading={isLoading}
-            emptyMessage="No history found for this technician surveyor record."
-            tableName={TableName.technicianSurveyor}
+            emptyMessage="No history found for this crew sign on record."
+            tableName={TableName.crewSignOn}
             showHeader={false}
             showFooter={false}
           />
@@ -353,4 +353,4 @@ export function TechnicianSurveyorHistoryDialog({
   )
 }
 
-export default TechnicianSurveyorHistoryDialog
+export default CrewSignOnHistoryDialog

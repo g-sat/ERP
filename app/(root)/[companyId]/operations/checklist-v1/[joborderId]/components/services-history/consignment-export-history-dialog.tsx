@@ -2,12 +2,12 @@
 
 import { useEffect } from "react"
 import { ApiResponse } from "@/interfaces/auth"
-import { IOtherService } from "@/interfaces/checklist"
+import { IConsignmentExport } from "@/interfaces/checklist"
 import { useAuthStore } from "@/stores/auth-store"
 import { ColumnDef } from "@tanstack/react-table"
 import { format, isValid } from "date-fns"
 
-import { JobOrder_OtherService } from "@/lib/api-routes"
+import { JobOrder_ConsignmentExport } from "@/lib/api-routes"
 import { TableName } from "@/lib/utils"
 import { useGet } from "@/hooks/use-common"
 import { Badge } from "@/components/ui/badge"
@@ -20,21 +20,21 @@ import {
 } from "@/components/ui/dialog"
 import { BasicTable } from "@/components/table/table-basic"
 
-interface OtherServiceHistoryDialogProps {
+interface ConsignmentExportHistoryDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   jobOrderId: number
-  otherServiceId: number
-  otherServiceIdDisplay?: number
+  consignmentExportId: number
+  consignmentExportIdDisplay?: number
 }
 
-export function OtherServiceHistoryDialog({
+export function ConsignmentExportHistoryDialog({
   open,
   onOpenChange,
   jobOrderId,
-  otherServiceId,
-  otherServiceIdDisplay,
-}: OtherServiceHistoryDialogProps) {
+  consignmentExportId,
+  consignmentExportIdDisplay,
+}: ConsignmentExportHistoryDialogProps) {
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
 
@@ -43,21 +43,21 @@ export function OtherServiceHistoryDialog({
     data: historyResponse,
     isLoading,
     refetch,
-  } = useGet<IOtherService>(
-    `${JobOrder_OtherService.getByIdHistory}/${jobOrderId}/${otherServiceId}`,
-    "otherServiceHistory"
+  } = useGet<IConsignmentExport>(
+    `${JobOrder_ConsignmentExport.getByIdHistory}/${jobOrderId}/${consignmentExportId}`,
+    "consignmentExportHistory"
   )
 
   // Destructure with fallback values
   const { data: historyData } =
-    (historyResponse as ApiResponse<IOtherService>) ?? {
+    (historyResponse as ApiResponse<IConsignmentExport>) ?? {
       result: 0,
       message: "",
       data: [],
     }
 
   // Define columns for the history table
-  const columns: ColumnDef<IOtherService>[] = [
+  const columns: ColumnDef<IConsignmentExport>[] = [
     {
       accessorKey: "editVersion",
       header: "Version",
@@ -73,49 +73,67 @@ export function OtherServiceHistoryDialog({
       maxSize: 80,
     },
     {
-      accessorKey: "date",
-      header: "Date",
-      cell: ({ row }) => {
-        const dateValue = row.getValue("date")
-        if (!dateValue) return <div>-</div>
-
-        const date = new Date(dateValue as string)
-        return (
-          <div className="text-center">
-            {isValid(date) ? format(date, "dd/MM/yyyy") : "-"}
-          </div>
-        )
-      },
+      accessorKey: "awbNo",
+      header: "AWB No",
+      cell: ({ row }) => (
+        <div className="text-center font-medium">
+          {row.getValue("awbNo") || "-"}
+        </div>
+      ),
       size: 120,
       minSize: 100,
     },
     {
-      accessorKey: "serviceProvider",
-      header: "Service Provider",
+      accessorKey: "carrierTypeName",
+      header: "Carrier Type",
       cell: ({ row }) => (
-        <div className="max-w-xs truncate font-medium">
-          {row.getValue("serviceProvider") || "-"}
+        <div className="text-center">
+          {row.getValue("carrierTypeName") || "-"}
         </div>
       ),
-      size: 150,
+      size: 120,
+      minSize: 100,
+    },
+    {
+      accessorKey: "consignmentTypeName",
+      header: "Consignment Type",
+      cell: ({ row }) => (
+        <div className="text-center">
+          {row.getValue("consignmentTypeName") || "-"}
+        </div>
+      ),
+      size: 140,
       minSize: 120,
     },
     {
-      accessorKey: "chargeName",
-      header: "Charge",
+      accessorKey: "landingTypeName",
+      header: "Landing Type",
       cell: ({ row }) => (
-        <div className="max-w-xs truncate">
-          {row.getValue("chargeName") || "-"}
+        <div className="text-center">
+          {row.getValue("landingTypeName") || "-"}
         </div>
       ),
-      size: 150,
-      minSize: 120,
+      size: 120,
+      minSize: 100,
     },
     {
-      accessorKey: "quantity",
-      header: "Quantity",
+      accessorKey: "noOfPcs",
+      header: "No of Pcs",
       cell: ({ row }) => (
-        <div className="text-right">{row.getValue("quantity") || "0"}</div>
+        <div className="text-right">{row.getValue("noOfPcs") || "0"}</div>
+      ),
+      size: 100,
+      minSize: 80,
+    },
+    {
+      accessorKey: "weight",
+      header: "Weight",
+      cell: ({ row }) => (
+        <div className="text-right">
+          {typeof row.getValue("weight") === "number"
+            ? (row.getValue("weight") as number).toFixed(2)
+            : "0.00"}
+        </div>
       ),
       size: 100,
       minSize: 80,
@@ -130,17 +148,130 @@ export function OtherServiceHistoryDialog({
       minSize: 60,
     },
     {
-      accessorKey: "amount",
-      header: "Amount",
+      accessorKey: "pickupLocation",
+      header: "Pickup Location",
       cell: ({ row }) => (
-        <div className="text-right">
-          {typeof row.getValue("amount") === "number"
-            ? (row.getValue("amount") as number).toFixed(2)
-            : "0.00"}
+        <div className="max-w-xs truncate">
+          {row.getValue("pickupLocation") || "-"}
         </div>
+      ),
+      size: 150,
+      minSize: 120,
+    },
+    {
+      accessorKey: "deliveryLocation",
+      header: "Delivery Location",
+      cell: ({ row }) => (
+        <div className="max-w-xs truncate">
+          {row.getValue("deliveryLocation") || "-"}
+        </div>
+      ),
+      size: 150,
+      minSize: 120,
+    },
+    {
+      accessorKey: "clearedBy",
+      header: "Cleared By",
+      cell: ({ row }) => (
+        <div className="text-center">{row.getValue("clearedBy") || "-"}</div>
       ),
       size: 120,
       minSize: 100,
+    },
+    {
+      accessorKey: "billEntryNo",
+      header: "Bill Entry No",
+      cell: ({ row }) => (
+        <div className="text-center">{row.getValue("billEntryNo") || "-"}</div>
+      ),
+      size: 130,
+      minSize: 110,
+    },
+    {
+      accessorKey: "declarationNo",
+      header: "Declaration No",
+      cell: ({ row }) => (
+        <div className="text-center">
+          {row.getValue("declarationNo") || "-"}
+        </div>
+      ),
+      size: 130,
+      minSize: 110,
+    },
+    {
+      accessorKey: "receiveDate",
+      header: "Receive Date",
+      cell: ({ row }) => {
+        const dateValue = row.getValue("receiveDate")
+        if (!dateValue) return <div>-</div>
+
+        const date = new Date(dateValue as string)
+        return (
+          <div className="text-center">
+            {isValid(date) ? format(date, "dd/MM/yyyy") : "-"}
+          </div>
+        )
+      },
+      size: 120,
+      minSize: 100,
+    },
+    {
+      accessorKey: "deliverDate",
+      header: "Deliver Date",
+      cell: ({ row }) => {
+        const dateValue = row.getValue("deliverDate")
+        if (!dateValue) return <div>-</div>
+
+        const date = new Date(dateValue as string)
+        return (
+          <div className="text-center">
+            {isValid(date) ? format(date, "dd/MM/yyyy") : "-"}
+          </div>
+        )
+      },
+      size: 120,
+      minSize: 100,
+    },
+    {
+      accessorKey: "arrivalDate",
+      header: "Arrival Date",
+      cell: ({ row }) => {
+        const dateValue = row.getValue("arrivalDate")
+        if (!dateValue) return <div>-</div>
+
+        const date = new Date(dateValue as string)
+        return (
+          <div className="text-center">
+            {isValid(date) ? format(date, "dd/MM/yyyy") : "-"}
+          </div>
+        )
+      },
+      size: 120,
+      minSize: 100,
+    },
+    {
+      accessorKey: "amountDeposited",
+      header: "Amount Deposited",
+      cell: ({ row }) => (
+        <div className="text-right">
+          {typeof row.getValue("amountDeposited") === "number"
+            ? (row.getValue("amountDeposited") as number).toFixed(2)
+            : "0.00"}
+        </div>
+      ),
+      size: 140,
+      minSize: 120,
+    },
+    {
+      accessorKey: "refundInstrumentNo",
+      header: "Refund Instrument No",
+      cell: ({ row }) => (
+        <div className="text-center">
+          {row.getValue("refundInstrumentNo") || "-"}
+        </div>
+      ),
+      size: 150,
+      minSize: 130,
     },
     {
       accessorKey: "totAmt",
@@ -195,23 +326,6 @@ export function OtherServiceHistoryDialog({
     {
       accessorKey: "debitNoteNo",
       header: "Debit Note",
-      cell: ({ row }) => {
-        const debitNoteNo = row.getValue("debitNoteNo")
-        return (
-          <div className="text-center">
-            {debitNoteNo ? (
-              <Badge
-                variant="secondary"
-                className="bg-green-100 text-green-800"
-              >
-                {debitNoteNo}
-              </Badge>
-            ) : (
-              <span className="text-muted-foreground">-</span>
-            )}
-          </div>
-        )
-      },
       size: 120,
       minSize: 100,
     },
@@ -313,20 +427,20 @@ export function OtherServiceHistoryDialog({
         }}
       >
         <DialogHeader>
-          <DialogTitle>Other Service History</DialogTitle>
+          <DialogTitle>Consignment Export History</DialogTitle>
           <DialogDescription>
-            View version history for Other Service ID:{" "}
-            {otherServiceIdDisplay || otherServiceId}
+            View version history for Consignment Export ID:{" "}
+            {consignmentExportIdDisplay || consignmentExportId}
           </DialogDescription>
         </DialogHeader>
 
         <div className="mt-4">
-          <BasicTable<IOtherService>
+          <BasicTable<IConsignmentExport>
             data={historyData || []}
             columns={columns}
             isLoading={isLoading}
-            emptyMessage="No history found for this other service record."
-            tableName={TableName.otherService}
+            emptyMessage="No history found for this consignment export record."
+            tableName={TableName.consignmentExport}
             showHeader={false}
             showFooter={false}
           />
@@ -336,4 +450,4 @@ export function OtherServiceHistoryDialog({
   )
 }
 
-export default OtherServiceHistoryDialog
+export default ConsignmentExportHistoryDialog

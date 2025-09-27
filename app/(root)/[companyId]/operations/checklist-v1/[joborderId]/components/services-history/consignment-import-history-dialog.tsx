@@ -2,12 +2,12 @@
 
 import { useEffect } from "react"
 import { ApiResponse } from "@/interfaces/auth"
-import { ICrewSignOn } from "@/interfaces/checklist"
+import { IConsignmentImport } from "@/interfaces/checklist"
 import { useAuthStore } from "@/stores/auth-store"
 import { ColumnDef } from "@tanstack/react-table"
 import { format, isValid } from "date-fns"
 
-import { JobOrder_CrewSignOn } from "@/lib/api-routes"
+import { JobOrder_ConsignmentImport } from "@/lib/api-routes"
 import { TableName } from "@/lib/utils"
 import { useGet } from "@/hooks/use-common"
 import { Badge } from "@/components/ui/badge"
@@ -20,21 +20,21 @@ import {
 } from "@/components/ui/dialog"
 import { BasicTable } from "@/components/table/table-basic"
 
-interface CrewSignOnHistoryDialogProps {
+interface ConsignmentImportHistoryDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   jobOrderId: number
-  crewSignOnId: number
-  crewSignOnIdDisplay?: number
+  consignmentImportId: number
+  consignmentImportIdDisplay?: number
 }
 
-export function CrewSignOnHistoryDialog({
+export function ConsignmentImportHistoryDialog({
   open,
   onOpenChange,
   jobOrderId,
-  crewSignOnId,
-  crewSignOnIdDisplay,
-}: CrewSignOnHistoryDialogProps) {
+  consignmentImportId,
+  consignmentImportIdDisplay,
+}: ConsignmentImportHistoryDialogProps) {
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
 
@@ -43,21 +43,21 @@ export function CrewSignOnHistoryDialog({
     data: historyResponse,
     isLoading,
     refetch,
-  } = useGet<ICrewSignOn>(
-    `${JobOrder_CrewSignOn.getByIdHistory}/${jobOrderId}/${crewSignOnId}`,
-    "crewSignOnHistory"
+  } = useGet<IConsignmentImport>(
+    `${JobOrder_ConsignmentImport.getByIdHistory}/${jobOrderId}/${consignmentImportId}`,
+    "consignmentImportHistory"
   )
 
   // Destructure with fallback values
   const { data: historyData } =
-    (historyResponse as ApiResponse<ICrewSignOn>) ?? {
+    (historyResponse as ApiResponse<IConsignmentImport>) ?? {
       result: 0,
       message: "",
       data: [],
     }
 
   // Define columns for the history table
-  const columns: ColumnDef<ICrewSignOn>[] = [
+  const columns: ColumnDef<IConsignmentImport>[] = [
     {
       accessorKey: "editVersion",
       header: "Version",
@@ -73,95 +73,205 @@ export function CrewSignOnHistoryDialog({
       maxSize: 80,
     },
     {
-      accessorKey: "crewName",
-      header: "Crew Name",
+      accessorKey: "awbNo",
+      header: "AWB No",
       cell: ({ row }) => (
-        <div className="max-w-xs truncate font-medium">
-          {row.getValue("crewName") || "-"}
+        <div className="text-center font-medium">
+          {row.getValue("awbNo") || "-"}
         </div>
-      ),
-      size: 150,
-      minSize: 120,
-    },
-    {
-      accessorKey: "nationality",
-      header: "Nationality",
-      cell: ({ row }) => (
-        <div className="text-center">{row.getValue("nationality") || "-"}</div>
       ),
       size: 120,
       minSize: 100,
     },
     {
-      accessorKey: "rankName",
-      header: "Rank",
+      accessorKey: "carrierTypeName",
+      header: "Carrier Type",
       cell: ({ row }) => (
-        <div className="text-center">{row.getValue("rankName") || "-"}</div>
+        <div className="text-center">
+          {row.getValue("carrierTypeName") || "-"}
+        </div>
+      ),
+      size: 120,
+      minSize: 100,
+    },
+    {
+      accessorKey: "consignmentTypeName",
+      header: "Consignment Type",
+      cell: ({ row }) => (
+        <div className="text-center">
+          {row.getValue("consignmentTypeName") || "-"}
+        </div>
+      ),
+      size: 140,
+      minSize: 120,
+    },
+    {
+      accessorKey: "landingTypeName",
+      header: "Landing Type",
+      cell: ({ row }) => (
+        <div className="text-center">
+          {row.getValue("landingTypeName") || "-"}
+        </div>
+      ),
+      size: 120,
+      minSize: 100,
+    },
+    {
+      accessorKey: "noOfPcs",
+      header: "No of Pcs",
+      cell: ({ row }) => (
+        <div className="text-right">{row.getValue("noOfPcs") || "0"}</div>
       ),
       size: 100,
       minSize: 80,
     },
     {
-      accessorKey: "flightDetails",
-      header: "Flight Details",
+      accessorKey: "weight",
+      header: "Weight",
       cell: ({ row }) => (
-        <div className="max-w-xs truncate">
-          {row.getValue("flightDetails") || "-"}
+        <div className="text-right">
+          {typeof row.getValue("weight") === "number"
+            ? (row.getValue("weight") as number).toFixed(2)
+            : "0.00"}
         </div>
-      ),
-      size: 150,
-      minSize: 120,
-    },
-    {
-      accessorKey: "hotelName",
-      header: "Hotel Name",
-      cell: ({ row }) => (
-        <div className="max-w-xs truncate">
-          {row.getValue("hotelName") || "-"}
-        </div>
-      ),
-      size: 150,
-      minSize: 120,
-    },
-    {
-      accessorKey: "departureDetails",
-      header: "Departure Details",
-      cell: ({ row }) => (
-        <div className="max-w-xs truncate">
-          {row.getValue("departureDetails") || "-"}
-        </div>
-      ),
-      size: 150,
-      minSize: 120,
-    },
-    {
-      accessorKey: "transportName",
-      header: "Transport",
-      cell: ({ row }) => (
-        <div className="max-w-xs truncate">
-          {row.getValue("transportName") || "-"}
-        </div>
-      ),
-      size: 120,
-      minSize: 100,
-    },
-    {
-      accessorKey: "clearing",
-      header: "Clearing",
-      cell: ({ row }) => (
-        <div className="text-center">{row.getValue("clearing") || "-"}</div>
       ),
       size: 100,
       minSize: 80,
     },
     {
-      accessorKey: "cidClearance",
-      header: "CID Clearance",
+      accessorKey: "uomName",
+      header: "UOM",
       cell: ({ row }) => (
-        <div className="text-center">{row.getValue("cidClearance") || "-"}</div>
+        <div className="text-center">{row.getValue("uomName") || "-"}</div>
+      ),
+      size: 80,
+      minSize: 60,
+    },
+    {
+      accessorKey: "pickupLocation",
+      header: "Pickup Location",
+      cell: ({ row }) => (
+        <div className="max-w-xs truncate">
+          {row.getValue("pickupLocation") || "-"}
+        </div>
+      ),
+      size: 150,
+      minSize: 120,
+    },
+    {
+      accessorKey: "deliveryLocation",
+      header: "Delivery Location",
+      cell: ({ row }) => (
+        <div className="max-w-xs truncate">
+          {row.getValue("deliveryLocation") || "-"}
+        </div>
+      ),
+      size: 150,
+      minSize: 120,
+    },
+    {
+      accessorKey: "clearedBy",
+      header: "Cleared By",
+      cell: ({ row }) => (
+        <div className="text-center">{row.getValue("clearedBy") || "-"}</div>
       ),
       size: 120,
       minSize: 100,
+    },
+    {
+      accessorKey: "billEntryNo",
+      header: "Bill Entry No",
+      cell: ({ row }) => (
+        <div className="text-center">{row.getValue("billEntryNo") || "-"}</div>
+      ),
+      size: 130,
+      minSize: 110,
+    },
+    {
+      accessorKey: "declarationNo",
+      header: "Declaration No",
+      cell: ({ row }) => (
+        <div className="text-center">
+          {row.getValue("declarationNo") || "-"}
+        </div>
+      ),
+      size: 130,
+      minSize: 110,
+    },
+    {
+      accessorKey: "receiveDate",
+      header: "Receive Date",
+      cell: ({ row }) => {
+        const dateValue = row.getValue("receiveDate")
+        if (!dateValue) return <div>-</div>
+
+        const date = new Date(dateValue as string)
+        return (
+          <div className="text-center">
+            {isValid(date) ? format(date, "dd/MM/yyyy") : "-"}
+          </div>
+        )
+      },
+      size: 120,
+      minSize: 100,
+    },
+    {
+      accessorKey: "deliverDate",
+      header: "Deliver Date",
+      cell: ({ row }) => {
+        const dateValue = row.getValue("deliverDate")
+        if (!dateValue) return <div>-</div>
+
+        const date = new Date(dateValue as string)
+        return (
+          <div className="text-center">
+            {isValid(date) ? format(date, "dd/MM/yyyy") : "-"}
+          </div>
+        )
+      },
+      size: 120,
+      minSize: 100,
+    },
+    {
+      accessorKey: "arrivalDate",
+      header: "Arrival Date",
+      cell: ({ row }) => {
+        const dateValue = row.getValue("arrivalDate")
+        if (!dateValue) return <div>-</div>
+
+        const date = new Date(dateValue as string)
+        return (
+          <div className="text-center">
+            {isValid(date) ? format(date, "dd/MM/yyyy") : "-"}
+          </div>
+        )
+      },
+      size: 120,
+      minSize: 100,
+    },
+    {
+      accessorKey: "amountDeposited",
+      header: "Amount Deposited",
+      cell: ({ row }) => (
+        <div className="text-right">
+          {typeof row.getValue("amountDeposited") === "number"
+            ? (row.getValue("amountDeposited") as number).toFixed(2)
+            : "0.00"}
+        </div>
+      ),
+      size: 140,
+      minSize: 120,
+    },
+    {
+      accessorKey: "refundInstrumentNo",
+      header: "Refund Instrument No",
+      cell: ({ row }) => (
+        <div className="text-center">
+          {row.getValue("refundInstrumentNo") || "-"}
+        </div>
+      ),
+      size: 150,
+      minSize: 130,
     },
     {
       accessorKey: "totAmt",
@@ -216,44 +326,14 @@ export function CrewSignOnHistoryDialog({
     {
       accessorKey: "debitNoteNo",
       header: "Debit Note",
-      cell: ({ row }) => {
-        const debitNoteNo = row.getValue("debitNoteNo")
-        return (
-          <div className="text-center">
-            {debitNoteNo ? (
-              <Badge
-                variant="secondary"
-                className="bg-green-100 text-green-800"
-              >
-                {debitNoteNo}
-              </Badge>
-            ) : (
-              <span className="text-muted-foreground">-</span>
-            )}
-          </div>
-        )
-      },
       size: 120,
       minSize: 100,
     },
     {
-      accessorKey: "overStayRemark",
-      header: "Over Stay Remark",
+      accessorKey: "glName",
+      header: "GL Account",
       cell: ({ row }) => (
-        <div className="max-w-xs truncate">
-          {row.getValue("overStayRemark") || "-"}
-        </div>
-      ),
-      size: 150,
-      minSize: 120,
-    },
-    {
-      accessorKey: "modificationRemark",
-      header: "Modification Remark",
-      cell: ({ row }) => (
-        <div className="max-w-xs truncate">
-          {row.getValue("modificationRemark") || "-"}
-        </div>
+        <div className="max-w-xs truncate">{row.getValue("glName") || "-"}</div>
       ),
       size: 150,
       minSize: 120,
@@ -347,20 +427,20 @@ export function CrewSignOnHistoryDialog({
         }}
       >
         <DialogHeader>
-          <DialogTitle>Crew Sign On History</DialogTitle>
+          <DialogTitle>Consignment Import History</DialogTitle>
           <DialogDescription>
-            View version history for Crew Sign On ID:{" "}
-            {crewSignOnIdDisplay || crewSignOnId}
+            View version history for Consignment Import ID:{" "}
+            {consignmentImportIdDisplay || consignmentImportId}
           </DialogDescription>
         </DialogHeader>
 
         <div className="mt-4">
-          <BasicTable<ICrewSignOn>
+          <BasicTable<IConsignmentImport>
             data={historyData || []}
             columns={columns}
             isLoading={isLoading}
-            emptyMessage="No history found for this crew sign on record."
-            tableName={TableName.crewSignOn}
+            emptyMessage="No history found for this consignment import record."
+            tableName={TableName.consignmentImport}
             showHeader={false}
             showFooter={false}
           />
@@ -370,4 +450,4 @@ export function CrewSignOnHistoryDialog({
   )
 }
 
-export default CrewSignOnHistoryDialog
+export default ConsignmentImportHistoryDialog

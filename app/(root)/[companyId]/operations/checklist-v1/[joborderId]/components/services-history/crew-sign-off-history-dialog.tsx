@@ -2,12 +2,12 @@
 
 import { useEffect } from "react"
 import { ApiResponse } from "@/interfaces/auth"
-import { IThirdParty } from "@/interfaces/checklist"
+import { ICrewSignOff } from "@/interfaces/checklist"
 import { useAuthStore } from "@/stores/auth-store"
 import { ColumnDef } from "@tanstack/react-table"
 import { format, isValid } from "date-fns"
 
-import { JobOrder_ThirdParty } from "@/lib/api-routes"
+import { JobOrder_CrewSignOff } from "@/lib/api-routes"
 import { TableName } from "@/lib/utils"
 import { useGet } from "@/hooks/use-common"
 import { Badge } from "@/components/ui/badge"
@@ -20,21 +20,21 @@ import {
 } from "@/components/ui/dialog"
 import { BasicTable } from "@/components/table/table-basic"
 
-interface ThirdPartyHistoryDialogProps {
+interface CrewSignOffHistoryDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   jobOrderId: number
-  thirdPartyId: number
-  thirdPartyIdDisplay?: number
+  crewSignOffId: number
+  crewSignOffIdDisplay?: number
 }
 
-export function ThirdPartyHistoryDialog({
+export function CrewSignOffHistoryDialog({
   open,
   onOpenChange,
   jobOrderId,
-  thirdPartyId,
-  thirdPartyIdDisplay,
-}: ThirdPartyHistoryDialogProps) {
+  crewSignOffId,
+  crewSignOffIdDisplay,
+}: CrewSignOffHistoryDialogProps) {
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
 
@@ -43,21 +43,21 @@ export function ThirdPartyHistoryDialog({
     data: historyResponse,
     isLoading,
     refetch,
-  } = useGet<IThirdParty>(
-    `${JobOrder_ThirdParty.getByIdHistory}/${jobOrderId}/${thirdPartyId}`,
-    "thirdPartyHistory"
+  } = useGet<ICrewSignOff>(
+    `${JobOrder_CrewSignOff.getByIdHistory}/${jobOrderId}/${crewSignOffId}`,
+    "crewSignOffHistory"
   )
 
   // Destructure with fallback values
   const { data: historyData } =
-    (historyResponse as ApiResponse<IThirdParty>) ?? {
+    (historyResponse as ApiResponse<ICrewSignOff>) ?? {
       result: 0,
       message: "",
       data: [],
     }
 
   // Define columns for the history table
-  const columns: ColumnDef<IThirdParty>[] = [
+  const columns: ColumnDef<ICrewSignOff>[] = [
     {
       accessorKey: "editVersion",
       header: "Version",
@@ -73,70 +73,93 @@ export function ThirdPartyHistoryDialog({
       maxSize: 80,
     },
     {
-      accessorKey: "supplierName",
-      header: "Supplier",
+      accessorKey: "crewName",
+      header: "Crew Name",
       cell: ({ row }) => (
-        <div className="max-w-xs truncate">
-          {row.getValue("supplierName") || "-"}
+        <div className="max-w-xs truncate font-medium">
+          {row.getValue("crewName") || "-"}
         </div>
       ),
       size: 150,
       minSize: 120,
     },
     {
-      accessorKey: "supplierMobileNumber",
-      header: "Mobile Number",
+      accessorKey: "nationality",
+      header: "Nationality",
       cell: ({ row }) => (
-        <div className="text-center">
-          {row.getValue("supplierMobileNumber") || "-"}
-        </div>
+        <div className="text-center">{row.getValue("nationality") || "-"}</div>
       ),
-      size: 130,
-      minSize: 110,
+      size: 120,
+      minSize: 100,
     },
     {
-      accessorKey: "chargeName",
-      header: "Charge",
+      accessorKey: "rankName",
+      header: "Rank",
       cell: ({ row }) => (
-        <div className="max-w-xs truncate">
-          {row.getValue("chargeName") || "-"}
-        </div>
-      ),
-      size: 150,
-      minSize: 120,
-    },
-    {
-      accessorKey: "quantity",
-      header: "Quantity",
-      cell: ({ row }) => (
-        <div className="text-right">{row.getValue("quantity") || "0"}</div>
+        <div className="text-center">{row.getValue("rankName") || "-"}</div>
       ),
       size: 100,
       minSize: 80,
     },
     {
-      accessorKey: "uomName",
-      header: "UOM",
+      accessorKey: "flightDetails",
+      header: "Flight Details",
       cell: ({ row }) => (
-        <div className="text-center">{row.getValue("uomName") || "-"}</div>
+        <div className="max-w-xs truncate">
+          {row.getValue("flightDetails") || "-"}
+        </div>
       ),
-      size: 80,
-      minSize: 60,
+      size: 150,
+      minSize: 120,
     },
     {
-      accessorKey: "deliverDate",
-      header: "Deliver Date",
-      cell: ({ row }) => {
-        const dateValue = row.getValue("deliverDate")
-        if (!dateValue) return <div>-</div>
-
-        const date = new Date(dateValue as string)
-        return (
-          <div className="text-center">
-            {isValid(date) ? format(date, "dd/MM/yyyy") : "-"}
-          </div>
-        )
-      },
+      accessorKey: "hotelName",
+      header: "Hotel Name",
+      cell: ({ row }) => (
+        <div className="max-w-xs truncate">
+          {row.getValue("hotelName") || "-"}
+        </div>
+      ),
+      size: 150,
+      minSize: 120,
+    },
+    {
+      accessorKey: "departureDetails",
+      header: "Departure Details",
+      cell: ({ row }) => (
+        <div className="max-w-xs truncate">
+          {row.getValue("departureDetails") || "-"}
+        </div>
+      ),
+      size: 150,
+      minSize: 120,
+    },
+    {
+      accessorKey: "transportName",
+      header: "Transport",
+      cell: ({ row }) => (
+        <div className="max-w-xs truncate">
+          {row.getValue("transportName") || "-"}
+        </div>
+      ),
+      size: 120,
+      minSize: 100,
+    },
+    {
+      accessorKey: "clearing",
+      header: "Clearing",
+      cell: ({ row }) => (
+        <div className="text-center">{row.getValue("clearing") || "-"}</div>
+      ),
+      size: 100,
+      minSize: 80,
+    },
+    {
+      accessorKey: "cidClearance",
+      header: "CID Clearance",
+      cell: ({ row }) => (
+        <div className="text-center">{row.getValue("cidClearance") || "-"}</div>
+      ),
       size: 120,
       minSize: 100,
     },
@@ -193,31 +216,27 @@ export function ThirdPartyHistoryDialog({
     {
       accessorKey: "debitNoteNo",
       header: "Debit Note",
-      cell: ({ row }) => {
-        const debitNoteNo = row.getValue("debitNoteNo")
-        return (
-          <div className="text-center">
-            {debitNoteNo ? (
-              <Badge
-                variant="secondary"
-                className="bg-green-100 text-green-800"
-              >
-                {debitNoteNo}
-              </Badge>
-            ) : (
-              <span className="text-muted-foreground">-</span>
-            )}
-          </div>
-        )
-      },
       size: 120,
       minSize: 100,
     },
     {
-      accessorKey: "glName",
-      header: "GL Account",
+      accessorKey: "overStayRemark",
+      header: "Over Stay Remark",
       cell: ({ row }) => (
-        <div className="max-w-xs truncate">{row.getValue("glName") || "-"}</div>
+        <div className="max-w-xs truncate">
+          {row.getValue("overStayRemark") || "-"}
+        </div>
+      ),
+      size: 150,
+      minSize: 120,
+    },
+    {
+      accessorKey: "modificationRemark",
+      header: "Modification Remark",
+      cell: ({ row }) => (
+        <div className="max-w-xs truncate">
+          {row.getValue("modificationRemark") || "-"}
+        </div>
       ),
       size: 150,
       minSize: 120,
@@ -311,20 +330,20 @@ export function ThirdPartyHistoryDialog({
         }}
       >
         <DialogHeader>
-          <DialogTitle>Third Party History</DialogTitle>
+          <DialogTitle>Crew Sign Off History</DialogTitle>
           <DialogDescription>
-            View version history for Third Party ID:{" "}
-            {thirdPartyIdDisplay || thirdPartyId}
+            View version history for Crew Sign Off ID:{" "}
+            {crewSignOffIdDisplay || crewSignOffId}
           </DialogDescription>
         </DialogHeader>
 
         <div className="mt-4">
-          <BasicTable<IThirdParty>
+          <BasicTable<ICrewSignOff>
             data={historyData || []}
             columns={columns}
             isLoading={isLoading}
-            emptyMessage="No history found for this third party record."
-            tableName={TableName.thirdParty}
+            emptyMessage="No history found for this crew sign off record."
+            tableName={TableName.crewSignOff}
             showHeader={false}
             showFooter={false}
           />
@@ -334,4 +353,4 @@ export function ThirdPartyHistoryDialog({
   )
 }
 
-export default ThirdPartyHistoryDialog
+export default CrewSignOffHistoryDialog
