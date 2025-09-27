@@ -238,19 +238,13 @@ export default function DebitNoteForm({
       const accountDate = debitNoteHd?.debitNoteDate
       if (accountDate && selectedGst.gstId) {
         try {
-          debugger
-          console.log("accountDate", accountDate)
-          console.log("clientDateFormat", clientDateFormat)
-          console.log("", accountDate.toString())
           // Validate and parse the date
           const parsedDate = parseDate(accountDate.toString()) || new Date()
           const dt = format(parsedDate, "yyyy-MM-dd")
-          console.log("dt", dt)
 
           const res = await getData(
             `${BasicSetting.getGstPercentage}/${selectedGst.gstId}/${dt}`
           )
-          console.log("res", res)
           // Update the GST percentage for this specific row
           const gstPercentage = res?.data || 0
           form.setValue("gstPercentage", gstPercentage)

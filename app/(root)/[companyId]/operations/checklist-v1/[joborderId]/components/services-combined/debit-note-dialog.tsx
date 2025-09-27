@@ -45,6 +45,7 @@ interface DebitNoteDialogProps {
   description?: string
   onOpenChange: (open: boolean) => void
   onDelete?: (debitNoteId: number) => void
+  onUpdateHeader?: (updatedHeader: IDebitNoteHd) => void
 }
 
 export default function DebitNoteDialog({
@@ -56,10 +57,16 @@ export default function DebitNoteDialog({
   description = "Manage debit note details for this service.",
   onOpenChange,
   onDelete,
+  onUpdateHeader,
 }: DebitNoteDialogProps) {
+  const [debitNoteHdState, setDebitNoteHdState] = useState<IDebitNoteHd>(
+    debitNoteHd ?? ({} as IDebitNoteHd)
+  )
+
   const [details, setDetails] = useState<IDebitNoteDt[]>(
     debitNoteHd?.data_details ?? []
   )
+
   const detailsRef = useRef(details)
 
   // State for modal and selected debit note detail
@@ -236,7 +243,7 @@ export default function DebitNoteDialog({
   // Handler for saving the debit note
   const handleSaveDebitNote = useCallback(async () => {
     try {
-      if (!debitNoteHd?.debitNoteId) {
+      if (!debitNoteHdState?.debitNoteId) {
         console.error("Debit note header not found")
         return
       }
@@ -257,24 +264,24 @@ export default function DebitNoteDialog({
 
       // Create the complete debit note header with details
       const newDebitNoteHd: DebitNoteHdFormValues = {
-        debitNoteId: debitNoteHd.debitNoteId,
-        debitNoteNo: debitNoteHd.debitNoteNo,
-        jobOrderId: debitNoteHd.jobOrderId,
-        debitNoteDate: debitNoteHd.debitNoteDate,
-        itemNo: debitNoteHd.itemNo,
-        taskId: debitNoteHd.taskId,
-        serviceId: debitNoteHd.serviceId,
-        chargeId: debitNoteHd.chargeId,
-        currencyId: debitNoteHd.currencyId,
-        exhRate: debitNoteHd.exhRate,
-        glId: debitNoteHd.glId,
-        taxableAmt: debitNoteHd.taxableAmt,
-        nonTaxableAmt: debitNoteHd.nonTaxableAmt,
-        editVersion: debitNoteHd.editVersion,
+        debitNoteId: debitNoteHdState.debitNoteId,
+        debitNoteNo: debitNoteHdState.debitNoteNo,
+        jobOrderId: debitNoteHdState.jobOrderId,
+        debitNoteDate: debitNoteHdState.debitNoteDate,
+        itemNo: debitNoteHdState.itemNo,
+        taskId: debitNoteHdState.taskId,
+        serviceId: debitNoteHdState.serviceId,
+        chargeId: debitNoteHdState.chargeId,
+        currencyId: debitNoteHdState.currencyId,
+        exhRate: debitNoteHdState.exhRate,
+        glId: debitNoteHdState.glId,
+        taxableAmt: debitNoteHdState.taxableAmt,
+        nonTaxableAmt: debitNoteHdState.nonTaxableAmt,
+        editVersion: debitNoteHdState.editVersion,
         totAmt: totalAmount,
         gstAmt: totalGstAmount,
         totAftGstAmt: totalAfterGst,
-        isLocked: debitNoteHd.isLocked,
+        isLocked: debitNoteHdState.isLocked,
         data_details: details, // Include all details
       }
 
@@ -285,13 +292,30 @@ export default function DebitNoteDialog({
         // Close the save confirmation dialog
         setSaveConfirmation({ isOpen: false })
 
+        // Update local state with response data if available
+        if (response.data && "data_details" in response.data) {
+          const responseData = response.data as unknown as {
+            data_details: IDebitNoteDt[]
+          } & IDebitNoteHd
+
+          setDebitNoteHdState(responseData)
+
+          // Update details
+          setDetails(responseData.data_details)
+
+          // Update header if callback is provided
+          if (onUpdateHeader) {
+            onUpdateHeader(responseData)
+          }
+        }
+
         // Invalidate queries to refresh data
         queryClient.invalidateQueries({
           queryKey: [
             JobOrder_DebitNote.getDetails,
-            debitNoteHd.jobOrderId,
+            debitNoteHdState.jobOrderId,
             taskId,
-            debitNoteHd.debitNoteId,
+            debitNoteHdState.debitNoteId,
           ],
         })
         queryClient.invalidateQueries({ queryKey: ["debit-note-details"] })
@@ -300,18 +324,25 @@ export default function DebitNoteDialog({
       console.error("Error saving debit note:", error)
       alert("Error saving debit note. Please try again.")
     }
-  }, [debitNoteHd, details, saveMutation, queryClient, taskId])
+  }, [
+    debitNoteHdState,
+    details,
+    saveMutation,
+    queryClient,
+    taskId,
+    onUpdateHeader,
+  ])
 
   // Handler for deleting the entire debit note - shows confirmation first
   const handleDeleteDebitNote = useCallback(() => {
-    if (debitNoteHd?.debitNoteId) {
+    if (debitNoteHdState?.debitNoteId) {
       setMainDeleteConfirmation({
         isOpen: true,
-        debitNoteId: debitNoteHd.debitNoteId,
-        debitNoteNo: debitNoteHd.debitNoteNo,
+        debitNoteId: debitNoteHdState.debitNoteId,
+        debitNoteNo: debitNoteHdState.debitNoteNo,
       })
     }
-  }, [debitNoteHd])
+  }, [debitNoteHdState])
 
   // Handler for confirmed main debit note deletion
   const handleConfirmMainDeleteMain = useCallback(() => {
@@ -397,7 +428,8 @@ export default function DebitNoteDialog({
   }, [])
 
   // Get task name by task ID from the debit note header
-  const taskName = TaskIdToName[taskId] || "Unknown Task"
+  const taskName =
+    TaskIdToName[debitNoteHdState?.taskId || taskId] || "Unknown Task"
 
   // Calculate summary totals using helper function
   const summaryTotals = calculateDebitNoteSummary(details, { amtDec: 2 })
@@ -421,27 +453,29 @@ export default function DebitNoteDialog({
                 variant="secondary"
                 className="bg-green-100 px-3 py-1 whitespace-nowrap text-green-800 hover:bg-green-200"
               >
-                {debitNoteHd?.debitNoteNo || "N/A"}
+                {debitNoteHdState?.debitNoteNo || "N/A"}
               </Badge>
               <Badge
                 variant="secondary"
                 className="bg-blue-100 px-3 py-1 whitespace-nowrap text-blue-800 hover:bg-blue-200"
               >
-                {debitNoteHd?.debitNoteDate
-                  ? new Date(debitNoteHd.debitNoteDate).toLocaleDateString()
+                {debitNoteHdState?.debitNoteDate
+                  ? new Date(
+                      debitNoteHdState.debitNoteDate
+                    ).toLocaleDateString()
                   : "N/A"}
               </Badge>
               <Badge
                 variant="secondary"
                 className="bg-purple-100 px-3 py-1 whitespace-nowrap text-purple-800 hover:bg-purple-200"
               >
-                {debitNoteHd?.chargeName || "N/A"}
+                {debitNoteHdState?.chargeName || "N/A"}
               </Badge>
               <Badge
                 variant="secondary"
                 className="bg-orange-100 px-3 py-1 whitespace-nowrap text-orange-800 hover:bg-orange-200"
               >
-                {taskName}
+                {debitNoteHdState?.taskName || "N/A"}
               </Badge>
             </div>
           </div>
@@ -505,7 +539,7 @@ export default function DebitNoteDialog({
                 <Button
                   variant="destructive"
                   size="sm"
-                  disabled={isConfirmed || !debitNoteHd?.debitNoteId}
+                  disabled={isConfirmed || !debitNoteHdState?.debitNoteId}
                   onClick={handleDeleteDebitNote}
                 >
                   <Trash className="mr-2 h-4 w-4" />
@@ -514,7 +548,7 @@ export default function DebitNoteDialog({
                 <Button
                   size="sm"
                   variant="default"
-                  disabled={isConfirmed || !debitNoteHd?.debitNoteId}
+                  disabled={isConfirmed || !debitNoteHdState?.debitNoteId}
                   onClick={() => setSaveConfirmation({ isOpen: true })}
                 >
                   <Save className="mr-2 h-4 w-4" />
@@ -527,7 +561,7 @@ export default function DebitNoteDialog({
           {/* form Section */}
           <div className="bg-card mb-2 rounded-lg border p-4 shadow-sm">
             <DebitNoteForm
-              debitNoteHd={debitNoteHd}
+              debitNoteHd={debitNoteHdState}
               initialData={
                 modalMode === "edit" || modalMode === "view"
                   ? selectedDebitNoteDetail
@@ -538,8 +572,8 @@ export default function DebitNoteDialog({
               isSubmitting={false}
               isConfirmed={isConfirmed}
               taskId={taskId}
-              exchangeRate={debitNoteHd?.exhRate || 1}
-              companyId={debitNoteHd?.companyId || 0}
+              exchangeRate={debitNoteHdState?.exhRate || 1}
+              companyId={debitNoteHdState?.companyId || 0}
               onChargeChange={() => {}}
               shouldReset={shouldResetForm}
             />
