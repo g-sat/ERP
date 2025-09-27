@@ -824,3 +824,13 @@ export interface IDebitNoteData {
   jobOrderId: number
   debitNoteNo: string
 }
+
+export interface IBulkChargeData {
+  chargeId: number
+  chargeName: string
+  remarks: string
+  glId: number
+  glName?: string
+  taskId?: number
+  taskName?: string
+}

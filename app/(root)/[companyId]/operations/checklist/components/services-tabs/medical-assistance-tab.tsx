@@ -130,7 +130,7 @@ export function MedicalAssistanceTab({
   const deleteMutation = useDelete(`${JobOrder_MedicalAssistance.delete}`)
   // Debit note mutation
   const debitNoteMutation = usePersist<IDebitNoteData>(
-    `${JobOrder_DebitNote.add}`
+    `${JobOrder_DebitNote.generate}`
   )
 
   // Debit note delete mutation

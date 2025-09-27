@@ -125,7 +125,7 @@ export function LandingItemsTab({
   const deleteMutation = useDelete(`${JobOrder_LandingItems.delete}`)
   // Debit note mutation
   const debitNoteMutation = usePersist<IDebitNoteData>(
-    `${JobOrder_DebitNote.add}`
+    `${JobOrder_DebitNote.generate}`
   )
 
   // Debit note delete mutation

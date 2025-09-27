@@ -1130,12 +1130,13 @@ export const JobOrder_AgencyRemuneration = {
 // Debit Note Endpoints
 export const JobOrder_DebitNote = {
   getById: "/operations/getdebitnotebyid",
+  generate: "/operations/generatedebitnote",
   add: "/operations/savedebitnote",
   delete: "/operations/deletedebitnote",
   getDetails: "/operations/getdebitnotedetails",
   saveDetails: "/operations/savedebitnotedetails",
   deleteDetails: "/operations/deletedebitnotedetails",
-  addV1: "/operations/savedebitnoteV1",
+  getBulkDetails: "/operations/getbulkdetailscharges",
 }
 
 // GL Period Close Endpoints
