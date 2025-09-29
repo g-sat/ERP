@@ -78,7 +78,7 @@ export default function JobOrderDetailsPage() {
                     {jobOrderResponse?.data?.jobOrderNo}
                   </Badge>
                 </TooltipTrigger>
-                <TooltipContent className="max-w-sm p-4">
+                <TooltipContent className="max-w-sm border border-gray-200 bg-white p-4 shadow-lg">
                   <div className="space-y-2">
                     <h4 className="mb-3 font-semibold text-blue-800">
                       Job Order Details
