@@ -77,8 +77,8 @@ export function PortExpensesTable({
       {
         accessorKey: "debitNoteNo",
         header: "Debit Note No",
-        size: 200,
-        minSize: 140,
+        size: 180,
+        minSize: 130,
       },
       {
         accessorKey: "supplierName",

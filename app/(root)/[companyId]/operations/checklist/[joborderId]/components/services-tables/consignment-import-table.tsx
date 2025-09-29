@@ -58,11 +58,8 @@ export function ConsignmentImportTable({
       {
         accessorKey: "debitNoteNo",
         header: "Debit Note No",
-        cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("debitNoteNo") || "-"}</div>
-        ),
-        size: 120,
-        minSize: 100,
+        size: 180,
+        minSize: 130,
       },
       {
         accessorKey: "date",
