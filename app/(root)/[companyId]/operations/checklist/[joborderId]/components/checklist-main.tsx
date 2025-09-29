@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useEffect } from "react"
+import React, { useEffect, useState } from "react"
 import { IJobOrderHd } from "@/interfaces/checklist"
 import { ICurrencyLookup } from "@/interfaces/lookup"
 import { JobOrderHdSchema, JobOrderHdSchemaType } from "@/schemas/checklist"
@@ -48,6 +48,9 @@ export function ChecklistMain({
 }: ChecklistMainProps) {
   const { decimals } = useAuthStore()
   const exhRateDec = decimals[0]?.exhRateDec || 6
+
+  // State to track customer code for label display
+  const [customerCode, setCustomerCode] = useState<string>("")
 
   type JobOrderSchemaType = z.infer<typeof JobOrderHdSchema>
 
@@ -187,6 +190,13 @@ export function ChecklistMain({
     }
   }, [jobOrderDate, form])
 
+  // Initialize customer code when jobData is loaded
+  useEffect(() => {
+    if (jobData?.customerCode) {
+      setCustomerCode(jobData.customerCode)
+    }
+  }, [jobData?.customerCode])
+
   const onSubmit = async (data: JobOrderSchemaType) => {
     console.log("=== FORM SUBMISSION STARTED ===")
     console.log("Form data received:", data)
@@ -265,297 +275,313 @@ export function ChecklistMain({
           className="space-y-6"
           ref={setFormRef}
         >
-          {/* Operation Card */}
-          <div className="mb-4 rounded-lg border p-4">
-            <div className="mb-2 flex">
-              <Badge
-                variant="secondary"
-                className="border-blue-200 bg-blue-100 px-4 py-2 text-sm font-semibold text-blue-800 shadow-sm transition-colors duration-200 hover:bg-blue-200"
-              >
-                🔧 Operation
-              </Badge>
-            </div>
-            <div className="mb-4 border-b border-gray-200"></div>
-            <div className="grid grid-cols-6 gap-2">
-              <CustomDateNew
-                form={form}
-                name="jobOrderDate"
-                label="Job Order Date"
-                isRequired={true}
-              />
-              <CustomerAutocomplete
-                form={form}
-                name="customerId"
-                label="Customer"
-                isRequired={true}
-                isDisabled={isEdit}
-                onChangeEvent={(selectedCustomer) => {
-                  // Reset address and contact when customer changes
-                  if (selectedCustomer?.customerId !== customerId) {
-                    form.setValue("addressId", 0)
-                    form.setValue("contactId", 0)
-                    form.setValue(
-                      "currencyId",
-                      selectedCustomer?.currencyId ?? 0
-                    )
-
-                    // Trigger currency change to update exchange rate
-                    if (selectedCustomer?.currencyId) {
-                      // Create a minimal currency object for the API call
-                      const currencyObj = {
-                        currencyId: selectedCustomer.currencyId,
-                        currencyCode: "",
-                        currencyName: "",
-                        isMultiply: false,
-                      }
-                      handleCurrencyChange(currencyObj)
-                    }
-
-                    toast.info(
-                      "Address and contact have been reset for the new customer."
-                    )
-                  }
-                }}
-              />
-              <CurrencyAutocomplete
-                form={form}
-                name="currencyId"
-                label="Currency"
-                isRequired={true}
-                isDisabled={true}
-                onChangeEvent={handleCurrencyChange}
-              />
-              {/* Exchange Rate */}
-              <CustomNumberInput
-                form={form}
-                name="exhRate"
-                label="Exchange Rate"
-                isRequired={true}
-                isDisabled={true}
-                round={exhRateDec}
-                className="text-right"
-              />
-
-              <PortAutocomplete
-                form={form}
-                name="portId"
-                label="Port"
-                isRequired={true}
-              />
-
-              <CustomInput form={form} name="jobOrderNo" label="Job Order No" />
-              <VesselAutocomplete
-                form={form}
-                name="vesselId"
-                label="Vessel"
-                isRequired={true}
-                onChangeEvent={(selectedVessel) => {
-                  console.log("Selected vessel:", selectedVessel)
-                  console.log(
-                    "Selected vessel IMO code:",
-                    selectedVessel?.imoCode
-                  )
-                  console.log("All vessel data:", selectedVessel)
-
-                  // Populate IMO code when vessel changes
-                  if (selectedVessel?.imoCode) {
-                    console.log("Setting IMO code to:", selectedVessel.imoCode)
-                    form.setValue("imoCode", selectedVessel.imoCode)
-                    toast.info(
-                      `IMO code has been populated: ${selectedVessel.imoCode}`
-                    )
-                  } else {
-                    console.log("No IMO code found, clearing field")
-                    form.setValue("imoCode", "")
-                    if (selectedVessel) {
-                      toast.info("Selected vessel has no IMO code")
-                    }
-                  }
-                }}
-              />
-              <CustomInput
-                form={form}
-                name="imoCode"
-                label="IMO No"
-                isRequired={false}
-              />
-              <VoyageAutocomplete
-                form={form}
-                name="voyageId"
-                label="Voyage"
-                isRequired={false}
-              />
-              <PortAutocomplete
-                form={form}
-                name="lastPortId"
-                label="Last Port"
-                isRequired={false}
-              />
-              <PortAutocomplete
-                form={form}
-                name="nextPortId"
-                label="Next Port"
-                isRequired={false}
-              />
-              <CustomInput
-                form={form}
-                name="vesselDistance"
-                label="Vessel Distance (NM)"
-                type="number"
-                isRequired={true}
-              />
-
-              <CustomDateTimePicker
-                form={form}
-                name="etaDate"
-                label="ETA Date"
-                isRequired={false}
-              />
-              <CustomDateTimePicker
-                form={form}
-                name="etdDate"
-                label="ETD Date"
-                isRequired={false}
-              />
-              <CustomInput
-                form={form}
-                name="ownerName"
-                label="Owner Name"
-                isRequired={false}
-              />
-              <CustomInput
-                form={form}
-                name="ownerAgent"
-                label="Owner Agent"
-                isRequired={false}
-              />
-              <CustomInput
-                form={form}
-                name="masterName"
-                label="Master Name"
-                isRequired={false}
-              />
-              <CustomInput
-                form={form}
-                name="charters"
-                label="Charters"
-                isRequired={false}
-              />
-              <CustomInput
-                form={form}
-                name="chartersAgent"
-                label="Charters Agent"
-                isRequired={false}
-              />
-              <CustomInput
-                form={form}
-                name="natureOfCall"
-                label="Nature of Call"
-                isRequired={false}
-              />
-              <CustomInput
-                form={form}
-                name="isps"
-                label="ISPS"
-                isRequired={false}
-              />
-              <StatusAutocomplete
-                form={form}
-                name="statusId"
-                label="Status"
-                isRequired={true}
-              />
-              <div className="col-span-2">
-                <CustomTextarea
+          {/* Main Content - Side by Side Layout */}
+          <div className="flex gap-4">
+            {/* Operation Card - 75% */}
+            <div className="w-[75%] rounded-lg border p-4">
+              <div className="mb-2 flex">
+                <Badge
+                  variant="secondary"
+                  className="border-blue-200 bg-blue-100 px-4 py-2 text-sm font-semibold text-blue-800 shadow-sm transition-colors duration-200 hover:bg-blue-200"
+                >
+                  🔧 Operation
+                </Badge>
+              </div>
+              <div className="mb-4 border-b border-gray-200"></div>
+              <div className="grid grid-cols-3 gap-2">
+                <CustomDateNew
                   form={form}
-                  name="remarks"
-                  label="Remarks"
+                  name="jobOrderDate"
+                  label="Job Order Date"
+                  isRequired={true}
+                />
+                <CustomerAutocomplete
+                  form={form}
+                  name="customerId"
+                  label={`Customer${customerCode ? ` (${customerCode})` : ""}`}
+                  isRequired={true}
+                  isDisabled={isEdit}
+                  onChangeEvent={(selectedCustomer) => {
+                    // Reset address and contact when customer changes
+                    if (selectedCustomer?.customerId !== customerId) {
+                      form.setValue("addressId", 0)
+                      form.setValue("contactId", 0)
+                      form.setValue(
+                        "currencyId",
+                        selectedCustomer?.currencyId ?? 0
+                      )
+
+                      // Store customer code for label display
+                      if (selectedCustomer?.customerCode) {
+                        setCustomerCode(selectedCustomer.customerCode)
+                      } else {
+                        setCustomerCode("")
+                      }
+
+                      // Trigger currency change to update exchange rate
+                      if (selectedCustomer?.currencyId) {
+                        // Create a minimal currency object for the API call
+                        const currencyObj = {
+                          currencyId: selectedCustomer.currencyId,
+                          currencyCode: "",
+                          currencyName: "",
+                          isMultiply: false,
+                        }
+                        handleCurrencyChange(currencyObj)
+                      }
+
+                      toast.info(
+                        "Address and contact have been reset for the new customer."
+                      )
+                    }
+                  }}
+                />
+                <CurrencyAutocomplete
+                  form={form}
+                  name="currencyId"
+                  label="Currency"
+                  isRequired={true}
+                  isDisabled={true}
+                  onChangeEvent={handleCurrencyChange}
+                />
+                {/* Exchange Rate */}
+                <CustomNumberInput
+                  form={form}
+                  name="exhRate"
+                  label="Exchange Rate"
+                  isRequired={true}
+                  isDisabled={true}
+                  round={exhRateDec}
+                  className="text-right"
+                />
+
+                <PortAutocomplete
+                  form={form}
+                  name="portId"
+                  label="Port"
+                  isRequired={true}
+                />
+
+                <CustomInput
+                  form={form}
+                  name="jobOrderNo"
+                  label="Job Order No"
+                />
+                <VesselAutocomplete
+                  form={form}
+                  name="vesselId"
+                  label="Vessel"
+                  isRequired={true}
+                  onChangeEvent={(selectedVessel) => {
+                    console.log("Selected vessel:", selectedVessel)
+                    console.log(
+                      "Selected vessel IMO code:",
+                      selectedVessel?.imoCode
+                    )
+                    console.log("All vessel data:", selectedVessel)
+
+                    // Populate IMO code when vessel changes
+                    if (selectedVessel?.imoCode) {
+                      console.log(
+                        "Setting IMO code to:",
+                        selectedVessel.imoCode
+                      )
+                      form.setValue("imoCode", selectedVessel.imoCode)
+                      toast.info(
+                        `IMO code has been populated: ${selectedVessel.imoCode}`
+                      )
+                    } else {
+                      console.log("No IMO code found, clearing field")
+                      form.setValue("imoCode", "")
+                      if (selectedVessel) {
+                        toast.info("Selected vessel has no IMO code")
+                      }
+                    }
+                  }}
+                />
+                <CustomInput
+                  form={form}
+                  name="imoCode"
+                  label="IMO No"
+                  isRequired={false}
+                />
+                <VoyageAutocomplete
+                  form={form}
+                  name="voyageId"
+                  label="Voyage"
+                  isRequired={false}
+                />
+                <PortAutocomplete
+                  form={form}
+                  name="lastPortId"
+                  label="Last Port"
+                  isRequired={false}
+                />
+                <PortAutocomplete
+                  form={form}
+                  name="nextPortId"
+                  label="Next Port"
+                  isRequired={false}
+                />
+                <CustomInput
+                  form={form}
+                  name="vesselDistance"
+                  label="Vessel Distance (NM)"
+                  type="number"
+                  isRequired={true}
+                />
+
+                <CustomDateTimePicker
+                  form={form}
+                  name="etaDate"
+                  label="ETA Date"
+                  isRequired={false}
+                />
+                <CustomDateTimePicker
+                  form={form}
+                  name="etdDate"
+                  label="ETD Date"
+                  isRequired={false}
+                />
+                <CustomInput
+                  form={form}
+                  name="ownerName"
+                  label="Owner Name"
+                  isRequired={false}
+                />
+                <CustomInput
+                  form={form}
+                  name="ownerAgent"
+                  label="Owner Agent"
+                  isRequired={false}
+                />
+                <CustomInput
+                  form={form}
+                  name="masterName"
+                  label="Master Name"
+                  isRequired={false}
+                />
+                <CustomInput
+                  form={form}
+                  name="charters"
+                  label="Charters"
+                  isRequired={false}
+                />
+                <CustomInput
+                  form={form}
+                  name="chartersAgent"
+                  label="Charters Agent"
+                  isRequired={false}
+                />
+                <CustomInput
+                  form={form}
+                  name="natureOfCall"
+                  label="Nature of Call"
+                  isRequired={false}
+                />
+                <CustomInput
+                  form={form}
+                  name="isps"
+                  label="ISPS"
+                  isRequired={false}
+                />
+                <StatusAutocomplete
+                  form={form}
+                  name="statusId"
+                  label="Status"
+                  isRequired={true}
+                />
+                <div className="col-span-2">
+                  <CustomTextarea
+                    form={form}
+                    name="remarks"
+                    label="Remarks"
+                    isRequired={false}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Accounts Card - 25% */}
+            <div className="w-[25%] rounded-lg border p-4">
+              <div className="mb-2 flex">
+                <Badge
+                  variant="outline"
+                  className="border-green-300 bg-green-100 px-4 py-2 text-sm font-semibold text-green-800 shadow-sm transition-colors duration-200 hover:bg-green-200"
+                >
+                  💰 Accounts
+                </Badge>
+              </div>
+              <div className="mb-4 border-b border-gray-200"></div>
+              <div className="grid grid-cols-1 gap-2">
+                <CustomDateNew
+                  form={form}
+                  name="invoiceDate"
+                  label="Invoice Date"
+                />
+                <CustomDateNew
+                  form={form}
+                  name="seriesDate"
+                  label="Series Date"
+                />
+                <AddressAutocomplete
+                  form={form}
+                  name="addressId"
+                  label="Address"
+                  isRequired
+                  customerId={customerId || 0}
+                />
+                <ContactAutocomplete
+                  form={form}
+                  name="contactId"
+                  label="Contact"
+                  isRequired
+                  customerId={customerId || 0}
+                />
+
+                <CustomCheckbox
+                  form={form}
+                  name="isTaxable"
+                  label="Taxable"
+                  isRequired={false}
+                />
+
+                {isTaxable && (
+                  <GstAutocomplete
+                    form={form}
+                    name="gstId"
+                    label="GST"
+                    isRequired={true}
+                  />
+                )}
+                {isTaxable && (
+                  <CustomNumberInput
+                    form={form}
+                    name="gstPercentage"
+                    label="GST %"
+                    isRequired={true}
+                  />
+                )}
+
+                <CustomCheckbox
+                  form={form}
+                  name="isClose"
+                  label="Close"
+                  isRequired={false}
+                />
+                <CustomCheckbox
+                  form={form}
+                  name="isPost"
+                  label="Post"
+                  isRequired={false}
+                />
+                <CustomCheckbox
+                  form={form}
+                  name="isActive"
+                  label="Active"
                   isRequired={false}
                 />
               </div>
-            </div>
-            <div className="mt-2 grid grid-cols-4 gap-2"></div>
-          </div>
-
-          {/* Accounts Card */}
-          <div className="mb-4 rounded-lg border p-4">
-            <div className="mb-2 flex">
-              <Badge
-                variant="outline"
-                className="border-green-300 bg-green-100 px-4 py-2 text-sm font-semibold text-green-800 shadow-sm transition-colors duration-200 hover:bg-green-200"
-              >
-                💰 Accounts
-              </Badge>
-            </div>
-            <div className="mb-4 border-b border-gray-200"></div>
-            <div className="grid grid-cols-4 gap-2">
-              <CustomDateNew
-                form={form}
-                name="invoiceDate"
-                label="Invoice Date"
-              />
-              <CustomDateNew
-                form={form}
-                name="seriesDate"
-                label="Series Date"
-              />
-              <AddressAutocomplete
-                form={form}
-                name="addressId"
-                label="Address"
-                isRequired
-                customerId={customerId || 0}
-              />
-              <ContactAutocomplete
-                form={form}
-                name="contactId"
-                label="Contact"
-                isRequired
-                customerId={customerId || 0}
-              />
-
-              <CustomCheckbox
-                form={form}
-                name="isTaxable"
-                label="Taxable"
-                isRequired={false}
-              />
-
-              {isTaxable && (
-                <GstAutocomplete
-                  form={form}
-                  name="gstId"
-                  label="GST"
-                  isRequired={true}
-                />
-              )}
-              {isTaxable && (
-                <CustomNumberInput
-                  form={form}
-                  name="gstPercentage"
-                  label="GST %"
-                  isRequired={true}
-                />
-              )}
-
-              <CustomCheckbox
-                form={form}
-                name="isClose"
-                label="Close"
-                isRequired={false}
-              />
-              <CustomCheckbox
-                form={form}
-                name="isPost"
-                label="Post"
-                isRequired={false}
-              />
-              <CustomCheckbox
-                form={form}
-                name="isActive"
-                label="Active"
-                isRequired={false}
-              />
             </div>
           </div>
         </form>

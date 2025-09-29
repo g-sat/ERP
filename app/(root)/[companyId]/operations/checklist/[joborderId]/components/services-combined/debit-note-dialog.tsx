@@ -25,6 +25,7 @@ import {
 
 import { getData } from "@/lib/api-client"
 import { JobOrder_DebitNote } from "@/lib/api-routes"
+import { TaskIdToName } from "@/lib/operations-utils"
 import { usePersist } from "@/hooks/use-common"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -41,7 +42,6 @@ import { SaveConfirmation } from "@/components/confirmation/save-confirmation"
 import { BulkDebitNoteTable } from "./debit-note-bulk-table"
 import DebitNoteForm from "./debit-note-form"
 import DebitNoteTable from "./debit-note-table"
-import { TaskIdToName } from "@/lib/operations-utils"
 
 interface DebitNoteDialogProps {
   open: boolean
@@ -172,7 +172,9 @@ export default function DebitNoteDialog({
     useQuery({
       queryKey: [`bulk-charges-${taskId}`],
       queryFn: async () =>
-        await getData(`${JobOrder_DebitNote.getBulkDetails}/${taskId}/${jobOrder?.customerId}/${jobOrder?.portId}`),
+        await getData(
+          `${JobOrder_DebitNote.getBulkDetails}/${taskId}/${jobOrder?.customerId}/${jobOrder?.portId}`
+        ),
       enabled: bulkChargesDialog.isOpen,
       staleTime: 0.5 * 60 * 1000, // 0.5 minutes
       gcTime: 1 * 60 * 1000, // 1 minutes
@@ -486,13 +488,13 @@ export default function DebitNoteDialog({
         chargeId: item.chargeId,
         glId: item.glId,
         qty: 1, // Default quantity
-        unitPrice: 0, // Default unit price
+        unitPrice: item.basicRate || 0, // Default unit price
         totLocalAmt: 0,
-        totAmt: 0,
+        totAmt: item.basicRate || 0,
         gstId: 0,
         gstPercentage: 0,
         gstAmt: 0,
-        totAftGstAmt: 0,
+        totAftGstAmt: item.basicRate || 0,
         remarks: item.remarks || item.chargeName || "",
         editVersion: 0,
         isServiceCharge: false,
@@ -823,7 +825,7 @@ export default function DebitNoteDialog({
               <DialogHeader className="border-b pb-2">
                 <div className="flex items-center justify-between">
                   <div>
-                    <DialogTitle className="text-2xl font-bold flex items-center gap-3">
+                    <DialogTitle className="flex items-center gap-3 text-2xl font-bold">
                       Bulk Charges
                       <div className="flex gap-2">
                         {jobOrder?.customerName && (
