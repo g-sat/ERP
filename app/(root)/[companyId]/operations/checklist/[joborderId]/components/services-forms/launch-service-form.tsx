@@ -8,10 +8,14 @@ import {
 } from "@/schemas/checklist"
 import { useAuthStore } from "@/stores/auth-store"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { differenceInMinutes, format, isValid, parse } from "date-fns"
+import { differenceInMinutes, format, isValid } from "date-fns"
 import { useForm } from "react-hook-form"
 
-import { clientDateFormat, parseDate } from "@/lib/date-utils"
+import {
+  clientDateFormat,
+  formatDateWithoutTimezone,
+  parseDate,
+} from "@/lib/date-utils"
 import { Task } from "@/lib/operations-utils"
 import { useChartofAccountLookup } from "@/hooks/use-lookup"
 import { Badge } from "@/components/ui/badge"
@@ -29,7 +33,6 @@ import CustomAccordion, {
   CustomAccordionTrigger,
 } from "@/components/custom/custom-accordion"
 import { CustomDateNew } from "@/components/custom/custom-date-new"
-import { CustomDateTimeNew } from "@/components/custom/custom-date-time-new"
 import { CustomDateTimePicker } from "@/components/custom/custom-date-time-picker"
 import CustomInput from "@/components/custom/custom-input"
 import CustomTextarea from "@/components/custom/custom-textarea"
@@ -56,7 +59,6 @@ export function LaunchServiceForm({
 }: LaunchServiceFormProps) {
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
-  const dateFormat = decimals[0]?.dateFormat || "dd/MM/yyyy"
 
   // Get chart of account data to ensure it's loaded before setting form values
   const { isLoading: isChartOfAccountLoading } = useChartofAccountLookup(
@@ -65,12 +67,6 @@ export function LaunchServiceForm({
 
   console.log("initialData LaunchServiceForm :", initialData)
   console.log("isConfirmed LaunchServiceForm :", isConfirmed)
-
-  const formatDateTimeForForm = (dateTime: string | undefined) => {
-    if (!dateTime) return ""
-    const parsed = parse(dateTime, datetimeFormat, new Date())
-    return isValid(parsed) ? format(parsed, "yyyy-MM-dd'T'HH:mm") : ""
-  }
 
   const form = useForm<LaunchServiceSchemaType>({
     resolver: zodResolver(LaunchServiceSchema),
@@ -91,13 +87,21 @@ export function LaunchServiceForm({
       ameTally: initialData?.ameTally ?? "",
       boatopTally: initialData?.boatopTally ?? "",
       distance: initialData?.distance ?? 0,
-      loadingTime: formatDateTimeForForm(initialData?.loadingTime),
-      leftJetty: formatDateTimeForForm(initialData?.leftJetty),
-      alongsideVessel: formatDateTimeForForm(initialData?.alongsideVessel),
-      departedFromVessel: formatDateTimeForForm(
-        initialData?.departedFromVessel
-      ),
-      arrivedAtJetty: formatDateTimeForForm(initialData?.arrivedAtJetty),
+      loadingTime: initialData?.loadingTime
+        ? parseDate(initialData.loadingTime as string) || undefined
+        : undefined,
+      leftJetty: initialData?.leftJetty
+        ? parseDate(initialData.leftJetty as string) || undefined
+        : undefined,
+      alongsideVessel: initialData?.alongsideVessel
+        ? parseDate(initialData.alongsideVessel as string) || undefined
+        : undefined,
+      departedFromVessel: initialData?.departedFromVessel
+        ? parseDate(initialData.departedFromVessel as string) || undefined
+        : undefined,
+      arrivedAtJetty: initialData?.arrivedAtJetty
+        ? parseDate(initialData.arrivedAtJetty as string) || undefined
+        : undefined,
       waitingTime: initialData?.waitingTime ?? 0,
       timeDiff: initialData?.timeDiff ?? 0,
       deliveredWeight: initialData?.deliveredWeight ?? 0,
@@ -135,13 +139,21 @@ export function LaunchServiceForm({
         ameTally: initialData?.ameTally ?? "",
         boatopTally: initialData?.boatopTally ?? "",
         distance: initialData?.distance ?? 0,
-        loadingTime: formatDateTimeForForm(initialData?.loadingTime),
-        leftJetty: formatDateTimeForForm(initialData?.leftJetty),
-        alongsideVessel: formatDateTimeForForm(initialData?.alongsideVessel),
-        departedFromVessel: formatDateTimeForForm(
-          initialData?.departedFromVessel
-        ),
-        arrivedAtJetty: formatDateTimeForForm(initialData?.arrivedAtJetty),
+        loadingTime: initialData?.loadingTime
+          ? parseDate(initialData.loadingTime as string) || undefined
+          : undefined,
+        leftJetty: initialData?.leftJetty
+          ? parseDate(initialData.leftJetty as string) || undefined
+          : undefined,
+        alongsideVessel: initialData?.alongsideVessel
+          ? parseDate(initialData.alongsideVessel as string) || undefined
+          : undefined,
+        departedFromVessel: initialData?.departedFromVessel
+          ? parseDate(initialData.departedFromVessel as string) || undefined
+          : undefined,
+        arrivedAtJetty: initialData?.arrivedAtJetty
+          ? parseDate(initialData.arrivedAtJetty as string) || undefined
+          : undefined,
         waitingTime: initialData?.waitingTime ?? 0,
         timeDiff: initialData?.timeDiff ?? 0,
         deliveredWeight: initialData?.deliveredWeight ?? 0,
@@ -182,10 +194,10 @@ export function LaunchServiceForm({
 
   const calculateTimeDiff = () => {
     const departedFromVessel = form.getValues("departedFromVessel")
-    const arrivedAtJetty = form.getValues("arrivedAtJetty")
-    if (departedFromVessel && arrivedAtJetty) {
+    const alongSideVessel = form.getValues("alongsideVessel")
+    if (departedFromVessel && alongSideVessel) {
       const start = new Date(departedFromVessel)
-      const end = new Date(arrivedAtJetty)
+      const end = new Date(alongSideVessel)
       if (isValid(start) && isValid(end)) {
         const diff = differenceInMinutes(end, start)
         form.setValue("timeDiff", diff >= 0 ? diff : 0)
@@ -194,7 +206,30 @@ export function LaunchServiceForm({
   }
 
   const onSubmit = (data: LaunchServiceSchemaType) => {
-    submitAction(data)
+    const formData: LaunchServiceSchemaType = {
+      ...data,
+      loadingTime:
+        data.loadingTime instanceof Date
+          ? formatDateWithoutTimezone(data.loadingTime)
+          : data.loadingTime,
+      leftJetty:
+        data.leftJetty instanceof Date
+          ? formatDateWithoutTimezone(data.leftJetty)
+          : data.leftJetty,
+      alongsideVessel:
+        data.alongsideVessel instanceof Date
+          ? formatDateWithoutTimezone(data.alongsideVessel)
+          : data.alongsideVessel,
+      departedFromVessel:
+        data.departedFromVessel instanceof Date
+          ? formatDateWithoutTimezone(data.departedFromVessel)
+          : data.departedFromVessel,
+      arrivedAtJetty:
+        data.arrivedAtJetty instanceof Date
+          ? formatDateWithoutTimezone(data.arrivedAtJetty)
+          : data.arrivedAtJetty,
+    }
+    submitAction(formData)
   }
 
   // Show loading state while data is being fetched
@@ -343,7 +378,7 @@ export function LaunchServiceForm({
                 isDisabled={isConfirmed}
                 onChangeEvent={() => calculateWaitingTime()}
               />
-              <CustomDateTimeNew
+              <CustomDateTimePicker
                 form={form}
                 name="leftJetty"
                 label="Left Jetty Time (2)"
@@ -357,13 +392,13 @@ export function LaunchServiceForm({
                 type="number"
                 isDisabled={true}
               />
-              <CustomDateTimeNew
+              <CustomDateTimePicker
                 form={form}
                 name="alongsideVessel"
                 label="Alongside Vessel Time (3)"
                 isDisabled={isConfirmed}
               />
-              <CustomDateTimeNew
+              <CustomDateTimePicker
                 form={form}
                 name="departedFromVessel"
                 label="Departed Vessel Time (4)"
@@ -377,7 +412,7 @@ export function LaunchServiceForm({
                 type="number"
                 isDisabled={true}
               />
-              <CustomDateTimeNew
+              <CustomDateTimePicker
                 form={form}
                 name="arrivedAtJetty"
                 label="Arrived at Jetty Time (5)"

@@ -464,11 +464,11 @@ export const LaunchServiceSchema = z.object({
   ameTally: z.string().min(1, "AME Tally is required"),
   boatopTally: z.string().optional().default(""),
   distance: z.number().optional().default(0),
-  loadingTime: z.string().default(""),
-  leftJetty: z.string().default(""),
-  alongsideVessel: z.string().default(""),
-  departedFromVessel: z.string().default(""),
-  arrivedAtJetty: z.string().default(""),
+  loadingTime: z.union([z.date(), z.string()]).optional(),
+  leftJetty: z.union([z.date(), z.string()]).optional(),
+  alongsideVessel: z.union([z.date(), z.string()]).optional(),
+  departedFromVessel: z.union([z.date(), z.string()]).optional(),
+  arrivedAtJetty: z.union([z.date(), z.string()]).optional(),
   waitingTime: z
     .number()
     .min(0, "Waiting time must be 0 or greater")

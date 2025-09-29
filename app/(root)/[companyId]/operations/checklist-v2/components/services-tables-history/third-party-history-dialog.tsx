@@ -190,29 +190,7 @@ export function ThirdPartyHistoryDialog({
       size: 100,
       minSize: 80,
     },
-    {
-      accessorKey: "debitNoteNo",
-      header: "Debit Note",
-      cell: ({ row }) => {
-        const debitNoteNo = row.getValue("debitNoteNo")
-        return (
-          <div className="text-center">
-            {debitNoteNo ? (
-              <Badge
-                variant="secondary"
-                className="bg-green-100 text-green-800"
-              >
-                {debitNoteNo}
-              </Badge>
-            ) : (
-              <span className="text-muted-foreground">-</span>
-            )}
-          </div>
-        )
-      },
-      size: 120,
-      minSize: 100,
-    },
+
     {
       accessorKey: "glName",
       header: "GL Account",

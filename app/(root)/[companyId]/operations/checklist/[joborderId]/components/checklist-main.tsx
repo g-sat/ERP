@@ -13,7 +13,11 @@ import { z } from "zod"
 
 import { getData } from "@/lib/api-client"
 import { BasicSetting } from "@/lib/api-routes"
-import { clientDateFormat, parseDate } from "@/lib/date-utils"
+import {
+  clientDateFormat,
+  formatDateWithoutTimezone,
+  parseDate,
+} from "@/lib/date-utils"
 import { saveJobOrderDirect, updateJobOrderDirect } from "@/hooks/use-checklist"
 import { Badge } from "@/components/ui/badge"
 import { Form } from "@/components/ui/form"
@@ -62,7 +66,7 @@ export function ChecklistMain({
       jobOrderId: jobData?.jobOrderId ?? 0,
       jobOrderNo: jobData?.jobOrderNo ?? "",
       jobOrderDate: jobData?.jobOrderDate
-        ? parseDate(jobData.jobOrderDate as string) || new Date()
+        ? parseDate(jobData.jobOrderDate as string) || undefined
         : new Date(),
       imoCode: jobData?.imoCode ?? "",
       vesselDistance: jobData?.vesselDistance ?? 10,
@@ -206,6 +210,20 @@ export function ChecklistMain({
     try {
       const formData: Partial<IJobOrderHd> = {
         ...data,
+        jobOrderDate:
+          data.jobOrderDate instanceof Date
+            ? formatDateWithoutTimezone(data.jobOrderDate)
+            : data.jobOrderDate,
+        etaDate: formatDateWithoutTimezone(data.etaDate),
+        etdDate: formatDateWithoutTimezone(data.etdDate),
+        invoiceDate:
+          data.invoiceDate instanceof Date
+            ? formatDateWithoutTimezone(data.invoiceDate)
+            : data.invoiceDate,
+        seriesDate:
+          data.seriesDate instanceof Date
+            ? formatDateWithoutTimezone(data.seriesDate)
+            : data.seriesDate,
       }
 
       console.log("Formatted form data:", formData)

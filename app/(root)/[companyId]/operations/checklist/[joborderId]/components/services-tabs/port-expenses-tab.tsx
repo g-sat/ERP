@@ -13,6 +13,7 @@ import { useQueryClient } from "@tanstack/react-query"
 
 import { getData } from "@/lib/api-client"
 import { JobOrder_DebitNote, JobOrder_PortExpenses } from "@/lib/api-routes"
+import { formatDateWithoutTimezone } from "@/lib/date-utils"
 import { Task } from "@/lib/operations-utils"
 import { useDelete, useGetById, usePersist } from "@/hooks/use-common"
 import { useTaskServiceDefaults } from "@/hooks/use-task-service"
@@ -252,11 +253,9 @@ export function PortExpensesTab({
     try {
       const processedData = {
         ...saveConfirmation.formData,
-        deliverDate: saveConfirmation.formData.deliverDate
-          ? typeof saveConfirmation.formData.deliverDate === "string"
-            ? saveConfirmation.formData.deliverDate
-            : saveConfirmation.formData.deliverDate.toISOString()
-          : undefined,
+        deliverDate: formatDateWithoutTimezone(
+          saveConfirmation.formData.deliverDate
+        ),
       }
       const submitData = { ...processedData, ...jobDataProps }
 

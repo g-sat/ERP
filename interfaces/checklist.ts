@@ -456,13 +456,13 @@ export interface ILaunchService {
   boatopTally?: string
   boatOperator?: string
   distance?: number
-  loadingTime?: string
-  leftJetty?: string
+  loadingTime?: Date | string
+  leftJetty?: Date | string
   waitingTime?: number
-  alongsideVessel?: string
-  departedFromVessel?: string
+  alongsideVessel?: Date | string
+  departedFromVessel?: Date | string
   timeDiff?: number
-  arrivedAtJetty?: string
+  arrivedAtJetty?: Date | string
   deliveredWeight: number
   landedWeight: number
   annexure?: string

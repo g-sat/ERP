@@ -29,3 +29,41 @@ export const parseDate = (dateStr: string | null | undefined): Date | null => {
     return null
   }
 }
+
+export const formatDateWithoutTimezone = (
+  date: Date | string | null | undefined
+): string | undefined => {
+  if (!date) return undefined
+  try {
+    let dateObj: Date
+
+    if (typeof date === "string") {
+      // If it's already a properly formatted ISO string, return it
+      if (date.includes("T") && (date.endsWith("Z") || date.includes("+"))) {
+        return date
+      }
+      dateObj = new Date(date)
+    } else {
+      dateObj = date
+    }
+
+    // Validate that we have a proper Date object
+    if (!(dateObj instanceof Date) || isNaN(dateObj.getTime())) {
+      console.warn("Invalid date object:", date)
+      return undefined
+    }
+
+    const year = dateObj.getFullYear()
+    const month = String(dateObj.getMonth() + 1).padStart(2, "0")
+    const day = String(dateObj.getDate()).padStart(2, "0")
+    const hours = String(dateObj.getHours()).padStart(2, "0")
+    const minutes = String(dateObj.getMinutes()).padStart(2, "0")
+    const seconds = String(dateObj.getSeconds()).padStart(2, "0")
+    const milliseconds = String(dateObj.getMilliseconds()).padStart(3, "0")
+
+    return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}.${milliseconds}Z`
+  } catch (e) {
+    console.error("Error formatting date:", date, e)
+    return undefined
+  }
+}

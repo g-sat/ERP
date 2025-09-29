@@ -72,66 +72,41 @@ export function JobOrderDetailsSkeleton({
           {/* Tab Content Skeleton */}
           <TabsContent value="main" className="space-y-4">
             <div className="space-y-4">
-              {/* Form Sections Skeleton */}
-              <div className="grid gap-4 md:grid-cols-2">
-                {/* Operation Section */}
-                <div className="space-y-4">
-                  <div className="bg-card rounded-lg border p-4 shadow-sm">
-                    <div className="mb-4 flex items-center gap-2">
-                      <Skeleton className="h-4 w-4" />
-                      <Skeleton className="h-5 w-24" />
-                    </div>
-                    <div className="grid gap-4 md:grid-cols-2">
-                      {Array.from({ length: 8 }).map((_, index) => (
-                        <div key={index} className="space-y-2">
-                          <Skeleton className="h-4 w-20" />
-                          <Skeleton className="h-9 w-full" />
-                        </div>
-                      ))}
+              {/* Main Content - Side by Side Layout */}
+              <div className="flex gap-4">
+                {/* Operation Card - 75% */}
+                <div className="w-[75%] rounded-lg border p-4">
+                  <div className="mb-2 flex">
+                    <div className="rounded-md border-blue-200 bg-blue-100 px-4 py-2 text-sm font-semibold text-blue-800 shadow-sm transition-colors duration-200 hover:bg-blue-200">
+                      🔧 Operation
                     </div>
                   </div>
-                </div>
-
-                {/* Accounts Section */}
-                <div className="space-y-4">
-                  <div className="bg-card rounded-lg border p-4 shadow-sm">
-                    <div className="mb-4 flex items-center gap-2">
-                      <Skeleton className="h-4 w-4" />
-                      <Skeleton className="h-5 w-20" />
-                    </div>
-                    <div className="grid gap-4 md:grid-cols-2">
-                      {Array.from({ length: 6 }).map((_, index) => (
-                        <div key={index} className="space-y-2">
-                          <Skeleton className="h-4 w-24" />
-                          <Skeleton className="h-9 w-full" />
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Status Section */}
-              <div className="bg-card rounded-lg border p-4 shadow-sm">
-                <div className="mb-4 flex items-center gap-2">
-                  <Skeleton className="h-4 w-4" />
-                  <Skeleton className="h-5 w-16" />
-                </div>
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div className="space-y-4">
-                    {Array.from({ length: 4 }).map((_, index) => (
-                      <div
-                        key={index}
-                        className="flex items-center justify-between"
-                      >
+                  <div className="mb-4 border-b border-gray-200"></div>
+                  <div className="grid grid-cols-3 gap-2">
+                    {Array.from({ length: 18 }).map((_, index) => (
+                      <div key={index} className="space-y-2">
                         <Skeleton className="h-4 w-20" />
-                        <Skeleton className="h-6 w-12 rounded-full" />
+                        <Skeleton className="h-9 w-full" />
                       </div>
                     ))}
                   </div>
-                  <div className="space-y-2">
-                    <Skeleton className="h-4 w-16" />
-                    <Skeleton className="h-20 w-full" />
+                </div>
+
+                {/* Accounts Card - 25% */}
+                <div className="w-[25%] rounded-lg border p-4">
+                  <div className="mb-2 flex">
+                    <div className="rounded-md border-green-300 bg-green-100 px-4 py-2 text-sm font-semibold text-green-800 shadow-sm transition-colors duration-200 hover:bg-green-200">
+                      💰 Accounts
+                    </div>
+                  </div>
+                  <div className="mb-4 border-b border-gray-200"></div>
+                  <div className="grid grid-cols-1 gap-2">
+                    {Array.from({ length: 8 }).map((_, index) => (
+                      <div key={index} className="space-y-2">
+                        <Skeleton className="h-4 w-24" />
+                        <Skeleton className="h-9 w-full" />
+                      </div>
+                    ))}
                   </div>
                 </div>
               </div>
