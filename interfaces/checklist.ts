@@ -834,3 +834,21 @@ export interface IBulkChargeData {
   taskId?: number
   taskName?: string
 }
+
+export interface IDebitNoteItem {
+  debitNoteId: number
+  taskId: number
+  taskName?: string
+  debitNoteNo: string
+  itemNo: number
+  updatedItemNo?: number
+  updatedDebitNoteNo?: string
+}
+
+export interface ISaveDebitNoteItem {
+  debitNoteId: number
+  debitNoteNo: string
+  itemNo: number
+  updatedItemNo?: number
+  updatedDebitNoteNo?: string
+}

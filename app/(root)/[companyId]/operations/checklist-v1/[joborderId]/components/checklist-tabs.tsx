@@ -1,19 +1,26 @@
 "use client"
 
-import React, { useState } from "react"
+import React, { useCallback, useEffect, useState } from "react"
 import { isStatusConfirmed } from "@/helpers/project"
-import { IJobOrderHd } from "@/interfaces/checklist"
+import {
+  IDebitNoteItem,
+  IJobOrderHd,
+  ISaveDebitNoteItem,
+} from "@/interfaces/checklist"
 import {
   Copy,
   Edit3,
   FileText,
   Printer,
+  Receipt,
   RefreshCcw,
   RotateCcw,
   Save,
   X,
 } from "lucide-react"
+import { toast } from "sonner"
 
+import { apiClient } from "@/lib/api-client"
 import { useGetJobOrderByIdNo } from "@/hooks/use-checklist"
 import { Button } from "@/components/ui/button"
 import {
@@ -60,6 +67,13 @@ export function ChecklistTabs({
     message: string
   } | null>(null)
   const [formRef, setFormRef] = useState<HTMLFormElement | null>(null)
+
+  // Debit Note Dialog State
+  const [showDebitNoteDialog, setShowDebitNoteDialog] = useState(false)
+  const [debitNoteData, setDebitNoteData] = useState<IDebitNoteItem[]>([])
+  const [debitNoteLoading, setDebitNoteLoading] = useState(false)
+  const [debitNoteSaving, setDebitNoteSaving] = useState(false)
+  const [debitNoteError, setDebitNoteError] = useState<string | null>(null)
 
   // Fetch detailed job order data when jobData is available
   const jobOrderId = jobData?.jobOrderId?.toString() || ""
@@ -135,6 +149,119 @@ export function ChecklistTabs({
     }
   }
 
+  // Debit Note Functions
+  const fetchDebitNoteData = useCallback(async () => {
+    if (!jobOrderId) return
+
+    setDebitNoteLoading(true)
+    setDebitNoteError(null)
+
+    try {
+      const response = await apiClient.get(
+        `/operations/GetDebitNote/${jobOrderId}`
+      )
+      if (response.data.result === 1) {
+        const data = response.data.data || []
+        setDebitNoteData(data)
+      } else {
+        setDebitNoteError("Failed to fetch debit note data")
+      }
+    } catch (err) {
+      console.error("Error fetching debit note data:", err)
+      setDebitNoteError("Error fetching debit note data")
+    } finally {
+      setDebitNoteLoading(false)
+    }
+  }, [jobOrderId])
+
+  const saveDebitNoteData = async () => {
+    if (!debitNoteData.length) return
+
+    setDebitNoteSaving(true)
+    setDebitNoteError(null)
+
+    try {
+      const saveData: ISaveDebitNoteItem[] = debitNoteData.map((item) => ({
+        debitNoteId: item.debitNoteId,
+        debitNoteNo: item.debitNoteNo,
+        itemNo: item.itemNo,
+        updatedItemNo: item.updatedItemNo,
+        updatedDebitNoteNo: item.updatedDebitNoteNo,
+      }))
+
+      const response = await apiClient.post(
+        "/operations/SaveDebitNoteItemNo",
+        saveData
+      )
+      if (response.data.result > 0) {
+        console.log("Debit note data saved successfully")
+        toast.success("Debit note data saved successfully")
+        setShowDebitNoteDialog(false)
+        // Refresh the details tab and main data
+        refetch()
+      } else {
+        setDebitNoteError("Failed to save debit note data")
+        toast.error("Failed to save debit note data")
+        // Refresh even on error to show current state
+        refetch()
+      }
+    } catch (err) {
+      console.error("Error saving debit note data:", err)
+      setDebitNoteError("Error saving debit note data")
+      toast.error("Error saving debit note data")
+      // Refresh even on error to show current state
+      refetch()
+    } finally {
+      setDebitNoteSaving(false)
+    }
+  }
+
+  // Load data when dialog opens
+  useEffect(() => {
+    if (showDebitNoteDialog && jobOrderId) {
+      fetchDebitNoteData()
+    }
+  }, [showDebitNoteDialog, jobOrderId, fetchDebitNoteData])
+
+  // Debit Note Table Handlers
+  const handleDebitNoteRefresh = useCallback(() => {
+    if (jobOrderId) {
+      fetchDebitNoteData()
+    }
+  }, [jobOrderId, fetchDebitNoteData])
+
+  const handleDebitNoteFilterChange = useCallback(() => {
+    // No-op for this table
+  }, [])
+
+  const handleDebitNoteSelect = useCallback(() => {
+    // No-op for this table
+  }, [])
+
+  const handleDebitNoteCreate = useCallback(() => {
+    // No-op for this table
+  }, [])
+
+  const handleDebitNoteEdit = useCallback(() => {
+    // No-op for this table
+  }, [])
+
+  const handleDebitNoteDelete = useCallback(() => {
+    // No-op for this table
+  }, [])
+
+  const handleDebitNoteBulkDelete = useCallback(() => {
+    // No-op for this table
+  }, [])
+
+  const handleDebitNoteDataReorder = useCallback(
+    (newData: IDebitNoteItem[]) => {
+      // Update the local state with the reordered data
+      setDebitNoteData(newData)
+    },
+    []
+  )
+
   return (
     <div className="w-full">
       <div className="mb-2 flex items-center justify-between">
@@ -188,9 +315,16 @@ export function ChecklistTabs({
             </DropdownMenu>
           )}
 
-          {/* Debit Note Items Table Component */}
-
-          <DebitNoteItemsTable jobOrderId={jobOrderId} />
+          {/* Debit Note No. Button */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              setShowDebitNoteDialog(true)
+            }}
+          >
+            <Receipt className="mr-1 h-4 w-4" />
+          </Button>
 
           {/* Invoice Create button - only show when status is confirmed */}
           {isEdit && isConfirmed && (
@@ -380,6 +514,55 @@ export function ChecklistTabs({
               Yes
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Debit Note Dialog */}
+      <Dialog open={showDebitNoteDialog} onOpenChange={setShowDebitNoteDialog}>
+        <DialogContent className="max-h-[90vh] w-[60vw] !max-w-none overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Debit Note Details</DialogTitle>
+            <DialogDescription>
+              Manage debit note number and item number for this job order.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex-1 overflow-hidden">
+            <DebitNoteItemsTable
+              data={debitNoteData}
+              isLoading={debitNoteLoading}
+              onRefresh={handleDebitNoteRefresh}
+              onFilterChange={handleDebitNoteFilterChange}
+              onSelect={handleDebitNoteSelect}
+              onCreate={handleDebitNoteCreate}
+              onEdit={handleDebitNoteEdit}
+              onDelete={handleDebitNoteDelete}
+              onBulkDelete={handleDebitNoteBulkDelete}
+              onDataReorder={handleDebitNoteDataReorder}
+              moduleId={parseInt(jobOrderId)}
+              transactionId={parseInt(jobOrderId)}
+              isConfirmed={isConfirmed}
+            />
+          </div>
+          <div className="border-t pt-4">
+            <div className="flex items-center justify-between">
+              <Button
+                variant="outline"
+                onClick={() => setShowDebitNoteDialog(false)}
+              >
+                Close
+              </Button>
+              <Button
+                onClick={saveDebitNoteData}
+                disabled={
+                  debitNoteSaving ||
+                  debitNoteLoading ||
+                  debitNoteData.length === 0
+                }
+              >
+                {debitNoteSaving ? "Saving..." : "Save Changes"}
+              </Button>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
     </div>

@@ -76,6 +76,7 @@ interface DebitNoteBaseTableProps<T> {
   hideEdit?: boolean
   hideDelete?: boolean
   hideCreate?: boolean
+  hideCheckbox?: boolean
   disableOnDebitNoteExists?: boolean
 }
 
@@ -104,6 +105,7 @@ export function DebitNoteBaseTable<T>({
   hideEdit = false,
   hideDelete = false,
   hideCreate = false,
+  hideCheckbox = false,
   disableOnDebitNoteExists = true,
 }: DebitNoteBaseTableProps<T>) {
   const { data: gridSettings } = useGetGridLayout(
@@ -231,17 +233,19 @@ export function DebitNoteBaseTable<T>({
               return (
                 <div className="flex items-center gap-2 pl-5">
                   {/* ✅ Header "Select All" Checkbox */}
-                  <Checkbox
-                    checked={headerChecked}
-                    onCheckedChange={(checked) => {
-                      table.toggleAllPageRowsSelected(!!checked)
-                    }}
-                    className={
-                      isIndeterminate
-                        ? "data-[state=indeterminate]:bg-primary/50"
-                        : ""
-                    }
-                  />
+                  {!hideCheckbox && (
+                    <Checkbox
+                      checked={headerChecked}
+                      onCheckedChange={(checked) => {
+                        table.toggleAllPageRowsSelected(!!checked)
+                      }}
+                      className={
+                        isIndeterminate
+                          ? "data-[state=indeterminate]:bg-primary/50"
+                          : ""
+                      }
+                    />
+                  )}
                   <span className="font-medium">Actions</span>
                 </div>
               )
@@ -277,6 +281,7 @@ export function DebitNoteBaseTable<T>({
                     hideView={hideView}
                     hideEdit={hideEdit}
                     hideDelete={hideDelete}
+                    hideCheckbox={hideCheckbox}
                     isSelected={row.getIsSelected()}
                     onCheckboxChange={row.getToggleSelectedHandler()}
                     disableOnDebitNoteExists={disableOnDebitNoteExists}

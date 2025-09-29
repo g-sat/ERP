@@ -13,6 +13,7 @@ interface DebitNoteTableActionsProps<T> {
   hideView?: boolean
   hideEdit?: boolean
   hideDelete?: boolean
+  hideCheckbox?: boolean
   isSelected: boolean
   onCheckboxChange?: (checked: boolean) => void // ✅ Make optional
   disableOnDebitNoteExists?: boolean
@@ -28,6 +29,7 @@ export function DebitNoteTableActions<T>({
   hideView,
   hideEdit,
   hideDelete,
+  hideCheckbox = false,
   isSelected,
   onCheckboxChange,
   disableOnDebitNoteExists = true,
@@ -45,17 +47,19 @@ export function DebitNoteTableActions<T>({
 
   return (
     <div className="flex items-center gap-2">
-      <Checkbox
-        checked={isSelected}
-        onCheckedChange={(checked) => handleCheckboxChange(!!checked)}
-        disabled={!!hasValidDebitNoteId}
-        className={hasValidDebitNoteId ? "cursor-not-allowed opacity-50" : ""}
-        title={
-          hasValidDebitNoteId
-            ? "Cannot select - Debit Note exists"
-            : "Select row"
-        }
-      />
+      {!hideCheckbox && (
+        <Checkbox
+          checked={isSelected}
+          onCheckedChange={(checked) => handleCheckboxChange(!!checked)}
+          disabled={!!hasValidDebitNoteId}
+          className={hasValidDebitNoteId ? "cursor-not-allowed opacity-50" : ""}
+          title={
+            hasValidDebitNoteId
+              ? "Cannot select - Debit Note exists"
+              : "Select row"
+          }
+        />
+      )}
 
       {/* Action buttons (unchanged) */}
       {!hideView && (
