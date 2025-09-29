@@ -1,19 +1,10 @@
 "use client"
 
-import { useCallback, useMemo, useState } from "react"
+import { useCallback, useMemo } from "react"
 import { IBulkChargeData } from "@/interfaces/checklist"
 import { ColumnDef } from "@tanstack/react-table"
-import { X } from "lucide-react"
 
 import { TableName } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
 import { DebitNoteBaseTable } from "@/components/table/table-debitnote"
 
 interface BulkDebitNoteTableProps {
@@ -22,17 +13,6 @@ interface BulkDebitNoteTableProps {
   onSelect?: (debitNote: IBulkChargeData | null) => void
   onDataReorder?: (newData: IBulkChargeData[]) => void
   onBulkSelectionChange?: (selectedIds: string[]) => void
-  moduleId?: number
-  transactionId?: number
-  isConfirmed?: boolean
-}
-
-interface BulkDebitNoteDialogProps {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  data: IBulkChargeData[]
-  isLoading?: boolean
-  onAddSelected?: (selectedItems: IBulkChargeData[]) => void
   moduleId?: number
   transactionId?: number
   isConfirmed?: boolean
@@ -49,6 +29,7 @@ export function BulkDebitNoteTable({
   transactionId,
   isConfirmed,
 }: BulkDebitNoteTableProps) {
+  console.log("data", data)
   // Define columns for the debit note table
   const columns: ColumnDef<IBulkChargeData>[] = useMemo(
     () => [
@@ -97,6 +78,51 @@ export function BulkDebitNoteTable({
     [] // No dependencies needed since column definitions don't depend on props
   )
 
+  // Stable callback functions to prevent infinite re-renders
+  const handleRefresh = useCallback(() => {
+    // No-op for bulk charges table
+  }, [])
+
+  const handleFilterChange = useCallback(() => {
+    // No-op for bulk charges table - this prevents the useEffect from triggering
+  }, [])
+
+  const handleSelect = useCallback(() => {
+    // No-op for bulk charges table
+  }, [])
+
+  const handleCreate = useCallback(() => {
+    // No-op for bulk charges table
+  }, [])
+
+  const handleEdit = useCallback(() => {
+    // No-op for bulk charges table
+  }, [])
+
+  const handleDelete = useCallback(() => {
+    // No-op for bulk charges table
+  }, [])
+
+  const handleBulkDelete = useCallback(() => {
+    // No-op for bulk charges table
+  }, [])
+
+  const handleDataReorder = useCallback(() => {
+    // No-op for bulk charges table
+  }, [])
+
+  // Prevent onBulkSelectionChange from being called unnecessarily
+  const handleBulkSelectionChange = useCallback(
+    (selectedIds: string[]) => {
+      console.log("selectedIds", selectedIds)
+      // Only call the parent's handler if it exists and we have actual selections
+      if (onBulkSelectionChange && selectedIds.length > 0) {
+        onBulkSelectionChange(selectedIds)
+      }
+    },
+    [onBulkSelectionChange]
+  )
+
   return (
     <DebitNoteBaseTable
       data={data}
@@ -107,15 +133,15 @@ export function BulkDebitNoteTable({
       tableName={TableName.debitNote}
       emptyMessage="No bulk charge details found."
       accessorId="chargeId"
-      onRefresh={() => {}}
-      onFilterChange={() => {}}
-      onSelect={onSelect}
-      onCreate={() => {}}
-      onEdit={() => {}}
-      onDelete={() => {}}
-      onBulkDelete={() => {}}
-      onBulkSelectionChange={onBulkSelectionChange}
-      onDataReorder={onDataReorder}
+      onRefresh={handleRefresh}
+      onFilterChange={handleFilterChange}
+      onSelect={onSelect || handleSelect}
+      onCreate={handleCreate}
+      onEdit={handleEdit}
+      onDelete={handleDelete}
+      onBulkDelete={handleBulkDelete}
+      onBulkSelectionChange={handleBulkSelectionChange}
+      onDataReorder={onDataReorder || handleDataReorder}
       isConfirmed={isConfirmed}
       showHeader={false}
       showActions={true}
@@ -127,101 +153,3 @@ export function BulkDebitNoteTable({
     />
   )
 }
-
-// Dialog component (new)
-export function BulkDebitNoteDialog({
-  open,
-  onOpenChange,
-  data,
-  isLoading = false,
-  onAddSelected,
-  moduleId,
-  transactionId,
-  isConfirmed,
-}: BulkDebitNoteDialogProps) {
-  const [selectedItems, setSelectedItems] = useState<IBulkChargeData[]>([])
-
-  const handleBulkSelectionChange = useCallback(
-    (selectedIds: string[]) => {
-      const selected = data.filter(
-        (item) =>
-          item.chargeId && selectedIds.includes(item.chargeId.toString())
-      )
-      setSelectedItems(selected)
-    },
-    [data]
-  )
-
-  const handleAddSelected = useCallback(() => {
-    if (onAddSelected && selectedItems.length > 0) {
-      onAddSelected(selectedItems)
-      setSelectedItems([])
-      onOpenChange(false)
-    }
-  }, [onAddSelected, selectedItems, onOpenChange])
-
-  const handleCancel = useCallback(() => {
-    setSelectedItems([])
-    onOpenChange(false)
-  }, [onOpenChange])
-
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] w-[90vw] !max-w-none overflow-y-auto">
-        <DialogHeader className="border-b pb-2">
-          <div className="flex items-center justify-between">
-            <div>
-              <DialogTitle className="text-2xl font-bold">
-                Bulk Charges
-              </DialogTitle>
-              <DialogDescription>
-                Select charges to add to the debit note.
-              </DialogDescription>
-            </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleCancel}
-              className="h-8 w-8 p-0"
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
-        </DialogHeader>
-
-        <div className="flex-1 overflow-hidden">
-          <BulkDebitNoteTable
-            data={data}
-            isLoading={isLoading}
-            moduleId={moduleId}
-            transactionId={transactionId}
-            isConfirmed={isConfirmed}
-            onBulkSelectionChange={handleBulkSelectionChange}
-          />
-        </div>
-
-        <div className="border-t pt-4">
-          <div className="flex items-center justify-between">
-            <div className="text-muted-foreground text-sm">
-              {selectedItems.length} item(s) selected
-            </div>
-            <div className="flex gap-2">
-              <Button variant="outline" onClick={handleCancel}>
-                Cancel
-              </Button>
-              <Button
-                onClick={handleAddSelected}
-                disabled={selectedItems.length === 0}
-              >
-                Add Selected Items ({selectedItems.length})
-              </Button>
-            </div>
-          </div>
-        </div>
-      </DialogContent>
-    </Dialog>
-  )
-}
-
-// Default export (backward compatibility)
-export default BulkDebitNoteTable

@@ -11,7 +11,7 @@ import {
   DebitNoteDtFormValues,
   DebitNoteHdFormValues,
 } from "@/schemas/checklist"
-import { useQueryClient } from "@tanstack/react-query"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
 import {
   DollarSign,
   ListChecks,
@@ -22,9 +22,9 @@ import {
   TrendingUp,
 } from "lucide-react"
 
+import { getData } from "@/lib/api-client"
 import { JobOrder_DebitNote } from "@/lib/api-routes"
-import { TaskIdToName } from "@/lib/operations-utils"
-import { useGet, usePersist } from "@/hooks/use-common"
+import { usePersist } from "@/hooks/use-common"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -37,7 +37,7 @@ import {
 import { DeleteConfirmation } from "@/components/confirmation/delete-confirmation"
 import { SaveConfirmation } from "@/components/confirmation/save-confirmation"
 
-import { BulkDebitNoteDialog } from "./debit-note-bulk-table"
+import { BulkDebitNoteTable } from "./debit-note-bulk-table"
 import DebitNoteForm from "./debit-note-form"
 import DebitNoteTable from "./debit-note-table"
 
@@ -156,12 +156,36 @@ export default function DebitNoteDialog({
     `${JobOrder_DebitNote.add}`
   )
 
-  // Fetch bulk charges when dialog opens
+  const [selectedBulkItems, setSelectedBulkItems] = useState<IBulkChargeData[]>(
+    []
+  )
+
+  // Ref to store current bulk charges data to avoid dependency issues
+  const bulkChargesDataRef = useRef<IBulkChargeData[]>([])
+
+  // Fetch bulk charges only when bulk charges dialog is opened
   const { data: bulkChargesResponse, isLoading: isBulkChargesLoading } =
-    useGet<IBulkChargeData>(
-      `${JobOrder_DebitNote.getBulkDetails}/${taskId}`,
-      "bulk-charges"
-    )
+    useQuery({
+      queryKey: [`bulk-charges-${taskId}`],
+      queryFn: async () =>
+        await getData(`${JobOrder_DebitNote.getBulkDetails}/${taskId}`),
+      enabled: bulkChargesDialog.isOpen,
+      staleTime: 0.5 * 60 * 1000, // 0.5 minutes
+      gcTime: 1 * 60 * 1000, // 1 minutes
+      refetchOnWindowFocus: false,
+      refetchOnMount: false,
+    })
+
+  // Update ref when bulk charges data is available
+  useEffect(() => {
+    if (bulkChargesResponse?.data) {
+      console.log(
+        "Updating bulkChargesDataRef with data:",
+        bulkChargesResponse.data
+      )
+      bulkChargesDataRef.current = bulkChargesResponse.data
+    }
+  }, [bulkChargesResponse?.data])
 
   // Handler to open modal for creating a new debit note detail
   const handleCreateDebitNoteDetail = useCallback(() => {
@@ -476,9 +500,61 @@ export default function DebitNoteDialog({
     [debitNoteHdState, taskId]
   )
 
-  // Get task name by task ID from the debit note header
-  const taskName =
-    TaskIdToName[debitNoteHdState?.taskId || taskId] || "Unknown Task"
+  // Handler for bulk dialog open change
+  const handleBulkDialogOpenChange = useCallback((isOpen: boolean) => {
+    setBulkChargesDialog({ isOpen })
+    if (!isOpen) {
+      setSelectedBulkItems([]) // Clear selections when dialog closes
+    }
+  }, [])
+
+  // Handler for canceling bulk charges dialog
+  const handleCancelBulk = useCallback(() => {
+    handleBulkDialogOpenChange(false)
+  }, [handleBulkDialogOpenChange])
+
+  // Handler for bulk selection change
+  const handleBulkSelectionChange = useCallback(
+    (selectedIds: string[]) => {
+      console.log("selectedIds handleBulkSelectionChange", selectedIds)
+      console.log("bulkChargesDataRef.current", bulkChargesDataRef.current)
+      // Only update state if selection actually changed
+      const currentBulkData = bulkChargesDataRef.current
+      const selectedItems = currentBulkData.filter((item: IBulkChargeData) =>
+        selectedIds.includes(item.chargeId.toString())
+      )
+      console.log("selectedItems after filter", selectedItems)
+
+      // Only update state if the selection actually changed
+      setSelectedBulkItems((prevItems) => {
+        // Compare lengths first for quick check
+        if (prevItems.length !== selectedItems.length) {
+          return selectedItems
+        }
+
+        // Compare actual items
+        const prevIds = prevItems.map((item) => item.chargeId.toString()).sort()
+        const newIds = selectedItems
+          .map((item) => item.chargeId.toString())
+          .sort()
+
+        // Only update if the selection actually changed
+        if (JSON.stringify(prevIds) !== JSON.stringify(newIds)) {
+          return selectedItems
+        }
+
+        // No change, return previous state to prevent re-render
+        return prevItems
+      })
+    },
+    [] // No dependencies needed since we use ref
+  )
+
+  // Handler for adding selected bulk items
+  const handleAddSelectedBulk = useCallback(() => {
+    handleAddBulkCharges(selectedBulkItems)
+    handleBulkDialogOpenChange(false)
+  }, [selectedBulkItems, handleAddBulkCharges, handleBulkDialogOpenChange])
 
   // Calculate summary totals using helper function
   const summaryTotals = calculateDebitNoteSummary(details, { amtDec: 2 })
@@ -735,22 +811,55 @@ export default function DebitNoteDialog({
           />
 
           {/* Bulk Charges Dialog */}
-          <BulkDebitNoteDialog
+          <Dialog
             open={bulkChargesDialog.isOpen}
-            onOpenChange={(isOpen) =>
-              setBulkChargesDialog((prev) => ({ ...prev, isOpen }))
-            }
-            data={
-              Array.isArray(bulkChargesResponse?.data)
-                ? (bulkChargesResponse.data as IBulkChargeData[])
-                : []
-            }
-            isLoading={isBulkChargesLoading}
-            onAddSelected={handleAddBulkCharges}
-            moduleId={taskId}
-            transactionId={taskId}
-            isConfirmed={isConfirmed}
-          />
+            onOpenChange={handleBulkDialogOpenChange}
+          >
+            <DialogContent className="max-h-[90vh] w-[90vw] !max-w-none overflow-y-auto">
+              <DialogHeader className="border-b pb-2">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <DialogTitle className="text-2xl font-bold">
+                      Bulk Charges
+                    </DialogTitle>
+                    <DialogDescription>
+                      Select charges to add to the debit note.
+                    </DialogDescription>
+                  </div>
+                </div>
+              </DialogHeader>
+
+              <div className="flex-1 overflow-hidden">
+                <BulkDebitNoteTable
+                  data={bulkChargesResponse?.data || []}
+                  isLoading={isBulkChargesLoading}
+                  moduleId={taskId}
+                  transactionId={taskId}
+                  isConfirmed={isConfirmed}
+                  onBulkSelectionChange={handleBulkSelectionChange}
+                />
+              </div>
+
+              <div className="border-t pt-4">
+                <div className="flex items-center justify-between">
+                  <div className="text-muted-foreground text-sm">
+                    {selectedBulkItems.length} item(s) selected
+                  </div>
+                  <div className="flex gap-2">
+                    <Button variant="outline" onClick={handleCancelBulk}>
+                      Cancel
+                    </Button>
+                    <Button
+                      onClick={handleAddSelectedBulk}
+                      disabled={selectedBulkItems.length === 0}
+                    >
+                      Add Selected Items ({selectedBulkItems.length})
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
       </DialogContent>
     </Dialog>
