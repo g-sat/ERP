@@ -76,8 +76,8 @@ export function OtherServiceForm({
         : format(new Date(), clientDateFormat),
       chargeId: initialData?.chargeId ?? taskDefaults.chargeId ?? 0,
       glId: initialData?.glId ?? taskDefaults.glId ?? 0,
-      statusId: initialData?.statusId ?? 802,
-      uomId: initialData?.uomId ?? 0,
+      statusId: initialData?.statusId ?? taskDefaults.statusId ?? 802,
+      uomId: initialData?.uomId ?? taskDefaults.uomId ?? 0,
       debitNoteId: initialData?.debitNoteId ?? 0,
       debitNoteNo: initialData?.debitNoteNo ?? "",
       serviceProvider: initialData?.serviceProvider ?? "",
@@ -124,8 +124,8 @@ export function OtherServiceForm({
         : format(new Date(), clientDateFormat),
       chargeId: initialData?.chargeId ?? taskDefaults.chargeId ?? 0,
       glId: initialData?.glId ?? taskDefaults.glId ?? 0,
-      statusId: initialData?.statusId ?? 802,
-      uomId: initialData?.uomId ?? 0,
+      statusId: initialData?.statusId ?? taskDefaults.statusId ?? 802,
+      uomId: initialData?.uomId ?? taskDefaults.uomId ?? 0,
       debitNoteId: initialData?.debitNoteId ?? 0,
       debitNoteNo: initialData?.debitNoteNo ?? "",
       serviceProvider: initialData?.serviceProvider ?? "",
@@ -199,7 +199,6 @@ export function OtherServiceForm({
                 name="date"
                 label="Service Date"
                 isRequired={true}
-                dateFormat={dateFormat}
                 isDisabled={isConfirmed}
               />
               <StatusTaskAutocomplete

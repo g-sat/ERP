@@ -72,7 +72,7 @@ export function TechniciansSurveyorsForm({
       chargeId: initialData?.chargeId ?? taskDefaults.chargeId ?? 0,
       name: initialData?.name ?? "",
       quantity: initialData?.quantity ?? 1,
-      uomId: initialData?.uomId ?? 0,
+      uomId: initialData?.uomId ?? taskDefaults.uomId ?? 0,
       natureOfAttendance: initialData?.natureOfAttendance ?? "",
       companyInfo: initialData?.companyInfo ?? "",
       passTypeId: initialData?.passTypeId ?? 0,
@@ -89,7 +89,7 @@ export function TechniciansSurveyorsForm({
           )
         : "",
       portRequestNo: initialData?.portRequestNo ?? "",
-      statusId: initialData?.statusId ?? 802,
+      statusId: initialData?.statusId ?? taskDefaults.statusId ?? 802,
       remarks: initialData?.remarks ?? "",
       debitNoteId: initialData?.debitNoteId ?? 0,
       debitNoteNo: initialData?.debitNoteNo ?? "",
@@ -107,7 +107,7 @@ export function TechniciansSurveyorsForm({
       chargeId: initialData?.chargeId ?? taskDefaults.chargeId ?? 0,
       name: initialData?.name ?? "",
       quantity: initialData?.quantity ?? 1,
-      uomId: initialData?.uomId ?? 0,
+      uomId: initialData?.uomId ?? taskDefaults.uomId ?? 0,
       natureOfAttendance: initialData?.natureOfAttendance ?? "",
       companyInfo: initialData?.companyInfo ?? "",
       passTypeId: initialData?.passTypeId ?? 0,
@@ -124,7 +124,7 @@ export function TechniciansSurveyorsForm({
           )
         : "",
       portRequestNo: initialData?.portRequestNo ?? "",
-      statusId: initialData?.statusId ?? 802,
+      statusId: initialData?.statusId ?? taskDefaults.statusId ?? 802,
       remarks: initialData?.remarks ?? "",
       debitNoteId: initialData?.debitNoteId ?? 0,
       debitNoteNo: initialData?.debitNoteNo ?? "",
@@ -223,14 +223,12 @@ export function TechniciansSurveyorsForm({
                 form={form}
                 name="embarked"
                 label="Embarked Date"
-                dateFormat={dateFormat}
                 isDisabled={isConfirmed}
               />
               <CustomDateNew
                 form={form}
                 name="disembarked"
                 label="Disembarked Date"
-                dateFormat={dateFormat}
                 isDisabled={isConfirmed}
               />
 

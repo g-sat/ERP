@@ -80,8 +80,8 @@ export function LandingItemsForm({
       glId: initialData?.glId ?? taskDefaults.glId ?? 0,
       chargeId: initialData?.chargeId ?? taskDefaults.chargeId ?? 0,
       landingTypeId: initialData?.landingTypeId ?? 0,
-      uomId: initialData?.uomId ?? 0,
-      statusId: initialData?.statusId ?? 802,
+      uomId: initialData?.uomId ?? taskDefaults.uomId ?? 0,
+      statusId: initialData?.statusId ?? taskDefaults.statusId ?? 802,
       name: initialData?.name ?? "",
       quantity: initialData?.quantity ?? 1,
       weight: initialData?.weight ?? 0,
@@ -114,8 +114,8 @@ export function LandingItemsForm({
       glId: initialData?.glId ?? taskDefaults.glId ?? 0,
       chargeId: initialData?.chargeId ?? taskDefaults.chargeId ?? 0,
       landingTypeId: initialData?.landingTypeId ?? 0,
-      uomId: initialData?.uomId ?? 0,
-      statusId: initialData?.statusId ?? 802,
+      uomId: initialData?.uomId ?? taskDefaults.uomId ?? 0,
+      statusId: initialData?.statusId ?? taskDefaults.statusId ?? 802,
       name: initialData?.name ?? "",
       quantity: initialData?.quantity ?? 1,
       weight: initialData?.weight ?? 0,
@@ -173,7 +173,6 @@ export function LandingItemsForm({
                 name="date"
                 label="Landing Date"
                 isRequired={true}
-                dateFormat={dateFormat}
                 isDisabled={isConfirmed}
               />
               <LandingTypeAutocomplete
@@ -237,7 +236,6 @@ export function LandingItemsForm({
                 form={form}
                 name="returnDate"
                 label="Return Date (Optional)"
-                dateFormat={dateFormat}
                 isDisabled={isConfirmed}
               />
             </div>

@@ -71,7 +71,7 @@ export function MedicalAssistanceForm({
       chargeId: initialData?.chargeId ?? taskDefaults.chargeId ?? 0,
       glId: initialData?.glId ?? taskDefaults.glId ?? 0,
       rankId: initialData?.rankId ?? 0,
-      statusId: initialData?.statusId ?? 802,
+      statusId: initialData?.statusId ?? taskDefaults.statusId ?? 802,
       crewName: initialData?.crewName ?? "",
       nationality: initialData?.nationality ?? "",
       reason: initialData?.reason ?? "",
@@ -104,7 +104,7 @@ export function MedicalAssistanceForm({
       chargeId: initialData?.chargeId ?? taskDefaults.chargeId ?? 0,
       glId: initialData?.glId ?? taskDefaults.glId ?? 0,
       rankId: initialData?.rankId ?? 0,
-      statusId: initialData?.statusId ?? 802,
+      statusId: initialData?.statusId ?? taskDefaults.statusId ?? 802,
       crewName: initialData?.crewName ?? "",
       nationality: initialData?.nationality ?? "",
       reason: initialData?.reason ?? "",
@@ -201,14 +201,12 @@ export function MedicalAssistanceForm({
                 form={form}
                 name="admittedDate"
                 label="Admitted Date"
-                dateFormat={dateFormat}
                 isDisabled={isConfirmed}
               />
               <CustomDateNew
                 form={form}
                 name="dischargedDate"
                 label="Discharged Date"
-                dateFormat={dateFormat}
                 isDisabled={isConfirmed}
               />
               <StatusTaskAutocomplete

@@ -90,7 +90,7 @@ export function EquipmentUsedForm({
       stevedoreOffloading: initialData?.stevedoreOffloading ?? 0,
       launchServiceId: initialData?.launchServiceId ?? 0,
       remarks: initialData?.remarks ?? "",
-      statusId: initialData?.statusId ?? 802,
+      statusId: initialData?.statusId ?? taskDefaults.statusId ?? 802,
       isEquimentFooter: initialData?.isEquimentFooter ?? false,
       equimentFooter: initialData?.equimentFooter ?? "",
       debitNoteId: initialData?.debitNoteId ?? 0,
@@ -129,7 +129,7 @@ export function EquipmentUsedForm({
       stevedoreOffloading: initialData?.stevedoreOffloading ?? 0,
       launchServiceId: initialData?.launchServiceId ?? 0,
       remarks: initialData?.remarks ?? "",
-      statusId: initialData?.statusId ?? 802,
+      statusId: initialData?.statusId ?? taskDefaults.statusId ?? 802,
       isEquimentFooter: initialData?.isEquimentFooter ?? false,
       equimentFooter: initialData?.equimentFooter ?? "",
       debitNoteId: initialData?.debitNoteId ?? 0,
@@ -182,7 +182,6 @@ export function EquipmentUsedForm({
                 name="date"
                 label="Date"
                 isRequired={true}
-                dateFormat={dateFormat}
                 isDisabled={isConfirmed}
               />
               <CustomInput

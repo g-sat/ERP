@@ -76,8 +76,8 @@ export function FreshWaterForm({
       distance: initialData?.distance ?? 0,
       glId: initialData?.glId ?? taskDefaults.glId ?? 0,
       chargeId: initialData?.chargeId ?? taskDefaults.chargeId ?? 0,
-      statusId: initialData?.statusId ?? 802,
-      uomId: initialData?.uomId ?? 0,
+      statusId: initialData?.statusId ?? taskDefaults.statusId ?? 802,
+      uomId: initialData?.uomId ?? taskDefaults.uomId ?? 0,
       remarks: initialData?.remarks ?? "",
       debitNoteId: initialData?.debitNoteId ?? 0,
       debitNoteNo: initialData?.debitNoteNo ?? "",
@@ -105,8 +105,8 @@ export function FreshWaterForm({
       distance: initialData?.distance ?? 0,
       glId: initialData?.glId ?? taskDefaults.glId ?? 0,
       chargeId: initialData?.chargeId ?? taskDefaults.chargeId ?? 0,
-      statusId: initialData?.statusId ?? 802,
-      uomId: initialData?.uomId ?? 0,
+      statusId: initialData?.statusId ?? taskDefaults.statusId ?? 802,
+      uomId: initialData?.uomId ?? taskDefaults.uomId ?? 0,
       remarks: initialData?.remarks ?? "",
       debitNoteId: initialData?.debitNoteId ?? 0,
       debitNoteNo: initialData?.debitNoteNo ?? "",
@@ -148,7 +148,6 @@ export function FreshWaterForm({
                 name="date"
                 label="Date"
                 isRequired={true}
-                dateFormat={dateFormat}
                 isDisabled={isConfirmed}
               />
               <BargeAutocomplete

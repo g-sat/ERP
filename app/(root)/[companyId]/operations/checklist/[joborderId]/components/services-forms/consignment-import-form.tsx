@@ -75,7 +75,7 @@ export function ConsignmentImportForm({
       glId: initialData?.glId ?? taskDefaults.glId ?? 0,
       awbNo: initialData?.awbNo ?? "",
       carrierTypeId: initialData?.carrierTypeId ?? 0,
-      uomId: initialData?.uomId ?? 0,
+      uomId: initialData?.uomId ?? taskDefaults.uomId ?? 0,
       modeTypeId: initialData?.modeTypeId ?? 0,
       consignmentTypeId: initialData?.consignmentTypeId ?? 0,
       landingTypeId: initialData?.landingTypeId ?? 0,
@@ -106,7 +106,7 @@ export function ConsignmentImportForm({
         : "",
       amountDeposited: initialData?.amountDeposited ?? 0,
       refundInstrumentNo: initialData?.refundInstrumentNo ?? "",
-      statusId: initialData?.statusId ?? 802,
+      statusId: initialData?.statusId ?? taskDefaults.statusId ?? 802,
       remarks: initialData?.remarks ?? "",
       debitNoteId: initialData?.debitNoteId ?? 0,
       debitNoteNo: initialData?.debitNoteNo ?? "",
@@ -124,7 +124,7 @@ export function ConsignmentImportForm({
       glId: initialData?.glId ?? taskDefaults.glId ?? 0,
       awbNo: initialData?.awbNo ?? "",
       carrierTypeId: initialData?.carrierTypeId ?? 0,
-      uomId: initialData?.uomId ?? 0,
+      uomId: initialData?.uomId ?? taskDefaults.uomId ?? 0,
       modeTypeId: initialData?.modeTypeId ?? 0,
       consignmentTypeId: initialData?.consignmentTypeId ?? 0,
       landingTypeId: initialData?.landingTypeId ?? 0,
@@ -155,7 +155,7 @@ export function ConsignmentImportForm({
         : "",
       amountDeposited: initialData?.amountDeposited ?? 0,
       refundInstrumentNo: initialData?.refundInstrumentNo ?? "",
-      statusId: initialData?.statusId ?? 802,
+      statusId: initialData?.statusId ?? taskDefaults.statusId ?? 802,
       remarks: initialData?.remarks ?? "",
       debitNoteId: initialData?.debitNoteId ?? 0,
       debitNoteNo: initialData?.debitNoteNo ?? "",
@@ -233,7 +233,6 @@ export function ConsignmentImportForm({
                 form={form}
                 name="receiveDate"
                 label="Date Received"
-                dateFormat={dateFormat}
                 isDisabled={isConfirmed}
               />
               <ConsignmentTypeAutocomplete
@@ -299,7 +298,6 @@ export function ConsignmentImportForm({
                 form={form}
                 name="deliverDate"
                 label="Date Delivered"
-                dateFormat={dateFormat}
                 isDisabled={isConfirmed}
               />
               <CustomInput
@@ -339,7 +337,6 @@ export function ConsignmentImportForm({
                 form={form}
                 name="arrivalDate"
                 label="Date Arrived"
-                dateFormat={dateFormat}
                 isDisabled={isConfirmed}
               />
 

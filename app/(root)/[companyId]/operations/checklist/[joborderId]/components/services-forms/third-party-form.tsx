@@ -71,10 +71,10 @@ export function ThirdPartyForm({
       quantity: initialData?.quantity ?? 0,
       glId: initialData?.glId ?? taskDefaults.glId ?? 0,
       chargeId: initialData?.chargeId ?? taskDefaults.chargeId ?? 0,
-      statusId: initialData?.statusId ?? 802,
+      statusId: initialData?.statusId ?? taskDefaults.statusId ?? 802,
       supplierId: initialData?.supplierId ?? 0,
       supplierMobileNumber: initialData?.supplierMobileNumber ?? "",
-      uomId: initialData?.uomId ?? 0,
+      uomId: initialData?.uomId ?? taskDefaults.uomId ?? 0,
       deliverDate: initialData?.deliverDate
         ? format(
             parseDate(initialData.deliverDate as string) || new Date(),
@@ -97,10 +97,10 @@ export function ThirdPartyForm({
       quantity: initialData?.quantity ?? 0,
       glId: initialData?.glId ?? taskDefaults.glId ?? 0,
       chargeId: initialData?.chargeId ?? taskDefaults.chargeId ?? 0,
-      statusId: initialData?.statusId ?? 802,
+      statusId: initialData?.statusId ?? taskDefaults.statusId ?? 802,
       supplierId: initialData?.supplierId ?? 0,
       supplierMobileNumber: initialData?.supplierMobileNumber ?? "",
-      uomId: initialData?.uomId ?? 0,
+      uomId: initialData?.uomId ?? taskDefaults.uomId ?? 0,
       deliverDate: initialData?.deliverDate
         ? format(
             parseDate(initialData.deliverDate as string) || new Date(),
@@ -188,7 +188,6 @@ export function ThirdPartyForm({
                 form={form}
                 name="deliverDate"
                 label="Deliver Date"
-                dateFormat={dateFormat}
                 isDisabled={isConfirmed}
               />
             </div>

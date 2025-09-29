@@ -24,6 +24,7 @@ import ChartofAccountAutocomplete from "@/components/autocomplete/autocomplete-c
 import DocumentTypeAutocomplete from "@/components/autocomplete/autocomplete-document-type"
 import ModeTypeAutocomplete from "@/components/autocomplete/autocomplete-modetype"
 import StatusAutocomplete from "@/components/autocomplete/autocomplete-status"
+import StatusTaskAutocomplete from "@/components/autocomplete/autocomplete-status-task"
 import UomAutocomplete from "@/components/autocomplete/autocomplete-uom"
 import VisaTypeAutocomplete from "@/components/autocomplete/autocomplete-visatype"
 import WorkLocationAutocomplete from "@/components/autocomplete/autocomplete-worklocation"
@@ -445,7 +446,7 @@ export function TaskServiceForm() {
           )}
 
           {/* Status Type - Show for all services */}
-          <StatusAutocomplete
+          <StatusTaskAutocomplete
             form={form}
             name={`services.${serviceKey}.statusTypeId`}
             label="Status Type"
