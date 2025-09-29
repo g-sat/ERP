@@ -2,7 +2,7 @@
 
 import { useEffect } from "react"
 import { ISubCategory } from "@/interfaces/subcategory"
-import { SubCategoryFormValues, subcategorySchema } from "@/schemas/subcategory"
+import { SubCategorySchemaType, subcategorySchema } from "@/schemas/subcategory"
 import { useAuthStore } from "@/stores/auth-store"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { format } from "date-fns"
@@ -22,7 +22,7 @@ import CustomTextarea from "@/components/custom/custom-textarea"
 
 interface SubCategoryFormProps {
   initialData?: ISubCategory | null
-  submitAction: (data: SubCategoryFormValues) => void
+  submitAction: (data: SubCategorySchemaType) => void
   onCancel?: () => void
   isSubmitting?: boolean
   isReadOnly?: boolean
@@ -48,7 +48,7 @@ export function SubCategoryForm({
     isActive: true,
   }
 
-  const form = useForm<SubCategoryFormValues>({
+  const form = useForm<SubCategorySchemaType>({
     resolver: zodResolver(subcategorySchema),
     defaultValues: initialData
       ? {
@@ -85,7 +85,7 @@ export function SubCategoryForm({
     onCodeBlur?.(code)
   }
 
-  const onSubmit = (data: SubCategoryFormValues) => {
+  const onSubmit = (data: SubCategorySchemaType) => {
     submitAction(data)
   }
 

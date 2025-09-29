@@ -20,7 +20,7 @@ export const currencySchema = z.object({
     .default(""),
 })
 
-export type CurrencyFormValues = z.infer<typeof currencySchema>
+export type CurrencySchemaType = z.infer<typeof currencySchema>
 
 export const currencyFiltersSchema = z.object({
   isActive: z.boolean().optional(),
@@ -44,7 +44,7 @@ export const currencyDtSchema = z.object({
   ),
 })
 
-export type CurrencyDtFormValues = z.infer<typeof currencyDtSchema>
+export type CurrencyDtSchemaType = z.infer<typeof currencyDtSchema>
 
 export const currencyLocalDtSchema = z.object({
   currencyId: z.number().min(1, { message: "Currency is required" }),
@@ -60,4 +60,4 @@ export const currencyLocalDtSchema = z.object({
   ),
 })
 
-export type CurrencyLocalDtFormValues = z.infer<typeof currencyLocalDtSchema>
+export type CurrencyLocalDtSchemaType = z.infer<typeof currencyLocalDtSchema>

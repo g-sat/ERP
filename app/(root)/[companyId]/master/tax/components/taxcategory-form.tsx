@@ -2,7 +2,7 @@
 
 import { useEffect } from "react"
 import { ITaxCategory } from "@/interfaces/tax"
-import { TaxCategoryFormValues, taxCategorySchema } from "@/schemas/tax"
+import { TaxCategorySchemaType, taxCategorySchema } from "@/schemas/tax"
 import { useAuthStore } from "@/stores/auth-store"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { format } from "date-fns"
@@ -22,7 +22,7 @@ import CustomTextarea from "@/components/custom/custom-textarea"
 
 interface TaxCategoryFormProps {
   initialData?: ITaxCategory | null
-  submitAction: (data: TaxCategoryFormValues) => void
+  submitAction: (data: TaxCategorySchemaType) => void
   onCancel: () => void
   isSubmitting: boolean
   isReadOnly?: boolean
@@ -48,7 +48,7 @@ export function TaxCategoryForm({
     isActive: true,
   }
 
-  const form = useForm<TaxCategoryFormValues>({
+  const form = useForm<TaxCategorySchemaType>({
     resolver: zodResolver(taxCategorySchema),
     defaultValues: initialData
       ? {
@@ -85,7 +85,7 @@ export function TaxCategoryForm({
     onCodeBlur?.(code)
   }
 
-  const onSubmit = (data: TaxCategoryFormValues) => {
+  const onSubmit = (data: TaxCategorySchemaType) => {
     submitAction(data)
   }
 

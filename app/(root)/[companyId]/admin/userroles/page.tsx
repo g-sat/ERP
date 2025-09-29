@@ -3,7 +3,7 @@
 import { useCallback, useState } from "react"
 import { IUserRole, IUserRoleFilter } from "@/interfaces/admin"
 import { ApiResponse } from "@/interfaces/auth"
-import { UserRoleFormValues } from "@/schemas/admin"
+import { UserRoleSchemaType } from "@/schemas/admin"
 import { usePermissionStore } from "@/stores/permission-store"
 import { useQueryClient } from "@tanstack/react-query"
 
@@ -85,7 +85,7 @@ export default function AdminUserRolesPage() {
   // State for save confirmation
   const [saveConfirmation, setSaveConfirmation] = useState<{
     isOpen: boolean
-    data: UserRoleFormValues | null
+    data: UserRoleSchemaType | null
   }>({
     isOpen: false,
     data: null,
@@ -148,7 +148,7 @@ export default function AdminUserRolesPage() {
     }
   }
 
-  const handleUserRoleFormSubmit = async (data: UserRoleFormValues) => {
+  const handleUserRoleFormSubmit = async (data: UserRoleSchemaType) => {
     try {
       if (modalMode === "create") {
         const response = await saveRoleMutation.mutateAsync(data)
@@ -169,14 +169,14 @@ export default function AdminUserRolesPage() {
     }
   }
 
-  const handleSaveConfirmation = (data: UserRoleFormValues) => {
+  const handleSaveConfirmation = (data: UserRoleSchemaType) => {
     setSaveConfirmation({
       isOpen: true,
       data,
     })
   }
 
-  const handleConfirmedFormSubmit = async (data: UserRoleFormValues) => {
+  const handleConfirmedFormSubmit = async (data: UserRoleSchemaType) => {
     try {
       if (modalMode === "create") {
         const response = await saveRoleMutation.mutateAsync(data)

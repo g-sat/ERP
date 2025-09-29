@@ -3,7 +3,7 @@
 import { useEffect } from "react"
 import { ICreditTermDt } from "@/interfaces/creditterm"
 import {
-  CreditTermDtFormValues,
+  CreditTermDtSchemaType,
   credittermDtSchema,
 } from "@/schemas/creditterm"
 import { useAuthStore } from "@/stores/auth-store"
@@ -25,7 +25,7 @@ import CustomSwitch from "@/components/custom/custom-switch"
 
 interface CreditTermDtFormProps {
   initialData?: ICreditTermDt | null
-  submitAction: (data: CreditTermDtFormValues) => void
+  submitAction: (data: CreditTermDtSchemaType) => void
   onCancel?: () => void
   isSubmitting?: boolean
   isReadOnly?: boolean
@@ -51,7 +51,7 @@ export function CreditTermDtForm({
     isEndOfMonth: false,
   }
 
-  const form = useForm<CreditTermDtFormValues>({
+  const form = useForm<CreditTermDtSchemaType>({
     resolver: zodResolver(credittermDtSchema),
     defaultValues: initialData
       ? {
@@ -85,7 +85,7 @@ export function CreditTermDtForm({
     )
   }, [initialData, form])
 
-  const onSubmit = (data: CreditTermDtFormValues) => {
+  const onSubmit = (data: CreditTermDtSchemaType) => {
     submitAction(data)
   }
 

@@ -3,7 +3,7 @@
 import { useCallback, useState } from "react"
 import { ApiResponse } from "@/interfaces/auth"
 import { IBarge, IBargeFilter } from "@/interfaces/barge"
-import { BargeFormValues } from "@/schemas/barge"
+import { BargeSchemaType } from "@/schemas/barge"
 import { usePermissionStore } from "@/stores/permission-store"
 import { useQueryClient } from "@tanstack/react-query"
 
@@ -62,8 +62,8 @@ export default function BargePage() {
       data: [],
     }
 
-  const saveMutation = usePersist<BargeFormValues>(`${Barge.add}`)
-  const updateMutation = usePersist<BargeFormValues>(`${Barge.add}`)
+  const saveMutation = usePersist<BargeSchemaType>(`${Barge.add}`)
+  const updateMutation = usePersist<BargeSchemaType>(`${Barge.add}`)
   const deleteMutation = useDelete(`${Barge.delete}`)
 
   const [selectedBarge, setSelectedBarge] = useState<IBarge | null>(null)
@@ -123,14 +123,14 @@ export default function BargePage() {
   // State for save confirmation
   const [saveConfirmation, setSaveConfirmation] = useState<{
     isOpen: boolean
-    data: BargeFormValues | null
+    data: BargeSchemaType | null
   }>({
     isOpen: false,
     data: null,
   })
 
   // Handler for form submission (create or edit) - shows confirmation first
-  const handleFormSubmit = (data: BargeFormValues) => {
+  const handleFormSubmit = (data: BargeSchemaType) => {
     setSaveConfirmation({
       isOpen: true,
       data: data,
@@ -138,7 +138,7 @@ export default function BargePage() {
   }
 
   // Handler for confirmed form submission
-  const handleConfirmedFormSubmit = async (data: BargeFormValues) => {
+  const handleConfirmedFormSubmit = async (data: BargeSchemaType) => {
     try {
       if (modalMode === "create") {
         const response = await saveMutation.mutateAsync(data)

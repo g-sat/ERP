@@ -3,7 +3,7 @@
 import { useEffect } from "react"
 import { ISupplierContact } from "@/interfaces/supplier"
 import {
-  SupplierContactFormValues,
+  SupplierContactSchemaType,
   supplierContactSchema,
 } from "@/schemas/supplier"
 import { useAuthStore } from "@/stores/auth-store"
@@ -23,7 +23,7 @@ import CustomInput from "@/components/custom/custom-input"
 import CustomSwitch from "@/components/custom/custom-switch"
 
 // Default values for the contact form
-const defaultContactFormValues: SupplierContactFormValues = {
+const defaultContactSchemaType: SupplierContactSchemaType = {
   supplierId: 0,
   contactId: 0,
   contactName: "",
@@ -43,7 +43,7 @@ const defaultContactFormValues: SupplierContactFormValues = {
 interface SupplierContactFormProps {
   initialData?: ISupplierContact
   supplierId?: number
-  submitAction: (data: SupplierContactFormValues) => void
+  submitAction: (data: SupplierContactSchemaType) => void
   onCancel?: () => void
   isSubmitting?: boolean
   isReadOnly?: boolean
@@ -59,18 +59,18 @@ export function SupplierContactForm({
 }: SupplierContactFormProps) {
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
-  const form = useForm<SupplierContactFormValues>({
+  const form = useForm<SupplierContactSchemaType>({
     resolver: zodResolver(supplierContactSchema),
     defaultValues: initialData
       ? { ...initialData }
       : {
-          ...defaultContactFormValues,
+          ...defaultContactSchemaType,
           supplierId: supplierId || 0,
         },
   })
 
-  const onSubmit = (data: SupplierContactFormValues) => {
-    // Process and handle null values according to SupplierContactFormValues schema
+  const onSubmit = (data: SupplierContactSchemaType) => {
+    // Process and handle null values according to SupplierContactSchemaType schema
     const contactData = {
       ...data,
       // Convert numeric fields

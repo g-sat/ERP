@@ -3,7 +3,7 @@
 import { useEffect } from "react"
 import { ICustomerContact } from "@/interfaces/customer"
 import {
-  CustomerContactFormValues,
+  CustomerContactSchemaType,
   customerContactSchema,
 } from "@/schemas/customer"
 import { useAuthStore } from "@/stores/auth-store"
@@ -23,7 +23,7 @@ import CustomInput from "@/components/custom/custom-input"
 import CustomSwitch from "@/components/custom/custom-switch"
 
 // Default values for the contact form
-const defaultContactFormValues: CustomerContactFormValues = {
+const defaultContactSchemaType: CustomerContactSchemaType = {
   customerId: 0,
   contactId: 0,
   contactName: "",
@@ -43,7 +43,7 @@ const defaultContactFormValues: CustomerContactFormValues = {
 interface CustomerContactFormProps {
   initialData?: ICustomerContact
   customerId?: number
-  submitAction: (data: CustomerContactFormValues) => void
+  submitAction: (data: CustomerContactSchemaType) => void
   onCancel?: () => void
   isSubmitting?: boolean
   isReadOnly?: boolean
@@ -64,7 +64,7 @@ export function CustomerContactForm({
   if (!customerId || customerId <= 0) {
     throw new Error("Valid customerId is required for contact form")
   }
-  const form = useForm<CustomerContactFormValues>({
+  const form = useForm<CustomerContactSchemaType>({
     resolver: zodResolver(customerContactSchema),
     defaultValues: initialData
       ? {
@@ -84,16 +84,16 @@ export function CustomerContactForm({
           contactMessType: initialData.contactMessType ?? "",
         }
       : {
-          ...defaultContactFormValues,
+          ...defaultContactSchemaType,
           customerId: customerId,
         },
   })
 
-  const onSubmit = (data: CustomerContactFormValues) => {
+  const onSubmit = (data: CustomerContactSchemaType) => {
     console.log("Form submitted with data:", data)
     console.log("Form validation errors:", form.formState.errors)
 
-    // Process and handle null values according to CustomerContactFormValues schema
+    // Process and handle null values according to CustomerContactSchemaType schema
     const contactData = {
       ...data,
       // Convert numeric fields
@@ -141,7 +141,7 @@ export function CustomerContactForm({
             contactMessType: initialData.contactMessType ?? "",
           }
         : {
-            ...defaultContactFormValues,
+            ...defaultContactSchemaType,
             customerId: customerId,
           }
     )

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { ILeave } from "@/interfaces/leave"
-import { LeaveRequestFormValues } from "@/schemas/leave"
+import { LeaveRequestSchemaType } from "@/schemas/leave"
 import { useQueryClient } from "@tanstack/react-query"
 import { Plus } from "lucide-react"
 import { toast } from "sonner"
@@ -73,7 +73,7 @@ export default function LeavePage() {
     setShowRequestForm(true)
   }
 
-  const handleLeaveSubmit = async (data: LeaveRequestFormValues) => {
+  const handleLeaveSubmit = async (data: LeaveRequestSchemaType) => {
     try {
       const startDate = new Date(data.startDate)
       const endDate = new Date(data.endDate)

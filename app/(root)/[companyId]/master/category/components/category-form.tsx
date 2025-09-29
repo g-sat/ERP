@@ -2,7 +2,7 @@
 
 import { useEffect } from "react"
 import { ICategory } from "@/interfaces/category"
-import { CategoryFormValues, categorySchema } from "@/schemas/category"
+import { CategorySchemaType, categorySchema } from "@/schemas/category"
 import { useAuthStore } from "@/stores/auth-store"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { format } from "date-fns"
@@ -29,7 +29,7 @@ const defaultValues = {
 }
 interface CategoryFormProps {
   initialData?: ICategory | null
-  submitAction: (data: CategoryFormValues) => void
+  submitAction: (data: CategorySchemaType) => void
   onCancel?: () => void
   isSubmitting?: boolean
   isReadOnly?: boolean
@@ -46,7 +46,7 @@ export function CategoryForm({
 }: CategoryFormProps) {
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
-  const form = useForm<CategoryFormValues>({
+  const form = useForm<CategorySchemaType>({
     resolver: zodResolver(categorySchema),
     defaultValues: initialData
       ? {
@@ -81,7 +81,7 @@ export function CategoryForm({
     onCodeBlur?.(code)
   }
 
-  const onSubmit = (data: CategoryFormValues) => {
+  const onSubmit = (data: CategorySchemaType) => {
     submitAction(data)
   }
 

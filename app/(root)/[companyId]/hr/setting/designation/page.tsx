@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { IDesignation } from "@/interfaces/designation"
-import { DesignationFormValues } from "@/schemas/designation"
+import { DesignationSchemaType } from "@/schemas/designation"
 
 import { Designation } from "@/lib/api-routes"
 import { useDelete, useGet, usePersist } from "@/hooks/use-common"
@@ -91,7 +91,7 @@ export default function DesignationPage() {
     }
   }
 
-  const handleSave = (values: DesignationFormValues) => {
+  const handleSave = (values: DesignationSchemaType) => {
     const mutation = selectedDesignation ? updateMutation : createMutation
     mutation.mutate(values, {
       onSuccess: () => {

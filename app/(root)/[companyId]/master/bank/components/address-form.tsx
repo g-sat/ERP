@@ -2,7 +2,7 @@
 
 import { useEffect } from "react"
 import { IBankAddress } from "@/interfaces/bank"
-import { BankAddressFormValues, bankAddressSchema } from "@/schemas/bank"
+import { BankAddressSchemaType, bankAddressSchema } from "@/schemas/bank"
 import { useAuthStore } from "@/stores/auth-store"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { format } from "date-fns"
@@ -22,7 +22,7 @@ import CustomSwitch from "@/components/custom/custom-switch"
 import CustomTextarea from "@/components/custom/custom-textarea"
 
 // Default values for the address form
-const defaultAddressFormValues: BankAddressFormValues = {
+const defaultAddressSchemaType: BankAddressSchemaType = {
   bankId: 0,
   addressId: 0,
   address1: "",
@@ -45,7 +45,7 @@ const defaultAddressFormValues: BankAddressFormValues = {
 interface BankAddressFormProps {
   initialData?: IBankAddress
   bankId?: number
-  submitAction: (data: BankAddressFormValues) => void
+  submitAction: (data: BankAddressSchemaType) => void
   onCancel?: () => void
   isSubmitting?: boolean
   isReadOnly?: boolean
@@ -61,18 +61,18 @@ export function BankAddressForm({
 }: BankAddressFormProps) {
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
-  const form = useForm<BankAddressFormValues>({
+  const form = useForm<BankAddressSchemaType>({
     resolver: zodResolver(bankAddressSchema),
     defaultValues: initialData
       ? { ...initialData }
       : {
-          ...defaultAddressFormValues,
+          ...defaultAddressSchemaType,
           bankId: bankId || 0,
         },
   })
 
-  const onSubmit = (data: BankAddressFormValues) => {
-    // Process the form data according to BankAddressFormValues schema
+  const onSubmit = (data: BankAddressSchemaType) => {
+    // Process the form data according to BankAddressSchemaType schema
     const addressData = {
       ...data,
       // Convert numeric fields and handle null values

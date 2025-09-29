@@ -8,7 +8,7 @@ import {
   IEquipmentUsed,
   IJobOrderHd,
 } from "@/interfaces/checklist"
-import { EquipmentUsedFormValues } from "@/schemas/checklist"
+import { EquipmentUsedSchemaType } from "@/schemas/checklist"
 import { useQueryClient } from "@tanstack/react-query"
 
 import { getData } from "@/lib/api-client"
@@ -119,10 +119,10 @@ export function EquipmentUsedTab({
   }
 
   // Mutations
-  const saveMutation = usePersist<EquipmentUsedFormValues>(
+  const saveMutation = usePersist<EquipmentUsedSchemaType>(
     `${JobOrder_EquipmentUsed.add}`
   )
-  const updateMutation = usePersist<EquipmentUsedFormValues>(
+  const updateMutation = usePersist<EquipmentUsedSchemaType>(
     `${JobOrder_EquipmentUsed.add}`
   )
   const deleteMutation = useDelete(`${JobOrder_EquipmentUsed.delete}`)

@@ -3,7 +3,7 @@
 import { useCallback, useState } from "react"
 import { ApiResponse } from "@/interfaces/auth"
 import { IPaymentType, IPaymentTypeFilter } from "@/interfaces/paymenttype"
-import { PaymentTypeFormValues } from "@/schemas/paymenttype"
+import { PaymentTypeSchemaType } from "@/schemas/paymenttype"
 import { usePermissionStore } from "@/stores/permission-store"
 import { useQueryClient } from "@tanstack/react-query"
 
@@ -61,8 +61,8 @@ export default function PaymentTypePage() {
       data: [],
     }
 
-  const saveMutation = usePersist<PaymentTypeFormValues>(`${PaymentType.add}`)
-  const updateMutation = usePersist<PaymentTypeFormValues>(`${PaymentType.add}`)
+  const saveMutation = usePersist<PaymentTypeSchemaType>(`${PaymentType.add}`)
+  const updateMutation = usePersist<PaymentTypeSchemaType>(`${PaymentType.add}`)
   const deleteMutation = useDelete(`${PaymentType.delete}`)
 
   const [selectedPaymentType, setSelectedPaymentType] =
@@ -124,14 +124,14 @@ export default function PaymentTypePage() {
   // State for save confirmation
   const [saveConfirmation, setSaveConfirmation] = useState<{
     isOpen: boolean
-    data: PaymentTypeFormValues | null
+    data: PaymentTypeSchemaType | null
   }>({
     isOpen: false,
     data: null,
   })
 
   // Handler for form submission (create or edit) - shows confirmation first
-  const handleFormSubmit = (data: PaymentTypeFormValues) => {
+  const handleFormSubmit = (data: PaymentTypeSchemaType) => {
     setSaveConfirmation({
       isOpen: true,
       data: data,
@@ -139,7 +139,7 @@ export default function PaymentTypePage() {
   }
 
   // Handler for confirmed form submission
-  const handleConfirmedFormSubmit = async (data: PaymentTypeFormValues) => {
+  const handleConfirmedFormSubmit = async (data: PaymentTypeSchemaType) => {
     try {
       if (modalMode === "create") {
         const response = await saveMutation.mutateAsync(data)

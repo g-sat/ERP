@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from "react"
 import {
-  ResetPasswordFormValues,
-  UserProfileFormValues,
+  ResetPasswordSchemaType,
+  UserProfileSchemaType,
   resetPasswordSchema,
   userProfileSchema,
 } from "@/schemas/admin"
@@ -82,22 +82,22 @@ export default function ProfilePage() {
     data: profileData,
     isLoading: isLoadingProfile,
     error: profileError,
-  } = useGetById<UserProfileFormValues>(
+  } = useGetById<UserProfileSchemaType>(
     "/admin/GetUserProfile",
     "userProfile",
     user?.userId || "0"
   )
 
-  const updateProfileMutation = usePersist<UserProfileFormValues>(
+  const updateProfileMutation = usePersist<UserProfileSchemaType>(
     "/admin/SaveUserProfile"
   )
 
-  const resetPasswordMutation = usePersist<ResetPasswordFormValues>(
+  const resetPasswordMutation = usePersist<ResetPasswordSchemaType>(
     "/admin/ResetPassword"
   )
 
   // Profile form
-  const profileForm = useForm<UserProfileFormValues>({
+  const profileForm = useForm<UserProfileSchemaType>({
     resolver: zodResolver(userProfileSchema),
     defaultValues: {
       userId: parseInt(user?.userId || "0"),
@@ -169,7 +169,7 @@ export default function ProfilePage() {
   }, [profileData, user?.userName, profileForm])
 
   // Password form
-  const passwordForm = useForm<ResetPasswordFormValues>({
+  const passwordForm = useForm<ResetPasswordSchemaType>({
     resolver: zodResolver(resetPasswordSchema),
     defaultValues: {
       userId: parseInt(user?.userId || "0"),
@@ -188,7 +188,7 @@ export default function ProfilePage() {
   }, [user, passwordForm])
 
   // Profile form submission
-  const onProfileSubmit = async (data: UserProfileFormValues) => {
+  const onProfileSubmit = async (data: UserProfileSchemaType) => {
     if (Object.keys(profileForm.formState.errors).length > 0) {
       toast.error("Please fix the form errors before submitting")
       return
@@ -198,7 +198,7 @@ export default function ProfilePage() {
   }
 
   // Password form submission
-  const onPasswordSubmit = async (data: ResetPasswordFormValues) => {
+  const onPasswordSubmit = async (data: ResetPasswordSchemaType) => {
     if (Object.keys(passwordForm.formState.errors).length > 0) {
       toast.error("Please fix the password form errors before submitting")
       return

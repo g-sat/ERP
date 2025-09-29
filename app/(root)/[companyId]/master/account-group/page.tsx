@@ -3,7 +3,7 @@
 import { useCallback, useState } from "react"
 import { IAccountGroup, IAccountGroupFilter } from "@/interfaces/accountgroup"
 import { ApiResponse } from "@/interfaces/auth"
-import { AccountGroupFormValues } from "@/schemas/accountgroup"
+import { AccountGroupSchemaType } from "@/schemas/accountgroup"
 import { usePermissionStore } from "@/stores/permission-store"
 import { useQueryClient } from "@tanstack/react-query"
 
@@ -69,8 +69,8 @@ export default function AccountGroupPage() {
     }
 
   // Define mutations for CRUD operations
-  const saveMutation = usePersist<AccountGroupFormValues>(`${AccountGroup.add}`)
-  const updateMutation = usePersist<AccountGroupFormValues>(
+  const saveMutation = usePersist<AccountGroupSchemaType>(`${AccountGroup.add}`)
+  const updateMutation = usePersist<AccountGroupSchemaType>(
     `${AccountGroup.add}`
   )
   const deleteMutation = useDelete(`${AccountGroup.delete}`)
@@ -103,7 +103,7 @@ export default function AccountGroupPage() {
   // State for save confirmation
   const [saveConfirmation, setSaveConfirmation] = useState<{
     isOpen: boolean
-    data: AccountGroupFormValues | null
+    data: AccountGroupSchemaType | null
   }>({
     isOpen: false,
     data: null,
@@ -145,7 +145,7 @@ export default function AccountGroupPage() {
   }
 
   // Handler for form submission (create or edit) - shows confirmation first
-  const handleFormSubmit = (data: AccountGroupFormValues) => {
+  const handleFormSubmit = (data: AccountGroupSchemaType) => {
     setSaveConfirmation({
       isOpen: true,
       data: data,
@@ -153,7 +153,7 @@ export default function AccountGroupPage() {
   }
 
   // Handler for confirmed form submission
-  const handleConfirmedFormSubmit = async (data: AccountGroupFormValues) => {
+  const handleConfirmedFormSubmit = async (data: AccountGroupSchemaType) => {
     try {
       if (modalMode === "create") {
         const response = await saveMutation.mutateAsync(data)

@@ -4,7 +4,7 @@ import { useCallback, useState } from "react"
 import { useParams } from "next/navigation"
 import { ApiResponse } from "@/interfaces/auth"
 import { ICharge, IChargeFilter } from "@/interfaces/charge"
-import { ChargeFormValues } from "@/schemas/charge"
+import { ChargeSchemaType } from "@/schemas/charge"
 import { usePermissionStore } from "@/stores/permission-store"
 import { useQueryClient } from "@tanstack/react-query"
 
@@ -69,8 +69,8 @@ export default function ChargePage() {
       data: [],
     }
 
-  const saveMutation = usePersist<ChargeFormValues>(`${Charge.add}`)
-  const updateMutation = usePersist<ChargeFormValues>(`${Charge.add}`)
+  const saveMutation = usePersist<ChargeSchemaType>(`${Charge.add}`)
+  const updateMutation = usePersist<ChargeSchemaType>(`${Charge.add}`)
   const deleteMutation = useDelete(`${Charge.delete}`)
 
   const [selectedCharge, setSelectedCharge] = useState<ICharge | null>(null)
@@ -128,14 +128,14 @@ export default function ChargePage() {
   // State for save confirmation
   const [saveConfirmation, setSaveConfirmation] = useState<{
     isOpen: boolean
-    data: ChargeFormValues | null
+    data: ChargeSchemaType | null
   }>({
     isOpen: false,
     data: null,
   })
 
   // Handler for form submission (create or edit) - shows confirmation first
-  const handleFormSubmit = (data: ChargeFormValues) => {
+  const handleFormSubmit = (data: ChargeSchemaType) => {
     setSaveConfirmation({
       isOpen: true,
       data: data,
@@ -143,7 +143,7 @@ export default function ChargePage() {
   }
 
   // Handler for confirmed form submission
-  const handleConfirmedFormSubmit = async (data: ChargeFormValues) => {
+  const handleConfirmedFormSubmit = async (data: ChargeSchemaType) => {
     try {
       if (modalMode === "create") {
         const response = await saveMutation.mutateAsync(data)
@@ -213,7 +213,7 @@ export default function ChargePage() {
         console.log("Processed chargeData:", chargeData)
 
         if (chargeData) {
-          const validChargeData: ChargeFormValues = {
+          const validChargeData: ChargeSchemaType = {
             chargeId: chargeData.chargeId,
             chargeCode: chargeData.chargeCode,
             chargeName: chargeData.chargeName,

@@ -20,7 +20,7 @@ export const categorySchema = z.object({
   isOwn: z.boolean().default(true),
 })
 
-export type CategoryFormValues = z.infer<typeof categorySchema>
+export type CategorySchemaType = z.infer<typeof categorySchema>
 
 export const categoryFiltersSchema = z.object({
   isActive: z.boolean().optional(),

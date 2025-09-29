@@ -20,7 +20,7 @@ export const voyageSchema = z.object({
     .default(""),
 })
 
-export type VoyageFormValues = z.infer<typeof voyageSchema>
+export type VoyageSchemaType = z.infer<typeof voyageSchema>
 
 export const voyageFiltersSchema = z.object({
   isActive: z.boolean().optional(),

@@ -47,7 +47,7 @@ export const supplierSchema = z.object({
     .default(""),
   isActive: z.boolean().default(true),
 })
-export type SupplierFormValues = z.infer<typeof supplierSchema>
+export type SupplierSchemaType = z.infer<typeof supplierSchema>
 
 export const supplierContactSchema = z.object({
   contactId: z.number(),
@@ -96,7 +96,7 @@ export const supplierContactSchema = z.object({
   isSales: z.boolean().optional().default(false),
   isActive: z.boolean().default(true),
 })
-export type SupplierContactFormValues = z.infer<typeof supplierContactSchema>
+export type SupplierContactSchemaType = z.infer<typeof supplierContactSchema>
 
 export const supplierAddressSchema = z.object({
   supplierId: z.number(),
@@ -148,4 +148,4 @@ export const supplierAddressSchema = z.object({
   isSalesAdd: z.boolean().optional().default(false),
   isActive: z.boolean().default(true),
 })
-export type SupplierAddressFormValues = z.infer<typeof supplierAddressSchema>
+export type SupplierAddressSchemaType = z.infer<typeof supplierAddressSchema>

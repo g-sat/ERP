@@ -3,7 +3,7 @@
 import { useEffect } from "react"
 import { IServiceTypeCategory } from "@/interfaces/servicetype"
 import {
-  ServiceTypeCategoryFormValues,
+  ServiceTypeCategorySchemaType,
   serviceTypeCategorySchema,
 } from "@/schemas/servicetype"
 import { useAuthStore } from "@/stores/auth-store"
@@ -25,7 +25,7 @@ import CustomTextarea from "@/components/custom/custom-textarea"
 
 interface ServiceTypeCategoryFormProps {
   initialData?: IServiceTypeCategory
-  submitAction: (data: ServiceTypeCategoryFormValues) => Promise<void>
+  submitAction: (data: ServiceTypeCategorySchemaType) => Promise<void>
   onCancel: () => void
   isSubmitting: boolean
   isReadOnly?: boolean
@@ -50,7 +50,7 @@ export function ServiceTypeCategoryForm({
     remarks: "",
   }
 
-  const form = useForm<ServiceTypeCategoryFormValues>({
+  const form = useForm<ServiceTypeCategorySchemaType>({
     resolver: zodResolver(serviceTypeCategorySchema),
     defaultValues: initialData
       ? {
@@ -82,7 +82,7 @@ export function ServiceTypeCategoryForm({
     )
   }, [initialData, form])
 
-  const onSubmit = async (data: ServiceTypeCategoryFormValues) => {
+  const onSubmit = async (data: ServiceTypeCategorySchemaType) => {
     await submitAction(data)
   }
 

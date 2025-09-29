@@ -63,4 +63,4 @@ export const tariffSchema = z
     }
   )
 
-export type TariffFormValues = z.infer<typeof tariffSchema>
+export type TariffSchemaType = z.infer<typeof tariffSchema>

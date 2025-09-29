@@ -23,6 +23,6 @@ export const coaCategory1Schema = baseCoaCategorySchema.extend({})
 export const coaCategory2Schema = baseCoaCategorySchema.extend({})
 export const coaCategory3Schema = baseCoaCategorySchema.extend({})
 
-export type CoaCategory1FormValues = z.infer<typeof coaCategory1Schema>
-export type CoaCategory2FormValues = z.infer<typeof coaCategory2Schema>
-export type CoaCategory3FormValues = z.infer<typeof coaCategory3Schema>
+export type CoaCategory1SchemaType = z.infer<typeof coaCategory1Schema>
+export type CoaCategory2SchemaType = z.infer<typeof coaCategory2Schema>
+export type CoaCategory3SchemaType = z.infer<typeof coaCategory3Schema>

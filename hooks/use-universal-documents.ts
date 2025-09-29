@@ -1,8 +1,8 @@
 import { ApiResponse } from "@/interfaces/auth"
 import { IUniversalDocumentHd } from "@/interfaces/universal-documents"
 import {
-  UniversalDocumentDtFormValues,
-  UniversalDocumentHdFormValues,
+  UniversalDocumentDtSchemaType,
+  UniversalDocumentHdSchemaType,
 } from "@/schemas/universal-documents"
 
 import { UniversalDocuments } from "@/lib/api-routes"
@@ -61,7 +61,7 @@ export function useGetExpiredDocuments() {
 
 // Hook for creating/updating universal document
 export function usePersistUniversalDocument() {
-  return usePersist<UniversalDocumentHdFormValues>(UniversalDocuments.add)
+  return usePersist<UniversalDocumentHdSchemaType>(UniversalDocuments.add)
 }
 
 // Hook for deleting universal document
@@ -71,7 +71,7 @@ export function useDeleteUniversalDocument() {
 
 // Hook for saving document details
 export function usePersistDocumentDetails() {
-  return usePersist<UniversalDocumentDtFormValues>(
+  return usePersist<UniversalDocumentDtSchemaType>(
     UniversalDocuments.addDetails
   )
 }

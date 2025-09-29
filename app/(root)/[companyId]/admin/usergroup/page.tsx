@@ -3,7 +3,7 @@
 import { useCallback, useState } from "react"
 import { IUserGroup, IUserGroupFilter } from "@/interfaces/admin"
 import { ApiResponse } from "@/interfaces/auth"
-import { UserGroupFormValues } from "@/schemas/admin"
+import { UserGroupSchemaType } from "@/schemas/admin"
 import { usePermissionStore } from "@/stores/permission-store"
 import { useQueryClient } from "@tanstack/react-query"
 
@@ -78,7 +78,7 @@ export default function AdminUserGroupsPage() {
   // State for save confirmation
   const [saveConfirmation, setSaveConfirmation] = useState<{
     isOpen: boolean
-    data: UserGroupFormValues | null
+    data: UserGroupSchemaType | null
   }>({
     isOpen: false,
     data: null,
@@ -141,7 +141,7 @@ export default function AdminUserGroupsPage() {
     }
   }
 
-  const handleUserGroupFormSubmit = async (data: UserGroupFormValues) => {
+  const handleUserGroupFormSubmit = async (data: UserGroupSchemaType) => {
     try {
       if (modalMode === "create") {
         const response = await saveGroupMutation.mutateAsync(data)
@@ -162,14 +162,14 @@ export default function AdminUserGroupsPage() {
     }
   }
 
-  const handleSaveConfirmation = (data: UserGroupFormValues) => {
+  const handleSaveConfirmation = (data: UserGroupSchemaType) => {
     setSaveConfirmation({
       isOpen: true,
       data,
     })
   }
 
-  const handleConfirmedFormSubmit = async (data: UserGroupFormValues) => {
+  const handleConfirmedFormSubmit = async (data: UserGroupSchemaType) => {
     try {
       if (modalMode === "create") {
         const response = await saveGroupMutation.mutateAsync(data)

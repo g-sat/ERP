@@ -8,7 +8,7 @@ import {
   IJobOrderHd,
   ILaunchService,
 } from "@/interfaces/checklist"
-import { LaunchServiceFormValues } from "@/schemas/checklist"
+import { LaunchServiceSchemaType } from "@/schemas/checklist"
 import { useQueryClient } from "@tanstack/react-query"
 
 import { getData } from "@/lib/api-client"
@@ -118,10 +118,10 @@ export function LaunchServicesTab({
   }
 
   // Mutations
-  const saveMutation = usePersist<LaunchServiceFormValues>(
+  const saveMutation = usePersist<LaunchServiceSchemaType>(
     `${JobOrder_LaunchServices.add}`
   )
-  const updateMutation = usePersist<LaunchServiceFormValues>(
+  const updateMutation = usePersist<LaunchServiceSchemaType>(
     `${JobOrder_LaunchServices.add}`
   )
   const deleteMutation = useDelete(`${JobOrder_LaunchServices.delete}`)
@@ -225,7 +225,7 @@ export function LaunchServicesTab({
   )
 
   const handleSubmit = useCallback(
-    async (formData: LaunchServiceFormValues) => {
+    async (formData: LaunchServiceSchemaType) => {
       try {
         const submitData = { ...formData, ...jobDataProps }
 
@@ -524,7 +524,7 @@ export function LaunchServicesTab({
         operationType={saveConfirmation.operationType}
         onConfirm={() => {
           if (saveConfirmation.formData) {
-            handleSubmit(saveConfirmation.formData as LaunchServiceFormValues)
+            handleSubmit(saveConfirmation.formData as LaunchServiceSchemaType)
           }
         }}
         onCancel={() =>

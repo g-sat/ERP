@@ -24,7 +24,7 @@ import {
   ICustomerLookup,
 } from "@/interfaces/lookup"
 import { IVisibleFields } from "@/interfaces/setting"
-import { ArInvoiceDtFormValues, ArInvoiceHdFormValues } from "@/schemas/invoice"
+import { ArInvoiceDtSchemaType, ArInvoiceHdSchemaType } from "@/schemas/invoice"
 import { useAuthStore } from "@/stores/auth-store"
 import { FormProvider, UseFormReturn } from "react-hook-form"
 
@@ -38,7 +38,7 @@ import CustomNumberInput from "@/components/custom/custom-number-input"
 import CustomTextarea from "@/components/custom/custom-textarea"
 
 interface InvoiceFormProps {
-  form: UseFormReturn<ArInvoiceHdFormValues>
+  form: UseFormReturn<ArInvoiceHdSchemaType>
   onSuccess: (action: string) => Promise<void>
   isEdit: boolean
   visible: IVisibleFields
@@ -201,7 +201,7 @@ export default function InvoiceForm({
         // Update form with recalculated details
         form.setValue(
           "data_details",
-          updatedDetails as unknown as ArInvoiceDtFormValues[]
+          updatedDetails as unknown as ArInvoiceDtSchemaType[]
         )
 
         // Calculate and update local amounts
@@ -259,7 +259,7 @@ export default function InvoiceForm({
       // Update form with recalculated details
       form.setValue(
         "data_details",
-        updatedDetails as unknown as ArInvoiceDtFormValues[]
+        updatedDetails as unknown as ArInvoiceDtSchemaType[]
       )
 
       // Calculate and update local amounts
@@ -318,7 +318,7 @@ export default function InvoiceForm({
       // Update form with recalculated details
       form.setValue(
         "data_details",
-        updatedDetails as unknown as ArInvoiceDtFormValues[]
+        updatedDetails as unknown as ArInvoiceDtSchemaType[]
       )
 
       // Recalculate totals

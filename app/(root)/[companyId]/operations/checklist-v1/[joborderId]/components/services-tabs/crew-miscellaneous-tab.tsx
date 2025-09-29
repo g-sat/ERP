@@ -8,7 +8,7 @@ import {
   IDebitNoteHd,
   IJobOrderHd,
 } from "@/interfaces/checklist"
-import { CrewMiscellaneousFormValues } from "@/schemas/checklist"
+import { CrewMiscellaneousSchemaType } from "@/schemas/checklist"
 import { useQueryClient } from "@tanstack/react-query"
 
 import { getData } from "@/lib/api-client"
@@ -124,10 +124,10 @@ export function CrewMiscellaneousTab({
   }
 
   // Mutations
-  const saveMutation = usePersist<CrewMiscellaneousFormValues>(
+  const saveMutation = usePersist<CrewMiscellaneousSchemaType>(
     `${JobOrder_CrewMiscellaneous.add}`
   )
-  const updateMutation = usePersist<CrewMiscellaneousFormValues>(
+  const updateMutation = usePersist<CrewMiscellaneousSchemaType>(
     `${JobOrder_CrewMiscellaneous.add}`
   )
   const deleteMutation = useDelete(`${JobOrder_CrewMiscellaneous.delete}`)

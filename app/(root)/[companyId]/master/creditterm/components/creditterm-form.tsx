@@ -2,7 +2,7 @@
 
 import { useEffect } from "react"
 import { ICreditTerm } from "@/interfaces/creditterm"
-import { CreditTermFormValues, credittermSchema } from "@/schemas/creditterm"
+import { CreditTermSchemaType, credittermSchema } from "@/schemas/creditterm"
 import { useAuthStore } from "@/stores/auth-store"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { format } from "date-fns"
@@ -22,7 +22,7 @@ import CustomTextarea from "@/components/custom/custom-textarea"
 
 interface CreditTermFormProps {
   initialData?: ICreditTerm | null
-  submitAction: (data: CreditTermFormValues) => void
+  submitAction: (data: CreditTermSchemaType) => void
   onCancel?: () => void
   isSubmitting?: boolean
   isReadOnly?: boolean
@@ -49,7 +49,7 @@ export function CreditTermForm({
     remarks: "",
   }
 
-  const form = useForm<CreditTermFormValues>({
+  const form = useForm<CreditTermSchemaType>({
     resolver: zodResolver(credittermSchema),
     defaultValues: initialData
       ? {
@@ -88,7 +88,7 @@ export function CreditTermForm({
     onCodeBlur?.(code)
   }
 
-  const onSubmit = (data: CreditTermFormValues) => {
+  const onSubmit = (data: CreditTermSchemaType) => {
     submitAction(data)
   }
 

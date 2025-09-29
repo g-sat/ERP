@@ -1,7 +1,7 @@
 "use client"
 
 import { IEmployer } from "@/interfaces/employer"
-import { EmployerFormValues, employerschema } from "@/schemas/employer"
+import { EmployerSchemaType, employerschema } from "@/schemas/employer"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 
@@ -12,11 +12,11 @@ import CustomTextarea from "@/components/custom/custom-textarea"
 
 interface EmployerFormProps {
   employer?: IEmployer
-  onSave: (data: EmployerFormValues) => void
+  onSave: (data: EmployerSchemaType) => void
 }
 
 export function EmployerForm({ employer, onSave }: EmployerFormProps) {
-  const form = useForm<EmployerFormValues>({
+  const form = useForm<EmployerSchemaType>({
     resolver: zodResolver(employerschema),
     defaultValues: {
       employerId: employer?.employerId || 0,
@@ -34,7 +34,7 @@ export function EmployerForm({ employer, onSave }: EmployerFormProps) {
     },
   })
 
-  const onSubmit = (data: EmployerFormValues) => {
+  const onSubmit = (data: EmployerSchemaType) => {
     onSave(data)
   }
 

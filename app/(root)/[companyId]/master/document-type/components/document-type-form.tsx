@@ -3,7 +3,7 @@
 import { useEffect } from "react"
 import { IDocumentType } from "@/interfaces/documenttype"
 import {
-  DocumentTypeFormValues,
+  DocumentTypeSchemaType,
   documentTypeSchema,
 } from "@/schemas/documenttype"
 import { useAuthStore } from "@/stores/auth-store"
@@ -25,7 +25,7 @@ import CustomTextarea from "@/components/custom/custom-textarea"
 
 interface DocumentTypeFormProps {
   initialData?: IDocumentType
-  submitAction: (data: DocumentTypeFormValues) => void
+  submitAction: (data: DocumentTypeSchemaType) => void
   onCancel?: () => void
   isSubmitting?: boolean
   isReadOnly?: boolean
@@ -51,7 +51,7 @@ export function DocumentTypeForm({
     remarks: "",
   }
 
-  const form = useForm<DocumentTypeFormValues>({
+  const form = useForm<DocumentTypeSchemaType>({
     resolver: zodResolver(documentTypeSchema),
     defaultValues: initialData
       ? {
@@ -88,7 +88,7 @@ export function DocumentTypeForm({
     onCodeBlur?.(code)
   }
 
-  const onSubmit = (data: DocumentTypeFormValues) => {
+  const onSubmit = (data: DocumentTypeSchemaType) => {
     submitAction(data)
   }
 

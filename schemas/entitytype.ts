@@ -12,7 +12,7 @@ export const entityTypeSchema = z.object({
     .max(150, { message: "entity type name cannot exceed 150 characters" }),
 })
 
-export type EntityTypeFormValues = z.infer<typeof entityTypeSchema>
+export type EntityTypeSchemaType = z.infer<typeof entityTypeSchema>
 
 export const entityTypeFiltersSchema = z.object({
   isActive: z.boolean().optional(),

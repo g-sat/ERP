@@ -2,7 +2,7 @@
 
 import { useEffect } from "react"
 import { ITaxDt } from "@/interfaces/tax"
-import { TaxDtFormValues, taxDtSchema } from "@/schemas/tax"
+import { TaxDtSchemaType, taxDtSchema } from "@/schemas/tax"
 import { useAuthStore } from "@/stores/auth-store"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { format } from "date-fns"
@@ -23,7 +23,7 @@ import CustomNumberInput from "@/components/custom/custom-number-input"
 
 interface TaxDtFormProps {
   initialData?: ITaxDt | null
-  submitAction: (data: TaxDtFormValues) => void
+  submitAction: (data: TaxDtSchemaType) => void
   onCancel: () => void
   isSubmitting: boolean
   isReadOnly?: boolean
@@ -48,7 +48,7 @@ export function TaxDtForm({
     validFrom: new Date(),
   }
 
-  const form = useForm<TaxDtFormValues>({
+  const form = useForm<TaxDtSchemaType>({
     resolver: zodResolver(taxDtSchema),
     defaultValues: initialData
       ? {
@@ -86,7 +86,7 @@ export function TaxDtForm({
     )
   }, [initialData, form])
 
-  const onSubmit = (data: TaxDtFormValues) => {
+  const onSubmit = (data: TaxDtSchemaType) => {
     submitAction(data)
   }
 

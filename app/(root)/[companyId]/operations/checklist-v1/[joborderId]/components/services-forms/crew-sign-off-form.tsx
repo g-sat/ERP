@@ -2,7 +2,7 @@
 
 import { useEffect } from "react"
 import { ICrewSignOff, IJobOrderHd } from "@/interfaces/checklist"
-import { CrewSignOffFormValues, CrewSignOffSchema } from "@/schemas/checklist"
+import { CrewSignOffSchema, CrewSignOffSchemaType } from "@/schemas/checklist"
 import { useAuthStore } from "@/stores/auth-store"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { format } from "date-fns"
@@ -13,7 +13,6 @@ import { useChartofAccountLookup } from "@/hooks/use-lookup"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Form } from "@/components/ui/form"
-import { FormLoadingSpinner } from "@/components/skeleton/loading-spinner"
 import ChargeAutocomplete from "@/components/autocomplete/autocomplete-charge"
 import ChartOfAccountAutocomplete from "@/components/autocomplete/autocomplete-chartofaccount"
 import RankAutocomplete from "@/components/autocomplete/autocomplete-rank"
@@ -26,12 +25,13 @@ import CustomAccordion, {
 } from "@/components/custom/custom-accordion"
 import CustomInput from "@/components/custom/custom-input"
 import CustomTextarea from "@/components/custom/custom-textarea"
+import { FormLoadingSpinner } from "@/components/skeleton/loading-spinner"
 
 interface CrewSignOffFormProps {
   jobData: IJobOrderHd
   initialData?: ICrewSignOff
   taskDefaults?: Record<string, number> // Add taskDefaults prop
-  submitAction: (data: CrewSignOffFormValues) => void
+  submitAction: (data: CrewSignOffSchemaType) => void
   onCancel?: () => void
   isSubmitting?: boolean
   isConfirmed?: boolean
@@ -55,7 +55,7 @@ export function CrewSignOffForm({
   )
 
   console.log("initialData :", initialData)
-  const form = useForm<CrewSignOffFormValues>({
+  const form = useForm<CrewSignOffSchemaType>({
     resolver: zodResolver(CrewSignOffSchema),
     defaultValues: {
       crewSignOffId: initialData?.crewSignOffId ?? 0,
@@ -126,7 +126,7 @@ export function CrewSignOffForm({
       </div>
     )
   }
-  const onSubmit = (data: CrewSignOffFormValues) => {
+  const onSubmit = (data: CrewSignOffSchemaType) => {
     submitAction(data)
   }
 

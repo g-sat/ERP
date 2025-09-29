@@ -8,7 +8,7 @@ import {
   IJobOrderHd,
   ITechnicianSurveyor,
 } from "@/interfaces/checklist"
-import { TechnicianSurveyorFormValues } from "@/schemas/checklist"
+import { TechnicianSurveyorSchemaType } from "@/schemas/checklist"
 import { useQueryClient } from "@tanstack/react-query"
 
 import { getData } from "@/lib/api-client"
@@ -119,10 +119,10 @@ export function TechniciansSurveyorsTab({
   }
 
   // Mutations
-  const saveMutation = usePersist<TechnicianSurveyorFormValues>(
+  const saveMutation = usePersist<TechnicianSurveyorSchemaType>(
     `${JobOrder_TechnicianSurveyor.add}`
   )
-  const updateMutation = usePersist<TechnicianSurveyorFormValues>(
+  const updateMutation = usePersist<TechnicianSurveyorSchemaType>(
     `${JobOrder_TechnicianSurveyor.add}`
   )
   const deleteMutation = useDelete(`${JobOrder_TechnicianSurveyor.delete}`)

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { ICustomerAddress, ICustomerContact } from "@/interfaces/customer"
-import { ArInvoiceHdFormValues } from "@/schemas/invoice"
+import { ArInvoiceHdSchemaType } from "@/schemas/invoice"
 import { UseFormReturn } from "react-hook-form"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -17,7 +17,7 @@ import CustomTextarea from "@/components/custom/custom-textarea"
 import DocumentUpload from "./other/document-upload"
 
 interface OtherProps {
-  form: UseFormReturn<ArInvoiceHdFormValues>
+  form: UseFormReturn<ArInvoiceHdSchemaType>
 }
 
 export default function Other({ form }: OtherProps) {

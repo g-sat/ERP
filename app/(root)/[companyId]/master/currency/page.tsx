@@ -9,9 +9,9 @@ import {
   ICurrencyLocalDt,
 } from "@/interfaces/currency"
 import {
-  CurrencyDtFormValues,
-  CurrencyFormValues,
-  CurrencyLocalDtFormValues,
+  CurrencyDtSchemaType,
+  CurrencyLocalDtSchemaType,
+  CurrencySchemaType,
 } from "@/schemas/currency"
 import { usePermissionStore } from "@/stores/permission-store"
 import { useQueryClient } from "@tanstack/react-query"
@@ -130,18 +130,18 @@ export default function CurrencyPage() {
     }
 
   // Mutations
-  const saveMutation = usePersist<CurrencyFormValues>(`${Currency.add}`)
-  const updateMutation = usePersist<CurrencyFormValues>(`${Currency.add}`)
+  const saveMutation = usePersist<CurrencySchemaType>(`${Currency.add}`)
+  const updateMutation = usePersist<CurrencySchemaType>(`${Currency.add}`)
   const deleteMutation = useDelete(`${Currency.delete}`)
 
-  const saveDtMutation = usePersist<CurrencyDtFormValues>(`${Currency.addDt}`)
-  const updateDtMutation = usePersist<CurrencyDtFormValues>(`${Currency.addDt}`)
+  const saveDtMutation = usePersist<CurrencyDtSchemaType>(`${Currency.addDt}`)
+  const updateDtMutation = usePersist<CurrencyDtSchemaType>(`${Currency.addDt}`)
   const deleteDtMutation = useDelete(`${Currency.deleteDt}`)
 
-  const saveLocalDtMutation = usePersist<CurrencyLocalDtFormValues>(
+  const saveLocalDtMutation = usePersist<CurrencyLocalDtSchemaType>(
     `${Currency.addLocalDt}`
   )
-  const updateLocalDtMutation = usePersist<CurrencyLocalDtFormValues>(
+  const updateLocalDtMutation = usePersist<CurrencyLocalDtSchemaType>(
     `${Currency.addLocalDt}`
   )
   const deleteLocalDtMutation = useDelete(`${Currency.deleteLocalDt}`)
@@ -288,9 +288,9 @@ export default function CurrencyPage() {
   const [saveConfirmation, setSaveConfirmation] = useState<{
     isOpen: boolean
     data:
-      | CurrencyFormValues
-      | CurrencyDtFormValues
-      | CurrencyLocalDtFormValues
+      | CurrencySchemaType
+      | CurrencyDtSchemaType
+      | CurrencyLocalDtSchemaType
       | null
     type: "currency" | "currencydt" | "currencylocaldt"
   }>({
@@ -300,7 +300,7 @@ export default function CurrencyPage() {
   })
 
   // Form submission handlers
-  const handleCurrencySubmit = async (data: CurrencyFormValues) => {
+  const handleCurrencySubmit = async (data: CurrencySchemaType) => {
     try {
       if (modalMode === "create") {
         const response = (await saveMutation.mutateAsync(
@@ -322,7 +322,7 @@ export default function CurrencyPage() {
     }
   }
 
-  const handleCurrencyDtSubmit = async (data: CurrencyDtFormValues) => {
+  const handleCurrencyDtSubmit = async (data: CurrencyDtSchemaType) => {
     try {
       if (modalMode === "create") {
         const response = (await saveDtMutation.mutateAsync(
@@ -345,7 +345,7 @@ export default function CurrencyPage() {
   }
 
   const handleCurrencyLocalDtSubmit = async (
-    data: CurrencyLocalDtFormValues
+    data: CurrencyLocalDtSchemaType
   ) => {
     try {
       if (modalMode === "create") {
@@ -370,7 +370,7 @@ export default function CurrencyPage() {
 
   // Main form submit handler - shows confirmation first
   const handleFormSubmit = (
-    data: CurrencyFormValues | CurrencyDtFormValues | CurrencyLocalDtFormValues
+    data: CurrencySchemaType | CurrencyDtSchemaType | CurrencyLocalDtSchemaType
   ) => {
     let type: "currency" | "currencydt" | "currencylocaldt" = "currency"
     if (isDtModalOpen) type = "currencydt"
@@ -385,17 +385,17 @@ export default function CurrencyPage() {
 
   // Handler for confirmed form submission
   const handleConfirmedFormSubmit = async (
-    data: CurrencyFormValues | CurrencyDtFormValues | CurrencyLocalDtFormValues
+    data: CurrencySchemaType | CurrencyDtSchemaType | CurrencyLocalDtSchemaType
   ) => {
     try {
       if (saveConfirmation.type === "currencydt") {
-        await handleCurrencyDtSubmit(data as CurrencyDtFormValues)
+        await handleCurrencyDtSubmit(data as CurrencyDtSchemaType)
         setIsDtModalOpen(false)
       } else if (saveConfirmation.type === "currencylocaldt") {
-        await handleCurrencyLocalDtSubmit(data as CurrencyLocalDtFormValues)
+        await handleCurrencyLocalDtSubmit(data as CurrencyLocalDtSchemaType)
         setIsLocalDtModalOpen(false)
       } else {
-        await handleCurrencySubmit(data as CurrencyFormValues)
+        await handleCurrencySubmit(data as CurrencySchemaType)
         setIsModalOpen(false)
       }
     } catch (error) {
@@ -910,13 +910,13 @@ export default function CurrencyPage() {
         }
         itemName={
           saveConfirmation.type === "currency"
-            ? (saveConfirmation.data as CurrencyFormValues)?.currencyName || ""
+            ? (saveConfirmation.data as CurrencySchemaType)?.currencyName || ""
             : saveConfirmation.type === "currencydt"
               ? (
-                  saveConfirmation.data as CurrencyDtFormValues
+                  saveConfirmation.data as CurrencyDtSchemaType
                 )?.currencyId?.toString() || ""
               : (
-                  saveConfirmation.data as CurrencyLocalDtFormValues
+                  saveConfirmation.data as CurrencyLocalDtSchemaType
                 )?.currencyId?.toString() || ""
         }
         operationType={modalMode === "create" ? "create" : "update"}

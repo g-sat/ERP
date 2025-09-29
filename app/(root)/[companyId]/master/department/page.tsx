@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react"
 import { ApiResponse } from "@/interfaces/auth"
 import { IDepartment, IDepartmentFilter } from "@/interfaces/department"
-import { DepartmentFormValues } from "@/schemas/department"
+import { DepartmentSchemaType } from "@/schemas/department"
 import { usePermissionStore } from "@/stores/permission-store"
 import { useQueryClient } from "@tanstack/react-query"
 
@@ -72,8 +72,8 @@ export default function DepartmentPage() {
     }
   }, [filters, departmentsData?.length, refetch])
 
-  const saveMutation = usePersist<DepartmentFormValues>(`${Department.add}`)
-  const updateMutation = usePersist<DepartmentFormValues>(`${Department.add}`)
+  const saveMutation = usePersist<DepartmentSchemaType>(`${Department.add}`)
+  const updateMutation = usePersist<DepartmentSchemaType>(`${Department.add}`)
   const deleteMutation = useDelete(`${Department.delete}`)
 
   const [selectedDepartment, setSelectedDepartment] =
@@ -134,14 +134,14 @@ export default function DepartmentPage() {
   // State for save confirmation
   const [saveConfirmation, setSaveConfirmation] = useState<{
     isOpen: boolean
-    data: DepartmentFormValues | null
+    data: DepartmentSchemaType | null
   }>({
     isOpen: false,
     data: null,
   })
 
   // Handler for form submission (create or edit) - shows confirmation first
-  const handleFormSubmit = (data: DepartmentFormValues) => {
+  const handleFormSubmit = (data: DepartmentSchemaType) => {
     setSaveConfirmation({
       isOpen: true,
       data: data,
@@ -149,7 +149,7 @@ export default function DepartmentPage() {
   }
 
   // Handler for confirmed form submission
-  const handleConfirmedFormSubmit = async (data: DepartmentFormValues) => {
+  const handleConfirmedFormSubmit = async (data: DepartmentSchemaType) => {
     try {
       if (modalMode === "create") {
         const response = await saveMutation.mutateAsync(data)

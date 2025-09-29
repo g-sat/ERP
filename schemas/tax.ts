@@ -20,7 +20,7 @@ export const taxSchema = z.object({
     .default(""),
 })
 
-export type TaxFormValues = z.infer<typeof taxSchema>
+export type TaxSchemaType = z.infer<typeof taxSchema>
 
 export const taxFiltersSchema = z.object({
   isActive: z.boolean().optional(),
@@ -47,7 +47,7 @@ export const taxDtSchema = z.object({
   ),
 })
 
-export type TaxDtFormValues = z.infer<typeof taxDtSchema>
+export type TaxDtSchemaType = z.infer<typeof taxDtSchema>
 
 export const taxDtFiltersSchema = z.object({
   search: z.string().optional(),
@@ -75,7 +75,7 @@ export const taxCategorySchema = z.object({
     .default(""),
 })
 
-export type TaxCategoryFormValues = z.infer<typeof taxCategorySchema>
+export type TaxCategorySchemaType = z.infer<typeof taxCategorySchema>
 
 export const taxCategoryFiltersSchema = z.object({
   search: z.string().optional(),

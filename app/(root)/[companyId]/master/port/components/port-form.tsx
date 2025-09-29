@@ -2,7 +2,7 @@
 
 import { useEffect } from "react"
 import { IPort } from "@/interfaces/port"
-import { PortFormValues, portSchema } from "@/schemas/port"
+import { PortSchemaType, portSchema } from "@/schemas/port"
 import { useAuthStore } from "@/stores/auth-store"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { format } from "date-fns"
@@ -31,7 +31,7 @@ const defaultValues = {
 }
 interface PortFormProps {
   initialData?: IPort | null
-  submitAction: (data: PortFormValues) => void
+  submitAction: (data: PortSchemaType) => void
   onCancel?: () => void
   isSubmitting?: boolean
   isReadOnly?: boolean
@@ -49,7 +49,7 @@ export function PortForm({
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
 
-  const form = useForm<PortFormValues>({
+  const form = useForm<PortSchemaType>({
     resolver: zodResolver(portSchema),
     defaultValues: initialData
       ? {
@@ -88,7 +88,7 @@ export function PortForm({
     onCodeBlur?.(code)
   }
 
-  const onSubmit = (data: PortFormValues) => {
+  const onSubmit = (data: PortSchemaType) => {
     submitAction(data)
   }
 

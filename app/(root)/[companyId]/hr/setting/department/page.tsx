@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { IDepartment } from "@/interfaces/department"
-import { DepartmentFormValues } from "@/schemas/department"
+import { DepartmentSchemaType } from "@/schemas/department"
 
 import { Department } from "@/lib/api-routes"
 import { useDelete, useGet, usePersist } from "@/hooks/use-common"
@@ -91,7 +91,7 @@ export default function DepartmentPage() {
     }
   }
 
-  const handleSave = (values: DepartmentFormValues) => {
+  const handleSave = (values: DepartmentSchemaType) => {
     const mutation = selectedDepartment ? updateMutation : createMutation
     mutation.mutate(values, {
       onSuccess: () => {

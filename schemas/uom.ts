@@ -19,7 +19,7 @@ export const uomSchema = z.object({
     .default(""),
 })
 
-export type UomFormValues = z.infer<typeof uomSchema>
+export type UomSchemaType = z.infer<typeof uomSchema>
 
 export const uomFiltersSchema = z.object({
   isActive: z.boolean().optional(),
@@ -35,7 +35,7 @@ export const uomDtSchema = z.object({
   uomFactor: z.number().min(0, { message: "Factor must be non-negative" }),
 })
 
-export type UomDtFormValues = z.infer<typeof uomDtSchema>
+export type UomDtSchemaType = z.infer<typeof uomDtSchema>
 
 export const uomDtFiltersSchema = z.object({
   search: z.string().optional(),
@@ -52,7 +52,7 @@ export const uomCategorySchema = z.object({
   isActive: z.boolean().default(true),
 })
 
-export type UomCategoryFormValues = z.infer<typeof uomCategorySchema>
+export type UomCategorySchemaType = z.infer<typeof uomCategorySchema>
 
 export const uomCategoryFiltersSchema = z.object({
   search: z.string().optional(),

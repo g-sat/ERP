@@ -23,7 +23,7 @@ export const accountGroupSchema = z.object({
     .optional(),
 })
 
-export type AccountGroupFormValues = z.infer<typeof accountGroupSchema>
+export type AccountGroupSchemaType = z.infer<typeof accountGroupSchema>
 
 export const accountGroupFiltersSchema = z.object({
   isActive: z.boolean().optional(),

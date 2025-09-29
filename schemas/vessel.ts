@@ -50,4 +50,4 @@ export const vesselSchema = z.object({
     .default(""),
 })
 
-export type VesselFormValues = z.infer<typeof vesselSchema>
+export type VesselSchemaType = z.infer<typeof vesselSchema>

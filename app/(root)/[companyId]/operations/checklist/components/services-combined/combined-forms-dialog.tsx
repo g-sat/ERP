@@ -49,7 +49,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import JobOrderCustomerAutocomplete from "@/components/autocomplete/autocomplete-joborder-customer"
 import { PageLoadingSpinner } from "@/components/skeleton/loading-spinner"
 
-interface TaskForwardFormValues extends Record<string, unknown> {
+interface TaskForwardSchemaType extends Record<string, unknown> {
   customerId: number
   jobOrderId: number
 }
@@ -116,7 +116,7 @@ export function CombinedFormsDialog({
   const [selectedJobOrder, setSelectedJobOrder] =
     useState<IJobOrderLookup | null>(null)
 
-  const form = useForm<TaskForwardFormValues>({
+  const form = useForm<TaskForwardSchemaType>({
     defaultValues: {
       customerId: 0,
       jobOrderId: 0,

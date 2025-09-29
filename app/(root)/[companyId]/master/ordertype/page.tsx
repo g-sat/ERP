@@ -9,8 +9,8 @@ import {
   IOrderTypeFilter,
 } from "@/interfaces/ordertype"
 import {
-  OrderTypeCategoryFormValues,
-  OrderTypeFormValues,
+  OrderTypeCategorySchemaType,
+  OrderTypeSchemaType,
 } from "@/schemas/ordertype"
 import { usePermissionStore } from "@/stores/permission-store"
 import { useQueryClient } from "@tanstack/react-query"
@@ -127,14 +127,14 @@ export default function OrderTypePage() {
     }
 
   // Mutations
-  const saveMutation = usePersist<OrderTypeFormValues>(`${OrderType.add}`)
-  const updateMutation = usePersist<OrderTypeFormValues>(`${OrderType.add}`)
+  const saveMutation = usePersist<OrderTypeSchemaType>(`${OrderType.add}`)
+  const updateMutation = usePersist<OrderTypeSchemaType>(`${OrderType.add}`)
   const deleteMutation = useDelete(`${OrderType.delete}`)
 
-  const saveCategoryMutation = usePersist<OrderTypeCategoryFormValues>(
+  const saveCategoryMutation = usePersist<OrderTypeCategorySchemaType>(
     `${OrderTypeCategory.add}`
   )
-  const updateCategoryMutation = usePersist<OrderTypeCategoryFormValues>(
+  const updateCategoryMutation = usePersist<OrderTypeCategorySchemaType>(
     `${OrderTypeCategory.add}`
   )
   const deleteCategoryMutation = useDelete(`${OrderTypeCategory.delete}`)
@@ -234,7 +234,7 @@ export default function OrderTypePage() {
   }
 
   // Specialized form handlers
-  const handleOrderTypeSubmit = async (data: OrderTypeFormValues) => {
+  const handleOrderTypeSubmit = async (data: OrderTypeSchemaType) => {
     try {
       if (modalMode === "create") {
         const response = (await saveMutation.mutateAsync(
@@ -257,7 +257,7 @@ export default function OrderTypePage() {
   }
 
   const handleOrderTypeCategorySubmit = async (
-    data: OrderTypeCategoryFormValues
+    data: OrderTypeCategorySchemaType
   ) => {
     try {
       if (modalMode === "create") {
@@ -283,7 +283,7 @@ export default function OrderTypePage() {
   // State for save confirmations
   const [saveConfirmation, setSaveConfirmation] = useState<{
     isOpen: boolean
-    data: OrderTypeFormValues | OrderTypeCategoryFormValues | null
+    data: OrderTypeSchemaType | OrderTypeCategorySchemaType | null
     type: "ordertype" | "ordertypecategory"
   }>({
     isOpen: false,
@@ -293,14 +293,14 @@ export default function OrderTypePage() {
 
   // Handler for confirmed form submission
   const handleConfirmedFormSubmit = async (
-    data: OrderTypeFormValues | OrderTypeCategoryFormValues
+    data: OrderTypeSchemaType | OrderTypeCategorySchemaType
   ) => {
     try {
       if (saveConfirmation.type === "ordertypecategory") {
-        await handleOrderTypeCategorySubmit(data as OrderTypeCategoryFormValues)
+        await handleOrderTypeCategorySubmit(data as OrderTypeCategorySchemaType)
         setIsCategoryModalOpen(false)
       } else {
-        await handleOrderTypeSubmit(data as OrderTypeFormValues)
+        await handleOrderTypeSubmit(data as OrderTypeSchemaType)
         setIsModalOpen(false)
       }
     } catch (error) {
@@ -700,9 +700,9 @@ export default function OrderTypePage() {
         }
         itemName={
           saveConfirmation.type === "ordertype"
-            ? (saveConfirmation.data as OrderTypeFormValues)?.orderTypeName ||
+            ? (saveConfirmation.data as OrderTypeSchemaType)?.orderTypeName ||
               ""
-            : (saveConfirmation.data as OrderTypeCategoryFormValues)
+            : (saveConfirmation.data as OrderTypeCategorySchemaType)
                 ?.orderTypeCategoryName || ""
         }
         operationType={modalMode === "create" ? "create" : "update"}

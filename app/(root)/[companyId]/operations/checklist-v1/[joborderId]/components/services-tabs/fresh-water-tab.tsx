@@ -8,7 +8,7 @@ import {
   IFreshWater,
   IJobOrderHd,
 } from "@/interfaces/checklist"
-import { FreshWaterFormValues } from "@/schemas/checklist"
+import { FreshWaterSchemaType } from "@/schemas/checklist"
 import { useQueryClient } from "@tanstack/react-query"
 
 import { getData } from "@/lib/api-client"
@@ -116,10 +116,10 @@ export function FreshWaterTab({
   }
 
   // Mutations
-  const saveMutation = usePersist<FreshWaterFormValues>(
+  const saveMutation = usePersist<FreshWaterSchemaType>(
     `${JobOrder_FreshWater.add}`
   )
-  const updateMutation = usePersist<FreshWaterFormValues>(
+  const updateMutation = usePersist<FreshWaterSchemaType>(
     `${JobOrder_FreshWater.add}`
   )
   const deleteMutation = useDelete(`${JobOrder_FreshWater.delete}`)

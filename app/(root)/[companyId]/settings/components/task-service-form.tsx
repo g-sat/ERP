@@ -6,7 +6,7 @@ import { IApiSuccessResponse } from "@/interfaces/auth"
 import { ITaskService } from "@/interfaces/task-service"
 import {
   ServiceFieldValues,
-  TaskServiceFormValues,
+  TaskServiceSchemaType,
   taskServiceFormSchema,
 } from "@/schemas/task-service"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -18,7 +18,6 @@ import { useTaskServiceGet, useTaskServiceSave } from "@/hooks/use-task-service"
 import { Button } from "@/components/ui/button"
 import { Form } from "@/components/ui/form"
 import { Skeleton } from "@/components/ui/skeleton"
-import { LockSkeleton } from "@/components/skeleton/lock-skeleton"
 import CarrierTypeAutocomplete from "@/components/autocomplete/autocomplete-carriertype"
 import ChargeAutocomplete from "@/components/autocomplete/autocomplete-charge"
 import ChartofAccountAutocomplete from "@/components/autocomplete/autocomplete-chartofaccount"
@@ -28,6 +27,7 @@ import StatusAutocomplete from "@/components/autocomplete/autocomplete-status"
 import UomAutocomplete from "@/components/autocomplete/autocomplete-uom"
 import VisaTypeAutocomplete from "@/components/autocomplete/autocomplete-visatype"
 import WorkLocationAutocomplete from "@/components/autocomplete/autocomplete-worklocation"
+import { LockSkeleton } from "@/components/skeleton/lock-skeleton"
 
 type TaskServiceResponse = IApiSuccessResponse<ITaskService[]>
 
@@ -71,7 +71,7 @@ export function TaskServiceForm() {
 
   const { mutate: saveTaskServiceSettings, isPending } = useTaskServiceSave()
 
-  const form = useForm<TaskServiceFormValues>({
+  const form = useForm<TaskServiceSchemaType>({
     resolver: zodResolver(taskServiceFormSchema),
     defaultValues: {
       services: DEFAULT_TASK_SERVICES.reduce(

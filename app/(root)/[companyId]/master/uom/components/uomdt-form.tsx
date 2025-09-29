@@ -2,7 +2,7 @@
 
 import { useEffect } from "react"
 import { IUomDt } from "@/interfaces/uom"
-import { UomDtFormValues, uomDtSchema } from "@/schemas/uom"
+import { UomDtSchemaType, uomDtSchema } from "@/schemas/uom"
 import { useAuthStore } from "@/stores/auth-store"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { format } from "date-fns"
@@ -20,11 +20,11 @@ import CustomAccordion, {
 } from "@/components/custom/custom-accordion"
 import CustomNumberInput from "@/components/custom/custom-number-input"
 
-type FormValues = z.infer<typeof uomDtSchema>
+type SchemaType = z.infer<typeof uomDtSchema>
 
 interface UomDtFormProps {
   initialData?: IUomDt
-  submitAction: (data: FormValues) => void
+  submitAction: (data: SchemaType) => void
   onCancel: () => void
   isSubmitting: boolean
   isReadOnly?: boolean
@@ -48,7 +48,7 @@ export function UomDtForm({
     uomFactor: 1,
   }
 
-  const form = useForm<FormValues>({
+  const form = useForm<SchemaType>({
     resolver: zodResolver(uomDtSchema),
     defaultValues: initialData
       ? {
@@ -75,7 +75,7 @@ export function UomDtForm({
     )
   }, [form, initialData])
 
-  const onSubmit = (data: UomDtFormValues) => {
+  const onSubmit = (data: UomDtSchemaType) => {
     submitAction(data)
   }
 

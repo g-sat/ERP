@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { IEmployer } from "@/interfaces/employer"
-import { EmployerFormValues } from "@/schemas/employer"
+import { EmployerSchemaType } from "@/schemas/employer"
 
 import { Employer } from "@/lib/api-routes"
 import { useDelete, useGet, usePersist } from "@/hooks/use-common"
@@ -89,7 +89,7 @@ export default function EmployerPage() {
     }
   }
 
-  const handleSave = (values: EmployerFormValues) => {
+  const handleSave = (values: EmployerSchemaType) => {
     const mutation = selectedEmployer ? updateMutation : createMutation
     mutation.mutate(values, {
       onSuccess: () => {

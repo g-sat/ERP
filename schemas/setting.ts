@@ -31,7 +31,7 @@ export const decimalFormSchema = z
   })
   .partial()
 
-export type DecimalFormValues = z.infer<typeof decimalFormSchema>
+export type DecimalSchemaType = z.infer<typeof decimalFormSchema>
 
 export const userSettingSchema = z
   .object({
@@ -46,7 +46,7 @@ export const userSettingSchema = z
   })
   .partial()
 
-export type UserSettingFormValues = z.infer<typeof userSettingSchema>
+export type UserSettingSchemaType = z.infer<typeof userSettingSchema>
 
 export const dynamicLookupFormSchema = z.object({
   isBarge: z.boolean(),
@@ -57,7 +57,7 @@ export const dynamicLookupFormSchema = z.object({
   isProduct: z.boolean(),
 })
 
-export type DynamicLookupFormValues = z.infer<typeof dynamicLookupFormSchema>
+export type DynamicLookupSchemaType = z.infer<typeof dynamicLookupFormSchema>
 
 export const mandatoryFieldsSchema = z
   .object({
@@ -98,7 +98,7 @@ export const mandatoryFieldsSchema = z
   })
   .partial()
 
-export type MandatoryFieldsFormValues = z.infer<typeof mandatoryFieldsSchema>
+export type MandatoryFieldsSchemaType = z.infer<typeof mandatoryFieldsSchema>
 
 export const visibleFieldsSchema = z
   .object({
@@ -124,7 +124,7 @@ export const visibleFieldsSchema = z
   })
   .partial()
 
-export type visibleFieldsFormValues = z.infer<typeof visibleFieldsSchema>
+export type visibleFieldsSchemaType = z.infer<typeof visibleFieldsSchema>
 
 export const financeSettingSchema = z
   .object({
@@ -169,7 +169,7 @@ export const financeSettingSchema = z
   })
   .partial()
 
-export type FinanceSettingFormValues = z.infer<typeof financeSettingSchema>
+export type FinanceSettingSchemaType = z.infer<typeof financeSettingSchema>
 
 export const gridSettingSchema = z
   .object({
@@ -186,7 +186,7 @@ export const gridSettingSchema = z
   })
   .partial()
 
-export type GridSettingFormValues = z.infer<typeof gridSettingSchema>
+export type GridSettingSchemaType = z.infer<typeof gridSettingSchema>
 
 export const cloneUserGridSettingSchem = z
   .object({
@@ -195,7 +195,7 @@ export const cloneUserGridSettingSchem = z
   })
   .partial()
 
-export type CloneUserGridSettingFormValues = z.infer<
+export type CloneUserGridSettingSchemaType = z.infer<
   typeof cloneUserGridSettingSchem
 >
 
@@ -225,7 +225,7 @@ export const documentNoFormSchema = z
   })
   .partial()
 
-export type DocumentNoFormValues = z.infer<typeof documentNoFormSchema>
+export type DocumentNoSchemaType = z.infer<typeof documentNoFormSchema>
 
 export const documentNoFormSchemav1 = z.object({
   prefix: z.string().min(1, "Prefix is required"),
@@ -241,4 +241,4 @@ export const documentNoFormSchemav1 = z.object({
   isYearly: z.boolean(),
 })
 
-export type DocumentNoFormValuesv1 = z.infer<typeof documentNoFormSchemav1>
+export type DocumentNoSchemaTypev1 = z.infer<typeof documentNoFormSchemav1>

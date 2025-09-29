@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { IUserLookup } from "@/interfaces/lookup"
-import { GridSettingFormValues } from "@/schemas/setting"
+import { GridSettingSchemaType } from "@/schemas/setting"
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -37,8 +37,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { SaveConfirmation } from "@/components/confirmation/save-confirmation"
 import UserAutocomplete from "@/components/autocomplete/autocomplete-user"
+import { SaveConfirmation } from "@/components/confirmation/save-confirmation"
 
 type GridSetting = {
   id: string
@@ -53,12 +53,12 @@ type GridSetting = {
   grdString: string
 }
 
-type FormValues = GridSettingFormValues & {
+type SchemaType = GridSettingSchemaType & {
   targetUserId: string
 }
 
 export function GridFormatTable() {
-  const form = useForm<FormValues>()
+  const form = useForm<SchemaType>()
   const [selectedUser, setSelectedUser] = useState<IUserLookup | null>(null)
   const [targetUser, setTargetUser] = useState<IUserLookup | null>(null)
   const [gridSettings, setGridSettings] = useState<GridSetting[]>([])

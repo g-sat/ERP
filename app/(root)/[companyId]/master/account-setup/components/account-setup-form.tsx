@@ -3,7 +3,7 @@
 import { useEffect } from "react"
 import { IAccountSetup } from "@/interfaces/accountsetup"
 import {
-  AccountSetupFormValues,
+  AccountSetupSchemaType,
   accountSetupSchema,
 } from "@/schemas/accountsetup"
 import { useAuthStore } from "@/stores/auth-store"
@@ -26,7 +26,7 @@ import CustomTextarea from "@/components/custom/custom-textarea"
 
 interface AccountSetupFormProps {
   initialData?: IAccountSetup | null
-  submitAction: (data: AccountSetupFormValues) => void
+  submitAction: (data: AccountSetupSchemaType) => void
   onCancel?: () => void
   isSubmitting?: boolean
   isReadOnly?: boolean
@@ -53,7 +53,7 @@ export function AccountSetupForm({
     remarks: "",
   }
 
-  const form = useForm<AccountSetupFormValues>({
+  const form = useForm<AccountSetupSchemaType>({
     resolver: zodResolver(accountSetupSchema),
     defaultValues: initialData
       ? {
@@ -92,7 +92,7 @@ export function AccountSetupForm({
     onCodeBlur?.(code)
   }
 
-  const onSubmit = (data: AccountSetupFormValues) => {
+  const onSubmit = (data: AccountSetupSchemaType) => {
     submitAction(data)
   }
 

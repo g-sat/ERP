@@ -2,7 +2,7 @@
 
 import { useEffect } from "react"
 import { ICurrency } from "@/interfaces/currency"
-import { CurrencyFormValues, currencySchema } from "@/schemas/currency"
+import { CurrencySchemaType, currencySchema } from "@/schemas/currency"
 import { useAuthStore } from "@/stores/auth-store"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { format } from "date-fns"
@@ -31,7 +31,7 @@ const defaultValues = {
 }
 interface CurrencyFormProps {
   initialData?: ICurrency | null
-  submitAction: (data: CurrencyFormValues) => void
+  submitAction: (data: CurrencySchemaType) => void
   onCancel?: () => void
   isSubmitting?: boolean
   isReadOnly?: boolean
@@ -49,7 +49,7 @@ export function CurrencyForm({
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
 
-  const form = useForm<CurrencyFormValues>({
+  const form = useForm<CurrencySchemaType>({
     resolver: zodResolver(currencySchema),
     defaultValues: initialData
       ? {
@@ -90,7 +90,7 @@ export function CurrencyForm({
     onCodeBlur?.(code)
   }
 
-  const onSubmit = (data: CurrencyFormValues) => {
+  const onSubmit = (data: CurrencySchemaType) => {
     submitAction(data)
   }
 

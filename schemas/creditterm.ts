@@ -20,7 +20,7 @@ export const credittermSchema = z.object({
   isActive: z.boolean().default(true),
 })
 
-export type CreditTermFormValues = z.infer<typeof credittermSchema>
+export type CreditTermSchemaType = z.infer<typeof credittermSchema>
 
 export const credittermFiltersSchema = z.object({
   isActive: z.boolean().optional(),
@@ -57,7 +57,7 @@ export const credittermDtSchema = z.object({
   isEndOfMonth: z.boolean(),
 })
 
-export type CreditTermDtFormValues = z.infer<typeof credittermDtSchema>
+export type CreditTermDtSchemaType = z.infer<typeof credittermDtSchema>
 
 export const credittermDtFiltersSchema = z.object({
   isActive: z.boolean().optional(),

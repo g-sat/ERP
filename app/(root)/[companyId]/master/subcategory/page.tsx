@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react"
 import { ApiResponse } from "@/interfaces/auth"
 import { ISubCategory, ISubCategoryFilter } from "@/interfaces/subcategory"
-import { SubCategoryFormValues } from "@/schemas/subcategory"
+import { SubCategorySchemaType } from "@/schemas/subcategory"
 import { usePermissionStore } from "@/stores/permission-store"
 import { useQueryClient } from "@tanstack/react-query"
 
@@ -67,8 +67,8 @@ export default function SubCategoryPage() {
     }
   }, [filters])
 
-  const saveMutation = usePersist<SubCategoryFormValues>(`${SubCategory.add}`)
-  const updateMutation = usePersist<SubCategoryFormValues>(`${SubCategory.add}`)
+  const saveMutation = usePersist<SubCategorySchemaType>(`${SubCategory.add}`)
+  const updateMutation = usePersist<SubCategorySchemaType>(`${SubCategory.add}`)
   const deleteMutation = useDelete(`${SubCategory.delete}`)
 
   const [selectedSubCategory, setSelectedSubCategory] =
@@ -97,7 +97,7 @@ export default function SubCategoryPage() {
   // State for save confirmation
   const [saveConfirmation, setSaveConfirmation] = useState<{
     isOpen: boolean
-    data: SubCategoryFormValues | null
+    data: SubCategorySchemaType | null
   }>({
     isOpen: false,
     data: null,
@@ -137,7 +137,7 @@ export default function SubCategoryPage() {
   }
 
   // Handler for form submission (create or edit) - shows confirmation first
-  const handleFormSubmit = (data: SubCategoryFormValues) => {
+  const handleFormSubmit = (data: SubCategorySchemaType) => {
     setSaveConfirmation({
       isOpen: true,
       data: data,
@@ -145,7 +145,7 @@ export default function SubCategoryPage() {
   }
 
   // Handler for confirmed form submission
-  const handleConfirmedFormSubmit = async (data: SubCategoryFormValues) => {
+  const handleConfirmedFormSubmit = async (data: SubCategorySchemaType) => {
     try {
       if (modalMode === "create") {
         const response = await saveMutation.mutateAsync(data)

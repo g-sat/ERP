@@ -19,7 +19,7 @@ export const orderTypeSchema = z.object({
   remarks: z.string().max(255).optional(),
 })
 
-export type OrderTypeFormValues = z.infer<typeof orderTypeSchema>
+export type OrderTypeSchemaType = z.infer<typeof orderTypeSchema>
 
 export const orderTypeFiltersSchema = z.object({
   isActive: z.boolean().optional(),
@@ -44,7 +44,7 @@ export const orderTypeCategorySchema = z.object({
   remarks: z.string().max(255).optional(),
 })
 
-export type OrderTypeCategoryFormValues = z.infer<
+export type OrderTypeCategorySchemaType = z.infer<
   typeof orderTypeCategorySchema
 >
 

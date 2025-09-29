@@ -27,7 +27,7 @@ export const documentExpirySchema = z.object({
     .optional(),
 })
 
-export type DocumentExpiryFormValues = z.infer<typeof documentExpirySchema>
+export type DocumentExpirySchemaType = z.infer<typeof documentExpirySchema>
 
 export const documentExpiryFiltersSchema = z.object({
   isExpired: z.boolean().optional(),

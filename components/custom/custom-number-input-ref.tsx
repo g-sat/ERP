@@ -11,11 +11,11 @@ import { Label } from "../ui/label"
 const DECIMAL_PLACES = Number(process.env.NEXT_PUBLIC_DEFAULT_AMT_DEC || "2")
 
 interface CustomNumberInputRefProps<
-  TFormValues extends FieldValues = FieldValues,
+  TSchemaType extends FieldValues = FieldValues,
 > {
-  form: UseFormReturn<TFormValues>
+  form: UseFormReturn<TSchemaType>
   label?: string
-  name: Path<TFormValues>
+  name: Path<TSchemaType>
   className?: string
   onBlurEvent?: (e: React.FocusEvent<HTMLInputElement>) => void
   onChangeEvent?: (value: number) => void
@@ -25,8 +25,8 @@ interface CustomNumberInputRefProps<
 }
 
 const CustomNumberInputRef = forwardRef(function CustomNumberInputRef<
-  TFormValues extends FieldValues = FieldValues,
->(props: CustomNumberInputRefProps<TFormValues>, ref: Ref<HTMLInputElement>) {
+  TSchemaType extends FieldValues = FieldValues,
+>(props: CustomNumberInputRefProps<TSchemaType>, ref: Ref<HTMLInputElement>) {
   const {
     form,
     label,

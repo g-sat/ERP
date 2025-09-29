@@ -3,7 +3,7 @@
 import { useCallback, useState } from "react"
 import { IUser, IUserFilter } from "@/interfaces/admin"
 import { ApiResponse } from "@/interfaces/auth"
-import { UserFormValues } from "@/schemas/admin"
+import { UserSchemaType } from "@/schemas/admin"
 import { usePermissionStore } from "@/stores/permission-store"
 import { useQueryClient } from "@tanstack/react-query"
 
@@ -75,7 +75,7 @@ export default function AdminUsersPage() {
   // State for save confirmation
   const [saveConfirmation, setSaveConfirmation] = useState<{
     isOpen: boolean
-    data: UserFormValues | null
+    data: UserSchemaType | null
   }>({
     isOpen: false,
     data: null,
@@ -136,7 +136,7 @@ export default function AdminUsersPage() {
     }
   }
 
-  const handleUserFormSubmit = async (data: UserFormValues) => {
+  const handleUserFormSubmit = async (data: UserSchemaType) => {
     try {
       if (modalMode === "create") {
         const response = await saveMutation.mutateAsync(data)
@@ -157,14 +157,14 @@ export default function AdminUsersPage() {
     }
   }
 
-  const handleSaveConfirmation = (data: UserFormValues) => {
+  const handleSaveConfirmation = (data: UserSchemaType) => {
     setSaveConfirmation({
       isOpen: true,
       data,
     })
   }
 
-  const handleConfirmedFormSubmit = async (data: UserFormValues) => {
+  const handleConfirmedFormSubmit = async (data: UserSchemaType) => {
     try {
       if (modalMode === "create") {
         const response = await saveMutation.mutateAsync(data)

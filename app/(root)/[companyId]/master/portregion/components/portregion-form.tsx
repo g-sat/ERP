@@ -2,7 +2,7 @@
 
 import { useEffect } from "react"
 import { IPortRegion } from "@/interfaces/portregion"
-import { PortRegionFormValues, portregionSchema } from "@/schemas/portregion"
+import { PortRegionSchemaType, portregionSchema } from "@/schemas/portregion"
 import { useAuthStore } from "@/stores/auth-store"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { format } from "date-fns"
@@ -23,7 +23,7 @@ import CustomTextarea from "@/components/custom/custom-textarea"
 
 interface PortRegionFormProps {
   initialData?: IPortRegion | null
-  submitAction: (data: PortRegionFormValues) => void
+  submitAction: (data: PortRegionSchemaType) => void
   onCancel?: () => void
   isSubmitting?: boolean
   isReadOnly?: boolean
@@ -50,7 +50,7 @@ export function PortRegionForm({
     isActive: true,
   }
 
-  const form = useForm<PortRegionFormValues>({
+  const form = useForm<PortRegionSchemaType>({
     resolver: zodResolver(portregionSchema),
     defaultValues: initialData
       ? {
@@ -89,7 +89,7 @@ export function PortRegionForm({
     onCodeBlur?.(code)
   }
 
-  const onSubmit = (data: PortRegionFormValues) => {
+  const onSubmit = (data: PortRegionSchemaType) => {
     submitAction(data)
   }
 

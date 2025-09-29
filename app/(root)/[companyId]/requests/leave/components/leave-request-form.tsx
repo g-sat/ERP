@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { ILeaveTypeLookup } from "@/interfaces/lookup"
-import { LeaveRequestFormValues, leaveRequestSchema } from "@/schemas/leave"
+import { LeaveRequestSchemaType, leaveRequestSchema } from "@/schemas/leave"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 
@@ -24,7 +24,7 @@ import CustomTextarea from "@/components/custom/custom-textarea"
 interface LeaveRequestFormProps {
   open?: boolean
   onOpenChange?: (open: boolean) => void
-  onSubmit: (data: LeaveRequestFormValues) => Promise<void>
+  onSubmit: (data: LeaveRequestSchemaType) => Promise<void>
   employeeId?: string
 }
 
@@ -47,7 +47,7 @@ export function LeaveRequestForm({
   // Get leave types for initial default days
   const { data: leaveTypes = [] } = useLeaveTypeLookup()
 
-  const form = useForm<LeaveRequestFormValues>({
+  const form = useForm<LeaveRequestSchemaType>({
     resolver: zodResolver(leaveRequestSchema),
     defaultValues: {
       leaveRequestId: 0, // Will be auto-generated on server
@@ -114,7 +114,7 @@ export function LeaveRequestForm({
     }
   }, [form.watch("startDate"), form.watch("endDate"), form])
 
-  const handleSubmit = async (data: LeaveRequestFormValues) => {
+  const handleSubmit = async (data: LeaveRequestSchemaType) => {
     try {
       setLoading(true)
 
@@ -122,7 +122,7 @@ export function LeaveRequestForm({
       const calculatedDays = calculateDays()
 
       // Convert form data to the expected format for submission
-      const formData: LeaveRequestFormValues = {
+      const formData: LeaveRequestSchemaType = {
         ...data,
         totalDays: calculatedDays,
         attachments: "",

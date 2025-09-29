@@ -36,9 +36,6 @@ export function BulkDebitNoteTable({
       {
         accessorKey: "chargeName",
         header: "Charge Name",
-        cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("chargeName") || "-"}</div>
-        ),
         size: 200,
         minSize: 150,
         enableColumnFilter: true,
@@ -46,31 +43,33 @@ export function BulkDebitNoteTable({
       {
         accessorKey: "remarks",
         header: "Remarks",
-        cell: ({ row }) => (
-          <div className="max-w-xs truncate">
-            {row.getValue("remarks") || "-"}
-          </div>
-        ),
         size: 350,
         minSize: 250,
       },
+       {
+         accessorKey: "basicRate",
+         header: "Amount",
+         cell: ({ row }) => {
+           const value = row.getValue("basicRate");
+           const numericValue = parseFloat(value as string) || 0;
+           return (
+             <div className="text-right font-mono">
+               {numericValue.toFixed(2)}
+             </div>
+           );
+         },
+         size: 100,
+         minSize: 80,
+       },
       {
         accessorKey: "chargeId",
         header: "Charge",
-        cell: ({ row }) => (
-          <div className="max-w-xs truncate">
-            {row.getValue("chargeId") || "-"}
-          </div>
-        ),
         size: 100,
         minSize: 80,
       },
       {
         accessorKey: "glId",
         header: "GL",
-        cell: ({ row }) => (
-          <div className="max-w-xs truncate">{row.getValue("glId") || "-"}</div>
-        ),
         size: 100,
         minSize: 80,
       },
@@ -123,10 +122,16 @@ export function BulkDebitNoteTable({
     [onBulkSelectionChange]
   )
 
+  // Filter out hidden columns (chargeId and glId)
+  const visibleColumns = columns.filter(col => {
+    const accessorKey = (col as any).accessorKey;
+    return accessorKey !== "chargeId" && accessorKey !== "glId";
+  })
+
   return (
     <DebitNoteBaseTable
       data={data}
-      columns={columns}
+      columns={visibleColumns}
       isLoading={isLoading}
       moduleId={moduleId}
       transactionId={transactionId}

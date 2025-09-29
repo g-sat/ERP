@@ -8,7 +8,7 @@ import {
   IDebitNoteHd,
   IJobOrderHd,
 } from "@/interfaces/checklist"
-import { CrewSignOnFormValues } from "@/schemas/checklist"
+import { CrewSignOnSchemaType } from "@/schemas/checklist"
 import { useQueryClient } from "@tanstack/react-query"
 
 import { getData } from "@/lib/api-client"
@@ -118,10 +118,10 @@ export function CrewSignOnTab({
   }
 
   // Mutations
-  const saveMutation = usePersist<CrewSignOnFormValues>(
+  const saveMutation = usePersist<CrewSignOnSchemaType>(
     `${JobOrder_CrewSignOn.add}`
   )
-  const updateMutation = usePersist<CrewSignOnFormValues>(
+  const updateMutation = usePersist<CrewSignOnSchemaType>(
     `${JobOrder_CrewSignOn.add}`
   )
   const deleteMutation = useDelete(`${JobOrder_CrewSignOn.delete}`)

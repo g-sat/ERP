@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import { ApiResponse } from "@/interfaces/auth"
 import { ILeavePolicy } from "@/interfaces/leave"
-import { LeavePolicyFormValues, leavePolicySchema } from "@/schemas/leave"
+import { LeavePolicySchemaType, leavePolicySchema } from "@/schemas/leave"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Settings } from "lucide-react"
 import { useForm } from "react-hook-form"
@@ -30,7 +30,7 @@ import CustomTextarea from "@/components/custom/custom-textarea"
 interface LeavePolicyFormProps {
   policies: ILeavePolicy[]
   onSubmit: (
-    data: LeavePolicyFormValues
+    data: LeavePolicySchemaType
   ) => Promise<ApiResponse<ILeavePolicy> | void>
 }
 
@@ -41,7 +41,7 @@ export function LeavePolicyForm({ policies, onSubmit }: LeavePolicyFormProps) {
     null
   )
 
-  const form = useForm<LeavePolicyFormValues>({
+  const form = useForm<LeavePolicySchemaType>({
     resolver: zodResolver(leavePolicySchema),
     defaultValues: {
       leavePolicyId: 0, // 0 for new policies, will be set by backend
@@ -113,7 +113,7 @@ export function LeavePolicyForm({ policies, onSubmit }: LeavePolicyFormProps) {
     }
   }, [form])
 
-  const handleSubmit = async (data: LeavePolicyFormValues) => {
+  const handleSubmit = async (data: LeavePolicySchemaType) => {
     try {
       console.log("LeavePolicyForm handleSubmit called with data:", data)
       console.log("Form is valid:", form.formState.isValid)

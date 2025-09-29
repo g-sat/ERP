@@ -4,7 +4,7 @@ import { useEffect, useState } from "react"
 import { useParams } from "next/navigation"
 import { IApiSuccessResponse } from "@/interfaces/auth"
 import {
-  FinanceSettingFormValues,
+  FinanceSettingSchemaType,
   financeSettingSchema,
 } from "@/schemas/setting"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -17,12 +17,12 @@ import { Button } from "@/components/ui/button"
 import { Form } from "@/components/ui/form"
 import { Separator } from "@/components/ui/separator"
 import { Skeleton } from "@/components/ui/skeleton"
-import { SaveConfirmation } from "@/components/confirmation/save-confirmation"
-import { LockSkeleton } from "@/components/skeleton/lock-skeleton"
 import ChartofAccountAutocomplete from "@/components/autocomplete/autocomplete-chartofaccount"
 import CurrencyAutocomplete from "@/components/autocomplete/autocomplete-currency"
+import { SaveConfirmation } from "@/components/confirmation/save-confirmation"
+import { LockSkeleton } from "@/components/skeleton/lock-skeleton"
 
-type FinanceResponse = IApiSuccessResponse<FinanceSettingFormValues>
+type FinanceResponse = IApiSuccessResponse<FinanceSettingSchemaType>
 
 export function FinanceForm() {
   const params = useParams()
@@ -41,7 +41,7 @@ export function FinanceForm() {
 
   const { mutate: saveFinanceSettings, isPending } = useFinanceSave()
 
-  const form = useForm<FinanceSettingFormValues>({
+  const form = useForm<FinanceSettingSchemaType>({
     resolver: zodResolver(financeSettingSchema),
     defaultValues: {
       base_CurrencyId: 0,

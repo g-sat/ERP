@@ -2,7 +2,7 @@
 
 import { useEffect } from "react"
 import { IPaymentType } from "@/interfaces/paymenttype"
-import { PaymentTypeFormValues, paymentTypeSchema } from "@/schemas/paymenttype"
+import { PaymentTypeSchemaType, paymentTypeSchema } from "@/schemas/paymenttype"
 import { useAuthStore } from "@/stores/auth-store"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { format } from "date-fns"
@@ -29,7 +29,7 @@ const defaultValues = {
 }
 interface PaymentTypeFormProps {
   initialData?: IPaymentType | null
-  submitAction: (data: PaymentTypeFormValues) => void
+  submitAction: (data: PaymentTypeSchemaType) => void
   onCancel?: () => void
   isSubmitting?: boolean
   isReadOnly?: boolean
@@ -47,7 +47,7 @@ export function PaymentTypeForm({
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
 
-  const form = useForm<PaymentTypeFormValues>({
+  const form = useForm<PaymentTypeSchemaType>({
     resolver: zodResolver(paymentTypeSchema),
     defaultValues: initialData
       ? {
@@ -84,7 +84,7 @@ export function PaymentTypeForm({
     onCodeBlur?.(code)
   }
 
-  const onSubmit = (data: PaymentTypeFormValues) => {
+  const onSubmit = (data: PaymentTypeSchemaType) => {
     submitAction(data)
   }
 

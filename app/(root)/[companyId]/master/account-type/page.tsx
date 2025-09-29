@@ -3,7 +3,7 @@
 import { useCallback, useState } from "react"
 import { IAccountType, IAccountTypeFilter } from "@/interfaces/accounttype"
 import { ApiResponse } from "@/interfaces/auth"
-import { AccountTypeFormValues } from "@/schemas/accounttype"
+import { AccountTypeSchemaType } from "@/schemas/accounttype"
 import { usePermissionStore } from "@/stores/permission-store"
 import { useQueryClient } from "@tanstack/react-query"
 
@@ -65,8 +65,8 @@ export default function AccountTypePage() {
     }
 
   // Define mutations for CRUD operations
-  const saveMutation = usePersist<AccountTypeFormValues>(`${AccountType.add}`)
-  const updateMutation = usePersist<AccountTypeFormValues>(`${AccountType.add}`)
+  const saveMutation = usePersist<AccountTypeSchemaType>(`${AccountType.add}`)
+  const updateMutation = usePersist<AccountTypeSchemaType>(`${AccountType.add}`)
   const deleteMutation = useDelete(`${AccountType.delete}`)
 
   // State for modal and selected account type
@@ -96,7 +96,7 @@ export default function AccountTypePage() {
   // State for save confirmation
   const [saveConfirmation, setSaveConfirmation] = useState<{
     isOpen: boolean
-    data: AccountTypeFormValues | null
+    data: AccountTypeSchemaType | null
   }>({
     isOpen: false,
     data: null,
@@ -138,7 +138,7 @@ export default function AccountTypePage() {
   }
 
   // Handler for form submission (create or edit) - shows confirmation first
-  const handleFormSubmit = (data: AccountTypeFormValues) => {
+  const handleFormSubmit = (data: AccountTypeSchemaType) => {
     setSaveConfirmation({
       isOpen: true,
       data: data,
@@ -146,7 +146,7 @@ export default function AccountTypePage() {
   }
 
   // Handler for confirmed form submission
-  const handleConfirmedFormSubmit = async (data: AccountTypeFormValues) => {
+  const handleConfirmedFormSubmit = async (data: AccountTypeSchemaType) => {
     try {
       if (modalMode === "create") {
         const response = await saveMutation.mutateAsync(data)

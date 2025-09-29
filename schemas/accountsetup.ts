@@ -9,7 +9,7 @@ export const accountSetupSchema = z.object({
   remarks: z.string().optional(),
 })
 
-export type AccountSetupFormValues = z.infer<typeof accountSetupSchema>
+export type AccountSetupSchemaType = z.infer<typeof accountSetupSchema>
 
 export const accountSetupFiltersSchema = z.object({
   isActive: z.boolean().optional(),
@@ -29,7 +29,7 @@ export const accountSetupCategorySchema = z.object({
   remarks: z.string().optional(),
 })
 
-export type AccountSetupCategoryFormValues = z.infer<
+export type AccountSetupCategorySchemaType = z.infer<
   typeof accountSetupCategorySchema
 >
 
@@ -49,7 +49,7 @@ export const accountSetupDtSchema = z.object({
   applyAllCurr: z.boolean(),
 })
 
-export type AccountSetupDtFormValues = z.infer<typeof accountSetupDtSchema>
+export type AccountSetupDtSchemaType = z.infer<typeof accountSetupDtSchema>
 
 export const accountSetupDtFiltersSchema = z.object({
   search: z.string().optional(),

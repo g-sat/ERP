@@ -8,7 +8,7 @@ import {
   IJobOrderHd,
   IMedicalAssistance,
 } from "@/interfaces/checklist"
-import { MedicalAssistanceFormValues } from "@/schemas/checklist"
+import { MedicalAssistanceSchemaType } from "@/schemas/checklist"
 import { useQueryClient } from "@tanstack/react-query"
 
 import { getData } from "@/lib/api-client"
@@ -121,10 +121,10 @@ export function MedicalAssistanceTab({
   }
 
   // Mutations
-  const saveMutation = usePersist<MedicalAssistanceFormValues>(
+  const saveMutation = usePersist<MedicalAssistanceSchemaType>(
     `${JobOrder_MedicalAssistance.add}`
   )
-  const updateMutation = usePersist<MedicalAssistanceFormValues>(
+  const updateMutation = usePersist<MedicalAssistanceSchemaType>(
     `${JobOrder_MedicalAssistance.add}`
   )
   const deleteMutation = useDelete(`${JobOrder_MedicalAssistance.delete}`)

@@ -20,7 +20,7 @@ export const taskSchema = z.object({
   isActive: z.boolean().default(true),
 })
 
-export type TaskFormValues = z.infer<typeof taskSchema>
+export type TaskSchemaType = z.infer<typeof taskSchema>
 
 export const taskFiltersSchema = z.object({
   isActive: z.boolean().optional(),

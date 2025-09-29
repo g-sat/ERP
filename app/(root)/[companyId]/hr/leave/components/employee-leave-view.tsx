@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react"
 import { IEmployee } from "@/interfaces/employee"
 import { ILeave, ILeaveBalance } from "@/interfaces/leave"
-import { LeaveRequestFormValues } from "@/schemas/leave"
+import { LeaveRequestSchemaType } from "@/schemas/leave"
 import { format } from "date-fns"
 import {
   AlertCircle,
@@ -31,7 +31,7 @@ interface EmployeeLeaveViewProps {
   employee: IEmployee
   leaves: ILeave[]
   leaveBalances: ILeaveBalance[]
-  onLeaveSubmit: (data: LeaveRequestFormValues) => Promise<void>
+  onLeaveSubmit: (data: LeaveRequestSchemaType) => Promise<void>
   onLeaveCancel?: (leaveId: string) => Promise<void>
 }
 
@@ -115,7 +115,7 @@ export function EmployeeLeaveView({
 
   const approvalHierarchy = getApprovalHierarchy()
 
-  const handleLeaveSubmit = async (data: LeaveRequestFormValues) => {
+  const handleLeaveSubmit = async (data: LeaveRequestSchemaType) => {
     try {
       await onLeaveSubmit({
         ...data,

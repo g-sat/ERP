@@ -23,7 +23,7 @@ export const accountTypeSchema = z.object({
     .optional(),
 })
 
-export type AccountTypeFormValues = z.infer<typeof accountTypeSchema>
+export type AccountTypeSchemaType = z.infer<typeof accountTypeSchema>
 
 export const accountTypeFiltersSchema = z.object({
   isActive: z.boolean().optional(),

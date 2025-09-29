@@ -20,7 +20,7 @@ export const portSchema = z.object({
   isActive: z.boolean().default(true),
 })
 
-export type PortFormValues = z.infer<typeof portSchema>
+export type PortSchemaType = z.infer<typeof portSchema>
 
 export const portFiltersSchema = z.object({
   isActive: z.boolean().optional(),

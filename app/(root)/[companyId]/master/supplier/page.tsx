@@ -9,9 +9,9 @@ import {
   ISupplierFilter,
 } from "@/interfaces/supplier"
 import {
-  SupplierAddressFormValues,
-  SupplierContactFormValues,
-  SupplierFormValues,
+  SupplierAddressSchemaType,
+  SupplierContactSchemaType,
+  SupplierSchemaType,
 } from "@/schemas/supplier"
 import { usePermissionStore } from "@/stores/permission-store"
 import { ListFilter, RotateCcw, Save, Trash2 } from "lucide-react"
@@ -90,11 +90,11 @@ export default function SupplierPage() {
   const [showContactSaveConfirmation, setShowContactSaveConfirmation] =
     useState(false)
   const [pendingSupplierData, setPendingSupplierData] =
-    useState<SupplierFormValues | null>(null)
+    useState<SupplierSchemaType | null>(null)
   const [pendingAddressData, setPendingAddressData] =
-    useState<SupplierAddressFormValues | null>(null)
+    useState<SupplierAddressSchemaType | null>(null)
   const [pendingContactData, setPendingContactData] =
-    useState<SupplierContactFormValues | null>(null)
+    useState<SupplierContactSchemaType | null>(null)
 
   // Delete confirmation states
   const [showSupplierDeleteConfirmation, setShowSupplierDeleteConfirmation] =
@@ -174,20 +174,20 @@ export default function SupplierPage() {
     }
 
   // Mutations
-  const saveMutation = usePersist<SupplierFormValues>(`${Supplier.add}`)
-  const updateMutation = usePersist<SupplierFormValues>(`${Supplier.add}`)
+  const saveMutation = usePersist<SupplierSchemaType>(`${Supplier.add}`)
+  const updateMutation = usePersist<SupplierSchemaType>(`${Supplier.add}`)
   const deleteMutation = useDelete(`${Supplier.delete}`)
-  const saveAddressMutation = usePersist<SupplierAddressFormValues>(
+  const saveAddressMutation = usePersist<SupplierAddressSchemaType>(
     `${SupplierAddress.add}`
   )
-  const updateAddressMutation = usePersist<SupplierAddressFormValues>(
+  const updateAddressMutation = usePersist<SupplierAddressSchemaType>(
     `${SupplierAddress.add}`
   )
   const deleteAddressMutation = useDelete(`${SupplierAddress.delete}`)
-  const saveContactMutation = usePersist<SupplierContactFormValues>(
+  const saveContactMutation = usePersist<SupplierContactSchemaType>(
     `${SupplierContact.add}`
   )
-  const updateContactMutation = usePersist<SupplierContactFormValues>(
+  const updateContactMutation = usePersist<SupplierContactSchemaType>(
     `${SupplierContact.add}`
   )
   const deleteContactMutation = useDelete(`${SupplierContact.delete}`)
@@ -241,7 +241,7 @@ export default function SupplierPage() {
     }
   }, [supplier?.supplierId, fetchSupplierData])
 
-  const handleSupplierSave = (savedSupplier: SupplierFormValues) => {
+  const handleSupplierSave = (savedSupplier: SupplierSchemaType) => {
     setPendingSupplierData(savedSupplier)
     setShowSupplierSaveConfirmation(true)
   }
@@ -318,7 +318,7 @@ export default function SupplierPage() {
     setKey((prev) => prev + 1)
   }
 
-  const handleAddressSave = (data: SupplierAddressFormValues) => {
+  const handleAddressSave = (data: SupplierAddressSchemaType) => {
     setPendingAddressData(data)
     setShowAddressSaveConfirmation(true)
   }
@@ -352,7 +352,7 @@ export default function SupplierPage() {
     }
   }
 
-  const handleContactSave = (data: SupplierContactFormValues) => {
+  const handleContactSave = (data: SupplierContactSchemaType) => {
     setPendingContactData(data)
     setShowContactSaveConfirmation(true)
   }

@@ -4,7 +4,7 @@ import { useEffect, useMemo } from "react"
 import { calculateDebitNoteDetailAmounts } from "@/helpers/debit-note-calculations"
 import { IDebitNoteDt, IDebitNoteHd } from "@/interfaces/checklist"
 import { IChargeLookup, IGstLookup } from "@/interfaces/lookup"
-import { DebitNoteDtFormValues, debitNoteDtSchema } from "@/schemas/checklist"
+import { DebitNoteDtSchemaType, debitNoteDtSchema } from "@/schemas/checklist"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { format } from "date-fns"
 import { useForm } from "react-hook-form"
@@ -25,7 +25,7 @@ import CustomTextArea from "@/components/custom/custom-textarea"
 interface DebitNoteFormProps {
   debitNoteHd?: IDebitNoteHd
   initialData?: IDebitNoteDt
-  submitAction: (data: DebitNoteDtFormValues) => void
+  submitAction: (data: DebitNoteDtSchemaType) => void
   onCancel?: () => void
   isSubmitting?: boolean
   isConfirmed?: boolean
@@ -83,7 +83,7 @@ export default function DebitNoteForm({
     ]
   )
 
-  const form = useForm<DebitNoteDtFormValues>({
+  const form = useForm<DebitNoteDtSchemaType>({
     resolver: zodResolver(debitNoteDtSchema),
     mode: "onChange", // Validate on blur to show errors after user interaction
     defaultValues: initialData
@@ -334,7 +334,7 @@ export default function DebitNoteForm({
     }
   }, [shouldReset, form, defaultValues, onChargeChange])
 
-  const onSubmit = (data: DebitNoteDtFormValues) => {
+  const onSubmit = (data: DebitNoteDtSchemaType) => {
     submitAction(data)
   }
 

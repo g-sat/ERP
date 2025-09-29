@@ -3,8 +3,8 @@
 import { useEffect } from "react"
 import { ICrewMiscellaneous, IJobOrderHd } from "@/interfaces/checklist"
 import {
-  CrewMiscellaneousFormValues,
   CrewMiscellaneousSchema,
+  CrewMiscellaneousSchemaType,
 } from "@/schemas/checklist"
 import { useAuthStore } from "@/stores/auth-store"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -16,7 +16,6 @@ import { useChartofAccountLookup } from "@/hooks/use-lookup"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Form } from "@/components/ui/form"
-import { FormLoadingSpinner } from "@/components/skeleton/loading-spinner"
 import ChargeAutocomplete from "@/components/autocomplete/autocomplete-charge"
 import ChartOfAccountAutocomplete from "@/components/autocomplete/autocomplete-chartofaccount"
 import StatusTaskAutocomplete from "@/components/autocomplete/autocomplete-status-task"
@@ -27,12 +26,13 @@ import CustomAccordion, {
 } from "@/components/custom/custom-accordion"
 import CustomInput from "@/components/custom/custom-input"
 import CustomTextarea from "@/components/custom/custom-textarea"
+import { FormLoadingSpinner } from "@/components/skeleton/loading-spinner"
 
 interface CrewMiscellaneousFormProps {
   jobData: IJobOrderHd
   initialData?: ICrewMiscellaneous
   taskDefaults?: Record<string, number> // Add taskDefaults prop
-  submitAction: (data: CrewMiscellaneousFormValues) => void
+  submitAction: (data: CrewMiscellaneousSchemaType) => void
   onCancel?: () => void
   isSubmitting?: boolean
   isConfirmed?: boolean
@@ -56,7 +56,7 @@ export function CrewMiscellaneousForm({
   )
 
   console.log("initialData :", initialData)
-  const form = useForm<CrewMiscellaneousFormValues>({
+  const form = useForm<CrewMiscellaneousSchemaType>({
     resolver: zodResolver(CrewMiscellaneousSchema),
     defaultValues: {
       crewMiscellaneousId: initialData?.crewMiscellaneousId ?? 0,
@@ -105,7 +105,7 @@ export function CrewMiscellaneousForm({
     )
   }
 
-  const onSubmit = (data: CrewMiscellaneousFormValues) => {
+  const onSubmit = (data: CrewMiscellaneousSchemaType) => {
     submitAction(data)
   }
 

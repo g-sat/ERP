@@ -2,7 +2,7 @@
 
 import { useEffect } from "react"
 import { IVoyage } from "@/interfaces/voyage"
-import { VoyageFormValues, voyageSchema } from "@/schemas/voyage"
+import { VoyageSchemaType, voyageSchema } from "@/schemas/voyage"
 import { useAuthStore } from "@/stores/auth-store"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { format } from "date-fns"
@@ -24,7 +24,7 @@ import CustomTextarea from "@/components/custom/custom-textarea"
 
 interface VoyageFormProps {
   initialData?: IVoyage | null
-  submitAction: (data: VoyageFormValues) => void
+  submitAction: (data: VoyageSchemaType) => void
   onCancel?: () => void
   isSubmitting?: boolean
   isReadOnly?: boolean
@@ -52,7 +52,7 @@ export function VoyageForm({
     isActive: true,
   }
 
-  const form = useForm<VoyageFormValues>({
+  const form = useForm<VoyageSchemaType>({
     resolver: zodResolver(voyageSchema),
     mode: "onChange",
     defaultValues: initialData
@@ -93,7 +93,7 @@ export function VoyageForm({
     onCodeBlur?.(code)
   }
 
-  const onSubmit = (data: VoyageFormValues) => {
+  const onSubmit = (data: VoyageSchemaType) => {
     console.log("onSubmit :", data)
     submitAction(data)
   }

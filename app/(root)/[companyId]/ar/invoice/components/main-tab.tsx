@@ -2,14 +2,14 @@
 "use client"
 
 import { IVisibleFields } from "@/interfaces/setting"
-import { ArInvoiceHdFormValues } from "@/schemas/invoice"
+import { ArInvoiceHdSchemaType } from "@/schemas/invoice"
 import { UseFormReturn } from "react-hook-form"
 
 import InvoiceDetailsTable from "./invoice-details-table"
 import InvoiceForm from "./invoice-form"
 
 interface MainProps {
-  form: UseFormReturn<ArInvoiceHdFormValues>
+  form: UseFormReturn<ArInvoiceHdSchemaType>
   onSuccess: (action: string) => Promise<void>
   isEdit: boolean
   visible: IVisibleFields

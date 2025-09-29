@@ -3,7 +3,7 @@
 import { useCallback, useState } from "react"
 import { ApiResponse } from "@/interfaces/auth"
 import { IDocumentType, IDocumentTypeFilter } from "@/interfaces/documenttype"
-import { DocumentTypeFormValues } from "@/schemas/documenttype"
+import { DocumentTypeSchemaType } from "@/schemas/documenttype"
 import { usePermissionStore } from "@/stores/permission-store"
 import { useQueryClient } from "@tanstack/react-query"
 
@@ -69,8 +69,8 @@ export default function DocumentTypePage() {
     }
 
   // Define mutations for CRUD operations
-  const saveMutation = usePersist<DocumentTypeFormValues>(`${DocumentType.add}`)
-  const updateMutation = usePersist<DocumentTypeFormValues>(
+  const saveMutation = usePersist<DocumentTypeSchemaType>(`${DocumentType.add}`)
+  const updateMutation = usePersist<DocumentTypeSchemaType>(
     `${DocumentType.add}`
   )
   const deleteMutation = useDelete(`${DocumentType.delete}`)
@@ -102,7 +102,7 @@ export default function DocumentTypePage() {
   // State for save confirmation
   const [saveConfirmation, setSaveConfirmation] = useState<{
     isOpen: boolean
-    data: DocumentTypeFormValues | null
+    data: DocumentTypeSchemaType | null
   }>({
     isOpen: false,
     data: null,
@@ -144,7 +144,7 @@ export default function DocumentTypePage() {
   }
 
   // Handler for form submission (create or edit) - shows confirmation first
-  const handleFormSubmit = (data: DocumentTypeFormValues) => {
+  const handleFormSubmit = (data: DocumentTypeSchemaType) => {
     setSaveConfirmation({
       isOpen: true,
       data: data,
@@ -152,7 +152,7 @@ export default function DocumentTypePage() {
   }
 
   // Handler for confirmed form submission
-  const handleConfirmedFormSubmit = async (data: DocumentTypeFormValues) => {
+  const handleConfirmedFormSubmit = async (data: DocumentTypeSchemaType) => {
     try {
       if (modalMode === "create") {
         const response = await saveMutation.mutateAsync(data)

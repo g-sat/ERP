@@ -2,7 +2,7 @@
 
 import { useEffect } from "react"
 import { IProduct } from "@/interfaces/product"
-import { ProductFormValues, productSchema } from "@/schemas/product"
+import { ProductSchemaType, productSchema } from "@/schemas/product"
 import { useAuthStore } from "@/stores/auth-store"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { format } from "date-fns"
@@ -22,7 +22,7 @@ import CustomTextarea from "@/components/custom/custom-textarea"
 
 interface ProductFormProps {
   initialData?: IProduct | null
-  submitAction: (data: ProductFormValues) => void
+  submitAction: (data: ProductSchemaType) => void
   onCancel?: () => void
   isSubmitting?: boolean
   isReadOnly?: boolean
@@ -48,7 +48,7 @@ export function ProductForm({
     isActive: true,
   }
 
-  const form = useForm<ProductFormValues>({
+  const form = useForm<ProductSchemaType>({
     resolver: zodResolver(productSchema),
     defaultValues: initialData
       ? {
@@ -85,7 +85,7 @@ export function ProductForm({
     onCodeBlur?.(code)
   }
 
-  const onSubmit = (data: ProductFormValues) => {
+  const onSubmit = (data: ProductSchemaType) => {
     submitAction(data)
   }
 

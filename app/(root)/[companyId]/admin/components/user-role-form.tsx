@@ -2,7 +2,7 @@
 
 import { useEffect } from "react"
 import { IUserRole } from "@/interfaces/admin"
-import { UserRoleFormValues, userRoleSchema } from "@/schemas/admin"
+import { UserRoleSchemaType, userRoleSchema } from "@/schemas/admin"
 import { useAuthStore } from "@/stores/auth-store"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { format } from "date-fns"
@@ -30,11 +30,11 @@ const defaultValues = {
 
 interface UserRoleFormProps {
   initialData?: IUserRole
-  submitAction: (data: UserRoleFormValues) => void
+  submitAction: (data: UserRoleSchemaType) => void
   onCancel?: () => void
   isSubmitting?: boolean
   isReadOnly?: boolean
-  onSaveConfirmation?: (data: UserRoleFormValues) => void
+  onSaveConfirmation?: (data: UserRoleSchemaType) => void
 }
 
 export function UserRoleForm({
@@ -47,7 +47,7 @@ export function UserRoleForm({
 }: UserRoleFormProps) {
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
-  const form = useForm<UserRoleFormValues>({
+  const form = useForm<UserRoleSchemaType>({
     resolver: zodResolver(userRoleSchema),
     defaultValues: initialData
       ? {
@@ -76,7 +76,7 @@ export function UserRoleForm({
     )
   }, [initialData, form])
 
-  const onSubmit = (data: UserRoleFormValues) => {
+  const onSubmit = (data: UserRoleSchemaType) => {
     if (onSaveConfirmation) {
       onSaveConfirmation(data)
     } else {

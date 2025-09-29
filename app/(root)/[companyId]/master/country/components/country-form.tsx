@@ -2,7 +2,7 @@
 
 import { useEffect } from "react"
 import { ICountry } from "@/interfaces/country"
-import { CountryFormValues, countrySchema } from "@/schemas/country"
+import { CountrySchemaType, countrySchema } from "@/schemas/country"
 import { useAuthStore } from "@/stores/auth-store"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { format } from "date-fns"
@@ -30,7 +30,7 @@ const defaultValues = {
 }
 interface CountryFormProps {
   initialData?: ICountry | null
-  submitAction: (data: CountryFormValues) => void
+  submitAction: (data: CountrySchemaType) => void
   onCancel?: () => void
   isSubmitting?: boolean
   isReadOnly?: boolean
@@ -48,7 +48,7 @@ export function CountryForm({
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
 
-  const form = useForm<CountryFormValues>({
+  const form = useForm<CountrySchemaType>({
     resolver: zodResolver(countrySchema),
     defaultValues: initialData
       ? {
@@ -87,7 +87,7 @@ export function CountryForm({
     onCodeBlur?.(code)
   }
 
-  const onSubmit = (data: CountryFormValues) => {
+  const onSubmit = (data: CountrySchemaType) => {
     submitAction(data)
   }
 

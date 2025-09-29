@@ -8,7 +8,7 @@ import {
   IJobOrderHd,
   IOtherService,
 } from "@/interfaces/checklist"
-import { OtherServiceFormValues } from "@/schemas/checklist"
+import { OtherServiceSchemaType } from "@/schemas/checklist"
 import { useQueryClient } from "@tanstack/react-query"
 
 import { getData } from "@/lib/api-client"
@@ -116,10 +116,10 @@ export function OtherServiceTab({
   }
 
   // Mutations
-  const saveMutation = usePersist<OtherServiceFormValues>(
+  const saveMutation = usePersist<OtherServiceSchemaType>(
     `${JobOrder_OtherService.add}`
   )
-  const updateMutation = usePersist<OtherServiceFormValues>(
+  const updateMutation = usePersist<OtherServiceSchemaType>(
     `${JobOrder_OtherService.add}`
   )
   const deleteMutation = useDelete(`${JobOrder_OtherService.delete}`)

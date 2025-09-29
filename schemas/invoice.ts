@@ -125,7 +125,7 @@ export const arinvoiceHdSchema = (
   })
 }
 
-export type ArInvoiceHdFormValues = z.infer<
+export type ArInvoiceHdSchemaType = z.infer<
   ReturnType<typeof arinvoiceHdSchema>
 >
 
@@ -280,7 +280,7 @@ export const arinvoiceDtSchema = (
   })
 }
 
-export type ArInvoiceDtFormValues = z.infer<
+export type ArInvoiceDtSchemaType = z.infer<
   ReturnType<typeof arinvoiceDtSchema>
 >
 

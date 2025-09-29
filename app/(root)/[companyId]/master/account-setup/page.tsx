@@ -12,9 +12,9 @@ import {
 } from "@/interfaces/accountsetup"
 import { ApiResponse } from "@/interfaces/auth"
 import {
-  AccountSetupCategoryFormValues,
-  AccountSetupDtFormValues,
-  AccountSetupFormValues,
+  AccountSetupCategorySchemaType,
+  AccountSetupDtSchemaType,
+  AccountSetupSchemaType,
 } from "@/schemas/accountsetup"
 import { usePermissionStore } from "@/stores/permission-store"
 import { useQueryClient } from "@tanstack/react-query"
@@ -148,28 +148,28 @@ export default function AccountSetupPage() {
     }
 
   // Account Setup Category mutations
-  const saveMutationCategory = usePersist<AccountSetupCategoryFormValues>(
+  const saveMutationCategory = usePersist<AccountSetupCategorySchemaType>(
     `${AccountSetupCategory.add}`
   )
-  const updateMutationCategory = usePersist<AccountSetupCategoryFormValues>(
+  const updateMutationCategory = usePersist<AccountSetupCategorySchemaType>(
     `${AccountSetupCategory.add}`
   )
   const deleteMutationCategory = useDelete(`${AccountSetupCategory.delete}`)
 
   // Account Setup mutations
-  const saveMutationSetup = usePersist<AccountSetupFormValues>(
+  const saveMutationSetup = usePersist<AccountSetupSchemaType>(
     `${AccountSetup.add}`
   )
-  const updateMutationSetup = usePersist<AccountSetupFormValues>(
+  const updateMutationSetup = usePersist<AccountSetupSchemaType>(
     `${AccountSetup.add}`
   )
   const deleteMutationSetup = useDelete(`${AccountSetup.delete}`)
 
   // Account Setup Dt mutations
-  const saveMutationDt = usePersist<AccountSetupDtFormValues>(
+  const saveMutationDt = usePersist<AccountSetupDtSchemaType>(
     `${AccountSetupDt.add}`
   )
-  const updateMutationDt = usePersist<AccountSetupDtFormValues>(
+  const updateMutationDt = usePersist<AccountSetupDtSchemaType>(
     `${AccountSetupDt.add}`
   )
   const deleteMutationDt = useDelete(`${AccountSetupDt.delete}`)
@@ -216,7 +216,7 @@ export default function AccountSetupPage() {
   // State for save confirmations
   const [saveConfirmationCategory, setSaveConfirmationCategory] = useState<{
     isOpen: boolean
-    data: AccountSetupCategoryFormValues | null
+    data: AccountSetupCategorySchemaType | null
   }>({
     isOpen: false,
     data: null,
@@ -224,7 +224,7 @@ export default function AccountSetupPage() {
 
   const [saveConfirmationSetup, setSaveConfirmationSetup] = useState<{
     isOpen: boolean
-    data: AccountSetupFormValues | null
+    data: AccountSetupSchemaType | null
   }>({
     isOpen: false,
     data: null,
@@ -232,7 +232,7 @@ export default function AccountSetupPage() {
 
   const [saveConfirmationDt, setSaveConfirmationDt] = useState<{
     isOpen: boolean
-    data: AccountSetupDtFormValues | null
+    data: AccountSetupDtSchemaType | null
   }>({
     isOpen: false,
     data: null,
@@ -304,7 +304,7 @@ export default function AccountSetupPage() {
   }
 
   // Handler for form submission (create or edit) - shows confirmation first
-  const handleFormSubmitCategory = (data: AccountSetupCategoryFormValues) => {
+  const handleFormSubmitCategory = (data: AccountSetupCategorySchemaType) => {
     setSaveConfirmationCategory({
       isOpen: true,
       data: data,
@@ -313,7 +313,7 @@ export default function AccountSetupPage() {
 
   // Handler for confirmed form submission
   const handleConfirmedFormSubmitCategory = async (
-    data: AccountSetupCategoryFormValues
+    data: AccountSetupCategorySchemaType
   ) => {
     try {
       if (modalCategoryMode === "create") {
@@ -368,7 +368,7 @@ export default function AccountSetupPage() {
   }
 
   // Handler for form submission (create or edit) - shows confirmation first
-  const handleFormSubmitSetup = (data: AccountSetupFormValues) => {
+  const handleFormSubmitSetup = (data: AccountSetupSchemaType) => {
     setSaveConfirmationSetup({
       isOpen: true,
       data: data,
@@ -377,7 +377,7 @@ export default function AccountSetupPage() {
 
   // Handler for confirmed form submission
   const handleConfirmedFormSubmitSetup = async (
-    data: AccountSetupFormValues
+    data: AccountSetupSchemaType
   ) => {
     try {
       if (modalSetupMode === "create") {
@@ -430,7 +430,7 @@ export default function AccountSetupPage() {
   }
 
   // Handler for form submission (create or edit) - shows confirmation first
-  const handleFormSubmitDt = (data: AccountSetupDtFormValues) => {
+  const handleFormSubmitDt = (data: AccountSetupDtSchemaType) => {
     setSaveConfirmationDt({
       isOpen: true,
       data: data,
@@ -439,7 +439,7 @@ export default function AccountSetupPage() {
 
   // Handler for confirmed form submission
   const handleConfirmedFormSubmitDt = async (
-    data: AccountSetupDtFormValues
+    data: AccountSetupDtSchemaType
   ) => {
     try {
       if (modalDtMode === "create") {

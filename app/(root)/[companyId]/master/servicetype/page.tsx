@@ -9,8 +9,8 @@ import {
   IServiceTypeFilter,
 } from "@/interfaces/servicetype"
 import {
-  ServiceTypeCategoryFormValues,
-  ServiceTypeFormValues,
+  ServiceTypeCategorySchemaType,
+  ServiceTypeSchemaType,
 } from "@/schemas/servicetype"
 import { usePermissionStore } from "@/stores/permission-store"
 import { useQueryClient } from "@tanstack/react-query"
@@ -127,14 +127,14 @@ export default function ServiceTypePage() {
     }
 
   // Mutations
-  const saveMutation = usePersist<ServiceTypeFormValues>(`${ServiceType.add}`)
-  const updateMutation = usePersist<ServiceTypeFormValues>(`${ServiceType.add}`)
+  const saveMutation = usePersist<ServiceTypeSchemaType>(`${ServiceType.add}`)
+  const updateMutation = usePersist<ServiceTypeSchemaType>(`${ServiceType.add}`)
   const deleteMutation = useDelete(`${ServiceType.delete}`)
 
-  const saveCategoryMutation = usePersist<ServiceTypeCategoryFormValues>(
+  const saveCategoryMutation = usePersist<ServiceTypeCategorySchemaType>(
     `${ServiceTypeCategory.add}`
   )
-  const updateCategoryMutation = usePersist<ServiceTypeCategoryFormValues>(
+  const updateCategoryMutation = usePersist<ServiceTypeCategorySchemaType>(
     `${ServiceTypeCategory.add}`
   )
   const deleteCategoryMutation = useDelete(`${ServiceTypeCategory.delete}`)
@@ -233,7 +233,7 @@ export default function ServiceTypePage() {
   }
 
   // Specialized form handlers
-  const handleServiceTypeSubmit = async (data: ServiceTypeFormValues) => {
+  const handleServiceTypeSubmit = async (data: ServiceTypeSchemaType) => {
     try {
       if (modalMode === "create") {
         const response = (await saveMutation.mutateAsync(
@@ -256,7 +256,7 @@ export default function ServiceTypePage() {
   }
 
   const handleServiceTypeCategorySubmit = async (
-    data: ServiceTypeCategoryFormValues
+    data: ServiceTypeCategorySchemaType
   ) => {
     try {
       if (modalMode === "create") {
@@ -281,16 +281,16 @@ export default function ServiceTypePage() {
 
   // Main form submit handler
   const handleFormSubmit = async (
-    data: ServiceTypeFormValues | ServiceTypeCategoryFormValues
+    data: ServiceTypeSchemaType | ServiceTypeCategorySchemaType
   ) => {
     try {
       if (isCategoryModalOpen) {
         await handleServiceTypeCategorySubmit(
-          data as ServiceTypeCategoryFormValues
+          data as ServiceTypeCategorySchemaType
         )
         setIsCategoryModalOpen(false)
       } else {
-        await handleServiceTypeSubmit(data as ServiceTypeFormValues)
+        await handleServiceTypeSubmit(data as ServiceTypeSchemaType)
         setIsModalOpen(false)
       }
     } catch (error) {

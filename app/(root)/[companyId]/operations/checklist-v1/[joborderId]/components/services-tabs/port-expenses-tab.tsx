@@ -8,7 +8,7 @@ import {
   IJobOrderHd,
   IPortExpenses,
 } from "@/interfaces/checklist"
-import { PortExpensesFormValues } from "@/schemas/checklist"
+import { PortExpensesSchemaType } from "@/schemas/checklist"
 import { useQueryClient } from "@tanstack/react-query"
 
 import { getData } from "@/lib/api-client"
@@ -119,10 +119,10 @@ export function PortExpensesTab({
   }
 
   // Mutations
-  const saveMutation = usePersist<PortExpensesFormValues>(
+  const saveMutation = usePersist<PortExpensesSchemaType>(
     `${JobOrder_PortExpenses.add}`
   )
-  const updateMutation = usePersist<PortExpensesFormValues>(
+  const updateMutation = usePersist<PortExpensesSchemaType>(
     `${JobOrder_PortExpenses.add}`
   )
   const deleteMutation = useDelete(`${JobOrder_PortExpenses.delete}`)
@@ -557,6 +557,7 @@ export function PortExpensesTab({
           onDelete={handleDeleteDebitNote}
           title="Debit Note"
           description="Manage debit note details for this port expenses."
+          jobOrder={jobData}
         />
       )}
 

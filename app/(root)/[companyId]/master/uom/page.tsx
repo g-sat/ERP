@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react"
 import { ApiResponse } from "@/interfaces/auth"
 import { IUom, IUomDt, IUomFilter } from "@/interfaces/uom"
-import { UomDtFormValues, UomFormValues } from "@/schemas/uom"
+import { UomDtSchemaType, UomSchemaType } from "@/schemas/uom"
 import { usePermissionStore } from "@/stores/permission-store"
 import { useQueryClient } from "@tanstack/react-query"
 
@@ -70,12 +70,12 @@ export default function UomPage() {
   const uomDtData = (uomDtResponse as ApiResponse<IUomDt>)?.data || []
 
   // Mutations
-  const saveMutation = usePersist<UomFormValues>(`${Uom.add}`)
-  const updateMutation = usePersist<UomFormValues>(`${Uom.add}`)
+  const saveMutation = usePersist<UomSchemaType>(`${Uom.add}`)
+  const updateMutation = usePersist<UomSchemaType>(`${Uom.add}`)
   const deleteMutation = useDelete(`${Uom.delete}`)
 
-  const saveDtMutation = usePersist<UomDtFormValues>(`${UomDt.add}`)
-  const updateDtMutation = usePersist<UomDtFormValues>(`${UomDt.add}`)
+  const saveDtMutation = usePersist<UomDtSchemaType>(`${UomDt.add}`)
+  const updateDtMutation = usePersist<UomDtSchemaType>(`${UomDt.add}`)
   const deleteDtMutation = useDelete(`${UomDt.delete}`)
 
   // State management
@@ -174,7 +174,7 @@ export default function UomPage() {
   // State for save confirmation
   const [saveConfirmation, setSaveConfirmation] = useState<{
     isOpen: boolean
-    data: UomFormValues | UomDtFormValues | null
+    data: UomSchemaType | UomDtSchemaType | null
     type: "uom" | "uomdt"
   }>({
     isOpen: false,
@@ -183,7 +183,7 @@ export default function UomPage() {
   })
 
   // Specialized form handlers
-  const handleUomSubmit = async (data: UomFormValues) => {
+  const handleUomSubmit = async (data: UomSchemaType) => {
     try {
       if (modalMode === "create") {
         const response = (await saveMutation.mutateAsync(
@@ -205,7 +205,7 @@ export default function UomPage() {
     }
   }
 
-  const handleUomDtSubmit = async (data: UomDtFormValues) => {
+  const handleUomDtSubmit = async (data: UomDtSchemaType) => {
     try {
       if (modalMode === "create") {
         const response = (await saveDtMutation.mutateAsync(
@@ -228,7 +228,7 @@ export default function UomPage() {
   }
 
   // Main form submit handler - shows confirmation first
-  const handleFormSubmit = (data: UomFormValues | UomDtFormValues) => {
+  const handleFormSubmit = (data: UomSchemaType | UomDtSchemaType) => {
     setSaveConfirmation({
       isOpen: true,
       data: data,
@@ -238,14 +238,14 @@ export default function UomPage() {
 
   // Handler for confirmed form submission
   const handleConfirmedFormSubmit = async (
-    data: UomFormValues | UomDtFormValues
+    data: UomSchemaType | UomDtSchemaType
   ) => {
     try {
       if (saveConfirmation.type === "uomdt") {
-        await handleUomDtSubmit(data as UomDtFormValues)
+        await handleUomDtSubmit(data as UomDtSchemaType)
         setIsDtModalOpen(false)
       } else {
-        await handleUomSubmit(data as UomFormValues)
+        await handleUomSubmit(data as UomSchemaType)
         setIsModalOpen(false)
       }
     } catch (error) {
@@ -584,8 +584,8 @@ export default function UomPage() {
         }
         itemName={
           saveConfirmation.type === "uom"
-            ? (saveConfirmation.data as UomFormValues)?.uomName || ""
-            : (saveConfirmation.data as UomDtFormValues)?.uomId?.toString() ||
+            ? (saveConfirmation.data as UomSchemaType)?.uomName || ""
+            : (saveConfirmation.data as UomDtSchemaType)?.uomId?.toString() ||
               ""
         }
         operationType={modalMode === "create" ? "create" : "update"}

@@ -3,7 +3,7 @@
 import { useEffect } from "react"
 import { IChartofAccount } from "@/interfaces/chartofaccount"
 import {
-  ChartofAccountFormValues,
+  ChartofAccountSchemaType,
   chartofAccountSchema,
 } from "@/schemas/chartofaccount"
 import { useAuthStore } from "@/stores/auth-store"
@@ -37,7 +37,7 @@ import CustomTextarea from "@/components/custom/custom-textarea"
 
 interface ChartOfAccountFormProps {
   initialData?: IChartofAccount | null
-  submitAction: (data: ChartofAccountFormValues) => void
+  submitAction: (data: ChartofAccountSchemaType) => void
   onCancel?: () => void
   isSubmitting?: boolean
   isReadOnly?: boolean
@@ -73,7 +73,7 @@ export function ChartOfAccountForm({
     isActive: true,
   }
 
-  const form = useForm<ChartofAccountFormValues>({
+  const form = useForm<ChartofAccountSchemaType>({
     resolver: zodResolver(chartofAccountSchema),
     defaultValues: initialData
       ? {
@@ -136,7 +136,7 @@ export function ChartOfAccountForm({
     onCodeBlur?.(code)
   }
 
-  const onSubmit = (data: ChartofAccountFormValues) => {
+  const onSubmit = (data: ChartofAccountSchemaType) => {
     submitAction(data)
   }
 

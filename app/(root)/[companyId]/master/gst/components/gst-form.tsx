@@ -2,7 +2,7 @@
 
 import { useEffect } from "react"
 import { IGst } from "@/interfaces/gst"
-import { GstFormValues, gstSchema } from "@/schemas/gst"
+import { GstSchemaType, gstSchema } from "@/schemas/gst"
 import { useAuthStore } from "@/stores/auth-store"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { format } from "date-fns"
@@ -23,7 +23,7 @@ import CustomTextarea from "@/components/custom/custom-textarea"
 
 interface GstFormProps {
   initialData?: IGst | null
-  submitAction: (data: GstFormValues) => void
+  submitAction: (data: GstSchemaType) => void
   onCancel: () => void
   isSubmitting: boolean
   isReadOnly?: boolean
@@ -51,7 +51,7 @@ export function GstForm({
     remarks: "",
   }
 
-  const form = useForm<GstFormValues>({
+  const form = useForm<GstSchemaType>({
     resolver: zodResolver(gstSchema),
     defaultValues: initialData
       ? {
@@ -90,7 +90,7 @@ export function GstForm({
     onCodeBlur?.(code)
   }
 
-  const onSubmit = (data: GstFormValues) => {
+  const onSubmit = (data: GstSchemaType) => {
     submitAction(data)
   }
 

@@ -3,7 +3,7 @@
 import { useCallback, useState } from "react"
 import { ApiResponse } from "@/interfaces/auth"
 import { IEntityType, IEntityTypeFilter } from "@/interfaces/entitytype"
-import { EntityTypeFormValues } from "@/schemas/entitytype"
+import { EntityTypeSchemaType } from "@/schemas/entitytype"
 import { usePermissionStore } from "@/stores/permission-store"
 import { useQueryClient } from "@tanstack/react-query"
 
@@ -65,8 +65,8 @@ export default function EntityTypePage() {
     }
 
   // Define mutations for CRUD operations
-  const saveMutation = usePersist<EntityTypeFormValues>(`${EntityType.add}`)
-  const updateMutation = usePersist<EntityTypeFormValues>(`${EntityType.add}`)
+  const saveMutation = usePersist<EntityTypeSchemaType>(`${EntityType.add}`)
+  const updateMutation = usePersist<EntityTypeSchemaType>(`${EntityType.add}`)
   const deleteMutation = useDelete(`${EntityType.delete}`)
 
   // State for modal and selected entity type
@@ -96,7 +96,7 @@ export default function EntityTypePage() {
   // State for save confirmation
   const [saveConfirmation, setSaveConfirmation] = useState<{
     isOpen: boolean
-    data: EntityTypeFormValues | null
+    data: EntityTypeSchemaType | null
   }>({
     isOpen: false,
     data: null,
@@ -138,7 +138,7 @@ export default function EntityTypePage() {
   }
 
   // Handler for form submission (create or edit) - shows confirmation first
-  const handleFormSubmit = (data: EntityTypeFormValues) => {
+  const handleFormSubmit = (data: EntityTypeSchemaType) => {
     setSaveConfirmation({
       isOpen: true,
       data: data,
@@ -146,7 +146,7 @@ export default function EntityTypePage() {
   }
 
   // Handler for confirmed form submission
-  const handleConfirmedFormSubmit = async (data: EntityTypeFormValues) => {
+  const handleConfirmedFormSubmit = async (data: EntityTypeSchemaType) => {
     try {
       if (modalMode === "create") {
         const response = await saveMutation.mutateAsync(data)

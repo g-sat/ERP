@@ -10,9 +10,9 @@ import {
   ITaxFilter,
 } from "@/interfaces/tax"
 import {
-  TaxCategoryFormValues,
-  TaxDtFormValues,
-  TaxFormValues,
+  TaxCategorySchemaType,
+  TaxDtSchemaType,
+  TaxSchemaType,
 } from "@/schemas/tax"
 import { usePermissionStore } from "@/stores/permission-store"
 import { useQueryClient } from "@tanstack/react-query"
@@ -157,18 +157,18 @@ export default function TaxPage() {
     }
 
   // Mutations
-  const saveMutation = usePersist<TaxFormValues>(`${Tax.add}`)
-  const updateMutation = usePersist<TaxFormValues>(`${Tax.add}`)
+  const saveMutation = usePersist<TaxSchemaType>(`${Tax.add}`)
+  const updateMutation = usePersist<TaxSchemaType>(`${Tax.add}`)
   const deleteMutation = useDelete(`${Tax.delete}`)
 
-  const saveDtMutation = usePersist<TaxDtFormValues>(`${TaxDt.add}`)
-  const updateDtMutation = usePersist<TaxDtFormValues>(`${TaxDt.add}`)
+  const saveDtMutation = usePersist<TaxDtSchemaType>(`${TaxDt.add}`)
+  const updateDtMutation = usePersist<TaxDtSchemaType>(`${TaxDt.add}`)
   const deleteDtMutation = useDelete(`${TaxDt.delete}`)
 
-  const saveCategoryMutation = usePersist<TaxCategoryFormValues>(
+  const saveCategoryMutation = usePersist<TaxCategorySchemaType>(
     `${TaxCategory.add}`
   )
-  const updateCategoryMutation = usePersist<TaxCategoryFormValues>(
+  const updateCategoryMutation = usePersist<TaxCategorySchemaType>(
     `${TaxCategory.add}`
   )
   const deleteCategoryMutation = useDelete(`${TaxCategory.delete}`)
@@ -284,7 +284,7 @@ export default function TaxPage() {
   }
 
   // Specialized form handlers
-  const handleTaxSubmit = async (data: TaxFormValues) => {
+  const handleTaxSubmit = async (data: TaxSchemaType) => {
     try {
       if (modalMode === "create") {
         const response = (await saveMutation.mutateAsync(
@@ -306,7 +306,7 @@ export default function TaxPage() {
     }
   }
 
-  const handleTaxDtSubmit = async (data: TaxDtFormValues) => {
+  const handleTaxDtSubmit = async (data: TaxDtSchemaType) => {
     try {
       if (modalMode === "create") {
         const response = (await saveDtMutation.mutateAsync(
@@ -328,7 +328,7 @@ export default function TaxPage() {
     }
   }
 
-  const handleTaxCategorySubmit = async (data: TaxCategoryFormValues) => {
+  const handleTaxCategorySubmit = async (data: TaxCategorySchemaType) => {
     try {
       if (modalMode === "create") {
         const response = (await saveCategoryMutation.mutateAsync(
@@ -353,7 +353,7 @@ export default function TaxPage() {
   // State for save confirmations
   const [saveConfirmation, setSaveConfirmation] = useState<{
     isOpen: boolean
-    data: TaxFormValues | TaxDtFormValues | TaxCategoryFormValues | null
+    data: TaxSchemaType | TaxDtSchemaType | TaxCategorySchemaType | null
     type: "tax" | "taxdt" | "taxcategory"
   }>({
     isOpen: false,
@@ -363,7 +363,7 @@ export default function TaxPage() {
 
   // Main form submit handler - shows confirmation first
   const handleFormSubmit = (
-    data: TaxFormValues | TaxDtFormValues | TaxCategoryFormValues
+    data: TaxSchemaType | TaxDtSchemaType | TaxCategorySchemaType
   ) => {
     let type: "tax" | "taxdt" | "taxcategory" = "tax"
     if (isDtModalOpen) type = "taxdt"
@@ -378,17 +378,17 @@ export default function TaxPage() {
 
   // Handler for confirmed form submission
   const handleConfirmedFormSubmit = async (
-    data: TaxFormValues | TaxDtFormValues | TaxCategoryFormValues
+    data: TaxSchemaType | TaxDtSchemaType | TaxCategorySchemaType
   ) => {
     try {
       if (saveConfirmation.type === "taxdt") {
-        await handleTaxDtSubmit(data as TaxDtFormValues)
+        await handleTaxDtSubmit(data as TaxDtSchemaType)
         setIsDtModalOpen(false)
       } else if (saveConfirmation.type === "taxcategory") {
-        await handleTaxCategorySubmit(data as TaxCategoryFormValues)
+        await handleTaxCategorySubmit(data as TaxCategorySchemaType)
         setIsCategoryModalOpen(false)
       } else {
-        await handleTaxSubmit(data as TaxFormValues)
+        await handleTaxSubmit(data as TaxSchemaType)
         setIsModalOpen(false)
       }
     } catch (error) {
@@ -900,12 +900,12 @@ export default function TaxPage() {
         }
         itemName={
           saveConfirmation.type === "tax"
-            ? (saveConfirmation.data as TaxFormValues)?.taxName || ""
+            ? (saveConfirmation.data as TaxSchemaType)?.taxName || ""
             : saveConfirmation.type === "taxdt"
               ? (
-                  saveConfirmation.data as TaxDtFormValues
+                  saveConfirmation.data as TaxDtSchemaType
                 )?.taxPercentage?.toString() || ""
-              : (saveConfirmation.data as TaxCategoryFormValues)
+              : (saveConfirmation.data as TaxCategorySchemaType)
                   ?.taxCategoryName || ""
         }
         operationType={modalMode === "create" ? "create" : "update"}

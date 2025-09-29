@@ -101,7 +101,7 @@ export const JobOrderHdSchema = z
     }
   )
 
-export type JobOrderHdFormValues = z.infer<typeof JobOrderHdSchema>
+export type JobOrderHdSchemaType = z.infer<typeof JobOrderHdSchema>
 
 export const JobOrderDtSchema = z.object({
   jobOrderId: z.number(),
@@ -119,7 +119,7 @@ export const JobOrderDtSchema = z.object({
   totLocalAftAmt: z.number(),
 })
 
-export type JobOrderDtFormValues = z.infer<typeof JobOrderDtSchema>
+export type JobOrderDtSchemaType = z.infer<typeof JobOrderDtSchema>
 
 export const AgencyRemunerationSchema = z.object({
   agencyRemunerationId: z.number().default(0),
@@ -140,7 +140,7 @@ export const AgencyRemunerationSchema = z.object({
   editVersion: z.number().default(0),
 })
 
-export type AgencyRemunerationFormValues = z.infer<
+export type AgencyRemunerationSchemaType = z.infer<
   typeof AgencyRemunerationSchema
 >
 
@@ -186,7 +186,7 @@ export const ConsignmentExportSchema = z.object({
   editVersion: z.number().default(0),
 })
 
-export type ConsignmentExportFormValues = z.infer<
+export type ConsignmentExportSchemaType = z.infer<
   typeof ConsignmentExportSchema
 >
 
@@ -232,7 +232,7 @@ export const ConsignmentImportSchema = z.object({
   editVersion: z.number().default(0),
 })
 
-export type ConsignmentImportFormValues = z.infer<
+export type ConsignmentImportSchemaType = z.infer<
   typeof ConsignmentImportSchema
 >
 
@@ -256,7 +256,7 @@ export const CrewMiscellaneousSchema = z.object({
   editVersion: z.number().default(0),
 })
 
-export type CrewMiscellaneousFormValues = z.infer<
+export type CrewMiscellaneousSchemaType = z.infer<
   typeof CrewMiscellaneousSchema
 >
 
@@ -290,7 +290,7 @@ export const CrewSignOffSchema = z.object({
   editVersion: z.number().default(0),
 })
 
-export type CrewSignOffFormValues = z.infer<typeof CrewSignOffSchema>
+export type CrewSignOffSchemaType = z.infer<typeof CrewSignOffSchema>
 
 export const CrewSignOnSchema = z.object({
   crewSignOnId: z.number().default(0),
@@ -322,7 +322,7 @@ export const CrewSignOnSchema = z.object({
   editVersion: z.number().default(0),
 })
 
-export type CrewSignOnFormValues = z.infer<typeof CrewSignOnSchema>
+export type CrewSignOnSchemaType = z.infer<typeof CrewSignOnSchema>
 
 export const FreshWaterSchema = z.object({
   freshWaterId: z.number().default(0),
@@ -346,7 +346,7 @@ export const FreshWaterSchema = z.object({
   editVersion: z.number().default(0),
 })
 
-export type FreshWaterFormValues = z.infer<typeof FreshWaterSchema>
+export type FreshWaterSchemaType = z.infer<typeof FreshWaterSchema>
 
 export const LandingItemsSchema = z.object({
   landingItemId: z.number().default(0),
@@ -374,7 +374,7 @@ export const LandingItemsSchema = z.object({
   editVersion: z.number().default(0),
 })
 
-export type LandingItemsFormValues = z.infer<typeof LandingItemsSchema>
+export type LandingItemsSchemaType = z.infer<typeof LandingItemsSchema>
 
 export const MedicalAssistanceSchema = z.object({
   medicalAssistanceId: z.number().default(0),
@@ -401,7 +401,7 @@ export const MedicalAssistanceSchema = z.object({
   editVersion: z.number().default(0),
 })
 
-export type MedicalAssistanceFormValues = z.infer<
+export type MedicalAssistanceSchemaType = z.infer<
   typeof MedicalAssistanceSchema
 >
 
@@ -428,7 +428,7 @@ export const OtherServiceSchema = z.object({
   editVersion: z.number().default(0),
 })
 
-export type OtherServiceFormValues = z.infer<typeof OtherServiceSchema>
+export type OtherServiceSchemaType = z.infer<typeof OtherServiceSchema>
 
 export const PortExpensesSchema = z.object({
   portExpenseId: z.number().default(0),
@@ -450,7 +450,7 @@ export const PortExpensesSchema = z.object({
   editVersion: z.number().default(0),
 })
 
-export type PortExpensesFormValues = z.infer<typeof PortExpensesSchema>
+export type PortExpensesSchemaType = z.infer<typeof PortExpensesSchema>
 
 export const LaunchServiceSchema = z.object({
   launchServiceId: z.number().default(0),
@@ -492,7 +492,7 @@ export const LaunchServiceSchema = z.object({
   editVersion: z.number().default(0),
 })
 
-export type LaunchServiceFormValues = z.infer<typeof LaunchServiceSchema>
+export type LaunchServiceSchemaType = z.infer<typeof LaunchServiceSchema>
 
 export const EquipmentUsedSchema = z.object({
   equipmentUsedId: z.number().default(0),
@@ -530,7 +530,7 @@ export const EquipmentUsedSchema = z.object({
   editVersion: z.number().default(0),
 })
 
-export type EquipmentUsedFormValues = z.infer<typeof EquipmentUsedSchema>
+export type EquipmentUsedSchemaType = z.infer<typeof EquipmentUsedSchema>
 
 export const TechnicianSurveyorSchema = z.object({
   technicianSurveyorId: z.number().default(0),
@@ -559,7 +559,7 @@ export const TechnicianSurveyorSchema = z.object({
   editVersion: z.number().default(0),
 })
 
-export type TechnicianSurveyorFormValues = z.infer<
+export type TechnicianSurveyorSchemaType = z.infer<
   typeof TechnicianSurveyorSchema
 >
 
@@ -586,7 +586,7 @@ export const ThirdPartySchema = z.object({
   editVersion: z.number().default(0),
 })
 
-export type ThirdPartyFormValues = z.infer<typeof ThirdPartySchema>
+export type ThirdPartySchemaType = z.infer<typeof ThirdPartySchema>
 
 // Define debitNoteDtSchema first since it's referenced by debitNoteHdSchema
 export const debitNoteDtSchema = z
@@ -639,7 +639,7 @@ export const debitNoteDtSchema = z
     }
   })
 
-export type DebitNoteDtFormValues = z.infer<typeof debitNoteDtSchema>
+export type DebitNoteDtSchemaType = z.infer<typeof debitNoteDtSchema>
 
 // Define debitNoteHdSchema after debitNoteDtSchema
 export const debitNoteHdSchema = z.object({
@@ -677,4 +677,4 @@ export const debitNoteHdSchema = z.object({
   data_details: z.array(debitNoteDtSchema).optional().default([]),
 })
 
-export type DebitNoteHdFormValues = z.infer<typeof debitNoteHdSchema>
+export type DebitNoteHdSchemaType = z.infer<typeof debitNoteHdSchema>

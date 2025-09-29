@@ -2,7 +2,7 @@
 
 import { ApiResponse } from "@/interfaces/auth"
 import { ILeave, ILeaveBalance, ILeavePolicy } from "@/interfaces/leave"
-import { LeavePolicyFormValues, LeaveRequestFormValues } from "@/schemas/leave"
+import { LeavePolicySchemaType, LeaveRequestSchemaType } from "@/schemas/leave"
 import { useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 
@@ -48,7 +48,7 @@ export default function LeavePage() {
   console.log("policies", policies)
 
   // Handler functions using the common mutation hooks
-  const handlePolicySubmit = async (data: LeavePolicyFormValues) => {
+  const handlePolicySubmit = async (data: LeavePolicySchemaType) => {
     console.log("Page handlePolicySubmit called with data:", data)
     try {
       console.log("Policy submit:", data)
@@ -110,7 +110,7 @@ export default function LeavePage() {
     }
   }
 
-  const handleLeaveSubmit = async (data: LeaveRequestFormValues) => {
+  const handleLeaveSubmit = async (data: LeaveRequestSchemaType) => {
     try {
       console.log("Submitting leave request:", data)
       // Convert LeaveFormData to ILeaveRequest format

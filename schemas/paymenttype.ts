@@ -19,7 +19,7 @@ export const paymentTypeSchema = z.object({
     .optional(),
 })
 
-export type PaymentTypeFormValues = z.infer<typeof paymentTypeSchema>
+export type PaymentTypeSchemaType = z.infer<typeof paymentTypeSchema>
 
 export const paymentTypeFiltersSchema = z.object({
   isActive: z.boolean().optional(),

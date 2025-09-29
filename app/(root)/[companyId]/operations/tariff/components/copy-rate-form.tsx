@@ -30,7 +30,7 @@ const copyRateSchema = z.object({
   isDelete: z.boolean().default(false),
 })
 
-type CopyRateFormValues = z.infer<typeof copyRateSchema>
+type CopyRateSchemaType = z.infer<typeof copyRateSchema>
 
 interface CopyRateFormProps {
   onClose: () => void
@@ -40,7 +40,7 @@ export function CopyRateForm({ onClose }: CopyRateFormProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [showTable, setShowTable] = useState(false)
 
-  const form = useForm<CopyRateFormValues>({
+  const form = useForm<CopyRateSchemaType>({
     resolver: zodResolver(copyRateSchema),
     defaultValues: {
       fromCustomerId: 0,
@@ -99,7 +99,7 @@ export function CopyRateForm({ onClose }: CopyRateFormProps) {
     return () => clearTimeout(timer)
   }, [watchedFromCustomerId, watchedFromPortId, watchedFromTaskId])
 
-  const handleSubmit = async (data: CopyRateFormValues) => {
+  const handleSubmit = async (data: CopyRateSchemaType) => {
     setIsLoading(true)
     try {
       const copyRateData = {

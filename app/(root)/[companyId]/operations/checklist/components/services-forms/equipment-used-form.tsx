@@ -3,8 +3,8 @@
 import { useEffect } from "react"
 import { IEquipmentUsed, IJobOrderHd } from "@/interfaces/checklist"
 import {
-  EquipmentUsedFormValues,
   EquipmentUsedSchema,
+  EquipmentUsedSchemaType,
 } from "@/schemas/checklist"
 import { useAuthStore } from "@/stores/auth-store"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -17,7 +17,6 @@ import { useChartofAccountLookup } from "@/hooks/use-lookup"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Form } from "@/components/ui/form"
-import { FormLoadingSpinner } from "@/components/skeleton/loading-spinner"
 import ChargeAutocomplete from "@/components/autocomplete/autocomplete-charge"
 import ChartOfAccountAutocomplete from "@/components/autocomplete/autocomplete-chartofaccount"
 import StatusTaskAutocomplete from "@/components/autocomplete/autocomplete-status-task"
@@ -30,12 +29,13 @@ import { CustomDateNew } from "@/components/custom/custom-date-new"
 import CustomInput from "@/components/custom/custom-input"
 import CustomSwitch from "@/components/custom/custom-switch"
 import CustomTextarea from "@/components/custom/custom-textarea"
+import { FormLoadingSpinner } from "@/components/skeleton/loading-spinner"
 
 interface EquipmentUsedFormProps {
   jobData: IJobOrderHd
   initialData?: IEquipmentUsed
   taskDefaults?: Record<string, number> // Add taskDefaults prop
-  submitAction: (data: EquipmentUsedFormValues) => void
+  submitAction: (data: EquipmentUsedSchemaType) => void
   onCancel?: () => void
   isSubmitting?: boolean
   isConfirmed?: boolean
@@ -59,7 +59,7 @@ export function EquipmentUsedForm({
     Number(jobData.companyId)
   )
 
-  const form = useForm<EquipmentUsedFormValues>({
+  const form = useForm<EquipmentUsedSchemaType>({
     resolver: zodResolver(EquipmentUsedSchema),
     defaultValues: {
       equipmentUsedId: initialData?.equipmentUsedId ?? 0,
@@ -154,7 +154,7 @@ export function EquipmentUsedForm({
     )
   }
 
-  const onSubmit = (data: EquipmentUsedFormValues) => {
+  const onSubmit = (data: EquipmentUsedSchemaType) => {
     console.log("Submitting form data:", data)
     try {
       // Log form state

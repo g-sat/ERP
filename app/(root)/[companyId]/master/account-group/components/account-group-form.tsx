@@ -3,7 +3,7 @@
 import { useEffect } from "react"
 import { IAccountGroup } from "@/interfaces/accountgroup"
 import {
-  AccountGroupFormValues,
+  AccountGroupSchemaType,
   accountGroupSchema,
 } from "@/schemas/accountgroup"
 import { useAuthStore } from "@/stores/auth-store"
@@ -24,7 +24,7 @@ import CustomSwitch from "@/components/custom/custom-switch"
 import CustomTextarea from "@/components/custom/custom-textarea"
 
 // Default values for the address form
-const defaultValues: AccountGroupFormValues = {
+const defaultValues: AccountGroupSchemaType = {
   accGroupId: 0,
   accGroupName: "",
   accGroupCode: "",
@@ -34,7 +34,7 @@ const defaultValues: AccountGroupFormValues = {
 }
 interface AccountGroupFormProps {
   initialData?: IAccountGroup
-  submitAction: (data: AccountGroupFormValues) => void
+  submitAction: (data: AccountGroupSchemaType) => void
   onCancel?: () => void
   isSubmitting?: boolean
   isReadOnly?: boolean
@@ -52,7 +52,7 @@ export function AccountGroupForm({
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
 
-  const form = useForm<AccountGroupFormValues>({
+  const form = useForm<AccountGroupSchemaType>({
     resolver: zodResolver(accountGroupSchema),
     mode: "onChange", // Validate on every change
     defaultValues: initialData
@@ -92,7 +92,7 @@ export function AccountGroupForm({
     onCodeBlur?.(code)
   }
 
-  const onSubmit = (data: AccountGroupFormValues) => {
+  const onSubmit = (data: AccountGroupSchemaType) => {
     console.log("onSubmit :", data)
     submitAction(data)
   }

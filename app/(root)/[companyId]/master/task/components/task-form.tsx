@@ -2,7 +2,7 @@
 
 import { useEffect } from "react"
 import { ITask } from "@/interfaces/task"
-import { TaskFormValues, taskSchema } from "@/schemas/task"
+import { TaskSchemaType, taskSchema } from "@/schemas/task"
 import { useAuthStore } from "@/stores/auth-store"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { format } from "date-fns"
@@ -22,7 +22,7 @@ import CustomTextarea from "@/components/custom/custom-textarea"
 
 interface TaskFormProps {
   initialData?: ITask | null
-  submitAction: (data: TaskFormValues) => void
+  submitAction: (data: TaskSchemaType) => void
   onCancel?: () => void
   isSubmitting?: boolean
   isReadOnly?: boolean
@@ -49,7 +49,7 @@ export function TaskForm({
     isActive: true,
   }
 
-  const form = useForm<TaskFormValues>({
+  const form = useForm<TaskSchemaType>({
     resolver: zodResolver(taskSchema),
     defaultValues: initialData
       ? {
@@ -88,7 +88,7 @@ export function TaskForm({
     onCodeBlur?.(code)
   }
 
-  const onSubmit = (data: TaskFormValues) => {
+  const onSubmit = (data: TaskSchemaType) => {
     submitAction(data)
   }
 

@@ -19,7 +19,7 @@ export const designationSchema = z.object({
     .optional(),
 })
 
-export type DesignationFormValues = z.infer<typeof designationSchema>
+export type DesignationSchemaType = z.infer<typeof designationSchema>
 
 export const designationFiltersSchema = z.object({
   isActive: z.boolean().optional(),

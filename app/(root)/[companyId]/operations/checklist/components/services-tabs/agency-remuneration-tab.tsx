@@ -8,7 +8,7 @@ import {
   IDebitNoteHd,
   IJobOrderHd,
 } from "@/interfaces/checklist"
-import { AgencyRemunerationFormValues } from "@/schemas/checklist"
+import { AgencyRemunerationSchemaType } from "@/schemas/checklist"
 import { useQueryClient } from "@tanstack/react-query"
 
 import { getData } from "@/lib/api-client"
@@ -124,10 +124,10 @@ export function AgencyRemunerationTab({
   }
 
   // Mutations
-  const saveMutation = usePersist<AgencyRemunerationFormValues>(
+  const saveMutation = usePersist<AgencyRemunerationSchemaType>(
     `${JobOrder_AgencyRemuneration.add}`
   )
-  const updateMutation = usePersist<AgencyRemunerationFormValues>(
+  const updateMutation = usePersist<AgencyRemunerationSchemaType>(
     `${JobOrder_AgencyRemuneration.add}`
   )
   const deleteMutation = useDelete(`${JobOrder_AgencyRemuneration.delete}`)

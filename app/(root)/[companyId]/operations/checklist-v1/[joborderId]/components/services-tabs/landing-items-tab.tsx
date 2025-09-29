@@ -8,7 +8,7 @@ import {
   IJobOrderHd,
   ILandingItems,
 } from "@/interfaces/checklist"
-import { LandingItemsFormValues } from "@/schemas/checklist"
+import { LandingItemsSchemaType } from "@/schemas/checklist"
 import { useQueryClient } from "@tanstack/react-query"
 
 import { getData } from "@/lib/api-client"
@@ -116,10 +116,10 @@ export function LandingItemsTab({
   }
 
   // Mutations
-  const saveMutation = usePersist<LandingItemsFormValues>(
+  const saveMutation = usePersist<LandingItemsSchemaType>(
     `${JobOrder_LandingItems.add}`
   )
-  const updateMutation = usePersist<LandingItemsFormValues>(
+  const updateMutation = usePersist<LandingItemsSchemaType>(
     `${JobOrder_LandingItems.add}`
   )
   const deleteMutation = useDelete(`${JobOrder_LandingItems.delete}`)

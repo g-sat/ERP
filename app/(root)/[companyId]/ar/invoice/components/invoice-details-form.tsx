@@ -8,7 +8,7 @@ import {
   IGstLookup,
   IProductLookup,
 } from "@/interfaces/lookup"
-import { ArInvoiceDtFormValues } from "@/schemas/invoice"
+import { ArInvoiceDtSchemaType } from "@/schemas/invoice"
 import { useAuthStore } from "@/stores/auth-store"
 import { FormProvider, useForm } from "react-hook-form"
 
@@ -27,7 +27,7 @@ export default function InvoiceDetailsForm() {
   const amtDec = decimals[0]?.amtDec || 2
   const locAmtDec = decimals[0]?.locAmtDec || 2
 
-  const form = useForm<ArInvoiceDtFormValues>({
+  const form = useForm<ArInvoiceDtSchemaType>({
     defaultValues: {
       invoiceId: "0",
       invoiceNo: "",
@@ -70,7 +70,7 @@ export default function InvoiceDetailsForm() {
     },
   })
 
-  const onSubmit = (data: ArInvoiceDtFormValues) => {
+  const onSubmit = (data: ArInvoiceDtSchemaType) => {
     console.log(data)
     // Handle form submission
   }

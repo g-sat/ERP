@@ -1,7 +1,7 @@
 "use client"
 
 import { IDepartment } from "@/interfaces/department"
-import { DepartmentFormValues, departmentSchema } from "@/schemas/department"
+import { DepartmentSchemaType, departmentSchema } from "@/schemas/department"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 
@@ -11,11 +11,11 @@ import CustomTextarea from "@/components/custom/custom-textarea"
 
 interface DepartmentFormProps {
   department?: IDepartment
-  onSave: (data: DepartmentFormValues) => void
+  onSave: (data: DepartmentSchemaType) => void
 }
 
 export function DepartmentForm({ department, onSave }: DepartmentFormProps) {
-  const form = useForm<DepartmentFormValues>({
+  const form = useForm<DepartmentSchemaType>({
     resolver: zodResolver(departmentSchema),
     defaultValues: {
       departmentId: department?.departmentId || 0,
@@ -25,7 +25,7 @@ export function DepartmentForm({ department, onSave }: DepartmentFormProps) {
     },
   })
 
-  const onSubmit = (data: DepartmentFormValues) => {
+  const onSubmit = (data: DepartmentSchemaType) => {
     onSave(data)
   }
 

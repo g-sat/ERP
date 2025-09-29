@@ -50,7 +50,7 @@ export const bankSchema = z.object({
     .default(""),
   isActive: z.boolean().default(true),
 })
-export type BankFormValues = z.infer<typeof bankSchema>
+export type BankSchemaType = z.infer<typeof bankSchema>
 
 export const bankContactSchema = z.object({
   contactId: z.number(),
@@ -99,7 +99,7 @@ export const bankContactSchema = z.object({
   isSales: z.boolean().optional().default(false),
   isActive: z.boolean().default(true),
 })
-export type BankContactFormValues = z.infer<typeof bankContactSchema>
+export type BankContactSchemaType = z.infer<typeof bankContactSchema>
 
 export const bankAddressSchema = z.object({
   bankId: z.number(),
@@ -151,4 +151,4 @@ export const bankAddressSchema = z.object({
   isSalesAdd: z.boolean().optional().default(false),
   isActive: z.boolean().default(true),
 })
-export type BankAddressFormValues = z.infer<typeof bankAddressSchema>
+export type BankAddressSchemaType = z.infer<typeof bankAddressSchema>

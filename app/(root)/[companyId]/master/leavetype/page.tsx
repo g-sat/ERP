@@ -3,7 +3,7 @@
 import { useCallback, useState } from "react"
 import { ApiResponse } from "@/interfaces/auth"
 import { ILeaveType, ILeaveTypeFilter } from "@/interfaces/leavetype"
-import { LeaveTypeFormValues } from "@/schemas/leavetype"
+import { LeaveTypeSchemaType } from "@/schemas/leavetype"
 import { usePermissionStore } from "@/stores/permission-store"
 import { useQueryClient } from "@tanstack/react-query"
 
@@ -65,8 +65,8 @@ export default function LeaveTypePage() {
     }
 
   // Define mutations for CRUD operations
-  const saveMutation = usePersist<LeaveTypeFormValues>(`${LeaveType.add}`)
-  const updateMutation = usePersist<LeaveTypeFormValues>(`${LeaveType.add}`)
+  const saveMutation = usePersist<LeaveTypeSchemaType>(`${LeaveType.add}`)
+  const updateMutation = usePersist<LeaveTypeSchemaType>(`${LeaveType.add}`)
   const deleteMutation = useDelete(`${LeaveType.delete}`)
 
   // State for modal and selected leave type
@@ -98,7 +98,7 @@ export default function LeaveTypePage() {
   // State for save confirmation
   const [saveConfirmation, setSaveConfirmation] = useState<{
     isOpen: boolean
-    data: LeaveTypeFormValues | null
+    data: LeaveTypeSchemaType | null
   }>({
     isOpen: false,
     data: null,
@@ -140,7 +140,7 @@ export default function LeaveTypePage() {
   }
 
   // Handler for form submission (create or edit) - shows confirmation first
-  const handleFormSubmit = (data: LeaveTypeFormValues) => {
+  const handleFormSubmit = (data: LeaveTypeSchemaType) => {
     setSaveConfirmation({
       isOpen: true,
       data: data,
@@ -148,7 +148,7 @@ export default function LeaveTypePage() {
   }
 
   // Handler for confirmed form submission
-  const handleConfirmedFormSubmit = async (data: LeaveTypeFormValues) => {
+  const handleConfirmedFormSubmit = async (data: LeaveTypeSchemaType) => {
     try {
       if (modalMode === "create") {
         const response = await saveMutation.mutateAsync(data)

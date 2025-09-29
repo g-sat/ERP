@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react"
 import { ApiResponse } from "@/interfaces/auth"
 import { IVessel, IVesselFilter } from "@/interfaces/vessel"
-import { VesselFormValues } from "@/schemas/vessel"
+import { VesselSchemaType } from "@/schemas/vessel"
 import { usePermissionStore } from "@/stores/permission-store"
 import { useQueryClient } from "@tanstack/react-query"
 
@@ -69,8 +69,8 @@ export default function VesselPage() {
     }
   }, [filters])
 
-  const saveMutation = usePersist<VesselFormValues>(`${Vessel.add}`)
-  const updateMutation = usePersist<VesselFormValues>(`${Vessel.add}`)
+  const saveMutation = usePersist<VesselSchemaType>(`${Vessel.add}`)
+  const updateMutation = usePersist<VesselSchemaType>(`${Vessel.add}`)
   const deleteMutation = useDelete(`${Vessel.delete}`)
 
   const [selectedVessel, setSelectedVessel] = useState<IVessel | null>(null)
@@ -97,7 +97,7 @@ export default function VesselPage() {
   // State for save confirmation
   const [saveConfirmation, setSaveConfirmation] = useState<{
     isOpen: boolean
-    data: VesselFormValues | null
+    data: VesselSchemaType | null
   }>({
     isOpen: false,
     data: null,
@@ -136,7 +136,7 @@ export default function VesselPage() {
   }
 
   // Handler for form submission (create or edit) - shows confirmation first
-  const handleFormSubmit = (data: VesselFormValues) => {
+  const handleFormSubmit = (data: VesselSchemaType) => {
     setSaveConfirmation({
       isOpen: true,
       data: data,
@@ -144,7 +144,7 @@ export default function VesselPage() {
   }
 
   // Handler for confirmed form submission
-  const handleConfirmedFormSubmit = async (data: VesselFormValues) => {
+  const handleConfirmedFormSubmit = async (data: VesselSchemaType) => {
     try {
       if (modalMode === "create") {
         const response = await saveMutation.mutateAsync(data)

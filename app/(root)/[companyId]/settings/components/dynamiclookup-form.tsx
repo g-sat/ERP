@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import { IApiSuccessResponse } from "@/interfaces/auth"
 import {
-  DynamicLookupFormValues,
+  DynamicLookupSchemaType,
   dynamicLookupFormSchema,
 } from "@/schemas/setting"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -25,7 +25,7 @@ import { Switch } from "@/components/ui/switch"
 import { SaveConfirmation } from "@/components/confirmation/save-confirmation"
 import { LockSkeleton } from "@/components/skeleton/lock-skeleton"
 
-type DynamicLookupResponse = IApiSuccessResponse<DynamicLookupFormValues>
+type DynamicLookupResponse = IApiSuccessResponse<DynamicLookupSchemaType>
 
 export function DynamicLookupForm() {
   const [showSaveConfirmation, setShowSaveConfirmation] = useState(false)
@@ -39,7 +39,7 @@ export function DynamicLookupForm() {
   const { mutate: saveDynamicLookupSettings, isPending } =
     useDynamicLookupSave()
 
-  const form = useForm<DynamicLookupFormValues>({
+  const form = useForm<DynamicLookupSchemaType>({
     resolver: zodResolver(dynamicLookupFormSchema),
     defaultValues: {
       isBarge: false,

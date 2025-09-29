@@ -20,7 +20,7 @@ export const universalDocumentDtSchema = z.object({
   renewalRequired: z.boolean(),
 })
 
-export type UniversalDocumentDtFormValues = z.infer<
+export type UniversalDocumentDtSchemaType = z.infer<
   typeof universalDocumentDtSchema
 >
 
@@ -33,6 +33,6 @@ export const universalDocumentHdSchema = z.object({
   isActive: z.boolean(),
 })
 
-export type UniversalDocumentHdFormValues = z.infer<
+export type UniversalDocumentHdSchemaType = z.infer<
   typeof universalDocumentHdSchema
 >

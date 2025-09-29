@@ -2,7 +2,7 @@
 
 import { useEffect } from "react"
 import { IServiceType } from "@/interfaces/servicetype"
-import { ServiceTypeFormValues, serviceTypeSchema } from "@/schemas/servicetype"
+import { ServiceTypeSchemaType, serviceTypeSchema } from "@/schemas/servicetype"
 import { useAuthStore } from "@/stores/auth-store"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { format } from "date-fns"
@@ -23,7 +23,7 @@ import CustomTextarea from "@/components/custom/custom-textarea"
 
 interface ServiceTypeFormProps {
   initialData?: IServiceType
-  submitAction: (data: ServiceTypeFormValues) => Promise<void>
+  submitAction: (data: ServiceTypeSchemaType) => Promise<void>
   onCancel: () => void
   isSubmitting: boolean
   isReadOnly?: boolean
@@ -49,7 +49,7 @@ export function ServiceTypeForm({
     remarks: "",
   }
 
-  const form = useForm<ServiceTypeFormValues>({
+  const form = useForm<ServiceTypeSchemaType>({
     resolver: zodResolver(serviceTypeSchema),
     defaultValues: initialData
       ? {
@@ -83,7 +83,7 @@ export function ServiceTypeForm({
     )
   }, [initialData, form])
 
-  const onSubmit = async (data: ServiceTypeFormValues) => {
+  const onSubmit = async (data: ServiceTypeSchemaType) => {
     await submitAction(data)
   }
 

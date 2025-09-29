@@ -2,7 +2,7 @@
 
 import { useEffect } from "react"
 import { ICurrencyDt } from "@/interfaces/currency"
-import { CurrencyDtFormValues, currencyDtSchema } from "@/schemas/currency"
+import { CurrencyDtSchemaType, currencyDtSchema } from "@/schemas/currency"
 import { useAuthStore } from "@/stores/auth-store"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { format } from "date-fns"
@@ -23,7 +23,7 @@ import CustomNumberInput from "@/components/custom/custom-number-input"
 
 interface CurrencyDtFormProps {
   initialData?: ICurrencyDt | null
-  submitAction: (data: CurrencyDtFormValues) => void
+  submitAction: (data: CurrencyDtSchemaType) => void
   onCancel?: () => void
   isSubmitting?: boolean
   isReadOnly?: boolean
@@ -61,7 +61,7 @@ export function CurrencyDtForm({
     validFrom: format(new Date(), clientDateFormat),
   }
 
-  const form = useForm<CurrencyDtFormValues>({
+  const form = useForm<CurrencyDtSchemaType>({
     resolver: zodResolver(currencyDtSchema),
     defaultValues: initialData
       ? {
@@ -95,7 +95,7 @@ export function CurrencyDtForm({
     )
   }, [initialData, form])
 
-  const onSubmit = (data: CurrencyDtFormValues) => {
+  const onSubmit = (data: CurrencyDtSchemaType) => {
     // Format date to ISO string before submission
     const formattedData = {
       ...data,

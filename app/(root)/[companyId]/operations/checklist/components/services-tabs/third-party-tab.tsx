@@ -8,7 +8,7 @@ import {
   IJobOrderHd,
   IThirdParty,
 } from "@/interfaces/checklist"
-import { ThirdPartyFormValues } from "@/schemas/checklist"
+import { ThirdPartySchemaType } from "@/schemas/checklist"
 import { useQueryClient } from "@tanstack/react-query"
 
 import { getData } from "@/lib/api-client"
@@ -116,10 +116,10 @@ export function ThirdPartyTab({
   }
 
   // Mutations
-  const saveMutation = usePersist<ThirdPartyFormValues>(
+  const saveMutation = usePersist<ThirdPartySchemaType>(
     `${JobOrder_ThirdParty.add}`
   )
-  const updateMutation = usePersist<ThirdPartyFormValues>(
+  const updateMutation = usePersist<ThirdPartySchemaType>(
     `${JobOrder_ThirdParty.add}`
   )
   const deleteMutation = useDelete(`${JobOrder_ThirdParty.delete}`)
@@ -223,7 +223,7 @@ export function ThirdPartyTab({
   )
 
   const handleSubmit = useCallback(
-    async (formData: ThirdPartyFormValues) => {
+    async (formData: ThirdPartySchemaType) => {
       try {
         const processedData = {
           ...formData,

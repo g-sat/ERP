@@ -10,10 +10,10 @@ import { Label } from "../ui/label"
 // Get default decimal places from environment variable
 const DECIMAL_PLACES = Number(process.env.NEXT_PUBLIC_DEFAULT_AMT_DEC || "2")
 
-interface CustomNumberInputCellRefsProps<TFormValues extends FieldValues> {
-  form: UseFormReturn<TFormValues>
+interface CustomNumberInputCellRefsProps<TSchemaType extends FieldValues> {
+  form: UseFormReturn<TSchemaType>
   label?: string
-  name: Path<TFormValues>
+  name: Path<TSchemaType>
   className?: string
   onBlurEvent?: (e: React.FocusEvent<HTMLInputElement>) => void
   onChangeEvent?: (value: number) => void
@@ -28,7 +28,7 @@ const CustomNumberInputCellRefs = forwardRef<
   HTMLInputElement,
   CustomNumberInputCellRefsProps<FieldValues>
 >(
-  <TFormValues extends FieldValues>(
+  <TSchemaType extends FieldValues>(
     {
       form,
       label,
@@ -41,7 +41,7 @@ const CustomNumberInputCellRefs = forwardRef<
       isRequired = false,
       isDisabled = false,
       round = DECIMAL_PLACES,
-    }: CustomNumberInputCellRefsProps<TFormValues>,
+    }: CustomNumberInputCellRefsProps<TSchemaType>,
     ref: React.Ref<HTMLInputElement>
   ) => {
     return (
@@ -63,7 +63,10 @@ const CustomNumberInputCellRefs = forwardRef<
             return (
               <FormItem className={cn("flex flex-col", className)}>
                 <NumericFormat
-                  onFocus={(e) => { console.log('Focused Quantity/Bill Quantity'); if (onFocus) onFocus(e); }}
+                  onFocus={(e) => {
+                    console.log("Focused Quantity/Bill Quantity")
+                    if (onFocus) onFocus(e)
+                  }}
                   value={value ?? ""}
                   onValueChange={(values) => {
                     const { floatValue } = values

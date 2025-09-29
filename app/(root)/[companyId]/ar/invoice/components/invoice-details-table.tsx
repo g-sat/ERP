@@ -26,7 +26,7 @@ import {
   IVoyageLookup,
 } from "@/interfaces/lookup"
 import { IGridSetting, IVisibleFields } from "@/interfaces/setting"
-import { ArInvoiceDtFormValues, ArInvoiceHdFormValues } from "@/schemas/invoice"
+import { ArInvoiceDtSchemaType, ArInvoiceHdSchemaType } from "@/schemas/invoice"
 import { useAuthStore } from "@/stores/auth-store"
 import {
   Cell,
@@ -107,14 +107,14 @@ const generateUUID = (): string => {
 }
 
 interface InvoiceDetailsTableProps {
-  form: UseFormReturn<ArInvoiceHdFormValues>
+  form: UseFormReturn<ArInvoiceHdSchemaType>
   visible: IVisibleFields
 }
 
 const cellRefs = new Map<string, HTMLInputElement>()
 
-// Extend ArInvoiceDtFormValues to include id field
-interface InvoiceDetailRow extends ArInvoiceDtFormValues {
+// Extend ArInvoiceDtSchemaType to include id field
+interface InvoiceDetailRow extends ArInvoiceDtSchemaType {
   id: string
 }
 
@@ -474,7 +474,7 @@ export default function InvoiceDetailsTable({
 
     // Sync with main form in next tick
     setTimeout(() => {
-      syncFormValues()
+      syncSchemaType()
     }, 0)
   }
 
@@ -486,7 +486,7 @@ export default function InvoiceDetailsTable({
       if (key.startsWith(rowId)) cellRefs.delete(key)
     })
     // Sync with main form after deletion
-    syncFormValues()
+    syncSchemaType()
   }
 
   useEffect(() => {
@@ -513,7 +513,7 @@ export default function InvoiceDetailsTable({
   }
 
   // Add this new function to sync form values
-  const syncFormValues = () => {
+  const syncSchemaType = () => {
     // Map the current data with form values
     const updatedDetails = data.map((row) => {
       // Get all the numeric values from invoiceDetailForm
@@ -696,7 +696,7 @@ export default function InvoiceDetailsTable({
         }
 
         // Sync all values to main form
-        syncFormValues()
+        syncSchemaType()
 
         // Move focus to next field if specified
         if (nextField) {
@@ -736,7 +736,7 @@ export default function InvoiceDetailsTable({
 
     // Use setTimeout to avoid render phase updates
     setTimeout(() => {
-      syncFormValues()
+      syncSchemaType()
     }, 0)
   }
 
@@ -815,7 +815,7 @@ export default function InvoiceDetailsTable({
             }
           })
         )
-        syncFormValues()
+        syncSchemaType()
       }
     })
 

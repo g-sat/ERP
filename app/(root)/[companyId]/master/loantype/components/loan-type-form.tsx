@@ -2,7 +2,7 @@
 
 import { useEffect } from "react"
 import { ILoanType } from "@/interfaces/loantype"
-import { LoanTypeFormValues, loanTypeSchema } from "@/schemas/loantype"
+import { LoanTypeSchemaType, loanTypeSchema } from "@/schemas/loantype"
 import { useAuthStore } from "@/stores/auth-store"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { format } from "date-fns"
@@ -20,7 +20,7 @@ import CustomInput from "@/components/custom/custom-input"
 
 interface LoanTypeFormProps {
   initialData?: ILoanType
-  submitAction: (data: LoanTypeFormValues) => void
+  submitAction: (data: LoanTypeSchemaType) => void
   onCancel?: () => void
   isSubmitting?: boolean
   isReadOnly?: boolean
@@ -47,7 +47,7 @@ export function LoanTypeForm({
     minTermMonths: 0,
   }
 
-  const form = useForm<LoanTypeFormValues>({
+  const form = useForm<LoanTypeSchemaType>({
     resolver: zodResolver(loanTypeSchema),
     defaultValues: initialData
       ? {
@@ -86,7 +86,7 @@ export function LoanTypeForm({
     onCodeBlur?.(code)
   }
 
-  const onSubmit = (data: LoanTypeFormValues) => {
+  const onSubmit = (data: LoanTypeSchemaType) => {
     submitAction(data)
   }
 

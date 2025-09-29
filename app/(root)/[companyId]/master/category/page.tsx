@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react"
 import { ApiResponse } from "@/interfaces/auth"
 import { ICategory, ICategoryFilter } from "@/interfaces/category"
-import { CategoryFormValues } from "@/schemas/category"
+import { CategorySchemaType } from "@/schemas/category"
 import { usePermissionStore } from "@/stores/permission-store"
 import { useQueryClient } from "@tanstack/react-query"
 
@@ -81,8 +81,8 @@ export default function CategoryPage() {
     }
   }, [categorysResponse, isLocked])
 
-  const saveMutation = usePersist<CategoryFormValues>(`${Category.add}`)
-  const updateMutation = usePersist<CategoryFormValues>(`${Category.add}`)
+  const saveMutation = usePersist<CategorySchemaType>(`${Category.add}`)
+  const updateMutation = usePersist<CategorySchemaType>(`${Category.add}`)
   const deleteMutation = useDelete(`${Category.delete}`)
 
   const [selectedCategory, setSelectedCategory] = useState<ICategory | null>(
@@ -113,7 +113,7 @@ export default function CategoryPage() {
   // State for save confirmation
   const [saveConfirmation, setSaveConfirmation] = useState<{
     isOpen: boolean
-    data: CategoryFormValues | null
+    data: CategorySchemaType | null
   }>({
     isOpen: false,
     data: null,
@@ -152,7 +152,7 @@ export default function CategoryPage() {
   }
 
   // Handler for form submission (create or edit) - shows confirmation first
-  const handleFormSubmit = (data: CategoryFormValues) => {
+  const handleFormSubmit = (data: CategorySchemaType) => {
     setSaveConfirmation({
       isOpen: true,
       data: data,
@@ -160,7 +160,7 @@ export default function CategoryPage() {
   }
 
   // Handler for confirmed form submission
-  const handleConfirmedFormSubmit = async (data: CategoryFormValues) => {
+  const handleConfirmedFormSubmit = async (data: CategorySchemaType) => {
     try {
       if (modalMode === "create") {
         const response = await saveMutation.mutateAsync(data)

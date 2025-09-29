@@ -2,7 +2,7 @@
 
 import { useEffect } from "react"
 import { IDepartment } from "@/interfaces/department"
-import { DepartmentFormValues, departmentSchema } from "@/schemas/department"
+import { DepartmentSchemaType, departmentSchema } from "@/schemas/department"
 import { useAuthStore } from "@/stores/auth-store"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { format } from "date-fns"
@@ -22,7 +22,7 @@ import CustomTextarea from "@/components/custom/custom-textarea"
 
 interface DepartmentFormProps {
   initialData?: IDepartment | null
-  submitAction: (data: DepartmentFormValues) => void
+  submitAction: (data: DepartmentSchemaType) => void
   onCancel?: () => void
   isSubmitting?: boolean
   isReadOnly?: boolean
@@ -47,7 +47,7 @@ export function DepartmentForm({
     isActive: true,
   }
 
-  const form = useForm<DepartmentFormValues>({
+  const form = useForm<DepartmentSchemaType>({
     resolver: zodResolver(departmentSchema),
     defaultValues: initialData
       ? {
@@ -84,7 +84,7 @@ export function DepartmentForm({
     onCodeBlur?.(code)
   }
 
-  const onSubmit = (data: DepartmentFormValues) => {
+  const onSubmit = (data: DepartmentSchemaType) => {
     submitAction(data)
   }
 

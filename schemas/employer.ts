@@ -15,4 +15,4 @@ export const employerschema = z.object({
   branch: z.string().optional(),
 })
 
-export type EmployerFormValues = z.infer<typeof employerschema>
+export type EmployerSchemaType = z.infer<typeof employerschema>

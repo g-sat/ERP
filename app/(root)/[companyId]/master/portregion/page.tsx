@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react"
 import { ApiResponse } from "@/interfaces/auth"
 import { IPortRegion, IPortRegionFilter } from "@/interfaces/portregion"
-import { PortRegionFormValues } from "@/schemas/portregion"
+import { PortRegionSchemaType } from "@/schemas/portregion"
 import { usePermissionStore } from "@/stores/permission-store"
 import { useQueryClient } from "@tanstack/react-query"
 
@@ -61,8 +61,8 @@ export default function PortRegionPage() {
       data: [],
     }
 
-  const saveMutation = usePersist<PortRegionFormValues>(`${PortRegion.add}`)
-  const updateMutation = usePersist<PortRegionFormValues>(`${PortRegion.add}`)
+  const saveMutation = usePersist<PortRegionSchemaType>(`${PortRegion.add}`)
+  const updateMutation = usePersist<PortRegionSchemaType>(`${PortRegion.add}`)
   const deleteMutation = useDelete(`${PortRegion.delete}`)
 
   const [selectedPortRegion, setSelectedPortRegion] =
@@ -119,14 +119,14 @@ export default function PortRegionPage() {
   // State for save confirmation
   const [saveConfirmation, setSaveConfirmation] = useState<{
     isOpen: boolean
-    data: PortRegionFormValues | null
+    data: PortRegionSchemaType | null
   }>({
     isOpen: false,
     data: null,
   })
 
   // Handler for form submission (create or edit) - shows confirmation first
-  const handleFormSubmit = (data: PortRegionFormValues) => {
+  const handleFormSubmit = (data: PortRegionSchemaType) => {
     setSaveConfirmation({
       isOpen: true,
       data: data,
@@ -134,7 +134,7 @@ export default function PortRegionPage() {
   }
 
   // Handler for confirmed form submission
-  const handleConfirmedFormSubmit = async (data: PortRegionFormValues) => {
+  const handleConfirmedFormSubmit = async (data: PortRegionSchemaType) => {
     try {
       if (modalMode === "create") {
         const response = (await saveMutation.mutateAsync(

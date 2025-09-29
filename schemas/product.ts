@@ -19,7 +19,7 @@ export const productSchema = z.object({
     .optional(),
 })
 
-export type ProductFormValues = z.infer<typeof productSchema>
+export type ProductSchemaType = z.infer<typeof productSchema>
 
 export const productFiltersSchema = z.object({
   isActive: z.boolean().optional(),

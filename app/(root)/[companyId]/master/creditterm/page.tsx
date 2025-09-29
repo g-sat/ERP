@@ -8,8 +8,8 @@ import {
   ICreditTermFilter,
 } from "@/interfaces/creditterm"
 import {
-  CreditTermDtFormValues,
-  CreditTermFormValues,
+  CreditTermDtSchemaType,
+  CreditTermSchemaType,
 } from "@/schemas/creditterm"
 import { usePermissionStore } from "@/stores/permission-store"
 import { useQueryClient } from "@tanstack/react-query"
@@ -92,14 +92,14 @@ export default function CreditTermPage() {
     }
 
   // Mutations
-  const saveMutation = usePersist<CreditTermFormValues>(`${CreditTerm.add}`)
-  const updateMutation = usePersist<CreditTermFormValues>(`${CreditTerm.add}`)
+  const saveMutation = usePersist<CreditTermSchemaType>(`${CreditTerm.add}`)
+  const updateMutation = usePersist<CreditTermSchemaType>(`${CreditTerm.add}`)
   const deleteMutation = useDelete(`${CreditTerm.delete}`)
 
-  const saveDtMutation = usePersist<CreditTermDtFormValues>(
+  const saveDtMutation = usePersist<CreditTermDtSchemaType>(
     `${CreditTermDt.add}`
   )
-  const updateDtMutation = usePersist<CreditTermDtFormValues>(
+  const updateDtMutation = usePersist<CreditTermDtSchemaType>(
     `${CreditTermDt.add}`
   )
   const deleteDtMutation = useDelete(`${CreditTermDt.delete}`)
@@ -208,7 +208,7 @@ export default function CreditTermPage() {
   }
 
   // Specialized form handlers
-  const handleCreditTermSubmit = async (data: CreditTermFormValues) => {
+  const handleCreditTermSubmit = async (data: CreditTermSchemaType) => {
     try {
       if (modalMode === "create") {
         const response = (await saveMutation.mutateAsync(
@@ -230,7 +230,7 @@ export default function CreditTermPage() {
     }
   }
 
-  const handleCreditTermDtSubmit = async (data: CreditTermDtFormValues) => {
+  const handleCreditTermDtSubmit = async (data: CreditTermDtSchemaType) => {
     try {
       if (modalMode === "create") {
         const response = (await saveDtMutation.mutateAsync(
@@ -255,7 +255,7 @@ export default function CreditTermPage() {
   // State for save confirmations
   const [saveConfirmation, setSaveConfirmation] = useState<{
     isOpen: boolean
-    data: CreditTermFormValues | CreditTermDtFormValues | null
+    data: CreditTermSchemaType | CreditTermDtSchemaType | null
     type: "creditterm" | "credittermdt"
   }>({
     isOpen: false,
@@ -265,7 +265,7 @@ export default function CreditTermPage() {
 
   // Main form submit handler - shows confirmation first
   const handleFormSubmit = (
-    data: CreditTermFormValues | CreditTermDtFormValues
+    data: CreditTermSchemaType | CreditTermDtSchemaType
   ) => {
     let type: "creditterm" | "credittermdt" = "creditterm"
     if (isDtModalOpen) type = "credittermdt"
@@ -279,14 +279,14 @@ export default function CreditTermPage() {
 
   // Handler for confirmed form submission
   const handleConfirmedFormSubmit = async (
-    data: CreditTermFormValues | CreditTermDtFormValues
+    data: CreditTermSchemaType | CreditTermDtSchemaType
   ) => {
     try {
       if (saveConfirmation.type === "credittermdt") {
-        await handleCreditTermDtSubmit(data as CreditTermDtFormValues)
+        await handleCreditTermDtSubmit(data as CreditTermDtSchemaType)
         setIsDtModalOpen(false)
       } else {
-        await handleCreditTermSubmit(data as CreditTermFormValues)
+        await handleCreditTermSubmit(data as CreditTermSchemaType)
         setIsModalOpen(false)
       }
     } catch (error) {
@@ -649,10 +649,10 @@ export default function CreditTermPage() {
         }
         itemName={
           saveConfirmation.type === "creditterm"
-            ? (saveConfirmation.data as CreditTermFormValues)?.creditTermCode ||
+            ? (saveConfirmation.data as CreditTermSchemaType)?.creditTermCode ||
               ""
             : (
-                saveConfirmation.data as CreditTermDtFormValues
+                saveConfirmation.data as CreditTermDtSchemaType
               )?.creditTermId.toString() || ""
         }
         operationType={modalMode === "create" ? "create" : "update"}
@@ -660,8 +660,8 @@ export default function CreditTermPage() {
           if (saveConfirmation.data) {
             handleConfirmedFormSubmit(
               saveConfirmation.data as
-                | CreditTermFormValues
-                | CreditTermDtFormValues
+                | CreditTermSchemaType
+                | CreditTermDtSchemaType
             )
           }
           setSaveConfirmation({

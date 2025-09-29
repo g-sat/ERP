@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react"
 import { IEmployeeLookup, ILeaveTypeLookup } from "@/interfaces/lookup"
-import { LeaveRequestFormValues, leaveRequestSchema } from "@/schemas/leave"
+import { LeaveRequestSchemaType, leaveRequestSchema } from "@/schemas/leave"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { FileText, Upload, X } from "lucide-react"
 import { useForm } from "react-hook-form"
@@ -23,7 +23,7 @@ import { CustomDateNew } from "@/components/custom/custom-date-new"
 import CustomTextarea from "@/components/custom/custom-textarea"
 
 interface LeaveRequestFormProps {
-  onSubmit: (data: LeaveRequestFormValues) => Promise<void>
+  onSubmit: (data: LeaveRequestSchemaType) => Promise<void>
 }
 
 export function LeaveRequestForm({ onSubmit }: LeaveRequestFormProps) {
@@ -43,7 +43,7 @@ export function LeaveRequestForm({ onSubmit }: LeaveRequestFormProps) {
     }
   }, [])
 
-  const form = useForm<LeaveRequestFormValues>({
+  const form = useForm<LeaveRequestSchemaType>({
     resolver: zodResolver(leaveRequestSchema),
     defaultValues: {
       employeeId: 0,
@@ -69,7 +69,7 @@ export function LeaveRequestForm({ onSubmit }: LeaveRequestFormProps) {
     }
   }, [form.watch("startDate"), form.watch("endDate"), form])
 
-  const handleSubmit = async (data: LeaveRequestFormValues) => {
+  const handleSubmit = async (data: LeaveRequestSchemaType) => {
     try {
       setLoading(true)
 

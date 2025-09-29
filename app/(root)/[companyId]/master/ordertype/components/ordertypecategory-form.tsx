@@ -3,7 +3,7 @@
 import { useEffect } from "react"
 import { IOrderTypeCategory } from "@/interfaces/ordertype"
 import {
-  OrderTypeCategoryFormValues,
+  OrderTypeCategorySchemaType,
   orderTypeCategorySchema,
 } from "@/schemas/ordertype"
 import { useAuthStore } from "@/stores/auth-store"
@@ -25,7 +25,7 @@ import CustomTextarea from "@/components/custom/custom-textarea"
 
 interface OrderTypeCategoryFormProps {
   initialData?: IOrderTypeCategory
-  submitAction: (data: OrderTypeCategoryFormValues) => void
+  submitAction: (data: OrderTypeCategorySchemaType) => void
   onCancel: () => void
   isSubmitting: boolean
   isReadOnly?: boolean
@@ -50,7 +50,7 @@ export function OrderTypeCategoryForm({
     remarks: "",
   }
 
-  const form = useForm<OrderTypeCategoryFormValues>({
+  const form = useForm<OrderTypeCategorySchemaType>({
     resolver: zodResolver(orderTypeCategorySchema),
     defaultValues: initialData
       ? {
@@ -82,7 +82,7 @@ export function OrderTypeCategoryForm({
     )
   }, [initialData, form])
 
-  const onSubmit = (data: OrderTypeCategoryFormValues) => {
+  const onSubmit = (data: OrderTypeCategorySchemaType) => {
     submitAction(data)
   }
 

@@ -2,7 +2,7 @@
 
 import { useEffect } from "react"
 import { IDesignation } from "@/interfaces/designation"
-import { DesignationFormValues, designationSchema } from "@/schemas/designation"
+import { DesignationSchemaType, designationSchema } from "@/schemas/designation"
 import { useAuthStore } from "@/stores/auth-store"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { format } from "date-fns"
@@ -22,7 +22,7 @@ import CustomTextarea from "@/components/custom/custom-textarea"
 
 interface DesignationFormProps {
   initialData?: IDesignation | null
-  submitAction: (data: DesignationFormValues) => void
+  submitAction: (data: DesignationSchemaType) => void
   onCancel?: () => void
   isSubmitting?: boolean
   isReadOnly?: boolean
@@ -47,7 +47,7 @@ export function DesignationForm({
     isActive: true,
   }
 
-  const form = useForm<DesignationFormValues>({
+  const form = useForm<DesignationSchemaType>({
     resolver: zodResolver(designationSchema),
     defaultValues: initialData
       ? {
@@ -84,7 +84,7 @@ export function DesignationForm({
     onCodeBlur?.(code)
   }
 
-  const onSubmit = (data: DesignationFormValues) => {
+  const onSubmit = (data: DesignationSchemaType) => {
     submitAction(data)
   }
 

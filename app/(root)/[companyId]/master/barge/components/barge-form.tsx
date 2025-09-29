@@ -2,7 +2,7 @@
 
 import { useEffect } from "react"
 import { IBarge } from "@/interfaces/barge"
-import { BargeFormValues, bargeSchema } from "@/schemas/barge"
+import { BargeSchemaType, bargeSchema } from "@/schemas/barge"
 import { useAuthStore } from "@/stores/auth-store"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { format } from "date-fns"
@@ -22,7 +22,7 @@ import CustomTextarea from "@/components/custom/custom-textarea"
 
 interface BargeFormProps {
   initialData?: IBarge | null
-  submitAction: (data: BargeFormValues) => void
+  submitAction: (data: BargeSchemaType) => void
   onCancel?: () => void
   isSubmitting?: boolean
   isReadOnly?: boolean
@@ -54,7 +54,7 @@ export function BargeForm({
     isOwn: true,
   }
 
-  const form = useForm<BargeFormValues>({
+  const form = useForm<BargeSchemaType>({
     resolver: zodResolver(bargeSchema),
     defaultValues: initialData
       ? {
@@ -103,7 +103,7 @@ export function BargeForm({
     onCodeBlur?.(code)
   }
 
-  const onSubmit = (data: BargeFormValues) => {
+  const onSubmit = (data: BargeSchemaType) => {
     submitAction(data)
   }
 

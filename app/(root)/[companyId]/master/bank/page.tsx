@@ -9,9 +9,9 @@ import {
   IBankFilter,
 } from "@/interfaces/bank"
 import {
-  BankAddressFormValues,
-  BankContactFormValues,
-  BankFormValues,
+  BankAddressSchemaType,
+  BankContactSchemaType,
+  BankSchemaType,
 } from "@/schemas/bank"
 import { usePermissionStore } from "@/stores/permission-store"
 import { ListFilter, RotateCcw, Save, Trash2 } from "lucide-react"
@@ -89,13 +89,13 @@ export default function BankPage() {
     useState(false)
   const [showContactSaveConfirmation, setShowContactSaveConfirmation] =
     useState(false)
-  const [pendingBankData, setPendingBankData] = useState<BankFormValues | null>(
+  const [pendingBankData, setPendingBankData] = useState<BankSchemaType | null>(
     null
   )
   const [pendingAddressData, setPendingAddressData] =
-    useState<BankAddressFormValues | null>(null)
+    useState<BankAddressSchemaType | null>(null)
   const [pendingContactData, setPendingContactData] =
-    useState<BankContactFormValues | null>(null)
+    useState<BankContactSchemaType | null>(null)
 
   // Delete confirmation states
   const [showBankDeleteConfirmation, setShowBankDeleteConfirmation] =
@@ -165,20 +165,20 @@ export default function BankPage() {
   }
 
   // Mutations
-  const saveMutation = usePersist<BankFormValues>(`${Bank.add}`)
-  const updateMutation = usePersist<BankFormValues>(`${Bank.add}`)
+  const saveMutation = usePersist<BankSchemaType>(`${Bank.add}`)
+  const updateMutation = usePersist<BankSchemaType>(`${Bank.add}`)
   const deleteMutation = useDelete(`${Bank.delete}`)
-  const saveAddressMutation = usePersist<BankAddressFormValues>(
+  const saveAddressMutation = usePersist<BankAddressSchemaType>(
     `${BankAddress.add}`
   )
-  const updateAddressMutation = usePersist<BankAddressFormValues>(
+  const updateAddressMutation = usePersist<BankAddressSchemaType>(
     `${BankAddress.add}`
   )
   const deleteAddressMutation = useDelete(`${BankAddress.delete}`)
-  const saveContactMutation = usePersist<BankContactFormValues>(
+  const saveContactMutation = usePersist<BankContactSchemaType>(
     `${BankContact.add}`
   )
-  const updateContactMutation = usePersist<BankContactFormValues>(
+  const updateContactMutation = usePersist<BankContactSchemaType>(
     `${BankContact.add}`
   )
   const deleteContactMutation = useDelete(`${BankContact.delete}`)
@@ -228,7 +228,7 @@ export default function BankPage() {
     }
   }, [bank?.bankId, fetchBankData])
 
-  const handleBankSave = (savedBank: BankFormValues) => {
+  const handleBankSave = (savedBank: BankSchemaType) => {
     setPendingBankData(savedBank)
     setShowBankSaveConfirmation(true)
   }
@@ -305,7 +305,7 @@ export default function BankPage() {
     setKey((prev) => prev + 1)
   }
 
-  const handleAddressSave = (data: BankAddressFormValues) => {
+  const handleAddressSave = (data: BankAddressSchemaType) => {
     setPendingAddressData(data)
     setShowAddressSaveConfirmation(true)
   }
@@ -339,7 +339,7 @@ export default function BankPage() {
     }
   }
 
-  const handleContactSave = (data: BankContactFormValues) => {
+  const handleContactSave = (data: BankContactSchemaType) => {
     setPendingContactData(data)
     setShowContactSaveConfirmation(true)
   }

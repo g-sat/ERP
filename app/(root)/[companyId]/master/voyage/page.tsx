@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react"
 import { ApiResponse } from "@/interfaces/auth"
 import { IVoyage, IVoyageFilter } from "@/interfaces/voyage"
-import { VoyageFormValues } from "@/schemas/voyage"
+import { VoyageSchemaType } from "@/schemas/voyage"
 import { usePermissionStore } from "@/stores/permission-store"
 import { useQueryClient } from "@tanstack/react-query"
 
@@ -66,8 +66,8 @@ export default function VoyagePage() {
     }
   }, [filters.search, refetch])
 
-  const saveMutation = usePersist<VoyageFormValues>(`${Voyage.add}`)
-  const updateMutation = usePersist<VoyageFormValues>(`${Voyage.add}`)
+  const saveMutation = usePersist<VoyageSchemaType>(`${Voyage.add}`)
+  const updateMutation = usePersist<VoyageSchemaType>(`${Voyage.add}`)
   const deleteMutation = useDelete(`${Voyage.delete}`)
 
   const [selectedVoyage, setSelectedVoyage] = useState<IVoyage | null>(null)
@@ -123,12 +123,12 @@ export default function VoyagePage() {
     setIsModalOpen(true)
   }
 
-  const handleFormSubmit = async (data: VoyageFormValues) => {
+  const handleFormSubmit = async (data: VoyageSchemaType) => {
     try {
       if (modalMode === "create") {
         const response = (await saveMutation.mutateAsync(
           data
-        )) as ApiResponse<VoyageFormValues>
+        )) as ApiResponse<VoyageSchemaType>
         if (response.result === 1) {
           queryClient.invalidateQueries({ queryKey: ["voyages"] })
           setIsModalOpen(false)
@@ -136,7 +136,7 @@ export default function VoyagePage() {
       } else if (modalMode === "edit" && selectedVoyage) {
         const response = (await updateMutation.mutateAsync(
           data
-        )) as ApiResponse<VoyageFormValues>
+        )) as ApiResponse<VoyageSchemaType>
         if (response.result === 1) {
           queryClient.invalidateQueries({ queryKey: ["voyages"] })
           setIsModalOpen(false)

@@ -3,7 +3,7 @@
 import { useCallback, useState } from "react"
 import { ApiResponse } from "@/interfaces/auth"
 import { ILoanType, ILoanTypeFilter } from "@/interfaces/loantype"
-import { LoanTypeFormValues } from "@/schemas/loantype"
+import { LoanTypeSchemaType } from "@/schemas/loantype"
 import { usePermissionStore } from "@/stores/permission-store"
 import { useQueryClient } from "@tanstack/react-query"
 
@@ -65,8 +65,8 @@ export default function LoanTypePage() {
     }
 
   // Define mutations for CRUD operations
-  const saveMutation = usePersist<LoanTypeFormValues>(`${LoanType.add}`)
-  const updateMutation = usePersist<LoanTypeFormValues>(`${LoanType.add}`)
+  const saveMutation = usePersist<LoanTypeSchemaType>(`${LoanType.add}`)
+  const updateMutation = usePersist<LoanTypeSchemaType>(`${LoanType.add}`)
   const deleteMutation = useDelete(`${LoanType.delete}`)
 
   // State for modal and selected loan type
@@ -98,7 +98,7 @@ export default function LoanTypePage() {
   // State for save confirmation
   const [saveConfirmation, setSaveConfirmation] = useState<{
     isOpen: boolean
-    data: LoanTypeFormValues | null
+    data: LoanTypeSchemaType | null
   }>({
     isOpen: false,
     data: null,
@@ -140,7 +140,7 @@ export default function LoanTypePage() {
   }
 
   // Handler for form submission (create or edit) - shows confirmation first
-  const handleFormSubmit = (data: LoanTypeFormValues) => {
+  const handleFormSubmit = (data: LoanTypeSchemaType) => {
     setSaveConfirmation({
       isOpen: true,
       data: data,
@@ -148,7 +148,7 @@ export default function LoanTypePage() {
   }
 
   // Handler for confirmed form submission
-  const handleConfirmedFormSubmit = async (data: LoanTypeFormValues) => {
+  const handleConfirmedFormSubmit = async (data: LoanTypeSchemaType) => {
     try {
       if (modalMode === "create") {
         const response = await saveMutation.mutateAsync(data)

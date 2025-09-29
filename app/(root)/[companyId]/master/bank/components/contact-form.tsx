@@ -2,7 +2,7 @@
 
 import { useEffect } from "react"
 import { IBankContact } from "@/interfaces/bank"
-import { BankContactFormValues, bankContactSchema } from "@/schemas/bank"
+import { BankContactSchemaType, bankContactSchema } from "@/schemas/bank"
 import { useAuthStore } from "@/stores/auth-store"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { format } from "date-fns"
@@ -20,7 +20,7 @@ import CustomInput from "@/components/custom/custom-input"
 import CustomSwitch from "@/components/custom/custom-switch"
 
 // Default values for the contact form
-const defaultContactFormValues: BankContactFormValues = {
+const defaultContactSchemaType: BankContactSchemaType = {
   bankId: 0,
   contactId: 0,
   contactName: "",
@@ -40,7 +40,7 @@ const defaultContactFormValues: BankContactFormValues = {
 interface BankContactFormProps {
   initialData?: IBankContact
   bankId?: number
-  submitAction: (data: BankContactFormValues) => void
+  submitAction: (data: BankContactSchemaType) => void
   onCancel?: () => void
   isSubmitting?: boolean
   isReadOnly?: boolean
@@ -56,18 +56,18 @@ export function BankContactForm({
 }: BankContactFormProps) {
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
-  const form = useForm<BankContactFormValues>({
+  const form = useForm<BankContactSchemaType>({
     resolver: zodResolver(bankContactSchema),
     defaultValues: initialData
       ? { ...initialData }
       : {
-          ...defaultContactFormValues,
+          ...defaultContactSchemaType,
           bankId: bankId || 0,
         },
   })
 
-  const onSubmit = (data: BankContactFormValues) => {
-    // Process and handle null values according to BankContactFormValues schema
+  const onSubmit = (data: BankContactSchemaType) => {
+    // Process and handle null values according to BankContactSchemaType schema
     const contactData = {
       ...data,
       // Convert numeric fields

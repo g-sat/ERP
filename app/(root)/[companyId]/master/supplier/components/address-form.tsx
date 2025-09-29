@@ -3,7 +3,7 @@
 import { useEffect } from "react"
 import { ISupplierAddress } from "@/interfaces/supplier"
 import {
-  SupplierAddressFormValues,
+  SupplierAddressSchemaType,
   supplierAddressSchema,
 } from "@/schemas/supplier"
 import { useAuthStore } from "@/stores/auth-store"
@@ -25,7 +25,7 @@ import CustomSwitch from "@/components/custom/custom-switch"
 import CustomTextarea from "@/components/custom/custom-textarea"
 
 // Default values for the address form
-const defaultAddressFormValues: SupplierAddressFormValues = {
+const defaultAddressSchemaType: SupplierAddressSchemaType = {
   supplierId: 0,
   addressId: 0,
   address1: "",
@@ -48,7 +48,7 @@ const defaultAddressFormValues: SupplierAddressFormValues = {
 interface SupplierAddressFormProps {
   initialData?: ISupplierAddress
   supplierId?: number
-  submitAction: (data: SupplierAddressFormValues) => void
+  submitAction: (data: SupplierAddressSchemaType) => void
   onCancel?: () => void
   isSubmitting?: boolean
   isReadOnly?: boolean
@@ -64,18 +64,18 @@ export function SupplierAddressForm({
 }: SupplierAddressFormProps) {
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
-  const form = useForm<SupplierAddressFormValues>({
+  const form = useForm<SupplierAddressSchemaType>({
     resolver: zodResolver(supplierAddressSchema),
     defaultValues: initialData
       ? { ...initialData }
       : {
-          ...defaultAddressFormValues,
+          ...defaultAddressSchemaType,
           supplierId: supplierId || 0,
         },
   })
 
-  const onSubmit = (data: SupplierAddressFormValues) => {
-    // Process the form data according to SupplierAddressFormValues schema
+  const onSubmit = (data: SupplierAddressSchemaType) => {
+    // Process the form data according to SupplierAddressSchemaType schema
     const addressData = {
       ...data,
       // Convert numeric fields and handle null values

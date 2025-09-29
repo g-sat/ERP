@@ -19,7 +19,7 @@ export const countrySchema = z.object({
   isActive: z.boolean().default(true),
 })
 
-export type CountryFormValues = z.infer<typeof countrySchema>
+export type CountrySchemaType = z.infer<typeof countrySchema>
 
 export const countryFiltersSchema = z.object({
   isActive: z.boolean().optional(),

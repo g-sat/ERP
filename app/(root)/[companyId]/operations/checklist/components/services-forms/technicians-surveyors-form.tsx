@@ -3,8 +3,8 @@
 import { useEffect } from "react"
 import { IJobOrderHd, ITechnicianSurveyor } from "@/interfaces/checklist"
 import {
-  TechnicianSurveyorFormValues,
   TechnicianSurveyorSchema,
+  TechnicianSurveyorSchemaType,
 } from "@/schemas/checklist"
 import { useAuthStore } from "@/stores/auth-store"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -17,7 +17,6 @@ import { useChartofAccountLookup } from "@/hooks/use-lookup"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Form } from "@/components/ui/form"
-import { FormLoadingSpinner } from "@/components/skeleton/loading-spinner"
 import ChargeAutocomplete from "@/components/autocomplete/autocomplete-charge"
 import ChartOfAccountAutocomplete from "@/components/autocomplete/autocomplete-chartofaccount"
 import PassTypeAutocomplete from "@/components/autocomplete/autocomplete-passtype"
@@ -31,12 +30,13 @@ import CustomAccordion, {
 import { CustomDateNew } from "@/components/custom/custom-date-new"
 import CustomInput from "@/components/custom/custom-input"
 import CustomTextarea from "@/components/custom/custom-textarea"
+import { FormLoadingSpinner } from "@/components/skeleton/loading-spinner"
 
 interface TechniciansSurveyorsFormProps {
   jobData: IJobOrderHd
   initialData?: ITechnicianSurveyor
   taskDefaults?: Record<string, number> // Add taskDefaults prop
-  submitAction: (data: TechnicianSurveyorFormValues) => void
+  submitAction: (data: TechnicianSurveyorSchemaType) => void
   onCancel?: () => void
   isSubmitting?: boolean
   isConfirmed?: boolean
@@ -61,7 +61,7 @@ export function TechniciansSurveyorsForm({
   )
 
   console.log("initialData :", initialData)
-  const form = useForm<TechnicianSurveyorFormValues>({
+  const form = useForm<TechnicianSurveyorSchemaType>({
     resolver: zodResolver(TechnicianSurveyorSchema),
     defaultValues: {
       technicianSurveyorId: initialData?.technicianSurveyorId ?? 0,
@@ -148,7 +148,7 @@ export function TechniciansSurveyorsForm({
     )
   }
 
-  const onSubmit = (data: TechnicianSurveyorFormValues) => {
+  const onSubmit = (data: TechnicianSurveyorSchemaType) => {
     submitAction(data)
   }
 

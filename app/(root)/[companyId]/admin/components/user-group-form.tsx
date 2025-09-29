@@ -2,7 +2,7 @@
 
 import { useEffect } from "react"
 import { IUserGroup } from "@/interfaces/admin"
-import { UserGroupFormValues, userGroupSchema } from "@/schemas/admin"
+import { UserGroupSchemaType, userGroupSchema } from "@/schemas/admin"
 import { useAuthStore } from "@/stores/auth-store"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { format } from "date-fns"
@@ -29,11 +29,11 @@ const defaultValues = {
 }
 interface UserGroupFormProps {
   initialData?: IUserGroup
-  submitAction: (data: UserGroupFormValues) => void
+  submitAction: (data: UserGroupSchemaType) => void
   onCancel?: () => void
   isSubmitting?: boolean
   isReadOnly?: boolean
-  onSaveConfirmation?: (data: UserGroupFormValues) => void
+  onSaveConfirmation?: (data: UserGroupSchemaType) => void
 }
 
 export function UserGroupForm({
@@ -46,7 +46,7 @@ export function UserGroupForm({
 }: UserGroupFormProps) {
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
-  const form = useForm<UserGroupFormValues>({
+  const form = useForm<UserGroupSchemaType>({
     resolver: zodResolver(userGroupSchema),
     defaultValues: initialData
       ? {
@@ -76,7 +76,7 @@ export function UserGroupForm({
     )
   }, [initialData, form])
 
-  const onSubmit = (data: UserGroupFormValues) => {
+  const onSubmit = (data: UserGroupSchemaType) => {
     if (onSaveConfirmation) {
       onSaveConfirmation(data)
     } else {

@@ -9,9 +9,9 @@ import {
   ICustomerFilter,
 } from "@/interfaces/customer"
 import {
-  CustomerAddressFormValues,
-  CustomerContactFormValues,
-  CustomerFormValues,
+  CustomerAddressSchemaType,
+  CustomerContactSchemaType,
+  CustomerSchemaType,
 } from "@/schemas/customer"
 import { usePermissionStore } from "@/stores/permission-store"
 import { ListFilter, RotateCcw, Save, Trash2 } from "lucide-react"
@@ -90,11 +90,11 @@ export default function CustomerPage() {
   const [showContactSaveConfirmation, setShowContactSaveConfirmation] =
     useState(false)
   const [pendingCustomerData, setPendingCustomerData] =
-    useState<CustomerFormValues | null>(null)
+    useState<CustomerSchemaType | null>(null)
   const [pendingAddressData, setPendingAddressData] =
-    useState<CustomerAddressFormValues | null>(null)
+    useState<CustomerAddressSchemaType | null>(null)
   const [pendingContactData, setPendingContactData] =
-    useState<CustomerContactFormValues | null>(null)
+    useState<CustomerContactSchemaType | null>(null)
 
   // Delete confirmation states
   const [showCustomerDeleteConfirmation, setShowCustomerDeleteConfirmation] =
@@ -166,20 +166,20 @@ export default function CustomerPage() {
     }
 
   // Mutations
-  const saveMutation = usePersist<CustomerFormValues>(`${Customer.add}`)
-  const updateMutation = usePersist<CustomerFormValues>(`${Customer.add}`)
+  const saveMutation = usePersist<CustomerSchemaType>(`${Customer.add}`)
+  const updateMutation = usePersist<CustomerSchemaType>(`${Customer.add}`)
   const deleteMutation = useDelete(`${Customer.delete}`)
-  const saveAddressMutation = usePersist<CustomerAddressFormValues>(
+  const saveAddressMutation = usePersist<CustomerAddressSchemaType>(
     `${CustomerAddress.add}`
   )
-  const updateAddressMutation = usePersist<CustomerAddressFormValues>(
+  const updateAddressMutation = usePersist<CustomerAddressSchemaType>(
     `${CustomerAddress.add}`
   )
   const deleteAddressMutation = useDelete(`${CustomerAddress.delete}`)
-  const saveContactMutation = usePersist<CustomerContactFormValues>(
+  const saveContactMutation = usePersist<CustomerContactSchemaType>(
     `${CustomerContact.add}`
   )
-  const updateContactMutation = usePersist<CustomerContactFormValues>(
+  const updateContactMutation = usePersist<CustomerContactSchemaType>(
     `${CustomerContact.add}`
   )
   const deleteContactMutation = useDelete(`${CustomerContact.delete}`)
@@ -233,7 +233,7 @@ export default function CustomerPage() {
     }
   }, [customer?.customerId, fetchCustomerData])
 
-  const handleCustomerSave = (savedCustomer: CustomerFormValues) => {
+  const handleCustomerSave = (savedCustomer: CustomerSchemaType) => {
     setPendingCustomerData(savedCustomer)
     setShowCustomerSaveConfirmation(true)
   }
@@ -310,7 +310,7 @@ export default function CustomerPage() {
     }
   }
 
-  const handleAddressSave = (data: CustomerAddressFormValues) => {
+  const handleAddressSave = (data: CustomerAddressSchemaType) => {
     setPendingAddressData(data)
     setShowAddressSaveConfirmation(true)
   }
@@ -344,7 +344,7 @@ export default function CustomerPage() {
     }
   }
 
-  const handleContactSave = (data: CustomerContactFormValues) => {
+  const handleContactSave = (data: CustomerContactSchemaType) => {
     setPendingContactData(data)
     setShowContactSaveConfirmation(true)
   }

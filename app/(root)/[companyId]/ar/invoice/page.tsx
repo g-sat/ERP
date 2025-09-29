@@ -8,7 +8,7 @@ import {
   IArInvoiceHd,
 } from "@/interfaces/invoice"
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
-import { ArInvoiceHdFormValues, arinvoiceHdSchema } from "@/schemas/invoice"
+import { ArInvoiceHdSchemaType, arinvoiceHdSchema } from "@/schemas/invoice"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { format, subMonths } from "date-fns"
 import {
@@ -52,7 +52,7 @@ export default function InvoicePage() {
     delete: false,
     load: false,
   })
-  const [invoice, setInvoice] = useState<ArInvoiceHdFormValues | null>(null)
+  const [invoice, setInvoice] = useState<ArInvoiceHdSchemaType | null>(null)
   const [searchNo, setSearchNo] = useState("")
   const [activeTab, setActiveTab] = useState("main")
 
@@ -86,7 +86,7 @@ export default function InvoicePage() {
   const required: IMandatoryFields = requiredFields ?? null
 
   // Add form state management
-  const form = useForm<ArInvoiceHdFormValues>({
+  const form = useForm<ArInvoiceHdSchemaType>({
     resolver: zodResolver(arinvoiceHdSchema(required, visible)),
     defaultValues: invoice
       ? {
@@ -185,8 +185,8 @@ export default function InvoicePage() {
     }
 
   // Mutations
-  const saveMutation = usePersist<ArInvoiceHdFormValues>(`${ArInvoice.add}`)
-  const updateMutation = usePersist<ArInvoiceHdFormValues>(`${ArInvoice.add}`)
+  const saveMutation = usePersist<ArInvoiceHdSchemaType>(`${ArInvoice.add}`)
+  const updateMutation = usePersist<ArInvoiceHdSchemaType>(`${ArInvoice.add}`)
   const deleteMutation = useDelete(`${ArInvoice.delete}`)
 
   // Remove the useGetInvoiceById hook for selection
@@ -199,7 +199,7 @@ export default function InvoicePage() {
       case "save":
         try {
           // Get form values and validate them
-          const formValues = transformToFormValues(
+          const formValues = transformToSchemaType(
             form.getValues() as unknown as IArInvoiceHd
           )
 
@@ -229,10 +229,10 @@ export default function InvoicePage() {
 
             // Transform API response back to form values if needed
             if (invoiceData) {
-              const updatedFormValues = transformToFormValues(
+              const updatedSchemaType = transformToSchemaType(
                 invoiceData as unknown as IArInvoiceHd
               )
-              setInvoice(updatedFormValues)
+              setInvoice(updatedSchemaType)
             }
 
             toast.success("Invoice saved successfully")
@@ -251,7 +251,7 @@ export default function InvoicePage() {
       case "clone":
         if (invoice) {
           // Create a proper clone with form values
-          const clonedInvoice: ArInvoiceHdFormValues = {
+          const clonedInvoice: ArInvoiceHdSchemaType = {
             ...invoice,
             invoiceId: "0",
             invoiceNo: "",
@@ -326,10 +326,10 @@ export default function InvoicePage() {
     })
   }
 
-  // Helper function to transform IArInvoiceHd to ArInvoiceHdFormValues
-  const transformToFormValues = (
+  // Helper function to transform IArInvoiceHd to ArInvoiceHdSchemaType
+  const transformToSchemaType = (
     apiInvoice: IArInvoiceHd
-  ): ArInvoiceHdFormValues => {
+  ): ArInvoiceHdSchemaType => {
     return {
       invoiceId: apiInvoice.invoiceId?.toString() ?? "0",
       invoiceNo: apiInvoice.invoiceNo ?? "",
@@ -443,7 +443,7 @@ export default function InvoicePage() {
   ) => {
     if (selectedInvoice) {
       // Transform API data to form values
-      const formValues = transformToFormValues(selectedInvoice)
+      const formValues = transformToSchemaType(selectedInvoice)
       setInvoice(formValues)
 
       try {
@@ -512,8 +512,8 @@ export default function InvoicePage() {
                 })) || [],
             }
 
-            //setInvoice(updatedInvoice as ArInvoiceHdFormValues)
-            setInvoice(transformToFormValues(updatedInvoice))
+            //setInvoice(updatedInvoice as ArInvoiceHdSchemaType)
+            setInvoice(transformToSchemaType(updatedInvoice))
             form.reset(updatedInvoice)
             form.trigger()
             console.log("Form values after reset:", form.getValues())
@@ -609,8 +609,8 @@ export default function InvoicePage() {
               })) || [],
           }
 
-          //setInvoice(updatedInvoice as ArInvoiceHdFormValues)
-          setInvoice(transformToFormValues(updatedInvoice))
+          //setInvoice(updatedInvoice as ArInvoiceHdSchemaType)
+          setInvoice(transformToSchemaType(updatedInvoice))
           form.reset(updatedInvoice)
           form.trigger()
           console.log("Form values after reset:", form.getValues())

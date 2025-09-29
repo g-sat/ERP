@@ -3,7 +3,7 @@
 import { useEffect } from "react"
 import { ICustomerAddress } from "@/interfaces/customer"
 import {
-  CustomerAddressFormValues,
+  CustomerAddressSchemaType,
   customerAddressSchema,
 } from "@/schemas/customer"
 import { useAuthStore } from "@/stores/auth-store"
@@ -25,7 +25,7 @@ import CustomSwitch from "@/components/custom/custom-switch"
 import CustomTextarea from "@/components/custom/custom-textarea"
 
 // Default values for the address form
-const defaultAddressFormValues: CustomerAddressFormValues = {
+const defaultAddressSchemaType: CustomerAddressSchemaType = {
   customerId: 0,
   addressId: 0,
   address1: "",
@@ -48,7 +48,7 @@ const defaultAddressFormValues: CustomerAddressFormValues = {
 interface CustomerAddressFormProps {
   initialData?: ICustomerAddress
   customerId?: number
-  submitAction: (data: CustomerAddressFormValues) => void
+  submitAction: (data: CustomerAddressSchemaType) => void
   onCancel?: () => void
   isSubmitting?: boolean
   isReadOnly?: boolean
@@ -69,7 +69,7 @@ export function CustomerAddressForm({
   if (!customerId || customerId <= 0) {
     throw new Error("Valid customerId is required for address form")
   }
-  const form = useForm<CustomerAddressFormValues>({
+  const form = useForm<CustomerAddressSchemaType>({
     resolver: zodResolver(customerAddressSchema),
     defaultValues: initialData
       ? {
@@ -92,16 +92,16 @@ export function CustomerAddressForm({
           isSalesAdd: initialData.isSalesAdd ?? false,
         }
       : {
-          ...defaultAddressFormValues,
+          ...defaultAddressSchemaType,
           customerId: customerId,
         },
   })
 
-  const onSubmit = (data: CustomerAddressFormValues) => {
+  const onSubmit = (data: CustomerAddressSchemaType) => {
     console.log("Form submitted with data:", data)
     console.log("Form validation errors:", form.formState.errors)
 
-    // Process the form data according to CustomerAddressFormValues schema
+    // Process the form data according to CustomerAddressSchemaType schema
     const addressData = {
       ...data,
       // Convert numeric fields and handle null values
@@ -156,7 +156,7 @@ export function CustomerAddressForm({
             isSalesAdd: initialData.isSalesAdd ?? false,
           }
         : {
-            ...defaultAddressFormValues,
+            ...defaultAddressSchemaType,
             customerId: customerId,
           }
     )

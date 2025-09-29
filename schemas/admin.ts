@@ -26,7 +26,7 @@ export const userSchema = z.object({
   isLocked: z.boolean().default(false),
 })
 
-export type UserFormValues = z.infer<typeof userSchema>
+export type UserSchemaType = z.infer<typeof userSchema>
 
 export const userGroupSchema = z.object({
   userGroupId: z
@@ -48,7 +48,7 @@ export const userGroupSchema = z.object({
   isActive: z.boolean().default(true),
 })
 
-export type UserGroupFormValues = z.infer<typeof userGroupSchema>
+export type UserGroupSchemaType = z.infer<typeof userGroupSchema>
 
 export const userRoleSchema = z.object({
   userRoleId: z
@@ -70,7 +70,7 @@ export const userRoleSchema = z.object({
   isActive: z.boolean().default(true),
 })
 
-export type UserRoleFormValues = z.infer<typeof userRoleSchema>
+export type UserRoleSchemaType = z.infer<typeof userRoleSchema>
 
 export const userFilterSchema = z.object({
   isActive: z.boolean().optional(),
@@ -107,7 +107,7 @@ export const resetPasswordSchema = z.object({
     .min(8, { message: "Confirm password must be at least 8 characters long" }),
 })
 
-export type ResetPasswordFormValues = z.infer<typeof resetPasswordSchema>
+export type ResetPasswordSchemaType = z.infer<typeof resetPasswordSchema>
 
 export const userGroupRightsSchema = z.object({
   userGroupId: z
@@ -129,7 +129,7 @@ export const userGroupRightsSchema = z.object({
   isPrint: z.boolean().default(false),
 })
 
-export type UserGroupRightsFormValues = z.infer<typeof userGroupRightsSchema>
+export type UserGroupRightsSchemaType = z.infer<typeof userGroupRightsSchema>
 
 export const userRightsSchema = z.object({
   companyId: z
@@ -142,7 +142,7 @@ export const userRightsSchema = z.object({
   userGroupId: z.number(),
 })
 
-export type UserRightsFormValues = z.infer<typeof userRightsSchema>
+export type UserRightsSchemaType = z.infer<typeof userRightsSchema>
 
 export const cloneUserGroupRightsSchema = z.object({
   fromUserGroupId: z
@@ -153,7 +153,7 @@ export const cloneUserGroupRightsSchema = z.object({
     .min(1, { message: "Target user group ID must be greater than 0" }),
 })
 
-export type CloneUserGroupRightsFormValues = z.infer<
+export type CloneUserGroupRightsSchemaType = z.infer<
   typeof cloneUserGroupRightsSchema
 >
 
@@ -198,7 +198,7 @@ export const userProfileSchema = z.object({
   timezonePreference: z.string().optional().default(""),
 })
 
-export type UserProfileFormValues = z.infer<typeof userProfileSchema>
+export type UserProfileSchemaType = z.infer<typeof userProfileSchema>
 
 // Password Schema
 export const userPasswordSchema = z
@@ -211,4 +211,4 @@ export const userPasswordSchema = z
     path: ["confirmPassword"],
   })
 
-export type UserPasswordFormValues = z.infer<typeof userPasswordSchema>
+export type UserPasswordSchemaType = z.infer<typeof userPasswordSchema>

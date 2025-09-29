@@ -2,7 +2,7 @@
 
 import { useEffect } from "react"
 import { ILeaveType } from "@/interfaces/leavetype"
-import { LeaveTypeFormValues, leaveTypeSchema } from "@/schemas/leavetype"
+import { LeaveTypeSchemaType, leaveTypeSchema } from "@/schemas/leavetype"
 import { useAuthStore } from "@/stores/auth-store"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { format } from "date-fns"
@@ -29,7 +29,7 @@ const defaultValues = {
 }
 interface LeaveTypeFormProps {
   initialData?: ILeaveType
-  submitAction: (data: LeaveTypeFormValues) => void
+  submitAction: (data: LeaveTypeSchemaType) => void
   onCancel?: () => void
   isSubmitting?: boolean
   isReadOnly?: boolean
@@ -47,7 +47,7 @@ export function LeaveTypeForm({
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
 
-  const form = useForm<LeaveTypeFormValues>({
+  const form = useForm<LeaveTypeSchemaType>({
     resolver: zodResolver(leaveTypeSchema),
     defaultValues: initialData
       ? {
@@ -84,7 +84,7 @@ export function LeaveTypeForm({
     onCodeBlur?.(code)
   }
 
-  const onSubmit = (data: LeaveTypeFormValues) => {
+  const onSubmit = (data: LeaveTypeSchemaType) => {
     submitAction(data)
   }
 

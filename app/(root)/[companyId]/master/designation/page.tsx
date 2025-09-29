@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react"
 import { ApiResponse } from "@/interfaces/auth"
 import { IDesignation, IDesignationFilter } from "@/interfaces/designation"
-import { DesignationFormValues } from "@/schemas/designation"
+import { DesignationSchemaType } from "@/schemas/designation"
 import { usePermissionStore } from "@/stores/permission-store"
 import { useQueryClient } from "@tanstack/react-query"
 
@@ -72,8 +72,8 @@ export default function DesignationPage() {
     }
   }, [filters, designationsData?.length, refetch])
 
-  const saveMutation = usePersist<DesignationFormValues>(`${Designation.add}`)
-  const updateMutation = usePersist<DesignationFormValues>(`${Designation.add}`)
+  const saveMutation = usePersist<DesignationSchemaType>(`${Designation.add}`)
+  const updateMutation = usePersist<DesignationSchemaType>(`${Designation.add}`)
   const deleteMutation = useDelete(`${Designation.delete}`)
 
   const [selectedDesignation, setSelectedDesignation] =
@@ -134,14 +134,14 @@ export default function DesignationPage() {
   // State for save confirmation
   const [saveConfirmation, setSaveConfirmation] = useState<{
     isOpen: boolean
-    data: DesignationFormValues | null
+    data: DesignationSchemaType | null
   }>({
     isOpen: false,
     data: null,
   })
 
   // Handler for form submission (create or edit) - shows confirmation first
-  const handleFormSubmit = (data: DesignationFormValues) => {
+  const handleFormSubmit = (data: DesignationSchemaType) => {
     setSaveConfirmation({
       isOpen: true,
       data: data,
@@ -149,7 +149,7 @@ export default function DesignationPage() {
   }
 
   // Handler for confirmed form submission
-  const handleConfirmedFormSubmit = async (data: DesignationFormValues) => {
+  const handleConfirmedFormSubmit = async (data: DesignationSchemaType) => {
     try {
       if (modalMode === "create") {
         const response = await saveMutation.mutateAsync(data)

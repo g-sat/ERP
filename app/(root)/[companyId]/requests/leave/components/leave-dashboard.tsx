@@ -4,9 +4,9 @@ import { useMemo, useState } from "react"
 import { ApiResponse } from "@/interfaces/auth"
 import { ILeave, ILeaveBalance, ILeavePolicy } from "@/interfaces/leave"
 import {
-  LeaveBalanceFormValues,
-  LeavePolicyFormValues,
-  LeaveRequestFormValues,
+  LeaveBalanceSchemaType,
+  LeavePolicySchemaType,
+  LeaveRequestSchemaType,
 } from "@/schemas/leave"
 import { Calendar, CheckCircle, Clock, Plus, TrendingUp } from "lucide-react"
 
@@ -29,14 +29,14 @@ interface LeaveDashboardProps {
   leaves: ILeave[]
   leaveBalances: ILeaveBalance[]
   policies: ILeavePolicy[]
-  onLeaveSubmit?: (data: LeaveRequestFormValues) => Promise<void>
+  onLeaveSubmit?: (data: LeaveRequestSchemaType) => Promise<void>
   onLeaveSave?: (
     leaveId: string,
     action: "approve" | "reject" | "cancel",
     notes?: string
   ) => void
   onPolicySubmit?: (
-    data: LeavePolicyFormValues
+    data: LeavePolicySchemaType
   ) => Promise<ApiResponse<ILeavePolicy> | void>
 }
 
@@ -109,13 +109,13 @@ export function LeaveDashboard({
     return ["ALL", ...uniqueTypes]
   }, [leaves])
 
-  const handleLeaveSubmit = async (data: LeaveRequestFormValues) => {
+  const handleLeaveSubmit = async (data: LeaveRequestSchemaType) => {
     if (onLeaveSubmit) {
       await onLeaveSubmit(data)
     }
   }
 
-  const handlePolicySubmit = async (data: LeavePolicyFormValues) => {
+  const handlePolicySubmit = async (data: LeavePolicySchemaType) => {
     console.log("LeaveDashboard handlePolicySubmit called with data:", data)
     if (onPolicySubmit) {
       console.log("Calling onPolicySubmit...")
@@ -132,7 +132,7 @@ export function LeaveDashboard({
     }
   }
 
-  const handleBalanceSubmit = async (data: LeaveBalanceFormValues) => {
+  const handleBalanceSubmit = async (data: LeaveBalanceSchemaType) => {
     console.log("LeaveDashboard handleBalanceSubmit called with data:", data)
     // TODO: Implement balance submit logic
     console.log("Balance submit not implemented yet")

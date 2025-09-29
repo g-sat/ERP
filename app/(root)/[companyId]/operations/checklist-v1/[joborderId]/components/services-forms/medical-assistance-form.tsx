@@ -3,8 +3,8 @@
 import { useEffect } from "react"
 import { IJobOrderHd, IMedicalAssistance } from "@/interfaces/checklist"
 import {
-  MedicalAssistanceFormValues,
   MedicalAssistanceSchema,
+  MedicalAssistanceSchemaType,
 } from "@/schemas/checklist"
 import { useAuthStore } from "@/stores/auth-store"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -17,7 +17,6 @@ import { useChartofAccountLookup } from "@/hooks/use-lookup"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Form } from "@/components/ui/form"
-import { FormLoadingSpinner } from "@/components/skeleton/loading-spinner"
 import ChargeAutocomplete from "@/components/autocomplete/autocomplete-charge"
 import ChartOfAccountAutocomplete from "@/components/autocomplete/autocomplete-chartofaccount"
 import RankAutocomplete from "@/components/autocomplete/autocomplete-rank"
@@ -31,12 +30,13 @@ import CustomAccordion, {
 import { CustomDateNew } from "@/components/custom/custom-date-new"
 import CustomInput from "@/components/custom/custom-input"
 import CustomTextarea from "@/components/custom/custom-textarea"
+import { FormLoadingSpinner } from "@/components/skeleton/loading-spinner"
 
 interface MedicalAssistanceFormProps {
   jobData: IJobOrderHd
   initialData?: IMedicalAssistance
   taskDefaults?: Record<string, number> // Add taskDefaults prop
-  submitAction: (data: MedicalAssistanceFormValues) => void
+  submitAction: (data: MedicalAssistanceSchemaType) => void
   onCancel?: () => void
   isSubmitting?: boolean
   isConfirmed?: boolean
@@ -61,7 +61,7 @@ export function MedicalAssistanceForm({
   )
 
   console.log("initialData :", initialData)
-  const form = useForm<MedicalAssistanceFormValues>({
+  const form = useForm<MedicalAssistanceSchemaType>({
     resolver: zodResolver(MedicalAssistanceSchema),
     defaultValues: {
       medicalAssistanceId: initialData?.medicalAssistanceId ?? 0,
@@ -144,7 +144,7 @@ export function MedicalAssistanceForm({
     )
   }
 
-  const onSubmit = (data: MedicalAssistanceFormValues) => {
+  const onSubmit = (data: MedicalAssistanceSchemaType) => {
     submitAction(data)
   }
 

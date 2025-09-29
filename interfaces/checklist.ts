@@ -833,6 +833,7 @@ export interface IBulkChargeData {
   glName?: string
   taskId?: number
   taskName?: string
+  basicRate: number
 }
 
 export interface IDebitNoteItem {

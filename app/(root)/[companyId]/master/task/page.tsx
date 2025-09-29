@@ -3,7 +3,7 @@
 import { useCallback, useState } from "react"
 import { ApiResponse } from "@/interfaces/auth"
 import { ITask, ITaskFilter } from "@/interfaces/task"
-import { TaskFormValues } from "@/schemas/task"
+import { TaskSchemaType } from "@/schemas/task"
 import { usePermissionStore } from "@/stores/permission-store"
 import { useQueryClient } from "@tanstack/react-query"
 
@@ -66,8 +66,8 @@ export default function TaskPage() {
       data: [],
     }
 
-  const saveMutation = usePersist<TaskFormValues>(`${Task.add}`)
-  const updateMutation = usePersist<TaskFormValues>(`${Task.add}`)
+  const saveMutation = usePersist<TaskSchemaType>(`${Task.add}`)
+  const updateMutation = usePersist<TaskSchemaType>(`${Task.add}`)
   const deleteMutation = useDelete(`${Task.delete}`)
 
   const [selectedTask, setSelectedTask] = useState<ITask | null>(null)
@@ -94,7 +94,7 @@ export default function TaskPage() {
   // State for save confirmation
   const [saveConfirmation, setSaveConfirmation] = useState<{
     isOpen: boolean
-    data: TaskFormValues | null
+    data: TaskSchemaType | null
   }>({
     isOpen: false,
     data: null,
@@ -133,7 +133,7 @@ export default function TaskPage() {
   }
 
   // Handler for form submission (create or edit) - shows confirmation first
-  const handleFormSubmit = (data: TaskFormValues) => {
+  const handleFormSubmit = (data: TaskSchemaType) => {
     setSaveConfirmation({
       isOpen: true,
       data: data,
@@ -141,7 +141,7 @@ export default function TaskPage() {
   }
 
   // Handler for confirmed form submission
-  const handleConfirmedFormSubmit = async (data: TaskFormValues) => {
+  const handleConfirmedFormSubmit = async (data: TaskSchemaType) => {
     try {
       if (modalMode === "create") {
         const response = await saveMutation.mutateAsync(data)

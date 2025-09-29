@@ -2,7 +2,7 @@
 
 import { useEffect } from "react"
 import { IJobOrderHd, IPortExpenses } from "@/interfaces/checklist"
-import { PortExpensesFormValues, PortExpensesSchema } from "@/schemas/checklist"
+import { PortExpensesSchema, PortExpensesSchemaType } from "@/schemas/checklist"
 import { useAuthStore } from "@/stores/auth-store"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { format } from "date-fns"
@@ -33,7 +33,7 @@ interface PortExpensesFormProps {
   jobData: IJobOrderHd
   initialData?: IPortExpenses
   taskDefaults?: Record<string, number> // Add taskDefaults prop
-  submitAction: (data: PortExpensesFormValues) => void
+  submitAction: (data: PortExpensesSchemaType) => void
   onCancel?: () => void
   isSubmitting?: boolean
   isConfirmed?: boolean
@@ -60,7 +60,7 @@ export function PortExpensesForm({
   // Get supplier data to ensure it's loaded before setting form values
   const { isLoading: isSupplierLoading } = useSupplierLookup()
 
-  const form = useForm<PortExpensesFormValues>({
+  const form = useForm<PortExpensesSchemaType>({
     resolver: zodResolver(PortExpensesSchema),
     defaultValues: {
       portExpenseId: initialData?.portExpenseId ?? 0,
@@ -123,7 +123,7 @@ export function PortExpensesForm({
     isSupplierLoading,
   ])
 
-  const onSubmit = (data: PortExpensesFormValues) => {
+  const onSubmit = (data: PortExpensesSchemaType) => {
     submitAction(data)
   }
 

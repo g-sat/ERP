@@ -2,7 +2,7 @@
 
 import { useEffect } from "react"
 import { ICharge } from "@/interfaces/charge"
-import { ChargeFormValues, chargeSchema } from "@/schemas/charge"
+import { ChargeSchemaType, chargeSchema } from "@/schemas/charge"
 import { useAuthStore } from "@/stores/auth-store"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { format } from "date-fns"
@@ -36,7 +36,7 @@ const defaultValues = {
 }
 interface ChargeFormProps {
   initialData?: ICharge
-  submitAction: (data: ChargeFormValues) => void
+  submitAction: (data: ChargeSchemaType) => void
   onCancel?: () => void
   isSubmitting?: boolean
   isReadOnly?: boolean
@@ -59,7 +59,7 @@ export function ChargeForm({
   // Get chart of account data to ensure it's loaded before setting form values
   useChartofAccountLookup(Number(companyId))
 
-  const form = useForm<ChargeFormValues>({
+  const form = useForm<ChargeSchemaType>({
     resolver: zodResolver(chargeSchema),
     defaultValues: initialData
       ? {
@@ -114,7 +114,7 @@ export function ChargeForm({
     }
   }
 
-  const onSubmit = (data: ChargeFormValues) => {
+  const onSubmit = (data: ChargeSchemaType) => {
     submitAction(data)
   }
 

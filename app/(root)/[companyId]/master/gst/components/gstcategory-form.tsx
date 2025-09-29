@@ -2,7 +2,7 @@
 
 import { useEffect } from "react"
 import { IGstCategory } from "@/interfaces/gst"
-import { GstCategoryFormValues, gstCategorySchema } from "@/schemas/gst"
+import { GstCategorySchemaType, gstCategorySchema } from "@/schemas/gst"
 import { useAuthStore } from "@/stores/auth-store"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { format } from "date-fns"
@@ -22,7 +22,7 @@ import CustomTextarea from "@/components/custom/custom-textarea"
 
 interface GstCategoryFormProps {
   initialData?: IGstCategory | null
-  submitAction: (data: GstCategoryFormValues) => void
+  submitAction: (data: GstCategorySchemaType) => void
   onCancel: () => void
   isSubmitting: boolean
   isReadOnly?: boolean
@@ -48,7 +48,7 @@ export function GstCategoryForm({
     isActive: true,
   }
 
-  const form = useForm<GstCategoryFormValues>({
+  const form = useForm<GstCategorySchemaType>({
     resolver: zodResolver(gstCategorySchema),
     defaultValues: initialData
       ? {
@@ -85,7 +85,7 @@ export function GstCategoryForm({
     onCodeBlur?.(code)
   }
 
-  const onSubmit = (data: GstCategoryFormValues) => {
+  const onSubmit = (data: GstCategorySchemaType) => {
     submitAction(data)
   }
 

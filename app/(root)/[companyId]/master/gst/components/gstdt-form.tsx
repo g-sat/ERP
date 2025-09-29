@@ -2,7 +2,7 @@
 
 import { useEffect } from "react"
 import { IGstDt } from "@/interfaces/gst"
-import { GstDtFormValues, gstDtSchema } from "@/schemas/gst"
+import { GstDtSchemaType, gstDtSchema } from "@/schemas/gst"
 import { useAuthStore } from "@/stores/auth-store"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { format } from "date-fns"
@@ -23,7 +23,7 @@ import CustomNumberInput from "@/components/custom/custom-number-input"
 
 interface GstDtFormProps {
   initialData?: IGstDt | null
-  submitAction: (data: GstDtFormValues) => void
+  submitAction: (data: GstDtSchemaType) => void
   onCancel: () => void
   isSubmitting: boolean
   isReadOnly?: boolean
@@ -47,7 +47,7 @@ export function GstDtForm({
     validFrom: new Date(),
   }
 
-  const form = useForm<GstDtFormValues>({
+  const form = useForm<GstDtSchemaType>({
     resolver: zodResolver(gstDtSchema),
     defaultValues: initialData
       ? {
@@ -79,7 +79,7 @@ export function GstDtForm({
     )
   }, [initialData, form])
 
-  const onSubmit = (data: GstDtFormValues) => {
+  const onSubmit = (data: GstDtSchemaType) => {
     submitAction(data)
   }
 

@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react"
 import { ApiResponse } from "@/interfaces/auth"
 import { IPort, IPortFilter } from "@/interfaces/port"
-import { PortFormValues } from "@/schemas/port"
+import { PortSchemaType } from "@/schemas/port"
 import { usePermissionStore } from "@/stores/permission-store"
 import { useQueryClient } from "@tanstack/react-query"
 
@@ -61,8 +61,8 @@ export default function PortPage() {
       data: [],
     }
 
-  const saveMutation = usePersist<PortFormValues>(`${Port.add}`)
-  const updateMutation = usePersist<PortFormValues>(`${Port.add}`)
+  const saveMutation = usePersist<PortSchemaType>(`${Port.add}`)
+  const updateMutation = usePersist<PortSchemaType>(`${Port.add}`)
   const deleteMutation = useDelete(`${Port.delete}`)
 
   const [selectedPort, setSelectedPort] = useState<IPort | null>(null)
@@ -117,14 +117,14 @@ export default function PortPage() {
   // State for save confirmation
   const [saveConfirmation, setSaveConfirmation] = useState<{
     isOpen: boolean
-    data: PortFormValues | null
+    data: PortSchemaType | null
   }>({
     isOpen: false,
     data: null,
   })
 
   // Handler for form submission (create or edit) - shows confirmation first
-  const handleFormSubmit = (data: PortFormValues) => {
+  const handleFormSubmit = (data: PortSchemaType) => {
     setSaveConfirmation({
       isOpen: true,
       data: data,
@@ -132,7 +132,7 @@ export default function PortPage() {
   }
 
   // Handler for confirmed form submission
-  const handleConfirmedFormSubmit = async (data: PortFormValues) => {
+  const handleConfirmedFormSubmit = async (data: PortSchemaType) => {
     try {
       if (modalMode === "create") {
         const response = await saveMutation.mutateAsync(data)

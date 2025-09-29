@@ -18,7 +18,7 @@ export const leaveTypeSchema = z.object({
   isActive: z.boolean().optional(),
 })
 
-export type LeaveTypeFormValues = z.infer<typeof leaveTypeSchema>
+export type LeaveTypeSchemaType = z.infer<typeof leaveTypeSchema>
 
 // ILeavePolicy Schema
 export const leavePolicySchema = z.object({
@@ -58,7 +58,7 @@ export const leavePolicySchema = z.object({
   isActive: z.boolean().optional(),
 })
 
-export type LeavePolicyFormValues = z.infer<typeof leavePolicySchema>
+export type LeavePolicySchemaType = z.infer<typeof leavePolicySchema>
 
 // ILeaveBalance Schema
 export const leaveBalanceSchema = z.object({
@@ -87,7 +87,7 @@ export const leaveBalanceSchema = z.object({
     .max(2100, "Year cannot exceed 2100"),
 })
 
-export type LeaveBalanceFormValues = z.infer<typeof leaveBalanceSchema>
+export type LeaveBalanceSchemaType = z.infer<typeof leaveBalanceSchema>
 
 // ILeaveRequest Schema
 export const leaveRequestSchema = z
@@ -138,7 +138,7 @@ export const leaveRequestSchema = z
     }
   )
 
-export type LeaveRequestFormValues = z.infer<typeof leaveRequestSchema>
+export type LeaveRequestSchemaType = z.infer<typeof leaveRequestSchema>
 
 // ILeaveApproval Schema
 export const leaveApprovalSchema = z.object({
@@ -157,7 +157,7 @@ export const leaveApprovalSchema = z.object({
   approvedDate: z.union([z.string(), z.date()]).optional(),
 })
 
-export type LeaveApprovalFormValues = z.infer<typeof leaveApprovalSchema>
+export type LeaveApprovalSchemaType = z.infer<typeof leaveApprovalSchema>
 
 // ILeaveCalendar Schema
 export const leaveCalendarSchema = z.object({
@@ -175,7 +175,7 @@ export const leaveCalendarSchema = z.object({
     .optional(),
 })
 
-export type LeaveCalendarFormValues = z.infer<typeof leaveCalendarSchema>
+export type LeaveCalendarSchemaType = z.infer<typeof leaveCalendarSchema>
 
 // ILeaveSetting Schema
 export const leaveSettingSchema = z.object({
@@ -209,4 +209,4 @@ export const leaveSettingSchema = z.object({
     .optional(),
 })
 
-export type LeaveSettingFormValues = z.infer<typeof leaveSettingSchema>
+export type LeaveSettingSchemaType = z.infer<typeof leaveSettingSchema>

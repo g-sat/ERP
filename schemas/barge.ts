@@ -49,7 +49,7 @@ export const bargeSchema = z.object({
   isOwn: z.boolean().default(true),
 })
 
-export type BargeFormValues = z.infer<typeof bargeSchema>
+export type BargeSchemaType = z.infer<typeof bargeSchema>
 
 export const bargeFiltersSchema = z.object({
   isOwn: z.boolean().optional(),

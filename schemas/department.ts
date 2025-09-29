@@ -19,7 +19,7 @@ export const departmentSchema = z.object({
     .optional(),
 })
 
-export type DepartmentFormValues = z.infer<typeof departmentSchema>
+export type DepartmentSchemaType = z.infer<typeof departmentSchema>
 
 export const departmentFiltersSchema = z.object({
   isActive: z.boolean().optional(),

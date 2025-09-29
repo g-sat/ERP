@@ -2,7 +2,7 @@
 
 import { useEffect } from "react"
 import { ITariff } from "@/interfaces/tariff"
-import { TariffFormValues, tariffSchema } from "@/schemas/tariff"
+import { TariffSchemaType, tariffSchema } from "@/schemas/tariff"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { XIcon } from "lucide-react"
 import { useForm } from "react-hook-form"
@@ -42,7 +42,7 @@ export function TariffForm({
   taskId,
   onValidationError,
 }: TariffFormProps) {
-  const form = useForm<TariffFormValues>({
+  const form = useForm<TariffSchemaType>({
     resolver: zodResolver(tariffSchema),
     defaultValues: {
       tariffId: tariff?.tariffId || 0,
@@ -156,7 +156,7 @@ export function TariffForm({
   // Get form errors for display
   const formErrors = form.formState.errors
 
-  function onSubmit(data: TariffFormValues) {
+  function onSubmit(data: TariffSchemaType) {
     console.log("Form submitted with data:", data)
 
     const tariffData: ITariff = {

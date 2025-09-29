@@ -3,7 +3,7 @@
 import { useEffect } from "react"
 import { ICoaCategory1 } from "@/interfaces/coacategory"
 import {
-  CoaCategory1FormValues,
+  CoaCategory1SchemaType,
   coaCategory1Schema,
 } from "@/schemas/coacategory"
 import { useAuthStore } from "@/stores/auth-store"
@@ -25,7 +25,7 @@ import CustomTextarea from "@/components/custom/custom-textarea"
 
 interface CoaCategory1FormProps {
   initialData?: ICoaCategory1 | null
-  submitAction: (data: CoaCategory1FormValues) => void
+  submitAction: (data: CoaCategory1SchemaType) => void
   onCancel?: () => void
   isSubmitting?: boolean
   isReadOnly?: boolean
@@ -51,7 +51,7 @@ export function CoaCategory1Form({
     remarks: "",
   }
 
-  const form = useForm<CoaCategory1FormValues>({
+  const form = useForm<CoaCategory1SchemaType>({
     resolver: zodResolver(coaCategory1Schema),
     defaultValues: initialData
       ? {
@@ -90,7 +90,7 @@ export function CoaCategory1Form({
     onCodeBlur?.(code)
   }
 
-  const onSubmit = (data: CoaCategory1FormValues) => {
+  const onSubmit = (data: CoaCategory1SchemaType) => {
     submitAction(data)
   }
 

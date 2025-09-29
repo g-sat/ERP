@@ -22,7 +22,7 @@ export const chargeSchema = z.object({
   isActive: z.boolean().default(true),
 })
 
-export type ChargeFormValues = z.infer<typeof chargeSchema>
+export type ChargeSchemaType = z.infer<typeof chargeSchema>
 
 export const chargeFiltersSchema = z.object({
   isActive: z.boolean().optional(),

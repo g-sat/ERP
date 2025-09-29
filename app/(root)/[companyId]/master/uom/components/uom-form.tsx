@@ -2,7 +2,7 @@
 
 import { useEffect } from "react"
 import { IUom } from "@/interfaces/uom"
-import { UomFormValues, uomSchema } from "@/schemas/uom"
+import { UomSchemaType, uomSchema } from "@/schemas/uom"
 import { useAuthStore } from "@/stores/auth-store"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { format } from "date-fns"
@@ -85,7 +85,7 @@ export function UomForm({
     onCodeBlur?.(code)
   }
 
-  const onSubmit = (data: UomFormValues) => {
+  const onSubmit = (data: UomSchemaType) => {
     submitAction(data)
   }
 

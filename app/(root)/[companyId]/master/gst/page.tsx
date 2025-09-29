@@ -10,9 +10,9 @@ import {
   IGstFilter,
 } from "@/interfaces/gst"
 import {
-  GstCategoryFormValues,
-  GstDtFormValues,
-  GstFormValues,
+  GstCategorySchemaType,
+  GstDtSchemaType,
+  GstSchemaType,
 } from "@/schemas/gst"
 import { usePermissionStore } from "@/stores/permission-store"
 import { useQueryClient } from "@tanstack/react-query"
@@ -157,18 +157,18 @@ export default function GstPage() {
     }
 
   // Mutations
-  const saveMutation = usePersist<GstFormValues>(`${Gst.add}`)
-  const updateMutation = usePersist<GstFormValues>(`${Gst.add}`)
+  const saveMutation = usePersist<GstSchemaType>(`${Gst.add}`)
+  const updateMutation = usePersist<GstSchemaType>(`${Gst.add}`)
   const deleteMutation = useDelete(`${Gst.delete}`)
 
-  const saveDtMutation = usePersist<GstDtFormValues>(`${GstDt.add}`)
-  const updateDtMutation = usePersist<GstDtFormValues>(`${GstDt.add}`)
+  const saveDtMutation = usePersist<GstDtSchemaType>(`${GstDt.add}`)
+  const updateDtMutation = usePersist<GstDtSchemaType>(`${GstDt.add}`)
   const deleteDtMutation = useDelete(`${GstDt.delete}`)
 
-  const saveCategoryMutation = usePersist<GstCategoryFormValues>(
+  const saveCategoryMutation = usePersist<GstCategorySchemaType>(
     `${GstCategory.add}`
   )
-  const updateCategoryMutation = usePersist<GstCategoryFormValues>(
+  const updateCategoryMutation = usePersist<GstCategorySchemaType>(
     `${GstCategory.add}`
   )
   const deleteCategoryMutation = useDelete(`${GstCategory.delete}`)
@@ -284,7 +284,7 @@ export default function GstPage() {
   }
 
   // Specialized form handlers
-  const handleGstSubmit = async (data: GstFormValues) => {
+  const handleGstSubmit = async (data: GstSchemaType) => {
     try {
       if (modalMode === "create") {
         const response = (await saveMutation.mutateAsync(
@@ -306,7 +306,7 @@ export default function GstPage() {
     }
   }
 
-  const handleGstDtSubmit = async (data: GstDtFormValues) => {
+  const handleGstDtSubmit = async (data: GstDtSchemaType) => {
     try {
       if (modalMode === "create") {
         const response = (await saveDtMutation.mutateAsync(
@@ -328,7 +328,7 @@ export default function GstPage() {
     }
   }
 
-  const handleGstCategorySubmit = async (data: GstCategoryFormValues) => {
+  const handleGstCategorySubmit = async (data: GstCategorySchemaType) => {
     try {
       if (modalMode === "create") {
         const response = (await saveCategoryMutation.mutateAsync(
@@ -353,7 +353,7 @@ export default function GstPage() {
   // State for save confirmations
   const [saveConfirmation, setSaveConfirmation] = useState<{
     isOpen: boolean
-    data: GstFormValues | GstDtFormValues | GstCategoryFormValues | null
+    data: GstSchemaType | GstDtSchemaType | GstCategorySchemaType | null
     type: "gst" | "gstdt" | "gstcategory"
   }>({
     isOpen: false,
@@ -363,7 +363,7 @@ export default function GstPage() {
 
   // Main form submit handler - shows confirmation first
   const handleFormSubmit = (
-    data: GstFormValues | GstDtFormValues | GstCategoryFormValues
+    data: GstSchemaType | GstDtSchemaType | GstCategorySchemaType
   ) => {
     let type: "gst" | "gstdt" | "gstcategory" = "gst"
     if (isDtModalOpen) type = "gstdt"
@@ -378,17 +378,17 @@ export default function GstPage() {
 
   // Handler for confirmed form submission
   const handleConfirmedFormSubmit = async (
-    data: GstFormValues | GstDtFormValues | GstCategoryFormValues
+    data: GstSchemaType | GstDtSchemaType | GstCategorySchemaType
   ) => {
     try {
       if (saveConfirmation.type === "gstdt") {
-        await handleGstDtSubmit(data as GstDtFormValues)
+        await handleGstDtSubmit(data as GstDtSchemaType)
         setIsDtModalOpen(false)
       } else if (saveConfirmation.type === "gstcategory") {
-        await handleGstCategorySubmit(data as GstCategoryFormValues)
+        await handleGstCategorySubmit(data as GstCategorySchemaType)
         setIsCategoryModalOpen(false)
       } else {
-        await handleGstSubmit(data as GstFormValues)
+        await handleGstSubmit(data as GstSchemaType)
         setIsModalOpen(false)
       }
     } catch (error) {
@@ -900,12 +900,12 @@ export default function GstPage() {
         }
         itemName={
           saveConfirmation.type === "gst"
-            ? (saveConfirmation.data as GstFormValues)?.gstName || ""
+            ? (saveConfirmation.data as GstSchemaType)?.gstName || ""
             : saveConfirmation.type === "gstdt"
               ? (
-                  saveConfirmation.data as GstDtFormValues
+                  saveConfirmation.data as GstDtSchemaType
                 )?.gstPercentage?.toString() || ""
-              : (saveConfirmation.data as GstCategoryFormValues)
+              : (saveConfirmation.data as GstCategorySchemaType)
                   ?.gstCategoryName || ""
         }
         operationType={modalMode === "create" ? "create" : "update"}

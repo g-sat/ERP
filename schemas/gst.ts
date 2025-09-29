@@ -20,7 +20,7 @@ export const gstSchema = z.object({
     .default(""),
 })
 
-export type GstFormValues = z.infer<typeof gstSchema>
+export type GstSchemaType = z.infer<typeof gstSchema>
 
 export const gstFiltersSchema = z.object({
   isActive: z.boolean().optional(),
@@ -47,7 +47,7 @@ export const gstDtSchema = z.object({
   ),
 })
 
-export type GstDtFormValues = z.infer<typeof gstDtSchema>
+export type GstDtSchemaType = z.infer<typeof gstDtSchema>
 
 export const gstDtFiltersSchema = z.object({
   search: z.string().optional(),
@@ -75,7 +75,7 @@ export const gstCategorySchema = z.object({
     .default(""),
 })
 
-export type GstCategoryFormValues = z.infer<typeof gstCategorySchema>
+export type GstCategorySchemaType = z.infer<typeof gstCategorySchema>
 
 export const gstCategoryFiltersSchema = z.object({
   search: z.string().optional(),

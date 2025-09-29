@@ -2,7 +2,7 @@
 
 import { useEffect } from "react"
 import { IFreshWater, IJobOrderHd } from "@/interfaces/checklist"
-import { FreshWaterFormValues, FreshWaterSchema } from "@/schemas/checklist"
+import { FreshWaterSchema, FreshWaterSchemaType } from "@/schemas/checklist"
 import { useAuthStore } from "@/stores/auth-store"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { format } from "date-fns"
@@ -14,7 +14,6 @@ import { useChartofAccountLookup } from "@/hooks/use-lookup"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Form } from "@/components/ui/form"
-import { FormLoadingSpinner } from "@/components/skeleton/loading-spinner"
 import BargeAutocomplete from "@/components/autocomplete/autocomplete-barge"
 import ChargeAutocomplete from "@/components/autocomplete/autocomplete-charge"
 import ChartOfAccountAutocomplete from "@/components/autocomplete/autocomplete-chartofaccount"
@@ -28,12 +27,13 @@ import CustomAccordion, {
 import { CustomDateNew } from "@/components/custom/custom-date-new"
 import CustomInput from "@/components/custom/custom-input"
 import CustomTextarea from "@/components/custom/custom-textarea"
+import { FormLoadingSpinner } from "@/components/skeleton/loading-spinner"
 
 interface FreshWaterFormProps {
   jobData: IJobOrderHd
   initialData?: IFreshWater
   taskDefaults?: Record<string, number> // Add taskDefaults prop
-  submitAction: (data: FreshWaterFormValues) => void
+  submitAction: (data: FreshWaterSchemaType) => void
   onCancel?: () => void
   isSubmitting?: boolean
   isConfirmed?: boolean
@@ -58,7 +58,7 @@ export function FreshWaterForm({
   )
 
   console.log("initialData :", initialData)
-  const form = useForm<FreshWaterFormValues>({
+  const form = useForm<FreshWaterSchemaType>({
     resolver: zodResolver(FreshWaterSchema),
     defaultValues: {
       freshWaterId: initialData?.freshWaterId ?? 0,
@@ -133,7 +133,7 @@ export function FreshWaterForm({
     )
   }
 
-  const onSubmit = (data: FreshWaterFormValues) => {
+  const onSubmit = (data: FreshWaterSchemaType) => {
     submitAction(data)
   }
 

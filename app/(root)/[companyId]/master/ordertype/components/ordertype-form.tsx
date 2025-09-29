@@ -2,7 +2,7 @@
 
 import { useEffect } from "react"
 import { IOrderType } from "@/interfaces/ordertype"
-import { OrderTypeFormValues, orderTypeSchema } from "@/schemas/ordertype"
+import { OrderTypeSchemaType, orderTypeSchema } from "@/schemas/ordertype"
 import { useAuthStore } from "@/stores/auth-store"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { format } from "date-fns"
@@ -23,7 +23,7 @@ import CustomTextarea from "@/components/custom/custom-textarea"
 
 interface OrderTypeFormProps {
   initialData?: IOrderType
-  submitAction: (data: OrderTypeFormValues) => void
+  submitAction: (data: OrderTypeSchemaType) => void
   onCancel: () => void
   isSubmitting: boolean
   isReadOnly?: boolean
@@ -49,7 +49,7 @@ export function OrderTypeForm({
     remarks: "",
   }
 
-  const form = useForm<OrderTypeFormValues>({
+  const form = useForm<OrderTypeSchemaType>({
     resolver: zodResolver(orderTypeSchema),
     defaultValues: initialData
       ? {
@@ -83,7 +83,7 @@ export function OrderTypeForm({
     )
   }, [initialData, form])
 
-  const onSubmit = (data: OrderTypeFormValues) => {
+  const onSubmit = (data: OrderTypeSchemaType) => {
     submitAction(data)
   }
 

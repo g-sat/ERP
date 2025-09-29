@@ -6,7 +6,7 @@ import {
   IUniversalDocumentHd,
 } from "@/interfaces/universal-documents"
 import {
-  UniversalDocumentHdFormValues,
+  UniversalDocumentHdSchemaType,
   universalDocumentHdSchema,
 } from "@/schemas/universal-documents"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -69,7 +69,7 @@ export function DocumentForm({
   const isEditing = !!document
   const persistMutation = usePersistUniversalDocument()
 
-  const form = useForm<UniversalDocumentHdFormValues>({
+  const form = useForm<UniversalDocumentHdSchemaType>({
     resolver: zodResolver(universalDocumentHdSchema),
     defaultValues: {
       documentId: document?.documentId || 0,
@@ -135,7 +135,7 @@ export function DocumentForm({
     }
   }
 
-  const onSubmit = async (data: UniversalDocumentHdFormValues) => {
+  const onSubmit = async (data: UniversalDocumentHdSchemaType) => {
     try {
       if (!form.formState.isValid) {
         console.error("Form is not valid:", form.formState.errors)

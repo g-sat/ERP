@@ -6,7 +6,7 @@ import {
   NOTIFICATION_DAYS_OPTIONS,
 } from "@/interfaces/docexpiry"
 import {
-  DocumentExpiryFormValues,
+  DocumentExpirySchemaType,
   documentExpirySchema,
 } from "@/schemas/docexpiry"
 import { useAuthStore } from "@/stores/auth-store"
@@ -28,7 +28,7 @@ import DocumentUpload from "./document-upload"
 
 interface DocumentFormProps {
   initialData?: IDocumentExpiry
-  submitAction?: (data: DocumentExpiryFormValues) => void
+  submitAction?: (data: DocumentExpirySchemaType) => void
   onCancel?: () => void
   isSubmitting?: boolean
   isReadOnly?: boolean
@@ -46,7 +46,7 @@ export default function DocumentForm({
   const saveMutation = usePersist(`${DocumentExpiry.add}`)
   const [filePath, setFilePath] = useState("")
 
-  const form = useForm<DocumentExpiryFormValues>({
+  const form = useForm<DocumentExpirySchemaType>({
     resolver: zodResolver(documentExpirySchema),
     mode: "onChange",
     defaultValues: initialData
@@ -69,7 +69,7 @@ export default function DocumentForm({
     form.setValue("filePath", uploadedFilePath)
   }
 
-  const onSubmit = (data: DocumentExpiryFormValues) => {
+  const onSubmit = (data: DocumentExpirySchemaType) => {
     if (!currentCompany?.companyId) {
       toast.error("No company selected")
       return

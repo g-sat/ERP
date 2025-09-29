@@ -3,7 +3,7 @@
 import { useEffect } from "react"
 import { IAccountSetupCategory } from "@/interfaces/accountsetup"
 import {
-  AccountSetupCategoryFormValues,
+  AccountSetupCategorySchemaType,
   accountSetupCategorySchema,
 } from "@/schemas/accountsetup"
 import { useAuthStore } from "@/stores/auth-store"
@@ -25,7 +25,7 @@ import CustomTextarea from "@/components/custom/custom-textarea"
 
 interface AccountSetupCategoryFormProps {
   initialData?: IAccountSetupCategory | null
-  submitAction: (data: AccountSetupCategoryFormValues) => void
+  submitAction: (data: AccountSetupCategorySchemaType) => void
   onCancel?: () => void
   isSubmitting?: boolean
   isReadOnly?: boolean
@@ -50,7 +50,7 @@ export function AccountSetupCategoryForm({
     remarks: "",
   }
 
-  const form = useForm<AccountSetupCategoryFormValues>({
+  const form = useForm<AccountSetupCategorySchemaType>({
     resolver: zodResolver(accountSetupCategorySchema),
     defaultValues: initialData
       ? {
@@ -87,7 +87,7 @@ export function AccountSetupCategoryForm({
     onCodeBlur?.(code)
   }
 
-  const onSubmit = (data: AccountSetupCategoryFormValues) => {
+  const onSubmit = (data: AccountSetupCategorySchemaType) => {
     submitAction(data)
   }
 

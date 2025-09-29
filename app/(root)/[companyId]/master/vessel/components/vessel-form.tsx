@@ -2,7 +2,7 @@
 
 import { useEffect } from "react"
 import { IVessel } from "@/interfaces/vessel"
-import { VesselFormValues, vesselSchema } from "@/schemas/vessel"
+import { VesselSchemaType, vesselSchema } from "@/schemas/vessel"
 import { useAuthStore } from "@/stores/auth-store"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { format } from "date-fns"
@@ -22,7 +22,7 @@ import CustomTextarea from "@/components/custom/custom-textarea"
 
 interface VesselFormProps {
   initialData?: IVessel | null
-  submitAction: (data: VesselFormValues) => void
+  submitAction: (data: VesselSchemaType) => void
   onCancel?: () => void
   isSubmitting?: boolean
   isReadOnly?: boolean
@@ -49,7 +49,7 @@ export function VesselForm({
     isActive: true,
   }
 
-  const form = useForm<VesselFormValues>({
+  const form = useForm<VesselSchemaType>({
     resolver: zodResolver(vesselSchema),
     defaultValues: initialData
       ? {
@@ -88,7 +88,7 @@ export function VesselForm({
     onCodeBlur?.(code)
   }
 
-  const onSubmit = (data: VesselFormValues) => {
+  const onSubmit = (data: VesselSchemaType) => {
     submitAction(data)
   }
 

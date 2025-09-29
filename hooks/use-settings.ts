@@ -7,7 +7,7 @@ import {
   IUserSetting,
   IVisibleFields,
 } from "@/interfaces/setting"
-import { DynamicLookupFormValues } from "@/schemas/setting"
+import { DynamicLookupSchemaType } from "@/schemas/setting"
 import { keepPreviousData, useMutation, useQuery } from "@tanstack/react-query"
 import { AxiosError } from "axios"
 
@@ -215,7 +215,7 @@ export const useDynamicLookupGet = () => {
 // 2. Save Dynamic Lookup Settings
 export const useDynamicLookupSave = () => {
   return useMutation({
-    mutationFn: async ({ data }: { data: DynamicLookupFormValues }) => {
+    mutationFn: async ({ data }: { data: DynamicLookupSchemaType }) => {
       try {
         console.log("data to save dynamic lookup", data)
         return await saveData(DynamicLookupSetting.add, data)

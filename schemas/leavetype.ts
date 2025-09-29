@@ -18,7 +18,7 @@ export const leaveTypeSchema = z.object({
     .optional(),
 })
 
-export type LeaveTypeFormValues = z.infer<typeof leaveTypeSchema>
+export type LeaveTypeSchemaType = z.infer<typeof leaveTypeSchema>
 
 export const leaveTypeFiltersSchema = z.object({
   isActive: z.boolean().optional(),

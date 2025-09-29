@@ -3,8 +3,8 @@
 import { useEffect } from "react"
 import { IJobOrderHd, ILaunchService } from "@/interfaces/checklist"
 import {
-  LaunchServiceFormValues,
   LaunchServiceSchema,
+  LaunchServiceSchemaType,
 } from "@/schemas/checklist"
 import { useAuthStore } from "@/stores/auth-store"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -17,7 +17,6 @@ import { useChartofAccountLookup } from "@/hooks/use-lookup"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Form } from "@/components/ui/form"
-import { FormLoadingSpinner } from "@/components/skeleton/loading-spinner"
 import BargeAutocomplete from "@/components/autocomplete/autocomplete-barge"
 import ChargeAutocomplete from "@/components/autocomplete/autocomplete-charge"
 import ChartOfAccountAutocomplete from "@/components/autocomplete/autocomplete-chartofaccount"
@@ -33,12 +32,13 @@ import { CustomDateNew } from "@/components/custom/custom-date-new"
 import { CustomDateTimeNew } from "@/components/custom/custom-date-time-new"
 import CustomInput from "@/components/custom/custom-input"
 import CustomTextarea from "@/components/custom/custom-textarea"
+import { FormLoadingSpinner } from "@/components/skeleton/loading-spinner"
 
 interface LaunchServiceFormProps {
   jobData: IJobOrderHd
   initialData?: ILaunchService
   taskDefaults?: Record<string, number> // Add taskDefaults prop
-  submitAction: (data: LaunchServiceFormValues) => void
+  submitAction: (data: LaunchServiceSchemaType) => void
   onCancel?: () => void
   isSubmitting?: boolean
   isConfirmed?: boolean
@@ -71,7 +71,7 @@ export function LaunchServiceForm({
     return isValid(parsed) ? format(parsed, "yyyy-MM-dd'T'HH:mm") : ""
   }
 
-  const form = useForm<LaunchServiceFormValues>({
+  const form = useForm<LaunchServiceSchemaType>({
     resolver: zodResolver(LaunchServiceSchema),
     defaultValues: {
       launchServiceId: initialData?.launchServiceId ?? 0,
@@ -192,7 +192,7 @@ export function LaunchServiceForm({
     }
   }
 
-  const onSubmit = (data: LaunchServiceFormValues) => {
+  const onSubmit = (data: LaunchServiceSchemaType) => {
     submitAction(data)
   }
 

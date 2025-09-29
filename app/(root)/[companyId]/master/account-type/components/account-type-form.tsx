@@ -2,7 +2,7 @@
 
 import { useEffect } from "react"
 import { IAccountType } from "@/interfaces/accounttype"
-import { AccountTypeFormValues, accountTypeSchema } from "@/schemas/accounttype"
+import { AccountTypeSchemaType, accountTypeSchema } from "@/schemas/accounttype"
 import { useAuthStore } from "@/stores/auth-store"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { format } from "date-fns"
@@ -22,7 +22,7 @@ import CustomTextarea from "@/components/custom/custom-textarea"
 
 interface AccountTypeFormProps {
   initialData?: IAccountType
-  submitAction: (data: AccountTypeFormValues) => void
+  submitAction: (data: AccountTypeSchemaType) => void
   onCancel?: () => void
   isSubmitting?: boolean
   isReadOnly?: boolean
@@ -50,7 +50,7 @@ export function AccountTypeForm({
     remarks: "",
   }
 
-  const form = useForm<AccountTypeFormValues>({
+  const form = useForm<AccountTypeSchemaType>({
     resolver: zodResolver(accountTypeSchema),
     defaultValues: initialData
       ? {
@@ -91,7 +91,7 @@ export function AccountTypeForm({
     onCodeBlur?.(code)
   }
 
-  const onSubmit = (data: AccountTypeFormValues) => {
+  const onSubmit = (data: AccountTypeSchemaType) => {
     submitAction(data)
   }
 

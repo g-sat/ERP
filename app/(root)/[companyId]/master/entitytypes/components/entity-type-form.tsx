@@ -2,7 +2,7 @@
 
 import { useEffect } from "react"
 import { IEntityType } from "@/interfaces/entitytype"
-import { EntityTypeFormValues, entityTypeSchema } from "@/schemas/entitytype"
+import { EntityTypeSchemaType, entityTypeSchema } from "@/schemas/entitytype"
 import { useAuthStore } from "@/stores/auth-store"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { format } from "date-fns"
@@ -20,7 +20,7 @@ import CustomInput from "@/components/custom/custom-input"
 
 interface EntityTypeFormProps {
   initialData?: IEntityType
-  submitAction: (data: EntityTypeFormValues) => void
+  submitAction: (data: EntityTypeSchemaType) => void
   onCancel?: () => void
   isSubmitting?: boolean
   isReadOnly?: boolean
@@ -44,7 +44,7 @@ export function EntityTypeForm({
     entityTypeName: "",
   }
 
-  const form = useForm<EntityTypeFormValues>({
+  const form = useForm<EntityTypeSchemaType>({
     resolver: zodResolver(entityTypeSchema),
     defaultValues: initialData
       ? {
@@ -77,7 +77,7 @@ export function EntityTypeForm({
     onCodeBlur?.(code)
   }
 
-  const onSubmit = (data: EntityTypeFormValues) => {
+  const onSubmit = (data: EntityTypeSchemaType) => {
     submitAction(data)
   }
 

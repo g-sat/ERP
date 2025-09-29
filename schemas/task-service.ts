@@ -17,5 +17,5 @@ export const taskServiceFormSchema = z.object({
   services: z.record(z.string(), serviceFieldSchema),
 })
 
-export type TaskServiceFormValues = z.infer<typeof taskServiceFormSchema>
+export type TaskServiceSchemaType = z.infer<typeof taskServiceFormSchema>
 export type ServiceFieldValues = z.infer<typeof serviceFieldSchema>

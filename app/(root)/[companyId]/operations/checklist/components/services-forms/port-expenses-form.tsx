@@ -2,7 +2,7 @@
 
 import { useEffect } from "react"
 import { IJobOrderHd, IPortExpenses } from "@/interfaces/checklist"
-import { PortExpensesFormValues, PortExpensesSchema } from "@/schemas/checklist"
+import { PortExpensesSchema, PortExpensesSchemaType } from "@/schemas/checklist"
 import { useAuthStore } from "@/stores/auth-store"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { format } from "date-fns"
@@ -14,7 +14,6 @@ import { useChartofAccountLookup, useSupplierLookup } from "@/hooks/use-lookup"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Form } from "@/components/ui/form"
-import { FormLoadingSpinner } from "@/components/skeleton/loading-spinner"
 import ChargeAutocomplete from "@/components/autocomplete/autocomplete-charge"
 import ChartOfAccountAutocomplete from "@/components/autocomplete/autocomplete-chartofaccount"
 import StatusTaskAutocomplete from "@/components/autocomplete/autocomplete-status-task"
@@ -28,12 +27,13 @@ import CustomAccordion, {
 import { CustomDateNew } from "@/components/custom/custom-date-new"
 import CustomInput from "@/components/custom/custom-input"
 import CustomTextarea from "@/components/custom/custom-textarea"
+import { FormLoadingSpinner } from "@/components/skeleton/loading-spinner"
 
 interface PortExpensesFormProps {
   jobData: IJobOrderHd
   initialData?: IPortExpenses
   taskDefaults?: Record<string, number> // Add taskDefaults prop
-  submitAction: (data: PortExpensesFormValues) => void
+  submitAction: (data: PortExpensesSchemaType) => void
   onCancel?: () => void
   isSubmitting?: boolean
   isConfirmed?: boolean
@@ -60,7 +60,7 @@ export function PortExpensesForm({
   // Get supplier data to ensure it's loaded before setting form values
   const { isLoading: isSupplierLoading } = useSupplierLookup()
 
-  const form = useForm<PortExpensesFormValues>({
+  const form = useForm<PortExpensesSchemaType>({
     resolver: zodResolver(PortExpensesSchema),
     defaultValues: {
       portExpenseId: initialData?.portExpenseId ?? 0,
@@ -123,7 +123,7 @@ export function PortExpensesForm({
     isSupplierLoading,
   ])
 
-  const onSubmit = (data: PortExpensesFormValues) => {
+  const onSubmit = (data: PortExpensesSchemaType) => {
     submitAction(data)
   }
 

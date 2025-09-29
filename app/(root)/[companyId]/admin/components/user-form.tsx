@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { IUser } from "@/interfaces/admin"
-import { UserFormValues, userSchema } from "@/schemas/admin"
+import { UserSchemaType, userSchema } from "@/schemas/admin"
 import { useAuthStore } from "@/stores/auth-store"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { format } from "date-fns"
@@ -47,11 +47,11 @@ const defaultValues = {
 }
 interface UserFormProps {
   initialData?: IUser
-  submitAction: (data: UserFormValues) => void
+  submitAction: (data: UserSchemaType) => void
   onCancel?: () => void
   isSubmitting?: boolean
   isReadOnly?: boolean
-  onSaveConfirmation?: (data: UserFormValues) => void
+  onSaveConfirmation?: (data: UserSchemaType) => void
 }
 
 export function UserForm({
@@ -67,7 +67,7 @@ export function UserForm({
 
   const [isResetPasswordOpen, setIsResetPasswordOpen] = useState(false)
 
-  const form = useForm<UserFormValues>({
+  const form = useForm<UserSchemaType>({
     resolver: zodResolver(userSchema),
     defaultValues: initialData
       ? {
@@ -108,7 +108,7 @@ export function UserForm({
     )
   }, [initialData, form])
 
-  const onSubmit = (data: UserFormValues) => {
+  const onSubmit = (data: UserSchemaType) => {
     if (onSaveConfirmation) {
       onSaveConfirmation(data)
     } else {

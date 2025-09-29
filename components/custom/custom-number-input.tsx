@@ -9,10 +9,10 @@ import { Label } from "../ui/label"
 // Get default decimal places from environment variable
 const DECIMAL_PLACES = Number(process.env.NEXT_PUBLIC_DEFAULT_AMT_DEC || "2")
 
-interface CustomNumberInputProps<TFormValues extends FieldValues> {
-  form: UseFormReturn<TFormValues>
+interface CustomNumberInputProps<TSchemaType extends FieldValues> {
+  form: UseFormReturn<TSchemaType>
   label?: string
-  name: Path<TFormValues>
+  name: Path<TSchemaType>
   className?: string
   onBlurEvent?: (e: React.FocusEvent<HTMLInputElement>) => void
   onChangeEvent?: (value: number) => void
@@ -21,7 +21,7 @@ interface CustomNumberInputProps<TFormValues extends FieldValues> {
   round?: number
 }
 
-export default function CustomNumberInput<TFormValues extends FieldValues>({
+export default function CustomNumberInput<TSchemaType extends FieldValues>({
   form,
   label,
   name,
@@ -31,7 +31,7 @@ export default function CustomNumberInput<TFormValues extends FieldValues>({
   isRequired = false,
   isDisabled = false,
   round = DECIMAL_PLACES,
-}: CustomNumberInputProps<TFormValues>) {
+}: CustomNumberInputProps<TSchemaType>) {
   return (
     <div className={cn("flex flex-col gap-1", className)}>
       {label && (

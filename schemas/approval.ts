@@ -11,7 +11,7 @@ export const approvalProcessSchema = z.object({
   createdDate: z.date().optional(),
 })
 
-export type ApprovalProcessFormValues = z.infer<typeof approvalProcessSchema>
+export type ApprovalProcessSchemaType = z.infer<typeof approvalProcessSchema>
 
 export const approvalLevelSchema = z.object({
   levelId: z.number().min(0),
@@ -21,7 +21,7 @@ export const approvalLevelSchema = z.object({
   isFinal: z.boolean().default(false),
 })
 
-export type ApprovalLevelFormValues = z.infer<typeof approvalLevelSchema>
+export type ApprovalLevelSchemaType = z.infer<typeof approvalLevelSchema>
 
 export const approvalRequestSchema = z.object({
   requestId: z.number().min(0),
@@ -34,7 +34,7 @@ export const approvalRequestSchema = z.object({
   statusId: z.number().min(1, { message: "Status type is required" }),
 })
 
-export type ApprovalRequestFormValues = z.infer<typeof approvalRequestSchema>
+export type ApprovalRequestSchemaType = z.infer<typeof approvalRequestSchema>
 
 export const approvalActionSchema = z.object({
   actionId: z.number().min(0),
@@ -49,7 +49,7 @@ export const approvalActionSchema = z.object({
     .optional(),
 })
 
-export type ApprovalActionFormValues = z.infer<typeof approvalActionSchema>
+export type ApprovalActionSchemaType = z.infer<typeof approvalActionSchema>
 
 // Filter schemas
 export const approvalProcessFilterSchema = z.object({

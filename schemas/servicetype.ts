@@ -22,7 +22,7 @@ export const serviceTypeSchema = z.object({
   isActive: z.boolean().default(true),
 })
 
-export type ServiceTypeFormValues = z.infer<typeof serviceTypeSchema>
+export type ServiceTypeSchemaType = z.infer<typeof serviceTypeSchema>
 
 export const serviceTypeFiltersSchema = z.object({
   isActive: z.boolean().optional(),
@@ -57,7 +57,7 @@ export const serviceTypeCategorySchema = z.object({
   isActive: z.boolean().default(true),
 })
 
-export type ServiceTypeCategoryFormValues = z.infer<
+export type ServiceTypeCategorySchemaType = z.infer<
   typeof serviceTypeCategorySchema
 >
 

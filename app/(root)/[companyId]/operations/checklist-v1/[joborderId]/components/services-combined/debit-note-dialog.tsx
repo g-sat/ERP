@@ -6,10 +6,11 @@ import {
   IBulkChargeData,
   IDebitNoteDt,
   IDebitNoteHd,
+  IJobOrderHd,
 } from "@/interfaces/checklist"
 import {
-  DebitNoteDtFormValues,
-  DebitNoteHdFormValues,
+  DebitNoteDtSchemaType,
+  DebitNoteHdSchemaType,
 } from "@/schemas/checklist"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 import {
@@ -40,6 +41,7 @@ import { SaveConfirmation } from "@/components/confirmation/save-confirmation"
 import { BulkDebitNoteTable } from "./debit-note-bulk-table"
 import DebitNoteForm from "./debit-note-form"
 import DebitNoteTable from "./debit-note-table"
+import { TaskIdToName } from "@/lib/operations-utils"
 
 interface DebitNoteDialogProps {
   open: boolean
@@ -51,6 +53,7 @@ interface DebitNoteDialogProps {
   onOpenChange: (open: boolean) => void
   onDelete?: (debitNoteId: number) => void
   onUpdateHeader?: (updatedHeader: IDebitNoteHd) => void
+  jobOrder?: IJobOrderHd
 }
 
 export default function DebitNoteDialog({
@@ -63,6 +66,7 @@ export default function DebitNoteDialog({
   onOpenChange,
   onDelete,
   onUpdateHeader,
+  jobOrder,
 }: DebitNoteDialogProps) {
   const [debitNoteHdState, setDebitNoteHdState] = useState<IDebitNoteHd>(
     debitNoteHd ?? ({} as IDebitNoteHd)
@@ -152,7 +156,7 @@ export default function DebitNoteDialog({
     isOpen: false,
   })
 
-  const saveMutation = usePersist<DebitNoteHdFormValues>(
+  const saveMutation = usePersist<DebitNoteHdSchemaType>(
     `${JobOrder_DebitNote.add}`
   )
 
@@ -168,7 +172,7 @@ export default function DebitNoteDialog({
     useQuery({
       queryKey: [`bulk-charges-${taskId}`],
       queryFn: async () =>
-        await getData(`${JobOrder_DebitNote.getBulkDetails}/${taskId}`),
+        await getData(`${JobOrder_DebitNote.getBulkDetails}/${taskId}/${jobOrder?.customerId}/${jobOrder?.portId}`),
       enabled: bulkChargesDialog.isOpen,
       staleTime: 0.5 * 60 * 1000, // 0.5 minutes
       gcTime: 1 * 60 * 1000, // 1 minutes
@@ -214,7 +218,7 @@ export default function DebitNoteDialog({
 
   // Handler for form submission (create or edit) - add to table directly
   const handleFormSubmit = useCallback(
-    (data: DebitNoteDtFormValues) => {
+    (data: DebitNoteDtSchemaType) => {
       // Add new item to local state directly (no confirmation needed for add)
       const newItem: IDebitNoteDt = {
         debitNoteId: debitNoteHd?.debitNoteId || 0,
@@ -306,7 +310,7 @@ export default function DebitNoteDialog({
       )
 
       // Create the complete debit note header with details
-      const newDebitNoteHd: DebitNoteHdFormValues = {
+      const newDebitNoteHd: DebitNoteHdSchemaType = {
         debitNoteId: debitNoteHdState.debitNoteId,
         debitNoteNo: debitNoteHdState.debitNoteNo,
         jobOrderId: debitNoteHdState.jobOrderId,
@@ -819,8 +823,25 @@ export default function DebitNoteDialog({
               <DialogHeader className="border-b pb-2">
                 <div className="flex items-center justify-between">
                   <div>
-                    <DialogTitle className="text-2xl font-bold">
+                    <DialogTitle className="text-2xl font-bold flex items-center gap-3">
                       Bulk Charges
+                      <div className="flex gap-2">
+                        {jobOrder?.customerName && (
+                          <Badge variant="secondary" className="text-sm">
+                            {jobOrder.customerName}
+                          </Badge>
+                        )}
+                        {jobOrder?.portName && (
+                          <Badge variant="outline" className="text-sm">
+                            {jobOrder.portName}
+                          </Badge>
+                        )}
+                        {TaskIdToName[taskId] && (
+                          <Badge variant="default" className="text-sm">
+                            {TaskIdToName[taskId]}
+                          </Badge>
+                        )}
+                      </div>
                     </DialogTitle>
                     <DialogDescription>
                       Select charges to add to the debit note.

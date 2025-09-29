@@ -175,21 +175,21 @@ export const payRunSettingsSchema = z.object({
 })
 
 // Export types
-export type PayrollDashboardFormValues = z.infer<typeof payrollDashboardSchema>
-export type PayrollEmployeeHdFormValues = z.infer<
+export type PayrollDashboardSchemaType = z.infer<typeof payrollDashboardSchema>
+export type PayrollEmployeeHdSchemaType = z.infer<
   typeof payrollEmployeeHdSchema
 >
-export type PayrollEmployeeDtFormValues = z.infer<
+export type PayrollEmployeeDtSchemaType = z.infer<
   typeof payrollEmployeeDtSchema
 >
-export type PayRunHistoryFormValues = z.infer<typeof payRunHistorySchema>
-export type PayRunSummaryFormValues = z.infer<typeof payRunSummarySchema>
-export type EmployeeFormValues = z.infer<typeof employeeSchema>
-export type PayRunFilterFormValues = z.infer<typeof payRunFilterSchema>
-export type PayRunProcessFormValues = z.infer<typeof payRunProcessSchema>
-export type PayRunPaymentFormValues = z.infer<typeof payRunPaymentSchema>
-export type PayRunComponentFormValues = z.infer<typeof payRunComponentSchema>
-export type SavePayrunComponentFormValues = z.infer<
+export type PayRunHistorySchemaType = z.infer<typeof payRunHistorySchema>
+export type PayRunSummarySchemaType = z.infer<typeof payRunSummarySchema>
+export type EmployeeSchemaType = z.infer<typeof employeeSchema>
+export type PayRunFilterSchemaType = z.infer<typeof payRunFilterSchema>
+export type PayRunProcessSchemaType = z.infer<typeof payRunProcessSchema>
+export type PayRunPaymentSchemaType = z.infer<typeof payRunPaymentSchema>
+export type PayRunComponentSchemaType = z.infer<typeof payRunComponentSchema>
+export type SavePayrunComponentSchemaType = z.infer<
   typeof savePayrunComponentSchema
 >
-export type PayRunSettingsFormValues = z.infer<typeof payRunSettingsSchema>
+export type PayRunSettingsSchemaType = z.infer<typeof payRunSettingsSchema>

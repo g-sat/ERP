@@ -8,7 +8,7 @@ import {
   IDebitNoteHd,
   IJobOrderHd,
 } from "@/interfaces/checklist"
-import { ConsignmentImportFormValues } from "@/schemas/checklist"
+import { ConsignmentImportSchemaType } from "@/schemas/checklist"
 import { useQueryClient } from "@tanstack/react-query"
 
 import { getData } from "@/lib/api-client"
@@ -124,10 +124,10 @@ export function ConsignmentImportTab({
   }
 
   // Mutations
-  const saveMutation = usePersist<ConsignmentImportFormValues>(
+  const saveMutation = usePersist<ConsignmentImportSchemaType>(
     `${JobOrder_ConsignmentImport.add}`
   )
-  const updateMutation = usePersist<ConsignmentImportFormValues>(
+  const updateMutation = usePersist<ConsignmentImportSchemaType>(
     `${JobOrder_ConsignmentImport.add}`
   )
   const deleteMutation = useDelete(`${JobOrder_ConsignmentImport.delete}`)

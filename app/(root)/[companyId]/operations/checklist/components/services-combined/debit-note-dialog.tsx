@@ -1,8 +1,8 @@
 "use client"
 
 import { useCallback, useEffect, useState } from "react"
-import { IDebitNoteDt, IDebitNoteHd } from "@/interfaces/checklist"
-import { DebitNoteDtFormValues } from "@/schemas/checklist"
+import { IDebitNoteDt, IDebitNoteHd, IJobOrderHd } from "@/interfaces/checklist"
+import { DebitNoteDtSchemaType } from "@/schemas/checklist"
 import { toast } from "sonner"
 
 import { JobOrder_DebitNote } from "@/lib/api-routes"
@@ -34,6 +34,7 @@ interface DebitNoteDialogProps {
   description?: string
   onOpenChange: (open: boolean) => void
   onDelete?: (debitNoteId: number) => void
+  jobOrder?: IJobOrderHd
 }
 
 export function DebitNoteDialog({
@@ -45,6 +46,7 @@ export function DebitNoteDialog({
   description = "Manage debit note details for this service.",
   onOpenChange,
   onDelete,
+  jobOrder,
 }: DebitNoteDialogProps) {
   const [details, setDetails] = useState<IDebitNoteDt[]>(
     debitNoteHd?.data_details ?? []
@@ -92,7 +94,7 @@ export function DebitNoteDialog({
   // State for save confirmation
   const [saveConfirmation, setSaveConfirmation] = useState<{
     isOpen: boolean
-    data: DebitNoteDtFormValues | null
+    data: DebitNoteDtSchemaType | null
   }>({
     isOpen: false,
     data: null,
@@ -148,7 +150,7 @@ export function DebitNoteDialog({
   )
 
   // Handler for form submission (create or edit) - shows confirmation first
-  const handleFormSubmit = useCallback((data: DebitNoteDtFormValues) => {
+  const handleFormSubmit = useCallback((data: DebitNoteDtSchemaType) => {
     setSaveConfirmation({
       isOpen: true,
       data: data,
@@ -157,7 +159,7 @@ export function DebitNoteDialog({
 
   // Handler for confirmed form submission
   const handleConfirmedFormSubmit = useCallback(
-    async (data: DebitNoteDtFormValues) => {
+    async (data: DebitNoteDtSchemaType) => {
       try {
         if (!debitNoteHd?.debitNoteId) {
           toast.error("Debit note header not found")

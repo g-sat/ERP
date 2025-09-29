@@ -1,6 +1,6 @@
 "use client"
 
-import { ArInvoiceHdFormValues } from "@/schemas/invoice"
+import { ArInvoiceHdSchemaType } from "@/schemas/invoice"
 import { useAuthStore } from "@/stores/auth-store"
 import { UseFormReturn } from "react-hook-form"
 
@@ -10,7 +10,7 @@ import GLPostDetails from "./history/gl-post-details"
 import PaymentDetails from "./history/payment-details"
 
 interface HistoryProps {
-  form: UseFormReturn<ArInvoiceHdFormValues>
+  form: UseFormReturn<ArInvoiceHdSchemaType>
   isEdit: boolean
   moduleId: number
   transactionId: number

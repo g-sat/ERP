@@ -15,7 +15,7 @@ export const loanTypeSchema = z.object({
   minTermMonths: z.number().int().positive(),
 })
 
-export type LoanTypeFormValues = z.infer<typeof loanTypeSchema>
+export type LoanTypeSchemaType = z.infer<typeof loanTypeSchema>
 
 export const loanTypeFiltersSchema = z.object({
   isActive: z.boolean().optional(),

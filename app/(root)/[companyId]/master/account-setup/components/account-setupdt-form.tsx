@@ -3,7 +3,7 @@
 import { useEffect } from "react"
 import { IAccountSetupDt } from "@/interfaces/accountsetup"
 import {
-  AccountSetupDtFormValues,
+  AccountSetupDtSchemaType,
   accountSetupDtSchema,
 } from "@/schemas/accountsetup"
 import { useAuthStore } from "@/stores/auth-store"
@@ -27,7 +27,7 @@ import CustomSwitch from "@/components/custom/custom-switch"
 
 interface AccountSetupDtFormProps {
   initialData?: IAccountSetupDt | null
-  submitAction: (data: AccountSetupDtFormValues) => void
+  submitAction: (data: AccountSetupDtSchemaType) => void
   onCancel?: () => void
   isSubmitting?: boolean
   isReadOnly?: boolean
@@ -51,7 +51,7 @@ export function AccountSetupDtForm({
     applyAllCurr: false,
   }
 
-  const form = useForm<AccountSetupDtFormValues>({
+  const form = useForm<AccountSetupDtSchemaType>({
     resolver: zodResolver(accountSetupDtSchema),
     defaultValues: initialData
       ? {
@@ -83,7 +83,7 @@ export function AccountSetupDtForm({
     )
   }, [initialData, form])
 
-  const onSubmit = (data: AccountSetupDtFormValues) => {
+  const onSubmit = (data: AccountSetupDtSchemaType) => {
     submitAction(data)
   }
 

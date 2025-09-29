@@ -3,7 +3,7 @@
 import React, { useEffect } from "react"
 import { IJobOrderHd } from "@/interfaces/checklist"
 import { ICurrencyLookup } from "@/interfaces/lookup"
-import { JobOrderHdFormValues, JobOrderHdSchema } from "@/schemas/checklist"
+import { JobOrderHdSchema, JobOrderHdSchemaType } from "@/schemas/checklist"
 import { useAuthStore } from "@/stores/auth-store"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { format } from "date-fns"
@@ -47,11 +47,11 @@ export function ChecklistMain({
   const { decimals } = useAuthStore()
   const exhRateDec = decimals[0]?.exhRateDec || 6
 
-  type JobOrderFormValues = z.infer<typeof JobOrderHdSchema>
+  type JobOrderSchemaType = z.infer<typeof JobOrderHdSchema>
 
   // Direct API functions using api-client.ts for save, update operations
 
-  const form = useForm<JobOrderHdFormValues>({
+  const form = useForm<JobOrderHdSchemaType>({
     resolver: zodResolver(JobOrderHdSchema),
     defaultValues: {
       jobOrderId: jobData?.jobOrderId ?? 0,
@@ -69,15 +69,23 @@ export function ChecklistMain({
       voyageId: jobData?.voyageId ?? 0,
       lastPortId: jobData?.lastPortId ?? 0,
       nextPortId: jobData?.nextPortId ?? 0,
-      etaDate: jobData?.etaDate ? parseDate(jobData.etaDate as string) || undefined : undefined,
-      etdDate: jobData?.etdDate ? parseDate(jobData.etdDate as string) || undefined : undefined,
+      etaDate: jobData?.etaDate
+        ? parseDate(jobData.etaDate as string) || undefined
+        : undefined,
+      etdDate: jobData?.etdDate
+        ? parseDate(jobData.etdDate as string) || undefined
+        : undefined,
       ownerName: jobData?.ownerName ?? "",
       ownerAgent: jobData?.ownerAgent ?? "",
       masterName: jobData?.masterName ?? "",
       charters: jobData?.charters ?? "",
       chartersAgent: jobData?.chartersAgent ?? "",
-      invoiceDate: jobData?.invoiceDate ? parseDate(jobData.invoiceDate as string) || undefined : undefined,
-      seriesDate: jobData?.seriesDate ? parseDate(jobData.seriesDate as string) || undefined : undefined,
+      invoiceDate: jobData?.invoiceDate
+        ? parseDate(jobData.invoiceDate as string) || undefined
+        : undefined,
+      seriesDate: jobData?.seriesDate
+        ? parseDate(jobData.seriesDate as string) || undefined
+        : undefined,
       addressId: jobData?.addressId ?? 0,
       contactId: jobData?.contactId ?? 0,
       natureOfCall: jobData?.natureOfCall ?? "",
@@ -115,15 +123,23 @@ export function ChecklistMain({
       voyageId: jobData?.voyageId ?? 0,
       lastPortId: jobData?.lastPortId ?? 0,
       nextPortId: jobData?.nextPortId ?? 0,
-      etaDate: jobData?.etaDate ? parseDate(jobData.etaDate as string) || undefined : undefined,
-      etdDate: jobData?.etdDate ? parseDate(jobData.etdDate as string) || undefined : undefined,
+      etaDate: jobData?.etaDate
+        ? parseDate(jobData.etaDate as string) || undefined
+        : undefined,
+      etdDate: jobData?.etdDate
+        ? parseDate(jobData.etdDate as string) || undefined
+        : undefined,
       ownerName: jobData?.ownerName ?? "",
       ownerAgent: jobData?.ownerAgent ?? "",
       masterName: jobData?.masterName ?? "",
       charters: jobData?.charters ?? "",
       chartersAgent: jobData?.chartersAgent ?? "",
-      invoiceDate: jobData?.invoiceDate ? parseDate(jobData.invoiceDate as string) || undefined : undefined,
-      seriesDate: jobData?.seriesDate ? parseDate(jobData.seriesDate as string) || undefined : undefined,
+      invoiceDate: jobData?.invoiceDate
+        ? parseDate(jobData.invoiceDate as string) || undefined
+        : undefined,
+      seriesDate: jobData?.seriesDate
+        ? parseDate(jobData.seriesDate as string) || undefined
+        : undefined,
       addressId: jobData?.addressId ?? 0,
       contactId: jobData?.contactId ?? 0,
       natureOfCall: jobData?.natureOfCall ?? "",
@@ -159,7 +175,7 @@ export function ChecklistMain({
     }
   }, [customerId, jobData?.customerId, form])
 
-  const onSubmit = async (data: JobOrderFormValues) => {
+  const onSubmit = async (data: JobOrderSchemaType) => {
     console.log("=== FORM SUBMISSION STARTED ===")
     console.log("Form data received:", data)
     console.log("Form errors:", form.formState.errors)
@@ -210,7 +226,9 @@ export function ChecklistMain({
 
       if (currencyId && jobOrderDate) {
         const dt = format(
-          jobOrderDate instanceof Date ? jobOrderDate : parseDate(jobOrderDate as string) || new Date(),
+          jobOrderDate instanceof Date
+            ? jobOrderDate
+            : parseDate(jobOrderDate as string) || new Date(),
           clientDateFormat
         )
         const res = await getData(

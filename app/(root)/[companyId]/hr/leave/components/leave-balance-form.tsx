@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import { ApiResponse } from "@/interfaces/auth"
 import { ILeaveBalance } from "@/interfaces/leave"
-import { LeaveBalanceFormValues, leaveBalanceSchema } from "@/schemas/leave"
+import { LeaveBalanceSchemaType, leaveBalanceSchema } from "@/schemas/leave"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 
@@ -21,7 +21,7 @@ import CustomInput from "@/components/custom/custom-input"
 
 interface LeaveBalanceFormProps {
   onSubmit: (
-    data: LeaveBalanceFormValues
+    data: LeaveBalanceSchemaType
   ) => Promise<ApiResponse<ILeaveBalance> | void>
 }
 
@@ -32,7 +32,7 @@ export function LeaveBalanceForm({ onSubmit }: LeaveBalanceFormProps) {
     null
   )
 
-  const form = useForm<LeaveBalanceFormValues>({
+  const form = useForm<LeaveBalanceSchemaType>({
     resolver: zodResolver(leaveBalanceSchema),
     defaultValues: {
       leaveBalanceId: 0,
@@ -79,7 +79,7 @@ export function LeaveBalanceForm({ onSubmit }: LeaveBalanceFormProps) {
     }
   }, [form])
 
-  const handleSubmit = async (data: LeaveBalanceFormValues) => {
+  const handleSubmit = async (data: LeaveBalanceSchemaType) => {
     try {
       setLoading(true)
       const response = await onSubmit(data)

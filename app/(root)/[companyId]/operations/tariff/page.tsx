@@ -33,17 +33,17 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { DeleteConfirmation } from "@/components/confirmation/delete-confirmation"
-import { DataTableSkeleton } from "@/components/skeleton/data-table-skeleton"
 import CustomerAutocomplete from "@/components/autocomplete/autocomplete-customer"
 import PortAutocomplete from "@/components/autocomplete/autocomplete-port"
+import { DeleteConfirmation } from "@/components/confirmation/delete-confirmation"
+import { DataTableSkeleton } from "@/components/skeleton/data-table-skeleton"
 
 import { CopyCompanyRateForm } from "./components/copy-company-rate-form"
 import { CopyRateForm } from "./components/copy-rate-form"
 import { TariffForm } from "./components/tariff-form"
 import { TariffTable } from "./components/tariff-table"
 
-interface FilterFormValues extends Record<string, unknown> {
+interface FilterSchemaType extends Record<string, unknown> {
   customerId: number
   portId: number
 }
@@ -137,7 +137,7 @@ const CATEGORY_CONFIG: Record<
 
 export default function TariffPage() {
   // Form for filter controls
-  const form = useForm<FilterFormValues>({
+  const form = useForm<FilterSchemaType>({
     defaultValues: {
       customerId: 0,
       portId: 0,

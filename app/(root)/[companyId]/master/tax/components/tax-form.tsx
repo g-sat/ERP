@@ -2,7 +2,7 @@
 
 import { useEffect } from "react"
 import { ITax } from "@/interfaces/tax"
-import { TaxFormValues, taxSchema } from "@/schemas/tax"
+import { TaxSchemaType, taxSchema } from "@/schemas/tax"
 import { useAuthStore } from "@/stores/auth-store"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { format } from "date-fns"
@@ -23,7 +23,7 @@ import CustomTextarea from "@/components/custom/custom-textarea"
 
 interface TaxFormProps {
   initialData?: ITax | null
-  submitAction: (data: TaxFormValues) => void
+  submitAction: (data: TaxSchemaType) => void
   onCancel: () => void
   isSubmitting: boolean
   isReadOnly?: boolean
@@ -51,7 +51,7 @@ export function TaxForm({
     remarks: "",
   }
 
-  const form = useForm<TaxFormValues>({
+  const form = useForm<TaxSchemaType>({
     resolver: zodResolver(taxSchema),
     defaultValues: initialData
       ? {
@@ -90,7 +90,7 @@ export function TaxForm({
     onCodeBlur?.(code)
   }
 
-  const onSubmit = (data: TaxFormValues) => {
+  const onSubmit = (data: TaxSchemaType) => {
     submitAction(data)
   }
 

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import { IApiSuccessResponse } from "@/interfaces/auth"
 import { IDecFormat } from "@/interfaces/setting"
-import { DecimalFormValues, decimalFormSchema } from "@/schemas/setting"
+import { DecimalSchemaType, decimalFormSchema } from "@/schemas/setting"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
@@ -28,10 +28,10 @@ import {
 import { Separator } from "@/components/ui/separator"
 import { Skeleton } from "@/components/ui/skeleton"
 import { SaveConfirmation } from "@/components/confirmation/save-confirmation"
-import { LockSkeleton } from "@/components/skeleton/lock-skeleton"
 import CustomNumberInput from "@/components/custom/custom-number-input"
+import { LockSkeleton } from "@/components/skeleton/lock-skeleton"
 
-type DecimalResponse = IApiSuccessResponse<DecimalFormValues>
+type DecimalResponse = IApiSuccessResponse<DecimalSchemaType>
 
 export function DecimalForm() {
   const [showSaveConfirmation, setShowSaveConfirmation] = useState(false)
@@ -39,7 +39,7 @@ export function DecimalForm() {
 
   const { mutate: saveDecimalSettings, isPending } = useDecimalSave()
 
-  const form = useForm<DecimalFormValues>({
+  const form = useForm<DecimalSchemaType>({
     resolver: zodResolver(decimalFormSchema),
     defaultValues: {
       amtDec: 2,

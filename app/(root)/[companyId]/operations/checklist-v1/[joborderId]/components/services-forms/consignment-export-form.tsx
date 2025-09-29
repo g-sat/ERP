@@ -3,8 +3,8 @@
 import { useEffect } from "react"
 import { IConsignmentExport, IJobOrderHd } from "@/interfaces/checklist"
 import {
-  ConsignmentExportFormValues,
   ConsignmentExportSchema,
+  ConsignmentExportSchemaType,
 } from "@/schemas/checklist"
 import { useAuthStore } from "@/stores/auth-store"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -17,7 +17,6 @@ import { useChartofAccountLookup } from "@/hooks/use-lookup"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Form } from "@/components/ui/form"
-import { FormLoadingSpinner } from "@/components/skeleton/loading-spinner"
 import CarrierTypeAutocomplete from "@/components/autocomplete/autocomplete-carriertype"
 import ChargeAutocomplete from "@/components/autocomplete/autocomplete-charge"
 import ChartOfAccountAutocomplete from "@/components/autocomplete/autocomplete-chartofaccount"
@@ -34,12 +33,13 @@ import CustomAccordion, {
 import { CustomDateNew } from "@/components/custom/custom-date-new"
 import CustomInput from "@/components/custom/custom-input"
 import CustomTextarea from "@/components/custom/custom-textarea"
+import { FormLoadingSpinner } from "@/components/skeleton/loading-spinner"
 
 interface ConsignmentExportFormProps {
   jobData: IJobOrderHd
   initialData?: IConsignmentExport
   taskDefaults?: Record<string, number> // Add taskDefaults prop
-  submitAction: (data: ConsignmentExportFormValues) => void
+  submitAction: (data: ConsignmentExportSchemaType) => void
   onCancel?: () => void
   isSubmitting?: boolean
   isConfirmed?: boolean
@@ -64,7 +64,7 @@ export function ConsignmentExportForm({
   )
 
   console.log("initialData :", initialData)
-  const form = useForm<ConsignmentExportFormValues>({
+  const form = useForm<ConsignmentExportSchemaType>({
     resolver: zodResolver(ConsignmentExportSchema),
     defaultValues: {
       consignmentExportId: initialData?.consignmentExportId ?? 0,
@@ -179,7 +179,7 @@ export function ConsignmentExportForm({
     )
   }
 
-  const onSubmit = (data: ConsignmentExportFormValues) => {
+  const onSubmit = (data: ConsignmentExportSchemaType) => {
     submitAction(data)
   }
 

@@ -18,7 +18,7 @@ export const documentTypeSchema = z.object({
     .optional(),
 })
 
-export type DocumentTypeFormValues = z.infer<typeof documentTypeSchema>
+export type DocumentTypeSchemaType = z.infer<typeof documentTypeSchema>
 
 export const documentTypeFiltersSchema = z.object({
   isActive: z.boolean().optional(),

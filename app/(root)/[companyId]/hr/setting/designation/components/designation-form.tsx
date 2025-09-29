@@ -1,7 +1,7 @@
 "use client"
 
 import { IDesignation } from "@/interfaces/designation"
-import { DesignationFormValues, designationSchema } from "@/schemas/designation"
+import { DesignationSchemaType, designationSchema } from "@/schemas/designation"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 
@@ -11,11 +11,11 @@ import CustomTextarea from "@/components/custom/custom-textarea"
 
 interface DesignationFormProps {
   designation?: IDesignation
-  onSave: (data: DesignationFormValues) => void
+  onSave: (data: DesignationSchemaType) => void
 }
 
 export function DesignationForm({ designation, onSave }: DesignationFormProps) {
-  const form = useForm<DesignationFormValues>({
+  const form = useForm<DesignationSchemaType>({
     resolver: zodResolver(designationSchema),
     defaultValues: {
       designationId: designation?.designationId || 0,
@@ -25,7 +25,7 @@ export function DesignationForm({ designation, onSave }: DesignationFormProps) {
     },
   })
 
-  const onSubmit = (data: DesignationFormValues) => {
+  const onSubmit = (data: DesignationSchemaType) => {
     onSave(data)
   }
 

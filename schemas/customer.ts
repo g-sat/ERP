@@ -48,7 +48,7 @@ export const customerSchema = z.object({
     .default(""),
   isActive: z.boolean().default(true),
 })
-export type CustomerFormValues = z.infer<typeof customerSchema>
+export type CustomerSchemaType = z.infer<typeof customerSchema>
 
 export const customerContactSchema = z.object({
   customerId: z.number().min(1, "Customer is required"),
@@ -99,7 +99,7 @@ export const customerContactSchema = z.object({
   isSales: z.boolean().default(false),
   isActive: z.boolean().default(true),
 })
-export type CustomerContactFormValues = z.infer<typeof customerContactSchema>
+export type CustomerContactSchemaType = z.infer<typeof customerContactSchema>
 
 export const customerAddressSchema = z.object({
   customerId: z.number().min(1, "Customer is required"),
@@ -156,4 +156,4 @@ export const customerAddressSchema = z.object({
   isSalesAdd: z.boolean().default(false),
   isActive: z.boolean().default(true),
 })
-export type CustomerAddressFormValues = z.infer<typeof customerAddressSchema>
+export type CustomerAddressSchemaType = z.infer<typeof customerAddressSchema>

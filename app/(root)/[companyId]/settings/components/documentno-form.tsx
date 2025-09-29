@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react"
 import { ApiResponse } from "@/interfaces/auth"
 import { IModuleTransactionLookup } from "@/interfaces/lookup"
 import { INumberFormatDetails, INumberFormatGrid } from "@/interfaces/setting"
-import { DocumentNoFormValues, documentNoFormSchema } from "@/schemas/setting"
+import { DocumentNoSchemaType, documentNoFormSchema } from "@/schemas/setting"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
@@ -46,7 +46,7 @@ export function DocumentNoForm() {
     new Date().getFullYear()
   )
 
-  const form = useForm<DocumentNoFormValues>({
+  const form = useForm<DocumentNoSchemaType>({
     resolver: zodResolver(documentNoFormSchema),
     defaultValues: {
       numberId: 0,
@@ -241,7 +241,7 @@ export function DocumentNoForm() {
     )
   }, [moduleTrnsData, selectedModule, selectedTransaction])
 
-  function onSubmit(data: DocumentNoFormValues) {
+  function onSubmit(data: DocumentNoSchemaType) {
     if (!selectedModule || !selectedTransaction) {
       toast.error("Please select a module and transaction")
       return

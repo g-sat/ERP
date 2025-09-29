@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react"
 import { IUniversalDocumentDt } from "@/interfaces/universal-documents"
 import {
-  UniversalDocumentDtFormValues,
+  UniversalDocumentDtSchemaType,
   universalDocumentDtSchema,
 } from "@/schemas/universal-documents"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -42,7 +42,7 @@ export function DocumentDetailsForm({
   const fileInputRef = useRef<HTMLInputElement>(null)
   const persistDetailsMutation = usePersistDocumentDetails()
 
-  const form = useForm<UniversalDocumentDtFormValues>({
+  const form = useForm<UniversalDocumentDtSchemaType>({
     resolver: zodResolver(universalDocumentDtSchema),
     defaultValues: {
       documentId: documentId,
@@ -177,7 +177,7 @@ export function DocumentDetailsForm({
     setIsFullscreen(true)
   }
 
-  const handleSubmit = async (data: UniversalDocumentDtFormValues) => {
+  const handleSubmit = async (data: UniversalDocumentDtSchemaType) => {
     try {
       if (data.docTypeId === 0) {
         alert("Please select a document type")

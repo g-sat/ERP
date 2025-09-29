@@ -29,7 +29,7 @@ export const chartofAccountSchema = z.object({
     .default(""),
 })
 
-export type ChartofAccountFormValues = z.infer<typeof chartofAccountSchema>
+export type ChartofAccountSchemaType = z.infer<typeof chartofAccountSchema>
 
 export const chartofAccountFiltersSchema = z.object({
   isActive: z.boolean().optional(),

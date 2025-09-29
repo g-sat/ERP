@@ -1,6 +1,6 @@
 import { IDecimal } from "@/interfaces/auth"
 import { IVisibleFields } from "@/interfaces/setting"
-import { ArInvoiceDtFormValues, ArInvoiceHdFormValues } from "@/schemas/invoice"
+import { ArInvoiceDtSchemaType, ArInvoiceHdSchemaType } from "@/schemas/invoice"
 import { addDays, format, parse } from "date-fns"
 import { UseFormReturn } from "react-hook-form"
 
@@ -75,8 +75,8 @@ export const calculateSubtractionAmount = (
 }
 
 export const handleQtyChange = (
-  hdForm: UseFormReturn<ArInvoiceHdFormValues>,
-  rowData: Partial<ArInvoiceDtFormValues>,
+  hdForm: UseFormReturn<ArInvoiceHdSchemaType>,
+  rowData: Partial<ArInvoiceDtSchemaType>,
   decimals: IDecimal,
   visible: IVisibleFields
 ) => {

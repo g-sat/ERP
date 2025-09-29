@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react"
 import { ApiResponse } from "@/interfaces/auth"
 import { IProduct, IProductFilter } from "@/interfaces/product"
-import { ProductFormValues } from "@/schemas/product"
+import { ProductSchemaType } from "@/schemas/product"
 import { usePermissionStore } from "@/stores/permission-store"
 import { useQueryClient } from "@tanstack/react-query"
 
@@ -62,8 +62,8 @@ export default function ProductPage() {
       data: [],
     }
 
-  const saveMutation = usePersist<ProductFormValues>(`${Product.add}`)
-  const updateMutation = usePersist<ProductFormValues>(`${Product.add}`)
+  const saveMutation = usePersist<ProductSchemaType>(`${Product.add}`)
+  const updateMutation = usePersist<ProductSchemaType>(`${Product.add}`)
   const deleteMutation = useDelete(`${Product.delete}`)
 
   const [selectedProduct, setSelectedProduct] = useState<IProduct | null>(null)
@@ -88,7 +88,7 @@ export default function ProductPage() {
   // State for save confirmation
   const [saveConfirmation, setSaveConfirmation] = useState<{
     isOpen: boolean
-    data: ProductFormValues | null
+    data: ProductSchemaType | null
   }>({
     isOpen: false,
     data: null,
@@ -125,7 +125,7 @@ export default function ProductPage() {
   }
 
   // Handler for form submission (create or edit) - shows confirmation first
-  const handleFormSubmit = (data: ProductFormValues) => {
+  const handleFormSubmit = (data: ProductSchemaType) => {
     setSaveConfirmation({
       isOpen: true,
       data: data,
@@ -133,7 +133,7 @@ export default function ProductPage() {
   }
 
   // Handler for confirmed form submission
-  const handleConfirmedFormSubmit = async (data: ProductFormValues) => {
+  const handleConfirmedFormSubmit = async (data: ProductSchemaType) => {
     try {
       if (modalMode === "create") {
         const response = await saveMutation.mutateAsync(data)

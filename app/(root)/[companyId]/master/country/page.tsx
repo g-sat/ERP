@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react"
 import { ApiResponse } from "@/interfaces/auth"
 import { ICountry } from "@/interfaces/country"
-import { CountryFormValues } from "@/schemas/country"
+import { CountrySchemaType } from "@/schemas/country"
 import { usePermissionStore } from "@/stores/permission-store"
 import { useQueryClient } from "@tanstack/react-query"
 
@@ -75,8 +75,8 @@ export default function CountryPage() {
     }
 
   // Define mutations for CRUD operations
-  const saveMutation = usePersist<CountryFormValues>(`${Country.add}`)
-  const updateMutation = usePersist<CountryFormValues>(`${Country.add}`)
+  const saveMutation = usePersist<CountrySchemaType>(`${Country.add}`)
+  const updateMutation = usePersist<CountrySchemaType>(`${Country.add}`)
   const deleteMutation = useDelete(`${Country.delete}`)
 
   // State for modal and selected country
@@ -104,7 +104,7 @@ export default function CountryPage() {
   // State for save confirmation
   const [saveConfirmation, setSaveConfirmation] = useState<{
     isOpen: boolean
-    data: CountryFormValues | null
+    data: CountrySchemaType | null
   }>({
     isOpen: false,
     data: null,
@@ -150,7 +150,7 @@ export default function CountryPage() {
   }
 
   // Handler for form submission (create or edit) - shows confirmation first
-  const handleFormSubmit = (data: CountryFormValues) => {
+  const handleFormSubmit = (data: CountrySchemaType) => {
     setSaveConfirmation({
       isOpen: true,
       data: data,
@@ -158,7 +158,7 @@ export default function CountryPage() {
   }
 
   // Handler for confirmed form submission
-  const handleConfirmedFormSubmit = async (data: CountryFormValues) => {
+  const handleConfirmedFormSubmit = async (data: CountrySchemaType) => {
     try {
       if (modalMode === "create") {
         const response = await saveMutation.mutateAsync(data)

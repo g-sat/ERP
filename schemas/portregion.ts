@@ -18,7 +18,7 @@ export const portregionSchema = z.object({
   isActive: z.boolean().default(true),
 })
 
-export type PortRegionFormValues = z.infer<typeof portregionSchema>
+export type PortRegionSchemaType = z.infer<typeof portregionSchema>
 
 export const portregionFiltersSchema = z.object({
   isActive: z.boolean().optional(),

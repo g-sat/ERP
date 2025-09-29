@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import { useParams } from "next/navigation"
 import { IApiSuccessResponse } from "@/interfaces/auth"
-import { UserSettingFormValues, userSettingSchema } from "@/schemas/setting"
+import { UserSettingSchemaType, userSettingSchema } from "@/schemas/setting"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
@@ -21,12 +21,12 @@ import {
 } from "@/components/ui/form"
 import { Separator } from "@/components/ui/separator"
 import { Skeleton } from "@/components/ui/skeleton"
-import { SaveConfirmation } from "@/components/confirmation/save-confirmation"
-import { LockSkeleton } from "@/components/skeleton/lock-skeleton"
 import ChartofAccountAutocomplete from "@/components/autocomplete/autocomplete-chartofaccount"
+import { SaveConfirmation } from "@/components/confirmation/save-confirmation"
 import CustomNumberInput from "@/components/custom/custom-number-input"
+import { LockSkeleton } from "@/components/skeleton/lock-skeleton"
 
-type UserSettingResponse = IApiSuccessResponse<UserSettingFormValues>
+type UserSettingResponse = IApiSuccessResponse<UserSettingSchemaType>
 
 export function AccountForm() {
   const params = useParams()
@@ -46,7 +46,7 @@ export function AccountForm() {
 
   const { mutate: saveUserSettings, isPending } = useUserSettingSave()
 
-  const form = useForm<UserSettingFormValues>({
+  const form = useForm<UserSettingSchemaType>({
     resolver: zodResolver(userSettingSchema),
     defaultValues: {
       trn_Grd_TotRec: 0,

@@ -14,11 +14,11 @@ import {
   ICoaCategory3,
   ICoaCategory3Filter,
 } from "@/interfaces/coacategory"
-import { ChartofAccountFormValues } from "@/schemas/chartofaccount"
+import { ChartofAccountSchemaType } from "@/schemas/chartofaccount"
 import {
-  CoaCategory1FormValues,
-  CoaCategory2FormValues,
-  CoaCategory3FormValues,
+  CoaCategory1SchemaType,
+  CoaCategory2SchemaType,
+  CoaCategory3SchemaType,
 } from "@/schemas/coacategory"
 import { usePermissionStore } from "@/stores/permission-store"
 import { useQueryClient } from "@tanstack/react-query"
@@ -143,34 +143,34 @@ export default function ChartOfAccountPage() {
     (chartOfAccountsResponse as ApiResponse<IChartofAccount>)?.data || []
 
   // Mutations
-  const saveMutation1 = usePersist<CoaCategory1FormValues>(
+  const saveMutation1 = usePersist<CoaCategory1SchemaType>(
     `${CoaCategory1.add}`
   )
-  const updateMutation1 = usePersist<CoaCategory1FormValues>(
+  const updateMutation1 = usePersist<CoaCategory1SchemaType>(
     `${CoaCategory1.add}`
   )
   const deleteMutation1 = useDelete(`${CoaCategory1.delete}`)
 
-  const saveMutation2 = usePersist<CoaCategory2FormValues>(
+  const saveMutation2 = usePersist<CoaCategory2SchemaType>(
     `${CoaCategory2.add}`
   )
-  const updateMutation2 = usePersist<CoaCategory2FormValues>(
+  const updateMutation2 = usePersist<CoaCategory2SchemaType>(
     `${CoaCategory2.add}`
   )
   const deleteMutation2 = useDelete(`${CoaCategory2.delete}`)
 
-  const saveMutation3 = usePersist<CoaCategory3FormValues>(
+  const saveMutation3 = usePersist<CoaCategory3SchemaType>(
     `${CoaCategory3.add}`
   )
-  const updateMutation3 = usePersist<CoaCategory3FormValues>(
+  const updateMutation3 = usePersist<CoaCategory3SchemaType>(
     `${CoaCategory3.add}`
   )
   const deleteMutation3 = useDelete(`${CoaCategory3.delete}`)
 
-  const saveMutationChart = usePersist<ChartofAccountFormValues>(
+  const saveMutationChart = usePersist<ChartofAccountSchemaType>(
     `${ChartOfAccount.add}`
   )
-  const updateMutationChart = usePersist<ChartofAccountFormValues>(
+  const updateMutationChart = usePersist<ChartofAccountSchemaType>(
     `${ChartOfAccount.add}`
   )
   const deleteMutationChart = useDelete(`${ChartOfAccount.delete}`)
@@ -363,7 +363,7 @@ export default function ChartOfAccountPage() {
   }
 
   // Specialized form handlers
-  const handleChartSubmit = async (data: ChartofAccountFormValues) => {
+  const handleChartSubmit = async (data: ChartofAccountSchemaType) => {
     try {
       if (modalMode === "create") {
         const response = (await saveMutationChart.mutateAsync(
@@ -385,7 +385,7 @@ export default function ChartOfAccountPage() {
     }
   }
 
-  const handleCategory1Submit = async (data: CoaCategory1FormValues) => {
+  const handleCategory1Submit = async (data: CoaCategory1SchemaType) => {
     try {
       if (modalMode === "create") {
         const response = (await saveMutation1.mutateAsync(
@@ -407,7 +407,7 @@ export default function ChartOfAccountPage() {
     }
   }
 
-  const handleCategory2Submit = async (data: CoaCategory2FormValues) => {
+  const handleCategory2Submit = async (data: CoaCategory2SchemaType) => {
     try {
       if (modalMode === "create") {
         const response = (await saveMutation2.mutateAsync(
@@ -429,7 +429,7 @@ export default function ChartOfAccountPage() {
     }
   }
 
-  const handleCategory3Submit = async (data: CoaCategory3FormValues) => {
+  const handleCategory3Submit = async (data: CoaCategory3SchemaType) => {
     try {
       if (modalMode === "create") {
         const response = (await saveMutation3.mutateAsync(
@@ -455,10 +455,10 @@ export default function ChartOfAccountPage() {
   const [saveConfirmation, setSaveConfirmation] = useState<{
     isOpen: boolean
     data:
-      | ChartofAccountFormValues
-      | CoaCategory1FormValues
-      | CoaCategory2FormValues
-      | CoaCategory3FormValues
+      | ChartofAccountSchemaType
+      | CoaCategory1SchemaType
+      | CoaCategory2SchemaType
+      | CoaCategory3SchemaType
       | null
     type: "chartofaccount" | "category1" | "category2" | "category3"
   }>({
@@ -470,10 +470,10 @@ export default function ChartOfAccountPage() {
   // Main form submit handler - shows confirmation first
   const handleFormSubmit = (
     data:
-      | ChartofAccountFormValues
-      | CoaCategory1FormValues
-      | CoaCategory2FormValues
-      | CoaCategory3FormValues
+      | ChartofAccountSchemaType
+      | CoaCategory1SchemaType
+      | CoaCategory2SchemaType
+      | CoaCategory3SchemaType
   ) => {
     let type: "chartofaccount" | "category1" | "category2" | "category3" =
       "chartofaccount"
@@ -491,23 +491,23 @@ export default function ChartOfAccountPage() {
   // Handler for confirmed form submission
   const handleConfirmedFormSubmit = async (
     data:
-      | ChartofAccountFormValues
-      | CoaCategory1FormValues
-      | CoaCategory2FormValues
-      | CoaCategory3FormValues
+      | ChartofAccountSchemaType
+      | CoaCategory1SchemaType
+      | CoaCategory2SchemaType
+      | CoaCategory3SchemaType
   ) => {
     try {
       if (saveConfirmation.type === "chartofaccount") {
-        await handleChartSubmit(data as ChartofAccountFormValues)
+        await handleChartSubmit(data as ChartofAccountSchemaType)
         setIsModalChartOpen(false)
       } else if (saveConfirmation.type === "category1") {
-        await handleCategory1Submit(data as CoaCategory1FormValues)
+        await handleCategory1Submit(data as CoaCategory1SchemaType)
         setIsModalCategory1Open(false)
       } else if (saveConfirmation.type === "category2") {
-        await handleCategory2Submit(data as CoaCategory2FormValues)
+        await handleCategory2Submit(data as CoaCategory2SchemaType)
         setIsModalCategory2Open(false)
       } else if (saveConfirmation.type === "category3") {
-        await handleCategory3Submit(data as CoaCategory3FormValues)
+        await handleCategory3Submit(data as CoaCategory3SchemaType)
         setIsModalCategory3Open(false)
       }
     } catch (error) {
@@ -1263,14 +1263,14 @@ export default function ChartOfAccountPage() {
         }
         itemName={
           saveConfirmation.type === "chartofaccount"
-            ? (saveConfirmation.data as ChartofAccountFormValues)?.glName || ""
+            ? (saveConfirmation.data as ChartofAccountSchemaType)?.glName || ""
             : saveConfirmation.type === "category1"
-              ? (saveConfirmation.data as CoaCategory1FormValues)
+              ? (saveConfirmation.data as CoaCategory1SchemaType)
                   ?.coaCategoryName || ""
               : saveConfirmation.type === "category2"
-                ? (saveConfirmation.data as CoaCategory2FormValues)
+                ? (saveConfirmation.data as CoaCategory2SchemaType)
                     ?.coaCategoryName || ""
-                : (saveConfirmation.data as CoaCategory3FormValues)
+                : (saveConfirmation.data as CoaCategory3SchemaType)
                     ?.coaCategoryName || ""
         }
         operationType={modalMode === "create" ? "create" : "update"}

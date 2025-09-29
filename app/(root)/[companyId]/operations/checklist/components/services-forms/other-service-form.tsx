@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import { IJobOrderHd, IOtherService } from "@/interfaces/checklist"
 import { IChargeLookup } from "@/interfaces/lookup"
-import { OtherServiceFormValues, OtherServiceSchema } from "@/schemas/checklist"
+import { OtherServiceSchema, OtherServiceSchemaType } from "@/schemas/checklist"
 import { useAuthStore } from "@/stores/auth-store"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { format } from "date-fns"
@@ -15,7 +15,6 @@ import { useChartofAccountLookup } from "@/hooks/use-lookup"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Form } from "@/components/ui/form"
-import { FormLoadingSpinner } from "@/components/skeleton/loading-spinner"
 import ChargeAutocomplete from "@/components/autocomplete/autocomplete-charge"
 import ChartOfAccountAutocomplete from "@/components/autocomplete/autocomplete-chartofaccount"
 import StatusTaskAutocomplete from "@/components/autocomplete/autocomplete-status-task"
@@ -28,12 +27,13 @@ import CustomAccordion, {
 import { CustomDateNew } from "@/components/custom/custom-date-new"
 import CustomInput from "@/components/custom/custom-input"
 import CustomTextarea from "@/components/custom/custom-textarea"
+import { FormLoadingSpinner } from "@/components/skeleton/loading-spinner"
 
 interface OtherServiceFormProps {
   jobData: IJobOrderHd
   initialData?: IOtherService
   taskDefaults?: Record<string, number> // Add taskDefaults prop
-  submitAction: (data: OtherServiceFormValues) => void
+  submitAction: (data: OtherServiceSchemaType) => void
   onCancel?: () => void
   isSubmitting?: boolean
   isConfirmed?: boolean
@@ -61,7 +61,7 @@ export function OtherServiceForm({
   )
 
   console.log("initialData :", initialData)
-  const form = useForm<OtherServiceFormValues>({
+  const form = useForm<OtherServiceSchemaType>({
     resolver: zodResolver(OtherServiceSchema),
     defaultValues: {
       otherServiceId: initialData?.otherServiceId ?? 0,
@@ -152,7 +152,7 @@ export function OtherServiceForm({
     )
   }
 
-  const onSubmit = (data: OtherServiceFormValues) => {
+  const onSubmit = (data: OtherServiceSchemaType) => {
     submitAction(data)
   }
 

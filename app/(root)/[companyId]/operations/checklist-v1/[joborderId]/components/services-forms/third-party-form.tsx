@@ -2,7 +2,7 @@
 
 import { useEffect } from "react"
 import { IJobOrderHd, IThirdParty } from "@/interfaces/checklist"
-import { ThirdPartyFormValues, ThirdPartySchema } from "@/schemas/checklist"
+import { ThirdPartySchema, ThirdPartySchemaType } from "@/schemas/checklist"
 import { useAuthStore } from "@/stores/auth-store"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { format } from "date-fns"
@@ -14,7 +14,6 @@ import { useChartofAccountLookup } from "@/hooks/use-lookup"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Form } from "@/components/ui/form"
-import { FormLoadingSpinner } from "@/components/skeleton/loading-spinner"
 import ChargeAutocomplete from "@/components/autocomplete/autocomplete-charge"
 import ChartOfAccountAutocomplete from "@/components/autocomplete/autocomplete-chartofaccount"
 import StatusTaskAutocomplete from "@/components/autocomplete/autocomplete-status-task"
@@ -28,12 +27,13 @@ import CustomAccordion, {
 import { CustomDateNew } from "@/components/custom/custom-date-new"
 import CustomInput from "@/components/custom/custom-input"
 import CustomTextarea from "@/components/custom/custom-textarea"
+import { FormLoadingSpinner } from "@/components/skeleton/loading-spinner"
 
 interface ThirdPartyFormProps {
   jobData: IJobOrderHd
   initialData?: IThirdParty
   taskDefaults?: Record<string, number> // Add taskDefaults prop
-  submitAction: (data: ThirdPartyFormValues) => void
+  submitAction: (data: ThirdPartySchemaType) => void
   onCancel?: () => void
   isSubmitting?: boolean
   isConfirmed?: boolean
@@ -58,7 +58,7 @@ export function ThirdPartyForm({
   )
 
   console.log("initialData :", initialData)
-  const form = useForm<ThirdPartyFormValues>({
+  const form = useForm<ThirdPartySchemaType>({
     resolver: zodResolver(ThirdPartySchema),
     defaultValues: {
       thirdPartyId: initialData?.thirdPartyId ?? 0,
@@ -127,7 +127,7 @@ export function ThirdPartyForm({
     )
   }
 
-  const onSubmit = (data: ThirdPartyFormValues) => {
+  const onSubmit = (data: ThirdPartySchemaType) => {
     submitAction(data)
   }
 

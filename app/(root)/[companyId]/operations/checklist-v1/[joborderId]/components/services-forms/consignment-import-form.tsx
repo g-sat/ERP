@@ -3,8 +3,8 @@
 import { useEffect } from "react"
 import { IConsignmentImport, IJobOrderHd } from "@/interfaces/checklist"
 import {
-  ConsignmentImportFormValues,
   ConsignmentImportSchema,
+  ConsignmentImportSchemaType,
 } from "@/schemas/checklist"
 import { useAuthStore } from "@/stores/auth-store"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -17,7 +17,6 @@ import { useChartofAccountLookup } from "@/hooks/use-lookup"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Form } from "@/components/ui/form"
-import { FormLoadingSpinner } from "@/components/skeleton/loading-spinner"
 import CarrierTypeAutocomplete from "@/components/autocomplete/autocomplete-carriertype"
 import ChargeAutocomplete from "@/components/autocomplete/autocomplete-charge"
 import ChartOfAccountAutocomplete from "@/components/autocomplete/autocomplete-chartofaccount"
@@ -34,12 +33,13 @@ import CustomAccordion, {
 import { CustomDateNew } from "@/components/custom/custom-date-new"
 import CustomInput from "@/components/custom/custom-input"
 import CustomTextarea from "@/components/custom/custom-textarea"
+import { FormLoadingSpinner } from "@/components/skeleton/loading-spinner"
 
 interface ConsignmentImportFormProps {
   jobData: IJobOrderHd
   initialData?: IConsignmentImport
   taskDefaults?: Record<string, number> // Add taskDefaults prop
-  submitAction: (data: ConsignmentImportFormValues) => void
+  submitAction: (data: ConsignmentImportSchemaType) => void
   onCancel?: () => void
   isSubmitting?: boolean
   isConfirmed?: boolean
@@ -64,7 +64,7 @@ export function ConsignmentImportForm({
   )
 
   console.log("initialData :", initialData)
-  const form = useForm<ConsignmentImportFormValues>({
+  const form = useForm<ConsignmentImportSchemaType>({
     resolver: zodResolver(ConsignmentImportSchema),
     defaultValues: {
       consignmentImportId: initialData?.consignmentImportId ?? 0,
@@ -179,7 +179,7 @@ export function ConsignmentImportForm({
     )
   }
 
-  const onSubmit = (data: ConsignmentImportFormValues) => {
+  const onSubmit = (data: ConsignmentImportSchemaType) => {
     submitAction(data)
   }
 

@@ -58,7 +58,7 @@ export const employeeSchema = z.object({
     .default(""),
 })
 
-export type EmployeeFormValues = z.infer<typeof employeeSchema>
+export type EmployeeSchemaType = z.infer<typeof employeeSchema>
 
 export const employeeFiltersSchema = z.object({
   isActive: z.boolean().optional(),

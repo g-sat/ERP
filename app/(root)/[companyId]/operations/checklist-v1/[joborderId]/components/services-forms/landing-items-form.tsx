@@ -2,7 +2,7 @@
 
 import { useEffect } from "react"
 import { IJobOrderHd, ILandingItems } from "@/interfaces/checklist"
-import { LandingItemsFormValues, LandingItemsSchema } from "@/schemas/checklist"
+import { LandingItemsSchema, LandingItemsSchemaType } from "@/schemas/checklist"
 import { useAuthStore } from "@/stores/auth-store"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { format } from "date-fns"
@@ -14,7 +14,6 @@ import { useChartofAccountLookup } from "@/hooks/use-lookup"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Form } from "@/components/ui/form"
-import { FormLoadingSpinner } from "@/components/skeleton/loading-spinner"
 import ChargeAutocomplete from "@/components/autocomplete/autocomplete-charge"
 import ChartOfAccountAutocomplete from "@/components/autocomplete/autocomplete-chartofaccount"
 import LandingTypeAutocomplete from "@/components/autocomplete/autocomplete-landingtype"
@@ -28,12 +27,13 @@ import CustomAccordion, {
 import { CustomDateNew } from "@/components/custom/custom-date-new"
 import CustomInput from "@/components/custom/custom-input"
 import CustomTextarea from "@/components/custom/custom-textarea"
+import { FormLoadingSpinner } from "@/components/skeleton/loading-spinner"
 
 interface LandingItemsFormProps {
   jobData: IJobOrderHd
   initialData?: ILandingItems
   taskDefaults?: Record<string, number> // Add taskDefaults prop
-  submitAction: (data: LandingItemsFormValues) => void
+  submitAction: (data: LandingItemsSchemaType) => void
   onCancel?: () => void
   isSubmitting?: boolean
   isConfirmed?: boolean
@@ -58,7 +58,7 @@ export function LandingItemsForm({
   )
 
   console.log("initialData :", initialData)
-  const form = useForm<LandingItemsFormValues>({
+  const form = useForm<LandingItemsSchemaType>({
     resolver: zodResolver(LandingItemsSchema),
     defaultValues: {
       landingItemId: initialData?.landingItemId ?? 0,
@@ -143,7 +143,7 @@ export function LandingItemsForm({
     )
   }
 
-  const onSubmit = (data: LandingItemsFormValues) => {
+  const onSubmit = (data: LandingItemsSchemaType) => {
     submitAction(data)
   }
 
