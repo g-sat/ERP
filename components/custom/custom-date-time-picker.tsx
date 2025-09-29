@@ -1,26 +1,23 @@
-import React, { useState, useEffect, useCallback } from "react"
+import React from "react"
 import { useAuthStore } from "@/stores/auth-store"
-import { format, isValid, parse } from "date-fns"
+import { format } from "date-fns"
+import { CalendarIcon } from "lucide-react"
 import { FieldValues, Path, UseFormReturn } from "react-hook-form"
 
 import { cn } from "@/lib/utils"
-import {
-  FormControl,
-  FormField,
-  FormItem,
-  FormMessage,
-} from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
+import { FormField, FormItem, FormMessage } from "@/components/ui/form"
 import { Label } from "@/components/ui/label"
+
+import { Button } from "../ui/button"
+import { Calendar } from "../ui/calendar"
+import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover"
 import { TimePicker } from "../ui/time-picker-demo"
 
 interface CustomDateTimePickerProps<T extends FieldValues = FieldValues> {
   form: UseFormReturn<T>
   label?: string
   name: Path<T>
-
   className?: string
-  onBlurEvent?: (e: React.FocusEvent<HTMLInputElement>) => void
   onChangeEvent?: (date: Date | null) => void
   isDisabled?: boolean
   isRequired?: boolean
@@ -33,100 +30,33 @@ export const CustomDateTimePicker = <T extends FieldValues = FieldValues>({
   label,
   name,
   className,
-  onBlurEvent,
   onChangeEvent,
   isDisabled = false,
   isRequired = false,
-  placeholder = "dd/MM/yyyy HH:mm",
+  placeholder = "Pick a date and time",
   size = "default",
 }: CustomDateTimePickerProps<T>) => {
   const { decimals } = useAuthStore()
-  const decimalDateFormat = decimals[0]?.dateFormat || "dd/MM/yyyy"
-  const [inputValue, setInputValue] = useState("")
+  const dateFormat = decimals[0]?.dateFormat || "dd/MM/yyyy"
 
-  // Convert Date or string to dd/MM/yyyy format for display
-  const formatDateForDisplay = useCallback((value: Date | string | undefined) => {
-    if (!value) return ""
-    if (value instanceof Date) {
-      return format(value, decimalDateFormat)
+  // Handle date change
+  const handleDateChange = (date: Date | undefined) => {
+    if (onChangeEvent) {
+      onChangeEvent(date || null)
     }
-    if (typeof value === "string") {
-      // Try to parse the string and format it
-      const parsedDate = parse(value, decimalDateFormat, new Date())
-      if (isValid(parsedDate)) {
-        return format(parsedDate, decimalDateFormat)
-      }
-      // Try to parse as other common formats
-      const otherFormats = ["yyyy-MM-dd", "MM/dd/yyyy", "dd-MM-yyyy"]
-      for (const fmt of otherFormats) {
-        const parsed = parse(value, fmt, new Date())
-        if (isValid(parsed)) {
-          return format(parsed, decimalDateFormat)
-        }
-      }
-      return value // Return as-is if can't parse
-    }
-    return ""
-  }, [decimalDateFormat])
-
-
-  // Handle input change with formatting
-  const handleInputChange = (value: string) => {
-    setInputValue(value)
-    
-    // Try to parse the input as dd/MM/yyyy
-    const parsedDate = parse(value, decimalDateFormat, new Date())
-    
-    if (isValid(parsedDate)) {
-      // Valid date, store as Date object
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      form.setValue(name, parsedDate as any)
-      if (onChangeEvent) {
-        onChangeEvent(parsedDate)
-      }
-    } else if (value === "") {
-      // Empty input, clear the field
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      form.setValue(name, undefined as any)
-      if (onChangeEvent) {
-        onChangeEvent(null)
-      }
-    }
-    // If invalid but not empty, don't update the form value (let validation handle it)
   }
 
-  // Sync input value with form field value when form is reset or external data changes
-  const watchedValue = form.watch(name)
-  useEffect(() => {
-    if (watchedValue) {
-      let formattedValue = ""
-      if (watchedValue && typeof watchedValue === 'object' && 'getTime' in watchedValue) {
-        formattedValue = format(watchedValue as Date, decimalDateFormat)
-      } else if (typeof watchedValue === "string") {
-        // Try to parse the string and format it
-        const parsedDate = parse(watchedValue, decimalDateFormat, new Date())
-        if (isValid(parsedDate)) {
-          formattedValue = format(parsedDate, decimalDateFormat)
-        } else {
-          // Try to parse as other common formats
-          const otherFormats = ["yyyy-MM-dd", "MM/dd/yyyy", "dd-MM-yyyy"]
-          for (const fmt of otherFormats) {
-            const parsed = parse(watchedValue, fmt, new Date())
-            if (isValid(parsed)) {
-              formattedValue = format(parsed, decimalDateFormat)
-              break
-            }
-          }
-          if (!formattedValue) {
-            formattedValue = watchedValue // Return as-is if can't parse
-          }
-        }
-      }
-      setInputValue(formattedValue)
-    } else {
-      setInputValue("")
+  // Get button size classes based on size prop
+  const getButtonSizeClasses = () => {
+    switch (size) {
+      case "sm":
+        return "h-8 px-2 text-xs"
+      case "lg":
+        return "h-12 px-4 text-base"
+      default:
+        return "h-10 px-3 text-sm"
     }
-  }, [watchedValue, decimalDateFormat])
+  }
 
   return (
     <div className={cn("flex flex-col gap-1", className)}>
@@ -141,29 +71,48 @@ export const CustomDateTimePicker = <T extends FieldValues = FieldValues>({
         name={name}
         render={({ field }) => (
           <FormItem>
-            <FormControl>
-              <Input
-                type="text"
-                id={name}
-                disabled={isDisabled}
-                placeholder={placeholder}
-                className={cn("w-full", {
-                  "h-8 text-sm": size === "sm",
-                  "h-9": size === "default",
-                  "h-12 text-lg": size === "lg",
-                })}
-                value={inputValue || formatDateForDisplay(field.value)}
-                onChange={(e) => {
-                  const value = e.target.value
-                  handleInputChange(value)
-                }}
-                onBlur={(e) => {
-                  field.onBlur()
-                  onBlurEvent?.(e)
-                }}
-              />
-              <TimePicker date={field.value} setDate={field.onChange} />
-            </FormControl>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  disabled={isDisabled}
+                  className={cn(
+                    "w-full justify-start text-left font-normal",
+                    getButtonSizeClasses(),
+                    !field.value && "text-muted-foreground"
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {field.value ? (
+                    format(field.value, `${dateFormat} HH:mm`)
+                  ) : (
+                    <span>{placeholder}</span>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={field.value}
+                  onSelect={(date) => {
+                    field.onChange(date)
+                    handleDateChange(date)
+                  }}
+                  disabled={(date) =>
+                    date > new Date() || date < new Date("1900-01-01")
+                  }
+                />
+                <div className="border-t p-3">
+                  <TimePicker
+                    setDate={(date) => {
+                      field.onChange(date)
+                      handleDateChange(date)
+                    }}
+                    date={field.value}
+                  />
+                </div>
+              </PopoverContent>
+            </Popover>
             <FormMessage />
           </FormItem>
         )}

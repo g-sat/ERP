@@ -15,6 +15,7 @@ import { getData } from "@/lib/api-client"
 import { BasicSetting } from "@/lib/api-routes"
 import { clientDateFormat, parseDate } from "@/lib/format"
 import { saveJobOrderDirect, updateJobOrderDirect } from "@/hooks/use-checklist"
+import { Badge } from "@/components/ui/badge"
 import { Form } from "@/components/ui/form"
 import AddressAutocomplete from "@/components/autocomplete/autocomplete-address"
 import ContactAutocomplete from "@/components/autocomplete/autocomplete-contact"
@@ -25,10 +26,11 @@ import PortAutocomplete from "@/components/autocomplete/autocomplete-port"
 import StatusAutocomplete from "@/components/autocomplete/autocomplete-status"
 import VesselAutocomplete from "@/components/autocomplete/autocomplete-vessel"
 import VoyageAutocomplete from "@/components/autocomplete/autocomplete-voyage"
+import CustomCheckbox from "@/components/custom/custom-checkbox"
 import { CustomDateNew } from "@/components/custom/custom-date-new"
+import { CustomDateTimePicker } from "@/components/custom/custom-date-time-picker"
 import CustomInput from "@/components/custom/custom-input"
 import CustomNumberInput from "@/components/custom/custom-number-input"
-import CustomSwitch from "@/components/custom/custom-switch"
 import CustomTextarea from "@/components/custom/custom-textarea"
 
 interface ChecklistMainProps {
@@ -265,8 +267,16 @@ export function ChecklistMain({
         >
           {/* Operation Card */}
           <div className="mb-4 rounded-lg border p-4">
-            <div className="mb-2 text-lg font-semibold">Operation</div>
-            <div className="grid grid-cols-5 gap-2">
+            <div className="mb-2 flex">
+              <Badge
+                variant="secondary"
+                className="border-blue-200 bg-blue-100 px-4 py-2 text-sm font-semibold text-blue-800 shadow-sm transition-colors duration-200 hover:bg-blue-200"
+              >
+                🔧 Operation
+              </Badge>
+            </div>
+            <div className="mb-4 border-b border-gray-200"></div>
+            <div className="grid grid-cols-6 gap-2">
               <CustomDateNew
                 form={form}
                 name="jobOrderDate"
@@ -395,13 +405,13 @@ export function ChecklistMain({
                 isRequired={true}
               />
 
-              <CustomDateNew
+              <CustomDateTimePicker
                 form={form}
                 name="etaDate"
                 label="ETA Date"
                 isRequired={false}
               />
-              <CustomDateNew
+              <CustomDateTimePicker
                 form={form}
                 name="etdDate"
                 label="ETD Date"
@@ -455,14 +465,30 @@ export function ChecklistMain({
                 label="Status"
                 isRequired={true}
               />
+              <div className="col-span-2">
+                <CustomTextarea
+                  form={form}
+                  name="remarks"
+                  label="Remarks"
+                  isRequired={false}
+                />
+              </div>
             </div>
             <div className="mt-2 grid grid-cols-4 gap-2"></div>
           </div>
 
           {/* Accounts Card */}
           <div className="mb-4 rounded-lg border p-4">
-            <div className="mb-2 text-lg font-semibold">Accounts</div>
-            <div className="grid grid-cols-5 gap-2">
+            <div className="mb-2 flex">
+              <Badge
+                variant="outline"
+                className="border-green-300 bg-green-100 px-4 py-2 text-sm font-semibold text-green-800 shadow-sm transition-colors duration-200 hover:bg-green-200"
+              >
+                💰 Accounts
+              </Badge>
+            </div>
+            <div className="mb-4 border-b border-gray-200"></div>
+            <div className="grid grid-cols-4 gap-2">
               <CustomDateNew
                 form={form}
                 name="invoiceDate"
@@ -487,12 +513,14 @@ export function ChecklistMain({
                 isRequired
                 customerId={customerId || 0}
               />
-              <CustomSwitch
+
+              <CustomCheckbox
                 form={form}
                 name="isTaxable"
                 label="Taxable"
                 isRequired={false}
               />
+
               {isTaxable && (
                 <GstAutocomplete
                   form={form}
@@ -509,35 +537,23 @@ export function ChecklistMain({
                   isRequired={true}
                 />
               )}
-            </div>
-          </div>
 
-          {/* Status Card */}
-          <div className="mb-4 rounded-lg border p-4">
-            <div className="mb-2 text-lg font-semibold">Status</div>
-            <div className="grid grid-cols-4 gap-2">
-              <CustomSwitch
+              <CustomCheckbox
                 form={form}
                 name="isClose"
                 label="Close"
                 isRequired={false}
               />
-              <CustomSwitch
+              <CustomCheckbox
                 form={form}
                 name="isPost"
                 label="Post"
                 isRequired={false}
               />
-              <CustomSwitch
+              <CustomCheckbox
                 form={form}
                 name="isActive"
-                label="Active Status"
-                activeColor="success"
-              />
-              <CustomTextarea
-                form={form}
-                name="remarks"
-                label="Remarks"
+                label="Active"
                 isRequired={false}
               />
             </div>

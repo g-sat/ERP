@@ -36,6 +36,7 @@ import {
   History,
   Landmark,
   LayoutDashboard,
+  ListCheck,
   MapPin,
   Receipt,
   Scale,
@@ -202,16 +203,22 @@ export const menuData = {
       url: "/operations",
       icon: FolderKanban,
       items: [
+        //{
+        // title: "CheckList",
+        //url: "/operations/checklist-v2",
+        //icon: ClipboardList,
+        //},
         {
-          title: "CheckList",
+          title: "New Checklist",
+          url: "/operations/checklist/new",
+          icon: ListCheck,
+        },
+        {
+          title: "Checklist",
           url: "/operations/checklist",
           icon: ClipboardList,
         },
-        {
-          title: "checklist-v1",
-          url: "/operations/checklist-v1",
-          icon: ClipboardList,
-        },
+
         { title: "Tariff", url: "/operations/tariff", icon: Coins },
       ],
     },

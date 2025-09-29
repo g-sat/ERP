@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useMemo, useState, type ChangeEvent } from "react"
+import { useParams } from "next/navigation"
 import type { IJobOrderHd } from "@/interfaces/checklist"
 import { toast } from "sonner"
 
@@ -11,31 +12,21 @@ import { searchJobOrdersDirect } from "@/hooks/use-checklist"
 import { useGetWithDates } from "@/hooks/use-common"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { DataTableSkeleton } from "@/components/skeleton/data-table-skeleton"
 
 import { ChecklistTable } from "./components/checklist-table"
-import { ChecklistTabs } from "./components/checklist-tabs"
 
 export default function ChecklistPage() {
+  const params = useParams()
+  const companyId = params.companyId as string
   const moduleId = ModuleId.operations
   const transactionId = OperationsTransactionId.checklist
 
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedStatus, setSelectedStatus] = useState("All")
   const [isLoading, setIsLoading] = useState(true)
-  const [isFormOpen, setIsFormOpen] = useState(false)
-  const [selectedJobData, setSelectedJobData] = useState<IJobOrderHd | null>(
-    null
-  )
-  const [isEditMode, setIsEditMode] = useState(false)
 
   // Add this at the top of your component
   const today = new Date()
@@ -127,36 +118,17 @@ export default function ChecklistPage() {
   }
 
   const handleAddNew = () => {
-    console.log("add new")
-    setSelectedJobData(null)
-    setIsEditMode(false)
-    setIsFormOpen(true)
-  }
-
-  //const handleEditJob = (jobData: IJobOrderHd) => {
-  //console.log("edit job", jobData)
-  //setSelectedJobData(jobData)
-  //setIsEditMode(true)
-  //setIsFormOpen(true)
-  //}
-
-  const handleFormSuccess = () => {
-    // Don't close the dialog after successful save
-    // setIsFormOpen(false)
-    // setSelectedJobData(null)
-    // setIsEditMode(false)
-    refetchJobOrder() // Refresh the data after successful save/update
-  }
-
-  const handleCloneJob = (clonedData: IJobOrderHd) => {
-    console.log("Cloning job order:", clonedData)
-    setSelectedJobData(clonedData)
-    setIsEditMode(false) // Set to create mode for cloned data
-    setIsFormOpen(true)
+    console.log("Opening new job order in new tab")
+    const url = `/${companyId}/operations/checklist/new`
+    console.log("Opening URL:", url)
+    window.open(url, "_blank")
   }
 
   // Use API data with proper error handling
-  const apiData = jobOrderResponse?.data || []
+  const apiData = useMemo(
+    () => jobOrderResponse?.data || [],
+    [jobOrderResponse?.data]
+  )
 
   // Get status counts from the API data
   const getStatusCounts = useMemo(() => {
@@ -417,54 +389,10 @@ export default function ChecklistPage() {
               transactionId={transactionId}
               onCreate={handleAddNew}
               onRefresh={handleRefresh}
-              //onEditJob={handleEditJob}
             />
           </div>
         )}
       </div>
-
-      {/* Job Order Form Dialog */}
-      <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-        <DialogContent
-          className="@container h-[90vh] w-[90vw] !max-w-none overflow-y-auto"
-          onPointerDownOutside={(e) => {
-            e.preventDefault()
-          }}
-        >
-          <DialogHeader className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="bg-primary/10 flex h-8 w-8 items-center justify-center rounded-full">
-                <span className="text-sm">{isEditMode ? "✏️" : "➕"}</span>
-              </div>
-              <DialogTitle className="text-lg font-semibold">
-                {"Job Order Details"}{" "}
-                <Badge variant="outline" className="text-xs">
-                  {selectedJobData ? "Edit Mode" : "Create Mode"}
-                </Badge>
-              </DialogTitle>
-            </div>
-          </DialogHeader>
-          {selectedJobData ? (
-            <ChecklistTabs
-              key={`${selectedJobData.jobOrderId}-${selectedJobData.jobOrderNo}-${Date.now()}`}
-              jobData={selectedJobData}
-              onSuccess={handleFormSuccess}
-              isEdit={isEditMode}
-              isNewRecord={false}
-              onClone={handleCloneJob}
-            />
-          ) : (
-            <ChecklistTabs
-              key={`new-record-${Date.now()}`}
-              jobData={{} as IJobOrderHd}
-              onSuccess={handleFormSuccess}
-              isEdit={false}
-              isNewRecord={true}
-              onClone={handleCloneJob}
-            />
-          )}
-        </DialogContent>
-      </Dialog>
     </div>
   )
 }

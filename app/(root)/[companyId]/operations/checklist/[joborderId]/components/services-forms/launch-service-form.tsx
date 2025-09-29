@@ -30,6 +30,7 @@ import CustomAccordion, {
 } from "@/components/custom/custom-accordion"
 import { CustomDateNew } from "@/components/custom/custom-date-new"
 import { CustomDateTimeNew } from "@/components/custom/custom-date-time-new"
+import { CustomDateTimePicker } from "@/components/custom/custom-date-time-picker"
 import CustomInput from "@/components/custom/custom-input"
 import CustomTextarea from "@/components/custom/custom-textarea"
 import { FormLoadingSpinner } from "@/components/skeleton/loading-spinner"
@@ -216,7 +217,6 @@ export function LaunchServiceForm({
                 name="date"
                 label="Service Date"
                 isRequired={true}
-                dateFormat={dateFormat}
                 isDisabled={isConfirmed}
               />
               <ChargeAutocomplete
@@ -336,7 +336,7 @@ export function LaunchServiceForm({
                 type="number"
                 isDisabled={isConfirmed}
               />
-              <CustomDateTimeNew
+              <CustomDateTimePicker
                 form={form}
                 name="loadingTime"
                 label="Loading Time (1)"

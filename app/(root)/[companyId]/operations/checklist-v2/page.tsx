@@ -22,6 +22,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { DataTableSkeleton } from "@/components/skeleton/data-table-skeleton"
 
 import { ChecklistTable } from "./components/checklist-table"
+import { ChecklistTabs } from "./components/checklist-tabs"
 
 export default function ChecklistPage() {
   const moduleId = ModuleId.operations
@@ -421,6 +422,49 @@ export default function ChecklistPage() {
           </div>
         )}
       </div>
+
+      {/* Job Order Form Dialog */}
+      <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
+        <DialogContent
+          className="@container h-[90vh] w-[90vw] !max-w-none overflow-y-auto"
+          onPointerDownOutside={(e) => {
+            e.preventDefault()
+          }}
+        >
+          <DialogHeader className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="bg-primary/10 flex h-8 w-8 items-center justify-center rounded-full">
+                <span className="text-sm">{isEditMode ? "✏️" : "➕"}</span>
+              </div>
+              <DialogTitle className="text-lg font-semibold">
+                {"Job Order Details"}{" "}
+                <Badge variant="outline" className="text-xs">
+                  {selectedJobData ? "Edit Mode" : "Create Mode"}
+                </Badge>
+              </DialogTitle>
+            </div>
+          </DialogHeader>
+          {selectedJobData ? (
+            <ChecklistTabs
+              key={`${selectedJobData.jobOrderId}-${selectedJobData.jobOrderNo}-${Date.now()}`}
+              jobData={selectedJobData}
+              onSuccess={handleFormSuccess}
+              isEdit={isEditMode}
+              isNewRecord={false}
+              onClone={handleCloneJob}
+            />
+          ) : (
+            <ChecklistTabs
+              key={`new-record-${Date.now()}`}
+              jobData={{} as IJobOrderHd}
+              onSuccess={handleFormSuccess}
+              isEdit={false}
+              isNewRecord={true}
+              onClone={handleCloneJob}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

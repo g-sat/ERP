@@ -1,7 +1,6 @@
 "use client"
 
-import { useMemo } from "react"
-import { useParams } from "next/navigation"
+import { useMemo, useState } from "react"
 import { IJobOrderHd } from "@/interfaces/checklist"
 import { useAuthStore } from "@/stores/auth-store"
 import {
@@ -14,7 +13,15 @@ import { format, isValid } from "date-fns"
 import { OperationsStatus } from "@/lib/operations-utils"
 import { TableName } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import { JobTable } from "@/components/table/table-job"
+
+import { ChecklistTabs } from "./checklist-tabs"
 
 interface ChecklistTableProps {
   data: IJobOrderHd[]
@@ -35,11 +42,11 @@ export function ChecklistTable({
   onCreate,
   onRefresh,
 }: ChecklistTableProps) {
-  const params = useParams()
-  const companyId = params.companyId as string
   const { decimals } = useAuthStore()
   const dateFormat = decimals[0]?.dateFormat || "dd/MM/yyyy"
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
+  const [selectedJob, setSelectedJob] = useState<IJobOrderHd | null>(null)
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false)
 
   // Filter data based on selected status
   const filteredData = useMemo(() => {
@@ -77,16 +84,11 @@ export function ChecklistTable({
         header: "Job No",
         cell: ({ row }) => {
           const jobNo = row.getValue("jobOrderNo") as string
-          const jobOrderId = row.original.jobOrderId
           return (
             <button
               onClick={() => {
-                // Open in new tab
-                const url = `/${companyId}/operations/checklist-v1/${jobOrderId}`
-                console.log("Opening URL:", url)
-                console.log("companyId:", companyId)
-                console.log("jobOrderId:", jobOrderId)
-                window.open(url, "_blank")
+                setSelectedJob(row.original)
+                setIsDetailsOpen(true)
               }}
               className="text-blue-600 hover:text-blue-800 hover:underline"
             >
@@ -314,8 +316,15 @@ export function ChecklistTable({
         minSize: 150,
       },
     ],
-    [dateFormat, datetimeFormat, companyId]
+    [dateFormat, datetimeFormat]
   )
+
+  const statusColors: Record<string, string> = {
+    Pending: "bg-yellow-100 text-yellow-800",
+    Confirmed: "bg-green-100 text-green-800",
+    Completed: "bg-blue-100 text-blue-800",
+    Cancelled: "bg-red-100 text-red-800",
+  }
 
   return (
     <div>
@@ -330,6 +339,67 @@ export function ChecklistTable({
         onRefresh={onRefresh}
         onCreate={onCreate}
       />
+
+      <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
+        <DialogContent
+          className="@container h-[95vh] w-[90vw] !max-w-none overflow-y-auto p-0"
+          onPointerDownOutside={(e) => e.preventDefault()}
+        >
+          <DialogHeader className="px-6 pt-2 pb-0">
+            <div className="flex items-center justify-between">
+              <div className="flex-1">
+                <DialogTitle>
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-3">
+                      <div className="bg-primary/10 flex h-10 w-10 items-center justify-center rounded-full">
+                        <span className="text-lg">📋</span>
+                      </div>
+                      <div>
+                        <h2 className="text-2xl font-bold tracking-tight">
+                          Job Order Details
+                        </h2>
+                        <p className="text-muted-foreground text-sm">
+                          Manage job order services and tasks
+                        </p>
+                      </div>
+
+                      <div className="flex justify-center gap-2">
+                        <Badge
+                          variant="outline"
+                          className="flex h-8 items-center border-2 border-blue-200 bg-gradient-to-r from-blue-50 to-blue-100 px-4 text-sm font-semibold text-blue-800 shadow-sm transition-all duration-300 hover:scale-105 hover:border-blue-300 hover:bg-gradient-to-r hover:from-blue-100 hover:to-blue-200 hover:shadow-md dark:border-blue-700 dark:from-blue-900 dark:to-blue-800 dark:text-blue-200 dark:hover:from-blue-800 dark:hover:to-blue-700"
+                        >
+                          <span className="mr-1 text-blue-600">📋</span>
+                          {selectedJob?.jobOrderNo}
+                        </Badge>
+                        <Badge
+                          className={`flex h-8 items-center border-2 px-4 text-sm font-semibold shadow-sm transition-all duration-300 hover:scale-105 hover:shadow-lg ${statusColors[selectedJob?.statusName as keyof typeof statusColors] || "border-gray-300 bg-gradient-to-r from-gray-100 to-gray-200 text-gray-800 hover:from-gray-200 hover:to-gray-300"}`}
+                        >
+                          <span className="mr-1">⚡</span>
+                          {selectedJob?.statusName}
+                        </Badge>
+                      </div>
+                    </div>
+                  </div>
+                </DialogTitle>
+              </div>
+            </div>
+          </DialogHeader>
+          {selectedJob && (
+            <div className="px-4 pt-0 pb-0">
+              <ChecklistTabs
+                key={`${selectedJob.jobOrderId}-${selectedJob.jobOrderNo}`}
+                jobData={selectedJob}
+                onSuccess={() => {
+                  // Don't close the dialog after successful save
+                  // setIsDetailsOpen(false)
+                }}
+                isEdit={true}
+                isNewRecord={false}
+              />
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
