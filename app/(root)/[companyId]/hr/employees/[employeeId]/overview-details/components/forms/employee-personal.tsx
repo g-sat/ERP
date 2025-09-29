@@ -10,7 +10,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { differenceInYears, format } from "date-fns"
 import { useForm } from "react-hook-form"
 
-import { clientDateFormat, parseDate } from "@/lib/format"
+import { clientDateFormat, parseDate } from "@/lib/date-utils"
 import { useSaveEmployeePersonalDetails } from "@/hooks/use-employee"
 import { Button } from "@/components/ui/button"
 import { Form } from "@/components/ui/form"

@@ -11,7 +11,7 @@ import { format } from "date-fns"
 import { Plus } from "lucide-react"
 
 import { SalaryComponent } from "@/lib/api-routes"
-import { clientDateFormat } from "@/lib/format"
+import { clientDateFormat } from "@/lib/date-utils"
 import { useGet } from "@/hooks/use-common"
 import {
   useGetEmployeeSalaryDetailsById,

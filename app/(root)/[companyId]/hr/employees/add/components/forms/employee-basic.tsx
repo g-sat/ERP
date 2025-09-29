@@ -5,7 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { format } from "date-fns"
 import { useForm } from "react-hook-form"
 
-import { clientDateFormat } from "@/lib/format"
+import { clientDateFormat } from "@/lib/date-utils"
 import { Button } from "@/components/ui/button"
 import { Form } from "@/components/ui/form"
 import ContractTypeAutocomplete from "@/components/autocomplete/autocomplete-contract-type"

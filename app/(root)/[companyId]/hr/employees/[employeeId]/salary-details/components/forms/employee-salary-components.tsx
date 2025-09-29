@@ -10,7 +10,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { NumericFormat } from "react-number-format"
 
-import { parseDate } from "@/lib/format"
+import { parseDate } from "@/lib/date-utils"
 import { useSaveEmployeeSalaryDetails } from "@/hooks/use-employee"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"

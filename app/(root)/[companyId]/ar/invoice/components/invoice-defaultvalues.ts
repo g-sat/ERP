@@ -1,6 +1,6 @@
 import { format } from "date-fns"
 
-import { clientDateFormat } from "@/lib/format"
+import { clientDateFormat } from "@/lib/date-utils"
 
 const defaultInvoiceDetails = {
   invoiceId: "0",

@@ -11,7 +11,7 @@ import { useForm } from "react-hook-form"
 
 import { getData } from "@/lib/api-client"
 import { BasicSetting } from "@/lib/api-routes"
-import { parseDate } from "@/lib/format"
+import { parseDate } from "@/lib/date-utils"
 import { useChartofAccountLookup } from "@/hooks/use-lookup"
 import { Button } from "@/components/ui/button"
 import { Form } from "@/components/ui/form"

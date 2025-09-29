@@ -11,7 +11,7 @@ import { format } from "date-fns"
 import { FileText, X } from "lucide-react"
 import { useForm } from "react-hook-form"
 
-import { clientDateFormat, parseDate } from "@/lib/format"
+import { clientDateFormat, parseDate } from "@/lib/date-utils"
 import { usePersistDocumentDetails } from "@/hooks/use-universal-documents"
 import { Button } from "@/components/ui/button"
 import { Form } from "@/components/ui/form"

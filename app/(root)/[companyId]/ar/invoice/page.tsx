@@ -24,7 +24,7 @@ import { toast } from "sonner"
 
 import { getById } from "@/lib/api-client"
 import { ArInvoice } from "@/lib/api-routes"
-import { clientDateFormat, parseDate } from "@/lib/format"
+import { clientDateFormat, parseDate } from "@/lib/date-utils"
 import { useDelete, useGetWithDates, usePersist } from "@/hooks/use-common"
 import { useGetRequiredFields, useGetVisibleFields } from "@/hooks/use-lookup"
 import { Button } from "@/components/ui/button"
