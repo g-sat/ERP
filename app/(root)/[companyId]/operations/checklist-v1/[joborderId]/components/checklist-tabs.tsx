@@ -267,20 +267,31 @@ export function ChecklistTabs({
       <div className="mb-2 flex items-center justify-between">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1">
           <TabsList className="flex gap-2">
-            <TabsTrigger value="main">Main</TabsTrigger>
+            <TabsTrigger value="main">
+              <div className="flex items-center gap-1">
+                <span className="text-xs">📋</span>
+                <span className="text-xs sm:text-sm">Main</span>
+              </div>
+            </TabsTrigger>
             <TabsTrigger
               value="details"
               disabled={isNewRecord}
               className={isNewRecord ? "cursor-not-allowed opacity-50" : ""}
             >
-              Details
+              <div className="flex items-center gap-1">
+                <span className="text-xs">📊</span>
+                <span className="text-xs sm:text-sm">Details</span>
+              </div>
             </TabsTrigger>
             <TabsTrigger
               value="history"
               disabled={isNewRecord}
               className={isNewRecord ? "cursor-not-allowed opacity-50" : ""}
             >
-              History
+              <div className="flex items-center gap-1">
+                <span className="text-xs">🕒</span>
+                <span className="text-xs sm:text-sm">History</span>
+              </div>
             </TabsTrigger>
           </TabsList>
         </Tabs>

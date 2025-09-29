@@ -31,9 +31,9 @@ import { Separator } from "@/components/ui/separator"
 import { DeleteConfirmation } from "@/components/confirmation/delete-confirmation"
 import { SaveConfirmation } from "@/components/confirmation/save-confirmation"
 
-import CombinedFormsDialog from "../services-combined/combined-forms-dialog"
+import { CombinedFormsDialog } from "../services-combined/combined-forms-dialog"
 import DebitNoteDialog from "../services-combined/debit-note-dialog"
-import PurchaseDialog from "../services-combined/purchase-dialog"
+import { PurchaseDialog } from "../services-combined/purchase-dialog"
 import { CrewMiscellaneousForm } from "../services-forms/crew-miscellaneous-form"
 import { CrewMiscellaneousTable } from "../services-tables/crew-miscellaneous-table"
 

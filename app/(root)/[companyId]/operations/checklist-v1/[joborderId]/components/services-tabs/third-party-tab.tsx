@@ -26,9 +26,9 @@ import {
 import { DeleteConfirmation } from "@/components/confirmation/delete-confirmation"
 import { SaveConfirmation } from "@/components/confirmation/save-confirmation"
 
-import CombinedFormsDialog from "../services-combined/combined-forms-dialog"
+import { CombinedFormsDialog } from "../services-combined/combined-forms-dialog"
 import DebitNoteDialog from "../services-combined/debit-note-dialog"
-import PurchaseDialog from "../services-combined/purchase-dialog"
+import { PurchaseDialog } from "../services-combined/purchase-dialog"
 import { ThirdPartyForm } from "../services-forms/third-party-form"
 import { ThirdPartyTable } from "../services-tables/third-party-table"
 

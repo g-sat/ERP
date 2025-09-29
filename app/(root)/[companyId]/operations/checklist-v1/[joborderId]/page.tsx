@@ -5,7 +5,7 @@ import { IJobOrderHd } from "@/interfaces/checklist"
 
 import { useGetJobOrderByIdNo } from "@/hooks/use-checklist"
 import { Badge } from "@/components/ui/badge"
-import { LoadingSpinner } from "@/components/skeleton/loading-spinner"
+import { JobOrderDetailsSkeleton } from "@/components/skeleton/job-order-details-skeleton"
 
 import { ChecklistTabs } from "./components/checklist-tabs"
 
@@ -39,14 +39,7 @@ export default function JobOrderDetailsPage() {
   }
 
   if (isLoading) {
-    return (
-      <div className="container mx-auto space-y-2 px-4 pt-2 pb-4 sm:space-y-3 sm:px-6 sm:pt-3 sm:pb-6">
-        <div className="flex items-center justify-center p-8">
-          <LoadingSpinner />
-          <span className="ml-2">Loading job order details...</span>
-        </div>
-      </div>
-    )
+    return <JobOrderDetailsSkeleton />
   }
 
   return (

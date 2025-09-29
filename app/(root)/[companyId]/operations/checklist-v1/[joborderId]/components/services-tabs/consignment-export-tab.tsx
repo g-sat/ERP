@@ -31,9 +31,9 @@ import { Separator } from "@/components/ui/separator"
 import { DeleteConfirmation } from "@/components/confirmation/delete-confirmation"
 import { SaveConfirmation } from "@/components/confirmation/save-confirmation"
 
-import CombinedFormsDialog from "../services-combined/combined-forms-dialog"
+import { CombinedFormsDialog } from "../services-combined/combined-forms-dialog"
 import DebitNoteDialog from "../services-combined/debit-note-dialog"
-import PurchaseDialog from "../services-combined/purchase-dialog"
+import { PurchaseDialog } from "../services-combined/purchase-dialog"
 import { ConsignmentExportForm } from "../services-forms/consignment-export-form"
 import { ConsignmentExportTable } from "../services-tables/consignment-export-table"
 

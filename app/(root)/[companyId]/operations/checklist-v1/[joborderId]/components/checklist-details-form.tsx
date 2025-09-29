@@ -11,7 +11,7 @@ import { ModuleId, OperationsTransactionId } from "@/lib/utils"
 import { useGetById } from "@/hooks/use-common"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { PageLoadingSpinner } from "@/components/skeleton/loading-spinner"
+import { ChecklistDetailsSkeleton } from "@/components/skeleton/checklist-details-skeleton"
 
 import { AgencyRemunerationTab } from "./services-tabs/agency-remuneration-tab"
 import { ConsignmentExportTab } from "./services-tabs/consignment-export-tab"
@@ -131,11 +131,7 @@ export function ChecklistDetailsForm({
 
   // Show loading state
   if (isLoading) {
-    return (
-      <div className="@container w-full space-y-2">
-        <PageLoadingSpinner text="Loading task counts..." />
-      </div>
-    )
+    return <ChecklistDetailsSkeleton />
   }
 
   // Show error state

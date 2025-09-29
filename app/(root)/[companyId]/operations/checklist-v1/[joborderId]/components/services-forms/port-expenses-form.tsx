@@ -14,7 +14,6 @@ import { useChartofAccountLookup, useSupplierLookup } from "@/hooks/use-lookup"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Form } from "@/components/ui/form"
-import { FormLoadingSpinner } from "@/components/skeleton/loading-spinner"
 import ChargeAutocomplete from "@/components/autocomplete/autocomplete-charge"
 import ChartOfAccountAutocomplete from "@/components/autocomplete/autocomplete-chartofaccount"
 import StatusTaskAutocomplete from "@/components/autocomplete/autocomplete-status-task"
@@ -28,6 +27,7 @@ import CustomAccordion, {
 import { CustomDateNew } from "@/components/custom/custom-date-new"
 import CustomInput from "@/components/custom/custom-input"
 import CustomTextarea from "@/components/custom/custom-textarea"
+import { FormLoadingSpinner } from "@/components/skeleton/loading-spinner"
 
 interface PortExpensesFormProps {
   jobData: IJobOrderHd
@@ -188,7 +188,6 @@ export function PortExpensesForm({
                 name="deliverDate"
                 label="Deliver Date"
                 isRequired={true}
-                dateFormat={dateFormat}
                 isDisabled={isConfirmed}
               />
               <StatusTaskAutocomplete
