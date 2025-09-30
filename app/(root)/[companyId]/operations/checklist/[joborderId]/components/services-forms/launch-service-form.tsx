@@ -328,7 +328,7 @@ export function LaunchServiceForm({
                 name="glId"
                 label="GL Account"
                 isRequired={true}
-                isDisabled={isConfirmed}
+                isDisabled={true}
                 companyId={jobData.companyId}
               />
               <UomAutocomplete

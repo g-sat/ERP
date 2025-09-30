@@ -197,7 +197,7 @@ export function LandingItemsForm({
                 name="glId"
                 label="GL Account"
                 isRequired={true}
-                isDisabled={isConfirmed}
+                isDisabled={true}
                 companyId={jobData.companyId}
               />
               <CustomInput
@@ -239,14 +239,13 @@ export function LandingItemsForm({
                 isDisabled={isConfirmed}
               />
             </div>
-            <div className="grid grid-cols-2 gap-2">
-              <CustomTextarea
-                form={form}
-                name="remarks"
-                label="Remarks"
-                isDisabled={isConfirmed}
-              />
-            </div>
+
+            <CustomTextarea
+              form={form}
+              name="remarks"
+              label="Remarks"
+              isDisabled={isConfirmed}
+            />
 
             {/* Audit Information Section */}
             {initialData &&

@@ -179,7 +179,7 @@ export function CrewSignOnForm({
                 name="glId"
                 label="GL Account"
                 isRequired={true}
-                isDisabled={isConfirmed}
+                isDisabled={true}
                 companyId={jobData.companyId}
               />
 

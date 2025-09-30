@@ -74,11 +74,14 @@ export function ConsignmentExportForm({
       chargeId: initialData?.chargeId ?? taskDefaults.chargeId ?? 0,
       glId: initialData?.glId ?? taskDefaults.glId ?? 0,
       awbNo: initialData?.awbNo ?? "",
-      carrierTypeId: initialData?.carrierTypeId ?? 0,
+      carrierTypeId:
+        initialData?.carrierTypeId ?? taskDefaults.carrierTypeId ?? 0,
       uomId: initialData?.uomId ?? taskDefaults.uomId ?? 0,
-      modeTypeId: initialData?.modeTypeId ?? 0,
-      consignmentTypeId: initialData?.consignmentTypeId ?? 0,
-      landingTypeId: initialData?.landingTypeId ?? 0,
+      modeTypeId: initialData?.modeTypeId ?? taskDefaults.modeTypeId ?? 0,
+      consignmentTypeId:
+        initialData?.consignmentTypeId ?? taskDefaults.consignmentTypeId ?? 0,
+      landingTypeId:
+        initialData?.landingTypeId ?? taskDefaults.landingTypeId ?? 0,
       noOfPcs: initialData?.noOfPcs ?? 1,
       weight: initialData?.weight ?? 0,
       pickupLocation: initialData?.pickupLocation ?? "",
@@ -123,11 +126,14 @@ export function ConsignmentExportForm({
       chargeId: initialData?.chargeId ?? taskDefaults.chargeId ?? 0,
       glId: initialData?.glId ?? taskDefaults.glId ?? 0,
       awbNo: initialData?.awbNo ?? "",
-      carrierTypeId: initialData?.carrierTypeId ?? 0,
+      carrierTypeId:
+        initialData?.carrierTypeId ?? taskDefaults.carrierTypeId ?? 0,
       uomId: initialData?.uomId ?? taskDefaults.uomId ?? 0,
-      modeTypeId: initialData?.modeTypeId ?? 0,
-      consignmentTypeId: initialData?.consignmentTypeId ?? 0,
-      landingTypeId: initialData?.landingTypeId ?? 0,
+      modeTypeId: initialData?.modeTypeId ?? taskDefaults.modeTypeId ?? 0,
+      consignmentTypeId:
+        initialData?.consignmentTypeId ?? taskDefaults.consignmentTypeId ?? 0,
+      landingTypeId:
+        initialData?.landingTypeId ?? taskDefaults.landingTypeId ?? 0,
       noOfPcs: initialData?.noOfPcs ?? 1,
       weight: initialData?.weight ?? 0,
       pickupLocation: initialData?.pickupLocation ?? "",
@@ -269,7 +275,7 @@ export function ConsignmentExportForm({
                 name="glId"
                 label="GL Account"
                 isRequired={true}
-                isDisabled={isConfirmed}
+                isDisabled={true}
                 companyId={jobData.companyId}
               />
             </div>

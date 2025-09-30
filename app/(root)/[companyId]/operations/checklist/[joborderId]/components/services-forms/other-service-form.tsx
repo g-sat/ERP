@@ -161,7 +161,7 @@ export function OtherServiceForm({
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
           <div className="grid gap-2">
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-3 gap-2">
               <CustomInput
                 form={form}
                 name="serviceProvider"
@@ -184,7 +184,7 @@ export function OtherServiceForm({
                 name="glId"
                 label="GL Account"
                 isRequired={true}
-                isDisabled={isConfirmed}
+                isDisabled={true}
                 companyId={jobData.companyId}
               />
               <UomAutocomplete
@@ -233,14 +233,12 @@ export function OtherServiceForm({
                 />
               )}
             </div>
-            <div className="grid grid-cols-1 gap-2">
-              <CustomTextarea
-                form={form}
-                name="remarks"
-                label="Remarks"
-                isDisabled={isConfirmed}
-              />
-            </div>
+            <CustomTextarea
+              form={form}
+              name="remarks"
+              label="Remarks"
+              isDisabled={isConfirmed}
+            />
 
             {/* Audit Information Section */}
             {initialData &&

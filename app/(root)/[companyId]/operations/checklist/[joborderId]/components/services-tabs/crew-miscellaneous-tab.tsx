@@ -452,7 +452,7 @@ export function CrewMiscellaneousTab({
       </div>
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogContent
-          className="max-h-[80vh] w-[60vw] !max-w-none overflow-y-auto"
+          className="max-h-[80vh] w-[50vw] !max-w-none overflow-y-auto"
           onPointerDownOutside={(e) => {
             e.preventDefault()
           }}

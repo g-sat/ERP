@@ -150,6 +150,23 @@ export function FreshWaterForm({
                 isRequired={true}
                 isDisabled={isConfirmed}
               />
+              <ChargeAutocomplete
+                form={form}
+                name="chargeId"
+                label="Charge"
+                taskId={Task.FreshWater}
+                isRequired={true}
+                isDisabled={isConfirmed}
+                companyId={jobData.companyId}
+              />
+              <ChartOfAccountAutocomplete
+                form={form}
+                name="glId"
+                label="GL Account"
+                isRequired={true}
+                isDisabled={true}
+                companyId={jobData.companyId}
+              />
               <BargeAutocomplete
                 form={form}
                 name="bargeId"
@@ -205,23 +222,6 @@ export function FreshWaterForm({
                 label="Status"
                 isRequired={true}
                 isDisabled={isConfirmed}
-              />
-              <ChartOfAccountAutocomplete
-                form={form}
-                name="glId"
-                label="GL Account"
-                isRequired={true}
-                isDisabled={isConfirmed}
-                companyId={jobData.companyId}
-              />
-              <ChargeAutocomplete
-                form={form}
-                name="chargeId"
-                label="Charge"
-                taskId={Task.FreshWater}
-                isRequired={true}
-                isDisabled={isConfirmed}
-                companyId={jobData.companyId}
               />
             </div>
             <div className="grid grid-cols-1 gap-2">

@@ -21,9 +21,8 @@ import { Skeleton } from "@/components/ui/skeleton"
 import CarrierTypeAutocomplete from "@/components/autocomplete/autocomplete-carriertype"
 import ChargeAutocomplete from "@/components/autocomplete/autocomplete-charge"
 import ChartofAccountAutocomplete from "@/components/autocomplete/autocomplete-chartofaccount"
-import DocumentTypeAutocomplete from "@/components/autocomplete/autocomplete-document-type"
+import ConsignmentTypeAutocomplete from "@/components/autocomplete/autocomplete-consignmenttype"
 import ModeTypeAutocomplete from "@/components/autocomplete/autocomplete-modetype"
-import StatusAutocomplete from "@/components/autocomplete/autocomplete-status"
 import StatusTaskAutocomplete from "@/components/autocomplete/autocomplete-status-task"
 import UomAutocomplete from "@/components/autocomplete/autocomplete-uom"
 import VisaTypeAutocomplete from "@/components/autocomplete/autocomplete-visatype"
@@ -429,9 +428,9 @@ export function TaskServiceForm() {
                 isRequired={false}
               />
 
-              <DocumentTypeAutocomplete
+              <ConsignmentTypeAutocomplete
                 form={form}
-                name={`services.${serviceKey}.documentTypeId`}
+                name={`services.${serviceKey}.consignmentTypeId`}
                 label="Document Type"
                 isRequired={false}
               />

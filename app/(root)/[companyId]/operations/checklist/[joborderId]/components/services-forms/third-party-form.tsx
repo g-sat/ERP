@@ -136,7 +136,7 @@ export function ThirdPartyForm({
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
           <div className="grid gap-2">
-            <div className="grid grid-cols-4 gap-2">
+            <div className="grid grid-cols-3 gap-2">
               <SupplierAutocomplete
                 form={form}
                 name="supplierId"
@@ -157,7 +157,7 @@ export function ThirdPartyForm({
                 name="glId"
                 label="GL Account"
                 isRequired={true}
-                isDisabled={isConfirmed}
+                isDisabled={true}
                 companyId={jobData.companyId}
               />
               <CustomInput

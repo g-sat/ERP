@@ -438,7 +438,7 @@ export function MedicalAssistanceTab({
       </div>
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogContent
-          className="max-h-[90vh] w-[80vw] !max-w-none overflow-y-auto"
+          className="max-h-[90vh] w-[60vw] !max-w-none overflow-y-auto"
           onPointerDownOutside={(e) => {
             e.preventDefault()
           }}
