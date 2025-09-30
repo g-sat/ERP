@@ -274,45 +274,6 @@ export function ConsignmentExportHistoryDialog({
       minSize: 130,
     },
     {
-      accessorKey: "totAmt",
-      header: "Total Amount",
-      cell: ({ row }) => (
-        <div className="text-right font-medium">
-          {typeof row.getValue("totAmt") === "number"
-            ? (row.getValue("totAmt") as number).toFixed(2)
-            : "0.00"}
-        </div>
-      ),
-      size: 130,
-      minSize: 100,
-    },
-    {
-      accessorKey: "gstAmt",
-      header: "GST Amount",
-      cell: ({ row }) => (
-        <div className="text-right">
-          {typeof row.getValue("gstAmt") === "number"
-            ? (row.getValue("gstAmt") as number).toFixed(2)
-            : "0.00"}
-        </div>
-      ),
-      size: 120,
-      minSize: 100,
-    },
-    {
-      accessorKey: "totAmtAftGst",
-      header: "Total After GST",
-      cell: ({ row }) => (
-        <div className="text-right font-medium">
-          {typeof row.getValue("totAmtAftGst") === "number"
-            ? (row.getValue("totAmtAftGst") as number).toFixed(2)
-            : "0.00"}
-        </div>
-      ),
-      size: 140,
-      minSize: 120,
-    },
-    {
       accessorKey: "statusName",
       header: "Status",
       cell: ({ row }) => (
@@ -328,15 +289,6 @@ export function ConsignmentExportHistoryDialog({
       header: "Debit Note",
       size: 120,
       minSize: 100,
-    },
-    {
-      accessorKey: "glName",
-      header: "GL Account",
-      cell: ({ row }) => (
-        <div className="max-w-xs truncate">{row.getValue("glName") || "-"}</div>
-      ),
-      size: 150,
-      minSize: 120,
     },
     {
       accessorKey: "remarks",

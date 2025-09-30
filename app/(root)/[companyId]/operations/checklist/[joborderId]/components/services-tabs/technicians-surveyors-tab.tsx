@@ -509,7 +509,7 @@ export function TechniciansSurveyorsTab({
         title="Confirm Save"
         itemName={
           saveConfirmation.operationType === "update"
-            ? `Technicians Surveyors ${selectedItem?.name || ""}`
+            ? `Technicians Surveyors ${selectedItem?.chargeName || ""}`
             : "New Technicians Surveyors"
         }
         operationType={saveConfirmation.operationType}

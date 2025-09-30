@@ -561,7 +561,7 @@ export function ConsignmentExportTab({
         title="Confirm Save"
         itemName={
           saveConfirmation.operationType === "update"
-            ? `Consignment Export ${selectedItem?.awbNo || ""}`
+            ? `Consignment Export ${selectedItem?.chargeName || ""}`
             : "New Consignment Export"
         }
         operationType={saveConfirmation.operationType}

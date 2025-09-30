@@ -552,7 +552,7 @@ export function CrewMiscellaneousTab({
         title="Confirm Save"
         itemName={
           saveConfirmation.operationType === "update"
-            ? `Crew Miscellaneous ${selectedItem?.description || ""}`
+            ? `Crew Miscellaneous ${selectedItem?.chargeName || ""}`
             : "New Crew Miscellaneous"
         }
         operationType={saveConfirmation.operationType}

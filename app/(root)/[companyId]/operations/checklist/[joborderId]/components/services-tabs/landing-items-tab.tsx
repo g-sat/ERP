@@ -501,7 +501,7 @@ export function LandingItemsTab({
         title="Confirm Save"
         itemName={
           saveConfirmation.operationType === "update"
-            ? `Landing Items ${selectedItem?.name || ""}`
+            ? `Landing Items ${selectedItem?.chargeName || ""}`
             : "New Landing Items"
         }
         operationType={saveConfirmation.operationType}

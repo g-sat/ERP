@@ -552,7 +552,7 @@ export function AgencyRemunerationTab({
         title="Confirm Save"
         itemName={
           saveConfirmation.operationType === "update"
-            ? `Agency Remuneration ${selectedItem?.date || ""}`
+            ? `Agency Remuneration ${selectedItem?.chargeName || ""}`
             : "New Agency Remuneration"
         }
         operationType={saveConfirmation.operationType}

@@ -126,19 +126,6 @@ export function PortExpensesHistoryDialog({
       minSize: 100,
     },
     {
-      accessorKey: "totAmt",
-      header: "Total Amount",
-      cell: ({ row }) => (
-        <div className="text-right font-medium">
-          {typeof row.getValue("totAmt") === "number"
-            ? (row.getValue("totAmt") as number).toFixed(2)
-            : "0.00"}
-        </div>
-      ),
-      size: 130,
-      minSize: 100,
-    },
-    {
       accessorKey: "deliverDate",
       header: "Deliver Date",
       cell: ({ row }) => {
@@ -167,15 +154,6 @@ export function PortExpensesHistoryDialog({
       minSize: 80,
     },
 
-    {
-      accessorKey: "glName",
-      header: "GL Account",
-      cell: ({ row }) => (
-        <div className="max-w-xs truncate">{row.getValue("glName") || "-"}</div>
-      ),
-      size: 150,
-      minSize: 120,
-    },
     {
       accessorKey: "remarks",
       header: "Remarks",

@@ -492,7 +492,7 @@ export function ThirdPartyTab({
         title="Confirm Save"
         itemName={
           saveConfirmation.operationType === "update"
-            ? `Third Party ${selectedItem?.supplierName || ""}`
+            ? `Third Party ${selectedItem?.chargeName || ""}`
             : "New Third Party"
         }
         operationType={saveConfirmation.operationType}

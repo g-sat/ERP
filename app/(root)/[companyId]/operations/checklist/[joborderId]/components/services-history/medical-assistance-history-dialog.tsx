@@ -171,15 +171,6 @@ export function MedicalAssistanceHistoryDialog({
       minSize: 100,
     },
     {
-      accessorKey: "glName",
-      header: "GL Account",
-      cell: ({ row }) => (
-        <div className="max-w-xs truncate">{row.getValue("glName") || "-"}</div>
-      ),
-      size: 150,
-      minSize: 120,
-    },
-    {
       accessorKey: "remarks",
       header: "Remarks",
       cell: ({ row }) => (
