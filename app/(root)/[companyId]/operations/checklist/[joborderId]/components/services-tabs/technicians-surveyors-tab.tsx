@@ -247,21 +247,32 @@ export function TechniciansSurveyorsTab({
         }
         const submitData = { ...processedData, ...jobDataProps }
 
+        let response
         if (modalMode === "edit" && selectedItem) {
-          await updateMutation.mutateAsync({
+          response = await updateMutation.mutateAsync({
             ...submitData,
             technicianSurveyorId: selectedItem.technicianSurveyorId,
           })
         } else {
-          await saveMutation.mutateAsync(submitData)
+          response = await saveMutation.mutateAsync(submitData)
         }
 
-        // Only close modal and reset state on successful submission
-        setIsModalOpen(false)
-        setSelectedItem(undefined)
-        setModalMode("create")
-        refetch()
-        onTaskAdded?.()
+        // Check if API response indicates success (result=1)
+        if (response && response.result === 1) {
+          // Only close modal and reset state on successful submission
+          setIsModalOpen(false)
+          setSelectedItem(undefined)
+          setModalMode("create")
+          refetch()
+          onTaskAdded?.()
+        } else {
+          // If result !== 1, don't close the modal - let user see the error
+          console.error(
+            "API returned error result:",
+            response?.result,
+            response?.message
+          )
+        }
       } catch (error) {
         console.error("Error submitting form:", error)
         // Don't close the modal on error - let user fix the issue and retry

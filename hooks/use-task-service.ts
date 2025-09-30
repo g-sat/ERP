@@ -41,9 +41,9 @@ export const useTaskServiceDefaults = (taskId: number) => {
       statusTypeId: taskSettings.statusTypeId || 802, // Default status
       carrierTypeId: taskSettings.carrierTypeId || 0,
       modeTypeId: taskSettings.modeTypeId || 0,
-      documentTypeId: taskSettings.documentTypeId || 0,
+      consignmentTypeId: taskSettings.consignmentTypeId || 0,
       visaTypeId: taskSettings.visaTypeId || 0,
-      locationTypeId: taskSettings.locationTypeId || 0,
+      landingTypeId: taskSettings.landingTypeId || 0,
     }
   }, [data?.data, taskId])
 

@@ -56,6 +56,7 @@ export function CrewSignOffForm({
 
   console.log("initialData :", initialData)
   const form = useForm<CrewSignOffSchemaType>({
+    mode: "onChange",
     resolver: zodResolver(CrewSignOffSchema),
     defaultValues: {
       crewSignOffId: initialData?.crewSignOffId ?? 0,
@@ -64,7 +65,7 @@ export function CrewSignOffForm({
       taskId: Task.CrewSignOff,
       chargeId: initialData?.chargeId ?? taskDefaults.chargeId ?? 0,
       glId: initialData?.glId ?? taskDefaults.glId ?? 0,
-      visaTypeId: initialData?.visaTypeId ?? 0,
+      visaTypeId: initialData?.visaTypeId ?? taskDefaults.visaTypeId ?? 0,
       crewName: initialData?.crewName ?? "",
       nationality: initialData?.nationality ?? "",
       rankId: initialData?.rankId ?? 0,
@@ -83,32 +84,29 @@ export function CrewSignOffForm({
   })
 
   useEffect(() => {
-    // Only reset form when data is loaded to prevent race conditions
-    if (!isChartOfAccountLoading) {
-      form.reset({
-        crewSignOffId: initialData?.crewSignOffId ?? 0,
-        jobOrderId: jobData.jobOrderId,
-        jobOrderNo: jobData.jobOrderNo,
-        taskId: Task.CrewSignOff,
-        chargeId: initialData?.chargeId ?? taskDefaults.chargeId ?? 0,
-        glId: initialData?.glId ?? taskDefaults.glId ?? 0,
-        visaTypeId: initialData?.visaTypeId ?? 0,
-        crewName: initialData?.crewName ?? "",
-        nationality: initialData?.nationality ?? "",
-        rankId: initialData?.rankId ?? 0,
-        flightDetails: initialData?.flightDetails ?? "",
-        hotelName: initialData?.hotelName ?? "",
-        departureDetails: initialData?.departureDetails ?? "",
-        transportName: initialData?.transportName ?? "",
-        clearing: initialData?.clearing ?? "",
-        statusId: initialData?.statusId ?? taskDefaults.statusId ?? 804,
-        remarks: initialData?.remarks ?? "",
-        overStayRemark: initialData?.overStayRemark ?? "",
-        modificationRemark: initialData?.modificationRemark ?? "",
-        cidClearance: initialData?.cidClearance ?? "",
-        editVersion: initialData?.editVersion ?? 0,
-      })
-    }
+    form.reset({
+      crewSignOffId: initialData?.crewSignOffId ?? 0,
+      jobOrderId: jobData.jobOrderId,
+      jobOrderNo: jobData.jobOrderNo,
+      taskId: Task.CrewSignOff,
+      chargeId: initialData?.chargeId ?? taskDefaults.chargeId ?? 0,
+      glId: initialData?.glId ?? taskDefaults.glId ?? 0,
+      visaTypeId: initialData?.visaTypeId ?? taskDefaults.visaTypeId ?? 0,
+      crewName: initialData?.crewName ?? "",
+      nationality: initialData?.nationality ?? "",
+      rankId: initialData?.rankId ?? 0,
+      flightDetails: initialData?.flightDetails ?? "",
+      hotelName: initialData?.hotelName ?? "",
+      departureDetails: initialData?.departureDetails ?? "",
+      transportName: initialData?.transportName ?? "",
+      clearing: initialData?.clearing ?? "",
+      statusId: initialData?.statusId ?? taskDefaults.statusId ?? 804,
+      remarks: initialData?.remarks ?? "",
+      overStayRemark: initialData?.overStayRemark ?? "",
+      modificationRemark: initialData?.modificationRemark ?? "",
+      cidClearance: initialData?.cidClearance ?? "",
+      editVersion: initialData?.editVersion ?? 0,
+    })
   }, [
     initialData,
     taskDefaults,
@@ -118,14 +116,6 @@ export function CrewSignOffForm({
     isChartOfAccountLoading,
   ])
 
-  // Show loading state while data is being fetched
-  if (isChartOfAccountLoading) {
-    return (
-      <div className="max-w flex flex-col gap-2">
-        <FormLoadingSpinner text="Loading form data..." />
-      </div>
-    )
-  }
   const onSubmit = (data: CrewSignOffSchemaType) => {
     submitAction(data)
   }
@@ -179,7 +169,7 @@ export function CrewSignOffForm({
                 form={form}
                 name="chargeId"
                 label="Charge Name"
-                taskId={Task.CrewSignOn}
+                taskId={Task.CrewSignOff}
                 isRequired={true}
                 isDisabled={isConfirmed}
                 companyId={jobData.companyId}
@@ -375,8 +365,8 @@ export function CrewSignOffForm({
                 {isSubmitting
                   ? "Saving..."
                   : initialData
-                    ? "Update Crew Sign On"
-                    : "Add Crew Sign On"}
+                    ? "Update Crew Sign Off"
+                    : "Add Crew Sign Off"}
               </Button>
             )}
           </div>

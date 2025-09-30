@@ -6,9 +6,9 @@ export interface ITaskService {
   uomId?: number | null
   carrierTypeId?: number | null
   modeTypeId?: number | null
-  documentTypeId?: number | null
+  consignmentTypeId?: number | null
+  landingTypeId?: number | null
   visaTypeId?: number | null
-  locationTypeId?: number | null
   statusTypeId?: number | null
   createById: number
   createDate: string

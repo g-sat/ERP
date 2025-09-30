@@ -22,11 +22,11 @@ import CarrierTypeAutocomplete from "@/components/autocomplete/autocomplete-carr
 import ChargeAutocomplete from "@/components/autocomplete/autocomplete-charge"
 import ChartofAccountAutocomplete from "@/components/autocomplete/autocomplete-chartofaccount"
 import ConsignmentTypeAutocomplete from "@/components/autocomplete/autocomplete-consignmenttype"
+import LandingTypeAutocomplete from "@/components/autocomplete/autocomplete-landingtype"
 import ModeTypeAutocomplete from "@/components/autocomplete/autocomplete-modetype"
 import StatusTaskAutocomplete from "@/components/autocomplete/autocomplete-status-task"
 import UomAutocomplete from "@/components/autocomplete/autocomplete-uom"
 import VisaTypeAutocomplete from "@/components/autocomplete/autocomplete-visatype"
-import WorkLocationAutocomplete from "@/components/autocomplete/autocomplete-worklocation"
 import { LockSkeleton } from "@/components/skeleton/lock-skeleton"
 
 type TaskServiceResponse = IApiSuccessResponse<ITaskService[]>
@@ -83,9 +83,9 @@ export function TaskServiceForm() {
             uomId: 0,
             carrierTypeId: 0,
             modeTypeId: 0,
-            documentTypeId: 0,
+            consignmentTypeId: 0,
             visaTypeId: 0,
-            locationTypeId: 0,
+            landingTypeId: 0,
             statusTypeId: 0,
           }
           return acc
@@ -99,9 +99,9 @@ export function TaskServiceForm() {
             uomId: number
             carrierTypeId: number
             modeTypeId: number
-            documentTypeId: number
+            consignmentTypeId: number
             visaTypeId: number
-            locationTypeId: number
+            landingTypeId: number
             statusTypeId: number
           }
         >
@@ -140,9 +140,9 @@ export function TaskServiceForm() {
             uomId: number
             carrierTypeId: number
             modeTypeId: number
-            documentTypeId: number
+            consignmentTypeId: number
             visaTypeId: number
-            locationTypeId: number
+            landingTypeId: number
             statusTypeId: number
           }
         > = {}
@@ -161,9 +161,9 @@ export function TaskServiceForm() {
             uomId: service.uomId || 0,
             carrierTypeId: service.carrierTypeId || 0,
             modeTypeId: service.modeTypeId || 0,
-            documentTypeId: service.documentTypeId || 0,
+            consignmentTypeId: service.consignmentTypeId || 0,
             visaTypeId: service.visaTypeId || 0,
-            locationTypeId: service.locationTypeId || 0,
+            landingTypeId: service.landingTypeId || 0,
             statusTypeId: service.statusTypeId || 0,
           }
         })
@@ -214,9 +214,9 @@ export function TaskServiceForm() {
       uomId: serviceData.uomId,
       carrierTypeId: serviceData.carrierTypeId,
       modeTypeId: serviceData.modeTypeId,
-      documentTypeId: serviceData.documentTypeId,
+      consignmentTypeId: serviceData.consignmentTypeId,
       visaTypeId: serviceData.visaTypeId,
-      locationTypeId: serviceData.locationTypeId,
+      landingTypeId: serviceData.landingTypeId,
       statusTypeId: serviceData.statusTypeId,
     }
 
@@ -316,9 +316,9 @@ export function TaskServiceForm() {
       uomId: number
       carrierTypeId: number
       modeTypeId: number
-      documentTypeId: number
+      consignmentTypeId: number
       visaTypeId: number
-      locationTypeId: number
+      landingTypeId: number
       statusTypeId: number
     }
   }) => {
@@ -411,7 +411,7 @@ export function TaskServiceForm() {
             />
           )}
 
-          {/* Carrier Type, Mode Type, Document Type, Location Type - Show for taskId 8,9 */}
+          {/* Carrier Type, Mode Type, Consignment Type, Landing Type - Show for taskId 8,9 */}
           {[8, 9].includes(serviceData.taskId) && (
             <>
               <CarrierTypeAutocomplete
@@ -431,14 +431,14 @@ export function TaskServiceForm() {
               <ConsignmentTypeAutocomplete
                 form={form}
                 name={`services.${serviceKey}.consignmentTypeId`}
-                label="Document Type"
+                label="Consignment Type"
                 isRequired={false}
               />
 
-              <WorkLocationAutocomplete
+              <LandingTypeAutocomplete
                 form={form}
-                name={`services.${serviceKey}.locationTypeId`}
-                label="Location Type"
+                name={`services.${serviceKey}.landingTypeId`}
+                label="Landing Type"
                 isRequired={false}
               />
             </>
@@ -478,9 +478,9 @@ export function TaskServiceForm() {
                 uomId: 0,
                 carrierTypeId: 0,
                 modeTypeId: 0,
-                documentTypeId: 0,
+                consignmentTypeId: 0,
+                landingTypeId: 0,
                 visaTypeId: 0,
-                locationTypeId: 0,
                 statusTypeId: 0,
               }
               return (

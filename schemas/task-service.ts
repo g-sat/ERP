@@ -7,9 +7,9 @@ const serviceFieldSchema = z.object({
   uomId: z.number().min(1, "UOM is required"),
   carrierTypeId: z.number().optional().default(0),
   modeTypeId: z.number().optional().default(0),
-  documentTypeId: z.number().optional().default(0),
+  consignmentTypeId: z.number().optional().default(0),
   visaTypeId: z.number().optional().default(0),
-  locationTypeId: z.number().optional().default(0),
+  landingTypeId: z.number().optional().default(0),
   statusTypeId: z.number().optional().default(0),
 })
 
