@@ -184,12 +184,6 @@ export function FreshWaterTable({
         minSize: 150,
       },
       {
-        accessorKey: "remarks",
-        header: "Remarks",
-        size: 200,
-        minSize: 150,
-      },
-      {
         accessorKey: "statusName",
         header: "Status",
         cell: ({ row }) => (

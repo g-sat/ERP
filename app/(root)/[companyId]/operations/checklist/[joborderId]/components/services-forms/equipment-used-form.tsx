@@ -25,9 +25,9 @@ import CustomAccordion, {
   CustomAccordionItem,
   CustomAccordionTrigger,
 } from "@/components/custom/custom-accordion"
+import CustomCheckbox from "@/components/custom/custom-checkbox"
 import { CustomDateNew } from "@/components/custom/custom-date-new"
 import CustomInput from "@/components/custom/custom-input"
-import CustomSwitch from "@/components/custom/custom-switch"
 import CustomTextarea from "@/components/custom/custom-textarea"
 import { FormLoadingSpinner } from "@/components/skeleton/loading-spinner"
 
@@ -88,16 +88,19 @@ export function EquipmentUsedForm({
       craneOffloading: initialData?.craneOffloading ?? 0,
       forkliftOffloading: initialData?.forkliftOffloading ?? 0,
       stevedoreOffloading: initialData?.stevedoreOffloading ?? 0,
-      launchServiceId: initialData?.launchServiceId ?? 0,
       remarks: initialData?.remarks ?? "",
       statusId: initialData?.statusId ?? taskDefaults.statusId ?? 802,
-      isEquimentFooter: initialData?.isEquimentFooter ?? false,
-      equimentFooter: initialData?.equimentFooter ?? "",
+      isNotes: initialData?.isNotes ?? false,
+      notes:
+        initialData?.notes ?? "Minimum 3 Hours, including mob -demob charges",
       debitNoteId: initialData?.debitNoteId ?? 0,
       debitNoteNo: initialData?.debitNoteNo ?? "",
       editVersion: initialData?.editVersion ?? 0,
     },
   })
+
+  // Watch the isNotes field to control notes field disabled state
+  const isNotes = form.watch("isNotes")
 
   useEffect(() => {
     form.reset({
@@ -127,11 +130,11 @@ export function EquipmentUsedForm({
       craneOffloading: initialData?.craneOffloading ?? 0,
       forkliftOffloading: initialData?.forkliftOffloading ?? 0,
       stevedoreOffloading: initialData?.stevedoreOffloading ?? 0,
-      launchServiceId: initialData?.launchServiceId ?? 0,
       remarks: initialData?.remarks ?? "",
       statusId: initialData?.statusId ?? taskDefaults.statusId ?? 802,
-      isEquimentFooter: initialData?.isEquimentFooter ?? false,
-      equimentFooter: initialData?.equimentFooter ?? "",
+      isNotes: initialData?.isNotes ?? false,
+      notes:
+        initialData?.notes ?? "Minimum 3 Hours, including mob -demob charges",
       debitNoteId: initialData?.debitNoteId ?? 0,
       debitNoteNo: initialData?.debitNoteNo ?? "",
       editVersion: initialData?.editVersion ?? 0,
@@ -144,15 +147,6 @@ export function EquipmentUsedForm({
     jobData.jobOrderNo,
     isChartOfAccountLoading,
   ])
-
-  // Show loading state while data is being fetched
-  if (isChartOfAccountLoading) {
-    return (
-      <div className="max-w flex flex-col gap-2">
-        <FormLoadingSpinner text="Loading form data..." />
-      </div>
-    )
-  }
 
   const onSubmit = (data: EquipmentUsedSchemaType) => {
     console.log("Submitting form data:", data)
@@ -171,10 +165,19 @@ export function EquipmentUsedForm({
     }
   }
 
+  // Show loading state while data is being fetched
+  if (isChartOfAccountLoading) {
+    return (
+      <div className="max-w flex flex-col gap-2">
+        <FormLoadingSpinner text="Loading form data..." />
+      </div>
+    )
+  }
+
   return (
     <div className="max-w flex flex-col gap-2">
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pt-6">
+        <form onSubmit={form.handleSubmit(onSubmit)}>
           <div className="grid gap-2">
             <div className="grid grid-cols-4 gap-2">
               <CustomDateNew
@@ -220,13 +223,6 @@ export function EquipmentUsedForm({
                 label="Others"
                 isDisabled={isConfirmed}
               />
-              <CustomInput
-                form={form}
-                name="launchServiceId"
-                label="Launch Service"
-                type="number"
-                isDisabled={isConfirmed}
-              />
 
               <StatusTaskAutocomplete
                 form={form}
@@ -238,9 +234,9 @@ export function EquipmentUsedForm({
             </div>
 
             {/* Updated Charges Section - Matches your image */}
-            <div className="grid grid-cols-4 gap-4 rounded-lg border p-4">
+            <div className="grid grid-cols-4 gap-4">
               {/*   TallySheet No Section */}
-              <div className="space-y-4">
+              <div className="space-y-4 rounded-lg border p-4">
                 <h3 className="text-center font-bold">TallySheet No</h3>
 
                 <CustomInput
@@ -257,7 +253,7 @@ export function EquipmentUsedForm({
                 />
               </div>
               {/* Crane Charge Section */}
-              <div className="space-y-4">
+              <div className="space-y-4 rounded-lg border p-4">
                 <h3 className="text-center font-bold">Crane Hire Charges</h3>
                 <ChargeAutocomplete
                   form={form}
@@ -284,7 +280,7 @@ export function EquipmentUsedForm({
               </div>
 
               {/* Forklift Charge Section */}
-              <div className="space-y-4">
+              <div className="space-y-4 rounded-lg border p-4">
                 <h3 className="text-center font-bold">ForkLift Charge</h3>
                 <ChargeAutocomplete
                   form={form}
@@ -311,7 +307,7 @@ export function EquipmentUsedForm({
               </div>
 
               {/* Stevedore Charge Section */}
-              <div className="space-y-4">
+              <div className="space-y-4 rounded-lg border p-4">
                 <h3 className="text-center font-bold">Stevedor Charge</h3>
                 <ChargeAutocomplete
                   form={form}
@@ -338,28 +334,32 @@ export function EquipmentUsedForm({
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-2">
-              <CustomTextarea
-                form={form}
-                name="remarks"
-                label="Remarks"
-                isDisabled={isConfirmed}
-              />
-              <div>
-                <CustomSwitch
+            <div className="grid grid-cols-4 gap-2">
+              <div className="col-span-2">
+                <CustomTextarea
                   form={form}
-                  name="isEquimentFooter"
-                  label="Equipment Footer"
+                  name="remarks"
+                  label="Remarks"
                   isDisabled={isConfirmed}
                 />
-                {form.watch("isEquimentFooter") && (
-                  <CustomTextarea
+              </div>
+              <div className="col-span-2 flex w-full gap-2">
+                <div className="w-1/3">
+                  <CustomCheckbox
                     form={form}
-                    name="equimentFooter"
-                    label="Equipment Footer"
+                    name="isNotes"
+                    label="Is Notes"
                     isDisabled={isConfirmed}
                   />
-                )}
+                </div>
+                <div className="w-2/3">
+                  <CustomTextarea
+                    form={form}
+                    name="notes"
+                    label="Notes"
+                    isDisabled={isConfirmed || !isNotes}
+                  />
+                </div>
               </div>
             </div>
 
@@ -466,7 +466,15 @@ export function EquipmentUsedForm({
               {isConfirmed ? "Close" : "Cancel"}
             </Button>
             {!isConfirmed && (
-              <Button type="submit" disabled={isSubmitting}>
+              <Button
+                type="submit"
+                disabled={isSubmitting}
+                className={
+                  initialData
+                    ? "bg-orange-600 hover:bg-orange-700"
+                    : "bg-green-600 hover:bg-green-700"
+                }
+              >
                 {isSubmitting
                   ? "Saving..."
                   : initialData

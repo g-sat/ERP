@@ -254,6 +254,7 @@ export function FreshWaterTab({
           await saveMutation.mutateAsync(submitData)
         }
 
+        // Only close modal and reset state on successful submission
         setIsModalOpen(false)
         setSelectedItem(undefined)
         setModalMode("create")
@@ -261,6 +262,7 @@ export function FreshWaterTab({
         onTaskAdded?.()
       } catch (error) {
         console.error("Error submitting form:", error)
+        // Don't close the modal on error - let user fix the issue and retry
       }
     },
     [

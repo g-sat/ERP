@@ -102,13 +102,13 @@ export function EquipmentUsedTable({
         minSize: 100,
       },
       {
-        accessorKey: "bargeName",
-        header: "Barge Name",
+        accessorKey: "referenceNo",
+        header: "Reference No",
         cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("bargeName") || "-"}</div>
+          <div className="text-wrap">{row.getValue("referenceNo") || "-"}</div>
         ),
-        size: 200,
-        minSize: 150,
+        size: 150,
+        minSize: 120,
         enableColumnFilter: true,
       },
       {
@@ -122,34 +122,75 @@ export function EquipmentUsedTable({
         enableColumnFilter: true,
       },
       {
-        accessorKey: "equipmentName",
-        header: "Equipment Name",
+        accessorKey: "mafi",
+        header: "MAFI",
+        cell: ({ row }) => (
+          <div className="text-wrap">{row.getValue("mafi") || "-"}</div>
+        ),
+        size: 150,
+        minSize: 120,
+      },
+      {
+        accessorKey: "others",
+        header: "Others",
+        cell: ({ row }) => (
+          <div className="text-wrap">{row.getValue("others") || "-"}</div>
+        ),
+        size: 150,
+        minSize: 120,
+      },
+      {
+        accessorKey: "craneChargeName",
+        header: "Crane Charge",
         cell: ({ row }) => (
           <div className="text-wrap">
-            {row.getValue("equipmentName") || "-"}
+            {row.getValue("craneChargeName") || "-"}
           </div>
         ),
-        size: 200,
-        minSize: 150,
-        enableColumnFilter: true,
+        size: 150,
+        minSize: 120,
       },
       {
-        accessorKey: "quantity",
-        header: "Quantity",
+        accessorKey: "forkliftChargeName",
+        header: "Forklift Charge",
         cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("quantity") || "-"}</div>
+          <div className="text-wrap">
+            {row.getValue("forkliftChargeName") || "-"}
+          </div>
         ),
-        size: 100,
-        minSize: 80,
+        size: 150,
+        minSize: 120,
       },
       {
-        accessorKey: "uomName",
-        header: "UOM",
+        accessorKey: "stevedoreChargeName",
+        header: "Stevedore Charge",
         cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("uomName") || "-"}</div>
+          <div className="text-wrap">
+            {row.getValue("stevedoreChargeName") || "-"}
+          </div>
         ),
-        size: 100,
-        minSize: 80,
+        size: 150,
+        minSize: 120,
+      },
+      {
+        accessorKey: "loadingRefNo",
+        header: "Loading Ref No",
+        cell: ({ row }) => (
+          <div className="text-wrap">{row.getValue("loadingRefNo") || "-"}</div>
+        ),
+        size: 150,
+        minSize: 120,
+      },
+      {
+        accessorKey: "offloadingRefNo",
+        header: "Offloading Ref No",
+        cell: ({ row }) => (
+          <div className="text-wrap">
+            {row.getValue("offloadingRefNo") || "-"}
+          </div>
+        ),
+        size: 150,
+        minSize: 120,
       },
       {
         accessorKey: "remarks",

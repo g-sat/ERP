@@ -87,10 +87,123 @@ export function ConsignmentImportTable({
         minSize: 130,
       },
       {
-        accessorKey: "date",
-        header: "Date",
+        accessorKey: "awbNo",
+        header: "AWB No",
+        cell: ({ row }) => (
+          <div className="text-wrap">{row.getValue("awbNo") || "-"}</div>
+        ),
+        size: 150,
+        minSize: 120,
+        enableColumnFilter: true,
+      },
+      {
+        accessorKey: "chargeName",
+        header: "Charge Name",
+        cell: ({ row }) => (
+          <div className="text-wrap">{row.getValue("chargeName") || "-"}</div>
+        ),
+        size: 200,
+        minSize: 150,
+        enableColumnFilter: true,
+      },
+      {
+        accessorKey: "carrierTypeName",
+        header: "Carrier Type",
+        cell: ({ row }) => (
+          <div className="text-wrap">
+            {row.getValue("carrierTypeName") || "-"}
+          </div>
+        ),
+        size: 150,
+        minSize: 120,
+        enableColumnFilter: true,
+      },
+      {
+        accessorKey: "consignmentTypeName",
+        header: "Consignment Type",
+        cell: ({ row }) => (
+          <div className="text-wrap">
+            {row.getValue("consignmentTypeName") || "-"}
+          </div>
+        ),
+        size: 150,
+        minSize: 120,
+        enableColumnFilter: true,
+      },
+      {
+        accessorKey: "weight",
+        header: "Weight",
+        cell: ({ row }) => (
+          <div className="text-wrap">{row.getValue("weight") || "-"}</div>
+        ),
+        size: 100,
+        minSize: 80,
+      },
+      {
+        accessorKey: "uomName",
+        header: "UOM",
+        cell: ({ row }) => (
+          <div className="text-wrap">{row.getValue("uomName") || "-"}</div>
+        ),
+        size: 100,
+        minSize: 80,
+      },
+      {
+        accessorKey: "pickupLocation",
+        header: "Pickup Location",
+        cell: ({ row }) => (
+          <div className="text-wrap">
+            {row.getValue("pickupLocation") || "-"}
+          </div>
+        ),
+        size: 150,
+        minSize: 120,
+      },
+      {
+        accessorKey: "deliveryLocation",
+        header: "Delivery Location",
+        cell: ({ row }) => (
+          <div className="text-wrap">
+            {row.getValue("deliveryLocation") || "-"}
+          </div>
+        ),
+        size: 150,
+        minSize: 120,
+      },
+      {
+        accessorKey: "clearedBy",
+        header: "Cleared By",
+        cell: ({ row }) => (
+          <div className="text-wrap">{row.getValue("clearedBy") || "-"}</div>
+        ),
+        size: 150,
+        minSize: 120,
+      },
+      {
+        accessorKey: "billEntryNo",
+        header: "Bill Entry No",
+        cell: ({ row }) => (
+          <div className="text-wrap">{row.getValue("billEntryNo") || "-"}</div>
+        ),
+        size: 150,
+        minSize: 120,
+      },
+      {
+        accessorKey: "declarationNo",
+        header: "Declaration No",
+        cell: ({ row }) => (
+          <div className="text-wrap">
+            {row.getValue("declarationNo") || "-"}
+          </div>
+        ),
+        size: 150,
+        minSize: 120,
+      },
+      {
+        accessorKey: "receiveDate",
+        header: "Receive Date",
         cell: ({ row }) => {
-          const raw = row.getValue("date")
+          const raw = row.getValue("receiveDate")
           let date: Date | null = null
           if (typeof raw === "string") {
             date = new Date(raw)
@@ -107,81 +220,24 @@ export function ConsignmentImportTable({
         minSize: 100,
       },
       {
-        accessorKey: "bargeName",
-        header: "Barge Name",
-        cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("bargeName") || "-"}</div>
-        ),
-        size: 200,
-        minSize: 150,
-        enableColumnFilter: true,
-      },
-      {
-        accessorKey: "chargeName",
-        header: "Charge Name",
-        cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("chargeName") || "-"}</div>
-        ),
-        size: 200,
-        minSize: 150,
-        enableColumnFilter: true,
-      },
-      {
-        accessorKey: "quantity",
-        header: "Quantity",
-        cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("quantity") || "-"}</div>
-        ),
-        size: 100,
-        minSize: 80,
-      },
-      {
-        accessorKey: "uomName",
-        header: "UOM",
-        cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("uomName") || "-"}</div>
-        ),
-        size: 100,
-        minSize: 80,
-      },
-      {
-        accessorKey: "remarks",
-        header: "Remarks",
-        size: 200,
-        minSize: 150,
-      },
-      {
-        accessorKey: "statusName",
-        header: "Status",
-        cell: ({ row }) => (
-          <div className="text-center">
-            <Badge variant="default">{row.getValue("statusName") || "-"}</Badge>
-          </div>
-        ),
-        size: 120,
-        minSize: 100,
-      },
-      {
-        accessorKey: "editVersion",
-        header: "Version",
+        accessorKey: "deliverDate",
+        header: "Deliver Date",
         cell: ({ row }) => {
-          const item = row.original
+          const raw = row.getValue("deliverDate")
+          let date: Date | null = null
+          if (typeof raw === "string") {
+            date = new Date(raw)
+          } else if (raw instanceof Date) {
+            date = raw
+          }
           return (
-            <div className="text-center">
-              <Badge
-                variant="destructive"
-                className="cursor-pointer transition-colors hover:bg-red-700"
-                onClick={() => handleOpenHistory(item)}
-                title="Click to view history"
-              >
-                {row.getValue("editVersion") || "0"}
-              </Badge>
+            <div className="text-wrap">
+              {date && isValid(date) ? format(date, dateFormat) : "-"}
             </div>
           )
         },
-        size: 70,
-        minSize: 60,
-        maxSize: 80,
+        size: 120,
+        minSize: 100,
       },
       {
         accessorKey: "createBy",

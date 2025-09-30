@@ -56,6 +56,7 @@ export function CrewSignOnForm({
 
   console.log("initialData :", initialData)
   const form = useForm<CrewSignOnSchemaType>({
+    mode: "onChange",
     resolver: zodResolver(CrewSignOnSchema),
     defaultValues: {
       crewSignOnId: initialData?.crewSignOnId ?? 0,
@@ -115,6 +116,10 @@ export function CrewSignOnForm({
     isChartOfAccountLoading,
   ])
 
+  const onSubmit = (data: CrewSignOnSchemaType) => {
+    submitAction(data)
+  }
+
   // Show loading state while data is being fetched
   if (isChartOfAccountLoading) {
     return (
@@ -124,14 +129,10 @@ export function CrewSignOnForm({
     )
   }
 
-  const onSubmit = (data: CrewSignOnSchemaType) => {
-    submitAction(data)
-  }
-
   return (
     <div className="max-w flex flex-col gap-2">
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pt-6">
+        <form onSubmit={form.handleSubmit(onSubmit)}>
           <div className="grid gap-4">
             {/* Main Information Card */}
 
@@ -150,6 +151,13 @@ export function CrewSignOnForm({
                 isRequired
                 isDisabled={isConfirmed}
               />
+              <RankAutocomplete
+                form={form}
+                name="rankId"
+                label="Rank"
+                isDisabled={isConfirmed}
+                isRequired
+              />
               <VisaTypeAutocomplete
                 form={form}
                 name="visaTypeId"
@@ -157,12 +165,24 @@ export function CrewSignOnForm({
                 isRequired
                 isDisabled={isConfirmed}
               />
-              <RankAutocomplete
+              <ChargeAutocomplete
                 form={form}
-                name="rankId"
-                label="Rank"
+                name="chargeId"
+                label="Charge Name"
+                taskId={Task.CrewSignOn}
+                isRequired={true}
                 isDisabled={isConfirmed}
+                companyId={jobData.companyId}
               />
+              <ChartOfAccountAutocomplete
+                form={form}
+                name="glId"
+                label="GL Account"
+                isRequired={true}
+                isDisabled={isConfirmed}
+                companyId={jobData.companyId}
+              />
+
               <StatusTaskAutocomplete
                 form={form}
                 name="statusId"
@@ -182,42 +202,24 @@ export function CrewSignOnForm({
                 label="Hotel Name"
                 isDisabled={isConfirmed}
               />
-              <CustomInput
+              <CustomTextarea
                 form={form}
                 name="flightDetails"
                 label="Flight Details"
                 isDisabled={isConfirmed}
               />
-              <CustomInput
+              <CustomTextarea
                 form={form}
                 name="departureDetails"
                 label="Departure Details"
                 isDisabled={isConfirmed}
               />
 
-              <CustomInput
+              <CustomTextarea
                 form={form}
                 name="clearing"
                 label="Clearing Details"
                 isDisabled={isConfirmed}
-              />
-
-              <ChargeAutocomplete
-                form={form}
-                name="chargeId"
-                label="Charge Name"
-                taskId={Task.CrewSignOn}
-                isRequired={true}
-                isDisabled={isConfirmed}
-                companyId={jobData.companyId}
-              />
-              <ChartOfAccountAutocomplete
-                form={form}
-                name="glId"
-                label="GL Account"
-                isRequired={true}
-                isDisabled={isConfirmed}
-                companyId={jobData.companyId}
               />
 
               <CustomTextarea
@@ -239,15 +241,12 @@ export function CrewSignOnForm({
                 isDisabled={isConfirmed}
               />
             </div>
-
-            <div className="grid grid-cols-1 gap-2">
-              <CustomTextarea
-                form={form}
-                name="remarks"
-                label="Remarks"
-                isDisabled={isConfirmed}
-              />
-            </div>
+            <CustomTextarea
+              form={form}
+              name="remarks"
+              label="Remarks"
+              isDisabled={isConfirmed}
+            />
 
             {/* Audit Information Card */}
             {/* Audit Information Section */}
@@ -354,7 +353,15 @@ export function CrewSignOnForm({
               {isConfirmed ? "Close" : "Cancel"}
             </Button>
             {!isConfirmed && (
-              <Button type="submit" disabled={isSubmitting}>
+              <Button
+                type="submit"
+                disabled={isSubmitting}
+                className={
+                  initialData
+                    ? "bg-orange-600 hover:bg-orange-700"
+                    : "bg-green-600 hover:bg-green-700"
+                }
+              >
                 {isSubmitting
                   ? "Saving..."
                   : initialData

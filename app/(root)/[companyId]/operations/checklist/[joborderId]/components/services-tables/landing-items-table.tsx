@@ -102,20 +102,20 @@ export function LandingItemsTable({
         minSize: 100,
       },
       {
-        accessorKey: "bargeName",
-        header: "Barge Name",
+        accessorKey: "chargeName",
+        header: "Charge Name",
         cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("bargeName") || "-"}</div>
+          <div className="text-wrap">{row.getValue("chargeName") || "-"}</div>
         ),
         size: 200,
         minSize: 150,
         enableColumnFilter: true,
       },
       {
-        accessorKey: "chargeName",
-        header: "Charge Name",
+        accessorKey: "name",
+        header: "Name",
         cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("chargeName") || "-"}</div>
+          <div className="text-wrap">{row.getValue("name") || "-"}</div>
         ),
         size: 200,
         minSize: 150,
@@ -131,6 +131,37 @@ export function LandingItemsTable({
         minSize: 80,
       },
       {
+        accessorKey: "weight",
+        header: "Weight",
+        cell: ({ row }) => (
+          <div className="text-wrap">{row.getValue("weight") || "-"}</div>
+        ),
+        size: 100,
+        minSize: 80,
+      },
+      {
+        accessorKey: "landingTypeName",
+        header: "Landing Type",
+        cell: ({ row }) => (
+          <div className="text-wrap">
+            {row.getValue("landingTypeName") || "-"}
+          </div>
+        ),
+        size: 150,
+        minSize: 120,
+        enableColumnFilter: true,
+      },
+      {
+        accessorKey: "locationName",
+        header: "Location",
+        cell: ({ row }) => (
+          <div className="text-wrap">{row.getValue("locationName") || "-"}</div>
+        ),
+        size: 200,
+        minSize: 150,
+        enableColumnFilter: true,
+      },
+      {
         accessorKey: "uomName",
         header: "UOM",
         cell: ({ row }) => (
@@ -138,6 +169,26 @@ export function LandingItemsTable({
         ),
         size: 100,
         minSize: 80,
+      },
+      {
+        accessorKey: "returnDate",
+        header: "Return Date",
+        cell: ({ row }) => {
+          const raw = row.getValue("returnDate")
+          let date: Date | null = null
+          if (typeof raw === "string") {
+            date = new Date(raw)
+          } else if (raw instanceof Date) {
+            date = raw
+          }
+          return (
+            <div className="text-wrap">
+              {date && isValid(date) ? format(date, dateFormat) : "-"}
+            </div>
+          )
+        },
+        size: 120,
+        minSize: 100,
       },
       {
         accessorKey: "remarks",

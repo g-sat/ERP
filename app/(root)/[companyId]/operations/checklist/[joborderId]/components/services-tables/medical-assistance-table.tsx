@@ -87,30 +87,10 @@ export function MedicalAssistanceTable({
         minSize: 130,
       },
       {
-        accessorKey: "date",
-        header: "Date",
-        cell: ({ row }) => {
-          const raw = row.getValue("date")
-          let date: Date | null = null
-          if (typeof raw === "string") {
-            date = new Date(raw)
-          } else if (raw instanceof Date) {
-            date = raw
-          }
-          return (
-            <div className="text-wrap">
-              {date && isValid(date) ? format(date, dateFormat) : "-"}
-            </div>
-          )
-        },
-        size: 120,
-        minSize: 100,
-      },
-      {
-        accessorKey: "bargeName",
-        header: "Barge Name",
+        accessorKey: "crewName",
+        header: "Crew Name",
         cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("bargeName") || "-"}</div>
+          <div className="text-wrap">{row.getValue("crewName") || "-"}</div>
         ),
         size: 200,
         minSize: 150,
@@ -127,42 +107,83 @@ export function MedicalAssistanceTable({
         enableColumnFilter: true,
       },
       {
-        accessorKey: "doctorName",
-        header: "Doctor Name",
+        accessorKey: "nationality",
+        header: "Nationality",
         cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("doctorName") || "-"}</div>
+          <div className="text-wrap">{row.getValue("nationality") || "-"}</div>
         ),
-        size: 200,
-        minSize: 150,
+        size: 150,
+        minSize: 120,
         enableColumnFilter: true,
       },
       {
-        accessorKey: "patientName",
-        header: "Patient Name",
+        accessorKey: "rankName",
+        header: "Rank",
         cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("patientName") || "-"}</div>
+          <div className="text-wrap">{row.getValue("rankName") || "-"}</div>
         ),
-        size: 200,
-        minSize: 150,
+        size: 150,
+        minSize: 120,
         enableColumnFilter: true,
       },
       {
-        accessorKey: "quantity",
-        header: "Quantity",
+        accessorKey: "visaTypeName",
+        header: "Visa Type",
         cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("quantity") || "-"}</div>
+          <div className="text-wrap">{row.getValue("visaTypeName") || "-"}</div>
         ),
-        size: 100,
-        minSize: 80,
+        size: 150,
+        minSize: 120,
+        enableColumnFilter: true,
       },
       {
-        accessorKey: "uomName",
-        header: "UOM",
+        accessorKey: "reason",
+        header: "Reason",
         cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("uomName") || "-"}</div>
+          <div className="text-wrap">{row.getValue("reason") || "-"}</div>
         ),
-        size: 100,
-        minSize: 80,
+        size: 200,
+        minSize: 150,
+      },
+      {
+        accessorKey: "admittedDate",
+        header: "Admitted Date",
+        cell: ({ row }) => {
+          const raw = row.getValue("admittedDate")
+          let date: Date | null = null
+          if (typeof raw === "string") {
+            date = new Date(raw)
+          } else if (raw instanceof Date) {
+            date = raw
+          }
+          return (
+            <div className="text-wrap">
+              {date && isValid(date) ? format(date, dateFormat) : "-"}
+            </div>
+          )
+        },
+        size: 120,
+        minSize: 100,
+      },
+      {
+        accessorKey: "dischargedDate",
+        header: "Discharged Date",
+        cell: ({ row }) => {
+          const raw = row.getValue("dischargedDate")
+          let date: Date | null = null
+          if (typeof raw === "string") {
+            date = new Date(raw)
+          } else if (raw instanceof Date) {
+            date = raw
+          }
+          return (
+            <div className="text-wrap">
+              {date && isValid(date) ? format(date, dateFormat) : "-"}
+            </div>
+          )
+        },
+        size: 120,
+        minSize: 100,
       },
       {
         accessorKey: "remarks",

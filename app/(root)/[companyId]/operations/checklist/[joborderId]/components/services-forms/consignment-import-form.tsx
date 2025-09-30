@@ -186,7 +186,7 @@ export function ConsignmentImportForm({
   return (
     <div className="max-w flex flex-col gap-2">
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pt-6">
+        <form onSubmit={form.handleSubmit(onSubmit)}>
           <div className="grid gap-2">
             <div className="grid grid-cols-5 gap-2">
               <CustomInput
@@ -453,7 +453,15 @@ export function ConsignmentImportForm({
               {isConfirmed ? "Close" : "Cancel"}
             </Button>
             {!isConfirmed && (
-              <Button type="submit" disabled={isSubmitting}>
+              <Button
+                type="submit"
+                disabled={isSubmitting}
+                className={
+                  initialData
+                    ? "bg-orange-600 hover:bg-orange-700"
+                    : "bg-green-600 hover:bg-green-700"
+                }
+              >
                 {isSubmitting
                   ? "Saving..."
                   : initialData

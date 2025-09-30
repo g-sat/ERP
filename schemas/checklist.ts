@@ -294,26 +294,64 @@ export type CrewSignOffSchemaType = z.infer<typeof CrewSignOffSchema>
 
 export const CrewSignOnSchema = z.object({
   crewSignOnId: z.number().default(0),
-  jobOrderId: z.number().min(1, "Job Order ID is required"),
-  jobOrderNo: z.string().min(1, "Job Order No is required"),
+  jobOrderId: z.number().min(1, "Job Order is required"),
+  jobOrderNo: z.string().min(1, "Job Order is required"),
   taskId: z.number().optional().default(Task.CrewSignOn),
   chargeId: z.number().min(1, "Charge is required"),
   glId: z.number().min(1, "GL Account is required"),
   visaTypeId: z.number().min(1, "Visa Type is required"),
-  crewName: z.string().min(1, "Crew Name is required"),
-  nationality: z.string().min(1, "Nationality is required"),
-  rankId: z.number().optional().default(0),
-  flightDetails: z.string().optional().default(""),
-  hotelName: z.string().optional().default(""),
-  departureDetails: z.string().optional().default(""),
-  transportName: z.string().optional().default(""),
-  clearing: z.string().optional().default(""),
+  crewName: z
+    .string()
+    .min(1, "Crew Name is required")
+    .max(150, "Crew Name must be less than 150 characters"),
+  nationality: z
+    .string()
+    .min(1, "Nationality is required")
+    .max(100, "Nationality must be less than 100 characters"),
+  rankId: z.number().min(1, "Rank is required"),
+  flightDetails: z
+    .string()
+    .max(255, "Flight Details must be less than 255 characters")
+    .optional()
+    .default(""),
+  hotelName: z
+    .string()
+    .max(100, "Hotel Name must be less than 100 characters")
+    .optional()
+    .default(""),
+  departureDetails: z
+    .string()
+    .max(255, "Departure Details must be less than 255 characters")
+    .optional()
+    .default(""),
+  transportName: z
+    .string()
+    .max(100, "Transport Name must be less than 100 characters")
+    .optional()
+    .default(""),
+  clearing: z
+    .string()
+    .max(100, "Clearing must be less than 100 characters")
+    .optional()
+    .default(""),
   statusId: z.number().min(1, "Status is required"),
   debitNoteId: z.number().optional().default(0),
   debitNoteNo: z.string().optional().default(""),
-  overStayRemark: z.string().optional().default(""),
-  modificationRemark: z.string().optional().default(""),
-  cidClearance: z.string().optional().default(""),
+  overStayRemark: z
+    .string()
+    .max(255, "Over Stay Remark must be less than 255 characters")
+    .optional()
+    .default(""),
+  modificationRemark: z
+    .string()
+    .max(255, "Modification Remark must be less than 255 characters")
+    .optional()
+    .default(""),
+  cidClearance: z
+    .string()
+    .max(255, "CID Clearance must be less than 255 characters")
+    .optional()
+    .default(""),
   remarks: z
     .string()
     .max(500, "Remarks must be less than 500 characters")
@@ -516,15 +554,14 @@ export const EquipmentUsedSchema = z.object({
   craneOffloading: z.number().optional().default(0),
   forkliftOffloading: z.number().optional().default(0),
   stevedoreOffloading: z.number().optional().default(0),
-  launchServiceId: z.number().optional().default(0),
   remarks: z
     .string()
     .max(500, "Remarks must be less than 500 characters")
     .optional()
     .default(""),
   statusId: z.number().min(1, "Status is required"),
-  isEquimentFooter: z.boolean().default(false),
-  equimentFooter: z.string().optional().default(""),
+  isNotes: z.boolean().default(false),
+  notes: z.string().optional().default(""),
   debitNoteId: z.number().optional().default(0),
   debitNoteNo: z.string().optional().default(""),
   editVersion: z.number().default(0),

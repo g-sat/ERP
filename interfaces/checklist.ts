@@ -340,12 +340,11 @@ export interface IEquipmentUsed {
   craneOffloading?: number
   forkliftOffloading?: number
   stevedoreOffloading?: number
-  launchServiceId?: number
   remarks?: string
   statusId: number
   statusName?: string
-  isEquimentFooter?: boolean
-  equimentFooter?: string
+  isNotes?: boolean
+  notes?: string
   debitNoteId?: number
   debitNoteNo?: string
   totAmt: number

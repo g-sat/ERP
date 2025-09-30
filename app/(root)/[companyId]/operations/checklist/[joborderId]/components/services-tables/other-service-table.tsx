@@ -102,6 +102,18 @@ export function OtherServiceTable({
         minSize: 100,
       },
       {
+        accessorKey: "serviceProvider",
+        header: "Service Provider",
+        cell: ({ row }) => (
+          <div className="text-wrap">
+            {row.getValue("serviceProvider") || "-"}
+          </div>
+        ),
+        size: 200,
+        minSize: 150,
+        enableColumnFilter: true,
+      },
+      {
         accessorKey: "chargeName",
         header: "Charge Name",
         cell: ({ row }) => (

@@ -142,7 +142,7 @@ export function CrewSignOffForm({
   return (
     <div className="max-w flex flex-col gap-2">
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pt-6">
+        <form onSubmit={form.handleSubmit(onSubmit)}>
           <div className="grid gap-4">
             {/* Main Information Card */}
 
@@ -161,6 +161,13 @@ export function CrewSignOffForm({
                 isRequired
                 isDisabled={isConfirmed}
               />
+              <RankAutocomplete
+                form={form}
+                name="rankId"
+                label="Rank"
+                isDisabled={isConfirmed}
+                isRequired
+              />
               <VisaTypeAutocomplete
                 form={form}
                 name="visaTypeId"
@@ -168,12 +175,24 @@ export function CrewSignOffForm({
                 isRequired
                 isDisabled={isConfirmed}
               />
-              <RankAutocomplete
+              <ChargeAutocomplete
                 form={form}
-                name="rankId"
-                label="Rank"
+                name="chargeId"
+                label="Charge Name"
+                taskId={Task.CrewSignOn}
+                isRequired={true}
                 isDisabled={isConfirmed}
+                companyId={jobData.companyId}
               />
+              <ChartOfAccountAutocomplete
+                form={form}
+                name="glId"
+                label="GL Account"
+                isRequired={true}
+                isDisabled={isConfirmed}
+                companyId={jobData.companyId}
+              />
+
               <StatusTaskAutocomplete
                 form={form}
                 name="statusId"
@@ -193,42 +212,24 @@ export function CrewSignOffForm({
                 label="Hotel Name"
                 isDisabled={isConfirmed}
               />
-              <CustomInput
+              <CustomTextarea
                 form={form}
                 name="flightDetails"
                 label="Flight Details"
                 isDisabled={isConfirmed}
               />
-              <CustomInput
+              <CustomTextarea
                 form={form}
                 name="departureDetails"
                 label="Departure Details"
                 isDisabled={isConfirmed}
               />
 
-              <CustomInput
+              <CustomTextarea
                 form={form}
                 name="clearing"
                 label="Clearing Details"
                 isDisabled={isConfirmed}
-              />
-
-              <ChargeAutocomplete
-                form={form}
-                name="chargeId"
-                label="Charge Name"
-                taskId={Task.CrewSignOff}
-                isRequired={true}
-                isDisabled={isConfirmed}
-                companyId={jobData.companyId}
-              />
-              <ChartOfAccountAutocomplete
-                form={form}
-                name="glId"
-                label="GL Account"
-                isRequired={true}
-                isDisabled={isConfirmed}
-                companyId={jobData.companyId}
               />
 
               <CustomTextarea
@@ -250,15 +251,12 @@ export function CrewSignOffForm({
                 isDisabled={isConfirmed}
               />
             </div>
-
-            <div className="grid grid-cols-1 gap-2">
-              <CustomTextarea
-                form={form}
-                name="remarks"
-                label="Remarks"
-                isDisabled={isConfirmed}
-              />
-            </div>
+            <CustomTextarea
+              form={form}
+              name="remarks"
+              label="Remarks"
+              isDisabled={isConfirmed}
+            />
 
             {/* Audit Information Card */}
             {/* Audit Information Section */}
@@ -360,105 +358,6 @@ export function CrewSignOffForm({
               )}
           </div>
 
-          {/* Audit Information Section */}
-          {initialData &&
-            (initialData.createBy ||
-              initialData.createDate ||
-              initialData.editBy ||
-              initialData.editDate) && (
-              <div className="space-y-3 pt-4">
-                <div className="border-t pt-4">
-                  <CustomAccordion
-                    type="single"
-                    collapsible
-                    className="bg-muted/30 rounded-lg border-0"
-                  >
-                    <CustomAccordionItem
-                      value="audit-info"
-                      className="border-none"
-                    >
-                      <CustomAccordionTrigger className="hover:bg-muted/50 rounded-lg px-4 py-3">
-                        <div className="flex items-center gap-3">
-                          <span className="text-sm font-medium">
-                            Audit Trail
-                          </span>
-                          <div className="flex items-center gap-2">
-                            {initialData.createDate && (
-                              <Badge
-                                variant="secondary"
-                                className="px-2 py-1 text-xs"
-                              >
-                                Created
-                              </Badge>
-                            )}
-                            {initialData.editDate && (
-                              <Badge
-                                variant="secondary"
-                                className="px-2 py-1 text-xs"
-                              >
-                                Modified
-                              </Badge>
-                            )}
-                            {initialData.editVersion &&
-                              initialData.editVersion > 0 && (
-                                <Badge
-                                  variant="destructive"
-                                  className="px-2 py-1 text-xs"
-                                >
-                                  Edit Version No. {initialData.editVersion}
-                                </Badge>
-                              )}
-                          </div>
-                        </div>
-                      </CustomAccordionTrigger>
-                      <CustomAccordionContent className="px-4 pb-4">
-                        <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-                          {initialData.createDate && (
-                            <div className="bg-background rounded-md border p-2">
-                              <div className="space-y-1">
-                                <p className="text-muted-foreground text-xs">
-                                  Created By
-                                </p>
-                                <p className="text-sm font-semibold">
-                                  {initialData.createBy}
-                                </p>
-                                <p className="text-muted-foreground text-xs">
-                                  {format(
-                                    new Date(initialData.createDate),
-                                    datetimeFormat
-                                  )}
-                                </p>
-                              </div>
-                            </div>
-                          )}
-                          {initialData.editBy && (
-                            <div className="bg-background rounded-md border p-2">
-                              <div className="space-y-1">
-                                <p className="text-muted-foreground text-xs">
-                                  Modified By
-                                </p>
-                                <p className="text-sm font-semibold">
-                                  {initialData.editBy}
-                                </p>
-                                <p className="text-muted-foreground text-xs">
-                                  {initialData.editDate
-                                    ? format(
-                                        new Date(initialData.editDate),
-                                        datetimeFormat
-                                      )
-                                    : "-"}
-                                </p>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      </CustomAccordionContent>
-                    </CustomAccordionItem>
-                  </CustomAccordion>
-                </div>
-              </div>
-            )}
-
           <div className="flex justify-end gap-2">
             <Button variant="outline" type="button" onClick={onCancel}>
               {isConfirmed ? "Close" : "Cancel"}
@@ -476,8 +375,8 @@ export function CrewSignOffForm({
                 {isSubmitting
                   ? "Saving..."
                   : initialData
-                    ? "Update Crew Sign Off"
-                    : "Add Crew Sign Off"}
+                    ? "Update Crew Sign On"
+                    : "Add Crew Sign On"}
               </Button>
             )}
           </div>

@@ -82,33 +82,13 @@ export function CrewSignOnTable({
         minSize: 130,
       },
       {
-        accessorKey: "date",
-        header: "Date",
-        cell: ({ row }) => {
-          const raw = row.getValue("date")
-          let date: Date | null = null
-          if (typeof raw === "string") {
-            date = new Date(raw)
-          } else if (raw instanceof Date) {
-            date = raw
-          }
-          return (
-            <div className="text-wrap">
-              {date && isValid(date) ? format(date, dateFormat) : "-"}
-            </div>
-          )
-        },
-        size: 120,
-        minSize: 100,
-      },
-      {
-        accessorKey: "bargeName",
-        header: "Barge Name",
+        accessorKey: "visaTypeName",
+        header: "Visa Type",
         cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("bargeName") || "-"}</div>
+          <div className="text-wrap">{row.getValue("visaTypeName") || "-"}</div>
         ),
-        size: 200,
-        minSize: 150,
+        size: 150,
+        minSize: 120,
         enableColumnFilter: true,
       },
       {
@@ -132,22 +112,92 @@ export function CrewSignOnTable({
         enableColumnFilter: true,
       },
       {
-        accessorKey: "quantity",
-        header: "Quantity",
+        accessorKey: "nationality",
+        header: "Nationality",
         cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("quantity") || "-"}</div>
+          <div className="text-wrap">{row.getValue("nationality") || "-"}</div>
         ),
-        size: 100,
-        minSize: 80,
+        size: 200,
+        minSize: 150,
+        enableColumnFilter: true,
       },
       {
-        accessorKey: "uomName",
-        header: "UOM",
+        accessorKey: "rankName",
+        header: "Rank",
         cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("uomName") || "-"}</div>
+          <div className="text-wrap">{row.getValue("rankName") || "-"}</div>
         ),
-        size: 100,
-        minSize: 80,
+        size: 200,
+        minSize: 150,
+        enableColumnFilter: true,
+      },
+      {
+        accessorKey: "flightDetails",
+        header: "Flight Details",
+        cell: ({ row }) => (
+          <div className="text-wrap">
+            {row.getValue("flightDetails") || "-"}
+          </div>
+        ),
+      },
+      {
+        accessorKey: "hotelName",
+        header: "Hotel Name",
+        cell: ({ row }) => (
+          <div className="text-wrap">{row.getValue("hotelName") || "-"}</div>
+        ),
+      },
+      {
+        accessorKey: "departureDetails",
+        header: "Departure Details",
+        cell: ({ row }) => (
+          <div className="text-wrap">
+            {row.getValue("departureDetails") || "-"}
+          </div>
+        ),
+      },
+      {
+        accessorKey: "transportName",
+        header: "Transport Name",
+        cell: ({ row }) => (
+          <div className="text-wrap">
+            {row.getValue("transportName") || "-"}
+          </div>
+        ),
+      },
+      {
+        accessorKey: "clearing",
+        header: "Clearing",
+        cell: ({ row }) => (
+          <div className="text-wrap">{row.getValue("clearing") || "-"}</div>
+        ),
+      },
+      {
+        accessorKey: "overStayRemark",
+        header: "Over Stay Remark",
+        cell: ({ row }) => (
+          <div className="text-wrap">
+            {row.getValue("overStayRemark") || "-"}
+          </div>
+        ),
+      },
+      {
+        accessorKey: "modificationRemark",
+        header: "Modification Remark",
+        cell: ({ row }) => (
+          <div className="text-wrap">
+            {row.getValue("modificationRemark") || "-"}
+          </div>
+        ),
+      },
+      {
+        accessorKey: "cidClearance",
+        header: "CID Clearance",
+        cell: ({ row }) => (
+          <div className="text-wrap">{row.getValue("cidClearance") || "-"}</div>
+        ),
+        size: 200,
+        minSize: 150,
       },
       {
         accessorKey: "remarks",

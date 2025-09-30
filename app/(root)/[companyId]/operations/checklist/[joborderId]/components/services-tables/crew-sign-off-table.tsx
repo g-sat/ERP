@@ -82,36 +82,6 @@ export function CrewSignOffTable({
         minSize: 130,
       },
       {
-        accessorKey: "date",
-        header: "Date",
-        cell: ({ row }) => {
-          const raw = row.getValue("date")
-          let date: Date | null = null
-          if (typeof raw === "string") {
-            date = new Date(raw)
-          } else if (raw instanceof Date) {
-            date = raw
-          }
-          return (
-            <div className="text-wrap">
-              {date && isValid(date) ? format(date, dateFormat) : "-"}
-            </div>
-          )
-        },
-        size: 120,
-        minSize: 100,
-      },
-      {
-        accessorKey: "bargeName",
-        header: "Barge Name",
-        cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("bargeName") || "-"}</div>
-        ),
-        size: 200,
-        minSize: 150,
-        enableColumnFilter: true,
-      },
-      {
         accessorKey: "chargeName",
         header: "Charge Name",
         cell: ({ row }) => (
@@ -132,22 +102,86 @@ export function CrewSignOffTable({
         enableColumnFilter: true,
       },
       {
-        accessorKey: "quantity",
-        header: "Quantity",
+        accessorKey: "flightDetails",
+        header: "Flight Details",
         cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("quantity") || "-"}</div>
+          <div className="text-wrap">
+            {row.getValue("flightDetails") || "-"}
+          </div>
         ),
-        size: 100,
-        minSize: 80,
+        size: 200,
+        minSize: 150,
       },
       {
-        accessorKey: "uomName",
-        header: "UOM",
+        accessorKey: "hotelName",
+        header: "Hotel Name",
         cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("uomName") || "-"}</div>
+          <div className="text-wrap">{row.getValue("hotelName") || "-"}</div>
         ),
-        size: 100,
-        minSize: 80,
+        size: 200,
+        minSize: 150,
+      },
+      {
+        accessorKey: "departureDetails",
+        header: "Departure Details",
+        cell: ({ row }) => (
+          <div className="text-wrap">
+            {row.getValue("departureDetails") || "-"}
+          </div>
+        ),
+        size: 200,
+        minSize: 150,
+      },
+      {
+        accessorKey: "transportName",
+        header: "Transport Name",
+        cell: ({ row }) => (
+          <div className="text-wrap">
+            {row.getValue("transportName") || "-"}
+          </div>
+        ),
+        size: 200,
+        minSize: 150,
+      },
+      {
+        accessorKey: "clearing",
+        header: "Clearing",
+        cell: ({ row }) => (
+          <div className="text-wrap">{row.getValue("clearing") || "-"}</div>
+        ),
+        size: 150,
+        minSize: 120,
+      },
+      {
+        accessorKey: "overStayRemark",
+        header: "Over Stay Remark",
+        cell: ({ row }) => (
+          <div className="text-wrap">
+            {row.getValue("overStayRemark") || "-"}
+          </div>
+        ),
+        size: 200,
+        minSize: 150,
+      },
+      {
+        accessorKey: "modificationRemark",
+        header: "Modification Remark",
+        cell: ({ row }) => (
+          <div className="text-wrap">
+            {row.getValue("modificationRemark") || "-"}
+          </div>
+        ),
+        size: 200,
+        minSize: 150,
+      },
+      {
+        accessorKey: "cidClearance",
+        header: "CID Clearance",
+        cell: ({ row }) => (
+          <div className="text-wrap">{row.getValue("cidClearance") || "-"}</div>
+        ),
+        size: 150,
+        minSize: 120,
       },
       {
         accessorKey: "remarks",

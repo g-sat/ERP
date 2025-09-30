@@ -87,30 +87,10 @@ export function TechnicianSurveyorTable({
         minSize: 130,
       },
       {
-        accessorKey: "date",
-        header: "Date",
-        cell: ({ row }) => {
-          const raw = row.getValue("date")
-          let date: Date | null = null
-          if (typeof raw === "string") {
-            date = new Date(raw)
-          } else if (raw instanceof Date) {
-            date = raw
-          }
-          return (
-            <div className="text-wrap">
-              {date && isValid(date) ? format(date, dateFormat) : "-"}
-            </div>
-          )
-        },
-        size: 120,
-        minSize: 100,
-      },
-      {
-        accessorKey: "bargeName",
-        header: "Barge Name",
+        accessorKey: "name",
+        header: "Name",
         cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("bargeName") || "-"}</div>
+          <div className="text-wrap">{row.getValue("name") || "-"}</div>
         ),
         size: 200,
         minSize: 150,
@@ -121,28 +101,6 @@ export function TechnicianSurveyorTable({
         header: "Charge Name",
         cell: ({ row }) => (
           <div className="text-wrap">{row.getValue("chargeName") || "-"}</div>
-        ),
-        size: 200,
-        minSize: 150,
-        enableColumnFilter: true,
-      },
-      {
-        accessorKey: "technicianName",
-        header: "Technician Name",
-        cell: ({ row }) => (
-          <div className="text-wrap">
-            {row.getValue("technicianName") || "-"}
-          </div>
-        ),
-        size: 200,
-        minSize: 150,
-        enableColumnFilter: true,
-      },
-      {
-        accessorKey: "surveyorName",
-        header: "Surveyor Name",
-        cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("surveyorName") || "-"}</div>
         ),
         size: 200,
         minSize: 150,
@@ -165,6 +123,87 @@ export function TechnicianSurveyorTable({
         ),
         size: 100,
         minSize: 80,
+      },
+      {
+        accessorKey: "natureOfAttendance",
+        header: "Nature of Attendance",
+        cell: ({ row }) => (
+          <div className="text-wrap">
+            {row.getValue("natureOfAttendance") || "-"}
+          </div>
+        ),
+        size: 200,
+        minSize: 150,
+      },
+      {
+        accessorKey: "companyInfo",
+        header: "Company Info",
+        cell: ({ row }) => (
+          <div className="text-wrap">{row.getValue("companyInfo") || "-"}</div>
+        ),
+        size: 200,
+        minSize: 150,
+      },
+      {
+        accessorKey: "passTypeName",
+        header: "Pass Type",
+        cell: ({ row }) => (
+          <div className="text-wrap">{row.getValue("passTypeName") || "-"}</div>
+        ),
+        size: 150,
+        minSize: 120,
+        enableColumnFilter: true,
+      },
+      {
+        accessorKey: "embarked",
+        header: "Embarked",
+        cell: ({ row }) => {
+          const raw = row.getValue("embarked")
+          let date: Date | null = null
+          if (typeof raw === "string") {
+            date = new Date(raw)
+          } else if (raw instanceof Date) {
+            date = raw
+          }
+          return (
+            <div className="text-wrap">
+              {date && isValid(date) ? format(date, dateFormat) : "-"}
+            </div>
+          )
+        },
+        size: 120,
+        minSize: 100,
+      },
+      {
+        accessorKey: "disembarked",
+        header: "Disembarked",
+        cell: ({ row }) => {
+          const raw = row.getValue("disembarked")
+          let date: Date | null = null
+          if (typeof raw === "string") {
+            date = new Date(raw)
+          } else if (raw instanceof Date) {
+            date = raw
+          }
+          return (
+            <div className="text-wrap">
+              {date && isValid(date) ? format(date, dateFormat) : "-"}
+            </div>
+          )
+        },
+        size: 120,
+        minSize: 100,
+      },
+      {
+        accessorKey: "portRequestNo",
+        header: "Port Request No",
+        cell: ({ row }) => (
+          <div className="text-wrap">
+            {row.getValue("portRequestNo") || "-"}
+          </div>
+        ),
+        size: 150,
+        minSize: 120,
       },
       {
         accessorKey: "remarks",

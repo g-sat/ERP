@@ -87,36 +87,6 @@ export function AgencyRemunerationTable({
         minSize: 130,
       },
       {
-        accessorKey: "date",
-        header: "Date",
-        cell: ({ row }) => {
-          const raw = row.getValue("date")
-          let date: Date | null = null
-          if (typeof raw === "string") {
-            date = new Date(raw)
-          } else if (raw instanceof Date) {
-            date = raw
-          }
-          return (
-            <div className="text-wrap">
-              {date && isValid(date) ? format(date, dateFormat) : "-"}
-            </div>
-          )
-        },
-        size: 120,
-        minSize: 100,
-      },
-      {
-        accessorKey: "bargeName",
-        header: "Barge Name",
-        cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("bargeName") || "-"}</div>
-        ),
-        size: 200,
-        minSize: 150,
-        enableColumnFilter: true,
-      },
-      {
         accessorKey: "chargeName",
         header: "Charge Name",
         cell: ({ row }) => (
@@ -125,34 +95,6 @@ export function AgencyRemunerationTable({
         size: 200,
         minSize: 150,
         enableColumnFilter: true,
-      },
-      {
-        accessorKey: "agencyName",
-        header: "Agency Name",
-        cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("agencyName") || "-"}</div>
-        ),
-        size: 200,
-        minSize: 150,
-        enableColumnFilter: true,
-      },
-      {
-        accessorKey: "quantity",
-        header: "Quantity",
-        cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("quantity") || "-"}</div>
-        ),
-        size: 100,
-        minSize: 80,
-      },
-      {
-        accessorKey: "uomName",
-        header: "UOM",
-        cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("uomName") || "-"}</div>
-        ),
-        size: 100,
-        minSize: 80,
       },
       {
         accessorKey: "remarks",

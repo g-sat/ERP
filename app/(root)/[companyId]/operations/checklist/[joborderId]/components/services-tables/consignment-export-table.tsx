@@ -87,33 +87,13 @@ export function ConsignmentExportTable({
         minSize: 130,
       },
       {
-        accessorKey: "date",
-        header: "Date",
-        cell: ({ row }) => {
-          const raw = row.getValue("date")
-          let date: Date | null = null
-          if (typeof raw === "string") {
-            date = new Date(raw)
-          } else if (raw instanceof Date) {
-            date = raw
-          }
-          return (
-            <div className="text-wrap">
-              {date && isValid(date) ? format(date, dateFormat) : "-"}
-            </div>
-          )
-        },
-        size: 120,
-        minSize: 100,
-      },
-      {
-        accessorKey: "bargeName",
-        header: "Barge Name",
+        accessorKey: "awbNo",
+        header: "AWB No",
         cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("bargeName") || "-"}</div>
+          <div className="text-wrap">{row.getValue("awbNo") || "-"}</div>
         ),
-        size: 200,
-        minSize: 150,
+        size: 150,
+        minSize: 120,
         enableColumnFilter: true,
       },
       {
@@ -127,10 +107,34 @@ export function ConsignmentExportTable({
         enableColumnFilter: true,
       },
       {
-        accessorKey: "quantity",
-        header: "Quantity",
+        accessorKey: "carrierTypeName",
+        header: "Carrier Type",
         cell: ({ row }) => (
-          <div className="text-wrap">{row.getValue("quantity") || "-"}</div>
+          <div className="text-wrap">
+            {row.getValue("carrierTypeName") || "-"}
+          </div>
+        ),
+        size: 150,
+        minSize: 120,
+        enableColumnFilter: true,
+      },
+      {
+        accessorKey: "consignmentTypeName",
+        header: "Consignment Type",
+        cell: ({ row }) => (
+          <div className="text-wrap">
+            {row.getValue("consignmentTypeName") || "-"}
+          </div>
+        ),
+        size: 150,
+        minSize: 120,
+        enableColumnFilter: true,
+      },
+      {
+        accessorKey: "weight",
+        header: "Weight",
+        cell: ({ row }) => (
+          <div className="text-wrap">{row.getValue("weight") || "-"}</div>
         ),
         size: 100,
         minSize: 80,
@@ -145,43 +149,26 @@ export function ConsignmentExportTable({
         minSize: 80,
       },
       {
-        accessorKey: "remarks",
-        header: "Remarks",
-        size: 200,
-        minSize: 150,
-      },
-      {
-        accessorKey: "statusName",
-        header: "Status",
+        accessorKey: "pickupLocation",
+        header: "Pickup Location",
         cell: ({ row }) => (
-          <div className="text-center">
-            <Badge variant="default">{row.getValue("statusName") || "-"}</Badge>
+          <div className="text-wrap">
+            {row.getValue("pickupLocation") || "-"}
           </div>
         ),
-        size: 120,
-        minSize: 100,
+        size: 150,
+        minSize: 120,
       },
       {
-        accessorKey: "editVersion",
-        header: "Version",
-        cell: ({ row }) => {
-          const item = row.original
-          return (
-            <div className="text-center">
-              <Badge
-                variant="destructive"
-                className="cursor-pointer transition-colors hover:bg-red-700"
-                onClick={() => handleOpenHistory(item)}
-                title="Click to view history"
-              >
-                {row.getValue("editVersion") || "0"}
-              </Badge>
-            </div>
-          )
-        },
-        size: 70,
-        minSize: 60,
-        maxSize: 80,
+        accessorKey: "deliveryLocation",
+        header: "Delivery Location",
+        cell: ({ row }) => (
+          <div className="text-wrap">
+            {row.getValue("deliveryLocation") || "-"}
+          </div>
+        ),
+        size: 150,
+        minSize: 120,
       },
       {
         accessorKey: "createBy",

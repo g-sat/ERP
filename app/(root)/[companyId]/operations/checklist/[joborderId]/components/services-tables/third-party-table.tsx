@@ -120,6 +120,17 @@ export function ThirdPartyTable({
         minSize: 80,
       },
       {
+        accessorKey: "supplierMobileNumber",
+        header: "Supplier Mobile",
+        cell: ({ row }) => (
+          <div className="text-wrap">
+            {row.getValue("supplierMobileNumber") || "-"}
+          </div>
+        ),
+        size: 150,
+        minSize: 120,
+      },
+      {
         accessorKey: "remarks",
         header: "Remarks",
         size: 200,

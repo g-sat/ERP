@@ -91,8 +91,8 @@ export function EquipmentUsedForm({
       launchServiceId: initialData?.launchServiceId ?? 0,
       remarks: initialData?.remarks ?? "",
       statusId: initialData?.statusId ?? 802,
-      isEquimentFooter: initialData?.isEquimentFooter ?? false,
-      equimentFooter: initialData?.equimentFooter ?? "",
+      isNotes: initialData?.isNotes ?? false,
+      note: initialData?.note ?? "",
       debitNoteId: initialData?.debitNoteId ?? 0,
       debitNoteNo: initialData?.debitNoteNo ?? "",
       editVersion: initialData?.editVersion ?? 0,
@@ -130,8 +130,8 @@ export function EquipmentUsedForm({
       launchServiceId: initialData?.launchServiceId ?? 0,
       remarks: initialData?.remarks ?? "",
       statusId: initialData?.statusId ?? 802,
-      isEquimentFooter: initialData?.isEquimentFooter ?? false,
-      equimentFooter: initialData?.equimentFooter ?? "",
+      isNotes: initialData?.isNotes ?? false,
+      note: initialData?.note ?? "",
       debitNoteId: initialData?.debitNoteId ?? 0,
       debitNoteNo: initialData?.debitNoteNo ?? "",
       editVersion: initialData?.editVersion ?? 0,
@@ -349,14 +349,14 @@ export function EquipmentUsedForm({
               <div>
                 <CustomSwitch
                   form={form}
-                  name="isEquimentFooter"
+                  name="isNotes"
                   label="Equipment Footer"
                   isDisabled={isConfirmed}
                 />
-                {form.watch("isEquimentFooter") && (
+                {form.watch("isNotes") && (
                   <CustomTextarea
                     form={form}
-                    name="equimentFooter"
+                    name="note"
                     label="Equipment Footer"
                     isDisabled={isConfirmed}
                   />
