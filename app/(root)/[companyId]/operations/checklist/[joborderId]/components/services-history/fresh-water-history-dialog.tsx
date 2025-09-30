@@ -318,7 +318,7 @@ export function FreshWaterHistoryDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="mt-4">
+        <div className="overflow-x-auto">
           <BasicTable<IFreshWater>
             data={historyData || []}
             columns={columns}

@@ -275,7 +275,7 @@ export function MedicalAssistanceHistoryDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="mt-4">
+        <div className="overflow-x-auto">
           <BasicTable<IMedicalAssistance>
             data={historyData || []}
             columns={columns}

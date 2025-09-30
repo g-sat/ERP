@@ -331,7 +331,7 @@ export function LandingItemsHistoryDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="mt-4">
+        <div className="overflow-x-auto">
           <BasicTable<ILandingItems>
             data={historyData || []}
             columns={columns}

@@ -83,7 +83,7 @@ export function JobOrderDetailsSkeleton({
                   </div>
                   <div className="mb-4 border-b border-gray-200"></div>
                   <div className="grid grid-cols-3 gap-2">
-                    {Array.from({ length: 18 }).map((_, index) => (
+                    {Array.from({ length: 24 }).map((_, index) => (
                       <div key={index} className="space-y-2">
                         <Skeleton className="h-4 w-20" />
                         <Skeleton className="h-9 w-full" />

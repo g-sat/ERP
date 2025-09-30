@@ -301,7 +301,7 @@ export function ThirdPartyHistoryDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="mt-4">
+        <div className="overflow-x-auto">
           <BasicTable<IThirdParty>
             data={historyData || []}
             columns={columns}

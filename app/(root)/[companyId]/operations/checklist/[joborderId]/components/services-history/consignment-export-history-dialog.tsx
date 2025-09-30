@@ -434,7 +434,7 @@ export function ConsignmentExportHistoryDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="mt-4">
+        <div className="overflow-x-auto">
           <BasicTable<IConsignmentExport>
             data={historyData || []}
             columns={columns}

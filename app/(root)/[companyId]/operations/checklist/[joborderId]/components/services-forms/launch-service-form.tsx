@@ -70,9 +70,6 @@ export function LaunchServiceForm({
     Number(jobData.companyId)
   )
 
-  console.log("initialData LaunchServiceForm :", initialData)
-  console.log("isConfirmed LaunchServiceForm :", isConfirmed)
-
   const form = useForm<LaunchServiceSchemaType>({
     resolver: zodResolver(LaunchServiceSchema),
     defaultValues: {
@@ -184,12 +181,21 @@ export function LaunchServiceForm({
     isChartOfAccountLoading,
   ])
 
+  // Convert decimal hours to HH:mm format (e.g., 1.14 -> "01:14")
+  const formatDecimalHoursToHhMm = (decimalHours: number): string => {
+    if (decimalHours < 0) return "00:00"
+
+    const hours = Math.floor(decimalHours)
+    const minutes = Math.round((decimalHours % 1) * 100)
+
+    return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}`
+  }
+
   // Calculate waiting time and time diff when form data is loaded
   useEffect(() => {
     if (!isChartOfAccountLoading && initialData) {
-      // Small delay to ensure form values are set
       setTimeout(() => {
-        // Calculate waiting time
+        // Waiting Time
         const loadingTime = form.getValues("loadingTime")
         const leftJetty = form.getValues("leftJetty")
         if (loadingTime && leftJetty) {
@@ -197,12 +203,14 @@ export function LaunchServiceForm({
           const end = new Date(leftJetty)
           if (isValid(start) && isValid(end)) {
             const diff = differenceInMinutes(end, start)
-            const hours = diff >= 0 ? diff / 60 : 0
-            form.setValue("waitingTime", Math.round(hours * 100) / 100) // Round to 2 decimal places
+            const hours = Math.floor(diff / 60)
+            const minutes = diff % 60
+            const decimalHours = hours + minutes / 100 // Convert to decimal hours format
+            form.setValue("waitingTime", decimalHours)
           }
         }
 
-        // Calculate time diff
+        // Time Diff
         const departedFromVessel = form.getValues("departedFromVessel")
         const alongSideVessel = form.getValues("alongsideVessel")
         if (departedFromVessel && alongSideVessel) {
@@ -210,8 +218,10 @@ export function LaunchServiceForm({
           const end = new Date(departedFromVessel)
           if (isValid(start) && isValid(end)) {
             const diff = differenceInMinutes(end, start)
-            const hours = diff >= 0 ? diff / 60 : 0
-            form.setValue("timeDiff", Math.round(hours * 100) / 100) // Round to 2 decimal places
+            const hours = Math.floor(diff / 60)
+            const minutes = diff % 60
+            const decimalHours = hours + minutes / 100 // Convert to decimal hours format
+            form.setValue("timeDiff", decimalHours)
           }
         }
       }, 100)
@@ -221,13 +231,17 @@ export function LaunchServiceForm({
   const calculateWaitingTime = () => {
     const loadingTime = form.getValues("loadingTime")
     const leftJetty = form.getValues("leftJetty")
+
     if (loadingTime && leftJetty) {
       const start = new Date(loadingTime)
       const end = new Date(leftJetty)
+
       if (isValid(start) && isValid(end)) {
-        const diff = differenceInMinutes(end, start)
-        const hours = diff >= 0 ? diff / 60 : 0
-        form.setValue("waitingTime", Math.round(hours * 100) / 100) // Round to 2 decimal places
+        const diffMinutes = differenceInMinutes(end, start)
+        const hours = Math.floor(diffMinutes / 60)
+        const minutes = diffMinutes % 60
+        const decimalHours = hours + minutes / 100 // Convert to decimal hours format
+        form.setValue("waitingTime", decimalHours)
       }
     }
   }
@@ -235,13 +249,17 @@ export function LaunchServiceForm({
   const calculateTimeDiff = () => {
     const departedFromVessel = form.getValues("departedFromVessel")
     const alongSideVessel = form.getValues("alongsideVessel")
+
     if (departedFromVessel && alongSideVessel) {
       const start = new Date(alongSideVessel)
       const end = new Date(departedFromVessel)
+
       if (isValid(start) && isValid(end)) {
-        const diff = differenceInMinutes(end, start)
-        const hours = diff >= 0 ? diff / 60 : 0
-        form.setValue("timeDiff", Math.round(hours * 100) / 100) // Round to 2 decimal places
+        const diffMinutes = differenceInMinutes(end, start)
+        const hours = Math.floor(diffMinutes / 60)
+        const minutes = diffMinutes % 60
+        const decimalHours = hours + minutes / 100 // Convert to decimal hours format
+        form.setValue("timeDiff", decimalHours)
       }
     }
   }
@@ -270,6 +288,7 @@ export function LaunchServiceForm({
           ? formatDateWithoutTimezone(data.arrivedAtJetty)
           : data.arrivedAtJetty,
     }
+
     submitAction(formData)
   }
 
@@ -375,13 +394,52 @@ export function LaunchServiceForm({
 
             {/* Distance, Timing, Cargo Section */}
             <div className="grid grid-cols-5 gap-2 rounded border p-2">
-              <div className="col-span-5 mb-1 flex">
+              <div className="col-span-5 mb-1 flex gap-2">
                 <Badge
                   variant="outline"
                   className="border-green-200 bg-green-50 text-green-700 transition-all duration-300 hover:bg-green-100"
                 >
                   Distance, Timing & Cargo Information
                 </Badge>
+
+                <div className="flex items-center gap-2">
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Badge
+                        variant="outline"
+                        className="animate-pulse cursor-help border-blue-200 bg-blue-50 text-blue-700 transition-all duration-300 hover:bg-blue-100"
+                      >
+                        <div className="flex items-center gap-1">
+                          <svg
+                            className="h-3 w-3 animate-bounce"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                            />
+                          </svg>
+                          <span className="font-medium">Time Rules</span>
+                        </div>
+                      </Badge>
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="max-w-sm">
+                      <div className="space-y-2">
+                        <p className="font-semibold">Time Sequence Rules:</p>
+                        <ul className="space-y-1 text-xs">
+                          <li>• Launch Hire Time ≤ Left Jetty Time</li>
+                          <li>• Left Jetty Time ≤ Along Side Vessel</li>
+                          <li>• Along Side Vessel ≤ Departed From Vessel</li>
+                          <li>• Departed From Vessel ≤ Back To Base Time</li>
+                        </ul>
+                      </div>
+                    </TooltipContent>
+                  </Tooltip>
+                </div>
               </div>
 
               <CustomInput
@@ -419,18 +477,26 @@ export function LaunchServiceForm({
                 isDisabled={isConfirmed}
                 onChangeEvent={() => calculateWaitingTime()}
               />
-              <CustomInput
-                form={form}
-                name="waitingTime"
-                label="Launch Waiting Time (2-1) (Hrs)"
-                type="number"
-                isDisabled={true}
-              />
+              <div className="space-y-1">
+                <label className="text-sm font-medium">
+                  Launch Waiting Time (2-1) (Hrs)
+                </label>
+                <input
+                  type="text"
+                  value={formatDecimalHoursToHhMm(
+                    form.watch("waitingTime") || 0
+                  )}
+                  disabled={true}
+                  className="border-input bg-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-9 w-full rounded-md border px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-1 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                  placeholder="00:00"
+                />
+              </div>
               <CustomDateTimePicker
                 form={form}
                 name="alongsideVessel"
                 label="Alongside Vessel Time (3)"
                 isDisabled={isConfirmed}
+                onChangeEvent={() => calculateTimeDiff()}
               />
               <CustomDateTimePicker
                 form={form}
@@ -439,66 +505,32 @@ export function LaunchServiceForm({
                 isDisabled={isConfirmed}
                 onChangeEvent={() => calculateTimeDiff()}
               />
-              <CustomInput
-                form={form}
-                name="timeDiff"
-                label="Time Difference (4-3) (Hrs)"
-                type="number"
-                isDisabled={true}
-              />
+              <div className="space-y-1">
+                <label className="text-sm font-medium">
+                  Time Difference (4-3) (Hrs)
+                </label>
+                <input
+                  type="text"
+                  value={formatDecimalHoursToHhMm(form.watch("timeDiff") || 0)}
+                  disabled={true}
+                  className="border-input bg-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-9 w-full rounded-md border px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-1 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                  placeholder="00:00"
+                />
+              </div>
               <CustomDateTimePicker
                 form={form}
                 name="arrivedAtJetty"
                 label="Arrived at Jetty Time (5)"
                 isDisabled={isConfirmed}
-                onChangeEvent={() => calculateTimeDiff()}
               />
             </div>
+
             <CustomTextarea
               form={form}
               name="remarks"
               label="Remarks"
               isDisabled={isConfirmed}
             />
-
-            <div className="flex items-center gap-2">
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Badge
-                    variant="outline"
-                    className="animate-pulse cursor-help border-blue-200 bg-blue-50 text-blue-700 transition-all duration-300 hover:bg-blue-100"
-                  >
-                    <div className="flex items-center gap-1">
-                      <svg
-                        className="h-3 w-3 animate-bounce"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                        />
-                      </svg>
-                      <span className="font-medium">Time Rules</span>
-                    </div>
-                  </Badge>
-                </TooltipTrigger>
-                <TooltipContent side="top" className="max-w-sm">
-                  <div className="space-y-2">
-                    <p className="font-semibold">Time Sequence Rules:</p>
-                    <ul className="space-y-1 text-xs">
-                      <li>• Launch Hire Time ≤ Left Jetty Time</li>
-                      <li>• Left Jetty Time ≤ Along Side Vessel</li>
-                      <li>• Along Side Vessel ≤ Departed From Vessel</li>
-                      <li>• Departed From Vessel ≤ Back To Base Time</li>
-                    </ul>
-                  </div>
-                </TooltipContent>
-              </Tooltip>
-            </div>
 
             {/* Audit Information Section */}
             {initialData &&

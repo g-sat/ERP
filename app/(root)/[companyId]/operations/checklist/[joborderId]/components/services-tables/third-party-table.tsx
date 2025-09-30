@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo } from "react"
+import { useMemo, useState } from "react"
 import { IThirdParty, IThirdPartyFilter } from "@/interfaces/checklist"
 import { useAuthStore } from "@/stores/auth-store"
 import { ColumnDef } from "@tanstack/react-table"
@@ -9,6 +9,8 @@ import { format, isValid } from "date-fns"
 import { TableName } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import { TaskTable } from "@/components/table/table-task"
+
+import ThirdPartyHistoryDialog from "../services-history/third-party-history-dialog"
 
 interface ThirdPartyTableProps {
   data: IThirdParty[]
@@ -46,6 +48,29 @@ export function ThirdPartyTable({
   const { decimals } = useAuthStore()
   const dateFormat = decimals[0]?.dateFormat || "dd/MM/yyyy"
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
+
+  // State for history dialog
+  const [historyDialog, setHistoryDialog] = useState<{
+    isOpen: boolean
+    jobOrderId: number
+    thirdPartyId: number
+    thirdPartyIdDisplay?: number
+  }>({
+    isOpen: false,
+    jobOrderId: 0,
+    thirdPartyId: 0,
+    thirdPartyIdDisplay: 0,
+  })
+
+  // Handler to open history dialog
+  const handleOpenHistory = (item: IThirdParty) => {
+    setHistoryDialog({
+      isOpen: true,
+      jobOrderId: item.jobOrderId,
+      thirdPartyId: item.thirdPartyId,
+      thirdPartyIdDisplay: item.thirdPartyId,
+    })
+  }
 
   // Memoize columns to prevent infinite re-renders
   const columns: ColumnDef<IThirdParty>[] = useMemo(
@@ -114,13 +139,21 @@ export function ThirdPartyTable({
       {
         accessorKey: "editVersion",
         header: "Version",
-        cell: ({ row }) => (
-          <div className="text-center">
-            <Badge variant="destructive">
-              {row.getValue("editVersion") || "0"}
-            </Badge>
-          </div>
-        ),
+        cell: ({ row }) => {
+          const item = row.original
+          return (
+            <div className="text-center">
+              <Badge
+                variant="destructive"
+                className="cursor-pointer transition-colors hover:bg-red-700"
+                onClick={() => handleOpenHistory(item)}
+                title="Click to view history"
+              >
+                {row.getValue("editVersion") || "0"}
+              </Badge>
+            </div>
+          )
+        },
         size: 70,
         minSize: 60,
         maxSize: 80,
@@ -236,27 +269,42 @@ export function ThirdPartyTable({
   }
 
   return (
-    <TaskTable
-      data={data}
-      columns={columns}
-      isLoading={isLoading}
-      moduleId={moduleId}
-      transactionId={transactionId}
-      tableName={TableName.thirdParty}
-      emptyMessage="No third party services found."
-      accessorId="thirdPartyId"
-      onRefresh={onRefresh}
-      onFilterChange={handleFilterChange}
-      onSelect={handleItemSelect}
-      onCreate={onCreateThirdParty}
-      onEdit={onEditThirdParty}
-      onDelete={onDeleteThirdParty}
-      onDebitNote={handleDebitNote}
-      onPurchase={onPurchase}
-      onCombinedService={onCombinedService}
-      isConfirmed={isConfirmed}
-      showHeader={true}
-      showActions={true}
-    />
+    <>
+      <TaskTable
+        data={data}
+        columns={columns}
+        isLoading={isLoading}
+        moduleId={moduleId}
+        transactionId={transactionId}
+        tableName={TableName.thirdParty}
+        emptyMessage="No third party services found."
+        accessorId="thirdPartyId"
+        onRefresh={onRefresh}
+        onFilterChange={handleFilterChange}
+        onSelect={handleItemSelect}
+        onCreate={onCreateThirdParty}
+        onEdit={onEditThirdParty}
+        onDelete={onDeleteThirdParty}
+        onDebitNote={handleDebitNote}
+        onPurchase={onPurchase}
+        onCombinedService={onCombinedService}
+        isConfirmed={isConfirmed}
+        showHeader={true}
+        showActions={true}
+      />
+
+      {/* History Dialog */}
+      {historyDialog.isOpen && (
+        <ThirdPartyHistoryDialog
+          open={historyDialog.isOpen}
+          onOpenChange={(isOpen) =>
+            setHistoryDialog((prev) => ({ ...prev, isOpen }))
+          }
+          jobOrderId={historyDialog.jobOrderId}
+          thirdPartyId={historyDialog.thirdPartyId}
+          thirdPartyIdDisplay={historyDialog.thirdPartyIdDisplay}
+        />
+      )}
+    </>
   )
 }

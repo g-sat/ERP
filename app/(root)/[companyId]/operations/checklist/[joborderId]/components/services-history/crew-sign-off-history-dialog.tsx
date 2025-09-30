@@ -337,7 +337,7 @@ export function CrewSignOffHistoryDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="mt-4">
+        <div className="overflow-x-auto">
           <BasicTable<ICrewSignOff>
             data={historyData || []}
             columns={columns}

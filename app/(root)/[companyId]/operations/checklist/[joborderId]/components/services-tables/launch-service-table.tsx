@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo } from "react"
+import { useMemo, useState } from "react"
 import { ILaunchService, ILaunchServiceFilter } from "@/interfaces/checklist"
 import { useAuthStore } from "@/stores/auth-store"
 import { ColumnDef } from "@tanstack/react-table"
@@ -9,6 +9,8 @@ import { format, isValid } from "date-fns"
 import { TableName } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import { TaskTable } from "@/components/table/table-task"
+
+import LaunchServiceHistoryDialog from "../services-history/launch-service-history-dialog"
 
 interface LaunchServiceTableProps {
   data: ILaunchService[]
@@ -46,6 +48,29 @@ export function LaunchServiceTable({
   const { decimals } = useAuthStore()
   const dateFormat = decimals[0]?.dateFormat || "dd/MM/yyyy"
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
+
+  // State for history dialog
+  const [historyDialog, setHistoryDialog] = useState<{
+    isOpen: boolean
+    jobOrderId: number
+    launchServiceId: number
+    launchServiceIdDisplay?: number
+  }>({
+    isOpen: false,
+    jobOrderId: 0,
+    launchServiceId: 0,
+    launchServiceIdDisplay: 0,
+  })
+
+  // Handler to open history dialog
+  const handleOpenHistory = (item: ILaunchService) => {
+    setHistoryDialog({
+      isOpen: true,
+      jobOrderId: item.jobOrderId,
+      launchServiceId: item.launchServiceId,
+      launchServiceIdDisplay: item.launchServiceId,
+    })
+  }
 
   // Memoize columns to prevent infinite re-renders
   const columns: ColumnDef<ILaunchService>[] = useMemo(
@@ -206,7 +231,29 @@ export function LaunchServiceTable({
         header: "Waiting Time",
         cell: ({ row }) => {
           const value = row.getValue("waitingTime") as number
-          return <div className="text-wrap">{value ? `${value} min` : "-"}</div>
+          if (!value)
+            return <div className="text-muted-foreground text-wrap">-</div>
+
+          const valueStr = value.toString()
+          if (valueStr.includes(".")) {
+            const [hours, minutes] = valueStr.split(".")
+            const paddedMinutes = minutes.padEnd(2, "0")
+            return (
+              <div className="flex items-center gap-1 text-wrap">
+                <span className="font-mono text-sm font-medium">
+                  {hours}:{paddedMinutes}
+                </span>
+                <span className="text-muted-foreground text-xs">hr</span>
+              </div>
+            )
+          }
+
+          return (
+            <div className="flex items-center gap-1 text-wrap">
+              <span className="font-mono text-sm font-medium">{valueStr}</span>
+              <span className="text-muted-foreground text-xs">hr</span>
+            </div>
+          )
         },
         size: 120,
         minSize: 100,
@@ -258,7 +305,29 @@ export function LaunchServiceTable({
         header: "Time Difference",
         cell: ({ row }) => {
           const value = row.getValue("timeDiff") as number
-          return <div className="text-wrap">{value ? `${value} min` : "-"}</div>
+          if (!value)
+            return <div className="text-muted-foreground text-wrap">-</div>
+
+          const valueStr = value.toString()
+          if (valueStr.includes(".")) {
+            const [hours, minutes] = valueStr.split(".")
+            const paddedMinutes = minutes.padEnd(2, "0")
+            return (
+              <div className="flex items-center gap-1 text-wrap">
+                <span className="font-mono text-sm font-medium">
+                  {hours}:{paddedMinutes}
+                </span>
+                <span className="text-muted-foreground text-xs">hr</span>
+              </div>
+            )
+          }
+
+          return (
+            <div className="flex items-center gap-1 text-wrap">
+              <span className="font-mono text-sm font-medium">{valueStr}</span>
+              <span className="text-muted-foreground text-xs">hr</span>
+            </div>
+          )
         },
         size: 120,
         minSize: 100,
@@ -312,24 +381,41 @@ export function LaunchServiceTable({
       {
         accessorKey: "statusName",
         header: "Status",
-        cell: ({ row }) => (
-          <div className="text-center">
-            <Badge variant="default">{row.getValue("statusName") || "-"}</Badge>
-          </div>
-        ),
+        cell: ({ row }) => {
+          const status = row.getValue("statusName") as string
+          return (
+            <div className="text-center">
+              <Badge
+                variant={status === "Active" ? "default" : "secondary"}
+                className="font-medium"
+              >
+                {status || "-"}
+              </Badge>
+            </div>
+          )
+        },
         size: 120,
         minSize: 100,
       },
       {
         accessorKey: "editVersion",
         header: "Version",
-        cell: ({ row }) => (
-          <div className="text-center">
-            <Badge variant="destructive">
-              {row.getValue("editVersion") || "0"}
-            </Badge>
-          </div>
-        ),
+        cell: ({ row }) => {
+          const item = row.original
+          const version = row.getValue("editVersion") as number
+          return (
+            <div className="text-center">
+              <Badge
+                variant="destructive"
+                className="cursor-pointer font-mono text-xs transition-all duration-200 hover:scale-105 hover:bg-red-700"
+                onClick={() => handleOpenHistory(item)}
+                title="Click to view history"
+              >
+                v{version || "0"}
+              </Badge>
+            </div>
+          )
+        },
         size: 70,
         minSize: 60,
         maxSize: 80,
@@ -426,27 +512,42 @@ export function LaunchServiceTable({
   }
 
   return (
-    <TaskTable
-      data={data}
-      columns={columns}
-      isLoading={isLoading}
-      moduleId={moduleId}
-      transactionId={transactionId}
-      tableName={TableName.launchService}
-      emptyMessage="No launch services found."
-      accessorId="launchServiceId"
-      onRefresh={onRefresh}
-      onFilterChange={handleFilterChange}
-      onSelect={handleItemSelect}
-      onCreate={onCreateLaunchService}
-      onEdit={onEditLaunchService}
-      onDelete={onDeleteLaunchService}
-      onDebitNote={handleDebitNote}
-      onPurchase={onPurchase}
-      onCombinedService={onCombinedService}
-      isConfirmed={isConfirmed}
-      showHeader={true}
-      showActions={true}
-    />
+    <>
+      <TaskTable
+        data={data}
+        columns={columns}
+        isLoading={isLoading}
+        moduleId={moduleId}
+        transactionId={transactionId}
+        tableName={TableName.launchService}
+        emptyMessage="No launch services found."
+        accessorId="launchServiceId"
+        onRefresh={onRefresh}
+        onFilterChange={handleFilterChange}
+        onSelect={handleItemSelect}
+        onCreate={onCreateLaunchService}
+        onEdit={onEditLaunchService}
+        onDelete={onDeleteLaunchService}
+        onDebitNote={handleDebitNote}
+        onPurchase={onPurchase}
+        onCombinedService={onCombinedService}
+        isConfirmed={isConfirmed}
+        showHeader={true}
+        showActions={true}
+      />
+
+      {/* History Dialog */}
+      {historyDialog.isOpen && (
+        <LaunchServiceHistoryDialog
+          open={historyDialog.isOpen}
+          onOpenChange={(isOpen) =>
+            setHistoryDialog((prev) => ({ ...prev, isOpen }))
+          }
+          jobOrderId={historyDialog.jobOrderId}
+          launchServiceId={historyDialog.launchServiceId}
+          launchServiceIdDisplay={historyDialog.launchServiceIdDisplay}
+        />
+      )}
+    </>
   )
 }

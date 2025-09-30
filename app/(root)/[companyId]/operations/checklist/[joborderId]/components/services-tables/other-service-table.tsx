@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo } from "react"
+import { useMemo, useState } from "react"
 import { IOtherService, IOtherServiceFilter } from "@/interfaces/checklist"
 import { useAuthStore } from "@/stores/auth-store"
 import { ColumnDef } from "@tanstack/react-table"
@@ -9,6 +9,8 @@ import { format, isValid } from "date-fns"
 import { TableName } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import { TaskTable } from "@/components/table/table-task"
+
+import OtherServiceHistoryDialog from "../services-history/other-service-history-dialog"
 
 interface OtherServiceTableProps {
   data: IOtherService[]
@@ -46,6 +48,29 @@ export function OtherServiceTable({
   const { decimals } = useAuthStore()
   const dateFormat = decimals[0]?.dateFormat || "dd/MM/yyyy"
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
+
+  // State for history dialog
+  const [historyDialog, setHistoryDialog] = useState<{
+    isOpen: boolean
+    jobOrderId: number
+    otherServiceId: number
+    otherServiceIdDisplay?: number
+  }>({
+    isOpen: false,
+    jobOrderId: 0,
+    otherServiceId: 0,
+    otherServiceIdDisplay: 0,
+  })
+
+  // Handler to open history dialog
+  const handleOpenHistory = (item: IOtherService) => {
+    setHistoryDialog({
+      isOpen: true,
+      jobOrderId: item.jobOrderId,
+      otherServiceId: item.otherServiceId,
+      otherServiceIdDisplay: item.otherServiceId,
+    })
+  }
 
   // Memoize columns to prevent infinite re-renders
   const columns: ColumnDef<IOtherService>[] = useMemo(
@@ -133,13 +158,21 @@ export function OtherServiceTable({
       {
         accessorKey: "editVersion",
         header: "Version",
-        cell: ({ row }) => (
-          <div className="text-center">
-            <Badge variant="destructive">
-              {row.getValue("editVersion") || "0"}
-            </Badge>
-          </div>
-        ),
+        cell: ({ row }) => {
+          const item = row.original
+          return (
+            <div className="text-center">
+              <Badge
+                variant="destructive"
+                className="cursor-pointer transition-colors hover:bg-red-700"
+                onClick={() => handleOpenHistory(item)}
+                title="Click to view history"
+              >
+                {row.getValue("editVersion") || "0"}
+              </Badge>
+            </div>
+          )
+        },
         size: 70,
         minSize: 60,
         maxSize: 80,
@@ -234,27 +267,42 @@ export function OtherServiceTable({
   }
 
   return (
-    <TaskTable
-      data={data}
-      columns={columns}
-      isLoading={isLoading}
-      moduleId={moduleId}
-      transactionId={transactionId}
-      tableName={TableName.otherService}
-      emptyMessage="No other services found."
-      accessorId="otherServiceId"
-      onRefresh={onRefresh}
-      onFilterChange={handleFilterChange}
-      onSelect={handleItemSelect}
-      onCreate={onCreateOtherService}
-      onEdit={onEditOtherService}
-      onDelete={onDeleteOtherService}
-      onDebitNote={handleDebitNote}
-      onPurchase={onPurchase}
-      onCombinedService={onCombinedService}
-      isConfirmed={isConfirmed}
-      showHeader={true}
-      showActions={true}
-    />
+    <>
+      <TaskTable
+        data={data}
+        columns={columns}
+        isLoading={isLoading}
+        moduleId={moduleId}
+        transactionId={transactionId}
+        tableName={TableName.otherService}
+        emptyMessage="No other services found."
+        accessorId="otherServiceId"
+        onRefresh={onRefresh}
+        onFilterChange={handleFilterChange}
+        onSelect={handleItemSelect}
+        onCreate={onCreateOtherService}
+        onEdit={onEditOtherService}
+        onDelete={onDeleteOtherService}
+        onDebitNote={handleDebitNote}
+        onPurchase={onPurchase}
+        onCombinedService={onCombinedService}
+        isConfirmed={isConfirmed}
+        showHeader={true}
+        showActions={true}
+      />
+
+      {/* History Dialog */}
+      {historyDialog.isOpen && (
+        <OtherServiceHistoryDialog
+          open={historyDialog.isOpen}
+          onOpenChange={(isOpen) =>
+            setHistoryDialog((prev) => ({ ...prev, isOpen }))
+          }
+          jobOrderId={historyDialog.jobOrderId}
+          otherServiceId={historyDialog.otherServiceId}
+          otherServiceIdDisplay={historyDialog.otherServiceIdDisplay}
+        />
+      )}
+    </>
   )
 }

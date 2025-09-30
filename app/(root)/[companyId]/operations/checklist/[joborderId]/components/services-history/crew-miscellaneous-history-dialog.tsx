@@ -264,7 +264,7 @@ export function CrewMiscellaneousHistoryDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="mt-4">
+        <div className="overflow-x-auto">
           <BasicTable<ICrewMiscellaneous>
             data={historyData || []}
             columns={columns}

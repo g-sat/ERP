@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo } from "react"
+import { useMemo, useState } from "react"
 import {
   ITechnicianSurveyor,
   ITechnicianSurveyorFilter,
@@ -12,6 +12,8 @@ import { format, isValid } from "date-fns"
 import { TableName } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import { TaskTable } from "@/components/table/table-task"
+
+import TechnicianSurveyorHistoryDialog from "../services-history/technician-surveyor-history-dialog"
 
 interface TechnicianSurveyorTableProps {
   data: ITechnicianSurveyor[]
@@ -51,6 +53,29 @@ export function TechnicianSurveyorTable({
   const { decimals } = useAuthStore()
   const dateFormat = decimals[0]?.dateFormat || "dd/MM/yyyy"
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
+
+  // State for history dialog
+  const [historyDialog, setHistoryDialog] = useState<{
+    isOpen: boolean
+    jobOrderId: number
+    technicianSurveyorId: number
+    technicianSurveyorIdDisplay?: number
+  }>({
+    isOpen: false,
+    jobOrderId: 0,
+    technicianSurveyorId: 0,
+    technicianSurveyorIdDisplay: 0,
+  })
+
+  // Handler to open history dialog
+  const handleOpenHistory = (item: ITechnicianSurveyor) => {
+    setHistoryDialog({
+      isOpen: true,
+      jobOrderId: item.jobOrderId,
+      technicianSurveyorId: item.technicianSurveyorId,
+      technicianSurveyorIdDisplay: item.technicianSurveyorId,
+    })
+  }
 
   // Memoize columns to prevent infinite re-renders
   const columns: ColumnDef<ITechnicianSurveyor>[] = useMemo(
@@ -161,13 +186,21 @@ export function TechnicianSurveyorTable({
       {
         accessorKey: "editVersion",
         header: "Version",
-        cell: ({ row }) => (
-          <div className="text-center">
-            <Badge variant="destructive">
-              {row.getValue("editVersion") || "0"}
-            </Badge>
-          </div>
-        ),
+        cell: ({ row }) => {
+          const item = row.original
+          return (
+            <div className="text-center">
+              <Badge
+                variant="destructive"
+                className="cursor-pointer transition-colors hover:bg-red-700"
+                onClick={() => handleOpenHistory(item)}
+                title="Click to view history"
+              >
+                {row.getValue("editVersion") || "0"}
+              </Badge>
+            </div>
+          )
+        },
         size: 70,
         minSize: 60,
         maxSize: 80,
@@ -262,27 +295,44 @@ export function TechnicianSurveyorTable({
   }
 
   return (
-    <TaskTable
-      data={data}
-      columns={columns}
-      isLoading={isLoading}
-      moduleId={moduleId}
-      transactionId={transactionId}
-      tableName={TableName.techniciansSurveyors}
-      emptyMessage="No technician surveyors found."
-      accessorId="technicianSurveyorId"
-      onRefresh={onRefresh}
-      onFilterChange={handleFilterChange}
-      onSelect={handleItemSelect}
-      onCreate={onCreateTechnicianSurveyor}
-      onEdit={onEditTechnicianSurveyor}
-      onDelete={onDeleteTechnicianSurveyor}
-      onDebitNote={handleDebitNote}
-      onPurchase={onPurchase}
-      onCombinedService={onCombinedService}
-      isConfirmed={isConfirmed}
-      showHeader={true}
-      showActions={true}
-    />
+    <>
+      <TaskTable
+        data={data}
+        columns={columns}
+        isLoading={isLoading}
+        moduleId={moduleId}
+        transactionId={transactionId}
+        tableName={TableName.techniciansSurveyors}
+        emptyMessage="No technician surveyors found."
+        accessorId="technicianSurveyorId"
+        onRefresh={onRefresh}
+        onFilterChange={handleFilterChange}
+        onSelect={handleItemSelect}
+        onCreate={onCreateTechnicianSurveyor}
+        onEdit={onEditTechnicianSurveyor}
+        onDelete={onDeleteTechnicianSurveyor}
+        onDebitNote={handleDebitNote}
+        onPurchase={onPurchase}
+        onCombinedService={onCombinedService}
+        isConfirmed={isConfirmed}
+        showHeader={true}
+        showActions={true}
+      />
+
+      {/* History Dialog */}
+      {historyDialog.isOpen && (
+        <TechnicianSurveyorHistoryDialog
+          open={historyDialog.isOpen}
+          onOpenChange={(isOpen) =>
+            setHistoryDialog((prev) => ({ ...prev, isOpen }))
+          }
+          jobOrderId={historyDialog.jobOrderId}
+          technicianSurveyorId={historyDialog.technicianSurveyorId}
+          technicianSurveyorIdDisplay={
+            historyDialog.technicianSurveyorIdDisplay
+          }
+        />
+      )}
+    </>
   )
 }

@@ -303,7 +303,7 @@ export function OtherServiceHistoryDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="mt-4">
+        <div className="overflow-x-auto">
           <BasicTable<IOtherService>
             data={historyData || []}
             columns={columns}

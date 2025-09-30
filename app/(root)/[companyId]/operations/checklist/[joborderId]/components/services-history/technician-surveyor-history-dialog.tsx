@@ -320,7 +320,7 @@ export function TechnicianSurveyorHistoryDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="mt-4">
+        <div className="overflow-x-auto">
           <BasicTable<ITechnicianSurveyor>
             data={historyData || []}
             columns={columns}

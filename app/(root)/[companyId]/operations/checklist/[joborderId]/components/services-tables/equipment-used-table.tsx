@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo } from "react"
+import { useMemo, useState } from "react"
 import { IEquipmentUsed, IEquipmentUsedFilter } from "@/interfaces/checklist"
 import { useAuthStore } from "@/stores/auth-store"
 import { ColumnDef } from "@tanstack/react-table"
@@ -9,6 +9,8 @@ import { format, isValid } from "date-fns"
 import { TableName } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import { TaskTable } from "@/components/table/table-task"
+
+import EquipmentUsedHistoryDialog from "../services-history/equipment-used-history-dialog"
 
 interface EquipmentUsedTableProps {
   data: IEquipmentUsed[]
@@ -46,6 +48,29 @@ export function EquipmentUsedTable({
   const { decimals } = useAuthStore()
   const dateFormat = decimals[0]?.dateFormat || "dd/MM/yyyy"
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
+
+  // State for history dialog
+  const [historyDialog, setHistoryDialog] = useState<{
+    isOpen: boolean
+    jobOrderId: number
+    equipmentUsedId: number
+    equipmentUsedIdDisplay?: number
+  }>({
+    isOpen: false,
+    jobOrderId: 0,
+    equipmentUsedId: 0,
+    equipmentUsedIdDisplay: 0,
+  })
+
+  // Handler to open history dialog
+  const handleOpenHistory = (item: IEquipmentUsed) => {
+    setHistoryDialog({
+      isOpen: true,
+      jobOrderId: item.jobOrderId,
+      equipmentUsedId: item.equipmentUsedId,
+      equipmentUsedIdDisplay: item.equipmentUsedId,
+    })
+  }
 
   // Memoize columns to prevent infinite re-renders
   const columns: ColumnDef<IEquipmentUsed>[] = useMemo(
@@ -146,13 +171,21 @@ export function EquipmentUsedTable({
       {
         accessorKey: "editVersion",
         header: "Version",
-        cell: ({ row }) => (
-          <div className="text-center">
-            <Badge variant="destructive">
-              {row.getValue("editVersion") || "0"}
-            </Badge>
-          </div>
-        ),
+        cell: ({ row }) => {
+          const item = row.original
+          return (
+            <div className="text-center">
+              <Badge
+                variant="destructive"
+                className="cursor-pointer transition-colors hover:bg-red-700"
+                onClick={() => handleOpenHistory(item)}
+                title="Click to view history"
+              >
+                {row.getValue("editVersion") || "0"}
+              </Badge>
+            </div>
+          )
+        },
         size: 70,
         minSize: 60,
         maxSize: 80,
@@ -247,27 +280,42 @@ export function EquipmentUsedTable({
   }
 
   return (
-    <TaskTable
-      data={data}
-      columns={columns}
-      isLoading={isLoading}
-      moduleId={moduleId}
-      transactionId={transactionId}
-      tableName={TableName.equipmentUsed}
-      emptyMessage="No equipment used found."
-      accessorId="equipmentUsedId"
-      onRefresh={onRefresh}
-      onFilterChange={handleFilterChange}
-      onSelect={handleItemSelect}
-      onCreate={onCreateEquipmentUsed}
-      onEdit={onEditEquipmentUsed}
-      onDelete={onDeleteEquipmentUsed}
-      onDebitNote={handleDebitNote}
-      onPurchase={onPurchase}
-      onCombinedService={onCombinedService}
-      isConfirmed={isConfirmed}
-      showHeader={true}
-      showActions={true}
-    />
+    <>
+      <TaskTable
+        data={data}
+        columns={columns}
+        isLoading={isLoading}
+        moduleId={moduleId}
+        transactionId={transactionId}
+        tableName={TableName.equipmentUsed}
+        emptyMessage="No equipment used found."
+        accessorId="equipmentUsedId"
+        onRefresh={onRefresh}
+        onFilterChange={handleFilterChange}
+        onSelect={handleItemSelect}
+        onCreate={onCreateEquipmentUsed}
+        onEdit={onEditEquipmentUsed}
+        onDelete={onDeleteEquipmentUsed}
+        onDebitNote={handleDebitNote}
+        onPurchase={onPurchase}
+        onCombinedService={onCombinedService}
+        isConfirmed={isConfirmed}
+        showHeader={true}
+        showActions={true}
+      />
+
+      {/* History Dialog */}
+      {historyDialog.isOpen && (
+        <EquipmentUsedHistoryDialog
+          open={historyDialog.isOpen}
+          onOpenChange={(isOpen) =>
+            setHistoryDialog((prev) => ({ ...prev, isOpen }))
+          }
+          jobOrderId={historyDialog.jobOrderId}
+          equipmentUsedId={historyDialog.equipmentUsedId}
+          equipmentUsedIdDisplay={historyDialog.equipmentUsedIdDisplay}
+        />
+      )}
+    </>
   )
 }

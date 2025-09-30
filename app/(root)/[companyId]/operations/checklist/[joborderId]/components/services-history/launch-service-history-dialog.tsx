@@ -300,7 +300,7 @@ export function LaunchServiceHistoryDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="mt-4">
+        <div className="overflow-x-auto">
           <BasicTable<ILaunchService>
             data={historyData || []}
             columns={columns}

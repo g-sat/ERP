@@ -277,7 +277,7 @@ export function PortExpensesHistoryDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="mt-4">
+        <div className="overflow-x-auto">
           <BasicTable<IPortExpenses>
             data={historyData || []}
             columns={columns}

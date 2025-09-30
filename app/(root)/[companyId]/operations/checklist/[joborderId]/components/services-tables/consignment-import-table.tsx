@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo } from "react"
+import { useMemo, useState } from "react"
 import {
   IConsignmentImport,
   IConsignmentImportFilter,
@@ -12,6 +12,8 @@ import { format, isValid } from "date-fns"
 import { TableName } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import { TaskTable } from "@/components/table/table-task"
+
+import ConsignmentImportHistoryDialog from "../services-history/consignment-import-history-dialog"
 
 interface ConsignmentImportTableProps {
   data: IConsignmentImport[]
@@ -51,6 +53,29 @@ export function ConsignmentImportTable({
   const { decimals } = useAuthStore()
   const dateFormat = decimals[0]?.dateFormat || "dd/MM/yyyy"
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
+
+  // State for history dialog
+  const [historyDialog, setHistoryDialog] = useState<{
+    isOpen: boolean
+    jobOrderId: number
+    consignmentImportId: number
+    consignmentImportIdDisplay?: number
+  }>({
+    isOpen: false,
+    jobOrderId: 0,
+    consignmentImportId: 0,
+    consignmentImportIdDisplay: 0,
+  })
+
+  // Handler to open history dialog
+  const handleOpenHistory = (item: IConsignmentImport) => {
+    setHistoryDialog({
+      isOpen: true,
+      jobOrderId: item.jobOrderId,
+      consignmentImportId: item.consignmentImportId,
+      consignmentImportIdDisplay: item.consignmentImportId,
+    })
+  }
 
   // Memoize columns to prevent infinite re-renders
   const columns: ColumnDef<IConsignmentImport>[] = useMemo(
@@ -139,13 +164,21 @@ export function ConsignmentImportTable({
       {
         accessorKey: "editVersion",
         header: "Version",
-        cell: ({ row }) => (
-          <div className="text-center">
-            <Badge variant="destructive">
-              {row.getValue("editVersion") || "0"}
-            </Badge>
-          </div>
-        ),
+        cell: ({ row }) => {
+          const item = row.original
+          return (
+            <div className="text-center">
+              <Badge
+                variant="destructive"
+                className="cursor-pointer transition-colors hover:bg-red-700"
+                onClick={() => handleOpenHistory(item)}
+                title="Click to view history"
+              >
+                {row.getValue("editVersion") || "0"}
+              </Badge>
+            </div>
+          )
+        },
         size: 70,
         minSize: 60,
         maxSize: 80,
@@ -254,27 +287,42 @@ export function ConsignmentImportTable({
   }
 
   return (
-    <TaskTable
-      data={data}
-      columns={columns}
-      isLoading={isLoading}
-      moduleId={moduleId}
-      transactionId={transactionId}
-      tableName={TableName.consignmentImport}
-      emptyMessage="No consignment imports found."
-      accessorId="consignmentImportId"
-      onRefresh={onRefresh}
-      onFilterChange={handleFilterChange}
-      onSelect={handleItemSelect}
-      onCreate={onCreateConsignmentImport}
-      onEdit={onEditConsignmentImport}
-      onDelete={onDeleteConsignmentImport}
-      onDebitNote={handleDebitNote}
-      onPurchase={onPurchase}
-      onCombinedService={onCombinedService}
-      isConfirmed={isConfirmed}
-      showHeader={true}
-      showActions={true}
-    />
+    <>
+      <TaskTable
+        data={data}
+        columns={columns}
+        isLoading={isLoading}
+        moduleId={moduleId}
+        transactionId={transactionId}
+        tableName={TableName.consignmentImport}
+        emptyMessage="No consignment imports found."
+        accessorId="consignmentImportId"
+        onRefresh={onRefresh}
+        onFilterChange={handleFilterChange}
+        onSelect={handleItemSelect}
+        onCreate={onCreateConsignmentImport}
+        onEdit={onEditConsignmentImport}
+        onDelete={onDeleteConsignmentImport}
+        onDebitNote={handleDebitNote}
+        onPurchase={onPurchase}
+        onCombinedService={onCombinedService}
+        isConfirmed={isConfirmed}
+        showHeader={true}
+        showActions={true}
+      />
+
+      {/* History Dialog */}
+      {historyDialog.isOpen && (
+        <ConsignmentImportHistoryDialog
+          open={historyDialog.isOpen}
+          onOpenChange={(isOpen) =>
+            setHistoryDialog((prev) => ({ ...prev, isOpen }))
+          }
+          jobOrderId={historyDialog.jobOrderId}
+          consignmentImportId={historyDialog.consignmentImportId}
+          consignmentImportIdDisplay={historyDialog.consignmentImportIdDisplay}
+        />
+      )}
+    </>
   )
 }

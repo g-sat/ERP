@@ -261,7 +261,7 @@ export function AgencyRemunerationHistoryDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="mt-4">
+        <div className="overflow-x-auto">
           <BasicTable<IAgencyRemuneration>
             data={historyData || []}
             columns={columns}

@@ -323,7 +323,7 @@ export function EquipmentUsedHistoryDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="mt-4">
+        <div className="overflow-x-auto">
           <BasicTable<IEquipmentUsed>
             data={historyData || []}
             columns={columns}
