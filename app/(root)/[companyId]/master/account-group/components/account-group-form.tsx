@@ -1,11 +1,8 @@
 "use client"
 
 import { useEffect } from "react"
-import { IAccountGroup } from "@/interfaces/accountgroup"
-import {
-  AccountGroupSchemaType,
-  accountGroupSchema,
-} from "@/schemas/accountgroup"
+import { IAccountGroup } from "@/interfaces"
+import { AccountGroupSchemaType, accountGroupSchema } from "@/schemas"
 import { useAuthStore } from "@/stores/auth-store"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { format } from "date-fns"
@@ -92,9 +89,9 @@ export function AccountGroupForm({
     onCodeBlur?.(code)
   }
 
-  const onSubmit = (data: AccountGroupSchemaType) => {
-    console.log("onSubmit :", data)
-    submitAction(data)
+  const onSubmit = (values: AccountGroupSchemaType) => {
+    console.log("onSubmit :", values)
+    submitAction(values)
   }
 
   return (

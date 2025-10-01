@@ -7,7 +7,7 @@ import {
   accountSetupCategorySchema,
 } from "@/schemas/accountsetup"
 import { useAuthStore } from "@/stores/auth-store"
-import { zodResolver } from "@hookform/resolvers/zod"
+import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns"
 import { useForm } from "react-hook-form"
 

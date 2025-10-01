@@ -19,7 +19,7 @@ import {
   ChevronRightIcon,
   CircleUserRound,
   ClipboardList,
-  Clock,
+  // Clock,
   Coins,
   FileCheck,
   FileMinus,
@@ -108,24 +108,24 @@ export const menuData = {
         },
       ],
     },
-    {
-      title: "HR",
-      url: "/hr",
-      icon: Users,
-      items: [
-        { title: "Employees", url: "/hr/employees", icon: Users },
-        { title: "Loan", url: "/hr/loan", icon: Wallet },
-        { title: "Leave", url: "/hr/leave", icon: CalendarDays },
-        { title: "Attendance", url: "/hr/attendance", icon: Clock },
-        { title: "Payruns", url: "/hr/payruns", icon: Calendar },
-        { title: "Reports", url: "/hr/reports", icon: BarChart },
-        {
-          title: "Setting",
-          url: "/hr/setting",
-          icon: Settings,
-        },
-      ],
-    },
+    // {
+    //   title: "HR",
+    //   url: "/hr",
+    //   icon: Users,
+    //   items: [
+    //     { title: "Employees", url: "/hr/employees", icon: Users },
+    //     { title: "Loan", url: "/hr/loan", icon: Wallet },
+    //     { title: "Leave", url: "/hr/leave", icon: CalendarDays },
+    //     { title: "Attendance", url: "/hr/attendance", icon: Clock },
+    //     { title: "Payruns", url: "/hr/payruns", icon: Calendar },
+    //     { title: "Reports", url: "/hr/reports", icon: BarChart },
+    //     {
+    //       title: "Setting",
+    //       url: "/hr/setting",
+    //       icon: Settings,
+    //     },
+    //   ],
+    // },
   ],
   masterNav: [
     {

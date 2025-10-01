@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { IJobOrderHd } from "@/interfaces/checklist"
 import { ICurrencyLookup } from "@/interfaces/lookup"
-import { JobOrderHdSchema, JobOrderHdSchemaType } from "@/schemas/checklist"
+import { JobOrderHdSchema, JobOrderHdSchemaType } from "@/schemas"
 import { useAuthStore } from "@/stores/auth-store"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { format } from "date-fns"
@@ -97,10 +97,6 @@ export default function NewChecklistPage() {
   // Watch jobOrderDate to update invoiceDate
   const jobOrderDate = form.watch("jobOrderDate")
 
-  // Watch isActive to debug the value
-  const isActive = form.watch("isActive")
-  console.log("isActive value:", isActive)
-
   // Reset address and contact when customer changes
   useEffect(() => {
     const currentAddressId = form.getValues("addressId")
@@ -120,53 +116,6 @@ export default function NewChecklistPage() {
       form.setValue("invoiceDate", jobOrderDate)
     }
   }, [jobOrderDate, form])
-
-  // Ensure form is properly initialized with default values
-  useEffect(() => {
-    form.reset({
-      jobOrderId: 0,
-      jobOrderNo: "",
-      jobOrderDate: new Date(),
-      imoCode: "",
-      vesselDistance: 10,
-      portId: 0,
-      customerId: 0,
-      currencyId: 0,
-      exhRate: 0,
-      vesselId: 0,
-      voyageId: 0,
-      lastPortId: 0,
-      nextPortId: 0,
-      etaDate: undefined,
-      etdDate: undefined,
-      ownerName: "",
-      ownerAgent: "",
-      masterName: "",
-      charters: "",
-      chartersAgent: "",
-      invoiceDate: new Date(),
-      seriesDate: undefined,
-      addressId: 0,
-      contactId: 0,
-      natureOfCall: "",
-      isps: "",
-      isTaxable: false,
-      isClose: false,
-      isPost: false,
-      isActive: true, // Ensure this is explicitly set to true
-      remarks: "",
-      statusId: 201,
-      gstId: 0,
-      gstPercentage: 0,
-      editVersion: "",
-    })
-
-    // Explicitly set isActive to true after a short delay to ensure it's properly set
-    setTimeout(() => {
-      form.setValue("isActive", true)
-      console.log("Explicitly set isActive to true")
-    }, 100)
-  }, [form])
 
   // Handle currency selection
   const handleCurrencyChange = useCallback(
@@ -192,11 +141,11 @@ export default function NewChecklistPage() {
     [exhRateDec, form]
   )
 
-  // Handle save using useSaveJobOrder hook
-  const handleSave = async () => {
+  // Handle form submission
+  const onSubmit = async (values: JobOrderHdSchemaType) => {
+    console.log("onSubmit:", values)
     try {
-      const formData = form.getValues()
-      const response = await saveJobOrderMutation.mutateAsync(formData)
+      const response = await saveJobOrderMutation.mutateAsync(values)
 
       if (response.result === 1) {
         toast.success(response.message || "Job order created successfully!")
@@ -208,12 +157,10 @@ export default function NewChecklistPage() {
           router.push(`/${companyId}/operations/checklist/${jobOrderId}`)
         } else {
           // Fallback: redirect to main checklist page
-          router.push(`/${companyId}/operations/checklist/new`)
+          router.push(`/${companyId}/operations/checklist`)
         }
       } else {
         toast.error(response.message || "Failed to create job order")
-        // Keep form open and don't reset any data on API error
-        // User can retry or make corrections without losing their work
       }
     } catch {
       toast.error("Failed to save job order. Please try again.")
@@ -249,8 +196,12 @@ export default function NewChecklistPage() {
           <Button type="button" variant="outline" onClick={handleReset}>
             Reset
           </Button>
-          <Button type="button" onClick={handleSave}>
-            Save
+          <Button
+            type="submit"
+            form="job-order-form"
+            disabled={saveJobOrderMutation.isPending}
+          >
+            {saveJobOrderMutation.isPending ? "Saving..." : "Save"}
           </Button>
         </div>
       </div>
@@ -258,7 +209,11 @@ export default function NewChecklistPage() {
       {/* Form Section */}
       <div>
         <Form {...form}>
-          <form className="space-y-6">
+          <form
+            id="job-order-form"
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="space-y-6"
+          >
             {/* Main Content - Side by Side Layout */}
             <div className="flex gap-4">
               {/* Operation Card - 70% */}

@@ -76,7 +76,7 @@ export default function CustomInput<T extends Record<string, unknown>>({
                   const value =
                     type === "number"
                       ? e.target.value === ""
-                        ? undefined
+                        ? 0
                         : Number(e.target.value)
                       : e.target.value
                   field.onChange(value)
