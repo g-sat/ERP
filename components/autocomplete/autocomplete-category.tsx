@@ -151,7 +151,7 @@ export default function CategoryAutocomplete<
           "hover:bg-destructive/90 hover:text-destructive-foreground px-1 rounded-sm"
         ),
     }),
-    [isDisabled]
+    []
   )
 
   // Custom styles for React Select

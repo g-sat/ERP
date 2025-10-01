@@ -68,7 +68,7 @@ export function ConsignmentImportTable({
   })
 
   // Handler to open history dialog
-  const handleOpenHistory = (item: IConsignmentImport) => {
+  const _handleOpenHistory = (item: IConsignmentImport) => {
     setHistoryDialog({
       isOpen: true,
       jobOrderId: item.jobOrderId,

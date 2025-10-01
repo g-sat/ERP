@@ -7,7 +7,7 @@ import Select, {
   ClearIndicatorProps,
   DropdownIndicatorProps,
   OptionProps,
-  StylesConfig,
+  SingleValueProps,
   components,
 } from "react-select"
 
@@ -122,15 +122,9 @@ export default function AttendanceStatusAutocomplete<
   Option.displayName = "Option"
 
   const SingleValue = React.memo(
-    ({
-      children,
-      ...props
-    }: {
-      children: React.ReactNode
-      data?: { value: string }
-    }) => {
+    (props: SingleValueProps<AttendanceStatusOption>) => {
       const selectedOption = attendanceStatusOptions.find(
-        (option) => option.value === props.data?.value
+        (option) => option.value === props.data.value
       )
       return (
         <components.SingleValue {...props}>
@@ -142,7 +136,7 @@ export default function AttendanceStatusAutocomplete<
                 {selectedOption.value}
               </div>
             )}
-            <span>{selectedOption?.label || children}</span>
+            <span>{selectedOption?.label || props.children}</span>
           </div>
         </components.SingleValue>
       )

@@ -5,7 +5,6 @@ import { Camera, Loader2, Upload, X } from "lucide-react"
 import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 
 interface PhotoUploadProps {
@@ -121,6 +120,7 @@ export default function PhotoUpload({
         <div className="relative">
           <div className="flex h-32 w-32 items-center justify-center overflow-hidden rounded-full border-2 border-dashed border-gray-300 bg-gray-50">
             {getPhotoUrl() ? (
+              // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={getPhotoUrl()}
                 alt="Photo"
@@ -146,7 +146,7 @@ export default function PhotoUpload({
             <Button
               size="icon"
               variant="destructive"
-              className="absolute -right-2 -top-2 h-6 w-6 rounded-full"
+              className="absolute -top-2 -right-2 h-6 w-6 rounded-full"
               onClick={handleRemovePhoto}
               disabled={isDisabled}
             >

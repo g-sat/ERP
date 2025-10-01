@@ -360,32 +360,6 @@ export default function InvoiceDetailsTable({
     }
   }, [data])
 
-  useEffect(() => {
-    if (gridSettings) {
-      try {
-        const colVisible = JSON.parse(gridSettings.grdColVisible || "{}")
-        const colOrder = JSON.parse(gridSettings.grdColOrder || "[]")
-        const colSize = JSON.parse(gridSettings.grdColSize || "{}")
-        const sort = JSON.parse(gridSettings.grdSort || "[]")
-
-        setColumnVisibility(colVisible)
-        setSorting(sort)
-
-        table.getAllColumns().forEach((column) => {
-          if (colSize[column.id]) {
-            column.getSize()
-          }
-        })
-
-        if (colOrder.length > 0) {
-          table.setColumnOrder(colOrder)
-        }
-      } catch (error) {
-        console.error("Error parsing grid settings:", error)
-      }
-    }
-  }, [gridSettings])
-
   const handleAddRow = () => {
     const maxSeqNo =
       data.length > 0 ? Math.max(...data.map((row) => row.seqNo)) : 0
@@ -820,7 +794,15 @@ export default function InvoiceDetailsTable({
     })
 
     return () => subscription.unsubscribe()
-  }, [form, visible])
+  }, [
+    form,
+    visible,
+    amtDec,
+    locAmtDec,
+    ctyAmtDec,
+    invoiceDetailForm,
+    syncSchemaType,
+  ])
 
   const handleExportExcel = () => {
     if (!data || data.length === 0) {
@@ -1523,6 +1505,33 @@ export default function InvoiceDetailsTable({
       rowSelection,
     },
   })
+
+  // Load grid settings after table is created
+  useEffect(() => {
+    if (gridSettings && table) {
+      try {
+        const colVisible = JSON.parse(gridSettings.grdColVisible || "{}")
+        const colOrder = JSON.parse(gridSettings.grdColOrder || "[]")
+        const colSize = JSON.parse(gridSettings.grdColSize || "{}")
+        const sort = JSON.parse(gridSettings.grdSort || "[]")
+
+        setColumnVisibility(colVisible)
+        setSorting(sort)
+
+        table.getAllColumns().forEach((column) => {
+          if (colSize[column.id]) {
+            column.getSize()
+          }
+        })
+
+        if (colOrder.length > 0) {
+          table.setColumnOrder(colOrder)
+        }
+      } catch (error) {
+        console.error("Error parsing grid settings:", error)
+      }
+    }
+  }, [gridSettings, table])
 
   const handleSaveLayout = async () => {
     try {

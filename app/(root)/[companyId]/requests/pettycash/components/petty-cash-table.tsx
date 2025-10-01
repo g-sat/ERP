@@ -59,7 +59,7 @@ export function PettyCashTable({
   onSave,
   showActions = true,
 }: PettyCashTableProps) {
-  const [selectedPettyCash, setSelectedPettyCash] =
+  const [_selectedPettyCash, _setSelectedPettyCash] =
     useState<IPettyCashRequest | null>(null)
   const [approvalDialog, setApprovalDialog] = useState<ApprovalDialogData>({
     pettyCash: null,

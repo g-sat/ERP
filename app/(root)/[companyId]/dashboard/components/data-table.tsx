@@ -1,7 +1,6 @@
 "use client"
 
 import * as React from "react"
-import { useAuthStore } from "@/stores/auth-store"
 import {
   DndContext,
   KeyboardSensor,

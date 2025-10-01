@@ -41,9 +41,9 @@ export default function Other({ form }: OtherProps) {
       pinCode: form.getValues("pinCode") || "",
       countryId: form.getValues("countryId") || 0,
       phoneNo: form.getValues("phoneNo") || "",
-      faxNo: form.getValues("faxNo") || null,
+      faxNo: form.getValues("faxNo") || "",
       emailAdd: "",
-      webUrl: null,
+      webUrl: "",
       isDefaultAdd: false,
       isDeliveryAdd: false,
       isFinAdd: false,
@@ -51,10 +51,10 @@ export default function Other({ form }: OtherProps) {
       isActive: true,
       createById: 0,
       createDate: new Date(),
-      editById: null,
-      editDate: null,
-      createBy: null,
-      editBy: null,
+      editById: 0,
+      editDate: new Date(),
+      createBy: "",
+      editBy: "",
     }
     setSelectedAddress(address)
 
@@ -78,10 +78,10 @@ export default function Other({ form }: OtherProps) {
       isActive: true,
       createById: 0,
       createDate: new Date(),
-      editById: null,
-      editDate: null,
-      createBy: null,
-      editBy: null,
+      editById: 0,
+      editDate: new Date(),
+      createBy: "",
+      editBy: "",
     }
     setSelectedContact(contact)
   }, [customerId]) // Re-run when customerId changes

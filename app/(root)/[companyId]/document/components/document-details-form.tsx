@@ -21,18 +21,18 @@ import CustomInput from "@/components/custom/custom-input"
 
 interface DocumentDetailsDialogProps {
   open: boolean
-  onOpenChange: (open: boolean) => void
+  onOpenChangeAction: (open: boolean) => void
   detail?: IUniversalDocumentDt
   documentId?: number
-  onCancel: () => void
+  onCancelAction: () => void
 }
 
 export function DocumentDetailsForm({
   open,
-  onOpenChange,
+  onOpenChangeAction,
   detail,
   documentId,
-  onCancel,
+  onCancelAction,
 }: DocumentDetailsDialogProps) {
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([])
   const [isUploading, setIsUploading] = useState(false)
@@ -225,7 +225,7 @@ export function DocumentDetailsForm({
             }),
           })
         }
-        onOpenChange(false)
+        onOpenChangeAction(false)
       } else {
         // Cleanup temp
         for (const path of tempFilePaths) {
@@ -244,8 +244,8 @@ export function DocumentDetailsForm({
   }
 
   const handleCancel = () => {
-    onCancel()
-    onOpenChange(false)
+    onCancelAction()
+    onOpenChangeAction(false)
   }
 
   return (

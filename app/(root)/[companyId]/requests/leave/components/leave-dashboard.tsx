@@ -42,8 +42,8 @@ interface LeaveDashboardProps {
 
 export function LeaveDashboard({
   leaves,
-  leaveBalances,
-  policies,
+  leaveBalances: _leaveBalances,
+  policies: _policies,
   onLeaveSubmit,
   onLeaveSave,
   onPolicySubmit,
@@ -115,7 +115,7 @@ export function LeaveDashboard({
     }
   }
 
-  const handlePolicySubmit = async (data: LeavePolicySchemaType) => {
+  const _handlePolicySubmit = async (data: LeavePolicySchemaType) => {
     console.log("LeaveDashboard handlePolicySubmit called with data:", data)
     if (onPolicySubmit) {
       console.log("Calling onPolicySubmit...")
@@ -132,7 +132,7 @@ export function LeaveDashboard({
     }
   }
 
-  const handleBalanceSubmit = async (data: LeaveBalanceSchemaType) => {
+  const _handleBalanceSubmit = async (data: LeaveBalanceSchemaType) => {
     console.log("LeaveDashboard handleBalanceSubmit called with data:", data)
     // TODO: Implement balance submit logic
     console.log("Balance submit not implemented yet")

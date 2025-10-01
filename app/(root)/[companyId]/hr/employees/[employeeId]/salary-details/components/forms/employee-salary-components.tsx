@@ -85,7 +85,7 @@ export function SalaryComponentsForm({
   )
   const totalAnnual = totalMonthly * 12
 
-  const onSubmit = (data: SalaryComponentFormData) => {
+  const onSubmit = (_data: SalaryComponentFormData) => {
     // Form submission logic if needed
   }
 

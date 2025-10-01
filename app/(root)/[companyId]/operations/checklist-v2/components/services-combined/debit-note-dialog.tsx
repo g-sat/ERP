@@ -46,7 +46,7 @@ export function DebitNoteDialog({
   description = "Manage debit note details for this service.",
   onOpenChange,
   onDelete,
-  jobOrder,
+  jobOrder: _jobOrder,
 }: DebitNoteDialogProps) {
   const [details, setDetails] = useState<IDebitNoteDt[]>(
     debitNoteHd?.data_details ?? []

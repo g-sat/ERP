@@ -208,30 +208,22 @@ export function OtherServiceForm({
                 isRequired={true}
                 isDisabled={isConfirmed}
               />
-
-              {/* Show Quantity field only if NOT "Cash to master" charge */}
-              {!isCashToMaster && (
-                <CustomInput
-                  form={form}
-                  name="quantity"
-                  label="Quantity"
-                  type="number"
-                  isRequired
-                  isDisabled={isConfirmed}
-                />
-              )}
-
-              {/* Show Amount field only if "Cash to master" charge */}
-              {isCashToMaster && (
-                <CustomInput
-                  form={form}
-                  name="amount"
-                  label="Amount"
-                  type="number"
-                  isRequired
-                  isDisabled={isConfirmed}
-                />
-              )}
+              <CustomInput
+                form={form}
+                name="quantity"
+                label="Quantity"
+                type="number"
+                isRequired
+                isDisabled={isConfirmed}
+              />
+              <CustomInput
+                form={form}
+                name="amount"
+                label="CTM/Amount"
+                type="number"
+                isRequired
+                isDisabled={isConfirmed || !isCashToMaster}
+              />
             </div>
             <CustomTextarea
               form={form}

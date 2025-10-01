@@ -33,7 +33,7 @@ export default function LeavePage() {
 
   // Initialize mutation hooks using common hooks
   const saveLeaveRequestMutation = usePersist(HrLeaveRequest.add)
-  const deleteLeaveRequestMutation = useDelete(HrLeaveRequest.delete)
+  const _deleteLeaveRequestMutation = useDelete(HrLeaveRequest.delete)
   const approveLeaveMutation = usePersist(HrLeaveApproval.approve)
   const rejectLeaveMutation = usePersist(HrLeaveApproval.reject)
   const savePolicyMutation = usePersist(HrLeavePolicy.add)

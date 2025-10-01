@@ -10,7 +10,6 @@ import { ColumnDef } from "@tanstack/react-table"
 import { format, isValid } from "date-fns"
 
 import { TableName } from "@/lib/utils"
-import { Badge } from "@/components/ui/badge"
 import { TaskTable } from "@/components/table/table-task"
 
 import ConsignmentExportHistoryDialog from "../services-history/consignment-export-history-dialog"
@@ -68,7 +67,7 @@ export function ConsignmentExportTable({
   })
 
   // Handler to open history dialog
-  const handleOpenHistory = (item: IConsignmentExport) => {
+  const _handleOpenHistory = (item: IConsignmentExport) => {
     setHistoryDialog({
       isOpen: true,
       jobOrderId: item.jobOrderId,

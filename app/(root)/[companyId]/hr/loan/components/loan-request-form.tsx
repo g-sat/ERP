@@ -194,7 +194,7 @@ export function LoanRequestForm({
   }
 
   // Get minimum date for EMI start (request date + 1 day)
-  const getMinEMIDate = () => {
+  const _getMinEMIDate = () => {
     const requestDate = form.getValues("requestDate")
     if (requestDate) {
       const minDate = new Date(requestDate)

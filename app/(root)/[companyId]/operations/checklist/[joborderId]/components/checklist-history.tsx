@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useMemo } from "react"
+import { useMemo } from "react"
 import { IJobOrderHd } from "@/interfaces/checklist"
 import { ColumnDef } from "@tanstack/react-table"
 import { format } from "date-fns"
@@ -9,7 +9,7 @@ import { JobOrder } from "@/lib/api-routes"
 import { TableName } from "@/lib/utils"
 import { useGet } from "@/hooks/use-common"
 import { Badge } from "@/components/ui/badge"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { BasicTable } from "@/components/table/table-basic"
 
 // History interface for job order history
@@ -34,7 +34,7 @@ interface ChecklistHistoryFormProps {
 
 export function ChecklistHistory({
   jobData,
-  isConfirmed = false,
+  isConfirmed: _isConfirmed = false,
 }: ChecklistHistoryFormProps) {
   // Fetch history data
   const { data: historyResponse, isLoading: isHistoryLoading } =

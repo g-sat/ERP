@@ -73,7 +73,7 @@ export function ChecklistTabs({
   const [debitNoteData, setDebitNoteData] = useState<IDebitNoteItem[]>([])
   const [debitNoteLoading, setDebitNoteLoading] = useState(false)
   const [debitNoteSaving, setDebitNoteSaving] = useState(false)
-  const [debitNoteError, setDebitNoteError] = useState<string | null>(null)
+  const [_debitNoteError, setDebitNoteError] = useState<string | null>(null)
 
   // Fetch detailed job order data when jobData is available
   const jobOrderId = jobData?.jobOrderId?.toString() || ""

@@ -12,10 +12,10 @@ export default function AdminGroupRightsPage() {
 
   const { hasPermission } = usePermissionStore()
 
-  const canEdit = hasPermission(moduleId, transactionIdGroup, "isEdit")
-  const canDelete = hasPermission(moduleId, transactionIdGroup, "isDelete")
-  const canView = hasPermission(moduleId, transactionIdGroup, "isRead")
-  const canCreate = hasPermission(moduleId, transactionIdGroup, "isCreate")
+  const _canEdit = hasPermission(moduleId, transactionIdGroup, "isEdit")
+  const _canDelete = hasPermission(moduleId, transactionIdGroup, "isDelete")
+  const _canView = hasPermission(moduleId, transactionIdGroup, "isRead")
+  const _canCreate = hasPermission(moduleId, transactionIdGroup, "isCreate")
 
   return (
     <div className="container mx-auto space-y-2 px-4 pt-2 pb-4 sm:space-y-3 sm:px-6 sm:pt-3 sm:pb-6">

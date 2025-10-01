@@ -47,7 +47,7 @@ export default function EmployeePage() {
     [router, companyId]
   )
 
-  const handleDelete = useCallback((employee: IEmployeeBasic) => {
+  const _handleDelete = useCallback((employee: IEmployeeBasic) => {
     setEmployeeToDelete(employee)
     setDeleteConfirmOpen(true)
   }, [])

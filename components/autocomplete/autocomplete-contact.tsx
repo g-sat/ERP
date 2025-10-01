@@ -138,7 +138,7 @@ export default function ContactAutocomplete<T extends Record<string, unknown>>({
           "hover:bg-destructive/90 hover:text-destructive-foreground px-1 rounded-sm"
         ),
     }),
-    [isDisabled]
+    []
   )
 
   const customStyles: StylesConfig<FieldOption, boolean> = React.useMemo(

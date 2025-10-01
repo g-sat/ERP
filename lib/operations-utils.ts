@@ -30,7 +30,7 @@ export enum Task {
 // Helper function to get task name by task ID
 export function getTaskName(taskId: number): string {
   const taskEntries = Object.entries(Task)
-  const taskEntry = taskEntries.find(([_, value]) => value === taskId)
+  const taskEntry = taskEntries.find(([, value]) => value === taskId)
   return taskEntry ? taskEntry[0] : "Unknown Task"
 }
 

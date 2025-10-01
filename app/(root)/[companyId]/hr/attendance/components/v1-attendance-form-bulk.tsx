@@ -40,7 +40,7 @@ interface BulkAttendanceData {
 
 interface AttendanceFormProps {
   open: boolean
-  onOpenChange: (open: boolean) => void
+  onOpenChangeAction: (open: boolean) => void
 }
 
 // Utility to format date -> YYYY-MM-DD (no time)
@@ -58,7 +58,7 @@ const formatMonth = (date: Date) => {
 
 export function AttendanceBulkForm({
   open,
-  onOpenChange,
+  onOpenChangeAction,
 }: AttendanceFormProps) {
   const [selectedMonthYear, setSelectedMonthYear] = useState<string>(
     formatMonth(new Date())
@@ -167,7 +167,7 @@ export function AttendanceBulkForm({
     bulkSaveAttendance.mutate(attendanceRecords, {
       onSuccess: (response) => {
         if (response.result === 1) {
-          onOpenChange(false)
+          onOpenChangeAction(false)
         }
       },
     })
@@ -181,7 +181,7 @@ export function AttendanceBulkForm({
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={onOpenChangeAction}>
       <DialogContent className="max-h-[90vh] w-[95vw] !max-w-none overflow-y-auto sm:w-[90vw]">
         <DialogHeader>
           <DialogTitle className="text-lg sm:text-xl">
@@ -230,7 +230,7 @@ export function AttendanceBulkForm({
                   type="button"
                   variant="outline"
                   size="sm"
-                  onClick={() => onOpenChange(false)}
+                  onClick={() => onOpenChangeAction(false)}
                 >
                   Cancel
                 </Button>

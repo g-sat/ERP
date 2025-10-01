@@ -46,21 +46,21 @@ export function BulkDebitNoteTable({
         size: 350,
         minSize: 250,
       },
-       {
-         accessorKey: "basicRate",
-         header: "Amount",
-         cell: ({ row }) => {
-           const value = row.getValue("basicRate");
-           const numericValue = parseFloat(value as string) || 0;
-           return (
-             <div className="text-right font-mono">
-               {numericValue.toFixed(2)}
-             </div>
-           );
-         },
-         size: 100,
-         minSize: 80,
-       },
+      {
+        accessorKey: "basicRate",
+        header: "Amount",
+        cell: ({ row }) => {
+          const value = row.getValue("basicRate")
+          const numericValue = parseFloat(value as string) || 0
+          return (
+            <div className="text-right font-mono">
+              {numericValue.toFixed(2)}
+            </div>
+          )
+        },
+        size: 100,
+        minSize: 80,
+      },
       {
         accessorKey: "chargeId",
         header: "Charge",
@@ -123,9 +123,9 @@ export function BulkDebitNoteTable({
   )
 
   // Filter out hidden columns (chargeId and glId)
-  const visibleColumns = columns.filter(col => {
-    const accessorKey = (col as any).accessorKey;
-    return accessorKey !== "chargeId" && accessorKey !== "glId";
+  const visibleColumns = columns.filter((col) => {
+    const accessorKey = "accessorKey" in col ? col.accessorKey : undefined
+    return accessorKey !== "chargeId" && accessorKey !== "glId"
   })
 
   return (

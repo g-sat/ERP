@@ -47,7 +47,6 @@ import {
 import { Separator } from "@/components/ui/separator"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import JobOrderCustomerAutocomplete from "@/components/autocomplete/autocomplete-joborder-customer"
-import { PageLoadingSpinner } from "@/components/skeleton/loading-spinner"
 
 interface TaskForwardSchemaType extends Record<string, unknown> {
   customerId: number

@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
 
     // Generate unique filename
     const timestamp = Date.now()
-    const fileExtension = file.name.split(".").pop()
+    const _fileExtension = file.name.split(".").pop()
     const fileName = `${timestamp}_${file.name}`
     const filePath = join(tempDir, fileName)
 

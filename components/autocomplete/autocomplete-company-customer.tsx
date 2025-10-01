@@ -149,7 +149,7 @@ export default function CompanyCustomerAutocomplete<
           "hover:bg-destructive/90 hover:text-destructive-foreground px-1 rounded-sm"
         ),
     }),
-    [isDisabled]
+    []
   )
 
   // We still need some styles for things that can't be controlled via className

@@ -19,7 +19,7 @@ interface MobileNavProps {
   className?: string
 }
 
-export function MobileNav({ className }: MobileNavProps) {
+export function MobileNav({}: MobileNavProps) {
   const [open, setOpen] = React.useState(false)
   const pathname = usePathname()
 

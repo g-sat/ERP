@@ -18,12 +18,12 @@ interface HistoryProps {
 
 export default function History({
   form,
-  isEdit,
+  isEdit: _isEdit,
   moduleId,
   transactionId,
 }: HistoryProps) {
   const { decimals } = useAuthStore()
-  const dateFormat = decimals[0]?.dateFormat || "yyyy-MM-dd"
+  const _dateFormat = decimals[0]?.dateFormat || "yyyy-MM-dd"
 
   const accountDetails = {
     createdBy: "", // Default value since createBy doesn't exist in form schema

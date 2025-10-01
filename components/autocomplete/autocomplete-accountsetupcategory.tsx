@@ -170,7 +170,7 @@ export default function AccountSetupCategoryAutocomplete<
           "hover:bg-destructive/90 hover:text-destructive-foreground px-1 rounded-sm"
         ),
     }),
-    [isDisabled]
+    []
   )
 
   const customStyles: StylesConfig<FieldOption, boolean> = React.useMemo(

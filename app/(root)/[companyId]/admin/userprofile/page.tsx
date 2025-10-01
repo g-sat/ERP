@@ -61,10 +61,10 @@ export default function ProfilePage() {
 
   const { hasPermission } = usePermissionStore()
 
-  const canEdit = hasPermission(moduleId, transactionIdProfile, "isEdit")
-  const canDelete = hasPermission(moduleId, transactionIdProfile, "isDelete")
-  const canView = hasPermission(moduleId, transactionIdProfile, "isRead")
-  const canCreate = hasPermission(moduleId, transactionIdProfile, "isCreate")
+  const _canEdit = hasPermission(moduleId, transactionIdProfile, "isEdit")
+  const _canDelete = hasPermission(moduleId, transactionIdProfile, "isDelete")
+  const _canView = hasPermission(moduleId, transactionIdProfile, "isRead")
+  const _canCreate = hasPermission(moduleId, transactionIdProfile, "isCreate")
 
   // Password visibility states
   const [showNewPassword, setShowNewPassword] = useState(false)

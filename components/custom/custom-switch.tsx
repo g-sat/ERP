@@ -1,6 +1,7 @@
 import { useState } from "react"
 import { IconAlertCircle } from "@tabler/icons-react"
 import { motion } from "framer-motion"
+import { UseFormReturn } from "react-hook-form"
 
 import { cn } from "@/lib/utils"
 
@@ -16,7 +17,7 @@ export default function CustomSwitch({
   size = "default", // "sm", "default", "lg"
   isRequired = false,
   isDisabled = false,
-  activeColor = "primary",
+  activeColor: _activeColor = "primary",
 }: {
   form: UseFormReturn<Record<string, unknown>>
   label?: string
@@ -35,6 +36,7 @@ export default function CustomSwitch({
       name={name}
       render={({ field, fieldState: { error, isDirty, isTouched } }) => {
         const showError = error && (isTouched || isDirty)
+        const isChecked = Boolean(field.value)
 
         return (
           <FormItem className={cn("flex flex-col", className)}>
@@ -67,7 +69,7 @@ export default function CustomSwitch({
                   transition={{ duration: 0.15 }}
                 >
                   <Switch
-                    checked={field.value}
+                    checked={isChecked}
                     onCheckedChange={(value) => {
                       field.onChange(value)
                       if (onBlurEvent) onBlurEvent()
@@ -82,13 +84,13 @@ export default function CustomSwitch({
                       size === "lg" &&
                         "h-[26px] w-[48px] [&>span]:h-[22px] [&>span]:w-[22px]",
                       isDisabled && "cursor-not-allowed opacity-70",
-                      !field.value && "bg-red-500/50 dark:bg-red-700/50",
+                      !isChecked && "bg-red-500/50 dark:bg-red-700/50",
                       "data-[state=checked]:bg-primary dark:data-[state=checked]:bg-blue-400"
                     )}
                   />
                 </motion.div>
 
-                {field.value && (
+                {isChecked && (
                   <motion.span
                     initial={{ opacity: 0, x: -5 }}
                     animate={{ opacity: 1, x: 0 }}
@@ -99,7 +101,7 @@ export default function CustomSwitch({
                   </motion.span>
                 )}
 
-                {!field.value && (
+                {!isChecked && (
                   <motion.span
                     initial={{ opacity: 0, x: -5 }}
                     animate={{ opacity: 1, x: 0 }}

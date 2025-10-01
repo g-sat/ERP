@@ -179,7 +179,7 @@ export function LoanRequestTable({
     }
   }
 
-  const formatDate = (dateString: string | Date) => {
+  const _formatDate = (dateString: string | Date) => {
     if (!dateString) return "N/A"
     try {
       const date = new Date(dateString)
