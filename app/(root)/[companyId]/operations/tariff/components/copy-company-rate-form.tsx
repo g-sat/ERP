@@ -31,17 +31,21 @@ const copyCompanyRateSchema = z.object({
   toPortId: z.number().min(1, "To Port is required"),
   fromTaskId: z.number().min(1, "From Task is required"),
   multipleId: z.string().optional(),
-  isOverwrite: z.boolean().default(false),
-  isDelete: z.boolean().default(false),
+  isOverwrite: z.boolean(),
+  isDelete: z.boolean(),
 })
 
 type CopyCompanyRateSchemaType = z.infer<typeof copyCompanyRateSchema>
 
 interface CopyCompanyRateFormProps {
-  onClose: () => void
+  onCancel: () => void
+  onSaveConfirmation?: (data: Record<string, unknown>) => void
 }
 
-export function CopyCompanyRateForm({ onClose }: CopyCompanyRateFormProps) {
+export function CopyCompanyRateForm({
+  onCancel,
+  onSaveConfirmation,
+}: CopyCompanyRateFormProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [selectedFromCompanyId, setSelectedFromCompanyId] = useState<number>(0)
   const [selectedToCompanyId, setSelectedToCompanyId] = useState<number>(0)
@@ -123,45 +127,50 @@ export function CopyCompanyRateForm({ onClose }: CopyCompanyRateFormProps) {
   }, [watchedFromCustomerId, watchedFromPortId, watchedFromTaskId])
 
   const handleSubmit = async (data: CopyCompanyRateSchemaType) => {
-    setIsLoading(true)
-    try {
-      // Prepare copy rate data
-      const copyRateData = {
-        fromCompanyId: data.fromCompanyId,
-        toCompanyId: data.toCompanyId,
-        fromTaskId: data.fromTaskId,
-        fromPortId: data.fromPortId,
-        toPortId: data.toPortId,
-        fromCustomerId: data.fromCustomerId,
-        toCustomerId: data.toCustomerId,
-        multipleId: data.multipleId || "",
-        isOverwrite: data.isOverwrite,
-        isDelete: data.isDelete,
-      }
+    // Prepare copy rate data
+    const copyRateData = {
+      fromCompanyId: data.fromCompanyId,
+      toCompanyId: data.toCompanyId,
+      fromTaskId: data.fromTaskId,
+      fromPortId: data.fromPortId,
+      toPortId: data.toPortId,
+      fromCustomerId: data.fromCustomerId,
+      toCustomerId: data.toCustomerId,
+      multipleId: data.multipleId || "",
+      isOverwrite: data.isOverwrite,
+      isDelete: data.isDelete,
+    }
 
-      // Call the copy tariff API
-      copyTariffMutation.mutate(copyRateData, {
-        onSuccess: (response) => {
-          console.log("Copy response:", response)
-          if (response?.result === 1) {
-            toast.success("Rates copied successfully")
-            onClose()
-            form.reset()
-          } else {
-            const errorMessage = response?.message || "Failed to copy rates"
-            toast.error(errorMessage)
-          }
-        },
-        onError: (error) => {
-          console.error("Error copying rates:", error)
-          toast.error("Failed to copy rates")
-        },
-      })
-    } catch (error) {
-      console.error("Error copying rates:", error)
-      toast.error("Failed to copy rates")
-    } finally {
-      setIsLoading(false)
+    if (onSaveConfirmation) {
+      onSaveConfirmation(copyRateData)
+    } else {
+      // Fallback to direct execution if no confirmation handler
+      setIsLoading(true)
+      try {
+        // Call the copy tariff API
+        copyTariffMutation.mutate(copyRateData, {
+          onSuccess: (response) => {
+            console.log("Copy response:", response)
+            if (response?.result === 1) {
+              toast.success("Rates copied successfully")
+              onCancel()
+              form.reset()
+            } else {
+              const errorMessage = response?.message || "Failed to copy rates"
+              toast.error(errorMessage)
+            }
+          },
+          onError: (error) => {
+            console.error("Error copying rates:", error)
+            toast.error("Failed to copy rates")
+          },
+        })
+      } catch (error) {
+        console.error("Error copying rates:", error)
+        toast.error("Failed to copy rates")
+      } finally {
+        setIsLoading(false)
+      }
     }
   }
 
@@ -187,14 +196,6 @@ export function CopyCompanyRateForm({ onClose }: CopyCompanyRateFormProps) {
           form.setValue(field, 0)
         }
       }
-    },
-    [form]
-  )
-
-  const handleSelectionChange = useCallback(
-    (selectedIds: string[]) => {
-      // Update the multipleId field with comma-separated IDs
-      form.setValue("multipleId", selectedIds.join(","))
     },
     [form]
   )
@@ -235,111 +236,141 @@ export function CopyCompanyRateForm({ onClose }: CopyCompanyRateFormProps) {
   return (
     <div className="space-y-4">
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-          <div className="grid grid-cols-2 gap-6">
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold">From</h3>
-              <CompanyAutocomplete
-                form={form}
-                name="fromCompanyId"
-                label="Company"
-                isRequired
-                onChangeEvent={handleCompanyChange("fromCompanyId")}
-              />
-              <CompanyCustomerAutocomplete
-                form={form}
-                name="fromCustomerId"
-                label="Customer"
-                companyId={selectedFromCompanyId}
-                isRequired
-                onChangeEvent={handleCustomerChange("fromCustomerId")}
-              />
-              <PortAutocomplete
-                form={form}
-                name="fromPortId"
-                label="Port"
-                isRequired
-                onChangeEvent={handlePortChange("fromPortId")}
-              />
-              <TaskAutocomplete
-                form={form}
-                name="fromTaskId"
-                label="Task"
-                isRequired
-              />
-            </div>
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold">To</h3>
-              <CompanyAutocomplete
-                form={form}
-                name="toCompanyId"
-                label="Company"
-                isRequired
-                onChangeEvent={handleCompanyChange("toCompanyId")}
-              />
-              <CompanyCustomerAutocomplete
-                form={form}
-                name="toCustomerId"
-                label="Customer"
-                companyId={selectedToCompanyId}
-                isRequired
-                onChangeEvent={handleCustomerChange("toCustomerId")}
-              />
-              <PortAutocomplete
-                form={form}
-                name="toPortId"
-                label="Port"
-                isRequired
-                onChangeEvent={handlePortChange("toPortId")}
-              />
-            </div>
-          </div>
-
-          <div className="flex items-center space-x-4">
-            <Checkbox
-              id="isOverwrite"
-              checked={form.watch("isOverwrite")}
-              onCheckedChange={(c) => {
-                const isChecked = c as boolean
-                form.setValue("isOverwrite", isChecked)
-                // If overwrite is checked, uncheck delete
-                if (isChecked) {
-                  form.setValue("isDelete", false)
-                }
-              }}
-            />
-            <label htmlFor="isOverwrite">Overwrite existing</label>
-            <Checkbox
-              id="isDelete"
-              checked={form.watch("isDelete")}
-              onCheckedChange={(c) => {
-                const isChecked = c as boolean
-                form.setValue("isDelete", isChecked)
-                // If delete is checked, uncheck overwrite
-                if (isChecked) {
-                  form.setValue("isOverwrite", false)
-                }
-              }}
-            />
-            <label htmlFor="isDelete">Delete source after copy</label>
-          </div>
-
-          {showTable && (
-            <div className="w-full space-y-2">
-              <h3 className="text-lg font-semibold">Select Rates</h3>
-              {form.watch("multipleId") && (
-                <p className="text-sm">
-                  Selected:{" "}
-                  {form.watch("multipleId")?.split(",").filter(Boolean).length}{" "}
-                  rate(s)
-                </p>
-              )}
-              <div className="max-h-96 w-full overflow-auto">
-                <TariffTable
-                  data={tariffData}
-                  isLoading={isLoadingTariffs}
-                  onSelectionChange={handleSelectionChange}
+        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+            {/* From Section */}
+            <div className="bg-card space-y-3 rounded-lg border p-4">
+              <div className="flex items-center gap-2">
+                <div className="h-2 w-2 rounded-full bg-blue-500"></div>
+                <h3 className="text-lg font-semibold text-blue-700">From</h3>
+              </div>
+              <div className="space-y-3">
+                <CompanyAutocomplete
+                  form={form}
+                  name="fromCompanyId"
+                  label="Company"
+                  isRequired
+                  onChangeEvent={handleCompanyChange("fromCompanyId")}
                 />
+                <CompanyCustomerAutocomplete
+                  form={form}
+                  name="fromCustomerId"
+                  label="Customer"
+                  companyId={selectedFromCompanyId}
+                  isRequired
+                  onChangeEvent={handleCustomerChange("fromCustomerId")}
+                />
+                <PortAutocomplete
+                  form={form}
+                  name="fromPortId"
+                  label="Port"
+                  isRequired
+                  onChangeEvent={handlePortChange("fromPortId")}
+                />
+                <TaskAutocomplete
+                  form={form}
+                  name="fromTaskId"
+                  label="Task"
+                  isRequired
+                />
+              </div>
+            </div>
+
+            {/* To Section */}
+            <div className="bg-card space-y-3 rounded-lg border p-4">
+              <div className="flex items-center gap-2">
+                <div className="h-2 w-2 rounded-full bg-green-500"></div>
+                <h3 className="text-lg font-semibold text-green-700">To</h3>
+              </div>
+              <div className="space-y-3">
+                <CompanyAutocomplete
+                  form={form}
+                  name="toCompanyId"
+                  label="Company"
+                  isRequired
+                  onChangeEvent={handleCompanyChange("toCompanyId")}
+                />
+                <CompanyCustomerAutocomplete
+                  form={form}
+                  name="toCustomerId"
+                  label="Customer"
+                  companyId={selectedToCompanyId}
+                  isRequired
+                  onChangeEvent={handleCustomerChange("toCustomerId")}
+                />
+                <PortAutocomplete
+                  form={form}
+                  name="toPortId"
+                  label="Port"
+                  isRequired
+                  onChangeEvent={handlePortChange("toPortId")}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Options Section */}
+          <div className="bg-muted/30 w-full space-y-3 rounded-lg border p-3">
+            <h3 className="text-lg font-semibold">Copy Options</h3>
+            <div className="flex flex-wrap gap-4">
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="isOverwrite"
+                  checked={form.watch("isOverwrite")}
+                  onCheckedChange={(c) => {
+                    const isChecked = c as boolean
+                    form.setValue("isOverwrite", isChecked)
+                    // If overwrite is checked, uncheck delete
+                    if (isChecked) {
+                      form.setValue("isDelete", false)
+                    }
+                  }}
+                />
+                <label htmlFor="isOverwrite" className="text-sm font-medium">
+                  Overwrite existing rates
+                </label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="isDelete"
+                  checked={form.watch("isDelete")}
+                  onCheckedChange={(c) => {
+                    const isChecked = c as boolean
+                    form.setValue("isDelete", isChecked)
+                    // If delete is checked, uncheck overwrite
+                    if (isChecked) {
+                      form.setValue("isOverwrite", false)
+                    }
+                  }}
+                />
+                <label htmlFor="isDelete" className="text-sm font-medium">
+                  Delete source after copy
+                </label>
+              </div>
+            </div>
+          </div>
+
+          {/* Rates Selection Table */}
+          {showTable && (
+            <div className="bg-card w-full space-y-3 rounded-lg border p-3">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold">Select Rates to Copy</h3>
+                {form.watch("multipleId") && (
+                  <div className="flex items-center gap-2">
+                    <div className="h-2 w-2 rounded-full bg-orange-500"></div>
+                    <span className="text-muted-foreground text-sm font-medium">
+                      Selected:{" "}
+                      {
+                        form.watch("multipleId")?.split(",").filter(Boolean)
+                          .length
+                      }{" "}
+                      rate(s)
+                    </span>
+                  </div>
+                )}
+              </div>
+              <div className="bg-background max-h-96 w-full overflow-auto rounded-md border">
+                <TariffTable data={tariffData} isLoading={isLoadingTariffs} />
               </div>
             </div>
           )}
@@ -348,7 +379,7 @@ export function CopyCompanyRateForm({ onClose }: CopyCompanyRateFormProps) {
             <Button
               type="button"
               variant="outline"
-              onClick={onClose}
+              onClick={onCancel}
               className="flex items-center gap-2"
             >
               <XIcon className="h-4 w-4" />

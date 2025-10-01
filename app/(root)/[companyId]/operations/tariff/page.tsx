@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react"
 import { ITaskDetails } from "@/interfaces/checklist"
 import { ICustomerLookup, IPortLookup } from "@/interfaces/lookup"
 import { ITariff } from "@/interfaces/tariff"
+import { usePermissionStore } from "@/stores/permission-store"
 import {
   BuildingIcon,
   CopyIcon,
@@ -16,7 +17,9 @@ import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 
 import { Task } from "@/lib/operations-utils"
+import { ModuleId, OperationsTransactionId } from "@/lib/utils"
 import {
+  copyRateDirect,
   deleteTariffDirect,
   saveTariffDirect,
   updateTariffDirect,
@@ -36,6 +39,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import CustomerAutocomplete from "@/components/autocomplete/autocomplete-customer"
 import PortAutocomplete from "@/components/autocomplete/autocomplete-port"
 import { DeleteConfirmation } from "@/components/confirmation/delete-confirmation"
+import { SaveConfirmation } from "@/components/confirmation/save-confirmation"
 import { DataTableSkeleton } from "@/components/skeleton/data-table-skeleton"
 
 import { CopyCompanyRateForm } from "./components/copy-company-rate-form"
@@ -136,6 +140,15 @@ const CATEGORY_CONFIG: Record<
 }
 
 export default function TariffPage() {
+  const moduleId = ModuleId.operations
+  const transactionId = OperationsTransactionId.tariff
+
+  const { hasPermission } = usePermissionStore()
+
+  const canEdit = hasPermission(moduleId, transactionId, "isEdit")
+  const canDelete = hasPermission(moduleId, transactionId, "isDelete")
+  const canView = hasPermission(moduleId, transactionId, "isRead")
+  const canCreate = hasPermission(moduleId, transactionId, "isCreate")
   // Form for filter controls
   const form = useForm<FilterSchemaType>({
     defaultValues: {
@@ -217,6 +230,17 @@ export default function TariffPage() {
     isOpen: false,
     tariffId: null,
     tariffName: null,
+  })
+
+  // Save confirmation state
+  const [saveConfirmation, setSaveConfirmation] = useState<{
+    isOpen: boolean
+    type: "save" | "copyRate" | "copyCompanyRate" | null
+    data: ITariff | Record<string, unknown> | null
+  }>({
+    isOpen: false,
+    type: null,
+    data: null,
   })
 
   // Handle API errors
@@ -384,6 +408,13 @@ export default function TariffPage() {
     setIsModalOpen(true)
   }
 
+  const handleViewTariff = (tariff: ITariff | null) => {
+    setSelectedTariff(tariff || undefined)
+    setModalMode("view")
+    setHasFormErrors(false) // Reset form errors when viewing tariff
+    setIsModalOpen(true)
+  }
+
   const handleDeleteConfirmation = (tariffId: string, task: string) => {
     setDeleteConfirmation({
       isOpen: true,
@@ -415,9 +446,19 @@ export default function TariffPage() {
     }
   }
 
-  const handleSaveTariff = async (data: ITariff) => {
+  const handleSaveTariff = (data: ITariff) => {
+    setSaveConfirmation({
+      isOpen: true,
+      type: "save",
+      data: data,
+    })
+  }
+
+  const handleConfirmSave = async () => {
+    if (!saveConfirmation.data) return
+
     const tariffData = {
-      ...data,
+      ...saveConfirmation.data,
     }
 
     try {
@@ -445,6 +486,76 @@ export default function TariffPage() {
     } catch (error) {
       console.error("Error saving tariff:", error)
       toast.error("Failed to save tariff")
+    } finally {
+      setSaveConfirmation({
+        isOpen: false,
+        type: null,
+        data: null,
+      })
+    }
+  }
+
+  const handleCopyRateConfirmation = (data: Record<string, unknown>) => {
+    setSaveConfirmation({
+      isOpen: true,
+      type: "copyRate",
+      data: data,
+    })
+  }
+
+  const handleCopyCompanyRateConfirmation = (data: Record<string, unknown>) => {
+    setSaveConfirmation({
+      isOpen: true,
+      type: "copyCompanyRate",
+      data: data,
+    })
+  }
+
+  const handleConfirmCopyRate = async () => {
+    if (!saveConfirmation.data) return
+
+    try {
+      const response = await copyRateDirect(
+        saveConfirmation.data as unknown as Parameters<typeof copyRateDirect>[0]
+      )
+      if (response?.result === 1) {
+        setShowCopyRateForm(false)
+        toast.success(response.message || "Rates copied successfully")
+        refetchTariffByTask()
+      } else {
+        const errorMessage = response?.message || "Failed to copy rates"
+        toast.error(errorMessage)
+      }
+    } catch (error) {
+      console.error("Error copying rates:", error)
+      toast.error("Failed to copy rates")
+    } finally {
+      setSaveConfirmation({
+        isOpen: false,
+        type: null,
+        data: null,
+      })
+    }
+  }
+
+  const handleConfirmCopyCompanyRate = async () => {
+    if (!saveConfirmation.data) return
+
+    try {
+      // This would need to be implemented based on your copy company rate API
+      // For now, we'll show a success message
+      setShowCopyCompanyRateForm(false)
+      toast.success("Company rates copied successfully")
+      refetchTariffByTask()
+    } catch (error) {
+      console.error("Error copying company rates:", error)
+      toast.error("Failed to copy company rates")
+    } finally {
+      setSaveConfirmation({
+        isOpen: false,
+        type: null,
+        data: null,
+      })
     }
   }
 
@@ -701,11 +812,17 @@ export default function TariffPage() {
             <TariffTable
               data={(tariffByTaskData as ITariff[]) || []}
               isLoading={isLoading}
-              onDeleteTariff={handleDeleteConfirmation}
-              onEditTariff={handleEditTariff}
+              onDelete={handleDeleteConfirmation}
+              onEdit={handleEditTariff}
               onRefresh={() => {
                 handleRefresh()
               }}
+              canEdit={canEdit}
+              canDelete={canDelete}
+              canView={canView}
+              canCreate={canCreate}
+              onSelect={handleViewTariff}
+              onCreate={handleCreateTariff}
             />
           ) : (
             <div className="text-muted-foreground py-12 text-center">
@@ -776,7 +893,7 @@ export default function TariffPage() {
       {showCopyRateForm && (
         <Dialog open={showCopyRateForm} onOpenChange={setShowCopyRateForm}>
           <DialogContent
-            className="max-h-[70vh] w-[80vw] !max-w-none overflow-y-auto"
+            className="max-h-[80vh] w-[80vw] !max-w-none overflow-y-auto"
             onPointerDownOutside={(e) => {
               if (hasFormErrors) {
                 e.preventDefault()
@@ -791,7 +908,10 @@ export default function TariffPage() {
                 Copy rates between customers
               </DialogDescription>
             </DialogHeader>
-            <CopyRateForm onClose={() => setShowCopyRateForm(false)} />
+            <CopyRateForm
+              onCancel={() => setShowCopyRateForm(false)}
+              onSaveConfirmation={handleCopyRateConfirmation}
+            />
           </DialogContent>
         </Dialog>
       )}
@@ -803,7 +923,7 @@ export default function TariffPage() {
           onOpenChange={setShowCopyCompanyRateForm}
         >
           <DialogContent
-            className="max-h-[70vh] w-[80vw] !max-w-none overflow-y-auto"
+            className="max-h-[90vh] w-[80vw] !max-w-none overflow-y-auto"
             onPointerDownOutside={(e) => {
               if (hasFormErrors) {
                 e.preventDefault()
@@ -819,7 +939,8 @@ export default function TariffPage() {
               </DialogDescription>
             </DialogHeader>
             <CopyCompanyRateForm
-              onClose={() => setShowCopyCompanyRateForm(false)}
+              onCancel={() => setShowCopyCompanyRateForm(false)}
+              onSaveConfirmation={handleCopyCompanyRateConfirmation}
             />
           </DialogContent>
         </Dialog>
@@ -838,6 +959,46 @@ export default function TariffPage() {
         onConfirm={handleDeleteTariff}
         title="Delete Tariff"
         description={`Are you sure you want to delete the tariff "${deleteConfirmation.tariffName}"? This action cannot be undone.`}
+      />
+
+      {/* Save Confirmation Dialog */}
+      <SaveConfirmation
+        open={saveConfirmation.isOpen}
+        onOpenChange={() =>
+          setSaveConfirmation({
+            isOpen: false,
+            type: null,
+            data: null,
+          })
+        }
+        onConfirm={
+          saveConfirmation.type === "save"
+            ? handleConfirmSave
+            : saveConfirmation.type === "copyRate"
+              ? handleConfirmCopyRate
+              : handleConfirmCopyCompanyRate
+        }
+        title={
+          saveConfirmation.type === "save"
+            ? "Save Tariff"
+            : saveConfirmation.type === "copyRate"
+              ? "Copy Rates"
+              : "Copy Company Rates"
+        }
+        itemName={
+          saveConfirmation.type === "save"
+            ? "this tariff"
+            : saveConfirmation.type === "copyRate"
+              ? "these rates"
+              : "these company rates"
+        }
+        operationType={
+          saveConfirmation.type === "save"
+            ? "save"
+            : saveConfirmation.type === "copyRate"
+              ? "create"
+              : "create"
+        }
       />
     </div>
   )

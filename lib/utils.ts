@@ -62,9 +62,9 @@ export function absoluteUrl(path: string) {
 
 export enum ModuleId {
   master = 1,
-  operations = 2,
-  sales = 3,
-  purchase = 4,
+  operations = 4,
+  sales = 2,
+  purchase = 3,
   ar = 25,
   ap = 26,
   cb = 27,

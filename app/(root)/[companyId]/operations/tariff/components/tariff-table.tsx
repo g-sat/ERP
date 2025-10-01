@@ -6,148 +6,64 @@ import {
   IconSquareRoundedXFilled,
 } from "@tabler/icons-react"
 import { ColumnDef } from "@tanstack/react-table"
-import { ArrowDownIcon, ArrowUpIcon } from "lucide-react"
 
 import { Task } from "@/lib/operations-utils"
-import { TableName, cn } from "@/lib/utils"
+import { TableName } from "@/lib/utils"
 import { MainTable } from "@/components/table/table-main"
 
 interface TariffTableProps {
   data: ITariff[]
   isLoading?: boolean
-  onDeleteTariff?: (tariffId: string, task: string) => void
-  onEditTariff?: (tariff: ITariff) => void
+  onDelete?: (tariffId: string, task: string) => void
+  onEdit?: (tariff: ITariff) => void
   onRefresh?: () => void
   onFilterChange?: (filters: ITariffFilter) => void
   moduleId?: number
   transactionId?: number
+  // Permission props
+  canEdit?: boolean
+  canDelete?: boolean
+  canView?: boolean
+  canCreate?: boolean
+  onSelect?: (tariff: ITariff | null) => void
+  onCreate?: () => void
 }
 
 export function TariffTable({
   data,
   isLoading = false,
-  onDeleteTariff,
-  onEditTariff,
+  onDelete,
+  onEdit,
   onRefresh,
   onFilterChange,
   moduleId,
   transactionId,
+  canEdit = true,
+  canDelete = true,
+  canView = true,
+  canCreate = true,
+  onSelect,
+  onCreate,
 }: TariffTableProps) {
   // Define columns for the table
   const columns: ColumnDef<ITariff>[] = [
     {
       accessorKey: "portName",
-      header: ({ column }) => (
-        <div className="flex items-center space-x-1">
-          <span>Port</span>
-          <div className="flex flex-col">
-            <ArrowUpIcon
-              className={cn(
-                "h-3 w-3 transform",
-                column.getIsSorted() === "asc"
-                  ? "text-foreground"
-                  : "text-muted-foreground/50"
-              )}
-              onClick={() => column.toggleSorting(false)}
-            />
-            <ArrowDownIcon
-              className={cn(
-                "h-3 w-3 transform",
-                column.getIsSorted() === "desc"
-                  ? "text-foreground"
-                  : "text-muted-foreground/50"
-              )}
-              onClick={() => column.toggleSorting(true)}
-            />
-          </div>
-        </div>
-      ),
+      header: "Port",
       cell: ({ row }) => <div>{row.getValue("portName")}</div>,
     },
     {
       accessorKey: "taskName",
-      header: ({ column }) => (
-        <div className="flex items-center space-x-1">
-          <span>Task</span>
-          <div className="flex flex-col">
-            <ArrowUpIcon
-              className={cn(
-                "h-3 w-3 transform",
-                column.getIsSorted() === "asc"
-                  ? "text-foreground"
-                  : "text-muted-foreground/50"
-              )}
-              onClick={() => column.toggleSorting(false)}
-            />
-            <ArrowDownIcon
-              className={cn(
-                "h-3 w-3 transform",
-                column.getIsSorted() === "desc"
-                  ? "text-foreground"
-                  : "text-muted-foreground/50"
-              )}
-              onClick={() => column.toggleSorting(true)}
-            />
-          </div>
-        </div>
-      ),
+      header: "Task",
       cell: ({ row }) => <div>{row.getValue("taskName")}</div>,
     },
     {
       accessorKey: "chargeName",
-      header: ({ column }) => (
-        <div className="flex items-center space-x-1">
-          <span>Charge</span>
-          <div className="flex flex-col">
-            <ArrowUpIcon
-              className={cn(
-                "h-3 w-3 transform",
-                column.getIsSorted() === "asc"
-                  ? "text-foreground"
-                  : "text-muted-foreground/50"
-              )}
-              onClick={() => column.toggleSorting(false)}
-            />
-            <ArrowDownIcon
-              className={cn(
-                "h-3 w-3 transform",
-                column.getIsSorted() === "desc"
-                  ? "text-foreground"
-                  : "text-muted-foreground/50"
-              )}
-              onClick={() => column.toggleSorting(true)}
-            />
-          </div>
-        </div>
-      ),
+      header: "Charge",
     },
     {
       accessorKey: "visaTypeName",
-      header: ({ column }) => (
-        <div className="flex items-center space-x-1">
-          <span>Visa Type</span>
-          <div className="flex flex-col">
-            <ArrowUpIcon
-              className={cn(
-                "h-3 w-3 transform",
-                column.getIsSorted() === "asc"
-                  ? "text-foreground"
-                  : "text-muted-foreground/50"
-              )}
-              onClick={() => column.toggleSorting(false)}
-            />
-            <ArrowDownIcon
-              className={cn(
-                "h-3 w-3 transform",
-                column.getIsSorted() === "desc"
-                  ? "text-foreground"
-                  : "text-muted-foreground/50"
-              )}
-              onClick={() => column.toggleSorting(true)}
-            />
-          </div>
-        </div>
-      ),
+      header: "Visa Type",
       cell: ({ row }) => {
         const taskId = row.original.taskId
         const taskName = row.original.taskName
@@ -269,10 +185,10 @@ export function TariffTable({
 
   // Handle delete with task name
   const handleDelete = (tariffId: string) => {
-    if (onDeleteTariff) {
+    if (onDelete) {
       const tariff = data.find((t) => t.tariffId?.toString() === tariffId)
       if (tariff) {
-        onDeleteTariff(tariffId, tariff.taskName || "")
+        onDelete(tariffId, tariff.taskName || "")
       }
     }
   }
@@ -291,26 +207,32 @@ export function TariffTable({
   }
 
   return (
-    <MainTable<ITariff>
+    <MainTable
       data={data}
       columns={columns}
       isLoading={isLoading}
-      tableName={TableName.tariff}
-      accessorId="tariffId"
       moduleId={moduleId}
       transactionId={transactionId}
+      tableName={TableName.tariff}
+      emptyMessage="No tariffs found."
+      accessorId="tariffId"
+      // Add handlers if provided
       onRefresh={onRefresh}
-      onFilterChange={handleFilterChange}
-      onEdit={onEditTariff}
+      onFilterChange={onFilterChange}
+      //handler column props
+      onSelect={onSelect}
+      onCreate={onCreate}
+      onEdit={onEdit}
       onDelete={handleDelete}
+      //show props
       showHeader={true}
       showFooter={true}
       showActions={true}
-      canCreate={false}
-      canEdit={true}
-      canDelete={true}
-      canView={true}
-      emptyMessage="No tariffs found."
+      // Permission props
+      canEdit={canEdit}
+      canDelete={canDelete}
+      canView={canView}
+      canCreate={canCreate}
     />
   )
 }

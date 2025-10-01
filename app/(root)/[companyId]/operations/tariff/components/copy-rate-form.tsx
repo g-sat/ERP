@@ -26,17 +26,21 @@ const copyRateSchema = z.object({
   toPortId: z.number().min(1, "To Port is required"),
   fromTaskId: z.number().min(1, "From Task is required"),
   multipleId: z.string().optional(),
-  isOverwrite: z.boolean().default(false),
-  isDelete: z.boolean().default(false),
+  isOverwrite: z.boolean(),
+  isDelete: z.boolean(),
 })
 
 type CopyRateSchemaType = z.infer<typeof copyRateSchema>
 
 interface CopyRateFormProps {
-  onClose: () => void
+  onCancel: () => void
+  onSaveConfirmation?: (data: Record<string, unknown>) => void
 }
 
-export function CopyRateForm({ onClose }: CopyRateFormProps) {
+export function CopyRateForm({
+  onCancel,
+  onSaveConfirmation,
+}: CopyRateFormProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [showTable, setShowTable] = useState(false)
 
@@ -100,35 +104,40 @@ export function CopyRateForm({ onClose }: CopyRateFormProps) {
   }, [watchedFromCustomerId, watchedFromPortId, watchedFromTaskId])
 
   const handleSubmit = async (data: CopyRateSchemaType) => {
-    setIsLoading(true)
-    try {
-      const copyRateData = {
-        fromCompanyId: 0,
-        toCompanyId: 0,
-        fromTaskId: data.fromTaskId,
-        fromPortId: data.fromPortId,
-        toPortId: data.toPortId,
-        fromCustomerId: data.fromCustomerId,
-        toCustomerId: data.toCustomerId,
-        multipleId: data.multipleId || "",
-        isOverwrite: data.isOverwrite,
-        isDelete: data.isDelete,
-      }
+    const copyRateData = {
+      fromCompanyId: 0,
+      toCompanyId: 0,
+      fromTaskId: data.fromTaskId,
+      fromPortId: data.fromPortId,
+      toPortId: data.toPortId,
+      fromCustomerId: data.fromCustomerId,
+      toCustomerId: data.toCustomerId,
+      multipleId: data.multipleId || "",
+      isOverwrite: data.isOverwrite,
+      isDelete: data.isDelete,
+    }
 
-      const response = await copyRateDirect(copyRateData)
-      if (response?.result === 1) {
-        toast.success(response.message || "Rates copied successfully")
-        onClose()
-        form.reset()
-      } else {
-        const errorMessage = response?.message || "Failed to copy rates"
-        toast.error(errorMessage)
+    if (onSaveConfirmation) {
+      onSaveConfirmation(copyRateData)
+    } else {
+      // Fallback to direct execution if no confirmation handler
+      setIsLoading(true)
+      try {
+        const response = await copyRateDirect(copyRateData)
+        if (response?.result === 1) {
+          toast.success(response.message || "Rates copied successfully")
+          onCancel()
+          form.reset()
+        } else {
+          const errorMessage = response?.message || "Failed to copy rates"
+          toast.error(errorMessage)
+        }
+      } catch (error) {
+        console.error("Error copying rates:", error)
+        toast.error("Failed to copy rates")
+      } finally {
+        setIsLoading(false)
       }
-    } catch (error) {
-      console.error("Error copying rates:", error)
-      toast.error("Failed to copy rates")
-    } finally {
-      setIsLoading(false)
     }
   }
 
@@ -148,64 +157,72 @@ export function CopyRateForm({ onClose }: CopyRateFormProps) {
     [form]
   )
 
-  const handleSelectionChange = useCallback(
-    (selectedIds: string[]) => {
-      form.setValue("multipleId", selectedIds.join(","))
-    },
-    [form]
-  )
-
   return (
     <div className="w-full space-y-4">
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(handleSubmit)}
-          className="w-full space-y-6"
+          className="w-full space-y-4"
         >
-          <div className="grid w-full grid-cols-1 gap-6 md:grid-cols-2">
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold">From</h3>
-              <CustomerAutocomplete
-                form={form}
-                name="fromCustomerId"
-                label="Customer"
-                isRequired
-                onChangeEvent={handleCustomerChange("fromCustomerId")}
-              />
-              <PortAutocomplete
-                form={form}
-                name="fromPortId"
-                label="Port"
-                isRequired
-                onChangeEvent={handlePortChange("fromPortId")}
-              />
-              <TaskAutocomplete
-                form={form}
-                name="fromTaskId"
-                label="Task"
-                isRequired
-              />
+          <div className="grid w-full grid-cols-1 gap-4 lg:grid-cols-2">
+            {/* From Section */}
+            <div className="bg-card space-y-3 rounded-lg border p-4">
+              <div className="flex items-center gap-2">
+                <div className="h-2 w-2 rounded-full bg-blue-500"></div>
+                <h3 className="text-lg font-semibold text-blue-700">From</h3>
+              </div>
+              <div className="space-y-3">
+                <CustomerAutocomplete
+                  form={form}
+                  name="fromCustomerId"
+                  label="Customer"
+                  isRequired
+                  onChangeEvent={handleCustomerChange("fromCustomerId")}
+                />
+                <PortAutocomplete
+                  form={form}
+                  name="fromPortId"
+                  label="Port"
+                  isRequired
+                  onChangeEvent={handlePortChange("fromPortId")}
+                />
+                <TaskAutocomplete
+                  form={form}
+                  name="fromTaskId"
+                  label="Task"
+                  isRequired
+                />
+              </div>
             </div>
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold">To</h3>
-              <CustomerAutocomplete
-                form={form}
-                name="toCustomerId"
-                label="Customer"
-                isRequired
-                onChangeEvent={handleCustomerChange("toCustomerId")}
-              />
-              <PortAutocomplete
-                form={form}
-                name="toPortId"
-                label="Port"
-                isRequired
-                onChangeEvent={handlePortChange("toPortId")}
-              />
+
+            {/* To Section */}
+            <div className="bg-card space-y-3 rounded-lg border p-4">
+              <div className="flex items-center gap-2">
+                <div className="h-2 w-2 rounded-full bg-green-500"></div>
+                <h3 className="text-lg font-semibold text-green-700">To</h3>
+              </div>
+              <div className="space-y-3">
+                <CustomerAutocomplete
+                  form={form}
+                  name="toCustomerId"
+                  label="Customer"
+                  isRequired
+                  onChangeEvent={handleCustomerChange("toCustomerId")}
+                />
+                <PortAutocomplete
+                  form={form}
+                  name="toPortId"
+                  label="Port"
+                  isRequired
+                  onChangeEvent={handlePortChange("toPortId")}
+                />
+              </div>
             </div>
           </div>
 
-          <div className="w-full space-y-4">
+          {/* Options Section */}
+          <div className="bg-muted/30 w-full space-y-3 rounded-lg border p-3">
+            <h3 className="text-lg font-semibold">Copy Options</h3>
             <div className="flex flex-wrap gap-4">
               <div className="flex items-center space-x-2">
                 <Checkbox
@@ -220,7 +237,9 @@ export function CopyRateForm({ onClose }: CopyRateFormProps) {
                     }
                   }}
                 />
-                <label htmlFor="isOverwrite">Overwrite existing</label>
+                <label htmlFor="isOverwrite" className="text-sm font-medium">
+                  Overwrite existing rates
+                </label>
               </div>
               <div className="flex items-center space-x-2">
                 <Checkbox
@@ -235,16 +254,22 @@ export function CopyRateForm({ onClose }: CopyRateFormProps) {
                     }
                   }}
                 />
-                <label htmlFor="isDelete">Delete source after copy</label>
+                <label htmlFor="isDelete" className="text-sm font-medium">
+                  Delete source after copy
+                </label>
               </div>
             </div>
+          </div>
 
-            {showTable && (
-              <div className="w-full space-y-3">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-semibold">Select Rates</h3>
-                  {form.watch("multipleId") && (
-                    <span className="text-muted-foreground text-sm">
+          {/* Rates Selection Table */}
+          {showTable && (
+            <div className="bg-card w-full space-y-3 rounded-lg border p-3">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold">Select Rates to Copy</h3>
+                {form.watch("multipleId") && (
+                  <div className="flex items-center gap-2">
+                    <div className="h-2 w-2 rounded-full bg-orange-500"></div>
+                    <span className="text-muted-foreground text-sm font-medium">
                       Selected:{" "}
                       {
                         form.watch("multipleId")?.split(",").filter(Boolean)
@@ -252,24 +277,20 @@ export function CopyRateForm({ onClose }: CopyRateFormProps) {
                       }{" "}
                       rate(s)
                     </span>
-                  )}
-                </div>
-                <div className="max-h-[50vh] w-full overflow-auto rounded-md border">
-                  <TariffTable
-                    data={tariffData}
-                    isLoading={isLoadingTariffs}
-                    onSelectionChange={handleSelectionChange}
-                  />
-                </div>
+                  </div>
+                )}
               </div>
-            )}
-          </div>
+              <div className="bg-background max-h-[50vh] w-full overflow-auto rounded-md border">
+                <TariffTable data={tariffData} isLoading={isLoadingTariffs} />
+              </div>
+            </div>
+          )}
 
           <div className="flex justify-end gap-3 pt-2">
             <Button
               type="button"
               variant="outline"
-              onClick={onClose}
+              onClick={onCancel}
               className="flex items-center gap-2"
             >
               <XIcon className="h-4 w-4" />
