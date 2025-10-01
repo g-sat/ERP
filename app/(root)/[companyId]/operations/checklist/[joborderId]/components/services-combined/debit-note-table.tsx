@@ -196,9 +196,10 @@ export function DebitNoteTable({
       showHeader={true}
       showActions={true}
       hideView={false}
-      hideEdit={false}
-      hideDelete={false}
+      hideEdit={isConfirmed}
+      hideDelete={isConfirmed}
       hideCreate={true}
+      hideCheckbox={isConfirmed}
       disableOnDebitNoteExists={false}
     />
   )

@@ -18,7 +18,7 @@ import {
   formatDateWithoutTimezone,
   parseDate,
 } from "@/lib/date-utils"
-import { saveJobOrderDirect, updateJobOrderDirect } from "@/hooks/use-checklist"
+import { updateJobOrderDirect } from "@/hooks/use-checklist"
 import { Badge } from "@/components/ui/badge"
 import { Form } from "@/components/ui/form"
 import AddressAutocomplete from "@/components/autocomplete/autocomplete-address"
@@ -39,16 +39,14 @@ import CustomTextarea from "@/components/custom/custom-textarea"
 
 interface ChecklistMainProps {
   jobData?: IJobOrderHd | null
-  onSuccess?: () => void
-  isEdit?: boolean
   setFormRef?: (ref: HTMLFormElement | null) => void
+  isConfirmed?: boolean
 }
 
 export function ChecklistMain({
   jobData,
-  onSuccess,
-  isEdit = false,
   setFormRef,
+  isConfirmed,
 }: ChecklistMainProps) {
   const { decimals } = useAuthStore()
   const exhRateDec = decimals[0]?.exhRateDec || 6
@@ -202,11 +200,6 @@ export function ChecklistMain({
   }, [jobData?.customerCode])
 
   const onSubmit = async (data: JobOrderSchemaType) => {
-    console.log("=== FORM SUBMISSION STARTED ===")
-    console.log("Form data received:", data)
-    console.log("Form errors:", form.formState.errors)
-    console.log("Is edit mode:", isEdit)
-
     try {
       const formData: Partial<IJobOrderHd> = {
         ...data,
@@ -228,26 +221,13 @@ export function ChecklistMain({
 
       console.log("Formatted form data:", formData)
 
-      if (isEdit) {
-        console.log("Calling updateJobOrder API using api-client.ts...")
-        const response = await updateJobOrderDirect(formData)
-        console.log("Update API call completed:", response)
-        if (response.result === 1) {
-          toast.success(response.message || "Job order updated successfully!")
-          onSuccess?.()
-        } else {
-          toast.error(response.message || "Update failed")
-        }
+      console.log("Calling updateJobOrder API using api-client.ts...")
+      const response = await updateJobOrderDirect(formData)
+      console.log("Update API call completed:", response)
+      if (response.result === 1) {
+        toast.success(response.message || "Job order updated successfully!")
       } else {
-        console.log("Calling saveJobOrder API using api-client.ts...")
-        const response = await saveJobOrderDirect(formData)
-        console.log("Save API call completed:", response)
-        if (response.result === 1) {
-          toast.success(response.message || "Job order created successfully!")
-          onSuccess?.()
-        } else {
-          toast.error(response.message || "Creation failed")
-        }
+        toast.error(response.message || "Update failed")
       }
     } catch (error) {
       console.error("Error saving job order:", error)
@@ -312,13 +292,14 @@ export function ChecklistMain({
                   name="jobOrderDate"
                   label="Job Order Date"
                   isRequired={true}
+                  isDisabled={isConfirmed}
                 />
                 <CustomerAutocomplete
                   form={form}
                   name="customerId"
                   label={`Customer${customerCode ? ` (${customerCode})` : ""}`}
                   isRequired={true}
-                  isDisabled={isEdit}
+                  isDisabled={isConfirmed}
                   onChangeEvent={(selectedCustomer) => {
                     // Reset address and contact when customer changes
                     if (selectedCustomer?.customerId !== customerId) {
@@ -378,12 +359,14 @@ export function ChecklistMain({
                   name="portId"
                   label="Port"
                   isRequired={true}
+                  isDisabled={isConfirmed}
                 />
 
                 <CustomInput
                   form={form}
                   name="jobOrderNo"
                   label="Job Order No"
+                  isDisabled={isConfirmed}
                 />
                 <VesselAutocomplete
                   form={form}
@@ -416,30 +399,35 @@ export function ChecklistMain({
                       }
                     }
                   }}
+                  isDisabled={isConfirmed}
                 />
                 <CustomInput
                   form={form}
                   name="imoCode"
                   label="IMO No"
                   isRequired={false}
+                  isDisabled={isConfirmed}
                 />
                 <VoyageAutocomplete
                   form={form}
                   name="voyageId"
                   label="Voyage"
                   isRequired={false}
+                  isDisabled={isConfirmed}
                 />
                 <PortAutocomplete
                   form={form}
                   name="lastPortId"
                   label="Last Port"
                   isRequired={false}
+                  isDisabled={isConfirmed}
                 />
                 <PortAutocomplete
                   form={form}
                   name="nextPortId"
                   label="Next Port"
                   isRequired={false}
+                  isDisabled={isConfirmed}
                 />
                 <CustomInput
                   form={form}
@@ -447,6 +435,7 @@ export function ChecklistMain({
                   label="Vessel Distance (NM)"
                   type="number"
                   isRequired={true}
+                  isDisabled={isConfirmed}
                 />
 
                 <CustomDateTimePicker
@@ -454,60 +443,70 @@ export function ChecklistMain({
                   name="etaDate"
                   label="ETA Date"
                   isRequired={false}
+                  isDisabled={isConfirmed}
                 />
                 <CustomDateTimePicker
                   form={form}
                   name="etdDate"
                   label="ETD Date"
                   isRequired={false}
+                  isDisabled={isConfirmed}
                 />
                 <CustomInput
                   form={form}
                   name="ownerName"
                   label="Owner Name"
                   isRequired={false}
+                  isDisabled={isConfirmed}
                 />
                 <CustomInput
                   form={form}
                   name="ownerAgent"
                   label="Owner Agent"
                   isRequired={false}
+                  isDisabled={isConfirmed}
                 />
                 <CustomInput
                   form={form}
                   name="masterName"
                   label="Master Name"
                   isRequired={false}
+                  isDisabled={isConfirmed}
                 />
                 <CustomInput
                   form={form}
                   name="charters"
                   label="Charters"
                   isRequired={false}
+                  isDisabled={isConfirmed}
                 />
                 <CustomInput
                   form={form}
                   name="chartersAgent"
                   label="Charters Agent"
                   isRequired={false}
+                  isDisabled={isConfirmed}
                 />
                 <CustomInput
                   form={form}
                   name="natureOfCall"
                   label="Nature of Call"
                   isRequired={false}
+                  isDisabled={isConfirmed}
                 />
                 <CustomInput
                   form={form}
                   name="isps"
                   label="ISPS"
                   isRequired={false}
+                  isDisabled={isConfirmed}
                 />
                 <StatusAutocomplete
                   form={form}
                   name="statusId"
                   label="Status"
                   isRequired={true}
+                  isDisabled={isConfirmed}
                 />
                 <div className="col-span-2">
                   <CustomTextarea
@@ -515,6 +514,7 @@ export function ChecklistMain({
                     name="remarks"
                     label="Remarks"
                     isRequired={false}
+                    isDisabled={isConfirmed}
                   />
                 </div>
               </div>
@@ -536,11 +536,13 @@ export function ChecklistMain({
                   form={form}
                   name="invoiceDate"
                   label="Invoice Date"
+                  isDisabled={isConfirmed}
                 />
                 <CustomDateNew
                   form={form}
                   name="seriesDate"
                   label="Series Date"
+                  isDisabled={isConfirmed}
                 />
                 <AddressAutocomplete
                   form={form}
@@ -548,6 +550,7 @@ export function ChecklistMain({
                   label="Address"
                   isRequired
                   customerId={customerId || 0}
+                  isDisabled={isConfirmed}
                 />
                 <ContactAutocomplete
                   form={form}
@@ -555,6 +558,7 @@ export function ChecklistMain({
                   label="Contact"
                   isRequired
                   customerId={customerId || 0}
+                  isDisabled={isConfirmed}
                 />
 
                 <CustomCheckbox
@@ -562,6 +566,7 @@ export function ChecklistMain({
                   name="isTaxable"
                   label="Taxable"
                   isRequired={false}
+                  isDisabled={isConfirmed}
                 />
 
                 {isTaxable && (
@@ -570,6 +575,7 @@ export function ChecklistMain({
                     name="gstId"
                     label="GST"
                     isRequired={true}
+                    isDisabled={isConfirmed}
                   />
                 )}
                 {isTaxable && (
@@ -578,6 +584,7 @@ export function ChecklistMain({
                     name="gstPercentage"
                     label="GST %"
                     isRequired={true}
+                    isDisabled={isConfirmed}
                   />
                 )}
 
@@ -586,18 +593,21 @@ export function ChecklistMain({
                   name="isClose"
                   label="Close"
                   isRequired={false}
+                  isDisabled={isConfirmed}
                 />
                 <CustomCheckbox
                   form={form}
                   name="isPost"
                   label="Post"
                   isRequired={false}
+                  isDisabled={isConfirmed}
                 />
                 <CustomCheckbox
                   form={form}
                   name="isActive"
                   label="Active"
                   isRequired={false}
+                  isDisabled={isConfirmed}
                 />
               </div>
             </div>

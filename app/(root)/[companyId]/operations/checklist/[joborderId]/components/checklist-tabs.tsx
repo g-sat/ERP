@@ -15,7 +15,6 @@ import {
   Receipt,
   RefreshCcw,
   RotateCcw,
-  Save,
   X,
 } from "lucide-react"
 import { toast } from "sonner"
@@ -46,19 +45,10 @@ import { DebitNoteItemsTable } from "./debit-note-items-table"
 
 interface ChecklistTabsProps {
   jobData: IJobOrderHd
-  onSuccess?: () => void
-  isEdit?: boolean
-  isNewRecord?: boolean
   onClone?: (clonedData: IJobOrderHd) => void
 }
 
-export function ChecklistTabs({
-  jobData,
-  onSuccess,
-  isEdit = false,
-  isNewRecord = false,
-  onClone,
-}: ChecklistTabsProps) {
+export function ChecklistTabs({ jobData, onClone }: ChecklistTabsProps) {
   const [activeTab, setActiveTab] = useState("main")
   const [showConfirmDialog, setShowConfirmDialog] = useState(false)
   const [confirmAction, setConfirmAction] = useState<{
@@ -273,21 +263,13 @@ export function ChecklistTabs({
                 <span className="text-xs sm:text-sm">Main</span>
               </div>
             </TabsTrigger>
-            <TabsTrigger
-              value="details"
-              disabled={isNewRecord}
-              className={isNewRecord ? "cursor-not-allowed opacity-50" : ""}
-            >
+            <TabsTrigger value="details">
               <div className="flex items-center gap-1">
                 <span className="text-xs">📊</span>
                 <span className="text-xs sm:text-sm">Details</span>
               </div>
             </TabsTrigger>
-            <TabsTrigger
-              value="history"
-              disabled={isNewRecord}
-              className={isNewRecord ? "cursor-not-allowed opacity-50" : ""}
-            >
+            <TabsTrigger value="history">
               <div className="flex items-center gap-1">
                 <span className="text-xs">🕒</span>
                 <span className="text-xs sm:text-sm">History</span>
@@ -299,37 +281,38 @@ export function ChecklistTabs({
         {/* Action Buttons - Right side */}
         <div className="ml-4 flex items-center gap-2">
           {/* Print button */}
-          {isEdit && (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm">
-                  <Printer className="mr-1 h-4 w-4" />
-                  Print
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm">
+                <Printer className="mr-1 h-4 w-4" />
+                Print
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={handlePrint}>
+                Checklist
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handlePrint}>
+                Purchase List
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handlePrint}>
+                Job Summary
+              </DropdownMenuItem>
+              {isConfirmed && (
                 <DropdownMenuItem onClick={handlePrint}>
-                  Checklist
+                  Invoice Print
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={handlePrint}>
-                  Purchase List
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={handlePrint}>
-                  Job Summary
-                </DropdownMenuItem>
-                {isConfirmed && (
-                  <DropdownMenuItem onClick={handlePrint}>
-                    Invoice Print
-                  </DropdownMenuItem>
-                )}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          )}
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
 
           {/* Debit Note No. Button */}
           <Button
             variant="outline"
             size="sm"
+            title="Re-Arrange Debit Note No."
+            disabled={isConfirmed}
             onClick={() => {
               setShowDebitNoteDialog(true)
             }}
@@ -338,10 +321,13 @@ export function ChecklistTabs({
           </Button>
 
           {/* Invoice Create button - only show when status is confirmed */}
-          {isEdit && isConfirmed && (
+          {isConfirmed && (
             <Button
               variant="outline"
               size="sm"
+              disabled={Boolean(
+                currentJobData?.invoiceId && currentJobData.invoiceId > 0
+              )}
               onClick={() => {
                 console.log("Invoice Create triggered")
               }}
@@ -352,7 +338,7 @@ export function ChecklistTabs({
           )}
 
           {/* Refresh button */}
-          {isEdit && (
+          {isConfirmed && (
             <Button
               title="Refresh"
               variant="outline"
@@ -367,7 +353,7 @@ export function ChecklistTabs({
           )}
 
           {/* Reset button - only show in create mode */}
-          {!isEdit && (
+          {!isConfirmed && (
             <Button
               variant="outline"
               size="sm"
@@ -387,30 +373,29 @@ export function ChecklistTabs({
           )}
 
           {/* Clone button - only show in edit mode */}
-          {isEdit && (
-            <Button
-              title="Clone"
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                setConfirmAction({
-                  type: "clone",
-                  title: "Clone Record",
-                  message:
-                    "Do you want to clone this job order? A new record will be created.",
-                })
-                setShowConfirmDialog(true)
-              }}
-            >
-              <Copy className="h-4 w-4" />
-            </Button>
-          )}
+          <Button
+            title="Clone"
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              setConfirmAction({
+                type: "clone",
+                title: "Clone Record",
+                message:
+                  "Do you want to clone this job order? A new record will be created.",
+              })
+              setShowConfirmDialog(true)
+            }}
+          >
+            <Copy className="h-4 w-4" />
+          </Button>
 
           {/* Cancel button - only show in edit mode */}
-          {isEdit && (
+          {isConfirmed && (
             <Button
               variant="destructive"
               size="sm"
+              disabled={isConfirmed}
               onClick={() => {
                 setConfirmAction({
                   type: "cancel",
@@ -429,31 +414,18 @@ export function ChecklistTabs({
           {/* Submit/Update Button */}
           <Button
             size="sm"
+            disabled={isConfirmed}
             onClick={() => {
-              if (isEdit) {
-                setConfirmAction({
-                  type: "update",
-                  title: "Update Job Order",
-                  message: "Do you want to update this job order?",
-                })
-                setShowConfirmDialog(true)
-              } else {
-                // Submit functionality - trigger form submission
-                handleFormSubmit()
-              }
+              setConfirmAction({
+                type: "update",
+                title: "Update Job Order",
+                message: "Do you want to update this job order?",
+              })
+              setShowConfirmDialog(true)
             }}
           >
-            {isEdit ? (
-              <>
-                <Edit3 className="mr-1 h-4 w-4" />
-                Update
-              </>
-            ) : (
-              <>
-                <Save className="mr-1 h-4 w-4" />
-                Submit
-              </>
-            )}
+            <Edit3 className="mr-1 h-4 w-4" />
+            Update
           </Button>
         </div>
       </div>
@@ -462,9 +434,8 @@ export function ChecklistTabs({
         <TabsContent value="main" className="mt-0">
           <ChecklistMain
             jobData={currentJobData}
-            onSuccess={onSuccess}
-            isEdit={isEdit}
             setFormRef={setFormRef}
+            isConfirmed={isConfirmed}
           />
         </TabsContent>
 

@@ -1,6 +1,6 @@
 "use client"
 
-import { useParams } from "next/navigation"
+import { useParams, useRouter } from "next/navigation"
 import { IJobOrderHd } from "@/interfaces/checklist"
 
 import { useGetJobOrderByIdNo } from "@/hooks/use-checklist"
@@ -17,6 +17,7 @@ import { ChecklistTabs } from "./components/checklist-tabs"
 
 export default function JobOrderDetailsPage() {
   const params = useParams()
+  const router = useRouter()
   const jobOrderId = params.joborderId as string // Note: using joborderId (lowercase) to match directory name
 
   console.log("JobOrderDetailsPage - params:", params)
@@ -42,6 +43,25 @@ export default function JobOrderDetailsPage() {
       "border-teal-300 bg-gradient-to-r from-teal-50 to-cyan-100 text-teal-800 hover:from-teal-100 hover:to-cyan-200",
     Approved:
       "border-green-300 bg-gradient-to-r from-green-50 to-emerald-100 text-green-800 hover:from-green-100 hover:to-emerald-200",
+  }
+
+  // Handle clone functionality
+  const handleClone = (clonedData: IJobOrderHd) => {
+    console.log("Cloning job order:", clonedData)
+
+    // Create query parameters with the cloned data
+    const queryParams = new URLSearchParams()
+
+    // Add all the cloned data as query parameters
+    Object.entries(clonedData).forEach(([key, value]) => {
+      if (value !== null && value !== undefined) {
+        queryParams.append(key, String(value))
+      }
+    })
+
+    // Navigate to the new checklist page with cloned data
+    const newUrl = `/operations/checklist/new`
+    router.push(newUrl)
   }
 
   if (isLoading) {
@@ -186,10 +206,7 @@ export default function JobOrderDetailsPage() {
       {/* ChecklistTabs Component */}
       <ChecklistTabs
         jobData={jobOrderResponse?.data as IJobOrderHd}
-        isEdit={true}
-        isNewRecord={false}
-        onClone={() => {}}
-        onSuccess={() => {}}
+        onClone={handleClone}
       />
     </div>
   )
