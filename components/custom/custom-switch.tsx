@@ -1,14 +1,26 @@
 import { useState } from "react"
 import { IconAlertCircle } from "@tabler/icons-react"
 import { motion } from "framer-motion"
-import { UseFormReturn } from "react-hook-form"
+import { Path, UseFormReturn } from "react-hook-form"
 
 import { cn } from "@/lib/utils"
 
 import { FormControl, FormField, FormItem, FormLabel } from "../ui/form"
 import { Switch } from "../ui/switch"
 
-export default function CustomSwitch({
+interface CustomSwitchProps<T extends Record<string, unknown>> {
+  form: UseFormReturn<T>
+  label?: string
+  name: Path<T>
+  onBlurEvent?: () => void
+  className?: string
+  size?: "sm" | "default" | "lg"
+  isRequired?: boolean
+  isDisabled?: boolean
+  activeColor?: "primary" | "success" | "danger" | "warning" | "info"
+}
+
+export default function CustomSwitch<T extends Record<string, unknown>>({
   form,
   label,
   name,
@@ -18,17 +30,7 @@ export default function CustomSwitch({
   isRequired = false,
   isDisabled = false,
   activeColor: _activeColor = "primary",
-}: {
-  form: UseFormReturn<Record<string, unknown>>
-  label?: string
-  name: string
-  onBlurEvent?: () => void
-  className?: string
-  size?: "sm" | "default" | "lg"
-  isRequired?: boolean
-  isDisabled?: boolean
-  activeColor?: "primary" | "success" | "danger" | "warning" | "info"
-}) {
+}: CustomSwitchProps<T>) {
   const [isHovered, setIsHovered] = useState(false)
   return (
     <FormField

@@ -20,7 +20,7 @@ import CustomInput from "@/components/custom/custom-input"
 import CustomSwitch from "@/components/custom/custom-switch"
 import CustomTextarea from "@/components/custom/custom-textarea"
 
-// Default values for the address form
+// Default values for the account group form
 const defaultValues: AccountGroupSchemaType = {
   accGroupId: 0,
   accGroupName: "",
@@ -51,7 +51,7 @@ export function AccountGroupForm({
 
   const form = useForm<AccountGroupSchemaType>({
     resolver: zodResolver(accountGroupSchema),
-    mode: "onChange", // Validate on every change
+    mode: "onBlur", // Validate on blur for better UX
     defaultValues: initialData
       ? {
           accGroupId: initialData.accGroupId ?? 0,
@@ -90,14 +90,21 @@ export function AccountGroupForm({
   }
 
   const onSubmit = (values: AccountGroupSchemaType) => {
-    console.log("onSubmit :", values)
+    console.log("Form submitted successfully:", values)
     submitAction(values)
+  }
+
+  const onError = (errors: Record<string, unknown>) => {
+    console.log("Form validation errors:", errors)
   }
 
   return (
     <div className="max-w flex flex-col gap-2">
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pt-6">
+        <form
+          onSubmit={form.handleSubmit(onSubmit, onError)}
+          className="space-y-6 pt-6"
+        >
           <div className="grid gap-2">
             <div className="grid grid-cols-3 gap-2">
               <CustomInput
