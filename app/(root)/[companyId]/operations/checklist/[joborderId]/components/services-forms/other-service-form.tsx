@@ -219,7 +219,7 @@ export function OtherServiceForm({
               <CustomInput
                 form={form}
                 name="amount"
-                label="CTM/Amount"
+                label="CTM|Amount"
                 type="number"
                 isRequired
                 isDisabled={isConfirmed || !isCashToMaster}

@@ -852,3 +852,21 @@ export interface ISaveDebitNoteItem {
   updatedItemNo?: number
   updatedDebitNoteNo?: string
 }
+
+export interface IPurchaseData {
+  isAllocated: boolean
+  invoiceId: number
+  invoiceNo: string
+  invoiceDate: Date | string
+  suppInvoiceNo: string
+  supplierName: string
+  remarks?: string
+  totAmt?: number
+  gstAmt?: string
+  totAmtAftGst: number
+  moduleId: number
+  transactionId: number
+  itemNo: boolean
+  isServiceCharge: boolean
+  serviceCharge: number
+}

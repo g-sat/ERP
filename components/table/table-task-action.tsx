@@ -109,9 +109,7 @@ export function TaskTableActions<T>({
         size="icon"
         className="h-6 w-6 text-purple-600 hover:bg-purple-100"
         disabled={hidePurchase || isConfirmed}
-        onClick={() =>
-          !hasValidDebitNoteId && onPurchase?.(String(row[idAccessor]))
-        }
+        onClick={() => onPurchase?.(String(row[idAccessor]))}
         title={
           hasValidDebitNoteId
             ? "Cannot purchase - Debit Note exists"

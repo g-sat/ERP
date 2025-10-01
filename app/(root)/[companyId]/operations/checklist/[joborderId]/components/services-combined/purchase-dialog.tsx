@@ -1,192 +1,190 @@
 "use client"
 
-import { Badge } from "@/components/ui/badge"
-import { Checkbox } from "@/components/ui/checkbox"
+import { useCallback, useEffect, useRef, useState } from "react"
+import { IPurchaseData } from "@/interfaces/checklist"
+import { useQuery } from "@tanstack/react-query"
+
+import { getData, saveData } from "@/lib/api-client"
+import { JobOrder_Purchase } from "@/lib/api-routes"
+import { Button } from "@/components/ui/button"
 import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { PageLoadingSpinner } from "@/components/skeleton/loading-spinner"
 
-const mockAllocated = [
-  {
-    id: 1,
-    invoiceNo: "PIN-25-02940",
-    supplierInvoice: "AI-2506-015",
-    account: "17 Jun 2025",
-    code: "VC013",
-    name: "CRD Marine Services",
-    remark: "Boat Hire Charges",
-    amt: 1945.0,
-    vat: 0.0,
-    totalAmt: 1945.0,
-    debitNote: false,
-  },
-  {
-    id: 2,
-    invoiceNo: "PIN-25-02941",
-    supplierInvoice: "AI-2506-016",
-    account: "18 Jun 2025",
-    code: "VC014",
-    name: "Port Authority Dubai",
-    remark: "Port Dues and Charges",
-    amt: 3200.0,
-    vat: 160.0,
-    totalAmt: 3360.0,
-    debitNote: true,
-  },
-  {
-    id: 3,
-    invoiceNo: "PIN-25-02942",
-    supplierInvoice: "AI-2506-017",
-    account: "19 Jun 2025",
-    code: "VC015",
-    name: "Marine Equipment Co",
-    remark: "Crane Services",
-    amt: 1500.0,
-    vat: 75.0,
-    totalAmt: 1575.0,
-    debitNote: false,
-  },
-  {
-    id: 4,
-    invoiceNo: "PIN-25-02943",
-    supplierInvoice: "AI-2506-018",
-    account: "20 Jun 2025",
-    code: "VC016",
-    name: "Gulf Shipping Ltd",
-    remark: "Pilotage Services",
-    amt: 850.0,
-    vat: 42.5,
-    totalAmt: 892.5,
-    debitNote: true,
-  },
-  {
-    id: 5,
-    invoiceNo: "PIN-25-02944",
-    supplierInvoice: "AI-2506-019",
-    account: "21 Jun 2025",
-    code: "VC017",
-    name: "Dubai Customs",
-    remark: "Customs Clearance",
-    amt: 1200.0,
-    vat: 60.0,
-    totalAmt: 1260.0,
-    debitNote: false,
-  },
-]
-
-type RowType = (typeof mockAllocated)[number]
-
-const mockUnallocated: RowType[] = [
-  {
-    id: 6,
-    invoiceNo: "PIN-25-02945",
-    supplierInvoice: "AI-2506-020",
-    account: "22 Jun 2025",
-    code: "VC018",
-    name: "Marine Fuel Services",
-    remark: "Bunker Fuel Supply",
-    amt: 4500.0,
-    vat: 225.0,
-    totalAmt: 4725.0,
-    debitNote: false,
-  },
-  {
-    id: 7,
-    invoiceNo: "PIN-25-02946",
-    supplierInvoice: "AI-2506-021",
-    account: "23 Jun 2025",
-    code: "VC019",
-    name: "Harbor Master Office",
-    remark: "Berth Allocation",
-    amt: 1800.0,
-    vat: 90.0,
-    totalAmt: 1890.0,
-    debitNote: true,
-  },
-  {
-    id: 8,
-    invoiceNo: "PIN-25-02947",
-    supplierInvoice: "AI-2506-022",
-    account: "24 Jun 2025",
-    code: "VC020",
-    name: "Marine Safety Co",
-    remark: "Safety Equipment",
-    amt: 950.0,
-    vat: 47.5,
-    totalAmt: 997.5,
-    debitNote: false,
-  },
-  {
-    id: 9,
-    invoiceNo: "PIN-25-02948",
-    supplierInvoice: "AI-2506-023",
-    account: "25 Jun 2025",
-    code: "VC021",
-    name: "Port Security Services",
-    remark: "Security Clearance",
-    amt: 650.0,
-    vat: 32.5,
-    totalAmt: 682.5,
-    debitNote: true,
-  },
-  {
-    id: 10,
-    invoiceNo: "PIN-25-02949",
-    supplierInvoice: "AI-2506-024",
-    account: "26 Jun 2025",
-    code: "VC022",
-    name: "Marine Communications",
-    remark: "Radio Services",
-    amt: 750.0,
-    vat: 37.5,
-    totalAmt: 787.5,
-    debitNote: false,
-  },
-]
-
-const columns = [
-  { key: "select", label: "All" },
-  { key: "invoiceNo", label: "Invoice No" },
-  { key: "supplierInvoice", label: "Supplier Inv" },
-  { key: "account", label: "Account" },
-  { key: "code", label: "Code" },
-  { key: "name", label: "Name" },
-  { key: "remark", label: "Remark" },
-  { key: "amt", label: "Amt" },
-  { key: "vat", label: "VAT" },
-  { key: "totalAmt", label: "Total Amt" },
-  { key: "debitNote", label: "Debit Note" },
-]
+import { PurchaseTable } from "./purchase-table"
 
 interface PurchaseDialogProps {
   open: boolean
-  onOpenChange: (open: boolean) => void
+  onOpenChangeAction: (open: boolean) => void
   title?: string
   description?: string
+  jobOrderId: number
+  taskId: number
+  serviceId: number
+  isConfirmed: boolean
+  onSave?: (purchaseData: IPurchaseData[]) => void
+  onCancel?: () => void
 }
 
 export function PurchaseDialog({
   open,
-  onOpenChange,
+  onOpenChangeAction,
   title = "Purchase",
   description = "Manage purchase details for this service.",
+  jobOrderId,
+  taskId,
+  serviceId,
+  isConfirmed,
+  onSave,
+  onCancel,
 }: PurchaseDialogProps) {
-  // Show loading state when dialog is opening
-  if (open) {
+  const [purchaseData, setPurchaseData] = useState<IPurchaseData[]>([])
+  const [isSaving, setIsSaving] = useState(false)
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
+  const [selectedIds, setSelectedIds] = useState<string[]>([])
+  const isUpdatingRef = useRef(false)
+
+  // Handle save action
+  const handleSave = useCallback(async () => {
+    try {
+      setIsSaving(true)
+
+      // Get selected items
+      const selectedItems = purchaseData.filter((item) =>
+        selectedIds.includes(`${item.invoiceId}_${item.itemNo}`)
+      )
+
+      // Prepare the data to send to API
+      const purchaseListData = {
+        jobOrderId,
+        taskId,
+        serviceId,
+        purchaseData: selectedItems,
+      }
+
+      // Call the API
+      await saveData(JobOrder_Purchase.saveBulkList, purchaseListData)
+
+      // Reset unsaved changes flag
+      setHasUnsavedChanges(false)
+
+      // Call parent onSave callback if provided
+      if (onSave) {
+        onSave(purchaseData)
+      }
+
+      // Close dialog after successful save
+      onOpenChangeAction(false)
+    } catch (error) {
+      console.error("Error saving purchase list:", error)
+    } finally {
+      setIsSaving(false)
+    }
+  }, [
+    purchaseData,
+    selectedIds,
+    jobOrderId,
+    taskId,
+    serviceId,
+    onSave,
+    onOpenChangeAction,
+  ])
+
+  // Handle cancel action
+  const handleCancel = useCallback(() => {
+    if (onCancel) {
+      onCancel()
+    }
+    onOpenChangeAction(false)
+  }, [onCancel, onOpenChangeAction])
+
+  // Handle bulk selection changes from table
+  const handleBulkSelectionChange = useCallback((selectedIds: string[]) => {
+    if (isUpdatingRef.current) return
+    isUpdatingRef.current = true
+    setSelectedIds(selectedIds)
+    // Note: hasUnsavedChanges will be updated automatically by useEffect
+    setTimeout(() => {
+      isUpdatingRef.current = false
+    }, 0)
+  }, [])
+
+  // Fetch purchase data when dialog opens
+  const {
+    data: purchaseResponse,
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: [`purchase-list-${jobOrderId}-${taskId}-${serviceId}`],
+    queryFn: async () => {
+      const response = await getData(
+        `${JobOrder_Purchase.getList}/${jobOrderId}/${taskId}/${serviceId}`
+      )
+      return response
+    },
+    enabled: open, // Only fetch when dialog is open
+    staleTime: 0.5 * 60 * 1000, // 0.5 minutes
+    gcTime: 1 * 60 * 1000, // 1 minute
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+  })
+
+  // Update data when API response is received
+  useEffect(() => {
+    if (purchaseResponse) {
+      // Check if result is -1 (error case)
+      if (purchaseResponse.result === -1) {
+        onOpenChangeAction(false)
+        alert(purchaseResponse.message || "No purchase data available")
+        return
+      }
+
+      // Check if we have valid data
+      if (purchaseResponse.result === 1 && purchaseResponse.data) {
+        // Set all purchase data
+        setPurchaseData(purchaseResponse.data)
+
+        // Pre-select all items that are already allocated
+        const initialSelectedIds = purchaseResponse.data
+          .filter((item: IPurchaseData) => item.isAllocated === true)
+          .map((item: IPurchaseData) => `${item.invoiceId}_${item.itemNo}`)
+
+        setSelectedIds(initialSelectedIds)
+        setHasUnsavedChanges(false)
+      } else {
+        // Set empty arrays if no data
+        setPurchaseData([])
+        setSelectedIds([])
+        setHasUnsavedChanges(false)
+      }
+    }
+  }, [purchaseResponse, onOpenChangeAction])
+
+  // Set unsaved changes when selections exist
+  useEffect(() => {
+    setHasUnsavedChanges(selectedIds.length > 0)
+  }, [selectedIds])
+
+  // Show loading state when dialog is opening and data is being fetched
+  if (open && isLoading) {
     return (
-      <Dialog open={open} onOpenChange={onOpenChange}>
+      <Dialog open={open} onOpenChange={onOpenChangeAction}>
         <DialogContent
           className="max-h-[95vh] w-[95vw] !max-w-none overflow-y-auto"
           onPointerDownOutside={(e) => {
             e.preventDefault()
           }}
         >
+          <DialogHeader>
+            <DialogTitle>{title}</DialogTitle>
+            <DialogDescription>{description}</DialogDescription>
+          </DialogHeader>
           <div className="flex items-center justify-center py-8">
             <PageLoadingSpinner text="Loading purchase details..." />
           </div>
@@ -195,113 +193,45 @@ export function PurchaseDialog({
     )
   }
 
-  const allocatedCount = mockAllocated.length
-  const unallocatedCount = mockUnallocated.length
+  // Show error state if API call fails
+  if (error) {
+    return (
+      <Dialog open={open} onOpenChange={onOpenChangeAction}>
+        <DialogContent
+          className="max-h-[95vh] w-[95vw] !max-w-none overflow-y-auto"
+          onPointerDownOutside={(e) => {
+            e.preventDefault()
+          }}
+        >
+          <DialogHeader>
+            <DialogTitle>{title}</DialogTitle>
+            <DialogDescription>{description}</DialogDescription>
+          </DialogHeader>
+          <div className="flex items-center justify-center py-8">
+            <div className="text-center">
+              <p className="text-red-500">Error loading purchase details</p>
+              <p className="mt-2 text-sm text-gray-500">
+                {error instanceof Error
+                  ? error.message
+                  : "Unknown error occurred"}
+              </p>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    )
+  }
 
-  const allocatedData = mockAllocated
-  const unallocatedData = mockUnallocated
-
-  // Calculate totals for allocated data
-  const allocatedTotals = allocatedData.reduce(
-    (acc, row) => ({
-      amt: acc.amt + row.amt,
-      vat: acc.vat + row.vat,
-      totalAmt: acc.totalAmt + row.totalAmt,
-    }),
-    { amt: 0, vat: 0, totalAmt: 0 }
-  )
-
-  // Calculate totals for unallocated data
-  const unallocatedTotals = unallocatedData.reduce(
-    (acc, row) => ({
-      amt: acc.amt + row.amt,
-      vat: acc.vat + row.vat,
-      totalAmt: acc.totalAmt + row.totalAmt,
-    }),
-    { amt: 0, vat: 0, totalAmt: 0 }
-  )
-
-  const renderTable = (data: RowType[], totals: typeof allocatedTotals) => (
-    <>
-      {/* Table */}
-      <div>
-        <table>
-          <thead>
-            <tr>
-              {columns.map((col) => (
-                <th key={col.key}>{col.label}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {data.length === 0 ? (
-              <tr>
-                <td colSpan={columns.length}>No data</td>
-              </tr>
-            ) : (
-              data.map((row) => (
-                <tr key={row.id}>
-                  <td>
-                    <Checkbox defaultChecked={true} />
-                  </td>
-                  <td>
-                    <span>{row.invoiceNo}</span>
-                  </td>
-                  <td>{row.supplierInvoice}</td>
-                  <td>{row.account}</td>
-                  <td>{row.code}</td>
-                  <td>{row.name}</td>
-                  <td>{row.remark}</td>
-                  <td>
-                    {row.amt.toLocaleString(undefined, {
-                      minimumFractionDigits: 2,
-                    })}
-                  </td>
-                  <td>
-                    {row.vat.toLocaleString(undefined, {
-                      minimumFractionDigits: 2,
-                    })}
-                  </td>
-                  <td>
-                    {row.totalAmt.toLocaleString(undefined, {
-                      minimumFractionDigits: 2,
-                    })}
-                  </td>
-                  <td>
-                    <Badge variant={row.debitNote ? "default" : "secondary"}>
-                      {row.debitNote ? "Yes" : "No"}
-                    </Badge>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
-
-      {/* Totals */}
-      <div>
-        <span>
-          {totals.amt.toLocaleString(undefined, {
-            minimumFractionDigits: 2,
-          })}
-        </span>
-        <span>
-          {totals.vat.toLocaleString(undefined, {
-            minimumFractionDigits: 2,
-          })}
-        </span>
-        <span>
-          {totals.totalAmt.toLocaleString(undefined, {
-            minimumFractionDigits: 2,
-          })}
-        </span>
-      </div>
-    </>
-  )
+  const totalCount = purchaseData.length
+  const allocatedCount = purchaseData.filter(
+    (item) => item.isAllocated === true
+  ).length
+  const unallocatedCount = purchaseData.filter(
+    (item) => item.isAllocated === false
+  ).length
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={onOpenChangeAction}>
       <DialogContent
         className="max-h-[95vh] w-[95vw] !max-w-none overflow-y-auto"
         onPointerDownOutside={(e) => {
@@ -312,26 +242,82 @@ export function PurchaseDialog({
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
-        <div>
-          <Tabs defaultValue="allocated">
-            <TabsList>
-              <TabsTrigger value="allocated">
-                Allocated ({allocatedCount})
-              </TabsTrigger>
-              <TabsTrigger value="unallocated">
-                Un-Allocated ({unallocatedCount})
-              </TabsTrigger>
-            </TabsList>
+        <>
+          {/* Data Summary */}
+          <div className="bg-muted/30 mb-4 rounded-lg border p-3">
+            <div className="flex items-center justify-between text-sm">
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <div className="h-2 w-2 rounded-full bg-blue-500"></div>
+                  <span className="text-muted-foreground">
+                    Total: {totalCount} items
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="h-2 w-2 rounded-full bg-green-500"></div>
+                  <span className="text-muted-foreground">
+                    Allocated: {allocatedCount} items
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="h-2 w-2 rounded-full bg-orange-500"></div>
+                  <span className="text-muted-foreground">
+                    Unallocated: {unallocatedCount} items
+                  </span>
+                </div>
+              </div>
+              {totalCount > 0 && (
+                <div className="flex items-center gap-2 text-blue-600">
+                  <div className="h-1 w-1 rounded-full bg-blue-500"></div>
+                  <span className="text-xs font-medium">
+                    Purchase data available
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
 
-            <TabsContent value="allocated">
-              {renderTable(allocatedData, allocatedTotals)}
-            </TabsContent>
+          {totalCount === 0 && (
+            <div className="mb-4 rounded-lg border border-gray-200 bg-gray-50 p-4">
+              <div className="flex items-center gap-2 text-gray-700">
+                <div className="h-1 w-1 rounded-full bg-gray-500"></div>
+                <span className="text-sm font-medium">
+                  No purchase data available for this service.
+                </span>
+              </div>
+            </div>
+          )}
 
-            <TabsContent value="unallocated">
-              {renderTable(unallocatedData, unallocatedTotals)}
-            </TabsContent>
-          </Tabs>
-        </div>
+          <div className="overflow-x-auto">
+            <PurchaseTable
+              data={purchaseData}
+              isLoading={isLoading}
+              isConfirmed={isConfirmed}
+              initialSelectedIds={selectedIds}
+              onBulkSelectionChange={handleBulkSelectionChange}
+            />
+          </div>
+        </>
+
+        <DialogFooter className="flex justify-end gap-2 pt-4">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={handleCancel}
+            disabled={isLoading || isSaving}
+          >
+            Cancel
+          </Button>
+          <Button
+            type="button"
+            onClick={handleSave}
+            disabled={
+              isLoading || isConfirmed || isSaving || !hasUnsavedChanges
+            }
+          >
+            {isSaving ? "Saving..." : "Save Selected Items"}
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   )

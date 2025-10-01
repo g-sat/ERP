@@ -390,6 +390,13 @@ export const useGetGridLayout = (
   transactionId: string,
   gridName: string
 ) => {
+  // Don't make API call if moduleId or transactionId is "0" or empty
+  const shouldFetch =
+    moduleId !== "0" &&
+    transactionId !== "0" &&
+    moduleId !== "" &&
+    transactionId !== ""
+
   return useQuery({
     queryKey: ["gridlayout", moduleId, transactionId, gridName],
     placeholderData: keepPreviousData,
@@ -401,6 +408,7 @@ export const useGetGridLayout = (
       })
     },
     refetchOnWindowFocus: false,
+    enabled: shouldFetch, // Only enable the query when IDs are valid
   })
 }
 

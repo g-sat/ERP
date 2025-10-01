@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import {
   DndContext,
   DragEndEvent,
@@ -78,6 +78,7 @@ interface DebitNoteBaseTableProps<T> {
   hideCreate?: boolean
   hideCheckbox?: boolean
   disableOnDebitNoteExists?: boolean
+  initialSelectedIds?: string[]
 }
 
 export function DebitNoteBaseTable<T>({
@@ -107,10 +108,12 @@ export function DebitNoteBaseTable<T>({
   hideCreate = false,
   hideCheckbox = false,
   disableOnDebitNoteExists = true,
+  initialSelectedIds = [],
 }: DebitNoteBaseTableProps<T>) {
+  // Always call the hook but pass valid IDs or defaults
   const { data: gridSettings } = useGetGridLayout(
-    moduleId?.toString() || "",
-    transactionId?.toString() || "",
+    moduleId && moduleId > 0 ? moduleId.toString() : "0",
+    transactionId && transactionId > 0 ? transactionId.toString() : "0",
     tableName
   )
 
@@ -155,7 +158,22 @@ export function DebitNoteBaseTable<T>({
   )
   const [columnSizing, setColumnSizing] = useState(getInitialColumnSizing)
   const [searchQuery, setSearchQuery] = useState("")
-  const [rowSelection, setRowSelection] = useState({})
+
+  // Initialize row selection based on initialSelectedIds
+  const getInitialRowSelection = useCallback(() => {
+    if (initialSelectedIds.length === 0) return {}
+
+    const rowSelectionMap: Record<string, boolean> = {}
+    data.forEach((item, index) => {
+      const id = String((item as Record<string, unknown>)[accessorId as string])
+      if (initialSelectedIds.includes(id)) {
+        rowSelectionMap[index.toString()] = true
+      }
+    })
+    return rowSelectionMap
+  }, [initialSelectedIds, data, accessorId])
+
+  const [rowSelection, setRowSelection] = useState(getInitialRowSelection)
 
   const selectedRowsCount = Object.keys(rowSelection).length
   const hasSelectedRows = selectedRowsCount > 0

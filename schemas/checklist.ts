@@ -1,7 +1,5 @@
 import { z } from "zod"
 
-import { Task } from "@/lib/operations-utils"
-
 export const JobOrderHdSchema = z
   .object({
     jobOrderId: z.number(),
@@ -144,10 +142,8 @@ export const ConsignmentExportSchema = z.object({
   modeTypeId: z.number(),
   consignmentTypeId: z.number().min(1, "Type is required"),
   landingTypeId: z.number(),
-  noOfPcs: z
-    .number()
-    .min(0, "Number of pieces must be 0 or greater")
-    .default(1),
+  noOfPcs: z.number().min(0, "Number of pieces must be 0 or greater"),
+
   weight: z.number().min(0, "Weight must be 0 or greater"),
   pickupLocation: z.string().optional(),
   deliveryLocation: z.string().optional(),
@@ -187,10 +183,8 @@ export const ConsignmentImportSchema = z.object({
   modeTypeId: z.number(),
   consignmentTypeId: z.number().min(1, "Type is required"),
   landingTypeId: z.number(),
-  noOfPcs: z
-    .number()
-    .min(0, "Number of pieces must be 0 or greater")
-    .default(1),
+  noOfPcs: z.number().min(0, "Number of pieces must be 0 or greater"),
+
   weight: z.number().min(0, "Weight must be 0 or greater"),
   pickupLocation: z.string().optional(),
   deliveryLocation: z.string().optional(),
@@ -376,7 +370,7 @@ export const LandingItemsSchema = z.object({
   glId: z.number().min(1, "GL Account is required"),
   chargeId: z.number().min(1, "Charge is required"),
   name: z.string().min(1, "Name is required"),
-  quantity: z.number().min(0, "Quantity must be 0 or greater").default(1),
+  quantity: z.number().min(0, "Quantity must be 0 or greater"),
   weight: z.number().min(0, "Weight must be 0 or greater"),
   landingTypeId: z.number().min(1, "Landing Type is required"),
   locationName: z.string().min(1, "Location Name is required"),
@@ -433,7 +427,7 @@ export const OtherServiceSchema = z.object({
   chargeId: z.number().min(1, "Charge is required"),
   glId: z.number().min(1, "GL Account is required"),
   serviceProvider: z.string().min(1, "Service Provider is required"),
-  quantity: z.number().min(0, "Quantity must be 0 or greater").default(1),
+  quantity: z.number().min(0, "Quantity must be 0 or greater"),
   amount: z.number().min(0, "Amount must be 0 or greater"),
   uomId: z.number().min(1, "UOM is required"),
   statusId: z.number().min(1, "Status is required"),
@@ -453,7 +447,7 @@ export const PortExpensesSchema = z.object({
   portExpenseId: z.number(),
   jobOrderId: z.number().min(1, "Job Order ID is required"),
   jobOrderNo: z.string().min(1, "Job Order No is required"),
-  quantity: z.number().min(0, "Quantity must be 0 or greater").default(1),
+  quantity: z.number().min(0, "Quantity must be 0 or greater"),
   supplierId: z.number().min(1, "Supplier is required"),
   chargeId: z.number().min(1, "Charge is required"),
   statusId: z.number().min(1, "Status is required"),

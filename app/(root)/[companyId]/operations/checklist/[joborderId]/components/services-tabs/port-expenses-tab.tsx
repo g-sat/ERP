@@ -431,9 +431,17 @@ export function PortExpensesTab({
     [debitNoteMutation, data, jobData, queryClient]
   )
 
-  const handlePurchase = useCallback(() => {
-    setShowPurchaseModal(true)
-  }, [])
+  const handlePurchase = useCallback(
+    (portExpenseId: string) => {
+      // Find the selected port expense item
+      const item = data?.find(
+        (p) => p.portExpenseId.toString() === portExpenseId
+      )
+      setSelectedItem(item)
+      setShowPurchaseModal(true)
+    },
+    [data]
+  )
 
   const handleRefreshPortExpenses = useCallback(() => {
     refetch()
@@ -575,9 +583,17 @@ export function PortExpensesTab({
       {showPurchaseModal && (
         <PurchaseDialog
           open={showPurchaseModal}
-          onOpenChange={setShowPurchaseModal}
+          onOpenChangeAction={setShowPurchaseModal}
           title="Purchase"
           description="Manage purchase details for this port expenses."
+          jobOrderId={jobData.jobOrderId}
+          taskId={Task.PortExpenses}
+          serviceId={selectedItem?.portExpenseId ?? 0}
+          isConfirmed={isConfirmed}
+          onSave={(purchaseData) => {
+            console.log("Purchase data saved:", purchaseData)
+          }}
+          onCancel={() => {}}
         />
       )}
 

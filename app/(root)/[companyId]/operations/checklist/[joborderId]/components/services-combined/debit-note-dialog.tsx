@@ -223,24 +223,24 @@ export default function DebitNoteDialog({
     (data: DebitNoteDtSchemaType) => {
       // Add new item to local state directly (no confirmation needed for add)
       const newItem: IDebitNoteDt = {
-        debitNoteId: debitNoteHd?.debitNoteId || 0,
-        debitNoteNo: debitNoteHd?.debitNoteNo || "",
-        itemNo: detailsRef.current.length + 1,
-        taskId: data.taskId,
-        chargeId: data.chargeId,
-        glId: data.glId,
-        qty: data.qty,
-        unitPrice: data.unitPrice,
-        totLocalAmt: data.totLocalAmt,
-        totAmt: data.totAmt,
-        gstId: data.gstId,
-        gstPercentage: data.gstPercentage,
-        gstAmt: data.gstAmt,
-        totAftGstAmt: data.totAftGstAmt,
-        remarks: data.remarks,
-        editVersion: data.editVersion,
-        isServiceCharge: data.isServiceCharge,
-        serviceCharge: data.serviceCharge,
+        debitNoteId: debitNoteHd?.debitNoteId ?? 0,
+        debitNoteNo: debitNoteHd?.debitNoteNo ?? "",
+        itemNo: (detailsRef.current?.length ?? 0) + 1,
+        taskId: data.taskId ?? 0,
+        chargeId: data.chargeId ?? 0,
+        glId: data.glId ?? 0,
+        qty: data.qty ?? 0,
+        unitPrice: data.unitPrice ?? 0,
+        totLocalAmt: data.totLocalAmt ?? 0,
+        totAmt: data.totAmt ?? 0,
+        gstId: data.gstId ?? 0,
+        gstPercentage: data.gstPercentage ?? 0,
+        gstAmt: data.gstAmt ?? 0,
+        totAftGstAmt: data.totAftGstAmt ?? 0,
+        remarks: data.remarks ?? "",
+        editVersion: data.editVersion ?? 0,
+        isServiceCharge: data.isServiceCharge ?? false,
+        serviceCharge: data.serviceCharge ?? 0,
       }
 
       setDetails((prev) => [...prev, newItem])
@@ -254,8 +254,10 @@ export default function DebitNoteDialog({
 
   // Handler for deleting a debit note detail
   const handleDeleteDebitNoteDetail = useCallback((itemNo: string) => {
+    if (!itemNo || !detailsRef.current) return
+
     const detailToDelete = detailsRef.current.find(
-      (detail) => detail.itemNo.toString() === itemNo
+      (detail) => detail?.itemNo?.toString() === itemNo
     )
 
     if (!detailToDelete) return
@@ -263,8 +265,8 @@ export default function DebitNoteDialog({
     // Open delete confirmation dialog with detail information
     setDetailsDeleteConfirmation({
       isOpen: true,
-      debitNoteId: detailToDelete.itemNo,
-      debitNoteNo: `Item ${detailToDelete.itemNo}${detailToDelete.remarks ? ` - ${detailToDelete.remarks}` : ""}`,
+      debitNoteId: detailToDelete.itemNo ?? 0,
+      debitNoteNo: `Item ${detailToDelete.itemNo ?? 0}${detailToDelete.remarks ? ` - ${detailToDelete.remarks}` : ""}`,
     })
   }, [])
 
@@ -297,41 +299,41 @@ export default function DebitNoteDialog({
         return
       }
 
-      // Calculate totals from details
+      // Calculate totals from details with null safety
       const totalAmount = details.reduce(
-        (sum, detail) => sum + (detail.totAmt || 0),
+        (sum, detail) => sum + (detail?.totAmt ?? 0),
         0
       )
       const totalGstAmount = details.reduce(
-        (sum, detail) => sum + (detail.gstAmt || 0),
+        (sum, detail) => sum + (detail?.gstAmt ?? 0),
         0
       )
       const totalAfterGst = details.reduce(
-        (sum, detail) => sum + (detail.totAftGstAmt || 0),
+        (sum, detail) => sum + (detail?.totAftGstAmt ?? 0),
         0
       )
 
-      // Create the complete debit note header with details
+      // Create the complete debit note header with details (null-safe)
       const newDebitNoteHd: DebitNoteHdSchemaType = {
-        debitNoteId: debitNoteHdState.debitNoteId,
-        debitNoteNo: debitNoteHdState.debitNoteNo,
-        jobOrderId: debitNoteHdState.jobOrderId,
-        debitNoteDate: debitNoteHdState.debitNoteDate,
-        itemNo: debitNoteHdState.itemNo,
-        taskId: debitNoteHdState.taskId,
-        serviceId: debitNoteHdState.serviceId,
-        chargeId: debitNoteHdState.chargeId,
-        currencyId: debitNoteHdState.currencyId,
-        exhRate: debitNoteHdState.exhRate,
-        glId: debitNoteHdState.glId,
-        taxableAmt: debitNoteHdState.taxableAmt,
-        nonTaxableAmt: debitNoteHdState.nonTaxableAmt,
-        editVersion: debitNoteHdState.editVersion,
+        debitNoteId: debitNoteHdState?.debitNoteId ?? 0,
+        debitNoteNo: debitNoteHdState?.debitNoteNo ?? "",
+        jobOrderId: debitNoteHdState?.jobOrderId ?? 0,
+        debitNoteDate: debitNoteHdState?.debitNoteDate ?? new Date(),
+        itemNo: debitNoteHdState?.itemNo ?? 0,
+        taskId: debitNoteHdState?.taskId ?? 0,
+        serviceId: debitNoteHdState?.serviceId ?? 0,
+        chargeId: debitNoteHdState?.chargeId ?? 0,
+        currencyId: debitNoteHdState?.currencyId ?? 0,
+        exhRate: debitNoteHdState?.exhRate ?? 1,
+        glId: debitNoteHdState?.glId ?? 0,
+        taxableAmt: debitNoteHdState?.taxableAmt ?? 0,
+        nonTaxableAmt: debitNoteHdState?.nonTaxableAmt ?? 0,
+        editVersion: debitNoteHdState?.editVersion ?? 0,
         totAmt: totalAmount,
         gstAmt: totalGstAmount,
         totAftGstAmt: totalAfterGst,
-        isLocked: debitNoteHdState.isLocked,
-        data_details: details, // Include all details
+        isLocked: debitNoteHdState?.isLocked ?? false,
+        data_details: details ?? [], // Include all details with null safety
       }
 
       // Save the complete debit note (header + details) using the new API
@@ -408,16 +410,19 @@ export default function DebitNoteDialog({
   // Handler for bulk delete of debit note details
   const handleBulkDeleteDebitNoteDetails = useCallback(
     (selectedIds: string[]) => {
+      if (!selectedIds?.length || !detailsRef.current) return
+
       // Get details for selected items
-      const selectedDetails = detailsRef.current.filter((detail) =>
-        selectedIds.includes(detail.itemNo.toString())
+      const selectedDetails = detailsRef.current.filter(
+        (detail) =>
+          detail?.itemNo && selectedIds.includes(detail.itemNo.toString())
       )
 
       // Create numbered list of items with remarks
       const itemsList = selectedDetails
         .map((detail, index) => {
-          const itemInfo = `Item ${detail.itemNo}`
-          const remarks = detail.remarks?.trim()
+          const itemInfo = `Item ${detail?.itemNo ?? 0}`
+          const remarks = detail?.remarks?.trim()
           return `${index + 1}. ${itemInfo}${remarks ? ` - ${remarks}` : ""}`
         })
         .join("<br/>")
@@ -467,6 +472,8 @@ export default function DebitNoteDialog({
 
   // Handler for data reordering
   const handleDataReorder = useCallback((newData: IDebitNoteDt[]) => {
+    if (!newData?.length) return
+
     // Update itemNo to reflect the new order (1, 2, 3, 4, 5, 6...)
     const updatedData = newData.map((item, index) => ({
       ...item,
@@ -479,29 +486,31 @@ export default function DebitNoteDialog({
   // Handler for adding bulk charges
   const handleAddBulkCharges = useCallback(
     (selectedItems: IBulkChargeData[]) => {
+      if (!selectedItems?.length) return
+
       // Convert bulk charges to debit note details
       const newDetails: IDebitNoteDt[] = selectedItems.map((item, index) => ({
-        debitNoteId: debitNoteHdState?.debitNoteId || 0,
-        debitNoteNo: debitNoteHdState?.debitNoteNo || "",
-        itemNo: detailsRef.current.length + index + 1,
-        taskId: taskId,
-        chargeId: item.chargeId,
-        glId: item.glId,
+        debitNoteId: debitNoteHdState?.debitNoteId ?? 0,
+        debitNoteNo: debitNoteHdState?.debitNoteNo ?? "",
+        itemNo: (detailsRef.current?.length ?? 0) + index + 1,
+        taskId: taskId ?? 0,
+        chargeId: item?.chargeId ?? 0,
+        glId: item?.glId ?? 0,
         qty: 1, // Default quantity
-        unitPrice: item.basicRate || 0, // Default unit price
+        unitPrice: item?.basicRate ?? 0, // Default unit price
         totLocalAmt: 0,
-        totAmt: item.basicRate || 0,
+        totAmt: item?.basicRate ?? 0,
         gstId: 0,
         gstPercentage: 0,
         gstAmt: 0,
-        totAftGstAmt: item.basicRate || 0,
-        remarks: item.remarks || item.chargeName || "",
+        totAftGstAmt: item?.basicRate ?? 0,
+        remarks: item?.remarks ?? item?.chargeName ?? "",
         editVersion: 0,
         isServiceCharge: false,
         serviceCharge: 0,
       }))
 
-      setDetails((prev) => [...prev, ...newDetails])
+      setDetails((prev) => [...(prev ?? []), ...newDetails])
     },
     [debitNoteHdState, taskId]
   )
@@ -522,26 +531,35 @@ export default function DebitNoteDialog({
   // Handler for bulk selection change
   const handleBulkSelectionChange = useCallback(
     (selectedIds: string[]) => {
+      if (!selectedIds?.length) {
+        setSelectedBulkItems([])
+        return
+      }
+
       console.log("selectedIds handleBulkSelectionChange", selectedIds)
       console.log("bulkChargesDataRef.current", bulkChargesDataRef.current)
+
       // Only update state if selection actually changed
-      const currentBulkData = bulkChargesDataRef.current
-      const selectedItems = currentBulkData.filter((item: IBulkChargeData) =>
-        selectedIds.includes(item.chargeId.toString())
+      const currentBulkData = bulkChargesDataRef.current ?? []
+      const selectedItems = currentBulkData.filter(
+        (item: IBulkChargeData) =>
+          item?.chargeId && selectedIds.includes(item.chargeId.toString())
       )
       console.log("selectedItems after filter", selectedItems)
 
       // Only update state if the selection actually changed
       setSelectedBulkItems((prevItems) => {
         // Compare lengths first for quick check
-        if (prevItems.length !== selectedItems.length) {
+        if ((prevItems?.length ?? 0) !== selectedItems.length) {
           return selectedItems
         }
 
         // Compare actual items
-        const prevIds = prevItems.map((item) => item.chargeId.toString()).sort()
+        const prevIds = (prevItems ?? [])
+          .map((item) => item?.chargeId?.toString() ?? "")
+          .sort()
         const newIds = selectedItems
-          .map((item) => item.chargeId.toString())
+          .map((item) => item?.chargeId?.toString() ?? "")
           .sort()
 
         // Only update if the selection actually changed
@@ -550,7 +568,7 @@ export default function DebitNoteDialog({
         }
 
         // No change, return previous state to prevent re-render
-        return prevItems
+        return prevItems ?? []
       })
     },
     [] // No dependencies needed since we use ref
@@ -562,8 +580,8 @@ export default function DebitNoteDialog({
     handleBulkDialogOpenChange(false)
   }, [selectedBulkItems, handleAddBulkCharges, handleBulkDialogOpenChange])
 
-  // Calculate summary totals using helper function
-  const summaryTotals = calculateDebitNoteSummary(details, { amtDec: 2 })
+  // Calculate summary totals using helper function with null safety
+  const summaryTotals = calculateDebitNoteSummary(details ?? [], { amtDec: 2 })
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -660,13 +678,14 @@ export default function DebitNoteDialog({
                 <Button
                   size="sm"
                   variant="outline"
+                  disabled={isConfirmed}
                   onClick={() => setBulkChargesDialog({ isOpen: true })}
                 >
                   <ListChecks className="mr-2 h-4 w-4" />
                   Bulk Charges
                 </Button>
 
-                <Button size="sm" variant="outline">
+                <Button size="sm" variant="outline" disabled={false}>
                   <Printer className="mr-2 h-4 w-4" />
                   Print
                 </Button>
@@ -866,17 +885,23 @@ export default function DebitNoteDialog({
               <div className="border-t pt-4">
                 <div className="flex items-center justify-between">
                   <div className="text-muted-foreground text-sm">
-                    {selectedBulkItems.length} item(s) selected
+                    {selectedBulkItems?.length ?? 0} item(s) selected
                   </div>
                   <div className="flex gap-2">
-                    <Button variant="outline" onClick={handleCancelBulk}>
+                    <Button
+                      variant="outline"
+                      onClick={handleCancelBulk}
+                      disabled={isConfirmed}
+                    >
                       Cancel
                     </Button>
                     <Button
                       onClick={handleAddSelectedBulk}
-                      disabled={selectedBulkItems.length === 0}
+                      disabled={
+                        isConfirmed || (selectedBulkItems?.length ?? 0) === 0
+                      }
                     >
-                      Add Selected Items ({selectedBulkItems.length})
+                      Add Selected Items ({selectedBulkItems?.length ?? 0})
                     </Button>
                   </div>
                 </div>

@@ -1139,6 +1139,12 @@ export const JobOrder_DebitNote = {
   getBulkDetails: "/operations/getbulkdetailscharges",
 }
 
+// Purchase Endpoints
+export const JobOrder_Purchase = {
+  getList: "/operations/GetPurchaseList",
+  saveBulkList: "/operations/SaveBulkPurchaseList",
+}
+
 // GL Period Close Endpoints
 export const GLPeriodClose = {
   get: "/gl/period-close",
