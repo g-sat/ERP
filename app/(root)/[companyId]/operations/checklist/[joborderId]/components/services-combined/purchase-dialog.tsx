@@ -294,6 +294,7 @@ export function PurchaseDialog({
               isLoading={isLoading}
               isConfirmed={isConfirmed}
               initialSelectedIds={selectedIds}
+              selectedIds={selectedIds}
               onBulkSelectionChange={handleBulkSelectionChange}
             />
           </div>

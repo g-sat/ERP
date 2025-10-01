@@ -15,6 +15,7 @@ interface PurchaseTableProps {
   onBulkSelectionChange?: (selectedIds: string[]) => void
   isConfirmed?: boolean
   initialSelectedIds?: string[]
+  selectedIds?: string[]
 }
 
 // Table component (existing)
@@ -26,35 +27,56 @@ export function PurchaseTable({
   onBulkSelectionChange,
   isConfirmed,
   initialSelectedIds = [],
+  selectedIds = [],
 }: PurchaseTableProps) {
   console.log("Purchase data", data)
 
   // Add uniqueId field combining invoiceId and itemNo for proper identification
+  // and update isAllocated based on current selection
   const dataWithUniqueId = useMemo(
     () =>
-      data.map((item) => ({
-        ...item,
-        uniqueId: `${item.invoiceId}_${item.itemNo}`,
-      })),
-    [data]
+      data.map((item) => {
+        const uniqueId = `${item.invoiceId}_${item.itemNo}`
+        const isCurrentlySelected = selectedIds.includes(uniqueId)
+
+        return {
+          ...item,
+          uniqueId,
+          // Update isAllocated: true if originally allocated OR currently selected
+          isAllocated: item.isAllocated || isCurrentlySelected,
+        }
+      }),
+    [data, selectedIds]
   )
   // Define columns for the purchase table
   const columns: ColumnDef<IPurchaseData & { uniqueId: string }>[] = useMemo(
     () => [
       {
+        accessorKey: "uniqueId",
+        header: "ID",
+        cell: ({ row }) => {
+          const uniqueId = row.getValue("uniqueId") as string
+          return <span className="font-mono text-xs">{uniqueId}</span>
+        },
+        size: 100,
+        minSize: 80,
+        enableHiding: true,
+      },
+      {
         accessorKey: "isAllocated",
         header: "Status",
         cell: ({ row }) => {
-          const value = row.getValue("isAllocated") as boolean
+          const isAllocated = row.getValue("isAllocated") as boolean
+
           return (
             <span
               className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
-                value
+                isAllocated
                   ? "bg-green-100 text-green-800"
                   : "bg-orange-100 text-orange-800"
               }`}
             >
-              {value ? "Allocated" : "Unallocated"}
+              {isAllocated ? "Allocated" : "Unallocated"}
             </span>
           )
         },
