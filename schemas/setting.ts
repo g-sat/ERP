@@ -2,32 +2,22 @@ import * as z from "zod"
 
 export const decimalFormSchema = z
   .object({
-    amtDec: z
-      .number()
-      .min(2, "Amount Decimals is required at least 2 digits")
-      .default(2),
+    amtDec: z.number().min(2, "Amount Decimals is required at least 2 digits"),
     locAmtDec: z
       .number()
-      .min(2, "Local Amount Decimals is required at least 2 digits")
-      .default(2),
+      .min(2, "Local Amount Decimals is required at least 2 digits"),
     ctyAmtDec: z
       .number()
-      .min(2, "Currency Amount Decimals is required at least 2 digits")
-      .default(2),
-    priceDec: z
-      .number()
-      .min(2, "Price Decimals is required at least 2 digits")
-      .default(2),
+      .min(2, "Currency Amount Decimals is required at least 2 digits"),
+    priceDec: z.number().min(2, "Price Decimals is required at least 2 digits"),
     qtyDec: z
       .number()
-      .min(2, "Quantity Decimals is required at least 2 digits")
-      .default(2),
+      .min(2, "Quantity Decimals is required at least 2 digits"),
     exhRateDec: z
       .number()
-      .min(3, "Exchange Rate Decimals is required at least 3 digits")
-      .default(4),
-    dateFormat: z.string().default("DD/MM/YYYY"),
-    longDateFormat: z.string().default("DD/MM/YYYY HH:mm:ss"),
+      .min(3, "Exchange Rate Decimals is required at least 3 digits"),
+    dateFormat: z.string(),
+    longDateFormat: z.string(),
   })
   .partial()
 
@@ -128,44 +118,17 @@ export type visibleFieldsSchemaType = z.infer<typeof visibleFieldsSchema>
 
 export const financeSettingSchema = z
   .object({
-    base_CurrencyId: z.number().min(0, "Base Currency is required").default(0),
-    local_CurrencyId: z
-      .number()
-      .min(0, "Local Currency is required")
-      .default(0),
-    exhGain_GlId: z
-      .number()
-      .min(0, "Exchange Gain Account is required")
-      .default(0),
-    exhLoss_GlId: z
-      .number()
-      .min(0, "Exchange Loss Account is required")
-      .default(0),
-    bankCharge_GlId: z
-      .number()
-      .min(0, "Bank Charges Account is required")
-      .default(0),
-    profitLoss_GlId: z
-      .number()
-      .min(0, "Profit & Loss Account is required")
-      .default(0),
-    retEarning_GlId: z
-      .number()
-      .min(0, "Retained Earnings Account is required")
-      .default(0),
-    saleGst_GlId: z.number().min(0, "Sales GST Account is required").default(0),
-    purGst_GlId: z
-      .number()
-      .min(0, "Purchase GST Account is required")
-      .default(0),
-    saleDef_GlId: z
-      .number()
-      .min(0, "Sales Deferred Account is required")
-      .default(0),
-    purDef_GlId: z
-      .number()
-      .min(0, "Purchase Deferred Account is required")
-      .default(0),
+    base_CurrencyId: z.number().min(0, "Base Currency is required"),
+    local_CurrencyId: z.number().min(0, "Local Currency is required"),
+    exhGain_GlId: z.number().min(0, "Exchange Gain Account is required"),
+    exhLoss_GlId: z.number().min(0, "Exchange Loss Account is required"),
+    bankCharge_GlId: z.number().min(0, "Bank Charges Account is required"),
+    profitLoss_GlId: z.number().min(0, "Profit & Loss Account is required"),
+    retEarning_GlId: z.number().min(0, "Retained Earnings Account is required"),
+    saleGst_GlId: z.number().min(0, "Sales GST Account is required"),
+    purGst_GlId: z.number().min(0, "Purchase GST Account is required"),
+    saleDef_GlId: z.number().min(0, "Sales Deferred Account is required"),
+    purDef_GlId: z.number().min(0, "Purchase Deferred Account is required"),
   })
   .partial()
 
@@ -173,7 +136,7 @@ export type FinanceSettingSchemaType = z.infer<typeof financeSettingSchema>
 
 export const gridSettingSchema = z
   .object({
-    userId: z.number().default(0),
+    userId: z.number(),
     moduleId: z.number(),
     transactionId: z.number(),
     grdName: z.string(),

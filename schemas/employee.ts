@@ -5,12 +5,12 @@ export const employeeSchema = z.object({
   companyId: z.number().min(1, { message: "Company is required" }),
   employeeCode: z.string().min(1, { message: "Employee code is required" }),
   employeeName: z.string().min(1, { message: "Employee name is required" }),
-  photo: z.string().optional().default(""),
+  photo: z.string().optional(),
   departmentId: z.number().min(1, { message: "Department is required" }),
   designationId: z.number().min(1, { message: "Designation is required" }),
   workLocationId: z.number().min(1, { message: "Work location is required" }),
   genderId: z.number().min(1, { message: "Gender is required" }),
-  martialStatus: z.string().optional().default(""),
+  martialStatus: z.string().optional(),
   dob: z
     .union([z.date(), z.string()])
     .refine((val) => val !== "" && val !== null && val !== undefined, {
@@ -21,9 +21,9 @@ export const employeeSchema = z.object({
     .refine((val) => val !== "" && val !== null && val !== undefined, {
       message: "Join date is required",
     }),
-  lastDate: z.union([z.date(), z.string()]).optional().default(""),
-  phoneNo: z.string().optional().default(""),
-  offPhoneNo: z.string().optional().default(""),
+  lastDate: z.union([z.date(), z.string()]).optional(),
+  phoneNo: z.string().optional(),
+  offPhoneNo: z.string().optional(),
   bankName: z.string().min(1, { message: "Bank name is required" }),
   accountNo: z.string().min(1, { message: "Account number is required" }),
   swiftCode: z.string().min(1, { message: "Swift code is required" }),
@@ -31,31 +31,28 @@ export const employeeSchema = z.object({
   offEmailAdd: z
     .string()
     .email({ message: "Invalid office email format" })
-    .optional()
-    .default(""),
+    .optional(),
   otherEmailAdd: z
     .string()
     .optional()
-    .default("")
     .refine((val) => !val || z.string().email().safeParse(val).success, {
       message: "Invalid other email format",
     }),
-  passportNo: z.string().optional().default(""),
-  passportExpiry: z.union([z.date(), z.string()]).optional().default(""),
-  visaNo: z.string().optional().default(""),
-  visaExpiry: z.union([z.date(), z.string()]).optional().default(""),
-  isGCCEmployeeNational: z.boolean().default(false),
+  passportNo: z.string().optional(),
+  passportExpiry: z.union([z.date(), z.string()]).optional(),
+  visaNo: z.string().optional(),
+  visaExpiry: z.union([z.date(), z.string()]).optional(),
+  isGCCEmployeeNational: z.boolean(),
   nationalityId: z.number().min(1, { message: "Nationality is required" }),
-  emiratesIDNo: z.string().optional().default(""),
-  emiratesIDExpiry: z.union([z.date(), z.string()]).optional().default(""),
-  moiNo: z.string().optional().default(""),
-  moiExpiry: z.union([z.date(), z.string()]).optional().default(""),
-  isActive: z.boolean().default(true),
+  emiratesIDNo: z.string().optional(),
+  emiratesIDExpiry: z.union([z.date(), z.string()]).optional(),
+  moiNo: z.string().optional(),
+  moiExpiry: z.union([z.date(), z.string()]).optional(),
+  isActive: z.boolean(),
   remarks: z
     .string()
     .max(255, { message: "Remarks cannot exceed 255 characters" })
-    .optional()
-    .default(""),
+    .optional(),
 })
 
 export type EmployeeSchemaType = z.infer<typeof employeeSchema>
@@ -75,7 +72,7 @@ export const employeeBasicSchema = z.object({
   employerId: z.number().min(1, { message: "Employer is required" }),
   employeeCode: z.string().min(1, { message: "Employee code is required" }),
   employeeName: z.string().min(1, { message: "Employee name is required" }),
-  photo: z.string().optional().default(""),
+  photo: z.string().optional(),
   departmentId: z.number().min(1, { message: "Department is required" }),
   designationId: z.number().min(1, { message: "Designation is required" }),
   workLocationId: z.number().min(1, { message: "Work location is required" }),
@@ -85,24 +82,22 @@ export const employeeBasicSchema = z.object({
     .refine((val) => val !== "" && val !== null && val !== undefined, {
       message: "Join date is required",
     }),
-  confirmationDate: z.union([z.date(), z.string()]).optional().default(""),
-  lastDate: z.union([z.date(), z.string()]).optional().default(""),
-  phoneNo: z.string().optional().default(""),
-  offPhoneNo: z.string().optional().default(""),
+  confirmationDate: z.union([z.date(), z.string()]).optional(),
+  lastDate: z.union([z.date(), z.string()]).optional(),
+  phoneNo: z.string().optional(),
+  offPhoneNo: z.string().optional(),
   offEmailAdd: z
     .string()
     .email({ message: "Invalid office email format" })
-    .optional()
-    .default(""),
+    .optional(),
   nationalityId: z.number().min(1, { message: "Nationality is required" }),
-  employmentType: z.string().optional().default(""),
-  contractType: z.string().optional().default(""),
+  employmentType: z.string().optional(),
+  contractType: z.string().optional(),
   remarks: z
     .string()
     .max(255, { message: "Remarks cannot exceed 255 characters" })
-    .optional()
-    .default(""),
-  isActive: z.boolean().default(true),
+    .optional(),
+  isActive: z.boolean(),
   dayOfWeek: z.number().min(1, { message: "Day of week is required" }),
 })
 
@@ -115,19 +110,19 @@ export const employeePersonalDetailsSchema = z.object({
     .refine((val) => val !== "" && val !== null && val !== undefined, {
       message: "Date of birth is required",
     }),
-  fatherName: z.string().optional().default(""),
-  age: z.number().optional().default(0),
-  permanentAddress: z.string().optional().default(""),
-  currentAddress: z.string().optional().default(""),
-  workPermitNo: z.string().optional().default(""),
-  personalNo: z.string().optional().default(""),
-  emailAdd: z.string().optional().default(""),
-  passportNo: z.string().optional().default(""),
-  passportExpiryDate: z.union([z.date(), z.string()]).optional().default(""),
-  emiratesIdNo: z.string().optional().default(""),
-  emiratesIdExpiryDate: z.union([z.date(), z.string()]).optional().default(""),
-  emergencyContactNo: z.string().optional().default(""),
-  personalContactNo: z.string().optional().default(""),
+  fatherName: z.string().optional(),
+  age: z.number().optional(),
+  permanentAddress: z.string().optional(),
+  currentAddress: z.string().optional(),
+  workPermitNo: z.string().optional(),
+  personalNo: z.string().optional(),
+  emailAdd: z.string().optional(),
+  passportNo: z.string().optional(),
+  passportExpiryDate: z.union([z.date(), z.string()]).optional(),
+  emiratesIdNo: z.string().optional(),
+  emiratesIdExpiryDate: z.union([z.date(), z.string()]).optional(),
+  emergencyContactNo: z.string().optional(),
+  personalContactNo: z.string().optional(),
 })
 
 export type EmployeePersonalDetailsValues = z.infer<
@@ -143,10 +138,9 @@ export const employeeBankSchema = z.object({
   remarks: z
     .string()
     .max(255, { message: "Remarks cannot exceed 255 characters" })
-    .optional()
-    .default(""),
-  isActive: z.boolean().default(true),
-  glId: z.number().default(0),
+    .optional(),
+  isActive: z.boolean(),
+  glId: z.number(),
 })
 
 export type EmployeeBankValues = z.infer<typeof employeeBankSchema>

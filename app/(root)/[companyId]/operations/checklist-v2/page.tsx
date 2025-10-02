@@ -156,7 +156,10 @@ export default function ChecklistPage() {
   }
 
   // Use API data with proper error handling
-  const apiData = jobOrderResponse?.data || []
+  const apiData = useMemo(
+    () => jobOrderResponse?.data || [],
+    [jobOrderResponse?.data]
+  )
 
   // Get status counts from the API data
   const getStatusCounts = useMemo(() => {

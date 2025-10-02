@@ -4,13 +4,7 @@ export const payScheduleSchema = z.object({
   payscheduleId: z.number().int().nonnegative(),
   companyId: z.number().int().min(0).max(255), // tinyint
 
-  workWeek: z
-    .string()
-    .max(200)
-    .nullable()
-    .optional()
-    .default("MON,TUE,WED,THU,FRI,SAT,SUN"),
-
+  workWeek: z.string().max(200).nullable().optional(),
   isMonthly: z.boolean(),
   workingDaysPerMonth: z.number().int().min(0).max(31).nullable().optional(),
   isPayOn: z.boolean(),

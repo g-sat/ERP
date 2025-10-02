@@ -12,12 +12,11 @@ export const taxSchema = z.object({
     .min(2, { message: "Tax name must be at least 2 characters" })
     .max(150, { message: "Tax name cannot exceed 150 characters" }),
   taxCategoryId: z.number().min(1, { message: "Tax category is required" }),
-  isActive: z.boolean().default(true),
+  isActive: z.boolean(),
   remarks: z
     .string()
     .max(255, { message: "Remarks cannot exceed 255 characters" })
-    .optional()
-    .default(""),
+    .optional(),
 })
 
 export type TaxSchemaType = z.infer<typeof taxSchema>
@@ -67,12 +66,11 @@ export const taxCategorySchema = z.object({
     .string()
     .min(1, { message: "Tax category name is required" })
     .max(150, { message: "Tax category name cannot exceed 150 characters" }),
-  isActive: z.boolean().default(true),
+  isActive: z.boolean(),
   remarks: z
     .string()
     .max(255, { message: "Remarks cannot exceed 255 characters" })
-    .optional()
-    .default(""),
+    .optional(),
 })
 
 export type TaxCategorySchemaType = z.infer<typeof taxCategorySchema>

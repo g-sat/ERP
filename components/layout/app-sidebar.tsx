@@ -10,17 +10,21 @@ import {
   ArrowLeftRight,
   Banknote,
   BarChart,
+  BookOpen,
+  BookOpenText,
   Box,
   Briefcase,
   Building,
   Calendar,
+  CalendarCheck,
   CalendarDays,
   ChartArea,
   ChevronRightIcon,
   CircleUserRound,
   ClipboardList,
-  // Clock,
+  Clock,
   Coins,
+  CreditCard,
   FileCheck,
   FileMinus,
   FilePlus,
@@ -37,7 +41,10 @@ import {
   Landmark,
   LayoutDashboard,
   ListCheck,
+  Lock,
   MapPin,
+  MinusCircle,
+  PlusCircle,
   Receipt,
   Scale,
   Search,
@@ -54,6 +61,7 @@ import {
   Wallet,
 } from "lucide-react"
 
+// Removed unused imports
 import { useApprovalCounts } from "@/hooks/use-approval"
 import {
   Sidebar,
@@ -76,6 +84,274 @@ import {
   CollapsibleTrigger,
 } from "../ui/collapsible"
 
+// Interface for user transaction data
+interface IUserTransaction {
+  moduleId: number
+  moduleCode: string
+  moduleName: string
+  transactionId: number
+  transactionCode: string
+  transactionName: string
+  transCategoryId: number
+  transCategoryCode: string
+  transCategoryName: string
+  seqNo: number
+  transCatSeqNo: number
+  isRead: boolean
+  isCreate: boolean
+  isEdit: boolean
+  isDelete: boolean
+  isExport: boolean
+  isPrint: boolean
+  isVisible: boolean
+}
+
+// Icon mapping for modules (main categories)
+const getModuleIcon = (moduleCode: string) => {
+  const moduleIconMap: Record<
+    string,
+    React.ComponentType<{ className?: string }>
+  > = {
+    // Main Modules
+    master: GalleryVerticalEnd,
+    operations: FolderKanban,
+    hr: Users,
+    ar: Receipt,
+    ap: CreditCard,
+    cb: Banknote,
+    gl: BookOpenText,
+    admin: Landmark,
+    settings: Settings,
+    requests: ClipboardList,
+    approvals: FileCheck,
+    document: FileText,
+    dashboard: LayoutDashboard,
+  }
+  return moduleIconMap[moduleCode.toLowerCase()] || FolderKanban
+}
+
+// Icon mapping for transactions
+const getTransactionIcon = (transactionCode: string) => {
+  const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
+    // Master Data
+    accountgroup: Landmark,
+    accountsetup: Sliders,
+    accounttype: Landmark,
+    bank: Banknote,
+    barge: Ship,
+    category: FolderKanban,
+    chartofaccount: ChartArea,
+    charge: Coins,
+    country: Globe,
+    creditterm: Calendar,
+    currency: Coins,
+    customer: Users,
+    department: Building,
+    designation: GraduationCap,
+    documenttype: FileX,
+    entitytypes: Building,
+    gst: FileText,
+    leavetype: CalendarDays,
+    loantype: Wallet,
+    ordertype: FileStack,
+    paymenttype: Wallet,
+    port: Anchor,
+    portregion: MapPin,
+    product: Box,
+    servicetype: Briefcase,
+    subcategory: FolderKanban,
+    supplier: Building,
+    task: FileCheck,
+    tax: FileText,
+    uom: Scale,
+    vessel: Ship,
+    voyage: ArrowLeftRight,
+
+    // Operations
+    new: ListCheck,
+    checklist: ClipboardList,
+    tariff: Coins,
+
+    // HR
+    employees: Users,
+    loan: Wallet,
+    leave: CalendarDays,
+    attendance: Clock,
+    payruns: Calendar,
+    setting: Settings,
+    hrreports: BarChart,
+
+    // AR (Accounts Receivable)
+    invoice: Receipt,
+    debitnote: FileMinus,
+    creditnote: FilePlus,
+    receipt: Receipt,
+    refund: Undo2,
+    adjustment: Sliders,
+    documentsetoff: FileStack,
+    arreports: BarChart,
+
+    // AP (Accounts Payable)
+    payment: MinusCircle,
+    batchpayment: FileStack,
+    transfer: ArrowLeftRight,
+    reconciliation: Scale,
+
+    // CB (Cash Book)
+    generalpayment: MinusCircle,
+    generalreceipt: PlusCircle,
+    banktransfer: ArrowLeftRight,
+
+    // GL (General Ledger)
+    journalentry: BookOpen,
+    arapcontra: ArrowLeftRight,
+    yearend: CalendarCheck,
+    periodclose: Lock,
+    openingbalance: Scale,
+
+    // Admin
+    users: Users,
+    userroles: UserCheck,
+    usergroup: Users,
+    userrights: ShieldCheck,
+    usergrouprights: Shield,
+    sharedata: Share,
+    profile: UserRoundPen,
+    auditlog: History,
+    errorlog: AlertTriangle,
+    userlog: CircleUserRound,
+
+    // Settings
+    grid: Grid,
+    document: FileText,
+    decimal: Scale,
+    finance: Wallet,
+    lookup: Search,
+    account: Briefcase,
+    mandatory: FileMinus,
+    visible: FilePlus,
+  }
+
+  return iconMap[transactionCode.toLowerCase()] || FileText
+}
+
+// Hook to fetch user transactions
+const useUserTransactions = () => {
+  const [transactions, setTransactions] = React.useState<IUserTransaction[]>([])
+  const [isLoading, setIsLoading] = React.useState(true)
+  const [error, setError] = React.useState<string | null>(null)
+  const { currentCompany, user, getUserTransactions } = useAuthStore()
+
+  React.useEffect(() => {
+    const fetchTransactions = async () => {
+      if (!currentCompany || !user) {
+        setIsLoading(false)
+        return
+      }
+
+      try {
+        setIsLoading(true)
+        setError(null)
+
+        const data = await getUserTransactions()
+
+        console.log("Transactions data:", data)
+
+        if (Array.isArray(data)) {
+          setTransactions(data as IUserTransaction[])
+        } else {
+          console.warn("Transactions data is not an array:", data)
+          setTransactions([])
+        }
+      } catch (err) {
+        console.error("Error fetching user transactions:", err)
+        setError(
+          err instanceof Error ? err.message : "Failed to fetch transactions"
+        )
+        setTransactions([])
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchTransactions()
+  }, [currentCompany, user, getUserTransactions])
+
+  return { transactions, isLoading, error }
+}
+
+// Function to build dynamic menu from transactions
+interface MenuItem {
+  title: string
+  url: string
+  icon: React.ComponentType<{ className?: string }>
+  permissions?: {
+    read: boolean
+    create: boolean
+    edit: boolean
+    delete: boolean
+    export: boolean
+    print: boolean
+  }
+}
+
+// Removed unused SettingNavItem interface
+
+const buildDynamicMenu = (transactions: IUserTransaction[]) => {
+  const menuMap = new Map<
+    string,
+    {
+      title: string
+      url: string
+      icon: React.ComponentType<{ className?: string }>
+      items: MenuItem[]
+    }
+  >()
+
+  // Filter transactions by isVisible=true first
+  const visibleTransactions = transactions.filter(
+    (transaction) => transaction.isVisible === true
+  )
+
+  // Group visible transactions by module
+  visibleTransactions.forEach((transaction) => {
+    const moduleKey = `${transaction.moduleId}_${transaction.moduleName}`
+
+    if (!menuMap.has(moduleKey)) {
+      menuMap.set(moduleKey, {
+        title: transaction.moduleName,
+        url: `/${transaction.moduleCode.toLowerCase()}`,
+        icon: getModuleIcon(transaction.moduleCode.toLowerCase()),
+        items: [],
+      })
+    }
+
+    const moduleData = menuMap.get(moduleKey)
+    if (moduleData) {
+      moduleData.items.push({
+        title: transaction.transactionName,
+        url: `/${transaction.moduleCode.toLowerCase()}/${transaction.transactionCode.toLowerCase()}`,
+        icon: getTransactionIcon(transaction.transactionCode.toLowerCase()),
+        permissions: {
+          read: transaction.isRead,
+          create: transaction.isCreate,
+          edit: transaction.isEdit,
+          delete: transaction.isDelete,
+          export: transaction.isExport,
+          print: transaction.isPrint,
+        },
+      })
+    }
+  })
+
+  // Filter out modules that have no visible items
+  const filteredMenu = Array.from(menuMap.values()).filter(
+    (module) => module.items.length > 0
+  )
+
+  return filteredMenu
+}
+
 export const menuData = {
   mainNav: [
     {
@@ -88,7 +364,6 @@ export const menuData = {
       url: "/approvals",
       icon: FileCheck,
     },
-
     {
       title: "Document",
       url: "/document",
@@ -108,245 +383,13 @@ export const menuData = {
         },
       ],
     },
-    // {
-    //   title: "HR",
-    //   url: "/hr",
-    //   icon: Users,
-    //   items: [
-    //     { title: "Employees", url: "/hr/employees", icon: Users },
-    //     { title: "Loan", url: "/hr/loan", icon: Wallet },
-    //     { title: "Leave", url: "/hr/leave", icon: CalendarDays },
-    //     { title: "Attendance", url: "/hr/attendance", icon: Clock },
-    //     { title: "Payruns", url: "/hr/payruns", icon: Calendar },
-    //     { title: "Reports", url: "/hr/reports", icon: BarChart },
-    //     {
-    //       title: "Setting",
-    //       url: "/hr/setting",
-    //       icon: Settings,
-    //     },
-    //   ],
-    // },
-  ],
-  masterNav: [
-    {
-      title: "Master",
-      url: "/master",
-      icon: GalleryVerticalEnd,
-      items: [
-        {
-          title: "Account Group",
-          url: "/master/account-group",
-          icon: Landmark,
-        },
-        {
-          title: "Account Setup",
-          url: "/master/account-setup",
-          icon: Sliders,
-        },
-        { title: "Account Type", url: "/master/account-type", icon: Landmark },
-        { title: "Bank", url: "/master/bank", icon: Banknote },
-        { title: "Barge", url: "/master/barge", icon: Ship },
-        { title: "Category", url: "/master/category", icon: FolderKanban },
-        {
-          title: "Chart of Account & Category",
-          url: "/master/chartofaccount",
-          icon: ChartArea,
-        },
-        { title: "Charge", url: "/master/charge", icon: Coins },
-        { title: "Country", url: "/master/country", icon: Globe },
-        { title: "Credit Term", url: "/master/creditterm", icon: Calendar },
-        { title: "Currency", url: "/master/currency", icon: Coins },
-        { title: "Customer", url: "/master/customer", icon: Users },
-        { title: "Department", url: "/master/department", icon: Building },
-        {
-          title: "Designation",
-          url: "/master/designation",
-          icon: GraduationCap,
-        },
-        { title: "Document Type", url: "/master/document-type", icon: FileX },
-        //{ title: "Employee", url: "/master/employee", icon: User },
-        { title: "Entity Types", url: "/master/entitytypes", icon: Building },
-        { title: "Gst", url: "/master/gst", icon: FileText },
-        { title: "Leave Type", url: "/master/leavetype", icon: CalendarDays },
-        { title: "Loan Type", url: "/master/loantype", icon: Wallet },
-        { title: "Order Type", url: "/master/ordertype", icon: FileStack },
-        {
-          title: "Payment Type",
-          url: "/master/payment-type",
-          icon: Wallet,
-        },
-        { title: "Port", url: "/master/port", icon: Anchor },
-        { title: "Port Region", url: "/master/portregion", icon: MapPin },
-        { title: "Product", url: "/master/product", icon: Box },
-        {
-          title: "Service Type",
-          url: "/master/servicetype",
-          icon: Briefcase,
-        },
-        {
-          title: "SubCategory",
-          url: "/master/subcategory",
-          icon: FolderKanban,
-        },
-        { title: "Supplier", url: "/master/supplier", icon: Building },
-        { title: "Task", url: "/master/task", icon: FileCheck },
-        { title: "Tax", url: "/master/tax", icon: FileText },
-        { title: "Uom", url: "/master/uom", icon: Scale },
-        { title: "Vessel", url: "/master/vessel", icon: Ship },
-        { title: "Voyage", url: "/master/voyage", icon: ArrowLeftRight },
-      ],
-    },
-  ],
-  operationsNav: [
-    {
-      title: "Operations",
-      url: "/operations",
-      icon: FolderKanban,
-      items: [
-        //{
-        // title: "CheckList",
-        //url: "/operations/checklist-v2",
-        //icon: ClipboardList,
-        //},
-        {
-          title: "New Checklist",
-          url: "/operations/checklist/new",
-          icon: ListCheck,
-        },
-        {
-          title: "Checklist",
-          url: "/operations/checklist",
-          icon: ClipboardList,
-        },
-
-        { title: "Tariff", url: "/operations/tariff", icon: Coins },
-      ],
-    },
-  ],
-  accountNav: [
-    {
-      title: "AR",
-      url: "/ar",
-      icon: Receipt,
-      items: [
-        { title: "Invoice", url: "/ar/invoice", icon: Receipt },
-        { title: "Debit Note", url: "/ar/debitnote", icon: FileMinus },
-        { title: "Credit Note", url: "/ar/creditnote", icon: FilePlus },
-        { title: "Receipt", url: "/ar/receipt", icon: Receipt },
-        { title: "Refund", url: "/ar/refund", icon: Undo2 },
-        { title: "Adjustment", url: "/ar/adjustment", icon: Sliders },
-        { title: "Doc Setoff", url: "/ar/documentsetoff", icon: FileStack },
-        { title: "Reports", url: "/ar/reports", icon: BarChart },
-      ],
-    },
-    // {
-    //   title: "AP",
-    //   url: "/ap",
-    //   icon: CreditCard,
-    //   items: [
-    //     { title: "Invoice", url: "/ap/invoice", icon: Receipt },
-    //     { title: "Debit Note", url: "/ap/debitnote", icon: FileMinus },
-    //     { title: "Credit Note", url: "/ap/creditnote", icon: FilePlus },
-    //     { title: "Payment", url: "/ap/payment", icon: MinusCircle },
-    //     { title: "Refund", url: "/ap/refund", icon: Undo2 },
-    //     { title: "Adjustment", url: "/ap/adjustment", icon: Sliders },
-    //     { title: "Doc Setoff", url: "/ap/documentsetoff", icon: FileStack },
-    //     { title: "Reports", url: "/ap/reports", icon: BarChart },
-    //   ],
-    // },
-    // {
-    //   title: "CB",
-    //   url: "/cb",
-    //   icon: Banknote,
-    //   items: [
-    //     { title: "General Payment", url: "/cb/payment", icon: MinusCircle },
-    //     { title: "General Receipt", url: "/cb/receipt", icon: PlusCircle },
-    //     { title: "Batch Payment", url: "/cb/batch-payment", icon: FileStack },
-    //     { title: "Bank Transfer", url: "/cb/transfer", icon: ArrowLeftRight },
-    //     {
-    //       title: "Bank Reconciliation",
-    //       url: "/cb/reconciliation",
-    //       icon: Scale,
-    //     },
-    //     { title: "Report", url: "/cb/reports", icon: BarChart },
-    //   ],
-    // },
-    // {
-    //   title: "GL",
-    //   url: "/gl",
-    //   icon: BookOpenText,
-    //   items: [
-    //     {
-    //       title: "Journal Entry",
-    //       url: "/gl/journal-entry",
-    //       icon: BookOpen,
-    //     },
-    //     { title: "AR/AP Contra", url: "/gl/arap-contra", icon: ArrowLeftRight },
-    //     { title: "Year-End Process", url: "/gl/year-end", icon: CalendarCheck },
-    //     { title: "GL Period Close", url: "/gl/period-close", icon: Lock },
-    //     { title: "Opening Balance", url: "/gl/opening-balance", icon: Scale },
-    //     { title: "Report", url: "/gl/reports", icon: BarChart },
-    //   ],
-    // },
-  ],
-
-  settingNav: [
-    {
-      title: "Admin",
-      url: "/admin",
-      icon: Landmark,
-      items: [
-        { title: "User", url: "/admin/users", icon: Users },
-        { title: "User Role", url: "/admin/userroles", icon: UserCheck },
-        { title: "User Group", url: "/admin/usergroup", icon: Users },
-        {
-          title: "User Rights",
-          url: "/admin/userrights",
-          icon: ShieldCheck,
-        },
-        //{
-        //title: "User Wise Rights",
-        // url: "/admin/userwiserrights",
-        //   icon: UserCheck,
-        // },
-        { title: "Group Rights", url: "/admin/usergrouprights", icon: Shield },
-        { title: "Share Data", url: "/admin/sharedata", icon: Share },
-        { title: "Profile", url: "/admin/profile", icon: UserRoundPen },
-        { title: "Audit Log", url: "/admin/auditlog", icon: History },
-        { title: "Error Log", url: "/admin/errorlog", icon: AlertTriangle },
-        {
-          title: "User Log",
-          url: "/admin/userlog",
-          icon: CircleUserRound,
-        },
-      ],
-    },
-    {
-      title: "Setting",
-      url: "/settings",
-      icon: Settings,
-      items: [
-        { title: "Grid", url: "/settings/grid", icon: Grid },
-        { title: "Document No", url: "/settings/document", icon: FileText },
-        { title: "Decimal", url: "/settings/decimal", icon: Scale },
-        { title: "Finance", url: "/settings/finance", icon: Wallet },
-        { title: "Task", url: "/settings/task", icon: FileCheck },
-        { title: "Dynamic Lookup", url: "/settings/lookup", icon: Search },
-        { title: "Account", url: "/settings/account", icon: Briefcase },
-        {
-          title: "Mandatory Fields",
-          url: "/settings/mandatory",
-          icon: FileMinus,
-        },
-        { title: "Visible Fields", url: "/settings/visible", icon: FilePlus },
-      ],
-    },
   ],
 }
 
 export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
   const { currentCompany } = useAuthStore()
   const { pendingCount: approvalCount, refreshCounts } = useApprovalCounts()
+  const { transactions, isLoading: transactionsLoading } = useUserTransactions()
   const [openMenu, setOpenMenu] = React.useState<string | null>(null)
   const [selectedMenu, setSelectedMenu] = React.useState<string | null>(null)
   const [selectedSubMenu, setSelectedSubMenu] = React.useState<string | null>(
@@ -358,18 +401,12 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
   )
   const pathname = usePathname()
 
-  const platformNavs = React.useMemo(
-    () => [
-      menuData.masterNav[0],
-      menuData.operationsNav[0],
-      ...menuData.accountNav,
-      //data.hrmsNav[0],
-      //data.documentNav[0],
-    ],
-    []
-  )
+  // Build dynamic menu from user transactions
+  const dynamicMenu = React.useMemo(() => {
+    return buildDynamicMenu(transactions)
+  }, [transactions])
 
-  const settingNavs = React.useMemo(() => menuData.settingNav, [])
+  // Removed unused platformNavs and settingNavs as we use dynamicMenu instead
 
   const getUrlWithCompanyId = React.useCallback(
     (url: string) => {
@@ -391,7 +428,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
       }
     }
 
-    for (const group of platformNavs) {
+    for (const group of dynamicMenu) {
       for (const subItem of group.items || []) {
         if (currentPath === getUrlWithCompanyId(subItem.url)) {
           setSelectedMenu(group.title)
@@ -401,7 +438,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
         }
       }
     }
-  }, [pathname, getUrlWithCompanyId, platformNavs])
+  }, [pathname, getUrlWithCompanyId, dynamicMenu])
 
   // Refresh approval counts when component mounts
   React.useEffect(() => {
@@ -541,208 +578,86 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
         <SidebarGroupLabel>Platform</SidebarGroupLabel>
         <SidebarGroup className="p-1">
           <SidebarMenu className="gap-0.5">
-            {platformNavs.map((group) => (
-              <Collapsible
-                key={group.title}
-                asChild
-                open={openMenu === group.title}
-                className="group/collapsible"
-              >
-                <SidebarMenuItem>
-                  <CollapsibleTrigger asChild>
-                    <SidebarMenuButton
-                      tooltip={group.title}
-                      onClick={() => handleMenuClick(group.title)}
-                      onMouseEnter={() => setHoveredMenu(group.title)}
-                      onMouseLeave={() => setHoveredMenu(null)}
-                      className={`hover:bg-primary/20 hover:text-primary data-[active=true]:bg-primary/20 data-[active=true]:text-primary transition-colors duration-200 ${
-                        isMenuActive(group.title) || hoveredMenu === group.title
-                          ? "bg-primary/20 text-primary"
-                          : ""
-                      }`}
-                    >
-                      {group.icon && <group.icon />}
-                      <span>{group.title}</span>
-                      {group.items && (
-                        <ChevronRightIcon className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
-                      )}
-                    </SidebarMenuButton>
-                  </CollapsibleTrigger>
-                  {group.items && (
-                    <CollapsibleContent>
-                      <SidebarMenuSub>
-                        {group.items.map((subItem) => (
-                          <SidebarMenuSubItem key={subItem.title}>
-                            <SidebarMenuSubButton
-                              asChild
-                              onMouseEnter={() =>
-                                setHoveredSubMenu(subItem.title)
-                              }
-                              onMouseLeave={() => setHoveredSubMenu(null)}
-                              className={`hover:bg-primary/20 hover:text-primary data-[active=true]:bg-primary/20 data-[active=true]:text-primary transition-colors duration-200 ${
-                                isSubMenuActive(subItem.title) ||
-                                hoveredSubMenu === subItem.title
-                                  ? "bg-primary/20 text-primary"
-                                  : ""
-                              }`}
-                            >
-                              <Link
-                                href={getUrlWithCompanyId(subItem.url)}
-                                onClick={() =>
-                                  handleSubMenuClick(group.title, subItem.title)
+            {transactionsLoading ? (
+              <div className="flex items-center justify-center p-4">
+                <div className="text-muted-foreground text-sm">
+                  Loading menu...
+                </div>
+              </div>
+            ) : (
+              dynamicMenu.map((group) => (
+                <Collapsible
+                  key={group.title}
+                  asChild
+                  open={openMenu === group.title}
+                  className="group/collapsible"
+                >
+                  <SidebarMenuItem>
+                    <CollapsibleTrigger asChild>
+                      <SidebarMenuButton
+                        tooltip={group.title}
+                        onClick={() => handleMenuClick(group.title)}
+                        onMouseEnter={() => setHoveredMenu(group.title)}
+                        onMouseLeave={() => setHoveredMenu(null)}
+                        className={`hover:bg-primary/20 hover:text-primary data-[active=true]:bg-primary/20 data-[active=true]:text-primary transition-colors duration-200 ${
+                          isMenuActive(group.title) ||
+                          hoveredMenu === group.title
+                            ? "bg-primary/20 text-primary"
+                            : ""
+                        }`}
+                      >
+                        {group.icon && <group.icon className="h-4 w-4" />}
+                        <span>{group.title}</span>
+                        {group.items && (
+                          <ChevronRightIcon className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
+                        )}
+                      </SidebarMenuButton>
+                    </CollapsibleTrigger>
+                    {group.items && (
+                      <CollapsibleContent>
+                        <SidebarMenuSub>
+                          {group.items.map((subItem) => (
+                            <SidebarMenuSubItem key={subItem.title}>
+                              <SidebarMenuSubButton
+                                asChild
+                                onMouseEnter={() =>
+                                  setHoveredSubMenu(subItem.title)
                                 }
+                                onMouseLeave={() => setHoveredSubMenu(null)}
+                                className={`hover:bg-primary/20 hover:text-primary data-[active=true]:bg-primary/20 data-[active=true]:text-primary transition-colors duration-200 ${
+                                  isSubMenuActive(subItem.title) ||
+                                  hoveredSubMenu === subItem.title
+                                    ? "bg-primary/20 text-primary"
+                                    : ""
+                                }`}
                               >
-                                {subItem.icon && (
-                                  <subItem.icon className="h-4 w-4" />
-                                )}
-                                <span>{subItem.title}</span>
-                              </Link>
-                            </SidebarMenuSubButton>
-                          </SidebarMenuSubItem>
-                        ))}
-                      </SidebarMenuSub>
-                    </CollapsibleContent>
-                  )}
-                </SidebarMenuItem>
-              </Collapsible>
-            ))}
-          </SidebarMenu>
-        </SidebarGroup>
-        <SidebarGroupLabel>Settings</SidebarGroupLabel>
-        <SidebarGroup className="p-1">
-          <SidebarMenu className="gap-0.5">
-            {settingNavs.map((group) => (
-              <Collapsible
-                key={group.title}
-                asChild
-                open={openMenu === group.title}
-                className="group/collapsible"
-              >
-                <SidebarMenuItem>
-                  <CollapsibleTrigger asChild>
-                    <SidebarMenuButton
-                      tooltip={group.title}
-                      onClick={() => handleMenuClick(group.title)}
-                      onMouseEnter={() => setHoveredMenu(group.title)}
-                      onMouseLeave={() => setHoveredMenu(null)}
-                      className={`hover:bg-primary/20 hover:text-primary data-[active=true]:bg-primary/20 data-[active=true]:text-primary transition-colors duration-200 ${
-                        isMenuActive(group.title) || hoveredMenu === group.title
-                          ? "bg-primary/20 text-primary"
-                          : ""
-                      }`}
-                    >
-                      {group.icon && <group.icon />}
-                      <span>{group.title}</span>
-                      {group.items && (
-                        <ChevronRightIcon className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
-                      )}
-                    </SidebarMenuButton>
-                  </CollapsibleTrigger>
-                  {group.items && (
-                    <CollapsibleContent>
-                      <SidebarMenuSub>
-                        {group.items.map((subItem) => (
-                          <SidebarMenuSubItem key={subItem.title}>
-                            <SidebarMenuSubButton
-                              asChild
-                              onMouseEnter={() =>
-                                setHoveredSubMenu(subItem.title)
-                              }
-                              onMouseLeave={() => setHoveredSubMenu(null)}
-                              className={`hover:bg-primary/20 hover:text-primary data-[active=true]:bg-primary/20 data-[active=true]:text-primary transition-colors duration-200 ${
-                                isSubMenuActive(subItem.title) ||
-                                hoveredSubMenu === subItem.title
-                                  ? "bg-primary/20 text-primary"
-                                  : ""
-                              }`}
-                            >
-                              <Link
-                                href={getUrlWithCompanyId(subItem.url)}
-                                onClick={() =>
-                                  handleSubMenuClick(group.title, subItem.title)
-                                }
-                              >
-                                {subItem.icon && (
-                                  <subItem.icon className="h-4 w-4" />
-                                )}
-                                <span>{subItem.title}</span>
-                              </Link>
-                            </SidebarMenuSubButton>
-                          </SidebarMenuSubItem>
-                        ))}
-                      </SidebarMenuSub>
-                    </CollapsibleContent>
-                  )}
-                </SidebarMenuItem>
-              </Collapsible>
-            ))}
+                                <Link
+                                  href={getUrlWithCompanyId(subItem.url)}
+                                  onClick={() =>
+                                    handleSubMenuClick(
+                                      group.title,
+                                      subItem.title
+                                    )
+                                  }
+                                >
+                                  {subItem.icon && (
+                                    <subItem.icon className="h-4 w-4" />
+                                  )}
+                                  <span>{subItem.title}</span>
+                                </Link>
+                              </SidebarMenuSubButton>
+                            </SidebarMenuSubItem>
+                          ))}
+                        </SidebarMenuSub>
+                      </CollapsibleContent>
+                    )}
+                  </SidebarMenuItem>
+                </Collapsible>
+              ))
+            )}
           </SidebarMenu>
         </SidebarGroup>
       </SidebarContent>
-      {/* <SidebarFooter>
-        <SidebarGroup className="p-1">
-          <div className="mt-2 border-t pt-2">
-            <SidebarMenu className="gap-0.5">
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  asChild
-                  onMouseEnter={() => setHoveredMenu("Admin")}
-                  onMouseLeave={() => setHoveredMenu(null)}
-                  className={`hover:bg-primary/20 hover:text-primary data-[active=true]:bg-primary/20 data-[active=true]:text-primary transition-colors duration-200 ${
-                    pathname === getUrlWithCompanyId("/admin") ||
-                    hoveredMenu === "Admin"
-                      ? "bg-primary/20 text-primary"
-                      : ""
-                  }`}
-                >
-                  <Link href={getUrlWithCompanyId("/admin")}>
-                    <Shield />
-                    <span>Admin</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  asChild
-                  onMouseEnter={() => setHoveredMenu("SystemSettings")}
-                  onMouseLeave={() => setHoveredMenu(null)}
-                  className={`hover:bg-primary/20 hover:text-primary data-[active=true]:bg-primary/20 data-[active=true]:text-primary transition-colors duration-200 ${
-                    pathname === getUrlWithCompanyId("/settings") ||
-                    hoveredMenu === "SystemSettings"
-                      ? "bg-primary/20 text-primary"
-                      : ""
-                  }`}
-                >
-                  <Link href={getUrlWithCompanyId("/settings")}>
-                    <Settings />
-                    <span>System Settings</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-             
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  asChild
-                  onMouseEnter={() => setHoveredMenu("UserSettings")}
-                  onMouseLeave={() => setHoveredMenu(null)}
-                  className={`hover:bg-primary/20 hover:text-primary data-[active=true]:bg-primary/20 data-[active=true]:text-primary transition-colors duration-200 ${
-                    pathname === getUrlWithCompanyId("/settings") ||
-                    hoveredMenu === "UserSettings"
-                      ? "bg-primary/20 text-primary"
-                      : ""
-                  }`}
-                >
-                  <Link href={getUrlWithCompanyId("/settings")}>
-                    <Settings />
-                    <span>User Settings</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-             
-            </SidebarMenu>
-          </div>
-        </SidebarGroup>
-      </SidebarFooter>  */}
     </Sidebar>
   )
 }

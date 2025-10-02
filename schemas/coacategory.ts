@@ -11,12 +11,12 @@ const baseCoaCategorySchema = z.object({
     .min(2, { message: "Category name must be at least 2 characters" })
     .max(150, { message: "Category name cannot exceed 150 characters" }),
   seqNo: z.number().min(0, { message: "Sequence number is required" }),
-  isActive: z.boolean().default(true),
+  isActive: z.boolean(),
   remarks: z
     .string()
     .max(255, { message: "Remarks cannot exceed 255 characters" })
     .optional()
-    .default(""),
+    ,
 })
 
 export const coaCategory1Schema = baseCoaCategorySchema.extend({})

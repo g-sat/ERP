@@ -6,7 +6,7 @@ export const approvalProcessSchema = z.object({
   moduleId: z.number().min(1, { message: "Module is required" }),
   transactionId: z.number().optional(),
   companyId: z.number().optional(),
-  isActive: z.boolean().default(true),
+  isActive: z.boolean(),
   createById: z.number().min(1, { message: "Creator is required" }),
   createdDate: z.date().optional(),
 })
@@ -18,7 +18,7 @@ export const approvalLevelSchema = z.object({
   processId: z.number().min(1, { message: "Process is required" }),
   levelNumber: z.number().min(1, { message: "Level number is required" }),
   userRoleId: z.number().min(1, { message: "User role is required" }),
-  isFinal: z.boolean().default(false),
+  isFinal: z.boolean(),
 })
 
 export type ApprovalLevelSchemaType = z.infer<typeof approvalLevelSchema>

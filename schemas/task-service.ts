@@ -5,12 +5,12 @@ const serviceFieldSchema = z.object({
   chargeId: z.number().min(1, "Charge is required"),
   glId: z.number().min(1, "GL Account is required"),
   uomId: z.number().min(1, "UOM is required"),
-  carrierTypeId: z.number().optional().default(0),
-  modeTypeId: z.number().optional().default(0),
-  consignmentTypeId: z.number().optional().default(0),
-  visaTypeId: z.number().optional().default(0),
-  landingTypeId: z.number().optional().default(0),
-  statusTypeId: z.number().optional().default(0),
+  carrierTypeId: z.number().optional(),
+  modeTypeId: z.number().optional(),
+  consignmentTypeId: z.number().optional(),
+  visaTypeId: z.number().optional(),
+  landingTypeId: z.number().optional(),
+  statusTypeId: z.number().optional(),
 })
 
 export const taskServiceFormSchema = z.object({

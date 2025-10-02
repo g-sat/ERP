@@ -12,7 +12,7 @@ export const productSchema = z.object({
     .min(2, { message: "product name must be at least 2 characters" })
     .max(150, { message: "product name cannot exceed 150 characters" }),
 
-  isActive: z.boolean().default(true),
+  isActive: z.boolean(),
   remarks: z
     .string()
     .max(255, { message: "Remarks cannot exceed 255 characters" })

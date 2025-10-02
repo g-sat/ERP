@@ -17,7 +17,7 @@ export const credittermSchema = z.object({
     .string()
     .max(255, { message: "Remarks cannot exceed 255 characters" })
     .optional(),
-  isActive: z.boolean().default(true),
+  isActive: z.boolean(),
 })
 
 export type CreditTermSchemaType = z.infer<typeof credittermSchema>

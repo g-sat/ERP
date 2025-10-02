@@ -2,7 +2,7 @@
 import { z } from "zod"
 
 export const loanRequestSchema = z.object({
-  loanRequestId: z.number().default(0),
+  loanRequestId: z.number(),
   employeeId: z.number().min(1, "Employee is required"),
   loanTypeId: z.number().min(1, "Loan Type is required"),
   requestedAmount: z
@@ -20,21 +20,27 @@ export const loanRequestSchema = z.object({
     .int()
     .positive()
     .min(1, "Calculated Term Months is required"),
-  statusId: z.number().default(1501),
-  remarks: z.string().optional().default(""),
+  statusId: z.number(),
+  remarks: z.string().optional(),
 })
 
 export type LoanRequestFormData = z.infer<typeof loanRequestSchema>
 
 // LoanApprovals.schema.ts
 export const loanApprovalSchema = z.object({
-  approvalId: z.number().default(0),
+  approvalId: z.number(),
   loanRequestId: z.number().min(1, "Loan request is required"),
-  approverId: z.number().default(0),
+  approverId: z.number(),
   approvalDate: z.union([z.string(), z.date()]).optional(),
-  approvedAmount: z.number().nonnegative().min(1, "Approved amount is required"),
+  approvedAmount: z
+    .number()
+    .nonnegative()
+    .min(1, "Approved amount is required"),
   revisedEMIStartDate: z.union([z.string(), z.date()]).optional(),
-  revisedEMIAmount: z.number().nonnegative().min(1, "Revised EMI amount is required"),
+  revisedEMIAmount: z
+    .number()
+    .nonnegative()
+    .min(1, "Revised EMI amount is required"),
   comments: z.string().max(1000).optional(),
   approvalDecision: z.enum(["Rejected", "Approved"]),
 })
@@ -55,15 +61,21 @@ export type LoanDisbursementFormData = z.infer<typeof loanDisbursementSchema>
 
 // LoanRepaymentSchedule.schema.ts
 export const loanRepaymentSchema = z.object({
-  repaymentId: z.number().default(0),
-  loanRequestId: z.number().default(0),
-  installmentNumber: z.number().int().positive().default(1),
+  repaymentId: z.number(),
+  loanRequestId: z.number(),
+  installmentNumber: z.number().int().positive(),
   dueDate: z.union([z.string(), z.date()]).optional(),
   emiAmount: z.number().nonnegative().min(1, "Payment amount is required"),
-  principalComponent: z.number().nonnegative().min(1, "Principal amount is required"),
-  interestComponent: z.number().nonnegative().min(0, "Interest amount must be non-negative"),
-  outstandingBalance: z.number().nonnegative().default(0),
-  statusId: z.number().default(1),
+  principalComponent: z
+    .number()
+    .nonnegative()
+    .min(1, "Principal amount is required"),
+  interestComponent: z
+    .number()
+    .nonnegative()
+    .min(0, "Interest amount must be non-negative"),
+  outstandingBalance: z.number().nonnegative(),
+  statusId: z.number(),
   paymentMethod: z.string().optional(),
   transactionReference: z.string().optional(),
   comments: z.string().optional(),

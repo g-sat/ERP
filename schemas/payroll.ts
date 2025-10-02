@@ -7,12 +7,12 @@ export const componentSchema = z.object({
   componentType: z.enum(["Earning", "Deduction"], {
     required_error: "Component type is required",
   }),
-  isBonus: z.boolean().default(false),
-  isLeave: z.boolean().default(false),
-  isSalaryComponent: z.boolean().default(false),
+  isBonus: z.boolean(),
+  isLeave: z.boolean(),
+  isSalaryComponent: z.boolean(),
   sortOrder: z.number().min(1, "Sort order is required"),
   remarks: z.string().optional(),
-  isActive: z.boolean().default(true),
+  isActive: z.boolean(),
 })
 
 export type PayrollComponentFormData = z.infer<typeof componentSchema>
@@ -32,7 +32,7 @@ export const componentGroupSchema = z.object({
   groupCode: z.string().min(1, "Group code is required"),
   groupName: z.string().min(1, "Group name is required"),
   remarks: z.string().optional(),
-  isActive: z.boolean().default(true),
+  isActive: z.boolean(),
   data_details: z.array(componentGroupDtSchema).min(1),
 })
 
@@ -44,7 +44,7 @@ export const componentGLMappingSchema = z.object({
   companyId: z.number().min(0, "Company is required"),
   departmentId: z.number().min(0, "Department is required"),
   glId: z.number().min(0, "Expense GL is required"),
-  isActive: z.boolean().default(true),
+  isActive: z.boolean(),
 })
 
 export type PayrollComponentGLMappingFormData = z.infer<
@@ -87,7 +87,7 @@ export const payrollTaxSchema = z.object({
   taxRate: z.number().min(0, "Tax rate must be non-negative"),
   fixedAmount: z.number().optional(),
   remarks: z.string().optional(),
-  isActive: z.boolean().default(true),
+  isActive: z.boolean(),
 })
 
 export type PayrollTaxFormData = z.infer<typeof payrollTaxSchema>
@@ -110,10 +110,10 @@ export const payrollProcessingSchema = z.object({
   employeeIds: z
     .array(z.number())
     .min(1, "At least one employee must be selected"),
-  processOvertime: z.boolean().default(true),
-  processBonus: z.boolean().default(true),
-  processCommission: z.boolean().default(true),
-  processDeductions: z.boolean().default(true),
+  processOvertime: z.boolean(),
+  processBonus: z.boolean(),
+  processCommission: z.boolean(),
+  processDeductions: z.boolean(),
   remarks: z.string().optional(),
 })
 

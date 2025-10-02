@@ -18,9 +18,8 @@ export const documentExpirySchema = z.object({
     .number()
     .min(0, "Notification days must be 0 or greater")
     .max(365, "Notification days cannot exceed 365")
-    .optional()
-    .default(30),
-  isExpired: z.boolean().default(false),
+    .optional(),
+  isExpired: z.boolean(),
   remarks: z
     .string()
     .max(500, "Remarks cannot exceed 500 characters")

@@ -139,6 +139,7 @@ export default function CompanySelectPage() {
     if (!selectedCompanyId) return
     setError(null)
     setIsLoading(true)
+
     try {
       const selectedCompany = companies.find(
         (c) => c.companyId === selectedCompanyId
@@ -147,19 +148,26 @@ export default function CompanySelectPage() {
         throw new Error("Invalid company. Please select again.")
       }
 
-      console.log("Selected company:", selectedCompany) // Only switch if it's different from current
+      console.log("Selected company:", selectedCompany)
+
+      // OPTIMIZATION 1: Switch company without waiting for API calls
       if (currentCompany?.companyId !== selectedCompanyId) {
         console.log("Switching to company:", selectedCompanyId)
-        await switchCompany(selectedCompanyId)
+        // Don't await - let it run in background
+        switchCompany(selectedCompanyId, false) // fetchDecimals = false
       } else {
         console.log("Already on selected company, skipping switch")
       }
 
-      // Always fetch decimal settings when selecting a company
-      console.log("Fetching decimal settings for company:", selectedCompanyId)
-      await getDecimals()
-
+      // OPTIMIZATION 2: Navigate immediately, let dashboard handle data loading
+      console.log("Navigating to dashboard immediately")
       router.push(`/${selectedCompanyId}/dashboard`)
+
+      // OPTIMIZATION 3: Fetch decimals in background (non-blocking)
+      getDecimals().catch((error) => {
+        console.warn("Background decimal fetch failed:", error)
+        // Don't show error to user - dashboard will handle fallback
+      })
     } catch (err) {
       setError(err instanceof Error ? err.message : "Switch failed.")
     } finally {

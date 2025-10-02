@@ -193,19 +193,6 @@ export function TariffTable({
     }
   }
 
-  // Handle filter changes for server-side filtering
-  const handleFilterChange = (filters: {
-    search?: string
-    sortOrder?: string
-  }) => {
-    if (onFilterChange) {
-      const newFilters: ITariffFilter = {
-        search: filters.search,
-      }
-      onFilterChange(newFilters)
-    }
-  }
-
   return (
     <MainTable
       data={data}

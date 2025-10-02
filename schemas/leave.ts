@@ -122,9 +122,7 @@ export const leaveRequestSchema = z
       .optional(),
     attachments: z
       .string()
-      .max(1000, "Attachments path must be less than 1000 characters")
-      .optional()
-      .default(""),
+      .max(1000, "Attachments path must be less than 1000 characters"),
   })
   .refine(
     (data) => {

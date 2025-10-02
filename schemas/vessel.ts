@@ -14,40 +14,40 @@ export const vesselSchema = z.object({
     .string()
     .min(1, { message: "call sign is required" })
     .max(150, { message: "call sign cannot exceed 150 characters" })
-    .default(""),
+    ,
   imoCode: z
     .string()
     .min(1, { message: "IMO code is required" })
     .max(150, { message: "IMO code cannot exceed 150 characters" })
-    .default(""),
+    ,
   grt: z
     .string()
     .min(1, { message: "GRT is required" })
     .max(150, { message: "GRT cannot exceed 150 characters" })
     .optional()
-    .default(""),
+    ,
   licenseNo: z
     .string()
     .max(150, { message: "license number cannot exceed 150 characters" })
     .optional()
-    .default(""),
+    ,
   vesselType: z
     .string()
     .min(1, { message: "vessel type is required" })
     .max(150, { message: "vessel type cannot exceed 150 characters" })
     .optional()
-    .default(""),
+    ,
   flag: z
     .string()
     .max(150, { message: "flag cannot exceed 150 characters" })
     .optional()
-    .default(""),
-  isActive: z.boolean().default(true),
+    ,
+  isActive: z.boolean(),
   remarks: z
     .string()
     .max(255, { message: "Remarks cannot exceed 255 characters" })
     .optional()
-    .default(""),
+    ,
 })
 
 export type VesselSchemaType = z.infer<typeof vesselSchema>

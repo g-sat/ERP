@@ -12,12 +12,12 @@ export const gstSchema = z.object({
     .min(2, { message: "Gst name must be at least 2 characters" })
     .max(150, { message: "Gst name cannot exceed 150 characters" }),
   gstCategoryId: z.number().min(1, { message: "Gst category is required" }),
-  isActive: z.boolean().default(true),
+  isActive: z.boolean(),
   remarks: z
     .string()
     .max(255, { message: "Remarks cannot exceed 255 characters" })
     .optional()
-    .default(""),
+    ,
 })
 
 export type GstSchemaType = z.infer<typeof gstSchema>
@@ -67,12 +67,12 @@ export const gstCategorySchema = z.object({
     .string()
     .min(1, { message: "Gst category name is required" })
     .max(150, { message: "Gst category name cannot exceed 150 characters" }),
-  isActive: z.boolean().default(true),
+  isActive: z.boolean(),
   remarks: z
     .string()
     .max(255, { message: "Remarks cannot exceed 255 characters" })
     .optional()
-    .default(""),
+    ,
 })
 
 export type GstCategorySchemaType = z.infer<typeof gstCategorySchema>

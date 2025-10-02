@@ -16,36 +16,36 @@ export const supplierSchema = z.object({
     .string()
     .max(150, "Supplier other name cannot exceed 150 characters")
     .optional()
-    .default(""),
+    ,
   supplierShortName: z
     .string()
     .max(150, "Supplier short name cannot exceed 150 characters")
     .optional()
-    .default(""),
+    ,
   supplierRegNo: z
     .string()
     .max(150, "Supplier registration number cannot exceed 50 characters")
     .optional()
-    .default(""),
-  parentSupplierId: z.number().optional().default(0),
+    ,
+  parentSupplierId: z.number().optional(),
 
   currencyId: z.number().min(1, "Currency is required"),
   bankId: z.number().min(1, "Bank is required"),
   creditTermId: z.number().min(1, "Credit term is required"),
   accSetupId: z.number().min(1, "Account setup is required"),
-  customerId: z.number().optional().default(0),
+  customerId: z.number().optional(),
 
-  isSupplier: z.boolean().optional().default(false),
-  isVendor: z.boolean().optional().default(false),
-  isTrader: z.boolean().optional().default(false),
-  isCustomer: z.boolean().optional().default(false),
+  isSupplier: z.boolean().optional(),
+  isVendor: z.boolean().optional(),
+  isTrader: z.boolean().optional(),
+  isCustomer: z.boolean().optional(),
 
   remarks: z
     .string()
     .max(255, "Remarks cannot exceed 255 characters")
     .optional()
-    .default(""),
-  isActive: z.boolean().default(true),
+    ,
+  isActive: z.boolean(),
 })
 export type SupplierSchemaType = z.infer<typeof supplierSchema>
 
@@ -60,41 +60,41 @@ export const supplierContactSchema = z.object({
     .string()
     .max(150, "Other name cannot exceed 150 characters")
     .optional()
-    .default(""),
+    ,
   mobileNo: z
     .string()
     .max(20, "Mobile number cannot exceed 20 characters")
     .optional()
-    .default(""),
+    ,
   offNo: z
     .string()
     .max(20, "Office number cannot exceed 20 characters")
     .optional()
-    .default(""),
+    ,
   faxNo: z
     .string()
     .max(20, "Fax number cannot exceed 20 characters")
     .optional()
-    .default(""),
+    ,
   emailAdd: z
     .string()
     .email("Please enter a valid email address")
     .optional()
-    .default(""),
+    ,
   messId: z
     .string()
     .max(50, "Mess ID cannot exceed 50 characters")
     .optional()
-    .default(""),
+    ,
   contactMessType: z
     .string()
     .max(50, "Contact mess type cannot exceed 50 characters")
     .optional()
-    .default(""),
-  isDefault: z.boolean().optional().default(false),
-  isFinance: z.boolean().optional().default(false),
-  isSales: z.boolean().optional().default(false),
-  isActive: z.boolean().default(true),
+    ,
+  isDefault: z.boolean().optional(),
+  isFinance: z.boolean().optional(),
+  isSales: z.boolean().optional(),
+  isActive: z.boolean(),
 })
 export type SupplierContactSchemaType = z.infer<typeof supplierContactSchema>
 
@@ -109,43 +109,43 @@ export const supplierAddressSchema = z.object({
     .string()
     .max(255, "Address 2 cannot exceed 255 characters")
     .optional()
-    .default(""),
+    ,
   address3: z
     .string()
     .max(255, "Address 3 cannot exceed 255 characters")
     .optional()
-    .default(""),
+    ,
   address4: z
     .string()
     .max(255, "Address 4 cannot exceed 255 characters")
     .optional()
-    .default(""),
+    ,
   pinCode: z
     .string()
     .max(20, "Pin code cannot exceed 20 characters")
     .optional()
-    .default(""),
+    ,
   countryId: z.number().min(1, "Country is required"),
   phoneNo: z
     .string()
     .max(20, "Phone number cannot exceed 20 characters")
     .optional()
-    .default(""),
+    ,
   faxNo: z
     .string()
     .max(20, "Fax number cannot exceed 20 characters")
     .optional()
-    .default(""),
+    ,
   emailAdd: z
     .string()
     .email("Please enter a valid email address")
     .optional()
-    .default(""),
-  webUrl: z.string().url("Please enter a valid URL").optional().default(""),
-  isDefaultAdd: z.boolean().optional().default(false),
-  isDeliveryAdd: z.boolean().optional().default(false),
-  isFinAdd: z.boolean().optional().default(false),
-  isSalesAdd: z.boolean().optional().default(false),
-  isActive: z.boolean().default(true),
+    ,
+  webUrl: z.string().url("Please enter a valid URL").optional(),
+  isDefaultAdd: z.boolean().optional(),
+  isDeliveryAdd: z.boolean().optional(),
+  isFinAdd: z.boolean().optional(),
+  isSalesAdd: z.boolean().optional(),
+  isActive: z.boolean(),
 })
 export type SupplierAddressSchemaType = z.infer<typeof supplierAddressSchema>

@@ -5,7 +5,7 @@ export const accountSetupSchema = z.object({
   accSetupName: z.string().min(1, { message: "Name is required" }),
   accSetupId: z.number().min(0, { message: "ID must be 0 or greater" }),
   accSetupCategoryId: z.number().min(1, { message: "Category is required" }),
-  isActive: z.boolean().default(true),
+  isActive: z.boolean(),
   remarks: z.string().optional(),
 })
 
@@ -25,7 +25,7 @@ export const accountSetupCategorySchema = z.object({
   accSetupCategoryId: z.number().min(1, { message: "Category is required" }),
   accSetupCategoryCode: z.string().min(1, { message: "Code is required" }),
   accSetupCategoryName: z.string().min(1, { message: "Name is required" }),
-  isActive: z.boolean().default(true),
+  isActive: z.boolean(),
   remarks: z.string().optional(),
 })
 

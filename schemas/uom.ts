@@ -11,12 +11,12 @@ export const uomSchema = z.object({
     .min(2, { message: "UOM name must be at least 2 characters" })
     .max(150, { message: "UOM name cannot exceed 150 characters" }),
 
-  isActive: z.boolean().default(true),
+  isActive: z.boolean(),
   remarks: z
     .string()
     .max(255, { message: "Remarks cannot exceed 255 characters" })
     .optional()
-    .default(""),
+    ,
 })
 
 export type UomSchemaType = z.infer<typeof uomSchema>
@@ -49,7 +49,7 @@ export const uomCategorySchema = z.object({
   uomCategoryCode: z.string().max(50),
   uomCategoryName: z.string().max(150),
   description: z.string().optional(),
-  isActive: z.boolean().default(true),
+  isActive: z.boolean(),
 })
 
 export type UomCategorySchemaType = z.infer<typeof uomCategorySchema>

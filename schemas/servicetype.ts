@@ -17,9 +17,8 @@ export const serviceTypeSchema = z.object({
   remarks: z
     .string()
     .max(255, { message: "Remarks cannot exceed 255 characters" })
-    .optional()
-    .default(""),
-  isActive: z.boolean().default(true),
+    .optional(),
+  isActive: z.boolean(),
 })
 
 export type ServiceTypeSchemaType = z.infer<typeof serviceTypeSchema>
@@ -52,9 +51,8 @@ export const serviceTypeCategorySchema = z.object({
   remarks: z
     .string()
     .max(255, { message: "Remarks cannot exceed 255 characters" })
-    .optional()
-    .default(""),
-  isActive: z.boolean().default(true),
+    .optional(),
+  isActive: z.boolean(),
 })
 
 export type ServiceTypeCategorySchemaType = z.infer<

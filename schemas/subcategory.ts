@@ -15,9 +15,9 @@ export const subcategorySchema = z.object({
     .string()
     .max(255, { message: "Remarks cannot exceed 255 characters" })
     .optional()
-    .default(""),
-  isActive: z.boolean().default(true),
-  isOwn: z.boolean().default(true),
+    ,
+  isActive: z.boolean(),
+  isOwn: z.boolean(),
 })
 
 export type SubCategorySchemaType = z.infer<typeof subcategorySchema>

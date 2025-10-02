@@ -412,7 +412,7 @@ export function PortExpensesTab({
         console.error("Error handling debit note:", error)
       }
     },
-    [debitNoteMutation, data, jobData]
+    [debitNoteMutation, data, jobData, queryClient]
   )
 
   const handlePurchase = useCallback(() => {

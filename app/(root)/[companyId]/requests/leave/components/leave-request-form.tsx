@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { ILeaveTypeLookup } from "@/interfaces/lookup"
 import { LeaveRequestSchemaType, leaveRequestSchema } from "@/schemas/leave"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -101,6 +101,20 @@ export function LeaveRequestForm({
     }
   }, [employeeId, form])
 
+  const calculateDays = useCallback(() => {
+    const startDate = form.watch("startDate")
+    const endDate = form.watch("endDate")
+
+    if (startDate && endDate) {
+      const start = new Date(startDate)
+      const end = new Date(endDate)
+      const diffTime = Math.abs(end.getTime() - start.getTime())
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1
+      return diffDays
+    }
+    return 0
+  }, [form])
+
   // Watch for date changes and update totalDays
   useEffect(() => {
     const startDate = form.watch("startDate")
@@ -112,7 +126,7 @@ export function LeaveRequestForm({
     } else {
       form.setValue("totalDays", 0)
     }
-  }, [form.watch("startDate"), form.watch("endDate"), form])
+  }, [calculateDays, form])
 
   const handleSubmit = async (data: LeaveRequestSchemaType) => {
     try {
@@ -147,20 +161,6 @@ export function LeaveRequestForm({
   const handleCancel = () => {
     setOpen(false)
     resetForm()
-  }
-
-  const calculateDays = () => {
-    const startDate = form.watch("startDate")
-    const endDate = form.watch("endDate")
-
-    if (startDate && endDate) {
-      const start = new Date(startDate)
-      const end = new Date(endDate)
-      const diffTime = Math.abs(end.getTime() - start.getTime())
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1
-      return diffDays
-    }
-    return 0
   }
 
   const handleLeaveTypeChange = (selectedOption: ILeaveTypeLookup | null) => {

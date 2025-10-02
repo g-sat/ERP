@@ -20,10 +20,9 @@ export const userSchema = z.object({
   remarks: z
     .string()
     .max(255, { message: "Remarks cannot exceed 255 characters" })
-    .optional()
-    .default(""),
-  isActive: z.boolean().default(true),
-  isLocked: z.boolean().default(false),
+    .optional(),
+  isActive: z.boolean(),
+  isLocked: z.boolean(),
 })
 
 export type UserSchemaType = z.infer<typeof userSchema>
@@ -43,9 +42,8 @@ export const userGroupSchema = z.object({
   remarks: z
     .string()
     .max(255, { message: "Remarks cannot exceed 255 characters" })
-    .optional()
-    .default(""),
-  isActive: z.boolean().default(true),
+    .optional(),
+  isActive: z.boolean(),
 })
 
 export type UserGroupSchemaType = z.infer<typeof userGroupSchema>
@@ -65,9 +63,8 @@ export const userRoleSchema = z.object({
   remarks: z
     .string()
     .max(255, { message: "Remarks cannot exceed 255 characters" })
-    .optional()
-    .default(""),
-  isActive: z.boolean().default(true),
+    .optional(),
+  isActive: z.boolean(),
 })
 
 export type UserRoleSchemaType = z.infer<typeof userRoleSchema>
@@ -121,12 +118,12 @@ export const userGroupRightsSchema = z.object({
   transactionName: z
     .string()
     .min(1, { message: "Transaction name is required" }),
-  isRead: z.boolean().default(false),
-  isCreate: z.boolean().default(false),
-  isEdit: z.boolean().default(false),
-  isDelete: z.boolean().default(false),
-  isExport: z.boolean().default(false),
-  isPrint: z.boolean().default(false),
+  isRead: z.boolean(),
+  isCreate: z.boolean(),
+  isEdit: z.boolean(),
+  isDelete: z.boolean(),
+  isExport: z.boolean(),
+  isPrint: z.boolean(),
 })
 
 export type UserGroupRightsSchemaType = z.infer<typeof userGroupRightsSchema>
@@ -137,7 +134,7 @@ export const userRightsSchema = z.object({
     .min(1, { message: "Company ID must be greater than 0" }),
   companyCode: z.string().min(1, { message: "Company code is required" }),
   companyName: z.string().min(1, { message: "Company name is required" }),
-  isAccess: z.boolean().default(false),
+  isAccess: z.boolean(),
   userId: z.number(),
   userGroupId: z.number(),
 })
@@ -161,41 +158,35 @@ export const userProfileSchema = z.object({
   userId: z.number(),
   firstName: z.string().min(2, "First name must be at least 2 characters"),
   lastName: z.string().min(2, "Last name must be at least 2 characters"),
-  birthDate: z.string().optional().default(""),
-  gender: z.enum(["M", "F", "O"]).optional().default("M"),
-  profilePicture: z.string().optional().default(""),
+  birthDate: z.string().optional(),
+  gender: z.enum(["M", "F", "O"]).optional(),
+  profilePicture: z.string().optional(),
   bio: z.string().max(500, "Bio must be less than 500 characters").optional(),
 
   // Contact Information
   primaryContactType: z
     .enum(["Phone", "Email", "WhatsApp", "Skype", "Other"])
-    .optional()
-    .default("Phone"),
-  primaryContactValue: z.string().optional().default(""),
+    .optional(),
+  primaryContactValue: z.string().optional(),
   secondaryContactType: z
     .enum(["Phone", "Email", "WhatsApp", "Skype", "Other"])
-    .optional()
-    .default("Phone"),
-  secondaryContactValue: z.string().optional().default(""),
+    .optional(),
+  secondaryContactValue: z.string().optional(),
 
   // Address Information
   addressType: z
     .enum(["Home", "Office", "Billing", "Shipping", "Other"])
-    .optional()
-    .default("Home"),
-  street: z.string().optional().default(""),
-  city: z.string().optional().default(""),
-  state: z.string().optional().default(""),
-  postalCode: z.string().optional().default(""),
-  country: z.string().optional().default(""),
+    .optional(),
+  street: z.string().optional(),
+  city: z.string().optional(),
+  state: z.string().optional(),
+  postalCode: z.string().optional(),
+  country: z.string().optional(),
 
   // Preferences
-  languagePreference: z.string().optional().default(""),
-  themePreference: z
-    .enum(["light", "dark", "system"])
-    .optional()
-    .default("light"),
-  timezonePreference: z.string().optional().default(""),
+  languagePreference: z.string().optional(),
+  themePreference: z.enum(["light", "dark", "system"]).optional(),
+  timezonePreference: z.string().optional(),
 })
 
 export type UserProfileSchemaType = z.infer<typeof userProfileSchema>

@@ -10,14 +10,14 @@ export const currencySchema = z.object({
     .string({ required_error: "Currency name is required" })
     .min(2)
     .max(150, { message: "Maximum length is 150" }),
-  currencySign: z.string().optional().default(""),
-  isMultiply: z.boolean().default(false),
-  isActive: z.boolean().default(true),
+  currencySign: z.string().optional(),
+  isMultiply: z.boolean(),
+  isActive: z.boolean(),
   remarks: z
     .string()
     .max(255, { message: "Remarks cannot exceed 255 characters" })
     .optional()
-    .default(""),
+    ,
 })
 
 export type CurrencySchemaType = z.infer<typeof currencySchema>

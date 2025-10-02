@@ -17,38 +17,32 @@ export const bankSchema = z.object({
   accountNo: z
     .string()
     .max(50, "Account number cannot exceed 50 characters")
-    .optional()
-    .default(""),
+    .optional(),
   swiftCode: z
     .string()
     .max(50, "SWIFT code cannot exceed 50 characters")
-    .optional()
-    .default(""),
+    .optional(),
   remarks1: z
     .string()
     .max(255, "Remarks1 cannot exceed 255 characters")
-    .optional()
-    .default(""),
+    .optional(),
   remarks2: z
     .string()
     .max(255, "Remarks2 cannot exceed 255 characters")
-    .optional()
-    .default(""),
+    .optional(),
   remarks3: z
     .string()
     .max(255, "Remarks3 cannot exceed 255 characters")
-    .optional()
-    .default(""),
-  glId: z.number().optional().default(0),
+    .optional(),
+  glId: z.number().optional(),
 
-  isPettyCashBank: z.boolean().optional().default(false),
-  isOwnBank: z.boolean().optional().default(false),
+  isPettyCashBank: z.boolean().optional(),
+  isOwnBank: z.boolean().optional(),
   remarks: z
     .string()
     .max(255, "Remarks cannot exceed 255 characters")
-    .optional()
-    .default(""),
-  isActive: z.boolean().default(true),
+    .optional(),
+  isActive: z.boolean(),
 })
 export type BankSchemaType = z.infer<typeof bankSchema>
 
@@ -62,42 +56,29 @@ export const bankContactSchema = z.object({
   otherName: z
     .string()
     .max(150, "Other name cannot exceed 150 characters")
-    .optional()
-    .default(""),
+    .optional(),
   mobileNo: z
     .string()
     .max(20, "Mobile number cannot exceed 20 characters")
-    .optional()
-    .default(""),
+    .optional(),
   offNo: z
     .string()
     .max(20, "Office number cannot exceed 20 characters")
-    .optional()
-    .default(""),
+    .optional(),
   faxNo: z
     .string()
     .max(20, "Fax number cannot exceed 20 characters")
-    .optional()
-    .default(""),
-  emailAdd: z
-    .string()
-    .email("Please enter a valid email address")
-    .optional()
-    .default(""),
-  messId: z
-    .string()
-    .max(50, "Mess ID cannot exceed 50 characters")
-    .optional()
-    .default(""),
+    .optional(),
+  emailAdd: z.string().email("Please enter a valid email address").optional(),
+  messId: z.string().max(50, "Mess ID cannot exceed 50 characters").optional(),
   contactMessType: z
     .string()
     .max(50, "Contact mess type cannot exceed 50 characters")
-    .optional()
-    .default(""),
-  isDefault: z.boolean().optional().default(false),
-  isFinance: z.boolean().optional().default(false),
-  isSales: z.boolean().optional().default(false),
-  isActive: z.boolean().default(true),
+    .optional(),
+  isDefault: z.boolean().optional(),
+  isFinance: z.boolean().optional(),
+  isSales: z.boolean().optional(),
+  isActive: z.boolean(),
 })
 export type BankContactSchemaType = z.infer<typeof bankContactSchema>
 
@@ -111,44 +92,34 @@ export const bankAddressSchema = z.object({
   address2: z
     .string()
     .max(255, "Address 2 cannot exceed 255 characters")
-    .optional()
-    .default(""),
+    .optional(),
   address3: z
     .string()
     .max(255, "Address 3 cannot exceed 255 characters")
-    .optional()
-    .default(""),
+    .optional(),
   address4: z
     .string()
     .max(255, "Address 4 cannot exceed 255 characters")
-    .optional()
-    .default(""),
+    .optional(),
   pinCode: z
     .string()
     .max(20, "Pin code cannot exceed 20 characters")
-    .optional()
-    .default(""),
+    .optional(),
   countryId: z.number().min(1, "Country is required"),
   phoneNo: z
     .string()
     .max(20, "Phone number cannot exceed 20 characters")
-    .optional()
-    .default(""),
+    .optional(),
   faxNo: z
     .string()
     .max(20, "Fax number cannot exceed 20 characters")
-    .optional()
-    .default(""),
-  emailAdd: z
-    .string()
-    .email("Please enter a valid email address")
-    .optional()
-    .default(""),
-  webUrl: z.string().url("Please enter a valid URL").optional().default(""),
-  isDefaultAdd: z.boolean().optional().default(false),
-  isDeliveryAdd: z.boolean().optional().default(false),
-  isFinAdd: z.boolean().optional().default(false),
-  isSalesAdd: z.boolean().optional().default(false),
-  isActive: z.boolean().default(true),
+    .optional(),
+  emailAdd: z.string().email("Please enter a valid email address").optional(),
+  webUrl: z.string().url("Please enter a valid URL").optional(),
+  isDefaultAdd: z.boolean().optional(),
+  isDeliveryAdd: z.boolean().optional(),
+  isFinAdd: z.boolean().optional(),
+  isSalesAdd: z.boolean().optional(),
+  isActive: z.boolean(),
 })
 export type BankAddressSchemaType = z.infer<typeof bankAddressSchema>

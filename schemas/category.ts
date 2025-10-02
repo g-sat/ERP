@@ -14,10 +14,9 @@ export const categorySchema = z.object({
   remarks: z
     .string()
     .max(255, { message: "Remarks cannot exceed 255 characters" })
-    .optional()
-    .default(""),
-  isActive: z.boolean().default(true),
-  isOwn: z.boolean().default(true),
+    .optional(),
+  isActive: z.boolean(),
+  isOwn: z.boolean(),
 })
 
 export type CategorySchemaType = z.infer<typeof categorySchema>

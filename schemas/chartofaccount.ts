@@ -15,18 +15,18 @@ export const chartofAccountSchema = z.object({
   coaCategoryId1: z.number().min(1, { message: "Category 1 is required" }),
   coaCategoryId2: z.number().min(0, { message: "Category 2 is required" }),
   coaCategoryId3: z.number().min(0, { message: "Category 3 is required" }),
-  isSysControl: z.boolean().default(false),
-  isDeptMandatory: z.boolean().default(false),
-  isBargeMandatory: z.boolean().default(false),
-  isJobControl: z.boolean().default(false),
-  isBankControl: z.boolean().default(false),
+  isSysControl: z.boolean(),
+  isDeptMandatory: z.boolean(),
+  isBargeMandatory: z.boolean(),
+  isJobControl: z.boolean(),
+  isBankControl: z.boolean(),
   seqNo: z.number(),
-  isActive: z.boolean().default(true),
+  isActive: z.boolean(),
   remarks: z
     .string()
     .max(255, { message: "Remarks cannot exceed 255 characters" })
     .optional()
-    .default(""),
+    ,
 })
 
 export type ChartofAccountSchemaType = z.infer<typeof chartofAccountSchema>

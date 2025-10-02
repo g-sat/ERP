@@ -15,38 +15,33 @@ export const customerSchema = z.object({
   customerOtherName: z
     .string()
     .max(150, "Customer other name cannot exceed 150 characters")
-    .optional()
-    .default(""),
+    .optional(),
   customerShortName: z
     .string()
     .max(150, "Customer short name cannot exceed 150 characters")
-    .optional()
-    .default(""),
+    .optional(),
   customerRegNo: z
     .string()
     .max(150, "Customer registration number cannot exceed 50 characters")
-    .optional()
-    .default(""),
-
+    .optional(),
   currencyId: z.number().min(1, "Currency is required"),
   bankId: z.number().min(1, "Bank is required"),
   creditTermId: z.number().min(1, "Credit term is required"),
   accSetupId: z.number().min(1, "Account setup is required"),
-  supplierId: z.number().optional().default(0),
+  supplierId: z.number().optional(),
 
-  parentCustomerId: z.number().optional().default(0),
+  parentCustomerId: z.number().optional(),
 
-  isCustomer: z.boolean().optional().default(false),
-  isVendor: z.boolean().optional().default(false),
-  isTrader: z.boolean().optional().default(false),
-  isSupplier: z.boolean().optional().default(false),
+  isCustomer: z.boolean().optional(),
+  isVendor: z.boolean().optional(),
+  isTrader: z.boolean().optional(),
+  isSupplier: z.boolean().optional(),
 
   remarks: z
     .string()
     .max(255, "Remarks cannot exceed 255 characters")
-    .optional()
-    .default(""),
-  isActive: z.boolean().default(true),
+    .optional(),
+  isActive: z.boolean(),
 })
 export type CustomerSchemaType = z.infer<typeof customerSchema>
 
@@ -60,44 +55,37 @@ export const customerContactSchema = z.object({
   otherName: z
     .string()
     .max(150, "Other name cannot exceed 150 characters")
-    .optional()
-    .default(""),
+    .optional(),
   mobileNo: z
     .string()
     .max(150, "Mobile number cannot exceed 150 characters")
-    .optional()
-    .default(""),
+    .optional(),
   offNo: z
     .string()
     .max(150, "Office number cannot exceed 150 characters")
-    .optional()
-    .default(""),
+    .optional(),
   faxNo: z
     .string()
     .max(150, "Fax number cannot exceed 150 characters")
-    .optional()
-    .default(""),
+    .optional(),
   emailAdd: z
     .string()
     .optional()
-    .default("")
     .refine((val) => !val || z.string().email().safeParse(val).success, {
       message: "Invalid email format",
     }),
   messId: z
     .string()
     .max(150, "Mess ID cannot exceed 150 characters")
-    .optional()
-    .default(""),
+    .optional(),
   contactMessType: z
     .string()
     .max(150, "Contact mess type cannot exceed 150 characters")
-    .optional()
-    .default(""),
-  isDefault: z.boolean().default(false),
-  isFinance: z.boolean().default(false),
-  isSales: z.boolean().default(false),
-  isActive: z.boolean().default(true),
+    .optional(),
+  isDefault: z.boolean(),
+  isFinance: z.boolean(),
+  isSales: z.boolean(),
+  isActive: z.boolean(),
 })
 export type CustomerContactSchemaType = z.infer<typeof customerContactSchema>
 
@@ -115,18 +103,15 @@ export const customerAddressSchema = z.object({
   address3: z
     .string()
     .max(150, "Address 3 cannot exceed 150 characters")
-    .optional()
-    .default(""),
+    .optional(),
   address4: z
     .string()
     .max(150, "Address 4 cannot exceed 150 characters")
-    .optional()
-    .default(""),
+    .optional(),
   pinCode: z
     .string()
     .max(150, "PIN code cannot exceed 150 characters")
-    .optional()
-    .default(""),
+    .optional(),
   countryId: z.number().min(1, "Country is required"),
   phoneNo: z
     .string()
@@ -135,25 +120,22 @@ export const customerAddressSchema = z.object({
   faxNo: z
     .string()
     .max(150, "Fax number cannot exceed 150 characters")
-    .optional()
-    .default(""),
+    .optional(),
   emailAdd: z
     .string()
     .max(150, "Email address cannot exceed 150 characters")
     .optional()
-    .default("")
     .refine((val) => !val || z.string().email().safeParse(val).success, {
       message: "Invalid email format",
     }),
   webUrl: z
     .string()
     .max(150, "Web URL cannot exceed 150 characters")
-    .optional()
-    .default(""),
-  isDefaultAdd: z.boolean().default(false),
-  isDeliveryAdd: z.boolean().default(false),
-  isFinAdd: z.boolean().default(false),
-  isSalesAdd: z.boolean().default(false),
-  isActive: z.boolean().default(true),
+    .optional(),
+  isDefaultAdd: z.boolean(),
+  isDeliveryAdd: z.boolean(),
+  isFinAdd: z.boolean(),
+  isSalesAdd: z.boolean(),
+  isActive: z.boolean(),
 })
 export type CustomerAddressSchemaType = z.infer<typeof customerAddressSchema>

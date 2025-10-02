@@ -15,7 +15,7 @@ export const orderTypeSchema = z.object({
   orderTypeCategoryCode: z.string().max(50),
   orderTypeCategoryName: z.string().max(150),
 
-  isActive: z.boolean().default(true),
+  isActive: z.boolean(),
   remarks: z.string().max(255).optional(),
 })
 
@@ -40,7 +40,7 @@ export const orderTypeCategorySchema = z.object({
   editBy: z.string().nullable(),
   createDate: z.union([z.string(), z.date()]),
   editDate: z.union([z.string(), z.date()]).nullable(),
-  isActive: z.boolean().default(true),
+  isActive: z.boolean(),
   remarks: z.string().max(255).optional(),
 })
 

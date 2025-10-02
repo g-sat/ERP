@@ -4,7 +4,8 @@ export const RefreshToken = "/auth/refreshtoken"
 // Admin Endpoints
 export const Admin = {
   getUserModules: "/admin/getusersmodules",
-  getUserTransactions: "/admin/getuserstransactions",
+  getUserTransactions: "/admin/GetUsersTransactions",
+  getUserTransactionsAll: "/admin/GetUsersTransactionsAll",
   getCompanies: "/admin/getusercompany",
   getCompany: "/admin/GetUserCompany",
   getUserRights: "/admin/GetUserRightsbyUser",

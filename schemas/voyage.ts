@@ -10,14 +10,14 @@ export const voyageSchema = z.object({
     .string()
     .min(2, { message: "reference number is required" })
     .max(100, { message: "reference number cannot exceed 100 characters" }),
-  vesselId: z.number().min(1, { message: "vessel id is required" }).default(0),
-  bargeId: z.number().min(1, { message: "barge id is required" }).default(0),
-  isActive: z.boolean().default(true),
+  vesselId: z.number().min(1, { message: "vessel id is required" }),
+  bargeId: z.number().min(1, { message: "barge id is required" }),
+  isActive: z.boolean(),
   remarks: z
     .string()
     .max(255, { message: "Remarks cannot exceed 255 characters" })
     .optional()
-    .default(""),
+    ,
 })
 
 export type VoyageSchemaType = z.infer<typeof voyageSchema>

@@ -1,12 +1,12 @@
 import { z } from "zod"
 
 export const employerschema = z.object({
-  employerId: z.number().optional().default(0),
+  employerId: z.number().optional(),
   companyId: z.number(),
-  address: z.string().optional().default(""),
-  phone: z.string().optional().default(""),
-  email: z.string().optional().default(""),
-  establishmentId: z.string().optional().default(""),
+  address: z.string().optional(),
+  phone: z.string().optional(),
+  email: z.string().optional(),
+  establishmentId: z.string().optional(),
   bankAccountNumber: z.string().optional(),
   iban: z.string().optional(),
   isActive: z.boolean(),

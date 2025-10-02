@@ -164,6 +164,7 @@ export function LaunchServiceForm({
     jobData.jobOrderId,
     jobData.jobOrderNo,
     isChartOfAccountLoading,
+    formatDateTimeForForm,
   ])
 
   const calculateWaitingTime = () => {

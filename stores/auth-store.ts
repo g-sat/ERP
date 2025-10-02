@@ -49,6 +49,27 @@ const clearCurrentTabCompanyIdFromSession = () => {
   sessionStorage.removeItem(SESSION_STORAGE_TAB_COMPANY_ID_KEY)
 }
 
+// Caching Functions
+// -----------------
+const CACHE_DURATION = 5 * 60 * 1000 // 5 minutes
+const cache = new Map<string, { data: unknown; timestamp: number }>()
+
+const getCachedData = <T>(key: string): T | null => {
+  const entry = cache.get(key)
+  if (!entry) return null
+
+  if (Date.now() - entry.timestamp > CACHE_DURATION) {
+    cache.delete(key)
+    return null
+  }
+
+  return entry.data as T
+}
+
+const setCachedData = <T>(key: string, data: T): void => {
+  cache.set(key, { data, timestamp: Date.now() })
+}
+
 /**
  * Extracts user ID from JWT token
  * @param token - The JWT token to parse
@@ -149,6 +170,9 @@ interface AuthState {
 
   // Permission Actions
   getPermissions: (retryCount?: number) => Promise<void>
+
+  // User Transactions Actions
+  getUserTransactions: () => Promise<unknown[]>
 }
 
 // Store Implementation
@@ -518,6 +542,13 @@ export const useAuthStore = create<AuthState>()(
               apiPromises.push(get().getDecimals())
             }
 
+            // Add user transactions to background loading
+            apiPromises.push(
+              get()
+                .getUserTransactions()
+                .then(() => {})
+            )
+
             // Execute all API calls in parallel, don't block the return
             Promise.allSettled(apiPromises).then((results) => {
               results.forEach((result, index) => {
@@ -618,6 +649,86 @@ export const useAuthStore = create<AuthState>()(
 
         setDecimals: (decimals: IDecimal[]) => {
           set({ decimals })
+        },
+
+        /**
+         * Fetches user transactions for the current company
+         * IMPROVED: Caching + graceful error handling
+         */
+        getUserTransactions: async () => {
+          const { currentCompany, user } = get()
+
+          if (!currentCompany || !user) return []
+
+          const cacheKey = `user_transactions_${currentCompany.companyId}_${user.userId}`
+
+          // Check cache first
+          const cached = getCachedData<unknown[]>(cacheKey)
+          if (cached) {
+            console.log("Using cached user transactions")
+            return cached
+          }
+
+          try {
+            const response = await getData(Admin.getUserTransactionsAll)
+            const data = response?.data || response || []
+
+            if (Array.isArray(data)) {
+              // Convert PascalCase to camelCase
+              interface ApiTransactionResponse {
+                moduleId: number
+                moduleCode: string
+                moduleName: string
+                transactionId: number
+                transactionCode: string
+                transactionName: string
+                transCategoryId: number
+                transCategoryCode: string
+                transCategoryName: string
+                seqNo: number
+                transCatSeqNo: number
+                isRead: boolean
+                isCreate: boolean
+                isEdit: boolean
+                isDelete: boolean
+                isExport: boolean
+                isPrint: boolean
+                isVisible: boolean
+              }
+
+              const convertedData = data.map(
+                (item: ApiTransactionResponse) => ({
+                  moduleId: item.moduleId,
+                  moduleCode: item.moduleCode,
+                  moduleName: item.moduleName,
+                  transactionId: item.transactionId,
+                  transactionCode: item.transactionCode,
+                  transactionName: item.transactionName,
+                  transCategoryId: item.transCategoryId,
+                  transCategoryCode: item.transCategoryCode,
+                  transCategoryName: item.transCategoryName,
+                  seqNo: item.seqNo,
+                  transCatSeqNo: item.transCatSeqNo,
+                  isRead: item.isRead,
+                  isCreate: item.isCreate,
+                  isEdit: item.isEdit,
+                  isDelete: item.isDelete,
+                  isExport: item.isExport,
+                  isPrint: item.isPrint,
+                  isVisible: item.isVisible,
+                })
+              )
+
+              setCachedData(cacheKey, convertedData)
+              return convertedData
+            } else {
+              console.warn("User transactions data is not an array:", data)
+              return []
+            }
+          } catch (error) {
+            console.error("Error fetching user transactions:", error)
+            return []
+          }
         },
 
         // Tab Company ID Actions

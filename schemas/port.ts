@@ -16,8 +16,8 @@ export const portSchema = z.object({
     .string()
     .max(255, { message: "Remarks cannot exceed 255 characters" })
     .optional()
-    .default(""),
-  isActive: z.boolean().default(true),
+    ,
+  isActive: z.boolean(),
 })
 
 export type PortSchemaType = z.infer<typeof portSchema>

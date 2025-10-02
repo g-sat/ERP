@@ -15,9 +15,8 @@ export const taskSchema = z.object({
   remarks: z
     .string()
     .max(255, { message: "Remarks cannot exceed 255 characters" })
-    .optional()
-    .default(""),
-  isActive: z.boolean().default(true),
+    .optional(),
+  isActive: z.boolean(),
 })
 
 export type TaskSchemaType = z.infer<typeof taskSchema>
