@@ -270,7 +270,7 @@ export default function WorklocationPage() {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="space-y-1">
           <h1 className="text-xl font-bold tracking-tight sm:text-3xl">
-            Worklocations
+            Work Locations
           </h1>
           <p className="text-muted-foreground text-sm">
             Manage worklocation information and settings

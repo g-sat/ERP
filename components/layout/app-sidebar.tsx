@@ -166,6 +166,7 @@ const getTransactionIcon = (transactionCode: string) => {
     uom: Scale,
     vessel: Ship,
     voyage: ArrowLeftRight,
+    worklocation: MapPin,
 
     // Operations
     new: ListCheck,
