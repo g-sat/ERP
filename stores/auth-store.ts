@@ -64,6 +64,22 @@ const extractUserIdFromJwtToken = (token: string): string => {
   }
 }
 
+/**
+ * Gets default decimal settings as fallback
+ * @returns Default decimal settings object
+ */
+const getDefaultDecimalSettings = () => ({
+  amtDec: parseInt(process.env.NEXT_PUBLIC_DEFAULT_AMT_DEC || "2", 10),
+  locAmtDec: parseInt(process.env.NEXT_PUBLIC_DEFAULT_LOC_AMT_DEC || "2", 10),
+  ctyAmtDec: parseInt(process.env.NEXT_PUBLIC_DEFAULT_CTY_AMT_DEC || "2", 10),
+  priceDec: parseInt(process.env.NEXT_PUBLIC_DEFAULT_PRICE_DEC || "2", 10),
+  qtyDec: parseInt(process.env.NEXT_PUBLIC_DEFAULT_QTY_DEC || "2", 10),
+  exhRateDec: parseInt(process.env.NEXT_PUBLIC_DEFAULT_EXH_RATE_DEC || "2", 10),
+  dateFormat: process.env.NEXT_PUBLIC_DEFAULT_DATE_FORMAT || "yyyy-MM-dd",
+  longDateFormat:
+    process.env.NEXT_PUBLIC_DEFAULT_LONG_DATE_FORMAT || "yyyy-MM-dd HH:mm:ss",
+})
+
 // Store Interface
 // --------------
 interface AuthState {
@@ -132,7 +148,7 @@ interface AuthState {
   clearCurrentTabCompanyId: () => void
 
   // Permission Actions
-  getPermissions: () => Promise<void>
+  getPermissions: (retryCount?: number) => Promise<void>
 }
 
 // Store Implementation
@@ -461,13 +477,13 @@ export const useAuthStore = create<AuthState>()(
         },
 
         /**
-         * Switches the current company
+         * Switches the current company with optimistic updates and parallel API calls
+         * IMPROVED: Optimistic UI updates + Parallel API calls + Better error handling
          * Flow:
          * 1. Validate company ID
-         * 2. Find company in available companies
-         * 3. Update store state
-         * 4. Set cookies
-         * 5. Fetch decimals if requested
+         * 2. Optimistic UI update (immediate)
+         * 3. Parallel API calls (non-blocking)
+         * 4. Graceful error recovery
          */
         switchCompany: async (companyId: string, fetchDecimals = true) => {
           const { companies, currentCompany } = get()
@@ -491,17 +507,37 @@ export const useAuthStore = create<AuthState>()(
               )
             }
 
+            // OPTIMISTIC UPDATE: Update UI immediately for instant feedback
             get().setCurrentTabCompanyId(companyId)
             set({ currentCompany: company })
 
-            // Fetch permissions and decimals after switching company
-            await get().getPermissions()
+            // PARALLEL API CALLS: Execute in background without blocking
+            const apiPromises = [get().getPermissions()]
+
             if (fetchDecimals) {
-              await get().getDecimals()
+              apiPromises.push(get().getDecimals())
             }
 
+            // Execute all API calls in parallel, don't block the return
+            Promise.allSettled(apiPromises).then((results) => {
+              results.forEach((result, index) => {
+                if (result.status === "rejected") {
+                  console.warn(
+                    `Background API call ${index} failed:`,
+                    result.reason
+                  )
+                  // Don't crash the app - just log the error
+                }
+              })
+            })
+
+            // Return immediately for fast navigation
             return company
           } catch (error) {
+            // Rollback optimistic update on validation error
+            if (currentCompany) {
+              set({ currentCompany })
+            }
             throw new Error(
               error instanceof Error
                 ? error.message
@@ -512,99 +548,71 @@ export const useAuthStore = create<AuthState>()(
 
         /**
          * Fetches user permissions for the current company
+         * IMPROVED: Uses proxy route + retry mechanism + graceful error handling
          */
-        getPermissions: async () => {
-          const { token, currentCompany, user } = get()
+        getPermissions: async (retryCount = 0) => {
+          const { currentCompany, user } = get()
+          const MAX_RETRIES = 2
 
-          if (!token || !currentCompany || !user) return
+          if (!currentCompany || !user) return
 
           try {
-            const response = await fetch(
-              `${BACKEND_API_URL}${Admin.getUserRights}`,
-              {
-                headers: {
-                  Authorization: `Bearer ${token}`,
-                  "X-Reg-Id": DEFAULT_REGISTRATION_ID,
-                  "X-Company-Id": currentCompany.companyId,
-                  "X-User-Id": user.userId,
-                },
-              }
-            )
+            // Use proxy route for consistent error handling and security
+            const response = await getData(Admin.getUserRights)
 
-            const data = await response.json()
+            // Handle different response structures
+            const permissions = response?.data || response || []
 
-            if (!response.ok) {
-              throw new Error(`Failed to fetch permissions: ${response.status}`)
-            }
-
-            // Improved error handling for permissions data
-            if (data.result === 1 && data.data) {
-              if (Array.isArray(data.data)) {
-                usePermissionStore.getState().setPermissions(data.data)
-              } else {
-                console.warn("Permissions data is not an array:", data.data)
-                usePermissionStore.getState().setPermissions([])
-              }
+            if (Array.isArray(permissions)) {
+              usePermissionStore.getState().setPermissions(permissions)
             } else {
-              console.warn("Invalid permissions response:", data)
+              console.warn("Permissions data is not an array:", permissions)
               usePermissionStore.getState().setPermissions([])
             }
           } catch (error) {
             console.error("Error fetching user permissions:", error)
-            // Set empty permissions on error to prevent app crashes
+
+            // Retry mechanism for network errors
+            if (retryCount < MAX_RETRIES) {
+              console.log(
+                `Retrying permissions fetch (attempt ${retryCount + 1}/${MAX_RETRIES})`
+              )
+              await new Promise((resolve) =>
+                setTimeout(resolve, 1000 * (retryCount + 1))
+              ) // Exponential backoff
+              return get().getPermissions(retryCount + 1)
+            }
+
+            // Graceful degradation - set empty permissions to prevent app crashes
             usePermissionStore.getState().setPermissions([])
           }
         },
 
         /**
          * Fetches decimal settings for the current company
+         * IMPROVED: Better error handling with fallback defaults
          */
         getDecimals: async () => {
-          const { token, currentCompany, user } = get()
+          const { currentCompany, user } = get()
 
-          if (!token || !currentCompany || !user) return
+          if (!currentCompany || !user) return
 
           try {
             const response = await getData(DecimalSetting.get)
 
             const data = response.data
-
             const decimaldata = data.data || data || []
-            get().setDecimals(decimaldata)
-          } catch {
-            get().setDecimals([
-              {
-                amtDec: parseInt(
-                  process.env.NEXT_PUBLIC_DEFAULT_AMT_DEC || "2",
-                  10
-                ),
-                locAmtDec: parseInt(
-                  process.env.NEXT_PUBLIC_DEFAULT_LOC_AMT_DEC || "2",
-                  10
-                ),
-                ctyAmtDec: parseInt(
-                  process.env.NEXT_PUBLIC_DEFAULT_CTY_AMT_DEC || "2",
-                  10
-                ),
-                priceDec: parseInt(
-                  process.env.NEXT_PUBLIC_DEFAULT_PRICE_DEC || "2",
-                  10
-                ),
-                qtyDec: parseInt(
-                  process.env.NEXT_PUBLIC_DEFAULT_QTY_DEC || "2",
-                  10
-                ),
-                exhRateDec: parseInt(
-                  process.env.NEXT_PUBLIC_DEFAULT_EXH_RATE_DEC || "2",
-                  10
-                ),
-                dateFormat:
-                  process.env.NEXT_PUBLIC_DEFAULT_DATE_FORMAT || "yyyy-MM-dd",
-                longDateFormat:
-                  process.env.NEXT_PUBLIC_DEFAULT_LONG_DATE_FORMAT ||
-                  "yyyy-MM-dd HH:mm:ss",
-              },
-            ])
+
+            if (Array.isArray(decimaldata) && decimaldata.length > 0) {
+              get().setDecimals(decimaldata)
+            } else {
+              // Use fallback defaults if no data received
+              get().setDecimals([getDefaultDecimalSettings()])
+            }
+          } catch (error) {
+            console.error("Error fetching decimal settings:", error)
+            // Graceful fallback to default settings
+            get().setDecimals([getDefaultDecimalSettings()])
           }
         },
 
