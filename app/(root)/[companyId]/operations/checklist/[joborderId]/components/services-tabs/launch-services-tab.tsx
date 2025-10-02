@@ -225,51 +225,79 @@ export function LaunchServicesTab({
   )
 
   const handleSubmit = useCallback(
-    async (formData: LaunchServiceSchemaType) => {
-      try {
-        const submitData = { ...formData, ...jobDataProps }
-
-        let response
-        if (modalMode === "edit" && selectedItem) {
-          response = await updateMutation.mutateAsync({
-            ...submitData,
-            launchServiceId: selectedItem.launchServiceId,
-          })
-        } else {
-          response = await saveMutation.mutateAsync(submitData)
-        }
-
-        // Check if API response indicates success (result=1)
-        if (response && response.result === 1) {
-          // Only close modal and reset state on successful submission
-          setIsModalOpen(false)
-          setSelectedItem(undefined)
-          setModalMode("create")
-          refetch()
-          onTaskAdded?.()
-        } else {
-          // If result !== 1, don't close the modal - let user see the error
-          console.error(
-            "API returned error result:",
-            response?.result,
-            response?.message
-          )
-        }
-      } catch (error) {
-        console.error("Error submitting form:", error)
-        // Don't close the modal on error - let user fix the issue and retry
-      }
+    (formData: LaunchServiceSchemaType) => {
+      // Show save confirmation instead of directly submitting
+      setSaveConfirmation({
+        isOpen: true,
+        formData,
+        operationType: modalMode === "edit" ? "update" : "create",
+      })
     },
-    [
-      jobDataProps,
-      modalMode,
-      selectedItem,
-      updateMutation,
-      saveMutation,
-      refetch,
-      onTaskAdded,
-    ]
+    [modalMode]
   )
+
+  // Actual save function that gets called after confirmation
+  const handleConfirmSave = useCallback(async () => {
+    if (!saveConfirmation.formData) return
+
+    try {
+      const processedData = {
+        ...saveConfirmation.formData,
+        date: saveConfirmation.formData.date
+          ? typeof saveConfirmation.formData.date === "string"
+            ? saveConfirmation.formData.date
+            : saveConfirmation.formData.date.toISOString()
+          : undefined,
+      }
+      const submitData = { ...processedData, ...jobDataProps }
+
+      let response
+      if (saveConfirmation.operationType === "update" && selectedItem) {
+        response = await updateMutation.mutateAsync({
+          ...submitData,
+          launchServiceId: selectedItem.launchServiceId,
+        })
+      } else {
+        response = await saveMutation.mutateAsync(submitData)
+      }
+
+      // Check if API response indicates success (result=1)
+      if (response && response.result === 1) {
+        // Only close modal and reset state on successful submission
+        setIsModalOpen(false)
+        setSelectedItem(undefined)
+        setModalMode("create")
+        refetch()
+        onTaskAdded?.()
+      } else {
+        // If result !== 1, don't close the modal - let user see the error
+        console.error(
+          "API returned error result:",
+          response?.result,
+          response?.message
+        )
+      }
+    } catch (error) {
+      console.error("Error submitting form:", error)
+      // Don't close the modal on error - let user fix the issue and retry
+    } finally {
+      // Close the save confirmation dialog
+      setSaveConfirmation({
+        isOpen: false,
+        formData: null,
+        operationType: "create",
+      })
+    }
+  }, [
+    saveConfirmation.formData,
+    saveConfirmation.operationType,
+    jobDataProps,
+    selectedItem,
+    updateMutation,
+    saveMutation,
+    refetch,
+    onTaskAdded,
+  ])
 
   const handleRefreshLaunchServices = useCallback(() => {
     refetch()
@@ -487,41 +515,56 @@ export function LaunchServicesTab({
         </DialogContent>
       </Dialog>
       {/* Combined Services Modal */}
-      <CombinedFormsDialog
-        open={showCombinedServiceModal}
-        onOpenChange={setShowCombinedServiceModal}
-        jobData={jobData}
-        moduleId={moduleId}
-        transactionId={transactionId}
-        isConfirmed={isConfirmed}
-        taskId={Task.PortExpenses}
-        multipleId={selectedItems.join(",")}
-        onTaskAdded={onTaskAdded}
-        onClearSelection={handleClearSelection}
-        onCancel={() => setShowCombinedServiceModal(false)}
-        title="Combined Services"
-        description="Manage bulk updates and task forwarding operations"
-      />
+      {showCombinedServiceModal && (
+        <CombinedFormsDialog
+          open={showCombinedServiceModal}
+          onOpenChange={setShowCombinedServiceModal}
+          jobData={jobData}
+          moduleId={moduleId}
+          transactionId={transactionId}
+          isConfirmed={isConfirmed}
+          taskId={Task.LaunchServices}
+          multipleId={selectedItems.join(",")}
+          onTaskAdded={onTaskAdded}
+          onClearSelection={handleClearSelection}
+          onCancel={() => setShowCombinedServiceModal(false)}
+          title="Combined Services"
+          description="Manage bulk updates and task forwarding operations"
+        />
+      )}
 
       {/* Debit Note Modal */}
-      <DebitNoteDialog
-        open={showDebitNoteModal}
-        onOpenChange={setShowDebitNoteModal}
-        taskId={Task.PortExpenses}
-        debitNoteHd={debitNoteHd ?? undefined}
-        isConfirmed={isConfirmed}
-        onDelete={handleDeleteDebitNote}
-        title="Debit Note"
-        description="Manage debit note details for this port expenses."
-      />
+      {showDebitNoteModal && (
+        <DebitNoteDialog
+          open={showDebitNoteModal}
+          onOpenChange={setShowDebitNoteModal}
+          taskId={Task.LaunchServices}
+          debitNoteHd={debitNoteHd ?? undefined}
+          isConfirmed={isConfirmed}
+          onDelete={handleDeleteDebitNote}
+          title="Debit Note"
+          description="Manage debit note details for this launch services."
+          jobOrder={jobData}
+        />
+      )}
 
       {/* Purchase Table Modal */}
-      <PurchaseDialog
-        open={showPurchaseModal}
-        onOpenChange={setShowPurchaseModal}
-        title="Purchase"
-        description="Manage purchase details for this port expenses."
-      />
+      {showPurchaseModal && (
+        <PurchaseDialog
+          open={showPurchaseModal}
+          onOpenChangeAction={setShowPurchaseModal}
+          title="Purchase"
+          description="Manage purchase details for this launch services."
+          jobOrderId={jobData.jobOrderId}
+          taskId={Task.LaunchServices}
+          serviceId={selectedItem?.launchServiceId ?? 0}
+          isConfirmed={isConfirmed}
+          onSave={(purchaseData) => {
+            console.log("Purchase data saved:", purchaseData)
+          }}
+          onCancel={() => {}}
+        />
+      )}
       {/* Save Confirmation */}
       <SaveConfirmation
         open={saveConfirmation.isOpen}
@@ -535,11 +578,7 @@ export function LaunchServicesTab({
             : "New Launch Service"
         }
         operationType={saveConfirmation.operationType}
-        onConfirm={() => {
-          if (saveConfirmation.formData) {
-            handleSubmit(saveConfirmation.formData as LaunchServiceSchemaType)
-          }
-        }}
+        onConfirm={handleConfirmSave}
         onCancel={() =>
           setSaveConfirmation({
             isOpen: false,

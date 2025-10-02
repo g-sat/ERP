@@ -510,42 +510,58 @@ export function CrewSignOnTab({
           />
         </DialogContent>
       </Dialog>
+
       {/* Combined Services Modal */}
-      <CombinedFormsDialog
-        open={showCombinedServiceModal}
-        onOpenChange={setShowCombinedServiceModal}
-        jobData={jobData}
-        moduleId={moduleId}
-        transactionId={transactionId}
-        isConfirmed={isConfirmed}
-        taskId={Task.PortExpenses}
-        multipleId={selectedItems.join(",")}
-        onTaskAdded={onTaskAdded}
-        onClearSelection={handleClearSelection}
-        onCancel={() => setShowCombinedServiceModal(false)}
-        title="Combined Services"
-        description="Manage bulk updates and task forwarding operations"
-      />
+      {showCombinedServiceModal && (
+        <CombinedFormsDialog
+          open={showCombinedServiceModal}
+          onOpenChange={setShowCombinedServiceModal}
+          jobData={jobData}
+          moduleId={moduleId}
+          transactionId={transactionId}
+          isConfirmed={isConfirmed}
+          taskId={Task.CrewSignOn}
+          multipleId={selectedItems.join(",")}
+          onTaskAdded={onTaskAdded}
+          onClearSelection={handleClearSelection}
+          onCancel={() => setShowCombinedServiceModal(false)}
+          title="Combined Services"
+          description="Manage bulk updates and task forwarding operations"
+        />
+      )}
 
       {/* Debit Note Modal */}
-      <DebitNoteDialog
-        open={showDebitNoteModal}
-        onOpenChange={setShowDebitNoteModal}
-        taskId={Task.PortExpenses}
-        debitNoteHd={debitNoteHd ?? undefined}
-        isConfirmed={isConfirmed}
-        onDelete={handleDeleteDebitNote}
-        title="Debit Note"
-        description="Manage debit note details for this port expenses."
-      />
+      {showDebitNoteModal && (
+        <DebitNoteDialog
+          open={showDebitNoteModal}
+          onOpenChange={setShowDebitNoteModal}
+          taskId={Task.CrewSignOn}
+          debitNoteHd={debitNoteHd ?? undefined}
+          isConfirmed={isConfirmed}
+          onDelete={handleDeleteDebitNote}
+          title="Debit Note"
+          description="Manage debit note details for this crew sign on."
+          jobOrder={jobData}
+        />
+      )}
 
       {/* Purchase Table Modal */}
-      <PurchaseDialog
-        open={showPurchaseModal}
-        onOpenChange={setShowPurchaseModal}
-        title="Purchase"
-        description="Manage purchase details for this port expenses."
-      />
+      {showPurchaseModal && (
+        <PurchaseDialog
+          open={showPurchaseModal}
+          onOpenChangeAction={setShowPurchaseModal}
+          title="Purchase"
+          description="Manage purchase details for this crew sign on."
+          jobOrderId={jobData.jobOrderId}
+          taskId={Task.CrewSignOn}
+          serviceId={selectedItem?.crewSignOnId ?? 0}
+          isConfirmed={isConfirmed}
+          onSave={(purchaseData) => {
+            console.log("Purchase data saved:", purchaseData)
+          }}
+          onCancel={() => {}}
+        />
+      )}
 
       {/* Save Confirmation */}
       <SaveConfirmation

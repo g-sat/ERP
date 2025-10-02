@@ -230,64 +230,84 @@ export function TechniciansSurveyorsTab({
   )
 
   const handleSubmit = useCallback(
-    async (formData: Partial<ITechnicianSurveyor>) => {
-      try {
-        const processedData = {
-          ...formData,
-          embarked: formData.embarked
-            ? typeof formData.embarked === "string"
-              ? formData.embarked
-              : formData.embarked.toISOString()
-            : undefined,
-          disembarked: formData.disembarked
-            ? typeof formData.disembarked === "string"
-              ? formData.disembarked
-              : formData.disembarked.toISOString()
-            : undefined,
-        }
-        const submitData = { ...processedData, ...jobDataProps }
-
-        let response
-        if (modalMode === "edit" && selectedItem) {
-          response = await updateMutation.mutateAsync({
-            ...submitData,
-            technicianSurveyorId: selectedItem.technicianSurveyorId,
-          })
-        } else {
-          response = await saveMutation.mutateAsync(submitData)
-        }
-
-        // Check if API response indicates success (result=1)
-        if (response && response.result === 1) {
-          // Only close modal and reset state on successful submission
-          setIsModalOpen(false)
-          setSelectedItem(undefined)
-          setModalMode("create")
-          refetch()
-          onTaskAdded?.()
-        } else {
-          // If result !== 1, don't close the modal - let user see the error
-          console.error(
-            "API returned error result:",
-            response?.result,
-            response?.message
-          )
-        }
-      } catch (error) {
-        console.error("Error submitting form:", error)
-        // Don't close the modal on error - let user fix the issue and retry
-      }
+    (formData: Partial<ITechnicianSurveyor>) => {
+      // Show save confirmation instead of directly submitting
+      setSaveConfirmation({
+        isOpen: true,
+        formData,
+        operationType: modalMode === "edit" ? "update" : "create",
+      })
     },
-    [
-      jobDataProps,
-      modalMode,
-      selectedItem,
-      updateMutation,
-      saveMutation,
-      refetch,
-      onTaskAdded,
-    ]
+    [modalMode]
   )
+
+  // Actual save function that gets called after confirmation
+  const handleConfirmSave = useCallback(async () => {
+    if (!saveConfirmation.formData) return
+
+    try {
+      const processedData = {
+        ...saveConfirmation.formData,
+        embarked: saveConfirmation.formData.embarked
+          ? typeof saveConfirmation.formData.embarked === "string"
+            ? saveConfirmation.formData.embarked
+            : saveConfirmation.formData.embarked.toISOString()
+          : undefined,
+        disembarked: saveConfirmation.formData.disembarked
+          ? typeof saveConfirmation.formData.disembarked === "string"
+            ? saveConfirmation.formData.disembarked
+            : saveConfirmation.formData.disembarked.toISOString()
+          : undefined,
+      }
+      const submitData = { ...processedData, ...jobDataProps }
+
+      let response
+      if (saveConfirmation.operationType === "update" && selectedItem) {
+        response = await updateMutation.mutateAsync({
+          ...submitData,
+          technicianSurveyorId: selectedItem.technicianSurveyorId,
+        })
+      } else {
+        response = await saveMutation.mutateAsync(submitData)
+      }
+
+      // Check if API response indicates success (result=1)
+      if (response && response.result === 1) {
+        // Only close modal and reset state on successful submission
+        setIsModalOpen(false)
+        setSelectedItem(undefined)
+        setModalMode("create")
+        refetch()
+        onTaskAdded?.()
+      } else {
+        // If result !== 1, don't close the modal - let user see the error
+        console.error(
+          "API returned error result:",
+          response?.result,
+          response?.message
+        )
+      }
+    } catch (error) {
+      console.error("Error submitting form:", error)
+      // Don't close the modal on error - let user fix the issue and retry
+    } finally {
+      // Close the save confirmation dialog
+      setSaveConfirmation({
+        isOpen: false,
+        formData: null,
+        operationType: "create",
+      })
+    }
+  }, [
+    saveConfirmation.formData,
+    saveConfirmation.operationType,
+    jobDataProps,
+    selectedItem,
+    updateMutation,
+    saveMutation,
+    refetch,
+    onTaskAdded,
+  ])
 
   const handleCombinedService = useCallback((selectedIds: string[]) => {
     setSelectedItems(selectedIds)
@@ -476,41 +496,56 @@ export function TechniciansSurveyorsTab({
         </DialogContent>
       </Dialog>
       {/* Combined Services Modal */}
-      <CombinedFormsDialog
-        open={showCombinedServiceModal}
-        onOpenChange={setShowCombinedServiceModal}
-        jobData={jobData}
-        moduleId={moduleId}
-        transactionId={transactionId}
-        isConfirmed={isConfirmed}
-        taskId={Task.PortExpenses}
-        multipleId={selectedItems.join(",")}
-        onTaskAdded={onTaskAdded}
-        onClearSelection={handleClearSelection}
-        onCancel={() => setShowCombinedServiceModal(false)}
-        title="Combined Services"
-        description="Manage bulk updates and task forwarding operations"
-      />
+      {showCombinedServiceModal && (
+        <CombinedFormsDialog
+          open={showCombinedServiceModal}
+          onOpenChange={setShowCombinedServiceModal}
+          jobData={jobData}
+          moduleId={moduleId}
+          transactionId={transactionId}
+          isConfirmed={isConfirmed}
+          taskId={Task.TechniciansSurveyors}
+          multipleId={selectedItems.join(",")}
+          onTaskAdded={onTaskAdded}
+          onClearSelection={handleClearSelection}
+          onCancel={() => setShowCombinedServiceModal(false)}
+          title="Combined Services"
+          description="Manage bulk updates and task forwarding operations"
+        />
+      )}
 
       {/* Debit Note Modal */}
-      <DebitNoteDialog
-        open={showDebitNoteModal}
-        onOpenChange={setShowDebitNoteModal}
-        taskId={Task.PortExpenses}
-        debitNoteHd={debitNoteHd ?? undefined}
-        isConfirmed={isConfirmed}
-        onDelete={handleDeleteDebitNote}
-        title="Debit Note"
-        description="Manage debit note details for this port expenses."
-      />
+      {showDebitNoteModal && (
+        <DebitNoteDialog
+          open={showDebitNoteModal}
+          onOpenChange={setShowDebitNoteModal}
+          taskId={Task.TechniciansSurveyors}
+          debitNoteHd={debitNoteHd ?? undefined}
+          isConfirmed={isConfirmed}
+          onDelete={handleDeleteDebitNote}
+          title="Debit Note"
+          description="Manage debit note details for this technicians surveyors."
+          jobOrder={jobData}
+        />
+      )}
 
       {/* Purchase Table Modal */}
-      <PurchaseDialog
-        open={showPurchaseModal}
-        onOpenChange={setShowPurchaseModal}
-        title="Purchase"
-        description="Manage purchase details for this port expenses."
-      />
+      {showPurchaseModal && (
+        <PurchaseDialog
+          open={showPurchaseModal}
+          onOpenChangeAction={setShowPurchaseModal}
+          title="Purchase"
+          description="Manage purchase details for this technicians surveyors."
+          jobOrderId={jobData.jobOrderId}
+          taskId={Task.TechniciansSurveyors}
+          serviceId={selectedItem?.technicianSurveyorId ?? 0}
+          isConfirmed={isConfirmed}
+          onSave={(purchaseData) => {
+            console.log("Purchase data saved:", purchaseData)
+          }}
+          onCancel={() => {}}
+        />
+      )}
       {/* Save Confirmation */}
       <SaveConfirmation
         open={saveConfirmation.isOpen}
@@ -520,11 +555,11 @@ export function TechniciansSurveyorsTab({
         title="Confirm Save"
         itemName={
           saveConfirmation.operationType === "update"
-            ? `Technicians Surveyors ${selectedItem?.chargeName || ""}`
+            ? `Technicians Surveyors ${selectedItem?.name || ""}`
             : "New Technicians Surveyors"
         }
         operationType={saveConfirmation.operationType}
-        onConfirm={handleConfirmDelete}
+        onConfirm={handleConfirmSave}
         onCancel={() =>
           setSaveConfirmation({
             isOpen: false,
@@ -540,8 +575,8 @@ export function TechniciansSurveyorsTab({
         onOpenChange={(isOpen) =>
           setDeleteConfirmation((prev) => ({ ...prev, isOpen }))
         }
-        title="Delete Port Expense"
-        description="This action cannot be undone. This will permanently delete the port expense from our servers."
+        title="Delete Technicians Surveyors"
+        description="This action cannot be undone. This will permanently delete the technicians surveyors from our servers."
         itemName={deleteConfirmation.technicianSurveyorName || ""}
         onConfirm={handleConfirmDelete}
         onCancel={() =>

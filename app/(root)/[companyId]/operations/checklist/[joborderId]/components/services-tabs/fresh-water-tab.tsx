@@ -217,71 +217,95 @@ export function FreshWaterTab({
   )
 
   const handleSubmit = useCallback(
-    async (formData: Partial<IFreshWater>) => {
-      try {
-        const processedData = {
-          ...formData,
-          date: formData.date
-            ? typeof formData.date === "string"
-              ? formData.date
-              : formData.date.toISOString()
-            : undefined,
-          // Handle null values for string fields
-          operatorName: formData.operatorName || "",
-          supplyBarge: formData.supplyBarge || "",
-          taskName: formData.taskName || "",
-          glName: formData.glName || "",
-          chargeName: formData.chargeName || "",
-          bargeName: formData.bargeName || "",
-          uomName: formData.uomName || "",
-          statusName: formData.statusName || "",
-          remarks: formData.remarks || "",
-          debitNoteNo: formData.debitNoteNo || "",
-          createBy: formData.createBy || "",
-          editBy: formData.editBy || "",
-          // Handle null values for numeric fields
-          debitNoteId: formData.debitNoteId || 0,
-          editById: formData.editById || undefined,
-        }
-        const submitData = { ...processedData, ...jobDataProps }
-
-        let response
-        if (modalMode === "edit" && selectedItem) {
-          response = await updateMutation.mutateAsync({
-            ...submitData,
-            freshWaterId: selectedItem.freshWaterId,
-          })
-        } else {
-          response = await saveMutation.mutateAsync(submitData)
-        }
-
-        // Check if API response indicates success (result=1)
-        if (response && response.result === 1) {
-          // Only close modal and reset state on successful submission
-          setIsModalOpen(false)
-          setSelectedItem(undefined)
-          setModalMode("create")
-          refetch()
-          onTaskAdded?.()
-        } else {
-          // If result !== 1, don't close the modal - let user see the error
-          console.error("API returned error result:", response?.result, response?.message)
-        }
-      } catch (error) {
-        console.error("Error submitting form:", error)
-        // Don't close the modal on error - let user fix the issue and retry
-      }
+    (formData: Partial<IFreshWater>) => {
+      // Show save confirmation instead of directly submitting
+      setSaveConfirmation({
+        isOpen: true,
+        formData,
+        operationType: modalMode === "edit" ? "update" : "create",
+      })
     },
-    [
-      jobDataProps,
-      modalMode,
-      selectedItem,
-      updateMutation,
-      saveMutation,
-      refetch,
-      onTaskAdded,
-    ]
+    [modalMode]
   )
+
+  // Actual save function that gets called after confirmation
+  const handleConfirmSave = useCallback(async () => {
+    if (!saveConfirmation.formData) return
+
+    try {
+      const processedData = {
+        ...saveConfirmation.formData,
+        date: saveConfirmation.formData.date
+          ? typeof saveConfirmation.formData.date === "string"
+            ? saveConfirmation.formData.date
+            : saveConfirmation.formData.date.toISOString()
+          : undefined,
+        // Handle null values for string fields
+        operatorName: saveConfirmation.formData.operatorName || "",
+        supplyBarge: saveConfirmation.formData.supplyBarge || "",
+        taskName: saveConfirmation.formData.taskName || "",
+        glName: saveConfirmation.formData.glName || "",
+        chargeName: saveConfirmation.formData.chargeName || "",
+        bargeName: saveConfirmation.formData.bargeName || "",
+        uomName: saveConfirmation.formData.uomName || "",
+        statusName: saveConfirmation.formData.statusName || "",
+        remarks: saveConfirmation.formData.remarks || "",
+        debitNoteNo: saveConfirmation.formData.debitNoteNo || "",
+        createBy: saveConfirmation.formData.createBy || "",
+        editBy: saveConfirmation.formData.editBy || "",
+        // Handle null values for numeric fields
+        debitNoteId: saveConfirmation.formData.debitNoteId || 0,
+        editById: saveConfirmation.formData.editById || undefined,
+      }
+      const submitData = { ...processedData, ...jobDataProps }
+
+      let response
+      if (saveConfirmation.operationType === "update" && selectedItem) {
+        response = await updateMutation.mutateAsync({
+          ...submitData,
+          freshWaterId: selectedItem.freshWaterId,
+        })
+      } else {
+        response = await saveMutation.mutateAsync(submitData)
+      }
+
+      // Check if API response indicates success (result=1)
+      if (response && response.result === 1) {
+        // Only close modal and reset state on successful submission
+        setIsModalOpen(false)
+        setSelectedItem(undefined)
+        setModalMode("create")
+        refetch()
+        onTaskAdded?.()
+      } else {
+        // If result !== 1, don't close the modal - let user see the error
+        console.error(
+          "API returned error result:",
+          response?.result,
+          response?.message
+        )
+      }
+    } catch (error) {
+      console.error("Error submitting form:", error)
+      // Don't close the modal on error - let user fix the issue and retry
+    } finally {
+      // Close the save confirmation dialog
+      setSaveConfirmation({
+        isOpen: false,
+        formData: null,
+        operationType: "create",
+      })
+    }
+  }, [
+    saveConfirmation.formData,
+    saveConfirmation.operationType,
+    jobDataProps,
+    selectedItem,
+    updateMutation,
+    saveMutation,
+    refetch,
+    onTaskAdded,
+  ])
 
   const handleCombinedService = useCallback((selectedIds: string[]) => {
     setSelectedItems(selectedIds)
@@ -475,41 +499,56 @@ export function FreshWaterTab({
         </DialogContent>
       </Dialog>
       {/* Combined Services Modal */}
-      <CombinedFormsDialog
-        open={showCombinedServiceModal}
-        onOpenChange={setShowCombinedServiceModal}
-        jobData={jobData}
-        moduleId={moduleId}
-        transactionId={transactionId}
-        isConfirmed={isConfirmed}
-        taskId={Task.PortExpenses}
-        multipleId={selectedItems.join(",")}
-        onTaskAdded={onTaskAdded}
-        onClearSelection={handleClearSelection}
-        onCancel={() => setShowCombinedServiceModal(false)}
-        title="Combined Services"
-        description="Manage bulk updates and task forwarding operations"
-      />
+      {showCombinedServiceModal && (
+        <CombinedFormsDialog
+          open={showCombinedServiceModal}
+          onOpenChange={setShowCombinedServiceModal}
+          jobData={jobData}
+          moduleId={moduleId}
+          transactionId={transactionId}
+          isConfirmed={isConfirmed}
+          taskId={Task.FreshWater}
+          multipleId={selectedItems.join(",")}
+          onTaskAdded={onTaskAdded}
+          onClearSelection={handleClearSelection}
+          onCancel={() => setShowCombinedServiceModal(false)}
+          title="Combined Services"
+          description="Manage bulk updates and task forwarding operations"
+        />
+      )}
 
       {/* Debit Note Modal */}
-      <DebitNoteDialog
-        open={showDebitNoteModal}
-        onOpenChange={setShowDebitNoteModal}
-        taskId={Task.PortExpenses}
-        debitNoteHd={debitNoteHd ?? undefined}
-        isConfirmed={isConfirmed}
-        onDelete={handleDeleteDebitNote}
-        title="Debit Note"
-        description="Manage debit note details for this port expenses."
-      />
+      {showDebitNoteModal && (
+        <DebitNoteDialog
+          open={showDebitNoteModal}
+          onOpenChange={setShowDebitNoteModal}
+          taskId={Task.FreshWater}
+          debitNoteHd={debitNoteHd ?? undefined}
+          isConfirmed={isConfirmed}
+          onDelete={handleDeleteDebitNote}
+          title="Debit Note"
+          description="Manage debit note details for this fresh water."
+          jobOrder={jobData}
+        />
+      )}
 
       {/* Purchase Table Modal */}
-      <PurchaseDialog
-        open={showPurchaseModal}
-        onOpenChange={setShowPurchaseModal}
-        title="Purchase"
-        description="Manage purchase details for this port expenses."
-      />
+      {showPurchaseModal && (
+        <PurchaseDialog
+          open={showPurchaseModal}
+          onOpenChangeAction={setShowPurchaseModal}
+          title="Purchase"
+          description="Manage purchase details for this fresh water."
+          jobOrderId={jobData.jobOrderId}
+          taskId={Task.FreshWater}
+          serviceId={selectedItem?.freshWaterId ?? 0}
+          isConfirmed={isConfirmed}
+          onSave={(purchaseData) => {
+            console.log("Purchase data saved:", purchaseData)
+          }}
+          onCancel={() => {}}
+        />
+      )}
 
       {/* Save Confirmation */}
       <SaveConfirmation
@@ -524,11 +563,7 @@ export function FreshWaterTab({
             : "New Fresh Water"
         }
         operationType={saveConfirmation.operationType}
-        onConfirm={() => {
-          if (saveConfirmation.formData) {
-            handleSubmit(saveConfirmation.formData)
-          }
-        }}
+        onConfirm={handleConfirmSave}
         onCancel={() =>
           setSaveConfirmation({
             isOpen: false,
