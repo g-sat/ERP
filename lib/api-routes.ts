@@ -993,6 +993,14 @@ export const Tariff = {
   copyCompanyTariff: "/operations/copycompanytariff",
 }
 
+// Template Endpoints
+export const Template = {
+  get: "/operations/gettemplate",
+  getById: "/operations/gettemplatebyid",
+  add: "/operations/savetemplate",
+  delete: "/operations/deletetemplate",
+}
+
 // Port Expenses Endpoints
 export const JobOrder_PortExpenses = {
   get: "/operations/getportexpenses",

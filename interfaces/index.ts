@@ -29,6 +29,7 @@ export * from "./gl-period-close"
 export * from "./gst"
 export * from "./history"
 export * from "./invoice"
+export * from "./template"
 
 // Leave interfaces - Note: leave.ts also exports ILeaveType
 export * from "./leave"

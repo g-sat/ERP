@@ -39,7 +39,12 @@ export const tariffSchema = z
     (data) => {
       // If isAdditional is true, additionalUnit and additionalRate are required
       if (data.isAdditional) {
-        return data.additionalUnit > 0 && data.additionalRate > 0
+        return (
+          data.additionalUnit &&
+          data.additionalRate &&
+          data.additionalUnit > 0 &&
+          data.additionalRate > 0
+        )
       }
       return true
     },
@@ -53,7 +58,7 @@ export const tariffSchema = z
     (data) => {
       // If isPrepayment is true, prepaymentPercentage is required
       if (data.isPrepayment) {
-        return data.prepaymentPercentage > 0
+        return data.prepaymentPercentage && data.prepaymentPercentage > 0
       }
       return true
     },

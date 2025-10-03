@@ -25,6 +25,7 @@ export * from "./employer"
 export * from "./entitytype"
 export * from "./gst"
 export * from "./invoice"
+export * from "./template"
 
 // Leave schemas - leave.ts already exports leaveTypeSchema
 export * from "./leave"
