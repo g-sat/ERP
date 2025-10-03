@@ -359,6 +359,28 @@ export const menuData = {
       title: "Dashboard",
       url: "/dashboard",
       icon: LayoutDashboard,
+      items: [
+        {
+          title: "Finance & Accounting Overview",
+          url: "/dashboard/dashboard1",
+          icon: BookOpenText,
+        },
+        {
+          title: "Accounts Receivable (AR) & Collections",
+          url: "/dashboard/dashboard2",
+          icon: Banknote,
+        },
+        {
+          title: "Accounts Payable (AP) & Procurement",
+          url: "/dashboard/dashboard3",
+          icon: Users,
+        },
+        {
+          title: "Management & Procurement Insights",
+          url: "/dashboard/dashboard4",
+          icon: Building,
+        },
+      ],
     },
     {
       title: "Approvals",

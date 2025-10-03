@@ -17,11 +17,16 @@ import {
 } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
+import { AccountDashboard } from "./components/account-dashboard"
 import { AnalyticsDatePicker } from "./components/analytics-date-picker"
+import { BankDashboard } from "./components/bank-dashboard"
 import { ChartRevenue } from "./components/chart-revenue"
 import { ChartVisitors } from "./components/chart-visitors"
+import { ChecklistDataProvider } from "./components/checklist-data-provider"
 import { DataTable } from "./components/data-table"
+import { PayableDashboard } from "./components/payable-dashboard"
 import { ProductsTable } from "./components/products-table"
+import { ReceivableDashboard } from "./components/receivable-dashboard"
 import data from "./data.json"
 
 export const metadata: Metadata = {
@@ -121,7 +126,7 @@ export default function DashboardPage() {
           data-slot="dashboard-header"
           className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
         >
-          <TabsList className="grid w-full grid-cols-2 gap-2 sm:grid-cols-4">
+          <TabsList className="grid w-full grid-cols-2 gap-2 sm:grid-cols-7">
             <TabsTrigger value="overview" className="text-xs sm:text-sm">
               Overview
             </TabsTrigger>
@@ -226,6 +231,47 @@ export default function DashboardPage() {
           </div>
           <ProductsTable products={products} />
           <DataTable data={data} />
+        </TabsContent>
+        <TabsContent value="analytics" className="space-y-4">
+          <Tabs defaultValue="checklist" className="space-y-4">
+            <TabsList className="grid w-full grid-cols-2 gap-2 sm:grid-cols-4">
+              <TabsTrigger value="checklist" className="text-xs sm:text-sm">
+                Checklist
+              </TabsTrigger>
+              <TabsTrigger value="account" className="text-xs sm:text-sm">
+                Account
+              </TabsTrigger>
+              <TabsTrigger value="receivable" className="text-xs sm:text-sm">
+                Receivable
+              </TabsTrigger>
+              <TabsTrigger value="payable" className="text-xs sm:text-sm">
+                Payable
+              </TabsTrigger>
+              <TabsTrigger value="bank" className="text-xs sm:text-sm">
+                Bank
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="checklist" className="space-y-4">
+              <ChecklistDataProvider />
+            </TabsContent>
+
+            <TabsContent value="account" className="space-y-4">
+              <AccountDashboard data={[]} isLoading={false} />
+            </TabsContent>
+
+            <TabsContent value="receivable" className="space-y-4">
+              <ReceivableDashboard data={[]} isLoading={false} />
+            </TabsContent>
+
+            <TabsContent value="payable" className="space-y-4">
+              <PayableDashboard data={[]} isLoading={false} />
+            </TabsContent>
+
+            <TabsContent value="bank" className="space-y-4">
+              <BankDashboard data={[]} isLoading={false} />
+            </TabsContent>
+          </Tabs>
         </TabsContent>
       </Tabs>
     </div>
