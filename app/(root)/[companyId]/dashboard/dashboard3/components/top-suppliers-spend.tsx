@@ -11,14 +11,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog"
 
 interface Dashboard3Filters {
   dateRange: { from: Date; to: Date } | undefined
@@ -43,7 +35,9 @@ interface TopSuppliersSpendProps {
   filters: Dashboard3Filters
 }
 
-export default function TopSuppliersSpend({ filters }: TopSuppliersSpendProps) {
+export default function TopSuppliersSpend({
+  filters: _filters,
+}: TopSuppliersSpendProps) {
   // Mock data - replace with actual API call
   const suppliersData: SupplierSpend[] = [
     {

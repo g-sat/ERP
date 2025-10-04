@@ -9,7 +9,7 @@ import {
 } from "lucide-react"
 import {
   Bar,
-  BarChart,
+  _BarChart,
   CartesianGrid,
   ComposedChart,
   Line,
@@ -45,14 +45,14 @@ interface DepartmentSpend {
 }
 
 export function ProcurementSpendBudget({
-  period,
-  comparisonPeriod,
-  businessUnits,
-  productLines,
-  geography,
+  period: _period,
+  comparisonPeriod: _comparisonPeriod,
+  businessUnits: _businessUnits,
+  productLines: _productLines,
+  geography: _geography,
 }: ProcurementSpendBudgetProps) {
   const [viewMode, setViewMode] = useState<"variance" | "trend">("variance")
-  const [selectedCategory, setSelectedCategory] = useState<string>("all")
+  const [_selectedCategory, _setSelectedCategory] = useState<string>("all")
 
   // Mock data - in real implementation, this would come from API
   const departmentSpend: DepartmentSpend[] = [
@@ -172,7 +172,18 @@ export function ProcurementSpendBudget({
       : "bg-purple-100 text-purple-800 border-purple-200"
   }
 
-  const CustomTooltip = ({ active, payload, label }: any) => {
+  interface CustomTooltipProps {
+    active?: boolean
+    payload?: Array<{
+      value: number
+      dataKey: string
+      color: string
+      payload: Record<string, unknown>
+    }>
+    label?: string
+  }
+
+  const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
     if (active && payload && payload.length) {
       const data = payload[0].payload
       return (
@@ -322,7 +333,7 @@ export function ProcurementSpendBudget({
         <div className="space-y-4">
           <h4 className="text-lg font-medium">Department Details</h4>
           <div className="space-y-3">
-            {departmentSpend.map((dept, index) => (
+            {departmentSpend.map((dept, _index) => (
               <Card key={dept.department} className="relative overflow-hidden">
                 <CardContent className="pt-4">
                   <div className="mb-3 flex items-center justify-between">

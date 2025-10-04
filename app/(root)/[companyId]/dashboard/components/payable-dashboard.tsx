@@ -4,7 +4,7 @@ import { useMemo, useState } from "react"
 import { ISupplier } from "@/interfaces/supplier"
 import { useAuthStore } from "@/stores/auth-store"
 import {
-  Activity,
+  _Activity,
   AlertTriangle,
   BarChart3,
   Calendar,
@@ -13,7 +13,7 @@ import {
   CreditCard,
   DollarSign,
   Download,
-  TrendingUp,
+  _TrendingUp,
   Users,
 } from "lucide-react"
 

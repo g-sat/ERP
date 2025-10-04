@@ -33,7 +33,7 @@ interface AccountDashboardProps {
 
 export function AccountDashboard({
   data,
-  isLoading = false,
+  isLoading: _isLoading = false,
 }: AccountDashboardProps) {
   const { user } = useAuthStore()
 

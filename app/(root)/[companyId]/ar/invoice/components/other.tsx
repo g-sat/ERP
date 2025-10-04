@@ -84,7 +84,7 @@ export default function Other({ form }: OtherProps) {
       editBy: "",
     }
     setSelectedContact(contact)
-  }, [customerId]) // Re-run when customerId changes
+  }, [customerId, form]) // Re-run when customerId changes
 
   const handleAddressSelect = (address: ICustomerAddress | null) => {
     setSelectedAddress(address)

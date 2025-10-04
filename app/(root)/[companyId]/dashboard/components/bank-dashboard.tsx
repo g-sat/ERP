@@ -5,7 +5,7 @@ import { IBank } from "@/interfaces/bank"
 import { useAuthStore } from "@/stores/auth-store"
 import {
   Activity,
-  AlertTriangle,
+  _AlertTriangle,
   BarChart3,
   Building2,
   Calculator,
@@ -314,7 +314,7 @@ export function BankDashboard({ data, isLoading = false }: BankDashboardProps) {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {data.slice(0, 3).map((bank, index) => (
+                  {data.slice(0, 3).map((bank, _index) => (
                     <div
                       key={bank.bankId}
                       className="flex items-center justify-between rounded-lg border p-3"

@@ -4,13 +4,13 @@ import { useMemo, useState } from "react"
 import { ICustomer } from "@/interfaces/customer"
 import { useAuthStore } from "@/stores/auth-store"
 import {
-  Activity,
+  _Activity,
   AlertTriangle,
   BarChart3,
-  Calendar,
+  _Calendar,
   CheckCircle,
   Clock,
-  CreditCard,
+  _CreditCard,
   DollarSign,
   Download,
   TrendingUp,

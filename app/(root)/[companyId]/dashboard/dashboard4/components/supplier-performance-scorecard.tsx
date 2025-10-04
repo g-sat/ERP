@@ -10,7 +10,7 @@ import {
 } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
+import { _Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Progress } from "@/components/ui/progress"
@@ -55,11 +55,11 @@ interface SupplierData {
 }
 
 export function SupplierPerformanceScorecard({
-  period,
-  comparisonPeriod,
-  businessUnits,
-  productLines,
-  geography,
+  period: _period,
+  comparisonPeriod: _comparisonPeriod,
+  businessUnits: _businessUnits,
+  productLines: _productLines,
+  geography: _geography,
 }: SupplierPerformanceScorecardProps) {
   const [searchTerm, setSearchTerm] = useState("")
   const [sortField, setSortField] = useState<keyof SupplierData>("overallScore")

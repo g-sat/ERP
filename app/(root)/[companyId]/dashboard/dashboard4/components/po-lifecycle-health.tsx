@@ -22,7 +22,6 @@ import {
 } from "recharts"
 
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 
@@ -52,11 +51,11 @@ interface POMetrics {
 }
 
 export function POLifecycleHealth({
-  period,
-  comparisonPeriod,
-  businessUnits,
-  productLines,
-  geography,
+  period: _period,
+  comparisonPeriod: _comparisonPeriod,
+  businessUnits: _businessUnits,
+  productLines: _productLines,
+  geography: _geography,
 }: POLifecycleHealthProps) {
   const [selectedStage, setSelectedStage] = useState<string>("all")
 
@@ -166,7 +165,18 @@ export function POLifecycleHealth({
     return "bg-gray-100 text-gray-800"
   }
 
-  const CustomTooltip = ({ active, payload, label }: any) => {
+  interface CustomTooltipProps {
+    active?: boolean
+    payload?: Array<{
+      value: number
+      dataKey: string
+      color: string
+      payload: Record<string, unknown>
+    }>
+    label?: string
+  }
+
+  const CustomTooltip = ({ active, payload, label: _label }: CustomTooltipProps) => {
     if (active && payload && payload.length) {
       const data = payload[0].payload
       return (
@@ -294,7 +304,7 @@ export function POLifecycleHealth({
 
           {/* Stage Details */}
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
-            {lifecycleStages.map((stage, index) => (
+            {lifecycleStages.map((stage, _index) => (
               <Card
                 key={stage.stage}
                 className={`cursor-pointer transition-colors ${
@@ -353,7 +363,7 @@ export function POLifecycleHealth({
         <div className="space-y-4">
           <h4 className="text-lg font-medium">3-Way Match Exceptions</h4>
           <div className="space-y-3">
-            {exceptionTypes.map((exception, index) => (
+            {exceptionTypes.map((exception, _index) => (
               <div
                 key={exception.type}
                 className="flex items-center justify-between"

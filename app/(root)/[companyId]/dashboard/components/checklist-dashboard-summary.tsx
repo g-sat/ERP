@@ -2,7 +2,7 @@
 
 import {
   Activity,
-  AlertTriangle,
+  _AlertTriangle,
   BarChart3,
   CheckCircle,
   Clock,
@@ -34,7 +34,7 @@ export function ChecklistDashboardSummary({
   pendingJobs,
   userRole,
 }: ChecklistDashboardSummaryProps) {
-  const completionRate = totalJobs > 0 ? (completedJobs / totalJobs) * 100 : 0
+  const _completionRate = totalJobs > 0 ? (completedJobs / totalJobs) * 100 : 0
 
   const getRoleIcon = (role: string) => {
     switch (role) {

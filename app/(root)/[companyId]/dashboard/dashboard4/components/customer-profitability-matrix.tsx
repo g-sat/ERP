@@ -1,12 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import {
-  DollarSignIcon,
-  TrendingDownIcon,
-  TrendingUpIcon,
-  UsersIcon,
-} from "lucide-react"
+import { TrendingDownIcon, TrendingUpIcon, UsersIcon } from "lucide-react"
 import {
   CartesianGrid,
   Cell,
@@ -22,7 +17,6 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Progress } from "@/components/ui/progress"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 interface CustomerProfitabilityMatrixProps {
@@ -46,14 +40,14 @@ interface CustomerData {
 }
 
 export function CustomerProfitabilityMatrix({
-  period,
-  comparisonPeriod,
-  businessUnits,
-  productLines,
-  geography,
+  period: _period,
+  comparisonPeriod: _comparisonPeriod,
+  businessUnits: _businessUnits,
+  productLines: _productLines,
+  geography: _geography,
 }: CustomerProfitabilityMatrixProps) {
   const [selectedQuadrant, setSelectedQuadrant] = useState<string>("all")
-  const [selectedTier, setSelectedTier] = useState<string>("all")
+  const [selectedTier, _setSelectedTier] = useState<string>("all")
 
   // Mock data - in real implementation, this would come from API
   const customerData: CustomerData[] = [
@@ -162,7 +156,7 @@ export function CustomerProfitabilityMatrix({
     }
   }
 
-  const getQuadrantColor = (quadrant: string) => {
+  const _getQuadrantColor = (quadrant: string) => {
     switch (quadrant) {
       case "Stars":
         return "bg-green-50 border-green-200"
@@ -221,7 +215,17 @@ export function CustomerProfitabilityMatrix({
     0
   )
 
-  const CustomTooltip = ({ active, payload }: any) => {
+  interface CustomTooltipProps {
+    active?: boolean
+    payload?: Array<{
+      value: number
+      dataKey: string
+      color: string
+      payload: Record<string, unknown>
+    }>
+  }
+
+  const CustomTooltip = ({ active, payload }: CustomTooltipProps) => {
     if (active && payload && payload.length) {
       const data = payload[0].payload
       return (

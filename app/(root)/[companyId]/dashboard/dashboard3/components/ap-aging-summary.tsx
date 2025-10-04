@@ -38,7 +38,7 @@ interface APAgingSummaryProps {
   filters: Dashboard3Filters
 }
 
-export default function APAgingSummary({ filters }: APAgingSummaryProps) {
+export default function APAgingSummary({ filters: _filters }: APAgingSummaryProps) {
   // Mock data - replace with actual API call
   const agingData: APAgingData[] = [
     {
@@ -70,7 +70,18 @@ export default function APAgingSummary({ filters }: APAgingSummaryProps) {
   const totalAP = agingData.reduce((sum, item) => sum + item.amount, 0)
   const totalDue30Days = agingData[0].amount
 
-  const CustomTooltip = ({ active, payload, label }: any) => {
+  interface CustomTooltipProps {
+    active?: boolean
+    payload?: Array<{
+      value: number
+      dataKey: string
+      color: string
+      payload: { count: number; amount: number; bucket: string }
+    }>
+    label?: string
+  }
+
+  const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
     if (active && payload && payload.length) {
       return (
         <div className="bg-background border-border rounded-lg border p-3 shadow-lg">

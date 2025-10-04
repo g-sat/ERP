@@ -76,7 +76,10 @@ export default function Dashboard3() {
     setTimeout(() => setIsLoading(false), 1000)
   }, [])
 
-  const handleFilterChange = (key: keyof Dashboard3Filters, value: any) => {
+  const handleFilterChange = (
+    key: keyof Dashboard3Filters,
+    value: string | Date | null
+  ) => {
     setFilters((prev) => ({
       ...prev,
       [key]: value,

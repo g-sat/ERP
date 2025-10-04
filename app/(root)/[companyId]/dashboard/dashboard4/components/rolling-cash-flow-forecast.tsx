@@ -14,7 +14,7 @@ import {
   CartesianGrid,
   ComposedChart,
   Line,
-  LineChart,
+  _LineChart,
   ReferenceLine,
   ResponsiveContainer,
   Tooltip,
@@ -60,11 +60,11 @@ interface CashFlowMetrics {
 }
 
 export function RollingCashFlowForecast({
-  period,
-  comparisonPeriod,
-  businessUnits,
-  productLines,
-  geography,
+  period: _period,
+  comparisonPeriod: _comparisonPeriod,
+  businessUnits: _businessUnits,
+  productLines: _productLines,
+  geography: _geography,
 }: RollingCashFlowForecastProps) {
   const [selectedScenario, setSelectedScenario] = useState<
     "base" | "optimistic" | "pessimistic"
@@ -240,13 +240,24 @@ export function RollingCashFlowForecast({
     }
   }
 
-  const getConfidenceColor = (confidence: number) => {
+  const _getConfidenceColor = (confidence: number) => {
     if (confidence >= 80) return "text-green-600"
     if (confidence >= 70) return "text-yellow-600"
     return "text-red-600"
   }
 
-  const CustomTooltip = ({ active, payload, label }: any) => {
+  interface CustomTooltipProps {
+    active?: boolean
+    payload?: Array<{
+      value: number
+      dataKey: string
+      color: string
+      payload: Record<string, unknown>
+    }>
+    label?: string
+  }
+
+  const CustomTooltip = ({ active, payload, label: _label }: CustomTooltipProps) => {
     if (active && payload && payload.length) {
       const data = payload[0].payload
       return (

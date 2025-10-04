@@ -10,8 +10,8 @@ import {
   CartesianGrid,
   Cell,
   Legend,
-  Line,
-  LineChart,
+  _Line,
+  _LineChart,
   Pie,
   PieChart,
   ResponsiveContainer,
@@ -33,7 +33,7 @@ interface ReceivableAnalyticsProps {
   isLoading?: boolean
 }
 
-const COLORS = [
+const _COLORS = [
   "#0088FE",
   "#00C49F",
   "#FFBB28",

@@ -4,7 +4,7 @@ import {
   Activity,
   AlertTriangle,
   CheckCircle,
-  CreditCard,
+  _CreditCard,
   DollarSign,
   TrendingUp,
   Users,

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import {
   calculateMultiplierAmount,
   calculatePercentagecAmount,
@@ -487,7 +487,7 @@ export default function InvoiceDetailsTable({
   }
 
   // Add this new function to sync form values
-  const syncSchemaType = () => {
+  const syncSchemaType = useCallback(() => {
     // Map the current data with form values
     const updatedDetails = data.map((row) => {
       // Get all the numeric values from invoiceDetailForm
@@ -571,7 +571,7 @@ export default function InvoiceDetailsTable({
     // Set the form data and trigger update
     setFormDetails(updatedDetails)
     setFormUpdateNeeded(true)
-  }
+  }, [data, invoiceDetailForm, setFormDetails, setFormUpdateNeeded])
 
   // Update the handleQtyOrPriceChange function
   const handleQtyOrPriceChange = (

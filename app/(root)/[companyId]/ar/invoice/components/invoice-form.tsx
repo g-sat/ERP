@@ -85,7 +85,7 @@ export default function InvoiceForm({
       )
       await setDueDate(form)
     },
-    []
+    [decimals, exhRateDec, form, visible]
   )
 
   // Handle customer selection
@@ -105,7 +105,7 @@ export default function InvoiceForm({
       await setExchangeRateLocal(form, exhRateDec)
       await setAddressContactDetails(form)
     },
-    []
+    [exhRateDec, form, isEdit, visible]
   )
 
   // Handle transaction date selection
@@ -129,7 +129,7 @@ export default function InvoiceForm({
       )
       await setDueDate(form)
     },
-    []
+    [decimals, exhRateDec, form, visible]
   )
 
   // Handle credit term selection
@@ -139,7 +139,7 @@ export default function InvoiceForm({
       console.log("Selected credit term:", selectedCreditTerm)
       setDueDate(form)
     },
-    []
+    [form]
   )
 
   // Handle bank selection
@@ -148,7 +148,7 @@ export default function InvoiceForm({
       // Additional logic when bank changes
       console.log("Selected bank:", selectedBank)
     },
-    []
+    [form]
   )
 
   // Handle delivery date change
@@ -157,7 +157,7 @@ export default function InvoiceForm({
       console.log("Delivery date changed:", selectedDeliveryDate)
       await setDueDate(form)
     },
-    []
+    [form]
   )
 
   // Handle currency selection
@@ -236,7 +236,7 @@ export default function InvoiceForm({
         form?.trigger("totAmtAftGst")
       }
     },
-    []
+    [amtDec, ctyAmtDec, decimals, exhRateDec, form, locAmtDec, visible]
   )
 
   // Handle exchange rate change
@@ -291,7 +291,7 @@ export default function InvoiceForm({
       //handleDetailsChange(form, form, decimals[0])
       // handleTotalamountChange(form, form, decimals[0], visible)
     },
-    []
+    [ctyAmtDec, decimals, form, locAmtDec, visible?.m_CtyCurr]
   )
 
   // Handle city exchange rate change
@@ -325,7 +325,7 @@ export default function InvoiceForm({
       calculateInvoice(form, updatedDetails, form, decimals[0])
       handleTotalamountChange(form, form, decimals[0], visible)
     },
-    []
+    [decimals, form, visible]
   )
 
   return (

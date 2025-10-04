@@ -541,7 +541,7 @@ export default function InvoicePage() {
   // Add useEffect to refetch invoices when filters change
   useEffect(() => {
     refetchInvoices()
-  }, [filters])
+  }, [filters, refetchInvoices])
 
   const handleInvoiceSearch = async (value: string) => {
     if (!value) return

@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Mock data responses for different widgets
-    const mockData: { [key: string]: any } = {
+    const mockData: { [key: string]: Record<string, unknown> } = {
       "ap-aging": {
         agingData: [
           {

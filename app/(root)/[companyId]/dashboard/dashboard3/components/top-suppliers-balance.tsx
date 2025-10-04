@@ -2,11 +2,11 @@
 
 import {
   Calendar,
-  DollarSign,
+  _DollarSign,
   Eye,
   FileText,
   MessageSquare,
-  Users,
+  _Users,
 } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
@@ -59,7 +59,7 @@ interface TopSuppliersBalanceProps {
 }
 
 export default function TopSuppliersBalance({
-  filters,
+  filters: _filters,
 }: TopSuppliersBalanceProps) {
   // Mock data - replace with actual API call
   const suppliersData: SupplierBalance[] = [

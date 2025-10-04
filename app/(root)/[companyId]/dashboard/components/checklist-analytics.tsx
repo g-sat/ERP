@@ -45,13 +45,7 @@ export function ChecklistAnalytics({
   data,
   isLoading = false,
 }: ChecklistAnalyticsProps) {
-  // If no data or error, show fallback
-  if (!data || data.length === 0) {
-    return (
-      <ChecklistAnalyticsFallback data={data || []} isLoading={isLoading} />
-    )
-  }
-  // Process data for charts
+  // Process data for charts - moved before conditional return
   const chartData = useMemo(() => {
     const statusCounts = data.reduce(
       (acc, job) => {
@@ -163,6 +157,13 @@ export function ChecklistAnalytics({
       cancellationRate,
     }
   }, [data])
+
+  // If no data or error, show fallback - moved after all hooks
+  if (!data || data.length === 0) {
+    return (
+      <ChecklistAnalyticsFallback data={data || []} isLoading={isLoading} />
+    )
+  }
 
   const COLORS = [
     "#0088FE",

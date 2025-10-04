@@ -2,7 +2,7 @@
 
 import {
   BarChart3,
-  Calendar,
+  _Calendar,
   Eye,
   Target,
   TrendingDown,
@@ -60,7 +60,7 @@ interface DPOTrendAnalysisProps {
   filters: Dashboard3Filters
 }
 
-export default function DPOTrendAnalysis({ filters }: DPOTrendAnalysisProps) {
+export default function DPOTrendAnalysis({ filters: _filters }: DPOTrendAnalysisProps) {
   // Mock data - replace with actual API call
   const dpoTrendData: DPOTrendData[] = [
     {
@@ -127,7 +127,18 @@ export default function DPOTrendAnalysis({ filters }: DPOTrendAnalysisProps) {
     }).format(amount)
   }
 
-  const CustomTooltip = ({ active, payload, label }: any) => {
+  interface CustomTooltipProps {
+    active?: boolean
+    payload?: Array<{
+      value: number
+      dataKey: string
+      color: string
+      payload: Record<string, unknown>
+    }>
+    label?: string
+  }
+
+  const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
     if (active && payload && payload.length) {
       const data = payload[0].payload
       return (

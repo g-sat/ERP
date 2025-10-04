@@ -475,6 +475,7 @@ const PayslipTemplate: React.FC<PayslipTemplateProps> = ({ data }) => {
                 <Image
                   style={styles.logo}
                   src={`${getBaseUrl()}/uploads/companies/${data.companyId}.png`}
+                  alt="Company Logo"
                 />
               </View>
             )}

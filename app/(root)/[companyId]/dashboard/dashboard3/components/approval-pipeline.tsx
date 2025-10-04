@@ -48,6 +48,7 @@ interface InvoiceCard {
   receivedDate: string
   priority: "low" | "medium" | "high"
   category: string
+  status: "pending" | "approved" | "rejected"
 }
 
 interface ApprovalColumn {
@@ -63,7 +64,7 @@ interface ApprovalPipelineProps {
   filters: Dashboard3Filters
 }
 
-export default function ApprovalPipeline({ filters }: ApprovalPipelineProps) {
+export default function ApprovalPipeline({ filters: _filters }: ApprovalPipelineProps) {
   // Mock data - replace with actual API call
   const approvalColumns: ApprovalColumn[] = [
     {
@@ -83,6 +84,7 @@ export default function ApprovalPipeline({ filters }: ApprovalPipelineProps) {
           receivedDate: "2024-01-07",
           priority: "low",
           category: "Office Supplies",
+          status: "pending",
         },
         {
           id: "2",
@@ -94,6 +96,7 @@ export default function ApprovalPipeline({ filters }: ApprovalPipelineProps) {
           receivedDate: "2024-01-06",
           priority: "medium",
           category: "IT Services",
+          status: "pending",
         },
         {
           id: "3",
@@ -105,6 +108,7 @@ export default function ApprovalPipeline({ filters }: ApprovalPipelineProps) {
           receivedDate: "2024-01-07",
           priority: "medium",
           category: "Services",
+          status: "pending",
         },
       ],
     },
@@ -125,6 +129,7 @@ export default function ApprovalPipeline({ filters }: ApprovalPipelineProps) {
           receivedDate: "2024-01-04",
           priority: "high",
           category: "Marketing",
+          status: "pending",
         },
         {
           id: "5",
@@ -136,6 +141,7 @@ export default function ApprovalPipeline({ filters }: ApprovalPipelineProps) {
           receivedDate: "2024-01-05",
           priority: "medium",
           category: "Professional Services",
+          status: "pending",
         },
       ],
     },
@@ -156,6 +162,7 @@ export default function ApprovalPipeline({ filters }: ApprovalPipelineProps) {
           receivedDate: "2024-01-02",
           priority: "high",
           category: "Equipment",
+          status: "pending",
         },
         {
           id: "7",
@@ -167,6 +174,7 @@ export default function ApprovalPipeline({ filters }: ApprovalPipelineProps) {
           receivedDate: "2024-01-03",
           priority: "medium",
           category: "Professional Services",
+          status: "pending",
         },
         {
           id: "8",
@@ -178,6 +186,7 @@ export default function ApprovalPipeline({ filters }: ApprovalPipelineProps) {
           receivedDate: "2024-01-01",
           priority: "high",
           category: "IT Services",
+          status: "pending",
         },
       ],
     },
@@ -198,6 +207,7 @@ export default function ApprovalPipeline({ filters }: ApprovalPipelineProps) {
           receivedDate: "2023-12-28",
           priority: "high",
           category: "Raw Materials",
+          status: "approved",
         },
         {
           id: "10",
@@ -209,6 +219,7 @@ export default function ApprovalPipeline({ filters }: ApprovalPipelineProps) {
           receivedDate: "2023-12-29",
           priority: "medium",
           category: "Utilities",
+          status: "approved",
         },
       ],
     },
@@ -229,6 +240,7 @@ export default function ApprovalPipeline({ filters }: ApprovalPipelineProps) {
           receivedDate: "2023-12-30",
           priority: "low",
           category: "Travel",
+          status: "rejected",
         },
       ],
     },

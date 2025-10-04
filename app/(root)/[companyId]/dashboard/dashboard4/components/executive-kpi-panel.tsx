@@ -10,7 +10,7 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
-import { Skeleton } from "@/components/ui/skeleton"
+import { _Skeleton } from "@/components/ui/skeleton"
 
 interface ExecutiveKPIPanelProps {
   period: string
@@ -33,11 +33,11 @@ interface KPIMetric {
 }
 
 export function ExecutiveKPIPanel({
-  period,
-  comparisonPeriod,
-  businessUnits,
-  productLines,
-  geography,
+  period: _period,
+  comparisonPeriod: _comparisonPeriod,
+  businessUnits: _businessUnits,
+  productLines: _productLines,
+  geography: _geography,
 }: ExecutiveKPIPanelProps) {
   // Mock data - in real implementation, this would come from API
   const kpiMetrics: KPIMetric[] = [

@@ -3,10 +3,8 @@
 import { useState } from "react"
 import {
   AlertTriangleIcon,
-  CheckCircleIcon,
   ClockIcon,
   EyeIcon,
-  FilterIcon,
   XCircleIcon,
 } from "lucide-react"
 
@@ -14,7 +12,6 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { Progress } from "@/components/ui/progress"
 import {
   Select,
   SelectContent,
@@ -52,10 +49,10 @@ interface AlertData {
 }
 
 export function ExceptionAlerts({
-  period,
-  businessUnits,
-  productLines,
-  geography,
+  period: _period,
+  businessUnits: _businessUnits,
+  productLines: _productLines,
+  geography: _geography,
 }: ExceptionAlertsProps) {
   const [searchTerm, setSearchTerm] = useState("")
   const [filterPriority, setFilterPriority] = useState<string>("all")
