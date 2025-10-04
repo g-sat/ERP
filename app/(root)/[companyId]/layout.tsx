@@ -1,14 +1,5 @@
 import { cookies } from "next/headers"
 
-import { AppSidebar } from "@/components/layout/app-sidebar"
-import { HeaderUserInfo } from "@/components/layout/header-userinfo"
-import { MobileNav } from "@/components/layout/mobile-nav"
-import { ModeSwitcher } from "@/components/layout/mode-switcher"
-import { NavHeader } from "@/components/layout/nav-header"
-import { Notifications } from "@/components/layout/notifications"
-import { ScreenLock } from "@/components/layout/screen-lock"
-import { SearchForm } from "@/components/layout/search-form"
-import { ThemeSelector } from "@/components/layout/theme-selector"
 import { SkipLink } from "@/components/ui/accessibility"
 import { Separator } from "@/components/ui/separator"
 import {
@@ -16,6 +7,15 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar"
+import { SessionExpiryProvider } from "@/components/auth/session-expiry-provider"
+import { AppSidebar } from "@/components/layout/app-sidebar"
+import { HeaderUserInfo } from "@/components/layout/header-userinfo"
+import { MobileNav } from "@/components/layout/mobile-nav"
+import { ModeSwitcher } from "@/components/layout/mode-switcher"
+import { NavHeader } from "@/components/layout/nav-header"
+import { ScreenLock } from "@/components/layout/screen-lock"
+import { SearchForm } from "@/components/layout/search-form"
+import { ThemeSelector } from "@/components/layout/theme-selector"
 
 export default async function AppLayout({
   children,
@@ -26,7 +26,7 @@ export default async function AppLayout({
   const defaultOpen = cookieStore.get("sidebar_state")?.value !== "false"
 
   return (
-    <>
+    <SessionExpiryProvider>
       <SkipLink href="#main-content">Skip to main content</SkipLink>
       <SkipLink href="#navigation">Skip to navigation</SkipLink>
       <SidebarProvider defaultOpen={defaultOpen}>
@@ -53,7 +53,6 @@ export default async function AppLayout({
 
               <div className="ml-auto flex items-center gap-1 sm:gap-2">
                 <SearchForm className="hidden w-auto sm:flex lg:w-80" />
-                <Notifications />
                 <ThemeSelector />
                 <ModeSwitcher />
                 <ScreenLock />
@@ -64,9 +63,8 @@ export default async function AppLayout({
           <main id="main-content" className="bg-muted/20 flex-1" role="main">
             <div className="min-h-full">{children}</div>
           </main>
-          
         </SidebarInset>
       </SidebarProvider>
-    </>
+    </SessionExpiryProvider>
   )
 }

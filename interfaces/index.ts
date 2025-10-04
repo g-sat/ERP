@@ -43,7 +43,6 @@ export * from "./loan"
 // If you need lookup-specific interfaces, import directly from "./lookup"
 // export * from "./lookup"
 
-export * from "./notification"
 export * from "./ordertype"
 export * from "./paymenttype"
 export * from "./payroll-account"

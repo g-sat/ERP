@@ -83,6 +83,9 @@ export function ScreenLock({ variant = "icon", className }: ScreenLockProps) {
   const [broadcastChannel, setBroadcastChannel] =
     useState<BroadcastChannel | null>(null)
   const [tabId] = useState(() => Math.random().toString(36).substring(7)) // Generate unique tab ID
+  const [isUnlocking, setIsUnlocking] = useState(false)
+  const [unlockProgress, setUnlockProgress] = useState(0)
+  const [showSuccess, setShowSuccess] = useState(false)
 
   // Router and Path
   // --------------
@@ -123,72 +126,108 @@ export function ScreenLock({ variant = "icon", className }: ScreenLockProps) {
     lockScreen()
   }
 
-  const handleUnlock = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError("")
+  const handleUnlock = useCallback(
+    async (e: React.FormEvent) => {
+      e.preventDefault()
+      setError("")
+      setIsUnlocking(true)
+      setUnlockProgress(0)
 
-    if (!user?.userName) {
-      setError("User information not available. Please refresh the page.")
-      return
-    }
-
-    try {
-      const loginResponse = await applocklogIn(user.userName, password)
-
-      if (!loginResponse) {
-        setError("Invalid login response. Please try again.")
+      if (!user?.userName) {
+        setError("User information not available. Please refresh the page.")
+        setIsUnlocking(false)
         return
       }
 
-      if (loginResponse.result === 1) {
-        // Unlock this tab
-        setIsLocked(false)
-        setAppLocked(false)
-        setPassword("")
-        setLastActivity(Date.now())
-        setFailedAttempts(0)
+      try {
+        // Simulate progress
+        const progressInterval = setInterval(() => {
+          setUnlockProgress((prev) => Math.min(prev + 10, 90))
+        }, 100)
 
-        // Get tab-specific path
-        const tabSpecificPath = sessionStorage.getItem(
-          `${TAB_SPECIFIC_PATH_KEY}_${tabId}`
-        )
-        if (tabSpecificPath) {
-          router.push(tabSpecificPath)
-          sessionStorage.removeItem(`${TAB_SPECIFIC_PATH_KEY}_${tabId}`)
+        const loginResponse = await applocklogIn(user.userName, password)
+
+        clearInterval(progressInterval)
+        setUnlockProgress(100)
+
+        if (!loginResponse) {
+          setError("Invalid login response. Please try again.")
+          return
         }
 
-        sessionStorage.removeItem(LOCK_STATE_KEY)
+        if (loginResponse.result === 1) {
+          // Show success animation
+          setShowSuccess(true)
 
-        // Broadcast unlock to all tabs
-        if (broadcastChannel) {
-          broadcastChannel.postMessage({
-            type: "UNLOCK",
-            data: { tabId },
-          })
+          // Wait a moment for success animation
+          setTimeout(() => {
+            // Unlock this tab
+            setIsLocked(false)
+            setAppLocked(false)
+            setPassword("")
+            setLastActivity(Date.now())
+            setFailedAttempts(0)
+            setIsUnlocking(false)
+            setUnlockProgress(0)
+            setShowSuccess(false)
+          }, 800)
+
+          // Get tab-specific path
+          const tabSpecificPath = sessionStorage.getItem(
+            `${TAB_SPECIFIC_PATH_KEY}_${tabId}`
+          )
+          if (tabSpecificPath) {
+            router.push(tabSpecificPath)
+            sessionStorage.removeItem(`${TAB_SPECIFIC_PATH_KEY}_${tabId}`)
+          }
+
+          sessionStorage.removeItem(LOCK_STATE_KEY)
+
+          // Broadcast unlock to other tabs (not this tab)
+          if (broadcastChannel) {
+            broadcastChannel.postMessage({
+              type: "UNLOCK",
+              data: { tabId },
+            })
+          }
+        } else {
+          setMessage(loginResponse.message)
+          setIsLocked(true)
+          setAppLocked(true)
+          setPassword("")
+          setLastActivity(Date.now())
+          setFailedAttempts(loginResponse.user.failedLoginAttempts)
+          setIsUnlocking(false)
+          setUnlockProgress(0)
         }
-      } else {
-        setMessage(loginResponse.message)
-        setIsLocked(true)
-        setAppLocked(true)
-        setPassword("")
-        setLastActivity(Date.now())
-        setFailedAttempts(loginResponse.user.failedLoginAttempts)
-      }
-    } catch (error) {
-      const newFailedAttempts = failedAttempts + 1
-      setFailedAttempts(newFailedAttempts)
+      } catch (error) {
+        const newFailedAttempts = failedAttempts + 1
+        setFailedAttempts(newFailedAttempts)
+        setIsUnlocking(false)
+        setUnlockProgress(0)
 
-      if (newFailedAttempts >= MAX_FAILED_ATTEMPTS) {
-        setError("Maximum attempts exceeded. Please contact administrator.")
-      } else {
-        const errorMessage =
-          error instanceof Error ? error.message : "Authentication failed"
-        setError(
-          `${errorMessage}. ${MAX_FAILED_ATTEMPTS - newFailedAttempts} attempts remaining.`
-        )
+        if (newFailedAttempts >= MAX_FAILED_ATTEMPTS) {
+          setError("Maximum attempts exceeded. Please contact administrator.")
+        } else {
+          const errorMessage =
+            error instanceof Error ? error.message : "Authentication failed"
+          setError(
+            `${errorMessage}. ${MAX_FAILED_ATTEMPTS - newFailedAttempts} attempts remaining.`
+          )
+        }
       }
-    }
-  }
+    },
+    [
+      user?.userName,
+      password,
+      applocklogIn,
+      failedAttempts,
+      broadcastChannel,
+      tabId,
+      router,
+      setAppLocked,
+    ]
+  )
 
   // Effects
   // -------
@@ -223,13 +262,18 @@ export function ScreenLock({ variant = "icon", className }: ScreenLockProps) {
           )
         }
       } else if (type === "UNLOCK") {
-        // Unlock all tabs but maintain their individual paths
-        setIsLocked(false)
-        setAppLocked(false)
-        sessionStorage.removeItem(LOCK_STATE_KEY)
-
-        // Only navigate if this is the tab that initiated the unlock
+        // Only the initiating tab should handle the unlock
         if (data?.tabId === tabId) {
+          // This is the tab that initiated the unlock
+          // Don't do anything here, let the original unlock handler complete
+          return
+        } else {
+          // This is a different tab, just update UI state
+          setIsLocked(false)
+          setAppLocked(false)
+          sessionStorage.removeItem(LOCK_STATE_KEY)
+
+          // Navigate to the tab's specific path
           const tabSpecificPath = sessionStorage.getItem(
             `${TAB_SPECIFIC_PATH_KEY}_${tabId}`
           )
@@ -339,6 +383,32 @@ export function ScreenLock({ variant = "icon", className }: ScreenLockProps) {
   useEffect(() => {
     if (error && password) setError("")
   }, [password, error])
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    if (!isLocked) return
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Escape key to clear password
+      if (e.key === "Escape") {
+        setPassword("")
+        setError("")
+        setMessage("")
+      }
+      // Enter key to submit (if not already unlocking)
+      if (e.key === "Enter" && !isUnlocking && password.trim()) {
+        const formEvent = {
+          preventDefault: () => {},
+          target: e.target,
+          currentTarget: e.currentTarget,
+        } as React.FormEvent
+        handleUnlock(formEvent)
+      }
+    }
+
+    document.addEventListener("keydown", handleKeyDown)
+    return () => document.removeEventListener("keydown", handleKeyDown)
+  }, [isLocked, password, isUnlocking, handleUnlock])
 
   // Prevent page refresh/navigation when locked
   useEffect(() => {
@@ -540,7 +610,70 @@ export function ScreenLock({ variant = "icon", className }: ScreenLockProps) {
                       placeholder="Enter your password to continue"
                       className="focus-visible:ring-primary h-10 w-64 focus-visible:ring-2"
                       autoFocus
+                      disabled={isUnlocking}
                     />
+
+                    {/* Progress Bar */}
+                    {isUnlocking && !showSuccess && (
+                      <div className="w-64">
+                        <div className="text-muted-foreground mb-2 flex justify-between text-xs">
+                          <span>Unlocking...</span>
+                          <span>{unlockProgress}%</span>
+                        </div>
+                        <div className="bg-muted h-2 w-full rounded-full">
+                          <motion.div
+                            className="bg-primary h-2 rounded-full"
+                            initial={{ width: 0 }}
+                            animate={{ width: `${unlockProgress}%` }}
+                            transition={{ duration: 0.3 }}
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Success Animation */}
+                    {showSuccess && (
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="flex flex-col items-center gap-2"
+                      >
+                        <motion.div
+                          className="flex h-12 w-12 items-center justify-center rounded-full bg-green-100"
+                          animate={{ scale: [1, 1.2, 1] }}
+                          transition={{ duration: 0.6 }}
+                        >
+                          <motion.div
+                            initial={{ pathLength: 0 }}
+                            animate={{ pathLength: 1 }}
+                            transition={{ duration: 0.5 }}
+                            className="text-green-600"
+                          >
+                            <svg
+                              className="h-6 w-6"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M5 13l4 4L19 7"
+                              />
+                            </svg>
+                          </motion.div>
+                        </motion.div>
+                        <motion.p
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          transition={{ delay: 0.3 }}
+                          className="font-medium text-green-600"
+                        >
+                          Successfully unlocked!
+                        </motion.p>
+                      </motion.div>
+                    )}
                     <AnimatePresence>
                       {error && (
                         <motion.p
@@ -557,9 +690,30 @@ export function ScreenLock({ variant = "icon", className }: ScreenLockProps) {
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                     >
-                      <Button type="submit" className="mx-auto h-10 w-64 gap-2">
-                        <Unlock className="h-4 w-4" />
-                        Unlock
+                      <Button
+                        type="submit"
+                        className="mx-auto h-10 w-64 gap-2"
+                        disabled={isUnlocking || !password.trim()}
+                      >
+                        {isUnlocking ? (
+                          <>
+                            <motion.div
+                              className="h-4 w-4 rounded-full border-2 border-current border-t-transparent"
+                              animate={{ rotate: 360 }}
+                              transition={{
+                                duration: 1,
+                                repeat: Infinity,
+                                ease: "linear",
+                              }}
+                            />
+                            Unlocking...
+                          </>
+                        ) : (
+                          <>
+                            <Unlock className="h-4 w-4" />
+                            Unlock
+                          </>
+                        )}
                       </Button>
                     </motion.div>
 
