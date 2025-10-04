@@ -10,8 +10,6 @@ import {
   CartesianGrid,
   Cell,
   Legend,
-  _Line,
-  _LineChart,
   Pie,
   PieChart,
   ResponsiveContainer,
@@ -181,7 +179,9 @@ export function BankAnalytics({ data, isLoading = false }: BankAnalyticsProps) {
             <ResponsiveContainer width="100%" height={300}>
               <PieChart>
                 <Pie
-                  data={chartData.statusDistribution}
+                  data={
+                    Array.isArray(chartData) ? [] : chartData.statusDistribution
+                  }
                   cx="50%"
                   cy="50%"
                   labelLine={false}
@@ -192,7 +192,10 @@ export function BankAnalytics({ data, isLoading = false }: BankAnalyticsProps) {
                   fill="#8884d8"
                   dataKey="value"
                 >
-                  {chartData.statusDistribution.map((entry, index) => (
+                  {(!Array.isArray(chartData)
+                    ? chartData.statusDistribution
+                    : []
+                  ).map((entry, index) => (
                     <Cell
                       key={`cell-${index}`}
                       fill={index === 0 ? "#00C49F" : "#FF8042"}
@@ -212,7 +215,11 @@ export function BankAnalytics({ data, isLoading = false }: BankAnalyticsProps) {
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={chartData.currencyDistribution}>
+              <BarChart
+                data={
+                  Array.isArray(chartData) ? [] : chartData.currencyDistribution
+                }
+              >
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="name" />
                 <YAxis />
@@ -233,7 +240,11 @@ export function BankAnalytics({ data, isLoading = false }: BankAnalyticsProps) {
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={chartData.bankTypeDistribution}>
+            <BarChart
+              data={
+                Array.isArray(chartData) ? [] : chartData.bankTypeDistribution
+              }
+            >
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="name" />
               <YAxis />
@@ -255,7 +266,9 @@ export function BankAnalytics({ data, isLoading = false }: BankAnalyticsProps) {
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={300}>
-            <AreaChart data={chartData.monthlyTrend}>
+            <AreaChart
+              data={Array.isArray(chartData) ? [] : chartData.monthlyTrend}
+            >
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="month" />
               <YAxis />
@@ -301,7 +314,9 @@ export function BankAnalytics({ data, isLoading = false }: BankAnalyticsProps) {
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={chartData.topBanks}>
+              <BarChart
+                data={Array.isArray(chartData) ? [] : chartData.topBanks}
+              >
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="name" />
                 <YAxis />
@@ -327,7 +342,9 @@ export function BankAnalytics({ data, isLoading = false }: BankAnalyticsProps) {
             <ResponsiveContainer width="100%" height={300}>
               <PieChart>
                 <Pie
-                  data={chartData.transactionTypes}
+                  data={
+                    Array.isArray(chartData) ? [] : chartData.transactionTypes
+                  }
                   cx="50%"
                   cy="50%"
                   labelLine={false}
@@ -338,7 +355,10 @@ export function BankAnalytics({ data, isLoading = false }: BankAnalyticsProps) {
                   fill="#8884d8"
                   dataKey="value"
                 >
-                  {chartData.transactionTypes.map((entry, index) => (
+                  {(!Array.isArray(chartData)
+                    ? chartData.transactionTypes
+                    : []
+                  ).map((entry, index) => (
                     <Cell
                       key={`cell-${index}`}
                       fill={COLORS[index % COLORS.length]}

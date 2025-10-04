@@ -64,7 +64,9 @@ interface DiscountTrackerProps {
   filters: Dashboard3Filters
 }
 
-export default function DiscountTracker({ filters: _filters }: DiscountTrackerProps) {
+export default function DiscountTracker({
+  filters: _filters,
+}: DiscountTrackerProps) {
   // Mock data - replace with actual API call
   const discountData: DiscountOpportunity[] = [
     {

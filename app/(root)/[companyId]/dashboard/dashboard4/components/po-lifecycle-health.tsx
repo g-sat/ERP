@@ -176,7 +176,11 @@ export function POLifecycleHealth({
     label?: string
   }
 
-  const CustomTooltip = ({ active, payload, label: _label }: CustomTooltipProps) => {
+  const CustomTooltip = ({
+    active,
+    payload,
+    label: _label,
+  }: CustomTooltipProps) => {
     if (active && payload && payload.length) {
       const data = payload[0].payload
       return (

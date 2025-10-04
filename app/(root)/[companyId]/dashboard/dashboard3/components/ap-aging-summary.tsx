@@ -38,7 +38,9 @@ interface APAgingSummaryProps {
   filters: Dashboard3Filters
 }
 
-export default function APAgingSummary({ filters: _filters }: APAgingSummaryProps) {
+export default function APAgingSummary({
+  filters: _filters,
+}: APAgingSummaryProps) {
   // Mock data - replace with actual API call
   const agingData: APAgingData[] = [
     {

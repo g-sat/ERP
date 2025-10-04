@@ -25,7 +25,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { _Tabs, _TabsContent, _TabsList, _TabsTrigger } from "@/components/ui/tabs"
 
 interface RoleBasedDashboardProps {
   data: IJobOrderHd[]

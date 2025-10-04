@@ -2,11 +2,11 @@
 
 import {
   BarChart3,
-  _Calendar,
   Eye,
   Target,
   TrendingDown,
   TrendingUp,
+  _Calendar,
 } from "lucide-react"
 import {
   Legend,
@@ -60,7 +60,9 @@ interface DPOTrendAnalysisProps {
   filters: Dashboard3Filters
 }
 
-export default function DPOTrendAnalysis({ filters: _filters }: DPOTrendAnalysisProps) {
+export default function DPOTrendAnalysis({
+  filters: _filters,
+}: DPOTrendAnalysisProps) {
   // Mock data - replace with actual API call
   const dpoTrendData: DPOTrendData[] = [
     {

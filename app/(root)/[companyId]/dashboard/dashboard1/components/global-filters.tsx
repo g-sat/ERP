@@ -24,20 +24,20 @@ import {
 
 interface GlobalFiltersProps {
   selectedPeriod: string
-  onPeriodChange: (period: string) => void
+  onPeriodChangeAction: (period: string) => void
   comparisonPeriod: string
-  onComparisonChange: (comparison: string) => void
+  onComparisonChangeAction: (comparison: string) => void
   selectedEntities: string[]
-  onEntitiesChange: (entities: string[]) => void
+  onEntitiesChangeAction: (entities: string[]) => void
 }
 
 export function GlobalFilters({
   selectedPeriod,
-  onPeriodChange,
+  onPeriodChangeAction,
   comparisonPeriod,
-  onComparisonChange,
+  onComparisonChangeAction,
   selectedEntities,
-  onEntitiesChange,
+  onEntitiesChangeAction,
 }: GlobalFiltersProps) {
   const [dateRange, setDateRange] = useState<DateRange | undefined>({
     from: new Date(new Date().getFullYear(), new Date().getMonth(), 1), // First day of current month
@@ -56,9 +56,9 @@ export function GlobalFilters({
 
   const handleEntityToggle = (entityId: string) => {
     if (selectedEntities.includes(entityId)) {
-      onEntitiesChange(selectedEntities.filter((id) => id !== entityId))
+      onEntitiesChangeAction(selectedEntities.filter((id) => id !== entityId))
     } else {
-      onEntitiesChange([...selectedEntities, entityId])
+      onEntitiesChangeAction([...selectedEntities, entityId])
     }
   }
 
@@ -93,7 +93,7 @@ export function GlobalFilters({
   return (
     <div className="flex flex-wrap items-center gap-2">
       {/* Fiscal Period Selector */}
-      <Select value={selectedPeriod} onValueChange={onPeriodChange}>
+      <Select value={selectedPeriod} onValueChange={onPeriodChangeAction}>
         <SelectTrigger className="h-9 w-[140px]">
           <SelectValue placeholder="Select period" />
         </SelectTrigger>
@@ -145,7 +145,7 @@ export function GlobalFilters({
       )}
 
       {/* Comparison Period Toggle */}
-      <Select value={comparisonPeriod} onValueChange={onComparisonChange}>
+      <Select value={comparisonPeriod} onValueChange={onComparisonChangeAction}>
         <SelectTrigger className="h-9 w-[130px]">
           <SelectValue placeholder="Compare to" />
         </SelectTrigger>

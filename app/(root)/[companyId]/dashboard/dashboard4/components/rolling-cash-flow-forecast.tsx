@@ -14,7 +14,6 @@ import {
   CartesianGrid,
   ComposedChart,
   Line,
-  _LineChart,
   ReferenceLine,
   ResponsiveContainer,
   Tooltip,
@@ -257,9 +256,21 @@ export function RollingCashFlowForecast({
     label?: string
   }
 
-  const CustomTooltip = ({ active, payload, label: _label }: CustomTooltipProps) => {
+  const CustomTooltip = ({
+    active,
+    payload,
+    label: _label,
+  }: CustomTooltipProps) => {
     if (active && payload && payload.length) {
-      const data = payload[0].payload
+      const data = payload[0].payload as {
+        week: string
+        date: string
+        projectedBalanceM: number
+        cashInM: number
+        cashOutM: number
+        netCashFlowM: number
+        confidence: number
+      }
       return (
         <div className="bg-background border-border rounded-lg border p-3 shadow-lg">
           <p className="font-medium">

@@ -5,7 +5,6 @@ import { IBank } from "@/interfaces/bank"
 import { useAuthStore } from "@/stores/auth-store"
 import {
   Activity,
-  _AlertTriangle,
   BarChart3,
   Building2,
   Calculator,

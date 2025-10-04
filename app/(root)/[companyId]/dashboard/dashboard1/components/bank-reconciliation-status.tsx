@@ -1,7 +1,7 @@
 "use client"
 
 import { useMemo } from "react"
-import { AlertTriangle, CheckCircle, Clock, RefreshCw } from "lucide-react"
+import { AlertTriangle, CheckCircle, Clock } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"

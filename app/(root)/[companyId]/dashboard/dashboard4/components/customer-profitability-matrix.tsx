@@ -227,7 +227,13 @@ export function CustomerProfitabilityMatrix({
 
   const CustomTooltip = ({ active, payload }: CustomTooltipProps) => {
     if (active && payload && payload.length) {
-      const data = payload[0].payload
+      const data = payload[0].payload as {
+        name: string
+        revenue: number
+        profitMargin: number
+        outstandingAR: number
+        tier: string
+      }
       return (
         <div className="bg-background border-border rounded-lg border p-3 shadow-lg">
           <p className="font-medium">{data.name}</p>

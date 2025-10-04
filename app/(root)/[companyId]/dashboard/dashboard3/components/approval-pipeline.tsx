@@ -64,7 +64,9 @@ interface ApprovalPipelineProps {
   filters: Dashboard3Filters
 }
 
-export default function ApprovalPipeline({ filters: _filters }: ApprovalPipelineProps) {
+export default function ApprovalPipeline({
+  filters: _filters,
+}: ApprovalPipelineProps) {
   // Mock data - replace with actual API call
   const approvalColumns: ApprovalColumn[] = [
     {

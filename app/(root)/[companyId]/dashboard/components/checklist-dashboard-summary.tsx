@@ -2,7 +2,6 @@
 
 import {
   Activity,
-  _AlertTriangle,
   BarChart3,
   CheckCircle,
   Clock,

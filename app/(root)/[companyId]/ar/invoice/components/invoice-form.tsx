@@ -148,7 +148,7 @@ export default function InvoiceForm({
       // Additional logic when bank changes
       console.log("Selected bank:", selectedBank)
     },
-    [form]
+    []
   )
 
   // Handle delivery date change
