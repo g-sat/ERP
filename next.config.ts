@@ -68,6 +68,8 @@ const nextConfig: NextConfig = {
     ],
     // Enable unoptimized images for better compatibility
     unoptimized: true,
+    // Add local domains for development
+    domains: ["localhost"],
   },
 }
 
