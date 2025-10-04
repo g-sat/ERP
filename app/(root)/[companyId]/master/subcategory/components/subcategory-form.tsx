@@ -78,7 +78,7 @@ export function SubCategoryForm({
             ...defaultValues,
           }
     )
-  }, [initialData, form])
+  }, [initialData, form, defaultValues])
 
   const handleCodeBlur = () => {
     const code = form.getValues("subCategoryCode")

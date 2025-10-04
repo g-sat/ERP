@@ -23,7 +23,7 @@ import CustomTextarea from "@/components/custom/custom-textarea"
 interface TaxCategoryFormProps {
   initialData?: ITaxCategory | null
   submitAction: (data: TaxCategorySchemaType) => void
-  onCancel: () => void
+  onCancelAction: () => void
   isSubmitting: boolean
   isReadOnly?: boolean
   onCodeBlur?: (code: string) => void
@@ -32,7 +32,7 @@ interface TaxCategoryFormProps {
 export function TaxCategoryForm({
   initialData,
   submitAction,
-  onCancel,
+  onCancelAction,
   isSubmitting,
   isReadOnly = false,
   onCodeBlur,
@@ -78,7 +78,7 @@ export function TaxCategoryForm({
             ...defaultValues,
           }
     )
-  }, [initialData, form])
+  }, [initialData, form, defaultValues])
 
   const handleCodeBlur = () => {
     const code = form.getValues("taxCategoryCode")
@@ -213,7 +213,7 @@ export function TaxCategoryForm({
             <Button
               type="button"
               variant="outline"
-              onClick={onCancel}
+              onClick={onCancelAction}
               disabled={isSubmitting}
             >
               Cancel

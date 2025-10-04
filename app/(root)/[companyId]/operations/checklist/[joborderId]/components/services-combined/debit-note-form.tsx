@@ -161,7 +161,7 @@ export default function DebitNoteForm({
         )
       }
     }
-  }, [watchedValues.qty, watchedValues.unitPrice, form])
+  }, [form, watchedValues.qty, watchedValues.unitPrice])
 
   // Effect for VAT percentage changes
   useEffect(() => {
@@ -174,7 +174,7 @@ export default function DebitNoteForm({
       form.setValue("gstAmt", 0)
       form.setValue("totAftGstAmt", totAmt)
     }
-  }, [watchedValues.gstPercentage, watchedValues.totAmt, form])
+  }, [form, watchedValues.gstPercentage, watchedValues.totAmt])
 
   // Effect for local amount changes
   useEffect(() => {
@@ -194,14 +194,14 @@ export default function DebitNoteForm({
         )
       }
     }
-  }, [watchedValues.totLocalAmt, exchangeRate, form])
+  }, [form, watchedValues.totLocalAmt, exchangeRate])
 
   // Effect for service charge switch changes
   useEffect(() => {
     if (!watchedValues.isServiceCharge) {
       form.setValue("serviceCharge", 0)
     }
-  }, [watchedValues.isServiceCharge, form])
+  }, [form, watchedValues.isServiceCharge])
 
   // Effect for charge autocomplete changes (to update GL ID)
   const handleChargeChange = (selectedCharge: IChargeLookup | null) => {
@@ -321,6 +321,9 @@ export default function DebitNoteForm({
     isChartOfAccountLoading,
     debitNoteHd?.debitNoteId,
     debitNoteHd?.debitNoteNo,
+    shouldReset,
+    defaultValues,
+    onChargeChange,
   ])
 
   // Effect to reset form when shouldReset changes

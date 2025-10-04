@@ -4,7 +4,6 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
     const period = searchParams.get("period") || "mtd"
-    const entities = searchParams.get("entities")?.split(",") || []
 
     // In a real implementation, this would query the Bank_Transactions table
     // For now, we'll return mock data

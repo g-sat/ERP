@@ -24,7 +24,7 @@ import CustomNumberInput from "@/components/custom/custom-number-input"
 interface TaxDtFormProps {
   initialData?: ITaxDt | null
   submitAction: (data: TaxDtSchemaType) => void
-  onCancel: () => void
+  onCancelAction: () => void
   isSubmitting: boolean
   isReadOnly?: boolean
 }
@@ -32,7 +32,7 @@ interface TaxDtFormProps {
 export function TaxDtForm({
   initialData,
   submitAction,
-  onCancel,
+  onCancelAction,
   isSubmitting,
   isReadOnly = false,
 }: TaxDtFormProps) {
@@ -84,7 +84,7 @@ export function TaxDtForm({
             ...defaultValues,
           }
     )
-  }, [initialData, form])
+  }, [initialData, form, defaultValues])
 
   const onSubmit = (data: TaxDtSchemaType) => {
     submitAction(data)
@@ -119,7 +119,6 @@ export function TaxDtForm({
                 label="Valid From"
                 isDisabled={isReadOnly || isSubmitting}
                 isRequired
-                dateFormat={dateFormat}
               />
             </div>
             {/* Audit Information Section */}
@@ -207,7 +206,7 @@ export function TaxDtForm({
             <Button
               type="button"
               variant="outline"
-              onClick={onCancel}
+              onClick={onCancelAction}
               disabled={isSubmitting}
             >
               Cancel

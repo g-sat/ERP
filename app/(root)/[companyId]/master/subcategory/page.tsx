@@ -65,7 +65,7 @@ export default function SubCategoryPage() {
     if (subcategorysData?.length > 0) {
       refetch()
     }
-  }, [filters])
+  }, [filters, refetch])
 
   const saveMutation = usePersist<SubCategorySchemaType>(`${SubCategory.add}`)
   const updateMutation = usePersist<SubCategorySchemaType>(`${SubCategory.add}`)

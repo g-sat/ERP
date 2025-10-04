@@ -97,7 +97,7 @@ export function ChargeForm({
             ...defaultValues,
           }
     )
-  }, [initialData, form])
+  }, [initialData, form, defaultValues])
 
   const handleCodeBlur = () => {
     const code = form.getValues("chargeCode")

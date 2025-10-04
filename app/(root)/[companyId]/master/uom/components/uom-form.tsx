@@ -31,7 +31,7 @@ const defaultValues = {
 interface UomFormProps {
   initialData?: IUom | null
   submitAction: (data: z.infer<typeof uomSchema>) => void
-  onCancel: () => void
+  onCancelAction: () => void
   isSubmitting: boolean
   isReadOnly?: boolean
   onCodeBlur?: (code: string) => void
@@ -40,7 +40,7 @@ interface UomFormProps {
 export function UomForm({
   initialData,
   submitAction,
-  onCancel,
+  onCancelAction,
   isSubmitting,
   isReadOnly = false,
   onCodeBlur,
@@ -78,7 +78,7 @@ export function UomForm({
             ...defaultValues,
           }
     )
-  }, [initialData, form])
+  }, [initialData, form, defaultValues])
 
   const handleCodeBlur = () => {
     const code = form.getValues("uomCode")
@@ -212,7 +212,7 @@ export function UomForm({
           </div>
 
           <div className="flex justify-end gap-2">
-            <Button variant="outline" type="button" onClick={onCancel}>
+            <Button variant="outline" type="button" onClick={onCancelAction}>
               {isReadOnly ? "Close" : "Cancel"}
             </Button>
             {!isReadOnly && (

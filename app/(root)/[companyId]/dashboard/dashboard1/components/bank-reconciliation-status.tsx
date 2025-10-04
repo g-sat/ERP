@@ -65,7 +65,7 @@ export function BankReconciliationStatus({
       ).toISOString(),
       reconciliationCycleEnd: new Date().toISOString(),
     }
-  }, [period, entities])
+  }, [period])
 
   const getStatusColor = (percentage: number) => {
     if (percentage >= 95) return "text-green-600"

@@ -77,7 +77,7 @@ export function LeaveTypeForm({
             ...defaultValues,
           }
     )
-  }, [initialData, form])
+  }, [initialData, form, defaultValues])
 
   const handleCodeBlur = () => {
     const code = form.getValues("leaveTypeCode")

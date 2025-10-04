@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { IEmployeeBasic } from "@/interfaces/employee"
 import { RefreshCw, Search } from "lucide-react"
@@ -53,15 +53,18 @@ export function EmployeeListTable({ data, onRefresh, onEdit }: Props) {
   const form = useForm<Record<string, unknown>>()
 
   // Update URL when search changes
-  const updateSearchParams = (newSearch: string) => {
-    const params = new URLSearchParams(searchParams.toString())
-    if (newSearch) {
-      params.set("search", newSearch)
-    } else {
-      params.delete("search")
-    }
-    router.push(`${pathname}?${params.toString()}`)
-  }
+  const updateSearchParams = useCallback(
+    (newSearch: string) => {
+      const params = new URLSearchParams(searchParams.toString())
+      if (newSearch) {
+        params.set("search", newSearch)
+      } else {
+        params.delete("search")
+      }
+      router.push(`${pathname}?${params.toString()}`)
+    },
+    [searchParams, router, pathname]
+  )
 
   // Sync local state with URL params
   useEffect(() => {
@@ -80,7 +83,7 @@ export function EmployeeListTable({ data, onRefresh, onEdit }: Props) {
     }, 300)
 
     return () => clearTimeout(timeoutId)
-  }, [search, pathname, searchParams])
+  }, [search, updateSearchParams])
 
   // Scroll to highlighted row when page loads
   useEffect(() => {
@@ -101,7 +104,13 @@ export function EmployeeListTable({ data, onRefresh, onEdit }: Props) {
         }, 2000)
       }
     }
-  }, [highlightedEmployeeId, pathname, searchParams, router])
+  }, [
+    highlightedEmployeeId,
+    router,
+    pathname,
+    searchParams,
+    updateSearchParams,
+  ])
 
   // Filter data based on search and filters
   const filtered = data.filter((employee) => {

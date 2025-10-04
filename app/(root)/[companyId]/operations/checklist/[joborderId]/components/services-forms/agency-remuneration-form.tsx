@@ -11,7 +11,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { format } from "date-fns"
 import { useForm } from "react-hook-form"
 
-import { clientDateFormat, parseDate } from "@/lib/date-utils"
+import { parseDate } from "@/lib/date-utils"
 import { Task } from "@/lib/operations-utils"
 import { useChartofAccountLookup } from "@/hooks/use-lookup"
 import { Badge } from "@/components/ui/badge"
@@ -50,7 +50,6 @@ export function AgencyRemunerationForm({
 }: AgencyRemunerationFormProps) {
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
-  const dateFormat = decimals[0]?.dateFormat || "dd/MM/yyyy"
 
   // Get chart of account data to ensure it's loaded before setting form values
   const { isLoading: isChartOfAccountLoading } = useChartofAccountLookup(
@@ -68,9 +67,9 @@ export function AgencyRemunerationForm({
       date: initialData?.date
         ? format(
             parseDate(initialData.date as string) || new Date(),
-            clientDateFormat
+            datetimeFormat
           )
-        : format(new Date(), clientDateFormat),
+        : format(new Date(), datetimeFormat),
       glId: initialData?.glId ?? taskDefaults.glId ?? 0,
       chargeId: initialData?.chargeId ?? taskDefaults.chargeId ?? 4,
       statusId: initialData?.statusId ?? taskDefaults.statusId ?? 802,
@@ -88,9 +87,9 @@ export function AgencyRemunerationForm({
       date: initialData?.date
         ? format(
             parseDate(initialData.date as string) || new Date(),
-            clientDateFormat
+            datetimeFormat
           )
-        : format(new Date(), clientDateFormat),
+        : format(new Date(), datetimeFormat),
       glId: initialData?.glId ?? taskDefaults.glId ?? 0,
       chargeId: initialData?.chargeId ?? taskDefaults.chargeId ?? 4,
       statusId: initialData?.statusId ?? taskDefaults.statusId ?? 802,
@@ -104,6 +103,7 @@ export function AgencyRemunerationForm({
     jobData.jobOrderId,
     jobData.jobOrderNo,
     isChartOfAccountLoading,
+    datetimeFormat,
   ])
 
   const onSubmit = (data: AgencyRemunerationSchemaType) => {

@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, useMemo } from "react"
 import { IAccountSetupDt } from "@/interfaces/accountsetup"
 import {
   AccountSetupDtSchemaType,
@@ -28,7 +28,7 @@ import CustomSwitch from "@/components/custom/custom-switch"
 interface AccountSetupDtFormProps {
   initialData?: IAccountSetupDt | null
   submitAction: (data: AccountSetupDtSchemaType) => void
-  onCancel?: () => void
+  onCancelAction: () => void
   isSubmitting?: boolean
   isReadOnly?: boolean
   companyId?: string
@@ -37,19 +37,22 @@ interface AccountSetupDtFormProps {
 export function AccountSetupDtForm({
   initialData,
   submitAction,
-  onCancel,
+  onCancelAction,
   isSubmitting = false,
   isReadOnly = false,
   companyId,
 }: AccountSetupDtFormProps) {
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
-  const defaultValues = {
-    accSetupId: 0,
-    currencyId: 0,
-    glId: 0,
-    applyAllCurr: false,
-  }
+  const defaultValues = useMemo(
+    () => ({
+      accSetupId: 0,
+      currencyId: 0,
+      glId: 0,
+      applyAllCurr: false,
+    }),
+    []
+  )
 
   const form = useForm<AccountSetupDtSchemaType>({
     resolver: zodResolver(accountSetupDtSchema),
@@ -81,7 +84,7 @@ export function AccountSetupDtForm({
             ...defaultValues,
           }
     )
-  }, [initialData, form])
+  }, [initialData, form, defaultValues])
 
   const onSubmit = (data: AccountSetupDtSchemaType) => {
     submitAction(data)
@@ -205,7 +208,7 @@ export function AccountSetupDtForm({
               )}
           </div>
           <div className="flex justify-end gap-2">
-            <Button variant="outline" type="button" onClick={onCancel}>
+            <Button variant="outline" type="button" onClick={onCancelAction}>
               {isReadOnly ? "Close" : "Cancel"}
             </Button>
             {!isReadOnly && (

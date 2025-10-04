@@ -81,7 +81,7 @@ export function DocumentTypeForm({
             ...defaultValues,
           }
     )
-  }, [initialData, form])
+  }, [initialData, form, defaultValues])
 
   const handleCodeBlur = () => {
     const code = form.getValues("docTypeCode")

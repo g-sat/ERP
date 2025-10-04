@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, useMemo } from "react"
 import { IAccountSetup } from "@/interfaces/accountsetup"
 import {
   AccountSetupSchemaType,
@@ -27,7 +27,7 @@ import CustomTextarea from "@/components/custom/custom-textarea"
 interface AccountSetupFormProps {
   initialData?: IAccountSetup | null
   submitAction: (data: AccountSetupSchemaType) => void
-  onCancel?: () => void
+  onCancelAction: () => void
   isSubmitting?: boolean
   isReadOnly?: boolean
   onCodeBlur?: (code: string) => void
@@ -36,7 +36,7 @@ interface AccountSetupFormProps {
 export function AccountSetupForm({
   initialData,
   submitAction,
-  onCancel,
+  onCancelAction,
   isSubmitting = false,
   isReadOnly = false,
   onCodeBlur,
@@ -44,14 +44,17 @@ export function AccountSetupForm({
   console.log("initialData AccountSetupForm", initialData)
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
-  const defaultValues = {
-    accSetupId: 0,
-    accSetupCode: "",
-    accSetupName: "",
-    accSetupCategoryId: 0,
-    isActive: true,
-    remarks: "",
-  }
+  const defaultValues = useMemo(
+    () => ({
+      accSetupId: 0,
+      accSetupCode: "",
+      accSetupName: "",
+      accSetupCategoryId: 0,
+      isActive: true,
+      remarks: "",
+    }),
+    []
+  )
 
   const form = useForm<AccountSetupSchemaType>({
     resolver: zodResolver(accountSetupSchema),
@@ -85,7 +88,7 @@ export function AccountSetupForm({
             ...defaultValues,
           }
     )
-  }, [initialData, form])
+  }, [initialData, form, defaultValues])
 
   const handleCodeBlur = () => {
     const code = form.getValues("accSetupCode")
@@ -224,7 +227,7 @@ export function AccountSetupForm({
           </div>
 
           <div className="flex justify-end gap-2">
-            <Button variant="outline" type="button" onClick={onCancel}>
+            <Button variant="outline" type="button" onClick={onCancelAction}>
               {isReadOnly ? "Close" : "Cancel"}
             </Button>
             {!isReadOnly && (

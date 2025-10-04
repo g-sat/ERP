@@ -17,7 +17,6 @@ import { Skeleton } from "@/components/ui/skeleton"
 interface CashFlowStatementProps {
   period: string
   comparisonPeriod: string
-  entities: string[]
 }
 
 interface CashFlowData {
@@ -33,11 +32,7 @@ interface CashFlowData {
   period: string
 }
 
-export function CashFlowStatement({
-  period,
-  comparisonPeriod,
-  entities,
-}: CashFlowStatementProps) {
+export function CashFlowStatement({ period }: CashFlowStatementProps) {
   // Mock data - in real implementation, this would come from API
   const mockData: CashFlowData = useMemo(() => {
     const baseAmount =
@@ -60,7 +55,7 @@ export function CashFlowStatement({
             ? "Quarter-to-Date"
             : "Year-to-Date",
     }
-  }, [period, entities])
+  }, [period])
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("en-US", {

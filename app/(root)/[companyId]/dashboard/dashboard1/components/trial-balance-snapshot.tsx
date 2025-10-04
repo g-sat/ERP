@@ -16,8 +16,6 @@ import { Skeleton } from "@/components/ui/skeleton"
 
 interface TrialBalanceSnapshotProps {
   period: string
-  comparisonPeriod: string
-  entities: string[]
 }
 
 interface TrialBalanceData {
@@ -32,11 +30,7 @@ interface TrialBalanceData {
   lastUpdated: string
 }
 
-export function TrialBalanceSnapshot({
-  period,
-  comparisonPeriod,
-  entities,
-}: TrialBalanceSnapshotProps) {
+export function TrialBalanceSnapshot({ period }: TrialBalanceSnapshotProps) {
   // Mock data - in real implementation, this would come from API
   const mockData: TrialBalanceData = useMemo(() => {
     // Simulate different data based on period
@@ -56,7 +50,7 @@ export function TrialBalanceSnapshot({
       })),
       lastUpdated: new Date().toISOString(),
     }
-  }, [period, entities])
+  }, [period])
 
   const isLoading = false // Would be managed by parent component
   const hasVariance = Math.abs(mockData.netChange) > mockData.varianceThreshold

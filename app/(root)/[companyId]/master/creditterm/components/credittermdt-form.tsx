@@ -83,7 +83,7 @@ export function CreditTermDtForm({
             ...defaultValues,
           }
     )
-  }, [initialData, form])
+  }, [initialData, form, defaultValues])
 
   const onSubmit = (data: CreditTermDtSchemaType) => {
     submitAction(data)

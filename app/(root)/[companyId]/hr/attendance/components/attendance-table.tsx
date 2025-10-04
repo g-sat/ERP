@@ -66,7 +66,6 @@ export function AttendanceTable({
     )
 
   const employees = employeesResponse?.data || []
-
   // Generate days for selected month
   const days = useMemo(() => {
     try {

@@ -81,7 +81,7 @@ export function OrderTypeForm({
             ...defaultValues,
           }
     )
-  }, [initialData, form])
+  }, [initialData, form, defaultValues])
 
   const onSubmit = (data: OrderTypeSchemaType) => {
     submitAction(data)

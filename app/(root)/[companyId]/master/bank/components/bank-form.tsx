@@ -79,7 +79,7 @@ export default function BankForm({
         isActive: true,
       }
     )
-  }, [initialData, form])
+  }, [initialData, form, defaultValues])
 
   const onSubmit = (data: z.infer<typeof bankSchema>) => {
     // Convert string values to numbers for numeric fields

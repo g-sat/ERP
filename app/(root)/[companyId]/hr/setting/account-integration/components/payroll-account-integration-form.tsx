@@ -61,7 +61,7 @@ export function PayrollAccountIntegrationForm({ initialData, onSave }: Props) {
       })
       setSelectedCompanyId(null)
     }
-  }, [initialData, form])
+  }, [initialData, form, defaultValues])
 
   return (
     <Form {...form}>

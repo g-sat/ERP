@@ -80,7 +80,7 @@ export function OrderTypeCategoryForm({
             ...defaultValues,
           }
     )
-  }, [initialData, form])
+  }, [initialData, form, defaultValues])
 
   const onSubmit = (data: OrderTypeCategorySchemaType) => {
     submitAction(data)

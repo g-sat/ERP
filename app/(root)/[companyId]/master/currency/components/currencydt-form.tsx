@@ -93,7 +93,7 @@ export function CurrencyDtForm({
             ...defaultValues,
           }
     )
-  }, [initialData, form])
+  }, [initialData, form, defaultValues])
 
   const onSubmit = (data: CurrencyDtSchemaType) => {
     // Format date to ISO string before submission

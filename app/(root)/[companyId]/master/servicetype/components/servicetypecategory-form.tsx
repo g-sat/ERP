@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, useMemo } from "react"
 import { IServiceTypeCategory } from "@/interfaces/servicetype"
 import {
   ServiceTypeCategorySchemaType,
@@ -26,7 +26,7 @@ import CustomTextarea from "@/components/custom/custom-textarea"
 interface ServiceTypeCategoryFormProps {
   initialData?: IServiceTypeCategory
   submitAction: (data: ServiceTypeCategorySchemaType) => Promise<void>
-  onCancel: () => void
+  onCancelAction: () => void
   isSubmitting: boolean
   isReadOnly?: boolean
   onCodeBlur?: (code: string) => void
@@ -35,20 +35,23 @@ interface ServiceTypeCategoryFormProps {
 export function ServiceTypeCategoryForm({
   initialData,
   submitAction,
-  onCancel,
+  onCancelAction,
   isSubmitting,
   isReadOnly = false,
   onCodeBlur,
 }: ServiceTypeCategoryFormProps) {
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
-  const defaultValues = {
-    serviceTypeCategoryId: 0,
-    serviceTypeCategoryCode: "",
-    serviceTypeCategoryName: "",
-    isActive: true,
-    remarks: "",
-  }
+  const defaultValues = useMemo(
+    () => ({
+      serviceTypeCategoryId: 0,
+      serviceTypeCategoryCode: "",
+      serviceTypeCategoryName: "",
+      isActive: true,
+      remarks: "",
+    }),
+    []
+  )
 
   const form = useForm<ServiceTypeCategorySchemaType>({
     resolver: zodResolver(serviceTypeCategorySchema),
@@ -80,7 +83,7 @@ export function ServiceTypeCategoryForm({
             ...defaultValues,
           }
     )
-  }, [initialData, form])
+  }, [initialData, form, defaultValues])
 
   const onSubmit = async (data: ServiceTypeCategorySchemaType) => {
     await submitAction(data)
@@ -195,7 +198,7 @@ export function ServiceTypeCategoryForm({
             <Button
               type="button"
               variant="outline"
-              onClick={onCancel}
+              onClick={onCancelAction}
               disabled={isSubmitting}
             >
               Cancel

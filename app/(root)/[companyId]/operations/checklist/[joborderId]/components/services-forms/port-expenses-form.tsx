@@ -50,7 +50,6 @@ export function PortExpensesForm({
 }: PortExpensesFormProps) {
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
-  const dateFormat = decimals[0]?.dateFormat || "dd/MM/yyyy"
 
   // Get chart of account data to ensure it's loaded before setting form values
   const { isLoading: isChartOfAccountLoading } = useChartofAccountLookup(

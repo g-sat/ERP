@@ -50,7 +50,6 @@ export function ConsignmentExportTable({
   isConfirmed,
 }: ConsignmentExportTableProps) {
   const { decimals } = useAuthStore()
-  const dateFormat = decimals[0]?.dateFormat || "dd/MM/yyyy"
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
 
   // State for history dialog
@@ -230,7 +229,7 @@ export function ConsignmentExportTable({
         maxSize: 200,
       },
     ],
-    [dateFormat, datetimeFormat]
+    [datetimeFormat]
   )
 
   // Wrapper functions to handle type differences

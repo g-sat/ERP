@@ -67,7 +67,7 @@ export default function VesselPage() {
     if (vesselsData?.length > 0) {
       refetch()
     }
-  }, [filters])
+  }, [filters, refetch])
 
   const saveMutation = usePersist<VesselSchemaType>(`${Vessel.add}`)
   const updateMutation = usePersist<VesselSchemaType>(`${Vessel.add}`)

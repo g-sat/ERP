@@ -1,13 +1,13 @@
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, useMemo } from "react"
 import { IAccountSetupCategory } from "@/interfaces/accountsetup"
 import {
   AccountSetupCategorySchemaType,
   accountSetupCategorySchema,
 } from "@/schemas/accountsetup"
 import { useAuthStore } from "@/stores/auth-store"
-import { zodResolver } from "@hookform/resolvers/zod";
+import { zodResolver } from "@hookform/resolvers/zod"
 import { format } from "date-fns"
 import { useForm } from "react-hook-form"
 
@@ -42,13 +42,16 @@ export function AccountSetupCategoryForm({
 }: AccountSetupCategoryFormProps) {
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
-  const defaultValues = {
-    accSetupCategoryId: 0,
-    accSetupCategoryCode: "",
-    accSetupCategoryName: "",
-    isActive: true,
-    remarks: "",
-  }
+  const defaultValues = useMemo(
+    () => ({
+      accSetupCategoryId: 0,
+      accSetupCategoryCode: "",
+      accSetupCategoryName: "",
+      isActive: true,
+      remarks: "",
+    }),
+    []
+  )
 
   const form = useForm<AccountSetupCategorySchemaType>({
     resolver: zodResolver(accountSetupCategorySchema),
@@ -80,7 +83,7 @@ export function AccountSetupCategoryForm({
             ...defaultValues,
           }
     )
-  }, [initialData, form])
+  }, [initialData, form, defaultValues])
 
   const handleCodeBlur = () => {
     const code = form.getValues("accSetupCategoryCode")

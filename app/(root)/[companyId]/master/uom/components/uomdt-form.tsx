@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, useMemo } from "react"
 import { IUomDt } from "@/interfaces/uom"
 import { UomDtSchemaType, uomDtSchema } from "@/schemas/uom"
 import { useAuthStore } from "@/stores/auth-store"
@@ -25,7 +25,7 @@ type SchemaType = z.infer<typeof uomDtSchema>
 interface UomDtFormProps {
   initialData?: IUomDt
   submitAction: (data: SchemaType) => void
-  onCancel: () => void
+  onCancelAction: () => void
   isSubmitting: boolean
   isReadOnly?: boolean
 }
@@ -33,7 +33,7 @@ interface UomDtFormProps {
 export function UomDtForm({
   initialData,
   submitAction,
-  onCancel,
+  onCancelAction,
   isSubmitting,
   isReadOnly = false,
 }: UomDtFormProps) {
@@ -42,11 +42,14 @@ export function UomDtForm({
   const qtyDec = decimals[0]?.qtyDec || 2
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
 
-  const defaultValues = {
-    uomId: 0,
-    packUomId: 0,
-    uomFactor: 1,
-  }
+  const defaultValues = useMemo(
+    () => ({
+      uomId: 0,
+      packUomId: 0,
+      uomFactor: 1,
+    }),
+    []
+  )
 
   const form = useForm<SchemaType>({
     resolver: zodResolver(uomDtSchema),
@@ -73,7 +76,7 @@ export function UomDtForm({
             ...defaultValues,
           }
     )
-  }, [form, initialData])
+  }, [form, initialData, defaultValues])
 
   const onSubmit = (data: UomDtSchemaType) => {
     submitAction(data)
@@ -174,7 +177,7 @@ export function UomDtForm({
               <Button
                 type="button"
                 variant="outline"
-                onClick={onCancel}
+                onClick={onCancelAction}
                 disabled={isSubmitting}
               >
                 Cancel

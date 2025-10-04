@@ -113,7 +113,7 @@ export function BankContactForm({
         contactMessType: "",
       }
     )
-  }, [initialData, form])
+  }, [initialData, form, defaultValues])
 
   return (
     <div className="max-w flex flex-col gap-2">

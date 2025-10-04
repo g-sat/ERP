@@ -24,7 +24,7 @@ import CustomTextarea from "@/components/custom/custom-textarea"
 interface ServiceTypeFormProps {
   initialData?: IServiceType
   submitAction: (data: ServiceTypeSchemaType) => Promise<void>
-  onCancel: () => void
+  onCancelAction: () => void
   isSubmitting: boolean
   isReadOnly?: boolean
   onCodeBlur?: (code: string) => void
@@ -33,7 +33,7 @@ interface ServiceTypeFormProps {
 export function ServiceTypeForm({
   initialData,
   submitAction,
-  onCancel,
+  onCancelAction,
   isSubmitting,
   isReadOnly = false,
   onCodeBlur,
@@ -203,7 +203,7 @@ export function ServiceTypeForm({
             <Button
               type="button"
               variant="outline"
-              onClick={onCancel}
+              onClick={onCancelAction}
               disabled={isSubmitting}
             >
               Cancel

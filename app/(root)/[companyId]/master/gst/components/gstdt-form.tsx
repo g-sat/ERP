@@ -77,7 +77,7 @@ export function GstDtForm({
             ...defaultValues,
           }
     )
-  }, [initialData, form])
+  }, [initialData, form, defaultValues])
 
   const onSubmit = (data: GstDtSchemaType) => {
     submitAction(data)

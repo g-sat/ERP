@@ -81,7 +81,7 @@ export function PayScheduleForm({ initialData, onSave }: PayScheduleFormProps) {
       form.setValue("firstPayPeriod", "")
       form.setValue("firstPayDate", "")
     }
-  }, [watchIsPayOn])
+  }, [watchIsPayOn, form])
 
   // Refresh first pay period and pay date when day selection changes
   useEffect(() => {
@@ -90,7 +90,7 @@ export function PayScheduleForm({ initialData, onSave }: PayScheduleFormProps) {
       form.setValue("firstPayPeriod", "")
       form.setValue("firstPayDate", "")
     }
-  }, [watchPayDayOfMonth, watchIsPayOn])
+  }, [watchPayDayOfMonth, watchIsPayOn, form])
 
   const generateMonthOptions = () => {
     const currentYear = new Date().getFullYear()

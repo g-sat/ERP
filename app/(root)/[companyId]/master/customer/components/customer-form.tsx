@@ -30,13 +30,13 @@ import CustomTextarea from "@/components/custom/custom-textarea"
 
 interface CustomerFormProps {
   initialData?: ICustomer | null
-  onSave: (customer: ICustomer) => void
+  onSaveAction: (customer: ICustomer) => void
   onCustomerLookup?: (customerCode: string, customerName: string) => void
 }
 
 export default function CustomerForm({
   initialData,
-  onSave,
+  onSaveAction,
   onCustomerLookup,
 }: CustomerFormProps) {
   const { decimals } = useAuthStore()
@@ -108,7 +108,7 @@ export default function CustomerForm({
       supplierId: Number(data.supplierId),
     }
     console.log("processedData :", processedData)
-    onSave(processedData as ICustomer)
+    onSaveAction(processedData as ICustomer)
   }
 
   return (

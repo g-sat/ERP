@@ -2,12 +2,6 @@ import { NextRequest, NextResponse } from "next/server"
 
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url)
-    const period = searchParams.get("period") || "mtd"
-    const comparisonPeriod =
-      searchParams.get("comparisonPeriod") || "prior-period"
-    const entities = searchParams.get("entities")?.split(",") || []
-
     // In a real implementation, this would:
     // 1. Query GL_Accounts for current balances
     // 2. Calculate ratios using the formulas

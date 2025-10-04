@@ -50,7 +50,6 @@ export function OtherServiceForm({
 }: OtherServiceFormProps) {
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
-  const dateFormat = decimals[0]?.dateFormat || "dd/MM/yyyy"
 
   // State to track if selected charge is "Cash to master" type
   const [isCashToMaster, setIsCashToMaster] = useState(false)

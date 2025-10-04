@@ -204,15 +204,15 @@ export default function TaxPage() {
   // Refetch when filters change
   useEffect(() => {
     if (filters.search !== undefined) refetchTax()
-  }, [filters.search])
+  }, [filters.search, refetchTax])
 
   useEffect(() => {
     if (dtFilters.search !== undefined) refetchTaxDt()
-  }, [dtFilters.search])
+  }, [dtFilters.search, refetchTaxDt])
 
   useEffect(() => {
     if (categoryFilters.search !== undefined) refetchTaxCategory()
-  }, [categoryFilters.search])
+  }, [categoryFilters.search, refetchTaxCategory])
 
   // Action handlers
   const handleCreateTax = () => {

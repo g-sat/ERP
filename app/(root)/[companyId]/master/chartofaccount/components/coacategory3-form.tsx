@@ -83,7 +83,7 @@ export function CoaCategory3Form({
             ...defaultValues,
           }
     )
-  }, [initialData, form])
+  }, [initialData, form, defaultValues])
 
   const handleCodeBlur = () => {
     const code = form.getValues("coaCategoryCode")

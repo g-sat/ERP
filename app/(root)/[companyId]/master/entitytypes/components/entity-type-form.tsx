@@ -70,7 +70,7 @@ export function EntityTypeForm({
             ...defaultValues,
           }
     )
-  }, [initialData, form])
+  }, [initialData, form, defaultValues])
 
   const handleCodeBlur = () => {
     const code = form.getValues("entityTypeCode")
