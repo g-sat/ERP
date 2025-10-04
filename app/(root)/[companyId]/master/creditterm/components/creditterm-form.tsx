@@ -20,6 +20,14 @@ import CustomInput from "@/components/custom/custom-input"
 import CustomSwitch from "@/components/custom/custom-switch"
 import CustomTextarea from "@/components/custom/custom-textarea"
 
+const defaultValues = {
+  creditTermId: 0,
+  creditTermCode: "",
+  creditTermName: "",
+  noDays: 0,
+  isActive: true,
+  remarks: "",
+}
 interface CreditTermFormProps {
   initialData?: ICreditTerm | null
   submitAction: (data: CreditTermSchemaType) => void
@@ -39,15 +47,6 @@ export function CreditTermForm({
 }: CreditTermFormProps) {
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
-
-  const defaultValues = {
-    creditTermId: 0,
-    creditTermCode: "",
-    creditTermName: "",
-    noDays: 0,
-    isActive: true,
-    remarks: "",
-  }
 
   const form = useForm<CreditTermSchemaType>({
     resolver: zodResolver(credittermSchema),
@@ -81,7 +80,7 @@ export function CreditTermForm({
             ...defaultValues,
           }
     )
-  }, [initialData, form, defaultValues])
+  }, [initialData, form])
 
   const handleCodeBlur = () => {
     const code = form.getValues("creditTermCode")

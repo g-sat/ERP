@@ -20,6 +20,13 @@ import CustomInput from "@/components/custom/custom-input"
 import CustomSwitch from "@/components/custom/custom-switch"
 import CustomTextarea from "@/components/custom/custom-textarea"
 
+const defaultValues = {
+  designationId: 0,
+  designationName: "",
+  designationCode: "",
+  remarks: "",
+  isActive: true,
+}
 interface DesignationFormProps {
   initialData?: IDesignation | null
   submitAction: (data: DesignationSchemaType) => void
@@ -39,13 +46,6 @@ export function DesignationForm({
 }: DesignationFormProps) {
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
-  const defaultValues = {
-    designationId: 0,
-    designationName: "",
-    designationCode: "",
-    remarks: "",
-    isActive: true,
-  }
 
   const form = useForm<DesignationSchemaType>({
     resolver: zodResolver(designationSchema),
@@ -77,7 +77,7 @@ export function DesignationForm({
             ...defaultValues,
           }
     )
-  }, [initialData, form, defaultValues])
+  }, [initialData, form])
 
   const handleCodeBlur = () => {
     const code = form.getValues("designationCode")

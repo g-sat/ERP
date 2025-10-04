@@ -20,6 +20,19 @@ import CustomInput from "@/components/custom/custom-input"
 import CustomSwitch from "@/components/custom/custom-switch"
 import CustomTextarea from "@/components/custom/custom-textarea"
 
+const defaultValues = {
+  bargeName: "",
+  bargeCode: "",
+  callSign: "",
+  imoCode: "",
+  grt: "",
+  licenseNo: "",
+  bargeType: "",
+  flag: "",
+  remarks: "",
+  isActive: true,
+  isOwn: true,
+}
 interface BargeFormProps {
   initialData?: IBarge | null
   submitAction: (data: BargeSchemaType) => void
@@ -39,20 +52,6 @@ export function BargeForm({
 }: BargeFormProps) {
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
-
-  const defaultValues = {
-    bargeName: "",
-    bargeCode: "",
-    callSign: "",
-    imoCode: "",
-    grt: "",
-    licenseNo: "",
-    bargeType: "",
-    flag: "",
-    remarks: "",
-    isActive: true,
-    isOwn: true,
-  }
 
   const form = useForm<BargeSchemaType>({
     resolver: zodResolver(bargeSchema),
@@ -96,7 +95,7 @@ export function BargeForm({
             ...defaultValues,
           }
     )
-  }, [initialData, form, defaultValues])
+  }, [initialData, form])
 
   const handleCodeBlur = () => {
     const code = form.getValues("bargeCode")

@@ -21,6 +21,14 @@ import CustomInput from "@/components/custom/custom-input"
 import CustomSwitch from "@/components/custom/custom-switch"
 import CustomTextarea from "@/components/custom/custom-textarea"
 
+const defaultValues = {
+  orderTypeId: 0,
+  orderTypeCode: "",
+  orderTypeName: "",
+  orderTypeCategoryId: 0,
+  isActive: true,
+  remarks: "",
+}
 interface OrderTypeFormProps {
   initialData?: IOrderType
   submitAction: (data: OrderTypeSchemaType) => void
@@ -40,14 +48,6 @@ export function OrderTypeForm({
 }: OrderTypeFormProps) {
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
-  const defaultValues = {
-    orderTypeId: 0,
-    orderTypeCode: "",
-    orderTypeName: "",
-    orderTypeCategoryId: 0,
-    isActive: true,
-    remarks: "",
-  }
 
   const form = useForm<OrderTypeSchemaType>({
     resolver: zodResolver(orderTypeSchema),
@@ -81,7 +81,7 @@ export function OrderTypeForm({
             ...defaultValues,
           }
     )
-  }, [initialData, form, defaultValues])
+  }, [initialData, form])
 
   const onSubmit = (data: OrderTypeSchemaType) => {
     submitAction(data)

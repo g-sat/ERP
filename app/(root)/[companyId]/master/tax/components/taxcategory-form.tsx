@@ -20,6 +20,13 @@ import CustomInput from "@/components/custom/custom-input"
 import CustomSwitch from "@/components/custom/custom-switch"
 import CustomTextarea from "@/components/custom/custom-textarea"
 
+const defaultValues = {
+  taxCategoryId: 0,
+  taxCategoryCode: "",
+  taxCategoryName: "",
+  remarks: "",
+  isActive: true,
+}
 interface TaxCategoryFormProps {
   initialData?: ITaxCategory | null
   submitAction: (data: TaxCategorySchemaType) => void
@@ -39,14 +46,6 @@ export function TaxCategoryForm({
 }: TaxCategoryFormProps) {
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
-
-  const defaultValues = {
-    taxCategoryId: 0,
-    taxCategoryCode: "",
-    taxCategoryName: "",
-    remarks: "",
-    isActive: true,
-  }
 
   const form = useForm<TaxCategorySchemaType>({
     resolver: zodResolver(taxCategorySchema),
@@ -78,7 +77,7 @@ export function TaxCategoryForm({
             ...defaultValues,
           }
     )
-  }, [initialData, form, defaultValues])
+  }, [initialData, form])
 
   const handleCodeBlur = () => {
     const code = form.getValues("taxCategoryCode")

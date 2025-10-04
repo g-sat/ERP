@@ -21,6 +21,11 @@ import CustomAccordion, {
 import { CustomDateNew } from "@/components/custom/custom-date-new"
 import CustomNumberInput from "@/components/custom/custom-number-input"
 
+const defaultValues = {
+  gstId: 0,
+  gstPercentage: 0,
+  validFrom: new Date(),
+}
 interface GstDtFormProps {
   initialData?: IGstDt | null
   submitAction: (data: GstDtSchemaType) => void
@@ -41,11 +46,6 @@ export function GstDtForm({
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
 
   console.log("initialData GstDtForm", initialData)
-  const defaultValues = {
-    gstId: 0,
-    gstPercentage: 0,
-    validFrom: new Date(),
-  }
 
   const form = useForm<GstDtSchemaType>({
     resolver: zodResolver(gstDtSchema),
@@ -77,7 +77,7 @@ export function GstDtForm({
             ...defaultValues,
           }
     )
-  }, [initialData, form, defaultValues])
+  }, [initialData, form])
 
   const onSubmit = (data: GstDtSchemaType) => {
     submitAction(data)

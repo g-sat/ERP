@@ -74,7 +74,7 @@ export function CategoryForm({
           }
         : { ...defaultValues }
     )
-  }, [initialData, form, defaultValues])
+  }, [initialData, form])
 
   const handleCodeBlur = () => {
     const code = form.getValues("categoryCode")

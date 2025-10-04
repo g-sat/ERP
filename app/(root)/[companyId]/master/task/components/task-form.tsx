@@ -20,6 +20,14 @@ import CustomInput from "@/components/custom/custom-input"
 import CustomSwitch from "@/components/custom/custom-switch"
 import CustomTextarea from "@/components/custom/custom-textarea"
 
+const defaultValues = {
+  taskId: 0,
+  taskName: "",
+  taskCode: "",
+  taskOrder: 0,
+  remarks: "",
+  isActive: true,
+}
 interface TaskFormProps {
   initialData?: ITask | null
   submitAction: (data: TaskSchemaType) => void
@@ -39,15 +47,6 @@ export function TaskForm({
 }: TaskFormProps) {
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
-
-  const defaultValues = {
-    taskId: 0,
-    taskName: "",
-    taskCode: "",
-    taskOrder: 0,
-    remarks: "",
-    isActive: true,
-  }
 
   const form = useForm<TaskSchemaType>({
     resolver: zodResolver(taskSchema),
@@ -81,7 +80,7 @@ export function TaskForm({
             ...defaultValues,
           }
     )
-  }, [initialData, form, defaultValues])
+  }, [initialData, form])
 
   const handleCodeBlur = () => {
     const code = form.getValues("taskCode")

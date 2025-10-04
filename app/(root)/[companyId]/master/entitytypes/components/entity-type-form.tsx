@@ -18,6 +18,11 @@ import CustomAccordion, {
 } from "@/components/custom/custom-accordion"
 import CustomInput from "@/components/custom/custom-input"
 
+const defaultValues = {
+  entityTypeId: 0,
+  entityTypeCode: "",
+  entityTypeName: "",
+}
 interface EntityTypeFormProps {
   initialData?: IEntityType
   submitAction: (data: EntityTypeSchemaType) => void
@@ -37,12 +42,6 @@ export function EntityTypeForm({
 }: EntityTypeFormProps) {
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
-
-  const defaultValues = {
-    entityTypeId: 0,
-    entityTypeCode: "",
-    entityTypeName: "",
-  }
 
   const form = useForm<EntityTypeSchemaType>({
     resolver: zodResolver(entityTypeSchema),
@@ -70,7 +69,7 @@ export function EntityTypeForm({
             ...defaultValues,
           }
     )
-  }, [initialData, form, defaultValues])
+  }, [initialData, form])
 
   const handleCodeBlur = () => {
     const code = form.getValues("entityTypeCode")

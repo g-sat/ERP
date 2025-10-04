@@ -23,6 +23,14 @@ import CustomInput from "@/components/custom/custom-input"
 import CustomSwitch from "@/components/custom/custom-switch"
 import CustomTextarea from "@/components/custom/custom-textarea"
 
+const defaultValues = {
+  coaCategoryId: 0,
+  coaCategoryCode: "",
+  coaCategoryName: "",
+  seqNo: 0,
+  isActive: true,
+  remarks: "",
+}
 interface CoaCategory1FormProps {
   initialData?: ICoaCategory1 | null
   submitAction: (data: CoaCategory1SchemaType) => void
@@ -42,14 +50,6 @@ export function CoaCategory1Form({
 }: CoaCategory1FormProps) {
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
-  const defaultValues = {
-    coaCategoryId: 0,
-    coaCategoryCode: "",
-    coaCategoryName: "",
-    seqNo: 0,
-    isActive: true,
-    remarks: "",
-  }
 
   const form = useForm<CoaCategory1SchemaType>({
     resolver: zodResolver(coaCategory1Schema),
@@ -83,7 +83,7 @@ export function CoaCategory1Form({
             ...defaultValues,
           }
     )
-  }, [initialData, form, defaultValues])
+  }, [initialData, form])
 
   const handleCodeBlur = () => {
     const code = form.getValues("coaCategoryCode")

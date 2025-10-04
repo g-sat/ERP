@@ -35,6 +35,24 @@ import CustomInput from "@/components/custom/custom-input"
 import CustomSwitch from "@/components/custom/custom-switch"
 import CustomTextarea from "@/components/custom/custom-textarea"
 
+const defaultValues = {
+  glId: 0,
+  glCode: "",
+  glName: "",
+  accTypeId: 0,
+  accGroupId: 0,
+  coaCategoryId1: 0,
+  coaCategoryId2: 0,
+  coaCategoryId3: 0,
+  isSysControl: false,
+  isDeptMandatory: false,
+  isBargeMandatory: false,
+  isBankControl: false,
+  isJobControl: false,
+  seqNo: 0,
+  remarks: "",
+  isActive: true,
+}
 interface ChartOfAccountFormProps {
   initialData?: IChartofAccount | null
   submitAction: (data: ChartofAccountSchemaType) => void
@@ -54,24 +72,6 @@ export function ChartOfAccountForm({
 }: ChartOfAccountFormProps) {
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
-  const defaultValues = {
-    glId: 0,
-    glCode: "",
-    glName: "",
-    accTypeId: 0,
-    accGroupId: 0,
-    coaCategoryId1: 0,
-    coaCategoryId2: 0,
-    coaCategoryId3: 0,
-    isSysControl: false,
-    isDeptMandatory: false,
-    isBargeMandatory: false,
-    isBankControl: false,
-    isJobControl: false,
-    seqNo: 0,
-    remarks: "",
-    isActive: true,
-  }
 
   const form = useForm<ChartofAccountSchemaType>({
     resolver: zodResolver(chartofAccountSchema),
@@ -129,7 +129,7 @@ export function ChartOfAccountForm({
         isActive: true,
       })
     }
-  }, [initialData, form, defaultValues])
+  }, [initialData, form])
 
   const handleCodeBlur = () => {
     const code = form.getValues("glCode")

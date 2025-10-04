@@ -20,6 +20,13 @@ import CustomInput from "@/components/custom/custom-input"
 import CustomSwitch from "@/components/custom/custom-switch"
 import CustomTextarea from "@/components/custom/custom-textarea"
 
+const defaultValues = {
+  subCategoryId: 0,
+  subCategoryName: "",
+  subCategoryCode: "",
+  remarks: "",
+  isActive: true,
+}
 interface SubCategoryFormProps {
   initialData?: ISubCategory | null
   submitAction: (data: SubCategorySchemaType) => void
@@ -39,14 +46,6 @@ export function SubCategoryForm({
 }: SubCategoryFormProps) {
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
-
-  const defaultValues = {
-    subCategoryId: 0,
-    subCategoryName: "",
-    subCategoryCode: "",
-    remarks: "",
-    isActive: true,
-  }
 
   const form = useForm<SubCategorySchemaType>({
     resolver: zodResolver(subcategorySchema),

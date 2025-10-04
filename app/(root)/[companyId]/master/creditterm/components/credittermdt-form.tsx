@@ -23,6 +23,14 @@ import CustomAccordion, {
 import CustomNumberInput from "@/components/custom/custom-number-input"
 import CustomSwitch from "@/components/custom/custom-switch"
 
+const defaultValues = {
+  creditTermId: 0,
+  fromDay: 0,
+  toDay: 0,
+  dueDay: 0,
+  noMonth: 0,
+  isEndOfMonth: false,
+}
 interface CreditTermDtFormProps {
   initialData?: ICreditTermDt | null
   submitAction: (data: CreditTermDtSchemaType) => void
@@ -41,15 +49,6 @@ export function CreditTermDtForm({
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
   const amtDec = decimals[0]?.amtDec || 2
-
-  const defaultValues = {
-    creditTermId: 0,
-    fromDay: 0,
-    toDay: 0,
-    dueDay: 0,
-    noMonth: 0,
-    isEndOfMonth: false,
-  }
 
   const form = useForm<CreditTermDtSchemaType>({
     resolver: zodResolver(credittermDtSchema),
@@ -83,7 +82,7 @@ export function CreditTermDtForm({
             ...defaultValues,
           }
     )
-  }, [initialData, form, defaultValues])
+  }, [initialData, form])
 
   const onSubmit = (data: CreditTermDtSchemaType) => {
     submitAction(data)

@@ -18,6 +18,14 @@ import CustomAccordion, {
 } from "@/components/custom/custom-accordion"
 import CustomInput from "@/components/custom/custom-input"
 
+const defaultValues = {
+  loanTypeId: 0,
+  loanTypeCode: "",
+  loanTypeName: "",
+  interestRatePct: 0,
+  maxTermMonths: 0,
+  minTermMonths: 0,
+}
 interface LoanTypeFormProps {
   initialData?: ILoanType
   submitAction: (data: LoanTypeSchemaType) => void
@@ -37,15 +45,6 @@ export function LoanTypeForm({
 }: LoanTypeFormProps) {
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
-
-  const defaultValues = {
-    loanTypeId: 0,
-    loanTypeCode: "",
-    loanTypeName: "",
-    interestRatePct: 0,
-    maxTermMonths: 0,
-    minTermMonths: 0,
-  }
 
   const form = useForm<LoanTypeSchemaType>({
     resolver: zodResolver(loanTypeSchema),
@@ -79,7 +78,7 @@ export function LoanTypeForm({
             ...defaultValues,
           }
     )
-  }, [initialData, form, defaultValues])
+  }, [initialData, form])
 
   const handleCodeBlur = () => {
     const code = form.getValues("loanTypeCode")

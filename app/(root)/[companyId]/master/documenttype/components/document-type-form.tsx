@@ -23,6 +23,13 @@ import CustomInput from "@/components/custom/custom-input"
 import CustomSwitch from "@/components/custom/custom-switch"
 import CustomTextarea from "@/components/custom/custom-textarea"
 
+const defaultValues = {
+  docTypeId: 0,
+  docTypeCode: "",
+  docTypeName: "",
+  isActive: true,
+  remarks: "",
+}
 interface DocumentTypeFormProps {
   initialData?: IDocumentType
   submitAction: (data: DocumentTypeSchemaType) => void
@@ -42,14 +49,6 @@ export function DocumentTypeForm({
 }: DocumentTypeFormProps) {
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
-
-  const defaultValues = {
-    docTypeId: 0,
-    docTypeCode: "",
-    docTypeName: "",
-    isActive: true,
-    remarks: "",
-  }
 
   const form = useForm<DocumentTypeSchemaType>({
     resolver: zodResolver(documentTypeSchema),
@@ -81,7 +80,7 @@ export function DocumentTypeForm({
             ...defaultValues,
           }
     )
-  }, [initialData, form, defaultValues])
+  }, [initialData, form])
 
   const handleCodeBlur = () => {
     const code = form.getValues("docTypeCode")

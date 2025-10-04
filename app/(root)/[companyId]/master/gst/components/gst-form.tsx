@@ -21,6 +21,14 @@ import CustomInput from "@/components/custom/custom-input"
 import CustomSwitch from "@/components/custom/custom-switch"
 import CustomTextarea from "@/components/custom/custom-textarea"
 
+const defaultValues = {
+  gstId: 0,
+  gstCode: "",
+  gstName: "",
+  gstCategoryId: 0,
+  isActive: true,
+  remarks: "",
+}
 interface GstFormProps {
   initialData?: IGst | null
   submitAction: (data: GstSchemaType) => void
@@ -42,14 +50,6 @@ export function GstForm({
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
 
   console.log("initialData GstForm", initialData)
-  const defaultValues = {
-    gstId: 0,
-    gstCode: "",
-    gstName: "",
-    gstCategoryId: 0,
-    isActive: true,
-    remarks: "",
-  }
 
   const form = useForm<GstSchemaType>({
     resolver: zodResolver(gstSchema),
@@ -83,7 +83,7 @@ export function GstForm({
             ...defaultValues,
           }
     )
-  }, [initialData, form, defaultValues])
+  }, [initialData, form])
 
   const handleCodeBlur = () => {
     const code = form.getValues("gstCode")

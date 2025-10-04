@@ -20,6 +20,13 @@ import CustomInput from "@/components/custom/custom-input"
 import CustomSwitch from "@/components/custom/custom-switch"
 import CustomTextarea from "@/components/custom/custom-textarea"
 
+const defaultValues = {
+  departmentId: 0,
+  departmentName: "",
+  departmentCode: "",
+  remarks: "",
+  isActive: true,
+}
 interface DepartmentFormProps {
   initialData?: IDepartment | null
   submitAction: (data: DepartmentSchemaType) => void
@@ -39,13 +46,6 @@ export function DepartmentForm({
 }: DepartmentFormProps) {
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
-  const defaultValues = {
-    departmentId: 0,
-    departmentName: "",
-    departmentCode: "",
-    remarks: "",
-    isActive: true,
-  }
 
   const form = useForm<DepartmentSchemaType>({
     resolver: zodResolver(departmentSchema),
@@ -77,7 +77,7 @@ export function DepartmentForm({
             ...defaultValues,
           }
     )
-  }, [initialData, form, defaultValues])
+  }, [initialData, form])
 
   const handleCodeBlur = () => {
     const code = form.getValues("departmentCode")

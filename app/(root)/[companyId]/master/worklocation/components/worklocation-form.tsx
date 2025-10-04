@@ -19,6 +19,17 @@ import CustomAccordion, {
 import CustomInput from "@/components/custom/custom-input"
 import CustomSwitch from "@/components/custom/custom-switch"
 
+const defaultValues = {
+  workLocationId: 0,
+  workLocationName: "",
+  workLocationCode: "",
+  address1: "",
+  address2: "",
+  city: "",
+  postalCode: "",
+  countryId: 0,
+  isActive: true,
+}
 interface WorklocationFormProps {
   initialData?: IWorkLocation | null
   submitAction: (data: WorkLocationSchemaType) => void
@@ -38,18 +49,6 @@ export function WorklocationForm({
 }: WorklocationFormProps) {
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
-
-  const defaultValues = {
-    workLocationId: 0,
-    workLocationName: "",
-    workLocationCode: "",
-    address1: "",
-    address2: "",
-    city: "",
-    postalCode: "",
-    countryId: 0,
-    isActive: true,
-  }
 
   const form = useForm<WorkLocationSchemaType>({
     resolver: zodResolver(workLocationSchema),
@@ -89,7 +88,7 @@ export function WorklocationForm({
             ...defaultValues,
           }
     )
-  }, [initialData, form, defaultValues])
+  }, [initialData, form])
 
   const handleCodeBlur = () => {
     const code = form.getValues("workLocationCode")

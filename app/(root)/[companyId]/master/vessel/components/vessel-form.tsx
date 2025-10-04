@@ -20,6 +20,14 @@ import CustomInput from "@/components/custom/custom-input"
 import CustomSwitch from "@/components/custom/custom-switch"
 import CustomTextarea from "@/components/custom/custom-textarea"
 
+const defaultValues = {
+  vesselId: 0,
+  vesselName: "",
+  vesselCode: "",
+  vesselType: "",
+  remarks: "",
+  isActive: true,
+}
 interface VesselFormProps {
   initialData?: IVessel | null
   submitAction: (data: VesselSchemaType) => void
@@ -39,15 +47,6 @@ export function VesselForm({
 }: VesselFormProps) {
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
-
-  const defaultValues = {
-    vesselId: 0,
-    vesselName: "",
-    vesselCode: "",
-    vesselType: "",
-    remarks: "",
-    isActive: true,
-  }
 
   const form = useForm<VesselSchemaType>({
     resolver: zodResolver(vesselSchema),
@@ -81,7 +80,7 @@ export function VesselForm({
             ...defaultValues,
           }
     )
-  }, [initialData, form, defaultValues])
+  }, [initialData, form])
 
   const handleCodeBlur = () => {
     const code = form.getValues("vesselCode")

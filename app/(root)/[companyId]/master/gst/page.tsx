@@ -204,15 +204,15 @@ export default function GstPage() {
   // Refetch when filters change
   useEffect(() => {
     if (filters.search !== undefined) refetchGst()
-  }, [filters.search])
+  }, [filters.search, refetchGst])
 
   useEffect(() => {
     if (dtFilters.search !== undefined) refetchGstDt()
-  }, [dtFilters.search])
+  }, [dtFilters.search, refetchGstDt])
 
   useEffect(() => {
     if (categoryFilters.search !== undefined) refetchGstCategory()
-  }, [categoryFilters.search])
+  }, [categoryFilters.search, refetchGstCategory])
 
   // Action handlers
   const handleCreateGst = () => {

@@ -21,6 +21,14 @@ import CustomInput from "@/components/custom/custom-input"
 import CustomSwitch from "@/components/custom/custom-switch"
 import CustomTextarea from "@/components/custom/custom-textarea"
 
+const defaultValues = {
+  serviceTypeId: 0,
+  serviceTypeCode: "",
+  serviceTypeName: "",
+  serviceTypeCategoryId: 0,
+  isActive: true,
+  remarks: "",
+}
 interface ServiceTypeFormProps {
   initialData?: IServiceType
   submitAction: (data: ServiceTypeSchemaType) => Promise<void>
@@ -40,14 +48,6 @@ export function ServiceTypeForm({
 }: ServiceTypeFormProps) {
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
-  const defaultValues = {
-    serviceTypeId: 0,
-    serviceTypeCode: "",
-    serviceTypeName: "",
-    serviceTypeCategoryId: 0,
-    isActive: true,
-    remarks: "",
-  }
 
   const form = useForm<ServiceTypeSchemaType>({
     resolver: zodResolver(serviceTypeSchema),

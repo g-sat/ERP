@@ -20,6 +20,15 @@ import CustomInput from "@/components/custom/custom-input"
 import CustomSwitch from "@/components/custom/custom-switch"
 import CustomTextarea from "@/components/custom/custom-textarea"
 
+const defaultValues = {
+  accTypeId: 0,
+  accTypeCode: "",
+  accTypeName: "",
+  seqNo: 0,
+  accGroupName: "",
+  isActive: true,
+  remarks: "",
+}
 interface AccountTypeFormProps {
   initialData?: IAccountType
   submitAction: (data: AccountTypeSchemaType) => void
@@ -39,16 +48,6 @@ export function AccountTypeForm({
 }: AccountTypeFormProps) {
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
-
-  const defaultValues = {
-    accTypeId: 0,
-    accTypeCode: "",
-    accTypeName: "",
-    seqNo: 0,
-    accGroupName: "",
-    isActive: true,
-    remarks: "",
-  }
 
   const form = useForm<AccountTypeSchemaType>({
     resolver: zodResolver(accountTypeSchema),
@@ -84,7 +83,7 @@ export function AccountTypeForm({
             ...defaultValues,
           }
     )
-  }, [initialData, form, defaultValues])
+  }, [initialData, form])
 
   const handleCodeBlur = () => {
     const code = form.getValues("accTypeCode")

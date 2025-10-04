@@ -20,6 +20,13 @@ import CustomInput from "@/components/custom/custom-input"
 import CustomSwitch from "@/components/custom/custom-switch"
 import CustomTextarea from "@/components/custom/custom-textarea"
 
+const defaultValues = {
+  productId: 0,
+  productName: "",
+  productCode: "",
+  remarks: "",
+  isActive: true,
+}
 interface ProductFormProps {
   initialData?: IProduct | null
   submitAction: (data: ProductSchemaType) => void
@@ -39,14 +46,6 @@ export function ProductForm({
 }: ProductFormProps) {
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
-
-  const defaultValues = {
-    productId: 0,
-    productName: "",
-    productCode: "",
-    remarks: "",
-    isActive: true,
-  }
 
   const form = useForm<ProductSchemaType>({
     resolver: zodResolver(productSchema),
@@ -78,7 +77,7 @@ export function ProductForm({
             ...defaultValues,
           }
     )
-  }, [initialData, form, defaultValues])
+  }, [initialData, form])
 
   const handleCodeBlur = () => {
     const code = form.getValues("productCode")
