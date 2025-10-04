@@ -610,7 +610,7 @@ export default function BankPage() {
             <BankForm
               key={key}
               initialData={bank || undefined}
-              onSave={handleBankSave}
+              submitAction={handleBankSave}
               onBankLookup={handleBankLookup}
             />
           </CardContent>
@@ -732,7 +732,7 @@ export default function BankPage() {
                 : undefined
             }
             submitAction={handleAddressSave}
-            onCancel={() => {
+            onCancelAction={() => {
               setShowAddressForm(false)
               setSelectedAddress(null)
               setAddressMode("view")
@@ -773,7 +773,7 @@ export default function BankPage() {
                 : undefined
             }
             submitAction={handleContactSave}
-            onCancel={() => {
+            onCancelAction={() => {
               setShowContactForm(false)
               setSelectedContact(null)
               setContactMode("view")

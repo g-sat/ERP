@@ -26,7 +26,7 @@ import CustomTextarea from "@/components/custom/custom-textarea"
 interface OrderTypeCategoryFormProps {
   initialData?: IOrderTypeCategory
   submitAction: (data: OrderTypeCategorySchemaType) => void
-  onCancel: () => void
+  onCancelAction: () => void
   isSubmitting: boolean
   isReadOnly?: boolean
   onCodeBlur?: (code: string) => void
@@ -35,7 +35,7 @@ interface OrderTypeCategoryFormProps {
 export function OrderTypeCategoryForm({
   initialData,
   submitAction,
-  onCancel,
+  onCancelAction,
   isSubmitting,
   isReadOnly = false,
   onCodeBlur,
@@ -215,7 +215,7 @@ export function OrderTypeCategoryForm({
             <Button
               type="button"
               variant="outline"
-              onClick={onCancel}
+              onClick={onCancelAction}
               disabled={isSubmitting}
             >
               Cancel

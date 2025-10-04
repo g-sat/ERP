@@ -26,7 +26,7 @@ import CustomTextarea from "@/components/custom/custom-textarea"
 interface AccountSetupCategoryFormProps {
   initialData?: IAccountSetupCategory | null
   submitAction: (data: AccountSetupCategorySchemaType) => void
-  onCancel?: () => void
+  onCancelAction?: () => void
   isSubmitting?: boolean
   isReadOnly?: boolean
   onCodeBlur?: (code: string) => void
@@ -35,7 +35,7 @@ interface AccountSetupCategoryFormProps {
 export function AccountSetupCategoryForm({
   initialData,
   submitAction,
-  onCancel,
+  onCancelAction,
   isSubmitting = false,
   isReadOnly = false,
   onCodeBlur,
@@ -215,7 +215,7 @@ export function AccountSetupCategoryForm({
           </div>
 
           <div className="flex justify-end gap-2">
-            <Button variant="outline" type="button" onClick={onCancel}>
+            <Button variant="outline" type="button" onClick={onCancelAction}>
               {isReadOnly ? "Close" : "Cancel"}
             </Button>
             {!isReadOnly && (

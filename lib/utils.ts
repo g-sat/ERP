@@ -62,9 +62,15 @@ export function absoluteUrl(path: string) {
 
 export enum ModuleId {
   master = 1,
-  operations = 4,
   sales = 2,
   purchase = 3,
+  operations = 4,
+  hr = 5,
+  dashboard = 6,
+  approvals = 7,
+  document = 8,
+  request = 9,
+
   ar = 25,
   ap = 26,
   cb = 27,
@@ -215,6 +221,42 @@ export enum GLTransactionId {
   year_end_process = 5,
   period_close = 6,
   reports = 99,
+}
+
+export enum HRTransactionId {
+  employees = 1,
+  loan = 2,
+  leave = 3,
+  attendance = 4,
+  payruns = 5,
+  setting = 6,
+}
+
+export enum DashboardTransactionId {
+  dashboard1 = 1,
+  dashboard2 = 2,
+  dashboard3 = 3,
+  dashboard4 = 4,
+  dashboard5 = 5,
+  dashboard6 = 6,
+  dashboard7 = 7,
+  dashboard8 = 8,
+  dashboard9 = 9,
+  dashboard10 = 10,
+}
+
+export enum RequestTransactionId {
+  loan = 1,
+  leave = 2,
+  pettyCash = 3,
+}
+
+export enum DocumentTransactionId {
+  document = 1,
+}
+
+export enum ApprovalsTransactionId {
+  approvals = 1,
 }
 
 export function getModuleAndTransactionId(pathname: string): {

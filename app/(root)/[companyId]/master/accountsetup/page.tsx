@@ -829,7 +829,7 @@ export default function AccountSetupPage() {
                 : undefined
             }
             submitAction={handleFormSubmitCategory}
-            onCancel={() => setIsModalCategoryOpen(false)}
+            onCancelAction={() => setIsModalCategoryOpen(false)}
             isSubmitting={
               saveMutationCategory.isPending || updateMutationCategory.isPending
             }
@@ -876,7 +876,7 @@ export default function AccountSetupPage() {
                 : undefined
             }
             submitAction={handleFormSubmitSetup}
-            onCancel={() => setIsModalSetupOpen(false)}
+            onCancelAction={() => setIsModalSetupOpen(false)}
             isSubmitting={
               saveMutationSetup.isPending || updateMutationSetup.isPending
             }
@@ -923,7 +923,7 @@ export default function AccountSetupPage() {
                 : undefined
             }
             submitAction={handleFormSubmitDt}
-            onCancel={() => setIsModalDtOpen(false)}
+            onCancelAction={() => setIsModalDtOpen(false)}
             isSubmitting={
               saveMutationDt.isPending || updateMutationDt.isPending
             }

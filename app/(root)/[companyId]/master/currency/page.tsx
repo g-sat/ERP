@@ -766,7 +766,7 @@ export default function CurrencyPage() {
           <CurrencyForm
             initialData={modalMode !== "create" ? selectedCurrency : undefined}
             submitAction={handleFormSubmit}
-            onCancel={() => setIsModalOpen(false)}
+            onCancelAction={() => setIsModalOpen(false)}
             isSubmitting={saveMutation.isPending || updateMutation.isPending}
             isReadOnly={modalMode === "view"}
             onCodeBlur={handleCodeBlur}
@@ -807,7 +807,7 @@ export default function CurrencyPage() {
               modalMode !== "create" ? selectedCurrencyDt : undefined
             }
             submitAction={handleFormSubmit}
-            onCancel={() => setIsDtModalOpen(false)}
+            onCancelAction={() => setIsDtModalOpen(false)}
             isSubmitting={
               saveDtMutation.isPending || updateDtMutation.isPending
             }
@@ -849,7 +849,7 @@ export default function CurrencyPage() {
               modalMode !== "create" ? selectedCurrencyLocalDt : undefined
             }
             submitAction={handleFormSubmit}
-            onCancel={() => setIsLocalDtModalOpen(false)}
+            onCancelAction={() => setIsLocalDtModalOpen(false)}
             isSubmitting={
               saveLocalDtMutation.isPending || updateLocalDtMutation.isPending
             }

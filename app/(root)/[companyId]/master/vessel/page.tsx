@@ -38,14 +38,11 @@ export default function VesselPage() {
   const canView = hasPermission(moduleId, transactionId, "isRead")
   const canCreate = hasPermission(moduleId, transactionId, "isCreate")
 
-  console.log("permissions vessel", canEdit, canDelete, canView, canCreate)
-
   const [filters, setFilters] = useState<IVesselFilter>({})
 
   // Filter handler wrapper
   const handleFilterChange = useCallback(
     (newFilters: { search?: string; sortOrder?: string }) => {
-      console.log("Filter change called with:", newFilters)
       setFilters(newFilters as IVesselFilter)
     },
     []
@@ -201,18 +198,13 @@ export default function VesselPage() {
     setCodeToCheck(trimmedCode)
     try {
       const response = await checkCodeAvailability()
-      console.log("Full API Response:", response)
 
       // Check if response has data and it's not empty
       if (response?.data?.result === 1 && response.data.data) {
-        console.log("Response data:", response.data.data)
-
         // Handle both array and single object responses
         const vesselData = Array.isArray(response.data.data)
           ? response.data.data[0]
           : response.data.data
-
-        console.log("Processed vesselData:", vesselData)
 
         if (vesselData) {
           // Ensure all required fields are present
@@ -235,7 +227,6 @@ export default function VesselPage() {
             editDate: vesselData.editDate,
           }
 
-          console.log("Setting existing vessel:", validVesselData)
           setExistingVessel(validVesselData)
           setShowLoadDialog(true)
         }
@@ -248,13 +239,6 @@ export default function VesselPage() {
   // Handler for loading existing vessel
   const handleLoadExistingVessel = () => {
     if (existingVessel) {
-      // Log the data we're about to set
-      console.log("About to load vessel data:", {
-        existingVessel,
-        currentModalMode: modalMode,
-        currentSelectedVessel: selectedVessel,
-      })
-
       // Set the states
       setModalMode("edit")
       setSelectedVessel(existingVessel)
@@ -374,7 +358,7 @@ export default function VesselPage() {
                 : null
             }
             submitAction={handleFormSubmit}
-            onCancel={() => setIsModalOpen(false)}
+            onCancelAction={() => setIsModalOpen(false)}
             isSubmitting={saveMutation.isPending || updateMutation.isPending}
             isReadOnly={modalMode === "view"}
             onCodeBlur={handleCodeBlur}

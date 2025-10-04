@@ -591,7 +591,7 @@ export default function ServiceTypePage() {
               modalMode !== "create" ? selectedServiceType : undefined
             }
             submitAction={handleFormSubmit}
-            onCancel={() => setIsModalOpen(false)}
+            onCancelAction={() => setIsModalOpen(false)}
             isSubmitting={saveMutation.isPending || updateMutation.isPending}
             isReadOnly={modalMode === "view"}
             onCodeBlur={handleCodeBlur}
@@ -625,7 +625,7 @@ export default function ServiceTypePage() {
               modalMode !== "create" ? selectedServiceTypeCategory : undefined
             }
             submitAction={handleFormSubmit}
-            onCancel={() => setIsCategoryModalOpen(false)}
+            onCancelAction={() => setIsCategoryModalOpen(false)}
             isSubmitting={
               saveCategoryMutation.isPending || updateCategoryMutation.isPending
             }

@@ -21,7 +21,7 @@ import CustomInput from "@/components/custom/custom-input"
 interface LoanTypeFormProps {
   initialData?: ILoanType
   submitAction: (data: LoanTypeSchemaType) => void
-  onCancel?: () => void
+  onCancelAction?: () => void
   isSubmitting?: boolean
   isReadOnly?: boolean
   onCodeBlur?: (code: string) => void
@@ -30,7 +30,7 @@ interface LoanTypeFormProps {
 export function LoanTypeForm({
   initialData,
   submitAction,
-  onCancel,
+  onCancelAction,
   isSubmitting = false,
   isReadOnly = false,
   onCodeBlur,
@@ -218,7 +218,7 @@ export function LoanTypeForm({
               )}
           </div>
           <div className="flex justify-end gap-2">
-            <Button variant="outline" type="button" onClick={onCancel}>
+            <Button variant="outline" type="button" onClick={onCancelAction}>
               {isReadOnly ? "Close" : "Cancel"}
             </Button>
             {!isReadOnly && (

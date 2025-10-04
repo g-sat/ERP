@@ -758,7 +758,7 @@ export default function GstPage() {
           <GstForm
             initialData={modalMode !== "create" ? selectedGst : undefined}
             submitAction={handleFormSubmit}
-            onCancel={() => setIsModalOpen(false)}
+            onCancelAction={() => setIsModalOpen(false)}
             isSubmitting={saveMutation.isPending || updateMutation.isPending}
             isReadOnly={modalMode === "view"}
             onCodeBlur={handleCodeBlur}
@@ -790,7 +790,7 @@ export default function GstPage() {
           <GstDtForm
             initialData={modalMode !== "create" ? selectedGstDt : undefined}
             submitAction={handleFormSubmit}
-            onCancel={() => setIsDtModalOpen(false)}
+            onCancelAction={() => setIsDtModalOpen(false)}
             isSubmitting={
               saveDtMutation.isPending || updateDtMutation.isPending
             }
@@ -825,7 +825,7 @@ export default function GstPage() {
               modalMode !== "create" ? selectedGstCategory : undefined
             }
             submitAction={handleFormSubmit}
-            onCancel={() => setIsCategoryModalOpen(false)}
+            onCancelAction={() => setIsCategoryModalOpen(false)}
             isSubmitting={
               saveCategoryMutation.isPending || updateCategoryMutation.isPending
             }

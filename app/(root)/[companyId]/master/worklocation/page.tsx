@@ -375,7 +375,7 @@ export default function WorklocationPage() {
                 : null
             }
             submitAction={handleFormSubmit}
-            onCancel={() => setIsModalOpen(false)}
+            onCancelAction={() => setIsModalOpen(false)}
             isSubmitting={saveMutation.isPending || updateMutation.isPending}
             isReadOnly={modalMode === "view"}
             onCodeBlur={handleCodeBlur}

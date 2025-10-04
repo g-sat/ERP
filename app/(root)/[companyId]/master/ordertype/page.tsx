@@ -593,7 +593,7 @@ export default function OrderTypePage() {
           <OrderTypeForm
             initialData={modalMode !== "create" ? selectedOrderType : undefined}
             submitAction={handleOrderTypeSubmit}
-            onCancel={() => setIsModalOpen(false)}
+            onCancelAction={() => setIsModalOpen(false)}
             isSubmitting={saveMutation.isPending || updateMutation.isPending}
             isReadOnly={modalMode === "view"}
             onCodeBlur={handleCodeBlur}
@@ -627,7 +627,7 @@ export default function OrderTypePage() {
               modalMode !== "create" ? selectedOrderTypeCategory : undefined
             }
             submitAction={handleOrderTypeCategorySubmit}
-            onCancel={() => setIsCategoryModalOpen(false)}
+            onCancelAction={() => setIsCategoryModalOpen(false)}
             isSubmitting={
               saveCategoryMutation.isPending || updateCategoryMutation.isPending
             }

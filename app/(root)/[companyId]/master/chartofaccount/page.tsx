@@ -1060,7 +1060,7 @@ export default function ChartOfAccountPage() {
               modalMode !== "create" ? selectedChartOfAccount : undefined
             }
             submitAction={handleFormSubmit}
-            onCancel={() => setIsModalChartOpen(false)}
+            onCancelAction={() => setIsModalChartOpen(false)}
             isSubmitting={
               saveMutationChart.isPending || updateMutationChart.isPending
             }
@@ -1097,7 +1097,7 @@ export default function ChartOfAccountPage() {
           <CoaCategory1Form
             initialData={modalMode !== "create" ? selectedCategory1 : undefined}
             submitAction={handleFormSubmit}
-            onCancel={() => setIsModalCategory1Open(false)}
+            onCancelAction={() => setIsModalCategory1Open(false)}
             isSubmitting={saveMutation1.isPending || updateMutation1.isPending}
             isReadOnly={modalMode === "view"}
             onCodeBlur={handleCategory1CodeBlur}
@@ -1132,7 +1132,7 @@ export default function ChartOfAccountPage() {
           <CoaCategory2Form
             initialData={modalMode !== "create" ? selectedCategory2 : undefined}
             submitAction={handleFormSubmit}
-            onCancel={() => setIsModalCategory2Open(false)}
+            onCancelAction={() => setIsModalCategory2Open(false)}
             isSubmitting={saveMutation2.isPending || updateMutation2.isPending}
             isReadOnly={modalMode === "view"}
             onCodeBlur={handleCategory2CodeBlur}
@@ -1167,7 +1167,7 @@ export default function ChartOfAccountPage() {
           <CoaCategory3Form
             initialData={modalMode !== "create" ? selectedCategory3 : undefined}
             submitAction={handleFormSubmit}
-            onCancel={() => setIsModalCategory3Open(false)}
+            onCancelAction={() => setIsModalCategory3Open(false)}
             isSubmitting={saveMutation3.isPending || updateMutation3.isPending}
             isReadOnly={modalMode === "view"}
             onCodeBlur={handleCategory3CodeBlur}

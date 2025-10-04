@@ -360,7 +360,7 @@ export default function TaskPage() {
               modalMode === "edit" || modalMode === "view" ? selectedTask : null
             }
             submitAction={handleFormSubmit}
-            onCancel={() => setIsModalOpen(false)}
+            onCancelAction={() => setIsModalOpen(false)}
             isSubmitting={saveMutation.isPending || updateMutation.isPending}
             isReadOnly={modalMode === "view"}
             onCodeBlur={handleCodeBlur}

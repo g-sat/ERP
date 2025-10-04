@@ -41,7 +41,7 @@ interface BankContactFormProps {
   initialData?: IBankContact
   bankId?: number
   submitAction: (data: BankContactSchemaType) => void
-  onCancel?: () => void
+  onCancelAction?: () => void
   isSubmitting?: boolean
   isReadOnly?: boolean
 }
@@ -50,7 +50,7 @@ export function BankContactForm({
   initialData,
   bankId,
   submitAction,
-  onCancel,
+  onCancelAction,
   isSubmitting = false,
   isReadOnly = false,
 }: BankContactFormProps) {
@@ -113,7 +113,7 @@ export function BankContactForm({
         contactMessType: "",
       }
     )
-  }, [initialData, form, defaultValues])
+  }, [initialData, form])
 
   return (
     <div className="max-w flex flex-col gap-2">
@@ -286,7 +286,7 @@ export function BankContactForm({
               )}
           </div>
           <div className="flex justify-end gap-2">
-            <Button variant="outline" type="button" onClick={onCancel}>
+            <Button variant="outline" type="button" onClick={onCancelAction}>
               {isReadOnly ? "Close" : "Cancel"}
             </Button>
             {!isReadOnly && (

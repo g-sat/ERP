@@ -24,7 +24,7 @@ import CustomTextarea from "@/components/custom/custom-textarea"
 interface OrderTypeFormProps {
   initialData?: IOrderType
   submitAction: (data: OrderTypeSchemaType) => void
-  onCancel: () => void
+  onCancelAction: () => void
   isSubmitting: boolean
   isReadOnly?: boolean
   onCodeBlur?: (code: string) => void
@@ -33,7 +33,7 @@ interface OrderTypeFormProps {
 export function OrderTypeForm({
   initialData,
   submitAction,
-  onCancel,
+  onCancelAction,
   isSubmitting,
   isReadOnly = false,
   onCodeBlur,
@@ -220,7 +220,7 @@ export function OrderTypeForm({
           </div>
 
           <div className="flex justify-end gap-2">
-            <Button variant="outline" type="button" onClick={onCancel}>
+            <Button variant="outline" type="button" onClick={onCancelAction}>
               {isReadOnly ? "Close" : "Cancel"}
             </Button>
             {!isReadOnly && (

@@ -556,7 +556,7 @@ export default function CreditTermPage() {
               modalMode !== "create" ? selectedCreditTerm : undefined
             }
             submitAction={handleFormSubmit}
-            onCancel={() => setIsModalOpen(false)}
+            onCancelAction={() => setIsModalOpen(false)}
             isSubmitting={saveMutation.isPending || updateMutation.isPending}
             isReadOnly={modalMode === "view"}
             onCodeBlur={handleCodeBlur}
@@ -590,7 +590,7 @@ export default function CreditTermPage() {
               modalMode !== "create" ? selectedCreditTermDt : undefined
             }
             submitAction={handleFormSubmit}
-            onCancel={() => setIsDtModalOpen(false)}
+            onCancelAction={() => setIsDtModalOpen(false)}
             isSubmitting={
               saveDtMutation.isPending || updateDtMutation.isPending
             }

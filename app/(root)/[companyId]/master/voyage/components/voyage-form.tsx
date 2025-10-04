@@ -25,7 +25,7 @@ import CustomTextarea from "@/components/custom/custom-textarea"
 interface VoyageFormProps {
   initialData?: IVoyage | null
   submitAction: (data: VoyageSchemaType) => void
-  onCancel?: () => void
+  onCancelAction?: () => void
   isSubmitting?: boolean
   isReadOnly?: boolean
   onCodeBlur?: (code: string) => void
@@ -34,7 +34,7 @@ interface VoyageFormProps {
 export function VoyageForm({
   initialData,
   submitAction,
-  onCancel,
+  onCancelAction,
   isSubmitting = false,
   isReadOnly = false,
   onCodeBlur,
@@ -236,7 +236,7 @@ export function VoyageForm({
           </div>
 
           <div className="flex justify-end gap-2">
-            <Button variant="outline" type="button" onClick={onCancel}>
+            <Button variant="outline" type="button" onClick={onCancelAction}>
               {isReadOnly ? "Close" : "Cancel"}
             </Button>
             {!isReadOnly && (

@@ -30,7 +30,7 @@ const defaultValues = {
 interface LeaveTypeFormProps {
   initialData?: ILeaveType
   submitAction: (data: LeaveTypeSchemaType) => void
-  onCancel?: () => void
+  onCancelAction?: () => void
   isSubmitting?: boolean
   isReadOnly?: boolean
   onCodeBlur?: (code: string) => void
@@ -39,7 +39,7 @@ interface LeaveTypeFormProps {
 export function LeaveTypeForm({
   initialData,
   submitAction,
-  onCancel,
+  onCancelAction,
   isSubmitting = false,
   isReadOnly = false,
   onCodeBlur,
@@ -208,7 +208,7 @@ export function LeaveTypeForm({
               )}
           </div>
           <div className="flex justify-end gap-2">
-            <Button variant="outline" type="button" onClick={onCancel}>
+            <Button variant="outline" type="button" onClick={onCancelAction}>
               {isReadOnly ? "Close" : "Cancel"}
             </Button>
             {!isReadOnly && (

@@ -493,7 +493,7 @@ export default function UomPage() {
           <UomForm
             initialData={modalMode !== "create" ? selectedUom : undefined}
             submitAction={handleFormSubmit}
-            onCancel={() => setIsModalOpen(false)}
+            onCancelAction={() => setIsModalOpen(false)}
             isSubmitting={saveMutation.isPending || updateMutation.isPending}
             isReadOnly={modalMode === "view"}
             onCodeBlur={handleCodeBlur}
@@ -525,7 +525,7 @@ export default function UomPage() {
           <UomDtForm
             initialData={modalMode !== "create" ? selectedUomDt : undefined}
             submitAction={handleFormSubmit}
-            onCancel={() => setIsDtModalOpen(false)}
+            onCancelAction={() => setIsDtModalOpen(false)}
             isSubmitting={
               saveDtMutation.isPending || updateDtMutation.isPending
             }

@@ -23,7 +23,7 @@ import CustomTextarea from "@/components/custom/custom-textarea"
 interface GstCategoryFormProps {
   initialData?: IGstCategory | null
   submitAction: (data: GstCategorySchemaType) => void
-  onCancel: () => void
+  onCancelAction: () => void
   isSubmitting: boolean
   isReadOnly?: boolean
   onCodeBlur?: (code: string) => void
@@ -32,7 +32,7 @@ interface GstCategoryFormProps {
 export function GstCategoryForm({
   initialData,
   submitAction,
-  onCancel,
+  onCancelAction,
   isSubmitting,
   isReadOnly = false,
   onCodeBlur,
@@ -213,7 +213,7 @@ export function GstCategoryForm({
             <Button
               type="button"
               variant="outline"
-              onClick={onCancel}
+              onClick={onCancelAction}
               disabled={isSubmitting}
             >
               Cancel

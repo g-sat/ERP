@@ -27,7 +27,7 @@ import CustomNumberInput from "@/components/custom/custom-number-input"
 interface CurrencyLocalDtFormProps {
   initialData?: ICurrencyLocalDt | null
   submitAction: (data: CurrencyLocalDtSchemaType) => void
-  onCancel?: () => void
+  onCancelAction?: () => void
   isSubmitting?: boolean
   isReadOnly?: boolean
 }
@@ -35,7 +35,7 @@ interface CurrencyLocalDtFormProps {
 export function CurrencyLocalDtForm({
   initialData,
   submitAction,
-  onCancel,
+  onCancelAction,
   isSubmitting = false,
   isReadOnly = false,
 }: CurrencyLocalDtFormProps) {
@@ -96,7 +96,7 @@ export function CurrencyLocalDtForm({
             ...defaultValues,
           }
     )
-  }, [initialData, form, defaultValues])
+  }, [initialData, form])
 
   const onSubmit = (data: CurrencyLocalDtSchemaType) => {
     // Format date to ISO string before submission
@@ -137,7 +137,6 @@ export function CurrencyLocalDtForm({
                 form={form}
                 name="validFrom"
                 label="Valid From"
-                dateFormat={dateFormat}
                 isRequired
                 isDisabled={isReadOnly}
               />
@@ -225,7 +224,7 @@ export function CurrencyLocalDtForm({
           </div>
 
           <div className="flex justify-end gap-2">
-            <Button variant="outline" type="button" onClick={onCancel}>
+            <Button variant="outline" type="button" onClick={onCancelAction}>
               {isReadOnly ? "Close" : "Cancel"}
             </Button>
             {!isReadOnly && (

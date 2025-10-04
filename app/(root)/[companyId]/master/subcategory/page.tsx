@@ -43,7 +43,6 @@ export default function SubCategoryPage() {
   // Filter handler wrapper
   const handleFilterChange = useCallback(
     (newFilters: { search?: string; sortOrder?: string }) => {
-      console.log("Filter change called with:", newFilters)
       setFilters(newFilters as ISubCategoryFilter)
     },
     []
@@ -202,18 +201,13 @@ export default function SubCategoryPage() {
     setCodeToCheck(trimmedCode)
     try {
       const response = await checkCodeAvailability()
-      console.log("Full API Response:", response)
 
       // Check if response has data and it's not empty
       if (response?.data?.result === 1 && response.data.data) {
-        console.log("Response data:", response.data.data)
-
         // Handle both array and single object responses
         const subcategoryData = Array.isArray(response.data.data)
           ? response.data.data[0]
           : response.data.data
-
-        console.log("Processed subcategoryData:", subcategoryData)
 
         if (subcategoryData) {
           // Ensure all required fields are present
@@ -232,7 +226,6 @@ export default function SubCategoryPage() {
             editById: subcategoryData.editById,
           }
 
-          console.log("Setting existing subcategory:", validSubCategoryData)
           setExistingSubCategory(validSubCategoryData)
           setShowLoadDialog(true)
         }
@@ -245,13 +238,6 @@ export default function SubCategoryPage() {
   // Handler for loading existing subcategory
   const handleLoadExistingSubCategory = () => {
     if (existingSubCategory) {
-      // Log the data we're about to set
-      console.log("About to load subcategory data:", {
-        existingSubCategory,
-        currentModalMode: modalMode,
-        currentSelectedSubCategory: selectedSubCategory,
-      })
-
       // Set the states
       setModalMode("edit")
       setSelectedSubCategory(existingSubCategory)
@@ -371,7 +357,7 @@ export default function SubCategoryPage() {
                 : null
             }
             submitAction={handleFormSubmit}
-            onCancel={() => setIsModalOpen(false)}
+            onCancelAction={() => setIsModalOpen(false)}
             isSubmitting={saveMutation.isPending || updateMutation.isPending}
             isReadOnly={modalMode === "view"}
             onCodeBlur={handleCodeBlur}

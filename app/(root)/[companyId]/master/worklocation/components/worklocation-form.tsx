@@ -22,7 +22,7 @@ import CustomSwitch from "@/components/custom/custom-switch"
 interface WorklocationFormProps {
   initialData?: IWorkLocation | null
   submitAction: (data: WorkLocationSchemaType) => void
-  onCancel?: () => void
+  onCancelAction?: () => void
   isSubmitting?: boolean
   isReadOnly?: boolean
   onCodeBlur?: (code: string) => void
@@ -31,7 +31,7 @@ interface WorklocationFormProps {
 export function WorklocationForm({
   initialData,
   submitAction,
-  onCancel,
+  onCancelAction,
   isSubmitting = false,
   isReadOnly = false,
   onCodeBlur,
@@ -247,7 +247,7 @@ export function WorklocationForm({
               )}
           </div>
           <div className="flex justify-end gap-2">
-            <Button variant="outline" type="button" onClick={onCancel}>
+            <Button variant="outline" type="button" onClick={onCancelAction}>
               {isReadOnly ? "Close" : "Cancel"}
             </Button>
             {!isReadOnly && (

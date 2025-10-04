@@ -31,7 +31,7 @@ const defaultValues = {
 interface CountryFormProps {
   initialData?: ICountry | null
   submitAction: (data: CountrySchemaType) => void
-  onCancel?: () => void
+  onCancelAction?: () => void
   isSubmitting?: boolean
   isReadOnly?: boolean
   onCodeBlur?: (code: string) => void
@@ -40,7 +40,7 @@ interface CountryFormProps {
 export function CountryForm({
   initialData,
   submitAction,
-  onCancel,
+  onCancelAction,
   isSubmitting = false,
   isReadOnly = false,
   onCodeBlur,
@@ -215,7 +215,7 @@ export function CountryForm({
               )}
           </div>
           <div className="flex justify-end gap-2">
-            <Button variant="outline" type="button" onClick={onCancel}>
+            <Button variant="outline" type="button" onClick={onCancelAction}>
               {isReadOnly ? "Close" : "Cancel"}
             </Button>
             {!isReadOnly && (

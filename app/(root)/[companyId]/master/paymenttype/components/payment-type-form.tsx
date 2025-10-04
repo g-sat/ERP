@@ -30,7 +30,7 @@ const defaultValues = {
 interface PaymentTypeFormProps {
   initialData?: IPaymentType | null
   submitAction: (data: PaymentTypeSchemaType) => void
-  onCancel?: () => void
+  onCancelAction?: () => void
   isSubmitting?: boolean
   isReadOnly?: boolean
   onCodeBlur?: (code: string) => void
@@ -39,7 +39,7 @@ interface PaymentTypeFormProps {
 export function PaymentTypeForm({
   initialData,
   submitAction,
-  onCancel,
+  onCancelAction,
   isSubmitting = false,
   isReadOnly = false,
   onCodeBlur,
@@ -206,7 +206,7 @@ export function PaymentTypeForm({
               )}
           </div>
           <div className="flex justify-end gap-2">
-            <Button variant="outline" type="button" onClick={onCancel}>
+            <Button variant="outline" type="button" onClick={onCancelAction}>
               {isReadOnly ? "Close" : "Cancel"}
             </Button>
             {!isReadOnly && (

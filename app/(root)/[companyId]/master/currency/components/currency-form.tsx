@@ -32,7 +32,7 @@ const defaultValues = {
 interface CurrencyFormProps {
   initialData?: ICurrency | null
   submitAction: (data: CurrencySchemaType) => void
-  onCancel?: () => void
+  onCancelAction?: () => void
   isSubmitting?: boolean
   isReadOnly?: boolean
   onCodeBlur?: (code: string) => void
@@ -41,7 +41,7 @@ interface CurrencyFormProps {
 export function CurrencyForm({
   initialData,
   submitAction,
-  onCancel,
+  onCancelAction,
   isSubmitting = false,
   isReadOnly = false,
   onCodeBlur,
@@ -230,7 +230,7 @@ export function CurrencyForm({
           </div>
 
           <div className="flex justify-end gap-2">
-            <Button variant="outline" type="button" onClick={onCancel}>
+            <Button variant="outline" type="button" onClick={onCancelAction}>
               {isReadOnly ? "Close" : "Cancel"}
             </Button>
             {!isReadOnly && (

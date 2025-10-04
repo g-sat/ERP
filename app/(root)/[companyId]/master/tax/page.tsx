@@ -758,7 +758,7 @@ export default function TaxPage() {
           <TaxForm
             initialData={modalMode !== "create" ? selectedTax : undefined}
             submitAction={handleFormSubmit}
-            onCancel={() => setIsModalOpen(false)}
+            onCancelAction={() => setIsModalOpen(false)}
             isSubmitting={saveMutation.isPending || updateMutation.isPending}
             isReadOnly={modalMode === "view"}
             onCodeBlur={handleCodeBlur}
@@ -790,7 +790,7 @@ export default function TaxPage() {
           <TaxDtForm
             initialData={modalMode !== "create" ? selectedTaxDt : undefined}
             submitAction={handleFormSubmit}
-            onCancel={() => setIsDtModalOpen(false)}
+            onCancelAction={() => setIsDtModalOpen(false)}
             isSubmitting={
               saveDtMutation.isPending || updateDtMutation.isPending
             }
@@ -825,7 +825,7 @@ export default function TaxPage() {
               modalMode !== "create" ? selectedTaxCategory : undefined
             }
             submitAction={handleFormSubmit}
-            onCancel={() => setIsCategoryModalOpen(false)}
+            onCancelAction={() => setIsCategoryModalOpen(false)}
             isSubmitting={
               saveCategoryMutation.isPending || updateCategoryMutation.isPending
             }

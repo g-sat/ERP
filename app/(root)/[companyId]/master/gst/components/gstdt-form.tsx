@@ -24,7 +24,7 @@ import CustomNumberInput from "@/components/custom/custom-number-input"
 interface GstDtFormProps {
   initialData?: IGstDt | null
   submitAction: (data: GstDtSchemaType) => void
-  onCancel: () => void
+  onCancelAction: () => void
   isSubmitting: boolean
   isReadOnly?: boolean
 }
@@ -32,7 +32,7 @@ interface GstDtFormProps {
 export function GstDtForm({
   initialData,
   submitAction,
-  onCancel,
+  onCancelAction,
   isSubmitting,
   isReadOnly = false,
 }: GstDtFormProps) {
@@ -199,7 +199,7 @@ export function GstDtForm({
             <Button
               type="button"
               variant="outline"
-              onClick={onCancel}
+              onClick={onCancelAction}
               disabled={isSubmitting}
             >
               Cancel

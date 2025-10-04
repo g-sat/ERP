@@ -37,7 +37,7 @@ const defaultValues = {
 interface ChargeFormProps {
   initialData?: ICharge
   submitAction: (data: ChargeSchemaType) => void
-  onCancel?: () => void
+  onCancelAction?: () => void
   isSubmitting?: boolean
   isReadOnly?: boolean
   onCodeBlur?: (code: string, taskId?: number) => void
@@ -47,7 +47,7 @@ interface ChargeFormProps {
 export function ChargeForm({
   initialData,
   submitAction,
-  onCancel,
+  onCancelAction,
   isSubmitting = false,
   isReadOnly = false,
   onCodeBlur,
@@ -268,7 +268,7 @@ export function ChargeForm({
               )}
           </div>
           <div className="flex justify-end gap-2">
-            <Button variant="outline" type="button" onClick={onCancel}>
+            <Button variant="outline" type="button" onClick={onCancelAction}>
               {isReadOnly ? "Close" : "Cancel"}
             </Button>
             {!isReadOnly && (

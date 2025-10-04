@@ -635,7 +635,7 @@ export default function SupplierPage() {
             <SupplierForm
               key={key}
               initialData={supplier || undefined}
-              onSave={handleSupplierSave}
+              onSaveAction={handleSupplierSave}
               onSupplierLookup={handleSupplierLookup}
             />
           </CardContent>
@@ -757,7 +757,7 @@ export default function SupplierPage() {
                 : undefined
             }
             submitAction={handleAddressSave}
-            onCancel={() => {
+            onCancelAction={() => {
               setShowAddressForm(false)
               setSelectedAddress(null)
               setAddressMode("view")
@@ -798,7 +798,7 @@ export default function SupplierPage() {
                 : undefined
             }
             submitAction={handleContactSave}
-            onCancel={() => {
+            onCancelAction={() => {
               setShowContactForm(false)
               setSelectedContact(null)
               setContactMode("view")

@@ -24,13 +24,13 @@ import CustomTextarea from "@/components/custom/custom-textarea"
 
 interface BankFormProps {
   initialData?: IBank | null
-  onSave: (bank: IBank) => void
+  submitAction: (bank: IBank) => void
   onBankLookup?: (bankCode: string, bankName: string) => void
 }
 
 export default function BankForm({
   initialData,
-  onSave,
+  submitAction,
   onBankLookup,
 }: BankFormProps) {
   const { decimals } = useAuthStore()
@@ -79,7 +79,7 @@ export default function BankForm({
         isActive: true,
       }
     )
-  }, [initialData, form, defaultValues])
+  }, [initialData, form])
 
   const onSubmit = (data: z.infer<typeof bankSchema>) => {
     // Convert string values to numbers for numeric fields
@@ -90,7 +90,7 @@ export default function BankForm({
       glId: Number(data.glId),
     }
     console.log("processedData :", processedData)
-    onSave(processedData as IBank)
+    submitAction(processedData as IBank)
   }
 
   return (

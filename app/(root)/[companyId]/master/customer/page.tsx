@@ -634,7 +634,7 @@ export default function CustomerPage() {
             <CustomerForm
               key={key}
               initialData={customer || undefined}
-              onSave={handleCustomerSave}
+              onSaveAction={handleCustomerSave}
               onCustomerLookup={handleCustomerLookup}
             />
           </CardContent>
@@ -766,7 +766,7 @@ export default function CustomerPage() {
               }
               customerId={customer.customerId}
               submitAction={handleAddressSave}
-              onCancel={() => {
+              onCancelAction={() => {
                 setShowAddressForm(false)
                 setSelectedAddress(null)
                 setAddressMode("view")
@@ -810,7 +810,7 @@ export default function CustomerPage() {
               }
               customerId={customer.customerId}
               submitAction={handleContactSave}
-              onCancel={() => {
+              onCancelAction={() => {
                 setShowContactForm(false)
                 setSelectedContact(null)
                 setContactMode("view")

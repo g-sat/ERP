@@ -49,7 +49,7 @@ interface SupplierAddressFormProps {
   initialData?: ISupplierAddress
   supplierId?: number
   submitAction: (data: SupplierAddressSchemaType) => void
-  onCancel?: () => void
+  onCancelAction?: () => void
   isSubmitting?: boolean
   isReadOnly?: boolean
 }
@@ -58,7 +58,7 @@ export function SupplierAddressForm({
   initialData,
   supplierId,
   submitAction,
-  onCancel,
+  onCancelAction,
   isSubmitting = false,
   isReadOnly = false,
 }: SupplierAddressFormProps) {
@@ -313,7 +313,7 @@ export function SupplierAddressForm({
               )}
           </div>
           <div className="flex justify-end gap-2">
-            <Button variant="outline" type="button" onClick={onCancel}>
+            <Button variant="outline" type="button" onClick={onCancelAction}>
               {isReadOnly ? "Close" : "Cancel"}
             </Button>
             {!isReadOnly && (

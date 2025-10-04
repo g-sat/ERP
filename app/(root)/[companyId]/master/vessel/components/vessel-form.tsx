@@ -23,7 +23,7 @@ import CustomTextarea from "@/components/custom/custom-textarea"
 interface VesselFormProps {
   initialData?: IVessel | null
   submitAction: (data: VesselSchemaType) => void
-  onCancel?: () => void
+  onCancelAction?: () => void
   isSubmitting?: boolean
   isReadOnly?: boolean
   onCodeBlur?: (code: string) => void
@@ -32,7 +32,7 @@ interface VesselFormProps {
 export function VesselForm({
   initialData,
   submitAction,
-  onCancel,
+  onCancelAction,
   isSubmitting = false,
   isReadOnly = false,
   onCodeBlur,
@@ -253,7 +253,7 @@ export function VesselForm({
               )}
           </div>
           <div className="flex justify-end gap-2">
-            <Button variant="outline" type="button" onClick={onCancel}>
+            <Button variant="outline" type="button" onClick={onCancelAction}>
               {isReadOnly ? "Close" : "Cancel"}
             </Button>
             {!isReadOnly && (
