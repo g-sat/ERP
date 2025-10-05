@@ -1,6 +1,12 @@
 import { useAuthStore } from "@/stores/auth-store"
 import { JwtPayload, jwtDecode as decodeJwt } from "jwt-decode"
 
+import { enhancedFetch, handleApiResponse, logError } from "@/lib/error-handler"
+
+// Get registration ID from environment variables
+const DEFAULT_REGISTRATION_ID = process.env
+  .NEXT_PUBLIC_DEFAULT_REGISTRATION_ID as string
+
 /**
  * Get port number from environment variables or use the default
  */
@@ -26,7 +32,11 @@ export function jwtDecode(token: string): JwtPayload | null {
   try {
     return decodeJwt<JwtPayload>(token)
   } catch (error) {
-    console.error("Failed to decode JWT token:", error)
+    logError(
+      error instanceof Error ? error : new Error("JWT decode failed"),
+      "jwtDecode",
+      { token: token.substring(0, 20) + "..." }
+    )
     return null
   }
 }
@@ -43,35 +53,54 @@ export const refreshToken = async (): Promise<string | null> => {
       return null
     }
 
-    // Use the existing token to request a new one
-    const response = await fetch(
+    // Use enhanced fetch with retry logic
+    const response = await enhancedFetch(
       `${process.env.NEXT_PUBLIC_API_URL}/auth/refresh`,
       {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${state.token}`,
+          "X-Reg-Id": DEFAULT_REGISTRATION_ID,
         },
       }
     )
 
-    const data = await response.json()
+    const data = await handleApiResponse(response, {
+      token: null,
+      user: null,
+      refreshToken: null,
+    })
 
-    if (!response.ok) {
-      throw new Error(data.message || "Token refresh failed")
+    if (!data.token) {
+      throw new Error("No token in refresh response")
     }
 
     // Update the auth store with the new token
-    if (data.token) {
+    if (data.user && data.token) {
       useAuthStore
         .getState()
-        .logInSuccess(data.user, data.token, data.refreshToken)
-      return data.token
+        .logInSuccess(
+          data.user,
+          data.token,
+          data.refreshToken || state.refreshToken || ""
+        )
+    } else if (state.user && data.token) {
+      useAuthStore
+        .getState()
+        .logInSuccess(
+          state.user,
+          data.token,
+          data.refreshToken || state.refreshToken || ""
+        )
     }
 
-    return null
+    return data.token
   } catch (error) {
-    console.error("Failed to refresh token:", error)
+    logError(
+      error instanceof Error ? error : new Error("Token refresh failed"),
+      "refreshToken"
+    )
     return null
   }
 }

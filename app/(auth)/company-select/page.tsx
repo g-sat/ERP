@@ -1,7 +1,6 @@
 "use client"
 
 import { useCallback, useEffect, useState } from "react"
-import Image from "next/image"
 import { useRouter } from "next/navigation"
 import { ICompany } from "@/interfaces/auth"
 import { useAuthStore } from "@/stores/auth-store"
@@ -19,6 +18,7 @@ import {
 } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { SafeImage } from "@/components/ui/safe-image"
 import AccessDenied from "@/app/access-denied"
 
 export default function CompanySelectPage() {
@@ -52,6 +52,14 @@ export default function CompanySelectPage() {
     const initializePage = async () => {
       console.log("Initializing company select page...")
 
+      // Check if we're actually on the company-select page
+      const currentPath = window.location.pathname
+      console.log("Company-select page: Current path:", currentPath)
+      if (currentPath !== "/company-select") {
+        console.log("Not on company-select page, skipping initialization")
+        return
+      }
+
       if (!isAuthenticated) {
         console.log("Not authenticated, redirecting to login")
         router.push("/login")
@@ -74,6 +82,41 @@ export default function CompanySelectPage() {
           console.error("Failed to fetch companies:", error)
           setShowAccessDenied(true)
           return
+        }
+      }
+
+      // Check if we have a company ID from the current tab (for new tabs)
+      const tabCompanyId = getCurrentTabCompanyId()
+      if (tabCompanyId) {
+        console.log("Found company ID in session storage:", tabCompanyId)
+
+        // Verify the company exists in the companies list
+        const companyExists = companies.some(
+          (c) => c.companyId === tabCompanyId
+        )
+        if (companyExists) {
+          console.log("Company exists, auto-selecting and redirecting")
+
+          // Switch to the company if not already selected
+          if (currentCompany?.companyId !== tabCompanyId) {
+            console.log(
+              "Switching to company from session storage:",
+              tabCompanyId
+            )
+            await switchCompany(tabCompanyId)
+          }
+
+          // Fetch decimal settings
+          console.log("Fetching decimal settings for company:", tabCompanyId)
+          await getDecimals()
+
+          // Redirect to dashboard
+          router.push(`/${tabCompanyId}/dashboard`)
+          return
+        } else {
+          console.log(
+            "Company from session storage not found in available companies"
+          )
         }
       }
 
@@ -105,15 +148,7 @@ export default function CompanySelectPage() {
       // Multiple companies - show selection page
       console.log("Multiple companies available, showing selection page")
 
-      // First try to get the company ID from the current tab
-      const tabCompanyId = getCurrentTabCompanyId()
-      if (tabCompanyId) {
-        console.log("Using tab-specific company ID:", tabCompanyId)
-        setSelectedCompanyId(tabCompanyId)
-        return
-      }
-
-      // Otherwise use the current company or first available
+      // Use the current company or first available
       if (currentCompany?.companyId) {
         console.log("Using current company ID:", currentCompany.companyId)
         setSelectedCompanyId(currentCompany.companyId)
@@ -229,17 +264,17 @@ export default function CompanySelectPage() {
                 >
                   <div className="flex items-center gap-3">
                     <div className="bg-muted flex h-10 w-10 items-center justify-center overflow-hidden rounded-lg">
-                      <Image
+                      <SafeImage
                         src={`/uploads/companies/${company.companyId}.svg`}
                         alt={company.companyName || "Company Logo"}
                         width={40}
                         height={40}
                         className="object-contain"
-                        onError={(e) => {
-                          // Hide the image on error and show the initial
-                          e.currentTarget.style.display = "none"
-                          e.currentTarget.nextElementSibling?.classList.remove(
-                            "hidden"
+                        fallbackSrc="/placeholder.svg"
+                        onError={() => {
+                          console.log(
+                            "Company logo failed to load for:",
+                            company.companyName
                           )
                         }}
                       />

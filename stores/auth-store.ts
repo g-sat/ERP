@@ -113,6 +113,23 @@ interface AuthState {
   refreshToken: string | null
   error: string | null
 
+  // Enhanced Security State
+  tokenExpiresAt?: number
+  tokenStoredAt?: number
+  refreshInProgress: boolean
+  lastRefreshAttempt?: number
+  isOnline: boolean
+  pendingActions: Array<() => Promise<void>>
+  sessionAnalytics: {
+    loginTime: number
+    sessionDuration: number
+    pageViews: number
+    actionsPerformed: number
+    errorsEncountered: number
+    companySwitches: number
+    tabCount: number
+  }
+
   // Company State
   companies: ICompany[]
   currentCompany: ICompany | null
@@ -146,10 +163,21 @@ interface AuthState {
   logInFailed: (error: string) => void
   logInStatusCheck: () => Promise<void>
   logInStatusSuccess: (user: IUser) => void
-  logInStatusFailed: () => void
+  logInStatusFailed: (showError?: boolean) => void
   logOut: () => Promise<void>
   logOutSuccess: () => void
   setAppLocked: (locked: boolean) => void
+
+  // Enhanced Security Actions
+  refreshTokenAutomatically: () => Promise<string | null>
+  setupTokenRefresh: () => void
+  validateTokenExpiration: (token: string) => boolean
+  trackUserAction: (action: string, metadata?: Record<string, unknown>) => void
+  setOnline: (isOnline: boolean) => void
+  addPendingAction: (action: () => Promise<void>) => void
+  processPendingActions: () => Promise<void>
+  initializeAuth: () => void
+  forceLogout: () => void
 
   // Company Actions
   getCompanies: () => Promise<void>
@@ -193,6 +221,23 @@ export const useAuthStore = create<AuthState>()(
         currentCompany: null,
         isCompanySwitchEnabled: ENABLE_COMPANY_SWITCHING,
         decimals: [],
+
+        // Enhanced Security Initial State
+        tokenExpiresAt: undefined,
+        tokenStoredAt: undefined,
+        refreshInProgress: false,
+        lastRefreshAttempt: undefined,
+        isOnline: true,
+        pendingActions: [],
+        sessionAnalytics: {
+          loginTime: 0,
+          sessionDuration: 0,
+          pageViews: 0,
+          actionsPerformed: 0,
+          errorsEncountered: 0,
+          companySwitches: 0,
+          tabCount: 1,
+        },
 
         // Authentication Actions
         setAppLocked: (locked: boolean) => {
@@ -323,9 +368,18 @@ export const useAuthStore = create<AuthState>()(
 
         /**
          * Updates store state after successful login
-         * Sets authentication state and stores tokens
+         * Sets authentication state and stores tokens with enhanced security tracking
          */
         logInSuccess: (user: IUser, token: string, refreshToken: string) => {
+          // Decode token to get expiration time
+          let tokenExpiresAt: number | undefined
+          try {
+            const decoded = JSON.parse(atob(token.split(".")[1]))
+            tokenExpiresAt = decoded.exp ? decoded.exp * 1000 : undefined
+          } catch (error) {
+            console.warn("Could not decode token expiration:", error)
+          }
+
           Cookies.set(AUTH_TOKEN_COOKIE_NAME, token, { expires: 7 })
 
           set({
@@ -336,7 +390,23 @@ export const useAuthStore = create<AuthState>()(
             token,
             refreshToken,
             error: null,
+            // Enhanced security tracking
+            tokenExpiresAt,
+            tokenStoredAt: Date.now(),
+            refreshInProgress: false,
+            sessionAnalytics: {
+              loginTime: Date.now(),
+              sessionDuration: 0,
+              pageViews: 0,
+              actionsPerformed: 0,
+              errorsEncountered: 0,
+              companySwitches: 0,
+              tabCount: 1,
+            },
           })
+
+          // Setup automatic token refresh
+          get().setupTokenRefresh()
         },
 
         /**
@@ -360,17 +430,31 @@ export const useAuthStore = create<AuthState>()(
 
         /**
          * Checks login status
-         * Currently disabled - can be implemented for session validation
+         * Validates if user has a valid token and is authenticated
          */
         logInStatusCheck: async () => {
           set({ isLoading: true })
           try {
             const token = get().token
             if (!token) {
-              throw new Error("No token found")
+              // No token found - this is normal for new users, don't show error
+              get().logInStatusFailed(false)
+              return
             }
-          } catch {
-            get().logInStatusFailed()
+
+            // If we have a token, validate it
+            const isValid = get().validateTokenExpiration(token)
+            if (!isValid) {
+              // Token exists but is expired - show error
+              get().logInStatusFailed(true)
+              return
+            }
+
+            // Token is valid, user is authenticated
+            set({ isLoading: false })
+          } catch (_error) {
+            // Other errors - show error
+            get().logInStatusFailed(true)
           }
         },
 
@@ -384,7 +468,7 @@ export const useAuthStore = create<AuthState>()(
           })
         },
 
-        logInStatusFailed: () => {
+        logInStatusFailed: (showError = false) => {
           set({
             isAuthenticated: false,
             isAppLocked: false,
@@ -392,7 +476,7 @@ export const useAuthStore = create<AuthState>()(
             user: null,
             token: null,
             refreshToken: null,
-            error: "Session expired or invalid",
+            error: showError ? "Session expired or invalid" : null,
           })
         },
 
@@ -409,12 +493,14 @@ export const useAuthStore = create<AuthState>()(
           try {
             const token = get().token
             if (token) {
-              await fetch(`${BACKEND_API_URL}/auth/logout`, {
+              await fetch(`${BACKEND_API_URL}/auth/revoke`, {
                 method: "POST",
                 headers: {
+                  "Content-Type": "application/json",
                   Authorization: `Bearer ${token}`,
                   "X-Reg-Id": DEFAULT_REGISTRATION_ID,
                 },
+                body: JSON.stringify({ refreshToken: get().refreshToken }),
               })
             }
             get().logOutSuccess()
@@ -736,6 +822,224 @@ export const useAuthStore = create<AuthState>()(
         setCurrentTabCompanyId: (companyId: string) =>
           setCurrentTabCompanyIdInSession(companyId),
         clearCurrentTabCompanyId: () => clearCurrentTabCompanyIdFromSession(),
+
+        // Enhanced Security Actions
+        /**
+         * Validates if a token is expired
+         */
+        validateTokenExpiration: (token: string) => {
+          try {
+            const decoded = JSON.parse(atob(token.split(".")[1]))
+            if (!decoded || !decoded.exp) return false
+
+            const isExpired = Date.now() >= decoded.exp * 1000
+            return !isExpired
+          } catch (error) {
+            console.error("Error validating token expiration:", error)
+            return false
+          }
+        },
+
+        /**
+         * Sets up automatic token refresh
+         */
+        setupTokenRefresh: () => {
+          const { tokenExpiresAt, refreshInProgress } = get()
+
+          if (!tokenExpiresAt || refreshInProgress) return
+
+          const TOKEN_REFRESH_BUFFER = 5 * 60 * 1000 // 5 minutes before expiry
+          const timeUntilExpiry = tokenExpiresAt - Date.now()
+          const refreshTime = Math.max(
+            timeUntilExpiry - TOKEN_REFRESH_BUFFER,
+            60000
+          )
+
+          console.log(
+            `🔄 [AuthStore] Token refresh scheduled in ${Math.round(refreshTime / 1000 / 60)} minutes`
+          )
+
+          setTimeout(() => {
+            get().refreshTokenAutomatically().catch(console.error)
+          }, refreshTime)
+        },
+
+        /**
+         * Automatically refreshes the token
+         */
+        refreshTokenAutomatically: async () => {
+          const { token, refreshToken, refreshInProgress, lastRefreshAttempt } =
+            get()
+
+          if (!token || !refreshToken || refreshInProgress) {
+            return null
+          }
+
+          // Prevent multiple simultaneous refresh attempts
+          if (lastRefreshAttempt && Date.now() - lastRefreshAttempt < 30000) {
+            console.log(
+              "🔄 [AuthStore] Refresh already attempted recently, skipping"
+            )
+            return null
+          }
+
+          set({ refreshInProgress: true, lastRefreshAttempt: Date.now() })
+
+          try {
+            console.log("🔄 [AuthStore] Attempting automatic token refresh...")
+
+            const response = await fetch(`${BACKEND_API_URL}/auth/refresh`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+                "X-Reg-Id": DEFAULT_REGISTRATION_ID,
+              },
+              body: JSON.stringify({ refreshToken }),
+            })
+
+            const data = await response.json()
+
+            if (!response.ok) {
+              throw new Error(data.message || "Token refresh failed")
+            }
+
+            if (data.token) {
+              console.log("✅ [AuthStore] Token refreshed successfully")
+              get().logInSuccess(
+                data.user || get().user,
+                data.token,
+                data.refreshToken || refreshToken
+              )
+              return data.token
+            }
+
+            return null
+          } catch (error) {
+            console.error("❌ [AuthStore] Token refresh failed:", error)
+            set({ refreshInProgress: false })
+            return null
+          }
+        },
+
+        /**
+         * Tracks user actions for analytics
+         */
+        trackUserAction: (
+          action: string,
+          metadata?: Record<string, unknown>
+        ) => {
+          const analytics = get().sessionAnalytics
+          analytics.actionsPerformed++
+
+          console.log(`📊 [AuthStore] User action: ${action}`, metadata)
+
+          // Send to analytics service if available
+          if (
+            typeof window !== "undefined" &&
+            (window as unknown as { gtag?: unknown }).gtag
+          ) {
+            ;(
+              window as unknown as {
+                gtag: (
+                  event: string,
+                  action: string,
+                  metadata?: Record<string, unknown>
+                ) => void
+              }
+            ).gtag("event", action, metadata)
+          }
+        },
+
+        /**
+         * Sets online/offline state
+         */
+        setOnline: (isOnline: boolean) => {
+          set({ isOnline })
+
+          if (isOnline) {
+            // Process pending actions when coming back online
+            get().processPendingActions()
+          }
+        },
+
+        /**
+         * Adds action to pending queue when offline
+         */
+        addPendingAction: (action: () => Promise<void>) => {
+          const { pendingActions, isOnline } = get()
+
+          if (isOnline) {
+            return action()
+          } else {
+            set({ pendingActions: [...pendingActions, action] })
+          }
+        },
+
+        /**
+         * Processes pending actions when back online
+         */
+        processPendingActions: async () => {
+          const { pendingActions, isOnline } = get()
+
+          if (!isOnline || pendingActions.length === 0) return
+
+          console.log(
+            `📡 [AuthStore] Processing ${pendingActions.length} pending actions`
+          )
+
+          set({ pendingActions: [] })
+
+          for (const action of pendingActions) {
+            try {
+              await action()
+            } catch (error) {
+              console.error("Error processing pending action:", error)
+            }
+          }
+        },
+
+        /**
+         * Initializes authentication state on app start
+         */
+        initializeAuth: () => {
+          const { token, isAuthenticated } = get()
+
+          if (isAuthenticated && token) {
+            const isValid = get().validateTokenExpiration(token)
+
+            if (!isValid) {
+              console.log(
+                "❌ [AuthStore] Token expired on initialization, logging out"
+              )
+              get().logOutSuccess()
+            } else {
+              console.log("✅ [AuthStore] Token valid on initialization")
+              get().setupTokenRefresh()
+            }
+          }
+
+          // Setup online/offline detection
+          if (typeof window !== "undefined") {
+            const handleOnline = () => get().setOnline(true)
+            const handleOffline = () => get().setOnline(false)
+
+            window.addEventListener("online", handleOnline)
+            window.addEventListener("offline", handleOffline)
+
+            // Set initial online state
+            get().setOnline(navigator.onLine)
+          }
+        },
+
+        /**
+         * Forces logout and clears all authentication state
+         * Useful for clearing stuck authentication states
+         */
+        forceLogout: () => {
+          console.log("🔄 [AuthStore] Force logout called")
+          get().logOutSuccess()
+        },
       }),
       {
         name: "auth-storage",
@@ -746,6 +1050,10 @@ export const useAuthStore = create<AuthState>()(
           refreshToken: state.refreshToken,
           user: state.user,
           companies: state.companies,
+          // Enhanced security fields
+          tokenExpiresAt: state.tokenExpiresAt,
+          tokenStoredAt: state.tokenStoredAt,
+          sessionAnalytics: state.sessionAnalytics,
         }),
       }
     )

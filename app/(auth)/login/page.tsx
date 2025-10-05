@@ -20,22 +20,48 @@ const fontManrope = FontManrope({
 })
 
 export default function LoginPage() {
-  const { isAuthenticated, logInStatusCheck } = useAuthStore()
+  const { isAuthenticated, logInStatusCheck, isLoading, forceLogout, error } =
+    useAuthStore()
   const router = useRouter()
 
   // Check if user is already logged in when the page loads
   useEffect(() => {
     const checkAuthStatus = async () => {
-      await logInStatusCheck()
+      try {
+        await logInStatusCheck()
 
-      // If user is authenticated, redirect to company select page
-      if (isAuthenticated) {
-        router.push("/company-select")
+        // If user is authenticated, redirect to company select page
+        if (isAuthenticated) {
+          router.push("/company-select")
+        }
+      } catch (error) {
+        console.error("Auth status check failed:", error)
+        // Force logout to clear any invalid state
+        forceLogout()
       }
     }
 
     checkAuthStatus()
-  }, [isAuthenticated, logInStatusCheck, router])
+  }, [isAuthenticated, logInStatusCheck, router, forceLogout])
+
+  // Ensure loading state is properly reset on login page
+  useEffect(() => {
+    // Reset loading state when login page mounts
+    if (isLoading && !isAuthenticated) {
+      const timer = setTimeout(() => {
+        forceLogout()
+      }, 1000)
+
+      return () => clearTimeout(timer)
+    }
+  }, [isLoading, isAuthenticated, forceLogout])
+
+  // Clear any authentication errors when page loads
+  useEffect(() => {
+    if (error) {
+      console.log("Authentication error detected:", error)
+    }
+  }, [error])
 
   return (
     <div

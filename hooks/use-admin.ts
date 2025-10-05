@@ -11,10 +11,6 @@ import {
 import { ApiResponse } from "@/interfaces/auth"
 import { IDocType } from "@/interfaces/lookup"
 import {
-  NotificationHistory,
-  NotificationPreferences,
-} from "@/interfaces/notification"
-import {
   keepPreviousData,
   useMutation,
   useQuery,
@@ -478,110 +474,5 @@ export const useCloneUserGroupRightsSave = () => {
         .then((res) => res.data)
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["user"] }),
-  })
-}
-
-/**
- * 9. Notification Management
- * -------------------------
- * 9.1 Get User Notification Preferences
- * @param {number} userId - ID of user
- * @returns {object} Query object containing user notification preferences
- */
-export const useGetUserNotificationPreferences = (userId: number) => {
-  return useQuery<ApiResponse<NotificationPreferences>>({
-    queryKey: ["userNotificationPreferences", userId],
-    queryFn: async () => {
-      return apiClient
-        .get(`/api/proxy/notifications/preferences/${userId}`)
-        .then((response) => response.data)
-    },
-    enabled: !!userId,
-    refetchOnWindowFocus: false,
-  })
-}
-
-/**
- * 9.2 Save User Notification Preferences
- * @param {object} data - User notification preferences data
- * @returns {object} Mutation object for saving user notification preferences
- */
-export const useSaveUserNotificationPreferences = () => {
-  const queryClient = useQueryClient()
-  return useMutation({
-    mutationFn: async ({ data }: { data: NotificationPreferences }) => {
-      try {
-        const response = await apiClient.post(
-          `/api/proxy/notifications/preferences`,
-          data
-        )
-        return response.data
-      } catch (error) {
-        if (error instanceof AxiosError) {
-          console.error("Error saving user notification preferences:", error)
-          throw (
-            error.response?.data ||
-            "Error saving user notification preferences."
-          )
-        }
-        throw new Error("An unexpected error occurred")
-      }
-    },
-    onSuccess: () =>
-      queryClient.invalidateQueries({
-        queryKey: ["userNotificationPreferences"],
-      }),
-  })
-}
-
-/**
- * 9.3 Get Users for Notification Targeting
- * @param {string} notificationType - Type of notification to filter users
- * @returns {object} Query object containing users for notification targeting
- */
-export const useGetUsersForNotification = (notificationType?: string) => {
-  return useQuery<ApiResponse<IUser[]>>({
-    queryKey: ["usersForNotification", notificationType],
-    queryFn: async () => {
-      const params = notificationType ? { notificationType } : {}
-      return apiClient
-        .get(`/api/proxy/users/notification-targets`, { params })
-        .then((response) => response.data)
-    },
-    refetchOnWindowFocus: false,
-  })
-}
-
-/**
- * 9.4 Send Bulk Notifications
- * @param {object} data - Bulk notification data
- * @returns {object} Mutation object for sending bulk notifications
- */
-export const useSendBulkNotifications = () => {
-  const queryClient = useQueryClient()
-  return useMutation({
-    mutationFn: async ({
-      data,
-    }: {
-      data: { notifications: NotificationHistory[] }
-    }) => {
-      try {
-        const response = await apiClient.post(
-          `/api/proxy/notifications/bulk-send`,
-          data
-        )
-        return response.data
-      } catch (error) {
-        if (error instanceof AxiosError) {
-          console.error("Error sending bulk notifications:", error)
-          throw error.response?.data || "Error sending bulk notifications."
-        }
-        throw new Error("An unexpected error occurred")
-      }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["notifications"] })
-      queryClient.invalidateQueries({ queryKey: ["notificationStats"] })
-    },
   })
 }

@@ -14,6 +14,41 @@ const publicRoutes = [
 // Define auth routes that require authentication but not company selection
 const authRoutes = ["/company-select"]
 
+// Helper function to decode JWT token
+function jwtDecode(token: string): Record<string, unknown> | null {
+  try {
+    const base64Url = token.split(".")[1]
+    const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/")
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split("")
+        .map(function (c) {
+          return "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2)
+        })
+        .join("")
+    )
+    return JSON.parse(jsonPayload)
+  } catch (error) {
+    console.error("Error decoding JWT token:", error)
+    return null
+  }
+}
+
+// Helper function to validate token expiration
+function isTokenExpired(token: string): boolean {
+  try {
+    const decoded = jwtDecode(token)
+    if (!decoded || !decoded.exp) return true
+
+    // exp is in seconds, Date.now() is in milliseconds
+    const isExpired = Date.now() >= (decoded.exp as number) * 1000
+    return isExpired
+  } catch (error) {
+    console.error("Error validating token expiration:", error)
+    return true
+  }
+}
+
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
@@ -27,6 +62,35 @@ export function middleware(request: NextRequest) {
   if (!token && !publicRoutes.includes(pathname)) {
     console.log("Middleware - No token found, redirecting to login")
     return NextResponse.redirect(new URL("/login", request.url))
+  }
+
+  // Enhanced: Validate token expiration for protected routes
+  if (token && !publicRoutes.includes(pathname)) {
+    try {
+      const decoded = jwtDecode(token)
+
+      if (!decoded || !decoded.exp) {
+        console.log(
+          "Middleware - Invalid token structure, redirecting to login"
+        )
+        return NextResponse.redirect(new URL("/login", request.url))
+      }
+
+      const isExpired = isTokenExpired(token)
+
+      if (isExpired) {
+        console.log("Middleware - Token expired, redirecting to login")
+        return NextResponse.redirect(new URL("/login", request.url))
+      }
+
+      console.log("Middleware - Token valid, allowing access")
+    } catch (error) {
+      console.log(
+        "Middleware - Token validation error, redirecting to login:",
+        error
+      )
+      return NextResponse.redirect(new URL("/login", request.url))
+    }
   }
 
   // If token exists but no company is selected, redirect to company select

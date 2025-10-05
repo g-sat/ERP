@@ -4,6 +4,8 @@ import { cookies } from "next/headers"
 
 import { fontVariables } from "@/lib/fonts"
 import { cn } from "@/lib/utils"
+import { AuthInitializer } from "@/components/auth/auth-initializer"
+import { SecurityProvider } from "@/components/auth/security-provider"
 import { Analytics } from "@/components/layout/analytics"
 import { CompanyProvider } from "@/components/layout/company-provider"
 import { QueryProviders } from "@/components/layout/queryproviders"
@@ -124,10 +126,13 @@ export default async function RootLayout({
         )}
       >
         <QueryProviders theme={activeThemeValue}>
-          <CompanyProvider>
-            {children}
-            <Analytics />
-          </CompanyProvider>
+          <SecurityProvider>
+            <CompanyProvider>
+              <AuthInitializer />
+              {children}
+              <Analytics />
+            </CompanyProvider>
+          </SecurityProvider>
         </QueryProviders>
       </body>
     </html>

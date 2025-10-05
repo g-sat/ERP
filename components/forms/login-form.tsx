@@ -1,23 +1,69 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useAuthStore } from "@/stores/auth-store"
 
 import { cn } from "@/lib/utils"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 
 /**
+ * Validation rules and helpers
+ */
+const validateUserName = (value: string): string | undefined => {
+  if (!value.trim()) {
+    return "Username is required"
+  }
+  if (value.trim().length < 2) {
+    return "Username must be at least 2 characters"
+  }
+  if (value.trim().length > 50) {
+    return "Username must be less than 50 characters"
+  }
+  if (!/^[a-zA-Z0-9_.-]+$/.test(value.trim())) {
+    return "Username can only contain letters, numbers, dots, hyphens, and underscores"
+  }
+  return undefined
+}
+
+const validatePassword = (value: string): string | undefined => {
+  if (!value) {
+    return "Password is required"
+  }
+  if (value.length < 2) {
+    return "Password must be at least 2 characters"
+  }
+  if (value.length > 128) {
+    return "Password must be less than 128 characters"
+  }
+  return undefined
+}
+
+const validateForm = (userName: string, userPassword: string) => {
+  const errors: { userName?: string; userPassword?: string; general?: string } =
+    {}
+
+  const userNameError = validateUserName(userName)
+  const passwordError = validatePassword(userPassword)
+
+  if (userNameError) errors.userName = userNameError
+  if (passwordError) errors.userPassword = passwordError
+
+  return errors
+}
+
+/**
  * Login Form Component
  *
  * This component provides a user interface for authentication with the following features:
- * 1. Username and password input fields
- * 2. Form validation
+ * 1. Username and password input fields with validation
+ * 2. Real-time form validation
  * 3. Error handling and display
  * 4. Loading state management
  * 5. Redirect after successful login
@@ -35,23 +81,96 @@ export function LoginForm({
   const [userName, setUserName] = useState("")
   const [userPassword, setUserPassword] = useState("")
   const [message, setMessage] = useState("")
-  const { logIn, isLoading } = useAuthStore()
+  const [errors, setErrors] = useState<{
+    userName?: string
+    userPassword?: string
+    general?: string
+  }>({})
+  const [touched, setTouched] = useState<{
+    userName?: boolean
+    userPassword?: boolean
+    form?: boolean
+  }>({})
+  const { logIn, isLoading, error } = useAuthStore()
   const router = useRouter()
 
+  // Validation effects
+  useEffect(() => {
+    if (touched.userName) {
+      const error = validateUserName(userName)
+      setErrors((prev) => ({ ...prev, userName: error }))
+    }
+  }, [userName, touched.userName])
+
+  useEffect(() => {
+    if (touched.userPassword) {
+      const error = validatePassword(userPassword)
+      setErrors((prev) => ({ ...prev, userPassword: error }))
+    }
+  }, [userPassword, touched.userPassword])
+
+  useEffect(() => {
+    // Only show error if user has interacted with the form or it's a login attempt error
+    if (error && (touched.form || touched.userName || touched.userPassword)) {
+      setErrors((prev) => ({ ...prev, general: error }))
+    }
+  }, [error, touched.form, touched.userName, touched.userPassword])
+
+  // Input handlers with validation
+  const handleUserNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setUserName(e.target.value)
+    setErrors((prev) => ({ ...prev, general: undefined }))
+    setTouched((prev) => ({ ...prev, userName: true }))
+  }
+
+  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setUserPassword(e.target.value)
+    setErrors((prev) => ({ ...prev, general: undefined }))
+    setTouched((prev) => ({ ...prev, userPassword: true }))
+  }
+
+  const handleUserNameBlur = () => {
+    setTouched((prev) => ({ ...prev, userName: true }))
+  }
+
+  const handlePasswordBlur = () => {
+    setTouched((prev) => ({ ...prev, userPassword: true }))
+  }
+
   /**
-   * Handles form submission
+   * Handles form submission with validation
    * Flow:
-   * 1. Prevent default form submission
-   * 2. Call login API through auth store
-   * 3. Handle response
-   * 4. Redirect on success
-   * 5. Display message on failure
+   * 1. Validate form inputs
+   * 2. Prevent default form submission
+   * 3. Call login API through auth store
+   * 4. Handle response
+   * 5. Redirect on success
+   * 6. Display message on failure
    */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
+    // Mark all fields as touched to trigger validation
+    setTouched({ userName: true, userPassword: true })
+
+    // Validate form
+    const validationErrors = validateForm(userName, userPassword)
+    setErrors(validationErrors)
+
+    // If there are validation errors, don't submit
+    if (Object.keys(validationErrors).length > 0) {
+      return
+    }
+
     try {
-      const loginResponse = await logIn(userName, userPassword)
+      // Mark form as touched to show errors
+      setTouched((prev) => ({ ...prev, form: true }))
+
+      // Clear previous errors
+      setErrors({})
+      setMessage("")
+
+      const loginResponse = await logIn(userName.trim(), userPassword)
 
       // If login is successful (no error), redirect to company selection page
       if (!useAuthStore.getState().error) {
@@ -64,6 +183,10 @@ export function LoginForm({
     } catch (error) {
       // Error is handled by the auth store
       console.error("Login failed:", error)
+      setErrors((prev) => ({
+        ...prev,
+        general: error instanceof Error ? error.message : "Login failed",
+      }))
     }
   }
 
@@ -84,11 +207,21 @@ export function LoginForm({
                 </p>
               </div>
 
-              {/* Status Message */}
+              {/* Status Messages */}
               {message && (
-                <div className="text-center font-medium text-red-500">
-                  {message}
-                </div>
+                <Alert>
+                  <AlertDescription className="text-center font-medium text-red-500">
+                    {message}
+                  </AlertDescription>
+                </Alert>
+              )}
+
+              {errors.general && (
+                <Alert>
+                  <AlertDescription className="text-center font-medium text-red-500">
+                    {errors.general}
+                  </AlertDescription>
+                </Alert>
               )}
 
               {/* Username Field */}
@@ -98,10 +231,19 @@ export function LoginForm({
                   id="userName"
                   type="text"
                   value={userName}
-                  onChange={(e) => setUserName(e.target.value)}
+                  onChange={handleUserNameChange}
+                  onBlur={handleUserNameBlur}
                   required
                   tabIndex={1}
+                  className={cn(
+                    errors.userName &&
+                      "border-red-500 focus-visible:ring-red-500"
+                  )}
+                  placeholder="Enter your username"
                 />
+                {errors.userName && (
+                  <p className="text-sm text-red-500">{errors.userName}</p>
+                )}
               </div>
 
               {/* Password Field */}
@@ -119,18 +261,28 @@ export function LoginForm({
                   id="userPassword"
                   type="password"
                   value={userPassword}
-                  onChange={(e) => setUserPassword(e.target.value)}
+                  onChange={handlePasswordChange}
+                  onBlur={handlePasswordBlur}
                   required
                   tabIndex={2}
+                  className={cn(
+                    errors.userPassword &&
+                      "border-red-500 focus-visible:ring-red-500"
+                  )}
+                  placeholder="Enter your password"
                 />
+                {errors.userPassword && (
+                  <p className="text-sm text-red-500">{errors.userPassword}</p>
+                )}
               </div>
 
               {/* Submit Button */}
               <Button
                 className="w-full"
                 onClick={handleSubmit}
-                disabled={isLoading}
+                disabled={isLoading || !userName.trim() || !userPassword}
                 tabIndex={3}
+                type="submit"
               >
                 {isLoading ? "Logging in..." : "Log in"}
               </Button>
