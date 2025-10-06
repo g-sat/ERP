@@ -67,7 +67,11 @@ export const refreshToken = async (): Promise<string | null> => {
         body: JSON.stringify({ refreshToken: state.refreshToken }),
       }
     )
-    console.log("response refreshToken", response)
+    console.log("🔄 [AuthHelpers] Refresh token response:", {
+      status: response.status,
+      ok: response.ok,
+      statusText: response.statusText,
+    })
 
     const data = await handleApiResponse(response, {
       result: 0,

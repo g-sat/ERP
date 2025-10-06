@@ -39,6 +39,7 @@ export function useSessionExpiry() {
   const [timeRemaining, setTimeRemaining] = useState(0)
   const [_lastActivity, setLastActivity] = useState(Date.now())
   const [warningShown, setWarningShown] = useState(false)
+  const [isRefreshing, setIsRefreshing] = useState(false)
 
   const config = getSessionConfig()
 
@@ -111,21 +112,73 @@ export function useSessionExpiry() {
 
   // Handle stay signed in
   const handleStaySignedIn = useCallback(async () => {
-    setShowModal(false)
-    setWarningShown(false)
+    // Prevent multiple clicks
+    if (isRefreshing) {
+      console.log("🔄 [SessionExpiry] Already refreshing, ignoring click")
+      return
+    }
+
+    console.log("🔄 [SessionExpiry] Stay signed in clicked")
+    setIsRefreshing(true)
+
+    // Don't close modal immediately - wait for token refresh result
+    // setShowModal(false)
+    // setWarningShown(false)
     setLastActivity(Date.now())
 
     // Refresh the token to extend session
     try {
-      const newToken = await refreshToken()
+      console.log("🔄 [SessionExpiry] Refreshing token...")
+
+      // Add timeout to prevent infinite loading
+      const refreshPromise = refreshToken()
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error("Token refresh timeout")), 10000)
+      )
+
+      const newToken = (await Promise.race([
+        refreshPromise,
+        timeoutPromise,
+      ])) as string | null
+      console.log(
+        "🔄 [SessionExpiry] Token refresh result:",
+        newToken ? "SUCCESS" : "FAILED"
+      )
+
       if (newToken) {
-        // Reset warning state so modal can show again if needed
+        console.log("✅ [SessionExpiry] Token refreshed successfully")
+        // Success - close modal and reset warning state
+        setShowModal(false)
+        setWarningShown(false)
+        // Force a session check to update the expiry time
+        setTimeout(() => {
+          const now = Date.now()
+          const tokenExpiry = getTokenExpiry(newToken)
+          const timeUntilExpiry = tokenExpiry - now
+          console.log(
+            "🔄 [SessionExpiry] New token expiry time:",
+            Math.floor(timeUntilExpiry / 1000),
+            "seconds"
+          )
+        }, 100)
+      } else {
+        console.warn(
+          "⚠️ [SessionExpiry] Token refresh returned null - keeping modal open"
+        )
+        // If no new token, keep modal open and show error
+        setShowModal(true)
         setWarningShown(false)
       }
     } catch (error) {
-      console.error("Failed to refresh token:", error)
+      console.error("❌ [SessionExpiry] Failed to refresh token:", error)
+      // If token refresh fails, keep modal open and show error
+      setShowModal(true)
+      setWarningShown(false)
+    } finally {
+      console.log("🔄 [SessionExpiry] Setting isRefreshing to false")
+      setIsRefreshing(false)
     }
-  }, [])
+  }, [getTokenExpiry, isRefreshing])
 
   // Reset warning state when token changes (e.g., after refresh)
   useEffect(() => {
@@ -198,6 +251,7 @@ export function useSessionExpiry() {
     token,
     config.enabled,
     config.warningTimeMinutes,
+    config.sessionTimeoutMinutes,
     warningShown,
     isTokenExpired,
     getTokenExpiry,
@@ -273,6 +327,7 @@ export function useSessionExpiry() {
   return {
     showModal,
     timeRemaining,
+    isRefreshing,
     onSignOut: handleSignOut,
     onStaySignedIn: handleStaySignedIn,
     onClose: handleClose,

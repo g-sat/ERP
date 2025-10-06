@@ -11,18 +11,25 @@ interface SessionExpiryProviderProps {
 export function SessionExpiryProvider({
   children,
 }: SessionExpiryProviderProps) {
-  const { showModal, timeRemaining, onSignOut, onStaySignedIn, onClose } =
-    useSessionExpiry()
+  const {
+    showModal,
+    timeRemaining,
+    isRefreshing,
+    onSignOut,
+    onStaySignedIn,
+    onClose,
+  } = useSessionExpiry()
 
   return (
     <>
       {children}
       <SessionExpiryModal
         isOpen={showModal}
-        onClose={onClose}
-        onStaySignedIn={onStaySignedIn}
-        onSignOut={onSignOut}
+        onCloseAction={onClose}
+        onStaySignedInAction={onStaySignedIn}
+        onSignOutAction={onSignOut}
         timeRemaining={timeRemaining}
+        isRefreshing={isRefreshing}
       />
     </>
   )

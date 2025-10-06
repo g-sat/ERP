@@ -15,18 +15,20 @@ import {
 
 interface SessionExpiryModalProps {
   isOpen: boolean
-  onClose: () => void
-  onStaySignedIn: () => void
-  onSignOut: () => void
+  onCloseAction: () => void
+  onStaySignedInAction: () => void
+  onSignOutAction: () => void
   timeRemaining: number
+  isRefreshing?: boolean
 }
 
 export function SessionExpiryModal({
   isOpen,
-  onClose,
-  onStaySignedIn,
-  onSignOut,
+  onCloseAction,
+  onStaySignedInAction,
+  onSignOutAction,
   timeRemaining,
+  isRefreshing = false,
 }: SessionExpiryModalProps) {
   const [countdown, setCountdown] = useState(timeRemaining)
 
@@ -42,7 +44,7 @@ export function SessionExpiryModal({
         if (prev <= 1) {
           clearInterval(interval)
           // Add a small delay to ensure the UI updates before sign out
-          setTimeout(() => onSignOut(), 100)
+          setTimeout(() => onSignOutAction(), 100)
           return 0
         }
         return prev - 1
@@ -50,7 +52,7 @@ export function SessionExpiryModal({
     }, 1000)
 
     return () => clearInterval(interval)
-  }, [isOpen, timeRemaining, onSignOut])
+  }, [isOpen, timeRemaining, onSignOutAction])
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60)
@@ -59,7 +61,7 @@ export function SessionExpiryModal({
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onCloseAction()}>
       <DialogContent
         className="sm:max-w-md"
         onEscapeKeyDown={(e) => e.preventDefault()}
@@ -137,15 +139,28 @@ export function SessionExpiryModal({
         <DialogFooter className="flex flex-col-reverse gap-2 sm:flex-row">
           <Button
             variant="outline"
-            onClick={onSignOut}
+            onClick={onSignOutAction}
             className="text-muted-foreground hover:border-destructive hover:text-destructive flex items-center gap-2"
           >
             <LogOut className="h-4 w-4" />
             Sign out now
           </Button>
-          <Button onClick={onStaySignedIn} className="flex items-center gap-2">
-            <User className="h-4 w-4" />
-            Stay signed in
+          <Button
+            onClick={onStaySignedInAction}
+            disabled={isRefreshing}
+            className="flex items-center gap-2"
+          >
+            {isRefreshing ? (
+              <>
+                <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                Refreshing...
+              </>
+            ) : (
+              <>
+                <User className="h-4 w-4" />
+                Stay signed in
+              </>
+            )}
           </Button>
         </DialogFooter>
       </DialogContent>
