@@ -248,6 +248,8 @@ export const Lookup = {
   getCustomerContact: "/master/getcustomercontactlookup_fin",
   getSupplierAddress: "/master/getsupplieraddresslookup_fin",
   getSupplierContact: "/master/getsuppliercontactlookup_fin",
+  getBankAddress: "/master/getbankaddresslookup_fin",
+  getBankContact: "/master/getbankcontactlookup_fin",
   getSupplier: "/master/getsupplierlookup",
   getPaymentType: "/master/getpaymenttypelookup",
   getVessel: "/master/getvessellookup",

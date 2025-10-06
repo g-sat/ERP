@@ -238,6 +238,7 @@ export interface ISupplierLookup {
   supplierName: string
   currencyId: number
   creditTermId: number
+  bankId: number
 }
 
 export interface IPaymentTypeLookup {

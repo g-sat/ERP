@@ -120,7 +120,6 @@ export default function PhotoUpload({
         <div className="relative">
           <div className="flex h-32 w-32 items-center justify-center overflow-hidden rounded-full border-2 border-dashed border-gray-300 bg-gray-50">
             {getPhotoUrl() ? (
-              // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={getPhotoUrl()}
                 alt="Photo"

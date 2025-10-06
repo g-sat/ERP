@@ -1,3 +1,4 @@
+import { IBankAddress, IBankContact } from "@/interfaces/bank"
 import { ICustomerAddress, ICustomerContact } from "@/interfaces/customer"
 import {
   IAccountGroupLookup,
@@ -269,6 +270,27 @@ export const useSupplierContactLookup = (customerId: number | string) => {
 }
 
 /**
+ * 6.6 Get Bank Contact Lookup
+ * @param {number|string} bankId - Bank ID
+ * @returns {object} Query object containing bank contacts
+ */
+export const useBankContactLookup = (bankId: number | string) => {
+  return useQuery<IBankContact[]>({
+    queryKey: ["bank-contact-lookup", bankId],
+    ...defaultQueryConfig,
+    queryFn: async () => {
+      try {
+        const data = await getData(`${Lookup.getBankContact}/${bankId}`)
+        return data?.data || []
+      } catch (error) {
+        handleApiError(error)
+      }
+    },
+    enabled: bankId !== 0,
+  })
+}
+
+/**
  * 6.4 Get Supplier Address Lookup
  * @param {number|string} customerId - Customer ID
  * @returns {object} Query object containing supplier addresses
@@ -286,6 +308,27 @@ export const useSupplierAddressLookup = (customerId: number | string) => {
       }
     },
     enabled: customerId !== 0,
+  })
+}
+
+/**
+ * 6.5 Get Bank Address Lookup
+ * @param {number|string} bankId - Bank ID
+ * @returns {object} Query object containing bank addresses
+ */
+export const useBankAddressLookup = (bankId: number | string) => {
+  return useQuery<IBankAddress[]>({
+    queryKey: ["bank-address-lookup", bankId],
+    ...defaultQueryConfig,
+    queryFn: async () => {
+      try {
+        const data = await getData(`${Lookup.getBankAddress}/${bankId}`)
+        return data?.data || []
+      } catch (error) {
+        handleApiError(error)
+      }
+    },
+    enabled: bankId !== 0,
   })
 }
 
