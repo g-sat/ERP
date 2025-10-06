@@ -1,20 +1,15 @@
 import { IJobOrderHd } from "@/interfaces/checklist"
 import { useQuery } from "@tanstack/react-query"
-
 import { getData, saveData } from "@/lib/api-client"
 import { JobOrder } from "@/lib/api-routes"
-
 import { useDelete, useGet, useGetById, usePersist } from "./use-common"
-
 // Enhanced query hooks using api-client.ts
 export function useGetJobOrders(filters?: string) {
   return useGet<IJobOrderHd>(JobOrder.get, "joborders", filters)
 }
-
 export function useGetJobOrderById(id: string) {
   return useGetById<IJobOrderHd>(JobOrder.getById, "joborder", id)
 }
-
 export function useGetJobOrderByIdNo(jobOrderId: string) {
   return useQuery<{
     result: number
@@ -26,7 +21,6 @@ export function useGetJobOrderByIdNo(jobOrderId: string) {
     queryFn: async () => {
       // Using the api-client.ts getData function for consistent API calls
       const data = await getData(`${JobOrder.getById}/${jobOrderId}`)
-      console.log("Job order details response:", data)
       return data
     },
     enabled: !!jobOrderId,
@@ -36,28 +30,22 @@ export function useGetJobOrderByIdNo(jobOrderId: string) {
     refetchOnWindowFocus: false, // Don't refetch on window focus
   })
 }
-
 // Enhanced mutation hooks using api-client.ts
 export function useSaveJobOrder() {
   return usePersist<IJobOrderHd>(JobOrder.add)
 }
-
 export function useUpdateJobOrder() {
   return usePersist<IJobOrderHd>(JobOrder.add)
 }
-
 export function useDeleteJobOrder() {
   return useDelete(JobOrder.delete)
 }
-
 export function useGetJobOrderDetails(id: string) {
   return useGetById<IJobOrderHd>(JobOrder.getDetails, "joborderdetails", id)
 }
-
 export function useSaveJobOrderDetails() {
   return usePersist<IJobOrderHd>(JobOrder.saveDetails)
 }
-
 // Enhanced query hooks for better api-client.ts integration
 export function useGetJobOrderByParams(
   params: Record<string, string>,
@@ -73,7 +61,6 @@ export function useGetJobOrderByParams(
     queryFn: async () => {
       // Using the api-client.ts getData function with parameters
       const data = await getData(JobOrder.get, params)
-      console.log("Job order with params response:", data)
       return data
     },
     enabled: Object.keys(params).length > 0 && !!companyId,
@@ -83,7 +70,6 @@ export function useGetJobOrderByParams(
     refetchOnWindowFocus: false,
   })
 }
-
 // Enhanced direct API call functions using api-client.ts
 export const saveJobOrderDirect = async (
   jobOrderData: Partial<IJobOrderHd>
@@ -96,7 +82,6 @@ export const saveJobOrderDirect = async (
     throw error
   }
 }
-
 export const updateJobOrderDirect = async (
   jobOrderData: Partial<IJobOrderHd>
 ) => {
@@ -108,7 +93,6 @@ export const updateJobOrderDirect = async (
     throw error
   }
 }
-
 export const deleteJobOrderDirect = async (jobOrderId: string) => {
   try {
     const response = await getData(`${JobOrder.delete}/${jobOrderId}`)
@@ -118,7 +102,6 @@ export const deleteJobOrderDirect = async (jobOrderId: string) => {
     throw error
   }
 }
-
 export const getJobOrderByIdNoDirect = async (jobOrderId: string) => {
   try {
     const response = await getData(`${JobOrder.getById}/${jobOrderId}`)
@@ -128,7 +111,6 @@ export const getJobOrderByIdNoDirect = async (jobOrderId: string) => {
     throw error
   }
 }
-
 // Additional utility functions for better api-client.ts integration
 export const getJobOrderDetailsDirect = async (jobOrderId: string) => {
   try {
@@ -139,7 +121,6 @@ export const getJobOrderDetailsDirect = async (jobOrderId: string) => {
     throw error
   }
 }
-
 export const saveJobOrderDetailsDirect = async (
   detailsData: Record<string, unknown>
 ) => {
@@ -151,7 +132,6 @@ export const saveJobOrderDetailsDirect = async (
     throw error
   }
 }
-
 // Enhanced search and filter functions
 export const searchJobOrdersDirect = async (searchParams: {
   searchString?: string
@@ -177,7 +157,6 @@ export const searchJobOrdersDirect = async (searchParams: {
     throw error
   }
 }
-
 // Bulk operations using api-client.ts
 export const bulkUpdateJobOrdersDirect = async (
   jobOrders: Partial<IJobOrderHd>[]
@@ -190,7 +169,6 @@ export const bulkUpdateJobOrdersDirect = async (
     throw error
   }
 }
-
 export const bulkDeleteJobOrdersDirect = async (jobOrderIds: string[]) => {
   try {
     const response = await getData(`${JobOrder.delete}/bulk`, {
@@ -202,7 +180,6 @@ export const bulkDeleteJobOrdersDirect = async (jobOrderIds: string[]) => {
     throw error
   }
 }
-
 // Export functionality
 export const exportJobOrdersDirect = async (
   format: "pdf" | "excel" | "csv",
@@ -220,7 +197,6 @@ export const exportJobOrdersDirect = async (
     throw error
   }
 }
-
 // Print functionality
 export const printJobOrderDirect = async (
   jobOrderId: string,

@@ -1,11 +1,8 @@
 "use client"
-
 import { useEffect } from "react"
 import { useAuthStore } from "@/stores/auth-store"
-
 import { securityMonitor } from "@/lib/security-features"
 import { smartCache } from "@/lib/smart-cache"
-
 /**
  * Security Provider Component
  *
@@ -18,28 +15,19 @@ import { smartCache } from "@/lib/smart-cache"
 export function SecurityProvider({ children }: { children: React.ReactNode }) {
   const { initializeAuth, isAuthenticated, user, trackUserAction } =
     useAuthStore()
-
   useEffect(() => {
     const initializeSecurity = async () => {
       try {
-        console.log("🔐 [SecurityProvider] Initializing security features...")
-
         // Initialize security monitoring
         await securityMonitor.initialize()
-
         // Initialize authentication
         initializeAuth()
-
         // Track initialization
         trackUserAction("security_initialized", {
           deviceId: securityMonitor.getDeviceId(),
           timestamp: Date.now(),
         })
-
-        console.log(
-          "✅ [SecurityProvider] Security features initialized successfully"
-        )
-      } catch (error) {
+        } catch (error) {
         console.error(
           "❌ [SecurityProvider] Security initialization failed:",
           error
@@ -49,15 +37,12 @@ export function SecurityProvider({ children }: { children: React.ReactNode }) {
         })
       }
     }
-
     initializeSecurity()
   }, [initializeAuth, trackUserAction])
-
   useEffect(() => {
     if (isAuthenticated && user) {
       // Reset failed login attempts on successful authentication
       securityMonitor.resetFailedLogins()
-
       // Track successful authentication
       trackUserAction("user_authenticated", {
         userId: user.userId,
@@ -65,12 +50,10 @@ export function SecurityProvider({ children }: { children: React.ReactNode }) {
       })
     }
   }, [isAuthenticated, user, trackUserAction])
-
   // Monitor for security events
   useEffect(() => {
     const handleSecurityEvent = () => {
       const securityContext = securityMonitor.getSecurityContext()
-
       if (securityContext.suspiciousActivity) {
         console.warn(
           "🚨 [SecurityProvider] Suspicious activity detected:",
@@ -87,20 +70,15 @@ export function SecurityProvider({ children }: { children: React.ReactNode }) {
         })
       }
     }
-
     // Check security every 5 minutes
     const interval = setInterval(handleSecurityEvent, 5 * 60 * 1000)
-
     return () => clearInterval(interval)
   }, [trackUserAction])
-
   // Cleanup on unmount
   useEffect(() => {
     return () => {
-      console.log("🧹 [SecurityProvider] Cleaning up security features")
       smartCache.clear()
     }
   }, [])
-
   return <>{children}</>
 }

@@ -69,7 +69,6 @@ export function ApprovalProcessForm({
     setIsSubmitting(true)
     try {
       // TODO: Implement save/update functionality
-      console.log("Saving approval process:", data)
       toast.success("Approval process functionality not yet implemented")
       onSuccess()
     } catch (error) {

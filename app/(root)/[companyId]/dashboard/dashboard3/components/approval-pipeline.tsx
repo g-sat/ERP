@@ -330,9 +330,7 @@ export default function ApprovalPipeline({
     .flatMap((col) => col.invoices)
     .filter((invoice) => invoice.daysInStage > 7).length
 
-  const handleInvoiceAction = (invoiceId: string, action: string) => {
-    console.log(`Performing ${action} on invoice ${invoiceId}`)
-  }
+  const handleInvoiceAction = (invoiceId: string, action: string) => {}
 
   const InvoiceCard = ({ invoice }: { invoice: InvoiceCard }) => (
     <div className="border-border mb-3 rounded-lg border bg-white p-3 transition-shadow hover:shadow-md">

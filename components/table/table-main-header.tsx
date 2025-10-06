@@ -3,7 +3,6 @@ import { IGridSetting } from "@/interfaces/setting"
 import { Column } from "@tanstack/react-table"
 // Import jsPDF properly
 import jsPDF from "jspdf"
-
 // Import autoTable plugin
 import "jspdf-autotable"
 import {
@@ -15,7 +14,6 @@ import {
   SlidersHorizontal,
 } from "lucide-react"
 import * as XLSX from "xlsx"
-
 import { usePersist } from "@/hooks/use-common"
 import { Button } from "@/components/ui/button"
 import {
@@ -27,7 +25,6 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
 import { SaveConfirmation } from "@/components/confirmation/save-confirmation"
-
 // Extend jsPDF to include autoTable with a more specific type
 declare module "jspdf" {
   interface jsPDF {
@@ -45,7 +42,6 @@ declare module "jspdf" {
     }) => jsPDF
   }
 }
-
 // Define types for clarity
 type MainTableHeaderProps<TData> = {
   onRefresh?: () => void
@@ -61,7 +57,6 @@ type MainTableHeaderProps<TData> = {
   moduleId: number
   transactionId: number
 }
-
 export function MainTableHeader<TData>({
   onRefresh,
   onCreate,
@@ -77,7 +72,6 @@ export function MainTableHeader<TData>({
   const [columnSearch, setColumnSearch] = useState("")
   const [activeButton, setActiveButton] = useState<"show" | "hide" | null>(null)
   const [isSaveLayoutOpen, setIsSaveLayoutOpen] = useState(false)
-
   // Filter columns based on search
   const filteredColumns = columns.filter((column) => {
     const headerText =
@@ -86,26 +80,20 @@ export function MainTableHeader<TData>({
         : column.id
     return headerText.toLowerCase().includes(columnSearch.toLowerCase())
   })
-
   const handleShowAll = () => {
     columns.forEach((column) => column.toggleVisibility(true))
     setActiveButton("show")
   }
-
   const handleHideAll = () => {
     columns.forEach((column) => column.toggleVisibility(false))
     setActiveButton("hide")
   }
-
   // Add the save mutation for grid settings
   const saveGridSettings = usePersist<IGridSetting>("/setting/saveUserGrid")
-
   // Handle save layout confirmation
   const handleSaveLayoutConfirm = async () => {
     try {
-      console.log(moduleId, transactionId, "moduleId, transactionId")
       const grdName = tableName
-
       // Get column visibility and order
       const columnVisibility = Object.fromEntries(
         columns.map((col) => [col.id, col.getIsVisible()])
@@ -115,7 +103,6 @@ export function MainTableHeader<TData>({
       )
       const columnOrder = columns.map((col) => col.id)
       const sorting: { id: string; desc: boolean }[] = [] // Add sorting if needed
-
       const gridSettings: IGridSetting = {
         moduleId,
         transactionId,
@@ -127,34 +114,28 @@ export function MainTableHeader<TData>({
         grdSort: JSON.stringify(sorting),
         grdString: "",
       }
-
       await saveGridSettings.mutateAsync(gridSettings)
     } catch (error) {
       console.error("Error saving layout:", error)
     }
   }
-
   const handleExportExcel = (data: TData[]) => {
     if (!data || data.length === 0) {
       return
     }
-
     try {
       // Create filtered data without ID fields
       const filteredData = data.map((item) => {
         const cleanedItem: Record<string, unknown> = {}
         const itemRecord = item as Record<string, unknown>
-
         // Copy all properties except those containing "id" (case-insensitive)
         Object.keys(itemRecord).forEach((key) => {
           if (!key.toLowerCase().includes("id")) {
             cleanedItem[key] = itemRecord[key]
           }
         })
-
         return cleanedItem
       })
-
       const worksheet = XLSX.utils.json_to_sheet(filteredData)
       const workbook = XLSX.utils.book_new()
       XLSX.utils.book_append_sheet(workbook, worksheet, "Sheet1")
@@ -163,37 +144,30 @@ export function MainTableHeader<TData>({
       console.error("Error exporting Excel:", error)
     }
   }
-
   const handleExportPdf = (data: TData[]) => {
     if (!data || data.length === 0) {
       return
     }
     try {
       const doc = new jsPDF()
-
       // Filter out ID columns
       const filteredData = data.map((item) => {
         const cleanedItem: Record<string, unknown> = {}
         const itemRecord = item as Record<string, unknown>
-
         // Copy all properties except those containing "id" (case-insensitive)
         Object.keys(itemRecord).forEach((key) => {
           if (!key.toLowerCase().includes("id")) {
             cleanedItem[key] = itemRecord[key]
           }
         })
-
         return cleanedItem
       })
-
       // Extract non-ID headers
       const headers =
         filteredData.length > 0 ? Object.keys(filteredData[0]) : []
-
       if (headers.length === 0) {
         return
       }
-
       // Create the table body and convert all values to strings
       const body = filteredData.map((row) =>
         headers.map((header) => {
@@ -201,7 +175,6 @@ export function MainTableHeader<TData>({
           return value !== null && value !== undefined ? String(value) : ""
         })
       )
-
       // Use autoTable as a method on the jsPDF instance
       doc.autoTable({
         head: [headers],
@@ -222,13 +195,11 @@ export function MainTableHeader<TData>({
         },
         margin: { top: 20, right: 10, bottom: 20, left: 10 },
       })
-
       doc.save(`${tableName}.pdf`)
     } catch (error) {
       console.error("Error exporting PDF:", error)
     }
   }
-
   return (
     <div className="mb-4 flex items-center justify-between">
       <div className="flex items-center gap-2">
@@ -243,7 +214,6 @@ export function MainTableHeader<TData>({
             <RefreshCw className="h-4 w-4" />
           </Button>
         )}
-
         {/* Excel Export Button */}
         <Button
           variant="outline"
@@ -262,7 +232,6 @@ export function MainTableHeader<TData>({
           <FileText className="h-4 w-4 text-red-600" />
           Pdf
         </Button>
-
         {/* Layout Change */}
         <Button
           variant="outline"
@@ -273,7 +242,6 @@ export function MainTableHeader<TData>({
           Save Layout
         </Button>
       </div>
-
       {/* Search Input */}
       <div className="flex items-center gap-2">
         <Input
@@ -334,7 +302,6 @@ export function MainTableHeader<TData>({
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
-
       {/* Save Layout Confirmation Dialog */}
       <SaveConfirmation
         title="Save Layout"

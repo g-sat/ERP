@@ -13,3 +13,4 @@ export const workLocationSchema = z.object({
 })
 
 export type WorkLocationSchemaType = z.infer<typeof workLocationSchema>
+export type WorkLocationFormData = z.infer<typeof workLocationSchema>

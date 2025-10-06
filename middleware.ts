@@ -55,8 +55,7 @@ export function middleware(request: NextRequest) {
   // Get auth token from cookies
   const token = request.cookies.get("auth-token")?.value
 
-  console.log("Middleware - Current path:", pathname)
-  console.log("Middleware - Token present:", !!token)
+  console.log("Middleware - Current path:", pathname, "Token present:", !!token)
 
   // If no token is present and not on a public route, redirect to login
   if (!token && !publicRoutes.includes(pathname)) {

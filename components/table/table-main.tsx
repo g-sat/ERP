@@ -3,7 +3,6 @@
 // ============================================================================
 // IMPORTS SECTION
 // ============================================================================
-
 // React hooks for component state and lifecycle management
 import { useEffect, useState } from "react"
 // Drag and Drop functionality for column reordering
@@ -56,13 +55,11 @@ import {
 } from "@tanstack/react-table"
 
 // Virtual scrolling removed - using empty rows instead
-
 // Utility types and custom hooks
 import { TableName } from "@/lib/utils"
 // Type for table names
 import { useGetGridLayout } from "@/hooks/use-settings"
 // Hook to get grid layout settings
-
 // UI components for table structure
 import {
   Table,
@@ -87,11 +84,9 @@ import { MainTableFooter } from "./table-main-footer"
 import { MainTableHeader } from "./table-main-header"
 
 // Search, refresh, and create buttons
-
 // ============================================================================
 // INTERFACE DEFINITION
 // ============================================================================
-
 /**
  * Props interface for the MainTable component
  * @template T - The type of data items in the table
@@ -108,13 +103,11 @@ interface MainTableProps<T> {
   tableName: TableName // Name of the table for grid layout persistence
   emptyMessage?: string // Message to show when no data is available
   accessorId: keyof T // Key to access unique identifier from data items
-
   // ============================================================================
   // HEADER FUNCTIONALITY PROPS
   // ============================================================================
   onRefresh?: () => void // Callback function for refresh button
   onFilterChange?: (filters: { search?: string; sortOrder?: string }) => void // Callback for filter changes
-
   // ============================================================================
   // ACTION HANDLER PROPS
   // ============================================================================
@@ -122,28 +115,23 @@ interface MainTableProps<T> {
   onCreate?: () => void // Callback for creating new item
   onEdit?: (item: T) => void // Callback for editing existing item
   onDelete?: (itemId: string) => void // Callback for deleting item
-
   // ============================================================================
   // VISIBILITY CONTROL PROPS
   // ============================================================================
   showHeader?: boolean // Whether to show the table header (search, refresh, create)
   showFooter?: boolean // Whether to show the table footer (pagination)
   showActions?: boolean // Whether to show action buttons column
-
   // ============================================================================
   // PERMISSION CONTROL PROPS
   // ============================================================================
-
   canView?: boolean // Permission to view items
   canCreate?: boolean // Permission to create new items
   canEdit?: boolean // Permission to edit items
   canDelete?: boolean // Permission to delete items
 }
-
 // ============================================================================
 // MAIN COMPONENT FUNCTION
 // ============================================================================
-
 /**
  * MainTable - A comprehensive data table component with advanced features
  *
@@ -172,22 +160,18 @@ export function MainTable<T>({
   tableName, // Table name for settings
   emptyMessage = "No data found.", // Default empty message
   accessorId, // Key for unique identifier
-
   // Header functionality props
   onRefresh, // Refresh callback
   onFilterChange, // Filter change callback
-
   // Action handler props
   onSelect, // Item selection callback
   onCreate, // Create item callback
   onEdit, // Edit item callback
   onDelete, // Delete item callback
-
   // Visibility control props with defaults
   showHeader = true, // Show header by default
   showFooter = true, // Show footer by default
   showActions = true, // Show actions by default
-
   // Permission props with defaults (all permissions enabled by default)
   canView = true, // View permission
   canCreate = true, // Create permission
@@ -197,7 +181,6 @@ export function MainTable<T>({
   // ============================================================================
   // GRID LAYOUT SETTINGS
   // ============================================================================
-
   // Fetch saved grid layout settings from the database
   // This allows users to have personalized table layouts that persist across sessions
   const { data: gridSettings } = useGetGridLayout(
@@ -205,49 +188,41 @@ export function MainTable<T>({
     transactionId?.toString() || "", // Convert transaction ID to string
     tableName // Table name for settings lookup
   )
-
-  //console.log(gridSettings, "gridSettings")
-
-  const gridSettingsData = gridSettings?.data
-
+  //const gridSettings = gridSettings?.data
   // ============================================================================
   // STATE MANAGEMENT WITH GRID SETTINGS
   // ============================================================================
-
   // Initialize table state with grid settings if available
   const getInitialSorting = (): SortingState => {
-    if (gridSettingsData?.grdSort) {
+    if (gridSettings?.grdSort) {
       try {
-        return JSON.parse(gridSettingsData.grdSort) || []
+        return JSON.parse(gridSettings.grdSort) || []
       } catch {
         return []
       }
     }
     return []
   }
-
   const getInitialColumnVisibility = (): VisibilityState => {
-    if (gridSettingsData?.grdColVisible) {
+    if (gridSettings?.grdColVisible) {
       try {
-        return JSON.parse(gridSettingsData.grdColVisible) || {}
+        return JSON.parse(gridSettings.grdColVisible) || {}
       } catch {
         return {}
       }
     }
     return {}
   }
-
   const getInitialColumnSizing = () => {
-    if (gridSettingsData?.grdColSize) {
+    if (gridSettings?.grdColSize) {
       try {
-        return JSON.parse(gridSettingsData.grdColSize) || {}
+        return JSON.parse(gridSettings.grdColSize) || {}
       } catch {
         return {}
       }
     }
     return {}
   }
-
   // Table state management using React hooks with grid settings initialization
   const [sorting, setSorting] = useState<SortingState>(getInitialSorting) // Current sorting configuration
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]) // Active column filters
@@ -259,25 +234,21 @@ export function MainTable<T>({
   const [currentPage, setCurrentPage] = useState(1) // Current page number
   const [pageSize, setPageSize] = useState(15) // Number of items per page
   const [rowSelection, setRowSelection] = useState({}) // Selected rows state
-
   // Reference to table container (removed as not needed)
-
   // ============================================================================
   // EFFECT: UPDATE STATE WHEN GRID SETTINGS CHANGE
   // ============================================================================
-
   /**
    * Update table state when grid settings change (for dynamic updates)
    * This handles cases where grid settings are loaded after component mount
    */
   useEffect(() => {
-    if (gridSettingsData) {
+    if (gridSettings) {
       try {
         // Parse saved settings from JSON strings
-        const colVisible = JSON.parse(gridSettingsData.grdColVisible || "{}") // Column visibility settings
-        const colSize = JSON.parse(gridSettingsData.grdColSize || "{}") // Column width settings
-        const sort = JSON.parse(gridSettingsData.grdSort || "[]") // Sorting configuration
-
+        const colVisible = JSON.parse(gridSettings.grdColVisible || "{}") // Column visibility settings
+        const colSize = JSON.parse(gridSettings.grdColSize || "{}") // Column width settings
+        const sort = JSON.parse(gridSettings.grdSort || "[]") // Sorting configuration
         // Update state only if it's different from current state
         setColumnVisibility((prev) => {
           const newVisibility =
@@ -286,13 +257,11 @@ export function MainTable<T>({
               : prev
           return newVisibility
         })
-
         setSorting((prev) => {
           const newSorting =
             JSON.stringify(prev) !== JSON.stringify(sort) ? sort : prev
           return newSorting
         })
-
         // Apply column sizing if available (only if there are saved sizes)
         if (Object.keys(colSize).length > 0) {
           setColumnSizing((prev: Record<string, number>) => {
@@ -306,12 +275,10 @@ export function MainTable<T>({
         console.error("Error parsing grid settings:", error)
       }
     }
-  }, [gridSettingsData]) // Re-run when grid settings change
-
+  }, [gridSettings]) // Re-run when grid settings change
   // ============================================================================
   // COLUMN CONFIGURATION
   // ============================================================================
-
   /**
    * Build the complete column configuration for the table
    * This includes the actions column (if enabled) plus all user-defined columns
@@ -348,11 +315,9 @@ export function MainTable<T>({
       : []), // Empty array if actions column should not be shown
     ...columns, // Spread all user-defined columns after the actions column
   ]
-
   // ============================================================================
   // TABLE INSTANCE CREATION
   // ============================================================================
-
   /**
    * Create the TanStack Table instance with all configuration
    * This is the core of the table functionality
@@ -364,7 +329,6 @@ export function MainTable<T>({
     data, // Data array to display
     columns: tableColumns, // Column definitions (including actions)
     pageCount: Math.ceil(data.length / pageSize), // Total number of pages
-
     // ============================================================================
     // STATE CHANGE HANDLERS
     // ============================================================================
@@ -373,7 +337,6 @@ export function MainTable<T>({
     onColumnVisibilityChange: setColumnVisibility, // Handle column show/hide
     onColumnSizingChange: setColumnSizing, // Handle column resize
     onRowSelectionChange: setRowSelection, // Handle row selection
-
     // ============================================================================
     // ROW MODELS (DATA PROCESSING)
     // ============================================================================
@@ -381,14 +344,12 @@ export function MainTable<T>({
     getPaginationRowModel: getPaginationRowModel(), // Pagination functionality
     getSortedRowModel: getSortedRowModel(), // Sorting functionality
     getFilteredRowModel: getFilteredRowModel(), // Filtering functionality
-
     // ============================================================================
     // FEATURE ENABLEMENT
     // ============================================================================
     enableColumnResizing: true, // Allow column resizing
     enableRowSelection: true, // Allow row selection
     columnResizeMode: "onChange", // Resize columns as user drags
-
     // ============================================================================
     // CURRENT STATE
     // ============================================================================
@@ -406,22 +367,19 @@ export function MainTable<T>({
       globalFilter: searchQuery, // Current search query
     },
   })
-
   // ============================================================================
   // EFFECT: APPLY SAVED COLUMN ORDER
   // ============================================================================
-
   /**
    * Apply saved column order after table instance is created
    * This must be done after the table is initialized because setColumnOrder
    * requires the table instance to be available
    */
   useEffect(() => {
-    if (gridSettingsData && table) {
+    if (gridSettings && table) {
       try {
         // Parse saved column order from JSON string
-        const colOrder = JSON.parse(gridSettingsData.grdColOrder || "[]")
-
+        const colOrder = JSON.parse(gridSettings.grdColOrder || "[]")
         // Apply column order if there are saved column positions
         if (colOrder.length > 0) {
           table.setColumnOrder(colOrder) // Reorder columns according to saved preferences
@@ -431,16 +389,13 @@ export function MainTable<T>({
         console.error("Error parsing column order:", error)
       }
     }
-  }, [gridSettingsData, table]) // Re-run when grid settings or table instance changes
-
+  }, [gridSettings, table]) // Re-run when grid settings or table instance changes
   // ============================================================================
   // TABLE RENDERING SETUP
   // ============================================================================
-
   // ============================================================================
   // DRAG AND DROP SENSORS
   // ============================================================================
-
   /**
    * Configure drag and drop sensors for column reordering
    * Supports mouse, touch, and keyboard interactions
@@ -450,18 +405,15 @@ export function MainTable<T>({
     useSensor(TouchSensor, {}), // Touch-based dragging (mobile)
     useSensor(KeyboardSensor, {}) // Keyboard-based dragging (accessibility)
   )
-
   // ============================================================================
   // EVENT HANDLERS
   // ============================================================================
-
   /**
    * Handle search query changes
    * @param query - The search query string
    */
   const handleSearch = (query: string) => {
     setSearchQuery(query) // Update local search state
-
     // If data is available locally, use table's built-in filtering
     if (data && data.length > 0) {
       table.setGlobalFilter(query) // Apply filter to local data
@@ -475,7 +427,6 @@ export function MainTable<T>({
       onFilterChange(newFilters) // Let parent handle server-side filtering
     }
   }
-
   /**
    * Handle page changes in pagination
    * @param page - The new page number (1-based)
@@ -484,7 +435,6 @@ export function MainTable<T>({
     setCurrentPage(page) // Update local page state
     table.setPageIndex(page - 1) // Convert to 0-based index for table
   }
-
   /**
    * Handle page size changes in pagination
    * @param size - The new page size (items per page)
@@ -493,42 +443,35 @@ export function MainTable<T>({
     setPageSize(size) // Update local page size state
     table.setPageSize(size) // Update table page size
   }
-
   /**
    * Handle drag and drop end event for column reordering
    * @param event - The drag end event containing active and over elements
    */
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event // Extract dragged and target elements
-
     // Only proceed if there's a valid drop target and it's different from the source
     if (active && over && active.id !== over.id) {
       // Find the index of the dragged column
       const oldIndex = table
         .getAllColumns()
         .findIndex((col) => col.id === active.id)
-
       // Find the index of the target column
       const newIndex = table
         .getAllColumns()
         .findIndex((col) => col.id === over.id)
-
       // Create new column order by moving the column
       const newColumnOrder = arrayMove(
         table.getAllColumns(), // Current column array
         oldIndex, // Source index
         newIndex // Target index
       )
-
       // Apply the new column order to the table
       table.setColumnOrder(newColumnOrder.map((col) => col.id))
     }
   }
-
   // ============================================================================
   // EFFECT: HANDLE SERVER-SIDE FILTERING
   // ============================================================================
-
   /**
    * Handle server-side filtering when no local data is available
    * This effect triggers when sorting, search, or data availability changes
@@ -545,17 +488,14 @@ export function MainTable<T>({
       onFilterChange(filters) // Call parent to fetch filtered data from server
     }
   }, [sorting, searchQuery, data?.length, onFilterChange]) // Re-run when these values change
-
   // ============================================================================
   // RENDER SECTION
   // ============================================================================
-
   return (
     <div className="space-y-4">
       {/* ============================================================================
           TABLE HEADER SECTION
           ============================================================================ */}
-
       {/* Conditionally render table header with search, refresh, and create functionality */}
       {showHeader && (
         <MainTableHeader
@@ -579,7 +519,6 @@ export function MainTable<T>({
         {/* ============================================================================
           DRAG AND DROP CONTEXT
           ============================================================================ */}
-
         {/* Wrap table in drag and drop context for column reordering */}
         <DndContext
           sensors={sensors} // Configured drag sensors
@@ -589,7 +528,6 @@ export function MainTable<T>({
           {/* ============================================================================
             TABLE CONTAINER
             ============================================================================ */}
-
           {/* Main table container with horizontal scrolling */}
           <div className="overflow-x-auto rounded-lg border">
             {/* Fixed header table with column sizing */}
@@ -610,7 +548,6 @@ export function MainTable<T>({
                   />
                 ))}
               </colgroup>
-
               {/* Sticky table header */}
               <TableHeader className="bg-background sticky top-0 z-20">
                 {table.getHeaderGroups().map((headerGroup) => (
@@ -629,7 +566,6 @@ export function MainTable<T>({
                 ))}
               </TableHeader>
             </Table>
-
             {/* Scrollable body container */}
             <div
               className="max-h-[460px] overflow-y-auto" // Allow vertical scrolling if needed
@@ -652,12 +588,10 @@ export function MainTable<T>({
                     />
                   ))}
                 </colgroup>
-
                 <TableBody>
                   {/* ============================================================================
                     DATA ROWS RENDERING
                     ============================================================================ */}
-
                   {/* Render data rows */}
                   {table.getRowModel().rows.map((row) => {
                     return (
@@ -666,7 +600,6 @@ export function MainTable<T>({
                         {row.getVisibleCells().map((cell, cellIndex) => {
                           const isActions = cell.column.id === "actions"
                           const isFirstColumn = cellIndex === 0
-
                           return (
                             <TableCell
                               key={cell.id}
@@ -701,11 +634,9 @@ export function MainTable<T>({
                       </TableRow>
                     )
                   })}
-
                   {/* ============================================================================
                     EMPTY ROWS TO FILL PAGE SIZE
                     ============================================================================ */}
-
                   {/* Add empty rows to fill the remaining space based on page size */}
                   {Array.from({
                     length: Math.max(
@@ -717,7 +648,6 @@ export function MainTable<T>({
                       {table.getAllLeafColumns().map((column, cellIndex) => {
                         const isActions = column.id === "actions"
                         const isFirstColumn = cellIndex === 0
-
                         return (
                           <TableCell
                             key={`empty-${index}-${column.id}`}
@@ -744,11 +674,9 @@ export function MainTable<T>({
                       })}
                     </TableRow>
                   ))}
-
                   {/* ============================================================================
                     EMPTY STATE OR LOADING
                     ============================================================================ */}
-
                   {/* Show empty state or loading message when no data */}
                   {table.getRowModel().rows.length === 0 && (
                     <TableRow>
@@ -769,7 +697,6 @@ export function MainTable<T>({
       {/* ============================================================================
           TABLE FOOTER SECTION
           ============================================================================ */}
-
       {/* Conditionally render table footer with pagination controls */}
       {showFooter && (
         <MainTableFooter
@@ -785,11 +712,9 @@ export function MainTable<T>({
     </div>
   )
 }
-
 // ============================================================================
 // USAGE EXAMPLES AND DOCUMENTATION
 // ============================================================================
-
 /**
  * USAGE EXAMPLES:
  *

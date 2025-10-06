@@ -88,7 +88,6 @@ export default function GstPage() {
   // Filter change handlers
   const handleFilterChange = useCallback(
     (newFilters: { search?: string; sortOrder?: string }) => {
-      console.log("Gst filter change called with:", newFilters)
       setFilters(newFilters as IGstFilter)
     },
     []
@@ -96,7 +95,6 @@ export default function GstPage() {
 
   const handleDtFilterChange = useCallback(
     (newFilters: { search?: string; sortOrder?: string }) => {
-      console.log("Gst Dt filter change called with:", newFilters)
       setDtFilters(newFilters as IGstFilter)
     },
     []
@@ -104,7 +102,6 @@ export default function GstPage() {
 
   const handleCategoryFilterChange = useCallback(
     (newFilters: { search?: string; sortOrder?: string }) => {
-      console.log("Gst Category filter change called with:", newFilters)
       setCategoryFilters(newFilters as IGstCategoryFilter)
     },
     []

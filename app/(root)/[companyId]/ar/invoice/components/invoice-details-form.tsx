@@ -71,7 +71,6 @@ export default function InvoiceDetailsForm() {
   })
 
   const onSubmit = (data: ArInvoiceDtSchemaType) => {
-    console.log(data)
     // Handle form submission
   }
 

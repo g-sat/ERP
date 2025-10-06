@@ -37,14 +37,7 @@ export default function AdminUserRolesPage() {
   const canView = hasPermission(moduleId, transactionIdRole, "isRead")
   const canCreate = hasPermission(moduleId, transactionIdRole, "isCreate")
 
-  console.log("Current canEdit:", canEdit)
-  console.log("Current canDelete:", canDelete)
-  console.log("Current canView:", canView)
-  console.log("Current canCreate:", canCreate)
-
   const [roleFilters, setRoleFilters] = useState<IUserRoleFilter>({})
-
-  console.log("Current roleFilters:", roleFilters)
 
   const {
     data: userRolesResponse,
@@ -95,7 +88,6 @@ export default function AdminUserRolesPage() {
 
   const handleFilterChange = useCallback(
     (filters: { search?: string; sortOrder?: string }) => {
-      console.log("Filter change called with:", filters)
       setRoleFilters(filters as IUserRoleFilter)
     },
     []

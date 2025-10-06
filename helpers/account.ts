@@ -267,7 +267,6 @@ export const setGSTPercentage = async (
       const res = await getData(
         `${BasicSetting.getGstPercentage}/${gstId}/${dt}`
       )
-      console.log("res", res)
       const gstPercentage = res?.data as number
       dtForm?.setValue("gstPercentage", gstPercentage)
       dtForm.trigger("gstPercentage")
@@ -326,7 +325,6 @@ export const setExchangeRate = async (
         form.trigger("ctyExhRate")
       }
       form.trigger("exhRate")
-      console.log(form?.getValues())
     } catch {}
   }
 }
@@ -461,5 +459,4 @@ export const setAddressContactDetails = async (form: any) => {
       console.error("Error fetching customer address and contact", error)
     }
   }
-  console.log({ values: form?.getValues() })
 }

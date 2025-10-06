@@ -2,10 +2,8 @@ import { ITaskDetails } from "@/interfaces/checklist"
 import { CopyRate, ITariff } from "@/interfaces/tariff"
 import { useQuery } from "@tanstack/react-query"
 import { AxiosError } from "axios"
-
 import { getById, getData, saveData } from "@/lib/api-client"
 import { Tariff } from "@/lib/api-routes"
-
 /**
  * Query Configuration
  */
@@ -13,7 +11,6 @@ const defaultQueryConfig = {
   staleTime: 60 * 60 * 1000, // 1 hour
   refetchOnWindowFocus: false,
 }
-
 /**
  * Error Handler
  */
@@ -24,7 +21,6 @@ const handleApiError = (error: unknown) => {
   }
   throw error
 }
-
 /**
  * 1. Tariff Count Management
  * -------------------------
@@ -47,7 +43,6 @@ export function useGetTariffCount(customerId: number, portId: number) {
         const data = await getData(
           `${Tariff.getTariffCount}/${customerId}/${portId}`
         )
-        console.log("Tariff count response:", data)
         return data
       } catch (error) {
         handleApiError(error)
@@ -56,7 +51,6 @@ export function useGetTariffCount(customerId: number, portId: number) {
     enabled: customerId > 0 && portId > 0,
   })
 }
-
 /**
  * 1.2 Get Tariff By Task
  * @param {number} customerId - Customer ID
@@ -84,7 +78,6 @@ export function useGetTariffByTask(
         const data = await getById(
           `${Tariff.getTariffByTask}/${customerId}/${portId}/${taskId}`
         )
-        console.log("Tariff by task response:", data)
         return data
       } catch (error) {
         handleApiError(error)
@@ -93,7 +86,6 @@ export function useGetTariffByTask(
     enabled: customerId > 0 && portId > 0 && hasSearched,
   })
 }
-
 /**
  * 2. Direct API Call Functions
  * ---------------------------
@@ -110,7 +102,6 @@ export const saveTariffDirect = async (tariffData: Partial<ITariff>) => {
     throw error
   }
 }
-
 /**
  * 2.2 Update Tariff Direct
  * @param {Partial<ITariff>} tariffData - Tariff data to update
@@ -125,7 +116,6 @@ export const updateTariffDirect = async (tariffData: Partial<ITariff>) => {
     throw error
   }
 }
-
 /**
  * 2.3 Delete Tariff Direct
  * @param {string} tariffId - Tariff ID to delete
@@ -140,7 +130,6 @@ export const deleteTariffDirect = async (tariffId: string) => {
     throw error
   }
 }
-
 /**
  * 3. Copy Rate Management
  * ----------------------
@@ -157,7 +146,6 @@ export const copyRateDirect = async (copyData: CopyRate) => {
     throw error
   }
 }
-
 /**
  * 3.2 Copy Company Tariff Direct
  * @param {CopyRate} copyData - Copy company tariff data

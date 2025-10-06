@@ -795,7 +795,6 @@ const PayslipTemplate: React.FC<PayslipTemplateProps> = ({ data }) => {
  * @returns Promise<Blob> - PDF as a Blob
  */
 export const generatePayslipPDF = async (data: PayslipData): Promise<Blob> => {
-  console.log("📄 PayslipTemplate: generatePayslipPDF called with data:", data)
   try {
     // Check if we're in the browser
     if (typeof window === "undefined") {
@@ -812,14 +811,8 @@ export const generatePayslipPDF = async (data: PayslipData): Promise<Blob> => {
     }
 
     const stream = await pdf(<PayslipTemplate data={data} />).toBlob()
-    console.log(
-      "✅ PayslipTemplate: PDF generated successfully, size:",
-      stream.size,
-      "bytes"
-    )
     return stream
   } catch (error) {
-    console.log("❌ PayslipTemplate: PDF generation error:", error)
     console.error("Error generating payslip PDF:", error)
     throw new Error("Failed to generate payslip PDF")
   }

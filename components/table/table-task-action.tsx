@@ -1,8 +1,6 @@
 import { Eye, Pencil, Receipt, ShoppingCart, Trash2 } from "lucide-react"
-
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
-
 interface TaskTableActionsProps<T> {
   row: T & { debitNoteId?: number }
   onView?: (row: T) => void
@@ -20,7 +18,6 @@ interface TaskTableActionsProps<T> {
   isSelected?: boolean
   isConfirmed?: boolean
 }
-
 export function TaskTableActions<T>({
   row,
   onView,
@@ -39,13 +36,11 @@ export function TaskTableActions<T>({
   isConfirmed = false,
 }: TaskTableActionsProps<T>) {
   const handleCheckboxChange = (checked: boolean) => {
-    console.log("Checkbox changed:", checked, "Row:", row)
     if (onSelect) {
       onSelect(row, checked)
     }
   }
   const hasValidDebitNoteId = row.debitNoteId && row.debitNoteId > 0
-
   return (
     <div className="flex items-center gap-2">
       <Checkbox
@@ -59,7 +54,6 @@ export function TaskTableActions<T>({
             : "Select row"
         }
       />
-
       <Button
         variant="ghost"
         size="icon"
@@ -69,7 +63,6 @@ export function TaskTableActions<T>({
       >
         <Eye className="h-4 w-4" />
       </Button>
-
       <Button
         variant="ghost"
         size="icon"
@@ -84,7 +77,6 @@ export function TaskTableActions<T>({
       >
         <Pencil className="h-4 w-4" />
       </Button>
-
       <Button
         variant="ghost"
         size="icon"
@@ -103,7 +95,6 @@ export function TaskTableActions<T>({
       >
         <Trash2 className="h-4 w-4" />
       </Button>
-
       <Button
         variant="ghost"
         size="icon"
@@ -118,7 +109,6 @@ export function TaskTableActions<T>({
       >
         <ShoppingCart className="h-4 w-4" />
       </Button>
-
       <Button
         variant="ghost"
         size="icon"

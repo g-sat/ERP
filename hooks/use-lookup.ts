@@ -68,7 +68,6 @@ import { IPaymentType } from "@/interfaces/paymenttype"
 import { ISupplierAddress, ISupplierContact } from "@/interfaces/supplier"
 import { keepPreviousData, useQuery } from "@tanstack/react-query"
 import { AxiosError } from "axios"
-
 import { apiClient, getData } from "@/lib/api-client"
 import {
   Admin,
@@ -77,7 +76,6 @@ import {
   MandatoryFieldSetting,
   VisibleFieldSetting,
 } from "@/lib/api-routes"
-
 /**
  * 1. Query Configuration
  */
@@ -85,7 +83,6 @@ const defaultQueryConfig = {
   staleTime: 60 * 60 * 1000, // 1 hour
   refetchOnWindowFocus: false,
 }
-
 /**
  * 2. Error Handler
  */
@@ -96,7 +93,6 @@ const handleApiError = (error: unknown) => {
   }
   throw error
 }
-
 /**
  * 3. Transaction Management
  * ------------------------
@@ -126,7 +122,6 @@ export const useGetTransactions = ({
     enabled: !!moduleId,
   })
 }
-
 /**
  * 4. Field Management
  * -----------------
@@ -155,7 +150,6 @@ export const useGetRequiredFields = (
     enabled: !!moduleId && !!transactionId,
   })
 }
-
 /**
  * 4.2 Get Visible Fields
  * @param {number} moduleId - Module ID
@@ -182,7 +176,6 @@ export const useGetVisibleFields = (
     enabled: !!moduleId && !!transactionId,
   })
 }
-
 /**
  * 5. Dynamic Lookup Management
  * --------------------------
@@ -203,7 +196,6 @@ export const useGetDynamicLookup = () => {
     },
   })
 }
-
 /**
  * 6. Contact Management
  * -------------------
@@ -226,7 +218,6 @@ export const useCustomerContactLookup = (customerId: number | string) => {
     enabled: customerId !== 0,
   })
 }
-
 /**
  * 6.2 Get Customer Address Lookup
  * @param {number|string} customerId - Customer ID
@@ -247,7 +238,6 @@ export const useCustomerAddressLookup = (customerId: number | string) => {
     enabled: customerId !== 0,
   })
 }
-
 /**
  * 6.3 Get Supplier Contact Lookup
  * @param {number|string} customerId - Customer ID
@@ -268,7 +258,6 @@ export const useSupplierContactLookup = (customerId: number | string) => {
     enabled: customerId !== 0,
   })
 }
-
 /**
  * 6.6 Get Bank Contact Lookup
  * @param {number|string} bankId - Bank ID
@@ -289,7 +278,6 @@ export const useBankContactLookup = (bankId: number | string) => {
     enabled: bankId !== 0,
   })
 }
-
 /**
  * 6.4 Get Supplier Address Lookup
  * @param {number|string} customerId - Customer ID
@@ -310,7 +298,6 @@ export const useSupplierAddressLookup = (customerId: number | string) => {
     enabled: customerId !== 0,
   })
 }
-
 /**
  * 6.5 Get Bank Address Lookup
  * @param {number|string} bankId - Bank ID
@@ -331,7 +318,6 @@ export const useBankAddressLookup = (bankId: number | string) => {
     enabled: bankId !== 0,
   })
 }
-
 export const useModuleLookup = (IsVisible: boolean, IsMandatory: boolean) => {
   return useQuery<IModuleLookup[]>({
     queryKey: ["moduleLookup", IsVisible, IsMandatory],
@@ -348,7 +334,6 @@ export const useModuleLookup = (IsVisible: boolean, IsMandatory: boolean) => {
     },
   })
 }
-
 export const useCountryLookup = () => {
   return useQuery<ICountryLookup[]>({
     queryKey: ["country-lookup"],
@@ -363,7 +348,6 @@ export const useCountryLookup = () => {
     },
   })
 }
-
 export const useTaxLookup = () => {
   return useQuery<ITaxLookup[]>({
     queryKey: ["tax-lookup"],
@@ -378,7 +362,6 @@ export const useTaxLookup = () => {
     },
   })
 }
-
 export const useTaxCategoryLookup = () => {
   return useQuery<ITaxCategoryLookup[]>({
     queryKey: ["taxCategory-lookup"],
@@ -393,7 +376,6 @@ export const useTaxCategoryLookup = () => {
     },
   })
 }
-
 export const useGstCategoryLookup = () => {
   return useQuery<IGstCategoryLookup[]>({
     queryKey: ["gstCategory-lookup"],
@@ -408,7 +390,6 @@ export const useGstCategoryLookup = () => {
     },
   })
 }
-
 export const useBankLookup = () => {
   return useQuery<IBankLookup[]>({
     queryKey: ["bank-lookup"],
@@ -423,7 +404,6 @@ export const useBankLookup = () => {
     },
   })
 }
-
 export const useDepartmentLookup = () => {
   return useQuery<IDepartmentLookup[]>({
     queryKey: ["department-lookup"],
@@ -438,7 +418,6 @@ export const useDepartmentLookup = () => {
     },
   })
 }
-
 export const useWorkLocationLookup = () => {
   return useQuery<IWorkLocationLookup[]>({
     queryKey: ["work-location-lookup"],
@@ -453,7 +432,6 @@ export const useWorkLocationLookup = () => {
     },
   })
 }
-
 export const useProductLookup = () => {
   return useQuery<IProductLookup[]>({
     queryKey: ["product-lookup"],
@@ -468,7 +446,6 @@ export const useProductLookup = () => {
     },
   })
 }
-
 export const useBargeLookup = () => {
   return useQuery<IBargeLookup[]>({
     queryKey: ["barge-lookup"],
@@ -483,7 +460,6 @@ export const useBargeLookup = () => {
     },
   })
 }
-
 export const useGstLookup = () => {
   return useQuery<IGstLookup[]>({
     queryKey: ["gst-lookup"],
@@ -498,7 +474,6 @@ export const useGstLookup = () => {
     },
   })
 }
-
 export const useEmployeeLookup = () => {
   return useQuery<IEmployeeLookup[]>({
     queryKey: ["employee-lookup"],
@@ -513,7 +488,6 @@ export const useEmployeeLookup = () => {
     },
   })
 }
-
 export const useEmployerLookup = () => {
   return useQuery<IEmployerLookup[]>({
     queryKey: ["employer-lookup"],
@@ -529,7 +503,6 @@ export const useEmployerLookup = () => {
     },
   })
 }
-
 export const useLoanTypeLookup = () => {
   return useQuery<ILoanTypeLookup[]>({
     queryKey: ["loan-type-lookup"],
@@ -544,7 +517,6 @@ export const useLoanTypeLookup = () => {
     },
   })
 }
-
 export const useLeaveTypeLookup = () => {
   return useQuery<ILeaveTypeLookup[]>({
     queryKey: ["leave-type-lookup"],
@@ -559,7 +531,6 @@ export const useLeaveTypeLookup = () => {
     },
   })
 }
-
 export const useAccountGroupLookup = () => {
   return useQuery<IAccountGroupLookup[]>({
     queryKey: ["account-group-lookup"],
@@ -574,7 +545,6 @@ export const useAccountGroupLookup = () => {
     },
   })
 }
-
 export const useAccountTypeLookup = () => {
   return useQuery<IAccountTypeLookup[]>({
     queryKey: ["account-type-lookup"],
@@ -589,7 +559,6 @@ export const useAccountTypeLookup = () => {
     },
   })
 }
-
 export const useAccountSetupLookup = () => {
   return useQuery<IAccountSetupLookup[]>({
     queryKey: ["account-setup-lookup"],
@@ -604,7 +573,6 @@ export const useAccountSetupLookup = () => {
     },
   })
 }
-
 export const useCategoryLookup = () => {
   return useQuery<ICategoryLookup[]>({
     queryKey: ["category-lookup"],
@@ -619,7 +587,6 @@ export const useCategoryLookup = () => {
     },
   })
 }
-
 export const usePortregionLookup = () => {
   return useQuery<IPortRegionLookup[]>({
     queryKey: ["portregion-lookup"],
@@ -634,7 +601,6 @@ export const usePortregionLookup = () => {
     },
   })
 }
-
 export const useVoyageLookup = () => {
   return useQuery<IVoyageLookup[]>({
     queryKey: ["voyage-lookup"],
@@ -649,7 +615,6 @@ export const useVoyageLookup = () => {
     },
   })
 }
-
 export const useDesignationLookup = () => {
   return useQuery<IDesignationLookup[]>({
     queryKey: ["designation-lookup"],
@@ -664,7 +629,6 @@ export const useDesignationLookup = () => {
     },
   })
 }
-
 export const useCOACategory1Lookup = () => {
   return useQuery<ICOACategory1Lookup[]>({
     queryKey: ["coacategory1-lookup"],
@@ -679,7 +643,6 @@ export const useCOACategory1Lookup = () => {
     },
   })
 }
-
 export const useCOACategory2Lookup = () => {
   return useQuery<ICOACategory2Lookup[]>({
     queryKey: ["coacategory2-lookup"],
@@ -694,7 +657,6 @@ export const useCOACategory2Lookup = () => {
     },
   })
 }
-
 export const useCOACategory3Lookup = () => {
   return useQuery<ICOACategory3Lookup[]>({
     queryKey: ["coacategory3-lookup"],
@@ -709,7 +671,6 @@ export const useCOACategory3Lookup = () => {
     },
   })
 }
-
 export const useAccountSetupCategoryLookup = () => {
   return useQuery<IAccountSetupCategoryLookup[]>({
     queryKey: ["account-setup-category-lookup"],
@@ -724,7 +685,6 @@ export const useAccountSetupCategoryLookup = () => {
     },
   })
 }
-
 export const useSupplierLookup = () => {
   return useQuery<ISupplierLookup[]>({
     queryKey: ["supplier-lookup"],
@@ -739,7 +699,6 @@ export const useSupplierLookup = () => {
     },
   })
 }
-
 export const usePortLookup = () => {
   return useQuery<IPortLookup[]>({
     queryKey: ["port-lookup"],
@@ -754,7 +713,6 @@ export const usePortLookup = () => {
     },
   })
 }
-
 export const usePortRegionLookup = () => {
   return useQuery<IPortRegionLookup[]>({
     queryKey: ["port-region-lookup"],
@@ -769,7 +727,6 @@ export const usePortRegionLookup = () => {
     },
   })
 }
-
 export const useUserLookup = () => {
   return useQuery<IUserLookup[]>({
     queryKey: ["user-lookup"],
@@ -784,7 +741,6 @@ export const useUserLookup = () => {
     },
   })
 }
-
 export const useCurrencyLookup = () => {
   return useQuery<ICurrencyLookup[]>({
     queryKey: ["currency-lookup"],
@@ -799,7 +755,6 @@ export const useCurrencyLookup = () => {
     },
   })
 }
-
 export const useCreditTermLookup = () => {
   return useQuery<ICreditTermLookup[]>({
     queryKey: ["creditterm-lookup"],
@@ -814,7 +769,6 @@ export const useCreditTermLookup = () => {
     },
   })
 }
-
 export const useChartofAccountLookup = (companyId: number) => {
   return useQuery<IChartofAccountLookup[]>({
     queryKey: ["chartofaccount-lookup", companyId],
@@ -835,7 +789,6 @@ export const useChartofAccountLookup = (companyId: number) => {
     enabled: companyId > 0,
   })
 }
-
 export const useUomLookup = () => {
   return useQuery<IUomLookup[]>({
     queryKey: ["uom-lookup"],
@@ -850,7 +803,6 @@ export const useUomLookup = () => {
     },
   })
 }
-
 export const useUserGroupLookup = () => {
   return useQuery<IUserGroupLookup[]>({
     queryKey: ["usergroup-lookUp"],
@@ -866,7 +818,6 @@ export const useUserGroupLookup = () => {
     refetchOnWindowFocus: false,
   })
 }
-
 export const useUserRoleLookup = () => {
   return useQuery<IUserRoleLookup[]>({
     queryKey: ["userrole-lookUp"],
@@ -882,7 +833,6 @@ export const useUserRoleLookup = () => {
     refetchOnWindowFocus: false,
   })
 }
-
 export const useOrderTypeLookup = () => {
   return useQuery<IOrderTypeLookup[]>({
     queryKey: ["ordertype-lookUp"],
@@ -898,7 +848,6 @@ export const useOrderTypeLookup = () => {
     refetchOnWindowFocus: false,
   })
 }
-
 export const useOrderTypeCategoryLookup = () => {
   return useQuery<IOrderTypeCategoryLookup[]>({
     queryKey: ["ordertypecategory-lookUp"],
@@ -914,7 +863,6 @@ export const useOrderTypeCategoryLookup = () => {
     refetchOnWindowFocus: false,
   })
 }
-
 export const useServiceTypeLookup = () => {
   return useQuery<IServiceTypeLookup[]>({
     queryKey: ["servicetype-lookUp"],
@@ -930,7 +878,6 @@ export const useServiceTypeLookup = () => {
     refetchOnWindowFocus: false,
   })
 }
-
 export const useServiceTypeCategoryLookup = () => {
   return useQuery<IServiceTypeCategoryLookup[]>({
     queryKey: ["servicetypecategory-lookup"],
@@ -945,7 +892,6 @@ export const useServiceTypeCategoryLookup = () => {
     },
   })
 }
-
 export const useSubCategoryLookup = () => {
   return useQuery<ISubCategoryLookup[]>({
     queryKey: ["subcategory-lookUp"],
@@ -961,7 +907,6 @@ export const useSubCategoryLookup = () => {
     refetchOnWindowFocus: false,
   })
 }
-
 export const useTransactionLookup = (id: number) => {
   return useQuery<ITransactionLookup[]>({
     queryKey: ["transaction-lookUp", id],
@@ -977,7 +922,6 @@ export const useTransactionLookup = (id: number) => {
     enabled: id !== 0,
   })
 }
-
 export const usePaymentTypeLookup = () => {
   return useQuery<IPaymentType[]>({
     queryKey: ["paymenttype-lookUp"],
@@ -993,7 +937,6 @@ export const usePaymentTypeLookup = () => {
     refetchOnWindowFocus: false,
   })
 }
-
 export const useVesselLookup = () => {
   return useQuery<IVesselLookup[]>({
     queryKey: ["vessel-lookUp"],
@@ -1001,7 +944,6 @@ export const useVesselLookup = () => {
     queryFn: async () => {
       try {
         const data = await getData(Lookup.getVessel)
-        console.log("Vessel lookup response:", data?.data)
         return data?.data || []
       } catch (error) {
         handleApiError(error)
@@ -1010,7 +952,6 @@ export const useVesselLookup = () => {
     refetchOnWindowFocus: false,
   })
 }
-
 export const useJobOrderLookup = () => {
   return useQuery<IJobOrderLookup[]>({
     queryKey: ["joborder-lookUp"],
@@ -1026,7 +967,6 @@ export const useJobOrderLookup = () => {
     refetchOnWindowFocus: false,
   })
 }
-
 export const useTaskLookup = () => {
   return useQuery<ITaskLookup[]>({
     queryKey: ["task-lookUp"],
@@ -1042,7 +982,6 @@ export const useTaskLookup = () => {
     refetchOnWindowFocus: false,
   })
 }
-
 export const useChargeLookup = (taskId: number) => {
   return useQuery<IChargeLookup[]>({
     queryKey: ["charge-lookUp", taskId],
@@ -1058,7 +997,6 @@ export const useChargeLookup = (taskId: number) => {
     enabled: taskId !== 0,
   })
 }
-
 export const useCustomerLookup = () => {
   return useQuery<ICustomerLookup[]>({
     queryKey: ["customer-lookUp"],
@@ -1075,7 +1013,6 @@ export const useCustomerLookup = () => {
     enabled: true,
   })
 }
-
 export const useCompanyCustomerLookup = (companyId: number) => {
   return useQuery<ICustomerLookup[]>({
     queryKey: ["customer-lookUp", companyId],
@@ -1092,7 +1029,6 @@ export const useCompanyCustomerLookup = (companyId: number) => {
     enabled: companyId !== 0,
   })
 }
-
 export const useJobOrderTaskLookup = (jobOrderId: number) => {
   return useQuery<ITaskLookup[]>({
     queryKey: ["joborder-task-lookUp", jobOrderId],
@@ -1108,7 +1044,6 @@ export const useJobOrderTaskLookup = (jobOrderId: number) => {
     enabled: jobOrderId !== 0,
   })
 }
-
 export const useJobOrderChargeLookup = (jobOrderId: number, taskId: number) => {
   return useQuery<IChargeLookup[]>({
     queryKey: ["joborder-charge-lookUp", jobOrderId, taskId],
@@ -1126,7 +1061,6 @@ export const useJobOrderChargeLookup = (jobOrderId: number, taskId: number) => {
     enabled: jobOrderId !== 0 && taskId !== 0,
   })
 }
-
 export const useDocumentTypeLookup = () => {
   return useQuery<IDocumentTypeLookup[]>({
     queryKey: ["documenttype-lookUp"],
@@ -1142,7 +1076,6 @@ export const useDocumentTypeLookup = () => {
     refetchOnWindowFocus: false,
   })
 }
-
 export const useEntityTypeLookup = () => {
   return useQuery<IEntityTypeLookup[]>({
     queryKey: ["entitytype-lookUp"],
@@ -1158,7 +1091,6 @@ export const useEntityTypeLookup = () => {
     refetchOnWindowFocus: false,
   })
 }
-
 export const useStatusLookup = () => {
   return useQuery<IStatusLookup[]>({
     queryKey: ["status-lookUp"],
@@ -1174,7 +1106,6 @@ export const useStatusLookup = () => {
     refetchOnWindowFocus: false,
   })
 }
-
 export const useStatusTaskLookup = () => {
   return useQuery<IStatusLookup[]>({
     queryKey: ["statustask-lookUp"],
@@ -1190,7 +1121,6 @@ export const useStatusTaskLookup = () => {
     refetchOnWindowFocus: false,
   })
 }
-
 export const useRankLookup = () => {
   return useQuery<IRankLookup[]>({
     queryKey: ["rank-lookUp"],
@@ -1206,7 +1136,6 @@ export const useRankLookup = () => {
     refetchOnWindowFocus: false,
   })
 }
-
 export const useGenderLookup = () => {
   return useQuery<IGenderLookup[]>({
     queryKey: ["gender-lookUp"],
@@ -1222,7 +1151,6 @@ export const useGenderLookup = () => {
     refetchOnWindowFocus: false,
   })
 }
-
 export const useVisaTypeLookup = () => {
   return useQuery<IVisaTypeLookup[]>({
     queryKey: ["visatype-lookUp"],
@@ -1238,7 +1166,6 @@ export const useVisaTypeLookup = () => {
     refetchOnWindowFocus: false,
   })
 }
-
 export const usePassTypeLookup = () => {
   return useQuery<IPassTypeLookup[]>({
     queryKey: ["passtype-lookUp"],
@@ -1254,7 +1181,6 @@ export const usePassTypeLookup = () => {
     refetchOnWindowFocus: false,
   })
 }
-
 export const useLandingTypeLookup = () => {
   return useQuery<ILandingTypeLookup[]>({
     queryKey: ["landingtype-lookUp"],
@@ -1270,7 +1196,6 @@ export const useLandingTypeLookup = () => {
     refetchOnWindowFocus: false,
   })
 }
-
 export const useModeTypeLookup = () => {
   return useQuery<IModeTypeLookup[]>({
     queryKey: ["modetype-lookUp"],
@@ -1286,7 +1211,6 @@ export const useModeTypeLookup = () => {
     refetchOnWindowFocus: false,
   })
 }
-
 export const useConsignmentTypeLookup = () => {
   return useQuery<IConsignmentTypeLookup[]>({
     queryKey: ["consignmenttype-lookUp"],
@@ -1302,7 +1226,6 @@ export const useConsignmentTypeLookup = () => {
     refetchOnWindowFocus: false,
   })
 }
-
 export const useCarrierTypeLookup = () => {
   return useQuery<ICarrierTypeLookup[]>({
     queryKey: ["carriertype-lookUp"],
@@ -1318,7 +1241,6 @@ export const useCarrierTypeLookup = () => {
     refetchOnWindowFocus: false,
   })
 }
-
 export const useCompanyLookup = () => {
   return useQuery<ICompanyLookup[]>({
     queryKey: ["company-lookUp"],
@@ -1334,7 +1256,6 @@ export const useCompanyLookup = () => {
     refetchOnWindowFocus: false,
   })
 }
-
 export const useJobOrderCustomerLookup = (
   customerId: number,
   jobOrderId: number
@@ -1368,7 +1289,6 @@ export const useJobOrderCustomerLookup = (
     enabled: customerId !== 0,
   })
 }
-
 export const usePayrollComponentLookup = () => {
   return useQuery<IPayrollComponentLookup[]>({
     queryKey: ["payrollcomponent-lookUp"],
@@ -1384,7 +1304,6 @@ export const usePayrollComponentLookup = () => {
     refetchOnWindowFocus: false,
   })
 }
-
 export const usePayrollComponentGroupLookup = () => {
   return useQuery<IPayrollComponentGroupLookup[]>({
     queryKey: ["payrollcomponentgroup-lookUp"],
@@ -1400,7 +1319,6 @@ export const usePayrollComponentGroupLookup = () => {
     refetchOnWindowFocus: false,
   })
 }
-
 export const useLoanRequestStatusLookup = () => {
   return useQuery<IStatusTypeLookup[]>({
     queryKey: ["loanrequeststatus-lookUp"],
@@ -1416,7 +1334,6 @@ export const useLoanRequestStatusLookup = () => {
     refetchOnWindowFocus: false,
   })
 }
-
 export const useApprovalStatusTypeLookup = () => {
   return useQuery<IStatusTypeLookup[]>({
     queryKey: ["landingtype-lookUp"],
@@ -1432,7 +1349,6 @@ export const useApprovalStatusTypeLookup = () => {
     refetchOnWindowFocus: false,
   })
 }
-
 export const useDisbursementLookup = () => {
   return useQuery<IStatusTypeLookup[]>({
     queryKey: ["disbursement-lookUp"],
@@ -1448,7 +1364,6 @@ export const useDisbursementLookup = () => {
     refetchOnWindowFocus: false,
   })
 }
-
 export const useRepaymentStatusLookup = () => {
   return useQuery<IStatusTypeLookup[]>({
     queryKey: ["repaymentstatus-lookUp"],

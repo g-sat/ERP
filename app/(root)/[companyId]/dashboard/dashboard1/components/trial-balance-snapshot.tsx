@@ -243,7 +243,6 @@ export function TrialBalanceSnapshot({ period }: TrialBalanceSnapshotProps) {
             className="text-muted-foreground hover:text-foreground w-full"
             onClick={() => {
               // Navigate to detailed trial balance report
-              console.log("Navigate to Detailed Trial Balance Report")
             }}
           >
             Click to view Detailed Trial Balance Report →

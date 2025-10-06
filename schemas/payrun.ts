@@ -117,7 +117,7 @@ export const payRunFilterSchema = z.object({
 export const payRunProcessSchema = z.object({
   payrollRunId: z.number().min(0, "Payroll run ID is required"),
   action: z.enum(["process", "approve", "reject", "draft"], {
-    required_error: "Action is required",
+    message: "Action is required",
   }),
   processedBy: z.string().min(1, "Processed by is required"),
   processedDate: z.string().min(1, "Processed date is required"),
@@ -142,7 +142,7 @@ export const payRunComponentSchema = z.object({
   componentId: z.number().min(0),
   componentName: z.string().min(1, "Component name is required"),
   componentType: z.enum(["EARNING", "DEDUCTION", "BENEFIT"], {
-    required_error: "Component type is required",
+    message: "Component type is required",
   }),
   amount: z.number().min(0, "Amount must be non-negative"),
   percentage: z.number().min(0).max(100).optional(),

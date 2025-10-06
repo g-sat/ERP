@@ -202,9 +202,6 @@ export function GeneralLedgerHeatmap({
               className="hover:bg-muted/50 flex cursor-pointer items-center space-x-4 rounded-lg border p-3 transition-colors"
               onClick={() => {
                 // Navigate to Account Ledger for this specific account
-                console.log(
-                  `Navigate to Account Ledger: ${account.accountName}`
-                )
               }}
             >
               {/* Account Info */}
@@ -262,7 +259,6 @@ export function GeneralLedgerHeatmap({
             className="text-muted-foreground hover:text-foreground w-full"
             onClick={() => {
               // Navigate to full GL Activity Report
-              console.log("Navigate to Full GL Activity Report")
             }}
           >
             View All GL Accounts →

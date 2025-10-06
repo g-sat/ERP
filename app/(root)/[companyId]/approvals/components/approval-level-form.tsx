@@ -69,7 +69,6 @@ export function ApprovalLevelForm({
     setIsSubmitting(true)
     try {
       // TODO: Implement save/update functionality
-      console.log("Saving approval level:", data)
       toast.success("Approval level functionality not yet implemented")
       onSuccess()
     } catch (error) {

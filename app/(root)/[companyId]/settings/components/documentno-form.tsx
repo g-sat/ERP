@@ -83,8 +83,6 @@ export function DocumentNoForm() {
       data: [],
     }
 
-  console.log("moduleTrnsData :", moduleTrnsData)
-
   // Get number format data when module and transaction are selected
   const {
     data: numberFormatDataResponse,
@@ -103,8 +101,6 @@ export function DocumentNoForm() {
       data: [],
     }
 
-  console.log("numberFormatData :", numberFormatData)
-
   // Get number format details when numberId and year are selected
   const {
     data: numberFormatDetailsDataResponse,
@@ -121,8 +117,6 @@ export function DocumentNoForm() {
       message: "",
       data: [],
     }
-
-  console.log("numberFormatDetailsData :", numberFormatDetailsData)
 
   const numberFormatGridData = useMemo(() => {
     // Fallback to 0 for all values

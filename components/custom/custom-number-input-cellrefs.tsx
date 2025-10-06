@@ -1,15 +1,11 @@
 import { forwardRef } from "react"
 import { FieldValues, Path, UseFormReturn } from "react-hook-form"
 import { NumericFormat } from "react-number-format"
-
 import { cn } from "@/lib/utils"
-
 import { FormField, FormItem } from "../ui/form"
 import { Label } from "../ui/label"
-
 // Get default decimal places from environment variable
 const DECIMAL_PLACES = Number(process.env.NEXT_PUBLIC_DEFAULT_AMT_DEC || "2")
-
 interface CustomNumberInputCellRefsProps<TSchemaType extends FieldValues> {
   form: UseFormReturn<TSchemaType>
   label?: string
@@ -23,7 +19,6 @@ interface CustomNumberInputCellRefsProps<TSchemaType extends FieldValues> {
   isDisabled?: boolean
   round?: number
 }
-
 const CustomNumberInputCellRefs = forwardRef<
   HTMLInputElement,
   CustomNumberInputCellRefsProps<FieldValues>
@@ -59,12 +54,10 @@ const CustomNumberInputCellRefs = forwardRef<
             const { error } = fieldState
             const showError = !!error
             const value = field.value as number | undefined
-
             return (
               <FormItem className={cn("flex flex-col", className)}>
                 <NumericFormat
                   onFocus={(e) => {
-                    console.log("Focused Quantity/Bill Quantity")
                     if (onFocus) onFocus(e)
                   }}
                   value={value ?? ""}
@@ -108,7 +101,6 @@ const CustomNumberInputCellRefs = forwardRef<
                   getInputRef={ref}
                   tabIndex={0}
                 />
-
                 {showError && (
                   <p className="text-destructive mt-1 text-xs">
                     {error.message}
@@ -122,7 +114,5 @@ const CustomNumberInputCellRefs = forwardRef<
     )
   }
 )
-
 CustomNumberInputCellRefs.displayName = "CustomNumberInputCellRefs"
-
 export default CustomNumberInputCellRefs

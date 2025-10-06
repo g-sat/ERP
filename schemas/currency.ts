@@ -3,11 +3,11 @@ import * as z from "zod"
 export const currencySchema = z.object({
   currencyId: z.number().optional(),
   currencyCode: z
-    .string({ required_error: "Currency code is required" })
+    .string({ message: "Currency code is required" })
     .min(2)
     .max(50, { message: "Maximum length is 50" }),
   currencyName: z
-    .string({ required_error: "Currency name is required" })
+    .string({ message: "Currency name is required" })
     .min(2)
     .max(150, { message: "Maximum length is 150" }),
   currencySign: z.string().optional(),
@@ -16,8 +16,7 @@ export const currencySchema = z.object({
   remarks: z
     .string()
     .max(255, { message: "Remarks cannot exceed 255 characters" })
-    .optional()
-    ,
+    .optional(),
 })
 
 export type CurrencySchemaType = z.infer<typeof currencySchema>

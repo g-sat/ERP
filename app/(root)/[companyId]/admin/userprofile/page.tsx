@@ -767,7 +767,6 @@ export default function ProfilePage() {
                     type="button"
                     variant="outline"
                     onClick={() => {
-                      // console.log("🧪 Testing API call...")
                       const testData = {
                         userId: parseInt(user?.userId || "0"),
                         firstName: "Test",
@@ -790,7 +789,6 @@ export default function ProfilePage() {
                         themePreference: "system" as const,
                         timezonePreference: "UTC",
                       }
-                      // console.log("Test data:", testData)
                       updateProfileMutation.mutate(testData)
                     }}
                   >
@@ -800,9 +798,7 @@ export default function ProfilePage() {
                     type="button"
                     variant="outline"
                     onClick={() => {
-                      // console.log("🔍 Testing form submission...")
                       const formData = profileForm.getValues()
-                      // console.log("Form data:", formData)
                       onProfileSubmit(formData)
                     }}
                   >
@@ -811,18 +807,7 @@ export default function ProfilePage() {
                   <Button
                     type="submit"
                     disabled={updateProfileMutation.isPending}
-                    onClick={() => {
-                      // console.log("🔘 Save Changes button clicked!")
-                      // console.log(
-                      //   "Current form values:",
-                      //   profileForm.getValues()
-                      // )
-                      // console.log(
-                      //   "Form is valid:",
-                      //   profileForm.formState.isValid
-                      // )
-                      // console.log("Form errors:", profileForm.formState.errors)
-                    }}
+                    onClick={() => {}}
                   >
                     {updateProfileMutation.isPending ? (
                       <>

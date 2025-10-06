@@ -1,7 +1,7 @@
 "use client"
 
 import { useMemo } from "react"
-import { TrendingDown, TrendingUp, BarChart3 } from "lucide-react"
+import { BarChart3, TrendingDown, TrendingUp } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -37,8 +37,9 @@ export function PLPerformance({
 }: PLPerformanceProps) {
   // Mock data - in real implementation, this would come from API
   const mockData: PLCategory[] = useMemo(() => {
-    const baseAmount = period === "qtd" ? 2500000 : period === "ytd" ? 15000000 : 850000
-    
+    const baseAmount =
+      period === "qtd" ? 2500000 : period === "ytd" ? 15000000 : 850000
+
     const categories = [
       { name: "Revenue", base: baseAmount * 2, isPositive: true },
       { name: "COGS", base: baseAmount * 1.2, isPositive: false },
@@ -60,11 +61,18 @@ export function PLPerformance({
         priorPeriod: priorPeriodAmount,
         variance,
         variancePercentage,
-        color: index === 0 ? "bg-blue-500" : 
-               index === 1 ? "bg-red-500" : 
-               index === 2 ? "bg-green-500" : 
-               index === 3 ? "bg-orange-500" : 
-               index === 4 ? "bg-purple-500" : "bg-emerald-500",
+        color:
+          index === 0
+            ? "bg-blue-500"
+            : index === 1
+              ? "bg-red-500"
+              : index === 2
+                ? "bg-green-500"
+                : index === 3
+                  ? "bg-orange-500"
+                  : index === 4
+                    ? "bg-purple-500"
+                    : "bg-emerald-500",
         isPositive: category.isPositive,
       }
     })
@@ -79,7 +87,10 @@ export function PLPerformance({
     }).format(amount)
   }
 
-  const getVarianceColor = (variancePercentage: number, isPositive: boolean) => {
+  const getVarianceColor = (
+    variancePercentage: number,
+    isPositive: boolean
+  ) => {
     // For categories where higher is better (Revenue, Gross Profit, etc.)
     if (isPositive) {
       return variancePercentage >= 0 ? "text-green-600" : "text-red-600"
@@ -90,9 +101,17 @@ export function PLPerformance({
 
   const getVarianceIcon = (variancePercentage: number, isPositive: boolean) => {
     if (isPositive) {
-      return variancePercentage >= 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />
+      return variancePercentage >= 0 ? (
+        <TrendingUp className="h-3 w-3" />
+      ) : (
+        <TrendingDown className="h-3 w-3" />
+      )
     }
-    return variancePercentage <= 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />
+    return variancePercentage <= 0 ? (
+      <TrendingUp className="h-3 w-3" />
+    ) : (
+      <TrendingDown className="h-3 w-3" />
+    )
   }
 
   const getComparisonPeriodName = () => {
@@ -109,7 +128,7 @@ export function PLPerformance({
   }
 
   const maxAmount = Math.max(
-    ...mockData.map(cat => Math.max(cat.currentPeriod, cat.priorPeriod))
+    ...mockData.map((cat) => Math.max(cat.currentPeriod, cat.priorPeriod))
   )
 
   const isLoading = false // Would be managed by parent component
@@ -131,7 +150,7 @@ export function PLPerformance({
   }
 
   return (
-    <Card className="cursor-pointer hover:shadow-md transition-shadow">
+    <Card className="cursor-pointer transition-shadow hover:shadow-md">
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>
@@ -144,7 +163,11 @@ export function PLPerformance({
             </CardDescription>
           </div>
           <Badge variant="outline" className="text-xs">
-            {period === "mtd" ? "Month-to-Date" : period === "qtd" ? "Quarter-to-Date" : "Year-to-Date"}
+            {period === "mtd"
+              ? "Month-to-Date"
+              : period === "qtd"
+                ? "Quarter-to-Date"
+                : "Year-to-Date"}
           </Badge>
         </div>
       </CardHeader>
@@ -152,33 +175,45 @@ export function PLPerformance({
         {/* Clustered Bar Chart */}
         <div className="space-y-4">
           {mockData.map((category, index) => {
-            const currentBarWidth = (Math.abs(category.currentPeriod) / maxAmount) * 100
-            const priorBarWidth = (Math.abs(category.priorPeriod) / maxAmount) * 100
-            const varianceColor = getVarianceColor(category.variancePercentage, category.isPositive)
-            const varianceIcon = getVarianceIcon(category.variancePercentage, category.isPositive)
+            const currentBarWidth =
+              (Math.abs(category.currentPeriod) / maxAmount) * 100
+            const priorBarWidth =
+              (Math.abs(category.priorPeriod) / maxAmount) * 100
+            const varianceColor = getVarianceColor(
+              category.variancePercentage,
+              category.isPositive
+            )
+            const varianceIcon = getVarianceIcon(
+              category.variancePercentage,
+              category.isPositive
+            )
 
             return (
               <div key={category.name} className="space-y-2">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className={`w-4 h-4 ${category.color} rounded`}></div>
-                    <span className="font-medium text-sm">{category.name}</span>
+                    <div className={`h-4 w-4 ${category.color} rounded`}></div>
+                    <span className="text-sm font-medium">{category.name}</span>
                   </div>
                   <div className="flex items-center gap-4 text-sm">
                     <div className="text-right">
                       <div className="font-bold">
                         {formatCurrency(category.currentPeriod)}
                       </div>
-                      <div className="text-xs text-muted-foreground">Current</div>
+                      <div className="text-muted-foreground text-xs">
+                        Current
+                      </div>
                     </div>
                     <div className="text-right">
-                      <div className="font-medium text-muted-foreground">
+                      <div className="text-muted-foreground font-medium">
                         {formatCurrency(category.priorPeriod)}
                       </div>
-                      <div className="text-xs text-muted-foreground">Prior</div>
+                      <div className="text-muted-foreground text-xs">Prior</div>
                     </div>
-                    <div className="text-right min-w-[80px]">
-                      <div className={`font-bold flex items-center gap-1 ${varianceColor}`}>
+                    <div className="min-w-[80px] text-right">
+                      <div
+                        className={`flex items-center gap-1 font-bold ${varianceColor}`}
+                      >
                         {varianceIcon}
                         {category.variancePercentage >= 0 ? "+" : ""}
                         {category.variancePercentage.toFixed(1)}%
@@ -195,8 +230,10 @@ export function PLPerformance({
                 <div className="space-y-1">
                   {/* Current Period Bar */}
                   <div className="flex items-center gap-2">
-                    <span className="text-xs text-muted-foreground w-16">Current</span>
-                    <div className="flex-1 h-6 bg-gray-100 rounded overflow-hidden">
+                    <span className="text-muted-foreground w-16 text-xs">
+                      Current
+                    </span>
+                    <div className="h-6 flex-1 overflow-hidden rounded bg-gray-100">
                       <div
                         className={`h-full ${category.color} transition-all duration-500 ease-in-out`}
                         style={{ width: `${currentBarWidth}%` }}
@@ -211,8 +248,10 @@ export function PLPerformance({
 
                   {/* Prior Period Bar */}
                   <div className="flex items-center gap-2">
-                    <span className="text-xs text-muted-foreground w-16">Prior</span>
-                    <div className="flex-1 h-6 bg-gray-100 rounded overflow-hidden">
+                    <span className="text-muted-foreground w-16 text-xs">
+                      Prior
+                    </span>
+                    <div className="h-6 flex-1 overflow-hidden rounded bg-gray-100">
                       <div
                         className="h-full bg-gray-400 transition-all duration-500 ease-in-out"
                         style={{ width: `${priorBarWidth}%` }}
@@ -227,12 +266,16 @@ export function PLPerformance({
                 </div>
 
                 {/* Variance Indicator */}
-                <div className={`flex items-center justify-center p-1 rounded text-xs ${varianceColor} bg-opacity-10`}>
+                <div
+                  className={`flex items-center justify-center rounded p-1 text-xs ${varianceColor} bg-opacity-10`}
+                >
                   <div className="flex items-center gap-1">
                     {varianceIcon}
                     <span>
-                      {category.isPositive ? "Higher is better" : "Lower is better"} • 
-                      Variance: {category.variancePercentage >= 0 ? "+" : ""}
+                      {category.isPositive
+                        ? "Higher is better"
+                        : "Lower is better"}{" "}
+                      • Variance: {category.variancePercentage >= 0 ? "+" : ""}
                       {category.variancePercentage.toFixed(1)}%
                     </span>
                   </div>
@@ -244,21 +287,25 @@ export function PLPerformance({
 
         {/* Key Insights */}
         <div className="grid grid-cols-2 gap-4">
-          <div className="text-center p-3 bg-muted/50 rounded-lg">
-            <div className="text-sm font-medium text-muted-foreground mb-1">
+          <div className="bg-muted/50 rounded-lg p-3 text-center">
+            <div className="text-muted-foreground mb-1 text-sm font-medium">
               Revenue Growth
             </div>
-            <div className={`text-xl font-bold ${getVarianceColor(mockData[0].variancePercentage, true)}`}>
+            <div
+              className={`text-xl font-bold ${getVarianceColor(mockData[0].variancePercentage, true)}`}
+            >
               {mockData[0].variancePercentage >= 0 ? "+" : ""}
               {mockData[0].variancePercentage.toFixed(1)}%
             </div>
           </div>
-          
-          <div className="text-center p-3 bg-muted/50 rounded-lg">
-            <div className="text-sm font-medium text-muted-foreground mb-1">
+
+          <div className="bg-muted/50 rounded-lg p-3 text-center">
+            <div className="text-muted-foreground mb-1 text-sm font-medium">
               Net Income Growth
             </div>
-            <div className={`text-xl font-bold ${getVarianceColor(mockData[5].variancePercentage, true)}`}>
+            <div
+              className={`text-xl font-bold ${getVarianceColor(mockData[5].variancePercentage, true)}`}
+            >
               {mockData[5].variancePercentage >= 0 ? "+" : ""}
               {mockData[5].variancePercentage.toFixed(1)}%
             </div>
@@ -266,14 +313,13 @@ export function PLPerformance({
         </div>
 
         {/* Drill-down Action */}
-        <div className="pt-2 border-t">
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className="w-full text-muted-foreground hover:text-foreground"
+        <div className="border-t pt-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-muted-foreground hover:text-foreground w-full"
             onClick={() => {
               // Navigate to P&L Detail Report
-              console.log("Navigate to P&L Detail Report")
             }}
           >
             View P&L Detail Report →

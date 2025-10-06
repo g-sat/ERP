@@ -65,7 +65,6 @@ export default function InvoiceForm({
   const handleTrnDateChange = React.useCallback(
     async (selectedTrnDate: Date | null) => {
       // Additional logic when transaction date changes
-      console.log("Selected transaction date:", selectedTrnDate)
       const { trnDate } = form?.getValues()
       form.setValue("gstClaimDate", trnDate)
       form?.trigger("gstClaimDate")
@@ -92,7 +91,6 @@ export default function InvoiceForm({
   const handleCustomerChange = React.useCallback(
     async (selectedCustomer: ICustomerLookup | null) => {
       // Additional logic when customer changes
-      console.log("Selected customer:", selectedCustomer)
       if (!isEdit) {
         form.setValue("currencyId", selectedCustomer?.currencyId || 0)
         form.setValue("creditTermId", selectedCustomer?.creditTermId || 0)
@@ -112,7 +110,6 @@ export default function InvoiceForm({
   const handleAccountDateChange = React.useCallback(
     async (selectedAccountDate: Date | null) => {
       // Additional logic when transaction date changes
-      console.log("Selected transaction date:", selectedAccountDate)
       const { accountDate } = form?.getValues()
       form.setValue("gstClaimDate", accountDate)
       form?.trigger("gstClaimDate")
@@ -136,7 +133,6 @@ export default function InvoiceForm({
   const handleCreditTermChange = React.useCallback(
     (selectedCreditTerm: ICreditTermLookup | null) => {
       // Additional logic when credit term changes
-      console.log("Selected credit term:", selectedCreditTerm)
       setDueDate(form)
     },
     [form]
@@ -146,7 +142,6 @@ export default function InvoiceForm({
   const handleBankChange = React.useCallback(
     (selectedBank: IBankLookup | null) => {
       // Additional logic when bank changes
-      console.log("Selected bank:", selectedBank)
     },
     []
   )
@@ -154,7 +149,6 @@ export default function InvoiceForm({
   // Handle delivery date change
   const handleDeliveryDateChange = React.useCallback(
     async (selectedDeliveryDate: Date | null) => {
-      console.log("Delivery date changed:", selectedDeliveryDate)
       await setDueDate(form)
     },
     [form]
@@ -164,7 +158,6 @@ export default function InvoiceForm({
   const handleCurrencyChange = React.useCallback(
     async (selectedCurrency: ICurrencyLookup | null) => {
       // Additional logic when currency changes
-      console.log("Selected currency:", selectedCurrency)
       const currencyId = selectedCurrency?.currencyId || 0
       const accountDate = form.getValues("accountDate")
 
@@ -178,7 +171,6 @@ export default function InvoiceForm({
         // Get current details and ensure they exist
         const details = form.getValues("data_details") as IInvoiceDetail[]
         if (!details || details.length === 0) {
-          console.log("No details available for calculation")
           return
         }
 
@@ -242,7 +234,6 @@ export default function InvoiceForm({
   // Handle exchange rate change
   const handleExchangeRateChange = React.useCallback(
     (e: React.FocusEvent<HTMLInputElement>) => {
-      console.log("Exchange rate changed:", e.target.value)
       const details = form.getValues("data_details") as IInvoiceDetail[]
       const exchangeRate = parseFloat(e.target.value) || 0
       const cityExchangeRate = form.getValues("ctyExhRate") || 0
@@ -297,7 +288,6 @@ export default function InvoiceForm({
   // Handle city exchange rate change
   const handleCityExchangeRateChange = React.useCallback(
     (e: React.FocusEvent<HTMLInputElement>) => {
-      console.log("City exchange rate changed:", e.target.value)
       const details = form.getValues("data_details") as IInvoiceDetail[]
       const exchangeRate = form.getValues("exhRate") || 0
       const cityExchangeRate = parseFloat(e.target.value) || 0

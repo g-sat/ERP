@@ -1,18 +1,15 @@
 import { NextRequest, NextResponse } from "next/server"
-
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
     const widget = searchParams.get("widget")
     const companyId = searchParams.get("companyId")
-
     if (!companyId) {
       return NextResponse.json(
         { error: "Company ID is required" },
         { status: 400 }
       )
     }
-
     // Mock data responses for different widgets
     const mockData: { [key: string]: Record<string, unknown> } = {
       "ap-aging": {
@@ -278,7 +275,6 @@ export async function GET(request: NextRequest) {
         industryBenchmark: 32,
       },
     }
-
     if (widget && mockData[widget]) {
       return NextResponse.json({
         success: true,
@@ -286,7 +282,6 @@ export async function GET(request: NextRequest) {
         timestamp: new Date().toISOString(),
       })
     }
-
     // Return all dashboard data if no specific widget requested
     return NextResponse.json({
       success: true,
@@ -301,34 +296,28 @@ export async function GET(request: NextRequest) {
     )
   }
 }
-
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
     const { action, widget, companyId, data } = body
-
     if (!companyId) {
       return NextResponse.json(
         { error: "Company ID is required" },
         { status: 400 }
       )
     }
-
     // Handle different actions
     switch (action) {
       case "schedule-payment":
         // Mock payment scheduling
-        console.log("Scheduling payment:", data)
         return NextResponse.json({
           success: true,
           message: "Payment scheduled successfully",
           paymentId: `PAY-${Date.now()}`,
           scheduledDate: data.paymentDate,
         })
-
       case "approve-invoice":
         // Mock invoice approval
-        console.log("Approving invoice:", data)
         return NextResponse.json({
           success: true,
           message: "Invoice approved successfully",
@@ -336,10 +325,8 @@ export async function POST(request: NextRequest) {
           approvedBy: data.approvedBy,
           approvedAt: new Date().toISOString(),
         })
-
       case "reject-invoice":
         // Mock invoice rejection
-        console.log("Rejecting invoice:", data)
         return NextResponse.json({
           success: true,
           message: "Invoice rejected successfully",
@@ -348,10 +335,8 @@ export async function POST(request: NextRequest) {
           rejectedAt: new Date().toISOString(),
           reason: data.reason,
         })
-
       case "request-extension":
         // Mock extension request
-        console.log("Requesting extension:", data)
         return NextResponse.json({
           success: true,
           message: "Extension requested successfully",
@@ -360,7 +345,6 @@ export async function POST(request: NextRequest) {
           requestedAt: new Date().toISOString(),
           newDueDate: data.newDueDate,
         })
-
       default:
         return NextResponse.json({ error: "Invalid action" }, { status: 400 })
     }

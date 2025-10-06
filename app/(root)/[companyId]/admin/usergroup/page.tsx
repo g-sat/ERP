@@ -88,7 +88,6 @@ export default function AdminUserGroupsPage() {
 
   const handleFilterChange = useCallback(
     (filters: { search?: string; sortOrder?: string }) => {
-      console.log("Filter change called with:", filters)
       setGroupFilters(filters as IUserGroupFilter)
     },
     []

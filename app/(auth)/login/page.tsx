@@ -1,5 +1,4 @@
 "use client"
-
 import { useEffect } from "react"
 import {
   Manrope as FontManrope,
@@ -8,28 +7,23 @@ import {
 } from "next/font/google"
 import { useRouter } from "next/navigation"
 import { useAuthStore } from "@/stores/auth-store"
-
 import { cn } from "@/lib/utils"
 import { LoginForm } from "@/components/forms/login-form"
-
 const fontSans = FontSans({ subsets: ["latin"], variable: "--font-sans" })
 const fontSerif = FontSerif({ subsets: ["latin"], variable: "--font-serif" })
 const fontManrope = FontManrope({
   subsets: ["latin"],
   variable: "--font-manrope",
 })
-
 export default function LoginPage() {
   const { isAuthenticated, logInStatusCheck, isLoading, forceLogout, error } =
     useAuthStore()
   const router = useRouter()
-
   // Check if user is already logged in when the page loads
   useEffect(() => {
     const checkAuthStatus = async () => {
       try {
         await logInStatusCheck()
-
         // If user is authenticated, redirect to company select page
         if (isAuthenticated) {
           router.push("/company-select")
@@ -40,10 +34,8 @@ export default function LoginPage() {
         forceLogout()
       }
     }
-
     checkAuthStatus()
   }, [isAuthenticated, logInStatusCheck, router, forceLogout])
-
   // Ensure loading state is properly reset on login page
   useEffect(() => {
     // Reset loading state when login page mounts
@@ -51,18 +43,14 @@ export default function LoginPage() {
       const timer = setTimeout(() => {
         forceLogout()
       }, 1000)
-
       return () => clearTimeout(timer)
     }
   }, [isLoading, isAuthenticated, forceLogout])
-
   // Clear any authentication errors when page loads
   useEffect(() => {
     if (error) {
-      console.log("Authentication error detected:", error)
-    }
+      }
   }, [error])
-
   return (
     <div
       className={cn(

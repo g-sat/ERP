@@ -9,7 +9,6 @@ import {
   RefreshCw,
   SlidersHorizontal,
 } from "lucide-react"
-
 import { usePersist } from "@/hooks/use-common"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -22,7 +21,6 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
 import { DebitNoteConfirmation } from "@/components/confirmation/debitnote-confirmation"
-
 // Define types for clarity
 type TaskTableHeaderProps<TData> = {
   onRefresh?: () => void
@@ -45,7 +43,6 @@ type TaskTableHeaderProps<TData> = {
   hideColumnsOnDebitNote?: string[] // Array of column IDs to hide when debit note exists
   hasDebitNoteInSelection?: boolean // Whether any selected row has debit note
 }
-
 export function TaskTableHeader<TData>({
   onRefresh,
   onCreate,
@@ -72,7 +69,6 @@ export function TaskTableHeader<TData>({
   // State for debit note confirmation dialog
   const [showDebitNoteConfirmation, setShowDebitNoteConfirmation] =
     useState(false)
-
   // Filter columns based on search and debit note status - memoized to prevent re-renders
   const filteredColumns = useMemo(() => {
     return columns.filter((column) => {
@@ -83,7 +79,6 @@ export function TaskTableHeader<TData>({
       ) {
         return false
       }
-
       // Then filter by search
       const headerText =
         typeof column.columnDef.header === "string"
@@ -92,23 +87,17 @@ export function TaskTableHeader<TData>({
       return headerText.toLowerCase().includes(columnSearch.toLowerCase())
     })
   }, [columns, columnSearch, hasDebitNoteInSelection, hideColumnsOnDebitNote])
-
   const handleShowAll = useCallback(() => {
     columns.forEach((column) => column.toggleVisibility(true))
     setActiveButton("show")
   }, [columns])
-
   const handleHideAll = useCallback(() => {
     columns.forEach((column) => column.toggleVisibility(false))
     setActiveButton("hide")
   }, [columns])
-
   const handleDebitNoteClick = useCallback(() => {
-    console.log("Debit Note button clicked in header")
-
     // Check if any selected items have existing debit notes
     const hasExistingDebitNotes = hasValidDebitNoteIds
-
     if (hasExistingDebitNotes) {
       // If all selected items have existing debit notes, show a different message
       setShowDebitNoteConfirmation(true)
@@ -117,7 +106,6 @@ export function TaskTableHeader<TData>({
       setShowDebitNoteConfirmation(true)
     }
   }, [hasValidDebitNoteIds])
-
   const handleConfirmDebitNote = useCallback(() => {
     if (onDebitNote) {
       onDebitNote(debitNoteNo || "", selectedRowIds)
@@ -125,27 +113,20 @@ export function TaskTableHeader<TData>({
     }
     setShowDebitNoteConfirmation(false)
   }, [onDebitNote, debitNoteNo, selectedRowIds])
-
   const handleCancelDebitNote = useCallback(() => {
     setShowDebitNoteConfirmation(false)
   }, [])
-
   // Handle combined services click with validation
   const handleCombinedServiceClick = useCallback(() => {
-    console.log("Combined Services button clicked in header")
     if (onCombinedService) {
       onCombinedService()
     }
   }, [onCombinedService])
-
   // Add the save mutation for grid settings
   const saveGridSettings = usePersist<IGridSetting>("/setting/saveUserGrid")
-
   const handleSaveLayout = useCallback(async () => {
     try {
-      console.log(moduleId, transactionId, "moduleId, transactionId")
       const grdName = tableName
-
       // Get column visibility and order
       const columnVisibility = Object.fromEntries(
         columns.map((col) => [col.id, col.getIsVisible()])
@@ -155,7 +136,6 @@ export function TaskTableHeader<TData>({
       )
       const columnOrder = columns.map((col) => col.id)
       const sorting: { id: string; desc: boolean }[] = [] // Add sorting if needed
-
       const gridSettings: IGridSetting = {
         moduleId,
         transactionId,
@@ -167,13 +147,11 @@ export function TaskTableHeader<TData>({
         grdSort: JSON.stringify(sorting),
         grdString: "",
       }
-
       await saveGridSettings.mutateAsync(gridSettings)
     } catch (error) {
       console.error("Error saving layout:", error)
     }
   }, [moduleId, transactionId, tableName, columns, saveGridSettings])
-
   return (
     <>
       <div className="mb-4 space-y-2">
@@ -271,7 +249,6 @@ export function TaskTableHeader<TData>({
               )}
             </div>
           </div>
-
           {/* Search Input */}
           <div className="flex items-center gap-2">
             <Input
@@ -339,7 +316,6 @@ export function TaskTableHeader<TData>({
                 ))}
               </DropdownMenuContent>
             </DropdownMenu>
-
             {/* Layout Change - Moved to right side */}
             <Button
               variant="outline"
@@ -351,7 +327,6 @@ export function TaskTableHeader<TData>({
           </div>
         </div>
       </div>
-
       {/* Debit Note Confirmation */}
       <DebitNoteConfirmation
         open={showDebitNoteConfirmation}

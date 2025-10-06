@@ -8,10 +8,11 @@ interface SessionExpiryConfig {
   warningTimeMinutes: number
   sessionTimeoutMinutes: number
   enabled: boolean
+  autoSignOutOnClose: boolean
 }
 
 const getSessionConfig = (): SessionExpiryConfig => {
-  return {
+  const config = {
     warningTimeMinutes: parseInt(
       process.env.NEXT_PUBLIC_SESSION_WARNING_TIME || "5",
       10
@@ -20,8 +21,15 @@ const getSessionConfig = (): SessionExpiryConfig => {
       process.env.NEXT_PUBLIC_SESSION_TIMEOUT || "30",
       10
     ),
-    enabled: process.env.NEXT_PUBLIC_ENABLE_SESSION_WARNING === "true",
+    // Enable by default in both development and production
+    // Can be disabled by setting NEXT_PUBLIC_ENABLE_SESSION_WARNING=false
+    enabled: process.env.NEXT_PUBLIC_ENABLE_SESSION_WARNING !== "false",
+    // Auto sign out when user closes the modal (default: false for user-friendly behavior)
+    autoSignOutOnClose:
+      process.env.NEXT_PUBLIC_SESSION_AUTO_SIGNOUT_ON_CLOSE === "true",
   }
+
+  return config
 }
 
 export function useSessionExpiry() {
@@ -34,22 +42,35 @@ export function useSessionExpiry() {
 
   const config = getSessionConfig()
 
-  // Update last activity on user interaction
+  // Update last activity on user interaction (without closing modal)
   const updateActivity = useCallback(() => {
     setLastActivity(Date.now())
-    if (showModal) {
-      setShowModal(false)
-      setWarningShown(false)
-    }
-  }, [showModal])
+    // Don't automatically close the modal on user interaction
+    // The modal should only be closed by explicit user action (Stay Signed In, Sign Out, or Close)
+  }, [])
 
   // Check if token is expired
   const isTokenExpired = useCallback((token: string): boolean => {
     try {
-      const payload = JSON.parse(atob(token.split(".")[1]))
+      // Validate token format first
+      if (
+        !token ||
+        typeof token !== "string" ||
+        token.split(".").length !== 3
+      ) {
+        return true
+      }
+
+      const parts = token.split(".")
+      if (!parts[1]) {
+        return true
+      }
+
+      const payload = JSON.parse(atob(parts[1]))
       const exp = payload.exp * 1000 // Convert to milliseconds
       return Date.now() >= exp
-    } catch {
+    } catch (error) {
+      console.warn("Token parsing error:", error, "Token:", token)
       return true
     }
   }, [])
@@ -57,9 +78,25 @@ export function useSessionExpiry() {
   // Get token expiry time
   const getTokenExpiry = useCallback((token: string): number => {
     try {
-      const payload = JSON.parse(atob(token.split(".")[1]))
+      // Validate token format first
+      if (
+        !token ||
+        typeof token !== "string" ||
+        token.split(".").length !== 3
+      ) {
+        return 0
+      }
+
+      const parts = token.split(".")
+      if (!parts[1]) {
+        console.warn("Token missing payload for expiry check:", token)
+        return 0
+      }
+
+      const payload = JSON.parse(atob(parts[1]))
       return payload.exp * 1000 // Convert to milliseconds
-    } catch {
+    } catch (error) {
+      console.warn("Token expiry parsing error:", error, "Token:", token)
       return 0
     }
   }, [])
@@ -82,18 +119,26 @@ export function useSessionExpiry() {
     try {
       const newToken = await refreshToken()
       if (newToken) {
-        console.log("Session extended successfully")
-      } else {
-        console.log("Token refresh failed, will logout on next check")
+        // Reset warning state so modal can show again if needed
+        setWarningShown(false)
       }
     } catch (error) {
       console.error("Failed to refresh token:", error)
     }
   }, [])
 
+  // Reset warning state when token changes (e.g., after refresh)
+  useEffect(() => {
+    if (token && isAuthenticated) {
+      setWarningShown(false)
+    }
+  }, [token, isAuthenticated])
+
   // Check session expiry
   useEffect(() => {
-    if (!isAuthenticated || !token || !config.enabled) return
+    if (!isAuthenticated || !token || !config.enabled) {
+      return
+    }
 
     const checkSession = () => {
       if (isTokenExpired(token)) {
@@ -106,8 +151,15 @@ export function useSessionExpiry() {
       const timeUntilExpiry = tokenExpiry - now
       const warningTimeMs = config.warningTimeMinutes * 60 * 1000
 
+      // Debug logging with more details (development only)
+
       // Show warning if we're within the warning time and haven't shown it yet
-      if (timeUntilExpiry <= warningTimeMs && !warningShown) {
+      // Also ensure timeUntilExpiry > 0 to avoid showing for expired tokens
+      if (
+        timeUntilExpiry <= warningTimeMs &&
+        timeUntilExpiry > 0 &&
+        !warningShown
+      ) {
         setTimeRemaining(Math.floor(timeUntilExpiry / 1000))
         setShowModal(true)
         setWarningShown(true)
@@ -117,8 +169,9 @@ export function useSessionExpiry() {
     // Check immediately
     checkSession()
 
-    // Set up interval to check every 30 seconds
-    const interval = setInterval(checkSession, 30000)
+    // Set up interval to check every 30 seconds (production) or 10 seconds (development)
+    const checkInterval = process.env.NODE_ENV === "development" ? 10000 : 30000
+    const interval = setInterval(checkSession, checkInterval)
 
     return () => clearInterval(interval)
   }, [
@@ -132,10 +185,11 @@ export function useSessionExpiry() {
     handleSignOut,
   ])
 
-  // Set up activity listeners
+  // Set up activity listeners to track user activity
   useEffect(() => {
     if (!isAuthenticated || !config.enabled) return
 
+    // Listen for user activity to track last activity time
     const events = [
       "mousedown",
       "mousemove",
@@ -156,11 +210,51 @@ export function useSessionExpiry() {
     }
   }, [isAuthenticated, config.enabled, updateActivity])
 
+  // Test function to manually trigger session expiry modal
+  const testSessionExpiry = useCallback(() => {
+    setTimeRemaining(300) // 5 minutes
+    setShowModal(true)
+    setWarningShown(true)
+  }, [])
+
+  // Expose test function to window for debugging (development only)
+  useEffect(() => {
+    if (
+      process.env.NODE_ENV === "development" &&
+      typeof window !== "undefined"
+    ) {
+      ;(
+        window as unknown as { testSessionExpiry?: () => void }
+      ).testSessionExpiry = testSessionExpiry
+
+      // Cleanup on unmount
+      return () => {
+        if (typeof window !== "undefined") {
+          delete (window as unknown as { testSessionExpiry?: () => void })
+            .testSessionExpiry
+        }
+      }
+    }
+  }, [testSessionExpiry])
+
+  // Handle modal close - user dismissed the warning
+  const handleClose = useCallback(() => {
+    setShowModal(false)
+
+    if (config.autoSignOutOnClose) {
+      handleSignOut()
+    } else {
+      // User-friendly mode: Reset warning state so modal can show again
+      setWarningShown(false)
+    }
+  }, [config.autoSignOutOnClose, handleSignOut])
+
   return {
     showModal,
     timeRemaining,
     onSignOut: handleSignOut,
     onStaySignedIn: handleStaySignedIn,
-    onClose: () => setShowModal(false),
+    onClose: handleClose,
+    ...(process.env.NODE_ENV === "development" && { testSessionExpiry }), // Only expose in development
   }
 }

@@ -217,9 +217,6 @@ export function BankBalancesAlerts({
                 }`}
                 onClick={() => {
                   // Navigate to Bank Reconciliation module for this account
-                  console.log(
-                    `Navigate to Bank Reconciliation: ${account.accountNickname}`
-                  )
                 }}
               >
                 <div className="flex items-center justify-between">
@@ -308,7 +305,6 @@ export function BankBalancesAlerts({
             className="text-muted-foreground hover:text-foreground w-full"
             onClick={() => {
               // Navigate to Bank Management module
-              console.log("Navigate to Bank Management Module")
             }}
           >
             Manage Bank Accounts →

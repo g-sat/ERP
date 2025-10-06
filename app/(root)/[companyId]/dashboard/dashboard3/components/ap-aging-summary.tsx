@@ -106,7 +106,6 @@ export default function APAgingSummary({
 
   const handleBarClick = (data: APAgingData) => {
     // This would trigger a drill-down to filter Widget 3.4 (Upcoming Payments)
-    console.log(`Drilling down to aging bucket: ${data.bucket}`)
     // In a real implementation, this would update the parent dashboard state
     // or trigger a callback to filter the payments calendar widget
   }

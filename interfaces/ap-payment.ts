@@ -1,6 +1,6 @@
 export interface IApPaymentHd {
   companyId: number
-  paymentId: number
+  paymentId: string
   paymentNo: string
   referenceNo: string
   trnDate: Date | string
@@ -61,7 +61,7 @@ export interface IApPaymentFilter {
 
 export interface IApPaymentDt {
   companyId: number
-  paymentId: number
+  paymentId: string
   paymentNo: string
   itemNo: number
   transactionId: number

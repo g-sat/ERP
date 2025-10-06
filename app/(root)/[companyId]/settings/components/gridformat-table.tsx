@@ -80,7 +80,6 @@ export function GridFormatTable() {
 
   // Update gridSettings when gridSettingsData changes
   useEffect(() => {
-    console.log("Grid settings data received:", gridSettingsData)
     if (gridSettingsData) {
       // Check if the response has the expected structure
       if (Array.isArray(gridSettingsData)) {
@@ -99,7 +98,6 @@ export function GridFormatTable() {
         // Handle API response format with result and data
         setGridSettings(gridSettingsData.data)
       } else {
-        console.log("Unexpected data structure:", gridSettingsData)
         setGridSettings([])
       }
     } else {
@@ -109,9 +107,7 @@ export function GridFormatTable() {
 
   // When user changes, refetch settings
   useEffect(() => {
-    console.log("Selected user changed:", selectedUser)
     if (selectedUser) {
-      console.log("Refetching grid settings for user ID:", selectedUser.userId)
       refetchGridSettings()
     } else {
       setGridSettings([])
@@ -153,13 +149,10 @@ export function GridFormatTable() {
   }
 
   const handleSearch = async () => {
-    console.log("Search button clicked, selected user:", selectedUser)
     if (!selectedUser) {
-      console.log("No user selected, clearing grid settings")
       setGridSettings([])
       return
     }
-    console.log("Refetching grid settings for user:", selectedUser.userId)
     refetchGridSettings()
   }
 
@@ -295,7 +288,6 @@ export function GridFormatTable() {
               <TableBody className="**:data-[slot=table-cell]:first:w-8">
                 {table.getRowModel().rows?.length ? (
                   table.getRowModel().rows.map((row) => {
-                    console.log("Rendering row:", row.original)
                     return (
                       <TableRow
                         key={row.id}

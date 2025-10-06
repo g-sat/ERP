@@ -85,7 +85,6 @@ export default function AdminUsersPage() {
 
   const handleFilterChange = useCallback(
     (filters: { search?: string; sortOrder?: string }) => {
-      console.log("Filter change called with:", filters)
       setFilters(filters as IUserFilter)
     },
     []

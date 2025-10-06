@@ -247,7 +247,6 @@ export function KeyFinancialRatios({
               className="hover:bg-muted/50 cursor-pointer rounded-lg border p-4 transition-colors"
               onClick={() => {
                 // Show detailed ratio analysis popover
-                console.log(`Show detailed analysis for ${ratio.name}`)
               }}
             >
               <div className="mb-2 flex items-center justify-between">
@@ -344,7 +343,6 @@ export function KeyFinancialRatios({
             className="text-muted-foreground hover:text-foreground w-full"
             onClick={() => {
               // Navigate to comprehensive financial ratios analysis
-              console.log("Navigate to Financial Ratios Analysis")
             }}
           >
             View Comprehensive Analysis →

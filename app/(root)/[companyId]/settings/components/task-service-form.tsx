@@ -63,8 +63,6 @@ export function TaskServiceForm() {
     refetch,
   } = useTaskServiceGet()
 
-  console.log("taskServiceResponse", taskServiceResponse)
-
   // Get chart of account data to ensure it's loaded before setting form values
   const { data: chartOfAccounts = [], isLoading: isLoadingChartOfAccounts } =
     useChartofAccountLookup(Number(companyId))
@@ -129,8 +127,6 @@ export function TaskServiceForm() {
       }
 
       if (result === 1 && data) {
-        console.log("API Response data:", data)
-
         const servicesData: Record<
           string,
           {
@@ -148,9 +144,6 @@ export function TaskServiceForm() {
         > = {}
 
         data.forEach((service) => {
-          console.log("Processing service:", service)
-          console.log("Service TaskId:", service.taskId)
-
           // Use taskId as the key since we don't have TASK_SERVICES mapping
           const serviceKey = `service_${service.taskId}`
 
@@ -167,8 +160,6 @@ export function TaskServiceForm() {
             statusTypeId: service.statusTypeId || 0,
           }
         })
-
-        console.log("Final servicesData:", servicesData)
 
         form.reset({ services: servicesData })
       }
@@ -219,8 +210,6 @@ export function TaskServiceForm() {
       landingTypeId: serviceData.landingTypeId,
       statusTypeId: serviceData.statusTypeId,
     }
-
-    console.log(`Saving individual service ${serviceKey}:`, individualPayload)
 
     saveTaskServiceSettings(individualPayload, {
       onSuccess: (response) => {

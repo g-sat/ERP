@@ -10,7 +10,6 @@ import {
 import { DynamicLookupSchemaType } from "@/schemas/setting"
 import { keepPreviousData, useMutation, useQuery } from "@tanstack/react-query"
 import { AxiosError } from "axios"
-
 import { getData, saveData } from "@/lib/api-client"
 import {
   BasicSetting,
@@ -23,9 +22,7 @@ import {
   UserSetting,
   VisibleFieldSetting,
 } from "@/lib/api-routes"
-
 // Common query configuration
-
 // =========================
 // Decimal Setting Hooks
 // =========================
@@ -41,7 +38,6 @@ export const useDecimalGet = () => {
     refetchOnWindowFocus: false,
   })
 }
-
 // 2. Save Decimal Setting
 export const useDecimalSave = () => {
   return useMutation({
@@ -59,7 +55,6 @@ export const useDecimalSave = () => {
   })
 }
 // End Decimal Setting Hooks
-
 // =========================
 // Finance Setting Hooks
 // =========================
@@ -75,7 +70,6 @@ export const useFinanceGet = () => {
     refetchOnWindowFocus: false,
   })
 }
-
 // 2. Save Finance Setting
 export const useFinanceSave = () => {
   return useMutation({
@@ -93,7 +87,6 @@ export const useFinanceSave = () => {
   })
 }
 // End Finance Setting Hooks
-
 // =========================
 // User Setting Hooks
 // =========================
@@ -109,7 +102,6 @@ export const useUserSettingGet = () => {
     refetchOnWindowFocus: false,
   })
 }
-
 // 2. Save User Setting
 export const useUserSettingSave = () => {
   return useMutation({
@@ -127,7 +119,6 @@ export const useUserSettingSave = () => {
   })
 }
 // End User Setting Hooks
-
 // =========================
 // Mandatory Field Setting Hooks
 // =========================
@@ -143,7 +134,6 @@ export const useMandatoryFieldbyidGet = (moduleId: number) => {
     refetchOnWindowFocus: false,
   })
 }
-
 // 2. Save Mandatory Field Settings
 export const useMandatoryFieldSave = () => {
   return useMutation({
@@ -161,7 +151,6 @@ export const useMandatoryFieldSave = () => {
   })
 }
 // End Mandatory Field Setting Hooks
-
 // =========================
 // Visible Field Setting Hooks
 // =========================
@@ -177,7 +166,6 @@ export const useVisibleFieldbyidGet = (moduleId: number) => {
     refetchOnWindowFocus: false,
   })
 }
-
 // 2. Save Visible Field Settings
 export const useVisibleFieldSave = () => {
   return useMutation({
@@ -195,7 +183,6 @@ export const useVisibleFieldSave = () => {
   })
 }
 // End Visible Field Setting Hooks
-
 // =========================
 // Dynamic Lookup Setting Hooks
 // =========================
@@ -211,13 +198,11 @@ export const useDynamicLookupGet = () => {
     refetchOnWindowFocus: false,
   })
 }
-
 // 2. Save Dynamic Lookup Settings
 export const useDynamicLookupSave = () => {
   return useMutation({
     mutationFn: async ({ data }: { data: DynamicLookupSchemaType }) => {
       try {
-        console.log("data to save dynamic lookup", data)
         return await saveData(DynamicLookupSetting.add, data)
       } catch (error: unknown) {
         if (error instanceof AxiosError) {
@@ -230,7 +215,6 @@ export const useDynamicLookupSave = () => {
   })
 }
 // End Dynamic Lookup Setting Hooks
-
 // =========================
 // Grid Setting Hooks
 // =========================
@@ -246,7 +230,6 @@ export const useGridSettingGet = (moduleId: number, transactionId: number) => {
     refetchOnWindowFocus: false,
   })
 }
-
 // 2. Save Grid Settings
 export const useGridSettingSave = () => {
   return useMutation({
@@ -264,7 +247,6 @@ export const useGridSettingSave = () => {
   })
 }
 // End Grid Setting Hooks
-
 // =========================
 // User Grid Setting Hooks
 // =========================
@@ -281,7 +263,6 @@ export const useUserGridSettingbyidGet = (userId: number, options = {}) => {
     ...options,
   })
 }
-
 // 2. Clone User Grid Settings
 export const useCloneUserSettingSave = () => {
   return useMutation({
@@ -302,7 +283,6 @@ export const useCloneUserSettingSave = () => {
   })
 }
 // End User Grid Setting Hooks
-
 // =========================
 // Module Transaction List Hooks
 // =========================
@@ -319,7 +299,6 @@ export const useModuleTransactionListGet = () => {
   })
 }
 // End Module Transaction List Hooks
-
 // =========================
 // Number Format Hooks
 // =========================
@@ -343,7 +322,6 @@ export const useNumberFormatDataById = ({
     refetchOnWindowFocus: false,
   })
 }
-
 // 2. Get Number Format Details Data
 export const useNumberFormatDetailsDataGet = ({
   id,
@@ -362,7 +340,6 @@ export const useNumberFormatDetailsDataGet = ({
     refetchOnWindowFocus: false,
   })
 }
-
 // 3. Save Number Format
 export const useNumberFormatSave = () => {
   return useMutation({
@@ -380,7 +357,6 @@ export const useNumberFormatSave = () => {
   })
 }
 // End Number Format Hooks
-
 // =========================
 // Grid Layout Hooks
 // =========================
@@ -396,7 +372,6 @@ export const useGetGridLayout = (
     transactionId !== "0" &&
     moduleId !== "" &&
     transactionId !== ""
-
   return useQuery({
     queryKey: ["gridlayout", moduleId, transactionId, gridName],
     placeholderData: keepPreviousData,
@@ -411,7 +386,6 @@ export const useGetGridLayout = (
     enabled: shouldFetch, // Only enable the query when IDs are valid
   })
 }
-
 // 2. Update Grid Layout
 export const useUpdateGridLayout = () => {
   return useMutation({
@@ -429,7 +403,6 @@ export const useUpdateGridLayout = () => {
   })
 }
 // End Grid Layout Hooks
-
 // =========================
 // Utility Hooks
 // =========================
@@ -445,7 +418,6 @@ export const useGetGstPercentage = (gstId: number, accountDate: string) => {
     refetchOnWindowFocus: false,
   })
 }
-
 // 2. Get Exchange Rate
 export const useGetExchangeRate = (currencyId: string, accountDate: string) => {
   return useQuery({
@@ -458,7 +430,6 @@ export const useGetExchangeRate = (currencyId: string, accountDate: string) => {
     refetchOnWindowFocus: false,
   })
 }
-
 // 3. Get Exchange Rate Local
 export const useGetExchangeRateLocal = (
   currencyId: string,
@@ -474,7 +445,6 @@ export const useGetExchangeRateLocal = (
     refetchOnWindowFocus: false,
   })
 }
-
 // 4. Get Check Period Closed
 export const useGetCheckPeriodClosed = (
   moduleId: string,
@@ -490,7 +460,6 @@ export const useGetCheckPeriodClosed = (
     refetchOnWindowFocus: false,
   })
 }
-
 // 5. Get Days from Credit Term
 export const useGetDaysfromCreditTerm = (
   creditTermsId: string,

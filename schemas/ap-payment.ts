@@ -8,7 +8,7 @@ export const appaymentHdSchema = (
   return z.object({
     // Core Fields
     companyId: z.number().min(1),
-    paymentId: z.number().optional(),
+    paymentId: z.string().min(0),
     paymentNo: z.string().optional(),
     referenceNo: z.string().min(1),
     trnDate: z.union([z.date(), z.string()]),
@@ -107,7 +107,7 @@ export const appaymentDtSchema = (
   return z.object({
     // Core Fields
     companyId: z.number().min(1),
-    paymentId: z.number().min(0),
+    paymentId: z.string().min(0),
     paymentNo: z.string().min(1),
     itemNo: z.number().min(1),
     transactionId: z.number().min(1),

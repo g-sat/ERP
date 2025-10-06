@@ -35,7 +35,6 @@ export default function ContraDetailsTable({ form }: ContraDetailsTableProps) {
 
   const editDetail = (index: number) => {
     // Implementation for editing detail
-    console.log("Edit detail at index:", index)
   }
 
   if (details.length === 0) {

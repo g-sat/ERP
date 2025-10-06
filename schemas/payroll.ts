@@ -5,7 +5,7 @@ export const componentSchema = z.object({
   componentCode: z.string().min(1, "Component code is required"),
   componentName: z.string().min(1, "Component name is required"),
   componentType: z.enum(["Earning", "Deduction"], {
-    required_error: "Component type is required",
+    message: "Component type is required",
   }),
   isBonus: z.boolean(),
   isLeave: z.boolean(),
@@ -80,7 +80,7 @@ export const payrollTaxSchema = z.object({
   taxCode: z.string().min(1, "Tax code is required"),
   taxName: z.string().min(1, "Tax name is required"),
   taxType: z.enum(["INCOME_TAX", "SOCIAL_INSURANCE", "OTHER"], {
-    required_error: "Tax type is required",
+    message: "Tax type is required",
   }),
   minAmount: z.number().min(0, "Minimum amount must be non-negative"),
   maxAmount: z.number().optional(),
@@ -96,7 +96,7 @@ export const payrollBankTransferSchema = z.object({
   bankName: z.string().min(1, "Bank name is required"),
   accountNumber: z.string().min(1, "Account number is required"),
   transferDate: z.date({
-    required_error: "Transfer date is required",
+    message: "Transfer date is required",
   }),
   transferReference: z.string().min(1, "Transfer reference is required"),
   remarks: z.string().optional(),
@@ -124,10 +124,10 @@ export const payrollPaymentSchema = z.object({
     .array(z.number())
     .min(1, "At least one employee must be selected"),
   paymentMethod: z.enum(["BANK_TRANSFER", "CASH", "CHEQUE"], {
-    required_error: "Payment method is required",
+    message: "Payment method is required",
   }),
   paymentDate: z.date({
-    required_error: "Payment date is required",
+    message: "Payment date is required",
   }),
   bankTransferRef: z.string().optional(),
   remarks: z.string().optional(),
@@ -142,7 +142,7 @@ export const employeeSalaryComponentSchema = z.object({
   componentId: z.number().min(1, "Payroll component is required"),
   amount: z.number().min(0, "Amount must be non-negative"),
   effectiveFromDate: z.date({
-    required_error: "Effective from date is required",
+    message: "Effective from date is required",
   }),
 })
 

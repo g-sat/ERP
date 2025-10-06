@@ -53,7 +53,6 @@ export default function TemplatePage() {
   // Filter handler wrapper
   const handleFilterChange = useCallback(
     (newFilters: { search?: string; sortOrder?: string }) => {
-      console.log("Filter change called with:", newFilters)
       setFilters(newFilters as ITemplateFilter)
     },
     []
@@ -169,14 +168,10 @@ export default function TemplatePage() {
     )) as ApiResponse<ITemplateHd>
 
     if (response.result === 1 && response.data) {
-      console.log("Response data:", response.data)
       const templateData = Array.isArray(response.data)
         ? response.data[0]
         : response.data
       template = templateData
-
-      console.log("Template data:", templateData)
-      console.log("Template data_details:", templateData.data_details)
 
       console.log("Edit Template:", template)
       setModalMode("edit")

@@ -1,4 +1,4 @@
-import { ICompany, IDecimal, IUser } from "@/interfaces/auth"
+import { AuthResponse, ICompany, IDecimal, IUser } from "@/interfaces/auth"
 import Cookies from "js-cookie"
 import { create } from "zustand"
 import { devtools, persist } from "zustand/middleware"
@@ -139,26 +139,13 @@ interface AuthState {
   decimals: IDecimal[]
 
   // Authentication Actions
-  logIn: (
-    userName: string,
-    userPassword: string
-  ) => Promise<{
-    result: number
-    message: string
-    user: IUser
-    token: string
-    refreshToken: string
-  }>
+  logIn: (userName: string, userPassword: string) => Promise<AuthResponse>
+
   applocklogIn: (
     userName: string,
     userPassword: string
-  ) => Promise<{
-    result: number
-    message: string
-    user: IUser
-    token: string
-    refreshToken: string
-  }>
+  ) => Promise<AuthResponse>
+
   logInSuccess: (user: IUser, token: string, refreshToken: string) => void
   logInFailed: (error: string) => void
   logInStatusCheck: () => Promise<void>
@@ -271,7 +258,7 @@ export const useAuthStore = create<AuthState>()(
               get().setAppLocked(true)
             }
 
-            const data = await response.json()
+            const data: AuthResponse = await response.json()
 
             if (!response.ok) {
               throw new Error(data.message || "Login failed")
@@ -327,7 +314,7 @@ export const useAuthStore = create<AuthState>()(
               get().setAppLocked(true)
             }
 
-            const data = await response.json()
+            const data: AuthResponse = await response.json()
 
             if (!response.ok) {
               throw new Error(data.message || "Login failed")
@@ -691,9 +678,6 @@ export const useAuthStore = create<AuthState>()(
 
             // Retry mechanism for network errors
             if (retryCount < MAX_RETRIES) {
-              console.log(
-                `Retrying permissions fetch (attempt ${retryCount + 1}/${MAX_RETRIES})`
-              )
               await new Promise((resolve) =>
                 setTimeout(resolve, 1000 * (retryCount + 1))
               ) // Exponential backoff
@@ -751,7 +735,6 @@ export const useAuthStore = create<AuthState>()(
           // Check cache first
           const cached = getCachedData<unknown[]>(cacheKey)
           if (cached) {
-            console.log("Using cached user transactions")
             return cached
           }
 
@@ -855,10 +838,6 @@ export const useAuthStore = create<AuthState>()(
             60000
           )
 
-          console.log(
-            `🔄 [AuthStore] Token refresh scheduled in ${Math.round(refreshTime / 1000 / 60)} minutes`
-          )
-
           setTimeout(() => {
             get().refreshTokenAutomatically().catch(console.error)
           }, refreshTime)
@@ -877,17 +856,12 @@ export const useAuthStore = create<AuthState>()(
 
           // Prevent multiple simultaneous refresh attempts
           if (lastRefreshAttempt && Date.now() - lastRefreshAttempt < 30000) {
-            console.log(
-              "🔄 [AuthStore] Refresh already attempted recently, skipping"
-            )
             return null
           }
 
           set({ refreshInProgress: true, lastRefreshAttempt: Date.now() })
 
           try {
-            console.log("🔄 [AuthStore] Attempting automatic token refresh...")
-
             const response = await fetch(`${BACKEND_API_URL}/auth/refresh`, {
               method: "POST",
               headers: {
@@ -898,14 +872,13 @@ export const useAuthStore = create<AuthState>()(
               body: JSON.stringify({ refreshToken }),
             })
 
-            const data = await response.json()
+            const data: AuthResponse = await response.json()
 
             if (!response.ok) {
               throw new Error(data.message || "Token refresh failed")
             }
 
             if (data.token) {
-              console.log("✅ [AuthStore] Token refreshed successfully")
               get().logInSuccess(
                 data.user || get().user,
                 data.token,
@@ -931,8 +904,6 @@ export const useAuthStore = create<AuthState>()(
         ) => {
           const analytics = get().sessionAnalytics
           analytics.actionsPerformed++
-
-          console.log(`📊 [AuthStore] User action: ${action}`, metadata)
 
           // Send to analytics service if available
           if (
@@ -984,10 +955,6 @@ export const useAuthStore = create<AuthState>()(
 
           if (!isOnline || pendingActions.length === 0) return
 
-          console.log(
-            `📡 [AuthStore] Processing ${pendingActions.length} pending actions`
-          )
-
           set({ pendingActions: [] })
 
           for (const action of pendingActions) {
@@ -1009,12 +976,8 @@ export const useAuthStore = create<AuthState>()(
             const isValid = get().validateTokenExpiration(token)
 
             if (!isValid) {
-              console.log(
-                "❌ [AuthStore] Token expired on initialization, logging out"
-              )
               get().logOutSuccess()
             } else {
-              console.log("✅ [AuthStore] Token valid on initialization")
               get().setupTokenRefresh()
             }
           }
@@ -1037,7 +1000,6 @@ export const useAuthStore = create<AuthState>()(
          * Useful for clearing stuck authentication states
          */
         forceLogout: () => {
-          console.log("🔄 [AuthStore] Force logout called")
           get().logOutSuccess()
         },
       }),

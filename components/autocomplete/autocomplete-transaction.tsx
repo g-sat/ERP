@@ -3,7 +3,7 @@
 import React from "react"
 import { ITransactionLookup } from "@/interfaces/lookup"
 import { IconCheck, IconChevronDown, IconX } from "@tabler/icons-react"
-import { Path, PathValue } from "react-hook-form"
+import { Path, PathValue, UseFormReturn } from "react-hook-form"
 import Select, {
   ClearIndicatorProps,
   DropdownIndicatorProps,

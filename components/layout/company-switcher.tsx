@@ -1,12 +1,10 @@
 "use client"
-
 import * as React from "react"
 import Image from "next/image"
 import { useSearchParams } from "next/navigation"
 import { useAuthStore } from "@/stores/auth-store"
 import { Check, ChevronsUpDown, Loader2, Plus } from "lucide-react"
 import { toast } from "sonner"
-
 import { cn } from "@/lib/utils"
 import {
   DropdownMenu,
@@ -23,21 +21,16 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar"
-
 // Constants for storage keys
 const TAB_COMPANY_ID_KEY = "tab_company_id"
-
 export function CompanySwitcher() {
   const { isMobile } = useSidebar()
   const searchParams = useSearchParams()
   const { companies, currentCompany, getCompanies } = useAuthStore()
-
   const [isLoading, setIsLoading] = React.useState(false)
   const [isOpen, setIsOpen] = React.useState(false)
-
   // Get company ID from URL
   const urlCompanyId = searchParams.get("companyId")
-
   // Get the first letter of company code or name as fallback
   const getCompanyInitial = (company: typeof currentCompany) => {
     if (!company) return "?"
@@ -45,7 +38,6 @@ export function CompanySwitcher() {
       .charAt(0)
       .toUpperCase()
   }
-
   // Effect to fetch companies if not available
   React.useEffect(() => {
     const fetchCompanies = async () => {
@@ -58,10 +50,8 @@ export function CompanySwitcher() {
         }
       }
     }
-
     fetchCompanies()
   }, [companies.length, getCompanies])
-
   const handleCompanySwitch = React.useCallback(
     async (companyId: string) => {
       if (!companyId) {
@@ -96,26 +86,22 @@ export function CompanySwitcher() {
     },
     [companies]
   )
-
   // Effect to handle URL company ID changes
   React.useEffect(() => {
     if (urlCompanyId && urlCompanyId !== currentCompany?.companyId) {
       handleCompanySwitch(urlCompanyId)
     }
   }, [urlCompanyId, currentCompany?.companyId, handleCompanySwitch])
-
   // Effect to sync tab company ID with current company
   React.useEffect(() => {
     if (currentCompany?.companyId) {
       sessionStorage.setItem(TAB_COMPANY_ID_KEY, currentCompany.companyId)
     }
   }, [currentCompany?.companyId])
-
   // If no current company or companies list is empty, don't render anything
   if (!currentCompany || companies.length === 0) {
     return null
   }
-
   return (
     <SidebarMenu>
       <SidebarMenuItem>
@@ -235,8 +221,7 @@ export function CompanySwitcher() {
                 "text-muted-foreground hover:text-foreground"
               )}
               onClick={() => {
-                console.log("Add company clicked")
-              }}
+                }}
             >
               <div
                 className={cn(

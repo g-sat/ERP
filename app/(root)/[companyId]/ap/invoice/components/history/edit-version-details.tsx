@@ -50,11 +50,6 @@ export default function EditVersionDetails({
       selectedInvoice?.editVersion?.toString() || ""
     )
 
-  // Debug logging
-  console.log("invoiceHistoryData:", invoiceHistoryData)
-  console.log("invoiceDetailsData:", invoiceDetailsData)
-  console.log("selectedInvoice:", selectedInvoice)
-
   function isIApInvoiceHdArray(arr: unknown): arr is IApInvoiceHd[] {
     return (
       Array.isArray(arr) &&
@@ -83,14 +78,6 @@ export default function EditVersionDetails({
   // Check for API errors
   const hasHistoryError = invoiceHistoryData?.result === -1
   const hasDetailsError = invoiceDetailsData?.result === -1
-
-  // Debug logging for processed data
-  console.log("tableData:", tableData)
-  console.log("dialogData:", dialogData)
-  console.log("hasHistoryError:", hasHistoryError)
-  console.log("hasDetailsError:", hasDetailsError)
-  console.log("invoiceHistoryData?.result:", invoiceHistoryData?.result)
-  console.log("invoiceDetailsData?.result:", invoiceDetailsData?.result)
 
   const columns: ColumnDef<IApInvoiceHd>[] = [
     {
@@ -324,14 +311,12 @@ export default function EditVersionDetails({
         !hasHistoryError ||
         invoiceHistoryData?.message !== "Data does not exist"
       ) {
-        console.log("Refetching history data")
         await refetchHistory()
       }
       if (
         !hasDetailsError ||
         invoiceDetailsData?.message !== "Data does not exist"
       ) {
-        console.log("Refetching details data")
         await refetchDetails()
       }
     } catch (error) {

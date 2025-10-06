@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react"
 // import Link from "next/link" // Remove unused import
-import { useRouter, usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { Search } from "lucide-react"
 
 import { Label } from "@/components/ui/label"
@@ -57,32 +57,18 @@ export function SearchForm({
         group: null,
       })
     })
-    // Master, Project, Account navs
-    const navGroups: Array<keyof typeof menuData> = [
-      "masterNav",
-      "operationsNav",
-      "accountNav",
-    ]
-    navGroups.forEach((groupKey) => {
-      menuData[groupKey]?.forEach((group: Group) => {
-        if (hasItems(group)) {
-          group.items.forEach((sub) => {
-            flatten.push({
-              title: sub.title,
-              url: sub.url,
-              icon: sub.icon,
-              group: group.title,
-            })
-          })
-        } else {
+    // Process mainNav items that have sub-items
+    menuData.mainNav.forEach((item) => {
+      if (hasItems(item)) {
+        item.items.forEach((sub) => {
           flatten.push({
-            title: group.title,
-            url: group.url,
-            icon: group.icon,
-            group: null,
+            title: sub.title,
+            url: sub.url,
+            icon: sub.icon,
+            group: item.title,
           })
-        }
-      })
+        })
+      }
     })
     return flatten
   }, [])
@@ -99,9 +85,10 @@ export function SearchForm({
     setShowResults(false)
     setQuery("")
     // Only prepend if not already present and companyId exists
-    const fullUrl = companyId && !url.startsWith(`/${companyId}`)
-      ? `/${companyId}${url}`
-      : url
+    const fullUrl =
+      companyId && !url.startsWith(`/${companyId}`)
+        ? `/${companyId}${url}`
+        : url
     router.push(fullUrl)
   }
 

@@ -187,9 +187,7 @@ export default function DPOTrendAnalysis({
     return null
   }
 
-  const handleDataPointClick = (data: DPOTrendData) => {
-    console.log(`Opening DPO analysis for: ${data.quarter}`)
-  }
+  const handleDataPointClick = (data: DPOTrendData) => {}
 
   return (
     <Card>

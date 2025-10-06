@@ -162,8 +162,6 @@ export function AttendanceBulkForm({
       })
     })
 
-    console.log("📝 Attendance records:", attendanceRecords)
-
     bulkSaveAttendance.mutate(attendanceRecords, {
       onSuccess: (response) => {
         if (response.result === 1) {

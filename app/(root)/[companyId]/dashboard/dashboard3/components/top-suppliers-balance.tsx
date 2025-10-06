@@ -210,7 +210,6 @@ export default function TopSuppliersBalance({
 
   const handleSupplierClick = (supplier: SupplierBalance) => {
     // This would open the supplier detail modal
-    console.log(`Opening supplier detail for: ${supplier.name}`)
   }
 
   return (

@@ -234,15 +234,9 @@ export default function DiscountTracker({
     (item) => item.discountStatus === "expiring_soon"
   ).length
 
-  const handleScheduleEarlyPayment = (discount: DiscountOpportunity) => {
-    console.log(
-      `Scheduling early payment for invoice: ${discount.invoiceNumber}`
-    )
-  }
+  const handleScheduleEarlyPayment = (discount: DiscountOpportunity) => {}
 
-  const _handleViewInvoice = (discount: DiscountOpportunity) => {
-    console.log(`Viewing invoice: ${discount.invoiceNumber}`)
-  }
+  const _handleViewInvoice = (discount: DiscountOpportunity) => {}
 
   return (
     <Card>

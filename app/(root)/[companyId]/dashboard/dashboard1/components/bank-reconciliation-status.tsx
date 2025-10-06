@@ -271,7 +271,6 @@ export function BankReconciliationStatus({
             className="text-muted-foreground hover:text-foreground w-full"
             onClick={() => {
               // Navigate to Unreconciled Transactions list
-              console.log("Navigate to Unreconciled Transactions")
             }}
           >
             View Unreconciled Transactions →

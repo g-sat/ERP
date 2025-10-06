@@ -23,10 +23,7 @@ export default function LeavePage() {
   const { data: employeeData, isLoading: employeeLoading } =
     useGetEmployeeByUserId()
 
-  console.log("employeeData", employeeData)
   const employeeId = employeeData?.result?.toString() || ""
-
-  console.log("employeeId", employeeId)
 
   // Show toast notification when employee ID is not available
   useEffect(() => {

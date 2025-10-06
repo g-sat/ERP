@@ -174,9 +174,7 @@ export default function TopSuppliersSpend({
     return colors[category] || "#6b7280"
   }
 
-  const handleSupplierClick = (supplier: SupplierSpend) => {
-    console.log(`Opening spend analysis for: ${supplier.name}`)
-  }
+  const handleSupplierClick = (supplier: SupplierSpend) => {}
 
   // Create treemap-style visualization data
   const treemapData = suppliersData.map((supplier) => ({

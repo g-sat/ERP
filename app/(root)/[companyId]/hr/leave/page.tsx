@@ -41,18 +41,12 @@ export default function LeavePage() {
 
   // Extract data from API responses - ensure we get flat arrays
   const leaves = leavesData?.data || []
-  console.log("leaves", leaves)
   const leaveBalances = leaveBalancesData?.data || []
-  console.log("leaveBalances", leaveBalances)
   const policies = policiesData?.data || []
-  console.log("policies", policies)
 
   // Handler functions using the common mutation hooks
   const handlePolicySubmit = async (data: LeavePolicySchemaType) => {
-    console.log("Page handlePolicySubmit called with data:", data)
     try {
-      console.log("Policy submit:", data)
-
       const policyData = {
         leavePolicyId: data.leavePolicyId,
         companyId: data.companyId,

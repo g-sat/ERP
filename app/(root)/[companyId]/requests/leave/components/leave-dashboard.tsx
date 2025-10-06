@@ -116,14 +116,10 @@ export function LeaveDashboard({
   }
 
   const _handlePolicySubmit = async (data: LeavePolicySchemaType) => {
-    console.log("LeaveDashboard handlePolicySubmit called with data:", data)
     if (onPolicySubmit) {
-      console.log("Calling onPolicySubmit...")
       const response = await onPolicySubmit(data)
-      console.log("onPolicySubmit completed with response:", response)
       return response
     } else {
-      console.log("onPolicySubmit is not defined")
       return {
         result: -1,
         message: "Policy submit handler not defined",
@@ -133,9 +129,7 @@ export function LeaveDashboard({
   }
 
   const _handleBalanceSubmit = async (data: LeaveBalanceSchemaType) => {
-    console.log("LeaveDashboard handleBalanceSubmit called with data:", data)
     // TODO: Implement balance submit logic
-    console.log("Balance submit not implemented yet")
     return {
       result: -1,
       message: "Balance submit not implemented yet",

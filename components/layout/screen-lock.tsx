@@ -31,21 +31,18 @@ const LOCK_STATE_KEY = "appLocked"
 const BROADCAST_CHANNEL = "auth"
 const MAX_FAILED_ATTEMPTS = 3
 const TAB_SPECIFIC_PATH_KEY = "tab_specific_path" // New key for tab-specific paths
-
 // Types
 // -----
 interface ScreenLockProps {
   variant?: "icon" | "text"
   className?: string
 }
-
 interface LockState {
   isLocked: boolean
   lastPath: string
   timestamp: number
   tabId: string // Add tabId to track which tab locked the screen
 }
-
 type BroadcastMessage = {
   type: "LOCK" | "UNLOCK"
   data?: {
@@ -54,7 +51,6 @@ type BroadcastMessage = {
     tabId?: string // Add tabId to broadcast messages
   }
 }
-
 /**
  * Screen Lock Component
  *
@@ -86,12 +82,10 @@ export function ScreenLock({ variant = "icon", className }: ScreenLockProps) {
   const [isUnlocking, setIsUnlocking] = useState(false)
   const [unlockProgress, setUnlockProgress] = useState(0)
   const [showSuccess, setShowSuccess] = useState(false)
-
   // Router and Path
   // --------------
   const pathname = usePathname()
   const router = useRouter()
-
   // Helper Functions
   // ---------------
   const getGreeting = (currentTime: Date) => {
@@ -100,16 +94,13 @@ export function ScreenLock({ variant = "icon", className }: ScreenLockProps) {
     if (hours < 18) return "Good Afternoon!"
     return "Good Evening!"
   }
-
   // Screen Lock Actions
   // -----------------
   const lockScreen = useCallback(() => {
     setIsLocked(true)
     setAppLocked(true)
-
     // Save tab-specific path
     sessionStorage.setItem(`${TAB_SPECIFIC_PATH_KEY}_${tabId}`, pathname)
-
     if (broadcastChannel) {
       broadcastChannel.postMessage({
         type: "LOCK",
@@ -121,44 +112,35 @@ export function ScreenLock({ variant = "icon", className }: ScreenLockProps) {
       })
     }
   }, [broadcastChannel, pathname, setAppLocked, tabId])
-
   const handleLockScreen = () => {
     lockScreen()
   }
-
   const handleUnlock = useCallback(
     async (e: React.FormEvent) => {
       e.preventDefault()
       setError("")
       setIsUnlocking(true)
       setUnlockProgress(0)
-
       if (!user?.userName) {
         setError("User information not available. Please refresh the page.")
         setIsUnlocking(false)
         return
       }
-
       try {
         // Simulate progress
         const progressInterval = setInterval(() => {
           setUnlockProgress((prev) => Math.min(prev + 10, 90))
         }, 100)
-
         const loginResponse = await applocklogIn(user.userName, password)
-
         clearInterval(progressInterval)
         setUnlockProgress(100)
-
         if (!loginResponse) {
           setError("Invalid login response. Please try again.")
           return
         }
-
         if (loginResponse.result === 1) {
           // Show success animation
           setShowSuccess(true)
-
           // Wait a moment for success animation
           setTimeout(() => {
             // Unlock this tab
@@ -171,7 +153,6 @@ export function ScreenLock({ variant = "icon", className }: ScreenLockProps) {
             setUnlockProgress(0)
             setShowSuccess(false)
           }, 800)
-
           // Get tab-specific path
           const tabSpecificPath = sessionStorage.getItem(
             `${TAB_SPECIFIC_PATH_KEY}_${tabId}`
@@ -180,9 +161,7 @@ export function ScreenLock({ variant = "icon", className }: ScreenLockProps) {
             router.push(tabSpecificPath)
             sessionStorage.removeItem(`${TAB_SPECIFIC_PATH_KEY}_${tabId}`)
           }
-
           sessionStorage.removeItem(LOCK_STATE_KEY)
-
           // Broadcast unlock to other tabs (not this tab)
           if (broadcastChannel) {
             broadcastChannel.postMessage({
@@ -205,7 +184,6 @@ export function ScreenLock({ variant = "icon", className }: ScreenLockProps) {
         setFailedAttempts(newFailedAttempts)
         setIsUnlocking(false)
         setUnlockProgress(0)
-
         if (newFailedAttempts >= MAX_FAILED_ATTEMPTS) {
           setError("Maximum attempts exceeded. Please contact administrator.")
         } else {
@@ -228,14 +206,12 @@ export function ScreenLock({ variant = "icon", className }: ScreenLockProps) {
       setAppLocked,
     ]
   )
-
   // Effects
   // -------
   // Initialize client-side state
   useEffect(() => {
     setIsClient(true)
   }, [])
-
   // Initialize BroadcastChannel
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -244,14 +220,11 @@ export function ScreenLock({ variant = "icon", className }: ScreenLockProps) {
       return () => bc.close()
     }
   }, [])
-
   // Handle BroadcastChannel messages
   useEffect(() => {
     if (!broadcastChannel) return
-
     const handleMessage = (event: MessageEvent<BroadcastMessage>) => {
       const { type, data } = event.data
-
       if (type === "LOCK") {
         setIsLocked(true)
         setAppLocked(true)
@@ -272,7 +245,6 @@ export function ScreenLock({ variant = "icon", className }: ScreenLockProps) {
           setIsLocked(false)
           setAppLocked(false)
           sessionStorage.removeItem(LOCK_STATE_KEY)
-
           // Navigate to the tab's specific path
           const tabSpecificPath = sessionStorage.getItem(
             `${TAB_SPECIFIC_PATH_KEY}_${tabId}`
@@ -284,15 +256,12 @@ export function ScreenLock({ variant = "icon", className }: ScreenLockProps) {
         }
       }
     }
-
     broadcastChannel.addEventListener("message", handleMessage)
     return () => broadcastChannel.removeEventListener("message", handleMessage)
   }, [broadcastChannel, router, setAppLocked, tabId])
-
   // Initialize lock state from sessionStorage
   useEffect(() => {
     if (typeof window === "undefined") return
-
     const savedState = sessionStorage.getItem(LOCK_STATE_KEY)
     if (savedState) {
       const state: LockState = JSON.parse(savedState)
@@ -310,7 +279,6 @@ export function ScreenLock({ variant = "icon", className }: ScreenLockProps) {
       }
     }
   }, [setAppLocked, tabId])
-
   // Save lock state to sessionStorage
   useEffect(() => {
     if (isLocked) {
@@ -325,7 +293,6 @@ export function ScreenLock({ variant = "icon", className }: ScreenLockProps) {
       sessionStorage.removeItem(LOCK_STATE_KEY)
     }
   }, [isLocked, pathname, tabId])
-
   // Handle manual screen lock event
   useEffect(() => {
     const handleManualLock = () => {
@@ -333,20 +300,16 @@ export function ScreenLock({ variant = "icon", className }: ScreenLockProps) {
         lockScreen()
       }
     }
-
     window.addEventListener("manual-screen-lock", handleManualLock)
     return () =>
       window.removeEventListener("manual-screen-lock", handleManualLock)
   }, [isAuthenticated, lockScreen])
-
   // Handle inactivity timeout
   useEffect(() => {
     if (!isAuthenticated) return
-
     const updateActivity = () => {
       setLastActivity(Date.now())
     }
-
     const events = [
       "mousedown",
       "mousemove",
@@ -355,13 +318,11 @@ export function ScreenLock({ variant = "icon", className }: ScreenLockProps) {
       "touchstart",
     ]
     events.forEach((event) => window.addEventListener(event, updateActivity))
-
     const inactivityCheck = setInterval(() => {
       if (Date.now() - lastActivity > INACTIVITY_TIMEOUT) {
         lockScreen()
       }
     }, 1000)
-
     return () => {
       events.forEach((event) =>
         window.removeEventListener(event, updateActivity)
@@ -369,25 +330,20 @@ export function ScreenLock({ variant = "icon", className }: ScreenLockProps) {
       clearInterval(inactivityCheck)
     }
   }, [lastActivity, isAuthenticated, lockScreen])
-
   // Update time every second
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentTime(new Date())
     }, 10000)
-
     return () => clearInterval(timer)
   }, [])
-
   // Clear error when password changes
   useEffect(() => {
     if (error && password) setError("")
   }, [password, error])
-
   // Keyboard shortcuts
   useEffect(() => {
     if (!isLocked) return
-
     const handleKeyDown = (e: KeyboardEvent) => {
       // Escape key to clear password
       if (e.key === "Escape") {
@@ -405,45 +361,36 @@ export function ScreenLock({ variant = "icon", className }: ScreenLockProps) {
         handleUnlock(formEvent)
       }
     }
-
     document.addEventListener("keydown", handleKeyDown)
     return () => document.removeEventListener("keydown", handleKeyDown)
   }, [isLocked, password, isUnlocking, handleUnlock])
-
   // Prevent page refresh/navigation when locked
   useEffect(() => {
     if (!isLocked) return
-
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       e.preventDefault()
       e.returnValue = ""
     }
-
     const handlePopState = (e: PopStateEvent) => {
       e.preventDefault()
       window.history.pushState(null, "", pathname)
     }
-
     window.addEventListener("beforeunload", handleBeforeUnload)
     window.addEventListener("popstate", handlePopState)
     window.history.pushState(null, "", pathname)
-
     return () => {
       window.removeEventListener("beforeunload", handleBeforeUnload)
       window.removeEventListener("popstate", handlePopState)
     }
   }, [isLocked, pathname])
-
   // Sync with auth store's lock state
   useEffect(() => {
     if (isAppLocked !== isLocked) {
       setIsLocked(isAppLocked)
     }
   }, [isAppLocked, isLocked])
-
   // Don't render on server or if not authenticated
   if (!isClient || !isAuthenticated) return null
-
   // Render
   // ------
   return (
@@ -469,7 +416,6 @@ export function ScreenLock({ variant = "icon", className }: ScreenLockProps) {
           <TooltipContent>Lock screen</TooltipContent>
         </Tooltip>
       )}
-
       {/* Lock Screen Dialog */}
       <Dialog
         open={isLocked}
@@ -521,7 +467,6 @@ export function ScreenLock({ variant = "icon", className }: ScreenLockProps) {
                 </DialogDescription>
               </div>
             </DialogHeader>
-
             <motion.div
               className="py-8"
               initial={{ opacity: 0 }}
@@ -540,7 +485,6 @@ export function ScreenLock({ variant = "icon", className }: ScreenLockProps) {
                     {format(currentTime, "EEEE, do yyyy")}
                   </div>
                 </div>
-
                 <div className="flex items-center justify-center gap-4">
                   <motion.div
                     className="bg-muted flex h-12 w-12 items-center justify-center rounded-full"
@@ -560,7 +504,6 @@ export function ScreenLock({ variant = "icon", className }: ScreenLockProps) {
                 </div>
               </div>
             </motion.div>
-
             <AnimatePresence mode="wait">
               {failedAttempts >= MAX_FAILED_ATTEMPTS ? (
                 <motion.div
@@ -612,7 +555,6 @@ export function ScreenLock({ variant = "icon", className }: ScreenLockProps) {
                       autoFocus
                       disabled={isUnlocking}
                     />
-
                     {/* Progress Bar */}
                     {isUnlocking && !showSuccess && (
                       <div className="w-64">
@@ -630,7 +572,6 @@ export function ScreenLock({ variant = "icon", className }: ScreenLockProps) {
                         </div>
                       </div>
                     )}
-
                     {/* Success Animation */}
                     {showSuccess && (
                       <motion.div
@@ -716,7 +657,6 @@ export function ScreenLock({ variant = "icon", className }: ScreenLockProps) {
                         )}
                       </Button>
                     </motion.div>
-
                     <AnimatePresence>
                       {message && (
                         <motion.p
@@ -733,7 +673,6 @@ export function ScreenLock({ variant = "icon", className }: ScreenLockProps) {
                 </motion.form>
               )}
             </AnimatePresence>
-
             {failedAttempts < MAX_FAILED_ATTEMPTS && (
               <motion.div
                 className="text-muted-foreground mt-6 text-center text-sm"
@@ -744,7 +683,7 @@ export function ScreenLock({ variant = "icon", className }: ScreenLockProps) {
                 <motion.button
                   type="button"
                   className="hover:text-primary hover:underline"
-                  onClick={() => console.log("Forgot password clicked")}
+                  onClick={() => {}}
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                 >

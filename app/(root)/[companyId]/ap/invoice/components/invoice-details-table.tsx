@@ -253,7 +253,6 @@ export default function InvoiceDetailsTable({
         formDetails as IInvoiceDetail[],
         amtDec
       )
-      console.log("totals", totals)
       // Update main form header values
       form.setValue("totAmt", totals.totAmt)
       form.trigger("totAmt")
@@ -367,65 +366,65 @@ export default function InvoiceDetailsTable({
   // Function to add a row with data from form
   const addRowToTable = useCallback(
     (rowData: InvoiceDetailRow) => {
-    const newId = rowData.id || generateUUID()
-    const maxSeqNo =
-      data.length > 0 ? Math.max(...data.map((row) => row.seqNo)) : 0
-    const newSeqNo = maxSeqNo + 1
+      const newId = rowData.id || generateUUID()
+      const maxSeqNo =
+        data.length > 0 ? Math.max(...data.map((row) => row.seqNo)) : 0
+      const newSeqNo = maxSeqNo + 1
 
-    const newRow: InvoiceDetailRow = {
-      ...rowData,
-      id: newId,
-      seqNo: newSeqNo,
-      itemNo: newSeqNo,
-      docItemNo: newSeqNo,
-    }
+      const newRow: InvoiceDetailRow = {
+        ...rowData,
+        id: newId,
+        seqNo: newSeqNo,
+        itemNo: newSeqNo,
+        docItemNo: newSeqNo,
+      }
 
-    // Initialize form values for the new row
-    invoiceDetailForm.setValue(`seqNo-${newId}`, newSeqNo)
-    invoiceDetailForm.setValue(`itemNo-${newId}`, newSeqNo)
-    invoiceDetailForm.setValue(`docItemNo-${newId}`, newSeqNo)
-    invoiceDetailForm.setValue(`productId-${newId}`, newRow.productId || 0)
-    invoiceDetailForm.setValue(`glId-${newId}`, newRow.glId || 0)
-    invoiceDetailForm.setValue(`uomId-${newId}`, newRow.uomId || 0)
-    invoiceDetailForm.setValue(`gstId-${newId}`, newRow.gstId || 0)
-    invoiceDetailForm.setValue(
-      `departmentId-${newId}`,
-      newRow.departmentId || 0
-    )
-    invoiceDetailForm.setValue(`employeeId-${newId}`, newRow.employeeId || 0)
-    invoiceDetailForm.setValue(`portId-${newId}`, newRow.portId || 0)
-    invoiceDetailForm.setValue(`vesselId-${newId}`, newRow.vesselId || 0)
-    invoiceDetailForm.setValue(`bargeId-${newId}`, newRow.bargeId || 0)
-    invoiceDetailForm.setValue(`voyageId-${newId}`, newRow.voyageId || 0)
-    invoiceDetailForm.setValue(
-      `operationId-${newId}`,
-      newRow.operationId || "0"
-    )
+      // Initialize form values for the new row
+      invoiceDetailForm.setValue(`seqNo-${newId}`, newSeqNo)
+      invoiceDetailForm.setValue(`itemNo-${newId}`, newSeqNo)
+      invoiceDetailForm.setValue(`docItemNo-${newId}`, newSeqNo)
+      invoiceDetailForm.setValue(`productId-${newId}`, newRow.productId || 0)
+      invoiceDetailForm.setValue(`glId-${newId}`, newRow.glId || 0)
+      invoiceDetailForm.setValue(`uomId-${newId}`, newRow.uomId || 0)
+      invoiceDetailForm.setValue(`gstId-${newId}`, newRow.gstId || 0)
+      invoiceDetailForm.setValue(
+        `departmentId-${newId}`,
+        newRow.departmentId || 0
+      )
+      invoiceDetailForm.setValue(`employeeId-${newId}`, newRow.employeeId || 0)
+      invoiceDetailForm.setValue(`portId-${newId}`, newRow.portId || 0)
+      invoiceDetailForm.setValue(`vesselId-${newId}`, newRow.vesselId || 0)
+      invoiceDetailForm.setValue(`bargeId-${newId}`, newRow.bargeId || 0)
+      invoiceDetailForm.setValue(`voyageId-${newId}`, newRow.voyageId || 0)
+      invoiceDetailForm.setValue(
+        `operationId-${newId}`,
+        newRow.operationId || "0"
+      )
       invoiceDetailForm.setValue(
         `operationNo-${newId}`,
         newRow.operationNo || ""
       )
-    invoiceDetailForm.setValue(`opRefNo-${newId}`, newRow.opRefNo || "")
-    invoiceDetailForm.setValue(
-      `salesOrderId-${newId}`,
-      newRow.salesOrderId || ""
-    )
-    invoiceDetailForm.setValue(
-      `salesOrderNo-${newId}`,
-      newRow.salesOrderNo || ""
-    )
-    invoiceDetailForm.setValue(
-      `supplyDate-${newId}`,
-      newRow.supplyDate?.toString() || ""
-    )
-    invoiceDetailForm.setValue(
-      `customerName-${newId}`,
-      newRow.customerName || ""
-    )
-    invoiceDetailForm.setValue(
-      `suppInvoiceNo-${newId}`,
-      newRow.suppInvoiceNo || ""
-    )
+      invoiceDetailForm.setValue(`opRefNo-${newId}`, newRow.opRefNo || "")
+      invoiceDetailForm.setValue(
+        `salesOrderId-${newId}`,
+        newRow.salesOrderId || ""
+      )
+      invoiceDetailForm.setValue(
+        `salesOrderNo-${newId}`,
+        newRow.salesOrderNo || ""
+      )
+      invoiceDetailForm.setValue(
+        `supplyDate-${newId}`,
+        newRow.supplyDate?.toString() || ""
+      )
+      invoiceDetailForm.setValue(
+        `customerName-${newId}`,
+        newRow.customerName || ""
+      )
+      invoiceDetailForm.setValue(
+        `suppInvoiceNo-${newId}`,
+        newRow.suppInvoiceNo || ""
+      )
       invoiceDetailForm.setValue(
         `apInvoiceId-${newId}`,
         newRow.apInvoiceId || ""
@@ -434,36 +433,36 @@ export default function InvoiceDetailsTable({
         `apInvoiceNo-${newId}`,
         newRow.apInvoiceNo || ""
       )
-    invoiceDetailForm.setValue(
-      `deliveryDate-${newId}`,
-      newRow.deliveryDate?.toString() || ""
-    )
-    invoiceDetailForm.setValue(`qty-${newId}`, newRow.qty || 0)
-    invoiceDetailForm.setValue(`billQTY-${newId}`, newRow.billQTY || 0)
-    invoiceDetailForm.setValue(`unitPrice-${newId}`, newRow.unitPrice || 0)
-    invoiceDetailForm.setValue(`totAmt-${newId}`, newRow.totAmt || 0)
+      invoiceDetailForm.setValue(
+        `deliveryDate-${newId}`,
+        newRow.deliveryDate?.toString() || ""
+      )
+      invoiceDetailForm.setValue(`qty-${newId}`, newRow.qty || 0)
+      invoiceDetailForm.setValue(`billQTY-${newId}`, newRow.billQTY || 0)
+      invoiceDetailForm.setValue(`unitPrice-${newId}`, newRow.unitPrice || 0)
+      invoiceDetailForm.setValue(`totAmt-${newId}`, newRow.totAmt || 0)
       invoiceDetailForm.setValue(
         `totLocalAmt-${newId}`,
         newRow.totLocalAmt || 0
       )
-    invoiceDetailForm.setValue(
-      `gstPercentage-${newId}`,
-      newRow.gstPercentage || 0
-    )
-    invoiceDetailForm.setValue(`gstAmt-${newId}`, newRow.gstAmt || 0)
+      invoiceDetailForm.setValue(
+        `gstPercentage-${newId}`,
+        newRow.gstPercentage || 0
+      )
+      invoiceDetailForm.setValue(`gstAmt-${newId}`, newRow.gstAmt || 0)
       invoiceDetailForm.setValue(
         `gstLocalAmt-${newId}`,
         newRow.gstLocalAmt || 0
       )
-    invoiceDetailForm.setValue(`remarks-${newId}`, newRow.remarks || "")
+      invoiceDetailForm.setValue(`remarks-${newId}`, newRow.remarks || "")
 
-    // Update data state
-    setData((old) => [...old, newRow])
+      // Update data state
+      setData((old) => [...old, newRow])
 
-    // Sync with main form in next tick
-    setTimeout(() => {
-      syncSchemaType()
-    }, 0)
+      // Sync with main form in next tick
+      setTimeout(() => {
+        syncSchemaType()
+      }, 0)
     },
     [data, invoiceDetailForm]
   )
@@ -1504,7 +1503,6 @@ export default function InvoiceDetailsTable({
   // Handle bulk selection change
   const handleBulkSelectionChange = (selectedIds: string[]) => {
     // This can be used to track selected items if needed
-    console.log("Selected items:", selectedIds)
   }
 
   return (
@@ -1520,11 +1518,9 @@ export default function InvoiceDetailsTable({
           accessorId="id"
           onRefresh={() => {
             // Refresh logic if needed
-            console.log("Refresh triggered")
           }}
           onFilterChange={(filters) => {
             // Handle filter changes if needed
-            console.log("Filter changed:", filters)
           }}
           onBulkDelete={handleBulkDelete}
           onBulkSelectionChange={handleBulkSelectionChange}

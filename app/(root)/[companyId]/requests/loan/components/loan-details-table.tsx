@@ -41,27 +41,21 @@ export default function LoanDetailsTable({
   ): LoanRequestSchedule | undefined => {
     if (!data?.data) return undefined
 
-    console.log("Extracting loan data:", { loanId, data })
-
     // If data is an array, find the loan with matching loanRequestId
     if (Array.isArray(data.data)) {
       if (data.data.length > 0 && Array.isArray(data.data[0])) {
         const loans = data.data[0] as LoanRequestSchedule[]
-        console.log("Found nested array of loans:", loans)
         return loans.find((loan) => loan.loanRequestId === loanId)
       }
       const loans = data.data as LoanRequestSchedule[]
-      console.log("Found array of loans:", loans)
       return loans.find((loan) => loan.loanRequestId === loanId)
     }
 
     // If data is a single object
     if (typeof data.data === "object" && data.data !== null) {
-      console.log("Found single loan object:", data.data)
       return data.data as LoanRequestSchedule
     }
 
-    console.log("No valid loan data found")
     return undefined
   }
 
@@ -90,14 +84,6 @@ export default function LoanDetailsTable({
   // Extract data
   const loanDetail = extractSingleLoan(loanDetailData)
   const allLoans = extractAllLoans(loanDetailData)
-
-  console.log("Extracted data:", {
-    loanDetail,
-    allLoans,
-    loanDetailLoading,
-    loanDetailError,
-    loanId,
-  })
 
   // Calculate statistics
   const totalInstallments = loanDetail?.calculatedTermMonths || 0

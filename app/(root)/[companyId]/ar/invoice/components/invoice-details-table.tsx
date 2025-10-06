@@ -300,7 +300,6 @@ export default function InvoiceDetailsTable({
         formDetails as IInvoiceDetail[],
         amtDec
       )
-      console.log("totals", totals)
       // Update main form header values
       form.setValue("totAmt", totals.totAmt)
       form.trigger("totAmt")
@@ -821,9 +820,7 @@ export default function InvoiceDetailsTable({
     }
   }
 
-  const handleExportPdf = (data: InvoiceDetailRow[]) => {
-    console.log("Exporting PDF:", data)
-  }
+  const handleExportPdf = (data: InvoiceDetailRow[]) => {}
 
   const columns: ColumnDef<InvoiceDetailRow>[] = [
     {

@@ -26,9 +26,6 @@ interface Props {
 export function EmployeePersonalForm({ employee, onCancel }: Props) {
   const saveMutation = useSaveEmployeePersonalDetails()
 
-  // Debug logging
-  console.log("Employee data in personal dialog:", employee)
-
   const form = useForm<EmployeePersonalDetailsValues>({
     resolver: zodResolver(employeePersonalDetailsSchema),
     defaultValues: {

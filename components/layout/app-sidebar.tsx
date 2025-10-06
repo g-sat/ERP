@@ -1,5 +1,4 @@
 "use client"
-
 import * as React from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
@@ -60,7 +59,6 @@ import {
   Users,
   Wallet,
 } from "lucide-react"
-
 // Removed unused imports
 import { useApprovalCounts } from "@/hooks/use-approval"
 import {
@@ -77,13 +75,11 @@ import {
   SidebarMenuSubItem,
 } from "@/components/ui/sidebar"
 import { CompanySwitcher } from "@/components/layout/company-switcher"
-
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from "../ui/collapsible"
-
 // Interface for user transaction data
 interface IUserTransaction {
   moduleId: number
@@ -105,7 +101,6 @@ interface IUserTransaction {
   isPrint: boolean
   isVisible: boolean
 }
-
 // Icon mapping for modules (main categories)
 const getModuleIcon = (moduleCode: string) => {
   const moduleIconMap: Record<
@@ -129,7 +124,6 @@ const getModuleIcon = (moduleCode: string) => {
   }
   return moduleIconMap[moduleCode.toLowerCase()] || FolderKanban
 }
-
 // Icon mapping for transactions
 const getTransactionIcon = (transactionCode: string) => {
   const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -167,12 +161,10 @@ const getTransactionIcon = (transactionCode: string) => {
     vessel: Ship,
     voyage: ArrowLeftRight,
     worklocation: MapPin,
-
     // Operations
     new: ListCheck,
     checklist: ClipboardList,
     tariff: Coins,
-
     // HR
     employees: Users,
     loan: Wallet,
@@ -181,7 +173,6 @@ const getTransactionIcon = (transactionCode: string) => {
     payruns: Calendar,
     setting: Settings,
     hrreports: BarChart,
-
     // AR (Accounts Receivable)
     invoice: Receipt,
     debitnote: FileMinus,
@@ -191,25 +182,21 @@ const getTransactionIcon = (transactionCode: string) => {
     adjustment: Sliders,
     documentsetoff: FileStack,
     arreports: BarChart,
-
     // AP (Accounts Payable)
     payment: MinusCircle,
     batchpayment: FileStack,
     transfer: ArrowLeftRight,
     reconciliation: Scale,
-
     // CB (Cash Book)
     generalpayment: MinusCircle,
     generalreceipt: PlusCircle,
     banktransfer: ArrowLeftRight,
-
     // GL (General Ledger)
     journalentry: BookOpen,
     arapcontra: ArrowLeftRight,
     yearend: CalendarCheck,
     periodclose: Lock,
     openingbalance: Scale,
-
     // Admin
     users: Users,
     userroles: UserCheck,
@@ -221,7 +208,6 @@ const getTransactionIcon = (transactionCode: string) => {
     auditlog: History,
     errorlog: AlertTriangle,
     userlog: CircleUserRound,
-
     // Settings
     grid: Grid,
     document: FileText,
@@ -232,32 +218,24 @@ const getTransactionIcon = (transactionCode: string) => {
     mandatory: FileMinus,
     visible: FilePlus,
   }
-
   return iconMap[transactionCode.toLowerCase()] || FileText
 }
-
 // Hook to fetch user transactions
 const useUserTransactions = () => {
   const [transactions, setTransactions] = React.useState<IUserTransaction[]>([])
   const [isLoading, setIsLoading] = React.useState(true)
   const [error, setError] = React.useState<string | null>(null)
   const { currentCompany, user, getUserTransactions } = useAuthStore()
-
   React.useEffect(() => {
     const fetchTransactions = async () => {
       if (!currentCompany || !user) {
         setIsLoading(false)
         return
       }
-
       try {
         setIsLoading(true)
         setError(null)
-
         const data = await getUserTransactions()
-
-        console.log("Transactions data:", data)
-
         if (Array.isArray(data)) {
           setTransactions(data as IUserTransaction[])
         } else {
@@ -274,13 +252,10 @@ const useUserTransactions = () => {
         setIsLoading(false)
       }
     }
-
     fetchTransactions()
   }, [currentCompany, user, getUserTransactions])
-
   return { transactions, isLoading, error }
 }
-
 // Function to build dynamic menu from transactions
 interface MenuItem {
   title: string
@@ -295,9 +270,7 @@ interface MenuItem {
     print: boolean
   }
 }
-
 // Removed unused SettingNavItem interface
-
 const buildDynamicMenu = (transactions: IUserTransaction[]) => {
   const menuMap = new Map<
     string,
@@ -308,16 +281,13 @@ const buildDynamicMenu = (transactions: IUserTransaction[]) => {
       items: MenuItem[]
     }
   >()
-
   // Filter transactions by isVisible=true first
   const visibleTransactions = transactions.filter(
     (transaction) => transaction.isVisible === true
   )
-
   // Group visible transactions by module
   visibleTransactions.forEach((transaction) => {
     const moduleKey = `${transaction.moduleId}_${transaction.moduleName}`
-
     if (!menuMap.has(moduleKey)) {
       menuMap.set(moduleKey, {
         title: transaction.moduleName,
@@ -326,7 +296,6 @@ const buildDynamicMenu = (transactions: IUserTransaction[]) => {
         items: [],
       })
     }
-
     const moduleData = menuMap.get(moduleKey)
     if (moduleData) {
       moduleData.items.push({
@@ -344,15 +313,12 @@ const buildDynamicMenu = (transactions: IUserTransaction[]) => {
       })
     }
   })
-
   // Filter out modules that have no visible items
   const filteredMenu = Array.from(menuMap.values()).filter(
     (module) => module.items.length > 0
   )
-
   return filteredMenu
 }
-
 export const menuData = {
   mainNav: [
     {
@@ -408,7 +374,6 @@ export const menuData = {
     },
   ],
 }
-
 export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
   const { currentCompany } = useAuthStore()
   const { pendingCount: approvalCount, refreshCounts } = useApprovalCounts()
@@ -423,14 +388,11 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
     null
   )
   const pathname = usePathname()
-
   // Build dynamic menu from user transactions
   const dynamicMenu = React.useMemo(() => {
     return buildDynamicMenu(transactions)
   }, [transactions])
-
   // Removed unused platformNavs and settingNavs as we use dynamicMenu instead
-
   const getUrlWithCompanyId = React.useCallback(
     (url: string) => {
       if (!currentCompany?.companyId) return url
@@ -439,7 +401,6 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
     },
     [currentCompany?.companyId]
   )
-
   React.useEffect(() => {
     const currentPath = pathname
     for (const menu of menuData.mainNav) {
@@ -450,7 +411,6 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
         return
       }
     }
-
     for (const group of dynamicMenu) {
       for (const subItem of group.items || []) {
         if (currentPath === getUrlWithCompanyId(subItem.url)) {
@@ -462,31 +422,25 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
       }
     }
   }, [pathname, getUrlWithCompanyId, dynamicMenu])
-
   // Refresh approval counts when component mounts
   React.useEffect(() => {
     refreshCounts()
   }, [refreshCounts])
-
   const handleMenuClick = (menuTitle: string) => {
     setOpenMenu(openMenu === menuTitle ? null : menuTitle)
     setSelectedMenu(menuTitle)
     setSelectedSubMenu(null)
   }
-
   const handleSubMenuClick = (menuTitle: string, subMenuTitle: string) => {
     setSelectedMenu(menuTitle)
     setSelectedSubMenu(subMenuTitle)
   }
-
   const isMenuActive = (menuTitle: string) => {
     return selectedMenu === menuTitle || openMenu === menuTitle
   }
-
   const isSubMenuActive = (subMenuTitle: string) => {
     return selectedSubMenu === subMenuTitle
   }
-
   return (
     <Sidebar collapsible="icon" className={props.className} {...props}>
       <SidebarHeader>

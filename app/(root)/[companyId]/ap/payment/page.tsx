@@ -209,8 +209,6 @@ export default function PaymentPage() {
             return
           }
 
-          console.log("formValues to save", formValues)
-
           const response =
             Number(formValues.paymentId) === 0
               ? await saveMutation.mutateAsync(formValues)
@@ -322,7 +320,8 @@ export default function PaymentPage() {
     apiPayment: IApPaymentHd
   ): ApPaymentHdSchemaType => {
     return {
-      paymentId: apiPayment.paymentId?.toString() ?? "0",
+      companyId: apiPayment.companyId ?? 0,
+      paymentId: apiPayment.paymentId ?? "0",
       paymentNo: apiPayment.paymentNo ?? "",
       referenceNo: apiPayment.referenceNo ?? "",
       trnDate: apiPayment.trnDate
@@ -452,7 +451,6 @@ export default function PaymentPage() {
         const response = await getById(
           `${ApPayment.getByIdNo}/${selectedPayment.paymentId}/${selectedPayment.paymentNo}`
         )
-        console.log("API Response (direct):", response)
 
         if (response?.result === 1) {
           const detailedPayment = Array.isArray(response.data)
@@ -513,7 +511,6 @@ export default function PaymentPage() {
             setPayment(transformToSchemaType(updatedPayment))
             form.reset(updatedPayment)
             form.trigger()
-            console.log("Form values after reset:", form.getValues())
           }
         } else {
           toast.error(
@@ -544,7 +541,6 @@ export default function PaymentPage() {
 
     try {
       const response = await getById(`${ApPayment.getByIdNo}/0/${value}`)
-      console.log("API Response (direct):", response)
 
       if (response?.result === 1) {
         const detailedPayment = Array.isArray(response.data)
@@ -604,7 +600,6 @@ export default function PaymentPage() {
           setPayment(transformToSchemaType(updatedPayment))
           form.reset(updatedPayment)
           form.trigger()
-          console.log("Form values after reset:", form.getValues())
 
           // Show success message
           toast.success(`Payment ${value} loaded successfully`)

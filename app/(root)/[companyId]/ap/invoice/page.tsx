@@ -219,8 +219,6 @@ export default function InvoicePage() {
             return
           }
 
-          console.log("formValues to save", formValues)
-
           const response =
             Number(formValues.invoiceId) === 0
               ? await saveMutation.mutateAsync(formValues)
@@ -456,7 +454,6 @@ export default function InvoicePage() {
         const response = await getById(
           `${ApInvoice.getByIdNo}/${selectedInvoice.invoiceId}/${selectedInvoice.invoiceNo}`
         )
-        console.log("API Response (direct):", response)
 
         if (response?.result === 1) {
           const detailedInvoice = Array.isArray(response.data)
@@ -521,7 +518,6 @@ export default function InvoicePage() {
             setInvoice(transformToSchemaType(updatedInvoice))
             form.reset(updatedInvoice)
             form.trigger()
-            console.log("Form values after reset:", form.getValues())
           }
         } else {
           toast.error(
@@ -553,7 +549,6 @@ export default function InvoicePage() {
 
     try {
       const response = await getById(`${ApInvoice.getByIdNo}/0/${value}`)
-      console.log("API Response (direct):", response)
 
       if (response?.result === 1) {
         const detailedInvoice = Array.isArray(response.data)
@@ -618,7 +613,6 @@ export default function InvoicePage() {
           setInvoice(transformToSchemaType(updatedInvoice))
           form.reset(updatedInvoice)
           form.trigger()
-          console.log("Form values after reset:", form.getValues())
 
           // Show success message
           toast.success(`Invoice ${value} loaded successfully`)

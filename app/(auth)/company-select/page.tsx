@@ -1,12 +1,10 @@
 "use client"
-
 import { useCallback, useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { ICompany } from "@/interfaces/auth"
 import { useAuthStore } from "@/stores/auth-store"
 import Cookies from "js-cookie"
 import { Loader2 } from "lucide-react"
-
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import {
@@ -20,7 +18,6 @@ import { Label } from "@/components/ui/label"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { SafeImage } from "@/components/ui/safe-image"
 import AccessDenied from "@/app/access-denied"
-
 export default function CompanySelectPage() {
   const {
     isAuthenticated,
@@ -47,34 +44,22 @@ export default function CompanySelectPage() {
       // silent
     }
   }, [logOut, router])
-
   useEffect(() => {
     const initializePage = async () => {
-      console.log("Initializing company select page...")
-
       // Check if we're actually on the company-select page
       const currentPath = window.location.pathname
-      console.log("Company-select page: Current path:", currentPath)
       if (currentPath !== "/company-select") {
-        console.log("Not on company-select page, skipping initialization")
         return
       }
-
       if (!isAuthenticated) {
-        console.log("Not authenticated, redirecting to login")
         router.push("/login")
         return
       }
-
       if (companies.length === 0) {
-        console.log("No companies loaded, fetching companies")
         try {
           await getCompanies()
           // Check if companies is still null/empty after fetching
           if (!companies || companies.length === 0) {
-            console.log(
-              "No companies available after fetch, showing access denied"
-            )
             setShowAccessDenied(true)
             return
           }
@@ -84,80 +69,47 @@ export default function CompanySelectPage() {
           return
         }
       }
-
       // Check if we have a company ID from the current tab (for new tabs)
       const tabCompanyId = getCurrentTabCompanyId()
       if (tabCompanyId) {
-        console.log("Found company ID in session storage:", tabCompanyId)
-
         // Verify the company exists in the companies list
         const companyExists = companies.some(
           (c) => c.companyId === tabCompanyId
         )
         if (companyExists) {
-          console.log("Company exists, auto-selecting and redirecting")
-
           // Switch to the company if not already selected
           if (currentCompany?.companyId !== tabCompanyId) {
-            console.log(
-              "Switching to company from session storage:",
-              tabCompanyId
-            )
             await switchCompany(tabCompanyId)
           }
-
           // Fetch decimal settings
-          console.log("Fetching decimal settings for company:", tabCompanyId)
           await getDecimals()
-
           // Redirect to dashboard
           router.push(`/${tabCompanyId}/dashboard`)
           return
         } else {
-          console.log(
-            "Company from session storage not found in available companies"
-          )
-        }
+          }
       }
-
       // If only one company, automatically select and redirect
       if (companies.length === 1) {
-        console.log(
-          "Only one company available, auto-selecting and redirecting"
-        )
         const singleCompany = companies[0]
-
         // Switch to the single company if not already selected
         if (currentCompany?.companyId !== singleCompany.companyId) {
-          console.log("Switching to single company:", singleCompany.companyId)
           await switchCompany(singleCompany.companyId)
         }
-
         // Fetch decimal settings
-        console.log(
-          "Fetching decimal settings for company:",
-          singleCompany.companyId
-        )
         await getDecimals()
-
         // Redirect to dashboard
         router.push(`/${singleCompany.companyId}/dashboard`)
         return
       }
-
       // Multiple companies - show selection page
-      console.log("Multiple companies available, showing selection page")
-
       // Use the current company or first available
       if (currentCompany?.companyId) {
-        console.log("Using current company ID:", currentCompany.companyId)
         setSelectedCompanyId(currentCompany.companyId)
       } else if (companies.length > 0) {
-        console.log("Using first available company ID:", companies[0].companyId)
         setSelectedCompanyId(companies[0].companyId)
       }
     }
-
     initializePage()
   }, [
     isAuthenticated,
@@ -174,7 +126,6 @@ export default function CompanySelectPage() {
     if (!selectedCompanyId) return
     setError(null)
     setIsLoading(true)
-
     try {
       const selectedCompany = companies.find(
         (c) => c.companyId === selectedCompanyId
@@ -182,22 +133,14 @@ export default function CompanySelectPage() {
       if (!selectedCompany) {
         throw new Error("Invalid company. Please select again.")
       }
-
-      console.log("Selected company:", selectedCompany)
-
       // OPTIMIZATION 1: Switch company without waiting for API calls
       if (currentCompany?.companyId !== selectedCompanyId) {
-        console.log("Switching to company:", selectedCompanyId)
         // Don't await - let it run in background
         switchCompany(selectedCompanyId, false) // fetchDecimals = false
       } else {
-        console.log("Already on selected company, skipping switch")
-      }
-
+        }
       // OPTIMIZATION 2: Navigate immediately, let dashboard handle data loading
-      console.log("Navigating to dashboard immediately")
       router.push(`/${selectedCompanyId}/dashboard`)
-
       // OPTIMIZATION 3: Fetch decimals in background (non-blocking)
       getDecimals().catch((error) => {
         console.warn("Background decimal fetch failed:", error)
@@ -209,18 +152,15 @@ export default function CompanySelectPage() {
       setIsLoading(false)
     }
   }
-
   // Get the first letter of company code or name as fallback
   const getCompanyInitial = (company: ICompany) => {
     return (company.companyCode || company.companyName || "?")
       .charAt(0)
       .toUpperCase()
   }
-
   if (showAccessDenied) {
     return <AccessDenied />
   }
-
   if (!isAuthenticated || companies.length === 0 || companies.length === 1) {
     return (
       <div className="flex h-screen items-center justify-center">
@@ -228,7 +168,6 @@ export default function CompanySelectPage() {
       </div>
     )
   }
-
   return (
     <div className="bg-muted dark:bg-background flex min-h-screen items-center justify-center p-6">
       <Card className="w-full max-w-2xl">
@@ -272,11 +211,7 @@ export default function CompanySelectPage() {
                         className="object-contain"
                         fallbackSrc="/placeholder.svg"
                         onError={() => {
-                          console.log(
-                            "Company logo failed to load for:",
-                            company.companyName
-                          )
-                        }}
+                          }}
                       />
                       <span className="hidden text-lg font-medium">
                         {getCompanyInitial(company)}

@@ -303,17 +303,11 @@ export default function PaymentsCalendar({ filters }: PaymentsCalendarProps) {
   const next30Days = filterByDays(30)
   const next60Days = filterByDays(60)
 
-  const handleSchedulePayment = (payment: PaymentDue) => {
-    console.log(`Scheduling payment for invoice: ${payment.invoiceNumber}`)
-  }
+  const handleSchedulePayment = (payment: PaymentDue) => {}
 
-  const handleViewInvoice = (payment: PaymentDue) => {
-    console.log(`Viewing invoice: ${payment.invoiceNumber}`)
-  }
+  const handleViewInvoice = (payment: PaymentDue) => {}
 
-  const handleRequestExtension = (payment: PaymentDue) => {
-    console.log(`Requesting extension for invoice: ${payment.invoiceNumber}`)
-  }
+  const handleRequestExtension = (payment: PaymentDue) => {}
 
   const renderPaymentTable = (payments: PaymentDue[]) => (
     <Table>

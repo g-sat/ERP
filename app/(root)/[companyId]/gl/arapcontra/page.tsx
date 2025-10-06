@@ -201,8 +201,6 @@ export default function ContraPage() {
             return
           }
 
-          console.log("formValues to save", formValues)
-
           const response =
             Number(formValues.contraId) === 0
               ? await saveMutation.mutateAsync(formValues)
@@ -424,7 +422,6 @@ export default function ContraPage() {
         const response = await getById(
           `${GlContra.getByIdNo}/${selectedContra.contraId}/${selectedContra.contraNo}`
         )
-        console.log("API Response (direct):", response)
 
         if (response?.result === 1) {
           const detailedContra = Array.isArray(response.data)
@@ -486,7 +483,6 @@ export default function ContraPage() {
             setContra(transformToSchemaType(updatedContra))
             form.reset(updatedContra)
             form.trigger()
-            console.log("Form values after reset:", form.getValues())
           }
         } else {
           toast.error(
@@ -517,7 +513,6 @@ export default function ContraPage() {
 
     try {
       const response = await getById(`${GlContra.getByIdNo}/0/${value}`)
-      console.log("API Response (direct):", response)
 
       if (response?.result === 1) {
         const detailedContra = Array.isArray(response.data)
@@ -578,7 +573,6 @@ export default function ContraPage() {
           setContra(transformToSchemaType(updatedContra))
           form.reset(updatedContra)
           form.trigger()
-          console.log("Form values after reset:", form.getValues())
 
           // Show success message
           toast.success(`Contra ${value} loaded successfully`)

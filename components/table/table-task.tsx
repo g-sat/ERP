@@ -1,5 +1,4 @@
 "use client"
-
 import { useCallback, useEffect, useMemo, useState } from "react"
 import {
   DndContext,
@@ -23,11 +22,9 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table"
-
 import { TableName } from "@/lib/utils"
 import { useGetGridLayout } from "@/hooks/use-settings"
 // Virtual scrolling removed - using empty rows instead
-
 import {
   Table,
   TableBody,
@@ -36,12 +33,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-
 import { Checkbox } from "../ui/checkbox"
 import { SortableTableHeader } from "./sortable-table-header"
 import { TaskTableActions } from "./table-task-action"
 import { TaskTableHeader } from "./table-task-header"
-
 interface TaskTableProps<T> {
   data: T[]
   columns: ColumnDef<T>[]
@@ -64,7 +59,6 @@ interface TaskTableProps<T> {
   showHeader?: boolean
   showActions?: boolean
 }
-
 export function TaskTable<T>({
   data,
   columns,
@@ -92,7 +86,6 @@ export function TaskTable<T>({
     transactionId?.toString() || "",
     tableName
   )
-
   const gridSettingsData = gridSettings?.data
   const getInitialSorting = (): SortingState => {
     if (gridSettingsData?.grdSort) {
@@ -104,7 +97,6 @@ export function TaskTable<T>({
     }
     return []
   }
-
   const getInitialColumnVisibility = (): VisibilityState => {
     if (gridSettingsData?.grdColVisible) {
       try {
@@ -115,7 +107,6 @@ export function TaskTable<T>({
     }
     return {}
   }
-
   const getInitialColumnSizing = () => {
     if (gridSettingsData?.grdColSize) {
       try {
@@ -126,7 +117,6 @@ export function TaskTable<T>({
     }
     return {}
   }
-
   const [sorting, setSorting] = useState<SortingState>(getInitialSorting)
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(
@@ -135,17 +125,14 @@ export function TaskTable<T>({
   const [columnSizing, setColumnSizing] = useState(getInitialColumnSizing)
   const [searchQuery, setSearchQuery] = useState("")
   const [rowSelection, setRowSelection] = useState({})
-
   const selectedRowsCount = Object.keys(rowSelection).length
   const hasSelectedRows = selectedRowsCount > 0
   const hasValidDebitNoteIds = useMemo(() => {
     if (!hasSelectedRows || !data) return false
-
     const selectedRowIds = Object.keys(rowSelection)
     const selectedRows = data.filter((_, index) =>
       selectedRowIds.includes(index.toString())
     )
-
     return selectedRows.every(
       (row) =>
         (row as T & { debitNoteId?: number }).debitNoteId &&
@@ -154,7 +141,6 @@ export function TaskTable<T>({
   }, [hasSelectedRows, data, rowSelection])
   const selectedRowIds = useMemo(() => {
     if (!hasSelectedRows || !data) return []
-
     const selectedIndices = Object.keys(rowSelection)
     return selectedIndices.map((index) => {
       const item = data[parseInt(index)]
@@ -169,18 +155,14 @@ export function TaskTable<T>({
       return id.toString()
     })
   }, [hasSelectedRows, data, rowSelection])
-
   const handleCombinedService = useCallback(() => {
-    console.log("Combined Services clicked - Selected Row IDs:", selectedRowIds)
     if (selectedRowIds.length === 0) {
-      console.log("No items selected for Combined Services")
       return
     }
     if (onCombinedService) {
       onCombinedService(selectedRowIds)
     }
   }, [selectedRowIds, onCombinedService])
-
   const handleDebitNoteFromActions = useCallback(
     (id: string) => {
       if (onDebitNote) {
@@ -189,17 +171,14 @@ export function TaskTable<T>({
     },
     [onDebitNote]
   )
-
   useEffect(() => {
     if (gridSettingsData) {
       try {
         const colVisible = JSON.parse(gridSettingsData.grdColVisible || "{}")
         const colSize = JSON.parse(gridSettingsData.grdColSize || "{}")
         const sort = JSON.parse(gridSettingsData.grdSort || "[]")
-
         setColumnVisibility(colVisible)
         setSorting(sort)
-
         if (Object.keys(colSize).length > 0) {
           setColumnSizing(colSize)
         }
@@ -208,7 +187,6 @@ export function TaskTable<T>({
       }
     }
   }, [gridSettingsData])
-
   const tableColumns: ColumnDef<T>[] = [
     ...(showActions && (onSelect || onEdit || onDelete)
       ? [
@@ -219,10 +197,8 @@ export function TaskTable<T>({
               const hasSelectedRows =
                 table.getSelectedRowModel().rows.length > 0
               const isIndeterminate = hasSelectedRows && !isAllSelected
-
               // Header checkbox should be checked if any rows are selected
               const headerChecked = hasSelectedRows
-
               return (
                 <div className="flex items-center gap-2">
                   {/* ✅ Header "Select All" Checkbox */}
@@ -244,11 +220,9 @@ export function TaskTable<T>({
             enableHiding: false,
             size: 190,
             minSize: 160,
-
             cell: ({ row }) => {
               const item = row.original
               const isSelected = row.getIsSelected()
-
               return (
                 <TaskTableActions
                   row={item as T & { debitNoteId?: number }}
@@ -259,12 +233,6 @@ export function TaskTable<T>({
                   onDebitNote={handleDebitNoteFromActions}
                   onPurchase={onPurchase}
                   onSelect={(_, checked) => {
-                    console.log(
-                      "Row selection toggled:",
-                      checked,
-                      "Row ID:",
-                      row.id
-                    )
                     row.toggleSelected(checked)
                   }}
                   isSelected={isSelected}
@@ -277,7 +245,6 @@ export function TaskTable<T>({
       : []),
     ...columns,
   ]
-
   const table = useReactTable({
     data,
     columns: tableColumns,
@@ -301,7 +268,6 @@ export function TaskTable<T>({
       globalFilter: searchQuery,
     },
   })
-
   // Virtual scrolling removed - using empty rows instead
   const [pageSize] = useState(20) // Fixed page size for empty rows
   const sensors = useSensors(
@@ -347,7 +313,6 @@ export function TaskTable<T>({
       onFilterChange(filters)
     }
   }, [sorting, searchQuery, data?.length, onFilterChange])
-
   return (
     <div className="space-y-4">
       {showHeader && (
@@ -379,12 +344,10 @@ export function TaskTable<T>({
           hasDebitNoteInSelection={hasValidDebitNoteIds}
         />
       )}
-
       <Table>
         {/* ============================================================================
           DRAG AND DROP CONTEXT
           ============================================================================ */}
-
         {/* Wrap table in drag and drop context for column reordering */}
         <DndContext
           sensors={sensors} // Configured drag sensors
@@ -394,7 +357,6 @@ export function TaskTable<T>({
           {/* ============================================================================
             TABLE CONTAINER
             ============================================================================ */}
-
           {/* Main table container with horizontal scrolling */}
           <div className="overflow-x-auto rounded-lg border">
             {/* Fixed header table with column sizing */}
@@ -415,7 +377,6 @@ export function TaskTable<T>({
                   />
                 ))}
               </colgroup>
-
               {/* Sticky table header */}
               <TableHeader className="bg-background sticky top-0 z-20">
                 {table.getHeaderGroups().map((headerGroup) => (
@@ -450,7 +411,6 @@ export function TaskTable<T>({
                           </TableHead>
                         )
                       }
-
                       // Use SortableTableHeader for regular columns
                       return (
                         <SortableTableHeader key={header.id} header={header} />
@@ -460,7 +420,6 @@ export function TaskTable<T>({
                 ))}
               </TableHeader>
             </Table>
-
             {/* Scrollable body container */}
             <div
               className="max-h-[460px] overflow-y-auto" // Allow vertical scrolling if needed
@@ -483,12 +442,10 @@ export function TaskTable<T>({
                     />
                   ))}
                 </colgroup>
-
                 <TableBody>
                   {/* ============================================================================
                     DATA ROWS RENDERING
                     ============================================================================ */}
-
                   {/* Render data rows */}
                   {table.getRowModel().rows.map((row) => {
                     return (
@@ -497,7 +454,6 @@ export function TaskTable<T>({
                         {row.getVisibleCells().map((cell, cellIndex) => {
                           const isActions = cell.column.id === "actions"
                           const isFirstColumn = cellIndex === 0
-
                           return (
                             <TableCell
                               key={cell.id}
@@ -532,11 +488,9 @@ export function TaskTable<T>({
                       </TableRow>
                     )
                   })}
-
                   {/* ============================================================================
                     EMPTY ROWS TO FILL PAGE SIZE
                     ============================================================================ */}
-
                   {/* Add empty rows to fill the remaining space based on page size */}
                   {Array.from({
                     length: Math.max(
@@ -548,7 +502,6 @@ export function TaskTable<T>({
                       {table.getAllLeafColumns().map((column, cellIndex) => {
                         const isActions = column.id === "actions"
                         const isFirstColumn = cellIndex === 0
-
                         return (
                           <TableCell
                             key={`empty-${index}-${column.id}`}
@@ -575,11 +528,9 @@ export function TaskTable<T>({
                       })}
                     </TableRow>
                   ))}
-
                   {/* ============================================================================
                     EMPTY STATE OR LOADING
                     ============================================================================ */}
-
                   {/* Show empty state or loading message when no data */}
                   {table.getRowModel().rows.length === 0 && (
                     <TableRow>

@@ -12,7 +12,6 @@ import {
   SlidersHorizontal,
   Trash2,
 } from "lucide-react"
-
 import { usePersist } from "@/hooks/use-common"
 import { Button } from "@/components/ui/button"
 import {
@@ -23,11 +22,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
-
 // Import autoTable plugin
 import "jspdf-autotable"
 import * as XLSX from "xlsx"
-
 // Extend jsPDF to include autoTable with a more specific type
 declare module "jspdf" {
   interface jsPDF {
@@ -45,7 +42,6 @@ declare module "jspdf" {
     }) => jsPDF
   }
 }
-
 // Define types for clarity
 type DebitNoteTableHeaderProps<TData> = {
   onRefresh?: () => void
@@ -64,7 +60,6 @@ type DebitNoteTableHeaderProps<TData> = {
   data?: TData[] // Add data prop for export functionality
   hideCreate?: boolean
 }
-
 export function DebitNoteTableHeader<TData>({
   onRefresh,
   onCreate,
@@ -83,7 +78,6 @@ export function DebitNoteTableHeader<TData>({
 }: DebitNoteTableHeaderProps<TData>) {
   const [columnSearch, setColumnSearch] = useState("")
   const [activeButton, setActiveButton] = useState<"show" | "hide" | null>(null)
-
   // Filter columns based on search - memoized to prevent re-renders
   const filteredColumns = useMemo(() => {
     return columns.filter((column) => {
@@ -94,25 +88,19 @@ export function DebitNoteTableHeader<TData>({
       return headerText.toLowerCase().includes(columnSearch.toLowerCase())
     })
   }, [columns, columnSearch])
-
   const handleShowAll = useCallback(() => {
     columns.forEach((column) => column.toggleVisibility(true))
     setActiveButton("show")
   }, [columns])
-
   const handleHideAll = useCallback(() => {
     columns.forEach((column) => column.toggleVisibility(false))
     setActiveButton("hide")
   }, [columns])
-
   // Add the save mutation for grid settings
   const saveGridSettings = usePersist<IGridSetting>("/setting/saveUserGrid")
-
   const handleSaveLayout = useCallback(async () => {
     try {
-      console.log(moduleId, transactionId, "moduleId, transactionId")
       const grdName = tableName
-
       // Get column visibility and order
       const columnVisibility = Object.fromEntries(
         columns.map((col) => [col.id, col.getIsVisible()])
@@ -122,7 +110,6 @@ export function DebitNoteTableHeader<TData>({
       )
       const columnOrder = columns.map((col) => col.id)
       const sorting: { id: string; desc: boolean }[] = [] // Add sorting if needed
-
       const gridSettings: IGridSetting = {
         moduleId,
         transactionId,
@@ -134,34 +121,28 @@ export function DebitNoteTableHeader<TData>({
         grdSort: JSON.stringify(sorting),
         grdString: "",
       }
-
       await saveGridSettings.mutateAsync(gridSettings)
     } catch (error) {
       console.error("Error saving layout:", error)
     }
   }, [moduleId, transactionId, tableName, columns, saveGridSettings])
-
   const handleExportExcel = (data: TData[]) => {
     if (!data || data.length === 0) {
       return
     }
-
     try {
       // Create filtered data without ID fields
       const filteredData = data.map((item) => {
         const cleanedItem: Record<string, unknown> = {}
         const itemRecord = item as Record<string, unknown>
-
         // Copy all properties except those containing "id" (case-insensitive)
         Object.keys(itemRecord).forEach((key) => {
           if (!key.toLowerCase().includes("id")) {
             cleanedItem[key] = itemRecord[key]
           }
         })
-
         return cleanedItem
       })
-
       const worksheet = XLSX.utils.json_to_sheet(filteredData)
       const workbook = XLSX.utils.book_new()
       XLSX.utils.book_append_sheet(workbook, worksheet, "Sheet1")
@@ -170,37 +151,30 @@ export function DebitNoteTableHeader<TData>({
       console.error("Error exporting Excel:", error)
     }
   }
-
   const handleExportPdf = (data: TData[]) => {
     if (!data || data.length === 0) {
       return
     }
     try {
       const doc = new jsPDF()
-
       // Filter out ID columns
       const filteredData = data.map((item) => {
         const cleanedItem: Record<string, unknown> = {}
         const itemRecord = item as Record<string, unknown>
-
         // Copy all properties except those containing "id" (case-insensitive)
         Object.keys(itemRecord).forEach((key) => {
           if (!key.toLowerCase().includes("id")) {
             cleanedItem[key] = itemRecord[key]
           }
         })
-
         return cleanedItem
       })
-
       // Extract non-ID headers
       const headers =
         filteredData.length > 0 ? Object.keys(filteredData[0]) : []
-
       if (headers.length === 0) {
         return
       }
-
       // Create the table body and convert all values to strings
       const body = filteredData.map((row) =>
         headers.map((header) => {
@@ -208,7 +182,6 @@ export function DebitNoteTableHeader<TData>({
           return value !== null && value !== undefined ? String(value) : ""
         })
       )
-
       // Use autoTable as a method on the jsPDF instance
       doc.autoTable({
         head: [headers],
@@ -229,13 +202,11 @@ export function DebitNoteTableHeader<TData>({
         },
         margin: { top: 20, right: 10, bottom: 20, left: 10 },
       })
-
       doc.save(`${tableName}.pdf`)
     } catch (error) {
       console.error("Error exporting PDF:", error)
     }
   }
-
   return (
     <>
       <div className="mb-4 space-y-2">
@@ -271,7 +242,6 @@ export function DebitNoteTableHeader<TData>({
                 Delete ({selectedRowsCount})
               </Button>
             )}
-
             <Button
               variant="outline"
               size="icon"
@@ -301,7 +271,6 @@ export function DebitNoteTableHeader<TData>({
               <FileText className="h-4 w-4 text-red-600" />
               Pdf
             </Button>
-
             {/* Layout Change */}
             <Button
               variant="outline"
@@ -312,7 +281,6 @@ export function DebitNoteTableHeader<TData>({
               Save Layout
             </Button>
           </div>
-
           {/* Search Input */}
           <div className="flex items-center gap-2">
             <Input

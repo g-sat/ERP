@@ -57,3 +57,11 @@ export interface ApiResponse<T> {
   data: T[] // Array of items (e.g., ICountry[])
   totalRecords?: number
 }
+
+export interface AuthResponse {
+  result: number
+  message: string
+  user: IUser
+  token: string
+  refreshToken: string
+}

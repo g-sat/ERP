@@ -316,7 +316,6 @@ export function CashFlowStatement({ period }: CashFlowStatementProps) {
             className="text-muted-foreground hover:text-foreground w-full"
             onClick={() => {
               // Navigate to detailed cash flow report
-              console.log("Navigate to Detailed Cash Flow Report")
             }}
           >
             View Detailed Cash Flow Report →
