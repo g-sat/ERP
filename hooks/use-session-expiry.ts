@@ -4,6 +4,9 @@ import { useAuthStore } from "@/stores/auth-store"
 
 import { refreshToken } from "@/lib/auth-helpers"
 
+// Cross-tab communication for session expiry
+const SESSION_EXPIRY_CHANNEL = "session-expiry-channel"
+
 interface SessionExpiryConfig {
   warningTimeMinutes: number
   sessionTimeoutMinutes: number
@@ -40,8 +43,62 @@ export function useSessionExpiry() {
   const [_lastActivity, setLastActivity] = useState(Date.now())
   const [warningShown, setWarningShown] = useState(false)
   const [isRefreshing, setIsRefreshing] = useState(false)
+  const [tokenRefreshInProgress, setTokenRefreshInProgress] = useState(false)
 
   const config = getSessionConfig()
+
+  // Cross-tab communication setup
+  useEffect(() => {
+    if (typeof window === "undefined") return
+
+    const broadcastChannel = new BroadcastChannel(SESSION_EXPIRY_CHANNEL)
+
+    const handleMessage = (event: MessageEvent) => {
+      const { type, data } = event.data
+
+      console.log("📡 [SessionExpiry] Received message:", { type, data })
+
+      switch (type) {
+        case "SHOW_MODAL":
+          console.log("📡 [SessionExpiry] Received show modal from another tab")
+          setShowModal(true)
+          setTimeRemaining(data.timeRemaining)
+          setWarningShown(true)
+          break
+        case "HIDE_MODAL":
+          console.log("📡 [SessionExpiry] Received hide modal from another tab")
+          setShowModal(false)
+          setWarningShown(false)
+          break
+        case "TOKEN_REFRESHED":
+          console.log(
+            "📡 [SessionExpiry] Received token refresh from another tab"
+          )
+          setShowModal(false)
+          setWarningShown(false)
+          break
+      }
+    }
+
+    broadcastChannel.addEventListener("message", handleMessage)
+
+    return () => {
+      broadcastChannel.removeEventListener("message", handleMessage)
+      broadcastChannel.close()
+    }
+  }, [])
+
+  // Broadcast modal state changes to other tabs
+  const broadcastToOtherTabs = useCallback(
+    (type: string, data?: Record<string, unknown>) => {
+      if (typeof window === "undefined") return
+
+      const broadcastChannel = new BroadcastChannel(SESSION_EXPIRY_CHANNEL)
+      broadcastChannel.postMessage({ type, data })
+      broadcastChannel.close()
+    },
+    []
+  )
 
   // Update last activity on user interaction (without closing modal)
   const updateActivity = useCallback(() => {
@@ -102,24 +159,41 @@ export function useSessionExpiry() {
     }
   }, [])
 
+  // Force close modal - used when token refresh is successful
+  const forceCloseModal = useCallback(() => {
+    console.log("🔄 [SessionExpiry] Force closing modal")
+    setShowModal(false)
+    setWarningShown(false)
+    setTokenRefreshInProgress(false)
+    setIsRefreshing(false)
+
+    // Broadcast close to other tabs
+    broadcastToOtherTabs("HIDE_MODAL")
+  }, [broadcastToOtherTabs])
+
   // Handle sign out
   const handleSignOut = useCallback(async () => {
     setShowModal(false)
     setWarningShown(false)
+
+    // Broadcast sign out to other tabs
+    broadcastToOtherTabs("HIDE_MODAL")
+
     await logOut()
     router.push("/login")
-  }, [logOut, router])
+  }, [logOut, router, broadcastToOtherTabs])
 
   // Handle stay signed in
   const handleStaySignedIn = useCallback(async () => {
     // Prevent multiple clicks
-    if (isRefreshing) {
+    if (isRefreshing || tokenRefreshInProgress) {
       console.log("🔄 [SessionExpiry] Already refreshing, ignoring click")
       return
     }
 
     console.log("🔄 [SessionExpiry] Stay signed in clicked")
     setIsRefreshing(true)
+    setTokenRefreshInProgress(true)
 
     // Don't close modal immediately - wait for token refresh result
     // setShowModal(false)
@@ -132,6 +206,7 @@ export function useSessionExpiry() {
 
       // Add timeout to prevent infinite loading
       const refreshPromise = refreshToken()
+      console.log("🔄 [SessionExpiry] Refresh promise:", refreshPromise)
       const timeoutPromise = new Promise((_, reject) =>
         setTimeout(() => reject(new Error("Token refresh timeout")), 10000)
       )
@@ -140,16 +215,25 @@ export function useSessionExpiry() {
         refreshPromise,
         timeoutPromise,
       ])) as string | null
-      console.log(
-        "🔄 [SessionExpiry] Token refresh result:",
-        newToken ? "SUCCESS" : "FAILED"
-      )
+
+      console.log("🔄 [SessionExpiry] Token refresh result:", {
+        success: !!newToken,
+        tokenLength: newToken?.length || 0,
+        tokenPreview: newToken ? `${newToken.substring(0, 20)}...` : null,
+      })
 
       if (newToken) {
         console.log("✅ [SessionExpiry] Token refreshed successfully")
-        // Success - close modal and reset warning state
-        setShowModal(false)
-        setWarningShown(false)
+        console.log("🔄 [SessionExpiry] Force closing modal")
+
+        // Success - force close modal and reset all states
+        forceCloseModal()
+
+        // Broadcast success to other tabs
+        broadcastToOtherTabs("TOKEN_REFRESHED")
+
+        console.log("✅ [SessionExpiry] Modal should now be closed")
+
         // Force a session check to update the expiry time
         setTimeout(() => {
           const now = Date.now()
@@ -168,17 +252,25 @@ export function useSessionExpiry() {
         // If no new token, keep modal open and show error
         setShowModal(true)
         setWarningShown(false)
+        setTokenRefreshInProgress(false)
       }
     } catch (error) {
       console.error("❌ [SessionExpiry] Failed to refresh token:", error)
       // If token refresh fails, keep modal open and show error
       setShowModal(true)
       setWarningShown(false)
+      setTokenRefreshInProgress(false)
     } finally {
       console.log("🔄 [SessionExpiry] Setting isRefreshing to false")
       setIsRefreshing(false)
     }
-  }, [getTokenExpiry, isRefreshing])
+  }, [
+    getTokenExpiry,
+    isRefreshing,
+    tokenRefreshInProgress,
+    broadcastToOtherTabs,
+    forceCloseModal,
+  ])
 
   // Reset warning state when token changes (e.g., after refresh)
   useEffect(() => {
@@ -186,6 +278,16 @@ export function useSessionExpiry() {
       setWarningShown(false)
     }
   }, [token, isAuthenticated])
+
+  // Debug modal state changes
+  useEffect(() => {
+    console.log("🔍 [SessionExpiry] Modal state changed:", {
+      showModal,
+      isRefreshing,
+      warningShown,
+      timeRemaining,
+    })
+  }, [showModal, isRefreshing, warningShown, timeRemaining])
 
   // Check session expiry
   useEffect(() => {
@@ -222,19 +324,27 @@ export function useSessionExpiry() {
 
       // Show warning if we're within the warning time and haven't shown it yet
       // Also ensure timeUntilExpiry > 0 to avoid showing for expired tokens
+      // Don't show modal if token refresh is in progress
       if (
         timeUntilExpiry <= warningTimeMs &&
         timeUntilExpiry > 0 &&
-        !warningShown
+        !warningShown &&
+        !tokenRefreshInProgress
       ) {
         console.log(
           "⚠️ [SessionExpiry] Showing modal - time until expiry:",
           Math.floor(timeUntilExpiry / 1000),
           "seconds"
         )
-        setTimeRemaining(Math.floor(timeUntilExpiry / 1000))
+        const timeRemainingSeconds = Math.floor(timeUntilExpiry / 1000)
+        setTimeRemaining(timeRemainingSeconds)
         setShowModal(true)
         setWarningShown(true)
+
+        // Broadcast to other tabs
+        broadcastToOtherTabs("SHOW_MODAL", {
+          timeRemaining: timeRemainingSeconds,
+        })
       }
     }
 
@@ -253,9 +363,11 @@ export function useSessionExpiry() {
     config.warningTimeMinutes,
     config.sessionTimeoutMinutes,
     warningShown,
+    tokenRefreshInProgress,
     isTokenExpired,
     getTokenExpiry,
     handleSignOut,
+    broadcastToOtherTabs,
   ])
 
   // Set up activity listeners to track user activity
@@ -289,8 +401,12 @@ export function useSessionExpiry() {
     setTimeRemaining(300) // 5 minutes
     setShowModal(true)
     setWarningShown(true)
-    console.log("🧪 [SessionExpiry] Modal should now be visible")
-  }, [])
+
+    // Broadcast test modal to other tabs
+    broadcastToOtherTabs("SHOW_MODAL", { timeRemaining: 300 })
+
+    console.log("🧪 [SessionExpiry] Modal should now be visible on all tabs")
+  }, [broadcastToOtherTabs])
 
   // Expose test function to window for debugging (development only)
   useEffect(() => {
@@ -316,13 +432,16 @@ export function useSessionExpiry() {
   const handleClose = useCallback(() => {
     setShowModal(false)
 
+    // Broadcast close to other tabs
+    broadcastToOtherTabs("HIDE_MODAL")
+
     if (config.autoSignOutOnClose) {
       handleSignOut()
     } else {
       // User-friendly mode: Reset warning state so modal can show again
       setWarningShown(false)
     }
-  }, [config.autoSignOutOnClose, handleSignOut])
+  }, [config.autoSignOutOnClose, handleSignOut, broadcastToOtherTabs])
 
   return {
     showModal,

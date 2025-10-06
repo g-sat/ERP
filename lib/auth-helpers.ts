@@ -95,12 +95,24 @@ export const refreshToken = async (): Promise<string | null> => {
       refreshToken: "",
     } as AuthResponse)
 
+    console.log("🔄 [AuthHelpers] Parsed response data:", {
+      hasToken: !!data.token,
+      hasUser: !!data.user,
+      hasRefreshToken: !!data.refreshToken,
+      result: data.result,
+      message: data.message,
+    })
+
     if (!data.token) {
+      console.error("❌ [AuthHelpers] No token in refresh response:", data)
       throw new Error("No token in refresh response")
     }
 
     // Update the auth store with the new token
+    console.log("🔄 [AuthHelpers] Updating auth store with new token")
+
     if (data.user && data.token) {
+      console.log("✅ [AuthHelpers] Using new user data from response")
       useAuthStore
         .getState()
         .logInSuccess(
@@ -109,6 +121,7 @@ export const refreshToken = async (): Promise<string | null> => {
           data.refreshToken || state.refreshToken || ""
         )
     } else if (state.user && data.token) {
+      console.log("✅ [AuthHelpers] Using existing user data with new token")
       useAuthStore
         .getState()
         .logInSuccess(
@@ -116,8 +129,11 @@ export const refreshToken = async (): Promise<string | null> => {
           data.token,
           data.refreshToken || state.refreshToken || ""
         )
+    } else {
+      console.warn("⚠️ [AuthHelpers] No user data available for token update")
     }
 
+    console.log("✅ [AuthHelpers] Token refresh completed, returning token")
     return data.token
   } catch (error) {
     logError(
