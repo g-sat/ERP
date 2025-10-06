@@ -35,7 +35,10 @@ export default function PaymentTable({
 }: PaymentTableProps) {
   const [filters, setFilters] = useState<IApPaymentFilter>(initialFilters)
 
-  const handleFilterChange = (field: keyof IApPaymentFilter, value: any) => {
+  const handleFilterChange = (
+    field: keyof IApPaymentFilter,
+    value: unknown
+  ) => {
     const newFilters = { ...filters, [field]: value }
     setFilters(newFilters)
     onFilterChange(newFilters)
@@ -62,20 +65,6 @@ export default function PaymentTable({
             onChange={(e) => handleFilterChange("search", e.target.value)}
             onKeyPress={handleKeyPress}
             className="w-full"
-          />
-        </div>
-        <div className="flex gap-2">
-          <Input
-            type="date"
-            value={filters.startDate}
-            onChange={(e) => handleFilterChange("startDate", e.target.value)}
-            className="w-[150px]"
-          />
-          <Input
-            type="date"
-            value={filters.endDate}
-            onChange={(e) => handleFilterChange("endDate", e.target.value)}
-            className="w-[150px]"
           />
         </div>
         <div className="flex gap-2">

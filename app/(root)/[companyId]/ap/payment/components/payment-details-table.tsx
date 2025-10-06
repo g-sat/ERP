@@ -19,7 +19,9 @@ import {
 interface PaymentDetailsTableProps {
   form: UseFormReturn<ApPaymentHdSchemaType>
   visible: IVisibleFields
-  onAddRowRef: React.MutableRefObject<((rowData: any) => void) | null>
+  onAddRowRef: React.MutableRefObject<
+    ((rowData: Record<string, unknown>) => void) | null
+  >
 }
 
 export default function PaymentDetailsTable({
@@ -32,7 +34,7 @@ export default function PaymentDetailsTable({
 
   // Set the ref for adding rows
   useEffect(() => {
-    onAddRowRef.current = (rowData: any) => {
+    onAddRowRef.current = (rowData: Record<string, unknown>) => {
       const currentDetails = form.getValues("data_details") || []
       const newItemNo = currentDetails.length + 1
 

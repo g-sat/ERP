@@ -69,7 +69,7 @@ export default function ContraDetailsForm({ form }: ContraDetailsFormProps) {
   const updateDetail = (
     index: number,
     field: keyof GLContraDtSchemaType,
-    value: any
+    value: unknown
   ) => {
     const updatedDetails = [...details]
     updatedDetails[index] = { ...updatedDetails[index], [field]: value }

@@ -23,7 +23,7 @@ interface MainTabProps {
   onUpdateDetail: (
     index: number,
     field: keyof ICBBatchPaymentDt,
-    value: any
+    value: unknown
   ) => void
 }
 

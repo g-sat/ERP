@@ -175,7 +175,7 @@ export default function CBBatchPaymentForm({
   const updateDetail = (
     index: number,
     field: keyof ICBBatchPaymentDt,
-    value: any
+    value: unknown
   ) => {
     const updatedDetails = [...details]
     updatedDetails[index] = { ...updatedDetails[index], [field]: value }
@@ -347,7 +347,8 @@ export default function CBBatchPaymentForm({
                         <Select
                           onValueChange={(value) => {
                             const supplier = suppliersData?.data?.find(
-                              (s: any) => s.id === Number(value)
+                              (s: Record<string, unknown>) =>
+                                s.id === Number(value)
                             )
                             field.onChange(Number(value))
                             form.setValue("supplierCode", supplier?.code || "")
@@ -361,14 +362,16 @@ export default function CBBatchPaymentForm({
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            {suppliersData?.data?.map((supplier: any) => (
-                              <SelectItem
-                                key={supplier.id}
-                                value={supplier.id.toString()}
-                              >
-                                {supplier.name} ({supplier.code})
-                              </SelectItem>
-                            ))}
+                            {suppliersData?.data?.map(
+                              (supplier: Record<string, unknown>) => (
+                                <SelectItem
+                                  key={supplier.id}
+                                  value={supplier.id.toString()}
+                                >
+                                  {supplier.name} ({supplier.code})
+                                </SelectItem>
+                              )
+                            )}
                           </SelectContent>
                         </Select>
                         <FormMessage />
@@ -385,7 +388,8 @@ export default function CBBatchPaymentForm({
                         <Select
                           onValueChange={(value) => {
                             const currency = currenciesData?.data?.find(
-                              (c: any) => c.id === Number(value)
+                              (c: Record<string, unknown>) =>
+                                c.id === Number(value)
                             )
                             field.onChange(Number(value))
                             form.setValue("currencyCode", currency?.code || "")
@@ -399,14 +403,16 @@ export default function CBBatchPaymentForm({
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            {currenciesData?.data?.map((currency: any) => (
-                              <SelectItem
-                                key={currency.id}
-                                value={currency.id.toString()}
-                              >
-                                {currency.name} ({currency.code})
-                              </SelectItem>
-                            ))}
+                            {currenciesData?.data?.map(
+                              (currency: Record<string, unknown>) => (
+                                <SelectItem
+                                  key={currency.id}
+                                  value={currency.id.toString()}
+                                >
+                                  {currency.name} ({currency.code})
+                                </SelectItem>
+                              )
+                            )}
                           </SelectContent>
                         </Select>
                         <FormMessage />
@@ -423,7 +429,8 @@ export default function CBBatchPaymentForm({
                         <Select
                           onValueChange={(value) => {
                             const bank = banksData?.data?.find(
-                              (b: any) => b.id === Number(value)
+                              (b: Record<string, unknown>) =>
+                                b.id === Number(value)
                             )
                             field.onChange(Number(value))
                             form.setValue("bankCode", bank?.code || "")
@@ -437,14 +444,16 @@ export default function CBBatchPaymentForm({
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            {banksData?.data?.map((bank: any) => (
-                              <SelectItem
-                                key={bank.id}
-                                value={bank.id.toString()}
-                              >
-                                {bank.name} ({bank.code})
-                              </SelectItem>
-                            ))}
+                            {banksData?.data?.map(
+                              (bank: Record<string, unknown>) => (
+                                <SelectItem
+                                  key={bank.id}
+                                  value={bank.id.toString()}
+                                >
+                                  {bank.name} ({bank.code})
+                                </SelectItem>
+                              )
+                            )}
                           </SelectContent>
                         </Select>
                         <FormMessage />
@@ -593,15 +602,17 @@ export default function CBBatchPaymentForm({
                                   <SelectValue placeholder="Select GL account" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                  {glAccountsData?.data?.map((account: any) => (
-                                    <SelectItem
-                                      key={account.id}
-                                      value={account.id.toString()}
-                                    >
-                                      {account.accountName} (
-                                      {account.accountCode})
-                                    </SelectItem>
-                                  ))}
+                                  {glAccountsData?.data?.map(
+                                    (account: Record<string, unknown>) => (
+                                      <SelectItem
+                                        key={account.id}
+                                        value={account.id.toString()}
+                                      >
+                                        {account.accountName} (
+                                        {account.accountCode})
+                                      </SelectItem>
+                                    )
+                                  )}
                                 </SelectContent>
                               </Select>
                             </div>

@@ -23,9 +23,11 @@ export default function Main({
   isEdit,
   visible,
 }: MainProps) {
-  const addRowRef = useRef<((rowData: any) => void) | null>(null)
+  const addRowRef = useRef<((rowData: Record<string, unknown>) => void) | null>(
+    null
+  )
 
-  const handleAddRow = (rowData: any) => {
+  const handleAddRow = (rowData: Record<string, unknown>) => {
     if (addRowRef.current) {
       addRowRef.current(rowData)
     }
