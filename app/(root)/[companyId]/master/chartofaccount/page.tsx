@@ -1037,7 +1037,7 @@ export default function ChartOfAccountPage() {
       {/* Chart of Account Dialog */}
       <Dialog open={isModalChartOpen} onOpenChange={setIsModalChartOpen}>
         <DialogContent
-          className="sm:max-w-2xl"
+          className="sm:max-w-2xl max-w-3xl overflow-auto max-h-[90vh]"
           onPointerDownOutside={(e) => e.preventDefault()}
         >
           <DialogHeader>
@@ -1076,7 +1076,7 @@ export default function ChartOfAccountPage() {
         onOpenChange={setIsModalCategory1Open}
       >
         <DialogContent
-          className="sm:max-w-2xl"
+          className="sm:max-w-2xl max-w-3xl overflow-auto max-h-[90vh]"
           onPointerDownOutside={(e) => e.preventDefault()}
         >
           <DialogHeader>
@@ -1111,7 +1111,7 @@ export default function ChartOfAccountPage() {
         onOpenChange={setIsModalCategory2Open}
       >
         <DialogContent
-          className="sm:max-w-2xl"
+          className="sm:max-w-2xl max-w-3xl overflow-auto max-h-[90vh]"
           onPointerDownOutside={(e) => e.preventDefault()}
         >
           <DialogHeader>
@@ -1146,7 +1146,7 @@ export default function ChartOfAccountPage() {
         onOpenChange={setIsModalCategory3Open}
       >
         <DialogContent
-          className="sm:max-w-2xl"
+          className="sm:max-w-2xl max-w-3xl overflow-auto max-h-[90vh]"
           onPointerDownOutside={(e) => e.preventDefault()}
         >
           <DialogHeader>
