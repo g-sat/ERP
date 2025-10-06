@@ -152,6 +152,20 @@ export function useSessionExpiry() {
       const warningTimeMs = config.warningTimeMinutes * 60 * 1000
 
       // Debug logging with more details (development only)
+      if (process.env.NODE_ENV === "development") {
+        console.log("🔍 [SessionExpiry] Debug info:", {
+          isAuthenticated,
+          token: token ? `${token.substring(0, 20)}...` : null,
+          timeUntilExpiry: Math.floor(timeUntilExpiry / 1000),
+          warningTimeMs: Math.floor(warningTimeMs / 1000),
+          warningShown,
+          config: {
+            enabled: config.enabled,
+            warningTimeMinutes: config.warningTimeMinutes,
+            sessionTimeoutMinutes: config.sessionTimeoutMinutes,
+          },
+        })
+      }
 
       // Show warning if we're within the warning time and haven't shown it yet
       // Also ensure timeUntilExpiry > 0 to avoid showing for expired tokens
@@ -160,6 +174,11 @@ export function useSessionExpiry() {
         timeUntilExpiry > 0 &&
         !warningShown
       ) {
+        console.log(
+          "⚠️ [SessionExpiry] Showing modal - time until expiry:",
+          Math.floor(timeUntilExpiry / 1000),
+          "seconds"
+        )
         setTimeRemaining(Math.floor(timeUntilExpiry / 1000))
         setShowModal(true)
         setWarningShown(true)
@@ -212,9 +231,11 @@ export function useSessionExpiry() {
 
   // Test function to manually trigger session expiry modal
   const testSessionExpiry = useCallback(() => {
+    console.log("🧪 [SessionExpiry] Test function called")
     setTimeRemaining(300) // 5 minutes
     setShowModal(true)
     setWarningShown(true)
+    console.log("🧪 [SessionExpiry] Modal should now be visible")
   }, [])
 
   // Expose test function to window for debugging (development only)

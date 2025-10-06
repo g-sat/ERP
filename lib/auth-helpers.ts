@@ -1,3 +1,4 @@
+import { AuthResponse } from "@/interfaces"
 import { useAuthStore } from "@/stores/auth-store"
 import { JwtPayload, jwtDecode as decodeJwt } from "jwt-decode"
 
@@ -63,14 +64,32 @@ export const refreshToken = async (): Promise<string | null> => {
           Authorization: `Bearer ${state.token}`,
           "X-Reg-Id": DEFAULT_REGISTRATION_ID,
         },
+        body: JSON.stringify({ refreshToken: state.refreshToken }),
       }
     )
+    console.log("response refreshToken", response)
 
     const data = await handleApiResponse(response, {
-      token: null,
-      user: null,
-      refreshToken: null,
-    })
+      result: 0,
+      message: "",
+      user: {
+        userId: "",
+        userCode: "",
+        userName: "",
+        userEmail: "",
+        remarks: "",
+        isActive: false,
+        isLocked: false,
+        failedLoginAttempts: 0,
+        userGroupId: "",
+        userGroupName: "",
+        userRoleId: "",
+        userRoleName: "",
+        profilePicture: "",
+      },
+      token: "",
+      refreshToken: "",
+    } as AuthResponse)
 
     if (!data.token) {
       throw new Error("No token in refresh response")

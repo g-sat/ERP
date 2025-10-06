@@ -66,11 +66,11 @@ export function SessionExpiryModal({
       >
         <DialogHeader>
           <div className="flex items-center gap-3">
-            <div className="flex h-12 w-12 animate-pulse items-center justify-center rounded-full bg-orange-100">
-              <Clock className="h-6 w-6 text-orange-600" />
+            <div className="bg-warning/10 flex h-12 w-12 animate-pulse items-center justify-center rounded-full">
+              <Clock className="text-warning h-6 w-6" />
             </div>
             <div className="flex-1">
-              <DialogTitle className="text-xl font-semibold text-gray-900">
+              <DialogTitle className="text-xl font-semibold">
                 Session Expiring Soon
               </DialogTitle>
               <DialogDescription className="text-muted-foreground mt-1 text-sm">
@@ -84,16 +84,16 @@ export function SessionExpiryModal({
         <div className="space-y-4">
           <div className="bg-muted rounded-lg p-4">
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-gray-700">
+              <span className="text-muted-foreground text-sm font-medium">
                 Time remaining:
               </span>
               <span
                 className={`font-mono text-xl font-bold ${
                   countdown <= 30
-                    ? "text-red-600"
+                    ? "text-destructive"
                     : countdown <= 60
-                      ? "text-orange-600"
-                      : "text-yellow-600"
+                      ? "text-warning"
+                      : "text-warning"
                 }`}
               >
                 {formatTime(countdown)}
@@ -103,10 +103,10 @@ export function SessionExpiryModal({
               <div
                 className={`h-2 rounded-full transition-all duration-1000 ${
                   countdown <= 30
-                    ? "bg-red-500"
+                    ? "bg-destructive"
                     : countdown <= 60
-                      ? "bg-orange-500"
-                      : "bg-yellow-500"
+                      ? "bg-warning"
+                      : "bg-warning"
                 }`}
                 style={{
                   width: `${timeRemaining > 0 ? Math.max((countdown / timeRemaining) * 100, 0) : 0}%`,
@@ -120,13 +120,13 @@ export function SessionExpiryModal({
               For security purposes, your session will automatically expire
               after a period of inactivity.
             </p>
-            <div className="rounded-lg border border-blue-200 bg-blue-50 p-3">
-              <p className="text-sm font-medium text-blue-800">
+            <div className="border-primary/20 bg-primary/5 rounded-lg border p-3">
+              <p className="text-primary text-sm font-medium">
                 💡 Tip: Click &quot;Stay signed in&quot; to extend your session
               </p>
             </div>
-            <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-3">
-              <p className="text-sm font-medium text-yellow-800">
+            <div className="border-warning/20 bg-warning/5 rounded-lg border p-3">
+              <p className="text-warning text-sm font-medium">
                 ⚠️ Warning: Closing this dialog will show the warning again if
                 your session is still expiring
               </p>
@@ -138,15 +138,12 @@ export function SessionExpiryModal({
           <Button
             variant="outline"
             onClick={onSignOut}
-            className="flex items-center gap-2 text-gray-600 hover:border-red-300 hover:text-red-600"
+            className="text-muted-foreground hover:border-destructive hover:text-destructive flex items-center gap-2"
           >
             <LogOut className="h-4 w-4" />
             Sign out now
           </Button>
-          <Button
-            onClick={onStaySignedIn}
-            className="flex items-center gap-2 bg-green-600 font-medium text-white hover:bg-green-700"
-          >
+          <Button onClick={onStaySignedIn} className="flex items-center gap-2">
             <User className="h-4 w-4" />
             Stay signed in
           </Button>
