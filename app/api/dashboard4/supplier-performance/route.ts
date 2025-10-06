@@ -2,14 +2,6 @@ import { NextRequest, NextResponse } from "next/server"
 
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url)
-    const period = searchParams.get("period") || "ytd"
-    const comparisonPeriod =
-      searchParams.get("comparisonPeriod") || "prior-year"
-    const businessUnits = searchParams.get("businessUnits")?.split(",") || []
-    const productLines = searchParams.get("productLines")?.split(",") || []
-    const geography = searchParams.get("geography")?.split(",") || []
-
     // Mock data - in real implementation, this would come from database
     const supplierPerformanceData = {
       summary: {

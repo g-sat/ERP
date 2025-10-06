@@ -92,8 +92,9 @@ export function ChecklistTabs({ jobData, onClone }: ChecklistTabsProps) {
   // Use detailed data if available and successful, otherwise fall back to original jobData
   const currentJobData = isDetailedJobData ? detailedJobData.data : jobData
 
-  const isConfirmed = isStatusConfirmed(currentJobData.statusName)
-    ? true
+  // ✅ SAFE: Check if currentJobData exists before accessing statusName
+  const isConfirmed = currentJobData?.statusName
+    ? isStatusConfirmed(currentJobData.statusName)
     : false
 
   console.log("Original jobData:", jobData)

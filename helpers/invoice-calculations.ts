@@ -35,12 +35,11 @@ export interface IInvoiceDetail {
   salesOrderId: string | null
   salesOrderNo: string | null
   supplyDate: string | Date | null
-  supplierName: string | null
+  customerName: string | null
   suppInvoiceNo: string | null
   apInvoiceId: string | null
   apInvoiceNo: string | null
   editVersion: number
-  customerName: string | null
 }
 
 export interface IDecimals {

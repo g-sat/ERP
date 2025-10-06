@@ -25,10 +25,11 @@ export * from "./documenttype"
 export * from "./employee"
 export * from "./employer"
 export * from "./entitytype"
-export * from "./gl-period-close"
+export * from "./gl-periodclose"
 export * from "./gst"
 export * from "./history"
 export * from "./invoice"
+
 export * from "./template"
 
 // Leave interfaces - Note: leave.ts also exports ILeaveType
@@ -67,3 +68,6 @@ export * from "./uom"
 export * from "./vessel"
 export * from "./voyage"
 export * from "./worklocation"
+
+//account-ap
+export * from "./ap-invoice"

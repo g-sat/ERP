@@ -76,8 +76,6 @@ export interface ISupplierContactFilter {
 
 export interface ISupplierAddress {
   supplierId: number
-  supplierCode: string
-  supplierName: string
   addressId: number
   address1: string
   address2: string
@@ -85,8 +83,6 @@ export interface ISupplierAddress {
   address4: string
   pinCode: string
   countryId: number
-  countryCode: string
-  countryName: string
   phoneNo: string
   faxNo: string
   emailAdd: string

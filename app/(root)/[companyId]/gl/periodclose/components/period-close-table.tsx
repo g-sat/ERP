@@ -1,7 +1,7 @@
 "use client"
 
 import { useMemo, useState } from "react"
-import { IGLPeriodClose } from "@/interfaces/gl-period-close"
+import { IGLPeriodClose } from "@/interfaces/gl-periodclose"
 import { FileSpreadsheet, FileText, MoreHorizontal, Search } from "lucide-react"
 
 import { Button } from "@/components/ui/button"

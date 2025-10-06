@@ -1,0 +1,100 @@
+import { format } from "date-fns"
+
+import { clientDateFormat } from "@/lib/date-utils"
+
+const defaultPaymentDetails = {
+  companyId: 0,
+  paymentId: 0,
+  paymentNo: "",
+  itemNo: 0,
+  transactionId: 0,
+  documentId: 0,
+  documentNo: "",
+  referenceNo: "",
+  docCurrencyId: 0,
+  docExhRate: 0,
+  docAccountDate: format(new Date(), clientDateFormat),
+  docDueDate: format(new Date(), clientDateFormat),
+  docTotAmt: 0,
+  docTotLocalAmt: 0,
+  docBalAmt: 0,
+  docBalLocalAmt: 0,
+  allocAmt: 0,
+  allocLocalAmt: 0,
+  docAllocAmt: 0,
+  docAllocLocalAmt: 0,
+  centDiff: 0,
+  exhGainLoss: 0,
+  editVersion: 0,
+}
+
+const defaultPayment = {
+  companyId: 0,
+  paymentId: 0,
+  paymentNo: "",
+  referenceNo: "",
+  trnDate: format(new Date(), clientDateFormat),
+  accountDate: format(new Date(), clientDateFormat),
+  bankId: 0,
+  paymentTypeId: 0,
+  chequeNo: "",
+  chequeDate: format(new Date(), clientDateFormat),
+  bankChargeGLId: 0,
+  bankChargesAmt: 0,
+  bankChargesLocalAmt: 0,
+  supplierId: 0,
+  currencyId: 0,
+  exhRate: 0,
+  totAmt: 0,
+  totLocalAmt: 0,
+  payCurrencyId: 0,
+  payExhRate: 0,
+  payTotAmt: 0,
+  payTotLocalAmt: 0,
+  unAllocTotAmt: 0,
+  unAllocTotLocalAmt: 0,
+  exhGainLoss: 0,
+  remarks: "",
+  docExhRate: 0,
+  docTotAmt: 0,
+  docTotLocalAmt: 0,
+  allocTotAmt: 0,
+  allocTotLocalAmt: 0,
+  moduleFrom: "",
+  createById: 0,
+  createDate: format(new Date(), clientDateFormat),
+  editById: null,
+  editDate: null,
+  editVersion: 0,
+  isCancel: false,
+  cancelById: null,
+  cancelDate: null,
+  cancelRemarks: null,
+  isPost: false,
+  postById: null,
+  postDate: null,
+  appStatusId: null,
+  appById: null,
+  appDate: null,
+  data_details: [],
+}
+
+// Function to get default values with custom date format
+export const getDefaultValues = (dateFormat: string = clientDateFormat) => {
+  return {
+    defaultPayment: {
+      ...defaultPayment,
+      trnDate: format(new Date(), dateFormat),
+      accountDate: format(new Date(), dateFormat),
+      chequeDate: format(new Date(), dateFormat),
+      createDate: format(new Date(), dateFormat),
+    },
+    defaultPaymentDetails: {
+      ...defaultPaymentDetails,
+      docAccountDate: format(new Date(), dateFormat),
+      docDueDate: format(new Date(), dateFormat),
+    },
+  }
+}
+
+export { defaultPayment, defaultPaymentDetails }

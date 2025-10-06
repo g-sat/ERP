@@ -2,7 +2,7 @@ import {
   IGLPeriodClose,
   IGLPeriodCloseBulkAction,
   IGLPeriodCloseSummary,
-} from "@/interfaces/gl-period-close"
+} from "@/interfaces/gl-periodclose"
 import { useQueryClient } from "@tanstack/react-query"
 
 import { getData } from "@/lib/api-client"

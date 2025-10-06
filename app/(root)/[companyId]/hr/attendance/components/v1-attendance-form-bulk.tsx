@@ -67,7 +67,7 @@ export function AttendanceBulkForm({
 
   // Fetch employees
   const { data: employeesResponse, isLoading } = useGetEmployees()
-  const employees = employeesResponse?.data || []
+  const employees = employeesResponse?.data ?? []
 
   // Bulk attendance save hook
   const bulkSaveAttendance = usePersist<AttendanceFormValue[]>(
@@ -213,7 +213,7 @@ export function AttendanceBulkForm({
               {/* Summary Badges */}
               {bulkData.length > 0 && (
                 <div className="flex items-center gap-3">
-                  <Badge variant="outline">{employees.length} Employees</Badge>
+                  <Badge variant="outline">{employees?.length} Employees</Badge>
                   <Badge variant="outline">{days.length} Days</Badge>
                   <Badge
                     variant="outline"

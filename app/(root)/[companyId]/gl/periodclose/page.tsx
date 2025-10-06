@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { useParams } from "next/navigation"
-import { IGLPeriodClose } from "@/interfaces/gl-period-close"
+import { IGLPeriodClose } from "@/interfaces/gl-periodclose"
 import { toast } from "sonner"
 
 import {
