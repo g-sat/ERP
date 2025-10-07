@@ -45,6 +45,7 @@ import {
   IPortRegionLookup,
   IProductLookup,
   IRankLookup,
+  IServiceLookup,
   IServiceTypeCategoryLookup,
   IServiceTypeLookup,
   IStatusLookup,
@@ -68,6 +69,7 @@ import { IPaymentType } from "@/interfaces/paymenttype"
 import { ISupplierAddress, ISupplierContact } from "@/interfaces/supplier"
 import { keepPreviousData, useQuery } from "@tanstack/react-query"
 import { AxiosError } from "axios"
+
 import { apiClient, getData } from "@/lib/api-client"
 import {
   Admin,
@@ -76,6 +78,7 @@ import {
   MandatoryFieldSetting,
   VisibleFieldSetting,
 } from "@/lib/api-routes"
+
 /**
  * 1. Query Configuration
  */
@@ -1035,7 +1038,7 @@ export const useJobOrderTaskLookup = (jobOrderId: number) => {
     ...defaultQueryConfig,
     queryFn: async () => {
       try {
-        const data = await getData(`${Lookup.getTask}/${jobOrderId}`)
+        const data = await getData(`${Lookup.getJobOrderTask}/${jobOrderId}`)
         return data?.data || []
       } catch (error) {
         handleApiError(error)
@@ -1045,13 +1048,13 @@ export const useJobOrderTaskLookup = (jobOrderId: number) => {
   })
 }
 export const useJobOrderChargeLookup = (jobOrderId: number, taskId: number) => {
-  return useQuery<IChargeLookup[]>({
+  return useQuery<IServiceLookup[]>({
     queryKey: ["joborder-charge-lookUp", jobOrderId, taskId],
     ...defaultQueryConfig,
     queryFn: async () => {
       try {
         const data = await getData(
-          `${Lookup.getCharge}/${jobOrderId}/${taskId}`
+          `${Lookup.getJobOrderCharge}/${jobOrderId}/${taskId}`
         )
         return data?.data || []
       } catch (error) {

@@ -100,6 +100,117 @@ export function ChartOfAccountsTable({
       minSize: 100,
     },
     {
+      accessorKey: "isJobSpecific",
+      header: "Job Control",
+      cell: ({ row }) => (
+        <Badge
+          variant={row.getValue("isJobSpecific") ? "default" : "destructive"}
+        >
+          {row.getValue("isJobSpecific") ? (
+            <IconCircleCheckFilled className="mr-1 fill-green-500 dark:fill-green-400" />
+          ) : (
+            <IconSquareRoundedXFilled className="mr-1 fill-red-500 dark:fill-red-400" />
+          )}
+          {row.getValue("isJobSpecific") ? "Yes" : "No"}
+        </Badge>
+      ),
+      size: 120,
+      minSize: 100,
+    },
+    {
+      accessorKey: "isBankAccount",
+      header: "Bank Control",
+      cell: ({ row }) => (
+        <Badge
+          variant={row.getValue("isBankAccount") ? "default" : "destructive"}
+        >
+          {row.getValue("isBankAccount") ? (
+            <IconCircleCheckFilled className="mr-1 fill-green-500 dark:fill-green-400" />
+          ) : (
+            <IconSquareRoundedXFilled className="mr-1 fill-red-500 dark:fill-red-400" />
+          )}
+          {row.getValue("isBankAccount") ? "Yes" : "No"}
+        </Badge>
+      ),
+      size: 120,
+      minSize: 100,
+    },
+    {
+      accessorKey: "isOperational",
+      header: "Operational",
+      cell: ({ row }) => (
+        <Badge
+          variant={row.getValue("isOperational") ? "default" : "destructive"}
+        >
+          {row.getValue("isOperational") ? (
+            <IconCircleCheckFilled className="mr-1 fill-green-500 dark:fill-green-400" />
+          ) : (
+            <IconSquareRoundedXFilled className="mr-1 fill-red-500 dark:fill-red-400" />
+          )}
+          {row.getValue("isOperational") ? "Yes" : "No"}
+        </Badge>
+      ),
+      size: 120,
+      minSize: 100,
+    },
+    {
+      accessorKey: "isPayableAccount",
+      header: "Payable Account",
+      cell: ({ row }) => (
+        <Badge
+          variant={row.getValue("isPayableAccount") ? "default" : "destructive"}
+        >
+          {row.getValue("isPayableAccount") ? (
+            <IconCircleCheckFilled className="mr-1 fill-green-500 dark:fill-green-400" />
+          ) : (
+            <IconSquareRoundedXFilled className="mr-1 fill-red-500 dark:fill-red-400" />
+          )}
+          {row.getValue("isPayableAccount") ? "Yes" : "No"}
+        </Badge>
+      ),
+      size: 120,
+      minSize: 100,
+    },
+    {
+      accessorKey: "isReceivableAccount",
+      header: "Receivable Account",
+      cell: ({ row }) => (
+        <Badge
+          variant={
+            row.getValue("isReceivableAccount") ? "default" : "destructive"
+          }
+        >
+          {row.getValue("isReceivableAccount") ? (
+            <IconCircleCheckFilled className="mr-1 fill-green-500 dark:fill-green-400" />
+          ) : (
+            <IconSquareRoundedXFilled className="mr-1 fill-red-500 dark:fill-red-400" />
+          )}
+          {row.getValue("isReceivableAccount") ? "Yes" : "No"}
+        </Badge>
+      ),
+      size: 120,
+      minSize: 100,
+    },
+
+    {
+      accessorKey: "isUniversal",
+      header: "Universal",
+      cell: ({ row }) => (
+        <Badge
+          variant={row.getValue("isUniversal") ? "default" : "destructive"}
+        >
+          {row.getValue("isUniversal") ? (
+            <IconCircleCheckFilled className="mr-1 fill-green-500 dark:fill-green-400" />
+          ) : (
+            <IconSquareRoundedXFilled className="mr-1 fill-red-500 dark:fill-red-400" />
+          )}
+          {row.getValue("isUniversal") ? "Yes" : "No"}
+        </Badge>
+      ),
+      size: 120,
+      minSize: 100,
+    },
+    {
       accessorKey: "isSysControl",
       header: "System Control",
       cell: ({ row }) => (
@@ -169,42 +280,7 @@ export function ChartOfAccountsTable({
       size: 120,
       minSize: 100,
     },
-    {
-      accessorKey: "isJobControl",
-      header: "Job Control",
-      cell: ({ row }) => (
-        <Badge
-          variant={row.getValue("isJobControl") ? "default" : "destructive"}
-        >
-          {row.getValue("isJobControl") ? (
-            <IconCircleCheckFilled className="mr-1 fill-green-500 dark:fill-green-400" />
-          ) : (
-            <IconSquareRoundedXFilled className="mr-1 fill-red-500 dark:fill-red-400" />
-          )}
-          {row.getValue("isJobControl") ? "Yes" : "No"}
-        </Badge>
-      ),
-      size: 120,
-      minSize: 100,
-    },
-    {
-      accessorKey: "isBankControl",
-      header: "Bank Control",
-      cell: ({ row }) => (
-        <Badge
-          variant={row.getValue("isBankControl") ? "default" : "destructive"}
-        >
-          {row.getValue("isBankControl") ? (
-            <IconCircleCheckFilled className="mr-1 fill-green-500 dark:fill-green-400" />
-          ) : (
-            <IconSquareRoundedXFilled className="mr-1 fill-red-500 dark:fill-red-400" />
-          )}
-          {row.getValue("isBankControl") ? "Yes" : "No"}
-        </Badge>
-      ),
-      size: 120,
-      minSize: 100,
-    },
+
     {
       accessorKey: "seqNo",
       header: "Seq No",

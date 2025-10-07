@@ -9,7 +9,11 @@ import {
 } from "@/interfaces/ap-invoice"
 import { ApiResponse } from "@/interfaces/auth"
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
-import { ApInvoiceHdSchemaType, apinvoiceHdSchema } from "@/schemas/ap-invoice"
+import {
+  ApInvoiceDtSchemaType,
+  ApInvoiceHdSchemaType,
+  apinvoiceHdSchema,
+} from "@/schemas/ap-invoice"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { format, subMonths } from "date-fns"
 import {
@@ -387,8 +391,6 @@ export default function InvoicePage() {
       payAmt: apiInvoice.payAmt ?? 0,
       payLocalAmt: apiInvoice.payLocalAmt ?? 0,
       exGainLoss: apiInvoice.exGainLoss ?? 0,
-      purchaseOrderId: apiInvoice.purchaseOrderId ?? 0,
-      purchaseOrderNo: apiInvoice.purchaseOrderNo ?? "",
       operationId: apiInvoice.operationId ?? 0,
       operationNo: apiInvoice.operationNo ?? "",
       remarks: apiInvoice.remarks ?? "",
@@ -407,37 +409,37 @@ export default function InvoicePage() {
       emailAdd: apiInvoice.emailAdd ?? "",
       moduleFrom: apiInvoice.moduleFrom ?? "",
       customerName: apiInvoice.customerName ?? "",
-
-      arInvoiceId: apiInvoice.arInvoiceId ?? "",
-      arInvoiceNo: apiInvoice.arInvoiceNo ?? "",
+      salesOrderNo: "",
+      apInvoiceNo: "",
       data_details:
-        apiInvoice.data_details?.map((detail) => ({
-          ...detail,
-          invoiceId: detail.invoiceId?.toString() ?? "0",
-          invoiceNo: detail.invoiceNo?.toString() ?? "",
-          totAmt: detail.totAmt ?? 0,
-          totLocalAmt: detail.totLocalAmt ?? 0,
-          totCtyAmt: detail.totCtyAmt ?? 0,
-          gstAmt: detail.gstAmt ?? 0,
-          gstLocalAmt: detail.gstLocalAmt ?? 0,
-          gstCtyAmt: detail.gstCtyAmt ?? 0,
-          deliveryDate: detail.deliveryDate
-            ? format(
-                parseDate(detail.deliveryDate as string) || new Date(),
-                clientDateFormat
-              )
-            : null,
-          supplyDate: detail.supplyDate
-            ? format(
-                parseDate(detail.supplyDate as string) || new Date(),
-                clientDateFormat
-              )
-            : null,
-          remarks: detail.remarks ?? "",
-          customerName: detail.customerName ?? "",
-          arInvoiceNo: detail.arInvoiceNo ?? "",
-          arInvoiceId: detail.arInvoiceId ?? 0,
-        })) || [],
+        apiInvoice.data_details?.map(
+          (detail) =>
+            ({
+              ...detail,
+              invoiceId: detail.invoiceId?.toString() ?? "0",
+              invoiceNo: detail.invoiceNo?.toString() ?? "",
+              totAmt: detail.totAmt ?? 0,
+              totLocalAmt: detail.totLocalAmt ?? 0,
+              totCtyAmt: detail.totCtyAmt ?? 0,
+              gstAmt: detail.gstAmt ?? 0,
+              gstLocalAmt: detail.gstLocalAmt ?? 0,
+              gstCtyAmt: detail.gstCtyAmt ?? 0,
+              deliveryDate: detail.deliveryDate
+                ? format(
+                    parseDate(detail.deliveryDate as string) || new Date(),
+                    clientDateFormat
+                  )
+                : null,
+              supplyDate: detail.supplyDate
+                ? format(
+                    parseDate(detail.supplyDate as string) || new Date(),
+                    clientDateFormat
+                  )
+                : null,
+              remarks: detail.remarks ?? "",
+              customerName: detail.customerName ?? "",
+            }) as unknown as ApInvoiceDtSchemaType
+        ) || [],
     }
   }
 

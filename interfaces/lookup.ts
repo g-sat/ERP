@@ -35,6 +35,12 @@ export interface IChargeLookup {
   glId: number
 }
 
+export interface IServiceLookup {
+  serviceId: number
+  serviceName: string
+  serviceCode: string
+}
+
 export interface IBargeLookup {
   bargeId: number
   bargeCode: string
@@ -52,6 +58,13 @@ export interface IChartofAccountLookup {
   glId: number
   glCode: string
   glName: string
+  isSysControl: boolean
+  isJobSpecific: boolean
+  isBankAccount: boolean
+  isOperational: boolean
+  isPayableAccount: boolean
+  isReceivableAccount: boolean
+  isUniversal: boolean
 }
 
 export interface ICategoryLookup {

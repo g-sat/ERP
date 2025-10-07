@@ -1,12 +1,16 @@
 "use client"
 
+import { useState } from "react"
 import {
   IBargeLookup,
   IChartofAccountLookup,
   IDepartmentLookup,
   IEmployeeLookup,
   IGstLookup,
+  IJobOrderLookup,
   IProductLookup,
+  IServiceLookup,
+  ITaskLookup,
 } from "@/interfaces/lookup"
 import { ApInvoiceDtSchemaType } from "@/schemas/ap-invoice"
 import { useAuthStore } from "@/stores/auth-store"
@@ -18,6 +22,9 @@ import ChartOfAccountAutocomplete from "@/components/autocomplete/autocomplete-c
 import DepartmentAutocomplete from "@/components/autocomplete/autocomplete-department"
 import EmployeeAutocomplete from "@/components/autocomplete/autocomplete-employee"
 import GSTAutocomplete from "@/components/autocomplete/autocomplete-gst"
+import JobOrderAutocomplete from "@/components/autocomplete/autocomplete-joborder"
+import JobOrderChargeAutocomplete from "@/components/autocomplete/autocomplete-joborder-charge"
+import JobOrderTaskAutocomplete from "@/components/autocomplete/autocomplete-joborder-task"
 import ProductAutocomplete from "@/components/autocomplete/autocomplete-product"
 import CustomNumberInput from "@/components/custom/custom-number-input"
 import CustomTextarea from "@/components/custom/custom-textarea"
@@ -39,6 +46,9 @@ export default function InvoiceDetailsForm({
   const { decimals } = useAuthStore()
   const amtDec = decimals[0]?.amtDec || 2
   const locAmtDec = decimals[0]?.locAmtDec || 2
+
+  // State to manage job-specific vs department-specific rendering
+  const [isJobSpecific, setIsJobSpecific] = useState(false)
 
   const form = useForm<ApInvoiceDtSchemaType>({
     defaultValues: {
@@ -64,6 +74,9 @@ export default function InvoiceDetailsForm({
       gstCtyAmt: 0,
       deliveryDate: null,
       departmentId: 0,
+      jobOrderId: 0,
+      taskId: 0,
+      serviceId: 0,
       employeeId: 0,
       portId: 0,
       vesselId: 0,
@@ -82,6 +95,13 @@ export default function InvoiceDetailsForm({
       editVersion: 0,
     },
   })
+
+  // Watch form values to trigger re-renders when they change
+  const watchedJobOrderId = form.watch("jobOrderId")
+  const watchedTaskId = form.watch("taskId")
+
+  // Debug logging
+  console.log("Watched values:", { watchedJobOrderId, watchedTaskId })
 
   const onSubmit = (data: ApInvoiceDtSchemaType) => {
     if (onAddRow) {
@@ -156,7 +176,24 @@ export default function InvoiceDetailsForm({
     selectedOption: IChartofAccountLookup | null
   ) => {
     if (selectedOption) {
+      console.log(selectedOption)
       form.setValue("glId", selectedOption.glId)
+
+      // Use the actual isJobSpecific property from the chart of account data
+      const isJobSpecificAccount = selectedOption.isJobSpecific || false
+
+      setIsJobSpecific(isJobSpecificAccount)
+
+      // Reset dependent fields when switching between job-specific and department-specific
+      if (!isJobSpecificAccount) {
+        // If switching to department-specific, reset job-related fields
+        form.setValue("jobOrderId", 0)
+        form.setValue("taskId", 0)
+        form.setValue("serviceId", 0)
+      } else {
+        // If switching to job-specific, reset department field
+        form.setValue("departmentId", 0)
+      }
     }
   }
 
@@ -176,6 +213,39 @@ export default function InvoiceDetailsForm({
 
       form.setValue("gstAmt", gstAmt)
       form.setValue("gstLocalAmt", gstLocalAmt)
+    }
+  }
+
+  // Handle job order selection
+  const handleJobOrderChange = (selectedOption: IJobOrderLookup | null) => {
+    if (selectedOption) {
+      console.log("Job Order selected:", selectedOption)
+      form.setValue("jobOrderId", selectedOption.jobOrderId)
+      // Reset task and service when job order changes
+      form.setValue("taskId", 0)
+      form.setValue("serviceId", 0)
+      // Trigger form validation to update dependent fields
+      form.trigger(["taskId", "serviceId"])
+    }
+  }
+
+  // Handle task selection
+  const handleTaskChange = (selectedOption: ITaskLookup | null) => {
+    if (selectedOption) {
+      console.log("Task selected:", selectedOption)
+      form.setValue("taskId", selectedOption.taskId)
+      // Reset service when task changes
+      form.setValue("serviceId", 0)
+      // Trigger form validation to update dependent fields
+      form.trigger(["serviceId"])
+    }
+  }
+
+  // Handle service selection
+  const handleServiceChange = (selectedOption: IServiceLookup | null) => {
+    if (selectedOption) {
+      console.log("Service selected:", selectedOption)
+      form.setValue("serviceId", selectedOption.serviceId)
     }
   }
 
@@ -207,14 +277,55 @@ export default function InvoiceDetailsForm({
             companyId={companyId}
           />
 
-          {/* Department */}
-          <DepartmentAutocomplete
-            form={form}
-            name="departmentId"
-            label="Department"
-            isRequired={true}
-            onChangeEvent={handleDepartmentChange}
-          />
+          {/* Conditional rendering based on isJobSpecific */}
+          {isJobSpecific ? (
+            <>
+              {/* Job Order Components */}
+              <JobOrderAutocomplete
+                form={form}
+                name="jobOrderId"
+                label="Job Order"
+                isRequired={true}
+                onChangeEvent={handleJobOrderChange}
+              />
+
+              <JobOrderTaskAutocomplete
+                key={`task-${watchedJobOrderId}`}
+                form={form}
+                name="taskId"
+                jobOrderId={watchedJobOrderId || 0}
+                label="Task"
+                isRequired={true}
+                onChangeEvent={handleTaskChange}
+              />
+
+              <JobOrderChargeAutocomplete
+                key={`service-${watchedJobOrderId}-${watchedTaskId}`}
+                form={form}
+                name="serviceId"
+                jobOrderId={watchedJobOrderId || 0}
+                taskId={watchedTaskId || 0}
+                label="Service"
+                isRequired={true}
+                onChangeEvent={handleServiceChange}
+              />
+            </>
+          ) : (
+            <>
+              {/* Department Component */}
+              <DepartmentAutocomplete
+                form={form}
+                name="departmentId"
+                label="Department"
+                isRequired={true}
+                onChangeEvent={handleDepartmentChange}
+              />
+
+              {/* Empty divs to maintain grid layout */}
+              {/*<div></div> */}
+              {/*<div></div> */}
+            </>
+          )}
 
           {/* Employee */}
           <EmployeeAutocomplete

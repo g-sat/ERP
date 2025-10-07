@@ -47,8 +47,8 @@ const defaultValues = {
   isSysControl: false,
   isDeptMandatory: false,
   isBargeMandatory: false,
-  isBankControl: false,
-  isJobControl: false,
+  isBankAccount: false,
+  isJobSpecific: false,
   seqNo: 0,
   remarks: "",
   isActive: true,
@@ -88,8 +88,12 @@ export function ChartOfAccountForm({
           isSysControl: initialData.isSysControl ?? false,
           isDeptMandatory: initialData.isDeptMandatory ?? false,
           isBargeMandatory: initialData.isBargeMandatory ?? false,
-          isBankControl: initialData.isBankControl ?? false,
-          isJobControl: initialData.isJobControl ?? false,
+          isBankAccount: initialData.isBankAccount ?? false,
+          isJobSpecific: initialData.isJobSpecific ?? false,
+          isOperational: initialData.isOperational ?? false,
+          isPayableAccount: initialData.isPayableAccount ?? false,
+          isReceivableAccount: initialData.isReceivableAccount ?? false,
+          isUniversal: initialData.isUniversal ?? false,
           seqNo: initialData.seqNo ?? 0,
           remarks: initialData.remarks ?? "",
           isActive: initialData.isActive ?? true,
@@ -122,8 +126,12 @@ export function ChartOfAccountForm({
         isSysControl: false,
         isDeptMandatory: false,
         isBargeMandatory: false,
-        isBankControl: false,
-        isJobControl: false,
+        isBankAccount: false,
+        isJobSpecific: false,
+        isOperational: false,
+        isPayableAccount: false,
+        isReceivableAccount: false,
+        isUniversal: false,
         seqNo: 0,
         remarks: "",
         isActive: true,
@@ -143,7 +151,7 @@ export function ChartOfAccountForm({
   return (
     <div className="max-w flex flex-col gap-2">
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pt-6">
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-2">
           <div className="grid gap-2">
             <div className="grid grid-cols-2 gap-2">
               <CustomInput
@@ -224,14 +232,14 @@ export function ChartOfAccountForm({
               />
               <CustomSwitch
                 form={form}
-                name="isJobControl"
+                name="isJobSpecific"
                 label="Job Control"
                 activeColor="success"
                 isDisabled={isReadOnly}
               />{" "}
               <CustomSwitch
                 form={form}
-                name="isBankControl"
+                name="isBankAccount"
                 label="Bank Control"
                 activeColor="success"
                 isDisabled={isReadOnly}
@@ -250,6 +258,34 @@ export function ChartOfAccountForm({
                 activeColor="success"
                 isDisabled={isReadOnly}
               />{" "}
+              <CustomSwitch
+                form={form}
+                name="isOperational"
+                label="Operational"
+                activeColor="success"
+                isDisabled={isReadOnly}
+              />{" "}
+              <CustomSwitch
+                form={form}
+                name="isPayableAccount"
+                label="Payable Account"
+                activeColor="success"
+                isDisabled={isReadOnly}
+              />{" "}
+              <CustomSwitch
+                form={form}
+                name="isReceivableAccount"
+                label="Receivable Account"
+                activeColor="success"
+                isDisabled={isReadOnly}
+              />{" "}
+              <CustomSwitch
+                form={form}
+                name="isUniversal"
+                label="Universal"
+                activeColor="success"
+                isDisabled={isReadOnly}
+              />{" "}
             </div>
             <CustomSwitch
               form={form}
@@ -264,7 +300,7 @@ export function ChartOfAccountForm({
                 initialData.createDate ||
                 initialData.editBy ||
                 initialData.editDate) && (
-                <div className="space-y-6 pt-6">
+                <div className="space-y-2">
                   <div className="border-border border-b pb-4"></div>
 
                   <CustomAccordion

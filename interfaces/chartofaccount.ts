@@ -21,8 +21,12 @@ export interface IChartofAccount {
   isSysControl: boolean
   isDeptMandatory: boolean
   isBargeMandatory: boolean
-  isJobControl: boolean
-  isBankControl: boolean
+  isJobSpecific: boolean
+  isBankAccount: boolean
+  isOperational: boolean
+  isPayableAccount: boolean
+  isReceivableAccount: boolean
+  isUniversal: boolean
   isHeading: boolean
   isGLCodeEditable: boolean
   seqNo: number

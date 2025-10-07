@@ -154,7 +154,7 @@ export function CustomerContactForm({
           onSubmit={form.handleSubmit(onSubmit, (errors) => {
             console.log("Form validation failed:", errors)
           })}
-          className="space-y-6 pt-6"
+          className="space-y-2"
         >
           <div className="grid gap-2">
             <div className="grid grid-cols-3 gap-2">
@@ -248,7 +248,7 @@ export function CustomerContactForm({
                 initialData.createDate ||
                 initialData.editBy ||
                 initialData.editDate) && (
-                <div className="space-y-6 pt-6">
+                <div className="space-y-2">
                   <div className="border-border border-b pb-4"></div>
 
                   <CustomAccordion

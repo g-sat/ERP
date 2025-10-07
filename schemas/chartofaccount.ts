@@ -18,15 +18,18 @@ export const chartofAccountSchema = z.object({
   isSysControl: z.boolean(),
   isDeptMandatory: z.boolean(),
   isBargeMandatory: z.boolean(),
-  isJobControl: z.boolean(),
-  isBankControl: z.boolean(),
+  isJobSpecific: z.boolean(),
+  isBankAccount: z.boolean(),
+  isOperational: z.boolean(),
+  isPayableAccount: z.boolean(),
+  isReceivableAccount: z.boolean(),
+  isUniversal: z.boolean(),
   seqNo: z.number(),
   isActive: z.boolean(),
   remarks: z
     .string()
     .max(255, { message: "Remarks cannot exceed 255 characters" })
-    .optional()
-    ,
+    .optional(),
 })
 
 export type ChartofAccountSchemaType = z.infer<typeof chartofAccountSchema>

@@ -75,6 +75,7 @@ export interface IMandatoryFields {
   m_GstId: boolean
   m_DeliveryDate: boolean
   m_DepartmentId: boolean
+  m_JobOrderId: boolean
   m_EmployeeId: boolean
   m_PortId: boolean
   m_VesselId: boolean
@@ -111,6 +112,7 @@ export interface IVisibleFields {
   m_GstId: boolean
   m_DeliveryDate: boolean
   m_DepartmentId: boolean
+  m_JobOrderId: boolean
   m_EmployeeId: boolean
   m_PortId: boolean
   m_VesselId: boolean

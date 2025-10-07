@@ -50,10 +50,7 @@ export default function EmployeeAutocomplete<
     () =>
       employees.map((employee: IEmployeeLookup) => ({
         value: employee.employeeId.toString(),
-        label: `${employee.employeeName} - ${employee.employeeCode}`.substring(
-          0,
-          50
-        ), // Truncate long labels
+        label: employee.employeeName,
       })),
     [employees]
   )
@@ -169,6 +166,12 @@ export default function EmployeeAutocomplete<
         fontSize: "12px",
         height: "20px",
       }),
+      // Fix for dropdown appearing behind dialog
+      menuPortal: (base) => ({
+        ...base,
+        zIndex: 9999,
+        pointerEvents: "auto",
+      }),
     }),
     []
   )
@@ -199,7 +202,6 @@ export default function EmployeeAutocomplete<
   const getValue = React.useCallback(() => {
     if (form && name) {
       const formValue = form.getValues(name)
-      // Convert form value to string for comparison
       return (
         options.find((option) => option.value === formValue?.toString()) || null
       )
@@ -242,8 +244,10 @@ export default function EmployeeAutocomplete<
                   }}
                   className="react-select-container"
                   classNamePrefix="react-select__"
-                  menuPlacement="auto" // Ensures proper placement
-                  maxMenuHeight={300} // Consistent scrolling height
+                  menuPortalTarget={
+                    typeof document !== "undefined" ? document.body : null
+                  }
+                  menuPosition="fixed"
                   isLoading={isLoading}
                   loadingMessage={() => "Loading employees..."}
                 />
@@ -294,8 +298,10 @@ export default function EmployeeAutocomplete<
         }}
         className="react-select-container"
         classNamePrefix="react-select__"
-        menuPlacement="auto"
-        maxMenuHeight={300}
+        menuPortalTarget={
+          typeof document !== "undefined" ? document.body : null
+        }
+        menuPosition="fixed"
         isLoading={isLoading}
         loadingMessage={() => "Loading employees..."}
       />

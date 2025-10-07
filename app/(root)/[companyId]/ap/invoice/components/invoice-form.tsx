@@ -9,9 +9,9 @@ import {
   setExchangeRateLocal,
   setGSTPercentage,
 } from "@/helpers/account"
+import { IApInvoiceDetail } from "@/helpers/ap-invoice-calculations"
 import { calculateInvoice } from "@/helpers/invoice"
 import {
-  IInvoiceDetail,
   calculateCountryAmounts,
   calculateLocalAmounts,
   calculateTotalAmounts,
@@ -53,7 +53,7 @@ export default function InvoiceForm({
   onSuccessAction,
   isEdit,
   visible,
-  companyId,
+  companyId: _companyId,
 }: InvoiceFormProps) {
   const { decimals } = useAuthStore()
   const amtDec = decimals[0]?.amtDec || 2
@@ -67,7 +67,7 @@ export default function InvoiceForm({
 
   // Handle transaction date selection
   const handleTrnDateChange = React.useCallback(
-    async (selectedTrnDate: Date | null) => {
+    async (_selectedTrnDate: Date | null) => {
       // Additional logic when transaction date changes
       const { trnDate } = form?.getValues()
       form.setValue("gstClaimDate", trnDate)
@@ -112,7 +112,7 @@ export default function InvoiceForm({
 
   // Handle transaction date selection
   const handleAccountDateChange = React.useCallback(
-    async (selectedAccountDate: Date | null) => {
+    async (_selectedAccountDate: Date | null) => {
       // Additional logic when transaction date changes
       const { accountDate } = form?.getValues()
       form.setValue("gstClaimDate", accountDate)
@@ -135,7 +135,7 @@ export default function InvoiceForm({
 
   // Handle credit term selection
   const handleCreditTermChange = React.useCallback(
-    (selectedCreditTerm: ICreditTermLookup | null) => {
+    (_selectedCreditTerm: ICreditTermLookup | null) => {
       // Additional logic when credit term changes
       setDueDate(form)
     },
@@ -144,7 +144,7 @@ export default function InvoiceForm({
 
   // Handle bank selection
   const handleBankChange = React.useCallback(
-    (selectedBank: IBankLookup | null) => {
+    (_selectedBank: IBankLookup | null) => {
       // Additional logic when bank changes
     },
     []
@@ -152,7 +152,7 @@ export default function InvoiceForm({
 
   // Handle delivery date change
   const handleDeliveryDateChange = React.useCallback(
-    async (selectedDeliveryDate: Date | null) => {
+    async (_selectedDeliveryDate: Date | null) => {
       await setDueDate(form)
     },
     [form]
@@ -173,10 +173,21 @@ export default function InvoiceForm({
         }
 
         // Get current details and ensure they exist
-        const details = form.getValues("data_details") as IInvoiceDetail[]
-        if (!details || details.length === 0) {
+        const formDetails = form.getValues("data_details")
+        if (!formDetails || formDetails.length === 0) {
           return
         }
+
+        // Convert form details to IApInvoiceDetail format (add id field)
+        const details: IApInvoiceDetail[] = formDetails.map(
+          (detail, index) =>
+            ({
+              ...detail,
+              id: `temp-${index}`,
+              invoiceId: detail.invoiceId || "0",
+              invoiceNo: detail.invoiceNo || "",
+            }) as IApInvoiceDetail
+        )
 
         // Recalculate all details with new exchange rates
         const exchangeRate = form.getValues("exhRate") || 0
@@ -238,9 +249,20 @@ export default function InvoiceForm({
   // Handle exchange rate change
   const handleExchangeRateChange = React.useCallback(
     (e: React.FocusEvent<HTMLInputElement>) => {
-      const details = form.getValues("data_details") as IInvoiceDetail[]
+      const formDetails = form.getValues("data_details")
       const exchangeRate = parseFloat(e.target.value) || 0
       const cityExchangeRate = form.getValues("ctyExhRate") || 0
+
+      // Convert form details to IApInvoiceDetail format (add id field)
+      const details: IApInvoiceDetail[] = formDetails.map(
+        (detail, index) =>
+          ({
+            ...detail,
+            id: `temp-${index}`,
+            invoiceId: detail.invoiceId || "0",
+            invoiceNo: detail.invoiceNo || "",
+          }) as IApInvoiceDetail
+      )
 
       // Recalculate all details with new exchange rate
       const updatedDetails = recalculateAllDetailAmounts(
@@ -292,9 +314,20 @@ export default function InvoiceForm({
   // Handle city exchange rate change
   const handleCityExchangeRateChange = React.useCallback(
     (e: React.FocusEvent<HTMLInputElement>) => {
-      const details = form.getValues("data_details") as IInvoiceDetail[]
+      const formDetails = form.getValues("data_details")
       const exchangeRate = form.getValues("exhRate") || 0
       const cityExchangeRate = parseFloat(e.target.value) || 0
+
+      // Convert form details to IApInvoiceDetail format (add id field)
+      const details: IApInvoiceDetail[] = formDetails.map(
+        (detail, index) =>
+          ({
+            ...detail,
+            id: `temp-${index}`,
+            invoiceId: detail.invoiceId || "0",
+            invoiceNo: detail.invoiceNo || "",
+          }) as IApInvoiceDetail
+      )
 
       // Recalculate all details with new city exchange rate
       const updatedDetails = recalculateAllDetailAmounts(

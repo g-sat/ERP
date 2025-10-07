@@ -103,7 +103,7 @@ export function AccountGroupForm({
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit, onError)}
-          className="space-y-6 pt-6"
+          className="space-y-2"
         >
           <div className="grid gap-2">
             <div className="grid grid-cols-3 gap-2">
@@ -154,7 +154,7 @@ export function AccountGroupForm({
                 initialData.createDate ||
                 initialData.editBy ||
                 initialData.editDate) && (
-                <div className="space-y-6 pt-6">
+                <div className="space-y-2">
                   <div className="border-border border-b pb-4"></div>
 
                   <CustomAccordion

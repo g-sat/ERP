@@ -85,7 +85,7 @@ export function UomDtForm({
   return (
     <div className="max-w flex flex-col gap-2">
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pt-6">
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-2">
           <div className="grid grid-cols-3 gap-2">
             <UomAutocomplete
               form={form}

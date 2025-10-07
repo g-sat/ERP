@@ -199,6 +199,24 @@ export const apinvoiceDtSchema = (
         ? z.number().min(1)
         : z.union([z.number(), z.null()]).optional(),
 
+    // Job Order Fields
+    jobOrderId:
+      required?.m_JobOrderId && visible?.m_JobOrderId
+        ? z.number().min(1)
+        : z.union([z.number(), z.null()]).optional(),
+
+    // Task Fields
+    taskId:
+      required?.m_JobOrderId && visible?.m_JobOrderId
+        ? z.number().min(1)
+        : z.union([z.number(), z.null()]).optional(),
+
+    // Service Fields
+    serviceId:
+      required?.m_JobOrderId && visible?.m_JobOrderId
+        ? z.number().min(1)
+        : z.union([z.number(), z.null()]).optional(),
+
     // Employee Fields
     employeeId:
       required?.m_EmployeeId && visible?.m_EmployeeId

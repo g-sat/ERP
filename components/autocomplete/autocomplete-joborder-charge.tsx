@@ -1,7 +1,7 @@
 "use client"
 
 import React from "react"
-import { IChargeLookup } from "@/interfaces/lookup"
+import { IServiceLookup } from "@/interfaces/lookup"
 import { IconCheck, IconChevronDown, IconX } from "@tabler/icons-react"
 import { Path, PathValue, UseFormReturn } from "react-hook-form"
 import Select, {
@@ -46,20 +46,20 @@ export default function JobOrderChargeAutocomplete<
   className?: string
   isDisabled?: boolean
   isRequired?: boolean
-  onChangeEvent?: (selectedOption: IChargeLookup | null) => void
+  onChangeEvent?: (selectedOption: IServiceLookup | null) => void
 }) {
-  const { data: charges = [], isLoading } = useJobOrderChargeLookup(
+  const { data: services = [], isLoading } = useJobOrderChargeLookup(
     jobOrderId,
     taskId
   )
   // Memoize options to prevent unnecessary recalculations
   const options: FieldOption[] = React.useMemo(
     () =>
-      charges.map((charge: IChargeLookup) => ({
-        value: charge.chargeId.toString(),
-        label: charge.chargeName,
+      services.map((service: IServiceLookup) => ({
+        value: service.serviceId.toString(),
+        label: service.serviceCode + " - " + service.serviceName,
       })),
-    [charges]
+    [services]
   )
 
   // Custom components with display names
@@ -194,15 +194,15 @@ export default function JobOrderChargeAutocomplete<
       }
       if (onChangeEvent) {
         const selectedCharge = selectedOption
-          ? charges.find(
-              (u: IChargeLookup) =>
-                u.chargeId.toString() === selectedOption.value
+          ? services.find(
+              (u: IServiceLookup) =>
+                u.serviceId.toString() === selectedOption.value
             ) || null
           : null
         onChangeEvent(selectedCharge)
       }
     },
-    [form, name, onChangeEvent, charges]
+    [form, name, onChangeEvent, services]
   )
 
   // Memoize getValue to prevent unnecessary recalculations
@@ -257,7 +257,7 @@ export default function JobOrderChargeAutocomplete<
                   }
                   menuPosition="fixed"
                   isLoading={isLoading}
-                  loadingMessage={() => "Loading charges..."}
+                  loadingMessage={() => "Loading services..."}
                 />
                 {showError && (
                   <p className="text-destructive mt-1 text-xs">
@@ -311,7 +311,7 @@ export default function JobOrderChargeAutocomplete<
         }
         menuPosition="fixed"
         isLoading={isLoading}
-        loadingMessage={() => "Loading charges..."}
+        loadingMessage={() => "Loading services..."}
       />
     </div>
   )

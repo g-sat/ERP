@@ -284,6 +284,9 @@ export const Lookup = {
   getDocumentType: "/master/getdocumenttypelookup",
   getEntityType: "/master/getentitytypelookup",
   getEmployer: "/master/getemployerlookup",
+
+  getJobOrderTask: "/master/getjobordertasklookup",
+  getJobOrderCharge: "/master/getjoborderchargelookup",
 }
 
 // Universal Documents Endpoints
