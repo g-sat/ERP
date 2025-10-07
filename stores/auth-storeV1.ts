@@ -1,10 +1,4 @@
-import {
-  AuthResponse,
-  ICompany,
-  IDecimal,
-  IUser,
-  IUserTransactionRights,
-} from "@/interfaces/auth"
+import { AuthResponse, ICompany, IDecimal, IUser } from "@/interfaces/auth"
 import Cookies from "js-cookie"
 import { create } from "zustand"
 import { devtools, persist } from "zustand/middleware"
@@ -59,9 +53,6 @@ const clearCurrentTabCompanyIdFromSession = () => {
 // -----------------
 const CACHE_DURATION = 5 * 60 * 1000 // 5 minutes
 const cache = new Map<string, { data: unknown; timestamp: number }>()
-
-// Request deduplication
-const pendingRequests = new Map<string, Promise<unknown>>()
 
 const getCachedData = <T>(key: string): T | null => {
   const entry = cache.get(key)
@@ -196,7 +187,7 @@ interface AuthState {
   getPermissions: (retryCount?: number) => Promise<void>
 
   // User Transactions Actions
-  getUserTransactions: () => Promise<IUserTransactionRights[]>
+  getUserTransactions: () => Promise<unknown[]>
 }
 
 // Store Implementation
@@ -618,13 +609,13 @@ export const useAuthStore = create<AuthState>()(
             set({ currentCompany: company })
 
             // PARALLEL API CALLS: Execute in background without blocking
-            const apiPromises = []
+            const apiPromises = [get().getPermissions()]
 
             if (fetchDecimals) {
               apiPromises.push(get().getDecimals())
             }
 
-            // Add user transactions to background loading (permissions are set automatically)
+            // Add user transactions to background loading
             apiPromises.push(
               get()
                 .getUserTransactions()
@@ -661,8 +652,7 @@ export const useAuthStore = create<AuthState>()(
 
         /**
          * Fetches user permissions for the current company
-         * OPTIMIZED: Now handled automatically by getUserTransactions
-         * Kept for backward compatibility
+         * IMPROVED: Uses proxy route + retry mechanism + graceful error handling
          */
         getPermissions: async (retryCount = 0) => {
           const { currentCompany, user } = get()
@@ -671,9 +661,18 @@ export const useAuthStore = create<AuthState>()(
           if (!currentCompany || !user) return
 
           try {
-            // Permissions are now set automatically by getUserTransactions
-            // Just call getUserTransactions to ensure permissions are set
-            await get().getUserTransactions()
+            // Use proxy route for consistent error handling and security
+            const response = await getData(Admin.getUserRights)
+
+            // Handle different response structures
+            const permissions = response?.data || response || []
+
+            if (Array.isArray(permissions)) {
+              usePermissionStore.getState().setPermissions(permissions)
+            } else {
+              console.warn("Permissions data is not an array:", permissions)
+              usePermissionStore.getState().setPermissions([])
+            }
           } catch (error) {
             console.error("Error fetching user permissions:", error)
 
@@ -726,7 +725,7 @@ export const useAuthStore = create<AuthState>()(
          * Fetches user transactions for the current company
          * IMPROVED: Caching + graceful error handling
          */
-        getUserTransactions: async (): Promise<IUserTransactionRights[]> => {
+        getUserTransactions: async () => {
           const { currentCompany, user } = get()
 
           if (!currentCompany || !user) return []
@@ -734,74 +733,71 @@ export const useAuthStore = create<AuthState>()(
           const cacheKey = `user_transactions_${currentCompany.companyId}_${user.userId}`
 
           // Check cache first
-          const cached = getCachedData<IUserTransactionRights[]>(cacheKey)
+          const cached = getCachedData<unknown[]>(cacheKey)
           if (cached) {
-            // Set permissions from cache
-            usePermissionStore.getState().setPermissions(cached)
             return cached
           }
 
-          // Check if there's already a request in progress for this cache key
-          const pendingRequest = pendingRequests.get(cacheKey)
-          if (pendingRequest) {
-            // Return the existing promise
-            return pendingRequest as Promise<IUserTransactionRights[]>
-          }
+          try {
+            const response = await getData(Admin.getUserTransactionsAll)
+            const data = response?.data || response || []
 
-          // Create and store the promise
-          const requestPromise = (async () => {
-            try {
-              const response = await getData(Admin.getUserTransactionsAll)
-              const data = response?.data || response || []
-
-              if (Array.isArray(data)) {
-                // Convert PascalCase to camelCase
-                const convertedData: IUserTransactionRights[] = data.map(
-                  (item: IUserTransactionRights) => ({
-                    moduleId: item.moduleId,
-                    moduleCode: item.moduleCode,
-                    moduleName: item.moduleName,
-                    transactionId: item.transactionId,
-                    transactionCode: item.transactionCode,
-                    transactionName: item.transactionName,
-                    transCategoryId: item.transCategoryId,
-                    transCategoryCode: item.transCategoryCode,
-                    transCategoryName: item.transCategoryName,
-                    seqNo: item.seqNo,
-                    transCatSeqNo: item.transCatSeqNo,
-                    isRead: item.isRead,
-                    isCreate: item.isCreate,
-                    isEdit: item.isEdit,
-                    isDelete: item.isDelete,
-                    isExport: item.isExport,
-                    isPrint: item.isPrint,
-                    isVisible: item.isVisible,
-                  })
-                )
-
-                setCachedData(cacheKey, convertedData)
-
-                // Automatically set permissions after getting transaction data
-                usePermissionStore.getState().setPermissions(convertedData)
-
-                return convertedData
-              } else {
-                console.warn("User transactions data is not an array:", data)
-                return []
+            if (Array.isArray(data)) {
+              // Convert PascalCase to camelCase
+              interface ApiTransactionResponse {
+                moduleId: number
+                moduleCode: string
+                moduleName: string
+                transactionId: number
+                transactionCode: string
+                transactionName: string
+                transCategoryId: number
+                transCategoryCode: string
+                transCategoryName: string
+                seqNo: number
+                transCatSeqNo: number
+                isRead: boolean
+                isCreate: boolean
+                isEdit: boolean
+                isDelete: boolean
+                isExport: boolean
+                isPrint: boolean
+                isVisible: boolean
               }
-            } catch (error) {
-              console.error("Error fetching user transactions:", error)
+
+              const convertedData = data.map(
+                (item: ApiTransactionResponse) => ({
+                  moduleId: item.moduleId,
+                  moduleCode: item.moduleCode,
+                  moduleName: item.moduleName,
+                  transactionId: item.transactionId,
+                  transactionCode: item.transactionCode,
+                  transactionName: item.transactionName,
+                  transCategoryId: item.transCategoryId,
+                  transCategoryCode: item.transCategoryCode,
+                  transCategoryName: item.transCategoryName,
+                  seqNo: item.seqNo,
+                  transCatSeqNo: item.transCatSeqNo,
+                  isRead: item.isRead,
+                  isCreate: item.isCreate,
+                  isEdit: item.isEdit,
+                  isDelete: item.isDelete,
+                  isExport: item.isExport,
+                  isPrint: item.isPrint,
+                  isVisible: item.isVisible,
+                })
+              )
+
+              setCachedData(cacheKey, convertedData)
+              return convertedData
+            } else {
+              console.warn("User transactions data is not an array:", data)
               return []
-            } finally {
-              // Always clean up the pending request
-              pendingRequests.delete(cacheKey)
             }
-          })()
-
-          // Store the promise in pending requests
-          pendingRequests.set(cacheKey, requestPromise)
-
-          return requestPromise
+          } catch (error) {
+            console.error("Error fetching user transactions:", error)
+            return []
+          }
         },
 
         // Tab Company ID Actions

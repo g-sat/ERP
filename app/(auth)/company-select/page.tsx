@@ -1,10 +1,12 @@
 "use client"
+
 import { useCallback, useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { ICompany } from "@/interfaces/auth"
 import { useAuthStore } from "@/stores/auth-store"
 import Cookies from "js-cookie"
 import { Loader2 } from "lucide-react"
+
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import {
@@ -18,6 +20,7 @@ import { Label } from "@/components/ui/label"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { SafeImage } from "@/components/ui/safe-image"
 import AccessDenied from "@/app/access-denied"
+
 export default function CompanySelectPage() {
   const {
     isAuthenticated,
@@ -27,7 +30,6 @@ export default function CompanySelectPage() {
     logOut,
     getCompanies,
     getCurrentTabCompanyId,
-    getDecimals, // Add getDecimals to fetch decimal settings explicitly
   } = useAuthStore()
   const [selectedCompanyId, setSelectedCompanyId] = useState<string>("")
   const [isLoading, setIsLoading] = useState(false)
@@ -77,27 +79,23 @@ export default function CompanySelectPage() {
           (c) => c.companyId === tabCompanyId
         )
         if (companyExists) {
-          // Switch to the company if not already selected
+          // Switch to the company if not already selected (with automatic decimal fetching)
           if (currentCompany?.companyId !== tabCompanyId) {
-            await switchCompany(tabCompanyId)
+            await switchCompany(tabCompanyId, true) // fetchDecimals = true (automatic)
           }
-          // Fetch decimal settings
-          await getDecimals()
           // Redirect to dashboard
           router.push(`/${tabCompanyId}/dashboard`)
           return
         } else {
-          }
+        }
       }
       // If only one company, automatically select and redirect
       if (companies.length === 1) {
         const singleCompany = companies[0]
-        // Switch to the single company if not already selected
+        // Switch to the single company if not already selected (with automatic decimal fetching)
         if (currentCompany?.companyId !== singleCompany.companyId) {
-          await switchCompany(singleCompany.companyId)
+          await switchCompany(singleCompany.companyId, true) // fetchDecimals = true (automatic)
         }
-        // Fetch decimal settings
-        await getDecimals()
         // Redirect to dashboard
         router.push(`/${singleCompany.companyId}/dashboard`)
         return
@@ -118,7 +116,6 @@ export default function CompanySelectPage() {
     getCompanies,
     getCurrentTabCompanyId,
     switchCompany,
-    getDecimals,
     router,
     handleLogout,
   ])
@@ -133,19 +130,13 @@ export default function CompanySelectPage() {
       if (!selectedCompany) {
         throw new Error("Invalid company. Please select again.")
       }
-      // OPTIMIZATION 1: Switch company without waiting for API calls
+      // OPTIMIZATION 1: Switch company with automatic decimal fetching
       if (currentCompany?.companyId !== selectedCompanyId) {
-        // Don't await - let it run in background
-        switchCompany(selectedCompanyId, false) // fetchDecimals = false
-      } else {
-        }
+        // Don't await - let it run in background with automatic decimal fetching
+        switchCompany(selectedCompanyId, true) // fetchDecimals = true (automatic)
+      }
       // OPTIMIZATION 2: Navigate immediately, let dashboard handle data loading
       router.push(`/${selectedCompanyId}/dashboard`)
-      // OPTIMIZATION 3: Fetch decimals in background (non-blocking)
-      getDecimals().catch((error) => {
-        console.warn("Background decimal fetch failed:", error)
-        // Don't show error to user - dashboard will handle fallback
-      })
     } catch (err) {
       setError(err instanceof Error ? err.message : "Switch failed.")
     } finally {
@@ -210,8 +201,7 @@ export default function CompanySelectPage() {
                         height={40}
                         className="object-contain"
                         fallbackSrc="/placeholder.svg"
-                        onError={() => {
-                          }}
+                        onError={() => {}}
                       />
                       <span className="hidden text-lg font-medium">
                         {getCompanyInitial(company)}

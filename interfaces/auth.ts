@@ -65,3 +65,24 @@ export interface AuthResponse {
   token: string
   refreshToken: string
 }
+
+export interface IUserTransactionRights {
+  moduleId: number
+  moduleCode: string
+  moduleName: string
+  transactionId: number
+  transactionCode: string
+  transactionName: string
+  transCategoryId: number
+  transCategoryCode: string
+  transCategoryName: string
+  seqNo: number
+  transCatSeqNo: number
+  isRead: boolean
+  isCreate: boolean
+  isEdit: boolean
+  isDelete: boolean
+  isExport: boolean
+  isPrint: boolean
+  isVisible: boolean
+}

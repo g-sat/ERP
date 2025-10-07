@@ -1,19 +1,19 @@
 // stores/permission-store.ts
-import { IUserTransactionRights } from "@/interfaces/auth"
+import { IUserRightsv1 } from "@/interfaces/admin"
 import { create } from "zustand"
 import { persist } from "zustand/middleware"
 
 interface PermissionState {
-  permissions: Record<string, IUserTransactionRights>
-  setPermissions: (permissions: IUserTransactionRights[]) => void
+  permissions: Record<string, IUserRightsv1>
+  setPermissions: (permissions: IUserRightsv1[]) => void
   getPermissions: (
     moduleId: number,
     transactionId: number
-  ) => IUserTransactionRights | undefined
+  ) => IUserRightsv1 | undefined
   hasPermission: (
     moduleId: number,
     transactionId: number,
-    action: keyof IUserTransactionRights
+    action: keyof IUserRightsv1
   ) => boolean
 }
 
@@ -22,9 +22,9 @@ export const usePermissionStore = create<PermissionState>()(
     (set, get) => ({
       permissions: {},
 
-      setPermissions: (permissions: IUserTransactionRights[]) =>
+      setPermissions: (permissions: IUserRightsv1[]) =>
         set(() => {
-          const newPermissions: Record<string, IUserTransactionRights> = {}
+          const newPermissions: Record<string, IUserRightsv1> = {}
 
           // Check if permissions is an array before calling forEach
           if (Array.isArray(permissions)) {
@@ -49,7 +49,7 @@ export const usePermissionStore = create<PermissionState>()(
       hasPermission: (
         moduleId: number,
         transactionId: number,
-        action: keyof IUserTransactionRights
+        action: keyof IUserRightsv1
       ) => {
         const permission = get().getPermissions(moduleId, transactionId)
         return permission ? Boolean(permission[action]) : false

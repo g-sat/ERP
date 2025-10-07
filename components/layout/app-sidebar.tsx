@@ -1,4 +1,5 @@
 "use client"
+
 import * as React from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
@@ -59,6 +60,7 @@ import {
   Users,
   Wallet,
 } from "lucide-react"
+
 // Removed unused imports
 import { useApprovalCounts } from "@/hooks/use-approval"
 import {
@@ -75,11 +77,13 @@ import {
   SidebarMenuSubItem,
 } from "@/components/ui/sidebar"
 import { CompanySwitcher } from "@/components/layout/company-switcher"
+
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from "../ui/collapsible"
+
 // Interface for user transaction data
 interface IUserTransaction {
   moduleId: number
@@ -220,21 +224,24 @@ const getTransactionIcon = (transactionCode: string) => {
   }
   return iconMap[transactionCode.toLowerCase()] || FileText
 }
-// Hook to fetch user transactions
+// Hook to get user transactions (uses cached data from auth store)
 const useUserTransactions = () => {
+  const { currentCompany, user, getUserTransactions } = useAuthStore()
   const [transactions, setTransactions] = React.useState<IUserTransaction[]>([])
   const [isLoading, setIsLoading] = React.useState(true)
   const [error, setError] = React.useState<string | null>(null)
-  const { currentCompany, user, getUserTransactions } = useAuthStore()
+
   React.useEffect(() => {
     const fetchTransactions = async () => {
       if (!currentCompany || !user) {
         setIsLoading(false)
+        setTransactions([])
         return
       }
       try {
         setIsLoading(true)
         setError(null)
+        // This will use cached data if available, or fetch if not cached
         const data = await getUserTransactions()
         if (Array.isArray(data)) {
           setTransactions(data as IUserTransaction[])
@@ -254,6 +261,7 @@ const useUserTransactions = () => {
     }
     fetchTransactions()
   }, [currentCompany, user, getUserTransactions])
+
   return { transactions, isLoading, error }
 }
 // Function to build dynamic menu from transactions
