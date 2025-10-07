@@ -11,6 +11,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
+import { JobOrderNotFound } from "@/components/errors"
 import { JobOrderDetailsSkeleton } from "@/components/skeleton/job-order-details-skeleton"
 
 import { ChecklistTabs } from "./components/checklist-tabs"
@@ -22,9 +23,25 @@ export default function JobOrderDetailsPage() {
 
   console.log("JobOrderDetailsPage - params:", params)
   console.log("JobOrderDetailsPage - jobOrderId:", jobOrderId)
+  console.log("JobOrderDetailsPage - companyId:", params.companyId)
 
   // Fetch the job order data using the hook
-  const { data: jobOrderResponse, isLoading } = useGetJobOrderByIdNo(jobOrderId)
+  const {
+    data: jobOrderResponse,
+    isLoading,
+    error,
+    isError,
+  } = useGetJobOrderByIdNo(jobOrderId)
+
+  // Debug logging
+  console.log("JobOrderDetailsPage - API Response:", {
+    isLoading,
+    isError,
+    hasData: !!jobOrderResponse?.data,
+    error: error?.message,
+    jobOrderId,
+    companyId: params.companyId,
+  })
 
   const statusColors: Record<string, string> = {
     Pending:
@@ -64,8 +81,19 @@ export default function JobOrderDetailsPage() {
     router.push(newUrl)
   }
 
+  // Handle loading state
   if (isLoading) {
     return <JobOrderDetailsSkeleton />
+  }
+
+  // Handle error state - Job order not found in current company
+  if (isError || !jobOrderResponse?.data) {
+    return (
+      <JobOrderNotFound
+        jobOrderId={jobOrderId}
+        companyId={params.companyId as string}
+      />
+    )
   }
 
   return (

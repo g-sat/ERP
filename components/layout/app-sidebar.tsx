@@ -76,6 +76,7 @@ import {
   SidebarMenuSubButton,
   SidebarMenuSubItem,
 } from "@/components/ui/sidebar"
+import { Spinner } from "@/components/ui/spinner"
 import { CompanySwitcher } from "@/components/layout/company-switcher"
 
 import {
@@ -565,8 +566,9 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
           <SidebarMenu className="gap-0.5">
             {transactionsLoading ? (
               <div className="flex items-center justify-center p-4">
-                <div className="text-muted-foreground text-sm">
-                  Loading menu...
+                <div className="text-muted-foreground flex items-center gap-2 text-sm">
+                  <Spinner size="sm" />
+                  <span>Loading menu...</span>
                 </div>
               </div>
             ) : (

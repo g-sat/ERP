@@ -81,12 +81,48 @@ export function ChecklistTable({
           return (
             <button
               onClick={() => {
-                // Open in new tab
+                console.log("🚀 STEP 1: Job Order Click Initiated")
+                console.log("📋 Job Order Details:", {
+                  jobOrderNo: jobNo,
+                  jobOrderId: jobOrderId,
+                  companyId: companyId,
+                })
+
+                console.log("🔍 STEP 2: Building URL for new tab")
                 const url = `/${companyId}/operations/checklist/${jobOrderId}`
-                console.log("Opening URL:", url)
-                console.log("companyId:", companyId)
-                console.log("jobOrderId:", jobOrderId)
-                window.open(url, "_blank")
+                console.log("🌐 Final URL:", url)
+
+                console.log("🔄 STEP 3: Opening new tab with window.open()")
+                console.log("📝 Tab parameters:", {
+                  url: url,
+                  target: "_blank",
+                  method: "window.open",
+                })
+
+                // Check current company ID before opening new tab
+                const currentCompanyId =
+                  useAuthStore.getState().currentCompany?.companyId
+                const sessionStorageCompanyId =
+                  sessionStorage.getItem("tab_company_id")
+                console.log("🔍 Company ID state before new tab:", {
+                  zustandStore: currentCompanyId,
+                  sessionStorage: sessionStorageCompanyId,
+                  urlCompanyId: companyId,
+                })
+
+                const newTab = window.open(url, "_blank")
+
+                console.log("✅ STEP 4: New tab opened successfully")
+                console.log("📊 Tab reference:", newTab)
+                console.log(
+                  "⚠️ POTENTIAL ISSUE: New tab might use old company ID until page loads"
+                )
+                console.log(
+                  "💡 The new tab will get correct company ID after CompanyProvider runs"
+                )
+                console.log(
+                  "🎯 Navigation completed - user can now work in new tab"
+                )
               }}
               className="text-blue-600 hover:text-blue-800 hover:underline"
             >
