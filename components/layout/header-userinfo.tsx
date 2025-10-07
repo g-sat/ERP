@@ -30,7 +30,7 @@ export function HeaderUserInfo() {
       user={{
         name: user?.userName || "Guest",
         email: user?.userEmail || "admin@gmail.com",
-        role: "admin",
+        role: user?.userRoleName || "admin",
         avatar: getAvatarSource(),
       }}
     />

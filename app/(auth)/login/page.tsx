@@ -1,4 +1,5 @@
 "use client"
+
 import { useEffect } from "react"
 import {
   Manrope as FontManrope,
@@ -7,8 +8,10 @@ import {
 } from "next/font/google"
 import { useRouter } from "next/navigation"
 import { useAuthStore } from "@/stores/auth-store"
+
 import { cn } from "@/lib/utils"
 import { LoginForm } from "@/components/forms/login-form"
+
 const fontSans = FontSans({ subsets: ["latin"], variable: "--font-sans" })
 const fontSerif = FontSerif({ subsets: ["latin"], variable: "--font-serif" })
 const fontManrope = FontManrope({
@@ -23,13 +26,16 @@ export default function LoginPage() {
   useEffect(() => {
     const checkAuthStatus = async () => {
       try {
+        console.log("🔍 Checking authentication status...")
         await logInStatusCheck()
+        console.log("✅ Authentication check completed")
         // If user is authenticated, redirect to company select page
         if (isAuthenticated) {
+          console.log("🔄 User authenticated, redirecting to company-select")
           router.push("/company-select")
         }
       } catch (error) {
-        console.error("Auth status check failed:", error)
+        console.error("❌ Auth status check failed:", error)
         // Force logout to clear any invalid state
         forceLogout()
       }
@@ -49,7 +55,7 @@ export default function LoginPage() {
   // Clear any authentication errors when page loads
   useEffect(() => {
     if (error) {
-      }
+    }
   }, [error])
   return (
     <div

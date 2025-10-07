@@ -5,7 +5,9 @@ import {
   Lexend as FontSans,
   Newsreader as FontSerif,
 } from "next/font/google"
-import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { useAuthStore } from "@/stores/auth-store"
+import Cookies from "js-cookie"
 import { ArrowLeft, ShieldAlert } from "lucide-react"
 
 import { cn } from "@/lib/utils"
@@ -19,11 +21,40 @@ const fontManrope = FontManrope({
 })
 
 export default function AccessDenied() {
+  const router = useRouter()
+  const { logOut, setCompanies } = useAuthStore()
+
   const handleGoBack = () => {
     if (window.history.length > 1) {
       window.history.back()
     } else {
       window.location.href = "/"
+    }
+  }
+
+  const handleLoginWithDifferentAccount = async () => {
+    try {
+      console.log("🔄 Clearing session for different account login...")
+      // Clear all session data
+      await logOut()
+      Cookies.remove("auth-token")
+      Cookies.remove("selectedCompanyId")
+      Cookies.remove("tab_company_id")
+
+      // Clear company data
+      setCompanies([])
+
+      // Clear session storage
+      if (typeof window !== "undefined") {
+        sessionStorage.clear()
+      }
+
+      console.log("✅ Session cleared, redirecting to login...")
+      router.push("/login")
+    } catch (error) {
+      console.error("❌ Error clearing session:", error)
+      // Force redirect even if logout fails
+      router.push("/login")
     }
   }
 
@@ -55,11 +86,8 @@ export default function AccessDenied() {
             <ArrowLeft className="mr-2 h-4 w-4" />
             Go back
           </Button>
-          <Button asChild>
-            <Link href="/">Dashboard</Link>
-          </Button>
-          <Button variant="outline" asChild>
-            <Link href="/login">Login with a different account</Link>
+          <Button variant="outline" onClick={handleLoginWithDifferentAccount}>
+            Login with a different account
           </Button>
         </div>
       </div>

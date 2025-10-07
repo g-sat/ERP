@@ -1,10 +1,9 @@
 "use client"
 
-import { useCallback, useEffect, useState } from "react"
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { ICompany } from "@/interfaces/auth"
 import { useAuthStore } from "@/stores/auth-store"
-import Cookies from "js-cookie"
 import { Loader2 } from "lucide-react"
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
@@ -27,27 +26,26 @@ export default function CompanySelectPage() {
     companies,
     currentCompany,
     switchCompany,
-    logOut,
     getCompanies,
     getCurrentTabCompanyId,
+    setCompanies,
   } = useAuthStore()
+
+  // Get the store's get function to access fresh state
+  const get = useAuthStore.getState
   const [selectedCompanyId, setSelectedCompanyId] = useState<string>("")
   const [isLoading, setIsLoading] = useState(false)
   const [showAccessDenied, setShowAccessDenied] = useState(false)
+  const [isInitialized, setIsInitialized] = useState(false)
   const router = useRouter()
-  const [error, setError] = useState<string | null>(null) // Memoize handleLogout to avoid dependency issues in useEffect
-  const handleLogout = useCallback(async () => {
-    try {
-      await logOut()
-      Cookies.remove("auth-token")
-      Cookies.remove("selectedCompanyId")
-      router.push("/login")
-    } catch {
-      // silent
-    }
-  }, [logOut, router])
+  const [error, setError] = useState<string | null>(null)
   useEffect(() => {
     const initializePage = async () => {
+      // Prevent multiple initializations
+      if (isInitialized) {
+        return
+      }
+
       // Check if we're actually on the company-select page
       const currentPath = window.location.pathname
       if (currentPath !== "/company-select") {
@@ -57,28 +55,50 @@ export default function CompanySelectPage() {
         router.push("/login")
         return
       }
-      if (companies.length === 0) {
-        try {
-          await getCompanies()
-          // Check if companies is still null/empty after fetching
-          if (!companies || companies.length === 0) {
-            setShowAccessDenied(true)
-            return
-          }
-        } catch (error) {
-          console.error("Failed to fetch companies:", error)
+
+      // Mark as initialized to prevent re-runs
+      setIsInitialized(true)
+
+      // Clear any cached company data from previous account
+      console.log("🧹 Clearing cached company data...")
+      setCompanies([])
+      setShowAccessDenied(false)
+      setSelectedCompanyId("")
+
+      // Always fetch fresh companies data to avoid cached data from previous account
+      try {
+        console.log("🔄 Loading fresh companies data...")
+        await getCompanies()
+
+        // Wait a bit for the state to update, then get the fresh companies
+        await new Promise((resolve) => setTimeout(resolve, 100))
+        const currentCompanies = get().companies
+        console.log("✅ Companies loaded:", currentCompanies.length)
+        console.log("📊 Company count after loading:", currentCompanies.length)
+
+        if (currentCompanies.length === 0) {
+          console.log("❌ No companies found - showing access denied")
           setShowAccessDenied(true)
           return
         }
+      } catch (error) {
+        console.error("❌ Failed to fetch companies:", error)
+        setShowAccessDenied(true)
+        return
       }
+
+      // Get fresh companies data after loading
+      const currentCompanies = get().companies
+
       // Check if we have a company ID from the current tab (for new tabs)
       const tabCompanyId = getCurrentTabCompanyId()
       if (tabCompanyId) {
         // Verify the company exists in the companies list
-        const companyExists = companies.some(
+        const companyExists = currentCompanies.some(
           (c) => c.companyId === tabCompanyId
         )
         if (companyExists) {
+          console.log("🔄 Auto-switching to tab company:", tabCompanyId)
           // Switch to the company if not already selected (with automatic decimal fetching)
           if (currentCompany?.companyId !== tabCompanyId) {
             await switchCompany(tabCompanyId, true) // fetchDecimals = true (automatic)
@@ -87,11 +107,17 @@ export default function CompanySelectPage() {
           router.push(`/${tabCompanyId}/dashboard`)
           return
         } else {
+          console.log("⚠️ Tab company not found in available companies")
         }
       }
+
       // If only one company, automatically select and redirect
-      if (companies.length === 1) {
-        const singleCompany = companies[0]
+      if (currentCompanies.length === 1) {
+        const singleCompany = currentCompanies[0]
+        console.log(
+          "🔄 Auto-selecting single company:",
+          singleCompany.companyId
+        )
         // Switch to the single company if not already selected (with automatic decimal fetching)
         if (currentCompany?.companyId !== singleCompany.companyId) {
           await switchCompany(singleCompany.companyId, true) // fetchDecimals = true (automatic)
@@ -100,24 +126,27 @@ export default function CompanySelectPage() {
         router.push(`/${singleCompany.companyId}/dashboard`)
         return
       }
+
       // Multiple companies - show selection page
+      console.log("📋 Multiple companies found - showing selection page")
       // Use the current company or first available
       if (currentCompany?.companyId) {
         setSelectedCompanyId(currentCompany.companyId)
-      } else if (companies.length > 0) {
-        setSelectedCompanyId(companies[0].companyId)
+      } else if (currentCompanies.length > 0) {
+        setSelectedCompanyId(currentCompanies[0].companyId)
       }
     }
     initializePage()
   }, [
     isAuthenticated,
-    currentCompany,
-    companies,
+    isInitialized,
     getCompanies,
     getCurrentTabCompanyId,
     switchCompany,
     router,
-    handleLogout,
+    setCompanies,
+    get,
+    currentCompany?.companyId,
   ])
   const handleContinue = async () => {
     if (!selectedCompanyId) return
@@ -152,10 +181,18 @@ export default function CompanySelectPage() {
   if (showAccessDenied) {
     return <AccessDenied />
   }
-  if (!isAuthenticated || companies.length === 0 || companies.length === 1) {
+  // Show loading while companies are being fetched or while auto-redirecting
+  if (!isAuthenticated || companies.length === 0) {
     return (
       <div className="flex h-screen items-center justify-center">
-        <Loader2 className="text-muted-foreground h-8 w-8 animate-spin" />
+        <div className="text-center">
+          <Loader2 className="text-muted-foreground mx-auto h-8 w-8 animate-spin" />
+          <p className="text-muted-foreground mt-2 text-sm">
+            {!isAuthenticated
+              ? "Checking authentication..."
+              : "Loading companies..."}
+          </p>
+        </div>
       </div>
     )
   }
