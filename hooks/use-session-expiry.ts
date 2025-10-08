@@ -196,8 +196,6 @@ export function useSessionExpiry() {
     setTokenRefreshInProgress(true)
 
     // Don't close modal immediately - wait for token refresh result
-    // setShowModal(false)
-    // setWarningShown(false)
     setLastActivity(Date.now())
 
     // Refresh the token to extend session
@@ -222,17 +220,26 @@ export function useSessionExpiry() {
         tokenPreview: newToken ? `${newToken.substring(0, 20)}...` : null,
       })
 
-      if (newToken) {
+      if (newToken && newToken.length > 0) {
         console.log("✅ [SessionExpiry] Token refreshed successfully")
-        console.log("🔄 [SessionExpiry] Force closing modal")
 
         // Success - force close modal and reset all states
+        console.log("🔄 [SessionExpiry] Calling forceCloseModal...")
         forceCloseModal()
 
         // Broadcast success to other tabs
         broadcastToOtherTabs("TOKEN_REFRESHED")
 
         console.log("✅ [SessionExpiry] Modal should now be closed")
+
+        // Add a backup timeout to force close modal if it doesn't close
+        setTimeout(() => {
+          console.log("🔄 [SessionExpiry] Backup timeout - forcing modal close")
+          setShowModal(false)
+          setWarningShown(false)
+          setTokenRefreshInProgress(false)
+          setIsRefreshing(false)
+        }, 2000)
 
         // Force a session check to update the expiry time
         setTimeout(() => {
@@ -247,12 +254,13 @@ export function useSessionExpiry() {
         }, 100)
       } else {
         console.warn(
-          "⚠️ [SessionExpiry] Token refresh returned null - keeping modal open"
+          "⚠️ [SessionExpiry] Token refresh returned null or empty - keeping modal open"
         )
         // If no new token, keep modal open and show error
         setShowModal(true)
         setWarningShown(false)
         setTokenRefreshInProgress(false)
+        setIsRefreshing(false)
       }
     } catch (error) {
       console.error("❌ [SessionExpiry] Failed to refresh token:", error)
@@ -260,8 +268,6 @@ export function useSessionExpiry() {
       setShowModal(true)
       setWarningShown(false)
       setTokenRefreshInProgress(false)
-    } finally {
-      console.log("🔄 [SessionExpiry] Setting isRefreshing to false")
       setIsRefreshing(false)
     }
   }, [

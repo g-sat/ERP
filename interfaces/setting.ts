@@ -110,6 +110,8 @@ export interface IVisibleFields {
   m_UnitPrice: boolean
   m_Remarks: boolean
   m_GstId: boolean
+  m_GstClaimDate: boolean
+  m_AccountDate: boolean
   m_DeliveryDate: boolean
   m_DepartmentId: boolean
   m_JobOrderId: boolean

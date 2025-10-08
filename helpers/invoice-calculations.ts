@@ -1,45 +1,45 @@
 import { mathRound } from "@/helpers/account"
 
 export interface IInvoiceDetail {
-  id: string
   invoiceId: string
   invoiceNo: string
   itemNo: number
   seqNo: number
   docItemNo: number
-  productId: number | null
-  glId: number | null
-  qty: number | null
-  billQTY: number | null
-  uomId: number | null
-  unitPrice: number | null
-  totAmt: number | null
+  productId?: number
+  glId?: number
+  qty?: number
+  billQTY?: number
+  uomId?: number
+  unitPrice?: number
+  totAmt?: number
   totLocalAmt: number
-  totCtyAmt: number | null
-  remarks: string | null
-  gstId: number | null
-  gstPercentage: number | null
+  totCtyAmt?: number
+  remarks?: string
+  gstId?: number
+  gstPercentage?: number
   gstAmt: number
-  gstLocalAmt: number | null
-  gstCtyAmt: number | null
-  deliveryDate: string | Date | null
-  departmentId: number | null
-  employeeId: number | null
-  portId: number | null
-  vesselId: number | null
-  bargeId: number | null
-  voyageId: number | null
-  operationId: string | null
-  operationNo: string | null
-  opRefNo: string | null
-  salesOrderId: string | null
-  salesOrderNo: string | null
-  supplyDate: string | Date | null
-  customerName: string | null
-  suppInvoiceNo: string | null
-  apInvoiceId: string | null
-  apInvoiceNo: string | null
-  editVersion: number
+  gstLocalAmt?: number
+  gstCtyAmt?: number
+  deliveryDate?: string | Date
+  departmentId?: number
+  employeeId?: number
+  portId?: number
+  vesselId?: number
+  bargeId?: number
+  voyageId?: number
+  operationId?: string | number
+  operationNo?: string
+  opRefNo?: string | number
+  purchaseOrderId?: string | number
+  purchaseOrderNo?: string
+  supplyDate?: string | Date
+  customerName?: string
+  custInvoiceNo?: string
+  suppInvoiceNo?: string
+  arInvoiceId?: string | number
+  arInvoiceNo?: string
+  editVersion?: number
 }
 
 export interface IDecimals {

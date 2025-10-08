@@ -93,7 +93,7 @@ export interface IApInvoiceFilter {
 }
 
 export interface IApInvoiceDt {
-  invoiceId: number
+  invoiceId: number | string
   invoiceNo: string
   itemNo: number
   seqNo: number
@@ -107,12 +107,15 @@ export interface IApInvoiceDt {
   qty: number
   billQTY: number
   uomId: number
+  uomCode: string
+  uomName: string
   unitPrice: number
   totAmt: number
   totLocalAmt: number
   totCtyAmt: number
   remarks: string
   gstId: number
+  gstName: string
   gstPercentage: number
   gstAmt: number
   gstLocalAmt: number
@@ -121,6 +124,12 @@ export interface IApInvoiceDt {
   departmentId: number
   departmentCode: string
   departmentName: string
+  jobOrderId: number
+  jobOrderNo: string
+  taskId: number
+  taskName: string
+  serviceId: number
+  serviceName: string
   employeeId: number
   employeeCode: string
   employeeName: string
@@ -135,20 +144,14 @@ export interface IApInvoiceDt {
   bargeName: string
   voyageId: number
   voyageNo: string
-  operationId: number
+  operationId: number | string
   operationNo: string
-  opRefNo: null | number
-  purchaseOrderId: number
+  opRefNo: number | string
+  purchaseOrderId: number | string
   purchaseOrderNo: string
   supplyDate: Date | string
   customerName: string
-  arInvoiceId: string
-  arInvoiceNo: null | number
+  arInvoiceId: number | string
+  arInvoiceNo: string
   editVersion: number
-  jobOrderId: number
-  jobOrderNo: string
-  taskId: number
-  taskName: string
-  serviceId: number
-  serviceName: string
 }

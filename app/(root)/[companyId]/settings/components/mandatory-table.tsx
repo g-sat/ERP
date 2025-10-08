@@ -14,9 +14,9 @@ import {
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Form } from "@/components/ui/form"
+import ModuleAutocomplete from "@/components/autocomplete/autocomplete-module"
 import { SaveConfirmation } from "@/components/confirmation/save-confirmation"
 import { SettingTable } from "@/components/table/table-setting"
-import ModuleAutocomplete from "@/components/autocomplete/autocomplete-module"
 
 export function MandatoryTable() {
   const form = useForm()
@@ -108,6 +108,25 @@ export function MandatoryTable() {
             checked={row.getValue("m_ProductId")}
             onCheckedChange={(checked) =>
               handleFieldChange(row.original, "m_ProductId", checked as boolean)
+            }
+          />
+        </div>
+      ),
+      size: 100,
+    },
+    {
+      accessorKey: "m_JobOrderId",
+      header: "Job Order",
+      cell: ({ row }) => (
+        <div className="text-center">
+          <Checkbox
+            checked={row.getValue("m_JobOrderId")}
+            onCheckedChange={(checked) =>
+              handleFieldChange(
+                row.original,
+                "m_JobOrderId",
+                checked as boolean
+              )
             }
           />
         </div>

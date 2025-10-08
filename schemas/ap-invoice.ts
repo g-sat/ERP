@@ -10,102 +10,108 @@ export const apinvoiceHdSchema = (
 
     invoiceId: z.string().optional(),
     invoiceNo: z.string().optional(),
-    referenceNo: z.string().nullable().optional(),
+    suppInvoiceNo: required?.m_SuppInvoiceNo
+      ? z.string().min(1, "Supplier Invoice No is required")
+      : z.string().optional(),
+    referenceNo: required?.m_ReferenceNo
+      ? z.string().min(1, "Reference No is required")
+      : z.string().optional(),
     trnDate: z.union([z.date(), z.string()]),
     accountDate: z.union([z.date(), z.string()]),
     deliveryDate:
       required?.m_DeliveryDate && visible?.m_DeliveryDate
         ? z.union([z.date(), z.string()])
-        : z.union([z.date(), z.string(), z.null()]).optional(),
+        : z.union([z.date(), z.string()]).optional(),
     dueDate: z.union([z.date(), z.string()]),
-    supplierId: z.number().min(1),
+    supplierId: z.number().min(1, "Supplier is required"),
 
     // Currency Fields
-    currencyId: z.number().min(1),
-    exhRate: z.number().min(0),
-    ctyExhRate: z.number().min(0),
+    currencyId: z.number().min(1, "Currency is required"),
+    exhRate: z.number().min(0.000001, "Exchange Rate must be greater than 0"),
+    ctyExhRate: z
+      .number()
+      .min(0.000001, "City Exchange Rate must be greater than 0"),
 
     // Credit Terms
-    creditTermId: z.number().min(1),
+    creditTermId: z.number().min(1, "Credit Term is required"),
 
     // Bank Fields
     bankId:
       required?.m_BankId && visible?.m_BankId
-        ? z.number()
-        : z.union([z.number(), z.null()]).optional(),
+        ? z.number().min(1, "Bank is required")
+        : z.number().optional(),
 
     // Amounts
-    totAmt: required?.m_TotAmt
-      ? z.number().min(0)
-      : z.union([z.number(), z.null()]).optional(),
-    totLocalAmt: z.union([z.number(), z.null()]).optional(),
-    totCtyAmt: visible?.m_CtyCurr
-      ? z.number().min(0)
-      : z.union([z.number(), z.null()]).optional(),
-    gstClaimDate: z.union([z.date(), z.string(), z.null()]).optional(),
-    gstAmt: z.union([z.number(), z.null()]).optional(),
-    gstLocalAmt: z.union([z.number(), z.null()]).optional(),
-    gstCtyAmt: visible?.m_CtyCurr
-      ? z.number().min(0)
-      : z.union([z.number(), z.null()]).optional(),
-    totAmtAftGst: z.union([z.number(), z.null()]).optional(),
-    totLocalAmtAftGst: z.union([z.number(), z.null()]).optional(),
+    totAmt: required?.m_TotAmt ? z.number().min(0) : z.number().optional(),
+    totLocalAmt: z.number().optional(),
+    totCtyAmt: visible?.m_CtyCurr ? z.number().min(0) : z.number().optional(),
+    gstClaimDate: z.union([z.date(), z.string()]).optional(),
+    gstAmt: z.number().optional(),
+    gstLocalAmt: z.number().optional(),
+    gstCtyAmt: visible?.m_CtyCurr ? z.number().min(0) : z.number().optional(),
+    totAmtAftGst: z.number().optional(),
+    totLocalAmtAftGst: z.number().optional(),
     totCtyAmtAftGst: visible?.m_CtyCurr
       ? z.number().min(0)
-      : z.union([z.number(), z.null()]).optional(),
-    balAmt: z.union([z.number(), z.null()]).optional(),
-    balLocalAmt: z.union([z.number(), z.null()]).optional(),
-    payAmt: z.union([z.number(), z.null()]).optional(),
-    payLocalAmt: z.union([z.number(), z.null()]).optional(),
-    exGainLoss: z.union([z.number(), z.null()]).optional(),
+      : z.number().optional(),
+    balAmt: z.number().optional(),
+    balLocalAmt: z.number().optional(),
+    payAmt: z.number().optional(),
+    payLocalAmt: z.number().optional(),
+    exGainLoss: z.number().optional(),
 
     // Order Details
-    salesOrderId: z.union([z.string(), z.number(), z.null()]).optional(),
-    salesOrderNo: z.union([z.string(), z.null()]),
-    operationId: z.union([z.string(), z.number(), z.null()]).optional(),
-    operationNo: z.union([z.string(), z.null()]),
-    remarks: required?.m_Remarks_Hd ? z.string().min(3) : z.string().optional(),
+    purchaseOrderId: z.union([z.string(), z.number()]).optional(),
+    purchaseOrderNo: z.string().optional(),
+    operationId: z.union([z.string(), z.number()]).optional(),
+    operationNo: z.string().optional(),
+    remarks: required?.m_Remarks_Hd
+      ? z.string().min(3, "Remarks must be at least 3 characters")
+      : z.string().optional(),
 
     // Address and Contact
-    addressId: z.union([z.number(), z.null()]).optional(),
-    contactId: z.union([z.number(), z.null()]).optional(),
+    addressId: z.number().optional(),
+    contactId: z.number().optional(),
     address1: required?.m_Address1
-      ? z.string().min(1)
-      : z.union([z.string(), z.null()]).optional(),
+      ? z.string().min(1, "Address 1 is required")
+      : z.string().optional(),
     address2: required?.m_Address2
-      ? z.string().min(1)
-      : z.union([z.string(), z.null()]).optional(),
+      ? z.string().min(1, "Address 2 is required")
+      : z.string().optional(),
     address3: required?.m_Address3
-      ? z.string().min(1)
-      : z.union([z.string(), z.null()]).optional(),
+      ? z.string().min(1, "Address 3 is required")
+      : z.string().optional(),
     address4: required?.m_Address4
-      ? z.string().min(1)
-      : z.union([z.string(), z.null()]).optional(),
-    pinCode: required?.m_PinCode ? z.string().min(1) : z.string().optional(),
+      ? z.string().min(1, "Address 4 is required")
+      : z.string().optional(),
+    pinCode: required?.m_PinCode
+      ? z.string().min(1, "Pin Code is required")
+      : z.string().optional(),
     countryId: required?.m_Countryd
-      ? z.number().min(1)
-      : z.union([z.number(), z.null()]).optional(),
+      ? z.number().min(1, "Country is required")
+      : z.number().optional(),
     phoneNo: required?.m_PhoneNo
-      ? z.string().min(9)
-      : z.union([z.string(), z.null()]).optional(),
-    faxNo: z.union([z.string(), z.null()]).optional(),
-    contactName: z.union([z.string(), z.null()]).optional(),
-    mobileNo: z.union([z.string(), z.null()]).optional(),
+      ? z.string().min(9, "Phone No must be at least 9 characters")
+      : z.string().optional(),
+    faxNo: z.string().optional(),
+    contactName: z.string().optional(),
+    mobileNo: z.string().optional(),
     emailAdd: required?.m_EmailAdd
-      ? z.string().email().nullable().optional()
-      : z.union([z.string(), z.null()]).optional(),
+      ? z.string().email().optional()
+      : z.string().optional(),
 
     // Customer Details
-    moduleFrom: z.union([z.string(), z.null()]).optional(),
-    suppInvoiceNo: required?.m_SuppInvoiceNo
-      ? z.string().min(1)
-      : z.union([z.string(), z.null()]).optional(),
-    customerName: z.union([z.string(), z.null()]).optional(),
-    apInvoiceId: z.union([z.string(), z.number(), z.null()]).optional(),
-    apInvoiceNo: z.union([z.string(), z.null()]).nullable(),
+    moduleFrom: z.string().optional(),
+
+    customerName: z.string().optional(),
+    arInvoiceId: z.union([z.string(), z.number()]).optional(),
+    arInvoiceNo: z.string().optional(),
+    editVersion: z.number().optional(),
 
     // Nested Details
-    data_details: z.array(apinvoiceDtSchema(required, visible)).min(1),
+    data_details: z
+      .array(apinvoiceDtSchema(required, visible))
+      .min(1, "At least one invoice detail is required"),
   })
 }
 
@@ -129,147 +135,161 @@ export const apinvoiceDtSchema = (
     // Core Fields
     invoiceId: z.string().optional(),
     invoiceNo: z.string().optional(),
-    itemNo: z.number().min(1),
-    seqNo: z.number().min(1),
+    itemNo: z.number().min(1, "Item No must be at least 1"),
+    seqNo: z.number().min(1, "Sequence No must be at least 1"),
     docItemNo: z.number(),
 
     // Product Fields
     productId:
       required?.m_ProductId && visible?.m_ProductId
-        ? z.number().min(1)
-        : z.union([z.number(), z.null()]).optional(),
+        ? z.number().min(1, "Product is required")
+        : z.number().optional(),
+    productCode: z.string().optional(),
+    productName: z.string().optional(),
 
     // GL Fields
     glId: required?.m_GLId
-      ? z.number().min(1)
-      : z.union([z.number(), z.null()]).optional(),
+      ? z.number().min(1, "Chart of Account is required")
+      : z.number().optional(),
+    glCode: z.string().optional(),
+    glName: z.string().optional(),
 
     // Quantity and UOM
     qty:
-      visible?.m_QTY && required?.m_QTY
+      required?.m_QTY && visible?.m_QTY
         ? z.number().min(0)
-        : z.union([z.number(), z.null()]).optional(),
-    billQTY: visible?.m_BillQTY
-      ? z.number().min(0)
-      : z.union([z.number(), z.null()]).optional(),
+        : z.number().optional(),
+    billQTY: visible?.m_BillQTY ? z.number().min(0) : z.number().optional(),
     uomId:
       required?.m_UomId && visible?.m_UomId
-        ? z.number().min(1)
-        : z.union([z.number(), z.null()]).optional(),
+        ? z.number().min(1, "UOM is required")
+        : z.number().optional(),
+    uomCode: z.string().optional(),
+    uomName: z.string().optional(),
 
     // Pricing
     unitPrice:
-      visible?.m_UnitPrice && required?.m_UnitPrice
+      required?.m_UnitPrice && visible?.m_UnitPrice
         ? z.number().min(0)
-        : z.union([z.number(), z.null()]).optional(),
-    totAmt: required?.m_TotAmt
-      ? z.number().min(0)
-      : z.union([z.number(), z.null()]).optional(),
+        : z.number().optional(),
+    totAmt: required?.m_TotAmt ? z.number().min(0) : z.number().optional(),
     totLocalAmt: z.number().min(0),
-    totCtyAmt: visible?.m_CtyCurr
-      ? z.number().min(0)
-      : z.union([z.number(), z.null()]).optional(),
+    totCtyAmt: visible?.m_CtyCurr ? z.number().min(0) : z.number().optional(),
 
     // Remarks
     remarks: required?.m_Remarks
-      ? z.string()
-      : z.union([z.string(), z.null()]).optional(),
+      ? z.string().min(1, "Remarks is required")
+      : z.string().optional(),
 
     // GST Fields
     gstId:
       required?.m_GstId && visible?.m_GstId
-        ? z.number().min(1)
-        : z.union([z.number(), z.null()]).optional(),
+        ? z.number().min(1, "GST is required")
+        : z.number().optional(),
+    gstName: z.string().optional(),
     gstPercentage: z.number().min(0),
     gstAmt: z.number().min(0),
-    gstLocalAmt: z.union([z.number(), z.null()]).optional(),
-    gstCtyAmt: visible?.m_CtyCurr
-      ? z.number().min(0)
-      : z.union([z.number(), z.null()]).optional(),
+    gstLocalAmt: z.number().optional(),
+    gstCtyAmt: visible?.m_CtyCurr ? z.number().min(0) : z.number().optional(),
 
     // Delivery Date
     deliveryDate:
       required?.m_DeliveryDate && visible?.m_DeliveryDate
-        ? z.union([z.date(), z.string()])
+        ? z.date()
         : z.union([z.date(), z.string(), z.null()]).optional(),
 
     // Department Fields
     departmentId:
       required?.m_DepartmentId && visible?.m_DepartmentId
-        ? z.number().min(1)
-        : z.union([z.number(), z.null()]).optional(),
+        ? z.number().min(1, "Department is required")
+        : z.number().optional(),
+    departmentCode: z.string().optional(),
+    departmentName: z.string().optional(),
 
     // Job Order Fields
     jobOrderId:
       required?.m_JobOrderId && visible?.m_JobOrderId
-        ? z.number().min(1)
-        : z.union([z.number(), z.null()]).optional(),
+        ? z.number().min(1, "Job Order is required")
+        : z.number().optional(),
+    jobOrderNo: z.string().optional(),
 
     // Task Fields
     taskId:
       required?.m_JobOrderId && visible?.m_JobOrderId
-        ? z.number().min(1)
-        : z.union([z.number(), z.null()]).optional(),
+        ? z.number().min(1, "Task is required")
+        : z.number().optional(),
+    taskName: z.string().optional(),
 
     // Service Fields
     serviceId:
       required?.m_JobOrderId && visible?.m_JobOrderId
-        ? z.number().min(1)
-        : z.union([z.number(), z.null()]).optional(),
+        ? z.number().min(1, "Service is required")
+        : z.number().optional(),
+    serviceName: z.string().optional(),
 
     // Employee Fields
     employeeId:
       required?.m_EmployeeId && visible?.m_EmployeeId
-        ? z.number().min(1)
-        : z.union([z.number(), z.null()]).optional(),
+        ? z.number().min(1, "Employee is required")
+        : z.number().optional(),
+    employeeCode: z.string().optional(),
+    employeeName: z.string().optional(),
 
     // Port Fields
     portId:
-      visible?.m_PortId && required?.m_PortId
-        ? z.number().min(1)
-        : z.union([z.number(), z.null()]).optional(),
+      required?.m_PortId && visible?.m_PortId
+        ? z.number().min(1, "Port is required")
+        : z.number().optional(),
+    portCode: z.string().optional(),
+    portName: z.string().optional(),
 
     // Vessel Fields
     vesselId:
       required?.m_VesselId && visible?.m_VesselId
-        ? z.number().min(1)
-        : z.union([z.number(), z.null()]).optional(),
+        ? z.number().min(1, "Vessel is required")
+        : z.number().optional(),
+    vesselCode: z.string().optional(),
+    vesselName: z.string().optional(),
 
     // Barge Fields
     bargeId:
-      visible?.m_BargeId && required?.m_BargeId
-        ? z.number().min(1)
-        : z.union([z.number(), z.null()]).optional(),
+      required?.m_BargeId && visible?.m_BargeId
+        ? z.number().min(1, "Barge is required")
+        : z.number().optional(),
+    bargeCode: z.string().optional(),
+    bargeName: z.string().optional(),
 
     // Voyage Fields
     voyageId:
       required?.m_VoyageId && visible?.m_VoyageId
-        ? z.number().min(1)
-        : z.union([z.number(), z.null()]).optional(),
+        ? z.number().min(1, "Voyage is required")
+        : z.number().optional(),
+    voyageNo: z.string().optional(),
 
     // Operation Fields
-    operationId: z.union([z.string(), z.number(), z.null()]).optional(),
-    operationNo: z.union([z.string(), z.null()]),
-    opRefNo: z.union([z.number(), z.string(), z.null()]),
+    operationId: z.union([z.string(), z.number()]).optional(),
+    operationNo: z.string().optional(),
+    opRefNo: z.union([z.number(), z.string()]).optional(),
 
     // Sales Order Fields
-    salesOrderId: z.union([z.string(), z.number(), z.null()]).optional(),
-    salesOrderNo: z.union([z.string(), z.null()]),
+    purchaseOrderId: z.union([z.string(), z.number()]).optional(),
+    purchaseOrderNo: z.string().optional(),
 
     // Supply Date
     supplyDate:
       required?.m_SupplyDate && visible?.m_SupplyDate
-        ? z.union([z.date(), z.string()])
+        ? z.date()
         : z.union([z.date(), z.string(), z.null()]).optional(),
 
     // Supplier Details
-    customerName: z.union([z.string(), z.null()]),
-    suppInvoiceNo: z.union([z.string(), z.null()]),
-    apInvoiceId: z.union([z.string(), z.number(), z.null()]).optional(),
-    apInvoiceNo: z.union([z.string(), z.null()]).nullable(),
+    customerName: z.string().optional(),
+    custInvoiceNo: z.string().optional(),
+    suppInvoiceNo: z.string().optional(),
+    arInvoiceId: z.union([z.string(), z.number()]).optional(),
+    arInvoiceNo: z.string().optional(),
 
     // Audit Fields
-    editVersion: z.union([z.number(), z.null()]).optional(),
+    editVersion: z.number().optional(),
   })
 }
 

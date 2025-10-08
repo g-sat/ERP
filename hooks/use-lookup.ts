@@ -243,22 +243,22 @@ export const useCustomerAddressLookup = (customerId: number | string) => {
 }
 /**
  * 6.3 Get Supplier Contact Lookup
- * @param {number|string} customerId - Customer ID
+ * @param {number|string} supplierId - Supplier ID
  * @returns {object} Query object containing supplier contacts
  */
-export const useSupplierContactLookup = (customerId: number | string) => {
+export const useSupplierContactLookup = (supplierId: number | string) => {
   return useQuery<ISupplierContact[]>({
-    queryKey: ["Supplier-contact-lookup", customerId],
+    queryKey: ["Supplier-contact-lookup", supplierId],
     ...defaultQueryConfig,
     queryFn: async () => {
       try {
-        const data = await getData(`${Lookup.getSupplierContact}/${customerId}`)
+        const data = await getData(`${Lookup.getSupplierContact}/${supplierId}`)
         return data?.data || []
       } catch (error) {
         handleApiError(error)
       }
     },
-    enabled: customerId !== 0,
+    enabled: supplierId !== 0,
   })
 }
 /**
@@ -283,22 +283,22 @@ export const useBankContactLookup = (bankId: number | string) => {
 }
 /**
  * 6.4 Get Supplier Address Lookup
- * @param {number|string} customerId - Customer ID
+ * @param {number|string} supplierId - Supplier ID
  * @returns {object} Query object containing supplier addresses
  */
-export const useSupplierAddressLookup = (customerId: number | string) => {
+export const useSupplierAddressLookup = (supplierId: number | string) => {
   return useQuery<ISupplierAddress[]>({
-    queryKey: ["Supplier-address-lookup", customerId],
+    queryKey: ["Supplier-address-lookup", supplierId],
     ...defaultQueryConfig,
     queryFn: async () => {
       try {
-        const data = await getData(`${Lookup.getSupplierAddress}/${customerId}`)
+        const data = await getData(`${Lookup.getSupplierAddress}/${supplierId}`)
         return data?.data || []
       } catch (error) {
         handleApiError(error)
       }
     },
-    enabled: customerId !== 0,
+    enabled: supplierId !== 0,
   })
 }
 /**

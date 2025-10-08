@@ -32,6 +32,25 @@ export function SessionExpiryModal({
 }: SessionExpiryModalProps) {
   const [countdown, setCountdown] = useState(timeRemaining)
 
+  // Debug logging for modal state
+  useEffect(() => {
+    console.log("🔍 [SessionExpiryModal] Modal state changed:", {
+      isOpen,
+      isRefreshing,
+      timeRemaining,
+      countdown,
+    })
+  }, [isOpen, isRefreshing, timeRemaining, countdown])
+
+  // Force close modal when isOpen becomes false
+  useEffect(() => {
+    if (!isOpen) {
+      console.log(
+        "🔍 [SessionExpiryModal] Modal should be closed - isOpen is false"
+      )
+    }
+  }, [isOpen])
+
   useEffect(() => {
     if (!isOpen || timeRemaining <= 0) {
       setCountdown(0)
@@ -60,11 +79,38 @@ export function SessionExpiryModal({
     return `${mins}:${secs.toString().padStart(2, "0")}`
   }
 
+  // Calculate progress percentage (starts at 100% and decreases to 0%)
+  const progressPercentage =
+    timeRemaining > 0 ? Math.max((countdown / timeRemaining) * 100, 0) : 0
+
+  // Ensure progress bar is visible and animates properly
+  const progressWidth = Math.max(progressPercentage, 0)
+
+  // Debug logging for progress calculation
+  useEffect(() => {
+    console.log("🔍 [SessionExpiryModal] Progress calculation:", {
+      countdown,
+      timeRemaining,
+      progressPercentage: progressPercentage.toFixed(2),
+    })
+  }, [countdown, timeRemaining, progressPercentage])
+
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onCloseAction()}>
+    <Dialog
+      open={isOpen}
+      onOpenChange={(open) => {
+        console.log("🔍 [SessionExpiryModal] Dialog onOpenChange:", open)
+        if (!open) {
+          onCloseAction()
+        }
+      }}
+    >
       <DialogContent
         className="sm:max-w-md"
-        onEscapeKeyDown={(e) => e.preventDefault()}
+        onEscapeKeyDown={(e) => {
+          console.log("🔍 [SessionExpiryModal] Escape key pressed")
+          e.preventDefault()
+        }}
       >
         <DialogHeader>
           <div className="flex items-center gap-3">
@@ -103,6 +149,7 @@ export function SessionExpiryModal({
             </div>
             <div className="bg-muted-foreground/20 mt-2 h-2 w-full overflow-hidden rounded-full">
               <div
+                key={`progress-${countdown}`}
                 className={`h-2 rounded-full transition-all duration-1000 ${
                   countdown <= 30
                     ? "bg-destructive"
@@ -111,7 +158,8 @@ export function SessionExpiryModal({
                       : "bg-warning"
                 }`}
                 style={{
-                  width: `${timeRemaining > 0 ? Math.max((countdown / timeRemaining) * 100, 0) : 0}%`,
+                  width: `${progressWidth}%`,
+                  transition: "width 1s ease-in-out",
                 }}
               />
             </div>

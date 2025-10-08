@@ -30,6 +30,7 @@ import { toast } from "sonner"
 import { getById } from "@/lib/api-client"
 import { ApInvoice } from "@/lib/api-routes"
 import { clientDateFormat, parseDate } from "@/lib/date-utils"
+import { APTransactionId, ModuleId } from "@/lib/utils"
 import { useDelete, useGetWithDates, usePersist } from "@/hooks/use-common"
 import { useGetRequiredFields, useGetVisibleFields } from "@/hooks/use-lookup"
 import { Button } from "@/components/ui/button"
@@ -52,6 +53,9 @@ export default function InvoicePage() {
   const params = useParams()
   const companyId = params.companyId as string
 
+  const moduleId = ModuleId.ap
+  const transactionId = APTransactionId.invoice
+
   const [showListDialog, setShowListDialog] = useState(false)
   const [showConfirmDialog, setShowConfirmDialog] = useState({
     save: false,
@@ -71,27 +75,25 @@ export default function InvoicePage() {
     sortBy: "invoiceNo",
     sortOrder: "asc",
     pageNumber: 1,
-    pageSize: 10,
+    pageSize: 15,
   })
-
-  const moduleId = 25
-  const transactionId = 1
 
   const { data: visibleFieldsData } = useGetVisibleFields(
     moduleId,
     transactionId
   )
-  const { data: visibleFields } = visibleFieldsData ?? {}
 
   const { data: requiredFieldsData } = useGetRequiredFields(
     moduleId,
     transactionId
   )
-  const { data: requiredFields } = requiredFieldsData ?? {}
 
   // Use nullish coalescing to handle fallback values
-  const visible: IVisibleFields = visibleFields ?? null
-  const required: IMandatoryFields = requiredFields ?? null
+  const visible: IVisibleFields = visibleFieldsData ?? null
+  const required: IMandatoryFields = requiredFieldsData ?? null
+
+  console.log("required", required)
+  console.log("visible", visible)
 
   // Add form state management
   const form = useForm<ApInvoiceHdSchemaType>({
@@ -761,6 +763,7 @@ export default function InvoicePage() {
             onSuccessAction={handleConfirmation}
             isEdit={isEdit}
             visible={visible}
+            required={required}
             companyId={Number(companyId)}
           />
         </TabsContent>

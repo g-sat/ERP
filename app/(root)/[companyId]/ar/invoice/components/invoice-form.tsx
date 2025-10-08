@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import {
+  EntityType,
   handleTotalamountChange,
   setAddressContactDetails,
   setDueDate,
@@ -101,7 +102,7 @@ export default function InvoiceForm({
       await setDueDate(form)
       await setExchangeRate(form, exhRateDec, visible)
       await setExchangeRateLocal(form, exhRateDec)
-      await setAddressContactDetails(form)
+      await setAddressContactDetails(form, EntityType.CUSTOMER)
     },
     [exhRateDec, form, isEdit, visible]
   )
@@ -330,7 +331,6 @@ export default function InvoiceForm({
           name="trnDate"
           label="Transaction Date"
           isRequired={true}
-          dateFormat={dateFormat}
           onChangeEvent={handleTrnDateChange}
         />
 
@@ -352,7 +352,6 @@ export default function InvoiceForm({
           name="accountDate"
           label="Account Date"
           isRequired={true}
-          dateFormat={dateFormat}
           onChangeEvent={handleAccountDateChange}
         />
 
@@ -371,7 +370,6 @@ export default function InvoiceForm({
           name="dueDate"
           label="Due Date"
           isRequired={true}
-          dateFormat={dateFormat}
         />
 
         {/* Bank */}
@@ -422,17 +420,11 @@ export default function InvoiceForm({
           form={form}
           name="deliveryDate"
           label="Delivery Date"
-          dateFormat={dateFormat}
           onChangeEvent={handleDeliveryDateChange}
         />
 
         {/* GST Claim Date */}
-        <CustomDateNew
-          form={form}
-          name="gstClaimDate"
-          label="GST Claim Date"
-          dateFormat={dateFormat}
-        />
+        <CustomDateNew form={form} name="gstClaimDate" label="GST Claim Date" />
 
         {/* Total Amount */}
         <CustomNumberInput

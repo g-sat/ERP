@@ -265,8 +265,8 @@ export function AccountBaseTable<T>({
               )
             },
             enableHiding: false,
-            size: 140,
-            minSize: 120,
+            size: 160,
+            minSize: 150,
 
             cell: ({ row }: { row: Row<T> }) => {
               const item = row.original

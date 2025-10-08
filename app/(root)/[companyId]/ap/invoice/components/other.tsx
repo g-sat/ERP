@@ -20,8 +20,6 @@ import CountryAutocomplete from "@/components/autocomplete/autocomplete-country"
 import CustomInput from "@/components/custom/custom-input"
 import CustomTextarea from "@/components/custom/custom-textarea"
 
-import DocumentUpload from "./other/document-upload"
-
 interface OtherProps {
   form: UseFormReturn<ApInvoiceHdSchemaType>
 }
@@ -267,15 +265,6 @@ export default function Other({ form }: OtherProps) {
           </Card>
         </div>
       </Form>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Document Information</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <DocumentUpload moduleId={25} transactionId={1} />
-        </CardContent>
-      </Card>
     </div>
   )
 }

@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { IVisibleFields } from "@/interfaces/setting"
 import { ColumnDef } from "@tanstack/react-table"
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
@@ -12,33 +13,9 @@ import {
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Form } from "@/components/ui/form"
+import ModuleAutocomplete from "@/components/autocomplete/autocomplete-module"
 import { SaveConfirmation } from "@/components/confirmation/save-confirmation"
 import { SettingTable } from "@/components/table/table-setting"
-import ModuleAutocomplete from "@/components/autocomplete/autocomplete-module"
-
-interface IVisibleField {
-  moduleId: number
-  moduleName: string
-  transactionId: number
-  transactionName: string
-  m_ProductId: boolean
-  m_QTY: boolean
-  m_BillQTY: boolean
-  m_UomId: boolean
-  m_UnitPrice: boolean
-  m_Remarks: boolean
-  m_GstId: boolean
-  m_DeliveryDate: boolean
-  m_DepartmentId: boolean
-  m_EmployeeId: boolean
-  m_PortId: boolean
-  m_VesselId: boolean
-  m_BargeId: boolean
-  m_VoyageId: boolean
-  m_SupplyDate: boolean
-  m_BankId: boolean
-  m_CtyCurr: boolean
-}
 
 export function VisibleTable() {
   const form = useForm()
@@ -46,7 +23,7 @@ export function VisibleTable() {
     moduleId: number
     moduleName: string
   } | null>(null)
-  const [visibleFields, setVisibleFields] = useState<IVisibleField[]>([])
+  const [visibleFields, setVisibleFields] = useState<IVisibleFields[]>([])
   const [saving, setSaving] = useState(false)
   const [showSaveConfirmation, setShowSaveConfirmation] = useState(false)
 
@@ -79,7 +56,7 @@ export function VisibleTable() {
   }, [selectedModule?.moduleId, refetchVisibleFields])
 
   const handleFieldChange = (
-    field: IVisibleField,
+    field: IVisibleFields,
     key: string,
     checked: boolean
   ) => {
@@ -93,7 +70,7 @@ export function VisibleTable() {
   }
 
   // Define columns for the table
-  const columns: ColumnDef<IVisibleField>[] = [
+  const columns: ColumnDef<IVisibleFields>[] = [
     {
       accessorKey: "moduleName",
       header: "Module Name",
@@ -369,6 +346,63 @@ export function VisibleTable() {
             checked={row.original.m_CtyCurr}
             onCheckedChange={(checked) =>
               handleFieldChange(row.original, "m_CtyCurr", checked as boolean)
+            }
+          />
+        </div>
+      ),
+      size: 100,
+    },
+    {
+      accessorKey: "m_JobOrderId",
+      header: "Job Order",
+      cell: ({ row }) => (
+        <div className="text-center">
+          <Checkbox
+            checked={row.original.m_JobOrderId}
+            onCheckedChange={(checked) =>
+              handleFieldChange(
+                row.original,
+                "m_JobOrderId",
+                checked as boolean
+              )
+            }
+          />
+        </div>
+      ),
+      size: 100,
+    },
+    {
+      accessorKey: "m_GstClaimDate",
+      header: "GST Claim Date",
+      cell: ({ row }) => (
+        <div className="text-center">
+          <Checkbox
+            checked={row.original.m_GstClaimDate}
+            onCheckedChange={(checked) =>
+              handleFieldChange(
+                row.original,
+                "m_GstClaimDate",
+                checked as boolean
+              )
+            }
+          />
+        </div>
+      ),
+      size: 100,
+    },
+    {
+      accessorKey: "m_AccountDate",
+      header: "Account Date",
+      cell: ({ row }) => (
+        <div className="text-center">
+          <Checkbox
+            checked={row.original.m_AccountDate}
+            onCheckedChange={(checked) =>
+              handleFieldChange(
+                row.original,
+                "m_AccountDate",
+                checked as boolean
+              )
             }
           />
         </div>

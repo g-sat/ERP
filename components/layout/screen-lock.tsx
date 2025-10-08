@@ -385,10 +385,8 @@ export function ScreenLock({ variant = "icon", className }: ScreenLockProps) {
   }, [isLocked, pathname])
   // Sync with auth store's lock state
   useEffect(() => {
-    if (isAppLocked !== isLocked) {
-      setIsLocked(isAppLocked)
-    }
-  }, [isAppLocked, isLocked])
+    setIsLocked(isAppLocked)
+  }, [isAppLocked])
   // Don't render on server or if not authenticated
   if (!isClient || !isAuthenticated) return null
   // Render

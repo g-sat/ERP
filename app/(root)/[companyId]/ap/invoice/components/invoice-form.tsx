@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import {
+  EntityType,
   handleTotalamountChange,
   setAddressContactDetails,
   setDueDate,
@@ -9,7 +10,6 @@ import {
   setExchangeRateLocal,
   setGSTPercentage,
 } from "@/helpers/account"
-import { IApInvoiceDetail } from "@/helpers/ap-invoice-calculations"
 import { calculateInvoice } from "@/helpers/invoice"
 import {
   calculateCountryAmounts,
@@ -23,7 +23,7 @@ import {
   ICurrencyLookup,
   ISupplierLookup,
 } from "@/interfaces/lookup"
-import { IVisibleFields } from "@/interfaces/setting"
+import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
 import {
   ApInvoiceDtSchemaType,
   ApInvoiceHdSchemaType,
@@ -45,6 +45,7 @@ interface InvoiceFormProps {
   onSuccessAction: (action: string) => Promise<void>
   isEdit: boolean
   visible: IVisibleFields
+  required: IMandatoryFields
   companyId: number
 }
 
@@ -53,6 +54,7 @@ export default function InvoiceForm({
   onSuccessAction,
   isEdit,
   visible,
+  required,
   companyId: _companyId,
 }: InvoiceFormProps) {
   const { decimals } = useAuthStore()
@@ -105,7 +107,7 @@ export default function InvoiceForm({
       await setDueDate(form)
       await setExchangeRate(form, exhRateDec, visible)
       await setExchangeRateLocal(form, exhRateDec)
-      await setAddressContactDetails(form)
+      await setAddressContactDetails(form, EntityType.SUPPLIER)
     },
     [exhRateDec, form, isEdit, visible]
   )
@@ -178,16 +180,14 @@ export default function InvoiceForm({
           return
         }
 
-        // Convert form details to IApInvoiceDetail format (add id field)
-        const details: IApInvoiceDetail[] = formDetails.map(
-          (detail, index) =>
-            ({
-              ...detail,
-              id: `temp-${index}`,
-              invoiceId: detail.invoiceId || "0",
-              invoiceNo: detail.invoiceNo || "",
-            }) as IApInvoiceDetail
-        )
+        // Ensure details have required fields and convert null to proper values
+        const details = formDetails.map((detail) => ({
+          ...detail,
+          invoiceId: detail.invoiceId || "0",
+          invoiceNo: detail.invoiceNo || "",
+          deliveryDate: detail.deliveryDate || "",
+          supplyDate: detail.supplyDate || "",
+        }))
 
         // Recalculate all details with new exchange rates
         const exchangeRate = form.getValues("exhRate") || 0
@@ -253,16 +253,14 @@ export default function InvoiceForm({
       const exchangeRate = parseFloat(e.target.value) || 0
       const cityExchangeRate = form.getValues("ctyExhRate") || 0
 
-      // Convert form details to IApInvoiceDetail format (add id field)
-      const details: IApInvoiceDetail[] = formDetails.map(
-        (detail, index) =>
-          ({
-            ...detail,
-            id: `temp-${index}`,
-            invoiceId: detail.invoiceId || "0",
-            invoiceNo: detail.invoiceNo || "",
-          }) as IApInvoiceDetail
-      )
+      // Ensure details have required fields and convert null to proper values
+      const details = formDetails.map((detail) => ({
+        ...detail,
+        invoiceId: detail.invoiceId || "0",
+        invoiceNo: detail.invoiceNo || "",
+        deliveryDate: detail.deliveryDate || "",
+        supplyDate: detail.supplyDate || "",
+      }))
 
       // Recalculate all details with new exchange rate
       const updatedDetails = recalculateAllDetailAmounts(
@@ -318,16 +316,14 @@ export default function InvoiceForm({
       const exchangeRate = form.getValues("exhRate") || 0
       const cityExchangeRate = parseFloat(e.target.value) || 0
 
-      // Convert form details to IApInvoiceDetail format (add id field)
-      const details: IApInvoiceDetail[] = formDetails.map(
-        (detail, index) =>
-          ({
-            ...detail,
-            id: `temp-${index}`,
-            invoiceId: detail.invoiceId || "0",
-            invoiceNo: detail.invoiceNo || "",
-          }) as IApInvoiceDetail
-      )
+      // Ensure details have required fields and convert null to proper values
+      const details = formDetails.map((detail) => ({
+        ...detail,
+        invoiceId: detail.invoiceId || "0",
+        invoiceNo: detail.invoiceNo || "",
+        deliveryDate: detail.deliveryDate || "",
+        supplyDate: detail.supplyDate || "",
+      }))
 
       // Recalculate all details with new city exchange rate
       const updatedDetails = recalculateAllDetailAmounts(
@@ -383,20 +379,27 @@ export default function InvoiceForm({
           form={form}
           name="suppInvoiceNo"
           label="Supplier Invoice No."
-          isRequired={true}
+          isRequired={required?.m_SuppInvoiceNo}
         />
 
         {/* Reference No */}
-        <CustomInput form={form} name="referenceNo" label="Reference No." />
+        <CustomInput
+          form={form}
+          name="referenceNo"
+          label="Reference No."
+          isRequired={required?.m_ReferenceNo}
+        />
 
         {/* Account Date */}
-        <CustomDateNew
-          form={form}
-          name="accountDate"
-          label="Account Date"
-          isRequired={true}
-          onChangeEvent={handleAccountDateChange}
-        />
+        {visible?.m_AccountDate && (
+          <CustomDateNew
+            form={form}
+            name="accountDate"
+            label="Account Date"
+            isRequired={true}
+            onChangeEvent={handleAccountDateChange}
+          />
+        )}
 
         {/* Credit Terms */}
         <CreditTermAutocomplete
@@ -416,13 +419,15 @@ export default function InvoiceForm({
         />
 
         {/* Bank */}
-        <BankAutocomplete
-          form={form}
-          name="bankId"
-          label="Bank"
-          isRequired={true}
-          onChangeEvent={handleBankChange}
-        />
+        {visible?.m_BankId && (
+          <BankAutocomplete
+            form={form}
+            name="bankId"
+            label="Bank"
+            isRequired={required?.m_BankId}
+            onChangeEvent={handleBankChange}
+          />
+        )}
 
         {/* Currency */}
         <CurrencyAutocomplete
@@ -459,15 +464,25 @@ export default function InvoiceForm({
         )}
 
         {/* Delivery Date */}
-        <CustomDateNew
-          form={form}
-          name="deliveryDate"
-          label="Delivery Date"
-          onChangeEvent={handleDeliveryDateChange}
-        />
+        {visible?.m_DeliveryDate && (
+          <CustomDateNew
+            form={form}
+            name="deliveryDate"
+            label="Delivery Date"
+            isRequired={required?.m_DeliveryDate}
+            onChangeEvent={handleDeliveryDateChange}
+          />
+        )}
 
         {/* GST Claim Date */}
-        <CustomDateNew form={form} name="gstClaimDate" label="GST Claim Date" />
+        {visible?.m_GstClaimDate && (
+          <CustomDateNew
+            form={form}
+            name="gstClaimDate"
+            label="GST Claim Date"
+            isRequired={false}
+          />
+        )}
 
         {/* Total Amount */}
         <CustomNumberInput
@@ -508,12 +523,11 @@ export default function InvoiceForm({
           isDisabled={true}
           className="text-right"
         />
-
         {/* GST Local Amount */}
         <CustomNumberInput
           form={form}
           name="gstLocalAmt"
-          label="GST Local Amount"
+          label="GST Local Amt"
           round={locAmtDec}
           isDisabled={true}
           className="text-right"
@@ -576,6 +590,7 @@ export default function InvoiceForm({
           form={form}
           name="remarks"
           label="Remarks"
+          isRequired={required?.m_Remarks_Hd}
           className="col-span-2"
         />
       </form>

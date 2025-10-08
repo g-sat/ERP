@@ -51,8 +51,24 @@ export const refreshToken = async (): Promise<string | null> => {
     const state = useAuthStore.getState()
 
     if (!state.token) {
+      console.error("❌ [AuthHelpers] No token available for refresh")
       return null
     }
+
+    if (!state.refreshToken) {
+      console.error("❌ [AuthHelpers] No refresh token available")
+      return null
+    }
+
+    console.log("🔄 [AuthHelpers] Starting token refresh...")
+    console.log(
+      "🔄 [AuthHelpers] Current token preview:",
+      state.token.substring(0, 20) + "..."
+    )
+    console.log(
+      "🔄 [AuthHelpers] Refresh token preview:",
+      state.refreshToken.substring(0, 20) + "..."
+    )
 
     // Use enhanced fetch with retry logic
     const response = await enhancedFetch(
@@ -72,6 +88,17 @@ export const refreshToken = async (): Promise<string | null> => {
       ok: response.ok,
       statusText: response.statusText,
     })
+
+    // Check if response is successful before parsing
+    if (!response.ok) {
+      console.error(
+        "❌ [AuthHelpers] Token refresh failed with status:",
+        response.status
+      )
+      throw new Error(
+        `Token refresh failed: ${response.status} ${response.statusText}`
+      )
+    }
 
     const data = await handleApiResponse(response, {
       result: 0,
@@ -103,7 +130,7 @@ export const refreshToken = async (): Promise<string | null> => {
       message: data.message,
     })
 
-    if (!data.token) {
+    if (!data.token || data.token.length === 0) {
       console.error("❌ [AuthHelpers] No token in refresh response:", data)
       throw new Error("No token in refresh response")
     }
@@ -136,6 +163,7 @@ export const refreshToken = async (): Promise<string | null> => {
     console.log("✅ [AuthHelpers] Token refresh completed, returning token")
     return data.token
   } catch (error) {
+    console.error("❌ [AuthHelpers] Token refresh error:", error)
     logError(
       error instanceof Error ? error : new Error("Token refresh failed"),
       "refreshToken"
