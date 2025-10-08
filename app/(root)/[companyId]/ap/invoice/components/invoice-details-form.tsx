@@ -6,7 +6,7 @@ import {
   handleQtyChange,
   handleTotalamountChange,
   setGSTPercentage,
-} from "@/helpers/accountV1"
+} from "@/helpers/account"
 import { IApInvoiceDt } from "@/interfaces/ap-invoice"
 import {
   IBargeLookup,
@@ -360,6 +360,7 @@ export default function InvoiceDetailsForm({
         purchaseOrderNo: data.purchaseOrderNo ?? "",
         supplyDate: data.supplyDate ?? "",
         customerName: data.customerName ?? "",
+        custInvoiceNo: data.custInvoiceNo ?? "",
         arInvoiceId: data.arInvoiceId ?? "",
         arInvoiceNo: data.arInvoiceNo ?? "",
         editVersion: data.editVersion ?? 0,
@@ -477,7 +478,10 @@ export default function InvoiceDetailsForm({
         shouldValidate: true,
         shouldDirty: true,
       })
-      form.setValue("serviceName", selectedOption.serviceName || "")
+      form.setValue(
+        "serviceName",
+        selectedOption.serviceCode + " " + selectedOption.serviceName || ""
+      )
     }
   }
 
@@ -574,6 +578,13 @@ export default function InvoiceDetailsForm({
 
   const triggerTotalAmountCalculation = () => {
     const rowData = form.getValues()
+
+    // Ensure cityExchangeRate = exchangeRate if m_CtyCurr is false
+    const exchangeRate = Hdform.getValues("exhRate") || 0
+    if (!visible?.m_CtyCurr) {
+      Hdform.setValue("ctyExhRate", exchangeRate)
+    }
+
     handleTotalamountChange(Hdform, rowData, decimals[0], visible)
     // Update only the calculated fields
     form.setValue("totLocalAmt", rowData.totLocalAmt)
@@ -585,6 +596,13 @@ export default function InvoiceDetailsForm({
 
   const triggerGstCalculation = () => {
     const rowData = form.getValues()
+
+    // Ensure cityExchangeRate = exchangeRate if m_CtyCurr is false
+    const exchangeRate = Hdform.getValues("exhRate") || 0
+    if (!visible?.m_CtyCurr) {
+      Hdform.setValue("ctyExhRate", exchangeRate)
+    }
+
     handleGstPercentageChange(Hdform, rowData, decimals[0], visible)
     // Update only the calculated fields
     form.setValue("gstAmt", rowData.gstAmt)
@@ -608,9 +626,62 @@ export default function InvoiceDetailsForm({
 
   const handleDtQtyChange = (value: number) => {
     form.setValue("qty", value)
+
+    // If m_BillQTY is false, set billQTY = qty
+    if (!visible?.m_BillQTY) {
+      form.setValue("billQTY", value)
+    }
+
+    const rowData = form.getValues()
+
+    // Ensure cityExchangeRate = exchangeRate if m_CtyCurr is false
+    const exchangeRate = Hdform.getValues("exhRate") || 0
+    if (!visible?.m_CtyCurr) {
+      Hdform.setValue("ctyExhRate", exchangeRate)
+    }
+
+    handleQtyChange(Hdform, rowData, decimals[0], visible)
+    // Update only the calculated fields
+    form.setValue("totAmt", rowData.totAmt)
+    form.setValue("totLocalAmt", rowData.totLocalAmt)
+    form.setValue("totCtyAmt", rowData.totCtyAmt)
+    form.setValue("gstAmt", rowData.gstAmt)
+    form.setValue("gstLocalAmt", rowData.gstLocalAmt)
+    form.setValue("gstCtyAmt", rowData.gstCtyAmt)
+  }
+
+  const handleBillQtyChange = (value: number) => {
     form.setValue("billQTY", value)
     const rowData = form.getValues()
-    handleQtyChange(Hdform, rowData, decimals[0], visible, value || 0)
+
+    // Ensure cityExchangeRate = exchangeRate if m_CtyCurr is false
+    const exchangeRate = Hdform.getValues("exhRate") || 0
+    if (!visible?.m_CtyCurr) {
+      Hdform.setValue("ctyExhRate", exchangeRate)
+    }
+
+    handleQtyChange(Hdform, rowData, decimals[0], visible)
+    // Update only the calculated fields
+    form.setValue("totAmt", rowData.totAmt)
+    form.setValue("totLocalAmt", rowData.totLocalAmt)
+    form.setValue("totCtyAmt", rowData.totCtyAmt)
+    form.setValue("gstAmt", rowData.gstAmt)
+    form.setValue("gstLocalAmt", rowData.gstLocalAmt)
+    form.setValue("gstCtyAmt", rowData.gstCtyAmt)
+  }
+
+  const handleUnitPriceChange = (value: number) => {
+    form.setValue("unitPrice", value)
+    const rowData = form.getValues()
+
+    // Ensure cityExchangeRate = exchangeRate if m_CtyCurr is false
+    const exchangeRate = Hdform.getValues("exhRate") || 0
+    if (!visible?.m_CtyCurr) {
+      Hdform.setValue("ctyExhRate", exchangeRate)
+    }
+
+    // Recalculate using billQTY (not the value parameter)
+    handleQtyChange(Hdform, rowData, decimals[0], visible)
     // Update only the calculated fields
     form.setValue("totAmt", rowData.totAmt)
     form.setValue("totLocalAmt", rowData.totLocalAmt)
@@ -815,7 +886,7 @@ export default function InvoiceDetailsForm({
               label="Bill Quantity"
               round={qtyDec}
               className="text-right"
-              onChangeEvent={handleDtQtyChange}
+              onChangeEvent={handleBillQtyChange}
             />
           )}
 
@@ -838,7 +909,7 @@ export default function InvoiceDetailsForm({
               isRequired={required?.m_UnitPrice}
               round={amtDec}
               className="text-right"
-              onChangeEvent={handleDtQtyChange}
+              onChangeEvent={handleUnitPriceChange}
             />
           )}
 

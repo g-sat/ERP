@@ -1,322 +1,187 @@
+import { mathRound } from "@/helpers/account"
+import { IApInvoiceDt, IDecimal } from "@/interfaces"
+
 /**
- * AP Invoice Calculations Module
- *
- * This module provides calculation functions specifically for AP Invoice details:
- * - Quantity × Unit Price = Total Amount
- * - Total Amount × Exchange Rate = Local Amount
- * - GST calculations for all currencies
- *
- * Uses shared calculation utilities from @/helpers/account
+ * Calculate total amounts (base currency)
  */
-
-import {
-  calculateMultiplierAmount,
-  calculatePercentagecAmount,
-} from "@/helpers/account"
-import { IDecimal } from "@/interfaces/auth"
-import { IVisibleFields } from "@/interfaces/setting"
-
-export interface IDecimalConfig {
+export const calculateTotalAmounts = (
+  details: IApInvoiceDt[],
   amtDec: number
+) => {
+  const totals = {
+    totAmt: 0,
+    gstAmt: 0,
+    totAmtAftGst: 0,
+  }
+
+  details.forEach((detail) => {
+    totals.totAmt += Number(detail.totAmt) || 0
+    totals.gstAmt += Number(detail.gstAmt) || 0
+  })
+
+  return {
+    totAmt: mathRound(totals.totAmt, amtDec),
+    gstAmt: mathRound(totals.gstAmt, amtDec),
+    totAmtAftGst: mathRound(totals.totAmt + totals.gstAmt, amtDec),
+  }
+}
+
+/**
+ * Calculate local currency amounts
+ */
+export const calculateLocalAmounts = (
+  details: IApInvoiceDt[],
   locAmtDec: number
+) => {
+  const totals = {
+    totLocalAmt: 0,
+    gstLocalAmt: 0,
+    totLocalAmtAftGst: 0,
+  }
+
+  details.forEach((detail) => {
+    totals.totLocalAmt += Number(detail.totLocalAmt) || 0
+    totals.gstLocalAmt += Number(detail.gstLocalAmt) || 0
+  })
+
+  return {
+    totLocalAmt: mathRound(totals.totLocalAmt, locAmtDec),
+    gstLocalAmt: mathRound(totals.gstLocalAmt, locAmtDec),
+    totLocalAmtAftGst: mathRound(
+      totals.totLocalAmt + totals.gstLocalAmt,
+      locAmtDec
+    ),
+  }
+}
+
+/**
+ * Calculate country currency amounts
+ */
+export const calculateCountryAmounts = (
+  details: IApInvoiceDt[],
   ctyAmtDec: number
-  qtyDec?: number
-  priceDec?: number
-  exhRateDec?: number
-}
+) => {
+  const totals = {
+    totCtyAmt: 0,
+    gstCtyAmt: 0,
+    totCtyAmtAftGst: 0,
+  }
 
-export interface IExchangeRates {
-  exchangeRate: number
-  cityExchangeRate?: number
-}
+  details.forEach((detail) => {
+    totals.totCtyAmt += Number(detail.totCtyAmt) || 0
+    totals.gstCtyAmt += Number(detail.gstCtyAmt) || 0
+  })
 
-export interface IVisibilityConfig {
-  m_CtyCurr?: boolean
+  return {
+    totCtyAmt: mathRound(totals.totCtyAmt, ctyAmtDec),
+    gstCtyAmt: mathRound(totals.gstCtyAmt, ctyAmtDec),
+    totCtyAmtAftGst: mathRound(totals.totCtyAmt + totals.gstCtyAmt, ctyAmtDec),
+  }
 }
-
-// ============================================================================
-// INVOICE DETAIL CALCULATIONS
-// ============================================================================
 
 /**
- * Calculate Total Amount from Bill Quantity and Unit Price
- * Formula: Total Amount = Bill Quantity × Unit Price
- *
- * @param billQty - Bill quantity
- * @param unitPrice - Unit price
- * @param decimals - Decimal configuration
- * @returns Calculated total amount
+ * Calculate GST amount based on total amount and GST percentage
  */
-export const calculateDetailTotalAmount = (
-  billQty: number,
-  unitPrice: number,
+export const calculateGstAmount = (
+  totAmt: number,
+  gstPercentage: number,
   decimals: IDecimal
-): number => {
-  if (!billQty || !unitPrice) return 0
-  return calculateMultiplierAmount(billQty, unitPrice, decimals.amtDec)
+) => {
+  const gstAmt = (totAmt * gstPercentage) / 100
+  return mathRound(gstAmt, decimals.amtDec)
 }
 
 /**
- * Calculate Local Amount from Total Amount and Exchange Rate
- * Formula: Local Amount = Total Amount × Exchange Rate
- *
- * @param totAmt - Total amount in base currency
- * @param exchangeRate - Exchange rate
- * @param decimals - Decimal configuration
- * @returns Calculated local amount
+ * Calculate local amount based on total amount and exchange rate
  */
-export const calculateDetailLocalAmount = (
+export const calculateLocalAmount = (
   totAmt: number,
   exchangeRate: number,
   decimals: IDecimal
-): number => {
-  if (!totAmt || !exchangeRate) return 0
-  return calculateMultiplierAmount(totAmt, exchangeRate, decimals.locAmtDec)
+) => {
+  const localAmt = totAmt * exchangeRate
+  return mathRound(localAmt, decimals.locAmtDec)
 }
 
 /**
- * Calculate City Amount from Total Amount and City Exchange Rate
- * Formula: City Amount = Total Amount × City Exchange Rate
- *
- * @param totAmt - Total amount in base currency
- * @param cityExchangeRate - City exchange rate
- * @param decimals - Decimal configuration
- * @returns Calculated city amount
+ * Calculate country amount based on total amount and city exchange rate
  */
-export const calculateDetailCityAmount = (
+export const calculateCountryAmount = (
   totAmt: number,
   cityExchangeRate: number,
   decimals: IDecimal
-): number => {
-  if (!totAmt || !cityExchangeRate) return 0
-  return calculateMultiplierAmount(totAmt, cityExchangeRate, decimals.ctyAmtDec)
-}
-
-/**
- * Calculate GST Amount from Total Amount and GST Percentage
- * Formula: GST Amount = Total Amount × (GST Percentage / 100)
- *
- * @param totAmt - Total amount
- * @param gstPercentage - GST percentage
- * @param decimals - Decimal configuration
- * @returns Calculated GST amount
- */
-export const calculateDetailGstAmount = (
-  totAmt: number,
-  gstPercentage: number,
-  decimals: IDecimal
-): number => {
-  if (!totAmt || !gstPercentage) return 0
-  return calculatePercentagecAmount(totAmt, gstPercentage, decimals.amtDec)
-}
-
-/**
- * Calculate GST Local Amount from GST Amount and Exchange Rate
- * Formula: GST Local Amount = GST Amount × Exchange Rate
- *
- * @param gstAmt - GST amount
- * @param exchangeRate - Exchange rate
- * @param decimals - Decimal configuration
- * @returns Calculated GST local amount
- */
-export const calculateDetailGstLocalAmount = (
-  gstAmt: number,
-  exchangeRate: number,
-  decimals: IDecimal
-): number => {
-  if (!gstAmt || !exchangeRate) return 0
-  return calculateMultiplierAmount(gstAmt, exchangeRate, decimals.locAmtDec)
-}
-
-/**
- * Calculate GST City Amount from GST Amount and City Exchange Rate
- * Formula: GST City Amount = GST Amount × City Exchange Rate
- *
- * @param gstAmt - GST amount
- * @param cityExchangeRate - City exchange rate
- * @param decimals - Decimal configuration
- * @returns Calculated GST city amount
- */
-export const calculateDetailGstCityAmount = (
-  gstAmt: number,
-  cityExchangeRate: number,
-  decimals: IDecimal
-): number => {
-  if (!gstAmt || !cityExchangeRate) return 0
-  return calculateMultiplierAmount(gstAmt, cityExchangeRate, decimals.ctyAmtDec)
-}
-
-// ============================================================================
-// COMPREHENSIVE CALCULATION FUNCTIONS
-// ============================================================================
-
-/**
- * Calculate all GST-related amounts (GST amount, GST local, GST city)
- *
- * @param totAmt - Total amount
- * @param gstPercentage - GST percentage
- * @param exchangeRates - Exchange rates object
- * @param decimals - Decimal configuration
- * @param visible - Visibility configuration
- * @returns Object with all GST amounts
- */
-export const calculateAllGstAmounts = (
-  totAmt: number,
-  gstPercentage: number,
-  exchangeRates: IExchangeRates,
-  decimals: IDecimal,
-  visible?: IVisibleFields
 ) => {
-  const gstAmt = calculateDetailGstAmount(totAmt, gstPercentage, decimals)
-
-  const gstLocalAmt = calculateDetailGstLocalAmount(
-    gstAmt,
-    exchangeRates.exchangeRate,
-    decimals
-  )
-
-  const gstCtyAmt =
-    visible?.m_CtyCurr && exchangeRates.cityExchangeRate
-      ? calculateDetailGstCityAmount(
-          gstAmt,
-          exchangeRates.cityExchangeRate,
-          decimals
-        )
-      : 0
-
-  return {
-    gstAmt,
-    gstLocalAmt,
-    gstCtyAmt,
-  }
+  const countryAmt = totAmt * cityExchangeRate
+  return mathRound(countryAmt, decimals.ctyAmtDec)
 }
 
 /**
- * Calculate all local currency amounts (total local, total city)
- *
- * @param totAmt - Total amount
- * @param exchangeRates - Exchange rates object
- * @param decimals - Decimal configuration
- * @param visible - Visibility configuration
- * @returns Object with all local amounts
+ * Calculate total amount based on quantity and unit price
  */
-export const calculateAllLocalAmounts = (
-  totAmt: number,
-  exchangeRates: IExchangeRates,
-  decimals: IDecimal,
-  visible?: IVisibleFields
-) => {
-  const totLocalAmt = calculateDetailLocalAmount(
-    totAmt,
-    exchangeRates.exchangeRate,
-    decimals
-  )
-
-  const totCtyAmt =
-    visible?.m_CtyCurr && exchangeRates.cityExchangeRate
-      ? calculateDetailCityAmount(
-          totAmt,
-          exchangeRates.cityExchangeRate,
-          decimals
-        )
-      : 0
-
-  return {
-    totLocalAmt,
-    totCtyAmt,
-  }
-}
-
-/**
- * Calculate all amounts for an invoice detail row
- * This is the main calculation function that calculates everything at once
- *
- * @param billQty - Bill quantity
- * @param unitPrice - Unit price
- * @param gstPercentage - GST percentage
- * @param exchangeRates - Exchange rates object
- * @param decimals - Decimal configuration
- * @param visible - Visibility configuration
- * @returns Object with all calculated amounts
- */
-export const calculateInvoiceDetailAmounts = (
-  billQty: number,
+export const calculateTotalAmount = (
+  qty: number,
   unitPrice: number,
-  gstPercentage: number,
-  exchangeRates: IExchangeRates,
-  decimals: IDecimal,
-  visible?: IVisibleFields
+  decimals: IDecimal
 ) => {
-  // Calculate total amount
-  const totAmt = calculateDetailTotalAmount(billQty, unitPrice, decimals)
+  const totAmt = qty * unitPrice
+  return mathRound(totAmt, decimals.amtDec)
+}
+
+/**
+ * Recalculate all amounts for a detail row based on exchange rates
+ */
+export const recalculateDetailAmounts = (
+  detail: IApInvoiceDt,
+  exchangeRate: number,
+  cityExchangeRate: number,
+  decimals: IDecimal,
+  hasCountryCurrency: boolean
+) => {
+  const totAmt = detail.totAmt || 0
+  const gstPercentage = detail.gstPercentage || 0
+
+  // Calculate GST amount
+  const gstAmt = calculateGstAmount(totAmt, gstPercentage, decimals)
 
   // Calculate local amounts
-  const { totLocalAmt, totCtyAmt } = calculateAllLocalAmounts(
-    totAmt,
-    exchangeRates,
-    decimals,
-    visible
-  )
+  const totLocalAmt = calculateLocalAmount(totAmt, exchangeRate, decimals)
+  const gstLocalAmt = calculateLocalAmount(gstAmt, exchangeRate, decimals)
 
-  // Calculate GST amounts
-  const { gstAmt, gstLocalAmt, gstCtyAmt } = calculateAllGstAmounts(
-    totAmt,
-    gstPercentage,
-    exchangeRates,
-    decimals,
-    visible
-  )
+  // Calculate country amounts if enabled
+  let totCtyAmt = 0
+  let gstCtyAmt = 0
+  if (hasCountryCurrency) {
+    totCtyAmt = calculateCountryAmount(totAmt, cityExchangeRate, decimals)
+    gstCtyAmt = calculateCountryAmount(gstAmt, cityExchangeRate, decimals)
+  }
 
   return {
-    totAmt,
-    totLocalAmt,
-    totCtyAmt,
+    ...detail,
     gstAmt,
+    totLocalAmt,
     gstLocalAmt,
+    totCtyAmt,
     gstCtyAmt,
   }
 }
 
 /**
- * Recalculate amounts when total amount is manually changed
- * (doesn't recalculate total from qty × price)
- *
- * @param totAmt - Total amount (manually entered)
- * @param gstPercentage - GST percentage
- * @param exchangeRates - Exchange rates object
- * @param decimals - Decimal configuration
- * @param visible - Visibility configuration
- * @returns Object with calculated amounts (excluding totAmt)
+ * Recalculate all amounts for all detail rows based on exchange rates
  */
-export const recalculateFromTotalAmount = (
-  totAmt: number,
-  gstPercentage: number,
-  exchangeRates: IExchangeRates,
+export const recalculateAllDetailAmounts = (
+  details: IApInvoiceDt[],
+  exchangeRate: number,
+  cityExchangeRate: number,
   decimals: IDecimal,
-  visible?: IVisibleFields
+  hasCountryCurrency: boolean
 ) => {
-  // Calculate local amounts
-  const { totLocalAmt, totCtyAmt } = calculateAllLocalAmounts(
-    totAmt,
-    exchangeRates,
-    decimals,
-    visible
+  return details.map((detail) =>
+    recalculateDetailAmounts(
+      detail,
+      exchangeRate,
+      cityExchangeRate,
+      decimals,
+      hasCountryCurrency
+    )
   )
-
-  // Calculate GST amounts
-  const { gstAmt, gstLocalAmt, gstCtyAmt } = calculateAllGstAmounts(
-    totAmt,
-    gstPercentage,
-    exchangeRates,
-    decimals,
-    visible
-  )
-
-  return {
-    totLocalAmt,
-    totCtyAmt,
-    gstAmt,
-    gstLocalAmt,
-    gstCtyAmt,
-  }
 }

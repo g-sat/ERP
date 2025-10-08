@@ -59,6 +59,7 @@ export interface IApInvoiceHd {
   emailAdd: string
   moduleFrom: string
   customerName: string
+
   arInvoiceId: string
   arInvoiceNo: null | string
   createById: number
@@ -153,5 +154,6 @@ export interface IApInvoiceDt {
   customerName: string
   arInvoiceId: number | string
   arInvoiceNo: string
+  custInvoiceNo: string
   editVersion: number
 }

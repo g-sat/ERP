@@ -24,11 +24,9 @@ import { clientDateFormat } from "@/lib/date-utils"
 // Generic types for cross-module compatibility (AP, AR, CB, GL)
 // Using 'any' type intentionally to support all module-specific form types
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-type GenericForm = any
+type HdForm = any
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-type GenericRowData = any
-
-export type Decimals = IDecimal
+type DtForm = any
 
 // ============================================================================
 // CALCULATION UTILITIES
@@ -129,21 +127,17 @@ export const calculateSubtractionAmount = (
  * Modules: AP, AR
  */
 export const handleQtyChange = (
-  hdForm: GenericForm,
-  rowData: GenericRowData,
+  hdForm: HdForm,
+  rowData: DtForm,
   decimals: IDecimal,
   visible: IVisibleFields
 ) => {
-  const billQty = rowData?.billQTY
+  const qty = rowData?.qty
   const unitPrice = rowData?.unitPrice
   const exchangeRate = hdForm.getValues()?.exhRate
 
-  if (billQty && unitPrice) {
-    const totAmt = calculateMultiplierAmount(
-      billQty,
-      unitPrice,
-      decimals?.amtDec
-    )
+  if (qty && unitPrice) {
+    const totAmt = calculateMultiplierAmount(qty, unitPrice, decimals?.amtDec)
     rowData.totAmt = totAmt
 
     if (exchangeRate) {
@@ -159,8 +153,8 @@ export const handleQtyChange = (
  * Modules: AP, AR
  */
 export const handleTotalamountChange = (
-  hdForm: GenericForm,
-  rowData: GenericRowData,
+  hdForm: HdForm,
+  rowData: DtForm,
   decimals: IDecimal,
   visible: IVisibleFields
 ) => {
@@ -184,8 +178,8 @@ export const handleTotalamountChange = (
 }
 
 export const handleGstPercentageChange = (
-  hdForm: GenericForm,
-  rowData: GenericRowData,
+  hdForm: HdForm,
+  rowData: DtForm,
   decimals: IDecimal,
   visible: IVisibleFields
 ) => {
@@ -211,8 +205,8 @@ export const handleGstPercentageChange = (
 }
 
 export const handleTotalCityamountChange = (
-  hdForm: GenericForm,
-  rowData: GenericRowData,
+  hdForm: HdForm,
+  rowData: DtForm,
   decimals: IDecimal,
   visible: IVisibleFields
 ) => {
@@ -239,8 +233,8 @@ export const handleTotalCityamountChange = (
 }
 
 export const handleGstCityPercentageChange = (
-  hdForm: GenericForm,
-  rowData: GenericRowData,
+  hdForm: HdForm,
+  rowData: DtForm,
   decimals: IDecimal,
   visible: IVisibleFields
 ) => {
@@ -266,8 +260,8 @@ export const handleGstCityPercentageChange = (
 }
 
 export const handleDetailsChange = (
-  hdForm: GenericForm,
-  dtForm: GenericForm,
+  hdForm: HdForm,
+  dtForm: HdForm,
   decimals: IDecimal
 ) => {
   const formData = hdForm.getValues()
@@ -316,8 +310,8 @@ export const handleDetailsChange = (
  * Modules: AP, AR
  */
 export const setGSTPercentage = async (
-  hdForm: GenericForm,
-  dtForm: GenericForm,
+  hdForm: HdForm,
+  dtForm: HdForm,
   decimals: IDecimal,
   visible: IVisibleFields
 ) => {
@@ -350,7 +344,7 @@ export const setGSTPercentage = async (
  * Due Date = Account Date + Credit Term Days
  * Modules: AP, AR
  */
-export const setDueDate = async (form: GenericForm) => {
+export const setDueDate = async (form: HdForm) => {
   //to set due date
   const { accountDate, creditTermId, deliveryDate } = form?.getValues()
 
@@ -379,7 +373,7 @@ export const setDueDate = async (form: GenericForm) => {
  * Modules: AP, AR, CB, GL
  */
 export const setExchangeRate = async (
-  form: GenericForm,
+  form: HdForm,
   round: number | 6,
   visible: IVisibleFields
 ) => {
@@ -412,10 +406,7 @@ export const setExchangeRate = async (
  * Used for city/country currency conversions
  * Modules: AP, AR, CB, GL
  */
-export const setExchangeRateLocal = async (
-  form: GenericForm,
-  round: number | 6
-) => {
+export const setExchangeRateLocal = async (form: HdForm, round: number | 6) => {
   // to set exhange rate
   const { accountDate, currencyId } = form?.getValues()
   if (accountDate && currencyId) {
@@ -439,10 +430,7 @@ export const setExchangeRateLocal = async (
  * Sets both recExhRate and payExhRate
  * Modules: AR (Receipt), AP (Payment)
  */
-export const setRecExchangeRate = async (
-  form: GenericForm,
-  round: number | 6
-) => {
+export const setRecExchangeRate = async (form: HdForm, round: number | 6) => {
   // to set recving exhange rate for the receipt
   const { accountDate, currencyId } = form?.getValues()
   if (accountDate && currencyId) {
@@ -474,7 +462,7 @@ export enum EntityType {
 }
 
 export const setAddressContactDetails = async (
-  form: GenericForm,
+  form: HdForm,
   entityType: EntityType
 ) => {
   // Get the appropriate entity ID based on entity type

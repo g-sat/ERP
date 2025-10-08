@@ -102,7 +102,7 @@ export default function InvoicePage() {
       ? {
           invoiceId: invoice.invoiceId?.toString() ?? "0",
           invoiceNo: invoice.invoiceNo ?? "",
-          referenceNo: invoice.referenceNo ?? null,
+          referenceNo: invoice.referenceNo ?? "",
           trnDate: invoice.trnDate ?? new Date(),
           accountDate: invoice.accountDate ?? new Date(),
           dueDate: invoice.dueDate ?? new Date(),
@@ -128,8 +128,6 @@ export default function InvoicePage() {
           payAmt: invoice.payAmt ?? 0,
           payLocalAmt: invoice.payLocalAmt ?? 0,
           exGainLoss: invoice.exGainLoss ?? 0,
-          salesOrderId: invoice.salesOrderId ?? 0,
-          salesOrderNo: invoice.salesOrderNo ?? "",
           operationId: invoice.operationId ?? 0,
           operationNo: invoice.operationNo ?? "",
           remarks: invoice.remarks ?? "",
@@ -147,25 +145,30 @@ export default function InvoicePage() {
           moduleFrom: invoice.moduleFrom ?? "",
           suppInvoiceNo: invoice.suppInvoiceNo ?? "",
           customerName: invoice.customerName ?? "",
-          apInvoiceId: invoice.apInvoiceId ?? "",
-          apInvoiceNo: invoice.apInvoiceNo ?? "",
+          addressId: invoice.addressId ?? 0,
+          contactId: invoice.contactId ?? 0,
+          arInvoiceId: invoice.arInvoiceId ?? "",
+          arInvoiceNo: invoice.arInvoiceNo ?? "",
+          editVersion: invoice.editVersion ?? 0,
+          purchaseOrderId: invoice.purchaseOrderId ?? 0,
+          purchaseOrderNo: invoice.purchaseOrderNo ?? "",
           data_details:
             invoice.data_details?.map((detail) => ({
               ...detail,
               invoiceId: detail.invoiceId?.toString() ?? "0",
-              apInvoiceNo: detail.apInvoiceNo?.toString() ?? "",
+              invoiceNo: detail.invoiceNo?.toString() ?? "",
               totAmt: detail.totAmt ?? 0,
               totLocalAmt: detail.totLocalAmt ?? 0,
               totCtyAmt: detail.totCtyAmt ?? 0,
               gstAmt: detail.gstAmt ?? 0,
               gstLocalAmt: detail.gstLocalAmt ?? 0,
               gstCtyAmt: detail.gstCtyAmt ?? 0,
-              deliveryDate: detail.deliveryDate ?? null,
-              supplyDate: detail.supplyDate ?? null,
+              deliveryDate: detail.deliveryDate ?? "",
+              supplyDate: detail.supplyDate ?? "",
               remarks: detail.remarks ?? "",
               customerName: detail.customerName ?? "",
+              custInvoiceNo: detail.custInvoiceNo ?? "",
               suppInvoiceNo: detail.suppInvoiceNo ?? "",
-              apInvoiceId: detail.apInvoiceId ?? 0,
             })) || [],
         }
       : {
@@ -224,6 +227,8 @@ export default function InvoicePage() {
             toast.error("Please check form data and try again")
             return
           }
+
+          console.log("formValues", formValues)
 
           const response =
             Number(formValues.invoiceId) === 0
@@ -411,8 +416,11 @@ export default function InvoicePage() {
       emailAdd: apiInvoice.emailAdd ?? "",
       moduleFrom: apiInvoice.moduleFrom ?? "",
       customerName: apiInvoice.customerName ?? "",
-      salesOrderNo: "",
-      apInvoiceNo: "",
+      arInvoiceId: apiInvoice.arInvoiceId ?? "",
+      arInvoiceNo: apiInvoice.arInvoiceNo ?? "",
+      editVersion: apiInvoice.editVersion ?? 0,
+      purchaseOrderId: apiInvoice.purchaseOrderId ?? 0,
+      purchaseOrderNo: apiInvoice.purchaseOrderNo ?? "",
       data_details:
         apiInvoice.data_details?.map(
           (detail) =>
@@ -440,6 +448,8 @@ export default function InvoicePage() {
                 : null,
               remarks: detail.remarks ?? "",
               customerName: detail.customerName ?? "",
+              custInvoiceNo: detail.custInvoiceNo ?? "",
+              purchaseOrderNo: detail.purchaseOrderNo ?? "",
             }) as unknown as ApInvoiceDtSchemaType
         ) || [],
     }

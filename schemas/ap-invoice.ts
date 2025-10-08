@@ -104,6 +104,7 @@ export const apinvoiceHdSchema = (
     moduleFrom: z.string().optional(),
 
     customerName: z.string().optional(),
+
     arInvoiceId: z.union([z.string(), z.number()]).optional(),
     arInvoiceNo: z.string().optional(),
     editVersion: z.number().optional(),

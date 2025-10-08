@@ -3,20 +3,19 @@
 import * as React from "react"
 import {
   EntityType,
-  handleTotalamountChange,
   setAddressContactDetails,
   setDueDate,
   setExchangeRate,
   setExchangeRateLocal,
   setGSTPercentage,
 } from "@/helpers/account"
-import { calculateInvoice } from "@/helpers/invoice"
 import {
   calculateCountryAmounts,
   calculateLocalAmounts,
   calculateTotalAmounts,
   recalculateAllDetailAmounts,
-} from "@/helpers/invoice-calculations"
+} from "@/helpers/ap-invoice-calculations"
+import { IApInvoiceDt } from "@/interfaces/ap-invoice"
 import {
   IBankLookup,
   ICreditTermLookup,
@@ -160,6 +159,55 @@ export default function InvoiceForm({
     [form]
   )
 
+  // Recalculate header totals from details
+  const recalculateHeaderTotals = React.useCallback(() => {
+    const formDetails = form.getValues("data_details") || []
+
+    if (formDetails.length === 0) {
+      // Reset all amounts to 0 if no details
+      form.setValue("totAmt", 0)
+      form.setValue("gstAmt", 0)
+      form.setValue("totAmtAftGst", 0)
+      form.setValue("totLocalAmt", 0)
+      form.setValue("gstLocalAmt", 0)
+      form.setValue("totLocalAmtAftGst", 0)
+      if (visible?.m_CtyCurr) {
+        form.setValue("totCtyAmt", 0)
+        form.setValue("gstCtyAmt", 0)
+        form.setValue("totCtyAmtAftGst", 0)
+      }
+      return
+    }
+
+    // Calculate base currency totals
+    const totals = calculateTotalAmounts(
+      formDetails as unknown as IApInvoiceDt[],
+      amtDec
+    )
+    form.setValue("totAmt", totals.totAmt)
+    form.setValue("gstAmt", totals.gstAmt)
+    form.setValue("totAmtAftGst", totals.totAmtAftGst)
+
+    // Calculate local currency totals (always calculate)
+    const localAmounts = calculateLocalAmounts(
+      formDetails as unknown as IApInvoiceDt[],
+      locAmtDec
+    )
+    form.setValue("totLocalAmt", localAmounts.totLocalAmt)
+    form.setValue("gstLocalAmt", localAmounts.gstLocalAmt)
+    form.setValue("totLocalAmtAftGst", localAmounts.totLocalAmtAftGst)
+
+    // Calculate country currency totals (always calculate)
+    // If m_CtyCurr is false, country amounts = local amounts
+    const countryAmounts = calculateCountryAmounts(
+      formDetails as unknown as IApInvoiceDt[],
+      visible?.m_CtyCurr ? ctyAmtDec : locAmtDec
+    )
+    form.setValue("totCtyAmt", countryAmounts.totCtyAmt)
+    form.setValue("gstCtyAmt", countryAmounts.gstCtyAmt)
+    form.setValue("totCtyAmtAftGst", countryAmounts.totCtyAmtAftGst)
+  }, [amtDec, ctyAmtDec, form, locAmtDec, visible?.m_CtyCurr])
+
   // Handle currency selection
   const handleCurrencyChange = React.useCallback(
     async (selectedCurrency: ICurrencyLookup | null) => {
@@ -180,70 +228,31 @@ export default function InvoiceForm({
           return
         }
 
-        // Ensure details have required fields and convert null to proper values
-        const details = formDetails.map((detail) => ({
-          ...detail,
-          invoiceId: detail.invoiceId || "0",
-          invoiceNo: detail.invoiceNo || "",
-          deliveryDate: detail.deliveryDate || "",
-          supplyDate: detail.supplyDate || "",
-        }))
-
-        // Recalculate all details with new exchange rates
+        // Get updated exchange rates
         const exchangeRate = form.getValues("exhRate") || 0
         const cityExchangeRate = form.getValues("ctyExhRate") || 0
 
+        // Recalculate all details with new exchange rates
         const updatedDetails = recalculateAllDetailAmounts(
-          details,
+          formDetails as unknown as IApInvoiceDt[],
           exchangeRate,
           cityExchangeRate,
-          {
-            amtDec: decimals[0]?.amtDec || 2,
-            locAmtDec: decimals[0]?.locAmtDec || 2,
-            ctyAmtDec: decimals[0]?.ctyAmtDec || 2,
-          },
+          decimals[0],
           !!visible?.m_CtyCurr
         )
 
         // Update form with recalculated details
         form.setValue(
           "data_details",
-          updatedDetails as unknown as ApInvoiceDtSchemaType[]
+          updatedDetails as unknown as ApInvoiceDtSchemaType[],
+          { shouldDirty: true, shouldTouch: true }
         )
 
-        // Calculate and update local amounts
-        const localAmounts = calculateLocalAmounts(updatedDetails, locAmtDec)
-        form.setValue("totLocalAmt", localAmounts.totLocalAmt)
-        form?.trigger("totLocalAmt")
-        form.setValue("gstLocalAmt", localAmounts.gstLocalAmt)
-        form?.trigger("gstLocalAmt")
-        form.setValue("totLocalAmtAftGst", localAmounts.totLocalAmtAftGst)
-        form?.trigger("totLocalAmtAftGst")
-        // Calculate and update country amounts if visible
-        if (visible?.m_CtyCurr) {
-          const countryAmounts = calculateCountryAmounts(
-            updatedDetails,
-            ctyAmtDec
-          )
-          form.setValue("totCtyAmt", countryAmounts.totCtyAmt)
-          form?.trigger("totCtyAmt")
-          form.setValue("gstCtyAmt", countryAmounts.gstCtyAmt)
-          form?.trigger("gstCtyAmt")
-          form.setValue("totCtyAmtAftGst", countryAmounts.totCtyAmtAftGst)
-          form?.trigger("totCtyAmtAftGst")
-        }
-
-        // Calculate header amounts
-        const totals = calculateTotalAmounts(updatedDetails, amtDec)
-        form.setValue("totAmt", totals.totAmt)
-        form?.trigger("totAmt")
-        form.setValue("gstAmt", totals.gstAmt)
-        form?.trigger("gstAmt")
-        form.setValue("totAmtAftGst", totals.totAmtAftGst)
-        form?.trigger("totAmtAftGst")
+        // Recalculate header totals from updated details
+        recalculateHeaderTotals()
       }
     },
-    [amtDec, ctyAmtDec, decimals, exhRateDec, form, locAmtDec, visible]
+    [decimals, exhRateDec, form, recalculateHeaderTotals, visible]
   )
 
   // Handle exchange rate change
@@ -251,20 +260,21 @@ export default function InvoiceForm({
     (e: React.FocusEvent<HTMLInputElement>) => {
       const formDetails = form.getValues("data_details")
       const exchangeRate = parseFloat(e.target.value) || 0
-      const cityExchangeRate = form.getValues("ctyExhRate") || 0
 
-      // Ensure details have required fields and convert null to proper values
-      const details = formDetails.map((detail) => ({
-        ...detail,
-        invoiceId: detail.invoiceId || "0",
-        invoiceNo: detail.invoiceNo || "",
-        deliveryDate: detail.deliveryDate || "",
-        supplyDate: detail.supplyDate || "",
-      }))
+      // If m_CtyCurr is false, set cityExchangeRate = exchangeRate
+      let cityExchangeRate = form.getValues("ctyExhRate") || 0
+      if (!visible?.m_CtyCurr) {
+        cityExchangeRate = exchangeRate
+        form.setValue("ctyExhRate", exchangeRate)
+      }
+
+      if (!formDetails || formDetails.length === 0) {
+        return
+      }
 
       // Recalculate all details with new exchange rate
       const updatedDetails = recalculateAllDetailAmounts(
-        details,
+        formDetails as unknown as IApInvoiceDt[],
         exchangeRate,
         cityExchangeRate,
         decimals[0],
@@ -274,39 +284,14 @@ export default function InvoiceForm({
       // Update form with recalculated details
       form.setValue(
         "data_details",
-        updatedDetails as unknown as ApInvoiceDtSchemaType[]
+        updatedDetails as unknown as ApInvoiceDtSchemaType[],
+        { shouldDirty: true, shouldTouch: true }
       )
 
-      // Calculate and update local amounts
-      const localAmounts = calculateLocalAmounts(updatedDetails, locAmtDec)
-
-      form.setValue("totLocalAmt", localAmounts.totLocalAmt)
-      form?.trigger("totLocalAmt")
-      form.setValue("gstLocalAmt", localAmounts.gstLocalAmt)
-      form?.trigger("gstLocalAmt")
-      form.setValue("totLocalAmtAftGst", localAmounts.totLocalAmtAftGst)
-      form?.trigger("totLocalAmtAftGst")
-
-      // Calculate and update country amounts if visible
-      if (visible?.m_CtyCurr) {
-        const countryAmounts = calculateCountryAmounts(
-          updatedDetails,
-          ctyAmtDec
-        )
-        form.setValue("totCtyAmt", countryAmounts.totCtyAmt)
-        form?.trigger("totCtyAmt")
-        form.setValue("gstCtyAmt", countryAmounts.gstCtyAmt)
-        form?.trigger("gstCtyAmt")
-        form.setValue("totCtyAmtAftGst", countryAmounts.totCtyAmtAftGst)
-        form?.trigger("totCtyAmtAftGst")
-      }
-
-      // Recalculate totals
-      //calculateInvoice(form, updatedDetails, form, decimals[0])
-      //handleDetailsChange(form, form, decimals[0])
-      // handleTotalamountChange(form, form, decimals[0], visible)
+      // Recalculate header totals from updated details
+      recalculateHeaderTotals()
     },
-    [ctyAmtDec, decimals, form, locAmtDec, visible?.m_CtyCurr]
+    [decimals, form, recalculateHeaderTotals, visible?.m_CtyCurr]
   )
 
   // Handle city exchange rate change
@@ -316,39 +301,30 @@ export default function InvoiceForm({
       const exchangeRate = form.getValues("exhRate") || 0
       const cityExchangeRate = parseFloat(e.target.value) || 0
 
-      // Ensure details have required fields and convert null to proper values
-      const details = formDetails.map((detail) => ({
-        ...detail,
-        invoiceId: detail.invoiceId || "0",
-        invoiceNo: detail.invoiceNo || "",
-        deliveryDate: detail.deliveryDate || "",
-        supplyDate: detail.supplyDate || "",
-      }))
+      if (!formDetails || formDetails.length === 0) {
+        return
+      }
 
       // Recalculate all details with new city exchange rate
       const updatedDetails = recalculateAllDetailAmounts(
-        details,
+        formDetails as unknown as IApInvoiceDt[],
         exchangeRate,
         cityExchangeRate,
-        {
-          amtDec: decimals[0]?.amtDec || 2,
-          locAmtDec: decimals[0]?.locAmtDec || 2,
-          ctyAmtDec: decimals[0]?.ctyAmtDec || 2,
-        },
+        decimals[0],
         !!visible?.m_CtyCurr
       )
 
       // Update form with recalculated details
       form.setValue(
         "data_details",
-        updatedDetails as unknown as ApInvoiceDtSchemaType[]
+        updatedDetails as unknown as ApInvoiceDtSchemaType[],
+        { shouldDirty: true, shouldTouch: true }
       )
 
-      // Recalculate totals
-      calculateInvoice(form, updatedDetails, form, decimals[0])
-      handleTotalamountChange(form, form, decimals[0], visible)
+      // Recalculate header totals from updated details
+      recalculateHeaderTotals()
     },
-    [decimals, form, visible]
+    [decimals, form, recalculateHeaderTotals, visible?.m_CtyCurr]
   )
 
   return (
