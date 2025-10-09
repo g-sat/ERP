@@ -26,12 +26,12 @@ export default function LoginPage() {
   useEffect(() => {
     const checkAuthStatus = async () => {
       try {
-        console.log("🔍 Checking authentication status...")
+        //console.log("🔍 Checking authentication status...")
         await logInStatusCheck()
-        console.log("✅ Authentication check completed")
+        //console.log("✅ Authentication check completed")
         // If user is authenticated, redirect to company select page
         if (isAuthenticated) {
-          console.log("🔄 User authenticated, redirecting to company-select")
+          //console.log("🔄 User authenticated, redirecting to company-select")
           router.push("/company-select")
         }
       } catch (error) {

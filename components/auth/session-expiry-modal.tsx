@@ -34,20 +34,20 @@ export function SessionExpiryModal({
 
   // Debug logging for modal state
   useEffect(() => {
-    console.log("🔍 [SessionExpiryModal] Modal state changed:", {
-      isOpen,
-      isRefreshing,
-      timeRemaining,
-      countdown,
-    })
+    // console.log("🔍 [SessionExpiryModal] Modal state changed:", {
+    //   isOpen,
+    //   isRefreshing,
+    //   timeRemaining,
+    //   countdown,
+    // })
   }, [isOpen, isRefreshing, timeRemaining, countdown])
 
   // Force close modal when isOpen becomes false
   useEffect(() => {
     if (!isOpen) {
-      console.log(
-        "🔍 [SessionExpiryModal] Modal should be closed - isOpen is false"
-      )
+      // console.log(
+      //   "🔍 [SessionExpiryModal] Modal should be closed - isOpen is false"
+      // )
     }
   }, [isOpen])
 
@@ -88,18 +88,18 @@ export function SessionExpiryModal({
 
   // Debug logging for progress calculation
   useEffect(() => {
-    console.log("🔍 [SessionExpiryModal] Progress calculation:", {
-      countdown,
-      timeRemaining,
-      progressPercentage: progressPercentage.toFixed(2),
-    })
+    // console.log("🔍 [SessionExpiryModal] Progress calculation:", {
+    //   countdown,
+    //   timeRemaining,
+    //   progressPercentage: progressPercentage.toFixed(2),
+    // })
   }, [countdown, timeRemaining, progressPercentage])
 
   return (
     <Dialog
       open={isOpen}
       onOpenChange={(open) => {
-        console.log("🔍 [SessionExpiryModal] Dialog onOpenChange:", open)
+        // console.log("🔍 [SessionExpiryModal] Dialog onOpenChange:", open)
         if (!open) {
           onCloseAction()
         }
@@ -108,7 +108,7 @@ export function SessionExpiryModal({
       <DialogContent
         className="sm:max-w-md"
         onEscapeKeyDown={(e) => {
-          console.log("🔍 [SessionExpiryModal] Escape key pressed")
+          // console.log("🔍 [SessionExpiryModal] Escape key pressed")
           e.preventDefault()
         }}
       >

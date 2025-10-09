@@ -97,9 +97,6 @@ export default function InvoicePage() {
   const visible: IVisibleFields = visibleFieldsData ?? null
   const required: IMandatoryFields = requiredFieldsData ?? null
 
-  console.log("required", required)
-  console.log("visible", visible)
-
   // Add form state management
   const form = useForm<ApInvoiceHdSchemaType>({
     resolver: zodResolver(apinvoiceHdSchema(required, visible)),

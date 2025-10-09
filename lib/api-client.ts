@@ -30,22 +30,22 @@ apiClient.interceptors.request.use((config: InternalAxiosRequestConfig) => {
  * @returns Company ID from Zustand store or sessionStorage
  */
 export const getCompanyIdFromSession: () => string | null = () => {
-  console.log("🔍 Getting company ID from session...")
+  // console.log("🔍 Getting company ID from session...")
   if (typeof window === "undefined") {
-    console.log("❌ Window is undefined (SSR)")
+    // console.log("❌ Window is undefined (SSR)")
     return null
   }
   try {
     // Try to get from Zustand store first
     const state = useAuthStore.getState()
-    console.log("📊 Auth store state:", {
-      currentCompany: state.currentCompany,
-      isAuthenticated: state.isAuthenticated,
-    })
+    // console.log("📊 Auth store state:", {
+    //   currentCompany: state.currentCompany,
+    //   isAuthenticated: state.isAuthenticated,
+    // })
 
     if (state.currentCompany?.companyId) {
       const companyId = state.currentCompany.companyId.toString()
-      console.log("✅ Found company ID in Zustand store:", companyId)
+      // console.log("✅ Found company ID in Zustand store:", companyId)
 
       // Also check sessionStorage to see if there's a mismatch
       const sessionStorageCompanyId = sessionStorage.getItem("tab_company_id")
@@ -56,24 +56,24 @@ export const getCompanyIdFromSession: () => string | null = () => {
           "but sessionStorage has",
           sessionStorageCompanyId
         )
-        console.log("🔍 This might cause API calls to use wrong company ID!")
+        // console.log("🔍 This might cause API calls to use wrong company ID!")
       }
 
       return companyId
     }
     // Fallback to sessionStorage for multi-tab support
     const tabCompanyId = sessionStorage.getItem("tab_company_id")
-    console.log("💾 Checking sessionStorage for tab_company_id:", tabCompanyId)
+    // console.log("💾 Checking sessionStorage for tab_company_id:", tabCompanyId)
 
     if (tabCompanyId) {
-      console.log("✅ Found company ID in sessionStorage:", tabCompanyId)
+      // console.log("✅ Found company ID in sessionStorage:", tabCompanyId)
       console.warn(
         "⚠️ Using sessionStorage fallback - Zustand store might not be updated yet"
       )
-      console.log("🔍 This could cause API calls to use old company ID!")
+      // console.log("🔍 This could cause API calls to use old company ID!")
       return tabCompanyId
     }
-    console.log("❌ No company ID found in any source")
+    // console.log("❌ No company ID found in any source")
     return null
   } catch (error) {
     console.warn("❌ Error getting company ID from session:", error)

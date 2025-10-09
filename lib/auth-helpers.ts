@@ -60,15 +60,15 @@ export const refreshToken = async (): Promise<string | null> => {
       return null
     }
 
-    console.log("🔄 [AuthHelpers] Starting token refresh...")
-    console.log(
-      "🔄 [AuthHelpers] Current token preview:",
-      state.token.substring(0, 20) + "..."
-    )
-    console.log(
-      "🔄 [AuthHelpers] Refresh token preview:",
-      state.refreshToken.substring(0, 20) + "..."
-    )
+    // console.log("🔄 [AuthHelpers] Starting token refresh...")
+    // console.log(
+    //   "🔄 [AuthHelpers] Current token preview:",
+    //   state.token.substring(0, 20) + "..."
+    // )
+    // console.log(
+    //   "🔄 [AuthHelpers] Refresh token preview:",
+    //   state.refreshToken.substring(0, 20) + "..."
+    // )
 
     // Use enhanced fetch with retry logic
     const response = await enhancedFetch(
@@ -83,11 +83,11 @@ export const refreshToken = async (): Promise<string | null> => {
         body: JSON.stringify({ refreshToken: state.refreshToken }),
       }
     )
-    console.log("🔄 [AuthHelpers] Refresh token response:", {
-      status: response.status,
-      ok: response.ok,
-      statusText: response.statusText,
-    })
+    // console.log("🔄 [AuthHelpers] Refresh token response:", {
+    //   status: response.status,
+    //   ok: response.ok,
+    //   statusText: response.statusText,
+    // })
 
     // Check if response is successful before parsing
     if (!response.ok) {
@@ -122,13 +122,13 @@ export const refreshToken = async (): Promise<string | null> => {
       refreshToken: "",
     } as AuthResponse)
 
-    console.log("🔄 [AuthHelpers] Parsed response data:", {
-      hasToken: !!data.token,
-      hasUser: !!data.user,
-      hasRefreshToken: !!data.refreshToken,
-      result: data.result,
-      message: data.message,
-    })
+    // console.log("🔄 [AuthHelpers] Parsed response data:", {
+    //   hasToken: !!data.token,
+    //   hasUser: !!data.user,
+    //   hasRefreshToken: !!data.refreshToken,
+    //   result: data.result,
+    //   message: data.message,
+    // })
 
     if (!data.token || data.token.length === 0) {
       console.error("❌ [AuthHelpers] No token in refresh response:", data)
@@ -136,10 +136,10 @@ export const refreshToken = async (): Promise<string | null> => {
     }
 
     // Update the auth store with the new token
-    console.log("🔄 [AuthHelpers] Updating auth store with new token")
+    // console.log("🔄 [AuthHelpers] Updating auth store with new token")
 
     if (data.user && data.token) {
-      console.log("✅ [AuthHelpers] Using new user data from response")
+      // console.log("✅ [AuthHelpers] Using new user data from response")
       useAuthStore
         .getState()
         .logInSuccess(
@@ -148,7 +148,7 @@ export const refreshToken = async (): Promise<string | null> => {
           data.refreshToken || state.refreshToken || ""
         )
     } else if (state.user && data.token) {
-      console.log("✅ [AuthHelpers] Using existing user data with new token")
+      // console.log("✅ [AuthHelpers] Using existing user data with new token")
       useAuthStore
         .getState()
         .logInSuccess(
@@ -160,7 +160,7 @@ export const refreshToken = async (): Promise<string | null> => {
       console.warn("⚠️ [AuthHelpers] No user data available for token update")
     }
 
-    console.log("✅ [AuthHelpers] Token refresh completed, returning token")
+    // console.log("✅ [AuthHelpers] Token refresh completed, returning token")
     return data.token
   } catch (error) {
     console.error("❌ [AuthHelpers] Token refresh error:", error)

@@ -60,24 +60,24 @@ export default function CompanySelectPage() {
       setIsInitialized(true)
 
       // Clear any cached company data from previous account
-      console.log("🧹 Clearing cached company data...")
+      //console.log("🧹 Clearing cached company data...")
       setCompanies([])
       setShowAccessDenied(false)
       setSelectedCompanyId("")
 
       // Always fetch fresh companies data to avoid cached data from previous account
       try {
-        console.log("🔄 Loading fresh companies data...")
+        //console.log("🔄 Loading fresh companies data...")
         await getCompanies()
 
         // Wait a bit for the state to update, then get the fresh companies
         await new Promise((resolve) => setTimeout(resolve, 100))
         const currentCompanies = get().companies
-        console.log("✅ Companies loaded:", currentCompanies.length)
-        console.log("📊 Company count after loading:", currentCompanies.length)
+        //console.log("✅ Companies loaded:", currentCompanies.length)
+        //console.log("📊 Company count after loading:", currentCompanies.length)
 
         if (currentCompanies.length === 0) {
-          console.log("❌ No companies found - showing access denied")
+          //console.log("❌ No companies found - showing access denied")
           setShowAccessDenied(true)
           return
         }
@@ -98,7 +98,7 @@ export default function CompanySelectPage() {
           (c) => c.companyId === tabCompanyId
         )
         if (companyExists) {
-          console.log("🔄 Auto-switching to tab company:", tabCompanyId)
+          //console.log("🔄 Auto-switching to tab company:", tabCompanyId)
           // Switch to the company if not already selected (with automatic decimal fetching)
           if (currentCompany?.companyId !== tabCompanyId) {
             await switchCompany(tabCompanyId, true) // fetchDecimals = true (automatic)
@@ -107,17 +107,17 @@ export default function CompanySelectPage() {
           router.push(`/${tabCompanyId}/dashboard`)
           return
         } else {
-          console.log("⚠️ Tab company not found in available companies")
+          //console.log("⚠️ Tab company not found in available companies")
         }
       }
 
       // If only one company, automatically select and redirect
       if (currentCompanies.length === 1) {
         const singleCompany = currentCompanies[0]
-        console.log(
-          "🔄 Auto-selecting single company:",
-          singleCompany.companyId
-        )
+        //console.log(
+        //  "🔄 Auto-selecting single company:",
+        //  singleCompany.companyId
+        //)
         // Switch to the single company if not already selected (with automatic decimal fetching)
         if (currentCompany?.companyId !== singleCompany.companyId) {
           await switchCompany(singleCompany.companyId, true) // fetchDecimals = true (automatic)
@@ -128,7 +128,7 @@ export default function CompanySelectPage() {
       }
 
       // Multiple companies - show selection page
-      console.log("📋 Multiple companies found - showing selection page")
+      // console.log("📋 Multiple companies found - showing selection page")
       // Use the current company or first available
       if (currentCompany?.companyId) {
         setSelectedCompanyId(currentCompany.companyId)

@@ -592,61 +592,61 @@ export const useAuthStore = create<AuthState>()(
          * 4. Graceful error recovery
          */
         switchCompany: async (companyId: string, fetchDecimals = true) => {
-          console.log("🏢 STEP 1: Company Switch Initiated")
-          console.log("📊 Switch Parameters:", {
-            newCompanyId: companyId,
-            fetchDecimals: fetchDecimals,
-          })
+          // console.log("🏢 STEP 1: Company Switch Initiated")
+          // console.log("📊 Switch Parameters:", {
+          //   newCompanyId: companyId,
+          //   fetchDecimals: fetchDecimals,
+          // })
 
           const { companies, currentCompany } = get()
-          console.log("📋 Current State:", {
-            currentCompanyId: currentCompany?.companyId,
-            currentCompanyName: currentCompany?.companyName,
-            availableCompanies: companies.length,
-            isAuthenticated: get().isAuthenticated,
-            companiesList: companies.map((c) => ({
-              id: c.companyId,
-              name: c.companyName,
-            })),
-          })
+          // console.log("📋 Current State:", {
+          //   currentCompanyId: currentCompany?.companyId,
+          //   currentCompanyName: currentCompany?.companyName,
+          //   availableCompanies: companies.length,
+          //   isAuthenticated: get().isAuthenticated,
+          //   companiesList: companies.map((c) => ({
+          //     id: c.companyId,
+          //     name: c.companyName,
+          //   })),
+          // })
 
           // Check if user needs to select a company first
           if (!currentCompany && companies.length > 0) {
             console.warn(
               "⚠️ NO COMPANY SELECTED: User is authenticated but no company is selected"
             )
-            console.log(
-              "💡 SOLUTION: User should be redirected to company selection page"
-            )
-            console.log("🔗 Expected URL: /company-select")
+            // console.log(
+            //   "💡 SOLUTION: User should be redirected to company selection page"
+            // )
+            // console.log("🔗 Expected URL: /company-select")
           }
 
           try {
-            console.log("🔍 STEP 2: Validating company ID")
+            // console.log("🔍 STEP 2: Validating company ID")
             if (!companyId) {
               console.error("❌ STEP 2 FAILED: Company ID is required")
               throw new Error("Company ID is required")
             }
-            console.log("✅ STEP 2 PASSED: Company ID is valid")
+            // console.log("✅ STEP 2 PASSED: Company ID is valid")
 
-            console.log("🔄 STEP 3: Checking if company is already selected")
+            // console.log("🔄 STEP 3: Checking if company is already selected")
             if (currentCompany?.companyId === companyId) {
-              console.log(
-                "ℹ️ STEP 3: Company already selected, no action needed"
-              )
+              // console.log(
+              //   "ℹ️ STEP 3: Company already selected, no action needed"
+              // )
               return currentCompany
             }
-            console.log("✅ STEP 3: Company switch needed")
+            // console.log("✅ STEP 3: Company switch needed")
 
-            console.log("🔍 STEP 4: Finding company in available companies")
+            // console.log("🔍 STEP 4: Finding company in available companies")
             const company = companies.find(
               (c) => c.companyId.toString() === companyId
             )
-            console.log("📊 Company search result:", {
-              found: !!company,
-              companyName: company?.companyName,
-              companyId: company?.companyId,
-            })
+            // console.log("📊 Company search result:", {
+            //   found: !!company,
+            //   companyName: company?.companyName,
+            //   companyId: company?.companyId,
+            // })
 
             if (!company) {
               console.error("❌ STEP 4 FAILED: Company not found")
@@ -654,74 +654,74 @@ export const useAuthStore = create<AuthState>()(
                 `Company with ID ${companyId} not found. Please select a valid company.`
               )
             }
-            console.log("✅ STEP 4 PASSED: Company found")
+            // console.log("✅ STEP 4 PASSED: Company found")
 
-            console.log("🔄 STEP 5: Updating sessionStorage (tab-specific)")
-            console.log("📊 Before sessionStorage update:", {
-              oldSessionStorage: sessionStorage.getItem("tab_company_id"),
-              newCompanyId: companyId,
-            })
+            // console.log("🔄 STEP 5: Updating sessionStorage (tab-specific)")
+            // console.log("📊 Before sessionStorage update:", {
+            //   oldSessionStorage: sessionStorage.getItem("tab_company_id"),
+            //   newCompanyId: companyId,
+            // })
             get().setCurrentTabCompanyId(companyId)
-            console.log("📊 After sessionStorage update:", {
-              newSessionStorage: sessionStorage.getItem("tab_company_id"),
-              matches: sessionStorage.getItem("tab_company_id") === companyId,
-            })
-            console.log("✅ STEP 5: sessionStorage updated")
+            // console.log("📊 After sessionStorage update:", {
+            //   newSessionStorage: sessionStorage.getItem("tab_company_id"),
+            //   matches: sessionStorage.getItem("tab_company_id") === companyId,
+            // })
+            // console.log("✅ STEP 5: sessionStorage updated")
 
-            console.log("🔄 STEP 6: Updating Zustand store (global state)")
-            console.log("📊 Before Zustand update:", {
-              oldCurrentCompany: currentCompany?.companyId,
-              newCompanyId: companyId,
-            })
+            // console.log("🔄 STEP 6: Updating Zustand store (global state)")
+            // console.log("📊 Before Zustand update:", {
+            //   oldCurrentCompany: currentCompany?.companyId,
+            //   newCompanyId: companyId,
+            // })
             set({ currentCompany: company })
-            console.log("📊 After Zustand update:", {
-              newCurrentCompany: get().currentCompany?.companyId,
-              matches: get().currentCompany?.companyId === companyId,
-            })
-            console.log("✅ STEP 6: Zustand store updated")
+            // console.log("📊 After Zustand update:", {
+            //   newCurrentCompany: get().currentCompany?.companyId,
+            //   matches: get().currentCompany?.companyId === companyId,
+            // })
+            // console.log("✅ STEP 6: Zustand store updated")
 
-            console.log("🔄 STEP 7: Preparing background API calls")
+            // console.log("🔄 STEP 7: Preparing background API calls")
             const apiPromises = []
-            console.log("📋 API calls to execute:", {
-              fetchDecimals: fetchDecimals,
-              getUserTransactions: true,
-              getPermissions: true,
-            })
+            // console.log("📋 API calls to execute:", {
+            //   fetchDecimals: fetchDecimals,
+            //   getUserTransactions: true,
+            //   getPermissions: true,
+            // })
 
             if (fetchDecimals) {
-              console.log("📊 STEP 7a: Adding getDecimals() to API queue")
-              console.log("🔍 Company ID check before getDecimals():", {
-                sessionStorage: sessionStorage.getItem("tab_company_id"),
-                zustandStore: get().currentCompany?.companyId,
-                targetCompanyId: companyId,
-              })
+              // console.log("📊 STEP 7a: Adding getDecimals() to API queue")
+              // console.log("🔍 Company ID check before getDecimals():", {
+              //   sessionStorage: sessionStorage.getItem("tab_company_id"),
+              //   zustandStore: get().currentCompany?.companyId,
+              //   targetCompanyId: companyId,
+              // })
               apiPromises.push(get().getDecimals())
             }
 
-            console.log("🔐 STEP 7b: Adding getUserTransactions() to API queue")
-            console.log("🔍 Company ID check before getUserTransactions():", {
-              sessionStorage: sessionStorage.getItem("tab_company_id"),
-              zustandStore: get().currentCompany?.companyId,
-              targetCompanyId: companyId,
-            })
+            // console.log("🔐 STEP 7b: Adding getUserTransactions() to API queue")
+            // console.log("🔍 Company ID check before getUserTransactions():", {
+            //   sessionStorage: sessionStorage.getItem("tab_company_id"),
+            //   zustandStore: get().currentCompany?.companyId,
+            //   targetCompanyId: companyId,
+            // })
             apiPromises.push(
               get()
                 .getUserTransactions()
                 .then(() => {})
             )
 
-            console.log("🚀 STEP 8: Executing background API calls in parallel")
-            console.log("📊 Total API calls:", apiPromises.length)
+            // console.log("🚀 STEP 8: Executing background API calls in parallel")
+            // console.log("📊 Total API calls:", apiPromises.length)
 
             // Execute all API calls in parallel, don't block the return
             Promise.allSettled(apiPromises).then((results) => {
-              console.log("📊 STEP 9: Background API calls completed")
-              console.log("📋 Results summary:", {
-                total: results.length,
-                fulfilled: results.filter((r) => r.status === "fulfilled")
-                  .length,
-                rejected: results.filter((r) => r.status === "rejected").length,
-              })
+              // console.log("📊 STEP 9: Background API calls completed")
+              // console.log("📋 Results summary:", {
+              //   total: results.length,
+              //   fulfilled: results.filter((r) => r.status === "fulfilled")
+              //     .length,
+              //   rejected: results.filter((r) => r.status === "rejected").length,
+              // })
 
               results.forEach((result, index) => {
                 if (result.status === "rejected") {
@@ -729,35 +729,36 @@ export const useAuthStore = create<AuthState>()(
                     `❌ Background API call ${index} failed:`,
                     result.reason
                   )
-                } else {
-                  console.log(`✅ Background API call ${index} succeeded`)
                 }
+                // else {
+                //   console.log(`✅ Background API call ${index} succeeded`)
+                // }
               })
             })
 
-            console.log("✅ STEP 10: Company switch completed successfully")
-            console.log("🎯 Final result:", {
-              newCompanyId: company.companyId,
-              newCompanyName: company.companyName,
-              apiCallsInProgress: apiPromises.length,
-            })
+            // console.log("✅ STEP 10: Company switch completed successfully")
+            // console.log("🎯 Final result:", {
+            //   newCompanyId: company.companyId,
+            //   newCompanyName: company.companyName,
+            //   apiCallsInProgress: apiPromises.length,
+            // })
 
             // Return immediately for fast navigation
             return company
           } catch (error) {
             console.error("❌ STEP FAILED: Company switch failed:", error)
-            console.log("🔄 Error details:", {
-              error: error instanceof Error ? error.message : "Unknown error",
-              companyId: companyId,
-              currentCompany: currentCompany?.companyId,
-            })
+            // console.log("🔄 Error details:", {
+            //   error: error instanceof Error ? error.message : "Unknown error",
+            //   companyId: companyId,
+            //   currentCompany: currentCompany?.companyId,
+            // })
 
             // Rollback optimistic update on validation error
             if (currentCompany) {
-              console.log(
-                "🔄 Rolling back to previous company:",
-                currentCompany.companyId
-              )
+              // console.log(
+              //   "🔄 Rolling back to previous company:",
+              //   currentCompany.companyId
+              // )
               set({ currentCompany })
             }
             throw new Error(

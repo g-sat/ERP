@@ -34,7 +34,7 @@ export default function AccessDenied() {
 
   const handleLoginWithDifferentAccount = async () => {
     try {
-      console.log("🔄 Clearing session for different account login...")
+      //console.log("🔄 Clearing session for different account login...")
       // Clear all session data
       await logOut()
       Cookies.remove("auth-token")
@@ -49,7 +49,7 @@ export default function AccessDenied() {
         sessionStorage.clear()
       }
 
-      console.log("✅ Session cleared, redirecting to login...")
+      //console.log("✅ Session cleared, redirecting to login...")
       router.push("/login")
     } catch (error) {
       console.error("❌ Error clearing session:", error)

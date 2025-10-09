@@ -56,24 +56,24 @@ export function useSessionExpiry() {
     const handleMessage = (event: MessageEvent) => {
       const { type, data } = event.data
 
-      console.log("📡 [SessionExpiry] Received message:", { type, data })
+      // console.log("📡 [SessionExpiry] Received message:", { type, data })
 
       switch (type) {
         case "SHOW_MODAL":
-          console.log("📡 [SessionExpiry] Received show modal from another tab")
+          // console.log("📡 [SessionExpiry] Received show modal from another tab")
           setShowModal(true)
           setTimeRemaining(data.timeRemaining)
           setWarningShown(true)
           break
         case "HIDE_MODAL":
-          console.log("📡 [SessionExpiry] Received hide modal from another tab")
+          // console.log("📡 [SessionExpiry] Received hide modal from another tab")
           setShowModal(false)
           setWarningShown(false)
           break
         case "TOKEN_REFRESHED":
-          console.log(
-            "📡 [SessionExpiry] Received token refresh from another tab"
-          )
+          // console.log(
+          //   "📡 [SessionExpiry] Received token refresh from another tab"
+          // )
           setShowModal(false)
           setWarningShown(false)
           break
@@ -161,7 +161,7 @@ export function useSessionExpiry() {
 
   // Force close modal - used when token refresh is successful
   const forceCloseModal = useCallback(() => {
-    console.log("🔄 [SessionExpiry] Force closing modal")
+    // console.log("🔄 [SessionExpiry] Force closing modal")
     setShowModal(false)
     setWarningShown(false)
     setTokenRefreshInProgress(false)
@@ -187,11 +187,11 @@ export function useSessionExpiry() {
   const handleStaySignedIn = useCallback(async () => {
     // Prevent multiple clicks
     if (isRefreshing || tokenRefreshInProgress) {
-      console.log("🔄 [SessionExpiry] Already refreshing, ignoring click")
+      // console.log("🔄 [SessionExpiry] Already refreshing, ignoring click")
       return
     }
 
-    console.log("🔄 [SessionExpiry] Stay signed in clicked")
+    // console.log("🔄 [SessionExpiry] Stay signed in clicked")
     setIsRefreshing(true)
     setTokenRefreshInProgress(true)
 
@@ -200,11 +200,11 @@ export function useSessionExpiry() {
 
     // Refresh the token to extend session
     try {
-      console.log("🔄 [SessionExpiry] Refreshing token...")
+      // console.log("🔄 [SessionExpiry] Refreshing token...")
 
       // Add timeout to prevent infinite loading
       const refreshPromise = refreshToken()
-      console.log("🔄 [SessionExpiry] Refresh promise:", refreshPromise)
+      // console.log("🔄 [SessionExpiry] Refresh promise:", refreshPromise)
       const timeoutPromise = new Promise((_, reject) =>
         setTimeout(() => reject(new Error("Token refresh timeout")), 10000)
       )
@@ -214,27 +214,27 @@ export function useSessionExpiry() {
         timeoutPromise,
       ])) as string | null
 
-      console.log("🔄 [SessionExpiry] Token refresh result:", {
-        success: !!newToken,
-        tokenLength: newToken?.length || 0,
-        tokenPreview: newToken ? `${newToken.substring(0, 20)}...` : null,
-      })
+      // console.log("🔄 [SessionExpiry] Token refresh result:", {
+      //   success: !!newToken,
+      //   tokenLength: newToken?.length || 0,
+      //   tokenPreview: newToken ? `${newToken.substring(0, 20)}...` : null,
+      // })
 
       if (newToken && newToken.length > 0) {
-        console.log("✅ [SessionExpiry] Token refreshed successfully")
+        // console.log("✅ [SessionExpiry] Token refreshed successfully")
 
         // Success - force close modal and reset all states
-        console.log("🔄 [SessionExpiry] Calling forceCloseModal...")
+        // console.log("🔄 [SessionExpiry] Calling forceCloseModal...")
         forceCloseModal()
 
         // Broadcast success to other tabs
         broadcastToOtherTabs("TOKEN_REFRESHED")
 
-        console.log("✅ [SessionExpiry] Modal should now be closed")
+        // console.log("✅ [SessionExpiry] Modal should now be closed")
 
         // Add a backup timeout to force close modal if it doesn't close
         setTimeout(() => {
-          console.log("🔄 [SessionExpiry] Backup timeout - forcing modal close")
+          // console.log("🔄 [SessionExpiry] Backup timeout - forcing modal close")
           setShowModal(false)
           setWarningShown(false)
           setTokenRefreshInProgress(false)
@@ -246,11 +246,11 @@ export function useSessionExpiry() {
           const now = Date.now()
           const tokenExpiry = getTokenExpiry(newToken)
           const timeUntilExpiry = tokenExpiry - now
-          console.log(
-            "🔄 [SessionExpiry] New token expiry time:",
-            Math.floor(timeUntilExpiry / 1000),
-            "seconds"
-          )
+          // console.log(
+          //   "🔄 [SessionExpiry] New token expiry time:",
+          //   Math.floor(timeUntilExpiry / 1000),
+          //   "seconds"
+          // )
         }, 100)
       } else {
         console.warn(
@@ -287,12 +287,12 @@ export function useSessionExpiry() {
 
   // Debug modal state changes
   useEffect(() => {
-    console.log("🔍 [SessionExpiry] Modal state changed:", {
-      showModal,
-      isRefreshing,
-      warningShown,
-      timeRemaining,
-    })
+    //console.log("🔍 [SessionExpiry] Modal state changed:", {
+    //showModal,
+    //isRefreshing,
+    //warningShown,
+    //timeRemaining,
+    //})
   }, [showModal, isRefreshing, warningShown, timeRemaining])
 
   // Check session expiry
@@ -314,18 +314,18 @@ export function useSessionExpiry() {
 
       // Debug logging with more details (development only)
       if (process.env.NODE_ENV === "development") {
-        console.log("🔍 [SessionExpiry] Debug info:", {
-          isAuthenticated,
-          token: token ? `${token.substring(0, 20)}...` : null,
-          timeUntilExpiry: Math.floor(timeUntilExpiry / 1000),
-          warningTimeMs: Math.floor(warningTimeMs / 1000),
-          warningShown,
-          config: {
-            enabled: config.enabled,
-            warningTimeMinutes: config.warningTimeMinutes,
-            sessionTimeoutMinutes: config.sessionTimeoutMinutes,
-          },
-        })
+        //console.log("🔍 [SessionExpiry] Debug info:", {
+        //isAuthenticated,
+        //token: token ? `${token.substring(0, 20)}...` : null,
+        //timeUntilExpiry: Math.floor(timeUntilExpiry / 1000),
+        //warningTimeMs: Math.floor(warningTimeMs / 1000),
+        //warningShown,
+        //config: {
+        //enabled: config.enabled,
+        //warningTimeMinutes: config.warningTimeMinutes,
+        //sessionTimeoutMinutes: config.sessionTimeoutMinutes,
+        //},
+        //})
       }
 
       // Show warning if we're within the warning time and haven't shown it yet
@@ -337,11 +337,11 @@ export function useSessionExpiry() {
         !warningShown &&
         !tokenRefreshInProgress
       ) {
-        console.log(
-          "⚠️ [SessionExpiry] Showing modal - time until expiry:",
-          Math.floor(timeUntilExpiry / 1000),
-          "seconds"
-        )
+        // console.log(
+        //   "⚠️ [SessionExpiry] Showing modal - time until expiry:",
+        //   Math.floor(timeUntilExpiry / 1000),
+        //   "seconds"
+        // )
         const timeRemainingSeconds = Math.floor(timeUntilExpiry / 1000)
         setTimeRemaining(timeRemainingSeconds)
         setShowModal(true)
@@ -403,7 +403,7 @@ export function useSessionExpiry() {
 
   // Test function to manually trigger session expiry modal
   const testSessionExpiry = useCallback(() => {
-    console.log("🧪 [SessionExpiry] Test function called")
+    // console.log("🧪 [SessionExpiry] Test function called")
     setTimeRemaining(300) // 5 minutes
     setShowModal(true)
     setWarningShown(true)
@@ -411,7 +411,7 @@ export function useSessionExpiry() {
     // Broadcast test modal to other tabs
     broadcastToOtherTabs("SHOW_MODAL", { timeRemaining: 300 })
 
-    console.log("🧪 [SessionExpiry] Modal should now be visible on all tabs")
+    // console.log("🧪 [SessionExpiry] Modal should now be visible on all tabs")
   }, [broadcastToOtherTabs])
 
   // Expose test function to window for debugging (development only)

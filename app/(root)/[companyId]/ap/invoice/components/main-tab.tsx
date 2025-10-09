@@ -1,7 +1,7 @@
 // main-tab.tsx - IMPROVED VERSION
 "use client"
 
-import React, { useEffect, useState } from "react"
+import { useEffect, useState } from "react"
 import {
   calculateCountryAmounts,
   calculateLocalAmounts,
@@ -15,8 +15,6 @@ import {
 } from "@/schemas/ap-invoice"
 import { useAuthStore } from "@/stores/auth-store"
 import { UseFormReturn } from "react-hook-form"
-
-import { Separator } from "@/components/ui/separator"
 
 import InvoiceDetailsForm from "./invoice-details-form"
 import InvoiceDetailsTable from "./invoice-details-table"
@@ -49,6 +47,13 @@ export default function Main({
 
   // Watch data_details for reactive updates
   const dataDetails = form.watch("data_details") || []
+
+  // Clear editingDetail when data_details is reset/cleared
+  useEffect(() => {
+    if (dataDetails.length === 0 && editingDetail) {
+      setEditingDetail(null)
+    }
+  }, [dataDetails.length, editingDetail])
 
   // Recalculate header totals when details change
   useEffect(() => {
@@ -98,10 +103,6 @@ export default function Main({
 
   const handleAddRow = (rowData: IApInvoiceDt) => {
     const currentData = form.getValues("data_details") || []
-    console.log("Adding row:", {
-      rowData,
-      currentDataLength: currentData.length,
-    })
 
     if (editingDetail) {
       // Update existing row by itemNo (unique identifier)
@@ -113,10 +114,7 @@ export default function Main({
         updatedData as unknown as ApInvoiceDtSchemaType[],
         { shouldDirty: true, shouldTouch: true }
       )
-      console.log("Row updated:", {
-        itemNo: editingDetail.itemNo,
-        newDataLength: updatedData.length,
-      })
+
       setEditingDetail(null)
     } else {
       // Add new row
@@ -126,10 +124,6 @@ export default function Main({
         updatedData as unknown as ApInvoiceDtSchemaType[],
         { shouldDirty: true, shouldTouch: true }
       )
-      console.log("Row added:", {
-        itemNo: rowData.itemNo,
-        newDataLength: updatedData.length,
-      })
     }
 
     // Trigger form validation
@@ -153,8 +147,10 @@ export default function Main({
   }
 
   const handleEdit = (detail: IApInvoiceDt) => {
+    console.log("Editing detail:", detail)
     // Convert IApInvoiceDt to ApInvoiceDtSchemaType and set for editing
     setEditingDetail(detail as unknown as ApInvoiceDtSchemaType)
+    console.log("Editing editingDetail:", editingDetail)
   }
 
   const handleCancelEdit = () => {
@@ -175,29 +171,29 @@ export default function Main({
         required={required}
         companyId={companyId}
       />
-      <Separator />
+      <div className="rounded-lg border p-4 shadow-sm">
+        <InvoiceDetailsForm
+          Hdform={form}
+          onAddRowAction={handleAddRow}
+          onCancelEdit={editingDetail ? handleCancelEdit : undefined}
+          editingDetail={editingDetail}
+          companyId={companyId}
+          visible={visible}
+          required={required}
+          existingDetails={dataDetails as ApInvoiceDtSchemaType[]}
+        />
 
-      <InvoiceDetailsForm
-        Hdform={form}
-        onAddRowAction={handleAddRow}
-        onCancelEdit={editingDetail ? handleCancelEdit : undefined}
-        editingDetail={editingDetail}
-        companyId={companyId}
-        visible={visible}
-        required={required}
-        existingDetails={dataDetails as ApInvoiceDtSchemaType[]}
-      />
-
-      <InvoiceDetailsTable
-        data={(dataDetails as unknown as IApInvoiceDt[]) || []}
-        visible={visible}
-        onDelete={handleDelete}
-        onBulkDelete={handleBulkDelete}
-        onEdit={handleEdit as (template: IApInvoiceDt) => void}
-        onRefresh={() => {}} // Add refresh logic if needed
-        onFilterChange={() => {}} // Add filter logic if needed
-        onDataReorder={handleDataReorder as (newData: IApInvoiceDt[]) => void}
-      />
+        <InvoiceDetailsTable
+          data={(dataDetails as unknown as IApInvoiceDt[]) || []}
+          visible={visible}
+          onDelete={handleDelete}
+          onBulkDelete={handleBulkDelete}
+          onEdit={handleEdit as (template: IApInvoiceDt) => void}
+          onRefresh={() => {}} // Add refresh logic if needed
+          onFilterChange={() => {}} // Add filter logic if needed
+          onDataReorder={handleDataReorder as (newData: IApInvoiceDt[]) => void}
+        />
+      </div>
     </div>
   )
 }

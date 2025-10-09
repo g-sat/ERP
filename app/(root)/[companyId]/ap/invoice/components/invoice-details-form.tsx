@@ -86,7 +86,6 @@ export default function InvoiceDetailsForm({
   const amtDec = decimals[0]?.amtDec || 2
   const locAmtDec = decimals[0]?.locAmtDec || 2
   const qtyDec = decimals[0]?.qtyDec || 2
-
   // State to manage job-specific vs department-specific rendering
   const [isJobSpecific, setIsJobSpecific] = useState(false)
 
@@ -108,16 +107,23 @@ export default function InvoiceDetailsForm({
           seqNo: editingDetail.seqNo ?? getNextItemNo(),
           docItemNo: editingDetail.docItemNo ?? getNextItemNo(),
           productId: editingDetail.productId ?? 0,
+          productCode: editingDetail.productCode ?? "",
+          productName: editingDetail.productName ?? "",
           glId: editingDetail.glId ?? 0,
+          glCode: editingDetail.glCode ?? "",
+          glName: editingDetail.glName ?? "",
           qty: editingDetail.qty ?? 0,
           billQTY: editingDetail.billQTY ?? 0,
           uomId: editingDetail.uomId ?? 0,
+          uomCode: editingDetail.uomCode ?? "",
+          uomName: editingDetail.uomName ?? "",
           unitPrice: editingDetail.unitPrice ?? 0,
           totAmt: editingDetail.totAmt ?? 0,
           totLocalAmt: editingDetail.totLocalAmt ?? 0,
           totCtyAmt: editingDetail.totCtyAmt ?? 0,
           remarks: editingDetail.remarks ?? "",
           gstId: editingDetail.gstId ?? 0,
+          gstName: editingDetail.gstName ?? "",
           gstPercentage: editingDetail.gstPercentage ?? 0,
           gstAmt: editingDetail.gstAmt ?? 0,
           gstLocalAmt: editingDetail.gstLocalAmt ?? 0,
@@ -201,16 +207,21 @@ export default function InvoiceDetailsForm({
 
     if (editingDetail) {
       // Determine if editing detail is job-specific or department-specific
+      // Infer initial mode from existing data
       const hasJobOrder = (editingDetail.jobOrderId ?? 0) > 0
       const hasDepartment = (editingDetail.departmentId ?? 0) > 0
 
-      // Set isJobSpecific based on existing data
       if (hasJobOrder) {
         setIsJobSpecific(true)
       } else if (hasDepartment) {
         setIsJobSpecific(false)
+      } else {
+        // Both are 0: Default to department mode
+        // The Chart of Account autocomplete already has the COA data loaded
+        // When it renders, it will trigger handleChartOfAccountChange if needed
+        // which will auto-correct the mode based on the COA's isJobSpecific property
+        setIsJobSpecific(false)
       }
-      // If neither, keep current state
 
       form.reset({
         invoiceId: editingDetail.invoiceId ?? "0",
@@ -275,7 +286,7 @@ export default function InvoiceDetailsForm({
       setIsJobSpecific(false) // Default to department-specific for new records
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [editingDetail])
+  }, [editingDetail, existingDetails.length])
 
   const onSubmit = async (data: ApInvoiceDtSchemaType) => {
     try {
@@ -403,7 +414,6 @@ export default function InvoiceDetailsForm({
     selectedOption: IChartofAccountLookup | null
   ) => {
     if (selectedOption) {
-      console.log(selectedOption)
       form.setValue("glId", selectedOption.glId, {
         shouldValidate: true,
         shouldDirty: true,
@@ -411,14 +421,16 @@ export default function InvoiceDetailsForm({
       form.setValue("glCode", selectedOption.glCode || "")
       form.setValue("glName", selectedOption.glName || "")
 
-      // Use the actual isJobSpecific property from the chart of account data
+      // CRITICAL: Use the actual isJobSpecific property from the chart of account data
+      // This determines which fields will be shown/required
       const isJobSpecificAccount = selectedOption.isJobSpecific || false
 
       setIsJobSpecific(isJobSpecificAccount)
 
       // Reset dependent fields when switching between job-specific and department-specific
+      // This prevents invalid data from being submitted
       if (!isJobSpecificAccount) {
-        // If switching to department-specific, reset job-related fields
+        // Department-Specific: Reset job-related fields
         form.setValue("jobOrderId", 0, { shouldValidate: true })
         form.setValue("jobOrderNo", "")
         form.setValue("taskId", 0, { shouldValidate: true })
@@ -426,7 +438,7 @@ export default function InvoiceDetailsForm({
         form.setValue("serviceId", 0, { shouldValidate: true })
         form.setValue("serviceName", "")
       } else {
-        // If switching to job-specific, reset department field
+        // Job-Specific: Reset department field
         form.setValue("departmentId", 0, { shouldValidate: true })
         form.setValue("departmentCode", "")
         form.setValue("departmentName", "")
@@ -445,7 +457,6 @@ export default function InvoiceDetailsForm({
   // Handle job order selection
   const handleJobOrderChange = (selectedOption: IJobOrderLookup | null) => {
     if (selectedOption) {
-      console.log("Job Order selected:", selectedOption)
       form.setValue("jobOrderId", selectedOption.jobOrderId, {
         shouldValidate: true,
         shouldDirty: true,
@@ -460,7 +471,6 @@ export default function InvoiceDetailsForm({
   // Handle task selection
   const handleTaskChange = (selectedOption: ITaskLookup | null) => {
     if (selectedOption) {
-      console.log("Task selected:", selectedOption)
       form.setValue("taskId", selectedOption.taskId, {
         shouldValidate: true,
         shouldDirty: true,
@@ -474,7 +484,6 @@ export default function InvoiceDetailsForm({
   // Handle service selection
   const handleServiceChange = (selectedOption: IServiceLookup | null) => {
     if (selectedOption) {
-      console.log("Service selected:", selectedOption)
       form.setValue("serviceId", selectedOption.serviceId, {
         shouldValidate: true,
         shouldDirty: true,
@@ -525,7 +534,6 @@ export default function InvoiceDetailsForm({
   // Handle UOM selection
   const handleUomChange = (selectedOption: IUomLookup | null) => {
     if (selectedOption) {
-      console.log("UOM selected:", selectedOption)
       form.setValue("uomId", selectedOption.uomId, {
         shouldValidate: true,
         shouldDirty: true,
@@ -538,7 +546,6 @@ export default function InvoiceDetailsForm({
   // Handle Port selection
   const handlePortChange = (selectedOption: IPortLookup | null) => {
     if (selectedOption) {
-      console.log("Port selected:", selectedOption)
       form.setValue("portId", selectedOption.portId, {
         shouldValidate: true,
         shouldDirty: true,
@@ -551,7 +558,6 @@ export default function InvoiceDetailsForm({
   // Handle Vessel selection
   const handleVesselChange = (selectedOption: IVesselLookup | null) => {
     if (selectedOption) {
-      console.log("Vessel selected:", selectedOption)
       form.setValue("vesselId", selectedOption.vesselId, {
         shouldValidate: true,
         shouldDirty: true,
@@ -564,7 +570,6 @@ export default function InvoiceDetailsForm({
   // Handle Voyage selection
   const handleVoyageChange = (selectedOption: IVoyageLookup | null) => {
     if (selectedOption) {
-      console.log("Voyage selected:", selectedOption)
       form.setValue("voyageId", selectedOption.voyageId, {
         shouldValidate: true,
         shouldDirty: true,
@@ -753,10 +758,24 @@ export default function InvoiceDetailsForm({
             companyId={companyId}
           />
 
-          {/* Conditional rendering based on isJobSpecific */}
+          {/* 
+            CONDITIONAL RENDERING BASED ON CHART OF ACCOUNT TYPE
+            =====================================================
+            If Chart of Account is Job-Specific (isJobSpecific = true):
+              - Shows: Job Order → Task → Service (cascading dropdowns)
+              - Hides: Department
+            
+            If Chart of Account is Department-Specific (isJobSpecific = false):
+              - Shows: Department
+              - Hides: Job Order, Task, Service
+            
+            The isJobSpecific state is set by:
+            1. Chart of Account selection (handleChartOfAccountChange)
+            2. Edit mode detection (useEffect checking existing jobOrderId/departmentId)
+          */}
           {isJobSpecific ? (
             <>
-              {/* Job Order Components */}
+              {/* JOB-SPECIFIC MODE: Job Order → Task → Service */}
               {visible?.m_JobOrderId && (
                 <JobOrderAutocomplete
                   form={form}
@@ -794,7 +813,7 @@ export default function InvoiceDetailsForm({
             </>
           ) : (
             <>
-              {/* Department Component */}
+              {/* DEPARTMENT-SPECIFIC MODE: Department only */}
               {visible?.m_DepartmentId && (
                 <DepartmentAutocomplete
                   form={form}
@@ -804,10 +823,6 @@ export default function InvoiceDetailsForm({
                   onChangeEvent={handleDepartmentChange}
                 />
               )}
-
-              {/* Empty divs to maintain grid layout */}
-              {/*<div></div> */}
-              {/*<div></div> */}
             </>
           )}
 
