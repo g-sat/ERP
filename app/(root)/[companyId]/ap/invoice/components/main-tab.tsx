@@ -147,10 +147,10 @@ export default function Main({
   }
 
   const handleEdit = (detail: IApInvoiceDt) => {
-    console.log("Editing detail:", detail)
+    // console.log("Editing detail:", detail)
     // Convert IApInvoiceDt to ApInvoiceDtSchemaType and set for editing
     setEditingDetail(detail as unknown as ApInvoiceDtSchemaType)
-    console.log("Editing editingDetail:", editingDetail)
+    // console.log("Editing editingDetail:", editingDetail)
   }
 
   const handleCancelEdit = () => {

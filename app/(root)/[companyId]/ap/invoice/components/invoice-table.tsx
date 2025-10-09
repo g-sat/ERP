@@ -105,12 +105,12 @@ export default function InvoiceTable({
       },
     },
     {
-      accessorKey: "customerCode",
-      header: "Customer Code",
+      accessorKey: "supplierCode",
+      header: "Supplier Code",
     },
     {
-      accessorKey: "customerName",
-      header: "Customer Name",
+      accessorKey: "supplierName",
+      header: "Supplier Name",
     },
     {
       accessorKey: "currencyCode",

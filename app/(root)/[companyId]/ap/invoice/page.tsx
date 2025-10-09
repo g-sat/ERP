@@ -71,6 +71,8 @@ export default function InvoicePage() {
   const [showResetConfirm, setShowResetConfirm] = useState(false)
   const [showCloneConfirm, setShowCloneConfirm] = useState(false)
   const [isLoadingInvoice, setIsLoadingInvoice] = useState(false)
+  const [isSelectingInvoice, setIsSelectingInvoice] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
   const [invoice, setInvoice] = useState<ApInvoiceHdSchemaType | null>(null)
   const [searchNo, setSearchNo] = useState("")
   const [activeTab, setActiveTab] = useState("main")
@@ -212,6 +214,13 @@ export default function InvoicePage() {
 
   // Handle Save
   const handleSaveInvoice = async () => {
+    // Prevent double-submit
+    if (isSaving || saveMutation.isPending || updateMutation.isPending) {
+      return
+    }
+
+    setIsSaving(true)
+
     try {
       // Get form values and validate them
       const formValues = transformToSchemaType(
@@ -239,18 +248,31 @@ export default function InvoicePage() {
           ? response.data[0]
           : response.data
 
-        // Transform API response back to form values if needed
+        // Transform API response back to form values
         if (invoiceData) {
           const updatedSchemaType = transformToSchemaType(
             invoiceData as unknown as IApInvoiceHd
           )
+          setIsSelectingInvoice(true)
           setInvoice(updatedSchemaType)
+          form.reset(updatedSchemaType)
+          form.trigger()
         }
 
         // Close the save confirmation dialog
         setShowSaveConfirm(false)
 
-        toast.success("Invoice saved successfully")
+        // Check if this was a new invoice or update
+        const wasNewInvoice = Number(formValues.invoiceId) === 0
+
+        if (wasNewInvoice) {
+          toast.success(
+            `Invoice ${invoiceData?.invoiceNo || ""} saved successfully`
+          )
+        } else {
+          toast.success("Invoice updated successfully")
+        }
+
         refetchInvoices()
       } else {
         toast.error(response.message || "Failed to save invoice")
@@ -258,6 +280,8 @@ export default function InvoicePage() {
     } catch (error) {
       console.error("Save error:", error)
       toast.error("Network error while saving invoice")
+    } finally {
+      setIsSaving(false)
     }
   }
 
@@ -308,7 +332,7 @@ export default function InvoicePage() {
           ...defaultInvoice,
           data_details: [],
         })
-        toast.success("Invoice deleted successfully")
+        //toast.success("Invoice deleted successfully")
         refetchInvoices()
       } else {
         toast.error(response.message || "Failed to delete invoice")
@@ -519,207 +543,211 @@ export default function InvoicePage() {
   const handleInvoiceSelect = async (
     selectedInvoice: IApInvoiceHd | undefined
   ) => {
-    if (selectedInvoice) {
-      // Transform API data to form values
-      const formValues = transformToSchemaType(selectedInvoice)
-      setInvoice(formValues)
+    if (!selectedInvoice) return
 
-      try {
-        // Fetch invoice details directly using selected invoice's values
-        const response = await getById(
-          `${ApInvoice.getByIdNo}/${selectedInvoice.invoiceId}/${selectedInvoice.invoiceNo}`
-        )
+    setIsSelectingInvoice(true)
 
-        if (response?.result === 1) {
-          const detailedInvoice = Array.isArray(response.data)
-            ? response.data[0]
-            : response.data
+    try {
+      // Fetch invoice details directly using selected invoice's values
+      const response = await getById(
+        `${ApInvoice.getByIdNo}/${selectedInvoice.invoiceId}/${selectedInvoice.invoiceNo}`
+      )
 
-          if (detailedInvoice) {
-            // Parse dates properly
-            const updatedInvoice = {
-              ...detailedInvoice,
-              invoiceId: detailedInvoice.invoiceId?.toString() ?? "0",
-              invoiceNo: detailedInvoice.invoiceNo ?? "",
-              referenceNo: detailedInvoice.referenceNo ?? "",
-              suppInvoiceNo: detailedInvoice.suppInvoiceNo ?? "",
-              trnDate: detailedInvoice.trnDate
-                ? format(
-                    parseDate(detailedInvoice.trnDate as string) || new Date(),
-                    clientDateFormat
-                  )
-                : clientDateFormat,
-              accountDate: detailedInvoice.accountDate
-                ? format(
-                    parseDate(detailedInvoice.accountDate as string) ||
-                      new Date(),
-                    clientDateFormat
-                  )
-                : clientDateFormat,
-              dueDate: detailedInvoice.dueDate
-                ? format(
-                    parseDate(detailedInvoice.dueDate as string) || new Date(),
-                    clientDateFormat
-                  )
-                : clientDateFormat,
-              deliveryDate: detailedInvoice.deliveryDate
-                ? format(
-                    parseDate(detailedInvoice.deliveryDate as string) ||
-                      new Date(),
-                    clientDateFormat
-                  )
-                : clientDateFormat,
-              gstClaimDate: detailedInvoice.gstClaimDate
-                ? format(
-                    parseDate(detailedInvoice.gstClaimDate as string) ||
-                      new Date(),
-                    clientDateFormat
-                  )
-                : clientDateFormat,
+      if (response?.result === 1) {
+        const detailedInvoice = Array.isArray(response.data)
+          ? response.data[0]
+          : response.data
 
-              supplierId: detailedInvoice.supplierId ?? 0,
-              currencyId: detailedInvoice.currencyId ?? 0,
-              exhRate: detailedInvoice.exhRate ?? 0,
-              ctyExhRate: detailedInvoice.ctyExhRate ?? 0,
-              creditTermId: detailedInvoice.creditTermId ?? 0,
-              bankId: detailedInvoice.bankId ?? 0,
-              totAmt: detailedInvoice.totAmt ?? 0,
-              totLocalAmt: detailedInvoice.totLocalAmt ?? 0,
-              totCtyAmt: detailedInvoice.totCtyAmt ?? 0,
-              gstAmt: detailedInvoice.gstAmt ?? 0,
-              gstLocalAmt: detailedInvoice.gstLocalAmt ?? 0,
-              gstCtyAmt: detailedInvoice.gstCtyAmt ?? 0,
-              totAmtAftGst: detailedInvoice.totAmtAftGst ?? 0,
-              totLocalAmtAftGst: detailedInvoice.totLocalAmtAftGst ?? 0,
-              totCtyAmtAftGst: detailedInvoice.totCtyAmtAftGst ?? 0,
-              balAmt: detailedInvoice.balAmt ?? 0,
-              balLocalAmt: detailedInvoice.balLocalAmt ?? 0,
-              payAmt: detailedInvoice.payAmt ?? 0,
-              payLocalAmt: detailedInvoice.payLocalAmt ?? 0,
-              exGainLoss: detailedInvoice.exGainLoss ?? 0,
-              operationId: detailedInvoice.operationId ?? 0,
-              operationNo: detailedInvoice.operationNo ?? "",
-              remarks: detailedInvoice.remarks ?? "",
-              addressId: detailedInvoice.addressId ?? 0, // Not available in IApInvoiceHd
-              contactId: detailedInvoice.contactId ?? 0, // Not available in IApInvoiceHd
-              address1: detailedInvoice.address1 ?? "",
-              address2: detailedInvoice.address2 ?? "",
-              address3: detailedInvoice.address3 ?? "",
-              address4: detailedInvoice.address4 ?? "",
-              pinCode: detailedInvoice.pinCode ?? "",
-              countryId: detailedInvoice.countryId ?? 0,
-              phoneNo: detailedInvoice.phoneNo ?? "",
-              faxNo: detailedInvoice.faxNo ?? "",
-              contactName: detailedInvoice.contactName ?? "",
-              mobileNo: detailedInvoice.mobileNo ?? "",
-              emailAdd: detailedInvoice.emailAdd ?? "",
-              moduleFrom: detailedInvoice.moduleFrom ?? "",
-              customerName: detailedInvoice.customerName ?? "",
-              arInvoiceId: detailedInvoice.arInvoiceId ?? "",
-              arInvoiceNo: detailedInvoice.arInvoiceNo ?? "",
-              editVersion: detailedInvoice.editVersion ?? 0,
-              purchaseOrderId: detailedInvoice.purchaseOrderId ?? 0,
-              purchaseOrderNo: detailedInvoice.purchaseOrderNo ?? "",
-              createBy: detailedInvoice.createBy ?? "",
-              createDate: detailedInvoice.createDate ?? "",
-              editBy: detailedInvoice.editBy ?? "",
-              editDate: detailedInvoice.editDate ?? "",
-              cancelBy: detailedInvoice.cancelBy ?? "",
-              cancelDate: detailedInvoice.cancelDate ?? "",
-              cancelRemarks: detailedInvoice.cancelRemarks ?? "",
-              data_details:
-                detailedInvoice.data_details?.map((detail: IApInvoiceDt) => ({
-                  invoiceId: detail.invoiceId?.toString() ?? "0",
-                  invoiceNo: detail.invoiceNo ?? "",
-                  itemNo: detail.itemNo ?? 0,
-                  seqNo: detail.seqNo ?? 0,
-                  docItemNo: detail.docItemNo ?? 0,
-                  productId: detail.productId ?? 0,
-                  productCode: detail.productCode ?? "",
-                  productName: detail.productName ?? "",
-                  glId: detail.glId ?? 0,
-                  glCode: detail.glCode ?? "",
-                  glName: detail.glName ?? "",
-                  qty: detail.qty ?? 0,
-                  billQTY: detail.billQTY ?? 0,
-                  uomId: detail.uomId ?? 0,
-                  uomCode: detail.uomCode ?? "",
-                  uomName: detail.uomName ?? "",
-                  unitPrice: detail.unitPrice ?? 0,
-                  totAmt: detail.totAmt ?? 0,
-                  totLocalAmt: detail.totLocalAmt ?? 0,
-                  totCtyAmt: detail.totCtyAmt ?? 0,
-                  remarks: detail.remarks ?? "",
-                  gstId: detail.gstId ?? 0,
-                  gstName: detail.gstName ?? "",
-                  gstPercentage: detail.gstPercentage ?? 0,
-                  gstAmt: detail.gstAmt ?? 0,
-                  gstLocalAmt: detail.gstLocalAmt ?? 0,
-                  gstCtyAmt: detail.gstCtyAmt ?? 0,
-                  deliveryDate: detail.deliveryDate
-                    ? format(
-                        parseDate(detail.deliveryDate as string) || new Date(),
-                        clientDateFormat
-                      )
-                    : "",
-                  departmentId: detail.departmentId ?? 0,
-                  departmentCode: detail.departmentCode ?? "",
-                  departmentName: detail.departmentName ?? "",
-                  jobOrderId: detail.jobOrderId ?? 0,
-                  jobOrderNo: detail.jobOrderNo ?? "",
-                  taskId: detail.taskId ?? 0,
-                  taskName: detail.taskName ?? "",
-                  serviceId: detail.serviceId ?? 0,
-                  serviceName: detail.serviceName ?? "",
-                  employeeId: detail.employeeId ?? 0,
-                  employeeCode: detail.employeeCode ?? "",
-                  employeeName: detail.employeeName ?? "",
-                  portId: detail.portId ?? 0,
-                  portCode: detail.portCode ?? "",
-                  portName: detail.portName ?? "",
-                  vesselId: detail.vesselId ?? 0,
-                  vesselCode: detail.vesselCode ?? "",
-                  vesselName: detail.vesselName ?? "",
-                  bargeId: detail.bargeId ?? 0,
-                  bargeCode: detail.bargeCode ?? "",
-                  bargeName: detail.bargeName ?? "",
-                  voyageId: detail.voyageId ?? 0,
-                  voyageNo: detail.voyageNo ?? "",
-                  operationId: detail.operationId ?? "",
-                  operationNo: detail.operationNo ?? "",
-                  opRefNo: detail.opRefNo ?? "",
-                  purchaseOrderId: detail.purchaseOrderId ?? "",
-                  purchaseOrderNo: detail.purchaseOrderNo ?? "",
-                  supplyDate: detail.supplyDate
-                    ? format(
-                        parseDate(detail.supplyDate as string) || new Date(),
-                        clientDateFormat
-                      )
-                    : "",
-                  customerName: detail.customerName ?? "",
-                  custInvoiceNo: detail.custInvoiceNo ?? "",
-                  arInvoiceId: detail.arInvoiceId ?? "",
-                  arInvoiceNo: detail.arInvoiceNo ?? "",
-                  editVersion: detail.editVersion ?? 0,
-                })) || [],
-            }
+        if (detailedInvoice) {
+          // Parse dates properly
+          const updatedInvoice = {
+            ...detailedInvoice,
+            invoiceId: detailedInvoice.invoiceId?.toString() ?? "0",
+            invoiceNo: detailedInvoice.invoiceNo ?? "",
+            referenceNo: detailedInvoice.referenceNo ?? "",
+            suppInvoiceNo: detailedInvoice.suppInvoiceNo ?? "",
+            trnDate: detailedInvoice.trnDate
+              ? format(
+                  parseDate(detailedInvoice.trnDate as string) || new Date(),
+                  clientDateFormat
+                )
+              : clientDateFormat,
+            accountDate: detailedInvoice.accountDate
+              ? format(
+                  parseDate(detailedInvoice.accountDate as string) ||
+                    new Date(),
+                  clientDateFormat
+                )
+              : clientDateFormat,
+            dueDate: detailedInvoice.dueDate
+              ? format(
+                  parseDate(detailedInvoice.dueDate as string) || new Date(),
+                  clientDateFormat
+                )
+              : clientDateFormat,
+            deliveryDate: detailedInvoice.deliveryDate
+              ? format(
+                  parseDate(detailedInvoice.deliveryDate as string) ||
+                    new Date(),
+                  clientDateFormat
+                )
+              : clientDateFormat,
+            gstClaimDate: detailedInvoice.gstClaimDate
+              ? format(
+                  parseDate(detailedInvoice.gstClaimDate as string) ||
+                    new Date(),
+                  clientDateFormat
+                )
+              : clientDateFormat,
 
-            //setInvoice(updatedInvoice as ApInvoiceHdSchemaType)
-            setInvoice(transformToSchemaType(updatedInvoice))
-            form.reset(updatedInvoice)
-            form.trigger()
+            supplierId: detailedInvoice.supplierId ?? 0,
+            currencyId: detailedInvoice.currencyId ?? 0,
+            exhRate: detailedInvoice.exhRate ?? 0,
+            ctyExhRate: detailedInvoice.ctyExhRate ?? 0,
+            creditTermId: detailedInvoice.creditTermId ?? 0,
+            bankId: detailedInvoice.bankId ?? 0,
+            totAmt: detailedInvoice.totAmt ?? 0,
+            totLocalAmt: detailedInvoice.totLocalAmt ?? 0,
+            totCtyAmt: detailedInvoice.totCtyAmt ?? 0,
+            gstAmt: detailedInvoice.gstAmt ?? 0,
+            gstLocalAmt: detailedInvoice.gstLocalAmt ?? 0,
+            gstCtyAmt: detailedInvoice.gstCtyAmt ?? 0,
+            totAmtAftGst: detailedInvoice.totAmtAftGst ?? 0,
+            totLocalAmtAftGst: detailedInvoice.totLocalAmtAftGst ?? 0,
+            totCtyAmtAftGst: detailedInvoice.totCtyAmtAftGst ?? 0,
+            balAmt: detailedInvoice.balAmt ?? 0,
+            balLocalAmt: detailedInvoice.balLocalAmt ?? 0,
+            payAmt: detailedInvoice.payAmt ?? 0,
+            payLocalAmt: detailedInvoice.payLocalAmt ?? 0,
+            exGainLoss: detailedInvoice.exGainLoss ?? 0,
+            operationId: detailedInvoice.operationId ?? 0,
+            operationNo: detailedInvoice.operationNo ?? "",
+            remarks: detailedInvoice.remarks ?? "",
+            addressId: detailedInvoice.addressId ?? 0, // Not available in IApInvoiceHd
+            contactId: detailedInvoice.contactId ?? 0, // Not available in IApInvoiceHd
+            address1: detailedInvoice.address1 ?? "",
+            address2: detailedInvoice.address2 ?? "",
+            address3: detailedInvoice.address3 ?? "",
+            address4: detailedInvoice.address4 ?? "",
+            pinCode: detailedInvoice.pinCode ?? "",
+            countryId: detailedInvoice.countryId ?? 0,
+            phoneNo: detailedInvoice.phoneNo ?? "",
+            faxNo: detailedInvoice.faxNo ?? "",
+            contactName: detailedInvoice.contactName ?? "",
+            mobileNo: detailedInvoice.mobileNo ?? "",
+            emailAdd: detailedInvoice.emailAdd ?? "",
+            moduleFrom: detailedInvoice.moduleFrom ?? "",
+            customerName: detailedInvoice.customerName ?? "",
+            arInvoiceId: detailedInvoice.arInvoiceId ?? "",
+            arInvoiceNo: detailedInvoice.arInvoiceNo ?? "",
+            editVersion: detailedInvoice.editVersion ?? 0,
+            purchaseOrderId: detailedInvoice.purchaseOrderId ?? 0,
+            purchaseOrderNo: detailedInvoice.purchaseOrderNo ?? "",
+            createBy: detailedInvoice.createBy ?? "",
+            createDate: detailedInvoice.createDate ?? "",
+            editBy: detailedInvoice.editBy ?? "",
+            editDate: detailedInvoice.editDate ?? "",
+            cancelBy: detailedInvoice.cancelBy ?? "",
+            cancelDate: detailedInvoice.cancelDate ?? "",
+            cancelRemarks: detailedInvoice.cancelRemarks ?? "",
+            data_details:
+              detailedInvoice.data_details?.map((detail: IApInvoiceDt) => ({
+                invoiceId: detail.invoiceId?.toString() ?? "0",
+                invoiceNo: detail.invoiceNo ?? "",
+                itemNo: detail.itemNo ?? 0,
+                seqNo: detail.seqNo ?? 0,
+                docItemNo: detail.docItemNo ?? 0,
+                productId: detail.productId ?? 0,
+                productCode: detail.productCode ?? "",
+                productName: detail.productName ?? "",
+                glId: detail.glId ?? 0,
+                glCode: detail.glCode ?? "",
+                glName: detail.glName ?? "",
+                qty: detail.qty ?? 0,
+                billQTY: detail.billQTY ?? 0,
+                uomId: detail.uomId ?? 0,
+                uomCode: detail.uomCode ?? "",
+                uomName: detail.uomName ?? "",
+                unitPrice: detail.unitPrice ?? 0,
+                totAmt: detail.totAmt ?? 0,
+                totLocalAmt: detail.totLocalAmt ?? 0,
+                totCtyAmt: detail.totCtyAmt ?? 0,
+                remarks: detail.remarks ?? "",
+                gstId: detail.gstId ?? 0,
+                gstName: detail.gstName ?? "",
+                gstPercentage: detail.gstPercentage ?? 0,
+                gstAmt: detail.gstAmt ?? 0,
+                gstLocalAmt: detail.gstLocalAmt ?? 0,
+                gstCtyAmt: detail.gstCtyAmt ?? 0,
+                deliveryDate: detail.deliveryDate
+                  ? format(
+                      parseDate(detail.deliveryDate as string) || new Date(),
+                      clientDateFormat
+                    )
+                  : "",
+                departmentId: detail.departmentId ?? 0,
+                departmentCode: detail.departmentCode ?? "",
+                departmentName: detail.departmentName ?? "",
+                jobOrderId: detail.jobOrderId ?? 0,
+                jobOrderNo: detail.jobOrderNo ?? "",
+                taskId: detail.taskId ?? 0,
+                taskName: detail.taskName ?? "",
+                serviceId: detail.serviceId ?? 0,
+                serviceName: detail.serviceName ?? "",
+                employeeId: detail.employeeId ?? 0,
+                employeeCode: detail.employeeCode ?? "",
+                employeeName: detail.employeeName ?? "",
+                portId: detail.portId ?? 0,
+                portCode: detail.portCode ?? "",
+                portName: detail.portName ?? "",
+                vesselId: detail.vesselId ?? 0,
+                vesselCode: detail.vesselCode ?? "",
+                vesselName: detail.vesselName ?? "",
+                bargeId: detail.bargeId ?? 0,
+                bargeCode: detail.bargeCode ?? "",
+                bargeName: detail.bargeName ?? "",
+                voyageId: detail.voyageId ?? 0,
+                voyageNo: detail.voyageNo ?? "",
+                operationId: detail.operationId ?? "",
+                operationNo: detail.operationNo ?? "",
+                opRefNo: detail.opRefNo ?? "",
+                purchaseOrderId: detail.purchaseOrderId ?? "",
+                purchaseOrderNo: detail.purchaseOrderNo ?? "",
+                supplyDate: detail.supplyDate
+                  ? format(
+                      parseDate(detail.supplyDate as string) || new Date(),
+                      clientDateFormat
+                    )
+                  : "",
+                customerName: detail.customerName ?? "",
+                custInvoiceNo: detail.custInvoiceNo ?? "",
+                arInvoiceId: detail.arInvoiceId ?? "",
+                arInvoiceNo: detail.arInvoiceNo ?? "",
+                editVersion: detail.editVersion ?? 0,
+              })) || [],
           }
-        } else {
-          toast.error(
-            response?.message || "Failed to fetch invoice details (direct)"
+
+          //setInvoice(updatedInvoice as ApInvoiceHdSchemaType)
+          setInvoice(transformToSchemaType(updatedInvoice))
+          form.reset(updatedInvoice)
+          form.trigger()
+
+          // Close dialog only on success
+          setShowListDialog(false)
+          toast.success(
+            `Invoice ${selectedInvoice.invoiceNo} loaded successfully`
           )
         }
-      } catch (error) {
-        console.error("Error fetching invoice details (direct):", error)
-        toast.error("Error fetching invoice details (direct)")
+      } else {
+        toast.error(response?.message || "Failed to fetch invoice details")
+        // Keep dialog open on failure so user can try again
       }
-
-      setShowListDialog(false)
+    } catch (error) {
+      console.error("Error fetching invoice details:", error)
+      toast.error("Error loading invoice. Please try again.")
+      // Keep dialog open on error
+    } finally {
+      setIsSelectingInvoice(false)
     }
   }
 
@@ -1054,10 +1082,14 @@ export default function InvoicePage() {
               variant="default"
               size="sm"
               onClick={() => setShowSaveConfirm(true)}
-              //disabled={!form.getValues("data_details")?.length}
+              disabled={
+                isSaving || saveMutation.isPending || updateMutation.isPending
+              }
             >
               <Save className="mr-1 h-4 w-4" />
-              Save
+              {isSaving || saveMutation.isPending || updateMutation.isPending
+                ? "Saving..."
+                : "Save"}
             </Button>
 
             <Button variant="outline" size="sm" disabled={!invoice}>
@@ -1147,15 +1179,19 @@ export default function InvoicePage() {
             </div>
           </DialogHeader>
 
-          {isLoadingInvoices || isRefetchingInvoices ? (
+          {isLoadingInvoices || isRefetchingInvoices || isSelectingInvoice ? (
             <div className="flex min-h-[60vh] items-center justify-center">
               <div className="text-center">
                 <Spinner size="lg" className="mx-auto" />
                 <p className="mt-4 text-sm text-gray-600">
-                  Loading invoices...
+                  {isSelectingInvoice
+                    ? "Loading invoice details..."
+                    : "Loading invoices..."}
                 </p>
                 <p className="mt-2 text-xs text-gray-500">
-                  Please wait while we fetch the invoice list
+                  {isSelectingInvoice
+                    ? "Please wait while we fetch the complete invoice data"
+                    : "Please wait while we fetch the invoice list"}
                 </p>
               </div>
             </div>
@@ -1181,7 +1217,9 @@ export default function InvoicePage() {
         operationType={
           invoice?.invoiceId && invoice.invoiceId !== "0" ? "update" : "create"
         }
-        isSaving={saveMutation.isPending || updateMutation.isPending}
+        isSaving={
+          isSaving || saveMutation.isPending || updateMutation.isPending
+        }
       />
 
       {/* Delete Confirmation */}

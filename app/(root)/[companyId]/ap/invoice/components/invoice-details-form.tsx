@@ -638,7 +638,14 @@ export default function InvoiceDetailsForm({
       form.setValue("billQTY", value)
     }
 
+    // Get form values AFTER setting qty/billQTY
     const rowData = form.getValues()
+
+    // ✅ Manually ensure the updated values are in rowData
+    rowData.qty = value
+    if (!visible?.m_BillQTY) {
+      rowData.billQTY = value
+    }
 
     // Ensure cityExchangeRate = exchangeRate if m_CtyCurr is false
     const exchangeRate = Hdform.getValues("exhRate") || 0
@@ -658,7 +665,12 @@ export default function InvoiceDetailsForm({
 
   const handleBillQtyChange = (value: number) => {
     form.setValue("billQTY", value)
+
+    // Get form values AFTER setting billQTY
     const rowData = form.getValues()
+
+    // ✅ Manually ensure the updated value is in rowData
+    rowData.billQTY = value
 
     // Ensure cityExchangeRate = exchangeRate if m_CtyCurr is false
     const exchangeRate = Hdform.getValues("exhRate") || 0
@@ -678,7 +690,12 @@ export default function InvoiceDetailsForm({
 
   const handleUnitPriceChange = (value: number) => {
     form.setValue("unitPrice", value)
+
+    // Get form values AFTER setting unitPrice
     const rowData = form.getValues()
+
+    // ✅ Manually ensure the updated value is in rowData
+    rowData.unitPrice = value
 
     // Ensure cityExchangeRate = exchangeRate if m_CtyCurr is false
     const exchangeRate = Hdform.getValues("exhRate") || 0

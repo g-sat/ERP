@@ -123,7 +123,8 @@ export const calculateSubtractionAmount = (
 
 /**
  * Handle quantity change in invoice details
- * Calculates: Total Amount = Quantity × Unit Price
+ * Calculates: Total Amount = Bill Quantity × Unit Price
+ * Uses billQTY (billing quantity) for calculations, not qty (physical quantity)
  * Modules: AP, AR
  */
 export const handleQtyChange = (
@@ -132,17 +133,24 @@ export const handleQtyChange = (
   decimals: IDecimal,
   visible: IVisibleFields
 ) => {
-  const qty = rowData?.qty
-  const unitPrice = rowData?.unitPrice
-  const exchangeRate = hdForm.getValues()?.exhRate
+  // Use billQTY for billing calculations (not qty)
+  // billQTY is the quantity used for invoicing/payment
+  // qty is the physical/actual quantity
+  const billQTY = rowData?.billQTY ?? rowData?.qty ?? 0
+  const unitPrice = rowData?.unitPrice ?? 0
+  const exchangeRate = hdForm.getValues()?.exhRate ?? 0
 
-  if (qty && unitPrice) {
-    const totAmt = calculateMultiplierAmount(qty, unitPrice, decimals?.amtDec)
-    rowData.totAmt = totAmt
+  // Calculate total amount (allow 0 values)
+  const totAmt = calculateMultiplierAmount(billQTY, unitPrice, decimals?.amtDec)
+  rowData.totAmt = totAmt
 
-    if (exchangeRate) {
-      handleTotalamountChange(hdForm, rowData, decimals, visible)
-    }
+  // Calculate local amounts if exchange rate exists
+  if (
+    exchangeRate !== 0 &&
+    exchangeRate !== null &&
+    exchangeRate !== undefined
+  ) {
+    handleTotalamountChange(hdForm, rowData, decimals, visible)
   }
 }
 
@@ -158,23 +166,22 @@ export const handleTotalamountChange = (
   decimals: IDecimal,
   visible: IVisibleFields
 ) => {
-  const totAmt = rowData?.totAmt
-  const exchangeRate = hdForm.getValues()?.exhRate
+  const totAmt = rowData?.totAmt ?? 0
+  const exchangeRate = hdForm.getValues()?.exhRate ?? 0
 
-  if (exchangeRate) {
-    const totLocalAmt = calculateMultiplierAmount(
-      totAmt,
-      exchangeRate,
-      decimals?.locAmtDec
-    )
-    rowData.totLocalAmt = totLocalAmt
+  // Calculate local amount (allow 0 values)
+  const totLocalAmt = calculateMultiplierAmount(
+    totAmt,
+    exchangeRate,
+    decimals?.locAmtDec
+  )
+  rowData.totLocalAmt = totLocalAmt
 
-    handleTotalCityamountChange(hdForm, rowData, decimals, visible)
+  // Calculate city amount
+  handleTotalCityamountChange(hdForm, rowData, decimals, visible)
 
-    if (totAmt) {
-      handleGstPercentageChange(hdForm, rowData, decimals, visible)
-    }
-  }
+  // Calculate GST amounts
+  handleGstPercentageChange(hdForm, rowData, decimals, visible)
 }
 
 export const handleGstPercentageChange = (
@@ -183,25 +190,24 @@ export const handleGstPercentageChange = (
   decimals: IDecimal,
   visible: IVisibleFields
 ) => {
-  const totAmt = rowData?.totAmt
-  const gstRate = rowData?.gstPercentage
+  const totAmt = rowData?.totAmt ?? 0
+  const gstRate = rowData?.gstPercentage ?? 0
+  const exchangeRate = hdForm.getValues()?.exhRate ?? 0
 
-  if (totAmt) {
-    const gstAmt = calculatePercentagecAmount(totAmt, gstRate, decimals?.amtDec)
-    rowData.gstAmt = gstAmt
+  // Calculate GST amount (allow 0 values)
+  const gstAmt = calculatePercentagecAmount(totAmt, gstRate, decimals?.amtDec)
+  rowData.gstAmt = gstAmt
 
-    const exchangeRate = hdForm.getValues()?.exhRate
-    if (exchangeRate) {
-      const gstLocalAmt = calculateMultiplierAmount(
-        gstAmt,
-        exchangeRate,
-        decimals?.locAmtDec
-      )
-      rowData.gstLocalAmt = gstLocalAmt
+  // Calculate GST local amount
+  const gstLocalAmt = calculateMultiplierAmount(
+    gstAmt,
+    exchangeRate,
+    decimals?.locAmtDec
+  )
+  rowData.gstLocalAmt = gstLocalAmt
 
-      handleGstCityPercentageChange(hdForm, rowData, decimals, visible)
-    }
-  }
+  // Calculate GST city amount
+  handleGstCityPercentageChange(hdForm, rowData, decimals, visible)
 }
 
 export const handleTotalCityamountChange = (
@@ -210,9 +216,9 @@ export const handleTotalCityamountChange = (
   decimals: IDecimal,
   visible: IVisibleFields
 ) => {
-  const totAmt = rowData?.totAmt
-  const exchangeRate = hdForm.getValues()?.exhRate
-  const cityExchangeRate = hdForm.getValues()?.ctyExhRate
+  const totAmt = rowData?.totAmt ?? 0
+  const exchangeRate = hdForm.getValues()?.exhRate ?? 0
+  const cityExchangeRate = hdForm.getValues()?.ctyExhRate ?? 0
   let totCtyAmt = 0
 
   if (visible?.m_CtyCurr) {
@@ -238,9 +244,9 @@ export const handleGstCityPercentageChange = (
   decimals: IDecimal,
   visible: IVisibleFields
 ) => {
-  const gstAmt = rowData?.gstAmt
-  const exchangeRate = hdForm.getValues()?.exhRate
-  const cityExchangeRate = hdForm.getValues()?.ctyExhRate
+  const gstAmt = rowData?.gstAmt ?? 0
+  const exchangeRate = hdForm.getValues()?.exhRate ?? 0
+  const cityExchangeRate = hdForm.getValues()?.ctyExhRate ?? 0
   let gstCtyAmt = 0
 
   if (visible?.m_CtyCurr) {
