@@ -478,10 +478,6 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
     onClose: () => void
   }) => {
     if (!isOpen || !items || items.length === 0) {
-      console.log("FloatingSubMenu not showing:", {
-        isOpen,
-        itemsLength: items?.length,
-      })
       return null
     }
 

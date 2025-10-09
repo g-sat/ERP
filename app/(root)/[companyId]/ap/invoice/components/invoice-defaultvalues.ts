@@ -127,7 +127,7 @@ const defaultInvoice = {
   editDate: "",
   isCancel: false,
   cancelById: 0,
-  cancelDate: format(new Date(), clientDateFormat),
+  cancelDate: "",
   cancelRemarks: "",
   createBy: "",
   editBy: "",
@@ -153,7 +153,6 @@ export const getDefaultValues = (dateFormat: string = clientDateFormat) => {
       dueDate: format(new Date(), dateFormat),
       gstClaimDate: format(new Date(), dateFormat),
       createDate: format(new Date(), dateFormat),
-      cancelDate: format(new Date(), dateFormat),
     },
     defaultInvoiceDetails: {
       ...defaultInvoiceDetails,

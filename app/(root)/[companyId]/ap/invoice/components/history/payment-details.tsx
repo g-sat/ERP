@@ -122,6 +122,7 @@ export default function PaymentDetails({
           showHeader={true}
           showFooter={false}
           emptyMessage="No results."
+          maxHeight="300px"
         />
       </CardContent>
     </Card>

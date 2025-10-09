@@ -57,6 +57,7 @@ interface BasicTableProps<T> {
   onFilterChange?: (filters: { search?: string; sortOrder?: string }) => void
   showHeader?: boolean
   showFooter?: boolean
+  maxHeight?: string
 }
 
 export function BasicTable<T>({
@@ -71,6 +72,7 @@ export function BasicTable<T>({
   onFilterChange,
   showHeader = true,
   showFooter = true,
+  maxHeight = "460px",
 }: BasicTableProps<T>) {
   const { data: gridSettings } = useGetGridLayout(
     moduleId?.toString() || "",
@@ -327,7 +329,7 @@ export function BasicTable<T>({
               </TableHeader>
             </Table>
 
-            <div className="max-h-[460px] overflow-y-auto">
+            <div className="overflow-y-auto" style={{ maxHeight: maxHeight }}>
               <Table
                 className="w-full table-fixed border-collapse"
                 style={{ minWidth: "100%" }}

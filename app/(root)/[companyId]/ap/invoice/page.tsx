@@ -222,13 +222,13 @@ export default function InvoicePage() {
             visible
           ).safeParse(formValues)
 
+          console.log("formValues", formValues)
+
           if (!validationResult.success) {
             console.error("Form validation failed:", validationResult.error)
             toast.error("Please check form data and try again")
             return
           }
-
-          console.log("formValues", formValues)
 
           const response =
             Number(formValues.invoiceId) === 0
@@ -421,16 +421,58 @@ export default function InvoicePage() {
       editVersion: apiInvoice.editVersion ?? 0,
       purchaseOrderId: apiInvoice.purchaseOrderId ?? 0,
       purchaseOrderNo: apiInvoice.purchaseOrderNo ?? "",
+      createBy: apiInvoice.createBy ?? "",
+      editBy: apiInvoice.editBy ?? "",
+      cancelBy: apiInvoice.cancelBy ?? "",
+      createDate: apiInvoice.createDate
+        ? format(
+            parseDate(apiInvoice.createDate as string) || new Date(),
+            clientDateFormat
+          )
+        : "",
+
+      editDate: apiInvoice.editDate
+        ? format(
+            parseDate(apiInvoice.editDate as unknown as string) || new Date(),
+            clientDateFormat
+          )
+        : "",
+      cancelDate: apiInvoice.cancelDate
+        ? format(
+            parseDate(apiInvoice.cancelDate as unknown as string) || new Date(),
+            clientDateFormat
+          )
+        : "",
+      cancelRemarks: apiInvoice.cancelRemarks ?? "",
       data_details:
         apiInvoice.data_details?.map(
           (detail) =>
             ({
               ...detail,
               invoiceId: detail.invoiceId?.toString() ?? "0",
-              invoiceNo: detail.invoiceNo?.toString() ?? "",
+              invoiceNo: detail.invoiceNo ?? "",
+              itemNo: detail.itemNo ?? 0,
+              seqNo: detail.seqNo ?? 0,
+              docItemNo: detail.docItemNo ?? 0,
+              productId: detail.productId ?? 0,
+              productCode: detail.productCode ?? "",
+              productName: detail.productName ?? "",
+              glId: detail.glId ?? 0,
+              glCode: detail.glCode ?? "",
+              glName: detail.glName ?? "",
+              qty: detail.qty ?? 0,
+              billQTY: detail.billQTY ?? 0,
+              uomId: detail.uomId ?? 0,
+              uomCode: detail.uomCode ?? "",
+              uomName: detail.uomName ?? "",
+              unitPrice: detail.unitPrice ?? 0,
               totAmt: detail.totAmt ?? 0,
               totLocalAmt: detail.totLocalAmt ?? 0,
               totCtyAmt: detail.totCtyAmt ?? 0,
+              remarks: detail.remarks ?? "",
+              gstId: detail.gstId ?? 0,
+              gstName: detail.gstName ?? "",
+              gstPercentage: detail.gstPercentage ?? 0,
               gstAmt: detail.gstAmt ?? 0,
               gstLocalAmt: detail.gstLocalAmt ?? 0,
               gstCtyAmt: detail.gstCtyAmt ?? 0,
@@ -439,17 +481,46 @@ export default function InvoicePage() {
                     parseDate(detail.deliveryDate as string) || new Date(),
                     clientDateFormat
                   )
-                : null,
+                : "",
+              departmentId: detail.departmentId ?? 0,
+              departmentCode: detail.departmentCode ?? "",
+              departmentName: detail.departmentName ?? "",
+              jobOrderId: detail.jobOrderId ?? 0,
+              jobOrderNo: detail.jobOrderNo ?? "",
+              taskId: detail.taskId ?? 0,
+              taskName: detail.taskName ?? "",
+              serviceId: detail.serviceId ?? 0,
+              serviceName: detail.serviceName ?? "",
+              employeeId: detail.employeeId ?? 0,
+              employeeCode: detail.employeeCode ?? "",
+              employeeName: detail.employeeName ?? "",
+              portId: detail.portId ?? 0,
+              portCode: detail.portCode ?? "",
+              portName: detail.portName ?? "",
+              vesselId: detail.vesselId ?? 0,
+              vesselCode: detail.vesselCode ?? "",
+              vesselName: detail.vesselName ?? "",
+              bargeId: detail.bargeId ?? 0,
+              bargeCode: detail.bargeCode ?? "",
+              bargeName: detail.bargeName ?? "",
+              voyageId: detail.voyageId ?? 0,
+              voyageNo: detail.voyageNo ?? "",
+              operationId: detail.operationId ?? "",
+              operationNo: detail.operationNo ?? "",
+              opRefNo: detail.opRefNo ?? "",
+              purchaseOrderId: detail.purchaseOrderId ?? "",
+              purchaseOrderNo: detail.purchaseOrderNo ?? "",
               supplyDate: detail.supplyDate
                 ? format(
                     parseDate(detail.supplyDate as string) || new Date(),
                     clientDateFormat
                   )
-                : null,
-              remarks: detail.remarks ?? "",
+                : "",
               customerName: detail.customerName ?? "",
               custInvoiceNo: detail.custInvoiceNo ?? "",
-              purchaseOrderNo: detail.purchaseOrderNo ?? "",
+              arInvoiceId: detail.arInvoiceId ?? "",
+              arInvoiceNo: detail.arInvoiceNo ?? "",
+              editVersion: detail.editVersion ?? 0,
             }) as unknown as ApInvoiceDtSchemaType
         ) || [],
     }
@@ -478,34 +549,120 @@ export default function InvoicePage() {
             // Parse dates properly
             const updatedInvoice = {
               ...detailedInvoice,
-              trnDate: format(
-                parseDate(detailedInvoice.trnDate as string) || new Date(),
-                clientDateFormat
-              ),
-              accountDate: format(
-                parseDate(detailedInvoice.accountDate as string) || new Date(),
-                clientDateFormat
-              ),
-              dueDate: format(
-                parseDate(detailedInvoice.dueDate as string) || new Date(),
-                clientDateFormat
-              ),
-              deliveryDate: format(
-                parseDate(detailedInvoice.deliveryDate as string) || new Date(),
-                clientDateFormat
-              ),
-              gstClaimDate: format(
-                parseDate(detailedInvoice.gstClaimDate as string) || new Date(),
-                clientDateFormat
-              ),
+              invoiceId: detailedInvoice.invoiceId?.toString() ?? "0",
+              invoiceNo: detailedInvoice.invoiceNo ?? "",
+              referenceNo: detailedInvoice.referenceNo ?? "",
+              suppInvoiceNo: detailedInvoice.suppInvoiceNo ?? "",
+              trnDate: detailedInvoice.trnDate
+                ? format(
+                    parseDate(detailedInvoice.trnDate as string) || new Date(),
+                    clientDateFormat
+                  )
+                : clientDateFormat,
+              accountDate: detailedInvoice.accountDate
+                ? format(
+                    parseDate(detailedInvoice.accountDate as string) ||
+                      new Date(),
+                    clientDateFormat
+                  )
+                : clientDateFormat,
+              dueDate: detailedInvoice.dueDate
+                ? format(
+                    parseDate(detailedInvoice.dueDate as string) || new Date(),
+                    clientDateFormat
+                  )
+                : clientDateFormat,
+              deliveryDate: detailedInvoice.deliveryDate
+                ? format(
+                    parseDate(detailedInvoice.deliveryDate as string) ||
+                      new Date(),
+                    clientDateFormat
+                  )
+                : clientDateFormat,
+              gstClaimDate: detailedInvoice.gstClaimDate
+                ? format(
+                    parseDate(detailedInvoice.gstClaimDate as string) ||
+                      new Date(),
+                    clientDateFormat
+                  )
+                : clientDateFormat,
+
+              supplierId: detailedInvoice.supplierId ?? 0,
+              currencyId: detailedInvoice.currencyId ?? 0,
+              exhRate: detailedInvoice.exhRate ?? 0,
+              ctyExhRate: detailedInvoice.ctyExhRate ?? 0,
+              creditTermId: detailedInvoice.creditTermId ?? 0,
+              bankId: detailedInvoice.bankId ?? 0,
+              totAmt: detailedInvoice.totAmt ?? 0,
+              totLocalAmt: detailedInvoice.totLocalAmt ?? 0,
+              totCtyAmt: detailedInvoice.totCtyAmt ?? 0,
+              gstAmt: detailedInvoice.gstAmt ?? 0,
+              gstLocalAmt: detailedInvoice.gstLocalAmt ?? 0,
+              gstCtyAmt: detailedInvoice.gstCtyAmt ?? 0,
+              totAmtAftGst: detailedInvoice.totAmtAftGst ?? 0,
+              totLocalAmtAftGst: detailedInvoice.totLocalAmtAftGst ?? 0,
+              totCtyAmtAftGst: detailedInvoice.totCtyAmtAftGst ?? 0,
+              balAmt: detailedInvoice.balAmt ?? 0,
+              balLocalAmt: detailedInvoice.balLocalAmt ?? 0,
+              payAmt: detailedInvoice.payAmt ?? 0,
+              payLocalAmt: detailedInvoice.payLocalAmt ?? 0,
+              exGainLoss: detailedInvoice.exGainLoss ?? 0,
+              operationId: detailedInvoice.operationId ?? 0,
+              operationNo: detailedInvoice.operationNo ?? "",
+              remarks: detailedInvoice.remarks ?? "",
+              addressId: detailedInvoice.addressId ?? 0, // Not available in IApInvoiceHd
+              contactId: detailedInvoice.contactId ?? 0, // Not available in IApInvoiceHd
+              address1: detailedInvoice.address1 ?? "",
+              address2: detailedInvoice.address2 ?? "",
+              address3: detailedInvoice.address3 ?? "",
+              address4: detailedInvoice.address4 ?? "",
+              pinCode: detailedInvoice.pinCode ?? "",
+              countryId: detailedInvoice.countryId ?? 0,
+              phoneNo: detailedInvoice.phoneNo ?? "",
+              faxNo: detailedInvoice.faxNo ?? "",
+              contactName: detailedInvoice.contactName ?? "",
+              mobileNo: detailedInvoice.mobileNo ?? "",
+              emailAdd: detailedInvoice.emailAdd ?? "",
+              moduleFrom: detailedInvoice.moduleFrom ?? "",
+              customerName: detailedInvoice.customerName ?? "",
+              arInvoiceId: detailedInvoice.arInvoiceId ?? "",
+              arInvoiceNo: detailedInvoice.arInvoiceNo ?? "",
+              editVersion: detailedInvoice.editVersion ?? 0,
+              purchaseOrderId: detailedInvoice.purchaseOrderId ?? 0,
+              purchaseOrderNo: detailedInvoice.purchaseOrderNo ?? "",
+              createBy: detailedInvoice.createBy ?? "",
+              createDate: detailedInvoice.createDate ?? "",
+              editBy: detailedInvoice.editBy ?? "",
+              editDate: detailedInvoice.editDate ?? "",
+              cancelBy: detailedInvoice.cancelBy ?? "",
+              cancelDate: detailedInvoice.cancelDate ?? "",
+              cancelRemarks: detailedInvoice.cancelRemarks ?? "",
               data_details:
                 detailedInvoice.data_details?.map((detail: IApInvoiceDt) => ({
-                  ...detail,
                   invoiceId: detail.invoiceId?.toString() ?? "0",
-                  invoiceNo: detail.invoiceNo?.toString() ?? null,
+                  invoiceNo: detail.invoiceNo ?? "",
+                  itemNo: detail.itemNo ?? 0,
+                  seqNo: detail.seqNo ?? 0,
+                  docItemNo: detail.docItemNo ?? 0,
+                  productId: detail.productId ?? 0,
+                  productCode: detail.productCode ?? "",
+                  productName: detail.productName ?? "",
+                  glId: detail.glId ?? 0,
+                  glCode: detail.glCode ?? "",
+                  glName: detail.glName ?? "",
+                  qty: detail.qty ?? 0,
+                  billQTY: detail.billQTY ?? 0,
+                  uomId: detail.uomId ?? 0,
+                  uomCode: detail.uomCode ?? "",
+                  uomName: detail.uomName ?? "",
+                  unitPrice: detail.unitPrice ?? 0,
                   totAmt: detail.totAmt ?? 0,
                   totLocalAmt: detail.totLocalAmt ?? 0,
                   totCtyAmt: detail.totCtyAmt ?? 0,
+                  remarks: detail.remarks ?? "",
+                  gstId: detail.gstId ?? 0,
+                  gstName: detail.gstName ?? "",
+                  gstPercentage: detail.gstPercentage ?? 0,
                   gstAmt: detail.gstAmt ?? 0,
                   gstLocalAmt: detail.gstLocalAmt ?? 0,
                   gstCtyAmt: detail.gstCtyAmt ?? 0,
@@ -514,17 +671,46 @@ export default function InvoicePage() {
                         parseDate(detail.deliveryDate as string) || new Date(),
                         clientDateFormat
                       )
-                    : null,
+                    : "",
+                  departmentId: detail.departmentId ?? 0,
+                  departmentCode: detail.departmentCode ?? "",
+                  departmentName: detail.departmentName ?? "",
+                  jobOrderId: detail.jobOrderId ?? 0,
+                  jobOrderNo: detail.jobOrderNo ?? "",
+                  taskId: detail.taskId ?? 0,
+                  taskName: detail.taskName ?? "",
+                  serviceId: detail.serviceId ?? 0,
+                  serviceName: detail.serviceName ?? "",
+                  employeeId: detail.employeeId ?? 0,
+                  employeeCode: detail.employeeCode ?? "",
+                  employeeName: detail.employeeName ?? "",
+                  portId: detail.portId ?? 0,
+                  portCode: detail.portCode ?? "",
+                  portName: detail.portName ?? "",
+                  vesselId: detail.vesselId ?? 0,
+                  vesselCode: detail.vesselCode ?? "",
+                  vesselName: detail.vesselName ?? "",
+                  bargeId: detail.bargeId ?? 0,
+                  bargeCode: detail.bargeCode ?? "",
+                  bargeName: detail.bargeName ?? "",
+                  voyageId: detail.voyageId ?? 0,
+                  voyageNo: detail.voyageNo ?? "",
+                  operationId: detail.operationId ?? "",
+                  operationNo: detail.operationNo ?? "",
+                  opRefNo: detail.opRefNo ?? "",
+                  purchaseOrderId: detail.purchaseOrderId ?? "",
+                  purchaseOrderNo: detail.purchaseOrderNo ?? "",
                   supplyDate: detail.supplyDate
                     ? format(
                         parseDate(detail.supplyDate as string) || new Date(),
                         clientDateFormat
                       )
-                    : null,
-                  remarks: detail.remarks ?? null,
-                  customerName: detail.customerName ?? null,
-                  arInvoiceNo: detail.arInvoiceNo ?? null,
-                  arInvoiceId: detail.arInvoiceId ?? null,
+                    : "",
+                  customerName: detail.customerName ?? "",
+                  custInvoiceNo: detail.custInvoiceNo ?? "",
+                  arInvoiceId: detail.arInvoiceId ?? "",
+                  arInvoiceNo: detail.arInvoiceNo ?? "",
+                  editVersion: detail.editVersion ?? 0,
                 })) || [],
             }
 
@@ -573,34 +759,114 @@ export default function InvoicePage() {
           // Parse dates properly
           const updatedInvoice = {
             ...detailedInvoice,
-            trnDate: format(
-              parseDate(detailedInvoice.trnDate as string) || new Date(),
-              clientDateFormat
-            ),
-            accountDate: format(
-              parseDate(detailedInvoice.accountDate as string) || new Date(),
-              clientDateFormat
-            ),
-            dueDate: format(
-              parseDate(detailedInvoice.dueDate as string) || new Date(),
-              clientDateFormat
-            ),
-            deliveryDate: format(
-              parseDate(detailedInvoice.deliveryDate as string) || new Date(),
-              clientDateFormat
-            ),
-            gstClaimDate: format(
-              parseDate(detailedInvoice.gstClaimDate as string) || new Date(),
-              clientDateFormat
-            ),
+            invoiceId: detailedInvoice.invoiceId?.toString() ?? "0",
+            invoiceNo: detailedInvoice.invoiceNo ?? "",
+            referenceNo: detailedInvoice.referenceNo ?? "",
+            suppInvoiceNo: detailedInvoice.suppInvoiceNo ?? "",
+            trnDate: detailedInvoice.trnDate
+              ? format(
+                  parseDate(detailedInvoice.trnDate as string) || new Date(),
+                  clientDateFormat
+                )
+              : clientDateFormat,
+            accountDate: detailedInvoice.accountDate
+              ? format(
+                  parseDate(detailedInvoice.accountDate as string) ||
+                    new Date(),
+                  clientDateFormat
+                )
+              : clientDateFormat,
+            dueDate: detailedInvoice.dueDate
+              ? format(
+                  parseDate(detailedInvoice.dueDate as string) || new Date(),
+                  clientDateFormat
+                )
+              : clientDateFormat,
+            deliveryDate: detailedInvoice.deliveryDate
+              ? format(
+                  parseDate(detailedInvoice.deliveryDate as string) ||
+                    new Date(),
+                  clientDateFormat
+                )
+              : clientDateFormat,
+            gstClaimDate: detailedInvoice.gstClaimDate
+              ? format(
+                  parseDate(detailedInvoice.gstClaimDate as string) ||
+                    new Date(),
+                  clientDateFormat
+                )
+              : clientDateFormat,
+
+            supplierId: detailedInvoice.supplierId ?? 0,
+            currencyId: detailedInvoice.currencyId ?? 0,
+            exhRate: detailedInvoice.exhRate ?? 0,
+            ctyExhRate: detailedInvoice.ctyExhRate ?? 0,
+            creditTermId: detailedInvoice.creditTermId ?? 0,
+            bankId: detailedInvoice.bankId ?? 0,
+            totAmt: detailedInvoice.totAmt ?? 0,
+            totLocalAmt: detailedInvoice.totLocalAmt ?? 0,
+            totCtyAmt: detailedInvoice.totCtyAmt ?? 0,
+            gstAmt: detailedInvoice.gstAmt ?? 0,
+            gstLocalAmt: detailedInvoice.gstLocalAmt ?? 0,
+            gstCtyAmt: detailedInvoice.gstCtyAmt ?? 0,
+            totAmtAftGst: detailedInvoice.totAmtAftGst ?? 0,
+            totLocalAmtAftGst: detailedInvoice.totLocalAmtAftGst ?? 0,
+            totCtyAmtAftGst: detailedInvoice.totCtyAmtAftGst ?? 0,
+            balAmt: detailedInvoice.balAmt ?? 0,
+            balLocalAmt: detailedInvoice.balLocalAmt ?? 0,
+            payAmt: detailedInvoice.payAmt ?? 0,
+            payLocalAmt: detailedInvoice.payLocalAmt ?? 0,
+            exGainLoss: detailedInvoice.exGainLoss ?? 0,
+            operationId: detailedInvoice.operationId ?? 0,
+            operationNo: detailedInvoice.operationNo ?? "",
+            remarks: detailedInvoice.remarks ?? "",
+            addressId: detailedInvoice.addressId ?? 0, // Not available in IApInvoiceHd
+            contactId: detailedInvoice.contactId ?? 0, // Not available in IApInvoiceHd
+            address1: detailedInvoice.address1 ?? "",
+            address2: detailedInvoice.address2 ?? "",
+            address3: detailedInvoice.address3 ?? "",
+            address4: detailedInvoice.address4 ?? "",
+            pinCode: detailedInvoice.pinCode ?? "",
+            countryId: detailedInvoice.countryId ?? 0,
+            phoneNo: detailedInvoice.phoneNo ?? "",
+            faxNo: detailedInvoice.faxNo ?? "",
+            contactName: detailedInvoice.contactName ?? "",
+            mobileNo: detailedInvoice.mobileNo ?? "",
+            emailAdd: detailedInvoice.emailAdd ?? "",
+            moduleFrom: detailedInvoice.moduleFrom ?? "",
+            customerName: detailedInvoice.customerName ?? "",
+            arInvoiceId: detailedInvoice.arInvoiceId ?? "",
+            arInvoiceNo: detailedInvoice.arInvoiceNo ?? "",
+            editVersion: detailedInvoice.editVersion ?? 0,
+            purchaseOrderId: detailedInvoice.purchaseOrderId ?? 0,
+            purchaseOrderNo: detailedInvoice.purchaseOrderNo ?? "",
+
             data_details:
               detailedInvoice.data_details?.map((detail: IApInvoiceDt) => ({
-                ...detail,
                 invoiceId: detail.invoiceId?.toString() ?? "0",
-                invoiceNo: detail.invoiceNo?.toString() ?? null,
+                invoiceNo: detail.invoiceNo ?? "",
+                itemNo: detail.itemNo ?? 0,
+                seqNo: detail.seqNo ?? 0,
+                docItemNo: detail.docItemNo ?? 0,
+                productId: detail.productId ?? 0,
+                productCode: detail.productCode ?? "",
+                productName: detail.productName ?? "",
+                glId: detail.glId ?? 0,
+                glCode: detail.glCode ?? "",
+                glName: detail.glName ?? "",
+                qty: detail.qty ?? 0,
+                billQTY: detail.billQTY ?? 0,
+                uomId: detail.uomId ?? 0,
+                uomCode: detail.uomCode ?? "",
+                uomName: detail.uomName ?? "",
+                unitPrice: detail.unitPrice ?? 0,
                 totAmt: detail.totAmt ?? 0,
                 totLocalAmt: detail.totLocalAmt ?? 0,
                 totCtyAmt: detail.totCtyAmt ?? 0,
+                remarks: detail.remarks ?? "",
+                gstId: detail.gstId ?? 0,
+                gstName: detail.gstName ?? "",
+                gstPercentage: detail.gstPercentage ?? 0,
                 gstAmt: detail.gstAmt ?? 0,
                 gstLocalAmt: detail.gstLocalAmt ?? 0,
                 gstCtyAmt: detail.gstCtyAmt ?? 0,
@@ -609,17 +875,46 @@ export default function InvoicePage() {
                       parseDate(detail.deliveryDate as string) || new Date(),
                       clientDateFormat
                     )
-                  : null,
+                  : "",
+                departmentId: detail.departmentId ?? 0,
+                departmentCode: detail.departmentCode ?? "",
+                departmentName: detail.departmentName ?? "",
+                jobOrderId: detail.jobOrderId ?? 0,
+                jobOrderNo: detail.jobOrderNo ?? "",
+                taskId: detail.taskId ?? 0,
+                taskName: detail.taskName ?? "",
+                serviceId: detail.serviceId ?? 0,
+                serviceName: detail.serviceName ?? "",
+                employeeId: detail.employeeId ?? 0,
+                employeeCode: detail.employeeCode ?? "",
+                employeeName: detail.employeeName ?? "",
+                portId: detail.portId ?? 0,
+                portCode: detail.portCode ?? "",
+                portName: detail.portName ?? "",
+                vesselId: detail.vesselId ?? 0,
+                vesselCode: detail.vesselCode ?? "",
+                vesselName: detail.vesselName ?? "",
+                bargeId: detail.bargeId ?? 0,
+                bargeCode: detail.bargeCode ?? "",
+                bargeName: detail.bargeName ?? "",
+                voyageId: detail.voyageId ?? 0,
+                voyageNo: detail.voyageNo ?? "",
+                operationId: detail.operationId ?? "",
+                operationNo: detail.operationNo ?? "",
+                opRefNo: detail.opRefNo ?? "",
+                purchaseOrderId: detail.purchaseOrderId ?? "",
+                purchaseOrderNo: detail.purchaseOrderNo ?? "",
                 supplyDate: detail.supplyDate
                   ? format(
                       parseDate(detail.supplyDate as string) || new Date(),
                       clientDateFormat
                     )
-                  : null,
-                remarks: detail.remarks ?? null,
-                customerName: detail.customerName ?? null,
-                arInvoiceNo: detail.arInvoiceNo ?? null,
-                arInvoiceId: detail.arInvoiceId ?? null,
+                  : "",
+                customerName: detail.customerName ?? "",
+                custInvoiceNo: detail.custInvoiceNo ?? "",
+                arInvoiceId: detail.arInvoiceId ?? "",
+                arInvoiceNo: detail.arInvoiceNo ?? "",
+                editVersion: detail.editVersion ?? 0,
               })) || [],
           }
 

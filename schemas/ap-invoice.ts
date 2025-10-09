@@ -108,6 +108,13 @@ export const apinvoiceHdSchema = (
     arInvoiceId: z.union([z.string(), z.number()]).optional(),
     arInvoiceNo: z.string().optional(),
     editVersion: z.number().optional(),
+    createBy: z.string().optional(),
+    createDate: z.string().optional(),
+    editBy: z.string().optional(),
+    editDate: z.string().optional(),
+    cancelBy: z.string().optional(),
+    cancelDate: z.string().optional(),
+    cancelRemarks: z.string().optional(),
 
     // Nested Details
     data_details: z

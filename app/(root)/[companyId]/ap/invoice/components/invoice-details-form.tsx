@@ -112,7 +112,6 @@ const createDefaultValues = (itemNo: number): ApInvoiceDtSchemaType => ({
   supplyDate: "",
   customerName: "",
   custInvoiceNo: "",
-  suppInvoiceNo: "",
   arInvoiceId: "",
   arInvoiceNo: "",
   editVersion: 0,
@@ -181,25 +180,38 @@ export default function InvoiceDetailsForm({
           gstCtyAmt: editingDetail.gstCtyAmt ?? 0,
           deliveryDate: editingDetail.deliveryDate ?? "",
           departmentId: editingDetail.departmentId ?? 0,
+          departmentCode: editingDetail.departmentCode ?? "",
+          departmentName: editingDetail.departmentName ?? "",
           jobOrderId: editingDetail.jobOrderId ?? 0,
+          jobOrderNo: editingDetail.jobOrderNo ?? "",
           taskId: editingDetail.taskId ?? 0,
+          taskName: editingDetail.taskName ?? "",
           serviceId: editingDetail.serviceId ?? 0,
+          serviceName: editingDetail.serviceName ?? "",
           employeeId: editingDetail.employeeId ?? 0,
+          employeeCode: editingDetail.employeeCode ?? "",
+          employeeName: editingDetail.employeeName ?? "",
           portId: editingDetail.portId ?? 0,
+          portCode: editingDetail.portCode ?? "",
+          portName: editingDetail.portName ?? "",
           vesselId: editingDetail.vesselId ?? 0,
+          vesselCode: editingDetail.vesselCode ?? "",
+          vesselName: editingDetail.vesselName ?? "",
           bargeId: editingDetail.bargeId ?? 0,
+          bargeCode: editingDetail.bargeCode ?? "",
+          bargeName: editingDetail.bargeName ?? "",
           voyageId: editingDetail.voyageId ?? 0,
-          operationId: editingDetail.operationId,
-          operationNo: editingDetail.operationNo,
-          opRefNo: editingDetail.opRefNo,
-          purchaseOrderId: editingDetail.purchaseOrderId,
-          purchaseOrderNo: editingDetail.purchaseOrderNo,
-          supplyDate: editingDetail.supplyDate,
-          customerName: editingDetail.customerName,
-          custInvoiceNo: editingDetail.custInvoiceNo,
-          suppInvoiceNo: editingDetail.suppInvoiceNo,
-          arInvoiceId: editingDetail.arInvoiceId,
-          arInvoiceNo: editingDetail.arInvoiceNo,
+          voyageNo: editingDetail.voyageNo ?? "",
+          operationId: editingDetail.operationId ?? "",
+          operationNo: editingDetail.operationNo ?? "",
+          opRefNo: editingDetail.opRefNo ?? "",
+          purchaseOrderId: editingDetail.purchaseOrderId ?? "",
+          purchaseOrderNo: editingDetail.purchaseOrderNo ?? "",
+          supplyDate: editingDetail.supplyDate ?? "",
+          customerName: editingDetail.customerName ?? "",
+          custInvoiceNo: editingDetail.custInvoiceNo ?? "",
+          arInvoiceId: editingDetail.arInvoiceId ?? "",
+          arInvoiceNo: editingDetail.arInvoiceNo ?? "",
           editVersion: editingDetail.editVersion ?? 0,
         }
       : createDefaultValues(getNextItemNo()),
@@ -208,6 +220,33 @@ export default function InvoiceDetailsForm({
   // Watch form values to trigger re-renders when they change
   const watchedJobOrderId = form.watch("jobOrderId")
   const watchedTaskId = form.watch("taskId")
+  const watchedExchangeRate = Hdform.watch("exhRate")
+  const watchedCityExchangeRate = Hdform.watch("ctyExhRate")
+
+  // Recalculate local amounts when exchange rate changes
+  useEffect(() => {
+    const currentValues = form.getValues()
+
+    // Only recalculate if form has values
+    if ((currentValues.totAmt ?? 0) > 0 || (currentValues.qty ?? 0) > 0) {
+      const rowData = form.getValues()
+
+      // Ensure cityExchangeRate = exchangeRate if m_CtyCurr is false
+      if (!visible?.m_CtyCurr) {
+        Hdform.setValue("ctyExhRate", watchedExchangeRate)
+      }
+
+      // Recalculate all amounts with new exchange rate
+      handleQtyChange(Hdform, rowData, decimals[0], visible)
+
+      // Update form with recalculated values
+      form.setValue("totLocalAmt", rowData.totLocalAmt)
+      form.setValue("totCtyAmt", rowData.totCtyAmt)
+      form.setValue("gstLocalAmt", rowData.gstLocalAmt)
+      form.setValue("gstCtyAmt", rowData.gstCtyAmt)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [watchedExchangeRate, watchedCityExchangeRate])
 
   // Reset form when editingDetail changes
   useEffect(() => {
@@ -252,14 +291,28 @@ export default function InvoiceDetailsForm({
         gstCtyAmt: editingDetail.gstCtyAmt ?? 0,
         deliveryDate: editingDetail.deliveryDate ?? "",
         departmentId: editingDetail.departmentId ?? 0,
+        departmentCode: editingDetail.departmentCode ?? "",
+        departmentName: editingDetail.departmentName ?? "",
         jobOrderId: editingDetail.jobOrderId ?? 0,
+        jobOrderNo: editingDetail.jobOrderNo ?? "",
         taskId: editingDetail.taskId ?? 0,
+        taskName: editingDetail.taskName ?? "",
         serviceId: editingDetail.serviceId ?? 0,
+        serviceName: editingDetail.serviceName ?? "",
         employeeId: editingDetail.employeeId ?? 0,
+        employeeCode: editingDetail.employeeCode ?? "",
+        employeeName: editingDetail.employeeName ?? "",
         portId: editingDetail.portId ?? 0,
+        portCode: editingDetail.portCode ?? "",
+        portName: editingDetail.portName ?? "",
         vesselId: editingDetail.vesselId ?? 0,
+        vesselCode: editingDetail.vesselCode ?? "",
+        vesselName: editingDetail.vesselName ?? "",
         bargeId: editingDetail.bargeId ?? 0,
+        bargeCode: editingDetail.bargeCode ?? "",
+        bargeName: editingDetail.bargeName ?? "",
         voyageId: editingDetail.voyageId ?? 0,
+        voyageNo: editingDetail.voyageNo ?? "",
         operationId: editingDetail.operationId ?? "",
         operationNo: editingDetail.operationNo ?? "",
         opRefNo: editingDetail.opRefNo ?? "",
@@ -268,7 +321,6 @@ export default function InvoiceDetailsForm({
         supplyDate: editingDetail.supplyDate ?? "",
         customerName: editingDetail.customerName ?? "",
         custInvoiceNo: editingDetail.custInvoiceNo ?? "",
-        suppInvoiceNo: editingDetail.suppInvoiceNo ?? "",
         arInvoiceId: editingDetail.arInvoiceId ?? "",
         arInvoiceNo: editingDetail.arInvoiceNo ?? "",
         editVersion: editingDetail.editVersion ?? 0,
@@ -424,11 +476,16 @@ export default function InvoiceDetailsForm({
       if (!isJobSpecificAccount) {
         // If switching to department-specific, reset job-related fields
         form.setValue("jobOrderId", 0, { shouldValidate: true })
+        form.setValue("jobOrderNo", "")
         form.setValue("taskId", 0, { shouldValidate: true })
+        form.setValue("taskName", "")
         form.setValue("serviceId", 0, { shouldValidate: true })
+        form.setValue("serviceName", "")
       } else {
         // If switching to job-specific, reset department field
         form.setValue("departmentId", 0, { shouldValidate: true })
+        form.setValue("departmentCode", "")
+        form.setValue("departmentName", "")
       }
     }
   }

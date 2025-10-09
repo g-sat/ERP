@@ -68,11 +68,11 @@ export interface IApInvoiceHd {
   editDate: null | Date
   isCancel: false
   cancelById: number
-  cancelDate: Date | string
+  cancelDate: Date | null
   cancelRemarks: null | string
-  createBy: null | number
-  editBy: null | string
-  cancelBy: null | string
+  createBy: string
+  editBy: string
+  cancelBy: string
   editVersion: number
   isPost: boolean
   postById: null | number

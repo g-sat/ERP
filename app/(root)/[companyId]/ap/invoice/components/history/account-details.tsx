@@ -8,8 +8,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 
 interface AccountDetailsProps {
-  createdBy: string
-  createdDate: string
+  createBy: string
+  createDate: string
   editBy: string | null
   editDate: string | null
   cancelBy: string | null
@@ -21,8 +21,8 @@ interface AccountDetailsProps {
 }
 
 export default function AccountDetails({
-  createdBy,
-  createdDate,
+  createBy,
+  createDate,
   editBy,
   editDate,
   cancelBy,
@@ -37,13 +37,13 @@ export default function AccountDetails({
   const locAmtDec = decimals[0]?.locAmtDec || 2
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
 
-  const formatDate = (date: string | null) => {
-    if (!date) return "-"
-    try {
-      return format(new Date(date), datetimeFormat)
-    } catch {
-      return date
-    }
+  const safeFormatDate = (
+    dateValue: string | Date | null | undefined,
+    formatStr = "yyyy-MM-dd HH:mm"
+  ) => {
+    if (!dateValue) return "" // if null, undefined, or empty
+    const date = new Date(dateValue)
+    return isNaN(date.getTime()) ? "" : format(date, formatStr)
   }
 
   return (
@@ -66,10 +66,10 @@ export default function AccountDetails({
                     </span>
                     <div className="flex items-center gap-2">
                       <Badge variant="outline" className="font-normal">
-                        {createdBy}
+                        {createBy}
                       </Badge>
                       <span className="text-muted-foreground text-sm">
-                        {formatDate(createdDate)}
+                        {safeFormatDate(createDate, datetimeFormat)}
                       </span>
                     </div>
                   </div>
@@ -83,7 +83,7 @@ export default function AccountDetails({
                         {editBy || "-"}
                       </Badge>
                       <span className="text-muted-foreground text-sm">
-                        {formatDate(editDate)}
+                        {safeFormatDate(editDate, datetimeFormat)}
                       </span>
                     </div>
                   </div>
@@ -97,7 +97,7 @@ export default function AccountDetails({
                         {cancelBy || "-"}
                       </Badge>
                       <span className="text-muted-foreground text-sm">
-                        {formatDate(cancelDate)}
+                        {safeFormatDate(cancelDate, datetimeFormat)}
                       </span>
                     </div>
                   </div>

@@ -279,6 +279,7 @@ export default function GLPostDetails({
           onRefresh={handleRefresh}
           showHeader={true}
           showFooter={false}
+          maxHeight="300px"
         />
       </CardContent>
     </Card>

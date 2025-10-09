@@ -26,12 +26,12 @@ export default function History({
   const _dateFormat = decimals[0]?.dateFormat || "yyyy-MM-dd"
 
   const accountDetails = {
-    createdBy: "", // Default value since createBy doesn't exist in form schema
-    createdDate: "", // Default value since createDate doesn't exist in form schema
-    editBy: null, // Default value since editBy doesn't exist in form schema
-    editDate: "", // Default value since editDate doesn't exist in form schema
-    cancelBy: "", // Default value since cancelBy doesn't exist in form schema
-    cancelDate: "", // Default value since cancelDate doesn't exist in form schema
+    createBy: form.getValues().createBy || "", // Default value since createBy doesn't exist in form schema
+    createDate: form.getValues().createDate || "", // Default value since createDate doesn't exist in form schema
+    editBy: form.getValues().editBy || "", // Default value since editBy doesn't exist in form schema
+    editDate: form.getValues().editDate || "", // Default value since editDate doesn't exist in form schema
+    cancelBy: form.getValues().cancelBy || "", // Default value since cancelBy doesn't exist in form schema
+    cancelDate: form.getValues().cancelDate || "", // Default value since cancelDate doesn't exist in form schema
     balanceAmt: Number(form.getValues().balAmt || 0),
     balanceBaseAmt: Number(form.getValues().balLocalAmt || 0),
     paymentAmt: Number(form.getValues().payAmt || 0),

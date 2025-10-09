@@ -9,9 +9,9 @@ import { AlertCircle } from "lucide-react"
 
 import { TableName } from "@/lib/utils"
 import {
-  useGetARInvoiceHistoryDetails,
-  useGetARInvoiceHistoryList,
-} from "@/hooks/use-ar"
+  useGetAPInvoiceHistoryDetails,
+  useGetAPInvoiceHistoryList,
+} from "@/hooks/use-ap"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
@@ -42,10 +42,10 @@ export default function EditVersionDetails({
 
   const { data: invoiceHistoryData, refetch: refetchHistory } =
     //useGetARInvoiceHistoryList<IApInvoiceHd[]>("14120250100024")
-    useGetARInvoiceHistoryList<IApInvoiceHd[]>(invoiceId)
+    useGetAPInvoiceHistoryList<IApInvoiceHd[]>(invoiceId)
 
   const { data: invoiceDetailsData, refetch: refetchDetails } =
-    useGetARInvoiceHistoryDetails<IApInvoiceHd>(
+    useGetAPInvoiceHistoryDetails<IApInvoiceHd>(
       selectedInvoice?.invoiceId || "",
       selectedInvoice?.editVersion?.toString() || ""
     )
@@ -436,6 +436,7 @@ export default function EditVersionDetails({
                   onRefresh={handleRefresh}
                   showHeader={true}
                   showFooter={false}
+                  maxHeight="300px"
                 />
               </CardContent>
             </Card>
