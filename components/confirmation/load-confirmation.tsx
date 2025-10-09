@@ -2,8 +2,6 @@
 
 "use client"
 
-import { Loader2 } from "lucide-react"
-
 import { Button } from "../ui/button"
 import {
   Dialog,
@@ -12,6 +10,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "../ui/dialog"
+import { Spinner } from "../ui/spinner"
 
 type LoadConfirmationProps = {
   open: boolean
@@ -52,8 +51,24 @@ export const LoadConfirmation = ({
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className={className}>
+    <Dialog
+      open={open}
+      onOpenChange={(isOpen) => {
+        // Prevent closing while loading
+        if (!isLoading) {
+          onOpenChange(isOpen)
+        }
+      }}
+    >
+      <DialogContent
+        className={className}
+        onInteractOutside={(e) => {
+          // Prevent closing on outside click while loading
+          if (isLoading) {
+            e.preventDefault()
+          }
+        }}
+      >
         <DialogHeader>
           <DialogTitle>Record Found</DialogTitle>
           <DialogDescription>
@@ -88,7 +103,7 @@ export const LoadConfirmation = ({
           <Button onClick={handleLoad} disabled={isLoading}>
             {isLoading ? (
               <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <Spinner />
                 Loading...
               </>
             ) : (

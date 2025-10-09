@@ -12,6 +12,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import { Spinner } from "@/components/ui/spinner"
 
 interface DebitNoteConfirmationProps {
   // Name of the item for debit note (will be shown in the description)
@@ -103,6 +104,7 @@ export function DebitNoteConfirmation({
             disabled={isCreating}
             className="bg-primary text-primary-foreground hover:bg-primary/90"
           >
+            {isCreating && <Spinner className="mr-2" size="sm" />}
             {getButtonText()}
           </AlertDialogAction>
         </AlertDialogFooter>

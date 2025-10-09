@@ -12,6 +12,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import { Spinner } from "@/components/ui/spinner"
 
 interface CloneConfirmationProps {
   // Title of the confirmation dialog
@@ -84,6 +85,7 @@ export function CloneConfirmation({
             disabled={isCloning}
             className="bg-blue-600 text-white hover:bg-blue-700"
           >
+            {isCloning && <Spinner className="mr-2" size="sm" />}
             {isCloning ? "Cloning..." : "Clone"}
           </AlertDialogAction>
         </AlertDialogFooter>

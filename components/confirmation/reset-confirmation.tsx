@@ -12,6 +12,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import { Spinner } from "@/components/ui/spinner"
 
 interface ResetConfirmationProps {
   // Title of the confirmation dialog
@@ -84,6 +85,7 @@ export function ResetConfirmation({
             disabled={isResetting}
             className="bg-orange-600 text-white hover:bg-orange-700"
           >
+            {isResetting && <Spinner className="mr-2" size="sm" />}
             {isResetting ? "Resetting..." : "Reset"}
           </AlertDialogAction>
         </AlertDialogFooter>

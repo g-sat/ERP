@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { useParams } from "next/navigation"
 import {
   IApInvoiceDt,
@@ -41,6 +41,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
+import { Spinner } from "@/components/ui/spinner"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
   CloneConfirmation,
@@ -69,6 +70,7 @@ export default function InvoicePage() {
   const [showLoadConfirm, setShowLoadConfirm] = useState(false)
   const [showResetConfirm, setShowResetConfirm] = useState(false)
   const [showCloneConfirm, setShowCloneConfirm] = useState(false)
+  const [isLoadingInvoice, setIsLoadingInvoice] = useState(false)
   const [invoice, setInvoice] = useState<ApInvoiceHdSchemaType | null>(null)
   const [searchNo, setSearchNo] = useState("")
   const [activeTab, setActiveTab] = useState("main")
@@ -178,7 +180,7 @@ export default function InvoicePage() {
         },
   })
 
-  // API hooks for invoices
+  // API hooks for invoices - Only fetch when List dialog is opened (optimized)
   const {
     data: invoicesResponse,
     refetch: refetchInvoices,
@@ -189,15 +191,16 @@ export default function InvoicePage() {
     TableName.apInvoice,
     filters.search,
     filters.startDate?.toString(),
-    filters.endDate?.toString()
+    filters.endDate?.toString(),
+    undefined, // options
+    false // enabled: Don't auto-fetch - only when List button is clicked
   )
 
-  const { data: invoicesData } =
-    (invoicesResponse as ApiResponse<IApInvoiceHd>) ?? {
-      result: 0,
-      message: "",
-      data: [],
-    }
+  // Memoize invoice data to prevent unnecessary re-renders
+  const invoicesData = useMemo(
+    () => (invoicesResponse as ApiResponse<IApInvoiceHd>)?.data ?? [],
+    [invoicesResponse]
+  )
 
   // Mutations
   const saveMutation = usePersist<ApInvoiceHdSchemaType>(`${ApInvoice.add}`)
@@ -219,8 +222,6 @@ export default function InvoicePage() {
       const validationResult = apinvoiceHdSchema(required, visible).safeParse(
         formValues
       )
-
-      console.log("formValues", formValues)
 
       if (!validationResult.success) {
         console.error("Form validation failed:", validationResult.error)
@@ -245,6 +246,9 @@ export default function InvoicePage() {
           )
           setInvoice(updatedSchemaType)
         }
+
+        // Close the save confirmation dialog
+        setShowSaveConfirm(false)
 
         toast.success("Invoice saved successfully")
         refetchInvoices()
@@ -299,6 +303,7 @@ export default function InvoicePage() {
       )
       if (response.result === 1) {
         setInvoice(null)
+        setSearchNo("") // Clear search input
         form.reset({
           ...defaultInvoice,
           data_details: [],
@@ -316,6 +321,7 @@ export default function InvoicePage() {
   // Handle Reset
   const handleInvoiceReset = () => {
     setInvoice(null)
+    setSearchNo("") // Clear search input
     form.reset({
       ...defaultInvoice,
       data_details: [],
@@ -723,13 +729,48 @@ export default function InvoicePage() {
     // refetchInvoices(); // Removed: will be handled by useEffect
   }
 
-  // Add useEffect to refetch invoices when filters change
+  // Refetch invoices when filters change (only if dialog is open)
   useEffect(() => {
-    refetchInvoices()
-  }, [filters, refetchInvoices])
+    if (showListDialog) {
+      refetchInvoices()
+    }
+  }, [filters, showListDialog, refetchInvoices])
+
+  // Add keyboard shortcuts
+  useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      // Ctrl+S or Cmd+S: Save
+      if ((e.ctrlKey || e.metaKey) && e.key === "s") {
+        e.preventDefault()
+        setShowSaveConfirm(true)
+      }
+      // Ctrl+L or Cmd+L: Open List
+      if ((e.ctrlKey || e.metaKey) && e.key === "l") {
+        e.preventDefault()
+        setShowListDialog(true)
+      }
+    }
+    window.addEventListener("keydown", handleKeyPress)
+    return () => window.removeEventListener("keydown", handleKeyPress)
+  }, [])
+
+  // Add unsaved changes warning
+  useEffect(() => {
+    const isDirty = form.formState.isDirty
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (isDirty) {
+        e.preventDefault()
+        e.returnValue = ""
+      }
+    }
+    window.addEventListener("beforeunload", handleBeforeUnload)
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload)
+  }, [form.formState.isDirty])
 
   const handleInvoiceSearch = async (value: string) => {
     if (!value) return
+
+    setIsLoadingInvoice(true)
 
     try {
       const response = await getById(`${ApInvoice.getByIdNo}/0/${value}`)
@@ -909,6 +950,9 @@ export default function InvoicePage() {
 
           // Show success message
           toast.success(`Invoice ${value} loaded successfully`)
+
+          // Close the load confirmation dialog on success
+          setShowLoadConfirm(false)
         }
       } else {
         toast.error(
@@ -917,6 +961,8 @@ export default function InvoicePage() {
       }
     } catch {
       toast.error("Error searching for invoice")
+    } finally {
+      setIsLoadingInvoice(false)
     }
   }
 
@@ -926,6 +972,21 @@ export default function InvoicePage() {
 
   // Compose title text
   const titleText = isEdit ? `Invoice (Edit) - ${invoiceNo}` : "Invoice (New)"
+
+  // Show loading spinner while essential data is loading
+  if (!visible || !required) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="text-center">
+          <Spinner size="lg" className="mx-auto" />
+          <p className="mt-4 text-sm text-gray-600">Loading invoice form...</p>
+          <p className="mt-2 text-xs text-gray-500">
+            Preparing field settings and validation rules
+          </p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="@container flex flex-1 flex-col p-4">
@@ -966,6 +1027,12 @@ export default function InvoicePage() {
               onChange={(e) => setSearchNo(e.target.value)}
               onBlur={() => {
                 if (searchNo.trim()) {
+                  setShowLoadConfirm(true)
+                }
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && searchNo.trim()) {
+                  e.preventDefault()
                   setShowLoadConfirm(true)
                 }
               }}
@@ -1067,22 +1134,41 @@ export default function InvoicePage() {
           onInteractOutside={(e) => e.preventDefault()}
         >
           <DialogHeader className="pb-4">
-            <DialogTitle className="text-2xl font-bold tracking-tight">
-              Invoice List
-            </DialogTitle>
-            <p className="text-muted-foreground text-sm">
-              Manage and select existing invoices from the list below. Use
-              search to filter records or create new invoices.
-            </p>
+            <div className="flex items-center justify-between">
+              <div>
+                <DialogTitle className="text-2xl font-bold tracking-tight">
+                  Invoice List
+                </DialogTitle>
+                <p className="text-muted-foreground text-sm">
+                  Manage and select existing invoices from the list below. Use
+                  search to filter records or create new invoices.
+                </p>
+              </div>
+            </div>
           </DialogHeader>
-          <InvoiceTable
-            data={invoicesData || []}
-            isLoading={isLoadingInvoices || isRefetchingInvoices}
-            onInvoiceSelect={handleInvoiceSelect}
-            onRefresh={() => refetchInvoices()}
-            onFilterChange={handleFilterChange}
-            initialFilters={filters}
-          />
+
+          {isLoadingInvoices || isRefetchingInvoices ? (
+            <div className="flex min-h-[60vh] items-center justify-center">
+              <div className="text-center">
+                <Spinner size="lg" className="mx-auto" />
+                <p className="mt-4 text-sm text-gray-600">
+                  Loading invoices...
+                </p>
+                <p className="mt-2 text-xs text-gray-500">
+                  Please wait while we fetch the invoice list
+                </p>
+              </div>
+            </div>
+          ) : (
+            <InvoiceTable
+              data={invoicesData || []}
+              isLoading={false}
+              onInvoiceSelect={handleInvoiceSelect}
+              onRefresh={() => refetchInvoices()}
+              onFilterChange={handleFilterChange}
+              initialFilters={filters}
+            />
+          )}
         </DialogContent>
       </Dialog>
 
@@ -1118,6 +1204,7 @@ export default function InvoicePage() {
         typeLabel="Invoice"
         showDetails={false}
         description={`Do you want to load Invoice ${searchNo}?`}
+        isLoading={isLoadingInvoice}
       />
 
       {/* Reset Confirmation */}

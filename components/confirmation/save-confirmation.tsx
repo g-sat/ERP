@@ -12,6 +12,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import { Spinner } from "@/components/ui/spinner"
 
 interface SaveConfirmationProps {
   // Title of the confirmation dialog
@@ -117,6 +118,7 @@ export function SaveConfirmation({
             disabled={isSaving}
             className={getButtonColor()}
           >
+            {isSaving && <Spinner className="mr-2" size="sm" />}
             {getButtonText()}
           </AlertDialogAction>
         </AlertDialogFooter>

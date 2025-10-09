@@ -138,7 +138,8 @@ export function useGetWithDates<T>(
   filters?: string,
   startDate?: string,
   endDate?: string,
-  options?: UseQueryOptions<ApiResponse<T>>
+  options?: UseQueryOptions<ApiResponse<T>>,
+  enabled?: boolean
 ) {
   return useQuery<ApiResponse<T>>({
     queryKey: [queryKey, filters, startDate, endDate],
@@ -155,6 +156,7 @@ export function useGetWithDates<T>(
     gcTime: 10 * 60 * 1000, // 10 minutes (formerly cacheTime)
     refetchOnWindowFocus: false, // Prevent refetch on window focus
     refetchOnMount: false, // Prevent refetch on mount if data exists
+    enabled: enabled,
     ...options,
   })
 }
