@@ -5,7 +5,7 @@ import { ColumnDef } from "@tanstack/react-table"
 import { format, subMonths } from "date-fns"
 import { FormProvider, useForm } from "react-hook-form"
 
-import { TableName } from "@/lib/utils"
+import { APTransactionId, ModuleId, TableName } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { CustomDateNew } from "@/components/custom/custom-date-new"
@@ -34,6 +34,9 @@ export default function InvoiceTable({
   const exhRateDec = decimals[0]?.exhRateDec || 9
   const dateFormat = decimals[0]?.dateFormat || "dd/MM/yyyy"
   //const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
+
+  const moduleId = ModuleId.ap
+  const transactionId = APTransactionId.invoice
 
   const form = useForm({
     defaultValues: {
@@ -326,8 +329,8 @@ export default function InvoiceTable({
         data={data}
         columns={columns}
         isLoading={isLoading}
-        moduleId={1}
-        transactionId={1}
+        moduleId={moduleId}
+        transactionId={transactionId}
         tableName={TableName.apInvoice}
         emptyMessage="No data found."
         onRefresh={onRefresh}

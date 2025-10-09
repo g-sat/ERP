@@ -28,8 +28,10 @@ import {
   ApInvoiceHdSchemaType,
 } from "@/schemas/ap-invoice"
 import { useAuthStore } from "@/stores/auth-store"
+import { format } from "date-fns"
 import { FormProvider, UseFormReturn } from "react-hook-form"
 
+import { clientDateFormat } from "@/lib/date-utils"
 import BankAutocomplete from "@/components/autocomplete/autocomplete-bank"
 import CreditTermAutocomplete from "@/components/autocomplete/autocomplete-creditterm"
 import CurrencyAutocomplete from "@/components/autocomplete/autocomplete-currency"
@@ -95,18 +97,54 @@ export default function InvoiceForm({
   // Handle customer selection
   const handleSupplierChange = React.useCallback(
     async (selectedSupplier: ISupplierLookup | null) => {
-      // Additional logic when customer changes
-      if (!isEdit) {
-        form.setValue("currencyId", selectedSupplier?.currencyId || 0)
-        form.setValue("creditTermId", selectedSupplier?.creditTermId || 0)
-        form.setValue("bankId", selectedSupplier?.bankId || 0)
-        form.setValue("currencyId", selectedSupplier?.currencyId || 0)
-      }
+      if (selectedSupplier) {
+        // ✅ Supplier selected - populate related fields
+        if (!isEdit) {
+          form.setValue("currencyId", selectedSupplier.currencyId || 0)
+          form.setValue("creditTermId", selectedSupplier.creditTermId || 0)
+          form.setValue("bankId", selectedSupplier.bankId || 0)
+        }
 
-      await setDueDate(form)
-      await setExchangeRate(form, exhRateDec, visible)
-      await setExchangeRateLocal(form, exhRateDec)
-      await setAddressContactDetails(form, EntityType.SUPPLIER)
+        await setDueDate(form)
+        await setExchangeRate(form, exhRateDec, visible)
+        await setExchangeRateLocal(form, exhRateDec)
+        await setAddressContactDetails(form, EntityType.SUPPLIER)
+      } else {
+        // ✅ Supplier cleared - reset all related fields
+        if (!isEdit) {
+          // Clear supplier-related fields
+          form.setValue("currencyId", 0)
+          form.setValue("creditTermId", 0)
+          form.setValue("bankId", 0)
+        }
+
+        // Clear exchange rates
+        form.setValue("exhRate", 0)
+        form.setValue("ctyExhRate", 0)
+
+        // Clear due date
+        form.setValue("dueDate", format(new Date(), clientDateFormat))
+
+        // Clear address fields
+        form.setValue("addressId", 0)
+        form.setValue("address1", "")
+        form.setValue("address2", "")
+        form.setValue("address3", "")
+        form.setValue("address4", "")
+        form.setValue("pinCode", "")
+        form.setValue("countryId", 0)
+        form.setValue("phoneNo", "")
+
+        // Clear contact fields
+        form.setValue("contactId", 0)
+        form.setValue("contactName", "")
+        form.setValue("mobileNo", "")
+        form.setValue("emailAdd", "")
+        form.setValue("faxNo", "")
+
+        // Trigger validation
+        form.trigger()
+      }
     },
     [exhRateDec, form, isEdit, visible]
   )

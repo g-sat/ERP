@@ -252,7 +252,9 @@ export const useSupplierContactLookup = (supplierId: number | string) => {
     ...defaultQueryConfig,
     queryFn: async () => {
       try {
-        const data = await getData(`${Lookup.getSupplierContact}/${supplierId}`)
+        const data = await getData(
+          `${Lookup.getSupplierContactList}/${supplierId}`
+        )
         return data?.data || []
       } catch (error) {
         handleApiError(error)
@@ -292,7 +294,9 @@ export const useSupplierAddressLookup = (supplierId: number | string) => {
     ...defaultQueryConfig,
     queryFn: async () => {
       try {
-        const data = await getData(`${Lookup.getSupplierAddress}/${supplierId}`)
+        const data = await getData(
+          `${Lookup.getSupplierAddressList}/${supplierId}`
+        )
         return data?.data || []
       } catch (error) {
         handleApiError(error)

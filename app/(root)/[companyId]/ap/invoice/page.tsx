@@ -282,6 +282,7 @@ export default function InvoicePage() {
       toast.error("Network error while saving invoice")
     } finally {
       setIsSaving(false)
+      setIsSelectingInvoice(false)
     }
   }
 
@@ -1092,7 +1093,11 @@ export default function InvoicePage() {
                 : "Save"}
             </Button>
 
-            <Button variant="outline" size="sm" disabled={!invoice}>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={!invoice || invoice.invoiceId === "0"}
+            >
               <Printer className="mr-1 h-4 w-4" />
               Print
             </Button>
@@ -1101,7 +1106,7 @@ export default function InvoicePage() {
               variant="outline"
               size="sm"
               onClick={() => setShowResetConfirm(true)}
-              disabled={!form.getValues("data_details")?.length}
+              disabled={!invoice}
             >
               <RotateCcw className="mr-1 h-4 w-4" />
               Reset
@@ -1111,7 +1116,7 @@ export default function InvoicePage() {
               variant="outline"
               size="sm"
               onClick={() => setShowCloneConfirm(true)}
-              disabled={!invoice}
+              disabled={!invoice || invoice.invoiceId === "0"}
             >
               <Copy className="mr-1 h-4 w-4" />
               Clone
@@ -1121,7 +1126,7 @@ export default function InvoicePage() {
               variant="destructive"
               size="sm"
               onClick={() => setShowDeleteConfirm(true)}
-              disabled={!invoice}
+              disabled={!invoice || invoice.invoiceId === "0"}
             >
               <Trash2 className="mr-1 h-4 w-4" />
               Delete

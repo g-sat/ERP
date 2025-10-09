@@ -501,7 +501,7 @@ export const setAddressContactDetails = async (
       const contacts = await getData(`${contactEndpoint}/${entityId}`)
 
       if (addresses && addresses.length !== 0) {
-        const data = addresses[0]
+        const data = addresses.data[0]
 
         await form.setValue("addressId", data?.addressId)
         await form.setValue("address1", data?.address1)
@@ -545,7 +545,7 @@ export const setAddressContactDetails = async (
       }
 
       if (contacts && contacts.length !== 0) {
-        const data = contacts[0]
+        const data = contacts.data[0]
 
         await form.setValue("contactId", data?.contactId)
         await form.setValue("contactName", data?.contactName)
