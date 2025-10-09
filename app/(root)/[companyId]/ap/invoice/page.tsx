@@ -30,7 +30,7 @@ import { toast } from "sonner"
 import { getById } from "@/lib/api-client"
 import { ApInvoice } from "@/lib/api-routes"
 import { clientDateFormat, parseDate } from "@/lib/date-utils"
-import { APTransactionId, ModuleId } from "@/lib/utils"
+import { APTransactionId, ModuleId, TableName } from "@/lib/utils"
 import { useDelete, useGetWithDates, usePersist } from "@/hooks/use-common"
 import { useGetRequiredFields, useGetVisibleFields } from "@/hooks/use-lookup"
 import { Button } from "@/components/ui/button"
@@ -42,6 +42,13 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import {
+  CloneConfirmation,
+  DeleteConfirmation,
+  LoadConfirmation,
+  ResetConfirmation,
+  SaveConfirmation,
+} from "@/components/confirmation"
 
 import History from "./components/history"
 import { defaultInvoice } from "./components/invoice-defaultvalues"
@@ -57,13 +64,11 @@ export default function InvoicePage() {
   const transactionId = APTransactionId.invoice
 
   const [showListDialog, setShowListDialog] = useState(false)
-  const [showConfirmDialog, setShowConfirmDialog] = useState({
-    save: false,
-    reset: false,
-    clone: false,
-    delete: false,
-    load: false,
-  })
+  const [showSaveConfirm, setShowSaveConfirm] = useState(false)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [showLoadConfirm, setShowLoadConfirm] = useState(false)
+  const [showResetConfirm, setShowResetConfirm] = useState(false)
+  const [showCloneConfirm, setShowCloneConfirm] = useState(false)
   const [invoice, setInvoice] = useState<ApInvoiceHdSchemaType | null>(null)
   const [searchNo, setSearchNo] = useState("")
   const [activeTab, setActiveTab] = useState("main")
@@ -184,7 +189,7 @@ export default function InvoicePage() {
     isRefetching: isRefetchingInvoices,
   } = useGetWithDates<IApInvoiceHd>(
     `${ApInvoice.get}`,
-    "apInvoiceHd",
+    TableName.apInvoice,
     filters.search,
     filters.startDate?.toString(),
     filters.endDate?.toString()
@@ -205,98 +210,89 @@ export default function InvoicePage() {
   // Remove the useGetInvoiceById hook for selection
   // const { data: invoiceByIdData, refetch: refetchInvoiceById } = ...
 
-  const handleConfirmation = async (action: string) => {
-    setShowConfirmDialog((prev) => ({ ...prev, [action]: false }))
+  // Handle Save
+  const handleSaveInvoice = async () => {
+    try {
+      // Get form values and validate them
+      const formValues = transformToSchemaType(
+        form.getValues() as unknown as IApInvoiceHd
+      )
 
-    switch (action) {
-      case "save":
-        try {
-          // Get form values and validate them
-          const formValues = transformToSchemaType(
-            form.getValues() as unknown as IApInvoiceHd
+      // Validate the form data using the schema
+      const validationResult = apinvoiceHdSchema(required, visible).safeParse(
+        formValues
+      )
+
+      console.log("formValues", formValues)
+
+      if (!validationResult.success) {
+        console.error("Form validation failed:", validationResult.error)
+        toast.error("Please check form data and try again")
+        return
+      }
+
+      const response =
+        Number(formValues.invoiceId) === 0
+          ? await saveMutation.mutateAsync(formValues)
+          : await updateMutation.mutateAsync(formValues)
+
+      if (response.result === 1) {
+        const invoiceData = Array.isArray(response.data)
+          ? response.data[0]
+          : response.data
+
+        // Transform API response back to form values if needed
+        if (invoiceData) {
+          const updatedSchemaType = transformToSchemaType(
+            invoiceData as unknown as IApInvoiceHd
           )
-
-          // Validate the form data using the schema
-          const validationResult = apinvoiceHdSchema(
-            required,
-            visible
-          ).safeParse(formValues)
-
-          console.log("formValues", formValues)
-
-          if (!validationResult.success) {
-            console.error("Form validation failed:", validationResult.error)
-            toast.error("Please check form data and try again")
-            return
-          }
-
-          const response =
-            Number(formValues.invoiceId) === 0
-              ? await saveMutation.mutateAsync(formValues)
-              : await updateMutation.mutateAsync(formValues)
-
-          if (response.result === 1) {
-            const invoiceData = Array.isArray(response.data)
-              ? response.data[0]
-              : response.data
-
-            // Transform API response back to form values if needed
-            if (invoiceData) {
-              const updatedSchemaType = transformToSchemaType(
-                invoiceData as unknown as IApInvoiceHd
-              )
-              setInvoice(updatedSchemaType)
-            }
-
-            toast.success("Invoice saved successfully")
-            refetchInvoices()
-          } else {
-            toast.error(response.message || "Failed to save invoice")
-          }
-        } catch (error) {
-          console.error("Save error:", error)
-          toast.error("Network error while saving invoice")
+          setInvoice(updatedSchemaType)
         }
-        break
-      case "reset":
-        handleInvoiceReset()
-        break
-      case "clone":
-        if (invoice) {
-          // Create a proper clone with form values
-          const clonedInvoice: ApInvoiceHdSchemaType = {
-            ...invoice,
-            invoiceId: "0",
-            invoiceNo: "",
-            // Reset amounts for new invoice
-            totAmt: 0,
-            totLocalAmt: 0,
-            totCtyAmt: 0,
-            gstAmt: 0,
-            gstLocalAmt: 0,
-            gstCtyAmt: 0,
-            totAmtAftGst: 0,
-            totLocalAmtAftGst: 0,
-            totCtyAmtAftGst: 0,
-            balAmt: 0,
-            balLocalAmt: 0,
-            payAmt: 0,
-            payLocalAmt: 0,
-            exGainLoss: 0,
-            // Reset data details
-            data_details: [],
-          }
-          setInvoice(clonedInvoice)
-          form.reset(clonedInvoice)
-          toast.success("Invoice cloned successfully")
-        }
-        break
-      case "delete":
-        handleInvoiceDelete()
-        break
+
+        toast.success("Invoice saved successfully")
+        refetchInvoices()
+      } else {
+        toast.error(response.message || "Failed to save invoice")
+      }
+    } catch (error) {
+      console.error("Save error:", error)
+      toast.error("Network error while saving invoice")
     }
   }
 
+  // Handle Clone
+  const handleCloneInvoice = () => {
+    if (invoice) {
+      // Create a proper clone with form values
+      const clonedInvoice: ApInvoiceHdSchemaType = {
+        ...invoice,
+        invoiceId: "0",
+        invoiceNo: "",
+        // Reset amounts for new invoice
+        totAmt: 0,
+        totLocalAmt: 0,
+        totCtyAmt: 0,
+        gstAmt: 0,
+        gstLocalAmt: 0,
+        gstCtyAmt: 0,
+        totAmtAftGst: 0,
+        totLocalAmtAftGst: 0,
+        totCtyAmtAftGst: 0,
+        balAmt: 0,
+        balLocalAmt: 0,
+        payAmt: 0,
+        payLocalAmt: 0,
+        exGainLoss: 0,
+        // Reset data details
+        data_details: [],
+      }
+      setInvoice(clonedInvoice)
+      form.reset(clonedInvoice)
+      toast.success("Invoice cloned successfully")
+    }
+  }
+
+  // Handle Delete
   const handleInvoiceDelete = async () => {
     if (!invoice) return
 
@@ -306,6 +302,10 @@ export default function InvoicePage() {
       )
       if (response.result === 1) {
         setInvoice(null)
+        form.reset({
+          ...defaultInvoice,
+          data_details: [],
+        })
         toast.success("Invoice deleted successfully")
         refetchInvoices()
       } else {
@@ -314,29 +314,16 @@ export default function InvoicePage() {
     } catch {
       toast.error("Network error while deleting invoice")
     }
-
-    setShowConfirmDialog({
-      save: false,
-      reset: false,
-      clone: false,
-      delete: false,
-      load: false,
-    })
   }
 
+  // Handle Reset
   const handleInvoiceReset = () => {
     setInvoice(null)
     form.reset({
       ...defaultInvoice,
       data_details: [],
     })
-    setShowConfirmDialog({
-      save: false,
-      reset: false,
-      clone: false,
-      delete: false,
-      load: false,
-    })
+    toast.success("Invoice reset successfully")
   }
 
   // Helper function to transform IApInvoiceHd to ApInvoiceHdSchemaType
@@ -934,14 +921,6 @@ export default function InvoicePage() {
     } catch {
       toast.error("Error searching for invoice")
     }
-
-    setShowConfirmDialog({
-      save: false,
-      reset: false,
-      clone: false,
-      delete: false,
-      load: false,
-    })
   }
 
   // Determine mode and invoice ID from URL
@@ -990,7 +969,7 @@ export default function InvoicePage() {
               onChange={(e) => setSearchNo(e.target.value)}
               onBlur={() => {
                 if (searchNo.trim()) {
-                  setShowConfirmDialog({ ...showConfirmDialog, load: true })
+                  setShowLoadConfirm(true)
                 }
               }}
               placeholder="Search Invoice No"
@@ -1010,9 +989,7 @@ export default function InvoicePage() {
             <Button
               variant="default"
               size="sm"
-              onClick={() =>
-                setShowConfirmDialog({ ...showConfirmDialog, save: true })
-              }
+              onClick={() => setShowSaveConfirm(true)}
               //disabled={!form.getValues("data_details")?.length}
             >
               <Save className="mr-1 h-4 w-4" />
@@ -1027,9 +1004,7 @@ export default function InvoicePage() {
             <Button
               variant="outline"
               size="sm"
-              onClick={() =>
-                setShowConfirmDialog({ ...showConfirmDialog, reset: true })
-              }
+              onClick={() => setShowResetConfirm(true)}
               disabled={!form.getValues("data_details")?.length}
             >
               <RotateCcw className="mr-1 h-4 w-4" />
@@ -1039,9 +1014,7 @@ export default function InvoicePage() {
             <Button
               variant="outline"
               size="sm"
-              onClick={() =>
-                setShowConfirmDialog({ ...showConfirmDialog, clone: true })
-              }
+              onClick={() => setShowCloneConfirm(true)}
               disabled={!invoice}
             >
               <Copy className="mr-1 h-4 w-4" />
@@ -1051,9 +1024,7 @@ export default function InvoicePage() {
             <Button
               variant="destructive"
               size="sm"
-              onClick={() =>
-                setShowConfirmDialog({ ...showConfirmDialog, delete: true })
-              }
+              onClick={() => setShowDeleteConfirm(true)}
               disabled={!invoice}
             >
               <Trash2 className="mr-1 h-4 w-4" />
@@ -1065,7 +1036,9 @@ export default function InvoicePage() {
         <TabsContent value="main">
           <Main
             form={form}
-            onSuccessAction={handleConfirmation}
+            onSuccessAction={async () => {
+              handleSaveInvoice()
+            }}
             isEdit={isEdit}
             visible={visible}
             required={required}
@@ -1078,12 +1051,7 @@ export default function InvoicePage() {
         </TabsContent>
 
         <TabsContent value="history">
-          <History
-            form={form}
-            isEdit={isEdit}
-            moduleId={moduleId}
-            transactionId={transactionId}
-          />
+          <History form={form} isEdit={isEdit} />
         </TabsContent>
       </Tabs>
 
@@ -1121,69 +1089,59 @@ export default function InvoicePage() {
         </DialogContent>
       </Dialog>
 
-      {/* Confirmation Dialog */}
-      <Dialog
-        open={Object.values(showConfirmDialog).some(Boolean)}
-        onOpenChange={() =>
-          setShowConfirmDialog({
-            save: false,
-            reset: false,
-            clone: false,
-            delete: false,
-            load: false,
-          })
+      {/* Save Confirmation */}
+      <SaveConfirmation
+        open={showSaveConfirm}
+        onOpenChange={setShowSaveConfirm}
+        onConfirm={handleSaveInvoice}
+        itemName={invoice?.invoiceNo || "New Invoice"}
+        operationType={
+          invoice?.invoiceId && invoice.invoiceId !== "0" ? "update" : "create"
         }
-      >
-        <DialogContent className="max-w-sm">
-          <DialogHeader>
-            <DialogTitle className="text-lg font-semibold">
-              {showConfirmDialog.save && "Save Invoice"}
-              {showConfirmDialog.reset && "Reset Invoice"}
-              {showConfirmDialog.clone && "Clone Invoice"}
-              {showConfirmDialog.delete && "Delete Invoice"}
-              {showConfirmDialog.load && "Load Invoice"}
-            </DialogTitle>
-          </DialogHeader>
-          <div className="p-6 text-center">
-            <h3 className="mb-4 text-lg font-medium">
-              {showConfirmDialog.save && "Do you want to save changes?"}
-              {showConfirmDialog.reset && "Do you want to reset all fields?"}
-              {showConfirmDialog.clone && "Do you want to clone this invoice?"}
-              {showConfirmDialog.delete &&
-                "Do you want to delete this invoice?"}
-              {showConfirmDialog.load && "Do you want to load this invoice?"}
-            </h3>
-            <div className="flex justify-center gap-4">
-              <Button
-                variant="outline"
-                onClick={() =>
-                  setShowConfirmDialog({
-                    save: false,
-                    reset: false,
-                    clone: false,
-                    delete: false,
-                    load: false,
-                  })
-                }
-              >
-                Cancel
-              </Button>
-              <Button
-                variant="destructive"
-                onClick={() => {
-                  if (showConfirmDialog.save) handleConfirmation("save")
-                  if (showConfirmDialog.reset) handleConfirmation("reset")
-                  if (showConfirmDialog.clone) handleConfirmation("clone")
-                  if (showConfirmDialog.delete) handleConfirmation("delete")
-                  if (showConfirmDialog.load) handleInvoiceSearch(searchNo)
-                }}
-              >
-                Confirm
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+        isSaving={saveMutation.isPending || updateMutation.isPending}
+      />
+
+      {/* Delete Confirmation */}
+      <DeleteConfirmation
+        open={showDeleteConfirm}
+        onOpenChange={setShowDeleteConfirm}
+        onConfirm={handleInvoiceDelete}
+        itemName={invoice?.invoiceNo}
+        title="Delete Invoice"
+        description="This action cannot be undone. All invoice details will be permanently deleted."
+        isDeleting={deleteMutation.isPending}
+      />
+
+      {/* Load Confirmation */}
+      <LoadConfirmation
+        open={showLoadConfirm}
+        onOpenChange={setShowLoadConfirm}
+        onLoad={() => handleInvoiceSearch(searchNo)}
+        code={searchNo}
+        typeLabel="Invoice"
+        showDetails={false}
+        description={`Do you want to load Invoice ${searchNo}?`}
+      />
+
+      {/* Reset Confirmation */}
+      <ResetConfirmation
+        open={showResetConfirm}
+        onOpenChange={setShowResetConfirm}
+        onConfirm={handleInvoiceReset}
+        itemName={invoice?.invoiceNo}
+        title="Reset Invoice"
+        description="This will clear all unsaved changes."
+      />
+
+      {/* Clone Confirmation */}
+      <CloneConfirmation
+        open={showCloneConfirm}
+        onOpenChange={setShowCloneConfirm}
+        onConfirm={handleCloneInvoice}
+        itemName={invoice?.invoiceNo}
+        title="Clone Invoice"
+        description="This will create a copy as a new invoice."
+      />
     </div>
   )
 }

@@ -4,26 +4,22 @@ import { useAuthStore } from "@/stores/auth-store"
 import { ColumnDef } from "@tanstack/react-table"
 import { format } from "date-fns"
 
-import { TableName } from "@/lib/utils"
+import { APTransactionId, ModuleId, TableName } from "@/lib/utils"
 import { useGetPaymentDetails } from "@/hooks/use-histoy"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { BasicTable } from "@/components/table/table-basic"
 
 interface PaymentDetailsProps {
   invoiceId: string
-  moduleId: number
-  transactionId: number
 }
 
-export default function PaymentDetails({
-  invoiceId,
-  moduleId,
-  transactionId,
-}: PaymentDetailsProps) {
+export default function PaymentDetails({ invoiceId }: PaymentDetailsProps) {
   const { decimals } = useAuthStore()
   const amtDec = decimals[0]?.amtDec || 2
   const locAmtDec = decimals[0]?.locAmtDec || 2
   const dateFormat = decimals[0]?.dateFormat || "dd/MM/yyyy"
+  const moduleId = ModuleId.ap
+  const transactionId = APTransactionId.invoice
 
   const { data: paymentDetails, refetch: refetchPayment } =
     //useGetPaymentDetails<IPaymentDetails>(25, 1, "14120250100024")
@@ -117,7 +113,7 @@ export default function PaymentDetails({
           isLoading={false}
           moduleId={moduleId}
           transactionId={transactionId}
-          tableName={TableName.notDefine}
+          tableName={TableName.paymentDetails}
           onRefresh={handleRefresh}
           showHeader={true}
           showFooter={false}

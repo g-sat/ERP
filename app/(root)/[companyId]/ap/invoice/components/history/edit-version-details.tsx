@@ -7,7 +7,7 @@ import { ColumnDef } from "@tanstack/react-table"
 import { format } from "date-fns"
 import { AlertCircle } from "lucide-react"
 
-import { TableName } from "@/lib/utils"
+import { APTransactionId, ModuleId, TableName } from "@/lib/utils"
 import {
   useGetAPInvoiceHistoryDetails,
   useGetAPInvoiceHistoryList,
@@ -35,6 +35,9 @@ export default function EditVersionDetails({
   const locAmtDec = decimals[0]?.locAmtDec || 2
   const dateFormat = decimals[0]?.dateFormat || "dd/MM/yyyy"
   const exhRateDec = decimals[0]?.exhRateDec || 2
+
+  const moduleId = ModuleId.ap
+  const transactionId = APTransactionId.invoice
 
   const [selectedInvoice, setSelectedInvoice] = useState<IApInvoiceHd | null>(
     null
@@ -353,8 +356,8 @@ export default function EditVersionDetails({
             data={tableData}
             columns={columns}
             isLoading={false}
-            moduleId={25}
-            transactionId={1}
+            moduleId={moduleId}
+            transactionId={transactionId}
             tableName={TableName.notDefine}
             emptyMessage={
               hasHistoryError ? "Error loading data" : "No results."
@@ -429,9 +432,9 @@ export default function EditVersionDetails({
                 <BasicTable
                   data={dialogData?.data_details || []}
                   columns={detailsColumns}
-                  moduleId={25}
-                  transactionId={1}
-                  tableName={TableName.apInvoice}
+                  moduleId={moduleId}
+                  transactionId={transactionId}
+                  tableName={TableName.apInvoiceHistory}
                   emptyMessage="No invoice details available"
                   onRefresh={handleRefresh}
                   showHeader={true}

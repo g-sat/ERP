@@ -5,7 +5,7 @@ import { format } from "date-fns"
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 
-import { TableName } from "@/lib/utils"
+import { APTransactionId, ModuleId, TableName } from "@/lib/utils"
 import { useGetDocumentType } from "@/hooks/use-admin"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -20,18 +20,12 @@ import { Label } from "@/components/ui/label"
 import DocumentTypeAutocomplete from "@/components/autocomplete/autocomplete-document-type"
 import { BasicTable } from "@/components/table/table-basic"
 
-interface DocumentUploadProps {
-  moduleId: number
-  transactionId: number
-}
-
-export default function DocumentUpload({
-  moduleId,
-  transactionId,
-}: DocumentUploadProps) {
+export default function DocumentUpload() {
   const { decimals } = useAuthStore()
   const dateFormat = decimals[0]?.dateFormat || "dd/MM/yyyy"
   const form = useForm()
+  const moduleId = ModuleId.ap
+  const transactionId = APTransactionId.invoice
 
   const [selectedDocType, setSelectedDocType] =
     useState<IDocumentTypeLookup | null>(null)
@@ -185,7 +179,7 @@ export default function DocumentUpload({
             isLoading={isLoading}
             moduleId={moduleId}
             transactionId={transactionId}
-            tableName={TableName.notDefine}
+            tableName={TableName.otherDocument}
             onRefresh={refetch}
             showHeader={true}
             showFooter={false}

@@ -25,6 +25,7 @@ import { toast } from "sonner"
 import { getById } from "@/lib/api-client"
 import { ArInvoice } from "@/lib/api-routes"
 import { clientDateFormat, parseDate } from "@/lib/date-utils"
+import { TableName } from "@/lib/utils"
 import { useDelete, useGetWithDates, usePersist } from "@/hooks/use-common"
 import { useGetRequiredFields, useGetVisibleFields } from "@/hooks/use-lookup"
 import { Button } from "@/components/ui/button"
@@ -171,7 +172,7 @@ export default function InvoicePage() {
     isRefetching: isRefetchingInvoices,
   } = useGetWithDates<IArInvoiceHd>(
     `${ArInvoice.get}`,
-    "arInvoiceHd",
+    TableName.arInvoice,
     filters.search,
     filters.startDate?.toString(),
     filters.endDate?.toString()
@@ -287,7 +288,7 @@ export default function InvoicePage() {
 
     try {
       const response = await deleteMutation.mutateAsync(
-        invoice.invoiceId.toString()
+        invoice.invoiceId?.toString() ?? "0"
       )
       if (response.result === 1) {
         setInvoice(null)

@@ -443,6 +443,7 @@ export enum TableName {
   //AP
   apInvoice = "apInvoice",
   apInvoiceDt = "apInvoiceDt",
+  apInvoiceHistory = "apInvoiceHistory",
   apDebitNote = "apDebitNote",
   apDebitNoteDt = "apDebitNoteDt",
   apCreditNote = "apCreditNote",
@@ -477,4 +478,9 @@ export enum TableName {
   yearEndProcess = "yearEndProcess",
   periodClose = "periodClose",
   template = "template",
+
+  //Common
+  glPostDetails = "glPostDetails",
+  paymentDetails = "paymentDetails",
+  otherDocument = "otherDocument",
 }
