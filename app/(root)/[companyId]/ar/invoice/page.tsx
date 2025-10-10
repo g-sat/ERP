@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { ApiResponse } from "@/interfaces/auth"
 import {
   IArInvoiceDt,
@@ -533,6 +533,14 @@ export default function InvoicePage() {
     setFilters(newFilters)
   }, [])
 
+  // Refetch invoices when filters change (only if dialog is open)
+  useEffect(() => {
+    if (showListDialog) {
+      refetchInvoices()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filters.startDate, filters.endDate, filters.search, showListDialog])
+
   const handleInvoiceSearch = async (value: string) => {
     if (!value) return
 
@@ -761,7 +769,15 @@ export default function InvoicePage() {
       </Tabs>
 
       {/* List Dialog */}
-      <Dialog open={showListDialog} onOpenChange={setShowListDialog}>
+      <Dialog
+        open={showListDialog}
+        onOpenChange={(open) => {
+          setShowListDialog(open)
+          if (open) {
+            refetchInvoices()
+          }
+        }}
+      >
         <DialogContent
           className="@container h-[90vh] w-[90vw] !max-w-none overflow-y-auto rounded-lg p-4"
           onInteractOutside={(e) => e.preventDefault()}

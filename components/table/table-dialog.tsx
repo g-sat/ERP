@@ -265,14 +265,15 @@ export function DialogDataTable<T>({
   }
 
   useEffect(() => {
-    if (!data?.length && onFilterChange) {
+    if (!data?.length && !isLoading && onFilterChange) {
       const filters = {
         search: searchQuery,
         sortOrder: sorting[0]?.desc ? "desc" : "asc",
       }
       onFilterChange(filters)
     }
-  }, [sorting, searchQuery, data?.length, onFilterChange])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sorting, searchQuery, data?.length, isLoading])
 
   return (
     <>
