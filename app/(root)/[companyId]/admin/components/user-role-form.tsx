@@ -35,6 +35,7 @@ interface UserRoleFormProps {
   isSubmitting?: boolean
   isReadOnly?: boolean
   onSaveConfirmation?: (data: UserRoleSchemaType) => void
+  onCodeBlur?: (code: string) => void
 }
 
 export function UserRoleForm({
@@ -44,6 +45,7 @@ export function UserRoleForm({
   isSubmitting = false,
   isReadOnly = false,
   onSaveConfirmation,
+  onCodeBlur,
 }: UserRoleFormProps) {
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
@@ -84,6 +86,13 @@ export function UserRoleForm({
     }
   }
 
+  const handleCodeBlur = (_e: React.FocusEvent<HTMLInputElement>) => {
+    const code = form.getValues("userRoleCode")
+    if (code) {
+      onCodeBlur?.(code)
+    }
+  }
+
   return (
     <div className="max-w flex flex-col gap-2">
       <Form {...form}>
@@ -97,6 +106,7 @@ export function UserRoleForm({
                   label="Role Code"
                   isRequired
                   isDisabled={isReadOnly || Boolean(initialData)}
+                  onBlurEvent={handleCodeBlur}
                 />
               </div>
               <div>

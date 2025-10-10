@@ -7,9 +7,10 @@ import { PortRegionSchemaType } from "@/schemas/portregion"
 import { usePermissionStore } from "@/stores/permission-store"
 import { useQueryClient } from "@tanstack/react-query"
 
+import { getById } from "@/lib/api-client"
 import { PortRegion } from "@/lib/api-routes"
 import { MasterTransactionId, ModuleId } from "@/lib/utils"
-import { useDelete, useGet, useGetById, usePersist } from "@/hooks/use-common"
+import { useDelete, useGet, usePersist } from "@/hooks/use-common"
 import {
   Dialog,
   DialogContent,
@@ -38,12 +39,13 @@ export default function PortRegionPage() {
   const canView = hasPermission(moduleId, transactionId, "isRead")
   const canCreate = hasPermission(moduleId, transactionId, "isCreate")
 
+  const queryClient = useQueryClient()
+
   const [filters, setFilters] = useState<IPortRegionFilter>({})
 
   // Filter handler wrapper
   const handleFilterChange = useCallback(
     (newFilters: { search?: string; sortOrder?: string }) => {
-      console.log("Filter change called with:", newFilters)
       setFilters(newFilters as IPortRegionFilter)
     },
     []
@@ -74,7 +76,6 @@ export default function PortRegionPage() {
   const [showLoadDialog, setShowLoadDialog] = useState(false)
   const [existingPortRegion, setExistingPortRegion] =
     useState<IPortRegion | null>(null)
-  const [codeToCheck, setCodeToCheck] = useState<string>("")
 
   const [deleteConfirmation, setDeleteConfirmation] = useState<{
     isOpen: boolean
@@ -85,12 +86,6 @@ export default function PortRegionPage() {
     portRegionId: null,
     portRegionName: null,
   })
-
-  const { refetch: checkCodeAvailability } = useGetById<IPortRegion>(
-    `${PortRegion.getByCode}`,
-    "portRegionByCode",
-    codeToCheck
-  )
 
   const handleRefresh = () => {
     refetch()
@@ -103,7 +98,6 @@ export default function PortRegionPage() {
   }
 
   const handleEditPortRegion = (portregion: IPortRegion) => {
-    console.log("Edit PortRegion:", portregion)
     setModalMode("edit")
     setSelectedPortRegion(portregion)
     setIsModalOpen(true)
@@ -185,61 +179,49 @@ export default function PortRegionPage() {
     }
   }
 
-  const handleCodeBlur = async (code: string) => {
-    if (modalMode === "edit" || modalMode === "view") return
+  const handleCodeBlur = useCallback(
+    async (code: string) => {
+      if (modalMode === "edit" || modalMode === "view") return
 
-    const trimmedCode = code?.trim()
-    if (!trimmedCode) return
+      const trimmedCode = code?.trim()
+      if (!trimmedCode) return
 
-    setCodeToCheck(trimmedCode)
-    try {
-      const response = await checkCodeAvailability()
-      console.log("Full API Response:", response)
+      try {
+        const response = await getById(`${PortRegion.getByCode}/${trimmedCode}`)
+                if (response?.result === 1 && response.data) {
+                    const portregionData = Array.isArray(response.data)
+            ? response.data[0]
+            : response.data
 
-      if (response?.data?.result === 1 && response.data.data) {
-        console.log("Response data:", response.data.data)
-
-        const portregionData = Array.isArray(response.data.data)
-          ? response.data.data[0]
-          : response.data.data
-
-        console.log("Processed portregionData:", portregionData)
-
-        if (portregionData) {
-          const validPortRegionData: IPortRegion = {
-            portRegionId: portregionData.portRegionId,
-            portRegionCode: portregionData.portRegionCode,
-            portRegionName: portregionData.portRegionName,
-            countryId: portregionData.countryId,
-            countryCode: portregionData.countryCode,
-            countryName: portregionData.countryName,
-            companyId: portregionData.companyId,
-            remarks: portregionData.remarks || "",
-            isActive: portregionData.isActive ?? true,
-            createBy: portregionData.createBy,
-            editBy: portregionData.editBy,
-            createDate: portregionData.createDate,
-            editDate: portregionData.editDate,
+          if (portregionData) {
+            const validPortRegionData: IPortRegion = {
+              portRegionId: portregionData.portRegionId,
+              portRegionCode: portregionData.portRegionCode,
+              portRegionName: portregionData.portRegionName,
+              countryId: portregionData.countryId,
+              countryCode: portregionData.countryCode,
+              countryName: portregionData.countryName,
+              companyId: portregionData.companyId,
+              remarks: portregionData.remarks || "",
+              isActive: portregionData.isActive ?? true,
+              createBy: portregionData.createBy,
+              editBy: portregionData.editBy,
+              createDate: portregionData.createDate,
+              editDate: portregionData.editDate,
+            }
+            setExistingPortRegion(validPortRegionData)
+            setShowLoadDialog(true)
           }
-
-          console.log("Setting existing portregion:", validPortRegionData)
-          setExistingPortRegion(validPortRegionData)
-          setShowLoadDialog(true)
         }
+      } catch (error) {
+        console.error("Error checking code availability:", error)
       }
-    } catch (error) {
-      console.error("Error checking code availability:", error)
-    }
-  }
+    },
+    [modalMode]
+  )
 
   const handleLoadExistingPortRegion = () => {
     if (existingPortRegion) {
-      console.log("About to load portregion data:", {
-        existingPortRegion,
-        currentModalMode: modalMode,
-        currentSelectedPortRegion: selectedPortRegion,
-      })
-
       setModalMode("edit")
       setSelectedPortRegion(existingPortRegion)
       setShowLoadDialog(false)
@@ -247,20 +229,11 @@ export default function PortRegionPage() {
     }
   }
 
-  const queryClient = useQueryClient()
-
   useEffect(() => {
-    console.log("Modal Mode Updated:", modalMode)
   }, [modalMode])
 
   useEffect(() => {
     if (selectedPortRegion) {
-      console.log("Selected PortRegion Updated:", {
-        portRegionId: selectedPortRegion.portRegionId,
-        portRegionCode: selectedPortRegion.portRegionCode,
-        portRegionName: selectedPortRegion.portRegionName,
-        fullObject: selectedPortRegion,
-      })
     }
   }, [selectedPortRegion])
 

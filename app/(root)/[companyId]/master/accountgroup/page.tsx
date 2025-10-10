@@ -7,9 +7,10 @@ import { AccountGroupSchemaType } from "@/schemas/accountgroup"
 import { usePermissionStore } from "@/stores/permission-store"
 import { useQueryClient } from "@tanstack/react-query"
 
+import { getById } from "@/lib/api-client"
 import { AccountGroup } from "@/lib/api-routes"
 import { MasterTransactionId, ModuleId } from "@/lib/utils"
-import { useDelete, useGet, useGetById, usePersist } from "@/hooks/use-common"
+import { useDelete, useGet, usePersist } from "@/hooks/use-common"
 import {
   Dialog,
   DialogContent,
@@ -31,6 +32,9 @@ export default function AccountGroupPage() {
   const moduleId = ModuleId.master
   const transactionId = MasterTransactionId.accountGroup
 
+  // Move queryClient to top for proper usage order
+  const queryClient = useQueryClient()
+
   const { hasPermission } = usePermissionStore()
 
   const canView = hasPermission(moduleId, transactionId, "isRead")
@@ -44,7 +48,6 @@ export default function AccountGroupPage() {
   // Filter handler wrapper
   const handleFilterChange = useCallback(
     (newFilters: { search?: string; sortOrder?: string }) => {
-      console.log("Filter change called with:", newFilters)
       setFilters(newFilters as IAccountGroupFilter)
     },
     []
@@ -87,7 +90,6 @@ export default function AccountGroupPage() {
   const [showLoadDialog, setShowLoadDialog] = useState(false)
   const [existingAccountGroup, setExistingAccountGroup] =
     useState<IAccountGroup | null>(null)
-  const [codeToCheck, setCodeToCheck] = useState<string>("")
 
   // State for delete confirmation
   const [deleteConfirmation, setDeleteConfirmation] = useState<{
@@ -109,13 +111,6 @@ export default function AccountGroupPage() {
     data: null,
   })
 
-  // Add API call for checking code availability
-  const { refetch: checkCodeAvailability } = useGetById<IAccountGroup>(
-    `${AccountGroup.getByCode}`,
-    "accountGroupByCode",
-    codeToCheck
-  )
-
   // Handler to Re-fetches data when called
   const handleRefresh = () => {
     refetch()
@@ -130,7 +125,6 @@ export default function AccountGroupPage() {
 
   // Handler to open modal for editing an account group
   const handleEditAccountGroup = (accountGroup: IAccountGroup) => {
-    console.log("Edit Account Group:", accountGroup)
     setModalMode("edit")
     setSelectedAccountGroup(accountGroup)
     setIsModalOpen(true)
@@ -203,77 +197,67 @@ export default function AccountGroupPage() {
     }
   }
 
-  // Handler for code availability check
-  const handleCodeBlur = async (code: string) => {
-    // Skip if:
-    // 1. In edit mode
-    // 2. In read-only mode
-    if (modalMode === "edit" || modalMode === "view") return
+  // Handler for code availability check (memoized to prevent unnecessary re-renders)
+  const handleCodeBlur = useCallback(
+    async (code: string) => {
+      // Skip if:
+      // 1. In edit mode
+      // 2. In read-only mode
+      if (modalMode === "edit" || modalMode === "view") return
 
-    const trimmedCode = code?.trim()
-    if (!trimmedCode) return
-
-    setCodeToCheck(trimmedCode)
-    try {
-      const response = await checkCodeAvailability()
-      console.log("Full API Response:", response)
-
-      // Check if response has data and it's not empty
-      if (response?.data?.result === 1 && response.data.data) {
-        console.log("Response data:", response.data.data)
-
-        // Handle both array and single object responses
-        const accountGroupData = Array.isArray(response.data.data)
-          ? response.data.data[0]
-          : response.data.data
-
-        console.log("Processed accountGroupData:", accountGroupData)
-
-        if (accountGroupData) {
-          // Ensure all required fields are present
-          const validAccountGroupData: IAccountGroup = {
-            accGroupId: accountGroupData.accGroupId,
-            accGroupCode: accountGroupData.accGroupCode,
-            accGroupName: accountGroupData.accGroupName,
-            seqNo: accountGroupData.seqNo,
-            remarks: accountGroupData.remarks || "",
-            isActive: accountGroupData.isActive ?? true,
-            companyId: accountGroupData.companyId,
-            createBy: accountGroupData.createBy,
-            editBy: accountGroupData.editBy,
-            createDate: accountGroupData.createDate,
-            editDate: accountGroupData.editDate,
-          }
-
-          console.log("Setting existing account group:", validAccountGroupData)
-          setExistingAccountGroup(validAccountGroupData)
-          setShowLoadDialog(true)
-        }
+      const trimmedCode = code?.trim()
+      if (!trimmedCode) {
+        return
       }
-    } catch (error) {
-      console.error("Error checking code availability:", error)
-    }
-  }
+
+      try {
+        const response = await getById(
+          `${AccountGroup.getByCode}/${trimmedCode}`
+        )
+
+        // Check if response has data and it's not empty
+        if (response?.result === 1 && response.data) {
+          // Handle both array and single object responses
+          const accountGroupData = Array.isArray(response.data)
+            ? response.data[0]
+            : response.data
+
+          if (accountGroupData) {
+            // Ensure all required fields are present
+            const validAccountGroupData: IAccountGroup = {
+              accGroupId: accountGroupData.accGroupId,
+              accGroupCode: accountGroupData.accGroupCode,
+              accGroupName: accountGroupData.accGroupName,
+              seqNo: accountGroupData.seqNo,
+              remarks: accountGroupData.remarks || "",
+              isActive: accountGroupData.isActive ?? true,
+              companyId: accountGroupData.companyId,
+              createBy: accountGroupData.createBy,
+              editBy: accountGroupData.editBy,
+              createDate: accountGroupData.createDate,
+              editDate: accountGroupData.editDate,
+            }
+
+            setExistingAccountGroup(validAccountGroupData)
+            setShowLoadDialog(true)
+          }
+        }
+      } catch (error) {
+        console.error("Error checking code availability:", error)
+      }
+    },
+    [modalMode]
+  )
 
   // Handler for loading existing account group
   const handleLoadExistingAccountGroup = () => {
     if (existingAccountGroup) {
-      // Log the data we're about to set
-      console.log("About to load account group data:", {
-        existingAccountGroup,
-        currentModalMode: modalMode,
-        currentSelectedAccountGroup: selectedAccountGroup,
-      })
-
-      // Set the states
       setModalMode("edit")
       setSelectedAccountGroup(existingAccountGroup)
       setShowLoadDialog(false)
       setExistingAccountGroup(null)
     }
   }
-
-  const queryClient = useQueryClient()
 
   return (
     <div className="container mx-auto space-y-2 px-4 pt-2 pb-4 sm:space-y-3 sm:px-6 sm:pt-3 sm:pb-6">
@@ -327,7 +311,7 @@ export default function AccountGroupPage() {
         </LockSkeleton>
       ) : (
         <AccountGroupTable
-          data={filters.search ? [] : accountGroupsData || []}
+          data={accountGroupsData || []}
           isLoading={isLoading}
           onSelect={handleViewAccountGroup}
           onDelete={handleDeleteAccountGroup}

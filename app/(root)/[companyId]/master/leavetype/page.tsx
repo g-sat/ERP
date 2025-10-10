@@ -7,9 +7,10 @@ import { LeaveTypeSchemaType } from "@/schemas/leavetype"
 import { usePermissionStore } from "@/stores/permission-store"
 import { useQueryClient } from "@tanstack/react-query"
 
+import { getById } from "@/lib/api-client"
 import { LeaveType } from "@/lib/api-routes"
 import { MasterTransactionId, ModuleId } from "@/lib/utils"
-import { useDelete, useGet, useGetById, usePersist } from "@/hooks/use-common"
+import { useDelete, useGet, usePersist } from "@/hooks/use-common"
 import {
   Dialog,
   DialogContent,
@@ -31,6 +32,7 @@ export default function LeaveTypePage() {
   const moduleId = ModuleId.master
   const transactionId = MasterTransactionId.leaveType
 
+  const queryClient = useQueryClient()
   const { hasPermission } = usePermissionStore()
 
   const canEdit = hasPermission(moduleId, transactionId, "isEdit")
@@ -44,7 +46,6 @@ export default function LeaveTypePage() {
   // Filter handler wrapper
   const handleFilterChange = useCallback(
     (newFilters: { search?: string; sortOrder?: string }) => {
-      console.log("Filter change called with:", newFilters)
       setFilters(newFilters as ILeaveTypeFilter)
     },
     []
@@ -82,7 +83,6 @@ export default function LeaveTypePage() {
   const [existingLeaveType, setExistingLeaveType] = useState<ILeaveType | null>(
     null
   )
-  const [codeToCheck, setCodeToCheck] = useState<string>("")
 
   // State for delete confirmation
   const [deleteConfirmation, setDeleteConfirmation] = useState<{
@@ -104,13 +104,6 @@ export default function LeaveTypePage() {
     data: null,
   })
 
-  // Add API call for checking code availability
-  const { refetch: checkCodeAvailability } = useGetById<ILeaveType>(
-    `${LeaveType.getByCode}`,
-    "leaveTypeByCode",
-    codeToCheck
-  )
-
   // Handler to Re-fetches data when called
   const handleRefresh = () => {
     refetch()
@@ -125,7 +118,6 @@ export default function LeaveTypePage() {
 
   // Handler to open modal for editing an leave type
   const handleEditLeaveType = (leaveType: ILeaveType) => {
-    console.log("Edit Leave Type:", leaveType)
     setModalMode("edit")
     setSelectedLeaveType(leaveType)
     setIsModalOpen(true)
@@ -196,66 +188,54 @@ export default function LeaveTypePage() {
   }
 
   // Handler for code availability check
-  const handleCodeBlur = async (code: string) => {
-    // Skip if:
-    // 1. In edit mode
-    // 2. In read-only mode
-    if (modalMode === "edit" || modalMode === "view") return
+  const handleCodeBlur = useCallback(
+    async (code: string) => {
+      // Skip if:
+      // 1. In edit mode
+      // 2. In read-only mode
+      if (modalMode === "edit" || modalMode === "view") return
 
-    const trimmedCode = code?.trim()
-    if (!trimmedCode) return
+      const trimmedCode = code?.trim()
+      if (!trimmedCode) return
 
-    setCodeToCheck(trimmedCode)
-    try {
-      const response = await checkCodeAvailability()
-      console.log("Full API Response:", response)
+      try {
+        const response = await getById(`${LeaveType.getByCode}/${trimmedCode}`)
+                // Check if response has data and it's not empty
+        if (response?.result === 1 && response.data) {
+                    // Handle both array and single object responses
+          const leaveTypeData = Array.isArray(response.data)
+            ? response.data[0]
+            : response.data
 
-      // Check if response has data and it's not empty
-      if (response?.data?.result === 1 && response.data.data) {
-        console.log("Response data:", response.data.data)
-
-        // Handle both array and single object responses
-        const leaveTypeData = Array.isArray(response.data.data)
-          ? response.data.data[0]
-          : response.data.data
-
-        console.log("Processed leaveTypeData:", leaveTypeData)
-
-        if (leaveTypeData) {
-          // Ensure all required fields are present
-          const validLeaveTypeData: ILeaveType = {
-            leaveTypeId: leaveTypeData.leaveTypeId,
-            leaveTypeCode: leaveTypeData.leaveTypeCode,
-            leaveTypeName: leaveTypeData.leaveTypeName,
-            remarks: leaveTypeData.remarks || "",
-            isActive: leaveTypeData.isActive ?? true,
-            companyId: leaveTypeData.companyId,
-            createBy: leaveTypeData.createBy,
-            editBy: leaveTypeData.editBy,
-            createDate: leaveTypeData.createDate,
-            editDate: leaveTypeData.editDate,
+          if (leaveTypeData) {
+            // Ensure all required fields are present
+            const validLeaveTypeData: ILeaveType = {
+              leaveTypeId: leaveTypeData.leaveTypeId,
+              leaveTypeCode: leaveTypeData.leaveTypeCode,
+              leaveTypeName: leaveTypeData.leaveTypeName,
+              remarks: leaveTypeData.remarks || "",
+              isActive: leaveTypeData.isActive ?? true,
+              companyId: leaveTypeData.companyId,
+              createBy: leaveTypeData.createBy,
+              editBy: leaveTypeData.editBy,
+              createDate: leaveTypeData.createDate,
+              editDate: leaveTypeData.editDate,
+            }
+            setExistingLeaveType(validLeaveTypeData)
+            setShowLoadDialog(true)
           }
-
-          console.log("Setting existing leave type:", validLeaveTypeData)
-          setExistingLeaveType(validLeaveTypeData)
-          setShowLoadDialog(true)
         }
+      } catch (error) {
+        console.error("Error checking code availability:", error)
       }
-    } catch (error) {
-      console.error("Error checking code availability:", error)
-    }
-  }
+    },
+    [modalMode]
+  )
 
   // Handler for loading existing leave type
   const handleLoadExistingLeaveType = () => {
     if (existingLeaveType) {
       // Log the data we're about to set
-      console.log("About to load leave type data:", {
-        existingLeaveType,
-        currentModalMode: modalMode,
-        currentSelectedLeaveType: selectedLeaveType,
-      })
-
       // Set the states
       setModalMode("edit")
       setSelectedLeaveType(existingLeaveType)
@@ -263,8 +243,6 @@ export default function LeaveTypePage() {
       setExistingLeaveType(null)
     }
   }
-
-  const queryClient = useQueryClient()
 
   return (
     <div className="container mx-auto space-y-2 px-4 pt-2 pb-4 sm:space-y-3 sm:px-6 sm:pt-3 sm:pb-6">

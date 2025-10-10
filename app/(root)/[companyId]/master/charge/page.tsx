@@ -8,6 +8,7 @@ import { ChargeSchemaType } from "@/schemas/charge"
 import { usePermissionStore } from "@/stores/permission-store"
 import { useQueryClient } from "@tanstack/react-query"
 
+import { getById } from "@/lib/api-client"
 import { Charge } from "@/lib/api-routes"
 import { MasterTransactionId, ModuleId } from "@/lib/utils"
 import {
@@ -45,12 +46,13 @@ export default function ChargePage() {
   const canView = hasPermission(moduleId, transactionId, "isRead")
   const canCreate = hasPermission(moduleId, transactionId, "isCreate")
 
+  const queryClient = useQueryClient()
+
   const [filters, setFilters] = useState<IChargeFilter>({})
 
   // Filter handler wrapper
   const handleFilterChange = useCallback(
     (newFilters: { search?: string; sortOrder?: string }) => {
-      console.log("Filter change called with:", newFilters)
       setFilters(newFilters as IChargeFilter)
     },
     []
@@ -80,8 +82,6 @@ export default function ChargePage() {
   )
   const [showLoadDialog, setShowLoadDialog] = useState(false)
   const [existingCharge, setExistingCharge] = useState<ICharge | null>(null)
-  const [codeToCheck, setCodeToCheck] = useState<string>("")
-  const [taskIdToCheck, setTaskIdToCheck] = useState<number>(0)
 
   const [deleteConfirmation, setDeleteConfirmation] = useState<{
     isOpen: boolean
@@ -95,12 +95,6 @@ export default function ChargePage() {
     taskId: null,
   })
 
-  const { refetch: checkCodeAvailability } = useGetByParams<ICharge>(
-    `${Charge.getByCode}`,
-    "chargeByCodeAndTask",
-    `${codeToCheck || ""}/${taskIdToCheck || 0}`
-  )
-
   const handleRefresh = () => {
     refetch()
   }
@@ -112,7 +106,6 @@ export default function ChargePage() {
   }
 
   const handleEditCharge = (charge: ICharge) => {
-    console.log("Edit Charge:", charge)
     setModalMode("edit")
     setSelectedCharge(charge)
     setIsModalOpen(true)
@@ -191,66 +184,51 @@ export default function ChargePage() {
     }
   }
 
-  const handleCodeBlur = async (code: string, taskId?: number) => {
-    if (modalMode === "edit" || modalMode === "view") return
+  const handleCodeBlur = useCallback(
+    async (code: string, taskId?: number) => {
+      if (modalMode === "edit" || modalMode === "view") return
 
-    const trimmedCode = code?.trim()
-    if (!trimmedCode || !taskId) return
+      const trimmedCode = code?.trim()
+      if (!trimmedCode || !taskId) return
 
-    setCodeToCheck(trimmedCode)
-    setTaskIdToCheck(taskId)
-    try {
-      const response = await checkCodeAvailability()
-      console.log("Full API Response:", response)
+      try {
+        const response = await getById(`${Charge.getByCode}/${trimmedCode}`)
+        if (response?.result === 1 && response.data) {
+          const chargeData = Array.isArray(response.data)
+            ? response.data[0]
+            : response.data
 
-      if (response?.data?.result === 1 && response.data.data) {
-        console.log("Response data:", response.data.data)
-
-        const chargeData = Array.isArray(response.data.data)
-          ? response.data.data[0]
-          : response.data.data
-
-        console.log("Processed chargeData:", chargeData)
-
-        if (chargeData) {
-          const validChargeData: ChargeSchemaType = {
-            chargeId: chargeData.chargeId,
-            chargeCode: chargeData.chargeCode,
-            chargeName: chargeData.chargeName,
-            taskId: chargeData.taskId,
-            chargeOrder: chargeData.chargeOrder || 0,
-            itemNo: chargeData.itemNo || 0,
-            glId: chargeData.glId || 0,
-            remarks: chargeData.remarks || "",
-            isActive: chargeData.isActive ?? true,
+          if (chargeData) {
+            const validChargeData: ChargeSchemaType = {
+              chargeId: chargeData.chargeId,
+              chargeCode: chargeData.chargeCode,
+              chargeName: chargeData.chargeName,
+              taskId: chargeData.taskId,
+              chargeOrder: chargeData.chargeOrder || 0,
+              itemNo: chargeData.itemNo || 0,
+              glId: chargeData.glId || 0,
+              remarks: chargeData.remarks || "",
+              isActive: chargeData.isActive ?? true,
+            }
+            setExistingCharge(validChargeData as ICharge)
+            setShowLoadDialog(true)
           }
-
-          console.log("Setting existing charge:", validChargeData)
-          setExistingCharge(validChargeData as ICharge)
-          setShowLoadDialog(true)
         }
+      } catch (error) {
+        console.error("Error checking code availability:", error)
       }
-    } catch (error) {
-      console.error("Error checking code availability:", error)
-    }
-  }
+    },
+    [modalMode]
+  )
 
   const handleLoadExistingCharge = () => {
     if (existingCharge) {
-      console.log("About to load charge data:", {
-        existingCharge,
-        currentModalMode: modalMode,
-        currentSelectedCharge: selectedCharge,
-      })
-
       setModalMode("edit")
       setSelectedCharge(existingCharge)
       setShowLoadDialog(false)
       setExistingCharge(null)
     }
   }
-
-  const queryClient = useQueryClient()
 
   return (
     <div className="container mx-auto space-y-2 px-4 pt-2 pb-4 sm:space-y-3 sm:px-6 sm:pt-3 sm:pb-6">

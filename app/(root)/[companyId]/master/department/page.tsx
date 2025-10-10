@@ -7,14 +7,10 @@ import { DepartmentSchemaType } from "@/schemas/department"
 import { usePermissionStore } from "@/stores/permission-store"
 import { useQueryClient } from "@tanstack/react-query"
 
+import { getById } from "@/lib/api-client"
 import { Department } from "@/lib/api-routes"
 import { MasterTransactionId, ModuleId } from "@/lib/utils"
-import {
-  useDelete,
-  useGet,
-  useGetByParams,
-  usePersist,
-} from "@/hooks/use-common"
+import { useDelete, useGet, usePersist } from "@/hooks/use-common"
 import {
   Dialog,
   DialogContent,
@@ -43,12 +39,13 @@ export default function DepartmentPage() {
   const canView = hasPermission(moduleId, transactionId, "isRead")
   const canCreate = hasPermission(moduleId, transactionId, "isCreate")
 
+  const queryClient = useQueryClient()
+
   const [filters, setFilters] = useState<IDepartmentFilter>({})
 
   // Filter handler wrapper
   const handleFilterChange = useCallback(
     (newFilters: { search?: string; sortOrder?: string }) => {
-      console.log("Filter change called with:", newFilters)
       setFilters(newFilters as IDepartmentFilter)
     },
     []
@@ -87,7 +84,6 @@ export default function DepartmentPage() {
   const [showLoadDialog, setShowLoadDialog] = useState(false)
   const [existingDepartment, setExistingDepartment] =
     useState<IDepartment | null>(null)
-  const [codeToCheck, setCodeToCheck] = useState<string>("")
 
   const [deleteConfirmation, setDeleteConfirmation] = useState<{
     isOpen: boolean
@@ -98,15 +94,6 @@ export default function DepartmentPage() {
     departmentId: null,
     departmentName: null,
   })
-
-  // Add API call for checking code availability
-  const { refetch: checkCodeAvailability } = useGetByParams<IDepartment>(
-    `${Department.getByCode}`,
-    "departmentByCode",
-    codeToCheck || ""
-  )
-
-  const queryClient = useQueryClient()
 
   const handleRefresh = () => {
     refetch()
@@ -194,66 +181,54 @@ export default function DepartmentPage() {
   }
 
   // Handler for code availability check
-  const handleCodeBlur = async (code: string) => {
-    // Skip if:
-    // 1. In edit mode
-    // 2. In read-only mode
-    if (modalMode === "edit" || modalMode === "view") return
+  const handleCodeBlur = useCallback(
+    async (code: string) => {
+      // Skip if:
+      // 1. In edit mode
+      // 2. In read-only mode
+      if (modalMode === "edit" || modalMode === "view") return
 
-    const trimmedCode = code?.trim()
-    if (!trimmedCode) return
+      const trimmedCode = code?.trim()
+      if (!trimmedCode) return
 
-    setCodeToCheck(trimmedCode)
-    try {
-      const response = await checkCodeAvailability()
-      console.log("Full API Response:", response)
+      try {
+        const response = await getById(`${Department.getByCode}/${trimmedCode}`)
+        // Check if response has data and it's not empty
+        if (response?.result === 1 && response.data) {
+          // Handle both array and single object responses
+          const departmentData = Array.isArray(response.data)
+            ? response.data[0]
+            : response.data
 
-      // Check if response has data and it's not empty
-      if (response?.data?.result === 1 && response.data.data) {
-        console.log("Response data:", response.data.data)
-
-        // Handle both array and single object responses
-        const departmentData = Array.isArray(response.data.data)
-          ? response.data.data[0]
-          : response.data.data
-
-        console.log("Processed departmentData:", departmentData)
-
-        if (departmentData) {
-          // Ensure all required fields are present
-          const validDepartmentData: IDepartment = {
-            departmentId: departmentData.departmentId,
-            companyId: departmentData.companyId,
-            departmentCode: departmentData.departmentCode,
-            departmentName: departmentData.departmentName,
-            remarks: departmentData.remarks || "",
-            isActive: departmentData.isActive ?? true,
-            createBy: departmentData.createBy,
-            editBy: departmentData.editBy,
-            createDate: departmentData.createDate,
-            editDate: departmentData.editDate,
+          if (departmentData) {
+            // Ensure all required fields are present
+            const validDepartmentData: IDepartment = {
+              departmentId: departmentData.departmentId,
+              companyId: departmentData.companyId,
+              departmentCode: departmentData.departmentCode,
+              departmentName: departmentData.departmentName,
+              remarks: departmentData.remarks || "",
+              isActive: departmentData.isActive ?? true,
+              createBy: departmentData.createBy,
+              editBy: departmentData.editBy,
+              createDate: departmentData.createDate,
+              editDate: departmentData.editDate,
+            }
+            setExistingDepartment(validDepartmentData)
+            setShowLoadDialog(true)
           }
-
-          console.log("Setting existing department:", validDepartmentData)
-          setExistingDepartment(validDepartmentData)
-          setShowLoadDialog(true)
         }
+      } catch (error) {
+        console.error("Error checking code availability:", error)
       }
-    } catch (error) {
-      console.error("Error checking code availability:", error)
-    }
-  }
+    },
+    [modalMode]
+  )
 
   // Handler for loading existing department
   const handleLoadExistingDepartment = () => {
     if (existingDepartment) {
       // Log the data we're about to set
-      console.log("About to load department data:", {
-        existingDepartment,
-        currentModalMode: modalMode,
-        currentSelectedDepartment: selectedDepartment,
-      })
-
       // Set the states
       setModalMode("edit")
       setSelectedDepartment(existingDepartment)

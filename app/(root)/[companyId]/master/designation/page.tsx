@@ -7,14 +7,10 @@ import { DesignationSchemaType } from "@/schemas/designation"
 import { usePermissionStore } from "@/stores/permission-store"
 import { useQueryClient } from "@tanstack/react-query"
 
+import { getById } from "@/lib/api-client"
 import { Designation } from "@/lib/api-routes"
 import { MasterTransactionId, ModuleId } from "@/lib/utils"
-import {
-  useDelete,
-  useGet,
-  useGetByParams,
-  usePersist,
-} from "@/hooks/use-common"
+import { useDelete, useGet, usePersist } from "@/hooks/use-common"
 import {
   Dialog,
   DialogContent,
@@ -43,12 +39,13 @@ export default function DesignationPage() {
   const canView = hasPermission(moduleId, transactionId, "isRead")
   const canCreate = hasPermission(moduleId, transactionId, "isCreate")
 
+  const queryClient = useQueryClient()
+
   const [filters, setFilters] = useState<IDesignationFilter>({})
 
   // Filter handler wrapper
   const handleFilterChange = useCallback(
     (newFilters: { search?: string; sortOrder?: string }) => {
-      console.log("Filter change called with:", newFilters)
       setFilters(newFilters as IDesignationFilter)
     },
     []
@@ -87,7 +84,6 @@ export default function DesignationPage() {
   const [showLoadDialog, setShowLoadDialog] = useState(false)
   const [existingDesignation, setExistingDesignation] =
     useState<IDesignation | null>(null)
-  const [codeToCheck, setCodeToCheck] = useState<string>("")
 
   const [deleteConfirmation, setDeleteConfirmation] = useState<{
     isOpen: boolean
@@ -98,15 +94,6 @@ export default function DesignationPage() {
     designationId: null,
     designationName: null,
   })
-
-  // Add API call for checking code availability
-  const { refetch: checkCodeAvailability } = useGetByParams<IDesignation>(
-    `${Designation.getByCode}`,
-    "designationByCode",
-    codeToCheck || ""
-  )
-
-  const queryClient = useQueryClient()
 
   const handleRefresh = () => {
     refetch()
@@ -194,66 +181,56 @@ export default function DesignationPage() {
   }
 
   // Handler for code availability check
-  const handleCodeBlur = async (code: string) => {
-    // Skip if:
-    // 1. In edit mode
-    // 2. In read-only mode
-    if (modalMode === "edit" || modalMode === "view") return
+  const handleCodeBlur = useCallback(
+    async (code: string) => {
+      // Skip if:
+      // 1. In edit mode
+      // 2. In read-only mode
+      if (modalMode === "edit" || modalMode === "view") return
 
-    const trimmedCode = code?.trim()
-    if (!trimmedCode) return
+      const trimmedCode = code?.trim()
+      if (!trimmedCode) return
 
-    setCodeToCheck(trimmedCode)
-    try {
-      const response = await checkCodeAvailability()
-      console.log("Full API Response:", response)
+      try {
+        const response = await getById(
+          `${Designation.getByCode}/${trimmedCode}`
+        )
+        // Check if response has data and it's not empty
+        if (response?.result === 1 && response.data) {
+          // Handle both array and single object responses
+          const designationData = Array.isArray(response.data)
+            ? response.data[0]
+            : response.data
 
-      // Check if response has data and it's not empty
-      if (response?.data?.result === 1 && response.data.data) {
-        console.log("Response data:", response.data.data)
-
-        // Handle both array and single object responses
-        const designationData = Array.isArray(response.data.data)
-          ? response.data.data[0]
-          : response.data.data
-
-        console.log("Processed designationData:", designationData)
-
-        if (designationData) {
-          // Ensure all required fields are present
-          const validDesignationData: IDesignation = {
-            designationId: designationData.designationId,
-            companyId: designationData.companyId,
-            designationCode: designationData.designationCode,
-            designationName: designationData.designationName,
-            remarks: designationData.remarks || "",
-            isActive: designationData.isActive ?? true,
-            createBy: designationData.createBy,
-            editBy: designationData.editBy,
-            createDate: designationData.createDate,
-            editDate: designationData.editDate,
+          if (designationData) {
+            // Ensure all required fields are present
+            const validDesignationData: IDesignation = {
+              designationId: designationData.designationId,
+              companyId: designationData.companyId,
+              designationCode: designationData.designationCode,
+              designationName: designationData.designationName,
+              remarks: designationData.remarks || "",
+              isActive: designationData.isActive ?? true,
+              createBy: designationData.createBy,
+              editBy: designationData.editBy,
+              createDate: designationData.createDate,
+              editDate: designationData.editDate,
+            }
+            setExistingDesignation(validDesignationData)
+            setShowLoadDialog(true)
           }
-
-          console.log("Setting existing designation:", validDesignationData)
-          setExistingDesignation(validDesignationData)
-          setShowLoadDialog(true)
         }
+      } catch (error) {
+        console.error("Error checking code availability:", error)
       }
-    } catch (error) {
-      console.error("Error checking code availability:", error)
-    }
-  }
+    },
+    [modalMode]
+  )
 
   // Handler for loading existing designation
   const handleLoadExistingDesignation = () => {
     if (existingDesignation) {
       // Log the data we're about to set
-      console.log("About to load designation data:", {
-        existingDesignation,
-        currentModalMode: modalMode,
-        currentSelectedDesignation: selectedDesignation,
-      })
-
       // Set the states
       setModalMode("edit")
       setSelectedDesignation(existingDesignation)

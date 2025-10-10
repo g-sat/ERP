@@ -7,9 +7,10 @@ import { TaskSchemaType } from "@/schemas/task"
 import { usePermissionStore } from "@/stores/permission-store"
 import { useQueryClient } from "@tanstack/react-query"
 
+import { getById } from "@/lib/api-client"
 import { Task } from "@/lib/api-routes"
 import { MasterTransactionId, ModuleId } from "@/lib/utils"
-import { useDelete, useGet, useGetById, usePersist } from "@/hooks/use-common"
+import { useDelete, useGet, usePersist } from "@/hooks/use-common"
 import {
   Dialog,
   DialogContent,
@@ -38,17 +39,13 @@ export default function TaskPage() {
   const canView = hasPermission(moduleId, transactionId, "isRead")
   const canCreate = hasPermission(moduleId, transactionId, "isCreate")
 
-  console.log("canEdit", canEdit)
-  console.log("canDelete", canDelete)
-  console.log("canView", canView)
-  console.log("canCreate", canCreate)
+  const queryClient = useQueryClient()
 
   const [filters, setFilters] = useState<ITaskFilter>({})
 
   // Filter handler wrapper
   const handleFilterChange = useCallback(
     (newFilters: { search?: string; sortOrder?: string }) => {
-      console.log("Filter change called with:", newFilters)
       setFilters(newFilters as ITaskFilter)
     },
     []
@@ -79,7 +76,6 @@ export default function TaskPage() {
   // State for code availability check
   const [showLoadDialog, setShowLoadDialog] = useState(false)
   const [existingTask, setExistingTask] = useState<ITask | null>(null)
-  const [codeToCheck, setCodeToCheck] = useState<string>("")
 
   const [deleteConfirmation, setDeleteConfirmation] = useState<{
     isOpen: boolean
@@ -99,15 +95,6 @@ export default function TaskPage() {
     isOpen: false,
     data: null,
   })
-
-  // Add API call for checking code availability
-  const { refetch: checkCodeAvailability } = useGetById<ITask>(
-    `${Task.getByCode}`,
-    "taskByCode",
-    codeToCheck
-  )
-
-  const queryClient = useQueryClient()
 
   const handleRefresh = () => {
     refetch()
@@ -184,69 +171,57 @@ export default function TaskPage() {
   }
 
   // Handler for code availability check
-  const handleCodeBlur = async (code: string) => {
-    // Skip if:
-    // 1. In edit mode
-    // 2. In read-only mode
-    if (modalMode === "edit" || modalMode === "view") return
+  const handleCodeBlur = useCallback(
+    async (code: string) => {
+      // Skip if:
+      // 1. In edit mode
+      // 2. In read-only mode
+      if (modalMode === "edit" || modalMode === "view") return
 
-    const trimmedCode = code?.trim()
-    if (!trimmedCode) return
+      const trimmedCode = code?.trim()
+      if (!trimmedCode) return
 
-    setCodeToCheck(trimmedCode)
-    try {
-      const response = await checkCodeAvailability()
-      console.log("Full API Response:", response)
+      try {
+        const response = await getById(`${Task.getByCode}/${trimmedCode}`)
+                // Check if response has data and it's not empty
+        if (response?.result === 1 && response.data) {
+                    // Handle both array and single object responses
+          const taskData = Array.isArray(response.data)
+            ? response.data[0]
+            : response.data
 
-      // Check if response has data and it's not empty
-      if (response?.data?.result === 1 && response.data.data) {
-        console.log("Response data:", response.data.data)
-
-        // Handle both array and single object responses
-        const taskData = Array.isArray(response.data.data)
-          ? response.data.data[0]
-          : response.data.data
-
-        console.log("Processed taskData:", taskData)
-
-        if (taskData) {
-          // Ensure all required fields are present
-          const validTaskData: ITask = {
-            taskId: taskData.taskId,
-            taskCode: taskData.taskCode,
-            taskName: taskData.taskName,
-            taskOrder: taskData.taskOrder || 0,
-            companyId: taskData.companyId,
-            remarks: taskData.remarks || "",
-            isActive: taskData.isActive ?? true,
-            createBy: taskData.createBy,
-            editBy: taskData.editBy,
-            createDate: taskData.createDate,
-            editDate: taskData.editDate,
-            createById: taskData.createById,
-            editById: taskData.editById,
+          if (taskData) {
+            // Ensure all required fields are present
+            const validTaskData: ITask = {
+              taskId: taskData.taskId,
+              taskCode: taskData.taskCode,
+              taskName: taskData.taskName,
+              taskOrder: taskData.taskOrder || 0,
+              companyId: taskData.companyId,
+              remarks: taskData.remarks || "",
+              isActive: taskData.isActive ?? true,
+              createBy: taskData.createBy,
+              editBy: taskData.editBy,
+              createDate: taskData.createDate,
+              editDate: taskData.editDate,
+              createById: taskData.createById,
+              editById: taskData.editById,
+            }
+            setExistingTask(validTaskData)
+            setShowLoadDialog(true)
           }
-
-          console.log("Setting existing task:", validTaskData)
-          setExistingTask(validTaskData)
-          setShowLoadDialog(true)
         }
+      } catch (error) {
+        console.error("Error checking code availability:", error)
       }
-    } catch (error) {
-      console.error("Error checking code availability:", error)
-    }
-  }
+    },
+    [modalMode]
+  )
 
   // Handler for loading existing task
   const handleLoadExistingTask = () => {
     if (existingTask) {
       // Log the data we're about to set
-      console.log("About to load task data:", {
-        existingTask,
-        currentModalMode: modalMode,
-        currentSelectedTask: selectedTask,
-      })
-
       // Set the states
       setModalMode("edit")
       setSelectedTask(existingTask)

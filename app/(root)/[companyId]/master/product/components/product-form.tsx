@@ -79,9 +79,11 @@ export function ProductForm({
     )
   }, [initialData, form])
 
-  const handleCodeBlur = () => {
+  const handleCodeBlur = (_e: React.FocusEvent<HTMLInputElement>) => {
     const code = form.getValues("productCode")
-    onCodeBlur?.(code)
+    if (code) {
+      onCodeBlur?.(code)
+    }
   }
 
   const onSubmit = (data: ProductSchemaType) => {

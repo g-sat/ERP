@@ -19,7 +19,7 @@ import {
 import { usePermissionStore } from "@/stores/permission-store"
 import { useQueryClient } from "@tanstack/react-query"
 
-import { getData } from "@/lib/api-client"
+import { getById } from "@/lib/api-client"
 import {
   AccountSetup,
   AccountSetupCategory,
@@ -60,6 +60,8 @@ export default function AccountSetupPage() {
   const { hasPermission } = usePermissionStore()
 
   const canCreate = hasPermission(moduleId, transactionId, "isCreate")
+
+  const queryClient = useQueryClient()
   const canView = hasPermission(moduleId, transactionId, "isRead")
   const canEdit = hasPermission(moduleId, transactionId, "isEdit")
   const canDelete = hasPermission(moduleId, transactionId, "isDelete")
@@ -249,7 +251,6 @@ export default function AccountSetupPage() {
   // Filter change handlers
   const handleCategoryFilterChange = useCallback(
     (newFilters: { search?: string; sortOrder?: string }) => {
-      console.log("Category filter change called with:", newFilters)
       setFiltersCategory(newFilters as IAccountSetupCategoryFilter)
     },
     []
@@ -257,7 +258,6 @@ export default function AccountSetupPage() {
 
   const handleSetupFilterChange = useCallback(
     (newFilters: { search?: string; sortOrder?: string }) => {
-      console.log("Setup filter change called with:", newFilters)
       setFiltersSetup(newFilters as IAccountSetupFilter)
     },
     []
@@ -265,7 +265,6 @@ export default function AccountSetupPage() {
 
   const handleDtFilterChange = useCallback(
     (newFilters: { search?: string; sortOrder?: string }) => {
-      console.log("Dt filter change called with:", newFilters)
       setFiltersDt(newFilters as IAccountSetupDtFilter)
     },
     []
@@ -493,83 +492,86 @@ export default function AccountSetupPage() {
   }
 
   // Handler for code availability check
-  const handleCodeBlur = async (code: string, type: "category" | "setup") => {
-    if (
-      modalCategoryMode === "edit" ||
-      modalCategoryMode === "view" ||
-      modalSetupMode === "edit" ||
-      modalSetupMode === "view"
-    )
-      return
+  const handleCodeBlur = useCallback(
+    async (code: string, type: "category" | "setup") => {
+      if (
+        modalCategoryMode === "edit" ||
+        modalCategoryMode === "view" ||
+        modalSetupMode === "edit" ||
+        modalSetupMode === "view"
+      )
+        return
 
-    const trimmedCode = code?.trim()
-    if (!trimmedCode) return
+      const trimmedCode = code?.trim()
+      if (!trimmedCode) return
 
-    try {
-      if (type === "category" && isModalCategoryOpen) {
-        const response = (await getData(
-          `${AccountSetupCategory.getByCode}/${trimmedCode}`
-        )) as ApiResponse<IAccountSetupCategory>
-        if (response.result === 1 && response.data) {
-          const categoryData = Array.isArray(response.data)
-            ? response.data[0]
-            : response.data
+      try {
+        if (type === "category" && isModalCategoryOpen) {
+          const response = await getById(
+            `${AccountSetupCategory.getByCode}/${trimmedCode}`
+          )
+          if (response?.result === 1 && response.data) {
+            const categoryData = Array.isArray(response.data)
+              ? response.data[0]
+              : response.data
 
-          if (categoryData) {
-            const validCategoryData: IAccountSetupCategory = {
-              accSetupCategoryId: categoryData.accSetupCategoryId,
-              accSetupCategoryCode: categoryData.accSetupCategoryCode,
-              accSetupCategoryName: categoryData.accSetupCategoryName,
-              companyId: categoryData.companyId,
-              createById: categoryData.createById || 0,
-              editById: categoryData.editById || 0,
-              remarks: categoryData.remarks || "",
-              isActive: categoryData.isActive ?? true,
-              createBy: categoryData.createBy,
-              editBy: categoryData.editBy,
-              createDate: categoryData.createDate,
-              editDate: categoryData.editDate,
+            if (categoryData) {
+              const validCategoryData: IAccountSetupCategory = {
+                accSetupCategoryId: categoryData.accSetupCategoryId,
+                accSetupCategoryCode: categoryData.accSetupCategoryCode,
+                accSetupCategoryName: categoryData.accSetupCategoryName,
+                companyId: categoryData.companyId,
+                createById: categoryData.createById || 0,
+                editById: categoryData.editById || 0,
+                remarks: categoryData.remarks || "",
+                isActive: categoryData.isActive ?? true,
+                createBy: categoryData.createBy,
+                editBy: categoryData.editBy,
+                createDate: categoryData.createDate,
+                editDate: categoryData.editDate,
+              }
+              setExistingCategory(validCategoryData)
+              setShowLoadDialogCategory(true)
             }
-            setExistingCategory(validCategoryData)
-            setShowLoadDialogCategory(true)
+          }
+        } else if (type === "setup" && isModalSetupOpen) {
+          const response = await getById(
+            `${AccountSetup.getByCode}/${trimmedCode}`
+          )
+          if (response?.result === 1 && response.data) {
+            const setupData = Array.isArray(response.data)
+              ? response.data[0]
+              : response.data
+
+            if (setupData) {
+              const validSetupData: IAccountSetup = {
+                accSetupId: setupData.accSetupId,
+                accSetupCode: setupData.accSetupCode,
+                accSetupName: setupData.accSetupName,
+                accSetupCategoryId: setupData.accSetupCategoryId,
+                accSetupCategoryCode: setupData.accSetupCategoryCode || "",
+                accSetupCategoryName: setupData.accSetupCategoryName || "",
+                companyId: setupData.companyId,
+                createById: setupData.createById || 0,
+                editById: setupData.editById || 0,
+                remarks: setupData.remarks || "",
+                isActive: setupData.isActive ?? true,
+                createBy: setupData.createBy,
+                editBy: setupData.editBy,
+                createDate: setupData.createDate,
+                editDate: setupData.editDate,
+              }
+              setExistingSetup(validSetupData)
+              setShowLoadDialogSetup(true)
+            }
           }
         }
-      } else if (type === "setup" && isModalSetupOpen) {
-        const response = (await getData(
-          `${AccountSetup.getByCode}/${trimmedCode}`
-        )) as ApiResponse<IAccountSetup>
-        if (response.result === 1 && response.data) {
-          const setupData = Array.isArray(response.data)
-            ? response.data[0]
-            : response.data
-
-          if (setupData) {
-            const validSetupData: IAccountSetup = {
-              accSetupId: setupData.accSetupId,
-              accSetupCode: setupData.accSetupCode,
-              accSetupName: setupData.accSetupName,
-              accSetupCategoryId: setupData.accSetupCategoryId,
-              accSetupCategoryCode: setupData.accSetupCategoryCode || "",
-              accSetupCategoryName: setupData.accSetupCategoryName || "",
-              companyId: setupData.companyId,
-              createById: setupData.createById || 0,
-              editById: setupData.editById || 0,
-              remarks: setupData.remarks || "",
-              isActive: setupData.isActive ?? true,
-              createBy: setupData.createBy,
-              editBy: setupData.editBy,
-              createDate: setupData.createDate,
-              editDate: setupData.editDate,
-            }
-            setExistingSetup(validSetupData)
-            setShowLoadDialogSetup(true)
-          }
-        }
+      } catch (error) {
+        console.error("Error checking code availability:", error)
       }
-    } catch (error) {
-      console.error("Error checking code availability:", error)
-    }
-  }
+    },
+    [modalCategoryMode, modalSetupMode, isModalCategoryOpen, isModalSetupOpen]
+  )
 
   // Handler for loading existing category
   const handleLoadExistingCategory = () => {
@@ -590,8 +592,6 @@ export default function AccountSetupPage() {
       setExistingSetup(null)
     }
   }
-
-  const queryClient = useQueryClient()
 
   return (
     <div className="container mx-auto space-y-2 px-4 pt-2 pb-4 sm:space-y-3 sm:px-6 sm:pt-3 sm:pb-6">

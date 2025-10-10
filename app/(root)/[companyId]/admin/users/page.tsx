@@ -7,6 +7,7 @@ import { UserSchemaType } from "@/schemas/admin"
 import { usePermissionStore } from "@/stores/permission-store"
 import { useQueryClient } from "@tanstack/react-query"
 
+import { getById } from "@/lib/api-client"
 import { User } from "@/lib/api-routes"
 import { AdminTransactionId, ModuleId } from "@/lib/utils"
 import { useDelete, useGet, usePersist } from "@/hooks/use-common"
@@ -19,6 +20,7 @@ import {
 } from "@/components/ui/dialog"
 import { Separator } from "@/components/ui/separator"
 import { DeleteConfirmation } from "@/components/confirmation/delete-confirmation"
+import { LoadConfirmation } from "@/components/confirmation/load-confirmation"
 import { SaveConfirmation } from "@/components/confirmation/save-confirmation"
 import { DataTableSkeleton } from "@/components/skeleton/data-table-skeleton"
 import { LockSkeleton } from "@/components/skeleton/lock-skeleton"
@@ -31,6 +33,7 @@ export default function AdminUsersPage() {
   const transactionId = AdminTransactionId.user
 
   const { hasPermission } = usePermissionStore()
+  const queryClient = useQueryClient()
 
   const canEdit = hasPermission(moduleId, transactionId, "isEdit")
   const canDelete = hasPermission(moduleId, transactionId, "isDelete")
@@ -81,7 +84,9 @@ export default function AdminUsersPage() {
     data: null,
   })
 
-  const queryClient = useQueryClient()
+  // Duplicate detection states
+  const [showLoadDialog, setShowLoadDialog] = useState(false)
+  const [existingUser, setExistingUser] = useState<IUser | null>(null)
 
   const handleFilterChange = useCallback(
     (filters: { search?: string; sortOrder?: string }) => {
@@ -181,6 +186,63 @@ export default function AdminUsersPage() {
       setIsUserModalOpen(false)
     } catch (error) {
       console.error("Error in user form submission:", error)
+    }
+  }
+
+  // Handler for code availability check (memoized to prevent unnecessary re-renders)
+  const handleCodeBlur = useCallback(
+    async (code: string) => {
+      if (modalMode === "edit" || modalMode === "view") return
+
+      const trimmedCode = code?.trim()
+      if (!trimmedCode) {
+        return
+      }
+
+      try {
+        const response = await getById(`${User.getbycode}/${trimmedCode}`)
+
+        if (response?.result === 1 && response.data) {
+          const userData = Array.isArray(response.data)
+            ? response.data[0]
+            : response.data
+          if (userData) {
+            // Ensure all required fields are present
+            const validUserData: IUser = {
+              userId: userData.userId,
+              userCode: userData.userCode,
+              userName: userData.userName,
+              userEmail: userData.userEmail,
+              userRoleId: userData.userRoleId,
+              userGroupId: userData.userGroupId,
+              employeeId: userData.employeeId,
+              remarks: userData.remarks,
+              isActive: userData.isActive,
+              isLocked: userData.isLocked,
+              createBy: userData.createBy,
+              editBy: userData.editBy,
+              createDate: userData.createDate,
+              editDate: userData.editDate,
+            }
+            setExistingUser(validUserData as IUser)
+            setShowLoadDialog(true)
+          }
+        } else {
+        }
+      } catch (error) {
+        console.error("Error checking code availability:", error)
+      }
+    },
+    [modalMode]
+  )
+
+  // Load existing record
+  const handleLoadExisting = () => {
+    if (existingUser) {
+      setModalMode("edit")
+      setSelectedUser(existingUser)
+      setShowLoadDialog(false)
+      setExistingUser(null)
     }
   }
 
@@ -289,9 +351,22 @@ export default function AdminUsersPage() {
             isSubmitting={saveMutation.isPending || updateMutation.isPending}
             isReadOnly={modalMode === "view"}
             onSaveConfirmation={handleSaveConfirmation}
+            onCodeBlur={handleCodeBlur}
           />
         </DialogContent>
       </Dialog>
+
+      {/* Duplicate Record Dialog */}
+      <LoadConfirmation
+        open={showLoadDialog}
+        onOpenChange={setShowLoadDialog}
+        onLoad={handleLoadExisting}
+        onCancel={() => setExistingUser(null)}
+        code={existingUser?.userCode}
+        name={existingUser?.userName}
+        typeLabel="User"
+        isLoading={saveMutation.isPending || updateMutation.isPending}
+      />
 
       {/* Delete Confirmation Dialog */}
       <DeleteConfirmation

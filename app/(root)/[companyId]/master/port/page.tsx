@@ -7,9 +7,10 @@ import { PortSchemaType } from "@/schemas/port"
 import { usePermissionStore } from "@/stores/permission-store"
 import { useQueryClient } from "@tanstack/react-query"
 
+import { getById } from "@/lib/api-client"
 import { Port } from "@/lib/api-routes"
 import { MasterTransactionId, ModuleId } from "@/lib/utils"
-import { useDelete, useGet, useGetById, usePersist } from "@/hooks/use-common"
+import { useDelete, useGet, usePersist } from "@/hooks/use-common"
 import {
   Dialog,
   DialogContent,
@@ -38,12 +39,13 @@ export default function PortPage() {
   const canView = hasPermission(moduleId, transactionId, "isRead")
   const canCreate = hasPermission(moduleId, transactionId, "isCreate")
 
+  const queryClient = useQueryClient()
+
   const [filters, setFilters] = useState<IPortFilter>({})
 
   // Filter handler wrapper
   const handleFilterChange = useCallback(
     (newFilters: { search?: string; sortOrder?: string }) => {
-      console.log("Filter change called with:", newFilters)
       setFilters(newFilters as IPortFilter)
     },
     []
@@ -72,7 +74,6 @@ export default function PortPage() {
   )
   const [showLoadDialog, setShowLoadDialog] = useState(false)
   const [existingPort, setExistingPort] = useState<IPort | null>(null)
-  const [codeToCheck, setCodeToCheck] = useState<string>("")
 
   const [deleteConfirmation, setDeleteConfirmation] = useState<{
     isOpen: boolean
@@ -83,12 +84,6 @@ export default function PortPage() {
     portId: null,
     portName: null,
   })
-
-  const { refetch: checkCodeAvailability } = useGetById<IPort>(
-    `${Port.getByCode}`,
-    "portByCode",
-    codeToCheck
-  )
 
   const handleRefresh = () => {
     refetch()
@@ -101,7 +96,6 @@ export default function PortPage() {
   }
 
   const handleEditPort = (port: IPort) => {
-    console.log("Edit Port:", port)
     setModalMode("edit")
     setSelectedPort(port)
     setIsModalOpen(true)
@@ -174,61 +168,49 @@ export default function PortPage() {
     }
   }
 
-  const handleCodeBlur = async (code: string) => {
-    if (modalMode === "edit" || modalMode === "view") return
+  const handleCodeBlur = useCallback(
+    async (code: string) => {
+      if (modalMode === "edit" || modalMode === "view") return
 
-    const trimmedCode = code?.trim()
-    if (!trimmedCode) return
+      const trimmedCode = code?.trim()
+      if (!trimmedCode) return
 
-    setCodeToCheck(trimmedCode)
-    try {
-      const response = await checkCodeAvailability()
-      console.log("Full API Response:", response)
+      try {
+        const response = await getById(`${Port.getByCode}/${trimmedCode}`)
+                if (response?.result === 1 && response.data) {
+                    const portData = Array.isArray(response.data)
+            ? response.data[0]
+            : response.data
 
-      if (response?.data?.result === 1 && response.data.data) {
-        console.log("Response data:", response.data.data)
-
-        const portData = Array.isArray(response.data.data)
-          ? response.data.data[0]
-          : response.data.data
-
-        console.log("Processed portData:", portData)
-
-        if (portData) {
-          const validPortData: IPort = {
-            portId: portData.portId,
-            portCode: portData.portCode,
-            portName: portData.portName,
-            portRegionId: portData.portRegionId,
-            portRegionCode: portData.portRegionCode,
-            portRegionName: portData.portRegionName,
-            companyId: portData.companyId,
-            remarks: portData.remarks || "",
-            isActive: portData.isActive ?? true,
-            createBy: portData.createBy,
-            editBy: portData.editBy,
-            createDate: portData.createDate,
-            editDate: portData.editDate,
+          if (portData) {
+            const validPortData: IPort = {
+              portId: portData.portId,
+              portCode: portData.portCode,
+              portName: portData.portName,
+              portRegionId: portData.portRegionId,
+              portRegionCode: portData.portRegionCode,
+              portRegionName: portData.portRegionName,
+              companyId: portData.companyId,
+              remarks: portData.remarks || "",
+              isActive: portData.isActive ?? true,
+              createBy: portData.createBy,
+              editBy: portData.editBy,
+              createDate: portData.createDate,
+              editDate: portData.editDate,
+            }
+            setExistingPort(validPortData)
+            setShowLoadDialog(true)
           }
-
-          console.log("Setting existing port:", validPortData)
-          setExistingPort(validPortData)
-          setShowLoadDialog(true)
         }
+      } catch (error) {
+        console.error("Error checking code availability:", error)
       }
-    } catch (error) {
-      console.error("Error checking code availability:", error)
-    }
-  }
+    },
+    [modalMode]
+  )
 
   const handleLoadExistingPort = () => {
     if (existingPort) {
-      console.log("About to load port data:", {
-        existingPort,
-        currentModalMode: modalMode,
-        currentSelectedPort: selectedPort,
-      })
-
       setModalMode("edit")
       setSelectedPort(existingPort)
       setShowLoadDialog(false)
@@ -236,20 +218,11 @@ export default function PortPage() {
     }
   }
 
-  const queryClient = useQueryClient()
-
   useEffect(() => {
-    console.log("Modal Mode Updated:", modalMode)
   }, [modalMode])
 
   useEffect(() => {
     if (selectedPort) {
-      console.log("Selected Port Updated:", {
-        portId: selectedPort.portId,
-        portCode: selectedPort.portCode,
-        portName: selectedPort.portName,
-        fullObject: selectedPort,
-      })
     }
   }, [selectedPort])
 

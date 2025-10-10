@@ -15,7 +15,7 @@ import {
 import { usePermissionStore } from "@/stores/permission-store"
 import { useQueryClient } from "@tanstack/react-query"
 
-import { getData } from "@/lib/api-client"
+import { getById } from "@/lib/api-client"
 import { OrderType, OrderTypeCategory } from "@/lib/api-routes"
 import { MasterTransactionId, ModuleId } from "@/lib/utils"
 import { useDelete, useGet, usePersist } from "@/hooks/use-common"
@@ -81,7 +81,6 @@ export default function OrderTypePage() {
   // Filter change handlers
   const handleFilterChange = useCallback(
     (newFilters: { search?: string; sortOrder?: string }) => {
-      console.log("OrderType filter change called with:", newFilters)
       setFilters(newFilters as IOrderTypeFilter)
     },
     []
@@ -89,7 +88,6 @@ export default function OrderTypePage() {
 
   const handleCategoryFilterChange = useCallback(
     (newFilters: { search?: string; sortOrder?: string }) => {
-      console.log("OrderType Category filter change called with:", newFilters)
       setCategoryFilters(newFilters as IOrderTypeCategoryFilter)
     },
     []
@@ -362,47 +360,56 @@ export default function OrderTypePage() {
     })
   }
 
-  // Duplicate detection
-  const handleCodeBlur = async (code: string) => {
-    if (modalMode === "edit" || modalMode === "view") return
+  // Handler for code availability check (memoized to prevent unnecessary re-renders)
+  const handleCodeBlur = useCallback(
+    async (code: string) => {
+      // Skip if:
+      // 1. In edit mode
+      // 2. In read-only mode
+      if (modalMode === "edit" || modalMode === "view") return
 
-    const trimmedCode = code?.trim()
-    if (!trimmedCode) return
-
-    try {
-      const response = await getData(`${OrderType.getByCode}/${trimmedCode}`)
-
-      if (response.data.result === 1 && response.data.data) {
-        const ordertypeData = Array.isArray(response.data.data)
-          ? response.data.data[0]
-          : response.data.data
-
-        if (ordertypeData) {
-          setExistingOrderType(ordertypeData as IOrderType)
-          setShowLoadDialogOrderType(true)
-        }
+      const trimmedCode = code?.trim()
+      if (!trimmedCode) {
+        return
       }
 
-      const responseCategory = await getData(
-        `${OrderTypeCategory.getByCode}/${trimmedCode}`
-      )
+      // Set the code and immediately fetch (no state dependency issues)
+      try {
+        const response = await getById(`${OrderType.getByCode}/${trimmedCode}`)
 
-      if (responseCategory.data.result === 1 && responseCategory.data.data) {
-        const ordertypeCategoryData = Array.isArray(responseCategory.data.data)
-          ? responseCategory.data.data[0]
-          : responseCategory.data.data
+        if (response.result === 1 && response.data) {
+          const ordertypeData = Array.isArray(response.data) ? response.data[0] : response.data
 
-        if (ordertypeCategoryData) {
-          setExistingOrderTypeCategory(
-            ordertypeCategoryData as IOrderTypeCategory
+          if (ordertypeData) {
+            setExistingOrderType(ordertypeData as IOrderType)
+            setShowLoadDialogOrderType(true)
+          }
+        }
+
+        const responseCategory = await getData(
+          `${OrderTypeCategory.getByCode}/${trimmedCode}`
+        )
+
+        if (responseCategory.data.result === 1 && responseCategory.data.data) {
+          const ordertypeCategoryData = Array.isArray(
+            responseCategory.data.data
           )
-          setShowLoadDialogCategory(true)
+            ? responseCategory.data.data[0]
+            : responseCategory.data.data
+
+          if (ordertypeCategoryData) {
+            setExistingOrderTypeCategory(
+              ordertypeCategoryData as IOrderTypeCategory
+            )
+            setShowLoadDialogCategory(true)
+          }
         }
+      } catch (error) {
+        console.error("Error checking code availability:", error)
       }
-    } catch (error) {
-      console.error("Error checking code availability:", error)
-    }
-  }
+    },
+    [modalMode, isModalOpen, isCategoryModalOpen]
+  )
 
   // Load existing records
   const handleLoadExistingOrderType = () => {

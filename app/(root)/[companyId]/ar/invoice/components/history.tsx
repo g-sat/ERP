@@ -12,16 +12,9 @@ import PaymentDetails from "./history/payment-details"
 interface HistoryProps {
   form: UseFormReturn<ArInvoiceHdSchemaType>
   isEdit: boolean
-  moduleId: number
-  transactionId: number
 }
 
-export default function History({
-  form,
-  isEdit: _isEdit,
-  moduleId,
-  transactionId,
-}: HistoryProps) {
+export default function History({ form, isEdit: _isEdit }: HistoryProps) {
   const { decimals } = useAuthStore()
   const _dateFormat = decimals[0]?.dateFormat || "yyyy-MM-dd"
 
@@ -41,17 +34,9 @@ export default function History({
   return (
     <div className="space-y-4">
       <AccountDetails {...accountDetails} />
-      <PaymentDetails
-        invoiceId={form.getValues().invoiceId}
-        moduleId={moduleId}
-        transactionId={transactionId}
-      />
-      <GLPostDetails
-        invoiceId={form.getValues().invoiceId}
-        moduleId={moduleId}
-        transactionId={transactionId}
-      />
-      <EditVersionDetails invoiceId={form.getValues().invoiceId} />
+      <PaymentDetails invoiceId={form.getValues().invoiceId || ""} />
+      <GLPostDetails invoiceId={form.getValues().invoiceId || ""} />
+      <EditVersionDetails invoiceId={form.getValues().invoiceId || ""} />
     </div>
   )
 }

@@ -7,9 +7,10 @@ import { DocumentTypeSchemaType } from "@/schemas/documenttype"
 import { usePermissionStore } from "@/stores/permission-store"
 import { useQueryClient } from "@tanstack/react-query"
 
+import { getById } from "@/lib/api-client"
 import { DocumentType } from "@/lib/api-routes"
 import { MasterTransactionId, ModuleId } from "@/lib/utils"
-import { useDelete, useGet, useGetById, usePersist } from "@/hooks/use-common"
+import { useDelete, useGet, usePersist } from "@/hooks/use-common"
 import {
   Dialog,
   DialogContent,
@@ -31,6 +32,7 @@ export default function DocumentTypePage() {
   const moduleId = ModuleId.master
   const transactionId = MasterTransactionId.documentType
 
+  const queryClient = useQueryClient()
   const { hasPermission } = usePermissionStore()
 
   const canEdit = hasPermission(moduleId, transactionId, "isEdit")
@@ -44,7 +46,6 @@ export default function DocumentTypePage() {
   // Filter handler wrapper
   const handleFilterChange = useCallback(
     (newFilters: { search?: string; sortOrder?: string }) => {
-      console.log("Filter change called with:", newFilters)
       setFilters(newFilters as IDocumentTypeFilter)
     },
     []
@@ -86,7 +87,6 @@ export default function DocumentTypePage() {
   const [showLoadDialog, setShowLoadDialog] = useState(false)
   const [existingDocumentType, setExistingDocumentType] =
     useState<IDocumentType | null>(null)
-  const [codeToCheck, setCodeToCheck] = useState<string>("")
 
   // State for delete confirmation
   const [deleteConfirmation, setDeleteConfirmation] = useState<{
@@ -108,13 +108,6 @@ export default function DocumentTypePage() {
     data: null,
   })
 
-  // Add API call for checking code availability
-  const { refetch: checkCodeAvailability } = useGetById<IDocumentType>(
-    `${DocumentType.getByCode}`,
-    "documentTypeByCode",
-    codeToCheck
-  )
-
   // Handler to Re-fetches data when called
   const handleRefresh = () => {
     refetch()
@@ -129,7 +122,6 @@ export default function DocumentTypePage() {
 
   // Handler to open modal for editing an document type
   const handleEditDocumentType = (documentType: IDocumentType) => {
-    console.log("Edit Document Type:", documentType)
     setModalMode("edit")
     setSelectedDocumentType(documentType)
     setIsModalOpen(true)
@@ -200,66 +192,56 @@ export default function DocumentTypePage() {
   }
 
   // Handler for code availability check
-  const handleCodeBlur = async (code: string) => {
-    // Skip if:
-    // 1. In edit mode
-    // 2. In read-only mode
-    if (modalMode === "edit" || modalMode === "view") return
+  const handleCodeBlur = useCallback(
+    async (code: string) => {
+      // Skip if:
+      // 1. In edit mode
+      // 2. In read-only mode
+      if (modalMode === "edit" || modalMode === "view") return
 
-    const trimmedCode = code?.trim()
-    if (!trimmedCode) return
+      const trimmedCode = code?.trim()
+      if (!trimmedCode) return
 
-    setCodeToCheck(trimmedCode)
-    try {
-      const response = await checkCodeAvailability()
-      console.log("Full API Response:", response)
+      try {
+        const response = await getById(
+          `${Documenttype.getByCode}/${trimmedCode}`
+        )
+                // Check if response has data and it's not empty
+        if (response?.result === 1 && response.data) {
+                    // Handle both array and single object responses
+          const documentTypeData = Array.isArray(response.data)
+            ? response.data[0]
+            : response.data
 
-      // Check if response has data and it's not empty
-      if (response?.data?.result === 1 && response.data.data) {
-        console.log("Response data:", response.data.data)
-
-        // Handle both array and single object responses
-        const documentTypeData = Array.isArray(response.data.data)
-          ? response.data.data[0]
-          : response.data.data
-
-        console.log("Processed documentTypeData:", documentTypeData)
-
-        if (documentTypeData) {
-          // Ensure all required fields are present
-          const validDocumentTypeData: IDocumentType = {
-            docTypeId: documentTypeData.docTypeId,
-            docTypeCode: documentTypeData.docTypeCode,
-            docTypeName: documentTypeData.docTypeName,
-            remarks: documentTypeData.remarks || "",
-            isActive: documentTypeData.isActive ?? true,
-            companyId: documentTypeData.companyId,
-            createBy: documentTypeData.createBy,
-            editBy: documentTypeData.editBy,
-            createDate: documentTypeData.createDate,
-            editDate: documentTypeData.editDate,
+          if (documentTypeData) {
+            // Ensure all required fields are present
+            const validDocumentTypeData: IDocumentType = {
+              docTypeId: documentTypeData.docTypeId,
+              docTypeCode: documentTypeData.docTypeCode,
+              docTypeName: documentTypeData.docTypeName,
+              remarks: documentTypeData.remarks || "",
+              isActive: documentTypeData.isActive ?? true,
+              companyId: documentTypeData.companyId,
+              createBy: documentTypeData.createBy,
+              editBy: documentTypeData.editBy,
+              createDate: documentTypeData.createDate,
+              editDate: documentTypeData.editDate,
+            }
+            setExistingDocumentType(validDocumentTypeData)
+            setShowLoadDialog(true)
           }
-
-          console.log("Setting existing document type:", validDocumentTypeData)
-          setExistingDocumentType(validDocumentTypeData)
-          setShowLoadDialog(true)
         }
+      } catch (error) {
+        console.error("Error checking code availability:", error)
       }
-    } catch (error) {
-      console.error("Error checking code availability:", error)
-    }
-  }
+    },
+    [modalMode]
+  )
 
   // Handler for loading existing document type
   const handleLoadExistingDocumentType = () => {
     if (existingDocumentType) {
       // Log the data we're about to set
-      console.log("About to load document type data:", {
-        existingDocumentType,
-        currentModalMode: modalMode,
-        currentSelectedDocumentType: selectedDocumentType,
-      })
-
       // Set the states
       setModalMode("edit")
       setSelectedDocumentType(existingDocumentType)
@@ -267,8 +249,6 @@ export default function DocumentTypePage() {
       setExistingDocumentType(null)
     }
   }
-
-  const queryClient = useQueryClient()
 
   return (
     <div className="container mx-auto space-y-2 px-4 pt-2 pb-4 sm:space-y-3 sm:px-6 sm:pt-3 sm:pb-6">

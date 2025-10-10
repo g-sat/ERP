@@ -16,7 +16,7 @@ import {
 import { usePermissionStore } from "@/stores/permission-store"
 import { useQueryClient } from "@tanstack/react-query"
 
-import { getData } from "@/lib/api-client"
+import { getById } from "@/lib/api-client"
 import { Currency } from "@/lib/api-routes"
 import { MasterTransactionId, ModuleId } from "@/lib/utils"
 import { useDelete, useGet, usePersist } from "@/hooks/use-common"
@@ -163,7 +163,6 @@ export default function CurrencyPage() {
   const [modalMode, setModalMode] = useState<"create" | "edit" | "view">(
     "create"
   )
-
   const [deleteConfirmation, setDeleteConfirmation] = useState({
     isOpen: false,
     id: null as string | null,
@@ -473,32 +472,40 @@ export default function CurrencyPage() {
     })
   }
 
-  // Duplicate detection
-  const handleCodeBlur = async (code: string) => {
-    if (modalMode === "edit" || modalMode === "view") return
+  // Handler for code availability check (memoized to prevent unnecessary re-renders)
+  const handleCodeBlur = useCallback(
+    async (code: string) => {
+      // Skip if:
+      // 1. In edit mode
+      // 2. In read-only mode
+      if (modalMode === "edit" || modalMode === "view") return
 
-    const trimmedCode = code?.trim()
-    if (!trimmedCode) return
+      const trimmedCode = code?.trim()
+      if (!trimmedCode) {
+        return
+      }
 
-    try {
-      if (isModalOpen) {
-        const response = await getData(`${Currency.getByCode}/${trimmedCode}`)
+      try {
+        if (isModalOpen) {
+          const response = await getById(`${Currency.getByCode}/${trimmedCode}`)
 
-        if (response.data.result === 1 && response.data.data) {
-          const currencyData = Array.isArray(response.data.data)
-            ? response.data.data[0]
-            : response.data.data
+          if (response.result === 1 && response.data) {
+            const currencyData = Array.isArray(response.data)
+              ? response.data[0]
+              : response.data
 
-          if (currencyData) {
-            setExistingCurrency(currencyData as ICurrency)
-            setShowLoadDialogCurrency(true)
+            if (currencyData) {
+              setExistingCurrency(currencyData as ICurrency)
+              setShowLoadDialogCurrency(true)
+            }
           }
         }
+      } catch (error) {
+        console.error("Error checking code availability:", error)
       }
-    } catch (error) {
-      console.error("Error checking code availability:", error)
-    }
-  }
+    },
+    [modalMode, isModalOpen]
+  )
 
   // Load existing records
   const handleLoadExistingCurrency = () => {

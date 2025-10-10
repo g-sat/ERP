@@ -17,7 +17,7 @@ import {
 import { usePermissionStore } from "@/stores/permission-store"
 import { useQueryClient } from "@tanstack/react-query"
 
-import { getData } from "@/lib/api-client"
+import { getById } from "@/lib/api-client"
 import { Gst, GstCategory, GstDt } from "@/lib/api-routes"
 import { MasterTransactionId, ModuleId } from "@/lib/utils"
 import { useDelete, useGet, usePersist } from "@/hooks/use-common"
@@ -459,46 +459,51 @@ export default function GstPage() {
     })
   }
 
-  // Duplicate detection
-  const handleCodeBlur = async (code: string) => {
-    if (modalMode === "edit" || modalMode === "view") return
+  // Handler for code availability check (memoized to prevent unnecessary re-renders)
+  const handleCodeBlur = useCallback(
+    async (code: string) => {
+      // Skip if:
+      // 1. In edit mode
+      // 2. In read-only mode
+      if (modalMode === "edit" || modalMode === "view") return
 
-    const trimmedCode = code?.trim()
-    if (!trimmedCode) return
-
-    try {
-      if (isModalOpen) {
-        const response = await getData(`${Gst.getByCode}/${trimmedCode}`)
-
-        if (response.data.result === 1 && response.data.data) {
-          const countryData = Array.isArray(response.data.data)
-            ? response.data.data[0]
-            : response.data.data
-
-          if (countryData) {
-            setExistingGst(countryData as IGst)
-            setShowLoadDialogGst(true)
-          }
-        }
-      } else if (isCategoryModalOpen) {
-        const response = await getData(
-          `${GstCategory.getByCode}/${trimmedCode}`
-        )
-        if (response.data.result === 1 && response.data.data) {
-          const categoryData = Array.isArray(response.data.data)
-            ? response.data.data[0]
-            : response.data.data
-
-          if (categoryData) {
-            setExistingGstCategory(categoryData as IGstCategory)
-            setShowLoadDialogCategory(true)
-          }
-        }
+      const trimmedCode = code?.trim()
+      if (!trimmedCode) {
+        return
       }
-    } catch (error) {
-      console.error("Error checking code availability:", error)
-    }
-  }
+
+      // Set the code and immediately fetch (no state dependency issues)
+      try {
+        if (isModalOpen) {
+          const response = await getById(`${Gst.getByCode}/${trimmedCode}`)
+
+          if (response.result === 1 && response.data) {
+            const gstData = Array.isArray(response.data) ? response.data[0] : response.data
+
+            if (gstData) {
+              setExistingGst(gstData as IGst)
+              setShowLoadDialogGst(true)
+            }
+          }
+        } else if (isCategoryModalOpen) {
+          const response = await getById(
+            `${GstCategory.getByCode}/${trimmedCode}`
+          )
+          if (response.result === 1 && response.data) {
+            const categoryData = Array.isArray(response.data) ? response.data[0] : response.data
+
+            if (categoryData) {
+              setExistingGstCategory(categoryData as IGstCategory)
+              setShowLoadDialogCategory(true)
+            }
+          }
+        }
+      } catch (error) {
+        console.error("Error checking code availability:", error)
+      }
+    },
+    [modalMode, isModalOpen, isCategoryModalOpen]
+  )
 
   // Load existing records
   const handleLoadExistingGst = () => {

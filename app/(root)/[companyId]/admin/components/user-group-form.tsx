@@ -34,6 +34,7 @@ interface UserGroupFormProps {
   isSubmitting?: boolean
   isReadOnly?: boolean
   onSaveConfirmation?: (data: UserGroupSchemaType) => void
+  onCodeBlur?: (code: string) => void
 }
 
 export function UserGroupForm({
@@ -43,6 +44,7 @@ export function UserGroupForm({
   isSubmitting = false,
   isReadOnly = false,
   onSaveConfirmation,
+  onCodeBlur,
 }: UserGroupFormProps) {
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
@@ -84,6 +86,13 @@ export function UserGroupForm({
     }
   }
 
+  const handleCodeBlur = (_e: React.FocusEvent<HTMLInputElement>) => {
+    const code = form.getValues("userGroupCode")
+    if (code) {
+      onCodeBlur?.(code)
+    }
+  }
+
   return (
     <div className="max-w flex flex-col gap-2">
       <Form {...form}>
@@ -97,6 +106,7 @@ export function UserGroupForm({
                   label="Group Code"
                   isRequired
                   isDisabled={isReadOnly || Boolean(initialData)}
+                  onBlurEvent={handleCodeBlur}
                 />
               </div>
               <div>

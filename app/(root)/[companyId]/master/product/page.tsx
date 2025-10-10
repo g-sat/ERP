@@ -7,9 +7,10 @@ import { ProductSchemaType } from "@/schemas/product"
 import { usePermissionStore } from "@/stores/permission-store"
 import { useQueryClient } from "@tanstack/react-query"
 
+import { getById } from "@/lib/api-client"
 import { Product } from "@/lib/api-routes"
 import { MasterTransactionId, ModuleId } from "@/lib/utils"
-import { useDelete, useGet, useGetById, usePersist } from "@/hooks/use-common"
+import { useDelete, useGet, usePersist } from "@/hooks/use-common"
 import {
   Dialog,
   DialogContent,
@@ -44,7 +45,6 @@ export default function ProductPage() {
   // Filter handler wrapper
   const handleFilterChange = useCallback(
     (newFilters: { search?: string; sortOrder?: string }) => {
-      console.log("Filter change called with:", newFilters)
       setFilters(newFilters as IProductFilter)
     },
     []
@@ -73,7 +73,6 @@ export default function ProductPage() {
   )
   const [showLoadDialog, setShowLoadDialog] = useState(false)
   const [existingProduct, setExistingProduct] = useState<IProduct | null>(null)
-  const [codeToCheck, setCodeToCheck] = useState<string>("")
 
   const [deleteConfirmation, setDeleteConfirmation] = useState<{
     isOpen: boolean
@@ -94,12 +93,6 @@ export default function ProductPage() {
     data: null,
   })
 
-  const { refetch: checkCodeAvailability } = useGetById<IProduct>(
-    `${Product.getByCode}`,
-    "productByCode",
-    codeToCheck
-  )
-
   const handleRefresh = () => {
     refetch()
   }
@@ -111,7 +104,6 @@ export default function ProductPage() {
   }
 
   const handleEditProduct = (product: IProduct) => {
-    console.log("Edit Product:", product)
     setModalMode("edit")
     setSelectedProduct(product)
     setIsModalOpen(true)
@@ -178,58 +170,46 @@ export default function ProductPage() {
     }
   }
 
-  const handleCodeBlur = async (code: string) => {
-    if (modalMode === "edit" || modalMode === "view") return
+  const handleCodeBlur = useCallback(
+    async (code: string) => {
+      if (modalMode === "edit" || modalMode === "view") return
 
-    const trimmedCode = code?.trim()
-    if (!trimmedCode) return
+      const trimmedCode = code?.trim()
+      if (!trimmedCode) return
 
-    setCodeToCheck(trimmedCode)
-    try {
-      const response = await checkCodeAvailability()
-      console.log("Full API Response:", response)
+      try {
+        const response = await getById(`${Product.getByCode}/${trimmedCode}`)
+                if (response?.result === 1 && response.data) {
+                    const productData = Array.isArray(response.data)
+            ? response.data[0]
+            : response.data
 
-      if (response?.data?.result === 1 && response.data.data) {
-        console.log("Response data:", response.data.data)
-
-        const productData = Array.isArray(response.data.data)
-          ? response.data.data[0]
-          : response.data.data
-
-        console.log("Processed productData:", productData)
-
-        if (productData) {
-          const validProductData: IProduct = {
-            productId: productData.productId,
-            productCode: productData.productCode,
-            productName: productData.productName,
-            companyId: productData.companyId,
-            remarks: productData.remarks || "",
-            isActive: productData.isActive ?? true,
-            createBy: productData.createBy,
-            editBy: productData.editBy,
-            createDate: productData.createDate,
-            editDate: productData.editDate,
+          if (productData) {
+            const validProductData: IProduct = {
+              productId: productData.productId,
+              productCode: productData.productCode,
+              productName: productData.productName,
+              companyId: productData.companyId,
+              remarks: productData.remarks || "",
+              isActive: productData.isActive ?? true,
+              createBy: productData.createBy,
+              editBy: productData.editBy,
+              createDate: productData.createDate,
+              editDate: productData.editDate,
+            }
+            setExistingProduct(validProductData)
+            setShowLoadDialog(true)
           }
-
-          console.log("Setting existing product:", validProductData)
-          setExistingProduct(validProductData)
-          setShowLoadDialog(true)
         }
+      } catch (error) {
+        console.error("Error checking code availability:", error)
       }
-    } catch (error) {
-      console.error("Error checking code availability:", error)
-    }
-  }
+    },
+    [modalMode]
+  )
 
   const handleLoadExistingProduct = () => {
     if (existingProduct) {
-      console.log("About to load product data:", {
-        existingProduct,
-        currentModalMode: modalMode,
-        currentSelectedProduct: selectedProduct,
-      })
-
       setModalMode("edit")
       setSelectedProduct(existingProduct)
       setShowLoadDialog(false)
@@ -238,17 +218,10 @@ export default function ProductPage() {
   }
 
   useEffect(() => {
-    console.log("Modal Mode Updated:", modalMode)
   }, [modalMode])
 
   useEffect(() => {
     if (selectedProduct) {
-      console.log("Selected Product Updated:", {
-        productId: selectedProduct.productId,
-        productCode: selectedProduct.productCode,
-        productName: selectedProduct.productName,
-        fullObject: selectedProduct,
-      })
     }
   }, [selectedProduct])
 

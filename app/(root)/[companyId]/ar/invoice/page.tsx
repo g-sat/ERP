@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useCallback, useState } from "react"
 import { ApiResponse } from "@/interfaces/auth"
 import {
   IArInvoiceDt,
@@ -25,7 +25,7 @@ import { toast } from "sonner"
 import { getById } from "@/lib/api-client"
 import { ArInvoice } from "@/lib/api-routes"
 import { clientDateFormat, parseDate } from "@/lib/date-utils"
-import { TableName } from "@/lib/utils"
+import { ARTransactionId, ModuleId, TableName } from "@/lib/utils"
 import { useDelete, useGetWithDates, usePersist } from "@/hooks/use-common"
 import { useGetRequiredFields, useGetVisibleFields } from "@/hooks/use-lookup"
 import { Button } from "@/components/ui/button"
@@ -67,8 +67,8 @@ export default function InvoicePage() {
     pageSize: 10,
   })
 
-  const moduleId = 25
-  const transactionId = 1
+  const moduleId = ModuleId.ar
+  const transactionId = ARTransactionId.invoice
 
   const { data: visibleFieldsData } = useGetVisibleFields(
     moduleId,
@@ -529,16 +529,9 @@ export default function InvoicePage() {
     }
   }
 
-  // Remove direct refetchInvoices from handleFilterChange
-  const handleFilterChange = (newFilters: IArInvoiceFilter) => {
+  const handleFilterChange = useCallback((newFilters: IArInvoiceFilter) => {
     setFilters(newFilters)
-    // refetchInvoices(); // Removed: will be handled by useEffect
-  }
-
-  // Add useEffect to refetch invoices when filters change
-  useEffect(() => {
-    refetchInvoices()
-  }, [filters, refetchInvoices])
+  }, [])
 
   const handleInvoiceSearch = async (value: string) => {
     if (!value) return
@@ -763,25 +756,12 @@ export default function InvoicePage() {
         </TabsContent>
 
         <TabsContent value="history">
-          <History
-            form={form}
-            isEdit={isEdit}
-            moduleId={moduleId}
-            transactionId={transactionId}
-          />
+          <History form={form} isEdit={isEdit} />
         </TabsContent>
       </Tabs>
 
       {/* List Dialog */}
-      <Dialog
-        open={showListDialog}
-        onOpenChange={(open) => {
-          setShowListDialog(open)
-          if (open) {
-            refetchInvoices()
-          }
-        }}
-      >
+      <Dialog open={showListDialog} onOpenChange={setShowListDialog}>
         <DialogContent
           className="@container h-[90vh] w-[90vw] !max-w-none overflow-y-auto rounded-lg p-4"
           onInteractOutside={(e) => e.preventDefault()}

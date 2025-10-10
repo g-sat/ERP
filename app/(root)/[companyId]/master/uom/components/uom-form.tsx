@@ -80,9 +80,11 @@ export function UomForm({
     )
   }, [initialData, form])
 
-  const handleCodeBlur = () => {
+  const handleCodeBlur = (_e: React.FocusEvent<HTMLInputElement>) => {
     const code = form.getValues("uomCode")
-    onCodeBlur?.(code)
+    if (code) {
+      onCodeBlur?.(code)
+    }
   }
 
   const onSubmit = (data: UomSchemaType) => {

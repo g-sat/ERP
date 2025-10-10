@@ -7,9 +7,10 @@ import { BargeSchemaType } from "@/schemas/barge"
 import { usePermissionStore } from "@/stores/permission-store"
 import { useQueryClient } from "@tanstack/react-query"
 
+import { getById } from "@/lib/api-client"
 import { Barge } from "@/lib/api-routes"
 import { MasterTransactionId, ModuleId } from "@/lib/utils"
-import { useDelete, useGet, useGetById, usePersist } from "@/hooks/use-common"
+import { useDelete, useGet, usePersist } from "@/hooks/use-common"
 import {
   Dialog,
   DialogContent,
@@ -34,6 +35,8 @@ export default function BargePage() {
   const { hasPermission } = usePermissionStore()
 
   const canCreate = hasPermission(moduleId, transactionId, "isCreate")
+
+  const queryClient = useQueryClient()
   const canEdit = hasPermission(moduleId, transactionId, "isEdit")
   const canDelete = hasPermission(moduleId, transactionId, "isDelete")
   const canView = hasPermission(moduleId, transactionId, "isRead")
@@ -43,7 +46,6 @@ export default function BargePage() {
   // Filter handler wrapper
   const handleFilterChange = useCallback(
     (newFilters: { search?: string; sortOrder?: string }) => {
-      console.log("Filter change called with:", newFilters)
       setFilters(newFilters as IBargeFilter)
     },
     []
@@ -75,7 +77,6 @@ export default function BargePage() {
   // State for code availability check
   const [showLoadDialog, setShowLoadDialog] = useState(false)
   const [existingBarge, setExistingBarge] = useState<IBarge | null>(null)
-  const [codeToCheck, setCodeToCheck] = useState<string>("")
 
   const [deleteConfirmation, setDeleteConfirmation] = useState<{
     isOpen: boolean
@@ -86,16 +87,6 @@ export default function BargePage() {
     bargeId: null,
     bargeName: null,
   })
-
-  // Add API call for checking code availability
-  const { refetch: checkCodeAvailability } = useGetById<IBarge>(
-    `${Barge.getByCode}`,
-    "bargeByCode",
-
-    codeToCheck
-  )
-
-  const queryClient = useQueryClient()
 
   const handleRefresh = () => {
     refetch()
@@ -183,27 +174,37 @@ export default function BargePage() {
     }
   }
 
-  // Handler for code availability check
-  const handleCodeBlur = async (code: string) => {
-    if (!code.trim()) return
+  // Handler for code availability check (memoized to prevent unnecessary re-renders)
+  const handleCodeBlur = useCallback(
+    async (code: string) => {
+      // Skip if:
+      // 1. In edit mode
+      // 2. In read-only mode
+      if (modalMode === "edit" || modalMode === "view") return
 
-    setCodeToCheck(code)
-    try {
-      const response = await checkCodeAvailability()
-      if (
-        response &&
-        response.data &&
-        response.data.result === 1 &&
-        response.data.data &&
-        response.data.data.length > 0
-      ) {
-        setExistingBarge(response.data.data[0])
-        setShowLoadDialog(true)
+      const trimmedCode = code?.trim()
+      if (!trimmedCode) {
+        return
       }
-    } catch (error) {
-      console.error("Error checking code availability:", error)
-    }
-  }
+
+      try {
+        const response = await getById(`${Barge.getByCode}/${trimmedCode}`)
+        if (
+          response &&
+          response.data &&
+          response.result === 1 &&
+          response.data &&
+          response.data.length > 0
+        ) {
+          setExistingBarge(response.data[0])
+          setShowLoadDialog(true)
+        }
+      } catch (error) {
+        console.error("Error checking code availability:", error)
+      }
+    },
+    [modalMode]
+  )
 
   const handleLoadExistingBarge = () => {
     if (existingBarge) {

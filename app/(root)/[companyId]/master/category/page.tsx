@@ -7,14 +7,10 @@ import { CategorySchemaType } from "@/schemas/category"
 import { usePermissionStore } from "@/stores/permission-store"
 import { useQueryClient } from "@tanstack/react-query"
 
+import { getById } from "@/lib/api-client"
 import { Category } from "@/lib/api-routes"
 import { MasterTransactionId, ModuleId } from "@/lib/utils"
-import {
-  useDelete,
-  useGet,
-  useGetByParams,
-  usePersist,
-} from "@/hooks/use-common"
+import { useDelete, useGet, usePersist } from "@/hooks/use-common"
 import {
   Dialog,
   DialogContent,
@@ -39,6 +35,8 @@ export default function CategoryPage() {
   const { hasPermission } = usePermissionStore()
 
   const canCreate = hasPermission(moduleId, transactionId, "isCreate")
+
+  const queryClient = useQueryClient()
   const canEdit = hasPermission(moduleId, transactionId, "isEdit")
   const canDelete = hasPermission(moduleId, transactionId, "isDelete")
   const canView = hasPermission(moduleId, transactionId, "isRead")
@@ -49,7 +47,6 @@ export default function CategoryPage() {
   // Filter handler wrapper
   const handleFilterChange = useCallback(
     (newFilters: { search?: string; sortOrder?: string }) => {
-      console.log("Filter change called with:", newFilters)
       setFilters(newFilters as ICategoryFilter)
     },
     []
@@ -98,7 +95,6 @@ export default function CategoryPage() {
   const [existingCategory, setExistingCategory] = useState<ICategory | null>(
     null
   )
-  const [codeToCheck, setCodeToCheck] = useState<string>("")
 
   const [deleteConfirmation, setDeleteConfirmation] = useState<{
     isOpen: boolean
@@ -118,15 +114,6 @@ export default function CategoryPage() {
     isOpen: false,
     data: null,
   })
-
-  // Add API call for checking code availability
-  const { refetch: checkCodeAvailability } = useGetByParams<ICategory>(
-    `${Category.getByCode}`,
-    "categoryByCode",
-    codeToCheck || ""
-  )
-
-  const queryClient = useQueryClient()
 
   const handleRefresh = () => {
     refetch()
@@ -206,26 +193,32 @@ export default function CategoryPage() {
   }
 
   // Handler for code availability check
-  const handleCodeBlur = async (code: string) => {
-    if (!code.trim()) return
+  const handleCodeBlur = useCallback(
+    async (code: string) => {
+      if (modalMode === "edit" || modalMode === "view") return
 
-    setCodeToCheck(code)
-    try {
-      const response = await checkCodeAvailability()
-      if (
-        response &&
-        response.data &&
-        response.data.result === 1 &&
-        response.data.data &&
-        response.data.data.length > 0
-      ) {
-        setExistingCategory(response.data.data[0])
-        setShowLoadDialog(true)
+      const trimmedCode = code?.trim()
+      if (!trimmedCode) return
+
+      try {
+        const response = await getById(`${Category.getByCode}/${trimmedCode}`)
+
+        if (response?.result === 1 && response.data) {
+          const categoryData = Array.isArray(response.data)
+            ? response.data[0]
+            : response.data
+
+          if (categoryData) {
+            setExistingCategory(categoryData as ICategory)
+            setShowLoadDialog(true)
+          }
+        }
+      } catch (error) {
+        console.error("Error checking code availability:", error)
       }
-    } catch (error) {
-      console.error("Error checking code availability:", error)
-    }
-  }
+    },
+    [modalMode]
+  )
 
   const handleLoadExistingCategory = () => {
     if (existingCategory) {

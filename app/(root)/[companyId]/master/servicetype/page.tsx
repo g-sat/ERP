@@ -15,7 +15,7 @@ import {
 import { usePermissionStore } from "@/stores/permission-store"
 import { useQueryClient } from "@tanstack/react-query"
 
-import { getData } from "@/lib/api-client"
+import { getById } from "@/lib/api-client"
 import { ServiceType, ServiceTypeCategory } from "@/lib/api-routes"
 import { MasterTransactionId, ModuleId } from "@/lib/utils"
 import { useDelete, useGet, usePersist } from "@/hooks/use-common"
@@ -81,7 +81,6 @@ export default function ServiceTypePage() {
   // Filter change handlers
   const handleFilterChange = useCallback(
     (newFilters: { search?: string; sortOrder?: string }) => {
-      console.log("ServiceType filter change called with:", newFilters)
       setFilters(newFilters as IServiceTypeFilter)
     },
     []
@@ -89,7 +88,6 @@ export default function ServiceTypePage() {
 
   const handleCategoryFilterChange = useCallback(
     (newFilters: { search?: string; sortOrder?: string }) => {
-      console.log("ServiceType Category filter change called with:", newFilters)
       setCategoryFilters(newFilters as IServiceTypeCategoryFilter)
     },
     []
@@ -352,49 +350,57 @@ export default function ServiceTypePage() {
     })
   }
 
-  // Duplicate detection
-  const handleCodeBlur = async (code: string) => {
-    if (modalMode === "edit" || modalMode === "view") return
+  // Handler for code availability check (memoized to prevent unnecessary re-renders)
+  const handleCodeBlur = useCallback(
+    async (code: string) => {
+      // Skip if:
+      // 1. In edit mode
+      // 2. In read-only mode
+      if (modalMode === "edit" || modalMode === "view") return
 
-    const trimmedCode = code?.trim()
-    if (!trimmedCode) return
-
-    try {
-      const response = (await getData(
-        `${ServiceType.getByCode}/${trimmedCode}`
-      )) as ApiResponse<IServiceType>
-
-      if (response.result === 1 && response.data) {
-        const servicetypeData = Array.isArray(response.data)
-          ? response.data[0]
-          : response.data
-
-        if (servicetypeData) {
-          setExistingServiceType(servicetypeData as IServiceType)
-          setShowLoadDialogServiceType(true)
-        }
+      const trimmedCode = code?.trim()
+      if (!trimmedCode) {
+        return
       }
 
-      const responseCategory = (await getData(
-        `${ServiceTypeCategory.getByCode}/${trimmedCode}`
-      )) as ApiResponse<IServiceTypeCategory>
+      try {
+        const response = await getById(
+          `${ServiceType.getByCode}/${trimmedCode}`
+        )
 
-      if (responseCategory.result === 1 && responseCategory.data) {
-        const servicetypeCategoryData = Array.isArray(responseCategory.data)
-          ? responseCategory.data[0]
-          : responseCategory.data
+        if (response?.result === 1 && response.data) {
+          const servicetypeData = Array.isArray(response.data)
+            ? response.data[0]
+            : response.data
 
-        if (servicetypeCategoryData) {
-          setExistingServiceTypeCategory(
-            servicetypeCategoryData as IServiceTypeCategory
-          )
-          setShowLoadDialogCategory(true)
+          if (servicetypeData) {
+            setExistingServiceType(servicetypeData as IServiceType)
+            setShowLoadDialogServiceType(true)
+          }
         }
+
+        const responseCategory = await getById(
+          `${ServiceTypeCategory.getByCode}/${trimmedCode}`
+        )
+
+        if (responseCategory?.result === 1 && responseCategory.data) {
+          const servicetypeCategoryData = Array.isArray(responseCategory.data)
+            ? responseCategory.data[0]
+            : responseCategory.data
+
+          if (servicetypeCategoryData) {
+            setExistingServiceTypeCategory(
+              servicetypeCategoryData as IServiceTypeCategory
+            )
+            setShowLoadDialogCategory(true)
+          }
+        }
+      } catch (error) {
+        console.error("Error checking code availability:", error)
       }
-    } catch (error) {
-      console.error("Error checking code availability:", error)
-    }
-  }
+    },
+    [modalMode]
+  )
 
   // Load existing records
   const handleLoadExistingServiceType = () => {

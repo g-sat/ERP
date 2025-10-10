@@ -84,9 +84,11 @@ export function AccountGroupForm({
     )
   }, [initialData, form])
 
-  const handleCodeBlur = () => {
+  const handleCodeBlur = (_e: React.FocusEvent<HTMLInputElement>) => {
     const code = form.getValues("accGroupCode")
-    onCodeBlur?.(code)
+    if (code) {
+      onCodeBlur?.(code)
+    }
   }
 
   const onSubmit = (values: AccountGroupSchemaType) => {

@@ -8,6 +8,7 @@ import { usePermissionStore } from "@/stores/permission-store"
 import { useQueryClient } from "@tanstack/react-query"
 
 import { getData } from "@/lib/api-client"
+import { getById } from "@/lib/api-client"
 import { Uom, UomDt } from "@/lib/api-routes"
 import { MasterTransactionId, ModuleId } from "@/lib/utils"
 import { useDelete, useGet, usePersist } from "@/hooks/use-common"
@@ -40,6 +41,8 @@ export default function UomPage() {
 
   // Permissions
   const canCreate = hasPermission(moduleId, transactionId, "isCreate")
+
+  const queryClient = useQueryClient()
   const canView = hasPermission(moduleId, transactionId, "isRead")
   const canEdit = hasPermission(moduleId, transactionId, "isEdit")
   const canDelete = hasPermission(moduleId, transactionId, "isDelete")
@@ -303,32 +306,40 @@ export default function UomPage() {
     })
   }
 
-  // Duplicate detection
-  const handleCodeBlur = async (code: string) => {
-    if (modalMode === "edit" || modalMode === "view") return
+  // Handler for code availability check (memoized to prevent unnecessary re-renders)
+  const handleCodeBlur = useCallback(
+    async (code: string) => {
+      // Skip if:
+      // 1. In edit mode
+      // 2. In read-only mode
+      if (modalMode === "edit" || modalMode === "view") return
 
-    const trimmedCode = code?.trim()
-    if (!trimmedCode) return
-
-    try {
-      const response = (await getData(
-        `${Uom.getByCode}/${trimmedCode}`
-      )) as ApiResponse<IUom>
-
-      if (response.result === 1 && response.data) {
-        const uomData = Array.isArray(response.data)
-          ? response.data[0]
-          : response.data
-
-        if (uomData) {
-          setExistingUom(uomData as IUom)
-          setShowLoadDialogUom(true)
-        }
+      const trimmedCode = code?.trim()
+      if (!trimmedCode) {
+        return
       }
-    } catch (error) {
-      console.error("Error checking code availability:", error)
-    }
-  }
+
+      try {
+        const response = (await getData(
+          `${Uom.getByCode}/${trimmedCode}`
+        )) as ApiResponse<IUom>
+
+        if (response.result === 1 && response.data) {
+          const uomData = Array.isArray(response.data)
+            ? response.data[0]
+            : response.data
+
+          if (uomData) {
+            setExistingUom(uomData as IUom)
+            setShowLoadDialogUom(true)
+          }
+        }
+      } catch (error) {
+        console.error("Error checking code availability:", error)
+      }
+    },
+    [modalMode, isModalOpen]
+  )
 
   // Load existing records
   const handleLoadExistingUom = () => {
@@ -339,8 +350,6 @@ export default function UomPage() {
       setExistingUom(null)
     }
   }
-
-  const queryClient = useQueryClient()
 
   return (
     <div className="container mx-auto space-y-2 px-4 pt-2 pb-4 sm:space-y-3 sm:px-6 sm:pt-3 sm:pb-6">

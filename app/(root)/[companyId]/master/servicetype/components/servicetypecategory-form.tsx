@@ -89,9 +89,11 @@ export function ServiceTypeCategoryForm({
     await submitAction(data)
   }
 
-  const handleCodeBlur = () => {
+  const handleCodeBlur = (_e: React.FocusEvent<HTMLInputElement>) => {
     const code = form.getValues("serviceTypeCategoryCode")
-    onCodeBlur?.(code)
+    if (code) {
+      onCodeBlur?.(code)
+    }
   }
 
   return (

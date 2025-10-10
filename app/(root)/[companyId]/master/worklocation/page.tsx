@@ -7,9 +7,10 @@ import { WorkLocationSchemaType } from "@/schemas"
 import { usePermissionStore } from "@/stores/permission-store"
 import { useQueryClient } from "@tanstack/react-query"
 
+import { getById } from "@/lib/api-client"
 import { WorkLocation } from "@/lib/api-routes"
 import { MasterTransactionId, ModuleId } from "@/lib/utils"
-import { useDelete, useGet, useGetById, usePersist } from "@/hooks/use-common"
+import { useDelete, useGet, usePersist } from "@/hooks/use-common"
 import {
   Dialog,
   DialogContent,
@@ -44,7 +45,6 @@ export default function WorklocationPage() {
   // Filter handler wrapper
   const handleFilterChange = useCallback(
     (newFilters: { search?: string; sortOrder?: string }) => {
-      console.log("Filter change called with:", newFilters)
       setFilters(newFilters as IWorkLocationFilter)
     },
     []
@@ -81,7 +81,6 @@ export default function WorklocationPage() {
   const [showLoadDialog, setShowLoadDialog] = useState(false)
   const [existingWorklocation, setExistingWorklocation] =
     useState<IWorkLocation | null>(null)
-  const [codeToCheck, setCodeToCheck] = useState<string>("")
 
   const [deleteConfirmation, setDeleteConfirmation] = useState<{
     isOpen: boolean
@@ -102,12 +101,6 @@ export default function WorklocationPage() {
     data: null,
   })
 
-  const { refetch: checkCodeAvailability } = useGetById<IWorkLocation>(
-    `${WorkLocation.getByCode}`,
-    "worklocationByCode",
-    codeToCheck
-  )
-
   const handleRefresh = () => {
     refetch()
   }
@@ -119,7 +112,6 @@ export default function WorklocationPage() {
   }
 
   const handleEditWorklocation = (worklocation: IWorkLocation) => {
-    console.log("Edit WorkLocation:", worklocation)
     setModalMode("edit")
     setSelectedWorklocation(worklocation)
     setIsModalOpen(true)
@@ -186,62 +178,52 @@ export default function WorklocationPage() {
     }
   }
 
-  const handleCodeBlur = async (code: string) => {
-    if (modalMode === "edit" || modalMode === "view") return
+  const handleCodeBlur = useCallback(
+    async (code: string) => {
+      if (modalMode === "edit" || modalMode === "view") return
 
-    const trimmedCode = code?.trim()
-    if (!trimmedCode) return
+      const trimmedCode = code?.trim()
+      if (!trimmedCode) return
 
-    setCodeToCheck(trimmedCode)
-    try {
-      const response = await checkCodeAvailability()
-      console.log("Full API Response:", response)
+      try {
+        const response = await getById(
+          `${Worklocation.getByCode}/${trimmedCode}`
+        )
+                if (response?.result === 1 && response.data) {
+                    const worklocationData = Array.isArray(response.data)
+            ? response.data[0]
+            : response.data
 
-      if (response?.data?.result === 1 && response.data.data) {
-        console.log("Response data:", response.data.data)
-
-        const worklocationData = Array.isArray(response.data.data)
-          ? response.data.data[0]
-          : response.data.data
-
-        console.log("Processed worklocationData:", worklocationData)
-
-        if (worklocationData) {
-          const validWorklocationData: IWorkLocation = {
-            workLocationId: worklocationData.workLocationId,
-            workLocationCode: worklocationData.workLocationCode,
-            workLocationName: worklocationData.workLocationName,
-            address1: worklocationData.address1,
-            address2: worklocationData.address2,
-            city: worklocationData.city,
-            postalCode: worklocationData.postalCode,
-            countryId: worklocationData.countryId,
-            countryName: worklocationData.countryName,
-            isActive: worklocationData.isActive ?? true,
-            createBy: worklocationData.createBy,
-            editBy: worklocationData.editBy,
-            createDate: worklocationData.createDate,
-            editDate: worklocationData.editDate,
+          if (worklocationData) {
+            const validWorklocationData: IWorkLocation = {
+              workLocationId: worklocationData.workLocationId,
+              workLocationCode: worklocationData.workLocationCode,
+              workLocationName: worklocationData.workLocationName,
+              address1: worklocationData.address1,
+              address2: worklocationData.address2,
+              city: worklocationData.city,
+              postalCode: worklocationData.postalCode,
+              countryId: worklocationData.countryId,
+              countryName: worklocationData.countryName,
+              isActive: worklocationData.isActive ?? true,
+              createBy: worklocationData.createBy,
+              editBy: worklocationData.editBy,
+              createDate: worklocationData.createDate,
+              editDate: worklocationData.editDate,
+            }
+            setExistingWorklocation(validWorklocationData)
+            setShowLoadDialog(true)
           }
-
-          console.log("Setting existing worklocation:", validWorklocationData)
-          setExistingWorklocation(validWorklocationData)
-          setShowLoadDialog(true)
         }
+      } catch (error) {
+        console.error("Error checking code availability:", error)
       }
-    } catch (error) {
-      console.error("Error checking code availability:", error)
-    }
-  }
+    },
+    [modalMode]
+  )
 
   const handleLoadExistingWorklocation = () => {
     if (existingWorklocation) {
-      console.log("About to load worklocation data:", {
-        existingWorklocation,
-        currentModalMode: modalMode,
-        currentSelectedWorklocation: selectedWorklocation,
-      })
-
       setModalMode("edit")
       setSelectedWorklocation(existingWorklocation)
       setShowLoadDialog(false)
@@ -250,17 +232,10 @@ export default function WorklocationPage() {
   }
 
   useEffect(() => {
-    console.log("Modal Mode Updated:", modalMode)
   }, [modalMode])
 
   useEffect(() => {
     if (selectedWorklocation) {
-      console.log("Selected WorkLocation Updated:", {
-        worklocationId: selectedWorklocation.workLocationId,
-        worklocationCode: selectedWorklocation.workLocationCode,
-        worklocationName: selectedWorklocation.workLocationName,
-        fullObject: selectedWorklocation,
-      })
     }
   }, [selectedWorklocation])
 

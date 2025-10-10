@@ -52,6 +52,7 @@ interface UserFormProps {
   isSubmitting?: boolean
   isReadOnly?: boolean
   onSaveConfirmation?: (data: UserSchemaType) => void
+  onCodeBlur?: (code: string) => void
 }
 
 export function UserForm({
@@ -61,6 +62,7 @@ export function UserForm({
   isSubmitting = false,
   isReadOnly = false,
   onSaveConfirmation,
+  onCodeBlur,
 }: UserFormProps) {
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
@@ -116,6 +118,13 @@ export function UserForm({
     }
   }
 
+  const handleCodeBlur = (_e: React.FocusEvent<HTMLInputElement>) => {
+    const code = form.getValues("userCode")
+    if (code) {
+      onCodeBlur?.(code)
+    }
+  }
+
   const handleCancelReset = () => setIsResetPasswordOpen(false)
   const handleResetSuccess = () => setIsResetPasswordOpen(false)
 
@@ -132,6 +141,7 @@ export function UserForm({
                   label="User Code"
                   isRequired
                   isDisabled={isReadOnly || Boolean(initialData)}
+                  onBlurEvent={handleCodeBlur}
                 />
               </div>
               <div>

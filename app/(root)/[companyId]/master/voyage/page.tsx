@@ -7,9 +7,10 @@ import { VoyageSchemaType } from "@/schemas/voyage"
 import { usePermissionStore } from "@/stores/permission-store"
 import { useQueryClient } from "@tanstack/react-query"
 
+import { getById } from "@/lib/api-client"
 import { Voyage } from "@/lib/api-routes"
 import { MasterTransactionId, ModuleId } from "@/lib/utils"
-import { useDelete, useGet, useGetById, usePersist } from "@/hooks/use-common"
+import { useDelete, useGet, usePersist } from "@/hooks/use-common"
 import {
   Dialog,
   DialogContent,
@@ -37,12 +38,13 @@ export default function VoyagePage() {
   const canView = hasPermission(moduleId, transactionId, "isRead")
   const canCreate = hasPermission(moduleId, transactionId, "isCreate")
 
+  const queryClient = useQueryClient()
+
   const [filters, setFilters] = useState<IVoyageFilter>({})
 
   // Filter handler wrapper
   const handleFilterChange = useCallback(
     (newFilters: { search?: string; sortOrder?: string }) => {
-      console.log("Filter change called with:", newFilters)
       setFilters(newFilters as IVoyageFilter)
     },
     []
@@ -79,7 +81,6 @@ export default function VoyagePage() {
   // State for code availability check
   const [showLoadDialog, setShowLoadDialog] = useState(false)
   const [existingVoyage, setExistingVoyage] = useState<IVoyage | null>(null)
-  const [codeToCheck, setCodeToCheck] = useState<string>("")
 
   const [deleteConfirmation, setDeleteConfirmation] = useState<{
     isOpen: boolean
@@ -90,15 +91,6 @@ export default function VoyagePage() {
     voyageId: null,
     voyageNo: null,
   })
-
-  // Add API call for checking code availability
-  const { refetch: checkCodeAvailability } = useGetById<IVoyage>(
-    `${Voyage.getByCode}`,
-    "voyageByCode",
-    codeToCheck
-  )
-
-  const queryClient = useQueryClient()
 
   const handleRefresh = () => {
     refetch()
@@ -173,67 +165,55 @@ export default function VoyagePage() {
   }
 
   // Handler for code availability check
-  const handleCodeBlur = async (code: string) => {
-    // Skip if:
-    // 1. In edit mode
-    // 2. In read-only mode
-    if (modalMode === "edit" || modalMode === "view") return
+  const handleCodeBlur = useCallback(
+    async (code: string) => {
+      // Skip if:
+      // 1. In edit mode
+      // 2. In read-only mode
+      if (modalMode === "edit" || modalMode === "view") return
 
-    const trimmedCode = code?.trim()
-    if (!trimmedCode) return
+      const trimmedCode = code?.trim()
+      if (!trimmedCode) return
 
-    setCodeToCheck(trimmedCode)
-    try {
-      const response = await checkCodeAvailability()
-      console.log("Full API Response:", response)
+      try {
+        const response = await getById(`${Voyage.getByCode}/${trimmedCode}`)
+                // Check if response has data and it's not empty
+        if (response?.result === 1 && response.data) {
+                    // Handle both array and single object responses
+          const voyageData = Array.isArray(response.data)
+            ? response.data[0]
+            : response.data
 
-      // Check if response has data and it's not empty
-      if (response?.data?.result === 1 && response.data.data) {
-        console.log("Response data:", response.data.data)
-
-        // Handle both array and single object responses
-        const voyageData = Array.isArray(response.data.data)
-          ? response.data.data[0]
-          : response.data.data
-
-        console.log("Processed voyageData:", voyageData)
-
-        if (voyageData) {
-          // Ensure all required fields are present
-          const validVoyageData: IVoyage = {
-            voyageId: voyageData.voyageId,
-            voyageNo: voyageData.voyageNo,
-            referenceNo: voyageData.referenceNo,
-            vesselId: voyageData.vesselId,
-            bargeId: voyageData.bargeId,
-            remarks: voyageData.remarks || "",
-            isActive: voyageData.isActive ?? true,
-            createBy: voyageData.createBy,
-            editBy: voyageData.editBy,
-            createDate: voyageData.createDate,
-            editDate: voyageData.editDate,
+          if (voyageData) {
+            // Ensure all required fields are present
+            const validVoyageData: IVoyage = {
+              voyageId: voyageData.voyageId,
+              voyageNo: voyageData.voyageNo,
+              referenceNo: voyageData.referenceNo,
+              vesselId: voyageData.vesselId,
+              bargeId: voyageData.bargeId,
+              remarks: voyageData.remarks || "",
+              isActive: voyageData.isActive ?? true,
+              createBy: voyageData.createBy,
+              editBy: voyageData.editBy,
+              createDate: voyageData.createDate,
+              editDate: voyageData.editDate,
+            }
+            setExistingVoyage(validVoyageData)
+            setShowLoadDialog(true)
           }
-
-          console.log("Setting existing voyage:", validVoyageData)
-          setExistingVoyage(validVoyageData)
-          setShowLoadDialog(true)
         }
+      } catch (error) {
+        console.error("Error checking code availability:", error)
       }
-    } catch (error) {
-      console.error("Error checking code availability:", error)
-    }
-  }
+    },
+    [modalMode]
+  )
 
   // Handler for loading existing voyage
   const handleLoadExistingVoyage = () => {
     if (existingVoyage) {
       // Log the data we're about to set
-      console.log("About to load voyage data:", {
-        existingVoyage,
-        currentModalMode: modalMode,
-        currentSelectedVoyage: selectedVoyage,
-      })
-
       // Set the states
       setModalMode("edit")
       setSelectedVoyage(existingVoyage)

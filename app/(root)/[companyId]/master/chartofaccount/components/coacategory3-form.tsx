@@ -85,9 +85,11 @@ export function CoaCategory3Form({
     )
   }, [initialData, form])
 
-  const handleCodeBlur = () => {
+  const handleCodeBlur = (_e: React.FocusEvent<HTMLInputElement>) => {
     const code = form.getValues("coaCategoryCode")
-    onCodeBlur?.(code)
+    if (code) {
+      onCodeBlur?.(code)
+    }
   }
 
   const onSubmit = (data: CoaCategory3SchemaType) => {

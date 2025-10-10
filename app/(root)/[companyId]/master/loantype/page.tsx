@@ -7,9 +7,10 @@ import { LoanTypeSchemaType } from "@/schemas/loantype"
 import { usePermissionStore } from "@/stores/permission-store"
 import { useQueryClient } from "@tanstack/react-query"
 
+import { getById } from "@/lib/api-client"
 import { LoanType } from "@/lib/api-routes"
 import { MasterTransactionId, ModuleId } from "@/lib/utils"
-import { useDelete, useGet, useGetById, usePersist } from "@/hooks/use-common"
+import { useDelete, useGet, usePersist } from "@/hooks/use-common"
 import {
   Dialog,
   DialogContent,
@@ -31,6 +32,7 @@ export default function LoanTypePage() {
   const moduleId = ModuleId.master
   const transactionId = MasterTransactionId.loanType
 
+  const queryClient = useQueryClient()
   const { hasPermission } = usePermissionStore()
 
   const canEdit = hasPermission(moduleId, transactionId, "isEdit")
@@ -44,7 +46,6 @@ export default function LoanTypePage() {
   // Filter handler wrapper
   const handleFilterChange = useCallback(
     (newFilters: { search?: string; sortOrder?: string }) => {
-      console.log("Filter change called with:", newFilters)
       setFilters(newFilters as ILoanTypeFilter)
     },
     []
@@ -82,7 +83,6 @@ export default function LoanTypePage() {
   const [existingLoanType, setExistingLoanType] = useState<ILoanType | null>(
     null
   )
-  const [codeToCheck, setCodeToCheck] = useState<string>("")
 
   // State for delete confirmation
   const [deleteConfirmation, setDeleteConfirmation] = useState<{
@@ -104,13 +104,6 @@ export default function LoanTypePage() {
     data: null,
   })
 
-  // Add API call for checking code availability
-  const { refetch: checkCodeAvailability } = useGetById<ILoanType>(
-    `${LoanType.getByCode}`,
-    "loanTypeByCode",
-    codeToCheck
-  )
-
   // Handler to Re-fetches data when called
   const handleRefresh = () => {
     refetch()
@@ -125,7 +118,6 @@ export default function LoanTypePage() {
 
   // Handler to open modal for editing an loan type
   const handleEditLoanType = (loanType: ILoanType) => {
-    console.log("Edit Loan Type:", loanType)
     setModalMode("edit")
     setSelectedLoanType(loanType)
     setIsModalOpen(true)
@@ -196,66 +188,55 @@ export default function LoanTypePage() {
   }
 
   // Handler for code availability check
-  const handleCodeBlur = async (code: string) => {
-    // Skip if:
-    // 1. In edit mode
-    // 2. In read-only mode
-    if (modalMode === "edit" || modalMode === "view") return
+  const handleCodeBlur = useCallback(
+    async (code: string) => {
+      // Skip if:
+      // 1. In edit mode
+      // 2. In read-only mode
+      if (modalMode === "edit" || modalMode === "view") return
 
-    const trimmedCode = code?.trim()
-    if (!trimmedCode) return
+      const trimmedCode = code?.trim()
+      if (!trimmedCode) return
 
-    setCodeToCheck(trimmedCode)
-    try {
-      const response = await checkCodeAvailability()
-      console.log("Full API Response:", response)
+      try {
+        const response = await getById(`${LoanType.getByCode}/${trimmedCode}`)
+                // Check if response has data and it's not empty
+        if (response?.result === 1 && response.data) {
+                    // Handle both array and single object responses
+          const loanTypeData = Array.isArray(response.data)
+            ? response.data[0]
+            : response.data
 
-      // Check if response has data and it's not empty
-      if (response?.data?.result === 1 && response.data.data) {
-        console.log("Response data:", response.data.data)
+          if (loanTypeData) {
+            // Ensure all required fields are present
+            const validLoanTypeData: ILoanType = {
+              loanTypeId: loanTypeData.loanTypeId,
+              loanTypeCode: loanTypeData.loanTypeCode,
+              loanTypeName: loanTypeData.loanTypeName,
+              interestRatePct: loanTypeData.interestRatePct,
+              maxTermMonths: loanTypeData.maxTermMonths,
+              minTermMonths: loanTypeData.minTermMonths,
+              createBy: loanTypeData.createBy,
+              editBy: loanTypeData.editBy,
+              createDate: loanTypeData.createDate,
+              editDate: loanTypeData.editDate,
+            }
 
-        // Handle both array and single object responses
-        const loanTypeData = Array.isArray(response.data.data)
-          ? response.data.data[0]
-          : response.data.data
-
-        console.log("Processed loanTypeData:", loanTypeData)
-
-        if (loanTypeData) {
-          // Ensure all required fields are present
-          const validLoanTypeData: ILoanType = {
-            loanTypeId: loanTypeData.loanTypeId,
-            loanTypeCode: loanTypeData.loanTypeCode,
-            loanTypeName: loanTypeData.loanTypeName,
-            interestRatePct: loanTypeData.interestRatePct,
-            maxTermMonths: loanTypeData.maxTermMonths,
-            minTermMonths: loanTypeData.minTermMonths,
-            createBy: loanTypeData.createBy,
-            editBy: loanTypeData.editBy,
-            createDate: loanTypeData.createDate,
-            editDate: loanTypeData.editDate,
+            setExistingLoanType(validLoanTypeData)
+            setShowLoadDialog(true)
           }
-
-          console.log("Setting existing loan type:", validLoanTypeData)
-          setExistingLoanType(validLoanTypeData)
-          setShowLoadDialog(true)
         }
+      } catch (error) {
+        console.error("Error checking code availability:", error)
       }
-    } catch (error) {
-      console.error("Error checking code availability:", error)
-    }
-  }
+    },
+    [modalMode]
+  )
 
   // Handler for loading existing loan type
   const handleLoadExistingLoanType = () => {
     if (existingLoanType) {
       // Log the data we're about to set
-      console.log("About to load loan type data:", {
-        existingLoanType,
-        currentModalMode: modalMode,
-        currentSelectedLoanType: selectedLoanType,
-      })
-
       // Set the states
       setModalMode("edit")
       setSelectedLoanType(existingLoanType)
@@ -263,8 +244,6 @@ export default function LoanTypePage() {
       setExistingLoanType(null)
     }
   }
-
-  const queryClient = useQueryClient()
 
   return (
     <div className="container mx-auto space-y-2 px-4 pt-2 pb-4 sm:space-y-3 sm:px-6 sm:pt-3 sm:pb-6">

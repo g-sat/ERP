@@ -257,7 +257,7 @@ export default function Other({ form }: OtherProps) {
           <CardTitle className="text-base">Document Information</CardTitle>
         </CardHeader>
         <CardContent>
-          <DocumentUpload moduleId={25} transactionId={1} />
+          <DocumentUpload />
         </CardContent>
       </Card>
     </div>

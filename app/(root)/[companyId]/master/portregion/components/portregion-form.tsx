@@ -84,9 +84,11 @@ export function PortRegionForm({
     )
   }, [initialData, form, defaultValues])
 
-  const handleCodeBlur = () => {
+  const handleCodeBlur = (_e: React.FocusEvent<HTMLInputElement>) => {
     const code = form.getValues("portRegionCode")
-    onCodeBlur?.(code)
+    if (code) {
+      onCodeBlur?.(code)
+    }
   }
 
   const onSubmit = (data: PortRegionSchemaType) => {

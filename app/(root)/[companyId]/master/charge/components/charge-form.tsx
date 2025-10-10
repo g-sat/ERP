@@ -99,10 +99,12 @@ export function ChargeForm({
     )
   }, [initialData, form])
 
-  const handleCodeBlur = () => {
+  const handleCodeBlur = (_e: React.FocusEvent<HTMLInputElement>) => {
     const code = form.getValues("chargeCode")
     const taskId = form.getValues("taskId")
-    onCodeBlur?.(code, taskId)
+    if (code && taskId) {
+      onCodeBlur?.(code, taskId)
+    }
   }
 
   const handleTaskChange = () => {

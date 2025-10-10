@@ -7,9 +7,10 @@ import { VesselSchemaType } from "@/schemas/vessel"
 import { usePermissionStore } from "@/stores/permission-store"
 import { useQueryClient } from "@tanstack/react-query"
 
+import { getById } from "@/lib/api-client"
 import { Vessel } from "@/lib/api-routes"
 import { MasterTransactionId, ModuleId } from "@/lib/utils"
-import { useDelete, useGet, useGetById, usePersist } from "@/hooks/use-common"
+import { useDelete, useGet, usePersist } from "@/hooks/use-common"
 import {
   Dialog,
   DialogContent,
@@ -37,6 +38,8 @@ export default function VesselPage() {
   const canDelete = hasPermission(moduleId, transactionId, "isDelete")
   const canView = hasPermission(moduleId, transactionId, "isRead")
   const canCreate = hasPermission(moduleId, transactionId, "isCreate")
+
+  const queryClient = useQueryClient()
 
   const [filters, setFilters] = useState<IVesselFilter>({})
 
@@ -79,7 +82,6 @@ export default function VesselPage() {
   // State for code availability check
   const [showLoadDialog, setShowLoadDialog] = useState(false)
   const [existingVessel, setExistingVessel] = useState<IVessel | null>(null)
-  const [codeToCheck, setCodeToCheck] = useState<string>("")
 
   const [deleteConfirmation, setDeleteConfirmation] = useState<{
     isOpen: boolean
@@ -99,15 +101,6 @@ export default function VesselPage() {
     isOpen: false,
     data: null,
   })
-
-  // Add API call for checking code availability
-  const { refetch: checkCodeAvailability } = useGetById<IVessel>(
-    `${Vessel.getByCode}`,
-    "vesselByCode",
-    codeToCheck
-  )
-
-  const queryClient = useQueryClient()
 
   const handleRefresh = () => {
     refetch()
@@ -186,55 +179,57 @@ export default function VesselPage() {
   }
 
   // Handler for code availability check
-  const handleCodeBlur = async (code: string) => {
-    // Skip if:
-    // 1. In edit mode
-    // 2. In read-only mode
-    if (modalMode === "edit" || modalMode === "view") return
+  const handleCodeBlur = useCallback(
+    async (code: string) => {
+      // Skip if:
+      // 1. In edit mode
+      // 2. In read-only mode
+      if (modalMode === "edit" || modalMode === "view") return
 
-    const trimmedCode = code?.trim()
-    if (!trimmedCode) return
+      const trimmedCode = code?.trim()
+      if (!trimmedCode) return
 
-    setCodeToCheck(trimmedCode)
-    try {
-      const response = await checkCodeAvailability()
+      try {
+        const response = await getById(`${Vessel.getByCode}/${trimmedCode}`)
 
-      // Check if response has data and it's not empty
-      if (response?.data?.result === 1 && response.data.data) {
-        // Handle both array and single object responses
-        const vesselData = Array.isArray(response.data.data)
-          ? response.data.data[0]
-          : response.data.data
+        // Check if response has data and it's not empty
+        if (response?.result === 1 && response.data) {
+          // Handle both array and single object responses
+          const vesselData = Array.isArray(response.data)
+            ? response.data[0]
+            : response.data
 
-        if (vesselData) {
-          // Ensure all required fields are present
-          const validVesselData: IVessel = {
-            vesselId: vesselData.vesselId,
-            vesselCode: vesselData.vesselCode,
-            vesselName: vesselData.vesselName,
-            vesselType: vesselData.vesselType || "",
-            callSign: vesselData.callSign || "",
-            imoCode: vesselData.imoCode || "",
-            grt: vesselData.grt || "",
-            licenseNo: vesselData.licenseNo || "",
-            flag: vesselData.flag || "",
-            companyId: vesselData.companyId,
-            remarks: vesselData.remarks || "",
-            isActive: vesselData.isActive ?? true,
-            createBy: vesselData.createBy,
-            editBy: vesselData.editBy,
-            createDate: vesselData.createDate,
-            editDate: vesselData.editDate,
+          if (vesselData) {
+            // Ensure all required fields are present
+            const validVesselData: IVessel = {
+              vesselId: vesselData.vesselId,
+              vesselCode: vesselData.vesselCode,
+              vesselName: vesselData.vesselName,
+              vesselType: vesselData.vesselType || "",
+              callSign: vesselData.callSign || "",
+              imoCode: vesselData.imoCode || "",
+              grt: vesselData.grt || "",
+              licenseNo: vesselData.licenseNo || "",
+              flag: vesselData.flag || "",
+              companyId: vesselData.companyId,
+              remarks: vesselData.remarks || "",
+              isActive: vesselData.isActive ?? true,
+              createBy: vesselData.createBy,
+              editBy: vesselData.editBy,
+              createDate: vesselData.createDate,
+              editDate: vesselData.editDate,
+            }
+
+            setExistingVessel(validVesselData)
+            setShowLoadDialog(true)
           }
-
-          setExistingVessel(validVesselData)
-          setShowLoadDialog(true)
         }
+      } catch (error) {
+        console.error("Error checking code availability:", error)
       }
-    } catch (error) {
-      console.error("Error checking code availability:", error)
-    }
-  }
+    },
+    [modalMode]
+  )
 
   // Handler for loading existing vessel
   const handleLoadExistingVessel = () => {

@@ -7,6 +7,7 @@ import { UserGroupSchemaType } from "@/schemas/admin"
 import { usePermissionStore } from "@/stores/permission-store"
 import { useQueryClient } from "@tanstack/react-query"
 
+import { getById } from "@/lib/api-client"
 import { UserGroup } from "@/lib/api-routes"
 import { AdminTransactionId, ModuleId } from "@/lib/utils"
 import { useDelete, useGet, usePersist } from "@/hooks/use-common"
@@ -19,6 +20,7 @@ import {
 } from "@/components/ui/dialog"
 import { Separator } from "@/components/ui/separator"
 import { DeleteConfirmation } from "@/components/confirmation/delete-confirmation"
+import { LoadConfirmation } from "@/components/confirmation/load-confirmation"
 import { SaveConfirmation } from "@/components/confirmation/save-confirmation"
 import { DataTableSkeleton } from "@/components/skeleton/data-table-skeleton"
 import { LockSkeleton } from "@/components/skeleton/lock-skeleton"
@@ -31,6 +33,7 @@ export default function AdminUserGroupsPage() {
   const transactionIdGroup = AdminTransactionId.userGroup
 
   const { hasPermission } = usePermissionStore()
+  const queryClient = useQueryClient()
 
   const canEdit = hasPermission(moduleId, transactionIdGroup, "isEdit")
   const canDelete = hasPermission(moduleId, transactionIdGroup, "isDelete")
@@ -84,7 +87,11 @@ export default function AdminUserGroupsPage() {
     data: null,
   })
 
-  const queryClient = useQueryClient()
+  // Duplicate detection states
+  const [showLoadDialog, setShowLoadDialog] = useState(false)
+  const [existingUserGroup, setExistingUserGroup] = useState<IUserGroup | null>(
+    null
+  )
 
   const handleFilterChange = useCallback(
     (filters: { search?: string; sortOrder?: string }) => {
@@ -186,6 +193,57 @@ export default function AdminUserGroupsPage() {
       setIsGroupModalOpen(false)
     } catch (error) {
       console.error("Error in user group form submission:", error)
+    }
+  }
+
+  // Handler for code availability check (memoized to prevent unnecessary re-renders)
+  const handleCodeBlur = useCallback(
+    async (code: string) => {
+      if (modalMode === "edit" || modalMode === "view") return
+
+      const trimmedCode = code?.trim()
+      if (!trimmedCode) {
+        return
+      }
+
+      try {
+        const response = await getById(`${UserGroup.getbycode}/${trimmedCode}`)
+        if (response?.result === 1 && response.data) {
+          const userGroupData = Array.isArray(response.data)
+            ? response.data[0]
+            : response.data
+          if (userGroupData) {
+            // Ensure all required fields are present
+            const validUserGroupData: IUserGroup = {
+              userGroupId: userGroupData.userGroupId,
+              userGroupCode: userGroupData.userGroupCode,
+              userGroupName: userGroupData.userGroupName,
+              remarks: userGroupData.remarks,
+              isActive: userGroupData.isActive,
+              createBy: userGroupData.createBy,
+              editBy: userGroupData.editBy,
+              createDate: userGroupData.createDate,
+              editDate: userGroupData.editDate,
+            }
+            setExistingUserGroup(validUserGroupData as IUserGroup)
+            setShowLoadDialog(true)
+          }
+        } else {
+        }
+      } catch (error) {
+        console.error("Error checking code availability:", error)
+      }
+    },
+    [modalMode]
+  )
+
+  // Load existing record
+  const handleLoadExisting = () => {
+    if (existingUserGroup) {
+      setModalMode("edit")
+      setSelectedUserGroup(existingUserGroup)
+      setShowLoadDialog(false)
+      setExistingUserGroup(null)
     }
   }
 
@@ -296,9 +354,22 @@ export default function AdminUserGroupsPage() {
             }
             isReadOnly={modalMode === "view"}
             onSaveConfirmation={handleSaveConfirmation}
+            onCodeBlur={handleCodeBlur}
           />
         </DialogContent>
       </Dialog>
+
+      {/* Duplicate Record Dialog */}
+      <LoadConfirmation
+        open={showLoadDialog}
+        onOpenChange={setShowLoadDialog}
+        onLoad={handleLoadExisting}
+        onCancel={() => setExistingUserGroup(null)}
+        code={existingUserGroup?.userGroupCode}
+        name={existingUserGroup?.userGroupName}
+        typeLabel="User Group"
+        isLoading={saveGroupMutation.isPending || updateGroupMutation.isPending}
+      />
 
       {/* Delete Confirmation Dialog */}
       <DeleteConfirmation

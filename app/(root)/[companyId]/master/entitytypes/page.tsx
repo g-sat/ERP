@@ -7,9 +7,10 @@ import { EntityTypeSchemaType } from "@/schemas/entitytype"
 import { usePermissionStore } from "@/stores/permission-store"
 import { useQueryClient } from "@tanstack/react-query"
 
+import { getById } from "@/lib/api-client"
 import { EntityType } from "@/lib/api-routes"
 import { MasterTransactionId, ModuleId } from "@/lib/utils"
-import { useDelete, useGet, useGetById, usePersist } from "@/hooks/use-common"
+import { useDelete, useGet, usePersist } from "@/hooks/use-common"
 import {
   Dialog,
   DialogContent,
@@ -38,13 +39,14 @@ export default function EntityTypePage() {
   const canView = hasPermission(moduleId, transactionId, "isRead")
   const canCreate = hasPermission(moduleId, transactionId, "isCreate")
 
+  const queryClient = useQueryClient()
+
   // Fetch entity types from the API using useGet
   const [filters, setFilters] = useState<IEntityTypeFilter>({})
 
   // Filter handler wrapper
   const handleFilterChange = useCallback(
     (newFilters: { search?: string; sortOrder?: string }) => {
-      console.log("Filter change called with:", newFilters)
       setFilters(newFilters as IEntityTypeFilter)
     },
     []
@@ -80,7 +82,6 @@ export default function EntityTypePage() {
   const [showLoadDialog, setShowLoadDialog] = useState(false)
   const [existingEntityType, setExistingEntityType] =
     useState<IEntityType | null>(null)
-  const [codeToCheck, setCodeToCheck] = useState<string>("")
 
   // State for delete confirmation
   const [deleteConfirmation, setDeleteConfirmation] = useState<{
@@ -102,13 +103,6 @@ export default function EntityTypePage() {
     data: null,
   })
 
-  // Add API call for checking code availability
-  const { refetch: checkCodeAvailability } = useGetById<IEntityType>(
-    `${EntityType.getByCode}`,
-    "entityTypeByCode",
-    codeToCheck
-  )
-
   // Handler to Re-fetches data when called
   const handleRefresh = () => {
     refetch()
@@ -123,7 +117,6 @@ export default function EntityTypePage() {
 
   // Handler to open modal for editing an entity type
   const handleEditEntityType = (entityType: IEntityType) => {
-    console.log("Edit Entity Type:", entityType)
     setModalMode("edit")
     setSelectedEntityType(entityType)
     setIsModalOpen(true)
@@ -194,64 +187,54 @@ export default function EntityTypePage() {
   }
 
   // Handler for code availability check
-  const handleCodeBlur = async (code: string) => {
-    // Skip if:
-    // 1. In edit mode
-    // 2. In read-only mode
-    if (modalMode === "edit" || modalMode === "view") return
+  const handleCodeBlur = useCallback(
+    async (code: string) => {
+      // Skip if:
+      // 1. In edit mode
+      // 2. In read-only mode
+      if (modalMode === "edit" || modalMode === "view") return
 
-    const trimmedCode = code?.trim()
-    if (!trimmedCode) return
+      const trimmedCode = code?.trim()
+      if (!trimmedCode) return
 
-    setCodeToCheck(trimmedCode)
-    try {
-      const response = await checkCodeAvailability()
-      console.log("Full API Response:", response)
+      try {
+        const response = await getById(
+          `${Entitytypes.getByCode}/${trimmedCode}`
+        )
+                // Check if response has data and it's not empty
+        if (response?.result === 1 && response.data) {
+                    // Handle both array and single object responses
+          const entityTypeData = Array.isArray(response.data)
+            ? response.data[0]
+            : response.data
 
-      // Check if response has data and it's not empty
-      if (response?.data?.result === 1 && response.data.data) {
-        console.log("Response data:", response.data.data)
-
-        // Handle both array and single object responses
-        const entityTypeData = Array.isArray(response.data.data)
-          ? response.data.data[0]
-          : response.data.data
-
-        console.log("Processed entityTypeData:", entityTypeData)
-
-        if (entityTypeData) {
-          // Ensure all required fields are present
-          const validEntityTypeData: IEntityType = {
-            entityTypeId: entityTypeData.entityTypeId,
-            entityTypeCode: entityTypeData.entityTypeCode,
-            entityTypeName: entityTypeData.entityTypeName,
-            companyId: entityTypeData.companyId,
-            createBy: entityTypeData.createBy,
-            editBy: entityTypeData.editBy,
-            createDate: entityTypeData.createDate,
-            editDate: entityTypeData.editDate,
+          if (entityTypeData) {
+            // Ensure all required fields are present
+            const validEntityTypeData: IEntityType = {
+              entityTypeId: entityTypeData.entityTypeId,
+              entityTypeCode: entityTypeData.entityTypeCode,
+              entityTypeName: entityTypeData.entityTypeName,
+              companyId: entityTypeData.companyId,
+              createBy: entityTypeData.createBy,
+              editBy: entityTypeData.editBy,
+              createDate: entityTypeData.createDate,
+              editDate: entityTypeData.editDate,
+            }
+            setExistingEntityType(validEntityTypeData)
+            setShowLoadDialog(true)
           }
-
-          console.log("Setting existing entity type:", validEntityTypeData)
-          setExistingEntityType(validEntityTypeData)
-          setShowLoadDialog(true)
         }
+      } catch (error) {
+        console.error("Error checking code availability:", error)
       }
-    } catch (error) {
-      console.error("Error checking code availability:", error)
-    }
-  }
+    },
+    [modalMode]
+  )
 
   // Handler for loading existing entity type
   const handleLoadExistingEntityType = () => {
     if (existingEntityType) {
       // Log the data we're about to set
-      console.log("About to load entity type data:", {
-        existingEntityType,
-        currentModalMode: modalMode,
-        currentSelectedEntityType: selectedEntityType,
-      })
-
       // Set the states
       setModalMode("edit")
       setSelectedEntityType(existingEntityType)
@@ -259,8 +242,6 @@ export default function EntityTypePage() {
       setExistingEntityType(null)
     }
   }
-
-  const queryClient = useQueryClient()
 
   return (
     <div className="container mx-auto space-y-2 px-4 pt-2 pb-4 sm:space-y-3 sm:px-6 sm:pt-3 sm:pb-6">

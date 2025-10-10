@@ -7,9 +7,10 @@ import { AccountTypeSchemaType } from "@/schemas/accounttype"
 import { usePermissionStore } from "@/stores/permission-store"
 import { useQueryClient } from "@tanstack/react-query"
 
+import { getById } from "@/lib/api-client"
 import { AccountType } from "@/lib/api-routes"
 import { MasterTransactionId, ModuleId } from "@/lib/utils"
-import { useDelete, useGet, useGetById, usePersist } from "@/hooks/use-common"
+import { useDelete, useGet, usePersist } from "@/hooks/use-common"
 import {
   Dialog,
   DialogContent,
@@ -38,13 +39,14 @@ export default function AccountTypePage() {
   const canView = hasPermission(moduleId, transactionId, "isRead")
   const canCreate = hasPermission(moduleId, transactionId, "isCreate")
 
+  const queryClient = useQueryClient()
+
   // Fetch account types from the API using useGet
   const [filters, setFilters] = useState<IAccountTypeFilter>({})
 
   // Filter handler wrapper
   const handleFilterChange = useCallback(
     (newFilters: { search?: string; sortOrder?: string }) => {
-      console.log("Filter change called with:", newFilters)
       setFilters(newFilters as IAccountTypeFilter)
     },
     []
@@ -80,7 +82,6 @@ export default function AccountTypePage() {
   const [showLoadDialog, setShowLoadDialog] = useState(false)
   const [existingAccountType, setExistingAccountType] =
     useState<IAccountType | null>(null)
-  const [codeToCheck, setCodeToCheck] = useState<string>("")
 
   // State for delete confirmation
   const [deleteConfirmation, setDeleteConfirmation] = useState<{
@@ -102,13 +103,6 @@ export default function AccountTypePage() {
     data: null,
   })
 
-  // Add API call for checking code availability
-  const { refetch: checkCodeAvailability } = useGetById<IAccountType>(
-    `${AccountType.getByCode}`,
-    "accountTypeByCode",
-    codeToCheck
-  )
-
   // Handler to Re-fetches data when called
   const handleRefresh = () => {
     refetch()
@@ -123,7 +117,6 @@ export default function AccountTypePage() {
 
   // Handler to open modal for editing an account type
   const handleEditAccountType = (accountType: IAccountType) => {
-    console.log("Edit Account Type:", accountType)
     setModalMode("edit")
     setSelectedAccountType(accountType)
     setIsModalOpen(true)
@@ -194,68 +187,58 @@ export default function AccountTypePage() {
   }
 
   // Handler for code availability check
-  const handleCodeBlur = async (code: string) => {
-    // Skip if:
-    // 1. In edit mode
-    // 2. In read-only mode
-    if (modalMode === "edit" || modalMode === "view") return
+  const handleCodeBlur = useCallback(
+    async (code: string) => {
+      // Skip if:
+      // 1. In edit mode
+      // 2. In read-only mode
+      if (modalMode === "edit" || modalMode === "view") return
 
-    const trimmedCode = code?.trim()
-    if (!trimmedCode) return
+      const trimmedCode = code?.trim()
+      if (!trimmedCode) return
 
-    setCodeToCheck(trimmedCode)
-    try {
-      const response = await checkCodeAvailability()
-      console.log("Full API Response:", response)
+      try {
+        const response = await getById(
+          `${AccountType.getByCode}/${trimmedCode}`
+        )
+                // Check if response has data and it's not empty
+        if (response?.result === 1 && response.data) {
+                    // Handle both array and single object responses
+          const accountTypeData = Array.isArray(response.data)
+            ? response.data[0]
+            : response.data
 
-      // Check if response has data and it's not empty
-      if (response?.data?.result === 1 && response.data.data) {
-        console.log("Response data:", response.data.data)
-
-        // Handle both array and single object responses
-        const accountTypeData = Array.isArray(response.data.data)
-          ? response.data.data[0]
-          : response.data.data
-
-        console.log("Processed accountTypeData:", accountTypeData)
-
-        if (accountTypeData) {
-          // Ensure all required fields are present
-          const validAccountTypeData: IAccountType = {
-            accTypeId: accountTypeData.accTypeId,
-            accTypeCode: accountTypeData.accTypeCode,
-            accTypeName: accountTypeData.accTypeName,
-            seqNo: accountTypeData.seqNo,
-            accGroupName: accountTypeData.accGroupName || "",
-            remarks: accountTypeData.remarks || "",
-            isActive: accountTypeData.isActive ?? true,
-            companyId: accountTypeData.companyId,
-            createBy: accountTypeData.createBy,
-            editBy: accountTypeData.editBy,
-            createDate: accountTypeData.createDate,
-            editDate: accountTypeData.editDate,
+          if (accountTypeData) {
+            // Ensure all required fields are present
+            const validAccountTypeData: IAccountType = {
+              accTypeId: accountTypeData.accTypeId,
+              accTypeCode: accountTypeData.accTypeCode,
+              accTypeName: accountTypeData.accTypeName,
+              seqNo: accountTypeData.seqNo,
+              accGroupName: accountTypeData.accGroupName || "",
+              remarks: accountTypeData.remarks || "",
+              isActive: accountTypeData.isActive ?? true,
+              companyId: accountTypeData.companyId,
+              createBy: accountTypeData.createBy,
+              editBy: accountTypeData.editBy,
+              createDate: accountTypeData.createDate,
+              editDate: accountTypeData.editDate,
+            }
+            setExistingAccountType(validAccountTypeData)
+            setShowLoadDialog(true)
           }
-
-          console.log("Setting existing account type:", validAccountTypeData)
-          setExistingAccountType(validAccountTypeData)
-          setShowLoadDialog(true)
         }
+      } catch (error) {
+        console.error("Error checking code availability:", error)
       }
-    } catch (error) {
-      console.error("Error checking code availability:", error)
-    }
-  }
+    },
+    [modalMode]
+  )
 
   // Handler for loading existing account type
   const handleLoadExistingAccountType = () => {
     if (existingAccountType) {
       // Log the data we're about to set
-      console.log("About to load account type data:", {
-        existingAccountType,
-        currentModalMode: modalMode,
-        currentSelectedAccountType: selectedAccountType,
-      })
-
       // Set the states
       setModalMode("edit")
       setSelectedAccountType(existingAccountType)
@@ -263,8 +246,6 @@ export default function AccountTypePage() {
       setExistingAccountType(null)
     }
   }
-
-  const queryClient = useQueryClient()
 
   return (
     <div className="container mx-auto space-y-2 px-4 pt-2 pb-4 sm:space-y-3 sm:px-6 sm:pt-3 sm:pb-6">

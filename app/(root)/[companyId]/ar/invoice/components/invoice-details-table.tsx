@@ -57,7 +57,7 @@ import * as XLSX from "xlsx"
 import { getData } from "@/lib/api-client"
 import { BasicSetting } from "@/lib/api-routes"
 import { clientDateFormat } from "@/lib/date-utils"
-import { cn } from "@/lib/utils"
+import { ARTransactionId, ModuleId, cn } from "@/lib/utils"
 import { usePersist } from "@/hooks/use-common"
 import { useGetGridLayout } from "@/hooks/use-settings"
 import { Button } from "@/components/ui/button"
@@ -129,8 +129,8 @@ export default function InvoiceDetailsTable({
   const locAmtDec = decimals[0]?.locAmtDec || 2
   const ctyAmtDec = decimals[0]?.ctyAmtDec || 2
 
-  const moduleId = 25
-  const transactionId = 1
+  const moduleId = ModuleId.ar
+  const transactionId = ARTransactionId.invoice
   const grdName = "arInvoiceDt"
   const [mounted, setMounted] = useState(false)
 

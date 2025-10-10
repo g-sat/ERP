@@ -7,6 +7,7 @@ import { UserRoleSchemaType } from "@/schemas/admin"
 import { usePermissionStore } from "@/stores/permission-store"
 import { useQueryClient } from "@tanstack/react-query"
 
+import { getById } from "@/lib/api-client"
 import { UserRole } from "@/lib/api-routes"
 import { AdminTransactionId, ModuleId } from "@/lib/utils"
 import { useDelete, useGet, usePersist } from "@/hooks/use-common"
@@ -19,6 +20,7 @@ import {
 } from "@/components/ui/dialog"
 import { Separator } from "@/components/ui/separator"
 import { DeleteConfirmation } from "@/components/confirmation/delete-confirmation"
+import { LoadConfirmation } from "@/components/confirmation/load-confirmation"
 import { SaveConfirmation } from "@/components/confirmation/save-confirmation"
 import { DataTableSkeleton } from "@/components/skeleton/data-table-skeleton"
 import { LockSkeleton } from "@/components/skeleton/lock-skeleton"
@@ -31,6 +33,7 @@ export default function AdminUserRolesPage() {
   const transactionIdRole = AdminTransactionId.userRoles
 
   const { hasPermission } = usePermissionStore()
+  const queryClient = useQueryClient()
 
   const canEdit = hasPermission(moduleId, transactionIdRole, "isEdit")
   const canDelete = hasPermission(moduleId, transactionIdRole, "isDelete")
@@ -84,7 +87,11 @@ export default function AdminUserRolesPage() {
     data: null,
   })
 
-  const queryClient = useQueryClient()
+  // Duplicate detection states
+  const [showLoadDialog, setShowLoadDialog] = useState(false)
+  const [existingUserRole, setExistingUserRole] = useState<IUserRole | null>(
+    null
+  )
 
   const handleFilterChange = useCallback(
     (filters: { search?: string; sortOrder?: string }) => {
@@ -186,6 +193,58 @@ export default function AdminUserRolesPage() {
       setIsRoleModalOpen(false)
     } catch (error) {
       console.error("Error in user role form submission:", error)
+    }
+  }
+
+  // Handler for code availability check (memoized to prevent unnecessary re-renders)
+  const handleCodeBlur = useCallback(
+    async (code: string) => {
+      if (modalMode === "edit" || modalMode === "view") return
+
+      const trimmedCode = code?.trim()
+      if (!trimmedCode) {
+        return
+      }
+
+      try {
+        const response = await getById(`${UserRole.getbycode}/${trimmedCode}`)
+
+        if (response?.result === 1 && response.data) {
+          const userRoleData = Array.isArray(response.data)
+            ? response.data[0]
+            : response.data
+          if (userRoleData) {
+            // Ensure all required fields are present
+            const validUserRoleData: IUserRole = {
+              userRoleId: userRoleData.userRoleId,
+              userRoleCode: userRoleData.userRoleCode,
+              userRoleName: userRoleData.userRoleName,
+              remarks: userRoleData.remarks,
+              isActive: userRoleData.isActive,
+              createBy: userRoleData.createBy,
+              editBy: userRoleData.editBy,
+              createDate: userRoleData.createDate,
+              editDate: userRoleData.editDate,
+            }
+            setExistingUserRole(validUserRoleData as IUserRole)
+            setShowLoadDialog(true)
+          }
+        } else {
+        }
+      } catch (error) {
+        console.error("Error checking code availability:", error)
+      }
+    },
+    [modalMode]
+  )
+
+  // Load existing record
+  const handleLoadExisting = () => {
+    if (existingUserRole) {
+      setModalMode("edit")
+      setSelectedUserRole(existingUserRole)
+      setShowLoadDialog(false)
+      setExistingUserRole(null)
     }
   }
 
@@ -296,9 +355,22 @@ export default function AdminUserRolesPage() {
             }
             isReadOnly={modalMode === "view"}
             onSaveConfirmation={handleSaveConfirmation}
+            onCodeBlur={handleCodeBlur}
           />
         </DialogContent>
       </Dialog>
+
+      {/* Duplicate Record Dialog */}
+      <LoadConfirmation
+        open={showLoadDialog}
+        onOpenChange={setShowLoadDialog}
+        onLoad={handleLoadExisting}
+        onCancel={() => setExistingUserRole(null)}
+        code={existingUserRole?.userRoleCode}
+        name={existingUserRole?.userRoleName}
+        typeLabel="User Role"
+        isLoading={saveRoleMutation.isPending || updateRoleMutation.isPending}
+      />
 
       {/* Delete Confirmation Dialog */}
       <DeleteConfirmation

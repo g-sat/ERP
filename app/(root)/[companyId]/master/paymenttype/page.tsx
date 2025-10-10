@@ -7,9 +7,10 @@ import { PaymentTypeSchemaType } from "@/schemas/paymenttype"
 import { usePermissionStore } from "@/stores/permission-store"
 import { useQueryClient } from "@tanstack/react-query"
 
+import { getById } from "@/lib/api-client"
 import { PaymentType } from "@/lib/api-routes"
 import { MasterTransactionId, ModuleId } from "@/lib/utils"
-import { useDelete, useGet, useGetById, usePersist } from "@/hooks/use-common"
+import { useDelete, useGet, usePersist } from "@/hooks/use-common"
 import {
   Dialog,
   DialogContent,
@@ -38,12 +39,13 @@ export default function PaymentTypePage() {
   const canView = hasPermission(moduleId, transactionId, "isRead")
   const canCreate = hasPermission(moduleId, transactionId, "isCreate")
 
+  const queryClient = useQueryClient()
+
   const [filters, setFilters] = useState<IPaymentTypeFilter>({})
 
   // Filter handler wrapper
   const handleFilterChange = useCallback(
     (newFilters: { search?: string; sortOrder?: string }) => {
-      console.log("Filter change called with:", newFilters)
       setFilters(newFilters as IPaymentTypeFilter)
     },
     []
@@ -76,7 +78,6 @@ export default function PaymentTypePage() {
   const [showLoadDialog, setShowLoadDialog] = useState(false)
   const [existingPaymentType, setExistingPaymentType] =
     useState<IPaymentType | null>(null)
-  const [codeToCheck, setCodeToCheck] = useState<string>("")
 
   const [deleteConfirmation, setDeleteConfirmation] = useState<{
     isOpen: boolean
@@ -87,16 +88,6 @@ export default function PaymentTypePage() {
     paymentTypeId: null,
     paymentTypeName: null,
   })
-
-  // Add API call for checking code availability
-  const { refetch: checkCodeAvailability } = useGetById<IPaymentType>(
-    `${PaymentType.getByCode}`,
-    "paymentTypeByCode",
-
-    codeToCheck
-  )
-
-  const queryClient = useQueryClient()
 
   const handleRefresh = () => {
     refetch()
@@ -185,66 +176,56 @@ export default function PaymentTypePage() {
   }
 
   // Handler for code availability check
-  const handleCodeBlur = async (code: string) => {
-    // Skip if:
-    // 1. In edit mode
-    // 2. In read-only mode
-    if (modalMode === "edit" || modalMode === "view") return
+  const handleCodeBlur = useCallback(
+    async (code: string) => {
+      // Skip if:
+      // 1. In edit mode
+      // 2. In read-only mode
+      if (modalMode === "edit" || modalMode === "view") return
 
-    const trimmedCode = code?.trim()
-    if (!trimmedCode) return
+      const trimmedCode = code?.trim()
+      if (!trimmedCode) return
 
-    setCodeToCheck(trimmedCode)
-    try {
-      const response = await checkCodeAvailability()
-      console.log("Full API Response:", response)
+      try {
+        const response = await getById(
+          `${Paymenttype.getByCode}/${trimmedCode}`
+        )
+                // Check if response has data and it's not empty
+        if (response?.result === 1 && response.data) {
+                    // Handle both array and single object responses
+          const paymentTypeData = Array.isArray(response.data)
+            ? response.data[0]
+            : response.data
 
-      // Check if response has data and it's not empty
-      if (response?.data?.result === 1 && response.data.data) {
-        console.log("Response data:", response.data.data)
-
-        // Handle both array and single object responses
-        const paymentTypeData = Array.isArray(response.data.data)
-          ? response.data.data[0]
-          : response.data.data
-
-        console.log("Processed paymentTypeData:", paymentTypeData)
-
-        if (paymentTypeData) {
-          // Ensure all required fields are present
-          const validPaymentTypeData: IPaymentType = {
-            paymentTypeId: paymentTypeData.paymentTypeId,
-            paymentTypeCode: paymentTypeData.paymentTypeCode,
-            paymentTypeName: paymentTypeData.paymentTypeName,
-            companyId: paymentTypeData.companyId,
-            remarks: paymentTypeData.remarks || "",
-            isActive: paymentTypeData.isActive ?? true,
-            createBy: paymentTypeData.createBy,
-            editBy: paymentTypeData.editBy,
-            createDate: paymentTypeData.createDate,
-            editDate: paymentTypeData.editDate,
+          if (paymentTypeData) {
+            // Ensure all required fields are present
+            const validPaymentTypeData: IPaymentType = {
+              paymentTypeId: paymentTypeData.paymentTypeId,
+              paymentTypeCode: paymentTypeData.paymentTypeCode,
+              paymentTypeName: paymentTypeData.paymentTypeName,
+              companyId: paymentTypeData.companyId,
+              remarks: paymentTypeData.remarks || "",
+              isActive: paymentTypeData.isActive ?? true,
+              createBy: paymentTypeData.createBy,
+              editBy: paymentTypeData.editBy,
+              createDate: paymentTypeData.createDate,
+              editDate: paymentTypeData.editDate,
+            }
+            setExistingPaymentType(validPaymentTypeData)
+            setShowLoadDialog(true)
           }
-
-          console.log("Setting existing payment type:", validPaymentTypeData)
-          setExistingPaymentType(validPaymentTypeData)
-          setShowLoadDialog(true)
         }
+      } catch (error) {
+        console.error("Error checking code availability:", error)
       }
-    } catch (error) {
-      console.error("Error checking code availability:", error)
-    }
-  }
+    },
+    [modalMode]
+  )
 
   // Handler for loading existing payment type
   const handleLoadExistingPaymentType = () => {
     if (existingPaymentType) {
       // Log the data we're about to set
-      console.log("About to load payment type data:", {
-        existingPaymentType,
-        currentModalMode: modalMode,
-        currentSelectedPaymentType: selectedPaymentType,
-      })
-
       // Set the states
       setModalMode("edit")
       setSelectedPaymentType(existingPaymentType)

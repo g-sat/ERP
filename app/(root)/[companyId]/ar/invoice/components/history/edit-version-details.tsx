@@ -7,7 +7,7 @@ import { ColumnDef } from "@tanstack/react-table"
 import { format } from "date-fns"
 import { AlertCircle } from "lucide-react"
 
-import { TableName } from "@/lib/utils"
+import { ARTransactionId, ModuleId, TableName } from "@/lib/utils"
 import {
   useGetARInvoiceHistoryDetails,
   useGetARInvoiceHistoryList,
@@ -23,18 +23,19 @@ import {
 import { BasicTable } from "@/components/table/table-basic"
 import { DialogDataTable } from "@/components/table/table-dialog"
 
-interface EditVersionDetailsProps {
-  invoiceId: string
-}
-
 export default function EditVersionDetails({
   invoiceId,
-}: EditVersionDetailsProps) {
+}: {
+  invoiceId: string
+}) {
   const { decimals } = useAuthStore()
   const amtDec = decimals[0]?.amtDec || 2
   const locAmtDec = decimals[0]?.locAmtDec || 2
   const dateFormat = decimals[0]?.dateFormat || "dd/MM/yyyy"
   const exhRateDec = decimals[0]?.exhRateDec || 2
+
+  const moduleId = ModuleId.ar
+  const transactionId = ARTransactionId.invoice
 
   const [selectedInvoice, setSelectedInvoice] = useState<IArInvoiceHd | null>(
     null
@@ -353,8 +354,8 @@ export default function EditVersionDetails({
             data={tableData}
             columns={columns}
             isLoading={false}
-            moduleId={25}
-            transactionId={1}
+            moduleId={moduleId}
+            transactionId={transactionId}
             tableName={TableName.notDefine}
             emptyMessage={
               hasHistoryError ? "Error loading data" : "No results."
@@ -429,8 +430,8 @@ export default function EditVersionDetails({
                 <BasicTable
                   data={dialogData?.data_details || []}
                   columns={detailsColumns}
-                  moduleId={25}
-                  transactionId={1}
+                  moduleId={moduleId}
+                  transactionId={transactionId}
                   tableName={TableName.arInvoice}
                   emptyMessage="No invoice details available"
                   onRefresh={handleRefresh}

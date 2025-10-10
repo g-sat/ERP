@@ -7,6 +7,7 @@ import { CountrySchemaType } from "@/schemas/country"
 import { usePermissionStore } from "@/stores/permission-store"
 import { useQueryClient } from "@tanstack/react-query"
 
+import { getById } from "@/lib/api-client"
 import { Country } from "@/lib/api-routes"
 import { MasterTransactionId, ModuleId } from "@/lib/utils"
 import {
@@ -44,6 +45,8 @@ export default function CountryPage() {
   const canView = hasPermission(moduleId, transactionId, "isRead")
   const canCreate = hasPermission(moduleId, transactionId, "isCreate")
 
+  const queryClient = useQueryClient()
+
   // Fetch countries from the API using useGet
   const [filters, setFilters] = useState<{
     search?: string
@@ -53,7 +56,6 @@ export default function CountryPage() {
   // Filter handler wrapper
   const handleFilterChange = useCallback(
     (newFilters: { search?: string; sortOrder?: string }) => {
-      console.log("Filter change called with:", newFilters)
       setFilters(newFilters)
     },
     []
@@ -88,7 +90,6 @@ export default function CountryPage() {
   // State for code availability check
   const [showLoadDialog, setShowLoadDialog] = useState(false)
   const [existingCountry, setExistingCountry] = useState<ICountry | null>(null)
-  const [codeToCheck, setCodeToCheck] = useState<string>("")
 
   // State for delete confirmation
   const [deleteConfirmation, setDeleteConfirmation] = useState<{
@@ -110,17 +111,6 @@ export default function CountryPage() {
     data: null,
   })
 
-  // Add API call for checking code availability
-  const { refetch: checkCodeAvailability } = useGetByParams<ICountry>(
-    `${Country.getByCode}`,
-    "countryByCode",
-    codeToCheck || "",
-    {
-      enabled: !!codeToCheck?.trim(), // Only call when codeToCheck is not empty
-      queryKey: ["countryByCode", codeToCheck || ""],
-    }
-  )
-
   // Handler to Re-fetches data when called
   const handleRefresh = () => {
     refetch()
@@ -135,7 +125,6 @@ export default function CountryPage() {
 
   // Handler to open modal for editing a country
   const handleEditCountry = (country: ICountry) => {
-    console.log("Edit Country:", country)
     setModalMode("edit")
     setSelectedCountry(country)
     setIsModalOpen(true)
@@ -208,67 +197,55 @@ export default function CountryPage() {
   }
 
   // Handler for code availability check
-  const handleCodeBlur = async (code: string) => {
-    // Skip if:
-    // 1. In edit mode
-    // 2. In read-only mode
-    if (modalMode === "edit" || modalMode === "view") return
+  const handleCodeBlur = useCallback(
+    async (code: string) => {
+      // Skip if:
+      // 1. In edit mode
+      // 2. In read-only mode
+      if (modalMode === "edit" || modalMode === "view") return
 
-    const trimmedCode = code?.trim()
-    if (!trimmedCode) return
+      const trimmedCode = code?.trim()
+      if (!trimmedCode) return
 
-    setCodeToCheck(trimmedCode)
-    try {
-      const response = await checkCodeAvailability()
-      console.log("Full API Response:", response)
+      try {
+        const response = await getById(`${Country.getByCode}/${trimmedCode}`)
+                // Check if response has data and it's not empty
+        if (response?.result === 1 && response.data) {
+                    // Handle both array and single object responses
+          const countryData = Array.isArray(response.data)
+            ? response.data[0]
+            : response.data
 
-      // Check if response has data and it's not empty
-      if (response?.data?.result === 1 && response.data.data) {
-        console.log("Response data:", response.data.data)
-
-        // Handle both array and single object responses
-        const countryData = Array.isArray(response.data.data)
-          ? response.data.data[0]
-          : response.data.data
-
-        console.log("Processed countryData:", countryData)
-
-        if (countryData) {
-          // Ensure all required fields are present
-          const validCountryData: ICountry = {
-            countryId: countryData.countryId,
-            countryCode: countryData.countryCode,
-            countryName: countryData.countryName,
-            phoneCode: countryData.phoneCode || "",
-            companyId: countryData.companyId,
-            remarks: countryData.remarks || "",
-            isActive: countryData.isActive ?? true,
-            createBy: countryData.createBy,
-            editBy: countryData.editBy,
-            createDate: countryData.createDate,
-            editDate: countryData.editDate,
+          if (countryData) {
+            // Ensure all required fields are present
+            const validCountryData: ICountry = {
+              countryId: countryData.countryId,
+              countryCode: countryData.countryCode,
+              countryName: countryData.countryName,
+              phoneCode: countryData.phoneCode || "",
+              companyId: countryData.companyId,
+              remarks: countryData.remarks || "",
+              isActive: countryData.isActive ?? true,
+              createBy: countryData.createBy,
+              editBy: countryData.editBy,
+              createDate: countryData.createDate,
+              editDate: countryData.editDate,
+            }
+            setExistingCountry(validCountryData)
+            setShowLoadDialog(true)
           }
-
-          console.log("Setting existing country:", validCountryData)
-          setExistingCountry(validCountryData)
-          setShowLoadDialog(true)
         }
+      } catch (error) {
+        console.error("Error checking code availability:", error)
       }
-    } catch (error) {
-      console.error("Error checking code availability:", error)
-    }
-  }
+    },
+    [modalMode]
+  )
 
   // Handler for loading existing country
   const handleLoadExistingCountry = () => {
     if (existingCountry) {
       // Log the data we're about to set
-      console.log("About to load country data:", {
-        existingCountry,
-        currentModalMode: modalMode,
-        currentSelectedCountry: selectedCountry,
-      })
-
       // Set the states
       setModalMode("edit")
       setSelectedCountry(existingCountry)
@@ -277,22 +254,12 @@ export default function CountryPage() {
     }
   }
 
-  const queryClient = useQueryClient()
-
   // Add useEffect hooks to track state changes
   useEffect(() => {
-    console.log("Modal Mode Updated:", modalMode)
   }, [modalMode])
 
   useEffect(() => {
     if (selectedCountry) {
-      console.log("Selected Country Updated:", {
-        countryId: selectedCountry.countryId,
-        countryCode: selectedCountry.countryCode,
-        countryName: selectedCountry.countryName,
-        // Log all other relevant fields
-        fullObject: selectedCountry,
-      })
     }
   }, [selectedCountry])
 

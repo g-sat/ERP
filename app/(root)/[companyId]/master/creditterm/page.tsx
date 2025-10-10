@@ -14,7 +14,7 @@ import {
 import { usePermissionStore } from "@/stores/permission-store"
 import { useQueryClient } from "@tanstack/react-query"
 
-import { getData } from "@/lib/api-client"
+import { getById } from "@/lib/api-client"
 import { CreditTerm, CreditTermDt } from "@/lib/api-routes"
 import { MasterTransactionId, ModuleId } from "@/lib/utils"
 import { useDelete, useGet, usePersist } from "@/hooks/use-common"
@@ -182,7 +182,6 @@ export default function CreditTermPage() {
   // Filter change handlers
   const handleFilterChange = useCallback(
     (newFilters: { search?: string; sortOrder?: string }) => {
-      console.log("CreditTerm filter change called with:", newFilters)
       setFilters(newFilters as ICreditTermFilter)
     },
     []
@@ -190,7 +189,6 @@ export default function CreditTermPage() {
 
   const handleDtFilterChange = useCallback(
     (newFilters: { search?: string; sortOrder?: string }) => {
-      console.log("CreditTerm Dt filter change called with:", newFilters)
       setDtFilters(newFilters as ICreditTermFilter)
     },
     []
@@ -348,30 +346,36 @@ export default function CreditTermPage() {
     })
   }
 
-  // Duplicate detection
-  const handleCodeBlur = async (code: string) => {
-    if (modalMode === "edit" || modalMode === "view") return
+  // Handler for code availability check (memoized to prevent unnecessary re-renders)
+  const handleCodeBlur = useCallback(
+    async (code: string) => {
+      // Skip if:
+      // 1. In edit mode
+      // 2. In read-only mode
+      if (modalMode === "edit" || modalMode === "view") return
 
-    const trimmedCode = code?.trim()
-    if (!trimmedCode) return
-
-    try {
-      const response = await getData(`${CreditTerm.getByCode}/${trimmedCode}`)
-
-      if (response.data.result === 1 && response.data.data) {
-        const creditTermData = Array.isArray(response.data.data)
-          ? response.data.data[0]
-          : response.data.data
-
-        if (creditTermData) {
-          setExistingCreditTerm(creditTermData as ICreditTerm)
-          setShowLoadDialogCreditTerm(true)
-        }
+      const trimmedCode = code?.trim()
+      if (!trimmedCode) {
+        return
       }
-    } catch (error) {
-      console.error("Error checking code availability:", error)
-    }
-  }
+
+      try {
+        const response = await getById(`${CreditTerm.getByCode}/${trimmedCode}`)
+
+        if (response.result === 1 && response.data) {
+          const creditTermData = Array.isArray(response.data) ? response.data[0] : response.data
+
+          if (creditTermData) {
+            setExistingCreditTerm(creditTermData as ICreditTerm)
+            setShowLoadDialogCreditTerm(true)
+          }
+        }
+      } catch (error) {
+        console.error("Error checking code availability:", error)
+      }
+    },
+    [modalMode]
+  )
 
   // Load existing records
   const handleLoadExistingCreditTerm = () => {
