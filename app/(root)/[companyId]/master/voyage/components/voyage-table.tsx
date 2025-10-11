@@ -13,7 +13,7 @@ import { TableName } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import { MainTable } from "@/components/table/table-main"
 
-interface VoyagesTableProps {
+interface VoyageTableProps {
   data: IVoyage[]
   isLoading?: boolean
   onSelect?: (voyage: IVoyage | null) => void
@@ -31,7 +31,7 @@ interface VoyagesTableProps {
   canCreate?: boolean
 }
 
-export function VoyagesTable({
+export function VoyageTable({
   data,
   isLoading = false,
   onSelect,
@@ -47,7 +47,7 @@ export function VoyagesTable({
   canDelete = true,
   canView = true,
   canCreate = true,
-}: VoyagesTableProps) {
+}: VoyageTableProps) {
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
 

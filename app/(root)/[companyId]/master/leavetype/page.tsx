@@ -146,11 +146,13 @@ export default function LeaveTypePage() {
         const response = await saveMutation.mutateAsync(data)
         if (response.result === 1) {
           queryClient.invalidateQueries({ queryKey: ["leaveTypes"] })
+          setIsModalOpen(false)
         }
       } else if (modalMode === "edit" && selectedLeaveType) {
         const response = await updateMutation.mutateAsync(data)
         if (response.result === 1) {
           queryClient.invalidateQueries({ queryKey: ["leaveTypes"] })
+          setIsModalOpen(false)
         }
       }
       setIsModalOpen(false)
@@ -200,9 +202,9 @@ export default function LeaveTypePage() {
 
       try {
         const response = await getById(`${LeaveType.getByCode}/${trimmedCode}`)
-                // Check if response has data and it's not empty
+        // Check if response has data and it's not empty
         if (response?.result === 1 && response.data) {
-                    // Handle both array and single object responses
+          // Handle both array and single object responses
           const leaveTypeData = Array.isArray(response.data)
             ? response.data[0]
             : response.data

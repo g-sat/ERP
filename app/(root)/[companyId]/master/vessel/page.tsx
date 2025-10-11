@@ -1,9 +1,9 @@
 "use client"
 
 import { useCallback, useEffect, useState } from "react"
+import { IVessel, IVesselFilter } from "@/interfaces"
 import { ApiResponse } from "@/interfaces/auth"
-import { IVessel, IVesselFilter } from "@/interfaces/vessel"
-import { VesselSchemaType } from "@/schemas/vessel"
+import { VesselSchemaType } from "@/schemas"
 import { usePermissionStore } from "@/stores/permission-store"
 import { useQueryClient } from "@tanstack/react-query"
 
@@ -26,22 +26,25 @@ import { DataTableSkeleton } from "@/components/skeleton/data-table-skeleton"
 import { LockSkeleton } from "@/components/skeleton/lock-skeleton"
 
 import { VesselForm } from "./components/vessel-form"
-import { VesselsTable } from "./components/vessel-table"
+import { VesselTable } from "./components/vessel-table"
 
 export default function VesselPage() {
   const moduleId = ModuleId.master
   const transactionId = MasterTransactionId.vessel
 
-  const { hasPermission } = usePermissionStore()
-
-  const canEdit = hasPermission(moduleId, transactionId, "isEdit")
-  const canDelete = hasPermission(moduleId, transactionId, "isDelete")
-  const canView = hasPermission(moduleId, transactionId, "isRead")
-  const canCreate = hasPermission(moduleId, transactionId, "isCreate")
-
+  // Move queryClient to top for proper usage order
   const queryClient = useQueryClient()
 
+  const { hasPermission } = usePermissionStore()
+
+  const canView = hasPermission(moduleId, transactionId, "isRead")
+  const canEdit = hasPermission(moduleId, transactionId, "isEdit")
+  const canDelete = hasPermission(moduleId, transactionId, "isDelete")
+  const canCreate = hasPermission(moduleId, transactionId, "isCreate")
+
+  // Fetch account groups from the API using useGet
   const [filters, setFilters] = useState<IVesselFilter>({})
+  const [isLocked, setIsLocked] = useState(false)
 
   // Filter handler wrapper
   const handleFilterChange = useCallback(
@@ -50,12 +53,14 @@ export default function VesselPage() {
     },
     []
   )
+
   const {
     data: vesselsResponse,
     refetch,
     isLoading,
   } = useGet<IVessel>(`${Vessel.get}`, "vessels", filters.search)
 
+  // Destructure with fallback values
   const { result: vesselsResult, data: vesselsData } =
     (vesselsResponse as ApiResponse<IVessel>) ?? {
       result: 0,
@@ -63,26 +68,37 @@ export default function VesselPage() {
       data: [],
     }
 
+  // Handle result = -1 and result = -2 cases
   useEffect(() => {
-    if (vesselsData?.length > 0) {
-      refetch()
-    }
-  }, [filters, refetch])
+    if (!vesselsResponse) return
 
+    if (vesselsResponse.result === -1) {
+      setFilters({})
+    } else if (vesselsResponse.result === -2 && !isLocked) {
+      setIsLocked(true)
+    } else if (vesselsResponse.result !== -2) {
+      setIsLocked(false)
+    }
+  }, [vesselsResponse, isLocked])
+
+  // Define mutations for CRUD operations
   const saveMutation = usePersist<VesselSchemaType>(`${Vessel.add}`)
   const updateMutation = usePersist<VesselSchemaType>(`${Vessel.add}`)
   const deleteMutation = useDelete(`${Vessel.delete}`)
 
-  const [selectedVessel, setSelectedVessel] = useState<IVessel | null>(null)
+  // State for modal and selected account group
+  const [selectedVessel, setSelectedVessel] = useState<IVessel | undefined>(
+    undefined
+  )
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [modalMode, setModalMode] = useState<"create" | "edit" | "view">(
     "create"
   )
-
   // State for code availability check
   const [showLoadDialog, setShowLoadDialog] = useState(false)
   const [existingVessel, setExistingVessel] = useState<IVessel | null>(null)
 
+  // State for delete confirmation
   const [deleteConfirmation, setDeleteConfirmation] = useState<{
     isOpen: boolean
     vesselId: string | null
@@ -102,22 +118,26 @@ export default function VesselPage() {
     data: null,
   })
 
+  // Handler to Re-fetches data when called
   const handleRefresh = () => {
     refetch()
   }
 
+  // Handler to open modal for creating a new account group
   const handleCreateVessel = () => {
     setModalMode("create")
-    setSelectedVessel(null)
+    setSelectedVessel(undefined)
     setIsModalOpen(true)
   }
 
+  // Handler to open modal for editing an account group
   const handleEditVessel = (vessel: IVessel) => {
     setModalMode("edit")
     setSelectedVessel(vessel)
     setIsModalOpen(true)
   }
 
+  // Handler to open modal for viewing an account group
   const handleViewVessel = (vessel: IVessel | null) => {
     if (!vessel) return
     setModalMode("view")
@@ -139,25 +159,31 @@ export default function VesselPage() {
       if (modalMode === "create") {
         const response = await saveMutation.mutateAsync(data)
         if (response.result === 1) {
+          // Invalidate and refetch the vessels query
           queryClient.invalidateQueries({ queryKey: ["vessels"] })
+          setIsModalOpen(false)
         }
       } else if (modalMode === "edit" && selectedVessel) {
         const response = await updateMutation.mutateAsync(data)
         if (response.result === 1) {
+          // Invalidate and refetch the vessels query
           queryClient.invalidateQueries({ queryKey: ["vessels"] })
+          setIsModalOpen(false)
         }
       }
-      setIsModalOpen(false)
     } catch (error) {
       console.error("Error in form submission:", error)
     }
   }
 
+  // Handler for deleting an account group
   const handleDeleteVessel = (vesselId: string) => {
     const vesselToDelete = vesselsData?.find(
-      (v) => v.vesselId.toString() === vesselId
+      (ag) => ag.vesselId.toString() === vesselId
     )
     if (!vesselToDelete) return
+
+    // Open delete confirmation dialog with account group details
     setDeleteConfirmation({
       isOpen: true,
       vesselId,
@@ -168,6 +194,7 @@ export default function VesselPage() {
   const handleConfirmDelete = () => {
     if (deleteConfirmation.vesselId) {
       deleteMutation.mutateAsync(deleteConfirmation.vesselId).then(() => {
+        // Invalidate and refetch the vessels query after successful deletion
         queryClient.invalidateQueries({ queryKey: ["vessels"] })
       })
       setDeleteConfirmation({
@@ -178,7 +205,7 @@ export default function VesselPage() {
     }
   }
 
-  // Handler for code availability check
+  // Handler for code availability check (memoized to prevent unnecessary re-renders)
   const handleCodeBlur = useCallback(
     async (code: string) => {
       // Skip if:
@@ -187,7 +214,9 @@ export default function VesselPage() {
       if (modalMode === "edit" || modalMode === "view") return
 
       const trimmedCode = code?.trim()
-      if (!trimmedCode) return
+      if (!trimmedCode) {
+        return
+      }
 
       try {
         const response = await getById(`${Vessel.getByCode}/${trimmedCode}`)
@@ -205,19 +234,19 @@ export default function VesselPage() {
               vesselId: vesselData.vesselId,
               vesselCode: vesselData.vesselCode,
               vesselName: vesselData.vesselName,
-              vesselType: vesselData.vesselType || "",
-              callSign: vesselData.callSign || "",
-              imoCode: vesselData.imoCode || "",
-              grt: vesselData.grt || "",
-              licenseNo: vesselData.licenseNo || "",
-              flag: vesselData.flag || "",
-              companyId: vesselData.companyId,
-              remarks: vesselData.remarks || "",
-              isActive: vesselData.isActive ?? true,
+              callSign: vesselData.callSign,
+              imoCode: vesselData.imoCode,
+              grt: vesselData.grt,
+              licenseNo: vesselData.licenseNo,
+              vesselType: vesselData.vesselType,
+              flag: vesselData.flag,
+              isActive: vesselData.isActive,
+              remarks: vesselData.remarks,
               createBy: vesselData.createBy,
               editBy: vesselData.editBy,
               createDate: vesselData.createDate,
               editDate: vesselData.editDate,
+              companyId: vesselData.companyId,
             }
 
             setExistingVessel(validVesselData)
@@ -231,10 +260,9 @@ export default function VesselPage() {
     [modalMode]
   )
 
-  // Handler for loading existing vessel
+  // Handler for loading existing account group
   const handleLoadExistingVessel = () => {
     if (existingVessel) {
-      // Set the states
       setModalMode("edit")
       setSelectedVessel(existingVessel)
       setShowLoadDialog(false)
@@ -256,6 +284,7 @@ export default function VesselPage() {
         </div>
       </div>
 
+      {/* Vessels Table */}
       {isLoading ? (
         <DataTableSkeleton
           columnCount={7}
@@ -274,8 +303,9 @@ export default function VesselPage() {
       ) : vesselsResult === -2 ||
         (!canView && !canEdit && !canDelete && !canCreate) ? (
         <LockSkeleton locked={true}>
-          <VesselsTable
+          <VesselTable
             data={[]}
+            isLoading={false}
             onSelect={() => {}}
             onDelete={() => {}}
             onEdit={() => {}}
@@ -284,16 +314,16 @@ export default function VesselPage() {
             onFilterChange={() => {}}
             moduleId={moduleId}
             transactionId={transactionId}
-            isLoading={false}
-            canEdit={false}
-            canDelete={false}
             canView={false}
             canCreate={false}
+            canEdit={false}
+            canDelete={false}
           />
         </LockSkeleton>
-      ) : vesselsResult ? (
-        <VesselsTable
+      ) : (
+        <VesselTable
           data={filters.search ? [] : vesselsData || []}
+          isLoading={isLoading}
           onSelect={canView ? handleViewVessel : undefined}
           onDelete={canDelete ? handleDeleteVessel : undefined}
           onEdit={canEdit ? handleEditVessel : undefined}
@@ -302,21 +332,15 @@ export default function VesselPage() {
           onFilterChange={handleFilterChange}
           moduleId={moduleId}
           transactionId={transactionId}
-          isLoading={isLoading}
           // Pass permissions to table
           canEdit={canEdit}
           canDelete={canDelete}
           canView={canView}
           canCreate={canCreate}
         />
-      ) : (
-        <div className="py-8 text-center">
-          <p className="text-muted-foreground">
-            {vesselsResult === 0 ? "No data available" : "Loading..."}
-          </p>
-        </div>
       )}
 
+      {/* Modal for Create, Edit, and View */}
       <Dialog
         open={isModalOpen}
         onOpenChange={(open) => {
@@ -350,29 +374,34 @@ export default function VesselPage() {
             initialData={
               modalMode === "edit" || modalMode === "view"
                 ? selectedVessel
-                : null
+                : undefined
             }
             submitAction={handleFormSubmit}
             onCancelAction={() => setIsModalOpen(false)}
             isSubmitting={saveMutation.isPending || updateMutation.isPending}
-            isReadOnly={modalMode === "view"}
+            isReadOnly={
+              modalMode === "view" ||
+              (modalMode === "create" && !canCreate) ||
+              (modalMode === "edit" && !canEdit)
+            }
             onCodeBlur={handleCodeBlur}
           />
         </DialogContent>
       </Dialog>
 
-      {/* Load Existing Vessel Dialog */}
+      {/* Load Existing Account Group Dialog */}
       <LoadConfirmation
         open={showLoadDialog}
         onOpenChange={setShowLoadDialog}
         onLoad={handleLoadExistingVessel}
         onCancel={() => setExistingVessel(null)}
-        code={existingVessel?.vesselCode}
+        code={existingVessel?.vesselCode || ""}
         name={existingVessel?.vesselName}
         typeLabel="Vessel"
         isLoading={saveMutation.isPending || updateMutation.isPending}
       />
 
+      {/* Delete Confirmation Dialog */}
       <DeleteConfirmation
         open={deleteConfirmation.isOpen}
         onOpenChange={(isOpen) =>

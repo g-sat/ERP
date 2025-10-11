@@ -378,7 +378,9 @@ export default function OrderTypePage() {
         const response = await getById(`${OrderType.getByCode}/${trimmedCode}`)
 
         if (response.result === 1 && response.data) {
-          const ordertypeData = Array.isArray(response.data) ? response.data[0] : response.data
+          const ordertypeData = Array.isArray(response.data)
+            ? response.data[0]
+            : response.data
 
           if (ordertypeData) {
             setExistingOrderType(ordertypeData as IOrderType)
@@ -386,7 +388,7 @@ export default function OrderTypePage() {
           }
         }
 
-        const responseCategory = await getData(
+        const responseCategory = await getById(
           `${OrderTypeCategory.getByCode}/${trimmedCode}`
         )
 

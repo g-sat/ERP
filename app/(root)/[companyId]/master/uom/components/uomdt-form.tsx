@@ -20,11 +20,14 @@ import CustomAccordion, {
 } from "@/components/custom/custom-accordion"
 import CustomNumberInput from "@/components/custom/custom-number-input"
 
-type SchemaType = z.infer<typeof uomDtSchema>
-
+const defaultValues = {
+  uomId: 0,
+  packUomId: 0,
+  uomFactor: 1,
+}
 interface UomDtFormProps {
   initialData?: IUomDt
-  submitAction: (data: SchemaType) => void
+  submitAction: (data: UomDtSchemaType) => void
   onCancelAction: () => void
   isSubmitting: boolean
   isReadOnly?: boolean
@@ -42,16 +45,7 @@ export function UomDtForm({
   const qtyDec = decimals[0]?.qtyDec || 2
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
 
-  const defaultValues = useMemo(
-    () => ({
-      uomId: 0,
-      packUomId: 0,
-      uomFactor: 1,
-    }),
-    []
-  )
-
-  const form = useForm<SchemaType>({
+  const form = useForm<UomDtSchemaType>({
     resolver: zodResolver(uomDtSchema),
     defaultValues: initialData
       ? {
@@ -76,7 +70,7 @@ export function UomDtForm({
             ...defaultValues,
           }
     )
-  }, [form, initialData, defaultValues])
+  }, [form, initialData])
 
   const onSubmit = (data: UomDtSchemaType) => {
     submitAction(data)

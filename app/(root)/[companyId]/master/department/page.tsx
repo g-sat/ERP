@@ -142,14 +142,15 @@ export default function DepartmentPage() {
         const response = await saveMutation.mutateAsync(data)
         if (response.result === 1) {
           queryClient.invalidateQueries({ queryKey: ["departments"] })
+          setIsModalOpen(false)
         }
       } else if (modalMode === "edit" && selectedDepartment) {
         const response = await updateMutation.mutateAsync(data)
         if (response.result === 1) {
           queryClient.invalidateQueries({ queryKey: ["departments"] })
+          setIsModalOpen(false)
         }
       }
-      setIsModalOpen(false)
     } catch (error) {
       console.error("Error in form submission:", error)
     }

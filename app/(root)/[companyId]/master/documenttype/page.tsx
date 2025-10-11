@@ -150,14 +150,15 @@ export default function DocumentTypePage() {
         const response = await saveMutation.mutateAsync(data)
         if (response.result === 1) {
           queryClient.invalidateQueries({ queryKey: ["documentTypes"] })
+          setIsModalOpen(false)
         }
       } else if (modalMode === "edit" && selectedDocumentType) {
         const response = await updateMutation.mutateAsync(data)
         if (response.result === 1) {
           queryClient.invalidateQueries({ queryKey: ["documentTypes"] })
+          setIsModalOpen(false)
         }
       }
-      setIsModalOpen(false)
     } catch (error) {
       console.error("Error in form submission:", error)
     }
@@ -204,11 +205,11 @@ export default function DocumentTypePage() {
 
       try {
         const response = await getById(
-          `${Documenttype.getByCode}/${trimmedCode}`
+          `${DocumentType.getByCode}/${trimmedCode}`
         )
-                // Check if response has data and it's not empty
+        // Check if response has data and it's not empty
         if (response?.result === 1 && response.data) {
-                    // Handle both array and single object responses
+          // Handle both array and single object responses
           const documentTypeData = Array.isArray(response.data)
             ? response.data[0]
             : response.data

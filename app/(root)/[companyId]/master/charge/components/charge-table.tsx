@@ -13,7 +13,7 @@ import { TableName } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import { MainTable } from "@/components/table/table-main"
 
-interface ChargesTableProps {
+interface ChargeTableProps {
   data: ICharge[]
   isLoading?: boolean
   onSelect?: (charge: ICharge | null) => void
@@ -31,7 +31,7 @@ interface ChargesTableProps {
   canCreate?: boolean
 }
 
-export function ChargesTable({
+export function ChargeTable({
   data,
   isLoading = false,
   onSelect,
@@ -47,7 +47,7 @@ export function ChargesTable({
   canDelete = true,
   canView = true,
   canCreate = true,
-}: ChargesTableProps) {
+}: ChargeTableProps) {
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
 

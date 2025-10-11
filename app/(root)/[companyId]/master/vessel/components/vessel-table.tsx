@@ -13,7 +13,7 @@ import { TableName } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import { MainTable } from "@/components/table/table-main"
 
-interface VesselsTableProps {
+interface VesselTableProps {
   data: IVessel[]
   isLoading?: boolean
   onSelect?: (vessel: IVessel | null) => void
@@ -31,7 +31,7 @@ interface VesselsTableProps {
   canCreate?: boolean
 }
 
-export function VesselsTable({
+export function VesselTable({
   data,
   isLoading = false,
   onSelect,
@@ -47,7 +47,7 @@ export function VesselsTable({
   canDelete = true,
   canView = true,
   canCreate = true,
-}: VesselsTableProps) {
+}: VesselTableProps) {
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
 

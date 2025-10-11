@@ -168,15 +168,16 @@ export default function AccountGroupPage() {
         if (response.result === 1) {
           // Invalidate and refetch the accountGroups query
           queryClient.invalidateQueries({ queryKey: ["accountGroups"] })
+          setIsModalOpen(false)
         }
       } else if (modalMode === "edit" && selectedAccountGroup) {
         const response = await updateMutation.mutateAsync(data)
         if (response.result === 1) {
           // Invalidate and refetch the accountGroups query
           queryClient.invalidateQueries({ queryKey: ["accountGroups"] })
+          setIsModalOpen(false)
         }
       }
-      setIsModalOpen(false)
     } catch (error) {
       console.error("Error in form submission:", error)
     }

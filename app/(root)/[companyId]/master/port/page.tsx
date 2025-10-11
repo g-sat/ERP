@@ -132,14 +132,15 @@ export default function PortPage() {
         const response = await saveMutation.mutateAsync(data)
         if (response.result === 1) {
           queryClient.invalidateQueries({ queryKey: ["ports"] })
+          setIsModalOpen(false)
         }
       } else if (modalMode === "edit" && selectedPort) {
         const response = await updateMutation.mutateAsync(data)
         if (response.result === 1) {
           queryClient.invalidateQueries({ queryKey: ["ports"] })
+          setIsModalOpen(false)
         }
       }
-      setIsModalOpen(false)
     } catch (error) {
       console.error("Error in form submission:", error)
     }
@@ -177,8 +178,8 @@ export default function PortPage() {
 
       try {
         const response = await getById(`${Port.getByCode}/${trimmedCode}`)
-                if (response?.result === 1 && response.data) {
-                    const portData = Array.isArray(response.data)
+        if (response?.result === 1 && response.data) {
+          const portData = Array.isArray(response.data)
             ? response.data[0]
             : response.data
 
@@ -218,8 +219,7 @@ export default function PortPage() {
     }
   }
 
-  useEffect(() => {
-  }, [modalMode])
+  useEffect(() => {}, [modalMode])
 
   useEffect(() => {
     if (selectedPort) {

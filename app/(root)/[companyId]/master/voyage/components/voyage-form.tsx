@@ -22,6 +22,15 @@ import CustomInput from "@/components/custom/custom-input"
 import CustomSwitch from "@/components/custom/custom-switch"
 import CustomTextarea from "@/components/custom/custom-textarea"
 
+const defaultValues = {
+  voyageId: 0,
+  voyageNo: "",
+  referenceNo: "",
+  vesselId: 0,
+  bargeId: 0,
+  remarks: "",
+  isActive: true,
+}
 interface VoyageFormProps {
   initialData?: IVoyage | null
   submitAction: (data: VoyageSchemaType) => void
@@ -41,16 +50,6 @@ export function VoyageForm({
 }: VoyageFormProps) {
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
-
-  const defaultValues = {
-    voyageId: 0,
-    voyageNo: "",
-    referenceNo: "",
-    vesselId: 0,
-    bargeId: 0,
-    remarks: "",
-    isActive: true,
-  }
 
   const form = useForm<VoyageSchemaType>({
     resolver: zodResolver(voyageSchema),
@@ -86,7 +85,7 @@ export function VoyageForm({
             ...defaultValues,
           }
     )
-  }, [initialData, form, defaultValues])
+  }, [initialData, form])
 
   const handleCodeBlur = (_e: React.FocusEvent<HTMLInputElement>) => {
     const code = form.getValues("voyageNo")

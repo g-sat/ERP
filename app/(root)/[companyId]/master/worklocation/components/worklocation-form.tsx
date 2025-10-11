@@ -11,6 +11,7 @@ import { useForm } from "react-hook-form"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Form } from "@/components/ui/form"
+import CountryAutocomplete from "@/components/autocomplete/autocomplete-country"
 import CustomAccordion, {
   CustomAccordionContent,
   CustomAccordionItem,
@@ -30,7 +31,7 @@ const defaultValues = {
   countryId: 0,
   isActive: true,
 }
-interface WorklocationFormProps {
+interface WorkLocationFormProps {
   initialData?: IWorkLocation | null
   submitAction: (data: WorkLocationSchemaType) => void
   onCancelAction?: () => void
@@ -39,14 +40,14 @@ interface WorklocationFormProps {
   onCodeBlur?: (code: string) => void
 }
 
-export function WorklocationForm({
+export function WorkLocationForm({
   initialData,
   submitAction,
   onCancelAction,
   isSubmitting = false,
   isReadOnly = false,
   onCodeBlur,
-}: WorklocationFormProps) {
+}: WorkLocationFormProps) {
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
 
@@ -151,11 +152,10 @@ export function WorklocationForm({
                 isDisabled={isReadOnly}
               />
             </div>
-            <CustomInput
+            <CountryAutocomplete
               form={form}
               name="countryId"
-              label="Country ID"
-              type="number"
+              label="Country"
               isRequired
               isDisabled={isReadOnly}
             />

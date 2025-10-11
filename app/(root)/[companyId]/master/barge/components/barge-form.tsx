@@ -21,6 +21,7 @@ import CustomSwitch from "@/components/custom/custom-switch"
 import CustomTextarea from "@/components/custom/custom-textarea"
 
 const defaultValues = {
+  bargeId: 0,
   bargeName: "",
   bargeCode: "",
   callSign: "",
@@ -57,6 +58,7 @@ export function BargeForm({
     resolver: zodResolver(bargeSchema),
     defaultValues: initialData
       ? {
+          bargeId: initialData.bargeId ?? 0,
           bargeName: initialData.bargeName ?? "",
           bargeCode: initialData.bargeCode ?? "",
           callSign: initialData.callSign ?? "",
@@ -79,6 +81,7 @@ export function BargeForm({
     form.reset(
       initialData
         ? {
+            bargeId: initialData.bargeId ?? 0,
             bargeName: initialData.bargeName ?? "",
             bargeCode: initialData.bargeCode ?? "",
             callSign: initialData.callSign ?? "",

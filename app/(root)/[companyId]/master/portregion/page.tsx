@@ -137,6 +137,7 @@ export default function PortRegionPage() {
 
         if (response.result === 1) {
           queryClient.invalidateQueries({ queryKey: ["portregions"] })
+          setIsModalOpen(false)
         }
       } else if (modalMode === "edit" && selectedPortRegion) {
         const response = (await updateMutation.mutateAsync(
@@ -145,9 +146,9 @@ export default function PortRegionPage() {
 
         if (response.result === 1) {
           queryClient.invalidateQueries({ queryKey: ["portregions"] })
+          setIsModalOpen(false)
         }
       }
-      setIsModalOpen(false)
     } catch (error) {
       console.error("Error in form submission:", error)
     }
@@ -188,8 +189,8 @@ export default function PortRegionPage() {
 
       try {
         const response = await getById(`${PortRegion.getByCode}/${trimmedCode}`)
-                if (response?.result === 1 && response.data) {
-                    const portregionData = Array.isArray(response.data)
+        if (response?.result === 1 && response.data) {
+          const portregionData = Array.isArray(response.data)
             ? response.data[0]
             : response.data
 
@@ -229,8 +230,7 @@ export default function PortRegionPage() {
     }
   }
 
-  useEffect(() => {
-  }, [modalMode])
+  useEffect(() => {}, [modalMode])
 
   useEffect(() => {
     if (selectedPortRegion) {

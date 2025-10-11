@@ -13,7 +13,7 @@ import { TableName } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import { MainTable } from "@/components/table/table-main"
 
-interface BargesTableProps {
+interface BargeTableProps {
   data: IBarge[]
   isLoading?: boolean
   onSelect?: (barge: IBarge | null) => void
@@ -31,7 +31,7 @@ interface BargesTableProps {
   canCreate?: boolean
 }
 
-export function BargesTable({
+export function BargeTable({
   data,
   isLoading = false,
   onSelect,
@@ -47,7 +47,7 @@ export function BargesTable({
   canDelete = true,
   canView = true,
   canCreate = true,
-}: BargesTableProps) {
+}: BargeTableProps) {
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
 

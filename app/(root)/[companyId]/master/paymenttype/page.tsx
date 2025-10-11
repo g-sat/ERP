@@ -188,11 +188,11 @@ export default function PaymentTypePage() {
 
       try {
         const response = await getById(
-          `${Paymenttype.getByCode}/${trimmedCode}`
+          `${PaymentType.getByCode}/${trimmedCode}`
         )
-                // Check if response has data and it's not empty
+        // Check if response has data and it's not empty
         if (response?.result === 1 && response.data) {
-                    // Handle both array and single object responses
+          // Handle both array and single object responses
           const paymentTypeData = Array.isArray(response.data)
             ? response.data[0]
             : response.data

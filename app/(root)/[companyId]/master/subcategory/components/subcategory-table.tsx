@@ -13,7 +13,7 @@ import { TableName } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import { MainTable } from "@/components/table/table-main"
 
-interface SubCategorysTableProps {
+interface SubCategoryTableProps {
   data: ISubCategory[]
   isLoading?: boolean
   onSelect?: (subcategory: ISubCategory | null) => void
@@ -31,7 +31,7 @@ interface SubCategorysTableProps {
   canCreate?: boolean
 }
 
-export function SubCategorysTable({
+export function SubCategoryTable({
   data,
   isLoading = false,
   onSelect,
@@ -47,7 +47,7 @@ export function SubCategorysTable({
   canDelete = true,
   canView = true,
   canCreate = true,
-}: SubCategorysTableProps) {
+}: SubCategoryTableProps) {
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
 

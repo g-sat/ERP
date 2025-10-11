@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { ApiResponse } from "@/interfaces/auth"
 import { IBarge, IBargeFilter } from "@/interfaces/barge"
 import { BargeSchemaType } from "@/schemas/barge"
@@ -26,22 +26,25 @@ import { DataTableSkeleton } from "@/components/skeleton/data-table-skeleton"
 import { LockSkeleton } from "@/components/skeleton/lock-skeleton"
 
 import { BargeForm } from "./components/barge-form"
-import { BargesTable } from "./components/barge-table"
+import { BargeTable } from "./components/barge-table"
 
 export default function BargePage() {
   const moduleId = ModuleId.master
   const transactionId = MasterTransactionId.barge
 
+  // Move queryClient to top for proper usage order
+  const queryClient = useQueryClient()
+
   const { hasPermission } = usePermissionStore()
 
-  const canCreate = hasPermission(moduleId, transactionId, "isCreate")
-
-  const queryClient = useQueryClient()
+  const canView = hasPermission(moduleId, transactionId, "isRead")
   const canEdit = hasPermission(moduleId, transactionId, "isEdit")
   const canDelete = hasPermission(moduleId, transactionId, "isDelete")
-  const canView = hasPermission(moduleId, transactionId, "isRead")
+  const canCreate = hasPermission(moduleId, transactionId, "isCreate")
 
+  // Fetch account groups from the API using useGet
   const [filters, setFilters] = useState<IBargeFilter>({})
+  const [isLocked, setIsLocked] = useState(false)
 
   // Filter handler wrapper
   const handleFilterChange = useCallback(
@@ -57,6 +60,7 @@ export default function BargePage() {
     isLoading,
   } = useGet<IBarge>(`${Barge.get}`, "barges", filters.search)
 
+  // Destructure with fallback values
   const { result: bargesResult, data: bargesData } =
     (bargesResponse as ApiResponse<IBarge>) ?? {
       result: 0,
@@ -64,20 +68,37 @@ export default function BargePage() {
       data: [],
     }
 
+  // Handle result = -1 and result = -2 cases
+  useEffect(() => {
+    if (!bargesResponse) return
+
+    if (bargesResponse.result === -1) {
+      setFilters({})
+    } else if (bargesResponse.result === -2 && !isLocked) {
+      setIsLocked(true)
+    } else if (bargesResponse.result !== -2) {
+      setIsLocked(false)
+    }
+  }, [bargesResponse, isLocked])
+
+  // Define mutations for CRUD operations
   const saveMutation = usePersist<BargeSchemaType>(`${Barge.add}`)
   const updateMutation = usePersist<BargeSchemaType>(`${Barge.add}`)
   const deleteMutation = useDelete(`${Barge.delete}`)
 
-  const [selectedBarge, setSelectedBarge] = useState<IBarge | null>(null)
+  // State for modal and selected account group
+  const [selectedBarge, setSelectedBarge] = useState<IBarge | undefined>(
+    undefined
+  )
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [modalMode, setModalMode] = useState<"create" | "edit" | "view">(
     "create"
   )
-
   // State for code availability check
   const [showLoadDialog, setShowLoadDialog] = useState(false)
   const [existingBarge, setExistingBarge] = useState<IBarge | null>(null)
 
+  // State for delete confirmation
   const [deleteConfirmation, setDeleteConfirmation] = useState<{
     isOpen: boolean
     bargeId: string | null
@@ -88,29 +109,6 @@ export default function BargePage() {
     bargeName: null,
   })
 
-  const handleRefresh = () => {
-    refetch()
-  }
-
-  const handleCreateBarge = () => {
-    setModalMode("create")
-    setSelectedBarge(null)
-    setIsModalOpen(true)
-  }
-
-  const handleEditBarge = (barge: IBarge) => {
-    setModalMode("edit")
-    setSelectedBarge(barge)
-    setIsModalOpen(true)
-  }
-
-  const handleViewBarge = (barge: IBarge | null) => {
-    if (!barge) return
-    setModalMode("view")
-    setSelectedBarge(barge)
-    setIsModalOpen(true)
-  }
-
   // State for save confirmation
   const [saveConfirmation, setSaveConfirmation] = useState<{
     isOpen: boolean
@@ -119,6 +117,33 @@ export default function BargePage() {
     isOpen: false,
     data: null,
   })
+
+  // Handler to Re-fetches data when called
+  const handleRefresh = () => {
+    refetch()
+  }
+
+  // Handler to open modal for creating a new account group
+  const handleCreateBarge = () => {
+    setModalMode("create")
+    setSelectedBarge(undefined)
+    setIsModalOpen(true)
+  }
+
+  // Handler to open modal for editing an account group
+  const handleEditBarge = (barge: IBarge) => {
+    setModalMode("edit")
+    setSelectedBarge(barge)
+    setIsModalOpen(true)
+  }
+
+  // Handler to open modal for viewing an account group
+  const handleViewBarge = (barge: IBarge | null) => {
+    if (!barge) return
+    setModalMode("view")
+    setSelectedBarge(barge)
+    setIsModalOpen(true)
+  }
 
   // Handler for form submission (create or edit) - shows confirmation first
   const handleFormSubmit = (data: BargeSchemaType) => {
@@ -134,26 +159,31 @@ export default function BargePage() {
       if (modalMode === "create") {
         const response = await saveMutation.mutateAsync(data)
         if (response.result === 1) {
+          // Invalidate and refetch the barges query
           queryClient.invalidateQueries({ queryKey: ["barges"] })
+          setIsModalOpen(false)
         }
       } else if (modalMode === "edit" && selectedBarge) {
         const response = await updateMutation.mutateAsync(data)
         if (response.result === 1) {
+          // Invalidate and refetch the barges query
           queryClient.invalidateQueries({ queryKey: ["barges"] })
+          setIsModalOpen(false)
         }
       }
-      setIsModalOpen(false)
     } catch (error) {
       console.error("Error in form submission:", error)
     }
   }
 
+  // Handler for deleting an account group
   const handleDeleteBarge = (bargeId: string) => {
     const bargeToDelete = bargesData?.find(
-      (b) => b.bargeId.toString() === bargeId
+      (ag) => ag.bargeId.toString() === bargeId
     )
     if (!bargeToDelete) return
 
+    // Open delete confirmation dialog with account group details
     setDeleteConfirmation({
       isOpen: true,
       bargeId,
@@ -164,6 +194,7 @@ export default function BargePage() {
   const handleConfirmDelete = () => {
     if (deleteConfirmation.bargeId) {
       deleteMutation.mutateAsync(deleteConfirmation.bargeId).then(() => {
+        // Invalidate and refetch the barges query after successful deletion
         queryClient.invalidateQueries({ queryKey: ["barges"] })
       })
       setDeleteConfirmation({
@@ -189,15 +220,39 @@ export default function BargePage() {
 
       try {
         const response = await getById(`${Barge.getByCode}/${trimmedCode}`)
-        if (
-          response &&
-          response.data &&
-          response.result === 1 &&
-          response.data &&
-          response.data.length > 0
-        ) {
-          setExistingBarge(response.data[0])
-          setShowLoadDialog(true)
+
+        // Check if response has data and it's not empty
+        if (response?.result === 1 && response.data) {
+          // Handle both array and single object responses
+          const bargeData = Array.isArray(response.data)
+            ? response.data[0]
+            : response.data
+
+          if (bargeData) {
+            // Ensure all required fields are present
+            const validBargeData: IBarge = {
+              bargeId: bargeData.bargeId,
+              bargeName: bargeData.bargeName,
+              bargeCode: bargeData.bargeCode,
+              callSign: bargeData.callSign,
+              imoCode: bargeData.imoCode,
+              grt: bargeData.grt,
+              licenseNo: bargeData.licenseNo,
+              bargeType: bargeData.bargeType,
+              flag: bargeData.flag,
+              remarks: bargeData.remarks || "",
+              isActive: bargeData.isActive ?? true,
+              isOwn: bargeData.isOwn ?? true,
+              companyId: bargeData.companyId,
+              createBy: bargeData.createBy,
+              editBy: bargeData.editBy,
+              createDate: bargeData.createDate,
+              editDate: bargeData.editDate,
+            }
+
+            setExistingBarge(validBargeData)
+            setShowLoadDialog(true)
+          }
         }
       } catch (error) {
         console.error("Error checking code availability:", error)
@@ -206,14 +261,14 @@ export default function BargePage() {
     [modalMode]
   )
 
+  // Handler for loading existing account group
   const handleLoadExistingBarge = () => {
     if (existingBarge) {
-      setSelectedBarge(existingBarge)
       setModalMode("edit")
-      setIsModalOpen(true)
+      setSelectedBarge(existingBarge)
+      setShowLoadDialog(false)
+      setExistingBarge(null)
     }
-    setShowLoadDialog(false)
-    setExistingBarge(null)
   }
 
   return (
@@ -230,6 +285,7 @@ export default function BargePage() {
         </div>
       </div>
 
+      {/* Barges Table */}
       {isLoading ? (
         <DataTableSkeleton
           columnCount={7}
@@ -248,7 +304,7 @@ export default function BargePage() {
       ) : bargesResult === -2 ||
         (!canView && !canEdit && !canDelete && !canCreate) ? (
         <LockSkeleton locked={true}>
-          <BargesTable
+          <BargeTable
             data={[]}
             isLoading={false}
             onSelect={() => {}}
@@ -259,14 +315,14 @@ export default function BargePage() {
             onFilterChange={() => {}}
             moduleId={moduleId}
             transactionId={transactionId}
-            canEdit={false}
-            canDelete={false}
             canView={false}
             canCreate={false}
+            canEdit={false}
+            canDelete={false}
           />
         </LockSkeleton>
-      ) : bargesResult === 1 ? (
-        <BargesTable
+      ) : (
+        <BargeTable
           data={filters.search ? [] : bargesData || []}
           isLoading={isLoading}
           onSelect={canView ? handleViewBarge : undefined}
@@ -283,26 +339,9 @@ export default function BargePage() {
           canView={canView}
           canCreate={canCreate}
         />
-      ) : (
-        <BargesTable
-          data={[]}
-          isLoading={false}
-          onSelect={canView ? handleViewBarge : undefined}
-          onDelete={canDelete ? handleDeleteBarge : undefined}
-          onEdit={canEdit ? handleEditBarge : undefined}
-          onCreate={canCreate ? handleCreateBarge : undefined}
-          onRefresh={handleRefresh}
-          onFilterChange={handleFilterChange}
-          moduleId={moduleId}
-          transactionId={transactionId}
-          // Pass permissions to table
-          canEdit={canEdit}
-          canDelete={canDelete}
-          canView={canView}
-          canCreate={canCreate}
-        />
       )}
 
+      {/* Modal for Create, Edit, and View */}
       <Dialog
         open={isModalOpen}
         onOpenChange={(open) => {
@@ -341,12 +380,29 @@ export default function BargePage() {
             submitAction={handleFormSubmit}
             onCancelAction={() => setIsModalOpen(false)}
             isSubmitting={saveMutation.isPending || updateMutation.isPending}
-            isReadOnly={modalMode === "view" || !canEdit}
+            isReadOnly={
+              modalMode === "view" ||
+              (modalMode === "create" && !canCreate) ||
+              (modalMode === "edit" && !canEdit)
+            }
             onCodeBlur={handleCodeBlur}
           />
         </DialogContent>
       </Dialog>
 
+      {/* Load Existing Account Group Dialog */}
+      <LoadConfirmation
+        open={showLoadDialog}
+        onOpenChange={setShowLoadDialog}
+        onLoad={handleLoadExistingBarge}
+        onCancel={() => setExistingBarge(null)}
+        code={existingBarge?.bargeCode}
+        name={existingBarge?.bargeName}
+        typeLabel="Barge"
+        isLoading={saveMutation.isPending || updateMutation.isPending}
+      />
+
+      {/* Delete Confirmation Dialog */}
       <DeleteConfirmation
         open={deleteConfirmation.isOpen}
         onOpenChange={(isOpen) =>
@@ -391,18 +447,6 @@ export default function BargePage() {
           })
         }
         isSaving={saveMutation.isPending || updateMutation.isPending}
-      />
-
-      {/* Load Existing Barge Dialog */}
-      <LoadConfirmation
-        open={showLoadDialog}
-        onOpenChange={setShowLoadDialog}
-        onLoad={handleLoadExistingBarge}
-        onCancel={() => setExistingBarge(null)}
-        code={existingBarge?.bargeCode}
-        name={existingBarge?.bargeName}
-        typeLabel="Barge"
-        isLoading={saveMutation.isPending || updateMutation.isPending}
       />
     </div>
   )

@@ -154,15 +154,16 @@ export default function CountryPage() {
         if (response.result === 1) {
           // Invalidate and refetch the countries query
           queryClient.invalidateQueries({ queryKey: ["countries"] })
+          setIsModalOpen(false)
         }
       } else if (modalMode === "edit" && selectedCountry) {
         const response = await updateMutation.mutateAsync(data)
         if (response.result === 1) {
           // Invalidate and refetch the countries query
           queryClient.invalidateQueries({ queryKey: ["countries"] })
+          setIsModalOpen(false)
         }
       }
-      setIsModalOpen(false)
     } catch (error) {
       console.error("Error in form submission:", error)
     }
@@ -209,9 +210,9 @@ export default function CountryPage() {
 
       try {
         const response = await getById(`${Country.getByCode}/${trimmedCode}`)
-                // Check if response has data and it's not empty
+        // Check if response has data and it's not empty
         if (response?.result === 1 && response.data) {
-                    // Handle both array and single object responses
+          // Handle both array and single object responses
           const countryData = Array.isArray(response.data)
             ? response.data[0]
             : response.data
@@ -255,8 +256,7 @@ export default function CountryPage() {
   }
 
   // Add useEffect hooks to track state changes
-  useEffect(() => {
-  }, [modalMode])
+  useEffect(() => {}, [modalMode])
 
   useEffect(() => {
     if (selectedCountry) {

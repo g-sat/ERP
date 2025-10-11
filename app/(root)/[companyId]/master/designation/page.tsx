@@ -142,14 +142,15 @@ export default function DesignationPage() {
         const response = await saveMutation.mutateAsync(data)
         if (response.result === 1) {
           queryClient.invalidateQueries({ queryKey: ["designations"] })
+          setIsModalOpen(false)
         }
       } else if (modalMode === "edit" && selectedDesignation) {
         const response = await updateMutation.mutateAsync(data)
         if (response.result === 1) {
           queryClient.invalidateQueries({ queryKey: ["designations"] })
+          setIsModalOpen(false)
         }
       }
-      setIsModalOpen(false)
     } catch (error) {
       console.error("Error in form submission:", error)
     }

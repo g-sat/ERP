@@ -1,9 +1,9 @@
 "use client"
 
 import { useCallback, useEffect, useState } from "react"
+import { IVoyage, IVoyageFilter } from "@/interfaces"
 import { ApiResponse } from "@/interfaces/auth"
-import { IVoyage, IVoyageFilter } from "@/interfaces/voyage"
-import { VoyageSchemaType } from "@/schemas/voyage"
+import { VoyageSchemaType } from "@/schemas"
 import { usePermissionStore } from "@/stores/permission-store"
 import { useQueryClient } from "@tanstack/react-query"
 
@@ -21,26 +21,30 @@ import {
 import { Separator } from "@/components/ui/separator"
 import { DeleteConfirmation } from "@/components/confirmation/delete-confirmation"
 import { LoadConfirmation } from "@/components/confirmation/load-confirmation"
+import { SaveConfirmation } from "@/components/confirmation/save-confirmation"
 import { DataTableSkeleton } from "@/components/skeleton/data-table-skeleton"
 import { LockSkeleton } from "@/components/skeleton/lock-skeleton"
 
 import { VoyageForm } from "./components/voyage-form"
-import { VoyagesTable } from "./components/voyage-table"
+import { VoyageTable } from "./components/voyage-table"
 
 export default function VoyagePage() {
   const moduleId = ModuleId.master
   const transactionId = MasterTransactionId.voyage
 
-  const { hasPermission } = usePermissionStore()
-
-  const canEdit = hasPermission(moduleId, transactionId, "isEdit")
-  const canDelete = hasPermission(moduleId, transactionId, "isDelete")
-  const canView = hasPermission(moduleId, transactionId, "isRead")
-  const canCreate = hasPermission(moduleId, transactionId, "isCreate")
-
+  // Move queryClient to top for proper usage order
   const queryClient = useQueryClient()
 
+  const { hasPermission } = usePermissionStore()
+
+  const canView = hasPermission(moduleId, transactionId, "isRead")
+  const canEdit = hasPermission(moduleId, transactionId, "isEdit")
+  const canDelete = hasPermission(moduleId, transactionId, "isDelete")
+  const canCreate = hasPermission(moduleId, transactionId, "isCreate")
+
+  // Fetch account groups from the API using useGet
   const [filters, setFilters] = useState<IVoyageFilter>({})
+  const [isLocked, setIsLocked] = useState(false)
 
   // Filter handler wrapper
   const handleFilterChange = useCallback(
@@ -49,12 +53,14 @@ export default function VoyagePage() {
     },
     []
   )
+
   const {
     data: voyagesResponse,
     refetch,
     isLoading,
   } = useGet<IVoyage>(`${Voyage.get}`, "voyages", filters.search)
 
+  // Destructure with fallback values
   const { result: voyagesResult, data: voyagesData } =
     (voyagesResponse as ApiResponse<IVoyage>) ?? {
       result: 0,
@@ -62,52 +68,76 @@ export default function VoyagePage() {
       data: [],
     }
 
+  // Handle result = -1 and result = -2 cases
   useEffect(() => {
-    if (filters.search !== undefined) {
-      refetch()
-    }
-  }, [filters.search, refetch])
+    if (!voyagesResponse) return
 
+    if (voyagesResponse.result === -1) {
+      setFilters({})
+    } else if (voyagesResponse.result === -2 && !isLocked) {
+      setIsLocked(true)
+    } else if (voyagesResponse.result !== -2) {
+      setIsLocked(false)
+    }
+  }, [voyagesResponse, isLocked])
+
+  // Define mutations for CRUD operations
   const saveMutation = usePersist<VoyageSchemaType>(`${Voyage.add}`)
   const updateMutation = usePersist<VoyageSchemaType>(`${Voyage.add}`)
   const deleteMutation = useDelete(`${Voyage.delete}`)
 
-  const [selectedVoyage, setSelectedVoyage] = useState<IVoyage | null>(null)
+  // State for modal and selected account group
+  const [selectedVoyage, setSelectedVoyage] = useState<IVoyage | undefined>(
+    undefined
+  )
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [modalMode, setModalMode] = useState<"create" | "edit" | "view">(
     "create"
   )
-
   // State for code availability check
   const [showLoadDialog, setShowLoadDialog] = useState(false)
   const [existingVoyage, setExistingVoyage] = useState<IVoyage | null>(null)
 
+  // State for delete confirmation
   const [deleteConfirmation, setDeleteConfirmation] = useState<{
     isOpen: boolean
     voyageId: string | null
-    voyageNo: string | null
+    voyageName: string | null
   }>({
     isOpen: false,
     voyageId: null,
-    voyageNo: null,
+    voyageName: null,
   })
 
+  // State for save confirmation
+  const [saveConfirmation, setSaveConfirmation] = useState<{
+    isOpen: boolean
+    data: VoyageSchemaType | null
+  }>({
+    isOpen: false,
+    data: null,
+  })
+
+  // Handler to Re-fetches data when called
   const handleRefresh = () => {
     refetch()
   }
 
+  // Handler to open modal for creating a new account group
   const handleCreateVoyage = () => {
     setModalMode("create")
-    setSelectedVoyage(null)
+    setSelectedVoyage(undefined)
     setIsModalOpen(true)
   }
 
+  // Handler to open modal for editing an account group
   const handleEditVoyage = (voyage: IVoyage) => {
     setModalMode("edit")
     setSelectedVoyage(voyage)
     setIsModalOpen(true)
   }
 
+  // Handler to open modal for viewing an account group
   const handleViewVoyage = (voyage: IVoyage | null) => {
     if (!voyage) return
     setModalMode("view")
@@ -115,21 +145,28 @@ export default function VoyagePage() {
     setIsModalOpen(true)
   }
 
-  const handleFormSubmit = async (data: VoyageSchemaType) => {
+  // Handler for form submission (create or edit) - shows confirmation first
+  const handleFormSubmit = (data: VoyageSchemaType) => {
+    setSaveConfirmation({
+      isOpen: true,
+      data: data,
+    })
+  }
+
+  // Handler for confirmed form submission
+  const handleConfirmedFormSubmit = async (data: VoyageSchemaType) => {
     try {
       if (modalMode === "create") {
-        const response = (await saveMutation.mutateAsync(
-          data
-        )) as ApiResponse<VoyageSchemaType>
+        const response = await saveMutation.mutateAsync(data)
         if (response.result === 1) {
+          // Invalidate and refetch the voyages query
           queryClient.invalidateQueries({ queryKey: ["voyages"] })
           setIsModalOpen(false)
         }
       } else if (modalMode === "edit" && selectedVoyage) {
-        const response = (await updateMutation.mutateAsync(
-          data
-        )) as ApiResponse<VoyageSchemaType>
+        const response = await updateMutation.mutateAsync(data)
         if (response.result === 1) {
+          // Invalidate and refetch the voyages query
           queryClient.invalidateQueries({ queryKey: ["voyages"] })
           setIsModalOpen(false)
         }
@@ -139,32 +176,36 @@ export default function VoyagePage() {
     }
   }
 
+  // Handler for deleting an account group
   const handleDeleteVoyage = (voyageId: string) => {
     const voyageToDelete = voyagesData?.find(
-      (v) => v.voyageId.toString() === voyageId
+      (ag) => ag.voyageId.toString() === voyageId
     )
     if (!voyageToDelete) return
+
+    // Open delete confirmation dialog with account group details
     setDeleteConfirmation({
       isOpen: true,
       voyageId,
-      voyageNo: voyageToDelete.voyageNo,
+      voyageName: voyageToDelete.voyageNo,
     })
   }
 
   const handleConfirmDelete = () => {
     if (deleteConfirmation.voyageId) {
       deleteMutation.mutateAsync(deleteConfirmation.voyageId).then(() => {
+        // Invalidate and refetch the voyages query after successful deletion
         queryClient.invalidateQueries({ queryKey: ["voyages"] })
       })
       setDeleteConfirmation({
         isOpen: false,
         voyageId: null,
-        voyageNo: null,
+        voyageName: null,
       })
     }
   }
 
-  // Handler for code availability check
+  // Handler for code availability check (memoized to prevent unnecessary re-renders)
   const handleCodeBlur = useCallback(
     async (code: string) => {
       // Skip if:
@@ -173,13 +214,16 @@ export default function VoyagePage() {
       if (modalMode === "edit" || modalMode === "view") return
 
       const trimmedCode = code?.trim()
-      if (!trimmedCode) return
+      if (!trimmedCode) {
+        return
+      }
 
       try {
         const response = await getById(`${Voyage.getByCode}/${trimmedCode}`)
-                // Check if response has data and it's not empty
+
+        // Check if response has data and it's not empty
         if (response?.result === 1 && response.data) {
-                    // Handle both array and single object responses
+          // Handle both array and single object responses
           const voyageData = Array.isArray(response.data)
             ? response.data[0]
             : response.data
@@ -192,13 +236,14 @@ export default function VoyagePage() {
               referenceNo: voyageData.referenceNo,
               vesselId: voyageData.vesselId,
               bargeId: voyageData.bargeId,
-              remarks: voyageData.remarks || "",
-              isActive: voyageData.isActive ?? true,
+              isActive: voyageData.isActive,
+              remarks: voyageData.remarks,
               createBy: voyageData.createBy,
               editBy: voyageData.editBy,
               createDate: voyageData.createDate,
               editDate: voyageData.editDate,
             }
+
             setExistingVoyage(validVoyageData)
             setShowLoadDialog(true)
           }
@@ -210,11 +255,9 @@ export default function VoyagePage() {
     [modalMode]
   )
 
-  // Handler for loading existing voyage
+  // Handler for loading existing account group
   const handleLoadExistingVoyage = () => {
     if (existingVoyage) {
-      // Log the data we're about to set
-      // Set the states
       setModalMode("edit")
       setSelectedVoyage(existingVoyage)
       setShowLoadDialog(false)
@@ -236,6 +279,7 @@ export default function VoyagePage() {
         </div>
       </div>
 
+      {/* Voyages Table */}
       {isLoading ? (
         <DataTableSkeleton
           columnCount={7}
@@ -254,8 +298,9 @@ export default function VoyagePage() {
       ) : voyagesResult === -2 ||
         (!canView && !canEdit && !canDelete && !canCreate) ? (
         <LockSkeleton locked={true}>
-          <VoyagesTable
+          <VoyageTable
             data={[]}
+            isLoading={false}
             onSelect={() => {}}
             onDelete={() => {}}
             onEdit={() => {}}
@@ -264,16 +309,16 @@ export default function VoyagePage() {
             onFilterChange={() => {}}
             moduleId={moduleId}
             transactionId={transactionId}
-            isLoading={false}
-            canEdit={false}
-            canDelete={false}
             canView={false}
             canCreate={false}
+            canEdit={false}
+            canDelete={false}
           />
         </LockSkeleton>
       ) : (
-        <VoyagesTable
+        <VoyageTable
           data={filters.search ? [] : voyagesData || []}
+          isLoading={isLoading}
           onSelect={canView ? handleViewVoyage : undefined}
           onDelete={canDelete ? handleDeleteVoyage : undefined}
           onEdit={canEdit ? handleEditVoyage : undefined}
@@ -282,7 +327,6 @@ export default function VoyagePage() {
           onFilterChange={handleFilterChange}
           moduleId={moduleId}
           transactionId={transactionId}
-          isLoading={isLoading}
           // Pass permissions to table
           canEdit={canEdit}
           canDelete={canDelete}
@@ -291,6 +335,7 @@ export default function VoyagePage() {
         />
       )}
 
+      {/* Modal for Create, Edit, and View */}
       <Dialog
         open={isModalOpen}
         onOpenChange={(open) => {
@@ -324,18 +369,22 @@ export default function VoyagePage() {
             initialData={
               modalMode === "edit" || modalMode === "view"
                 ? selectedVoyage
-                : null
+                : undefined
             }
             submitAction={handleFormSubmit}
             onCancelAction={() => setIsModalOpen(false)}
             isSubmitting={saveMutation.isPending || updateMutation.isPending}
-            isReadOnly={modalMode === "view"}
+            isReadOnly={
+              modalMode === "view" ||
+              (modalMode === "create" && !canCreate) ||
+              (modalMode === "edit" && !canEdit)
+            }
             onCodeBlur={handleCodeBlur}
           />
         </DialogContent>
       </Dialog>
 
-      {/* Load Existing Voyage Dialog */}
+      {/* Load Existing Account Group Dialog */}
       <LoadConfirmation
         open={showLoadDialog}
         onOpenChange={setShowLoadDialog}
@@ -343,10 +392,11 @@ export default function VoyagePage() {
         onCancel={() => setExistingVoyage(null)}
         code={existingVoyage?.voyageNo}
         name={existingVoyage?.voyageNo}
-        typeLabel="Account Type"
+        typeLabel="Voyage"
         isLoading={saveMutation.isPending || updateMutation.isPending}
       />
 
+      {/* Delete Confirmation Dialog */}
       <DeleteConfirmation
         open={deleteConfirmation.isOpen}
         onOpenChange={(isOpen) =>
@@ -354,16 +404,43 @@ export default function VoyagePage() {
         }
         title="Delete Voyage"
         description="This action cannot be undone. This will permanently delete the voyage from our servers."
-        itemName={deleteConfirmation.voyageNo || ""}
+        itemName={deleteConfirmation.voyageName || ""}
         onConfirm={handleConfirmDelete}
         onCancel={() =>
           setDeleteConfirmation({
             isOpen: false,
             voyageId: null,
-            voyageNo: null,
+            voyageName: null,
           })
         }
         isDeleting={deleteMutation.isPending}
+      />
+
+      {/* Save Confirmation Dialog */}
+      <SaveConfirmation
+        open={saveConfirmation.isOpen}
+        onOpenChange={(isOpen) =>
+          setSaveConfirmation((prev) => ({ ...prev, isOpen }))
+        }
+        title={modalMode === "create" ? "Create Voyage" : "Update Voyage"}
+        itemName={saveConfirmation.data?.voyageNo || ""}
+        operationType={modalMode === "create" ? "create" : "update"}
+        onConfirm={() => {
+          if (saveConfirmation.data) {
+            handleConfirmedFormSubmit(saveConfirmation.data)
+          }
+          setSaveConfirmation({
+            isOpen: false,
+            data: null,
+          })
+        }}
+        onCancel={() =>
+          setSaveConfirmation({
+            isOpen: false,
+            data: null,
+          })
+        }
+        isSaving={saveMutation.isPending || updateMutation.isPending}
       />
     </div>
   )

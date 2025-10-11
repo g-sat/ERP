@@ -145,14 +145,15 @@ export default function EntityTypePage() {
         const response = await saveMutation.mutateAsync(data)
         if (response.result === 1) {
           queryClient.invalidateQueries({ queryKey: ["entityTypes"] })
+          setIsModalOpen(false)
         }
       } else if (modalMode === "edit" && selectedEntityType) {
         const response = await updateMutation.mutateAsync(data)
         if (response.result === 1) {
           queryClient.invalidateQueries({ queryKey: ["entityTypes"] })
+          setIsModalOpen(false)
         }
       }
-      setIsModalOpen(false)
     } catch (error) {
       console.error("Error in form submission:", error)
     }
@@ -198,12 +199,10 @@ export default function EntityTypePage() {
       if (!trimmedCode) return
 
       try {
-        const response = await getById(
-          `${Entitytypes.getByCode}/${trimmedCode}`
-        )
-                // Check if response has data and it's not empty
+        const response = await getById(`${EntityType.getByCode}/${trimmedCode}`)
+        // Check if response has data and it's not empty
         if (response?.result === 1 && response.data) {
-                    // Handle both array and single object responses
+          // Handle both array and single object responses
           const entityTypeData = Array.isArray(response.data)
             ? response.data[0]
             : response.data

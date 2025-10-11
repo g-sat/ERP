@@ -13,7 +13,7 @@ import { TableName } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import { MainTable } from "@/components/table/table-main"
 
-interface WorklocationsTableProps {
+interface WorkLocationTableProps {
   data: IWorkLocation[]
   isLoading?: boolean
   onSelect?: (worklocation: IWorkLocation | null) => void
@@ -31,7 +31,7 @@ interface WorklocationsTableProps {
   canCreate?: boolean
 }
 
-export function WorklocationsTable({
+export function WorkLocationTable({
   data,
   isLoading = false,
   onSelect,
@@ -47,7 +47,7 @@ export function WorklocationsTable({
   canDelete = true,
   canView = true,
   canCreate = true,
-}: WorklocationsTableProps) {
+}: WorkLocationTableProps) {
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
 

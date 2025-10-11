@@ -1,9 +1,8 @@
 "use client"
 
 import { useCallback, useEffect, useState } from "react"
-import { ApiResponse } from "@/interfaces/auth"
-import { ISubCategory, ISubCategoryFilter } from "@/interfaces/subcategory"
-import { SubCategorySchemaType } from "@/schemas/subcategory"
+import { ApiResponse, ISubCategory, ISubCategoryFilter } from "@/interfaces"
+import { SubCategorySchemaType } from "@/schemas"
 import { usePermissionStore } from "@/stores/permission-store"
 import { useQueryClient } from "@tanstack/react-query"
 
@@ -26,22 +25,25 @@ import { DataTableSkeleton } from "@/components/skeleton/data-table-skeleton"
 import { LockSkeleton } from "@/components/skeleton/lock-skeleton"
 
 import { SubCategoryForm } from "./components/subcategory-form"
-import { SubCategorysTable } from "./components/subcategory-table"
+import { SubCategoryTable } from "./components/subcategory-table"
 
 export default function SubCategoryPage() {
   const moduleId = ModuleId.master
   const transactionId = MasterTransactionId.subCategory
 
-  const { hasPermission } = usePermissionStore()
-
-  const canEdit = hasPermission(moduleId, transactionId, "isEdit")
-  const canDelete = hasPermission(moduleId, transactionId, "isDelete")
-  const canView = hasPermission(moduleId, transactionId, "isRead")
-  const canCreate = hasPermission(moduleId, transactionId, "isCreate")
-
+  // Move queryClient to top for proper usage order
   const queryClient = useQueryClient()
 
+  const { hasPermission } = usePermissionStore()
+
+  const canView = hasPermission(moduleId, transactionId, "isRead")
+  const canEdit = hasPermission(moduleId, transactionId, "isEdit")
+  const canDelete = hasPermission(moduleId, transactionId, "isDelete")
+  const canCreate = hasPermission(moduleId, transactionId, "isCreate")
+
+  // Fetch subCategory  from the API using useGet
   const [filters, setFilters] = useState<ISubCategoryFilter>({})
+  const [isLocked, setIsLocked] = useState(false)
 
   // Filter handler wrapper
   const handleFilterChange = useCallback(
@@ -50,49 +52,61 @@ export default function SubCategoryPage() {
     },
     []
   )
+
   const {
-    data: subcategorysResponse,
+    data: subCategorysResponse,
     refetch,
     isLoading,
-  } = useGet<ISubCategory>(`${SubCategory.get}`, "subcategorys", filters.search)
+  } = useGet<ISubCategory>(`${SubCategory.get}`, "subCategorys", filters.search)
 
-  const { result: subcategorysResult, data: subcategorysData } =
-    (subcategorysResponse as ApiResponse<ISubCategory>) ?? {
+  // Destructure with fallback values
+  const { result: subCategorysResult, data: subCategorysData } =
+    (subCategorysResponse as ApiResponse<ISubCategory>) ?? {
       result: 0,
       message: "",
       data: [],
     }
 
+  // Handle result = -1 and result = -2 cases
   useEffect(() => {
-    if (subcategorysData?.length > 0) {
-      refetch()
-    }
-  }, [filters, refetch])
+    if (!subCategorysResponse) return
 
+    if (subCategorysResponse.result === -1) {
+      setFilters({})
+    } else if (subCategorysResponse.result === -2 && !isLocked) {
+      setIsLocked(true)
+    } else if (subCategorysResponse.result !== -2) {
+      setIsLocked(false)
+    }
+  }, [subCategorysResponse, isLocked])
+
+  // Define mutations for CRUD operations
   const saveMutation = usePersist<SubCategorySchemaType>(`${SubCategory.add}`)
   const updateMutation = usePersist<SubCategorySchemaType>(`${SubCategory.add}`)
   const deleteMutation = useDelete(`${SubCategory.delete}`)
 
-  const [selectedSubCategory, setSelectedSubCategory] =
-    useState<ISubCategory | null>(null)
+  // State for modal and selected subCategory group
+  const [selectedSubCategory, setSelectedSubCategory] = useState<
+    ISubCategory | undefined
+  >(undefined)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [modalMode, setModalMode] = useState<"create" | "edit" | "view">(
     "create"
   )
-
   // State for code availability check
   const [showLoadDialog, setShowLoadDialog] = useState(false)
   const [existingSubCategory, setExistingSubCategory] =
     useState<ISubCategory | null>(null)
 
+  // State for delete confirmation
   const [deleteConfirmation, setDeleteConfirmation] = useState<{
     isOpen: boolean
     subCategoryId: string | null
-    subcategoryName: string | null
+    subCategoryName: string | null
   }>({
     isOpen: false,
     subCategoryId: null,
-    subcategoryName: null,
+    subCategoryName: null,
   })
 
   // State for save confirmation
@@ -104,26 +118,30 @@ export default function SubCategoryPage() {
     data: null,
   })
 
+  // Handler to Re-fetches data when called
   const handleRefresh = () => {
     refetch()
   }
 
+  // Handler to open modal for creating a new subCategory group
   const handleCreateSubCategory = () => {
     setModalMode("create")
-    setSelectedSubCategory(null)
+    setSelectedSubCategory(undefined)
     setIsModalOpen(true)
   }
 
-  const handleEditSubCategory = (subcategory: ISubCategory) => {
+  // Handler to open modal for editing an subCategory group
+  const handleEditSubCategory = (subCategory: ISubCategory) => {
     setModalMode("edit")
-    setSelectedSubCategory(subcategory)
+    setSelectedSubCategory(subCategory)
     setIsModalOpen(true)
   }
 
-  const handleViewSubCategory = (subcategory: ISubCategory | null) => {
-    if (!subcategory) return
+  // Handler to open modal for viewing an subCategory group
+  const handleViewSubCategory = (subCategory: ISubCategory | null) => {
+    if (!subCategory) return
     setModalMode("view")
-    setSelectedSubCategory(subcategory)
+    setSelectedSubCategory(subCategory)
     setIsModalOpen(true)
   }
 
@@ -141,46 +159,53 @@ export default function SubCategoryPage() {
       if (modalMode === "create") {
         const response = await saveMutation.mutateAsync(data)
         if (response.result === 1) {
-          queryClient.invalidateQueries({ queryKey: ["subcategorys"] })
+          // Invalidate and refetch the subCategorys query
+          queryClient.invalidateQueries({ queryKey: ["subCategorys"] })
+          setIsModalOpen(false)
         }
       } else if (modalMode === "edit" && selectedSubCategory) {
         const response = await updateMutation.mutateAsync(data)
         if (response.result === 1) {
-          queryClient.invalidateQueries({ queryKey: ["subcategorys"] })
+          // Invalidate and refetch the subCategorys query
+          queryClient.invalidateQueries({ queryKey: ["subCategorys"] })
+          setIsModalOpen(false)
         }
       }
-      setIsModalOpen(false)
     } catch (error) {
       console.error("Error in form submission:", error)
     }
   }
 
+  // Handler for deleting an subCategory group
   const handleDeleteSubCategory = (subCategoryId: string) => {
-    const subcategoryToDelete = subcategorysData?.find(
-      (b) => b.subCategoryId.toString() === subCategoryId
+    const subCategoryToDelete = subCategorysData?.find(
+      (ag) => ag.subCategoryId.toString() === subCategoryId
     )
-    if (!subcategoryToDelete) return
+    if (!subCategoryToDelete) return
+
+    // Open delete confirmation dialog with subCategory group details
     setDeleteConfirmation({
       isOpen: true,
       subCategoryId,
-      subcategoryName: subcategoryToDelete.subCategoryName,
+      subCategoryName: subCategoryToDelete.subCategoryName,
     })
   }
 
   const handleConfirmDelete = () => {
     if (deleteConfirmation.subCategoryId) {
       deleteMutation.mutateAsync(deleteConfirmation.subCategoryId).then(() => {
-        queryClient.invalidateQueries({ queryKey: ["subcategorys"] })
+        // Invalidate and refetch the subCategorys query after successful deletion
+        queryClient.invalidateQueries({ queryKey: ["subCategorys"] })
       })
       setDeleteConfirmation({
         isOpen: false,
         subCategoryId: null,
-        subcategoryName: null,
+        subCategoryName: null,
       })
     }
   }
 
-  // Handler for code availability check
+  // Handler for code availability check (memoized to prevent unnecessary re-renders)
   const handleCodeBlur = useCallback(
     async (code: string) => {
       // Skip if:
@@ -189,7 +214,9 @@ export default function SubCategoryPage() {
       if (modalMode === "edit" || modalMode === "view") return
 
       const trimmedCode = code?.trim()
-      if (!trimmedCode) return
+      if (!trimmedCode) {
+        return
+      }
 
       try {
         const response = await getById(
@@ -199,25 +226,25 @@ export default function SubCategoryPage() {
         // Check if response has data and it's not empty
         if (response?.result === 1 && response.data) {
           // Handle both array and single object responses
-          const subcategoryData = Array.isArray(response.data)
+          const subCategoryData = Array.isArray(response.data)
             ? response.data[0]
             : response.data
 
-          if (subcategoryData) {
+          if (subCategoryData) {
             // Ensure all required fields are present
             const validSubCategoryData: ISubCategory = {
-              subCategoryId: subcategoryData.subCategoryId,
-              subCategoryCode: subcategoryData.subCategoryCode,
-              subCategoryName: subcategoryData.subCategoryName,
-              companyId: subcategoryData.companyId,
-              remarks: subcategoryData.remarks || "",
-              isActive: subcategoryData.isActive ?? true,
-              createBy: subcategoryData.createBy,
-              editBy: subcategoryData.editBy,
-              createDate: subcategoryData.createDate,
-              editDate: subcategoryData.editDate,
-              createById: subcategoryData.createById,
-              editById: subcategoryData.editById,
+              subCategoryId: subCategoryData.subCategoryId,
+              companyId: subCategoryData.companyId,
+              subCategoryCode: subCategoryData.subCategoryCode,
+              subCategoryName: subCategoryData.subCategoryName,
+              remarks: subCategoryData.remarks || "",
+              isActive: subCategoryData.isActive ?? true,
+              createBy: subCategoryData.createBy,
+              editBy: subCategoryData.editBy,
+              createDate: subCategoryData.createDate,
+              editDate: subCategoryData.editDate,
+              createById: subCategoryData.createById,
+              editById: subCategoryData.editById,
             }
 
             setExistingSubCategory(validSubCategoryData)
@@ -231,10 +258,9 @@ export default function SubCategoryPage() {
     [modalMode]
   )
 
-  // Handler for loading existing subcategory
+  // Handler for loading existing subCategory group
   const handleLoadExistingSubCategory = () => {
     if (existingSubCategory) {
-      // Set the states
       setModalMode("edit")
       setSelectedSubCategory(existingSubCategory)
       setShowLoadDialog(false)
@@ -248,14 +274,15 @@ export default function SubCategoryPage() {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="space-y-1">
           <h1 className="text-xl font-bold tracking-tight sm:text-3xl">
-            Sub Categories
+            SubCategory Groups
           </h1>
           <p className="text-muted-foreground text-sm">
-            Manage subcategory information and settings
+            Manage subCategory group information and settings
           </p>
         </div>
       </div>
 
+      {/* SubCategory Groups Table */}
       {isLoading ? (
         <DataTableSkeleton
           columnCount={7}
@@ -271,11 +298,12 @@ export default function SubCategoryPage() {
           ]}
           shrinkZero
         />
-      ) : subcategorysResult === -2 ||
+      ) : subCategorysResult === -2 ||
         (!canView && !canEdit && !canDelete && !canCreate) ? (
         <LockSkeleton locked={true}>
-          <SubCategorysTable
+          <SubCategoryTable
             data={[]}
+            isLoading={false}
             onSelect={() => {}}
             onDelete={() => {}}
             onEdit={() => {}}
@@ -284,16 +312,16 @@ export default function SubCategoryPage() {
             onFilterChange={() => {}}
             moduleId={moduleId}
             transactionId={transactionId}
-            isLoading={false}
-            canEdit={false}
-            canDelete={false}
             canView={false}
             canCreate={false}
+            canEdit={false}
+            canDelete={false}
           />
         </LockSkeleton>
-      ) : subcategorysResult ? (
-        <SubCategorysTable
-          data={filters.search ? [] : subcategorysData || []}
+      ) : (
+        <SubCategoryTable
+          data={filters.search ? [] : subCategorysData || []}
+          isLoading={isLoading}
           onSelect={canView ? handleViewSubCategory : undefined}
           onDelete={canDelete ? handleDeleteSubCategory : undefined}
           onEdit={canEdit ? handleEditSubCategory : undefined}
@@ -302,21 +330,15 @@ export default function SubCategoryPage() {
           onFilterChange={handleFilterChange}
           moduleId={moduleId}
           transactionId={transactionId}
-          isLoading={isLoading}
           // Pass permissions to table
           canEdit={canEdit}
           canDelete={canDelete}
           canView={canView}
           canCreate={canCreate}
         />
-      ) : (
-        <div className="py-8 text-center">
-          <p className="text-muted-foreground">
-            {subcategorysResult === 0 ? "No data available" : "Loading..."}
-          </p>
-        </div>
       )}
 
+      {/* Modal for Create, Edit, and View */}
       <Dialog
         open={isModalOpen}
         onOpenChange={(open) => {
@@ -333,16 +355,16 @@ export default function SubCategoryPage() {
         >
           <DialogHeader>
             <DialogTitle>
-              {modalMode === "create" && "Create SubCategory"}
-              {modalMode === "edit" && "Update SubCategory"}
-              {modalMode === "view" && "View SubCategory"}
+              {modalMode === "create" && "Create SubCategory Group"}
+              {modalMode === "edit" && "Update SubCategory Group"}
+              {modalMode === "view" && "View SubCategory Group"}
             </DialogTitle>
             <DialogDescription>
               {modalMode === "create"
-                ? "Add a new subcategory to the system database."
+                ? "Add a new subCategory group to the system database."
                 : modalMode === "edit"
-                  ? "Update subcategory information in the system database."
-                  : "View subcategory details."}
+                  ? "Update subCategory group information in the system database."
+                  : "View subCategory group details."}
             </DialogDescription>
           </DialogHeader>
           <Separator />
@@ -350,18 +372,18 @@ export default function SubCategoryPage() {
             initialData={
               modalMode === "edit" || modalMode === "view"
                 ? selectedSubCategory
-                : null
+                : undefined
             }
             submitAction={handleFormSubmit}
             onCancelAction={() => setIsModalOpen(false)}
             isSubmitting={saveMutation.isPending || updateMutation.isPending}
-            isReadOnly={modalMode === "view"}
+            isReadOnly={modalMode === "view" || !canEdit}
             onCodeBlur={handleCodeBlur}
           />
         </DialogContent>
       </Dialog>
 
-      {/* Load Existing SubCategory Dialog */}
+      {/* Load Existing SubCategory Group Dialog */}
       <LoadConfirmation
         open={showLoadDialog}
         onOpenChange={setShowLoadDialog}
@@ -369,24 +391,25 @@ export default function SubCategoryPage() {
         onCancel={() => setExistingSubCategory(null)}
         code={existingSubCategory?.subCategoryCode}
         name={existingSubCategory?.subCategoryName}
-        typeLabel="SubCategory"
+        typeLabel="SubCategory Group"
         isLoading={saveMutation.isPending || updateMutation.isPending}
       />
 
+      {/* Delete Confirmation Dialog */}
       <DeleteConfirmation
         open={deleteConfirmation.isOpen}
         onOpenChange={(isOpen) =>
           setDeleteConfirmation((prev) => ({ ...prev, isOpen }))
         }
-        title="Delete SubCategory"
-        description="This action cannot be undone. This will permanently delete the subcategory from our servers."
-        itemName={deleteConfirmation.subcategoryName || ""}
+        title="Delete SubCategory Type"
+        description="This action cannot be undone. This will permanently delete the subCategory type from our servers."
+        itemName={deleteConfirmation.subCategoryName || ""}
         onConfirm={handleConfirmDelete}
         onCancel={() =>
           setDeleteConfirmation({
             isOpen: false,
             subCategoryId: null,
-            subcategoryName: null,
+            subCategoryName: null,
           })
         }
         isDeleting={deleteMutation.isPending}
@@ -399,7 +422,9 @@ export default function SubCategoryPage() {
           setSaveConfirmation((prev) => ({ ...prev, isOpen }))
         }
         title={
-          modalMode === "create" ? "Create SubCategory" : "Update SubCategory"
+          modalMode === "create"
+            ? "Create SubCategory Group"
+            : "Update SubCategory Group"
         }
         itemName={saveConfirmation.data?.subCategoryName || ""}
         operationType={modalMode === "create" ? "create" : "update"}

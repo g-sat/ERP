@@ -131,14 +131,15 @@ export default function ProductPage() {
         const response = await saveMutation.mutateAsync(data)
         if (response.result === 1) {
           queryClient.invalidateQueries({ queryKey: ["products"] })
+          setIsModalOpen(false)
         }
       } else if (modalMode === "edit" && selectedProduct) {
         const response = await updateMutation.mutateAsync(data)
         if (response.result === 1) {
           queryClient.invalidateQueries({ queryKey: ["products"] })
+          setIsModalOpen(false)
         }
       }
-      setIsModalOpen(false)
     } catch (error) {
       console.error("Error in form submission:", error)
     }
@@ -179,8 +180,8 @@ export default function ProductPage() {
 
       try {
         const response = await getById(`${Product.getByCode}/${trimmedCode}`)
-                if (response?.result === 1 && response.data) {
-                    const productData = Array.isArray(response.data)
+        if (response?.result === 1 && response.data) {
+          const productData = Array.isArray(response.data)
             ? response.data[0]
             : response.data
 
@@ -217,8 +218,7 @@ export default function ProductPage() {
     }
   }
 
-  useEffect(() => {
-  }, [modalMode])
+  useEffect(() => {}, [modalMode])
 
   useEffect(() => {
     if (selectedProduct) {

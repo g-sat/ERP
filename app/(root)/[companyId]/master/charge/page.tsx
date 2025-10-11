@@ -1,22 +1,16 @@
 "use client"
 
-import { useCallback, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { useParams } from "next/navigation"
-import { ApiResponse } from "@/interfaces/auth"
-import { ICharge, IChargeFilter } from "@/interfaces/charge"
-import { ChargeSchemaType } from "@/schemas/charge"
+import { ApiResponse, ICharge, IChargeFilter } from "@/interfaces"
+import { ChargeSchemaType } from "@/schemas"
 import { usePermissionStore } from "@/stores/permission-store"
 import { useQueryClient } from "@tanstack/react-query"
 
 import { getById } from "@/lib/api-client"
 import { Charge } from "@/lib/api-routes"
 import { MasterTransactionId, ModuleId } from "@/lib/utils"
-import {
-  useDelete,
-  useGet,
-  useGetByParams,
-  usePersist,
-} from "@/hooks/use-common"
+import { useDelete, useGet, usePersist } from "@/hooks/use-common"
 import {
   Dialog,
   DialogContent,
@@ -32,23 +26,28 @@ import { DataTableSkeleton } from "@/components/skeleton/data-table-skeleton"
 import { LockSkeleton } from "@/components/skeleton/lock-skeleton"
 
 import { ChargeForm } from "./components/charge-form"
-import { ChargesTable } from "./components/charge-table"
+import { ChargeTable } from "./components/charge-table"
 
 export default function ChargePage() {
-  const { companyId } = useParams()
+  const params = useParams()
+  const companyId = params.companyId as string
+
   const moduleId = ModuleId.master
   const transactionId = MasterTransactionId.charge
 
-  const { hasPermission } = usePermissionStore()
-
-  const canEdit = hasPermission(moduleId, transactionId, "isEdit")
-  const canDelete = hasPermission(moduleId, transactionId, "isDelete")
-  const canView = hasPermission(moduleId, transactionId, "isRead")
-  const canCreate = hasPermission(moduleId, transactionId, "isCreate")
-
+  // Move queryClient to top for proper usage order
   const queryClient = useQueryClient()
 
+  const { hasPermission } = usePermissionStore()
+
+  const canView = hasPermission(moduleId, transactionId, "isRead")
+  const canEdit = hasPermission(moduleId, transactionId, "isEdit")
+  const canDelete = hasPermission(moduleId, transactionId, "isDelete")
+  const canCreate = hasPermission(moduleId, transactionId, "isCreate")
+
+  // Fetch account groups from the API using useGet
   const [filters, setFilters] = useState<IChargeFilter>({})
+  const [isLocked, setIsLocked] = useState(false)
 
   // Filter handler wrapper
   const handleFilterChange = useCallback(
@@ -64,6 +63,7 @@ export default function ChargePage() {
     isLoading,
   } = useGet<ICharge>(`${Charge.get}`, "charges", filters.search)
 
+  // Destructure with fallback values
   const { result: chargesResult, data: chargesData } =
     (chargesResponse as ApiResponse<ICharge>) ?? {
       result: 0,
@@ -71,52 +71,46 @@ export default function ChargePage() {
       data: [],
     }
 
+  // Handle result = -1 and result = -2 cases
+  useEffect(() => {
+    if (!chargesResponse) return
+
+    if (chargesResponse.result === -1) {
+      setFilters({})
+    } else if (chargesResponse.result === -2 && !isLocked) {
+      setIsLocked(true)
+    } else if (chargesResponse.result !== -2) {
+      setIsLocked(false)
+    }
+  }, [chargesResponse, isLocked])
+
+  // Define mutations for CRUD operations
   const saveMutation = usePersist<ChargeSchemaType>(`${Charge.add}`)
   const updateMutation = usePersist<ChargeSchemaType>(`${Charge.add}`)
   const deleteMutation = useDelete(`${Charge.delete}`)
 
-  const [selectedCharge, setSelectedCharge] = useState<ICharge | null>(null)
+  // State for modal and selected account group
+  const [selectedCharge, setSelectedCharge] = useState<ICharge | undefined>(
+    undefined
+  )
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [modalMode, setModalMode] = useState<"create" | "edit" | "view">(
     "create"
   )
+  // State for code availability check
   const [showLoadDialog, setShowLoadDialog] = useState(false)
   const [existingCharge, setExistingCharge] = useState<ICharge | null>(null)
 
+  // State for delete confirmation
   const [deleteConfirmation, setDeleteConfirmation] = useState<{
     isOpen: boolean
     chargeId: string | null
     chargeName: string | null
-    taskId: number | null
   }>({
     isOpen: false,
     chargeId: null,
     chargeName: null,
-    taskId: null,
   })
-
-  const handleRefresh = () => {
-    refetch()
-  }
-
-  const handleCreateCharge = () => {
-    setModalMode("create")
-    setSelectedCharge(null)
-    setIsModalOpen(true)
-  }
-
-  const handleEditCharge = (charge: ICharge) => {
-    setModalMode("edit")
-    setSelectedCharge(charge)
-    setIsModalOpen(true)
-  }
-
-  const handleViewCharge = (charge: ICharge | null) => {
-    if (!charge) return
-    setModalMode("view")
-    setSelectedCharge(charge)
-    setIsModalOpen(true)
-  }
 
   // State for save confirmation
   const [saveConfirmation, setSaveConfirmation] = useState<{
@@ -126,6 +120,33 @@ export default function ChargePage() {
     isOpen: false,
     data: null,
   })
+
+  // Handler to Re-fetches data when called
+  const handleRefresh = () => {
+    refetch()
+  }
+
+  // Handler to open modal for creating a new account group
+  const handleCreateCharge = () => {
+    setModalMode("create")
+    setSelectedCharge(undefined)
+    setIsModalOpen(true)
+  }
+
+  // Handler to open modal for editing an account group
+  const handleEditCharge = (charge: ICharge) => {
+    setModalMode("edit")
+    setSelectedCharge(charge)
+    setIsModalOpen(true)
+  }
+
+  // Handler to open modal for viewing an account group
+  const handleViewCharge = (charge: ICharge | null) => {
+    if (!charge) return
+    setModalMode("view")
+    setSelectedCharge(charge)
+    setIsModalOpen(true)
+  }
 
   // Handler for form submission (create or edit) - shows confirmation first
   const handleFormSubmit = (data: ChargeSchemaType) => {
@@ -141,76 +162,101 @@ export default function ChargePage() {
       if (modalMode === "create") {
         const response = await saveMutation.mutateAsync(data)
         if (response.result === 1) {
+          // Invalidate and refetch the charges query
           queryClient.invalidateQueries({ queryKey: ["charges"] })
+          setIsModalOpen(false)
         }
       } else if (modalMode === "edit" && selectedCharge) {
         const response = await updateMutation.mutateAsync(data)
         if (response.result === 1) {
+          // Invalidate and refetch the charges query
           queryClient.invalidateQueries({ queryKey: ["charges"] })
+          setIsModalOpen(false)
         }
       }
-      setIsModalOpen(false)
     } catch (error) {
       console.error("Error in form submission:", error)
     }
   }
 
+  // Handler for deleting an account group
   const handleDeleteCharge = (chargeId: string) => {
     const chargeToDelete = chargesData?.find(
-      (b) => b.chargeId.toString() === chargeId
+      (ag) => ag.chargeId.toString() === chargeId
     )
     if (!chargeToDelete) return
+
+    // Open delete confirmation dialog with account group details
     setDeleteConfirmation({
       isOpen: true,
       chargeId,
       chargeName: chargeToDelete.chargeName,
-      taskId: chargeToDelete.taskId,
     })
   }
 
   const handleConfirmDelete = () => {
-    if (deleteConfirmation.chargeId && deleteConfirmation.taskId) {
-      // Pass both chargeId and taskId for delete operation
-      const deleteParams = `${deleteConfirmation.chargeId}/${deleteConfirmation.taskId}`
-      deleteMutation.mutateAsync(deleteParams).then(() => {
+    if (deleteConfirmation.chargeId) {
+      deleteMutation.mutateAsync(deleteConfirmation.chargeId).then(() => {
+        // Invalidate and refetch the charges query after successful deletion
         queryClient.invalidateQueries({ queryKey: ["charges"] })
       })
       setDeleteConfirmation({
         isOpen: false,
         chargeId: null,
         chargeName: null,
-        taskId: null,
       })
     }
   }
 
+  // Handler for code availability check (memoized to prevent unnecessary re-renders)
   const handleCodeBlur = useCallback(
-    async (code: string, taskId?: number) => {
+    async (code: string, taskId: number) => {
+      // Skip if:
+      // 1. In edit mode
+      // 2. In read-only mode
       if (modalMode === "edit" || modalMode === "view") return
 
       const trimmedCode = code?.trim()
-      if (!trimmedCode || !taskId) return
+      if (!trimmedCode) {
+        return
+      }
 
       try {
-        const response = await getById(`${Charge.getByCode}/${trimmedCode}`)
+        const response = await getById(
+          `${Charge.getByCode}/${trimmedCode}/${taskId}`
+        )
+
+        // Check if response has data and it's not empty
         if (response?.result === 1 && response.data) {
+          // Handle both array and single object responses
           const chargeData = Array.isArray(response.data)
             ? response.data[0]
             : response.data
 
           if (chargeData) {
-            const validChargeData: ChargeSchemaType = {
+            // Ensure all required fields are present
+            const validChargeData: ICharge = {
               chargeId: chargeData.chargeId,
               chargeCode: chargeData.chargeCode,
               chargeName: chargeData.chargeName,
               taskId: chargeData.taskId,
-              chargeOrder: chargeData.chargeOrder || 0,
-              itemNo: chargeData.itemNo || 0,
-              glId: chargeData.glId || 0,
+              chargeOrder: chargeData.chargeOrder,
+              itemNo: chargeData.itemNo,
+              glId: chargeData.glId,
+              isActive: chargeData.isActive,
               remarks: chargeData.remarks || "",
-              isActive: chargeData.isActive ?? true,
+              createBy: chargeData.createBy,
+              editBy: chargeData.editBy,
+              createDate: chargeData.createDate,
+              editDate: chargeData.editDate,
+              createById: chargeData.createById,
+              editById: chargeData.editById,
+              companyId: chargeData.companyId,
+              taskName: chargeData.taskName,
+              glName: chargeData.glName,
             }
-            setExistingCharge(validChargeData as ICharge)
+
+            setExistingCharge(validChargeData)
             setShowLoadDialog(true)
           }
         }
@@ -221,6 +267,7 @@ export default function ChargePage() {
     [modalMode]
   )
 
+  // Handler for loading existing account group
   const handleLoadExistingCharge = () => {
     if (existingCharge) {
       setModalMode("edit")
@@ -244,7 +291,7 @@ export default function ChargePage() {
         </div>
       </div>
 
-      {/* Charges Table */}
+      {/* Account Groups Table */}
       {isLoading ? (
         <DataTableSkeleton
           columnCount={7}
@@ -263,7 +310,7 @@ export default function ChargePage() {
       ) : chargesResult === -2 ||
         (!canView && !canEdit && !canDelete && !canCreate) ? (
         <LockSkeleton locked={true}>
-          <ChargesTable
+          <ChargeTable
             data={[]}
             isLoading={false}
             onSelect={() => {}}
@@ -281,7 +328,7 @@ export default function ChargePage() {
           />
         </LockSkeleton>
       ) : (
-        <ChargesTable
+        <ChargeTable
           data={filters.search ? [] : chargesData || []}
           isLoading={isLoading}
           onSelect={canView ? handleViewCharge : undefined}
@@ -333,20 +380,20 @@ export default function ChargePage() {
           <ChargeForm
             initialData={
               modalMode === "edit" || modalMode === "view"
-                ? selectedCharge || undefined
+                ? selectedCharge
                 : undefined
             }
             submitAction={handleFormSubmit}
             onCancelAction={() => setIsModalOpen(false)}
             isSubmitting={saveMutation.isPending || updateMutation.isPending}
-            isReadOnly={modalMode === "view"}
+            isReadOnly={modalMode === "view" || !canEdit}
             onCodeBlur={handleCodeBlur}
-            companyId={companyId as string}
+            companyId={companyId}
           />
         </DialogContent>
       </Dialog>
 
-      {/* Load Existing Charge Dialog */}
+      {/* Load Existing Account Group Dialog */}
       <LoadConfirmation
         open={showLoadDialog}
         onOpenChange={setShowLoadDialog}
@@ -354,7 +401,7 @@ export default function ChargePage() {
         onCancel={() => setExistingCharge(null)}
         code={existingCharge?.chargeCode}
         name={existingCharge?.chargeName}
-        typeLabel="Charge"
+        typeLabel="Account Group"
         isLoading={saveMutation.isPending || updateMutation.isPending}
       />
 
@@ -364,8 +411,8 @@ export default function ChargePage() {
         onOpenChange={(isOpen) =>
           setDeleteConfirmation((prev) => ({ ...prev, isOpen }))
         }
-        title="Delete Charge"
-        description="This action cannot be undone. This will permanently delete the charge from our servers."
+        title="Delete Account Type"
+        description="This action cannot be undone. This will permanently delete the account type from our servers."
         itemName={deleteConfirmation.chargeName || ""}
         onConfirm={handleConfirmDelete}
         onCancel={() =>
@@ -373,7 +420,6 @@ export default function ChargePage() {
             isOpen: false,
             chargeId: null,
             chargeName: null,
-            taskId: null,
           })
         }
         isDeleting={deleteMutation.isPending}

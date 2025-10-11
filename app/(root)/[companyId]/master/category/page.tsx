@@ -163,15 +163,16 @@ export default function CategoryPage() {
         if (response.result === 1) {
           // Invalidate and refetch the categorys query
           queryClient.invalidateQueries({ queryKey: ["categorys"] })
+          setIsModalOpen(false)
         }
       } else if (modalMode === "edit" && selectedCategory) {
         const response = await updateMutation.mutateAsync(data)
         if (response.result === 1) {
           // Invalidate and refetch the categorys query
           queryClient.invalidateQueries({ queryKey: ["categorys"] })
+          setIsModalOpen(false)
         }
       }
-      setIsModalOpen(false)
     } catch (error) {
       console.error("Error in form submission:", error)
     }
