@@ -1,8 +1,8 @@
 "use client"
 
 import { useEffect } from "react"
-import { ICategory } from "@/interfaces/category"
-import { CategorySchemaType, categorySchema } from "@/schemas/category"
+import { ICategory } from "@/interfaces"
+import { CategorySchemaType, categorySchema } from "@/schemas"
 import { useAuthStore } from "@/stores/auth-store"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { format } from "date-fns"
@@ -20,7 +20,8 @@ import CustomInput from "@/components/custom/custom-input"
 import CustomSwitch from "@/components/custom/custom-switch"
 import CustomTextarea from "@/components/custom/custom-textarea"
 
-const defaultValues = {
+// Default values for the category group form
+const defaultValues: CategorySchemaType = {
   categoryId: 0,
   categoryName: "",
   categoryCode: "",
@@ -28,7 +29,7 @@ const defaultValues = {
   isActive: true,
 }
 interface CategoryFormProps {
-  initialData?: ICategory | null
+  initialData?: ICategory
   submitAction: (data: CategorySchemaType) => void
   onCancelAction?: () => void
   isSubmitting?: boolean
@@ -46,13 +47,15 @@ export function CategoryForm({
 }: CategoryFormProps) {
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
+
   const form = useForm<CategorySchemaType>({
     resolver: zodResolver(categorySchema),
+    mode: "onBlur", // Validate on blur for better UX
     defaultValues: initialData
       ? {
           categoryId: initialData.categoryId ?? 0,
-          categoryName: initialData.categoryName ?? "",
           categoryCode: initialData.categoryCode ?? "",
+          categoryName: initialData.categoryName ?? "",
           remarks: initialData.remarks ?? "",
           isActive: initialData.isActive ?? true,
         }
@@ -67,12 +70,14 @@ export function CategoryForm({
       initialData
         ? {
             categoryId: initialData.categoryId ?? 0,
-            categoryName: initialData.categoryName ?? "",
             categoryCode: initialData.categoryCode ?? "",
+            categoryName: initialData.categoryName ?? "",
             remarks: initialData.remarks ?? "",
             isActive: initialData.isActive ?? true,
           }
-        : { ...defaultValues }
+        : {
+            ...defaultValues,
+          }
     )
   }, [initialData, form])
 
@@ -83,20 +88,28 @@ export function CategoryForm({
     }
   }
 
-  const onSubmit = (data: CategorySchemaType) => {
-    submitAction(data)
+  const onSubmit = (values: CategorySchemaType) => {
+    console.log("Form submitted successfully:", values)
+    submitAction(values)
+  }
+
+  const onError = (errors: Record<string, unknown>) => {
+    console.log("Form validation errors:", errors)
   }
 
   return (
     <div className="max-w flex flex-col gap-2">
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-2">
+        <form
+          onSubmit={form.handleSubmit(onSubmit, onError)}
+          className="space-y-2"
+        >
           <div className="grid gap-2">
             <div className="grid grid-cols-2 gap-2">
               <CustomInput
                 form={form}
                 name="categoryCode"
-                label="Category Code"
+                label="Category Group Code"
                 isRequired
                 isDisabled={isReadOnly || Boolean(initialData)}
                 onBlurEvent={handleCodeBlur}
@@ -104,19 +117,19 @@ export function CategoryForm({
               <CustomInput
                 form={form}
                 name="categoryName"
-                label="Category Name"
+                label="Category Group Name"
                 isRequired
                 isDisabled={isReadOnly}
               />
             </div>
-
             <CustomTextarea
               form={form}
               name="remarks"
               label="Remarks"
               isDisabled={isReadOnly}
             />
-            <div className="grid grid-cols-2 gap-2">
+
+            <div className="grid grid-cols-1 gap-2">
               <CustomSwitch
                 form={form}
                 name="isActive"
@@ -215,8 +228,8 @@ export function CategoryForm({
                 {isSubmitting
                   ? "Saving..."
                   : initialData
-                    ? "Update Category"
-                    : "Create Category"}
+                    ? "Update Category Group"
+                    : "Create Category Group"}
               </Button>
             )}
           </div>

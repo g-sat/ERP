@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { IAccountGroup, IAccountGroupFilter } from "@/interfaces/accountgroup"
 import { ApiResponse } from "@/interfaces/auth"
 import { AccountGroupSchemaType } from "@/schemas/accountgroup"
@@ -44,6 +44,7 @@ export default function AccountGroupPage() {
 
   // Fetch account groups from the API using useGet
   const [filters, setFilters] = useState<IAccountGroupFilter>({})
+  const [isLocked, setIsLocked] = useState(false)
 
   // Filter handler wrapper
   const handleFilterChange = useCallback(
@@ -70,6 +71,19 @@ export default function AccountGroupPage() {
       message: "",
       data: [],
     }
+
+  // Handle result = -1 and result = -2 cases
+  useEffect(() => {
+    if (!accountGroupsResponse) return
+
+    if (accountGroupsResponse.result === -1) {
+      setFilters({})
+    } else if (accountGroupsResponse.result === -2 && !isLocked) {
+      setIsLocked(true)
+    } else if (accountGroupsResponse.result !== -2) {
+      setIsLocked(false)
+    }
+  }, [accountGroupsResponse, isLocked])
 
   // Define mutations for CRUD operations
   const saveMutation = usePersist<AccountGroupSchemaType>(`${AccountGroup.add}`)
@@ -311,12 +325,12 @@ export default function AccountGroupPage() {
         </LockSkeleton>
       ) : (
         <AccountGroupTable
-          data={accountGroupsData || []}
+          data={filters.search ? [] : accountGroupsData || []}
           isLoading={isLoading}
-          onSelect={handleViewAccountGroup}
-          onDelete={handleDeleteAccountGroup}
-          onEdit={handleEditAccountGroup}
-          onCreate={handleCreateAccountGroup}
+          onSelect={canView ? handleViewAccountGroup : undefined}
+          onDelete={canDelete ? handleDeleteAccountGroup : undefined}
+          onEdit={canEdit ? handleEditAccountGroup : undefined}
+          onCreate={canCreate ? handleCreateAccountGroup : undefined}
           onRefresh={handleRefresh}
           onFilterChange={handleFilterChange}
           moduleId={moduleId}
@@ -368,7 +382,7 @@ export default function AccountGroupPage() {
             submitAction={handleFormSubmit}
             onCancelAction={() => setIsModalOpen(false)}
             isSubmitting={saveMutation.isPending || updateMutation.isPending}
-            isReadOnly={modalMode === "view"}
+            isReadOnly={modalMode === "view" || !canEdit}
             onCodeBlur={handleCodeBlur}
           />
         </DialogContent>

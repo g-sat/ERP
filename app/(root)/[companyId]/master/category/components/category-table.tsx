@@ -13,7 +13,7 @@ import { TableName } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import { MainTable } from "@/components/table/table-main"
 
-interface CategorysTableProps {
+interface CategoryTableProps {
   data: ICategory[]
   isLoading?: boolean
   onSelect?: (category: ICategory | null) => void
@@ -31,7 +31,7 @@ interface CategorysTableProps {
   canCreate?: boolean
 }
 
-export function CategorysTable({
+export function CategoryTable({
   data,
   isLoading = false,
   onSelect,
@@ -47,7 +47,7 @@ export function CategorysTable({
   canDelete = true,
   canView = true,
   canCreate = true,
-}: CategorysTableProps) {
+}: CategoryTableProps) {
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
 
@@ -55,9 +55,9 @@ export function CategorysTable({
     {
       accessorKey: "categoryCode",
       header: "Code",
-
       size: 120,
       minSize: 50,
+
       enableColumnFilter: true,
     },
     {
@@ -65,12 +65,18 @@ export function CategorysTable({
       header: "Name",
       size: 200,
       minSize: 50,
+
       enableColumnFilter: true,
+    },
+    {
+      accessorKey: "seqNo",
+      header: "Seq No",
+      size: 120,
+      minSize: 50,
     },
     {
       accessorKey: "remarks",
       header: "Remarks",
-
       size: 250,
       minSize: 50,
     },
@@ -93,7 +99,6 @@ export function CategorysTable({
     {
       accessorKey: "createBy",
       header: "Create By",
-
       size: 120,
       minSize: 50,
     },
@@ -113,7 +118,6 @@ export function CategorysTable({
     {
       accessorKey: "editBy",
       header: "Edit By",
-
       size: 120,
       minSize: 50,
     },
@@ -140,7 +144,7 @@ export function CategorysTable({
       moduleId={moduleId}
       transactionId={transactionId}
       tableName={TableName.category}
-      emptyMessage="No categories found."
+      emptyMessage="No category  found."
       accessorId="categoryId"
       // Add handlers if provided
       onRefresh={onRefresh}

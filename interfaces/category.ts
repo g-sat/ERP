@@ -3,8 +3,6 @@ export interface ICategory {
   companyId: number
   categoryCode: string
   categoryName: string
-  createById: number
-  editById: number
   createBy: string
   editBy: string | null
   createDate: Date | string

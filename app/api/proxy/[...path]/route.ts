@@ -68,7 +68,44 @@ export async function GET(request: NextRequest) {
     const headers = await getSecureHeaders(request)
 
     const response = await fetch(url, { headers })
-    const data = await response.json()
+
+    // Check if response is ok
+    if (!response.ok) {
+      const text = await response.text()
+      console.error(
+        "GET request failed:",
+        response.status,
+        text.substring(0, 200)
+      )
+      return NextResponse.json(
+        { result: 0, message: `Server error: ${response.status}`, data: [] },
+        { status: response.status }
+      )
+    }
+
+    const responseText = await response.text()
+    if (!responseText || responseText.trim() === "") {
+      return NextResponse.json({
+        result: 0,
+        message: "Empty response",
+        data: [],
+      })
+    }
+
+    let data
+    try {
+      data = JSON.parse(responseText)
+    } catch (jsonError) {
+      console.error(
+        "GET JSON parse error:",
+        jsonError,
+        responseText.substring(0, 200)
+      )
+      return NextResponse.json(
+        { result: 0, message: "Invalid JSON response", data: [] },
+        { status: 500 }
+      )
+    }
 
     return NextResponse.json(data)
   } catch (error) {
@@ -91,7 +128,39 @@ export async function POST(request: NextRequest) {
       headers,
       body: JSON.stringify(body),
     })
-    const data = await response.json()
+
+    if (!response.ok) {
+      const text = await response.text()
+      console.error(
+        "POST request failed:",
+        response.status,
+        text.substring(0, 200)
+      )
+      return NextResponse.json(
+        { result: 0, message: `Server error: ${response.status}` },
+        { status: response.status }
+      )
+    }
+
+    const responseText = await response.text()
+    if (!responseText || responseText.trim() === "") {
+      return NextResponse.json({ result: 1, message: "Success" })
+    }
+
+    let data
+    try {
+      data = JSON.parse(responseText)
+    } catch (jsonError) {
+      console.error(
+        "POST JSON parse error:",
+        jsonError,
+        responseText.substring(0, 200)
+      )
+      return NextResponse.json(
+        { result: 0, message: "Invalid JSON response" },
+        { status: 500 }
+      )
+    }
 
     return NextResponse.json(data)
   } catch (error) {
@@ -114,7 +183,39 @@ export async function PUT(request: NextRequest) {
       headers,
       body: JSON.stringify(body),
     })
-    const data = await response.json()
+
+    if (!response.ok) {
+      const text = await response.text()
+      console.error(
+        "PUT request failed:",
+        response.status,
+        text.substring(0, 200)
+      )
+      return NextResponse.json(
+        { result: 0, message: `Server error: ${response.status}` },
+        { status: response.status }
+      )
+    }
+
+    const responseText = await response.text()
+    if (!responseText || responseText.trim() === "") {
+      return NextResponse.json({ result: 1, message: "Success" })
+    }
+
+    let data
+    try {
+      data = JSON.parse(responseText)
+    } catch (jsonError) {
+      console.error(
+        "PUT JSON parse error:",
+        jsonError,
+        responseText.substring(0, 200)
+      )
+      return NextResponse.json(
+        { result: 0, message: "Invalid JSON response" },
+        { status: 500 }
+      )
+    }
 
     return NextResponse.json(data)
   } catch (error) {
@@ -131,11 +232,59 @@ export async function DELETE(request: NextRequest) {
     const url = `${BACKEND_API_URL}/${pathParam}`
     const headers = await getSecureHeaders(request)
 
+    console.log("DELETE request to:", url)
+
     const response = await fetch(url, {
       method: "DELETE",
       headers,
     })
-    const data = await response.json()
+
+    console.log("DELETE response status:", response.status)
+
+    // Check if response is ok
+    if (!response.ok) {
+      console.error("DELETE request failed with status:", response.status)
+      const text = await response.text()
+      console.error("Response body:", text.substring(0, 500))
+      return NextResponse.json(
+        {
+          result: 0,
+          message: `Server returned error: ${response.status}`,
+          error: text.substring(0, 200),
+        },
+        { status: response.status }
+      )
+    }
+
+    // Check if there's content to parse
+    const contentType = response.headers.get("content-type")
+    const responseText = await response.text()
+
+    console.log("DELETE response content-type:", contentType)
+    console.log("DELETE response text:", responseText.substring(0, 200))
+
+    // Handle empty responses
+    if (!responseText || responseText.trim() === "") {
+      console.log("Empty response, returning success")
+      return NextResponse.json({ result: 1, message: "Deleted successfully" })
+    }
+
+    // Try to parse as JSON
+    let data
+    try {
+      data = JSON.parse(responseText)
+    } catch (jsonError) {
+      console.error("Failed to parse JSON response:", jsonError)
+      console.error("Response text:", responseText.substring(0, 500))
+      return NextResponse.json(
+        {
+          result: 0,
+          message: "Invalid response from server",
+          error: "Not valid JSON",
+        },
+        { status: 500 }
+      )
+    }
 
     return NextResponse.json(data)
   } catch (error) {

@@ -16,7 +16,6 @@ export const categorySchema = z.object({
     .max(255, { message: "Remarks cannot exceed 255 characters" })
     .optional(),
   isActive: z.boolean(),
-  isOwn: z.boolean(),
 })
 
 export type CategorySchemaType = z.infer<typeof categorySchema>

@@ -208,6 +208,10 @@ export default function AccountSetupPage() {
     id: string | null
     name: string | null
     type: "setup" | "category" | "dt"
+    // Additional IDs for AccountSetupDt (requires 3 IDs)
+    accSetupId?: number
+    currencyId?: number
+    glId?: number
   }>({
     isOpen: false,
     id: null,
@@ -425,6 +429,10 @@ export default function AccountSetupPage() {
       id: id,
       name: dtToDelete.accSetupName,
       type: "dt",
+      // Store all 3 IDs needed for delete
+      accSetupId: dtToDelete.accSetupId,
+      currencyId: dtToDelete.currencyId,
+      glId: dtToDelete.glId,
     })
   }
 
@@ -461,28 +469,40 @@ export default function AccountSetupPage() {
   const handleConfirmDelete = () => {
     if (!deleteConfirmation.id) return
 
-    let mutation
+    let deletePromise
     let queryKey
+
     switch (deleteConfirmation.type) {
       case "setup":
-        mutation = deleteMutationSetup
+        deletePromise = deleteMutationSetup.mutateAsync(deleteConfirmation.id)
         queryKey = ["accountSetups"]
         break
       case "category":
-        mutation = deleteMutationCategory
+        deletePromise = deleteMutationCategory.mutateAsync(
+          deleteConfirmation.id
+        )
         queryKey = ["accountSetupCategories"]
         break
       case "dt":
-        mutation = deleteMutationDt
+        // For AccountSetupDt, we need to pass all 3 IDs
+        const { accSetupId, currencyId, glId } = deleteConfirmation
+        if (!accSetupId || !currencyId || !glId) {
+          console.error("Missing required IDs for AccountSetupDt deletion")
+          return
+        }
+        // Pass composite key as: AccSetupId/CurrencyId/GLId
+        const compositeId = `${accSetupId}/${currencyId}/${glId}`
+        deletePromise = deleteMutationDt.mutateAsync(compositeId)
         queryKey = ["accountSetupDts"]
         break
       default:
         return
     }
 
-    mutation.mutateAsync(deleteConfirmation.id).then(() => {
+    deletePromise.then(() => {
       queryClient.invalidateQueries({ queryKey })
     })
+
     setDeleteConfirmation({
       isOpen: false,
       id: null,

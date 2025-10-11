@@ -3,7 +3,7 @@ import { UseQueryOptions, useMutation, useQuery } from "@tanstack/react-query"
 import { AxiosError } from "axios"
 import { toast } from "sonner"
 
-import { apiClient, getById, getData, saveData } from "@/lib/api-client"
+import { deleteData, getById, getData, saveData } from "@/lib/api-client"
 
 // ==================== COMMON TYPES & CONFIGS ====================
 type QueryParams = {
@@ -195,10 +195,7 @@ export function usePersist<T>(baseUrl: string) {
  */
 export function useDelete<T = unknown>(baseUrl: string) {
   return useMutation<ApiResponse<T>, AxiosError<{ message?: string }>, string>({
-    mutationFn: async (id) => {
-      const response = await apiClient.delete(`${cleanUrl(baseUrl)}/${id}`)
-      return response.data
-    },
+    mutationFn: async (id) => await deleteData(`${cleanUrl(baseUrl)}/${id}`),
     onSuccess: handleMutationResponse,
     onError: handleMutationError,
   })
