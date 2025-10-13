@@ -193,14 +193,16 @@ export default function Main({
       const newDetails: ApPaymentDtSchemaType[] = transactions.map(
         (transaction, index) => {
           return {
+            companyId: companyId,
             paymentId: form.getValues("paymentId") || "0",
             paymentNo: form.getValues("paymentNo") || "",
             itemNo: nextItemNo + index,
             transactionId: transaction.transactionId,
-            documentId: transaction.documentId,
+            documentId: Number(transaction.documentId),
             documentNo: transaction.documentNo,
             referenceNo: transaction.referenceNo,
             docCurrencyId: transaction.currencyId,
+            docCurrencyCode: transaction.currencyCode || "",
             docExhRate: transaction.exhRate,
             docAccountDate: transaction.accountDate,
             docDueDate: transaction.dueDate,
@@ -228,7 +230,7 @@ export default function Main({
 
       form.trigger("data_details")
     },
-    [form]
+    [form, companyId]
   )
 
   return (

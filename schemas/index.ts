@@ -61,3 +61,4 @@ export * from "./worklocation"
 // AP schemas
 export * from "./ap-invoice"
 export * from "./ap-payment"
+export * from "./ap-creditnote"
