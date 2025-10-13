@@ -69,6 +69,7 @@ export interface IApPaymentDt {
   documentNo: string
   referenceNo: string
   docCurrencyId: number
+  docCurrencyCode: string
   docExhRate: number
   docAccountDate: Date | string
   docDueDate: Date | string

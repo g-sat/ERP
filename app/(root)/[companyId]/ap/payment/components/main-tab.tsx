@@ -1,12 +1,12 @@
 // main-tab.tsx - IMPROVED VERSION
 "use client"
 
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import {
   calculateLocalAmounts,
   calculateTotalAmounts,
 } from "@/helpers/ap-payment-calculations"
-import { IApPaymentDt } from "@/interfaces"
+import { IApOutTransaction, IApPaymentDt } from "@/interfaces"
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
 import {
   ApPaymentDtSchemaType,
@@ -14,9 +14,11 @@ import {
 } from "@/schemas/ap-payment"
 import { useAuthStore } from "@/stores/auth-store"
 import { UseFormReturn } from "react-hook-form"
+import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import OutStandingTransactionsDialog from "@/components/accounttransaction/outstandingtransactions-dialog"
 
 import PaymentDetailsTable from "./payment-details-table"
 import PaymentForm from "./payment-form"
@@ -46,6 +48,14 @@ export default function Main({
   const [editingDetail, setEditingDetail] =
     useState<ApPaymentDtSchemaType | null>(null)
 
+  // State for transaction selection dialog
+  const [showTransactionDialog, setShowTransactionDialog] = useState(false)
+  const dialogParamsRef = useRef<{
+    supplierId: number
+    currencyId: number
+    accountDate: string
+  } | null>(null)
+
   // Watch data_details for reactive updates
   const dataDetails = form.watch("data_details") || []
 
@@ -55,6 +65,13 @@ export default function Main({
       setEditingDetail(null)
     }
   }, [dataDetails.length, editingDetail])
+
+  // Clear dialog params when dialog closes
+  useEffect(() => {
+    if (!showTransactionDialog) {
+      dialogParamsRef.current = null
+    }
+  }, [showTransactionDialog])
 
   // Recalculate header totals when details change
   useEffect(() => {
@@ -82,7 +99,7 @@ export default function Main({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dataDetails.length, amtDec, locAmtDec, ctyAmtDec])
 
-  const handleAddRow = (rowData: IApPaymentDt) => {
+  const _handleAddRow = (rowData: IApPaymentDt) => {
     const currentData = form.getValues("data_details") || []
 
     if (editingDetail) {
@@ -134,13 +151,85 @@ export default function Main({
     // console.log("Editing editingDetail:", editingDetail)
   }
 
-  const handleCancelEdit = () => {
+  const _handleCancelEdit = () => {
     setEditingDetail(null)
   }
 
   const handleDataReorder = (newData: IApPaymentDt[]) => {
     form.setValue("data_details", newData as unknown as ApPaymentDtSchemaType[])
   }
+
+  // Handle Select Transaction button click
+  const handleSelectTransaction = useCallback(() => {
+    const supplierId = form.getValues("supplierId")
+    const currencyId = form.getValues("currencyId")
+    const accountDate = form.getValues("accountDate")
+
+    if (!supplierId || !currencyId || !accountDate) {
+      toast.warning("Please select Supplier, Currency, and Account Date first")
+      return
+    }
+
+    // Store the values in ref to prevent infinite re-renders
+    dialogParamsRef.current = {
+      supplierId,
+      currencyId,
+      accountDate: accountDate?.toString() || "",
+    }
+
+    setShowTransactionDialog(true)
+  }, [form])
+
+  // Handle adding selected transactions to payment details
+  const handleAddSelectedTransactions = useCallback(
+    (transactions: IApOutTransaction[]) => {
+      const currentData = form.getValues("data_details") || []
+      const nextItemNo =
+        currentData.length > 0
+          ? Math.max(...currentData.map((d) => d.itemNo)) + 1
+          : 1
+
+      // Convert selected transactions to payment details
+      const newDetails: ApPaymentDtSchemaType[] = transactions.map(
+        (transaction, index) => {
+          return {
+            paymentId: form.getValues("paymentId") || "0",
+            paymentNo: form.getValues("paymentNo") || "",
+            itemNo: nextItemNo + index,
+            transactionId: transaction.transactionId,
+            documentId: transaction.documentId,
+            documentNo: transaction.documentNo,
+            referenceNo: transaction.referenceNo,
+            docCurrencyId: transaction.currencyId,
+            docExhRate: transaction.exhRate,
+            docAccountDate: transaction.accountDate,
+            docDueDate: transaction.dueDate,
+            docTotAmt: transaction.totAmt,
+            docTotLocalAmt: transaction.totLocalAmt,
+            docBalAmt: transaction.balAmt,
+            docBalLocalAmt: transaction.balLocalAmt,
+            allocAmt: 0,
+            allocLocalAmt: 0,
+            docAllocAmt: 0,
+            docAllocLocalAmt: 0,
+            centDiff: 0,
+            exhGainLoss: 0,
+            editVersion: 0,
+          } as ApPaymentDtSchemaType
+        }
+      )
+
+      // Add to existing details
+      const updatedData = [...currentData, ...newDetails]
+      form.setValue("data_details", updatedData, {
+        shouldDirty: true,
+        shouldTouch: true,
+      })
+
+      form.trigger("data_details")
+    },
+    [form]
+  )
 
   return (
     <div className="w-full">
@@ -156,7 +245,7 @@ export default function Main({
       <div className="rounded-lg border p-4 shadow-sm">
         {/* Control Row */}
         <div className="mb-4 flex items-center gap-2">
-          <Button>Select Transaction</Button>
+          <Button onClick={handleSelectTransaction}>Select Transaction</Button>
           <Button>Auto Allocation</Button>
           <Input value="0.00" readOnly className="w-[120px] text-right" />
           <Input value="0.00" readOnly className="w-[120px] text-right" />
@@ -173,6 +262,19 @@ export default function Main({
           onDataReorder={handleDataReorder as (newData: IApPaymentDt[]) => void}
         />
       </div>
+
+      {/* Transaction Selection Dialog */}
+      {showTransactionDialog && dialogParamsRef.current && (
+        <OutStandingTransactionsDialog
+          open={showTransactionDialog}
+          onOpenChange={setShowTransactionDialog}
+          supplierId={dialogParamsRef.current.supplierId}
+          currencyId={dialogParamsRef.current.currencyId}
+          accountDate={dialogParamsRef.current.accountDate}
+          visible={visible}
+          onAddSelected={handleAddSelectedTransactions}
+        />
+      )}
     </div>
   )
 }

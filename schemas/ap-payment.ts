@@ -31,7 +31,7 @@ export const appaymentHdSchema = (
     chequeDate: z.union([z.date(), z.string()]),
 
     // Bank Charge GL Fields
-    bankChargeGLId: z.number().min(1, "Bank Charge GL is required"),
+    bankChargeGLId: z.number().min(0, "Bank Charge GL is required"),
     bankChargesAmt: z.number().min(0, "Bank Charges Amount is required"),
     bankChargesLocalAmt: z
       .number()

@@ -49,7 +49,7 @@ export default function EditVersionDetails({
 
   const { data: invoiceDetailsData, refetch: refetchDetails } =
     useGetAPInvoiceHistoryDetails<IApPaymentHd>(
-      selectedInvoice?.invoiceId || "",
+      selectedInvoice?.paymentId || "",
       selectedInvoice?.editVersion?.toString() || ""
     )
 
@@ -57,7 +57,7 @@ export default function EditVersionDetails({
     return (
       Array.isArray(arr) &&
       (arr.length === 0 ||
-        (typeof arr[0] === "object" && "invoiceId" in arr[0]))
+        (typeof arr[0] === "object" && "paymentId" in arr[0]))
     )
   }
 
@@ -82,14 +82,21 @@ export default function EditVersionDetails({
   const hasHistoryError = invoiceHistoryData?.result === -1
   const hasDetailsError = invoiceDetailsData?.result === -1
 
+  const formatNumber = (value: number, decimals: number) => {
+    return value.toLocaleString(undefined, {
+      minimumFractionDigits: decimals,
+      maximumFractionDigits: decimals,
+    })
+  }
+
   const columns: ColumnDef<IApPaymentHd>[] = [
     {
       accessorKey: "editVersion",
       header: "Edit Version",
     },
     {
-      accessorKey: "invoiceNo",
-      header: "Invoice No",
+      accessorKey: "paymentNo",
+      header: "Payment No",
     },
     {
       accessorKey: "referenceNo",
@@ -115,33 +122,14 @@ export default function EditVersionDetails({
         return date ? format(date, dateFormat) : "-"
       },
     },
+
     {
-      accessorKey: "deliveryDate",
-      header: "Delivery Date",
-      cell: ({ row }) => {
-        const date = row.original.deliveryDate
-          ? new Date(row.original.deliveryDate)
-          : null
-        return date ? format(date, dateFormat) : "-"
-      },
+      accessorKey: "supplierCode",
+      header: "Supplier Code",
     },
     {
-      accessorKey: "dueDate",
-      header: "Due Date",
-      cell: ({ row }) => {
-        const date = row.original.dueDate
-          ? new Date(row.original.dueDate)
-          : null
-        return date ? format(date, dateFormat) : "-"
-      },
-    },
-    {
-      accessorKey: "customerCode",
-      header: "Customer Code",
-    },
-    {
-      accessorKey: "customerName",
-      header: "Customer Name",
+      accessorKey: "supplierName",
+      header: "Supplier Name",
     },
     {
       accessorKey: "currencyCode",
@@ -156,31 +144,11 @@ export default function EditVersionDetails({
       header: "Exchange Rate",
       cell: ({ row }) => (
         <div className="text-right">
-          {row.original.exhRate
-            ? row.original.exhRate.toFixed(exhRateDec)
-            : "-"}
+          {formatNumber(row.getValue("exhRate"), exhRateDec)}
         </div>
       ),
     },
-    {
-      accessorKey: "ctyExhRate",
-      header: "Country Exchange Rate",
-      cell: ({ row }) => (
-        <div className="text-right">
-          {row.original.ctyExhRate
-            ? row.original.ctyExhRate.toFixed(exhRateDec)
-            : "-"}
-        </div>
-      ),
-    },
-    {
-      accessorKey: "creditTermCode",
-      header: "Credit Term Code",
-    },
-    {
-      accessorKey: "creditTermName",
-      header: "Credit Term Name",
-    },
+
     {
       accessorKey: "bankCode",
       header: "Bank Code",
@@ -190,11 +158,33 @@ export default function EditVersionDetails({
       header: "Bank Name",
     },
     {
+      accessorKey: "paymentTypeCode",
+      header: "Payment Type Code",
+    },
+    {
+      accessorKey: "paymentTypeName",
+      header: "Payment Type Name",
+    },
+    {
+      accessorKey: "chequeNo",
+      header: "Cheque No",
+    },
+    {
+      accessorKey: "chequeDate",
+      header: "Cheque Date",
+      cell: ({ row }) => {
+        const date = row.original.chequeDate
+          ? new Date(row.original.chequeDate)
+          : null
+        return date ? format(date, dateFormat) : "-"
+      },
+    },
+    {
       accessorKey: "totAmt",
       header: "Total Amount",
       cell: ({ row }) => (
         <div className="text-right">
-          {row.original.totAmt ? row.original.totAmt.toFixed(amtDec) : "-"}
+          {formatNumber(row.getValue("totAmt"), amtDec)}
         </div>
       ),
     },
@@ -203,51 +193,70 @@ export default function EditVersionDetails({
       header: "Total Local Amount",
       cell: ({ row }) => (
         <div className="text-right">
-          {row.original.totLocalAmt
-            ? row.original.totLocalAmt.toFixed(locAmtDec)
-            : "-"}
+          {formatNumber(row.getValue("totLocalAmt"), locAmtDec)}
         </div>
       ),
     },
     {
-      accessorKey: "gstAmt",
-      header: "GST Amount",
+      accessorKey: "payTotAmt",
+      header: "Pay Total Amount",
       cell: ({ row }) => (
         <div className="text-right">
-          {row.original.gstAmt ? row.original.gstAmt.toFixed(amtDec) : "-"}
+          {formatNumber(row.getValue("payTotAmt"), amtDec)}
         </div>
       ),
     },
     {
-      accessorKey: "gstLocalAmt",
-      header: "GST Local Amount",
+      accessorKey: "payTotLocalAmt",
+      header: "Pay Total Local Amount",
       cell: ({ row }) => (
         <div className="text-right">
-          {row.original.gstLocalAmt
-            ? row.original.gstLocalAmt.toFixed(locAmtDec)
-            : "-"}
+          {formatNumber(row.getValue("payTotLocalAmt"), locAmtDec)}
         </div>
       ),
     },
     {
-      accessorKey: "totAmtAftGst",
-      header: "Total After GST",
+      accessorKey: "unAllocTotAmt",
+      header: "Unallocated Amount",
       cell: ({ row }) => (
         <div className="text-right">
-          {row.original.totAmtAftGst
-            ? row.original.totAmtAftGst.toFixed(amtDec)
-            : "-"}
+          {formatNumber(row.getValue("unAllocTotAmt"), amtDec)}
         </div>
       ),
     },
     {
-      accessorKey: "totLocalAmtAftGst",
-      header: "Total Local After GST",
+      accessorKey: "unAllocTotLocalAmt",
+      header: "Unallocated Local Amount",
       cell: ({ row }) => (
         <div className="text-right">
-          {row.original.totLocalAmtAftGst
-            ? row.original.totLocalAmtAftGst.toFixed(locAmtDec)
-            : "-"}
+          {formatNumber(row.getValue("unAllocTotLocalAmt"), locAmtDec)}
+        </div>
+      ),
+    },
+    {
+      accessorKey: "exhGainLoss",
+      header: "Exchange Gain/Loss",
+      cell: ({ row }) => (
+        <div className="text-right">
+          {formatNumber(row.getValue("exhGainLoss"), locAmtDec)}
+        </div>
+      ),
+    },
+    {
+      accessorKey: "bankChargesAmt",
+      header: "Bank Charges Amount",
+      cell: ({ row }) => (
+        <div className="text-right">
+          {formatNumber(row.getValue("bankChargesAmt"), amtDec)}
+        </div>
+      ),
+    },
+    {
+      accessorKey: "bankChargesLocalAmt",
+      header: "Bank Charges Local Amount",
+      cell: ({ row }) => (
+        <div className="text-right">
+          {formatNumber(row.getValue("bankChargesLocalAmt"), locAmtDec)}
         </div>
       ),
     },

@@ -6,6 +6,11 @@ import { ColumnDef } from "@tanstack/react-table"
 import { TableName } from "@/lib/utils"
 import { AccountBaseTable } from "@/components/table/table-account"
 
+// Extended column definition with hide property
+type ExtendedColumnDef<T> = ColumnDef<T> & {
+  hide?: boolean
+}
+
 // Use flexible data type that can work with form data
 interface PaymentDetailsTableProps {
   data: IApPaymentDt[]
@@ -48,7 +53,7 @@ export default function PaymentDetailsTable({
   }
 
   // Define columns with visible prop checks - Payment specific fields
-  const columns: ColumnDef<IApPaymentDt>[] = [
+  const columns: ExtendedColumnDef<IApPaymentDt>[] = [
     {
       accessorKey: "itemNo",
       header: "Item No",
@@ -57,14 +62,7 @@ export default function PaymentDetailsTable({
         <div className="text-right">{row.original.itemNo}</div>
       ),
     },
-    {
-      accessorKey: "transactionId",
-      header: "Transaction",
-      size: 100,
-      cell: ({ row }: { row: { original: IApPaymentDt } }) => (
-        <div className="text-right">{row.original.transactionId}</div>
-      ),
-    },
+
     {
       accessorKey: "documentNo",
       header: "Document No",
@@ -75,17 +73,18 @@ export default function PaymentDetailsTable({
       header: "Reference No",
       size: 120,
     },
+
     {
-      accessorKey: "docCurrencyId",
-      header: "Doc Currency",
+      accessorKey: "docCurrencyCode",
+      header: "Currency",
       size: 100,
       cell: ({ row }: { row: { original: IApPaymentDt } }) => (
-        <div className="text-right">{row.original.docCurrencyId}</div>
+        <div className="text-right">{row.original.docCurrencyCode}</div>
       ),
     },
     {
       accessorKey: "docExhRate",
-      header: "Doc Exh Rate",
+      header: "Exh Rate",
       size: 100,
       cell: ({ row }: { row: { original: IApPaymentDt } }) => (
         <div className="text-right">{row.original.docExhRate}</div>
@@ -93,33 +92,12 @@ export default function PaymentDetailsTable({
     },
     {
       accessorKey: "docAccountDate",
-      header: "Doc Account Date",
+      header: "Account Date",
       size: 120,
-    },
-    {
-      accessorKey: "docDueDate",
-      header: "Doc Due Date",
-      size: 120,
-    },
-    {
-      accessorKey: "docTotAmt",
-      header: "Doc Total Amt",
-      size: 100,
-      cell: ({ row }: { row: { original: IApPaymentDt } }) => (
-        <div className="text-right">{row.original.docTotAmt}</div>
-      ),
-    },
-    {
-      accessorKey: "docTotLocalAmt",
-      header: "Doc Total Local Amt",
-      size: 120,
-      cell: ({ row }: { row: { original: IApPaymentDt } }) => (
-        <div className="text-right">{row.original.docTotLocalAmt}</div>
-      ),
     },
     {
       accessorKey: "docBalAmt",
-      header: "Doc Balance Amt",
+      header: "Balance Amt",
       size: 120,
       cell: ({ row }: { row: { original: IApPaymentDt } }) => (
         <div className="text-right">{row.original.docBalAmt}</div>
@@ -127,7 +105,7 @@ export default function PaymentDetailsTable({
     },
     {
       accessorKey: "docBalLocalAmt",
-      header: "Doc Balance Local Amt",
+      header: "Balance Local Amt",
       size: 140,
       cell: ({ row }: { row: { original: IApPaymentDt } }) => (
         <div className="text-right">{row.original.docBalLocalAmt}</div>
@@ -149,6 +127,28 @@ export default function PaymentDetailsTable({
         <div className="text-right">{row.original.allocLocalAmt}</div>
       ),
     },
+    {
+      accessorKey: "docDueDate",
+      header: "Due Date",
+      size: 120,
+    },
+    {
+      accessorKey: "docTotAmt",
+      header: "Doc Total Amt",
+      size: 100,
+      cell: ({ row }: { row: { original: IApPaymentDt } }) => (
+        <div className="text-right">{row.original.docTotAmt}</div>
+      ),
+    },
+    {
+      accessorKey: "docTotLocalAmt",
+      header: "Doc Total Local Amt",
+      size: 120,
+      cell: ({ row }: { row: { original: IApPaymentDt } }) => (
+        <div className="text-right">{row.original.docTotLocalAmt}</div>
+      ),
+    },
+
     {
       accessorKey: "docAllocAmt",
       header: "Doc Alloc Amt",
@@ -181,7 +181,28 @@ export default function PaymentDetailsTable({
         <div className="text-right">{row.original.exhGainLoss}</div>
       ),
     },
+    {
+      accessorKey: "transactionId",
+      header: "Transaction",
+      size: 100,
+      cell: ({ row }: { row: { original: IApPaymentDt } }) => (
+        <div className="text-right">{row.original.transactionId}</div>
+      ),
+      hide: true,
+    },
+    {
+      accessorKey: "docCurrencyId",
+      header: "Currency",
+      size: 100,
+      cell: ({ row }: { row: { original: IApPaymentDt } }) => (
+        <div className="text-right">{row.original.docCurrencyId}</div>
+      ),
+      hide: true,
+    },
   ]
+
+  // Filter out columns with hide: true
+  const visibleColumns = columns.filter((column) => !column.hide)
 
   if (!mounted) {
     return null
@@ -191,7 +212,7 @@ export default function PaymentDetailsTable({
     <div className="w-full p-2">
       <AccountBaseTable
         data={data}
-        columns={columns}
+        columns={visibleColumns as ColumnDef<IApPaymentDt>[]}
         moduleId={25}
         transactionId={2}
         tableName={TableName.apPaymentDt}
@@ -206,8 +227,8 @@ export default function PaymentDetailsTable({
         onDelete={handleDelete}
         showHeader={true}
         showActions={true}
-        hideView={false}
-        hideEdit={false}
+        hideView={true}
+        hideEdit={true}
         hideDelete={false}
         hideCheckbox={false}
         disableOnAccountExists={false}

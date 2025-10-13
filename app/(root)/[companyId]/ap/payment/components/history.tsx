@@ -25,18 +25,14 @@ export default function History({ form, isEdit: _isEdit }: HistoryProps) {
     editDate: form.getValues().editDate || "", // Default value since editDate doesn't exist in form schema
     cancelBy: form.getValues().cancelBy || "", // Default value since cancelBy doesn't exist in form schema
     cancelDate: form.getValues().cancelDate || "", // Default value since cancelDate doesn't exist in form schema
-    balanceAmt: Number(form.getValues().balAmt || 0),
-    balanceBaseAmt: Number(form.getValues().balLocalAmt || 0),
-    paymentAmt: Number(form.getValues().payAmt || 0),
-    paymentBaseAmt: Number(form.getValues().payLocalAmt || 0),
   }
 
   return (
     <div className="space-y-4">
       <AccountDetails {...accountDetails} />
-      <PaymentDetails invoiceId={form.getValues().invoiceId || ""} />
-      <GLPostDetails invoiceId={form.getValues().invoiceId || ""} />
-      <EditVersionDetails invoiceId={form.getValues().invoiceId || ""} />
+      <PaymentDetails invoiceId={form.getValues().paymentId || ""} />
+      <GLPostDetails invoiceId={form.getValues().paymentId || ""} />
+      <EditVersionDetails invoiceId={form.getValues().paymentId || ""} />
     </div>
   )
 }

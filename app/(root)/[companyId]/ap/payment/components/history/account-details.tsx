@@ -14,10 +14,6 @@ interface AccountDetailsProps {
   editDate: string | null
   cancelBy: string | null
   cancelDate: string | null
-  balanceAmt: number
-  balanceBaseAmt: number
-  paymentAmt: number
-  paymentBaseAmt: number
 }
 
 export default function AccountDetails({
@@ -27,14 +23,8 @@ export default function AccountDetails({
   editDate,
   cancelBy,
   cancelDate,
-  balanceAmt,
-  balanceBaseAmt,
-  paymentAmt,
-  paymentBaseAmt,
 }: AccountDetailsProps) {
   const { decimals } = useAuthStore()
-  const amtDec = decimals[0]?.amtDec || 2
-  const locAmtDec = decimals[0]?.locAmtDec || 2
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
 
   const safeFormatDate = (
@@ -117,36 +107,28 @@ export default function AccountDetails({
                     <span className="text-muted-foreground text-sm">
                       Balance Amount
                     </span>
-                    <span className="font-medium tabular-nums">
-                      {balanceAmt.toFixed(amtDec)}
-                    </span>
+                    <span className="font-medium tabular-nums"></span>
                   </div>
                   <Separator />
                   <div className="flex items-center justify-between">
                     <span className="text-muted-foreground text-sm">
                       Balance Base Amount
                     </span>
-                    <span className="font-medium tabular-nums">
-                      {balanceBaseAmt.toFixed(locAmtDec)}
-                    </span>
+                    <span className="font-medium tabular-nums"></span>
                   </div>
                   <Separator />
                   <div className="flex items-center justify-between">
                     <span className="text-muted-foreground text-sm">
                       Payment Amount
                     </span>
-                    <span className="font-medium tabular-nums">
-                      {paymentAmt.toFixed(amtDec)}
-                    </span>
+                    <span className="font-medium tabular-nums"></span>
                   </div>
                   <Separator />
                   <div className="flex items-center justify-between">
                     <span className="text-muted-foreground text-sm">
                       Payment Base Amount
                     </span>
-                    <span className="font-medium tabular-nums">
-                      {paymentBaseAmt.toFixed(locAmtDec)}
-                    </span>
+                    <span className="font-medium tabular-nums"></span>
                   </div>
                 </div>
               </div>

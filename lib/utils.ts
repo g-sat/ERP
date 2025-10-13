@@ -452,10 +452,12 @@ export enum TableName {
   apAdjustmentDt = "apAdjustmentDt",
   apPayment = "apPayment",
   apPaymentDt = "apPaymentDt",
+  apPaymentHistory = "apPaymentHistory",
   apRefund = "apRefund",
   apRefundDt = "apRefundDt",
   apDocSetoff = "apDocSetoff",
   apDocSetoffDt = "apDocSetoffDt",
+  apOutTransaction = "apOutTransaction",
   //CB
   cbReceipt = "cbReceipt",
   cbReceiptDt = "cbReceiptDt",
@@ -483,4 +485,11 @@ export enum TableName {
   glPostDetails = "glPostDetails",
   paymentDetails = "paymentDetails",
   otherDocument = "otherDocument",
+}
+
+const formatNumber = (value: number, decimals: number) => {
+  return value.toLocaleString(undefined, {
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals,
+  })
 }

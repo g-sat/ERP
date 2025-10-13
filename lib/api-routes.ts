@@ -753,8 +753,8 @@ export const HistoryDetails = {
 // Accounts Receivable Endpoints
 export const Account = {
   getGlPeriodClose: "/account/getglperiodclose",
-  getArOutstandTransaction: "/account/getaroutstandtransaction",
-  getApOutstandTransaction: "/account/getapoutstandtransaction",
+  getArOutstandTransaction: "/account/getaroutstandtransactions",
+  getApOutstandTransaction: "/account/getapoutstandtransactions",
 }
 
 // Accounts Receivable Invoice Endpoints
