@@ -31,7 +31,7 @@ export interface IJobOrderHd {
   masterName?: string
   charters?: string
   chartersAgent?: string
-  invoiceId?: number
+  invoiceId?: string
   invoiceNo?: string
   invoiceDate?: Date | string
   seriesDate?: Date | string
@@ -855,7 +855,7 @@ export interface ISaveDebitNoteItem {
 
 export interface IPurchaseData {
   isAllocated: boolean
-  invoiceId: number
+  invoiceId: string
   invoiceNo: string
   invoiceDate: Date | string
   suppInvoiceNo: string

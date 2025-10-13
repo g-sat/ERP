@@ -1,7 +1,7 @@
 export interface IApOutTransaction {
   companyId: number
   transactionId: number
-  documentId: number
+  documentId: string
   documentNo: string
   referenceNo: string
   accountDate: Date | string

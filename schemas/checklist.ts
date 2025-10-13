@@ -53,7 +53,7 @@ export const JobOrderHdSchema = z
       .string()
       .max(200, "Charters Agent must be less than 200 characters")
       .optional(),
-    invoiceId: z.number().optional(),
+    invoiceId: z.string().optional(),
     invoiceNo: z.string().optional(),
     invoiceDate: z.union([z.date(), z.string()]).optional(),
     seriesDate: z.union([z.date(), z.string()]).optional(),

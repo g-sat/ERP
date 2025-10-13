@@ -83,6 +83,9 @@ export default function OutStandingTransactionsDialog({
   // Function to calculate totals for selected transactions
   const calculateSelectedTotals = useCallback(
     (selectedIds: string[], transactions: IApOutTransaction[]) => {
+      console.log("selectedIds", selectedIds)
+      console.log("transactions", transactions)
+
       if (selectedIds.length === 0) {
         return { totAmt: 0, totLocalAmt: 0 }
       }
@@ -91,6 +94,8 @@ export default function OutStandingTransactionsDialog({
       let totLocalAmt = 0
 
       selectedIds.forEach((docId) => {
+        console.log("docId", docId)
+        console.log("transactions", transactions)
         const transaction = transactions.find(
           (t) => t.documentId.toString() === docId
         )
@@ -99,6 +104,9 @@ export default function OutStandingTransactionsDialog({
           totLocalAmt += transaction.balLocalAmt || 0
         }
       })
+
+      console.log("totAmt", totAmt)
+      console.log("totLocalAmt", totLocalAmt)
 
       return { totAmt, totLocalAmt }
     },

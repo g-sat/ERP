@@ -61,7 +61,7 @@ export const cbbatchpaymentDtSchema = (
 ) => {
   return z.object({
     // Core Fields
-    paymentId: z.number(),
+    paymentId: z.string(),
     paymentNo: z.string(),
     itemNo: z.number().min(0),
     seqNo: z.number().min(1),

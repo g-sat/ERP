@@ -94,7 +94,7 @@ export interface IApInvoiceFilter {
 }
 
 export interface IApInvoiceDt {
-  invoiceId: number | string
+  invoiceId: string
   invoiceNo: string
   itemNo: number
   seqNo: number

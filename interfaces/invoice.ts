@@ -87,7 +87,7 @@ export interface IArInvoiceFilter {
 }
 
 export interface IArInvoiceDt {
-  invoiceId: number
+  invoiceId: string
   invoiceNo: string
   itemNo: number
   seqNo: number

@@ -45,7 +45,7 @@ export interface ICBBatchPaymentFilter {
 }
 
 export interface ICBBatchPaymentDt {
-  paymentId: number
+  paymentId: string
   paymentNo: string
   itemNo: number
   seqNo: number
