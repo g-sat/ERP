@@ -12,6 +12,7 @@ import { Task } from "@/lib/operations-utils"
 import { Button } from "@/components/ui/button"
 import { Form } from "@/components/ui/form"
 import ChargeAutocomplete from "@/components/autocomplete/autocomplete-charge"
+import CurrencyAutocomplete from "@/components/autocomplete/autocomplete-currency"
 import CustomerAutocomplete from "@/components/autocomplete/autocomplete-customer"
 import PortAutocomplete from "@/components/autocomplete/autocomplete-port"
 import TaskAutocomplete from "@/components/autocomplete/autocomplete-task"
@@ -165,7 +166,7 @@ export function TariffForm({
       chargeId: data.chargeId,
       portId: data.portId,
       customerId: data.customerId,
-      currencyId: data.currencyId,
+      currencyId: data.currencyId || 0,
       uomId: data.uomId,
       visaTypeId: data.visaTypeId,
       displayRate: data.displayRate,
@@ -247,6 +248,14 @@ export function TariffForm({
               isRequired
               isDisabled={mode === "view"}
             />
+
+            <CurrencyAutocomplete
+              form={form}
+              name="currencyId"
+              label="Currency"
+              isRequired
+              isDisabled={true}
+            />
             <PortAutocomplete
               key={`port-${mode}-${portId}`}
               form={form}
@@ -308,7 +317,7 @@ export function TariffForm({
               name="minUnit"
               label="Min Unit"
               isRequired
-              isDisabled={false}
+              isDisabled={mode === "view"}
               round={2}
             />
             <CustomNumberInput
@@ -316,7 +325,7 @@ export function TariffForm({
               name="maxUnit"
               label="Max Unit"
               isRequired
-              isDisabled={false}
+              isDisabled={mode === "view"}
               round={2}
             />
 

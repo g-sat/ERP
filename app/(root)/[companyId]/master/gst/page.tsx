@@ -478,7 +478,9 @@ export default function GstPage() {
           const response = await getById(`${Gst.getByCode}/${trimmedCode}`)
 
           if (response.result === 1 && response.data) {
-            const gstData = Array.isArray(response.data) ? response.data[0] : response.data
+            const gstData = Array.isArray(response.data)
+              ? response.data[0]
+              : response.data
 
             if (gstData) {
               setExistingGst(gstData as IGst)
@@ -490,7 +492,9 @@ export default function GstPage() {
             `${GstCategory.getByCode}/${trimmedCode}`
           )
           if (response.result === 1 && response.data) {
-            const categoryData = Array.isArray(response.data) ? response.data[0] : response.data
+            const categoryData = Array.isArray(response.data)
+              ? response.data[0]
+              : response.data
 
             if (categoryData) {
               setExistingGstCategory(categoryData as IGstCategory)
@@ -529,18 +533,20 @@ export default function GstPage() {
       {/* Header Section */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="space-y-1">
-          <h1 className="text-xl font-bold tracking-tight sm:text-3xl">Gst</h1>
+          <h1 className="text-xl font-bold tracking-tight sm:text-3xl">
+            VAT | GST
+          </h1>
           <p className="text-muted-foreground text-sm">
-            Manage Gst information and settings
+            Manage VAT | GST information and settings
           </p>
         </div>
       </div>
 
       <Tabs defaultValue="gsts" className="space-y-4">
         <TabsList>
-          <TabsTrigger value="gsts">Gst</TabsTrigger>
-          <TabsTrigger value="gstsdt">Gst Details</TabsTrigger>
-          <TabsTrigger value="gstscategory">Gst Category</TabsTrigger>
+          <TabsTrigger value="gsts">VAT | GST</TabsTrigger>
+          <TabsTrigger value="gstsdt">VAT | GST Details</TabsTrigger>
+          <TabsTrigger value="gstscategory">VAT | GST Category</TabsTrigger>
         </TabsList>
 
         <TabsContent value="gsts" className="space-y-4">
@@ -744,16 +750,16 @@ export default function GstPage() {
         >
           <DialogHeader>
             <DialogTitle>
-              {modalMode === "create" && "Create Gst"}
-              {modalMode === "edit" && "Update Gst"}
-              {modalMode === "view" && "View Gst"}
+              {modalMode === "create" && "Create VAT | GST"}
+              {modalMode === "edit" && "Update VAT | GST"}
+              {modalMode === "view" && "View VAT | GST"}
             </DialogTitle>
             <DialogDescription>
               {modalMode === "create"
-                ? "Add a new gst to the system database."
+                ? "Add a new VAT | GST to the system database."
                 : modalMode === "edit"
-                  ? "Update gst information in the system database."
-                  : "View gst details."}
+                  ? "Update VAT | GST information in the system database."
+                  : "View VAT | GST details."}
             </DialogDescription>
           </DialogHeader>
           <Separator />
@@ -776,16 +782,16 @@ export default function GstPage() {
         >
           <DialogHeader>
             <DialogTitle>
-              {modalMode === "create" && "Create Gst Details"}
-              {modalMode === "edit" && "Update Gst Details"}
-              {modalMode === "view" && "View Gst Details"}
+              {modalMode === "create" && "Create VAT | GST Details"}
+              {modalMode === "edit" && "Update VAT | GST Details"}
+              {modalMode === "view" && "View VAT | GST Details"}
             </DialogTitle>
             <DialogDescription>
               {modalMode === "create"
-                ? "Add new Gst details to the system database."
+                ? "Add new VAT | GST details to the system database."
                 : modalMode === "edit"
-                  ? "Update Gst details information."
-                  : "View Gst details."}
+                  ? "Update VAT | GST details information."
+                  : "View VAT | GST details."}
             </DialogDescription>
           </DialogHeader>
           <Separator />
@@ -809,16 +815,16 @@ export default function GstPage() {
         >
           <DialogHeader>
             <DialogTitle>
-              {modalMode === "create" && "Create Gst Category"}
-              {modalMode === "edit" && "Update Gst Category"}
-              {modalMode === "view" && "View Gst Category"}
+              {modalMode === "create" && "Create VAT | GST Category"}
+              {modalMode === "edit" && "Update VAT | GST Category"}
+              {modalMode === "view" && "View VAT | GST Category"}
             </DialogTitle>
             <DialogDescription>
               {modalMode === "create"
-                ? "Add a new Gst category to the system database."
+                ? "Add a new VAT | GST category to the system database."
                 : modalMode === "edit"
-                  ? "Update Gst category information."
-                  : "View Gst category details."}
+                  ? "Update VAT | GST category information."
+                  : "View VAT | GST category details."}
             </DialogDescription>
           </DialogHeader>
           <Separator />
@@ -845,7 +851,7 @@ export default function GstPage() {
         onCancel={() => setExistingGst(null)}
         code={existingGst?.gstCode}
         name={existingGst?.gstName}
-        typeLabel="Gst"
+        typeLabel="VAT | GST"
         isLoading={saveMutation.isPending || updateMutation.isPending}
       />
 
@@ -856,7 +862,7 @@ export default function GstPage() {
         onCancel={() => setExistingGstCategory(null)}
         code={existingGstCategory?.gstCategoryCode}
         name={existingGstCategory?.gstCategoryName}
-        typeLabel="Gst Category"
+        typeLabel="VAT | GST Category"
         isLoading={
           saveCategoryMutation.isPending || updateCategoryMutation.isPending
         }
