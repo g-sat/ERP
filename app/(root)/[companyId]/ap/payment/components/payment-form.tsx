@@ -16,6 +16,7 @@ import { IApPaymentDt } from "@/interfaces"
 import {
   IBankLookup,
   ICurrencyLookup,
+  IPaymentTypeLookup,
   ISupplierLookup,
 } from "@/interfaces/lookup"
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
@@ -23,6 +24,7 @@ import { ApPaymentDtSchemaType, ApPaymentHdSchemaType } from "@/schemas"
 import { useAuthStore } from "@/stores/auth-store"
 import { FormProvider, UseFormReturn } from "react-hook-form"
 
+import { usePaymentTypeLookup } from "@/hooks/use-lookup"
 import BankAutocomplete from "@/components/autocomplete/autocomplete-bank"
 import BankChartOfAccountAutocomplete from "@/components/autocomplete/autocomplete-bank-chartofaccount"
 import CurrencyAutocomplete from "@/components/autocomplete/autocomplete-currency"
@@ -55,6 +57,54 @@ export default function PaymentForm({
   const locAmtDec = decimals[0]?.locAmtDec || 2
   const exhRateDec = decimals[0]?.exhRateDec || 6
 
+  const { data: paymentTypes = [] } = usePaymentTypeLookup()
+
+  // State to track if currencies are the same
+  const [areCurrenciesSame, setAreCurrenciesSame] = React.useState(true)
+
+  // State to track if payment type is cheque
+  const [isChequePayment, setIsChequePayment] = React.useState(false)
+
+  // Function to check and update currency comparison state
+  const updateCurrencyComparison = React.useCallback(() => {
+    const currencyId = form.getValues("currencyId") || 0
+    const payCurrencyId = form.getValues("payCurrencyId") || 0
+    // Disable if both are zero OR if they are the same (and not zero)
+    const same = currencyId === payCurrencyId
+    setAreCurrenciesSame(same)
+    return same
+  }, [form])
+
+  // Initialize currency comparison state on component mount and form changes
+  React.useEffect(() => {
+    updateCurrencyComparison()
+  }, [updateCurrencyComparison])
+
+  // Watch paymentTypeId and update cheque payment state
+  React.useEffect(() => {
+    const paymentTypeId = form.watch("paymentTypeId")
+
+    if (paymentTypeId && paymentTypes.length > 0) {
+      const selectedPaymentType = paymentTypes.find(
+        (pt) => pt.paymentTypeId === paymentTypeId
+      )
+
+      if (selectedPaymentType) {
+        const isCheque =
+          selectedPaymentType.paymentTypeName
+            ?.toLowerCase()
+            .includes("cheque") ||
+          selectedPaymentType.paymentTypeCode?.toLowerCase().includes("cheque")
+
+        setIsChequePayment(isCheque)
+      } else {
+        setIsChequePayment(false)
+      }
+    } else {
+      setIsChequePayment(false)
+    }
+  }, [form, paymentTypes])
+
   const onSubmit = async () => {
     await onSuccessAction("save")
   }
@@ -75,7 +125,7 @@ export default function PaymentForm({
     [exhRateDec, form, visible]
   )
 
-  // Handle customer selection
+  // Handle supplier selection
   const handleSupplierChange = React.useCallback(
     async (selectedSupplier: ISupplierLookup | null) => {
       if (selectedSupplier) {
@@ -87,8 +137,19 @@ export default function PaymentForm({
         }
 
         await setDueDate(form)
-        await setExchangeRate(form, exhRateDec, visible)
-        await setPayExchangeRate(form, exhRateDec)
+
+        // Only set exchange rates if currency is available
+        if (selectedSupplier.currencyId > 0) {
+          await setExchangeRate(form, exhRateDec, visible)
+          await setPayExchangeRate(form, exhRateDec)
+        } else {
+          // If no currency, set exchange rates to zero
+          form.setValue("exhRate", 0)
+          form.setValue("payExhRate", 0)
+        }
+
+        // Update currency comparison state
+        updateCurrencyComparison()
       } else {
         // ✅ Supplier cleared - reset all related fields
         if (!isEdit) {
@@ -102,11 +163,14 @@ export default function PaymentForm({
         form.setValue("exhRate", 0)
         form.setValue("payExhRate", 0)
 
+        // Update currency comparison state
+        updateCurrencyComparison()
+
         // Trigger validation
         form.trigger()
       }
     },
-    [exhRateDec, form, isEdit, visible]
+    [exhRateDec, form, isEdit, visible, updateCurrencyComparison]
   )
 
   // Handle account date selection
@@ -118,13 +182,85 @@ export default function PaymentForm({
     [exhRateDec, form, visible]
   )
 
+  // Common function to check if payTotAmt should be enabled
+  const checkPayTotAmtEnable = React.useCallback(() => {
+    const currencyId = form.getValues("currencyId") || 0
+    const payCurrencyId = form.getValues("payCurrencyId") || 0
+    return currencyId !== payCurrencyId
+  }, [form])
+
   // Handle bank selection
   const handleBankChange = React.useCallback(
     async (selectedBank: IBankLookup | null) => {
-      form.setValue("payCurrencyId", selectedBank?.currencyId || 0)
-      await setPayExchangeRate(form, exhRateDec)
+      const payCurrencyId = selectedBank?.currencyId || 0
+      form.setValue("payCurrencyId", payCurrencyId)
+
+      if (selectedBank && payCurrencyId > 0) {
+        // Only call setPayExchangeRate if currency is available
+        await setPayExchangeRate(form, exhRateDec)
+      } else {
+        // If no bank selected or no currency, set exchange rate to zero
+        form.setValue("payExhRate", 0)
+      }
+
+      // Update currency comparison state
+      updateCurrencyComparison()
+
+      // Check if payTotAmt should be enabled
+      const _shouldEnablePayTotAmt = checkPayTotAmtEnable()
     },
-    [exhRateDec, form]
+    [exhRateDec, form, checkPayTotAmtEnable, updateCurrencyComparison]
+  )
+
+  // Handle pay currency change
+  const handlePayCurrencyChange = React.useCallback(
+    async (selectedCurrency: ICurrencyLookup | null) => {
+      const payCurrencyId = selectedCurrency?.currencyId || 0
+      form.setValue("payCurrencyId", payCurrencyId)
+
+      if (selectedCurrency && payCurrencyId > 0) {
+        // Only call setPayExchangeRate if currency is available
+        await setPayExchangeRate(form, exhRateDec)
+      } else {
+        // If no currency selected, set exchange rate to zero
+        form.setValue("payExhRate", 0)
+      }
+
+      // Update currency comparison state
+      updateCurrencyComparison()
+
+      // Check if payTotAmt should be enabled
+      const _shouldEnablePayTotAmt = checkPayTotAmtEnable()
+    },
+    [exhRateDec, form, checkPayTotAmtEnable, updateCurrencyComparison]
+  )
+
+  // Handle payment type change
+  const handlePaymentTypeChange = React.useCallback(
+    (selectedPaymentType: IPaymentTypeLookup | null) => {
+      if (selectedPaymentType) {
+        // Check if payment type is "Cheque"
+        const isCheque =
+          selectedPaymentType?.paymentTypeName
+            ?.toLowerCase()
+            .includes("cheque") ||
+          selectedPaymentType?.paymentTypeCode?.toLowerCase().includes("cheque")
+
+        setIsChequePayment(isCheque)
+
+        // Clear cheque fields if not cheque payment
+        if (!isCheque) {
+          form.setValue("chequeNo", "")
+          form.setValue("chequeDate", "")
+        }
+      } else {
+        // No payment type selected, hide cheque fields
+        setIsChequePayment(false)
+        form.setValue("chequeNo", "")
+        form.setValue("chequeDate", "")
+      }
+    },
+    [form]
   )
 
   // Recalculate header totals from details
@@ -193,8 +329,22 @@ export default function PaymentForm({
         // Recalculate header totals from updated details
         recalculateHeaderTotals()
       }
+
+      // Update currency comparison state
+      updateCurrencyComparison()
+
+      // Check if payTotAmt should be enabled
+      const _shouldEnablePayTotAmt = checkPayTotAmtEnable()
     },
-    [decimals, exhRateDec, form, recalculateHeaderTotals, visible]
+    [
+      decimals,
+      exhRateDec,
+      form,
+      recalculateHeaderTotals,
+      visible,
+      checkPayTotAmtEnable,
+      updateCurrencyComparison,
+    ]
   )
 
   // Handle exchange rate change
@@ -307,13 +457,28 @@ export default function PaymentForm({
           name="paymentTypeId"
           label="Payment Type"
           isRequired={true}
+          onChangeEvent={handlePaymentTypeChange}
         />
 
-        {/* Cheque No */}
-        <CustomInput form={form} name="chequeNo" label="Cheque No" />
+        {/* Cheque No - Only show when payment type is cheque */}
+        {isChequePayment && (
+          <CustomInput
+            form={form}
+            name="chequeNo"
+            label="Cheque No"
+            isRequired={true}
+          />
+        )}
 
-        {/* Cheque Date */}
-        <CustomDateNew form={form} name="chequeDate" label="Cheque Date" />
+        {/* Cheque Date - Only show when payment type is cheque */}
+        {isChequePayment && (
+          <CustomDateNew
+            form={form}
+            name="chequeDate"
+            label="Cheque Date"
+            isRequired={true}
+          />
+        )}
 
         {/* Unallocated Amount */}
         <CustomNumberInput
@@ -335,7 +500,8 @@ export default function PaymentForm({
           form={form}
           name="payCurrencyId"
           label="Pay Currency"
-          isDisabled={true}
+          isDisabled={areCurrenciesSame}
+          onChangeEvent={handlePayCurrencyChange}
         />
 
         {/* Pay Exchange Rate */}
@@ -343,7 +509,7 @@ export default function PaymentForm({
           form={form}
           name="payExhRate"
           label="Pay Exchange Rate"
-          isDisabled={true}
+          isDisabled={areCurrenciesSame}
         />
 
         {/* Pay Total Amount */}
@@ -351,7 +517,7 @@ export default function PaymentForm({
           form={form}
           name="payTotAmt"
           label="Pay Total Amount"
-          isDisabled={true}
+          isDisabled={areCurrenciesSame}
         />
 
         {/* Pay Total Local Amount */}
@@ -368,7 +534,7 @@ export default function PaymentForm({
           name="totAmt"
           label="Total Amount"
           round={amtDec}
-          isDisabled={true}
+          isDisabled={!areCurrenciesSame}
           className="text-right"
         />
 
@@ -387,6 +553,7 @@ export default function PaymentForm({
           form={form}
           name="bankChargeGLId"
           label="Bank Charge GL"
+          companyId={_companyId}
         />
 
         {/* Bank Charges Amount */}

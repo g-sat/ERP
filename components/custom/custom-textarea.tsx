@@ -81,8 +81,9 @@ export default function CustomTextarea<T extends Record<string, unknown>>({
                     "border-input ring-offset-background flex w-full rounded-md border px-3 py-2 text-sm",
                     "focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none",
                     showError ? "border-destructive" : "border-input",
-                    isDisabled && "cursor-not-allowed opacity-50",
-                    "bg-muted/5"
+                    isDisabled
+                      ? "cursor-not-allowed border-gray-300 bg-gray-200 text-gray-500 opacity-60 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-400"
+                      : "bg-muted/5"
                   )}
                 />
               </div>

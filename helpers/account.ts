@@ -414,15 +414,15 @@ export const setExchangeRate = async (
  */
 export const setPayExchangeRate = async (form: HdForm, round: number | 6) => {
   // to set exhange rate
-  const { accountDate, currencyId } = form?.getValues()
-  if (accountDate && currencyId) {
+  const { accountDate, payCurrencyId } = form?.getValues()
+  if (accountDate && payCurrencyId) {
     try {
       const dt = format(
         parse(accountDate, clientDateFormat, new Date()),
         "yyyy-MM-dd"
       )
       const res = await getData(
-        `${BasicSetting.getExchangeRate}/${currencyId}/${dt}`
+        `${BasicSetting.getExchangeRate}/${payCurrencyId}/${dt}`
       )
 
       const exhRate = res?.data

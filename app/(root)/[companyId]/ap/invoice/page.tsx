@@ -238,6 +238,12 @@ export default function InvoicePage() {
         return
       }
 
+      //check totamt and totlocalamt should be zero
+      if (formValues.totAmt === 0 || formValues.totLocalAmt === 0) {
+        toast.error("Total Amount and Total Local Amount should not be zero")
+        return
+      }
+
       const response =
         Number(formValues.invoiceId) === 0
           ? await saveMutation.mutateAsync(formValues)
@@ -1106,7 +1112,7 @@ export default function InvoicePage() {
               variant="outline"
               size="sm"
               onClick={() => setShowResetConfirm(true)}
-              disabled={!invoice}
+              //disabled={!invoice}
             >
               <RotateCcw className="mr-1 h-4 w-4" />
               Reset

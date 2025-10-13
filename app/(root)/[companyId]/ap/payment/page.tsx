@@ -223,6 +223,12 @@ export default function PaymentPage() {
         return
       }
 
+      //check totamt and totlocalamt should be zero
+      if (formValues.totAmt === 0 || formValues.totLocalAmt === 0) {
+        toast.error("Total Amount and Total Local Amount should not be zero")
+        return
+      }
+
       const response =
         Number(formValues.paymentId) === 0
           ? await saveMutation.mutateAsync(formValues)
@@ -880,7 +886,7 @@ export default function PaymentPage() {
               variant="outline"
               size="sm"
               onClick={() => setShowResetConfirm(true)}
-              disabled={!payment}
+              //disabled={!payment}
             >
               <RotateCcw className="mr-1 h-4 w-4" />
               Reset
