@@ -7,82 +7,94 @@ export const appaymentHdSchema = (
 ) => {
   return z.object({
     // Core Fields
-    companyId: z.number().min(1),
-    paymentId: z.string().min(0),
+
+    paymentId: z.string().optional(),
     paymentNo: z.string().optional(),
-    referenceNo: z.string().min(1),
+    suppInvoiceNo: required?.m_SuppInvoiceNo
+      ? z.string().min(1, "Supplier Invoice No is required")
+      : z.string().optional(),
+    referenceNo: required?.m_ReferenceNo
+      ? z.string().min(1, "Reference No is required")
+      : z.string().optional(),
     trnDate: z.union([z.date(), z.string()]),
     accountDate: z.union([z.date(), z.string()]),
-
-    // Bank and Payment Fields
-    bankId: z.number().min(1),
-    paymentTypeId: z.number().min(1),
-    chequeNo: z.string().nullable().optional(),
+    supplierId: z.number().min(1, "Supplier is required"),
+    // Bank Fields
+    bankId:
+      required?.m_BankId && visible?.m_BankId
+        ? z.number().min(1, "Bank is required")
+        : z.number().optional(),
+    // Payment Type Fields
+    paymentTypeId: z.number().min(1, "Payment Type is required"),
+    // Cheque Fields
+    chequeNo: z.string().optional(),
     chequeDate: z.union([z.date(), z.string()]),
 
-    // Bank Charges
-    bankChargeGLId: z.number().min(0),
-    bankChargesAmt: z.number().min(0),
-    bankChargesLocalAmt: z.number().min(0),
+    // Bank Charge GL Fields
+    bankChargeGLId: z.number().min(1, "Bank Charge GL is required"),
+    bankChargesAmt: z.number().min(0, "Bank Charges Amount is required"),
+    bankChargesLocalAmt: z
+      .number()
+      .min(0, "Bank Charges Local Amount is required"),
 
-    // Supplier
-    supplierId: z.number().min(1),
-
-    // Currency and Exchange Rates
-    currencyId: z.number().min(1),
-    exhRate: z.number().min(0),
-    payCurrencyId: z.number().min(1),
-    payExhRate: z.number().min(0),
-    docExhRate: z.number().min(0),
+    // Currency Fields
+    currencyId: z.number().min(1, "Currency is required"),
+    exhRate: z.number().min(0.000001, "Exchange Rate must be greater than 0"),
 
     // Amounts
-    totAmt: z.number().min(0),
-    totLocalAmt: z.number().min(0),
-    payTotAmt: z.number().min(0),
-    payTotLocalAmt: z.number().min(0),
+    totAmt: required?.m_TotAmt ? z.number().min(0) : z.number().optional(),
+    totLocalAmt: z.number().optional(),
 
-    // Allocation Amounts
-    unAllocTotAmt: z.number().min(0),
-    unAllocTotLocalAmt: z.number().min(0),
-    allocTotAmt: z.number().nullable().optional(),
-    allocTotLocalAmt: z.number().nullable().optional(),
+    // Payment Currency Fields
+    payCurrencyId: z.number().min(1, "Payment Currency is required"),
+    payExhRate: z
+      .number()
+      .min(0.000001, "Payment Exchange Rate must be greater than 0"),
+    payTotAmt: z.number().min(0, "Payment Total Amount is required"),
+    payTotLocalAmt: z.number().min(0, "Payment Total Local Amount is required"),
 
-    // Document Amounts
-    docTotAmt: z.number().min(0),
-    docTotLocalAmt: z.number().min(0),
+    // Unallocated Amount Fields
+    unAllocTotAmt: z.number().min(0, "Unallocated Total Amount is required"),
+    unAllocTotLocalAmt: z
+      .number()
+      .min(0, "Unallocated Total Local Amount is required"),
+    exhGainLoss: z.number().min(0, "Exchange Gain/Loss is required"),
 
-    // Exchange Gain/Loss
-    exhGainLoss: z.number(),
+    remarks: required?.m_Remarks_Hd
+      ? z.string().min(3, "Remarks must be at least 3 characters")
+      : z.string().optional(),
 
-    // Remarks
-    remarks: z.string().nullable().optional(),
+    // Document Fields
+    docExhRate: z
+      .number()
+      .min(0.000001, "Document Exchange Rate must be greater than 0"),
+    docTotAmt: z.number().min(0, "Document Total Amount is required"),
+    docTotLocalAmt: z
+      .number()
+      .min(0, "Document Total Local Amount is required"),
+    // Allocated Amount Fields
+    allocTotAmt: z.number().min(0, "Allocated Total Amount is required"),
+    allocTotLocalAmt: z
+      .number()
+      .min(0, "Allocated Total Local Amount is required"),
 
-    // Module
-    moduleFrom: z.string().min(1),
+    // Module From Field
+    moduleFrom: z.string().optional(),
 
     // Audit Fields
-    createById: z.number().min(1),
-    createDate: z.union([z.date(), z.string()]),
-    editById: z.number().nullable().optional(),
-    editDate: z.union([z.date(), z.string()]).nullable().optional(),
-    editVersion: z.number().min(0),
-    isCancel: z.boolean(),
-    cancelById: z.number().nullable().optional(),
-    cancelDate: z.union([z.date(), z.string()]).nullable().optional(),
-    cancelRemarks: z.string().nullable().optional(),
-
-    // Posting Fields
-    isPost: z.boolean().nullable().optional(),
-    postById: z.number().nullable().optional(),
-    postDate: z.union([z.date(), z.string()]).nullable().optional(),
-
-    // Approval Fields
-    appStatusId: z.number().nullable().optional(),
-    appById: z.number().nullable().optional(),
-    appDate: z.union([z.date(), z.string()]).nullable().optional(),
+    editVersion: z.number().optional(),
+    createBy: z.string().optional(),
+    createDate: z.string().optional(),
+    editBy: z.string().optional(),
+    editDate: z.string().optional(),
+    cancelBy: z.string().optional(),
+    cancelDate: z.string().optional(),
+    cancelRemarks: z.string().optional(),
 
     // Nested Details
-    data_details: z.array(appaymentDtSchema(required, visible)).min(1),
+    data_details: z
+      .array(appaymentDtSchema(required, visible))
+      .min(1, "At least one invoice detail is required"),
   })
 }
 
@@ -94,53 +106,56 @@ export const appaymentHdFiltersSchema = z.object({
   isActive: z.boolean().optional(),
   search: z.string().optional(),
   sortOrder: z.enum(["asc", "desc"]).optional(),
-  startDate: z.union([z.date(), z.string()]).optional(),
-  endDate: z.union([z.date(), z.string()]).optional(),
 })
 
 export type ApPaymentHdFiltersValues = z.infer<typeof appaymentHdFiltersSchema>
 
 export const appaymentDtSchema = (
-  _required: IMandatoryFields,
-  _visible: IVisibleFields
+  required: IMandatoryFields,
+  visible: IVisibleFields
 ) => {
   return z.object({
     // Core Fields
-    companyId: z.number().min(1),
-    paymentId: z.string().min(0),
-    paymentNo: z.string().min(1),
-    itemNo: z.number().min(1),
-    transactionId: z.number().min(1),
-    documentId: z.number().min(0),
-    documentNo: z.string().min(1),
-    referenceNo: z.string().min(1),
+    paymentId: z.string().optional(),
+    paymentNo: z.string().optional(),
+    itemNo: z.number().min(1, "Item No must be at least 1"),
+    transactionId: z.number().min(1, "Transaction is required"),
 
-    // Currency Fields
-    docCurrencyId: z.number().min(0),
-    docExhRate: z.number().min(0),
-
-    // Document Dates
+    // Document Fields
+    documentId: z.number().min(1, "Document is required"),
+    documentNo: z.string().min(1, "Document No is required"),
+    referenceNo: z.string().min(1, "Reference No is required"),
+    docCurrencyId: z.number().min(1, "Document Currency is required"),
+    docExhRate: z
+      .number()
+      .min(0.000001, "Document Exchange Rate must be greater than 0"),
     docAccountDate: z.union([z.date(), z.string()]),
     docDueDate: z.union([z.date(), z.string()]),
+    docTotAmt: z.number().min(0, "Document Total Amount is required"),
+    docTotLocalAmt: z
+      .number()
+      .min(0, "Document Total Local Amount is required"),
+    docBalAmt: z.number().min(0, "Document Balanced Amount is required"),
+    docBalLocalAmt: z
+      .number()
+      .min(0, "Document Balanced Local Amount is required"),
 
-    // Document Amounts
-    docTotAmt: z.number().min(0),
-    docTotLocalAmt: z.number().min(0),
-    docBalAmt: z.number().min(0),
-    docBalLocalAmt: z.number().min(0),
+    // Allocated Amount Fields
+    allocAmt: z.number().min(0, "Allocated Amount is required"),
+    allocLocalAmt: z.number().min(0, "Allocated Local Amount is required"),
+    docAllocAmt: z.number().min(0, "Document Allocated Amount is required"),
+    docAllocLocalAmt: z
+      .number()
+      .min(0, "Document Allocated Local Amount is required"),
 
-    // Allocation Amounts
-    allocAmt: z.number().min(0),
-    allocLocalAmt: z.number().min(0),
-    docAllocAmt: z.number().min(0),
-    docAllocLocalAmt: z.number().min(0),
+    // Exchange and Difference Fields
+    centDiff: z.number().min(0, "Cent Difference is required"),
 
-    // Exchange Fields
-    centDiff: z.number(),
-    exhGainLoss: z.number(),
+    // Exchange Gain/Loss Fields
+    exhGainLoss: z.number().min(0, "Exchange Gain/Loss is required"),
 
     // Audit Fields
-    editVersion: z.number().min(0),
+    editVersion: z.number().optional(),
   })
 }
 

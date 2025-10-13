@@ -1,36 +1,45 @@
 "use client"
 
-import { useState } from "react"
-import { IVisibleFields } from "@/interfaces/setting"
-import { ApPaymentHdSchemaType } from "@/schemas/ap-payment"
-import { format } from "date-fns"
-import { CalendarIcon } from "lucide-react"
-import { UseFormReturn } from "react-hook-form"
+import * as React from "react"
+import {
+  setDueDate,
+  setExchangeRate,
+  setExchangeRateLocal,
+  setPayExchangeRate,
+} from "@/helpers/account"
+import {
+  calculateLocalAmounts,
+  calculateTotalAmounts,
+  recalculateAllDetailAmounts,
+} from "@/helpers/ap-payment-calculations"
+import { IApPaymentDt } from "@/interfaces"
+import {
+  IBankLookup,
+  ICurrencyLookup,
+  ISupplierLookup,
+} from "@/interfaces/lookup"
+import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
+import { ApPaymentDtSchemaType, ApPaymentHdSchemaType } from "@/schemas"
+import { useAuthStore } from "@/stores/auth-store"
+import { FormProvider, UseFormReturn } from "react-hook-form"
 
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
-import { Calendar } from "@/components/ui/calendar"
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover"
-import { Textarea } from "@/components/ui/textarea"
+import BankAutocomplete from "@/components/autocomplete/autocomplete-bank"
+import BankChartOfAccountAutocomplete from "@/components/autocomplete/autocomplete-bank-chartofaccount"
+import CurrencyAutocomplete from "@/components/autocomplete/autocomplete-currency"
+import PaymentTypeAutocomplete from "@/components/autocomplete/autocomplete-paymenttype"
+import SupplierAutocomplete from "@/components/autocomplete/autocomplete-supplier"
+import { CustomDateNew } from "@/components/custom/custom-date-new"
+import CustomInput from "@/components/custom/custom-input"
+import CustomNumberInput from "@/components/custom/custom-number-input"
+import CustomTextarea from "@/components/custom/custom-textarea"
 
 interface PaymentFormProps {
   form: UseFormReturn<ApPaymentHdSchemaType>
   onSuccessAction: (action: string) => Promise<void>
   isEdit: boolean
   visible: IVisibleFields
+  required: IMandatoryFields
+  companyId: number
 }
 
 export default function PaymentForm({
@@ -38,382 +47,379 @@ export default function PaymentForm({
   onSuccessAction,
   isEdit,
   visible,
+  required,
+  companyId: _companyId,
 }: PaymentFormProps) {
-  const [isCalendarOpen, setIsCalendarOpen] = useState({
-    trnDate: false,
-    accountDate: false,
-    chequeDate: false,
-  })
+  const { decimals } = useAuthStore()
+  const amtDec = decimals[0]?.amtDec || 2
+  const locAmtDec = decimals[0]?.locAmtDec || 2
+  const exhRateDec = decimals[0]?.exhRateDec || 6
+
+  const onSubmit = async () => {
+    await onSuccessAction("save")
+  }
+
+  // Handle transaction date selection
+  const handleTrnDateChange = React.useCallback(
+    async (_selectedTrnDate: Date | null) => {
+      // Additional logic when transaction date changes
+      const { trnDate } = form?.getValues()
+      form.setValue("accountDate", trnDate)
+      form?.trigger("accountDate")
+      await setExchangeRate(form, exhRateDec, visible)
+      if (visible?.m_CtyCurr) {
+        await setExchangeRateLocal(form, exhRateDec)
+      }
+      await setDueDate(form)
+    },
+    [exhRateDec, form, visible]
+  )
+
+  // Handle customer selection
+  const handleSupplierChange = React.useCallback(
+    async (selectedSupplier: ISupplierLookup | null) => {
+      if (selectedSupplier) {
+        // ✅ Supplier selected - populate related fields
+        if (!isEdit) {
+          form.setValue("currencyId", selectedSupplier.currencyId || 0)
+          form.setValue("payCurrencyId", selectedSupplier.currencyId || 0)
+          form.setValue("bankId", selectedSupplier.bankId || 0)
+        }
+
+        await setDueDate(form)
+        await setExchangeRate(form, exhRateDec, visible)
+        await setPayExchangeRate(form, exhRateDec)
+      } else {
+        // ✅ Supplier cleared - reset all related fields
+        if (!isEdit) {
+          // Clear supplier-related fields
+          form.setValue("currencyId", 0)
+          form.setValue("payCurrencyId", 0)
+          form.setValue("bankId", 0)
+        }
+
+        // Clear exchange rates
+        form.setValue("exhRate", 0)
+        form.setValue("payExhRate", 0)
+
+        // Trigger validation
+        form.trigger()
+      }
+    },
+    [exhRateDec, form, isEdit, visible]
+  )
+
+  // Handle account date selection
+  const handleAccountDateChange = React.useCallback(
+    async (_selectedAccountDate: Date | null) => {
+      await setExchangeRate(form, exhRateDec, visible)
+      await setPayExchangeRate(form, exhRateDec)
+    },
+    [exhRateDec, form, visible]
+  )
+
+  // Handle bank selection
+  const handleBankChange = React.useCallback(
+    async (selectedBank: IBankLookup | null) => {
+      form.setValue("payCurrencyId", selectedBank?.currencyId || 0)
+      await setPayExchangeRate(form, exhRateDec)
+    },
+    [exhRateDec, form]
+  )
+
+  // Recalculate header totals from details
+  const recalculateHeaderTotals = React.useCallback(() => {
+    const formDetails = form.getValues("data_details") || []
+
+    if (formDetails.length === 0) {
+      // Reset all amounts to 0 if no details
+      form.setValue("totAmt", 0)
+      form.setValue("totLocalAmt", 0)
+      return
+    }
+
+    // Calculate base currency totals
+    const totals = calculateTotalAmounts(
+      formDetails as unknown as IApPaymentDt[],
+      amtDec
+    )
+    form.setValue("totAmt", totals.totAmt)
+
+    // Calculate local currency totals (always calculate)
+    const localAmounts = calculateLocalAmounts(
+      formDetails as unknown as IApPaymentDt[],
+      locAmtDec
+    )
+    form.setValue("totLocalAmt", localAmounts.totLocalAmt)
+  }, [amtDec, form, locAmtDec])
+
+  // Handle currency selection
+  const handleCurrencyChange = React.useCallback(
+    async (selectedCurrency: ICurrencyLookup | null) => {
+      // Additional logic when currency changes
+      const currencyId = selectedCurrency?.currencyId || 0
+      const accountDate = form.getValues("accountDate")
+
+      if (currencyId && accountDate) {
+        // First update exchange rates
+        await setExchangeRate(form, exhRateDec, visible)
+        if (visible?.m_CtyCurr) {
+          await setExchangeRateLocal(form, exhRateDec)
+        }
+
+        // Get current details and ensure they exist
+        const formDetails = form.getValues("data_details")
+        if (!formDetails || formDetails.length === 0) {
+          return
+        }
+
+        // Get updated exchange rates
+        const exchangeRate = form.getValues("exhRate") || 0
+
+        // Recalculate all details with new exchange rates
+        const updatedDetails = recalculateAllDetailAmounts(
+          formDetails as unknown as IApPaymentDt[],
+          exchangeRate,
+          decimals[0]
+        )
+
+        // Update form with recalculated details
+        form.setValue(
+          "data_details",
+          updatedDetails as unknown as ApPaymentDtSchemaType[],
+          { shouldDirty: true, shouldTouch: true }
+        )
+
+        // Recalculate header totals from updated details
+        recalculateHeaderTotals()
+      }
+    },
+    [decimals, exhRateDec, form, recalculateHeaderTotals, visible]
+  )
+
+  // Handle exchange rate change
+  const handleExchangeRateChange = React.useCallback(
+    (e: React.FocusEvent<HTMLInputElement>) => {
+      const formDetails = form.getValues("data_details")
+      const exchangeRate = parseFloat(e.target.value) || 0
+
+      if (!formDetails || formDetails.length === 0) {
+        return
+      }
+
+      // Recalculate all details with new exchange rate
+      const updatedDetails = recalculateAllDetailAmounts(
+        formDetails as unknown as IApPaymentDt[],
+        exchangeRate,
+        decimals[0]
+      )
+
+      // Update form with recalculated details
+      form.setValue(
+        "data_details",
+        updatedDetails as unknown as ApPaymentDtSchemaType[],
+        { shouldDirty: true, shouldTouch: true }
+      )
+
+      // Recalculate header totals from updated details
+      recalculateHeaderTotals()
+    },
+    [decimals, form, recalculateHeaderTotals]
+  )
 
   return (
-    <div className="space-y-6 p-6">
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {/* Payment No */}
-        <FormField
-          control={form.control}
-          name="paymentNo"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Payment No</FormLabel>
-              <FormControl>
-                <Input placeholder="Payment No" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        {/* Reference No */}
-        <FormField
-          control={form.control}
-          name="referenceNo"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Reference No</FormLabel>
-              <FormControl>
-                <Input placeholder="Reference No" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
+    <FormProvider {...form}>
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="grid grid-cols-7 gap-2 rounded-md p-2"
+      >
         {/* Transaction Date */}
-        <FormField
-          control={form.control}
+        <CustomDateNew
+          form={form}
           name="trnDate"
-          render={({ field }) => (
-            <FormItem className="flex flex-col">
-              <FormLabel>Transaction Date</FormLabel>
-              <Popover
-                open={isCalendarOpen.trnDate}
-                onOpenChange={(open) =>
-                  setIsCalendarOpen((prev) => ({ ...prev, trnDate: open }))
-                }
-              >
-                <PopoverTrigger asChild>
-                  <FormControl>
-                    <Button
-                      variant="outline"
-                      className={cn(
-                        "w-full pl-3 text-left font-normal",
-                        !field.value && "text-muted-foreground"
-                      )}
-                    >
-                      {field.value ? (
-                        format(field.value, "PPP")
-                      ) : (
-                        <span>Pick a date</span>
-                      )}
-                      <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                    </Button>
-                  </FormControl>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={field.value}
-                    onSelect={(date) => {
-                      field.onChange(date)
-                      setIsCalendarOpen((prev) => ({ ...prev, trnDate: false }))
-                    }}
-                    disabled={(date) =>
-                      date > new Date() || date < new Date("1900-01-01")
-                    }
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        {/* Account Date */}
-        <FormField
-          control={form.control}
-          name="accountDate"
-          render={({ field }) => (
-            <FormItem className="flex flex-col">
-              <FormLabel>Account Date</FormLabel>
-              <Popover
-                open={isCalendarOpen.accountDate}
-                onOpenChange={(open) =>
-                  setIsCalendarOpen((prev) => ({ ...prev, accountDate: open }))
-                }
-              >
-                <PopoverTrigger asChild>
-                  <FormControl>
-                    <Button
-                      variant="outline"
-                      className={cn(
-                        "w-full pl-3 text-left font-normal",
-                        !field.value && "text-muted-foreground"
-                      )}
-                    >
-                      {field.value ? (
-                        format(field.value, "PPP")
-                      ) : (
-                        <span>Pick a date</span>
-                      )}
-                      <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                    </Button>
-                  </FormControl>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={field.value}
-                    onSelect={(date) => {
-                      field.onChange(date)
-                      setIsCalendarOpen((prev) => ({
-                        ...prev,
-                        accountDate: false,
-                      }))
-                    }}
-                    disabled={(date) =>
-                      date > new Date() || date < new Date("1900-01-01")
-                    }
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
-              <FormMessage />
-            </FormItem>
-          )}
+          label="Transaction Date"
+          isRequired={true}
+          onChangeEvent={handleTrnDateChange}
         />
 
         {/* Supplier */}
-        <FormField
-          control={form.control}
+        <SupplierAutocomplete
+          form={form}
           name="supplierId"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Supplier</FormLabel>
-              <FormControl>
-                <Input
-                  type="number"
-                  placeholder="Supplier ID"
-                  {...field}
-                  onChange={(e) => field.onChange(Number(e.target.value))}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
+          label="Supplier"
+          isRequired={true}
+          onChangeEvent={handleSupplierChange}
         />
+
+        {/* Reference No */}
+        <CustomInput
+          form={form}
+          name="referenceNo"
+          label="Reference No."
+          isRequired={required?.m_ReferenceNo}
+        />
+
+        {/* Account Date */}
+        {visible?.m_AccountDate && (
+          <CustomDateNew
+            form={form}
+            name="accountDate"
+            label="Account Date"
+            isRequired={true}
+            onChangeEvent={handleAccountDateChange}
+          />
+        )}
 
         {/* Bank */}
-        <FormField
-          control={form.control}
-          name="bankId"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Bank</FormLabel>
-              <FormControl>
-                <Input
-                  type="number"
-                  placeholder="Bank ID"
-                  {...field}
-                  onChange={(e) => field.onChange(Number(e.target.value))}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        {/* Payment Type */}
-        <FormField
-          control={form.control}
-          name="paymentTypeId"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Payment Type</FormLabel>
-              <FormControl>
-                <Input
-                  type="number"
-                  placeholder="Payment Type ID"
-                  {...field}
-                  onChange={(e) => field.onChange(Number(e.target.value))}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        {/* Cheque No */}
-        <FormField
-          control={form.control}
-          name="chequeNo"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Cheque No</FormLabel>
-              <FormControl>
-                <Input placeholder="Cheque No" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        {/* Cheque Date */}
-        <FormField
-          control={form.control}
-          name="chequeDate"
-          render={({ field }) => (
-            <FormItem className="flex flex-col">
-              <FormLabel>Cheque Date</FormLabel>
-              <Popover
-                open={isCalendarOpen.chequeDate}
-                onOpenChange={(open) =>
-                  setIsCalendarOpen((prev) => ({ ...prev, chequeDate: open }))
-                }
-              >
-                <PopoverTrigger asChild>
-                  <FormControl>
-                    <Button
-                      variant="outline"
-                      className={cn(
-                        "w-full pl-3 text-left font-normal",
-                        !field.value && "text-muted-foreground"
-                      )}
-                    >
-                      {field.value ? (
-                        format(field.value, "PPP")
-                      ) : (
-                        <span>Pick a date</span>
-                      )}
-                      <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                    </Button>
-                  </FormControl>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={field.value}
-                    onSelect={(date) => {
-                      field.onChange(date)
-                      setIsCalendarOpen((prev) => ({
-                        ...prev,
-                        chequeDate: false,
-                      }))
-                    }}
-                    disabled={(date) =>
-                      date > new Date() || date < new Date("1900-01-01")
-                    }
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        {visible?.m_BankId && (
+          <BankAutocomplete
+            form={form}
+            name="bankId"
+            label="Bank"
+            isRequired={required?.m_BankId}
+            onChangeEvent={handleBankChange}
+          />
+        )}
 
         {/* Currency */}
-        <FormField
-          control={form.control}
+        <CurrencyAutocomplete
+          form={form}
           name="currencyId"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Currency</FormLabel>
-              <FormControl>
-                <Input
-                  type="number"
-                  placeholder="Currency ID"
-                  {...field}
-                  onChange={(e) => field.onChange(Number(e.target.value))}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
+          label="Currency"
+          isRequired={true}
+          onChangeEvent={handleCurrencyChange}
         />
 
         {/* Exchange Rate */}
-        <FormField
-          control={form.control}
+        <CustomNumberInput
+          form={form}
           name="exhRate"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Exchange Rate</FormLabel>
-              <FormControl>
-                <Input
-                  type="number"
-                  step="0.0001"
-                  placeholder="Exchange Rate"
-                  {...field}
-                  onChange={(e) => field.onChange(Number(e.target.value))}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
+          label="Exchange Rate"
+          isRequired={true}
+          round={exhRateDec}
+          className="text-right"
+          onBlurEvent={handleExchangeRateChange}
+        />
+
+        {/* Payment Type */}
+        <PaymentTypeAutocomplete
+          form={form}
+          name="paymentTypeId"
+          label="Payment Type"
+          isRequired={true}
+        />
+
+        {/* Cheque No */}
+        <CustomInput form={form} name="chequeNo" label="Cheque No" />
+
+        {/* Cheque Date */}
+        <CustomDateNew form={form} name="chequeDate" label="Cheque Date" />
+
+        {/* Unallocated Amount */}
+        <CustomNumberInput
+          form={form}
+          name="unAllocTotAmt"
+          label="Unallocated Amount"
+        />
+
+        {/* Unallocated Local Amount */}
+        <CustomNumberInput
+          form={form}
+          name="unAllocTotLocalAmt"
+          label="Unallocated Local Amount"
+          isDisabled={true}
+        />
+
+        {/* Pay Currency */}
+        <CurrencyAutocomplete
+          form={form}
+          name="payCurrencyId"
+          label="Pay Currency"
+          isDisabled={true}
+        />
+
+        {/* Pay Exchange Rate */}
+        <CustomNumberInput
+          form={form}
+          name="payExhRate"
+          label="Pay Exchange Rate"
+          isDisabled={true}
+        />
+
+        {/* Pay Total Amount */}
+        <CustomNumberInput
+          form={form}
+          name="payTotAmt"
+          label="Pay Total Amount"
+          isDisabled={true}
+        />
+
+        {/* Pay Total Local Amount */}
+        <CustomNumberInput
+          form={form}
+          name="payTotLocalAmt"
+          label="Pay Total Local Amount"
+          isDisabled={true}
         />
 
         {/* Total Amount */}
-        <FormField
-          control={form.control}
+        <CustomNumberInput
+          form={form}
           name="totAmt"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Total Amount</FormLabel>
-              <FormControl>
-                <Input
-                  type="number"
-                  step="0.01"
-                  placeholder="Total Amount"
-                  {...field}
-                  onChange={(e) => field.onChange(Number(e.target.value))}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
+          label="Total Amount"
+          round={amtDec}
+          isDisabled={true}
+          className="text-right"
         />
 
         {/* Total Local Amount */}
-        <FormField
-          control={form.control}
+        <CustomNumberInput
+          form={form}
           name="totLocalAmt"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Total Local Amount</FormLabel>
-              <FormControl>
-                <Input
-                  type="number"
-                  step="0.01"
-                  placeholder="Total Local Amount"
-                  {...field}
-                  onChange={(e) => field.onChange(Number(e.target.value))}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
+          label="Total Local Amount"
+          round={locAmtDec}
+          isDisabled={true}
+          className="text-right"
+        />
+
+        {/* Bank Charge GL */}
+        <BankChartOfAccountAutocomplete
+          form={form}
+          name="bankChargeGLId"
+          label="Bank Charge GL"
+        />
+
+        {/* Bank Charges Amount */}
+        <CustomNumberInput
+          form={form}
+          name="bankChargesAmt"
+          label="Bank Charges Amount"
+        />
+
+        {/* Bank Charges Local Amount */}
+        <CustomNumberInput
+          form={form}
+          name="bankChargesLocalAmt"
+          label="Bank Charges Local Amount"
+          isDisabled={true}
+        />
+
+        {/* Exchange Gain/Loss */}
+        <CustomNumberInput
+          form={form}
+          name="exhGainLoss"
+          label="Exchange Gain/Loss"
         />
 
         {/* Remarks */}
-        <FormField
-          control={form.control}
+        <CustomTextarea
+          form={form}
           name="remarks"
-          render={({ field }) => (
-            <FormItem className="md:col-span-2 lg:col-span-3">
-              <FormLabel>Remarks</FormLabel>
-              <FormControl>
-                <Textarea
-                  placeholder="Enter remarks..."
-                  className="resize-none"
-                  {...field}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
+          label="Remarks"
+          isRequired={required?.m_Remarks_Hd}
+          className="col-span-2"
         />
-      </div>
-    </div>
+      </form>
+    </FormProvider>
   )
 }

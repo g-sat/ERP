@@ -57,3 +57,7 @@ export * from "./uom"
 export * from "./vessel"
 export * from "./voyage"
 export * from "./worklocation"
+
+// AP schemas
+export * from "./ap-invoice"
+export * from "./ap-payment"

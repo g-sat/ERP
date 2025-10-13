@@ -1,86 +1,159 @@
 "use client"
 
-import { ApPaymentHdSchemaType } from "@/schemas/ap-payment"
-import { UseFormReturn } from "react-hook-form"
+import { useAuthStore } from "@/stores/auth-store"
+import { format } from "date-fns"
 
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
+import { Badge } from "@/components/ui/badge"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Separator } from "@/components/ui/separator"
 
 interface AccountDetailsProps {
-  form: UseFormReturn<ApPaymentHdSchemaType>
-  isEdit: boolean
-  moduleId: number
-  transactionId: number
+  createBy: string
+  createDate: string
+  editBy: string | null
+  editDate: string | null
+  cancelBy: string | null
+  cancelDate: string | null
+  balanceAmt: number
+  balanceBaseAmt: number
+  paymentAmt: number
+  paymentBaseAmt: number
 }
 
 export default function AccountDetails({
-  form,
-  isEdit,
-  moduleId,
-  transactionId,
+  createBy,
+  createDate,
+  editBy,
+  editDate,
+  cancelBy,
+  cancelDate,
+  balanceAmt,
+  balanceBaseAmt,
+  paymentAmt,
+  paymentBaseAmt,
 }: AccountDetailsProps) {
-  const payment = form.getValues()
+  const { decimals } = useAuthStore()
+  const amtDec = decimals[0]?.amtDec || 2
+  const locAmtDec = decimals[0]?.locAmtDec || 2
+  const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
 
-  // Mock data - replace with actual API call
-  const accountDetails = [
-    {
-      glId: 1001,
-      glCode: "CASH",
-      glName: "Cash Account",
-      debitAmt: 0,
-      creditAmt: payment.totLocalAmt || 0,
-      localDebitAmt: 0,
-      localCreditAmt: payment.totLocalAmt || 0,
-    },
-    {
-      glId: 2001,
-      glCode: "AP",
-      glName: "Accounts Payable",
-      debitAmt: payment.totAmt || 0,
-      creditAmt: 0,
-      localDebitAmt: payment.totLocalAmt || 0,
-      localCreditAmt: 0,
-    },
-  ]
+  const safeFormatDate = (
+    dateValue: string | Date | null | undefined,
+    formatStr = "yyyy-MM-dd HH:mm"
+  ) => {
+    if (!dateValue) return "" // if null, undefined, or empty
+    const date = new Date(dateValue)
+    return isNaN(date.getTime()) ? "" : format(date, formatStr)
+  }
 
   return (
-    <div className="space-y-4">
-      <h4 className="text-md font-medium">Account Details</h4>
+    <Card>
+      <CardHeader className="pb-3">
+        <CardTitle className="text-lg font-semibold">Account Details</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="grid grid-cols-2 gap-6">
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <h3 className="text-muted-foreground text-sm font-medium">
+                Transaction History
+              </h3>
+              <div className="bg-card rounded-lg border p-4">
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground text-sm">
+                      Created By
+                    </span>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="outline" className="font-normal">
+                        {createBy}
+                      </Badge>
+                      <span className="text-muted-foreground text-sm">
+                        {safeFormatDate(createDate, datetimeFormat)}
+                      </span>
+                    </div>
+                  </div>
+                  <Separator />
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground text-sm">
+                      Last Edited By
+                    </span>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="outline" className="font-normal">
+                        {editBy || "-"}
+                      </Badge>
+                      <span className="text-muted-foreground text-sm">
+                        {safeFormatDate(editDate, datetimeFormat)}
+                      </span>
+                    </div>
+                  </div>
+                  <Separator />
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground text-sm">
+                      Cancelled By
+                    </span>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="outline" className="font-normal">
+                        {cancelBy || "-"}
+                      </Badge>
+                      <span className="text-muted-foreground text-sm">
+                        {safeFormatDate(cancelDate, datetimeFormat)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
 
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>GL ID</TableHead>
-              <TableHead>GL Code</TableHead>
-              <TableHead>GL Name</TableHead>
-              <TableHead>Debit Amount</TableHead>
-              <TableHead>Credit Amount</TableHead>
-              <TableHead>Local Debit Amount</TableHead>
-              <TableHead>Local Credit Amount</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {accountDetails.map((detail, index) => (
-              <TableRow key={index}>
-                <TableCell>{detail.glId}</TableCell>
-                <TableCell>{detail.glCode}</TableCell>
-                <TableCell>{detail.glName}</TableCell>
-                <TableCell>{detail.debitAmt}</TableCell>
-                <TableCell>{detail.creditAmt}</TableCell>
-                <TableCell>{detail.localDebitAmt}</TableCell>
-                <TableCell>{detail.localCreditAmt}</TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
-    </div>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <h3 className="text-muted-foreground text-sm font-medium">
+                Amount Details
+              </h3>
+              <div className="bg-card rounded-lg border p-4">
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground text-sm">
+                      Balance Amount
+                    </span>
+                    <span className="font-medium tabular-nums">
+                      {balanceAmt.toFixed(amtDec)}
+                    </span>
+                  </div>
+                  <Separator />
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground text-sm">
+                      Balance Base Amount
+                    </span>
+                    <span className="font-medium tabular-nums">
+                      {balanceBaseAmt.toFixed(locAmtDec)}
+                    </span>
+                  </div>
+                  <Separator />
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground text-sm">
+                      Payment Amount
+                    </span>
+                    <span className="font-medium tabular-nums">
+                      {paymentAmt.toFixed(amtDec)}
+                    </span>
+                  </div>
+                  <Separator />
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground text-sm">
+                      Payment Base Amount
+                    </span>
+                    <span className="font-medium tabular-nums">
+                      {paymentBaseAmt.toFixed(locAmtDec)}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   )
 }

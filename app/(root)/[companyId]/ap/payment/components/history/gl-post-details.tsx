@@ -1,81 +1,283 @@
-"use client"
-
-import { ApPaymentHdSchemaType } from "@/schemas/ap-payment"
+import { ApiResponse } from "@/interfaces/auth"
+import { IGlTransactionDetails } from "@/interfaces/history"
+import { useAuthStore } from "@/stores/auth-store"
+import { ColumnDef } from "@tanstack/react-table"
 import { format } from "date-fns"
-import { UseFormReturn } from "react-hook-form"
 
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
+import { APTransactionId, ModuleId, TableName } from "@/lib/utils"
+import { useGetGlPostDetails } from "@/hooks/use-histoy"
+import { Badge } from "@/components/ui/badge"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { BasicTable } from "@/components/table/table-basic"
 
 interface GLPostDetailsProps {
-  form: UseFormReturn<ApPaymentHdSchemaType>
-  isEdit: boolean
-  moduleId: number
-  transactionId: number
+  invoiceId: string
 }
 
-export default function GLPostDetails({
-  form,
-  isEdit,
-  moduleId,
-  transactionId,
-}: GLPostDetailsProps) {
-  const payment = form.getValues()
+export default function GLPostDetails({ invoiceId }: GLPostDetailsProps) {
+  const { decimals } = useAuthStore()
+  const amtDec = decimals[0]?.amtDec || 2
+  const locAmtDec = decimals[0]?.locAmtDec || 2
+  const exhRateDec = decimals[0]?.exhRateDec || 6
+  const dateFormat = decimals[0]?.dateFormat || "dd/MM/yyyy"
+  const moduleId = ModuleId.ap
+  const transactionId = APTransactionId.invoice
 
-  // Mock data - replace with actual API call
-  const glPostDetails = [
+  const { data: glPostDetails, refetch: refetchGlPost } =
+    //useGetGlPostDetails<IGlTransactionDetails>(25, 1, "14120250100024")
+    useGetGlPostDetails<IGlTransactionDetails>(
+      Number(moduleId),
+      Number(transactionId),
+      invoiceId
+    )
+
+  const { data: glPostDetailsData } =
+    (glPostDetails as ApiResponse<IGlTransactionDetails>) ?? {
+      result: 0,
+      message: "",
+      data: [],
+    }
+
+  // const {
+  //   result: glPostDetailsResult,
+  //   message: glPostDetailsMessage,
+  //   data: glPostDetailsData,
+  // } = glPostDetails ?? {}
+
+  const columns: ColumnDef<IGlTransactionDetails>[] = [
     {
-      postDate: payment.postDate
-        ? format(new Date(payment.postDate), "dd/MM/yyyy HH:mm")
-        : "-",
-      postBy: payment.postById || "-",
-      status: payment.isPost ? "Posted" : "Not Posted",
-      remarks: "Payment posted to GL",
+      accessorKey: "DocumentNo",
+      header: "Document No",
+    },
+    {
+      accessorKey: "ReferenceNo",
+      header: "Reference No",
+    },
+    {
+      accessorKey: "AccountDate",
+      header: "Account Date",
+      cell: ({ row }) => {
+        const date = row.original.AccountDate
+          ? new Date(row.original.AccountDate)
+          : null
+        return date ? format(date, dateFormat) : "-"
+      },
+    },
+    {
+      accessorKey: "CurrencyCode",
+      header: "Currency Code",
+    },
+    {
+      accessorKey: "CurrencyName",
+      header: "Currency Name",
+    },
+    {
+      accessorKey: "ExhRate",
+      header: "Exchange Rate",
+      cell: ({ row }) =>
+        row.original.ExhRate ? row.original.ExhRate.toFixed(exhRateDec) : "-",
+    },
+    {
+      accessorKey: "CtyExhRate",
+      header: "Country Exchange Rate",
+      cell: ({ row }) =>
+        row.original.CtyExhRate
+          ? row.original.CtyExhRate.toFixed(exhRateDec)
+          : "-",
+    },
+    {
+      accessorKey: "BankCode",
+      header: "Bank Code",
+    },
+    {
+      accessorKey: "BankName",
+      header: "Bank Name",
+    },
+    {
+      accessorKey: "GLCode",
+      header: "GL Code",
+    },
+    {
+      accessorKey: "GLName",
+      header: "GL Name",
+    },
+    {
+      accessorKey: "IsDebit",
+      header: "Type",
+      cell: ({ row }) => (
+        <Badge variant={row.original.IsDebit ? "default" : "destructive"}>
+          {row.original.IsDebit ? "Debit" : "Credit"}
+        </Badge>
+      ),
+    },
+    {
+      accessorKey: "TotAmt",
+      header: "Total Amount",
+      cell: ({ row }) =>
+        row.original.TotAmt ? row.original.TotAmt.toFixed(amtDec) : "-",
+    },
+    {
+      accessorKey: "TotLocalAmt",
+      header: "Total Local Amount",
+      cell: ({ row }) =>
+        row.original.TotLocalAmt
+          ? row.original.TotLocalAmt.toFixed(locAmtDec)
+          : "-",
+    },
+    {
+      accessorKey: "TotCtyAmt",
+      header: "Total Country Amount",
+      cell: ({ row }) =>
+        row.original.TotCtyAmt
+          ? row.original.TotCtyAmt.toFixed(locAmtDec)
+          : "-",
+    },
+    {
+      accessorKey: "gstCode",
+      header: "GST Code",
+    },
+    {
+      accessorKey: "gstName",
+      header: "GST Name",
+    },
+    {
+      accessorKey: "gstAmt",
+      header: "GST Amount",
+      cell: ({ row }) =>
+        row.original.gstAmt ? row.original.gstAmt.toFixed(amtDec) : "-",
+    },
+    {
+      accessorKey: "gstLocalAmt",
+      header: "GST Local Amount",
+      cell: ({ row }) =>
+        row.original.gstLocalAmt
+          ? row.original.gstLocalAmt.toFixed(locAmtDec)
+          : "-",
+    },
+    {
+      accessorKey: "gstCtyAmt",
+      header: "GST Country Amount",
+      cell: ({ row }) =>
+        row.original.gstCtyAmt
+          ? row.original.gstCtyAmt.toFixed(locAmtDec)
+          : "-",
+    },
+    {
+      accessorKey: "remarks",
+      header: "Remarks",
+    },
+    {
+      accessorKey: "departmentCode",
+      header: "Department Code",
+    },
+    {
+      accessorKey: "departmentName",
+      header: "Department Name",
+    },
+    {
+      accessorKey: "employeeCode",
+      header: "Employee Code",
+    },
+    {
+      accessorKey: "employeeName",
+      header: "Employee Name",
+    },
+    {
+      accessorKey: "portCode",
+      header: "Port Code",
+    },
+    {
+      accessorKey: "portName",
+      header: "Port Name",
+    },
+    {
+      accessorKey: "vesselCode",
+      header: "Vessel Code",
+    },
+    {
+      accessorKey: "vesselName",
+      header: "Vessel Name",
+    },
+    {
+      accessorKey: "voyageNo",
+      header: "Voyage No",
+    },
+    {
+      accessorKey: "bargeCode",
+      header: "Barge Code",
+    },
+    {
+      accessorKey: "bargeName",
+      header: "Barge Name",
+    },
+    {
+      accessorKey: "productCode",
+      header: "Product Code",
+    },
+    {
+      accessorKey: "productName",
+      header: "Product Name",
+    },
+    {
+      accessorKey: "supplierCode",
+      header: "Supplier Code",
+    },
+    {
+      accessorKey: "supplierName",
+      header: "Supplier Name",
+    },
+    {
+      accessorKey: "moduleFrom",
+      header: "Module",
+    },
+    {
+      accessorKey: "createByCode",
+      header: "Created By Code",
+    },
+    {
+      accessorKey: "createByName",
+      header: "Created By Name",
+    },
+    {
+      accessorKey: "createDate",
+      header: "Created Date",
+      cell: ({ row }) => {
+        const date = row.original.createDate
+          ? new Date(row.original.createDate)
+          : null
+        return date ? format(date, dateFormat) : "-"
+      },
     },
   ]
 
-  return (
-    <div className="space-y-4">
-      <h4 className="text-md font-medium">GL Post Details</h4>
+  const handleRefresh = async () => {
+    try {
+      await refetchGlPost()
+    } catch (error) {
+      console.error("Error refreshing data:", error)
+    }
+  }
 
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Post Date</TableHead>
-              <TableHead>Post By</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Remarks</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {glPostDetails.map((detail, index) => (
-              <TableRow key={index}>
-                <TableCell>{detail.postDate}</TableCell>
-                <TableCell>{detail.postBy}</TableCell>
-                <TableCell>
-                  <span
-                    className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                      detail.status === "Posted"
-                        ? "bg-green-100 text-green-800"
-                        : "bg-yellow-100 text-yellow-800"
-                    }`}
-                  >
-                    {detail.status}
-                  </span>
-                </TableCell>
-                <TableCell>{detail.remarks}</TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
-    </div>
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>GL Post Details</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <BasicTable
+          data={glPostDetailsData || []}
+          columns={columns}
+          isLoading={false}
+          moduleId={moduleId}
+          transactionId={transactionId}
+          tableName={TableName.glPostDetails}
+          emptyMessage="No results."
+          onRefresh={handleRefresh}
+          showHeader={true}
+          showFooter={false}
+          maxHeight="300px"
+        />
+      </CardContent>
+    </Card>
   )
 }

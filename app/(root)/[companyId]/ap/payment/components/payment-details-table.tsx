@@ -1,140 +1,217 @@
-"use client"
-
-import { useEffect, useRef } from "react"
+import { useEffect, useState } from "react"
+import { IApPaymentDt } from "@/interfaces"
 import { IVisibleFields } from "@/interfaces/setting"
-import { ApPaymentHdSchemaType } from "@/schemas/ap-payment"
-import { Trash2 } from "lucide-react"
-import { UseFormReturn } from "react-hook-form"
+import { ColumnDef } from "@tanstack/react-table"
 
-import { Button } from "@/components/ui/button"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
+import { TableName } from "@/lib/utils"
+import { AccountBaseTable } from "@/components/table/table-account"
 
+// Use flexible data type that can work with form data
 interface PaymentDetailsTableProps {
-  form: UseFormReturn<ApPaymentHdSchemaType>
+  data: IApPaymentDt[]
+  onDelete?: (itemNo: number) => void
+  onBulkDelete?: (selectedItemNos: number[]) => void
+  onEdit?: (template: IApPaymentDt) => void
+  onRefresh?: () => void
+  onFilterChange?: (filters: { search?: string; sortOrder?: string }) => void
+  onDataReorder?: (newData: IApPaymentDt[]) => void
   visible: IVisibleFields
-  onAddRowRef: React.MutableRefObject<
-    ((rowData: Record<string, unknown>) => void) | null
-  >
 }
 
 export default function PaymentDetailsTable({
-  form,
-  visible,
-  onAddRowRef,
+  data,
+  onDelete,
+  onBulkDelete,
+  onEdit,
+  onRefresh,
+  onFilterChange,
+  onDataReorder,
+  visible: _visible,
 }: PaymentDetailsTableProps) {
-  const { watch, setValue } = form
-  const dataDetails = watch("data_details") || []
+  const [mounted, setMounted] = useState(false)
 
-  // Set the ref for adding rows
   useEffect(() => {
-    onAddRowRef.current = (rowData: Record<string, unknown>) => {
-      const currentDetails = form.getValues("data_details") || []
-      const newItemNo = currentDetails.length + 1
+    setMounted(true)
+  }, [])
 
-      const newRow = {
-        ...rowData,
-        itemNo: newItemNo,
-        companyId: 0,
-        paymentId: 0,
-        paymentNo: "",
-        transactionId: 1,
-        documentId: 0,
-        editVersion: 0,
-      }
-
-      setValue("data_details", [...currentDetails, newRow])
+  // Wrapper functions to convert string to number
+  const handleDelete = (itemId: string) => {
+    if (onDelete) {
+      onDelete(Number(itemId))
     }
-  }, [form, setValue, onAddRowRef])
+  }
 
-  const handleDeleteRow = (index: number) => {
-    const currentDetails = form.getValues("data_details") || []
-    const updatedDetails = currentDetails.filter((_, i) => i !== index)
-    setValue("data_details", updatedDetails)
+  const handleBulkDelete = (selectedIds: string[]) => {
+    if (onBulkDelete) {
+      onBulkDelete(selectedIds.map((id) => Number(id)))
+    }
+  }
+
+  // Define columns with visible prop checks - Payment specific fields
+  const columns: ColumnDef<IApPaymentDt>[] = [
+    {
+      accessorKey: "itemNo",
+      header: "Item No",
+      size: 60,
+      cell: ({ row }: { row: { original: IApPaymentDt } }) => (
+        <div className="text-right">{row.original.itemNo}</div>
+      ),
+    },
+    {
+      accessorKey: "transactionId",
+      header: "Transaction",
+      size: 100,
+      cell: ({ row }: { row: { original: IApPaymentDt } }) => (
+        <div className="text-right">{row.original.transactionId}</div>
+      ),
+    },
+    {
+      accessorKey: "documentNo",
+      header: "Document No",
+      size: 120,
+    },
+    {
+      accessorKey: "referenceNo",
+      header: "Reference No",
+      size: 120,
+    },
+    {
+      accessorKey: "docCurrencyId",
+      header: "Doc Currency",
+      size: 100,
+      cell: ({ row }: { row: { original: IApPaymentDt } }) => (
+        <div className="text-right">{row.original.docCurrencyId}</div>
+      ),
+    },
+    {
+      accessorKey: "docExhRate",
+      header: "Doc Exh Rate",
+      size: 100,
+      cell: ({ row }: { row: { original: IApPaymentDt } }) => (
+        <div className="text-right">{row.original.docExhRate}</div>
+      ),
+    },
+    {
+      accessorKey: "docAccountDate",
+      header: "Doc Account Date",
+      size: 120,
+    },
+    {
+      accessorKey: "docDueDate",
+      header: "Doc Due Date",
+      size: 120,
+    },
+    {
+      accessorKey: "docTotAmt",
+      header: "Doc Total Amt",
+      size: 100,
+      cell: ({ row }: { row: { original: IApPaymentDt } }) => (
+        <div className="text-right">{row.original.docTotAmt}</div>
+      ),
+    },
+    {
+      accessorKey: "docTotLocalAmt",
+      header: "Doc Total Local Amt",
+      size: 120,
+      cell: ({ row }: { row: { original: IApPaymentDt } }) => (
+        <div className="text-right">{row.original.docTotLocalAmt}</div>
+      ),
+    },
+    {
+      accessorKey: "docBalAmt",
+      header: "Doc Balance Amt",
+      size: 120,
+      cell: ({ row }: { row: { original: IApPaymentDt } }) => (
+        <div className="text-right">{row.original.docBalAmt}</div>
+      ),
+    },
+    {
+      accessorKey: "docBalLocalAmt",
+      header: "Doc Balance Local Amt",
+      size: 140,
+      cell: ({ row }: { row: { original: IApPaymentDt } }) => (
+        <div className="text-right">{row.original.docBalLocalAmt}</div>
+      ),
+    },
+    {
+      accessorKey: "allocAmt",
+      header: "Alloc Amt",
+      size: 100,
+      cell: ({ row }: { row: { original: IApPaymentDt } }) => (
+        <div className="text-right">{row.original.allocAmt}</div>
+      ),
+    },
+    {
+      accessorKey: "allocLocalAmt",
+      header: "Alloc Local Amt",
+      size: 120,
+      cell: ({ row }: { row: { original: IApPaymentDt } }) => (
+        <div className="text-right">{row.original.allocLocalAmt}</div>
+      ),
+    },
+    {
+      accessorKey: "docAllocAmt",
+      header: "Doc Alloc Amt",
+      size: 120,
+      cell: ({ row }: { row: { original: IApPaymentDt } }) => (
+        <div className="text-right">{row.original.docAllocAmt}</div>
+      ),
+    },
+    {
+      accessorKey: "docAllocLocalAmt",
+      header: "Doc Alloc Local Amt",
+      size: 140,
+      cell: ({ row }: { row: { original: IApPaymentDt } }) => (
+        <div className="text-right">{row.original.docAllocLocalAmt}</div>
+      ),
+    },
+    {
+      accessorKey: "centDiff",
+      header: "Cent Diff",
+      size: 80,
+      cell: ({ row }: { row: { original: IApPaymentDt } }) => (
+        <div className="text-right">{row.original.centDiff}</div>
+      ),
+    },
+    {
+      accessorKey: "exhGainLoss",
+      header: "Exh Gain/Loss",
+      size: 100,
+      cell: ({ row }: { row: { original: IApPaymentDt } }) => (
+        <div className="text-right">{row.original.exhGainLoss}</div>
+      ),
+    },
+  ]
+
+  if (!mounted) {
+    return null
   }
 
   return (
-    <div className="space-y-4 p-6">
-      <h3 className="text-lg font-semibold">Payment Details</h3>
-
-      {dataDetails.length === 0 ? (
-        <div className="text-muted-foreground py-8 text-center">
-          No payment details added yet. Use the form above to add details.
-        </div>
-      ) : (
-        <div className="rounded-md border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Item No</TableHead>
-                <TableHead>Document No</TableHead>
-                <TableHead>Reference No</TableHead>
-                <TableHead>Currency</TableHead>
-                <TableHead>Exchange Rate</TableHead>
-                <TableHead>Account Date</TableHead>
-                <TableHead>Due Date</TableHead>
-                <TableHead>Total Amount</TableHead>
-                <TableHead>Total Local Amount</TableHead>
-                <TableHead>Balance Amount</TableHead>
-                <TableHead>Balance Local Amount</TableHead>
-                <TableHead>Allocation Amount</TableHead>
-                <TableHead>Allocation Local Amount</TableHead>
-                <TableHead>Doc Allocation Amount</TableHead>
-                <TableHead>Doc Allocation Local Amount</TableHead>
-                <TableHead>Cent Difference</TableHead>
-                <TableHead>Exchange Gain/Loss</TableHead>
-                <TableHead className="w-[100px]">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {dataDetails.map((detail, index) => (
-                <TableRow key={index}>
-                  <TableCell>{detail.itemNo}</TableCell>
-                  <TableCell>{detail.documentNo}</TableCell>
-                  <TableCell>{detail.referenceNo}</TableCell>
-                  <TableCell>{detail.docCurrencyId}</TableCell>
-                  <TableCell>{detail.docExhRate}</TableCell>
-                  <TableCell>
-                    {detail.docAccountDate
-                      ? new Date(detail.docAccountDate).toLocaleDateString()
-                      : ""}
-                  </TableCell>
-                  <TableCell>
-                    {detail.docDueDate
-                      ? new Date(detail.docDueDate).toLocaleDateString()
-                      : ""}
-                  </TableCell>
-                  <TableCell>{detail.docTotAmt}</TableCell>
-                  <TableCell>{detail.docTotLocalAmt}</TableCell>
-                  <TableCell>{detail.docBalAmt}</TableCell>
-                  <TableCell>{detail.docBalLocalAmt}</TableCell>
-                  <TableCell>{detail.allocAmt}</TableCell>
-                  <TableCell>{detail.allocLocalAmt}</TableCell>
-                  <TableCell>{detail.docAllocAmt}</TableCell>
-                  <TableCell>{detail.docAllocLocalAmt}</TableCell>
-                  <TableCell>{detail.centDiff}</TableCell>
-                  <TableCell>{detail.exhGainLoss}</TableCell>
-                  <TableCell>
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => handleDeleteRow(index)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-      )}
+    <div className="w-full p-2">
+      <AccountBaseTable
+        data={data}
+        columns={columns}
+        moduleId={25}
+        transactionId={2}
+        tableName={TableName.apPaymentDt}
+        emptyMessage="No payment details found."
+        accessorId="itemNo"
+        onRefresh={onRefresh}
+        onFilterChange={onFilterChange}
+        onBulkDelete={handleBulkDelete}
+        onBulkSelectionChange={() => {}}
+        onDataReorder={onDataReorder}
+        onEdit={onEdit}
+        onDelete={handleDelete}
+        showHeader={true}
+        showActions={true}
+        hideView={false}
+        hideEdit={false}
+        hideDelete={false}
+        hideCheckbox={false}
+        disableOnAccountExists={false}
+      />
     </div>
   )
 }

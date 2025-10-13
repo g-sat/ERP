@@ -1,174 +1,356 @@
-"use client"
-
 import { useState } from "react"
 import { IApPaymentFilter, IApPaymentHd } from "@/interfaces/ap-payment"
-import { format } from "date-fns"
-import { RefreshCw, Search } from "lucide-react"
+import { useAuthStore } from "@/stores/auth-store"
+import { ColumnDef } from "@tanstack/react-table"
+import { format, subMonths } from "date-fns"
+import { FormProvider, useForm } from "react-hook-form"
 
+import { APTransactionId, ModuleId, TableName } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
+import { Separator } from "@/components/ui/separator"
+import { CustomDateNew } from "@/components/custom/custom-date-new"
+import { DialogDataTable } from "@/components/table/table-dialog"
 
-interface PaymentTableProps {
+export interface PaymentTableProps {
   data: IApPaymentHd[]
   isLoading: boolean
-  onPaymentSelect: (payment: IApPaymentHd | undefined) => void
+  onPaymentSelect: (selectedPayment: IApPaymentHd | undefined) => void
   onRefresh: () => void
   onFilterChange: (filters: IApPaymentFilter) => void
-  initialFilters: IApPaymentFilter
+  initialFilters?: IApPaymentFilter
 }
 
 export default function PaymentTable({
   data,
-  isLoading,
+  isLoading = false,
   onPaymentSelect,
   onRefresh,
   onFilterChange,
   initialFilters,
 }: PaymentTableProps) {
-  const [filters, setFilters] = useState<IApPaymentFilter>(initialFilters)
+  const { decimals } = useAuthStore()
+  const amtDec = decimals[0]?.amtDec || 2
+  const locAmtDec = decimals[0]?.locAmtDec || 2
+  const exhRateDec = decimals[0]?.exhRateDec || 9
+  const dateFormat = decimals[0]?.dateFormat || "dd/MM/yyyy"
+  //const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
 
-  const handleFilterChange = (
-    field: keyof IApPaymentFilter,
-    value: unknown
-  ) => {
-    const newFilters = { ...filters, [field]: value }
-    setFilters(newFilters)
+  const moduleId = ModuleId.ap
+  const transactionId = APTransactionId.payment
+
+  const form = useForm({
+    defaultValues: {
+      startDate:
+        initialFilters?.startDate ||
+        format(subMonths(new Date(), 1), "yyyy-MM-dd"),
+      endDate: initialFilters?.endDate || format(new Date(), "yyyy-MM-dd"),
+    },
+  })
+
+  const [searchQuery] = useState("")
+  const [currentPage] = useState(1)
+  const [pageSize] = useState(10)
+
+  const formatNumber = (value: number, decimals: number) => {
+    return value.toLocaleString(undefined, {
+      minimumFractionDigits: decimals,
+      maximumFractionDigits: decimals,
+    })
+  }
+
+  const columns: ColumnDef<IApPaymentHd>[] = [
+    {
+      accessorKey: "paymentNo",
+      header: "Payment No",
+    },
+    {
+      accessorKey: "referenceNo",
+      header: "Reference No",
+    },
+    {
+      accessorKey: "trnDate",
+      header: "Transaction Date",
+      cell: ({ row }) => {
+        const date = row.original.trnDate
+          ? new Date(row.original.trnDate)
+          : null
+        return date ? format(date, dateFormat) : "-"
+      },
+    },
+    {
+      accessorKey: "accountDate",
+      header: "Account Date",
+      cell: ({ row }) => {
+        const date = row.original.accountDate
+          ? new Date(row.original.accountDate)
+          : null
+        return date ? format(date, dateFormat) : "-"
+      },
+    },
+
+    {
+      accessorKey: "supplierCode",
+      header: "Supplier Code",
+    },
+    {
+      accessorKey: "supplierName",
+      header: "Supplier Name",
+    },
+    {
+      accessorKey: "currencyCode",
+      header: "Currency Code",
+    },
+    {
+      accessorKey: "currencyName",
+      header: "Currency Name",
+    },
+    {
+      accessorKey: "exhRate",
+      header: "Exchange Rate",
+      cell: ({ row }) => (
+        <div className="text-right">
+          {formatNumber(row.getValue("exhRate"), exhRateDec)}
+        </div>
+      ),
+    },
+
+    {
+      accessorKey: "bankCode",
+      header: "Bank Code",
+    },
+    {
+      accessorKey: "bankName",
+      header: "Bank Name",
+    },
+    {
+      accessorKey: "paymentTypeCode",
+      header: "Payment Type Code",
+    },
+    {
+      accessorKey: "paymentTypeName",
+      header: "Payment Type Name",
+    },
+    {
+      accessorKey: "chequeNo",
+      header: "Cheque No",
+    },
+    {
+      accessorKey: "chequeDate",
+      header: "Cheque Date",
+      cell: ({ row }) => {
+        const date = row.original.chequeDate
+          ? new Date(row.original.chequeDate)
+          : null
+        return date ? format(date, dateFormat) : "-"
+      },
+    },
+    {
+      accessorKey: "totAmt",
+      header: "Total Amount",
+      cell: ({ row }) => (
+        <div className="text-right">
+          {formatNumber(row.getValue("totAmt"), amtDec)}
+        </div>
+      ),
+    },
+    {
+      accessorKey: "totLocalAmt",
+      header: "Total Local Amount",
+      cell: ({ row }) => (
+        <div className="text-right">
+          {formatNumber(row.getValue("totLocalAmt"), locAmtDec)}
+        </div>
+      ),
+    },
+    {
+      accessorKey: "payTotAmt",
+      header: "Pay Total Amount",
+      cell: ({ row }) => (
+        <div className="text-right">
+          {formatNumber(row.getValue("payTotAmt"), amtDec)}
+        </div>
+      ),
+    },
+    {
+      accessorKey: "payTotLocalAmt",
+      header: "Pay Total Local Amount",
+      cell: ({ row }) => (
+        <div className="text-right">
+          {formatNumber(row.getValue("payTotLocalAmt"), locAmtDec)}
+        </div>
+      ),
+    },
+    {
+      accessorKey: "unAllocTotAmt",
+      header: "Unallocated Amount",
+      cell: ({ row }) => (
+        <div className="text-right">
+          {formatNumber(row.getValue("unAllocTotAmt"), amtDec)}
+        </div>
+      ),
+    },
+    {
+      accessorKey: "unAllocTotLocalAmt",
+      header: "Unallocated Local Amount",
+      cell: ({ row }) => (
+        <div className="text-right">
+          {formatNumber(row.getValue("unAllocTotLocalAmt"), locAmtDec)}
+        </div>
+      ),
+    },
+    {
+      accessorKey: "exhGainLoss",
+      header: "Exchange Gain/Loss",
+      cell: ({ row }) => (
+        <div className="text-right">
+          {formatNumber(row.getValue("exhGainLoss"), locAmtDec)}
+        </div>
+      ),
+    },
+    {
+      accessorKey: "bankChargesAmt",
+      header: "Bank Charges Amount",
+      cell: ({ row }) => (
+        <div className="text-right">
+          {formatNumber(row.getValue("bankChargesAmt"), amtDec)}
+        </div>
+      ),
+    },
+    {
+      accessorKey: "bankChargesLocalAmt",
+      header: "Bank Charges Local Amount",
+      cell: ({ row }) => (
+        <div className="text-right">
+          {formatNumber(row.getValue("bankChargesLocalAmt"), locAmtDec)}
+        </div>
+      ),
+    },
+    {
+      accessorKey: "remarks",
+      header: "Remarks",
+    },
+    {
+      accessorKey: "status",
+      header: "Status",
+    },
+    {
+      accessorKey: "createByCode",
+      header: "Created By Code",
+    },
+    {
+      accessorKey: "createByName",
+      header: "Created By Name",
+    },
+    {
+      accessorKey: "createDate",
+      header: "Created Date",
+      cell: ({ row }) => {
+        const date = row.original.createDate
+          ? new Date(row.original.createDate)
+          : null
+        return date ? format(date, dateFormat) : "-"
+      },
+    },
+    {
+      accessorKey: "editByCode",
+      header: "Edited By Code",
+    },
+    {
+      accessorKey: "editByName",
+      header: "Edited By Name",
+    },
+    {
+      accessorKey: "editDate",
+      header: "Edited Date",
+      cell: ({ row }) => {
+        const date = row.original.editDate
+          ? new Date(row.original.editDate)
+          : null
+        return date ? format(date, dateFormat) : "-"
+      },
+    },
+    {
+      accessorKey: "editVersion",
+      header: "Edit Version",
+    },
+  ]
+
+  const handleSearchPayment = () => {
+    const newFilters: IApPaymentFilter = {
+      startDate: form.getValues("startDate"),
+      endDate: form.getValues("endDate"),
+      search: searchQuery,
+      sortBy: "paymentNo",
+      sortOrder: "asc",
+      pageNumber: currentPage,
+      pageSize: pageSize,
+    }
     onFilterChange(newFilters)
   }
 
-  const handleSearch = () => {
-    onFilterChange(filters)
-  }
-
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter") {
-      handleSearch()
+  const handleDialogFilterChange = (filters: {
+    search?: string
+    sortOrder?: string
+  }) => {
+    if (onFilterChange) {
+      const newFilters: IApPaymentFilter = {
+        startDate: form.getValues("startDate"),
+        endDate: form.getValues("endDate"),
+        search: filters.search || "",
+        sortBy: "paymentNo",
+        sortOrder: (filters.sortOrder as "asc" | "desc") || "asc",
+        pageNumber: currentPage,
+        pageSize: pageSize,
+      }
+      onFilterChange(newFilters)
     }
   }
 
   return (
-    <div className="space-y-4">
-      {/* Filter Controls */}
-      <div className="bg-muted/50 flex flex-wrap gap-4 rounded-lg p-4">
-        <div className="min-w-[200px] flex-1">
-          <Input
-            placeholder="Search payments..."
-            value={filters.search}
-            onChange={(e) => handleFilterChange("search", e.target.value)}
-            onKeyPress={handleKeyPress}
-            className="w-full"
-          />
-        </div>
-        <div className="flex gap-2">
-          <Button onClick={handleSearch} size="sm">
-            <Search className="mr-2 h-4 w-4" />
-            Search
-          </Button>
-          <Button onClick={onRefresh} variant="outline" size="sm">
-            <RefreshCw className="mr-2 h-4 w-4" />
-            Refresh
-          </Button>
-        </div>
-      </div>
+    <div className="w-full overflow-auto">
+      <FormProvider {...form}>
+        <div className="mb-4 flex items-center gap-2">
+          {/* From Date */}
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium">From Date:</span>
+            <CustomDateNew
+              form={form}
+              name="startDate"
+              isRequired={true}
+              size="sm"
+            />
+          </div>
 
-      {/* Table */}
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Payment No</TableHead>
-              <TableHead>Reference No</TableHead>
-              <TableHead>Transaction Date</TableHead>
-              <TableHead>Account Date</TableHead>
-              <TableHead>Supplier</TableHead>
-              <TableHead>Bank</TableHead>
-              <TableHead>Payment Type</TableHead>
-              <TableHead>Cheque No</TableHead>
-              <TableHead>Total Amount</TableHead>
-              <TableHead>Total Local Amount</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {isLoading ? (
-              <TableRow>
-                <TableCell colSpan={12} className="py-8 text-center">
-                  Loading payments...
-                </TableCell>
-              </TableRow>
-            ) : data.length === 0 ? (
-              <TableRow>
-                <TableCell
-                  colSpan={12}
-                  className="text-muted-foreground py-8 text-center"
-                >
-                  No payments found
-                </TableCell>
-              </TableRow>
-            ) : (
-              data.map((payment) => (
-                <TableRow key={payment.paymentId}>
-                  <TableCell className="font-medium">
-                    {payment.paymentNo}
-                  </TableCell>
-                  <TableCell>{payment.referenceNo}</TableCell>
-                  <TableCell>
-                    {payment.trnDate
-                      ? format(new Date(payment.trnDate), "dd/MM/yyyy")
-                      : ""}
-                  </TableCell>
-                  <TableCell>
-                    {payment.accountDate
-                      ? format(new Date(payment.accountDate), "dd/MM/yyyy")
-                      : ""}
-                  </TableCell>
-                  <TableCell>{payment.supplierId}</TableCell>
-                  <TableCell>{payment.bankId}</TableCell>
-                  <TableCell>{payment.paymentTypeId}</TableCell>
-                  <TableCell>{payment.chequeNo || "-"}</TableCell>
-                  <TableCell>{payment.totAmt}</TableCell>
-                  <TableCell>{payment.totLocalAmt}</TableCell>
-                  <TableCell>
-                    <span
-                      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                        payment.isCancel
-                          ? "bg-red-100 text-red-800"
-                          : payment.isPost
-                            ? "bg-green-100 text-green-800"
-                            : "bg-yellow-100 text-yellow-800"
-                      }`}
-                    >
-                      {payment.isCancel
-                        ? "Cancelled"
-                        : payment.isPost
-                          ? "Posted"
-                          : "Draft"}
-                    </span>
-                  </TableCell>
-                  <TableCell>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => onPaymentSelect(payment)}
-                    >
-                      Select
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </div>
+          {/* To Date */}
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium">To Date:</span>
+            <CustomDateNew
+              form={form}
+              name="endDate"
+              isRequired={true}
+              size="sm"
+            />
+          </div>
+
+          <Button variant="outline" size="sm" onClick={handleSearchPayment}>
+            Search Payment
+          </Button>
+        </div>
+      </FormProvider>
+      <Separator className="mb-4" />
+
+      <DialogDataTable
+        data={data}
+        columns={columns}
+        isLoading={isLoading}
+        moduleId={moduleId}
+        transactionId={transactionId}
+        tableName={TableName.apPayment}
+        emptyMessage="No data found."
+        onRefresh={onRefresh}
+        onFilterChange={handleDialogFilterChange}
+        onRowSelect={(row) => onPaymentSelect(row || undefined)}
+      />
     </div>
   )
 }

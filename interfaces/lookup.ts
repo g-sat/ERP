@@ -158,6 +158,7 @@ export interface IBankLookup {
   bankId: number
   bankCode: string
   bankName: string
+  currencyId: number
 }
 
 export interface IYearLookup {

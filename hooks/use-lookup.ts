@@ -776,6 +776,7 @@ export const useCreditTermLookup = () => {
     },
   })
 }
+
 export const useChartofAccountLookup = (companyId: number) => {
   return useQuery<IChartofAccountLookup[]>({
     queryKey: ["chartofaccount-lookup", companyId],
@@ -796,6 +797,76 @@ export const useChartofAccountLookup = (companyId: number) => {
     enabled: companyId > 0,
   })
 }
+
+export const useBankChartofAccountLookup = (companyId: number) => {
+  return useQuery<IChartofAccountLookup[]>({
+    queryKey: ["bankchartofaccount-lookup", companyId],
+    ...defaultQueryConfig,
+    queryFn: async () => {
+      try {
+        if (companyId > 0) {
+          const data = await getData(
+            `${Lookup.getBankChartOfAccount}/${companyId}`
+          )
+          return data?.data || []
+        } else {
+          const data = await getData(Lookup.getBankChartOfAccount)
+          return data?.data || []
+        }
+      } catch (error) {
+        handleApiError(error)
+      }
+    },
+    enabled: companyId > 0,
+  })
+}
+
+export const useReceivableChartofAccountLookup = (companyId: number) => {
+  return useQuery<IChartofAccountLookup[]>({
+    queryKey: ["receivablechartofaccount-lookup", companyId],
+    ...defaultQueryConfig,
+    queryFn: async () => {
+      try {
+        if (companyId > 0) {
+          const data = await getData(
+            `${Lookup.getReceivableChartOfAccount}/${companyId}`
+          )
+          return data?.data || []
+        } else {
+          const data = await getData(Lookup.getReceivableChartOfAccount)
+          return data?.data || []
+        }
+      } catch (error) {
+        handleApiError(error)
+      }
+    },
+    enabled: companyId > 0,
+  })
+}
+
+export const usePayableChartofAccountLookup = (companyId: number) => {
+  return useQuery<IChartofAccountLookup[]>({
+    queryKey: ["payablechartofaccount-lookup", companyId],
+    ...defaultQueryConfig,
+    queryFn: async () => {
+      try {
+        if (companyId > 0) {
+          const data = await getData(
+            `${Lookup.getPayableChartOfAccount}/${companyId}`
+          )
+          return data?.data || []
+        } else {
+          const data = await getData(Lookup.getPayableChartOfAccount)
+          return data?.data || []
+        }
+      } catch (error) {
+        handleApiError(error)
+      }
+    },
+    enabled: companyId > 0,
+  })
+}
+
 export const useUomLookup = () => {
   return useQuery<IUomLookup[]>({
     queryKey: ["uom-lookup"],

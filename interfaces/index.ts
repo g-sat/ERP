@@ -73,3 +73,4 @@ export * from "./worklocation"
 
 //account-ap
 export * from "./ap-invoice"
+export * from "./ap-payment"

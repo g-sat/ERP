@@ -408,6 +408,32 @@ export const setExchangeRate = async (
 }
 
 /**
+ * Fetch and set exchange rate based on currency and date
+ * Also sets city exchange rate if not using separate city currency
+ * Modules: AP, AR, CB, GL
+ */
+export const setPayExchangeRate = async (form: HdForm, round: number | 6) => {
+  // to set exhange rate
+  const { accountDate, currencyId } = form?.getValues()
+  if (accountDate && currencyId) {
+    try {
+      const dt = format(
+        parse(accountDate, clientDateFormat, new Date()),
+        "yyyy-MM-dd"
+      )
+      const res = await getData(
+        `${BasicSetting.getExchangeRate}/${currencyId}/${dt}`
+      )
+
+      const exhRate = res?.data
+
+      form.setValue("payExhRate", +Number(exhRate).toFixed(round))
+      form.trigger("payExhRate")
+    } catch {}
+  }
+}
+
+/**
  * Fetch and set local currency exchange rate
  * Used for city/country currency conversions
  * Modules: AP, AR, CB, GL
