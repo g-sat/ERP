@@ -96,6 +96,10 @@ export default function InvoiceDetailsForm({
     return maxItemNo + 1
   }
 
+  console.log("editingDetail : ", editingDetail)
+  console.log("existingDetails : ", existingDetails)
+  console.log("getNextItemNo : ", getNextItemNo())
+
   const form = useForm<ApInvoiceDtSchemaType>({
     resolver: zodResolver(apinvoiceDtSchema(required, visible)),
     mode: "onBlur",
@@ -230,16 +234,23 @@ export default function InvoiceDetailsForm({
         seqNo: editingDetail.seqNo ?? nextItemNo,
         docItemNo: editingDetail.docItemNo ?? nextItemNo,
         productId: editingDetail.productId ?? 0,
+        productCode: editingDetail.productCode ?? "",
+        productName: editingDetail.productName ?? "",
         glId: editingDetail.glId ?? 0,
+        glCode: editingDetail.glCode ?? "",
+        glName: editingDetail.glName ?? "",
         qty: editingDetail.qty ?? 0,
         billQTY: editingDetail.billQTY ?? 0,
         uomId: editingDetail.uomId ?? 0,
+        uomCode: editingDetail.uomCode ?? "",
+        uomName: editingDetail.uomName ?? "",
         unitPrice: editingDetail.unitPrice ?? 0,
         totAmt: editingDetail.totAmt ?? 0,
         totLocalAmt: editingDetail.totLocalAmt ?? 0,
         totCtyAmt: editingDetail.totCtyAmt ?? 0,
         remarks: editingDetail.remarks ?? "",
         gstId: editingDetail.gstId ?? 0,
+        gstName: editingDetail.gstName ?? "",
         gstPercentage: editingDetail.gstPercentage ?? 0,
         gstAmt: editingDetail.gstAmt ?? 0,
         gstLocalAmt: editingDetail.gstLocalAmt ?? 0,
@@ -307,6 +318,9 @@ export default function InvoiceDetailsForm({
 
       // Use itemNo as the unique identifier
       const currentItemNo = data.itemNo || getNextItemNo()
+
+      console.log("currentItemNo : ", currentItemNo)
+      console.log("data : ", data)
 
       const rowData: IApInvoiceDt = {
         invoiceId: data.invoiceId ?? "0",

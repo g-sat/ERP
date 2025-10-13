@@ -78,10 +78,11 @@ export default function CustomTextarea<T extends Record<string, unknown>>({
                     resize: "vertical",
                   }}
                   className={cn(
-                    "border-input ring-offset-background flex w-full rounded-md border bg-white px-3 py-2 text-sm dark:bg-gray-900",
+                    "border-input ring-offset-background flex w-full rounded-md border px-3 py-2 text-sm",
                     "focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none",
                     showError ? "border-destructive" : "border-input",
-                    isDisabled && "cursor-not-allowed opacity-50"
+                    isDisabled && "cursor-not-allowed opacity-50",
+                    "bg-muted/5"
                   )}
                 />
               </div>

@@ -266,11 +266,11 @@ export default function InvoicePage() {
         const wasNewInvoice = Number(formValues.invoiceId) === 0
 
         if (wasNewInvoice) {
-          toast.success(
-            `Invoice ${invoiceData?.invoiceNo || ""} saved successfully`
-          )
+          //toast.success(
+          // `Invoice ${invoiceData?.invoiceNo || ""} saved successfully`
+          //)
         } else {
-          toast.success("Invoice updated successfully")
+          //toast.success("Invoice updated successfully")
         }
 
         refetchInvoices()
