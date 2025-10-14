@@ -9,7 +9,7 @@ import {
 } from "@/helpers/account"
 import {
   IBargeLookup,
-  ICbGenReceiptDt,
+  ICbBatchPaymentDt,
   IChartofAccountLookup,
   IDepartmentLookup,
   IEmployeeLookup,
@@ -23,9 +23,9 @@ import {
 } from "@/interfaces"
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
 import {
-  CbGenReceiptDtSchemaType,
-  CbGenReceiptHdSchemaType,
-  cbGenReceiptDtSchema,
+  CbBatchPaymentDtSchemaType,
+  CbBatchPaymentHdSchemaType,
+  cbBatchPaymentDtSchema,
 } from "@/schemas"
 import { useAuthStore } from "@/stores/auth-store"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -46,30 +46,32 @@ import {
   VesselAutocomplete,
   VoyageAutocomplete,
 } from "@/components/autocomplete"
+import { CustomDateNew } from "@/components/custom/custom-date-new"
+import CustomInput from "@/components/custom/custom-input"
 import CustomNumberInput from "@/components/custom/custom-number-input"
 import CustomTextarea from "@/components/custom/custom-textarea"
 
-import { defaultReceiptDetails } from "./cbbatchpayment-defaultvalues"
+import { defaultBatchPaymentDetails } from "./cbbatchpayment-defaultvalues"
 
 // Factory function to create default values with dynamic itemNo
-const createDefaultValues = (itemNo: number): CbGenReceiptDtSchemaType => ({
-  ...defaultReceiptDetails,
+const createDefaultValues = (itemNo: number): CbBatchPaymentDtSchemaType => ({
+  ...defaultBatchPaymentDetails,
   itemNo,
   seqNo: itemNo,
 })
 
-interface ReceiptDetailsFormProps {
-  Hdform: UseFormReturn<CbGenReceiptHdSchemaType>
-  onAddRowAction?: (rowData: ICbGenReceiptDt) => void
+interface BatchPaymentDetailsFormProps {
+  Hdform: UseFormReturn<CbBatchPaymentHdSchemaType>
+  onAddRowAction?: (rowData: ICbBatchPaymentDt) => void
   onCancelEdit?: () => void
-  editingDetail?: CbGenReceiptDtSchemaType | null
+  editingDetail?: CbBatchPaymentDtSchemaType | null
   visible: IVisibleFields
   required: IMandatoryFields
   companyId: number
-  existingDetails?: CbGenReceiptDtSchemaType[]
+  existingDetails?: CbBatchPaymentDtSchemaType[]
 }
 
-export default function ReceiptDetailsForm({
+export default function BatchPaymentDetailsForm({
   Hdform,
   onAddRowAction,
   onCancelEdit: _onCancelEdit,
@@ -78,7 +80,7 @@ export default function ReceiptDetailsForm({
   required,
   companyId,
   existingDetails = [],
-}: ReceiptDetailsFormProps) {
+}: BatchPaymentDetailsFormProps) {
   const { decimals } = useAuthStore()
   const amtDec = decimals[0]?.amtDec || 2
   const locAmtDec = decimals[0]?.locAmtDec || 2
@@ -90,7 +92,7 @@ export default function ReceiptDetailsForm({
   const getNextItemNo = () => {
     if (existingDetails.length === 0) return 1
     const maxItemNo = Math.max(
-      ...existingDetails.map((d: CbGenReceiptDtSchemaType) => d.itemNo || 0)
+      ...existingDetails.map((d: CbBatchPaymentDtSchemaType) => d.itemNo || 0)
     )
     return maxItemNo + 1
   }
@@ -99,15 +101,18 @@ export default function ReceiptDetailsForm({
   console.log("existingDetails : ", existingDetails)
   console.log("getNextItemNo : ", getNextItemNo())
 
-  const form = useForm<CbGenReceiptDtSchemaType>({
-    resolver: zodResolver(cbGenReceiptDtSchema(required, visible)),
+  const form = useForm<CbBatchPaymentDtSchemaType>({
+    resolver: zodResolver(cbBatchPaymentDtSchema(required, visible)),
     mode: "onBlur",
     defaultValues: editingDetail
       ? {
-          receiptId: editingDetail.receiptId ?? "0",
-          receiptNo: editingDetail.receiptNo ?? "",
+          paymentId: editingDetail.paymentId ?? "0",
+          paymentNo: editingDetail.paymentNo ?? "",
           itemNo: editingDetail.itemNo ?? getNextItemNo(),
           seqNo: editingDetail.seqNo ?? getNextItemNo(),
+          invoiceDate: editingDetail.invoiceDate ?? "",
+          invoiceNo: editingDetail.invoiceNo ?? "",
+          supplierName: editingDetail.supplierName ?? "",
           glId: editingDetail.glId ?? 0,
           glCode: editingDetail.glCode ?? "",
           glName: editingDetail.glName ?? "",
@@ -187,7 +192,7 @@ export default function ReceiptDetailsForm({
         ? 1
         : Math.max(
             ...existingDetails.map(
-              (d: CbGenReceiptDtSchemaType) => d.itemNo || 0
+              (d: CbBatchPaymentDtSchemaType) => d.itemNo || 0
             )
           ) + 1
 
@@ -210,10 +215,14 @@ export default function ReceiptDetailsForm({
       }
 
       form.reset({
-        receiptId: editingDetail.receiptId ?? "0",
-        receiptNo: editingDetail.receiptNo ?? "",
+        paymentId: editingDetail.paymentId ?? "0",
+        paymentNo: editingDetail.paymentNo ?? "",
         itemNo: editingDetail.itemNo ?? nextItemNo,
         seqNo: editingDetail.seqNo ?? nextItemNo,
+        invoiceDate: editingDetail.invoiceDate ?? "",
+        invoiceNo: editingDetail.invoiceNo ?? "",
+        supplierName: editingDetail.supplierName ?? "",
+
         glId: editingDetail.glId ?? 0,
         glCode: editingDetail.glCode ?? "",
         glName: editingDetail.glName ?? "",
@@ -263,10 +272,10 @@ export default function ReceiptDetailsForm({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editingDetail, existingDetails.length])
 
-  const onSubmit = async (data: CbGenReceiptDtSchemaType) => {
+  const onSubmit = async (data: CbBatchPaymentDtSchemaType) => {
     try {
       // Validate data against schema
-      const validationResult = cbGenReceiptDtSchema(
+      const validationResult = cbBatchPaymentDtSchema(
         required,
         visible
       ).safeParse(data)
@@ -287,11 +296,14 @@ export default function ReceiptDetailsForm({
       console.log("currentItemNo : ", currentItemNo)
       console.log("data : ", data)
 
-      const rowData: ICbGenReceiptDt = {
-        receiptId: data.receiptId ?? "0",
-        receiptNo: data.receiptNo ?? "",
+      const rowData: ICbBatchPaymentDt = {
+        paymentId: data.paymentId ?? "0",
+        paymentNo: data.paymentNo ?? "",
         itemNo: data.itemNo ?? currentItemNo,
         seqNo: data.seqNo ?? currentItemNo,
+        invoiceDate: data.invoiceDate ?? "",
+        invoiceNo: data.invoiceNo ?? "",
+        supplierName: data.supplierName ?? "",
 
         glId: data.glId ?? 0,
         glCode: data.glCode ?? "",
@@ -606,6 +618,30 @@ export default function ReceiptDetailsForm({
             round={0}
             className="text-right"
             isDisabled={true}
+          />
+
+          {/* Invoice Date */}
+          <CustomDateNew
+            form={form}
+            name="invoiceDate"
+            label="Invoice Date"
+            isRequired={true}
+          />
+
+          {/* Invoice No */}
+          <CustomInput
+            form={form}
+            name="invoiceNo"
+            label="Invoice No"
+            isRequired={true}
+          />
+
+          {/* Supplier Name */}
+          <CustomInput
+            form={form}
+            name="supplierName"
+            label="Supplier Name"
+            isRequired={true}
           />
 
           {/* Chart Of Account */}

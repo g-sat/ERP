@@ -2,17 +2,14 @@
 
 import { useEffect, useMemo, useState } from "react"
 import { useParams } from "next/navigation"
+import { ICbBatchPaymentFilter, ICbBatchPaymentHd } from "@/interfaces"
 import { ApiResponse } from "@/interfaces/auth"
-import {
-  ICbGenReceiptFilter,
-  ICbGenReceiptHd,
-} from "@/interfaces/cb-genreceipt"
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
 import {
-  CbGenReceiptDtSchemaType,
-  CbGenReceiptHdSchemaType,
-  cbGenReceiptHdSchema,
-} from "@/schemas/cb-genreceipt"
+  CbBatchPaymentDtSchemaType,
+  CbBatchPaymentHdSchemaType,
+  cbBatchPaymentHdSchema,
+} from "@/schemas"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { format, subMonths } from "date-fns"
 import {
@@ -27,7 +24,7 @@ import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 
 import { getById } from "@/lib/api-client"
-import { CbReceipt } from "@/lib/api-routes"
+import { CbBatchPayment } from "@/lib/api-routes"
 import { clientDateFormat, parseDate } from "@/lib/date-utils"
 import { CBTransactionId, ModuleId, TableName } from "@/lib/utils"
 import { useDelete, useGetWithDates, usePersist } from "@/hooks/use-common"
@@ -50,17 +47,17 @@ import {
   SaveConfirmation,
 } from "@/components/confirmation"
 
-import { defaultReceipt } from "./components/cbbatchpayment-defaultvalues"
-import ReceiptTable from "./components/cbbatchpayment-table"
+import { defaultBatchPayment } from "./components/cbbatchpayment-defaultvalues"
+import BatchPaymentTable from "./components/cbbatchpayment-table"
 import History from "./components/history"
 import Main from "./components/main-tab"
 
-export default function GenReceiptPage() {
+export default function BatchPaymentPage() {
   const params = useParams()
   const companyId = params.companyId as string
 
   const moduleId = ModuleId.cb
-  const transactionId = CBTransactionId.cbgenreceipt
+  const transactionId = CBTransactionId.cbbatchpayment
 
   const [showListDialog, setShowListDialog] = useState(false)
   const [showSaveConfirm, setShowSaveConfirm] = useState(false)
@@ -68,18 +65,19 @@ export default function GenReceiptPage() {
   const [showLoadConfirm, setShowLoadConfirm] = useState(false)
   const [showResetConfirm, setShowResetConfirm] = useState(false)
   const [showCloneConfirm, setShowCloneConfirm] = useState(false)
-  const [isLoadingReceipt, setIsLoadingReceipt] = useState(false)
-  const [isSelectingReceipt, setIsSelectingReceipt] = useState(false)
+  const [isSearchingBatchPayment, setIsSearchingBatchPayment] = useState(false)
+  const [isSelectingBatchPayment, setIsSelectingBatchPayment] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
-  const [receipt, setReceipt] = useState<CbGenReceiptHdSchemaType | null>(null)
+  const [batchPayment, setBatchPayment] =
+    useState<CbBatchPaymentHdSchemaType | null>(null)
   const [searchNo, setSearchNo] = useState("")
   const [activeTab, setActiveTab] = useState("main")
 
-  const [filters, setFilters] = useState<ICbGenReceiptFilter>({
+  const [filters, setFilters] = useState<ICbBatchPaymentFilter>({
     startDate: format(subMonths(new Date(), 1), "yyyy-MM-dd"),
     endDate: format(new Date(), "yyyy-MM-dd"),
     search: "",
-    sortBy: "receiptNo",
+    sortBy: "paymentNo",
     sortOrder: "asc",
     pageNumber: 1,
     pageSize: 15,
@@ -100,44 +98,41 @@ export default function GenReceiptPage() {
   const required: IMandatoryFields = requiredFieldsData ?? null
 
   // Add form state management
-  const form = useForm<CbGenReceiptHdSchemaType>({
-    resolver: zodResolver(cbGenReceiptHdSchema(required, visible)),
-    defaultValues: receipt
+  const form = useForm<CbBatchPaymentHdSchemaType>({
+    resolver: zodResolver(cbBatchPaymentHdSchema(required, visible)),
+    defaultValues: batchPayment
       ? {
-          receiptId: receipt.receiptId?.toString() ?? "0",
-          receiptNo: receipt.receiptNo ?? "",
-          referenceNo: receipt.referenceNo ?? "",
-          trnDate: receipt.trnDate ?? new Date(),
-          accountDate: receipt.accountDate ?? new Date(),
-          currencyId: receipt.currencyId ?? 0,
-          exhRate: receipt.exhRate ?? 0,
-          ctyExhRate: receipt.ctyExhRate ?? 0,
-          paymentTypeId: receipt.paymentTypeId ?? 0,
-          bankId: receipt.bankId ?? 0,
-          chequeNo: receipt.chequeNo ?? "",
-          chequeDate: receipt.chequeDate ?? "",
-          bankChgGLId: receipt.bankChgGLId ?? 0,
-          bankChgAmt: receipt.bankChgAmt ?? 0,
-          bankChgLocalAmt: receipt.bankChgLocalAmt ?? 0,
-          totAmt: receipt.totAmt ?? 0,
-          totLocalAmt: receipt.totLocalAmt ?? 0,
-          totCtyAmt: receipt.totCtyAmt ?? 0,
-          gstClaimDate: receipt.gstClaimDate ?? new Date(),
-          gstAmt: receipt.gstAmt ?? 0,
-          gstLocalAmt: receipt.gstLocalAmt ?? 0,
-          gstCtyAmt: receipt.gstCtyAmt ?? 0,
-          totAmtAftGst: receipt.totAmtAftGst ?? 0,
-          totLocalAmtAftGst: receipt.totLocalAmtAftGst ?? 0,
-          totCtyAmtAftGst: receipt.totCtyAmtAftGst ?? 0,
-          remarks: receipt.remarks ?? "",
-          payeeTo: receipt.payeeTo ?? "",
-          moduleFrom: receipt.moduleFrom ?? "",
-          editVersion: receipt.editVersion ?? 0,
+          paymentId: batchPayment.paymentId?.toString() ?? "0",
+          paymentNo: batchPayment.paymentNo ?? "",
+          referenceNo: batchPayment.referenceNo ?? "",
+          trnDate: batchPayment.trnDate ?? new Date(),
+          accountDate: batchPayment.accountDate ?? new Date(),
+          currencyId: batchPayment.currencyId ?? 0,
+          exhRate: batchPayment.exhRate ?? 0,
+          ctyExhRate: batchPayment.ctyExhRate ?? 0,
+          bankId: batchPayment.bankId ?? 0,
+          bankChgGLId: batchPayment.bankChgGLId ?? 0,
+          bankChgAmt: batchPayment.bankChgAmt ?? 0,
+          bankChgLocalAmt: batchPayment.bankChgLocalAmt ?? 0,
+          totAmt: batchPayment.totAmt ?? 0,
+          totLocalAmt: batchPayment.totLocalAmt ?? 0,
+          totCtyAmt: batchPayment.totCtyAmt ?? 0,
+          gstClaimDate: batchPayment.gstClaimDate ?? new Date(),
+          gstAmt: batchPayment.gstAmt ?? 0,
+          gstLocalAmt: batchPayment.gstLocalAmt ?? 0,
+          gstCtyAmt: batchPayment.gstCtyAmt ?? 0,
+          totAmtAftGst: batchPayment.totAmtAftGst ?? 0,
+          totLocalAmtAftGst: batchPayment.totLocalAmtAftGst ?? 0,
+          totCtyAmtAftGst: batchPayment.totCtyAmtAftGst ?? 0,
+          remarks: batchPayment.remarks ?? "",
+          moduleFrom: batchPayment.moduleFrom ?? "",
+          editVersion: batchPayment.editVersion ?? 0,
           data_details:
-            receipt.data_details?.map((detail) => ({
+            batchPayment.data_details?.map((detail) => ({
               ...detail,
-              receiptId: detail.receiptId?.toString() ?? "0",
-              receiptNo: detail.receiptNo ?? "",
+              paymentId: detail.paymentId?.toString() ?? "0",
+              paymentNo: detail.paymentNo ?? "",
+
               totAmt: detail.totAmt ?? 0,
               totLocalAmt: detail.totLocalAmt ?? 0,
               totCtyAmt: detail.totCtyAmt ?? 0,
@@ -148,19 +143,19 @@ export default function GenReceiptPage() {
             })) || [],
         }
       : {
-          ...defaultReceipt,
+          ...defaultBatchPayment,
         },
   })
 
-  // API hooks for receipts - Only fetch when List dialog is opened (optimized)
+  // API hooks for batch payments - Only fetch when List dialog is opened (optimized)
   const {
-    data: receiptsResponse,
-    refetch: refetchReceipts,
-    isLoading: isLoadingReceipts,
-    isRefetching: isRefetchingReceipts,
-  } = useGetWithDates<ICbGenReceiptHd>(
-    `${CbReceipt.get}`,
-    TableName.cbGenReceipt,
+    data: batchPaymentsResponse,
+    refetch: refetchBatchPayments,
+    isLoading: isLoadingBatchPayment,
+    isRefetching: isRefetchingBatchPayment,
+  } = useGetWithDates<ICbBatchPaymentHd>(
+    `${CbBatchPayment.get}`,
+    TableName.cbBatchPayment,
     filters.search,
     filters.startDate?.toString(),
     filters.endDate?.toString(),
@@ -168,21 +163,23 @@ export default function GenReceiptPage() {
     false // enabled: Don't auto-fetch - only when List button is clicked
   )
 
-  // Memoize receipt data to prevent unnecessary re-renders
-  const receiptsData = useMemo(
-    () => (receiptsResponse as ApiResponse<ICbGenReceiptHd>)?.data ?? [],
-    [receiptsResponse]
+  // Memoize batch payment data to prevent unnecessary re-renders
+  const batchPaymentsData = useMemo(
+    () => (batchPaymentsResponse as ApiResponse<ICbBatchPaymentHd>)?.data ?? [],
+    [batchPaymentsResponse]
   )
 
   // Mutations
-  const saveMutation = usePersist<CbGenReceiptHdSchemaType>(`${CbReceipt.add}`)
-  const updateMutation = usePersist<CbGenReceiptHdSchemaType>(
-    `${CbReceipt.add}`
+  const saveMutation = usePersist<CbBatchPaymentHdSchemaType>(
+    `${CbBatchPayment.add}`
   )
-  const deleteMutation = useDelete(`${CbReceipt.delete}`)
+  const updateMutation = usePersist<CbBatchPaymentHdSchemaType>(
+    `${CbBatchPayment.add}`
+  )
+  const deleteMutation = useDelete(`${CbBatchPayment.delete}`)
 
   // Handle Save
-  const handleSaveReceipt = async () => {
+  const handleSaveBatchPayment = async () => {
     // Prevent double-submit
     if (isSaving || saveMutation.isPending || updateMutation.isPending) {
       return
@@ -193,16 +190,11 @@ export default function GenReceiptPage() {
     try {
       // Get form values and validate them
       const formValues = transformToSchemaType(
-        form.getValues() as unknown as ICbGenReceiptHd
+        form.getValues() as unknown as ICbBatchPaymentHd
       )
 
-      // Set chequeDate to accountDate if it's empty
-      if (!formValues.chequeDate || formValues.chequeDate === "") {
-        formValues.chequeDate = formValues.accountDate
-      }
-
       // Validate the form data using the schema
-      const validationResult = cbGenReceiptHdSchema(
+      const validationResult = cbBatchPaymentHdSchema(
         required,
         visible
       ).safeParse(formValues)
@@ -222,22 +214,22 @@ export default function GenReceiptPage() {
       console.log(formValues)
 
       const response =
-        Number(formValues.receiptId) === 0
+        Number(formValues.paymentId) === 0
           ? await saveMutation.mutateAsync(formValues)
           : await updateMutation.mutateAsync(formValues)
 
       if (response.result === 1) {
-        const receiptData = Array.isArray(response.data)
+        const batchPaymentData = Array.isArray(response.data)
           ? response.data[0]
           : response.data
 
         // Transform API response back to form values
-        if (receiptData) {
+        if (batchPaymentData) {
           const updatedSchemaType = transformToSchemaType(
-            receiptData as unknown as ICbGenReceiptHd
+            batchPaymentData as unknown as ICbBatchPaymentHd
           )
-          setIsSelectingReceipt(true)
-          setReceipt(updatedSchemaType)
+          setIsSelectingBatchPayment(true)
+          setBatchPayment(updatedSchemaType)
           form.reset(updatedSchemaType)
           form.trigger()
         }
@@ -245,28 +237,28 @@ export default function GenReceiptPage() {
         // Close the save confirmation dialog
         setShowSaveConfirm(false)
 
-        refetchReceipts()
+        refetchBatchPayments()
       } else {
-        toast.error(response.message || "Failed to save receipt")
+        toast.error(response.message || "Failed to save batch payment")
       }
     } catch (error) {
       console.error("Save error:", error)
-      toast.error("Network error while saving receipt")
+      toast.error("Network error while saving batch payment")
     } finally {
       setIsSaving(false)
-      setIsSelectingReceipt(false)
+      setIsSelectingBatchPayment(false)
     }
   }
 
   // Handle Clone
-  const handleCloneReceipt = () => {
-    if (receipt) {
+  const handleCloneBatchPayment = () => {
+    if (batchPayment) {
       // Create a proper clone with form values
-      const clonedReceipt: CbGenReceiptHdSchemaType = {
-        ...receipt,
-        receiptId: "0",
-        receiptNo: "",
-        // Reset amounts for new receipt
+      const clonedBatchPayment: CbBatchPaymentHdSchemaType = {
+        ...batchPayment,
+        paymentId: "0",
+        paymentNo: "",
+        // Reset amounts for new batch payment
         totAmt: 0,
         totLocalAmt: 0,
         totCtyAmt: 0,
@@ -281,135 +273,121 @@ export default function GenReceiptPage() {
         // Reset data details
         data_details: [],
       }
-      setReceipt(clonedReceipt)
-      form.reset(clonedReceipt)
-      toast.success("Receipt cloned successfully")
+      setBatchPayment(clonedBatchPayment)
+      form.reset(clonedBatchPayment)
+      toast.success("Batch payment cloned successfully")
     }
   }
 
   // Handle Delete
-  const handleReceiptDelete = async () => {
-    if (!receipt) return
+  const handleBatchPaymentDelete = async () => {
+    if (!batchPayment) return
 
     try {
       const response = await deleteMutation.mutateAsync(
-        receipt.receiptId?.toString() ?? ""
+        batchPayment.paymentId?.toString() ?? ""
       )
       if (response.result === 1) {
-        setReceipt(null)
+        setBatchPayment(null)
         setSearchNo("") // Clear search input
         form.reset({
-          ...defaultReceipt,
+          ...defaultBatchPayment,
           data_details: [],
         })
-        refetchReceipts()
+        refetchBatchPayments()
       } else {
-        toast.error(response.message || "Failed to delete receipt")
+        toast.error(response.message || "Failed to delete batch payment")
       }
     } catch {
-      toast.error("Network error while deleting receipt")
+      toast.error("Network error while deleting batch payment")
     }
   }
 
   // Handle Reset
-  const handleReceiptReset = () => {
-    setReceipt(null)
+  const handleBatchPaymentReset = () => {
+    setBatchPayment(null)
     setSearchNo("") // Clear search input
     form.reset({
-      ...defaultReceipt,
+      ...defaultBatchPayment,
       data_details: [],
     })
-    toast.success("Receipt reset successfully")
+    toast.success("Batch payment reset successfully")
   }
 
-  // Helper function to transform ICbGenReceiptHd to CbGenReceiptHdSchemaType
+  // Helper function to transform ICbBatchPaymentHd to CbBatchPaymentHdSchemaType
   const transformToSchemaType = (
-    apiReceipt: ICbGenReceiptHd
-  ): CbGenReceiptHdSchemaType => {
+    apiBatchPayment: ICbBatchPaymentHd
+  ): CbBatchPaymentHdSchemaType => {
     return {
-      receiptId: apiReceipt.receiptId?.toString() ?? "0",
-      receiptNo: apiReceipt.receiptNo ?? "",
-      referenceNo: apiReceipt.referenceNo ?? "",
-      trnDate: apiReceipt.trnDate
+      paymentId: apiBatchPayment.paymentId?.toString() ?? "0",
+      paymentNo: apiBatchPayment.paymentNo ?? "",
+      referenceNo: apiBatchPayment.referenceNo ?? "",
+      trnDate: apiBatchPayment.trnDate
         ? format(
-            parseDate(apiReceipt.trnDate as string) || new Date(),
+            parseDate(apiBatchPayment.trnDate as string) || new Date(),
             clientDateFormat
           )
         : clientDateFormat,
-      accountDate: apiReceipt.accountDate
+      accountDate: apiBatchPayment.accountDate
         ? format(
-            parseDate(apiReceipt.accountDate as string) || new Date(),
+            parseDate(apiBatchPayment.accountDate as string) || new Date(),
             clientDateFormat
           )
         : clientDateFormat,
-      currencyId: apiReceipt.currencyId ?? 0,
-      exhRate: apiReceipt.exhRate ?? 0,
-      ctyExhRate: apiReceipt.ctyExhRate ?? 0,
-      paymentTypeId: apiReceipt.paymentTypeId ?? 0,
-      bankId: apiReceipt.bankId ?? 0,
-      chequeNo: apiReceipt.chequeNo ?? "",
-      chequeDate: apiReceipt.chequeDate
+      currencyId: apiBatchPayment.currencyId ?? 0,
+      exhRate: apiBatchPayment.exhRate ?? 0,
+      ctyExhRate: apiBatchPayment.ctyExhRate ?? 0,
+      bankId: apiBatchPayment.bankId ?? 0,
+      bankChgGLId: apiBatchPayment.bankChgGLId ?? 0,
+      bankChgAmt: apiBatchPayment.bankChgAmt ?? 0,
+      bankChgLocalAmt: apiBatchPayment.bankChgLocalAmt ?? 0,
+      totAmt: apiBatchPayment.totAmt ?? 0,
+      totLocalAmt: apiBatchPayment.totLocalAmt ?? 0,
+      totCtyAmt: apiBatchPayment.totCtyAmt ?? 0,
+      gstClaimDate: apiBatchPayment.gstClaimDate
         ? format(
-            parseDate(apiReceipt.chequeDate as string) || new Date(),
-            clientDateFormat
-          )
-        : apiReceipt.accountDate
-          ? format(
-              parseDate(apiReceipt.accountDate as string) || new Date(),
-              clientDateFormat
-            )
-          : format(new Date(), clientDateFormat),
-      bankChgGLId: apiReceipt.bankChgGLId ?? 0,
-      bankChgAmt: apiReceipt.bankChgAmt ?? 0,
-      bankChgLocalAmt: apiReceipt.bankChgLocalAmt ?? 0,
-      totAmt: apiReceipt.totAmt ?? 0,
-      totLocalAmt: apiReceipt.totLocalAmt ?? 0,
-      totCtyAmt: apiReceipt.totCtyAmt ?? 0,
-      gstClaimDate: apiReceipt.gstClaimDate
-        ? format(
-            parseDate(apiReceipt.gstClaimDate as string) || new Date(),
+            parseDate(apiBatchPayment.gstClaimDate as string) || new Date(),
             clientDateFormat
           )
         : clientDateFormat,
-      gstAmt: apiReceipt.gstAmt ?? 0,
-      gstLocalAmt: apiReceipt.gstLocalAmt ?? 0,
-      gstCtyAmt: apiReceipt.gstCtyAmt ?? 0,
-      totAmtAftGst: apiReceipt.totAmtAftGst ?? 0,
-      totLocalAmtAftGst: apiReceipt.totLocalAmtAftGst ?? 0,
-      totCtyAmtAftGst: apiReceipt.totCtyAmtAftGst ?? 0,
-      remarks: apiReceipt.remarks ?? "",
-      payeeTo: apiReceipt.payeeTo ?? "",
-      moduleFrom: apiReceipt.moduleFrom ?? "",
-      createBy: apiReceipt.createBy ?? "",
-      editBy: apiReceipt.editBy ?? "",
-      cancelBy: apiReceipt.cancelBy ?? "",
-      createDate: apiReceipt.createDate
-        ? parseDate(apiReceipt.createDate as string) || new Date()
+      gstAmt: apiBatchPayment.gstAmt ?? 0,
+      gstLocalAmt: apiBatchPayment.gstLocalAmt ?? 0,
+      gstCtyAmt: apiBatchPayment.gstCtyAmt ?? 0,
+      totAmtAftGst: apiBatchPayment.totAmtAftGst ?? 0,
+      totLocalAmtAftGst: apiBatchPayment.totLocalAmtAftGst ?? 0,
+      totCtyAmtAftGst: apiBatchPayment.totCtyAmtAftGst ?? 0,
+      remarks: apiBatchPayment.remarks ?? "",
+      moduleFrom: apiBatchPayment.moduleFrom ?? "",
+      createBy: apiBatchPayment.createBy ?? "",
+      editBy: apiBatchPayment.editBy ?? "",
+      cancelBy: apiBatchPayment.cancelBy ?? "",
+      createDate: apiBatchPayment.createDate
+        ? parseDate(apiBatchPayment.createDate as string) || new Date()
         : new Date(),
-      editDate: apiReceipt.editDate
-        ? parseDate(apiReceipt.editDate as unknown as string) || null
+      editDate: apiBatchPayment.editDate
+        ? parseDate(apiBatchPayment.editDate as unknown as string) || null
         : null,
-      cancelDate: apiReceipt.cancelDate
-        ? parseDate(apiReceipt.cancelDate as unknown as string) || null
+      cancelDate: apiBatchPayment.cancelDate
+        ? parseDate(apiBatchPayment.cancelDate as unknown as string) || null
         : null,
-      cancelRemarks: apiReceipt.cancelRemarks ?? null,
-      editVersion: apiReceipt.editVersion ?? 0,
-      isPost: apiReceipt.isPost ?? false,
-      postDate: apiReceipt.postDate
-        ? parseDate(apiReceipt.postDate as unknown as string) || null
+      cancelRemarks: apiBatchPayment.cancelRemarks ?? null,
+      editVersion: apiBatchPayment.editVersion ?? 0,
+      isPost: apiBatchPayment.isPost ?? false,
+      postDate: apiBatchPayment.postDate
+        ? parseDate(apiBatchPayment.postDate as unknown as string) || null
         : null,
-      appStatusId: apiReceipt.appStatusId ?? null,
-      appById: apiReceipt.appById ?? null,
-      appDate: apiReceipt.appDate
-        ? parseDate(apiReceipt.appDate as unknown as string) || null
+      appStatusId: apiBatchPayment.appStatusId ?? null,
+      appById: apiBatchPayment.appById ?? null,
+      appDate: apiBatchPayment.appDate
+        ? parseDate(apiBatchPayment.appDate as unknown as string) || null
         : null,
       data_details:
-        apiReceipt.data_details?.map(
+        apiBatchPayment.data_details?.map(
           (detail) =>
             ({
               ...detail,
-              receiptId: detail.receiptId?.toString() ?? "0",
-              receiptNo: detail.receiptNo ?? "",
+              paymentId: detail.paymentId?.toString() ?? "0",
+              paymentNo: detail.paymentNo ?? "",
               itemNo: detail.itemNo ?? 0,
               seqNo: detail.seqNo ?? 0,
               glId: detail.glId ?? 0,
@@ -443,65 +421,68 @@ export default function GenReceiptPage() {
               voyageId: detail.voyageId ?? 0,
               voyageNo: detail.voyageNo ?? "",
               editVersion: detail.editVersion ?? 0,
-            }) as unknown as CbGenReceiptDtSchemaType
+            }) as unknown as CbBatchPaymentDtSchemaType
         ) || [],
     }
   }
 
-  const handleReceiptSelect = async (
-    selectedReceipt: ICbGenReceiptHd | undefined
+  const handleBatchPaymentSelect = async (
+    selectedBatchPayment: ICbBatchPaymentHd | undefined
   ) => {
-    if (!selectedReceipt) return
+    if (!selectedBatchPayment) return
 
-    setIsSelectingReceipt(true)
+    setIsSelectingBatchPayment(true)
 
     try {
-      // Fetch receipt details directly using selected receipt's values
+      // Fetch batch payment details directly using selected batch payment's values
       const response = await getById(
-        `${CbReceipt.getByIdNo}/${selectedReceipt.receiptId}/${selectedReceipt.receiptNo}`
+        `${CbBatchPayment.getByIdNo}/${selectedBatchPayment.paymentId}/${selectedBatchPayment.paymentNo}`
       )
 
       if (response?.result === 1) {
-        const detailedReceipt = Array.isArray(response.data)
+        const detailedBatchPayment = Array.isArray(response.data)
           ? response.data[0]
           : response.data
 
-        if (detailedReceipt) {
-          const updatedReceipt = transformToSchemaType(detailedReceipt)
-          setReceipt(updatedReceipt)
-          form.reset(updatedReceipt)
+        if (detailedBatchPayment) {
+          const updatedBatchPayment =
+            transformToSchemaType(detailedBatchPayment)
+          setBatchPayment(updatedBatchPayment)
+          form.reset(updatedBatchPayment)
           form.trigger()
 
           // Close dialog only on success
           setShowListDialog(false)
           toast.success(
-            `Receipt ${selectedReceipt.receiptNo} loaded successfully`
+            `Batch Payment ${selectedBatchPayment.paymentNo} loaded successfully`
           )
         }
       } else {
-        toast.error(response?.message || "Failed to fetch receipt details")
+        toast.error(
+          response?.message || "Failed to fetch batch payment details"
+        )
         // Keep dialog open on failure so user can try again
       }
     } catch (error) {
-      console.error("Error fetching receipt details:", error)
-      toast.error("Error loading receipt. Please try again.")
+      console.error("Error fetching batch payment details:", error)
+      toast.error("Error loading batchPayment. Please try again.")
       // Keep dialog open on error
     } finally {
-      setIsSelectingReceipt(false)
+      setIsSelectingBatchPayment(false)
     }
   }
 
   // Handle filter changes
-  const handleFilterChange = (newFilters: ICbGenReceiptFilter) => {
+  const handleFilterChange = (newFilters: ICbBatchPaymentFilter) => {
     setFilters(newFilters)
   }
 
-  // Refetch receipts when filters change (only if dialog is open)
+  // Refetch batch payments when filters change (only if dialog is open)
   useEffect(() => {
     if (showListDialog) {
-      refetchReceipts()
+      refetchBatchPayments()
     }
-  }, [filters, showListDialog, refetchReceipts])
+  }, [filters, showListDialog, refetchBatchPayments])
 
   // Add keyboard shortcuts
   useEffect(() => {
@@ -533,51 +514,52 @@ export default function GenReceiptPage() {
     return () => window.removeEventListener("beforeunload", handleBeforeUnload)
   }, [form.formState.isDirty])
 
-  const handleReceiptSearch = async (value: string) => {
+  const handleBatchPaymentSearch = async (value: string) => {
     if (!value) return
 
-    setIsLoadingReceipt(true)
+    setIsSearchingBatchPayment(true)
 
     try {
-      const response = await getById(`${CbReceipt.getByIdNo}/0/${value}`)
+      const response = await getById(`${CbBatchPayment.getByIdNo}/0/${value}`)
 
       if (response?.result === 1) {
-        const detailedReceipt = Array.isArray(response.data)
+        const detailedBatchPayment = Array.isArray(response.data)
           ? response.data[0]
           : response.data
 
-        if (detailedReceipt) {
-          const updatedReceipt = transformToSchemaType(detailedReceipt)
-          setReceipt(updatedReceipt)
-          form.reset(updatedReceipt)
+        if (detailedBatchPayment) {
+          const updatedBatchPayment =
+            transformToSchemaType(detailedBatchPayment)
+          setBatchPayment(updatedBatchPayment)
+          form.reset(updatedBatchPayment)
           form.trigger()
 
           // Show success message
-          toast.success(`Receipt ${value} loaded successfully`)
+          toast.success(`Batch payment ${value} loaded successfully`)
 
           // Close the load confirmation dialog on success
           setShowLoadConfirm(false)
         }
       } else {
         toast.error(
-          response?.message || "Failed to fetch receipt details (direct)"
+          response?.message || "Failed to fetch batch payment details (direct)"
         )
       }
     } catch {
-      toast.error("Error searching for receipt")
+      toast.error("Error searching for batch payment")
     } finally {
-      setIsLoadingReceipt(false)
+      setIsSearchingBatchPayment(false)
     }
   }
 
-  // Determine mode and receipt ID from URL
-  const receiptNo = form.getValues("receiptNo")
-  const isEdit = Boolean(receiptNo)
+  // Determine mode and batch payment ID from URL
+  const paymentNo = form.getValues("paymentNo")
+  const isEdit = Boolean(paymentNo)
 
   // Compose title text
   const titleText = isEdit
-    ? `CB Gen Receipt (Edit) - ${receiptNo}`
-    : "CB Gen Receipt (New)"
+    ? `CB Gen Batch Payment (Edit) - ${paymentNo}`
+    : "CB Gen Batch Payment (New)"
 
   // Show loading spinner while essential data is loading
   if (!visible || !required) {
@@ -585,7 +567,9 @@ export default function GenReceiptPage() {
       <div className="flex min-h-screen items-center justify-center">
         <div className="text-center">
           <Spinner size="lg" className="mx-auto" />
-          <p className="mt-4 text-sm text-gray-600">Loading receipt form...</p>
+          <p className="mt-4 text-sm text-gray-600">
+            Loading batch payment form...
+          </p>
           <p className="mt-2 text-xs text-gray-500">
             Preparing field settings and validation rules
           </p>
@@ -641,10 +625,14 @@ export default function GenReceiptPage() {
                   setShowLoadConfirm(true)
                 }
               }}
-              placeholder="Search Receipt No"
+              placeholder="Search Batch Payment No"
               className="h-8 text-sm"
-              readOnly={!!receipt?.receiptId && receipt.receiptId !== "0"}
-              disabled={!!receipt?.receiptId && receipt.receiptId !== "0"}
+              readOnly={
+                !!batchPayment?.paymentId && batchPayment.paymentId !== "0"
+              }
+              disabled={
+                !!batchPayment?.paymentId && batchPayment.paymentId !== "0"
+              }
             />
             <Button
               variant="outline"
@@ -672,7 +660,7 @@ export default function GenReceiptPage() {
             <Button
               variant="outline"
               size="sm"
-              disabled={!receipt || receipt.receiptId === "0"}
+              disabled={!batchPayment || batchPayment.paymentId === "0"}
             >
               <Printer className="mr-1 h-4 w-4" />
               Print
@@ -691,7 +679,7 @@ export default function GenReceiptPage() {
               variant="outline"
               size="sm"
               onClick={() => setShowCloneConfirm(true)}
-              disabled={!receipt || receipt.receiptId === "0"}
+              disabled={!batchPayment || batchPayment.paymentId === "0"}
             >
               <Copy className="mr-1 h-4 w-4" />
               Clone
@@ -701,7 +689,7 @@ export default function GenReceiptPage() {
               variant="destructive"
               size="sm"
               onClick={() => setShowDeleteConfirm(true)}
-              disabled={!receipt || receipt.receiptId === "0"}
+              disabled={!batchPayment || batchPayment.paymentId === "0"}
             >
               <Trash2 className="mr-1 h-4 w-4" />
               Delete
@@ -713,7 +701,7 @@ export default function GenReceiptPage() {
           <Main
             form={form}
             onSuccessAction={async () => {
-              handleSaveReceipt()
+              handleSaveBatchPayment()
             }}
             isEdit={isEdit}
             visible={visible}
@@ -733,7 +721,7 @@ export default function GenReceiptPage() {
         onOpenChange={(open) => {
           setShowListDialog(open)
           if (open) {
-            refetchReceipts()
+            refetchBatchPayments()
           }
         }}
       >
@@ -745,38 +733,40 @@ export default function GenReceiptPage() {
             <div className="flex items-center justify-between">
               <div>
                 <DialogTitle className="text-2xl font-bold tracking-tight">
-                  CB Gen Receipt List
+                  CB Batch Payment List
                 </DialogTitle>
                 <p className="text-muted-foreground text-sm">
-                  Manage and select existing receipts from the list below. Use
-                  search to filter records or create new receipts.
+                  Manage and select existing batch payments from the list below.
+                  Use search to filter records or create new batch payments.
                 </p>
               </div>
             </div>
           </DialogHeader>
 
-          {isLoadingReceipts || isRefetchingReceipts || isSelectingReceipt ? (
+          {isLoadingBatchPayment ||
+          isRefetchingBatchPayment ||
+          isSelectingBatchPayment ? (
             <div className="flex min-h-[60vh] items-center justify-center">
               <div className="text-center">
                 <Spinner size="lg" className="mx-auto" />
                 <p className="mt-4 text-sm text-gray-600">
-                  {isSelectingReceipt
-                    ? "Loading receipt details..."
-                    : "Loading receipts..."}
+                  {isSelectingBatchPayment
+                    ? "Loading batch payment details..."
+                    : "Loading batch payments..."}
                 </p>
                 <p className="mt-2 text-xs text-gray-500">
-                  {isSelectingReceipt
-                    ? "Please wait while we fetch the complete receipt data"
-                    : "Please wait while we fetch the receipt list"}
+                  {isSelectingBatchPayment
+                    ? "Please wait while we fetch the complete batch payment data"
+                    : "Please wait while we fetch the batch payment list"}
                 </p>
               </div>
             </div>
           ) : (
-            <ReceiptTable
-              data={receiptsData || []}
+            <BatchPaymentTable
+              data={batchPaymentsData || []}
               isLoading={false}
-              onReceiptSelect={handleReceiptSelect}
-              onRefresh={() => refetchReceipts()}
+              onBatchPaymentSelect={handleBatchPaymentSelect}
+              onRefresh={() => refetchBatchPayments()}
               onFilterChange={handleFilterChange}
               initialFilters={filters}
             />
@@ -788,10 +778,12 @@ export default function GenReceiptPage() {
       <SaveConfirmation
         open={showSaveConfirm}
         onOpenChange={setShowSaveConfirm}
-        onConfirm={handleSaveReceipt}
-        itemName={receipt?.receiptNo || "New Receipt"}
+        onConfirm={handleSaveBatchPayment}
+        itemName={batchPayment?.paymentNo || "New Batch Payment"}
         operationType={
-          receipt?.receiptId && receipt.receiptId !== "0" ? "update" : "create"
+          batchPayment?.paymentId && batchPayment.paymentId !== "0"
+            ? "update"
+            : "create"
         }
         isSaving={
           isSaving || saveMutation.isPending || updateMutation.isPending
@@ -802,10 +794,10 @@ export default function GenReceiptPage() {
       <DeleteConfirmation
         open={showDeleteConfirm}
         onOpenChange={setShowDeleteConfirm}
-        onConfirm={handleReceiptDelete}
-        itemName={receipt?.receiptNo}
-        title="Delete Receipt"
-        description="This action cannot be undone. All receipt details will be permanently deleted."
+        onConfirm={handleBatchPaymentDelete}
+        itemName={batchPayment?.paymentNo}
+        title="Delete Batch Payment"
+        description="This action cannot be undone. All batch payment details will be permanently deleted."
         isDeleting={deleteMutation.isPending}
       />
 
@@ -813,21 +805,21 @@ export default function GenReceiptPage() {
       <LoadConfirmation
         open={showLoadConfirm}
         onOpenChange={setShowLoadConfirm}
-        onLoad={() => handleReceiptSearch(searchNo)}
+        onLoad={() => handleBatchPaymentSearch(searchNo)}
         code={searchNo}
-        typeLabel="Receipt"
+        typeLabel="Batch Payment"
         showDetails={false}
-        description={`Do you want to load Receipt ${searchNo}?`}
-        isLoading={isLoadingReceipt}
+        description={`Do you want to load Batch Payment ${searchNo}?`}
+        isLoading={isSearchingBatchPayment}
       />
 
       {/* Reset Confirmation */}
       <ResetConfirmation
         open={showResetConfirm}
         onOpenChange={setShowResetConfirm}
-        onConfirm={handleReceiptReset}
-        itemName={receipt?.receiptNo}
-        title="Reset Receipt"
+        onConfirm={handleBatchPaymentReset}
+        itemName={batchPayment?.paymentNo}
+        title="Reset Batch Payment"
         description="This will clear all unsaved changes."
       />
 
@@ -835,10 +827,10 @@ export default function GenReceiptPage() {
       <CloneConfirmation
         open={showCloneConfirm}
         onOpenChange={setShowCloneConfirm}
-        onConfirm={handleCloneReceipt}
-        itemName={receipt?.receiptNo}
-        title="Clone Receipt"
-        description="This will create a copy as a new receipt."
+        onConfirm={handleCloneBatchPayment}
+        itemName={batchPayment?.paymentNo}
+        title="Clone Batch Payment"
+        description="This will create a copy as a new batch payment."
       />
     </div>
   )

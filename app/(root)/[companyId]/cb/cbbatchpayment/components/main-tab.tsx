@@ -6,22 +6,22 @@ import {
   calculateCountryAmounts,
   calculateLocalAmounts,
   calculateTotalAmounts,
-} from "@/helpers/cb-genreceipt-calculations"
-import { ICbGenReceiptDt } from "@/interfaces/cb-genreceipt"
+} from "@/helpers/cb-batchpayment-calculations"
+import { ICbBatchPaymentDt } from "@/interfaces"
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
 import {
-  CbGenReceiptDtSchemaType,
-  CbGenReceiptHdSchemaType,
-} from "@/schemas/cb-genreceipt"
+  CbBatchPaymentDtSchemaType,
+  CbBatchPaymentHdSchemaType,
+} from "@/schemas"
 import { useAuthStore } from "@/stores/auth-store"
 import { UseFormReturn } from "react-hook-form"
 
-import ReceiptDetailsForm from "./cbbatchpayment-details-form"
-import ReceiptDetailsTable from "./cbbatchpayment-details-table"
-import ReceiptForm from "./cbbatchpayment-form"
+import BatchPaymentDetailsForm from "./cbbatchpayment-details-form"
+import BatchPaymentDetailsTable from "./cbbatchpayment-details-table"
+import BatchPaymentForm from "./cbbatchpayment-form"
 
 interface MainProps {
-  form: UseFormReturn<CbGenReceiptHdSchemaType>
+  form: UseFormReturn<CbBatchPaymentHdSchemaType>
   onSuccessAction: (action: string) => Promise<void>
   isEdit: boolean
   visible: IVisibleFields
@@ -43,7 +43,7 @@ export default function Main({
   const ctyAmtDec = decimals[0]?.ctyAmtDec || 2
 
   const [editingDetail, setEditingDetail] =
-    useState<CbGenReceiptDtSchemaType | null>(null)
+    useState<CbBatchPaymentDtSchemaType | null>(null)
 
   // Watch data_details for reactive updates
   const dataDetails = form.watch("data_details") || []
@@ -73,7 +73,7 @@ export default function Main({
 
     // Calculate base currency totals
     const totals = calculateTotalAmounts(
-      dataDetails as unknown as ICbGenReceiptDt[],
+      dataDetails as unknown as ICbBatchPaymentDt[],
       amtDec
     )
     form.setValue("totAmt", totals.totAmt)
@@ -82,7 +82,7 @@ export default function Main({
 
     // Calculate local currency totals (always calculate)
     const localAmounts = calculateLocalAmounts(
-      dataDetails as unknown as ICbGenReceiptDt[],
+      dataDetails as unknown as ICbBatchPaymentDt[],
       locAmtDec
     )
     form.setValue("totLocalAmt", localAmounts.totLocalAmt)
@@ -92,7 +92,7 @@ export default function Main({
     // Calculate country currency totals (always calculate)
     // If m_CtyCurr is false, country amounts = local amounts
     const countryAmounts = calculateCountryAmounts(
-      dataDetails as unknown as ICbGenReceiptDt[],
+      dataDetails as unknown as ICbBatchPaymentDt[],
       visible?.m_CtyCurr ? ctyAmtDec : locAmtDec
     )
     form.setValue("totCtyAmt", countryAmounts.totCtyAmt)
@@ -101,7 +101,7 @@ export default function Main({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dataDetails.length, amtDec, locAmtDec, ctyAmtDec])
 
-  const handleAddRow = (rowData: ICbGenReceiptDt) => {
+  const handleAddRow = (rowData: ICbBatchPaymentDt) => {
     const currentData = form.getValues("data_details") || []
 
     if (editingDetail) {
@@ -111,7 +111,7 @@ export default function Main({
       )
       form.setValue(
         "data_details",
-        updatedData as unknown as CbGenReceiptDtSchemaType[],
+        updatedData as unknown as CbBatchPaymentDtSchemaType[],
         { shouldDirty: true, shouldTouch: true }
       )
 
@@ -121,7 +121,7 @@ export default function Main({
       const updatedData = [...currentData, rowData]
       form.setValue(
         "data_details",
-        updatedData as unknown as CbGenReceiptDtSchemaType[],
+        updatedData as unknown as CbBatchPaymentDtSchemaType[],
         { shouldDirty: true, shouldTouch: true }
       )
     }
@@ -146,10 +146,10 @@ export default function Main({
     form.trigger("data_details")
   }
 
-  const handleEdit = (detail: ICbGenReceiptDt) => {
+  const handleEdit = (detail: ICbBatchPaymentDt) => {
     // console.log("Editing detail:", detail)
-    // Convert ICbGenReceiptDt to CbGenReceiptDtSchemaType and set for editing
-    setEditingDetail(detail as unknown as CbGenReceiptDtSchemaType)
+    // Convert ICbBatchPaymentDt to CbBatchPaymentDtSchemaType and set for editing
+    setEditingDetail(detail as unknown as CbBatchPaymentDtSchemaType)
     // console.log("Editing editingDetail:", editingDetail)
   }
 
@@ -157,16 +157,16 @@ export default function Main({
     setEditingDetail(null)
   }
 
-  const handleDataReorder = (newData: ICbGenReceiptDt[]) => {
+  const handleDataReorder = (newData: ICbBatchPaymentDt[]) => {
     form.setValue(
       "data_details",
-      newData as unknown as CbGenReceiptDtSchemaType[]
+      newData as unknown as CbBatchPaymentDtSchemaType[]
     )
   }
 
   return (
     <div className="w-full">
-      <ReceiptForm
+      <BatchPaymentForm
         form={form}
         onSuccessAction={onSuccessAction}
         isEdit={isEdit}
@@ -175,7 +175,7 @@ export default function Main({
         companyId={companyId}
       />
       <div className="rounded-lg border p-4 shadow-sm">
-        <ReceiptDetailsForm
+        <BatchPaymentDetailsForm
           Hdform={form}
           onAddRowAction={handleAddRow}
           onCancelEdit={editingDetail ? handleCancelEdit : undefined}
@@ -183,19 +183,19 @@ export default function Main({
           companyId={companyId}
           visible={visible}
           required={required}
-          existingDetails={dataDetails as CbGenReceiptDtSchemaType[]}
+          existingDetails={dataDetails as CbBatchPaymentDtSchemaType[]}
         />
 
-        <ReceiptDetailsTable
-          data={(dataDetails as unknown as ICbGenReceiptDt[]) || []}
+        <BatchPaymentDetailsTable
+          data={(dataDetails as unknown as ICbBatchPaymentDt[]) || []}
           visible={visible}
           onDelete={handleDelete}
           onBulkDelete={handleBulkDelete}
-          onEdit={handleEdit as (template: ICbGenReceiptDt) => void}
+          onEdit={handleEdit as (template: ICbBatchPaymentDt) => void}
           onRefresh={() => {}} // Add refresh logic if needed
           onFilterChange={() => {}} // Add filter logic if needed
           onDataReorder={
-            handleDataReorder as (newData: ICbGenReceiptDt[]) => void
+            handleDataReorder as (newData: ICbBatchPaymentDt[]) => void
           }
         />
       </div>

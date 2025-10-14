@@ -910,6 +910,16 @@ export const CbReceipt = {
   historyDetails: "/account/gethistorycbgenreceiptdetailsbyid",
 }
 
+// Cash Book Batch Payment Endpoints
+export const CbBatchPayment = {
+  get: "/account/getcbbatchpayment",
+  getByIdNo: "/account/getcbbatchpaymentbyidno",
+  add: "/account/savecbbatchpayment",
+  delete: "/account/deletecbbatchpayment",
+  history: "/account/GetHistoryCBBatchPaymentById",
+  historyDetails: "/account/gethistorycbbatchpaymentdetailsbyid",
+}
+
 // Cash Book Petty Cash Endpoints
 export const CbPettyCash = {
   get: "/account/getcbpettycash",

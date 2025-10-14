@@ -25,11 +25,6 @@ export const cbBatchPaymentHdSchema = (
       .number()
       .min(0.000001, "City Exchange Rate must be greater than 0"),
 
-    // Payment Type Fields
-    paymentTypeId: z.number().min(1, "Payment Type is required"),
-    paymentTypeCode: z.string().optional().nullable(),
-    paymentTypeName: z.string().optional().nullable(),
-
     // Bank Fields
     bankId:
       required?.m_BankId && visible?.m_BankId
@@ -37,8 +32,6 @@ export const cbBatchPaymentHdSchema = (
         : z.number().optional(),
     bankCode: z.union([z.string(), z.number()]).optional().nullable(),
     bankName: z.string().optional().nullable(),
-    chequeNo: z.string().optional().nullable(),
-    chequeDate: z.union([z.date(), z.string()]).optional(),
 
     // Bank Charge Fields
     bankChgGLId: z.number().optional(),
@@ -65,7 +58,6 @@ export const cbBatchPaymentHdSchema = (
     remarks: required?.m_Remarks_Hd
       ? z.string().min(3, "Remarks must be at least 3 characters")
       : z.string().optional(),
-    payeeTo: z.string().min(1, "Payee To is required"),
 
     moduleFrom: z.string().optional(),
 
@@ -124,6 +116,9 @@ export const cbBatchPaymentDtSchema = (
     paymentNo: z.string().optional(),
     itemNo: z.number().min(1, "Item No must be at least 1"),
     seqNo: z.number().min(1, "Sequence No must be at least 1"),
+    invoiceDate: z.union([z.date(), z.string()]).optional(),
+    invoiceNo: z.string().optional(),
+    supplierName: z.string().optional(),
 
     // GL Fields
     glId: required?.m_GLId
@@ -199,6 +194,27 @@ export const cbBatchPaymentDtSchema = (
         ? z.number().min(1, "Voyage is required")
         : z.number().optional(),
     voyageNo: z.string().optional(),
+
+    // Job Order Fields
+    jobOrderId:
+      required?.m_JobOrderId && visible?.m_JobOrderId
+        ? z.number().min(1, "Job Order is required")
+        : z.number().optional(),
+    jobOrderNo: z.string().optional(),
+
+    // Task Fields
+    taskId:
+      required?.m_JobOrderId && visible?.m_JobOrderId
+        ? z.number().min(1, "Task is required")
+        : z.number().optional(),
+    taskName: z.string().optional(),
+
+    // Service Fields
+    serviceId:
+      required?.m_JobOrderId && visible?.m_JobOrderId
+        ? z.number().min(1, "Service is required")
+        : z.number().optional(),
+    serviceName: z.string().optional(),
 
     // Audit Fields
     editVersion: z.number().optional(),

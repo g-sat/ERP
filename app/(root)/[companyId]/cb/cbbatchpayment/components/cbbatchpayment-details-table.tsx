@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react"
-import { ICbGenReceiptDt } from "@/interfaces/cb-genreceipt"
+import { useEffect, useState } from "react"
+import { ICbBatchPaymentDt } from "@/interfaces"
 import { IVisibleFields } from "@/interfaces/setting"
 import { ColumnDef } from "@tanstack/react-table"
 
@@ -7,18 +7,18 @@ import { TableName } from "@/lib/utils"
 import { AccountBaseTable } from "@/components/table/table-account"
 
 // Use flexible data type that can work with form data
-interface ReceiptDetailsTableProps {
-  data: ICbGenReceiptDt[]
+interface BatchPaymentDetailsTableProps {
+  data: ICbBatchPaymentDt[]
   onDelete?: (itemNo: number) => void
   onBulkDelete?: (selectedItemNos: number[]) => void
-  onEdit?: (template: ICbGenReceiptDt) => void
+  onEdit?: (template: ICbBatchPaymentDt) => void
   onRefresh?: () => void
   onFilterChange?: (filters: { search?: string; sortOrder?: string }) => void
-  onDataReorder?: (newData: ICbGenReceiptDt[]) => void
+  onDataReorder?: (newData: ICbBatchPaymentDt[]) => void
   visible: IVisibleFields
 }
 
-export default function ReceiptDetailsTable({
+export default function BatchPaymentDetailsTable({
   data,
   onDelete,
   onBulkDelete,
@@ -27,7 +27,7 @@ export default function ReceiptDetailsTable({
   onFilterChange,
   onDataReorder,
   visible,
-}: ReceiptDetailsTableProps) {
+}: BatchPaymentDetailsTableProps) {
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
@@ -48,14 +48,29 @@ export default function ReceiptDetailsTable({
   }
 
   // Define columns with visible prop checks
-  const columns: ColumnDef<ICbGenReceiptDt>[] = [
+  const columns: ColumnDef<ICbBatchPaymentDt>[] = [
     {
       accessorKey: "itemNo",
       header: "Item No",
       size: 60,
-      cell: ({ row }: { row: { original: ICbGenReceiptDt } }) => (
+      cell: ({ row }: { row: { original: ICbBatchPaymentDt } }) => (
         <div className="text-right">{row.original.itemNo}</div>
       ),
+    },
+    {
+      accessorKey: "invoiceDate",
+      header: "Invoice Date",
+      size: 100,
+    },
+    {
+      accessorKey: "invoiceNo",
+      header: "Invoice No",
+      size: 100,
+    },
+    {
+      accessorKey: "supplierName",
+      header: "Supplier",
+      size: 100,
     },
     {
       accessorKey: "glCode",
@@ -99,7 +114,7 @@ export default function ReceiptDetailsTable({
       accessorKey: "totAmt",
       header: "Amount",
       size: 100,
-      cell: ({ row }: { row: { original: ICbGenReceiptDt } }) => (
+      cell: ({ row }: { row: { original: ICbBatchPaymentDt } }) => (
         <div className="text-right">{row.original.totAmt}</div>
       ),
     },
@@ -108,7 +123,7 @@ export default function ReceiptDetailsTable({
       accessorKey: "gstPercentage",
       header: "GST %",
       size: 50,
-      cell: ({ row }: { row: { original: ICbGenReceiptDt } }) => (
+      cell: ({ row }: { row: { original: ICbBatchPaymentDt } }) => (
         <div className="text-right">{row.original.gstPercentage}</div>
       ),
     },
@@ -116,7 +131,7 @@ export default function ReceiptDetailsTable({
       accessorKey: "gstAmt",
       header: "GST Amount",
       size: 100,
-      cell: ({ row }: { row: { original: ICbGenReceiptDt } }) => (
+      cell: ({ row }: { row: { original: ICbBatchPaymentDt } }) => (
         <div className="text-right">{row.original.gstAmt}</div>
       ),
     },
@@ -139,7 +154,7 @@ export default function ReceiptDetailsTable({
       accessorKey: "totLocalAmt",
       header: "Local Amount",
       size: 100,
-      cell: ({ row }: { row: { original: ICbGenReceiptDt } }) => (
+      cell: ({ row }: { row: { original: ICbBatchPaymentDt } }) => (
         <div className="text-right">{row.original.totLocalAmt}</div>
       ),
     },
@@ -149,7 +164,7 @@ export default function ReceiptDetailsTable({
             accessorKey: "totCtyAmt",
             header: "Country Amount",
             size: 100,
-            cell: ({ row }: { row: { original: ICbGenReceiptDt } }) => (
+            cell: ({ row }: { row: { original: ICbBatchPaymentDt } }) => (
               <div className="text-right">{row.original.totCtyAmt}</div>
             ),
           },
@@ -168,7 +183,7 @@ export default function ReceiptDetailsTable({
       accessorKey: "gstLocalAmt",
       header: "GST Local Amount",
       size: 100,
-      cell: ({ row }: { row: { original: ICbGenReceiptDt } }) => (
+      cell: ({ row }: { row: { original: ICbBatchPaymentDt } }) => (
         <div className="text-right">{row.original.gstLocalAmt}</div>
       ),
     },
@@ -178,7 +193,7 @@ export default function ReceiptDetailsTable({
             accessorKey: "gstCtyAmt",
             header: "GST Country Amount",
             size: 100,
-            cell: ({ row }: { row: { original: ICbGenReceiptDt } }) => (
+            cell: ({ row }: { row: { original: ICbBatchPaymentDt } }) => (
               <div className="text-right">{row.original.gstCtyAmt}</div>
             ),
           },
@@ -235,7 +250,7 @@ export default function ReceiptDetailsTable({
       accessorKey: "seqNo",
       header: "Seq No",
       size: 60,
-      cell: ({ row }: { row: { original: ICbGenReceiptDt } }) => (
+      cell: ({ row }: { row: { original: ICbBatchPaymentDt } }) => (
         <div className="text-right">{row.original.seqNo}</div>
       ),
     },
@@ -252,8 +267,8 @@ export default function ReceiptDetailsTable({
         columns={columns}
         moduleId={25}
         transactionId={1}
-        tableName={TableName.cbGenReceiptDt}
-        emptyMessage="No receipt details found."
+        tableName={TableName.cbBatchPaymentDt}
+        emptyMessage="No batch payment details found."
         accessorId="itemNo"
         onRefresh={onRefresh}
         onFilterChange={onFilterChange}

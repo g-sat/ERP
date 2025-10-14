@@ -1,8 +1,5 @@
 import { useState } from "react"
-import {
-  ICbGenReceiptFilter,
-  ICbGenReceiptHd,
-} from "@/interfaces/cb-genreceipt"
+import { ICbBatchPaymentFilter, ICbBatchPaymentHd } from "@/interfaces"
 import { useAuthStore } from "@/stores/auth-store"
 import { ColumnDef } from "@tanstack/react-table"
 import { format, subMonths } from "date-fns"
@@ -14,23 +11,23 @@ import { Separator } from "@/components/ui/separator"
 import { CustomDateNew } from "@/components/custom/custom-date-new"
 import { DialogDataTable } from "@/components/table/table-dialog"
 
-export interface ReceiptTableProps {
-  data: ICbGenReceiptHd[]
+export interface BatchPaymentTableProps {
+  data: ICbBatchPaymentHd[]
   isLoading: boolean
-  onReceiptSelect: (selectedReceipt: ICbGenReceiptHd | undefined) => void
+  onBatchPaymentSelect: (selectedPayment: ICbBatchPaymentHd | undefined) => void
   onRefresh: () => void
-  onFilterChange: (filters: ICbGenReceiptFilter) => void
-  initialFilters?: ICbGenReceiptFilter
+  onFilterChange: (filters: ICbBatchPaymentFilter) => void
+  initialFilters?: ICbBatchPaymentFilter
 }
 
-export default function ReceiptTable({
+export default function BatchPaymentTable({
   data,
   isLoading = false,
-  onReceiptSelect,
+  onBatchPaymentSelect,
   onRefresh,
   onFilterChange,
   initialFilters,
-}: ReceiptTableProps) {
+}: BatchPaymentTableProps) {
   const { decimals } = useAuthStore()
   const amtDec = decimals[0]?.amtDec || 2
   const locAmtDec = decimals[0]?.locAmtDec || 2
@@ -39,7 +36,7 @@ export default function ReceiptTable({
   //const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
 
   const moduleId = ModuleId.cb
-  const transactionId = CBTransactionId.cbgenreceipt
+  const transactionId = CBTransactionId.cbbatchpayment
 
   const form = useForm({
     defaultValues: {
@@ -61,10 +58,10 @@ export default function ReceiptTable({
     })
   }
 
-  const columns: ColumnDef<ICbGenReceiptHd>[] = [
+  const columns: ColumnDef<ICbBatchPaymentHd>[] = [
     {
-      accessorKey: "receiptNo",
-      header: "Receipt No",
+      accessorKey: "paymentNo",
+      header: "Payment No",
     },
     {
       accessorKey: "referenceNo",
@@ -90,26 +87,7 @@ export default function ReceiptTable({
         return date ? format(date, dateFormat) : "-"
       },
     },
-    {
-      accessorKey: "chequeDate",
-      header: "Cheque Date",
-      cell: ({ row }) => {
-        const date = row.original.chequeDate
-          ? new Date(row.original.chequeDate)
-          : null
-        return date ? format(date, dateFormat) : "-"
-      },
-    },
-    {
-      accessorKey: "gstClaimDate",
-      header: "GST Claim Date",
-      cell: ({ row }) => {
-        const date = row.original.gstClaimDate
-          ? new Date(row.original.gstClaimDate)
-          : null
-        return date ? format(date, dateFormat) : "-"
-      },
-    },
+
     {
       accessorKey: "bankCode",
       header: "Bank Code",
@@ -143,18 +121,6 @@ export default function ReceiptTable({
           {formatNumber(row.getValue("ctyExhRate"), exhRateDec)}
         </div>
       ),
-    },
-    {
-      accessorKey: "creditTermCode",
-      header: "Credit Term Code",
-    },
-    {
-      accessorKey: "creditTermName",
-      header: "Credit Term Name",
-    },
-    {
-      accessorKey: "bankCode",
-      header: "Bank Code",
     },
     {
       accessorKey: "bankName",
@@ -265,7 +231,7 @@ export default function ReceiptTable({
   ]
 
   const handleSearchInvoice = () => {
-    const newFilters: ICbGenReceiptFilter = {
+    const newFilters: ICbBatchPaymentFilter = {
       startDate: form.getValues("startDate"),
       endDate: form.getValues("endDate"),
       search: searchQuery,
@@ -282,7 +248,7 @@ export default function ReceiptTable({
     sortOrder?: string
   }) => {
     if (onFilterChange) {
-      const newFilters: ICbGenReceiptFilter = {
+      const newFilters: ICbBatchPaymentFilter = {
         startDate: form.getValues("startDate"),
         endDate: form.getValues("endDate"),
         search: filters.search || "",
@@ -334,11 +300,11 @@ export default function ReceiptTable({
         isLoading={isLoading}
         moduleId={moduleId}
         transactionId={transactionId}
-        tableName={TableName.cbGenReceipt}
+        tableName={TableName.cbBatchPayment}
         emptyMessage="No data found."
         onRefresh={onRefresh}
         onFilterChange={handleDialogFilterChange}
-        onRowSelect={(row) => onReceiptSelect(row || undefined)}
+        onRowSelect={(row) => onBatchPaymentSelect(row || undefined)}
       />
     </div>
   )

@@ -16,24 +16,24 @@ type ExtendedColumnDef<T> = ColumnDef<T> & {
 }
 
 interface GLPostDetailsProps {
-  invoiceId: string
+  paymentId: string
 }
 
-export default function GLPostDetails({ invoiceId }: GLPostDetailsProps) {
+export default function GLPostDetails({ paymentId }: GLPostDetailsProps) {
   const { decimals } = useAuthStore()
   const amtDec = decimals[0]?.amtDec || 2
   const locAmtDec = decimals[0]?.locAmtDec || 2
   const exhRateDec = decimals[0]?.exhRateDec || 6
   const dateFormat = decimals[0]?.dateFormat || "dd/MM/yyyy"
   const moduleId = ModuleId.cb
-  const transactionId = CBTransactionId.cbgenreceipt
+  const transactionId = CBTransactionId.cbbatchpayment
 
   const { data: glPostDetails, refetch: refetchGlPost } =
     //useGetGlPostDetails<IGlTransactionDetails>(25, 1, "14120250100024")
     useGetGlPostDetails<IGlTransactionDetails>(
       Number(moduleId),
       Number(transactionId),
-      invoiceId
+      paymentId
     )
 
   const { data: glPostDetailsData } =

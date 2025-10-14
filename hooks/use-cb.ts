@@ -2,7 +2,7 @@ import { ApiResponse } from "@/interfaces/auth"
 import { useQuery } from "@tanstack/react-query"
 
 import { getData } from "@/lib/api-client"
-import { CbPayment, CbReceipt } from "@/lib/api-routes"
+import { CbBatchPayment, CbPayment, CbReceipt } from "@/lib/api-routes"
 
 // CB Gen Payment History Hooks
 export function useGetCBGenPaymentHistoryList<T>(
@@ -64,6 +64,38 @@ export function useGetCBGenReceiptHistoryDetails<T>(
       )
     },
     enabled: !!receiptId && receiptId !== "0" && !!editVersion,
+    ...options,
+  })
+}
+
+// CB Batch Payment History Hooks
+export function useGetCBBatchPaymentHistoryList<T>(
+  paymentId: string,
+  options = {}
+) {
+  return useQuery<ApiResponse<T>>({
+    queryKey: ["cb-batchpayment-history-list", paymentId],
+    queryFn: async () => {
+      return await getData(`${CbBatchPayment.history}/${paymentId}`)
+    },
+    enabled: !!paymentId && paymentId !== "0",
+    ...options,
+  })
+}
+
+export function useGetCBBatchPaymentHistoryDetails<T>(
+  paymentId: string,
+  editVersion: string,
+  options = {}
+) {
+  return useQuery<ApiResponse<T>>({
+    queryKey: ["cb-batchpayment-history-details", paymentId, editVersion],
+    queryFn: async () => {
+      return await getData(
+        `${CbBatchPayment.historyDetails}/${paymentId}/${editVersion}`
+      )
+    },
+    enabled: !!paymentId && paymentId !== "0" && !!editVersion,
     ...options,
   })
 }

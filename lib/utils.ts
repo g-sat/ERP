@@ -469,10 +469,13 @@ export enum TableName {
   cbPattyCash = "cbPattyCash",
   cbBankTransfer = "cbBankTransfer",
   cbBankTransferDt = "cbBankTransferDt",
+  cbBankTransferHistory = "cbBankTransferHistory",
   cbBankRecon = "cbBankRecon",
   cbBankReconDt = "cbBankReconDt",
+  cbBankReconHistory = "cbBankReconHistory",
   cbBatchPayment = "cbBatchPayment",
   cbBatchPaymentDt = "cbBatchPaymentDt",
+  cbBatchPaymentHistory = "cbBatchPaymentHistory",
   //GL
   journalEntry = "journalEntry",
   journalEntryDt = "journalEntryDt",

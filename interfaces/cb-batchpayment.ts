@@ -10,14 +10,9 @@ export interface ICbBatchPaymentHd {
   currencyName: null | string
   exhRate: number
   ctyExhRate: number
-  paymentTypeId: number
-  paymentTypeCode: null | string
-  paymentTypeName: null | string
   bankId: number
   bankCode: null | string | number
   bankName: null | string
-  chequeNo: string | null
-  chequeDate: Date | string
   bankChgGLId: number
   bankChgAmt: number
   bankChgLocalAmt: number
@@ -32,7 +27,6 @@ export interface ICbBatchPaymentHd {
   totLocalAmtAftGst: number
   totCtyAmtAftGst: number
   remarks: string
-  payeeTo: string
   moduleFrom: string
   createById: number
   createDate: Date | string
@@ -70,6 +64,9 @@ export interface ICbBatchPaymentDt {
   paymentNo: string
   itemNo: number
   seqNo: number
+  invoiceDate: Date | string
+  invoiceNo: string
+  supplierName: string
   glId: number
   glCode: string
   glName: string
@@ -100,5 +97,11 @@ export interface ICbBatchPaymentDt {
   bargeName: string
   voyageId: number
   voyageNo: string
+  jobOrderId: number
+  jobOrderNo: string
+  taskId: number
+  taskName: string
+  serviceId: number
+  serviceName: string
   editVersion: number
 }

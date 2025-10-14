@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { ICbGenReceiptDt, ICbGenReceiptHd } from "@/interfaces/cb-genreceipt"
+import { ICbBatchPaymentDt, ICbBatchPaymentHd } from "@/interfaces"
 import { useAuthStore } from "@/stores/auth-store"
 import { ColumnDef } from "@tanstack/react-table"
 import { format } from "date-fns"
@@ -9,8 +9,8 @@ import { AlertCircle } from "lucide-react"
 
 import { CBTransactionId, ModuleId, TableName } from "@/lib/utils"
 import {
-  useGetCBGenReceiptHistoryDetails,
-  useGetCBGenReceiptHistoryList,
+  useGetCBBatchPaymentHistoryDetails,
+  useGetCBBatchPaymentHistoryList,
 } from "@/hooks/use-cb"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -24,11 +24,11 @@ import { BasicTable } from "@/components/table/table-basic"
 import { DialogDataTable } from "@/components/table/table-dialog"
 
 interface EditVersionDetailsProps {
-  invoiceId: string
+  paymentId: string
 }
 
 export default function EditVersionDetails({
-  invoiceId,
+  paymentId,
 }: EditVersionDetailsProps) {
   const { decimals } = useAuthStore()
   const amtDec = decimals[0]?.amtDec || 2
@@ -37,57 +37,57 @@ export default function EditVersionDetails({
   const exhRateDec = decimals[0]?.exhRateDec || 2
 
   const moduleId = ModuleId.cb
-  const transactionId = CBTransactionId.cbgenreceipt
+  const transactionId = CBTransactionId.cbbatchpayment
 
-  const [selectedReceipt, setSelectedReceipt] =
-    useState<ICbGenReceiptHd | null>(null)
+  const [selectedBatchPayment, setSelectedBatchPayment] =
+    useState<ICbBatchPaymentHd | null>(null)
 
-  const { data: receiptHistoryData, refetch: refetchHistory } =
-    useGetCBGenReceiptHistoryList<ICbGenReceiptHd[]>(invoiceId)
+  const { data: batchPaymentHistoryData, refetch: refetchHistory } =
+    useGetCBBatchPaymentHistoryList<ICbBatchPaymentHd[]>(paymentId)
 
-  const { data: receiptDetailsData, refetch: refetchDetails } =
-    useGetCBGenReceiptHistoryDetails<ICbGenReceiptHd>(
-      selectedReceipt?.receiptId || "",
-      selectedReceipt?.editVersion?.toString() || ""
+  const { data: batchPaymentDetailsData, refetch: refetchDetails } =
+    useGetCBBatchPaymentHistoryDetails<ICbBatchPaymentHd>(
+      selectedBatchPayment?.paymentId || "",
+      selectedBatchPayment?.editVersion?.toString() || ""
     )
 
-  function isICbGenReceiptHdArray(arr: unknown): arr is ICbGenReceiptHd[] {
+  function isICbBatchPaymentHdArray(arr: unknown): arr is ICbBatchPaymentHd[] {
     return (
       Array.isArray(arr) &&
       (arr.length === 0 ||
-        (typeof arr[0] === "object" && "receiptId" in arr[0]))
+        (typeof arr[0] === "object" && "paymentId" in arr[0]))
     )
   }
 
   // Check if history data is successful and has valid data
-  const tableData: ICbGenReceiptHd[] =
-    receiptHistoryData?.result === 1 &&
-    isICbGenReceiptHdArray(receiptHistoryData?.data)
-      ? receiptHistoryData.data
+  const tableData: ICbBatchPaymentHd[] =
+    batchPaymentHistoryData?.result === 1 &&
+    isICbBatchPaymentHdArray(batchPaymentHistoryData?.data)
+      ? batchPaymentHistoryData.data
       : []
 
   // Check if details data is successful and has valid data
-  const dialogData: ICbGenReceiptHd | undefined =
-    receiptDetailsData?.result === 1 &&
-    receiptDetailsData?.data &&
-    typeof receiptDetailsData.data === "object" &&
-    receiptDetailsData.data !== null &&
-    !Array.isArray(receiptDetailsData.data)
-      ? (receiptDetailsData.data as ICbGenReceiptHd)
+  const dialogData: ICbBatchPaymentHd | undefined =
+    batchPaymentDetailsData?.result === 1 &&
+    batchPaymentDetailsData?.data &&
+    typeof batchPaymentDetailsData.data === "object" &&
+    batchPaymentDetailsData.data !== null &&
+    !Array.isArray(batchPaymentDetailsData.data)
+      ? (batchPaymentDetailsData.data as ICbBatchPaymentHd)
       : undefined
 
   // Check for API errors
-  const hasHistoryError = receiptHistoryData?.result === -1
-  const hasDetailsError = receiptDetailsData?.result === -1
+  const hasHistoryError = batchPaymentHistoryData?.result === -1
+  const hasDetailsError = batchPaymentDetailsData?.result === -1
 
-  const columns: ColumnDef<ICbGenReceiptHd>[] = [
+  const columns: ColumnDef<ICbBatchPaymentHd>[] = [
     {
       accessorKey: "editVersion",
       header: "Edit Version",
     },
     {
-      accessorKey: "receiptNo",
-      header: "Receipt No",
+      accessorKey: "paymentNo",
+      header: "Payment No",
     },
     {
       accessorKey: "referenceNo",
@@ -109,26 +109,6 @@ export default function EditVersionDetails({
       cell: ({ row }) => {
         const date = row.original.accountDate
           ? new Date(row.original.accountDate)
-          : null
-        return date ? format(date, dateFormat) : "-"
-      },
-    },
-    {
-      accessorKey: "chequeDate",
-      header: "Cheque Date",
-      cell: ({ row }) => {
-        const date = row.original.chequeDate
-          ? new Date(row.original.chequeDate)
-          : null
-        return date ? format(date, dateFormat) : "-"
-      },
-    },
-    {
-      accessorKey: "gstClaimDate",
-      header: "GST Claim Date",
-      cell: ({ row }) => {
-        const date = row.original.gstClaimDate
-          ? new Date(row.original.gstClaimDate)
           : null
         return date ? format(date, dateFormat) : "-"
       },
@@ -171,14 +151,7 @@ export default function EditVersionDetails({
         </div>
       ),
     },
-    {
-      accessorKey: "creditTermCode",
-      header: "Credit Term Code",
-    },
-    {
-      accessorKey: "creditTermName",
-      header: "Credit Term Name",
-    },
+
     {
       accessorKey: "bankCode",
       header: "Bank Code",
@@ -295,7 +268,7 @@ export default function EditVersionDetails({
     },
   ]
 
-  const detailsColumns: ColumnDef<ICbGenReceiptDt>[] = [
+  const detailsColumns: ColumnDef<ICbBatchPaymentDt>[] = [
     { accessorKey: "itemNo", header: "Item No" },
     { accessorKey: "glCode", header: "GL Code" },
     { accessorKey: "glName", header: "GL Name" },
@@ -311,13 +284,13 @@ export default function EditVersionDetails({
       // Only refetch if we don't have a "Data does not exist" error
       if (
         !hasHistoryError ||
-        receiptHistoryData?.message !== "Data does not exist"
+        batchPaymentHistoryData?.message !== "Data does not exist"
       ) {
         await refetchHistory()
       }
       if (
         !hasDetailsError ||
-        receiptDetailsData?.message !== "Data does not exist"
+        batchPaymentDetailsData?.message !== "Data does not exist"
       ) {
         await refetchDetails()
       }
@@ -337,7 +310,7 @@ export default function EditVersionDetails({
           {hasHistoryError && (
             <Alert
               variant={
-                receiptHistoryData?.message === "Data does not exist"
+                batchPaymentHistoryData?.message === "Data does not exist"
                   ? "default"
                   : "destructive"
               }
@@ -345,9 +318,9 @@ export default function EditVersionDetails({
             >
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>
-                {receiptHistoryData?.message === "Data does not exist"
-                  ? "No receipt history found for this receipt."
-                  : `Failed to load receipt history: ${receiptHistoryData?.message || "Unknown error"}`}
+                {batchPaymentHistoryData?.message === "Data does not exist"
+                  ? "No payment history found for this payment."
+                  : `Failed to load batch payment history: ${batchPaymentHistoryData?.message || "Unknown error"}`}
               </AlertDescription>
             </Alert>
           )}
@@ -362,25 +335,27 @@ export default function EditVersionDetails({
               hasHistoryError ? "Error loading data" : "No results."
             }
             onRefresh={handleRefresh}
-            onRowSelect={(receipt) => setSelectedReceipt(receipt)}
+            onRowSelect={(batchPayment) =>
+              setSelectedBatchPayment(batchPayment)
+            }
           />
         </CardContent>
       </Card>
 
       <Dialog
-        open={!!selectedReceipt}
-        onOpenChange={() => setSelectedReceipt(null)}
+        open={!!selectedBatchPayment}
+        onOpenChange={() => setSelectedBatchPayment(null)}
       >
         <DialogContent className="@container h-[80vh] w-[90vw] !max-w-none overflow-y-auto rounded-lg p-4">
           <DialogHeader>
-            <DialogTitle>Receipt Details</DialogTitle>
+            <DialogTitle>Batch Payment Details</DialogTitle>
           </DialogHeader>
 
           {/* Error handling for details data */}
           {hasDetailsError && (
             <Alert
               variant={
-                receiptDetailsData?.message === "Data does not exist"
+                batchPaymentDetailsData?.message === "Data does not exist"
                   ? "default"
                   : "destructive"
               }
@@ -388,9 +363,9 @@ export default function EditVersionDetails({
             >
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>
-                {receiptDetailsData?.message === "Data does not exist"
-                  ? "No receipt details found for this version."
-                  : `Failed to load receipt details: ${receiptDetailsData?.message || "Unknown error"}`}
+                {batchPaymentDetailsData?.message === "Data does not exist"
+                  ? "No batch payment details found for this version."
+                  : `Failed to load batch payment details: ${batchPaymentDetailsData?.message || "Unknown error"}`}
               </AlertDescription>
             </Alert>
           )}
@@ -398,7 +373,7 @@ export default function EditVersionDetails({
           <div className="grid gap-2">
             <Card>
               <CardHeader>
-                <CardTitle>Receipt Header</CardTitle>
+                <CardTitle>Batch Payment Header</CardTitle>
               </CardHeader>
               <CardContent>
                 {dialogData ? (
@@ -417,15 +392,15 @@ export default function EditVersionDetails({
                 ) : (
                   <div className="text-muted-foreground py-4 text-center">
                     {hasDetailsError
-                      ? "Error loading receipt details"
-                      : "No receipt details available"}
+                      ? "Error loading batch payment details"
+                      : "No batch payment details available"}
                   </div>
                 )}
               </CardContent>
             </Card>
             <Card>
               <CardHeader>
-                <CardTitle>Receipt Details</CardTitle>
+                <CardTitle>Batch Payment Details</CardTitle>
               </CardHeader>
               <CardContent>
                 <BasicTable
@@ -433,8 +408,8 @@ export default function EditVersionDetails({
                   columns={detailsColumns}
                   moduleId={moduleId}
                   transactionId={transactionId}
-                  tableName={TableName.cbGenReceiptHistory}
-                  emptyMessage="No receipt details available"
+                  tableName={TableName.cbBatchPaymentHistory}
+                  emptyMessage="No batch payment details available"
                   onRefresh={handleRefresh}
                   showHeader={true}
                   showFooter={false}

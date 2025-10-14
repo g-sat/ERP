@@ -2,11 +2,14 @@ import { format } from "date-fns"
 
 import { clientDateFormat } from "@/lib/date-utils"
 
-const defaultReceiptDetails = {
-  receiptId: "0",
-  receiptNo: "",
+const defaultBatchPaymentDetails = {
+  paymentId: "0",
+  paymentNo: "",
   itemNo: 0,
   seqNo: 0,
+  invoiceDate: "",
+  invoiceNo: "",
+  supplierName: "",
   glId: 0,
   glCode: "",
   glName: "",
@@ -46,20 +49,17 @@ const defaultReceiptDetails = {
   editVersion: 0,
 }
 
-const defaultReceipt = {
+const defaultBatchPayment = {
   companyId: 0,
-  receiptId: "0",
-  receiptNo: "",
+  paymentId: "0",
+  paymentNo: "",
   referenceNo: "",
   trnDate: format(new Date(), clientDateFormat),
   accountDate: format(new Date(), clientDateFormat),
   currencyId: 0,
   exhRate: 0,
   ctyExhRate: 0,
-  paymentTypeId: 0,
   bankId: 0,
-  chequeNo: "",
-  chequeDate: "",
   bankChgGLId: 0,
   bankChgAmt: 0,
   bankChgLocalAmt: 0,
@@ -74,7 +74,6 @@ const defaultReceipt = {
   totLocalAmtAftGst: 0,
   totCtyAmtAftGst: 0,
   remarks: "",
-  payeeTo: "",
   moduleFrom: "",
   createDate: format(new Date(), clientDateFormat),
   editDate: null,
@@ -96,18 +95,17 @@ const defaultReceipt = {
 // Function to get default values with custom date format
 export const getDefaultValues = (dateFormat: string = clientDateFormat) => {
   return {
-    defaultReceipt: {
-      ...defaultReceipt,
+    defaultBatchPayment: {
+      ...defaultBatchPayment,
       trnDate: format(new Date(), dateFormat),
       accountDate: format(new Date(), dateFormat),
-      chequeDate: "",
       gstClaimDate: format(new Date(), dateFormat),
       createDate: format(new Date(), dateFormat),
     },
-    defaultReceiptDetails: {
-      ...defaultReceiptDetails,
+    defaultBatchPaymentDetails: {
+      ...defaultBatchPaymentDetails,
     },
   }
 }
 
-export { defaultReceipt, defaultReceiptDetails }
+export { defaultBatchPayment, defaultBatchPaymentDetails }
