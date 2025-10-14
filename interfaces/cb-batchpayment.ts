@@ -13,9 +13,6 @@ export interface ICbBatchPaymentHd {
   bankId: number
   bankCode: null | string | number
   bankName: null | string
-  bankChgGLId: number
-  bankChgAmt: number
-  bankChgLocalAmt: number
   totAmt: number
   totLocalAmt: number
   totCtyAmt: number

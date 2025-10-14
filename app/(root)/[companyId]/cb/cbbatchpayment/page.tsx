@@ -111,9 +111,6 @@ export default function BatchPaymentPage() {
           exhRate: batchPayment.exhRate ?? 0,
           ctyExhRate: batchPayment.ctyExhRate ?? 0,
           bankId: batchPayment.bankId ?? 0,
-          bankChgGLId: batchPayment.bankChgGLId ?? 0,
-          bankChgAmt: batchPayment.bankChgAmt ?? 0,
-          bankChgLocalAmt: batchPayment.bankChgLocalAmt ?? 0,
           totAmt: batchPayment.totAmt ?? 0,
           totLocalAmt: batchPayment.totLocalAmt ?? 0,
           totCtyAmt: batchPayment.totCtyAmt ?? 0,
@@ -132,7 +129,7 @@ export default function BatchPaymentPage() {
               ...detail,
               paymentId: detail.paymentId?.toString() ?? "0",
               paymentNo: detail.paymentNo ?? "",
-
+              invoiceDate: detail.invoiceDate ?? new Date(),
               totAmt: detail.totAmt ?? 0,
               totLocalAmt: detail.totLocalAmt ?? 0,
               totCtyAmt: detail.totCtyAmt ?? 0,
@@ -268,8 +265,6 @@ export default function BatchPaymentPage() {
         totAmtAftGst: 0,
         totLocalAmtAftGst: 0,
         totCtyAmtAftGst: 0,
-        bankChgAmt: 0,
-        bankChgLocalAmt: 0,
         // Reset data details
         data_details: [],
       }
@@ -338,9 +333,6 @@ export default function BatchPaymentPage() {
       exhRate: apiBatchPayment.exhRate ?? 0,
       ctyExhRate: apiBatchPayment.ctyExhRate ?? 0,
       bankId: apiBatchPayment.bankId ?? 0,
-      bankChgGLId: apiBatchPayment.bankChgGLId ?? 0,
-      bankChgAmt: apiBatchPayment.bankChgAmt ?? 0,
-      bankChgLocalAmt: apiBatchPayment.bankChgLocalAmt ?? 0,
       totAmt: apiBatchPayment.totAmt ?? 0,
       totLocalAmt: apiBatchPayment.totLocalAmt ?? 0,
       totCtyAmt: apiBatchPayment.totCtyAmt ?? 0,
@@ -390,6 +382,11 @@ export default function BatchPaymentPage() {
               paymentNo: detail.paymentNo ?? "",
               itemNo: detail.itemNo ?? 0,
               seqNo: detail.seqNo ?? 0,
+              invoiceDate: detail.invoiceDate
+                ? parseDate(detail.invoiceDate as unknown as string) || null
+                : null,
+              invoiceNo: detail.invoiceNo ?? "",
+              supplierName: detail.supplierName ?? "",
               glId: detail.glId ?? 0,
               glCode: detail.glCode ?? "",
               glName: detail.glName ?? "",

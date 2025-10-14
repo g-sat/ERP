@@ -33,11 +33,6 @@ export const cbBatchPaymentHdSchema = (
     bankCode: z.union([z.string(), z.number()]).optional().nullable(),
     bankName: z.string().optional().nullable(),
 
-    // Bank Charge Fields
-    bankChgGLId: z.number().optional(),
-    bankChgAmt: z.number().optional(),
-    bankChgLocalAmt: z.number().optional(),
-
     // Amounts
     totAmt: required?.m_TotAmt ? z.number().min(0) : z.number().optional(),
     totLocalAmt: z.number().optional(),

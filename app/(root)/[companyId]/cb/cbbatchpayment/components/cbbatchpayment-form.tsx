@@ -22,7 +22,6 @@ import {
 import { useAuthStore } from "@/stores/auth-store"
 import { FormProvider, UseFormReturn } from "react-hook-form"
 
-import { BankChartOfAccountAutocomplete } from "@/components/autocomplete"
 import BankAutocomplete from "@/components/autocomplete/autocomplete-bank"
 import CurrencyAutocomplete from "@/components/autocomplete/autocomplete-currency"
 import { CustomDateNew } from "@/components/custom/custom-date-new"
@@ -446,33 +445,6 @@ export default function BatchPaymentForm({
             />
           </>
         )}
-
-        {/* Bank Charge GL */}
-        <BankChartOfAccountAutocomplete
-          form={form}
-          name="bankChgGLId"
-          label="Bank Charge GL"
-          companyId={_companyId}
-        />
-
-        {/* Bank Charge Amount */}
-        <CustomNumberInput
-          form={form}
-          name="bankChgAmt"
-          label="Bank Charge Amount"
-          round={amtDec}
-          className="text-right"
-        />
-
-        {/* Bank Charge Local Amount */}
-        <CustomNumberInput
-          form={form}
-          name="bankChgLocalAmt"
-          label="Bank Charge Local Amount"
-          round={locAmtDec}
-          isDisabled={true}
-          className="text-right"
-        />
 
         {/* Remarks */}
         <CustomTextarea

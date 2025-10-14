@@ -7,7 +7,7 @@ const defaultBatchPaymentDetails = {
   paymentNo: "",
   itemNo: 0,
   seqNo: 0,
-  invoiceDate: "",
+  invoiceDate: format(new Date(), clientDateFormat),
   invoiceNo: "",
   supplierName: "",
   glId: 0,
@@ -60,9 +60,6 @@ const defaultBatchPayment = {
   exhRate: 0,
   ctyExhRate: 0,
   bankId: 0,
-  bankChgGLId: 0,
-  bankChgAmt: 0,
-  bankChgLocalAmt: 0,
   totAmt: 0,
   totLocalAmt: 0,
   totCtyAmt: 0,
@@ -104,6 +101,7 @@ export const getDefaultValues = (dateFormat: string = clientDateFormat) => {
     },
     defaultBatchPaymentDetails: {
       ...defaultBatchPaymentDetails,
+      invoiceDate: format(new Date(), dateFormat),
     },
   }
 }
