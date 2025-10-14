@@ -16,9 +16,9 @@ import {
 import { useAuthStore } from "@/stores/auth-store"
 import { UseFormReturn } from "react-hook-form"
 
-import ReceiptDetailsForm from "./cbgenreceipt-details-form"
-import ReceiptDetailsTable from "./cbgenreceipt-details-table"
-import ReceiptForm from "./cbgenreceipt-form"
+import ReceiptDetailsForm from "./cbbatchpayment-details-form"
+import ReceiptDetailsTable from "./cbbatchpayment-details-table"
+import ReceiptForm from "./cbbatchpayment-form"
 
 interface MainProps {
   form: UseFormReturn<CbGenReceiptHdSchemaType>

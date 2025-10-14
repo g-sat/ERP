@@ -50,8 +50,8 @@ import {
   SaveConfirmation,
 } from "@/components/confirmation"
 
-import { defaultReceipt } from "./components/cbgenreceipt-defaultvalues"
-import ReceiptTable from "./components/cbgenreceipt-table"
+import { defaultReceipt } from "./components/cbbatchpayment-defaultvalues"
+import ReceiptTable from "./components/cbbatchpayment-table"
 import History from "./components/history"
 import Main from "./components/main-tab"
 

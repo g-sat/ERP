@@ -1,40 +1,61 @@
-export interface ICBBatchPaymentHd {
+export interface ICbBatchPaymentHd {
   companyId: number
   paymentId: string
   paymentNo: string
+  referenceNo: string
   trnDate: Date | string
   accountDate: Date | string
-  supplierId: number
-  supplierCode: string
-  supplierName: string
   currencyId: number
-  currencyCode: string
-  currencyName: string
+  currencyCode: null | string
+  currencyName: null | string
   exhRate: number
   ctyExhRate: number
+  paymentTypeId: number
+  paymentTypeCode: null | string
+  paymentTypeName: null | string
   bankId: number
-  bankCode: string | number
-  bankName: string
+  bankCode: null | string | number
+  bankName: null | string
+  chequeNo: string | null
+  chequeDate: Date | string
+  bankChgGLId: number
+  bankChgAmt: number
+  bankChgLocalAmt: number
   totAmt: number
   totLocalAmt: number
   totCtyAmt: number
+  gstClaimDate: Date | string
+  gstAmt: number
+  gstLocalAmt: number
+  gstCtyAmt: number
+  totAmtAftGst: number
+  totLocalAmtAftGst: number
+  totCtyAmtAftGst: number
   remarks: string
+  payeeTo: string
+  moduleFrom: string
   createById: number
   createDate: Date | string
-  editById?: number
-  editDate?: Date | string
-  isCancel: boolean
-  cancelById?: number
-  cancelDate?: Date | string
-  cancelRemarks?: string
-  createBy: number
-  editBy?: string
-  cancelBy?: string
+  editById: null | number
+  editDate: null | Date
+  isCancel: false
+  cancelById: number
+  cancelDate: Date | null
+  cancelRemarks: null | string
+  createBy: string
+  editBy: string
+  cancelBy: string
   editVersion: number
-  data_details: ICBBatchPaymentDt[]
+  isPost: boolean
+  postById: null | number
+  postDate: null | Date
+  appStatusId: null | number
+  appById: null | number
+  appDate: null | Date
+  data_details: ICbBatchPaymentDt[]
 }
 
-export interface ICBBatchPaymentFilter {
+export interface ICbBatchPaymentFilter {
   startDate: Date | string
   endDate: Date | string
   search: string
@@ -44,33 +65,40 @@ export interface ICBBatchPaymentFilter {
   pageSize?: number
 }
 
-export interface ICBBatchPaymentDt {
+export interface ICbBatchPaymentDt {
   paymentId: string
   paymentNo: string
   itemNo: number
   seqNo: number
-  invoiceDate: Date | string
-  supplierName: string
-  invoiceNo: string
-  gstNo: string
   glId: number
-  remarks: string
-  jobOrderId: number
-  taskId: number
-  serviceId: number
+  glCode: string
+  glName: string
   totAmt: number
   totLocalAmt: number
   totCtyAmt: number
+  remarks: string
   gstId: number
+  gstName: string
   gstPercentage: number
   gstAmt: number
   gstLocalAmt: number
   gstCtyAmt: number
-  departmentId?: number
-  employeeId?: number
-  portId?: number
-  vesselId?: number
-  bargeId?: number
-  voyageId?: number
+  departmentId: number
+  departmentCode: string
+  departmentName: string
+  employeeId: number
+  employeeCode: string
+  employeeName: string
+  portId: number
+  portCode: string
+  portName: string
+  vesselId: number
+  vesselCode: string
+  vesselName: string
+  bargeId: number
+  bargeCode: string
+  bargeName: string
+  voyageId: number
+  voyageNo: string
   editVersion: number
 }

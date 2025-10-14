@@ -66,3 +66,4 @@ export * from "./ap-creditnote"
 // CB schemas
 export * from "./cb-genpayment"
 export * from "./cb-genreceipt"
+export * from "./cb-batchpayment"

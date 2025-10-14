@@ -49,7 +49,7 @@ import {
 import CustomNumberInput from "@/components/custom/custom-number-input"
 import CustomTextarea from "@/components/custom/custom-textarea"
 
-import { defaultReceiptDetails } from "./cbgenreceipt-defaultvalues"
+import { defaultReceiptDetails } from "./cbbatchpayment-defaultvalues"
 
 // Factory function to create default values with dynamic itemNo
 const createDefaultValues = (itemNo: number): CbGenReceiptDtSchemaType => ({
