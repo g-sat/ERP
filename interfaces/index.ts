@@ -20,10 +20,8 @@ export * from "./country"
 export * from "./creditterm"
 export * from "./currency"
 export * from "./customer"
-export * from "./department"
 export * from "./designation"
 export * from "./docexpiry"
-export * from "./documenttype"
 export * from "./employee"
 export * from "./employer"
 export * from "./entitytype"
@@ -44,7 +42,7 @@ export * from "./loan"
 
 // Lookup interfaces - Excluded to avoid duplicates (has IUser, IDepartmentLookup, IDocumentType, IEmployee)
 // If you need lookup-specific interfaces, import directly from "./lookup"
-// export * from "./lookup"
+export * from "./lookup"
 
 export * from "./ordertype"
 export * from "./paymenttype"
@@ -76,3 +74,7 @@ export * from "./ap-invoice"
 export * from "./ap-payment"
 export * from "./ap-outtransaction"
 export * from "./ap-creditnote"
+
+//account-cb
+export * from "./cb-genpayment"
+export * from "./cb-genreceipt"

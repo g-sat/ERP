@@ -1,23 +1,26 @@
 import { useState } from "react"
-import { IApPaymentFilter, IApPaymentHd } from "@/interfaces/ap-payment"
+import {
+  ICbGenPaymentFilter,
+  ICbGenPaymentHd,
+} from "@/interfaces/cb-genpayment"
 import { useAuthStore } from "@/stores/auth-store"
 import { ColumnDef } from "@tanstack/react-table"
 import { format, subMonths } from "date-fns"
 import { FormProvider, useForm } from "react-hook-form"
 
-import { APTransactionId, ModuleId, TableName } from "@/lib/utils"
+import { ModuleId, TableName } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { CustomDateNew } from "@/components/custom/custom-date-new"
 import { DialogDataTable } from "@/components/table/table-dialog"
 
 export interface PaymentTableProps {
-  data: IApPaymentHd[]
+  data: ICbGenPaymentHd[]
   isLoading: boolean
-  onPaymentSelect: (selectedPayment: IApPaymentHd | undefined) => void
+  onPaymentSelect: (selectedPayment: ICbGenPaymentHd | undefined) => void
   onRefresh: () => void
-  onFilterChange: (filters: IApPaymentFilter) => void
-  initialFilters?: IApPaymentFilter
+  onFilterChange: (filters: ICbGenPaymentFilter) => void
+  initialFilters?: ICbGenPaymentFilter
 }
 
 export default function PaymentTable({
@@ -33,10 +36,8 @@ export default function PaymentTable({
   const locAmtDec = decimals[0]?.locAmtDec || 2
   const exhRateDec = decimals[0]?.exhRateDec || 9
   const dateFormat = decimals[0]?.dateFormat || "dd/MM/yyyy"
-  //const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
 
-  const moduleId = ModuleId.ap
-  const transactionId = APTransactionId.payment
+  const moduleId = ModuleId.cb
 
   const form = useForm({
     defaultValues: {
@@ -58,7 +59,7 @@ export default function PaymentTable({
     })
   }
 
-  const columns: ColumnDef<IApPaymentHd>[] = [
+  const columns: ColumnDef<ICbGenPaymentHd>[] = [
     {
       accessorKey: "paymentNo",
       header: "Payment No",
@@ -87,14 +88,17 @@ export default function PaymentTable({
         return date ? format(date, dateFormat) : "-"
       },
     },
-
     {
-      accessorKey: "supplierCode",
-      header: "Supplier Code",
+      accessorKey: "paymentTypeCode",
+      header: "Payment Type Code",
     },
     {
-      accessorKey: "supplierName",
-      header: "Supplier Name",
+      accessorKey: "paymentTypeName",
+      header: "Payment Type Name",
+    },
+    {
+      accessorKey: "payeeTo",
+      header: "Payee To",
     },
     {
       accessorKey: "currencyCode",
@@ -113,7 +117,15 @@ export default function PaymentTable({
         </div>
       ),
     },
-
+    {
+      accessorKey: "ctyExhRate",
+      header: "Country Exchange Rate",
+      cell: ({ row }) => (
+        <div className="text-right">
+          {formatNumber(row.getValue("ctyExhRate"), exhRateDec)}
+        </div>
+      ),
+    },
     {
       accessorKey: "bankCode",
       header: "Bank Code",
@@ -121,14 +133,6 @@ export default function PaymentTable({
     {
       accessorKey: "bankName",
       header: "Bank Name",
-    },
-    {
-      accessorKey: "paymentTypeCode",
-      header: "Payment Type Code",
-    },
-    {
-      accessorKey: "paymentTypeName",
-      header: "Payment Type Name",
     },
     {
       accessorKey: "chequeNo",
@@ -143,6 +147,24 @@ export default function PaymentTable({
           : null
         return date ? format(date, dateFormat) : "-"
       },
+    },
+    {
+      accessorKey: "bankChgAmt",
+      header: "Bank Charge Amount",
+      cell: ({ row }) => (
+        <div className="text-right">
+          {formatNumber(row.getValue("bankChgAmt"), amtDec)}
+        </div>
+      ),
+    },
+    {
+      accessorKey: "bankChgLocalAmt",
+      header: "Bank Charge Local Amount",
+      cell: ({ row }) => (
+        <div className="text-right">
+          {formatNumber(row.getValue("bankChgLocalAmt"), locAmtDec)}
+        </div>
+      ),
     },
     {
       accessorKey: "totAmt",
@@ -163,65 +185,38 @@ export default function PaymentTable({
       ),
     },
     {
-      accessorKey: "payTotAmt",
-      header: "Pay Total Amount",
+      accessorKey: "gstAmt",
+      header: "GST Amount",
       cell: ({ row }) => (
         <div className="text-right">
-          {formatNumber(row.getValue("payTotAmt"), amtDec)}
+          {formatNumber(row.getValue("gstAmt"), amtDec)}
         </div>
       ),
     },
     {
-      accessorKey: "payTotLocalAmt",
-      header: "Pay Total Local Amount",
+      accessorKey: "gstLocalAmt",
+      header: "GST Local Amount",
       cell: ({ row }) => (
         <div className="text-right">
-          {formatNumber(row.getValue("payTotLocalAmt"), locAmtDec)}
+          {formatNumber(row.getValue("gstLocalAmt"), locAmtDec)}
         </div>
       ),
     },
     {
-      accessorKey: "unAllocTotAmt",
-      header: "Unallocated Amount",
+      accessorKey: "totAmtAftGst",
+      header: "Total After GST",
       cell: ({ row }) => (
         <div className="text-right">
-          {formatNumber(row.getValue("unAllocTotAmt"), amtDec)}
+          {formatNumber(row.getValue("totAmtAftGst"), amtDec)}
         </div>
       ),
     },
     {
-      accessorKey: "unAllocTotLocalAmt",
-      header: "Unallocated Local Amount",
+      accessorKey: "totLocalAmtAftGst",
+      header: "Total Local After GST",
       cell: ({ row }) => (
         <div className="text-right">
-          {formatNumber(row.getValue("unAllocTotLocalAmt"), locAmtDec)}
-        </div>
-      ),
-    },
-    {
-      accessorKey: "exhGainLoss",
-      header: "Exchange Gain/Loss",
-      cell: ({ row }) => (
-        <div className="text-right">
-          {formatNumber(row.getValue("exhGainLoss"), locAmtDec)}
-        </div>
-      ),
-    },
-    {
-      accessorKey: "bankChgAmt",
-      header: "Bank Charges Amount",
-      cell: ({ row }) => (
-        <div className="text-right">
-          {formatNumber(row.getValue("bankChgAmt"), amtDec)}
-        </div>
-      ),
-    },
-    {
-      accessorKey: "bankChgLocalAmt",
-      header: "Bank Charges Local Amount",
-      cell: ({ row }) => (
-        <div className="text-right">
-          {formatNumber(row.getValue("bankChgLocalAmt"), locAmtDec)}
+          {formatNumber(row.getValue("totLocalAmtAftGst"), locAmtDec)}
         </div>
       ),
     },
@@ -230,16 +225,8 @@ export default function PaymentTable({
       header: "Remarks",
     },
     {
-      accessorKey: "status",
-      header: "Status",
-    },
-    {
-      accessorKey: "createByCode",
-      header: "Created By Code",
-    },
-    {
-      accessorKey: "createByName",
-      header: "Created By Name",
+      accessorKey: "createBy",
+      header: "Created By",
     },
     {
       accessorKey: "createDate",
@@ -252,12 +239,8 @@ export default function PaymentTable({
       },
     },
     {
-      accessorKey: "editByCode",
-      header: "Edited By Code",
-    },
-    {
-      accessorKey: "editByName",
-      header: "Edited By Name",
+      accessorKey: "editBy",
+      header: "Edited By",
     },
     {
       accessorKey: "editDate",
@@ -276,7 +259,7 @@ export default function PaymentTable({
   ]
 
   const handleSearchPayment = () => {
-    const newFilters: IApPaymentFilter = {
+    const newFilters: ICbGenPaymentFilter = {
       startDate: form.getValues("startDate"),
       endDate: form.getValues("endDate"),
       search: searchQuery,
@@ -293,7 +276,7 @@ export default function PaymentTable({
     sortOrder?: string
   }) => {
     if (onFilterChange) {
-      const newFilters: IApPaymentFilter = {
+      const newFilters: ICbGenPaymentFilter = {
         startDate: form.getValues("startDate"),
         endDate: form.getValues("endDate"),
         search: filters.search || "",
@@ -344,8 +327,8 @@ export default function PaymentTable({
         columns={columns}
         isLoading={isLoading}
         moduleId={moduleId}
-        transactionId={transactionId}
-        tableName={TableName.apPayment}
+        transactionId={0}
+        tableName={TableName.cbGenPayment}
         emptyMessage="No data found."
         onRefresh={onRefresh}
         onFilterChange={handleDialogFilterChange}

@@ -1,33 +1,36 @@
 import { useState } from "react"
-import { IApPaymentFilter, IApPaymentHd } from "@/interfaces/ap-payment"
+import {
+  ICbGenReceiptFilter,
+  ICbGenReceiptHd,
+} from "@/interfaces/cb-genreceipt"
 import { useAuthStore } from "@/stores/auth-store"
 import { ColumnDef } from "@tanstack/react-table"
 import { format, subMonths } from "date-fns"
 import { FormProvider, useForm } from "react-hook-form"
 
-import { APTransactionId, ModuleId, TableName } from "@/lib/utils"
+import { CBTransactionId, ModuleId, TableName } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { CustomDateNew } from "@/components/custom/custom-date-new"
 import { DialogDataTable } from "@/components/table/table-dialog"
 
-export interface PaymentTableProps {
-  data: IApPaymentHd[]
+export interface ReceiptTableProps {
+  data: ICbGenReceiptHd[]
   isLoading: boolean
-  onPaymentSelect: (selectedPayment: IApPaymentHd | undefined) => void
+  onReceiptSelect: (selectedReceipt: ICbGenReceiptHd | undefined) => void
   onRefresh: () => void
-  onFilterChange: (filters: IApPaymentFilter) => void
-  initialFilters?: IApPaymentFilter
+  onFilterChange: (filters: ICbGenReceiptFilter) => void
+  initialFilters?: ICbGenReceiptFilter
 }
 
-export default function PaymentTable({
+export default function ReceiptTable({
   data,
   isLoading = false,
-  onPaymentSelect,
+  onReceiptSelect,
   onRefresh,
   onFilterChange,
   initialFilters,
-}: PaymentTableProps) {
+}: ReceiptTableProps) {
   const { decimals } = useAuthStore()
   const amtDec = decimals[0]?.amtDec || 2
   const locAmtDec = decimals[0]?.locAmtDec || 2
@@ -35,8 +38,8 @@ export default function PaymentTable({
   const dateFormat = decimals[0]?.dateFormat || "dd/MM/yyyy"
   //const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
 
-  const moduleId = ModuleId.ap
-  const transactionId = APTransactionId.payment
+  const moduleId = ModuleId.cb
+  const transactionId = CBTransactionId.cbgenreceipt
 
   const form = useForm({
     defaultValues: {
@@ -58,10 +61,10 @@ export default function PaymentTable({
     })
   }
 
-  const columns: ColumnDef<IApPaymentHd>[] = [
+  const columns: ColumnDef<ICbGenReceiptHd>[] = [
     {
-      accessorKey: "paymentNo",
-      header: "Payment No",
+      accessorKey: "receiptNo",
+      header: "Receipt No",
     },
     {
       accessorKey: "referenceNo",
@@ -87,14 +90,33 @@ export default function PaymentTable({
         return date ? format(date, dateFormat) : "-"
       },
     },
-
     {
-      accessorKey: "supplierCode",
-      header: "Supplier Code",
+      accessorKey: "chequeDate",
+      header: "Cheque Date",
+      cell: ({ row }) => {
+        const date = row.original.chequeDate
+          ? new Date(row.original.chequeDate)
+          : null
+        return date ? format(date, dateFormat) : "-"
+      },
     },
     {
-      accessorKey: "supplierName",
-      header: "Supplier Name",
+      accessorKey: "gstClaimDate",
+      header: "GST Claim Date",
+      cell: ({ row }) => {
+        const date = row.original.gstClaimDate
+          ? new Date(row.original.gstClaimDate)
+          : null
+        return date ? format(date, dateFormat) : "-"
+      },
+    },
+    {
+      accessorKey: "bankCode",
+      header: "Bank Code",
+    },
+    {
+      accessorKey: "bankName",
+      header: "Bank Name",
     },
     {
       accessorKey: "currencyCode",
@@ -113,7 +135,23 @@ export default function PaymentTable({
         </div>
       ),
     },
-
+    {
+      accessorKey: "ctyExhRate",
+      header: "Country Exchange Rate",
+      cell: ({ row }) => (
+        <div className="text-right">
+          {formatNumber(row.getValue("ctyExhRate"), exhRateDec)}
+        </div>
+      ),
+    },
+    {
+      accessorKey: "creditTermCode",
+      header: "Credit Term Code",
+    },
+    {
+      accessorKey: "creditTermName",
+      header: "Credit Term Name",
+    },
     {
       accessorKey: "bankCode",
       header: "Bank Code",
@@ -121,28 +159,6 @@ export default function PaymentTable({
     {
       accessorKey: "bankName",
       header: "Bank Name",
-    },
-    {
-      accessorKey: "paymentTypeCode",
-      header: "Payment Type Code",
-    },
-    {
-      accessorKey: "paymentTypeName",
-      header: "Payment Type Name",
-    },
-    {
-      accessorKey: "chequeNo",
-      header: "Cheque No",
-    },
-    {
-      accessorKey: "chequeDate",
-      header: "Cheque Date",
-      cell: ({ row }) => {
-        const date = row.original.chequeDate
-          ? new Date(row.original.chequeDate)
-          : null
-        return date ? format(date, dateFormat) : "-"
-      },
     },
     {
       accessorKey: "totAmt",
@@ -163,65 +179,38 @@ export default function PaymentTable({
       ),
     },
     {
-      accessorKey: "payTotAmt",
-      header: "Pay Total Amount",
+      accessorKey: "gstAmt",
+      header: "GST Amount",
       cell: ({ row }) => (
         <div className="text-right">
-          {formatNumber(row.getValue("payTotAmt"), amtDec)}
+          {formatNumber(row.getValue("gstAmt"), amtDec)}
         </div>
       ),
     },
     {
-      accessorKey: "payTotLocalAmt",
-      header: "Pay Total Local Amount",
+      accessorKey: "gstLocalAmt",
+      header: "GST Local Amount",
       cell: ({ row }) => (
         <div className="text-right">
-          {formatNumber(row.getValue("payTotLocalAmt"), locAmtDec)}
+          {formatNumber(row.getValue("gstLocalAmt"), locAmtDec)}
         </div>
       ),
     },
     {
-      accessorKey: "unAllocTotAmt",
-      header: "Unallocated Amount",
+      accessorKey: "totAmtAftGst",
+      header: "Total After GST",
       cell: ({ row }) => (
         <div className="text-right">
-          {formatNumber(row.getValue("unAllocTotAmt"), amtDec)}
+          {formatNumber(row.getValue("totAmtAftGst"), amtDec)}
         </div>
       ),
     },
     {
-      accessorKey: "unAllocTotLocalAmt",
-      header: "Unallocated Local Amount",
+      accessorKey: "totLocalAmtAftGst",
+      header: "Total Local After GST",
       cell: ({ row }) => (
         <div className="text-right">
-          {formatNumber(row.getValue("unAllocTotLocalAmt"), locAmtDec)}
-        </div>
-      ),
-    },
-    {
-      accessorKey: "exhGainLoss",
-      header: "Exchange Gain/Loss",
-      cell: ({ row }) => (
-        <div className="text-right">
-          {formatNumber(row.getValue("exhGainLoss"), locAmtDec)}
-        </div>
-      ),
-    },
-    {
-      accessorKey: "bankChgAmt",
-      header: "Bank Charges Amount",
-      cell: ({ row }) => (
-        <div className="text-right">
-          {formatNumber(row.getValue("bankChgAmt"), amtDec)}
-        </div>
-      ),
-    },
-    {
-      accessorKey: "bankChgLocalAmt",
-      header: "Bank Charges Local Amount",
-      cell: ({ row }) => (
-        <div className="text-right">
-          {formatNumber(row.getValue("bankChgLocalAmt"), locAmtDec)}
+          {formatNumber(row.getValue("totLocalAmtAftGst"), locAmtDec)}
         </div>
       ),
     },
@@ -275,12 +264,12 @@ export default function PaymentTable({
     },
   ]
 
-  const handleSearchPayment = () => {
-    const newFilters: IApPaymentFilter = {
+  const handleSearchInvoice = () => {
+    const newFilters: ICbGenReceiptFilter = {
       startDate: form.getValues("startDate"),
       endDate: form.getValues("endDate"),
       search: searchQuery,
-      sortBy: "paymentNo",
+      sortBy: "invoiceNo",
       sortOrder: "asc",
       pageNumber: currentPage,
       pageSize: pageSize,
@@ -293,11 +282,11 @@ export default function PaymentTable({
     sortOrder?: string
   }) => {
     if (onFilterChange) {
-      const newFilters: IApPaymentFilter = {
+      const newFilters: ICbGenReceiptFilter = {
         startDate: form.getValues("startDate"),
         endDate: form.getValues("endDate"),
         search: filters.search || "",
-        sortBy: "paymentNo",
+        sortBy: "invoiceNo",
         sortOrder: (filters.sortOrder as "asc" | "desc") || "asc",
         pageNumber: currentPage,
         pageSize: pageSize,
@@ -332,8 +321,8 @@ export default function PaymentTable({
             />
           </div>
 
-          <Button variant="outline" size="sm" onClick={handleSearchPayment}>
-            Search Payment
+          <Button variant="outline" size="sm" onClick={handleSearchInvoice}>
+            Search Invoice
           </Button>
         </div>
       </FormProvider>
@@ -345,11 +334,11 @@ export default function PaymentTable({
         isLoading={isLoading}
         moduleId={moduleId}
         transactionId={transactionId}
-        tableName={TableName.apPayment}
+        tableName={TableName.cbGenReceipt}
         emptyMessage="No data found."
         onRefresh={onRefresh}
         onFilterChange={handleDialogFilterChange}
-        onRowSelect={(row) => onPaymentSelect(row || undefined)}
+        onRowSelect={(row) => onReceiptSelect(row || undefined)}
       />
     </div>
   )

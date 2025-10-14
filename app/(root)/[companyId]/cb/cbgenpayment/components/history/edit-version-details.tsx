@@ -1,17 +1,17 @@
 "use client"
 
 import { useState } from "react"
-import { IApPaymentDt, IApPaymentHd } from "@/interfaces/ap-payment"
+import { ICbGenPaymentDt, ICbGenPaymentHd } from "@/interfaces/cb-genpayment"
 import { useAuthStore } from "@/stores/auth-store"
 import { ColumnDef } from "@tanstack/react-table"
 import { format } from "date-fns"
 import { AlertCircle } from "lucide-react"
 
-import { APTransactionId, ModuleId, TableName } from "@/lib/utils"
+import { CBTransactionId, ModuleId, TableName } from "@/lib/utils"
 import {
-  useGetAPInvoiceHistoryDetails,
-  useGetAPInvoiceHistoryList,
-} from "@/hooks/use-ap"
+  useGetCBGenPaymentHistoryDetails,
+  useGetCBGenPaymentHistoryList,
+} from "@/hooks/use-cb"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
@@ -36,24 +36,22 @@ export default function EditVersionDetails({
   const dateFormat = decimals[0]?.dateFormat || "dd/MM/yyyy"
   const exhRateDec = decimals[0]?.exhRateDec || 2
 
-  const moduleId = ModuleId.ap
-  const transactionId = APTransactionId.invoice
+  const moduleId = ModuleId.cb
+  const transactionId = CBTransactionId.cbgenpayment
 
-  const [selectedInvoice, setSelectedInvoice] = useState<IApPaymentHd | null>(
-    null
-  )
+  const [selectedPayment, setSelectedPayment] =
+    useState<ICbGenPaymentHd | null>(null)
 
-  const { data: invoiceHistoryData, refetch: refetchHistory } =
-    //useGetARInvoiceHistoryList<IApPaymentHd[]>("14120250100024")
-    useGetAPInvoiceHistoryList<IApPaymentHd[]>(invoiceId)
+  const { data: paymentHistoryData, refetch: refetchHistory } =
+    useGetCBGenPaymentHistoryList<ICbGenPaymentHd[]>(invoiceId)
 
-  const { data: invoiceDetailsData, refetch: refetchDetails } =
-    useGetAPInvoiceHistoryDetails<IApPaymentHd>(
-      selectedInvoice?.paymentId || "",
-      selectedInvoice?.editVersion?.toString() || ""
+  const { data: paymentDetailsData, refetch: refetchDetails } =
+    useGetCBGenPaymentHistoryDetails<ICbGenPaymentHd>(
+      selectedPayment?.paymentId || "",
+      selectedPayment?.editVersion?.toString() || ""
     )
 
-  function isIApPaymentHdArray(arr: unknown): arr is IApPaymentHd[] {
+  function isICbGenPaymentHdArray(arr: unknown): arr is ICbGenPaymentHd[] {
     return (
       Array.isArray(arr) &&
       (arr.length === 0 ||
@@ -62,34 +60,27 @@ export default function EditVersionDetails({
   }
 
   // Check if history data is successful and has valid data
-  const tableData: IApPaymentHd[] =
-    invoiceHistoryData?.result === 1 &&
-    isIApPaymentHdArray(invoiceHistoryData?.data)
-      ? invoiceHistoryData.data
+  const tableData: ICbGenPaymentHd[] =
+    paymentHistoryData?.result === 1 &&
+    isICbGenPaymentHdArray(paymentHistoryData?.data)
+      ? paymentHistoryData.data
       : []
 
   // Check if details data is successful and has valid data
-  const dialogData: IApPaymentHd | undefined =
-    invoiceDetailsData?.result === 1 &&
-    invoiceDetailsData?.data &&
-    typeof invoiceDetailsData.data === "object" &&
-    invoiceDetailsData.data !== null &&
-    !Array.isArray(invoiceDetailsData.data)
-      ? (invoiceDetailsData.data as IApPaymentHd)
+  const dialogData: ICbGenPaymentHd | undefined =
+    paymentDetailsData?.result === 1 &&
+    paymentDetailsData?.data &&
+    typeof paymentDetailsData.data === "object" &&
+    paymentDetailsData.data !== null &&
+    !Array.isArray(paymentDetailsData.data)
+      ? (paymentDetailsData.data as ICbGenPaymentHd)
       : undefined
 
   // Check for API errors
-  const hasHistoryError = invoiceHistoryData?.result === -1
-  const hasDetailsError = invoiceDetailsData?.result === -1
+  const hasHistoryError = paymentHistoryData?.result === -1
+  const hasDetailsError = paymentDetailsData?.result === -1
 
-  const formatNumber = (value: number, decimals: number) => {
-    return value.toLocaleString(undefined, {
-      minimumFractionDigits: decimals,
-      maximumFractionDigits: decimals,
-    })
-  }
-
-  const columns: ColumnDef<IApPaymentHd>[] = [
+  const columns: ColumnDef<ICbGenPaymentHd>[] = [
     {
       accessorKey: "editVersion",
       header: "Edit Version",
@@ -122,14 +113,33 @@ export default function EditVersionDetails({
         return date ? format(date, dateFormat) : "-"
       },
     },
-
     {
-      accessorKey: "supplierCode",
-      header: "Supplier Code",
+      accessorKey: "chequeDate",
+      header: "Cheque Date",
+      cell: ({ row }) => {
+        const date = row.original.chequeDate
+          ? new Date(row.original.chequeDate)
+          : null
+        return date ? format(date, dateFormat) : "-"
+      },
     },
     {
-      accessorKey: "supplierName",
-      header: "Supplier Name",
+      accessorKey: "gstClaimDate",
+      header: "GST Claim Date",
+      cell: ({ row }) => {
+        const date = row.original.gstClaimDate
+          ? new Date(row.original.gstClaimDate)
+          : null
+        return date ? format(date, dateFormat) : "-"
+      },
+    },
+    {
+      accessorKey: "customerCode",
+      header: "Customer Code",
+    },
+    {
+      accessorKey: "customerName",
+      header: "Customer Name",
     },
     {
       accessorKey: "currencyCode",
@@ -144,11 +154,31 @@ export default function EditVersionDetails({
       header: "Exchange Rate",
       cell: ({ row }) => (
         <div className="text-right">
-          {formatNumber(row.getValue("exhRate"), exhRateDec)}
+          {row.original.exhRate
+            ? row.original.exhRate.toFixed(exhRateDec)
+            : "-"}
         </div>
       ),
     },
-
+    {
+      accessorKey: "ctyExhRate",
+      header: "Country Exchange Rate",
+      cell: ({ row }) => (
+        <div className="text-right">
+          {row.original.ctyExhRate
+            ? row.original.ctyExhRate.toFixed(exhRateDec)
+            : "-"}
+        </div>
+      ),
+    },
+    {
+      accessorKey: "creditTermCode",
+      header: "Credit Term Code",
+    },
+    {
+      accessorKey: "creditTermName",
+      header: "Credit Term Name",
+    },
     {
       accessorKey: "bankCode",
       header: "Bank Code",
@@ -158,33 +188,11 @@ export default function EditVersionDetails({
       header: "Bank Name",
     },
     {
-      accessorKey: "paymentTypeCode",
-      header: "Payment Type Code",
-    },
-    {
-      accessorKey: "paymentTypeName",
-      header: "Payment Type Name",
-    },
-    {
-      accessorKey: "chequeNo",
-      header: "Cheque No",
-    },
-    {
-      accessorKey: "chequeDate",
-      header: "Cheque Date",
-      cell: ({ row }) => {
-        const date = row.original.chequeDate
-          ? new Date(row.original.chequeDate)
-          : null
-        return date ? format(date, dateFormat) : "-"
-      },
-    },
-    {
       accessorKey: "totAmt",
       header: "Total Amount",
       cell: ({ row }) => (
         <div className="text-right">
-          {formatNumber(row.getValue("totAmt"), amtDec)}
+          {row.original.totAmt ? row.original.totAmt.toFixed(amtDec) : "-"}
         </div>
       ),
     },
@@ -193,70 +201,51 @@ export default function EditVersionDetails({
       header: "Total Local Amount",
       cell: ({ row }) => (
         <div className="text-right">
-          {formatNumber(row.getValue("totLocalAmt"), locAmtDec)}
+          {row.original.totLocalAmt
+            ? row.original.totLocalAmt.toFixed(locAmtDec)
+            : "-"}
         </div>
       ),
     },
     {
-      accessorKey: "payTotAmt",
-      header: "Pay Total Amount",
+      accessorKey: "gstAmt",
+      header: "GST Amount",
       cell: ({ row }) => (
         <div className="text-right">
-          {formatNumber(row.getValue("payTotAmt"), amtDec)}
+          {row.original.gstAmt ? row.original.gstAmt.toFixed(amtDec) : "-"}
         </div>
       ),
     },
     {
-      accessorKey: "payTotLocalAmt",
-      header: "Pay Total Local Amount",
+      accessorKey: "gstLocalAmt",
+      header: "GST Local Amount",
       cell: ({ row }) => (
         <div className="text-right">
-          {formatNumber(row.getValue("payTotLocalAmt"), locAmtDec)}
+          {row.original.gstLocalAmt
+            ? row.original.gstLocalAmt.toFixed(locAmtDec)
+            : "-"}
         </div>
       ),
     },
     {
-      accessorKey: "unAllocTotAmt",
-      header: "Unallocated Amount",
+      accessorKey: "totAmtAftGst",
+      header: "Total After GST",
       cell: ({ row }) => (
         <div className="text-right">
-          {formatNumber(row.getValue("unAllocTotAmt"), amtDec)}
+          {row.original.totAmtAftGst
+            ? row.original.totAmtAftGst.toFixed(amtDec)
+            : "-"}
         </div>
       ),
     },
     {
-      accessorKey: "unAllocTotLocalAmt",
-      header: "Unallocated Local Amount",
+      accessorKey: "totLocalAmtAftGst",
+      header: "Total Local After GST",
       cell: ({ row }) => (
         <div className="text-right">
-          {formatNumber(row.getValue("unAllocTotLocalAmt"), locAmtDec)}
-        </div>
-      ),
-    },
-    {
-      accessorKey: "exhGainLoss",
-      header: "Exchange Gain/Loss",
-      cell: ({ row }) => (
-        <div className="text-right">
-          {formatNumber(row.getValue("exhGainLoss"), locAmtDec)}
-        </div>
-      ),
-    },
-    {
-      accessorKey: "bankChgAmt",
-      header: "Bank Charges Amount",
-      cell: ({ row }) => (
-        <div className="text-right">
-          {formatNumber(row.getValue("bankChgAmt"), amtDec)}
-        </div>
-      ),
-    },
-    {
-      accessorKey: "bankChgLocalAmt",
-      header: "Bank Charges Local Amount",
-      cell: ({ row }) => (
-        <div className="text-right">
-          {formatNumber(row.getValue("bankChgLocalAmt"), locAmtDec)}
+          {row.original.totLocalAmtAftGst
+            ? row.original.totLocalAmtAftGst.toFixed(locAmtDec)
+            : "-"}
         </div>
       ),
     },
@@ -306,13 +295,14 @@ export default function EditVersionDetails({
     },
   ]
 
-  const detailsColumns: ColumnDef<IApPaymentDt>[] = [
+  const detailsColumns: ColumnDef<ICbGenPaymentDt>[] = [
     { accessorKey: "itemNo", header: "Item No" },
-    { accessorKey: "productCode", header: "Product Code" },
-    { accessorKey: "productName", header: "Product Name" },
-    { accessorKey: "qty", header: "Quantity" },
-    { accessorKey: "unitPrice", header: "Unit Price" },
+    { accessorKey: "glCode", header: "GL Code" },
+    { accessorKey: "glName", header: "GL Name" },
     { accessorKey: "totAmt", header: "Total Amount" },
+    { accessorKey: "totLocalAmt", header: "Total Local Amount" },
+    { accessorKey: "gstName", header: "GST" },
+    { accessorKey: "gstAmt", header: "GST Amount" },
     { accessorKey: "remarks", header: "Remarks" },
   ]
 
@@ -321,13 +311,13 @@ export default function EditVersionDetails({
       // Only refetch if we don't have a "Data does not exist" error
       if (
         !hasHistoryError ||
-        invoiceHistoryData?.message !== "Data does not exist"
+        paymentHistoryData?.message !== "Data does not exist"
       ) {
         await refetchHistory()
       }
       if (
         !hasDetailsError ||
-        invoiceDetailsData?.message !== "Data does not exist"
+        paymentDetailsData?.message !== "Data does not exist"
       ) {
         await refetchDetails()
       }
@@ -347,7 +337,7 @@ export default function EditVersionDetails({
           {hasHistoryError && (
             <Alert
               variant={
-                invoiceHistoryData?.message === "Data does not exist"
+                paymentHistoryData?.message === "Data does not exist"
                   ? "default"
                   : "destructive"
               }
@@ -355,9 +345,9 @@ export default function EditVersionDetails({
             >
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>
-                {invoiceHistoryData?.message === "Data does not exist"
-                  ? "No invoice history found for this invoice."
-                  : `Failed to load invoice history: ${invoiceHistoryData?.message || "Unknown error"}`}
+                {paymentHistoryData?.message === "Data does not exist"
+                  ? "No payment history found for this payment."
+                  : `Failed to load payment history: ${paymentHistoryData?.message || "Unknown error"}`}
               </AlertDescription>
             </Alert>
           )}
@@ -372,25 +362,25 @@ export default function EditVersionDetails({
               hasHistoryError ? "Error loading data" : "No results."
             }
             onRefresh={handleRefresh}
-            onRowSelect={(invoice) => setSelectedInvoice(invoice)}
+            onRowSelect={(payment) => setSelectedPayment(payment)}
           />
         </CardContent>
       </Card>
 
       <Dialog
-        open={!!selectedInvoice}
-        onOpenChange={() => setSelectedInvoice(null)}
+        open={!!selectedPayment}
+        onOpenChange={() => setSelectedPayment(null)}
       >
         <DialogContent className="@container h-[80vh] w-[90vw] !max-w-none overflow-y-auto rounded-lg p-4">
           <DialogHeader>
-            <DialogTitle>Invoice Details</DialogTitle>
+            <DialogTitle>Payment Details</DialogTitle>
           </DialogHeader>
 
           {/* Error handling for details data */}
           {hasDetailsError && (
             <Alert
               variant={
-                invoiceDetailsData?.message === "Data does not exist"
+                paymentDetailsData?.message === "Data does not exist"
                   ? "default"
                   : "destructive"
               }
@@ -398,9 +388,9 @@ export default function EditVersionDetails({
             >
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>
-                {invoiceDetailsData?.message === "Data does not exist"
-                  ? "No invoice details found for this version."
-                  : `Failed to load invoice details: ${invoiceDetailsData?.message || "Unknown error"}`}
+                {paymentDetailsData?.message === "Data does not exist"
+                  ? "No payment details found for this version."
+                  : `Failed to load payment details: ${paymentDetailsData?.message || "Unknown error"}`}
               </AlertDescription>
             </Alert>
           )}
@@ -408,7 +398,7 @@ export default function EditVersionDetails({
           <div className="grid gap-2">
             <Card>
               <CardHeader>
-                <CardTitle>Invoice Header</CardTitle>
+                <CardTitle>Payment Header</CardTitle>
               </CardHeader>
               <CardContent>
                 {dialogData ? (
@@ -427,15 +417,15 @@ export default function EditVersionDetails({
                 ) : (
                   <div className="text-muted-foreground py-4 text-center">
                     {hasDetailsError
-                      ? "Error loading invoice details"
-                      : "No invoice details available"}
+                      ? "Error loading payment details"
+                      : "No payment details available"}
                   </div>
                 )}
               </CardContent>
             </Card>
             <Card>
               <CardHeader>
-                <CardTitle>Invoice Details</CardTitle>
+                <CardTitle>Payment Details</CardTitle>
               </CardHeader>
               <CardContent>
                 <BasicTable
@@ -443,8 +433,8 @@ export default function EditVersionDetails({
                   columns={detailsColumns}
                   moduleId={moduleId}
                   transactionId={transactionId}
-                  tableName={TableName.apPaymentHistory}
-                  emptyMessage="No invoice details available"
+                  tableName={TableName.cbGenPaymentHistory}
+                  emptyMessage="No payment details available"
                   onRefresh={handleRefresh}
                   showHeader={true}
                   showFooter={false}

@@ -104,7 +104,7 @@ export const CustomDateNew = <T extends FieldValues = FieldValues>({
   }
 
   // Format value for display (assume field.value is already in decimalDateFormat, or handle legacy yyyy-mm-dd)
-  const getDisplayValue = (value: string): string => {
+  const getDisplayValue = (value: unknown): string => {
     if (!value) return ""
     if (typeof value !== "string") return ""
     // If it's yyyy-mm-dd (legacy), parse and format

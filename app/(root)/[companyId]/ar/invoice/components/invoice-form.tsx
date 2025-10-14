@@ -326,13 +326,26 @@ export default function InvoiceForm({
         className="grid grid-cols-7 gap-2 rounded-md p-2"
       >
         {/* Transaction Date */}
-        <CustomDateNew
-          form={form}
-          name="trnDate"
-          label="Transaction Date"
-          isRequired={true}
-          onChangeEvent={handleTrnDateChange}
-        />
+        {visible?.m_TrnDate && (
+          <CustomDateNew
+            form={form}
+            name="trnDate"
+            label="Transaction Date"
+            isRequired={true}
+            onChangeEvent={handleTrnDateChange}
+          />
+        )}
+
+        {/* Account Date */}
+        {visible?.m_AccountDate && (
+          <CustomDateNew
+            form={form}
+            name="accountDate"
+            label="Account Date"
+            isRequired={true}
+            onChangeEvent={handleAccountDateChange}
+          />
+        )}
 
         {/* Customer */}
         <CustomerAutocomplete
@@ -345,15 +358,6 @@ export default function InvoiceForm({
 
         {/* Reference No */}
         <CustomInput form={form} name="referenceNo" label="Reference No." />
-
-        {/* Account Date */}
-        <CustomDateNew
-          form={form}
-          name="accountDate"
-          label="Account Date"
-          isRequired={true}
-          onChangeEvent={handleAccountDateChange}
-        />
 
         {/* Credit Terms */}
         <CreditTermAutocomplete

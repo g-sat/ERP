@@ -205,11 +205,12 @@ export enum APTransactionId {
 }
 
 export enum CBTransactionId {
-  cb_receipt = 1,
-  cb_payment = 2,
-  cb_patty_cash = 3,
-  cb_bank_transfer = 4,
-  cb_bank_recon = 5,
+  cbgenreceipt = 1,
+  cbgenpayment = 2,
+  cbpattycash = 3,
+  cbbanktransfer = 4,
+  cbbankrecon = 5,
+  cbbatchpayment = 6,
   reports = 99,
 }
 
@@ -459,10 +460,12 @@ export enum TableName {
   apDocSetoffDt = "apDocSetoffDt",
   apOutTransaction = "apOutTransaction",
   //CB
-  cbReceipt = "cbReceipt",
-  cbReceiptDt = "cbReceiptDt",
-  cbPayment = "cbPayment",
-  cbPaymentDt = "cbPaymentDt",
+  cbGenReceipt = "cbGenReceipt",
+  cbGenReceiptDt = "cbGenReceiptDt",
+  cbGenReceiptHistory = "cbGenReceiptHistory",
+  cbGenPayment = "cbGenPayment",
+  cbGenPaymentDt = "cbGenPaymentDt",
+  cbGenPaymentHistory = "cbGenPaymentHistory",
   cbPattyCash = "cbPattyCash",
   cbBankTransfer = "cbBankTransfer",
   cbBankTransferDt = "cbBankTransferDt",

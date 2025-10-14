@@ -252,91 +252,27 @@ export default function CBBatchPaymentForm({
                     )}
                   />
 
-                  <FormField
-                    control={form.control}
-                    name="trnDate"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Transaction Date</FormLabel>
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <FormControl>
-                              <Button
-                                variant="outline"
-                                className={cn(
-                                  "w-full pl-3 text-left font-normal",
-                                  !field.value && "text-muted-foreground"
-                                )}
-                              >
-                                {field.value ? (
-                                  format(field.value, "PPP")
-                                ) : (
-                                  <span>Pick a date</span>
-                                )}
-                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                              </Button>
-                            </FormControl>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0" align="start">
-                            <Calendar
-                              mode="single"
-                              selected={field.value}
-                              onSelect={field.onChange}
-                              disabled={(date) =>
-                                date > new Date() ||
-                                date < new Date("1900-01-01")
-                              }
-                              initialFocus
-                            />
-                          </PopoverContent>
-                        </Popover>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  {/* Transaction Date */}
+                  {visible?.m_TrnDate && (
+                    <CustomDateNew
+                      form={form}
+                      name="trnDate"
+                      label="Transaction Date"
+                      isRequired={true}
+                      onChangeEvent={handleTrnDateChange}
+                    />
+                  )}
 
-                  <FormField
-                    control={form.control}
-                    name="accountDate"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Account Date</FormLabel>
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <FormControl>
-                              <Button
-                                variant="outline"
-                                className={cn(
-                                  "w-full pl-3 text-left font-normal",
-                                  !field.value && "text-muted-foreground"
-                                )}
-                              >
-                                {field.value ? (
-                                  format(field.value, "PPP")
-                                ) : (
-                                  <span>Pick a date</span>
-                                )}
-                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                              </Button>
-                            </FormControl>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0" align="start">
-                            <Calendar
-                              mode="single"
-                              selected={field.value}
-                              onSelect={field.onChange}
-                              disabled={(date) =>
-                                date > new Date() ||
-                                date < new Date("1900-01-01")
-                              }
-                              initialFocus
-                            />
-                          </PopoverContent>
-                        </Popover>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  {/* Account Date */}
+                  {visible?.m_AccountDate && (
+                    <CustomDateNew
+                      form={form}
+                      name="accountDate"
+                      label="Account Date"
+                      isRequired={true}
+                      onChangeEvent={handleAccountDateChange}
+                    />
+                  )}
 
                   <FormField
                     control={form.control}

@@ -2,9 +2,6 @@
 
 import * as React from "react"
 import {
-  EntityType,
-  setAddressContactDetails,
-  setDueDate,
   setExchangeRate,
   setExchangeRateLocal,
   setGSTPercentage,
@@ -14,35 +11,32 @@ import {
   calculateLocalAmounts,
   calculateTotalAmounts,
   recalculateAllDetailAmounts,
-} from "@/helpers/ap-invoice-calculations"
-import { IApInvoiceDt } from "@/interfaces/ap-invoice"
+} from "@/helpers/cb-genpayment-calculations"
+import { ICbGenPaymentDt } from "@/interfaces/cb-genpayment"
 import {
   IBankLookup,
-  ICreditTermLookup,
   ICurrencyLookup,
-  ISupplierLookup,
+  IPaymentTypeLookup,
 } from "@/interfaces/lookup"
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
 import {
-  ApInvoiceDtSchemaType,
-  ApInvoiceHdSchemaType,
-} from "@/schemas/ap-invoice"
+  CbGenPaymentDtSchemaType,
+  CbGenPaymentHdSchemaType,
+} from "@/schemas/cb-genpayment"
 import { useAuthStore } from "@/stores/auth-store"
-import { format } from "date-fns"
 import { FormProvider, UseFormReturn } from "react-hook-form"
 
-import { clientDateFormat } from "@/lib/date-utils"
 import BankAutocomplete from "@/components/autocomplete/autocomplete-bank"
-import CreditTermAutocomplete from "@/components/autocomplete/autocomplete-creditterm"
+import ChartofAccountAutocomplete from "@/components/autocomplete/autocomplete-chartofaccount"
 import CurrencyAutocomplete from "@/components/autocomplete/autocomplete-currency"
-import SupplierAutocomplete from "@/components/autocomplete/autocomplete-supplier"
+import PaymentTypeAutocomplete from "@/components/autocomplete/autocomplete-paymenttype"
 import { CustomDateNew } from "@/components/custom/custom-date-new"
 import CustomInput from "@/components/custom/custom-input"
 import CustomNumberInput from "@/components/custom/custom-number-input"
 import CustomTextarea from "@/components/custom/custom-textarea"
 
-interface InvoiceFormProps {
-  form: UseFormReturn<ApInvoiceHdSchemaType>
+interface PaymentFormProps {
+  form: UseFormReturn<CbGenPaymentHdSchemaType>
   onSuccessAction: (action: string) => Promise<void>
   isEdit: boolean
   visible: IVisibleFields
@@ -50,14 +44,14 @@ interface InvoiceFormProps {
   companyId: number
 }
 
-export default function InvoiceForm({
+export default function PaymentForm({
   form,
   onSuccessAction,
-  isEdit,
+  isEdit: _isEdit,
   visible,
   required,
   companyId: _companyId,
-}: InvoiceFormProps) {
+}: PaymentFormProps) {
   const { decimals } = useAuthStore()
   const amtDec = decimals[0]?.amtDec || 2
   const locAmtDec = decimals[0]?.locAmtDec || 2
@@ -71,14 +65,11 @@ export default function InvoiceForm({
   // Handle transaction date selection
   const handleTrnDateChange = React.useCallback(
     async (_selectedTrnDate: Date | null) => {
-      // Additional logic when transaction date changes
       const { trnDate } = form?.getValues()
       form.setValue("gstClaimDate", trnDate)
       form?.trigger("gstClaimDate")
       form.setValue("accountDate", trnDate)
-      form.setValue("deliveryDate", trnDate)
       form?.trigger("accountDate")
-      form?.trigger("deliveryDate")
       await setExchangeRate(form, exhRateDec, visible)
       if (visible?.m_CtyCurr) {
         await setExchangeRateLocal(form, exhRateDec)
@@ -89,70 +80,13 @@ export default function InvoiceForm({
         decimals[0],
         visible
       )
-      await setDueDate(form)
     },
     [decimals, exhRateDec, form, visible]
   )
 
-  // Handle customer selection
-  const handleSupplierChange = React.useCallback(
-    async (selectedSupplier: ISupplierLookup | null) => {
-      if (selectedSupplier) {
-        // ✅ Supplier selected - populate related fields
-        if (!isEdit) {
-          form.setValue("currencyId", selectedSupplier.currencyId || 0)
-          form.setValue("creditTermId", selectedSupplier.creditTermId || 0)
-          form.setValue("bankId", selectedSupplier.bankId || 0)
-        }
-
-        await setDueDate(form)
-        await setExchangeRate(form, exhRateDec, visible)
-        await setExchangeRateLocal(form, exhRateDec)
-        await setAddressContactDetails(form, EntityType.SUPPLIER)
-      } else {
-        // ✅ Supplier cleared - reset all related fields
-        if (!isEdit) {
-          // Clear supplier-related fields
-          form.setValue("currencyId", 0)
-          form.setValue("creditTermId", 0)
-          form.setValue("bankId", 0)
-        }
-
-        // Clear exchange rates
-        form.setValue("exhRate", 0)
-        form.setValue("ctyExhRate", 0)
-
-        // Clear due date
-        form.setValue("dueDate", format(new Date(), clientDateFormat))
-
-        // Clear address fields
-        form.setValue("addressId", 0)
-        form.setValue("address1", "")
-        form.setValue("address2", "")
-        form.setValue("address3", "")
-        form.setValue("address4", "")
-        form.setValue("pinCode", "")
-        form.setValue("countryId", 0)
-        form.setValue("phoneNo", "")
-
-        // Clear contact fields
-        form.setValue("contactId", 0)
-        form.setValue("contactName", "")
-        form.setValue("mobileNo", "")
-        form.setValue("emailAdd", "")
-        form.setValue("faxNo", "")
-
-        // Trigger validation
-        form.trigger()
-      }
-    },
-    [exhRateDec, form, isEdit, visible]
-  )
-
-  // Handle transaction date selection
+  // Handle account date change
   const handleAccountDateChange = React.useCallback(
     async (_selectedAccountDate: Date | null) => {
-      // Additional logic when transaction date changes
       const { accountDate } = form?.getValues()
       form.setValue("gstClaimDate", accountDate)
       form?.trigger("gstClaimDate")
@@ -167,34 +101,24 @@ export default function InvoiceForm({
         decimals[0],
         visible
       )
-      await setDueDate(form)
     },
     [decimals, exhRateDec, form, visible]
   )
 
-  // Handle credit term selection
-  const handleCreditTermChange = React.useCallback(
-    (_selectedCreditTerm: ICreditTermLookup | null) => {
-      // Additional logic when credit term changes
-      setDueDate(form)
+  // Handle payment type selection
+  const handlePaymentTypeChange = React.useCallback(
+    (_selectedPaymentType: IPaymentTypeLookup | null) => {
+      // Additional logic when payment type changes if needed
     },
-    [form]
+    []
   )
 
   // Handle bank selection
   const handleBankChange = React.useCallback(
     (_selectedBank: IBankLookup | null) => {
-      // Additional logic when bank changes
+      // Additional logic when bank changes if needed
     },
     []
-  )
-
-  // Handle delivery date change
-  const handleDeliveryDateChange = React.useCallback(
-    async (_selectedDeliveryDate: Date | null) => {
-      await setDueDate(form)
-    },
-    [form]
   )
 
   // Recalculate header totals from details
@@ -219,26 +143,25 @@ export default function InvoiceForm({
 
     // Calculate base currency totals
     const totals = calculateTotalAmounts(
-      formDetails as unknown as IApInvoiceDt[],
+      formDetails as unknown as ICbGenPaymentDt[],
       amtDec
     )
     form.setValue("totAmt", totals.totAmt)
     form.setValue("gstAmt", totals.gstAmt)
     form.setValue("totAmtAftGst", totals.totAmtAftGst)
 
-    // Calculate local currency totals (always calculate)
+    // Calculate local currency totals
     const localAmounts = calculateLocalAmounts(
-      formDetails as unknown as IApInvoiceDt[],
+      formDetails as unknown as ICbGenPaymentDt[],
       locAmtDec
     )
     form.setValue("totLocalAmt", localAmounts.totLocalAmt)
     form.setValue("gstLocalAmt", localAmounts.gstLocalAmt)
     form.setValue("totLocalAmtAftGst", localAmounts.totLocalAmtAftGst)
 
-    // Calculate country currency totals (always calculate)
-    // If m_CtyCurr is false, country amounts = local amounts
+    // Calculate country currency totals
     const countryAmounts = calculateCountryAmounts(
-      formDetails as unknown as IApInvoiceDt[],
+      formDetails as unknown as ICbGenPaymentDt[],
       visible?.m_CtyCurr ? ctyAmtDec : locAmtDec
     )
     form.setValue("totCtyAmt", countryAmounts.totCtyAmt)
@@ -249,44 +172,37 @@ export default function InvoiceForm({
   // Handle currency selection
   const handleCurrencyChange = React.useCallback(
     async (selectedCurrency: ICurrencyLookup | null) => {
-      // Additional logic when currency changes
       const currencyId = selectedCurrency?.currencyId || 0
       const accountDate = form.getValues("accountDate")
 
       if (currencyId && accountDate) {
-        // First update exchange rates
         await setExchangeRate(form, exhRateDec, visible)
         if (visible?.m_CtyCurr) {
           await setExchangeRateLocal(form, exhRateDec)
         }
 
-        // Get current details and ensure they exist
         const formDetails = form.getValues("data_details")
         if (!formDetails || formDetails.length === 0) {
           return
         }
 
-        // Get updated exchange rates
         const exchangeRate = form.getValues("exhRate") || 0
         const cityExchangeRate = form.getValues("ctyExhRate") || 0
 
-        // Recalculate all details with new exchange rates
         const updatedDetails = recalculateAllDetailAmounts(
-          formDetails as unknown as IApInvoiceDt[],
+          formDetails as unknown as ICbGenPaymentDt[],
           exchangeRate,
           cityExchangeRate,
           decimals[0],
           !!visible?.m_CtyCurr
         )
 
-        // Update form with recalculated details
         form.setValue(
           "data_details",
-          updatedDetails as unknown as ApInvoiceDtSchemaType[],
+          updatedDetails as unknown as CbGenPaymentDtSchemaType[],
           { shouldDirty: true, shouldTouch: true }
         )
 
-        // Recalculate header totals from updated details
         recalculateHeaderTotals()
       }
     },
@@ -299,7 +215,6 @@ export default function InvoiceForm({
       const formDetails = form.getValues("data_details")
       const exchangeRate = parseFloat(e.target.value) || 0
 
-      // If m_CtyCurr is false, set cityExchangeRate = exchangeRate
       let cityExchangeRate = form.getValues("ctyExhRate") || 0
       if (!visible?.m_CtyCurr) {
         cityExchangeRate = exchangeRate
@@ -310,23 +225,20 @@ export default function InvoiceForm({
         return
       }
 
-      // Recalculate all details with new exchange rate
       const updatedDetails = recalculateAllDetailAmounts(
-        formDetails as unknown as IApInvoiceDt[],
+        formDetails as unknown as ICbGenPaymentDt[],
         exchangeRate,
         cityExchangeRate,
         decimals[0],
         !!visible?.m_CtyCurr
       )
 
-      // Update form with recalculated details
       form.setValue(
         "data_details",
-        updatedDetails as unknown as ApInvoiceDtSchemaType[],
+        updatedDetails as unknown as CbGenPaymentDtSchemaType[],
         { shouldDirty: true, shouldTouch: true }
       )
 
-      // Recalculate header totals from updated details
       recalculateHeaderTotals()
     },
     [decimals, form, recalculateHeaderTotals, visible?.m_CtyCurr]
@@ -343,23 +255,20 @@ export default function InvoiceForm({
         return
       }
 
-      // Recalculate all details with new city exchange rate
       const updatedDetails = recalculateAllDetailAmounts(
-        formDetails as unknown as IApInvoiceDt[],
+        formDetails as unknown as ICbGenPaymentDt[],
         exchangeRate,
         cityExchangeRate,
         decimals[0],
         !!visible?.m_CtyCurr
       )
 
-      // Update form with recalculated details
       form.setValue(
         "data_details",
-        updatedDetails as unknown as ApInvoiceDtSchemaType[],
+        updatedDetails as unknown as CbGenPaymentDtSchemaType[],
         { shouldDirty: true, shouldTouch: true }
       )
 
-      // Recalculate header totals from updated details
       recalculateHeaderTotals()
     },
     [decimals, form, recalculateHeaderTotals, visible?.m_CtyCurr]
@@ -393,20 +302,13 @@ export default function InvoiceForm({
           />
         )}
 
-        {/* Supplier */}
-        <SupplierAutocomplete
+        {/* Payment Type */}
+        <PaymentTypeAutocomplete
           form={form}
-          name="supplierId"
-          label="Supplier"
+          name="paymentTypeId"
+          label="Payment Type"
           isRequired={true}
-          onChangeEvent={handleSupplierChange}
-        />
-        {/* supplierInvoiceNo */}
-        <CustomInput
-          form={form}
-          name="suppInvoiceNo"
-          label="Supplier Invoice No."
-          isRequired={required?.m_SuppInvoiceNo}
+          onChangeEvent={handlePaymentTypeChange}
         />
 
         {/* Reference No */}
@@ -415,23 +317,6 @@ export default function InvoiceForm({
           name="referenceNo"
           label="Reference No."
           isRequired={required?.m_ReferenceNo}
-        />
-
-        {/* Credit Terms */}
-        <CreditTermAutocomplete
-          form={form}
-          name="creditTermId"
-          label="Credit Terms"
-          isRequired={true}
-          onChangeEvent={handleCreditTermChange}
-        />
-
-        {/* Due Date */}
-        <CustomDateNew
-          form={form}
-          name="dueDate"
-          label="Due Date"
-          isRequired={true}
         />
 
         {/* Bank */}
@@ -444,6 +329,12 @@ export default function InvoiceForm({
             onChangeEvent={handleBankChange}
           />
         )}
+
+        {/* Cheque No */}
+        <CustomInput form={form} name="chequeNo" label="Cheque No." />
+
+        {/* Cheque Date */}
+        <CustomDateNew form={form} name="chequeDate" label="Cheque Date" />
 
         {/* Currency */}
         <CurrencyAutocomplete
@@ -464,6 +355,7 @@ export default function InvoiceForm({
           className="text-right"
           onBlurEvent={handleExchangeRateChange}
         />
+
         {visible?.m_CtyCurr && (
           <>
             {/* City Exchange Rate */}
@@ -479,16 +371,30 @@ export default function InvoiceForm({
           </>
         )}
 
-        {/* Delivery Date */}
-        {visible?.m_DeliveryDate && (
-          <CustomDateNew
-            form={form}
-            name="deliveryDate"
-            label="Delivery Date"
-            isRequired={required?.m_DeliveryDate}
-            onChangeEvent={handleDeliveryDateChange}
-          />
-        )}
+        {/* Bank Charge GL */}
+        <ChartofAccountAutocomplete
+          form={form}
+          name="bankChgGLId"
+          label="Bank Charge GL"
+        />
+
+        {/* Bank Charge Amount */}
+        <CustomNumberInput
+          form={form}
+          name="bankChgAmt"
+          label="Bank Charge Amount"
+          round={amtDec}
+          className="text-right"
+        />
+
+        {/* Bank Charge Local Amount */}
+        <CustomNumberInput
+          form={form}
+          name="bankChgLocalAmt"
+          label="Bank Charge Local Amount"
+          round={locAmtDec}
+          className="text-right"
+        />
 
         {/* GST Claim Date */}
         {visible?.m_GstClaimDate && (
@@ -539,6 +445,7 @@ export default function InvoiceForm({
           isDisabled={true}
           className="text-right"
         />
+
         {/* GST Local Amount */}
         <CustomNumberInput
           form={form}
@@ -566,40 +473,41 @@ export default function InvoiceForm({
               form={form}
               name="totCtyAmt"
               label="Total Country Amount"
-              round={amtDec}
+              round={ctyAmtDec}
               isDisabled={true}
               className="text-right"
             />
-          </>
-        )}
 
-        {visible?.m_CtyCurr && (
-          <>
             {/* GST Country Amount */}
             <CustomNumberInput
               form={form}
               name="gstCtyAmt"
               label="GST Country Amount"
               isDisabled={true}
-              round={amtDec}
+              round={ctyAmtDec}
               className="text-right"
             />
-          </>
-        )}
 
-        {visible?.m_CtyCurr && (
-          <>
             {/* Total Country Amount After GST */}
             <CustomNumberInput
               form={form}
               name="totCtyAmtAftGst"
               label="Total Country Amount After GST"
               isDisabled={true}
-              round={amtDec}
+              round={ctyAmtDec}
               className="text-right"
             />
           </>
         )}
+
+        {/* Payee To */}
+        <CustomInput
+          form={form}
+          name="payeeTo"
+          label="Payee To"
+          isRequired={true}
+          className="col-span-2"
+        />
 
         {/* Remarks */}
         <CustomTextarea

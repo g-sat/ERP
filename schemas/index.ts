@@ -62,3 +62,7 @@ export * from "./worklocation"
 export * from "./ap-invoice"
 export * from "./ap-payment"
 export * from "./ap-creditnote"
+
+// CB schemas
+export * from "./cb-genpayment"
+export * from "./cb-genreceipt"

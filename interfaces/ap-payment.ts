@@ -9,9 +9,9 @@ export interface IApPaymentHd {
   paymentTypeId: number
   chequeNo: string | null
   chequeDate: Date | string
-  bankChargeGLId: number
-  bankChargesAmt: number
-  bankChargesLocalAmt: number
+  bankChgGLId: number
+  bankChgAmt: number
+  bankChgLocalAmt: number
   supplierId: number
   currencyId: number
   exhRate: number
