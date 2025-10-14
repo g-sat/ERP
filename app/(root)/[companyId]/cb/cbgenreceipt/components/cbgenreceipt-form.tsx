@@ -38,6 +38,8 @@ import CustomInputGroup from "@/components/custom/custom-input-group"
 import CustomNumberInput from "@/components/custom/custom-number-input"
 import CustomTextarea from "@/components/custom/custom-textarea"
 
+import PayeeSelectionDialog from "./payee-selection-dialog"
+
 interface ReceiptFormProps {
   form: UseFormReturn<CbGenReceiptHdSchemaType>
   onSuccessAction: (action: string) => Promise<void>
@@ -65,6 +67,9 @@ export default function ReceiptForm({
 
   // State to track if payment type is cheque
   const [isChequePayment, setIsChequePayment] = React.useState(false)
+
+  // State to control payee selection dialog
+  const [isPayeeDialogOpen, setIsPayeeDialogOpen] = React.useState(false)
 
   // Watch paymentTypeId and update cheque payment state
   React.useEffect(() => {
@@ -176,10 +181,17 @@ export default function ReceiptForm({
 
   // Handle add payee to button click
   const handleAddPayeeTo = React.useCallback(() => {
-    // TODO: Implement logic to add/select payee
-    // This could open a modal to select from customers/suppliers
-    console.log("Add Payee To clicked")
+    setIsPayeeDialogOpen(true)
   }, [])
+
+  // Handle payee selection from dialog
+  const handlePayeeSelect = React.useCallback(
+    (payeeName: string, _payeeType: "customer" | "supplier" | "employee") => {
+      form.setValue("payeeTo", payeeName)
+      form.trigger("payeeTo")
+    },
+    [form]
+  )
 
   // Recalculate header totals from details
   const recalculateHeaderTotals = React.useCallback(() => {
@@ -600,6 +612,14 @@ export default function ReceiptForm({
           className="col-span-2"
         />
       </form>
+
+      {/* Payee Selection Dialog */}
+      <PayeeSelectionDialog
+        open={isPayeeDialogOpen}
+        onOpenChangeAction={setIsPayeeDialogOpen}
+        onSelectPayeeAction={handlePayeeSelect}
+        companyId={_companyId}
+      />
     </FormProvider>
   )
 }

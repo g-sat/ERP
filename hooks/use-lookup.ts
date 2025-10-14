@@ -1107,6 +1107,24 @@ export const useCompanyCustomerLookup = (companyId: number) => {
     enabled: companyId !== 0,
   })
 }
+
+export const useCompanySupplierLookup = (companyId: number) => {
+  return useQuery<ISupplierLookup[]>({
+    queryKey: ["supplier-lookUp", companyId],
+    ...defaultQueryConfig,
+    queryFn: async () => {
+      try {
+        // Using the new api-client approach
+        const data = await getData(`${Lookup.getCompanySupplier}/${companyId}`)
+        return data?.data || []
+      } catch (error) {
+        handleApiError(error)
+      }
+    },
+    enabled: companyId !== 0,
+  })
+}
+
 export const useJobOrderTaskLookup = (jobOrderId: number) => {
   return useQuery<ITaskLookup[]>({
     queryKey: ["joborder-task-lookUp", jobOrderId],

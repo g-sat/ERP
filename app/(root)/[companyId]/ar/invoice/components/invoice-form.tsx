@@ -29,10 +29,10 @@ import { ArInvoiceDtSchemaType, ArInvoiceHdSchemaType } from "@/schemas/invoice"
 import { useAuthStore } from "@/stores/auth-store"
 import { FormProvider, UseFormReturn } from "react-hook-form"
 
+import { CompanyCustomerAutocomplete } from "@/components/autocomplete"
 import BankAutocomplete from "@/components/autocomplete/autocomplete-bank"
 import CreditTermAutocomplete from "@/components/autocomplete/autocomplete-creditterm"
 import CurrencyAutocomplete from "@/components/autocomplete/autocomplete-currency"
-import CustomerAutocomplete from "@/components/autocomplete/autocomplete-customer"
 import { CustomDateNew } from "@/components/custom/custom-date-new"
 import CustomInput from "@/components/custom/custom-input"
 import CustomNumberInput from "@/components/custom/custom-number-input"
@@ -43,6 +43,7 @@ interface InvoiceFormProps {
   onSuccess: (action: string) => Promise<void>
   isEdit: boolean
   visible: IVisibleFields
+  companyId: number
 }
 
 export default function InvoiceForm({
@@ -50,6 +51,7 @@ export default function InvoiceForm({
   onSuccess,
   isEdit,
   visible,
+  companyId: _companyId,
 }: InvoiceFormProps) {
   const { decimals } = useAuthStore()
   const amtDec = decimals[0]?.amtDec || 2
@@ -348,12 +350,13 @@ export default function InvoiceForm({
         )}
 
         {/* Customer */}
-        <CustomerAutocomplete
+        <CompanyCustomerAutocomplete
           form={form}
           name="customerId"
           label="Customer"
           isRequired={true}
           onChangeEvent={handleCustomerChange}
+          companyId={_companyId}
         />
 
         {/* Reference No */}

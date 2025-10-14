@@ -50,7 +50,7 @@ export default function EmployeeAutocomplete<
     () =>
       employees.map((employee: IEmployeeLookup) => ({
         value: employee.employeeId.toString(),
-        label: employee.employeeName,
+        label: employee.employeeCode + " - " + employee.employeeName,
       })),
     [employees]
   )

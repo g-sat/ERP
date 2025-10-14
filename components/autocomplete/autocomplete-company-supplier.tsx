@@ -1,7 +1,7 @@
 "use client"
 
 import React from "react"
-import { ICustomerLookup } from "@/interfaces/lookup"
+import { ISupplierLookup } from "@/interfaces/lookup"
 import { IconCheck, IconChevronDown, IconX } from "@tabler/icons-react"
 import { Path, PathValue, UseFormReturn } from "react-hook-form"
 import Select, {
@@ -15,7 +15,7 @@ import Select, {
 } from "react-select"
 
 import { cn } from "@/lib/utils"
-import { useCompanyCustomerLookup } from "@/hooks/use-lookup"
+import { useCompanySupplierLookup } from "@/hooks/use-lookup"
 
 import { FormField, FormItem } from "../ui/form"
 import { Label } from "../ui/label"
@@ -25,7 +25,7 @@ interface FieldOption {
   label: string
 }
 
-export default function CompanyCustomerAutocomplete<
+export default function CompanySupplierAutocomplete<
   T extends Record<string, unknown>,
 >({
   form,
@@ -44,27 +44,27 @@ export default function CompanyCustomerAutocomplete<
   className?: string
   isDisabled?: boolean
   isRequired?: boolean
-  onChangeEvent?: (selectedOption: ICustomerLookup | null) => void
+  onChangeEvent?: (selectedOption: ISupplierLookup | null) => void
 }) {
-  const { data: allCompanyCustomers = [], isLoading: isLoadingAll } =
-    useCompanyCustomerLookup(companyId || 0)
+  const { data: allCompanySuppliers = [], isLoading: isLoadingAll } =
+    useCompanySupplierLookup(companyId || 0)
 
   // Determine which data and loading state to use
   const isJobOrderMode = companyId
-  const companyCustomersData = isJobOrderMode
-    ? allCompanyCustomers
-    : allCompanyCustomers
+  const companySuppliersData = isJobOrderMode
+    ? allCompanySuppliers
+    : allCompanySuppliers
   const isLoading = isJobOrderMode ? isLoadingAll : isLoadingAll
 
   // Memoize options to prevent unnecessary recalculations
   const options: FieldOption[] = React.useMemo(
     () =>
-      companyCustomersData.map((companyCustomer: ICustomerLookup) => ({
-        value: companyCustomer.customerId.toString(),
+      companySuppliersData.map((companySupplier: ISupplierLookup) => ({
+        value: companySupplier.supplierId.toString(),
         label:
-          companyCustomer.customerCode + " - " + companyCustomer.customerName,
+          companySupplier.supplierCode + " - " + companySupplier.supplierName,
       })),
-    [companyCustomersData]
+    [companySuppliersData]
   )
 
   // Custom components with display names
@@ -198,16 +198,16 @@ export default function CompanyCustomerAutocomplete<
         form.setValue(name, value as PathValue<T, Path<T>>)
       }
       if (onChangeEvent) {
-        const selectedCompanyCustomer = selectedOption
-          ? companyCustomersData.find(
-              (u: ICustomerLookup) =>
-                u.customerId.toString() === selectedOption.value
+        const selectedCompanySupplier = selectedOption
+          ? companySuppliersData.find(
+              (u: ISupplierLookup) =>
+                u.supplierId.toString() === selectedOption.value
             ) || null
           : null
-        onChangeEvent(selectedCompanyCustomer)
+        onChangeEvent(selectedCompanySupplier)
       }
     },
-    [form, name, onChangeEvent, companyCustomersData]
+    [form, name, onChangeEvent, companySuppliersData]
   )
 
   // Memoize getValue to prevent unnecessary recalculations
@@ -244,7 +244,7 @@ export default function CompanyCustomerAutocomplete<
                   options={options}
                   value={getValue()}
                   onChange={handleChange}
-                  placeholder="Select Customer..."
+                  placeholder="Select Supplier..."
                   isDisabled={isDisabled || isLoading}
                   isClearable={true}
                   isSearchable={true}
@@ -262,7 +262,7 @@ export default function CompanyCustomerAutocomplete<
                   }
                   menuPosition="fixed"
                   isLoading={isLoading}
-                  loadingMessage={() => "Loading Customer..."}
+                  loadingMessage={() => "Loading Supplier..."}
                 />
                 {showError && (
                   <p className="text-destructive mt-1 text-xs">
@@ -298,7 +298,7 @@ export default function CompanyCustomerAutocomplete<
       <Select
         options={options}
         onChange={handleChange}
-        placeholder="Select Customer..."
+        placeholder="Select Supplier..."
         isDisabled={isDisabled || isLoading}
         isClearable={true}
         isSearchable={true}
@@ -316,7 +316,7 @@ export default function CompanyCustomerAutocomplete<
         }
         menuPosition="fixed"
         isLoading={isLoading}
-        loadingMessage={() => "Loading Customer..."}
+        loadingMessage={() => "Loading Supplier..."}
       />
     </div>
   )

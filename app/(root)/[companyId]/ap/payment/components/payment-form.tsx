@@ -25,6 +25,7 @@ import { useAuthStore } from "@/stores/auth-store"
 import { FormProvider, UseFormReturn } from "react-hook-form"
 
 import { usePaymentTypeLookup } from "@/hooks/use-lookup"
+import { CompanySupplierAutocomplete } from "@/components/autocomplete"
 import BankAutocomplete from "@/components/autocomplete/autocomplete-bank"
 import BankChartOfAccountAutocomplete from "@/components/autocomplete/autocomplete-bank-chartofaccount"
 import CurrencyAutocomplete from "@/components/autocomplete/autocomplete-currency"
@@ -406,12 +407,13 @@ export default function PaymentForm({
         )}
 
         {/* Supplier */}
-        <SupplierAutocomplete
+        <CompanySupplierAutocomplete
           form={form}
           name="supplierId"
           label="Supplier"
           isRequired={true}
           onChangeEvent={handleSupplierChange}
+          companyId={_companyId}
         />
 
         {/* Reference No */}

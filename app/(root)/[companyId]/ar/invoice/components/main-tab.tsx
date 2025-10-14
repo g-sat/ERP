@@ -13,9 +13,16 @@ interface MainProps {
   onSuccess: (action: string) => Promise<void>
   isEdit: boolean
   visible: IVisibleFields
+  companyId: number
 }
 
-export default function Main({ form, onSuccess, isEdit, visible }: MainProps) {
+export default function Main({
+  form,
+  onSuccess,
+  isEdit,
+  visible,
+  companyId,
+}: MainProps) {
   return (
     <div className="divide-y">
       <InvoiceForm
@@ -23,6 +30,7 @@ export default function Main({ form, onSuccess, isEdit, visible }: MainProps) {
         onSuccess={onSuccess}
         isEdit={isEdit}
         visible={visible}
+        companyId={companyId}
       />
       <InvoiceDetailsTable form={form} visible={visible} />
     </div>

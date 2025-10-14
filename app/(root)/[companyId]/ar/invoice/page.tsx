@@ -1,6 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useState } from "react"
+import { useParams } from "next/navigation"
 import { ApiResponse } from "@/interfaces/auth"
 import {
   IArInvoiceDt,
@@ -45,6 +46,9 @@ import Main from "./components/main-tab"
 import Other from "./components/other"
 
 export default function InvoicePage() {
+  const params = useParams()
+  const companyId = params.companyId as string
+
   const [showListDialog, setShowListDialog] = useState(false)
   const [showConfirmDialog, setShowConfirmDialog] = useState({
     save: false,
@@ -756,6 +760,7 @@ export default function InvoicePage() {
             onSuccess={handleConfirmation}
             isEdit={isEdit}
             visible={visible}
+            companyId={Number(companyId)}
           />
         </TabsContent>
 

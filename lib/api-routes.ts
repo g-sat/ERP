@@ -221,6 +221,7 @@ export const Lookup = {
   getWorkLocation: "/master/getworklocationlookup",
   getCustomer: "/master/getcustomerlookup",
   getCompanyCustomer: "/master/getcompanycustomerlookup",
+  getCompanySupplier: "/master/getcompanysupplierlookup",
   getCreditTerm: "/master/getcredittermslookup",
   getBank: "/master/getbanklookup",
   getJobOrder: "/master/getjoborderlookup",

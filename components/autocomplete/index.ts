@@ -22,6 +22,7 @@ export { default as CoaCategory2Autocomplete } from "./autocomplete-coacategory2
 export { default as CoaCategory3Autocomplete } from "./autocomplete-coacategory3"
 export { default as CompanyAutocomplete } from "./autocomplete-company"
 export { default as CompanyCustomerAutocomplete } from "./autocomplete-company-customer"
+export { default as CompanySupplierAutocomplete } from "./autocomplete-company-supplier"
 export { default as ConsignmentTypeAutocomplete } from "./autocomplete-consignmenttype"
 export { default as ContactAutocomplete } from "./autocomplete-contact"
 export { default as ContactDynamicAutocomplete } from "./autocomplete-contact-dynamic"
