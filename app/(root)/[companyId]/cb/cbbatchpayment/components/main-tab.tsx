@@ -1,275 +1,204 @@
+// main-tab.tsx - IMPROVED VERSION
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import {
-  ICBBatchPaymentDt,
-  ICBBatchPaymentHd,
-} from "@/interfaces/cb-batchpayment"
-import { Calculator, FileText, List, Plus, Trash2 } from "lucide-react"
+  calculateCountryAmounts,
+  calculateLocalAmounts,
+  calculateTotalAmounts,
+} from "@/helpers/cb-genreceipt-calculations"
+import { ICbGenReceiptDt } from "@/interfaces/cb-genreceipt"
+import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
+import {
+  CbGenReceiptDtSchemaType,
+  CbGenReceiptHdSchemaType,
+} from "@/schemas/cb-genreceipt"
+import { useAuthStore } from "@/stores/auth-store"
+import { UseFormReturn } from "react-hook-form"
 
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import ReceiptDetailsForm from "./cbgenreceipt-details-form"
+import ReceiptDetailsTable from "./cbgenreceipt-details-table"
+import ReceiptForm from "./cbgenreceipt-form"
 
-import CBBatchPaymentDetailsTable from "./cb-batchpayment-details-table"
-
-interface MainTabProps {
-  payment: ICBBatchPaymentHd
-  details: ICBBatchPaymentDt[]
-  onDetailsChange: (details: ICBBatchPaymentDt[]) => void
-  onAddDetail: () => void
-  onRemoveDetail: (index: number) => void
-  onUpdateDetail: (
-    index: number,
-    field: keyof ICBBatchPaymentDt,
-    value: unknown
-  ) => void
+interface MainProps {
+  form: UseFormReturn<CbGenReceiptHdSchemaType>
+  onSuccessAction: (action: string) => Promise<void>
+  isEdit: boolean
+  visible: IVisibleFields
+  required: IMandatoryFields
+  companyId: number
 }
 
-export default function MainTab({
-  payment,
-  details,
-  onDetailsChange,
-  onAddDetail,
-  onRemoveDetail,
-  onUpdateDetail,
-}: MainTabProps) {
-  const [activeTab, setActiveTab] = useState("details")
+export default function Main({
+  form,
+  onSuccessAction,
+  isEdit,
+  visible,
+  required,
+  companyId,
+}: MainProps) {
+  const { decimals } = useAuthStore()
+  const amtDec = decimals[0]?.amtDec || 2
+  const locAmtDec = decimals[0]?.locAmtDec || 2
+  const ctyAmtDec = decimals[0]?.ctyAmtDec || 2
 
-  const formatCurrency = (amount: number, currencyCode?: string) => {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: currencyCode || "USD",
-      minimumFractionDigits: 2,
-    }).format(amount)
-  }
+  const [editingDetail, setEditingDetail] =
+    useState<CbGenReceiptDtSchemaType | null>(null)
 
-  const calculateTotals = () => {
-    const totalAmt = details.reduce(
-      (sum, detail) => sum + (detail.totAmt || 0),
-      0
-    )
-    const totalLocalAmt = details.reduce(
-      (sum, detail) => sum + (detail.totLocalAmt || 0),
-      0
-    )
-    const totalCtyAmt = details.reduce(
-      (sum, detail) => sum + (detail.totCtyAmt || 0),
-      0
-    )
-    const totalGstAmt = details.reduce(
-      (sum, detail) => sum + (detail.gstAmt || 0),
-      0
-    )
+  // Watch data_details for reactive updates
+  const dataDetails = form.watch("data_details") || []
 
-    return {
-      totalAmt,
-      totalLocalAmt,
-      totalCtyAmt,
-      totalGstAmt,
+  // Clear editingDetail when data_details is reset/cleared
+  useEffect(() => {
+    if (dataDetails.length === 0 && editingDetail) {
+      setEditingDetail(null)
     }
+  }, [dataDetails.length, editingDetail])
+
+  // Recalculate header totals when details change
+  useEffect(() => {
+    if (dataDetails.length === 0) {
+      // Reset all amounts to 0 if no details
+      form.setValue("totAmt", 0)
+      form.setValue("gstAmt", 0)
+      form.setValue("totAmtAftGst", 0)
+      form.setValue("totLocalAmt", 0)
+      form.setValue("gstLocalAmt", 0)
+      form.setValue("totLocalAmtAftGst", 0)
+      form.setValue("totCtyAmt", 0)
+      form.setValue("gstCtyAmt", 0)
+      form.setValue("totCtyAmtAftGst", 0)
+      return
+    }
+
+    // Calculate base currency totals
+    const totals = calculateTotalAmounts(
+      dataDetails as unknown as ICbGenReceiptDt[],
+      amtDec
+    )
+    form.setValue("totAmt", totals.totAmt)
+    form.setValue("gstAmt", totals.gstAmt)
+    form.setValue("totAmtAftGst", totals.totAmtAftGst)
+
+    // Calculate local currency totals (always calculate)
+    const localAmounts = calculateLocalAmounts(
+      dataDetails as unknown as ICbGenReceiptDt[],
+      locAmtDec
+    )
+    form.setValue("totLocalAmt", localAmounts.totLocalAmt)
+    form.setValue("gstLocalAmt", localAmounts.gstLocalAmt)
+    form.setValue("totLocalAmtAftGst", localAmounts.totLocalAmtAftGst)
+
+    // Calculate country currency totals (always calculate)
+    // If m_CtyCurr is false, country amounts = local amounts
+    const countryAmounts = calculateCountryAmounts(
+      dataDetails as unknown as ICbGenReceiptDt[],
+      visible?.m_CtyCurr ? ctyAmtDec : locAmtDec
+    )
+    form.setValue("totCtyAmt", countryAmounts.totCtyAmt)
+    form.setValue("gstCtyAmt", countryAmounts.gstCtyAmt)
+    form.setValue("totCtyAmtAftGst", countryAmounts.totCtyAmtAftGst)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dataDetails.length, amtDec, locAmtDec, ctyAmtDec])
+
+  const handleAddRow = (rowData: ICbGenReceiptDt) => {
+    const currentData = form.getValues("data_details") || []
+
+    if (editingDetail) {
+      // Update existing row by itemNo (unique identifier)
+      const updatedData = currentData.map((item) =>
+        item.itemNo === editingDetail.itemNo ? rowData : item
+      )
+      form.setValue(
+        "data_details",
+        updatedData as unknown as CbGenReceiptDtSchemaType[],
+        { shouldDirty: true, shouldTouch: true }
+      )
+
+      setEditingDetail(null)
+    } else {
+      // Add new row
+      const updatedData = [...currentData, rowData]
+      form.setValue(
+        "data_details",
+        updatedData as unknown as CbGenReceiptDtSchemaType[],
+        { shouldDirty: true, shouldTouch: true }
+      )
+    }
+
+    // Trigger form validation
+    form.trigger("data_details")
   }
 
-  const totals = calculateTotals()
+  const handleDelete = (itemNo: number) => {
+    const currentData = form.getValues("data_details") || []
+    const updatedData = currentData.filter((item) => item.itemNo !== itemNo)
+    form.setValue("data_details", updatedData)
+    form.trigger("data_details")
+  }
+
+  const handleBulkDelete = (selectedItemNos: number[]) => {
+    const currentData = form.getValues("data_details") || []
+    const updatedData = currentData.filter(
+      (item) => !selectedItemNos.includes(item.itemNo)
+    )
+    form.setValue("data_details", updatedData)
+    form.trigger("data_details")
+  }
+
+  const handleEdit = (detail: ICbGenReceiptDt) => {
+    // console.log("Editing detail:", detail)
+    // Convert ICbGenReceiptDt to CbGenReceiptDtSchemaType and set for editing
+    setEditingDetail(detail as unknown as CbGenReceiptDtSchemaType)
+    // console.log("Editing editingDetail:", editingDetail)
+  }
+
+  const handleCancelEdit = () => {
+    setEditingDetail(null)
+  }
+
+  const handleDataReorder = (newData: ICbGenReceiptDt[]) => {
+    form.setValue(
+      "data_details",
+      newData as unknown as CbGenReceiptDtSchemaType[]
+    )
+  }
 
   return (
-    <div className="space-y-6">
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-muted-foreground text-sm font-medium">
-                  Total Amount
-                </p>
-                <p className="text-2xl font-bold">
-                  {formatCurrency(totals.totalAmt, payment.currencyCode)}
-                </p>
-              </div>
-              <Calculator className="text-muted-foreground h-8 w-8" />
-            </div>
-          </CardContent>
-        </Card>
+    <div className="w-full">
+      <ReceiptForm
+        form={form}
+        onSuccessAction={onSuccessAction}
+        isEdit={isEdit}
+        visible={visible}
+        required={required}
+        companyId={companyId}
+      />
+      <div className="rounded-lg border p-4 shadow-sm">
+        <ReceiptDetailsForm
+          Hdform={form}
+          onAddRowAction={handleAddRow}
+          onCancelEdit={editingDetail ? handleCancelEdit : undefined}
+          editingDetail={editingDetail}
+          companyId={companyId}
+          visible={visible}
+          required={required}
+          existingDetails={dataDetails as CbGenReceiptDtSchemaType[]}
+        />
 
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-muted-foreground text-sm font-medium">
-                  Local Amount
-                </p>
-                <p className="text-2xl font-bold">
-                  {formatCurrency(totals.totalLocalAmt, payment.currencyCode)}
-                </p>
-              </div>
-              <Calculator className="text-muted-foreground h-8 w-8" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-muted-foreground text-sm font-medium">
-                  GST Amount
-                </p>
-                <p className="text-2xl font-bold">
-                  {formatCurrency(totals.totalGstAmt, payment.currencyCode)}
-                </p>
-              </div>
-              <Calculator className="text-muted-foreground h-8 w-8" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-muted-foreground text-sm font-medium">
-                  Items Count
-                </p>
-                <p className="text-2xl font-bold">{details.length}</p>
-              </div>
-              <List className="text-muted-foreground h-8 w-8" />
-            </div>
-          </CardContent>
-        </Card>
+        <ReceiptDetailsTable
+          data={(dataDetails as unknown as ICbGenReceiptDt[]) || []}
+          visible={visible}
+          onDelete={handleDelete}
+          onBulkDelete={handleBulkDelete}
+          onEdit={handleEdit as (template: ICbGenReceiptDt) => void}
+          onRefresh={() => {}} // Add refresh logic if needed
+          onFilterChange={() => {}} // Add filter logic if needed
+          onDataReorder={
+            handleDataReorder as (newData: ICbGenReceiptDt[]) => void
+          }
+        />
       </div>
-
-      {/* Main Tabs */}
-      <Tabs
-        value={activeTab}
-        onValueChange={setActiveTab}
-        className="space-y-4"
-      >
-        <TabsList>
-          <TabsTrigger value="details" className="flex items-center gap-2">
-            <List className="h-4 w-4" />
-            Payment Details
-            <Badge variant="secondary">{details.length}</Badge>
-          </TabsTrigger>
-          <TabsTrigger value="summary" className="flex items-center gap-2">
-            <FileText className="h-4 w-4" />
-            Summary
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="details" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle>Payment Details</CardTitle>
-                <Button onClick={onAddDetail} size="sm">
-                  <Plus className="mr-2 h-4 w-4" />
-                  Add Detail
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <CBBatchPaymentDetailsTable
-                details={details}
-                onRemoveDetail={onRemoveDetail}
-                onUpdateDetail={onUpdateDetail}
-              />
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="summary" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Payment Summary</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                  <div className="space-y-2">
-                    <h4 className="font-medium">Payment Information</h4>
-                    <div className="space-y-1 text-sm">
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">
-                          Payment No:
-                        </span>
-                        <span>{payment.paymentNo || "-"}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Supplier:</span>
-                        <span>{payment.supplierName || "-"}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Bank:</span>
-                        <span>{payment.bankName || "-"}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Currency:</span>
-                        <span>{payment.currencyName || "-"}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <h4 className="font-medium">Amount Summary</h4>
-                    <div className="space-y-1 text-sm">
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">
-                          Total Amount:
-                        </span>
-                        <span className="font-medium">
-                          {formatCurrency(
-                            totals.totalAmt,
-                            payment.currencyCode
-                          )}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">
-                          Local Amount:
-                        </span>
-                        <span className="font-medium">
-                          {formatCurrency(
-                            totals.totalLocalAmt,
-                            payment.currencyCode
-                          )}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">
-                          GST Amount:
-                        </span>
-                        <span className="font-medium">
-                          {formatCurrency(
-                            totals.totalGstAmt,
-                            payment.currencyCode
-                          )}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">
-                          Exchange Rate:
-                        </span>
-                        <span className="font-medium">{payment.exhRate}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {payment.remarks && (
-                  <div className="space-y-2">
-                    <h4 className="font-medium">Remarks</h4>
-                    <p className="text-muted-foreground text-sm">
-                      {payment.remarks}
-                    </p>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
     </div>
   )
 }

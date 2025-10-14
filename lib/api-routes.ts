@@ -906,7 +906,7 @@ export const CbReceipt = {
   getByIdNo: "/account/getcbgenreceiptbyidno",
   add: "/account/savecbgenreceipt",
   delete: "/account/deletecbgenreceipt",
-  history: "/account/gethistorycbgenreceiptbyid",
+  history: "/account/GetHistoryCBGenReceiptById",
   historyDetails: "/account/gethistorycbgenreceiptdetailsbyid",
 }
 

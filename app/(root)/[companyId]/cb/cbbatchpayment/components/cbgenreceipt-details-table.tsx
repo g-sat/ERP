@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react"
-import { ICbGenPaymentDt } from "@/interfaces"
+import { ICbGenReceiptDt } from "@/interfaces/cb-genreceipt"
 import { IVisibleFields } from "@/interfaces/setting"
 import { ColumnDef } from "@tanstack/react-table"
 
@@ -7,18 +7,18 @@ import { TableName } from "@/lib/utils"
 import { AccountBaseTable } from "@/components/table/table-account"
 
 // Use flexible data type that can work with form data
-interface PaymentDetailsTableProps {
-  data: ICbGenPaymentDt[]
+interface ReceiptDetailsTableProps {
+  data: ICbGenReceiptDt[]
   onDelete?: (itemNo: number) => void
   onBulkDelete?: (selectedItemNos: number[]) => void
-  onEdit?: (template: ICbGenPaymentDt) => void
+  onEdit?: (template: ICbGenReceiptDt) => void
   onRefresh?: () => void
   onFilterChange?: (filters: { search?: string; sortOrder?: string }) => void
-  onDataReorder?: (newData: ICbGenPaymentDt[]) => void
+  onDataReorder?: (newData: ICbGenReceiptDt[]) => void
   visible: IVisibleFields
 }
 
-export default function PaymentDetailsTable({
+export default function ReceiptDetailsTable({
   data,
   onDelete,
   onBulkDelete,
@@ -27,7 +27,7 @@ export default function PaymentDetailsTable({
   onFilterChange,
   onDataReorder,
   visible,
-}: PaymentDetailsTableProps) {
+}: ReceiptDetailsTableProps) {
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
@@ -48,12 +48,12 @@ export default function PaymentDetailsTable({
   }
 
   // Define columns with visible prop checks
-  const columns: ColumnDef<ICbGenPaymentDt>[] = [
+  const columns: ColumnDef<ICbGenReceiptDt>[] = [
     {
       accessorKey: "itemNo",
       header: "Item No",
       size: 60,
-      cell: ({ row }: { row: { original: ICbGenPaymentDt } }) => (
+      cell: ({ row }: { row: { original: ICbGenReceiptDt } }) => (
         <div className="text-right">{row.original.itemNo}</div>
       ),
     },
@@ -76,7 +76,15 @@ export default function PaymentDetailsTable({
           },
         ]
       : []),
-
+    ...(visible?.m_JobOrderId
+      ? [
+          {
+            accessorKey: "jobOrderNo",
+            header: "JobOrder",
+            size: 100,
+          },
+        ]
+      : []),
     ...(visible?.m_Remarks
       ? [
           {
@@ -91,7 +99,7 @@ export default function PaymentDetailsTable({
       accessorKey: "totAmt",
       header: "Amount",
       size: 100,
-      cell: ({ row }: { row: { original: ICbGenPaymentDt } }) => (
+      cell: ({ row }: { row: { original: ICbGenReceiptDt } }) => (
         <div className="text-right">{row.original.totAmt}</div>
       ),
     },
@@ -100,7 +108,7 @@ export default function PaymentDetailsTable({
       accessorKey: "gstPercentage",
       header: "GST %",
       size: 50,
-      cell: ({ row }: { row: { original: ICbGenPaymentDt } }) => (
+      cell: ({ row }: { row: { original: ICbGenReceiptDt } }) => (
         <div className="text-right">{row.original.gstPercentage}</div>
       ),
     },
@@ -108,16 +116,30 @@ export default function PaymentDetailsTable({
       accessorKey: "gstAmt",
       header: "GST Amount",
       size: 100,
-      cell: ({ row }: { row: { original: ICbGenPaymentDt } }) => (
+      cell: ({ row }: { row: { original: ICbGenReceiptDt } }) => (
         <div className="text-right">{row.original.gstAmt}</div>
       ),
     },
+    ...(visible?.m_JobOrderId
+      ? [
+          {
+            accessorKey: "taskName",
+            header: "Task Name",
+            size: 200,
+          },
+          {
+            accessorKey: "serviceName",
+            header: "Service Name",
+            size: 200,
+          },
+        ]
+      : []),
 
     {
       accessorKey: "totLocalAmt",
       header: "Local Amount",
       size: 100,
-      cell: ({ row }: { row: { original: ICbGenPaymentDt } }) => (
+      cell: ({ row }: { row: { original: ICbGenReceiptDt } }) => (
         <div className="text-right">{row.original.totLocalAmt}</div>
       ),
     },
@@ -127,7 +149,7 @@ export default function PaymentDetailsTable({
             accessorKey: "totCtyAmt",
             header: "Country Amount",
             size: 100,
-            cell: ({ row }: { row: { original: ICbGenPaymentDt } }) => (
+            cell: ({ row }: { row: { original: ICbGenReceiptDt } }) => (
               <div className="text-right">{row.original.totCtyAmt}</div>
             ),
           },
@@ -146,7 +168,7 @@ export default function PaymentDetailsTable({
       accessorKey: "gstLocalAmt",
       header: "GST Local Amount",
       size: 100,
-      cell: ({ row }: { row: { original: ICbGenPaymentDt } }) => (
+      cell: ({ row }: { row: { original: ICbGenReceiptDt } }) => (
         <div className="text-right">{row.original.gstLocalAmt}</div>
       ),
     },
@@ -156,7 +178,7 @@ export default function PaymentDetailsTable({
             accessorKey: "gstCtyAmt",
             header: "GST Country Amount",
             size: 100,
-            cell: ({ row }: { row: { original: ICbGenPaymentDt } }) => (
+            cell: ({ row }: { row: { original: ICbGenReceiptDt } }) => (
               <div className="text-right">{row.original.gstCtyAmt}</div>
             ),
           },
@@ -213,7 +235,7 @@ export default function PaymentDetailsTable({
       accessorKey: "seqNo",
       header: "Seq No",
       size: 60,
-      cell: ({ row }: { row: { original: ICbGenPaymentDt } }) => (
+      cell: ({ row }: { row: { original: ICbGenReceiptDt } }) => (
         <div className="text-right">{row.original.seqNo}</div>
       ),
     },
@@ -230,7 +252,7 @@ export default function PaymentDetailsTable({
         columns={columns}
         moduleId={25}
         transactionId={1}
-        tableName={TableName.cbGenPaymentDt}
+        tableName={TableName.cbGenReceiptDt}
         emptyMessage="No receipt details found."
         accessorId="itemNo"
         onRefresh={onRefresh}

@@ -12,28 +12,30 @@ import {
   calculateTotalAmounts,
   recalculateAllDetailAmounts,
 } from "@/helpers/cb-genpayment-calculations"
-import { ICbGenPaymentDt } from "@/interfaces/cb-genpayment"
+import { ICbGenPaymentDt } from "@/interfaces"
 import {
   IBankLookup,
   ICurrencyLookup,
   IPaymentTypeLookup,
 } from "@/interfaces/lookup"
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
-import {
-  CbGenPaymentDtSchemaType,
-  CbGenPaymentHdSchemaType,
-} from "@/schemas/cb-genpayment"
+import { CbGenPaymentDtSchemaType, CbGenPaymentHdSchemaType } from "@/schemas"
 import { useAuthStore } from "@/stores/auth-store"
+import { PlusIcon } from "lucide-react"
 import { FormProvider, UseFormReturn } from "react-hook-form"
 
+import { usePaymentTypeLookup } from "@/hooks/use-lookup"
+import { BankChartOfAccountAutocomplete } from "@/components/autocomplete"
 import BankAutocomplete from "@/components/autocomplete/autocomplete-bank"
-import ChartofAccountAutocomplete from "@/components/autocomplete/autocomplete-chartofaccount"
 import CurrencyAutocomplete from "@/components/autocomplete/autocomplete-currency"
 import PaymentTypeAutocomplete from "@/components/autocomplete/autocomplete-paymenttype"
 import { CustomDateNew } from "@/components/custom/custom-date-new"
 import CustomInput from "@/components/custom/custom-input"
+import CustomInputGroup from "@/components/custom/custom-input-group"
 import CustomNumberInput from "@/components/custom/custom-number-input"
 import CustomTextarea from "@/components/custom/custom-textarea"
+
+import PayeeSelectionDialog from "./payee-selection-dialog"
 
 interface PaymentFormProps {
   form: UseFormReturn<CbGenPaymentHdSchemaType>
@@ -57,6 +59,39 @@ export default function PaymentForm({
   const locAmtDec = decimals[0]?.locAmtDec || 2
   const ctyAmtDec = decimals[0]?.ctyAmtDec || 2
   const exhRateDec = decimals[0]?.exhRateDec || 6
+
+  const { data: paymentTypes = [] } = usePaymentTypeLookup()
+
+  // State to track if payment type is cheque
+  const [isChequePayment, setIsChequePayment] = React.useState(false)
+
+  // State to control payee selection dialog
+  const [isPayeeDialogOpen, setIsPayeeDialogOpen] = React.useState(false)
+
+  // Watch paymentTypeId and update cheque payment state
+  React.useEffect(() => {
+    const paymentTypeId = form.watch("paymentTypeId")
+
+    if (paymentTypeId && paymentTypes.length > 0) {
+      const selectedPaymentType = paymentTypes.find(
+        (pt) => pt.paymentTypeId === paymentTypeId
+      )
+
+      if (selectedPaymentType) {
+        const isCheque =
+          selectedPaymentType.paymentTypeName
+            ?.toLowerCase()
+            .includes("cheque") ||
+          selectedPaymentType.paymentTypeCode?.toLowerCase().includes("cheque")
+
+        setIsChequePayment(isCheque)
+      } else {
+        setIsChequePayment(false)
+      }
+    } else {
+      setIsChequePayment(false)
+    }
+  }, [form, paymentTypes])
 
   const onSubmit = async () => {
     await onSuccessAction("save")
@@ -91,6 +126,12 @@ export default function PaymentForm({
       form.setValue("gstClaimDate", accountDate)
       form?.trigger("gstClaimDate")
 
+      // Update chequeDate to accountDate if not cheque payment
+      if (!isChequePayment) {
+        form.setValue("chequeDate", accountDate)
+        form?.trigger("chequeDate")
+      }
+
       await setExchangeRate(form, exhRateDec, visible)
       if (visible?.m_CtyCurr) {
         await setExchangeRateLocal(form, exhRateDec)
@@ -102,15 +143,37 @@ export default function PaymentForm({
         visible
       )
     },
-    [decimals, exhRateDec, form, visible]
+    [decimals, exhRateDec, form, isChequePayment, visible]
   )
 
-  // Handle payment type selection
+  // Handle payment type change
   const handlePaymentTypeChange = React.useCallback(
-    (_selectedPaymentType: IPaymentTypeLookup | null) => {
-      // Additional logic when payment type changes if needed
+    (selectedPaymentType: IPaymentTypeLookup | null) => {
+      if (selectedPaymentType) {
+        // Check if payment type is "Cheque"
+        const isCheque =
+          selectedPaymentType?.paymentTypeName
+            ?.toLowerCase()
+            .includes("cheque") ||
+          selectedPaymentType?.paymentTypeCode?.toLowerCase().includes("cheque")
+
+        setIsChequePayment(isCheque)
+
+        // Set chequeDate to accountDate if not cheque payment
+        if (!isCheque) {
+          form.setValue("chequeNo", "")
+          const accountDate = form.getValues("accountDate")
+          form.setValue("chequeDate", accountDate || "")
+        }
+      } else {
+        // No payment type selected, set chequeDate to accountDate
+        setIsChequePayment(false)
+        form.setValue("chequeNo", "")
+        const accountDate = form.getValues("accountDate")
+        form.setValue("chequeDate", accountDate || "")
+      }
     },
-    []
+    [form]
   )
 
   // Handle bank selection
@@ -119,6 +182,20 @@ export default function PaymentForm({
       // Additional logic when bank changes if needed
     },
     []
+  )
+
+  // Handle add payee to button click
+  const handleAddPayeeTo = React.useCallback(() => {
+    setIsPayeeDialogOpen(true)
+  }, [])
+
+  // Handle payee selection from dialog
+  const handlePayeeSelect = React.useCallback(
+    (payeeName: string, _payeeType: "customer" | "supplier" | "employee") => {
+      form.setValue("payeeTo", payeeName)
+      form.trigger("payeeTo")
+    },
+    [form]
   )
 
   // Recalculate header totals from details
@@ -302,13 +379,19 @@ export default function PaymentForm({
           />
         )}
 
-        {/* Payment Type */}
-        <PaymentTypeAutocomplete
+        {/* Payee To */}
+        <CustomInputGroup
           form={form}
-          name="paymentTypeId"
-          label="Payment Type"
+          name="payeeTo"
+          label="Payee To"
           isRequired={true}
-          onChangeEvent={handlePaymentTypeChange}
+          className="col-span-2"
+          buttonText="Add"
+          buttonIcon={<PlusIcon className="h-4 w-4" />}
+          buttonPosition="right"
+          onButtonClick={handleAddPayeeTo}
+          buttonVariant="default"
+          buttonDisabled={false}
         />
 
         {/* Reference No */}
@@ -330,11 +413,34 @@ export default function PaymentForm({
           />
         )}
 
-        {/* Cheque No */}
-        <CustomInput form={form} name="chequeNo" label="Cheque No." />
+        {/* Payment Type */}
+        <PaymentTypeAutocomplete
+          form={form}
+          name="paymentTypeId"
+          label="Payment Type"
+          isRequired={true}
+          onChangeEvent={handlePaymentTypeChange}
+        />
 
-        {/* Cheque Date */}
-        <CustomDateNew form={form} name="chequeDate" label="Cheque Date" />
+        {/* Cheque No - Only show when payment type is cheque */}
+        {isChequePayment && (
+          <CustomInput
+            form={form}
+            name="chequeNo"
+            label="Cheque No"
+            isRequired={true}
+          />
+        )}
+
+        {/* Cheque Date - Only show when payment type is cheque */}
+        {isChequePayment && (
+          <CustomDateNew
+            form={form}
+            name="chequeDate"
+            label="Cheque Date"
+            isRequired={true}
+          />
+        )}
 
         {/* Currency */}
         <CurrencyAutocomplete
@@ -370,31 +476,6 @@ export default function PaymentForm({
             />
           </>
         )}
-
-        {/* Bank Charge GL */}
-        <ChartofAccountAutocomplete
-          form={form}
-          name="bankChgGLId"
-          label="Bank Charge GL"
-        />
-
-        {/* Bank Charge Amount */}
-        <CustomNumberInput
-          form={form}
-          name="bankChgAmt"
-          label="Bank Charge Amount"
-          round={amtDec}
-          className="text-right"
-        />
-
-        {/* Bank Charge Local Amount */}
-        <CustomNumberInput
-          form={form}
-          name="bankChgLocalAmt"
-          label="Bank Charge Local Amount"
-          round={locAmtDec}
-          className="text-right"
-        />
 
         {/* GST Claim Date */}
         {visible?.m_GstClaimDate && (
@@ -500,13 +581,31 @@ export default function PaymentForm({
           </>
         )}
 
-        {/* Payee To */}
-        <CustomInput
+        {/* Bank Charge GL */}
+        <BankChartOfAccountAutocomplete
           form={form}
-          name="payeeTo"
-          label="Payee To"
-          isRequired={true}
-          className="col-span-2"
+          name="bankChgGLId"
+          label="Bank Charge GL"
+          companyId={_companyId}
+        />
+
+        {/* Bank Charge Amount */}
+        <CustomNumberInput
+          form={form}
+          name="bankChgAmt"
+          label="Bank Charge Amount"
+          round={amtDec}
+          className="text-right"
+        />
+
+        {/* Bank Charge Local Amount */}
+        <CustomNumberInput
+          form={form}
+          name="bankChgLocalAmt"
+          label="Bank Charge Local Amount"
+          round={locAmtDec}
+          isDisabled={true}
+          className="text-right"
         />
 
         {/* Remarks */}
@@ -518,6 +617,14 @@ export default function PaymentForm({
           className="col-span-2"
         />
       </form>
+
+      {/* Payee Selection Dialog */}
+      <PayeeSelectionDialog
+        open={isPayeeDialogOpen}
+        onOpenChangeAction={setIsPayeeDialogOpen}
+        onSelectPayeeAction={handlePayeeSelect}
+        companyId={_companyId}
+      />
     </FormProvider>
   )
 }

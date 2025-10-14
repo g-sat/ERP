@@ -2,17 +2,14 @@
 
 import { useEffect, useMemo, useState } from "react"
 import { useParams } from "next/navigation"
+import { ICbGenPaymentFilter, ICbGenPaymentHd } from "@/interfaces"
 import { ApiResponse } from "@/interfaces/auth"
-import {
-  ICbGenPaymentFilter,
-  ICbGenPaymentHd,
-} from "@/interfaces/cb-genpayment"
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
 import {
   CbGenPaymentDtSchemaType,
   CbGenPaymentHdSchemaType,
   cbGenPaymentHdSchema,
-} from "@/schemas/cb-genpayment"
+} from "@/schemas"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { format, subMonths } from "date-fns"
 import {
@@ -71,7 +68,7 @@ export default function GenPaymentPage() {
   const [isLoadingPayment, setIsLoadingPayment] = useState(false)
   const [isSelectingPayment, setIsSelectingPayment] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
-  const [payment, setPayment] = useState<CbGenPaymentHdSchemaType | null>(null)
+  const [receipt, setPayment] = useState<CbGenPaymentHdSchemaType | null>(null)
   const [searchNo, setSearchNo] = useState("")
   const [activeTab, setActiveTab] = useState("main")
 
@@ -102,45 +99,39 @@ export default function GenPaymentPage() {
   // Add form state management
   const form = useForm<CbGenPaymentHdSchemaType>({
     resolver: zodResolver(cbGenPaymentHdSchema(required, visible)),
-    defaultValues: payment
+    defaultValues: receipt
       ? {
-          paymentId: payment.paymentId?.toString() ?? "0",
-          paymentNo: payment.paymentNo ?? "",
-          referenceNo: payment.referenceNo ?? "",
-          trnDate: payment.trnDate ?? new Date(),
-          accountDate: payment.accountDate ?? new Date(),
-          currencyId: payment.currencyId ?? 0,
-          currencyCode: payment.currencyCode ?? null,
-          currencyName: payment.currencyName ?? null,
-          exhRate: payment.exhRate ?? 0,
-          ctyExhRate: payment.ctyExhRate ?? 0,
-          paymentTypeId: payment.paymentTypeId ?? 0,
-          paymentTypeCode: payment.paymentTypeCode ?? null,
-          paymentTypeName: payment.paymentTypeName ?? null,
-          bankId: payment.bankId ?? 0,
-          bankCode: payment.bankCode ?? null,
-          bankName: payment.bankName ?? null,
-          chequeNo: payment.chequeNo ?? null,
-          chequeDate: payment.chequeDate ?? new Date(),
-          bankChgGLId: payment.bankChgGLId ?? 0,
-          bankChgAmt: payment.bankChgAmt ?? 0,
-          bankChgLocalAmt: payment.bankChgLocalAmt ?? 0,
-          totAmt: payment.totAmt ?? 0,
-          totLocalAmt: payment.totLocalAmt ?? 0,
-          totCtyAmt: payment.totCtyAmt ?? 0,
-          gstClaimDate: payment.gstClaimDate ?? new Date(),
-          gstAmt: payment.gstAmt ?? 0,
-          gstLocalAmt: payment.gstLocalAmt ?? 0,
-          gstCtyAmt: payment.gstCtyAmt ?? 0,
-          totAmtAftGst: payment.totAmtAftGst ?? 0,
-          totLocalAmtAftGst: payment.totLocalAmtAftGst ?? 0,
-          totCtyAmtAftGst: payment.totCtyAmtAftGst ?? 0,
-          remarks: payment.remarks ?? "",
-          payeeTo: payment.payeeTo ?? "",
-          moduleFrom: payment.moduleFrom ?? "",
-          editVersion: payment.editVersion ?? 0,
+          paymentId: receipt.paymentId?.toString() ?? "0",
+          paymentNo: receipt.paymentNo ?? "",
+          referenceNo: receipt.referenceNo ?? "",
+          trnDate: receipt.trnDate ?? new Date(),
+          accountDate: receipt.accountDate ?? new Date(),
+          currencyId: receipt.currencyId ?? 0,
+          exhRate: receipt.exhRate ?? 0,
+          ctyExhRate: receipt.ctyExhRate ?? 0,
+          paymentTypeId: receipt.paymentTypeId ?? 0,
+          bankId: receipt.bankId ?? 0,
+          chequeNo: receipt.chequeNo ?? "",
+          chequeDate: receipt.chequeDate ?? "",
+          bankChgGLId: receipt.bankChgGLId ?? 0,
+          bankChgAmt: receipt.bankChgAmt ?? 0,
+          bankChgLocalAmt: receipt.bankChgLocalAmt ?? 0,
+          totAmt: receipt.totAmt ?? 0,
+          totLocalAmt: receipt.totLocalAmt ?? 0,
+          totCtyAmt: receipt.totCtyAmt ?? 0,
+          gstClaimDate: receipt.gstClaimDate ?? new Date(),
+          gstAmt: receipt.gstAmt ?? 0,
+          gstLocalAmt: receipt.gstLocalAmt ?? 0,
+          gstCtyAmt: receipt.gstCtyAmt ?? 0,
+          totAmtAftGst: receipt.totAmtAftGst ?? 0,
+          totLocalAmtAftGst: receipt.totLocalAmtAftGst ?? 0,
+          totCtyAmtAftGst: receipt.totCtyAmtAftGst ?? 0,
+          remarks: receipt.remarks ?? "",
+          payeeTo: receipt.payeeTo ?? "",
+          moduleFrom: receipt.moduleFrom ?? "",
+          editVersion: receipt.editVersion ?? 0,
           data_details:
-            payment.data_details?.map((detail) => ({
+            receipt.data_details?.map((detail) => ({
               ...detail,
               paymentId: detail.paymentId?.toString() ?? "0",
               paymentNo: detail.paymentNo ?? "",
@@ -158,9 +149,9 @@ export default function GenPaymentPage() {
         },
   })
 
-  // API hooks for payments - Only fetch when List dialog is opened (optimized)
+  // API hooks for receipts - Only fetch when List dialog is opened (optimized)
   const {
-    data: paymentsResponse,
+    data: receiptsResponse,
     refetch: refetchPayments,
     isLoading: isLoadingPayments,
     isRefetching: isRefetchingPayments,
@@ -174,10 +165,10 @@ export default function GenPaymentPage() {
     false // enabled: Don't auto-fetch - only when List button is clicked
   )
 
-  // Memoize payment data to prevent unnecessary re-renders
-  const paymentsData = useMemo(
-    () => (paymentsResponse as ApiResponse<ICbGenPaymentHd>)?.data ?? [],
-    [paymentsResponse]
+  // Memoize receipt data to prevent unnecessary re-renders
+  const receiptsData = useMemo(
+    () => (receiptsResponse as ApiResponse<ICbGenPaymentHd>)?.data ?? [],
+    [receiptsResponse]
   )
 
   // Mutations
@@ -202,6 +193,11 @@ export default function GenPaymentPage() {
         form.getValues() as unknown as ICbGenPaymentHd
       )
 
+      // Set chequeDate to accountDate if it's empty
+      if (!formValues.chequeDate || formValues.chequeDate === "") {
+        formValues.chequeDate = formValues.accountDate
+      }
+
       // Validate the form data using the schema
       const validationResult = cbGenPaymentHdSchema(
         required,
@@ -220,20 +216,22 @@ export default function GenPaymentPage() {
         return
       }
 
+      console.log(formValues)
+
       const response =
         Number(formValues.paymentId) === 0
           ? await saveMutation.mutateAsync(formValues)
           : await updateMutation.mutateAsync(formValues)
 
       if (response.result === 1) {
-        const paymentData = Array.isArray(response.data)
+        const receiptData = Array.isArray(response.data)
           ? response.data[0]
           : response.data
 
         // Transform API response back to form values
-        if (paymentData) {
+        if (receiptData) {
           const updatedSchemaType = transformToSchemaType(
-            paymentData as unknown as ICbGenPaymentHd
+            receiptData as unknown as ICbGenPaymentHd
           )
           setIsSelectingPayment(true)
           setPayment(updatedSchemaType)
@@ -246,11 +244,11 @@ export default function GenPaymentPage() {
 
         refetchPayments()
       } else {
-        toast.error(response.message || "Failed to save payment")
+        toast.error(response.message || "Failed to save receipt")
       }
     } catch (error) {
       console.error("Save error:", error)
-      toast.error("Network error while saving payment")
+      toast.error("Network error while saving receipt")
     } finally {
       setIsSaving(false)
       setIsSelectingPayment(false)
@@ -259,13 +257,13 @@ export default function GenPaymentPage() {
 
   // Handle Clone
   const handleClonePayment = () => {
-    if (payment) {
+    if (receipt) {
       // Create a proper clone with form values
       const clonedPayment: CbGenPaymentHdSchemaType = {
-        ...payment,
+        ...receipt,
         paymentId: "0",
         paymentNo: "",
-        // Reset amounts for new payment
+        // Reset amounts for new receipt
         totAmt: 0,
         totLocalAmt: 0,
         totCtyAmt: 0,
@@ -288,11 +286,11 @@ export default function GenPaymentPage() {
 
   // Handle Delete
   const handlePaymentDelete = async () => {
-    if (!payment) return
+    if (!receipt) return
 
     try {
       const response = await deleteMutation.mutateAsync(
-        payment.paymentId?.toString() ?? ""
+        receipt.paymentId?.toString() ?? ""
       )
       if (response.result === 1) {
         setPayment(null)
@@ -303,10 +301,10 @@ export default function GenPaymentPage() {
         })
         refetchPayments()
       } else {
-        toast.error(response.message || "Failed to delete payment")
+        toast.error(response.message || "Failed to delete receipt")
       }
     } catch {
-      toast.error("Network error while deleting payment")
+      toast.error("Network error while deleting receipt")
     }
   }
 
@@ -342,23 +340,22 @@ export default function GenPaymentPage() {
           )
         : clientDateFormat,
       currencyId: apiPayment.currencyId ?? 0,
-      currencyCode: apiPayment.currencyCode ?? null,
-      currencyName: apiPayment.currencyName ?? null,
       exhRate: apiPayment.exhRate ?? 0,
       ctyExhRate: apiPayment.ctyExhRate ?? 0,
       paymentTypeId: apiPayment.paymentTypeId ?? 0,
-      paymentTypeCode: apiPayment.paymentTypeCode ?? null,
-      paymentTypeName: apiPayment.paymentTypeName ?? null,
       bankId: apiPayment.bankId ?? 0,
-      bankCode: apiPayment.bankCode ?? null,
-      bankName: apiPayment.bankName ?? null,
-      chequeNo: apiPayment.chequeNo ?? null,
+      chequeNo: apiPayment.chequeNo ?? "",
       chequeDate: apiPayment.chequeDate
         ? format(
             parseDate(apiPayment.chequeDate as string) || new Date(),
             clientDateFormat
           )
-        : clientDateFormat,
+        : apiPayment.accountDate
+          ? format(
+              parseDate(apiPayment.accountDate as string) || new Date(),
+              clientDateFormat
+            )
+          : format(new Date(), clientDateFormat),
       bankChgGLId: apiPayment.bankChgGLId ?? 0,
       bankChgAmt: apiPayment.bankChgAmt ?? 0,
       bankChgLocalAmt: apiPayment.bankChgLocalAmt ?? 0,
@@ -380,11 +377,8 @@ export default function GenPaymentPage() {
       remarks: apiPayment.remarks ?? "",
       payeeTo: apiPayment.payeeTo ?? "",
       moduleFrom: apiPayment.moduleFrom ?? "",
-      createById: apiPayment.createById ?? 0,
       createBy: apiPayment.createBy ?? "",
-      editById: apiPayment.editById ?? null,
       editBy: apiPayment.editBy ?? "",
-      cancelById: apiPayment.cancelById ?? 0,
       cancelBy: apiPayment.cancelBy ?? "",
       createDate: apiPayment.createDate
         ? parseDate(apiPayment.createDate as string) || new Date()
@@ -398,7 +392,6 @@ export default function GenPaymentPage() {
       cancelRemarks: apiPayment.cancelRemarks ?? null,
       editVersion: apiPayment.editVersion ?? 0,
       isPost: apiPayment.isPost ?? false,
-      postById: apiPayment.postById ?? null,
       postDate: apiPayment.postDate
         ? parseDate(apiPayment.postDate as unknown as string) || null
         : null,
@@ -460,7 +453,7 @@ export default function GenPaymentPage() {
     setIsSelectingPayment(true)
 
     try {
-      // Fetch payment details directly using selected payment's values
+      // Fetch receipt details directly using selected receipt's values
       const response = await getById(
         `${CbPayment.getByIdNo}/${selectedPayment.paymentId}/${selectedPayment.paymentNo}`
       )
@@ -483,12 +476,12 @@ export default function GenPaymentPage() {
           )
         }
       } else {
-        toast.error(response?.message || "Failed to fetch payment details")
+        toast.error(response?.message || "Failed to fetch receipt details")
         // Keep dialog open on failure so user can try again
       }
     } catch (error) {
-      console.error("Error fetching payment details:", error)
-      toast.error("Error loading payment. Please try again.")
+      console.error("Error fetching receipt details:", error)
+      toast.error("Error loading receipt. Please try again.")
       // Keep dialog open on error
     } finally {
       setIsSelectingPayment(false)
@@ -500,7 +493,7 @@ export default function GenPaymentPage() {
     setFilters(newFilters)
   }
 
-  // Refetch payments when filters change (only if dialog is open)
+  // Refetch receipts when filters change (only if dialog is open)
   useEffect(() => {
     if (showListDialog) {
       refetchPayments()
@@ -531,7 +524,6 @@ export default function GenPaymentPage() {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       if (isDirty) {
         e.preventDefault()
-        e.returnValue = ""
       }
     }
     window.addEventListener("beforeunload", handleBeforeUnload)
@@ -565,17 +557,17 @@ export default function GenPaymentPage() {
         }
       } else {
         toast.error(
-          response?.message || "Failed to fetch payment details (direct)"
+          response?.message || "Failed to fetch receipt details (direct)"
         )
       }
     } catch {
-      toast.error("Error searching for payment")
+      toast.error("Error searching for receipt")
     } finally {
       setIsLoadingPayment(false)
     }
   }
 
-  // Determine mode and payment ID from URL
+  // Determine mode and receipt ID from URL
   const paymentNo = form.getValues("paymentNo")
   const isEdit = Boolean(paymentNo)
 
@@ -590,7 +582,7 @@ export default function GenPaymentPage() {
       <div className="flex min-h-screen items-center justify-center">
         <div className="text-center">
           <Spinner size="lg" className="mx-auto" />
-          <p className="mt-4 text-sm text-gray-600">Loading payment form...</p>
+          <p className="mt-4 text-sm text-gray-600">Loading receipt form...</p>
           <p className="mt-2 text-xs text-gray-500">
             Preparing field settings and validation rules
           </p>
@@ -648,8 +640,8 @@ export default function GenPaymentPage() {
               }}
               placeholder="Search Payment No"
               className="h-8 text-sm"
-              readOnly={!!payment?.paymentId && payment.paymentId !== "0"}
-              disabled={!!payment?.paymentId && payment.paymentId !== "0"}
+              readOnly={!!receipt?.paymentId && receipt.paymentId !== "0"}
+              disabled={!!receipt?.paymentId && receipt.paymentId !== "0"}
             />
             <Button
               variant="outline"
@@ -677,7 +669,7 @@ export default function GenPaymentPage() {
             <Button
               variant="outline"
               size="sm"
-              disabled={!payment || payment.paymentId === "0"}
+              disabled={!receipt || receipt.paymentId === "0"}
             >
               <Printer className="mr-1 h-4 w-4" />
               Print
@@ -696,7 +688,7 @@ export default function GenPaymentPage() {
               variant="outline"
               size="sm"
               onClick={() => setShowCloneConfirm(true)}
-              disabled={!payment || payment.paymentId === "0"}
+              disabled={!receipt || receipt.paymentId === "0"}
             >
               <Copy className="mr-1 h-4 w-4" />
               Clone
@@ -706,7 +698,7 @@ export default function GenPaymentPage() {
               variant="destructive"
               size="sm"
               onClick={() => setShowDeleteConfirm(true)}
-              disabled={!payment || payment.paymentId === "0"}
+              disabled={!receipt || receipt.paymentId === "0"}
             >
               <Trash2 className="mr-1 h-4 w-4" />
               Delete
@@ -753,8 +745,8 @@ export default function GenPaymentPage() {
                   CB Gen Payment List
                 </DialogTitle>
                 <p className="text-muted-foreground text-sm">
-                  Manage and select existing payments from the list below. Use
-                  search to filter records or create new payments.
+                  Manage and select existing receipts from the list below. Use
+                  search to filter records or create new receipts.
                 </p>
               </div>
             </div>
@@ -766,19 +758,19 @@ export default function GenPaymentPage() {
                 <Spinner size="lg" className="mx-auto" />
                 <p className="mt-4 text-sm text-gray-600">
                   {isSelectingPayment
-                    ? "Loading payment details..."
-                    : "Loading payments..."}
+                    ? "Loading receipt details..."
+                    : "Loading receipts..."}
                 </p>
                 <p className="mt-2 text-xs text-gray-500">
                   {isSelectingPayment
-                    ? "Please wait while we fetch the complete payment data"
-                    : "Please wait while we fetch the payment list"}
+                    ? "Please wait while we fetch the complete receipt data"
+                    : "Please wait while we fetch the receipt list"}
                 </p>
               </div>
             </div>
           ) : (
             <PaymentTable
-              data={paymentsData || []}
+              data={receiptsData || []}
               isLoading={false}
               onPaymentSelect={handlePaymentSelect}
               onRefresh={() => refetchPayments()}
@@ -794,9 +786,9 @@ export default function GenPaymentPage() {
         open={showSaveConfirm}
         onOpenChange={setShowSaveConfirm}
         onConfirm={handleSavePayment}
-        itemName={payment?.paymentNo || "New Payment"}
+        itemName={receipt?.paymentNo || "New Payment"}
         operationType={
-          payment?.paymentId && payment.paymentId !== "0" ? "update" : "create"
+          receipt?.paymentId && receipt.paymentId !== "0" ? "update" : "create"
         }
         isSaving={
           isSaving || saveMutation.isPending || updateMutation.isPending
@@ -808,9 +800,9 @@ export default function GenPaymentPage() {
         open={showDeleteConfirm}
         onOpenChange={setShowDeleteConfirm}
         onConfirm={handlePaymentDelete}
-        itemName={payment?.paymentNo}
+        itemName={receipt?.paymentNo}
         title="Delete Payment"
-        description="This action cannot be undone. All payment details will be permanently deleted."
+        description="This action cannot be undone. All receipt details will be permanently deleted."
         isDeleting={deleteMutation.isPending}
       />
 
@@ -831,7 +823,7 @@ export default function GenPaymentPage() {
         open={showResetConfirm}
         onOpenChange={setShowResetConfirm}
         onConfirm={handlePaymentReset}
-        itemName={payment?.paymentNo}
+        itemName={receipt?.paymentNo}
         title="Reset Payment"
         description="This will clear all unsaved changes."
       />
@@ -841,9 +833,9 @@ export default function GenPaymentPage() {
         open={showCloneConfirm}
         onOpenChange={setShowCloneConfirm}
         onConfirm={handleClonePayment}
-        itemName={payment?.paymentNo}
+        itemName={receipt?.paymentNo}
         title="Clone Payment"
-        description="This will create a copy as a new payment."
+        description="This will create a copy as a new receipt."
       />
     </div>
   )

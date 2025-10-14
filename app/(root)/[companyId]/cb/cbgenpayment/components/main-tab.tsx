@@ -7,12 +7,9 @@ import {
   calculateLocalAmounts,
   calculateTotalAmounts,
 } from "@/helpers/cb-genpayment-calculations"
-import { ICbGenPaymentDt } from "@/interfaces/cb-genpayment"
+import { ICbGenPaymentDt } from "@/interfaces"
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
-import {
-  CbGenPaymentDtSchemaType,
-  CbGenPaymentHdSchemaType,
-} from "@/schemas/cb-genpayment"
+import { CbGenPaymentDtSchemaType, CbGenPaymentHdSchemaType } from "@/schemas"
 import { useAuthStore } from "@/stores/auth-store"
 import { UseFormReturn } from "react-hook-form"
 
@@ -147,8 +144,10 @@ export default function Main({
   }
 
   const handleEdit = (detail: ICbGenPaymentDt) => {
+    // console.log("Editing detail:", detail)
     // Convert ICbGenPaymentDt to CbGenPaymentDtSchemaType and set for editing
     setEditingDetail(detail as unknown as CbGenPaymentDtSchemaType)
+    // console.log("Editing editingDetail:", editingDetail)
   }
 
   const handleCancelEdit = () => {

@@ -9,20 +9,23 @@ import {
 } from "@/helpers/account"
 import {
   IBargeLookup,
-  ICbGenPaymentDt,
+  ICbGenReceiptDt,
   IChartofAccountLookup,
   IDepartmentLookup,
   IEmployeeLookup,
   IGstLookup,
+  IJobOrderLookup,
   IPortLookup,
+  IServiceLookup,
+  ITaskLookup,
   IVesselLookup,
   IVoyageLookup,
 } from "@/interfaces"
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
 import {
-  CbGenPaymentDtSchemaType,
-  CbGenPaymentHdSchemaType,
-  cbGenPaymentDtSchema,
+  CbGenReceiptDtSchemaType,
+  CbGenReceiptHdSchemaType,
+  cbGenReceiptDtSchema,
 } from "@/schemas"
 import { useAuthStore } from "@/stores/auth-store"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -36,6 +39,9 @@ import {
   DepartmentAutocomplete,
   EmployeeAutocomplete,
   GSTAutocomplete,
+  JobOrderAutocomplete,
+  JobOrderChargeAutocomplete,
+  JobOrderTaskAutocomplete,
   PortAutocomplete,
   VesselAutocomplete,
   VoyageAutocomplete,
@@ -43,27 +49,27 @@ import {
 import CustomNumberInput from "@/components/custom/custom-number-input"
 import CustomTextarea from "@/components/custom/custom-textarea"
 
-import { defaultPaymentDetails } from "./cbgenpayment-defaultvalues"
+import { defaultReceiptDetails } from "./cbgenreceipt-defaultvalues"
 
 // Factory function to create default values with dynamic itemNo
-const createDefaultValues = (itemNo: number): CbGenPaymentDtSchemaType => ({
-  ...defaultPaymentDetails,
+const createDefaultValues = (itemNo: number): CbGenReceiptDtSchemaType => ({
+  ...defaultReceiptDetails,
   itemNo,
   seqNo: itemNo,
 })
 
-interface PaymentDetailsFormProps {
-  Hdform: UseFormReturn<CbGenPaymentHdSchemaType>
-  onAddRowAction?: (rowData: ICbGenPaymentDt) => void
+interface ReceiptDetailsFormProps {
+  Hdform: UseFormReturn<CbGenReceiptHdSchemaType>
+  onAddRowAction?: (rowData: ICbGenReceiptDt) => void
   onCancelEdit?: () => void
-  editingDetail?: CbGenPaymentDtSchemaType | null
+  editingDetail?: CbGenReceiptDtSchemaType | null
   visible: IVisibleFields
   required: IMandatoryFields
   companyId: number
-  existingDetails?: CbGenPaymentDtSchemaType[]
+  existingDetails?: CbGenReceiptDtSchemaType[]
 }
 
-export default function PaymentDetailsForm({
+export default function ReceiptDetailsForm({
   Hdform,
   onAddRowAction,
   onCancelEdit: _onCancelEdit,
@@ -72,7 +78,7 @@ export default function PaymentDetailsForm({
   required,
   companyId,
   existingDetails = [],
-}: PaymentDetailsFormProps) {
+}: ReceiptDetailsFormProps) {
   const { decimals } = useAuthStore()
   const amtDec = decimals[0]?.amtDec || 2
   const locAmtDec = decimals[0]?.locAmtDec || 2
@@ -84,7 +90,7 @@ export default function PaymentDetailsForm({
   const getNextItemNo = () => {
     if (existingDetails.length === 0) return 1
     const maxItemNo = Math.max(
-      ...existingDetails.map((d: CbGenPaymentDtSchemaType) => d.itemNo || 0)
+      ...existingDetails.map((d: CbGenReceiptDtSchemaType) => d.itemNo || 0)
     )
     return maxItemNo + 1
   }
@@ -93,13 +99,13 @@ export default function PaymentDetailsForm({
   console.log("existingDetails : ", existingDetails)
   console.log("getNextItemNo : ", getNextItemNo())
 
-  const form = useForm<CbGenPaymentDtSchemaType>({
-    resolver: zodResolver(cbGenPaymentDtSchema(required, visible)),
+  const form = useForm<CbGenReceiptDtSchemaType>({
+    resolver: zodResolver(cbGenReceiptDtSchema(required, visible)),
     mode: "onBlur",
     defaultValues: editingDetail
       ? {
-          paymentId: editingDetail.paymentId ?? "0",
-          paymentNo: editingDetail.paymentNo ?? "",
+          receiptId: editingDetail.receiptId ?? "0",
+          receiptNo: editingDetail.receiptNo ?? "",
           itemNo: editingDetail.itemNo ?? getNextItemNo(),
           seqNo: editingDetail.seqNo ?? getNextItemNo(),
           glId: editingDetail.glId ?? 0,
@@ -118,7 +124,12 @@ export default function PaymentDetailsForm({
           departmentId: editingDetail.departmentId ?? 0,
           departmentCode: editingDetail.departmentCode ?? "",
           departmentName: editingDetail.departmentName ?? "",
-
+          jobOrderId: editingDetail.jobOrderId ?? 0,
+          jobOrderNo: editingDetail.jobOrderNo ?? "",
+          taskId: editingDetail.taskId ?? 0,
+          taskName: editingDetail.taskName ?? "",
+          serviceId: editingDetail.serviceId ?? 0,
+          serviceName: editingDetail.serviceName ?? "",
           employeeId: editingDetail.employeeId ?? 0,
           employeeCode: editingDetail.employeeCode ?? "",
           employeeName: editingDetail.employeeName ?? "",
@@ -139,6 +150,8 @@ export default function PaymentDetailsForm({
   })
 
   // Watch form values to trigger re-renders when they change
+  const watchedJobOrderId = form.watch("jobOrderId")
+  const watchedTaskId = form.watch("taskId")
   const watchedExchangeRate = Hdform.watch("exhRate")
   const watchedCityExchangeRate = Hdform.watch("ctyExhRate")
 
@@ -174,15 +187,31 @@ export default function PaymentDetailsForm({
         ? 1
         : Math.max(
             ...existingDetails.map(
-              (d: CbGenPaymentDtSchemaType) => d.itemNo || 0
+              (d: CbGenReceiptDtSchemaType) => d.itemNo || 0
             )
           ) + 1
 
     if (editingDetail) {
+      // Determine if editing detail is job-specific or department-specific
       // Infer initial mode from existing data
+      const hasJobOrder = (editingDetail.jobOrderId ?? 0) > 0
+      const hasDepartment = (editingDetail.departmentId ?? 0) > 0
+
+      if (hasJobOrder) {
+        setIsJobSpecific(true)
+      } else if (hasDepartment) {
+        setIsJobSpecific(false)
+      } else {
+        // Both are 0: Default to department mode
+        // The Chart of Account autocomplete already has the COA data loaded
+        // When it renders, it will trigger handleChartOfAccountChange if needed
+        // which will auto-correct the mode based on the COA's isJobSpecific property
+        setIsJobSpecific(false)
+      }
+
       form.reset({
-        paymentId: editingDetail.paymentId ?? "0",
-        paymentNo: editingDetail.paymentNo ?? "",
+        receiptId: editingDetail.receiptId ?? "0",
+        receiptNo: editingDetail.receiptNo ?? "",
         itemNo: editingDetail.itemNo ?? nextItemNo,
         seqNo: editingDetail.seqNo ?? nextItemNo,
         glId: editingDetail.glId ?? 0,
@@ -203,7 +232,12 @@ export default function PaymentDetailsForm({
         departmentId: editingDetail.departmentId ?? 0,
         departmentCode: editingDetail.departmentCode ?? "",
         departmentName: editingDetail.departmentName ?? "",
-
+        jobOrderId: editingDetail.jobOrderId ?? 0,
+        jobOrderNo: editingDetail.jobOrderNo ?? "",
+        taskId: editingDetail.taskId ?? 0,
+        taskName: editingDetail.taskName ?? "",
+        serviceId: editingDetail.serviceId ?? 0,
+        serviceName: editingDetail.serviceName ?? "",
         employeeId: editingDetail.employeeId ?? 0,
         employeeCode: editingDetail.employeeCode ?? "",
         employeeName: editingDetail.employeeName ?? "",
@@ -229,10 +263,10 @@ export default function PaymentDetailsForm({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editingDetail, existingDetails.length])
 
-  const onSubmit = async (data: CbGenPaymentDtSchemaType) => {
+  const onSubmit = async (data: CbGenReceiptDtSchemaType) => {
     try {
       // Validate data against schema
-      const validationResult = cbGenPaymentDtSchema(
+      const validationResult = cbGenReceiptDtSchema(
         required,
         visible
       ).safeParse(data)
@@ -253,9 +287,9 @@ export default function PaymentDetailsForm({
       console.log("currentItemNo : ", currentItemNo)
       console.log("data : ", data)
 
-      const rowData: ICbGenPaymentDt = {
-        paymentId: data.paymentId ?? "0",
-        paymentNo: data.paymentNo ?? "",
+      const rowData: ICbGenReceiptDt = {
+        receiptId: data.receiptId ?? "0",
+        receiptNo: data.receiptNo ?? "",
         itemNo: data.itemNo ?? currentItemNo,
         seqNo: data.seqNo ?? currentItemNo,
 
@@ -277,7 +311,12 @@ export default function PaymentDetailsForm({
         departmentId: data.departmentId ?? 0,
         departmentCode: data.departmentCode ?? "",
         departmentName: data.departmentName ?? "",
-
+        jobOrderId: data.jobOrderId ?? 0,
+        jobOrderNo: data.jobOrderNo ?? "",
+        taskId: data.taskId ?? 0,
+        taskName: data.taskName ?? "",
+        serviceId: data.serviceId ?? 0,
+        serviceName: data.serviceName ?? "",
         employeeId: data.employeeId ?? 0,
         employeeCode: data.employeeCode ?? "",
         employeeName: data.employeeName ?? "",
@@ -337,6 +376,23 @@ export default function PaymentDetailsForm({
       const isJobSpecificAccount = selectedOption.isJobSpecific || false
 
       setIsJobSpecific(isJobSpecificAccount)
+
+      // Reset dependent fields when switching between job-specific and department-specific
+      // This prevents invalid data from being submitted
+      if (!isJobSpecificAccount) {
+        // Department-Specific: Reset job-related fields
+        form.setValue("jobOrderId", 0, { shouldValidate: true })
+        form.setValue("jobOrderNo", "")
+        form.setValue("taskId", 0, { shouldValidate: true })
+        form.setValue("taskName", "")
+        form.setValue("serviceId", 0, { shouldValidate: true })
+        form.setValue("serviceName", "")
+      } else {
+        // Job-Specific: Reset department field
+        form.setValue("departmentId", 0, { shouldValidate: true })
+        form.setValue("departmentCode", "")
+        form.setValue("departmentName", "")
+      }
     }
   }
 
@@ -345,6 +401,47 @@ export default function PaymentDetailsForm({
       form.setValue("gstId", selectedOption.gstId)
       form.setValue("gstName", selectedOption.gstName || "")
       await setGSTPercentage(Hdform, form, decimals[0], visible)
+    }
+  }
+
+  // Handle job order selection
+  const handleJobOrderChange = (selectedOption: IJobOrderLookup | null) => {
+    if (selectedOption) {
+      form.setValue("jobOrderId", selectedOption.jobOrderId, {
+        shouldValidate: true,
+        shouldDirty: true,
+      })
+      form.setValue("jobOrderNo", selectedOption.jobOrderNo || "")
+      // Reset task and service when job order changes
+      form.setValue("taskId", 0, { shouldValidate: true })
+      form.setValue("serviceId", 0, { shouldValidate: true })
+    }
+  }
+
+  // Handle task selection
+  const handleTaskChange = (selectedOption: ITaskLookup | null) => {
+    if (selectedOption) {
+      form.setValue("taskId", selectedOption.taskId, {
+        shouldValidate: true,
+        shouldDirty: true,
+      })
+      form.setValue("taskName", selectedOption.taskName || "")
+      // Reset service when task changes
+      form.setValue("serviceId", 0, { shouldValidate: true })
+    }
+  }
+
+  // Handle service selection
+  const handleServiceChange = (selectedOption: IServiceLookup | null) => {
+    if (selectedOption) {
+      form.setValue("serviceId", selectedOption.serviceId, {
+        shouldValidate: true,
+        shouldDirty: true,
+      })
+      form.setValue(
+        "serviceName",
+        selectedOption.serviceCode + " " + selectedOption.serviceName || ""
+      )
     }
   }
 
@@ -521,15 +618,72 @@ export default function PaymentDetailsForm({
             companyId={companyId}
           />
 
-          {/* DEPARTMENT-SPECIFIC MODE: Department only */}
-          {visible?.m_DepartmentId && (
-            <DepartmentAutocomplete
-              form={form}
-              name="departmentId"
-              label="Department"
-              isRequired={required?.m_DepartmentId && !isJobSpecific}
-              onChangeEvent={handleDepartmentChange}
-            />
+          {/* 
+            CONDITIONAL RENDERING BASED ON CHART OF ACCOUNT TYPE
+            =====================================================
+            If Chart of Account is Job-Specific (isJobSpecific = true):
+              - Shows: Job Order → Task → Service (cascading dropdowns)
+              - Hides: Department
+            
+            If Chart of Account is Department-Specific (isJobSpecific = false):
+              - Shows: Department
+              - Hides: Job Order, Task, Service
+            
+            The isJobSpecific state is set by:
+            1. Chart of Account selection (handleChartOfAccountChange)
+            2. Edit mode detection (useEffect checking existing jobOrderId/departmentId)
+          */}
+          {isJobSpecific ? (
+            <>
+              {/* JOB-SPECIFIC MODE: Job Order → Task → Service */}
+              {visible?.m_JobOrderId && (
+                <JobOrderAutocomplete
+                  form={form}
+                  name="jobOrderId"
+                  label="Job Order"
+                  isRequired={required?.m_JobOrderId && isJobSpecific}
+                  onChangeEvent={handleJobOrderChange}
+                />
+              )}
+
+              {visible?.m_JobOrderId && (
+                <JobOrderTaskAutocomplete
+                  key={`task-${watchedJobOrderId}`}
+                  form={form}
+                  name="taskId"
+                  jobOrderId={watchedJobOrderId || 0}
+                  label="Task"
+                  isRequired={required?.m_JobOrderId && isJobSpecific}
+                  onChangeEvent={handleTaskChange}
+                />
+              )}
+
+              {visible?.m_JobOrderId && (
+                <JobOrderChargeAutocomplete
+                  key={`service-${watchedJobOrderId}-${watchedTaskId}`}
+                  form={form}
+                  name="serviceId"
+                  jobOrderId={watchedJobOrderId || 0}
+                  taskId={watchedTaskId || 0}
+                  label="Service"
+                  isRequired={required?.m_JobOrderId && isJobSpecific}
+                  onChangeEvent={handleServiceChange}
+                />
+              )}
+            </>
+          ) : (
+            <>
+              {/* DEPARTMENT-SPECIFIC MODE: Department only */}
+              {visible?.m_DepartmentId && (
+                <DepartmentAutocomplete
+                  form={form}
+                  name="departmentId"
+                  label="Department"
+                  isRequired={required?.m_DepartmentId && !isJobSpecific}
+                  onChangeEvent={handleDepartmentChange}
+                />
+              )}
+            </>
           )}
 
           {/* Employee */}

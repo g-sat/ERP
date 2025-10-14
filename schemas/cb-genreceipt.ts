@@ -18,8 +18,6 @@ export const cbGenReceiptHdSchema = (
 
     // Currency Fields
     currencyId: z.number().min(1, "Currency is required"),
-    currencyCode: z.string().optional().nullable(),
-    currencyName: z.string().optional().nullable(),
     exhRate: z.number().min(0.000001, "Exchange Rate must be greater than 0"),
     ctyExhRate: z
       .number()
@@ -27,18 +25,14 @@ export const cbGenReceiptHdSchema = (
 
     // Payment Type Fields
     paymentTypeId: z.number().min(1, "Payment Type is required"),
-    paymentTypeCode: z.string().optional().nullable(),
-    paymentTypeName: z.string().optional().nullable(),
 
     // Bank Fields
     bankId:
       required?.m_BankId && visible?.m_BankId
         ? z.number().min(1, "Bank is required")
         : z.number().optional(),
-    bankCode: z.union([z.string(), z.number()]).optional().nullable(),
-    bankName: z.string().optional().nullable(),
-    chequeNo: z.string().optional().nullable(),
-    chequeDate: z.union([z.date(), z.string()]).optional(),
+    chequeNo: z.string().optional(),
+    chequeDate: z.union([z.date(), z.string(), z.null()]).optional(),
 
     // Bank Charge Fields
     bankChgGLId: z.number().optional(),
@@ -51,7 +45,7 @@ export const cbGenReceiptHdSchema = (
     totCtyAmt: visible?.m_CtyCurr ? z.number().min(0) : z.number().optional(),
 
     // GST Fields
-    gstClaimDate: z.union([z.date(), z.string()]).optional(),
+    gstClaimDate: z.union([z.date(), z.string(), z.null()]).optional(),
     gstAmt: z.number().optional(),
     gstLocalAmt: z.number().optional(),
     gstCtyAmt: visible?.m_CtyCurr ? z.number().min(0) : z.number().optional(),
@@ -70,12 +64,9 @@ export const cbGenReceiptHdSchema = (
     moduleFrom: z.string().optional(),
 
     // Audit Fields
-    createById: z.number().optional(),
     createDate: z.union([z.date(), z.string()]).optional(),
-    editById: z.number().optional().nullable(),
     editDate: z.union([z.date(), z.null()]).optional(),
     isCancel: z.boolean().optional(),
-    cancelById: z.number().optional(),
     cancelDate: z.union([z.date(), z.null()]).optional(),
     cancelRemarks: z.string().optional().nullable(),
     createBy: z.string().optional(),
@@ -83,7 +74,6 @@ export const cbGenReceiptHdSchema = (
     cancelBy: z.string().optional(),
     editVersion: z.number().optional(),
     isPost: z.boolean().optional(),
-    postById: z.number().optional().nullable(),
     postDate: z.union([z.date(), z.null()]).optional(),
     appStatusId: z.number().optional().nullable(),
     appById: z.number().optional().nullable(),

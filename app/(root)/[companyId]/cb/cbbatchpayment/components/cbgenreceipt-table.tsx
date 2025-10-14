@@ -1,5 +1,8 @@
 import { useState } from "react"
-import { ICbGenPaymentFilter, ICbGenPaymentHd } from "@/interfaces"
+import {
+  ICbGenReceiptFilter,
+  ICbGenReceiptHd,
+} from "@/interfaces/cb-genreceipt"
 import { useAuthStore } from "@/stores/auth-store"
 import { ColumnDef } from "@tanstack/react-table"
 import { format, subMonths } from "date-fns"
@@ -11,23 +14,23 @@ import { Separator } from "@/components/ui/separator"
 import { CustomDateNew } from "@/components/custom/custom-date-new"
 import { DialogDataTable } from "@/components/table/table-dialog"
 
-export interface PaymentTableProps {
-  data: ICbGenPaymentHd[]
+export interface ReceiptTableProps {
+  data: ICbGenReceiptHd[]
   isLoading: boolean
-  onPaymentSelect: (selectedPayment: ICbGenPaymentHd | undefined) => void
+  onReceiptSelect: (selectedReceipt: ICbGenReceiptHd | undefined) => void
   onRefresh: () => void
-  onFilterChange: (filters: ICbGenPaymentFilter) => void
-  initialFilters?: ICbGenPaymentFilter
+  onFilterChange: (filters: ICbGenReceiptFilter) => void
+  initialFilters?: ICbGenReceiptFilter
 }
 
-export default function PaymentTable({
+export default function ReceiptTable({
   data,
   isLoading = false,
-  onPaymentSelect,
+  onReceiptSelect,
   onRefresh,
   onFilterChange,
   initialFilters,
-}: PaymentTableProps) {
+}: ReceiptTableProps) {
   const { decimals } = useAuthStore()
   const amtDec = decimals[0]?.amtDec || 2
   const locAmtDec = decimals[0]?.locAmtDec || 2
@@ -36,7 +39,7 @@ export default function PaymentTable({
   //const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
 
   const moduleId = ModuleId.cb
-  const transactionId = CBTransactionId.cbgenpayment
+  const transactionId = CBTransactionId.cbgenreceipt
 
   const form = useForm({
     defaultValues: {
@@ -58,10 +61,10 @@ export default function PaymentTable({
     })
   }
 
-  const columns: ColumnDef<ICbGenPaymentHd>[] = [
+  const columns: ColumnDef<ICbGenReceiptHd>[] = [
     {
-      accessorKey: "paymentNo",
-      header: "Payment No",
+      accessorKey: "receiptNo",
+      header: "Receipt No",
     },
     {
       accessorKey: "referenceNo",
@@ -262,7 +265,7 @@ export default function PaymentTable({
   ]
 
   const handleSearchInvoice = () => {
-    const newFilters: ICbGenPaymentFilter = {
+    const newFilters: ICbGenReceiptFilter = {
       startDate: form.getValues("startDate"),
       endDate: form.getValues("endDate"),
       search: searchQuery,
@@ -279,7 +282,7 @@ export default function PaymentTable({
     sortOrder?: string
   }) => {
     if (onFilterChange) {
-      const newFilters: ICbGenPaymentFilter = {
+      const newFilters: ICbGenReceiptFilter = {
         startDate: form.getValues("startDate"),
         endDate: form.getValues("endDate"),
         search: filters.search || "",
@@ -331,11 +334,11 @@ export default function PaymentTable({
         isLoading={isLoading}
         moduleId={moduleId}
         transactionId={transactionId}
-        tableName={TableName.cbGenPayment}
+        tableName={TableName.cbGenReceipt}
         emptyMessage="No data found."
         onRefresh={onRefresh}
         onFilterChange={handleDialogFilterChange}
-        onRowSelect={(row) => onPaymentSelect(row || undefined)}
+        onRowSelect={(row) => onReceiptSelect(row || undefined)}
       />
     </div>
   )

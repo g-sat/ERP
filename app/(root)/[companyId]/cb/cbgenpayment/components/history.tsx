@@ -1,6 +1,6 @@
 "use client"
 
-import { CbGenPaymentHdSchemaType } from "@/schemas/cb-genpayment"
+import { CbGenPaymentHdSchemaType } from "@/schemas"
 import { useAuthStore } from "@/stores/auth-store"
 import { UseFormReturn } from "react-hook-form"
 

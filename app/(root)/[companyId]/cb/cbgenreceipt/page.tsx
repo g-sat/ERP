@@ -110,18 +110,12 @@ export default function GenReceiptPage() {
           trnDate: receipt.trnDate ?? new Date(),
           accountDate: receipt.accountDate ?? new Date(),
           currencyId: receipt.currencyId ?? 0,
-          currencyCode: receipt.currencyCode ?? null,
-          currencyName: receipt.currencyName ?? null,
           exhRate: receipt.exhRate ?? 0,
           ctyExhRate: receipt.ctyExhRate ?? 0,
           paymentTypeId: receipt.paymentTypeId ?? 0,
-          paymentTypeCode: receipt.paymentTypeCode ?? null,
-          paymentTypeName: receipt.paymentTypeName ?? null,
           bankId: receipt.bankId ?? 0,
-          bankCode: receipt.bankCode ?? null,
-          bankName: receipt.bankName ?? null,
-          chequeNo: receipt.chequeNo ?? null,
-          chequeDate: receipt.chequeDate ?? new Date(),
+          chequeNo: receipt.chequeNo ?? "",
+          chequeDate: receipt.chequeDate ?? "",
           bankChgGLId: receipt.bankChgGLId ?? 0,
           bankChgAmt: receipt.bankChgAmt ?? 0,
           bankChgLocalAmt: receipt.bankChgLocalAmt ?? 0,
@@ -202,6 +196,11 @@ export default function GenReceiptPage() {
         form.getValues() as unknown as ICbGenReceiptHd
       )
 
+      // Set chequeDate to accountDate if it's empty
+      if (!formValues.chequeDate || formValues.chequeDate === "") {
+        formValues.chequeDate = formValues.accountDate
+      }
+
       // Validate the form data using the schema
       const validationResult = cbGenReceiptHdSchema(
         required,
@@ -219,6 +218,8 @@ export default function GenReceiptPage() {
         toast.error("Total Amount and Total Local Amount should not be zero")
         return
       }
+
+      console.log(formValues)
 
       const response =
         Number(formValues.receiptId) === 0
@@ -342,23 +343,22 @@ export default function GenReceiptPage() {
           )
         : clientDateFormat,
       currencyId: apiReceipt.currencyId ?? 0,
-      currencyCode: apiReceipt.currencyCode ?? null,
-      currencyName: apiReceipt.currencyName ?? null,
       exhRate: apiReceipt.exhRate ?? 0,
       ctyExhRate: apiReceipt.ctyExhRate ?? 0,
       paymentTypeId: apiReceipt.paymentTypeId ?? 0,
-      paymentTypeCode: apiReceipt.paymentTypeCode ?? null,
-      paymentTypeName: apiReceipt.paymentTypeName ?? null,
       bankId: apiReceipt.bankId ?? 0,
-      bankCode: apiReceipt.bankCode ?? null,
-      bankName: apiReceipt.bankName ?? null,
-      chequeNo: apiReceipt.chequeNo ?? null,
+      chequeNo: apiReceipt.chequeNo ?? "",
       chequeDate: apiReceipt.chequeDate
         ? format(
             parseDate(apiReceipt.chequeDate as string) || new Date(),
             clientDateFormat
           )
-        : clientDateFormat,
+        : apiReceipt.accountDate
+          ? format(
+              parseDate(apiReceipt.accountDate as string) || new Date(),
+              clientDateFormat
+            )
+          : format(new Date(), clientDateFormat),
       bankChgGLId: apiReceipt.bankChgGLId ?? 0,
       bankChgAmt: apiReceipt.bankChgAmt ?? 0,
       bankChgLocalAmt: apiReceipt.bankChgLocalAmt ?? 0,
@@ -380,11 +380,8 @@ export default function GenReceiptPage() {
       remarks: apiReceipt.remarks ?? "",
       payeeTo: apiReceipt.payeeTo ?? "",
       moduleFrom: apiReceipt.moduleFrom ?? "",
-      createById: apiReceipt.createById ?? 0,
       createBy: apiReceipt.createBy ?? "",
-      editById: apiReceipt.editById ?? null,
       editBy: apiReceipt.editBy ?? "",
-      cancelById: apiReceipt.cancelById ?? 0,
       cancelBy: apiReceipt.cancelBy ?? "",
       createDate: apiReceipt.createDate
         ? parseDate(apiReceipt.createDate as string) || new Date()
@@ -398,7 +395,6 @@ export default function GenReceiptPage() {
       cancelRemarks: apiReceipt.cancelRemarks ?? null,
       editVersion: apiReceipt.editVersion ?? 0,
       isPost: apiReceipt.isPost ?? false,
-      postById: apiReceipt.postById ?? null,
       postDate: apiReceipt.postDate
         ? parseDate(apiReceipt.postDate as unknown as string) || null
         : null,
@@ -531,7 +527,6 @@ export default function GenReceiptPage() {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       if (isDirty) {
         e.preventDefault()
-        e.returnValue = ""
       }
     }
     window.addEventListener("beforeunload", handleBeforeUnload)

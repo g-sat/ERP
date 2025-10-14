@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { ICbGenPaymentDt, ICbGenPaymentHd } from "@/interfaces"
+import { ICbGenReceiptDt, ICbGenReceiptHd } from "@/interfaces/cb-genreceipt"
 import { useAuthStore } from "@/stores/auth-store"
 import { ColumnDef } from "@tanstack/react-table"
 import { format } from "date-fns"
@@ -9,8 +9,8 @@ import { AlertCircle } from "lucide-react"
 
 import { CBTransactionId, ModuleId, TableName } from "@/lib/utils"
 import {
-  useGetCBGenPaymentHistoryDetails,
-  useGetCBGenPaymentHistoryList,
+  useGetCBGenReceiptHistoryDetails,
+  useGetCBGenReceiptHistoryList,
 } from "@/hooks/use-cb"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -37,57 +37,57 @@ export default function EditVersionDetails({
   const exhRateDec = decimals[0]?.exhRateDec || 2
 
   const moduleId = ModuleId.cb
-  const transactionId = CBTransactionId.cbgenpayment
+  const transactionId = CBTransactionId.cbgenreceipt
 
-  const [selectedPayment, setSelectedPayment] =
-    useState<ICbGenPaymentHd | null>(null)
+  const [selectedReceipt, setSelectedReceipt] =
+    useState<ICbGenReceiptHd | null>(null)
 
   const { data: receiptHistoryData, refetch: refetchHistory } =
-    useGetCBGenPaymentHistoryList<ICbGenPaymentHd[]>(invoiceId)
+    useGetCBGenReceiptHistoryList<ICbGenReceiptHd[]>(invoiceId)
 
   const { data: receiptDetailsData, refetch: refetchDetails } =
-    useGetCBGenPaymentHistoryDetails<ICbGenPaymentHd>(
-      selectedPayment?.paymentId || "",
-      selectedPayment?.editVersion?.toString() || ""
+    useGetCBGenReceiptHistoryDetails<ICbGenReceiptHd>(
+      selectedReceipt?.receiptId || "",
+      selectedReceipt?.editVersion?.toString() || ""
     )
 
-  function isICbGenPaymentHdArray(arr: unknown): arr is ICbGenPaymentHd[] {
+  function isICbGenReceiptHdArray(arr: unknown): arr is ICbGenReceiptHd[] {
     return (
       Array.isArray(arr) &&
       (arr.length === 0 ||
-        (typeof arr[0] === "object" && "paymentId" in arr[0]))
+        (typeof arr[0] === "object" && "receiptId" in arr[0]))
     )
   }
 
   // Check if history data is successful and has valid data
-  const tableData: ICbGenPaymentHd[] =
+  const tableData: ICbGenReceiptHd[] =
     receiptHistoryData?.result === 1 &&
-    isICbGenPaymentHdArray(receiptHistoryData?.data)
+    isICbGenReceiptHdArray(receiptHistoryData?.data)
       ? receiptHistoryData.data
       : []
 
   // Check if details data is successful and has valid data
-  const dialogData: ICbGenPaymentHd | undefined =
+  const dialogData: ICbGenReceiptHd | undefined =
     receiptDetailsData?.result === 1 &&
     receiptDetailsData?.data &&
     typeof receiptDetailsData.data === "object" &&
     receiptDetailsData.data !== null &&
     !Array.isArray(receiptDetailsData.data)
-      ? (receiptDetailsData.data as ICbGenPaymentHd)
+      ? (receiptDetailsData.data as ICbGenReceiptHd)
       : undefined
 
   // Check for API errors
   const hasHistoryError = receiptHistoryData?.result === -1
   const hasDetailsError = receiptDetailsData?.result === -1
 
-  const columns: ColumnDef<ICbGenPaymentHd>[] = [
+  const columns: ColumnDef<ICbGenReceiptHd>[] = [
     {
       accessorKey: "editVersion",
       header: "Edit Version",
     },
     {
-      accessorKey: "paymentNo",
-      header: "Payment No",
+      accessorKey: "receiptNo",
+      header: "Receipt No",
     },
     {
       accessorKey: "referenceNo",
@@ -295,7 +295,7 @@ export default function EditVersionDetails({
     },
   ]
 
-  const detailsColumns: ColumnDef<ICbGenPaymentDt>[] = [
+  const detailsColumns: ColumnDef<ICbGenReceiptDt>[] = [
     { accessorKey: "itemNo", header: "Item No" },
     { accessorKey: "glCode", header: "GL Code" },
     { accessorKey: "glName", header: "GL Name" },
@@ -362,18 +362,18 @@ export default function EditVersionDetails({
               hasHistoryError ? "Error loading data" : "No results."
             }
             onRefresh={handleRefresh}
-            onRowSelect={(receipt) => setSelectedPayment(receipt)}
+            onRowSelect={(receipt) => setSelectedReceipt(receipt)}
           />
         </CardContent>
       </Card>
 
       <Dialog
-        open={!!selectedPayment}
-        onOpenChange={() => setSelectedPayment(null)}
+        open={!!selectedReceipt}
+        onOpenChange={() => setSelectedReceipt(null)}
       >
         <DialogContent className="@container h-[80vh] w-[90vw] !max-w-none overflow-y-auto rounded-lg p-4">
           <DialogHeader>
-            <DialogTitle>Payment Details</DialogTitle>
+            <DialogTitle>Receipt Details</DialogTitle>
           </DialogHeader>
 
           {/* Error handling for details data */}
@@ -398,7 +398,7 @@ export default function EditVersionDetails({
           <div className="grid gap-2">
             <Card>
               <CardHeader>
-                <CardTitle>Payment Header</CardTitle>
+                <CardTitle>Receipt Header</CardTitle>
               </CardHeader>
               <CardContent>
                 {dialogData ? (
@@ -425,7 +425,7 @@ export default function EditVersionDetails({
             </Card>
             <Card>
               <CardHeader>
-                <CardTitle>Payment Details</CardTitle>
+                <CardTitle>Receipt Details</CardTitle>
               </CardHeader>
               <CardContent>
                 <BasicTable
@@ -433,7 +433,7 @@ export default function EditVersionDetails({
                   columns={detailsColumns}
                   moduleId={moduleId}
                   transactionId={transactionId}
-                  tableName={TableName.cbGenPaymentHistory}
+                  tableName={TableName.cbGenReceiptHistory}
                   emptyMessage="No receipt details available"
                   onRefresh={handleRefresh}
                   showHeader={true}

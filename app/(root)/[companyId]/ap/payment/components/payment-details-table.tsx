@@ -8,7 +8,7 @@ import { AccountBaseTable } from "@/components/table/table-account"
 
 // Extended column definition with hide property
 type ExtendedColumnDef<T> = ColumnDef<T> & {
-  hide?: boolean
+  hidden?: boolean
 }
 
 // Use flexible data type that can work with form data
@@ -188,7 +188,7 @@ export default function PaymentDetailsTable({
       cell: ({ row }: { row: { original: IApPaymentDt } }) => (
         <div className="text-right">{row.original.transactionId}</div>
       ),
-      hide: true,
+      hidden: true,
     },
     {
       accessorKey: "docCurrencyId",
@@ -197,12 +197,12 @@ export default function PaymentDetailsTable({
       cell: ({ row }: { row: { original: IApPaymentDt } }) => (
         <div className="text-right">{row.original.docCurrencyId}</div>
       ),
-      hide: true,
+      hidden: true,
     },
   ]
 
-  // Filter out columns with hide: true
-  const visibleColumns = columns.filter((column) => !column.hide)
+  // Filter out columns with hidden: true
+  const visibleColumns = columns.filter((column) => !column.hidden)
 
   if (!mounted) {
     return null

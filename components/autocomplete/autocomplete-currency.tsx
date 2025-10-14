@@ -52,7 +52,7 @@ export default function CurrencyAutocomplete<
     () =>
       currencys.map((currency: ICurrencyLookup) => ({
         value: currency.currencyId.toString(),
-        label: currency.currencyName,
+        label: currency.currencyCode + " - " + currency.currencyName,
       })),
     [currencys]
   )
