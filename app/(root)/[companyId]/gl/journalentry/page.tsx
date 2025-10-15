@@ -122,8 +122,8 @@ export default function JournalEntryPage() {
           remarks: journal.remarks ?? "",
           isReverse: journal.isReverse ?? false,
           isRecurrency: journal.isRecurrency ?? false,
-          revDate: journal.revDate ?? null,
-          recurrenceUntil: journal.recurrenceUntil ?? null,
+          revDate: journal.revDate ?? new Date(),
+          recurrenceUntil: journal.recurrenceUntil ?? new Date(),
           moduleFrom: journal.moduleFrom ?? "",
           editVersion: journal.editVersion ?? 0,
           data_details:
@@ -201,6 +201,19 @@ export default function JournalEntryPage() {
       //check totamt and totlocalamt should not be zero
       if (formValues.totAmt === 0 || formValues.totLocalAmt === 0) {
         toast.error("Total Amount and Total Local Amount should not be zero")
+        return
+      }
+
+      //check in details sum of isdebit=true should be equal to sum of isdebit=false
+      const totalDebit = formValues.data_details
+        .filter((detail) => detail.isDebit)
+        .reduce((acc, detail) => acc + detail.totAmt, 0)
+      const totalCredit = formValues.data_details
+        .filter((detail) => !detail.isDebit)
+        .reduce((acc, detail) => acc + detail.totAmt, 0)
+
+      if (totalDebit !== totalCredit) {
+        toast.error("Total Debit and Total Credit should be equal")
         return
       }
 
@@ -346,8 +359,18 @@ export default function JournalEntryPage() {
       remarks: apiJournal.remarks ?? "",
       isReverse: apiJournal.isReverse ?? false,
       isRecurrency: apiJournal.isRecurrency ?? false,
-      revDate: apiJournal.revDate ?? null,
-      recurrenceUntil: apiJournal.recurrenceUntil ?? null,
+      revDate: apiJournal.revDate
+        ? format(
+            parseDate(apiJournal.revDate as string) || new Date(),
+            clientDateFormat
+          )
+        : clientDateFormat,
+      recurrenceUntil: apiJournal.recurrenceUntil
+        ? format(
+            parseDate(apiJournal.recurrenceUntil as string) || new Date(),
+            clientDateFormat
+          )
+        : clientDateFormat,
       moduleFrom: apiJournal.moduleFrom ?? "",
       createBy: apiJournal.createBy ?? "",
       editBy: apiJournal.editBy ?? "",

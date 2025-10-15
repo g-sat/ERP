@@ -52,6 +52,11 @@ export default function JournalForm({
   const ctyAmtDec = decimals[0]?.ctyAmtDec || 2
   const exhRateDec = decimals[0]?.exhRateDec || 6
 
+  console.log("amtDec", amtDec)
+  console.log("locAmtDec", locAmtDec)
+  console.log("ctyAmtDec", ctyAmtDec)
+  console.log("exhRateDec", exhRateDec)
+
   const onSubmit = async () => {
     await onSuccessAction("save")
   }
