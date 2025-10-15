@@ -25,10 +25,8 @@ export default function History({ form, isEdit: _isEdit }: HistoryProps) {
     editDate: formValues.editDate ? formValues.editDate?.toString() : "",
     cancelBy: formValues.cancelBy || "",
     cancelDate: formValues.cancelDate ? formValues.cancelDate?.toString() : "",
-    balanceAmt: 0,
-    balanceBaseAmt: 0,
-    paymentAmt: Number(formValues.fromTotAmt || 0),
-    paymentBaseAmt: Number(formValues.fromTotLocalAmt || 0),
+    appBy: formValues.appBy || "",
+    appDate: formValues.appDate ? formValues.appDate?.toString() : "",
   }
 
   return (

@@ -94,7 +94,7 @@ export default function JournalDetailsTable({
           {
             accessorKey: "departmentName",
             header: "Department",
-            size: 100,
+            size: 120,
           },
         ]
       : []),
@@ -103,7 +103,7 @@ export default function JournalDetailsTable({
           {
             accessorKey: "jobOrderNo",
             header: "JobOrder",
-            size: 100,
+            size: 140,
           },
         ]
       : []),

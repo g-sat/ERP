@@ -1,17 +1,17 @@
 "use client"
 
 import { useState } from "react"
-import { ICbGenReceiptDt, ICbGenReceiptHd } from "@/interfaces/cb-genreceipt"
+import { IGLJournalDt, IGLJournalHd } from "@/interfaces"
 import { useAuthStore } from "@/stores/auth-store"
 import { ColumnDef } from "@tanstack/react-table"
 import { format } from "date-fns"
 import { AlertCircle } from "lucide-react"
 
-import { CBTransactionId, ModuleId, TableName } from "@/lib/utils"
+import { GLTransactionId, ModuleId, TableName } from "@/lib/utils"
 import {
-  useGetCBGenReceiptHistoryDetails,
-  useGetCBGenReceiptHistoryList,
-} from "@/hooks/use-cb"
+  useGetGLJournalEntryHistoryDetails,
+  useGetGLJournalEntryHistoryList,
+} from "@/hooks/use-gl"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
@@ -36,58 +36,58 @@ export default function EditVersionDetails({
   const dateFormat = decimals[0]?.dateFormat || "dd/MM/yyyy"
   const exhRateDec = decimals[0]?.exhRateDec || 2
 
-  const moduleId = ModuleId.cb
-  const transactionId = CBTransactionId.cbgenreceipt
+  const moduleId = ModuleId.gl
+  const transactionId = GLTransactionId.journalentry
 
-  const [selectedReceipt, setSelectedReceipt] =
-    useState<ICbGenReceiptHd | null>(null)
+  const [selectedJournalEntry, setSelectedJournalEntry] =
+    useState<IGLJournalHd | null>(null)
 
-  const { data: receiptHistoryData, refetch: refetchHistory } =
-    useGetCBGenReceiptHistoryList<ICbGenReceiptHd[]>(invoiceId)
+  const { data: journalEntryHistoryData, refetch: refetchHistory } =
+    useGetGLJournalEntryHistoryList<IGLJournalHd[]>(invoiceId)
 
-  const { data: receiptDetailsData, refetch: refetchDetails } =
-    useGetCBGenReceiptHistoryDetails<ICbGenReceiptHd>(
-      selectedReceipt?.receiptId || "",
-      selectedReceipt?.editVersion?.toString() || ""
+  const { data: journalDetailsData, refetch: refetchDetails } =
+    useGetGLJournalEntryHistoryDetails<IGLJournalHd>(
+      selectedJournalEntry?.journalId || "",
+      selectedJournalEntry?.editVersion?.toString() || ""
     )
 
-  function isICbGenReceiptHdArray(arr: unknown): arr is ICbGenReceiptHd[] {
+  function isIGLJournalHdArray(arr: unknown): arr is IGLJournalHd[] {
     return (
       Array.isArray(arr) &&
       (arr.length === 0 ||
-        (typeof arr[0] === "object" && "receiptId" in arr[0]))
+        (typeof arr[0] === "object" && "journalId" in arr[0]))
     )
   }
 
   // Check if history data is successful and has valid data
-  const tableData: ICbGenReceiptHd[] =
-    receiptHistoryData?.result === 1 &&
-    isICbGenReceiptHdArray(receiptHistoryData?.data)
-      ? receiptHistoryData.data
+  const tableData: IGLJournalHd[] =
+    journalEntryHistoryData?.result === 1 &&
+    isIGLJournalHdArray(journalEntryHistoryData?.data)
+      ? journalEntryHistoryData.data
       : []
 
   // Check if details data is successful and has valid data
-  const dialogData: ICbGenReceiptHd | undefined =
-    receiptDetailsData?.result === 1 &&
-    receiptDetailsData?.data &&
-    typeof receiptDetailsData.data === "object" &&
-    receiptDetailsData.data !== null &&
-    !Array.isArray(receiptDetailsData.data)
-      ? (receiptDetailsData.data as ICbGenReceiptHd)
+  const dialogData: IGLJournalHd | undefined =
+    journalDetailsData?.result === 1 &&
+    journalDetailsData?.data &&
+    typeof journalDetailsData.data === "object" &&
+    journalDetailsData.data !== null &&
+    !Array.isArray(journalDetailsData.data)
+      ? (journalDetailsData.data as IGLJournalHd)
       : undefined
 
   // Check for API errors
-  const hasHistoryError = receiptHistoryData?.result === -1
-  const hasDetailsError = receiptDetailsData?.result === -1
+  const hasHistoryError = journalEntryHistoryData?.result === -1
+  const hasDetailsError = journalDetailsData?.result === -1
 
-  const columns: ColumnDef<ICbGenReceiptHd>[] = [
+  const columns: ColumnDef<IGLJournalHd>[] = [
     {
       accessorKey: "editVersion",
       header: "Edit Version",
     },
     {
-      accessorKey: "receiptNo",
-      header: "Receipt No",
+      accessorKey: "journalNo",
+      header: "Journal No",
     },
     {
       accessorKey: "referenceNo",
@@ -114,16 +114,6 @@ export default function EditVersionDetails({
       },
     },
     {
-      accessorKey: "chequeDate",
-      header: "Cheque Date",
-      cell: ({ row }) => {
-        const date = row.original.chequeDate
-          ? new Date(row.original.chequeDate)
-          : null
-        return date ? format(date, dateFormat) : "-"
-      },
-    },
-    {
       accessorKey: "gstClaimDate",
       header: "GST Claim Date",
       cell: ({ row }) => {
@@ -132,14 +122,6 @@ export default function EditVersionDetails({
           : null
         return date ? format(date, dateFormat) : "-"
       },
-    },
-    {
-      accessorKey: "customerCode",
-      header: "Customer Code",
-    },
-    {
-      accessorKey: "customerName",
-      header: "Customer Name",
     },
     {
       accessorKey: "currencyCode",
@@ -172,20 +154,42 @@ export default function EditVersionDetails({
       ),
     },
     {
-      accessorKey: "creditTermCode",
-      header: "Credit Term Code",
+      accessorKey: "isReverse",
+      header: "Reverse Entry",
+      cell: ({ row }) => (
+        <div className="text-center">
+          {row.original.isReverse ? "Yes" : "No"}
+        </div>
+      ),
     },
     {
-      accessorKey: "creditTermName",
-      header: "Credit Term Name",
+      accessorKey: "revDate",
+      header: "Reversal Date",
+      cell: ({ row }) => {
+        const date = row.original.revDate
+          ? new Date(row.original.revDate)
+          : null
+        return date ? format(date, dateFormat) : "-"
+      },
     },
     {
-      accessorKey: "bankCode",
-      header: "Bank Code",
+      accessorKey: "isRecurrency",
+      header: "Recurring Entry",
+      cell: ({ row }) => (
+        <div className="text-center">
+          {row.original.isRecurrency ? "Yes" : "No"}
+        </div>
+      ),
     },
     {
-      accessorKey: "bankName",
-      header: "Bank Name",
+      accessorKey: "recurrenceUntil",
+      header: "Recurrence Until",
+      cell: ({ row }) => {
+        const date = row.original.recurrenceUntil
+          ? new Date(row.original.recurrenceUntil)
+          : null
+        return date ? format(date, dateFormat) : "-"
+      },
     },
     {
       accessorKey: "totAmt",
@@ -254,16 +258,12 @@ export default function EditVersionDetails({
       header: "Remarks",
     },
     {
-      accessorKey: "status",
-      header: "Status",
+      accessorKey: "moduleFrom",
+      header: "Module From",
     },
     {
-      accessorKey: "createByCode",
-      header: "Created By Code",
-    },
-    {
-      accessorKey: "createByName",
-      header: "Created By Name",
+      accessorKey: "createBy",
+      header: "Created By",
     },
     {
       accessorKey: "createDate",
@@ -276,12 +276,8 @@ export default function EditVersionDetails({
       },
     },
     {
-      accessorKey: "editByCode",
-      header: "Edited By Code",
-    },
-    {
-      accessorKey: "editByName",
-      header: "Edited By Name",
+      accessorKey: "editBy",
+      header: "Edited By",
     },
     {
       accessorKey: "editDate",
@@ -293,16 +289,50 @@ export default function EditVersionDetails({
         return date ? format(date, dateFormat) : "-"
       },
     },
+    {
+      accessorKey: "isPost",
+      header: "Posted",
+      cell: ({ row }) => (
+        <div className="text-center">{row.original.isPost ? "Yes" : "No"}</div>
+      ),
+    },
+    {
+      accessorKey: "postBy",
+      header: "Posted By",
+    },
+    {
+      accessorKey: "postDate",
+      header: "Post Date",
+      cell: ({ row }) => {
+        const date = row.original.postDate
+          ? new Date(row.original.postDate)
+          : null
+        return date ? format(date, dateFormat) : "-"
+      },
+    },
   ]
 
-  const detailsColumns: ColumnDef<ICbGenReceiptDt>[] = [
+  const detailsColumns: ColumnDef<IGLJournalDt>[] = [
     { accessorKey: "itemNo", header: "Item No" },
     { accessorKey: "glCode", header: "GL Code" },
     { accessorKey: "glName", header: "GL Name" },
+    {
+      accessorKey: "isDebit",
+      header: "Type",
+      cell: ({ row }) => (
+        <div className="text-center">
+          {row.original.isDebit ? "Debit" : "Credit"}
+        </div>
+      ),
+    },
+    { accessorKey: "productName", header: "Product" },
     { accessorKey: "totAmt", header: "Total Amount" },
     { accessorKey: "totLocalAmt", header: "Total Local Amount" },
     { accessorKey: "gstName", header: "GST" },
     { accessorKey: "gstAmt", header: "GST Amount" },
+    { accessorKey: "departmentName", header: "Department" },
+    { accessorKey: "employeeName", header: "Employee" },
+    { accessorKey: "jobOrderNo", header: "Job Order" },
     { accessorKey: "remarks", header: "Remarks" },
   ]
 
@@ -311,13 +341,13 @@ export default function EditVersionDetails({
       // Only refetch if we don't have a "Data does not exist" error
       if (
         !hasHistoryError ||
-        receiptHistoryData?.message !== "Data does not exist"
+        journalEntryHistoryData?.message !== "Data does not exist"
       ) {
         await refetchHistory()
       }
       if (
         !hasDetailsError ||
-        receiptDetailsData?.message !== "Data does not exist"
+        journalDetailsData?.message !== "Data does not exist"
       ) {
         await refetchDetails()
       }
@@ -337,7 +367,7 @@ export default function EditVersionDetails({
           {hasHistoryError && (
             <Alert
               variant={
-                receiptHistoryData?.message === "Data does not exist"
+                journalEntryHistoryData?.message === "Data does not exist"
                   ? "default"
                   : "destructive"
               }
@@ -345,9 +375,9 @@ export default function EditVersionDetails({
             >
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>
-                {receiptHistoryData?.message === "Data does not exist"
-                  ? "No receipt history found for this receipt."
-                  : `Failed to load receipt history: ${receiptHistoryData?.message || "Unknown error"}`}
+                {journalEntryHistoryData?.message === "Data does not exist"
+                  ? "No journal entry history found for this journal entry."
+                  : `Failed to load journal entry history: ${journalEntryHistoryData?.message || "Unknown error"}`}
               </AlertDescription>
             </Alert>
           )}
@@ -362,25 +392,27 @@ export default function EditVersionDetails({
               hasHistoryError ? "Error loading data" : "No results."
             }
             onRefresh={handleRefresh}
-            onRowSelect={(receipt) => setSelectedReceipt(receipt)}
+            onRowSelect={(journalEntry) =>
+              setSelectedJournalEntry(journalEntry)
+            }
           />
         </CardContent>
       </Card>
 
       <Dialog
-        open={!!selectedReceipt}
-        onOpenChange={() => setSelectedReceipt(null)}
+        open={!!selectedJournalEntry}
+        onOpenChange={() => setSelectedJournalEntry(null)}
       >
         <DialogContent className="@container h-[80vh] w-[90vw] !max-w-none overflow-y-auto rounded-lg p-4">
           <DialogHeader>
-            <DialogTitle>Receipt Details</DialogTitle>
+            <DialogTitle>Journal Entry Details</DialogTitle>
           </DialogHeader>
 
           {/* Error handling for details data */}
           {hasDetailsError && (
             <Alert
               variant={
-                receiptDetailsData?.message === "Data does not exist"
+                journalDetailsData?.message === "Data does not exist"
                   ? "default"
                   : "destructive"
               }
@@ -388,9 +420,9 @@ export default function EditVersionDetails({
             >
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>
-                {receiptDetailsData?.message === "Data does not exist"
-                  ? "No receipt details found for this version."
-                  : `Failed to load receipt details: ${receiptDetailsData?.message || "Unknown error"}`}
+                {journalDetailsData?.message === "Data does not exist"
+                  ? "No journal entry details found for this version."
+                  : `Failed to load journal entry details: ${journalDetailsData?.message || "Unknown error"}`}
               </AlertDescription>
             </Alert>
           )}
@@ -398,7 +430,7 @@ export default function EditVersionDetails({
           <div className="grid gap-2">
             <Card>
               <CardHeader>
-                <CardTitle>Receipt Header</CardTitle>
+                <CardTitle>Journal Entry Header</CardTitle>
               </CardHeader>
               <CardContent>
                 {dialogData ? (
@@ -417,15 +449,15 @@ export default function EditVersionDetails({
                 ) : (
                   <div className="text-muted-foreground py-4 text-center">
                     {hasDetailsError
-                      ? "Error loading receipt details"
-                      : "No receipt details available"}
+                      ? "Error loading journal entry details"
+                      : "No journal entry details available"}
                   </div>
                 )}
               </CardContent>
             </Card>
             <Card>
               <CardHeader>
-                <CardTitle>Receipt Details</CardTitle>
+                <CardTitle>Journal Entry Details</CardTitle>
               </CardHeader>
               <CardContent>
                 <BasicTable
@@ -433,8 +465,8 @@ export default function EditVersionDetails({
                   columns={detailsColumns}
                   moduleId={moduleId}
                   transactionId={transactionId}
-                  tableName={TableName.cbGenReceiptHistory}
-                  emptyMessage="No receipt details available"
+                  tableName={TableName.journalEntryHistory}
+                  emptyMessage="No journal entry details available"
                   onRefresh={handleRefresh}
                   showHeader={true}
                   showFooter={false}

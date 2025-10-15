@@ -24,7 +24,7 @@ import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 
 import { getById } from "@/lib/api-client"
-import { GlJournal } from "@/lib/api-routes"
+import { GLJournalEntry } from "@/lib/api-routes"
 import { clientDateFormat, parseDate } from "@/lib/date-utils"
 import { GLTransactionId, ModuleId, TableName } from "@/lib/utils"
 import { useDelete, useGetWithDates, usePersist } from "@/hooks/use-common"
@@ -152,7 +152,7 @@ export default function JournalEntryPage() {
     isLoading: isLoadingJournals,
     isRefetching: isRefetchingJournals,
   } = useGetWithDates<IGLJournalHd>(
-    `${GlJournal.get}`,
+    `${GLJournalEntry.get}`,
     TableName.journalEntry,
     filters.search,
     filters.startDate?.toString(),
@@ -168,9 +168,13 @@ export default function JournalEntryPage() {
   )
 
   // Mutations
-  const saveMutation = usePersist<GLJournalHdSchemaType>(`${GlJournal.add}`)
-  const updateMutation = usePersist<GLJournalHdSchemaType>(`${GlJournal.add}`)
-  const deleteMutation = useDelete(`${GlJournal.delete}`)
+  const saveMutation = usePersist<GLJournalHdSchemaType>(
+    `${GLJournalEntry.add}`
+  )
+  const updateMutation = usePersist<GLJournalHdSchemaType>(
+    `${GLJournalEntry.add}`
+  )
+  const deleteMutation = useDelete(`${GLJournalEntry.delete}`)
 
   // Handle Save
   const handleSaveJournal = async () => {
@@ -462,7 +466,7 @@ export default function JournalEntryPage() {
     try {
       // Fetch journal details directly using selected journal's values
       const response = await getById(
-        `${GlJournal.getByIdNo}/${selectedJournal.journalId}/${selectedJournal.journalNo}`
+        `${GLJournalEntry.getByIdNo}/${selectedJournal.journalId}/${selectedJournal.journalNo}`
       )
 
       if (response?.result === 1) {
@@ -545,7 +549,7 @@ export default function JournalEntryPage() {
     setIsLoadingJournal(true)
 
     try {
-      const response = await getById(`${GlJournal.getByIdNo}/0/${value}`)
+      const response = await getById(`${GLJournalEntry.getByIdNo}/0/${value}`)
 
       if (response?.result === 1) {
         const detailedJournal = Array.isArray(response.data)

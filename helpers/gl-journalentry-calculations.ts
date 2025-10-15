@@ -2,7 +2,7 @@ import { mathRound } from "@/helpers/account"
 import { IDecimal, IGLJournalDt } from "@/interfaces"
 
 /**
- * Calculate total amounts (base currency)
+ * Calculate total amounts (base currency) - Only sum DEBIT entries
  */
 export const calculateTotalAmounts = (
   details: IGLJournalDt[],
@@ -15,8 +15,11 @@ export const calculateTotalAmounts = (
   }
 
   details.forEach((detail) => {
-    totals.totAmt += Number(detail.totAmt) || 0
-    totals.gstAmt += Number(detail.gstAmt) || 0
+    // Only sum debit entries
+    if (detail.isDebit) {
+      totals.totAmt += Number(detail.totAmt) || 0
+      totals.gstAmt += Number(detail.gstAmt) || 0
+    }
   })
 
   return {
@@ -27,7 +30,7 @@ export const calculateTotalAmounts = (
 }
 
 /**
- * Calculate local currency amounts
+ * Calculate local currency amounts - Only sum DEBIT entries
  */
 export const calculateLocalAmounts = (
   details: IGLJournalDt[],
@@ -40,8 +43,11 @@ export const calculateLocalAmounts = (
   }
 
   details.forEach((detail) => {
-    totals.totLocalAmt += Number(detail.totLocalAmt) || 0
-    totals.gstLocalAmt += Number(detail.gstLocalAmt) || 0
+    // Only sum debit entries
+    if (detail.isDebit) {
+      totals.totLocalAmt += Number(detail.totLocalAmt) || 0
+      totals.gstLocalAmt += Number(detail.gstLocalAmt) || 0
+    }
   })
 
   return {
@@ -55,7 +61,7 @@ export const calculateLocalAmounts = (
 }
 
 /**
- * Calculate country currency amounts
+ * Calculate country currency amounts - Only sum DEBIT entries
  */
 export const calculateCountryAmounts = (
   details: IGLJournalDt[],
@@ -68,8 +74,11 @@ export const calculateCountryAmounts = (
   }
 
   details.forEach((detail) => {
-    totals.totCtyAmt += Number(detail.totCtyAmt) || 0
-    totals.gstCtyAmt += Number(detail.gstCtyAmt) || 0
+    // Only sum debit entries
+    if (detail.isDebit) {
+      totals.totCtyAmt += Number(detail.totCtyAmt) || 0
+      totals.gstCtyAmt += Number(detail.gstCtyAmt) || 0
+    }
   })
 
   return {

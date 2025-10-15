@@ -961,12 +961,13 @@ export const CbBankTransfer = {
 }
 
 // General Ledger Journal Endpoints
-export const GlJournal = {
+export const GLJournalEntry = {
   get: "/account/getgljournal",
   getByIdNo: "/account/getgljournalbyidno",
   add: "/account/savegljournal",
   delete: "/account/deletegljournal",
   history: "/account/gethistorygljournalbyid",
+  historyDetails: "/account/gethistorygljournaldetailsbyid",
 }
 
 // General Ledger Contra Endpoints

@@ -4,7 +4,12 @@ import { useAuthStore } from "@/stores/auth-store"
 import { ColumnDef } from "@tanstack/react-table"
 import { format } from "date-fns"
 
-import { CBTransactionId, ModuleId, TableName } from "@/lib/utils"
+import {
+  CBTransactionId,
+  GLTransactionId,
+  ModuleId,
+  TableName,
+} from "@/lib/utils"
 import { useGetGlPostDetails } from "@/hooks/use-histoy"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -25,8 +30,8 @@ export default function GLPostDetails({ invoiceId }: GLPostDetailsProps) {
   const locAmtDec = decimals[0]?.locAmtDec || 2
   const exhRateDec = decimals[0]?.exhRateDec || 6
   const dateFormat = decimals[0]?.dateFormat || "dd/MM/yyyy"
-  const moduleId = ModuleId.cb
-  const transactionId = CBTransactionId.cbgenreceipt
+  const moduleId = ModuleId.gl
+  const transactionId = GLTransactionId.journalentry
 
   const { data: glPostDetails, refetch: refetchGlPost } =
     //useGetGlPostDetails<IGlTransactionDetails>(25, 1, "14120250100024")

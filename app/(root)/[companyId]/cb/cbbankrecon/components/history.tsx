@@ -7,7 +7,6 @@ import { UseFormReturn } from "react-hook-form"
 import AccountDetails from "./history/account-details"
 import EditVersionDetails from "./history/edit-version-details"
 import GLPostDetails from "./history/gl-post-details"
-import PaymentDetails from "./history/payment-details"
 
 interface HistoryProps {
   form: UseFormReturn<CbBankReconHdSchemaType>
@@ -20,22 +19,19 @@ export default function History({ form, isEdit: _isEdit }: HistoryProps) {
 
   const formValues = form.getValues()
   const accountDetails = {
-    createBy: formValues.createById?.toString() || "",
+    createBy: formValues.createBy || "",
     createDate: (formValues.createDate || "").toString(),
-    editBy: formValues.editById?.toString() || "",
+    editBy: formValues.editBy || "",
     editDate: formValues.editDate ? formValues.editDate?.toString() : "",
-    cancelBy: formValues.cancelById?.toString() || "",
+    cancelBy: formValues.cancelBy || "",
     cancelDate: formValues.cancelDate ? formValues.cancelDate?.toString() : "",
-    balanceAmt: Number(formValues.opBalAmt || 0),
-    balanceBaseAmt: Number(formValues.clBalAmt || 0),
-    paymentAmt: Number(formValues.totAmt || 0),
-    paymentBaseAmt: Number(formValues.totAmt || 0),
+    appBy: formValues.appBy || "",
+    appDate: formValues.appDate ? formValues.appDate?.toString() : "",
   }
 
   return (
     <div className="space-y-4">
       <AccountDetails {...accountDetails} />
-      <PaymentDetails invoiceId={form.getValues().reconId || ""} />
       <GLPostDetails invoiceId={form.getValues().reconId || ""} />
       <EditVersionDetails invoiceId={form.getValues().reconId || ""} />
     </div>

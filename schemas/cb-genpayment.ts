@@ -87,6 +87,7 @@ export const cbGenPaymentHdSchema = (
     postDate: z.union([z.date(), z.null()]).optional(),
     appStatusId: z.number().optional().nullable(),
     appById: z.number().optional().nullable(),
+    appBy: z.string().optional(),
     appDate: z.union([z.date(), z.null()]).optional(),
 
     // Nested Details
