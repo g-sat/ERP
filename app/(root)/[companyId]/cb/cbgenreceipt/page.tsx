@@ -442,6 +442,12 @@ export default function GenReceiptPage() {
               bargeName: detail.bargeName ?? "",
               voyageId: detail.voyageId ?? 0,
               voyageNo: detail.voyageNo ?? "",
+              jobOrderId: detail.jobOrderId ?? 0,
+              jobOrderNo: detail.jobOrderNo ?? "",
+              taskId: detail.taskId ?? 0,
+              taskName: detail.taskName ?? "",
+              serviceId: detail.serviceId ?? 0,
+              serviceName: detail.serviceName ?? "",
               editVersion: detail.editVersion ?? 0,
             }) as unknown as CbGenReceiptDtSchemaType
         ) || [],
