@@ -150,6 +150,8 @@ export default function CompanySelectPage() {
   ])
   const handleContinue = async () => {
     if (!selectedCompanyId) return
+    console.log("🎯 COMPANY-SELECT: User clicked Continue")
+    console.log("📊 Selected Company ID:", selectedCompanyId)
     setError(null)
     setIsLoading(true)
     try {
@@ -159,14 +161,20 @@ export default function CompanySelectPage() {
       if (!selectedCompany) {
         throw new Error("Invalid company. Please select again.")
       }
-      // OPTIMIZATION 1: Switch company with automatic decimal fetching
+      // Switch company with automatic decimal fetching
       if (currentCompany?.companyId !== selectedCompanyId) {
-        // Don't await - let it run in background with automatic decimal fetching
-        switchCompany(selectedCompanyId, true) // fetchDecimals = true (automatic)
+        console.log("🔄 STEP 2: Switching to company:", selectedCompanyId)
+        // Await to ensure decimals are loaded before navigation
+        await switchCompany(selectedCompanyId, true) // fetchDecimals = true
+        console.log("✅ STEP 2 COMPLETE: Company switch finished")
+      } else {
+        console.log("ℹ️ Company already selected, skipping switch")
       }
-      // OPTIMIZATION 2: Navigate immediately, let dashboard handle data loading
+      // Navigate to dashboard after company data is loaded
+      console.log("🚀 STEP 3: Navigating to dashboard")
       router.push(`/${selectedCompanyId}/dashboard`)
     } catch (err) {
+      console.error("❌ Company selection failed:", err)
       setError(err instanceof Error ? err.message : "Switch failed.")
     } finally {
       setIsLoading(false)

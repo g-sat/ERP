@@ -274,10 +274,13 @@ export const useAuthStore = create<AuthState>()(
             }
 
             if (data.result === 1) {
+              console.log("🔐 LOGIN SUCCESS: User authenticated")
               get().logInSuccess(data.user, data.token, data.refreshToken)
 
               if (!get().isAppLocked) {
+                console.log("🏢 STEP 1: Fetching companies...")
                 await get().getCompanies()
+                console.log("✅ STEP 1 COMPLETE: Companies fetched")
               }
             } else {
               set({ isLoading: false })
@@ -573,7 +576,13 @@ export const useAuthStore = create<AuthState>()(
             get().setCompanies(companies)
 
             if (!get().currentCompany && companies.length > 0) {
-              await get().switchCompany(companies[0].companyId, false)
+              console.log(
+                "🔄 AUTO-SELECTING FIRST COMPANY:",
+                companies[0].companyId
+              )
+              console.log("📊 Will fetch decimals: true")
+              await get().switchCompany(companies[0].companyId, true)
+              console.log("✅ AUTO-SELECTION COMPLETE")
             }
           } catch {}
         },
@@ -592,11 +601,11 @@ export const useAuthStore = create<AuthState>()(
          * 4. Graceful error recovery
          */
         switchCompany: async (companyId: string, fetchDecimals = true) => {
-          // console.log("🏢 STEP 1: Company Switch Initiated")
-          // console.log("📊 Switch Parameters:", {
-          //   newCompanyId: companyId,
-          //   fetchDecimals: fetchDecimals,
-          // })
+          console.log("🏢 SWITCH COMPANY: Starting for company:", companyId)
+          console.log("📊 Switch Parameters:", {
+            newCompanyId: companyId,
+            fetchDecimals: fetchDecimals,
+          })
 
           const { companies, currentCompany } = get()
           // console.log("📋 Current State:", {
@@ -680,70 +689,62 @@ export const useAuthStore = create<AuthState>()(
             // })
             // console.log("✅ STEP 6: Zustand store updated")
 
-            // console.log("🔄 STEP 7: Preparing background API calls")
+            console.log("🔄 PREPARING API CALLS:")
             const apiPromises = []
-            // console.log("📋 API calls to execute:", {
-            //   fetchDecimals: fetchDecimals,
-            //   getUserTransactions: true,
-            //   getPermissions: true,
-            // })
+            console.log("📋 API calls to execute:", {
+              fetchDecimals: fetchDecimals,
+              getUserTransactions: true,
+            })
 
             if (fetchDecimals) {
-              // console.log("📊 STEP 7a: Adding getDecimals() to API queue")
-              // console.log("🔍 Company ID check before getDecimals():", {
-              //   sessionStorage: sessionStorage.getItem("tab_company_id"),
-              //   zustandStore: get().currentCompany?.companyId,
-              //   targetCompanyId: companyId,
-              // })
+              console.log("📊 Adding getDecimals() to API queue")
               apiPromises.push(get().getDecimals())
+            } else {
+              console.warn(
+                "⚠️ SKIPPING getDecimals() - fetchDecimals is false!"
+              )
             }
 
-            // console.log("🔐 STEP 7b: Adding getUserTransactions() to API queue")
-            // console.log("🔍 Company ID check before getUserTransactions():", {
-            //   sessionStorage: sessionStorage.getItem("tab_company_id"),
-            //   zustandStore: get().currentCompany?.companyId,
-            //   targetCompanyId: companyId,
-            // })
+            console.log("🔐 Adding getUserTransactions() to API queue")
             apiPromises.push(
               get()
                 .getUserTransactions()
                 .then(() => {})
             )
 
-            // console.log("🚀 STEP 8: Executing background API calls in parallel")
-            // console.log("📊 Total API calls:", apiPromises.length)
+            console.log("🚀 EXECUTING API CALLS IN PARALLEL")
+            console.log("📊 Total API calls:", apiPromises.length)
 
-            // Execute all API calls in parallel, don't block the return
-            Promise.allSettled(apiPromises).then((results) => {
-              // console.log("📊 STEP 9: Background API calls completed")
-              // console.log("📋 Results summary:", {
-              //   total: results.length,
-              //   fulfilled: results.filter((r) => r.status === "fulfilled")
-              //     .length,
-              //   rejected: results.filter((r) => r.status === "rejected").length,
-              // })
+            // Execute all API calls in parallel and await completion
+            const results = await Promise.allSettled(apiPromises)
 
-              results.forEach((result, index) => {
-                if (result.status === "rejected") {
-                  console.warn(
-                    `❌ Background API call ${index} failed:`,
-                    result.reason
-                  )
-                }
-                // else {
-                //   console.log(`✅ Background API call ${index} succeeded`)
-                // }
-              })
+            console.log("📊 API CALLS COMPLETED")
+            console.log("📋 Results summary:", {
+              total: results.length,
+              fulfilled: results.filter((r) => r.status === "fulfilled").length,
+              rejected: results.filter((r) => r.status === "rejected").length,
             })
 
-            // console.log("✅ STEP 10: Company switch completed successfully")
-            // console.log("🎯 Final result:", {
-            //   newCompanyId: company.companyId,
-            //   newCompanyName: company.companyName,
-            //   apiCallsInProgress: apiPromises.length,
-            // })
+            results.forEach((result, index) => {
+              const apiName =
+                index === 0 && fetchDecimals
+                  ? "getDecimals"
+                  : "getUserTransactions"
+              if (result.status === "rejected") {
+                console.error(`❌ ${apiName} failed:`, result.reason)
+              } else {
+                console.log(`✅ ${apiName} succeeded`)
+              }
+            })
 
-            // Return immediately for fast navigation
+            console.log("✅ COMPANY SWITCH COMPLETED SUCCESSFULLY")
+            console.log("🎯 Final result:", {
+              newCompanyId: company.companyId,
+              newCompanyName: company.companyName,
+              apiCallsCompleted: results.length,
+            })
+
+            // Return after all data is loaded
             return company
           } catch (error) {
             console.error("❌ STEP FAILED: Company switch failed:", error)
@@ -807,22 +808,48 @@ export const useAuthStore = create<AuthState>()(
         getDecimals: async () => {
           const { currentCompany, user } = get()
 
-          if (!currentCompany || !user) return
+          console.log(
+            "🔢 getDecimals called for company:",
+            currentCompany?.companyId
+          )
+
+          if (!currentCompany || !user) {
+            console.warn("⚠️ getDecimals aborted: No company or user")
+            return
+          }
 
           try {
             const response = await getData(DecimalSetting.get)
 
             const data = response.data
-            const decimaldata = data.data || data || []
 
-            if (Array.isArray(decimaldata) && decimaldata.length > 0) {
+            console.log("🔢 getDecimals response:", data)
+            console.log(
+              "🔍 Response type:",
+              Array.isArray(data) ? "Array" : typeof data
+            )
+
+            // Handle both array and object responses
+            let decimaldata: IDecimal[]
+            if (Array.isArray(data)) {
+              decimaldata = data
+            } else if (data && typeof data === "object") {
+              // API returned single object, wrap it in array
+              decimaldata = [data as IDecimal]
+            } else {
+              decimaldata = []
+            }
+
+            if (decimaldata.length > 0) {
+              console.log("✅ Decimals loaded successfully:", decimaldata[0])
               get().setDecimals(decimaldata)
             } else {
+              console.warn("⚠️ No decimal data received, using defaults")
               // Use fallback defaults if no data received
               get().setDecimals([getDefaultDecimalSettings()])
             }
           } catch (error) {
-            console.error("Error fetching decimal settings:", error)
+            console.error("❌ Error fetching decimal settings:", error)
             // Graceful fallback to default settings
             get().setDecimals([getDefaultDecimalSettings()])
           }
