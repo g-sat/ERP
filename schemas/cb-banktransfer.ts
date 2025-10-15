@@ -40,26 +40,26 @@ export const CbBankTransferSchema = (
     // From Bank Fields
     fromBankId: z.number().min(1, "From Bank is required"),
     fromCurrencyId: z.number().min(1, "From Currency is required"),
-    fromExhRate: z
+    fromExhRate: z.number().min(0, "From Exchange Rate is required"),
+    fromBankChgGLId: z.number().optional(),
+    fromBankChgAmt: z.number().optional(),
+    fromBankChgLocalAmt: z.number().optional(),
+    fromTotAmt: z
       .number()
-      .min(0.000001, "From Exchange Rate must be greater than 0"),
-    fromBankChgGLId: z.number().min(1, "From Bank Charge GL is required"),
-    fromBankChgAmt: z.number().min(0),
-    fromBankChgLocalAmt: z.number().min(0),
-    fromTotAmt: z.number().min(0, "From Total Amount is required"),
-    fromTotLocalAmt: z.number().min(0),
+      .min(0, "From Total Amount must be greater than or equal to 0"),
+    fromTotLocalAmt: z.number().optional(),
 
     // To Bank Fields
     toBankId: z.number().min(1, "To Bank is required"),
     toCurrencyId: z.number().min(1, "To Currency is required"),
-    toExhRate: z
+    toExhRate: z.number().min(0, "To Exchange Rate is required"),
+    toBankChgGLId: z.number().optional(),
+    toBankChgAmt: z.number().optional(),
+    toBankChgLocalAmt: z.number().optional(),
+    toTotAmt: z
       .number()
-      .min(0.000001, "To Exchange Rate must be greater than 0"),
-    toBankChgGLId: z.number().min(1, "To Bank Charge GL is required"),
-    toBankChgAmt: z.number().min(0),
-    toBankChgLocalAmt: z.number().min(0),
-    toTotAmt: z.number().min(0, "To Total Amount is required"),
-    toTotLocalAmt: z.number().min(0),
+      .min(0, "To Total Amount must be greater than or equal to 0"),
+    toTotLocalAmt: z.number().optional(),
 
     // Bank Exchange Fields
     bankExhRate: z.number().min(0),

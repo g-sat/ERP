@@ -412,6 +412,78 @@ export const setExchangeRate = async (
  * Also sets city exchange rate if not using separate city currency
  * Modules: AP, AR, CB, GL
  */
+export const setFromExchangeRate = async (
+  form: HdForm,
+  round: number | 6,
+  visible: IVisibleFields,
+  currencyFieldName: string = "currencyId"
+) => {
+  // to set exhange rate
+  const accountDate = form?.getValues("accountDate")
+  const currencyId = form?.getValues(currencyFieldName)
+
+  if (accountDate && currencyId) {
+    try {
+      const dt =
+        typeof accountDate === "string"
+          ? format(
+              parse(accountDate, clientDateFormat, new Date()),
+              "yyyy-MM-dd"
+            )
+          : format(accountDate, "yyyy-MM-dd")
+      const res = await getData(
+        `${BasicSetting.getExchangeRate}/${currencyId}/${dt}`
+      )
+
+      const exhRate = res?.data
+
+      form.setValue("fromExhRate", +Number(exhRate).toFixed(round))
+      form.trigger("fromExhRate")
+    } catch {}
+  }
+}
+
+/**
+ * Fetch and set exchange rate based on currency and date
+ * Also sets city exchange rate if not using separate city currency
+ * Modules: AP, AR, CB, GL
+ */
+export const setToExchangeRate = async (
+  form: HdForm,
+  round: number | 6,
+  visible: IVisibleFields,
+  currencyFieldName: string = "currencyId"
+) => {
+  // to set exhange rate
+  const accountDate = form?.getValues("accountDate")
+  const currencyId = form?.getValues(currencyFieldName)
+
+  if (accountDate && currencyId) {
+    try {
+      const dt =
+        typeof accountDate === "string"
+          ? format(
+              parse(accountDate, clientDateFormat, new Date()),
+              "yyyy-MM-dd"
+            )
+          : format(accountDate, "yyyy-MM-dd")
+      const res = await getData(
+        `${BasicSetting.getExchangeRate}/${currencyId}/${dt}`
+      )
+
+      const exhRate = res?.data
+
+      form.setValue("toExhRate", +Number(exhRate).toFixed(round))
+      form.trigger("toExhRate")
+    } catch {}
+  }
+}
+
+/**
+ * Fetch and set exchange rate based on currency and date
+ * Also sets city exchange rate if not using separate city currency
+ * Modules: AP, AR, CB, GL
+ */
 export const setPayExchangeRate = async (form: HdForm, round: number | 6) => {
   // to set exhange rate
   const { accountDate, payCurrencyId } = form?.getValues()
