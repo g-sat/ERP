@@ -290,6 +290,24 @@ export default function BatchPaymentDetailsForm({
         return
       }
 
+      // Check for duplicate records
+      const isDuplicate = checkDuplicateRecord(data)
+      if (isDuplicate) {
+        // Show confirmation dialog
+        const confirmed = window.confirm(
+          `A record with the same Invoice Date (${data.invoiceDate}), Invoice No (${data.invoiceNo}), and Supplier Name (${data.supplierName}) already exists.\n\nDo you want to add this record anyway?`
+        )
+
+        if (!confirmed) {
+          // User clicked "No" - reset the form
+          const nextItemNo = getNextItemNo()
+          form.reset(createDefaultValues(nextItemNo))
+          toast.info("Form reset due to duplicate record")
+          return
+        }
+        // User clicked "Yes" - continue with submission
+      }
+
       // Use itemNo as the unique identifier
       const currentItemNo = data.itemNo || getNextItemNo()
 
@@ -370,6 +388,22 @@ export default function BatchPaymentDetailsForm({
   // ============================================================================
   // HANDLERS
   // ============================================================================
+
+  // Check for duplicate records based on invoiceDate, invoiceNo, and supplierName
+  const checkDuplicateRecord = (data: CbBatchPaymentDtSchemaType): boolean => {
+    if (existingDetails.length === 0) return false
+
+    // Find if any existing record has the same invoiceDate, invoiceNo, and supplierName
+    const duplicate = existingDetails.find(
+      (detail: CbBatchPaymentDtSchemaType) =>
+        detail.invoiceDate === data.invoiceDate &&
+        detail.invoiceNo === data.invoiceNo &&
+        detail.supplierName === data.supplierName &&
+        detail.itemNo !== data.itemNo // Exclude the current record if editing
+    )
+
+    return !!duplicate
+  }
 
   // Handle chart of account selection
   const handleChartOfAccountChange = (
@@ -578,6 +612,84 @@ export default function BatchPaymentDetailsForm({
 
   const handleGstAmountChange = (value: number) => {
     form.setValue("gstAmt", value)
+  }
+
+  // Handle repeat last record
+  const handleRepeatLastRecord = () => {
+    if (existingDetails.length === 0) {
+      toast.error("No records to repeat")
+      return
+    }
+
+    // Get the last record
+    const lastRecord = existingDetails[existingDetails.length - 1]
+    const nextItemNo = getNextItemNo()
+
+    // Determine if last record was job-specific or department-specific
+    const hasJobOrder = (lastRecord.jobOrderId ?? 0) > 0
+    const hasDepartment = (lastRecord.departmentId ?? 0) > 0
+
+    if (hasJobOrder) {
+      setIsJobSpecific(true)
+    } else if (hasDepartment) {
+      setIsJobSpecific(false)
+    }
+
+    // Reset form with last record data but clear all amounts and set next itemNo
+    form.reset({
+      paymentId: lastRecord.paymentId ?? "0",
+      paymentNo: lastRecord.paymentNo ?? "",
+      itemNo: nextItemNo,
+      seqNo: nextItemNo,
+      invoiceDate: lastRecord.invoiceDate ?? "",
+      invoiceNo: lastRecord.invoiceNo ?? "",
+      supplierName: lastRecord.supplierName ?? "",
+
+      glId: lastRecord.glId ?? 0,
+      glCode: lastRecord.glCode ?? "",
+      glName: lastRecord.glName ?? "",
+
+      // Clear all amounts
+      totAmt: 0,
+      totLocalAmt: 0,
+      totCtyAmt: 0,
+      remarks: lastRecord.remarks ?? "",
+      gstId: lastRecord.gstId ?? 0,
+      gstName: lastRecord.gstName ?? "",
+      gstPercentage: lastRecord.gstPercentage ?? 0,
+      // Clear GST amounts
+      gstAmt: 0,
+      gstLocalAmt: 0,
+      gstCtyAmt: 0,
+
+      departmentId: lastRecord.departmentId ?? 0,
+      departmentCode: lastRecord.departmentCode ?? "",
+      departmentName: lastRecord.departmentName ?? "",
+      jobOrderId: lastRecord.jobOrderId ?? 0,
+      jobOrderNo: lastRecord.jobOrderNo ?? "",
+      taskId: lastRecord.taskId ?? 0,
+      taskName: lastRecord.taskName ?? "",
+      serviceId: lastRecord.serviceId ?? 0,
+      serviceName: lastRecord.serviceName ?? "",
+      employeeId: lastRecord.employeeId ?? 0,
+      employeeCode: lastRecord.employeeCode ?? "",
+      employeeName: lastRecord.employeeName ?? "",
+      portId: lastRecord.portId ?? 0,
+      portCode: lastRecord.portCode ?? "",
+      portName: lastRecord.portName ?? "",
+      vesselId: lastRecord.vesselId ?? 0,
+      vesselCode: lastRecord.vesselCode ?? "",
+      vesselName: lastRecord.vesselName ?? "",
+      bargeId: lastRecord.bargeId ?? 0,
+      bargeCode: lastRecord.bargeCode ?? "",
+      bargeName: lastRecord.bargeName ?? "",
+      voyageId: lastRecord.voyageId ?? 0,
+      voyageNo: lastRecord.voyageNo ?? "",
+
+      editVersion: 0,
+    })
+
+    toast.success("Last record loaded for repeat")
   }
 
   return (
@@ -868,6 +980,16 @@ export default function BatchPaymentDetailsForm({
             >
               Reset
             </Button>
+            {existingDetails.length > 0 && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleRepeatLastRecord}
+              >
+                Repeat
+              </Button>
+            )}
             <Button
               type="submit"
               size="sm"

@@ -111,6 +111,11 @@ export const visibleFieldsSchema = z
     M_SupplyDate: z.boolean(),
     M_BankId: z.boolean(),
     M_CtyCurr: z.boolean(),
+    M_PayeeTo: z.boolean(),
+    M_GstClaimDate: z.boolean(),
+    M_TrnDate: z.boolean(),
+    M_AccountDate: z.boolean(),
+    M_JobOrderId: z.boolean(),
   })
   .partial()
 

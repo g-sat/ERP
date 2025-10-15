@@ -124,6 +124,7 @@ export interface IVisibleFields {
   m_SupplyDate: boolean
   m_BankId: boolean
   m_CtyCurr: boolean
+  m_PayeeTo: boolean
 }
 
 export interface INumberFormatDetails {

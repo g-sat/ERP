@@ -946,6 +946,7 @@ export const CbBankTransfer = {
   add: "/account/savecbbanktransfer",
   delete: "/account/deletecbbanktransfer",
   history: "/account/gethistorycbbanktransferbyid",
+  historyDetails: "/account/gethistorycbbanktransferdetailsbyid",
 }
 
 // General Ledger Journal Endpoints

@@ -424,6 +424,21 @@ export function VisibleTable() {
       ),
       size: 100,
     },
+    {
+      accessorKey: "m_PayeeTo",
+      header: "Payee To",
+      cell: ({ row }) => (
+        <div className="text-center">
+          <Checkbox
+            checked={row.original.m_PayeeTo}
+            onCheckedChange={(checked) =>
+              handleFieldChange(row.original, "m_PayeeTo", checked as boolean)
+            }
+          />
+        </div>
+      ),
+      size: 100,
+    },
   ]
 
   const handleSave = async () => {

@@ -29,13 +29,12 @@ import { BankChartOfAccountAutocomplete } from "@/components/autocomplete"
 import BankAutocomplete from "@/components/autocomplete/autocomplete-bank"
 import CurrencyAutocomplete from "@/components/autocomplete/autocomplete-currency"
 import PaymentTypeAutocomplete from "@/components/autocomplete/autocomplete-paymenttype"
+import PayeeSelectionDialog from "@/components/common/payee-selection-dialog"
 import { CustomDateNew } from "@/components/custom/custom-date-new"
 import CustomInput from "@/components/custom/custom-input"
 import CustomInputGroup from "@/components/custom/custom-input-group"
 import CustomNumberInput from "@/components/custom/custom-number-input"
 import CustomTextarea from "@/components/custom/custom-textarea"
-
-import PayeeSelectionDialog from "./payee-selection-dialog"
 
 interface PaymentFormProps {
   form: UseFormReturn<CbGenPaymentHdSchemaType>
