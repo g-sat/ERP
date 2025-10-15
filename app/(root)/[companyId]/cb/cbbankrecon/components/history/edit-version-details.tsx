@@ -9,8 +9,8 @@ import { AlertCircle } from "lucide-react"
 
 import { CBTransactionId, ModuleId, TableName } from "@/lib/utils"
 import {
-  useGetCBGenBankReconHistoryDetails,
-  useGetCBGenBankReconHistoryList,
+  useGetCBBankReconHistoryDetails,
+  useGetCBBankReconHistoryList,
 } from "@/hooks/use-cb"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -43,10 +43,10 @@ export default function EditVersionDetails({
     useState<ICbBankReconHd | null>(null)
 
   const { data: receiptHistoryData, refetch: refetchHistory } =
-    useGetCBGenBankReconHistoryList<ICbBankReconHd[]>(invoiceId)
+    useGetCBBankReconHistoryList<ICbBankReconHd[]>(invoiceId)
 
   const { data: receiptDetailsData, refetch: refetchDetails } =
-    useGetCBGenBankReconHistoryDetails<ICbBankReconHd>(
+    useGetCBBankReconHistoryDetails<ICbBankReconHd>(
       selectedBankRecon?.reconId || "",
       selectedBankRecon?.editVersion?.toString() || ""
     )
@@ -112,26 +112,7 @@ export default function EditVersionDetails({
         return date ? format(date, dateFormat) : "-"
       },
     },
-    {
-      accessorKey: "chequeDate",
-      header: "Cheque Date",
-      cell: ({ row }) => {
-        const date = row.original.chequeDate
-          ? new Date(row.original.chequeDate)
-          : null
-        return date ? format(date, dateFormat) : "-"
-      },
-    },
-    {
-      accessorKey: "gstClaimDate",
-      header: "GST Claim Date",
-      cell: ({ row }) => {
-        const date = row.original.gstClaimDate
-          ? new Date(row.original.gstClaimDate)
-          : null
-        return date ? format(date, dateFormat) : "-"
-      },
-    },
+
     {
       accessorKey: "customerCode",
       header: "Customer Code",
@@ -147,28 +128,6 @@ export default function EditVersionDetails({
     {
       accessorKey: "currencyName",
       header: "Currency Name",
-    },
-    {
-      accessorKey: "exhRate",
-      header: "Exchange Rate",
-      cell: ({ row }) => (
-        <div className="text-right">
-          {row.original.exhRate
-            ? row.original.exhRate.toFixed(exhRateDec)
-            : "-"}
-        </div>
-      ),
-    },
-    {
-      accessorKey: "ctyExhRate",
-      header: "Country Exchange Rate",
-      cell: ({ row }) => (
-        <div className="text-right">
-          {row.original.ctyExhRate
-            ? row.original.ctyExhRate.toFixed(exhRateDec)
-            : "-"}
-        </div>
-      ),
     },
     {
       accessorKey: "creditTermCode",
@@ -195,59 +154,7 @@ export default function EditVersionDetails({
         </div>
       ),
     },
-    {
-      accessorKey: "totLocalAmt",
-      header: "Total Local Amount",
-      cell: ({ row }) => (
-        <div className="text-right">
-          {row.original.totLocalAmt
-            ? row.original.totLocalAmt.toFixed(locAmtDec)
-            : "-"}
-        </div>
-      ),
-    },
-    {
-      accessorKey: "gstAmt",
-      header: "GST Amount",
-      cell: ({ row }) => (
-        <div className="text-right">
-          {row.original.gstAmt ? row.original.gstAmt.toFixed(amtDec) : "-"}
-        </div>
-      ),
-    },
-    {
-      accessorKey: "gstLocalAmt",
-      header: "GST Local Amount",
-      cell: ({ row }) => (
-        <div className="text-right">
-          {row.original.gstLocalAmt
-            ? row.original.gstLocalAmt.toFixed(locAmtDec)
-            : "-"}
-        </div>
-      ),
-    },
-    {
-      accessorKey: "totAmtAftGst",
-      header: "Total After GST",
-      cell: ({ row }) => (
-        <div className="text-right">
-          {row.original.totAmtAftGst
-            ? row.original.totAmtAftGst.toFixed(amtDec)
-            : "-"}
-        </div>
-      ),
-    },
-    {
-      accessorKey: "totLocalAmtAftGst",
-      header: "Total Local After GST",
-      cell: ({ row }) => (
-        <div className="text-right">
-          {row.original.totLocalAmtAftGst
-            ? row.original.totLocalAmtAftGst.toFixed(locAmtDec)
-            : "-"}
-        </div>
-      ),
-    },
+
     {
       accessorKey: "remarks",
       header: "Remarks",
@@ -432,7 +339,7 @@ export default function EditVersionDetails({
                   columns={detailsColumns}
                   moduleId={moduleId}
                   transactionId={transactionId}
-                  tableName={TableName.CbBankReconHistory}
+                  tableName={TableName.cbBankReconHistory}
                   emptyMessage="No receipt details available"
                   onRefresh={handleRefresh}
                   showHeader={true}

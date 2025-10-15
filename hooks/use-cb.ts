@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query"
 
 import { getData } from "@/lib/api-client"
 import {
+  CbBankRecon,
   CbBankTransfer,
   CbBankTransferCtm,
   CbBatchPayment,
@@ -138,7 +139,7 @@ export function useGetCBBankTransferHistoryDetails<T>(
   })
 }
 
-// CB Gen Bank Transfer History Hooks
+// CB Gen Bank Transfer Ctm History Hooks
 export function useGetCBBankTransferCtmHistoryList<T>(
   transferId: string,
   options = {}
@@ -166,6 +167,35 @@ export function useGetCBBankTransferCtmHistoryDetails<T>(
       )
     },
     enabled: !!transferId && transferId !== "0" && !!editVersion,
+    ...options,
+  })
+}
+
+// CB Gen Bank Recon History Hooks
+export function useGetCBBankReconHistoryList<T>(reconId: string, options = {}) {
+  return useQuery<ApiResponse<T>>({
+    queryKey: ["cb-bankrecon-history-list", reconId],
+    queryFn: async () => {
+      return await getData(`${CbBankRecon.history}/${reconId}`)
+    },
+    enabled: !!reconId && reconId !== "0",
+    ...options,
+  })
+}
+
+export function useGetCBBankReconHistoryDetails<T>(
+  reconId: string,
+  editVersion: string,
+  options = {}
+) {
+  return useQuery<ApiResponse<T>>({
+    queryKey: ["cb-bankrecon-history-details", reconId, editVersion],
+    queryFn: async () => {
+      return await getData(
+        `${CbBankRecon.historyDetails}/${reconId}/${editVersion}`
+      )
+    },
+    enabled: !!reconId && reconId !== "0" && !!editVersion,
     ...options,
   })
 }

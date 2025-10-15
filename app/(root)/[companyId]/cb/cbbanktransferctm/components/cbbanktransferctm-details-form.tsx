@@ -18,6 +18,7 @@ import {
 import { useAuthStore } from "@/stores/auth-store"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { FormProvider, UseFormReturn, useForm } from "react-hook-form"
+import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -54,7 +55,7 @@ interface BankTransferCtmDetailsFormProps {
 export default function BankTransferCtmDetailsForm({
   Hdform,
   onAddRowAction,
-  onCancelEdit,
+  onCancelEdit: _onCancelEdit,
   editingDetail,
   visible,
   required,
@@ -196,168 +197,175 @@ export default function BankTransferCtmDetailsForm({
     <FormProvider {...form}>
       <form
         onSubmit={form.handleSubmit(onSubmit)}
-        className="space-y-4 rounded-md p-4"
+        className="grid w-full grid-cols-7 gap-2 p-2"
       >
-        {/* ============ JOB ORDER SECTION ============ */}
+        <BankAutocomplete
+          form={form}
+          name="toBankId"
+          label="To Bank"
+          isRequired={true}
+          onChangeEvent={handleBankChange}
+        />
+
+        <CurrencyAutocomplete
+          form={form}
+          name="toCurrencyId"
+          label="To Currency"
+          isRequired={true}
+          onChangeEvent={handleToCurrencyChange}
+        />
+
+        <CustomNumberInput
+          form={form}
+          name="toExhRate"
+          label="To Exchange Rate"
+          round={exhRateDec}
+          isRequired={true}
+          className="text-right"
+          onBlurEvent={handleToExchangeRateChange}
+        />
+
         {visible?.m_JobOrderId && (
-          <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-700 dark:bg-amber-900/20">
-            <h3 className="mb-3 text-sm font-semibold text-amber-700 dark:text-amber-300">
-              Job Order Details
-            </h3>
-            <div className="grid grid-cols-3 gap-2">
-              <JobOrderAutocomplete
-                form={form}
-                name="jobOrderId"
-                label="Job Order"
-                isRequired={required?.m_JobOrderId}
-                onChangeEvent={handleJobOrderChange}
-              />
+          <>
+            <JobOrderAutocomplete
+              form={form}
+              name="jobOrderId"
+              label="Job Order"
+              isRequired={required?.m_JobOrderId}
+              onChangeEvent={handleJobOrderChange}
+            />
 
-              <JobOrderTaskAutocomplete
-                key={`task-${watchedJobOrderId}`}
-                form={form}
-                name="taskId"
-                jobOrderId={watchedJobOrderId || 0}
-                label="Task"
-                isRequired={required?.m_JobOrderId}
-                onChangeEvent={handleTaskChange}
-              />
+            <JobOrderTaskAutocomplete
+              key={`task-${watchedJobOrderId}`}
+              form={form}
+              name="taskId"
+              jobOrderId={watchedJobOrderId || 0}
+              label="Task"
+              isRequired={required?.m_JobOrderId}
+              onChangeEvent={handleTaskChange}
+            />
 
-              <JobOrderChargeAutocomplete
-                key={`service-${watchedJobOrderId}-${watchedTaskId}`}
-                form={form}
-                name="serviceId"
-                jobOrderId={watchedJobOrderId || 0}
-                taskId={watchedTaskId || 0}
-                label="Service"
-                isRequired={required?.m_JobOrderId}
-                onChangeEvent={handleServiceChange}
-              />
-            </div>
-          </div>
+            <JobOrderChargeAutocomplete
+              key={`service-${watchedJobOrderId}-${watchedTaskId}`}
+              form={form}
+              name="serviceId"
+              jobOrderId={watchedJobOrderId || 0}
+              taskId={watchedTaskId || 0}
+              label="Service"
+              isRequired={required?.m_JobOrderId}
+              onChangeEvent={handleServiceChange}
+            />
+          </>
         )}
 
-        {/* ============ TO BANK SECTION ============ */}
-        <div className="rounded-lg border border-green-200 bg-green-50 p-4 dark:border-green-700 dark:bg-green-900/20">
-          <h3 className="mb-3 text-sm font-semibold text-green-700 dark:text-green-300">
-            To Bank Details
-          </h3>
-          <div className="grid grid-cols-3 gap-2">
-            <BankAutocomplete
-              form={form}
-              name="toBankId"
-              label="To Bank"
-              isRequired={true}
-              onChangeEvent={handleBankChange}
-            />
+        <BankChartOfAccountAutocomplete
+          form={form}
+          name="toBankChgGLId"
+          label="To Bank Charge GL"
+          companyId={companyId}
+        />
 
-            <CurrencyAutocomplete
-              form={form}
-              name="toCurrencyId"
-              label="To Currency"
-              isRequired={true}
-              onChangeEvent={handleToCurrencyChange}
-            />
+        <CustomNumberInput
+          form={form}
+          name="toBankChgAmt"
+          label="To Bank Charge Amt"
+          round={amtDec}
+          className="text-right"
+        />
 
-            <CustomNumberInput
-              form={form}
-              name="toExhRate"
-              label="To Exchange Rate"
-              round={exhRateDec}
-              isRequired={true}
-              className="text-right"
-              onBlurEvent={handleToExchangeRateChange}
-            />
+        <CustomNumberInput
+          form={form}
+          name="toBankChgLocalAmt"
+          label="To Bank Charge Local Amt"
+          round={locAmtDec}
+          isDisabled={true}
+          className="text-right"
+        />
 
-            <BankChartOfAccountAutocomplete
-              form={form}
-              name="toBankChgGLId"
-              label="To Bank Charge GL"
-              companyId={companyId}
-            />
+        <CustomNumberInput
+          form={form}
+          name="toTotAmt"
+          label="To Total Amount"
+          round={amtDec}
+          isRequired={true}
+          className="text-right"
+        />
 
-            <CustomNumberInput
-              form={form}
-              name="toBankChgAmt"
-              label="To Bank Charge Amt"
-              round={amtDec}
-              className="text-right"
-            />
+        <CustomNumberInput
+          form={form}
+          name="toTotLocalAmt"
+          label="To Total Local Amt"
+          round={locAmtDec}
+          isDisabled={true}
+          className="text-right"
+        />
 
-            <CustomNumberInput
-              form={form}
-              name="toBankChgLocalAmt"
-              label="To Bank Charge Local Amt"
-              round={locAmtDec}
-              isDisabled={true}
-              className="text-right"
-            />
+        <CustomNumberInput
+          form={form}
+          name="bankExhRate"
+          label="Bank Exchange Rate"
+          round={exhRateDec}
+          isRequired={true}
+          className="text-right"
+        />
 
-            <CustomNumberInput
-              form={form}
-              name="toTotAmt"
-              label="To Total Amount"
-              round={amtDec}
-              isRequired={true}
-              className="text-right"
-            />
+        <CustomNumberInput
+          form={form}
+          name="bankTotAmt"
+          label="Bank Total Amount"
+          round={amtDec}
+          isRequired={true}
+          className="text-right"
+        />
 
-            <CustomNumberInput
-              form={form}
-              name="toTotLocalAmt"
-              label="To Total Local Amt"
-              round={locAmtDec}
-              isDisabled={true}
-              className="text-right"
-            />
-          </div>
-        </div>
+        <CustomNumberInput
+          form={form}
+          name="bankTotLocalAmt"
+          label="Bank Total Local Amount"
+          round={locAmtDec}
+          isDisabled={true}
+          className="text-right"
+        />
 
-        {/* ============ BANK EXCHANGE SECTION ============ */}
-        <div className="rounded-lg border border-purple-200 bg-purple-50 p-4 dark:border-purple-700 dark:bg-purple-900/20">
-          <h3 className="mb-3 text-sm font-semibold text-purple-700 dark:text-purple-300">
-            Bank Exchange Details
-          </h3>
-          <div className="grid grid-cols-3 gap-2">
-            <CustomNumberInput
-              form={form}
-              name="bankExhRate"
-              label="Bank Exchange Rate"
-              round={exhRateDec}
-              isRequired={true}
-              className="text-right"
-            />
+        {/* Action buttons */}
+        <div className="col-span-1 flex items-center gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="ml-auto"
+            onClick={() => {
+              const nextItemNo = getNextItemNo()
+              form.reset(createDefaultValues(nextItemNo))
+              toast.info("Form reset")
+            }}
+          >
+            Reset
+          </Button>
 
-            <CustomNumberInput
-              form={form}
-              name="bankTotAmt"
-              label="Bank Total Amount"
-              round={amtDec}
-              isRequired={true}
-              className="text-right"
-            />
-
-            <CustomNumberInput
-              form={form}
-              name="bankTotLocalAmt"
-              label="Bank Total Local Amount"
-              round={locAmtDec}
-              isDisabled={true}
-              className="text-right"
-            />
-          </div>
-        </div>
-
-        {/* ============ ACTION BUTTONS ============ */}
-        <div className="flex justify-end gap-2">
-          {editingDetail && onCancelEdit && (
-            <Button type="button" variant="outline" onClick={onCancelEdit}>
+          <Button
+            type="submit"
+            size="sm"
+            className="ml-auto"
+            disabled={form.formState.isSubmitting}
+          >
+            {editingDetail ? "Update" : "Add"}
+          </Button>
+          {editingDetail && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                _onCancelEdit?.()
+                const nextItemNo = getNextItemNo()
+                form.reset(createDefaultValues(nextItemNo))
+                toast.info("Edit cancelled")
+              }}
+            >
               Cancel
             </Button>
           )}
-          <Button type="submit">
-            {editingDetail ? "Update Detail" : "Add Detail"}
-          </Button>
         </div>
       </form>
     </FormProvider>

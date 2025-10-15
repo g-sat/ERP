@@ -301,7 +301,7 @@ export default function BankTransferCtmForm({
               name="remarks"
               label="Remarks"
               isRequired={required?.m_Remarks}
-              className="col-span-3"
+              className="col-span-2"
             />
           </div>
         </div>
@@ -311,7 +311,7 @@ export default function BankTransferCtmForm({
           <h3 className="mb-3 text-sm font-semibold text-blue-700 dark:text-blue-300">
             From Bank Details
           </h3>
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-8 gap-2">
             <BankAutocomplete
               form={form}
               name="fromBankId"

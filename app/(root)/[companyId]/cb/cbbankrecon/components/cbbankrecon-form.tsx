@@ -7,6 +7,7 @@ import { CbBankReconHdSchemaType } from "@/schemas"
 import { useAuthStore } from "@/stores/auth-store"
 import { FormProvider, UseFormReturn } from "react-hook-form"
 
+import { Button } from "@/components/ui/button"
 import BankAutocomplete from "@/components/autocomplete/autocomplete-bank"
 import CurrencyAutocomplete from "@/components/autocomplete/autocomplete-currency"
 import { CustomDateNew } from "@/components/custom/custom-date-new"
@@ -179,6 +180,18 @@ export default function BankReconForm({
           isRequired={required?.m_Remarks}
           className="col-span-3"
         />
+
+        {/* Action buttons */}
+        <div className="col-span-1 flex items-center gap-2">
+          <Button
+            type="submit"
+            size="sm"
+            className="ml-auto"
+            disabled={form.formState.isSubmitting}
+          >
+            Refresh
+          </Button>
+        </div>
       </form>
     </FormProvider>
   )

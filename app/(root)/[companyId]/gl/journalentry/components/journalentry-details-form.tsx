@@ -313,6 +313,19 @@ export default function JournalDetailsForm({
     }
   }
 
+  // Handle Product selection
+  const handleProductChange = (selectedProduct: IProductLookup | null) => {
+    if (selectedProduct) {
+      form.setValue("productCode", selectedProduct.productCode)
+      form.setValue("productName", selectedProduct.productName)
+    } else {
+      // Clear product fields
+      form.setValue("productId", 0, { shouldValidate: true })
+      form.setValue("productCode", "")
+      form.setValue("productName", "")
+    }
+  }
+
   // Handle Chart of Account selection
   const handleChartOfAccountChange = async (
     selectedAccount: IChartofAccountLookup | null
@@ -326,6 +339,23 @@ export default function JournalDetailsForm({
       const accountIsJobSpecific = selectedAccount.isJobSpecific || false
       setIsJobSpecific(accountIsJobSpecific)
 
+      // Reset dependent fields when switching between job-specific and department-specific
+      // This prevents invalid data from being submitted
+      if (!accountIsJobSpecific) {
+        // Department-Specific: Reset job-related fields
+        form.setValue("jobOrderId", 0, { shouldValidate: true })
+        form.setValue("jobOrderNo", "")
+        form.setValue("taskId", 0, { shouldValidate: true })
+        form.setValue("taskName", "")
+        form.setValue("serviceId", 0, { shouldValidate: true })
+        form.setValue("serviceName", "")
+      } else {
+        // Job-Specific: Reset department field
+        form.setValue("departmentId", 0, { shouldValidate: true })
+        form.setValue("departmentCode", "")
+        form.setValue("departmentName", "")
+      }
+
       // Sync header GST date
       await setGSTPercentage(
         Hdform,
@@ -333,6 +363,203 @@ export default function JournalDetailsForm({
         decimals[0],
         visible
       )
+    } else {
+      // Clear COA and all related fields when account is cleared
+      form.setValue("glCode", "")
+      form.setValue("glName", "")
+
+      // Clear all dimensional fields
+      form.setValue("departmentId", 0, { shouldValidate: true })
+      form.setValue("departmentCode", "")
+      form.setValue("departmentName", "")
+
+      form.setValue("jobOrderId", 0, { shouldValidate: true })
+      form.setValue("jobOrderNo", "")
+      form.setValue("taskId", 0, { shouldValidate: true })
+      form.setValue("taskName", "")
+      form.setValue("serviceId", 0, { shouldValidate: true })
+      form.setValue("serviceName", "")
+
+      form.setValue("employeeId", 0, { shouldValidate: true })
+      form.setValue("employeeCode", "")
+      form.setValue("employeeName", "")
+
+      form.setValue("portId", 0, { shouldValidate: true })
+      form.setValue("portCode", "")
+      form.setValue("portName", "")
+
+      form.setValue("vesselId", 0, { shouldValidate: true })
+      form.setValue("vesselCode", "")
+      form.setValue("vesselName", "")
+
+      form.setValue("bargeId", 0, { shouldValidate: true })
+      form.setValue("bargeCode", "")
+      form.setValue("bargeName", "")
+
+      form.setValue("voyageId", 0, { shouldValidate: true })
+      form.setValue("voyageNo", "")
+
+      // Reset to department mode by default
+      setIsJobSpecific(false)
+    }
+  }
+
+  // Handle job order selection
+  const handleJobOrderChange = (selectedOption: IJobOrderLookup | null) => {
+    if (selectedOption) {
+      form.setValue("jobOrderId", selectedOption.jobOrderId, {
+        shouldValidate: true,
+        shouldDirty: true,
+      })
+      form.setValue("jobOrderNo", selectedOption.jobOrderNo || "")
+      // Reset task and service when job order changes
+      form.setValue("taskId", 0, { shouldValidate: true })
+      form.setValue("serviceId", 0, { shouldValidate: true })
+    } else {
+      // Clear job order and related fields
+      form.setValue("jobOrderId", 0, { shouldValidate: true })
+      form.setValue("jobOrderNo", "")
+      form.setValue("taskId", 0, { shouldValidate: true })
+      form.setValue("taskName", "")
+      form.setValue("serviceId", 0, { shouldValidate: true })
+      form.setValue("serviceName", "")
+    }
+  }
+
+  // Handle task selection
+  const handleTaskChange = (selectedOption: ITaskLookup | null) => {
+    if (selectedOption) {
+      form.setValue("taskId", selectedOption.taskId, {
+        shouldValidate: true,
+        shouldDirty: true,
+      })
+      form.setValue("taskName", selectedOption.taskName || "")
+      // Reset service when task changes
+      form.setValue("serviceId", 0, { shouldValidate: true })
+    } else {
+      // Clear task and service fields
+      form.setValue("taskId", 0, { shouldValidate: true })
+      form.setValue("taskName", "")
+      form.setValue("serviceId", 0, { shouldValidate: true })
+      form.setValue("serviceName", "")
+    }
+  }
+
+  // Handle service selection
+  const handleServiceChange = (selectedOption: IServiceLookup | null) => {
+    if (selectedOption) {
+      form.setValue("serviceId", selectedOption.serviceId, {
+        shouldValidate: true,
+        shouldDirty: true,
+      })
+      form.setValue(
+        "serviceName",
+        selectedOption.serviceCode + " " + selectedOption.serviceName || ""
+      )
+    } else {
+      // Clear service fields
+      form.setValue("serviceId", 0, { shouldValidate: true })
+      form.setValue("serviceName", "")
+    }
+  }
+
+  // Handle department selection
+  const handleDepartmentChange = (selectedOption: IDepartmentLookup | null) => {
+    if (selectedOption) {
+      form.setValue("departmentId", selectedOption.departmentId, {
+        shouldValidate: true,
+        shouldDirty: true,
+      })
+      form.setValue("departmentCode", selectedOption.departmentCode || "")
+      form.setValue("departmentName", selectedOption.departmentName || "")
+    } else {
+      // Clear department fields
+      form.setValue("departmentId", 0, { shouldValidate: true })
+      form.setValue("departmentCode", "")
+      form.setValue("departmentName", "")
+    }
+  }
+
+  // Handle employee selection
+  const handleEmployeeChange = (selectedOption: IEmployeeLookup | null) => {
+    if (selectedOption) {
+      form.setValue("employeeId", selectedOption.employeeId, {
+        shouldValidate: true,
+        shouldDirty: true,
+      })
+      form.setValue("employeeCode", selectedOption.employeeCode || "")
+      form.setValue("employeeName", selectedOption.employeeName || "")
+    } else {
+      // Clear employee fields
+      form.setValue("employeeId", 0, { shouldValidate: true })
+      form.setValue("employeeCode", "")
+      form.setValue("employeeName", "")
+    }
+  }
+
+  // Handle barge selection
+  const handleBargeChange = (selectedOption: IBargeLookup | null) => {
+    if (selectedOption) {
+      form.setValue("bargeId", selectedOption.bargeId, {
+        shouldValidate: true,
+        shouldDirty: true,
+      })
+      form.setValue("bargeCode", selectedOption.bargeCode || "")
+      form.setValue("bargeName", selectedOption.bargeName || "")
+    } else {
+      // Clear barge fields
+      form.setValue("bargeId", 0, { shouldValidate: true })
+      form.setValue("bargeCode", "")
+      form.setValue("bargeName", "")
+    }
+  }
+
+  // Handle Port selection
+  const handlePortChange = (selectedOption: IPortLookup | null) => {
+    if (selectedOption) {
+      form.setValue("portId", selectedOption.portId, {
+        shouldValidate: true,
+        shouldDirty: true,
+      })
+      form.setValue("portCode", selectedOption.portCode || "")
+      form.setValue("portName", selectedOption.portName || "")
+    } else {
+      // Clear port fields
+      form.setValue("portId", 0, { shouldValidate: true })
+      form.setValue("portCode", "")
+      form.setValue("portName", "")
+    }
+  }
+
+  // Handle Vessel selection
+  const handleVesselChange = (selectedOption: IVesselLookup | null) => {
+    if (selectedOption) {
+      form.setValue("vesselId", selectedOption.vesselId, {
+        shouldValidate: true,
+        shouldDirty: true,
+      })
+      form.setValue("vesselCode", selectedOption.vesselCode || "")
+      form.setValue("vesselName", selectedOption.vesselName || "")
+    } else {
+      // Clear vessel fields
+      form.setValue("vesselId", 0, { shouldValidate: true })
+      form.setValue("vesselCode", "")
+      form.setValue("vesselName", "")
+    }
+  }
+
+  // Handle Voyage selection
+  const handleVoyageChange = (selectedOption: IVoyageLookup | null) => {
+    if (selectedOption) {
+      form.setValue("voyageId", selectedOption.voyageId, {
+        shouldValidate: true,
+        shouldDirty: true,
+      })
+      form.setValue("voyageNo", selectedOption.voyageNo || "")
+    } else {
+      // Clear voyage fields
+      form.setValue("voyageId", 0, { shouldValidate: true })
+      form.setValue("voyageNo", "")
     }
   }
 
@@ -354,63 +581,14 @@ export default function JournalDetailsForm({
       form.setValue("gstAmt", rowData.gstAmt)
       form.setValue("gstLocalAmt", rowData.gstLocalAmt)
       form.setValue("gstCtyAmt", rowData.gstCtyAmt)
-    }
-  }
-
-  // Handle Product selection
-  const handleProductChange = (selectedProduct: IProductLookup | null) => {
-    if (selectedProduct) {
-      form.setValue("productCode", selectedProduct.productCode)
-      form.setValue("productName", selectedProduct.productName)
-    }
-  }
-
-  // Handle Department selection
-  const handleDepartmentChange = (
-    selectedDepartment: IDepartmentLookup | null
-  ) => {
-    if (selectedDepartment) {
-      form.setValue("departmentCode", selectedDepartment.departmentCode)
-      form.setValue("departmentName", selectedDepartment.departmentName)
-    }
-  }
-
-  // Handle Employee selection
-  const handleEmployeeChange = (selectedEmployee: IEmployeeLookup | null) => {
-    if (selectedEmployee) {
-      form.setValue("employeeCode", selectedEmployee.employeeCode)
-      form.setValue("employeeName", selectedEmployee.employeeName)
-    }
-  }
-
-  // Handle Port selection
-  const handlePortChange = (selectedPort: IPortLookup | null) => {
-    if (selectedPort) {
-      form.setValue("portCode", selectedPort.portCode)
-      form.setValue("portName", selectedPort.portName)
-    }
-  }
-
-  // Handle Vessel selection
-  const handleVesselChange = (selectedVessel: IVesselLookup | null) => {
-    if (selectedVessel) {
-      form.setValue("vesselCode", selectedVessel.vesselCode)
-      form.setValue("vesselName", selectedVessel.vesselName)
-    }
-  }
-
-  // Handle Barge selection
-  const handleBargeChange = (selectedBarge: IBargeLookup | null) => {
-    if (selectedBarge) {
-      form.setValue("bargeCode", selectedBarge.bargeCode)
-      form.setValue("bargeName", selectedBarge.bargeName)
-    }
-  }
-
-  // Handle Voyage selection
-  const handleVoyageChange = (selectedVoyage: IVoyageLookup | null) => {
-    if (selectedVoyage) {
-      form.setValue("voyageNo", selectedVoyage.voyageNo)
+    } else {
+      // Clear GST fields
+      form.setValue("gstId", 0, { shouldValidate: true })
+      form.setValue("gstName" as Path<GLJournalDtSchemaType>, "")
+      form.setValue("gstPercentage", 0)
+      form.setValue("gstAmt", 0)
+      form.setValue("gstLocalAmt", 0)
+      form.setValue("gstCtyAmt", 0)
     }
   }
 
@@ -427,52 +605,122 @@ export default function JournalDetailsForm({
     form.setValue("gstCtyAmt", rowData.gstCtyAmt)
   }
 
-  // Handle job order selection
-  const handleJobOrderChange = (selectedJobOrder: IJobOrderLookup | null) => {
-    if (selectedJobOrder) {
-      form.setValue("jobOrderNo", selectedJobOrder.jobOrderNo)
-    }
-    if (!selectedJobOrder) {
-      // Clear task and service when job order is cleared
-      form.setValue("taskId", 0)
-      form.setValue("serviceId", 0)
-    }
-  }
-
-  // Handle task selection
-  const handleTaskChange = (selectedTask: ITaskLookup | null) => {
-    if (selectedTask) {
-      form.setValue("taskName", selectedTask.taskName)
-    }
-    if (!selectedTask) {
-      // Clear service when task is cleared
-      form.setValue("serviceId", 0)
-    }
-  }
-
-  // Handle service selection
-  const handleServiceChange = (selectedService: IServiceLookup | null) => {
-    if (selectedService) {
-      form.setValue("serviceName", selectedService.serviceName)
-    }
-  }
-
   return (
-    <FormProvider {...form}>
-      <form
-        onSubmit={form.handleSubmit(onSubmit)}
-        className="space-y-2 rounded-lg border p-3"
-      >
-        <div className="grid grid-cols-7 gap-2">
+    <>
+      <h2 className="text-xl font-semibold">
+        {editingDetail
+          ? `Details (Edit - Item ${editingDetail.itemNo})`
+          : "Details (New)"}
+      </h2>
+
+      {/* Display form errors */}
+      {Object.keys(form.formState.errors).length > 0 && (
+        <div className="mx-2 mb-2 rounded-md border border-red-200 bg-red-50 p-3">
+          <p className="mb-1 font-semibold text-red-800">
+            Please fix the following errors:
+          </p>
+          <ul className="list-inside list-disc space-y-1 text-sm text-red-700">
+            {Object.entries(form.formState.errors).map(([field, error]) => (
+              <li key={field}>
+                <span className="font-medium capitalize">{field}:</span>{" "}
+                {error?.message?.toString() || "Invalid value"}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+      <FormProvider {...form}>
+        <form
+          onSubmit={form.handleSubmit(onSubmit)}
+          className="grid w-full grid-cols-7 gap-2 p-2"
+        >
+          {/* Product (if visible) */}
+          {visible?.m_ProductId && (
+            <ProductAutocomplete
+              form={form}
+              name="productId"
+              label="Product"
+              isRequired={required?.m_ProductId}
+              onChangeEvent={handleProductChange}
+            />
+          )}
           {/* GL Account */}
           <ChartOfAccountAutocomplete
             form={form}
             name="glId"
-            label="GL Account"
+            label="Chart Of Account"
             isRequired={true}
             companyId={companyId}
             onChangeEvent={handleChartOfAccountChange}
           />
+
+          {/* 
+            CONDITIONAL RENDERING BASED ON CHART OF ACCOUNT TYPE
+            =====================================================
+            If Chart of Account is Job-Specific (isJobSpecific = true):
+              - Shows: Job Order → Task → Service (cascading dropdowns)
+              - Hides: Department
+            
+            If Chart of Account is Department-Specific (isJobSpecific = false):
+              - Shows: Department
+              - Hides: Job Order, Task, Service
+            
+            The isJobSpecific state is set by:
+            1. Chart of Account selection (handleChartOfAccountChange)
+            2. Edit mode detection (useEffect checking existing jobOrderId/departmentId)
+          */}
+          {isJobSpecific ? (
+            <>
+              {/* JOB-SPECIFIC MODE: Job Order → Task → Service */}
+              {visible?.m_JobOrderId && (
+                <JobOrderAutocomplete
+                  form={form}
+                  name="jobOrderId"
+                  label="Job Order"
+                  isRequired={required?.m_JobOrderId && isJobSpecific}
+                  onChangeEvent={handleJobOrderChange}
+                />
+              )}
+
+              {visible?.m_JobOrderId && (
+                <JobOrderTaskAutocomplete
+                  key={`task-${watchedJobOrderId}`}
+                  form={form}
+                  name="taskId"
+                  jobOrderId={watchedJobOrderId || 0}
+                  label="Task"
+                  isRequired={required?.m_JobOrderId && isJobSpecific}
+                  onChangeEvent={handleTaskChange}
+                />
+              )}
+
+              {visible?.m_JobOrderId && (
+                <JobOrderChargeAutocomplete
+                  key={`service-${watchedJobOrderId}-${watchedTaskId}`}
+                  form={form}
+                  name="serviceId"
+                  jobOrderId={watchedJobOrderId || 0}
+                  taskId={watchedTaskId || 0}
+                  label="Service"
+                  isRequired={required?.m_JobOrderId && isJobSpecific}
+                  onChangeEvent={handleServiceChange}
+                />
+              )}
+            </>
+          ) : (
+            <>
+              {/* DEPARTMENT-SPECIFIC MODE: Department only */}
+              {visible?.m_DepartmentId && (
+                <DepartmentAutocomplete
+                  form={form}
+                  name="departmentId"
+                  label="Department"
+                  isRequired={required?.m_DepartmentId && !isJobSpecific}
+                  onChangeEvent={handleDepartmentChange}
+                />
+              )}
+            </>
+          )}
 
           {/* Debit/Credit Toggle */}
           <FormField
@@ -506,17 +754,6 @@ export default function JournalDetailsForm({
               </FormItem>
             )}
           />
-
-          {/* Product (if visible) */}
-          {visible?.m_ProductId && (
-            <ProductAutocomplete
-              form={form}
-              name="productId"
-              label="Product"
-              isRequired={required?.m_ProductId}
-              onChangeEvent={handleProductChange}
-            />
-          )}
 
           {/* Amount */}
           <CustomNumberInput
@@ -586,55 +823,6 @@ export default function JournalDetailsForm({
             />
           )}
 
-          {/* Department (if not job-specific) */}
-          {!isJobSpecific && visible?.m_DepartmentId && (
-            <DepartmentAutocomplete
-              form={form}
-              name="departmentId"
-              label="Department"
-              isRequired={required?.m_DepartmentId}
-              onChangeEvent={handleDepartmentChange}
-            />
-          )}
-
-          {/* Job Order (if job-specific) */}
-          {isJobSpecific && visible?.m_JobOrderId && (
-            <>
-              <JobOrderAutocomplete
-                form={form}
-                name="jobOrderId"
-                label="Job Order"
-                isRequired={required?.m_JobOrderId}
-                onChangeEvent={handleJobOrderChange}
-              />
-
-              {/* Task */}
-              {(watchedJobOrderId ?? 0) > 0 && (
-                <JobOrderTaskAutocomplete
-                  form={form}
-                  name="taskId"
-                  label="Task"
-                  isRequired={required?.m_JobOrderId}
-                  jobOrderId={watchedJobOrderId ?? 0}
-                  onChangeEvent={handleTaskChange}
-                />
-              )}
-
-              {/* Service/Charge */}
-              {(watchedTaskId ?? 0) > 0 && (
-                <JobOrderChargeAutocomplete
-                  form={form}
-                  name="serviceId"
-                  label="Service"
-                  isRequired={required?.m_JobOrderId}
-                  jobOrderId={watchedJobOrderId ?? 0}
-                  taskId={watchedTaskId ?? 0}
-                  onChangeEvent={handleServiceChange}
-                />
-              )}
-            </>
-          )}
-
           {/* Employee */}
           {visible?.m_EmployeeId && (
             <EmployeeAutocomplete
@@ -700,15 +888,48 @@ export default function JournalDetailsForm({
               className="col-span-2"
             />
           )}
-        </div>
 
-        {/* Action Buttons */}
-        <div className="flex justify-end gap-2 pt-2">
-          <Button type="submit" size="sm">
-            {editingDetail ? "Update Row" : "Add Row"}
-          </Button>
-        </div>
-      </form>
-    </FormProvider>
+          {/* Action buttons */}
+          <div className="col-span-1 flex items-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="ml-auto"
+              onClick={() => {
+                const nextItemNo = getNextItemNo()
+                form.reset(createDefaultValues(nextItemNo))
+                toast.info("Details Form reset")
+              }}
+            >
+              Reset
+            </Button>
+            <Button
+              type="submit"
+              size="sm"
+              className="ml-auto"
+              disabled={form.formState.isSubmitting}
+            >
+              {editingDetail ? "Update" : "Add"}
+            </Button>
+            {editingDetail && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  _onCancelEdit?.()
+                  const nextItemNo = getNextItemNo()
+                  form.reset(createDefaultValues(nextItemNo))
+                  toast.info("Details Edit cancelled")
+                }}
+              >
+                Cancel
+              </Button>
+            )}
+          </div>
+        </form>
+      </FormProvider>
+    </>
   )
 }

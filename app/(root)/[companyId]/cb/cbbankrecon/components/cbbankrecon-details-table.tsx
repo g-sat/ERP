@@ -13,7 +13,6 @@ interface BankReconDetailsTableProps {
   data: ICbBankReconDt[]
   onDelete?: (itemNo: number) => void
   onBulkDelete?: (selectedItemNos: number[]) => void
-  onEdit?: (template: ICbBankReconDt) => void
   onRefresh?: () => void
   onFilterChange?: (filters: { search?: string; sortOrder?: string }) => void
   onDataReorder?: (newData: ICbBankReconDt[]) => void
@@ -24,7 +23,6 @@ export default function BankReconDetailsTable({
   data,
   onDelete,
   onBulkDelete,
-  onEdit,
   onRefresh,
   onFilterChange,
   onDataReorder,
@@ -244,12 +242,12 @@ export default function BankReconDetailsTable({
       accessorId={"itemNo" as keyof unknown}
       onDelete={handleDelete}
       onBulkDelete={handleBulkDelete}
-      onEdit={(row) => onEdit?.(row as ICbBankReconDt)}
       onRefresh={onRefresh}
       onFilterChange={onFilterChange}
       onDataReorder={(newData) => onDataReorder?.(newData as ICbBankReconDt[])}
       tableName={TableName.cbBankReconDt}
       emptyMessage="No reconciliation details. Add transactions to reconcile."
+      hideEdit={true}
     />
   )
 }

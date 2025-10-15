@@ -4,6 +4,7 @@ import { IVisibleFields } from "@/interfaces/setting"
 import { ColumnDef } from "@tanstack/react-table"
 
 import { TableName } from "@/lib/utils"
+import { Badge } from "@/components/ui/badge"
 import { AccountBaseTable } from "@/components/table/table-account"
 
 // Use flexible data type that can work with form data
@@ -72,8 +73,10 @@ export default function JournalDetailsTable({
       header: "Type",
       size: 80,
       cell: ({ row }: { row: { original: IGLJournalDt } }) => (
-        <div className="text-center">
-          {row.original.isDebit ? "Debit" : "Credit"}
+        <div className="flex justify-center">
+          <Badge variant={row.original.isDebit ? "default" : "destructive"}>
+            {row.original.isDebit ? "Debit" : "Credit"}
+          </Badge>
         </div>
       ),
     },

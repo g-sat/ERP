@@ -937,6 +937,7 @@ export const CbBankRecon = {
   add: "/account/savecbbankrecon",
   delete: "/account/deletecbbankrecon",
   history: "/account/gethistorycbbankreconbyid",
+  historyDetails: "/account/gethistorycbbankrecondetailsbyid",
 }
 
 // Cash Book Bank Transfer CTM Endpoints
