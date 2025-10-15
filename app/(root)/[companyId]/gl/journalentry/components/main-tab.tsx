@@ -6,22 +6,22 @@ import {
   calculateCountryAmounts,
   calculateLocalAmounts,
   calculateTotalAmounts,
-} from "@/helpers/cb-genreceipt-calculations"
-import { ICbGenReceiptDt } from "@/interfaces/cb-genreceipt"
+} from "@/helpers/gl-journalentry-calculations"
+import { IGLJournalDt } from "@/interfaces/gl-journalentry"
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
 import {
-  CbGenReceiptDtSchemaType,
-  CbGenReceiptHdSchemaType,
-} from "@/schemas/cb-genreceipt"
+  GLJournalDtSchemaType,
+  GLJournalHdSchemaType,
+} from "@/schemas/gl-journalentry"
 import { useAuthStore } from "@/stores/auth-store"
 import { UseFormReturn } from "react-hook-form"
 
-import ReceiptDetailsForm from "./cbgenreceipt-details-form"
-import ReceiptDetailsTable from "./cbgenreceipt-details-table"
-import ReceiptForm from "./cbgenreceipt-form"
+import JournalDetailsForm from "./journalentry-details-form"
+import JournalDetailsTable from "./journalentry-details-table"
+import JournalForm from "./journalentry-form"
 
 interface MainProps {
-  form: UseFormReturn<CbGenReceiptHdSchemaType>
+  form: UseFormReturn<GLJournalHdSchemaType>
   onSuccessAction: (action: string) => Promise<void>
   isEdit: boolean
   visible: IVisibleFields
@@ -43,7 +43,7 @@ export default function Main({
   const ctyAmtDec = decimals[0]?.ctyAmtDec || 2
 
   const [editingDetail, setEditingDetail] =
-    useState<CbGenReceiptDtSchemaType | null>(null)
+    useState<GLJournalDtSchemaType | null>(null)
 
   // Watch data_details for reactive updates
   const dataDetails = form.watch("data_details") || []
@@ -73,7 +73,7 @@ export default function Main({
 
     // Calculate base currency totals
     const totals = calculateTotalAmounts(
-      dataDetails as unknown as ICbGenReceiptDt[],
+      dataDetails as unknown as IGLJournalDt[],
       amtDec
     )
     form.setValue("totAmt", totals.totAmt)
@@ -82,7 +82,7 @@ export default function Main({
 
     // Calculate local currency totals (always calculate)
     const localAmounts = calculateLocalAmounts(
-      dataDetails as unknown as ICbGenReceiptDt[],
+      dataDetails as unknown as IGLJournalDt[],
       locAmtDec
     )
     form.setValue("totLocalAmt", localAmounts.totLocalAmt)
@@ -92,7 +92,7 @@ export default function Main({
     // Calculate country currency totals (always calculate)
     // If m_CtyCurr is false, country amounts = local amounts
     const countryAmounts = calculateCountryAmounts(
-      dataDetails as unknown as ICbGenReceiptDt[],
+      dataDetails as unknown as IGLJournalDt[],
       visible?.m_CtyCurr ? ctyAmtDec : locAmtDec
     )
     form.setValue("totCtyAmt", countryAmounts.totCtyAmt)
@@ -101,7 +101,7 @@ export default function Main({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dataDetails.length, amtDec, locAmtDec, ctyAmtDec])
 
-  const handleAddRow = (rowData: ICbGenReceiptDt) => {
+  const handleAddRow = (rowData: IGLJournalDt) => {
     const currentData = form.getValues("data_details") || []
 
     if (editingDetail) {
@@ -111,7 +111,7 @@ export default function Main({
       )
       form.setValue(
         "data_details",
-        updatedData as unknown as CbGenReceiptDtSchemaType[],
+        updatedData as unknown as GLJournalDtSchemaType[],
         { shouldDirty: true, shouldTouch: true }
       )
 
@@ -121,7 +121,7 @@ export default function Main({
       const updatedData = [...currentData, rowData]
       form.setValue(
         "data_details",
-        updatedData as unknown as CbGenReceiptDtSchemaType[],
+        updatedData as unknown as GLJournalDtSchemaType[],
         { shouldDirty: true, shouldTouch: true }
       )
     }
@@ -146,10 +146,10 @@ export default function Main({
     form.trigger("data_details")
   }
 
-  const handleEdit = (detail: ICbGenReceiptDt) => {
+  const handleEdit = (detail: IGLJournalDt) => {
     // console.log("Editing detail:", detail)
-    // Convert ICbGenReceiptDt to CbGenReceiptDtSchemaType and set for editing
-    setEditingDetail(detail as unknown as CbGenReceiptDtSchemaType)
+    // Convert IGLJournalDt to GLJournalDtSchemaType and set for editing
+    setEditingDetail(detail as unknown as GLJournalDtSchemaType)
     // console.log("Editing editingDetail:", editingDetail)
   }
 
@@ -157,16 +157,13 @@ export default function Main({
     setEditingDetail(null)
   }
 
-  const handleDataReorder = (newData: ICbGenReceiptDt[]) => {
-    form.setValue(
-      "data_details",
-      newData as unknown as CbGenReceiptDtSchemaType[]
-    )
+  const handleDataReorder = (newData: IGLJournalDt[]) => {
+    form.setValue("data_details", newData as unknown as GLJournalDtSchemaType[])
   }
 
   return (
     <div className="w-full">
-      <ReceiptForm
+      <JournalForm
         form={form}
         onSuccessAction={onSuccessAction}
         isEdit={isEdit}
@@ -175,7 +172,7 @@ export default function Main({
         companyId={companyId}
       />
       <div className="rounded-lg border p-4 shadow-sm">
-        <ReceiptDetailsForm
+        <JournalDetailsForm
           Hdform={form}
           onAddRowAction={handleAddRow}
           onCancelEdit={editingDetail ? handleCancelEdit : undefined}
@@ -183,20 +180,18 @@ export default function Main({
           companyId={companyId}
           visible={visible}
           required={required}
-          existingDetails={dataDetails as CbGenReceiptDtSchemaType[]}
+          existingDetails={dataDetails as GLJournalDtSchemaType[]}
         />
 
-        <ReceiptDetailsTable
-          data={(dataDetails as unknown as ICbGenReceiptDt[]) || []}
+        <JournalDetailsTable
+          data={(dataDetails as unknown as IGLJournalDt[]) || []}
           visible={visible}
           onDelete={handleDelete}
           onBulkDelete={handleBulkDelete}
-          onEdit={handleEdit as (template: ICbGenReceiptDt) => void}
+          onEdit={handleEdit as (template: IGLJournalDt) => void}
           onRefresh={() => {}} // Add refresh logic if needed
           onFilterChange={() => {}} // Add filter logic if needed
-          onDataReorder={
-            handleDataReorder as (newData: ICbGenReceiptDt[]) => void
-          }
+          onDataReorder={handleDataReorder as (newData: IGLJournalDt[]) => void}
         />
       </div>
     </div>

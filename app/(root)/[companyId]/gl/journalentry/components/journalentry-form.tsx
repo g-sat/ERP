@@ -11,36 +11,26 @@ import {
   calculateLocalAmounts,
   calculateTotalAmounts,
   recalculateAllDetailAmounts,
-} from "@/helpers/cb-genreceipt-calculations"
-import { ICbGenReceiptDt } from "@/interfaces/cb-genreceipt"
-import {
-  IBankLookup,
-  ICurrencyLookup,
-  IPaymentTypeLookup,
-} from "@/interfaces/lookup"
+} from "@/helpers/gl-journalentry-calculations"
+import { IGLJournalDt } from "@/interfaces/gl-journalentry"
+import { ICurrencyLookup } from "@/interfaces/lookup"
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
 import {
-  CbGenReceiptDtSchemaType,
-  CbGenReceiptHdSchemaType,
-} from "@/schemas/cb-genreceipt"
+  GLJournalDtSchemaType,
+  GLJournalHdSchemaType,
+} from "@/schemas/gl-journalentry"
 import { useAuthStore } from "@/stores/auth-store"
-import { PlusIcon } from "lucide-react"
 import { FormProvider, UseFormReturn } from "react-hook-form"
 
-import { usePaymentTypeLookup } from "@/hooks/use-lookup"
-import { BankChartOfAccountAutocomplete } from "@/components/autocomplete"
-import BankAutocomplete from "@/components/autocomplete/autocomplete-bank"
 import CurrencyAutocomplete from "@/components/autocomplete/autocomplete-currency"
-import PaymentTypeAutocomplete from "@/components/autocomplete/autocomplete-paymenttype"
-import PayeeSelectionDialog from "@/components/common/payee-selection-dialog"
+import CustomCheckbox from "@/components/custom/custom-checkbox"
 import { CustomDateNew } from "@/components/custom/custom-date-new"
 import CustomInput from "@/components/custom/custom-input"
-import CustomInputGroup from "@/components/custom/custom-input-group"
 import CustomNumberInput from "@/components/custom/custom-number-input"
 import CustomTextarea from "@/components/custom/custom-textarea"
 
-interface ReceiptFormProps {
-  form: UseFormReturn<CbGenReceiptHdSchemaType>
+interface JournalFormProps {
+  form: UseFormReturn<GLJournalHdSchemaType>
   onSuccessAction: (action: string) => Promise<void>
   isEdit: boolean
   visible: IVisibleFields
@@ -48,52 +38,19 @@ interface ReceiptFormProps {
   companyId: number
 }
 
-export default function ReceiptForm({
+export default function JournalForm({
   form,
   onSuccessAction,
   isEdit: _isEdit,
   visible,
   required,
   companyId: _companyId,
-}: ReceiptFormProps) {
+}: JournalFormProps) {
   const { decimals } = useAuthStore()
   const amtDec = decimals[0]?.amtDec || 2
   const locAmtDec = decimals[0]?.locAmtDec || 2
   const ctyAmtDec = decimals[0]?.ctyAmtDec || 2
   const exhRateDec = decimals[0]?.exhRateDec || 6
-
-  const { data: paymentTypes = [] } = usePaymentTypeLookup()
-
-  // State to track if payment type is cheque
-  const [isChequePayment, setIsChequePayment] = React.useState(false)
-
-  // State to control payee selection dialog
-  const [isPayeeDialogOpen, setIsPayeeDialogOpen] = React.useState(false)
-
-  // Watch paymentTypeId and update cheque payment state
-  React.useEffect(() => {
-    const paymentTypeId = form.watch("paymentTypeId")
-
-    if (paymentTypeId && paymentTypes.length > 0) {
-      const selectedPaymentType = paymentTypes.find(
-        (pt) => pt.paymentTypeId === paymentTypeId
-      )
-
-      if (selectedPaymentType) {
-        const isCheque =
-          selectedPaymentType.paymentTypeName
-            ?.toLowerCase()
-            .includes("cheque") ||
-          selectedPaymentType.paymentTypeCode?.toLowerCase().includes("cheque")
-
-        setIsChequePayment(isCheque)
-      } else {
-        setIsChequePayment(false)
-      }
-    } else {
-      setIsChequePayment(false)
-    }
-  }, [form, paymentTypes])
 
   const onSubmit = async () => {
     await onSuccessAction("save")
@@ -128,12 +85,6 @@ export default function ReceiptForm({
       form.setValue("gstClaimDate", accountDate)
       form?.trigger("gstClaimDate")
 
-      // Update chequeDate to accountDate if not cheque payment
-      if (!isChequePayment) {
-        form.setValue("chequeDate", accountDate)
-        form?.trigger("chequeDate")
-      }
-
       await setExchangeRate(form, exhRateDec, visible)
       if (visible?.m_CtyCurr) {
         await setExchangeRateLocal(form, exhRateDec)
@@ -145,59 +96,7 @@ export default function ReceiptForm({
         visible
       )
     },
-    [decimals, exhRateDec, form, isChequePayment, visible]
-  )
-
-  // Handle payment type change
-  const handlePaymentTypeChange = React.useCallback(
-    (selectedPaymentType: IPaymentTypeLookup | null) => {
-      if (selectedPaymentType) {
-        // Check if payment type is "Cheque"
-        const isCheque =
-          selectedPaymentType?.paymentTypeName
-            ?.toLowerCase()
-            .includes("cheque") ||
-          selectedPaymentType?.paymentTypeCode?.toLowerCase().includes("cheque")
-
-        setIsChequePayment(isCheque)
-
-        // Set chequeDate to accountDate if not cheque payment
-        if (!isCheque) {
-          form.setValue("chequeNo", "")
-          const accountDate = form.getValues("accountDate")
-          form.setValue("chequeDate", accountDate || "")
-        }
-      } else {
-        // No payment type selected, set chequeDate to accountDate
-        setIsChequePayment(false)
-        form.setValue("chequeNo", "")
-        const accountDate = form.getValues("accountDate")
-        form.setValue("chequeDate", accountDate || "")
-      }
-    },
-    [form]
-  )
-
-  // Handle bank selection
-  const handleBankChange = React.useCallback(
-    (_selectedBank: IBankLookup | null) => {
-      // Additional logic when bank changes if needed
-    },
-    []
-  )
-
-  // Handle add payee to button click
-  const handleAddPayeeTo = React.useCallback(() => {
-    setIsPayeeDialogOpen(true)
-  }, [])
-
-  // Handle payee selection from dialog
-  const handlePayeeSelect = React.useCallback(
-    (payeeName: string, _payeeType: "customer" | "supplier" | "employee") => {
-      form.setValue("payeeTo", payeeName)
-      form.trigger("payeeTo")
-    },
-    [form]
+    [decimals, exhRateDec, form, visible]
   )
 
   // Recalculate header totals from details
@@ -222,7 +121,7 @@ export default function ReceiptForm({
 
     // Calculate base currency totals
     const totals = calculateTotalAmounts(
-      formDetails as unknown as ICbGenReceiptDt[],
+      formDetails as unknown as IGLJournalDt[],
       amtDec
     )
     form.setValue("totAmt", totals.totAmt)
@@ -231,7 +130,7 @@ export default function ReceiptForm({
 
     // Calculate local currency totals
     const localAmounts = calculateLocalAmounts(
-      formDetails as unknown as ICbGenReceiptDt[],
+      formDetails as unknown as IGLJournalDt[],
       locAmtDec
     )
     form.setValue("totLocalAmt", localAmounts.totLocalAmt)
@@ -240,7 +139,7 @@ export default function ReceiptForm({
 
     // Calculate country currency totals
     const countryAmounts = calculateCountryAmounts(
-      formDetails as unknown as ICbGenReceiptDt[],
+      formDetails as unknown as IGLJournalDt[],
       visible?.m_CtyCurr ? ctyAmtDec : locAmtDec
     )
     form.setValue("totCtyAmt", countryAmounts.totCtyAmt)
@@ -269,7 +168,7 @@ export default function ReceiptForm({
         const cityExchangeRate = form.getValues("ctyExhRate") || 0
 
         const updatedDetails = recalculateAllDetailAmounts(
-          formDetails as unknown as ICbGenReceiptDt[],
+          formDetails as unknown as IGLJournalDt[],
           exchangeRate,
           cityExchangeRate,
           decimals[0],
@@ -278,7 +177,7 @@ export default function ReceiptForm({
 
         form.setValue(
           "data_details",
-          updatedDetails as unknown as CbGenReceiptDtSchemaType[],
+          updatedDetails as unknown as GLJournalDtSchemaType[],
           { shouldDirty: true, shouldTouch: true }
         )
 
@@ -305,7 +204,7 @@ export default function ReceiptForm({
       }
 
       const updatedDetails = recalculateAllDetailAmounts(
-        formDetails as unknown as ICbGenReceiptDt[],
+        formDetails as unknown as IGLJournalDt[],
         exchangeRate,
         cityExchangeRate,
         decimals[0],
@@ -314,7 +213,7 @@ export default function ReceiptForm({
 
       form.setValue(
         "data_details",
-        updatedDetails as unknown as CbGenReceiptDtSchemaType[],
+        updatedDetails as unknown as GLJournalDtSchemaType[],
         { shouldDirty: true, shouldTouch: true }
       )
 
@@ -335,7 +234,7 @@ export default function ReceiptForm({
       }
 
       const updatedDetails = recalculateAllDetailAmounts(
-        formDetails as unknown as ICbGenReceiptDt[],
+        formDetails as unknown as IGLJournalDt[],
         exchangeRate,
         cityExchangeRate,
         decimals[0],
@@ -344,7 +243,7 @@ export default function ReceiptForm({
 
       form.setValue(
         "data_details",
-        updatedDetails as unknown as CbGenReceiptDtSchemaType[],
+        updatedDetails as unknown as GLJournalDtSchemaType[],
         { shouldDirty: true, shouldTouch: true }
       )
 
@@ -381,21 +280,6 @@ export default function ReceiptForm({
           />
         )}
 
-        {/* Payee To */}
-        <CustomInputGroup
-          form={form}
-          name="payeeTo"
-          label="Payee To"
-          isRequired={true}
-          className="col-span-2"
-          buttonText="Add"
-          buttonIcon={<PlusIcon className="h-4 w-4" />}
-          buttonPosition="right"
-          onButtonClick={handleAddPayeeTo}
-          buttonVariant="default"
-          buttonDisabled={false}
-        />
-
         {/* Reference No */}
         <CustomInput
           form={form}
@@ -403,46 +287,6 @@ export default function ReceiptForm({
           label="Reference No."
           isRequired={required?.m_ReferenceNo}
         />
-
-        {/* Bank */}
-        {visible?.m_BankId && (
-          <BankAutocomplete
-            form={form}
-            name="bankId"
-            label="Bank"
-            isRequired={required?.m_BankId}
-            onChangeEvent={handleBankChange}
-          />
-        )}
-
-        {/* Payment Type */}
-        <PaymentTypeAutocomplete
-          form={form}
-          name="paymentTypeId"
-          label="Payment Type"
-          isRequired={true}
-          onChangeEvent={handlePaymentTypeChange}
-        />
-
-        {/* Cheque No - Only show when payment type is cheque */}
-        {isChequePayment && (
-          <CustomInput
-            form={form}
-            name="chequeNo"
-            label="Cheque No"
-            isRequired={true}
-          />
-        )}
-
-        {/* Cheque Date - Only show when payment type is cheque */}
-        {isChequePayment && (
-          <CustomDateNew
-            form={form}
-            name="chequeDate"
-            label="Cheque Date"
-            isRequired={true}
-          />
-        )}
 
         {/* Currency */}
         <CurrencyAutocomplete
@@ -485,6 +329,42 @@ export default function ReceiptForm({
             form={form}
             name="gstClaimDate"
             label="GST Claim Date"
+            isRequired={false}
+          />
+        )}
+
+        {/* Reverse Journal Entry Checkbox */}
+        <CustomCheckbox
+          form={form}
+          name="isReverse"
+          label="Reverse Entry"
+          className="col-span-1"
+        />
+
+        {/* Reversal Date */}
+        {form.watch("isReverse") && (
+          <CustomDateNew
+            form={form}
+            name="revDate"
+            label="Reversal Date"
+            isRequired={false}
+          />
+        )}
+
+        {/* Recurrency Checkbox */}
+        <CustomCheckbox
+          form={form}
+          name="isRecurrency"
+          label="Recurring Entry"
+          className="col-span-1"
+        />
+
+        {/* Recurrence Until Date */}
+        {form.watch("isRecurrency") && (
+          <CustomDateNew
+            form={form}
+            name="recurrenceUntil"
+            label="Recurrence Until"
             isRequired={false}
           />
         )}
@@ -583,33 +463,6 @@ export default function ReceiptForm({
           </>
         )}
 
-        {/* Bank Charge GL */}
-        <BankChartOfAccountAutocomplete
-          form={form}
-          name="bankChgGLId"
-          label="Bank Charge GL"
-          companyId={_companyId}
-        />
-
-        {/* Bank Charge Amount */}
-        <CustomNumberInput
-          form={form}
-          name="bankChgAmt"
-          label="Bank Charge Amount"
-          round={amtDec}
-          className="text-right"
-        />
-
-        {/* Bank Charge Local Amount */}
-        <CustomNumberInput
-          form={form}
-          name="bankChgLocalAmt"
-          label="Bank Charge Local Amount"
-          round={locAmtDec}
-          isDisabled={true}
-          className="text-right"
-        />
-
         {/* Remarks */}
         <CustomTextarea
           form={form}
@@ -619,14 +472,6 @@ export default function ReceiptForm({
           className="col-span-2"
         />
       </form>
-
-      {/* Payee Selection Dialog */}
-      <PayeeSelectionDialog
-        open={isPayeeDialogOpen}
-        onOpenChangeAction={setIsPayeeDialogOpen}
-        onSelectPayeeAction={handlePayeeSelect}
-        companyId={_companyId}
-      />
     </FormProvider>
   )
 }

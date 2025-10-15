@@ -2,18 +2,22 @@ import { format } from "date-fns"
 
 import { clientDateFormat } from "@/lib/date-utils"
 
-const defaultReceiptDetails = {
-  receiptId: "0",
-  receiptNo: "",
+const defaultJournalDetails = {
+  journalId: "0",
+  journalNo: "",
   itemNo: 0,
   seqNo: 0,
   glId: 0,
   glCode: "",
   glName: "",
+  remarks: "",
+  productId: 0,
+  productCode: "",
+  productName: "",
+  isDebit: false,
   totAmt: 0,
   totLocalAmt: 0,
   totCtyAmt: 0,
-  remarks: "",
   gstId: 0,
   gstName: "",
   gstPercentage: 0,
@@ -46,23 +50,16 @@ const defaultReceiptDetails = {
   editVersion: 0,
 }
 
-const defaultReceipt = {
+const defaultJournal = {
   companyId: 0,
-  receiptId: "0",
-  receiptNo: "",
+  journalId: "0",
+  journalNo: "",
   referenceNo: "",
   trnDate: format(new Date(), clientDateFormat),
   accountDate: format(new Date(), clientDateFormat),
   currencyId: 0,
   exhRate: 0,
   ctyExhRate: 0,
-  paymentTypeId: 0,
-  bankId: 0,
-  chequeNo: "",
-  chequeDate: "",
-  bankChgGLId: 0,
-  bankChgAmt: 0,
-  bankChgLocalAmt: 0,
   totAmt: 0,
   totLocalAmt: 0,
   totCtyAmt: 0,
@@ -74,7 +71,10 @@ const defaultReceipt = {
   totLocalAmtAftGst: 0,
   totCtyAmtAftGst: 0,
   remarks: "",
-  payeeTo: "",
+  isReverse: false,
+  isRecurrency: false,
+  revDate: null,
+  recurrenceUntil: null,
   moduleFrom: "",
   createDate: format(new Date(), clientDateFormat),
   editDate: null,
@@ -84,6 +84,8 @@ const defaultReceipt = {
   createBy: "",
   editBy: "",
   cancelBy: "",
+  postBy: "",
+  appBy: "",
   editVersion: 0,
   isPost: false,
   postDate: null,
@@ -96,18 +98,17 @@ const defaultReceipt = {
 // Function to get default values with custom date format
 export const getDefaultValues = (dateFormat: string = clientDateFormat) => {
   return {
-    defaultReceipt: {
-      ...defaultReceipt,
+    defaultJournal: {
+      ...defaultJournal,
       trnDate: format(new Date(), dateFormat),
       accountDate: format(new Date(), dateFormat),
-      chequeDate: "",
       gstClaimDate: format(new Date(), dateFormat),
       createDate: format(new Date(), dateFormat),
     },
-    defaultReceiptDetails: {
-      ...defaultReceiptDetails,
+    defaultJournalDetails: {
+      ...defaultJournalDetails,
     },
   }
 }
 
-export { defaultReceipt, defaultReceiptDetails }
+export { defaultJournal, defaultJournalDetails }

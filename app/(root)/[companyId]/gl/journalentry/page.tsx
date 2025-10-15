@@ -3,16 +3,13 @@
 import { useEffect, useMemo, useState } from "react"
 import { useParams } from "next/navigation"
 import { ApiResponse } from "@/interfaces/auth"
-import {
-  ICbGenReceiptFilter,
-  ICbGenReceiptHd,
-} from "@/interfaces/cb-genreceipt"
+import { IGLJournalFilter, IGLJournalHd } from "@/interfaces/gl-journalentry"
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
 import {
-  CbGenReceiptDtSchemaType,
-  CbGenReceiptHdSchemaType,
-  cbGenReceiptHdSchema,
-} from "@/schemas/cb-genreceipt"
+  GLJournalDtSchemaType,
+  GLJournalHdSchema,
+  GLJournalHdSchemaType,
+} from "@/schemas/gl-journalentry"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { format, subMonths } from "date-fns"
 import {
@@ -27,9 +24,9 @@ import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 
 import { getById } from "@/lib/api-client"
-import { CbReceipt } from "@/lib/api-routes"
+import { GlJournal } from "@/lib/api-routes"
 import { clientDateFormat, parseDate } from "@/lib/date-utils"
-import { CBTransactionId, ModuleId, TableName } from "@/lib/utils"
+import { GLTransactionId, ModuleId, TableName } from "@/lib/utils"
 import { useDelete, useGetWithDates, usePersist } from "@/hooks/use-common"
 import { useGetRequiredFields, useGetVisibleFields } from "@/hooks/use-lookup"
 import { Button } from "@/components/ui/button"
@@ -50,17 +47,17 @@ import {
   SaveConfirmation,
 } from "@/components/confirmation"
 
-import { defaultReceipt } from "./components/cbgenreceipt-defaultvalues"
-import ReceiptTable from "./components/cbgenreceipt-table"
 import History from "./components/history"
+import { defaultJournal } from "./components/journalentry-defaultvalues"
+import JournalTable from "./components/journalentry-table"
 import Main from "./components/main-tab"
 
-export default function GenReceiptPage() {
+export default function JournalEntryPage() {
   const params = useParams()
   const companyId = params.companyId as string
 
-  const moduleId = ModuleId.cb
-  const transactionId = CBTransactionId.cbgenreceipt
+  const moduleId = ModuleId.gl
+  const transactionId = GLTransactionId.journalentry
 
   const [showListDialog, setShowListDialog] = useState(false)
   const [showSaveConfirm, setShowSaveConfirm] = useState(false)
@@ -68,18 +65,18 @@ export default function GenReceiptPage() {
   const [showLoadConfirm, setShowLoadConfirm] = useState(false)
   const [showResetConfirm, setShowResetConfirm] = useState(false)
   const [showCloneConfirm, setShowCloneConfirm] = useState(false)
-  const [isLoadingReceipt, setIsLoadingReceipt] = useState(false)
-  const [isSelectingReceipt, setIsSelectingReceipt] = useState(false)
+  const [isLoadingJournal, setIsLoadingJournal] = useState(false)
+  const [isSelectingJournal, setIsSelectingJournal] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
-  const [receipt, setReceipt] = useState<CbGenReceiptHdSchemaType | null>(null)
+  const [journal, setJournal] = useState<GLJournalHdSchemaType | null>(null)
   const [searchNo, setSearchNo] = useState("")
   const [activeTab, setActiveTab] = useState("main")
 
-  const [filters, setFilters] = useState<ICbGenReceiptFilter>({
+  const [filters, setFilters] = useState<IGLJournalFilter>({
     startDate: format(subMonths(new Date(), 1), "yyyy-MM-dd"),
     endDate: format(new Date(), "yyyy-MM-dd"),
     search: "",
-    sortBy: "receiptNo",
+    sortBy: "journalNo",
     sortOrder: "asc",
     pageNumber: 1,
     pageSize: 15,
@@ -100,44 +97,40 @@ export default function GenReceiptPage() {
   const required: IMandatoryFields = requiredFieldsData ?? null
 
   // Add form state management
-  const form = useForm<CbGenReceiptHdSchemaType>({
-    resolver: zodResolver(cbGenReceiptHdSchema(required, visible)),
-    defaultValues: receipt
+  const form = useForm<GLJournalHdSchemaType>({
+    resolver: zodResolver(GLJournalHdSchema(required, visible)),
+    defaultValues: journal
       ? {
-          receiptId: receipt.receiptId?.toString() ?? "0",
-          receiptNo: receipt.receiptNo ?? "",
-          referenceNo: receipt.referenceNo ?? "",
-          trnDate: receipt.trnDate ?? new Date(),
-          accountDate: receipt.accountDate ?? new Date(),
-          currencyId: receipt.currencyId ?? 0,
-          exhRate: receipt.exhRate ?? 0,
-          ctyExhRate: receipt.ctyExhRate ?? 0,
-          paymentTypeId: receipt.paymentTypeId ?? 0,
-          bankId: receipt.bankId ?? 0,
-          chequeNo: receipt.chequeNo ?? "",
-          chequeDate: receipt.chequeDate ?? "",
-          bankChgGLId: receipt.bankChgGLId ?? 0,
-          bankChgAmt: receipt.bankChgAmt ?? 0,
-          bankChgLocalAmt: receipt.bankChgLocalAmt ?? 0,
-          totAmt: receipt.totAmt ?? 0,
-          totLocalAmt: receipt.totLocalAmt ?? 0,
-          totCtyAmt: receipt.totCtyAmt ?? 0,
-          gstClaimDate: receipt.gstClaimDate ?? new Date(),
-          gstAmt: receipt.gstAmt ?? 0,
-          gstLocalAmt: receipt.gstLocalAmt ?? 0,
-          gstCtyAmt: receipt.gstCtyAmt ?? 0,
-          totAmtAftGst: receipt.totAmtAftGst ?? 0,
-          totLocalAmtAftGst: receipt.totLocalAmtAftGst ?? 0,
-          totCtyAmtAftGst: receipt.totCtyAmtAftGst ?? 0,
-          remarks: receipt.remarks ?? "",
-          payeeTo: receipt.payeeTo ?? "",
-          moduleFrom: receipt.moduleFrom ?? "",
-          editVersion: receipt.editVersion ?? 0,
+          journalId: journal.journalId?.toString() ?? "0",
+          journalNo: journal.journalNo ?? "",
+          referenceNo: journal.referenceNo ?? "",
+          trnDate: journal.trnDate ?? new Date(),
+          accountDate: journal.accountDate ?? new Date(),
+          currencyId: journal.currencyId ?? 0,
+          exhRate: journal.exhRate ?? 0,
+          ctyExhRate: journal.ctyExhRate ?? 0,
+          totAmt: journal.totAmt ?? 0,
+          totLocalAmt: journal.totLocalAmt ?? 0,
+          totCtyAmt: journal.totCtyAmt ?? 0,
+          gstClaimDate: journal.gstClaimDate ?? new Date(),
+          gstAmt: journal.gstAmt ?? 0,
+          gstLocalAmt: journal.gstLocalAmt ?? 0,
+          gstCtyAmt: journal.gstCtyAmt ?? 0,
+          totAmtAftGst: journal.totAmtAftGst ?? 0,
+          totLocalAmtAftGst: journal.totLocalAmtAftGst ?? 0,
+          totCtyAmtAftGst: journal.totCtyAmtAftGst ?? 0,
+          remarks: journal.remarks ?? "",
+          isReverse: journal.isReverse ?? false,
+          isRecurrency: journal.isRecurrency ?? false,
+          revDate: journal.revDate ?? null,
+          recurrenceUntil: journal.recurrenceUntil ?? null,
+          moduleFrom: journal.moduleFrom ?? "",
+          editVersion: journal.editVersion ?? 0,
           data_details:
-            receipt.data_details?.map((detail) => ({
+            journal.data_details?.map((detail) => ({
               ...detail,
-              receiptId: detail.receiptId?.toString() ?? "0",
-              receiptNo: detail.receiptNo ?? "",
+              journalId: detail.journalId?.toString() ?? "0",
+              journalNo: detail.journalNo ?? "",
               totAmt: detail.totAmt ?? 0,
               totLocalAmt: detail.totLocalAmt ?? 0,
               totCtyAmt: detail.totCtyAmt ?? 0,
@@ -148,19 +141,19 @@ export default function GenReceiptPage() {
             })) || [],
         }
       : {
-          ...defaultReceipt,
+          ...defaultJournal,
         },
   })
 
-  // API hooks for receipts - Only fetch when List dialog is opened (optimized)
+  // API hooks for journals - Only fetch when List dialog is opened (optimized)
   const {
-    data: receiptsResponse,
-    refetch: refetchReceipts,
-    isLoading: isLoadingReceipts,
-    isRefetching: isRefetchingReceipts,
-  } = useGetWithDates<ICbGenReceiptHd>(
-    `${CbReceipt.get}`,
-    TableName.cbGenReceipt,
+    data: journalsResponse,
+    refetch: refetchJournals,
+    isLoading: isLoadingJournals,
+    isRefetching: isRefetchingJournals,
+  } = useGetWithDates<IGLJournalHd>(
+    `${GlJournal.get}`,
+    TableName.journalEntry,
     filters.search,
     filters.startDate?.toString(),
     filters.endDate?.toString(),
@@ -168,21 +161,19 @@ export default function GenReceiptPage() {
     false // enabled: Don't auto-fetch - only when List button is clicked
   )
 
-  // Memoize receipt data to prevent unnecessary re-renders
-  const receiptsData = useMemo(
-    () => (receiptsResponse as ApiResponse<ICbGenReceiptHd>)?.data ?? [],
-    [receiptsResponse]
+  // Memoize journal data to prevent unnecessary re-renders
+  const journalsData = useMemo(
+    () => (journalsResponse as ApiResponse<IGLJournalHd>)?.data ?? [],
+    [journalsResponse]
   )
 
   // Mutations
-  const saveMutation = usePersist<CbGenReceiptHdSchemaType>(`${CbReceipt.add}`)
-  const updateMutation = usePersist<CbGenReceiptHdSchemaType>(
-    `${CbReceipt.add}`
-  )
-  const deleteMutation = useDelete(`${CbReceipt.delete}`)
+  const saveMutation = usePersist<GLJournalHdSchemaType>(`${GlJournal.add}`)
+  const updateMutation = usePersist<GLJournalHdSchemaType>(`${GlJournal.add}`)
+  const deleteMutation = useDelete(`${GlJournal.delete}`)
 
   // Handle Save
-  const handleSaveReceipt = async () => {
+  const handleSaveJournal = async () => {
     // Prevent double-submit
     if (isSaving || saveMutation.isPending || updateMutation.isPending) {
       return
@@ -193,19 +184,13 @@ export default function GenReceiptPage() {
     try {
       // Get form values and validate them
       const formValues = transformToSchemaType(
-        form.getValues() as unknown as ICbGenReceiptHd
+        form.getValues() as unknown as IGLJournalHd
       )
 
-      // Set chequeDate to accountDate if it's empty
-      if (!formValues.chequeDate || formValues.chequeDate === "") {
-        formValues.chequeDate = formValues.accountDate
-      }
-
       // Validate the form data using the schema
-      const validationResult = cbGenReceiptHdSchema(
-        required,
-        visible
-      ).safeParse(formValues)
+      const validationResult = GLJournalHdSchema(required, visible).safeParse(
+        formValues
+      )
 
       if (!validationResult.success) {
         console.error("Form validation failed:", validationResult.error)
@@ -222,22 +207,22 @@ export default function GenReceiptPage() {
       console.log(formValues)
 
       const response =
-        Number(formValues.receiptId) === 0
+        Number(formValues.journalId) === 0
           ? await saveMutation.mutateAsync(formValues)
           : await updateMutation.mutateAsync(formValues)
 
       if (response.result === 1) {
-        const receiptData = Array.isArray(response.data)
+        const journalData = Array.isArray(response.data)
           ? response.data[0]
           : response.data
 
         // Transform API response back to form values
-        if (receiptData) {
+        if (journalData) {
           const updatedSchemaType = transformToSchemaType(
-            receiptData as unknown as ICbGenReceiptHd
+            journalData as unknown as IGLJournalHd
           )
-          setIsSelectingReceipt(true)
-          setReceipt(updatedSchemaType)
+          setIsSelectingJournal(true)
+          setJournal(updatedSchemaType)
           form.reset(updatedSchemaType)
           form.trigger()
         }
@@ -245,28 +230,28 @@ export default function GenReceiptPage() {
         // Close the save confirmation dialog
         setShowSaveConfirm(false)
 
-        refetchReceipts()
+        refetchJournals()
       } else {
-        toast.error(response.message || "Failed to save receipt")
+        toast.error(response.message || "Failed to save journal entry")
       }
     } catch (error) {
       console.error("Save error:", error)
-      toast.error("Network error while saving receipt")
+      toast.error("Network error while saving journal entry")
     } finally {
       setIsSaving(false)
-      setIsSelectingReceipt(false)
+      setIsSelectingJournal(false)
     }
   }
 
   // Handle Clone
-  const handleCloneReceipt = () => {
-    if (receipt) {
+  const handleCloneJournal = () => {
+    if (journal) {
       // Create a proper clone with form values
-      const clonedReceipt: CbGenReceiptHdSchemaType = {
-        ...receipt,
-        receiptId: "0",
-        receiptNo: "",
-        // Reset amounts for new receipt
+      const clonedJournal: GLJournalHdSchemaType = {
+        ...journal,
+        journalId: "0",
+        journalNo: "",
+        // Reset amounts for new journal
         totAmt: 0,
         totLocalAmt: 0,
         totCtyAmt: 0,
@@ -276,149 +261,139 @@ export default function GenReceiptPage() {
         totAmtAftGst: 0,
         totLocalAmtAftGst: 0,
         totCtyAmtAftGst: 0,
-        bankChgAmt: 0,
-        bankChgLocalAmt: 0,
         // Reset data details
         data_details: [],
       }
-      setReceipt(clonedReceipt)
-      form.reset(clonedReceipt)
-      toast.success("Receipt cloned successfully")
+      setJournal(clonedJournal)
+      form.reset(clonedJournal)
+      toast.success("Journal entry cloned successfully")
     }
   }
 
   // Handle Delete
-  const handleReceiptDelete = async () => {
-    if (!receipt) return
+  const handleJournalDelete = async () => {
+    if (!journal) return
 
     try {
       const response = await deleteMutation.mutateAsync(
-        receipt.receiptId?.toString() ?? ""
+        journal.journalId?.toString() ?? ""
       )
       if (response.result === 1) {
-        setReceipt(null)
+        setJournal(null)
         setSearchNo("") // Clear search input
         form.reset({
-          ...defaultReceipt,
+          ...defaultJournal,
           data_details: [],
         })
-        refetchReceipts()
+        refetchJournals()
       } else {
-        toast.error(response.message || "Failed to delete receipt")
+        toast.error(response.message || "Failed to delete journal entry")
       }
     } catch {
-      toast.error("Network error while deleting receipt")
+      toast.error("Network error while deleting journal entry")
     }
   }
 
   // Handle Reset
-  const handleReceiptReset = () => {
-    setReceipt(null)
+  const handleJournalReset = () => {
+    setJournal(null)
     setSearchNo("") // Clear search input
     form.reset({
-      ...defaultReceipt,
+      ...defaultJournal,
       data_details: [],
     })
-    toast.success("Receipt reset successfully")
+    toast.success("Journal entry reset successfully")
   }
 
-  // Helper function to transform ICbGenReceiptHd to CbGenReceiptHdSchemaType
+  // Helper function to transform IGLJournalHd to GLJournalHdSchemaType
   const transformToSchemaType = (
-    apiReceipt: ICbGenReceiptHd
-  ): CbGenReceiptHdSchemaType => {
+    apiJournal: IGLJournalHd
+  ): GLJournalHdSchemaType => {
     return {
-      receiptId: apiReceipt.receiptId?.toString() ?? "0",
-      receiptNo: apiReceipt.receiptNo ?? "",
-      referenceNo: apiReceipt.referenceNo ?? "",
-      trnDate: apiReceipt.trnDate
+      journalId: apiJournal.journalId?.toString() ?? "0",
+      journalNo: apiJournal.journalNo ?? "",
+      referenceNo: apiJournal.referenceNo ?? "",
+      trnDate: apiJournal.trnDate
         ? format(
-            parseDate(apiReceipt.trnDate as string) || new Date(),
+            parseDate(apiJournal.trnDate as string) || new Date(),
             clientDateFormat
           )
         : clientDateFormat,
-      accountDate: apiReceipt.accountDate
+      accountDate: apiJournal.accountDate
         ? format(
-            parseDate(apiReceipt.accountDate as string) || new Date(),
+            parseDate(apiJournal.accountDate as string) || new Date(),
             clientDateFormat
           )
         : clientDateFormat,
-      currencyId: apiReceipt.currencyId ?? 0,
-      exhRate: apiReceipt.exhRate ?? 0,
-      ctyExhRate: apiReceipt.ctyExhRate ?? 0,
-      paymentTypeId: apiReceipt.paymentTypeId ?? 0,
-      bankId: apiReceipt.bankId ?? 0,
-      chequeNo: apiReceipt.chequeNo ?? "",
-      chequeDate: apiReceipt.chequeDate
+      currencyId: apiJournal.currencyId ?? 0,
+      exhRate: apiJournal.exhRate ?? 0,
+      ctyExhRate: apiJournal.ctyExhRate ?? 0,
+      totAmt: apiJournal.totAmt ?? 0,
+      totLocalAmt: apiJournal.totLocalAmt ?? 0,
+      totCtyAmt: apiJournal.totCtyAmt ?? 0,
+      gstClaimDate: apiJournal.gstClaimDate
         ? format(
-            parseDate(apiReceipt.chequeDate as string) || new Date(),
-            clientDateFormat
-          )
-        : apiReceipt.accountDate
-          ? format(
-              parseDate(apiReceipt.accountDate as string) || new Date(),
-              clientDateFormat
-            )
-          : format(new Date(), clientDateFormat),
-      bankChgGLId: apiReceipt.bankChgGLId ?? 0,
-      bankChgAmt: apiReceipt.bankChgAmt ?? 0,
-      bankChgLocalAmt: apiReceipt.bankChgLocalAmt ?? 0,
-      totAmt: apiReceipt.totAmt ?? 0,
-      totLocalAmt: apiReceipt.totLocalAmt ?? 0,
-      totCtyAmt: apiReceipt.totCtyAmt ?? 0,
-      gstClaimDate: apiReceipt.gstClaimDate
-        ? format(
-            parseDate(apiReceipt.gstClaimDate as string) || new Date(),
+            parseDate(apiJournal.gstClaimDate as string) || new Date(),
             clientDateFormat
           )
         : clientDateFormat,
-      gstAmt: apiReceipt.gstAmt ?? 0,
-      gstLocalAmt: apiReceipt.gstLocalAmt ?? 0,
-      gstCtyAmt: apiReceipt.gstCtyAmt ?? 0,
-      totAmtAftGst: apiReceipt.totAmtAftGst ?? 0,
-      totLocalAmtAftGst: apiReceipt.totLocalAmtAftGst ?? 0,
-      totCtyAmtAftGst: apiReceipt.totCtyAmtAftGst ?? 0,
-      remarks: apiReceipt.remarks ?? "",
-      payeeTo: apiReceipt.payeeTo ?? "",
-      moduleFrom: apiReceipt.moduleFrom ?? "",
-      createBy: apiReceipt.createBy ?? "",
-      editBy: apiReceipt.editBy ?? "",
-      cancelBy: apiReceipt.cancelBy ?? "",
-      createDate: apiReceipt.createDate
-        ? parseDate(apiReceipt.createDate as string) || new Date()
+      gstAmt: apiJournal.gstAmt ?? 0,
+      gstLocalAmt: apiJournal.gstLocalAmt ?? 0,
+      gstCtyAmt: apiJournal.gstCtyAmt ?? 0,
+      totAmtAftGst: apiJournal.totAmtAftGst ?? 0,
+      totLocalAmtAftGst: apiJournal.totLocalAmtAftGst ?? 0,
+      totCtyAmtAftGst: apiJournal.totCtyAmtAftGst ?? 0,
+      remarks: apiJournal.remarks ?? "",
+      isReverse: apiJournal.isReverse ?? false,
+      isRecurrency: apiJournal.isRecurrency ?? false,
+      revDate: apiJournal.revDate ?? null,
+      recurrenceUntil: apiJournal.recurrenceUntil ?? null,
+      moduleFrom: apiJournal.moduleFrom ?? "",
+      createBy: apiJournal.createBy ?? "",
+      editBy: apiJournal.editBy ?? "",
+      cancelBy: apiJournal.cancelBy ?? "",
+      postBy: apiJournal.postBy ?? "",
+      appBy: apiJournal.appBy ?? "",
+      createDate: apiJournal.createDate
+        ? parseDate(apiJournal.createDate as string) || new Date()
         : new Date(),
-      editDate: apiReceipt.editDate
-        ? parseDate(apiReceipt.editDate as unknown as string) || null
+      editDate: apiJournal.editDate
+        ? parseDate(apiJournal.editDate as unknown as string) || null
         : null,
-      cancelDate: apiReceipt.cancelDate
-        ? parseDate(apiReceipt.cancelDate as unknown as string) || null
+      cancelDate: apiJournal.cancelDate
+        ? parseDate(apiJournal.cancelDate as unknown as string) || null
         : null,
-      cancelRemarks: apiReceipt.cancelRemarks ?? null,
-      editVersion: apiReceipt.editVersion ?? 0,
-      isPost: apiReceipt.isPost ?? false,
-      postDate: apiReceipt.postDate
-        ? parseDate(apiReceipt.postDate as unknown as string) || null
+      cancelRemarks: apiJournal.cancelRemarks ?? null,
+      editVersion: apiJournal.editVersion ?? 0,
+      isPost: apiJournal.isPost ?? false,
+      postDate: apiJournal.postDate
+        ? parseDate(apiJournal.postDate as unknown as string) || null
         : null,
-      appStatusId: apiReceipt.appStatusId ?? null,
-      appById: apiReceipt.appById ?? null,
-      appDate: apiReceipt.appDate
-        ? parseDate(apiReceipt.appDate as unknown as string) || null
+      appStatusId: apiJournal.appStatusId ?? null,
+      appById: apiJournal.appById ?? null,
+      appDate: apiJournal.appDate
+        ? parseDate(apiJournal.appDate as unknown as string) || null
         : null,
       data_details:
-        apiReceipt.data_details?.map(
+        apiJournal.data_details?.map(
           (detail) =>
             ({
               ...detail,
-              receiptId: detail.receiptId?.toString() ?? "0",
-              receiptNo: detail.receiptNo ?? "",
+              journalId: detail.journalId?.toString() ?? "0",
+              journalNo: detail.journalNo ?? "",
               itemNo: detail.itemNo ?? 0,
               seqNo: detail.seqNo ?? 0,
               glId: detail.glId ?? 0,
               glCode: detail.glCode ?? "",
               glName: detail.glName ?? "",
+              remarks: detail.remarks ?? "",
+              productId: detail.productId ?? 0,
+              productCode: detail.productCode ?? "",
+              productName: detail.productName ?? "",
+              isDebit: detail.isDebit ?? false,
               totAmt: detail.totAmt ?? 0,
               totLocalAmt: detail.totLocalAmt ?? 0,
               totCtyAmt: detail.totCtyAmt ?? 0,
-              remarks: detail.remarks ?? "",
               gstId: detail.gstId ?? 0,
               gstName: detail.gstName ?? "",
               gstPercentage: detail.gstPercentage ?? 0,
@@ -442,66 +417,74 @@ export default function GenReceiptPage() {
               bargeName: detail.bargeName ?? "",
               voyageId: detail.voyageId ?? 0,
               voyageNo: detail.voyageNo ?? "",
+              jobOrderId: detail.jobOrderId ?? 0,
+              jobOrderNo: detail.jobOrderNo ?? "",
+              taskId: detail.taskId ?? 0,
+              taskName: detail.taskName ?? "",
+              serviceId: detail.serviceId ?? 0,
+              serviceName: detail.serviceName ?? "",
               editVersion: detail.editVersion ?? 0,
-            }) as unknown as CbGenReceiptDtSchemaType
+            }) as unknown as GLJournalDtSchemaType
         ) || [],
     }
   }
 
-  const handleReceiptSelect = async (
-    selectedReceipt: ICbGenReceiptHd | undefined
+  const handleJournalSelect = async (
+    selectedJournal: IGLJournalHd | undefined
   ) => {
-    if (!selectedReceipt) return
+    if (!selectedJournal) return
 
-    setIsSelectingReceipt(true)
+    setIsSelectingJournal(true)
 
     try {
-      // Fetch receipt details directly using selected receipt's values
+      // Fetch journal details directly using selected journal's values
       const response = await getById(
-        `${CbReceipt.getByIdNo}/${selectedReceipt.receiptId}/${selectedReceipt.receiptNo}`
+        `${GlJournal.getByIdNo}/${selectedJournal.journalId}/${selectedJournal.journalNo}`
       )
 
       if (response?.result === 1) {
-        const detailedReceipt = Array.isArray(response.data)
+        const detailedJournal = Array.isArray(response.data)
           ? response.data[0]
           : response.data
 
-        if (detailedReceipt) {
-          const updatedReceipt = transformToSchemaType(detailedReceipt)
-          setReceipt(updatedReceipt)
-          form.reset(updatedReceipt)
+        if (detailedJournal) {
+          const updatedJournal = transformToSchemaType(detailedJournal)
+          setJournal(updatedJournal)
+          form.reset(updatedJournal)
           form.trigger()
 
           // Close dialog only on success
           setShowListDialog(false)
           toast.success(
-            `Receipt ${selectedReceipt.receiptNo} loaded successfully`
+            `Journal Entry ${selectedJournal.journalNo} loaded successfully`
           )
         }
       } else {
-        toast.error(response?.message || "Failed to fetch receipt details")
+        toast.error(
+          response?.message || "Failed to fetch journal entry details"
+        )
         // Keep dialog open on failure so user can try again
       }
     } catch (error) {
-      console.error("Error fetching receipt details:", error)
-      toast.error("Error loading receipt. Please try again.")
+      console.error("Error fetching journal entry details:", error)
+      toast.error("Error loading journal entry. Please try again.")
       // Keep dialog open on error
     } finally {
-      setIsSelectingReceipt(false)
+      setIsSelectingJournal(false)
     }
   }
 
   // Handle filter changes
-  const handleFilterChange = (newFilters: ICbGenReceiptFilter) => {
+  const handleFilterChange = (newFilters: IGLJournalFilter) => {
     setFilters(newFilters)
   }
 
-  // Refetch receipts when filters change (only if dialog is open)
+  // Refetch journals when filters change (only if dialog is open)
   useEffect(() => {
     if (showListDialog) {
-      refetchReceipts()
+      refetchJournals()
     }
-  }, [filters, showListDialog, refetchReceipts])
+  }, [filters, showListDialog, refetchJournals])
 
   // Add keyboard shortcuts
   useEffect(() => {
@@ -533,51 +516,51 @@ export default function GenReceiptPage() {
     return () => window.removeEventListener("beforeunload", handleBeforeUnload)
   }, [form.formState.isDirty])
 
-  const handleReceiptSearch = async (value: string) => {
+  const handleJournalSearch = async (value: string) => {
     if (!value) return
 
-    setIsLoadingReceipt(true)
+    setIsLoadingJournal(true)
 
     try {
-      const response = await getById(`${CbReceipt.getByIdNo}/0/${value}`)
+      const response = await getById(`${GlJournal.getByIdNo}/0/${value}`)
 
       if (response?.result === 1) {
-        const detailedReceipt = Array.isArray(response.data)
+        const detailedJournal = Array.isArray(response.data)
           ? response.data[0]
           : response.data
 
-        if (detailedReceipt) {
-          const updatedReceipt = transformToSchemaType(detailedReceipt)
-          setReceipt(updatedReceipt)
-          form.reset(updatedReceipt)
+        if (detailedJournal) {
+          const updatedJournal = transformToSchemaType(detailedJournal)
+          setJournal(updatedJournal)
+          form.reset(updatedJournal)
           form.trigger()
 
           // Show success message
-          toast.success(`Receipt ${value} loaded successfully`)
+          toast.success(`Journal Entry ${value} loaded successfully`)
 
           // Close the load confirmation dialog on success
           setShowLoadConfirm(false)
         }
       } else {
         toast.error(
-          response?.message || "Failed to fetch receipt details (direct)"
+          response?.message || "Failed to fetch journal entry details (direct)"
         )
       }
     } catch {
-      toast.error("Error searching for receipt")
+      toast.error("Error searching for journal entry")
     } finally {
-      setIsLoadingReceipt(false)
+      setIsLoadingJournal(false)
     }
   }
 
-  // Determine mode and receipt ID from URL
-  const receiptNo = form.getValues("receiptNo")
-  const isEdit = Boolean(receiptNo)
+  // Determine mode and journal ID from URL
+  const journalNo = form.getValues("journalNo")
+  const isEdit = Boolean(journalNo)
 
   // Compose title text
   const titleText = isEdit
-    ? `CB Gen Receipt (Edit) - ${receiptNo}`
-    : "CB Gen Receipt (New)"
+    ? `GL Journal Entry (Edit) - ${journalNo}`
+    : "GL Journal Entry (New)"
 
   // Show loading spinner while essential data is loading
   if (!visible || !required) {
@@ -585,7 +568,9 @@ export default function GenReceiptPage() {
       <div className="flex min-h-screen items-center justify-center">
         <div className="text-center">
           <Spinner size="lg" className="mx-auto" />
-          <p className="mt-4 text-sm text-gray-600">Loading receipt form...</p>
+          <p className="mt-4 text-sm text-gray-600">
+            Loading journal entry form...
+          </p>
           <p className="mt-2 text-xs text-gray-500">
             Preparing field settings and validation rules
           </p>
@@ -641,10 +626,10 @@ export default function GenReceiptPage() {
                   setShowLoadConfirm(true)
                 }
               }}
-              placeholder="Search Receipt No"
+              placeholder="Search Journal No"
               className="h-8 text-sm"
-              readOnly={!!receipt?.receiptId && receipt.receiptId !== "0"}
-              disabled={!!receipt?.receiptId && receipt.receiptId !== "0"}
+              readOnly={!!journal?.journalId && journal.journalId !== "0"}
+              disabled={!!journal?.journalId && journal.journalId !== "0"}
             />
             <Button
               variant="outline"
@@ -672,7 +657,7 @@ export default function GenReceiptPage() {
             <Button
               variant="outline"
               size="sm"
-              disabled={!receipt || receipt.receiptId === "0"}
+              disabled={!journal || journal.journalId === "0"}
             >
               <Printer className="mr-1 h-4 w-4" />
               Print
@@ -691,7 +676,7 @@ export default function GenReceiptPage() {
               variant="outline"
               size="sm"
               onClick={() => setShowCloneConfirm(true)}
-              disabled={!receipt || receipt.receiptId === "0"}
+              disabled={!journal || journal.journalId === "0"}
             >
               <Copy className="mr-1 h-4 w-4" />
               Clone
@@ -701,7 +686,7 @@ export default function GenReceiptPage() {
               variant="destructive"
               size="sm"
               onClick={() => setShowDeleteConfirm(true)}
-              disabled={!receipt || receipt.receiptId === "0"}
+              disabled={!journal || journal.journalId === "0"}
             >
               <Trash2 className="mr-1 h-4 w-4" />
               Delete
@@ -713,7 +698,7 @@ export default function GenReceiptPage() {
           <Main
             form={form}
             onSuccessAction={async () => {
-              handleSaveReceipt()
+              handleSaveJournal()
             }}
             isEdit={isEdit}
             visible={visible}
@@ -733,7 +718,7 @@ export default function GenReceiptPage() {
         onOpenChange={(open) => {
           setShowListDialog(open)
           if (open) {
-            refetchReceipts()
+            refetchJournals()
           }
         }}
       >
@@ -745,38 +730,39 @@ export default function GenReceiptPage() {
             <div className="flex items-center justify-between">
               <div>
                 <DialogTitle className="text-2xl font-bold tracking-tight">
-                  CB Gen Receipt List
+                  GL Journal Entry List
                 </DialogTitle>
                 <p className="text-muted-foreground text-sm">
-                  Manage and select existing receipts from the list below. Use
-                  search to filter records or create new receipts.
+                  Manage and select existing journal entries from the list
+                  below. Use search to filter records or create new journal
+                  entries.
                 </p>
               </div>
             </div>
           </DialogHeader>
 
-          {isLoadingReceipts || isRefetchingReceipts || isSelectingReceipt ? (
+          {isLoadingJournals || isRefetchingJournals || isSelectingJournal ? (
             <div className="flex min-h-[60vh] items-center justify-center">
               <div className="text-center">
                 <Spinner size="lg" className="mx-auto" />
                 <p className="mt-4 text-sm text-gray-600">
-                  {isSelectingReceipt
-                    ? "Loading receipt details..."
-                    : "Loading receipts..."}
+                  {isSelectingJournal
+                    ? "Loading journal entry details..."
+                    : "Loading journal entries..."}
                 </p>
                 <p className="mt-2 text-xs text-gray-500">
-                  {isSelectingReceipt
-                    ? "Please wait while we fetch the complete receipt data"
-                    : "Please wait while we fetch the receipt list"}
+                  {isSelectingJournal
+                    ? "Please wait while we fetch the complete journal entry data"
+                    : "Please wait while we fetch the journal entry list"}
                 </p>
               </div>
             </div>
           ) : (
-            <ReceiptTable
-              data={receiptsData || []}
+            <JournalTable
+              data={journalsData || []}
               isLoading={false}
-              onReceiptSelect={handleReceiptSelect}
-              onRefresh={() => refetchReceipts()}
+              onJournalSelect={handleJournalSelect}
+              onRefresh={() => refetchJournals()}
               onFilterChange={handleFilterChange}
               initialFilters={filters}
             />
@@ -788,10 +774,10 @@ export default function GenReceiptPage() {
       <SaveConfirmation
         open={showSaveConfirm}
         onOpenChange={setShowSaveConfirm}
-        onConfirm={handleSaveReceipt}
-        itemName={receipt?.receiptNo || "New Receipt"}
+        onConfirm={handleSaveJournal}
+        itemName={journal?.journalNo || "New Journal Entry"}
         operationType={
-          receipt?.receiptId && receipt.receiptId !== "0" ? "update" : "create"
+          journal?.journalId && journal.journalId !== "0" ? "update" : "create"
         }
         isSaving={
           isSaving || saveMutation.isPending || updateMutation.isPending
@@ -802,10 +788,10 @@ export default function GenReceiptPage() {
       <DeleteConfirmation
         open={showDeleteConfirm}
         onOpenChange={setShowDeleteConfirm}
-        onConfirm={handleReceiptDelete}
-        itemName={receipt?.receiptNo}
-        title="Delete Receipt"
-        description="This action cannot be undone. All receipt details will be permanently deleted."
+        onConfirm={handleJournalDelete}
+        itemName={journal?.journalNo}
+        title="Delete Journal Entry"
+        description="This action cannot be undone. All journal entry details will be permanently deleted."
         isDeleting={deleteMutation.isPending}
       />
 
@@ -813,21 +799,21 @@ export default function GenReceiptPage() {
       <LoadConfirmation
         open={showLoadConfirm}
         onOpenChange={setShowLoadConfirm}
-        onLoad={() => handleReceiptSearch(searchNo)}
+        onLoad={() => handleJournalSearch(searchNo)}
         code={searchNo}
-        typeLabel="Receipt"
+        typeLabel="Journal Entry"
         showDetails={false}
-        description={`Do you want to load Receipt ${searchNo}?`}
-        isLoading={isLoadingReceipt}
+        description={`Do you want to load Journal Entry ${searchNo}?`}
+        isLoading={isLoadingJournal}
       />
 
       {/* Reset Confirmation */}
       <ResetConfirmation
         open={showResetConfirm}
         onOpenChange={setShowResetConfirm}
-        onConfirm={handleReceiptReset}
-        itemName={receipt?.receiptNo}
-        title="Reset Receipt"
+        onConfirm={handleJournalReset}
+        itemName={journal?.journalNo}
+        title="Reset Journal Entry"
         description="This will clear all unsaved changes."
       />
 
@@ -835,10 +821,10 @@ export default function GenReceiptPage() {
       <CloneConfirmation
         open={showCloneConfirm}
         onOpenChange={setShowCloneConfirm}
-        onConfirm={handleCloneReceipt}
-        itemName={receipt?.receiptNo}
-        title="Clone Receipt"
-        description="This will create a copy as a new receipt."
+        onConfirm={handleCloneJournal}
+        itemName={journal?.journalNo}
+        title="Clone Journal Entry"
+        description="This will create a copy as a new journal entry."
       />
     </div>
   )

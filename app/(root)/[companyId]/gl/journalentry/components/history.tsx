@@ -1,6 +1,6 @@
 "use client"
 
-import { CbGenReceiptHdSchemaType } from "@/schemas/cb-genreceipt"
+import { GLJournalHdSchemaType } from "@/schemas/gl-journalentry"
 import { useAuthStore } from "@/stores/auth-store"
 import { UseFormReturn } from "react-hook-form"
 
@@ -10,7 +10,7 @@ import GLPostDetails from "./history/gl-post-details"
 import PaymentDetails from "./history/payment-details"
 
 interface HistoryProps {
-  form: UseFormReturn<CbGenReceiptHdSchemaType>
+  form: UseFormReturn<GLJournalHdSchemaType>
   isEdit: boolean
 }
 
@@ -35,9 +35,9 @@ export default function History({ form, isEdit: _isEdit }: HistoryProps) {
   return (
     <div className="space-y-4">
       <AccountDetails {...accountDetails} />
-      <PaymentDetails invoiceId={form.getValues().receiptId || ""} />
-      <GLPostDetails invoiceId={form.getValues().receiptId || ""} />
-      <EditVersionDetails invoiceId={form.getValues().receiptId || ""} />
+      <PaymentDetails invoiceId={form.getValues().journalId || ""} />
+      <GLPostDetails invoiceId={form.getValues().journalId || ""} />
+      <EditVersionDetails invoiceId={form.getValues().journalId || ""} />
     </div>
   )
 }

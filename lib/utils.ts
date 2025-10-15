@@ -184,23 +184,23 @@ export enum OperationsTransactionId {
 
 export enum ARTransactionId {
   invoice = 1,
-  debit_note = 2,
-  credit_note = 3,
+  debitnote = 2,
+  creditnote = 3,
   adjustment = 4,
   receipt = 5,
   refund = 6,
-  doc_setoff = 7,
+  docsetoff = 7,
   reports = 99,
 }
 
 export enum APTransactionId {
   invoice = 1,
-  debit_note = 2,
-  credit_note = 3,
+  debitnote = 2,
+  creditnote = 3,
   adjustment = 4,
   payment = 5,
   refund = 6,
-  doc_setoff = 7,
+  docsetoff = 7,
   reports = 99,
 }
 
@@ -216,12 +216,12 @@ export enum CBTransactionId {
 }
 
 export enum GLTransactionId {
-  journal_entry = 1,
-  ar_ap_contra = 2,
-  fixed_asset = 3,
-  opening_balance = 4,
-  year_end_process = 5,
-  period_close = 6,
+  journalentry = 1,
+  arapcontra = 2,
+  fixedasset = 3,
+  openingbalance = 4,
+  yearendprocess = 5,
+  periodclose = 6,
   reports = 99,
 }
 
@@ -483,8 +483,10 @@ export enum TableName {
   //GL
   journalEntry = "journalEntry",
   journalEntryDt = "journalEntryDt",
+  journalEntryHistory = "journalEntryHistory",
   arApContra = "arApContra",
   arApContraDt = "arApContraDt",
+  arApContraHistory = "arApContraHistory",
   fixedAsset = "fixedAsset",
   openingBalance = "openingBalance",
   yearEndProcess = "yearEndProcess",

@@ -25,7 +25,7 @@ export * from "./docexpiry"
 export * from "./employee"
 export * from "./employer"
 export * from "./entitytype"
-export * from "./gl-periodclose"
+
 export * from "./gst"
 export * from "./history"
 export * from "./invoice"
@@ -82,3 +82,7 @@ export * from "./cb-batchpayment"
 export * from "./cb-banktransfer"
 export * from "./cb-bankrecon"
 export * from "./cb-banktransferctm"
+
+//account-gl
+export * from "./gl-periodclose"
+export * from "./gl-journalentry"

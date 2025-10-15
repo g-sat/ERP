@@ -1,7 +1,7 @@
-export interface ICbGenReceiptHd {
+export interface IGLJournalHd {
   companyId: number
-  receiptId: string
-  receiptNo: string
+  journalId: string
+  journalNo: string
   referenceNo: string
   trnDate: Date | string
   accountDate: Date | string
@@ -10,17 +10,6 @@ export interface ICbGenReceiptHd {
   currencyName: null | string
   exhRate: number
   ctyExhRate: number
-  paymentTypeId: number
-  paymentTypeCode: null | string
-  paymentTypeName: null | string
-  bankId: number
-  bankCode: null | string | number
-  bankName: null | string
-  chequeNo: string | null
-  chequeDate: Date | string
-  bankChgGLId: number
-  bankChgAmt: number
-  bankChgLocalAmt: number
   totAmt: number
   totLocalAmt: number
   totCtyAmt: number
@@ -32,30 +21,37 @@ export interface ICbGenReceiptHd {
   totLocalAmtAftGst: number
   totCtyAmtAftGst: number
   remarks: string
-  payeeTo: string
+  isReverse: boolean
+  isRecurrency: boolean
+  revDate: Date | string | null
+  recurrenceUntil: Date | string | null
   moduleFrom: string
   createById: number
   createDate: Date | string
   editById: null | number
-  editDate: null | Date
-  isCancel: false
-  cancelById: number
-  cancelDate: Date | null
+  editDate: null | Date | string
+  editVersion: number
+  isCancel: boolean
+  cancelById: null | number
+  cancelDate: null | Date | string
   cancelRemarks: null | string
+  isPost: boolean | null
+  postById: null | number
+  postDate: null | Date | string
+  appStatusId: null | number
+  appById: null | number
+  appDate: null | Date | string
+  // Audit lookup fields
   createBy: string
   editBy: string
   cancelBy: string
-  editVersion: number
-  isPost: boolean
-  postById: null | number
-  postDate: null | Date
-  appStatusId: null | number
-  appById: null | number
-  appDate: null | Date
-  data_details: ICbGenReceiptDt[]
+  postBy: string
+  appBy: string
+  // Nested details
+  data_details: IGLJournalDt[]
 }
 
-export interface ICbGenReceiptFilter {
+export interface IGLJournalFilter {
   startDate: Date | string
   endDate: Date | string
   search: string
@@ -65,20 +61,22 @@ export interface ICbGenReceiptFilter {
   pageSize?: number
 }
 
-export interface ICbGenReceiptDt {
-  receiptId: string
-  receiptNo: string
+export interface IGLJournalDt {
+  journalId: string
+  journalNo: string
   itemNo: number
   seqNo: number
-
   glId: number
   glCode: string
   glName: string
-
+  remarks: string
+  productId: number
+  productCode: string
+  productName: string
+  isDebit: boolean
   totAmt: number
   totLocalAmt: number
   totCtyAmt: number
-  remarks: string
   gstId: number
   gstName: string
   gstPercentage: number
@@ -102,13 +100,11 @@ export interface ICbGenReceiptDt {
   bargeName: string
   voyageId: number
   voyageNo: string
-
+  editVersion: number
   jobOrderId: number
   jobOrderNo: string
   taskId: number
   taskName: string
   serviceId: number
   serviceName: string
-
-  editVersion: number
 }

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react"
-import { ICbGenReceiptDt } from "@/interfaces/cb-genreceipt"
+import { IGLJournalDt } from "@/interfaces/gl-journalentry"
 import { IVisibleFields } from "@/interfaces/setting"
 import { ColumnDef } from "@tanstack/react-table"
 
@@ -7,18 +7,18 @@ import { TableName } from "@/lib/utils"
 import { AccountBaseTable } from "@/components/table/table-account"
 
 // Use flexible data type that can work with form data
-interface ReceiptDetailsTableProps {
-  data: ICbGenReceiptDt[]
+interface JournalDetailsTableProps {
+  data: IGLJournalDt[]
   onDelete?: (itemNo: number) => void
   onBulkDelete?: (selectedItemNos: number[]) => void
-  onEdit?: (template: ICbGenReceiptDt) => void
+  onEdit?: (template: IGLJournalDt) => void
   onRefresh?: () => void
   onFilterChange?: (filters: { search?: string; sortOrder?: string }) => void
-  onDataReorder?: (newData: ICbGenReceiptDt[]) => void
+  onDataReorder?: (newData: IGLJournalDt[]) => void
   visible: IVisibleFields
 }
 
-export default function ReceiptDetailsTable({
+export default function JournalDetailsTable({
   data,
   onDelete,
   onBulkDelete,
@@ -27,7 +27,7 @@ export default function ReceiptDetailsTable({
   onFilterChange,
   onDataReorder,
   visible,
-}: ReceiptDetailsTableProps) {
+}: JournalDetailsTableProps) {
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
@@ -48,12 +48,12 @@ export default function ReceiptDetailsTable({
   }
 
   // Define columns with visible prop checks
-  const columns: ColumnDef<ICbGenReceiptDt>[] = [
+  const columns: ColumnDef<IGLJournalDt>[] = [
     {
       accessorKey: "itemNo",
       header: "Item No",
       size: 60,
-      cell: ({ row }: { row: { original: ICbGenReceiptDt } }) => (
+      cell: ({ row }: { row: { original: IGLJournalDt } }) => (
         <div className="text-right">{row.original.itemNo}</div>
       ),
     },
@@ -67,6 +67,25 @@ export default function ReceiptDetailsTable({
       header: "Account",
       size: 100,
     },
+    {
+      accessorKey: "isDebit",
+      header: "Type",
+      size: 80,
+      cell: ({ row }: { row: { original: IGLJournalDt } }) => (
+        <div className="text-center">
+          {row.original.isDebit ? "Debit" : "Credit"}
+        </div>
+      ),
+    },
+    ...(visible?.m_ProductId
+      ? [
+          {
+            accessorKey: "productName",
+            header: "Product",
+            size: 120,
+          },
+        ]
+      : []),
     ...(visible?.m_DepartmentId
       ? [
           {
@@ -99,27 +118,31 @@ export default function ReceiptDetailsTable({
       accessorKey: "totAmt",
       header: "Amount",
       size: 100,
-      cell: ({ row }: { row: { original: ICbGenReceiptDt } }) => (
+      cell: ({ row }: { row: { original: IGLJournalDt } }) => (
         <div className="text-right">{row.original.totAmt}</div>
       ),
     },
 
-    {
-      accessorKey: "gstPercentage",
-      header: "GST %",
-      size: 50,
-      cell: ({ row }: { row: { original: ICbGenReceiptDt } }) => (
-        <div className="text-right">{row.original.gstPercentage}</div>
-      ),
-    },
-    {
-      accessorKey: "gstAmt",
-      header: "GST Amount",
-      size: 100,
-      cell: ({ row }: { row: { original: ICbGenReceiptDt } }) => (
-        <div className="text-right">{row.original.gstAmt}</div>
-      ),
-    },
+    ...(visible?.m_GstId
+      ? [
+          {
+            accessorKey: "gstPercentage",
+            header: "GST %",
+            size: 50,
+            cell: ({ row }: { row: { original: IGLJournalDt } }) => (
+              <div className="text-right">{row.original.gstPercentage}</div>
+            ),
+          },
+          {
+            accessorKey: "gstAmt",
+            header: "GST Amount",
+            size: 100,
+            cell: ({ row }: { row: { original: IGLJournalDt } }) => (
+              <div className="text-right">{row.original.gstAmt}</div>
+            ),
+          },
+        ]
+      : []),
     ...(visible?.m_JobOrderId
       ? [
           {
@@ -139,7 +162,7 @@ export default function ReceiptDetailsTable({
       accessorKey: "totLocalAmt",
       header: "Local Amount",
       size: 100,
-      cell: ({ row }: { row: { original: ICbGenReceiptDt } }) => (
+      cell: ({ row }: { row: { original: IGLJournalDt } }) => (
         <div className="text-right">{row.original.totLocalAmt}</div>
       ),
     },
@@ -149,7 +172,7 @@ export default function ReceiptDetailsTable({
             accessorKey: "totCtyAmt",
             header: "Country Amount",
             size: 100,
-            cell: ({ row }: { row: { original: ICbGenReceiptDt } }) => (
+            cell: ({ row }: { row: { original: IGLJournalDt } }) => (
               <div className="text-right">{row.original.totCtyAmt}</div>
             ),
           },
@@ -162,23 +185,23 @@ export default function ReceiptDetailsTable({
             header: "Gst",
             size: 100,
           },
+          {
+            accessorKey: "gstLocalAmt",
+            header: "GST Local Amount",
+            size: 100,
+            cell: ({ row }: { row: { original: IGLJournalDt } }) => (
+              <div className="text-right">{row.original.gstLocalAmt}</div>
+            ),
+          },
         ]
       : []),
-    {
-      accessorKey: "gstLocalAmt",
-      header: "GST Local Amount",
-      size: 100,
-      cell: ({ row }: { row: { original: ICbGenReceiptDt } }) => (
-        <div className="text-right">{row.original.gstLocalAmt}</div>
-      ),
-    },
-    ...(visible?.m_CtyCurr
+    ...(visible?.m_CtyCurr && visible?.m_GstId
       ? [
           {
             accessorKey: "gstCtyAmt",
             header: "GST Country Amount",
             size: 100,
-            cell: ({ row }: { row: { original: ICbGenReceiptDt } }) => (
+            cell: ({ row }: { row: { original: IGLJournalDt } }) => (
               <div className="text-right">{row.original.gstCtyAmt}</div>
             ),
           },
@@ -235,7 +258,7 @@ export default function ReceiptDetailsTable({
       accessorKey: "seqNo",
       header: "Seq No",
       size: 60,
-      cell: ({ row }: { row: { original: ICbGenReceiptDt } }) => (
+      cell: ({ row }: { row: { original: IGLJournalDt } }) => (
         <div className="text-right">{row.original.seqNo}</div>
       ),
     },
@@ -250,10 +273,10 @@ export default function ReceiptDetailsTable({
       <AccountBaseTable
         data={data}
         columns={columns}
-        moduleId={25}
+        moduleId={28}
         transactionId={1}
-        tableName={TableName.cbGenReceiptDt}
-        emptyMessage="No receipt details found."
+        tableName={TableName.journalEntryDt}
+        emptyMessage="No journal entry details found."
         accessorId="itemNo"
         onRefresh={onRefresh}
         onFilterChange={onFilterChange}
