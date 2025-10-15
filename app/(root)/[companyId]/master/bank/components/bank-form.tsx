@@ -26,12 +26,14 @@ interface BankFormProps {
   initialData?: IBank | null
   submitAction: (bank: IBank) => void
   onBankLookup?: (bankCode: string, bankName: string) => void
+  companyId?: number
 }
 
 export default function BankForm({
   initialData,
   submitAction,
   onBankLookup,
+  companyId,
 }: BankFormProps) {
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
@@ -137,6 +139,7 @@ export default function BankForm({
                 name="glId"
                 label="Chart of Account"
                 isRequired={true}
+                companyId={Number(companyId)}
               />
 
               <CustomInput form={form} name="accountNo" label="Account No" />

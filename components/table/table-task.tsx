@@ -1,4 +1,5 @@
 "use client"
+
 import { useCallback, useEffect, useMemo, useState } from "react"
 import {
   DndContext,
@@ -22,6 +23,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table"
+
 import { TableName } from "@/lib/utils"
 import { useGetGridLayout } from "@/hooks/use-settings"
 // Virtual scrolling removed - using empty rows instead
@@ -33,10 +35,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+
 import { Checkbox } from "../ui/checkbox"
 import { SortableTableHeader } from "./sortable-table-header"
 import { TaskTableActions } from "./table-task-action"
 import { TaskTableHeader } from "./table-task-header"
+
 interface TaskTableProps<T> {
   data: T[]
   columns: ColumnDef<T>[]
@@ -342,6 +346,7 @@ export function TaskTable<T>({
           selectedRowIds={selectedRowIds}
           hideColumnsOnDebitNote={["edit", "delete", "purchase"]} // Example: hide these columns when debit note exists
           hasDebitNoteInSelection={hasValidDebitNoteIds}
+          data={data}
         />
       )}
       <Table>

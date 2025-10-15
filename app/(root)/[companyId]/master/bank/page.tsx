@@ -1,6 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useState } from "react"
+import { useParams } from "next/navigation"
 import { ApiResponse } from "@/interfaces/auth"
 import {
   IBank,
@@ -45,6 +46,7 @@ import { ContactsTable } from "./components/contact-table"
 export default function BankPage() {
   const moduleId = ModuleId.master
   const transactionId = MasterTransactionId.bank
+  const companyId = useParams().companyId
 
   const { hasPermission } = usePermissionStore()
 
@@ -612,6 +614,7 @@ export default function BankPage() {
               initialData={bank || undefined}
               submitAction={handleBankSave}
               onBankLookup={handleBankLookup}
+              companyId={Number(companyId)}
             />
           </CardContent>
         </Card>

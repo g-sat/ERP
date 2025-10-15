@@ -2,6 +2,7 @@ import { useCallback, useMemo, useState } from "react"
 import { IGridSetting } from "@/interfaces/setting"
 import { Column } from "@tanstack/react-table"
 import {
+  ClipboardList,
   Forward,
   Layout,
   Plus,
@@ -9,7 +10,9 @@ import {
   RefreshCw,
   SlidersHorizontal,
 } from "lucide-react"
+
 import { usePersist } from "@/hooks/use-common"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import {
@@ -20,7 +23,14 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 import { DebitNoteConfirmation } from "@/components/confirmation/debitnote-confirmation"
+
 // Define types for clarity
 type TaskTableHeaderProps<TData> = {
   onRefresh?: () => void
@@ -42,6 +52,8 @@ type TaskTableHeaderProps<TData> = {
   // Props for column visibility control
   hideColumnsOnDebitNote?: string[] // Array of column IDs to hide when debit note exists
   hasDebitNoteInSelection?: boolean // Whether any selected row has debit note
+  // Props for job order info display
+  data?: TData[] // Table data to display charges summary
 }
 export function TaskTableHeader<TData>({
   onRefresh,
@@ -61,6 +73,7 @@ export function TaskTableHeader<TData>({
   selectedRowIds = [],
   hideColumnsOnDebitNote = [],
   hasDebitNoteInSelection = false,
+  data = [],
 }: TaskTableHeaderProps<TData>) {
   const [columnSearch, setColumnSearch] = useState("")
   const [activeButton, setActiveButton] = useState<"show" | "hide" | null>(null)
@@ -69,6 +82,33 @@ export function TaskTableHeader<TData>({
   // State for debit note confirmation dialog
   const [showDebitNoteConfirmation, setShowDebitNoteConfirmation] =
     useState(false)
+
+  // Extract and aggregate charges with quantities from data
+  const chargesData = useMemo(() => {
+    if (!data || data.length === 0) return []
+
+    // Group data by chargeName and sum quantities
+    const chargeMap = new Map<
+      string,
+      { chargeName: string; qty: number; count: number }
+    >()
+
+    data.forEach((item: any) => {
+      const chargeName = item.chargeName || "N/A"
+      const qty = Number(item.quantity || item.qty || 0)
+
+      if (chargeMap.has(chargeName)) {
+        const existing = chargeMap.get(chargeName)!
+        existing.qty += qty
+        existing.count += 1
+      } else {
+        chargeMap.set(chargeName, { chargeName, qty, count: 1 })
+      }
+    })
+
+    return Array.from(chargeMap.values())
+  }, [data])
+
   // Filter columns based on search and debit note status - memoized to prevent re-renders
   const filteredColumns = useMemo(() => {
     return columns.filter((column) => {
@@ -249,8 +289,41 @@ export function TaskTableHeader<TData>({
               )}
             </div>
           </div>
-          {/* Search Input */}
+
           <div className="flex items-center gap-2">
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Badge
+                    className="flex h-8 items-center px-4"
+                    variant="outline"
+                  >
+                    <ClipboardList className="mr-1 h-4 w-4" />
+                  </Badge>
+                </TooltipTrigger>
+                <TooltipContent className="max-w-2xl">
+                  <div className="space-y-3">
+                    <h4 className="mb-3 font-semibold">{"Charges Summary"}</h4>
+
+                    {chargesData.length > 0 ? (
+                      <ul className="mb-4 list-disc space-y-1 pl-5">
+                        {chargesData.map((charge) => (
+                          <li key={charge.chargeName} className="font-semibold">
+                            {charge.chargeName}: {charge.qty}
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="text-muted-foreground text-sm">
+                        No charges available
+                      </p>
+                    )}
+                  </div>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+
+            {/* Search Input */}
             <Input
               placeholder="Search..."
               value={searchQuery}

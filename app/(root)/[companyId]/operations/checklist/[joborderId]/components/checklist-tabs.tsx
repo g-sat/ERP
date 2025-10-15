@@ -327,7 +327,9 @@ export function ChecklistTabs({ jobData, onClone }: ChecklistTabsProps) {
               variant="outline"
               size="sm"
               disabled={Boolean(
-                currentJobData?.invoiceId && currentJobData.invoiceId > 0
+                currentJobData?.invoiceId &&
+                  currentJobData.invoiceId &&
+                  parseInt(currentJobData.invoiceId) > 0
               )}
               onClick={() => {
                 console.log("Invoice Create triggered")
