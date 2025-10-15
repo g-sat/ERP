@@ -156,6 +156,47 @@ export default function BankTransferForm({
     [form]
   )
 
+  // Handle job order selection
+  const handleJobOrderChange = (selectedOption: IJobOrderLookup | null) => {
+    if (selectedOption) {
+      form.setValue("jobOrderId", selectedOption.jobOrderId, {
+        shouldValidate: true,
+        shouldDirty: true,
+      })
+      form.setValue("jobOrderNo", selectedOption.jobOrderNo || "")
+      // Reset task and service when job order changes
+      form.setValue("taskId", 0, { shouldValidate: true })
+      form.setValue("serviceId", 0, { shouldValidate: true })
+    }
+  }
+
+  // Handle task selection
+  const handleTaskChange = (selectedOption: ITaskLookup | null) => {
+    if (selectedOption) {
+      form.setValue("taskId", selectedOption.taskId, {
+        shouldValidate: true,
+        shouldDirty: true,
+      })
+      form.setValue("taskName", selectedOption.taskName || "")
+      // Reset service when task changes
+      form.setValue("serviceId", 0, { shouldValidate: true })
+    }
+  }
+
+  // Handle service selection
+  const handleServiceChange = (selectedOption: IServiceLookup | null) => {
+    if (selectedOption) {
+      form.setValue("serviceId", selectedOption.serviceId, {
+        shouldValidate: true,
+        shouldDirty: true,
+      })
+      form.setValue(
+        "serviceName",
+        selectedOption.serviceCode + " " + selectedOption.serviceName || ""
+      )
+    }
+  }
+
   // Handle FROM bank selection
   const handleFromBankChange = React.useCallback(
     async (selectedBank: IBankLookup | null) => {
@@ -221,6 +262,9 @@ export default function BankTransferForm({
     async (selectedCurrency: ICurrencyLookup | null) => {
       if (selectedCurrency) {
         await setFromExchangeRate(form, exhRateDec, visible, "fromCurrencyId")
+      } else {
+        form.setValue("fromCurrencyId", 0)
+        form.setValue("fromExhRate", 0)
       }
     },
     [form, exhRateDec, visible]
@@ -231,6 +275,9 @@ export default function BankTransferForm({
     async (selectedCurrency: ICurrencyLookup | null) => {
       if (selectedCurrency) {
         await setToExchangeRate(form, exhRateDec, visible, "toCurrencyId")
+      } else {
+        form.setValue("toCurrencyId", 0)
+        form.setValue("toExhRate", 0)
       }
     },
     [form, exhRateDec, visible]
@@ -239,65 +286,13 @@ export default function BankTransferForm({
   // Handle FROM exchange rate change
   const handleFromExchangeRateChange = React.useCallback(
     (value: number) => {
-      const fromExhRate = value || 0
-      const fromTotAmt = form.getValues("fromTotAmt") || 0
-
-      // Calculate local amount based on exchange rate using helper
-      const fromTotLocalAmt = calculateMultiplierAmount(
-        fromTotAmt,
-        fromExhRate,
-        locAmtDec
-      )
-      form.setValue("fromTotLocalAmt", fromTotLocalAmt)
-
-      // Recalculate bank charge local amount using helper
-      const fromBankChgAmt = form.getValues("fromBankChgAmt") || 0
-      const fromBankChgLocalAmt = calculateMultiplierAmount(
-        fromBankChgAmt,
-        fromExhRate,
-        locAmtDec
-      )
-      form.setValue("fromBankChgLocalAmt", fromBankChgLocalAmt)
-    },
-    [form, locAmtDec]
-  )
-
-  // Handle TO exchange rate change
-  const handleToExchangeRateChange = React.useCallback(
-    (value: number) => {
-      const toExhRate = value || 0
-      const toTotAmt = form.getValues("toTotAmt") || 0
-
-      // Calculate local amount based on exchange rate using helper
-      const toTotLocalAmt = calculateMultiplierAmount(
-        toTotAmt,
-        toExhRate,
-        locAmtDec
-      )
-      form.setValue("toTotLocalAmt", toTotLocalAmt)
-
-      // Recalculate bank charge local amount using helper
-      const toBankChgAmt = form.getValues("toBankChgAmt") || 0
-      const toBankChgLocalAmt = calculateMultiplierAmount(
-        toBankChgAmt,
-        toExhRate,
-        locAmtDec
-      )
-      form.setValue("toBankChgLocalAmt", toBankChgLocalAmt)
-    },
-    [form, locAmtDec]
-  )
-
-  // Handle FROM total amount change
-  const handleFromTotAmtChange = React.useCallback(
-    (value: number) => {
       // Prevent circular updates
       if (isUpdatingAmounts.current) return
       isUpdatingAmounts.current = true
 
       try {
-        const fromTotAmt = value || 0
-        const fromExhRate = form.getValues("fromExhRate") || 0
+        const fromExhRate = value || 0
+        const fromTotAmt = form.getValues("fromTotAmt") || 0
         const toExhRate = form.getValues("toExhRate") || 0
         const fromCurrencyId = form.getValues("fromCurrencyId")
         const toCurrencyId = form.getValues("toCurrencyId")
@@ -308,40 +303,56 @@ export default function BankTransferForm({
           fromExhRate,
           locAmtDec
         )
-        form.setValue("fromTotLocalAmt", fromTotLocalAmt)
+        form.setValue("fromTotLocalAmt", fromTotLocalAmt, {
+          shouldValidate: false,
+        })
 
-        // 2. Calculate toTotAmt and toTotLocalAmt based on currency match
-        let toTotAmt = fromTotAmt
-        let toTotLocalAmt = fromTotLocalAmt
-
+        // 2. Recalculate TO amounts based on currency relationship
         if (fromCurrencyId && toCurrencyId && fromCurrencyId !== toCurrencyId) {
           // Different currencies: local amounts must be equal
-          toTotLocalAmt = fromTotLocalAmt // Same local amount
-          if (toExhRate > 0) {
-            toTotAmt = calculateDivisionAmount(toTotLocalAmt, toExhRate, amtDec)
-          }
-
-          // Debug logging
-          console.log("FROM calculation:", {
-            fromTotAmt,
-            fromTotLocalAmt,
-            toTotAmt,
-            toTotLocalAmt,
-            fromExhRate,
-            toExhRate,
+          const toTotLocalAmt = fromTotLocalAmt
+          const toTotAmt =
+            toExhRate > 0
+              ? calculateDivisionAmount(toTotLocalAmt, toExhRate, amtDec)
+              : 0
+          form.setValue("toTotAmt", toTotAmt, { shouldValidate: false })
+          form.setValue("toTotLocalAmt", toTotLocalAmt, {
+            shouldValidate: false,
           })
         } else {
-          // Same currency: calculate normally
-          toTotLocalAmt = calculateMultiplierAmount(
+          // Same currency: TO amounts equal FROM amounts
+          const toTotAmt = fromTotAmt
+          const toTotLocalAmt = calculateMultiplierAmount(
             toTotAmt,
             toExhRate,
             locAmtDec
           )
+          form.setValue("toTotAmt", toTotAmt, { shouldValidate: false })
+          form.setValue("toTotLocalAmt", toTotLocalAmt, {
+            shouldValidate: false,
+          })
         }
 
-        // Set values without triggering validation to prevent recalculation
-        form.setValue("toTotAmt", toTotAmt, { shouldValidate: false })
-        form.setValue("toTotLocalAmt", toTotLocalAmt, { shouldValidate: false })
+        // 3. Recalculate bank charge local amounts
+        const fromBankChgAmt = form.getValues("fromBankChgAmt") || 0
+        const fromBankChgLocalAmt = calculateMultiplierAmount(
+          fromBankChgAmt,
+          fromExhRate,
+          locAmtDec
+        )
+        form.setValue("fromBankChgLocalAmt", fromBankChgLocalAmt, {
+          shouldValidate: false,
+        })
+
+        const toBankChgAmt = form.getValues("toBankChgAmt") || 0
+        const toBankChgLocalAmt = calculateMultiplierAmount(
+          toBankChgAmt,
+          toExhRate,
+          locAmtDec
+        )
+        form.setValue("toBankChgLocalAmt", toBankChgLocalAmt, {
+          shouldValidate: false,
+        })
       } finally {
         isUpdatingAmounts.current = false
       }
@@ -349,16 +360,16 @@ export default function BankTransferForm({
     [form, amtDec, locAmtDec]
   )
 
-  // Handle TO total amount change
-  const handleToTotAmtChange = React.useCallback(
+  // Handle TO exchange rate change
+  const handleToExchangeRateChange = React.useCallback(
     (value: number) => {
       // Prevent circular updates
       if (isUpdatingAmounts.current) return
       isUpdatingAmounts.current = true
 
       try {
-        const toTotAmt = value || 0
-        const toExhRate = form.getValues("toExhRate") || 0
+        const toExhRate = value || 0
+        const toTotAmt = form.getValues("toTotAmt") || 0
         const fromExhRate = form.getValues("fromExhRate") || 0
         const fromCurrencyId = form.getValues("fromCurrencyId")
         const toCurrencyId = form.getValues("toCurrencyId")
@@ -369,22 +380,54 @@ export default function BankTransferForm({
           toExhRate,
           locAmtDec
         )
-        form.setValue("toTotLocalAmt", toTotLocalAmt)
+        form.setValue("toTotLocalAmt", toTotLocalAmt, { shouldValidate: false })
 
-        // 2. If currencies are different, recalculate fromTotAmt and fromTotLocalAmt
+        // 2. Recalculate FROM amounts based on currency relationship
         if (fromCurrencyId && toCurrencyId && fromCurrencyId !== toCurrencyId) {
-          if (fromExhRate > 0) {
-            // Different currencies: local amounts must be equal
-            const fromTotLocalAmt = toTotLocalAmt // Same local amount
-            const fromTotAmt = calculateDivisionAmount(
-              fromTotLocalAmt,
-              fromExhRate,
-              amtDec
-            )
-            form.setValue("fromTotAmt", fromTotAmt)
-            form.setValue("fromTotLocalAmt", fromTotLocalAmt)
-          }
+          // Different currencies: local amounts must be equal
+          const fromTotLocalAmt = toTotLocalAmt
+          const fromTotAmt =
+            fromExhRate > 0
+              ? calculateDivisionAmount(fromTotLocalAmt, fromExhRate, amtDec)
+              : 0
+          form.setValue("fromTotAmt", fromTotAmt, { shouldValidate: false })
+          form.setValue("fromTotLocalAmt", fromTotLocalAmt, {
+            shouldValidate: false,
+          })
+        } else {
+          // Same currency: FROM amounts equal TO amounts
+          const fromTotAmt = toTotAmt
+          const fromTotLocalAmt = calculateMultiplierAmount(
+            fromTotAmt,
+            fromExhRate,
+            locAmtDec
+          )
+          form.setValue("fromTotAmt", fromTotAmt, { shouldValidate: false })
+          form.setValue("fromTotLocalAmt", fromTotLocalAmt, {
+            shouldValidate: false,
+          })
         }
+
+        // 3. Recalculate bank charge local amounts
+        const toBankChgAmt = form.getValues("toBankChgAmt") || 0
+        const toBankChgLocalAmt = calculateMultiplierAmount(
+          toBankChgAmt,
+          toExhRate,
+          locAmtDec
+        )
+        form.setValue("toBankChgLocalAmt", toBankChgLocalAmt, {
+          shouldValidate: false,
+        })
+
+        const fromBankChgAmt = form.getValues("fromBankChgAmt") || 0
+        const fromBankChgLocalAmt = calculateMultiplierAmount(
+          fromBankChgAmt,
+          fromExhRate,
+          locAmtDec
+        )
+        form.setValue("fromBankChgLocalAmt", fromBankChgLocalAmt, {
+          shouldValidate: false,
+        })
       } finally {
         isUpdatingAmounts.current = false
       }
@@ -392,46 +435,287 @@ export default function BankTransferForm({
     [form, amtDec, locAmtDec]
   )
 
-  // Handle job order selection
-  const handleJobOrderChange = (selectedOption: IJobOrderLookup | null) => {
-    if (selectedOption) {
-      form.setValue("jobOrderId", selectedOption.jobOrderId, {
-        shouldValidate: true,
-        shouldDirty: true,
-      })
-      form.setValue("jobOrderNo", selectedOption.jobOrderNo || "")
-      // Reset task and service when job order changes
-      form.setValue("taskId", 0, { shouldValidate: true })
-      form.setValue("serviceId", 0, { shouldValidate: true })
-    }
-  }
+  // STEP 1: FROM Total Amount Handler (Enhanced Debugging)
+  const handleFromTotAmtChange = React.useCallback(
+    (value: number) => {
+      console.log("🔄 [FROM] TotAmt changed to:", value)
 
-  // Handle task selection
-  const handleTaskChange = (selectedOption: ITaskLookup | null) => {
-    if (selectedOption) {
-      form.setValue("taskId", selectedOption.taskId, {
-        shouldValidate: true,
-        shouldDirty: true,
-      })
-      form.setValue("taskName", selectedOption.taskName || "")
-      // Reset service when task changes
-      form.setValue("serviceId", 0, { shouldValidate: true })
-    }
-  }
+      // Prevent circular updates
+      if (isUpdatingAmounts.current) {
+        console.log("⏭️ [FROM] Skipping - already updating")
+        return
+      }
 
-  // Handle service selection
-  const handleServiceChange = (selectedOption: IServiceLookup | null) => {
-    if (selectedOption) {
-      form.setValue("serviceId", selectedOption.serviceId, {
-        shouldValidate: true,
-        shouldDirty: true,
-      })
-      form.setValue(
-        "serviceName",
-        selectedOption.serviceCode + " " + selectedOption.serviceName || ""
+      isUpdatingAmounts.current = true
+      console.log("🔒 [FROM] Lock acquired")
+
+      try {
+        const fromTotAmt = value || 0
+        const fromExhRate = form.getValues("fromExhRate") || 0
+        const toExhRate = form.getValues("toExhRate") || 0
+        const fromCurrencyId = form.getValues("fromCurrencyId")
+        const toCurrencyId = form.getValues("toCurrencyId")
+
+        console.log("📊 [FROM] Current values:", {
+          fromTotAmt,
+          fromExhRate,
+          toExhRate,
+          fromCurrencyId,
+          toCurrencyId,
+          differentCurrencies: fromCurrencyId !== toCurrencyId,
+        })
+
+        // STEP 1A: Calculate FROM local amount
+        const fromTotLocalAmt = calculateMultiplierAmount(
+          fromTotAmt,
+          fromExhRate,
+          locAmtDec
+        )
+        console.log("✅ [FROM] Local calculated:", fromTotLocalAmt)
+        form.setValue("fromTotLocalAmt", fromTotLocalAmt, {
+          shouldValidate: false,
+        })
+
+        // STEP 1B: Calculate TO amounts based on currency relationship
+        let toTotAmt: number
+        let toTotLocalAmt: number
+
+        if (fromCurrencyId && toCurrencyId && fromCurrencyId !== toCurrencyId) {
+          // Different currencies: local amounts must be equal
+          toTotLocalAmt = fromTotLocalAmt // Direct assignment - no calculation
+          toTotAmt =
+            toExhRate > 0
+              ? calculateDivisionAmount(toTotLocalAmt, toExhRate, amtDec)
+              : 0
+          console.log("🌍 [FROM] Different currencies - TO calculated:", {
+            toTotAmt,
+            toTotLocalAmt,
+          })
+        } else {
+          // Same currency: amounts are equal
+          toTotAmt = fromTotAmt
+          toTotLocalAmt = calculateMultiplierAmount(
+            toTotAmt,
+            toExhRate,
+            locAmtDec
+          )
+          console.log("🏠 [FROM] Same currency - TO calculated:", {
+            toTotAmt,
+            toTotLocalAmt,
+          })
+        }
+
+        // STEP 1C: Set TO values
+        form.setValue("toTotAmt", toTotAmt, { shouldValidate: false })
+        form.setValue("toTotLocalAmt", toTotLocalAmt, { shouldValidate: false })
+
+        console.log("🎯 [FROM] Final result:", {
+          fromTotAmt,
+          fromTotLocalAmt,
+          toTotAmt,
+          toTotLocalAmt,
+        })
+      } finally {
+        isUpdatingAmounts.current = false
+        console.log("🔓 [FROM] Lock released")
+      }
+    },
+    [form, amtDec, locAmtDec]
+  )
+
+  // STEP 2: TO Total Amount Handler (Enhanced Debugging)
+  const handleToTotAmtChange = React.useCallback(
+    (value: number) => {
+      console.log("🔄 [TO] TotAmt changed to:", value)
+
+      // Prevent circular updates
+      if (isUpdatingAmounts.current) {
+        console.log("⏭️ [TO] Skipping - already updating")
+        return
+      }
+
+      isUpdatingAmounts.current = true
+      console.log("🔒 [TO] Lock acquired")
+
+      try {
+        const toTotAmt = value || 0
+        const toExhRate = form.getValues("toExhRate") || 0
+        const fromExhRate = form.getValues("fromExhRate") || 0
+        const fromCurrencyId = form.getValues("fromCurrencyId")
+        const toCurrencyId = form.getValues("toCurrencyId")
+
+        console.log("📊 [TO] Current values:", {
+          toTotAmt,
+          toExhRate,
+          fromExhRate,
+          fromCurrencyId,
+          toCurrencyId,
+          differentCurrencies: fromCurrencyId !== toCurrencyId,
+        })
+
+        // STEP 2A: Calculate TO local amount
+        const toTotLocalAmt = calculateMultiplierAmount(
+          toTotAmt,
+          toExhRate,
+          locAmtDec
+        )
+        console.log("✅ [TO] Local calculated:", toTotLocalAmt)
+        form.setValue("toTotLocalAmt", toTotLocalAmt, { shouldValidate: false })
+
+        // STEP 2B: Calculate FROM amounts based on currency relationship
+        if (fromCurrencyId && toCurrencyId && fromCurrencyId !== toCurrencyId) {
+          // Different currencies: local amounts must be equal
+          if (fromExhRate > 0) {
+            const fromTotLocalAmt = toTotLocalAmt // Direct assignment - no calculation
+            const fromTotAmt = calculateDivisionAmount(
+              fromTotLocalAmt,
+              fromExhRate,
+              amtDec
+            )
+            console.log("🌍 [TO] Different currencies - FROM calculated:", {
+              fromTotAmt,
+              fromTotLocalAmt,
+            })
+            form.setValue("fromTotAmt", fromTotAmt, { shouldValidate: false })
+            form.setValue("fromTotLocalAmt", fromTotLocalAmt, {
+              shouldValidate: false,
+            })
+          }
+        } else {
+          // Same currency: amounts are equal
+          const fromTotAmt = toTotAmt
+          const fromTotLocalAmt = calculateMultiplierAmount(
+            fromTotAmt,
+            fromExhRate,
+            locAmtDec
+          )
+          console.log("🏠 [TO] Same currency - FROM calculated:", {
+            fromTotAmt,
+            fromTotLocalAmt,
+          })
+          form.setValue("fromTotAmt", fromTotAmt, { shouldValidate: false })
+          form.setValue("fromTotLocalAmt", fromTotLocalAmt, {
+            shouldValidate: false,
+          })
+        }
+
+        console.log("🎯 [TO] Final result:", {
+          toTotAmt,
+          toTotLocalAmt,
+          fromTotAmt: form.getValues("fromTotAmt"),
+          fromTotLocalAmt: form.getValues("fromTotLocalAmt"),
+        })
+      } finally {
+        isUpdatingAmounts.current = false
+        console.log("🔓 [TO] Lock released")
+      }
+    },
+    [form, amtDec, locAmtDec]
+  )
+
+  // STEP 3: FROM Bank Charge Amount Handler
+  const handleFromBankChgAmtChange = React.useCallback(
+    (value: number) => {
+      const fromBankChgAmt = value || 0
+      const fromExhRate = form.getValues("fromExhRate") || 0
+
+      // Calculate local amount: fromBankChgAmt * fromExhRate
+      const fromBankChgLocalAmt = calculateMultiplierAmount(
+        fromBankChgAmt,
+        fromExhRate,
+        locAmtDec
       )
-    }
-  }
+
+      form.setValue("fromBankChgLocalAmt", fromBankChgLocalAmt, {
+        shouldValidate: false,
+      })
+
+      console.log("💰 [FROM] Bank charge calculated:", {
+        fromBankChgAmt,
+        fromExhRate,
+        fromBankChgLocalAmt,
+      })
+    },
+    [form, locAmtDec]
+  )
+
+  // STEP 4: TO Bank Charge Amount Handler
+  const handleToBankChgAmtChange = React.useCallback(
+    (value: number) => {
+      const toBankChgAmt = value || 0
+      const toExhRate = form.getValues("toExhRate") || 0
+
+      // Calculate local amount: toBankChgAmt * toExhRate
+      const toBankChgLocalAmt = calculateMultiplierAmount(
+        toBankChgAmt,
+        toExhRate,
+        locAmtDec
+      )
+
+      form.setValue("toBankChgLocalAmt", toBankChgLocalAmt, {
+        shouldValidate: false,
+      })
+
+      console.log("💰 [TO] Bank charge calculated:", {
+        toBankChgAmt,
+        toExhRate,
+        toBankChgLocalAmt,
+      })
+    },
+    [form, locAmtDec]
+  )
+
+  // STEP 5: Bank Exchange Rate Handler
+  const handleBankExhRateChange = React.useCallback(
+    (value: number) => {
+      const bankExhRate = value || 0
+      const bankTotAmt = form.getValues("bankTotAmt") || 0
+
+      // Calculate local amount: bankTotAmt * bankExhRate
+      const bankTotLocalAmt = calculateMultiplierAmount(
+        bankTotAmt,
+        bankExhRate,
+        locAmtDec
+      )
+
+      form.setValue("bankTotLocalAmt", bankTotLocalAmt, {
+        shouldValidate: false,
+      })
+
+      console.log("🏦 [BANK] Exchange rate calculated:", {
+        bankExhRate,
+        bankTotAmt,
+        bankTotLocalAmt,
+      })
+    },
+    [form, locAmtDec]
+  )
+
+  // STEP 6: Bank Total Amount Handler
+  const handleBankTotAmtChange = React.useCallback(
+    (value: number) => {
+      const bankTotAmt = value || 0
+      const bankExhRate = form.getValues("bankExhRate") || 0
+
+      // Calculate local amount: bankTotAmt * bankExhRate
+      const bankTotLocalAmt = calculateMultiplierAmount(
+        bankTotAmt,
+        bankExhRate,
+        locAmtDec
+      )
+
+      form.setValue("bankTotLocalAmt", bankTotLocalAmt, {
+        shouldValidate: false,
+      })
+
+      console.log("🏦 [BANK] Total amount calculated:", {
+        bankTotAmt,
+        bankExhRate,
+        bankTotLocalAmt,
+      })
+    },
+    [form, locAmtDec]
+  )
 
   return (
     <FormProvider {...form}>
@@ -621,6 +905,7 @@ export default function BankTransferForm({
                 label="From Bank Charge Amt"
                 round={amtDec}
                 className="text-right"
+                onChangeEvent={handleFromBankChgAmtChange}
               />
 
               <CustomNumberInput
@@ -699,6 +984,7 @@ export default function BankTransferForm({
                 label="To Bank Charge Amt"
                 round={amtDec}
                 className="text-right"
+                onChangeEvent={handleToBankChgAmtChange}
               />
 
               <CustomNumberInput
@@ -746,6 +1032,7 @@ export default function BankTransferForm({
               round={exhRateDec}
               isRequired={true}
               className="text-right"
+              onChangeEvent={handleBankExhRateChange}
             />
 
             <CustomNumberInput
@@ -755,6 +1042,7 @@ export default function BankTransferForm({
               round={amtDec}
               isRequired={true}
               className="text-right"
+              onChangeEvent={handleBankTotAmtChange}
             />
 
             <CustomNumberInput
