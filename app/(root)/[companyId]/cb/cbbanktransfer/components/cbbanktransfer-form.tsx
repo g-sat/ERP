@@ -2,17 +2,6 @@
 
 import * as React from "react"
 import {
-  setExchangeRate,
-  setExchangeRateLocal,
-  setGSTPercentage,
-} from "@/helpers/account"
-import {
-  calculateCountryAmounts,
-  calculateLocalAmounts,
-  calculateTotalAmounts,
-  recalculateAllDetailAmounts,
-} from "@/helpers/cb-genreceipt-calculations"
-import {
   IBankLookup,
   ICurrencyLookup,
   IJobOrderLookup,
@@ -63,7 +52,6 @@ export default function BankTransferForm({
   const { decimals } = useAuthStore()
   const amtDec = decimals[0]?.amtDec || 2
   const locAmtDec = decimals[0]?.locAmtDec || 2
-  const ctyAmtDec = decimals[0]?.ctyAmtDec || 2
   const exhRateDec = decimals[0]?.exhRateDec || 6
 
   const { data: paymentTypes = [] } = usePaymentTypeLookup()
@@ -112,12 +100,8 @@ export default function BankTransferForm({
       const { trnDate } = form?.getValues()
       form.setValue("accountDate", trnDate)
       form?.trigger("accountDate")
-      await setExchangeRate(form, exhRateDec, visible)
-      if (visible?.m_CtyCurr) {
-        await setExchangeRateLocal(form, exhRateDec)
-      }
     },
-    [exhRateDec, form, visible]
+    [form]
   )
 
   // Handle account date change
@@ -129,13 +113,8 @@ export default function BankTransferForm({
         form.setValue("chequeDate", accountDate)
         form?.trigger("chequeDate")
       }
-
-      await setExchangeRate(form, exhRateDec, visible)
-      if (visible?.m_CtyCurr) {
-        await setExchangeRateLocal(form, exhRateDec)
-      }
     },
-    [exhRateDec, form, isChequePayment, visible]
+    [form, isChequePayment]
   )
 
   // Handle payment type change
@@ -190,121 +169,80 @@ export default function BankTransferForm({
     [form]
   )
 
-  // Recalculate header totals from details
-  const recalculateHeaderTotals = React.useCallback(() => {
-    const formDetails = form.getValues("data_details") || []
-
-    if (formDetails.length === 0) {
-      // Reset all amounts to 0 if no details
-      form.setValue("totAmt", 0)
-      form.setValue("gstAmt", 0)
-      form.setValue("totAmtAftGst", 0)
-      form.setValue("totLocalAmt", 0)
-      form.setValue("gstLocalAmt", 0)
-      form.setValue("totLocalAmtAftGst", 0)
-      if (visible?.m_CtyCurr) {
-        form.setValue("totCtyAmt", 0)
-        form.setValue("gstCtyAmt", 0)
-        form.setValue("totCtyAmtAftGst", 0)
-      }
-      return
-    }
-
-    // Calculate base currency totals
-    const totals = calculateTotalAmounts(
-      formDetails as unknown as ICbBankTransferDt[],
-      amtDec
-    )
-    form.setValue("totAmt", totals.totAmt)
-    form.setValue("gstAmt", totals.gstAmt)
-    form.setValue("totAmtAftGst", totals.totAmtAftGst)
-
-    // Calculate local currency totals
-    const localAmounts = calculateLocalAmounts(
-      formDetails as unknown as ICbBankTransferDt[],
-      locAmtDec
-    )
-    form.setValue("totLocalAmt", localAmounts.totLocalAmt)
-    form.setValue("gstLocalAmt", localAmounts.gstLocalAmt)
-    form.setValue("totLocalAmtAftGst", localAmounts.totLocalAmtAftGst)
-
-    // Calculate country currency totals
-    const countryAmounts = calculateCountryAmounts(
-      formDetails as unknown as ICbBankTransferDt[],
-      visible?.m_CtyCurr ? ctyAmtDec : locAmtDec
-    )
-    form.setValue("totCtyAmt", countryAmounts.totCtyAmt)
-    form.setValue("gstCtyAmt", countryAmounts.gstCtyAmt)
-    form.setValue("totCtyAmtAftGst", countryAmounts.totCtyAmtAftGst)
-  }, [amtDec, ctyAmtDec, form, locAmtDec, visible?.m_CtyCurr])
-
-  // Handle currency selection
-  const handleCurrencyChange = React.useCallback(
+  // Handle FROM currency selection
+  const handleFromCurrencyChange = React.useCallback(
     async (selectedCurrency: ICurrencyLookup | null) => {
-      const currencyId = selectedCurrency?.currencyId || 0
-      const accountDate = form.getValues("accountDate")
-
-      if (currencyId && accountDate) {
-        await setExchangeRate(form, exhRateDec, visible)
-        if (visible?.m_CtyCurr) {
-          await setExchangeRateLocal(form, exhRateDec)
+      if (selectedCurrency) {
+        // Set default exchange rate to 1.0 when currency is selected
+        const currentExhRate = form.getValues("fromExhRate")
+        if (!currentExhRate || currentExhRate === 0) {
+          form.setValue("fromExhRate", 1.0)
         }
-
-        const formDetails = form.getValues("data_details")
-        if (!formDetails || formDetails.length === 0) {
-          return
-        }
-
-        const exchangeRate = form.getValues("exhRate") || 0
-        const cityExchangeRate = form.getValues("ctyExhRate") || 0
-
-        const updatedDetails = recalculateAllDetailAmounts(
-          formDetails as unknown as ICbBankTransferDt[],
-          exchangeRate,
-          cityExchangeRate,
-          decimals[0],
-          !!visible?.m_CtyCurr
-        )
-
-        form.setValue(
-          "data_details",
-          updatedDetails as unknown as CbGenReceiptDtSchemaType[],
-          { shouldDirty: true, shouldTouch: true }
-        )
-
-        recalculateHeaderTotals()
       }
     },
-    [decimals, exhRateDec, form, recalculateHeaderTotals, visible]
+    [form]
   )
 
-  // Handle exchange rate change
-  const handleExchangeRateChange = React.useCallback(
+  // Handle TO currency selection
+  const handleToCurrencyChange = React.useCallback(
+    async (selectedCurrency: ICurrencyLookup | null) => {
+      if (selectedCurrency) {
+        // Set default exchange rate to 1.0 when currency is selected
+        const currentExhRate = form.getValues("toExhRate")
+        if (!currentExhRate || currentExhRate === 0) {
+          form.setValue("toExhRate", 1.0)
+        }
+      }
+    },
+    [form]
+  )
+
+  // Handle FROM exchange rate change
+  const handleFromExchangeRateChange = React.useCallback(
     (e: React.FocusEvent<HTMLInputElement>) => {
-      const formDetails = form.getValues("data_details")
-      const exchangeRate = parseFloat(e.target.value) || 0
+      const fromExhRate = parseFloat(e.target.value) || 0
+      const fromTotAmt = form.getValues("fromTotAmt") || 0
 
-      let cityExchangeRate = form.getValues("ctyExhRate") || 0
-      if (!visible?.m_CtyCurr) {
-        cityExchangeRate = exchangeRate
-        form.setValue("ctyExhRate", exchangeRate)
-      }
-
-      if (!formDetails || formDetails.length === 0) {
-        return
-      }
-
-      const updatedDetails = recalculateAllDetailAmounts(
-        formDetails as unknown as ICbBankTransferDt[],
-        exchangeRate,
-        cityExchangeRate,
-        decimals[0],
-        !!visible?.m_CtyCurr
+      // Calculate local amount based on exchange rate
+      const fromTotLocalAmt = fromTotAmt * fromExhRate
+      form.setValue(
+        "fromTotLocalAmt",
+        parseFloat(fromTotLocalAmt.toFixed(locAmtDec))
       )
 
-      recalculateHeaderTotals()
+      // Recalculate bank charge local amount
+      const fromBankChgAmt = form.getValues("fromBankChgAmt") || 0
+      const fromBankChgLocalAmt = fromBankChgAmt * fromExhRate
+      form.setValue(
+        "fromBankChgLocalAmt",
+        parseFloat(fromBankChgLocalAmt.toFixed(locAmtDec))
+      )
     },
-    [decimals, form, recalculateHeaderTotals, visible?.m_CtyCurr]
+    [form, locAmtDec]
+  )
+
+  // Handle TO exchange rate change
+  const handleToExchangeRateChange = React.useCallback(
+    (e: React.FocusEvent<HTMLInputElement>) => {
+      const toExhRate = parseFloat(e.target.value) || 0
+      const toTotAmt = form.getValues("toTotAmt") || 0
+
+      // Calculate local amount based on exchange rate
+      const toTotLocalAmt = toTotAmt * toExhRate
+      form.setValue(
+        "toTotLocalAmt",
+        parseFloat(toTotLocalAmt.toFixed(locAmtDec))
+      )
+
+      // Recalculate bank charge local amount
+      const toBankChgAmt = form.getValues("toBankChgAmt") || 0
+      const toBankChgLocalAmt = toBankChgAmt * toExhRate
+      form.setValue(
+        "toBankChgLocalAmt",
+        parseFloat(toBankChgLocalAmt.toFixed(locAmtDec))
+      )
+    },
+    [form, locAmtDec]
   )
 
   // Handle job order selection
@@ -352,298 +290,335 @@ export default function BankTransferForm({
     <FormProvider {...form}>
       <form
         onSubmit={form.handleSubmit(onSubmit)}
-        className="grid grid-cols-7 gap-2 rounded-md p-2"
+        className="space-y-4 rounded-md"
       >
-        {/* section 1: Header */}
-        {/* Transaction Date */}
-        {visible?.m_TrnDate && (
-          <CustomDateNew
-            form={form}
-            name="trnDate"
-            label="Transaction Date"
-            isRequired={true}
-            onChangeEvent={handleTrnDateChange}
-          />
-        )}
+        {/* ============ SECTION 1: HEADER ============ */}
+        <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800/50">
+          <h3 className="mb-3 text-sm font-semibold text-gray-700 dark:text-gray-300">
+            Header Information
+          </h3>
+          <div className="grid grid-cols-7 gap-2">
+            {/* Transaction Date */}
+            {visible?.m_TrnDate && (
+              <CustomDateNew
+                form={form}
+                name="trnDate"
+                label="Transaction Date"
+                isRequired={true}
+                onChangeEvent={handleTrnDateChange}
+              />
+            )}
 
-        {/* Account Date */}
-        {visible?.m_AccountDate && (
-          <CustomDateNew
-            form={form}
-            name="accountDate"
-            label="Account Date"
-            isRequired={true}
-            onChangeEvent={handleAccountDateChange}
-          />
-        )}
+            {/* Account Date */}
+            {visible?.m_AccountDate && (
+              <CustomDateNew
+                form={form}
+                name="accountDate"
+                label="Account Date"
+                isRequired={true}
+                onChangeEvent={handleAccountDateChange}
+              />
+            )}
 
-        {/* Payee To */}
-        {visible?.m_PayeeTo && (
-          <CustomInputGroup
-            form={form}
-            name="payeeTo"
-            label="Payee To"
-            isRequired={true}
-            className="col-span-2"
-            buttonText="Add"
-            buttonIcon={<PlusIcon className="h-4 w-4" />}
-            buttonPosition="right"
-            onButtonClick={handleAddPayeeTo}
-            buttonVariant="default"
-            buttonDisabled={false}
-          />
-        )}
+            {/* Payee To */}
+            {visible?.m_PayeeTo && (
+              <CustomInputGroup
+                form={form}
+                name="payeeTo"
+                label="Payee To"
+                isRequired={true}
+                className="col-span-2"
+                buttonText="Add"
+                buttonIcon={<PlusIcon className="h-4 w-4" />}
+                buttonPosition="right"
+                onButtonClick={handleAddPayeeTo}
+                buttonVariant="default"
+                buttonDisabled={false}
+              />
+            )}
 
-        {/* Reference No */}
-        <CustomInput
-          form={form}
-          name="referenceNo"
-          label="Reference No."
-          isRequired={required?.m_ReferenceNo}
-        />
+            {/* Reference No */}
+            <CustomInput
+              form={form}
+              name="referenceNo"
+              label="Reference No."
+              isRequired={required?.m_ReferenceNo}
+            />
 
-        {/* Payment Type */}
-        <PaymentTypeAutocomplete
-          form={form}
-          name="paymentTypeId"
-          label="Payment Type"
-          isRequired={true}
-          onChangeEvent={handlePaymentTypeChange}
-        />
+            {/* Payment Type */}
+            <PaymentTypeAutocomplete
+              form={form}
+              name="paymentTypeId"
+              label="Payment Type"
+              isRequired={true}
+              onChangeEvent={handlePaymentTypeChange}
+            />
 
-        {/* Cheque No - Only show when payment type is cheque */}
-        {isChequePayment && (
-          <CustomInput
-            form={form}
-            name="chequeNo"
-            label="Cheque No"
-            isRequired={true}
-          />
-        )}
+            {/* Cheque No - Only show when payment type is cheque */}
+            {isChequePayment && (
+              <CustomInput
+                form={form}
+                name="chequeNo"
+                label="Cheque No"
+                isRequired={true}
+              />
+            )}
 
-        {/* Cheque Date - Only show when payment type is cheque */}
-        {isChequePayment && (
-          <CustomDateNew
-            form={form}
-            name="chequeDate"
-            label="Cheque Date"
-            isRequired={true}
-          />
-        )}
+            {/* Cheque Date - Only show when payment type is cheque */}
+            {isChequePayment && (
+              <CustomDateNew
+                form={form}
+                name="chequeDate"
+                label="Cheque Date"
+                isRequired={true}
+              />
+            )}
 
-        {/* JOB-SPECIFIC MODE: Job Order → Task → Service */}
-        {visible?.m_JobOrderId && (
-          <JobOrderAutocomplete
-            form={form}
-            name="jobOrderId"
-            label="Job Order"
-            isRequired={required?.m_JobOrderId}
-            onChangeEvent={handleJobOrderChange}
-          />
-        )}
+            {/* JOB-SPECIFIC MODE: Job Order → Task → Service */}
+            {visible?.m_JobOrderId && (
+              <JobOrderAutocomplete
+                form={form}
+                name="jobOrderId"
+                label="Job Order"
+                onChangeEvent={handleJobOrderChange}
+              />
+            )}
 
-        {visible?.m_JobOrderId && (
-          <JobOrderTaskAutocomplete
-            key={`task-${watchedJobOrderId}`}
-            form={form}
-            name="taskId"
-            jobOrderId={watchedJobOrderId || 0}
-            label="Task"
-            isRequired={required?.m_JobOrderId}
-            onChangeEvent={handleTaskChange}
-          />
-        )}
+            {visible?.m_JobOrderId && (
+              <JobOrderTaskAutocomplete
+                key={`task-${watchedJobOrderId}`}
+                form={form}
+                name="taskId"
+                jobOrderId={watchedJobOrderId || 0}
+                label="Task"
+                onChangeEvent={handleTaskChange}
+              />
+            )}
 
-        {visible?.m_JobOrderId && (
-          <JobOrderChargeAutocomplete
-            key={`service-${watchedJobOrderId}-${watchedTaskId}`}
-            form={form}
-            name="serviceId"
-            jobOrderId={watchedJobOrderId || 0}
-            taskId={watchedTaskId || 0}
-            label="Service"
-            isRequired={required?.m_JobOrderId}
-            onChangeEvent={handleServiceChange}
-          />
-        )}
+            {visible?.m_JobOrderId && (
+              <JobOrderChargeAutocomplete
+                key={`service-${watchedJobOrderId}-${watchedTaskId}`}
+                form={form}
+                name="serviceId"
+                jobOrderId={watchedJobOrderId || 0}
+                taskId={watchedTaskId || 0}
+                label="Service"
+                onChangeEvent={handleServiceChange}
+              />
+            )}
 
-        {/* Remarks */}
-        <CustomTextarea
-          form={form}
-          name="remarks"
-          label="Remarks"
-          isRequired={required?.m_Remarks_Hd}
-          className="col-span-2"
-        />
+            <CustomNumberInput
+              form={form}
+              name="exhGainLoss"
+              label="Exchange Gain/Loss"
+              round={amtDec}
+              className="text-right"
+              isDisabled={true}
+            />
 
-        <CustomNumberInput
-          form={form}
-          name="exhGainLoss"
-          label="Exchange Gain/Loss"
-          round={amtDec}
-          isRequired={true}
-          className="text-right"
-        />
+            {/* Remarks */}
+            <CustomTextarea
+              form={form}
+              name="remarks"
+              label="Remarks"
+              isRequired={required?.m_Remarks}
+              className="col-span-2"
+            />
+          </div>
+        </div>
 
-        {/* section 2: From Bank */}
+        {/* ============ SECTIONS 2 & 3: FROM BANK & TO BANK (SIDE BY SIDE) ============ */}
+        <div className="grid grid-cols-2 gap-4">
+          {/* ============ SECTION 2: FROM BANK ============ */}
+          <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-700 dark:bg-blue-900/20">
+            <h3 className="mb-3 text-sm font-semibold text-blue-700 dark:text-blue-300">
+              From Bank Details
+            </h3>
+            <div className="grid grid-cols-3 gap-2">
+              <BankAutocomplete
+                form={form}
+                name="fromBankId"
+                label="From Bank"
+                isRequired={true}
+                onChangeEvent={handleBankChange}
+              />
 
-        <BankAutocomplete
-          form={form}
-          name="fromBankId"
-          label="From Bank"
-          isRequired={required?.m_BankId}
-          onChangeEvent={handleBankChange}
-        />
+              <CurrencyAutocomplete
+                form={form}
+                name="fromCurrencyId"
+                label="From Currency"
+                isRequired={true}
+                onChangeEvent={handleFromCurrencyChange}
+              />
 
-        <CurrencyAutocomplete
-          form={form}
-          name="fromCurrencyId"
-          label="From Currency"
-          isRequired={true}
-          onChangeEvent={handleCurrencyChange}
-        />
+              <CustomNumberInput
+                form={form}
+                name="fromExhRate"
+                label="From Exchange Rate"
+                round={exhRateDec}
+                isRequired={true}
+                className="text-right"
+                onBlurEvent={handleFromExchangeRateChange}
+              />
 
-        <CustomNumberInput
-          form={form}
-          name="fromExhRate"
-          label="From Exchange Rate"
-          round={exhRateDec}
-          isRequired={true}
-          className="text-right"
-          onBlurEvent={handleExchangeRateChange}
-        />
-        <BankChartOfAccountAutocomplete
-          form={form}
-          name="fromBankChgGLId"
-          label="From Bank Charge GL"
-          companyId={_companyId}
-        />
-        <CustomNumberInput
-          form={form}
-          name="fromBankChgAmt"
-          label="From Bank Charge Amount"
-          round={amtDec}
-          isRequired={true}
-          className="text-right"
-        />
-        <CustomNumberInput
-          form={form}
-          name="fromBankChgLocalAmt"
-          label="From Bank Charge Local Amount"
-          round={locAmtDec}
-          isRequired={true}
-          className="text-right"
-        />
-        <CustomNumberInput
-          form={form}
-          name="fromTotAmt"
-          label="From Total Amount"
-          round={amtDec}
-          isRequired={true}
-          className="text-right"
-        />
-        <CustomNumberInput
-          form={form}
-          name="fromTotLocalAmt"
-          label="From Total Local Amount"
-          round={locAmtDec}
-          isRequired={true}
-          className="text-right"
-        />
+              <BankChartOfAccountAutocomplete
+                form={form}
+                name="fromBankChgGLId"
+                label="From Bank Charge GL"
+                companyId={_companyId}
+              />
 
-        {/* section 3: To Bank */}
+              <CustomNumberInput
+                form={form}
+                name="fromBankChgAmt"
+                label="From Bank Charge Amt"
+                round={amtDec}
+                className="text-right"
+              />
 
-        <CurrencyAutocomplete
-          form={form}
-          name="toCurrencyId"
-          label="To Currency"
-          isRequired={true}
-          onChangeEvent={handleCurrencyChange}
-        />
+              <CustomNumberInput
+                form={form}
+                name="fromBankChgLocalAmt"
+                label="From Bank Charge Local Amt"
+                round={locAmtDec}
+                isDisabled={true}
+                className="text-right"
+              />
 
-        <CustomNumberInput
-          form={form}
-          name="toExhRate"
-          label="To Exchange Rate"
-          round={exhRateDec}
-          isRequired={true}
-          className="text-right"
-          onBlurEvent={handleExchangeRateChange}
-        />
+              <CustomNumberInput
+                form={form}
+                name="fromTotAmt"
+                label="From Total Amount"
+                round={amtDec}
+                isRequired={true}
+                className="text-right"
+              />
 
-        <CustomNumberInput
-          form={form}
-          name="toExhRate"
-          label="To Exchange Rate"
-          round={exhRateDec}
-          isRequired={true}
-          className="text-right"
-          onBlurEvent={handleExchangeRateChange}
-        />
-        <BankChartOfAccountAutocomplete
-          form={form}
-          name="toBankChgGLId"
-          label="To Bank Charge GL"
-          companyId={_companyId}
-        />
-        <CustomNumberInput
-          form={form}
-          name="toBankChgAmt"
-          label="To Bank Charge Amount"
-          round={amtDec}
-          isRequired={true}
-          className="text-right"
-        />
-        <CustomNumberInput
-          form={form}
-          name="toBankChgLocalAmt"
-          label="To Bank Charge Local Amount"
-          round={locAmtDec}
-          isRequired={true}
-          className="text-right"
-        />
-        <CustomNumberInput
-          form={form}
-          name="toTotAmt"
-          label="To Total Amount"
-          round={amtDec}
-          isRequired={true}
-          className="text-right"
-        />
-        <CustomNumberInput
-          form={form}
-          name="toTotLocalAmt"
-          label="To Total Local Amount"
-          round={locAmtDec}
-          isRequired={true}
-          className="text-right"
-        />
+              <CustomNumberInput
+                form={form}
+                name="fromTotLocalAmt"
+                label="From Total Local Amt"
+                round={locAmtDec}
+                isRequired={true}
+                isDisabled={true}
+                className="text-right"
+              />
+            </div>
+          </div>
 
-        {/* section 4: Bank Exchange */}
-        <CustomNumberInput
-          form={form}
-          name="bankExhRate"
-          label="Bank Exchange Rate"
-          round={exhRateDec}
-          isRequired={true}
-          className="text-right"
-        />
-        <CustomNumberInput
-          form={form}
-          name="bankTotAmt"
-          label="Bank Total Amount"
-          round={amtDec}
-          isRequired={true}
-          className="text-right"
-        />
-        <CustomNumberInput
-          form={form}
-          name="bankTotLocalAmt"
-          label="Bank Total Local Amount"
-          round={locAmtDec}
-          isRequired={true}
-          className="text-right"
-        />
+          {/* ============ SECTION 3: TO BANK ============ */}
+          <div className="rounded-lg border border-green-200 bg-green-50 p-4 dark:border-green-700 dark:bg-green-900/20">
+            <h3 className="mb-3 text-sm font-semibold text-green-700 dark:text-green-300">
+              To Bank Details
+            </h3>
+            <div className="grid grid-cols-3 gap-2">
+              <BankAutocomplete
+                form={form}
+                name="toBankId"
+                label="To Bank"
+                isRequired={true}
+                onChangeEvent={handleBankChange}
+              />
+
+              <CurrencyAutocomplete
+                form={form}
+                name="toCurrencyId"
+                label="To Currency"
+                isRequired={true}
+                onChangeEvent={handleToCurrencyChange}
+              />
+
+              <CustomNumberInput
+                form={form}
+                name="toExhRate"
+                label="To Exchange Rate"
+                round={exhRateDec}
+                isRequired={true}
+                className="text-right"
+                onBlurEvent={handleToExchangeRateChange}
+              />
+
+              <BankChartOfAccountAutocomplete
+                form={form}
+                name="toBankChgGLId"
+                label="To Bank Charge GL"
+                companyId={_companyId}
+              />
+
+              <CustomNumberInput
+                form={form}
+                name="toBankChgAmt"
+                label="To Bank Charge Amt"
+                round={amtDec}
+                className="text-right"
+              />
+
+              <CustomNumberInput
+                form={form}
+                name="toBankChgLocalAmt"
+                label="To Bank Charge Local Amt"
+                round={locAmtDec}
+                isDisabled={true}
+                className="text-right"
+              />
+
+              <CustomNumberInput
+                form={form}
+                name="toTotAmt"
+                label="To Total Amount"
+                round={amtDec}
+                isRequired={true}
+                className="text-right"
+              />
+
+              <CustomNumberInput
+                form={form}
+                name="toTotLocalAmt"
+                label="To Total Local Amt"
+                round={locAmtDec}
+                isRequired={true}
+                isDisabled={true}
+                className="text-right"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* ============ SECTION 4: BANK EXCHANGE ============ */}
+        <div className="rounded-lg border border-purple-200 bg-purple-50 p-4 dark:border-purple-700 dark:bg-purple-900/20">
+          <h3 className="mb-3 text-sm font-semibold text-purple-700 dark:text-purple-300">
+            Bank Exchange Details
+          </h3>
+          <div className="grid grid-cols-7 gap-2">
+            <CustomNumberInput
+              form={form}
+              name="bankExhRate"
+              label="Bank Exchange Rate"
+              round={exhRateDec}
+              isRequired={true}
+              className="text-right"
+            />
+
+            <CustomNumberInput
+              form={form}
+              name="bankTotAmt"
+              label="Bank Total Amount"
+              round={amtDec}
+              isRequired={true}
+              className="text-right"
+            />
+
+            <CustomNumberInput
+              form={form}
+              name="bankTotLocalAmt"
+              label="Bank Total Local Amount"
+              round={locAmtDec}
+              isRequired={true}
+              isDisabled={true}
+              className="text-right"
+            />
+          </div>
+        </div>
       </form>
 
       {/* Payee Selection Dialog */}
