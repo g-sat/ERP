@@ -1,0 +1,185 @@
+"use client"
+
+import * as React from "react"
+import { IBankLookup, ICurrencyLookup } from "@/interfaces/lookup"
+import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
+import { CbBankReconHdSchemaType } from "@/schemas"
+import { useAuthStore } from "@/stores/auth-store"
+import { FormProvider, UseFormReturn } from "react-hook-form"
+
+import BankAutocomplete from "@/components/autocomplete/autocomplete-bank"
+import CurrencyAutocomplete from "@/components/autocomplete/autocomplete-currency"
+import { CustomDateNew } from "@/components/custom/custom-date-new"
+import CustomInput from "@/components/custom/custom-input"
+import CustomNumberInput from "@/components/custom/custom-number-input"
+import CustomTextarea from "@/components/custom/custom-textarea"
+
+interface BankReconFormProps {
+  form: UseFormReturn<CbBankReconHdSchemaType>
+  onSuccessAction: (action: string) => Promise<void>
+  isEdit: boolean
+  visible: IVisibleFields
+  required: IMandatoryFields
+  companyId: number
+}
+
+export default function BankReconForm({
+  form,
+  onSuccessAction,
+  isEdit: _isEdit,
+  visible,
+  required,
+  companyId: _companyId,
+}: BankReconFormProps) {
+  const { decimals } = useAuthStore()
+  const amtDec = decimals[0]?.amtDec || 2
+
+  const onSubmit = async () => {
+    await onSuccessAction("save")
+  }
+
+  // Handle transaction date selection
+  const handleTrnDateChange = React.useCallback(
+    async (_selectedTrnDate: Date | null) => {
+      const { trnDate } = form?.getValues()
+      form.setValue("accountDate", trnDate)
+      form?.trigger("accountDate")
+    },
+    [form]
+  )
+
+  // Handle bank selection
+  const handleBankChange = React.useCallback(
+    (_selectedBank: IBankLookup | null) => {
+      // Additional logic when bank changes if needed
+    },
+    []
+  )
+
+  // Handle currency selection
+  const handleCurrencyChange = React.useCallback(
+    (_selectedCurrency: ICurrencyLookup | null) => {
+      // Additional logic when currency changes if needed
+    },
+    []
+  )
+
+  return (
+    <FormProvider {...form}>
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="grid grid-cols-7 gap-2 rounded-md p-2"
+      >
+        {/* Transaction Date */}
+        {visible?.m_TrnDate && (
+          <CustomDateNew
+            form={form}
+            name="trnDate"
+            label="Transaction Date"
+            isRequired={true}
+            onChangeEvent={handleTrnDateChange}
+          />
+        )}
+
+        {/* Account Date */}
+        {visible?.m_AccountDate && (
+          <CustomDateNew
+            form={form}
+            name="accountDate"
+            label="Account Date"
+            isRequired={true}
+          />
+        )}
+
+        {/* Previous Recon No */}
+        <CustomInput
+          form={form}
+          name="prevReconNo"
+          label="Previous Recon No"
+          isDisabled={true}
+        />
+
+        {/* Reference No */}
+        <CustomInput
+          form={form}
+          name="referenceNo"
+          label="Reference No"
+          isRequired={required?.m_ReferenceNo}
+        />
+
+        {/* Bank */}
+        <BankAutocomplete
+          form={form}
+          name="bankId"
+          label="Bank"
+          isRequired={true}
+          onChangeEvent={handleBankChange}
+        />
+
+        {/* Currency */}
+        <CurrencyAutocomplete
+          form={form}
+          name="currencyId"
+          label="Currency"
+          isRequired={true}
+          onChangeEvent={handleCurrencyChange}
+        />
+
+        {/* From Date */}
+        <CustomDateNew
+          form={form}
+          name="fromDate"
+          label="From Date"
+          isRequired={true}
+        />
+
+        {/* To Date */}
+        <CustomDateNew
+          form={form}
+          name="toDate"
+          label="To Date"
+          isRequired={true}
+        />
+
+        {/* Opening Balance Amount */}
+        <CustomNumberInput
+          form={form}
+          name="opBalAmt"
+          label="Opening Balance"
+          round={amtDec}
+          isDisabled={true}
+          className="text-right"
+        />
+
+        {/* Closing Balance Amount */}
+        <CustomNumberInput
+          form={form}
+          name="clBalAmt"
+          label="Closing Balance"
+          round={amtDec}
+          isDisabled={true}
+          className="text-right"
+        />
+
+        {/* Total Amount */}
+        <CustomNumberInput
+          form={form}
+          name="totAmt"
+          label="Total Amount"
+          round={amtDec}
+          isDisabled={true}
+          className="text-right"
+        />
+
+        {/* Remarks */}
+        <CustomTextarea
+          form={form}
+          name="remarks"
+          label="Remarks"
+          isRequired={required?.m_Remarks}
+          className="col-span-3"
+        />
+      </form>
+    </FormProvider>
+  )
+}

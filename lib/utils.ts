@@ -207,10 +207,11 @@ export enum APTransactionId {
 export enum CBTransactionId {
   cbgenreceipt = 1,
   cbgenpayment = 2,
-  cbpattycash = 3,
+  cbpettycash = 3,
   cbbanktransfer = 4,
   cbbankrecon = 5,
   cbbatchpayment = 6,
+  cbbanktransferctm = 7,
   reports = 99,
 }
 
@@ -476,6 +477,9 @@ export enum TableName {
   cbBatchPayment = "cbBatchPayment",
   cbBatchPaymentDt = "cbBatchPaymentDt",
   cbBatchPaymentHistory = "cbBatchPaymentHistory",
+  cbBankTransferCtm = "cbBankTransferCtm",
+  cbBankTransferCtmDt = "cbBankTransferCtmDt",
+  cbBankTransferCtmHistory = "cbBankTransferCtmHistory",
   //GL
   journalEntry = "journalEntry",
   journalEntryDt = "journalEntryDt",

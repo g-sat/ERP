@@ -1,19 +1,16 @@
-export interface ICbBankTransfer {
+export interface ICbBankTransferCtmHd {
   companyId: number
   transferId: string
   transferNo: string
   referenceNo: string
   trnDate: Date | string
   accountDate: Date | string
+
   paymentTypeId: number
+  paymentTypeName: string
+
   chequeNo: string | null
   chequeDate: Date | string
-  jobOrderId: number
-  jobOrderNo: string
-  taskId: number
-  taskName: string
-  serviceId: number
-  serviceName: string
 
   fromBankId: number
   fromBankCode: string
@@ -29,25 +26,6 @@ export interface ICbBankTransfer {
   fromBankChgLocalAmt: number
   fromTotAmt: number
   fromTotLocalAmt: number
-
-  toBankId: number
-  toBankCode: string
-  toBankName: string
-  toCurrencyId: number
-  toCurrencyCode: string
-  toCurrencyName: string
-  toExhRate: number
-  toBankChgGLId: number
-  toBankChgGLCode: string
-  toBankChgGLName: string
-  toBankChgAmt: number
-  toBankChgLocalAmt: number
-  toTotAmt: number
-  toTotLocalAmt: number
-
-  bankExhRate: number
-  bankTotAmt: number
-  bankTotLocalAmt: number
 
   remarks: string
   payeeTo: string
@@ -68,9 +46,10 @@ export interface ICbBankTransfer {
   appStatusId: number | null
   appBy: string | null
   appDate: Date | null
+  data_details: ICbBankTransferCtmDt[]
 }
 
-export interface ICbBankTransferFilter {
+export interface ICbBankTransferCtmFilter {
   startDate: Date | string
   endDate: Date | string
   search: string
@@ -78,4 +57,38 @@ export interface ICbBankTransferFilter {
   sortBy: string
   pageNumber?: number
   pageSize?: number
+}
+
+export interface ICbBankTransferCtmDt {
+  transferId: string
+  transferNo: string
+  itemNo: number
+
+  jobOrderId: number
+  jobOrderNo: string
+  taskId: number
+  taskName: string
+  serviceId: number
+  serviceName: string
+
+  toBankId: number
+  toBankCode: string
+  toBankName: string
+  toCurrencyId: number
+  toCurrencyCode: string
+  toCurrencyName: string
+  toExhRate: number
+  toBankChgGLId: number
+  toBankChgGLCode: string
+  toBankChgGLName: string
+  toBankChgAmt: number
+  toBankChgLocalAmt: number
+  toTotAmt: number
+  toTotLocalAmt: number
+
+  bankExhRate: number
+  bankTotAmt: number
+  bankTotLocalAmt: number
+
+  editVersion: number
 }

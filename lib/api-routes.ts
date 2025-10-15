@@ -939,6 +939,16 @@ export const CbBankRecon = {
   history: "/account/gethistorycbbankreconbyid",
 }
 
+// Cash Book Bank Transfer CTM Endpoints
+export const CbBankTransferCtm = {
+  get: "/account/getcbbanktransferctm",
+  getByIdNo: "/account/getcbbanktransferctmbyidno",
+  add: "/account/savecbbanktransferctm",
+  delete: "/account/deletecbbanktransferctm",
+  history: "/account/gethistorycbbanktransferctmbyid",
+  historyDetails: "/account/gethistorycbbanktransferctmdetailsbyid",
+}
+
 // Cash Book Bank Transfer Endpoints
 export const CbBankTransfer = {
   get: "/account/getcbbanktransfer",

@@ -1,6 +1,6 @@
 export interface ICbBankReconHd {
   companyId: number
-  reconId: number
+  reconId: string
   reconNo: string
   prevReconId: number
   prevReconNo: string
@@ -44,7 +44,7 @@ export interface ICbBankReconFilter {
 }
 
 export interface ICbBankReconDt {
-  reconId: number
+  reconId: string
   reconNo: string
   itemNo: number
   isSel: boolean

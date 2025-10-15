@@ -1,7 +1,7 @@
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
 import * as z from "zod"
 
-export const cbBankReconHdSchema = (
+export const CbBankReconHdSchema = (
   required: IMandatoryFields,
   visible: IVisibleFields
 ) => {
@@ -53,16 +53,16 @@ export const cbBankReconHdSchema = (
 
     // Nested Details
     data_details: z
-      .array(cbBankReconDtSchema(required, visible))
+      .array(CbBankReconDtSchema(required, visible))
       .min(1, "At least one reconciliation detail is required"),
   })
 }
 
 export type CbBankReconHdSchemaType = z.infer<
-  ReturnType<typeof cbBankReconHdSchema>
+  ReturnType<typeof CbBankReconHdSchema>
 >
 
-export const cbBankReconHdFiltersSchema = z.object({
+export const CbBankReconHdFiltersSchema = z.object({
   startDate: z.union([z.date(), z.string()]),
   endDate: z.union([z.date(), z.string()]),
   search: z.string().optional(),
@@ -73,10 +73,10 @@ export const cbBankReconHdFiltersSchema = z.object({
 })
 
 export type CbBankReconHdFiltersValues = z.infer<
-  typeof cbBankReconHdFiltersSchema
+  typeof CbBankReconHdFiltersSchema
 >
 
-export const cbBankReconDtSchema = (
+export const CbBankReconDtSchema = (
   required: IMandatoryFields,
   visible: IVisibleFields
 ) => {
@@ -123,15 +123,15 @@ export const cbBankReconDtSchema = (
 }
 
 export type CbBankReconDtSchemaType = z.infer<
-  ReturnType<typeof cbBankReconDtSchema>
+  ReturnType<typeof CbBankReconDtSchema>
 >
 
-export const cbBankReconDtFiltersSchema = z.object({
+export const CbBankReconDtFiltersSchema = z.object({
   isActive: z.boolean().optional(),
   search: z.string().optional(),
   sortOrder: z.enum(["asc", "desc"]).optional(),
 })
 
 export type CbBankReconDtFiltersValues = z.infer<
-  typeof cbBankReconDtFiltersSchema
+  typeof CbBankReconDtFiltersSchema
 >
