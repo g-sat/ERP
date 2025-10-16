@@ -1,3 +1,5 @@
+import { parse } from "date-fns"
+
 export function formatDate(
   date: Date | string | number | undefined,
   opts: Intl.DateTimeFormatOptions = {}
@@ -17,13 +19,15 @@ export function formatDate(
 }
 
 export const clientDateTimeFormat = "yyyy-MMM-dd HH:mm:ss.SSS"
-export const clientDateFormat = "yyyy-MM-dd"
+//export const clientDateFormat = "yyyy-MM-dd"
+export const clientDateFormat = "dd/MM/yyyy"
 
 export const parseDate = (dateStr: string | null | undefined): Date | null => {
   if (!dateStr) return null
   try {
-    const date = new Date(dateStr)
-    return isNaN(date.getTime()) ? null : date // Validate date
+    // First, try parsing with the client date format (dd/MM/yyyy)
+    const date = parse(dateStr, clientDateFormat, new Date())
+    return isNaN(date.getTime()) ? null : date
   } catch (e) {
     console.error("Error parsing date:", dateStr, e)
     return null

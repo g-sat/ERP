@@ -1,9 +1,19 @@
-import React from "react"
+import * as React from "react"
 import { useAuthStore } from "@/stores/auth-store"
-import { format, isValid, parse } from "date-fns"
-import { Control, FieldValues, Path } from "react-hook-form"
+import {
+  format,
+  isAfter,
+  isBefore,
+  isValid,
+  parse,
+  startOfToday,
+} from "date-fns"
+import { CalendarIcon, X } from "lucide-react"
+import { Control, FieldValues, Path, useWatch } from "react-hook-form"
 
 import { cn } from "@/lib/utils"
+import { Button } from "@/components/ui/button"
+import { Calendar } from "@/components/ui/calendar"
 import {
   FormControl,
   FormField,
@@ -12,12 +22,16 @@ import {
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
 
 interface CustomDateNewProps<T extends FieldValues = FieldValues> {
   form: { control: Control<T> }
   label?: string
   name: Path<T>
-
   className?: string
   onBlurEvent?: (e: React.FocusEvent<HTMLInputElement>) => void
   onChangeEvent?: (date: Date | null) => void
@@ -40,88 +54,133 @@ export const CustomDateNew = <T extends FieldValues = FieldValues>({
   onChangeEvent,
   isDisabled = false,
   isRequired = false,
-  placeholder = "dd/mm/yyyy",
+  placeholder,
   minDate,
   maxDate,
-  dateFormat = "dd/mm/yyyy",
+  dateFormat = "dd/MM/yyyy",
   size = "default",
   isFutureShow = false,
 }: CustomDateNewProps<T>) => {
   const { decimals } = useAuthStore()
-  const decimalDateFormat = decimals[0]?.dateFormat || "dd/MM/yyyy"
+  const decimalDateFormat =
+    decimals[0]?.dateFormat || dateFormat || "dd/MM/yyyy"
 
-  // Parse prop date (Date or string in dateFormat)
-  const parsePropDate = (d: Date | string | undefined): Date | null => {
-    if (!d) return null
-    if (d instanceof Date) return d
-    const p = parse(d as string, dateFormat, new Date())
-    return isValid(p) ? p : null
-  }
+  const [open, setOpen] = React.useState(false)
+  const [value, setValue] = React.useState("")
+  const [month, setMonth] = React.useState<Date | undefined>(undefined)
+  const inputRef = React.useRef<HTMLInputElement>(null)
 
-  const minParsed = parsePropDate(minDate)
-  const todayDate = new Date()
-  todayDate.setHours(0, 0, 0, 0)
-  const maxParsed = isFutureShow ? parsePropDate(maxDate) : todayDate
+  // Format date for display
+  const formatDateForDisplay = React.useCallback(
+    (date: Date | undefined): string => {
+      if (!date || !isValid(date)) return ""
+      return format(date, decimalDateFormat)
+    },
+    [decimalDateFormat]
+  )
 
-  // Custom parse handling dd/mm/yyyy or dd/mm/yy (assuming 20yy for yy)
-  const parseCustomDate = (input: string): Date | null => {
-    if (!input || input.trim() === "") return null
-    const parts = input.split("/")
-    if (parts.length !== 3) return null
-    const dayStr = parts[0].trim()
-    const monStr = parts[1].trim()
-    const yearStr = parts[2].trim()
-    const day = parseInt(dayStr, 10)
-    const mon = parseInt(monStr, 10)
-    let year: number
-    if (yearStr.length === 2) {
-      year = 2000 + parseInt(yearStr, 10)
-    } else if (yearStr.length === 4) {
-      year = parseInt(yearStr, 10)
-    } else {
-      return null
-    }
+  // Parse user input string to Date
+  const parseUserInput = React.useCallback(
+    (input: string): Date | undefined => {
+      if (!input || input.trim() === "") return undefined
+
+      // Try parsing with the configured format
+      let parsedDate = parse(input, decimalDateFormat, new Date())
+
+      // If that fails, try standard Date constructor
+      if (!isValid(parsedDate)) {
+        parsedDate = new Date(input)
+      }
+
+      return isValid(parsedDate) ? parsedDate : undefined
+    },
+    [decimalDateFormat]
+  )
+
+  // Check if date is valid
+  const isValidDateValue = React.useCallback(
+    (date: Date | undefined): boolean => {
+      if (!date || !isValid(date)) return false
+      return true
+    },
+    []
+  )
+
+  // Validate date against min/max constraints
+  const validateDateConstraints = React.useCallback(
+    (date: Date | undefined): boolean => {
+      if (!date || !isValid(date)) return false
+
+      // Check max date (including isFutureShow logic)
+      const effectiveMaxDate = isFutureShow ? maxDate : new Date()
+      if (effectiveMaxDate) {
+        const maxDateObj =
+          effectiveMaxDate instanceof Date
+            ? effectiveMaxDate
+            : new Date(effectiveMaxDate)
+        if (isValid(maxDateObj) && isAfter(date, maxDateObj)) {
+          return false
+        }
+      }
+
+      // Check min date
+      if (minDate) {
+        const minDateObj = minDate instanceof Date ? minDate : new Date(minDate)
+        if (isValid(minDateObj) && isBefore(date, minDateObj)) {
+          return false
+        }
+      }
+
+      return true
+    },
+    [isFutureShow, maxDate, minDate]
+  )
+
+  // Watch the field value
+  const fieldValue = useWatch({ control: form.control, name })
+
+  // Sync local value with form field value
+  React.useEffect(() => {
+    const parsedFieldDate = parseUserInput(fieldValue as string)
+    const displayValue = formatDateForDisplay(parsedFieldDate)
+
+    // Only update if input is not focused (to preserve typing)
     if (
-      isNaN(day) ||
-      isNaN(mon) ||
-      isNaN(year) ||
-      day < 1 ||
-      day > 31 ||
-      mon < 1 ||
-      mon > 12
+      displayValue &&
+      displayValue !== value &&
+      document.activeElement !== inputRef.current
     ) {
-      return null
+      setValue(displayValue)
+      if (parsedFieldDate) {
+        setMonth(parsedFieldDate)
+      }
+    } else if (!fieldValue) {
+      setValue("")
     }
-    const date = new Date(year, mon - 1, day)
-    if (
-      isValid(date) &&
-      date.getDate() === day &&
-      date.getMonth() === mon - 1
-    ) {
-      return date
-    }
-    return null
-  }
+  }, [fieldValue, formatDateForDisplay, parseUserInput, value])
 
-  // Format value for display (assume field.value is already in decimalDateFormat, or handle legacy yyyy-mm-dd)
-  const getDisplayValue = (value: unknown): string => {
-    if (!value) return ""
-    if (typeof value !== "string") return ""
-    // If it's yyyy-mm-dd (legacy), parse and format
-    if (value.includes("-") && !value.includes("/")) {
-      const legacyParsed = parse(value, "dd/mm/yyyy", new Date())
-      return isValid(legacyParsed)
-        ? format(legacyParsed, decimalDateFormat)
-        : value
-    }
-    // Assume it's already formatted or raw
-    return value
-  }
+  // Calculate min/max dates for calendar
+  const calendarMinDate = React.useMemo(() => {
+    return minDate
+      ? minDate instanceof Date
+        ? minDate
+        : new Date(minDate)
+      : undefined
+  }, [minDate])
+
+  const calendarMaxDate = React.useMemo(() => {
+    const effectiveMaxDate = isFutureShow ? maxDate : new Date()
+    return effectiveMaxDate
+      ? effectiveMaxDate instanceof Date
+        ? effectiveMaxDate
+        : new Date(effectiveMaxDate)
+      : undefined
+  }, [isFutureShow, maxDate])
 
   return (
     <div className={cn("flex flex-col gap-1", className)}>
       {label && (
-        <Label htmlFor={name} className="text-sm font-medium">
+        <Label htmlFor={name} className="px-1 text-sm font-medium">
           {label}
           {isRequired && <span className="ml-1 text-red-500">*</span>}
         </Label>
@@ -129,47 +188,215 @@ export const CustomDateNew = <T extends FieldValues = FieldValues>({
       <FormField
         control={form.control}
         name={name}
-        render={({ field }) => (
-          <FormItem>
-            <FormControl>
-              <Input
-                type="text"
-                id={name}
-                disabled={isDisabled}
-                placeholder={placeholder}
-                className={cn("w-full", {
-                  "h-8 text-sm": size === "sm",
-                  "h-9": size === "default",
-                  "h-12 text-lg": size === "lg",
-                })}
-                {...field}
-                value={getDisplayValue(field.value)}
-                onChange={(e) => {
-                  field.onChange(e.target.value)
-                }}
-                onBlur={(e) => {
-                  const inputValue = e.target.value
-                  const parsed = parseCustomDate(inputValue)
-                  if (
-                    parsed &&
-                    (!minParsed || parsed >= minParsed) &&
-                    (!maxParsed || parsed <= maxParsed)
-                  ) {
-                    const formatted = format(parsed, decimalDateFormat)
-                    field.onChange(formatted)
-                    onChangeEvent?.(parsed)
-                  } else {
-                    field.onChange("")
-                    onChangeEvent?.(null)
-                  }
-                  field.onBlur()
-                  onBlurEvent?.(e)
-                }}
-              />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
+        render={({ field }) => {
+          const currentDate = parseUserInput(value)
+
+          const handleInputChange = (
+            e: React.ChangeEvent<HTMLInputElement>
+          ) => {
+            const inputValue = e.target.value
+            setValue(inputValue)
+
+            const parsedDate = parseUserInput(inputValue)
+            if (
+              isValidDateValue(parsedDate) &&
+              validateDateConstraints(parsedDate)
+            ) {
+              const formattedDate = formatDateForDisplay(parsedDate)
+              field.onChange(formattedDate)
+              setMonth(parsedDate)
+              if (onChangeEvent) {
+                onChangeEvent(parsedDate!)
+              }
+            } else if (inputValue === "") {
+              field.onChange("")
+              if (onChangeEvent) {
+                onChangeEvent(null)
+              }
+            }
+          }
+
+          const handleInputBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+            const parsedDate = parseUserInput(value)
+
+            if (
+              isValidDateValue(parsedDate) &&
+              validateDateConstraints(parsedDate)
+            ) {
+              // Reformat to ensure consistent display
+              const formattedDate = formatDateForDisplay(parsedDate)
+              setValue(formattedDate)
+              field.onChange(formattedDate)
+            } else if (value === "") {
+              field.onChange("")
+            } else {
+              // Invalid date - clear it
+              setValue("")
+              field.onChange("")
+            }
+
+            field.onBlur()
+            onBlurEvent?.(e)
+          }
+
+          const handleCalendarSelect = (date: Date | undefined) => {
+            if (date) {
+              const formattedDate = formatDateForDisplay(date)
+              setValue(formattedDate)
+              field.onChange(formattedDate)
+              setMonth(date)
+              if (onChangeEvent) {
+                onChangeEvent(date)
+              }
+              setOpen(false)
+            }
+          }
+
+          const handleClear = () => {
+            setValue("")
+            field.onChange("")
+            if (onChangeEvent) {
+              onChangeEvent(null)
+            }
+          }
+
+          const handleTodayClick = () => {
+            const today = startOfToday()
+            if (validateDateConstraints(today)) {
+              const formattedDate = formatDateForDisplay(today)
+              setValue(formattedDate)
+              field.onChange(formattedDate)
+              setMonth(today)
+              if (onChangeEvent) {
+                onChangeEvent(today)
+              }
+              setOpen(false)
+            }
+          }
+
+          return (
+            <FormItem>
+              <FormControl>
+                <div className="relative flex gap-2">
+                  <Input
+                    ref={inputRef}
+                    type="text"
+                    id={name}
+                    disabled={isDisabled}
+                    placeholder={placeholder || decimalDateFormat}
+                    className={cn("bg-background pr-10", {
+                      "h-8 text-sm": size === "sm",
+                      "h-9": size === "default",
+                      "h-12 text-lg": size === "lg",
+                    })}
+                    value={value}
+                    onChange={handleInputChange}
+                    onBlur={handleInputBlur}
+                    onKeyDown={(e) => {
+                      if (e.key === "ArrowDown") {
+                        e.preventDefault()
+                        setOpen(true)
+                      }
+                      if (e.key === "Escape") {
+                        setOpen(false)
+                      }
+                    }}
+                  />
+
+                  {/* Clear Button */}
+                  {value && !isDisabled && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      onClick={handleClear}
+                      className={cn(
+                        "absolute top-1/2 right-10 size-6 -translate-y-1/2 p-0",
+                        {
+                          "right-9": size === "sm",
+                          "right-10": size === "default" || size === "lg",
+                        }
+                      )}
+                    >
+                      <X className="size-3.5" />
+                      <span className="sr-only">Clear date</span>
+                    </Button>
+                  )}
+
+                  {/* Calendar Popover */}
+                  <Popover open={open} onOpenChange={setOpen}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        disabled={isDisabled}
+                        className={cn(
+                          "absolute top-1/2 right-2 size-6 -translate-y-1/2 p-0",
+                          {
+                            "size-5": size === "sm",
+                            "size-6": size === "default" || size === "lg",
+                          }
+                        )}
+                      >
+                        <CalendarIcon
+                          className={cn({
+                            "size-3.5": size === "sm" || size === "default",
+                            "size-4": size === "lg",
+                          })}
+                        />
+                        <span className="sr-only">Select date</span>
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent
+                      className="w-auto overflow-hidden p-0"
+                      align="end"
+                      alignOffset={-8}
+                      sideOffset={10}
+                    >
+                      <Calendar
+                        mode="single"
+                        selected={currentDate}
+                        captionLayout="dropdown"
+                        month={month}
+                        onMonthChange={setMonth}
+                        onSelect={handleCalendarSelect}
+                        disabled={(date) => {
+                          if (
+                            calendarMinDate &&
+                            isBefore(date, calendarMinDate)
+                          ) {
+                            return true
+                          }
+                          if (
+                            calendarMaxDate &&
+                            isAfter(date, calendarMaxDate)
+                          ) {
+                            return true
+                          }
+                          return false
+                        }}
+                        initialFocus
+                      />
+                      {/* Footer with Today button */}
+                      <div className="border-t p-3">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="w-full"
+                          onClick={handleTodayClick}
+                          disabled={!validateDateConstraints(startOfToday())}
+                        >
+                          Today
+                        </Button>
+                      </div>
+                    </PopoverContent>
+                  </Popover>
+                </div>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )
+        }}
       />
     </div>
   )
