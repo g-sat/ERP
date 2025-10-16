@@ -283,7 +283,7 @@ export const menuData = {
     //     },
     //     { title: "AR/AP Contra", url: "/gl/arap-contra", icon: ArrowLeftRight },
     //     { title: "Year-End Process", url: "/gl/year-end", icon: CalendarCheck },
-    //     { title: "GL Period Close", url: "/gl/period-close", icon: Lock },
+    //     { title: "GL Period Close", url: "/gl/periodclose", icon: Lock },
     //     { title: "Opening Balance", url: "/gl/opening-balance", icon: Scale },
     //     { title: "Report", url: "/gl/reports", icon: BarChart },
     //   ],

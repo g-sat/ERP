@@ -980,11 +980,14 @@ export const GlContra = {
 }
 
 // General Ledger Period Close Endpoints
-export const GlPeriodClose = {
+export const GLPeriodClose = {
   get: "/account/getglperiodclose",
-  add: "/account/saveglperiodclose",
+  getById: "/account/getglperiodclosebyid",
+  post: "/account/saveglperiodclose",
+  put: "/account/updateglperiodclose",
   delete: "/account/deleteglperiodclose",
-  addNew: "/account/savenewperiodclose",
+  bulkAction: "/account/bulk-actionglperiodclose",
+  summary: "/account/summaryglperiodclose",
 }
 
 export const Company = {
@@ -1186,17 +1189,6 @@ export const JobOrder_DebitNote = {
 export const JobOrder_Purchase = {
   getList: "/operations/GetPurchaseList",
   saveBulkList: "/operations/SaveBulkPurchaseList",
-}
-
-// GL Period Close Endpoints
-export const GLPeriodClose = {
-  get: "/gl/period-close",
-  getById: "/gl/period-close",
-  post: "/gl/period-close",
-  put: "/gl/period-close",
-  delete: "/gl/period-close",
-  bulkAction: "/gl/period-close/bulk-action",
-  summary: "/gl/period-close/summary",
 }
 
 // Leave Management Endpoints

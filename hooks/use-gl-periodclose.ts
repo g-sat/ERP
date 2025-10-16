@@ -3,9 +3,10 @@ import {
   IGLPeriodCloseBulkAction,
   IGLPeriodCloseSummary,
 } from "@/interfaces/gl-periodclose"
-import { useQueryClient } from "@tanstack/react-query"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
+import { AxiosError } from "axios"
 
-import { getData } from "@/lib/api-client"
+import { saveData } from "@/lib/api-client"
 import { GLPeriodClose } from "@/lib/api-routes"
 import {
   useDelete,
@@ -17,47 +18,44 @@ import {
 
 // Hook for fetching period close data
 export function useGetGLPeriodClose(filters?: string) {
-  return useGet<IGLPeriodClose[]>(GLPeriodClose.get, "gl-period-close", filters)
+  return useGet<IGLPeriodClose>(GLPeriodClose.get, "gl-periodclose", filters)
 }
 
 // Hook for fetching period close by ID
 export function useGetGLPeriodCloseById(periodId: string | undefined) {
   return useGetById<IGLPeriodClose>(
     GLPeriodClose.getById,
-    "gl-period-close",
+    "gl-periodclose",
     periodId || "",
     {
       enabled: !!periodId && periodId !== "0",
-      queryKey: ["gl-period-close", periodId],
+      queryKey: ["gl-periodclose", periodId],
     }
   )
 }
 
 // Hook for fetching period close by year
 export function useGetGLPeriodCloseByYear(year: number | undefined) {
-  return useGetByParams<IGLPeriodClose[]>(
+  return useGetByParams<IGLPeriodClose>(
     GLPeriodClose.get,
-    "gl-period-close-by-year",
+    "gl-periodclose-by-year",
     year?.toString() || "",
     {
       enabled: !!year && year >= 2020,
-      queryKey: ["gl-period-close-by-year", year],
+      queryKey: ["gl-periodclose-by-year", year],
     }
   )
 }
 
 // Hook for fetching period close by company and year
-export function useGetGLPeriodCloseByCompanyYear(
-  companyId: string | undefined,
-  year: number | undefined
-) {
-  return useGetByParams<IGLPeriodClose[]>(
+export function useGetGLPeriodCloseByCompanyYear(year: number | undefined) {
+  return useGetByParams<IGLPeriodClose>(
     GLPeriodClose.get,
-    "gl-period-close-by-company-year",
-    `${companyId}/${year}`,
+    "gl-periodclose-by-company-year",
+    `${year}`,
     {
-      enabled: !!companyId && !!year && year >= 2020,
-      queryKey: ["gl-period-close-by-company-year", companyId, year],
+      enabled: !!year && year >= 2020,
+      queryKey: ["gl-periodclose-by-company-year", year],
     }
   )
 }
@@ -73,18 +71,48 @@ export function useSaveGLPeriodClose() {
       saveMutation.mutate(data, {
         onSuccess: (response) => {
           if (response.result === 1) {
-            queryClient.invalidateQueries({ queryKey: ["gl-period-close"] })
+            queryClient.invalidateQueries({ queryKey: ["gl-periodclose"] })
             queryClient.invalidateQueries({
-              queryKey: ["gl-period-close-by-year"],
+              queryKey: ["gl-periodclose-by-year"],
             })
             queryClient.invalidateQueries({
-              queryKey: ["gl-period-close-by-company-year"],
+              queryKey: ["gl-periodclose-by-company-year"],
             })
           }
         },
       })
     },
   }
+}
+
+// Hook for saving period close (alias for consistency with naming pattern)
+export function useGLPeriodCloseSave() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({ data }: { data: IGLPeriodClose[] }) => {
+      try {
+        return await saveData(GLPeriodClose.post, data)
+      } catch (error: unknown) {
+        if (error instanceof AxiosError) {
+          console.error("Error saving period close data:", error)
+          throw error.response?.data || "Error saving period close data."
+        }
+        throw error
+      }
+    },
+    onSuccess: (response) => {
+      if (response.result === 1) {
+        queryClient.invalidateQueries({ queryKey: ["gl-periodclose"] })
+        queryClient.invalidateQueries({
+          queryKey: ["gl-periodclose-by-year"],
+        })
+        queryClient.invalidateQueries({
+          queryKey: ["gl-periodclose-by-company-year"],
+        })
+      }
+    },
+  })
 }
 
 // Hook for updating period close
@@ -98,12 +126,12 @@ export function useUpdateGLPeriodClose() {
       updateMutation.mutate(data, {
         onSuccess: (response) => {
           if (response.result === 1) {
-            queryClient.invalidateQueries({ queryKey: ["gl-period-close"] })
+            queryClient.invalidateQueries({ queryKey: ["gl-periodclose"] })
             queryClient.invalidateQueries({
-              queryKey: ["gl-period-close-by-year"],
+              queryKey: ["gl-periodclose-by-year"],
             })
             queryClient.invalidateQueries({
-              queryKey: ["gl-period-close-by-company-year"],
+              queryKey: ["gl-periodclose-by-company-year"],
             })
           }
         },
@@ -123,12 +151,12 @@ export function useDeleteGLPeriodClose() {
       deleteMutation.mutate(periodId, {
         onSuccess: (response) => {
           if (response.result === 1) {
-            queryClient.invalidateQueries({ queryKey: ["gl-period-close"] })
+            queryClient.invalidateQueries({ queryKey: ["gl-periodclose"] })
             queryClient.invalidateQueries({
-              queryKey: ["gl-period-close-by-year"],
+              queryKey: ["gl-periodclose-by-year"],
             })
             queryClient.invalidateQueries({
-              queryKey: ["gl-period-close-by-company-year"],
+              queryKey: ["gl-periodclose-by-company-year"],
             })
           }
         },
@@ -150,12 +178,12 @@ export function useGLPeriodCloseBulkAction() {
       bulkActionMutation.mutate(data, {
         onSuccess: (response) => {
           if (response.result === 1) {
-            queryClient.invalidateQueries({ queryKey: ["gl-period-close"] })
+            queryClient.invalidateQueries({ queryKey: ["gl-periodclose"] })
             queryClient.invalidateQueries({
-              queryKey: ["gl-period-close-by-year"],
+              queryKey: ["gl-periodclose-by-year"],
             })
             queryClient.invalidateQueries({
-              queryKey: ["gl-period-close-by-company-year"],
+              queryKey: ["gl-periodclose-by-company-year"],
             })
           }
         },
@@ -168,11 +196,11 @@ export function useGLPeriodCloseBulkAction() {
 export function useGetGLPeriodCloseSummary(companyId: string | undefined) {
   return useGetByParams<IGLPeriodCloseSummary>(
     GLPeriodClose.summary,
-    "gl-period-close-summary",
+    "gl-periodclose-summary",
     companyId || "",
     {
       enabled: !!companyId && companyId.trim() !== "",
-      queryKey: ["gl-period-close-summary", companyId],
+      queryKey: ["gl-periodclose-summary", companyId],
     }
   )
 }
@@ -185,38 +213,30 @@ export function useCloseGLPeriodModule() {
   const closeModule = (
     periodId: string,
     module: "AR" | "AP" | "CB" | "GL",
-    closeBy: string,
+    closeBy: number,
     includeVat: boolean = false
   ) => {
-    const updateData: Partial<IGLPeriodClose> = {
-      id: periodId,
-    }
+    const updateData: Partial<IGLPeriodClose> = {}
 
     switch (module) {
       case "AR":
-        updateData.arClosed = true
-        updateData.arCloseBy = closeBy
+        updateData.isArClose = true
+        updateData.arCloseById = closeBy
         updateData.arCloseDate = new Date().toISOString()
-        if (includeVat) {
-          updateData.arVatClosed = true
-        }
         break
       case "AP":
-        updateData.apClosed = true
-        updateData.apCloseBy = closeBy
+        updateData.isApClose = true
+        updateData.apCloseById = closeBy
         updateData.apCloseDate = new Date().toISOString()
-        if (includeVat) {
-          updateData.apVatClosed = true
-        }
         break
       case "CB":
-        updateData.cbClosed = true
-        updateData.cbCloseBy = closeBy
+        updateData.isCbClose = true
+        updateData.cbCloseById = closeBy
         updateData.cbCloseDate = new Date().toISOString()
         break
       case "GL":
-        updateData.glClosed = true
-        updateData.glCloseBy = closeBy
+        updateData.isGlClose = true
+        updateData.glCloseById = closeBy
         updateData.glCloseDate = new Date().toISOString()
         break
     }
@@ -224,12 +244,12 @@ export function useCloseGLPeriodModule() {
     closeMutation.mutate(updateData, {
       onSuccess: (response) => {
         if (response.result === 1) {
-          queryClient.invalidateQueries({ queryKey: ["gl-period-close"] })
+          queryClient.invalidateQueries({ queryKey: ["gl-periodclose"] })
           queryClient.invalidateQueries({
-            queryKey: ["gl-period-close-by-year"],
+            queryKey: ["gl-periodclose-by-year"],
           })
           queryClient.invalidateQueries({
-            queryKey: ["gl-period-close-by-company-year"],
+            queryKey: ["gl-periodclose-by-company-year"],
           })
         }
       },
@@ -239,33 +259,29 @@ export function useCloseGLPeriodModule() {
   const reopenModule = (
     periodId: string,
     module: "AR" | "AP" | "CB" | "GL",
-    reopenBy: string
+    reopenBy: number
   ) => {
-    const updateData: Partial<IGLPeriodClose> = {
-      id: periodId,
-    }
+    const updateData: Partial<IGLPeriodClose> = {}
 
     switch (module) {
       case "AR":
-        updateData.arClosed = false
-        updateData.arVatClosed = false
-        updateData.arCloseBy = reopenBy
+        updateData.isArClose = false
+        updateData.arCloseById = reopenBy
         updateData.arCloseDate = undefined
         break
       case "AP":
-        updateData.apClosed = false
-        updateData.apVatClosed = false
-        updateData.apCloseBy = reopenBy
+        updateData.isApClose = false
+        updateData.apCloseById = reopenBy
         updateData.apCloseDate = undefined
         break
       case "CB":
-        updateData.cbClosed = false
-        updateData.cbCloseBy = reopenBy
+        updateData.isCbClose = false
+        updateData.cbCloseById = reopenBy
         updateData.cbCloseDate = undefined
         break
       case "GL":
-        updateData.glClosed = false
-        updateData.glCloseBy = reopenBy
+        updateData.isGlClose = false
+        updateData.glCloseById = reopenBy
         updateData.glCloseDate = undefined
         break
     }
@@ -273,12 +289,12 @@ export function useCloseGLPeriodModule() {
     closeMutation.mutate(updateData, {
       onSuccess: (response) => {
         if (response.result === 1) {
-          queryClient.invalidateQueries({ queryKey: ["gl-period-close"] })
+          queryClient.invalidateQueries({ queryKey: ["gl-periodclose"] })
           queryClient.invalidateQueries({
-            queryKey: ["gl-period-close-by-year"],
+            queryKey: ["gl-periodclose-by-year"],
           })
           queryClient.invalidateQueries({
-            queryKey: ["gl-period-close-by-company-year"],
+            queryKey: ["gl-periodclose-by-company-year"],
           })
         }
       },
@@ -305,12 +321,12 @@ export function useGenerateGLPeriods() {
       generateMutation.mutate(data, {
         onSuccess: (response) => {
           if (response.result === 1) {
-            queryClient.invalidateQueries({ queryKey: ["gl-period-close"] })
+            queryClient.invalidateQueries({ queryKey: ["gl-periodclose"] })
             queryClient.invalidateQueries({
-              queryKey: ["gl-period-close-by-year"],
+              queryKey: ["gl-periodclose-by-year"],
             })
             queryClient.invalidateQueries({
-              queryKey: ["gl-period-close-by-company-year"],
+              queryKey: ["gl-periodclose-by-company-year"],
             })
           }
         },
