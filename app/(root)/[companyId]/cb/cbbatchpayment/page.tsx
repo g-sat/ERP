@@ -322,13 +322,13 @@ export default function BatchPaymentPage() {
             parseDate(apiBatchPayment.trnDate as string) || new Date(),
             clientDateFormat
           )
-        : clientDateFormat,
+        : "",
       accountDate: apiBatchPayment.accountDate
         ? format(
             parseDate(apiBatchPayment.accountDate as string) || new Date(),
             clientDateFormat
           )
-        : clientDateFormat,
+        : "",
       currencyId: apiBatchPayment.currencyId ?? 0,
       exhRate: apiBatchPayment.exhRate ?? 0,
       ctyExhRate: apiBatchPayment.ctyExhRate ?? 0,
@@ -341,7 +341,7 @@ export default function BatchPaymentPage() {
             parseDate(apiBatchPayment.gstClaimDate as string) || new Date(),
             clientDateFormat
           )
-        : clientDateFormat,
+        : "",
       gstAmt: apiBatchPayment.gstAmt ?? 0,
       gstLocalAmt: apiBatchPayment.gstLocalAmt ?? 0,
       gstCtyAmt: apiBatchPayment.gstCtyAmt ?? 0,
@@ -387,7 +387,7 @@ export default function BatchPaymentPage() {
                     parseDate(detail.invoiceDate as string) || new Date(),
                     clientDateFormat
                   )
-                : clientDateFormat,
+                : "",
               invoiceNo: detail.invoiceNo ?? "",
               supplierName: detail.supplierName ?? "",
               glId: detail.glId ?? 0,

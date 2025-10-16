@@ -334,13 +334,13 @@ export default function GenPaymentPage() {
             parseDate(apiGenPayment.trnDate as string) || new Date(),
             clientDateFormat
           )
-        : clientDateFormat,
+        : "",
       accountDate: apiGenPayment.accountDate
         ? format(
             parseDate(apiGenPayment.accountDate as string) || new Date(),
             clientDateFormat
           )
-        : clientDateFormat,
+        : "",
       currencyId: apiGenPayment.currencyId ?? 0,
       exhRate: apiGenPayment.exhRate ?? 0,
       ctyExhRate: apiGenPayment.ctyExhRate ?? 0,
@@ -369,7 +369,7 @@ export default function GenPaymentPage() {
             parseDate(apiGenPayment.gstClaimDate as string) || new Date(),
             clientDateFormat
           )
-        : clientDateFormat,
+        : "",
       gstAmt: apiGenPayment.gstAmt ?? 0,
       gstLocalAmt: apiGenPayment.gstLocalAmt ?? 0,
       gstCtyAmt: apiGenPayment.gstCtyAmt ?? 0,

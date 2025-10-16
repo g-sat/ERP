@@ -325,13 +325,13 @@ export default function BankReconPage() {
             parseDate(apiBankRecon.trnDate as string) || new Date(),
             clientDateFormat
           )
-        : clientDateFormat,
+        : "",
       accountDate: apiBankRecon.accountDate
         ? format(
             parseDate(apiBankRecon.accountDate as string) || new Date(),
             clientDateFormat
           )
-        : clientDateFormat,
+        : "",
       bankId: apiBankRecon.bankId ?? 0,
       currencyId: apiBankRecon.currencyId ?? 0,
       fromDate: apiBankRecon.fromDate
@@ -339,13 +339,13 @@ export default function BankReconPage() {
             parseDate(apiBankRecon.fromDate as string) || new Date(),
             clientDateFormat
           )
-        : clientDateFormat,
+        : "",
       toDate: apiBankRecon.toDate
         ? format(
             parseDate(apiBankRecon.toDate as string) || new Date(),
             clientDateFormat
           )
-        : clientDateFormat,
+        : "",
       remarks: apiBankRecon.remarks ?? "",
       totAmt: apiBankRecon.totAmt ?? 0,
       opBalAmt: apiBankRecon.opBalAmt ?? 0,
@@ -394,7 +394,7 @@ export default function BankReconPage() {
                     parseDate(detail.accountDate as string) || new Date(),
                     clientDateFormat
                   )
-                : clientDateFormat,
+                : "",
               paymentTypeId: detail.paymentTypeId ?? 0,
               chequeNo: detail.chequeNo ?? "",
               chequeDate: detail.chequeDate
@@ -402,7 +402,7 @@ export default function BankReconPage() {
                     parseDate(detail.chequeDate as string) || new Date(),
                     clientDateFormat
                   )
-                : clientDateFormat,
+                : "",
               customerId: detail.customerId ?? 0,
               supplierId: detail.supplierId ?? 0,
               glId: detail.glId ?? 0,
@@ -437,6 +437,8 @@ export default function BankReconPage() {
           : response.data
 
         if (detailedBankRecon) {
+          console.log("detailedBankRecon", detailedBankRecon)
+
           const updatedBankRecon = transformToSchemaType(detailedBankRecon)
           setBankRecon(updatedBankRecon)
           form.reset(updatedBankRecon)

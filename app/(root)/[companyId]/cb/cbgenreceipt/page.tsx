@@ -335,13 +335,13 @@ export default function GenReceiptPage() {
             parseDate(apiReceipt.trnDate as string) || new Date(),
             clientDateFormat
           )
-        : clientDateFormat,
+        : "",
       accountDate: apiReceipt.accountDate
         ? format(
             parseDate(apiReceipt.accountDate as string) || new Date(),
             clientDateFormat
           )
-        : clientDateFormat,
+        : "",
       currencyId: apiReceipt.currencyId ?? 0,
       exhRate: apiReceipt.exhRate ?? 0,
       ctyExhRate: apiReceipt.ctyExhRate ?? 0,
@@ -370,7 +370,7 @@ export default function GenReceiptPage() {
             parseDate(apiReceipt.gstClaimDate as string) || new Date(),
             clientDateFormat
           )
-        : clientDateFormat,
+        : "",
       gstAmt: apiReceipt.gstAmt ?? 0,
       gstLocalAmt: apiReceipt.gstLocalAmt ?? 0,
       gstCtyAmt: apiReceipt.gstCtyAmt ?? 0,

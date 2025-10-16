@@ -331,13 +331,13 @@ export default function PettyCashPage() {
             parseDate(apiPettyCash.trnDate as string) || new Date(),
             clientDateFormat
           )
-        : clientDateFormat,
+        : "",
       accountDate: apiPettyCash.accountDate
         ? format(
             parseDate(apiPettyCash.accountDate as string) || new Date(),
             clientDateFormat
           )
-        : clientDateFormat,
+        : "",
       currencyId: apiPettyCash.currencyId ?? 0,
       exhRate: apiPettyCash.exhRate ?? 0,
       ctyExhRate: apiPettyCash.ctyExhRate ?? 0,
@@ -366,7 +366,7 @@ export default function PettyCashPage() {
             parseDate(apiPettyCash.gstClaimDate as string) || new Date(),
             clientDateFormat
           )
-        : clientDateFormat,
+        : "",
       gstAmt: apiPettyCash.gstAmt ?? 0,
       gstLocalAmt: apiPettyCash.gstLocalAmt ?? 0,
       gstCtyAmt: apiPettyCash.gstCtyAmt ?? 0,

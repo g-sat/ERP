@@ -1,7 +1,3 @@
-import { format } from "date-fns"
-
-import { clientDateFormat } from "@/lib/date-utils"
-
 const defaultBankReconDetails = {
   reconId: "0",
   reconNo: "",
@@ -12,10 +8,10 @@ const defaultBankReconDetails = {
   documentId: 0,
   documentNo: "",
   docReferenceNo: "",
-  accountDate: format(new Date(), clientDateFormat),
+  accountDate: new Date(),
   paymentTypeId: 0,
   chequeNo: "",
-  chequeDate: format(new Date(), clientDateFormat),
+  chequeDate: new Date(),
   customerId: 0,
   supplierId: 0,
   glId: 0,
@@ -35,18 +31,18 @@ const defaultBankRecon = {
   prevReconId: 0,
   prevReconNo: "",
   referenceNo: "",
-  trnDate: format(new Date(), clientDateFormat),
-  accountDate: format(new Date(), clientDateFormat),
+  trnDate: new Date(),
+  accountDate: new Date(),
   bankId: 0,
   currencyId: 0,
-  fromDate: format(new Date(), clientDateFormat),
-  toDate: format(new Date(), clientDateFormat),
+  fromDate: new Date(),
+  toDate: new Date(),
   remarks: "",
   totAmt: 0,
   opBalAmt: 0,
   clBalAmt: 0,
   createById: 0,
-  createDate: format(new Date(), clientDateFormat),
+  createDate: new Date(),
   editById: undefined,
   editDate: undefined,
   editVersion: 0,
@@ -61,25 +57,6 @@ const defaultBankRecon = {
   appById: undefined,
   appDate: undefined,
   data_details: [],
-}
-
-// Function to get default values with custom date format
-export const getDefaultValues = (dateFormat: string = clientDateFormat) => {
-  return {
-    defaultBankRecon: {
-      ...defaultBankRecon,
-      trnDate: format(new Date(), dateFormat),
-      accountDate: format(new Date(), dateFormat),
-      fromDate: format(new Date(), dateFormat),
-      toDate: format(new Date(), dateFormat),
-      createDate: format(new Date(), dateFormat),
-    },
-    defaultBankReconDetails: {
-      ...defaultBankReconDetails,
-      accountDate: format(new Date(), dateFormat),
-      chequeDate: format(new Date(), dateFormat),
-    },
-  }
 }
 
 export { defaultBankRecon, defaultBankReconDetails }

@@ -8,7 +8,6 @@ import {
   CbBankTransferCtmDtSchemaType,
   CbBankTransferCtmHdSchemaType,
 } from "@/schemas"
-import { useAuthStore } from "@/stores/auth-store"
 import { UseFormReturn } from "react-hook-form"
 
 import BankTransferCtmDetailsForm from "./cbbanktransferctm-details-form"

@@ -292,10 +292,10 @@ export default function BatchPaymentDetailsForm({
         seqNo: data.seqNo ?? currentItemNo,
         invoiceDate: data.invoiceDate
           ? format(
-              parseDate(data.invoiceDate as string) as Date,
+              parseDate(data.invoiceDate as string) || new Date(),
               clientDateFormat
             )
-          : clientDateFormat,
+          : "",
         invoiceNo: data.invoiceNo ?? "",
         supplierName: data.supplierName ?? "",
 

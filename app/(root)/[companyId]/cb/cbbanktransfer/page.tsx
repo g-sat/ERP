@@ -330,13 +330,13 @@ export default function BankTransferPage() {
             parseDate(apiBankTransfer.trnDate as string) || new Date(),
             clientDateFormat
           )
-        : clientDateFormat,
+        : "",
       accountDate: apiBankTransfer.accountDate
         ? format(
             parseDate(apiBankTransfer.accountDate as string) || new Date(),
             clientDateFormat
           )
-        : clientDateFormat,
+        : "",
       paymentTypeId: apiBankTransfer.paymentTypeId ?? 0,
       chequeNo: apiBankTransfer.chequeNo ?? "",
       chequeDate: apiBankTransfer.chequeDate

@@ -480,6 +480,49 @@ export const setToExchangeRate = async (
 }
 
 /**
+ * Set TO exchange rate for detail forms (cross-form scenario)
+ * Gets accountDate from header form, currencyId from detail form
+ * Sets toExhRate in detail form
+ */
+export const setToExchangeRateDetails = async (
+  headerForm: HdForm,
+  detailForm: DtForm,
+  round: number | 6,
+  currencyFieldName: string = "currencyId"
+) => {
+  // Get accountDate from header form
+  const accountDate = headerForm?.getValues("accountDate")
+  // Get currencyId from detail form
+  const currencyId = detailForm?.getValues(currencyFieldName)
+
+  if (accountDate && currencyId) {
+    try {
+      const dt =
+        typeof accountDate === "string"
+          ? format(
+              parse(accountDate, clientDateFormat, new Date()),
+              "yyyy-MM-dd"
+            )
+          : format(accountDate, "yyyy-MM-dd")
+      const res = await getData(
+        `${BasicSetting.getExchangeRate}/${currencyId}/${dt}`
+      )
+
+      const exhRate = res?.data
+
+      // Set exchange rate in detail form
+      detailForm.setValue("toExhRate", +Number(exhRate).toFixed(round))
+      detailForm.trigger("toExhRate")
+
+      return exhRate
+    } catch {
+      return null
+    }
+  }
+  return null
+}
+
+/**
  * Fetch and set exchange rate based on currency and date
  * Also sets city exchange rate if not using separate city currency
  * Modules: AP, AR, CB, GL

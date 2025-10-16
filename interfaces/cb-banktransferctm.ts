@@ -63,6 +63,7 @@ export interface ICbBankTransferCtmDt {
   transferId: string
   transferNo: string
   itemNo: number
+  seqNo: number
 
   jobOrderId: number
   jobOrderNo: string

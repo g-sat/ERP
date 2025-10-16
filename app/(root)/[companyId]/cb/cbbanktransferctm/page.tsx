@@ -207,14 +207,36 @@ export default function BankTransferCtmPage() {
 
       // Check if there are detail items
       if (!formValues.data_details || formValues.data_details.length === 0) {
-        toast.error("Please add at least one transfer detail")
+        toast.warning("Please add at least one transfer detail")
         return
       }
 
       // Check header from total amounts should not be zero
       if (formValues.fromTotAmt === 0 || formValues.fromTotLocalAmt === 0) {
-        toast.error(
+        toast.warning(
           "From Total Amount and From Total Local Amount should not be zero"
+        )
+        return
+      }
+
+      // Validate: fromTotLocalAmt should match sum of details (toTotLocalAmt + bankTotLocalAmt)
+      const sumOfDetailsLocalAmt = formValues.data_details.reduce(
+        (sum, detail) => {
+          const toTotLocalAmt = Number(detail.toTotLocalAmt) || 0
+          const toBankChgLocalAmt = Number(detail.toBankChgLocalAmt) || 0
+          return sum + toTotLocalAmt + toBankChgLocalAmt
+        },
+        0
+      )
+
+      // Round to 2 decimal places for comparison to avoid floating point issues
+      const fromTotLocalAmtRounded =
+        Math.round(formValues.fromTotLocalAmt * 100) / 100
+      const sumOfDetailsRounded = Math.round(sumOfDetailsLocalAmt * 100) / 100
+
+      if (fromTotLocalAmtRounded !== sumOfDetailsRounded) {
+        toast.warning(
+          `From Total Local Amount (${fromTotLocalAmtRounded.toFixed(2)}) does not match the sum of details (${sumOfDetailsRounded.toFixed(2)}). Please check the amounts.`
         )
         return
       }
@@ -327,13 +349,13 @@ export default function BankTransferCtmPage() {
             parseDate(apiBankTransferCtm.trnDate as string) || new Date(),
             clientDateFormat
           )
-        : clientDateFormat,
+        : "",
       accountDate: apiBankTransferCtm.accountDate
         ? format(
             parseDate(apiBankTransferCtm.accountDate as string) || new Date(),
             clientDateFormat
           )
-        : clientDateFormat,
+        : "",
       paymentTypeId: apiBankTransferCtm.paymentTypeId ?? 0,
       chequeNo: apiBankTransferCtm.chequeNo ?? "",
       chequeDate: apiBankTransferCtm.chequeDate

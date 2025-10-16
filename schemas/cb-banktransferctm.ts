@@ -11,20 +11,11 @@ export const CbBankTransferCtmDtSchema = (
     transferId: z.string().optional(),
     transferNo: z.string().optional(),
     itemNo: z.number().min(1, "Item No must be at least 1"),
-
+    seqNo: z.number().optional(),
     // Job Order Fields
-    jobOrderId:
-      required?.m_JobOrderId && visible?.m_JobOrderId
-        ? z.number().min(1, "Job Order is required")
-        : z.number().optional(),
-    taskId:
-      required?.m_JobOrderId && visible?.m_JobOrderId
-        ? z.number().min(1, "Task is required")
-        : z.number().optional(),
-    serviceId:
-      required?.m_JobOrderId && visible?.m_JobOrderId
-        ? z.number().min(1, "Service is required")
-        : z.number().optional(),
+    jobOrderId: z.number().optional(),
+    taskId: z.number().optional(),
+    serviceId: z.number().optional(),
 
     // To Bank Fields
     toBankId: z.number().min(1, "To Bank is required"),
@@ -32,7 +23,7 @@ export const CbBankTransferCtmDtSchema = (
     toExhRate: z
       .number()
       .min(0.000001, "To Exchange Rate must be greater than 0"),
-    toBankChgGLId: z.number().min(1, "To Bank Charge GL is required"),
+    toBankChgGLId: z.number().min(0).optional(),
     toBankChgAmt: z.number().min(0),
     toBankChgLocalAmt: z.number().min(0),
     toTotAmt: z.number().min(0, "To Total Amount is required"),
@@ -79,7 +70,7 @@ export const CbBankTransferCtmHdSchema = (
     fromExhRate: z
       .number()
       .min(0.000001, "From Exchange Rate must be greater than 0"),
-    fromBankChgGLId: z.number().min(1, "From Bank Charge GL is required"),
+    fromBankChgGLId: z.number().optional(),
     fromBankChgAmt: z.number().min(0),
     fromBankChgLocalAmt: z.number().min(0),
     fromTotAmt: z.number().min(0, "From Total Amount is required"),
@@ -89,7 +80,7 @@ export const CbBankTransferCtmHdSchema = (
     remarks: required?.m_Remarks_Hd
       ? z.string().min(3, "Remarks must be at least 3 characters")
       : z.string().optional(),
-    payeeTo: z.string().min(1, "Payee To is required"),
+    payeeTo: z.string().optional(),
     exhGainLoss: z.number(),
     moduleFrom: z.string().optional(),
 
