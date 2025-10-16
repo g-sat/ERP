@@ -392,7 +392,6 @@ export default function GstPage() {
       console.error("Form submission error:", error)
     }
   }
-
   // Delete handlers
   const handleDeleteGst = (gstId: string) => {
     const gstToDelete = gstsData.find((c) => c.gstId.toString() === gstId)
@@ -429,27 +428,36 @@ export default function GstPage() {
     })
   }
 
-  const handleConfirmDelete = () => {
-    if (!deleteConfirmation.id) return
+  // Individual deletion executors for each entity type
+  const executeDeleteGst = async (id: string) => {
+    await deleteMutation.mutateAsync(id)
+    queryClient.invalidateQueries({ queryKey: ["gsts"] })
+  }
 
-    let mutation
-    switch (deleteConfirmation.type) {
-      case "gst":
-        mutation = deleteMutation
-        break
-      case "gstdt":
-        mutation = deleteDtMutation
-        break
-      case "gstcategory":
-        mutation = deleteCategoryMutation
-        break
-      default:
-        return
-    }
+  const executeDeleteGstDt = async (id: string) => {
+    await deleteDtMutation.mutateAsync(id)
+    queryClient.invalidateQueries({ queryKey: ["gstsdt"] })
+  }
 
-    mutation.mutateAsync(deleteConfirmation.id).then(() => {
-      queryClient.invalidateQueries({ queryKey: [deleteConfirmation.type] })
-    })
+  const executeDeleteGstCategory = async (id: string) => {
+    await deleteCategoryMutation.mutateAsync(id)
+    queryClient.invalidateQueries({ queryKey: ["gstcategory"] })
+  }
+
+  // Mapping of deletion types to their executor functions
+  const deletionExecutors = {
+    gst: executeDeleteGst,
+    gstdt: executeDeleteGstDt,
+    gstcategory: executeDeleteGstCategory,
+  } as const
+
+  const handleConfirmDelete = async () => {
+    if (!deleteConfirmation.id || !deleteConfirmation.type) return
+
+    const executor = deletionExecutors[deleteConfirmation.type]
+    if (!executor) return
+
+    await executor(deleteConfirmation.id)
 
     setDeleteConfirmation({
       isOpen: false,

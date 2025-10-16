@@ -323,24 +323,30 @@ export default function ServiceTypePage() {
     })
   }
 
-  const handleConfirmDelete = () => {
-    if (!deleteConfirmation.id) return
+  // Individual deletion executors for each entity type
+  const executeDeleteServiceType = async (id: string) => {
+    await deleteMutation.mutateAsync(id)
+    queryClient.invalidateQueries({ queryKey: ["servicetypes"] })
+  }
 
-    let mutation
-    switch (deleteConfirmation.type) {
-      case "servicetype":
-        mutation = deleteMutation
-        break
-      case "servicetypecategory":
-        mutation = deleteCategoryMutation
-        break
-      default:
-        return
-    }
+  const executeDeleteServiceTypeCategory = async (id: string) => {
+    await deleteCategoryMutation.mutateAsync(id)
+    queryClient.invalidateQueries({ queryKey: ["servicetypecategory"] })
+  }
 
-    mutation.mutateAsync(deleteConfirmation.id).then(() => {
-      queryClient.invalidateQueries({ queryKey: [deleteConfirmation.type] })
-    })
+  // Mapping of deletion types to their executor functions
+  const deletionExecutors = {
+    servicetype: executeDeleteServiceType,
+    servicetypecategory: executeDeleteServiceTypeCategory,
+  } as const
+
+  const handleConfirmDelete = async () => {
+    if (!deleteConfirmation.id || !deleteConfirmation.type) return
+
+    const executor = deletionExecutors[deleteConfirmation.type]
+    if (!executor) return
+
+    await executor(deleteConfirmation.id)
 
     setDeleteConfirmation({
       isOpen: false,

@@ -7,8 +7,7 @@ import { UomDtSchemaType, UomSchemaType } from "@/schemas/uom"
 import { usePermissionStore } from "@/stores/permission-store"
 import { useQueryClient } from "@tanstack/react-query"
 
-import { getData } from "@/lib/api-client"
-import { getById } from "@/lib/api-client"
+import { getById, getData } from "@/lib/api-client"
 import { Uom, UomDt } from "@/lib/api-routes"
 import { MasterTransactionId, ModuleId } from "@/lib/utils"
 import { useDelete, useGet, usePersist } from "@/hooks/use-common"
@@ -279,24 +278,30 @@ export default function UomPage() {
     })
   }
 
-  const handleConfirmDelete = () => {
-    if (!deleteConfirmation.id) return
+  // Individual deletion executors for each entity type
+  const executeDeleteUom = async (id: string) => {
+    await deleteMutation.mutateAsync(id)
+    queryClient.invalidateQueries({ queryKey: ["uoms"] })
+  }
 
-    let mutation
-    switch (deleteConfirmation.type) {
-      case "uom":
-        mutation = deleteMutation
-        break
-      case "uomdt":
-        mutation = deleteDtMutation
-        break
-      default:
-        return
-    }
+  const executeDeleteUomDt = async (id: string) => {
+    await deleteDtMutation.mutateAsync(id)
+    queryClient.invalidateQueries({ queryKey: ["uomsdt"] })
+  }
 
-    mutation.mutateAsync(deleteConfirmation.id).then(() => {
-      queryClient.invalidateQueries({ queryKey: [deleteConfirmation.type] })
-    })
+  // Mapping of deletion types to their executor functions
+  const deletionExecutors = {
+    uom: executeDeleteUom,
+    uomdt: executeDeleteUomDt,
+  } as const
+
+  const handleConfirmDelete = async () => {
+    if (!deleteConfirmation.id || !deleteConfirmation.type) return
+
+    const executor = deletionExecutors[deleteConfirmation.type]
+    if (!executor) return
+
+    await executor(deleteConfirmation.id)
 
     setDeleteConfirmation({
       isOpen: false,

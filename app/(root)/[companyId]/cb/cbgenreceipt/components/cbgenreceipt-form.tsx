@@ -1,11 +1,7 @@
 "use client"
 
 import * as React from "react"
-import {
-  setExchangeRate,
-  setExchangeRateLocal,
-  setGSTPercentage,
-} from "@/helpers/account"
+import { setExchangeRate, setExchangeRateLocal } from "@/helpers/account"
 import {
   calculateCountryAmounts,
   calculateLocalAmounts,
@@ -111,14 +107,10 @@ export default function ReceiptForm({
       if (visible?.m_CtyCurr) {
         await setExchangeRateLocal(form, exhRateDec)
       }
-      await setGSTPercentage(
-        form,
-        form.getValues("data_details"),
-        decimals[0],
-        visible
-      )
+      // Note: GST percentage is handled at detail level in CB modules
+      // No need to call setGSTPercentage here as it expects individual detail forms
     },
-    [decimals, exhRateDec, form, visible]
+    [exhRateDec, form, visible]
   )
 
   // Handle account date change
@@ -138,14 +130,10 @@ export default function ReceiptForm({
       if (visible?.m_CtyCurr) {
         await setExchangeRateLocal(form, exhRateDec)
       }
-      await setGSTPercentage(
-        form,
-        form.getValues("data_details"),
-        decimals[0],
-        visible
-      )
+      // Note: GST percentage is handled at detail level in CB modules
+      // No need to call setGSTPercentage here as it expects individual detail forms
     },
-    [decimals, exhRateDec, form, isChequePayment, visible]
+    [exhRateDec, form, isChequePayment, visible]
   )
 
   // Handle payment type change

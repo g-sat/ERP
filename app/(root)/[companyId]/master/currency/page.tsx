@@ -442,27 +442,36 @@ export default function CurrencyPage() {
     })
   }
 
-  const handleConfirmDelete = () => {
-    if (!deleteConfirmation.id) return
+  // Individual deletion executors for each entity type
+  const executeDeleteCurrency = async (id: string) => {
+    await deleteMutation.mutateAsync(id)
+    queryClient.invalidateQueries({ queryKey: ["currencies"] })
+  }
 
-    let mutation
-    switch (deleteConfirmation.type) {
-      case "currency":
-        mutation = deleteMutation
-        break
-      case "currencydt":
-        mutation = deleteDtMutation
-        break
-      case "currencylocaldt":
-        mutation = deleteLocalDtMutation
-        break
-      default:
-        return
-    }
+  const executeDeleteCurrencyDt = async (id: string) => {
+    await deleteDtMutation.mutateAsync(id)
+    queryClient.invalidateQueries({ queryKey: ["currencyDt"] })
+  }
 
-    mutation.mutateAsync(deleteConfirmation.id).then(() => {
-      queryClient.invalidateQueries({ queryKey: [deleteConfirmation.type] })
-    })
+  const executeDeleteCurrencyLocalDt = async (id: string) => {
+    await deleteLocalDtMutation.mutateAsync(id)
+    queryClient.invalidateQueries({ queryKey: ["currencyLocalDt"] })
+  }
+
+  // Mapping of deletion types to their executor functions
+  const deletionExecutors = {
+    currency: executeDeleteCurrency,
+    currencydt: executeDeleteCurrencyDt,
+    currencylocaldt: executeDeleteCurrencyLocalDt,
+  } as const
+
+  const handleConfirmDelete = async () => {
+    if (!deleteConfirmation.id || !deleteConfirmation.type) return
+
+    const executor = deletionExecutors[deleteConfirmation.type]
+    if (!executor) return
+
+    await executor(deleteConfirmation.id)
 
     setDeleteConfirmation({
       isOpen: false,

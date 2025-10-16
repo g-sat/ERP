@@ -576,30 +576,42 @@ export default function ChartOfAccountPage() {
     })
   }
 
-  const handleConfirmDelete = () => {
-    if (!deleteConfirmation.id) return
+  // Individual deletion executors for each entity type
+  const executeDeleteChartOfAccount = async (id: string) => {
+    await deleteMutationChart.mutateAsync(id)
+    queryClient.invalidateQueries({ queryKey: ["chartofaccounts"] })
+  }
 
-    let mutation
-    switch (deleteConfirmation.type) {
-      case "chartofaccount":
-        mutation = deleteMutationChart
-        break
-      case "category1":
-        mutation = deleteMutation1
-        break
-      case "category2":
-        mutation = deleteMutation2
-        break
-      case "category3":
-        mutation = deleteMutation3
-        break
-      default:
-        return
-    }
+  const executeDeleteCategory1 = async (id: string) => {
+    await deleteMutation1.mutateAsync(id)
+    queryClient.invalidateQueries({ queryKey: ["coacategory1"] })
+  }
 
-    mutation.mutateAsync(deleteConfirmation.id).then(() => {
-      queryClient.invalidateQueries({ queryKey: [deleteConfirmation.queryKey] })
-    })
+  const executeDeleteCategory2 = async (id: string) => {
+    await deleteMutation2.mutateAsync(id)
+    queryClient.invalidateQueries({ queryKey: ["coacategory2"] })
+  }
+
+  const executeDeleteCategory3 = async (id: string) => {
+    await deleteMutation3.mutateAsync(id)
+    queryClient.invalidateQueries({ queryKey: ["coacategory3"] })
+  }
+
+  // Mapping of deletion types to their executor functions
+  const deletionExecutors = {
+    chartofaccount: executeDeleteChartOfAccount,
+    category1: executeDeleteCategory1,
+    category2: executeDeleteCategory2,
+    category3: executeDeleteCategory3,
+  } as const
+
+  const handleConfirmDelete = async () => {
+    if (!deleteConfirmation.id || !deleteConfirmation.type) return
+
+    const executor = deletionExecutors[deleteConfirmation.type]
+    if (!executor) return
+
+    await executor(deleteConfirmation.id)
 
     setDeleteConfirmation({
       isOpen: false,
@@ -1037,7 +1049,7 @@ export default function ChartOfAccountPage() {
       {/* Chart of Account Dialog */}
       <Dialog open={isModalChartOpen} onOpenChange={setIsModalChartOpen}>
         <DialogContent
-          className="sm:max-w-2xl max-w-3xl overflow-auto max-h-[90vh]"
+          className="max-h-[90vh] max-w-3xl overflow-auto sm:max-w-2xl"
           onPointerDownOutside={(e) => e.preventDefault()}
         >
           <DialogHeader>
@@ -1076,7 +1088,7 @@ export default function ChartOfAccountPage() {
         onOpenChange={setIsModalCategory1Open}
       >
         <DialogContent
-          className="sm:max-w-2xl max-w-3xl overflow-auto max-h-[90vh]"
+          className="max-h-[90vh] max-w-3xl overflow-auto sm:max-w-2xl"
           onPointerDownOutside={(e) => e.preventDefault()}
         >
           <DialogHeader>
@@ -1111,7 +1123,7 @@ export default function ChartOfAccountPage() {
         onOpenChange={setIsModalCategory2Open}
       >
         <DialogContent
-          className="sm:max-w-2xl max-w-3xl overflow-auto max-h-[90vh]"
+          className="max-h-[90vh] max-w-3xl overflow-auto sm:max-w-2xl"
           onPointerDownOutside={(e) => e.preventDefault()}
         >
           <DialogHeader>
@@ -1146,7 +1158,7 @@ export default function ChartOfAccountPage() {
         onOpenChange={setIsModalCategory3Open}
       >
         <DialogContent
-          className="sm:max-w-2xl max-w-3xl overflow-auto max-h-[90vh]"
+          className="max-h-[90vh] max-w-3xl overflow-auto sm:max-w-2xl"
           onPointerDownOutside={(e) => e.preventDefault()}
         >
           <DialogHeader>
