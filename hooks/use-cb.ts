@@ -8,6 +8,7 @@ import {
   CbBankTransferCtm,
   CbBatchPayment,
   CbPayment,
+  CbPettyCash,
   CbReceipt,
 } from "@/lib/api-routes"
 
@@ -196,6 +197,38 @@ export function useGetCBBankReconHistoryDetails<T>(
       )
     },
     enabled: !!reconId && reconId !== "0" && !!editVersion,
+    ...options,
+  })
+}
+
+// CB Gen Receipt History Hooks
+export function useGetCBPettyCashHistoryList<T>(
+  pettyCashId: string,
+  options = {}
+) {
+  return useQuery<ApiResponse<T>>({
+    queryKey: ["cb-pettycash-history-list", pettyCashId],
+    queryFn: async () => {
+      return await getData(`${CbPettyCash.history}/${pettyCashId}`)
+    },
+    enabled: !!pettyCashId && pettyCashId !== "0",
+    ...options,
+  })
+}
+
+export function useGetCBPettyCashHistoryDetails<T>(
+  pettyCashId: string,
+  editVersion: string,
+  options = {}
+) {
+  return useQuery<ApiResponse<T>>({
+    queryKey: ["cb-pettycash-history-details", pettyCashId, editVersion],
+    queryFn: async () => {
+      return await getData(
+        `${CbPettyCash.historyDetails}/${pettyCashId}/${editVersion}`
+      )
+    },
+    enabled: !!pettyCashId && pettyCashId !== "0" && !!editVersion,
     ...options,
   })
 }

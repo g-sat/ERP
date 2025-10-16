@@ -70,6 +70,7 @@ export * from "./cb-batchpayment"
 export * from "./cb-banktransfer"
 export * from "./cb-bankrecon"
 export * from "./cb-banktransferctm"
+export * from "./cb-pettycash"
 
 // GL schemas
 export * from "./gl-journalentry"

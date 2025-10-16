@@ -1,0 +1,708 @@
+"use client"
+
+import { useEffect, useState } from "react"
+import {
+  handleGstPercentageChange,
+  handleQtyChange,
+  handleTotalamountChange,
+  setGSTPercentage,
+} from "@/helpers/account"
+import {
+  IBargeLookup,
+  ICbPettyCashDt,
+  IChartofAccountLookup,
+  IDepartmentLookup,
+  IEmployeeLookup,
+  IGstLookup,
+  IPortLookup,
+  IVesselLookup,
+  IVoyageLookup,
+} from "@/interfaces"
+import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
+import {
+  CbPettyCashDtSchemaType,
+  CbPettyCashHdSchemaType,
+  cbPettyCashDtSchema,
+} from "@/schemas"
+import { useAuthStore } from "@/stores/auth-store"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { FormProvider, UseFormReturn, useForm } from "react-hook-form"
+import { toast } from "sonner"
+
+import { Button } from "@/components/ui/button"
+import {
+  BargeAutocomplete,
+  ChartOfAccountAutocomplete,
+  DepartmentAutocomplete,
+  EmployeeAutocomplete,
+  GSTAutocomplete,
+  PortAutocomplete,
+  VesselAutocomplete,
+  VoyageAutocomplete,
+} from "@/components/autocomplete"
+import CustomNumberInput from "@/components/custom/custom-number-input"
+import CustomTextarea from "@/components/custom/custom-textarea"
+
+import { defaultPettyCashDetails } from "./cbpettycash-defaultvalues"
+
+// Factory function to create default values with dynamic itemNo
+const createDefaultValues = (itemNo: number): CbPettyCashDtSchemaType => ({
+  ...defaultPettyCashDetails,
+  itemNo,
+  seqNo: itemNo,
+})
+
+interface PettyCashDetailsFormProps {
+  Hdform: UseFormReturn<CbPettyCashHdSchemaType>
+  onAddRowAction?: (rowData: ICbPettyCashDt) => void
+  onCancelEdit?: () => void
+  editingDetail?: CbPettyCashDtSchemaType | null
+  visible: IVisibleFields
+  required: IMandatoryFields
+  companyId: number
+  existingDetails?: CbPettyCashDtSchemaType[]
+}
+
+export default function PettyCashDetailsForm({
+  Hdform,
+  onAddRowAction,
+  onCancelEdit: _onCancelEdit,
+  editingDetail,
+  visible,
+  required,
+  companyId,
+  existingDetails = [],
+}: PettyCashDetailsFormProps) {
+  const { decimals } = useAuthStore()
+  const amtDec = decimals[0]?.amtDec || 2
+  const locAmtDec = decimals[0]?.locAmtDec || 2
+  const _qtyDec = decimals[0]?.qtyDec || 2
+  // State to manage job-specific vs department-specific rendering
+  const [isJobSpecific, setIsJobSpecific] = useState(false)
+
+  // Calculate next itemNo based on existing details
+  const getNextItemNo = () => {
+    if (existingDetails.length === 0) return 1
+    const maxItemNo = Math.max(
+      ...existingDetails.map((d: CbPettyCashDtSchemaType) => d.itemNo || 0)
+    )
+    return maxItemNo + 1
+  }
+
+  console.log("editingDetail : ", editingDetail)
+  console.log("existingDetails : ", existingDetails)
+  console.log("getNextItemNo : ", getNextItemNo())
+
+  const form = useForm<CbPettyCashDtSchemaType>({
+    resolver: zodResolver(cbPettyCashDtSchema(required, visible)),
+    mode: "onBlur",
+    defaultValues: editingDetail
+      ? {
+          paymentId: editingDetail.paymentId ?? "0",
+          paymentNo: editingDetail.paymentNo ?? "",
+          itemNo: editingDetail.itemNo ?? getNextItemNo(),
+          seqNo: editingDetail.seqNo ?? getNextItemNo(),
+          glId: editingDetail.glId ?? 0,
+          glCode: editingDetail.glCode ?? "",
+          glName: editingDetail.glName ?? "",
+          totAmt: editingDetail.totAmt ?? 0,
+          totLocalAmt: editingDetail.totLocalAmt ?? 0,
+          totCtyAmt: editingDetail.totCtyAmt ?? 0,
+          remarks: editingDetail.remarks ?? "",
+          gstId: editingDetail.gstId ?? 0,
+          gstName: editingDetail.gstName ?? "",
+          gstPercentage: editingDetail.gstPercentage ?? 0,
+          gstAmt: editingDetail.gstAmt ?? 0,
+          gstLocalAmt: editingDetail.gstLocalAmt ?? 0,
+          gstCtyAmt: editingDetail.gstCtyAmt ?? 0,
+          departmentId: editingDetail.departmentId ?? 0,
+          departmentCode: editingDetail.departmentCode ?? "",
+          departmentName: editingDetail.departmentName ?? "",
+
+          employeeId: editingDetail.employeeId ?? 0,
+          employeeCode: editingDetail.employeeCode ?? "",
+          employeeName: editingDetail.employeeName ?? "",
+          portId: editingDetail.portId ?? 0,
+          portCode: editingDetail.portCode ?? "",
+          portName: editingDetail.portName ?? "",
+          vesselId: editingDetail.vesselId ?? 0,
+          vesselCode: editingDetail.vesselCode ?? "",
+          vesselName: editingDetail.vesselName ?? "",
+          bargeId: editingDetail.bargeId ?? 0,
+          bargeCode: editingDetail.bargeCode ?? "",
+          bargeName: editingDetail.bargeName ?? "",
+          voyageId: editingDetail.voyageId ?? 0,
+          voyageNo: editingDetail.voyageNo ?? "",
+          editVersion: editingDetail.editVersion ?? 0,
+        }
+      : createDefaultValues(getNextItemNo()),
+  })
+
+  // Watch form values to trigger re-renders when they change
+  const watchedExchangeRate = Hdform.watch("exhRate")
+  const watchedCityExchangeRate = Hdform.watch("ctyExhRate")
+
+  // Recalculate local amounts when exchange rate changes
+  useEffect(() => {
+    const currentValues = form.getValues()
+
+    // Only recalculate if form has values
+    if ((currentValues.totAmt ?? 0) > 0) {
+      const rowData = form.getValues()
+
+      // Ensure cityExchangeRate = exchangeRate if m_CtyCurr is false
+      if (!visible?.m_CtyCurr) {
+        Hdform.setValue("ctyExhRate", watchedExchangeRate)
+      }
+
+      // Recalculate all amounts with new exchange rate
+      handleQtyChange(Hdform, rowData, decimals[0], visible)
+
+      // Update form with recalculated values
+      form.setValue("totLocalAmt", rowData.totLocalAmt)
+      form.setValue("totCtyAmt", rowData.totCtyAmt)
+      form.setValue("gstLocalAmt", rowData.gstLocalAmt)
+      form.setValue("gstCtyAmt", rowData.gstCtyAmt)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [watchedExchangeRate, watchedCityExchangeRate])
+
+  // Reset form when editingDetail changes
+  useEffect(() => {
+    const nextItemNo =
+      existingDetails.length === 0
+        ? 1
+        : Math.max(
+            ...existingDetails.map(
+              (d: CbPettyCashDtSchemaType) => d.itemNo || 0
+            )
+          ) + 1
+
+    if (editingDetail) {
+      // Infer initial mode from existing data
+      form.reset({
+        paymentId: editingDetail.paymentId ?? "0",
+        paymentNo: editingDetail.paymentNo ?? "",
+        itemNo: editingDetail.itemNo ?? nextItemNo,
+        seqNo: editingDetail.seqNo ?? nextItemNo,
+        glId: editingDetail.glId ?? 0,
+        glCode: editingDetail.glCode ?? "",
+        glName: editingDetail.glName ?? "",
+
+        totAmt: editingDetail.totAmt ?? 0,
+        totLocalAmt: editingDetail.totLocalAmt ?? 0,
+        totCtyAmt: editingDetail.totCtyAmt ?? 0,
+        remarks: editingDetail.remarks ?? "",
+        gstId: editingDetail.gstId ?? 0,
+        gstName: editingDetail.gstName ?? "",
+        gstPercentage: editingDetail.gstPercentage ?? 0,
+        gstAmt: editingDetail.gstAmt ?? 0,
+        gstLocalAmt: editingDetail.gstLocalAmt ?? 0,
+        gstCtyAmt: editingDetail.gstCtyAmt ?? 0,
+
+        departmentId: editingDetail.departmentId ?? 0,
+        departmentCode: editingDetail.departmentCode ?? "",
+        departmentName: editingDetail.departmentName ?? "",
+
+        employeeId: editingDetail.employeeId ?? 0,
+        employeeCode: editingDetail.employeeCode ?? "",
+        employeeName: editingDetail.employeeName ?? "",
+        portId: editingDetail.portId ?? 0,
+        portCode: editingDetail.portCode ?? "",
+        portName: editingDetail.portName ?? "",
+        vesselId: editingDetail.vesselId ?? 0,
+        vesselCode: editingDetail.vesselCode ?? "",
+        vesselName: editingDetail.vesselName ?? "",
+        bargeId: editingDetail.bargeId ?? 0,
+        bargeCode: editingDetail.bargeCode ?? "",
+        bargeName: editingDetail.bargeName ?? "",
+        voyageId: editingDetail.voyageId ?? 0,
+        voyageNo: editingDetail.voyageNo ?? "",
+
+        editVersion: editingDetail.editVersion ?? 0,
+      })
+    } else {
+      // New record - reset to defaults
+      form.reset(createDefaultValues(nextItemNo))
+      setIsJobSpecific(false) // Default to department-specific for new records
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editingDetail, existingDetails.length])
+
+  const onSubmit = async (data: CbPettyCashDtSchemaType) => {
+    try {
+      // Validate data against schema
+      const validationResult = cbPettyCashDtSchema(required, visible).safeParse(
+        data
+      )
+
+      if (!validationResult.success) {
+        const errors = validationResult.error.issues
+        const errorMessage = errors
+          .map((err) => `${err.path.join(".")}: ${err.message}`)
+          .join(", ")
+        toast.error(`Validation failed: ${errorMessage}`)
+        console.error("Validation errors:", errors)
+        return
+      }
+
+      // Use itemNo as the unique identifier
+      const currentItemNo = data.itemNo || getNextItemNo()
+
+      console.log("currentItemNo : ", currentItemNo)
+      console.log("data : ", data)
+
+      const rowData: ICbPettyCashDt = {
+        paymentId: data.paymentId ?? "0",
+        paymentNo: data.paymentNo ?? "",
+        itemNo: data.itemNo ?? currentItemNo,
+        seqNo: data.seqNo ?? currentItemNo,
+
+        glId: data.glId ?? 0,
+        glCode: data.glCode ?? "",
+        glName: data.glName ?? "",
+
+        totAmt: data.totAmt ?? 0,
+        totLocalAmt: data.totLocalAmt ?? 0,
+        totCtyAmt: data.totCtyAmt ?? 0,
+        remarks: data.remarks ?? "",
+        gstId: data.gstId ?? 0,
+        gstName: data.gstName ?? "",
+        gstPercentage: data.gstPercentage ?? 0,
+        gstAmt: data.gstAmt ?? 0,
+        gstLocalAmt: data.gstLocalAmt ?? 0,
+        gstCtyAmt: data.gstCtyAmt ?? 0,
+
+        departmentId: data.departmentId ?? 0,
+        departmentCode: data.departmentCode ?? "",
+        departmentName: data.departmentName ?? "",
+
+        employeeId: data.employeeId ?? 0,
+        employeeCode: data.employeeCode ?? "",
+        employeeName: data.employeeName ?? "",
+        portId: data.portId ?? 0,
+        portCode: data.portCode ?? "",
+        portName: data.portName ?? "",
+        vesselId: data.vesselId ?? 0,
+        vesselCode: data.vesselCode ?? "",
+        vesselName: data.vesselName ?? "",
+        bargeId: data.bargeId ?? 0,
+        bargeCode: data.bargeCode ?? "",
+        bargeName: data.bargeName ?? "",
+        voyageId: data.voyageId ?? 0,
+        voyageNo: data.voyageNo ?? "",
+
+        editVersion: data.editVersion ?? 0,
+      }
+
+      if (rowData) {
+        onAddRowAction?.(rowData)
+
+        // Show success message
+        if (editingDetail) {
+          toast.success(`Row ${currentItemNo} updated successfully`)
+        } else {
+          toast.success(`Row ${currentItemNo} added successfully`)
+        }
+
+        // Reset the form with incremented itemNo
+        const nextItemNo = getNextItemNo()
+        form.reset(createDefaultValues(nextItemNo))
+      }
+    } catch (error) {
+      console.error("Error adding row:", error)
+      toast.error("Failed to add row. Please check the form and try again.")
+    }
+  }
+
+  // ============================================================================
+  // HANDLERS
+  // ============================================================================
+
+  // Handle chart of account selection
+  const handleChartOfAccountChange = (
+    selectedOption: IChartofAccountLookup | null
+  ) => {
+    if (selectedOption) {
+      form.setValue("glId", selectedOption.glId, {
+        shouldValidate: true,
+        shouldDirty: true,
+      })
+      form.setValue("glCode", selectedOption.glCode || "")
+      form.setValue("glName", selectedOption.glName || "")
+
+      // CRITICAL: Use the actual isJobSpecific property from the chart of account data
+      // This determines which fields will be shown/required
+      const isJobSpecificAccount = selectedOption.isJobSpecific || false
+
+      setIsJobSpecific(isJobSpecificAccount)
+    }
+  }
+
+  const handleGSTChange = async (selectedOption: IGstLookup | null) => {
+    if (selectedOption) {
+      form.setValue("gstId", selectedOption.gstId)
+      form.setValue("gstName", selectedOption.gstName || "")
+      await setGSTPercentage(Hdform, form, decimals[0], visible)
+    }
+  }
+
+  // Handle department selection
+  const handleDepartmentChange = (selectedOption: IDepartmentLookup | null) => {
+    if (selectedOption) {
+      form.setValue("departmentId", selectedOption.departmentId, {
+        shouldValidate: true,
+        shouldDirty: true,
+      })
+      form.setValue("departmentCode", selectedOption.departmentCode || "")
+      form.setValue("departmentName", selectedOption.departmentName || "")
+    }
+  }
+
+  // Handle employee selection
+  const handleEmployeeChange = (selectedOption: IEmployeeLookup | null) => {
+    if (selectedOption) {
+      form.setValue("employeeId", selectedOption.employeeId, {
+        shouldValidate: true,
+        shouldDirty: true,
+      })
+      form.setValue("employeeCode", selectedOption.employeeCode || "")
+      form.setValue("employeeName", selectedOption.employeeName || "")
+    }
+  }
+
+  // Handle barge selection
+  const handleBargeChange = (selectedOption: IBargeLookup | null) => {
+    if (selectedOption) {
+      form.setValue("bargeId", selectedOption.bargeId, {
+        shouldValidate: true,
+        shouldDirty: true,
+      })
+      form.setValue("bargeCode", selectedOption.bargeCode || "")
+      form.setValue("bargeName", selectedOption.bargeName || "")
+    }
+  }
+
+  // Handle Port selection
+  const handlePortChange = (selectedOption: IPortLookup | null) => {
+    if (selectedOption) {
+      form.setValue("portId", selectedOption.portId, {
+        shouldValidate: true,
+        shouldDirty: true,
+      })
+      form.setValue("portCode", selectedOption.portCode || "")
+      form.setValue("portName", selectedOption.portName || "")
+    }
+  }
+
+  // Handle Vessel selection
+  const handleVesselChange = (selectedOption: IVesselLookup | null) => {
+    if (selectedOption) {
+      form.setValue("vesselId", selectedOption.vesselId, {
+        shouldValidate: true,
+        shouldDirty: true,
+      })
+      form.setValue("vesselCode", selectedOption.vesselCode || "")
+      form.setValue("vesselName", selectedOption.vesselName || "")
+    }
+  }
+
+  // Handle Voyage selection
+  const handleVoyageChange = (selectedOption: IVoyageLookup | null) => {
+    if (selectedOption) {
+      form.setValue("voyageId", selectedOption.voyageId, {
+        shouldValidate: true,
+        shouldDirty: true,
+      })
+      form.setValue("voyageNo", selectedOption.voyageNo || "")
+    }
+  }
+
+  // ============================================================================
+  // CALCULATION HANDLERS
+  // ============================================================================
+
+  const triggerTotalAmountCalculation = () => {
+    const rowData = form.getValues()
+
+    // Ensure cityExchangeRate = exchangeRate if m_CtyCurr is false
+    const exchangeRate = Hdform.getValues("exhRate") || 0
+    if (!visible?.m_CtyCurr) {
+      Hdform.setValue("ctyExhRate", exchangeRate)
+    }
+
+    handleTotalamountChange(Hdform, rowData, decimals[0], visible)
+    // Update only the calculated fields
+    form.setValue("totLocalAmt", rowData.totLocalAmt)
+    form.setValue("totCtyAmt", rowData.totCtyAmt)
+    form.setValue("gstAmt", rowData.gstAmt)
+    form.setValue("gstLocalAmt", rowData.gstLocalAmt)
+    form.setValue("gstCtyAmt", rowData.gstCtyAmt)
+  }
+
+  const triggerGstCalculation = () => {
+    const rowData = form.getValues()
+
+    // Ensure cityExchangeRate = exchangeRate if m_CtyCurr is false
+    const exchangeRate = Hdform.getValues("exhRate") || 0
+    if (!visible?.m_CtyCurr) {
+      Hdform.setValue("ctyExhRate", exchangeRate)
+    }
+
+    handleGstPercentageChange(Hdform, rowData, decimals[0], visible)
+    // Update only the calculated fields
+    form.setValue("gstAmt", rowData.gstAmt)
+    form.setValue("gstLocalAmt", rowData.gstLocalAmt)
+    form.setValue("gstCtyAmt", rowData.gstCtyAmt)
+  }
+
+  const handleTotalAmountChange = (value: number) => {
+    form.setValue("totAmt", value)
+    triggerTotalAmountCalculation()
+  }
+
+  const handleGstPercentageManualChange = (value: number) => {
+    form.setValue("gstPercentage", value)
+    triggerGstCalculation()
+  }
+
+  const handleGstAmountChange = (value: number) => {
+    form.setValue("gstAmt", value)
+  }
+
+  return (
+    <>
+      <h2 className="text-xl font-semibold">
+        {editingDetail
+          ? `Details (Edit - Item ${editingDetail.itemNo})`
+          : "Details (New)"}
+      </h2>
+
+      {/* Display form errors */}
+      {Object.keys(form.formState.errors).length > 0 && (
+        <div className="mx-2 mb-2 rounded-md border border-red-200 bg-red-50 p-3">
+          <p className="mb-1 font-semibold text-red-800">
+            Please fix the following errors:
+          </p>
+          <ul className="list-inside list-disc space-y-1 text-sm text-red-700">
+            {Object.entries(form.formState.errors).map(([field, error]) => (
+              <li key={field}>
+                <span className="font-medium capitalize">{field}:</span>{" "}
+                {error?.message?.toString() || "Invalid value"}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      <FormProvider {...form}>
+        <form
+          onSubmit={form.handleSubmit(onSubmit)}
+          className="grid w-full grid-cols-7 gap-2 p-2"
+        >
+          {/* Item No */}
+          <CustomNumberInput
+            form={form}
+            name="itemNo"
+            label="Item No"
+            round={0}
+            className="text-right"
+            isDisabled={true}
+          />
+
+          {/* Chart Of Account */}
+          <ChartOfAccountAutocomplete
+            form={form}
+            name="glId"
+            label="Chart Of Account"
+            isRequired={required?.m_GLId}
+            onChangeEvent={handleChartOfAccountChange}
+            companyId={companyId}
+          />
+
+          {/* DEPARTMENT-SPECIFIC MODE: Department only */}
+          {visible?.m_DepartmentId && (
+            <DepartmentAutocomplete
+              form={form}
+              name="departmentId"
+              label="Department"
+              isRequired={required?.m_DepartmentId && !isJobSpecific}
+              onChangeEvent={handleDepartmentChange}
+            />
+          )}
+
+          {/* Employee */}
+          {visible?.m_EmployeeId && (
+            <EmployeeAutocomplete
+              form={form}
+              name="employeeId"
+              label="Employee"
+              isRequired={required?.m_EmployeeId}
+              onChangeEvent={handleEmployeeChange}
+            />
+          )}
+
+          {/* Barge */}
+          {visible?.m_BargeId && (
+            <BargeAutocomplete
+              form={form}
+              name="bargeId"
+              label="Barge"
+              isRequired={required?.m_BargeId}
+              onChangeEvent={handleBargeChange}
+            />
+          )}
+
+          {/* Port */}
+          {visible?.m_PortId && (
+            <PortAutocomplete
+              form={form}
+              name="portId"
+              label="Port"
+              isRequired={required?.m_PortId}
+              onChangeEvent={handlePortChange}
+            />
+          )}
+
+          {/* Barge */}
+          {visible?.m_VesselId && (
+            <VesselAutocomplete
+              form={form}
+              name="vesselId"
+              label="Vessel"
+              isRequired={required?.m_VesselId}
+              onChangeEvent={handleVesselChange}
+            />
+          )}
+
+          {/* Voyage */}
+          {visible?.m_VoyageId && (
+            <VoyageAutocomplete
+              form={form}
+              name="voyageId"
+              label="Voyage"
+              isRequired={required?.m_VoyageId}
+              onChangeEvent={handleVoyageChange}
+            />
+          )}
+
+          {/* Total Amount */}
+          <CustomNumberInput
+            form={form}
+            name="totAmt"
+            label="Total Amount"
+            isRequired={required?.m_TotAmt}
+            round={amtDec}
+            className="text-right"
+            onChangeEvent={handleTotalAmountChange}
+          />
+
+          {/* Local Amount */}
+          <CustomNumberInput
+            form={form}
+            name="totLocalAmt"
+            label="Total Local Amount"
+            round={locAmtDec}
+            className="text-right"
+            isDisabled={true}
+          />
+
+          {/* GST */}
+          {visible?.m_GstId && (
+            <GSTAutocomplete
+              form={form}
+              name="gstId"
+              label="GST"
+              isRequired={required?.m_GstId}
+              onChangeEvent={handleGSTChange}
+            />
+          )}
+
+          {/* GST Percentage */}
+          <CustomNumberInput
+            form={form}
+            name="gstPercentage"
+            label="GST Percentage"
+            round={2}
+            className="text-right"
+            onChangeEvent={handleGstPercentageManualChange}
+          />
+
+          {/* GST Amount */}
+          <CustomNumberInput
+            form={form}
+            name="gstAmt"
+            label="GST Amount"
+            round={amtDec}
+            isDisabled
+            className="col-span-1 text-right"
+            onChangeEvent={handleGstAmountChange}
+          />
+
+          {/* GST Local Amount */}
+          <CustomNumberInput
+            form={form}
+            name="gstLocalAmt"
+            label="GST Local Amount"
+            round={locAmtDec}
+            className="col-span-1 text-right"
+            isDisabled={true}
+          />
+
+          {/* Remarks */}
+          {visible?.m_Remarks && (
+            <CustomTextarea
+              form={form}
+              name="remarks"
+              label="Remarks"
+              isRequired={required?.m_Remarks}
+              className="col-span-1"
+              minRows={2}
+              maxRows={6}
+            />
+          )}
+
+          {/* Action buttons */}
+          <div className="col-span-1 flex items-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="ml-auto"
+              onClick={() => {
+                const nextItemNo = getNextItemNo()
+                form.reset(createDefaultValues(nextItemNo))
+                toast.info("Form reset")
+              }}
+            >
+              Reset
+            </Button>
+            <Button
+              type="submit"
+              size="sm"
+              className="ml-auto"
+              disabled={form.formState.isSubmitting}
+            >
+              {editingDetail ? "Update" : "Add"}
+            </Button>
+            {editingDetail && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  _onCancelEdit?.()
+                  const nextItemNo = getNextItemNo()
+                  form.reset(createDefaultValues(nextItemNo))
+                  toast.info("Edit cancelled")
+                }}
+              >
+                Cancel
+              </Button>
+            )}
+          </div>
+        </form>
+      </FormProvider>
+    </>
+  )
+}

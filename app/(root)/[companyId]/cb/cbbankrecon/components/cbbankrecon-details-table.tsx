@@ -1,12 +1,13 @@
-import React, { useEffect, useState } from "react"
+import { useEffect, useState } from "react"
 import { ICbBankReconDt } from "@/interfaces"
 import { IVisibleFields } from "@/interfaces/setting"
 import { useAuthStore } from "@/stores/auth-store"
 import { ColumnDef } from "@tanstack/react-table"
-import { format } from "date-fns"
+import { format, parse } from "date-fns"
 
 import { TableName } from "@/lib/utils"
-import { AccountBaseTable } from "@/components/table/table-account"
+import { Input } from "@/components/ui/input"
+import { AccountEditableBaseTable } from "@/components/table/table-account-editable"
 
 // Use flexible data type that can work with form data
 interface BankReconDetailsTableProps {
@@ -16,6 +17,11 @@ interface BankReconDetailsTableProps {
   onRefresh?: () => void
   onFilterChange?: (filters: { search?: string; sortOrder?: string }) => void
   onDataReorder?: (newData: ICbBankReconDt[]) => void
+  onCellUpdate?: (
+    itemNo: number,
+    field: keyof ICbBankReconDt,
+    value: string | Date
+  ) => void
   visible: IVisibleFields
 }
 
@@ -26,7 +32,8 @@ export default function BankReconDetailsTable({
   onRefresh,
   onFilterChange,
   onDataReorder,
-  visible,
+  onCellUpdate,
+  visible: _visible,
 }: BankReconDetailsTableProps) {
   const { decimals } = useAuthStore()
   const amtDec = decimals[0]?.amtDec || 2
@@ -128,16 +135,45 @@ export default function BankReconDetailsTable({
       accessorKey: "chequeNo",
       header: "Cheque No",
       size: 100,
+      cell: ({ row }) => (
+        <Input
+          value={row.original.chequeNo || ""}
+          onChange={(e) => {
+            if (onCellUpdate) {
+              onCellUpdate(row.original.itemNo, "chequeNo", e.target.value)
+            }
+          }}
+          className="hover:border-input focus:border-primary h-7 border-transparent bg-transparent px-2 text-sm"
+          placeholder="Enter cheque no"
+        />
+      ),
     },
     {
       accessorKey: "chequeDate",
       header: "Cheque Date",
-      size: 100,
+      size: 120,
       cell: ({ row }) => {
         const date = row.original.chequeDate
           ? new Date(row.original.chequeDate)
           : null
-        return date ? format(date, dateFormat) : "-"
+
+        return (
+          <Input
+            type="date"
+            value={date ? format(date, "yyyy-MM-dd") : ""}
+            onChange={(e) => {
+              if (onCellUpdate && e.target.value) {
+                const parsedDate = parse(
+                  e.target.value,
+                  "yyyy-MM-dd",
+                  new Date()
+                )
+                onCellUpdate(row.original.itemNo, "chequeDate", parsedDate)
+              }
+            }}
+            className="hover:border-input focus:border-primary h-7 border-transparent bg-transparent px-2 text-sm"
+          />
+        )
       },
     },
     {
@@ -236,7 +272,7 @@ export default function BankReconDetailsTable({
   }
 
   return (
-    <AccountBaseTable
+    <AccountEditableBaseTable
       data={data as unknown[]}
       columns={columns as ColumnDef<unknown>[]}
       accessorId={"itemNo" as keyof unknown}
