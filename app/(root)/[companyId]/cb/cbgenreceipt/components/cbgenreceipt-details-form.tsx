@@ -95,10 +95,6 @@ export default function ReceiptDetailsForm({
     return maxItemNo + 1
   }
 
-  console.log("editingDetail : ", editingDetail)
-  console.log("existingDetails : ", existingDetails)
-  console.log("getNextItemNo : ", getNextItemNo())
-
   const form = useForm<CbGenReceiptDtSchemaType>({
     resolver: zodResolver(cbGenReceiptDtSchema(required, visible)),
     mode: "onBlur",

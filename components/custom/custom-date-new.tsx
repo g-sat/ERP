@@ -84,15 +84,31 @@ export const CustomDateNew = <T extends FieldValues = FieldValues>({
     (input: string): Date | undefined => {
       if (!input || input.trim() === "") return undefined
 
-      // Try parsing with the configured format
-      let parsedDate = parse(input, decimalDateFormat, new Date())
+      // Array of possible date formats to try
+      const formats = [
+        decimalDateFormat, // dd/MM/yyyy (configured format)
+        "yyyy-MM-dd", // ISO format: 2025-10-15
+        "yyyy-MMM-dd", // API format: 2025-Oct-15
+        "dd-MM-yyyy", // Alternative: 15-10-2025
+        "MM/dd/yyyy", // US format: 10/15/2025
+        "yyyy/MM/dd", // Alternative ISO: 2025/10/15
+      ]
 
-      // If that fails, try standard Date constructor
-      if (!isValid(parsedDate)) {
-        parsedDate = new Date(input)
+      // Try each format
+      for (const format of formats) {
+        const parsedDate = parse(input, format, new Date())
+        if (isValid(parsedDate)) {
+          return parsedDate
+        }
       }
 
-      return isValid(parsedDate) ? parsedDate : undefined
+      // If all formats fail, try native Date constructor
+      const nativeDate = new Date(input)
+      if (isValid(nativeDate)) {
+        return nativeDate
+      }
+
+      return undefined
     },
     [decimalDateFormat]
   )

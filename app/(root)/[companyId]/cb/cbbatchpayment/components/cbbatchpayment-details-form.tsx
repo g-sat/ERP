@@ -97,10 +97,6 @@ export default function BatchPaymentDetailsForm({
     return maxItemNo + 1
   }
 
-  console.log("editingDetail : ", editingDetail)
-  console.log("existingDetails : ", existingDetails)
-  console.log("getNextItemNo : ", getNextItemNo())
-
   const form = useForm<CbBatchPaymentDtSchemaType>({
     resolver: zodResolver(cbBatchPaymentDtSchema(required, visible)),
     mode: "onBlur",

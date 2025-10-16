@@ -96,10 +96,6 @@ export default function InvoiceDetailsForm({
     return maxItemNo + 1
   }
 
-  console.log("editingDetail : ", editingDetail)
-  console.log("existingDetails : ", existingDetails)
-  console.log("getNextItemNo : ", getNextItemNo())
-
   const form = useForm<ApCreditNoteDtSchemaType>({
     resolver: zodResolver(apCreditNoteDtSchema(required, visible)),
     mode: "onBlur",

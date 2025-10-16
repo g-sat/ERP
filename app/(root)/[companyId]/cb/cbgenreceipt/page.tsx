@@ -219,7 +219,7 @@ export default function GenReceiptPage() {
         return
       }
 
-      console.log(formValues)
+      console.log("handle save receipt : ", formValues)
 
       const response =
         Number(formValues.receiptId) === 0
@@ -467,6 +467,8 @@ export default function GenReceiptPage() {
         `${CbReceipt.getByIdNo}/${selectedReceipt.receiptId}/${selectedReceipt.receiptNo}`
       )
 
+      console.log("response select : ", response.data)
+
       if (response?.result === 1) {
         const detailedReceipt = Array.isArray(response.data)
           ? response.data[0]
@@ -546,6 +548,8 @@ export default function GenReceiptPage() {
 
     try {
       const response = await getById(`${CbReceipt.getByIdNo}/0/${value}`)
+
+      console.log("response : ", response.data)
 
       if (response?.result === 1) {
         const detailedReceipt = Array.isArray(response.data)

@@ -1,4 +1,4 @@
-import { parse } from "date-fns"
+import { isValid, parse } from "date-fns"
 
 export function formatDate(
   date: Date | string | number | undefined,
@@ -25,9 +25,32 @@ export const clientDateFormat = "dd/MM/yyyy"
 export const parseDate = (dateStr: string | null | undefined): Date | null => {
   if (!dateStr) return null
   try {
-    // First, try parsing with the client date format (dd/MM/yyyy)
-    const date = parse(dateStr, clientDateFormat, new Date())
-    return isNaN(date.getTime()) ? null : date
+    // Array of possible date formats to try
+    const formats = [
+      clientDateFormat, // dd/MM/yyyy
+      "yyyy-MM-dd", // ISO format: 2025-10-15
+      "yyyy-MMM-dd", // API format: 2025-Oct-15
+      "dd-MM-yyyy", // Alternative: 15-10-2025
+      "MM/dd/yyyy", // US format: 10/15/2025
+      "yyyy/MM/dd", // Alternative ISO: 2025/10/15
+      clientDateTimeFormat, // yyyy-MMM-dd HH:mm:ss.SSS
+    ]
+
+    // Try each format
+    for (const format of formats) {
+      const date = parse(dateStr, format, new Date())
+      if (isValid(date) && !isNaN(date.getTime())) {
+        return date
+      }
+    }
+
+    // If all formats fail, try native Date constructor
+    const nativeDate = new Date(dateStr)
+    if (isValid(nativeDate) && !isNaN(nativeDate.getTime())) {
+      return nativeDate
+    }
+
+    return null
   } catch (e) {
     console.error("Error parsing date:", dateStr, e)
     return null

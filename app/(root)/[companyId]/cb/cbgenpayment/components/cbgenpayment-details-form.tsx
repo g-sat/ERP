@@ -89,10 +89,6 @@ export default function GenPaymentDetailsForm({
     return maxItemNo + 1
   }
 
-  console.log("editingDetail : ", editingDetail)
-  console.log("existingDetails : ", existingDetails)
-  console.log("getNextItemNo : ", getNextItemNo())
-
   const form = useForm<CbGenPaymentDtSchemaType>({
     resolver: zodResolver(cbGenPaymentDtSchema(required, visible)),
     mode: "onBlur",

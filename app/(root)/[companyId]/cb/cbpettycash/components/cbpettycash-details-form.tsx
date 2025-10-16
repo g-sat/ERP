@@ -89,10 +89,6 @@ export default function PettyCashDetailsForm({
     return maxItemNo + 1
   }
 
-  console.log("editingDetail : ", editingDetail)
-  console.log("existingDetails : ", existingDetails)
-  console.log("getNextItemNo : ", getNextItemNo())
-
   const form = useForm<CbPettyCashDtSchemaType>({
     resolver: zodResolver(cbPettyCashDtSchema(required, visible)),
     mode: "onBlur",
