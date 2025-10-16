@@ -2,7 +2,7 @@ import { format } from "date-fns"
 
 import { clientDateFormat } from "@/lib/date-utils"
 
-const defaultPaymentDetails = {
+const defaultGenPaymentDetails = {
   paymentId: "0",
   paymentNo: "",
   itemNo: 0,
@@ -40,7 +40,7 @@ const defaultPaymentDetails = {
   editVersion: 0,
 }
 
-const defaultPayment = {
+const defaultGenPayment = {
   companyId: 0,
   paymentId: "0",
   paymentNo: "",
@@ -90,18 +90,18 @@ const defaultPayment = {
 // Function to get default values with custom date format
 export const getDefaultValues = (dateFormat: string = clientDateFormat) => {
   return {
-    defaultPayment: {
-      ...defaultPayment,
+    defaultGenPayment: {
+      ...defaultGenPayment,
       trnDate: format(new Date(), dateFormat),
       accountDate: format(new Date(), dateFormat),
       chequeDate: "",
       gstClaimDate: format(new Date(), dateFormat),
       createDate: format(new Date(), dateFormat),
     },
-    defaultPaymentDetails: {
-      ...defaultPaymentDetails,
+    defaultGenPaymentDetails: {
+      ...defaultGenPaymentDetails,
     },
   }
 }
 
-export { defaultPayment, defaultPaymentDetails }
+export { defaultGenPayment, defaultGenPaymentDetails }

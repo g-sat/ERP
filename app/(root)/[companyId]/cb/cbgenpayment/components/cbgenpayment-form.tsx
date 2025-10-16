@@ -36,7 +36,7 @@ import CustomInputGroup from "@/components/custom/custom-input-group"
 import CustomNumberInput from "@/components/custom/custom-number-input"
 import CustomTextarea from "@/components/custom/custom-textarea"
 
-interface PaymentFormProps {
+interface GenPaymentFormProps {
   form: UseFormReturn<CbGenPaymentHdSchemaType>
   onSuccessAction: (action: string) => Promise<void>
   isEdit: boolean
@@ -45,14 +45,14 @@ interface PaymentFormProps {
   companyId: number
 }
 
-export default function PaymentForm({
+export default function GenPaymentForm({
   form,
   onSuccessAction,
   isEdit: _isEdit,
   visible,
   required,
   companyId: _companyId,
-}: PaymentFormProps) {
+}: GenPaymentFormProps) {
   const { decimals } = useAuthStore()
   const amtDec = decimals[0]?.amtDec || 2
   const locAmtDec = decimals[0]?.locAmtDec || 2

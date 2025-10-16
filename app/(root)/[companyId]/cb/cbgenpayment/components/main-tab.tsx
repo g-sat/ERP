@@ -13,9 +13,9 @@ import { CbGenPaymentDtSchemaType, CbGenPaymentHdSchemaType } from "@/schemas"
 import { useAuthStore } from "@/stores/auth-store"
 import { UseFormReturn } from "react-hook-form"
 
-import PaymentDetailsForm from "./cbgenpayment-details-form"
-import PaymentDetailsTable from "./cbgenpayment-details-table"
-import PaymentForm from "./cbgenpayment-form"
+import GenPaymentDetailsForm from "./cbgenpayment-details-form"
+import GenPaymentDetailsTable from "./cbgenpayment-details-table"
+import GenPaymentForm from "./cbgenpayment-form"
 
 interface MainProps {
   form: UseFormReturn<CbGenPaymentHdSchemaType>
@@ -163,7 +163,7 @@ export default function Main({
 
   return (
     <div className="w-full">
-      <PaymentForm
+      <GenPaymentForm
         form={form}
         onSuccessAction={onSuccessAction}
         isEdit={isEdit}
@@ -172,7 +172,7 @@ export default function Main({
         companyId={companyId}
       />
       <div className="rounded-lg border p-4 shadow-sm">
-        <PaymentDetailsForm
+        <GenPaymentDetailsForm
           Hdform={form}
           onAddRowAction={handleAddRow}
           onCancelEdit={editingDetail ? handleCancelEdit : undefined}
@@ -183,7 +183,7 @@ export default function Main({
           existingDetails={dataDetails as CbGenPaymentDtSchemaType[]}
         />
 
-        <PaymentDetailsTable
+        <GenPaymentDetailsTable
           data={(dataDetails as unknown as ICbGenPaymentDt[]) || []}
           visible={visible}
           onDelete={handleDelete}

@@ -11,23 +11,23 @@ import { Separator } from "@/components/ui/separator"
 import { CustomDateNew } from "@/components/custom/custom-date-new"
 import { DialogDataTable } from "@/components/table/table-dialog"
 
-export interface PaymentTableProps {
+export interface GenPaymentTableProps {
   data: ICbGenPaymentHd[]
   isLoading: boolean
-  onPaymentSelect: (selectedPayment: ICbGenPaymentHd | undefined) => void
+  onGenPaymentSelect: (selectedGenPayment: ICbGenPaymentHd | undefined) => void
   onRefresh: () => void
   onFilterChange: (filters: ICbGenPaymentFilter) => void
   initialFilters?: ICbGenPaymentFilter
 }
 
-export default function PaymentTable({
+export default function GenPaymentTable({
   data,
   isLoading = false,
-  onPaymentSelect,
+  onGenPaymentSelect,
   onRefresh,
   onFilterChange,
   initialFilters,
-}: PaymentTableProps) {
+}: GenPaymentTableProps) {
   const { decimals } = useAuthStore()
   const amtDec = decimals[0]?.amtDec || 2
   const locAmtDec = decimals[0]?.locAmtDec || 2
@@ -335,7 +335,7 @@ export default function PaymentTable({
         emptyMessage="No data found."
         onRefresh={onRefresh}
         onFilterChange={handleDialogFilterChange}
-        onRowSelect={(row) => onPaymentSelect(row || undefined)}
+        onRowSelect={(row) => onGenPaymentSelect(row || undefined)}
       />
     </div>
   )

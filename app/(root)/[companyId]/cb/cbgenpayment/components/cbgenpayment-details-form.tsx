@@ -43,16 +43,16 @@ import {
 import CustomNumberInput from "@/components/custom/custom-number-input"
 import CustomTextarea from "@/components/custom/custom-textarea"
 
-import { defaultPaymentDetails } from "./cbgenpayment-defaultvalues"
+import { defaultGenPaymentDetails } from "./cbgenpayment-defaultvalues"
 
 // Factory function to create default values with dynamic itemNo
 const createDefaultValues = (itemNo: number): CbGenPaymentDtSchemaType => ({
-  ...defaultPaymentDetails,
+  ...defaultGenPaymentDetails,
   itemNo,
   seqNo: itemNo,
 })
 
-interface PaymentDetailsFormProps {
+interface GenPaymentDetailsFormProps {
   Hdform: UseFormReturn<CbGenPaymentHdSchemaType>
   onAddRowAction?: (rowData: ICbGenPaymentDt) => void
   onCancelEdit?: () => void
@@ -63,7 +63,7 @@ interface PaymentDetailsFormProps {
   existingDetails?: CbGenPaymentDtSchemaType[]
 }
 
-export default function PaymentDetailsForm({
+export default function GenPaymentDetailsForm({
   Hdform,
   onAddRowAction,
   onCancelEdit: _onCancelEdit,
@@ -72,7 +72,7 @@ export default function PaymentDetailsForm({
   required,
   companyId,
   existingDetails = [],
-}: PaymentDetailsFormProps) {
+}: GenPaymentDetailsFormProps) {
   const { decimals } = useAuthStore()
   const amtDec = decimals[0]?.amtDec || 2
   const locAmtDec = decimals[0]?.locAmtDec || 2

@@ -7,7 +7,7 @@ import { TableName } from "@/lib/utils"
 import { AccountBaseTable } from "@/components/table/table-account"
 
 // Use flexible data type that can work with form data
-interface PaymentDetailsTableProps {
+interface GenPaymentDetailsTableProps {
   data: ICbGenPaymentDt[]
   onDelete?: (itemNo: number) => void
   onBulkDelete?: (selectedItemNos: number[]) => void
@@ -18,7 +18,7 @@ interface PaymentDetailsTableProps {
   visible: IVisibleFields
 }
 
-export default function PaymentDetailsTable({
+export default function GenPaymentDetailsTable({
   data,
   onDelete,
   onBulkDelete,
@@ -27,7 +27,7 @@ export default function PaymentDetailsTable({
   onFilterChange,
   onDataReorder,
   visible,
-}: PaymentDetailsTableProps) {
+}: GenPaymentDetailsTableProps) {
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
