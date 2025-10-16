@@ -186,8 +186,8 @@ export const documentNoFormSchema = z
     monthSeq: z.number(),
     monthFormat: z.string(),
 
-    noDIgits: z.union([z.string(), z.number()]),
-    dIgitSeq: z.number(),
+    noDigits: z.union([z.string(), z.number()]),
+    digitSeq: z.number(),
 
     resetYearly: z.boolean(),
   })
@@ -203,8 +203,8 @@ export const documentNoFormSchemav1 = z.object({
   yearFormat: z.string(),
   monthFormat: z.string(),
   monthSeq: z.number().min(1).max(4),
-  dIgitSeq: z.number().min(1).max(4),
-  noDIgits: z.number().min(1),
+  digitSeq: z.number().min(1).max(4),
+  noDigits: z.number().min(1),
   isMonthly: z.boolean(),
   isYearly: z.boolean(),
 })

@@ -143,8 +143,8 @@ export interface INumberFormatDetails {
   monthSeq: number
   monthFormat: string
   monthDelimiter: string
-  noDIgits: number
-  dIgitSeq: number
+  noDigits: number
+  digitSeq: number
   resetYearly: boolean
   createById: number
   editById: number

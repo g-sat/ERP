@@ -58,13 +58,13 @@ export function DocumentNoForm() {
       includeYear: true,
       yearDelimiter: "-",
       yearSeq: 2,
-      yearFormat: "YYYY",
+      yearFormat: "YY",
       includeMonth: true,
       monthDelimiter: "",
       monthSeq: 3,
       monthFormat: "MM",
-      noDIgits: 4,
-      dIgitSeq: 4,
+      noDigits: 4,
+      digitSeq: 4,
       resetYearly: false,
     },
   })
@@ -173,13 +173,13 @@ export function DocumentNoForm() {
         includeYear: numberFormatDataResponse.data.includeYear ?? true,
         yearDelimiter: numberFormatDataResponse.data.yearDelimiter ?? "-",
         yearSeq: numberFormatDataResponse.data.yearSeq ?? 2,
-        yearFormat: numberFormatDataResponse.data.yearFormat ?? "YYYY",
+        yearFormat: numberFormatDataResponse.data.yearFormat ?? "YY",
         includeMonth: numberFormatDataResponse.data.includeMonth ?? true,
         monthDelimiter: numberFormatDataResponse.data.monthDelimiter ?? "",
         monthSeq: numberFormatDataResponse.data.monthSeq ?? 3,
         monthFormat: numberFormatDataResponse.data.monthFormat ?? "MM",
-        noDIgits: numberFormatDataResponse.data.noDIgits ?? 4,
-        dIgitSeq: numberFormatDataResponse.data.dIgitSeq ?? 4,
+        noDigits: numberFormatDataResponse.data.noDigits ?? 4,
+        digitSeq: numberFormatDataResponse.data.digitSeq ?? 4,
         resetYearly: numberFormatDataResponse.data.resetYearly ?? false,
       })
     } else if (
@@ -197,13 +197,13 @@ export function DocumentNoForm() {
         includeYear: true,
         yearDelimiter: "-",
         yearSeq: 2,
-        yearFormat: "YYYY",
+        yearFormat: "YY",
         includeMonth: true,
         monthDelimiter: "",
         monthSeq: 3,
         monthFormat: "MM",
-        noDIgits: 4,
-        dIgitSeq: 4,
+        noDigits: 4,
+        digitSeq: 4,
         resetYearly: false,
       })
     }
@@ -241,49 +241,56 @@ export function DocumentNoForm() {
       return
     }
 
-    saveNumberFormat(
-      {
-        data: {
-          ...data,
-          moduleId: selectedModule,
-          transactionId: selectedTransaction,
-        },
-      },
-      {
-        onSuccess: (response) => {
-          if (response.result === 1) {
-            toast.success("Document number format saved successfully")
-            refetchNumberFormat()
-          } else {
-            toast.error(
-              response.message || "Failed to save document number format"
-            )
-          }
-        },
-        onError: (error) => {
+    // Ensure required fields have default values (C# API requires non-empty strings)
+    const payload = {
+      ...data,
+      moduleId: selectedModule,
+      transactionId: selectedTransaction,
+      // Ensure required string fields are never empty
+      prefix: data.prefix || "DOC",
+      yearFormat: data.yearFormat || "",
+      monthFormat: data.monthFormat || "",
+      yearDelimiter: data.yearDelimiter || "",
+      prefixDelimiter: data.prefixDelimiter || "",
+      monthDelimiter: data.monthDelimiter || "",
+    }
+
+    console.log("data to save", payload)
+
+    saveNumberFormat(payload, {
+      onSuccess: (response) => {
+        if (response.result === 1) {
+          toast.success("Document number format saved successfully")
+          refetchNumberFormat()
+        } else {
           toast.error(
-            error instanceof Error
-              ? error.message
-              : "Failed to save document number format"
+            response.message || "Failed to save document number format"
           )
-        },
-      }
-    )
+        }
+      },
+      onError: (error) => {
+        toast.error(
+          error instanceof Error
+            ? error.message
+            : "Failed to save document number format"
+        )
+      },
+    })
   }
 
   const monthNames = [
-    "January",
-    "February",
-    "March",
-    "April",
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
     "May",
-    "June",
-    "July",
-    "August",
-    "September",
-    "October",
-    "November",
-    "December",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
   ]
 
   // Watch form values to make preview reactive
@@ -329,7 +336,7 @@ export function DocumentNoForm() {
       let monthStr = ""
       if (values.monthFormat === "MM") {
         monthStr = String(month).padStart(2, "0")
-      } else if (values.monthFormat === "MMMM") {
+      } else if (values.monthFormat === "MMM") {
         monthStr = monthNames[month - 1]
       }
       parts.push({
@@ -339,9 +346,9 @@ export function DocumentNoForm() {
       })
     }
 
-    const sequence = "0".repeat(Number(values.noDIgits) || 4)
+    const sequence = "0".repeat(Number(values.noDigits) || 4)
     parts.push({
-      seq: values.dIgitSeq ?? 4,
+      seq: values.digitSeq ?? 4,
       value: sequence,
       delimiter: "",
     })
@@ -652,7 +659,7 @@ export function DocumentNoForm() {
 
                               <CustomInput
                                 form={form}
-                                name="noDIgits"
+                                name="noDigits"
                                 type="number"
                                 placeholder="Number of digits (e.g., 4)"
                               />
@@ -734,7 +741,7 @@ export function DocumentNoForm() {
                                 />
                                 <SelectCommon
                                   form={form}
-                                  name="dIgitSeq"
+                                  name="digitSeq"
                                   options={[
                                     { value: "1", label: "Position 1" },
                                     { value: "2", label: "Position 2" },
@@ -743,7 +750,7 @@ export function DocumentNoForm() {
                                   ]}
                                   placeholder="Digits position"
                                   onValueChange={(value) =>
-                                    form.setValue("dIgitSeq", Number(value))
+                                    form.setValue("digitSeq", Number(value))
                                   }
                                 />
                               </div>
@@ -760,8 +767,8 @@ export function DocumentNoForm() {
                                   form={form}
                                   name="yearFormat"
                                   options={[
-                                    { value: "YY", label: "YY (25)" },
-                                    { value: "YYYY", label: "YYYY (2025)" },
+                                    { value: "YY", label: "YY (00)" },
+                                    { value: "YYYY", label: "YYYY (0000)" },
                                   ]}
                                   placeholder="Year format"
                                 />
@@ -770,7 +777,7 @@ export function DocumentNoForm() {
                                   name="monthFormat"
                                   options={[
                                     { value: "MM", label: "MM (01-12)" },
-                                    { value: "MMMM", label: "MMMM (January)" },
+                                    { value: "MMM", label: "MMM (Jan-Dec)" },
                                   ]}
                                   placeholder="Month format"
                                 />
