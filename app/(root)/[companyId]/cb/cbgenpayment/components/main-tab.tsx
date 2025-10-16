@@ -96,7 +96,7 @@ export default function Main({
     form.setValue("gstCtyAmt", countryAmounts.gstCtyAmt)
     form.setValue("totCtyAmtAftGst", countryAmounts.totCtyAmtAftGst)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dataDetails.length, amtDec, locAmtDec, ctyAmtDec])
+  }, [dataDetails, amtDec, locAmtDec, ctyAmtDec])
 
   const handleAddRow = (rowData: ICbGenPaymentDt) => {
     const currentData = form.getValues("data_details") || []

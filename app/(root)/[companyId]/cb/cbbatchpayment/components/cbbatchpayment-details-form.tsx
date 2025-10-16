@@ -29,7 +29,7 @@ import {
 } from "@/schemas"
 import { useAuthStore } from "@/stores/auth-store"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { format, subMonths } from "date-fns"
+import { format } from "date-fns"
 import { FormProvider, UseFormReturn, useForm } from "react-hook-form"
 import { toast } from "sonner"
 
@@ -380,10 +380,10 @@ export default function BatchPaymentDetailsForm({
       }
 
       // Check for duplicate records
-      const isDuplicate = checkDuplicateRecord(data)
-      if (isDuplicate) {
-        // Store the data and show confirmation dialog
-        setPendingSubmitData(data)
+      const duplicateRecord = checkDuplicateRecord(data)
+      if (duplicateRecord) {
+        // Store the duplicate record and show confirmation dialog
+        setPendingSubmitData(duplicateRecord)
         setShowDuplicateConfirmation(true)
         return
       }
@@ -401,8 +401,10 @@ export default function BatchPaymentDetailsForm({
   // ============================================================================
 
   // Check for duplicate records based on invoiceDate, invoiceNo, and supplierName
-  const checkDuplicateRecord = (data: CbBatchPaymentDtSchemaType): boolean => {
-    if (existingDetails.length === 0) return false
+  const checkDuplicateRecord = (
+    data: CbBatchPaymentDtSchemaType
+  ): CbBatchPaymentDtSchemaType | null => {
+    if (existingDetails.length === 0) return null
 
     // Find if any existing record has the same invoiceDate, invoiceNo, and supplierName
     const duplicate = existingDetails.find(
@@ -413,7 +415,7 @@ export default function BatchPaymentDetailsForm({
         detail.itemNo !== data.itemNo // Exclude the current record if editing
     )
 
-    return !!duplicate
+    return duplicate || null
   }
 
   // Check for duplicates on field change
@@ -425,20 +427,19 @@ export default function BatchPaymentDetailsForm({
       currentData.invoiceNo &&
       currentData.supplierName
     ) {
-      const isDuplicate = checkDuplicateRecord(currentData)
-      if (isDuplicate) {
-        setPendingSubmitData(currentData)
+      const duplicateRecord = checkDuplicateRecord(currentData)
+      if (duplicateRecord) {
+        setPendingSubmitData(duplicateRecord)
         setShowDuplicateConfirmation(true)
       }
     }
   }
 
-  // Handle duplicate confirmation - proceed with submission
-  const handleDuplicateConfirm = async () => {
-    if (pendingSubmitData) {
-      await processSubmit(pendingSubmitData)
-      setPendingSubmitData(null)
-    }
+  // Handle duplicate confirmation - keep data in form for user to modify
+  const handleDuplicateConfirm = () => {
+    // Don't submit - just keep the data in the form for user to modify
+    setPendingSubmitData(null)
+    toast.info("You can modify the data and submit again")
   }
 
   // Handle duplicate confirmation - cancel and reset form
@@ -1160,6 +1161,8 @@ export default function BatchPaymentDetailsForm({
           </div>
         </form>
       </FormProvider>
+
+      {/* Duplicate Confirmation */}
       <DuplicateConfirmation
         open={showDuplicateConfirmation}
         onOpenChange={setShowDuplicateConfirmation}
@@ -1170,10 +1173,23 @@ export default function BatchPaymentDetailsForm({
             ? {
                 invoiceDate:
                   pendingSubmitData.invoiceDate instanceof Date
-                    ? pendingSubmitData.invoiceDate.toLocaleDateString()
-                    : pendingSubmitData.invoiceDate,
+                    ? format(pendingSubmitData.invoiceDate, clientDateFormat)
+                    : typeof pendingSubmitData.invoiceDate === "string"
+                      ? format(
+                          parseDate(pendingSubmitData.invoiceDate) ||
+                            new Date(),
+                          clientDateFormat
+                        )
+                      : "",
                 invoiceNo: pendingSubmitData.invoiceNo,
                 supplierName: pendingSubmitData.supplierName,
+                glCode: pendingSubmitData.glCode,
+                glName: pendingSubmitData.glName,
+                totAmt: pendingSubmitData.totAmt,
+                totLocalAmt: pendingSubmitData.totLocalAmt,
+                gstPercentage: pendingSubmitData.gstPercentage,
+                gstAmt: pendingSubmitData.gstAmt,
+                remarks: pendingSubmitData.remarks,
               }
             : undefined
         }

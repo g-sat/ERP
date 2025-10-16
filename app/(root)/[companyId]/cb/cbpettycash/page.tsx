@@ -497,7 +497,8 @@ export default function PettyCashPage() {
     if (showListDialog) {
       refetchPettyCash()
     }
-  }, [filters, showListDialog, refetchPettyCash])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filters, showListDialog])
 
   // Add keyboard shortcuts
   useEffect(() => {

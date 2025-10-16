@@ -462,7 +462,8 @@ export default function BankTransferPage() {
     if (showListDialog) {
       refetchBankTransfers()
     }
-  }, [filters, showListDialog, refetchBankTransfers])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filters, showListDialog])
 
   // Add keyboard shortcuts
   useEffect(() => {

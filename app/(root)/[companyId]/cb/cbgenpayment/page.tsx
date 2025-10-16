@@ -500,7 +500,8 @@ export default function GenPaymentPage() {
     if (showListDialog) {
       refetchGenPayments()
     }
-  }, [filters, showListDialog, refetchGenPayments])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filters, showListDialog])
 
   // Add keyboard shortcuts
   useEffect(() => {

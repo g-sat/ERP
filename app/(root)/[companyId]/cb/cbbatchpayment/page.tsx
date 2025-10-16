@@ -482,7 +482,8 @@ export default function BatchPaymentPage() {
     if (showListDialog) {
       refetchBatchPayments()
     }
-  }, [filters, showListDialog, refetchBatchPayments])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filters, showListDialog])
 
   // Add keyboard shortcuts
   useEffect(() => {

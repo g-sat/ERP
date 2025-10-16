@@ -509,7 +509,8 @@ export default function GenReceiptPage() {
     if (showListDialog) {
       refetchReceipts()
     }
-  }, [filters, showListDialog, refetchReceipts])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filters, showListDialog])
 
   // Add keyboard shortcuts
   useEffect(() => {

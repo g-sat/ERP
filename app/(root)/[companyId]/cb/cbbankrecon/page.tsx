@@ -473,7 +473,8 @@ export default function BankReconPage() {
     if (showListDialog) {
       refetchBankRecons()
     }
-  }, [filters, showListDialog, refetchBankRecons])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filters, showListDialog])
 
   // Add keyboard shortcuts
   useEffect(() => {
