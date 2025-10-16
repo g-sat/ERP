@@ -332,6 +332,29 @@ export default function PettyCashDetailsForm({
       const isJobSpecificAccount = selectedOption.isJobSpecific || false
 
       setIsJobSpecific(isJobSpecificAccount)
+    } else {
+      // Clear COA and all related fields
+      form.setValue("glId", 0, { shouldValidate: true })
+      form.setValue("glCode", "")
+      form.setValue("glName", "")
+      form.setValue("departmentId", 0, { shouldValidate: true })
+      form.setValue("departmentCode", "")
+      form.setValue("departmentName", "")
+      form.setValue("employeeId", 0, { shouldValidate: true })
+      form.setValue("employeeCode", "")
+      form.setValue("employeeName", "")
+      form.setValue("portId", 0, { shouldValidate: true })
+      form.setValue("portCode", "")
+      form.setValue("portName", "")
+      form.setValue("vesselId", 0, { shouldValidate: true })
+      form.setValue("vesselCode", "")
+      form.setValue("vesselName", "")
+      form.setValue("bargeId", 0, { shouldValidate: true })
+      form.setValue("bargeCode", "")
+      form.setValue("bargeName", "")
+      form.setValue("voyageId", 0, { shouldValidate: true })
+      form.setValue("voyageNo", "")
+      setIsJobSpecific(false)
     }
   }
 
@@ -340,6 +363,14 @@ export default function PettyCashDetailsForm({
       form.setValue("gstId", selectedOption.gstId)
       form.setValue("gstName", selectedOption.gstName || "")
       await setGSTPercentage(Hdform, form, decimals[0], visible)
+    } else {
+      // Clear GST fields
+      form.setValue("gstId", 0, { shouldValidate: true })
+      form.setValue("gstName", "")
+      form.setValue("gstPercentage", 0)
+      form.setValue("gstAmt", 0)
+      form.setValue("gstLocalAmt", 0)
+      form.setValue("gstCtyAmt", 0)
     }
   }
 
@@ -352,6 +383,11 @@ export default function PettyCashDetailsForm({
       })
       form.setValue("departmentCode", selectedOption.departmentCode || "")
       form.setValue("departmentName", selectedOption.departmentName || "")
+    } else {
+      // Clear department fields
+      form.setValue("departmentId", 0, { shouldValidate: true })
+      form.setValue("departmentCode", "")
+      form.setValue("departmentName", "")
     }
   }
 
@@ -364,6 +400,11 @@ export default function PettyCashDetailsForm({
       })
       form.setValue("employeeCode", selectedOption.employeeCode || "")
       form.setValue("employeeName", selectedOption.employeeName || "")
+    } else {
+      // Clear employee fields
+      form.setValue("employeeId", 0, { shouldValidate: true })
+      form.setValue("employeeCode", "")
+      form.setValue("employeeName", "")
     }
   }
 
@@ -376,6 +417,11 @@ export default function PettyCashDetailsForm({
       })
       form.setValue("bargeCode", selectedOption.bargeCode || "")
       form.setValue("bargeName", selectedOption.bargeName || "")
+    } else {
+      // Clear barge fields
+      form.setValue("bargeId", 0, { shouldValidate: true })
+      form.setValue("bargeCode", "")
+      form.setValue("bargeName", "")
     }
   }
 
@@ -388,6 +434,11 @@ export default function PettyCashDetailsForm({
       })
       form.setValue("portCode", selectedOption.portCode || "")
       form.setValue("portName", selectedOption.portName || "")
+    } else {
+      // Clear port fields
+      form.setValue("portId", 0, { shouldValidate: true })
+      form.setValue("portCode", "")
+      form.setValue("portName", "")
     }
   }
 
@@ -400,6 +451,11 @@ export default function PettyCashDetailsForm({
       })
       form.setValue("vesselCode", selectedOption.vesselCode || "")
       form.setValue("vesselName", selectedOption.vesselName || "")
+    } else {
+      // Clear vessel fields
+      form.setValue("vesselId", 0, { shouldValidate: true })
+      form.setValue("vesselCode", "")
+      form.setValue("vesselName", "")
     }
   }
 
@@ -411,6 +467,10 @@ export default function PettyCashDetailsForm({
         shouldDirty: true,
       })
       form.setValue("voyageNo", selectedOption.voyageNo || "")
+    } else {
+      // Clear voyage fields
+      form.setValue("voyageId", 0, { shouldValidate: true })
+      form.setValue("voyageNo", "")
     }
   }
 

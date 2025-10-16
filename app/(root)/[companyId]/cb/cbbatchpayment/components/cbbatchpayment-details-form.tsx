@@ -435,6 +435,45 @@ export default function BatchPaymentDetailsForm({
         form.setValue("departmentCode", "")
         form.setValue("departmentName", "")
       }
+    } else {
+      // Clear COA and all related fields when account is cleared
+      form.setValue("glId", 0, { shouldValidate: true })
+      form.setValue("glCode", "")
+      form.setValue("glName", "")
+
+      // Clear all dimensional fields
+      form.setValue("departmentId", 0, { shouldValidate: true })
+      form.setValue("departmentCode", "")
+      form.setValue("departmentName", "")
+
+      form.setValue("jobOrderId", 0, { shouldValidate: true })
+      form.setValue("jobOrderNo", "")
+      form.setValue("taskId", 0, { shouldValidate: true })
+      form.setValue("taskName", "")
+      form.setValue("serviceId", 0, { shouldValidate: true })
+      form.setValue("serviceName", "")
+
+      form.setValue("employeeId", 0, { shouldValidate: true })
+      form.setValue("employeeCode", "")
+      form.setValue("employeeName", "")
+
+      form.setValue("portId", 0, { shouldValidate: true })
+      form.setValue("portCode", "")
+      form.setValue("portName", "")
+
+      form.setValue("vesselId", 0, { shouldValidate: true })
+      form.setValue("vesselCode", "")
+      form.setValue("vesselName", "")
+
+      form.setValue("bargeId", 0, { shouldValidate: true })
+      form.setValue("bargeCode", "")
+      form.setValue("bargeName", "")
+
+      form.setValue("voyageId", 0, { shouldValidate: true })
+      form.setValue("voyageNo", "")
+
+      // Reset to department mode by default
+      setIsJobSpecific(false)
     }
   }
 
@@ -443,6 +482,14 @@ export default function BatchPaymentDetailsForm({
       form.setValue("gstId", selectedOption.gstId)
       form.setValue("gstName", selectedOption.gstName || "")
       await setGSTPercentage(Hdform, form, decimals[0], visible)
+    } else {
+      // Clear GST fields
+      form.setValue("gstId", 0, { shouldValidate: true })
+      form.setValue("gstName", "")
+      form.setValue("gstPercentage", 0)
+      form.setValue("gstAmt", 0)
+      form.setValue("gstLocalAmt", 0)
+      form.setValue("gstCtyAmt", 0)
     }
   }
 
@@ -456,7 +503,17 @@ export default function BatchPaymentDetailsForm({
       form.setValue("jobOrderNo", selectedOption.jobOrderNo || "")
       // Reset task and service when job order changes
       form.setValue("taskId", 0, { shouldValidate: true })
+      form.setValue("taskName", "")
       form.setValue("serviceId", 0, { shouldValidate: true })
+      form.setValue("serviceName", "")
+    } else {
+      // Clear job order and related fields
+      form.setValue("jobOrderId", 0, { shouldValidate: true })
+      form.setValue("jobOrderNo", "")
+      form.setValue("taskId", 0, { shouldValidate: true })
+      form.setValue("taskName", "")
+      form.setValue("serviceId", 0, { shouldValidate: true })
+      form.setValue("serviceName", "")
     }
   }
 
@@ -470,6 +527,13 @@ export default function BatchPaymentDetailsForm({
       form.setValue("taskName", selectedOption.taskName || "")
       // Reset service when task changes
       form.setValue("serviceId", 0, { shouldValidate: true })
+      form.setValue("serviceName", "")
+    } else {
+      // Clear task and service fields
+      form.setValue("taskId", 0, { shouldValidate: true })
+      form.setValue("taskName", "")
+      form.setValue("serviceId", 0, { shouldValidate: true })
+      form.setValue("serviceName", "")
     }
   }
 
@@ -484,6 +548,10 @@ export default function BatchPaymentDetailsForm({
         "serviceName",
         selectedOption.serviceCode + " " + selectedOption.serviceName || ""
       )
+    } else {
+      // Clear service fields
+      form.setValue("serviceId", 0, { shouldValidate: true })
+      form.setValue("serviceName", "")
     }
   }
 
@@ -496,6 +564,11 @@ export default function BatchPaymentDetailsForm({
       })
       form.setValue("departmentCode", selectedOption.departmentCode || "")
       form.setValue("departmentName", selectedOption.departmentName || "")
+    } else {
+      // Clear department fields
+      form.setValue("departmentId", 0, { shouldValidate: true })
+      form.setValue("departmentCode", "")
+      form.setValue("departmentName", "")
     }
   }
 
@@ -508,6 +581,11 @@ export default function BatchPaymentDetailsForm({
       })
       form.setValue("employeeCode", selectedOption.employeeCode || "")
       form.setValue("employeeName", selectedOption.employeeName || "")
+    } else {
+      // Clear employee fields
+      form.setValue("employeeId", 0, { shouldValidate: true })
+      form.setValue("employeeCode", "")
+      form.setValue("employeeName", "")
     }
   }
 
@@ -520,6 +598,11 @@ export default function BatchPaymentDetailsForm({
       })
       form.setValue("bargeCode", selectedOption.bargeCode || "")
       form.setValue("bargeName", selectedOption.bargeName || "")
+    } else {
+      // Clear barge fields
+      form.setValue("bargeId", 0, { shouldValidate: true })
+      form.setValue("bargeCode", "")
+      form.setValue("bargeName", "")
     }
   }
 
@@ -532,6 +615,11 @@ export default function BatchPaymentDetailsForm({
       })
       form.setValue("portCode", selectedOption.portCode || "")
       form.setValue("portName", selectedOption.portName || "")
+    } else {
+      // Clear port fields
+      form.setValue("portId", 0, { shouldValidate: true })
+      form.setValue("portCode", "")
+      form.setValue("portName", "")
     }
   }
 
@@ -544,6 +632,11 @@ export default function BatchPaymentDetailsForm({
       })
       form.setValue("vesselCode", selectedOption.vesselCode || "")
       form.setValue("vesselName", selectedOption.vesselName || "")
+    } else {
+      // Clear vessel fields
+      form.setValue("vesselId", 0, { shouldValidate: true })
+      form.setValue("vesselCode", "")
+      form.setValue("vesselName", "")
     }
   }
 
@@ -555,6 +648,10 @@ export default function BatchPaymentDetailsForm({
         shouldDirty: true,
       })
       form.setValue("voyageNo", selectedOption.voyageNo || "")
+    } else {
+      // Clear voyage fields
+      form.setValue("voyageId", 0, { shouldValidate: true })
+      form.setValue("voyageNo", "")
     }
   }
 

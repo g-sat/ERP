@@ -132,6 +132,11 @@ export default function BankTransferCtmDetailsForm({
       // Reset task and service when job order changes
       form.setValue("taskId", 0, { shouldValidate: true })
       form.setValue("serviceId", 0, { shouldValidate: true })
+    } else {
+      // Clear job order and related fields
+      form.setValue("jobOrderId", 0, { shouldValidate: true })
+      form.setValue("taskId", 0, { shouldValidate: true })
+      form.setValue("serviceId", 0, { shouldValidate: true })
     }
   }
 
@@ -144,6 +149,10 @@ export default function BankTransferCtmDetailsForm({
       })
       // Reset service when task changes
       form.setValue("serviceId", 0, { shouldValidate: true })
+    } else {
+      // Clear task and service fields
+      form.setValue("taskId", 0, { shouldValidate: true })
+      form.setValue("serviceId", 0, { shouldValidate: true })
     }
   }
 
@@ -154,6 +163,9 @@ export default function BankTransferCtmDetailsForm({
         shouldValidate: true,
         shouldDirty: true,
       })
+    } else {
+      // Clear service fields
+      form.setValue("serviceId", 0, { shouldValidate: true })
     }
   }
 
@@ -165,6 +177,10 @@ export default function BankTransferCtmDetailsForm({
       if (!currentExhRate || currentExhRate === 0) {
         form.setValue("toExhRate", 1.0)
       }
+    } else {
+      // Clear currency and exchange rate
+      form.setValue("toCurrencyId", 0, { shouldValidate: true })
+      form.setValue("toExhRate", 0)
     }
   }
 

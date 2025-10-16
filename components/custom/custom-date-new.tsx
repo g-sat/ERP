@@ -291,20 +291,20 @@ export const CustomDateNew = <T extends FieldValues = FieldValues>({
           }
 
           return (
-            <FormItem>
-              <FormControl>
+          <FormItem>
+            <FormControl>
                 <div className="relative flex gap-2">
-                  <Input
+              <Input
                     ref={inputRef}
                     type="text"
-                    id={name}
-                    disabled={isDisabled}
+                id={name}
+                disabled={isDisabled}
                     placeholder={placeholder || decimalDateFormat}
                     className={cn("bg-background pr-10", {
-                      "h-8 text-sm": size === "sm",
-                      "h-9": size === "default",
-                      "h-12 text-lg": size === "lg",
-                    })}
+                  "h-8 text-sm": size === "sm",
+                  "h-9": size === "default",
+                  "h-12 text-lg": size === "lg",
+                })}
                     value={value}
                     onChange={handleInputChange}
                     onBlur={handleInputBlur}
@@ -408,9 +408,9 @@ export const CustomDateNew = <T extends FieldValues = FieldValues>({
                     </PopoverContent>
                   </Popover>
                 </div>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
+            </FormControl>
+            <FormMessage />
+          </FormItem>
           )
         }}
       />
