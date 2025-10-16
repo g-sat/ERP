@@ -48,8 +48,8 @@ export function DecimalForm() {
       priceDec: 2,
       qtyDec: 2,
       exhRateDec: 4,
-      dateFormat: "DD/MM/YYYY",
-      longDateFormat: "DD/MM/YYYY HH:mm:ss",
+      dateFormat: "dd/MM/yyyy",
+      longDateFormat: "dd/MM/yyyy HH:mm:ss",
     },
   })
 
@@ -75,8 +75,8 @@ export function DecimalForm() {
           priceDec: data.priceDec ?? 2,
           qtyDec: data.qtyDec ?? 2,
           exhRateDec: data.exhRateDec ?? 4,
-          dateFormat: data.dateFormat ?? "DD/MM/YYYY",
-          longDateFormat: data.longDateFormat ?? "DD/MM/YYYY HH:mm:ss",
+          dateFormat: data.dateFormat ?? "dd/MM/yyyy",
+          longDateFormat: data.longDateFormat ?? "dd/MM/yyyy HH:mm:ss",
         })
       }
     }
@@ -261,12 +261,12 @@ export function DecimalForm() {
                       </FormControl>
                       <SelectContent>
                         {[
-                          "DD/MM/YYYY",
-                          "MM/DD/YYYY",
-                          "YYYY/MM/DD",
-                          "DD-MM-YYYY",
-                          "MM-DD-YYYY",
-                          "YYYY-MM-DD",
+                          "dd/MM/yyyy",
+                          "MM/dd/yyyy",
+                          "yyyy/MM/dd",
+                          "dd-MM-yyyy",
+                          "MM-dd-yyyy",
+                          "yyyy-MM-dd",
                         ].map((format) => (
                           <SelectItem key={format} value={format}>
                             {format}
@@ -300,12 +300,12 @@ export function DecimalForm() {
                       </FormControl>
                       <SelectContent>
                         {[
-                          "DD/MM/YYYY HH:mm:ss",
-                          "MM/DD/YYYY HH:mm:ss",
-                          "YYYY/MM/DD HH:mm:ss",
-                          "DD-MM-YYYY HH:mm:ss",
-                          "MM-DD-YYYY HH:mm:ss",
-                          "YYYY-MM-DD HH:mm:ss",
+                          "dd/MM/yyyy HH:mm:ss",
+                          "MM/dd/yyyy HH:mm:ss",
+                          "yyyy/MM/dd HH:mm:ss",
+                          "dd-MM-yyyy HH:mm:ss",
+                          "MM-dd-yyyy HH:mm:ss",
+                          "yyyy-MM-dd HH:mm:ss",
                         ].map((format) => (
                           <SelectItem key={format} value={format}>
                             {format}
