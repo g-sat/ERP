@@ -6,8 +6,12 @@ export interface IGLContraHd {
   trnDate: Date | string
   accountDate: Date | string
   supplierId: number
+  supplierName: string
   customerId: number
+  customerName: string
   currencyId: number
+  currencyCode: string
+  currencyName: string
   exhRate: number
   remarks: string
   totAmt: number

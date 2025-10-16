@@ -81,8 +81,20 @@ export const CustomDateNew = <T extends FieldValues = FieldValues>({
 
   // Parse user input string to Date
   const parseUserInput = React.useCallback(
-    (input: string): Date | undefined => {
-      if (!input || input.trim() === "") return undefined
+    (input: string | Date | null | undefined): Date | undefined => {
+      // Handle null/undefined
+      if (!input) return undefined
+
+      // Handle Date objects - return as-is if valid
+      if (input instanceof Date) {
+        return isValid(input) ? input : undefined
+      }
+
+      // Handle non-string values
+      if (typeof input !== "string") return undefined
+
+      // Handle empty strings
+      if (input.trim() === "") return undefined
 
       // Array of possible date formats to try
       const formats = [
@@ -291,20 +303,20 @@ export const CustomDateNew = <T extends FieldValues = FieldValues>({
           }
 
           return (
-          <FormItem>
-            <FormControl>
+            <FormItem>
+              <FormControl>
                 <div className="relative flex gap-2">
-              <Input
+                  <Input
                     ref={inputRef}
                     type="text"
-                id={name}
-                disabled={isDisabled}
+                    id={name}
+                    disabled={isDisabled}
                     placeholder={placeholder || decimalDateFormat}
                     className={cn("bg-background pr-10", {
-                  "h-8 text-sm": size === "sm",
-                  "h-9": size === "default",
-                  "h-12 text-lg": size === "lg",
-                })}
+                      "h-8 text-sm": size === "sm",
+                      "h-9": size === "default",
+                      "h-12 text-lg": size === "lg",
+                    })}
                     value={value}
                     onChange={handleInputChange}
                     onBlur={handleInputBlur}
@@ -408,9 +420,9 @@ export const CustomDateNew = <T extends FieldValues = FieldValues>({
                     </PopoverContent>
                   </Popover>
                 </div>
-            </FormControl>
-            <FormMessage />
-          </FormItem>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
           )
         }}
       />
