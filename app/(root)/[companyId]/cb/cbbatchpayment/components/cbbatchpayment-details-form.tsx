@@ -29,9 +29,11 @@ import {
 } from "@/schemas"
 import { useAuthStore } from "@/stores/auth-store"
 import { zodResolver } from "@hookform/resolvers/zod"
+import { format, subMonths } from "date-fns"
 import { FormProvider, UseFormReturn, useForm } from "react-hook-form"
 import { toast } from "sonner"
 
+import { clientDateFormat, parseDate } from "@/lib/date-utils"
 import { Button } from "@/components/ui/button"
 import {
   BargeAutocomplete,
@@ -288,7 +290,12 @@ export default function BatchPaymentDetailsForm({
         paymentNo: data.paymentNo ?? "",
         itemNo: data.itemNo ?? currentItemNo,
         seqNo: data.seqNo ?? currentItemNo,
-        invoiceDate: data.invoiceDate ?? "",
+        invoiceDate: data.invoiceDate
+          ? format(
+              parseDate(data.invoiceDate as string) as Date,
+              clientDateFormat
+            )
+          : clientDateFormat,
         invoiceNo: data.invoiceNo ?? "",
         supplierName: data.supplierName ?? "",
 

@@ -51,55 +51,37 @@ export default function BatchPaymentDetailsTable({
   const columns: ColumnDef<ICbBatchPaymentDt>[] = [
     {
       accessorKey: "itemNo",
-      header: "Item No",
-      size: 60,
+      header: "No",
+      size: 50,
       cell: ({ row }: { row: { original: ICbBatchPaymentDt } }) => (
         <div className="text-right">{row.original.itemNo}</div>
       ),
     },
     {
       accessorKey: "invoiceDate",
-      header: "Invoice Date",
-      size: 100,
+      header: "Date",
+      size: 80,
     },
     {
       accessorKey: "invoiceNo",
       header: "Invoice No",
-      size: 100,
+      size: 120,
     },
     {
       accessorKey: "supplierName",
       header: "Supplier",
-      size: 100,
+      size: 120,
     },
     {
       accessorKey: "glCode",
       header: "Code",
-      size: 100,
+      size: 80,
     },
     {
       accessorKey: "glName",
       header: "Account",
       size: 100,
     },
-    ...(visible?.m_DepartmentId
-      ? [
-          {
-            accessorKey: "departmentName",
-            header: "Department",
-            size: 100,
-          },
-        ]
-      : []),
-    ...(visible?.m_JobOrderId
-      ? [
-          {
-            accessorKey: "jobOrderNo",
-            header: "JobOrder",
-            size: 100,
-          },
-        ]
-      : []),
     ...(visible?.m_Remarks
       ? [
           {
@@ -109,7 +91,6 @@ export default function BatchPaymentDetailsTable({
           },
         ]
       : []),
-
     {
       accessorKey: "totAmt",
       header: "Amount",
@@ -135,6 +116,25 @@ export default function BatchPaymentDetailsTable({
         <div className="text-right">{row.original.gstAmt}</div>
       ),
     },
+    ...(visible?.m_DepartmentId
+      ? [
+          {
+            accessorKey: "departmentName",
+            header: "Department",
+            size: 100,
+          },
+        ]
+      : []),
+    ...(visible?.m_JobOrderId
+      ? [
+          {
+            accessorKey: "jobOrderNo",
+            header: "JobOrder",
+            size: 120,
+          },
+        ]
+      : []),
+
     ...(visible?.m_JobOrderId
       ? [
           {
@@ -158,6 +158,14 @@ export default function BatchPaymentDetailsTable({
         <div className="text-right">{row.original.totLocalAmt}</div>
       ),
     },
+    {
+      accessorKey: "gstLocalAmt",
+      header: "GST Local Amount",
+      size: 100,
+      cell: ({ row }: { row: { original: ICbBatchPaymentDt } }) => (
+        <div className="text-right">{row.original.gstLocalAmt}</div>
+      ),
+    },
     ...(visible?.m_CtyCurr
       ? [
           {
@@ -179,14 +187,7 @@ export default function BatchPaymentDetailsTable({
           },
         ]
       : []),
-    {
-      accessorKey: "gstLocalAmt",
-      header: "GST Local Amount",
-      size: 100,
-      cell: ({ row }: { row: { original: ICbBatchPaymentDt } }) => (
-        <div className="text-right">{row.original.gstLocalAmt}</div>
-      ),
-    },
+
     ...(visible?.m_CtyCurr
       ? [
           {

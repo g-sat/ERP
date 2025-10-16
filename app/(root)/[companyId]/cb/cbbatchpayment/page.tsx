@@ -383,8 +383,11 @@ export default function BatchPaymentPage() {
               itemNo: detail.itemNo ?? 0,
               seqNo: detail.seqNo ?? 0,
               invoiceDate: detail.invoiceDate
-                ? parseDate(detail.invoiceDate as unknown as string) || null
-                : null,
+                ? format(
+                    parseDate(detail.invoiceDate as string) || new Date(),
+                    clientDateFormat
+                  )
+                : clientDateFormat,
               invoiceNo: detail.invoiceNo ?? "",
               supplierName: detail.supplierName ?? "",
               glId: detail.glId ?? 0,
