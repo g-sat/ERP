@@ -46,6 +46,7 @@ import {
   VesselAutocomplete,
   VoyageAutocomplete,
 } from "@/components/autocomplete"
+import { DuplicateConfirmation } from "@/components/confirmation"
 import { CustomDateNew } from "@/components/custom/custom-date-new"
 import CustomInput from "@/components/custom/custom-input"
 import CustomNumberInput from "@/components/custom/custom-number-input"
@@ -87,6 +88,11 @@ export default function BatchPaymentDetailsForm({
   const _qtyDec = decimals[0]?.qtyDec || 2
   // State to manage job-specific vs department-specific rendering
   const [isJobSpecific, setIsJobSpecific] = useState(false)
+  // State for duplicate confirmation dialog
+  const [showDuplicateConfirmation, setShowDuplicateConfirmation] =
+    useState(false)
+  const [pendingSubmitData, setPendingSubmitData] =
+    useState<CbBatchPaymentDtSchemaType | null>(null)
 
   // Calculate next itemNo based on existing details
   const getNextItemNo = () => {
@@ -268,42 +274,9 @@ export default function BatchPaymentDetailsForm({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editingDetail, existingDetails.length])
 
-  const onSubmit = async (data: CbBatchPaymentDtSchemaType) => {
+  // Process the submission (common logic for both direct submit and duplicate confirmation)
+  const processSubmit = async (data: CbBatchPaymentDtSchemaType) => {
     try {
-      // Validate data against schema
-      const validationResult = cbBatchPaymentDtSchema(
-        required,
-        visible
-      ).safeParse(data)
-
-      if (!validationResult.success) {
-        const errors = validationResult.error.issues
-        const errorMessage = errors
-          .map((err) => `${err.path.join(".")}: ${err.message}`)
-          .join(", ")
-        toast.error(`Validation failed: ${errorMessage}`)
-        console.error("Validation errors:", errors)
-        return
-      }
-
-      // Check for duplicate records
-      const isDuplicate = checkDuplicateRecord(data)
-      if (isDuplicate) {
-        // Show confirmation dialog
-        const confirmed = window.confirm(
-          `A record with the same Invoice Date (${data.invoiceDate}), Invoice No (${data.invoiceNo}), and Supplier Name (${data.supplierName}) already exists.\n\nDo you want to add this record anyway?`
-        )
-
-        if (!confirmed) {
-          // User clicked "No" - reset the form
-          const nextItemNo = getNextItemNo()
-          form.reset(createDefaultValues(nextItemNo))
-          toast.info("Form reset due to duplicate record")
-          return
-        }
-        // User clicked "Yes" - continue with submission
-      }
-
       // Use itemNo as the unique identifier
       const currentItemNo = data.itemNo || getNextItemNo()
 
@@ -381,6 +354,41 @@ export default function BatchPaymentDetailsForm({
     }
   }
 
+  const onSubmit = async (data: CbBatchPaymentDtSchemaType) => {
+    try {
+      // Validate data against schema
+      const validationResult = cbBatchPaymentDtSchema(
+        required,
+        visible
+      ).safeParse(data)
+
+      if (!validationResult.success) {
+        const errors = validationResult.error.issues
+        const errorMessage = errors
+          .map((err) => `${err.path.join(".")}: ${err.message}`)
+          .join(", ")
+        toast.error(`Validation failed: ${errorMessage}`)
+        console.error("Validation errors:", errors)
+        return
+      }
+
+      // Check for duplicate records
+      const isDuplicate = checkDuplicateRecord(data)
+      if (isDuplicate) {
+        // Store the data and show confirmation dialog
+        setPendingSubmitData(data)
+        setShowDuplicateConfirmation(true)
+        return
+      }
+
+      // No duplicates, proceed with submission
+      await processSubmit(data)
+    } catch (error) {
+      console.error("Error in onSubmit:", error)
+      toast.error("Failed to process submission")
+    }
+  }
+
   // ============================================================================
   // HANDLERS
   // ============================================================================
@@ -399,6 +407,39 @@ export default function BatchPaymentDetailsForm({
     )
 
     return !!duplicate
+  }
+
+  // Check for duplicates on field change
+  const checkDuplicateOnChange = () => {
+    const currentData = form.getValues()
+    // Only check if all three fields have values
+    if (
+      currentData.invoiceDate &&
+      currentData.invoiceNo &&
+      currentData.supplierName
+    ) {
+      const isDuplicate = checkDuplicateRecord(currentData)
+      if (isDuplicate) {
+        setPendingSubmitData(currentData)
+        setShowDuplicateConfirmation(true)
+      }
+    }
+  }
+
+  // Handle duplicate confirmation - proceed with submission
+  const handleDuplicateConfirm = async () => {
+    if (pendingSubmitData) {
+      await processSubmit(pendingSubmitData)
+      setPendingSubmitData(null)
+    }
+  }
+
+  // Handle duplicate confirmation - cancel and reset form
+  const handleDuplicateCancel = () => {
+    setPendingSubmitData(null)
+    const nextItemNo = getNextItemNo()
+    form.reset(createDefaultValues(nextItemNo))
+    toast.info("Form reset due to duplicate record")
   }
 
   // Handle chart of account selection
@@ -831,6 +872,7 @@ export default function BatchPaymentDetailsForm({
             name="invoiceDate"
             label="Invoice Date"
             isRequired={true}
+            onChangeEvent={checkDuplicateOnChange}
           />
 
           {/* Invoice No */}
@@ -839,6 +881,7 @@ export default function BatchPaymentDetailsForm({
             name="invoiceNo"
             label="Invoice No"
             isRequired={true}
+            onChangeEvent={checkDuplicateOnChange}
           />
 
           {/* Supplier Name */}
@@ -847,6 +890,7 @@ export default function BatchPaymentDetailsForm({
             name="supplierName"
             label="Supplier Name"
             isRequired={true}
+            onChangeEvent={checkDuplicateOnChange}
           />
 
           {/* Chart Of Account */}
@@ -1109,6 +1153,24 @@ export default function BatchPaymentDetailsForm({
           </div>
         </form>
       </FormProvider>
+      <DuplicateConfirmation
+        open={showDuplicateConfirmation}
+        onOpenChange={setShowDuplicateConfirmation}
+        onConfirm={handleDuplicateConfirm}
+        onCancel={handleDuplicateCancel}
+        duplicateInfo={
+          pendingSubmitData
+            ? {
+                invoiceDate:
+                  pendingSubmitData.invoiceDate instanceof Date
+                    ? pendingSubmitData.invoiceDate.toLocaleDateString()
+                    : pendingSubmitData.invoiceDate,
+                invoiceNo: pendingSubmitData.invoiceNo,
+                supplierName: pendingSubmitData.supplierName,
+              }
+            : undefined
+        }
+      />
     </>
   )
 }
