@@ -83,10 +83,24 @@ export default function EditVersionDetails({
     {
       accessorKey: "editVersion",
       header: "Edit Version",
+      cell: ({ row }) => (
+        <div className="text-right">{row.original.editVersion}</div>
+      ),
     },
     {
       accessorKey: "reconNo",
-      header: "BankRecon No",
+      header: "Reconciliation No",
+    },
+    {
+      accessorKey: "prevReconId",
+      header: "Previous Reconciliation ID",
+      cell: ({ row }) => (
+        <div className="text-right">{row.original.prevReconId || "-"}</div>
+      ),
+    },
+    {
+      accessorKey: "prevReconNo",
+      header: "Previous Reconciliation No",
     },
     {
       accessorKey: "referenceNo",
@@ -112,38 +126,41 @@ export default function EditVersionDetails({
         return date ? format(date, dateFormat) : "-"
       },
     },
-
     {
-      accessorKey: "customerCode",
-      header: "Customer Code",
+      accessorKey: "bankId",
+      header: "Bank ID",
+      cell: ({ row }) => (
+        <div className="text-right">{row.original.bankId}</div>
+      ),
     },
     {
-      accessorKey: "customerName",
-      header: "Customer Name",
+      accessorKey: "currencyId",
+      header: "Currency ID",
+      cell: ({ row }) => (
+        <div className="text-right">{row.original.currencyId}</div>
+      ),
     },
     {
-      accessorKey: "currencyCode",
-      header: "Currency Code",
+      accessorKey: "fromDate",
+      header: "From Date",
+      cell: ({ row }) => {
+        const date = row.original.fromDate
+          ? new Date(row.original.fromDate)
+          : null
+        return date ? format(date, dateFormat) : "-"
+      },
     },
     {
-      accessorKey: "currencyName",
-      header: "Currency Name",
+      accessorKey: "toDate",
+      header: "To Date",
+      cell: ({ row }) => {
+        const date = row.original.toDate ? new Date(row.original.toDate) : null
+        return date ? format(date, dateFormat) : "-"
+      },
     },
     {
-      accessorKey: "creditTermCode",
-      header: "Credit Term Code",
-    },
-    {
-      accessorKey: "creditTermName",
-      header: "Credit Term Name",
-    },
-    {
-      accessorKey: "bankCode",
-      header: "Bank Code",
-    },
-    {
-      accessorKey: "bankName",
-      header: "Bank Name",
+      accessorKey: "remarks",
+      header: "Remarks",
     },
     {
       accessorKey: "totAmt",
@@ -154,22 +171,30 @@ export default function EditVersionDetails({
         </div>
       ),
     },
-
     {
-      accessorKey: "remarks",
-      header: "Remarks",
+      accessorKey: "opBalAmt",
+      header: "Opening Balance",
+      cell: ({ row }) => (
+        <div className="text-right">
+          {row.original.opBalAmt ? row.original.opBalAmt.toFixed(amtDec) : "-"}
+        </div>
+      ),
     },
     {
-      accessorKey: "status",
-      header: "Status",
+      accessorKey: "clBalAmt",
+      header: "Closing Balance",
+      cell: ({ row }) => (
+        <div className="text-right">
+          {row.original.clBalAmt ? row.original.clBalAmt.toFixed(amtDec) : "-"}
+        </div>
+      ),
     },
     {
-      accessorKey: "createByCode",
-      header: "Created By Code",
-    },
-    {
-      accessorKey: "createByName",
-      header: "Created By Name",
+      accessorKey: "createById",
+      header: "Created By ID",
+      cell: ({ row }) => (
+        <div className="text-right">{row.original.createById}</div>
+      ),
     },
     {
       accessorKey: "createDate",
@@ -182,12 +207,11 @@ export default function EditVersionDetails({
       },
     },
     {
-      accessorKey: "editByCode",
-      header: "Edited By Code",
-    },
-    {
-      accessorKey: "editByName",
-      header: "Edited By Name",
+      accessorKey: "editById",
+      header: "Edited By ID",
+      cell: ({ row }) => (
+        <div className="text-right">{row.original.editById || "-"}</div>
+      ),
     },
     {
       accessorKey: "editDate",
@@ -199,17 +223,231 @@ export default function EditVersionDetails({
         return date ? format(date, dateFormat) : "-"
       },
     },
+    {
+      accessorKey: "isCancel",
+      header: "Cancelled",
+      cell: ({ row }) => (
+        <div className="text-center">{row.original.isCancel ? "✓" : ""}</div>
+      ),
+    },
+    {
+      accessorKey: "cancelById",
+      header: "Cancelled By ID",
+      cell: ({ row }) => (
+        <div className="text-right">{row.original.cancelById || "-"}</div>
+      ),
+    },
+    {
+      accessorKey: "cancelDate",
+      header: "Cancelled Date",
+      cell: ({ row }) => {
+        const date = row.original.cancelDate
+          ? new Date(row.original.cancelDate)
+          : null
+        return date ? format(date, dateFormat) : "-"
+      },
+    },
+    {
+      accessorKey: "cancelRemarks",
+      header: "Cancel Remarks",
+    },
+    {
+      accessorKey: "isPost",
+      header: "Posted",
+      cell: ({ row }) => (
+        <div className="text-center">{row.original.isPost ? "✓" : ""}</div>
+      ),
+    },
+    {
+      accessorKey: "postById",
+      header: "Posted By ID",
+      cell: ({ row }) => (
+        <div className="text-right">{row.original.postById || "-"}</div>
+      ),
+    },
+    {
+      accessorKey: "postDate",
+      header: "Posted Date",
+      cell: ({ row }) => {
+        const date = row.original.postDate
+          ? new Date(row.original.postDate)
+          : null
+        return date ? format(date, dateFormat) : "-"
+      },
+    },
+    {
+      accessorKey: "appStatusId",
+      header: "Approval Status ID",
+      cell: ({ row }) => (
+        <div className="text-right">{row.original.appStatusId || "-"}</div>
+      ),
+    },
+    {
+      accessorKey: "appById",
+      header: "Approved By ID",
+      cell: ({ row }) => (
+        <div className="text-right">{row.original.appById || "-"}</div>
+      ),
+    },
+    {
+      accessorKey: "appDate",
+      header: "Approved Date",
+      cell: ({ row }) => {
+        const date = row.original.appDate
+          ? new Date(row.original.appDate)
+          : null
+        return date ? format(date, dateFormat) : "-"
+      },
+    },
   ]
 
   const detailsColumns: ColumnDef<ICbBankReconDt>[] = [
-    { accessorKey: "itemNo", header: "Item No" },
-    { accessorKey: "glCode", header: "GL Code" },
-    { accessorKey: "glName", header: "GL Name" },
-    { accessorKey: "totAmt", header: "Total Amount" },
-    { accessorKey: "totLocalAmt", header: "Total Local Amount" },
-    { accessorKey: "gstName", header: "GST" },
-    { accessorKey: "gstAmt", header: "GST Amount" },
-    { accessorKey: "remarks", header: "Remarks" },
+    {
+      accessorKey: "itemNo",
+      header: "Item No",
+      cell: ({ row }) => (
+        <div className="text-right">{row.original.itemNo}</div>
+      ),
+    },
+    {
+      accessorKey: "isSel",
+      header: "Selected",
+      cell: ({ row }) => (
+        <div className="text-center">{row.original.isSel ? "✓" : ""}</div>
+      ),
+    },
+    {
+      accessorKey: "moduleId",
+      header: "Module ID",
+      cell: ({ row }) => (
+        <div className="text-right">{row.original.moduleId}</div>
+      ),
+    },
+    {
+      accessorKey: "transactionId",
+      header: "Transaction ID",
+      cell: ({ row }) => (
+        <div className="text-right">{row.original.transactionId}</div>
+      ),
+    },
+    {
+      accessorKey: "documentId",
+      header: "Document ID",
+      cell: ({ row }) => (
+        <div className="text-right">{row.original.documentId}</div>
+      ),
+    },
+    {
+      accessorKey: "documentNo",
+      header: "Document No",
+    },
+    {
+      accessorKey: "docReferenceNo",
+      header: "Doc Reference No",
+    },
+    {
+      accessorKey: "accountDate",
+      header: "Account Date",
+      cell: ({ row }) => {
+        const date = row.original.accountDate
+          ? new Date(row.original.accountDate)
+          : null
+        return date ? format(date, dateFormat) : "-"
+      },
+    },
+    {
+      accessorKey: "paymentTypeId",
+      header: "Payment Type ID",
+      cell: ({ row }) => (
+        <div className="text-right">{row.original.paymentTypeId}</div>
+      ),
+    },
+    {
+      accessorKey: "chequeNo",
+      header: "Cheque No",
+    },
+    {
+      accessorKey: "chequeDate",
+      header: "Cheque Date",
+      cell: ({ row }) => {
+        const date = row.original.chequeDate
+          ? new Date(row.original.chequeDate)
+          : null
+        return date ? format(date, dateFormat) : "-"
+      },
+    },
+    {
+      accessorKey: "customerId",
+      header: "Customer ID",
+      cell: ({ row }) => (
+        <div className="text-right">{row.original.customerId}</div>
+      ),
+    },
+    {
+      accessorKey: "supplierId",
+      header: "Supplier ID",
+      cell: ({ row }) => (
+        <div className="text-right">{row.original.supplierId}</div>
+      ),
+    },
+    {
+      accessorKey: "glId",
+      header: "GL ID",
+      cell: ({ row }) => <div className="text-right">{row.original.glId}</div>,
+    },
+    {
+      accessorKey: "isDebit",
+      header: "Is Debit",
+      cell: ({ row }) => (
+        <div className="text-center">{row.original.isDebit ? "✓" : ""}</div>
+      ),
+    },
+    {
+      accessorKey: "exhRate",
+      header: "Exchange Rate",
+      cell: ({ row }) => (
+        <div className="text-right">
+          {row.original.exhRate
+            ? row.original.exhRate.toFixed(exhRateDec)
+            : "-"}
+        </div>
+      ),
+    },
+    {
+      accessorKey: "totAmt",
+      header: "Total Amount",
+      cell: ({ row }) => (
+        <div className="text-right">
+          {row.original.totAmt ? row.original.totAmt.toFixed(amtDec) : "-"}
+        </div>
+      ),
+    },
+    {
+      accessorKey: "totLocalAmt",
+      header: "Total Local Amount",
+      cell: ({ row }) => (
+        <div className="text-right">
+          {row.original.totLocalAmt
+            ? row.original.totLocalAmt.toFixed(locAmtDec)
+            : "-"}
+        </div>
+      ),
+    },
+    {
+      accessorKey: "paymentFromTo",
+      header: "Payment From/To",
+    },
+    {
+      accessorKey: "remarks",
+      header: "Remarks",
+    },
+    {
+      accessorKey: "editVersion",
+      header: "Edit Version",
+      cell: ({ row }) => (
+        <div className="text-right">{row.original.editVersion}</div>
+      ),
+    },
   ]
 
   const handleRefresh = async () => {

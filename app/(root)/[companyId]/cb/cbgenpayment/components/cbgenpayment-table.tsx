@@ -108,12 +108,28 @@ export default function GenPaymentTable({
       },
     },
     {
+      accessorKey: "paymentTypeCode",
+      header: "Payment Type Code",
+    },
+    {
+      accessorKey: "paymentTypeName",
+      header: "Payment Type Name",
+    },
+    {
       accessorKey: "bankCode",
       header: "Bank Code",
     },
     {
       accessorKey: "bankName",
       header: "Bank Name",
+    },
+    {
+      accessorKey: "chequeNo",
+      header: "Cheque No",
+    },
+    {
+      accessorKey: "payeeTo",
+      header: "Payee To",
     },
     {
       accessorKey: "currencyCode",
@@ -142,20 +158,22 @@ export default function GenPaymentTable({
       ),
     },
     {
-      accessorKey: "creditTermCode",
-      header: "Credit Term Code",
+      accessorKey: "bankChgAmt",
+      header: "Bank Charge Amount",
+      cell: ({ row }) => (
+        <div className="text-right">
+          {formatNumber(row.getValue("bankChgAmt"), amtDec)}
+        </div>
+      ),
     },
     {
-      accessorKey: "creditTermName",
-      header: "Credit Term Name",
-    },
-    {
-      accessorKey: "bankCode",
-      header: "Bank Code",
-    },
-    {
-      accessorKey: "bankName",
-      header: "Bank Name",
+      accessorKey: "bankChgLocalAmt",
+      header: "Bank Charge Local Amount",
+      cell: ({ row }) => (
+        <div className="text-right">
+          {formatNumber(row.getValue("bankChgLocalAmt"), locAmtDec)}
+        </div>
+      ),
     },
     {
       accessorKey: "totAmt",
@@ -216,16 +234,12 @@ export default function GenPaymentTable({
       header: "Remarks",
     },
     {
-      accessorKey: "status",
-      header: "Status",
+      accessorKey: "moduleFrom",
+      header: "Module From",
     },
     {
-      accessorKey: "createByCode",
-      header: "Created By Code",
-    },
-    {
-      accessorKey: "createByName",
-      header: "Created By Name",
+      accessorKey: "createBy",
+      header: "Created By",
     },
     {
       accessorKey: "createDate",
@@ -238,12 +252,8 @@ export default function GenPaymentTable({
       },
     },
     {
-      accessorKey: "editByCode",
-      header: "Edited By Code",
-    },
-    {
-      accessorKey: "editByName",
-      header: "Edited By Name",
+      accessorKey: "editBy",
+      header: "Edited By",
     },
     {
       accessorKey: "editDate",

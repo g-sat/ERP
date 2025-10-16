@@ -90,6 +90,10 @@ export default function BankTransferTable({
       },
     },
     {
+      accessorKey: "chequeNo",
+      header: "Cheque No",
+    },
+    {
       accessorKey: "chequeDate",
       header: "Cheque Date",
       cell: ({ row }) => {
@@ -100,106 +104,188 @@ export default function BankTransferTable({
       },
     },
     {
-      accessorKey: "bankCode",
-      header: "Bank Code",
+      accessorKey: "jobOrderNo",
+      header: "Job Order No",
     },
     {
-      accessorKey: "bankName",
-      header: "Bank Name",
+      accessorKey: "taskName",
+      header: "Task Name",
     },
     {
-      accessorKey: "currencyCode",
-      header: "Currency Code",
+      accessorKey: "serviceName",
+      header: "Service Name",
     },
     {
-      accessorKey: "currencyName",
-      header: "Currency Name",
+      accessorKey: "fromBankCode",
+      header: "From Bank Code",
     },
     {
-      accessorKey: "exhRate",
-      header: "Exchange Rate",
+      accessorKey: "fromBankName",
+      header: "From Bank Name",
+    },
+    {
+      accessorKey: "fromCurrencyCode",
+      header: "From Currency Code",
+    },
+    {
+      accessorKey: "fromCurrencyName",
+      header: "From Currency Name",
+    },
+    {
+      accessorKey: "fromExhRate",
+      header: "From Exchange Rate",
       cell: ({ row }) => (
         <div className="text-right">
-          {formatNumber(row.getValue("exhRate"), exhRateDec)}
+          {formatNumber(row.original.fromExhRate || 0, exhRateDec)}
         </div>
       ),
     },
     {
-      accessorKey: "ctyExhRate",
-      header: "Country Exchange Rate",
+      accessorKey: "fromBankChgGLCode",
+      header: "From Bank Charge GL Code",
+    },
+    {
+      accessorKey: "fromBankChgGLName",
+      header: "From Bank Charge GL Name",
+    },
+    {
+      accessorKey: "fromBankChgAmt",
+      header: "From Bank Charge Amount",
       cell: ({ row }) => (
         <div className="text-right">
-          {formatNumber(row.getValue("ctyExhRate"), exhRateDec)}
+          {formatNumber(row.original.fromBankChgAmt || 0, amtDec)}
         </div>
       ),
     },
     {
-      accessorKey: "creditTermCode",
-      header: "Credit Term Code",
-    },
-    {
-      accessorKey: "creditTermName",
-      header: "Credit Term Name",
-    },
-    {
-      accessorKey: "bankCode",
-      header: "Bank Code",
-    },
-    {
-      accessorKey: "bankName",
-      header: "Bank Name",
-    },
-    {
-      accessorKey: "totAmt",
-      header: "Total Amount",
+      accessorKey: "fromBankChgLocalAmt",
+      header: "From Bank Charge Local Amount",
       cell: ({ row }) => (
         <div className="text-right">
-          {formatNumber(row.getValue("totAmt"), amtDec)}
+          {formatNumber(row.original.fromBankChgLocalAmt || 0, locAmtDec)}
         </div>
       ),
     },
     {
-      accessorKey: "totLocalAmt",
-      header: "Total Local Amount",
+      accessorKey: "fromTotAmt",
+      header: "From Total Amount",
       cell: ({ row }) => (
         <div className="text-right">
-          {formatNumber(row.getValue("totLocalAmt"), locAmtDec)}
+          {formatNumber(row.original.fromTotAmt || 0, amtDec)}
         </div>
       ),
     },
     {
-      accessorKey: "gstAmt",
-      header: "GST Amount",
+      accessorKey: "fromTotLocalAmt",
+      header: "From Total Local Amount",
       cell: ({ row }) => (
         <div className="text-right">
-          {formatNumber(row.getValue("gstAmt"), amtDec)}
+          {formatNumber(row.original.fromTotLocalAmt || 0, locAmtDec)}
         </div>
       ),
     },
     {
-      accessorKey: "gstLocalAmt",
-      header: "GST Local Amount",
+      accessorKey: "toBankCode",
+      header: "To Bank Code",
+    },
+    {
+      accessorKey: "toBankName",
+      header: "To Bank Name",
+    },
+    {
+      accessorKey: "toCurrencyCode",
+      header: "To Currency Code",
+    },
+    {
+      accessorKey: "toCurrencyName",
+      header: "To Currency Name",
+    },
+    {
+      accessorKey: "toExhRate",
+      header: "To Exchange Rate",
       cell: ({ row }) => (
         <div className="text-right">
-          {formatNumber(row.getValue("gstLocalAmt"), locAmtDec)}
+          {formatNumber(row.original.toExhRate || 0, exhRateDec)}
         </div>
       ),
     },
     {
-      accessorKey: "totAmtAftGst",
-      header: "Total After GST",
+      accessorKey: "toBankChgGLCode",
+      header: "To Bank Charge GL Code",
+    },
+    {
+      accessorKey: "toBankChgGLName",
+      header: "To Bank Charge GL Name",
+    },
+    {
+      accessorKey: "toBankChgAmt",
+      header: "To Bank Charge Amount",
       cell: ({ row }) => (
         <div className="text-right">
-          {formatNumber(row.getValue("totAmtAftGst"), amtDec)}
+          {formatNumber(row.original.toBankChgAmt || 0, amtDec)}
         </div>
       ),
     },
     {
-      accessorKey: "totLocalAmtAftGst",
-      header: "Total Local After GST",
+      accessorKey: "toBankChgLocalAmt",
+      header: "To Bank Charge Local Amount",
       cell: ({ row }) => (
         <div className="text-right">
-          {formatNumber(row.getValue("totLocalAmtAftGst"), locAmtDec)}
+          {formatNumber(row.original.toBankChgLocalAmt || 0, locAmtDec)}
+        </div>
+      ),
+    },
+    {
+      accessorKey: "toTotAmt",
+      header: "To Total Amount",
+      cell: ({ row }) => (
+        <div className="text-right">
+          {formatNumber(row.original.toTotAmt || 0, amtDec)}
+        </div>
+      ),
+    },
+    {
+      accessorKey: "toTotLocalAmt",
+      header: "To Total Local Amount",
+      cell: ({ row }) => (
+        <div className="text-right">
+          {formatNumber(row.original.toTotLocalAmt || 0, locAmtDec)}
+        </div>
+      ),
+    },
+    {
+      accessorKey: "bankExhRate",
+      header: "Bank Exchange Rate",
+      cell: ({ row }) => (
+        <div className="text-right">
+          {formatNumber(row.original.bankExhRate || 0, exhRateDec)}
+        </div>
+      ),
+    },
+    {
+      accessorKey: "bankTotAmt",
+      header: "Bank Total Amount",
+      cell: ({ row }) => (
+        <div className="text-right">
+          {formatNumber(row.original.bankTotAmt || 0, amtDec)}
+        </div>
+      ),
+    },
+    {
+      accessorKey: "bankTotLocalAmt",
+      header: "Bank Total Local Amount",
+      cell: ({ row }) => (
+        <div className="text-right">
+          {formatNumber(row.original.bankTotLocalAmt || 0, locAmtDec)}
+        </div>
+      ),
+    },
+    {
+      accessorKey: "exhGainLoss",
+      header: "Exchange Gain/Loss",
+      cell: ({ row }) => (
+        <div className="text-right">
+          {formatNumber(row.original.exhGainLoss || 0, amtDec)}
         </div>
       ),
     },
@@ -208,16 +294,12 @@ export default function BankTransferTable({
       header: "Remarks",
     },
     {
-      accessorKey: "status",
-      header: "Status",
+      accessorKey: "payeeTo",
+      header: "Payee To",
     },
     {
-      accessorKey: "createByCode",
-      header: "Created By Code",
-    },
-    {
-      accessorKey: "createByName",
-      header: "Created By Name",
+      accessorKey: "createBy",
+      header: "Created By",
     },
     {
       accessorKey: "createDate",
@@ -230,12 +312,8 @@ export default function BankTransferTable({
       },
     },
     {
-      accessorKey: "editByCode",
-      header: "Edited By Code",
-    },
-    {
-      accessorKey: "editByName",
-      header: "Edited By Name",
+      accessorKey: "editBy",
+      header: "Edited By",
     },
     {
       accessorKey: "editDate",

@@ -246,11 +246,11 @@ export default function GenPaymentPage() {
 
         refetchGenPayments()
       } else {
-        toast.error(response.message || "Failed to save gen payment")
+        toast.error(response.message || "Failed to save Gen Payment")
       }
     } catch (error) {
       console.error("Save error:", error)
-      toast.error("Network error while saving gen payment")
+      toast.error("Network error while saving Gen Payment")
     } finally {
       setIsSaving(false)
       setIsSelectingGenPayment(false)

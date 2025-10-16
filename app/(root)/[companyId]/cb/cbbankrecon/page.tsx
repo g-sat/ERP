@@ -616,7 +616,7 @@ export default function BankReconPage() {
                   setShowLoadConfirm(true)
                 }
               }}
-              placeholder="Search BankRecon No"
+              placeholder="Search Reconciliation No"
               className="h-8 text-sm"
               readOnly={!!bankRecon?.reconId && bankRecon.reconId !== "0"}
               disabled={!!bankRecon?.reconId && bankRecon.reconId !== "0"}

@@ -58,18 +58,18 @@ export default function BankReconTable({
   const columns: ColumnDef<ICbBankReconHd>[] = [
     {
       accessorKey: "reconNo",
-      header: "Recon No",
+      header: "Reconciliation No",
     },
     {
       accessorKey: "prevReconId",
-      header: "Prev Recon ID",
+      header: "Previous Reconciliation ID",
       cell: ({ row }) => (
         <div className="text-right">{row.original.prevReconId || "-"}</div>
       ),
     },
     {
       accessorKey: "prevReconNo",
-      header: "Prev Recon No",
+      header: "Previous Reconciliation No",
     },
     {
       accessorKey: "referenceNo",

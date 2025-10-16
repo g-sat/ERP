@@ -268,7 +268,7 @@ export default function BatchPaymentDetailsTable({
         moduleId={25}
         transactionId={1}
         tableName={TableName.cbBatchPaymentDt}
-        emptyMessage="No batch payment details found."
+        emptyMessage="No Batch Payment details found."
         accessorId="itemNo"
         onRefresh={onRefresh}
         onFilterChange={onFilterChange}

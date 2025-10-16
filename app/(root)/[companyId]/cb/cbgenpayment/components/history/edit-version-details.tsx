@@ -134,12 +134,12 @@ export default function EditVersionDetails({
       },
     },
     {
-      accessorKey: "customerCode",
-      header: "Customer Code",
+      accessorKey: "paymentTypeCode",
+      header: "Payment Type Code",
     },
     {
-      accessorKey: "customerName",
-      header: "Customer Name",
+      accessorKey: "paymentTypeName",
+      header: "Payment Type Name",
     },
     {
       accessorKey: "currencyCode",
@@ -172,20 +172,42 @@ export default function EditVersionDetails({
       ),
     },
     {
-      accessorKey: "creditTermCode",
-      header: "Credit Term Code",
-    },
-    {
-      accessorKey: "creditTermName",
-      header: "Credit Term Name",
-    },
-    {
       accessorKey: "bankCode",
       header: "Bank Code",
     },
     {
       accessorKey: "bankName",
       header: "Bank Name",
+    },
+    {
+      accessorKey: "chequeNo",
+      header: "Cheque No",
+    },
+    {
+      accessorKey: "payeeTo",
+      header: "Payee To",
+    },
+    {
+      accessorKey: "bankChgAmt",
+      header: "Bank Charge Amount",
+      cell: ({ row }) => (
+        <div className="text-right">
+          {row.original.bankChgAmt
+            ? row.original.bankChgAmt.toFixed(amtDec)
+            : "-"}
+        </div>
+      ),
+    },
+    {
+      accessorKey: "bankChgLocalAmt",
+      header: "Bank Charge Local Amount",
+      cell: ({ row }) => (
+        <div className="text-right">
+          {row.original.bankChgLocalAmt
+            ? row.original.bankChgLocalAmt.toFixed(locAmtDec)
+            : "-"}
+        </div>
+      ),
     },
     {
       accessorKey: "totAmt",
@@ -254,16 +276,12 @@ export default function EditVersionDetails({
       header: "Remarks",
     },
     {
-      accessorKey: "status",
-      header: "Status",
+      accessorKey: "moduleFrom",
+      header: "Module From",
     },
     {
-      accessorKey: "createByCode",
-      header: "Created By Code",
-    },
-    {
-      accessorKey: "createByName",
-      header: "Created By Name",
+      accessorKey: "createBy",
+      header: "Created By",
     },
     {
       accessorKey: "createDate",
@@ -276,12 +294,8 @@ export default function EditVersionDetails({
       },
     },
     {
-      accessorKey: "editByCode",
-      header: "Edited By Code",
-    },
-    {
-      accessorKey: "editByName",
-      header: "Edited By Name",
+      accessorKey: "editBy",
+      header: "Edited By",
     },
     {
       accessorKey: "editDate",

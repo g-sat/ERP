@@ -120,7 +120,7 @@ export default function BankTransferCtmTable({
     },
     {
       accessorKey: "fromExhRate",
-      header: "From Exh Rate",
+      header: "From Exchange Rate",
       cell: ({ row }) => (
         <div className="text-right">
           {formatNumber(row.getValue("fromExhRate"), exhRateDec)}
@@ -147,7 +147,7 @@ export default function BankTransferCtmTable({
     },
     {
       accessorKey: "fromTotLocalAmt",
-      header: "From Total Local",
+      header: "From Total Local Amount",
       cell: ({ row }) => (
         <div className="text-right">
           {formatNumber(row.getValue("fromTotLocalAmt"), locAmtDec)}
@@ -160,7 +160,7 @@ export default function BankTransferCtmTable({
     },
     {
       accessorKey: "exhGainLoss",
-      header: "Exh Gain/Loss",
+      header: "Exchange Gain/Loss",
       cell: ({ row }) => (
         <div className="text-right">
           {formatNumber(row.getValue("exhGainLoss"), amtDec)}
@@ -170,26 +170,6 @@ export default function BankTransferCtmTable({
     {
       accessorKey: "remarks",
       header: "Remarks",
-    },
-    {
-      accessorKey: "createDate",
-      header: "Created Date",
-      cell: ({ row }) => {
-        const date = row.original.createDate
-          ? new Date(row.original.createDate)
-          : null
-        return date ? format(date, dateFormat) : "-"
-      },
-    },
-    {
-      accessorKey: "editDate",
-      header: "Edited Date",
-      cell: ({ row }) => {
-        const date = row.original.editDate
-          ? new Date(row.original.editDate)
-          : null
-        return date ? format(date, dateFormat) : "-"
-      },
     },
     {
       accessorKey: "editVersion",
@@ -208,6 +188,34 @@ export default function BankTransferCtmTable({
       cell: ({ row }) => (
         <div className="text-center">{row.original.isPost ? "✓" : ""}</div>
       ),
+    },
+    {
+      accessorKey: "createBy",
+      header: "Created By",
+    },
+    {
+      accessorKey: "createDate",
+      header: "Created Date",
+      cell: ({ row }) => {
+        const date = row.original.createDate
+          ? new Date(row.original.createDate)
+          : null
+        return date ? format(date, dateFormat) : "-"
+      },
+    },
+    {
+      accessorKey: "editBy",
+      header: "Edited By",
+    },
+    {
+      accessorKey: "editDate",
+      header: "Edited Date",
+      cell: ({ row }) => {
+        const date = row.original.editDate
+          ? new Date(row.original.editDate)
+          : null
+        return date ? format(date, dateFormat) : "-"
+      },
     },
   ]
 

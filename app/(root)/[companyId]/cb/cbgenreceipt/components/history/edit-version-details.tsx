@@ -114,34 +114,6 @@ export default function EditVersionDetails({
       },
     },
     {
-      accessorKey: "chequeDate",
-      header: "Cheque Date",
-      cell: ({ row }) => {
-        const date = row.original.chequeDate
-          ? new Date(row.original.chequeDate)
-          : null
-        return date ? format(date, dateFormat) : "-"
-      },
-    },
-    {
-      accessorKey: "gstClaimDate",
-      header: "GST Claim Date",
-      cell: ({ row }) => {
-        const date = row.original.gstClaimDate
-          ? new Date(row.original.gstClaimDate)
-          : null
-        return date ? format(date, dateFormat) : "-"
-      },
-    },
-    {
-      accessorKey: "customerCode",
-      header: "Customer Code",
-    },
-    {
-      accessorKey: "customerName",
-      header: "Customer Name",
-    },
-    {
       accessorKey: "currencyCode",
       header: "Currency Code",
     },
@@ -172,12 +144,12 @@ export default function EditVersionDetails({
       ),
     },
     {
-      accessorKey: "creditTermCode",
-      header: "Credit Term Code",
+      accessorKey: "paymentTypeCode",
+      header: "Payment Type Code",
     },
     {
-      accessorKey: "creditTermName",
-      header: "Credit Term Name",
+      accessorKey: "paymentTypeName",
+      header: "Payment Type Name",
     },
     {
       accessorKey: "bankCode",
@@ -186,6 +158,42 @@ export default function EditVersionDetails({
     {
       accessorKey: "bankName",
       header: "Bank Name",
+    },
+    {
+      accessorKey: "chequeNo",
+      header: "Cheque No",
+    },
+    {
+      accessorKey: "chequeDate",
+      header: "Cheque Date",
+      cell: ({ row }) => {
+        const date = row.original.chequeDate
+          ? new Date(row.original.chequeDate)
+          : null
+        return date ? format(date, dateFormat) : "-"
+      },
+    },
+    {
+      accessorKey: "bankChgAmt",
+      header: "Bank Charge Amount",
+      cell: ({ row }) => (
+        <div className="text-right">
+          {row.original.bankChgAmt
+            ? row.original.bankChgAmt.toFixed(amtDec)
+            : "-"}
+        </div>
+      ),
+    },
+    {
+      accessorKey: "bankChgLocalAmt",
+      header: "Bank Charge Local Amount",
+      cell: ({ row }) => (
+        <div className="text-right">
+          {row.original.bankChgLocalAmt
+            ? row.original.bankChgLocalAmt.toFixed(locAmtDec)
+            : "-"}
+        </div>
+      ),
     },
     {
       accessorKey: "totAmt",
@@ -208,6 +216,27 @@ export default function EditVersionDetails({
       ),
     },
     {
+      accessorKey: "totCtyAmt",
+      header: "Total Country Amount",
+      cell: ({ row }) => (
+        <div className="text-right">
+          {row.original.totCtyAmt
+            ? row.original.totCtyAmt.toFixed(amtDec)
+            : "-"}
+        </div>
+      ),
+    },
+    {
+      accessorKey: "gstClaimDate",
+      header: "GST Claim Date",
+      cell: ({ row }) => {
+        const date = row.original.gstClaimDate
+          ? new Date(row.original.gstClaimDate)
+          : null
+        return date ? format(date, dateFormat) : "-"
+      },
+    },
+    {
       accessorKey: "gstAmt",
       header: "GST Amount",
       cell: ({ row }) => (
@@ -223,6 +252,17 @@ export default function EditVersionDetails({
         <div className="text-right">
           {row.original.gstLocalAmt
             ? row.original.gstLocalAmt.toFixed(locAmtDec)
+            : "-"}
+        </div>
+      ),
+    },
+    {
+      accessorKey: "gstCtyAmt",
+      header: "GST Country Amount",
+      cell: ({ row }) => (
+        <div className="text-right">
+          {row.original.gstCtyAmt
+            ? row.original.gstCtyAmt.toFixed(amtDec)
             : "-"}
         </div>
       ),
@@ -250,20 +290,35 @@ export default function EditVersionDetails({
       ),
     },
     {
+      accessorKey: "totCtyAmtAftGst",
+      header: "Total Country After GST",
+      cell: ({ row }) => (
+        <div className="text-right">
+          {row.original.totCtyAmtAftGst
+            ? row.original.totCtyAmtAftGst.toFixed(amtDec)
+            : "-"}
+        </div>
+      ),
+    },
+    {
       accessorKey: "remarks",
       header: "Remarks",
     },
     {
-      accessorKey: "status",
-      header: "Status",
+      accessorKey: "payeeTo",
+      header: "Payee To",
     },
     {
-      accessorKey: "createByCode",
-      header: "Created By Code",
+      accessorKey: "moduleFrom",
+      header: "Module From",
     },
     {
-      accessorKey: "createByName",
-      header: "Created By Name",
+      accessorKey: "createById",
+      header: "Created By ID",
+    },
+    {
+      accessorKey: "createBy",
+      header: "Created By",
     },
     {
       accessorKey: "createDate",
@@ -276,12 +331,12 @@ export default function EditVersionDetails({
       },
     },
     {
-      accessorKey: "editByCode",
-      header: "Edited By Code",
+      accessorKey: "editById",
+      header: "Edited By ID",
     },
     {
-      accessorKey: "editByName",
-      header: "Edited By Name",
+      accessorKey: "editBy",
+      header: "Edited By",
     },
     {
       accessorKey: "editDate",
@@ -293,17 +348,141 @@ export default function EditVersionDetails({
         return date ? format(date, dateFormat) : "-"
       },
     },
+    {
+      accessorKey: "isPost",
+      header: "Is Posted",
+      cell: ({ row }) => (row.original.isPost ? "Yes" : "No"),
+    },
+    {
+      accessorKey: "postDate",
+      header: "Post Date",
+      cell: ({ row }) => {
+        const date = row.original.postDate
+          ? new Date(row.original.postDate)
+          : null
+        return date ? format(date, dateFormat) : "-"
+      },
+    },
+    {
+      accessorKey: "isCancel",
+      header: "Is Cancelled",
+      cell: ({ row }) => (row.original.isCancel ? "Yes" : "No"),
+    },
+    {
+      accessorKey: "cancelBy",
+      header: "Cancelled By",
+    },
+    {
+      accessorKey: "cancelDate",
+      header: "Cancel Date",
+      cell: ({ row }) => {
+        const date = row.original.cancelDate
+          ? new Date(row.original.cancelDate)
+          : null
+        return date ? format(date, dateFormat) : "-"
+      },
+    },
+    {
+      accessorKey: "cancelRemarks",
+      header: "Cancel Remarks",
+    },
   ]
 
   const detailsColumns: ColumnDef<ICbGenReceiptDt>[] = [
     { accessorKey: "itemNo", header: "Item No" },
+    { accessorKey: "seqNo", header: "Seq No" },
     { accessorKey: "glCode", header: "GL Code" },
     { accessorKey: "glName", header: "GL Name" },
-    { accessorKey: "totAmt", header: "Total Amount" },
-    { accessorKey: "totLocalAmt", header: "Total Local Amount" },
-    { accessorKey: "gstName", header: "GST" },
-    { accessorKey: "gstAmt", header: "GST Amount" },
+    {
+      accessorKey: "totAmt",
+      header: "Total Amount",
+      cell: ({ row }) => (
+        <div className="text-right">
+          {row.original.totAmt ? row.original.totAmt.toFixed(amtDec) : "-"}
+        </div>
+      ),
+    },
+    {
+      accessorKey: "totLocalAmt",
+      header: "Total Local Amount",
+      cell: ({ row }) => (
+        <div className="text-right">
+          {row.original.totLocalAmt
+            ? row.original.totLocalAmt.toFixed(locAmtDec)
+            : "-"}
+        </div>
+      ),
+    },
+    {
+      accessorKey: "totCtyAmt",
+      header: "Total Country Amount",
+      cell: ({ row }) => (
+        <div className="text-right">
+          {row.original.totCtyAmt
+            ? row.original.totCtyAmt.toFixed(amtDec)
+            : "-"}
+        </div>
+      ),
+    },
     { accessorKey: "remarks", header: "Remarks" },
+    { accessorKey: "gstName", header: "GST" },
+    {
+      accessorKey: "gstPercentage",
+      header: "GST %",
+      cell: ({ row }) => (
+        <div className="text-right">
+          {row.original.gstPercentage
+            ? row.original.gstPercentage.toFixed(2)
+            : "-"}
+        </div>
+      ),
+    },
+    {
+      accessorKey: "gstAmt",
+      header: "GST Amount",
+      cell: ({ row }) => (
+        <div className="text-right">
+          {row.original.gstAmt ? row.original.gstAmt.toFixed(amtDec) : "-"}
+        </div>
+      ),
+    },
+    {
+      accessorKey: "gstLocalAmt",
+      header: "GST Local Amount",
+      cell: ({ row }) => (
+        <div className="text-right">
+          {row.original.gstLocalAmt
+            ? row.original.gstLocalAmt.toFixed(locAmtDec)
+            : "-"}
+        </div>
+      ),
+    },
+    {
+      accessorKey: "gstCtyAmt",
+      header: "GST Country Amount",
+      cell: ({ row }) => (
+        <div className="text-right">
+          {row.original.gstCtyAmt
+            ? row.original.gstCtyAmt.toFixed(amtDec)
+            : "-"}
+        </div>
+      ),
+    },
+    { accessorKey: "departmentCode", header: "Department Code" },
+    { accessorKey: "departmentName", header: "Department Name" },
+    { accessorKey: "employeeCode", header: "Employee Code" },
+    { accessorKey: "employeeName", header: "Employee Name" },
+    { accessorKey: "portCode", header: "Port Code" },
+    { accessorKey: "portName", header: "Port Name" },
+    { accessorKey: "vesselCode", header: "Vessel Code" },
+    { accessorKey: "vesselName", header: "Vessel Name" },
+    { accessorKey: "bargeCode", header: "Barge Code" },
+    { accessorKey: "bargeName", header: "Barge Name" },
+    { accessorKey: "voyageNo", header: "Voyage No" },
+    { accessorKey: "jobOrderNo", header: "Job Order No" },
+    { accessorKey: "taskName", header: "Task Name" },
+    { accessorKey: "serviceName", header: "Service Name" },
+    { accessorKey: "editVersion", header: "Edit Version" },
   ]
 
   const handleRefresh = async () => {

@@ -14,7 +14,9 @@ import { DialogDataTable } from "@/components/table/table-dialog"
 export interface BatchPaymentTableProps {
   data: ICbBatchPaymentHd[]
   isLoading: boolean
-  onBatchPaymentSelect: (selectedPayment: ICbBatchPaymentHd | undefined) => void
+  onBatchPaymentSelect: (
+    selectedBatchPayment: ICbBatchPaymentHd | undefined
+  ) => void
   onRefresh: () => void
   onFilterChange: (filters: ICbBatchPaymentFilter) => void
   initialFilters?: ICbBatchPaymentFilter

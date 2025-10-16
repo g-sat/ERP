@@ -113,6 +113,36 @@ export default function EditVersionDetails({
       },
     },
     {
+      accessorKey: "chequeNo",
+      header: "Cheque No",
+    },
+    {
+      accessorKey: "chequeDate",
+      header: "Cheque Date",
+      cell: ({ row }) => {
+        const date = row.original.chequeDate
+          ? new Date(row.original.chequeDate)
+          : null
+        return date ? format(date, dateFormat) : "-"
+      },
+    },
+    {
+      accessorKey: "fromBankCode",
+      header: "From Bank Code",
+    },
+    {
+      accessorKey: "fromBankName",
+      header: "From Bank Name",
+    },
+    {
+      accessorKey: "fromCurrencyCode",
+      header: "From Currency Code",
+    },
+    {
+      accessorKey: "fromCurrencyName",
+      header: "From Currency Name",
+    },
+    {
       accessorKey: "fromExhRate",
       header: "From Exchange Rate",
       cell: ({ row }) => (
@@ -124,12 +154,23 @@ export default function EditVersionDetails({
       ),
     },
     {
-      accessorKey: "toExhRate",
-      header: "To Exchange Rate",
+      accessorKey: "fromBankChgAmt",
+      header: "From Bank Charge Amount",
       cell: ({ row }) => (
         <div className="text-right">
-          {row.original.toExhRate
-            ? row.original.toExhRate.toFixed(exhRateDec)
+          {row.original.fromBankChgAmt
+            ? row.original.fromBankChgAmt.toFixed(amtDec)
+            : "-"}
+        </div>
+      ),
+    },
+    {
+      accessorKey: "fromBankChgLocalAmt",
+      header: "From Bank Charge Local Amount",
+      cell: ({ row }) => (
+        <div className="text-right">
+          {row.original.fromBankChgLocalAmt
+            ? row.original.fromBankChgLocalAmt.toFixed(locAmtDec)
             : "-"}
         </div>
       ),
@@ -146,11 +187,93 @@ export default function EditVersionDetails({
       ),
     },
     {
+      accessorKey: "fromTotLocalAmt",
+      header: "From Total Local Amount",
+      cell: ({ row }) => (
+        <div className="text-right">
+          {row.original.fromTotLocalAmt
+            ? row.original.fromTotLocalAmt.toFixed(locAmtDec)
+            : "-"}
+        </div>
+      ),
+    },
+    {
+      accessorKey: "toBankCode",
+      header: "To Bank Code",
+    },
+    {
+      accessorKey: "toBankName",
+      header: "To Bank Name",
+    },
+    {
+      accessorKey: "toCurrencyCode",
+      header: "To Currency Code",
+    },
+    {
+      accessorKey: "toCurrencyName",
+      header: "To Currency Name",
+    },
+    {
+      accessorKey: "toExhRate",
+      header: "To Exchange Rate",
+      cell: ({ row }) => (
+        <div className="text-right">
+          {row.original.toExhRate
+            ? row.original.toExhRate.toFixed(exhRateDec)
+            : "-"}
+        </div>
+      ),
+    },
+    {
+      accessorKey: "toBankChgAmt",
+      header: "To Bank Charge Amount",
+      cell: ({ row }) => (
+        <div className="text-right">
+          {row.original.toBankChgAmt
+            ? row.original.toBankChgAmt.toFixed(amtDec)
+            : "-"}
+        </div>
+      ),
+    },
+    {
+      accessorKey: "toBankChgLocalAmt",
+      header: "To Bank Charge Local Amount",
+      cell: ({ row }) => (
+        <div className="text-right">
+          {row.original.toBankChgLocalAmt
+            ? row.original.toBankChgLocalAmt.toFixed(locAmtDec)
+            : "-"}
+        </div>
+      ),
+    },
+    {
       accessorKey: "toTotAmt",
       header: "To Total Amount",
       cell: ({ row }) => (
         <div className="text-right">
           {row.original.toTotAmt ? row.original.toTotAmt.toFixed(amtDec) : "-"}
+        </div>
+      ),
+    },
+    {
+      accessorKey: "toTotLocalAmt",
+      header: "To Total Local Amount",
+      cell: ({ row }) => (
+        <div className="text-right">
+          {row.original.toTotLocalAmt
+            ? row.original.toTotLocalAmt.toFixed(locAmtDec)
+            : "-"}
+        </div>
+      ),
+    },
+    {
+      accessorKey: "bankExhRate",
+      header: "Bank Exchange Rate",
+      cell: ({ row }) => (
+        <div className="text-right">
+          {row.original.bankExhRate
+            ? row.original.bankExhRate.toFixed(exhRateDec)
+            : "-"}
         </div>
       ),
     },

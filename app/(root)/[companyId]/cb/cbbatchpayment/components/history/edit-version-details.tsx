@@ -320,7 +320,7 @@ export default function EditVersionDetails({
               <AlertDescription>
                 {batchPaymentHistoryData?.message === "Data does not exist"
                   ? "No payment history found for this payment."
-                  : `Failed to load batch payment history: ${batchPaymentHistoryData?.message || "Unknown error"}`}
+                  : `Failed to load Batch Payment history: ${batchPaymentHistoryData?.message || "Unknown error"}`}
               </AlertDescription>
             </Alert>
           )}
@@ -364,8 +364,8 @@ export default function EditVersionDetails({
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>
                 {batchPaymentDetailsData?.message === "Data does not exist"
-                  ? "No batch payment details found for this version."
-                  : `Failed to load batch payment details: ${batchPaymentDetailsData?.message || "Unknown error"}`}
+                  ? "No Batch Payment details found for this version."
+                  : `Failed to load Batch Payment details: ${batchPaymentDetailsData?.message || "Unknown error"}`}
               </AlertDescription>
             </Alert>
           )}
@@ -392,8 +392,8 @@ export default function EditVersionDetails({
                 ) : (
                   <div className="text-muted-foreground py-4 text-center">
                     {hasDetailsError
-                      ? "Error loading batch payment details"
-                      : "No batch payment details available"}
+                      ? "Error loading Batch Payment details"
+                      : "No Batch Payment details available"}
                   </div>
                 )}
               </CardContent>
@@ -409,7 +409,7 @@ export default function EditVersionDetails({
                   moduleId={moduleId}
                   transactionId={transactionId}
                   tableName={TableName.cbBatchPaymentHistory}
-                  emptyMessage="No batch payment details available"
+                  emptyMessage="No Batch Payment details available"
                   onRefresh={handleRefresh}
                   showHeader={true}
                   showFooter={false}

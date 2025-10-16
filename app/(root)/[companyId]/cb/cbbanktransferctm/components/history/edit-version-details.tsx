@@ -115,6 +115,36 @@ export default function EditVersionDetails({
       },
     },
     {
+      accessorKey: "paymentTypeName",
+      header: "Payment Type",
+    },
+    {
+      accessorKey: "chequeNo",
+      header: "Cheque No",
+    },
+    {
+      accessorKey: "chequeDate",
+      header: "Cheque Date",
+      cell: ({ row }) => {
+        const date = row.original.chequeDate
+          ? new Date(row.original.chequeDate)
+          : null
+        return date ? format(date, dateFormat) : "-"
+      },
+    },
+    {
+      accessorKey: "fromBankCode",
+      header: "From Bank Code",
+    },
+    {
+      accessorKey: "fromBankName",
+      header: "From Bank Name",
+    },
+    {
+      accessorKey: "fromCurrencyCode",
+      header: "From Currency",
+    },
+    {
       accessorKey: "fromExhRate",
       header: "From Exchange Rate",
       cell: ({ row }) => (
@@ -126,12 +156,12 @@ export default function EditVersionDetails({
       ),
     },
     {
-      accessorKey: "fromExhRate",
-      header: "To Exchange Rate",
+      accessorKey: "fromBankChgAmt",
+      header: "From Bank Charge",
       cell: ({ row }) => (
         <div className="text-right">
-          {row.original.fromExhRate
-            ? row.original.fromExhRate.toFixed(exhRateDec)
+          {row.original.fromBankChgAmt
+            ? row.original.fromBankChgAmt.toFixed(amtDec)
             : "-"}
         </div>
       ),
@@ -148,12 +178,12 @@ export default function EditVersionDetails({
       ),
     },
     {
-      accessorKey: "fromTotAmt",
-      header: "To Total Amount",
+      accessorKey: "fromTotLocalAmt",
+      header: "From Total Local",
       cell: ({ row }) => (
         <div className="text-right">
-          {row.original.fromTotAmt
-            ? row.original.fromTotAmt.toFixed(amtDec)
+          {row.original.fromTotLocalAmt
+            ? row.original.fromTotLocalAmt.toFixed(locAmtDec)
             : "-"}
         </div>
       ),
@@ -176,6 +206,20 @@ export default function EditVersionDetails({
     {
       accessorKey: "payeeTo",
       header: "Payee To",
+    },
+    {
+      accessorKey: "isCancel",
+      header: "Cancelled",
+      cell: ({ row }) => (
+        <div className="text-center">{row.original.isCancel ? "✓" : ""}</div>
+      ),
+    },
+    {
+      accessorKey: "isPost",
+      header: "Posted",
+      cell: ({ row }) => (
+        <div className="text-center">{row.original.isPost ? "✓" : ""}</div>
+      ),
     },
     {
       accessorKey: "createBy",
@@ -247,8 +291,8 @@ export default function EditVersionDetails({
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>
                 {bankTransferHistoryData?.message === "Data does not exist"
-                  ? "No bank transfer history found for this record."
-                  : `Failed to load bank transfer history: ${bankTransferHistoryData?.message || "Unknown error"}`}
+                  ? "No Bank Transfer CTM history found for this record."
+                  : `Failed to load Bank Transfer CTM history: ${bankTransferHistoryData?.message || "Unknown error"}`}
               </AlertDescription>
             </Alert>
           )}
@@ -276,7 +320,7 @@ export default function EditVersionDetails({
       >
         <DialogContent className="@container h-[80vh] w-[90vw] !max-w-none overflow-y-auto rounded-lg p-4">
           <DialogHeader>
-            <DialogTitle>Bank Transfer Details</DialogTitle>
+            <DialogTitle>Bank Transfer CTM Details</DialogTitle>
           </DialogHeader>
 
           {/* Error handling for details data */}
@@ -292,8 +336,8 @@ export default function EditVersionDetails({
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>
                 {bankTransferDetailsData?.message === "Data does not exist"
-                  ? "No bank transfer details found for this version."
-                  : `Failed to load bank transfer details: ${bankTransferDetailsData?.message || "Unknown error"}`}
+                  ? "No Bank Transfer CTM details found for this version."
+                  : `Failed to load Bank Transfer CTM details: ${bankTransferDetailsData?.message || "Unknown error"}`}
               </AlertDescription>
             </Alert>
           )}
@@ -301,7 +345,7 @@ export default function EditVersionDetails({
           <div className="grid gap-2">
             <Card>
               <CardHeader>
-                <CardTitle>Bank Transfer Details</CardTitle>
+                <CardTitle>Bank Transfer CTM Details</CardTitle>
               </CardHeader>
               <CardContent>
                 {dialogData ? (
@@ -318,8 +362,8 @@ export default function EditVersionDetails({
                 ) : (
                   <div className="text-muted-foreground py-4 text-center">
                     {hasDetailsError
-                      ? "Error loading bank transfer details"
-                      : "No bank transfer details available"}
+                      ? "Error loading Bank Transfer CTM details"
+                      : "No Bank Transfer CTM details available"}
                   </div>
                 )}
               </CardContent>

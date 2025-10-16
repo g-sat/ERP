@@ -69,7 +69,7 @@ export default function BankTransferCtmPage() {
   const [isSelectingBankTransferCtm, setIsSelectingBankTransferCtm] =
     useState(false)
   const [isSaving, setIsSaving] = useState(false)
-  const [bankTransfer, setBankTransferCtm] =
+  const [bankTransferCtm, setBankTransferCtm] =
     useState<CbBankTransferCtmHdSchemaType | null>(null)
   const [searchNo, setSearchNo] = useState("")
   const [activeTab, setActiveTab] = useState("main")
@@ -101,40 +101,40 @@ export default function BankTransferCtmPage() {
   // Add form state management
   const form = useForm<CbBankTransferCtmHdSchemaType>({
     resolver: zodResolver(CbBankTransferCtmHdSchema(required, visible)),
-    defaultValues: bankTransfer
+    defaultValues: bankTransferCtm
       ? {
-          transferId: bankTransfer.transferId?.toString() ?? "0",
-          transferNo: bankTransfer.transferNo ?? "",
-          referenceNo: bankTransfer.referenceNo ?? "",
-          trnDate: bankTransfer.trnDate ?? new Date(),
-          accountDate: bankTransfer.accountDate ?? new Date(),
-          paymentTypeId: bankTransfer.paymentTypeId ?? 0,
-          chequeNo: bankTransfer.chequeNo ?? "",
-          chequeDate: bankTransfer.chequeDate ?? "",
-          fromBankId: bankTransfer.fromBankId ?? 0,
-          fromCurrencyId: bankTransfer.fromCurrencyId ?? 0,
-          fromExhRate: bankTransfer.fromExhRate ?? 0,
-          fromBankChgGLId: bankTransfer.fromBankChgGLId ?? 0,
-          fromBankChgAmt: bankTransfer.fromBankChgAmt ?? 0,
-          fromBankChgLocalAmt: bankTransfer.fromBankChgLocalAmt ?? 0,
-          fromTotAmt: bankTransfer.fromTotAmt ?? 0,
-          fromTotLocalAmt: bankTransfer.fromTotLocalAmt ?? 0,
-          exhGainLoss: bankTransfer.exhGainLoss ?? 0,
-          remarks: bankTransfer.remarks ?? "",
-          payeeTo: bankTransfer.payeeTo ?? "",
-          moduleFrom: bankTransfer.moduleFrom ?? "",
-          editVersion: bankTransfer.editVersion ?? 0,
-          isCancel: bankTransfer.isCancel ?? false,
-          cancelBy: bankTransfer.cancelBy ?? "",
-          cancelDate: bankTransfer.cancelDate ?? null,
-          cancelRemarks: bankTransfer.cancelRemarks ?? null,
-          isPost: bankTransfer.isPost ?? false,
-          postBy: bankTransfer.postBy ?? "",
-          postDate: bankTransfer.postDate ?? null,
-          appStatusId: bankTransfer.appStatusId ?? null,
-          appBy: bankTransfer.appBy ?? "",
-          appDate: bankTransfer.appDate ?? null,
-          data_details: bankTransfer.data_details ?? [],
+          transferId: bankTransferCtm.transferId?.toString() ?? "0",
+          transferNo: bankTransferCtm.transferNo ?? "",
+          referenceNo: bankTransferCtm.referenceNo ?? "",
+          trnDate: bankTransferCtm.trnDate ?? new Date(),
+          accountDate: bankTransferCtm.accountDate ?? new Date(),
+          paymentTypeId: bankTransferCtm.paymentTypeId ?? 0,
+          chequeNo: bankTransferCtm.chequeNo ?? "",
+          chequeDate: bankTransferCtm.chequeDate ?? "",
+          fromBankId: bankTransferCtm.fromBankId ?? 0,
+          fromCurrencyId: bankTransferCtm.fromCurrencyId ?? 0,
+          fromExhRate: bankTransferCtm.fromExhRate ?? 0,
+          fromBankChgGLId: bankTransferCtm.fromBankChgGLId ?? 0,
+          fromBankChgAmt: bankTransferCtm.fromBankChgAmt ?? 0,
+          fromBankChgLocalAmt: bankTransferCtm.fromBankChgLocalAmt ?? 0,
+          fromTotAmt: bankTransferCtm.fromTotAmt ?? 0,
+          fromTotLocalAmt: bankTransferCtm.fromTotLocalAmt ?? 0,
+          exhGainLoss: bankTransferCtm.exhGainLoss ?? 0,
+          remarks: bankTransferCtm.remarks ?? "",
+          payeeTo: bankTransferCtm.payeeTo ?? "",
+          moduleFrom: bankTransferCtm.moduleFrom ?? "",
+          editVersion: bankTransferCtm.editVersion ?? 0,
+          isCancel: bankTransferCtm.isCancel ?? false,
+          cancelBy: bankTransferCtm.cancelBy ?? "",
+          cancelDate: bankTransferCtm.cancelDate ?? null,
+          cancelRemarks: bankTransferCtm.cancelRemarks ?? null,
+          isPost: bankTransferCtm.isPost ?? false,
+          postBy: bankTransferCtm.postBy ?? "",
+          postDate: bankTransferCtm.postDate ?? null,
+          appStatusId: bankTransferCtm.appStatusId ?? null,
+          appBy: bankTransferCtm.appBy ?? "",
+          appDate: bankTransferCtm.appDate ?? null,
+          data_details: bankTransferCtm.data_details ?? [],
         }
       : {
           ...defaultBankTransferCtmHd,
@@ -157,7 +157,7 @@ export default function BankTransferCtmPage() {
     false // enabled: Don't auto-fetch - only when List button is clicked
   )
 
-  // Memoize bankTransfer data to prevent unnecessary re-renders
+  // Memoize Bank Transfer CTM data to prevent unnecessary re-renders
   const bankTransfersData = useMemo(
     () =>
       (bankTransfersResponse as ApiResponse<ICbBankTransferCtmHd>)?.data ?? [],
@@ -247,11 +247,11 @@ export default function BankTransferCtmPage() {
 
         refetchBankTransferCtms()
       } else {
-        toast.error(response.message || "Failed to save bankTransfer")
+        toast.error(response.message || "Failed to save Bank Transfer CTM")
       }
     } catch (error) {
       console.error("Save error:", error)
-      toast.error("Network error while saving bankTransfer")
+      toast.error("Network error while saving Bank Transfer CTM")
     } finally {
       setIsSaving(false)
       setIsSelectingBankTransferCtm(false)
@@ -260,19 +260,19 @@ export default function BankTransferCtmPage() {
 
   // Handle Clone
   const handleCloneBankTransferCtm = () => {
-    if (bankTransfer) {
+    if (bankTransferCtm) {
       // Create a proper clone with form values
       const clonedBankTransferCtm: CbBankTransferCtmHdSchemaType = {
-        ...bankTransfer,
+        ...bankTransferCtm,
         transferId: "0",
         transferNo: "",
-        // Reset amounts for new bankTransfer
+        // Reset amounts for new Bank Transfer CTM
         fromTotAmt: 0,
         fromTotLocalAmt: 0,
         exhGainLoss: 0,
         // Clone details with reset IDs
         data_details:
-          bankTransfer.data_details?.map((detail) => ({
+          bankTransferCtm.data_details?.map((detail) => ({
             ...detail,
             transferId: "0",
             transferNo: "",
@@ -280,17 +280,17 @@ export default function BankTransferCtmPage() {
       }
       setBankTransferCtm(clonedBankTransferCtm)
       form.reset(clonedBankTransferCtm)
-      toast.success("Bank Transfer cloned successfully")
+      toast.success("Bank Transfer CTM cloned successfully")
     }
   }
 
   // Handle Delete
   const handleBankTransferCtmDelete = async () => {
-    if (!bankTransfer) return
+    if (!bankTransferCtm) return
 
     try {
       const response = await deleteMutation.mutateAsync(
-        bankTransfer.transferId?.toString() ?? ""
+        bankTransferCtm.transferId?.toString() ?? ""
       )
       if (response.result === 1) {
         setBankTransferCtm(null)
@@ -299,10 +299,10 @@ export default function BankTransferCtmPage() {
         form.reset(defaultBankTransferCtmHd)
         refetchBankTransferCtms()
       } else {
-        toast.error(response.message || "Failed to delete Bank Transfer")
+        toast.error(response.message || "Failed to delete Bank Transfer CTM")
       }
     } catch {
-      toast.error("Network error while deleting bank transfer")
+      toast.error("Network error while deleting Bank Transfer CTM")
     }
   }
 
@@ -311,7 +311,7 @@ export default function BankTransferCtmPage() {
     setBankTransferCtm(null)
     setSearchNo("") // Clear search input
     form.reset(defaultBankTransferCtmHd)
-    toast.success("Bank Transfer reset successfully")
+    toast.success("Bank Transfer CTM reset successfully")
   }
 
   // Helper function to transform ICbBankTransferCtm to CbBankTransferCtmSchemaType
@@ -417,7 +417,7 @@ export default function BankTransferCtmPage() {
     setIsSelectingBankTransferCtm(true)
 
     try {
-      // Fetch bankTransfer details directly using selected bankTransfer's values
+      // Fetch Bank Transfer CTM details directly using selected Bank Transfer CTM's values
       const response = await getById(
         `${CbBankTransfer.getByIdNo}/${selectedBankTransferCtm.transferId}/${selectedBankTransferCtm.transferNo}`
       )
@@ -438,16 +438,18 @@ export default function BankTransferCtmPage() {
           // Close dialog only on success
           setShowListDialog(false)
           toast.success(
-            `BankTransferCtm ${selectedBankTransferCtm.transferNo} loaded successfully`
+            `Bank Transfer CTM ${selectedBankTransferCtm.transferNo} loaded successfully`
           )
         }
       } else {
-        toast.error(response?.message || "Failed to fetch bankTransfer details")
+        toast.error(
+          response?.message || "Failed to fetch Bank Transfer CTM details"
+        )
         // Keep dialog open on failure so user can try again
       }
     } catch (error) {
-      console.error("Error fetching bankTransfer details:", error)
-      toast.error("Error loading bankTransfer. Please try again.")
+      console.error("Error fetching Bank Transfer CTM details:", error)
+      toast.error("Error loading Bank Transfer CTM. Please try again.")
       // Keep dialog open on error
     } finally {
       setIsSelectingBankTransferCtm(false)
@@ -518,31 +520,32 @@ export default function BankTransferCtmPage() {
           form.trigger()
 
           // Show success message
-          toast.success(`BankTransferCtm ${value} loaded successfully`)
+          toast.success(`Bank Transfer CTM ${value} loaded successfully`)
 
           // Close the load confirmation dialog on success
           setShowLoadConfirm(false)
         }
       } else {
         toast.error(
-          response?.message || "Failed to fetch bankTransfer details (direct)"
+          response?.message ||
+            "Failed to fetch Bank Transfer CTM details (direct)"
         )
       }
     } catch {
-      toast.error("Error searching for bankTransfer")
+      toast.error("Error searching for Bank Transfer CTM")
     } finally {
       setIsLoadingBankTransferCtm(false)
     }
   }
 
-  // Determine mode and bankTransfer ID from URL
+  // Determine mode and Bank Transfer CTM ID from URL
   const transferNo = form.getValues("transferNo")
   const isEdit = Boolean(transferNo)
 
   // Compose title text
   const titleText = isEdit
-    ? `CB Bank Transfer (Edit) - ${transferNo}`
-    : "CB Bank Transfer (New)"
+    ? `CB Bank Transfer CTM (Edit) - ${transferNo}`
+    : "CB Bank Transfer CTM (New)"
 
   // Show loading spinner while essential data is loading
   if (!visible || !required) {
@@ -551,7 +554,7 @@ export default function BankTransferCtmPage() {
         <div className="text-center">
           <Spinner size="lg" className="mx-auto" />
           <p className="mt-4 text-sm text-gray-600">
-            Loading bankTransfer form...
+            Loading Bank Transfer CTM form...
           </p>
           <p className="mt-2 text-xs text-gray-500">
             Preparing field settings and validation rules
@@ -608,13 +611,15 @@ export default function BankTransferCtmPage() {
                   setShowLoadConfirm(true)
                 }
               }}
-              placeholder="Search BankTransferCtm No"
+              placeholder="Search Bank Transfer CTM No"
               className="h-8 text-sm"
               readOnly={
-                !!bankTransfer?.transferId && bankTransfer.transferId !== "0"
+                !!bankTransferCtm?.transferId &&
+                bankTransferCtm.transferId !== "0"
               }
               disabled={
-                !!bankTransfer?.transferId && bankTransfer.transferId !== "0"
+                !!bankTransferCtm?.transferId &&
+                bankTransferCtm.transferId !== "0"
               }
             />
             <Button
@@ -643,7 +648,7 @@ export default function BankTransferCtmPage() {
             <Button
               variant="outline"
               size="sm"
-              disabled={!bankTransfer || bankTransfer.transferId === "0"}
+              disabled={!bankTransferCtm || bankTransferCtm.transferId === "0"}
             >
               <Printer className="mr-1 h-4 w-4" />
               Print
@@ -662,7 +667,7 @@ export default function BankTransferCtmPage() {
               variant="outline"
               size="sm"
               onClick={() => setShowCloneConfirm(true)}
-              disabled={!bankTransfer || bankTransfer.transferId === "0"}
+              disabled={!bankTransferCtm || bankTransferCtm.transferId === "0"}
             >
               <Copy className="mr-1 h-4 w-4" />
               Clone
@@ -672,7 +677,7 @@ export default function BankTransferCtmPage() {
               variant="destructive"
               size="sm"
               onClick={() => setShowDeleteConfirm(true)}
-              disabled={!bankTransfer || bankTransfer.transferId === "0"}
+              disabled={!bankTransferCtm || bankTransferCtm.transferId === "0"}
             >
               <Trash2 className="mr-1 h-4 w-4" />
               Delete
@@ -762,9 +767,9 @@ export default function BankTransferCtmPage() {
         open={showSaveConfirm}
         onOpenChange={setShowSaveConfirm}
         onConfirm={handleSaveBankTransferCtm}
-        itemName={bankTransfer?.transferNo || "New Bank Transfer"}
+        itemName={bankTransferCtm?.transferNo || "New Bank Transfer CTM"}
         operationType={
-          bankTransfer?.transferId && bankTransfer.transferId !== "0"
+          bankTransferCtm?.transferId && bankTransferCtm.transferId !== "0"
             ? "update"
             : "create"
         }
@@ -778,9 +783,9 @@ export default function BankTransferCtmPage() {
         open={showDeleteConfirm}
         onOpenChange={setShowDeleteConfirm}
         onConfirm={handleBankTransferCtmDelete}
-        itemName={bankTransfer?.transferNo}
-        title="Delete Bank Transfer"
-        description="This action cannot be undone. All bank transfer details will be permanently deleted."
+        itemName={bankTransferCtm?.transferNo}
+        title="Delete Bank Transfer CTM"
+        description="This action cannot be undone. All Bank Transfer CTM details will be permanently deleted."
         isDeleting={deleteMutation.isPending}
       />
 
@@ -790,9 +795,9 @@ export default function BankTransferCtmPage() {
         onOpenChange={setShowLoadConfirm}
         onLoad={() => handleBankTransferCtmSearch(searchNo)}
         code={searchNo}
-        typeLabel="Bank Transfer"
+        typeLabel="Bank Transfer CTM"
         showDetails={false}
-        description={`Do you want to load Bank Transfer ${searchNo}?`}
+        description={`Do you want to load Bank Transfer CTM ${searchNo}?`}
         isLoading={isLoadingBankTransferCtm}
       />
 
@@ -801,8 +806,8 @@ export default function BankTransferCtmPage() {
         open={showResetConfirm}
         onOpenChange={setShowResetConfirm}
         onConfirm={handleBankTransferCtmReset}
-        itemName={bankTransfer?.transferNo}
-        title="Reset Bank Transfer"
+        itemName={bankTransferCtm?.transferNo}
+        title="Reset Bank Transfer CTM"
         description="This will clear all unsaved changes."
       />
 
@@ -811,9 +816,9 @@ export default function BankTransferCtmPage() {
         open={showCloneConfirm}
         onOpenChange={setShowCloneConfirm}
         onConfirm={handleCloneBankTransferCtm}
-        itemName={bankTransfer?.transferNo}
-        title="Clone Bank Transfer"
-        description="This will create a copy as a new bank transfer."
+        itemName={bankTransferCtm?.transferNo}
+        title="Clone Bank Transfer CTM"
+        description="This will create a copy as a new Bank Transfer CTM."
       />
     </div>
   )

@@ -88,24 +88,12 @@ export default function PettyCashTable({
       },
     },
     {
-      accessorKey: "chequeDate",
-      header: "Cheque Date",
-      cell: ({ row }) => {
-        const date = row.original.chequeDate
-          ? new Date(row.original.chequeDate)
-          : null
-        return date ? format(date, dateFormat) : "-"
-      },
+      accessorKey: "paymentTypeCode",
+      header: "Payment Type Code",
     },
     {
-      accessorKey: "gstClaimDate",
-      header: "GST Claim Date",
-      cell: ({ row }) => {
-        const date = row.original.gstClaimDate
-          ? new Date(row.original.gstClaimDate)
-          : null
-        return date ? format(date, dateFormat) : "-"
-      },
+      accessorKey: "paymentTypeName",
+      header: "Payment Type Name",
     },
     {
       accessorKey: "bankCode",
@@ -114,6 +102,20 @@ export default function PettyCashTable({
     {
       accessorKey: "bankName",
       header: "Bank Name",
+    },
+    {
+      accessorKey: "chequeNo",
+      header: "Cheque No",
+    },
+    {
+      accessorKey: "chequeDate",
+      header: "Cheque Date",
+      cell: ({ row }) => {
+        const date = row.original.chequeDate
+          ? new Date(row.original.chequeDate)
+          : null
+        return date ? format(date, dateFormat) : "-"
+      },
     },
     {
       accessorKey: "currencyCode",
@@ -142,20 +144,22 @@ export default function PettyCashTable({
       ),
     },
     {
-      accessorKey: "creditTermCode",
-      header: "Credit Term Code",
+      accessorKey: "bankChgAmt",
+      header: "Bank Charge Amount",
+      cell: ({ row }) => (
+        <div className="text-right">
+          {formatNumber(row.getValue("bankChgAmt"), amtDec)}
+        </div>
+      ),
     },
     {
-      accessorKey: "creditTermName",
-      header: "Credit Term Name",
-    },
-    {
-      accessorKey: "bankCode",
-      header: "Bank Code",
-    },
-    {
-      accessorKey: "bankName",
-      header: "Bank Name",
+      accessorKey: "bankChgLocalAmt",
+      header: "Bank Charge Local Amount",
+      cell: ({ row }) => (
+        <div className="text-right">
+          {formatNumber(row.getValue("bankChgLocalAmt"), locAmtDec)}
+        </div>
+      ),
     },
     {
       accessorKey: "totAmt",
@@ -176,6 +180,25 @@ export default function PettyCashTable({
       ),
     },
     {
+      accessorKey: "totCtyAmt",
+      header: "Total Country Amount",
+      cell: ({ row }) => (
+        <div className="text-right">
+          {formatNumber(row.getValue("totCtyAmt"), amtDec)}
+        </div>
+      ),
+    },
+    {
+      accessorKey: "gstClaimDate",
+      header: "GST Claim Date",
+      cell: ({ row }) => {
+        const date = row.original.gstClaimDate
+          ? new Date(row.original.gstClaimDate)
+          : null
+        return date ? format(date, dateFormat) : "-"
+      },
+    },
+    {
       accessorKey: "gstAmt",
       header: "GST Amount",
       cell: ({ row }) => (
@@ -190,6 +213,15 @@ export default function PettyCashTable({
       cell: ({ row }) => (
         <div className="text-right">
           {formatNumber(row.getValue("gstLocalAmt"), locAmtDec)}
+        </div>
+      ),
+    },
+    {
+      accessorKey: "gstCtyAmt",
+      header: "GST Country Amount",
+      cell: ({ row }) => (
+        <div className="text-right">
+          {formatNumber(row.getValue("gstCtyAmt"), amtDec)}
         </div>
       ),
     },
@@ -212,20 +244,63 @@ export default function PettyCashTable({
       ),
     },
     {
+      accessorKey: "totCtyAmtAftGst",
+      header: "Total Country After GST",
+      cell: ({ row }) => (
+        <div className="text-right">
+          {formatNumber(row.getValue("totCtyAmtAftGst"), amtDec)}
+        </div>
+      ),
+    },
+    {
+      accessorKey: "payeeTo",
+      header: "Payee To",
+    },
+    {
       accessorKey: "remarks",
       header: "Remarks",
     },
     {
-      accessorKey: "status",
-      header: "Status",
+      accessorKey: "moduleFrom",
+      header: "Module From",
     },
     {
-      accessorKey: "createByCode",
-      header: "Created By Code",
+      accessorKey: "isPost",
+      header: "Posted",
+      cell: ({ row }) => (row.original.isPost ? "Yes" : "No"),
     },
     {
-      accessorKey: "createByName",
-      header: "Created By Name",
+      accessorKey: "postDate",
+      header: "Post Date",
+      cell: ({ row }) => {
+        const date = row.original.postDate
+          ? new Date(row.original.postDate)
+          : null
+        return date ? format(date, dateFormat) : "-"
+      },
+    },
+    {
+      accessorKey: "isCancel",
+      header: "Cancelled",
+      cell: ({ row }) => (row.original.isCancel ? "Yes" : "No"),
+    },
+    {
+      accessorKey: "cancelDate",
+      header: "Cancel Date",
+      cell: ({ row }) => {
+        const date = row.original.cancelDate
+          ? new Date(row.original.cancelDate)
+          : null
+        return date ? format(date, dateFormat) : "-"
+      },
+    },
+    {
+      accessorKey: "cancelRemarks",
+      header: "Cancel Remarks",
+    },
+    {
+      accessorKey: "createBy",
+      header: "Created By",
     },
     {
       accessorKey: "createDate",
@@ -238,12 +313,8 @@ export default function PettyCashTable({
       },
     },
     {
-      accessorKey: "editByCode",
-      header: "Edited By Code",
-    },
-    {
-      accessorKey: "editByName",
-      header: "Edited By Name",
+      accessorKey: "editBy",
+      header: "Edited By",
     },
     {
       accessorKey: "editDate",
@@ -254,6 +325,10 @@ export default function PettyCashTable({
           : null
         return date ? format(date, dateFormat) : "-"
       },
+    },
+    {
+      accessorKey: "cancelBy",
+      header: "Cancelled By",
     },
     {
       accessorKey: "editVersion",

@@ -236,11 +236,11 @@ export default function BatchPaymentPage() {
 
         refetchBatchPayments()
       } else {
-        toast.error(response.message || "Failed to save batch payment")
+        toast.error(response.message || "Failed to save Batch Payment")
       }
     } catch (error) {
       console.error("Save error:", error)
-      toast.error("Network error while saving batch payment")
+      toast.error("Network error while saving Batch Payment")
     } finally {
       setIsSaving(false)
       setIsSelectingBatchPayment(false)
@@ -255,7 +255,7 @@ export default function BatchPaymentPage() {
         ...batchPayment,
         paymentId: "0",
         paymentNo: "",
-        // Reset amounts for new batch payment
+        // Reset amounts for new Batch Payment
         totAmt: 0,
         totLocalAmt: 0,
         totCtyAmt: 0,
@@ -270,7 +270,7 @@ export default function BatchPaymentPage() {
       }
       setBatchPayment(clonedBatchPayment)
       form.reset(clonedBatchPayment)
-      toast.success("Batch payment cloned successfully")
+      toast.success("Batch Payment cloned successfully")
     }
   }
 
@@ -291,10 +291,10 @@ export default function BatchPaymentPage() {
         })
         refetchBatchPayments()
       } else {
-        toast.error(response.message || "Failed to delete batch payment")
+        toast.error(response.message || "Failed to delete Batch Payment")
       }
     } catch {
-      toast.error("Network error while deleting batch payment")
+      toast.error("Network error while deleting Batch Payment")
     }
   }
 
@@ -306,7 +306,7 @@ export default function BatchPaymentPage() {
       ...defaultBatchPayment,
       data_details: [],
     })
-    toast.success("Batch payment reset successfully")
+    toast.success("Batch Payment reset successfully")
   }
 
   // Helper function to transform ICbBatchPaymentHd to CbBatchPaymentHdSchemaType
@@ -431,7 +431,7 @@ export default function BatchPaymentPage() {
     setIsSelectingBatchPayment(true)
 
     try {
-      // Fetch batch payment details directly using selected batch payment's values
+      // Fetch Batch Payment details directly using selected Batch Payment's values
       const response = await getById(
         `${CbBatchPayment.getByIdNo}/${selectedBatchPayment.paymentId}/${selectedBatchPayment.paymentNo}`
       )
@@ -456,13 +456,13 @@ export default function BatchPaymentPage() {
         }
       } else {
         toast.error(
-          response?.message || "Failed to fetch batch payment details"
+          response?.message || "Failed to fetch Batch Payment details"
         )
         // Keep dialog open on failure so user can try again
       }
     } catch (error) {
-      console.error("Error fetching batch payment details:", error)
-      toast.error("Error loading batchPayment. Please try again.")
+      console.error("Error fetching Batch Payment details:", error)
+      toast.error("Error loading Batch Payment. Please try again.")
       // Keep dialog open on error
     } finally {
       setIsSelectingBatchPayment(false)
@@ -474,7 +474,7 @@ export default function BatchPaymentPage() {
     setFilters(newFilters)
   }
 
-  // Refetch batch payments when filters change (only if dialog is open)
+  // Refetch Batch Payments when filters change (only if dialog is open)
   useEffect(() => {
     if (showListDialog) {
       refetchBatchPayments()
@@ -532,18 +532,18 @@ export default function BatchPaymentPage() {
           form.trigger()
 
           // Show success message
-          toast.success(`Batch payment ${value} loaded successfully`)
+          toast.success(`Batch Payment ${value} loaded successfully`)
 
           // Close the load confirmation dialog on success
           setShowLoadConfirm(false)
         }
       } else {
         toast.error(
-          response?.message || "Failed to fetch batch payment details (direct)"
+          response?.message || "Failed to fetch Batch Payment details (direct)"
         )
       }
     } catch {
-      toast.error("Error searching for batch payment")
+      toast.error("Error searching for Batch Payment")
     } finally {
       setIsSearchingBatchPayment(false)
     }
@@ -555,8 +555,8 @@ export default function BatchPaymentPage() {
 
   // Compose title text
   const titleText = isEdit
-    ? `CB Gen Batch Payment (Edit) - ${paymentNo}`
-    : "CB Gen Batch Payment (New)"
+    ? `CB Batch Payment (Edit) - ${paymentNo}`
+    : "CB Batch Payment (New)"
 
   // Show loading spinner while essential data is loading
   if (!visible || !required) {
@@ -565,7 +565,7 @@ export default function BatchPaymentPage() {
         <div className="text-center">
           <Spinner size="lg" className="mx-auto" />
           <p className="mt-4 text-sm text-gray-600">
-            Loading batch payment form...
+            Loading Batch Payment form...
           </p>
           <p className="mt-2 text-xs text-gray-500">
             Preparing field settings and validation rules
@@ -733,8 +733,8 @@ export default function BatchPaymentPage() {
                   CB Batch Payment List
                 </DialogTitle>
                 <p className="text-muted-foreground text-sm">
-                  Manage and select existing batch payments from the list below.
-                  Use search to filter records or create new batch payments.
+                  Manage and select existing Batch Payments from the list below.
+                  Use search to filter records or create new Batch Payments.
                 </p>
               </div>
             </div>
@@ -748,13 +748,13 @@ export default function BatchPaymentPage() {
                 <Spinner size="lg" className="mx-auto" />
                 <p className="mt-4 text-sm text-gray-600">
                   {isSelectingBatchPayment
-                    ? "Loading batch payment details..."
-                    : "Loading batch payments..."}
+                    ? "Loading Batch Payment details..."
+                    : "Loading Batch Payments..."}
                 </p>
                 <p className="mt-2 text-xs text-gray-500">
                   {isSelectingBatchPayment
-                    ? "Please wait while we fetch the complete batch payment data"
-                    : "Please wait while we fetch the batch payment list"}
+                    ? "Please wait while we fetch the complete Batch Payment data"
+                    : "Please wait while we fetch the Batch Payment list"}
                 </p>
               </div>
             </div>

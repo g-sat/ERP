@@ -92,11 +92,11 @@ export default function BankReconForm({
           />
         )}
 
-        {/* Previous Recon No */}
+        {/* Previous Reconciliation No */}
         <CustomInput
           form={form}
           name="prevReconNo"
-          label="Previous Recon No"
+          label="Previous Reconciliation No"
           isDisabled={true}
         />
 
