@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react"
 import { useParams } from "next/navigation"
+import { calculateAdditionAmount, mathRound } from "@/helpers/account"
 import { ICbBankTransferCtmFilter, ICbBankTransferCtmHd } from "@/interfaces"
 import { ApiResponse } from "@/interfaces/auth"
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
@@ -9,8 +10,9 @@ import {
   CbBankTransferCtmHdSchema,
   CbBankTransferCtmHdSchemaType,
 } from "@/schemas"
+import { useAuthStore } from "@/stores/auth-store"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { format, subMonths } from "date-fns"
+import { add, format, subMonths } from "date-fns"
 import {
   Copy,
   ListFilter,
@@ -23,7 +25,7 @@ import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 
 import { getById } from "@/lib/api-client"
-import { CbBankTransfer } from "@/lib/api-routes"
+import { CbBankTransferCtm } from "@/lib/api-routes"
 import { clientDateFormat, parseDate } from "@/lib/date-utils"
 import { CBTransactionId, ModuleId, TableName } from "@/lib/utils"
 import { useDelete, useGetWithDates, usePersist } from "@/hooks/use-common"
@@ -57,6 +59,10 @@ export default function BankTransferCtmPage() {
 
   const moduleId = ModuleId.cb
   const transactionId = CBTransactionId.cbbanktransferctm
+
+  const { decimals } = useAuthStore()
+  const amtDec = decimals[0]?.amtDec || 2
+  const locAmtDec = decimals[0]?.locAmtDec || 2
 
   const [showListDialog, setShowListDialog] = useState(false)
   const [showSaveConfirm, setShowSaveConfirm] = useState(false)
@@ -148,7 +154,7 @@ export default function BankTransferCtmPage() {
     isLoading: isLoadingBankTransferCtms,
     isRefetching: isRefetchingBankTransferCtms,
   } = useGetWithDates<ICbBankTransferCtmHd>(
-    `${CbBankTransfer.get}`,
+    `${CbBankTransferCtm.get}`,
     TableName.cbBankTransferCtm,
     filters.search,
     filters.startDate?.toString(),
@@ -166,12 +172,12 @@ export default function BankTransferCtmPage() {
 
   // Mutations
   const saveMutation = usePersist<CbBankTransferCtmHdSchemaType>(
-    `${CbBankTransfer.add}`
+    `${CbBankTransferCtm.add}`
   )
   const updateMutation = usePersist<CbBankTransferCtmHdSchemaType>(
-    `${CbBankTransfer.add}`
+    `${CbBankTransferCtm.add}`
   )
-  const deleteMutation = useDelete(`${CbBankTransfer.delete}`)
+  const deleteMutation = useDelete(`${CbBankTransferCtm.delete}`)
 
   // Handle Save
   const handleSaveBankTransferCtm = async () => {
@@ -219,24 +225,32 @@ export default function BankTransferCtmPage() {
         return
       }
 
-      // Validate: fromTotLocalAmt should match sum of details (toTotLocalAmt + bankTotLocalAmt)
+      // Validate: fromTotLocalAmt should match sum of details (toTotLocalAmt + toBankChgLocalAmt)
       const sumOfDetailsLocalAmt = formValues.data_details.reduce(
         (sum, detail) => {
           const toTotLocalAmt = Number(detail.toTotLocalAmt) || 0
           const toBankChgLocalAmt = Number(detail.toBankChgLocalAmt) || 0
-          return sum + toTotLocalAmt + toBankChgLocalAmt
+          // Use helper to add amounts with proper precision
+          const detailTotal = calculateAdditionAmount(
+            toTotLocalAmt,
+            toBankChgLocalAmt,
+            locAmtDec
+          )
+          return calculateAdditionAmount(sum, detailTotal, locAmtDec)
         },
         0
       )
 
-      // Round to 2 decimal places for comparison to avoid floating point issues
-      const fromTotLocalAmtRounded =
-        Math.round(formValues.fromTotLocalAmt * 100) / 100
-      const sumOfDetailsRounded = Math.round(sumOfDetailsLocalAmt * 100) / 100
+      // Round to 2 decimal places for comparison using account helper
+      const fromTotLocalAmtRounded = mathRound(
+        formValues.fromTotLocalAmt,
+        locAmtDec
+      )
+      const sumOfDetailsRounded = mathRound(sumOfDetailsLocalAmt, locAmtDec)
 
       if (fromTotLocalAmtRounded !== sumOfDetailsRounded) {
         toast.warning(
-          `From Total Local Amount (${fromTotLocalAmtRounded.toFixed(2)}) does not match the sum of details (${sumOfDetailsRounded.toFixed(2)}). Please check the amounts.`
+          `From Total Local Amount (${fromTotLocalAmtRounded.toFixed(locAmtDec)}) does not match the sum of details (${sumOfDetailsRounded.toFixed(locAmtDec)}). Please check the amounts.`
         )
         return
       }
@@ -412,6 +426,7 @@ export default function BankTransferCtmPage() {
           transferId: detail.transferId?.toString() ?? "0",
           transferNo: detail.transferNo ?? "",
           itemNo: detail.itemNo ?? 0,
+          seqNo: detail.seqNo ?? 0,
           jobOrderId: detail.jobOrderId ?? 0,
           taskId: detail.taskId ?? 0,
           serviceId: detail.serviceId ?? 0,
@@ -441,7 +456,7 @@ export default function BankTransferCtmPage() {
     try {
       // Fetch Bank Transfer CTM details directly using selected Bank Transfer CTM's values
       const response = await getById(
-        `${CbBankTransfer.getByIdNo}/${selectedBankTransferCtm.transferId}/${selectedBankTransferCtm.transferNo}`
+        `${CbBankTransferCtm.getByIdNo}/${selectedBankTransferCtm.transferId}/${selectedBankTransferCtm.transferNo}`
       )
 
       if (response?.result === 1) {
@@ -527,7 +542,9 @@ export default function BankTransferCtmPage() {
     setIsLoadingBankTransferCtm(true)
 
     try {
-      const response = await getById(`${CbBankTransfer.getByIdNo}/0/${value}`)
+      const response = await getById(
+        `${CbBankTransferCtm.getByIdNo}/0/${value}`
+      )
 
       if (response?.result === 1) {
         const detailedBankTransferCtm = Array.isArray(response.data)

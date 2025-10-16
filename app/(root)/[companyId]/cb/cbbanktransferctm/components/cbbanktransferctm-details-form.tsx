@@ -80,7 +80,46 @@ export default function BankTransferCtmDetailsForm({
 
   const form = useForm<CbBankTransferCtmDtSchemaType>({
     resolver: zodResolver(CbBankTransferCtmDtSchema(required, visible)),
-    defaultValues: editingDetail || createDefaultValues(getNextItemNo()),
+    mode: "onBlur",
+    defaultValues: editingDetail
+      ? {
+          transferId: editingDetail.transferId ?? "0",
+          transferNo: editingDetail.transferNo ?? "",
+          itemNo: editingDetail.itemNo ?? getNextItemNo(),
+          seqNo: editingDetail.seqNo ?? getNextItemNo(),
+
+          // Job Order Fields
+          jobOrderId: editingDetail.jobOrderId ?? 0,
+          jobOrderNo: editingDetail.jobOrderNo ?? "",
+          taskId: editingDetail.taskId ?? 0,
+          taskName: editingDetail.taskName ?? "",
+          serviceId: editingDetail.serviceId ?? 0,
+          serviceName: editingDetail.serviceName ?? "",
+
+          // To Bank Fields
+          toBankId: editingDetail.toBankId ?? 0,
+          toBankCode: editingDetail.toBankCode ?? "",
+          toBankName: editingDetail.toBankName ?? "",
+          toCurrencyId: editingDetail.toCurrencyId ?? 0,
+          toCurrencyCode: editingDetail.toCurrencyCode ?? "",
+          toCurrencyName: editingDetail.toCurrencyName ?? "",
+          toExhRate: editingDetail.toExhRate ?? 0,
+          toBankChgGLId: editingDetail.toBankChgGLId ?? 0,
+          toBankChgGLCode: editingDetail.toBankChgGLCode ?? "",
+          toBankChgGLName: editingDetail.toBankChgGLName ?? "",
+          toBankChgAmt: editingDetail.toBankChgAmt ?? 0,
+          toBankChgLocalAmt: editingDetail.toBankChgLocalAmt ?? 0,
+          toTotAmt: editingDetail.toTotAmt ?? 0,
+          toTotLocalAmt: editingDetail.toTotLocalAmt ?? 0,
+
+          // Bank Exchange Fields
+          bankExhRate: editingDetail.bankExhRate ?? 0,
+          bankTotAmt: editingDetail.bankTotAmt ?? 0,
+          bankTotLocalAmt: editingDetail.bankTotLocalAmt ?? 0,
+
+          editVersion: editingDetail.editVersion ?? 0,
+        }
+      : createDefaultValues(getNextItemNo()),
   })
 
   const watchedJobOrderId = form.watch("jobOrderId")
@@ -88,7 +127,43 @@ export default function BankTransferCtmDetailsForm({
 
   useEffect(() => {
     if (editingDetail) {
-      form.reset(editingDetail)
+      form.reset({
+        transferId: editingDetail.transferId ?? "0",
+        transferNo: editingDetail.transferNo ?? "",
+        itemNo: editingDetail.itemNo ?? getNextItemNo(),
+        seqNo: editingDetail.seqNo ?? getNextItemNo(),
+
+        // Job Order Fields
+        jobOrderId: editingDetail.jobOrderId ?? 0,
+        jobOrderNo: editingDetail.jobOrderNo ?? "",
+        taskId: editingDetail.taskId ?? 0,
+        taskName: editingDetail.taskName ?? "",
+        serviceId: editingDetail.serviceId ?? 0,
+        serviceName: editingDetail.serviceName ?? "",
+
+        // To Bank Fields
+        toBankId: editingDetail.toBankId ?? 0,
+        toBankCode: editingDetail.toBankCode ?? "",
+        toBankName: editingDetail.toBankName ?? "",
+        toCurrencyId: editingDetail.toCurrencyId ?? 0,
+        toCurrencyCode: editingDetail.toCurrencyCode ?? "",
+        toCurrencyName: editingDetail.toCurrencyName ?? "",
+        toExhRate: editingDetail.toExhRate ?? 0,
+        toBankChgGLId: editingDetail.toBankChgGLId ?? 0,
+        toBankChgGLCode: editingDetail.toBankChgGLCode ?? "",
+        toBankChgGLName: editingDetail.toBankChgGLName ?? "",
+        toBankChgAmt: editingDetail.toBankChgAmt ?? 0,
+        toBankChgLocalAmt: editingDetail.toBankChgLocalAmt ?? 0,
+        toTotAmt: editingDetail.toTotAmt ?? 0,
+        toTotLocalAmt: editingDetail.toTotLocalAmt ?? 0,
+
+        // Bank Exchange Fields
+        bankExhRate: editingDetail.bankExhRate ?? 0,
+        bankTotAmt: editingDetail.bankTotAmt ?? 0,
+        bankTotLocalAmt: editingDetail.bankTotLocalAmt ?? 0,
+
+        editVersion: editingDetail.editVersion ?? 0,
+      })
     } else {
       form.reset({
         ...createDefaultValues(getNextItemNo()),
@@ -100,30 +175,84 @@ export default function BankTransferCtmDetailsForm({
   }, [editingDetail])
 
   const onSubmit = async (data: CbBankTransferCtmDtSchemaType) => {
-    if (onAddRowAction) {
-      const newItemNo = editingDetail ? editingDetail.itemNo : getNextItemNo()
+    try {
+      // Validate data against schema
+      const validationResult = CbBankTransferCtmDtSchema(
+        required,
+        visible
+      ).safeParse(data)
 
-      onAddRowAction({
-        ...data,
-        itemNo: newItemNo,
-        transferId: Hdform.getValues("transferId") || "0",
-        transferNo: Hdform.getValues("transferNo") || "",
-        // Lookup fields (populated by API on fetch)
-        jobOrderNo: "",
-        taskName: "",
-        serviceName: "",
-        toBankCode: "",
-        toBankName: "",
-        toCurrencyCode: "",
-        toCurrencyName: "",
-        toBankChgGLCode: "",
-        toBankChgGLName: "",
-      } as ICbBankTransferCtmDt)
-
-      // Reset form for next entry
-      if (!editingDetail) {
-        form.reset(createDefaultValues(newItemNo + 1))
+      if (!validationResult.success) {
+        const errors = validationResult.error.issues
+        const errorMessage = errors
+          .map((err) => `${err.path.join(".")}: ${err.message}`)
+          .join(", ")
+        toast.error(`Validation failed: ${errorMessage}`)
+        console.error("Validation errors:", errors)
+        return
       }
+
+      // Use itemNo as the unique identifier
+      const currentItemNo = data.itemNo || getNextItemNo()
+
+      console.log("currentItemNo : ", currentItemNo)
+      console.log("data : ", data)
+
+      const rowData: ICbBankTransferCtmDt = {
+        transferId: data.transferId ?? "0",
+        transferNo: data.transferNo ?? "",
+        itemNo: data.itemNo ?? currentItemNo,
+        seqNo: data.seqNo ?? currentItemNo,
+
+        // Job Order Fields
+        jobOrderId: data.jobOrderId ?? 0,
+        jobOrderNo: data.jobOrderNo ?? "",
+        taskId: data.taskId ?? 0,
+        taskName: data.taskName ?? "",
+        serviceId: data.serviceId ?? 0,
+        serviceName: data.serviceName ?? "",
+
+        // To Bank Fields
+        toBankId: data.toBankId ?? 0,
+        toBankCode: data.toBankCode ?? "",
+        toBankName: data.toBankName ?? "",
+        toCurrencyId: data.toCurrencyId ?? 0,
+        toCurrencyCode: data.toCurrencyCode ?? "",
+        toCurrencyName: data.toCurrencyName ?? "",
+        toExhRate: data.toExhRate ?? 0,
+        toBankChgGLId: data.toBankChgGLId ?? 0,
+        toBankChgGLCode: data.toBankChgGLCode ?? "",
+        toBankChgGLName: data.toBankChgGLName ?? "",
+        toBankChgAmt: data.toBankChgAmt ?? 0,
+        toBankChgLocalAmt: data.toBankChgLocalAmt ?? 0,
+        toTotAmt: data.toTotAmt ?? 0,
+        toTotLocalAmt: data.toTotLocalAmt ?? 0,
+
+        // Bank Exchange Fields
+        bankExhRate: data.bankExhRate ?? 0,
+        bankTotAmt: data.bankTotAmt ?? 0,
+        bankTotLocalAmt: data.bankTotLocalAmt ?? 0,
+
+        editVersion: data.editVersion ?? 0,
+      }
+
+      if (rowData) {
+        onAddRowAction?.(rowData)
+
+        // Show success message
+        if (editingDetail) {
+          toast.success(`Row ${currentItemNo} updated successfully`)
+        } else {
+          toast.success(`Row ${currentItemNo} added successfully`)
+        }
+
+        // Reset the form with incremented itemNo
+        const nextItemNo = getNextItemNo()
+        form.reset(createDefaultValues(nextItemNo))
+      }
+    } catch (error) {
+      console.error("Error adding row:", error)
+      toast.error("Failed to add row. Please check the form and try again.")
     }
   }
 
@@ -134,14 +263,20 @@ export default function BankTransferCtmDetailsForm({
         shouldValidate: true,
         shouldDirty: true,
       })
+      form.setValue("jobOrderNo", selectedOption.jobOrderNo || "")
       // Reset task and service when job order changes
       form.setValue("taskId", 0, { shouldValidate: true })
+      form.setValue("taskName", "")
       form.setValue("serviceId", 0, { shouldValidate: true })
+      form.setValue("serviceName", "")
     } else {
       // Clear job order and related fields
       form.setValue("jobOrderId", 0, { shouldValidate: true })
+      form.setValue("jobOrderNo", "")
       form.setValue("taskId", 0, { shouldValidate: true })
+      form.setValue("taskName", "")
       form.setValue("serviceId", 0, { shouldValidate: true })
+      form.setValue("serviceName", "")
     }
   }
 
@@ -152,12 +287,16 @@ export default function BankTransferCtmDetailsForm({
         shouldValidate: true,
         shouldDirty: true,
       })
+      form.setValue("taskName", selectedOption.taskName || "")
       // Reset service when task changes
       form.setValue("serviceId", 0, { shouldValidate: true })
+      form.setValue("serviceName", "")
     } else {
       // Clear task and service fields
       form.setValue("taskId", 0, { shouldValidate: true })
+      form.setValue("taskName", "")
       form.setValue("serviceId", 0, { shouldValidate: true })
+      form.setValue("serviceName", "")
     }
   }
 
@@ -168,6 +307,10 @@ export default function BankTransferCtmDetailsForm({
         shouldValidate: true,
         shouldDirty: true,
       })
+      form.setValue(
+        "serviceName",
+        selectedOption.serviceCode + " " + selectedOption.serviceName || ""
+      )
     } else {
       // Clear service fields
       form.setValue("serviceId", 0, { shouldValidate: true })

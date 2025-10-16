@@ -7,6 +7,7 @@ const defaultBankTransferCtmDt = {
   transferId: "0",
   transferNo: "",
   itemNo: 0,
+  seqNo: 0,
 
   // Job Order Fields
   jobOrderId: 0,

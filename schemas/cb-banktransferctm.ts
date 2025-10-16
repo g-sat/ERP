@@ -14,16 +14,25 @@ export const CbBankTransferCtmDtSchema = (
     seqNo: z.number().optional(),
     // Job Order Fields
     jobOrderId: z.number().optional(),
+    jobOrderNo: z.string().optional(),
     taskId: z.number().optional(),
+    taskName: z.string().optional(),
+    serviceName: z.string().optional(),
     serviceId: z.number().optional(),
 
     // To Bank Fields
     toBankId: z.number().min(1, "To Bank is required"),
+    toBankCode: z.string().optional(),
+    toBankName: z.string().optional(),
     toCurrencyId: z.number().min(1, "To Currency is required"),
+    toCurrencyCode: z.string().optional(),
+    toCurrencyName: z.string().optional(),
     toExhRate: z
       .number()
       .min(0.000001, "To Exchange Rate must be greater than 0"),
     toBankChgGLId: z.number().min(0).optional(),
+    toBankChgGLCode: z.string().optional(),
+    toBankChgGLName: z.string().optional(),
     toBankChgAmt: z.number().min(0),
     toBankChgLocalAmt: z.number().min(0),
     toTotAmt: z.number().min(0, "To Total Amount is required"),
