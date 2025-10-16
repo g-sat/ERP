@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react"
 import { ApiResponse } from "@/interfaces/auth"
 import { IModuleTransactionLookup } from "@/interfaces/lookup"
-import { INumberFormatDetails, INumberFormatGrid } from "@/interfaces/setting"
+import { INumberFormatGrid } from "@/interfaces/setting"
 import { DocumentNoSchemaType, documentNoFormSchema } from "@/schemas/setting"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
@@ -27,6 +27,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { Spinner } from "@/components/ui/spinner"
+import { SaveConfirmation } from "@/components/confirmation/save-confirmation"
 import CustomCheckbox from "@/components/custom/custom-checkbox"
 import CustomInput from "@/components/custom/custom-input"
 import SelectCommon from "@/components/custom/select-common"
@@ -38,6 +40,7 @@ interface ModuleGroup {
 }
 
 export function DocumentNoForm() {
+  const [showSaveConfirmation, setShowSaveConfirmation] = useState(false)
   const [selectedModule, setSelectedModule] = useState<number | null>(null)
   const [selectedTransaction, setSelectedTransaction] = useState<number | null>(
     null
@@ -94,13 +97,6 @@ export function DocumentNoForm() {
     transactionId: selectedTransaction ?? 0,
   })
 
-  const { data: numberFormatData } =
-    (numberFormatDataResponse as ApiResponse<INumberFormatDetails>) ?? {
-      result: 0,
-      message: "",
-      data: [],
-    }
-
   // Get number format details when numberId and year are selected
   const {
     data: numberFormatDetailsDataResponse,
@@ -156,6 +152,15 @@ export function DocumentNoForm() {
 
   // Save number format
   const { mutate: saveNumberFormat, isPending } = useNumberFormatSave()
+
+  // Determine if this is a create or update operation
+  const isUpdate = useMemo(() => {
+    return (
+      numberFormatDataResponse?.result === 1 &&
+      numberFormatDataResponse?.data?.numberId &&
+      numberFormatDataResponse.data.numberId > 0
+    )
+  }, [numberFormatDataResponse])
 
   // Update form when number format data is loaded
   useEffect(() => {
@@ -235,11 +240,16 @@ export function DocumentNoForm() {
     )
   }, [moduleTrnsData, selectedModule, selectedTransaction])
 
-  function onSubmit(data: DocumentNoSchemaType) {
+  function onSubmit() {
     if (!selectedModule || !selectedTransaction) {
       toast.error("Please select a module and transaction")
       return
     }
+    setShowSaveConfirmation(true)
+  }
+
+  function handleConfirmSave() {
+    const data = form.getValues()
 
     // Ensure required fields have default values (C# API requires non-empty strings)
     const payload = {
@@ -376,7 +386,7 @@ export function DocumentNoForm() {
           </div>
           {isModuleListLoading ? (
             <div className="text-muted-foreground flex items-center gap-2 text-sm">
-              <div className="border-primary h-4 w-4 animate-spin rounded-full border-2 border-t-transparent"></div>
+              <Spinner size="sm" className="text-primary" />
               Loading...
             </div>
           ) : isModuleListError ? (
@@ -487,7 +497,7 @@ export function DocumentNoForm() {
         <CardContent className="p-4 sm:p-6">
           {isNumberFormatLoading ? (
             <div className="flex items-center justify-center gap-2 py-8">
-              <div className="border-primary h-6 w-6 animate-spin rounded-full border-2 border-t-transparent"></div>
+              <Spinner size="md" className="text-primary" />
               <span className="text-muted-foreground">
                 Loading configuration...
               </span>
@@ -549,12 +559,10 @@ export function DocumentNoForm() {
                               </span>
                               <Badge
                                 className={`inline-block rounded-full px-2 py-1 text-xs font-semibold text-white sm:px-3 sm:py-1 sm:text-sm ${
-                                  numberFormatData
-                                    ? "bg-green-500"
-                                    : "bg-red-500"
+                                  isUpdate ? "bg-green-500" : "bg-red-500"
                                 }`}
                               >
-                                {numberFormatData ? "Set" : "Not set"}
+                                {isUpdate ? "Configured" : "Not Configured"}
                               </Badge>
                             </div>
                           )}
@@ -610,19 +618,25 @@ export function DocumentNoForm() {
                             >
                               {isPending ? (
                                 <>
-                                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                                  <Spinner size="sm" />
                                   <span className="hidden sm:inline">
-                                    Saving...
+                                    {isUpdate ? "Updating..." : "Saving..."}
                                   </span>
-                                  <span className="sm:hidden">Save...</span>
+                                  <span className="sm:hidden">
+                                    {isUpdate ? "Update..." : "Save..."}
+                                  </span>
                                 </>
                               ) : (
                                 <>
                                   <span>💾</span>
                                   <span className="hidden sm:inline">
-                                    Save Configuration
+                                    {isUpdate
+                                      ? "Update Configuration"
+                                      : "Save Configuration"}
                                   </span>
-                                  <span className="sm:hidden">Save</span>
+                                  <span className="sm:hidden">
+                                    {isUpdate ? "Update" : "Save"}
+                                  </span>
                                 </>
                               )}
                             </Button>
@@ -895,7 +909,7 @@ export function DocumentNoForm() {
                     <tr>
                       <td colSpan={2} className="px-3 py-4 text-center">
                         <div className="text-muted-foreground flex items-center justify-center gap-2 text-sm">
-                          <div className="border-primary h-4 w-4 animate-spin rounded-full border-2 border-t-transparent"></div>
+                          <Spinner size="sm" className="text-primary" />
                           Loading statistics...
                         </div>
                       </td>
@@ -987,6 +1001,24 @@ export function DocumentNoForm() {
           </ScrollArea>
         </CardContent>
       </Card>
+
+      <SaveConfirmation
+        title={
+          isUpdate
+            ? "Update Document Number Format"
+            : "Save Document Number Format"
+        }
+        itemName={
+          selectedModule && selectedTransaction
+            ? `${selectedModuleName} - ${selectedTransactionName}`
+            : "document number format"
+        }
+        open={showSaveConfirmation}
+        onOpenChange={setShowSaveConfirmation}
+        onConfirm={handleConfirmSave}
+        isSaving={isPending}
+        operationType={isUpdate ? "update" : "create"}
+      />
     </div>
   )
 }
