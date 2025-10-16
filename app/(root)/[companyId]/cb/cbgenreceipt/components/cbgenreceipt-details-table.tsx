@@ -253,7 +253,7 @@ export default function ReceiptDetailsTable({
         moduleId={25}
         transactionId={1}
         tableName={TableName.cbGenReceiptDt}
-        emptyMessage="No receipt details found."
+        emptyMessage="No Gen Receipt details found."
         accessorId="itemNo"
         onRefresh={onRefresh}
         onFilterChange={onFilterChange}

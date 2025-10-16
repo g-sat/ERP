@@ -42,10 +42,10 @@ export default function EditVersionDetails({
   const [selectedPayment, setSelectedPayment] =
     useState<ICbGenPaymentHd | null>(null)
 
-  const { data: receiptHistoryData, refetch: refetchHistory } =
+  const { data: paymentHistoryData, refetch: refetchHistory } =
     useGetCBGenPaymentHistoryList<ICbGenPaymentHd[]>(invoiceId)
 
-  const { data: receiptDetailsData, refetch: refetchDetails } =
+  const { data: paymentDetailsData, refetch: refetchDetails } =
     useGetCBGenPaymentHistoryDetails<ICbGenPaymentHd>(
       selectedPayment?.paymentId || "",
       selectedPayment?.editVersion?.toString() || ""
@@ -61,24 +61,24 @@ export default function EditVersionDetails({
 
   // Check if history data is successful and has valid data
   const tableData: ICbGenPaymentHd[] =
-    receiptHistoryData?.result === 1 &&
-    isICbGenPaymentHdArray(receiptHistoryData?.data)
-      ? receiptHistoryData.data
+    paymentHistoryData?.result === 1 &&
+    isICbGenPaymentHdArray(paymentHistoryData?.data)
+      ? paymentHistoryData.data
       : []
 
   // Check if details data is successful and has valid data
   const dialogData: ICbGenPaymentHd | undefined =
-    receiptDetailsData?.result === 1 &&
-    receiptDetailsData?.data &&
-    typeof receiptDetailsData.data === "object" &&
-    receiptDetailsData.data !== null &&
-    !Array.isArray(receiptDetailsData.data)
-      ? (receiptDetailsData.data as ICbGenPaymentHd)
+    paymentDetailsData?.result === 1 &&
+    paymentDetailsData?.data &&
+    typeof paymentDetailsData.data === "object" &&
+    paymentDetailsData.data !== null &&
+    !Array.isArray(paymentDetailsData.data)
+      ? (paymentDetailsData.data as ICbGenPaymentHd)
       : undefined
 
   // Check for API errors
-  const hasHistoryError = receiptHistoryData?.result === -1
-  const hasDetailsError = receiptDetailsData?.result === -1
+  const hasHistoryError = paymentHistoryData?.result === -1
+  const hasDetailsError = paymentDetailsData?.result === -1
 
   const columns: ColumnDef<ICbGenPaymentHd>[] = [
     {
@@ -325,13 +325,13 @@ export default function EditVersionDetails({
       // Only refetch if we don't have a "Data does not exist" error
       if (
         !hasHistoryError ||
-        receiptHistoryData?.message !== "Data does not exist"
+        paymentHistoryData?.message !== "Data does not exist"
       ) {
         await refetchHistory()
       }
       if (
         !hasDetailsError ||
-        receiptDetailsData?.message !== "Data does not exist"
+        paymentDetailsData?.message !== "Data does not exist"
       ) {
         await refetchDetails()
       }
@@ -351,7 +351,7 @@ export default function EditVersionDetails({
           {hasHistoryError && (
             <Alert
               variant={
-                receiptHistoryData?.message === "Data does not exist"
+                paymentHistoryData?.message === "Data does not exist"
                   ? "default"
                   : "destructive"
               }
@@ -359,9 +359,9 @@ export default function EditVersionDetails({
             >
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>
-                {receiptHistoryData?.message === "Data does not exist"
-                  ? "No receipt history found for this receipt."
-                  : `Failed to load receipt history: ${receiptHistoryData?.message || "Unknown error"}`}
+                {paymentHistoryData?.message === "Data does not exist"
+                  ? "No payment history found for this payment."
+                  : `Failed to load Gen Payment history: ${paymentHistoryData?.message || "Unknown error"}`}
               </AlertDescription>
             </Alert>
           )}
@@ -376,7 +376,7 @@ export default function EditVersionDetails({
               hasHistoryError ? "Error loading data" : "No results."
             }
             onRefresh={handleRefresh}
-            onRowSelect={(receipt) => setSelectedPayment(receipt)}
+            onRowSelect={(payment) => setSelectedPayment(payment)}
           />
         </CardContent>
       </Card>
@@ -394,7 +394,7 @@ export default function EditVersionDetails({
           {hasDetailsError && (
             <Alert
               variant={
-                receiptDetailsData?.message === "Data does not exist"
+                paymentDetailsData?.message === "Data does not exist"
                   ? "default"
                   : "destructive"
               }
@@ -402,9 +402,9 @@ export default function EditVersionDetails({
             >
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>
-                {receiptDetailsData?.message === "Data does not exist"
-                  ? "No receipt details found for this version."
-                  : `Failed to load receipt details: ${receiptDetailsData?.message || "Unknown error"}`}
+                {paymentDetailsData?.message === "Data does not exist"
+                  ? "No Gen Payment details found for this version."
+                  : `Failed to load Gen Payment details: ${paymentDetailsData?.message || "Unknown error"}`}
               </AlertDescription>
             </Alert>
           )}
@@ -431,8 +431,8 @@ export default function EditVersionDetails({
                 ) : (
                   <div className="text-muted-foreground py-4 text-center">
                     {hasDetailsError
-                      ? "Error loading receipt details"
-                      : "No receipt details available"}
+                      ? "Error loading Gen Payment details"
+                      : "No Gen Payment details available"}
                   </div>
                 )}
               </CardContent>
@@ -448,7 +448,7 @@ export default function EditVersionDetails({
                   moduleId={moduleId}
                   transactionId={transactionId}
                   tableName={TableName.cbGenPaymentHistory}
-                  emptyMessage="No receipt details available"
+                  emptyMessage="No Gen Payment details available"
                   onRefresh={handleRefresh}
                   showHeader={true}
                   showFooter={false}

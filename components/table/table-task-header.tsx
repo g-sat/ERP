@@ -93,9 +93,10 @@ export function TaskTableHeader<TData>({
       { chargeName: string; qty: number; count: number }
     >()
 
-    data.forEach((item: any) => {
-      const chargeName = item.chargeName || "N/A"
-      const qty = Number(item.quantity || item.qty || 0)
+    data.forEach((item) => {
+      const itemData = item as Record<string, unknown>
+      const chargeName = (itemData.chargeName as string) || "N/A"
+      const qty = Number(itemData.quantity || itemData.qty || 0)
 
       if (chargeMap.has(chargeName)) {
         const existing = chargeMap.get(chargeName)!

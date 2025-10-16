@@ -500,10 +500,3 @@ export enum TableName {
   paymentDetails = "paymentDetails",
   otherDocument = "otherDocument",
 }
-
-const formatNumber = (value: number, decimals: number) => {
-  return value.toLocaleString(undefined, {
-    minimumFractionDigits: decimals,
-    maximumFractionDigits: decimals,
-  })
-}

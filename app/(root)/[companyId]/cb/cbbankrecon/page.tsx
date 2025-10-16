@@ -241,11 +241,11 @@ export default function BankReconPage() {
 
         refetchBankRecons()
       } else {
-        toast.error(response.message || "Failed to save bank reconciliation")
+        toast.error(response.message || "Failed to save Bank Reconciliation")
       }
     } catch (error) {
       console.error("Save error:", error)
-      toast.error("Network error while saving bank reconciliation")
+      toast.error("Network error while saving Bank Reconciliation")
     } finally {
       setIsSaving(false)
       setIsSelectingBankRecon(false)
@@ -292,10 +292,10 @@ export default function BankReconPage() {
         })
         refetchBankRecons()
       } else {
-        toast.error(response.message || "Failed to delete bank reconciliation")
+        toast.error(response.message || "Failed to delete Bank Reconciliation")
       }
     } catch {
-      toast.error("Network error while deleting bank reconciliation")
+      toast.error("Network error while deleting Bank Reconciliation")
     }
   }
 
@@ -307,7 +307,7 @@ export default function BankReconPage() {
       ...defaultBankRecon,
       data_details: [],
     })
-    toast.success("BankRecon reset successfully")
+    toast.success("Bank Reconciliation reset successfully")
   }
 
   // Helper function to transform ICbBankReconHd to CbBankReconHdSchemaType
@@ -426,7 +426,7 @@ export default function BankReconPage() {
     setIsSelectingBankRecon(true)
 
     try {
-      // Fetch receipt details directly using selected receipt's values
+      // Fetch Bank Reconciliation details directly using selected reconciliation's values
       const response = await getById(
         `${CbBankRecon.getByIdNo}/${selectedBankRecon.reconId}/${selectedBankRecon.reconNo}`
       )
@@ -450,13 +450,13 @@ export default function BankReconPage() {
         }
       } else {
         toast.error(
-          response?.message || "Failed to fetch bank reconciliation details"
+          response?.message || "Failed to fetch Bank Reconciliation details"
         )
         // Keep dialog open on failure so user can try again
       }
     } catch (error) {
-      console.error("Error fetching bank reconciliation details:", error)
-      toast.error("Error loading bank reconciliation. Please try again.")
+      console.error("Error fetching Bank Reconciliation details:", error)
+      toast.error("Error loading Bank Reconciliation. Please try again.")
       // Keep dialog open on error
     } finally {
       setIsSelectingBankRecon(false)
@@ -525,7 +525,7 @@ export default function BankReconPage() {
           form.trigger()
 
           // Show success message
-          toast.success(`BankRecon ${value} loaded successfully`)
+          toast.success(`Bank Reconciliation ${value} loaded successfully`)
 
           // Close the load confirmation dialog on success
           setShowLoadConfirm(false)
@@ -533,11 +533,11 @@ export default function BankReconPage() {
       } else {
         toast.error(
           response?.message ||
-            "Failed to fetch bank reconciliation details (direct)"
+            "Failed to fetch Bank Reconciliation details (direct)"
         )
       }
     } catch {
-      toast.error("Error searching for bank reconciliation")
+      toast.error("Error searching for Bank Reconciliation")
     } finally {
       setIsLoadingBankRecon(false)
     }
@@ -559,7 +559,7 @@ export default function BankReconPage() {
         <div className="text-center">
           <Spinner size="lg" className="mx-auto" />
           <p className="mt-4 text-sm text-gray-600">
-            Loading bank reconciliation form...
+            Loading Bank Reconciliation form...
           </p>
           <p className="mt-2 text-xs text-gray-500">
             Preparing field settings and validation rules
@@ -723,9 +723,9 @@ export default function BankReconPage() {
                   CB Bank Reconciliation List
                 </DialogTitle>
                 <p className="text-muted-foreground text-sm">
-                  Manage and select existing bank reconciliations from the list
-                  below. Use search to filter records or create new
-                  reconciliations.
+                  Manage and select existing Bank Reconciliations from the list
+                  below. Use search to filter records or create new Bank
+                  Reconciliations.
                 </p>
               </div>
             </div>
@@ -739,13 +739,13 @@ export default function BankReconPage() {
                 <Spinner size="lg" className="mx-auto" />
                 <p className="mt-4 text-sm text-gray-600">
                   {isSelectingBankRecon
-                    ? "Loading bank reconciliation details..."
-                    : "Loading bank reconciliations..."}
+                    ? "Loading Bank Reconciliation details..."
+                    : "Loading Bank Reconciliations..."}
                 </p>
                 <p className="mt-2 text-xs text-gray-500">
                   {isSelectingBankRecon
-                    ? "Please wait while we fetch the complete bank reconciliation data"
-                    : "Please wait while we fetch the bank reconciliation list"}
+                    ? "Please wait while we fetch the complete Bank Reconciliation data"
+                    : "Please wait while we fetch the Bank Reconciliation list"}
                 </p>
               </div>
             </div>

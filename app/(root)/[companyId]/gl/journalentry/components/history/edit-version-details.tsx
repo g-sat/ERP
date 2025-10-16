@@ -376,8 +376,8 @@ export default function EditVersionDetails({
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>
                 {journalEntryHistoryData?.message === "Data does not exist"
-                  ? "No journal entry history found for this journal entry."
-                  : `Failed to load journal entry history: ${journalEntryHistoryData?.message || "Unknown error"}`}
+                  ? "No Journal Entry history found for this Journal Entry."
+                  : `Failed to load Journal Entry history: ${journalEntryHistoryData?.message || "Unknown error"}`}
               </AlertDescription>
             </Alert>
           )}
@@ -421,8 +421,8 @@ export default function EditVersionDetails({
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>
                 {journalDetailsData?.message === "Data does not exist"
-                  ? "No journal entry details found for this version."
-                  : `Failed to load journal entry details: ${journalDetailsData?.message || "Unknown error"}`}
+                  ? "No Journal Entry details found for this version."
+                  : `Failed to load Journal Entry details: ${journalDetailsData?.message || "Unknown error"}`}
               </AlertDescription>
             </Alert>
           )}
@@ -449,8 +449,8 @@ export default function EditVersionDetails({
                 ) : (
                   <div className="text-muted-foreground py-4 text-center">
                     {hasDetailsError
-                      ? "Error loading journal entry details"
-                      : "No journal entry details available"}
+                      ? "Error loading Journal Entry details"
+                      : "No Journal Entry details available"}
                   </div>
                 )}
               </CardContent>
@@ -466,7 +466,7 @@ export default function EditVersionDetails({
                   moduleId={moduleId}
                   transactionId={transactionId}
                   tableName={TableName.journalEntryHistory}
-                  emptyMessage="No journal entry details available"
+                  emptyMessage="No Journal Entry details available"
                   onRefresh={handleRefresh}
                   showHeader={true}
                   showFooter={false}

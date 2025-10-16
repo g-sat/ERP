@@ -19,7 +19,7 @@ export default function PaymentDetails({ invoiceId }: PaymentDetailsProps) {
   const locAmtDec = decimals[0]?.locAmtDec || 2
   const dateFormat = decimals[0]?.dateFormat || "dd/MM/yyyy"
   const moduleId = ModuleId.cb
-  const transactionId = CBTransactionId.cbgenreceipt
+  const transactionId = CBTransactionId.cbbankrecon
 
   const { data: paymentDetails, refetch: refetchPayment } =
     //useGetPaymentDetails<IPaymentDetails>(25, 1, "14120250100024")

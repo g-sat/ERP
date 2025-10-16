@@ -303,10 +303,10 @@ export default function GenPaymentPage() {
         })
         refetchGenPayments()
       } else {
-        toast.error(response.message || "Failed to delete gen payment")
+        toast.error(response.message || "Failed to delete Gen Payment")
       }
     } catch {
-      toast.error("Network error while deleting gen payment")
+      toast.error("Network error while deleting Gen Payment")
     }
   }
 
@@ -478,12 +478,12 @@ export default function GenPaymentPage() {
           )
         }
       } else {
-        toast.error(response?.message || "Failed to fetch gen payment details")
+        toast.error(response?.message || "Failed to fetch Gen Payment details")
         // Keep dialog open on failure so user can try again
       }
     } catch (error) {
-      console.error("Error fetching gen payment details:", error)
-      toast.error("Error loading gen payment. Please try again.")
+      console.error("Error fetching Gen Payment details:", error)
+      toast.error("Error loading Gen Payment. Please try again.")
       // Keep dialog open on error
     } finally {
       setIsSelectingGenPayment(false)
@@ -559,17 +559,17 @@ export default function GenPaymentPage() {
         }
       } else {
         toast.error(
-          response?.message || "Failed to fetch gen payment details (direct)"
+          response?.message || "Failed to fetch Gen Payment details (direct)"
         )
       }
     } catch {
-      toast.error("Error searching for gen payment")
+      toast.error("Error searching for Gen Payment")
     } finally {
       setIsLoadingGenPayment(false)
     }
   }
 
-  // Determine mode and receipt ID from URL
+  // Determine mode and payment ID from URL
   const paymentNo = form.getValues("paymentNo")
   const isEdit = Boolean(paymentNo)
 
@@ -585,7 +585,7 @@ export default function GenPaymentPage() {
         <div className="text-center">
           <Spinner size="lg" className="mx-auto" />
           <p className="mt-4 text-sm text-gray-600">
-            Loading gen payment form...
+            Loading Gen Payment form...
           </p>
           <p className="mt-2 text-xs text-gray-500">
             Preparing field settings and validation rules
@@ -749,8 +749,8 @@ export default function GenPaymentPage() {
                   CB Gen Payment List
                 </DialogTitle>
                 <p className="text-muted-foreground text-sm">
-                  Manage and select existing gen payments from the list below.
-                  Use search to filter records or create new gen payments.
+                  Manage and select existing Gen Payments from the list below.
+                  Use search to filter records or create new Gen Payments.
                 </p>
               </div>
             </div>
@@ -764,13 +764,13 @@ export default function GenPaymentPage() {
                 <Spinner size="lg" className="mx-auto" />
                 <p className="mt-4 text-sm text-gray-600">
                   {isSelectingGenPayment
-                    ? "Loading gen payment details..."
-                    : "Loading gen payments..."}
+                    ? "Loading Gen Payment details..."
+                    : "Loading Gen Payments..."}
                 </p>
                 <p className="mt-2 text-xs text-gray-500">
                   {isSelectingGenPayment
-                    ? "Please wait while we fetch the complete gen payment data"
-                    : "Please wait while we fetch the gen payment list"}
+                    ? "Please wait while we fetch the complete Gen Payment data"
+                    : "Please wait while we fetch the Gen Payment list"}
                 </p>
               </div>
             </div>

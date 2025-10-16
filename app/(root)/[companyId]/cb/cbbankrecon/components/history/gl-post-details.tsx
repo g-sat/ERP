@@ -26,7 +26,7 @@ export default function GLPostDetails({ invoiceId }: GLPostDetailsProps) {
   const exhRateDec = decimals[0]?.exhRateDec || 6
   const dateFormat = decimals[0]?.dateFormat || "dd/MM/yyyy"
   const moduleId = ModuleId.cb
-  const transactionId = CBTransactionId.cbgenreceipt
+  const transactionId = CBTransactionId.cbbankrecon
 
   const { data: glPostDetails, refetch: refetchGlPost } =
     //useGetGlPostDetails<IGlTransactionDetails>(25, 1, "14120250100024")

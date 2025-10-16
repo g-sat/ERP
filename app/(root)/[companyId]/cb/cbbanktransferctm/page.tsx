@@ -724,8 +724,9 @@ export default function BankTransferCtmPage() {
                   CB Bank Transfer List
                 </DialogTitle>
                 <p className="text-muted-foreground text-sm">
-                  Manage and select existing bank transfers from the list below.
-                  Use search to filter records or create new bank transfers.
+                  Manage and select existing Bank Transfer CTMs from the list
+                  below. Use search to filter records or create new Bank
+                  Transfer CTMs.
                 </p>
               </div>
             </div>
@@ -739,13 +740,13 @@ export default function BankTransferCtmPage() {
                 <Spinner size="lg" className="mx-auto" />
                 <p className="mt-4 text-sm text-gray-600">
                   {isSelectingBankTransferCtm
-                    ? "Loading bank transfer details..."
-                    : "Loading bank transfers..."}
+                    ? "Loading Bank Transfer CTM details..."
+                    : "Loading Bank Transfer CTMs..."}
                 </p>
                 <p className="mt-2 text-xs text-gray-500">
                   {isSelectingBankTransferCtm
-                    ? "Please wait while we fetch the complete bank transfer data"
-                    : "Please wait while we fetch the bank transfer list"}
+                    ? "Please wait while we fetch the complete Bank Transfer CTM data"
+                    : "Please wait while we fetch the Bank Transfer CTM list"}
                 </p>
               </div>
             </div>

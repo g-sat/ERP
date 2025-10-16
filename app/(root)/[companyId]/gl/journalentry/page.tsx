@@ -249,11 +249,11 @@ export default function JournalEntryPage() {
 
         refetchJournals()
       } else {
-        toast.error(response.message || "Failed to save journal entry")
+        toast.error(response.message || "Failed to save Journal Entry")
       }
     } catch (error) {
       console.error("Save error:", error)
-      toast.error("Network error while saving journal entry")
+      toast.error("Network error while saving Journal Entry")
     } finally {
       setIsSaving(false)
       setIsSelectingJournal(false)
@@ -283,7 +283,7 @@ export default function JournalEntryPage() {
       }
       setJournal(clonedJournal)
       form.reset(clonedJournal)
-      toast.success("Journal entry cloned successfully")
+      toast.success("Journal Entry cloned successfully")
     }
   }
 
@@ -304,10 +304,10 @@ export default function JournalEntryPage() {
         })
         refetchJournals()
       } else {
-        toast.error(response.message || "Failed to delete journal entry")
+        toast.error(response.message || "Failed to delete Journal Entry")
       }
     } catch {
-      toast.error("Network error while deleting journal entry")
+      toast.error("Network error while deleting Journal Entry")
     }
   }
 
@@ -319,7 +319,7 @@ export default function JournalEntryPage() {
       ...defaultJournal,
       data_details: [],
     })
-    toast.success("Journal entry reset successfully")
+    toast.success("Journal Entry reset successfully")
   }
 
   // Helper function to transform IGLJournalHd to GLJournalHdSchemaType
@@ -488,13 +488,13 @@ export default function JournalEntryPage() {
         }
       } else {
         toast.error(
-          response?.message || "Failed to fetch journal entry details"
+          response?.message || "Failed to fetch Journal Entry details"
         )
         // Keep dialog open on failure so user can try again
       }
     } catch (error) {
-      console.error("Error fetching journal entry details:", error)
-      toast.error("Error loading journal entry. Please try again.")
+      console.error("Error fetching Journal Entry details:", error)
+      toast.error("Error loading Journal Entry. Please try again.")
       // Keep dialog open on error
     } finally {
       setIsSelectingJournal(false)
@@ -570,11 +570,11 @@ export default function JournalEntryPage() {
         }
       } else {
         toast.error(
-          response?.message || "Failed to fetch journal entry details (direct)"
+          response?.message || "Failed to fetch Journal Entry details (direct)"
         )
       }
     } catch {
-      toast.error("Error searching for journal entry")
+      toast.error("Error searching for Journal Entry")
     } finally {
       setIsLoadingJournal(false)
     }
@@ -596,7 +596,7 @@ export default function JournalEntryPage() {
         <div className="text-center">
           <Spinner size="lg" className="mx-auto" />
           <p className="mt-4 text-sm text-gray-600">
-            Loading journal entry form...
+            Loading Journal Entry form...
           </p>
           <p className="mt-2 text-xs text-gray-500">
             Preparing field settings and validation rules
@@ -760,9 +760,9 @@ export default function JournalEntryPage() {
                   GL Journal Entry List
                 </DialogTitle>
                 <p className="text-muted-foreground text-sm">
-                  Manage and select existing journal entries from the list
-                  below. Use search to filter records or create new journal
-                  entries.
+                  Manage and select existing Journal Entries from the list
+                  below. Use search to filter records or create new Journal
+                  Entries.
                 </p>
               </div>
             </div>
@@ -774,13 +774,13 @@ export default function JournalEntryPage() {
                 <Spinner size="lg" className="mx-auto" />
                 <p className="mt-4 text-sm text-gray-600">
                   {isSelectingJournal
-                    ? "Loading journal entry details..."
-                    : "Loading journal entries..."}
+                    ? "Loading Journal Entry details..."
+                    : "Loading Journal Entries..."}
                 </p>
                 <p className="mt-2 text-xs text-gray-500">
                   {isSelectingJournal
-                    ? "Please wait while we fetch the complete journal entry data"
-                    : "Please wait while we fetch the journal entry list"}
+                    ? "Please wait while we fetch the complete Journal Entry data"
+                    : "Please wait while we fetch the Journal Entry list"}
                 </p>
               </div>
             </div>
@@ -818,7 +818,7 @@ export default function JournalEntryPage() {
         onConfirm={handleJournalDelete}
         itemName={journal?.journalNo}
         title="Delete Journal Entry"
-        description="This action cannot be undone. All journal entry details will be permanently deleted."
+        description="This action cannot be undone. All Journal Entry details will be permanently deleted."
         isDeleting={deleteMutation.isPending}
       />
 
@@ -851,7 +851,7 @@ export default function JournalEntryPage() {
         onConfirm={handleCloneJournal}
         itemName={journal?.journalNo}
         title="Clone Journal Entry"
-        description="This will create a copy as a new journal entry."
+        description="This will create a copy as a new Journal Entry."
       />
     </div>
   )

@@ -526,7 +526,7 @@ export default function EditVersionDetails({
               <AlertDescription>
                 {receiptHistoryData?.message === "Data does not exist"
                   ? "No receipt history found for this receipt."
-                  : `Failed to load receipt history: ${receiptHistoryData?.message || "Unknown error"}`}
+                  : `Failed to load Gen Receipt history: ${receiptHistoryData?.message || "Unknown error"}`}
               </AlertDescription>
             </Alert>
           )}
@@ -568,8 +568,8 @@ export default function EditVersionDetails({
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>
                 {receiptDetailsData?.message === "Data does not exist"
-                  ? "No receipt details found for this version."
-                  : `Failed to load receipt details: ${receiptDetailsData?.message || "Unknown error"}`}
+                  ? "No Gen Receipt details found for this version."
+                  : `Failed to load Gen Receipt details: ${receiptDetailsData?.message || "Unknown error"}`}
               </AlertDescription>
             </Alert>
           )}
@@ -596,8 +596,8 @@ export default function EditVersionDetails({
                 ) : (
                   <div className="text-muted-foreground py-4 text-center">
                     {hasDetailsError
-                      ? "Error loading receipt details"
-                      : "No receipt details available"}
+                      ? "Error loading Gen Receipt details"
+                      : "No Gen Receipt details available"}
                   </div>
                 )}
               </CardContent>
@@ -613,7 +613,7 @@ export default function EditVersionDetails({
                   moduleId={moduleId}
                   transactionId={transactionId}
                   tableName={TableName.cbGenReceiptHistory}
-                  emptyMessage="No receipt details available"
+                  emptyMessage="No Gen Receipt details available"
                   onRefresh={handleRefresh}
                   showHeader={true}
                   showFooter={false}

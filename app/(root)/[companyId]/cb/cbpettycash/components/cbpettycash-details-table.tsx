@@ -231,7 +231,7 @@ export default function PettyCashDetailsTable({
         moduleId={25}
         transactionId={1}
         tableName={TableName.cbPettyCashDt}
-        emptyMessage="No petty cash details found."
+        emptyMessage="No Petty Cash details found."
         accessorId="itemNo"
         onRefresh={onRefresh}
         onFilterChange={onFilterChange}

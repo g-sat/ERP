@@ -37,15 +37,15 @@ export default function EditVersionDetails({
   const exhRateDec = decimals[0]?.exhRateDec || 2
 
   const moduleId = ModuleId.cb
-  const transactionId = CBTransactionId.cbgenreceipt
+  const transactionId = CBTransactionId.cbbankrecon
 
   const [selectedBankRecon, setSelectedBankRecon] =
     useState<ICbBankReconHd | null>(null)
 
-  const { data: receiptHistoryData, refetch: refetchHistory } =
+  const { data: reconHistoryData, refetch: refetchHistory } =
     useGetCBBankReconHistoryList<ICbBankReconHd[]>(invoiceId)
 
-  const { data: receiptDetailsData, refetch: refetchDetails } =
+  const { data: reconDetailsData, refetch: refetchDetails } =
     useGetCBBankReconHistoryDetails<ICbBankReconHd>(
       selectedBankRecon?.reconId || "",
       selectedBankRecon?.editVersion?.toString() || ""
@@ -60,24 +60,24 @@ export default function EditVersionDetails({
 
   // Check if history data is successful and has valid data
   const tableData: ICbBankReconHd[] =
-    receiptHistoryData?.result === 1 &&
-    isICbBankReconHdArray(receiptHistoryData?.data)
-      ? receiptHistoryData.data
+    reconHistoryData?.result === 1 &&
+    isICbBankReconHdArray(reconHistoryData?.data)
+      ? reconHistoryData.data
       : []
 
   // Check if details data is successful and has valid data
   const dialogData: ICbBankReconHd | undefined =
-    receiptDetailsData?.result === 1 &&
-    receiptDetailsData?.data &&
-    typeof receiptDetailsData.data === "object" &&
-    receiptDetailsData.data !== null &&
-    !Array.isArray(receiptDetailsData.data)
-      ? (receiptDetailsData.data as ICbBankReconHd)
+    reconDetailsData?.result === 1 &&
+    reconDetailsData?.data &&
+    typeof reconDetailsData.data === "object" &&
+    reconDetailsData.data !== null &&
+    !Array.isArray(reconDetailsData.data)
+      ? (reconDetailsData.data as ICbBankReconHd)
       : undefined
 
   // Check for API errors
-  const hasHistoryError = receiptHistoryData?.result === -1
-  const hasDetailsError = receiptDetailsData?.result === -1
+  const hasHistoryError = reconHistoryData?.result === -1
+  const hasDetailsError = reconDetailsData?.result === -1
 
   const columns: ColumnDef<ICbBankReconHd>[] = [
     {
@@ -455,13 +455,13 @@ export default function EditVersionDetails({
       // Only refetch if we don't have a "Data does not exist" error
       if (
         !hasHistoryError ||
-        receiptHistoryData?.message !== "Data does not exist"
+        reconHistoryData?.message !== "Data does not exist"
       ) {
         await refetchHistory()
       }
       if (
         !hasDetailsError ||
-        receiptDetailsData?.message !== "Data does not exist"
+        reconDetailsData?.message !== "Data does not exist"
       ) {
         await refetchDetails()
       }
@@ -481,7 +481,7 @@ export default function EditVersionDetails({
           {hasHistoryError && (
             <Alert
               variant={
-                receiptHistoryData?.message === "Data does not exist"
+                reconHistoryData?.message === "Data does not exist"
                   ? "default"
                   : "destructive"
               }
@@ -489,9 +489,9 @@ export default function EditVersionDetails({
             >
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>
-                {receiptHistoryData?.message === "Data does not exist"
-                  ? "No receipt history found for this receipt."
-                  : `Failed to load receipt history: ${receiptHistoryData?.message || "Unknown error"}`}
+                {reconHistoryData?.message === "Data does not exist"
+                  ? "No reconciliation history found for this reconciliation."
+                  : `Failed to load Bank Reconciliation history: ${reconHistoryData?.message || "Unknown error"}`}
               </AlertDescription>
             </Alert>
           )}
@@ -506,7 +506,7 @@ export default function EditVersionDetails({
               hasHistoryError ? "Error loading data" : "No results."
             }
             onRefresh={handleRefresh}
-            onRowSelect={(receipt) => setSelectedBankRecon(receipt)}
+            onRowSelect={(recon) => setSelectedBankRecon(recon)}
           />
         </CardContent>
       </Card>
@@ -524,7 +524,7 @@ export default function EditVersionDetails({
           {hasDetailsError && (
             <Alert
               variant={
-                receiptDetailsData?.message === "Data does not exist"
+                reconDetailsData?.message === "Data does not exist"
                   ? "default"
                   : "destructive"
               }
@@ -532,9 +532,9 @@ export default function EditVersionDetails({
             >
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>
-                {receiptDetailsData?.message === "Data does not exist"
-                  ? "No receipt details found for this version."
-                  : `Failed to load receipt details: ${receiptDetailsData?.message || "Unknown error"}`}
+                {reconDetailsData?.message === "Data does not exist"
+                  ? "No Bank Reconciliation details found for this version."
+                  : `Failed to load Bank Reconciliation details: ${reconDetailsData?.message || "Unknown error"}`}
               </AlertDescription>
             </Alert>
           )}
@@ -561,8 +561,8 @@ export default function EditVersionDetails({
                 ) : (
                   <div className="text-muted-foreground py-4 text-center">
                     {hasDetailsError
-                      ? "Error loading receipt details"
-                      : "No receipt details available"}
+                      ? "Error loading Bank Reconciliation details"
+                      : "No Bank Reconciliation details available"}
                   </div>
                 )}
               </CardContent>
@@ -578,7 +578,7 @@ export default function EditVersionDetails({
                   moduleId={moduleId}
                   transactionId={transactionId}
                   tableName={TableName.cbBankReconHistory}
-                  emptyMessage="No receipt details available"
+                  emptyMessage="No Bank Reconciliation details available"
                   onRefresh={handleRefresh}
                   showHeader={true}
                   showFooter={false}

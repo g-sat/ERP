@@ -247,11 +247,11 @@ export default function GenReceiptPage() {
 
         refetchReceipts()
       } else {
-        toast.error(response.message || "Failed to save receipt")
+        toast.error(response.message || "Failed to save Gen Receipt")
       }
     } catch (error) {
       console.error("Save error:", error)
-      toast.error("Network error while saving receipt")
+      toast.error("Network error while saving Gen Receipt")
     } finally {
       setIsSaving(false)
       setIsSelectingReceipt(false)
@@ -283,7 +283,7 @@ export default function GenReceiptPage() {
       }
       setReceipt(clonedReceipt)
       form.reset(clonedReceipt)
-      toast.success("Receipt cloned successfully")
+      toast.success("Gen Receipt cloned successfully")
     }
   }
 
@@ -304,10 +304,10 @@ export default function GenReceiptPage() {
         })
         refetchReceipts()
       } else {
-        toast.error(response.message || "Failed to delete receipt")
+        toast.error(response.message || "Failed to delete Gen Receipt")
       }
     } catch {
-      toast.error("Network error while deleting receipt")
+      toast.error("Network error while deleting Gen Receipt")
     }
   }
 
@@ -319,7 +319,7 @@ export default function GenReceiptPage() {
       ...defaultReceipt,
       data_details: [],
     })
-    toast.success("Receipt reset successfully")
+    toast.success("Gen Receipt reset successfully")
   }
 
   // Helper function to transform ICbGenReceiptHd to CbGenReceiptHdSchemaType
@@ -485,12 +485,12 @@ export default function GenReceiptPage() {
           )
         }
       } else {
-        toast.error(response?.message || "Failed to fetch receipt details")
+        toast.error(response?.message || "Failed to fetch Gen Receipt details")
         // Keep dialog open on failure so user can try again
       }
     } catch (error) {
-      console.error("Error fetching receipt details:", error)
-      toast.error("Error loading receipt. Please try again.")
+      console.error("Error fetching Gen Receipt details:", error)
+      toast.error("Error loading Gen Receipt. Please try again.")
       // Keep dialog open on error
     } finally {
       setIsSelectingReceipt(false)
@@ -559,18 +559,18 @@ export default function GenReceiptPage() {
           form.trigger()
 
           // Show success message
-          toast.success(`Receipt ${value} loaded successfully`)
+          toast.success(`Gen Receipt ${value} loaded successfully`)
 
           // Close the load confirmation dialog on success
           setShowLoadConfirm(false)
         }
       } else {
         toast.error(
-          response?.message || "Failed to fetch receipt details (direct)"
+          response?.message || "Failed to fetch Gen Receipt details (direct)"
         )
       }
     } catch {
-      toast.error("Error searching for receipt")
+      toast.error("Error searching for Gen Receipt")
     } finally {
       setIsLoadingReceipt(false)
     }
@@ -591,7 +591,9 @@ export default function GenReceiptPage() {
       <div className="flex min-h-screen items-center justify-center">
         <div className="text-center">
           <Spinner size="lg" className="mx-auto" />
-          <p className="mt-4 text-sm text-gray-600">Loading receipt form...</p>
+          <p className="mt-4 text-sm text-gray-600">
+            Loading Gen Receipt form...
+          </p>
           <p className="mt-2 text-xs text-gray-500">
             Preparing field settings and validation rules
           </p>
@@ -754,8 +756,8 @@ export default function GenReceiptPage() {
                   CB Gen Receipt List
                 </DialogTitle>
                 <p className="text-muted-foreground text-sm">
-                  Manage and select existing receipts from the list below. Use
-                  search to filter records or create new receipts.
+                  Manage and select existing Gen Receipts from the list below.
+                  Use search to filter records or create new Gen Receipts.
                 </p>
               </div>
             </div>
@@ -767,13 +769,13 @@ export default function GenReceiptPage() {
                 <Spinner size="lg" className="mx-auto" />
                 <p className="mt-4 text-sm text-gray-600">
                   {isSelectingReceipt
-                    ? "Loading receipt details..."
-                    : "Loading receipts..."}
+                    ? "Loading Gen Receipt details..."
+                    : "Loading Gen Receipts..."}
                 </p>
                 <p className="mt-2 text-xs text-gray-500">
                   {isSelectingReceipt
-                    ? "Please wait while we fetch the complete receipt data"
-                    : "Please wait while we fetch the receipt list"}
+                    ? "Please wait while we fetch the complete Gen Receipt data"
+                    : "Please wait while we fetch the Gen Receipt list"}
                 </p>
               </div>
             </div>

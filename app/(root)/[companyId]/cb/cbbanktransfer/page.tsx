@@ -253,11 +253,11 @@ export default function BankTransferPage() {
 
         refetchBankTransfers()
       } else {
-        toast.error(response.message || "Failed to save bankTransfer")
+        toast.error(response.message || "Failed to save Bank Transfer")
       }
     } catch (error) {
       console.error("Save error:", error)
-      toast.error("Network error while saving bankTransfer")
+      toast.error("Network error while saving Bank Transfer")
     } finally {
       setIsSaving(false)
       setIsSelectingBankTransfer(false)
@@ -305,7 +305,7 @@ export default function BankTransferPage() {
         toast.error(response.message || "Failed to delete Bank Transfer")
       }
     } catch {
-      toast.error("Network error while deleting bank transfer")
+      toast.error("Network error while deleting Bank Transfer")
     }
   }
 
@@ -438,12 +438,14 @@ export default function BankTransferPage() {
           )
         }
       } else {
-        toast.error(response?.message || "Failed to fetch bankTransfer details")
+        toast.error(
+          response?.message || "Failed to fetch Bank Transfer details"
+        )
         // Keep dialog open on failure so user can try again
       }
     } catch (error) {
-      console.error("Error fetching bankTransfer details:", error)
-      toast.error("Error loading bankTransfer. Please try again.")
+      console.error("Error fetching Bank Transfer details:", error)
+      toast.error("Error loading Bank Transfer. Please try again.")
       // Keep dialog open on error
     } finally {
       setIsSelectingBankTransfer(false)
@@ -513,18 +515,18 @@ export default function BankTransferPage() {
           form.trigger()
 
           // Show success message
-          toast.success(`BankTransfer ${value} loaded successfully`)
+          toast.success(`Bank Transfer ${value} loaded successfully`)
 
           // Close the load confirmation dialog on success
           setShowLoadConfirm(false)
         }
       } else {
         toast.error(
-          response?.message || "Failed to fetch bankTransfer details (direct)"
+          response?.message || "Failed to fetch Bank Transfer details (direct)"
         )
       }
     } catch {
-      toast.error("Error searching for bankTransfer")
+      toast.error("Error searching for Bank Transfer")
     } finally {
       setIsLoadingBankTransfer(false)
     }
@@ -546,7 +548,7 @@ export default function BankTransferPage() {
         <div className="text-center">
           <Spinner size="lg" className="mx-auto" />
           <p className="mt-4 text-sm text-gray-600">
-            Loading bankTransfer form...
+            Loading Bank Transfer form...
           </p>
           <p className="mt-2 text-xs text-gray-500">
             Preparing field settings and validation rules
@@ -714,8 +716,8 @@ export default function BankTransferPage() {
                   CB Bank Transfer List
                 </DialogTitle>
                 <p className="text-muted-foreground text-sm">
-                  Manage and select existing bank transfers from the list below.
-                  Use search to filter records or create new bank transfers.
+                  Manage and select existing Bank Transfers from the list below.
+                  Use search to filter records or create new Bank Transfers.
                 </p>
               </div>
             </div>
@@ -729,13 +731,13 @@ export default function BankTransferPage() {
                 <Spinner size="lg" className="mx-auto" />
                 <p className="mt-4 text-sm text-gray-600">
                   {isSelectingBankTransfer
-                    ? "Loading bank transfer details..."
-                    : "Loading bank transfers..."}
+                    ? "Loading Bank Transfer details..."
+                    : "Loading Bank Transfers..."}
                 </p>
                 <p className="mt-2 text-xs text-gray-500">
                   {isSelectingBankTransfer
-                    ? "Please wait while we fetch the complete bank transfer data"
-                    : "Please wait while we fetch the bank transfer list"}
+                    ? "Please wait while we fetch the complete Bank Transfer data"
+                    : "Please wait while we fetch the Bank Transfer list"}
                 </p>
               </div>
             </div>

@@ -243,11 +243,11 @@ export default function PettyCashPage() {
 
         refetchPettyCash()
       } else {
-        toast.error(response.message || "Failed to save petty cash")
+        toast.error(response.message || "Failed to save Petty Cash")
       }
     } catch (error) {
       console.error("Save error:", error)
-      toast.error("Network error while saving petty cash")
+      toast.error("Network error while saving Petty Cash")
     } finally {
       setIsSaving(false)
       setIsSelectingPettyCash(false)
@@ -300,10 +300,10 @@ export default function PettyCashPage() {
         })
         refetchPettyCash()
       } else {
-        toast.error(response.message || "Failed to delete petty cash")
+        toast.error(response.message || "Failed to delete Petty Cash")
       }
     } catch {
-      toast.error("Network error while deleting petty cash")
+      toast.error("Network error while deleting Petty Cash")
     }
   }
 
@@ -475,12 +475,12 @@ export default function PettyCashPage() {
           )
         }
       } else {
-        toast.error(response?.message || "Failed to fetch petty cash details")
+        toast.error(response?.message || "Failed to fetch Petty Cash details")
         // Keep dialog open on failure so user can try again
       }
     } catch (error) {
-      console.error("Error fetching petty cash details:", error)
-      toast.error("Error loading petty cash. Please try again.")
+      console.error("Error fetching Petty Cash details:", error)
+      toast.error("Error loading Petty Cash. Please try again.")
       // Keep dialog open on error
     } finally {
       setIsSelectingPettyCash(false)
@@ -556,11 +556,11 @@ export default function PettyCashPage() {
         }
       } else {
         toast.error(
-          response?.message || "Failed to fetch petty cash details (direct)"
+          response?.message || "Failed to fetch Petty Cash details (direct)"
         )
       }
     } catch {
-      toast.error("Error searching for petty cash")
+      toast.error("Error searching for Petty Cash")
     } finally {
       setIsLoadingPettyCash(false)
     }
@@ -582,7 +582,7 @@ export default function PettyCashPage() {
         <div className="text-center">
           <Spinner size="lg" className="mx-auto" />
           <p className="mt-4 text-sm text-gray-600">
-            Loading petty cash form...
+            Loading Petty Cash form...
           </p>
           <p className="mt-2 text-xs text-gray-500">
             Preparing field settings and validation rules
@@ -746,8 +746,9 @@ export default function PettyCashPage() {
                   CB Petty Cash List
                 </DialogTitle>
                 <p className="text-muted-foreground text-sm">
-                  Manage and select existing petty cash records from the list
-                  below. Use search to filter records or create new records.
+                  Manage and select existing Petty Cash records from the list
+                  below. Use search to filter records or create new Petty Cash
+                  records.
                 </p>
               </div>
             </div>
@@ -761,13 +762,13 @@ export default function PettyCashPage() {
                 <Spinner size="lg" className="mx-auto" />
                 <p className="mt-4 text-sm text-gray-600">
                   {isSelectingPettyCash
-                    ? "Loading petty cash details..."
-                    : "Loading petty cash records..."}
+                    ? "Loading Petty Cash details..."
+                    : "Loading Petty Cash records..."}
                 </p>
                 <p className="mt-2 text-xs text-gray-500">
                   {isSelectingPettyCash
-                    ? "Please wait while we fetch the complete petty cash data"
-                    : "Please wait while we fetch the petty cash list"}
+                    ? "Please wait while we fetch the complete Petty Cash data"
+                    : "Please wait while we fetch the Petty Cash list"}
                 </p>
               </div>
             </div>

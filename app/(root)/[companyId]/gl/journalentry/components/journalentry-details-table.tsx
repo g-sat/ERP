@@ -279,7 +279,7 @@ export default function JournalDetailsTable({
         moduleId={28}
         transactionId={1}
         tableName={TableName.journalEntryDt}
-        emptyMessage="No journal entry details found."
+        emptyMessage="No Journal Entry details found."
         accessorId="itemNo"
         onRefresh={onRefresh}
         onFilterChange={onFilterChange}
