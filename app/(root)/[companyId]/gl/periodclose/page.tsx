@@ -2,55 +2,77 @@
 
 import { useEffect, useState } from "react"
 import { ApiResponse } from "@/interfaces/auth"
-import { IGLPeriodClose } from "@/interfaces/gl-periodclose"
+import {
+  IGLPeriodClose,
+  IGeneratePeriodRequest,
+} from "@/interfaces/gl-periodclose"
 import { useAuthStore } from "@/stores/auth-store"
-import { ColumnDef } from "@tanstack/react-table"
-import { format } from "date-fns"
+import { useQueryClient } from "@tanstack/react-query"
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 
-import {
-  useGLPeriodCloseSave,
-  useGetGLPeriodCloseByCompanyYear,
-} from "@/hooks/use-gl-periodclose"
+import { GLPeriodClose } from "@/lib/api-routes"
+import { useDelete, useGet, usePersist } from "@/hooks/use-common"
 import { Button } from "@/components/ui/button"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Form } from "@/components/ui/form"
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import { Spinner } from "@/components/ui/spinner"
+import CurrentYearAutocomplete from "@/components/autocomplete/autocomplete-year-current"
+import { DeleteConfirmation } from "@/components/confirmation/delete-confirmation"
 import { SaveConfirmation } from "@/components/confirmation/save-confirmation"
 import { DataTableSkeleton } from "@/components/skeleton/data-table-skeleton"
-import { SettingTable } from "@/components/table/table-setting"
+
+import { GeneratePeriodForm } from "./components/generateperiod-form"
+import { PeriodCloseTable } from "./components/periodclose-table"
 
 export default function GLPeriodClosePage() {
-  const form = useForm()
+  // Move queryClient to top for proper usage order
+  const queryClient = useQueryClient()
+
   const currentYear = new Date().getFullYear()
-  const [selectedYear, setSelectedYear] = useState<number>(currentYear)
+  const form = useForm({
+    defaultValues: {
+      yearId: currentYear,
+    },
+  })
+  const [selectedYear, setSelectedYear] = useState<number | undefined>(
+    currentYear
+  )
   const [periodCloseData, setPeriodCloseData] = useState<IGLPeriodClose[]>([])
   const [saving, setSaving] = useState(false)
   const [showSaveConfirmation, setShowSaveConfirmation] = useState(false)
+  const [showGenerateDialog, setShowGenerateDialog] = useState(false)
+  const [showGenerateConfirmation, setShowGenerateConfirmation] =
+    useState(false)
+  const [pendingGenerateData, setPendingGenerateData] =
+    useState<IGeneratePeriodRequest | null>(null)
+  const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+  const [generating, setGenerating] = useState(false)
 
   const { decimals } = useAuthStore()
   const dateFormat = decimals[0]?.dateFormat || "dd/MM/yyyy"
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
 
-  // Generate year options (current year ± 5 years)
-  const yearOptions = Array.from({ length: 11 }, (_, i) => currentYear - 5 + i)
-
   // Fetch period close data for selected year
-  const {
-    data: periodCloseResponse,
-    refetch: refetchPeriodClose,
-    isFetching: isDataLoading,
-  } = useGetGLPeriodCloseByCompanyYear(selectedYear)
+  const { data: periodCloseResponse, isLoading } = useGet<IGLPeriodClose>(
+    `${GLPeriodClose.get}/${selectedYear?.toString()}`,
+    "periodClose"
+  )
 
-  // Save period close mutation
-  const periodCloseSave = useGLPeriodCloseSave()
+  // Define mutations for CRUD operations
+  const saveMutation = usePersist<IGLPeriodClose[] | IGLPeriodClose>(
+    `${GLPeriodClose.add}`
+  )
+  const deleteMutation = useDelete(`${GLPeriodClose.delete}`)
+  const generatePeriodMutation = usePersist<IGeneratePeriodRequest>(
+    `${GLPeriodClose.generate}`
+  )
 
   // Update periodCloseData when periodCloseResponse changes
   useEffect(() => {
@@ -66,23 +88,14 @@ export default function GLPeriodClosePage() {
     }
   }, [periodCloseResponse])
 
-  // Update periodCloseData when response changes
-  useEffect(() => {
-    if (periodCloseResponse?.data) {
-      setPeriodCloseData(periodCloseResponse.data)
-    } else {
-      setPeriodCloseData([])
-    }
-  }, [periodCloseResponse])
-
   // When year changes, refetch data
   useEffect(() => {
     if (selectedYear) {
-      refetchPeriodClose()
+      queryClient.invalidateQueries({ queryKey: ["periodClose"] })
     } else {
       setPeriodCloseData([])
     }
-  }, [selectedYear, refetchPeriodClose])
+  }, [selectedYear, queryClient])
 
   const handleFieldChange = (
     field: IGLPeriodClose,
@@ -100,185 +113,6 @@ export default function GLPeriodClosePage() {
     )
   }
 
-  const columns: ColumnDef<IGLPeriodClose>[] = [
-    {
-      accessorKey: "finYear",
-      header: "Year",
-      size: 80,
-      minSize: 70,
-      maxSize: 100,
-    },
-    {
-      accessorKey: "finMonth",
-      header: "Month",
-      size: 80,
-      minSize: 70,
-      maxSize: 100,
-    },
-    {
-      accessorKey: "startDate",
-      header: "Start Date",
-      cell: ({ row }) => {
-        const date = row.getValue("startDate") as string
-        return date ? format(new Date(date), dateFormat) : ""
-      },
-      size: 120,
-      minSize: 100,
-      maxSize: 150,
-    },
-    {
-      accessorKey: "endDate",
-      header: "End Date",
-      cell: ({ row }) => {
-        const date = row.getValue("endDate") as string
-        return date ? format(new Date(date), dateFormat) : ""
-      },
-      size: 120,
-      minSize: 100,
-      maxSize: 150,
-    },
-    {
-      accessorKey: "isArClose",
-      header: "AR Close",
-      cell: ({ row }) => (
-        <div className="text-center">
-          <Checkbox
-            checked={row.getValue("isArClose")}
-            onCheckedChange={(checked) =>
-              handleFieldChange(row.original, "isArClose", checked as boolean)
-            }
-          />
-        </div>
-      ),
-      size: 90,
-      minSize: 80,
-      maxSize: 100,
-    },
-    {
-      accessorKey: "arCloseBy",
-      header: "AR Close By",
-      size: 120,
-      minSize: 100,
-      maxSize: 150,
-    },
-    {
-      accessorKey: "arCloseDate",
-      header: "AR Close Date",
-      cell: ({ row }) => {
-        const date = row.getValue("arCloseDate") as string
-        return date ? format(new Date(date), datetimeFormat) : ""
-      },
-      size: 180,
-      minSize: 160,
-      maxSize: 220,
-    },
-    {
-      accessorKey: "isApClose",
-      header: "AP Close",
-      cell: ({ row }) => (
-        <div className="text-center">
-          <Checkbox
-            checked={row.getValue("isApClose")}
-            onCheckedChange={(checked) =>
-              handleFieldChange(row.original, "isApClose", checked as boolean)
-            }
-          />
-        </div>
-      ),
-      size: 90,
-      minSize: 80,
-      maxSize: 100,
-    },
-    {
-      accessorKey: "apCloseBy",
-      header: "AP Close By",
-      size: 120,
-      minSize: 100,
-      maxSize: 150,
-    },
-    {
-      accessorKey: "apCloseDate",
-      header: "AP Close Date",
-      cell: ({ row }) => {
-        const date = row.getValue("apCloseDate") as string
-        return date ? format(new Date(date), datetimeFormat) : ""
-      },
-      size: 180,
-      minSize: 160,
-      maxSize: 220,
-    },
-    {
-      accessorKey: "isCbClose",
-      header: "CB Close",
-      cell: ({ row }) => (
-        <div className="text-center">
-          <Checkbox
-            checked={row.getValue("isCbClose")}
-            onCheckedChange={(checked) =>
-              handleFieldChange(row.original, "isCbClose", checked as boolean)
-            }
-          />
-        </div>
-      ),
-      size: 90,
-      minSize: 80,
-      maxSize: 100,
-    },
-    {
-      accessorKey: "cbCloseBy",
-      header: "CB Close By",
-      size: 120,
-      minSize: 100,
-      maxSize: 150,
-    },
-    {
-      accessorKey: "cbCloseDate",
-      header: "CB Close Date",
-      cell: ({ row }) => {
-        const date = row.getValue("cbCloseDate") as string
-        return date ? format(new Date(date), datetimeFormat) : ""
-      },
-      size: 180,
-      minSize: 160,
-      maxSize: 220,
-    },
-    {
-      accessorKey: "isGlClose",
-      header: "GL Close",
-      cell: ({ row }) => (
-        <div className="text-center">
-          <Checkbox
-            checked={row.getValue("isGlClose")}
-            onCheckedChange={(checked) =>
-              handleFieldChange(row.original, "isGlClose", checked as boolean)
-            }
-          />
-        </div>
-      ),
-      size: 90,
-      minSize: 80,
-      maxSize: 100,
-    },
-    {
-      accessorKey: "glCloseBy",
-      header: "GL Close By",
-      size: 120,
-      minSize: 100,
-      maxSize: 150,
-    },
-    {
-      accessorKey: "glCloseDate",
-      header: "GL Close Date",
-      cell: ({ row }) => {
-        const date = row.getValue("glCloseDate") as string
-        return date ? format(new Date(date), datetimeFormat) : ""
-      },
-      size: 180,
-      minSize: 160,
-      maxSize: 220,
-    },
-  ]
-
   const handleSave = async () => {
     if (!selectedYear) {
       toast.error("Please select a year first")
@@ -295,13 +129,11 @@ export default function GLPeriodClosePage() {
 
     try {
       setSaving(true)
-      const response = await periodCloseSave.mutateAsync({
-        data: periodCloseData,
-      })
-
+      const response = await saveMutation.mutateAsync(periodCloseData)
       if (response.result === 1) {
         toast.success("Period close data saved successfully")
-        refetchPeriodClose()
+        // Invalidate and refetch the period close query
+        queryClient.invalidateQueries({ queryKey: ["periodClose"] })
       } else {
         toast.error(response.message || "Failed to save period close data")
       }
@@ -310,6 +142,89 @@ export default function GLPeriodClosePage() {
       toast.error("Failed to save period close data")
     } finally {
       setSaving(false)
+      setShowSaveConfirmation(false)
+    }
+  }
+
+  const handleGeneratePeriod = async (data: IGeneratePeriodRequest) => {
+    setPendingGenerateData(data)
+    setShowGenerateConfirmation(true)
+  }
+
+  const handleConfirmGenerate = async () => {
+    if (!pendingGenerateData) {
+      toast.error("No generate data found")
+      return
+    }
+
+    try {
+      setGenerating(true)
+      console.log("Generating period data:", pendingGenerateData)
+      const response =
+        await generatePeriodMutation.mutateAsync(pendingGenerateData)
+
+      if (response.result === 1) {
+        toast.success("Period data generated successfully")
+        // Refresh period close data and year lookup
+        queryClient.invalidateQueries({ queryKey: ["periodClose"] })
+        queryClient.invalidateQueries({ queryKey: ["currentyear-lookUp"] })
+        setShowGenerateDialog(false)
+        setSelectedYear(pendingGenerateData.yearId)
+      } else {
+        toast.error(response.message || "Failed to generate period data")
+      }
+    } catch (error) {
+      console.error("Error generating period data:", error)
+      toast.error("Failed to generate period data")
+    } finally {
+      setGenerating(false)
+      setShowGenerateConfirmation(false)
+      setPendingGenerateData(null)
+    }
+  }
+
+  const handleDelete = () => {
+    if (!selectedYear) {
+      toast.error("Please select a year first")
+      return
+    }
+    if (periodCloseData.length === 0) {
+      toast.error("No period data to delete")
+      return
+    }
+    setShowDeleteConfirmation(true)
+  }
+
+  const handleConfirmDelete = async () => {
+    if (!selectedYear) {
+      toast.error("Please select a year first")
+      return
+    }
+
+    try {
+      setDeleting(true)
+
+      // Delete all periods for the selected year
+      const response = await deleteMutation.mutateAsync(selectedYear.toString())
+
+      if (response.result === 1) {
+        toast.success(
+          `Period data deleted successfully for year ${selectedYear}`
+        )
+        setPeriodCloseData([])
+        queryClient.invalidateQueries({ queryKey: ["periodClose"] })
+        queryClient.invalidateQueries({ queryKey: ["currentyear-lookUp"] })
+        setShowGenerateConfirmation(false)
+        setPendingGenerateData(null)
+      } else {
+        toast.error(response.message || "Failed to delete period data")
+      }
+    } catch (error) {
+      console.error("Error deleting period data:", error)
+      toast.error("Failed to delete period data")
+    } finally {
+      setDeleting(false)
+      setShowDeleteConfirmation(false)
     }
   }
 
@@ -327,7 +242,66 @@ export default function GLPeriodClosePage() {
         </div>
       </div>
 
-      {isDataLoading ? (
+      <div className="mb-4 flex items-center justify-between">
+        <div className="w-64">
+          <CurrentYearAutocomplete
+            form={form}
+            name="yearId"
+            label="Year"
+            isRequired
+            className="w-full"
+            onChangeEvent={(selectedOption) => {
+              if (selectedOption) {
+                setSelectedYear(selectedOption.yearId)
+                queryClient.invalidateQueries({ queryKey: ["periodClose"] })
+              } else {
+                setSelectedYear(undefined)
+                setPeriodCloseData([])
+              }
+            }}
+          />
+        </div>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowGenerateDialog(true)}
+          >
+            Generate Period
+          </Button>
+          <Button
+            variant="destructive"
+            size="sm"
+            onClick={handleDelete}
+            disabled={deleting || !selectedYear || periodCloseData.length === 0}
+          >
+            {deleting ? (
+              <>
+                <Spinner size="sm" className="mr-2" />
+                Deleting...
+              </>
+            ) : (
+              "Delete"
+            )}
+          </Button>
+          <Button
+            onClick={handleSave}
+            disabled={saving || !selectedYear}
+            size="sm"
+          >
+            {saving ? (
+              <>
+                <Spinner size="sm" className="mr-2" />
+                Saving...
+              </>
+            ) : (
+              "Save"
+            )}
+          </Button>
+        </div>
+      </div>
+
+      {isLoading ? (
         <DataTableSkeleton
           columnCount={16}
           filterCount={2}
@@ -353,55 +327,12 @@ export default function GLPeriodClosePage() {
         />
       ) : (
         <>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(() => refetchPeriodClose())}>
-              <div className="mb-4 flex items-center justify-between">
-                <div className="flex items-end gap-4">
-                  <div className="w-64">
-                    <Select
-                      value={selectedYear.toString()}
-                      onValueChange={(value) =>
-                        setSelectedYear(parseInt(value))
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select year" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {yearOptions.map((year) => (
-                          <SelectItem key={year} value={year.toString()}>
-                            {year}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    type="submit"
-                    disabled={isDataLoading}
-                  >
-                    {isDataLoading ? "Loading..." : "Search"}
-                  </Button>
-                </div>
-                <Button
-                  onClick={handleSave}
-                  disabled={saving || !selectedYear}
-                  size="sm"
-                >
-                  {saving ? "Saving..." : "Save"}
-                </Button>
-              </div>
-            </form>
-          </Form>
-
-          <SettingTable
+          <PeriodCloseTable
             data={periodCloseData}
-            columns={columns}
-            isLoading={isDataLoading}
-            emptyMessage="No period close data found."
-            maxHeight="460px"
+            isLoading={isLoading}
+            dateFormat={dateFormat}
+            datetimeFormat={datetimeFormat}
+            onFieldChange={handleFieldChange}
           />
 
           <SaveConfirmation
@@ -412,6 +343,45 @@ export default function GLPeriodClosePage() {
             onConfirm={handleConfirmSave}
             isSaving={saving}
             operationType="save"
+          />
+
+          <SaveConfirmation
+            title="Generate Period Data"
+            itemName={`period data for year ${pendingGenerateData?.yearId || ""}, starting from month ${pendingGenerateData?.monthId || ""} for ${pendingGenerateData?.totalPeriod || ""} periods`}
+            open={showGenerateConfirmation}
+            onOpenChange={setShowGenerateConfirmation}
+            onConfirm={handleConfirmGenerate}
+            isSaving={generating}
+            operationType="save"
+          />
+
+          <Dialog
+            open={showGenerateDialog}
+            onOpenChange={setShowGenerateDialog}
+          >
+            <DialogContent className="sm:max-w-[400px]">
+              <DialogHeader>
+                <DialogTitle>Generate Period</DialogTitle>
+                <DialogDescription>
+                  Select a year and the months for which you want to generate
+                  period close records.
+                </DialogDescription>
+              </DialogHeader>
+
+              <GeneratePeriodForm
+                onGenerate={handleGeneratePeriod}
+                isGenerating={generating}
+              />
+            </DialogContent>
+          </Dialog>
+
+          <DeleteConfirmation
+            title="Delete Period Data"
+            itemName={`all period close data for year ${selectedYear}`}
+            open={showDeleteConfirmation}
+            onOpenChange={setShowDeleteConfirmation}
+            onConfirm={handleConfirmDelete}
+            isDeleting={deleting}
           />
         </>
       )}

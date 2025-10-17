@@ -1,6 +1,7 @@
 "use client"
 
 import React from "react"
+import { IYearLookup } from "@/interfaces/lookup"
 import { IconCheck, IconChevronDown, IconX } from "@tabler/icons-react"
 import { Path, PathValue, UseFormReturn } from "react-hook-form"
 import Select, {
@@ -14,6 +15,7 @@ import Select, {
 } from "react-select"
 
 import { cn } from "@/lib/utils"
+import { useFutureYearLookup } from "@/hooks/use-lookup"
 
 import { FormField, FormItem } from "../ui/form"
 import { Label } from "../ui/label"
@@ -23,7 +25,9 @@ interface FieldOption {
   label: string
 }
 
-export default function MonthAutocomplete<T extends Record<string, unknown>>({
+export default function FutureYearAutocomplete<
+  T extends Record<string, unknown>,
+>({
   form,
   label,
   name,
@@ -38,25 +42,18 @@ export default function MonthAutocomplete<T extends Record<string, unknown>>({
   className?: string
   isDisabled?: boolean
   isRequired?: boolean
-  onChangeEvent?: (selectedOption: FieldOption | null) => void
+  onChangeEvent?: (selectedOption: IYearLookup | null) => void
 }) {
-  // Generate 12 month options (January to December)
-  const monthOptions: FieldOption[] = React.useMemo(() => {
-    const options: FieldOption[] = []
-
-    // Generate options for all 12 months
-    for (let i = 1; i <= 12; i++) {
-      const date = new Date(2000, i - 1, 1) // Use any year, we only need month name
-      const monthName = date.toLocaleDateString("en-US", { month: "long" })
-
-      options.push({
-        value: i.toString(),
-        label: monthName,
-      })
-    }
-
-    return options
-  }, [])
+  const { data: currentYears = [], isLoading } = useFutureYearLookup()
+  // Memoize options to prevent unnecessary recalculations
+  const options: FieldOption[] = React.useMemo(
+    () =>
+      currentYears.map((currentYear: IYearLookup) => ({
+        value: currentYear.yearId.toString(),
+        label: currentYear.yearName,
+      })),
+    [currentYears]
+  )
 
   // Custom components with display names
   const DropdownIndicator = React.memo(
@@ -95,9 +92,8 @@ export default function MonthAutocomplete<T extends Record<string, unknown>>({
       </components.Option>
     )
   })
-  Option.displayName = "Option"
+  Option.displayName = "Option" // Custom classNames for React Select (aligned with shadcn select.tsx)
 
-  // Custom classNames for React Select (aligned with shadcn select.tsx)
   const selectClassNames = React.useMemo(
     () => ({
       control: (state: { isFocused: boolean; isDisabled: boolean }) =>
@@ -126,11 +122,11 @@ export default function MonthAutocomplete<T extends Record<string, unknown>>({
         ),
       noOptionsMessage: () => cn("text-muted-foreground py-2 px-3 text-sm"),
       placeholder: () => cn("text-muted-foreground"),
-      singleValue: () => cn("text-foreground"),
+      singleValue: () => cn("text-foreground"), // Fixed to match menu list
       valueContainer: () => cn("px-0 py-0.5 gap-1"),
       input: () =>
         cn("text-foreground placeholder:text-muted-foreground m-0 p-0"),
-      indicatorsContainer: () => cn(""),
+      indicatorsContainer: () => cn(""), // Gap removed
       clearIndicator: () =>
         cn("text-muted-foreground hover:text-foreground p-1 rounded-sm"),
       dropdownIndicator: () => cn("text-muted-foreground p-1 rounded-sm"),
@@ -145,7 +141,7 @@ export default function MonthAutocomplete<T extends Record<string, unknown>>({
   )
 
   // We still need some styles for things that can't be controlled via className
-  const customStyles: StylesConfig<FieldOption, false> = React.useMemo(
+  const customStyles: StylesConfig<FieldOption, boolean> = React.useMemo(
     () => ({
       control: () => ({}), // Handled by classNames
       menu: () => ({}), // Handled by classNames
@@ -185,27 +181,33 @@ export default function MonthAutocomplete<T extends Record<string, unknown>>({
     (option: SingleValue<FieldOption> | MultiValue<FieldOption>) => {
       const selectedOption = Array.isArray(option) ? option[0] : option
       if (form && name) {
-        // Convert string value to number for consistency
+        // Set the value as a number
         const value = selectedOption ? Number(selectedOption.value) : 0
         form.setValue(name, value as PathValue<T, Path<T>>)
       }
-      onChangeEvent?.(selectedOption)
+      if (onChangeEvent) {
+        const selectedFutureYear = selectedOption
+          ? currentYears.find(
+              (u: IYearLookup) => u.yearId.toString() === selectedOption.value
+            ) || null
+          : null
+        onChangeEvent(selectedFutureYear)
+      }
     },
-    [form, name, onChangeEvent]
+    [form, name, onChangeEvent, currentYears]
   )
 
   // Memoize getValue to prevent unnecessary recalculations
   const getValue = React.useCallback(() => {
     if (form && name) {
       const formValue = form.getValues(name)
-      // Convert form value (number) to string for comparison with options
+      // Convert form value to string for comparison
       return (
-        monthOptions.find((option) => option.value === formValue?.toString()) ||
-        null
+        options.find((option) => option.value === formValue?.toString()) || null
       )
     }
     return null
-  }, [form, name, monthOptions])
+  }, [form, name, options])
 
   if (form && name) {
     return (
@@ -226,11 +228,11 @@ export default function MonthAutocomplete<T extends Record<string, unknown>>({
             return (
               <FormItem className={cn("flex flex-col", className)}>
                 <Select
-                  options={monthOptions}
+                  options={options}
                   value={getValue()}
                   onChange={handleChange}
-                  placeholder="Select month..."
-                  isDisabled={isDisabled}
+                  placeholder="Select FutureYear..."
+                  isDisabled={isDisabled || isLoading}
                   isClearable={true}
                   isSearchable={true}
                   styles={customStyles}
@@ -246,8 +248,8 @@ export default function MonthAutocomplete<T extends Record<string, unknown>>({
                     typeof document !== "undefined" ? document.body : null
                   }
                   menuPosition="fixed"
-                  noOptionsMessage={() => "No months found"}
-                  loadingMessage={() => "Loading..."}
+                  isLoading={isLoading}
+                  loadingMessage={() => "Loading orderTypes..."}
                 />
                 {showError && (
                   <p className="text-destructive mt-1 text-xs">
@@ -281,10 +283,10 @@ export default function MonthAutocomplete<T extends Record<string, unknown>>({
         </div>
       )}
       <Select
-        options={monthOptions}
+        options={options}
         onChange={handleChange}
-        placeholder="Select month..."
-        isDisabled={isDisabled}
+        placeholder="Select FutureYear..."
+        isDisabled={isDisabled || isLoading}
         isClearable={true}
         isSearchable={true}
         styles={customStyles}
@@ -300,8 +302,8 @@ export default function MonthAutocomplete<T extends Record<string, unknown>>({
           typeof document !== "undefined" ? document.body : null
         }
         menuPosition="fixed"
-        noOptionsMessage={() => "No months found"}
-        loadingMessage={() => "Loading..."}
+        isLoading={isLoading}
+        loadingMessage={() => "Loading orderTypes..."}
       />
     </div>
   )

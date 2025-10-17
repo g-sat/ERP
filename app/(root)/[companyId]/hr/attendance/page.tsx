@@ -9,7 +9,7 @@ import { toast } from "sonner"
 import { Hr_Attendance } from "@/lib/api-routes"
 import { usePersist } from "@/hooks/use-common"
 import { Button } from "@/components/ui/button"
-import MonthAutocomplete from "@/components/autocomplete/autocomplete-month"
+import MonthYearAutocomplete from "@/components/autocomplete/autocomplete-monthyear"
 
 import { AttendanceTable } from "./components/attendance-table"
 
@@ -87,7 +87,7 @@ export default function AttendancePage() {
         </div>
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
           <div className="flex items-center gap-2">
-            <MonthAutocomplete
+            <MonthYearAutocomplete
               form={form}
               name="selectedMonth"
               onChangeEvent={handleMonthChange}

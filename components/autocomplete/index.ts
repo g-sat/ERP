@@ -54,7 +54,7 @@ export { default as LoanRequestStatusAutocomplete } from "./autocomplete-loanreq
 export { default as LoanTypeAutocomplete } from "./autocomplete-loantype"
 export { default as ModeTypeAutocomplete } from "./autocomplete-modetype"
 export { default as ModuleAutocomplete } from "./autocomplete-module"
-export { default as MonthAutocomplete } from "./autocomplete-month"
+export { default as MonthYearAutocomplete } from "./autocomplete-monthyear"
 export { default as OrderTypeAutocomplete } from "./autocomplete-ordertype"
 export { default as OrderTypeCategoryAutocomplete } from "./autocomplete-ordertypecategory"
 export { default as PassTypeAutocomplete } from "./autocomplete-passtype"

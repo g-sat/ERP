@@ -26,7 +26,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import MonthAutocomplete from "@/components/autocomplete/autocomplete-month"
+import MonthYearAutocomplete from "@/components/autocomplete/autocomplete-monthyear"
 
 interface BulkAttendanceData {
   employeeId: string
@@ -196,7 +196,7 @@ export function AttendanceBulkForm({
               <div className="flex items-center gap-3">
                 <FormItem>
                   <FormControl>
-                    <MonthAutocomplete
+                    <MonthYearAutocomplete
                       form={form}
                       name="date"
                       onChangeEvent={(value) =>

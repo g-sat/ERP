@@ -64,6 +64,7 @@ import {
   IVisaTypeLookup,
   IVoyageLookup,
   IWorkLocationLookup,
+  IYearLookup,
 } from "@/interfaces/lookup"
 import { IPaymentType } from "@/interfaces/paymenttype"
 import { ISupplierAddress, ISupplierContact } from "@/interfaces/supplier"
@@ -1460,6 +1461,7 @@ export const useDisbursementLookup = () => {
     refetchOnWindowFocus: false,
   })
 }
+
 export const useRepaymentStatusLookup = () => {
   return useQuery<IStatusTypeLookup[]>({
     queryKey: ["repaymentstatus-lookUp"],
@@ -1467,6 +1469,38 @@ export const useRepaymentStatusLookup = () => {
     queryFn: async () => {
       try {
         const data = await getData(Lookup.getRepaymentStatusLookup)
+        return data?.data || []
+      } catch (error) {
+        handleApiError(error)
+      }
+    },
+    refetchOnWindowFocus: false,
+  })
+}
+
+export const useCurrentYearLookup = () => {
+  return useQuery<IYearLookup[]>({
+    queryKey: ["currentyear-lookUp"],
+    placeholderData: keepPreviousData,
+    queryFn: async () => {
+      try {
+        const data = await getData(Lookup.getYear)
+        return data?.data || []
+      } catch (error) {
+        handleApiError(error)
+      }
+    },
+    refetchOnWindowFocus: false,
+  })
+}
+
+export const useFutureYearLookup = () => {
+  return useQuery<IYearLookup[]>({
+    queryKey: ["futureyear-lookUp"],
+    placeholderData: keepPreviousData,
+    queryFn: async () => {
+      try {
+        const data = await getData(Lookup.getFutureYear)
         return data?.data || []
       } catch (error) {
         handleApiError(error)

@@ -471,3 +471,8 @@ export interface IStatusTypeLookup {
   statusTypeCode: string
   statusTypeName: string
 }
+export interface IYearLookup {
+  yearId: number
+  yearCode: string
+  yearName: string
+}

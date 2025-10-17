@@ -33,7 +33,14 @@ export interface IGLPeriodClose {
   createById: number
   createDate: string
   createBy?: string
+
   editById?: number
   editDate?: string
   editBy?: string
+}
+
+export interface IGeneratePeriodRequest {
+  yearId: number
+  monthId: number
+  totalPeriod: number
 }

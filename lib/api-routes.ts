@@ -230,7 +230,7 @@ export const Lookup = {
   getTask: "/master/gettasklookup",
   getCharge: "/master/getchargelookup",
   getYear: "/master/getperiodcloseyear",
-  getNextYear: "/master/getperiodclosenextyear",
+  getFutureYear: "/master/getperiodclosefutureyear",
   getGstCategory: "/master/getgstcategorylookup",
   getTaxCategory: "/master/gettaxcategorylookup",
   getProduct: "/master/getproductlookup",
@@ -983,11 +983,9 @@ export const GlContra = {
 export const GLPeriodClose = {
   get: "/account/getglperiodclose",
   getById: "/account/getglperiodclosebyid",
-  post: "/account/saveglperiodclose",
-  put: "/account/updateglperiodclose",
+  generate: "/account/generateglperiodclose",
+  add: "/account/saveglperiodclose",
   delete: "/account/deleteglperiodclose",
-  bulkAction: "/account/bulk-actionglperiodclose",
-  summary: "/account/summaryglperiodclose",
 }
 
 export const Company = {

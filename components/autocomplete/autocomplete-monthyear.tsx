@@ -23,7 +23,9 @@ interface FieldOption {
   label: string
 }
 
-export default function MonthAutocomplete<T extends Record<string, unknown>>({
+export default function MonthYearAutocomplete<
+  T extends Record<string, unknown>,
+>({
   form,
   label,
   name,
@@ -40,18 +42,25 @@ export default function MonthAutocomplete<T extends Record<string, unknown>>({
   isRequired?: boolean
   onChangeEvent?: (selectedOption: FieldOption | null) => void
 }) {
-  // Generate 12 month options (January to December)
+  // Generate month options for current month and past 12 months
   const monthOptions: FieldOption[] = React.useMemo(() => {
     const options: FieldOption[] = []
+    const currentDate = new Date()
 
-    // Generate options for all 12 months
-    for (let i = 1; i <= 12; i++) {
-      const date = new Date(2000, i - 1, 1) // Use any year, we only need month name
+    // Generate options for current month and past 12 months
+    for (let i = 0; i < 13; i++) {
+      const date = new Date(
+        currentDate.getFullYear(),
+        currentDate.getMonth() - i,
+        1
+      )
+      const year = date.getFullYear()
+      const month = String(date.getMonth() + 1).padStart(2, "0")
       const monthName = date.toLocaleDateString("en-US", { month: "long" })
 
       options.push({
-        value: i.toString(),
-        label: monthName,
+        value: `${year}-${month}`,
+        label: `${monthName} ${year}`,
       })
     }
 
@@ -185,9 +194,7 @@ export default function MonthAutocomplete<T extends Record<string, unknown>>({
     (option: SingleValue<FieldOption> | MultiValue<FieldOption>) => {
       const selectedOption = Array.isArray(option) ? option[0] : option
       if (form && name) {
-        // Convert string value to number for consistency
-        const value = selectedOption ? Number(selectedOption.value) : 0
-        form.setValue(name, value as PathValue<T, Path<T>>)
+        form.setValue(name, selectedOption?.value as PathValue<T, Path<T>>)
       }
       onChangeEvent?.(selectedOption)
     },
@@ -198,11 +205,7 @@ export default function MonthAutocomplete<T extends Record<string, unknown>>({
   const getValue = React.useCallback(() => {
     if (form && name) {
       const formValue = form.getValues(name)
-      // Convert form value (number) to string for comparison with options
-      return (
-        monthOptions.find((option) => option.value === formValue?.toString()) ||
-        null
-      )
+      return monthOptions.find((option) => option.value === formValue) || null
     }
     return null
   }, [form, name, monthOptions])
@@ -246,8 +249,8 @@ export default function MonthAutocomplete<T extends Record<string, unknown>>({
                     typeof document !== "undefined" ? document.body : null
                   }
                   menuPosition="fixed"
-                  noOptionsMessage={() => "No months found"}
-                  loadingMessage={() => "Loading..."}
+                  noOptionsMessage={() => "No months available"}
+                  loadingMessage={() => "Loading months..."}
                 />
                 {showError && (
                   <p className="text-destructive mt-1 text-xs">
@@ -300,8 +303,8 @@ export default function MonthAutocomplete<T extends Record<string, unknown>>({
           typeof document !== "undefined" ? document.body : null
         }
         menuPosition="fixed"
-        noOptionsMessage={() => "No months found"}
-        loadingMessage={() => "Loading..."}
+        noOptionsMessage={() => "No months available"}
+        loadingMessage={() => "Loading months..."}
       />
     </div>
   )
