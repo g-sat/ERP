@@ -247,8 +247,19 @@ export default function BankTransferCtmDetailsForm({
         }
 
         // Reset the form with incremented itemNo
-        const nextItemNo = getNextItemNo()
-        form.reset(createDefaultValues(nextItemNo))
+        // Get the updated data_details from parent form after adding
+        setTimeout(() => {
+          const updatedDetails = Hdform.getValues("data_details") || []
+          const nextItemNo =
+            updatedDetails.length > 0
+              ? Math.max(...updatedDetails.map((d) => d.itemNo || 0)) + 1
+              : 1
+          form.reset({
+            ...createDefaultValues(nextItemNo),
+            transferId: Hdform.getValues("transferId"),
+            transferNo: Hdform.getValues("transferNo"),
+          })
+        }, 0)
       }
     } catch (error) {
       console.error("Error adding row:", error)
@@ -317,6 +328,32 @@ export default function BankTransferCtmDetailsForm({
     }
   }
 
+  // Common handler to calculate bank charges based on difference
+  const calculateBankCharges = React.useCallback(() => {
+    const bankExhRate = form.getValues("bankExhRate") || 0
+    const toExhRate = form.getValues("toExhRate") || 0
+
+    // Only calculate if bank exchange rate is set (user has entered it)
+    if (bankExhRate === 0) {
+      return
+    }
+
+    const bankTotLocalAmt = form.getValues("bankTotLocalAmt") || 0
+    const toTotLocalAmt = form.getValues("toTotLocalAmt") || 0
+
+    // Calculate difference and set to toBankChgLocalAmt
+    const toBankChgLocalAmt = bankTotLocalAmt - toTotLocalAmt
+    form.setValue("toBankChgLocalAmt", toBankChgLocalAmt)
+
+    // Calculate toBankChgAmt if toExhRate is not zero
+    if (toExhRate !== 0) {
+      const toBankChgAmt = toBankChgLocalAmt / toExhRate
+      form.setValue("toBankChgAmt", Number(toBankChgAmt.toFixed(amtDec)))
+    } else {
+      form.setValue("toBankChgAmt", 0)
+    }
+  }, [form, amtDec])
+
   // Handle TO currency selection
   const handleToCurrencyChange = React.useCallback(
     async (selectedCurrency: ICurrencyLookup | null) => {
@@ -341,22 +378,18 @@ export default function BankTransferCtmDetailsForm({
           )
           form.setValue("toTotLocalAmt", toTotLocalAmt)
 
-          const toBankChgAmt = form.getValues("toBankChgAmt") || 0
-          const toBankChgLocalAmt = calculateMultiplierAmount(
-            toBankChgAmt,
-            Number(exhRate),
-            locAmtDec
-          )
-          form.setValue("toBankChgLocalAmt", toBankChgLocalAmt)
+          // Calculate bank charges based on difference
+          setTimeout(() => calculateBankCharges(), 0)
         }
       } else {
         form.setValue("toCurrencyId", 0, { shouldValidate: true })
         form.setValue("toExhRate", 0)
         form.setValue("toTotLocalAmt", 0)
         form.setValue("toBankChgLocalAmt", 0)
+        form.setValue("toBankChgAmt", 0)
       }
     },
-    [form, Hdform, exhRateDec, locAmtDec]
+    [form, Hdform, exhRateDec, locAmtDec, calculateBankCharges]
   )
 
   // Handle TO total amount change
@@ -372,25 +405,11 @@ export default function BankTransferCtmDetailsForm({
         locAmtDec
       )
       form.setValue("toTotLocalAmt", toTotLocalAmt)
-    },
-    [form, locAmtDec]
-  )
 
-  // Handle TO bank charge amount change
-  const handleToBankChgAmtChange = React.useCallback(
-    (value: number) => {
-      form.setValue("toBankChgAmt", value)
-      const toExhRate = form.getValues("toExhRate") || 0
-
-      // Calculate local amount based on exchange rate using helper
-      const toBankChgLocalAmt = calculateMultiplierAmount(
-        value,
-        toExhRate,
-        locAmtDec
-      )
-      form.setValue("toBankChgLocalAmt", toBankChgLocalAmt)
+      // Calculate bank charges based on difference
+      setTimeout(() => calculateBankCharges(), 0)
     },
-    [form, locAmtDec]
+    [form, locAmtDec, calculateBankCharges]
   )
 
   // Handle bank total amount change
@@ -406,8 +425,11 @@ export default function BankTransferCtmDetailsForm({
         locAmtDec
       )
       form.setValue("bankTotLocalAmt", bankTotLocalAmt)
+
+      // Calculate bank charges based on difference
+      setTimeout(() => calculateBankCharges(), 0)
     },
-    [form, locAmtDec]
+    [form, locAmtDec, calculateBankCharges]
   )
 
   // Handle bank exchange rate change
@@ -432,8 +454,11 @@ export default function BankTransferCtmDetailsForm({
         locAmtDec
       )
       form.setValue("bankTotLocalAmt", bankTotLocalAmt)
+
+      // Calculate bank charges based on difference
+      setTimeout(() => calculateBankCharges(), 0)
     },
-    [form, locAmtDec]
+    [form, locAmtDec, calculateBankCharges]
   )
 
   // Handle TO exchange rate change
@@ -450,16 +475,10 @@ export default function BankTransferCtmDetailsForm({
       )
       form.setValue("toTotLocalAmt", toTotLocalAmt)
 
-      // Recalculate bank charge local amount using helper
-      const toBankChgAmt = form.getValues("toBankChgAmt") || 0
-      const toBankChgLocalAmt = calculateMultiplierAmount(
-        toBankChgAmt,
-        toExhRate,
-        locAmtDec
-      )
-      form.setValue("toBankChgLocalAmt", toBankChgLocalAmt)
+      // Calculate bank charges based on difference
+      setTimeout(() => calculateBankCharges(), 0)
     },
-    [form, locAmtDec]
+    [form, locAmtDec, calculateBankCharges]
   )
 
   // Handle bank selection
@@ -544,8 +563,8 @@ export default function BankTransferCtmDetailsForm({
           name="toBankChgAmt"
           label="To Bank Charge Amt"
           round={amtDec}
+          isDisabled={true}
           className="text-right"
-          onChangeEvent={handleToBankChgAmtChange}
         />
 
         <CustomNumberInput
@@ -613,8 +632,16 @@ export default function BankTransferCtmDetailsForm({
             size="sm"
             className="ml-auto"
             onClick={() => {
-              const nextItemNo = getNextItemNo()
-              form.reset(createDefaultValues(nextItemNo))
+              const updatedDetails = Hdform.getValues("data_details") || []
+              const nextItemNo =
+                updatedDetails.length > 0
+                  ? Math.max(...updatedDetails.map((d) => d.itemNo || 0)) + 1
+                  : 1
+              form.reset({
+                ...createDefaultValues(nextItemNo),
+                transferId: Hdform.getValues("transferId"),
+                transferNo: Hdform.getValues("transferNo"),
+              })
               toast.info("Form reset")
             }}
           >
@@ -636,8 +663,16 @@ export default function BankTransferCtmDetailsForm({
               size="sm"
               onClick={() => {
                 _onCancelEdit?.()
-                const nextItemNo = getNextItemNo()
-                form.reset(createDefaultValues(nextItemNo))
+                const updatedDetails = Hdform.getValues("data_details") || []
+                const nextItemNo =
+                  updatedDetails.length > 0
+                    ? Math.max(...updatedDetails.map((d) => d.itemNo || 0)) + 1
+                    : 1
+                form.reset({
+                  ...createDefaultValues(nextItemNo),
+                  transferId: Hdform.getValues("transferId"),
+                  transferNo: Hdform.getValues("transferNo"),
+                })
                 toast.info("Edit cancelled")
               }}
             >

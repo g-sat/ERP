@@ -16,6 +16,8 @@ import {
 import { useAuthStore } from "@/stores/auth-store"
 import { UseFormReturn } from "react-hook-form"
 
+import { useUserSettingDefaults } from "@/hooks/use-settings"
+
 import InvoiceDetailsForm from "./invoice-details-form"
 import InvoiceDetailsTable from "./invoice-details-table"
 import InvoiceForm from "./invoice-form"
@@ -41,6 +43,9 @@ export default function Main({
   const amtDec = decimals[0]?.amtDec || 2
   const locAmtDec = decimals[0]?.locAmtDec || 2
   const ctyAmtDec = decimals[0]?.ctyAmtDec || 2
+
+  // Get user settings with defaults for all modules
+  const { defaults } = useUserSettingDefaults()
 
   const [editingDetail, setEditingDetail] =
     useState<ApInvoiceDtSchemaType | null>(null)
@@ -170,6 +175,7 @@ export default function Main({
         visible={visible}
         required={required}
         companyId={companyId}
+        defaultCurrencyId={defaults.ap.currencyId}
       />
       <div className="rounded-lg border p-4 shadow-sm">
         <InvoiceDetailsForm
@@ -181,6 +187,9 @@ export default function Main({
           visible={visible}
           required={required}
           existingDetails={dataDetails as ApInvoiceDtSchemaType[]}
+          defaultGlId={defaults.ap.invoiceGlId}
+          defaultUomId={defaults.common.uomId}
+          defaultGstId={defaults.common.gstId}
         />
 
         <InvoiceDetailsTable

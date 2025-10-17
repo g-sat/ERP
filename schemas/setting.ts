@@ -33,6 +33,12 @@ export const userSettingSchema = z
     ap_IN_GLId: z.number().min(0),
     ap_CN_GLId: z.number().min(0),
     ap_DN_GLId: z.number().min(0),
+    ar_CurrencyId: z.number().min(0),
+    ap_CurrencyId: z.number().min(0),
+    cb_CurrencyId: z.number().min(0),
+    gl_CurrencyId: z.number().min(0),
+    gstId: z.number().min(0),
+    uomId: z.number().min(0),
   })
   .partial()
 

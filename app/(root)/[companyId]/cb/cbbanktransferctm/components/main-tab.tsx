@@ -47,10 +47,13 @@ export default function Main({
   const handleAddRow = (rowData: ICbBankTransferCtmDt) => {
     const currentData = form.getValues("data_details") || []
 
+    // Create a deep copy of rowData to avoid reference issues
+    const newRowData = { ...rowData }
+
     if (editingDetail) {
       // Update existing row by itemNo (unique identifier)
       const updatedData = currentData.map((item) =>
-        item.itemNo === editingDetail.itemNo ? rowData : item
+        item.itemNo === editingDetail.itemNo ? newRowData : { ...item }
       )
       form.setValue(
         "data_details",
@@ -60,8 +63,9 @@ export default function Main({
 
       setEditingDetail(null)
     } else {
-      // Add new row
-      const updatedData = [...currentData, rowData]
+      // Add new row - create a copy of existing data to avoid mutations
+      const updatedData = currentData.map((item) => ({ ...item }))
+      updatedData.push(newRowData)
       form.setValue(
         "data_details",
         updatedData as unknown as CbBankTransferCtmDtSchemaType[],

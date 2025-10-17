@@ -230,6 +230,8 @@ export default function BankTransferCtmPage() {
         (sum, detail) => {
           const toTotLocalAmt = Number(detail.toTotLocalAmt) || 0
           const toBankChgLocalAmt = Number(detail.toBankChgLocalAmt) || 0
+          console.log("toTotLocalAmt :", toTotLocalAmt)
+          console.log("toBankChgLocalAmt :", toBankChgLocalAmt)
           // Use helper to add amounts with proper precision
           const detailTotal = calculateAdditionAmount(
             toTotLocalAmt,
@@ -240,6 +242,9 @@ export default function BankTransferCtmPage() {
         },
         0
       )
+
+      console.log("sumOfDetailsLocalAmt :", sumOfDetailsLocalAmt)
+      console.log("formValues.fromTotLocalAmt :", formValues.fromTotLocalAmt)
 
       // Round to 2 decimal places for comparison using account helper
       const fromTotLocalAmtRounded = mathRound(

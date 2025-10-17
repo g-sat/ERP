@@ -53,14 +53,6 @@ import CustomTextarea from "@/components/custom/custom-textarea"
 
 import { defaultInvoiceDetails } from "./invoice-defaultvalues"
 
-// Factory function to create default values with dynamic itemNo
-const createDefaultValues = (itemNo: number): ApInvoiceDtSchemaType => ({
-  ...defaultInvoiceDetails,
-  itemNo,
-  seqNo: itemNo,
-  docItemNo: itemNo,
-})
-
 interface InvoiceDetailsFormProps {
   Hdform: UseFormReturn<ApInvoiceHdSchemaType>
   onAddRowAction?: (rowData: IApInvoiceDt) => void
@@ -70,6 +62,9 @@ interface InvoiceDetailsFormProps {
   required: IMandatoryFields
   companyId: number
   existingDetails?: ApInvoiceDtSchemaType[]
+  defaultGlId?: number
+  defaultUomId?: number
+  defaultGstId?: number
 }
 
 export default function InvoiceDetailsForm({
@@ -81,6 +76,9 @@ export default function InvoiceDetailsForm({
   required,
   companyId,
   existingDetails = [],
+  defaultGlId = 0,
+  defaultUomId = 0,
+  defaultGstId = 0,
 }: InvoiceDetailsFormProps) {
   const { decimals } = useAuthStore()
   const amtDec = decimals[0]?.amtDec || 2
@@ -95,6 +93,17 @@ export default function InvoiceDetailsForm({
     const maxItemNo = Math.max(...existingDetails.map((d) => d.itemNo || 0))
     return maxItemNo + 1
   }
+
+  // Factory function to create default values with dynamic itemNo and defaults
+  const createDefaultValues = (itemNo: number): ApInvoiceDtSchemaType => ({
+    ...defaultInvoiceDetails,
+    itemNo,
+    seqNo: itemNo,
+    docItemNo: itemNo,
+    glId: defaultGlId || defaultInvoiceDetails.glId,
+    uomId: defaultUomId || defaultInvoiceDetails.uomId,
+    gstId: defaultGstId || defaultInvoiceDetails.gstId,
+  })
 
   const form = useForm<ApInvoiceDtSchemaType>({
     resolver: zodResolver(apinvoiceDtSchema(required, visible)),
@@ -172,6 +181,51 @@ export default function InvoiceDetailsForm({
   const watchedTaskId = form.watch("taskId")
   const watchedExchangeRate = Hdform.watch("exhRate")
   const watchedCityExchangeRate = Hdform.watch("ctyExhRate")
+
+  // Set default glId, uomId, and gstId when defaults become available (not in edit mode)
+  useEffect(() => {
+    // Only run when defaults are loaded and we're not editing an existing row
+    if (!editingDetail) {
+      const currentGlId = form.getValues("glId")
+      const currentUomId = form.getValues("uomId")
+      const currentGstId = form.getValues("gstId")
+
+      console.log("Invoice Details Form - Checking defaults:", {
+        currentGlId,
+        currentUomId,
+        currentGstId,
+        defaultGlId,
+        defaultUomId,
+        defaultGstId,
+        editingDetail,
+      })
+
+      // Only set defaults if current values are 0 and defaults are available
+      if (defaultGlId > 0 && (!currentGlId || currentGlId === 0)) {
+        console.log("Invoice Details Form - Setting default glId:", defaultGlId)
+        form.setValue("glId", defaultGlId)
+      }
+      if (defaultUomId > 0 && (!currentUomId || currentUomId === 0)) {
+        console.log(
+          "Invoice Details Form - Setting default uomId:",
+          defaultUomId
+        )
+        form.setValue("uomId", defaultUomId)
+      }
+      if (defaultGstId > 0 && (!currentGstId || currentGstId === 0)) {
+        console.log(
+          "Invoice Details Form - Setting default gstId:",
+          defaultGstId
+        )
+        form.setValue("gstId", defaultGstId)
+        // Trigger GST percentage calculation after setting default GST
+        setGSTPercentage(Hdform, form, decimals[0], visible)
+      }
+    }
+    // Only depend on values that should trigger this effect
+    // form, Hdform, decimals, visible are used inside but are stable references
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [defaultGlId, defaultUomId, defaultGstId, editingDetail])
 
   // Recalculate local amounts when exchange rate changes
   useEffect(() => {

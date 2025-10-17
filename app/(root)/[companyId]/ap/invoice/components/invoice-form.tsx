@@ -48,6 +48,7 @@ interface InvoiceFormProps {
   visible: IVisibleFields
   required: IMandatoryFields
   companyId: number
+  defaultCurrencyId?: number
 }
 
 export default function InvoiceForm({
@@ -57,6 +58,7 @@ export default function InvoiceForm({
   visible,
   required,
   companyId: _companyId,
+  defaultCurrencyId = 0,
 }: InvoiceFormProps) {
   const { decimals } = useAuthStore()
   const amtDec = decimals[0]?.amtDec || 2
@@ -112,8 +114,8 @@ export default function InvoiceForm({
       } else {
         // ✅ Supplier cleared - reset all related fields
         if (!isEdit) {
-          // Clear supplier-related fields
-          form.setValue("currencyId", 0)
+          // Clear supplier-related fields, use default currency if available
+          form.setValue("currencyId", defaultCurrencyId)
           form.setValue("creditTermId", 0)
           form.setValue("bankId", 0)
         }
@@ -146,7 +148,7 @@ export default function InvoiceForm({
         form.trigger()
       }
     },
-    [exhRateDec, form, isEdit, visible]
+    [exhRateDec, form, isEdit, visible, defaultCurrencyId]
   )
 
   // Handle transaction date selection
@@ -196,6 +198,41 @@ export default function InvoiceForm({
     },
     [form]
   )
+
+  // Set default currency when form is initialized (not in edit mode)
+  React.useEffect(() => {
+    // Only run when defaultCurrencyId is loaded and we're not in edit mode
+    if (!isEdit && defaultCurrencyId > 0) {
+      const currentCurrencyId = form.getValues("currencyId")
+      const currentSupplierId = form.getValues("supplierId")
+
+      console.log("Invoice Form - Checking defaults:", {
+        currentCurrencyId,
+        currentSupplierId,
+        defaultCurrencyId,
+        isEdit,
+      })
+
+      // Only set default if no currency is set and no supplier is selected
+      if (
+        (!currentCurrencyId || currentCurrencyId === 0) &&
+        (!currentSupplierId || currentSupplierId === 0)
+      ) {
+        console.log(
+          "Invoice Form - Setting default currency:",
+          defaultCurrencyId
+        )
+        form.setValue("currencyId", defaultCurrencyId)
+        // Trigger exchange rate fetch when default currency is set
+        setExchangeRate(form, exhRateDec, visible)
+        if (visible?.m_CtyCurr) {
+          setExchangeRateLocal(form, exhRateDec)
+        }
+      }
+    }
+    // Only depend on values that should trigger this effect
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [defaultCurrencyId, isEdit])
 
   // Recalculate header totals from details
   const recalculateHeaderTotals = React.useCallback(() => {

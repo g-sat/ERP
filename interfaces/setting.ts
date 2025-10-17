@@ -18,6 +18,12 @@ export interface IUserSetting {
   ap_IN_GLId: number
   ap_CN_GLId: number
   ap_DN_GLId: number
+  ar_CurrencyId: number
+  ap_CurrencyId: number
+  cb_CurrencyId: number
+  gl_CurrencyId: number
+  gstId: number
+  uomId: number
 }
 
 export interface IDynmaicLookup {

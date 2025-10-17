@@ -22,6 +22,9 @@ import {
 import { Separator } from "@/components/ui/separator"
 import { Skeleton } from "@/components/ui/skeleton"
 import ChartofAccountAutocomplete from "@/components/autocomplete/autocomplete-chartofaccount"
+import CurrencyAutocomplete from "@/components/autocomplete/autocomplete-currency"
+import GstAutocomplete from "@/components/autocomplete/autocomplete-gst"
+import UomAutocomplete from "@/components/autocomplete/autocomplete-uom"
 import { SaveConfirmation } from "@/components/confirmation/save-confirmation"
 import CustomNumberInput from "@/components/custom/custom-number-input"
 import { LockSkeleton } from "@/components/skeleton/lock-skeleton"
@@ -44,6 +47,8 @@ export function AccountForm() {
   const { data: chartOfAccounts = [], isLoading: isLoadingChartOfAccounts } =
     useChartofAccountLookup(Number(companyId))
 
+  console.log("chartOfAccounts", userSettingResponse)
+
   const { mutate: saveUserSettings, isPending } = useUserSettingSave()
 
   const form = useForm<UserSettingSchemaType>({
@@ -57,6 +62,12 @@ export function AccountForm() {
       ap_IN_GLId: 0,
       ap_CN_GLId: 0,
       ap_DN_GLId: 0,
+      ar_CurrencyId: 0,
+      ap_CurrencyId: 0,
+      cb_CurrencyId: 0,
+      gl_CurrencyId: 0,
+      gstId: 0,
+      uomId: 0,
     },
   })
 
@@ -90,6 +101,12 @@ export function AccountForm() {
           ap_IN_GLId: data.ap_IN_GLId ?? 0,
           ap_CN_GLId: data.ap_CN_GLId ?? 0,
           ap_DN_GLId: data.ap_DN_GLId ?? 0,
+          ar_CurrencyId: data.ar_CurrencyId ?? 0,
+          ap_CurrencyId: data.ap_CurrencyId ?? 0,
+          cb_CurrencyId: data.cb_CurrencyId ?? 0,
+          gl_CurrencyId: data.gl_CurrencyId ?? 0,
+          gstId: data.gstId ?? 0,
+          uomId: data.uomId ?? 0,
         })
       } else if (result === 1 && !data) {
         toast.warning("No account settings data available")
@@ -113,6 +130,12 @@ export function AccountForm() {
       ap_IN_GLId: formData.ap_IN_GLId ?? 0,
       ap_CN_GLId: formData.ap_CN_GLId ?? 0,
       ap_DN_GLId: formData.ap_DN_GLId ?? 0,
+      ar_CurrencyId: formData.ar_CurrencyId ?? 0,
+      ap_CurrencyId: formData.ap_CurrencyId ?? 0,
+      cb_CurrencyId: formData.cb_CurrencyId ?? 0,
+      gl_CurrencyId: formData.gl_CurrencyId ?? 0,
+      gstId: formData.gstId ?? 0,
+      uomId: formData.uomId ?? 0,
     }
 
     saveUserSettings(data, {
@@ -242,7 +265,7 @@ export function AccountForm() {
             {/* AR Section */}
             <div className="space-y-4">
               <h4 className="text-lg font-medium">Accounts Receivable</h4>
-              <div className="grid gap-6 md:grid-cols-3">
+              <div className="grid gap-6 md:grid-cols-4">
                 <div className="space-y-2">
                   <FormField
                     control={form.control}
@@ -315,13 +338,36 @@ export function AccountForm() {
                     )}
                   />
                 </div>
+                <div className="space-y-2">
+                  <FormField
+                    control={form.control}
+                    name="ar_CurrencyId"
+                    render={() => (
+                      <FormItem>
+                        <FormLabel>Default Currency</FormLabel>
+                        <FormControl>
+                          <CurrencyAutocomplete
+                            form={form}
+                            name="ar_CurrencyId"
+                            label=""
+                            isRequired
+                          />
+                        </FormControl>
+                        <p className="text-muted-foreground text-xs">
+                          Default currency for AR transactions
+                        </p>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
               </div>
             </div>
 
             {/* AP Section */}
             <div className="space-y-4">
               <h4 className="text-lg font-medium">Accounts Payable</h4>
-              <div className="grid gap-6 md:grid-cols-3">
+              <div className="grid gap-6 md:grid-cols-4">
                 <div className="space-y-2">
                   <FormField
                     control={form.control}
@@ -394,6 +440,146 @@ export function AccountForm() {
                     )}
                   />
                 </div>
+
+                <div className="space-y-2">
+                  <FormField
+                    control={form.control}
+                    name="ap_CurrencyId"
+                    render={() => (
+                      <FormItem>
+                        <FormLabel>Default Currency</FormLabel>
+                        <FormControl>
+                          <CurrencyAutocomplete
+                            form={form}
+                            name="ap_CurrencyId"
+                            label=""
+                            isRequired
+                          />
+                        </FormControl>
+                        <p className="text-muted-foreground text-xs">
+                          Default currency for AP transactions
+                        </p>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Default Settings Section */}
+        <div className="space-y-6">
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-xl font-semibold">Default Settings</h3>
+                <p className="text-muted-foreground text-sm">
+                  Configure default GST, Unit of Measurement, and
+                  module-specific currencies
+                </p>
+              </div>
+            </div>
+          </div>
+          <Separator />
+          <div className="grid gap-6 md:grid-cols-2">
+            <div className="space-y-2">
+              <FormField
+                control={form.control}
+                name="gstId"
+                render={() => (
+                  <FormItem>
+                    <FormLabel>Default GST</FormLabel>
+                    <FormControl>
+                      <GstAutocomplete
+                        form={form}
+                        name="gstId"
+                        label=""
+                        isRequired
+                      />
+                    </FormControl>
+                    <p className="text-muted-foreground text-xs">
+                      Default GST to be applied in transactions
+                    </p>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+            <div className="space-y-2">
+              <FormField
+                control={form.control}
+                name="uomId"
+                render={() => (
+                  <FormItem>
+                    <FormLabel>Default Unit of Measurement</FormLabel>
+                    <FormControl>
+                      <UomAutocomplete
+                        form={form}
+                        name="uomId"
+                        label=""
+                        isRequired
+                      />
+                    </FormControl>
+                    <p className="text-muted-foreground text-xs">
+                      Default unit of measurement for products
+                    </p>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <h4 className="text-lg font-medium">Module Currencies</h4>
+            <div className="grid gap-6 md:grid-cols-2">
+              <div className="space-y-2">
+                <FormField
+                  control={form.control}
+                  name="cb_CurrencyId"
+                  render={() => (
+                    <FormItem>
+                      <FormLabel>Cash & Bank Currency</FormLabel>
+                      <FormControl>
+                        <CurrencyAutocomplete
+                          form={form}
+                          name="cb_CurrencyId"
+                          label=""
+                          isRequired
+                        />
+                      </FormControl>
+                      <p className="text-muted-foreground text-xs">
+                        Default currency for Cash & Bank transactions
+                      </p>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              <div className="space-y-2">
+                <FormField
+                  control={form.control}
+                  name="gl_CurrencyId"
+                  render={() => (
+                    <FormItem>
+                      <FormLabel>General Ledger Currency</FormLabel>
+                      <FormControl>
+                        <CurrencyAutocomplete
+                          form={form}
+                          name="gl_CurrencyId"
+                          label=""
+                          isRequired
+                        />
+                      </FormControl>
+                      <p className="text-muted-foreground text-xs">
+                        Default currency for General Ledger transactions
+                      </p>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </div>
             </div>
           </div>

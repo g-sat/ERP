@@ -1,3 +1,4 @@
+import { useMemo } from "react"
 import {
   ICloneUserGridSetting,
   IDecFormat,
@@ -10,6 +11,7 @@ import {
 import { DynamicLookupSchemaType } from "@/schemas/setting"
 import { keepPreviousData, useMutation, useQuery } from "@tanstack/react-query"
 import { AxiosError } from "axios"
+
 import { getData, saveData } from "@/lib/api-client"
 import {
   BasicSetting,
@@ -22,6 +24,7 @@ import {
   UserSetting,
   VisibleFieldSetting,
 } from "@/lib/api-routes"
+
 // Common query configuration
 // =========================
 // Decimal Setting Hooks
@@ -102,6 +105,7 @@ export const useUserSettingGet = () => {
     refetchOnWindowFocus: false,
   })
 }
+
 // 2. Save User Setting
 export const useUserSettingSave = () => {
   return useMutation({
@@ -117,6 +121,61 @@ export const useUserSettingSave = () => {
       }
     },
   })
+}
+
+// 3. Get user settings with organized defaults for all modules
+export const useUserSettingDefaults = () => {
+  const { data, isLoading, error } = useUserSettingGet()
+
+  const settings = useMemo((): IUserSetting | null => {
+    if (!data?.data) {
+      return null
+    }
+    return data.data as IUserSetting
+  }, [data?.data])
+
+  // Organized defaults by module for easy access
+  const defaults = useMemo(
+    () => ({
+      // Accounts Payable defaults
+      ap: {
+        currencyId: settings?.ap_CurrencyId || 0,
+        invoiceGlId: settings?.ap_IN_GLId || 0,
+        creditNoteGlId: settings?.ap_CN_GLId || 0,
+        debitNoteGlId: settings?.ap_DN_GLId || 0,
+      },
+      // Accounts Receivable defaults
+      ar: {
+        currencyId: settings?.ar_CurrencyId || 0,
+        invoiceGlId: settings?.ar_IN_GLId || 0,
+        creditNoteGlId: settings?.ar_CN_GLId || 0,
+        debitNoteGlId: settings?.ar_DN_GLId || 0,
+      },
+      // Cash & Bank defaults
+      cb: {
+        currencyId: settings?.cb_CurrencyId || 0,
+      },
+      // General Ledger defaults
+      gl: {
+        currencyId: settings?.gl_CurrencyId || 0,
+      },
+      // Common defaults (shared across modules)
+      common: {
+        gstId: settings?.gstId || 0,
+        uomId: settings?.uomId || 0,
+        trnGridTotalRecords: settings?.trn_Grd_TotRec || 0,
+        masterGridTotalRecords: settings?.m_Grd_TotRec || 0,
+      },
+    }),
+    [settings]
+  )
+
+  return {
+    settings, // Full UserSetting object - access any property
+    defaults, // Organized defaults by module (ap, ar, cb, gl, common)
+    isLoading,
+    error,
+  }
 }
 // End User Setting Hooks
 // =========================
