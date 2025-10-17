@@ -337,6 +337,7 @@ export const CustomDateNew = <T extends FieldValues = FieldValues>({
                       type="button"
                       variant="ghost"
                       onClick={handleClear}
+                      tabIndex={-1}
                       className={cn(
                         "absolute top-1/2 right-10 size-6 -translate-y-1/2 p-0",
                         {
@@ -357,6 +358,7 @@ export const CustomDateNew = <T extends FieldValues = FieldValues>({
                         type="button"
                         variant="ghost"
                         disabled={isDisabled}
+                        tabIndex={-1}
                         className={cn(
                           "absolute top-1/2 right-2 size-6 -translate-y-1/2 p-0",
                           {
