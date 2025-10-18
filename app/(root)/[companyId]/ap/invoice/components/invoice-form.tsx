@@ -406,9 +406,9 @@ export default function InvoiceForm({
     <FormProvider {...form}>
       <form
         onSubmit={form.handleSubmit(onSubmit)}
-        className="grid grid-cols-12 gap-2 rounded-md p-2"
+        className="grid grid-cols-12 rounded-md p-2"
       >
-        <div className="col-span-10 grid grid-cols-6 gap-2 space-y-2">
+        <div className="col-span-10 grid grid-cols-6 gap-2">
           {/* Transaction Date */}
           {visible?.m_TrnDate && (
             <CustomDateNew
@@ -593,7 +593,7 @@ export default function InvoiceForm({
 
         {/* Summary Box */}
         {/* Right Section: Summary Box */}
-        <div className="col-span-2 flex flex-col justify-start">
+        <div className="col-span-2 ml-2 flex flex-col justify-start">
           <div className="w-full rounded-md border border-blue-200 bg-blue-50 p-4 shadow-sm">
             <h3 className="mb-2 text-center font-semibold text-blue-800">
               Financial Summary

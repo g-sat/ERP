@@ -360,267 +360,258 @@ export default function GenPaymentForm({
     <FormProvider {...form}>
       <form
         onSubmit={form.handleSubmit(onSubmit)}
-        className="grid grid-cols-7 gap-2 rounded-md p-2"
+        className="grid grid-cols-12 rounded-md p-2"
       >
-        {/* Transaction Date */}
-        {visible?.m_TrnDate && (
-          <CustomDateNew
+        <div className="col-span-10 grid grid-cols-6 gap-2">
+          {/* Transaction Date */}
+          {visible?.m_TrnDate && (
+            <CustomDateNew
+              form={form}
+              name="trnDate"
+              label="Transaction Date"
+              isRequired={true}
+              onChangeEvent={handleTrnDateChange}
+            />
+          )}
+
+          {/* Account Date */}
+          {visible?.m_AccountDate && (
+            <CustomDateNew
+              form={form}
+              name="accountDate"
+              label="Account Date"
+              isRequired={true}
+              onChangeEvent={handleAccountDateChange}
+            />
+          )}
+
+          {/* Payee To */}
+          <CustomInputGroup
             form={form}
-            name="trnDate"
-            label="Transaction Date"
+            name="payeeTo"
+            label="Payee To"
             isRequired={true}
-            onChangeEvent={handleTrnDateChange}
+            className="col-span-2"
+            buttonText="Add"
+            buttonIcon={<PlusIcon className="h-4 w-4" />}
+            buttonPosition="right"
+            onButtonClick={handleAddPayeeTo}
+            buttonVariant="default"
+            buttonDisabled={false}
           />
-        )}
 
-        {/* Account Date */}
-        {visible?.m_AccountDate && (
-          <CustomDateNew
-            form={form}
-            name="accountDate"
-            label="Account Date"
-            isRequired={true}
-            onChangeEvent={handleAccountDateChange}
-          />
-        )}
-
-        {/* Payee To */}
-        <CustomInputGroup
-          form={form}
-          name="payeeTo"
-          label="Payee To"
-          isRequired={true}
-          className="col-span-2"
-          buttonText="Add"
-          buttonIcon={<PlusIcon className="h-4 w-4" />}
-          buttonPosition="right"
-          onButtonClick={handleAddPayeeTo}
-          buttonVariant="default"
-          buttonDisabled={false}
-        />
-
-        {/* Reference No */}
-        <CustomInput
-          form={form}
-          name="referenceNo"
-          label="Reference No."
-          isRequired={required?.m_ReferenceNo}
-        />
-
-        {/* Bank */}
-        {visible?.m_BankId && (
-          <BankAutocomplete
-            form={form}
-            name="bankId"
-            label="Bank"
-            isRequired={required?.m_BankId}
-            onChangeEvent={handleBankChange}
-          />
-        )}
-
-        {/* Payment Type */}
-        <PaymentTypeAutocomplete
-          form={form}
-          name="paymentTypeId"
-          label="Payment Type"
-          isRequired={true}
-          onChangeEvent={handlePaymentTypeChange}
-        />
-
-        {/* Cheque No - Only show when payment type is cheque */}
-        {isChequePayment && (
+          {/* Reference No */}
           <CustomInput
             form={form}
-            name="chequeNo"
-            label="Cheque No"
-            isRequired={true}
+            name="referenceNo"
+            label="Reference No."
+            isRequired={required?.m_ReferenceNo}
           />
-        )}
 
-        {/* Cheque Date - Only show when payment type is cheque */}
-        {isChequePayment && (
-          <CustomDateNew
-            form={form}
-            name="chequeDate"
-            label="Cheque Date"
-            isRequired={true}
-          />
-        )}
-
-        {/* Currency */}
-        <CurrencyAutocomplete
-          form={form}
-          name="currencyId"
-          label="Currency"
-          isRequired={true}
-          onChangeEvent={handleCurrencyChange}
-        />
-
-        {/* Exchange Rate */}
-        <CustomNumberInput
-          form={form}
-          name="exhRate"
-          label="Exchange Rate"
-          isRequired={true}
-          round={exhRateDec}
-          className="text-right"
-          onBlurEvent={handleExchangeRateChange}
-        />
-
-        {visible?.m_CtyCurr && (
-          <>
-            {/* City Exchange Rate */}
-            <CustomNumberInput
+          {/* Bank */}
+          {visible?.m_BankId && (
+            <BankAutocomplete
               form={form}
-              name="ctyExhRate"
-              label="City Exchange Rate"
+              name="bankId"
+              label="Bank"
+              isRequired={required?.m_BankId}
+              onChangeEvent={handleBankChange}
+            />
+          )}
+
+          {/* Payment Type */}
+          <PaymentTypeAutocomplete
+            form={form}
+            name="paymentTypeId"
+            label="Payment Type"
+            isRequired={true}
+            onChangeEvent={handlePaymentTypeChange}
+          />
+
+          {/* Cheque No - Only show when payment type is cheque */}
+          {isChequePayment && (
+            <CustomInput
+              form={form}
+              name="chequeNo"
+              label="Cheque No"
               isRequired={true}
-              round={exhRateDec}
-              className="text-right"
-              onBlurEvent={handleCityExchangeRateChange}
             />
-          </>
-        )}
+          )}
 
-        {/* GST Claim Date */}
-        {visible?.m_GstClaimDate && (
-          <CustomDateNew
+          {/* Cheque Date - Only show when payment type is cheque */}
+          {isChequePayment && (
+            <CustomDateNew
+              form={form}
+              name="chequeDate"
+              label="Cheque Date"
+              isRequired={true}
+            />
+          )}
+
+          {/* Currency */}
+          <CurrencyAutocomplete
             form={form}
-            name="gstClaimDate"
-            label="GST Claim Date"
-            isRequired={false}
+            name="currencyId"
+            label="Currency"
+            isRequired={true}
+            onChangeEvent={handleCurrencyChange}
           />
-        )}
 
-        {/* Total Amount */}
-        <CustomNumberInput
-          form={form}
-          name="totAmt"
-          label="Total Amount"
-          round={amtDec}
-          isDisabled={true}
-          className="text-right"
-        />
+          {/* Exchange Rate */}
+          <CustomNumberInput
+            form={form}
+            name="exhRate"
+            label="Exchange Rate"
+            isRequired={true}
+            round={exhRateDec}
+            className="text-right"
+            onBlurEvent={handleExchangeRateChange}
+          />
 
-        {/* GST Amount */}
-        <CustomNumberInput
-          form={form}
-          name="gstAmt"
-          label="GST Amount"
-          round={amtDec}
-          isDisabled={true}
-          className="text-right"
-        />
+          {visible?.m_CtyCurr && (
+            <>
+              {/* City Exchange Rate */}
+              <CustomNumberInput
+                form={form}
+                name="ctyExhRate"
+                label="City Exchange Rate"
+                isRequired={true}
+                round={exhRateDec}
+                className="text-right"
+                onBlurEvent={handleCityExchangeRateChange}
+              />
+            </>
+          )}
 
-        {/* Total Amount After GST */}
-        <CustomNumberInput
-          form={form}
-          name="totAmtAftGst"
-          label="Total Amount After GST"
-          round={amtDec}
-          isDisabled={true}
-          className="text-right"
-        />
-
-        {/* Total Local Amount */}
-        <CustomNumberInput
-          form={form}
-          name="totLocalAmt"
-          label="Total Local Amount"
-          round={locAmtDec}
-          isDisabled={true}
-          className="text-right"
-        />
-
-        {/* GST Local Amount */}
-        <CustomNumberInput
-          form={form}
-          name="gstLocalAmt"
-          label="GST Local Amt"
-          round={locAmtDec}
-          isDisabled={true}
-          className="text-right"
-        />
-
-        {/* Total Local Amount After GST */}
-        <CustomNumberInput
-          form={form}
-          name="totLocalAmtAftGst"
-          label="Total Local Amount After GST"
-          round={locAmtDec}
-          isDisabled={true}
-          className="text-right"
-        />
-
-        {visible?.m_CtyCurr && (
-          <>
-            {/* Total Country Amount */}
-            <CustomNumberInput
+          {/* GST Claim Date */}
+          {visible?.m_GstClaimDate && (
+            <CustomDateNew
               form={form}
-              name="totCtyAmt"
-              label="Total Country Amount"
-              round={ctyAmtDec}
-              isDisabled={true}
-              className="text-right"
+              name="gstClaimDate"
+              label="GST Claim Date"
+              isRequired={false}
             />
+          )}
 
-            {/* GST Country Amount */}
-            <CustomNumberInput
-              form={form}
-              name="gstCtyAmt"
-              label="GST Country Amount"
-              isDisabled={true}
-              round={ctyAmtDec}
-              className="text-right"
-            />
+          {visible?.m_CtyCurr && (
+            <>
+              {/* Total Country Amount */}
+              <CustomNumberInput
+                form={form}
+                name="totCtyAmt"
+                label="Total Country Amount"
+                round={ctyAmtDec}
+                isDisabled={true}
+                className="text-right"
+              />
 
-            {/* Total Country Amount After GST */}
-            <CustomNumberInput
-              form={form}
-              name="totCtyAmtAftGst"
-              label="Total Country Amount After GST"
-              isDisabled={true}
-              round={ctyAmtDec}
-              className="text-right"
-            />
-          </>
-        )}
+              {/* GST Country Amount */}
+              <CustomNumberInput
+                form={form}
+                name="gstCtyAmt"
+                label="GST Country Amount"
+                isDisabled={true}
+                round={ctyAmtDec}
+                className="text-right"
+              />
 
-        {/* Bank Charge GL */}
-        <BankChartOfAccountAutocomplete
-          form={form}
-          name="bankChgGLId"
-          label="Bank Charge GL"
-          companyId={_companyId}
-        />
+              {/* Total Country Amount After GST */}
+              <CustomNumberInput
+                form={form}
+                name="totCtyAmtAftGst"
+                label="Total Country Amount After GST"
+                isDisabled={true}
+                round={ctyAmtDec}
+                className="text-right"
+              />
+            </>
+          )}
 
-        {/* Bank Charge Amount */}
-        <CustomNumberInput
-          form={form}
-          name="bankChgAmt"
-          label="Bank Charge Amount"
-          round={amtDec}
-          className="text-right"
-        />
+          {/* Bank Charge GL */}
+          <BankChartOfAccountAutocomplete
+            form={form}
+            name="bankChgGLId"
+            label="Bank Charge GL"
+            companyId={_companyId}
+          />
 
-        {/* Bank Charge Local Amount */}
-        <CustomNumberInput
-          form={form}
-          name="bankChgLocalAmt"
-          label="Bank Charge Local Amount"
-          round={locAmtDec}
-          isDisabled={true}
-          className="text-right"
-        />
+          {/* Bank Charge Amount */}
+          <CustomNumberInput
+            form={form}
+            name="bankChgAmt"
+            label="Bank Charge Amount"
+            round={amtDec}
+            className="text-right"
+          />
 
-        {/* Remarks */}
-        <CustomTextarea
-          form={form}
-          name="remarks"
-          label="Remarks"
-          isRequired={required?.m_Remarks_Hd}
-          className="col-span-2"
-        />
+          {/* Bank Charge Local Amount */}
+          <CustomNumberInput
+            form={form}
+            name="bankChgLocalAmt"
+            label="Bank Charge Local Amount"
+            round={locAmtDec}
+            isDisabled={true}
+            className="text-right"
+          />
+
+          {/* Remarks */}
+          <CustomTextarea
+            form={form}
+            name="remarks"
+            label="Remarks"
+            isRequired={required?.m_Remarks_Hd}
+            className="col-span-2"
+          />
+        </div>
+
+        {/* Summary Box */}
+        {/* Right Section: Summary Box */}
+        <div className="col-span-2 ml-2 flex flex-col justify-start">
+          <div className="w-full rounded-md border border-blue-200 bg-blue-50 p-4 shadow-sm">
+            <h3 className="mb-2 text-center font-semibold text-blue-800">
+              Financial Summary
+            </h3>
+
+            {/* 3-column grid: [Amt] [Label] [Base] */}
+            <div className="grid grid-cols-3 gap-x-2 text-sm">
+              {/* Column 1: Foreign Amounts (Amt) */}
+              <div className="space-y-1 text-right">
+                <div className="font-medium text-gray-700">
+                  {form.watch("totAmt")?.toLocaleString() || "0"}
+                </div>
+                <div className="font-medium text-gray-700">
+                  {form.watch("gstAmt")?.toLocaleString() || "0"}
+                </div>
+                <hr className="my-1 border-blue-300" />
+                <div className="font-bold text-blue-900">
+                  {form.watch("totAmtAftGst")?.toLocaleString() || "0"}
+                </div>
+              </div>
+
+              {/* Column 2: Labels ("Amt", "Gst", "Total") */}
+              <div className="space-y-1 text-center">
+                <div className="font-medium text-blue-600">Amt</div>
+                <div className="font-medium text-blue-600">Gst</div>
+                <div></div> {/* Empty spacer for hr alignment */}
+                <div className="font-bold text-blue-800">Total</div>
+              </div>
+
+              {/* Column 3: Local/Base Amounts */}
+              <div className="space-y-1 text-right">
+                <div className="font-medium text-gray-700">
+                  {form.watch("totLocalAmt")?.toLocaleString() || "0"}
+                </div>
+                <div className="font-medium text-gray-700">
+                  {form.watch("gstLocalAmt")?.toLocaleString() || "0"}
+                </div>
+                <hr className="my-1 border-blue-300" />
+                <div className="font-bold text-blue-900">
+                  {form.watch("totLocalAmtAftGst")?.toLocaleString() || "0"}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </form>
 
       {/* Payee Selection Dialog */}
