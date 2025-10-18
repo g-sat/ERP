@@ -292,13 +292,13 @@ export default function EnhancedDocumentUpload({
   // Preview document
   const handlePreview = (doc: IDocType) => {
     setSelectedDocument(doc)
-    setPreviewUrl(`/documents/${doc.docPath}`)
+    setPreviewUrl(doc.docPath)
   }
 
   // Download document
   const handleDownload = (doc: IDocType) => {
     const link = document.createElement("a")
-    link.href = `/documents/${doc.docPath}`
+    link.href = doc.docPath
     link.download = doc.docPath.split("/").pop() || "document"
     link.click()
   }
