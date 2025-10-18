@@ -13,6 +13,8 @@ import { CbGenPaymentDtSchemaType, CbGenPaymentHdSchemaType } from "@/schemas"
 import { useAuthStore } from "@/stores/auth-store"
 import { UseFormReturn } from "react-hook-form"
 
+import { useUserSettingDefaults } from "@/hooks/use-settings"
+
 import GenPaymentDetailsForm from "./cbgenpayment-details-form"
 import GenPaymentDetailsTable from "./cbgenpayment-details-table"
 import GenPaymentForm from "./cbgenpayment-form"
@@ -38,6 +40,9 @@ export default function Main({
   const amtDec = decimals[0]?.amtDec || 2
   const locAmtDec = decimals[0]?.locAmtDec || 2
   const ctyAmtDec = decimals[0]?.ctyAmtDec || 2
+
+  // Get user settings with defaults for all modules
+  const { defaults } = useUserSettingDefaults()
 
   const [editingDetail, setEditingDetail] =
     useState<CbGenPaymentDtSchemaType | null>(null)
@@ -170,6 +175,7 @@ export default function Main({
         visible={visible}
         required={required}
         companyId={companyId}
+        defaultCurrencyId={defaults.cb.currencyId}
       />
       <div className="rounded-lg border p-4 shadow-sm">
         <GenPaymentDetailsForm
@@ -181,6 +187,9 @@ export default function Main({
           visible={visible}
           required={required}
           existingDetails={dataDetails as CbGenPaymentDtSchemaType[]}
+          defaultGlId={0}
+          defaultUomId={defaults.common.uomId}
+          defaultGstId={defaults.common.gstId}
         />
 
         <GenPaymentDetailsTable

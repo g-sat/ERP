@@ -45,13 +45,6 @@ import CustomTextarea from "@/components/custom/custom-textarea"
 
 import { defaultPettyCashDetails } from "./cbpettycash-defaultvalues"
 
-// Factory function to create default values with dynamic itemNo
-const createDefaultValues = (itemNo: number): CbPettyCashDtSchemaType => ({
-  ...defaultPettyCashDetails,
-  itemNo,
-  seqNo: itemNo,
-})
-
 interface PettyCashDetailsFormProps {
   Hdform: UseFormReturn<CbPettyCashHdSchemaType>
   onAddRowAction?: (rowData: ICbPettyCashDt) => void
@@ -61,6 +54,9 @@ interface PettyCashDetailsFormProps {
   required: IMandatoryFields
   companyId: number
   existingDetails?: CbPettyCashDtSchemaType[]
+  defaultGlId?: number
+  defaultUomId?: number
+  defaultGstId?: number
 }
 
 export default function PettyCashDetailsForm({
@@ -72,6 +68,9 @@ export default function PettyCashDetailsForm({
   required,
   companyId,
   existingDetails = [],
+  defaultGlId = 0,
+  defaultUomId = 0,
+  defaultGstId = 0,
 }: PettyCashDetailsFormProps) {
   const { decimals } = useAuthStore()
   const amtDec = decimals[0]?.amtDec || 2
@@ -88,6 +87,15 @@ export default function PettyCashDetailsForm({
     )
     return maxItemNo + 1
   }
+
+  // Factory function to create default values with dynamic itemNo and defaults
+  const createDefaultValues = (itemNo: number): CbPettyCashDtSchemaType => ({
+    ...defaultPettyCashDetails,
+    itemNo,
+    seqNo: itemNo,
+    glId: defaultGlId || defaultPettyCashDetails.glId,
+    gstId: defaultGstId || defaultPettyCashDetails.gstId,
+  })
 
   const form = useForm<CbPettyCashDtSchemaType>({
     resolver: zodResolver(cbPettyCashDtSchema(required, visible)),
@@ -137,6 +145,25 @@ export default function PettyCashDetailsForm({
   // Watch form values to trigger re-renders when they change
   const watchedExchangeRate = Hdform.watch("exhRate")
   const watchedCityExchangeRate = Hdform.watch("ctyExhRate")
+
+  // Set default glId and gstId when defaults become available (not in edit mode)
+  useEffect(() => {
+    if (!editingDetail) {
+      const currentGlId = form.getValues("glId")
+      const currentGstId = form.getValues("gstId")
+
+      // Only set defaults if current values are 0 and defaults are available
+      if (defaultGlId > 0 && (!currentGlId || currentGlId === 0)) {
+        form.setValue("glId", defaultGlId)
+      }
+      if (defaultGstId > 0 && (!currentGstId || currentGstId === 0)) {
+        form.setValue("gstId", defaultGstId)
+        // Trigger GST percentage calculation after setting default GST
+        setGSTPercentage(Hdform, form, decimals[0], visible)
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [defaultGlId, defaultGstId, editingDetail])
 
   // Recalculate local amounts when exchange rate changes
   useEffect(() => {

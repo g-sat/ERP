@@ -20,6 +20,7 @@ interface PaymentDetailsTableProps {
   onRefresh?: () => void
   onFilterChange?: (filters: { search?: string; sortOrder?: string }) => void
   onDataReorder?: (newData: IApPaymentDt[]) => void
+  onCellEdit?: (itemNo: number, field: string, value: number) => void
   visible: IVisibleFields
 }
 
@@ -31,6 +32,7 @@ export default function PaymentDetailsTable({
   onRefresh,
   onFilterChange,
   onDataReorder,
+  onCellEdit,
   visible: _visible,
 }: PaymentDetailsTableProps) {
   const [mounted, setMounted] = useState(false)
@@ -116,7 +118,18 @@ export default function PaymentDetailsTable({
       header: "Alloc Amt",
       size: 100,
       cell: ({ row }: { row: { original: IApPaymentDt } }) => (
-        <div className="text-right">{row.original.allocAmt}</div>
+        <input
+          type="number"
+          className="w-full rounded border px-2 py-1 text-right focus:ring-2 focus:ring-blue-500 focus:outline-none"
+          value={row.original.allocAmt || 0}
+          onChange={(e) => {
+            const value = parseFloat(e.target.value) || 0
+            if (onCellEdit) {
+              onCellEdit(row.original.itemNo, "allocAmt", value)
+            }
+          }}
+          step="0.01"
+        />
       ),
     },
     {
@@ -124,7 +137,18 @@ export default function PaymentDetailsTable({
       header: "Alloc Local Amt",
       size: 120,
       cell: ({ row }: { row: { original: IApPaymentDt } }) => (
-        <div className="text-right">{row.original.allocLocalAmt}</div>
+        <input
+          type="number"
+          className="w-full rounded border px-2 py-1 text-right focus:ring-2 focus:ring-blue-500 focus:outline-none"
+          value={row.original.allocLocalAmt || 0}
+          onChange={(e) => {
+            const value = parseFloat(e.target.value) || 0
+            if (onCellEdit) {
+              onCellEdit(row.original.itemNo, "allocLocalAmt", value)
+            }
+          }}
+          step="0.01"
+        />
       ),
     },
     {

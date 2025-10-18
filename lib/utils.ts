@@ -195,8 +195,8 @@ export enum ARTransactionId {
 
 export enum APTransactionId {
   invoice = 1,
-  debitnote = 2,
-  creditnote = 3,
+  debitNote = 2,
+  creditNote = 3,
   adjustment = 4,
   payment = 5,
   refund = 6,

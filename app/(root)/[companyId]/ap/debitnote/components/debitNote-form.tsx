@@ -1,39 +1,45 @@
 "use client"
 
 import * as React from "react"
-import { setExchangeRate, setExchangeRateLocal } from "@/helpers/account"
+import {
+  EntityType,
+  setAddressContactDetails,
+  setDueDate,
+  setExchangeRate,
+  setExchangeRateLocal,
+  setGSTPercentage,
+} from "@/helpers/account"
 import {
   calculateCountryAmounts,
   calculateLocalAmounts,
   calculateTotalAmounts,
   recalculateAllDetailAmounts,
-} from "@/helpers/cb-genpayment-calculations"
-import { ICbGenPaymentDt } from "@/interfaces"
+} from "@/helpers/ap-debitNote-calculations"
+import { IApDebitNoteDt } from "@/interfaces"
 import {
   IBankLookup,
+  ICreditTermLookup,
   ICurrencyLookup,
-  IPaymentTypeLookup,
+  ISupplierLookup,
 } from "@/interfaces/lookup"
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
-import { CbGenPaymentDtSchemaType, CbGenPaymentHdSchemaType } from "@/schemas"
+import { ApDebitNoteDtSchemaType, ApDebitNoteHdSchemaType } from "@/schemas"
 import { useAuthStore } from "@/stores/auth-store"
-import { PlusIcon } from "lucide-react"
+import { format } from "date-fns"
 import { FormProvider, UseFormReturn } from "react-hook-form"
 
-import { usePaymentTypeLookup } from "@/hooks/use-lookup"
-import { BankChartOfAccountAutocomplete } from "@/components/autocomplete"
+import { clientDateFormat } from "@/lib/date-utils"
+import { CompanySupplierAutocomplete } from "@/components/autocomplete"
 import BankAutocomplete from "@/components/autocomplete/autocomplete-bank"
+import CreditTermAutocomplete from "@/components/autocomplete/autocomplete-creditterm"
 import CurrencyAutocomplete from "@/components/autocomplete/autocomplete-currency"
-import PaymentTypeAutocomplete from "@/components/autocomplete/autocomplete-paymenttype"
-import PayeeSelectionDialog from "@/components/common/payee-selection-dialog"
 import { CustomDateNew } from "@/components/custom/custom-date-new"
 import CustomInput from "@/components/custom/custom-input"
-import CustomInputGroup from "@/components/custom/custom-input-group"
 import CustomNumberInput from "@/components/custom/custom-number-input"
 import CustomTextarea from "@/components/custom/custom-textarea"
 
-interface GenPaymentFormProps {
-  form: UseFormReturn<CbGenPaymentHdSchemaType>
+interface DebitNoteFormProps {
+  form: UseFormReturn<ApDebitNoteHdSchemaType>
   onSuccessAction: (action: string) => Promise<void>
   isEdit: boolean
   visible: IVisibleFields
@@ -42,71 +48,20 @@ interface GenPaymentFormProps {
   defaultCurrencyId?: number
 }
 
-export default function GenPaymentForm({
+export default function DebitNoteForm({
   form,
   onSuccessAction,
-  isEdit: _isEdit,
+  isEdit,
   visible,
   required,
   companyId: _companyId,
   defaultCurrencyId = 0,
-}: GenPaymentFormProps) {
+}: DebitNoteFormProps) {
   const { decimals } = useAuthStore()
   const amtDec = decimals[0]?.amtDec || 2
   const locAmtDec = decimals[0]?.locAmtDec || 2
   const ctyAmtDec = decimals[0]?.ctyAmtDec || 2
   const exhRateDec = decimals[0]?.exhRateDec || 6
-
-  const { data: paymentTypes = [] } = usePaymentTypeLookup()
-
-  // State to track if payment type is cheque
-  const [isChequePayment, setIsChequePayment] = React.useState(false)
-
-  // State to control payee selection dialog
-  const [isPayeeDialogOpen, setIsPayeeDialogOpen] = React.useState(false)
-
-  // Watch paymentTypeId and update cheque payment state
-  React.useEffect(() => {
-    const paymentTypeId = form.watch("paymentTypeId")
-
-    if (paymentTypeId && paymentTypes.length > 0) {
-      const selectedPaymentType = paymentTypes.find(
-        (pt) => pt.paymentTypeId === paymentTypeId
-      )
-
-      if (selectedPaymentType) {
-        const isCheque =
-          selectedPaymentType.paymentTypeName
-            ?.toLowerCase()
-            .includes("cheque") ||
-          selectedPaymentType.paymentTypeCode?.toLowerCase().includes("cheque")
-
-        setIsChequePayment(isCheque)
-      } else {
-        setIsChequePayment(false)
-      }
-    } else {
-      setIsChequePayment(false)
-    }
-  }, [form, paymentTypes])
-
-  // Set default currency when form is initialized (not in edit mode)
-  React.useEffect(() => {
-    if (!_isEdit && defaultCurrencyId > 0) {
-      const currentCurrencyId = form.getValues("currencyId")
-
-      // Only set default if no currency is set
-      if (!currentCurrencyId || currentCurrencyId === 0) {
-        form.setValue("currencyId", defaultCurrencyId)
-        // Trigger exchange rate fetch when default currency is set
-        setExchangeRate(form, exhRateDec, visible)
-        if (visible?.m_CtyCurr) {
-          setExchangeRateLocal(form, exhRateDec)
-        }
-      }
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [defaultCurrencyId, _isEdit])
 
   const onSubmit = async () => {
     await onSuccessAction("save")
@@ -115,68 +70,112 @@ export default function GenPaymentForm({
   // Handle transaction date selection
   const handleTrnDateChange = React.useCallback(
     async (_selectedTrnDate: Date | null) => {
+      // Additional logic when transaction date changes
       const { trnDate } = form?.getValues()
       form.setValue("gstClaimDate", trnDate)
       form?.trigger("gstClaimDate")
       form.setValue("accountDate", trnDate)
+      form.setValue("deliveryDate", trnDate)
       form?.trigger("accountDate")
+      form?.trigger("deliveryDate")
       await setExchangeRate(form, exhRateDec, visible)
       if (visible?.m_CtyCurr) {
         await setExchangeRateLocal(form, exhRateDec)
       }
-      // Note: GST percentage is handled at detail level in CB modules
+      await setGSTPercentage(
+        form,
+        form.getValues("data_details"),
+        decimals[0],
+        visible
+      )
+      await setDueDate(form)
     },
-    [exhRateDec, form, visible]
+    [decimals, exhRateDec, form, visible]
   )
 
-  // Handle account date change
+  // Handle customer selection
+  const handleSupplierChange = React.useCallback(
+    async (selectedSupplier: ISupplierLookup | null) => {
+      if (selectedSupplier) {
+        // ✅ Supplier selected - populate related fields
+        if (!isEdit) {
+          form.setValue("currencyId", selectedSupplier.currencyId || 0)
+          form.setValue("creditTermId", selectedSupplier.creditTermId || 0)
+          form.setValue("bankId", selectedSupplier.bankId || 0)
+        }
+
+        await setDueDate(form)
+        await setExchangeRate(form, exhRateDec, visible)
+        await setExchangeRateLocal(form, exhRateDec)
+        await setAddressContactDetails(form, EntityType.SUPPLIER)
+      } else {
+        // ✅ Supplier cleared - reset all related fields
+        if (!isEdit) {
+          // Clear supplier-related fields, use default currency if available
+          form.setValue("currencyId", defaultCurrencyId)
+          form.setValue("creditTermId", 0)
+          form.setValue("bankId", 0)
+        }
+
+        // Clear exchange rates
+        form.setValue("exhRate", 0)
+        form.setValue("ctyExhRate", 0)
+
+        // Clear due date
+        form.setValue("dueDate", format(new Date(), clientDateFormat))
+
+        // Clear address fields
+        form.setValue("addressId", 0)
+        form.setValue("address1", "")
+        form.setValue("address2", "")
+        form.setValue("address3", "")
+        form.setValue("address4", "")
+        form.setValue("pinCode", "")
+        form.setValue("countryId", 0)
+        form.setValue("phoneNo", "")
+
+        // Clear contact fields
+        form.setValue("contactId", 0)
+        form.setValue("contactName", "")
+        form.setValue("mobileNo", "")
+        form.setValue("emailAdd", "")
+        form.setValue("faxNo", "")
+
+        // Trigger validation
+        form.trigger()
+      }
+    },
+    [exhRateDec, form, isEdit, visible, defaultCurrencyId]
+  )
+
+  // Handle transaction date selection
   const handleAccountDateChange = React.useCallback(
     async (_selectedAccountDate: Date | null) => {
+      // Additional logic when transaction date changes
       const { accountDate } = form?.getValues()
       form.setValue("gstClaimDate", accountDate)
       form?.trigger("gstClaimDate")
 
-      // Update chequeDate to accountDate if not cheque payment
-      if (!isChequePayment) {
-        form.setValue("chequeDate", accountDate)
-        form?.trigger("chequeDate")
-      }
-
       await setExchangeRate(form, exhRateDec, visible)
       if (visible?.m_CtyCurr) {
         await setExchangeRateLocal(form, exhRateDec)
       }
-      // Note: GST percentage is handled at detail level in CB modules
+      await setGSTPercentage(
+        form,
+        form.getValues("data_details"),
+        decimals[0],
+        visible
+      )
+      await setDueDate(form)
     },
-    [exhRateDec, form, isChequePayment, visible]
+    [decimals, exhRateDec, form, visible]
   )
 
-  // Handle payment type change
-  const handlePaymentTypeChange = React.useCallback(
-    (selectedPaymentType: IPaymentTypeLookup | null) => {
-      if (selectedPaymentType) {
-        // Check if payment type is "Cheque"
-        const isCheque =
-          selectedPaymentType?.paymentTypeName
-            ?.toLowerCase()
-            .includes("cheque") ||
-          selectedPaymentType?.paymentTypeCode?.toLowerCase().includes("cheque")
-
-        setIsChequePayment(isCheque)
-
-        // Set chequeDate to accountDate if not cheque payment
-        if (!isCheque) {
-          form.setValue("chequeNo", "")
-          const accountDate = form.getValues("accountDate")
-          form.setValue("chequeDate", accountDate || "")
-        }
-      } else {
-        // No payment type selected, set chequeDate to accountDate
-        setIsChequePayment(false)
-        form.setValue("chequeNo", "")
-        const accountDate = form.getValues("accountDate")
-        form.setValue("chequeDate", accountDate || "")
-      }
+  // Handle credit term selection
+  const handleCreditTermChange = React.useCallback(
+    (_selectedCreditTerm: ICreditTermLookup | null) => {
+      // Additional logic when credit term changes
+      setDueDate(form)
     },
     [form]
   )
@@ -184,24 +183,53 @@ export default function GenPaymentForm({
   // Handle bank selection
   const handleBankChange = React.useCallback(
     (_selectedBank: IBankLookup | null) => {
-      // Additional logic when bank changes if needed
+      // Additional logic when bank changes
     },
     []
   )
 
-  // Handle add payee to button click
-  const handleAddPayeeTo = React.useCallback(() => {
-    setIsPayeeDialogOpen(true)
-  }, [])
-
-  // Handle payee selection from dialog
-  const handlePayeeSelect = React.useCallback(
-    (payeeName: string, _payeeType: "customer" | "supplier" | "employee") => {
-      form.setValue("payeeTo", payeeName)
-      form.trigger("payeeTo")
+  // Handle delivery date change
+  const handleDeliveryDateChange = React.useCallback(
+    async (_selectedDeliveryDate: Date | null) => {
+      await setDueDate(form)
     },
     [form]
   )
+
+  // Set default currency when form is initialized (not in edit mode)
+  React.useEffect(() => {
+    // Only run when defaultCurrencyId is loaded and we're not in edit mode
+    if (!isEdit && defaultCurrencyId > 0) {
+      const currentCurrencyId = form.getValues("currencyId")
+      const currentSupplierId = form.getValues("supplierId")
+
+      console.log("DebitNote Form - Checking defaults:", {
+        currentCurrencyId,
+        currentSupplierId,
+        defaultCurrencyId,
+        isEdit,
+      })
+
+      // Only set default if no currency is set and no supplier is selected
+      if (
+        (!currentCurrencyId || currentCurrencyId === 0) &&
+        (!currentSupplierId || currentSupplierId === 0)
+      ) {
+        console.log(
+          "DebitNote Form - Setting default currency:",
+          defaultCurrencyId
+        )
+        form.setValue("currencyId", defaultCurrencyId)
+        // Trigger exchange rate fetch when default currency is set
+        setExchangeRate(form, exhRateDec, visible)
+        if (visible?.m_CtyCurr) {
+          setExchangeRateLocal(form, exhRateDec)
+        }
+      }
+    }
+    // Only depend on values that should trigger this effect
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [defaultCurrencyId, isEdit])
 
   // Recalculate header totals from details
   const recalculateHeaderTotals = React.useCallback(() => {
@@ -225,25 +253,26 @@ export default function GenPaymentForm({
 
     // Calculate base currency totals
     const totals = calculateTotalAmounts(
-      formDetails as unknown as ICbGenPaymentDt[],
+      formDetails as unknown as IApDebitNoteDt[],
       amtDec
     )
     form.setValue("totAmt", totals.totAmt)
     form.setValue("gstAmt", totals.gstAmt)
     form.setValue("totAmtAftGst", totals.totAmtAftGst)
 
-    // Calculate local currency totals
+    // Calculate local currency totals (always calculate)
     const localAmounts = calculateLocalAmounts(
-      formDetails as unknown as ICbGenPaymentDt[],
+      formDetails as unknown as IApDebitNoteDt[],
       locAmtDec
     )
     form.setValue("totLocalAmt", localAmounts.totLocalAmt)
     form.setValue("gstLocalAmt", localAmounts.gstLocalAmt)
     form.setValue("totLocalAmtAftGst", localAmounts.totLocalAmtAftGst)
 
-    // Calculate country currency totals
+    // Calculate country currency totals (always calculate)
+    // If m_CtyCurr is false, country amounts = local amounts
     const countryAmounts = calculateCountryAmounts(
-      formDetails as unknown as ICbGenPaymentDt[],
+      formDetails as unknown as IApDebitNoteDt[],
       visible?.m_CtyCurr ? ctyAmtDec : locAmtDec
     )
     form.setValue("totCtyAmt", countryAmounts.totCtyAmt)
@@ -254,37 +283,44 @@ export default function GenPaymentForm({
   // Handle currency selection
   const handleCurrencyChange = React.useCallback(
     async (selectedCurrency: ICurrencyLookup | null) => {
+      // Additional logic when currency changes
       const currencyId = selectedCurrency?.currencyId || 0
       const accountDate = form.getValues("accountDate")
 
       if (currencyId && accountDate) {
+        // First update exchange rates
         await setExchangeRate(form, exhRateDec, visible)
         if (visible?.m_CtyCurr) {
           await setExchangeRateLocal(form, exhRateDec)
         }
 
+        // Get current details and ensure they exist
         const formDetails = form.getValues("data_details")
         if (!formDetails || formDetails.length === 0) {
           return
         }
 
+        // Get updated exchange rates
         const exchangeRate = form.getValues("exhRate") || 0
         const cityExchangeRate = form.getValues("ctyExhRate") || 0
 
+        // Recalculate all details with new exchange rates
         const updatedDetails = recalculateAllDetailAmounts(
-          formDetails as unknown as ICbGenPaymentDt[],
+          formDetails as unknown as IApDebitNoteDt[],
           exchangeRate,
           cityExchangeRate,
           decimals[0],
           !!visible?.m_CtyCurr
         )
 
+        // Update form with recalculated details
         form.setValue(
           "data_details",
-          updatedDetails as unknown as CbGenPaymentDtSchemaType[],
+          updatedDetails as unknown as ApDebitNoteDtSchemaType[],
           { shouldDirty: true, shouldTouch: true }
         )
 
+        // Recalculate header totals from updated details
         recalculateHeaderTotals()
       }
     },
@@ -297,6 +333,7 @@ export default function GenPaymentForm({
       const formDetails = form.getValues("data_details")
       const exchangeRate = parseFloat(e.target.value) || 0
 
+      // If m_CtyCurr is false, set cityExchangeRate = exchangeRate
       let cityExchangeRate = form.getValues("ctyExhRate") || 0
       if (!visible?.m_CtyCurr) {
         cityExchangeRate = exchangeRate
@@ -307,20 +344,23 @@ export default function GenPaymentForm({
         return
       }
 
+      // Recalculate all details with new exchange rate
       const updatedDetails = recalculateAllDetailAmounts(
-        formDetails as unknown as ICbGenPaymentDt[],
+        formDetails as unknown as IApDebitNoteDt[],
         exchangeRate,
         cityExchangeRate,
         decimals[0],
         !!visible?.m_CtyCurr
       )
 
+      // Update form with recalculated details
       form.setValue(
         "data_details",
-        updatedDetails as unknown as CbGenPaymentDtSchemaType[],
+        updatedDetails as unknown as ApDebitNoteDtSchemaType[],
         { shouldDirty: true, shouldTouch: true }
       )
 
+      // Recalculate header totals from updated details
       recalculateHeaderTotals()
     },
     [decimals, form, recalculateHeaderTotals, visible?.m_CtyCurr]
@@ -337,20 +377,23 @@ export default function GenPaymentForm({
         return
       }
 
+      // Recalculate all details with new city exchange rate
       const updatedDetails = recalculateAllDetailAmounts(
-        formDetails as unknown as ICbGenPaymentDt[],
+        formDetails as unknown as IApDebitNoteDt[],
         exchangeRate,
         cityExchangeRate,
         decimals[0],
         !!visible?.m_CtyCurr
       )
 
+      // Update form with recalculated details
       form.setValue(
         "data_details",
-        updatedDetails as unknown as CbGenPaymentDtSchemaType[],
+        updatedDetails as unknown as ApDebitNoteDtSchemaType[],
         { shouldDirty: true, shouldTouch: true }
       )
 
+      // Recalculate header totals from updated details
       recalculateHeaderTotals()
     },
     [decimals, form, recalculateHeaderTotals, visible?.m_CtyCurr]
@@ -384,19 +427,21 @@ export default function GenPaymentForm({
           />
         )}
 
-        {/* Payee To */}
-        <CustomInputGroup
+        {/* Supplier */}
+        <CompanySupplierAutocomplete
           form={form}
-          name="payeeTo"
-          label="Payee To"
+          name="supplierId"
+          label="Supplier"
           isRequired={true}
-          className="col-span-2"
-          buttonText="Add"
-          buttonIcon={<PlusIcon className="h-4 w-4" />}
-          buttonPosition="right"
-          onButtonClick={handleAddPayeeTo}
-          buttonVariant="default"
-          buttonDisabled={false}
+          onChangeEvent={handleSupplierChange}
+          companyId={_companyId}
+        />
+        {/* supplierDebitNoteNo */}
+        <CustomInput
+          form={form}
+          name="suppDebitNoteNo"
+          label="Supplier DebitNote No."
+          isRequired={required?.m_SuppInvoiceNo}
         />
 
         {/* Reference No */}
@@ -407,6 +452,23 @@ export default function GenPaymentForm({
           isRequired={required?.m_ReferenceNo}
         />
 
+        {/* Credit Terms */}
+        <CreditTermAutocomplete
+          form={form}
+          name="creditTermId"
+          label="Credit Terms"
+          isRequired={true}
+          onChangeEvent={handleCreditTermChange}
+        />
+
+        {/* Due Date */}
+        <CustomDateNew
+          form={form}
+          name="dueDate"
+          label="Due Date"
+          isRequired={true}
+        />
+
         {/* Bank */}
         {visible?.m_BankId && (
           <BankAutocomplete
@@ -415,35 +477,6 @@ export default function GenPaymentForm({
             label="Bank"
             isRequired={required?.m_BankId}
             onChangeEvent={handleBankChange}
-          />
-        )}
-
-        {/* Payment Type */}
-        <PaymentTypeAutocomplete
-          form={form}
-          name="paymentTypeId"
-          label="Payment Type"
-          isRequired={true}
-          onChangeEvent={handlePaymentTypeChange}
-        />
-
-        {/* Cheque No - Only show when payment type is cheque */}
-        {isChequePayment && (
-          <CustomInput
-            form={form}
-            name="chequeNo"
-            label="Cheque No"
-            isRequired={true}
-          />
-        )}
-
-        {/* Cheque Date - Only show when payment type is cheque */}
-        {isChequePayment && (
-          <CustomDateNew
-            form={form}
-            name="chequeDate"
-            label="Cheque Date"
-            isRequired={true}
           />
         )}
 
@@ -466,7 +499,6 @@ export default function GenPaymentForm({
           className="text-right"
           onBlurEvent={handleExchangeRateChange}
         />
-
         {visible?.m_CtyCurr && (
           <>
             {/* City Exchange Rate */}
@@ -480,6 +512,17 @@ export default function GenPaymentForm({
               onBlurEvent={handleCityExchangeRateChange}
             />
           </>
+        )}
+
+        {/* Delivery Date */}
+        {visible?.m_DeliveryDate && (
+          <CustomDateNew
+            form={form}
+            name="deliveryDate"
+            label="Delivery Date"
+            isRequired={required?.m_DeliveryDate}
+            onChangeEvent={handleDeliveryDateChange}
+          />
         )}
 
         {/* GST Claim Date */}
@@ -531,7 +574,6 @@ export default function GenPaymentForm({
           isDisabled={true}
           className="text-right"
         />
-
         {/* GST Local Amount */}
         <CustomNumberInput
           form={form}
@@ -559,59 +601,40 @@ export default function GenPaymentForm({
               form={form}
               name="totCtyAmt"
               label="Total Country Amount"
-              round={ctyAmtDec}
+              round={amtDec}
               isDisabled={true}
               className="text-right"
             />
+          </>
+        )}
 
+        {visible?.m_CtyCurr && (
+          <>
             {/* GST Country Amount */}
             <CustomNumberInput
               form={form}
               name="gstCtyAmt"
               label="GST Country Amount"
               isDisabled={true}
-              round={ctyAmtDec}
+              round={amtDec}
               className="text-right"
             />
+          </>
+        )}
 
+        {visible?.m_CtyCurr && (
+          <>
             {/* Total Country Amount After GST */}
             <CustomNumberInput
               form={form}
               name="totCtyAmtAftGst"
               label="Total Country Amount After GST"
               isDisabled={true}
-              round={ctyAmtDec}
+              round={amtDec}
               className="text-right"
             />
           </>
         )}
-
-        {/* Bank Charge GL */}
-        <BankChartOfAccountAutocomplete
-          form={form}
-          name="bankChgGLId"
-          label="Bank Charge GL"
-          companyId={_companyId}
-        />
-
-        {/* Bank Charge Amount */}
-        <CustomNumberInput
-          form={form}
-          name="bankChgAmt"
-          label="Bank Charge Amount"
-          round={amtDec}
-          className="text-right"
-        />
-
-        {/* Bank Charge Local Amount */}
-        <CustomNumberInput
-          form={form}
-          name="bankChgLocalAmt"
-          label="Bank Charge Local Amount"
-          round={locAmtDec}
-          isDisabled={true}
-          className="text-right"
-        />
 
         {/* Remarks */}
         <CustomTextarea
@@ -622,14 +645,6 @@ export default function GenPaymentForm({
           className="col-span-2"
         />
       </form>
-
-      {/* Payee Selection Dialog */}
-      <PayeeSelectionDialog
-        open={isPayeeDialogOpen}
-        onOpenChangeAction={setIsPayeeDialogOpen}
-        onSelectPayeeAction={handlePayeeSelect}
-        companyId={_companyId}
-      />
     </FormProvider>
   )
 }

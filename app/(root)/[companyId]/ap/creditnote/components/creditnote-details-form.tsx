@@ -51,7 +51,7 @@ import VoyageAutocomplete from "@/components/autocomplete/autocomplete-voyage"
 import CustomNumberInput from "@/components/custom/custom-number-input"
 import CustomTextarea from "@/components/custom/custom-textarea"
 
-import { defaultCreditNoteDetails } from "./creditnote-defaultvalues"
+import { defaultCreditNoteDetails } from "./creditNote-defaultvalues"
 
 // Factory function to create default values with dynamic itemNo
 const createDefaultValues = (itemNo: number): ApCreditNoteDtSchemaType => ({

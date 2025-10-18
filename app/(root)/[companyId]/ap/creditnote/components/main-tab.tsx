@@ -6,16 +6,16 @@ import {
   calculateCountryAmounts,
   calculateLocalAmounts,
   calculateTotalAmounts,
-} from "@/helpers/ap-creditnote-calculations"
+} from "@/helpers/ap-creditNote-calculations"
 import { IApCreditNoteDt } from "@/interfaces"
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
 import { ApCreditNoteDtSchemaType, ApCreditNoteHdSchemaType } from "@/schemas"
 import { useAuthStore } from "@/stores/auth-store"
 import { UseFormReturn } from "react-hook-form"
 
-import InvoiceDetailsForm from "./creditnote-details-form"
-import InvoiceDetailsTable from "./creditnote-details-table"
-import InvoiceForm from "./creditnote-form"
+import CreditNoteDetailsForm from "./creditNote-details-form"
+import CreditNoteDetailsTable from "./creditNote-details-table"
+import CreditNoteForm from "./creditNote-form"
 
 interface MainProps {
   form: UseFormReturn<ApCreditNoteHdSchemaType>
@@ -163,7 +163,7 @@ export default function Main({
 
   return (
     <div className="w-full">
-      <InvoiceForm
+      <CreditNoteForm
         form={form}
         onSuccessAction={onSuccessAction}
         isEdit={isEdit}
@@ -172,7 +172,7 @@ export default function Main({
         companyId={companyId}
       />
       <div className="rounded-lg border p-4 shadow-sm">
-        <InvoiceDetailsForm
+        <CreditNoteDetailsForm
           Hdform={form}
           onAddRowAction={handleAddRow}
           onCancelEdit={editingDetail ? handleCancelEdit : undefined}
@@ -183,7 +183,7 @@ export default function Main({
           existingDetails={dataDetails as ApCreditNoteDtSchemaType[]}
         />
 
-        <InvoiceDetailsTable
+        <CreditNoteDetailsTable
           data={(dataDetails as unknown as IApCreditNoteDt[]) || []}
           visible={visible}
           onDelete={handleDelete}

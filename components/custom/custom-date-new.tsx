@@ -99,6 +99,8 @@ export const CustomDateNew = <T extends FieldValues = FieldValues>({
       // Array of possible date formats to try
       const formats = [
         decimalDateFormat, // dd/MM/yyyy (configured format)
+        "dd/MM/yy", // Alternative: 15/10/25
+        "dd-MM-yy", // Alternative: 15-10-25
         "yyyy-MM-dd", // ISO format: 2025-10-15
         "yyyy-MMM-dd", // API format: 2025-Oct-15
         "dd-MM-yyyy", // Alternative: 15-10-2025
@@ -107,9 +109,14 @@ export const CustomDateNew = <T extends FieldValues = FieldValues>({
       ]
 
       // Try each format
-      for (const format of formats) {
-        const parsedDate = parse(input, format, new Date())
+      for (const formatStr of formats) {
+        const parsedDate = parse(input, formatStr, new Date())
         if (isValid(parsedDate)) {
+          // Fix 2-digit year parsing: if year is less than 100, assume 2000s
+          const year = parsedDate.getFullYear()
+          if (year < 100) {
+            parsedDate.setFullYear(2000 + year)
+          }
           return parsedDate
         }
       }
@@ -320,6 +327,9 @@ export const CustomDateNew = <T extends FieldValues = FieldValues>({
                     value={value}
                     onChange={handleInputChange}
                     onBlur={handleInputBlur}
+                    onClick={(e) => {
+                      e.currentTarget.select()
+                    }}
                     onKeyDown={(e) => {
                       if (e.key === "ArrowDown") {
                         e.preventDefault()

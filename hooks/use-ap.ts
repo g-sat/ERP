@@ -2,7 +2,7 @@ import { ApiResponse } from "@/interfaces/auth"
 import { useQuery } from "@tanstack/react-query"
 
 import { getById, getData } from "@/lib/api-client"
-import { ApInvoice } from "@/lib/api-routes"
+import { ApAdjustment, ApInvoice } from "@/lib/api-routes"
 
 /**
  * 1. Invoice Management
@@ -82,6 +82,64 @@ export function useGetAPInvoiceHistoryDetails<T>(
       )
     },
     enabled: !!invoiceId && invoiceId !== "0",
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+    gcTime: 10 * 60 * 1000,
+    staleTime: 5 * 60 * 1000,
+    ...options,
+  })
+}
+
+/**
+ * 2. Adjustment Management
+ * ------------------------
+ * 2.1 Get AP Adjustment History List
+ * @param {string} adjustmentId - Adjustment ID
+ * @param {object} options - Additional query options
+ * @returns {object} Query object containing adjustment history list
+ */
+export function useGetAPAdjustmentHistoryList<T>(
+  adjustmentId: string,
+  options = {}
+) {
+  return useQuery<ApiResponse<T>>({
+    queryKey: ["ap-adjustment-history-list", adjustmentId],
+    queryFn: async () => {
+      // Clean up the URL by removing any double slashes
+      return await getData(`${ApAdjustment.history}/${adjustmentId}`)
+    },
+    enabled: !!adjustmentId && adjustmentId !== "0",
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+    gcTime: 10 * 60 * 1000,
+    staleTime: 5 * 60 * 1000,
+    ...options,
+  })
+}
+
+/**
+ * 2.2 Get AP Adjustment History Details
+ * @param {string} adjustmentId - Adjustment ID
+ * @param {string} editVersion - Edit version
+ * @param {object} options - Additional query options
+ * @returns {object} Query object containing adjustment history details
+ */
+export function useGetAPAdjustmentHistoryDetails<T>(
+  adjustmentId: string,
+  editVersion: string,
+  options = {}
+) {
+  return useQuery<ApiResponse<T>>({
+    queryKey: ["ap-adjustment-history-details", adjustmentId, editVersion],
+    queryFn: async () => {
+      // Clean up the URL by removing any double slashes
+      return await getData(
+        `${ApAdjustment.historyDetails}/${adjustmentId}/${editVersion}`
+      )
+    },
+    enabled: !!adjustmentId && adjustmentId !== "0",
     refetchOnWindowFocus: false,
     refetchOnMount: false,
     refetchOnReconnect: false,

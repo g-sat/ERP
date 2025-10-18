@@ -74,6 +74,8 @@ export * from "./ap-invoice"
 export * from "./ap-payment"
 export * from "./ap-outtransaction"
 export * from "./ap-creditnote"
+export * from "./ap-debitnote"
+export * from "./ap-adjustment"
 
 //account-cb
 export * from "./cb-genpayment"

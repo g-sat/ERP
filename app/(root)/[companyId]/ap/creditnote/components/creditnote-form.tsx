@@ -14,7 +14,7 @@ import {
   calculateLocalAmounts,
   calculateTotalAmounts,
   recalculateAllDetailAmounts,
-} from "@/helpers/ap-creditnote-calculations"
+} from "@/helpers/ap-creditNote-calculations"
 import { IApCreditNoteDt } from "@/interfaces"
 import {
   IBankLookup,
@@ -38,7 +38,7 @@ import CustomInput from "@/components/custom/custom-input"
 import CustomNumberInput from "@/components/custom/custom-number-input"
 import CustomTextarea from "@/components/custom/custom-textarea"
 
-interface InvoiceFormProps {
+interface CreditNoteFormProps {
   form: UseFormReturn<ApCreditNoteHdSchemaType>
   onSuccessAction: (action: string) => Promise<void>
   isEdit: boolean
@@ -47,14 +47,14 @@ interface InvoiceFormProps {
   companyId: number
 }
 
-export default function InvoiceForm({
+export default function CreditNoteForm({
   form,
   onSuccessAction,
   isEdit,
   visible,
   required,
   companyId: _companyId,
-}: InvoiceFormProps) {
+}: CreditNoteFormProps) {
   const { decimals } = useAuthStore()
   const amtDec = decimals[0]?.amtDec || 2
   const locAmtDec = decimals[0]?.locAmtDec || 2
@@ -403,7 +403,7 @@ export default function InvoiceForm({
         <CustomInput
           form={form}
           name="suppCreditNoteNo"
-          label="Supplier Invoice No."
+          label="Supplier Credit Note No."
           isRequired={required?.m_SuppInvoiceNo}
         />
 

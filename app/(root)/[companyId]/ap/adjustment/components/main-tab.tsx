@@ -6,21 +6,24 @@ import {
   calculateCountryAmounts,
   calculateLocalAmounts,
   calculateTotalAmounts,
-} from "@/helpers/cb-pettycash-calculations"
-import { ICbPettyCashDt } from "@/interfaces"
+} from "@/helpers/ap-adjustment-calculations"
+import { IApAdjustmentDt } from "@/interfaces"
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
-import { CbPettyCashDtSchemaType, CbPettyCashHdSchemaType } from "@/schemas"
+import {
+  ApAdjustmentDtSchemaType,
+  ApAdjustmentHdSchemaType,
+} from "@/schemas/ap-adjustment"
 import { useAuthStore } from "@/stores/auth-store"
 import { UseFormReturn } from "react-hook-form"
 
 import { useUserSettingDefaults } from "@/hooks/use-settings"
 
-import PettyCashDetailsForm from "./cbpettycash-details-form"
-import PettyCashDetailsTable from "./cbpettycash-details-table"
-import PettyCashForm from "./cbpettycash-form"
+import AdjustmentDetailsForm from "./adjustment-details-form"
+import AdjustmentDetailsTable from "./adjustment-details-table"
+import AdjustmentForm from "./adjustment-form"
 
 interface MainProps {
-  form: UseFormReturn<CbPettyCashHdSchemaType>
+  form: UseFormReturn<ApAdjustmentHdSchemaType>
   onSuccessAction: (action: string) => Promise<void>
   isEdit: boolean
   visible: IVisibleFields
@@ -45,7 +48,7 @@ export default function Main({
   const { defaults } = useUserSettingDefaults()
 
   const [editingDetail, setEditingDetail] =
-    useState<CbPettyCashDtSchemaType | null>(null)
+    useState<ApAdjustmentDtSchemaType | null>(null)
 
   // Watch data_details for reactive updates
   const dataDetails = form.watch("data_details") || []
@@ -75,7 +78,7 @@ export default function Main({
 
     // Calculate base currency totals
     const totals = calculateTotalAmounts(
-      dataDetails as unknown as ICbPettyCashDt[],
+      dataDetails as unknown as IApAdjustmentDt[],
       amtDec
     )
     form.setValue("totAmt", totals.totAmt)
@@ -84,7 +87,7 @@ export default function Main({
 
     // Calculate local currency totals (always calculate)
     const localAmounts = calculateLocalAmounts(
-      dataDetails as unknown as ICbPettyCashDt[],
+      dataDetails as unknown as IApAdjustmentDt[],
       locAmtDec
     )
     form.setValue("totLocalAmt", localAmounts.totLocalAmt)
@@ -94,16 +97,16 @@ export default function Main({
     // Calculate country currency totals (always calculate)
     // If m_CtyCurr is false, country amounts = local amounts
     const countryAmounts = calculateCountryAmounts(
-      dataDetails as unknown as ICbPettyCashDt[],
+      dataDetails as unknown as IApAdjustmentDt[],
       visible?.m_CtyCurr ? ctyAmtDec : locAmtDec
     )
     form.setValue("totCtyAmt", countryAmounts.totCtyAmt)
     form.setValue("gstCtyAmt", countryAmounts.gstCtyAmt)
     form.setValue("totCtyAmtAftGst", countryAmounts.totCtyAmtAftGst)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dataDetails, amtDec, locAmtDec, ctyAmtDec])
+  }, [dataDetails.length, amtDec, locAmtDec, ctyAmtDec])
 
-  const handleAddRow = (rowData: ICbPettyCashDt) => {
+  const handleAddRow = (rowData: IApAdjustmentDt) => {
     const currentData = form.getValues("data_details") || []
 
     if (editingDetail) {
@@ -113,7 +116,7 @@ export default function Main({
       )
       form.setValue(
         "data_details",
-        updatedData as unknown as CbPettyCashDtSchemaType[],
+        updatedData as unknown as ApAdjustmentDtSchemaType[],
         { shouldDirty: true, shouldTouch: true }
       )
 
@@ -123,7 +126,7 @@ export default function Main({
       const updatedData = [...currentData, rowData]
       form.setValue(
         "data_details",
-        updatedData as unknown as CbPettyCashDtSchemaType[],
+        updatedData as unknown as ApAdjustmentDtSchemaType[],
         { shouldDirty: true, shouldTouch: true }
       )
     }
@@ -148,10 +151,10 @@ export default function Main({
     form.trigger("data_details")
   }
 
-  const handleEdit = (detail: ICbPettyCashDt) => {
+  const handleEdit = (detail: IApAdjustmentDt) => {
     // console.log("Editing detail:", detail)
-    // Convert ICbPettyCashDt to CbPettyCashDtSchemaType and set for editing
-    setEditingDetail(detail as unknown as CbPettyCashDtSchemaType)
+    // Convert IApAdjustmentDt to ApAdjustmentDtSchemaType and set for editing
+    setEditingDetail(detail as unknown as ApAdjustmentDtSchemaType)
     // console.log("Editing editingDetail:", editingDetail)
   }
 
@@ -159,26 +162,26 @@ export default function Main({
     setEditingDetail(null)
   }
 
-  const handleDataReorder = (newData: ICbPettyCashDt[]) => {
+  const handleDataReorder = (newData: IApAdjustmentDt[]) => {
     form.setValue(
       "data_details",
-      newData as unknown as CbPettyCashDtSchemaType[]
+      newData as unknown as ApAdjustmentDtSchemaType[]
     )
   }
 
   return (
     <div className="w-full">
-      <PettyCashForm
+      <AdjustmentForm
         form={form}
         onSuccessAction={onSuccessAction}
         isEdit={isEdit}
         visible={visible}
         required={required}
         companyId={companyId}
-        defaultCurrencyId={defaults.cb.currencyId}
+        defaultCurrencyId={defaults.ap.currencyId}
       />
       <div className="rounded-lg border p-4 shadow-sm">
-        <PettyCashDetailsForm
+        <AdjustmentDetailsForm
           Hdform={form}
           onAddRowAction={handleAddRow}
           onCancelEdit={editingDetail ? handleCancelEdit : undefined}
@@ -186,22 +189,22 @@ export default function Main({
           companyId={companyId}
           visible={visible}
           required={required}
-          existingDetails={dataDetails as CbPettyCashDtSchemaType[]}
-          defaultGlId={0}
+          existingDetails={dataDetails as ApAdjustmentDtSchemaType[]}
+          defaultGlId={defaults.ap.adjustmentGlId}
           defaultUomId={defaults.common.uomId}
           defaultGstId={defaults.common.gstId}
         />
 
-        <PettyCashDetailsTable
-          data={(dataDetails as unknown as ICbPettyCashDt[]) || []}
+        <AdjustmentDetailsTable
+          data={(dataDetails as unknown as IApAdjustmentDt[]) || []}
           visible={visible}
           onDelete={handleDelete}
           onBulkDelete={handleBulkDelete}
-          onEdit={handleEdit as (template: ICbPettyCashDt) => void}
+          onEdit={handleEdit as (template: IApAdjustmentDt) => void}
           onRefresh={() => {}} // Add refresh logic if needed
           onFilterChange={() => {}} // Add filter logic if needed
           onDataReorder={
-            handleDataReorder as (newData: ICbPettyCashDt[]) => void
+            handleDataReorder as (newData: IApAdjustmentDt[]) => void
           }
         />
       </div>

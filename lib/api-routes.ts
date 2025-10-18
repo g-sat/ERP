@@ -795,6 +795,7 @@ export const ArReceipt = {
   add: "/account/savearreceipt",
   delete: "/account/deletearreceipt",
   history: "/account/gethistoryarreceiptbyid",
+  historyDetails: "/account/gethistoryarreceiptdetailsbyid",
 }
 
 // Accounts Receivable Refund Endpoints
@@ -804,6 +805,7 @@ export const ArRefund = {
   add: "/account/savearrefund",
   delete: "/account/deletearrefund",
   history: "/account/gethistoryarrefundbyid",
+  historyDetails: "/account/gethistoryarrefunddetailsbyid",
 }
 
 // Accounts Receivable Adjustment Endpoints
@@ -813,6 +815,7 @@ export const ArAdjustment = {
   add: "/account/savearadjustment",
   delete: "/account/deletearadjustment",
   history: "/account/gethistoryaradjustmentbyid",
+  historyDetails: "/account/gethistoryaradjustmentdetailsbyid",
 }
 
 // Accounts Receivable DOCSetOff Endpoints
@@ -822,6 +825,7 @@ export const ArDocSetoff = {
   add: "/account/saveardocsetoff",
   delete: "/account/deleteardocsetoff",
   history: "/account/gethistoryardocsetoffbyid",
+  historyDetails: "/account/gethistoryardocsetoffdetailsbyid",
 }
 
 // Accounts Payable Invoice Endpoints
@@ -870,6 +874,7 @@ export const ApRefund = {
   add: "/account/saveaprefund",
   delete: "/account/deleteaprefund",
   history: "/account/gethistoryaprefundbyid",
+  historyDetails: "/account/gethistoryaprefunddetailsbyid",
 }
 
 // Accounts Payable Adjustment Endpoints
@@ -879,6 +884,7 @@ export const ApAdjustment = {
   add: "/account/saveapadjustment",
   delete: "/account/deleteapadjustment",
   history: "/account/gethistoryapadjustmentbyid",
+  historyDetails: "/account/gethistoryapadjustmentdetailsbyid",
 }
 
 // Accounts Payable DOCSetOff Endpoints
@@ -888,6 +894,7 @@ export const ApDocSetoff = {
   add: "/account/saveapdocsetoff",
   delete: "/account/deleteapdocsetoff",
   history: "/account/gethistoryapdocsetoffbyid",
+  historyDetails: "/account/gethistoryapdocsetoffdetailsbyid",
 }
 
 // Cash Book Payment Endpoints

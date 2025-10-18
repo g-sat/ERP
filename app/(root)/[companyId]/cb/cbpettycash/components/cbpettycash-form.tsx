@@ -39,6 +39,7 @@ interface PettyCashFormProps {
   visible: IVisibleFields
   required: IMandatoryFields
   companyId: number
+  defaultCurrencyId?: number
 }
 
 export default function PettyCashForm({
@@ -48,6 +49,7 @@ export default function PettyCashForm({
   visible,
   required,
   companyId: _companyId,
+  defaultCurrencyId = 0,
 }: PettyCashFormProps) {
   const { decimals } = useAuthStore()
   const amtDec = decimals[0]?.amtDec || 2
@@ -87,6 +89,24 @@ export default function PettyCashForm({
       setIsChequePayment(false)
     }
   }, [form, paymentTypes])
+
+  // Set default currency when form is initialized (not in edit mode)
+  React.useEffect(() => {
+    if (!_isEdit && defaultCurrencyId > 0) {
+      const currentCurrencyId = form.getValues("currencyId")
+
+      // Only set default if no currency is set
+      if (!currentCurrencyId || currentCurrencyId === 0) {
+        form.setValue("currencyId", defaultCurrencyId)
+        // Trigger exchange rate fetch when default currency is set
+        setExchangeRate(form, exhRateDec, visible)
+        if (visible?.m_CtyCurr) {
+          setExchangeRateLocal(form, exhRateDec)
+        }
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [defaultCurrencyId, _isEdit])
 
   const onSubmit = async () => {
     await onSuccessAction("save")

@@ -16,6 +16,8 @@ import {
 import { useAuthStore } from "@/stores/auth-store"
 import { UseFormReturn } from "react-hook-form"
 
+import { useUserSettingDefaults } from "@/hooks/use-settings"
+
 import ReceiptDetailsForm from "./cbgenreceipt-details-form"
 import ReceiptDetailsTable from "./cbgenreceipt-details-table"
 import ReceiptForm from "./cbgenreceipt-form"
@@ -41,6 +43,9 @@ export default function Main({
   const amtDec = decimals[0]?.amtDec || 2
   const locAmtDec = decimals[0]?.locAmtDec || 2
   const ctyAmtDec = decimals[0]?.ctyAmtDec || 2
+
+  // Get user settings with defaults for all modules
+  const { defaults } = useUserSettingDefaults()
 
   const [editingDetail, setEditingDetail] =
     useState<CbGenReceiptDtSchemaType | null>(null)
@@ -173,6 +178,7 @@ export default function Main({
         visible={visible}
         required={required}
         companyId={companyId}
+        defaultCurrencyId={defaults.cb.currencyId}
       />
       <div className="rounded-lg border p-4 shadow-sm">
         <ReceiptDetailsForm
@@ -184,6 +190,9 @@ export default function Main({
           visible={visible}
           required={required}
           existingDetails={dataDetails as CbGenReceiptDtSchemaType[]}
+          defaultGlId={0}
+          defaultUomId={defaults.common.uomId}
+          defaultGstId={defaults.common.gstId}
         />
 
         <ReceiptDetailsTable
