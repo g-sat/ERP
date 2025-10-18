@@ -17,12 +17,7 @@ import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 
 import { Admin } from "@/lib/api-routes"
-import {
-  useDelete,
-  useGet,
-  useGetByParams,
-  usePersist,
-} from "@/hooks/use-common"
+import { useDelete, useGet, usePersist } from "@/hooks/use-common"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -103,8 +98,8 @@ export default function EnhancedDocumentUpload({
     isLoading,
     refetch,
   } = useGet<IDocType>(
-    Admin.getDocumentById,
-    `${moduleId}/${transactionId}/${recordId}`
+    `${Admin.getDocumentById}/${moduleId}/${transactionId}/${recordId}`,
+    "documents"
   )
 
   const saveDocumentMutation = usePersist<IDocument | IDocument[]>(
@@ -207,7 +202,7 @@ export default function EnhancedDocumentUpload({
     try {
       // Step 1: Upload all files and collect their paths
       const documentsToSave: IDocument[] = []
-      
+
       for (let index = 0; index < uploadFiles.length; index++) {
         const uploadFile = uploadFiles[index]
         try {
@@ -254,9 +249,8 @@ export default function EnhancedDocumentUpload({
       // Step 2: Save all document metadata in one API call
       if (documentsToSave.length > 0) {
         try {
-          const saveResult = await saveDocumentMutation.mutateAsync(
-            documentsToSave
-          )
+          const saveResult =
+            await saveDocumentMutation.mutateAsync(documentsToSave)
 
           if (saveResult.result === 1) {
             successCount = documentsToSave.length

@@ -417,9 +417,11 @@ export const useGetDocuments = (
 export const useSaveDocument = () => {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: async ({ data }: { data: IDocument }) => {
+    mutationFn: async ({ data }: { data: IDocument | IDocument[] }) => {
+      // Backend expects List<SaveDocumentViewModel>, so wrap single object in array
+      const payload = Array.isArray(data) ? data : [data]
       return apiClient
-        .post(`${Admin.saveDocument}`, data)
+        .post(`${Admin.saveDocument}`, payload)
         .then((res) => res.data)
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["user"] }),
