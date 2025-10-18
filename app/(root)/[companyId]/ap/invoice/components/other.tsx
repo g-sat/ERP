@@ -1,12 +1,14 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { useParams } from "next/navigation"
 import { IBankAddress, IBankContact } from "@/interfaces/bank"
 import { ICustomerAddress, ICustomerContact } from "@/interfaces/customer"
 import { ISupplierAddress, ISupplierContact } from "@/interfaces/supplier"
 import { ApInvoiceHdSchemaType } from "@/schemas/ap-invoice"
 import { UseFormReturn } from "react-hook-form"
 
+import { APTransactionId, ModuleId } from "@/lib/utils"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Form } from "@/components/ui/form"
 import { Separator } from "@/components/ui/separator"
@@ -19,18 +21,24 @@ import DynamicContactAutocomplete, {
 import CountryAutocomplete from "@/components/autocomplete/autocomplete-country"
 import CustomInput from "@/components/custom/custom-input"
 import CustomTextarea from "@/components/custom/custom-textarea"
+import EnhancedDocumentUpload from "@/components/custom/enhanced-document-upload"
 
 interface OtherProps {
   form: UseFormReturn<ApInvoiceHdSchemaType>
 }
 
 export default function Other({ form }: OtherProps) {
+  const params = useParams()
+  const companyId = params.companyId as string
+
   const [selectedAddress, setSelectedAddress] =
     useState<ISupplierAddress | null>(null)
   const [selectedContact, setSelectedContact] =
     useState<ISupplierContact | null>(null)
 
   const supplierId = form.getValues().supplierId || 0
+  const invoiceId = form.getValues("invoiceId") || "0"
+  const invoiceNo = form.getValues("invoiceNo") || ""
 
   // other.tsx
   useEffect(() => {
@@ -140,8 +148,6 @@ export default function Other({ form }: OtherProps) {
 
   return (
     <div className="space-y-4">
-      <h1 className="text-xl font-bold">Address & Contact Information</h1>
-
       <Form {...form}>
         <div className="grid grid-cols-2 gap-2">
           {/* Address Section */}
@@ -265,6 +271,17 @@ export default function Other({ form }: OtherProps) {
           </Card>
         </div>
       </Form>
+
+      {/* Document Upload Section */}
+      <EnhancedDocumentUpload
+        moduleId={ModuleId.ap}
+        transactionId={APTransactionId.invoice}
+        recordId={invoiceId}
+        recordNo={invoiceNo}
+        companyId={Number(companyId)}
+        maxFileSize={10}
+        maxFiles={10}
+      />
     </div>
   )
 }

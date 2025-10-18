@@ -9,7 +9,7 @@ import {
   IUserRightsv1,
 } from "@/interfaces/admin"
 import { ApiResponse } from "@/interfaces/auth"
-import { IDocType } from "@/interfaces/lookup"
+import { IDocType, IDocument } from "@/interfaces/lookup"
 import {
   keepPreviousData,
   useMutation,
@@ -20,6 +20,7 @@ import { AxiosError } from "axios"
 
 import { apiClient, getData, saveData } from "@/lib/api-client"
 import {
+  Admin,
   DocumentType,
   ShareData,
   User,
@@ -416,8 +417,10 @@ export const useGetDocuments = (
 export const useSaveDocument = () => {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: async ({ data }: { data: IDocType }) => {
-      return apiClient.post(`${DocumentType.add}`, data).then((res) => res.data)
+    mutationFn: async ({ data }: { data: IDocument }) => {
+      return apiClient
+        .post(`${Admin.saveDocument}`, data)
+        .then((res) => res.data)
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["user"] }),
   })
@@ -442,7 +445,7 @@ export function useGetDocumentType<T>(
     queryFn: async () => {
       // Clean up the URL by removing any double slashes
       const response = await apiClient.get<ApiResponse<T>>(
-        `${DocumentType.get}/${moduleId}/${transactionId}/${documentId}`
+        `${Admin.getDocumentById}/${moduleId}/${transactionId}/${documentId}`
       )
       return response.data
     },

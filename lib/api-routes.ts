@@ -9,6 +9,9 @@ export const Admin = {
   getCompanies: "/admin/getusercompany",
   getCompany: "/admin/GetUserCompany",
   getUserRights: "/admin/GetUserRightsbyUser",
+  getDocumentById: "/admin/GetDocumentbyid",
+  saveDocument: "/admin/SaveDocument",
+  deleteDocument: "/admin/DeleteDocument",
 }
 
 // User Rights Endpoints
