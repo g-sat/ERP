@@ -649,9 +649,16 @@ export default function PettyCashPage() {
               variant="outline"
               size="sm"
               onClick={() => setShowListDialog(true)}
+              disabled={isLoadingPettyCashes || isRefetchingPettyCashes}
             >
-              <ListFilter className="mr-1 h-4 w-4" />
-              List
+              {isLoadingPettyCashes || isRefetchingPettyCashes ? (
+                <Spinner size="sm" className="mr-1" />
+              ) : (
+                <ListFilter className="mr-1 h-4 w-4" />
+              )}
+              {isLoadingPettyCashes || isRefetchingPettyCashes
+                ? "Loading..."
+                : "List"}
             </Button>
 
             <Button
@@ -661,11 +668,22 @@ export default function PettyCashPage() {
               disabled={
                 isSaving || saveMutation.isPending || updateMutation.isPending
               }
+              className={isEdit ? "bg-blue-600 hover:bg-blue-700" : ""}
             >
-              <Save className="mr-1 h-4 w-4" />
+              {isSaving ||
+              saveMutation.isPending ||
+              updateMutation.isPending ? (
+                <Spinner size="sm" className="mr-1" />
+              ) : (
+                <Save className="mr-1 h-4 w-4" />
+              )}
               {isSaving || saveMutation.isPending || updateMutation.isPending
-                ? "Saving..."
-                : "Save"}
+                ? isEdit
+                  ? "Updating..."
+                  : "Saving..."
+                : isEdit
+                  ? "Update"
+                  : "Save"}
             </Button>
 
             <Button
@@ -700,10 +718,18 @@ export default function PettyCashPage() {
               variant="destructive"
               size="sm"
               onClick={() => setShowDeleteConfirm(true)}
-              disabled={!pettyCash || pettyCash.paymentId === "0"}
+              disabled={
+                !pettyCash ||
+                pettyCash.paymentId === "0" ||
+                deleteMutation.isPending
+              }
             >
-              <Trash2 className="mr-1 h-4 w-4" />
-              Delete
+              {deleteMutation.isPending ? (
+                <Spinner size="sm" className="mr-1" />
+              ) : (
+                <Trash2 className="mr-1 h-4 w-4" />
+              )}
+              {deleteMutation.isPending ? "Deleting..." : "Delete"}
             </Button>
           </div>
         </div>

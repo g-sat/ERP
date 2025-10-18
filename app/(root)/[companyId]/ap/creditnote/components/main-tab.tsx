@@ -168,9 +168,14 @@ export default function Main({
   }
 
   const handleDataReorder = (newData: IApCreditNoteDt[]) => {
+    // Update itemNo sequentially after reordering
+    const reorderedData = newData.map((item, index) => ({
+      ...item,
+      itemNo: index + 1,
+    }))
     form.setValue(
       "data_details",
-      newData as unknown as ApCreditNoteDtSchemaType[]
+      reorderedData as unknown as ApCreditNoteDtSchemaType[]
     )
   }
 

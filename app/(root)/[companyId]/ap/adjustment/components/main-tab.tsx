@@ -176,9 +176,14 @@ export default function Main({
   }
 
   const handleDataReorder = (newData: IApAdjustmentDt[]) => {
+    // Update itemNo sequentially after reordering
+    const reorderedData = newData.map((item, index) => ({
+      ...item,
+      itemNo: index + 1,
+    }))
     form.setValue(
       "data_details",
-      newData as unknown as ApAdjustmentDtSchemaType[]
+      reorderedData as unknown as ApAdjustmentDtSchemaType[]
     )
   }
 

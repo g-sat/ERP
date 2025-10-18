@@ -6,7 +6,7 @@ import {
   calculateCountryAmounts,
   calculateLocalAmounts,
   calculateTotalAmounts,
-} from "@/helpers-calculations"
+} from "@/helpers/ap-debitNote-calculations"
 import { IApDebitNoteDt } from "@/interfaces"
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
 import { ApDebitNoteDtSchemaType, ApDebitNoteHdSchemaType } from "@/schemas"
@@ -173,9 +173,14 @@ export default function Main({
   }
 
   const handleDataReorder = (newData: IApDebitNoteDt[]) => {
+    // Update itemNo sequentially after reordering
+    const reorderedData = newData.map((item, index) => ({
+      ...item,
+      itemNo: index + 1,
+    }))
     form.setValue(
       "data_details",
-      newData as unknown as ApDebitNoteDtSchemaType[]
+      reorderedData as unknown as ApDebitNoteDtSchemaType[]
     )
   }
 

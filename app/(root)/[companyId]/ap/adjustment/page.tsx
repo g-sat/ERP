@@ -1101,9 +1101,16 @@ export default function AdjustmentPage() {
               variant="outline"
               size="sm"
               onClick={() => setShowListDialog(true)}
+              disabled={isLoadingAdjustments || isRefetchingAdjustments}
             >
-              <ListFilter className="mr-1 h-4 w-4" />
-              List
+              {isLoadingAdjustments || isRefetchingAdjustments ? (
+                <Spinner size="sm" className="mr-1" />
+              ) : (
+                <ListFilter className="mr-1 h-4 w-4" />
+              )}
+              {isLoadingAdjustments || isRefetchingAdjustments
+                ? "Loading..."
+                : "List"}
             </Button>
 
             <Button
@@ -1113,11 +1120,22 @@ export default function AdjustmentPage() {
               disabled={
                 isSaving || saveMutation.isPending || updateMutation.isPending
               }
+              className={isEdit ? "bg-blue-600 hover:bg-blue-700" : ""}
             >
-              <Save className="mr-1 h-4 w-4" />
+              {isSaving ||
+              saveMutation.isPending ||
+              updateMutation.isPending ? (
+                <Spinner size="sm" className="mr-1" />
+              ) : (
+                <Save className="mr-1 h-4 w-4" />
+              )}
               {isSaving || saveMutation.isPending || updateMutation.isPending
-                ? "Saving..."
-                : "Save"}
+                ? isEdit
+                  ? "Updating..."
+                  : "Saving..."
+                : isEdit
+                  ? "Update"
+                  : "Save"}
             </Button>
 
             <Button
@@ -1153,10 +1171,18 @@ export default function AdjustmentPage() {
               variant="destructive"
               size="sm"
               onClick={() => setShowDeleteConfirm(true)}
-              disabled={!adjustment || adjustment.adjustmentId === "0"}
+              disabled={
+                !adjustment ||
+                adjustment.adjustmentId === "0" ||
+                deleteMutation.isPending
+              }
             >
-              <Trash2 className="mr-1 h-4 w-4" />
-              Delete
+              {deleteMutation.isPending ? (
+                <Spinner size="sm" className="mr-1" />
+              ) : (
+                <Trash2 className="mr-1 h-4 w-4" />
+              )}
+              {deleteMutation.isPending ? "Deleting..." : "Delete"}
             </Button>
           </div>
         </div>

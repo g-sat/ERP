@@ -105,9 +105,14 @@ export default function Main({
   }
 
   const handleDataReorder = (newData: ICbBankTransferCtmDt[]) => {
+    // Update itemNo sequentially after reordering
+    const reorderedData = newData.map((item, index) => ({
+      ...item,
+      itemNo: index + 1,
+    }))
     form.setValue(
       "data_details",
-      newData as unknown as CbBankTransferCtmDtSchemaType[]
+      reorderedData as unknown as CbBankTransferCtmDtSchemaType[]
     )
   }
 
