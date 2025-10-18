@@ -16,7 +16,13 @@ import {
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 
-import { useGetDocumentType, useSaveDocument } from "@/hooks/use-admin"
+import { Admin } from "@/lib/api-routes"
+import {
+  useDelete,
+  useGet,
+  useGetByParams,
+  usePersist,
+} from "@/hooks/use-common"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -37,6 +43,8 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import DocumentTypeAutocomplete from "@/components/autocomplete/autocomplete-document-type"
+
+import CustomTextarea from "./custom-textarea"
 
 interface EnhancedDocumentUploadProps {
   moduleId: number
@@ -94,11 +102,15 @@ export default function EnhancedDocumentUpload({
     data: documents,
     isLoading,
     refetch,
-  } = useGetDocumentType(moduleId, transactionId, recordId, {
-    enabled: recordId !== "0",
-  })
+  } = useGet<IDocType>(
+    Admin.getDocumentById,
+    `${moduleId}/${transactionId}/${recordId}`
+  )
 
-  const saveDocumentMutation = useSaveDocument()
+  const saveDocumentMutation = usePersist<IDocument | IDocument[]>(
+    Admin.saveDocument
+  )
+  const deleteDocumentMutation = useDelete(Admin.deleteDocument)
 
   // Handle file selection
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -193,10 +205,13 @@ export default function EnhancedDocumentUpload({
     let failCount = 0
 
     try {
+      // Step 1: Upload all files and collect their paths
+      const documentsToSave: IDocument[] = []
+      
       for (let index = 0; index < uploadFiles.length; index++) {
         const uploadFile = uploadFiles[index]
         try {
-          // First upload the file to get the file path
+          // Upload the file to get the file path
           const formData = new FormData()
           formData.append("file", uploadFile.file)
           formData.append("moduleId", moduleId.toString())
@@ -217,7 +232,7 @@ export default function EnhancedDocumentUpload({
           const uploadResult = await uploadResponse.json()
           const filePath = uploadResult.filePath || uploadFile.file.name
 
-          // Then save document metadata using IDocument interface
+          // Collect document metadata
           const documentData: IDocument = {
             transactionId: transactionId,
             moduleId: moduleId,
@@ -226,32 +241,39 @@ export default function EnhancedDocumentUpload({
             itemNo: index + 1,
             docTypeId: selectedDocType.docTypeId,
             docPath: filePath,
-            remarks: "",
+            remarks: form.getValues("remarks") || "",
           }
 
-          const saveResult = await saveDocumentMutation.mutateAsync({
-            data: documentData,
-          })
-
-          if (saveResult.result === 1) {
-            successCount++
-          } else {
-            throw new Error(saveResult.message || "Save failed")
-          }
+          documentsToSave.push(documentData)
         } catch (error) {
           console.error(`Failed to upload ${uploadFile.file.name}:`, error)
           failCount++
         }
       }
 
-      if (successCount > 0) {
-        toast.success(
-          `${successCount} document(s) uploaded successfully${failCount > 0 ? `, ${failCount} failed` : ""}`
-        )
-        setUploadFiles([])
-        setSelectedDocType(null)
-        refetch()
-        onUploadSuccess?.()
+      // Step 2: Save all document metadata in one API call
+      if (documentsToSave.length > 0) {
+        try {
+          const saveResult = await saveDocumentMutation.mutateAsync(
+            documentsToSave
+          )
+
+          if (saveResult.result === 1) {
+            successCount = documentsToSave.length
+            toast.success(
+              `${successCount} document(s) uploaded successfully${failCount > 0 ? `, ${failCount} failed` : ""}`
+            )
+            setUploadFiles([])
+            setSelectedDocType(null)
+            refetch()
+            onUploadSuccess?.()
+          } else {
+            throw new Error(saveResult.message || "Save failed")
+          }
+        } catch (error) {
+          console.error("Failed to save documents:", error)
+          toast.error("Failed to save document metadata")
+        }
       } else {
         toast.error("All uploads failed")
       }
@@ -263,18 +285,12 @@ export default function EnhancedDocumentUpload({
   // Delete document
   const handleDelete = async (documentId: string) => {
     try {
-      const response = await fetch(`/api/documents/${documentId}`, {
-        method: "DELETE",
-      })
+      const response = await deleteDocumentMutation.mutateAsync(documentId)
 
-      if (!response.ok) {
-        throw new Error("Delete failed")
+      if (response.result === 1) {
+        refetch()
       }
-
-      toast.success("Document deleted successfully")
-      refetch()
     } catch (error) {
-      toast.error("Failed to delete document")
       console.error("Delete error:", error)
     }
   }
@@ -304,257 +320,275 @@ export default function EnhancedDocumentUpload({
 
   return (
     <>
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center justify-between">
-            <span>Upload Documents</span>
-            {recordId !== "0" && (
-              <Badge variant="outline">Invoice: {recordNo || recordId}</Badge>
-            )}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {/* Document Type Selection */}
-            <div className="grid gap-2">
-              <Label>Document Type *</Label>
-              <DocumentTypeAutocomplete
-                form={form}
-                name="docTypeId"
-                label=""
-                onChangeEvent={(option) => setSelectedDocType(option)}
-              />
-            </div>
+      <div className="grid grid-cols-10 gap-4">
+        {/* Upload Section - 30% */}
+        <div className="col-span-3">
+          <Card className="h-full">
+            <CardHeader>
+              <CardTitle className="flex flex-col gap-2">
+                <span>Upload Documents</span>
+                {recordId !== "0" && (
+                  <Badge variant="outline" className="w-fit">
+                    {recordNo || recordId}
+                  </Badge>
+                )}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {/* Document Type Selection */}
+                <div className="grid gap-2">
+                  <Label>Document Type *</Label>
+                  <DocumentTypeAutocomplete
+                    form={form}
+                    name="docTypeId"
+                    label=""
+                    onChangeEvent={(option) => setSelectedDocType(option)}
+                  />
+                  <CustomTextarea
+                    form={form}
+                    name="remarks"
+                    label="Remarks"
+                    placeholder="Enter remarks"
+                  />
+                </div>
 
-            {/* Drag & Drop Zone */}
-            <div
-              className={`rounded-lg border-2 border-dashed p-8 text-center transition-colors ${
-                isDragging
-                  ? "border-blue-500 bg-blue-50"
-                  : "border-gray-300 hover:border-gray-400"
-              }`}
-              onDragOver={handleDragOver}
-              onDragLeave={handleDragLeave}
-              onDrop={handleDrop}
-            >
-              <Upload className="mx-auto h-12 w-12 text-gray-400" />
-              <p className="mt-2 text-sm text-gray-600">
-                Drag & drop files here, or click to browse
-              </p>
-              <p className="mt-1 text-xs text-gray-500">
-                Maximum {maxFiles} files, {maxFileSize}MB per file
-              </p>
-              <p className="text-xs text-gray-500">
-                Supported: {allowedFileTypes.join(", ")}
-              </p>
-              <input
-                type="file"
-                multiple
-                onChange={handleFileChange}
-                accept={allowedFileTypes.join(",")}
-                className="hidden"
-                id="file-upload"
-              />
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className="mt-4"
-                onClick={() => document.getElementById("file-upload")?.click()}
-              >
-                <FileIcon className="mr-2 h-4 w-4" />
-                Browse Files
-              </Button>
-            </div>
-
-            {/* Selected Files List */}
-            {uploadFiles.length > 0 && (
-              <div className="rounded-lg border p-4">
-                <div className="mb-3 flex items-center justify-between">
-                  <h4 className="text-sm font-semibold">
-                    Selected Files ({uploadFiles.length})
-                  </h4>
+                {/* Drag & Drop Zone */}
+                <div
+                  className={`rounded-lg border-2 border-dashed p-8 text-center transition-colors ${
+                    isDragging
+                      ? "border-blue-500 bg-blue-50"
+                      : "border-gray-300 hover:border-gray-400"
+                  }`}
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onDrop={handleDrop}
+                >
+                  <Upload className="mx-auto h-12 w-12 text-gray-400" />
+                  <p className="mt-2 text-sm text-gray-600">
+                    Drag & drop files here, or click to browse
+                  </p>
+                  <p className="mt-1 text-xs text-gray-500">
+                    Maximum {maxFiles} files, {maxFileSize}MB per file
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    Supported: {allowedFileTypes.join(", ")}
+                  </p>
+                  <input
+                    type="file"
+                    multiple
+                    onChange={handleFileChange}
+                    accept={allowedFileTypes.join(",")}
+                    className="hidden"
+                    id="file-upload"
+                  />
                   <Button
                     type="button"
-                    variant="ghost"
+                    variant="outline"
                     size="sm"
-                    onClick={() => setUploadFiles([])}
+                    className="mt-4"
+                    onClick={() =>
+                      document.getElementById("file-upload")?.click()
+                    }
                   >
-                    Clear All
+                    <FileIcon className="mr-2 h-4 w-4" />
+                    Browse Files
                   </Button>
                 </div>
-                <div className="space-y-2">
-                  {uploadFiles.map((uploadFile) => (
-                    <div
-                      key={uploadFile.id}
-                      className="flex items-center justify-between rounded border bg-gray-50 p-2"
-                    >
-                      <div className="flex flex-1 items-center gap-2">
-                        <FileText className="h-4 w-4 text-blue-600" />
-                        <div className="flex-1">
-                          <p className="truncate text-sm font-medium">
-                            {uploadFile.file.name}
-                          </p>
-                          <p className="text-xs text-gray-500">
-                            {formatFileSize(uploadFile.file.size)}
-                          </p>
-                        </div>
-                      </div>
+
+                {/* Selected Files List */}
+                {uploadFiles.length > 0 && (
+                  <div className="rounded-lg border p-4">
+                    <div className="mb-3 flex items-center justify-between">
+                      <h4 className="text-sm font-semibold">
+                        Selected Files ({uploadFiles.length})
+                      </h4>
                       <Button
                         type="button"
                         variant="ghost"
                         size="sm"
-                        onClick={() => removeFile(uploadFile.id)}
+                        onClick={() => setUploadFiles([])}
                       >
-                        <X className="h-4 w-4" />
+                        Clear All
                       </Button>
                     </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Upload Button */}
-            <Button
-              type="button"
-              onClick={handleUploadAll}
-              disabled={
-                !selectedDocType ||
-                uploadFiles.length === 0 ||
-                isUploading ||
-                recordId === "0"
-              }
-              className="w-full"
-            >
-              {isUploading ? (
-                <>
-                  <Spinner size="sm" className="mr-2" />
-                  Uploading {uploadFiles.length} file(s)...
-                </>
-              ) : (
-                <>
-                  <Upload className="mr-2 h-4 w-4" />
-                  Upload{" "}
-                  {uploadFiles.length > 0 ? `${uploadFiles.length} ` : ""}
-                  File(s)
-                </>
-              )}
-            </Button>
-
-            {recordId === "0" && (
-              <p className="text-center text-sm text-orange-600">
-                💡 Please save the invoice first before uploading documents
-              </p>
-            )}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Uploaded Documents List */}
-      <Card className="mt-4">
-        <CardHeader>
-          <CardTitle className="flex items-center justify-between">
-            <span>Uploaded Documents</span>
-            {documents?.data && Array.isArray(documents.data) && (
-              <Badge variant="secondary">
-                {documents.data.length} document(s)
-              </Badge>
-            )}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {isLoading ? (
-            <div className="flex justify-center py-8">
-              <Spinner size="lg" />
-            </div>
-          ) : (
-            <div className="rounded-md border">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Document Type</TableHead>
-                    <TableHead>File Name</TableHead>
-                    <TableHead>Created Date</TableHead>
-                    <TableHead>Created By</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {Array.isArray(documents?.data) &&
-                  documents.data.length > 0 ? (
-                    (documents.data as IDocType[]).map((doc) => (
-                      <TableRow key={doc.documentId}>
-                        <TableCell className="font-medium">
-                          {doc.docTypeName}
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
+                    <div className="space-y-2">
+                      {uploadFiles.map((uploadFile) => (
+                        <div
+                          key={uploadFile.id}
+                          className="flex items-center justify-between rounded border bg-gray-50 p-2"
+                        >
+                          <div className="flex flex-1 items-center gap-2">
                             <FileText className="h-4 w-4 text-blue-600" />
-                            <span className="text-sm">
-                              {doc.docPath?.split("/").pop() || doc.documentNo}
-                            </span>
+                            <div className="flex-1">
+                              <p className="truncate text-sm font-medium">
+                                {uploadFile.file.name}
+                              </p>
+                              <p className="text-xs text-gray-500">
+                                {formatFileSize(uploadFile.file.size)}
+                              </p>
+                            </div>
                           </div>
-                        </TableCell>
-                        <TableCell>
-                          {doc.createDate
-                            ? format(new Date(doc.createDate), dateFormat)
-                            : "-"}
-                        </TableCell>
-                        <TableCell>{doc.createBy || "-"}</TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex justify-end gap-1">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handlePreview(doc)}
-                              title="Preview"
-                            >
-                              <Eye className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleDownload(doc)}
-                              title="Download"
-                            >
-                              <Download className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => {
-                                if (
-                                  confirm(
-                                    "Are you sure you want to delete this document?"
-                                  )
-                                ) {
-                                  handleDelete(doc.documentId)
-                                }
-                              }}
-                              title="Delete"
-                            >
-                              <Trash2 className="h-4 w-4 text-red-600" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => removeFile(uploadFile.id)}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Upload Button */}
+                <Button
+                  type="button"
+                  onClick={handleUploadAll}
+                  disabled={
+                    !selectedDocType ||
+                    uploadFiles.length === 0 ||
+                    isUploading ||
+                    recordId === "0"
+                  }
+                  className="w-full"
+                >
+                  {isUploading ? (
+                    <>
+                      <Spinner size="sm" className="mr-2" />
+                      Uploading {uploadFiles.length} file(s)...
+                    </>
                   ) : (
-                    <TableRow>
-                      <TableCell
-                        colSpan={5}
-                        className="py-8 text-center text-gray-500"
-                      >
-                        No documents uploaded yet
-                      </TableCell>
-                    </TableRow>
+                    <>
+                      <Upload className="mr-2 h-4 w-4" />
+                      Upload{" "}
+                      {uploadFiles.length > 0 ? `${uploadFiles.length} ` : ""}
+                      File(s)
+                    </>
                   )}
-                </TableBody>
-              </Table>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+                </Button>
+
+                {recordId === "0" && (
+                  <p className="text-center text-sm text-orange-600">
+                    💡 Please save the invoice first before uploading documents
+                  </p>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Uploaded Documents List - 70% */}
+        <div className="col-span-7">
+          <Card className="h-full">
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                <span>Uploaded Documents</span>
+                {documents?.data && Array.isArray(documents.data) && (
+                  <Badge variant="secondary">
+                    {documents.data.length} document(s)
+                  </Badge>
+                )}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {isLoading ? (
+                <div className="flex justify-center py-8">
+                  <Spinner size="lg" />
+                </div>
+              ) : (
+                <div className="rounded-md border">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Document Type</TableHead>
+                        <TableHead>File Name</TableHead>
+                        <TableHead>Created Date</TableHead>
+                        <TableHead>Created By</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {Array.isArray(documents?.data) &&
+                      documents.data.length > 0 ? (
+                        (documents.data as IDocType[]).map((doc) => (
+                          <TableRow key={doc.documentId}>
+                            <TableCell className="font-medium">
+                              {doc.docTypeName}
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex items-center gap-2">
+                                <FileText className="h-4 w-4 text-blue-600" />
+                                <span className="text-sm">
+                                  {doc.docPath?.split("/").pop() ||
+                                    doc.documentNo}
+                                </span>
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              {doc.createDate
+                                ? format(new Date(doc.createDate), dateFormat)
+                                : "-"}
+                            </TableCell>
+                            <TableCell>{doc.createBy || "-"}</TableCell>
+                            <TableCell className="text-right">
+                              <div className="flex justify-end gap-1">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handlePreview(doc)}
+                                  title="Preview"
+                                >
+                                  <Eye className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleDownload(doc)}
+                                  title="Download"
+                                >
+                                  <Download className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => {
+                                    if (
+                                      confirm(
+                                        "Are you sure you want to delete this document?"
+                                      )
+                                    ) {
+                                      handleDelete(doc.documentId)
+                                    }
+                                  }}
+                                  title="Delete"
+                                >
+                                  <Trash2 className="h-4 w-4 text-red-600" />
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      ) : (
+                        <TableRow>
+                          <TableCell
+                            colSpan={5}
+                            className="py-8 text-center text-gray-500"
+                          >
+                            No documents uploaded yet
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      </div>
 
       {/* Preview Dialog */}
       <Dialog
