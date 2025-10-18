@@ -23,6 +23,11 @@ import {
 import { BasicTable } from "@/components/table/table-basic"
 import { DialogDataTable } from "@/components/table/table-dialog"
 
+// Extended column definition with hide property
+type ExtendedColumnDef<T> = ColumnDef<T> & {
+  hidden?: boolean
+}
+
 interface EditVersionDetailsProps {
   invoiceId: string
 }

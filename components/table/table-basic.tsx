@@ -58,6 +58,7 @@ interface BasicTableProps<T> {
   showHeader?: boolean
   showFooter?: boolean
   maxHeight?: string
+  pageSizeOption?: number
 }
 
 export function BasicTable<T>({
@@ -73,6 +74,7 @@ export function BasicTable<T>({
   showHeader = true,
   showFooter = true,
   maxHeight = "460px",
+  pageSizeOption = 50,
 }: BasicTableProps<T>) {
   const { data: gridSettings } = useGetGridLayout(
     moduleId?.toString() || "",
@@ -123,7 +125,7 @@ export function BasicTable<T>({
   const [columnSizing, setColumnSizing] = useState(getInitialColumnSizing)
   const [searchQuery, setSearchQuery] = useState("")
   const [currentPage, setCurrentPage] = useState(1)
-  const [pageSize, setPageSize] = useState(50)
+  const [pageSize, setPageSize] = useState(pageSizeOption)
   const [rowSelection, setRowSelection] = useState({})
 
   // Reference removed as not needed without virtual scrolling
