@@ -1081,9 +1081,16 @@ export default function InvoicePage() {
               variant="outline"
               size="sm"
               onClick={() => setShowListDialog(true)}
+              disabled={isLoadingInvoices || isRefetchingInvoices}
             >
-              <ListFilter className="mr-1 h-4 w-4" />
-              List
+              {isLoadingInvoices || isRefetchingInvoices ? (
+                <Spinner size="sm" className="mr-1" />
+              ) : (
+                <ListFilter className="mr-1 h-4 w-4" />
+              )}
+              {isLoadingInvoices || isRefetchingInvoices
+                ? "Loading..."
+                : "List"}
             </Button>
 
             <Button
@@ -1093,11 +1100,22 @@ export default function InvoicePage() {
               disabled={
                 isSaving || saveMutation.isPending || updateMutation.isPending
               }
+              className={isEdit ? "bg-blue-600 hover:bg-blue-700" : ""}
             >
-              <Save className="mr-1 h-4 w-4" />
+              {isSaving ||
+              saveMutation.isPending ||
+              updateMutation.isPending ? (
+                <Spinner size="sm" className="mr-1" />
+              ) : (
+                <Save className="mr-1 h-4 w-4" />
+              )}
               {isSaving || saveMutation.isPending || updateMutation.isPending
-                ? "Saving..."
-                : "Save"}
+                ? isEdit
+                  ? "Updating..."
+                  : "Saving..."
+                : isEdit
+                  ? "Update"
+                  : "Save"}
             </Button>
 
             <Button
@@ -1133,10 +1151,18 @@ export default function InvoicePage() {
               variant="destructive"
               size="sm"
               onClick={() => setShowDeleteConfirm(true)}
-              disabled={!invoice || invoice.invoiceId === "0"}
+              disabled={
+                !invoice ||
+                invoice.invoiceId === "0" ||
+                deleteMutation.isPending
+              }
             >
-              <Trash2 className="mr-1 h-4 w-4" />
-              Delete
+              {deleteMutation.isPending ? (
+                <Spinner size="sm" className="mr-1" />
+              ) : (
+                <Trash2 className="mr-1 h-4 w-4" />
+              )}
+              {deleteMutation.isPending ? "Deleting..." : "Delete"}
             </Button>
           </div>
         </div>

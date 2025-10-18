@@ -103,7 +103,7 @@ export const LoadConfirmation = ({
           <Button onClick={handleLoad} disabled={isLoading}>
             {isLoading ? (
               <>
-                <Spinner />
+                <Spinner className="mr-2" size="sm" />
                 Loading...
               </>
             ) : (
