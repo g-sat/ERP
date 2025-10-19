@@ -53,6 +53,7 @@ import {
 
 import History from "./components/history"
 import Main from "./components/main-tab"
+import Other from "./components/other"
 import { defaultPayment } from "./components/payment-defaultvalues"
 import PaymentTable from "./components/payment-table"
 
@@ -925,6 +926,10 @@ export default function PaymentPage() {
             required={required}
             companyId={Number(companyId)}
           />
+        </TabsContent>
+
+        <TabsContent value="other">
+          <Other form={form} />
         </TabsContent>
 
         <TabsContent value="history">

@@ -3,6 +3,7 @@
 import { useCallback, useState } from "react"
 import { IDocType, IDocument, IDocumentTypeLookup } from "@/interfaces/lookup"
 import { useAuthStore } from "@/stores/auth-store"
+import { useQueryClient } from "@tanstack/react-query"
 import { format } from "date-fns"
 import {
   Download,
@@ -21,6 +22,7 @@ import { useDelete, useGet, usePersist } from "@/hooks/use-common"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Checkbox } from "@/components/ui/checkbox"
 import {
   Dialog,
   DialogContent,
@@ -82,6 +84,7 @@ export default function EnhancedDocumentUpload({
   const { decimals } = useAuthStore()
   const dateFormat = decimals[0]?.dateFormat || "dd/MM/yyyy"
   const form = useForm()
+  const queryClient = useQueryClient()
 
   const [selectedDocType, setSelectedDocType] =
     useState<IDocumentTypeLookup | null>(null)
@@ -92,12 +95,10 @@ export default function EnhancedDocumentUpload({
     null
   )
   const [previewUrl, setPreviewUrl] = useState<string>("")
+  const [selectedDocuments, setSelectedDocuments] = useState<string[]>([])
+  const [selectAll, setSelectAll] = useState(false)
 
-  const {
-    data: documents,
-    isLoading,
-    refetch,
-  } = useGet<IDocType>(
+  const { data: documents, isLoading } = useGet<IDocType>(
     `${Admin.getDocumentById}/${moduleId}/${transactionId}/${recordId}`,
     "documents"
   )
@@ -200,7 +201,15 @@ export default function EnhancedDocumentUpload({
     let failCount = 0
 
     try {
-      // Step 1: Upload all files and collect their paths
+      // Step 1: Get the maximum itemNo from existing documents
+      let maxItemNo = 0
+      if (Array.isArray(documents?.data) && documents.data.length > 0) {
+        maxItemNo = Math.max(
+          ...(documents.data as IDocType[]).map((doc) => doc.itemNo || 0)
+        )
+      }
+
+      // Step 2: Upload all files and collect their paths
       const documentsToSave: IDocument[] = []
 
       for (let index = 0; index < uploadFiles.length; index++) {
@@ -227,13 +236,13 @@ export default function EnhancedDocumentUpload({
           const uploadResult = await uploadResponse.json()
           const filePath = uploadResult.filePath || uploadFile.file.name
 
-          // Collect document metadata
+          // Collect document metadata with incremented itemNo
           const documentData: IDocument = {
             transactionId: transactionId,
             moduleId: moduleId,
             documentId: recordId,
             documentNo: recordNo,
-            itemNo: index + 1,
+            itemNo: maxItemNo + index + 1,
             docTypeId: selectedDocType.docTypeId,
             docPath: filePath,
             remarks: form.getValues("remarks") || "",
@@ -246,7 +255,7 @@ export default function EnhancedDocumentUpload({
         }
       }
 
-      // Step 2: Save all document metadata in one API call
+      // Step 3: Save all document metadata in one API call
       if (documentsToSave.length > 0) {
         try {
           const saveResult =
@@ -259,7 +268,7 @@ export default function EnhancedDocumentUpload({
             )
             setUploadFiles([])
             setSelectedDocType(null)
-            refetch()
+            queryClient.invalidateQueries({ queryKey: ["documents"] })
             onUploadSuccess?.()
           } else {
             throw new Error(saveResult.message || "Save failed")
@@ -282,7 +291,7 @@ export default function EnhancedDocumentUpload({
       const response = await deleteDocumentMutation.mutateAsync(documentId)
 
       if (response.result === 1) {
-        refetch()
+        queryClient.invalidateQueries({ queryKey: ["documents"] })
       }
     } catch (error) {
       console.error("Delete error:", error)
@@ -301,6 +310,26 @@ export default function EnhancedDocumentUpload({
     link.href = doc.docPath
     link.download = doc.docPath.split("/").pop() || "document"
     link.click()
+  }
+
+  // Handle checkbox selection
+  const handleSelectDocument = (documentId: string, checked: boolean) => {
+    if (checked) {
+      setSelectedDocuments((prev) => [...prev, documentId])
+    } else {
+      setSelectedDocuments((prev) => prev.filter((id) => id !== documentId))
+    }
+  }
+
+  // Handle select all checkbox
+  const handleSelectAll = (checked: boolean) => {
+    setSelectAll(checked)
+    if (checked && Array.isArray(documents?.data)) {
+      const allIds = (documents.data as IDocType[]).map((doc) => doc.documentId)
+      setSelectedDocuments(allIds)
+    } else {
+      setSelectedDocuments([])
+    }
   }
 
   // Format file size
@@ -480,11 +509,18 @@ export default function EnhancedDocumentUpload({
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
                 <span>Uploaded Documents</span>
-                {documents?.data && Array.isArray(documents.data) && (
-                  <Badge variant="secondary">
-                    {documents.data.length} document(s)
-                  </Badge>
-                )}
+                <div className="flex items-center gap-2">
+                  {selectedDocuments.length > 0 && (
+                    <Badge variant="default">
+                      {selectedDocuments.length} selected
+                    </Badge>
+                  )}
+                  {documents?.data && Array.isArray(documents.data) && (
+                    <Badge variant="secondary">
+                      {documents.data.length} document(s)
+                    </Badge>
+                  )}
+                </div>
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -497,10 +533,20 @@ export default function EnhancedDocumentUpload({
                   <Table>
                     <TableHeader>
                       <TableRow>
+                        <TableHead className="w-[50px]">
+                          <Checkbox
+                            checked={selectAll}
+                            onCheckedChange={handleSelectAll}
+                            aria-label="Select all"
+                          />
+                        </TableHead>
                         <TableHead>Document Type</TableHead>
                         <TableHead>File Name</TableHead>
+                        <TableHead>Remarks</TableHead>
                         <TableHead>Created Date</TableHead>
                         <TableHead>Created By</TableHead>
+                        <TableHead>Edit Date</TableHead>
+                        <TableHead>Edit By</TableHead>
                         <TableHead className="text-right">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -508,7 +554,21 @@ export default function EnhancedDocumentUpload({
                       {Array.isArray(documents?.data) &&
                       documents.data.length > 0 ? (
                         (documents.data as IDocType[]).map((doc) => (
-                          <TableRow key={doc.documentId}>
+                          <TableRow key={`${doc.itemNo}-${doc.documentId}`}>
+                            <TableCell>
+                              <Checkbox
+                                checked={selectedDocuments.includes(
+                                  doc.documentId
+                                )}
+                                onCheckedChange={(checked) =>
+                                  handleSelectDocument(
+                                    doc.documentId,
+                                    checked as boolean
+                                  )
+                                }
+                                aria-label={`Select ${doc.docTypeName}`}
+                              />
+                            </TableCell>
                             <TableCell className="font-medium">
                               {doc.docTypeName}
                             </TableCell>
@@ -521,12 +581,21 @@ export default function EnhancedDocumentUpload({
                                 </span>
                               </div>
                             </TableCell>
+                            <TableCell className="text-muted-foreground text-sm">
+                              {doc.remarks || "-"}
+                            </TableCell>
                             <TableCell>
                               {doc.createDate
                                 ? format(new Date(doc.createDate), dateFormat)
                                 : "-"}
                             </TableCell>
                             <TableCell>{doc.createBy || "-"}</TableCell>
+                            <TableCell>
+                              {doc.editDate
+                                ? format(new Date(doc.editDate), dateFormat)
+                                : "-"}
+                            </TableCell>
+                            <TableCell>{doc.editBy || "-"}</TableCell>
                             <TableCell className="text-right">
                               <div className="flex justify-end gap-1">
                                 <Button

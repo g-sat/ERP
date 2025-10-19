@@ -52,6 +52,7 @@ import { defaultBankTransferCtmHd } from "./components/cbbanktransferctm-default
 import BankTransferCtmTable from "./components/cbbanktransferctm-table"
 import History from "./components/history"
 import Main from "./components/main-tab"
+import Other from "./components/other"
 
 export default function BankTransferCtmPage() {
   const params = useParams()
@@ -620,6 +621,7 @@ export default function BankTransferCtmPage() {
         <div className="mb-2 flex items-center justify-between">
           <TabsList>
             <TabsTrigger value="main">Main</TabsTrigger>
+            <TabsTrigger value="other">Other</TabsTrigger>
             <TabsTrigger value="history">History</TabsTrigger>
           </TabsList>
 
@@ -769,6 +771,10 @@ export default function BankTransferCtmPage() {
             required={required}
             companyId={Number(companyId)}
           />
+        </TabsContent>
+
+        <TabsContent value="other">
+          <Other form={form} />
         </TabsContent>
 
         <TabsContent value="history">

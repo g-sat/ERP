@@ -51,6 +51,7 @@ import { defaultBatchPayment } from "./components/cbbatchpayment-defaultvalues"
 import BatchPaymentTable from "./components/cbbatchpayment-table"
 import History from "./components/history"
 import Main from "./components/main-tab"
+import Other from "./components/other"
 
 export default function BatchPaymentPage() {
   const params = useParams()
@@ -590,6 +591,7 @@ export default function BatchPaymentPage() {
         <div className="mb-2 flex items-center justify-between">
           <TabsList>
             <TabsTrigger value="main">Main</TabsTrigger>
+            <TabsTrigger value="other">Other</TabsTrigger>
             <TabsTrigger value="history">History</TabsTrigger>
           </TabsList>
 
@@ -639,14 +641,14 @@ export default function BatchPaymentPage() {
               variant="outline"
               size="sm"
               onClick={() => setShowListDialog(true)}
-              disabled={isLoadingBatchPayments || isRefetchingBatchPayments}
+              disabled={isLoadingBatchPayment || isRefetchingBatchPayment}
             >
-              {isLoadingBatchPayments || isRefetchingBatchPayments ? (
+              {isLoadingBatchPayment || isRefetchingBatchPayment ? (
                 <Spinner size="sm" className="mr-1" />
               ) : (
                 <ListFilter className="mr-1 h-4 w-4" />
               )}
-              {isLoadingBatchPayments || isRefetchingBatchPayments
+              {isLoadingBatchPayment || isRefetchingBatchPayment
                 ? "Loading..."
                 : "List"}
             </Button>
@@ -735,6 +737,10 @@ export default function BatchPaymentPage() {
             required={required}
             companyId={Number(companyId)}
           />
+        </TabsContent>
+
+        <TabsContent value="other">
+          <Other form={form} />
         </TabsContent>
 
         <TabsContent value="history">

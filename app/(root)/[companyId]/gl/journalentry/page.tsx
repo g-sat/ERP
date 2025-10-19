@@ -51,6 +51,7 @@ import History from "./components/history"
 import { defaultJournal } from "./components/journalentry-defaultvalues"
 import JournalTable from "./components/journalentry-table"
 import Main from "./components/main-tab"
+import Other from "./components/other"
 
 export default function JournalEntryPage() {
   const params = useParams()
@@ -617,6 +618,7 @@ export default function JournalEntryPage() {
         <div className="mb-2 flex items-center justify-between">
           <TabsList>
             <TabsTrigger value="main">Main</TabsTrigger>
+            <TabsTrigger value="other">Other</TabsTrigger>
             <TabsTrigger value="history">History</TabsTrigger>
           </TabsList>
 
@@ -758,6 +760,10 @@ export default function JournalEntryPage() {
             required={required}
             companyId={Number(companyId)}
           />
+        </TabsContent>
+
+        <TabsContent value="other">
+          <Other form={form} />
         </TabsContent>
 
         <TabsContent value="history">

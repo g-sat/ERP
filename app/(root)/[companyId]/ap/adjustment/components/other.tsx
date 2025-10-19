@@ -1,12 +1,14 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { useParams } from "next/navigation"
 import { IBankAddress, IBankContact } from "@/interfaces/bank"
 import { ICustomerAddress, ICustomerContact } from "@/interfaces/customer"
 import { ISupplierAddress, ISupplierContact } from "@/interfaces/supplier"
 import { ApAdjustmentHdSchemaType } from "@/schemas/ap-adjustment"
 import { UseFormReturn } from "react-hook-form"
 
+import { APTransactionId, ModuleId } from "@/lib/utils"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Form } from "@/components/ui/form"
 import { Separator } from "@/components/ui/separator"
@@ -19,18 +21,24 @@ import DynamicContactAutocomplete, {
 import CountryAutocomplete from "@/components/autocomplete/autocomplete-country"
 import CustomInput from "@/components/custom/custom-input"
 import CustomTextarea from "@/components/custom/custom-textarea"
+import EnhancedDocumentUpload from "@/components/custom/enhanced-document-upload"
 
 interface OtherProps {
   form: UseFormReturn<ApAdjustmentHdSchemaType>
 }
 
 export default function Other({ form }: OtherProps) {
+  const params = useParams()
+  const companyId = params.companyId as string
+
   const [selectedAddress, setSelectedAddress] =
     useState<ISupplierAddress | null>(null)
   const [selectedContact, setSelectedContact] =
     useState<ISupplierContact | null>(null)
 
   const supplierId = form.getValues().supplierId || 0
+  const adjustmentId = form.getValues("adjustmentId") || "0"
+  const adjustmentNo = form.getValues("adjustmentNo") || ""
 
   // other.tsx
   useEffect(() => {
@@ -265,6 +273,17 @@ export default function Other({ form }: OtherProps) {
           </Card>
         </div>
       </Form>
+
+      {/* Document Upload Section */}
+      <EnhancedDocumentUpload
+        moduleId={ModuleId.ap}
+        transactionId={APTransactionId.adjustment}
+        recordId={adjustmentId}
+        recordNo={adjustmentNo}
+        companyId={Number(companyId)}
+        maxFileSize={10}
+        maxFiles={10}
+      />
     </div>
   )
 }
