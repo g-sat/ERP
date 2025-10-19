@@ -5,7 +5,7 @@ import { CbBankTransferSchemaType } from "@/schemas/cb-banktransfer"
 import { UseFormReturn } from "react-hook-form"
 
 import { CBTransactionId, ModuleId } from "@/lib/utils"
-import EnhancedDocumentUpload from "@/components/custom/enhanced-document-upload"
+import DocumentManager from "@/components/document-manager"
 
 interface OtherProps {
   form: UseFormReturn<CbBankTransferSchemaType>
@@ -21,7 +21,7 @@ export default function Other({ form }: OtherProps) {
   return (
     <div className="space-y-4">
       {/* Document Upload Section */}
-      <EnhancedDocumentUpload
+      <DocumentManager
         moduleId={ModuleId.cb}
         transactionId={CBTransactionId.cbbanktransfer}
         recordId={transferId}

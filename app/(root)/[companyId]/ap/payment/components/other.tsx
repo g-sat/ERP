@@ -5,7 +5,7 @@ import { ApPaymentHdSchemaType } from "@/schemas/ap-payment"
 import { UseFormReturn } from "react-hook-form"
 
 import { APTransactionId, ModuleId } from "@/lib/utils"
-import EnhancedDocumentUpload from "@/components/custom/enhanced-document-upload"
+import DocumentManager from "@/components/document-manager"
 
 interface OtherProps {
   form: UseFormReturn<ApPaymentHdSchemaType>
@@ -21,7 +21,7 @@ export default function Other({ form }: OtherProps) {
   return (
     <div className="space-y-4">
       {/* Document Upload Section */}
-      <EnhancedDocumentUpload
+      <DocumentManager
         moduleId={ModuleId.ap}
         transactionId={APTransactionId.payment}
         recordId={paymentId}

@@ -42,7 +42,7 @@ import {
 import DocumentTypeAutocomplete from "@/components/autocomplete/autocomplete-document-type"
 import CustomTextarea from "@/components/custom/custom-textarea"
 
-interface EnhancedDocumentUploadProps {
+interface DocumentManagerProps {
   moduleId: number
   transactionId: number
   recordId?: string // Invoice ID, etc.
@@ -79,7 +79,7 @@ export default function DocumentManager({
     ".png",
   ],
   maxFiles = 10,
-}: EnhancedDocumentUploadProps) {
+}: DocumentManagerProps) {
   const { decimals } = useAuthStore()
   const dateFormat = decimals[0]?.dateFormat || "dd/MM/yyyy"
   const form = useForm()

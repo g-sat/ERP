@@ -21,7 +21,7 @@ import DynamicContactAutocomplete, {
 import CountryAutocomplete from "@/components/autocomplete/autocomplete-country"
 import CustomInput from "@/components/custom/custom-input"
 import CustomTextarea from "@/components/custom/custom-textarea"
-import EnhancedDocumentUpload from "@/components/custom/enhanced-document-upload"
+import DocumentManager from "@/components/document-manager"
 
 interface OtherProps {
   form: UseFormReturn<ApInvoiceHdSchemaType>
@@ -273,7 +273,7 @@ export default function Other({ form }: OtherProps) {
       </Form>
 
       {/* Document Upload Section */}
-      <EnhancedDocumentUpload
+      <DocumentManager
         moduleId={ModuleId.ap}
         transactionId={APTransactionId.invoice}
         recordId={invoiceId}
