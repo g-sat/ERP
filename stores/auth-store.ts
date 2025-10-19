@@ -283,7 +283,8 @@ export const useAuthStore = create<AuthState>()(
                 console.log("✅ STEP 1 COMPLETE: Companies fetched")
               }
             } else {
-              set({ isLoading: false })
+              console.log("🔐 LOGIN FAILED: User not authenticated")
+              set({ isLoading: false, error: data.message })
             }
 
             return {

@@ -110,23 +110,38 @@ export function LoginForm({
   }, [userPassword, touched.userPassword])
 
   useEffect(() => {
-    // Only show error if user has interacted with the form or it's a login attempt error
-    if (error && (touched.form || touched.userName || touched.userPassword)) {
+    // Show error from auth store after login attempt
+    if (error) {
       setErrors((prev) => ({ ...prev, general: error }))
+    } else {
+      // Clear general error when auth store error is cleared
+      setErrors((prev) => ({ ...prev, general: undefined }))
     }
-  }, [error, touched.form, touched.userName, touched.userPassword])
+  }, [error])
 
   // Input handlers with validation
   const handleUserNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setUserName(e.target.value)
     setErrors((prev) => ({ ...prev, general: undefined }))
+    setMessage("") // Clear any status messages
     setTouched((prev) => ({ ...prev, userName: true }))
+
+    // Clear auth store error when user starts typing
+    if (error) {
+      useAuthStore.setState({ error: null })
+    }
   }
 
   const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setUserPassword(e.target.value)
     setErrors((prev) => ({ ...prev, general: undefined }))
+    setMessage("") // Clear any status messages
     setTouched((prev) => ({ ...prev, userPassword: true }))
+
+    // Clear auth store error when user starts typing
+    if (error) {
+      useAuthStore.setState({ error: null })
+    }
   }
 
   const handleUserNameBlur = () => {
@@ -166,26 +181,35 @@ export function LoginForm({
       // Mark form as touched to show errors
       setTouched((prev) => ({ ...prev, form: true }))
 
-      // Clear previous errors
+      // Clear previous errors and message
       setErrors({})
       setMessage("")
 
       const loginResponse = await logIn(userName.trim(), userPassword)
 
-      // If login is successful (no error), redirect to company selection page
-      if (!useAuthStore.getState().error) {
-        router.push("/company-select")
-      }
+      console.log("🔐 LOGIN RESPONSE: ", loginResponse)
 
-      if (loginResponse.user.isLocked === true) {
-        setMessage(loginResponse.message)
+      // Check if login was successful
+      if (loginResponse.result === 1 && !useAuthStore.getState().error) {
+        // Successful login - redirect to company selection
+        router.push("/company-select")
+      } else {
+        // Login failed - check for specific messages
+        if (loginResponse.user?.isLocked === true) {
+          setMessage(loginResponse.message || "Account is locked")
+        }
+        // Error will be displayed via the useEffect that watches auth store error
       }
     } catch (error) {
-      // Error is handled by the auth store
+      // Handle unexpected errors
       console.error("Login failed:", error)
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Login failed. Please try again."
       setErrors((prev) => ({
         ...prev,
-        general: error instanceof Error ? error.message : "Login failed",
+        general: errorMessage,
       }))
     }
   }
