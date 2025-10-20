@@ -4,16 +4,7 @@ import { useCallback, useState } from "react"
 import { IDocType, IDocument, IDocumentTypeLookup } from "@/interfaces/lookup"
 import { useAuthStore } from "@/stores/auth-store"
 import { useQueryClient } from "@tanstack/react-query"
-import { format } from "date-fns"
-import {
-  Download,
-  Eye,
-  FileIcon,
-  FileText,
-  Trash2,
-  Upload,
-  X,
-} from "lucide-react"
+import { Download, FileIcon, FileText, Upload, X } from "lucide-react"
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 
@@ -22,7 +13,6 @@ import { useDelete, useGet, usePersist } from "@/hooks/use-common"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Checkbox } from "@/components/ui/checkbox"
 import {
   Dialog,
   DialogContent,
@@ -31,16 +21,10 @@ import {
 } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import { Spinner } from "@/components/ui/spinner"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
 import DocumentTypeAutocomplete from "@/components/autocomplete/autocomplete-document-type"
 import CustomTextarea from "@/components/custom/custom-textarea"
+
+import DocumentManagerTable from "./document-manager-table"
 
 interface DocumentManagerProps {
   moduleId: number
@@ -80,8 +64,7 @@ export default function DocumentManager({
   ],
   maxFiles = 10,
 }: DocumentManagerProps) {
-  const { decimals } = useAuthStore()
-  const dateFormat = decimals[0]?.dateFormat || "dd/MM/yyyy"
+  const { decimals: _decimals } = useAuthStore()
   const form = useForm()
   const queryClient = useQueryClient()
 
@@ -267,6 +250,9 @@ export default function DocumentManager({
             )
             setUploadFiles([])
             setSelectedDocType(null)
+            // Clear document type and remarks after upload success
+            form.setValue("docTypeId", "")
+            form.setValue("remarks", "")
             queryClient.invalidateQueries({ queryKey: ["documents"] })
             onUploadSuccess?.()
           } else {
@@ -371,7 +357,11 @@ export default function DocumentManager({
                     form={form}
                     name="docTypeId"
                     label=""
-                    onChangeEvent={(option) => setSelectedDocType(option)}
+                    onChangeEvent={(option) => {
+                      setSelectedDocType(option)
+                      // Clear remarks when document type changes
+                      form.setValue("remarks", "")
+                    }}
                   />
                   <CustomTextarea
                     form={form}
@@ -529,130 +519,21 @@ export default function DocumentManager({
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {isLoading ? (
-                <div className="flex justify-center py-8">
-                  <Spinner size="lg" />
-                </div>
-              ) : (
-                <div className="rounded-md border">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="w-[50px]">
-                          <Checkbox
-                            checked={selectAll}
-                            onCheckedChange={handleSelectAll}
-                            aria-label="Select all"
-                          />
-                        </TableHead>
-                        <TableHead>Document Type</TableHead>
-                        <TableHead>File Name</TableHead>
-                        <TableHead>Remarks</TableHead>
-                        <TableHead>Created Date</TableHead>
-                        <TableHead>Created By</TableHead>
-                        <TableHead>Edit Date</TableHead>
-                        <TableHead>Edit By</TableHead>
-                        <TableHead className="text-right">Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {Array.isArray(documents?.data) &&
-                      documents.data.length > 0 ? (
-                        (documents.data as IDocType[]).map((doc) => (
-                          <TableRow key={`${doc.itemNo}-${doc.documentId}`}>
-                            <TableCell>
-                              <Checkbox
-                                checked={selectedDocuments.includes(
-                                  doc.documentId
-                                )}
-                                onCheckedChange={(checked) =>
-                                  handleSelectDocument(
-                                    doc.documentId,
-                                    checked as boolean
-                                  )
-                                }
-                                aria-label={`Select ${doc.docTypeName}`}
-                              />
-                            </TableCell>
-                            <TableCell className="font-medium">
-                              {doc.docTypeName}
-                            </TableCell>
-                            <TableCell>
-                              <div className="flex items-center gap-2">
-                                <FileText className="h-4 w-4 text-blue-600" />
-                                <span className="text-sm">
-                                  {doc.docPath?.split("/").pop() ||
-                                    doc.documentNo}
-                                </span>
-                              </div>
-                            </TableCell>
-                            <TableCell className="text-muted-foreground text-sm">
-                              {doc.remarks || "-"}
-                            </TableCell>
-                            <TableCell>
-                              {doc.createDate
-                                ? format(new Date(doc.createDate), dateFormat)
-                                : "-"}
-                            </TableCell>
-                            <TableCell>{doc.createBy || "-"}</TableCell>
-                            <TableCell>
-                              {doc.editDate
-                                ? format(new Date(doc.editDate), dateFormat)
-                                : "-"}
-                            </TableCell>
-                            <TableCell>{doc.editBy || "-"}</TableCell>
-                            <TableCell className="text-right">
-                              <div className="flex justify-end gap-1">
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => handlePreview(doc)}
-                                  title="Preview"
-                                >
-                                  <Eye className="h-4 w-4" />
-                                </Button>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => handleDownload(doc)}
-                                  title="Download"
-                                >
-                                  <Download className="h-4 w-4" />
-                                </Button>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => {
-                                    if (
-                                      confirm(
-                                        "Are you sure you want to delete this document?"
-                                      )
-                                    ) {
-                                      handleDelete(doc.documentId)
-                                    }
-                                  }}
-                                  title="Delete"
-                                >
-                                  <Trash2 className="h-4 w-4 text-red-600" />
-                                </Button>
-                              </div>
-                            </TableCell>
-                          </TableRow>
-                        ))
-                      ) : (
-                        <TableRow>
-                          <TableCell
-                            colSpan={5}
-                            className="py-8 text-center text-gray-500"
-                          >
-                            No documents uploaded yet
-                          </TableCell>
-                        </TableRow>
-                      )}
-                    </TableBody>
-                  </Table>
-                </div>
-              )}
+              <DocumentManagerTable
+                data={
+                  Array.isArray(documents?.data)
+                    ? (documents.data as IDocType[])
+                    : []
+                }
+                isLoading={isLoading}
+                onPreview={handlePreview}
+                onDownload={handleDownload}
+                onDelete={handleDelete}
+                onSelect={handleSelectDocument}
+                onSelectAll={handleSelectAll}
+                selectedDocuments={selectedDocuments}
+                selectAll={selectAll}
+              />
             </CardContent>
           </Card>
         </div>
