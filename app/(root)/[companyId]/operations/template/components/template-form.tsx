@@ -7,10 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 
 import { Form } from "@/components/ui/form"
-import {
-  ChargeAutocomplete,
-  TaskAutocomplete,
-} from "@/components/autocomplete"
+import { ChargeAutocomplete, TaskAutocomplete } from "@/components/autocomplete"
 import CustomInput from "@/components/custom/custom-input"
 
 // Default values for the template form

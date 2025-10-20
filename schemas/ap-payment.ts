@@ -123,22 +123,16 @@ export const appaymentDtSchema = (
     docExhRate: z.number().min(0, "Document Exchange Rate is required"),
     docAccountDate: z.union([z.date(), z.string()]),
     docDueDate: z.union([z.date(), z.string()]),
-    docTotAmt: z.number().min(0, "Document Total Amount is required"),
-    docTotLocalAmt: z
-      .number()
-      .min(0, "Document Total Local Amount is required"),
-    docBalAmt: z.number().min(0, "Document Balanced Amount is required"),
-    docBalLocalAmt: z
-      .number()
-      .min(0, "Document Balanced Local Amount is required"),
+    docTotAmt: z.number("Document Total Amount is required"),
+    docTotLocalAmt: z.number("Document Total Local Amount is required"),
+    docBalAmt: z.number("Document Balanced Amount is required"),
+    docBalLocalAmt: z.number("Document Balanced Local Amount is required"),
 
     // Allocated Amount Fields
-    allocAmt: z.number().min(0, "Allocated Amount is required"),
-    allocLocalAmt: z.number().min(0, "Allocated Local Amount is required"),
-    docAllocAmt: z.number().min(0, "Document Allocated Amount is required"),
-    docAllocLocalAmt: z
-      .number()
-      .min(0, "Document Allocated Local Amount is required"),
+    allocAmt: z.number("Allocated Amount is required"),
+    allocLocalAmt: z.number("Allocated Local Amount is required"),
+    docAllocAmt: z.number("Document Allocated Amount is required"),
+    docAllocLocalAmt: z.number("Document Allocated Local Amount is required"),
 
     // Exchange and Difference Fields
     centDiff: z.number().min(0, "Cent Difference is required"),
