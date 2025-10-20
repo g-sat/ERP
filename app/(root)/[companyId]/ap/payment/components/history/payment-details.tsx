@@ -10,23 +10,23 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { BasicTable } from "@/components/table/table-basic"
 
 interface PaymentDetailsProps {
-  invoiceId: string
+  paymentId: string
 }
 
-export default function PaymentDetails({ invoiceId }: PaymentDetailsProps) {
+export default function PaymentDetails({ paymentId }: PaymentDetailsProps) {
   const { decimals } = useAuthStore()
   const amtDec = decimals[0]?.amtDec || 2
   const locAmtDec = decimals[0]?.locAmtDec || 2
   const dateFormat = decimals[0]?.dateFormat || "dd/MM/yyyy"
   const moduleId = ModuleId.ap
-  const transactionId = APTransactionId.invoice
+  const transactionId = APTransactionId.payment
 
   const { data: paymentDetails, refetch: refetchPayment } =
     //useGetPaymentDetails<IPaymentDetails>(25, 1, "14120250100024")
     useGetPaymentDetails<IPaymentDetails>(
       Number(moduleId),
       Number(transactionId),
-      invoiceId
+      paymentId
     )
 
   const { data: paymentDetailsData } =

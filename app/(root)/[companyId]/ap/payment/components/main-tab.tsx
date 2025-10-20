@@ -8,11 +8,12 @@ import {
   ApPaymentDtSchemaType,
   ApPaymentHdSchemaType,
 } from "@/schemas/ap-payment"
+import { useAuthStore } from "@/stores/auth-store"
 import { UseFormReturn } from "react-hook-form"
 import { toast } from "sonner"
 
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import OutStandingTransactionsDialog from "@/components/accounttransaction/outstandingtransactions-dialog"
 
 import PaymentDetailsTable from "./payment-details-table"
@@ -35,6 +36,10 @@ export default function Main({
   required,
   companyId,
 }: MainProps) {
+  const { decimals } = useAuthStore()
+  const amtDec = decimals[0]?.amtDec || 2
+  const locAmtDec = decimals[0]?.locAmtDec || 2
+
   const [editingDetail, setEditingDetail] =
     useState<ApPaymentDtSchemaType | null>(null)
 
@@ -49,6 +54,16 @@ export default function Main({
   // Watch data_details for reactive updates
   const dataDetails = form.watch("data_details") || []
 
+  // Calculate sum of allocAmt and allocLocalAmt
+  const totalAllocAmt = dataDetails.reduce(
+    (sum, item) => sum + (item.allocAmt || 0),
+    0
+  )
+  const totalAllocLocalAmt = dataDetails.reduce(
+    (sum, item) => sum + (item.allocLocalAmt || 0),
+    0
+  )
+
   // Clear editingDetail when data_details is reset/cleared
   useEffect(() => {
     if (dataDetails.length === 0 && editingDetail) {
@@ -62,6 +77,32 @@ export default function Main({
       dialogParamsRef.current = null
     }
   }, [showTransactionDialog])
+
+  // Watch currency and payment total fields
+  const currencyId = form.watch("currencyId")
+  const payCurrencyId = form.watch("payCurrencyId")
+  const payTotAmt = form.watch("payTotAmt")
+  const payTotLocalAmt = form.watch("payTotLocalAmt")
+
+  // Sync totals when currencyId and payCurrencyId are the same
+  useEffect(() => {
+    if (currencyId && payCurrencyId && currencyId === payCurrencyId) {
+      // When currencies match, sync the totals
+      if (payTotAmt !== undefined && payTotAmt !== null) {
+        form.setValue("totAmt", payTotAmt, { shouldDirty: true })
+      }
+      if (payTotLocalAmt !== undefined && payTotLocalAmt !== null) {
+        form.setValue("totLocalAmt", payTotLocalAmt, { shouldDirty: true })
+      }
+
+      console.log("Currencies match - syncing totals:", {
+        currencyId,
+        payCurrencyId,
+        payTotAmt,
+        payTotLocalAmt,
+      })
+    }
+  }, [currencyId, payCurrencyId, payTotAmt, payTotLocalAmt, form])
 
   // Recalculate header totals when details change
   // Removed automatic calculation - totals should be manually entered in header
@@ -169,8 +210,256 @@ export default function Main({
     [form]
   )
 
+  // Helper: Calculate sum of positive and negative amounts
+  const calculateAmountSums = useCallback((data: ApPaymentDtSchemaType[]) => {
+    // Step 1: Calculate sum of all positive docBalAmt values
+    const positiveSum = data.reduce(
+      (sum, item) => sum + (item.docBalAmt > 0 ? item.docBalAmt : 0),
+      0
+    )
+
+    // Step 2: Calculate sum of all negative docBalAmt values
+    const negativeSum = data.reduce(
+      (sum, item) => sum + (item.docBalAmt < 0 ? item.docBalAmt : 0),
+      0
+    )
+
+    // Step 3: Return both sums
+    return { positiveSum, negativeSum }
+  }, [])
+
+  // Helper: Calculate total allocations
+  const calculateTotalAllocations = useCallback(
+    (data: ApPaymentDtSchemaType[]) => {
+      // Step 1: Sum all allocAmt values from payment details
+      const totalAllocAmt = data.reduce(
+        (sum, item) => sum + (item.allocAmt || 0),
+        0
+      )
+
+      // Step 2: Sum all allocLocalAmt values from payment details
+      const totalAllocLocalAmt = data.reduce(
+        (sum, item) => sum + (item.allocLocalAmt || 0),
+        0
+      )
+
+      // Step 3: Return total allocations
+      return { totalAllocAmt, totalAllocLocalAmt }
+    },
+    []
+  )
+
+  // Helper: Update payment header amounts
+  const updatePaymentHeaderAmounts = useCallback(
+    (totAmt: number, totLocalAmt: number) => {
+      // Step 1: Update total amount in header
+      form.setValue("totAmt", totAmt)
+
+      // Step 2: Update total local amount in header
+      form.setValue("totLocalAmt", totLocalAmt)
+
+      // Step 3: Update payment total amount (sync with totAmt)
+      form.setValue("payTotAmt", totAmt)
+
+      // Step 4: Update payment total local amount (sync with totLocalAmt)
+      form.setValue("payTotLocalAmt", totLocalAmt)
+    },
+    [form]
+  )
+
+  // Helper: Reset header amounts
+  const resetHeaderAmounts = useCallback(() => {
+    // Step 1: Reset all header amounts (totAmt, totLocalAmt, payTotAmt, payTotLocalAmt) to 0
+    updatePaymentHeaderAmounts(0, 0)
+  }, [updatePaymentHeaderAmounts])
+
+  // Helper: Full allocation (Case 1: totAmt = 0)
+  const allocateFullAmounts = useCallback((data: ApPaymentDtSchemaType[]) => {
+    // Step 1: Map through each payment detail item
+    // Step 2: Assign full docBalAmt to allocAmt for each item
+    // Step 3: Assign full docBalLocalAmt to allocLocalAmt for each item
+    return data.map((item) => ({
+      ...item,
+      allocAmt: item.docBalAmt || 0,
+      allocLocalAmt: item.docBalLocalAmt || 0,
+    }))
+  }, [])
+
+  // Helper: Proportional allocation (Case 2: totAmt > 0)
+  const allocateProportionally = useCallback(
+    (
+      data: ApPaymentDtSchemaType[],
+      totAmt: number,
+      totLocalAmt: number,
+      usePositive: boolean
+    ) => {
+      // Step 1: Initialize remaining amounts to track what's left to allocate
+      let remainingAmt = totAmt
+      let remainingLocalAmt = totLocalAmt
+
+      // Step 2: Map through each payment detail item
+      return data.map((item, index) => {
+        const docBalAmt = item.docBalAmt || 0
+        const docBalLocalAmt = item.docBalLocalAmt || 0
+
+        // Step 3: Skip items that don't match the selected type (positive/negative)
+        if (usePositive && docBalAmt < 0) {
+          // For negative items when allocating positive, set full docBalAmt
+          return { ...item, allocAmt: docBalAmt, allocLocalAmt: docBalLocalAmt }
+        }
+        if (!usePositive && docBalAmt >= 0) {
+          // For positive items when allocating negative, set to 0
+          return { ...item, allocAmt: 0, allocLocalAmt: 0 }
+        }
+
+        // Step 4: Check if this is the last item matching the selected type
+        const isLastMatchingItem =
+          index === data.length - 1 ||
+          data
+            .slice(index + 1)
+            .every((nextItem) =>
+              usePositive ? nextItem.docBalAmt < 0 : nextItem.docBalAmt >= 0
+            )
+
+        let allocAmt: number
+        let allocLocalAmt: number
+
+        // Step 5: Allocate amounts based on whether it's the last matching item
+        if (isLastMatchingItem) {
+          // Step 5a: For last item, allocate remaining amount (not exceeding docBalAmt)
+          allocAmt = usePositive
+            ? Math.min(remainingAmt, docBalAmt)
+            : Math.max(remainingAmt, docBalAmt)
+          allocLocalAmt = usePositive
+            ? Math.min(remainingLocalAmt, docBalLocalAmt)
+            : Math.max(remainingLocalAmt, docBalLocalAmt)
+        } else {
+          // Step 5b: For other items, allocate full docBalAmt
+          allocAmt = docBalAmt
+          allocLocalAmt = docBalLocalAmt
+        }
+
+        // Step 6: Deduct allocated amounts from remaining
+        remainingAmt -= allocAmt
+        remainingLocalAmt -= allocLocalAmt
+
+        // Step 7: Return updated item with allocated amounts
+        return { ...item, allocAmt, allocLocalAmt }
+      })
+    },
+    []
+  )
+
+  // Main Auto Allocation Function
+  const handleAutoAllocation = useCallback(() => {
+    // Step 1: Get current payment details and total amount from form
+    const currentData = form.getValues("data_details") || []
+    const totAmt = form.getValues("totAmt") || 0
+
+    // Step 2: Validate that there are payment details to allocate
+    if (currentData.length === 0) {
+      toast.warning("No payment details to allocate")
+      return
+    }
+
+    // Case 1: Full allocation (totAmt = 0)
+    if (totAmt === 0) {
+      // Step 3a: Allocate full docBalAmt to allocAmt for all items
+      const updatedData = allocateFullAmounts(currentData)
+
+      // Step 4a: Calculate sum of all allocated amounts
+      const { totalAllocAmt, totalAllocLocalAmt } =
+        calculateTotalAllocations(updatedData)
+
+      // Step 5a: Update form with allocated details
+      form.setValue("data_details", updatedData, {
+        shouldDirty: true,
+        shouldTouch: true,
+      })
+
+      // Step 6a: Update all header amounts (totAmt, totLocalAmt, payTotAmt, payTotLocalAmt)
+      updatePaymentHeaderAmounts(totalAllocAmt, totalAllocLocalAmt)
+
+      // Step 7a: Show success message
+      toast.success("Auto allocation completed")
+      return
+    }
+
+    // Case 2: Proportional allocation (totAmt > 0)
+    // Step 3b: Calculate sum of positive and negative amounts
+    const { positiveSum, negativeSum } = calculateAmountSums(currentData)
+
+    // Step 4b: Determine whether to use positive or negative amounts (higher absolute value)
+    const usePositive = Math.abs(positiveSum) >= Math.abs(negativeSum)
+
+    // Step 5b: Get total local amount from form
+    const totLocalAmt = form.getValues("totLocalAmt") || totAmt
+
+    // Step 6b: Allocate amounts proportionally based on totAmt
+    const updatedData = allocateProportionally(
+      currentData,
+      totAmt,
+      totLocalAmt,
+      usePositive
+    )
+
+    // Step 7b: Update form with allocated details
+    form.setValue("data_details", updatedData, {
+      shouldDirty: true,
+      shouldTouch: true,
+    })
+
+    // Step 8b: Update payment header amounts to match totAmt and totLocalAmt
+    form.setValue("payTotAmt", totAmt)
+    form.setValue("payTotLocalAmt", totLocalAmt)
+
+    // Step 9b: Show success message
+    toast.success("Auto allocation completed")
+  }, [
+    form,
+    allocateFullAmounts,
+    calculateTotalAllocations,
+    calculateAmountSums,
+    allocateProportionally,
+    updatePaymentHeaderAmounts,
+  ])
+
+  // Reset Allocation Function
+  const handleResetAllocation = useCallback(() => {
+    // Step 1: Get current payment details from form
+    const currentData = form.getValues("data_details") || []
+
+    // Step 2: Validate that there are payment details to reset
+    if (currentData.length === 0) {
+      toast.warning("No payment details to reset")
+      return
+    }
+
+    // Step 3: Reset all allocation amounts to 0 for each detail item
+    const updatedData = currentData.map((item) => ({
+      ...item,
+      allocAmt: 0,
+      allocLocalAmt: 0,
+    }))
+
+    // Step 4: Update form with reset detail data
+    form.setValue("data_details", updatedData, {
+      shouldDirty: true,
+      shouldTouch: true,
+    })
+
+    // Step 5: Reset all header amounts (totAmt, totLocalAmt, payTotAmt, payTotLocalAmt) to 0
+    resetHeaderAmounts()
+
+    // Step 6: Show success message with count of reset allocations
+    toast.success(
+      `Reset ${currentData.length} allocation(s) and all header amounts to 0`
+    )
+  }, [form, resetHeaderAmounts])
+
   // Handle Select Transaction button click
   const handleSelectTransaction = useCallback(() => {
+    // Step 1: Get required values from form
     const supplierId = form.getValues("supplierId")
     const currencyId = form.getValues("currencyId")
     const accountDate = form.getValues("accountDate")
@@ -183,6 +472,7 @@ export default function Main({
       paymentTypeId,
     })
 
+    // Step 2: Validate that all required fields are filled
     if (!supplierId || !currencyId || !accountDate || !paymentTypeId) {
       toast.warning(
         "Please select Supplier, Currency, Account Date and Payment Type first"
@@ -190,7 +480,7 @@ export default function Main({
       return
     }
 
-    // Store the values in ref to prevent infinite re-renders
+    // Step 3: Store dialog parameters in ref to prevent infinite re-renders
     dialogParamsRef.current = {
       supplierId,
       currencyId,
@@ -198,6 +488,8 @@ export default function Main({
     }
 
     console.log("Setting dialog params:", dialogParamsRef.current)
+
+    // Step 4: Open the outstanding transactions dialog
     setShowTransactionDialog(true)
     console.log("Dialog should be opening now")
   }, [form])
@@ -205,13 +497,16 @@ export default function Main({
   // Handle adding selected transactions to payment details
   const handleAddSelectedTransactions = useCallback(
     (transactions: IApOutTransaction[]) => {
+      // Step 1: Get current payment details from form
       const currentData = form.getValues("data_details") || []
+
+      // Step 2: Calculate next item number for new details
       const nextItemNo =
         currentData.length > 0
           ? Math.max(...currentData.map((d) => d.itemNo)) + 1
           : 1
 
-      // Convert selected transactions to payment details
+      // Step 3: Convert selected outstanding transactions to payment detail format
       const newDetails: ApPaymentDtSchemaType[] = transactions.map(
         (transaction, index) => {
           return {
@@ -220,7 +515,7 @@ export default function Main({
             paymentNo: form.getValues("paymentNo") || "",
             itemNo: nextItemNo + index,
             transactionId: transaction.transactionId,
-            documentId: Number(transaction.documentId),
+            documentId: String(transaction.documentId),
             documentNo: transaction.documentNo,
             referenceNo: transaction.referenceNo,
             docCurrencyId: transaction.currencyId,
@@ -243,13 +538,16 @@ export default function Main({
         }
       )
 
-      // Add to existing details
+      // Step 4: Merge new details with existing payment details
       const updatedData = [...currentData, ...newDetails]
+
+      // Step 5: Update form with merged data
       form.setValue("data_details", updatedData, {
         shouldDirty: true,
         shouldTouch: true,
       })
 
+      // Step 6: Trigger form validation for payment details
       form.trigger("data_details")
     },
     [form, companyId]
@@ -270,10 +568,22 @@ export default function Main({
         {/* Control Row */}
         <div className="mb-4 flex items-center gap-2">
           <Button onClick={handleSelectTransaction}>Select Transaction</Button>
-          <Button>Auto Allocation</Button>
-          <Input value="0.00" readOnly className="w-[120px] text-right" />
-          <Input value="0.00" readOnly className="w-[120px] text-right" />
-          <Button variant="outline">Reset Allocation</Button>
+          <Button onClick={handleAutoAllocation}>Auto Allocation</Button>
+          <Button variant="destructive" onClick={handleResetAllocation}>
+            Reset Allocation
+          </Button>
+          <Badge
+            variant="secondary"
+            className="border-blue-200 bg-blue-100 px-3 py-1 text-sm font-medium text-blue-800"
+          >
+            Total Alloc: {totalAllocAmt.toFixed(amtDec)}
+          </Badge>
+          <Badge
+            variant="outline"
+            className="border-green-200 bg-green-50 px-3 py-1 text-sm font-medium text-green-800"
+          >
+            Total Local: {totalAllocLocalAmt.toFixed(locAmtDec)}
+          </Badge>
         </div>
         <PaymentDetailsTable
           data={(dataDetails as unknown as IApPaymentDt[]) || []}
@@ -298,7 +608,9 @@ export default function Main({
           accountDate={dialogParamsRef.current.accountDate}
           visible={visible}
           onAddSelected={handleAddSelectedTransactions}
-          existingDocumentIds={dataDetails.map((detail) => detail.documentId)}
+          existingDocumentIds={dataDetails.map((detail) =>
+            Number(detail.documentId)
+          )}
         />
       )}
     </div>

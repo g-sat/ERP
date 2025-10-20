@@ -143,7 +143,7 @@ export default function PaymentPage() {
               ...detail,
               paymentId: detail.paymentId?.toString() ?? "0",
               paymentNo: detail.paymentNo ?? "",
-              documentId: detail.documentId ?? 0,
+              documentId: detail.documentId?.toString() ?? "0",
               documentNo: detail.documentNo ?? "",
               referenceNo: detail.referenceNo ?? "",
               docCurrencyId: detail.docCurrencyId ?? 0,
@@ -195,8 +195,8 @@ export default function PaymentPage() {
   const updateMutation = usePersist<ApPaymentHdSchemaType>(`${ApPayment.add}`)
   const deleteMutation = useDelete(`${ApPayment.delete}`)
 
-  // Remove the useGetInvoiceById hook for selection
-  // const { data: invoiceByIdData, refetch: refetchInvoiceById } = ...
+  // Remove the useGetPaymentById hook for selection
+  // const { data: paymentByIdData, refetch: refetchPaymentById } = ...
 
   // Handle Save
   const handleSavePayment = async () => {
@@ -212,6 +212,8 @@ export default function PaymentPage() {
       const formValues = transformToSchemaType(
         form.getValues() as unknown as IApPaymentHd
       )
+
+      console.log("formValues", formValues)
 
       // Validate the form data using the schema
       const validationResult = appaymentHdSchema(required, visible).safeParse(
@@ -429,7 +431,7 @@ export default function PaymentPage() {
               paymentNo: detail.paymentNo ?? "",
               itemNo: detail.itemNo ?? 0,
               transactionId: detail.transactionId ?? 0,
-              documentId: detail.documentId ?? 0,
+              documentId: detail.documentId?.toString() ?? "0",
               documentNo: detail.documentNo ?? "",
               referenceNo: detail.referenceNo ?? "",
               docCurrencyId: detail.docCurrencyId ?? 0,
@@ -526,7 +528,7 @@ export default function PaymentPage() {
                 paymentNo: detail.paymentNo ?? "",
                 itemNo: detail.itemNo ?? 0,
                 transactionId: detail.transactionId ?? 0,
-                documentId: detail.documentId ?? 0,
+                documentId: detail.documentId?.toString() ?? "0",
                 documentNo: detail.documentNo ?? "",
                 referenceNo: detail.referenceNo ?? "",
                 docCurrencyId: detail.docCurrencyId ?? 0,
@@ -581,10 +583,10 @@ export default function PaymentPage() {
     }
   }
 
-  // Remove direct refetchInvoices from handleFilterChange
+  // Remove direct refetchPayments from handleFilterChange
   const handleFilterChange = (newFilters: IApPaymentFilter) => {
     setFilters(newFilters)
-    // refetchInvoices(); // Removed: will be handled by useEffect
+    // refetchPayments(); // Removed: will be handled by useEffect
   }
 
   // Refetch payments when filters change (only if dialog is open)
@@ -721,7 +723,7 @@ export default function PaymentPage() {
                 paymentNo: detail.paymentNo ?? "",
                 itemNo: detail.itemNo ?? 0,
                 transactionId: detail.transactionId ?? 0,
-                documentId: detail.documentId ?? 0,
+                documentId: detail.documentId?.toString() ?? "0",
                 documentNo: detail.documentNo ?? "",
                 referenceNo: detail.referenceNo ?? "",
                 docCurrencyId: detail.docCurrencyId ?? 0,
@@ -776,7 +778,7 @@ export default function PaymentPage() {
     }
   }
 
-  // Determine mode and invoice ID from URL
+  // Determine mode and payment ID from URL
   const paymentNo = form.getValues("paymentNo")
   const isEdit = Boolean(paymentNo)
 

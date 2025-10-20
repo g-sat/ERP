@@ -37,7 +37,7 @@ export const appaymentHdSchema = (
 
     // Currency Fields
     currencyId: z.number().min(1, "Currency is required"),
-    exhRate: z.number().min(0.000001, "Exchange Rate must be greater than 0"),
+    exhRate: z.number().min(0, "Exchange Rate is required"),
 
     // Amounts
     totAmt: required?.m_TotAmt ? z.number().min(0) : z.number().optional(),
@@ -45,9 +45,7 @@ export const appaymentHdSchema = (
 
     // Payment Currency Fields
     payCurrencyId: z.number().min(1, "Payment Currency is required"),
-    payExhRate: z
-      .number()
-      .min(0.000001, "Payment Exchange Rate must be greater than 0"),
+    payExhRate: z.number().min(0, "Payment Exchange Rate is required"),
     payTotAmt: z.number().min(0, "Payment Total Amount is required"),
     payTotLocalAmt: z.number().min(0, "Payment Total Local Amount is required"),
 
@@ -63,9 +61,7 @@ export const appaymentHdSchema = (
       : z.string().optional(),
 
     // Document Fields
-    docExhRate: z
-      .number()
-      .min(0.000001, "Document Exchange Rate must be greater than 0"),
+    docExhRate: z.number().min(0, "Document Exchange Rate is required"),
     docTotAmt: z.number().min(0, "Document Total Amount is required"),
     docTotLocalAmt: z
       .number()
@@ -109,8 +105,8 @@ export const appaymentHdFiltersSchema = z.object({
 export type ApPaymentHdFiltersValues = z.infer<typeof appaymentHdFiltersSchema>
 
 export const appaymentDtSchema = (
-  required: IMandatoryFields,
-  visible: IVisibleFields
+  _required: IMandatoryFields,
+  _visible: IVisibleFields
 ) => {
   return z.object({
     // Core Fields
@@ -120,13 +116,11 @@ export const appaymentDtSchema = (
     transactionId: z.number().min(1, "Transaction is required"),
 
     // Document Fields
-    documentId: z.number().min(1, "Document is required"),
+    documentId: z.string().min(1, "Document is required"),
     documentNo: z.string().min(1, "Document No is required"),
-    referenceNo: z.string().min(1, "Reference No is required"),
+    referenceNo: z.string().optional(),
     docCurrencyId: z.number().min(1, "Document Currency is required"),
-    docExhRate: z
-      .number()
-      .min(0.000001, "Document Exchange Rate must be greater than 0"),
+    docExhRate: z.number().min(0, "Document Exchange Rate is required"),
     docAccountDate: z.union([z.date(), z.string()]),
     docDueDate: z.union([z.date(), z.string()]),
     docTotAmt: z.number().min(0, "Document Total Amount is required"),

@@ -105,6 +105,33 @@ export default function PaymentForm({
     }
   }, [form, paymentTypes])
 
+  // Watch totAmt and auto-clear related fields when set to 0
+  const totAmt = form.watch("totAmt")
+
+  React.useEffect(() => {
+    // Step 1: Check if totAmt is 0
+    if (totAmt === 0) {
+      // Step 2: Clear all related total fields
+      form.setValue("totLocalAmt", 0, { shouldDirty: true })
+      form.setValue("payTotAmt", 0, { shouldDirty: true })
+      form.setValue("payTotLocalAmt", 0, { shouldDirty: true })
+    }
+  }, [totAmt, form])
+
+  // Watch accountDate and sync to chequeDate if chequeDate is empty
+  const accountDate = form.watch("accountDate")
+  const chequeDate = form.watch("chequeDate")
+
+  React.useEffect(() => {
+    // Step 1: Check if chequeDate is empty or null
+    if (!chequeDate || chequeDate === "") {
+      // Step 2: Set chequeDate to accountDate
+      if (accountDate) {
+        form.setValue("chequeDate", accountDate, { shouldDirty: true })
+      }
+    }
+  }, [accountDate, chequeDate, form])
+
   const onSubmit = async () => {
     await onSuccessAction("save")
   }

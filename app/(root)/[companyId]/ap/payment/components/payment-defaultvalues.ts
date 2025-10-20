@@ -8,7 +8,7 @@ const defaultPaymentDetails = {
   paymentNo: "",
   itemNo: 0,
   transactionId: 0,
-  documentId: 0,
+  documentId: "0",
   documentNo: "",
   referenceNo: "",
   docCurrencyId: 0,

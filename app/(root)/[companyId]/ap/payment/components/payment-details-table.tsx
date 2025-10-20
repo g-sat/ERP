@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react"
 import { IApPaymentDt } from "@/interfaces"
 import { IVisibleFields } from "@/interfaces/setting"
+import { useAuthStore } from "@/stores/auth-store"
 import { ColumnDef } from "@tanstack/react-table"
 
 import { TableName } from "@/lib/utils"
@@ -36,6 +37,10 @@ export default function PaymentDetailsTable({
   visible: _visible,
 }: PaymentDetailsTableProps) {
   const [mounted, setMounted] = useState(false)
+  const { decimals } = useAuthStore()
+  const _locAmtDec = decimals[0]?.locAmtDec || 2 // Available for future use
+  const _amtDec = decimals[0]?.amtDec || 2 // Available for future use
+  const exhRateDec = decimals[0]?.exhRateDec || 6
 
   useEffect(() => {
     setMounted(true)
@@ -89,7 +94,9 @@ export default function PaymentDetailsTable({
       header: "Exh Rate",
       size: 100,
       cell: ({ row }: { row: { original: IApPaymentDt } }) => (
-        <div className="text-right">{row.original.docExhRate}</div>
+        <div className="text-right">
+          {row.original.docExhRate?.toFixed(exhRateDec) || "0.000000"}
+        </div>
       ),
     },
     {
@@ -117,39 +124,77 @@ export default function PaymentDetailsTable({
       accessorKey: "allocAmt",
       header: "Alloc Amt",
       size: 100,
-      cell: ({ row }: { row: { original: IApPaymentDt } }) => (
-        <input
-          type="number"
-          className="w-full rounded border px-2 py-1 text-right focus:ring-2 focus:ring-blue-500 focus:outline-none"
-          value={row.original.allocAmt || 0}
-          onChange={(e) => {
-            const value = parseFloat(e.target.value) || 0
-            if (onCellEdit) {
-              onCellEdit(row.original.itemNo, "allocAmt", value)
-            }
-          }}
-          step="0.01"
-        />
-      ),
+      cell: ({ row }: { row: { original: IApPaymentDt } }) => {
+        const docBalAmt = row.original.docBalAmt || 0
+        const isNegative = docBalAmt < 0
+
+        return (
+          <input
+            type="number"
+            className="w-full rounded border px-2 py-1 text-right focus:ring-2 focus:ring-blue-500 focus:outline-none"
+            value={row.original.allocAmt || 0}
+            onChange={(e) => {
+              let value = parseFloat(e.target.value) || 0
+
+              // Validate: same sign as docBalAmt
+              if (isNegative && value > 0) value = -Math.abs(value)
+              if (!isNegative && value < 0) value = Math.abs(value)
+
+              // Validate: can't exceed docBalAmt
+              if (isNegative) {
+                // For negative, value should be >= docBalAmt (more negative is smaller)
+                if (value < docBalAmt) value = docBalAmt
+              } else {
+                // For positive, value should be <= docBalAmt
+                if (value > docBalAmt) value = docBalAmt
+              }
+
+              if (onCellEdit) {
+                onCellEdit(row.original.itemNo, "allocAmt", value)
+              }
+            }}
+            step="0.01"
+          />
+        )
+      },
     },
     {
       accessorKey: "allocLocalAmt",
       header: "Alloc Local Amt",
       size: 120,
-      cell: ({ row }: { row: { original: IApPaymentDt } }) => (
-        <input
-          type="number"
-          className="w-full rounded border px-2 py-1 text-right focus:ring-2 focus:ring-blue-500 focus:outline-none"
-          value={row.original.allocLocalAmt || 0}
-          onChange={(e) => {
-            const value = parseFloat(e.target.value) || 0
-            if (onCellEdit) {
-              onCellEdit(row.original.itemNo, "allocLocalAmt", value)
-            }
-          }}
-          step="0.01"
-        />
-      ),
+      cell: ({ row }: { row: { original: IApPaymentDt } }) => {
+        const docBalLocalAmt = row.original.docBalLocalAmt || 0
+        const isNegative = docBalLocalAmt < 0
+
+        return (
+          <input
+            type="number"
+            className="w-full rounded border px-2 py-1 text-right focus:ring-2 focus:ring-blue-500 focus:outline-none"
+            value={row.original.allocLocalAmt || 0}
+            onChange={(e) => {
+              let value = parseFloat(e.target.value) || 0
+
+              // Validate: same sign as docBalLocalAmt
+              if (isNegative && value > 0) value = -Math.abs(value)
+              if (!isNegative && value < 0) value = Math.abs(value)
+
+              // Validate: can't exceed docBalLocalAmt
+              if (isNegative) {
+                // For negative, value should be >= docBalLocalAmt (more negative is smaller)
+                if (value < docBalLocalAmt) value = docBalLocalAmt
+              } else {
+                // For positive, value should be <= docBalLocalAmt
+                if (value > docBalLocalAmt) value = docBalLocalAmt
+              }
+
+              if (onCellEdit) {
+                onCellEdit(row.original.itemNo, "allocLocalAmt", value)
+              }
+            }}
+            step="0.01"
+          />
+        )
+      },
     },
     {
       accessorKey: "docDueDate",

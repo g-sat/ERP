@@ -24,11 +24,11 @@ import { BasicTable } from "@/components/table/table-basic"
 import { DialogDataTable } from "@/components/table/table-dialog"
 
 interface EditVersionDetailsProps {
-  invoiceId: string
+  paymentId: string
 }
 
 export default function EditVersionDetails({
-  invoiceId,
+  paymentId,
 }: EditVersionDetailsProps) {
   const { decimals } = useAuthStore()
   const amtDec = decimals[0]?.amtDec || 2
@@ -37,20 +37,19 @@ export default function EditVersionDetails({
   const exhRateDec = decimals[0]?.exhRateDec || 2
 
   const moduleId = ModuleId.ap
-  const transactionId = APTransactionId.invoice
+  const transactionId = APTransactionId.payment
 
-  const [selectedInvoice, setSelectedInvoice] = useState<IApPaymentHd | null>(
+  const [selectedPayment, setSelectedPayment] = useState<IApPaymentHd | null>(
     null
   )
 
-  const { data: invoiceHistoryData, refetch: refetchHistory } =
-    //useGetARInvoiceHistoryList<IApPaymentHd[]>("14120250100024")
-    useGetAPInvoiceHistoryList<IApPaymentHd[]>(invoiceId)
+  const { data: paymentHistoryData, refetch: refetchHistory } =
+    useGetAPInvoiceHistoryList<IApPaymentHd[]>(paymentId)
 
-  const { data: invoiceDetailsData, refetch: refetchDetails } =
+  const { data: paymentDetailsData, refetch: refetchDetails } =
     useGetAPInvoiceHistoryDetails<IApPaymentHd>(
-      selectedInvoice?.paymentId || "",
-      selectedInvoice?.editVersion?.toString() || ""
+      selectedPayment?.paymentId || "",
+      selectedPayment?.editVersion?.toString() || ""
     )
 
   function isIApPaymentHdArray(arr: unknown): arr is IApPaymentHd[] {
@@ -63,24 +62,24 @@ export default function EditVersionDetails({
 
   // Check if history data is successful and has valid data
   const tableData: IApPaymentHd[] =
-    invoiceHistoryData?.result === 1 &&
-    isIApPaymentHdArray(invoiceHistoryData?.data)
-      ? invoiceHistoryData.data
+    paymentHistoryData?.result === 1 &&
+    isIApPaymentHdArray(paymentHistoryData?.data)
+      ? paymentHistoryData.data
       : []
 
   // Check if details data is successful and has valid data
   const dialogData: IApPaymentHd | undefined =
-    invoiceDetailsData?.result === 1 &&
-    invoiceDetailsData?.data &&
-    typeof invoiceDetailsData.data === "object" &&
-    invoiceDetailsData.data !== null &&
-    !Array.isArray(invoiceDetailsData.data)
-      ? (invoiceDetailsData.data as IApPaymentHd)
+    paymentDetailsData?.result === 1 &&
+    paymentDetailsData?.data &&
+    typeof paymentDetailsData.data === "object" &&
+    paymentDetailsData.data !== null &&
+    !Array.isArray(paymentDetailsData.data)
+      ? (paymentDetailsData.data as IApPaymentHd)
       : undefined
 
   // Check for API errors
-  const hasHistoryError = invoiceHistoryData?.result === -1
-  const hasDetailsError = invoiceDetailsData?.result === -1
+  const hasHistoryError = paymentHistoryData?.result === -1
+  const hasDetailsError = paymentDetailsData?.result === -1
 
   const formatNumber = (value: number, decimals: number) => {
     return value.toLocaleString(undefined, {
@@ -321,13 +320,13 @@ export default function EditVersionDetails({
       // Only refetch if we don't have a "Data does not exist" error
       if (
         !hasHistoryError ||
-        invoiceHistoryData?.message !== "Data does not exist"
+        paymentHistoryData?.message !== "Data does not exist"
       ) {
         await refetchHistory()
       }
       if (
         !hasDetailsError ||
-        invoiceDetailsData?.message !== "Data does not exist"
+        paymentDetailsData?.message !== "Data does not exist"
       ) {
         await refetchDetails()
       }
@@ -347,7 +346,7 @@ export default function EditVersionDetails({
           {hasHistoryError && (
             <Alert
               variant={
-                invoiceHistoryData?.message === "Data does not exist"
+                paymentHistoryData?.message === "Data does not exist"
                   ? "default"
                   : "destructive"
               }
@@ -355,9 +354,9 @@ export default function EditVersionDetails({
             >
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>
-                {invoiceHistoryData?.message === "Data does not exist"
-                  ? "No invoice history found for this invoice."
-                  : `Failed to load invoice history: ${invoiceHistoryData?.message || "Unknown error"}`}
+                {paymentHistoryData?.message === "Data does not exist"
+                  ? "No payment history found for this payment."
+                  : `Failed to load payment history: ${paymentHistoryData?.message || "Unknown error"}`}
               </AlertDescription>
             </Alert>
           )}
@@ -372,25 +371,25 @@ export default function EditVersionDetails({
               hasHistoryError ? "Error loading data" : "No results."
             }
             onRefresh={handleRefresh}
-            onRowSelect={(invoice) => setSelectedInvoice(invoice)}
+            onRowSelect={(payment) => setSelectedPayment(payment)}
           />
         </CardContent>
       </Card>
 
       <Dialog
-        open={!!selectedInvoice}
-        onOpenChange={() => setSelectedInvoice(null)}
+        open={!!selectedPayment}
+        onOpenChange={() => setSelectedPayment(null)}
       >
         <DialogContent className="@container h-[80vh] w-[90vw] !max-w-none overflow-y-auto rounded-lg p-4">
           <DialogHeader>
-            <DialogTitle>Invoice Details</DialogTitle>
+            <DialogTitle>Payment Details</DialogTitle>
           </DialogHeader>
 
           {/* Error handling for details data */}
           {hasDetailsError && (
             <Alert
               variant={
-                invoiceDetailsData?.message === "Data does not exist"
+                paymentDetailsData?.message === "Data does not exist"
                   ? "default"
                   : "destructive"
               }
@@ -398,9 +397,9 @@ export default function EditVersionDetails({
             >
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>
-                {invoiceDetailsData?.message === "Data does not exist"
-                  ? "No invoice details found for this version."
-                  : `Failed to load invoice details: ${invoiceDetailsData?.message || "Unknown error"}`}
+                {paymentDetailsData?.message === "Data does not exist"
+                  ? "No payment details found for this version."
+                  : `Failed to load payment details: ${paymentDetailsData?.message || "Unknown error"}`}
               </AlertDescription>
             </Alert>
           )}
@@ -408,7 +407,7 @@ export default function EditVersionDetails({
           <div className="grid gap-2">
             <Card>
               <CardHeader>
-                <CardTitle>Invoice Header</CardTitle>
+                <CardTitle>Payment Header</CardTitle>
               </CardHeader>
               <CardContent>
                 {dialogData ? (
@@ -427,15 +426,15 @@ export default function EditVersionDetails({
                 ) : (
                   <div className="text-muted-foreground py-4 text-center">
                     {hasDetailsError
-                      ? "Error loading invoice details"
-                      : "No invoice details available"}
+                      ? "Error loading payment details"
+                      : "No payment details available"}
                   </div>
                 )}
               </CardContent>
             </Card>
             <Card>
               <CardHeader>
-                <CardTitle>Invoice Details</CardTitle>
+                <CardTitle>Payment Details</CardTitle>
               </CardHeader>
               <CardContent>
                 <BasicTable
@@ -444,7 +443,7 @@ export default function EditVersionDetails({
                   moduleId={moduleId}
                   transactionId={transactionId}
                   tableName={TableName.apPaymentHistory}
-                  emptyMessage="No invoice details available"
+                  emptyMessage="No payment details available"
                   onRefresh={handleRefresh}
                   showHeader={true}
                   showFooter={false}
