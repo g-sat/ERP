@@ -61,7 +61,6 @@ import {
   Wallet,
 } from "lucide-react"
 
-// Removed unused imports
 import { useApprovalCounts } from "@/hooks/use-approval"
 import {
   Sidebar,
@@ -75,15 +74,21 @@ import {
   SidebarMenuSub,
   SidebarMenuSubButton,
   SidebarMenuSubItem,
+  SidebarMenuBadge,
+  useSidebar,
 } from "@/components/ui/sidebar"
 import { Spinner } from "@/components/ui/spinner"
 import { CompanySwitcher } from "@/components/layout/company-switcher"
-
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from "../ui/collapsible"
+import {
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+} from "../ui/popover"
 
 // Interface for user transaction data
 interface IUserTransaction {
@@ -106,13 +111,13 @@ interface IUserTransaction {
   isPrint: boolean
   isVisible: boolean
 }
+
 // Icon mapping for modules (main categories)
 const getModuleIcon = (moduleCode: string) => {
   const moduleIconMap: Record<
     string,
     React.ComponentType<{ className?: string }>
   > = {
-    // Main Modules
     master: GalleryVerticalEnd,
     operations: FolderKanban,
     hr: Users,
@@ -129,10 +134,10 @@ const getModuleIcon = (moduleCode: string) => {
   }
   return moduleIconMap[moduleCode.toLowerCase()] || FolderKanban
 }
+
 // Icon mapping for transactions
 const getTransactionIcon = (transactionCode: string) => {
   const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
-    // Master Data
     accountgroup: Landmark,
     accountsetup: Sliders,
     accounttype: Landmark,
@@ -166,11 +171,9 @@ const getTransactionIcon = (transactionCode: string) => {
     vessel: Ship,
     voyage: ArrowLeftRight,
     worklocation: MapPin,
-    // Operations
     new: ListCheck,
     checklist: ClipboardList,
     tariff: Coins,
-    // HR
     employees: Users,
     loan: Wallet,
     leave: CalendarDays,
@@ -178,7 +181,6 @@ const getTransactionIcon = (transactionCode: string) => {
     payruns: Calendar,
     setting: Settings,
     hrreports: BarChart,
-    // AR (Accounts Receivable)
     invoice: Receipt,
     debitnote: FileMinus,
     creditnote: FilePlus,
@@ -187,22 +189,18 @@ const getTransactionIcon = (transactionCode: string) => {
     adjustment: Sliders,
     documentsetoff: FileStack,
     arreports: BarChart,
-    // AP (Accounts Payable)
     payment: MinusCircle,
     batchpayment: FileStack,
     transfer: ArrowLeftRight,
     reconciliation: Scale,
-    // CB (Cash Book)
     generalpayment: MinusCircle,
     generalreceipt: PlusCircle,
     banktransfer: ArrowLeftRight,
-    // GL (General Ledger)
     journalentry: BookOpen,
     arapcontra: ArrowLeftRight,
     yearend: CalendarCheck,
     periodclose: Lock,
     openingbalance: Scale,
-    // Admin
     users: Users,
     userroles: UserCheck,
     usergroup: Users,
@@ -213,7 +211,6 @@ const getTransactionIcon = (transactionCode: string) => {
     auditlog: History,
     errorlog: AlertTriangle,
     userlog: CircleUserRound,
-    // Settings
     grid: Grid,
     document: FileText,
     decimal: Scale,
@@ -225,6 +222,7 @@ const getTransactionIcon = (transactionCode: string) => {
   }
   return iconMap[transactionCode.toLowerCase()] || FileText
 }
+
 // Hook to get user transactions (uses cached data from auth store)
 const useUserTransactions = () => {
   const { currentCompany, user, getUserTransactions } = useAuthStore()
@@ -242,7 +240,6 @@ const useUserTransactions = () => {
       try {
         setIsLoading(true)
         setError(null)
-        // This will use cached data if available, or fetch if not cached
         const data = await getUserTransactions()
         if (Array.isArray(data)) {
           setTransactions(data as IUserTransaction[])
@@ -265,6 +262,7 @@ const useUserTransactions = () => {
 
   return { transactions, isLoading, error }
 }
+
 // Function to build dynamic menu from transactions
 interface MenuItem {
   title: string
@@ -279,7 +277,7 @@ interface MenuItem {
     print: boolean
   }
 }
-// Removed unused SettingNavItem interface
+
 const buildDynamicMenu = (transactions: IUserTransaction[]) => {
   const menuMap = new Map<
     string,
@@ -290,11 +288,11 @@ const buildDynamicMenu = (transactions: IUserTransaction[]) => {
       items: MenuItem[]
     }
   >()
-  // Filter transactions by isVisible=true first
+
   const visibleTransactions = transactions.filter(
     (transaction) => transaction.isVisible === true
   )
-  // Group visible transactions by module
+
   visibleTransactions.forEach((transaction) => {
     const moduleKey = `${transaction.moduleId}_${transaction.moduleName}`
     if (!menuMap.has(moduleKey)) {
@@ -322,12 +320,13 @@ const buildDynamicMenu = (transactions: IUserTransaction[]) => {
       })
     }
   })
-  // Filter out modules that have no visible items
+
   const filteredMenu = Array.from(menuMap.values()).filter(
     (module) => module.items.length > 0
   )
   return filteredMenu
 }
+
 export const menuData = {
   mainNav: [
     {
@@ -374,34 +373,31 @@ export const menuData = {
       items: [
         { title: "Loan", url: "/requests/loan", icon: Wallet },
         { title: "Leave", url: "/requests/leave", icon: CalendarDays },
-        {
-          title: "Petty Cash",
-          url: "/requests/pettycash",
-          icon: HandCoins,
-        },
+        { title: "Petty Cash", url: "/requests/pettycash", icon: HandCoins },
       ],
     },
   ],
 }
+
 export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
   const { currentCompany } = useAuthStore()
   const { pendingCount: approvalCount, refreshCounts } = useApprovalCounts()
   const { transactions, isLoading: transactionsLoading } = useUserTransactions()
+  const { state: sidebarState, isMobile } = useSidebar()
   const [openMenu, setOpenMenu] = React.useState<string | null>(null)
   const [selectedMenu, setSelectedMenu] = React.useState<string | null>(null)
   const [selectedSubMenu, setSelectedSubMenu] = React.useState<string | null>(
     null
   )
   const [hoveredMenu, setHoveredMenu] = React.useState<string | null>(null)
-  const [hoveredSubMenu, setHoveredSubMenu] = React.useState<string | null>(
-    null
-  )
+  const [hoveredSubMenu, setHoveredSubMenu] = React.useState<string | null>(null)
+  const closeTimeoutRef = React.useRef<NodeJS.Timeout | null>(null)
   const pathname = usePathname()
-  // Build dynamic menu from user transactions
+
   const dynamicMenu = React.useMemo(() => {
     return buildDynamicMenu(transactions)
   }, [transactions])
-  // Removed unused platformNavs and settingNavs as we use dynamicMenu instead
+
   const getUrlWithCompanyId = React.useCallback(
     (url: string) => {
       if (!currentCompany?.companyId) return url
@@ -410,6 +406,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
     },
     [currentCompany?.companyId]
   )
+
   React.useEffect(() => {
     const currentPath = pathname
     for (const menu of menuData.mainNav) {
@@ -418,6 +415,16 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
         setOpenMenu(null)
         setSelectedSubMenu(null)
         return
+      }
+      if (menu.items) {
+        for (const subItem of menu.items) {
+          if (currentPath === getUrlWithCompanyId(subItem.url)) {
+            setSelectedMenu(menu.title)
+            setOpenMenu(menu.title)
+            setSelectedSubMenu(subItem.title)
+            return
+          }
+        }
       }
     }
     for (const group of dynamicMenu) {
@@ -431,25 +438,52 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
       }
     }
   }, [pathname, getUrlWithCompanyId, dynamicMenu])
-  // Refresh approval counts when component mounts
+
   React.useEffect(() => {
     refreshCounts()
   }, [refreshCounts])
+
   const handleMenuClick = (menuTitle: string) => {
     setOpenMenu(openMenu === menuTitle ? null : menuTitle)
     setSelectedMenu(menuTitle)
     setSelectedSubMenu(null)
   }
+
   const handleSubMenuClick = (menuTitle: string, subMenuTitle: string) => {
     setSelectedMenu(menuTitle)
     setSelectedSubMenu(subMenuTitle)
   }
+
   const isMenuActive = (menuTitle: string) => {
     return selectedMenu === menuTitle || openMenu === menuTitle
   }
+
   const isSubMenuActive = (subMenuTitle: string) => {
     return selectedSubMenu === subMenuTitle
   }
+
+  const handleMouseEnter = (menuTitle: string) => {
+    if (closeTimeoutRef.current) {
+      clearTimeout(closeTimeoutRef.current)
+      closeTimeoutRef.current = null
+    }
+    setHoveredMenu(menuTitle)
+  }
+
+  const handleMouseLeave = () => {
+    closeTimeoutRef.current = setTimeout(() => {
+      setHoveredMenu(null)
+      closeTimeoutRef.current = null
+    }, 150)
+  }
+
+  const handlePopoverContentMouseEnter = () => {
+    if (closeTimeoutRef.current) {
+      clearTimeout(closeTimeoutRef.current)
+      closeTimeoutRef.current = null
+    }
+  }
+
   return (
     <Sidebar collapsible="icon" className={props.className} {...props}>
       <SidebarHeader>
@@ -461,19 +495,17 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
             {menuData.mainNav.map((item) => (
               <SidebarMenuItem key={item.url}>
                 {item.items ? (
-                  // Collapsible menu item with sub-items
-                  <Collapsible
-                    asChild
-                    open={openMenu === item.title}
-                    className="group/collapsible"
-                  >
-                    <div>
-                      <CollapsibleTrigger asChild>
+                  sidebarState === "collapsed" && !isMobile ? (
+                    <Popover open={hoveredMenu === item.title}>
+                      <PopoverTrigger asChild>
                         <SidebarMenuButton
-                          tooltip={item.title}
-                          onClick={() => handleMenuClick(item.title)}
-                          onMouseEnter={() => setHoveredMenu(item.title)}
-                          onMouseLeave={() => setHoveredMenu(null)}
+                          tooltip={
+                            sidebarState === "collapsed" && !isMobile
+                              ? undefined
+                              : item.title
+                          }
+                          onMouseEnter={() => handleMouseEnter(item.title)}
+                          onMouseLeave={handleMouseLeave}
                           className={`hover:bg-primary/20 hover:text-primary data-[active=true]:bg-primary/20 data-[active=true]:text-primary relative transition-colors duration-200 ${
                             isMenuActive(item.title) ||
                             hoveredMenu === item.title
@@ -486,57 +518,119 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                           </div>
                           <span>{item.title}</span>
                           {item.title === "Approvals" && approvalCount > 0 && (
-                            <span className="ml-2 flex h-4 w-4 animate-bounce items-center justify-center rounded-full bg-red-500 text-xs text-white shadow-sm group-data-[collapsed=false]:block group-data-[collapsed=true]:hidden">
+                            <SidebarMenuBadge>
                               {approvalCount}
-                            </span>
+                            </SidebarMenuBadge>
                           )}
-                          <ChevronRightIcon className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
                         </SidebarMenuButton>
-                      </CollapsibleTrigger>
-                      <CollapsibleContent>
-                        <SidebarMenuSub>
+                      </PopoverTrigger>
+                      <PopoverContent
+                        side="right"
+                        align="start"
+                        className="w-56 p-0"
+                        onMouseEnter={handlePopoverContentMouseEnter}
+                        onMouseLeave={handleMouseLeave}
+                      >
+                        <div className="py-1.5">
                           {item.items.map((subItem) => (
-                            <SidebarMenuSubItem key={subItem.title}>
-                              <SidebarMenuSubButton
-                                asChild
-                                onMouseEnter={() =>
-                                  setHoveredSubMenu(subItem.title)
+                            <div key={subItem.url} className="[&>a]:flex">
+                              <Link
+                                href={getUrlWithCompanyId(subItem.url)}
+                                onClick={() =>
+                                  handleSubMenuClick(item.title, subItem.title)
                                 }
-                                onMouseLeave={() => setHoveredSubMenu(null)}
-                                className={`hover:bg-primary/20 hover:text-primary data-[active=true]:bg-primary/20 data-[active=true]:text-primary transition-colors duration-200 ${
-                                  isSubMenuActive(subItem.title) ||
-                                  hoveredSubMenu === subItem.title
-                                    ? "bg-primary/20 text-primary"
+                                className={`flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus:bg-accent focus:text-foreground ${
+                                  pathname === getUrlWithCompanyId(subItem.url)
+                                    ? "bg-accent text-foreground"
                                     : ""
                                 }`}
                               >
-                                <Link
-                                  href={getUrlWithCompanyId(subItem.url)}
-                                  onClick={() =>
-                                    handleSubMenuClick(
-                                      item.title,
-                                      subItem.title
-                                    )
-                                  }
-                                >
-                                  {subItem.icon && (
-                                    <subItem.icon className="h-4 w-4" />
-                                  )}
-                                  <span>{subItem.title}</span>
-                                </Link>
-                              </SidebarMenuSubButton>
-                            </SidebarMenuSubItem>
+                                {subItem.icon && (
+                                  <subItem.icon className="h-4 w-4" />
+                                )}
+                                <span>{subItem.title}</span>
+                              </Link>
+                            </div>
                           ))}
-                        </SidebarMenuSub>
-                      </CollapsibleContent>
-                    </div>
-                  </Collapsible>
+                        </div>
+                      </PopoverContent>
+                    </Popover>
+                  ) : (
+                    <Collapsible
+                      asChild
+                      open={openMenu === item.title}
+                      className="group/collapsible"
+                    >
+                      <div>
+                        <CollapsibleTrigger asChild>
+                          <SidebarMenuButton
+                            tooltip={item.title}
+                            onClick={() => handleMenuClick(item.title)}
+                            onMouseEnter={() => handleMouseEnter(item.title)}
+                            onMouseLeave={() => setHoveredMenu(null)}
+                            className={`hover:bg-primary/20 hover:text-primary data-[active=true]:bg-primary/20 data-[active=true]:text-primary relative transition-colors duration-200 ${
+                              isMenuActive(item.title) ||
+                              hoveredMenu === item.title
+                                ? "bg-primary/20 text-primary"
+                                : ""
+                            }`}
+                          >
+                            <div className="relative">
+                              {item.icon && <item.icon className="h-4 w-4" />}
+                            </div>
+                            <span>{item.title}</span>
+                            {item.title === "Approvals" && approvalCount > 0 && (
+                              <SidebarMenuBadge>
+                                {approvalCount}
+                              </SidebarMenuBadge>
+                            )}
+                            <ChevronRightIcon className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
+                          </SidebarMenuButton>
+                        </CollapsibleTrigger>
+                        <CollapsibleContent>
+                          <SidebarMenuSub>
+                            {item.items.map((subItem) => (
+                              <SidebarMenuSubItem key={subItem.title}>
+                                <SidebarMenuSubButton
+                                  asChild
+                                  onMouseEnter={() =>
+                                    setHoveredSubMenu(subItem.title)
+                                  }
+                                  onMouseLeave={() => setHoveredSubMenu(null)}
+                                  className={`hover:bg-primary/20 hover:text-primary data-[active=true]:bg-primary/20 data-[active=true]:text-primary transition-colors duration-200 ${
+                                    isSubMenuActive(subItem.title) ||
+                                    hoveredSubMenu === subItem.title
+                                      ? "bg-primary/20 text-primary"
+                                      : ""
+                                  }`}
+                                >
+                                  <Link
+                                    href={getUrlWithCompanyId(subItem.url)}
+                                    onClick={() =>
+                                      handleSubMenuClick(
+                                        item.title,
+                                        subItem.title
+                                      )
+                                    }
+                                  >
+                                    {subItem.icon && (
+                                      <subItem.icon className="h-4 w-4" />
+                                    )}
+                                    <span>{subItem.title}</span>
+                                  </Link>
+                                </SidebarMenuSubButton>
+                              </SidebarMenuSubItem>
+                            ))}
+                          </SidebarMenuSub>
+                        </CollapsibleContent>
+                      </div>
+                    </Collapsible>
+                  )
                 ) : (
-                  // Simple menu item without sub-items (direct link)
                   <SidebarMenuButton
                     asChild
                     tooltip={item.title}
-                    onMouseEnter={() => setHoveredMenu(item.title)}
+                    onMouseEnter={() => handleMouseEnter(item.title)}
                     onMouseLeave={() => setHoveredMenu(null)}
                     className={`hover:bg-primary/20 hover:text-primary data-[active=true]:bg-primary/20 data-[active=true]:text-primary relative transition-colors duration-200 ${
                       isMenuActive(item.title) || hoveredMenu === item.title
@@ -550,9 +644,9 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                       </div>
                       <span>{item.title}</span>
                       {item.title === "Approvals" && approvalCount > 0 && (
-                        <span className="ml-2 flex h-4 w-4 animate-bounce items-center justify-center rounded-full bg-red-500 text-xs text-white shadow-sm group-data-[collapsed=false]:block group-data-[collapsed=true]:hidden">
+                        <SidebarMenuBadge>
                           {approvalCount}
-                        </span>
+                        </SidebarMenuBadge>
                       )}
                     </Link>
                   </SidebarMenuButton>
@@ -573,73 +667,129 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
               </div>
             ) : (
               dynamicMenu.map((group) => (
-                <Collapsible
-                  key={group.title}
-                  asChild
-                  open={openMenu === group.title}
-                  className="group/collapsible"
-                >
-                  <SidebarMenuItem>
-                    <CollapsibleTrigger asChild>
-                      <SidebarMenuButton
-                        tooltip={group.title}
-                        onClick={() => handleMenuClick(group.title)}
-                        onMouseEnter={() => setHoveredMenu(group.title)}
-                        onMouseLeave={() => setHoveredMenu(null)}
-                        className={`hover:bg-primary/20 hover:text-primary data-[active=true]:bg-primary/20 data-[active=true]:text-primary transition-colors duration-200 ${
-                          isMenuActive(group.title) ||
-                          hoveredMenu === group.title
-                            ? "bg-primary/20 text-primary"
-                            : ""
-                        }`}
+                <SidebarMenuItem key={group.title}>
+                  {group.items && sidebarState === "collapsed" && !isMobile ? (
+                    <Popover open={hoveredMenu === group.title}>
+                      <PopoverTrigger asChild>
+                        <SidebarMenuButton
+                          tooltip={
+                            sidebarState === "collapsed" && !isMobile
+                              ? undefined
+                              : group.title
+                          }
+                          onMouseEnter={() => handleMouseEnter(group.title)}
+                          onMouseLeave={handleMouseLeave}
+                          className={`hover:bg-primary/20 hover:text-primary data-[active=true]:bg-primary/20 data-[active=true]:text-primary transition-colors duration-200 ${
+                            isMenuActive(group.title) ||
+                            hoveredMenu === group.title
+                              ? "bg-primary/20 text-primary"
+                              : ""
+                          }`}
+                        >
+                          {group.icon && <group.icon className="h-4 w-4" />}
+                          <span>{group.title}</span>
+                        </SidebarMenuButton>
+                      </PopoverTrigger>
+                      <PopoverContent
+                        side="right"
+                        align="start"
+                        className="w-56 p-0"
+                        onMouseEnter={handlePopoverContentMouseEnter}
+                        onMouseLeave={handleMouseLeave}
                       >
-                        {group.icon && <group.icon className="h-4 w-4" />}
-                        <span>{group.title}</span>
-                        {group.items && (
-                          <ChevronRightIcon className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
-                        )}
-                      </SidebarMenuButton>
-                    </CollapsibleTrigger>
-                    {group.items && (
-                      <CollapsibleContent>
-                        <SidebarMenuSub>
+                        <div className="py-1.5">
                           {group.items.map((subItem) => (
-                            <SidebarMenuSubItem key={subItem.title}>
-                              <SidebarMenuSubButton
-                                asChild
-                                onMouseEnter={() =>
-                                  setHoveredSubMenu(subItem.title)
+                            <div key={subItem.title} className="[&>a]:flex">
+                              <Link
+                                href={getUrlWithCompanyId(subItem.url)}
+                                onClick={() =>
+                                  handleSubMenuClick(group.title, subItem.title)
                                 }
-                                onMouseLeave={() => setHoveredSubMenu(null)}
-                                className={`hover:bg-primary/20 hover:text-primary data-[active=true]:bg-primary/20 data-[active=true]:text-primary transition-colors duration-200 ${
-                                  isSubMenuActive(subItem.title) ||
-                                  hoveredSubMenu === subItem.title
-                                    ? "bg-primary/20 text-primary"
+                                className={`flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus:bg-accent focus:text-foreground ${
+                                  pathname === getUrlWithCompanyId(subItem.url)
+                                    ? "bg-accent text-foreground"
                                     : ""
                                 }`}
                               >
-                                <Link
-                                  href={getUrlWithCompanyId(subItem.url)}
-                                  onClick={() =>
-                                    handleSubMenuClick(
-                                      group.title,
-                                      subItem.title
-                                    )
-                                  }
-                                >
-                                  {subItem.icon && (
-                                    <subItem.icon className="h-4 w-4" />
-                                  )}
-                                  <span>{subItem.title}</span>
-                                </Link>
-                              </SidebarMenuSubButton>
-                            </SidebarMenuSubItem>
+                                {subItem.icon && (
+                                  <subItem.icon className="h-4 w-4" />
+                                )}
+                                <span>{subItem.title}</span>
+                              </Link>
+                            </div>
                           ))}
-                        </SidebarMenuSub>
-                      </CollapsibleContent>
-                    )}
-                  </SidebarMenuItem>
-                </Collapsible>
+                        </div>
+                      </PopoverContent>
+                    </Popover>
+                  ) : (
+                    <Collapsible
+                      asChild
+                      open={openMenu === group.title}
+                      className="group/collapsible"
+                    >
+                      <div>
+                        <CollapsibleTrigger asChild>
+                          <SidebarMenuButton
+                            tooltip={group.title}
+                            onClick={() => handleMenuClick(group.title)}
+                            onMouseEnter={() => handleMouseEnter(group.title)}
+                            onMouseLeave={() => setHoveredMenu(null)}
+                            className={`hover:bg-primary/20 hover:text-primary data-[active=true]:bg-primary/20 data-[active=true]:text-primary transition-colors duration-200 ${
+                              isMenuActive(group.title) ||
+                              hoveredMenu === group.title
+                                ? "bg-primary/20 text-primary"
+                                : ""
+                            }`}
+                          >
+                            {group.icon && <group.icon className="h-4 w-4" />}
+                            <span>{group.title}</span>
+                            {group.items && (
+                              <ChevronRightIcon className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
+                            )}
+                          </SidebarMenuButton>
+                        </CollapsibleTrigger>
+                        {group.items && (
+                          <CollapsibleContent>
+                            <SidebarMenuSub>
+                              {group.items.map((subItem) => (
+                                <SidebarMenuSubItem key={subItem.title}>
+                                  <SidebarMenuSubButton
+                                    asChild
+                                    onMouseEnter={() =>
+                                      setHoveredSubMenu(subItem.title)
+                                    }
+                                    onMouseLeave={() => setHoveredSubMenu(null)}
+                                    className={`hover:bg-primary/20 hover:text-primary data-[active=true]:bg-primary/20 data-[active=true]:text-primary transition-colors duration-200 ${
+                                      isSubMenuActive(subItem.title) ||
+                                      hoveredSubMenu === subItem.title
+                                        ? "bg-primary/20 text-primary"
+                                        : ""
+                                    }`}
+                                  >
+                                    <Link
+                                      href={getUrlWithCompanyId(subItem.url)}
+                                      onClick={() =>
+                                        handleSubMenuClick(
+                                          group.title,
+                                          subItem.title
+                                        )
+                                      }
+                                    >
+                                      {subItem.icon && (
+                                        <subItem.icon className="h-4 w-4" />
+                                      )}
+                                      <span>{subItem.title}</span>
+                                    </Link>
+                                  </SidebarMenuSubButton>
+                                </SidebarMenuSubItem>
+                              ))}
+                            </SidebarMenuSub>
+                          </CollapsibleContent>
+                        )}
+                      </div>
+                    </Collapsible>
+                  )}
+                </SidebarMenuItem>
               ))
             )}
           </SidebarMenu>
