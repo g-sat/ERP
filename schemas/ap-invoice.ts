@@ -222,17 +222,11 @@ export const apinvoiceDtSchema = (
     jobOrderNo: z.string().optional(),
 
     // Task Fields
-    taskId:
-      required?.m_JobOrderId && visible?.m_JobOrderId
-        ? z.number().min(1, "Task is required")
-        : z.number().optional(),
+    taskId: z.number().optional(),
     taskName: z.string().optional(),
 
     // Service Fields
-    serviceId:
-      required?.m_JobOrderId && visible?.m_JobOrderId
-        ? z.number().min(1, "Service is required")
-        : z.number().optional(),
+    serviceId: z.number().optional(),
     serviceName: z.string().optional(),
 
     // Employee Fields

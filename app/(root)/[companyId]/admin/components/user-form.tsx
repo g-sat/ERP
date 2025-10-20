@@ -19,9 +19,11 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Form } from "@/components/ui/form"
-import EmployeeAutocomplete from "@/components/autocomplete/autocomplete-employee"
-import UserGroupAutocomplete from "@/components/autocomplete/autocomplete-usergroup"
-import UserRoleAutocomplete from "@/components/autocomplete/autocomplete-userrole"
+import {
+  EmployeeAutocomplete,
+  UserGroupAutocomplete,
+  UserRoleAutocomplete,
+} from "@/components/autocomplete"
 import CustomAccordion, {
   CustomAccordionContent,
   CustomAccordionItem,

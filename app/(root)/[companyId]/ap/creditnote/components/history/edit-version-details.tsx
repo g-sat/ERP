@@ -9,8 +9,8 @@ import { AlertCircle } from "lucide-react"
 
 import { APTransactionId, ModuleId, TableName } from "@/lib/utils"
 import {
-  useGetAPInvoiceHistoryDetails,
-  useGetAPInvoiceHistoryList,
+  useGetAPCreditNoteHistoryDetails,
+  useGetAPCreditNoteHistoryList,
 } from "@/hooks/use-ap"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -22,6 +22,11 @@ import {
 } from "@/components/ui/dialog"
 import { BasicTable } from "@/components/table/table-basic"
 import { DialogDataTable } from "@/components/table/table-dialog"
+
+// Extended column definition with hide property
+type _ExtendedColumnDef<T> = ColumnDef<T> & {
+  hidden?: boolean
+}
 
 interface EditVersionDetailsProps {
   creditNoteId: string
@@ -37,19 +42,19 @@ export default function EditVersionDetails({
   const exhRateDec = decimals[0]?.exhRateDec || 2
 
   const moduleId = ModuleId.ap
-  const transactionId = APTransactionId.invoice
+  const transactionId = APTransactionId.creditNote
 
-  const [selectedInvoice, setSelectedInvoice] =
+  const [selectedCreditNote, setSelectedCreditNote] =
     useState<IApCreditNoteHd | null>(null)
 
-  const { data: invoiceHistoryData, refetch: refetchHistory } =
-    //useGetARInvoiceHistoryList<IApCreditNoteHd[]>("14120250100024")
-    useGetAPInvoiceHistoryList<IApCreditNoteHd[]>(creditNoteId)
+  const { data: creditNoteHistoryData, refetch: refetchHistory } =
+    //useGetARCreditNoteHistoryList<IApCreditNoteHd[]>("14120250100024")
+    useGetAPCreditNoteHistoryList<IApCreditNoteHd[]>(creditNoteId)
 
-  const { data: invoiceDetailsData, refetch: refetchDetails } =
-    useGetAPInvoiceHistoryDetails<IApCreditNoteHd>(
-      selectedInvoice?.creditNoteId || "",
-      selectedInvoice?.editVersion?.toString() || ""
+  const { data: creditNoteDetailsData, refetch: refetchDetails } =
+    useGetAPCreditNoteHistoryDetails<IApCreditNoteHd>(
+      selectedCreditNote?.creditNoteId || "",
+      selectedCreditNote?.editVersion?.toString() || ""
     )
 
   function isIApCreditNoteHdArray(arr: unknown): arr is IApCreditNoteHd[] {
@@ -62,24 +67,24 @@ export default function EditVersionDetails({
 
   // Check if history data is successful and has valid data
   const tableData: IApCreditNoteHd[] =
-    invoiceHistoryData?.result === 1 &&
-    isIApCreditNoteHdArray(invoiceHistoryData?.data)
-      ? invoiceHistoryData.data
+    creditNoteHistoryData?.result === 1 &&
+    isIApCreditNoteHdArray(creditNoteHistoryData?.data)
+      ? creditNoteHistoryData.data
       : []
 
   // Check if details data is successful and has valid data
   const dialogData: IApCreditNoteHd | undefined =
-    invoiceDetailsData?.result === 1 &&
-    invoiceDetailsData?.data &&
-    typeof invoiceDetailsData.data === "object" &&
-    invoiceDetailsData.data !== null &&
-    !Array.isArray(invoiceDetailsData.data)
-      ? (invoiceDetailsData.data as IApCreditNoteHd)
+    creditNoteDetailsData?.result === 1 &&
+    creditNoteDetailsData?.data &&
+    typeof creditNoteDetailsData.data === "object" &&
+    creditNoteDetailsData.data !== null &&
+    !Array.isArray(creditNoteDetailsData.data)
+      ? (creditNoteDetailsData.data as IApCreditNoteHd)
       : undefined
 
   // Check for API errors
-  const hasHistoryError = invoiceHistoryData?.result === -1
-  const hasDetailsError = invoiceDetailsData?.result === -1
+  const hasHistoryError = creditNoteHistoryData?.result === -1
+  const hasDetailsError = creditNoteDetailsData?.result === -1
 
   const columns: ColumnDef<IApCreditNoteHd>[] = [
     {
@@ -88,7 +93,7 @@ export default function EditVersionDetails({
     },
     {
       accessorKey: "creditNoteNo",
-      header: "Invoice No",
+      header: "CreditNote No",
     },
     {
       accessorKey: "referenceNo",
@@ -311,13 +316,13 @@ export default function EditVersionDetails({
       // Only refetch if we don't have a "Data does not exist" error
       if (
         !hasHistoryError ||
-        invoiceHistoryData?.message !== "Data does not exist"
+        creditNoteHistoryData?.message !== "Data does not exist"
       ) {
         await refetchHistory()
       }
       if (
         !hasDetailsError ||
-        invoiceDetailsData?.message !== "Data does not exist"
+        creditNoteDetailsData?.message !== "Data does not exist"
       ) {
         await refetchDetails()
       }
@@ -337,7 +342,7 @@ export default function EditVersionDetails({
           {hasHistoryError && (
             <Alert
               variant={
-                invoiceHistoryData?.message === "Data does not exist"
+                creditNoteHistoryData?.message === "Data does not exist"
                   ? "default"
                   : "destructive"
               }
@@ -345,9 +350,9 @@ export default function EditVersionDetails({
             >
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>
-                {invoiceHistoryData?.message === "Data does not exist"
-                  ? "No invoice history found for this invoice."
-                  : `Failed to load invoice history: ${invoiceHistoryData?.message || "Unknown error"}`}
+                {creditNoteHistoryData?.message === "Data does not exist"
+                  ? "No creditNote history found for this creditNote."
+                  : `Failed to load creditNote history: ${creditNoteHistoryData?.message || "Unknown error"}`}
               </AlertDescription>
             </Alert>
           )}
@@ -362,25 +367,25 @@ export default function EditVersionDetails({
               hasHistoryError ? "Error loading data" : "No results."
             }
             onRefresh={handleRefresh}
-            onRowSelect={(invoice) => setSelectedInvoice(invoice)}
+            onRowSelect={(creditNote) => setSelectedCreditNote(creditNote)}
           />
         </CardContent>
       </Card>
 
       <Dialog
-        open={!!selectedInvoice}
-        onOpenChange={() => setSelectedInvoice(null)}
+        open={!!selectedCreditNote}
+        onOpenChange={() => setSelectedCreditNote(null)}
       >
         <DialogContent className="@container h-[80vh] w-[90vw] !max-w-none overflow-y-auto rounded-lg p-4">
           <DialogHeader>
-            <DialogTitle>Invoice Details</DialogTitle>
+            <DialogTitle>CreditNote Details</DialogTitle>
           </DialogHeader>
 
           {/* Error handling for details data */}
           {hasDetailsError && (
             <Alert
               variant={
-                invoiceDetailsData?.message === "Data does not exist"
+                creditNoteDetailsData?.message === "Data does not exist"
                   ? "default"
                   : "destructive"
               }
@@ -388,9 +393,9 @@ export default function EditVersionDetails({
             >
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>
-                {invoiceDetailsData?.message === "Data does not exist"
-                  ? "No invoice details found for this version."
-                  : `Failed to load invoice details: ${invoiceDetailsData?.message || "Unknown error"}`}
+                {creditNoteDetailsData?.message === "Data does not exist"
+                  ? "No creditNote details found for this version."
+                  : `Failed to load creditNote details: ${creditNoteDetailsData?.message || "Unknown error"}`}
               </AlertDescription>
             </Alert>
           )}
@@ -398,7 +403,7 @@ export default function EditVersionDetails({
           <div className="grid gap-2">
             <Card>
               <CardHeader>
-                <CardTitle>Invoice Header</CardTitle>
+                <CardTitle>CreditNote Header</CardTitle>
               </CardHeader>
               <CardContent>
                 {dialogData ? (
@@ -417,15 +422,15 @@ export default function EditVersionDetails({
                 ) : (
                   <div className="text-muted-foreground py-4 text-center">
                     {hasDetailsError
-                      ? "Error loading invoice details"
-                      : "No invoice details available"}
+                      ? "Error loading creditNote details"
+                      : "No creditNote details available"}
                   </div>
                 )}
               </CardContent>
             </Card>
             <Card>
               <CardHeader>
-                <CardTitle>Invoice Details</CardTitle>
+                <CardTitle>CreditNote Details</CardTitle>
               </CardHeader>
               <CardContent>
                 <BasicTable
@@ -434,7 +439,7 @@ export default function EditVersionDetails({
                   moduleId={moduleId}
                   transactionId={transactionId}
                   tableName={TableName.apCreditNoteHistory}
-                  emptyMessage="No invoice details available"
+                  emptyMessage="No creditNote details available"
                   onRefresh={handleRefresh}
                   showHeader={true}
                   showFooter={false}

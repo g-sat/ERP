@@ -21,10 +21,12 @@ import {
 } from "@/components/ui/form"
 import { Separator } from "@/components/ui/separator"
 import { Skeleton } from "@/components/ui/skeleton"
-import ChartofAccountAutocomplete from "@/components/autocomplete/autocomplete-chartofaccount"
-import CurrencyAutocomplete from "@/components/autocomplete/autocomplete-currency"
-import GstAutocomplete from "@/components/autocomplete/autocomplete-gst"
-import UomAutocomplete from "@/components/autocomplete/autocomplete-uom"
+import {
+  ChartOfAccountAutocomplete,
+  CurrencyAutocomplete,
+  GSTAutocomplete,
+  UomAutocomplete,
+} from "@/components/autocomplete"
 import { SaveConfirmation } from "@/components/confirmation/save-confirmation"
 import CustomNumberInput from "@/components/custom/custom-number-input"
 import { LockSkeleton } from "@/components/skeleton/lock-skeleton"

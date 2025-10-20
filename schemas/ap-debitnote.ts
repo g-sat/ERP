@@ -1,7 +1,7 @@
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
 import * as z from "zod"
 
-export const apdebitNoteHdSchema = (
+export const apDebitNoteHdSchema = (
   required: IMandatoryFields,
   visible: IVisibleFields
 ) => {
@@ -11,7 +11,7 @@ export const apdebitNoteHdSchema = (
     debitNoteId: z.string().optional(),
     debitNoteNo: z.string().optional(),
     suppDebitNoteNo: required?.m_SuppInvoiceNo
-      ? z.string().min(1, "Supplier Debit Note No is required")
+      ? z.string().min(1, "Supplier Invoice No is required")
       : z.string().optional(),
     referenceNo: required?.m_ReferenceNo
       ? z.string().min(1, "Reference No is required")
@@ -32,14 +32,18 @@ export const apdebitNoteHdSchema = (
       .number()
       .min(0.000001, "City Exchange Rate must be greater than 0"),
 
-    // Credit Terms
-    creditTermId: z.number().min(1, "Credit Term is required"),
+    // Debit Terms
+    creditTermId: z.number().min(1, "Debit Term is required"),
 
     // Bank Fields
     bankId:
       required?.m_BankId && visible?.m_BankId
         ? z.number().min(1, "Bank is required")
         : z.number().optional(),
+
+    // Invoice Fields
+    invoiceId: z.string().optional(),
+    invoiceNo: z.string().optional(),
 
     // Amounts
     totAmt: required?.m_TotAmt ? z.number().min(0) : z.number().optional(),
@@ -105,7 +109,7 @@ export const apdebitNoteHdSchema = (
 
     customerName: z.string().optional(),
 
-    arDebitNoteId: z.union([z.string(), z.number()]).optional(),
+    arDebitNoteId: z.string().optional(),
     arDebitNoteNo: z.string().optional(),
     editVersion: z.number().optional(),
     createBy: z.string().optional(),
@@ -118,26 +122,26 @@ export const apdebitNoteHdSchema = (
 
     // Nested Details
     data_details: z
-      .array(apdebitNoteDtSchema(required, visible))
-      .min(1, "At least one debitNote detail is required"),
+      .array(apDebitNoteDtSchema(required, visible))
+      .min(1, "At least one invoice detail is required"),
   })
 }
 
 export type ApDebitNoteHdSchemaType = z.infer<
-  ReturnType<typeof apdebitNoteHdSchema>
+  ReturnType<typeof apDebitNoteHdSchema>
 >
 
-export const apdebitNoteHdFiltersSchema = z.object({
+export const apDebitNoteHdFiltersSchema = z.object({
   isActive: z.boolean().optional(),
   search: z.string().optional(),
   sortOrder: z.enum(["asc", "desc"]).optional(),
 })
 
 export type ApDebitNoteHdFiltersValues = z.infer<
-  typeof apdebitNoteHdFiltersSchema
+  typeof apDebitNoteHdFiltersSchema
 >
 
-export const apdebitNoteDtSchema = (
+export const apDebitNoteDtSchema = (
   required: IMandatoryFields,
   visible: IVisibleFields
 ) => {
@@ -224,17 +228,11 @@ export const apdebitNoteDtSchema = (
     jobOrderNo: z.string().optional(),
 
     // Task Fields
-    taskId:
-      required?.m_JobOrderId && visible?.m_JobOrderId
-        ? z.number().min(1, "Task is required")
-        : z.number().optional(),
+    taskId: z.number().optional(),
     taskName: z.string().optional(),
 
     // Service Fields
-    serviceId:
-      required?.m_JobOrderId && visible?.m_JobOrderId
-        ? z.number().min(1, "Service is required")
-        : z.number().optional(),
+    serviceId: z.number().optional(),
     serviceName: z.string().optional(),
 
     // Employee Fields
@@ -294,7 +292,6 @@ export const apdebitNoteDtSchema = (
     // Supplier Details
     customerName: z.string().optional(),
     custDebitNoteNo: z.string().optional(),
-    suppDebitNoteNo: z.string().optional(),
     arDebitNoteId: z.union([z.string(), z.number()]).optional(),
     arDebitNoteNo: z.string().optional(),
 
@@ -304,15 +301,15 @@ export const apdebitNoteDtSchema = (
 }
 
 export type ApDebitNoteDtSchemaType = z.infer<
-  ReturnType<typeof apdebitNoteDtSchema>
+  ReturnType<typeof apDebitNoteDtSchema>
 >
 
-export const apdebitNoteDtFiltersSchema = z.object({
+export const apDebitNoteDtFiltersSchema = z.object({
   isActive: z.boolean().optional(),
   search: z.string().optional(),
   sortOrder: z.enum(["asc", "desc"]).optional(),
 })
 
 export type ApDebitNoteDtFiltersValues = z.infer<
-  typeof apdebitNoteDtFiltersSchema
+  typeof apDebitNoteDtFiltersSchema
 >

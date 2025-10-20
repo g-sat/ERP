@@ -17,8 +17,10 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Form, FormLabel } from "@/components/ui/form"
-import EmployeeAutocomplete from "@/components/autocomplete/autocomplete-employee"
-import LeaveTypeAutocomplete from "@/components/autocomplete/autocomplete-leavetype"
+import {
+  EmployeeAutocomplete,
+  LeaveTypeAutocomplete,
+} from "@/components/autocomplete"
 import { CustomDateNew } from "@/components/custom/custom-date-new"
 import CustomTextarea from "@/components/custom/custom-textarea"
 

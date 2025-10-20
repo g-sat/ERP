@@ -47,7 +47,7 @@ import {
   EmployeeAutocomplete,
   GSTAutocomplete,
   JobOrderAutocomplete,
-  JobOrderChargeAutocomplete,
+  JobOrderServiceAutocomplete,
   JobOrderTaskAutocomplete,
   PortAutocomplete,
   ProductAutocomplete,
@@ -695,7 +695,7 @@ export default function JournalDetailsForm({
               )}
 
               {visible?.m_JobOrderId && (
-                <JobOrderChargeAutocomplete
+                <JobOrderServiceAutocomplete
                   key={`service-${watchedJobOrderId}-${watchedTaskId}`}
                   form={form}
                   name="serviceId"

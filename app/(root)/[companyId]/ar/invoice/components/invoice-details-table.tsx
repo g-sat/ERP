@@ -79,16 +79,18 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import BargeAutocomplete from "@/components/autocomplete/autocomplete-barge"
-import ChartofAccountAutocomplete from "@/components/autocomplete/autocomplete-chartofaccount"
-import DepartmentAutocomplete from "@/components/autocomplete/autocomplete-department"
-import EmployeeAutocomplete from "@/components/autocomplete/autocomplete-employee"
-import GstAutocomplete from "@/components/autocomplete/autocomplete-gst"
-import PortAutocomplete from "@/components/autocomplete/autocomplete-port"
-import ProductAutocomplete from "@/components/autocomplete/autocomplete-product"
-import UomAutocomplete from "@/components/autocomplete/autocomplete-uom"
-import VesselAutocomplete from "@/components/autocomplete/autocomplete-vessel"
-import VoyageAutocomplete from "@/components/autocomplete/autocomplete-voyage"
+import {
+  BargeAutocomplete,
+  ChartOfAccountAutocomplete,
+  DepartmentAutocomplete,
+  EmployeeAutocomplete,
+  GSTAutocomplete,
+  PortAutocomplete,
+  ProductAutocomplete,
+  UomAutocomplete,
+  VesselAutocomplete,
+  VoyageAutocomplete,
+} from "@/components/autocomplete"
 import CustomInput from "@/components/custom/custom-input"
 import CustomNumberInputCellRefs from "@/components/custom/custom-number-input-cellrefs"
 

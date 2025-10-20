@@ -22,6 +22,8 @@ export interface IApDebitNoteHd {
   bankId: number
   bankCode: null | string | number
   bankName: null | string
+  invoiceId: string
+  invoiceNo: string
   totAmt: number
   totLocalAmt: number
   totCtyAmt: number

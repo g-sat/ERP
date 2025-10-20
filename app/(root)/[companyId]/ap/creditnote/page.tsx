@@ -122,6 +122,8 @@ export default function CreditNotePage() {
           ctyExhRate: creditNote.ctyExhRate ?? 0,
           creditTermId: creditNote.creditTermId ?? 0,
           bankId: creditNote.bankId ?? 0,
+          invoiceId: creditNote.invoiceId ?? "0",
+          invoiceNo: creditNote.invoiceNo ?? "",
           totAmt: creditNote.totAmt ?? 0,
           totLocalAmt: creditNote.totLocalAmt ?? 0,
           totCtyAmt: creditNote.totCtyAmt ?? 0,
@@ -155,8 +157,8 @@ export default function CreditNotePage() {
           customerName: creditNote.customerName ?? "",
           addressId: creditNote.addressId ?? 0,
           contactId: creditNote.contactId ?? 0,
-          arInvoiceId: creditNote.arInvoiceId ?? "",
-          arInvoiceNo: creditNote.arInvoiceNo ?? "",
+          arCreditNoteId: creditNote.arCreditNoteId ?? "",
+          arCreditNoteNo: creditNote.arCreditNoteNo ?? "",
           editVersion: creditNote.editVersion ?? 0,
           purchaseOrderId: creditNote.purchaseOrderId ?? 0,
           purchaseOrderNo: creditNote.purchaseOrderNo ?? "",
@@ -175,7 +177,9 @@ export default function CreditNotePage() {
               supplyDate: detail.supplyDate ?? "",
               remarks: detail.remarks ?? "",
               customerName: detail.customerName ?? "",
-              custInvoiceNo: detail.custInvoiceNo ?? "",
+              custCreditNoteNo: detail.custCreditNoteNo ?? "",
+              arCreditNoteId: detail.arCreditNoteId ?? "",
+              arCreditNoteNo: detail.arCreditNoteNo ?? "",
             })) || [],
         }
       : {
@@ -183,7 +187,7 @@ export default function CreditNotePage() {
         },
   })
 
-  // API hooks for credit notes - Only fetch when List dialog is opened (optimized)
+  // API hooks for creditNotes - Only fetch when List dialog is opened (optimized)
   const {
     data: creditNotesResponse,
     refetch: refetchCreditNotes,
@@ -199,7 +203,7 @@ export default function CreditNotePage() {
     false // enabled: Don't auto-fetch - only when List button is clicked
   )
 
-  // Memoize credit note data to prevent unnecessary re-renders
+  // Memoize creditNote data to prevent unnecessary re-renders
   const creditNotesData = useMemo(
     () => (creditNotesResponse as ApiResponse<IApCreditNoteHd>)?.data ?? [],
     [creditNotesResponse]
@@ -274,24 +278,24 @@ export default function CreditNotePage() {
         // Close the save confirmation dialog
         setShowSaveConfirm(false)
 
-        // Check if this was a new credit note or update
+        // Check if this was a new creditNote or update
         const wasNewCreditNote = Number(formValues.creditNoteId) === 0
 
         if (wasNewCreditNote) {
           //toast.success(
-          // `Credit Note ${creditNoteData?.creditNoteNo || ""} saved successfully`
+          // `CreditNote ${creditNoteData?.creditNoteNo || ""} saved successfully`
           //)
         } else {
-          //toast.success("Credit Note updated successfully")
+          //toast.success("CreditNote updated successfully")
         }
 
         refetchCreditNotes()
       } else {
-        toast.error(response.message || "Failed to save credit note")
+        toast.error(response.message || "Failed to save creditNote")
       }
     } catch (error) {
       console.error("Save error:", error)
-      toast.error("Network error while saving credit note")
+      toast.error("Network error while saving creditNote")
     } finally {
       setIsSaving(false)
       setIsSelectingCreditNote(false)
@@ -306,7 +310,7 @@ export default function CreditNotePage() {
         ...creditNote,
         creditNoteId: "0",
         creditNoteNo: "",
-        // Reset amounts for new credit note
+        // Reset amounts for new creditNote
         totAmt: 0,
         totLocalAmt: 0,
         totCtyAmt: 0,
@@ -326,7 +330,7 @@ export default function CreditNotePage() {
       }
       setCreditNote(clonedCreditNote)
       form.reset(clonedCreditNote)
-      toast.success("Credit Note cloned successfully")
+      toast.success("CreditNote cloned successfully")
     }
   }
 
@@ -345,13 +349,13 @@ export default function CreditNotePage() {
           ...defaultCreditNote,
           data_details: [],
         })
-        //toast.success("Credit Note deleted successfully")
+        //toast.success("CreditNote deleted successfully")
         refetchCreditNotes()
       } else {
-        toast.error(response.message || "Failed to delete credit note")
+        toast.error(response.message || "Failed to delete creditNote")
       }
     } catch {
-      toast.error("Network error while deleting credit note")
+      toast.error("Network error while deleting creditNote")
     }
   }
 
@@ -363,7 +367,7 @@ export default function CreditNotePage() {
       ...defaultCreditNote,
       data_details: [],
     })
-    toast.success("Credit Note reset successfully")
+    toast.success("CreditNote reset successfully")
   }
 
   // Helper function to transform IApCreditNoteHd to ApCreditNoteHdSchemaType
@@ -411,6 +415,8 @@ export default function CreditNotePage() {
       ctyExhRate: apiCreditNote.ctyExhRate ?? 0,
       creditTermId: apiCreditNote.creditTermId ?? 0,
       bankId: apiCreditNote.bankId ?? 0,
+      invoiceId: apiCreditNote.invoiceId ?? "0",
+      invoiceNo: apiCreditNote.invoiceNo ?? "",
       totAmt: apiCreditNote.totAmt ?? 0,
       totLocalAmt: apiCreditNote.totLocalAmt ?? 0,
       totCtyAmt: apiCreditNote.totCtyAmt ?? 0,
@@ -443,8 +449,8 @@ export default function CreditNotePage() {
       emailAdd: apiCreditNote.emailAdd ?? "",
       moduleFrom: apiCreditNote.moduleFrom ?? "",
       customerName: apiCreditNote.customerName ?? "",
-      arInvoiceId: apiCreditNote.arInvoiceId ?? "",
-      arInvoiceNo: apiCreditNote.arInvoiceNo ?? "",
+      arCreditNoteId: apiCreditNote.arCreditNoteId ?? "",
+      arCreditNoteNo: apiCreditNote.arCreditNoteNo ?? "",
       editVersion: apiCreditNote.editVersion ?? 0,
       purchaseOrderId: apiCreditNote.purchaseOrderId ?? 0,
       purchaseOrderNo: apiCreditNote.purchaseOrderNo ?? "",
@@ -546,9 +552,9 @@ export default function CreditNotePage() {
                   )
                 : "",
               customerName: detail.customerName ?? "",
-              custInvoiceNo: detail.custInvoiceNo ?? "",
-              arInvoiceId: detail.arInvoiceId ?? "",
-              arInvoiceNo: detail.arInvoiceNo ?? "",
+              custCreditNoteNo: detail.custCreditNoteNo ?? "",
+              arCreditNoteId: detail.arCreditNoteId ?? "",
+              arCreditNoteNo: detail.arCreditNoteNo ?? "",
               editVersion: detail.editVersion ?? 0,
             }) as unknown as ApCreditNoteDtSchemaType
         ) || [],
@@ -563,7 +569,7 @@ export default function CreditNotePage() {
     setIsSelectingCreditNote(true)
 
     try {
-      // Fetch credit note details directly using selected credit note's values
+      // Fetch creditNote details directly using selected creditNote's values
       const response = await getById(
         `${ApCreditNote.getByIdNo}/${selectedCreditNote.creditNoteId}/${selectedCreditNote.creditNoteNo}`
       )
@@ -653,8 +659,8 @@ export default function CreditNotePage() {
             emailAdd: detailedCreditNote.emailAdd ?? "",
             moduleFrom: detailedCreditNote.moduleFrom ?? "",
             customerName: detailedCreditNote.customerName ?? "",
-            arInvoiceId: detailedCreditNote.arInvoiceId ?? "",
-            arInvoiceNo: detailedCreditNote.arInvoiceNo ?? "",
+            arCreditNoteId: detailedCreditNote.arCreditNoteId ?? "",
+            arCreditNoteNo: detailedCreditNote.arCreditNoteNo ?? "",
             editVersion: detailedCreditNote.editVersion ?? 0,
             purchaseOrderId: detailedCreditNote.purchaseOrderId ?? 0,
             purchaseOrderNo: detailedCreditNote.purchaseOrderNo ?? "",
@@ -736,9 +742,9 @@ export default function CreditNotePage() {
                       )
                     : "",
                   customerName: detail.customerName ?? "",
-                  custInvoiceNo: detail.custInvoiceNo ?? "",
-                  arInvoiceId: detail.arInvoiceId ?? "",
-                  arInvoiceNo: detail.arInvoiceNo ?? "",
+                  custCreditNoteNo: detail.custCreditNoteNo ?? "",
+                  arCreditNoteId: detail.arCreditNoteId ?? "",
+                  arCreditNoteNo: detail.arCreditNoteNo ?? "",
                   editVersion: detail.editVersion ?? 0,
                 })
               ) || [],
@@ -752,16 +758,16 @@ export default function CreditNotePage() {
           // Close dialog only on success
           setShowListDialog(false)
           toast.success(
-            `Credit Note ${selectedCreditNote.creditNoteNo} loaded successfully`
+            `CreditNote ${selectedCreditNote.creditNoteNo} loaded successfully`
           )
         }
       } else {
-        toast.error(response?.message || "Failed to fetch credit note details")
+        toast.error(response?.message || "Failed to fetch creditNote details")
         // Keep dialog open on failure so user can try again
       }
     } catch (error) {
-      console.error("Error fetching credit note details:", error)
-      toast.error("Error loading credit note. Please try again.")
+      console.error("Error fetching creditNote details:", error)
+      toast.error("Error loading creditNote. Please try again.")
       // Keep dialog open on error
     } finally {
       setIsSelectingCreditNote(false)
@@ -774,7 +780,7 @@ export default function CreditNotePage() {
     // refetchCreditNotes(); // Removed: will be handled by useEffect
   }
 
-  // Refetch credit notes when filters change (only if dialog is open)
+  // Refetch creditNotes when filters change (only if dialog is open)
   useEffect(() => {
     if (showListDialog) {
       refetchCreditNotes()
@@ -905,8 +911,8 @@ export default function CreditNotePage() {
             emailAdd: detailedCreditNote.emailAdd ?? "",
             moduleFrom: detailedCreditNote.moduleFrom ?? "",
             customerName: detailedCreditNote.customerName ?? "",
-            arInvoiceId: detailedCreditNote.arInvoiceId ?? "",
-            arInvoiceNo: detailedCreditNote.arInvoiceNo ?? "",
+            arCreditNoteId: detailedCreditNote.arCreditNoteId ?? "",
+            arCreditNoteNo: detailedCreditNote.arCreditNoteNo ?? "",
             editVersion: detailedCreditNote.editVersion ?? 0,
             purchaseOrderId: detailedCreditNote.purchaseOrderId ?? 0,
             purchaseOrderNo: detailedCreditNote.purchaseOrderNo ?? "",
@@ -982,9 +988,9 @@ export default function CreditNotePage() {
                       )
                     : "",
                   customerName: detail.customerName ?? "",
-                  custInvoiceNo: detail.custInvoiceNo ?? "",
-                  arInvoiceId: detail.arInvoiceId ?? "",
-                  arInvoiceNo: detail.arInvoiceNo ?? "",
+                  custCreditNoteNo: detail.custCreditNoteNo ?? "",
+                  arCreditNoteId: detail.arCreditNoteId ?? "",
+                  arCreditNoteNo: detail.arCreditNoteNo ?? "",
                   editVersion: detail.editVersion ?? 0,
                 })
               ) || [],
@@ -996,31 +1002,31 @@ export default function CreditNotePage() {
           form.trigger()
 
           // Show success message
-          toast.success(`Credit Note ${value} loaded successfully`)
+          toast.success(`CreditNote ${value} loaded successfully`)
 
           // Close the load confirmation dialog on success
           setShowLoadConfirm(false)
         }
       } else {
         toast.error(
-          response?.message || "Failed to fetch credit note details (direct)"
+          response?.message || "Failed to fetch creditNote details (direct)"
         )
       }
     } catch {
-      toast.error("Error searching for credit note")
+      toast.error("Error searching for creditNote")
     } finally {
       setIsLoadingCreditNote(false)
     }
   }
 
-  // Determine mode and credit note ID from URL
+  // Determine mode and creditNote ID from URL
   const creditNoteNo = form.getValues("creditNoteNo")
   const isEdit = Boolean(creditNoteNo)
 
   // Compose title text
   const titleText = isEdit
-    ? `Credit Note (Edit) - ${creditNoteNo}`
-    : "Credit Note (New)"
+    ? `CreditNote (Edit) - ${creditNoteNo}`
+    : "CreditNote (New)"
 
   // Show loading spinner while essential data is loading
   if (!visible || !required) {
@@ -1029,7 +1035,7 @@ export default function CreditNotePage() {
         <div className="text-center">
           <Spinner size="lg" className="mx-auto" />
           <p className="mt-4 text-sm text-gray-600">
-            Loading credit note form...
+            Loading creditNote form...
           </p>
           <p className="mt-2 text-xs text-gray-500">
             Preparing field settings and validation rules
@@ -1087,7 +1093,7 @@ export default function CreditNotePage() {
                   setShowLoadConfirm(true)
                 }
               }}
-              placeholder="Search Credit Note No"
+              placeholder="Search CreditNote No"
               className="h-8 text-sm"
               readOnly={
                 !!creditNote?.creditNoteId && creditNote.creditNoteId !== "0"
@@ -1226,11 +1232,11 @@ export default function CreditNotePage() {
             <div className="flex items-center justify-between">
               <div>
                 <DialogTitle className="text-2xl font-bold tracking-tight">
-                  Credit Note List
+                  CreditNote List
                 </DialogTitle>
                 <p className="text-muted-foreground text-sm">
-                  Manage and select existing credit notes from the list below.
-                  Use search to filter records or create new credit notes.
+                  Manage and select existing creditNotes from the list below.
+                  Use search to filter records or create new creditNotes.
                 </p>
               </div>
             </div>
@@ -1244,13 +1250,13 @@ export default function CreditNotePage() {
                 <Spinner size="lg" className="mx-auto" />
                 <p className="mt-4 text-sm text-gray-600">
                   {isSelectingCreditNote
-                    ? "Loading credit note details..."
-                    : "Loading credit notes..."}
+                    ? "Loading creditNote details..."
+                    : "Loading creditNotes..."}
                 </p>
                 <p className="mt-2 text-xs text-gray-500">
                   {isSelectingCreditNote
-                    ? "Please wait while we fetch the complete credit note data"
-                    : "Please wait while we fetch the credit note list"}
+                    ? "Please wait while we fetch the complete creditNote data"
+                    : "Please wait while we fetch the creditNote list"}
                 </p>
               </div>
             </div>
@@ -1258,7 +1264,7 @@ export default function CreditNotePage() {
             <CreditNoteTable
               data={creditNotesData || []}
               isLoading={false}
-              onInvoiceSelect={handleCreditNoteSelect}
+              onCreditNoteSelect={handleCreditNoteSelect}
               onRefresh={() => refetchCreditNotes()}
               onFilterChange={handleFilterChange}
               initialFilters={filters}
@@ -1272,7 +1278,7 @@ export default function CreditNotePage() {
         open={showSaveConfirm}
         onOpenChange={setShowSaveConfirm}
         onConfirm={handleSaveCreditNote}
-        itemName={creditNote?.creditNoteNo || "New Credit Note"}
+        itemName={creditNote?.creditNoteNo || "New CreditNote"}
         operationType={
           creditNote?.creditNoteId && creditNote.creditNoteId !== "0"
             ? "update"
@@ -1289,8 +1295,8 @@ export default function CreditNotePage() {
         onOpenChange={setShowDeleteConfirm}
         onConfirm={handleCreditNoteDelete}
         itemName={creditNote?.creditNoteNo}
-        title="Delete Credit Note"
-        description="This action cannot be undone. All credit note details will be permanently deleted."
+        title="Delete CreditNote"
+        description="This action cannot be undone. All creditNote details will be permanently deleted."
         isDeleting={deleteMutation.isPending}
       />
 
@@ -1300,9 +1306,9 @@ export default function CreditNotePage() {
         onOpenChange={setShowLoadConfirm}
         onLoad={() => handleCreditNoteSearch(searchNo)}
         code={searchNo}
-        typeLabel="Credit Note"
+        typeLabel="CreditNote"
         showDetails={false}
-        description={`Do you want to load Credit Note ${searchNo}?`}
+        description={`Do you want to load CreditNote ${searchNo}?`}
         isLoading={isLoadingCreditNote}
       />
 
@@ -1312,7 +1318,7 @@ export default function CreditNotePage() {
         onOpenChange={setShowResetConfirm}
         onConfirm={handleCreditNoteReset}
         itemName={creditNote?.creditNoteNo}
-        title="Reset Credit Note"
+        title="Reset CreditNote"
         description="This will clear all unsaved changes."
       />
 
@@ -1322,8 +1328,8 @@ export default function CreditNotePage() {
         onOpenChange={setShowCloneConfirm}
         onConfirm={handleCloneCreditNote}
         itemName={creditNote?.creditNoteNo}
-        title="Clone Credit Note"
-        description="This will create a copy as a new credit note."
+        title="Clone CreditNote"
+        description="This will create a copy as a new creditNote."
       />
     </div>
   )

@@ -26,12 +26,14 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
-import BargeAutocomplete from "@/components/autocomplete/autocomplete-barge"
-import ChargeAutocomplete from "@/components/autocomplete/autocomplete-charge"
-import ChartOfAccountAutocomplete from "@/components/autocomplete/autocomplete-chartofaccount"
-import PortAutocomplete from "@/components/autocomplete/autocomplete-port"
-import StatusTaskAutocomplete from "@/components/autocomplete/autocomplete-status-task"
-import UomAutocomplete from "@/components/autocomplete/autocomplete-uom"
+import {
+  BargeAutocomplete,
+  ChargeAutocomplete,
+  ChartOfAccountAutocomplete,
+  PortAutocomplete,
+  StatusTaskAutocomplete,
+  UomAutocomplete,
+} from "@/components/autocomplete"
 import CustomAccordion, {
   CustomAccordionContent,
   CustomAccordionItem,

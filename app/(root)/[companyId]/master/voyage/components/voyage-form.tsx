@@ -11,8 +11,10 @@ import { useForm } from "react-hook-form"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Form } from "@/components/ui/form"
-import BargeAutocomplete from "@/components/autocomplete/autocomplete-barge"
-import VesselAutocomplete from "@/components/autocomplete/autocomplete-vessel"
+import {
+  BargeAutocomplete,
+  VesselAutocomplete,
+} from "@/components/autocomplete"
 import CustomAccordion, {
   CustomAccordionContent,
   CustomAccordionItem,

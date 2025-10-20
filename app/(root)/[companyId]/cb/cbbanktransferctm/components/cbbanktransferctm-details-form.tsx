@@ -30,7 +30,7 @@ import {
   BankChartOfAccountAutocomplete,
   CurrencyAutocomplete,
   JobOrderAutocomplete,
-  JobOrderChargeAutocomplete,
+  JobOrderServiceAutocomplete,
   JobOrderTaskAutocomplete,
 } from "@/components/autocomplete"
 import CustomNumberInput from "@/components/custom/custom-number-input"
@@ -538,7 +538,7 @@ export default function BankTransferCtmDetailsForm({
               onChangeEvent={handleTaskChange}
             />
 
-            <JobOrderChargeAutocomplete
+            <JobOrderServiceAutocomplete
               key={`service-${watchedJobOrderId}-${watchedTaskId}`}
               form={form}
               name="serviceId"

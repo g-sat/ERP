@@ -25,7 +25,7 @@ export default function DocumentUpload() {
   const dateFormat = decimals[0]?.dateFormat || "dd/MM/yyyy"
   const form = useForm()
   const moduleId = ModuleId.ap
-  const transactionId = APTransactionId.debitNote
+  const transactionId = APTransactionId.creditNote
 
   const [selectedDocType, setSelectedDocType] =
     useState<IDocumentTypeLookup | null>(null)

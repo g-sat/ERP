@@ -18,15 +18,17 @@ import { useTaskServiceGet, useTaskServiceSave } from "@/hooks/use-task-service"
 import { Button } from "@/components/ui/button"
 import { Form } from "@/components/ui/form"
 import { Skeleton } from "@/components/ui/skeleton"
-import CarrierTypeAutocomplete from "@/components/autocomplete/autocomplete-carriertype"
-import ChargeAutocomplete from "@/components/autocomplete/autocomplete-charge"
-import ChartofAccountAutocomplete from "@/components/autocomplete/autocomplete-chartofaccount"
-import ConsignmentTypeAutocomplete from "@/components/autocomplete/autocomplete-consignmenttype"
-import LandingTypeAutocomplete from "@/components/autocomplete/autocomplete-landingtype"
-import ModeTypeAutocomplete from "@/components/autocomplete/autocomplete-modetype"
-import StatusTaskAutocomplete from "@/components/autocomplete/autocomplete-status-task"
-import UomAutocomplete from "@/components/autocomplete/autocomplete-uom"
-import VisaTypeAutocomplete from "@/components/autocomplete/autocomplete-visatype"
+import {
+  CarrierTypeAutocomplete,
+  ChargeAutocomplete,
+  ChartOfAccountAutocomplete,
+  ConsignmentTypeAutocomplete,
+  LandingTypeAutocomplete,
+  ModeTypeAutocomplete,
+  StatusTaskAutocomplete,
+  UomAutocomplete,
+  VisaTypeAutocomplete,
+} from "@/components/autocomplete"
 import { LockSkeleton } from "@/components/skeleton/lock-skeleton"
 
 type TaskServiceResponse = IApiSuccessResponse<ITaskService[]>

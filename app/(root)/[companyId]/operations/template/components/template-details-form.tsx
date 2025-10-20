@@ -8,7 +8,7 @@ import { useForm } from "react-hook-form"
 
 import { Button } from "@/components/ui/button"
 import { Form } from "@/components/ui/form"
-import ChargeAutocomplete from "@/components/autocomplete/autocomplete-charge"
+import { ChargeAutocomplete } from "@/components/autocomplete"
 import CustomInput from "@/components/custom/custom-input"
 import CustomSwitch from "@/components/custom/custom-switch"
 import CustomTextarea from "@/components/custom/custom-textarea"

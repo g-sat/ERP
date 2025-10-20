@@ -14,11 +14,13 @@ import { useChartofAccountLookup, useSupplierLookup } from "@/hooks/use-lookup"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Form } from "@/components/ui/form"
-import ChargeAutocomplete from "@/components/autocomplete/autocomplete-charge"
-import ChartOfAccountAutocomplete from "@/components/autocomplete/autocomplete-chartofaccount"
-import StatusTaskAutocomplete from "@/components/autocomplete/autocomplete-status-task"
-import SupplierAutocomplete from "@/components/autocomplete/autocomplete-supplier"
-import UomAutocomplete from "@/components/autocomplete/autocomplete-uom"
+import {
+  ChargeAutocomplete,
+  ChartOfAccountAutocomplete,
+  StatusTaskAutocomplete,
+  SupplierAutocomplete,
+  UomAutocomplete,
+} from "@/components/autocomplete"
 import CustomAccordion, {
   CustomAccordionContent,
   CustomAccordionItem,

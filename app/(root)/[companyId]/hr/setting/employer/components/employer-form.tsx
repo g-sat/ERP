@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 
 import { Form } from "@/components/ui/form"
-import CompanyAutocomplete from "@/components/autocomplete/autocomplete-company"
+import { CompanyAutocomplete } from "@/components/autocomplete"
 import CustomInput from "@/components/custom/custom-input"
 import CustomTextarea from "@/components/custom/custom-textarea"
 

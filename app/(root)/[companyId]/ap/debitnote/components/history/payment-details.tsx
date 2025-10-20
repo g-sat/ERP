@@ -118,7 +118,8 @@ export default function PaymentDetails({ debitNoteId }: PaymentDetailsProps) {
           showHeader={true}
           showFooter={false}
           emptyMessage="No results."
-          maxHeight="300px"
+          maxHeight="200px"
+          pageSizeOption={20}
         />
       </CardContent>
     </Card>

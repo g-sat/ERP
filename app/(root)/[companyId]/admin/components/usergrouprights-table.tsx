@@ -17,7 +17,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Form } from "@/components/ui/form"
 import { SaveConfirmation } from "@/components/confirmation/save-confirmation"
 import { SettingTable } from "@/components/table/table-setting"
-import UserGroupAutocomplete from "@/components/autocomplete/autocomplete-usergroup"
+import { UserGroupAutocomplete } from "@/components/autocomplete"
 
 type UserGroup = {
   userGroupId: number

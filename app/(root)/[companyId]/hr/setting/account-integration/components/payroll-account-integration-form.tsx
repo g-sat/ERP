@@ -10,10 +10,12 @@ import { useForm } from "react-hook-form"
 
 import { Form } from "@/components/ui/form"
 import { Switch } from "@/components/ui/switch"
-import ChartOfAccountAutocomplete from "@/components/autocomplete/autocomplete-chartofaccount"
-import CompanyAutocomplete from "@/components/autocomplete/autocomplete-company"
-import DepartmentAutocomplete from "@/components/autocomplete/autocomplete-department"
-import PayrollComponentAutocomplete from "@/components/autocomplete/autocomplete-payrollcomponent"
+import {
+  ChartOfAccountAutocomplete,
+  CompanyAutocomplete,
+  DepartmentAutocomplete,
+  PayrollComponentAutocomplete,
+} from "@/components/autocomplete"
 
 interface Props {
   initialData?: PayrollComponentGLMappingFormData

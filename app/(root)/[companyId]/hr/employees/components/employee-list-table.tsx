@@ -18,9 +18,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import DepartmentAutocomplete from "@/components/autocomplete/autocomplete-department"
-import DesignationAutocomplete from "@/components/autocomplete/autocomplete-designation"
-import EmployerAutocomplete from "@/components/autocomplete/autocomplete-employer"
+import {
+  DepartmentAutocomplete,
+  DesignationAutocomplete,
+  EmployerAutocomplete,
+} from "@/components/autocomplete"
 
 interface Props {
   data: IEmployeeBasic[]

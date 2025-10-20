@@ -13,9 +13,11 @@ import { copyRateDirect, useGetTariffByTask } from "@/hooks/use-tariff"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Form } from "@/components/ui/form"
-import CustomerAutocomplete from "@/components/autocomplete/autocomplete-customer"
-import PortAutocomplete from "@/components/autocomplete/autocomplete-port"
-import TaskAutocomplete from "@/components/autocomplete/autocomplete-task"
+import {
+  CustomerAutocomplete,
+  PortAutocomplete,
+  TaskAutocomplete,
+} from "@/components/autocomplete"
 
 import { TariffTable } from "./tariff-table"
 

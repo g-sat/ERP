@@ -11,23 +11,23 @@ import { Separator } from "@/components/ui/separator"
 import { CustomDateNew } from "@/components/custom/custom-date-new"
 import { DialogDataTable } from "@/components/table/table-dialog"
 
-export interface InvoiceTableProps {
+export interface CreditNoteTableProps {
   data: IApCreditNoteHd[]
   isLoading: boolean
-  onInvoiceSelect: (selectedInvoice: IApCreditNoteHd | undefined) => void
+  onCreditNoteSelect: (selectedCreditNote: IApCreditNoteHd | undefined) => void
   onRefresh: () => void
   onFilterChange: (filters: IApCreditNoteFilter) => void
   initialFilters?: IApCreditNoteFilter
 }
 
-export default function InvoiceTable({
+export default function CreditNoteTable({
   data,
   isLoading = false,
-  onInvoiceSelect,
+  onCreditNoteSelect,
   onRefresh,
   onFilterChange,
   initialFilters,
-}: InvoiceTableProps) {
+}: CreditNoteTableProps) {
   const { decimals } = useAuthStore()
   const amtDec = decimals[0]?.amtDec || 2
   const locAmtDec = decimals[0]?.locAmtDec || 2
@@ -36,7 +36,7 @@ export default function InvoiceTable({
   //const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
 
   const moduleId = ModuleId.ap
-  const transactionId = APTransactionId.invoice
+  const transactionId = APTransactionId.creditNote
 
   const form = useForm({
     defaultValues: {
@@ -61,7 +61,7 @@ export default function InvoiceTable({
   const columns: ColumnDef<IApCreditNoteHd>[] = [
     {
       accessorKey: "creditNoteNo",
-      header: "Invoice No",
+      header: "CreditNote No",
     },
     {
       accessorKey: "referenceNo",
@@ -261,7 +261,7 @@ export default function InvoiceTable({
     },
   ]
 
-  const handleSearchInvoice = () => {
+  const handleSearchCreditNote = () => {
     const newFilters: IApCreditNoteFilter = {
       startDate: form.getValues("startDate"),
       endDate: form.getValues("endDate"),
@@ -318,8 +318,8 @@ export default function InvoiceTable({
             />
           </div>
 
-          <Button variant="outline" size="sm" onClick={handleSearchInvoice}>
-            Search Invoice
+          <Button variant="outline" size="sm" onClick={handleSearchCreditNote}>
+            Search CreditNote
           </Button>
         </div>
       </FormProvider>
@@ -335,7 +335,7 @@ export default function InvoiceTable({
         emptyMessage="No data found."
         onRefresh={onRefresh}
         onFilterChange={handleDialogFilterChange}
-        onRowSelect={(row) => onInvoiceSelect(row || undefined)}
+        onRowSelect={(row) => onCreditNoteSelect(row || undefined)}
       />
     </div>
   )

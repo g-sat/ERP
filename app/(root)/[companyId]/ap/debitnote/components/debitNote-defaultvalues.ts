@@ -61,10 +61,9 @@ const defaultDebitNoteDetails = {
   purchaseOrderNo: "",
   supplyDate: format(new Date(), clientDateFormat),
   customerName: "",
-  custDebitNoteNo: "",
-  suppDebitNoteNo: "",
-  arDebitNoteId: "0",
   arDebitNoteNo: "",
+  custDebitNoteNo: "",
+  arDebitNoteId: "0",
   editVersion: 0,
 }
 
@@ -84,6 +83,8 @@ const defaultDebitNote = {
   ctyExhRate: 0,
   creditTermId: 0,
   bankId: 0,
+  invoiceId: "0",
+  invoiceNo: "",
   totAmt: 0,
   totLocalAmt: 0,
   totCtyAmt: 0,

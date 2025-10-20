@@ -11,7 +11,7 @@ import { useForm } from "react-hook-form"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Form } from "@/components/ui/form"
-import GstCategoryAutocomplete from "@/components/autocomplete/autocomplete-gstcategory"
+import { GstCategoryAutocomplete } from "@/components/autocomplete"
 import CustomAccordion, {
   CustomAccordionContent,
   CustomAccordionItem,

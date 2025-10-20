@@ -35,33 +35,27 @@ import { FormProvider, UseFormReturn, useForm } from "react-hook-form"
 import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
-import BargeAutocomplete from "@/components/autocomplete/autocomplete-barge"
-import ChartOfAccountAutocomplete from "@/components/autocomplete/autocomplete-chartofaccount"
-import DepartmentAutocomplete from "@/components/autocomplete/autocomplete-department"
-import EmployeeAutocomplete from "@/components/autocomplete/autocomplete-employee"
-import GSTAutocomplete from "@/components/autocomplete/autocomplete-gst"
-import JobOrderAutocomplete from "@/components/autocomplete/autocomplete-joborder"
-import JobOrderChargeAutocomplete from "@/components/autocomplete/autocomplete-joborder-charge"
-import JobOrderTaskAutocomplete from "@/components/autocomplete/autocomplete-joborder-task"
-import PortAutocomplete from "@/components/autocomplete/autocomplete-port"
-import ProductAutocomplete from "@/components/autocomplete/autocomplete-product"
-import UomAutocomplete from "@/components/autocomplete/autocomplete-uom"
-import VesselAutocomplete from "@/components/autocomplete/autocomplete-vessel"
-import VoyageAutocomplete from "@/components/autocomplete/autocomplete-voyage"
+import {
+  BargeAutocomplete,
+  ChartOfAccountAutocomplete,
+  DepartmentAutocomplete,
+  EmployeeAutocomplete,
+  GSTAutocomplete,
+  JobOrderAutocomplete,
+  JobOrderServiceAutocomplete,
+  JobOrderTaskAutocomplete,
+  PortAutocomplete,
+  ProductAutocomplete,
+  UomAutocomplete,
+  VesselAutocomplete,
+  VoyageAutocomplete,
+} from "@/components/autocomplete"
 import CustomNumberInput from "@/components/custom/custom-number-input"
 import CustomTextarea from "@/components/custom/custom-textarea"
 
 import { defaultCreditNoteDetails } from "./creditNote-defaultvalues"
 
-// Factory function to create default values with dynamic itemNo
-const createDefaultValues = (itemNo: number): ApCreditNoteDtSchemaType => ({
-  ...defaultCreditNoteDetails,
-  itemNo,
-  seqNo: itemNo,
-  docItemNo: itemNo,
-})
-
-interface InvoiceDetailsFormProps {
+interface CreditNoteDetailsFormProps {
   Hdform: UseFormReturn<ApCreditNoteHdSchemaType>
   onAddRowAction?: (rowData: IApCreditNoteDt) => void
   onCancelEdit?: () => void
@@ -70,9 +64,12 @@ interface InvoiceDetailsFormProps {
   required: IMandatoryFields
   companyId: number
   existingDetails?: ApCreditNoteDtSchemaType[]
+  defaultGlId?: number
+  defaultUomId?: number
+  defaultGstId?: number
 }
 
-export default function InvoiceDetailsForm({
+export default function CreditNoteDetailsForm({
   Hdform,
   onAddRowAction,
   onCancelEdit: _onCancelEdit,
@@ -81,7 +78,10 @@ export default function InvoiceDetailsForm({
   required,
   companyId,
   existingDetails = [],
-}: InvoiceDetailsFormProps) {
+  defaultGlId = 0,
+  defaultUomId = 0,
+  defaultGstId = 0,
+}: CreditNoteDetailsFormProps) {
   const { decimals } = useAuthStore()
   const amtDec = decimals[0]?.amtDec || 2
   const locAmtDec = decimals[0]?.locAmtDec || 2
@@ -95,6 +95,17 @@ export default function InvoiceDetailsForm({
     const maxItemNo = Math.max(...existingDetails.map((d) => d.itemNo || 0))
     return maxItemNo + 1
   }
+
+  // Factory function to create default values with dynamic itemNo and defaults
+  const createDefaultValues = (itemNo: number): ApCreditNoteDtSchemaType => ({
+    ...defaultCreditNoteDetails,
+    itemNo,
+    seqNo: itemNo,
+    docItemNo: itemNo,
+    glId: defaultGlId || defaultCreditNoteDetails.glId,
+    uomId: defaultUomId || defaultCreditNoteDetails.uomId,
+    gstId: defaultGstId || defaultCreditNoteDetails.gstId,
+  })
 
   const form = useForm<ApCreditNoteDtSchemaType>({
     resolver: zodResolver(apCreditNoteDtSchema(required, visible)),
@@ -159,9 +170,9 @@ export default function InvoiceDetailsForm({
           purchaseOrderNo: editingDetail.purchaseOrderNo ?? "",
           supplyDate: editingDetail.supplyDate ?? "",
           customerName: editingDetail.customerName ?? "",
-          custInvoiceNo: editingDetail.custInvoiceNo ?? "",
-          arInvoiceId: editingDetail.arInvoiceId ?? "",
-          arInvoiceNo: editingDetail.arInvoiceNo ?? "",
+          custCreditNoteNo: editingDetail.custCreditNoteNo ?? "",
+          arCreditNoteId: editingDetail.arCreditNoteId ?? "",
+          arCreditNoteNo: editingDetail.arCreditNoteNo ?? "",
           editVersion: editingDetail.editVersion ?? 0,
         }
       : createDefaultValues(getNextItemNo()),
@@ -172,6 +183,54 @@ export default function InvoiceDetailsForm({
   const watchedTaskId = form.watch("taskId")
   const watchedExchangeRate = Hdform.watch("exhRate")
   const watchedCityExchangeRate = Hdform.watch("ctyExhRate")
+
+  // Set default glId, uomId, and gstId when defaults become available (not in edit mode)
+  useEffect(() => {
+    // Only run when defaults are loaded and we're not editing an existing row
+    if (!editingDetail) {
+      const currentGlId = form.getValues("glId")
+      const currentUomId = form.getValues("uomId")
+      const currentGstId = form.getValues("gstId")
+
+      console.log("CreditNote Details Form - Checking defaults:", {
+        currentGlId,
+        currentUomId,
+        currentGstId,
+        defaultGlId,
+        defaultUomId,
+        defaultGstId,
+        editingDetail,
+      })
+
+      // Only set defaults if current values are 0 and defaults are available
+      if (defaultGlId > 0 && (!currentGlId || currentGlId === 0)) {
+        console.log(
+          "CreditNote Details Form - Setting default glId:",
+          defaultGlId
+        )
+        form.setValue("glId", defaultGlId)
+      }
+      if (defaultUomId > 0 && (!currentUomId || currentUomId === 0)) {
+        console.log(
+          "CreditNote Details Form - Setting default uomId:",
+          defaultUomId
+        )
+        form.setValue("uomId", defaultUomId)
+      }
+      if (defaultGstId > 0 && (!currentGstId || currentGstId === 0)) {
+        console.log(
+          "CreditNote Details Form - Setting default gstId:",
+          defaultGstId
+        )
+        form.setValue("gstId", defaultGstId)
+        // Trigger GST percentage calculation after setting default GST
+        setGSTPercentage(Hdform, form, decimals[0], visible)
+      }
+    }
+    // Only depend on values that should trigger this effect
+    // form, Hdform, decimals, visible are used inside but are stable references
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [defaultGlId, defaultUomId, defaultGstId, editingDetail])
 
   // Recalculate local amounts when exchange rate changes
   useEffect(() => {
@@ -282,9 +341,9 @@ export default function InvoiceDetailsForm({
         purchaseOrderNo: editingDetail.purchaseOrderNo ?? "",
         supplyDate: editingDetail.supplyDate ?? "",
         customerName: editingDetail.customerName ?? "",
-        custInvoiceNo: editingDetail.custInvoiceNo ?? "",
-        arInvoiceId: editingDetail.arInvoiceId ?? "",
-        arInvoiceNo: editingDetail.arInvoiceNo ?? "",
+        custCreditNoteNo: editingDetail.custCreditNoteNo ?? "",
+        arCreditNoteId: editingDetail.arCreditNoteId ?? "",
+        arCreditNoteNo: editingDetail.arCreditNoteNo ?? "",
         editVersion: editingDetail.editVersion ?? 0,
       })
     } else {
@@ -378,9 +437,9 @@ export default function InvoiceDetailsForm({
         purchaseOrderNo: data.purchaseOrderNo ?? "",
         supplyDate: data.supplyDate ?? "",
         customerName: data.customerName ?? "",
-        custInvoiceNo: data.custInvoiceNo ?? "",
-        arInvoiceId: data.arInvoiceId ?? "",
-        arInvoiceNo: data.arInvoiceNo ?? "",
+        custCreditNoteNo: data.custCreditNoteNo ?? "",
+        arCreditNoteId: data.arCreditNoteId ?? "",
+        arCreditNoteNo: data.arCreditNoteNo ?? "",
         editVersion: data.editVersion ?? 0,
       }
 
@@ -821,20 +880,20 @@ export default function InvoiceDetailsForm({
                   name="taskId"
                   jobOrderId={watchedJobOrderId || 0}
                   label="Task"
-                  isRequired={required?.m_JobOrderId && isJobSpecific}
+                  //isRequired={required?.m_JobOrderId && isJobSpecific}
                   onChangeEvent={handleTaskChange}
                 />
               )}
 
               {visible?.m_JobOrderId && (
-                <JobOrderChargeAutocomplete
+                <JobOrderServiceAutocomplete
                   key={`service-${watchedJobOrderId}-${watchedTaskId}`}
                   form={form}
                   name="serviceId"
                   jobOrderId={watchedJobOrderId || 0}
                   taskId={watchedTaskId || 0}
                   label="Service"
-                  isRequired={required?.m_JobOrderId && isJobSpecific}
+                  //isRequired={required?.m_JobOrderId && isJobSpecific}
                   onChangeEvent={handleServiceChange}
                 />
               )}

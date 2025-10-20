@@ -42,7 +42,7 @@ import {
   EmployeeAutocomplete,
   GSTAutocomplete,
   JobOrderAutocomplete,
-  JobOrderChargeAutocomplete,
+  JobOrderServiceAutocomplete,
   JobOrderTaskAutocomplete,
   PortAutocomplete,
   VesselAutocomplete,
@@ -979,7 +979,7 @@ export default function BatchPaymentDetailsForm({
               )}
 
               {visible?.m_JobOrderId && (
-                <JobOrderChargeAutocomplete
+                <JobOrderServiceAutocomplete
                   key={`service-${watchedJobOrderId}-${watchedTaskId}`}
                   form={form}
                   name="serviceId"

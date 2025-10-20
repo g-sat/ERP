@@ -11,10 +11,12 @@ import { z } from "zod"
 
 import { Badge } from "@/components/ui/badge"
 import { Form } from "@/components/ui/form"
-import AccountSetAutocomplete from "@/components/autocomplete/autocomplete-accountsetup"
-import BankAutocomplete from "@/components/autocomplete/autocomplete-bank"
-import CreditTermAutocomplete from "@/components/autocomplete/autocomplete-creditterm"
-import CurrencyAutocomplete from "@/components/autocomplete/autocomplete-currency"
+import {
+  AccountSetupAutocomplete,
+  BankAutocomplete,
+  CreditTermAutocomplete,
+  CurrencyAutocomplete,
+} from "@/components/autocomplete"
 import {
   default as CustomerAutocomplete,
   default as SupplierAutocomplete,

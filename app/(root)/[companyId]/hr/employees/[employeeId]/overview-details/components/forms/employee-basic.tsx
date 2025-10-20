@@ -11,15 +11,17 @@ import { clientDateFormat, parseDate } from "@/lib/date-utils"
 import { useSaveEmployeeBasic } from "@/hooks/use-employee"
 import { Button } from "@/components/ui/button"
 import { Form } from "@/components/ui/form"
-import ContractTypeAutocomplete from "@/components/autocomplete/autocomplete-contract-type"
-import CountryAutocomplete from "@/components/autocomplete/autocomplete-country"
-import DayOfWeekAutocomplete from "@/components/autocomplete/autocomplete-day-of-week"
-import DepartmentAutocomplete from "@/components/autocomplete/autocomplete-department"
-import DesignationAutocomplete from "@/components/autocomplete/autocomplete-designation"
-import EmployerAutocomplete from "@/components/autocomplete/autocomplete-employer"
-import EmploymentTypeAutocomplete from "@/components/autocomplete/autocomplete-employment-type"
-import GenderAutocomplete from "@/components/autocomplete/autocomplete-gender"
-import WorkLocationAutocomplete from "@/components/autocomplete/autocomplete-worklocation"
+import {
+  ContractTypeAutocomplete,
+  CountryAutocomplete,
+  DayOfWeekAutocomplete,
+  DepartmentAutocomplete,
+  DesignationAutocomplete,
+  EmployerAutocomplete,
+  EmploymentTypeAutocomplete,
+  GenderAutocomplete,
+  WorkLocationAutocomplete,
+} from "@/components/autocomplete"
 import { CustomDateNew } from "@/components/custom/custom-date-new"
 import CustomInput from "@/components/custom/custom-input"
 import CustomSwitch from "@/components/custom/custom-switch"

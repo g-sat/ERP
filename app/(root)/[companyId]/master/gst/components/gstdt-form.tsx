@@ -12,7 +12,7 @@ import { parseDate } from "@/lib/date-utils"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Form } from "@/components/ui/form"
-import GstAutocomplete from "@/components/autocomplete/autocomplete-gst"
+import { GSTAutocomplete } from "@/components/autocomplete"
 import CustomAccordion, {
   CustomAccordionContent,
   CustomAccordionItem,

@@ -29,10 +29,12 @@ import { format } from "date-fns"
 import { FormProvider, UseFormReturn } from "react-hook-form"
 
 import { clientDateFormat } from "@/lib/date-utils"
-import { CompanySupplierAutocomplete } from "@/components/autocomplete"
-import BankAutocomplete from "@/components/autocomplete/autocomplete-bank"
-import CreditTermAutocomplete from "@/components/autocomplete/autocomplete-creditterm"
-import CurrencyAutocomplete from "@/components/autocomplete/autocomplete-currency"
+import {
+  BankAutocomplete,
+  CompanySupplierAutocomplete,
+  CreditTermAutocomplete,
+  CurrencyAutocomplete,
+} from "@/components/autocomplete"
 import { CustomDateNew } from "@/components/custom/custom-date-new"
 import CustomInput from "@/components/custom/custom-input"
 import CustomNumberInput from "@/components/custom/custom-number-input"
@@ -45,6 +47,7 @@ interface CreditNoteFormProps {
   visible: IVisibleFields
   required: IMandatoryFields
   companyId: number
+  defaultCurrencyId?: number
 }
 
 export default function CreditNoteForm({
@@ -54,6 +57,7 @@ export default function CreditNoteForm({
   visible,
   required,
   companyId: _companyId,
+  defaultCurrencyId = 0,
 }: CreditNoteFormProps) {
   const { decimals } = useAuthStore()
   const amtDec = decimals[0]?.amtDec || 2
@@ -109,8 +113,8 @@ export default function CreditNoteForm({
       } else {
         // ✅ Supplier cleared - reset all related fields
         if (!isEdit) {
-          // Clear supplier-related fields
-          form.setValue("currencyId", 0)
+          // Clear supplier-related fields, use default currency if available
+          form.setValue("currencyId", defaultCurrencyId)
           form.setValue("creditTermId", 0)
           form.setValue("bankId", 0)
         }
@@ -143,7 +147,7 @@ export default function CreditNoteForm({
         form.trigger()
       }
     },
-    [exhRateDec, form, isEdit, visible]
+    [exhRateDec, form, isEdit, visible, defaultCurrencyId]
   )
 
   // Handle transaction date selection
@@ -193,6 +197,41 @@ export default function CreditNoteForm({
     },
     [form]
   )
+
+  // Set default currency when form is initialized (not in edit mode)
+  React.useEffect(() => {
+    // Only run when defaultCurrencyId is loaded and we're not in edit mode
+    if (!isEdit && defaultCurrencyId > 0) {
+      const currentCurrencyId = form.getValues("currencyId")
+      const currentSupplierId = form.getValues("supplierId")
+
+      console.log("CreditNote Form - Checking defaults:", {
+        currentCurrencyId,
+        currentSupplierId,
+        defaultCurrencyId,
+        isEdit,
+      })
+
+      // Only set default if no currency is set and no supplier is selected
+      if (
+        (!currentCurrencyId || currentCurrencyId === 0) &&
+        (!currentSupplierId || currentSupplierId === 0)
+      ) {
+        console.log(
+          "CreditNote Form - Setting default currency:",
+          defaultCurrencyId
+        )
+        form.setValue("currencyId", defaultCurrencyId)
+        // Trigger exchange rate fetch when default currency is set
+        setExchangeRate(form, exhRateDec, visible)
+        if (visible?.m_CtyCurr) {
+          setExchangeRateLocal(form, exhRateDec)
+        }
+      }
+    }
+    // Only depend on values that should trigger this effect
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [defaultCurrencyId, isEdit])
 
   // Recalculate header totals from details
   const recalculateHeaderTotals = React.useCallback(() => {
@@ -400,11 +439,11 @@ export default function CreditNoteForm({
             onChangeEvent={handleSupplierChange}
             companyId={_companyId}
           />
-          {/* supplierInvoiceNo */}
+          {/* supplierCreditNoteNo */}
           <CustomInput
             form={form}
             name="suppCreditNoteNo"
-            label="Supplier Credit Note No."
+            label="Supplier CreditNote No."
             isRequired={required?.m_SuppInvoiceNo}
           />
 

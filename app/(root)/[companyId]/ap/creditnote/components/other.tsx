@@ -12,13 +12,13 @@ import { APTransactionId, ModuleId } from "@/lib/utils"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Form } from "@/components/ui/form"
 import { Separator } from "@/components/ui/separator"
+import { CountryAutocomplete } from "@/components/autocomplete"
 import DynamicAddressAutocomplete, {
   EntityType as AddressEntityType,
 } from "@/components/autocomplete/autocomplete-address-dynamic"
 import DynamicContactAutocomplete, {
   EntityType as ContactEntityType,
 } from "@/components/autocomplete/autocomplete-contact-dynamic"
-import CountryAutocomplete from "@/components/autocomplete/autocomplete-country"
 import CustomInput from "@/components/custom/custom-input"
 import CustomTextarea from "@/components/custom/custom-textarea"
 import DocumentManager from "@/components/document-manager"
@@ -148,8 +148,6 @@ export default function Other({ form }: OtherProps) {
 
   return (
     <div className="space-y-4">
-      <h1 className="text-xl font-bold">Address & Contact Information</h1>
-
       <Form {...form}>
         <div className="grid grid-cols-2 gap-2">
           {/* Address Section */}

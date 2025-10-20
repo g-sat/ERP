@@ -15,9 +15,11 @@ import { parseDate } from "@/lib/date-utils"
 import { useChartofAccountLookup } from "@/hooks/use-lookup"
 import { Button } from "@/components/ui/button"
 import { Form } from "@/components/ui/form"
-import ChargeAutocomplete from "@/components/autocomplete/autocomplete-charge"
-import ChartOfAccountAutocomplete from "@/components/autocomplete/autocomplete-chartofaccount"
-import GstAutocomplete from "@/components/autocomplete/autocomplete-gst"
+import {
+  ChargeAutocomplete,
+  ChartOfAccountAutocomplete,
+  GSTAutocomplete,
+} from "@/components/autocomplete"
 import CustomNumberInput from "@/components/custom/custom-number-input"
 import CustomSwitch from "@/components/custom/custom-switch"
 import CustomTextArea from "@/components/custom/custom-textarea"

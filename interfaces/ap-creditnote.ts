@@ -22,6 +22,8 @@ export interface IApCreditNoteHd {
   bankId: number
   bankCode: null | string | number
   bankName: null | string
+  invoiceId: string
+  invoiceNo: string
   totAmt: number
   totLocalAmt: number
   totCtyAmt: number
@@ -60,8 +62,8 @@ export interface IApCreditNoteHd {
   moduleFrom: string
   customerName: string
 
-  arInvoiceId: string
-  arInvoiceNo: null | string
+  arCreditNoteId: string
+  arCreditNoteNo: null | string
   createById: number
   createDate: Date | string
   editById: null | number
@@ -152,8 +154,8 @@ export interface IApCreditNoteDt {
   purchaseOrderNo: string
   supplyDate: Date | string
   customerName: string
-  arInvoiceId: number | string
-  arInvoiceNo: string
-  custInvoiceNo: string
+  arCreditNoteId: number | string
+  arCreditNoteNo: string
+  custCreditNoteNo: string
   editVersion: number
 }

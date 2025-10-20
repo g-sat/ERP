@@ -25,11 +25,13 @@ import { useAuthStore } from "@/stores/auth-store"
 import { FormProvider, UseFormReturn } from "react-hook-form"
 
 import { usePaymentTypeLookup } from "@/hooks/use-lookup"
-import { CompanySupplierAutocomplete } from "@/components/autocomplete"
-import BankAutocomplete from "@/components/autocomplete/autocomplete-bank"
-import BankChartOfAccountAutocomplete from "@/components/autocomplete/autocomplete-bank-chartofaccount"
-import CurrencyAutocomplete from "@/components/autocomplete/autocomplete-currency"
-import PaymentTypeAutocomplete from "@/components/autocomplete/autocomplete-paymenttype"
+import {
+  BankAutocomplete,
+  BankChartOfAccountAutocomplete,
+  CompanySupplierAutocomplete,
+  CurrencyAutocomplete,
+  PaymentTypeAutocomplete,
+} from "@/components/autocomplete"
 import { CustomDateNew } from "@/components/custom/custom-date-new"
 import CustomInput from "@/components/custom/custom-input"
 import CustomNumberInput from "@/components/custom/custom-number-input"

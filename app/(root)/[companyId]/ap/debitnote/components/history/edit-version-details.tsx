@@ -23,6 +23,11 @@ import {
 import { BasicTable } from "@/components/table/table-basic"
 import { DialogDataTable } from "@/components/table/table-dialog"
 
+// Extended column definition with hide property
+type _ExtendedColumnDef<T> = ColumnDef<T> & {
+  hidden?: boolean
+}
+
 interface EditVersionDetailsProps {
   debitNoteId: string
 }
@@ -173,12 +178,12 @@ export default function EditVersionDetails({
       ),
     },
     {
-      accessorKey: "creditTermCode",
-      header: "Credit Term Code",
+      accessorKey: "debitTermCode",
+      header: "Debit Term Code",
     },
     {
-      accessorKey: "creditTermName",
-      header: "Credit Term Name",
+      accessorKey: "debitTermName",
+      header: "Debit Term Name",
     },
     {
       accessorKey: "bankCode",

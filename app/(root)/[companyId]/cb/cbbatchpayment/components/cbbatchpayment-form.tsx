@@ -18,8 +18,10 @@ import {
 import { useAuthStore } from "@/stores/auth-store"
 import { FormProvider, UseFormReturn } from "react-hook-form"
 
-import BankAutocomplete from "@/components/autocomplete/autocomplete-bank"
-import CurrencyAutocomplete from "@/components/autocomplete/autocomplete-currency"
+import {
+  BankAutocomplete,
+  CurrencyAutocomplete,
+} from "@/components/autocomplete"
 import { CustomDateNew } from "@/components/custom/custom-date-new"
 import CustomInput from "@/components/custom/custom-input"
 import CustomNumberInput from "@/components/custom/custom-number-input"

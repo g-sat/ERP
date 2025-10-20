@@ -13,8 +13,10 @@ import { useFutureYearLookup } from "@/hooks/use-lookup"
 import { Button } from "@/components/ui/button"
 import { Form } from "@/components/ui/form"
 import { Spinner } from "@/components/ui/spinner"
-import MonthAutocomplete from "@/components/autocomplete/autocomplete-month"
-import FutureYearAutocomplete from "@/components/autocomplete/autocomplete-year-future"
+import {
+  FutureYearAutocomplete,
+  MonthAutocomplete,
+} from "@/components/autocomplete"
 import CustomNumberInput from "@/components/custom/custom-number-input"
 
 interface GeneratePeriodFormProps {

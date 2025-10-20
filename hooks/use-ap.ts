@@ -2,7 +2,12 @@ import { ApiResponse } from "@/interfaces/auth"
 import { useQuery } from "@tanstack/react-query"
 
 import { getById, getData } from "@/lib/api-client"
-import { ApAdjustment, ApDebitNote, ApInvoice } from "@/lib/api-routes"
+import {
+  ApAdjustment,
+  ApCreditNote,
+  ApDebitNote,
+  ApInvoice,
+} from "@/lib/api-routes"
 
 /**
  * 1. Invoice Management
@@ -196,6 +201,62 @@ export function useGetAPDebitNoteHistoryDetails<T>(
       )
     },
     enabled: !!debitNoteId && debitNoteId !== "0",
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+    gcTime: 10 * 60 * 1000,
+    staleTime: 5 * 60 * 1000,
+    ...options,
+  })
+}
+
+/**
+ * 1.2 Get AP Invoice History List
+ * @param {string} invoiceId - Invoice ID
+ * @param {object} options - Additional query options
+ * @returns {object} Query object containing invoice history list
+ */
+export function useGetAPCreditNoteHistoryList<T>(
+  creditNoteId: string,
+  options = {}
+) {
+  return useQuery<ApiResponse<T>>({
+    queryKey: ["ap-creditnote-history-list", creditNoteId],
+    queryFn: async () => {
+      // Clean up the URL by removing any double slashes
+      return await getData(`${ApCreditNote.history}/${creditNoteId}`)
+    },
+    enabled: !!creditNoteId && creditNoteId !== "0",
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+    gcTime: 10 * 60 * 1000,
+    staleTime: 5 * 60 * 1000,
+    ...options,
+  })
+}
+
+/**
+ * 1.3 Get AP Invoice History Details
+ * @param {string} creditNoteId - Credit Note ID
+ * @param {string} editVersion - Edit version
+ * @param {object} options - Additional query options
+ * @returns {object} Query object containing invoice history details
+ */
+export function useGetAPCreditNoteHistoryDetails<T>(
+  creditNoteId: string,
+  editVersion: string,
+  options = {}
+) {
+  return useQuery<ApiResponse<T>>({
+    queryKey: ["ap-creditnote-history-details", creditNoteId, editVersion],
+    queryFn: async () => {
+      // Clean up the URL by removing any double slashes
+      return await getData(
+        `${ApCreditNote.historyDetails}/${creditNoteId}/${editVersion}`
+      )
+    },
+    enabled: !!creditNoteId && creditNoteId !== "0",
     refetchOnWindowFocus: false,
     refetchOnMount: false,
     refetchOnReconnect: false,

@@ -15,7 +15,7 @@ import { clientDateFormat, parseDate } from "@/lib/date-utils"
 import { usePersistDocumentDetails } from "@/hooks/use-universal-documents"
 import { Button } from "@/components/ui/button"
 import { Form } from "@/components/ui/form"
-import DocumentTypeAutocomplete from "@/components/autocomplete/autocomplete-document-type"
+import { DocumentTypeAutocomplete } from "@/components/autocomplete"
 import { CustomDateNew } from "@/components/custom/custom-date-new"
 import CustomInput from "@/components/custom/custom-input"
 

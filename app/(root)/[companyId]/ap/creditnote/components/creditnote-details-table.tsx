@@ -7,7 +7,7 @@ import { TableName } from "@/lib/utils"
 import { AccountBaseTable } from "@/components/table/table-account"
 
 // Use flexible data type that can work with form data
-interface InvoiceDetailsTableProps {
+interface CreditNoteDetailsTableProps {
   data: IApCreditNoteDt[]
   onDelete?: (itemNo: number) => void
   onBulkDelete?: (selectedItemNos: number[]) => void
@@ -18,7 +18,7 @@ interface InvoiceDetailsTableProps {
   visible: IVisibleFields
 }
 
-export default function InvoiceDetailsTable({
+export default function CreditNoteDetailsTable({
   data,
   onDelete,
   onBulkDelete,
@@ -27,7 +27,7 @@ export default function InvoiceDetailsTable({
   onFilterChange,
   onDataReorder,
   visible,
-}: InvoiceDetailsTableProps) {
+}: CreditNoteDetailsTableProps) {
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
@@ -314,7 +314,7 @@ export default function InvoiceDetailsTable({
         moduleId={25}
         transactionId={1}
         tableName={TableName.apCreditNoteDt}
-        emptyMessage="No invoice details found."
+        emptyMessage="No creditNote details found."
         accessorId="itemNo"
         onRefresh={onRefresh}
         onFilterChange={onFilterChange}

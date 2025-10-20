@@ -11,8 +11,10 @@ import { z } from "zod"
 
 import { Badge } from "@/components/ui/badge"
 import { Form } from "@/components/ui/form"
-import ChartofAccountAutocomplete from "@/components/autocomplete/autocomplete-chartofaccount"
-import CurrencyAutocomplete from "@/components/autocomplete/autocomplete-currency"
+import {
+  ChartOfAccountAutocomplete,
+  CurrencyAutocomplete,
+} from "@/components/autocomplete"
 import CustomAccordion, {
   CustomAccordionContent,
   CustomAccordionItem,

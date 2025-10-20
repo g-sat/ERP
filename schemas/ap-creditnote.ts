@@ -41,6 +41,10 @@ export const apCreditNoteHdSchema = (
         ? z.number().min(1, "Bank is required")
         : z.number().optional(),
 
+    // Invoice Fields
+    invoiceId: z.string().optional(),
+    invoiceNo: z.string().optional(),
+
     // Amounts
     totAmt: required?.m_TotAmt ? z.number().min(0) : z.number().optional(),
     totLocalAmt: z.number().optional(),
@@ -105,8 +109,8 @@ export const apCreditNoteHdSchema = (
 
     customerName: z.string().optional(),
 
-    arInvoiceId: z.union([z.string(), z.number()]).optional(),
-    arInvoiceNo: z.string().optional(),
+    arCreditNoteId: z.string().optional(),
+    arCreditNoteNo: z.string().optional(),
     editVersion: z.number().optional(),
     createBy: z.string().optional(),
     createDate: z.string().optional(),
@@ -224,17 +228,11 @@ export const apCreditNoteDtSchema = (
     jobOrderNo: z.string().optional(),
 
     // Task Fields
-    taskId:
-      required?.m_JobOrderId && visible?.m_JobOrderId
-        ? z.number().min(1, "Task is required")
-        : z.number().optional(),
+    taskId: z.number().optional(),
     taskName: z.string().optional(),
 
     // Service Fields
-    serviceId:
-      required?.m_JobOrderId && visible?.m_JobOrderId
-        ? z.number().min(1, "Service is required")
-        : z.number().optional(),
+    serviceId: z.number().optional(),
     serviceName: z.string().optional(),
 
     // Employee Fields
@@ -293,10 +291,9 @@ export const apCreditNoteDtSchema = (
 
     // Supplier Details
     customerName: z.string().optional(),
-    custInvoiceNo: z.string().optional(),
-    suppInvoiceNo: z.string().optional(),
-    arInvoiceId: z.union([z.string(), z.number()]).optional(),
-    arInvoiceNo: z.string().optional(),
+    custCreditNoteNo: z.string().optional(),
+    arCreditNoteId: z.union([z.string(), z.number()]).optional(),
+    arCreditNoteNo: z.string().optional(),
 
     // Audit Fields
     editVersion: z.number().optional(),

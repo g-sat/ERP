@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import DocumentTypeAutocomplete from "@/components/autocomplete/autocomplete-document-type"
+import { DocumentTypeAutocomplete } from "@/components/autocomplete"
 import { BasicTable } from "@/components/table/table-basic"
 
 export default function DocumentUpload() {

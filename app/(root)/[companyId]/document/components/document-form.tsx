@@ -40,9 +40,11 @@ import {
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Separator } from "@/components/ui/separator"
-import CompanyAutocomplete from "@/components/autocomplete/autocomplete-company"
-import EmployeeAutocomplete from "@/components/autocomplete/autocomplete-employee"
-import EntityTypeAutocomplete from "@/components/autocomplete/autocomplete-entity-type"
+import {
+  CompanyAutocomplete,
+  EmployeeAutocomplete,
+  EntityTypeAutocomplete,
+} from "@/components/autocomplete"
 
 import { DocumentDetailsForm } from "./document-details-form"
 import { DocumentDetailsTable } from "./document-details-table"

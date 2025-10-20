@@ -14,10 +14,12 @@ import { useGetByParams, usePersist } from "@/hooks/use-common"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Form } from "@/components/ui/form"
-import CompanyAutocomplete from "@/components/autocomplete/autocomplete-company"
-import CompanyCustomerAutocomplete from "@/components/autocomplete/autocomplete-company-customer"
-import PortAutocomplete from "@/components/autocomplete/autocomplete-port"
-import TaskAutocomplete from "@/components/autocomplete/autocomplete-task"
+import {
+  CompanyAutocomplete,
+  CompanyCustomerAutocomplete,
+  PortAutocomplete,
+  TaskAutocomplete,
+} from "@/components/autocomplete"
 
 import { TariffTable } from "./tariff-table"
 

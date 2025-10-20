@@ -17,8 +17,10 @@ import { Button } from "@/components/ui/button"
 import { Form } from "@/components/ui/form"
 import { Separator } from "@/components/ui/separator"
 import { Skeleton } from "@/components/ui/skeleton"
-import ChartofAccountAutocomplete from "@/components/autocomplete/autocomplete-chartofaccount"
-import CurrencyAutocomplete from "@/components/autocomplete/autocomplete-currency"
+import {
+  ChartOfAccountAutocomplete,
+  CurrencyAutocomplete,
+} from "@/components/autocomplete"
 import { SaveConfirmation } from "@/components/confirmation/save-confirmation"
 import { LockSkeleton } from "@/components/skeleton/lock-skeleton"
 

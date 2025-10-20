@@ -12,7 +12,7 @@ import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
 import {
   ApDebitNoteDtSchemaType,
   ApDebitNoteHdSchemaType,
-  apdebitNoteHdSchema,
+  apDebitNoteHdSchema,
 } from "@/schemas"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { format, subMonths } from "date-fns"
@@ -105,7 +105,7 @@ export default function DebitNotePage() {
 
   // Add form state management
   const form = useForm<ApDebitNoteHdSchemaType>({
-    resolver: zodResolver(apdebitNoteHdSchema(required, visible)),
+    resolver: zodResolver(apDebitNoteHdSchema(required, visible)),
     defaultValues: debitNote
       ? {
           debitNoteId: debitNote.debitNoteId?.toString() ?? "0",
@@ -122,6 +122,8 @@ export default function DebitNotePage() {
           ctyExhRate: debitNote.ctyExhRate ?? 0,
           creditTermId: debitNote.creditTermId ?? 0,
           bankId: debitNote.bankId ?? 0,
+          invoiceId: debitNote.invoiceId ?? "0",
+          invoiceNo: debitNote.invoiceNo ?? "",
           totAmt: debitNote.totAmt ?? 0,
           totLocalAmt: debitNote.totLocalAmt ?? 0,
           totCtyAmt: debitNote.totCtyAmt ?? 0,
@@ -176,7 +178,8 @@ export default function DebitNotePage() {
               remarks: detail.remarks ?? "",
               customerName: detail.customerName ?? "",
               custDebitNoteNo: detail.custDebitNoteNo ?? "",
-              suppDebitNoteNo: detail.suppDebitNoteNo ?? "",
+              arDebitNoteId: detail.arDebitNoteId ?? "",
+              arDebitNoteNo: detail.arDebitNoteNo ?? "",
             })) || [],
         }
       : {
@@ -232,7 +235,7 @@ export default function DebitNotePage() {
       )
 
       // Validate the form data using the schema
-      const validationResult = apdebitNoteHdSchema(required, visible).safeParse(
+      const validationResult = apDebitNoteHdSchema(required, visible).safeParse(
         formValues
       )
 
@@ -409,6 +412,8 @@ export default function DebitNotePage() {
       ctyExhRate: apiDebitNote.ctyExhRate ?? 0,
       creditTermId: apiDebitNote.creditTermId ?? 0,
       bankId: apiDebitNote.bankId ?? 0,
+      invoiceId: apiDebitNote.invoiceId ?? "0",
+      invoiceNo: apiDebitNote.invoiceNo ?? "",
       totAmt: apiDebitNote.totAmt ?? 0,
       totLocalAmt: apiDebitNote.totLocalAmt ?? 0,
       totCtyAmt: apiDebitNote.totCtyAmt ?? 0,
@@ -618,6 +623,8 @@ export default function DebitNotePage() {
             ctyExhRate: detailedDebitNote.ctyExhRate ?? 0,
             creditTermId: detailedDebitNote.creditTermId ?? 0,
             bankId: detailedDebitNote.bankId ?? 0,
+            invoiceId: detailedDebitNote.invoiceId ?? "0",
+            invoiceNo: detailedDebitNote.invoiceNo ?? "",
             totAmt: detailedDebitNote.totAmt ?? 0,
             totLocalAmt: detailedDebitNote.totLocalAmt ?? 0,
             totCtyAmt: detailedDebitNote.totCtyAmt ?? 0,
@@ -868,6 +875,8 @@ export default function DebitNotePage() {
             ctyExhRate: detailedDebitNote.ctyExhRate ?? 0,
             creditTermId: detailedDebitNote.creditTermId ?? 0,
             bankId: detailedDebitNote.bankId ?? 0,
+            invoiceId: detailedDebitNote.invoiceId ?? "0",
+            invoiceNo: detailedDebitNote.invoiceNo ?? "",
             totAmt: detailedDebitNote.totAmt ?? 0,
             totLocalAmt: detailedDebitNote.totLocalAmt ?? 0,
             totCtyAmt: detailedDebitNote.totCtyAmt ?? 0,

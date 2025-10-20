@@ -142,12 +142,12 @@ export default function DebitNoteTable({
       ),
     },
     {
-      accessorKey: "creditTermCode",
-      header: "Credit Term Code",
+      accessorKey: "debitTermCode",
+      header: "Debit Term Code",
     },
     {
-      accessorKey: "creditTermName",
-      header: "Credit Term Name",
+      accessorKey: "debitTermName",
+      header: "Debit Term Name",
     },
     {
       accessorKey: "bankCode",

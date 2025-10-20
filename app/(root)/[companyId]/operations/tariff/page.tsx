@@ -36,8 +36,10 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import CustomerAutocomplete from "@/components/autocomplete/autocomplete-customer"
-import PortAutocomplete from "@/components/autocomplete/autocomplete-port"
+import {
+  CustomerAutocomplete,
+  PortAutocomplete,
+} from "@/components/autocomplete"
 import { DeleteConfirmation } from "@/components/confirmation/delete-confirmation"
 import { SaveConfirmation } from "@/components/confirmation/save-confirmation"
 import { DataTableSkeleton } from "@/components/skeleton/data-table-skeleton"

@@ -12,7 +12,7 @@ import { clientDateFormat, parseDate } from "@/lib/date-utils"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Form } from "@/components/ui/form"
-import CurrencyAutocomplete from "@/components/autocomplete/autocomplete-currency"
+import { CurrencyAutocomplete } from "@/components/autocomplete"
 import CustomAccordion, {
   CustomAccordionContent,
   CustomAccordionItem,

@@ -21,12 +21,14 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Separator } from "@/components/ui/separator"
-import CountryAutocomplete from "@/components/autocomplete/autocomplete-country"
-import DepartmentAutocomplete from "@/components/autocomplete/autocomplete-department"
-import DesignationAutocomplete from "@/components/autocomplete/autocomplete-designation"
-import EmploymentTypeAutocomplete from "@/components/autocomplete/autocomplete-employment-type"
-import GenderAutocomplete from "@/components/autocomplete/autocomplete-gender"
-import WorkLocationAutocomplete from "@/components/autocomplete/autocomplete-worklocation"
+import {
+  CountryAutocomplete,
+  DepartmentAutocomplete,
+  DesignationAutocomplete,
+  EmploymentTypeAutocomplete,
+  GenderAutocomplete,
+  WorkLocationAutocomplete,
+} from "@/components/autocomplete"
 import { CurrencyFormatter } from "@/components/currency-icons/currency-formatter"
 import { CustomDateNew } from "@/components/custom/custom-date-new"
 // Import custom components

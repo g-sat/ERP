@@ -23,7 +23,7 @@ import {
   FormLabel,
 } from "@/components/ui/form"
 import { Switch } from "@/components/ui/switch"
-import LeaveTypeAutocomplete from "@/components/autocomplete/autocomplete-leavetype"
+import { LeaveTypeAutocomplete } from "@/components/autocomplete"
 import CustomInput from "@/components/custom/custom-input"
 import CustomTextarea from "@/components/custom/custom-textarea"
 

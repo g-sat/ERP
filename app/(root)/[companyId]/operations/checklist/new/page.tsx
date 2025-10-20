@@ -18,15 +18,17 @@ import { useSaveJobOrder } from "@/hooks/use-checklist"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Form } from "@/components/ui/form"
-import AddressAutocomplete from "@/components/autocomplete/autocomplete-address"
-import ContactAutocomplete from "@/components/autocomplete/autocomplete-contact"
-import CurrencyAutocomplete from "@/components/autocomplete/autocomplete-currency"
-import CustomerAutocomplete from "@/components/autocomplete/autocomplete-customer"
-import GstAutocomplete from "@/components/autocomplete/autocomplete-gst"
-import PortAutocomplete from "@/components/autocomplete/autocomplete-port"
-import StatusAutocomplete from "@/components/autocomplete/autocomplete-status"
-import VesselAutocomplete from "@/components/autocomplete/autocomplete-vessel"
-import VoyageAutocomplete from "@/components/autocomplete/autocomplete-voyage"
+import {
+  AddressAutocomplete,
+  ContactAutocomplete,
+  CurrencyAutocomplete,
+  CustomerAutocomplete,
+  GSTAutocomplete,
+  PortAutocomplete,
+  StatusAutocomplete,
+  VesselAutocomplete,
+  VoyageAutocomplete,
+} from "@/components/autocomplete"
 import CustomCheckbox from "@/components/custom/custom-checkbox"
 import { CustomDateNew } from "@/components/custom/custom-date-new"
 import { CustomDateTimePicker } from "@/components/custom/custom-date-time-picker"

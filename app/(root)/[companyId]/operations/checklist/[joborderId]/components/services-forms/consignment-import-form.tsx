@@ -17,14 +17,16 @@ import { useChartofAccountLookup } from "@/hooks/use-lookup"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Form } from "@/components/ui/form"
-import CarrierTypeAutocomplete from "@/components/autocomplete/autocomplete-carriertype"
-import ChargeAutocomplete from "@/components/autocomplete/autocomplete-charge"
-import ChartOfAccountAutocomplete from "@/components/autocomplete/autocomplete-chartofaccount"
-import ConsignmentTypeAutocomplete from "@/components/autocomplete/autocomplete-consignmenttype"
-import LandingTypeAutocomplete from "@/components/autocomplete/autocomplete-landingtype"
-import ModeTypeAutocomplete from "@/components/autocomplete/autocomplete-modetype"
-import StatusTaskAutocomplete from "@/components/autocomplete/autocomplete-status-task"
-import UomAutocomplete from "@/components/autocomplete/autocomplete-uom"
+import {
+  CarrierTypeAutocomplete,
+  ChargeAutocomplete,
+  ChartOfAccountAutocomplete,
+  ConsignmentTypeAutocomplete,
+  LandingTypeAutocomplete,
+  ModeTypeAutocomplete,
+  StatusTaskAutocomplete,
+  UomAutocomplete,
+} from "@/components/autocomplete"
 import CustomAccordion, {
   CustomAccordionContent,
   CustomAccordionItem,

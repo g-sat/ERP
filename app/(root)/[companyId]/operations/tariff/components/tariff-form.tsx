@@ -11,13 +11,15 @@ import { toast } from "sonner"
 import { Task } from "@/lib/operations-utils"
 import { Button } from "@/components/ui/button"
 import { Form } from "@/components/ui/form"
-import ChargeAutocomplete from "@/components/autocomplete/autocomplete-charge"
-import CurrencyAutocomplete from "@/components/autocomplete/autocomplete-currency"
-import CustomerAutocomplete from "@/components/autocomplete/autocomplete-customer"
-import PortAutocomplete from "@/components/autocomplete/autocomplete-port"
-import TaskAutocomplete from "@/components/autocomplete/autocomplete-task"
-import UomAutocomplete from "@/components/autocomplete/autocomplete-uom"
-import VisaTypeAutocomplete from "@/components/autocomplete/autocomplete-visatype"
+import {
+  ChargeAutocomplete,
+  CurrencyAutocomplete,
+  CustomerAutocomplete,
+  PortAutocomplete,
+  TaskAutocomplete,
+  UomAutocomplete,
+  VisaTypeAutocomplete,
+} from "@/components/autocomplete"
 import CustomNumberInput from "@/components/custom/custom-number-input"
 import CustomSwitch from "@/components/custom/custom-switch"
 import CustomTextarea from "@/components/custom/custom-textarea"

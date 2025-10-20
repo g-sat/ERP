@@ -19,7 +19,7 @@ export default function PaymentDetails({ creditNoteId }: PaymentDetailsProps) {
   const locAmtDec = decimals[0]?.locAmtDec || 2
   const dateFormat = decimals[0]?.dateFormat || "dd/MM/yyyy"
   const moduleId = ModuleId.ap
-  const transactionId = APTransactionId.invoice
+  const transactionId = APTransactionId.creditNote
 
   const { data: paymentDetails, refetch: refetchPayment } =
     //useGetPaymentDetails<IPaymentDetails>(25, 1, "14120250100024")
@@ -118,7 +118,8 @@ export default function PaymentDetails({ creditNoteId }: PaymentDetailsProps) {
           showHeader={true}
           showFooter={false}
           emptyMessage="No results."
-          maxHeight="300px"
+          maxHeight="200px"
+          pageSizeOption={20}
         />
       </CardContent>
     </Card>

@@ -27,10 +27,10 @@ import {
   BankChartOfAccountAutocomplete,
   CurrencyAutocomplete,
   JobOrderAutocomplete,
-  JobOrderChargeAutocomplete,
+  JobOrderServiceAutocomplete,
   JobOrderTaskAutocomplete,
+  PaymentTypeAutocomplete,
 } from "@/components/autocomplete"
-import PaymentTypeAutocomplete from "@/components/autocomplete/autocomplete-paymenttype"
 import PayeeSelectionDialog from "@/components/common/payee-selection-dialog"
 import { CustomDateNew } from "@/components/custom/custom-date-new"
 import CustomInput from "@/components/custom/custom-input"
@@ -827,7 +827,7 @@ export default function BankTransferForm({
             )}
 
             {visible?.m_JobOrderId && (
-              <JobOrderChargeAutocomplete
+              <JobOrderServiceAutocomplete
                 key={`service-${watchedJobOrderId}-${watchedTaskId}`}
                 form={form}
                 name="serviceId"

@@ -32,10 +32,12 @@ import { format } from "date-fns"
 import { FormProvider, UseFormReturn } from "react-hook-form"
 
 import { clientDateFormat } from "@/lib/date-utils"
-import { CompanySupplierAutocomplete } from "@/components/autocomplete"
-import BankAutocomplete from "@/components/autocomplete/autocomplete-bank"
-import CreditTermAutocomplete from "@/components/autocomplete/autocomplete-creditterm"
-import CurrencyAutocomplete from "@/components/autocomplete/autocomplete-currency"
+import {
+  BankAutocomplete,
+  CompanySupplierAutocomplete,
+  CreditTermAutocomplete,
+  CurrencyAutocomplete,
+} from "@/components/autocomplete"
 import { CustomDateNew } from "@/components/custom/custom-date-new"
 import CustomInput from "@/components/custom/custom-input"
 import CustomNumberInput from "@/components/custom/custom-number-input"

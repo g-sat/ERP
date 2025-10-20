@@ -17,11 +17,13 @@ import { useChartofAccountLookup } from "@/hooks/use-lookup"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Form } from "@/components/ui/form"
-import ChargeAutocomplete from "@/components/autocomplete/autocomplete-charge"
-import ChartOfAccountAutocomplete from "@/components/autocomplete/autocomplete-chartofaccount"
-import PassTypeAutocomplete from "@/components/autocomplete/autocomplete-passtype"
-import StatusTaskAutocomplete from "@/components/autocomplete/autocomplete-status-task"
-import UomAutocomplete from "@/components/autocomplete/autocomplete-uom"
+import {
+  ChargeAutocomplete,
+  ChartOfAccountAutocomplete,
+  PassTypeAutocomplete,
+  StatusTaskAutocomplete,
+  UomAutocomplete,
+} from "@/components/autocomplete"
 import CustomAccordion, {
   CustomAccordionContent,
   CustomAccordionItem,

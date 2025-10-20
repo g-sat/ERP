@@ -15,8 +15,10 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Form } from "@/components/ui/form"
-import EmployeeAutocomplete from "@/components/autocomplete/autocomplete-employee"
-import LeaveTypeAutocomplete from "@/components/autocomplete/autocomplete-leavetype"
+import {
+  EmployeeAutocomplete,
+  LeaveTypeAutocomplete,
+} from "@/components/autocomplete"
 import CustomInput from "@/components/custom/custom-input"
 
 interface LeaveBalanceFormProps {

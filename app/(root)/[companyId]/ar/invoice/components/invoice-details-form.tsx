@@ -13,12 +13,14 @@ import { useAuthStore } from "@/stores/auth-store"
 import { FormProvider, useForm } from "react-hook-form"
 
 import { Button } from "@/components/ui/button"
-import BargeAutocomplete from "@/components/autocomplete/autocomplete-barge"
-import ChartOfAccountAutocomplete from "@/components/autocomplete/autocomplete-chartofaccount"
-import DepartmentAutocomplete from "@/components/autocomplete/autocomplete-department"
-import EmployeeAutocomplete from "@/components/autocomplete/autocomplete-employee"
-import GSTAutocomplete from "@/components/autocomplete/autocomplete-gst"
-import ProductAutocomplete from "@/components/autocomplete/autocomplete-product"
+import {
+  BargeAutocomplete,
+  ChartOfAccountAutocomplete,
+  DepartmentAutocomplete,
+  EmployeeAutocomplete,
+  GSTAutocomplete,
+  ProductAutocomplete,
+} from "@/components/autocomplete"
 import CustomNumberInput from "@/components/custom/custom-number-input"
 import CustomTextarea from "@/components/custom/custom-textarea"
 

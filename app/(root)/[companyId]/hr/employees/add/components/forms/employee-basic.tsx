@@ -8,14 +8,16 @@ import { useForm } from "react-hook-form"
 import { clientDateFormat } from "@/lib/date-utils"
 import { Button } from "@/components/ui/button"
 import { Form } from "@/components/ui/form"
-import ContractTypeAutocomplete from "@/components/autocomplete/autocomplete-contract-type"
-import CountryAutocomplete from "@/components/autocomplete/autocomplete-country"
-import DepartmentAutocomplete from "@/components/autocomplete/autocomplete-department"
-import DesignationAutocomplete from "@/components/autocomplete/autocomplete-designation"
-import EmployerAutocomplete from "@/components/autocomplete/autocomplete-employer"
-import EmploymentTypeAutocomplete from "@/components/autocomplete/autocomplete-employment-type"
-import GenderAutocomplete from "@/components/autocomplete/autocomplete-gender"
-import WorkLocationAutocomplete from "@/components/autocomplete/autocomplete-worklocation"
+import {
+  ContractTypeAutocomplete,
+  CountryAutocomplete,
+  DepartmentAutocomplete,
+  DesignationAutocomplete,
+  EmployerAutocomplete,
+  EmploymentTypeAutocomplete,
+  GenderAutocomplete,
+  WorkLocationAutocomplete,
+} from "@/components/autocomplete"
 import { CustomDateNew } from "@/components/custom/custom-date-new"
 import CustomInput from "@/components/custom/custom-input"
 import CustomTextarea from "@/components/custom/custom-textarea"

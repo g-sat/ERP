@@ -14,7 +14,7 @@ import { useForm } from "react-hook-form"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Form } from "@/components/ui/form"
-import AccountSetupCategoryAutocomplete from "@/components/autocomplete/autocomplete-accountsetupcategory"
+import { AccountSetupCategoryAutocomplete } from "@/components/autocomplete"
 import CustomAccordion, {
   CustomAccordionContent,
   CustomAccordionItem,

@@ -15,9 +15,11 @@ import { useChartofAccountLookup } from "@/hooks/use-lookup"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Form } from "@/components/ui/form"
-import AccountSetupAutocomplete from "@/components/autocomplete/autocomplete-accountsetup"
-import ChartofAccountAutocomplete from "@/components/autocomplete/autocomplete-chartofaccount"
-import CurrencyAutocomplete from "@/components/autocomplete/autocomplete-currency"
+import {
+  AccountSetupAutocomplete,
+  ChartOfAccountAutocomplete,
+  CurrencyAutocomplete,
+} from "@/components/autocomplete"
 import CustomAccordion, {
   CustomAccordionContent,
   CustomAccordionItem,

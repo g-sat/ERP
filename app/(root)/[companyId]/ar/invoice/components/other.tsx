@@ -8,9 +8,11 @@ import { UseFormReturn } from "react-hook-form"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Form } from "@/components/ui/form"
 import { Separator } from "@/components/ui/separator"
-import AddressAutocomplete from "@/components/autocomplete/autocomplete-address"
-import ContactAutocomplete from "@/components/autocomplete/autocomplete-contact"
-import CountryAutocomplete from "@/components/autocomplete/autocomplete-country"
+import {
+  AddressAutocomplete,
+  ContactAutocomplete,
+  CountryAutocomplete,
+} from "@/components/autocomplete"
 import CustomInput from "@/components/custom/custom-input"
 import CustomTextarea from "@/components/custom/custom-textarea"
 

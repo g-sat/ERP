@@ -25,7 +25,7 @@ interface FieldOption {
   label: string
 }
 
-export default function JobOrderChargeAutocomplete<
+export default function JobOrderServiceAutocomplete<
   T extends Record<string, unknown>,
 >({
   form,

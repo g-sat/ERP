@@ -35,19 +35,21 @@ import { FormProvider, UseFormReturn, useForm } from "react-hook-form"
 import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
-import BargeAutocomplete from "@/components/autocomplete/autocomplete-barge"
-import ChartOfAccountAutocomplete from "@/components/autocomplete/autocomplete-chartofaccount"
-import DepartmentAutocomplete from "@/components/autocomplete/autocomplete-department"
-import EmployeeAutocomplete from "@/components/autocomplete/autocomplete-employee"
-import GSTAutocomplete from "@/components/autocomplete/autocomplete-gst"
-import JobOrderAutocomplete from "@/components/autocomplete/autocomplete-joborder"
-import JobOrderChargeAutocomplete from "@/components/autocomplete/autocomplete-joborder-charge"
-import JobOrderTaskAutocomplete from "@/components/autocomplete/autocomplete-joborder-task"
-import PortAutocomplete from "@/components/autocomplete/autocomplete-port"
-import ProductAutocomplete from "@/components/autocomplete/autocomplete-product"
-import UomAutocomplete from "@/components/autocomplete/autocomplete-uom"
-import VesselAutocomplete from "@/components/autocomplete/autocomplete-vessel"
-import VoyageAutocomplete from "@/components/autocomplete/autocomplete-voyage"
+import {
+  BargeAutocomplete,
+  ChartOfAccountAutocomplete,
+  DepartmentAutocomplete,
+  EmployeeAutocomplete,
+  GSTAutocomplete,
+  JobOrderAutocomplete,
+  JobOrderServiceAutocomplete,
+  JobOrderTaskAutocomplete,
+  PortAutocomplete,
+  ProductAutocomplete,
+  UomAutocomplete,
+  VesselAutocomplete,
+  VoyageAutocomplete,
+} from "@/components/autocomplete"
 import CustomNumberInput from "@/components/custom/custom-number-input"
 import CustomTextarea from "@/components/custom/custom-textarea"
 
@@ -874,20 +876,20 @@ export default function InvoiceDetailsForm({
                   name="taskId"
                   jobOrderId={watchedJobOrderId || 0}
                   label="Task"
-                  isRequired={required?.m_JobOrderId && isJobSpecific}
+                  //isRequired={required?.m_JobOrderId && isJobSpecific}
                   onChangeEvent={handleTaskChange}
                 />
               )}
 
               {visible?.m_JobOrderId && (
-                <JobOrderChargeAutocomplete
+                <JobOrderServiceAutocomplete
                   key={`service-${watchedJobOrderId}-${watchedTaskId}`}
                   form={form}
                   name="serviceId"
                   jobOrderId={watchedJobOrderId || 0}
                   taskId={watchedTaskId || 0}
                   label="Service"
-                  isRequired={required?.m_JobOrderId && isJobSpecific}
+                  //isRequired={required?.m_JobOrderId && isJobSpecific}
                   onChangeEvent={handleServiceChange}
                 />
               )}

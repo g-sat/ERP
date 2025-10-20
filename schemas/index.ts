@@ -61,8 +61,8 @@ export * from "./worklocation"
 // AP schemas
 export * from "./ap-invoice"
 export * from "./ap-payment"
-export * from "./ap-creditnote"
-export * from "./ap-debitnote"
+export * from "./ap-creditNote"
+export * from "./ap-debitNote"
 export * from "./ap-adjustment"
 
 // CB schemas

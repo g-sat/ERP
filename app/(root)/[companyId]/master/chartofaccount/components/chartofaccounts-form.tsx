@@ -21,11 +21,13 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Form } from "@/components/ui/form"
-import AccountGroupAutocomplete from "@/components/autocomplete/autocomplete-accountgroup"
-import AccountTypeAutocomplete from "@/components/autocomplete/autocomplete-accounttype"
-import COACategory1Autocomplete from "@/components/autocomplete/autocomplete-coacategory1"
-import COACategory2Autocomplete from "@/components/autocomplete/autocomplete-coacategory2"
-import COACategory3Autocomplete from "@/components/autocomplete/autocomplete-coacategory3"
+import {
+  AccountGroupAutocomplete,
+  AccountTypeAutocomplete,
+  CoaCategory1Autocomplete,
+  CoaCategory2Autocomplete,
+  CoaCategory3Autocomplete,
+} from "@/components/autocomplete"
 import CustomAccordion, {
   CustomAccordionContent,
   CustomAccordionItem,
