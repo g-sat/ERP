@@ -13,7 +13,7 @@ interface JobOrderNotFoundProps {
 export function JobOrderNotFound({
   jobOrderId,
   companyId,
-  onGoToChecklist,
+  onGoToChecklist: _onGoToChecklist,
 }: JobOrderNotFoundProps) {
   return (
     <DataNotFound

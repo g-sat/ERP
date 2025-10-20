@@ -4,12 +4,7 @@ import { useAuthStore } from "@/stores/auth-store"
 import { ColumnDef } from "@tanstack/react-table"
 import { format } from "date-fns"
 
-import {
-  CBTransactionId,
-  GLTransactionId,
-  ModuleId,
-  TableName,
-} from "@/lib/utils"
+import { GLTransactionId, ModuleId, TableName } from "@/lib/utils"
 import { useGetGlPostDetails } from "@/hooks/use-histoy"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"

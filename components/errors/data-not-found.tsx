@@ -29,7 +29,7 @@ interface DataNotFoundProps {
 export function DataNotFound({
   title,
   description,
-  itemId,
+  itemId: _itemId,
   itemType = "item",
   companyId,
   primaryAction,

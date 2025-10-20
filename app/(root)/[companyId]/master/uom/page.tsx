@@ -7,7 +7,7 @@ import { UomDtSchemaType, UomSchemaType } from "@/schemas/uom"
 import { usePermissionStore } from "@/stores/permission-store"
 import { useQueryClient } from "@tanstack/react-query"
 
-import { getById, getData } from "@/lib/api-client"
+import { getData } from "@/lib/api-client"
 import { Uom, UomDt } from "@/lib/api-routes"
 import { MasterTransactionId, ModuleId } from "@/lib/utils"
 import { useDelete, useGet, usePersist } from "@/hooks/use-common"

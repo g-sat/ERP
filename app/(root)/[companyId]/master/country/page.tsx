@@ -10,12 +10,7 @@ import { useQueryClient } from "@tanstack/react-query"
 import { getById } from "@/lib/api-client"
 import { Country } from "@/lib/api-routes"
 import { MasterTransactionId, ModuleId } from "@/lib/utils"
-import {
-  useDelete,
-  useGet,
-  useGetByParams,
-  usePersist,
-} from "@/hooks/use-common"
+import { useDelete, useGet, usePersist } from "@/hooks/use-common"
 import {
   Dialog,
   DialogContent,
