@@ -159,14 +159,43 @@ export default function Main({
     form.setValue("data_details", newData as unknown as ApPaymentDtSchemaType[])
   }
 
+  // Handle cell edit for editable columns
+  const handleCellEdit = useCallback(
+    (itemNo: number, field: string, value: number) => {
+      const currentData = form.getValues("data_details") || []
+      const updatedData = currentData.map((item) => {
+        if (item.itemNo === itemNo) {
+          return { ...item, [field]: value }
+        }
+        return item
+      })
+      form.setValue("data_details", updatedData, {
+        shouldDirty: true,
+        shouldTouch: true,
+      })
+      form.trigger("data_details")
+    },
+    [form]
+  )
+
   // Handle Select Transaction button click
   const handleSelectTransaction = useCallback(() => {
     const supplierId = form.getValues("supplierId")
     const currencyId = form.getValues("currencyId")
     const accountDate = form.getValues("accountDate")
+    const paymentTypeId = form.getValues("paymentTypeId")
 
-    if (!supplierId || !currencyId || !accountDate) {
-      toast.warning("Please select Supplier, Currency, and Account Date first")
+    console.log("Select Transaction clicked:", {
+      supplierId,
+      currencyId,
+      accountDate,
+      paymentTypeId,
+    })
+
+    if (!supplierId || !currencyId || !accountDate || !paymentTypeId) {
+      toast.warning(
+        "Please select Supplier, Currency, Account Date and Payment Type first"
+      )
       return
     }
 
@@ -177,7 +206,9 @@ export default function Main({
       accountDate: accountDate?.toString() || "",
     }
 
+    console.log("Setting dialog params:", dialogParamsRef.current)
     setShowTransactionDialog(true)
+    console.log("Dialog should be opening now")
   }, [form])
 
   // Handle adding selected transactions to payment details
@@ -262,6 +293,7 @@ export default function Main({
           onRefresh={() => {}} // Add refresh logic if needed
           onFilterChange={() => {}} // Add filter logic if needed
           onDataReorder={handleDataReorder as (newData: IApPaymentDt[]) => void}
+          onCellEdit={handleCellEdit}
         />
       </div>
 

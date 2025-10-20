@@ -3,9 +3,11 @@
 import { useCallback, useEffect, useState } from "react"
 import { IApOutTransaction } from "@/interfaces"
 import { IVisibleFields } from "@/interfaces/setting"
+import { format, parse } from "date-fns"
 
 import { getById } from "@/lib/api-client"
 import { Account } from "@/lib/api-routes"
+import { clientDateFormat } from "@/lib/date-utils"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -15,7 +17,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
+import { TableLoadingSpinner } from "@/components/skeleton/loading-spinner"
 
+import { Spinner } from "../ui/spinner"
 import OutStandingTransactionsTable from "./outstandingtransactions-table"
 
 interface OutStandingTransactionsDialogProps {
@@ -37,31 +41,68 @@ export default function OutStandingTransactionsDialog({
   visible,
   onAddSelected,
 }: OutStandingTransactionsDialogProps) {
+  console.log("Dialog component rendered with props:", {
+    open,
+    supplierId,
+    currencyId,
+    accountDate,
+  })
   const [outTransactions, setOutTransactions] = useState<IApOutTransaction[]>(
     []
   )
-  const [_isLoading, setIsLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
   const [selectedTransactions, setSelectedTransactions] = useState<string[]>([])
   const [selectedTotAmt, setSelectedTotAmt] = useState<number>(0)
   const [selectedTotLocalAmt, setSelectedTotLocalAmt] = useState<number>(0)
 
   // Load transactions when dialog opens
   useEffect(() => {
-    if (!open || !supplierId || !currencyId || !accountDate) return
+    console.log("useEffect triggered with:", {
+      open,
+      supplierId,
+      currencyId,
+      accountDate,
+    })
+
+    if (!open || !supplierId || !currencyId || !accountDate) {
+      console.log("Dialog conditions not met:", {
+        open,
+        supplierId,
+        currencyId,
+        accountDate,
+      })
+      return
+    }
+
+    console.log("All conditions met, proceeding with API call")
 
     const loadTransactions = async () => {
+      console.log("Loading transactions with params:", {
+        supplierId,
+        currencyId,
+        accountDate,
+      })
+
       setIsLoading(true)
       setSelectedTransactions([])
 
       try {
-        const response = await getById(
-          `${Account.getApOutstandTransaction}/${supplierId}/${currencyId}/${accountDate}`
+        // Format the date properly for the API (YYYY-MM-DD format)
+        const dt = format(
+          parse(accountDate, clientDateFormat, new Date()),
+          "yyyy-MM-dd"
         )
+        const url = `${Account.getApOutstandTransaction}/${supplierId}/${currencyId}/${dt}`
+        console.log("API URL:", url)
+        console.log("Formatted date:", dt)
 
-        console.log("response", response)
+        const response = await getById(url)
+
+        console.log("API Response:", response)
 
         if (response?.result === 1) {
           setOutTransactions(response.data || [])
+          console.log("Transactions loaded:", response.data?.length || 0)
         } else {
           setOutTransactions([])
           console.error(
@@ -77,6 +118,7 @@ export default function OutStandingTransactionsDialog({
       }
     }
 
+    // Call the function immediately
     loadTransactions()
   }, [open, supplierId, currencyId, accountDate])
 
@@ -194,14 +236,28 @@ export default function OutStandingTransactionsDialog({
 
         {/* Transaction Table */}
         <div className="flex-1 overflow-hidden">
-          <OutStandingTransactionsTable
-            data={outTransactions}
-            visible={visible}
-            onRefresh={handleRefresh}
-            onFilterChange={handleFilterChange}
-            onSelect={handleSelect}
-            onBulkSelectionChange={handleBulkSelectionChange}
-          />
+          {isLoading ? (
+            <div className="flex min-h-[400px] items-center justify-center">
+              <div className="text-center">
+                <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-gray-300 border-t-blue-600"></div>
+                <p className="mt-4 text-sm text-gray-600">
+                  Loading outstanding transactions...
+                </p>
+                <p className="mt-2 text-xs text-gray-500">
+                  Fetching available transactions for payment
+                </p>
+              </div>
+            </div>
+          ) : (
+            <OutStandingTransactionsTable
+              data={outTransactions}
+              visible={visible}
+              onRefresh={handleRefresh}
+              onFilterChange={handleFilterChange}
+              onSelect={handleSelect}
+              onBulkSelectionChange={handleBulkSelectionChange}
+            />
+          )}
         </div>
 
         {/* Action Buttons */}
