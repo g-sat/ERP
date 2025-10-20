@@ -233,7 +233,7 @@ export default function PaymentDetailsTable({
   }
 
   return (
-    <div className="w-full p-2">
+    <div>
       <AccountBaseTable
         data={data}
         columns={visibleColumns as ColumnDef<IApPaymentDt>[]}

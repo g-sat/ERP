@@ -2,17 +2,12 @@
 "use client"
 
 import { useCallback, useEffect, useRef, useState } from "react"
-import {
-  calculateLocalAmounts,
-  calculateTotalAmounts,
-} from "@/helpers/ap-payment-calculations"
 import { IApOutTransaction, IApPaymentDt } from "@/interfaces"
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
 import {
   ApPaymentDtSchemaType,
   ApPaymentHdSchemaType,
 } from "@/schemas/ap-payment"
-import { useAuthStore } from "@/stores/auth-store"
 import { UseFormReturn } from "react-hook-form"
 import { toast } from "sonner"
 
@@ -40,11 +35,6 @@ export default function Main({
   required,
   companyId,
 }: MainProps) {
-  const { decimals } = useAuthStore()
-  const amtDec = decimals[0]?.amtDec || 2
-  const locAmtDec = decimals[0]?.locAmtDec || 2
-  const ctyAmtDec = decimals[0]?.ctyAmtDec || 2
-
   const [editingDetail, setEditingDetail] =
     useState<ApPaymentDtSchemaType | null>(null)
 
@@ -74,30 +64,31 @@ export default function Main({
   }, [showTransactionDialog])
 
   // Recalculate header totals when details change
-  useEffect(() => {
-    if (dataDetails.length === 0) {
-      // Reset all amounts to 0 if no details
-      form.setValue("totAmt", 0)
-      form.setValue("totLocalAmt", 0)
-      return
-    }
+  // Removed automatic calculation - totals should be manually entered in header
+  // useEffect(() => {
+  //   if (dataDetails.length === 0) {
+  //     // Reset all amounts to 0 if no details
+  //     form.setValue("totAmt", 0)
+  //     form.setValue("totLocalAmt", 0)
+  //     return
+  //   }
 
-    // Calculate base currency totals
-    const totals = calculateTotalAmounts(
-      dataDetails as unknown as IApPaymentDt[],
-      amtDec
-    )
-    form.setValue("totAmt", totals.totAmt)
+  //   // Calculate base currency totals
+  //   const totals = calculateTotalAmounts(
+  //     dataDetails as unknown as IApPaymentDt[],
+  //     amtDec
+  //   )
+  //   form.setValue("totAmt", totals.totAmt)
 
-    // Calculate local currency totals (always calculate)
-    const localAmounts = calculateLocalAmounts(
-      dataDetails as unknown as IApPaymentDt[],
-      locAmtDec
-    )
-    form.setValue("totLocalAmt", localAmounts.totLocalAmt)
+  //   // Calculate local currency totals (always calculate)
+  //   const localAmounts = calculateLocalAmounts(
+  //     dataDetails as unknown as IApPaymentDt[],
+  //     locAmtDec
+  //   )
+  //   form.setValue("totLocalAmt", localAmounts.totLocalAmt)
 
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dataDetails.length, amtDec, locAmtDec, ctyAmtDec])
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, [dataDetails.length, amtDec, locAmtDec, ctyAmtDec])
 
   const _handleAddRow = (rowData: IApPaymentDt) => {
     const currentData = form.getValues("data_details") || []
@@ -275,7 +266,7 @@ export default function Main({
         companyId={companyId}
       />
 
-      <div className="rounded-lg border p-4 shadow-sm">
+      <div className="p-2">
         {/* Control Row */}
         <div className="mb-4 flex items-center gap-2">
           <Button onClick={handleSelectTransaction}>Select Transaction</Button>
@@ -307,6 +298,7 @@ export default function Main({
           accountDate={dialogParamsRef.current.accountDate}
           visible={visible}
           onAddSelected={handleAddSelectedTransactions}
+          existingDocumentIds={dataDetails.map((detail) => detail.documentId)}
         />
       )}
     </div>

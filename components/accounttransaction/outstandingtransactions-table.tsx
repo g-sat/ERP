@@ -19,6 +19,7 @@ interface OutStandingTransactionsTableProps {
   visible: IVisibleFields
   onSelect?: (transaction: IApOutTransaction | null) => void
   onBulkSelectionChange?: (selectedIds: string[]) => void
+  initialSelectedIds?: string[]
 }
 
 export default function OutStandingTransactionsTable({
@@ -27,6 +28,7 @@ export default function OutStandingTransactionsTable({
   onFilterChange,
   onSelect,
   onBulkSelectionChange,
+  initialSelectedIds,
   visible: _visible,
 }: OutStandingTransactionsTableProps) {
   const [mounted, setMounted] = useState(false)
@@ -204,6 +206,7 @@ export default function OutStandingTransactionsTable({
         onFilterChange={handleFilterChange}
         onSelect={handleSelect}
         onBulkSelectionChange={handleBulkSelectionChange}
+        initialSelectedIds={initialSelectedIds}
         showHeader={false}
         showActions={true}
         hideView={true}
