@@ -82,7 +82,7 @@ export default function DocumentManager({
 
   const { data: documents, isLoading } = useGet<IDocType>(
     `${Admin.getDocumentById}/${moduleId}/${transactionId}/${recordId}`,
-    "documents"
+    `documents-${moduleId}-${transactionId}-${recordId}`
   )
 
   const saveDocumentMutation = usePersist<IDocument | IDocument[]>(
@@ -253,7 +253,9 @@ export default function DocumentManager({
             // Clear document type and remarks after upload success
             form.setValue("docTypeId", "")
             form.setValue("remarks", "")
-            queryClient.invalidateQueries({ queryKey: ["documents"] })
+            queryClient.invalidateQueries({
+              queryKey: [`documents-${moduleId}-${transactionId}-${recordId}`],
+            })
             onUploadSuccess?.()
           } else {
             throw new Error(saveResult.message || "Save failed")
@@ -276,7 +278,9 @@ export default function DocumentManager({
       const response = await deleteDocumentMutation.mutateAsync(documentId)
 
       if (response.result === 1) {
-        queryClient.invalidateQueries({ queryKey: ["documents"] })
+        queryClient.invalidateQueries({
+          queryKey: [`documents-${moduleId}-${transactionId}-${recordId}`],
+        })
       }
     } catch (error) {
       console.error("Delete error:", error)
