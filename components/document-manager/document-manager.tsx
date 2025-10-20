@@ -300,13 +300,19 @@ export default function DocumentManager({
   // Preview document
   const handlePreview = (doc: IDocType) => {
     setSelectedDocument(doc)
-    setPreviewUrl(doc.docPath)
+    // Use API route for serving documents with proper cache control
+    const cacheBuster = `?v=${Date.now()}`
+    setPreviewUrl(
+      `/api/documents/serve${doc.docPath.replace("/documents", "")}${cacheBuster}`
+    )
   }
 
   // Download document
   const handleDownload = (doc: IDocType) => {
     const link = document.createElement("a")
-    link.href = doc.docPath
+    // Use API route for serving documents with proper cache control
+    const cacheBuster = `?v=${Date.now()}`
+    link.href = `/api/documents/serve${doc.docPath.replace("/documents", "")}${cacheBuster}`
     link.download = doc.docPath.split("/").pop() || "document"
     link.click()
   }

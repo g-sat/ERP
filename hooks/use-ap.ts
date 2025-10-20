@@ -2,7 +2,7 @@ import { ApiResponse } from "@/interfaces/auth"
 import { useQuery } from "@tanstack/react-query"
 
 import { getById, getData } from "@/lib/api-client"
-import { ApAdjustment, ApInvoice } from "@/lib/api-routes"
+import { ApAdjustment, ApDebitNote, ApInvoice } from "@/lib/api-routes"
 
 /**
  * 1. Invoice Management
@@ -140,6 +140,62 @@ export function useGetAPAdjustmentHistoryDetails<T>(
       )
     },
     enabled: !!adjustmentId && adjustmentId !== "0",
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+    gcTime: 10 * 60 * 1000,
+    staleTime: 5 * 60 * 1000,
+    ...options,
+  })
+}
+
+/**
+ * 1.2 Get AP Invoice History List
+ * @param {string} invoiceId - Invoice ID
+ * @param {object} options - Additional query options
+ * @returns {object} Query object containing invoice history list
+ */
+export function useGetAPDebitNoteHistoryList<T>(
+  debitNoteId: string,
+  options = {}
+) {
+  return useQuery<ApiResponse<T>>({
+    queryKey: ["ap-debitnote-history-list", debitNoteId],
+    queryFn: async () => {
+      // Clean up the URL by removing any double slashes
+      return await getData(`${ApDebitNote.history}/${debitNoteId}`)
+    },
+    enabled: !!debitNoteId && debitNoteId !== "0",
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+    gcTime: 10 * 60 * 1000,
+    staleTime: 5 * 60 * 1000,
+    ...options,
+  })
+}
+
+/**
+ * 1.3 Get AP Invoice History Details
+ * @param {string} invoiceId - Invoice ID
+ * @param {string} editVersion - Edit version
+ * @param {object} options - Additional query options
+ * @returns {object} Query object containing invoice history details
+ */
+export function useGetAPDebitNoteHistoryDetails<T>(
+  debitNoteId: string,
+  editVersion: string,
+  options = {}
+) {
+  return useQuery<ApiResponse<T>>({
+    queryKey: ["ap-debitnote-history-details", debitNoteId, editVersion],
+    queryFn: async () => {
+      // Clean up the URL by removing any double slashes
+      return await getData(
+        `${ApDebitNote.historyDetails}/${debitNoteId}/${editVersion}`
+      )
+    },
+    enabled: !!debitNoteId && debitNoteId !== "0",
     refetchOnWindowFocus: false,
     refetchOnMount: false,
     refetchOnReconnect: false,
