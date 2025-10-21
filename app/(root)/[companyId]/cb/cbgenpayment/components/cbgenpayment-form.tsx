@@ -373,6 +373,7 @@ export default function GenPaymentForm({
               label="Transaction Date"
               isRequired={true}
               onChangeEvent={handleTrnDateChange}
+              isFutureShow={false}
             />
           )}
 
@@ -384,6 +385,7 @@ export default function GenPaymentForm({
               label="Account Date"
               isRequired={true}
               onChangeEvent={handleAccountDateChange}
+              isFutureShow={false}
             />
           )}
 
@@ -447,6 +449,7 @@ export default function GenPaymentForm({
               name="chequeDate"
               label="Cheque Date"
               isRequired={true}
+              isFutureShow={true}
             />
           )}
 

@@ -186,6 +186,7 @@ export default function ArapcontraForm({
             label="Transaction Date"
             isRequired={true}
             onChangeEvent={handleTrnDateChange}
+            isFutureShow={false}
           />
         )}
 
@@ -197,6 +198,7 @@ export default function ArapcontraForm({
             label="Account Date"
             isRequired={true}
             onChangeEvent={handleAccountDateChange}
+            isFutureShow={false}
           />
         )}
 

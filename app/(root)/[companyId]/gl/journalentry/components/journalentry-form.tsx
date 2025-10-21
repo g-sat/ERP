@@ -271,6 +271,7 @@ export default function JournalForm({
             label="Transaction Date"
             isRequired={true}
             onChangeEvent={handleTrnDateChange}
+            isFutureShow={false}
           />
         )}
 
@@ -282,6 +283,7 @@ export default function JournalForm({
             label="Account Date"
             isRequired={true}
             onChangeEvent={handleAccountDateChange}
+            isFutureShow={false}
           />
         )}
 

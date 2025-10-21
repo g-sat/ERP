@@ -283,6 +283,7 @@ export default function BatchPaymentForm({
               label="Transaction Date"
               isRequired={true}
               onChangeEvent={handleTrnDateChange}
+              isFutureShow={false}
             />
           )}
 
@@ -294,6 +295,7 @@ export default function BatchPaymentForm({
               label="Account Date"
               isRequired={true}
               onChangeEvent={handleAccountDateChange}
+              isFutureShow={false}
             />
           )}
 

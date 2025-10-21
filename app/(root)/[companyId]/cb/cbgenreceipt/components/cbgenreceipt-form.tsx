@@ -378,6 +378,7 @@ export default function ReceiptForm({
               label="Transaction Date"
               isRequired={true}
               onChangeEvent={handleTrnDateChange}
+              isFutureShow={false}
             />
           )}
 
@@ -389,6 +390,7 @@ export default function ReceiptForm({
               label="Account Date"
               isRequired={true}
               onChangeEvent={handleAccountDateChange}
+              isFutureShow={false}
             />
           )}
 
@@ -452,6 +454,7 @@ export default function ReceiptForm({
               name="chequeDate"
               label="Cheque Date"
               isRequired={true}
+              isFutureShow={true}
             />
           )}
 

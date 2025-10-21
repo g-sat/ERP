@@ -251,6 +251,7 @@ export default function BankTransferCtmForm({
             label="Transaction Date"
             isRequired={true}
             onChangeEvent={handleTrnDateChange}
+            isFutureShow={false}
           />
         )}
 
@@ -262,6 +263,7 @@ export default function BankTransferCtmForm({
             label="Account Date"
             isRequired={true}
             onChangeEvent={handleAccountDateChange}
+            isFutureShow={false}
           />
         )}
 
@@ -316,6 +318,7 @@ export default function BankTransferCtmForm({
             name="chequeDate"
             label="Cheque Date"
             isRequired={true}
+            isFutureShow={true}
           />
         )}
 

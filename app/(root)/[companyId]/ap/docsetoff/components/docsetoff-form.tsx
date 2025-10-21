@@ -420,6 +420,7 @@ export default function PaymentForm({
             label="Transaction Date"
             isRequired={true}
             onChangeEvent={handleTrnDateChange}
+            isFutureShow={false}
           />
         )}
 
@@ -431,6 +432,7 @@ export default function PaymentForm({
             label="Account Date"
             isRequired={true}
             onChangeEvent={handleAccountDateChange}
+            isFutureShow={false}
           />
         )}
 
@@ -509,6 +511,7 @@ export default function PaymentForm({
             name="chequeDate"
             label="Cheque Date"
             isRequired={true}
+            isFutureShow={true}
           />
         )}
 

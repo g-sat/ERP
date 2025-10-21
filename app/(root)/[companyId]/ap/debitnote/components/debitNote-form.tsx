@@ -416,6 +416,7 @@ export default function DebitNoteForm({
               label="Transaction Date"
               isRequired={true}
               onChangeEvent={handleTrnDateChange}
+              isFutureShow={false}
             />
           )}
 
@@ -427,6 +428,7 @@ export default function DebitNoteForm({
               label="Account Date"
               isRequired={true}
               onChangeEvent={handleAccountDateChange}
+              isFutureShow={false}
             />
           )}
 
@@ -470,6 +472,7 @@ export default function DebitNoteForm({
             name="dueDate"
             label="Due Date"
             isRequired={true}
+            isFutureShow={true}
           />
 
           {/* Bank */}
@@ -525,6 +528,7 @@ export default function DebitNoteForm({
               label="Delivery Date"
               isRequired={required?.m_DeliveryDate}
               onChangeEvent={handleDeliveryDateChange}
+              isFutureShow={true}
             />
           )}
 
@@ -535,6 +539,7 @@ export default function DebitNoteForm({
               name="gstClaimDate"
               label="GST Claim Date"
               isRequired={false}
+              isFutureShow={true}
             />
           )}
 

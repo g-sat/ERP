@@ -81,6 +81,7 @@ export default function BankReconForm({
             label="Transaction Date"
             isRequired={true}
             onChangeEvent={handleTrnDateChange}
+            isFutureShow={false}
           />
         )}
 
@@ -91,6 +92,7 @@ export default function BankReconForm({
             name="accountDate"
             label="Account Date"
             isRequired={true}
+            isFutureShow={false}
           />
         )}
 

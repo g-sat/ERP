@@ -416,6 +416,7 @@ export default function CreditNoteForm({
               label="Transaction Date"
               isRequired={true}
               onChangeEvent={handleTrnDateChange}
+              isFutureShow={false}
             />
           )}
 
@@ -427,6 +428,7 @@ export default function CreditNoteForm({
               label="Account Date"
               isRequired={true}
               onChangeEvent={handleAccountDateChange}
+              isFutureShow={false}
             />
           )}
 
@@ -470,6 +472,7 @@ export default function CreditNoteForm({
             name="dueDate"
             label="Due Date"
             isRequired={true}
+            isFutureShow={true}
           />
 
           {/* Bank */}
@@ -525,6 +528,7 @@ export default function CreditNoteForm({
               label="Delivery Date"
               isRequired={required?.m_DeliveryDate}
               onChangeEvent={handleDeliveryDateChange}
+              isFutureShow={true}
             />
           )}
 
@@ -535,6 +539,7 @@ export default function CreditNoteForm({
               name="gstClaimDate"
               label="GST Claim Date"
               isRequired={false}
+              isFutureShow={true}
             />
           )}
 

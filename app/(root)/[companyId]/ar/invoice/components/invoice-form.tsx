@@ -416,6 +416,7 @@ export default function InvoiceForm({
               label="Transaction Date"
               isRequired={true}
               onChangeEvent={handleTrnDateChange}
+              isFutureShow={false}
             />
           )}
 
@@ -528,6 +529,7 @@ export default function InvoiceForm({
               label="Delivery Date"
               isRequired={required?.m_DeliveryDate}
               onChangeEvent={handleDeliveryDateChange}
+              isFutureShow={true}
             />
           )}
 
@@ -538,6 +540,7 @@ export default function InvoiceForm({
               name="gstClaimDate"
               label="GST Claim Date"
               isRequired={false}
+              isFutureShow={true}
             />
           )}
 

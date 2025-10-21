@@ -419,6 +419,7 @@ export default function AdjustmentForm({
               label="Transaction Date"
               isRequired={true}
               onChangeEvent={handleTrnDateChange}
+              isFutureShow={false}
             />
           )}
 
@@ -430,6 +431,7 @@ export default function AdjustmentForm({
               label="Account Date"
               isRequired={true}
               onChangeEvent={handleAccountDateChange}
+              isFutureShow={false}
             />
           )}
 
@@ -473,6 +475,7 @@ export default function AdjustmentForm({
             name="dueDate"
             label="Due Date"
             isRequired={true}
+            isFutureShow={true}
           />
 
           {/* Bank */}
@@ -528,6 +531,7 @@ export default function AdjustmentForm({
               label="Delivery Date"
               isRequired={required?.m_DeliveryDate}
               onChangeEvent={handleDeliveryDateChange}
+              isFutureShow={true}
             />
           )}
 
@@ -538,6 +542,7 @@ export default function AdjustmentForm({
               name="gstClaimDate"
               label="GST Claim Date"
               isRequired={false}
+              isFutureShow={true}
             />
           )}
 
