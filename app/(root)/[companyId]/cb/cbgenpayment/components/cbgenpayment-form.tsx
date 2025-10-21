@@ -569,46 +569,70 @@ export default function GenPaymentForm({
         {/* Summary Box */}
         {/* Right Section: Summary Box */}
         <div className="col-span-2 ml-2 flex flex-col justify-start">
-          <div className="w-full rounded-md border border-blue-200 bg-blue-50 p-4 shadow-sm">
-            <h3 className="mb-2 text-center font-semibold text-blue-800">
-              Financial Summary
-            </h3>
+          <div className="w-full rounded-md border border-blue-200 bg-blue-50 p-3 shadow-sm">
+            {/* Header Row */}
+            <div className="mb-2 grid grid-cols-3 gap-x-4 border-b border-blue-300 pb-2 text-sm">
+              <div className="text-right font-bold text-blue-800">Trns</div>
+              <div className="text-center"></div>
+              <div className="text-right font-bold text-blue-800">Local</div>
+            </div>
 
-            {/* 3-column grid: [Amt] [Label] [Base] */}
-            <div className="grid grid-cols-3 gap-x-2 text-sm">
+            {/* 3-column grid: [Amt] [Label] [Local] */}
+            <div className="grid grid-cols-3 gap-x-4 text-sm">
               {/* Column 1: Foreign Amounts (Amt) */}
               <div className="space-y-1 text-right">
                 <div className="font-medium text-gray-700">
-                  {form.watch("totAmt")?.toLocaleString() || "0"}
+                  {(form.watch("totAmt") || 0).toLocaleString(undefined, {
+                    minimumFractionDigits: amtDec,
+                    maximumFractionDigits: amtDec,
+                  })}
                 </div>
                 <div className="font-medium text-gray-700">
-                  {form.watch("gstAmt")?.toLocaleString() || "0"}
+                  {(form.watch("gstAmt") || 0).toLocaleString(undefined, {
+                    minimumFractionDigits: amtDec,
+                    maximumFractionDigits: amtDec,
+                  })}
                 </div>
                 <hr className="my-1 border-blue-300" />
                 <div className="font-bold text-blue-900">
-                  {form.watch("totAmtAftGst")?.toLocaleString() || "0"}
+                  {(form.watch("totAmtAftGst") || 0).toLocaleString(undefined, {
+                    minimumFractionDigits: amtDec,
+                    maximumFractionDigits: amtDec,
+                  })}
                 </div>
               </div>
 
-              {/* Column 2: Labels ("Amt", "Gst", "Total") */}
+              {/* Column 2: Labels */}
               <div className="space-y-1 text-center">
                 <div className="font-medium text-blue-600">Amt</div>
                 <div className="font-medium text-blue-600">Gst</div>
-                <div></div> {/* Empty spacer for hr alignment */}
+                <div></div>
                 <div className="font-bold text-blue-800">Total</div>
               </div>
 
-              {/* Column 3: Local/Base Amounts */}
+              {/* Column 3: Local Amounts */}
               <div className="space-y-1 text-right">
                 <div className="font-medium text-gray-700">
-                  {form.watch("totLocalAmt")?.toLocaleString() || "0"}
+                  {(form.watch("totLocalAmt") || 0).toLocaleString(undefined, {
+                    minimumFractionDigits: locAmtDec,
+                    maximumFractionDigits: locAmtDec,
+                  })}
                 </div>
                 <div className="font-medium text-gray-700">
-                  {form.watch("gstLocalAmt")?.toLocaleString() || "0"}
+                  {(form.watch("gstLocalAmt") || 0).toLocaleString(undefined, {
+                    minimumFractionDigits: locAmtDec,
+                    maximumFractionDigits: locAmtDec,
+                  })}
                 </div>
                 <hr className="my-1 border-blue-300" />
                 <div className="font-bold text-blue-900">
-                  {form.watch("totLocalAmtAftGst")?.toLocaleString() || "0"}
+                  {(form.watch("totLocalAmtAftGst") || 0).toLocaleString(
+                    undefined,
+                    {
+                      minimumFractionDigits: locAmtDec,
+                      maximumFractionDigits: locAmtDec,
+                    }
+                  )}
                 </div>
               </div>
             </div>

@@ -179,29 +179,28 @@ export default function Main({
         required={required}
         companyId={companyId}
       />
-      
-        <JournalDetailsForm
-          Hdform={form}
-          onAddRowAction={handleAddRow}
-          onCancelEdit={editingDetail ? handleCancelEdit : undefined}
-          editingDetail={editingDetail}
-          companyId={companyId}
-          visible={visible}
-          required={required}
-          existingDetails={dataDetails as GLJournalDtSchemaType[]}
-        />
 
-        <JournalDetailsTable
-          data={(dataDetails as unknown as IGLJournalDt[]) || []}
-          visible={visible}
-          onDelete={handleDelete}
-          onBulkDelete={handleBulkDelete}
-          onEdit={handleEdit as (template: IGLJournalDt) => void}
-          onRefresh={() => {}} // Add refresh logic if needed
-          onFilterChange={() => {}} // Add filter logic if needed
-          onDataReorder={handleDataReorder as (newData: IGLJournalDt[]) => void}
-        />
-      </div>
+      <JournalDetailsForm
+        Hdform={form}
+        onAddRowAction={handleAddRow}
+        onCancelEdit={editingDetail ? handleCancelEdit : undefined}
+        editingDetail={editingDetail}
+        companyId={companyId}
+        visible={visible}
+        required={required}
+        existingDetails={dataDetails as GLJournalDtSchemaType[]}
+      />
+
+      <JournalDetailsTable
+        data={(dataDetails as unknown as IGLJournalDt[]) || []}
+        visible={visible}
+        onDelete={handleDelete}
+        onBulkDelete={handleBulkDelete}
+        onEdit={handleEdit as (template: IGLJournalDt) => void}
+        onRefresh={() => {}} // Add refresh logic if needed
+        onFilterChange={() => {}} // Add filter logic if needed
+        onDataReorder={handleDataReorder as (newData: IGLJournalDt[]) => void}
+      />
     </div>
   )
 }
