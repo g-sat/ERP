@@ -365,8 +365,15 @@ export const setDueDate = async (form: HdForm) => {
       )
 
       const days = res?.data as number
-      const dueDate = addDays(deliveryDate, days)
 
+      // Parse deliveryDate string to Date object before adding days
+      const deliveryDateObj =
+        typeof deliveryDate === "string"
+          ? parse(deliveryDate, clientDateFormat, new Date())
+          : deliveryDate
+
+      const dueDate = addDays(deliveryDateObj, days)
+      console.log("dueDate", dueDate)
       form.setValue("dueDate", format(dueDate, clientDateFormat))
       form.trigger("dueDate")
     } catch {}

@@ -427,6 +427,7 @@ export default function InvoiceForm({
               label="Account Date"
               isRequired={true}
               onChangeEvent={handleAccountDateChange}
+              isFutureShow={false}
             />
           )}
 
@@ -470,6 +471,8 @@ export default function InvoiceForm({
             name="dueDate"
             label="Due Date"
             isRequired={true}
+            isFutureShow={true}
+            minDate={new Date()}
           />
 
           {/* Bank */}
