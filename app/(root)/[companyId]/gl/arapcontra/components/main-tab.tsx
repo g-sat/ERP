@@ -211,53 +211,52 @@ export default function Main({
       />
 
       {/* Details Section */}
-      
-        {/* Control Row */}
-        <div className="mb-4 flex items-center gap-2">
-          <Button onClick={handleAutoAllocation}>Auto Allocation</Button>
-          <Button variant="outline" onClick={handleResetAllocation}>
-            Reset Allocation
-          </Button>
+
+      {/* Control Row */}
+      <div className="mb-4 flex items-center gap-2">
+        <Button onClick={handleAutoAllocation}>Auto Allocation</Button>
+        <Button variant="outline" onClick={handleResetAllocation}>
+          Reset Allocation
+        </Button>
+      </div>
+
+      {/* AP and AR Details Tables Side by Side */}
+      <div className="grid grid-cols-2 gap-4">
+        {/* AR (Customer) Details Section */}
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-semibold">
+              AR Transactions (Customer)
+            </h3>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={handleSelectARTransaction}
+            >
+              Select AR Transaction
+            </Button>
+          </div>
+          <div className="overflow-hidden rounded-md border">
+            <ArDetailsTable data={arTransactions} />
+          </div>
         </div>
 
-        {/* AP and AR Details Tables Side by Side */}
-        <div className="grid grid-cols-2 gap-4">
-          {/* AR (Customer) Details Section */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <h3 className="text-sm font-semibold">
-                AR Transactions (Customer)
-              </h3>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={handleSelectARTransaction}
-              >
-                Select AR Transaction
-              </Button>
-            </div>
-            <div className="overflow-hidden rounded-md border">
-              <ArDetailsTable data={arTransactions} />
-            </div>
+        {/* AP (Supplier) Details Section */}
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-semibold">
+              AP Transactions (Supplier)
+            </h3>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={handleSelectAPTransaction}
+            >
+              Select AP Transaction
+            </Button>
           </div>
-
-          {/* AP (Supplier) Details Section */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <h3 className="text-sm font-semibold">
-                AP Transactions (Supplier)
-              </h3>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={handleSelectAPTransaction}
-              >
-                Select AP Transaction
-              </Button>
-            </div>
-            <div className="overflow-hidden rounded-md border">
-              <ApDetailsTable data={apTransactions} />
-            </div>
+          <div className="overflow-hidden rounded-md border">
+            <ApDetailsTable data={apTransactions} />
           </div>
         </div>
       </div>
