@@ -38,13 +38,22 @@ export default function PaymentDetailsTable({
 }: PaymentDetailsTableProps) {
   const [mounted, setMounted] = useState(false)
   const { decimals } = useAuthStore()
-  const _locAmtDec = decimals[0]?.locAmtDec || 2 // Available for future use
-  const _amtDec = decimals[0]?.amtDec || 2 // Available for future use
+  const amtDec = decimals[0]?.amtDec || 2
+  const locAmtDec = decimals[0]?.locAmtDec || 2
   const exhRateDec = decimals[0]?.exhRateDec || 6
 
   useEffect(() => {
     setMounted(true)
   }, [])
+
+  // Helper function to format numbers with proper decimals
+  const formatNumber = (
+    value: number | string | null | undefined,
+    decimals: number
+  ): string => {
+    const numValue = Number(value) || 0
+    return numValue.toFixed(decimals)
+  }
 
   // Wrapper functions to convert string to number
   const handleDelete = (itemId: string) => {
@@ -95,7 +104,7 @@ export default function PaymentDetailsTable({
       size: 100,
       cell: ({ row }: { row: { original: IApPaymentDt } }) => (
         <div className="text-right">
-          {row.original.docExhRate?.toFixed(exhRateDec) || "0.000000"}
+          {formatNumber(row.original.docExhRate, exhRateDec)}
         </div>
       ),
     },
@@ -109,7 +118,9 @@ export default function PaymentDetailsTable({
       header: "Balance Amt",
       size: 120,
       cell: ({ row }: { row: { original: IApPaymentDt } }) => (
-        <div className="text-right">{row.original.docBalAmt}</div>
+        <div className="text-right">
+          {formatNumber(row.original.docBalAmt, amtDec)}
+        </div>
       ),
     },
     {
@@ -117,13 +128,15 @@ export default function PaymentDetailsTable({
       header: "Balance Local Amt",
       size: 140,
       cell: ({ row }: { row: { original: IApPaymentDt } }) => (
-        <div className="text-right">{row.original.docBalLocalAmt}</div>
+        <div className="text-right">
+          {formatNumber(row.original.docBalLocalAmt, locAmtDec)}
+        </div>
       ),
     },
     {
       accessorKey: "allocAmt",
       header: "Alloc Amt",
-      size: 100,
+      size: 150,
       cell: ({ row }: { row: { original: IApPaymentDt } }) => {
         const docBalAmt = row.original.docBalAmt || 0
         const isNegative = docBalAmt < 0
@@ -132,7 +145,7 @@ export default function PaymentDetailsTable({
           <input
             type="number"
             className="w-full rounded border px-2 py-1 text-right focus:ring-2 focus:ring-blue-500 focus:outline-none"
-            value={row.original.allocAmt || 0}
+            value={formatNumber(row.original.allocAmt, amtDec)}
             onChange={(e) => {
               let value = parseFloat(e.target.value) || 0
 
@@ -161,7 +174,7 @@ export default function PaymentDetailsTable({
     {
       accessorKey: "allocLocalAmt",
       header: "Alloc Local Amt",
-      size: 120,
+      size: 170,
       cell: ({ row }: { row: { original: IApPaymentDt } }) => {
         const docBalLocalAmt = row.original.docBalLocalAmt || 0
         const isNegative = docBalLocalAmt < 0
@@ -170,7 +183,7 @@ export default function PaymentDetailsTable({
           <input
             type="number"
             className="w-full rounded border px-2 py-1 text-right focus:ring-2 focus:ring-blue-500 focus:outline-none"
-            value={row.original.allocLocalAmt || 0}
+            value={formatNumber(row.original.allocLocalAmt, locAmtDec)}
             onChange={(e) => {
               let value = parseFloat(e.target.value) || 0
 
@@ -206,7 +219,9 @@ export default function PaymentDetailsTable({
       header: "Doc Total Amt",
       size: 100,
       cell: ({ row }: { row: { original: IApPaymentDt } }) => (
-        <div className="text-right">{row.original.docTotAmt}</div>
+        <div className="text-right">
+          {formatNumber(row.original.docTotAmt, amtDec)}
+        </div>
       ),
     },
     {
@@ -214,7 +229,9 @@ export default function PaymentDetailsTable({
       header: "Doc Total Local Amt",
       size: 120,
       cell: ({ row }: { row: { original: IApPaymentDt } }) => (
-        <div className="text-right">{row.original.docTotLocalAmt}</div>
+        <div className="text-right">
+          {formatNumber(row.original.docTotLocalAmt, locAmtDec)}
+        </div>
       ),
     },
 
@@ -223,7 +240,9 @@ export default function PaymentDetailsTable({
       header: "Doc Alloc Amt",
       size: 120,
       cell: ({ row }: { row: { original: IApPaymentDt } }) => (
-        <div className="text-right">{row.original.docAllocAmt}</div>
+        <div className="text-right">
+          {formatNumber(row.original.docAllocAmt, amtDec)}
+        </div>
       ),
     },
     {
@@ -231,7 +250,9 @@ export default function PaymentDetailsTable({
       header: "Doc Alloc Local Amt",
       size: 140,
       cell: ({ row }: { row: { original: IApPaymentDt } }) => (
-        <div className="text-right">{row.original.docAllocLocalAmt}</div>
+        <div className="text-right">
+          {formatNumber(row.original.docAllocLocalAmt, locAmtDec)}
+        </div>
       ),
     },
     {
@@ -239,7 +260,9 @@ export default function PaymentDetailsTable({
       header: "Cent Diff",
       size: 80,
       cell: ({ row }: { row: { original: IApPaymentDt } }) => (
-        <div className="text-right">{row.original.centDiff}</div>
+        <div className="text-right">
+          {formatNumber(row.original.centDiff, locAmtDec)}
+        </div>
       ),
     },
     {
@@ -247,7 +270,9 @@ export default function PaymentDetailsTable({
       header: "Exh Gain/Loss",
       size: 100,
       cell: ({ row }: { row: { original: IApPaymentDt } }) => (
-        <div className="text-right">{row.original.exhGainLoss}</div>
+        <div className="text-right">
+          {formatNumber(row.original.exhGainLoss, amtDec)}
+        </div>
       ),
     },
     {

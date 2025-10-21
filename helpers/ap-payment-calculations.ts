@@ -140,3 +140,50 @@ export const recalculateAllDetailAmounts = (
     recalculateDetailAmounts(detail, exchangeRate, decimals)
   )
 }
+
+/**
+ * Calculate allocation amounts and exchange gain/loss for auto-allocated transactions
+ */
+export const calculateAllocationAmounts = (
+  allocAmt: number,
+  exhRate: number,
+  docExhRate: number,
+  docTotLocalAmt: number,
+  decimals: IDecimal
+) => {
+  // Calculate allocation amounts
+  const allocLocalAmt = mathRound(allocAmt * exhRate, decimals.locAmtDec)
+  const docAllocAmt = allocAmt
+  const docAllocLocalAmt = mathRound(allocAmt * docExhRate, decimals.locAmtDec)
+
+  // Calculate cent difference
+  const centDiff = mathRound(
+    docAllocLocalAmt - docTotLocalAmt,
+    decimals.locAmtDec
+  )
+
+  // Exchange gain/loss equals cent difference
+  const exhGainLoss = centDiff
+
+  return {
+    allocLocalAmt,
+    docAllocAmt,
+    docAllocLocalAmt,
+    centDiff,
+    exhGainLoss,
+  }
+}
+
+/**
+ * Calculate total exchange gain/loss from all details
+ */
+export const calculateTotalExchangeGainLoss = (
+  details: IApPaymentDt[],
+  decimals: IDecimal
+) => {
+  const totalExhGainLoss = details.reduce((sum, detail) => {
+    return sum + (Number(detail.exhGainLoss) || 0)
+  }, 0)
+
+  return mathRound(totalExhGainLoss, decimals.amtDec)
+}

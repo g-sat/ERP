@@ -2,6 +2,10 @@
 "use client"
 
 import { useCallback, useEffect, useRef, useState } from "react"
+import {
+  calculateAllocationAmounts,
+  calculateTotalExchangeGainLoss,
+} from "@/helpers/ap-payment-calculations"
 import { IApOutTransaction, IApPaymentDt } from "@/interfaces"
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
 import {
@@ -45,6 +49,9 @@ export default function Main({
 
   // State for transaction selection dialog
   const [showTransactionDialog, setShowTransactionDialog] = useState(false)
+
+  // State for allocation status
+  const [isAllocated, setIsAllocated] = useState(false)
   const dialogParamsRef = useRef<{
     supplierId: number
     currencyId: number
@@ -77,6 +84,42 @@ export default function Main({
       dialogParamsRef.current = null
     }
   }, [showTransactionDialog])
+
+  // Update header exhGainLoss when details change
+  useEffect(() => {
+    if (dataDetails.length > 0) {
+      const totalExhGainLoss = calculateTotalExchangeGainLoss(
+        dataDetails as unknown as IApPaymentDt[],
+        decimals[0] || {
+          amtDec: 2,
+          locAmtDec: 2,
+          ctyAmtDec: 2,
+          priceDec: 2,
+          qtyDec: 2,
+          exhRateDec: 4,
+          dateFormat: "DD/MM/YYYY",
+          longDateFormat: "DD/MM/YYYY",
+        }
+      )
+      form.setValue("exhGainLoss", totalExhGainLoss)
+    } else {
+      form.setValue("exhGainLoss", 0)
+    }
+  }, [dataDetails, form, decimals])
+
+  // Check allocation status when data details change
+  useEffect(() => {
+    if (dataDetails.length === 0) {
+      setIsAllocated(false)
+      return
+    }
+
+    // Check if any detail has allocation amounts > 0
+    const hasAllocations = dataDetails.some(
+      (detail) => (detail.allocAmt || 0) > 0 || (detail.allocLocalAmt || 0) > 0
+    )
+    setIsAllocated(hasAllocations)
+  }, [dataDetails])
 
   // Watch currency and payment total fields
   const currencyId = form.watch("currencyId")
@@ -263,8 +306,24 @@ export default function Main({
 
       // Step 4: Update payment total local amount (sync with totLocalAmt)
       form.setValue("payTotLocalAmt", totLocalAmt)
+
+      // Step 5: Calculate and update total exchange gain/loss from all details
+      const totalExhGainLoss = calculateTotalExchangeGainLoss(
+        dataDetails as unknown as IApPaymentDt[],
+        decimals[0] || {
+          amtDec: 2,
+          locAmtDec: 2,
+          ctyAmtDec: 2,
+          priceDec: 2,
+          qtyDec: 2,
+          exhRateDec: 4,
+          dateFormat: "DD/MM/YYYY",
+          longDateFormat: "DD/MM/YYYY",
+        }
+      )
+      form.setValue("exhGainLoss", totalExhGainLoss)
     },
-    [form]
+    [form, dataDetails, decimals]
   )
 
   // Helper: Reset header amounts
@@ -274,16 +333,47 @@ export default function Main({
   }, [updatePaymentHeaderAmounts])
 
   // Helper: Full allocation (Case 1: totAmt = 0)
-  const allocateFullAmounts = useCallback((data: ApPaymentDtSchemaType[]) => {
-    // Step 1: Map through each payment detail item
-    // Step 2: Assign full docBalAmt to allocAmt for each item
-    // Step 3: Assign full docBalLocalAmt to allocLocalAmt for each item
-    return data.map((item) => ({
-      ...item,
-      allocAmt: item.docBalAmt || 0,
-      allocLocalAmt: item.docBalLocalAmt || 0,
-    }))
-  }, [])
+  const allocateFullAmounts = useCallback(
+    (data: ApPaymentDtSchemaType[]) => {
+      // Step 1: Map through each payment detail item
+      // Step 2: Assign full docBalAmt to allocAmt for each item
+      // Step 3: Assign full docBalLocalAmt to allocLocalAmt for each item
+      // Step 4: Calculate allocation amounts and exchange gain/loss
+      return data.map((item) => {
+        const allocAmt = item.docBalAmt || 0
+        const allocLocalAmt = item.docBalLocalAmt || 0
+
+        // Calculate allocation amounts using the new function
+        const allocationResults = calculateAllocationAmounts(
+          allocAmt,
+          item.docExhRate || 1, // Use document exchange rate
+          item.docExhRate || 1, // Use document exchange rate for docExhRate
+          item.docTotLocalAmt || 0,
+          decimals[0] || {
+            amtDec: 2,
+            locAmtDec: 2,
+            ctyAmtDec: 2,
+            priceDec: 2,
+            qtyDec: 2,
+            exhRateDec: 4,
+            dateFormat: "DD/MM/YYYY",
+            longDateFormat: "DD/MM/YYYY",
+          }
+        )
+
+        return {
+          ...item,
+          allocAmt,
+          allocLocalAmt,
+          docAllocAmt: allocationResults.docAllocAmt,
+          docAllocLocalAmt: allocationResults.docAllocLocalAmt,
+          centDiff: allocationResults.centDiff,
+          exhGainLoss: allocationResults.exhGainLoss,
+        }
+      })
+    },
+    [decimals]
+  )
 
   // Helper: Proportional allocation (Case 2: totAmt > 0)
   const allocateProportionally = useCallback(
@@ -343,11 +433,37 @@ export default function Main({
         remainingAmt -= allocAmt
         remainingLocalAmt -= allocLocalAmt
 
-        // Step 7: Return updated item with allocated amounts
-        return { ...item, allocAmt, allocLocalAmt }
+        // Step 7: Calculate allocation amounts and exchange gain/loss
+        const allocationResults = calculateAllocationAmounts(
+          allocAmt,
+          item.docExhRate || 1, // Use document exchange rate
+          item.docExhRate || 1, // Use document exchange rate for docExhRate
+          item.docTotLocalAmt || 0,
+          decimals[0] || {
+            amtDec: 2,
+            locAmtDec: 2,
+            ctyAmtDec: 2,
+            priceDec: 2,
+            qtyDec: 2,
+            exhRateDec: 4,
+            dateFormat: "DD/MM/YYYY",
+            longDateFormat: "DD/MM/YYYY",
+          }
+        )
+
+        // Step 8: Return updated item with allocated amounts and calculated values
+        return {
+          ...item,
+          allocAmt,
+          allocLocalAmt,
+          docAllocAmt: allocationResults.docAllocAmt,
+          docAllocLocalAmt: allocationResults.docAllocLocalAmt,
+          centDiff: allocationResults.centDiff,
+          exhGainLoss: allocationResults.exhGainLoss,
+        }
       })
     },
-    []
+    [decimals]
   )
 
   // Main Auto Allocation Function
@@ -380,7 +496,8 @@ export default function Main({
       // Step 6a: Update all header amounts (totAmt, totLocalAmt, payTotAmt, payTotLocalAmt)
       updatePaymentHeaderAmounts(totalAllocAmt, totalAllocLocalAmt)
 
-      // Step 7a: Show success message
+      // Step 7a: Set allocation status and show success message
+      setIsAllocated(true)
       toast.success("Auto allocation completed")
       return
     }
@@ -413,7 +530,8 @@ export default function Main({
     form.setValue("payTotAmt", totAmt)
     form.setValue("payTotLocalAmt", totLocalAmt)
 
-    // Step 9b: Show success message
+    // Step 9b: Set allocation status and show success message
+    setIsAllocated(true)
     toast.success("Auto allocation completed")
   }, [
     form,
@@ -440,6 +558,10 @@ export default function Main({
       ...item,
       allocAmt: 0,
       allocLocalAmt: 0,
+      docAllocAmt: 0,
+      docAllocLocalAmt: 0,
+      centDiff: 0,
+      exhGainLoss: 0,
     }))
 
     // Step 4: Update form with reset detail data
@@ -451,7 +573,8 @@ export default function Main({
     // Step 5: Reset all header amounts (totAmt, totLocalAmt, payTotAmt, payTotLocalAmt) to 0
     resetHeaderAmounts()
 
-    // Step 6: Show success message with count of reset allocations
+    // Step 6: Reset allocation status and show success message
+    setIsAllocated(false)
     toast.success(
       `Reset ${currentData.length} allocation(s) and all header amounts to 0`
     )
@@ -564,12 +687,23 @@ export default function Main({
         companyId={companyId}
       />
 
-      <div className="p-2">
+      <div className="px-2 pt-1">
         {/* Control Row */}
-        <div className="mb-4 flex items-center gap-2">
+        <div className="mb-2 flex items-center gap-2">
           <Button onClick={handleSelectTransaction}>Select Transaction</Button>
-          <Button onClick={handleAutoAllocation}>Auto Allocation</Button>
-          <Button variant="destructive" onClick={handleResetAllocation}>
+          <Button
+            onClick={handleAutoAllocation}
+            disabled={isAllocated}
+            className={isAllocated ? "cursor-not-allowed opacity-50" : ""}
+          >
+            Auto Allocation
+          </Button>
+          <Button
+            variant="destructive"
+            onClick={handleResetAllocation}
+            disabled={!isAllocated}
+            className={!isAllocated ? "cursor-not-allowed opacity-50" : ""}
+          >
             Reset Allocation
           </Button>
           <Badge
