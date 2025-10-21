@@ -185,34 +185,33 @@ export default function Main({
         companyId={companyId}
         defaultCurrencyId={defaults.cb.currencyId}
       />
-      <div className="rounded-lg border p-4 shadow-sm">
-        <ReceiptDetailsForm
-          Hdform={form}
-          onAddRowAction={handleAddRow}
-          onCancelEdit={editingDetail ? handleCancelEdit : undefined}
-          editingDetail={editingDetail}
-          companyId={companyId}
-          visible={visible}
-          required={required}
-          existingDetails={dataDetails as CbGenReceiptDtSchemaType[]}
-          defaultGlId={0}
-          defaultUomId={defaults.common.uomId}
-          defaultGstId={defaults.common.gstId}
-        />
 
-        <ReceiptDetailsTable
-          data={(dataDetails as unknown as ICbGenReceiptDt[]) || []}
-          visible={visible}
-          onDelete={handleDelete}
-          onBulkDelete={handleBulkDelete}
-          onEdit={handleEdit as (template: ICbGenReceiptDt) => void}
-          onRefresh={() => {}} // Add refresh logic if needed
-          onFilterChange={() => {}} // Add filter logic if needed
-          onDataReorder={
-            handleDataReorder as (newData: ICbGenReceiptDt[]) => void
-          }
-        />
-      </div>
+      <ReceiptDetailsForm
+        Hdform={form}
+        onAddRowAction={handleAddRow}
+        onCancelEdit={editingDetail ? handleCancelEdit : undefined}
+        editingDetail={editingDetail}
+        companyId={companyId}
+        visible={visible}
+        required={required}
+        existingDetails={dataDetails as CbGenReceiptDtSchemaType[]}
+        defaultGlId={0}
+        defaultUomId={defaults.common.uomId}
+        defaultGstId={defaults.common.gstId}
+      />
+
+      <ReceiptDetailsTable
+        data={(dataDetails as unknown as ICbGenReceiptDt[]) || []}
+        visible={visible}
+        onDelete={handleDelete}
+        onBulkDelete={handleBulkDelete}
+        onEdit={handleEdit as (template: ICbGenReceiptDt) => void}
+        onRefresh={() => {}} // Add refresh logic if needed
+        onFilterChange={() => {}} // Add filter logic if needed
+        onDataReorder={
+          handleDataReorder as (newData: ICbGenReceiptDt[]) => void
+        }
+      />
     </div>
   )
 }

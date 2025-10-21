@@ -179,7 +179,7 @@ export default function Main({
         required={required}
         companyId={companyId}
       />
-      <div className="rounded-lg border p-4 shadow-sm">
+      
         <JournalDetailsForm
           Hdform={form}
           onAddRowAction={handleAddRow}

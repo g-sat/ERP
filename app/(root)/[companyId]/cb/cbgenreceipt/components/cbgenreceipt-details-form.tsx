@@ -32,6 +32,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { FormProvider, UseFormReturn, useForm } from "react-hook-form"
 import { toast } from "sonner"
 
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
   BargeAutocomplete,
@@ -688,12 +689,6 @@ export default function ReceiptDetailsForm({
 
   return (
     <>
-      <h2 className="text-xl font-semibold">
-        {editingDetail
-          ? `Details (Edit - Item ${editingDetail.itemNo})`
-          : "Details (New)"}
-      </h2>
-
       {/* Display form errors */}
       {Object.keys(form.formState.errors).length > 0 && (
         <div className="mx-2 mb-2 rounded-md border border-red-200 bg-red-50 p-3">
@@ -714,8 +709,25 @@ export default function ReceiptDetailsForm({
       <FormProvider {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit)}
-          className="grid w-full grid-cols-7 gap-2 p-2"
+          className="-mt-2 mb-4 grid w-full grid-cols-7 gap-2 p-2"
         >
+          {/* Section Header */}
+          <div className="col-span-7 mb-1">
+            <div className="flex items-center gap-3">
+              <Badge
+                variant="secondary"
+                className={`px-3 py-1 text-sm font-medium ${
+                  editingDetail
+                    ? "bg-orange-100 text-orange-800 hover:bg-orange-200"
+                    : "bg-blue-100 text-blue-800 hover:bg-blue-200"
+                }`}
+              >
+                {editingDetail
+                  ? `Details (Edit Mode - Item No. ${editingDetail.itemNo})`
+                  : "Details (Add New)"}
+              </Badge>
+            </div>
+          </div>
           {/* Item No */}
           <CustomNumberInput
             form={form}

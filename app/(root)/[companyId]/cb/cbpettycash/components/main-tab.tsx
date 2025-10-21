@@ -182,34 +182,31 @@ export default function Main({
         companyId={companyId}
         defaultCurrencyId={defaults.cb.currencyId}
       />
-      <div className="rounded-lg border p-4 shadow-sm">
-        <PettyCashDetailsForm
-          Hdform={form}
-          onAddRowAction={handleAddRow}
-          onCancelEdit={editingDetail ? handleCancelEdit : undefined}
-          editingDetail={editingDetail}
-          companyId={companyId}
-          visible={visible}
-          required={required}
-          existingDetails={dataDetails as CbPettyCashDtSchemaType[]}
-          defaultGlId={0}
-          defaultUomId={defaults.common.uomId}
-          defaultGstId={defaults.common.gstId}
-        />
 
-        <PettyCashDetailsTable
-          data={(dataDetails as unknown as ICbPettyCashDt[]) || []}
-          visible={visible}
-          onDelete={handleDelete}
-          onBulkDelete={handleBulkDelete}
-          onEdit={handleEdit as (template: ICbPettyCashDt) => void}
-          onRefresh={() => {}} // Add refresh logic if needed
-          onFilterChange={() => {}} // Add filter logic if needed
-          onDataReorder={
-            handleDataReorder as (newData: ICbPettyCashDt[]) => void
-          }
-        />
-      </div>
+      <PettyCashDetailsForm
+        Hdform={form}
+        onAddRowAction={handleAddRow}
+        onCancelEdit={editingDetail ? handleCancelEdit : undefined}
+        editingDetail={editingDetail}
+        companyId={companyId}
+        visible={visible}
+        required={required}
+        existingDetails={dataDetails as CbPettyCashDtSchemaType[]}
+        defaultGlId={0}
+        defaultUomId={defaults.common.uomId}
+        defaultGstId={defaults.common.gstId}
+      />
+
+      <PettyCashDetailsTable
+        data={(dataDetails as unknown as ICbPettyCashDt[]) || []}
+        visible={visible}
+        onDelete={handleDelete}
+        onBulkDelete={handleBulkDelete}
+        onEdit={handleEdit as (template: ICbPettyCashDt) => void}
+        onRefresh={() => {}} // Add refresh logic if needed
+        onFilterChange={() => {}} // Add filter logic if needed
+        onDataReorder={handleDataReorder as (newData: ICbPettyCashDt[]) => void}
+      />
     </div>
   )
 }

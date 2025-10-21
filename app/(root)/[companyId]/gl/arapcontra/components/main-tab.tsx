@@ -211,7 +211,7 @@ export default function Main({
       />
 
       {/* Details Section */}
-      <div className="rounded-lg border p-4 shadow-sm">
+      
         {/* Control Row */}
         <div className="mb-4 flex items-center gap-2">
           <Button onClick={handleAutoAllocation}>Auto Allocation</Button>
