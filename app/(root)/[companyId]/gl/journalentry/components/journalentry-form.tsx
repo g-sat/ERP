@@ -337,6 +337,7 @@ export default function JournalForm({
             name="gstClaimDate"
             label="GST Claim Date"
             isRequired={false}
+            isFutureShow={true}
           />
         )}
 

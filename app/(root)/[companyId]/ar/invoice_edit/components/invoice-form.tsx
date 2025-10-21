@@ -29,9 +29,9 @@ import { ArInvoiceDtSchemaType, ArInvoiceHdSchemaType } from "@/schemas/invoice"
 import { useAuthStore } from "@/stores/auth-store"
 import { FormProvider, UseFormReturn } from "react-hook-form"
 
-import { CompanyCustomerAutocomplete } from "@/components/autocomplete"
 import {
   BankAutocomplete,
+  CompanyCustomerAutocomplete,
   CreditTermAutocomplete,
   CurrencyAutocomplete,
 } from "@/components/autocomplete"
@@ -337,6 +337,7 @@ export default function InvoiceForm({
             label="Transaction Date"
             isRequired={true}
             onChangeEvent={handleTrnDateChange}
+            isFutureShow={false}
           />
         )}
 
@@ -348,6 +349,7 @@ export default function InvoiceForm({
             label="Account Date"
             isRequired={true}
             onChangeEvent={handleAccountDateChange}
+            isFutureShow={false}
           />
         )}
 
@@ -379,6 +381,7 @@ export default function InvoiceForm({
           name="dueDate"
           label="Due Date"
           isRequired={true}
+          isFutureShow={true}
         />
 
         {/* Bank */}
@@ -430,10 +433,16 @@ export default function InvoiceForm({
           name="deliveryDate"
           label="Delivery Date"
           onChangeEvent={handleDeliveryDateChange}
+          isFutureShow={true}
         />
 
         {/* GST Claim Date */}
-        <CustomDateNew form={form} name="gstClaimDate" label="GST Claim Date" />
+        <CustomDateNew
+          form={form}
+          name="gstClaimDate"
+          label="GST Claim Date"
+          isFutureShow={true}
+        />
 
         {/* Total Amount */}
         <CustomNumberInput

@@ -500,6 +500,7 @@ export default function ReceiptForm({
               name="gstClaimDate"
               label="GST Claim Date"
               isRequired={false}
+              isFutureShow={true}
             />
           )}
 

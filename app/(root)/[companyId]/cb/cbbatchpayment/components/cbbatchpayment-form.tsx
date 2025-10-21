@@ -360,6 +360,7 @@ export default function BatchPaymentForm({
               name="gstClaimDate"
               label="GST Claim Date"
               isRequired={false}
+              isFutureShow={true}
             />
           )}
 

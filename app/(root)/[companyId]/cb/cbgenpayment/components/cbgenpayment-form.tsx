@@ -495,6 +495,7 @@ export default function GenPaymentForm({
               name="gstClaimDate"
               label="GST Claim Date"
               isRequired={false}
+              isFutureShow={true}
             />
           )}
 

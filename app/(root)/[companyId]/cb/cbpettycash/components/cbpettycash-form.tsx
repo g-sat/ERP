@@ -494,6 +494,7 @@ export default function PettyCashForm({
             name="gstClaimDate"
             label="GST Claim Date"
             isRequired={false}
+            isFutureShow={true}
           />
         )}
 
