@@ -184,8 +184,8 @@ export enum OperationsTransactionId {
 
 export enum ARTransactionId {
   invoice = 1,
-  debitnote = 2,
-  creditnote = 3,
+  debitNote = 2,
+  creditNote = 3,
   adjustment = 4,
   receipt = 5,
   refund = 6,
@@ -433,6 +433,7 @@ export enum TableName {
   arDebitNoteDt = "arDebitNoteDt",
   arCreditNote = "arCreditNote",
   arCreditNoteDt = "arCreditNoteDt",
+  arCreditNoteHistory = "arCreditNoteHistory",
   arAdjustment = "arAdjustment",
   arAdjustmentDt = "arAdjustmentDt",
   arReceipt = "arReceipt",

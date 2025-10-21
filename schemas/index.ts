@@ -60,6 +60,7 @@ export * from "./worklocation"
 
 // AR schemas
 export * from "./ar-receipt"
+export * from "./ar-creditNote"
 
 // AP schemas
 export * from "./ap-invoice"

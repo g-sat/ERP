@@ -71,6 +71,7 @@ export * from "./worklocation"
 
 //account-ar
 export * from "./ar-receipt"
+export * from "./ar-creditNote"
 
 //account-ap
 export * from "./ap-invoice"

@@ -625,7 +625,7 @@ export default function ReceiptForm({
           name="remarks"
           label="Remarks"
           isRequired={required?.m_Remarks_Hd}
-          className="col-span-2"
+          //className="col-span-2"
         />
       </form>
     </FormProvider>
