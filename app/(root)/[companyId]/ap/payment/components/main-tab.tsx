@@ -1,7 +1,7 @@
 // main-tab.tsx - IMPROVED VERSION
 "use client"
 
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import {
   calculateAllocationAmounts,
   calculateTotalExchangeGainLoss,
@@ -53,17 +53,11 @@ export default function Main({
   } | null>(null)
 
   // Watch data_details for reactive updates
-  const dataDetails = form.watch("data_details") || []
+  const dataDetails = useMemo(() => form.watch("data_details") || [], [form])
 
-  // Calculate sum of allocAmt and allocLocalAmt
-  const totalAllocAmt = dataDetails.reduce(
-    (sum, item) => sum + (item.allocAmt || 0),
-    0
-  )
-  const totalAllocLocalAmt = dataDetails.reduce(
-    (sum, item) => sum + (item.allocLocalAmt || 0),
-    0
-  )
+  // Watch header allocation totals
+  const allocTotAmt = form.watch("allocTotAmt") || 0
+  const allocTotLocalAmt = form.watch("allocTotLocalAmt") || 0
 
   // Clear dialog params when dialog closes
   useEffect(() => {
@@ -199,9 +193,14 @@ export default function Main({
         (sum, item) => sum + (item.allocLocalAmt || 0),
         0
       )
+
+      // Update header allocation totals
+      form.setValue("allocTotAmt", totalAllocAmt)
+      form.setValue("allocTotLocalAmt", totalAllocLocalAmt)
+
       return { totalAllocAmt, totalAllocLocalAmt }
     },
-    []
+    [form]
   )
 
   // 4. Update Header Amounts
@@ -219,6 +218,12 @@ export default function Main({
       form.setValue("totLocalAmt", headerTotLocalAmt)
       form.setValue("payTotAmt", headerTotAmt)
       form.setValue("payTotLocalAmt", headerTotLocalAmt)
+
+      // Calculate unallocated amounts
+      const unAllocTotAmt = headerTotAmt - totalAllocAmt
+      const unAllocTotLocalAmt = headerTotLocalAmt - totalAllocLocalAmt
+      form.setValue("unAllocTotAmt", unAllocTotAmt)
+      form.setValue("unAllocTotLocalAmt", unAllocTotLocalAmt)
 
       // Calculate and update exchange gain/loss
       const totalExhGainLoss = calculateTotalExchangeGainLoss(
@@ -307,6 +312,10 @@ export default function Main({
     form.setValue("payTotAmt", 0)
     form.setValue("payTotLocalAmt", 0)
     form.setValue("exhGainLoss", 0)
+    form.setValue("allocTotAmt", 0)
+    form.setValue("allocTotLocalAmt", 0)
+    form.setValue("unAllocTotAmt", 0)
+    form.setValue("unAllocTotLocalAmt", 0)
   }, [form])
 
   // Helper: Full allocation (Case 1: totAmt = 0)
@@ -607,13 +616,13 @@ export default function Main({
             variant="secondary"
             className="border-blue-200 bg-blue-100 px-3 py-1 text-sm font-medium text-blue-800"
           >
-            Total Alloc: {totalAllocAmt.toFixed(amtDec)}
+            Total Alloc: {allocTotAmt.toFixed(amtDec)}
           </Badge>
           <Badge
             variant="outline"
             className="border-green-200 bg-green-50 px-3 py-1 text-sm font-medium text-green-800"
           >
-            Total Local: {totalAllocLocalAmt.toFixed(locAmtDec)}
+            Total Local: {allocTotLocalAmt.toFixed(locAmtDec)}
           </Badge>
         </div>
         <PaymentDetailsTable

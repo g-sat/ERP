@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { useCallback } from "react"
 import {
   setDueDate,
   setExchangeRate,
@@ -107,18 +108,107 @@ export default function PaymentForm({
     }
   }, [form, paymentTypes])
 
-  // Watch totAmt and auto-clear related fields when set to 0
-  const totAmt = form.watch("totAmt")
+  // ==================== REUSABLE CALCULATION FUNCTIONS ====================
 
-  React.useEffect(() => {
-    // Step 1: Check if totAmt is 0
-    if (totAmt === 0) {
-      // Step 2: Clear all related total fields
-      form.setValue("totLocalAmt", 0, { shouldDirty: true })
-      form.setValue("payTotAmt", 0, { shouldDirty: true })
-      form.setValue("payTotLocalAmt", 0, { shouldDirty: true })
-    }
-  }, [totAmt, form])
+  // 1. Clear all total fields
+  const clearAllTotals = useCallback(() => {
+    form.setValue("totLocalAmt", 0, { shouldDirty: true })
+    form.setValue("payTotAmt", 0, { shouldDirty: true })
+    form.setValue("payTotLocalAmt", 0, { shouldDirty: true })
+    form.setValue("unAllocTotAmt", 0, { shouldDirty: true })
+    form.setValue("unAllocTotLocalAmt", 0, { shouldDirty: true })
+  }, [form])
+
+  // 2. Calculate unallocated amounts
+  const calculateUnallocatedAmounts = useCallback(
+    (
+      totAmt: number,
+      totLocalAmt: number,
+      allocTotAmt: number,
+      allocTotLocalAmt: number
+    ) => {
+      const unAllocTotAmt = totAmt - allocTotAmt
+      const unAllocTotLocalAmt = totLocalAmt - allocTotLocalAmt
+      form.setValue("unAllocTotAmt", unAllocTotAmt, { shouldDirty: true })
+      form.setValue("unAllocTotLocalAmt", unAllocTotLocalAmt, {
+        shouldDirty: true,
+      })
+    },
+    [form]
+  )
+
+  // 3. Handle totAmt changes (same currencies)
+  const handleTotAmtChange = useCallback(
+    (
+      totAmt: number,
+      exhRate: number,
+      allocTotAmt: number,
+      allocTotLocalAmt: number
+    ) => {
+      if (totAmt === 0) {
+        clearAllTotals()
+        return
+      }
+
+      if (totAmt > 0 && exhRate > 0 && areCurrenciesSame) {
+        // totLocalAmt = totAmt * exhRate
+        const totLocalAmt = totAmt * exhRate
+        form.setValue("totLocalAmt", totLocalAmt, { shouldDirty: true })
+
+        // payTotAmt = totAmt & payTotLocalAmt = totLocalAmt
+        form.setValue("payTotAmt", totAmt, { shouldDirty: true })
+        form.setValue("payTotLocalAmt", totLocalAmt, { shouldDirty: true })
+
+        // Calculate unallocated amounts
+        calculateUnallocatedAmounts(
+          totAmt,
+          totLocalAmt,
+          allocTotAmt,
+          allocTotLocalAmt
+        )
+      }
+    },
+    [form, areCurrenciesSame, clearAllTotals, calculateUnallocatedAmounts]
+  )
+
+  // 4. Handle payTotAmt changes (different currencies)
+  const handlePayTotAmtChange = useCallback(
+    (
+      payTotAmt: number,
+      payExhRate: number,
+      exhRate: number,
+      allocTotAmt: number,
+      allocTotLocalAmt: number
+    ) => {
+      if (payTotAmt > 0 && payExhRate > 0 && !areCurrenciesSame) {
+        // payTotLocalAmt = payTotAmt * payExhRate
+        const payTotLocalAmt = payTotAmt * payExhRate
+        form.setValue("payTotLocalAmt", payTotLocalAmt, { shouldDirty: true })
+
+        // totAmt = (payTotLocalAmt / exhRate) & totLocalAmt = payTotLocalAmt
+        const totAmt = payTotLocalAmt / exhRate
+        form.setValue("totAmt", totAmt, { shouldDirty: true })
+        form.setValue("totLocalAmt", payTotLocalAmt, { shouldDirty: true })
+
+        // Calculate unallocated amounts
+        calculateUnallocatedAmounts(
+          totAmt,
+          payTotLocalAmt,
+          allocTotAmt,
+          allocTotLocalAmt
+        )
+      }
+    },
+    [form, areCurrenciesSame, calculateUnallocatedAmounts]
+  )
+
+  // ==================== WATCHERS AND EFFECTS ====================
+
+  // Note: Form values are now accessed directly in field handlers to prevent infinite loops
+
+  // Note: Automatic useEffect calculations removed to prevent infinite loops
+  // Calculations now only happen on field blur events via handleTotAmtFieldChange,
+  // handlePayTotAmtFieldChange, and handlePayExhRateFieldChange
 
   // Watch accountDate and sync to chequeDate if chequeDate is empty
   const accountDate = form.watch("accountDate")
@@ -318,69 +408,10 @@ export default function PaymentForm({
     form.setValue("totLocalAmt", localAmounts.totLocalAmt)
   }, [amtDec, form, locAmtDec])
 
-  // Handle currency selection
-  const handleCurrencyChange = React.useCallback(
-    async (selectedCurrency: ICurrencyLookup | null) => {
-      // Additional logic when currency changes
-      const currencyId = selectedCurrency?.currencyId || 0
-      const accountDate = form.getValues("accountDate")
-
-      if (currencyId && accountDate) {
-        // First update exchange rates
-        await setExchangeRate(form, exhRateDec, visible)
-        if (visible?.m_CtyCurr) {
-          await setExchangeRateLocal(form, exhRateDec)
-        }
-
-        // Get current details and ensure they exist
-        const formDetails = form.getValues("data_details")
-        if (!formDetails || formDetails.length === 0) {
-          return
-        }
-
-        // Get updated exchange rates
-        const exchangeRate = form.getValues("exhRate") || 0
-
-        // Recalculate all details with new exchange rates
-        const updatedDetails = recalculateAllDetailAmounts(
-          formDetails as unknown as IApPaymentDt[],
-          exchangeRate,
-          decimals[0]
-        )
-
-        // Update form with recalculated details
-        form.setValue(
-          "data_details",
-          updatedDetails as unknown as ApPaymentDtSchemaType[],
-          { shouldDirty: true, shouldTouch: true }
-        )
-
-        // Recalculate header totals from updated details
-        recalculateHeaderTotals()
-      }
-
-      // Update currency comparison state
-      updateCurrencyComparison()
-
-      // Check if payTotAmt should be enabled
-      const _shouldEnablePayTotAmt = checkPayTotAmtEnable()
-    },
-    [
-      decimals,
-      exhRateDec,
-      form,
-      recalculateHeaderTotals,
-      visible,
-      checkPayTotAmtEnable,
-      updateCurrencyComparison,
-    ]
-  )
-
-  // Handle exchange rate change
-  const handleExchangeRateChange = React.useCallback(
-    (e: React.FocusEvent<HTMLInputElement>) => {
+  // 5. Recalculate details with new exchange rate
+  const recalculateDetailsWithExchangeRate = useCallback(
+    (exchangeRate: number) => {
       const formDetails = form.getValues("data_details")
-      const exchangeRate = parseFloat(e.target.value) || 0
 
       if (!formDetails || formDetails.length === 0) {
         return
@@ -404,6 +435,115 @@ export default function PaymentForm({
       recalculateHeaderTotals()
     },
     [decimals, form, recalculateHeaderTotals]
+  )
+
+  // 6. Handle currency change with recalculations
+  const handleCurrencyChangeWithRecalc = useCallback(
+    async (currencyId: number, accountDate: string | Date) => {
+      if (currencyId && accountDate) {
+        // First update exchange rates
+        await setExchangeRate(form, exhRateDec, visible)
+        if (visible?.m_CtyCurr) {
+          await setExchangeRateLocal(form, exhRateDec)
+        }
+
+        // Get updated exchange rates and recalculate details
+        const exchangeRate = form.getValues("exhRate") || 0
+        recalculateDetailsWithExchangeRate(exchangeRate)
+      }
+    },
+    [form, exhRateDec, visible, recalculateDetailsWithExchangeRate]
+  )
+
+  // Handle currency selection
+  const handleCurrencyChange = React.useCallback(
+    async (selectedCurrency: ICurrencyLookup | null) => {
+      // Additional logic when currency changes
+      const currencyId = selectedCurrency?.currencyId || 0
+      const accountDate = form.getValues("accountDate")
+
+      // Handle currency change with recalculations
+      await handleCurrencyChangeWithRecalc(currencyId, accountDate)
+
+      // Update currency comparison state
+      updateCurrencyComparison()
+
+      // Check if payTotAmt should be enabled
+      const _shouldEnablePayTotAmt = checkPayTotAmtEnable()
+    },
+    [
+      form,
+      handleCurrencyChangeWithRecalc,
+      checkPayTotAmtEnable,
+      updateCurrencyComparison,
+    ]
+  )
+
+  // ==================== SPECIFIC FIELD HANDLERS ====================
+
+  // Handle totAmt field changes
+  const handleTotAmtFieldChange = useCallback(
+    (e: React.FocusEvent<HTMLInputElement>) => {
+      const totAmt = parseFloat(e.target.value) || 0
+      const exhRate = form.getValues("exhRate") || 0
+      const allocTotAmt = form.getValues("allocTotAmt") || 0
+      const allocTotLocalAmt = form.getValues("allocTotLocalAmt") || 0
+
+      handleTotAmtChange(totAmt, exhRate, allocTotAmt, allocTotLocalAmt)
+    },
+    [form, handleTotAmtChange]
+  )
+
+  // Handle payTotAmt field changes
+  const handlePayTotAmtFieldChange = useCallback(
+    (e: React.FocusEvent<HTMLInputElement>) => {
+      const payTotAmt = parseFloat(e.target.value) || 0
+      const payExhRate = form.getValues("payExhRate") || 0
+      const exhRate = form.getValues("exhRate") || 0
+      const allocTotAmt = form.getValues("allocTotAmt") || 0
+      const allocTotLocalAmt = form.getValues("allocTotLocalAmt") || 0
+
+      handlePayTotAmtChange(
+        payTotAmt,
+        payExhRate,
+        exhRate,
+        allocTotAmt,
+        allocTotLocalAmt
+      )
+    },
+    [form, handlePayTotAmtChange]
+  )
+
+  // Handle payExhRate field changes
+  const handlePayExhRateFieldChange = useCallback(
+    (e: React.FocusEvent<HTMLInputElement>) => {
+      const payExhRate = parseFloat(e.target.value) || 0
+      const payTotAmt = form.getValues("payTotAmt") || 0
+      const exhRate = form.getValues("exhRate") || 0
+      const allocTotAmt = form.getValues("allocTotAmt") || 0
+      const allocTotLocalAmt = form.getValues("allocTotLocalAmt") || 0
+
+      // Only recalculate if currencies are different
+      if (!areCurrenciesSame && payTotAmt > 0) {
+        handlePayTotAmtChange(
+          payTotAmt,
+          payExhRate,
+          exhRate,
+          allocTotAmt,
+          allocTotLocalAmt
+        )
+      }
+    },
+    [form, areCurrenciesSame, handlePayTotAmtChange]
+  )
+
+  // Handle exchange rate change
+  const handleExchangeRateChange = React.useCallback(
+    (e: React.FocusEvent<HTMLInputElement>) => {
+      const exchangeRate = parseFloat(e.target.value) || 0
+      recalculateDetailsWithExchangeRate(exchangeRate)
+    },
+    [recalculateDetailsWithExchangeRate]
   )
 
   return (
@@ -542,6 +682,7 @@ export default function PaymentForm({
           name="payExhRate"
           label="Pay Exchange Rate"
           isDisabled={areCurrenciesSame}
+          onBlurEvent={handlePayExhRateFieldChange}
         />
 
         {/* Pay Total Amount */}
@@ -550,6 +691,7 @@ export default function PaymentForm({
           name="payTotAmt"
           label="Pay Total Amount"
           isDisabled={areCurrenciesSame}
+          onBlurEvent={handlePayTotAmtFieldChange}
         />
 
         {/* Pay Total Local Amount */}
@@ -557,7 +699,7 @@ export default function PaymentForm({
           form={form}
           name="payTotLocalAmt"
           label="Pay Total Local Amount"
-          isDisabled={true}
+          isDisabled={areCurrenciesSame}
         />
 
         {/* Total Amount */}
@@ -568,6 +710,7 @@ export default function PaymentForm({
           round={amtDec}
           isDisabled={!areCurrenciesSame}
           className="text-right"
+          onBlurEvent={handleTotAmtFieldChange}
         />
 
         {/* Total Local Amount */}
