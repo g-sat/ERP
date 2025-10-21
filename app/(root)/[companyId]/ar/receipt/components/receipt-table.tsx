@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { IArInvoiceFilter, IArInvoiceHd } from "@/interfaces/invoice"
+import { IArReceiptFilter, IArReceiptHd } from "@/interfaces"
 import { useAuthStore } from "@/stores/auth-store"
 import { ColumnDef } from "@tanstack/react-table"
 import { format, subMonths } from "date-fns"
@@ -11,29 +11,32 @@ import { Separator } from "@/components/ui/separator"
 import { CustomDateNew } from "@/components/custom/custom-date-new"
 import { DialogDataTable } from "@/components/table/table-dialog"
 
-export interface InvoiceTableProps {
-  data: IArInvoiceHd[]
+export interface ReceiptTableProps {
+  data: IArReceiptHd[]
   isLoading: boolean
-  onInvoiceSelect: (selectedInvoice: IArInvoiceHd | undefined) => void
+  onReceiptSelect: (selectedReceipt: IArReceiptHd | undefined) => void
   onRefresh: () => void
-  onFilterChange: (filters: IArInvoiceFilter) => void
-  initialFilters?: IArInvoiceFilter
+  onFilterChange: (filters: IArReceiptFilter) => void
+  initialFilters?: IArReceiptFilter
 }
 
-export default function InvoiceTable({
+export default function ReceiptTable({
   data,
   isLoading = false,
-  onInvoiceSelect,
+  onReceiptSelect,
   onRefresh,
   onFilterChange,
   initialFilters,
-}: InvoiceTableProps) {
+}: ReceiptTableProps) {
   const { decimals } = useAuthStore()
   const amtDec = decimals[0]?.amtDec || 2
   const locAmtDec = decimals[0]?.locAmtDec || 2
   const exhRateDec = decimals[0]?.exhRateDec || 9
   const dateFormat = decimals[0]?.dateFormat || "dd/MM/yyyy"
   //const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
+
+  const moduleId = ModuleId.ar
+  const transactionId = ARTransactionId.receipt
 
   const form = useForm({
     defaultValues: {
@@ -55,10 +58,10 @@ export default function InvoiceTable({
     })
   }
 
-  const columns: ColumnDef<IArInvoiceHd>[] = [
+  const columns: ColumnDef<IArReceiptHd>[] = [
     {
-      accessorKey: "invoiceNo",
-      header: "Invoice No",
+      accessorKey: "receiptNo",
+      header: "Receipt No",
     },
     {
       accessorKey: "referenceNo",
@@ -84,33 +87,14 @@ export default function InvoiceTable({
         return date ? format(date, dateFormat) : "-"
       },
     },
+
     {
-      accessorKey: "deliveryDate",
-      header: "Delivery Date",
-      cell: ({ row }) => {
-        const date = row.original.deliveryDate
-          ? new Date(row.original.deliveryDate)
-          : null
-        return date ? format(date, dateFormat) : "-"
-      },
+      accessorKey: "supplierCode",
+      header: "Supplier Code",
     },
     {
-      accessorKey: "dueDate",
-      header: "Due Date",
-      cell: ({ row }) => {
-        const date = row.original.dueDate
-          ? new Date(row.original.dueDate)
-          : null
-        return date ? format(date, dateFormat) : "-"
-      },
-    },
-    {
-      accessorKey: "customerCode",
-      header: "Customer Code",
-    },
-    {
-      accessorKey: "customerName",
-      header: "Customer Name",
+      accessorKey: "supplierName",
+      header: "Supplier Name",
     },
     {
       accessorKey: "currencyCode",
@@ -129,23 +113,7 @@ export default function InvoiceTable({
         </div>
       ),
     },
-    {
-      accessorKey: "ctyExhRate",
-      header: "Country Exchange Rate",
-      cell: ({ row }) => (
-        <div className="text-right">
-          {formatNumber(row.getValue("ctyExhRate"), exhRateDec)}
-        </div>
-      ),
-    },
-    {
-      accessorKey: "creditTermCode",
-      header: "Credit Term Code",
-    },
-    {
-      accessorKey: "creditTermName",
-      header: "Credit Term Name",
-    },
+
     {
       accessorKey: "bankCode",
       header: "Bank Code",
@@ -153,6 +121,28 @@ export default function InvoiceTable({
     {
       accessorKey: "bankName",
       header: "Bank Name",
+    },
+    {
+      accessorKey: "paymentTypeCode",
+      header: "Receipt Type Code",
+    },
+    {
+      accessorKey: "paymentTypeName",
+      header: "Receipt Type Name",
+    },
+    {
+      accessorKey: "chequeNo",
+      header: "Cheque No",
+    },
+    {
+      accessorKey: "chequeDate",
+      header: "Cheque Date",
+      cell: ({ row }) => {
+        const date = row.original.chequeDate
+          ? new Date(row.original.chequeDate)
+          : null
+        return date ? format(date, dateFormat) : "-"
+      },
     },
     {
       accessorKey: "totAmt",
@@ -173,38 +163,65 @@ export default function InvoiceTable({
       ),
     },
     {
-      accessorKey: "gstAmt",
-      header: "GST Amount",
+      accessorKey: "recTotAmt",
+      header: "Pay Total Amount",
       cell: ({ row }) => (
         <div className="text-right">
-          {formatNumber(row.getValue("gstAmt"), amtDec)}
+          {formatNumber(row.getValue("recTotAmt"), amtDec)}
         </div>
       ),
     },
     {
-      accessorKey: "gstLocalAmt",
-      header: "GST Local Amount",
+      accessorKey: "recTotLocalAmt",
+      header: "Pay Total Local Amount",
       cell: ({ row }) => (
         <div className="text-right">
-          {formatNumber(row.getValue("gstLocalAmt"), locAmtDec)}
+          {formatNumber(row.getValue("recTotLocalAmt"), locAmtDec)}
         </div>
       ),
     },
     {
-      accessorKey: "totAmtAftGst",
-      header: "Total After GST",
+      accessorKey: "unAllocTotAmt",
+      header: "Unallocated Amount",
       cell: ({ row }) => (
         <div className="text-right">
-          {formatNumber(row.getValue("totAmtAftGst"), amtDec)}
+          {formatNumber(row.getValue("unAllocTotAmt"), amtDec)}
         </div>
       ),
     },
     {
-      accessorKey: "totLocalAmtAftGst",
-      header: "Total Local After GST",
+      accessorKey: "unAllocTotLocalAmt",
+      header: "Unallocated Local Amount",
       cell: ({ row }) => (
         <div className="text-right">
-          {formatNumber(row.getValue("totLocalAmtAftGst"), locAmtDec)}
+          {formatNumber(row.getValue("unAllocTotLocalAmt"), locAmtDec)}
+        </div>
+      ),
+    },
+    {
+      accessorKey: "exhGainLoss",
+      header: "Exchange Gain/Loss",
+      cell: ({ row }) => (
+        <div className="text-right">
+          {formatNumber(row.getValue("exhGainLoss"), locAmtDec)}
+        </div>
+      ),
+    },
+    {
+      accessorKey: "bankChgAmt",
+      header: "Bank Charges Amount",
+      cell: ({ row }) => (
+        <div className="text-right">
+          {formatNumber(row.getValue("bankChgAmt"), amtDec)}
+        </div>
+      ),
+    },
+    {
+      accessorKey: "bankChgLocalAmt",
+      header: "Bank Charges Local Amount",
+      cell: ({ row }) => (
+        <div className="text-right">
+          {formatNumber(row.getValue("bankChgLocalAmt"), locAmtDec)}
         </div>
       ),
     },
@@ -258,12 +275,12 @@ export default function InvoiceTable({
     },
   ]
 
-  const handleSearchInvoice = () => {
-    const newFilters: IArInvoiceFilter = {
+  const handleSearchReceipt = () => {
+    const newFilters: IArReceiptFilter = {
       startDate: form.getValues("startDate"),
       endDate: form.getValues("endDate"),
       search: searchQuery,
-      sortBy: "invoiceNo",
+      sortBy: "receiptNo",
       sortOrder: "asc",
       pageNumber: currentPage,
       pageSize: pageSize,
@@ -276,11 +293,11 @@ export default function InvoiceTable({
     sortOrder?: string
   }) => {
     if (onFilterChange) {
-      const newFilters: IArInvoiceFilter = {
+      const newFilters: IArReceiptFilter = {
         startDate: form.getValues("startDate"),
         endDate: form.getValues("endDate"),
         search: filters.search || "",
-        sortBy: "invoiceNo",
+        sortBy: "receiptNo",
         sortOrder: (filters.sortOrder as "asc" | "desc") || "asc",
         pageNumber: currentPage,
         pageSize: pageSize,
@@ -315,8 +332,8 @@ export default function InvoiceTable({
             />
           </div>
 
-          <Button variant="outline" size="sm" onClick={handleSearchInvoice}>
-            Search Invoice
+          <Button variant="outline" size="sm" onClick={handleSearchReceipt}>
+            Search Receipt
           </Button>
         </div>
       </FormProvider>
@@ -326,13 +343,13 @@ export default function InvoiceTable({
         data={data}
         columns={columns}
         isLoading={isLoading}
-        moduleId={ModuleId.ar}
-        transactionId={ARTransactionId.invoice}
-        tableName={TableName.arInvoice}
+        moduleId={moduleId}
+        transactionId={transactionId}
+        tableName={TableName.arReceipt}
         emptyMessage="No data found."
         onRefresh={onRefresh}
         onFilterChange={handleDialogFilterChange}
-        onRowSelect={(row) => onInvoiceSelect(row || undefined)}
+        onRowSelect={(row) => onReceiptSelect(row || undefined)}
       />
     </div>
   )

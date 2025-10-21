@@ -4,7 +4,7 @@ import { IVisibleFields } from "@/interfaces/setting"
 import { useAuthStore } from "@/stores/auth-store"
 import { ColumnDef } from "@tanstack/react-table"
 
-import { TableName } from "@/lib/utils"
+import { APTransactionId, ModuleId, TableName } from "@/lib/utils"
 import { AccountBaseTable } from "@/components/table/table-account"
 
 // Extended column definition with hide property
@@ -318,8 +318,8 @@ export default function PaymentDetailsTable({
       <AccountBaseTable
         data={data}
         columns={visibleColumns as ColumnDef<IApDocsetoffDt>[]}
-        moduleId={25}
-        transactionId={2}
+        moduleId={ModuleId.ap}
+        transactionId={APTransactionId.docsetoff}
         tableName={TableName.apPaymentDt}
         emptyMessage="No docsetoff details found."
         accessorId="itemNo"

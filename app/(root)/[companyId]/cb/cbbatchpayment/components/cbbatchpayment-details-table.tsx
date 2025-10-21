@@ -3,7 +3,7 @@ import { ICbBatchPaymentDt } from "@/interfaces"
 import { IVisibleFields } from "@/interfaces/setting"
 import { ColumnDef } from "@tanstack/react-table"
 
-import { TableName } from "@/lib/utils"
+import { CBTransactionId, ModuleId, TableName } from "@/lib/utils"
 import { AccountBaseTable } from "@/components/table/table-account"
 
 // Use flexible data type that can work with form data
@@ -266,8 +266,8 @@ export default function BatchPaymentDetailsTable({
       <AccountBaseTable
         data={data}
         columns={columns}
-        moduleId={25}
-        transactionId={1}
+        moduleId={ModuleId.cb}
+        transactionId={CBTransactionId.cbbatchpayment}
         tableName={TableName.cbBatchPaymentDt}
         emptyMessage="No Batch Payment details found."
         accessorId="itemNo"

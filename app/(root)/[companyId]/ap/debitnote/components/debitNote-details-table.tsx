@@ -3,7 +3,7 @@ import { IApDebitNoteDt } from "@/interfaces"
 import { IVisibleFields } from "@/interfaces/setting"
 import { ColumnDef } from "@tanstack/react-table"
 
-import { TableName } from "@/lib/utils"
+import { APTransactionId, ModuleId, TableName } from "@/lib/utils"
 import { AccountBaseTable } from "@/components/table/table-account"
 
 // Use flexible data type that can work with form data
@@ -311,8 +311,8 @@ export default function DebitNoteDetailsTable({
       <AccountBaseTable
         data={data}
         columns={columns}
-        moduleId={25}
-        transactionId={1}
+        moduleId={ModuleId.ap}
+        transactionId={APTransactionId.debitNote}
         tableName={TableName.apDebitNoteDt}
         emptyMessage="No debitNote details found."
         accessorId="itemNo"

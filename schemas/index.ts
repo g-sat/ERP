@@ -58,6 +58,9 @@ export * from "./vessel"
 export * from "./voyage"
 export * from "./worklocation"
 
+// AR schemas
+export * from "./ar-receipt"
+
 // AP schemas
 export * from "./ap-invoice"
 export * from "./ap-payment"

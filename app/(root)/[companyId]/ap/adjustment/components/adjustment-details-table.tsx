@@ -3,7 +3,7 @@ import { IApAdjustmentDt } from "@/interfaces"
 import { IVisibleFields } from "@/interfaces/setting"
 import { ColumnDef } from "@tanstack/react-table"
 
-import { TableName } from "@/lib/utils"
+import { APTransactionId, ModuleId, TableName } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import { AccountBaseTable } from "@/components/table/table-account"
 
@@ -324,8 +324,8 @@ export default function AdjustmentDetailsTable({
       <AccountBaseTable
         data={data}
         columns={columns}
-        moduleId={25}
-        transactionId={1}
+        moduleId={ModuleId.ap}
+        transactionId={APTransactionId.adjustment}
         tableName={TableName.apAdjustmentDt}
         emptyMessage="No adjustment details found."
         accessorId="itemNo"

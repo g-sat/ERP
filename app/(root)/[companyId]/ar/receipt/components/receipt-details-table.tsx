@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react"
-import { IApRefundDt } from "@/interfaces"
+import { IArReceiptDt } from "@/interfaces"
 import { IVisibleFields } from "@/interfaces/setting"
 import { useAuthStore } from "@/stores/auth-store"
 import { ColumnDef } from "@tanstack/react-table"
 
-import { APTransactionId, ModuleId, TableName } from "@/lib/utils"
+import { ARTransactionId, ModuleId, TableName } from "@/lib/utils"
 import { AccountBaseTable } from "@/components/table/table-account"
 
 // Extended column definition with hide property
@@ -13,23 +13,23 @@ type ExtendedColumnDef<T> = ColumnDef<T> & {
 }
 
 // Use flexible data type that can work with form data
-interface PaymentDetailsTableProps {
-  data: IApRefundDt[]
+interface ReceiptDetailsTableProps {
+  data: IArReceiptDt[]
   onDelete?: (itemNo: number) => void
   onBulkDelete?: (selectedItemNos: number[]) => void
-  onDataReorder?: (newData: IApRefundDt[]) => void
+  onDataReorder?: (newData: IArReceiptDt[]) => void
   onCellEdit?: (itemNo: number, field: string, value: number) => void
   visible: IVisibleFields
 }
 
-export default function PaymentDetailsTable({
+export default function ReceiptDetailsTable({
   data,
   onDelete,
   onBulkDelete,
   onDataReorder,
   onCellEdit,
   visible: _visible,
-}: PaymentDetailsTableProps) {
+}: ReceiptDetailsTableProps) {
   const [mounted, setMounted] = useState(false)
   const { decimals } = useAuthStore()
   const amtDec = decimals[0]?.amtDec || 2
@@ -94,13 +94,13 @@ export default function PaymentDetailsTable({
     )
   }
 
-  // Define columns with visible prop checks - Refund specific fields
-  const columns: ExtendedColumnDef<IApRefundDt>[] = [
+  // Define columns with visible prop checks - Receipt specific fields
+  const columns: ExtendedColumnDef<IArReceiptDt>[] = [
     {
       accessorKey: "itemNo",
       header: "Item",
       size: 40,
-      cell: ({ row }: { row: { original: IApRefundDt } }) => (
+      cell: ({ row }: { row: { original: IArReceiptDt } }) => (
         <div className="text-right">{row.original.itemNo}</div>
       ),
     },
@@ -125,7 +125,7 @@ export default function PaymentDetailsTable({
       accessorKey: "docExhRate",
       header: "Exh Rate",
       size: 100,
-      cell: ({ row }: { row: { original: IApRefundDt } }) => (
+      cell: ({ row }: { row: { original: IArReceiptDt } }) => (
         <div className="text-right">
           {formatNumber(row.original.docExhRate, exhRateDec)}
         </div>
@@ -140,7 +140,7 @@ export default function PaymentDetailsTable({
       accessorKey: "docBalAmt",
       header: "Balance Amt",
       size: 120,
-      cell: ({ row }: { row: { original: IApRefundDt } }) => (
+      cell: ({ row }: { row: { original: IArReceiptDt } }) => (
         <div className="text-right">
           {formatNumber(row.original.docBalAmt, amtDec)}
         </div>
@@ -150,7 +150,7 @@ export default function PaymentDetailsTable({
       accessorKey: "docBalLocalAmt",
       header: "Balance Local Amt",
       size: 140,
-      cell: ({ row }: { row: { original: IApRefundDt } }) => (
+      cell: ({ row }: { row: { original: IArReceiptDt } }) => (
         <div className="text-right">
           {formatNumber(row.original.docBalLocalAmt, locAmtDec)}
         </div>
@@ -160,7 +160,7 @@ export default function PaymentDetailsTable({
       accessorKey: "allocAmt",
       header: "Alloc Amt",
       size: 150,
-      cell: ({ row }: { row: { original: IApRefundDt } }) => {
+      cell: ({ row }: { row: { original: IArReceiptDt } }) => {
         const docBalAmt = row.original.docBalAmt || 0
         const isNegative = docBalAmt < 0
 
@@ -192,7 +192,7 @@ export default function PaymentDetailsTable({
       accessorKey: "allocLocalAmt",
       header: "Alloc Local Amt",
       size: 170,
-      cell: ({ row }: { row: { original: IApRefundDt } }) => {
+      cell: ({ row }: { row: { original: IArReceiptDt } }) => {
         const docBalLocalAmt = row.original.docBalLocalAmt || 0
         const isNegative = docBalLocalAmt < 0
 
@@ -229,7 +229,7 @@ export default function PaymentDetailsTable({
       accessorKey: "docTotAmt",
       header: "Doc Total Amt",
       size: 100,
-      cell: ({ row }: { row: { original: IApRefundDt } }) => (
+      cell: ({ row }: { row: { original: IArReceiptDt } }) => (
         <div className="text-right">
           {formatNumber(row.original.docTotAmt, amtDec)}
         </div>
@@ -239,7 +239,7 @@ export default function PaymentDetailsTable({
       accessorKey: "docTotLocalAmt",
       header: "Doc Total Local Amt",
       size: 120,
-      cell: ({ row }: { row: { original: IApRefundDt } }) => (
+      cell: ({ row }: { row: { original: IArReceiptDt } }) => (
         <div className="text-right">
           {formatNumber(row.original.docTotLocalAmt, locAmtDec)}
         </div>
@@ -250,7 +250,7 @@ export default function PaymentDetailsTable({
       accessorKey: "docAllocAmt",
       header: "Doc Alloc Amt",
       size: 120,
-      cell: ({ row }: { row: { original: IApRefundDt } }) => (
+      cell: ({ row }: { row: { original: IArReceiptDt } }) => (
         <div className="text-right">
           {formatNumber(row.original.docAllocAmt, amtDec)}
         </div>
@@ -260,7 +260,7 @@ export default function PaymentDetailsTable({
       accessorKey: "docAllocLocalAmt",
       header: "Doc Alloc Local Amt",
       size: 140,
-      cell: ({ row }: { row: { original: IApRefundDt } }) => (
+      cell: ({ row }: { row: { original: IArReceiptDt } }) => (
         <div className="text-right">
           {formatNumber(row.original.docAllocLocalAmt, locAmtDec)}
         </div>
@@ -270,7 +270,7 @@ export default function PaymentDetailsTable({
       accessorKey: "centDiff",
       header: "Cent Diff",
       size: 80,
-      cell: ({ row }: { row: { original: IApRefundDt } }) => (
+      cell: ({ row }: { row: { original: IArReceiptDt } }) => (
         <div className="text-right">
           {formatNumber(row.original.centDiff, locAmtDec)}
         </div>
@@ -280,7 +280,7 @@ export default function PaymentDetailsTable({
       accessorKey: "exhGainLoss",
       header: "Exh Gain/Loss",
       size: 100,
-      cell: ({ row }: { row: { original: IApRefundDt } }) => (
+      cell: ({ row }: { row: { original: IArReceiptDt } }) => (
         <div className="text-right">
           {formatNumber(row.original.exhGainLoss, amtDec)}
         </div>
@@ -290,7 +290,7 @@ export default function PaymentDetailsTable({
       accessorKey: "transactionId",
       header: "Transaction",
       size: 100,
-      cell: ({ row }: { row: { original: IApRefundDt } }) => (
+      cell: ({ row }: { row: { original: IArReceiptDt } }) => (
         <div className="text-right">{row.original.transactionId}</div>
       ),
       hidden: true,
@@ -299,7 +299,7 @@ export default function PaymentDetailsTable({
       accessorKey: "docCurrencyId",
       header: "Currency",
       size: 100,
-      cell: ({ row }: { row: { original: IApRefundDt } }) => (
+      cell: ({ row }: { row: { original: IArReceiptDt } }) => (
         <div className="text-right">{row.original.docCurrencyId}</div>
       ),
       hidden: true,
@@ -317,11 +317,11 @@ export default function PaymentDetailsTable({
     <div>
       <AccountBaseTable
         data={data}
-        columns={visibleColumns as ColumnDef<IApRefundDt>[]}
-        moduleId={ModuleId.ap}
-        transactionId={APTransactionId.refund}
-        tableName={TableName.apPaymentDt}
-        emptyMessage="No refund details found."
+        columns={visibleColumns as ColumnDef<IArReceiptDt>[]}
+        moduleId={ModuleId.ar}
+        transactionId={ARTransactionId.receipt}
+        tableName={TableName.arReceiptDt}
+        emptyMessage="No receipt details found."
         accessorId="itemNo"
         onBulkDelete={(selectedIds: string[]) =>
           onBulkDelete?.(selectedIds.map((id) => Number(id)))

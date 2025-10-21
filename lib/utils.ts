@@ -437,6 +437,7 @@ export enum TableName {
   arAdjustmentDt = "arAdjustmentDt",
   arReceipt = "arReceipt",
   arReceiptDt = "arReceiptDt",
+  arReceiptHistory = "arReceiptHistory",
   arRefund = "arRefund",
   arRefundDt = "arRefundDt",
   arDocSetoff = "arDocSetoff",

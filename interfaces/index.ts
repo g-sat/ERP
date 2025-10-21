@@ -69,6 +69,9 @@ export * from "./vessel"
 export * from "./voyage"
 export * from "./worklocation"
 
+//account-ar
+export * from "./ar-receipt"
+
 //account-ap
 export * from "./ap-invoice"
 export * from "./ap-payment"
