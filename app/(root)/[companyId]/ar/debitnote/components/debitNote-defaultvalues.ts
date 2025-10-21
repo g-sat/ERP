@@ -2,9 +2,9 @@ import { format } from "date-fns"
 
 import { clientDateFormat } from "@/lib/date-utils"
 
-const defaultCreditNoteDetails = {
-  creditNoteId: "0",
-  creditNoteNo: "",
+const defaultDebitNoteDetails = {
+  debitNoteId: "0",
+  debitNoteNo: "",
   itemNo: 0,
   seqNo: 0,
   docItemNo: 0,
@@ -55,18 +55,18 @@ const defaultCreditNoteDetails = {
   salesOrderNo: "",
   supplyDate: format(new Date(), clientDateFormat),
   supplierName: "",
-  suppCreditNoteNo: "",
-  apCreditNoteId: "",
-  apCreditNoteNo: "",
+  suppDebitNoteNo: "",
+  apDebitNoteId: "",
+  apDebitNoteNo: "",
   editVersion: 0,
 }
 
-const defaultCreditNote = {
+const defaultDebitNote = {
   companyId: 0,
-  creditNoteId: "0",
-  creditNoteNo: "",
+  debitNoteId: "0",
+  debitNoteNo: "",
   referenceNo: "",
-  suppCreditNoteNo: "",
+  suppDebitNoteNo: "",
   trnDate: format(new Date(), clientDateFormat),
   accountDate: format(new Date(), clientDateFormat),
   deliveryDate: format(new Date(), clientDateFormat),
@@ -116,8 +116,8 @@ const defaultCreditNote = {
   emailAdd: "",
   moduleFrom: "",
   supplierName: "",
-  apCreditNoteId: "0",
-  apCreditNoteNo: "",
+  apDebitNoteId: "0",
+  apDebitNoteNo: "",
   createById: 0,
   createDate: format(new Date(), clientDateFormat),
   editById: "",
@@ -142,8 +142,8 @@ const defaultCreditNote = {
 // Function to get default values with custom date format
 export const getDefaultValues = (dateFormat: string = clientDateFormat) => {
   return {
-    defaultCreditNote: {
-      ...defaultCreditNote,
+    defaultDebitNote: {
+      ...defaultDebitNote,
       trnDate: format(new Date(), dateFormat),
       accountDate: format(new Date(), dateFormat),
       deliveryDate: format(new Date(), dateFormat),
@@ -151,12 +151,12 @@ export const getDefaultValues = (dateFormat: string = clientDateFormat) => {
       gstClaimDate: format(new Date(), dateFormat),
       createDate: format(new Date(), dateFormat),
     },
-    defaultCreditNoteDetails: {
-      ...defaultCreditNoteDetails,
+    defaultDebitNoteDetails: {
+      ...defaultDebitNoteDetails,
       deliveryDate: format(new Date(), dateFormat),
       supplyDate: format(new Date(), dateFormat),
     },
   }
 }
 
-export { defaultCreditNote, defaultCreditNoteDetails }
+export { defaultDebitNote, defaultDebitNoteDetails }

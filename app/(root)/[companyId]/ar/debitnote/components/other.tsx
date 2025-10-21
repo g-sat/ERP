@@ -5,7 +5,7 @@ import { useParams } from "next/navigation"
 import { IBankAddress, IBankContact } from "@/interfaces/bank"
 import { ICustomerAddress, ICustomerContact } from "@/interfaces/customer"
 import { ISupplierAddress, ISupplierContact } from "@/interfaces/supplier"
-import { ArCreditNoteHdSchemaType } from "@/schemas"
+import { ArDebitNoteHdSchemaType } from "@/schemas"
 import { UseFormReturn } from "react-hook-form"
 
 import { ARTransactionId, ModuleId } from "@/lib/utils"
@@ -24,7 +24,7 @@ import CustomTextarea from "@/components/custom/custom-textarea"
 import DocumentManager from "@/components/document-manager"
 
 interface OtherProps {
-  form: UseFormReturn<ArCreditNoteHdSchemaType>
+  form: UseFormReturn<ArDebitNoteHdSchemaType>
 }
 
 export default function Other({ form }: OtherProps) {
@@ -37,8 +37,8 @@ export default function Other({ form }: OtherProps) {
     useState<ICustomerContact | null>(null)
 
   const customerId = form.getValues().customerId || 0
-  const creditNoteId = form.getValues("creditNoteId") || "0"
-  const creditNoteNo = form.getValues("creditNoteNo") || ""
+  const debitNoteId = form.getValues("debitNoteId") || "0"
+  const debitNoteNo = form.getValues("debitNoteNo") || ""
 
   // other.tsx
   useEffect(() => {
@@ -272,13 +272,13 @@ export default function Other({ form }: OtherProps) {
         </div>
       </Form>
 
-      {/* Document Upload Section - Only show after creditNote is saved */}
-      {creditNoteId !== "0" && (
+      {/* Document Upload Section - Only show after debitNote is saved */}
+      {debitNoteId !== "0" && (
         <DocumentManager
           moduleId={ModuleId.ar}
-          transactionId={ARTransactionId.creditNote}
-          recordId={creditNoteId}
-          recordNo={creditNoteNo}
+          transactionId={ARTransactionId.debitNote}
+          recordId={debitNoteId}
+          recordNo={debitNoteNo}
           companyId={Number(companyId)}
           maxFileSize={10}
           maxFiles={10}

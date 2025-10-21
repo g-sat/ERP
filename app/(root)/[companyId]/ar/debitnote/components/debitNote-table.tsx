@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { IArCreditNoteFilter, IArCreditNoteHd } from "@/interfaces"
+import { IArDebitNoteFilter, IArDebitNoteHd } from "@/interfaces"
 import { useAuthStore } from "@/stores/auth-store"
 import { ColumnDef } from "@tanstack/react-table"
 import { format, subMonths } from "date-fns"
@@ -11,23 +11,23 @@ import { Separator } from "@/components/ui/separator"
 import { CustomDateNew } from "@/components/custom/custom-date-new"
 import { DialogDataTable } from "@/components/table/table-dialog"
 
-export interface CreditNoteTableProps {
-  data: IArCreditNoteHd[]
+export interface DebitNoteTableProps {
+  data: IArDebitNoteHd[]
   isLoading: boolean
-  onCreditNoteSelect: (selectedCreditNote: IArCreditNoteHd | undefined) => void
+  onDebitNoteSelect: (selectedDebitNote: IArDebitNoteHd | undefined) => void
   onRefresh: () => void
-  onFilterChange: (filters: IArCreditNoteFilter) => void
-  initialFilters?: IArCreditNoteFilter
+  onFilterChange: (filters: IArDebitNoteFilter) => void
+  initialFilters?: IArDebitNoteFilter
 }
 
-export default function CreditNoteTable({
+export default function DebitNoteTable({
   data,
   isLoading = false,
-  onCreditNoteSelect,
+  onDebitNoteSelect,
   onRefresh,
   onFilterChange,
   initialFilters,
-}: CreditNoteTableProps) {
+}: DebitNoteTableProps) {
   const { decimals } = useAuthStore()
   const amtDec = decimals[0]?.amtDec || 2
   const locAmtDec = decimals[0]?.locAmtDec || 2
@@ -36,7 +36,7 @@ export default function CreditNoteTable({
   //const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
 
   const moduleId = ModuleId.ar
-  const transactionId = ARTransactionId.creditNote
+  const transactionId = ARTransactionId.debitNote
 
   const form = useForm({
     defaultValues: {
@@ -58,10 +58,10 @@ export default function CreditNoteTable({
     })
   }
 
-  const columns: ColumnDef<IArCreditNoteHd>[] = [
+  const columns: ColumnDef<IArDebitNoteHd>[] = [
     {
-      accessorKey: "creditNoteNo",
-      header: "CreditNote No",
+      accessorKey: "debitNoteNo",
+      header: "DebitNote No",
     },
     {
       accessorKey: "referenceNo",
@@ -261,12 +261,12 @@ export default function CreditNoteTable({
     },
   ]
 
-  const handleSearchCreditNote = () => {
-    const newFilters: IArCreditNoteFilter = {
+  const handleSearchDebitNote = () => {
+    const newFilters: IArDebitNoteFilter = {
       startDate: form.getValues("startDate"),
       endDate: form.getValues("endDate"),
       search: searchQuery,
-      sortBy: "creditNoteNo",
+      sortBy: "debitNoteNo",
       sortOrder: "asc",
       pageNumber: currentPage,
       pageSize: pageSize,
@@ -279,11 +279,11 @@ export default function CreditNoteTable({
     sortOrder?: string
   }) => {
     if (onFilterChange) {
-      const newFilters: IArCreditNoteFilter = {
+      const newFilters: IArDebitNoteFilter = {
         startDate: form.getValues("startDate"),
         endDate: form.getValues("endDate"),
         search: filters.search || "",
-        sortBy: "creditNoteNo",
+        sortBy: "debitNoteNo",
         sortOrder: (filters.sortOrder as "asc" | "desc") || "asc",
         pageNumber: currentPage,
         pageSize: pageSize,
@@ -318,8 +318,8 @@ export default function CreditNoteTable({
             />
           </div>
 
-          <Button variant="outline" size="sm" onClick={handleSearchCreditNote}>
-            Search CreditNote
+          <Button variant="outline" size="sm" onClick={handleSearchDebitNote}>
+            Search DebitNote
           </Button>
         </div>
       </FormProvider>
@@ -331,11 +331,11 @@ export default function CreditNoteTable({
         isLoading={isLoading}
         moduleId={moduleId}
         transactionId={transactionId}
-        tableName={TableName.arCreditNote}
+        tableName={TableName.arDebitNote}
         emptyMessage="No data found."
         onRefresh={onRefresh}
         onFilterChange={handleDialogFilterChange}
-        onRowSelect={(row) => onCreditNoteSelect(row || undefined)}
+        onRowSelect={(row) => onDebitNoteSelect(row || undefined)}
       />
     </div>
   )

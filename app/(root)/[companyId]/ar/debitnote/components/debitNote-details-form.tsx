@@ -7,7 +7,7 @@ import {
   handleTotalamountChange,
   setGSTPercentage,
 } from "@/helpers/account"
-import { IArCreditNoteDt } from "@/interfaces"
+import { IArDebitNoteDt } from "@/interfaces"
 import {
   IBargeLookup,
   IChartOfAccountLookup,
@@ -22,9 +22,9 @@ import {
 } from "@/interfaces/lookup"
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
 import {
-  ArCreditNoteDtSchema,
-  ArCreditNoteDtSchemaType,
-  ArCreditNoteHdSchemaType,
+  ArDebitNoteDtSchema,
+  ArDebitNoteDtSchemaType,
+  ArDebitNoteHdSchemaType,
 } from "@/schemas"
 import { useAuthStore } from "@/stores/auth-store"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -53,23 +53,23 @@ import {
 import CustomNumberInput from "@/components/custom/custom-number-input"
 import CustomTextarea from "@/components/custom/custom-textarea"
 
-import { defaultCreditNoteDetails } from "./creditNote-defaultvalues"
+import { defaultDebitNoteDetails } from "./debitNote-defaultvalues"
 
-interface CreditNoteDetailsFormProps {
-  Hdform: UseFormReturn<ArCreditNoteHdSchemaType>
-  onAddRowAction?: (rowData: IArCreditNoteDt) => void
+interface DebitNoteDetailsFormProps {
+  Hdform: UseFormReturn<ArDebitNoteHdSchemaType>
+  onAddRowAction?: (rowData: IArDebitNoteDt) => void
   onCancelEdit?: () => void
-  editingDetail?: ArCreditNoteDtSchemaType | null
+  editingDetail?: ArDebitNoteDtSchemaType | null
   visible: IVisibleFields
   required: IMandatoryFields
   companyId: number
-  existingDetails?: ArCreditNoteDtSchemaType[]
+  existingDetails?: ArDebitNoteDtSchemaType[]
   defaultGlId?: number
   defaultUomId?: number
   defaultGstId?: number
 }
 
-export default function CreditNoteDetailsForm({
+export default function DebitNoteDetailsForm({
   Hdform,
   onAddRowAction,
   onCancelEdit: _onCancelEdit,
@@ -81,7 +81,7 @@ export default function CreditNoteDetailsForm({
   defaultGlId = 0,
   defaultUomId = 0,
   defaultGstId = 0,
-}: CreditNoteDetailsFormProps) {
+}: DebitNoteDetailsFormProps) {
   const { decimals } = useAuthStore()
   const amtDec = decimals[0]?.amtDec || 2
   const locAmtDec = decimals[0]?.locAmtDec || 2
@@ -95,23 +95,23 @@ export default function CreditNoteDetailsForm({
   }
 
   // Factory function to create default values with dynamic itemNo and defaults
-  const createDefaultValues = (itemNo: number): ArCreditNoteDtSchemaType => ({
-    ...defaultCreditNoteDetails,
+  const createDefaultValues = (itemNo: number): ArDebitNoteDtSchemaType => ({
+    ...defaultDebitNoteDetails,
     itemNo,
     seqNo: itemNo,
     docItemNo: itemNo,
-    glId: defaultGlId || defaultCreditNoteDetails.glId,
-    uomId: defaultUomId || defaultCreditNoteDetails.uomId,
-    gstId: defaultGstId || defaultCreditNoteDetails.gstId,
+    glId: defaultGlId || defaultDebitNoteDetails.glId,
+    uomId: defaultUomId || defaultDebitNoteDetails.uomId,
+    gstId: defaultGstId || defaultDebitNoteDetails.gstId,
   })
 
-  const form = useForm<ArCreditNoteDtSchemaType>({
-    resolver: zodResolver(ArCreditNoteDtSchema(required, visible)),
+  const form = useForm<ArDebitNoteDtSchemaType>({
+    resolver: zodResolver(ArDebitNoteDtSchema(required, visible)),
     mode: "onBlur",
     defaultValues: editingDetail
       ? {
-          creditNoteId: editingDetail.creditNoteId ?? "0",
-          creditNoteNo: editingDetail.creditNoteNo ?? "",
+          debitNoteId: editingDetail.debitNoteId ?? "0",
+          debitNoteNo: editingDetail.debitNoteNo ?? "",
           itemNo: editingDetail.itemNo ?? getNextItemNo(),
           seqNo: editingDetail.seqNo ?? getNextItemNo(),
           docItemNo: editingDetail.docItemNo ?? getNextItemNo(),
@@ -162,9 +162,9 @@ export default function CreditNoteDetailsForm({
           salesOrderNo: editingDetail.salesOrderNo ?? "",
           supplyDate: editingDetail.supplyDate ?? "",
           supplierName: editingDetail.supplierName ?? "",
-          suppCreditNoteNo: editingDetail.suppCreditNoteNo ?? "",
-          apCreditNoteId: editingDetail.apCreditNoteId ?? "",
-          apCreditNoteNo: editingDetail.apCreditNoteNo ?? "",
+          suppDebitNoteNo: editingDetail.suppDebitNoteNo ?? "",
+          apDebitNoteId: editingDetail.apDebitNoteId ?? "",
+          apDebitNoteNo: editingDetail.apDebitNoteNo ?? "",
           editVersion: editingDetail.editVersion ?? 0,
         }
       : createDefaultValues(getNextItemNo()),
@@ -299,8 +299,8 @@ export default function CreditNoteDetailsForm({
     if (editingDetail) {
       // Determine if editing detail is job-specific or department-specific
       form.reset({
-        creditNoteId: editingDetail.creditNoteId ?? "0",
-        creditNoteNo: editingDetail.creditNoteNo ?? "",
+        debitNoteId: editingDetail.debitNoteId ?? "0",
+        debitNoteNo: editingDetail.debitNoteNo ?? "",
         itemNo: editingDetail.itemNo ?? nextItemNo,
         seqNo: editingDetail.seqNo ?? nextItemNo,
         docItemNo: editingDetail.docItemNo ?? nextItemNo,
@@ -351,9 +351,9 @@ export default function CreditNoteDetailsForm({
         salesOrderNo: editingDetail.salesOrderNo ?? "",
         supplyDate: editingDetail.supplyDate ?? "",
         supplierName: editingDetail.supplierName ?? "",
-        suppCreditNoteNo: editingDetail.suppCreditNoteNo ?? "",
-        apCreditNoteId: editingDetail.apCreditNoteId ?? "",
-        apCreditNoteNo: editingDetail.apCreditNoteNo ?? "",
+        suppDebitNoteNo: editingDetail.suppDebitNoteNo ?? "",
+        apDebitNoteId: editingDetail.apDebitNoteId ?? "",
+        apDebitNoteNo: editingDetail.apDebitNoteNo ?? "",
         editVersion: editingDetail.editVersion ?? 0,
       })
     } else {
@@ -363,13 +363,12 @@ export default function CreditNoteDetailsForm({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editingDetail, existingDetails.length])
 
-  const onSubmit = async (data: ArCreditNoteDtSchemaType) => {
+  const onSubmit = async (data: ArDebitNoteDtSchemaType) => {
     try {
       // Validate data against schema
-      const validationResult = ArCreditNoteDtSchema(
-        required,
-        visible
-      ).safeParse(data)
+      const validationResult = ArDebitNoteDtSchema(required, visible).safeParse(
+        data
+      )
 
       if (!validationResult.success) {
         const errors = validationResult.error.issues
@@ -387,9 +386,9 @@ export default function CreditNoteDetailsForm({
       console.log("currentItemNo : ", currentItemNo)
       console.log("data : ", data)
 
-      const rowData: IArCreditNoteDt = {
-        creditNoteId: data.creditNoteId ?? "0",
-        creditNoteNo: data.creditNoteNo ?? "",
+      const rowData: IArDebitNoteDt = {
+        debitNoteId: data.debitNoteId ?? "0",
+        debitNoteNo: data.debitNoteNo ?? "",
         itemNo: data.itemNo ?? currentItemNo,
         seqNo: data.seqNo ?? currentItemNo,
         docItemNo: data.docItemNo ?? currentItemNo,
@@ -440,9 +439,9 @@ export default function CreditNoteDetailsForm({
         salesOrderNo: data.salesOrderNo ?? "",
         supplyDate: data.supplyDate ?? "",
         supplierName: data.supplierName ?? "",
-        suppCreditNoteNo: data.suppCreditNoteNo ?? "",
-        apCreditNoteId: data.apCreditNoteId ?? "0",
-        apCreditNoteNo: data.apCreditNoteNo ?? "",
+        suppDebitNoteNo: data.suppDebitNoteNo ?? "",
+        apDebitNoteId: data.apDebitNoteId ?? "0",
+        apDebitNoteNo: data.apDebitNoteNo ?? "",
         editVersion: data.editVersion ?? 0,
       }
 

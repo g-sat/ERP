@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react"
-import { IArCreditNoteDt } from "@/interfaces"
+import { IArDebitNoteDt } from "@/interfaces"
 import { IVisibleFields } from "@/interfaces/setting"
 import { ColumnDef } from "@tanstack/react-table"
 
@@ -7,18 +7,18 @@ import { ARTransactionId, ModuleId, TableName } from "@/lib/utils"
 import { AccountBaseTable } from "@/components/table/table-account"
 
 // Use flexible data type that can work with form data
-interface CreditNoteDetailsTableProps {
-  data: IArCreditNoteDt[]
+interface DebitNoteDetailsTableProps {
+  data: IArDebitNoteDt[]
   onDelete?: (itemNo: number) => void
   onBulkDelete?: (selectedItemNos: number[]) => void
-  onEdit?: (template: IArCreditNoteDt) => void
+  onEdit?: (template: IArDebitNoteDt) => void
   onRefresh?: () => void
   onFilterChange?: (filters: { search?: string; sortOrder?: string }) => void
-  onDataReorder?: (newData: IArCreditNoteDt[]) => void
+  onDataReorder?: (newData: IArDebitNoteDt[]) => void
   visible: IVisibleFields
 }
 
-export default function CreditNoteDetailsTable({
+export default function DebitNoteDetailsTable({
   data,
   onDelete,
   onBulkDelete,
@@ -27,7 +27,7 @@ export default function CreditNoteDetailsTable({
   onFilterChange,
   onDataReorder,
   visible,
-}: CreditNoteDetailsTableProps) {
+}: DebitNoteDetailsTableProps) {
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
@@ -48,12 +48,12 @@ export default function CreditNoteDetailsTable({
   }
 
   // Define columns with visible prop checks
-  const columns: ColumnDef<IArCreditNoteDt>[] = [
+  const columns: ColumnDef<IArDebitNoteDt>[] = [
     {
       accessorKey: "itemNo",
       header: "Item No",
       size: 60,
-      cell: ({ row }: { row: { original: IArCreditNoteDt } }) => (
+      cell: ({ row }: { row: { original: IArDebitNoteDt } }) => (
         <div className="text-right">{row.original.itemNo}</div>
       ),
     },
@@ -100,7 +100,7 @@ export default function CreditNoteDetailsTable({
             accessorKey: "qty",
             header: "Qty",
             size: 60,
-            cell: ({ row }: { row: { original: IArCreditNoteDt } }) => (
+            cell: ({ row }: { row: { original: IArDebitNoteDt } }) => (
               <div className="text-right">{row.original.qty}</div>
             ),
           },
@@ -122,7 +122,7 @@ export default function CreditNoteDetailsTable({
             accessorKey: "unitPrice",
             header: "Price",
             size: 100,
-            cell: ({ row }: { row: { original: IArCreditNoteDt } }) => (
+            cell: ({ row }: { row: { original: IArDebitNoteDt } }) => (
               <div className="text-right">{row.original.unitPrice}</div>
             ),
           },
@@ -132,7 +132,7 @@ export default function CreditNoteDetailsTable({
       accessorKey: "totAmt",
       header: "Amount",
       size: 100,
-      cell: ({ row }: { row: { original: IArCreditNoteDt } }) => (
+      cell: ({ row }: { row: { original: IArDebitNoteDt } }) => (
         <div className="text-right">{row.original.totAmt}</div>
       ),
     },
@@ -141,7 +141,7 @@ export default function CreditNoteDetailsTable({
       accessorKey: "gstPercentage",
       header: "GST %",
       size: 50,
-      cell: ({ row }: { row: { original: IArCreditNoteDt } }) => (
+      cell: ({ row }: { row: { original: IArDebitNoteDt } }) => (
         <div className="text-right">{row.original.gstPercentage}</div>
       ),
     },
@@ -149,7 +149,7 @@ export default function CreditNoteDetailsTable({
       accessorKey: "gstAmt",
       header: "GST Amount",
       size: 100,
-      cell: ({ row }: { row: { original: IArCreditNoteDt } }) => (
+      cell: ({ row }: { row: { original: IArDebitNoteDt } }) => (
         <div className="text-right">{row.original.gstAmt}</div>
       ),
     },
@@ -159,7 +159,7 @@ export default function CreditNoteDetailsTable({
             accessorKey: "billQTY",
             header: "Bill Qty",
             size: 60,
-            cell: ({ row }: { row: { original: IArCreditNoteDt } }) => (
+            cell: ({ row }: { row: { original: IArDebitNoteDt } }) => (
               <div className="text-right">{row.original.billQTY}</div>
             ),
           },
@@ -169,7 +169,7 @@ export default function CreditNoteDetailsTable({
       accessorKey: "totLocalAmt",
       header: "Local Amount",
       size: 100,
-      cell: ({ row }: { row: { original: IArCreditNoteDt } }) => (
+      cell: ({ row }: { row: { original: IArDebitNoteDt } }) => (
         <div className="text-right">{row.original.totLocalAmt}</div>
       ),
     },
@@ -179,7 +179,7 @@ export default function CreditNoteDetailsTable({
             accessorKey: "totCtyAmt",
             header: "Country Amount",
             size: 100,
-            cell: ({ row }: { row: { original: IArCreditNoteDt } }) => (
+            cell: ({ row }: { row: { original: IArDebitNoteDt } }) => (
               <div className="text-right">{row.original.totCtyAmt}</div>
             ),
           },
@@ -198,7 +198,7 @@ export default function CreditNoteDetailsTable({
       accessorKey: "gstLocalAmt",
       header: "GST Local Amount",
       size: 100,
-      cell: ({ row }: { row: { original: IArCreditNoteDt } }) => (
+      cell: ({ row }: { row: { original: IArDebitNoteDt } }) => (
         <div className="text-right">{row.original.gstLocalAmt}</div>
       ),
     },
@@ -208,7 +208,7 @@ export default function CreditNoteDetailsTable({
             accessorKey: "gstCtyAmt",
             header: "GST Country Amount",
             size: 100,
-            cell: ({ row }: { row: { original: IArCreditNoteDt } }) => (
+            cell: ({ row }: { row: { original: IArDebitNoteDt } }) => (
               <div className="text-right">{row.original.gstCtyAmt}</div>
             ),
           },
@@ -264,7 +264,7 @@ export default function CreditNoteDetailsTable({
       accessorKey: "docItemNo",
       header: "Doc Item No",
       size: 80,
-      cell: ({ row }: { row: { original: IArCreditNoteDt } }) => (
+      cell: ({ row }: { row: { original: IArDebitNoteDt } }) => (
         <div className="text-right">{row.original.docItemNo}</div>
       ),
     },
@@ -272,7 +272,7 @@ export default function CreditNoteDetailsTable({
       accessorKey: "seqNo",
       header: "Seq No",
       size: 60,
-      cell: ({ row }: { row: { original: IArCreditNoteDt } }) => (
+      cell: ({ row }: { row: { original: IArDebitNoteDt } }) => (
         <div className="text-right">{row.original.seqNo}</div>
       ),
     },
@@ -288,9 +288,9 @@ export default function CreditNoteDetailsTable({
         data={data}
         columns={columns}
         moduleId={ModuleId.ar}
-        transactionId={ARTransactionId.creditNote}
-        tableName={TableName.arCreditNoteDt}
-        emptyMessage="No creditNote details found."
+        transactionId={ARTransactionId.debitNote}
+        tableName={TableName.arDebitNoteDt}
+        emptyMessage="No debitNote details found."
         accessorId="itemNo"
         onRefresh={onRefresh}
         onFilterChange={onFilterChange}

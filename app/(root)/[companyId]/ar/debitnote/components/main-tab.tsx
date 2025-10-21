@@ -6,21 +6,21 @@ import {
   calculateCountryAmounts,
   calculateLocalAmounts,
   calculateTotalAmounts,
-} from "@/helpers/ar-creditNote-calculations"
-import { IArCreditNoteDt } from "@/interfaces"
+} from "@/helpers/ar-debitNote-calculations"
+import { IArDebitNoteDt } from "@/interfaces"
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
-import { ArCreditNoteDtSchemaType, ArCreditNoteHdSchemaType } from "@/schemas"
+import { ArDebitNoteDtSchemaType, ArDebitNoteHdSchemaType } from "@/schemas"
 import { useAuthStore } from "@/stores/auth-store"
 import { UseFormReturn } from "react-hook-form"
 
 import { useUserSettingDefaults } from "@/hooks/use-settings"
 
-import CreditNoteDetailsForm from "./creditNote-details-form"
-import CreditNoteDetailsTable from "./creditNote-details-table"
-import CreditNoteForm from "./creditNote-form"
+import DebitNoteDetailsForm from "./debitNote-details-form"
+import DebitNoteDetailsTable from "./debitNote-details-table"
+import DebitNoteForm from "./debitNote-form"
 
 interface MainProps {
-  form: UseFormReturn<ArCreditNoteHdSchemaType>
+  form: UseFormReturn<ArDebitNoteHdSchemaType>
   onSuccessAction: (action: string) => Promise<void>
   isEdit: boolean
   visible: IVisibleFields
@@ -45,7 +45,7 @@ export default function Main({
   const { defaults } = useUserSettingDefaults()
 
   const [editingDetail, setEditingDetail] =
-    useState<ArCreditNoteDtSchemaType | null>(null)
+    useState<ArDebitNoteDtSchemaType | null>(null)
 
   // Watch data_details for reactive updates
   const dataDetails = form.watch("data_details") || []
@@ -75,7 +75,7 @@ export default function Main({
 
     // Calculate base currency totals
     const totals = calculateTotalAmounts(
-      dataDetails as unknown as IArCreditNoteDt[],
+      dataDetails as unknown as IArDebitNoteDt[],
       amtDec
     )
     form.setValue("totAmt", totals.totAmt)
@@ -84,7 +84,7 @@ export default function Main({
 
     // Calculate local currency totals (always calculate)
     const localAmounts = calculateLocalAmounts(
-      dataDetails as unknown as IArCreditNoteDt[],
+      dataDetails as unknown as IArDebitNoteDt[],
       locAmtDec
     )
     form.setValue("totLocalAmt", localAmounts.totLocalAmt)
@@ -94,7 +94,7 @@ export default function Main({
     // Calculate country currency totals (always calculate)
     // If m_CtyCurr is false, country amounts = local amounts
     const countryAmounts = calculateCountryAmounts(
-      dataDetails as unknown as IArCreditNoteDt[],
+      dataDetails as unknown as IArDebitNoteDt[],
       visible?.m_CtyCurr ? ctyAmtDec : locAmtDec
     )
     form.setValue("totCtyAmt", countryAmounts.totCtyAmt)
@@ -116,7 +116,7 @@ export default function Main({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dataDetails, amtDec, locAmtDec, ctyAmtDec])
 
-  const handleAddRow = (rowData: IArCreditNoteDt) => {
+  const handleAddRow = (rowData: IArDebitNoteDt) => {
     const currentData = form.getValues("data_details") || []
 
     if (editingDetail) {
@@ -126,7 +126,7 @@ export default function Main({
       )
       form.setValue(
         "data_details",
-        updatedData as unknown as ArCreditNoteDtSchemaType[],
+        updatedData as unknown as ArDebitNoteDtSchemaType[],
         { shouldDirty: true, shouldTouch: true }
       )
 
@@ -136,7 +136,7 @@ export default function Main({
       const updatedData = [...currentData, rowData]
       form.setValue(
         "data_details",
-        updatedData as unknown as ArCreditNoteDtSchemaType[],
+        updatedData as unknown as ArDebitNoteDtSchemaType[],
         { shouldDirty: true, shouldTouch: true }
       )
     }
@@ -161,10 +161,10 @@ export default function Main({
     form.trigger("data_details")
   }
 
-  const handleEdit = (detail: IArCreditNoteDt) => {
+  const handleEdit = (detail: IArDebitNoteDt) => {
     // console.log("Editing detail:", detail)
-    // Convert IArCreditNoteDt to ArCreditNoteDtSchemaType and set for editing
-    setEditingDetail(detail as unknown as ArCreditNoteDtSchemaType)
+    // Convert IArDebitNoteDt to ArDebitNoteDtSchemaType and set for editing
+    setEditingDetail(detail as unknown as ArDebitNoteDtSchemaType)
     // console.log("Editing editingDetail:", editingDetail)
   }
 
@@ -172,7 +172,7 @@ export default function Main({
     setEditingDetail(null)
   }
 
-  const handleDataReorder = (newData: IArCreditNoteDt[]) => {
+  const handleDataReorder = (newData: IArDebitNoteDt[]) => {
     // Update itemNo sequentially after reordering
     const reorderedData = newData.map((item, index) => ({
       ...item,
@@ -180,13 +180,13 @@ export default function Main({
     }))
     form.setValue(
       "data_details",
-      reorderedData as unknown as ArCreditNoteDtSchemaType[]
+      reorderedData as unknown as ArDebitNoteDtSchemaType[]
     )
   }
 
   return (
     <div className="w-full">
-      <CreditNoteForm
+      <DebitNoteForm
         form={form}
         onSuccessAction={onSuccessAction}
         isEdit={isEdit}
@@ -196,7 +196,7 @@ export default function Main({
         defaultCurrencyId={defaults.ar.currencyId}
       />
 
-      <CreditNoteDetailsForm
+      <DebitNoteDetailsForm
         Hdform={form}
         onAddRowAction={handleAddRow}
         onCancelEdit={editingDetail ? handleCancelEdit : undefined}
@@ -204,23 +204,21 @@ export default function Main({
         companyId={companyId}
         visible={visible}
         required={required}
-        existingDetails={dataDetails as ArCreditNoteDtSchemaType[]}
-        defaultGlId={defaults.ar.creditNoteGlId}
+        existingDetails={dataDetails as ArDebitNoteDtSchemaType[]}
+        defaultGlId={defaults.ar.debitNoteGlId}
         defaultUomId={defaults.common.uomId}
         defaultGstId={defaults.common.gstId}
       />
 
-      <CreditNoteDetailsTable
-        data={(dataDetails as unknown as IArCreditNoteDt[]) || []}
+      <DebitNoteDetailsTable
+        data={(dataDetails as unknown as IArDebitNoteDt[]) || []}
         visible={visible}
         onDelete={handleDelete}
         onBulkDelete={handleBulkDelete}
-        onEdit={handleEdit as (template: IArCreditNoteDt) => void}
+        onEdit={handleEdit as (template: IArDebitNoteDt) => void}
         onRefresh={() => {}} // Add refresh logic if needed
         onFilterChange={() => {}} // Add filter logic if needed
-        onDataReorder={
-          handleDataReorder as (newData: IArCreditNoteDt[]) => void
-        }
+        onDataReorder={handleDataReorder as (newData: IArDebitNoteDt[]) => void}
       />
     </div>
   )

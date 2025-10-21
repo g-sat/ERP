@@ -11,8 +11,8 @@ import { ApiResponse } from "@/interfaces/auth"
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
 import {
   ArCreditNoteDtSchemaType,
+  ArCreditNoteHdSchema,
   ArCreditNoteHdSchemaType,
-  arCreditNoteHdSchema,
 } from "@/schemas"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { format, subMonths } from "date-fns"
@@ -105,12 +105,13 @@ export default function CreditNotePage() {
 
   // Add form state management
   const form = useForm<ArCreditNoteHdSchemaType>({
-    resolver: zodResolver(arCreditNoteHdSchema(required, visible)),
+    resolver: zodResolver(ArCreditNoteHdSchema(required, visible)),
     defaultValues: creditNote
       ? {
           creditNoteId: creditNote.creditNoteId?.toString() ?? "0",
           creditNoteNo: creditNote.creditNoteNo ?? "",
           referenceNo: creditNote.referenceNo ?? "",
+          suppCreditNoteNo: creditNote.suppCreditNoteNo ?? "",
           trnDate: creditNote.trnDate ?? new Date(),
           accountDate: creditNote.accountDate ?? new Date(),
           dueDate: creditNote.dueDate ?? new Date(),
@@ -124,6 +125,8 @@ export default function CreditNotePage() {
           bankId: creditNote.bankId ?? 0,
           invoiceId: creditNote.invoiceId ?? "0",
           invoiceNo: creditNote.invoiceNo ?? "",
+          jobOrderId: creditNote.jobOrderId ?? 0,
+          jobOrderNo: creditNote.jobOrderNo ?? "",
           totAmt: creditNote.totAmt ?? 0,
           totLocalAmt: creditNote.totLocalAmt ?? 0,
           totCtyAmt: creditNote.totCtyAmt ?? 0,
@@ -153,15 +156,14 @@ export default function CreditNotePage() {
           mobileNo: creditNote.mobileNo ?? "",
           emailAdd: creditNote.emailAdd ?? "",
           moduleFrom: creditNote.moduleFrom ?? "",
+          supplierName: creditNote.supplierName ?? "",
           addressId: creditNote.addressId ?? 0,
           contactId: creditNote.contactId ?? 0,
-          supplierName: creditNote.supplierName ?? "",
-          suppCreditNoteNo: creditNote.suppCreditNoteNo ?? "",
           apCreditNoteId: creditNote.apCreditNoteId ?? "",
           apCreditNoteNo: creditNote.apCreditNoteNo ?? "",
           editVersion: creditNote.editVersion ?? 0,
-          purchaseOrderId: creditNote.purchaseOrderId ?? 0,
-          purchaseOrderNo: creditNote.purchaseOrderNo ?? "",
+          salesOrderId: creditNote.salesOrderId ?? 0,
+          salesOrderNo: creditNote.salesOrderNo ?? "",
           data_details:
             creditNote.data_details?.map((detail) => ({
               ...detail,
@@ -178,8 +180,9 @@ export default function CreditNotePage() {
               remarks: detail.remarks ?? "",
               supplierName: detail.supplierName ?? "",
               suppCreditNoteNo: detail.suppCreditNoteNo ?? "",
-              apCreditNoteId: detail.apCreditNoteId ?? "",
+              apCreditNoteId: detail.apCreditNoteId ?? "0",
               apCreditNoteNo: detail.apCreditNoteNo ?? "",
+              editVersion: detail.editVersion ?? 0,
             })) || [],
         }
       : {
@@ -237,7 +240,7 @@ export default function CreditNotePage() {
       )
 
       // Validate the form data using the schema
-      const validationResult = arCreditNoteHdSchema(
+      const validationResult = ArCreditNoteHdSchema(
         required,
         visible
       ).safeParse(formValues)
@@ -378,6 +381,7 @@ export default function CreditNotePage() {
       creditNoteId: apiCreditNote.creditNoteId?.toString() ?? "0",
       creditNoteNo: apiCreditNote.creditNoteNo ?? "",
       referenceNo: apiCreditNote.referenceNo ?? "",
+      suppCreditNoteNo: apiCreditNote.suppCreditNoteNo ?? "",
       trnDate: apiCreditNote.trnDate
         ? format(
             parseDate(apiCreditNote.trnDate as string) || new Date(),
@@ -416,6 +420,8 @@ export default function CreditNotePage() {
       bankId: apiCreditNote.bankId ?? 0,
       invoiceId: apiCreditNote.invoiceId ?? "0",
       invoiceNo: apiCreditNote.invoiceNo ?? "",
+      jobOrderId: apiCreditNote.jobOrderId ?? 0,
+      jobOrderNo: apiCreditNote.jobOrderNo ?? "",
       totAmt: apiCreditNote.totAmt ?? 0,
       totLocalAmt: apiCreditNote.totLocalAmt ?? 0,
       totCtyAmt: apiCreditNote.totCtyAmt ?? 0,
@@ -448,12 +454,11 @@ export default function CreditNotePage() {
       emailAdd: apiCreditNote.emailAdd ?? "",
       moduleFrom: apiCreditNote.moduleFrom ?? "",
       supplierName: apiCreditNote.supplierName ?? "",
-      suppCreditNoteNo: apiCreditNote.suppCreditNoteNo ?? "",
       apCreditNoteId: apiCreditNote.apCreditNoteId ?? "",
       apCreditNoteNo: apiCreditNote.apCreditNoteNo ?? "",
       editVersion: apiCreditNote.editVersion ?? 0,
-      purchaseOrderId: apiCreditNote.purchaseOrderId ?? 0,
-      purchaseOrderNo: apiCreditNote.purchaseOrderNo ?? "",
+      salesOrderId: apiCreditNote.salesOrderId ?? 0,
+      salesOrderNo: apiCreditNote.salesOrderNo ?? "",
       createBy: apiCreditNote.createBy ?? "",
       editBy: apiCreditNote.editBy ?? "",
       cancelBy: apiCreditNote.cancelBy ?? "",
@@ -520,12 +525,6 @@ export default function CreditNotePage() {
               departmentId: detail.departmentId ?? 0,
               departmentCode: detail.departmentCode ?? "",
               departmentName: detail.departmentName ?? "",
-              jobOrderId: detail.jobOrderId ?? 0,
-              jobOrderNo: detail.jobOrderNo ?? "",
-              taskId: detail.taskId ?? 0,
-              taskName: detail.taskName ?? "",
-              serviceId: detail.serviceId ?? 0,
-              serviceName: detail.serviceName ?? "",
               employeeId: detail.employeeId ?? 0,
               employeeCode: detail.employeeCode ?? "",
               employeeName: detail.employeeName ?? "",
@@ -543,8 +542,8 @@ export default function CreditNotePage() {
               operationId: detail.operationId ?? "",
               operationNo: detail.operationNo ?? "",
               opRefNo: detail.opRefNo ?? "",
-              purchaseOrderId: detail.purchaseOrderId ?? "",
-              purchaseOrderNo: detail.purchaseOrderNo ?? "",
+              salesOrderId: detail.salesOrderId ?? "",
+              salesOrderNo: detail.salesOrderNo ?? "",
               supplyDate: detail.supplyDate
                 ? format(
                     parseDate(detail.supplyDate as string) || new Date(),
@@ -627,6 +626,8 @@ export default function CreditNotePage() {
             ctyExhRate: detailedCreditNote.ctyExhRate ?? 0,
             creditTermId: detailedCreditNote.creditTermId ?? 0,
             bankId: detailedCreditNote.bankId ?? 0,
+            invoiceId: detailedCreditNote.invoiceId ?? "0",
+            invoiceNo: detailedCreditNote.invoiceNo ?? "",
             totAmt: detailedCreditNote.totAmt ?? 0,
             totLocalAmt: detailedCreditNote.totLocalAmt ?? 0,
             totCtyAmt: detailedCreditNote.totCtyAmt ?? 0,
@@ -658,12 +659,12 @@ export default function CreditNotePage() {
             mobileNo: detailedCreditNote.mobileNo ?? "",
             emailAdd: detailedCreditNote.emailAdd ?? "",
             moduleFrom: detailedCreditNote.moduleFrom ?? "",
-            supplierName: detailedCreditNote.supplierName ?? "",
+            customerName: detailedCreditNote.customerName ?? "",
             apCreditNoteId: detailedCreditNote.apCreditNoteId ?? "",
             apCreditNoteNo: detailedCreditNote.apCreditNoteNo ?? "",
             editVersion: detailedCreditNote.editVersion ?? 0,
-            purchaseOrderId: detailedCreditNote.purchaseOrderId ?? 0,
-            purchaseOrderNo: detailedCreditNote.purchaseOrderNo ?? "",
+            salesOrderId: detailedCreditNote.salesOrderId ?? 0,
+            salesOrderNo: detailedCreditNote.salesOrderNo ?? "",
             createBy: detailedCreditNote.createBy ?? "",
             createDate: detailedCreditNote.createDate ?? "",
             editBy: detailedCreditNote.editBy ?? "",
@@ -710,12 +711,6 @@ export default function CreditNotePage() {
                   departmentId: detail.departmentId ?? 0,
                   departmentCode: detail.departmentCode ?? "",
                   departmentName: detail.departmentName ?? "",
-                  jobOrderId: detail.jobOrderId ?? 0,
-                  jobOrderNo: detail.jobOrderNo ?? "",
-                  taskId: detail.taskId ?? 0,
-                  taskName: detail.taskName ?? "",
-                  serviceId: detail.serviceId ?? 0,
-                  serviceName: detail.serviceName ?? "",
                   employeeId: detail.employeeId ?? 0,
                   employeeCode: detail.employeeCode ?? "",
                   employeeName: detail.employeeName ?? "",
@@ -733,8 +728,8 @@ export default function CreditNotePage() {
                   operationId: detail.operationId ?? "",
                   operationNo: detail.operationNo ?? "",
                   opRefNo: detail.opRefNo ?? "",
-                  purchaseOrderId: detail.purchaseOrderId ?? "",
-                  purchaseOrderNo: detail.purchaseOrderNo ?? "",
+                  salesOrderId: detail.salesOrderId ?? "",
+                  salesOrderNo: detail.salesOrderNo ?? "",
                   supplyDate: detail.supplyDate
                     ? format(
                         parseDate(detail.supplyDate as string) || new Date(),
@@ -879,6 +874,8 @@ export default function CreditNotePage() {
             ctyExhRate: detailedCreditNote.ctyExhRate ?? 0,
             creditTermId: detailedCreditNote.creditTermId ?? 0,
             bankId: detailedCreditNote.bankId ?? 0,
+            invoiceId: detailedCreditNote.invoiceId ?? "0",
+            invoiceNo: detailedCreditNote.invoiceNo ?? "",
             totAmt: detailedCreditNote.totAmt ?? 0,
             totLocalAmt: detailedCreditNote.totLocalAmt ?? 0,
             totCtyAmt: detailedCreditNote.totCtyAmt ?? 0,
@@ -911,11 +908,11 @@ export default function CreditNotePage() {
             emailAdd: detailedCreditNote.emailAdd ?? "",
             moduleFrom: detailedCreditNote.moduleFrom ?? "",
             customerName: detailedCreditNote.customerName ?? "",
-            arCreditNoteId: detailedCreditNote.arCreditNoteId ?? "",
-            arCreditNoteNo: detailedCreditNote.arCreditNoteNo ?? "",
+            apCreditNoteId: detailedCreditNote.apCreditNoteId ?? "",
+            apCreditNoteNo: detailedCreditNote.apCreditNoteNo ?? "",
             editVersion: detailedCreditNote.editVersion ?? 0,
-            purchaseOrderId: detailedCreditNote.purchaseOrderId ?? 0,
-            purchaseOrderNo: detailedCreditNote.purchaseOrderNo ?? "",
+            salesOrderId: detailedCreditNote.salesOrderId ?? 0,
+            salesOrderNo: detailedCreditNote.salesOrderNo ?? "",
 
             data_details:
               detailedCreditNote.data_details?.map(
@@ -956,12 +953,6 @@ export default function CreditNotePage() {
                   departmentId: detail.departmentId ?? 0,
                   departmentCode: detail.departmentCode ?? "",
                   departmentName: detail.departmentName ?? "",
-                  jobOrderId: detail.jobOrderId ?? 0,
-                  jobOrderNo: detail.jobOrderNo ?? "",
-                  taskId: detail.taskId ?? 0,
-                  taskName: detail.taskName ?? "",
-                  serviceId: detail.serviceId ?? 0,
-                  serviceName: detail.serviceName ?? "",
                   employeeId: detail.employeeId ?? 0,
                   employeeCode: detail.employeeCode ?? "",
                   employeeName: detail.employeeName ?? "",
@@ -979,8 +970,8 @@ export default function CreditNotePage() {
                   operationId: detail.operationId ?? "",
                   operationNo: detail.operationNo ?? "",
                   opRefNo: detail.opRefNo ?? "",
-                  purchaseOrderId: detail.purchaseOrderId ?? "",
-                  purchaseOrderNo: detail.purchaseOrderNo ?? "",
+                  salesOrderId: detail.salesOrderId ?? "",
+                  salesOrderNo: detail.salesOrderNo ?? "",
                   supplyDate: detail.supplyDate
                     ? format(
                         parseDate(detail.supplyDate as string) || new Date(),

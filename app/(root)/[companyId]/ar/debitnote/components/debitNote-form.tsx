@@ -14,8 +14,8 @@ import {
   calculateLocalAmounts,
   calculateTotalAmounts,
   recalculateAllDetailAmounts,
-} from "@/helpers/ar-creditNote-calculations"
-import { IArCreditNoteDt } from "@/interfaces"
+} from "@/helpers/ar-debitNote-calculations"
+import { IArDebitNoteDt } from "@/interfaces"
 import {
   IBankLookup,
   ICreditTermLookup,
@@ -23,7 +23,7 @@ import {
   ICustomerLookup,
 } from "@/interfaces/lookup"
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
-import { ArCreditNoteDtSchemaType, ArCreditNoteHdSchemaType } from "@/schemas"
+import { ArDebitNoteDtSchemaType, ArDebitNoteHdSchemaType } from "@/schemas"
 import { useAuthStore } from "@/stores/auth-store"
 import { format } from "date-fns"
 import { FormProvider, UseFormReturn } from "react-hook-form"
@@ -40,8 +40,8 @@ import CustomInput from "@/components/custom/custom-input"
 import CustomNumberInput from "@/components/custom/custom-number-input"
 import CustomTextarea from "@/components/custom/custom-textarea"
 
-interface CreditNoteFormProps {
-  form: UseFormReturn<ArCreditNoteHdSchemaType>
+interface DebitNoteFormProps {
+  form: UseFormReturn<ArDebitNoteHdSchemaType>
   onSuccessAction: (action: string) => Promise<void>
   isEdit: boolean
   visible: IVisibleFields
@@ -50,7 +50,7 @@ interface CreditNoteFormProps {
   defaultCurrencyId?: number
 }
 
-export default function CreditNoteForm({
+export default function DebitNoteForm({
   form,
   onSuccessAction,
   isEdit,
@@ -58,7 +58,7 @@ export default function CreditNoteForm({
   required,
   companyId: _companyId,
   defaultCurrencyId = 0,
-}: CreditNoteFormProps) {
+}: DebitNoteFormProps) {
   const { decimals } = useAuthStore()
   const amtDec = decimals[0]?.amtDec || 2
   const locAmtDec = decimals[0]?.locAmtDec || 2
@@ -205,7 +205,7 @@ export default function CreditNoteForm({
       const currentCurrencyId = form.getValues("currencyId")
       const currentCustomerId = form.getValues("customerId")
 
-      console.log("CreditNote Form - Checking defaults:", {
+      console.log("DebitNote Form - Checking defaults:", {
         currentCurrencyId,
         currentCustomerId,
         defaultCurrencyId,
@@ -218,7 +218,7 @@ export default function CreditNoteForm({
         (!currentCustomerId || currentCustomerId === 0)
       ) {
         console.log(
-          "CreditNote Form - Setting default currency:",
+          "DebitNote Form - Setting default currency:",
           defaultCurrencyId
         )
         form.setValue("currencyId", defaultCurrencyId)
@@ -255,7 +255,7 @@ export default function CreditNoteForm({
 
     // Calculate base currency totals
     const totals = calculateTotalAmounts(
-      formDetails as unknown as IArCreditNoteDt[],
+      formDetails as unknown as IArDebitNoteDt[],
       amtDec
     )
     form.setValue("totAmt", totals.totAmt)
@@ -264,7 +264,7 @@ export default function CreditNoteForm({
 
     // Calculate local currency totals (always calculate)
     const localAmounts = calculateLocalAmounts(
-      formDetails as unknown as IArCreditNoteDt[],
+      formDetails as unknown as IArDebitNoteDt[],
       locAmtDec
     )
     form.setValue("totLocalAmt", localAmounts.totLocalAmt)
@@ -274,7 +274,7 @@ export default function CreditNoteForm({
     // Calculate country currency totals (always calculate)
     // If m_CtyCurr is false, country amounts = local amounts
     const countryAmounts = calculateCountryAmounts(
-      formDetails as unknown as IArCreditNoteDt[],
+      formDetails as unknown as IArDebitNoteDt[],
       visible?.m_CtyCurr ? ctyAmtDec : locAmtDec
     )
     form.setValue("totCtyAmt", countryAmounts.totCtyAmt)
@@ -308,7 +308,7 @@ export default function CreditNoteForm({
 
         // Recalculate all details with new exchange rates
         const updatedDetails = recalculateAllDetailAmounts(
-          formDetails as unknown as IArCreditNoteDt[],
+          formDetails as unknown as IArDebitNoteDt[],
           exchangeRate,
           cityExchangeRate,
           decimals[0],
@@ -318,7 +318,7 @@ export default function CreditNoteForm({
         // Update form with recalculated details
         form.setValue(
           "data_details",
-          updatedDetails as unknown as ArCreditNoteDtSchemaType[],
+          updatedDetails as unknown as ArDebitNoteDtSchemaType[],
           { shouldDirty: true, shouldTouch: true }
         )
 
@@ -348,7 +348,7 @@ export default function CreditNoteForm({
 
       // Recalculate all details with new exchange rate
       const updatedDetails = recalculateAllDetailAmounts(
-        formDetails as unknown as IArCreditNoteDt[],
+        formDetails as unknown as IArDebitNoteDt[],
         exchangeRate,
         cityExchangeRate,
         decimals[0],
@@ -358,7 +358,7 @@ export default function CreditNoteForm({
       // Update form with recalculated details
       form.setValue(
         "data_details",
-        updatedDetails as unknown as ArCreditNoteDtSchemaType[],
+        updatedDetails as unknown as ArDebitNoteDtSchemaType[],
         { shouldDirty: true, shouldTouch: true }
       )
 
@@ -381,7 +381,7 @@ export default function CreditNoteForm({
 
       // Recalculate all details with new city exchange rate
       const updatedDetails = recalculateAllDetailAmounts(
-        formDetails as unknown as IArCreditNoteDt[],
+        formDetails as unknown as IArDebitNoteDt[],
         exchangeRate,
         cityExchangeRate,
         decimals[0],
@@ -391,7 +391,7 @@ export default function CreditNoteForm({
       // Update form with recalculated details
       form.setValue(
         "data_details",
-        updatedDetails as unknown as ArCreditNoteDtSchemaType[],
+        updatedDetails as unknown as ArDebitNoteDtSchemaType[],
         { shouldDirty: true, shouldTouch: true }
       )
 
@@ -441,11 +441,11 @@ export default function CreditNoteForm({
             onChangeEvent={handleCustomerChange}
             companyId={_companyId}
           />
-          {/* customerCreditNoteNo */}
+          {/* customerDebitNoteNo */}
           <CustomInput
             form={form}
-            name="suppCreditNoteNo"
-            label="Customer CreditNote No."
+            name="suppDebitNoteNo"
+            label="Customer DebitNote No."
             isRequired={required?.m_SuppInvoiceNo}
           />
 
@@ -596,7 +596,7 @@ export default function CreditNoteForm({
           />
         </div>
 
-        {/* {form.watch("creditNoteId") != "0" && (
+        {/* {form.watch("debitNoteId") != "0" && (
           <>
             {/* Summary Box */}
         {/* Right Section: Summary Box */}
