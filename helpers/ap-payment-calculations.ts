@@ -158,7 +158,7 @@ export const calculateAllocationAmounts = (
 
   // Calculate cent difference
   const centDiff = mathRound(
-    docAllocLocalAmt - docTotLocalAmt,
+    docAllocLocalAmt - allocLocalAmt,
     decimals.locAmtDec
   )
 

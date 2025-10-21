@@ -17,9 +17,6 @@ interface PaymentDetailsTableProps {
   data: IApPaymentDt[]
   onDelete?: (itemNo: number) => void
   onBulkDelete?: (selectedItemNos: number[]) => void
-  onEdit?: (template: IApPaymentDt) => void
-  onRefresh?: () => void
-  onFilterChange?: (filters: { search?: string; sortOrder?: string }) => void
   onDataReorder?: (newData: IApPaymentDt[]) => void
   onCellEdit?: (itemNo: number, field: string, value: number) => void
   visible: IVisibleFields
@@ -29,9 +26,6 @@ export default function PaymentDetailsTable({
   data,
   onDelete,
   onBulkDelete,
-  onEdit,
-  onRefresh,
-  onFilterChange,
   onDataReorder,
   onCellEdit,
   visible: _visible,
@@ -46,7 +40,6 @@ export default function PaymentDetailsTable({
     setMounted(true)
   }, [])
 
-  // Helper function to format numbers with proper decimals
   const formatNumber = (
     value: number | string | null | undefined,
     decimals: number
@@ -55,17 +48,14 @@ export default function PaymentDetailsTable({
     return numValue.toFixed(decimals)
   }
 
-  // Custom Number Input Component for table cells
-  const CustomTableNumberInput = ({
+  const EditableNumberInput = ({
     value,
     decimals,
     onChange,
-    className = "",
   }: {
     value: number
     decimals: number
     onChange: (value: number) => void
-    className?: string
   }) => {
     const [displayValue, setDisplayValue] = useState(
       formatNumber(value, decimals)
@@ -76,8 +66,7 @@ export default function PaymentDetailsTable({
     }, [value, decimals])
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      const inputValue = e.target.value
-      setDisplayValue(inputValue)
+      setDisplayValue(e.target.value)
     }
 
     const handleBlur = () => {
@@ -87,37 +76,30 @@ export default function PaymentDetailsTable({
       onChange(roundedValue)
     }
 
+    const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
+      e.target.select()
+    }
+
     return (
       <input
         type="text"
-        className={`w-full rounded border px-2 py-1 text-right focus:ring-2 focus:ring-blue-500 focus:outline-none ${className}`}
+        className="w-full rounded border px-2 py-1 text-right focus:ring-2 focus:ring-blue-500 focus:outline-none"
+        style={{ textAlign: "right" }}
         value={displayValue}
         onChange={handleChange}
         onBlur={handleBlur}
+        onFocus={handleFocus}
         placeholder="0.00"
       />
     )
-  }
-
-  // Wrapper functions to convert string to number
-  const handleDelete = (itemId: string) => {
-    if (onDelete) {
-      onDelete(Number(itemId))
-    }
-  }
-
-  const handleBulkDelete = (selectedIds: string[]) => {
-    if (onBulkDelete) {
-      onBulkDelete(selectedIds.map((id) => Number(id)))
-    }
   }
 
   // Define columns with visible prop checks - Payment specific fields
   const columns: ExtendedColumnDef<IApPaymentDt>[] = [
     {
       accessorKey: "itemNo",
-      header: "Item No",
-      size: 60,
+      header: "Item",
+      size: 40,
       cell: ({ row }: { row: { original: IApPaymentDt } }) => (
         <div className="text-right">{row.original.itemNo}</div>
       ),
@@ -126,7 +108,7 @@ export default function PaymentDetailsTable({
     {
       accessorKey: "documentNo",
       header: "Document No",
-      size: 120,
+      size: 150,
     },
     {
       accessorKey: "referenceNo",
@@ -137,10 +119,7 @@ export default function PaymentDetailsTable({
     {
       accessorKey: "docCurrencyCode",
       header: "Currency",
-      size: 100,
-      cell: ({ row }: { row: { original: IApPaymentDt } }) => (
-        <div className="text-right">{row.original.docCurrencyCode}</div>
-      ),
+      size: 60,
     },
     {
       accessorKey: "docExhRate",
@@ -186,22 +165,18 @@ export default function PaymentDetailsTable({
         const isNegative = docBalAmt < 0
 
         return (
-          <CustomTableNumberInput
+          <EditableNumberInput
             value={row.original.allocAmt || 0}
             decimals={amtDec}
             onChange={(value) => {
               let numValue = Number(value) || 0
 
-              // Validate: same sign as docBalAmt
               if (isNegative && numValue > 0) numValue = -Math.abs(numValue)
               if (!isNegative && numValue < 0) numValue = Math.abs(numValue)
 
-              // Validate: can't exceed docBalAmt
               if (isNegative) {
-                // For negative, value should be >= docBalAmt (more negative is smaller)
                 if (numValue < docBalAmt) numValue = docBalAmt
               } else {
-                // For positive, value should be <= docBalAmt
                 if (numValue > docBalAmt) numValue = docBalAmt
               }
 
@@ -222,22 +197,18 @@ export default function PaymentDetailsTable({
         const isNegative = docBalLocalAmt < 0
 
         return (
-          <CustomTableNumberInput
+          <EditableNumberInput
             value={row.original.allocLocalAmt || 0}
             decimals={locAmtDec}
             onChange={(value) => {
               let numValue = Number(value) || 0
 
-              // Validate: same sign as docBalLocalAmt
               if (isNegative && numValue > 0) numValue = -Math.abs(numValue)
               if (!isNegative && numValue < 0) numValue = Math.abs(numValue)
 
-              // Validate: can't exceed docBalLocalAmt
               if (isNegative) {
-                // For negative, value should be >= docBalLocalAmt (more negative is smaller)
                 if (numValue < docBalLocalAmt) numValue = docBalLocalAmt
               } else {
-                // For positive, value should be <= docBalLocalAmt
                 if (numValue > docBalLocalAmt) numValue = docBalLocalAmt
               }
 
@@ -352,13 +323,12 @@ export default function PaymentDetailsTable({
         tableName={TableName.apPaymentDt}
         emptyMessage="No payment details found."
         accessorId="itemNo"
-        onRefresh={onRefresh}
-        onFilterChange={onFilterChange}
-        onBulkDelete={handleBulkDelete}
+        onBulkDelete={(selectedIds: string[]) =>
+          onBulkDelete?.(selectedIds.map((id) => Number(id)))
+        }
         onBulkSelectionChange={() => {}}
         onDataReorder={onDataReorder}
-        onEdit={onEdit}
-        onDelete={handleDelete}
+        onDelete={(itemId: string) => onDelete?.(Number(itemId))}
         showHeader={true}
         showActions={true}
         hideView={true}
