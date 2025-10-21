@@ -64,7 +64,8 @@ export * from "./ap-payment"
 export * from "./ap-creditNote"
 export * from "./ap-debitNote"
 export * from "./ap-adjustment"
-
+export * from "./ap-refund"
+export * from "./ap-docsetoff"
 // CB schemas
 export * from "./cb-genpayment"
 export * from "./cb-genreceipt"
