@@ -330,7 +330,6 @@ export default function InvoiceDetailsForm({
         departmentId: editingDetail.departmentId ?? 0,
         departmentCode: editingDetail.departmentCode ?? "",
         departmentName: editingDetail.departmentName ?? "",
-
         employeeId: editingDetail.employeeId ?? 0,
         employeeCode: editingDetail.employeeCode ?? "",
         employeeName: editingDetail.employeeName ?? "",
@@ -951,6 +950,18 @@ export default function InvoiceDetailsForm({
             isDisabled={true}
           />
 
+          {/* City Amount */}
+          {visible?.m_CtyCurr && (
+            <CustomNumberInput
+              form={form}
+              name="totCtyAmt"
+              label="Total City Amount"
+              round={locAmtDec}
+              className="text-right"
+              isDisabled={true}
+            />
+          )}
+
           {/* GST */}
           {visible?.m_GstId && (
             <GSTAutocomplete
@@ -979,7 +990,7 @@ export default function InvoiceDetailsForm({
             label="GST Amount"
             round={amtDec}
             isDisabled
-            className="col-span-1 text-right"
+            className="text-right"
             onChangeEvent={handleGstAmountChange}
           />
 
@@ -989,9 +1000,21 @@ export default function InvoiceDetailsForm({
             name="gstLocalAmt"
             label="GST Local Amount"
             round={locAmtDec}
-            className="col-span-1 text-right"
+            className="text-right"
             isDisabled={true}
           />
+
+          {/* GST City Amount */}
+          {visible?.m_CtyCurr && (
+            <CustomNumberInput
+              form={form}
+              name="gstCtyAmt"
+              label="GST City Amount"
+              round={locAmtDec}
+              className="text-right"
+              isDisabled={true}
+            />
+          )}
 
           {/* Remarks */}
           {visible?.m_Remarks && (
