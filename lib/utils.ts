@@ -190,6 +190,7 @@ export enum ARTransactionId {
   receipt = 5,
   refund = 6,
   docsetoff = 7,
+  invoice_edit = 8,
   reports = 99,
 }
 
@@ -429,6 +430,7 @@ export enum TableName {
   //AR
   arInvoice = "arInvoice",
   arInvoiceDt = "arInvoiceDt",
+  arInvoiceHistory = "arInvoiceHistory",
   arDebitNote = "arDebitNote",
   arDebitNoteDt = "arDebitNoteDt",
   arCreditNote = "arCreditNote",

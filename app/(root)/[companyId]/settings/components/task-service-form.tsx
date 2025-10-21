@@ -13,7 +13,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 
-import { useChartofAccountLookup } from "@/hooks/use-lookup"
+import { useChartOfAccountLookup } from "@/hooks/use-lookup"
 import { useTaskServiceGet, useTaskServiceSave } from "@/hooks/use-task-service"
 import { Button } from "@/components/ui/button"
 import { Form } from "@/components/ui/form"
@@ -67,7 +67,7 @@ export function TaskServiceForm() {
 
   // Get chart of account data to ensure it's loaded before setting form values
   const { data: chartOfAccounts = [], isLoading: isLoadingChartOfAccounts } =
-    useChartofAccountLookup(Number(companyId))
+    useChartOfAccountLookup(Number(companyId))
 
   const { mutate: saveTaskServiceSettings, isPending } = useTaskServiceSave()
 

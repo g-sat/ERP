@@ -10,13 +10,20 @@ import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { BasicTable } from "@/components/table/table-basic"
 
-export default function GLPostDetails({ invoiceId }: { invoiceId: string }) {
+// Extended column definition with hide property
+type ExtendedColumnDef<T> = ColumnDef<T> & {
+  hidden?: boolean
+}
+interface GLPostDetailsProps {
+  invoiceId: string
+}
+
+export default function GLPostDetails({ invoiceId }: GLPostDetailsProps) {
   const { decimals } = useAuthStore()
   const amtDec = decimals[0]?.amtDec || 2
   const locAmtDec = decimals[0]?.locAmtDec || 2
   const exhRateDec = decimals[0]?.exhRateDec || 6
   const dateFormat = decimals[0]?.dateFormat || "dd/MM/yyyy"
-
   const moduleId = ModuleId.ar
   const transactionId = ARTransactionId.invoice
 
@@ -41,7 +48,7 @@ export default function GLPostDetails({ invoiceId }: { invoiceId: string }) {
   //   data: glPostDetailsData,
   // } = glPostDetails ?? {}
 
-  const columns: ColumnDef<IGlTransactionDetails>[] = [
+  const columns: ExtendedColumnDef<IGlTransactionDetails>[] = [
     {
       accessorKey: "DocumentNo",
       header: "Document No",
@@ -52,7 +59,7 @@ export default function GLPostDetails({ invoiceId }: { invoiceId: string }) {
     },
     {
       accessorKey: "AccountDate",
-      header: "Account Date",
+      header: "Acc. Date",
       cell: ({ row }) => {
         const date = row.original.AccountDate
           ? new Date(row.original.AccountDate)
@@ -62,15 +69,16 @@ export default function GLPostDetails({ invoiceId }: { invoiceId: string }) {
     },
     {
       accessorKey: "CurrencyCode",
-      header: "Currency Code",
+      header: "Currency",
     },
     {
       accessorKey: "CurrencyName",
-      header: "Currency Name",
+      header: "Currency",
+      hidden: true,
     },
     {
       accessorKey: "ExhRate",
-      header: "Exchange Rate",
+      header: "Exh. Rate",
       cell: ({ row }) =>
         row.original.ExhRate ? row.original.ExhRate.toFixed(exhRateDec) : "-",
     },
@@ -81,14 +89,16 @@ export default function GLPostDetails({ invoiceId }: { invoiceId: string }) {
         row.original.CtyExhRate
           ? row.original.CtyExhRate.toFixed(exhRateDec)
           : "-",
+      hidden: true,
     },
     {
       accessorKey: "BankCode",
       header: "Bank Code",
+      hidden: true,
     },
     {
       accessorKey: "BankName",
-      header: "Bank Name",
+      header: "Bank",
     },
     {
       accessorKey: "GLCode",
@@ -128,6 +138,7 @@ export default function GLPostDetails({ invoiceId }: { invoiceId: string }) {
         row.original.TotCtyAmt
           ? row.original.TotCtyAmt.toFixed(locAmtDec)
           : "-",
+      hidden: true,
     },
     {
       accessorKey: "gstCode",
@@ -136,6 +147,7 @@ export default function GLPostDetails({ invoiceId }: { invoiceId: string }) {
     {
       accessorKey: "gstName",
       header: "GST Name",
+      hidden: true,
     },
     {
       accessorKey: "gstAmt",
@@ -158,6 +170,7 @@ export default function GLPostDetails({ invoiceId }: { invoiceId: string }) {
         row.original.gstCtyAmt
           ? row.original.gstCtyAmt.toFixed(locAmtDec)
           : "-",
+      hidden: true,
     },
     {
       accessorKey: "remarks",
@@ -166,6 +179,7 @@ export default function GLPostDetails({ invoiceId }: { invoiceId: string }) {
     {
       accessorKey: "departmentCode",
       header: "Department Code",
+      hidden: true,
     },
     {
       accessorKey: "departmentName",
@@ -174,6 +188,7 @@ export default function GLPostDetails({ invoiceId }: { invoiceId: string }) {
     {
       accessorKey: "employeeCode",
       header: "Employee Code",
+      hidden: true,
     },
     {
       accessorKey: "employeeName",
@@ -182,6 +197,7 @@ export default function GLPostDetails({ invoiceId }: { invoiceId: string }) {
     {
       accessorKey: "portCode",
       header: "Port Code",
+      hidden: true,
     },
     {
       accessorKey: "portName",
@@ -190,6 +206,7 @@ export default function GLPostDetails({ invoiceId }: { invoiceId: string }) {
     {
       accessorKey: "vesselCode",
       header: "Vessel Code",
+      hidden: true,
     },
     {
       accessorKey: "vesselName",
@@ -202,6 +219,7 @@ export default function GLPostDetails({ invoiceId }: { invoiceId: string }) {
     {
       accessorKey: "bargeCode",
       header: "Barge Code",
+      hidden: true,
     },
     {
       accessorKey: "bargeName",
@@ -210,6 +228,7 @@ export default function GLPostDetails({ invoiceId }: { invoiceId: string }) {
     {
       accessorKey: "productCode",
       header: "Product Code",
+      hidden: true,
     },
     {
       accessorKey: "productName",
@@ -255,6 +274,9 @@ export default function GLPostDetails({ invoiceId }: { invoiceId: string }) {
     }
   }
 
+  // Filter out columns with hidden: true
+  const visibleColumns = columns.filter((column) => !column.hidden)
+
   return (
     <Card>
       <CardHeader>
@@ -263,15 +285,17 @@ export default function GLPostDetails({ invoiceId }: { invoiceId: string }) {
       <CardContent>
         <BasicTable
           data={glPostDetailsData || []}
-          columns={columns}
+          columns={visibleColumns}
           isLoading={false}
           moduleId={moduleId}
           transactionId={transactionId}
-          tableName={TableName.notDefine}
+          tableName={TableName.glPostDetails}
           emptyMessage="No results."
           onRefresh={handleRefresh}
           showHeader={true}
           showFooter={false}
+          maxHeight="300px"
+          pageSizeOption={10}
         />
       </CardContent>
     </Card>

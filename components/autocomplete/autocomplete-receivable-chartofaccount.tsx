@@ -1,7 +1,7 @@
 "use client"
 
 import React from "react"
-import { IChartofAccountLookup } from "@/interfaces/lookup"
+import { IChartOfAccountLookup } from "@/interfaces/lookup"
 import { IconCheck, IconChevronDown, IconX } from "@tabler/icons-react"
 import { Path, PathValue, UseFormReturn } from "react-hook-form"
 import Select, {
@@ -15,7 +15,7 @@ import Select, {
 } from "react-select"
 
 import { cn } from "@/lib/utils"
-import { useReceivableChartofAccountLookup } from "@/hooks/use-lookup"
+import { useReceivableChartOfAccountLookup } from "@/hooks/use-lookup"
 
 import { FormField, FormItem } from "../ui/form"
 import { Label } from "../ui/label"
@@ -34,7 +34,7 @@ interface ReceivableChartOfAccountAutocompleteProps<
   className?: string
   isDisabled?: boolean
   isRequired?: boolean
-  onChangeEvent?: (selectedOption: IChartofAccountLookup | null) => void
+  onChangeEvent?: (selectedOption: IChartOfAccountLookup | null) => void
   companyId?: number
 }
 
@@ -51,7 +51,7 @@ export default function ReceivableChartOfAccountAutocomplete<
   companyId = 0,
 }: ReceivableChartOfAccountAutocompleteProps<T>) {
   const { data: chartOfAccounts = [], isLoading } =
-    useReceivableChartofAccountLookup(companyId || 0)
+    useReceivableChartOfAccountLookup(companyId || 0)
 
   // Clear the form field when companyId changes
   React.useEffect(() => {
@@ -74,7 +74,7 @@ export default function ReceivableChartOfAccountAutocomplete<
 
   const options: FieldOption[] = React.useMemo(
     () =>
-      chartOfAccounts.map((chartOfAccount: IChartofAccountLookup) => ({
+      chartOfAccounts.map((chartOfAccount: IChartOfAccountLookup) => ({
         value: chartOfAccount.glId.toString(),
         label: chartOfAccount.glCode + " - " + chartOfAccount.glName,
       })),
@@ -208,7 +208,7 @@ export default function ReceivableChartOfAccountAutocomplete<
       if (onChangeEvent) {
         const selectedChartOfAccount = selectedOption
           ? chartOfAccounts.find(
-              (u: IChartofAccountLookup) =>
+              (u: IChartOfAccountLookup) =>
                 u.glId.toString() === selectedOption.value
             ) || null
           : null

@@ -54,7 +54,7 @@ export interface ICurrencyLookup {
   isMultiply: boolean
 }
 
-export interface IChartofAccountLookup {
+export interface IChartOfAccountLookup {
   glId: number
   glCode: string
   glName: string

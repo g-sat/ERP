@@ -10,7 +10,7 @@ import {
 import { IApInvoiceDt } from "@/interfaces/ap-invoice"
 import {
   IBargeLookup,
-  IChartofAccountLookup,
+  IChartOfAccountLookup,
   IDepartmentLookup,
   IEmployeeLookup,
   IGstLookup,
@@ -478,7 +478,7 @@ export default function InvoiceDetailsForm({
 
   // Handle chart of account selection
   const handleChartOfAccountChange = (
-    selectedOption: IChartofAccountLookup | null
+    selectedOption: IChartOfAccountLookup | null
   ) => {
     if (selectedOption) {
       form.setValue("glId", selectedOption.glId, {

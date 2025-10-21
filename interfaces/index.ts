@@ -28,7 +28,6 @@ export * from "./entitytype"
 
 export * from "./gst"
 export * from "./history"
-export * from "./invoice"
 
 export * from "./template"
 
@@ -72,6 +71,7 @@ export * from "./worklocation"
 //account-ar
 export * from "./ar-receipt"
 export * from "./ar-creditNote"
+export * from "./ar-invoice"
 
 //account-ap
 export * from "./ap-invoice"

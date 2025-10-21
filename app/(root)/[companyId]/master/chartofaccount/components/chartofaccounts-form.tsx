@@ -1,9 +1,9 @@
 "use client"
 
 import { useEffect } from "react"
-import { IChartofAccount } from "@/interfaces/chartofaccount"
+import { IChartOfAccount } from "@/interfaces/chartofaccount"
 import {
-  ChartofAccountSchemaType,
+  ChartOfAccountSchemaType,
   chartofAccountSchema,
 } from "@/schemas/chartofaccount"
 import { useAuthStore } from "@/stores/auth-store"
@@ -56,8 +56,8 @@ const defaultValues = {
   isActive: true,
 }
 interface ChartOfAccountFormProps {
-  initialData?: IChartofAccount | null
-  submitAction: (data: ChartofAccountSchemaType) => void
+  initialData?: IChartOfAccount | null
+  submitAction: (data: ChartOfAccountSchemaType) => void
   onCancelAction?: () => void
   isSubmitting?: boolean
   isReadOnly?: boolean
@@ -75,7 +75,7 @@ export function ChartOfAccountForm({
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
 
-  const form = useForm<ChartofAccountSchemaType>({
+  const form = useForm<ChartOfAccountSchemaType>({
     resolver: zodResolver(chartofAccountSchema),
     defaultValues: initialData
       ? {
@@ -148,7 +148,7 @@ export function ChartOfAccountForm({
     }
   }
 
-  const onSubmit = (data: ChartofAccountSchemaType) => {
+  const onSubmit = (data: ChartOfAccountSchemaType) => {
     submitAction(data)
   }
 

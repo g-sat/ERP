@@ -24,7 +24,6 @@ export * from "./employee"
 export * from "./employer"
 export * from "./entitytype"
 export * from "./gst"
-export * from "./invoice"
 export * from "./template"
 
 // Leave schemas - leave.ts already exports leaveTypeSchema
@@ -61,6 +60,7 @@ export * from "./worklocation"
 // AR schemas
 export * from "./ar-receipt"
 export * from "./ar-creditNote"
+export * from "./ar-invoice"
 
 // AP schemas
 export * from "./ap-invoice"

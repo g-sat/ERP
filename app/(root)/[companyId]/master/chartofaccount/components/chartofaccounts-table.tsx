@@ -1,6 +1,6 @@
 "use client"
 
-import { IChartofAccount } from "@/interfaces/chartofaccount"
+import { IChartOfAccount } from "@/interfaces/chartofaccount"
 import { useAuthStore } from "@/stores/auth-store"
 import {
   IconCircleCheckFilled,
@@ -14,11 +14,11 @@ import { Badge } from "@/components/ui/badge"
 import { MainTable } from "@/components/table/table-main"
 
 interface ChartOfAccountsTableProps {
-  data: IChartofAccount[]
+  data: IChartOfAccount[]
   isLoading?: boolean
-  onSelect?: (chartOfAccount: IChartofAccount | null) => void
+  onSelect?: (chartOfAccount: IChartOfAccount | null) => void
   onDelete?: (chartOfAccountId: string) => void
-  onEdit?: (chartOfAccount: IChartofAccount) => void
+  onEdit?: (chartOfAccount: IChartOfAccount) => void
   onCreate?: () => void
   onRefresh?: () => void
   onFilterChange?: (filters: { search?: string; sortOrder?: string }) => void
@@ -51,7 +51,7 @@ export function ChartOfAccountsTable({
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
 
-  const columns: ColumnDef<IChartofAccount>[] = [
+  const columns: ColumnDef<IChartOfAccount>[] = [
     {
       accessorKey: "glCode",
       header: "GL Code",

@@ -1,34 +1,44 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { useParams } from "next/navigation"
+import { IBankAddress, IBankContact } from "@/interfaces/bank"
 import { ICustomerAddress, ICustomerContact } from "@/interfaces/customer"
-import { ArInvoiceHdSchemaType } from "@/schemas/invoice"
+import { ISupplierAddress, ISupplierContact } from "@/interfaces/supplier"
+import { ArInvoiceHdSchemaType } from "@/schemas"
 import { UseFormReturn } from "react-hook-form"
 
+import { ARTransactionId, ModuleId } from "@/lib/utils"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Form } from "@/components/ui/form"
 import { Separator } from "@/components/ui/separator"
-import {
-  AddressAutocomplete,
-  ContactAutocomplete,
-  CountryAutocomplete,
-} from "@/components/autocomplete"
+import { CountryAutocomplete } from "@/components/autocomplete"
+import DynamicAddressAutocomplete, {
+  EntityType as AddressEntityType,
+} from "@/components/autocomplete/autocomplete-address-dynamic"
+import DynamicContactAutocomplete, {
+  EntityType as ContactEntityType,
+} from "@/components/autocomplete/autocomplete-contact-dynamic"
 import CustomInput from "@/components/custom/custom-input"
 import CustomTextarea from "@/components/custom/custom-textarea"
-
-import DocumentUpload from "./other/document-upload"
+import DocumentManager from "@/components/document-manager"
 
 interface OtherProps {
   form: UseFormReturn<ArInvoiceHdSchemaType>
 }
 
 export default function Other({ form }: OtherProps) {
+  const params = useParams()
+  const companyId = params.companyId as string
+
   const [selectedAddress, setSelectedAddress] =
     useState<ICustomerAddress | null>(null)
   const [selectedContact, setSelectedContact] =
     useState<ICustomerContact | null>(null)
 
   const customerId = form.getValues().customerId || 0
+  const invoiceId = form.getValues("invoiceId") || "0"
+  const invoiceNo = form.getValues("invoiceNo") || ""
 
   // other.tsx
   useEffect(() => {
@@ -88,18 +98,22 @@ export default function Other({ form }: OtherProps) {
     setSelectedContact(contact)
   }, [customerId, form]) // Re-run when customerId changes
 
-  const handleAddressSelect = (address: ICustomerAddress | null) => {
-    setSelectedAddress(address)
-    if (address) {
-      form.setValue("addressId", address.addressId)
-      form.setValue("address1", address.address1 || "")
-      form.setValue("address2", address.address2 || "")
-      form.setValue("address3", address.address3 || "")
-      form.setValue("address4", address.address4 || "")
-      form.setValue("pinCode", address.pinCode?.toString() || "")
-      form.setValue("phoneNo", address.phoneNo || "")
-      form.setValue("faxNo", address.faxNo || "")
-      form.setValue("countryId", address.countryId || 0)
+  const handleAddressSelect = (
+    address: ICustomerAddress | ISupplierAddress | IBankAddress | null
+  ) => {
+    // Type guard to ensure we only work with supplier addresses
+    const customerAddress = address as ICustomerAddress | null
+    setSelectedAddress(customerAddress)
+    if (customerAddress) {
+      form.setValue("addressId", customerAddress.addressId)
+      form.setValue("address1", customerAddress.address1 || "")
+      form.setValue("address2", customerAddress.address2 || "")
+      form.setValue("address3", customerAddress.address3 || "")
+      form.setValue("address4", customerAddress.address4 || "")
+      form.setValue("pinCode", customerAddress.pinCode?.toString() || "")
+      form.setValue("phoneNo", customerAddress.phoneNo || "")
+      form.setValue("faxNo", customerAddress.faxNo || "")
+      form.setValue("countryId", customerAddress.countryId || 0)
     } else {
       form.setValue("addressId", 0)
       form.setValue("address1", "")
@@ -113,13 +127,17 @@ export default function Other({ form }: OtherProps) {
     }
   }
 
-  const handleContactSelect = (contact: ICustomerContact | null) => {
-    setSelectedContact(contact)
-    if (contact) {
-      form.setValue("contactId", contact.contactId)
-      form.setValue("contactName", contact.contactName || "")
-      form.setValue("emailAdd", contact.otherName || "")
-      form.setValue("mobileNo", contact.mobileNo || "")
+  const handleContactSelect = (
+    contact: ICustomerContact | ISupplierContact | IBankContact | null
+  ) => {
+    // Type guard to ensure we only work with supplier contacts
+    const customerContact = contact as ICustomerContact | null
+    setSelectedContact(customerContact)
+    if (customerContact) {
+      form.setValue("contactId", customerContact.contactId)
+      form.setValue("contactName", customerContact.contactName || "")
+      form.setValue("emailAdd", customerContact.otherName || "")
+      form.setValue("mobileNo", customerContact.mobileNo || "")
     } else {
       form.setValue("contactId", 0)
       form.setValue("contactName", "")
@@ -129,9 +147,7 @@ export default function Other({ form }: OtherProps) {
   }
 
   return (
-    <div className="space-y-4">
-      <h1 className="text-xl font-bold">Address & Contact Information</h1>
-
+    <div className="space-y-2">
       <Form {...form}>
         <div className="grid grid-cols-2 gap-2">
           {/* Address Section */}
@@ -142,11 +158,12 @@ export default function Other({ form }: OtherProps) {
             <CardContent>
               <div className="grid gap-1">
                 {customerId > 0 && (
-                  <AddressAutocomplete
+                  <DynamicAddressAutocomplete
                     form={form}
                     name="addressId"
                     label="Address"
-                    customerId={customerId}
+                    entityId={customerId}
+                    entityType={AddressEntityType.CUSTOMER}
                     onChangeEvent={handleAddressSelect}
                   />
                 )}
@@ -217,11 +234,12 @@ export default function Other({ form }: OtherProps) {
             <CardContent>
               <div className="grid gap-2">
                 {customerId > 0 && (
-                  <ContactAutocomplete
+                  <DynamicContactAutocomplete
                     form={form}
                     name="contactId"
                     label="Contact"
-                    customerId={customerId}
+                    entityId={customerId}
+                    entityType={ContactEntityType.CUSTOMER}
                     onChangeEvent={handleContactSelect}
                   />
                 )}
@@ -254,14 +272,18 @@ export default function Other({ form }: OtherProps) {
         </div>
       </Form>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Document Information</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <DocumentUpload />
-        </CardContent>
-      </Card>
+      {/* Document Upload Section - Only show after invoice is saved */}
+      {invoiceId !== "0" && (
+        <DocumentManager
+          moduleId={ModuleId.ar}
+          transactionId={ARTransactionId.invoice}
+          recordId={invoiceId}
+          recordNo={invoiceNo}
+          companyId={Number(companyId)}
+          maxFileSize={10}
+          maxFiles={10}
+        />
+      )}
     </div>
   )
 }

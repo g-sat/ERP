@@ -9,7 +9,7 @@ import {
 } from "@/helpers/account"
 import {
   IBargeLookup,
-  IChartofAccountLookup,
+  IChartOfAccountLookup,
   IDepartmentLookup,
   IEmployeeLookup,
   IGstLookup,
@@ -329,7 +329,7 @@ export default function JournalDetailsForm({
 
   // Handle Chart of Account selection
   const handleChartOfAccountChange = async (
-    selectedAccount: IChartofAccountLookup | null
+    selectedAccount: IChartOfAccountLookup | null
   ) => {
     if (selectedAccount) {
       // Store lookup fields in form state for later retrieval

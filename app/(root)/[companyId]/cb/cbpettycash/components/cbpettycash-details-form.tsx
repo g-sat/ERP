@@ -10,7 +10,7 @@ import {
 import {
   IBargeLookup,
   ICbPettyCashDt,
-  IChartofAccountLookup,
+  IChartOfAccountLookup,
   IDepartmentLookup,
   IEmployeeLookup,
   IGstLookup,
@@ -345,7 +345,7 @@ export default function PettyCashDetailsForm({
 
   // Handle chart of account selection
   const handleChartOfAccountChange = (
-    selectedOption: IChartofAccountLookup | null
+    selectedOption: IChartOfAccountLookup | null
   ) => {
     if (selectedOption) {
       form.setValue("glId", selectedOption.glId, {

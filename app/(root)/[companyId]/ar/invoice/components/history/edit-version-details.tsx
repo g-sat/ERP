@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { IArInvoiceDt, IArInvoiceHd } from "@/interfaces/invoice"
+import { IArInvoiceDt, IArInvoiceHd } from "@/interfaces"
 import { useAuthStore } from "@/stores/auth-store"
 import { ColumnDef } from "@tanstack/react-table"
 import { format } from "date-fns"
@@ -9,9 +9,9 @@ import { AlertCircle } from "lucide-react"
 
 import { ARTransactionId, ModuleId, TableName } from "@/lib/utils"
 import {
-  useGetARInvoiceHistoryDetails,
-  useGetARInvoiceHistoryList,
-} from "@/hooks/use-ar"
+  useGetAPInvoiceHistoryDetails,
+  useGetAPInvoiceHistoryList,
+} from "@/hooks/use-ap"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
@@ -23,11 +23,18 @@ import {
 import { BasicTable } from "@/components/table/table-basic"
 import { DialogDataTable } from "@/components/table/table-dialog"
 
+// Extended column definition with hide property
+type _ExtendedColumnDef<T> = ColumnDef<T> & {
+  hidden?: boolean
+}
+
+interface EditVersionDetailsProps {
+  invoiceId: string
+}
+
 export default function EditVersionDetails({
   invoiceId,
-}: {
-  invoiceId: string
-}) {
+}: EditVersionDetailsProps) {
   const { decimals } = useAuthStore()
   const amtDec = decimals[0]?.amtDec || 2
   const locAmtDec = decimals[0]?.locAmtDec || 2
@@ -43,10 +50,10 @@ export default function EditVersionDetails({
 
   const { data: invoiceHistoryData, refetch: refetchHistory } =
     //useGetARInvoiceHistoryList<IArInvoiceHd[]>("14120250100024")
-    useGetARInvoiceHistoryList<IArInvoiceHd[]>(invoiceId)
+    useGetAPInvoiceHistoryList<IArInvoiceHd[]>(invoiceId)
 
   const { data: invoiceDetailsData, refetch: refetchDetails } =
-    useGetARInvoiceHistoryDetails<IArInvoiceHd>(
+    useGetAPInvoiceHistoryDetails<IArInvoiceHd>(
       selectedInvoice?.invoiceId || "",
       selectedInvoice?.editVersion?.toString() || ""
     )
@@ -432,11 +439,12 @@ export default function EditVersionDetails({
                   columns={detailsColumns}
                   moduleId={moduleId}
                   transactionId={transactionId}
-                  tableName={TableName.arInvoice}
+                  tableName={TableName.arInvoiceHistory}
                   emptyMessage="No invoice details available"
                   onRefresh={handleRefresh}
                   showHeader={true}
                   showFooter={false}
+                  maxHeight="300px"
                 />
               </CardContent>
             </Card>

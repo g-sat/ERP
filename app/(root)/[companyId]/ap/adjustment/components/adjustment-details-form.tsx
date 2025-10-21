@@ -10,7 +10,7 @@ import {
 import { IApAdjustmentDt } from "@/interfaces/ap-adjustment"
 import {
   IBargeLookup,
-  IChartofAccountLookup,
+  IChartOfAccountLookup,
   IDepartmentLookup,
   IEmployeeLookup,
   IGstLookup,
@@ -491,7 +491,7 @@ export default function AdjustmentDetailsForm({
 
   // Handle chart of account selection
   const handleChartOfAccountChange = (
-    selectedOption: IChartofAccountLookup | null
+    selectedOption: IChartOfAccountLookup | null
   ) => {
     if (selectedOption) {
       form.setValue("glId", selectedOption.glId, {

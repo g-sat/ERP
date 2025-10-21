@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { IArInvoiceFilter, IArInvoiceHd } from "@/interfaces/invoice"
+import { IArInvoiceFilter, IArInvoiceHd } from "@/interfaces"
 import { useAuthStore } from "@/stores/auth-store"
 import { ColumnDef } from "@tanstack/react-table"
 import { format, subMonths } from "date-fns"
@@ -34,6 +34,9 @@ export default function InvoiceTable({
   const exhRateDec = decimals[0]?.exhRateDec || 9
   const dateFormat = decimals[0]?.dateFormat || "dd/MM/yyyy"
   //const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
+
+  const moduleId = ModuleId.ar
+  const transactionId = ARTransactionId.invoice
 
   const form = useForm({
     defaultValues: {
@@ -326,8 +329,8 @@ export default function InvoiceTable({
         data={data}
         columns={columns}
         isLoading={isLoading}
-        moduleId={ModuleId.ar}
-        transactionId={ARTransactionId.invoice}
+        moduleId={moduleId}
+        transactionId={transactionId}
         tableName={TableName.arInvoice}
         emptyMessage="No data found."
         onRefresh={onRefresh}

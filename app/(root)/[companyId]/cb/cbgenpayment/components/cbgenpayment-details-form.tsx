@@ -10,7 +10,7 @@ import {
 import {
   IBargeLookup,
   ICbGenPaymentDt,
-  IChartofAccountLookup,
+  IChartOfAccountLookup,
   IDepartmentLookup,
   IEmployeeLookup,
   IGstLookup,
@@ -346,7 +346,7 @@ export default function GenPaymentDetailsForm({
 
   // Handle chart of account selection
   const handleChartOfAccountChange = (
-    selectedOption: IChartofAccountLookup | null
+    selectedOption: IChartOfAccountLookup | null
   ) => {
     if (selectedOption) {
       form.setValue("glId", selectedOption.glId, {
