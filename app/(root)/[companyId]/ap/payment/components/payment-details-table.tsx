@@ -55,6 +55,50 @@ export default function PaymentDetailsTable({
     return numValue.toFixed(decimals)
   }
 
+  // Custom Number Input Component for table cells
+  const CustomTableNumberInput = ({
+    value,
+    decimals,
+    onChange,
+    className = "",
+  }: {
+    value: number
+    decimals: number
+    onChange: (value: number) => void
+    className?: string
+  }) => {
+    const [displayValue, setDisplayValue] = useState(
+      formatNumber(value, decimals)
+    )
+
+    useEffect(() => {
+      setDisplayValue(formatNumber(value, decimals))
+    }, [value, decimals])
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const inputValue = e.target.value
+      setDisplayValue(inputValue)
+    }
+
+    const handleBlur = () => {
+      const numValue = Number(displayValue) || 0
+      const roundedValue = Number(numValue.toFixed(decimals))
+      setDisplayValue(formatNumber(roundedValue, decimals))
+      onChange(roundedValue)
+    }
+
+    return (
+      <input
+        type="text"
+        className={`w-full rounded border px-2 py-1 text-right focus:ring-2 focus:ring-blue-500 focus:outline-none ${className}`}
+        value={displayValue}
+        onChange={handleChange}
+        onBlur={handleBlur}
+        placeholder="0.00"
+      />
+    )
+  }
+
   // Wrapper functions to convert string to number
   const handleDelete = (itemId: string) => {
     if (onDelete) {
@@ -142,31 +186,29 @@ export default function PaymentDetailsTable({
         const isNegative = docBalAmt < 0
 
         return (
-          <input
-            type="number"
-            className="w-full rounded border px-2 py-1 text-right focus:ring-2 focus:ring-blue-500 focus:outline-none"
-            value={formatNumber(row.original.allocAmt, amtDec)}
-            onChange={(e) => {
-              let value = parseFloat(e.target.value) || 0
+          <CustomTableNumberInput
+            value={row.original.allocAmt || 0}
+            decimals={amtDec}
+            onChange={(value) => {
+              let numValue = Number(value) || 0
 
               // Validate: same sign as docBalAmt
-              if (isNegative && value > 0) value = -Math.abs(value)
-              if (!isNegative && value < 0) value = Math.abs(value)
+              if (isNegative && numValue > 0) numValue = -Math.abs(numValue)
+              if (!isNegative && numValue < 0) numValue = Math.abs(numValue)
 
               // Validate: can't exceed docBalAmt
               if (isNegative) {
                 // For negative, value should be >= docBalAmt (more negative is smaller)
-                if (value < docBalAmt) value = docBalAmt
+                if (numValue < docBalAmt) numValue = docBalAmt
               } else {
                 // For positive, value should be <= docBalAmt
-                if (value > docBalAmt) value = docBalAmt
+                if (numValue > docBalAmt) numValue = docBalAmt
               }
 
               if (onCellEdit) {
-                onCellEdit(row.original.itemNo, "allocAmt", value)
+                onCellEdit(row.original.itemNo, "allocAmt", numValue)
               }
             }}
-            step="0.01"
           />
         )
       },
@@ -180,31 +222,29 @@ export default function PaymentDetailsTable({
         const isNegative = docBalLocalAmt < 0
 
         return (
-          <input
-            type="number"
-            className="w-full rounded border px-2 py-1 text-right focus:ring-2 focus:ring-blue-500 focus:outline-none"
-            value={formatNumber(row.original.allocLocalAmt, locAmtDec)}
-            onChange={(e) => {
-              let value = parseFloat(e.target.value) || 0
+          <CustomTableNumberInput
+            value={row.original.allocLocalAmt || 0}
+            decimals={locAmtDec}
+            onChange={(value) => {
+              let numValue = Number(value) || 0
 
               // Validate: same sign as docBalLocalAmt
-              if (isNegative && value > 0) value = -Math.abs(value)
-              if (!isNegative && value < 0) value = Math.abs(value)
+              if (isNegative && numValue > 0) numValue = -Math.abs(numValue)
+              if (!isNegative && numValue < 0) numValue = Math.abs(numValue)
 
               // Validate: can't exceed docBalLocalAmt
               if (isNegative) {
                 // For negative, value should be >= docBalLocalAmt (more negative is smaller)
-                if (value < docBalLocalAmt) value = docBalLocalAmt
+                if (numValue < docBalLocalAmt) numValue = docBalLocalAmt
               } else {
                 // For positive, value should be <= docBalLocalAmt
-                if (value > docBalLocalAmt) value = docBalLocalAmt
+                if (numValue > docBalLocalAmt) numValue = docBalLocalAmt
               }
 
               if (onCellEdit) {
-                onCellEdit(row.original.itemNo, "allocLocalAmt", value)
+                onCellEdit(row.original.itemNo, "allocLocalAmt", numValue)
               }
             }}
-            step="0.01"
           />
         )
       },
