@@ -375,7 +375,7 @@ export function TaskServiceForm() {
               taskId={serviceData.taskId}
               isRequired={true}
             />
-            <ChartofAccountAutocomplete
+            <ChartOfAccountAutocomplete
               form={form}
               name={`services.${serviceKey}.glId`}
               label="GL Account"

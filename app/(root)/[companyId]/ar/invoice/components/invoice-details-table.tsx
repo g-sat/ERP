@@ -897,7 +897,7 @@ export default function InvoiceDetailsTable({
       size: 200,
       cell: ({ row }) => (
         <div className="w-full">
-          <ChartofAccountAutocomplete
+          <ChartOfAccountAutocomplete
             form={invoiceDetailForm}
             name={`glId-${row.original.id}`}
             onChangeEvent={(selectedOption: IChartofAccountLookup | null) =>
@@ -1117,7 +1117,7 @@ export default function InvoiceDetailsTable({
       header: "Gst",
       size: 150,
       cell: ({ row }: { row: { original: InvoiceDetailRow } }) => (
-        <GstAutocomplete
+        <GSTAutocomplete
           form={invoiceDetailForm}
           name={`gstId-${row.original.id}`}
           onChangeEvent={async (selectedOption: IGstLookup | null) =>

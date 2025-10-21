@@ -112,7 +112,7 @@ export function AccountSetupDtForm({
                 isRequired={true}
               />
 
-              <ChartofAccountAutocomplete
+              <ChartOfAccountAutocomplete
                 form={form}
                 name="glId"
                 label="Chart of Account"

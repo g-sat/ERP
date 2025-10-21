@@ -24,9 +24,9 @@ import { Form } from "@/components/ui/form"
 import {
   AccountGroupAutocomplete,
   AccountTypeAutocomplete,
-  CoaCategory1Autocomplete,
-  CoaCategory2Autocomplete,
-  CoaCategory3Autocomplete,
+  COACategory1Autocomplete,
+  COACategory2Autocomplete,
+  COACategory3Autocomplete,
 } from "@/components/autocomplete"
 import CustomAccordion, {
   CustomAccordionContent,

@@ -475,7 +475,7 @@ export default function NewChecklistPage() {
                   />
 
                   {isTaxable && (
-                    <GstAutocomplete
+                    <GSTAutocomplete
                       form={form}
                       name="gstId"
                       label="GST"

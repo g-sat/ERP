@@ -276,7 +276,7 @@ export function AccountForm() {
                       <FormItem>
                         <FormLabel>Invoice GL Account</FormLabel>
                         <FormControl>
-                          <ChartofAccountAutocomplete
+                          <ChartOfAccountAutocomplete
                             form={form}
                             name="ar_IN_GLId"
                             label=""
@@ -300,7 +300,7 @@ export function AccountForm() {
                       <FormItem>
                         <FormLabel>Credit Note GL Account</FormLabel>
                         <FormControl>
-                          <ChartofAccountAutocomplete
+                          <ChartOfAccountAutocomplete
                             form={form}
                             name="ar_CN_GLId"
                             label=""
@@ -324,7 +324,7 @@ export function AccountForm() {
                       <FormItem>
                         <FormLabel>Debit Note GL Account</FormLabel>
                         <FormControl>
-                          <ChartofAccountAutocomplete
+                          <ChartOfAccountAutocomplete
                             form={form}
                             name="ar_DN_GLId"
                             label=""
@@ -378,7 +378,7 @@ export function AccountForm() {
                       <FormItem>
                         <FormLabel>Invoice GL Account</FormLabel>
                         <FormControl>
-                          <ChartofAccountAutocomplete
+                          <ChartOfAccountAutocomplete
                             form={form}
                             name="ap_IN_GLId"
                             label=""
@@ -402,7 +402,7 @@ export function AccountForm() {
                       <FormItem>
                         <FormLabel>Credit Note GL Account</FormLabel>
                         <FormControl>
-                          <ChartofAccountAutocomplete
+                          <ChartOfAccountAutocomplete
                             form={form}
                             name="ap_CN_GLId"
                             label=""
@@ -426,7 +426,7 @@ export function AccountForm() {
                       <FormItem>
                         <FormLabel>Debit Note GL Account</FormLabel>
                         <FormControl>
-                          <ChartofAccountAutocomplete
+                          <ChartOfAccountAutocomplete
                             form={form}
                             name="ap_DN_GLId"
                             label=""
@@ -494,7 +494,7 @@ export function AccountForm() {
                   <FormItem>
                     <FormLabel>Default GST</FormLabel>
                     <FormControl>
-                      <GstAutocomplete
+                      <GSTAutocomplete
                         form={form}
                         name="gstId"
                         label=""

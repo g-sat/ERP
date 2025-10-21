@@ -572,7 +572,7 @@ export function ChecklistMain({
                 />
 
                 {isTaxable && (
-                  <GstAutocomplete
+                  <GSTAutocomplete
                     form={form}
                     name="gstId"
                     label="GST"

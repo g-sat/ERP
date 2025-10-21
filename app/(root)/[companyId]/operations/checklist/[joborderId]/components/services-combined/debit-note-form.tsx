@@ -429,7 +429,7 @@ export default function DebitNoteForm({
             </div>
 
             <div className="col-span-1">
-              <GstAutocomplete
+              <GSTAutocomplete
                 form={form}
                 name="gstId"
                 label="VAT"

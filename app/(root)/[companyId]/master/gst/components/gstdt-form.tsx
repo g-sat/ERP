@@ -89,7 +89,7 @@ export function GstDtForm({
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-2">
           <div className="grid gap-3">
             <div className="grid grid-cols-3 gap-2">
-              <GstAutocomplete
+              <GSTAutocomplete
                 form={form}
                 name="gstId"
                 label="Gst"

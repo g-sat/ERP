@@ -206,63 +206,63 @@ export function FinanceForm() {
             label="Local Currency"
             isRequired={true}
           />
-          <ChartofAccountAutocomplete
+          <ChartOfAccountAutocomplete
             form={form}
             name="exhGain_GlId"
             label="Exchange Gain Account"
             isRequired={true}
             companyId={Number(companyId)}
           />
-          <ChartofAccountAutocomplete
+          <ChartOfAccountAutocomplete
             form={form}
             name="exhLoss_GlId"
             label="Exchange Loss Account"
             isRequired={true}
             companyId={Number(companyId)}
           />
-          <ChartofAccountAutocomplete
+          <ChartOfAccountAutocomplete
             form={form}
             name="bankCharge_GlId"
             label="Bank Charges Account"
             isRequired={true}
             companyId={Number(companyId)}
           />
-          <ChartofAccountAutocomplete
+          <ChartOfAccountAutocomplete
             form={form}
             name="profitLoss_GlId"
             label="Profit & Loss Account"
             isRequired={true}
             companyId={Number(companyId)}
           />
-          <ChartofAccountAutocomplete
+          <ChartOfAccountAutocomplete
             form={form}
             name="retEarning_GlId"
             label="Retained Earnings Account"
             isRequired={true}
             companyId={Number(companyId)}
           />
-          <ChartofAccountAutocomplete
+          <ChartOfAccountAutocomplete
             form={form}
             name="saleGst_GlId"
             label="Sales GST Account"
             isRequired={true}
             companyId={Number(companyId)}
           />
-          <ChartofAccountAutocomplete
+          <ChartOfAccountAutocomplete
             form={form}
             name="purGst_GlId"
             label="Purchase GST Account"
             isRequired={true}
             companyId={Number(companyId)}
           />
-          <ChartofAccountAutocomplete
+          <ChartOfAccountAutocomplete
             form={form}
             name="saleDef_GlId"
             label="Sales Deferred Account"
             isRequired={true}
             companyId={Number(companyId)}
           />
-          <ChartofAccountAutocomplete
+          <ChartOfAccountAutocomplete
             form={form}
             name="purDef_GlId"
             label="Purchase Deferred Account"

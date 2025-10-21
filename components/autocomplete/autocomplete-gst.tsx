@@ -35,7 +35,7 @@ interface GstAutocompleteProps<T extends Record<string, unknown>> {
   onChangeEvent?: (selectedOption: IGstLookup | null) => void
 }
 
-export default function GstAutocomplete<T extends Record<string, unknown>>({
+export default function GSTAutocomplete<T extends Record<string, unknown>>({
   form,
   label,
   name,

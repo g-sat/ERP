@@ -192,7 +192,7 @@ export default function SupplierForm({
                 label="Parent Supplier"
               />
 
-              <AccountSetAutocomplete
+              <AccountSetupAutocomplete
                 form={form}
                 name="accSetupId"
                 label="Account Setup"

@@ -166,7 +166,7 @@ export function ChargeForm({
                 type="number"
                 isDisabled={isReadOnly}
               />
-              <ChartofAccountAutocomplete
+              <ChartOfAccountAutocomplete
                 form={form}
                 name="glId"
                 label="Account"
