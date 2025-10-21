@@ -31,7 +31,7 @@ const defaultReceiptDetails = {
 const defaultReceipt = {
   receiptId: "0",
   receiptNo: "",
-  suppInvoiceNo: "",
+  customerId: 0,
   referenceNo: "",
   trnDate: format(new Date(), clientDateFormat),
   accountDate: format(new Date(), clientDateFormat),
@@ -42,7 +42,6 @@ const defaultReceipt = {
   bankChgGLId: 0,
   bankChgAmt: 0,
   bankChgLocalAmt: 0,
-  supplierId: 0,
   currencyId: 0,
   exhRate: 0,
   totAmt: 0,

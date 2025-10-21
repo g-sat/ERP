@@ -89,12 +89,12 @@ export default function ReceiptTable({
     },
 
     {
-      accessorKey: "supplierCode",
-      header: "Supplier Code",
+      accessorKey: "customerCode",
+      header: "Customer Code",
     },
     {
-      accessorKey: "supplierName",
-      header: "Supplier Name",
+      accessorKey: "customerName",
+      header: "Customer Name",
     },
     {
       accessorKey: "currencyCode",

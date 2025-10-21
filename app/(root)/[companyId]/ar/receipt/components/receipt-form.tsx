@@ -16,8 +16,8 @@ import { IArReceiptDt } from "@/interfaces"
 import {
   IBankLookup,
   ICurrencyLookup,
+  ICustomerLookup,
   IPaymentTypeLookup,
-  ISupplierLookup,
 } from "@/interfaces/lookup"
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
 import { ArReceiptDtSchemaType, ArReceiptHdSchemaType } from "@/schemas"
@@ -28,7 +28,7 @@ import { usePaymentTypeLookup } from "@/hooks/use-lookup"
 import {
   BankAutocomplete,
   BankChartOfAccountAutocomplete,
-  CompanySupplierAutocomplete,
+  CompanyCustomerAutocomplete,
   CurrencyAutocomplete,
   JobOrderCustomerAutocomplete,
   PaymentTypeAutocomplete,
@@ -155,21 +155,21 @@ export default function ReceiptForm({
     [exhRateDec, form, visible]
   )
 
-  // Handle supplier selection
-  const handleSupplierChange = React.useCallback(
-    async (selectedSupplier: ISupplierLookup | null) => {
-      if (selectedSupplier) {
-        // ✅ Supplier selected - populate related fields
+  // Handle customer selection
+  const handleCustomerChange = React.useCallback(
+    async (selectedCustomer: ICustomerLookup | null) => {
+      if (selectedCustomer) {
+        // ✅ Customer selected - populate related fields
         if (!isEdit) {
-          form.setValue("currencyId", selectedSupplier.currencyId || 0)
-          form.setValue("recCurrencyId", selectedSupplier.currencyId || 0)
-          form.setValue("bankId", selectedSupplier.bankId || 0)
+          form.setValue("currencyId", selectedCustomer.currencyId || 0)
+          form.setValue("recCurrencyId", selectedCustomer.currencyId || 0)
+          form.setValue("bankId", selectedCustomer.bankId || 0)
         }
 
         await setDueDate(form)
 
         // Only set exchange rates if currency is available
-        if (selectedSupplier.currencyId > 0) {
+        if (selectedCustomer.currencyId > 0) {
           await setExchangeRate(form, exhRateDec, visible)
           await setPayExchangeRate(form, exhRateDec)
         } else {
@@ -181,9 +181,9 @@ export default function ReceiptForm({
         // Update currency comparison state
         updateCurrencyComparison()
       } else {
-        // ✅ Supplier cleared - reset all related fields
+        // ✅ Customer cleared - reset all related fields
         if (!isEdit) {
-          // Clear supplier-related fields
+          // Clear customer-related fields
           form.setValue("currencyId", 0)
           form.setValue("recCurrencyId", 0)
           form.setValue("bankId", 0)
@@ -266,7 +266,7 @@ export default function ReceiptForm({
   )
 
   // Handle receipt type change
-  const handleReceiptTypeChange = React.useCallback(
+  const handlePaymentTypeChange = React.useCallback(
     (selectedReceiptType: IPaymentTypeLookup | null) => {
       if (selectedReceiptType) {
         // Check if receipt type is "Cheque"
@@ -435,13 +435,13 @@ export default function ReceiptForm({
           />
         )}
 
-        {/* Supplier */}
-        <CompanySupplierAutocomplete
+        {/* Customer */}
+        <CompanyCustomerAutocomplete
           form={form}
-          name="supplierId"
-          label="Supplier"
+          name="customerId"
+          label="Customer"
           isRequired={true}
-          onChangeEvent={handleSupplierChange}
+          onChangeEvent={handleCustomerChange}
           companyId={_companyId}
         />
 
@@ -488,9 +488,9 @@ export default function ReceiptForm({
         <PaymentTypeAutocomplete
           form={form}
           name="paymentTypeId"
-          label="Receipt Type"
+          label="Payment Type"
           isRequired={true}
-          onChangeEvent={handleReceiptTypeChange}
+          onChangeEvent={handlePaymentTypeChange}
         />
 
         {/* Cheque No - Only show when receipt type is cheque */}
@@ -615,7 +615,7 @@ export default function ReceiptForm({
           form={form as UseFormReturn<ArReceiptHdSchemaType>}
           name="jobOrderId"
           label="Job Order"
-          customerId={form.getValues("supplierId") || 0}
+          customerId={form.getValues("customerId") || 0}
           jobOrderId={form.getValues("jobOrderId") || 0}
         />
 

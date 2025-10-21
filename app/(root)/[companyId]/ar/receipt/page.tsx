@@ -104,7 +104,6 @@ export default function ReceiptPage() {
       ? {
           receiptId: receipt.receiptId?.toString() ?? "0",
           receiptNo: receipt.receiptNo ?? "",
-          suppInvoiceNo: receipt.suppInvoiceNo ?? "",
           referenceNo: receipt.referenceNo ?? "",
           trnDate: receipt.trnDate ?? new Date(),
           accountDate: receipt.accountDate ?? new Date(),
@@ -115,7 +114,7 @@ export default function ReceiptPage() {
           bankChgGLId: receipt.bankChgGLId ?? 0,
           bankChgAmt: receipt.bankChgAmt ?? 0,
           bankChgLocalAmt: receipt.bankChgLocalAmt ?? 0,
-          supplierId: receipt.supplierId ?? 0,
+          customerId: receipt.customerId ?? 0,
           currencyId: receipt.currencyId ?? 0,
           exhRate: receipt.exhRate ?? 0,
           totAmt: receipt.totAmt ?? 0,
@@ -353,7 +352,6 @@ export default function ReceiptPage() {
     return {
       receiptId: apiReceipt.receiptId?.toString() ?? "0",
       receiptNo: apiReceipt.receiptNo ?? "",
-      suppInvoiceNo: "", // Required by schema but not in interface
       referenceNo: apiReceipt.referenceNo ?? "",
       trnDate: apiReceipt.trnDate
         ? format(
@@ -379,7 +377,7 @@ export default function ReceiptPage() {
       bankChgGLId: apiReceipt.bankChgGLId ?? 0,
       bankChgAmt: apiReceipt.bankChgAmt ?? 0,
       bankChgLocalAmt: apiReceipt.bankChgLocalAmt ?? 0,
-      supplierId: apiReceipt.supplierId ?? 0,
+      customerId: apiReceipt.customerId ?? 0,
       currencyId: apiReceipt.currencyId ?? 0,
       exhRate: apiReceipt.exhRate ?? 0,
       totAmt: apiReceipt.totAmt ?? 0,
@@ -504,7 +502,7 @@ export default function ReceiptPage() {
                 )
               : clientDateFormat,
 
-            supplierId: detailedReceipt.supplierId ?? 0,
+            customerId: detailedReceipt.customerId ?? 0,
             currencyId: detailedReceipt.currencyId ?? 0,
             exhRate: detailedReceipt.exhRate ?? 0,
             bankId: detailedReceipt.bankId ?? 0,
@@ -663,7 +661,7 @@ export default function ReceiptPage() {
                 )
               : clientDateFormat,
 
-            supplierId: detailedReceipt.supplierId ?? 0,
+            customerId: detailedReceipt.customerId ?? 0,
             currencyId: detailedReceipt.currencyId ?? 0,
             exhRate: detailedReceipt.exhRate ?? 0,
             bankId: detailedReceipt.bankId ?? 0,

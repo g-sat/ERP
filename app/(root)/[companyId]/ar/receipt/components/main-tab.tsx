@@ -44,7 +44,7 @@ export default function Main({
   const [showTransactionDialog, setShowTransactionDialog] = useState(false)
   const [isAllocated, setIsAllocated] = useState(false)
   const dialogParamsRef = useRef<{
-    supplierId: number
+    customerId: number
     currencyId: number
     accountDate: string
   } | null>(null)
@@ -502,20 +502,20 @@ export default function Main({
   }, [form, resetHeaderAmounts])
 
   const handleSelectTransaction = useCallback(() => {
-    const supplierId = form.getValues("supplierId")
+    const customerId = form.getValues("customerId")
     const currencyId = form.getValues("currencyId")
     const accountDate = form.getValues("accountDate")
     const paymentTypeId = form.getValues("paymentTypeId")
 
-    if (!supplierId || !currencyId || !accountDate || !paymentTypeId) {
+    if (!customerId || !currencyId || !accountDate || !paymentTypeId) {
       toast.warning(
-        "Please select Supplier, Currency, Account Date and Receipt Type first"
+        "Please select Customer, Currency, Account Date and Receipt Type first"
       )
       return
     }
 
     dialogParamsRef.current = {
-      supplierId,
+      customerId,
       currencyId,
       accountDate: accountDate?.toString() || "",
     }
@@ -628,7 +628,7 @@ export default function Main({
         <OutStandingTransactionsDialog
           open={showTransactionDialog}
           onOpenChange={setShowTransactionDialog}
-          supplierId={dialogParamsRef.current.supplierId}
+          supplierId={dialogParamsRef.current.customerId}
           currencyId={dialogParamsRef.current.currencyId}
           accountDate={dialogParamsRef.current.accountDate}
           visible={visible}

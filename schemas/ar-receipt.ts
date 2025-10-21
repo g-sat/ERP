@@ -10,15 +10,12 @@ export const arreceiptHdSchema = (
 
     receiptId: z.string().optional(),
     receiptNo: z.string().optional(),
-    suppInvoiceNo: required?.m_SuppInvoiceNo
-      ? z.string().min(1, "Supplier Invoice No is required")
-      : z.string().optional(),
     referenceNo: required?.m_ReferenceNo
       ? z.string().min(1, "Reference No is required")
       : z.string().optional(),
     trnDate: z.union([z.date(), z.string()]),
     accountDate: z.union([z.date(), z.string()]),
-    supplierId: z.number().min(1, "Supplier is required"),
+    customerId: z.number().min(1, "Customer is required"),
     // Bank Fields
     bankId:
       required?.m_BankId && visible?.m_BankId

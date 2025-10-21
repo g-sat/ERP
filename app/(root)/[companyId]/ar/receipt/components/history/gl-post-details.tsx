@@ -58,12 +58,12 @@ export default function GLPostDetails({ receiptId }: GLPostDetailsProps) {
       header: "Reference No",
     },
     {
-      accessorKey: "supplierCode",
-      header: "Supplier Code",
+      accessorKey: "customerCode",
+      header: "Customer Code",
     },
     {
-      accessorKey: "supplierName",
-      header: "Supplier Name",
+      accessorKey: "customerName",
+      header: "Customer Name",
     },
     {
       accessorKey: "AccountDate",
@@ -245,12 +245,12 @@ export default function GLPostDetails({ receiptId }: GLPostDetailsProps) {
       header: "Product Name",
     },
     {
-      accessorKey: "supplierCode",
-      header: "Supplier Code",
+      accessorKey: "customerCode",
+      header: "Customer Code",
     },
     {
-      accessorKey: "supplierName",
-      header: "Supplier Name",
+      accessorKey: "customerName",
+      header: "Customer Name",
     },
     {
       accessorKey: "moduleFrom",
