@@ -527,7 +527,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                       <PopoverContent
                         side="right"
                         align="start"
-                        className="w-56 p-0"
+                        className="w-56 p-0 max-h-[calc(100vh-2rem)] overflow-y-auto"
                         onMouseEnter={handlePopoverContentMouseEnter}
                         onMouseLeave={handleMouseLeave}
                       >
@@ -623,7 +623,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                                     {subItem.icon && (
                                       <subItem.icon className="h-4 w-4" />
                                     )}
-                                    <span>{subItem.title}</span>
+                                    <span className="text-xs">{subItem.title}</span>
                                   </Link>
                                 </SidebarMenuSubButton>
                               </SidebarMenuSubItem>
@@ -700,14 +700,14 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                       <PopoverContent
                         side="right"
                         align="start"
-                        className="w-56 p-0"
+                        className="w-56 p-0 max-h-[calc(100vh-2rem)] overflow-y-auto"
                         onMouseEnter={handlePopoverContentMouseEnter}
                         onMouseLeave={handleMouseLeave}
                       >
                         {/* Header */}
                         <div className="flex items-center gap-2 px-3 py-2 bg-muted/50 border-b">
                           {group.icon && <group.icon className="h-4 w-4" />}
-                          <span className="font-small text-foreground">{group.title}</span>
+                          <span className="font-medium text-xs text-foreground">{group.title}</span>
                         </div>
                         
                         {/* Sub-menu items */}
@@ -728,7 +728,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                                 {subItem.icon && (
                                   <subItem.icon className="h-4 w-4" />
                                 )}
-                                <span>{subItem.title}</span>
+                                <span className="text-xs">{subItem.title}</span>
                               </Link>
                             </div>
                           ))}
@@ -792,7 +792,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                                       {subItem.icon && (
                                         <subItem.icon className="h-4 w-4" />
                                       )}
-                                      <span>{subItem.title}</span>
+                                      <span className="text-xs">{subItem.title}</span>
                                     </Link>
                                   </SidebarMenuSubButton>
                                 </SidebarMenuSubItem>
