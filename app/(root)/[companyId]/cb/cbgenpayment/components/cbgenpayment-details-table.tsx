@@ -3,7 +3,7 @@ import { ICbGenPaymentDt } from "@/interfaces"
 import { IVisibleFields } from "@/interfaces/setting"
 import { ColumnDef } from "@tanstack/react-table"
 
-import { TableName } from "@/lib/utils"
+import { CBTransactionId, ModuleId, TableName } from "@/lib/utils"
 import { AccountBaseTable } from "@/components/table/table-account"
 
 // Use flexible data type that can work with form data
@@ -228,8 +228,8 @@ export default function GenPaymentDetailsTable({
       <AccountBaseTable
         data={data}
         columns={columns}
-        moduleId={25}
-        transactionId={1}
+        moduleId={ModuleId.ap}
+        transactionId={CBTransactionId.cbgenpayment}
         tableName={TableName.cbGenPaymentDt}
         emptyMessage="No Gen Payment details found."
         accessorId="itemNo"

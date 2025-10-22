@@ -1,7 +1,7 @@
 "use client"
 
 import React from "react"
-import { IChartofAccountLookup } from "@/interfaces/lookup"
+import { IChartOfAccountLookup } from "@/interfaces/lookup"
 import { IconCheck, IconChevronDown, IconX } from "@tabler/icons-react"
 import { Path, PathValue, UseFormReturn } from "react-hook-form"
 import Select, {
@@ -15,7 +15,7 @@ import Select, {
 } from "react-select"
 
 import { cn } from "@/lib/utils"
-import { useBankChartofAccountLookup } from "@/hooks/use-lookup"
+import { useBankChartOfAccountLookup } from "@/hooks/use-lookup"
 
 import { FormField, FormItem } from "../ui/form"
 import { Label } from "../ui/label"
@@ -34,7 +34,7 @@ interface BankChartOfAccountAutocompleteProps<
   className?: string
   isDisabled?: boolean
   isRequired?: boolean
-  onChangeEvent?: (selectedOption: IChartofAccountLookup | null) => void
+  onChangeEvent?: (selectedOption: IChartOfAccountLookup | null) => void
   companyId?: number
 }
 
@@ -50,7 +50,7 @@ export default function BankChartOfAccountAutocomplete<
   onChangeEvent,
   companyId = 0,
 }: BankChartOfAccountAutocompleteProps<T>) {
-  const { data: chartOfAccounts = [], isLoading } = useBankChartofAccountLookup(
+  const { data: chartOfAccounts = [], isLoading } = useBankChartOfAccountLookup(
     companyId || 0
   )
 
@@ -75,7 +75,7 @@ export default function BankChartOfAccountAutocomplete<
 
   const options: FieldOption[] = React.useMemo(
     () =>
-      chartOfAccounts.map((chartOfAccount: IChartofAccountLookup) => ({
+      chartOfAccounts.map((chartOfAccount: IChartOfAccountLookup) => ({
         value: chartOfAccount.glId.toString(),
         label: chartOfAccount.glCode + " - " + chartOfAccount.glName,
       })),
@@ -209,7 +209,7 @@ export default function BankChartOfAccountAutocomplete<
       if (onChangeEvent) {
         const selectedChartOfAccount = selectedOption
           ? chartOfAccounts.find(
-              (u: IChartofAccountLookup) =>
+              (u: IChartOfAccountLookup) =>
                 u.glId.toString() === selectedOption.value
             ) || null
           : null

@@ -4,7 +4,7 @@ import { IVisibleFields } from "@/interfaces/setting"
 import { useAuthStore } from "@/stores/auth-store"
 import { ColumnDef } from "@tanstack/react-table"
 
-import { TableName } from "@/lib/utils"
+import { APTransactionId, ModuleId, TableName } from "@/lib/utils"
 import { AccountBaseTable } from "@/components/table/table-account"
 
 // Extended column definition with hide property
@@ -17,9 +17,6 @@ interface PaymentDetailsTableProps {
   data: IApPaymentDt[]
   onDelete?: (itemNo: number) => void
   onBulkDelete?: (selectedItemNos: number[]) => void
-  onEdit?: (template: IApPaymentDt) => void
-  onRefresh?: () => void
-  onFilterChange?: (filters: { search?: string; sortOrder?: string }) => void
   onDataReorder?: (newData: IApPaymentDt[]) => void
   onCellEdit?: (itemNo: number, field: string, value: number) => void
   visible: IVisibleFields
@@ -29,42 +26,80 @@ export default function PaymentDetailsTable({
   data,
   onDelete,
   onBulkDelete,
-  onEdit,
-  onRefresh,
-  onFilterChange,
   onDataReorder,
   onCellEdit,
   visible: _visible,
 }: PaymentDetailsTableProps) {
   const [mounted, setMounted] = useState(false)
   const { decimals } = useAuthStore()
-  const _locAmtDec = decimals[0]?.locAmtDec || 2 // Available for future use
-  const _amtDec = decimals[0]?.amtDec || 2 // Available for future use
+  const amtDec = decimals[0]?.amtDec || 2
+  const locAmtDec = decimals[0]?.locAmtDec || 2
   const exhRateDec = decimals[0]?.exhRateDec || 6
 
   useEffect(() => {
     setMounted(true)
   }, [])
 
-  // Wrapper functions to convert string to number
-  const handleDelete = (itemId: string) => {
-    if (onDelete) {
-      onDelete(Number(itemId))
-    }
+  const formatNumber = (
+    value: number | string | null | undefined,
+    decimals: number
+  ): string => {
+    const numValue = Number(value) || 0
+    return numValue.toFixed(decimals)
   }
 
-  const handleBulkDelete = (selectedIds: string[]) => {
-    if (onBulkDelete) {
-      onBulkDelete(selectedIds.map((id) => Number(id)))
+  const EditableNumberInput = ({
+    value,
+    decimals,
+    onChange,
+  }: {
+    value: number
+    decimals: number
+    onChange: (value: number) => void
+  }) => {
+    const [displayValue, setDisplayValue] = useState(
+      formatNumber(value, decimals)
+    )
+
+    useEffect(() => {
+      setDisplayValue(formatNumber(value, decimals))
+    }, [value, decimals])
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      setDisplayValue(e.target.value)
     }
+
+    const handleBlur = () => {
+      const numValue = Number(displayValue) || 0
+      const roundedValue = Number(numValue.toFixed(decimals))
+      setDisplayValue(formatNumber(roundedValue, decimals))
+      onChange(roundedValue)
+    }
+
+    const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
+      e.target.select()
+    }
+
+    return (
+      <input
+        type="text"
+        className="w-full rounded border px-2 py-1 text-right focus:ring-2 focus:ring-blue-500 focus:outline-none"
+        style={{ textAlign: "right" }}
+        value={displayValue}
+        onChange={handleChange}
+        onBlur={handleBlur}
+        onFocus={handleFocus}
+        placeholder="0.00"
+      />
+    )
   }
 
   // Define columns with visible prop checks - Payment specific fields
   const columns: ExtendedColumnDef<IApPaymentDt>[] = [
     {
       accessorKey: "itemNo",
-      header: "Item No",
-      size: 60,
+      header: "Item",
+      size: 40,
       cell: ({ row }: { row: { original: IApPaymentDt } }) => (
         <div className="text-right">{row.original.itemNo}</div>
       ),
@@ -73,7 +108,7 @@ export default function PaymentDetailsTable({
     {
       accessorKey: "documentNo",
       header: "Document No",
-      size: 120,
+      size: 150,
     },
     {
       accessorKey: "referenceNo",
@@ -84,10 +119,7 @@ export default function PaymentDetailsTable({
     {
       accessorKey: "docCurrencyCode",
       header: "Currency",
-      size: 100,
-      cell: ({ row }: { row: { original: IApPaymentDt } }) => (
-        <div className="text-right">{row.original.docCurrencyCode}</div>
-      ),
+      size: 60,
     },
     {
       accessorKey: "docExhRate",
@@ -95,7 +127,7 @@ export default function PaymentDetailsTable({
       size: 100,
       cell: ({ row }: { row: { original: IApPaymentDt } }) => (
         <div className="text-right">
-          {row.original.docExhRate?.toFixed(exhRateDec) || "0.000000"}
+          {formatNumber(row.original.docExhRate, exhRateDec)}
         </div>
       ),
     },
@@ -109,7 +141,9 @@ export default function PaymentDetailsTable({
       header: "Balance Amt",
       size: 120,
       cell: ({ row }: { row: { original: IApPaymentDt } }) => (
-        <div className="text-right">{row.original.docBalAmt}</div>
+        <div className="text-right">
+          {formatNumber(row.original.docBalAmt, amtDec)}
+        </div>
       ),
     },
     {
@@ -117,43 +151,39 @@ export default function PaymentDetailsTable({
       header: "Balance Local Amt",
       size: 140,
       cell: ({ row }: { row: { original: IApPaymentDt } }) => (
-        <div className="text-right">{row.original.docBalLocalAmt}</div>
+        <div className="text-right">
+          {formatNumber(row.original.docBalLocalAmt, locAmtDec)}
+        </div>
       ),
     },
     {
       accessorKey: "allocAmt",
       header: "Alloc Amt",
-      size: 100,
+      size: 150,
       cell: ({ row }: { row: { original: IApPaymentDt } }) => {
         const docBalAmt = row.original.docBalAmt || 0
         const isNegative = docBalAmt < 0
 
         return (
-          <input
-            type="number"
-            className="w-full rounded border px-2 py-1 text-right focus:ring-2 focus:ring-blue-500 focus:outline-none"
+          <EditableNumberInput
             value={row.original.allocAmt || 0}
-            onChange={(e) => {
-              let value = parseFloat(e.target.value) || 0
+            decimals={amtDec}
+            onChange={(value) => {
+              let numValue = Number(value) || 0
 
-              // Validate: same sign as docBalAmt
-              if (isNegative && value > 0) value = -Math.abs(value)
-              if (!isNegative && value < 0) value = Math.abs(value)
+              if (isNegative && numValue > 0) numValue = -Math.abs(numValue)
+              if (!isNegative && numValue < 0) numValue = Math.abs(numValue)
 
-              // Validate: can't exceed docBalAmt
               if (isNegative) {
-                // For negative, value should be >= docBalAmt (more negative is smaller)
-                if (value < docBalAmt) value = docBalAmt
+                if (numValue < docBalAmt) numValue = docBalAmt
               } else {
-                // For positive, value should be <= docBalAmt
-                if (value > docBalAmt) value = docBalAmt
+                if (numValue > docBalAmt) numValue = docBalAmt
               }
 
               if (onCellEdit) {
-                onCellEdit(row.original.itemNo, "allocAmt", value)
+                onCellEdit(row.original.itemNo, "allocAmt", numValue)
               }
             }}
-            step="0.01"
           />
         )
       },
@@ -161,37 +191,31 @@ export default function PaymentDetailsTable({
     {
       accessorKey: "allocLocalAmt",
       header: "Alloc Local Amt",
-      size: 120,
+      size: 170,
       cell: ({ row }: { row: { original: IApPaymentDt } }) => {
         const docBalLocalAmt = row.original.docBalLocalAmt || 0
         const isNegative = docBalLocalAmt < 0
 
         return (
-          <input
-            type="number"
-            className="w-full rounded border px-2 py-1 text-right focus:ring-2 focus:ring-blue-500 focus:outline-none"
+          <EditableNumberInput
             value={row.original.allocLocalAmt || 0}
-            onChange={(e) => {
-              let value = parseFloat(e.target.value) || 0
+            decimals={locAmtDec}
+            onChange={(value) => {
+              let numValue = Number(value) || 0
 
-              // Validate: same sign as docBalLocalAmt
-              if (isNegative && value > 0) value = -Math.abs(value)
-              if (!isNegative && value < 0) value = Math.abs(value)
+              if (isNegative && numValue > 0) numValue = -Math.abs(numValue)
+              if (!isNegative && numValue < 0) numValue = Math.abs(numValue)
 
-              // Validate: can't exceed docBalLocalAmt
               if (isNegative) {
-                // For negative, value should be >= docBalLocalAmt (more negative is smaller)
-                if (value < docBalLocalAmt) value = docBalLocalAmt
+                if (numValue < docBalLocalAmt) numValue = docBalLocalAmt
               } else {
-                // For positive, value should be <= docBalLocalAmt
-                if (value > docBalLocalAmt) value = docBalLocalAmt
+                if (numValue > docBalLocalAmt) numValue = docBalLocalAmt
               }
 
               if (onCellEdit) {
-                onCellEdit(row.original.itemNo, "allocLocalAmt", value)
+                onCellEdit(row.original.itemNo, "allocLocalAmt", numValue)
               }
             }}
-            step="0.01"
           />
         )
       },
@@ -206,7 +230,9 @@ export default function PaymentDetailsTable({
       header: "Doc Total Amt",
       size: 100,
       cell: ({ row }: { row: { original: IApPaymentDt } }) => (
-        <div className="text-right">{row.original.docTotAmt}</div>
+        <div className="text-right">
+          {formatNumber(row.original.docTotAmt, amtDec)}
+        </div>
       ),
     },
     {
@@ -214,7 +240,9 @@ export default function PaymentDetailsTable({
       header: "Doc Total Local Amt",
       size: 120,
       cell: ({ row }: { row: { original: IApPaymentDt } }) => (
-        <div className="text-right">{row.original.docTotLocalAmt}</div>
+        <div className="text-right">
+          {formatNumber(row.original.docTotLocalAmt, locAmtDec)}
+        </div>
       ),
     },
 
@@ -223,7 +251,9 @@ export default function PaymentDetailsTable({
       header: "Doc Alloc Amt",
       size: 120,
       cell: ({ row }: { row: { original: IApPaymentDt } }) => (
-        <div className="text-right">{row.original.docAllocAmt}</div>
+        <div className="text-right">
+          {formatNumber(row.original.docAllocAmt, amtDec)}
+        </div>
       ),
     },
     {
@@ -231,7 +261,9 @@ export default function PaymentDetailsTable({
       header: "Doc Alloc Local Amt",
       size: 140,
       cell: ({ row }: { row: { original: IApPaymentDt } }) => (
-        <div className="text-right">{row.original.docAllocLocalAmt}</div>
+        <div className="text-right">
+          {formatNumber(row.original.docAllocLocalAmt, locAmtDec)}
+        </div>
       ),
     },
     {
@@ -239,7 +271,9 @@ export default function PaymentDetailsTable({
       header: "Cent Diff",
       size: 80,
       cell: ({ row }: { row: { original: IApPaymentDt } }) => (
-        <div className="text-right">{row.original.centDiff}</div>
+        <div className="text-right">
+          {formatNumber(row.original.centDiff, locAmtDec)}
+        </div>
       ),
     },
     {
@@ -247,7 +281,9 @@ export default function PaymentDetailsTable({
       header: "Exh Gain/Loss",
       size: 100,
       cell: ({ row }: { row: { original: IApPaymentDt } }) => (
-        <div className="text-right">{row.original.exhGainLoss}</div>
+        <div className="text-right">
+          {formatNumber(row.original.exhGainLoss, amtDec)}
+        </div>
       ),
     },
     {
@@ -282,18 +318,17 @@ export default function PaymentDetailsTable({
       <AccountBaseTable
         data={data}
         columns={visibleColumns as ColumnDef<IApPaymentDt>[]}
-        moduleId={25}
-        transactionId={2}
+        moduleId={ModuleId.ap}
+        transactionId={APTransactionId.payment}
         tableName={TableName.apPaymentDt}
         emptyMessage="No payment details found."
         accessorId="itemNo"
-        onRefresh={onRefresh}
-        onFilterChange={onFilterChange}
-        onBulkDelete={handleBulkDelete}
+        onBulkDelete={(selectedIds: string[]) =>
+          onBulkDelete?.(selectedIds.map((id) => Number(id)))
+        }
         onBulkSelectionChange={() => {}}
         onDataReorder={onDataReorder}
-        onEdit={onEdit}
-        onDelete={handleDelete}
+        onDelete={(itemId: string) => onDelete?.(Number(itemId))}
         showHeader={true}
         showActions={true}
         hideView={true}

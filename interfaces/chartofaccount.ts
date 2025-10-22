@@ -1,4 +1,4 @@
-export interface IChartofAccount {
+export interface IChartOfAccount {
   glId: number
   glCode: string
   glName: string
@@ -38,7 +38,7 @@ export interface IChartofAccount {
   remarks: string
 }
 
-export interface IChartofAccountFilter {
+export interface IChartOfAccountFilter {
   isActive?: boolean
   accTypeId?: number
   accGroupId?: number

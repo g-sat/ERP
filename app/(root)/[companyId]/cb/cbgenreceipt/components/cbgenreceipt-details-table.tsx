@@ -3,7 +3,7 @@ import { ICbGenReceiptDt } from "@/interfaces/cb-genreceipt"
 import { IVisibleFields } from "@/interfaces/setting"
 import { ColumnDef } from "@tanstack/react-table"
 
-import { TableName } from "@/lib/utils"
+import { CBTransactionId, ModuleId, TableName } from "@/lib/utils"
 import { AccountBaseTable } from "@/components/table/table-account"
 
 // Use flexible data type that can work with form data
@@ -250,8 +250,8 @@ export default function ReceiptDetailsTable({
       <AccountBaseTable
         data={data}
         columns={columns}
-        moduleId={25}
-        transactionId={1}
+        moduleId={ModuleId.cb}
+        transactionId={CBTransactionId.cbgenreceipt}
         tableName={TableName.cbGenReceiptDt}
         emptyMessage="No Gen Receipt details found."
         accessorId="itemNo"

@@ -365,8 +365,15 @@ export const setDueDate = async (form: HdForm) => {
       )
 
       const days = res?.data as number
-      const dueDate = addDays(deliveryDate, days)
 
+      // Parse deliveryDate string to Date object before adding days
+      const deliveryDateObj =
+        typeof deliveryDate === "string"
+          ? parse(deliveryDate, clientDateFormat, new Date())
+          : deliveryDate
+
+      const dueDate = addDays(deliveryDateObj, days)
+      console.log("dueDate", dueDate)
       form.setValue("dueDate", format(dueDate, clientDateFormat))
       form.trigger("dueDate")
     } catch {}
@@ -403,6 +410,30 @@ export const setExchangeRate = async (
         form.trigger("ctyExhRate")
       }
       form.trigger("exhRate")
+    } catch {}
+  }
+}
+
+/**
+ * Fetch and set local currency exchange rate
+ * Used for city/country currency conversions
+ * Modules: AP, AR, CB, GL
+ */
+export const setExchangeRateLocal = async (form: HdForm, round: number | 6) => {
+  // to set exhange rate
+  const { accountDate, currencyId } = form?.getValues()
+  if (accountDate && currencyId) {
+    try {
+      const dt = format(
+        parse(accountDate, clientDateFormat, new Date()),
+        "yyyy-MM-dd"
+      )
+      const res = await getData(
+        `${BasicSetting.getExchangeRateLocal}/${currencyId}/${dt}`
+      )
+      const exhRate = res?.data
+      form.setValue("ctyExhRate", +Number(exhRate).toFixed(round))
+      form.trigger("ctyExhRate")
     } catch {}
   }
 }
@@ -544,30 +575,6 @@ export const setPayExchangeRate = async (form: HdForm, round: number | 6) => {
 
       form.setValue("payExhRate", +Number(exhRate).toFixed(round))
       form.trigger("payExhRate")
-    } catch {}
-  }
-}
-
-/**
- * Fetch and set local currency exchange rate
- * Used for city/country currency conversions
- * Modules: AP, AR, CB, GL
- */
-export const setExchangeRateLocal = async (form: HdForm, round: number | 6) => {
-  // to set exhange rate
-  const { accountDate, currencyId } = form?.getValues()
-  if (accountDate && currencyId) {
-    try {
-      const dt = format(
-        parse(accountDate, clientDateFormat, new Date()),
-        "yyyy-MM-dd"
-      )
-      const res = await getData(
-        `${BasicSetting.getExchangeRateLocal}/${currencyId}/${dt}`
-      )
-      const exhRate = res?.data
-      form.setValue("ctyExhRate", +Number(exhRate).toFixed(round))
-      form.trigger("ctyExhRate")
     } catch {}
   }
 }

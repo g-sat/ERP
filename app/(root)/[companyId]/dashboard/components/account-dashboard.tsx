@@ -1,7 +1,7 @@
 "use client"
 
 import { useMemo, useState } from "react"
-import { IChartofAccount } from "@/interfaces/chartofaccount"
+import { IChartOfAccount } from "@/interfaces/chartofaccount"
 import { useAuthStore } from "@/stores/auth-store"
 import { Activity, BarChart3, Building2, Calculator, Users } from "lucide-react"
 
@@ -27,7 +27,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 // import { AccountSummary } from "./account-summary"
 
 interface AccountDashboardProps {
-  data: IChartofAccount[]
+  data: IChartOfAccount[]
   isLoading?: boolean
 }
 

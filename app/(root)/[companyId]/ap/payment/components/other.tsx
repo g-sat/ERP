@@ -20,16 +20,18 @@ export default function Other({ form }: OtherProps) {
 
   return (
     <div className="space-y-4">
-      {/* Document Upload Section */}
-      <DocumentManager
-        moduleId={ModuleId.ap}
-        transactionId={APTransactionId.payment}
-        recordId={paymentId}
-        recordNo={paymentNo}
-        companyId={Number(companyId)}
-        maxFileSize={10}
-        maxFiles={10}
-      />
+      {/* Document Upload Section - Only show after payment is saved */}
+      {paymentId !== "0" && (
+        <DocumentManager
+          moduleId={ModuleId.ap}
+          transactionId={APTransactionId.payment}
+          recordId={paymentId}
+          recordNo={paymentNo}
+          companyId={Number(companyId)}
+          maxFileSize={10}
+          maxFiles={10}
+        />
+      )}
     </div>
   )
 }

@@ -10,7 +10,7 @@ import { useForm } from "react-hook-form"
 
 import { parseDate } from "@/lib/date-utils"
 import { Task } from "@/lib/operations-utils"
-import { useChartofAccountLookup } from "@/hooks/use-lookup"
+import { useChartOfAccountLookup } from "@/hooks/use-lookup"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Form } from "@/components/ui/form"
@@ -54,7 +54,7 @@ export function ThirdPartyForm({
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
 
   // Get chart of account data to ensure it's loaded before setting form values
-  const { isLoading: isChartOfAccountLoading } = useChartofAccountLookup(
+  const { isLoading: isChartOfAccountLoading } = useChartOfAccountLookup(
     Number(jobData.companyId)
   )
 

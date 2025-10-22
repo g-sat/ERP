@@ -1,7 +1,7 @@
 "use client"
 
 import { useMemo } from "react"
-import { IChartofAccount } from "@/interfaces/chartofaccount"
+import { IChartOfAccount } from "@/interfaces/chartofaccount"
 import {
   Area,
   AreaChart,
@@ -27,7 +27,7 @@ import {
 } from "@/components/ui/card"
 
 interface AccountAnalyticsProps {
-  data: IChartofAccount[]
+  data: IChartOfAccount[]
   isLoading?: boolean
 }
 

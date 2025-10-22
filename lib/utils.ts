@@ -184,12 +184,13 @@ export enum OperationsTransactionId {
 
 export enum ARTransactionId {
   invoice = 1,
-  debitnote = 2,
-  creditnote = 3,
+  debitNote = 2,
+  creditNote = 3,
   adjustment = 4,
   receipt = 5,
   refund = 6,
   docsetoff = 7,
+  invoice_edit = 8,
   reports = 99,
 }
 
@@ -429,19 +430,25 @@ export enum TableName {
   //AR
   arInvoice = "arInvoice",
   arInvoiceDt = "arInvoiceDt",
+  arInvoiceHistory = "arInvoiceHistory",
   arDebitNote = "arDebitNote",
   arDebitNoteDt = "arDebitNoteDt",
+  arDebitNoteHistory = "arDebitNoteHistory",
   arCreditNote = "arCreditNote",
   arCreditNoteDt = "arCreditNoteDt",
+  arCreditNoteHistory = "arCreditNoteHistory",
   arAdjustment = "arAdjustment",
   arAdjustmentDt = "arAdjustmentDt",
+  arAdjustmentHistory = "arAdjustmentHistory",
   arReceipt = "arReceipt",
   arReceiptDt = "arReceiptDt",
+  arReceiptHistory = "arReceiptHistory",
   arRefund = "arRefund",
   arRefundDt = "arRefundDt",
+  arRefundHistory = "arRefundHistory",
   arDocSetoff = "arDocSetoff",
   arDocSetoffDt = "arDocSetoffDt",
-
+  arDocSetoffHistory = "arDocSetoffHistory",
   //AP
   apInvoice = "apInvoice",
   apInvoiceDt = "apInvoiceDt",

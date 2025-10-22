@@ -3,8 +3,8 @@
 import { useEffect, useState } from "react"
 import { ApiResponse } from "@/interfaces/auth"
 import {
-  IChartofAccount,
-  IChartofAccountFilter,
+  IChartOfAccount,
+  IChartOfAccountFilter,
 } from "@/interfaces/chartofaccount"
 import {
   ICoaCategory1,
@@ -14,7 +14,7 @@ import {
   ICoaCategory3,
   ICoaCategory3Filter,
 } from "@/interfaces/coacategory"
-import { ChartofAccountSchemaType } from "@/schemas/chartofaccount"
+import { ChartOfAccountSchemaType } from "@/schemas/chartofaccount"
 import {
   CoaCategory1SchemaType,
   CoaCategory2SchemaType,
@@ -88,7 +88,7 @@ export default function ChartOfAccountPage() {
   const [filters1, setFilters1] = useState<ICoaCategory1Filter>({})
   const [filters2, setFilters2] = useState<ICoaCategory2Filter>({})
   const [filters3, setFilters3] = useState<ICoaCategory3Filter>({})
-  const [filtersChart, setFiltersChart] = useState<IChartofAccountFilter>({})
+  const [filtersChart, setFiltersChart] = useState<IChartOfAccountFilter>({})
   const [activeTab, setActiveTab] = useState("chartofaccount")
 
   // Data fetching
@@ -126,7 +126,7 @@ export default function ChartOfAccountPage() {
     data: chartOfAccountsResponse,
     refetch: refetchChart,
     isLoading: isLoadingChart,
-  } = useGet<IChartofAccount>(
+  } = useGet<IChartOfAccount>(
     `${ChartOfAccount.get}`,
     "chartofaccounts",
     filtersChart.search
@@ -140,7 +140,7 @@ export default function ChartOfAccountPage() {
   const category3Data =
     (category3Response as ApiResponse<ICoaCategory3>)?.data || []
   const chartOfAccountsData =
-    (chartOfAccountsResponse as ApiResponse<IChartofAccount>)?.data || []
+    (chartOfAccountsResponse as ApiResponse<IChartOfAccount>)?.data || []
 
   // Mutations
   const saveMutation1 = usePersist<CoaCategory1SchemaType>(
@@ -167,10 +167,10 @@ export default function ChartOfAccountPage() {
   )
   const deleteMutation3 = useDelete(`${CoaCategory3.delete}`)
 
-  const saveMutationChart = usePersist<ChartofAccountSchemaType>(
+  const saveMutationChart = usePersist<ChartOfAccountSchemaType>(
     `${ChartOfAccount.add}`
   )
-  const updateMutationChart = usePersist<ChartofAccountSchemaType>(
+  const updateMutationChart = usePersist<ChartOfAccountSchemaType>(
     `${ChartOfAccount.add}`
   )
   const deleteMutationChart = useDelete(`${ChartOfAccount.delete}`)
@@ -186,7 +186,7 @@ export default function ChartOfAccountPage() {
     ICoaCategory3 | undefined
   >()
   const [selectedChartOfAccount, setSelectedChartOfAccount] = useState<
-    IChartofAccount | undefined
+    IChartOfAccount | undefined
   >()
 
   const [isModalChartOpen, setIsModalChartOpen] = useState(false)
@@ -211,8 +211,8 @@ export default function ChartOfAccountPage() {
 
   // Duplicate detection states
   const [showLoadDialogChart, setShowLoadDialogChart] = useState(false)
-  const [existingChartofAccount, setExistingChartofAccount] =
-    useState<IChartofAccount | null>(null)
+  const [existingChartOfAccount, setExistingChartOfAccount] =
+    useState<IChartOfAccount | null>(null)
 
   const [showLoadDialogCategory1, setShowLoadDialogCategory1] = useState(false)
   const [existingCoaCategory1, setExistingCoaCategory1] =
@@ -250,13 +250,13 @@ export default function ChartOfAccountPage() {
     setIsModalChartOpen(true)
   }
 
-  const handleEditChartOfAccount = (chartOfAccount: IChartofAccount) => {
+  const handleEditChartOfAccount = (chartOfAccount: IChartOfAccount) => {
     setModalMode("edit")
     setSelectedChartOfAccount(chartOfAccount)
     setIsModalChartOpen(true)
   }
 
-  const handleViewChartOfAccount = (chartOfAccount: IChartofAccount | null) => {
+  const handleViewChartOfAccount = (chartOfAccount: IChartOfAccount | null) => {
     if (!chartOfAccount) return
     setModalMode("view")
     setSelectedChartOfAccount(chartOfAccount)
@@ -325,7 +325,7 @@ export default function ChartOfAccountPage() {
     search?: string
     sortOrder?: string
   }) => {
-    setFiltersChart(filters as IChartofAccountFilter)
+    setFiltersChart(filters as IChartOfAccountFilter)
   }
 
   const handleCategory1FilterChange = (filters: {
@@ -352,7 +352,7 @@ export default function ChartOfAccountPage() {
   // Helper function for API responses
   const handleApiResponse = (
     response: ApiResponse<
-      IChartofAccount | ICoaCategory1 | ICoaCategory2 | ICoaCategory3
+      IChartOfAccount | ICoaCategory1 | ICoaCategory2 | ICoaCategory3
     >
   ) => {
     if (response.result === 1) {
@@ -363,19 +363,19 @@ export default function ChartOfAccountPage() {
   }
 
   // Specialized form handlers
-  const handleChartSubmit = async (data: ChartofAccountSchemaType) => {
+  const handleChartSubmit = async (data: ChartOfAccountSchemaType) => {
     try {
       if (modalMode === "create") {
         const response = (await saveMutationChart.mutateAsync(
           data
-        )) as ApiResponse<IChartofAccount>
+        )) as ApiResponse<IChartOfAccount>
         if (handleApiResponse(response)) {
           queryClient.invalidateQueries({ queryKey: ["chartofaccounts"] })
         }
       } else if (modalMode === "edit" && selectedChartOfAccount) {
         const response = (await updateMutationChart.mutateAsync(
           data
-        )) as ApiResponse<IChartofAccount>
+        )) as ApiResponse<IChartOfAccount>
         if (handleApiResponse(response)) {
           queryClient.invalidateQueries({ queryKey: ["chartofaccounts"] })
         }
@@ -455,7 +455,7 @@ export default function ChartOfAccountPage() {
   const [saveConfirmation, setSaveConfirmation] = useState<{
     isOpen: boolean
     data:
-      | ChartofAccountSchemaType
+      | ChartOfAccountSchemaType
       | CoaCategory1SchemaType
       | CoaCategory2SchemaType
       | CoaCategory3SchemaType
@@ -470,7 +470,7 @@ export default function ChartOfAccountPage() {
   // Main form submit handler - shows confirmation first
   const handleFormSubmit = (
     data:
-      | ChartofAccountSchemaType
+      | ChartOfAccountSchemaType
       | CoaCategory1SchemaType
       | CoaCategory2SchemaType
       | CoaCategory3SchemaType
@@ -491,14 +491,14 @@ export default function ChartOfAccountPage() {
   // Handler for confirmed form submission
   const handleConfirmedFormSubmit = async (
     data:
-      | ChartofAccountSchemaType
+      | ChartOfAccountSchemaType
       | CoaCategory1SchemaType
       | CoaCategory2SchemaType
       | CoaCategory3SchemaType
   ) => {
     try {
       if (saveConfirmation.type === "chartofaccount") {
-        await handleChartSubmit(data as ChartofAccountSchemaType)
+        await handleChartSubmit(data as ChartOfAccountSchemaType)
         setIsModalChartOpen(false)
       } else if (saveConfirmation.type === "category1") {
         await handleCategory1Submit(data as CoaCategory1SchemaType)
@@ -632,7 +632,7 @@ export default function ChartOfAccountPage() {
     try {
       const response = (await getData(
         `${ChartOfAccount.getByCode}/${trimmedCode}`
-      )) as ApiResponse<IChartofAccount>
+      )) as ApiResponse<IChartOfAccount>
 
       if (response.result === 1 && response.data) {
         const chartData = Array.isArray(response.data)
@@ -640,7 +640,7 @@ export default function ChartOfAccountPage() {
           : response.data
 
         if (chartData) {
-          setExistingChartofAccount(chartData as IChartofAccount)
+          setExistingChartOfAccount(chartData as IChartOfAccount)
           setShowLoadDialogChart(true)
         }
       }
@@ -731,12 +731,12 @@ export default function ChartOfAccountPage() {
   }
 
   // Load existing records
-  const handleLoadExistingChartofAccount = () => {
-    if (existingChartofAccount) {
+  const handleLoadExistingChartOfAccount = () => {
+    if (existingChartOfAccount) {
       setModalMode("edit")
-      setSelectedChartOfAccount(existingChartofAccount)
+      setSelectedChartOfAccount(existingChartOfAccount)
       setShowLoadDialogChart(false)
-      setExistingChartofAccount(null)
+      setExistingChartOfAccount(null)
     }
   }
 
@@ -819,7 +819,7 @@ export default function ChartOfAccountPage() {
               ]}
               shrinkZero
             />
-          ) : (chartOfAccountsResponse as ApiResponse<IChartofAccount>)
+          ) : (chartOfAccountsResponse as ApiResponse<IChartOfAccount>)
               ?.result === -2 ||
             !canView ||
             !canEdit ||
@@ -1191,10 +1191,10 @@ export default function ChartOfAccountPage() {
       <LoadConfirmation
         open={showLoadDialogChart}
         onOpenChange={setShowLoadDialogChart}
-        onLoad={handleLoadExistingChartofAccount}
-        onCancel={() => setExistingChartofAccount(null)}
-        code={existingChartofAccount?.glCode}
-        name={existingChartofAccount?.glName}
+        onLoad={handleLoadExistingChartOfAccount}
+        onCancel={() => setExistingChartOfAccount(null)}
+        code={existingChartOfAccount?.glCode}
+        name={existingChartOfAccount?.glName}
         typeLabel="Chart of Account"
         isLoading={saveMutationChart.isPending || updateMutationChart.isPending}
       />
@@ -1275,7 +1275,7 @@ export default function ChartOfAccountPage() {
         }
         itemName={
           saveConfirmation.type === "chartofaccount"
-            ? (saveConfirmation.data as ChartofAccountSchemaType)?.glName || ""
+            ? (saveConfirmation.data as ChartOfAccountSchemaType)?.glName || ""
             : saveConfirmation.type === "category1"
               ? (saveConfirmation.data as CoaCategory1SchemaType)
                   ?.coaCategoryName || ""

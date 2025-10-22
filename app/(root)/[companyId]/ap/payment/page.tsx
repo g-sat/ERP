@@ -848,7 +848,7 @@ export default function PaymentPage() {
                   setShowLoadConfirm(true)
                 }
               }}
-              placeholder="Search Payment No"
+              placeholder="Search Invoice No"
               className="h-8 text-sm"
               readOnly={!!payment?.paymentId && payment.paymentId !== "0"}
               disabled={!!payment?.paymentId && payment.paymentId !== "0"}
@@ -857,9 +857,16 @@ export default function PaymentPage() {
               variant="outline"
               size="sm"
               onClick={() => setShowListDialog(true)}
+              disabled={isLoadingPayments || isRefetchingPayments}
             >
-              <ListFilter className="mr-1 h-4 w-4" />
-              List
+              {isLoadingPayments || isRefetchingPayments ? (
+                <Spinner size="sm" className="mr-1" />
+              ) : (
+                <ListFilter className="mr-1 h-4 w-4" />
+              )}
+              {isLoadingPayments || isRefetchingPayments
+                ? "Loading..."
+                : "List"}
             </Button>
 
             <Button
@@ -869,11 +876,22 @@ export default function PaymentPage() {
               disabled={
                 isSaving || saveMutation.isPending || updateMutation.isPending
               }
+              className={isEdit ? "bg-blue-600 hover:bg-blue-700" : ""}
             >
-              <Save className="mr-1 h-4 w-4" />
+              {isSaving ||
+              saveMutation.isPending ||
+              updateMutation.isPending ? (
+                <Spinner size="sm" className="mr-1" />
+              ) : (
+                <Save className="mr-1 h-4 w-4" />
+              )}
               {isSaving || saveMutation.isPending || updateMutation.isPending
-                ? "Saving..."
-                : "Save"}
+                ? isEdit
+                  ? "Updating..."
+                  : "Saving..."
+                : isEdit
+                  ? "Update"
+                  : "Save"}
             </Button>
 
             <Button
@@ -889,7 +907,7 @@ export default function PaymentPage() {
               variant="outline"
               size="sm"
               onClick={() => setShowResetConfirm(true)}
-              //disabled={!payment}
+              //disabled={!invoice}
             >
               <RotateCcw className="mr-1 h-4 w-4" />
               Reset
@@ -909,10 +927,18 @@ export default function PaymentPage() {
               variant="destructive"
               size="sm"
               onClick={() => setShowDeleteConfirm(true)}
-              disabled={!payment || payment.paymentId === "0"}
+              disabled={
+                !payment ||
+                payment.paymentId === "0" ||
+                deleteMutation.isPending
+              }
             >
-              <Trash2 className="mr-1 h-4 w-4" />
-              Delete
+              {deleteMutation.isPending ? (
+                <Spinner size="sm" className="mr-1" />
+              ) : (
+                <Trash2 className="mr-1 h-4 w-4" />
+              )}
+              {deleteMutation.isPending ? "Deleting..." : "Delete"}
             </Button>
           </div>
         </div>

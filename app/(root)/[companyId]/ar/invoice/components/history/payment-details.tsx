@@ -9,12 +9,15 @@ import { useGetPaymentDetails } from "@/hooks/use-histoy"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { BasicTable } from "@/components/table/table-basic"
 
-export default function PaymentDetails({ invoiceId }: { invoiceId: string }) {
+interface PaymentDetailsProps {
+  invoiceId: string
+}
+
+export default function PaymentDetails({ invoiceId }: PaymentDetailsProps) {
   const { decimals } = useAuthStore()
   const amtDec = decimals[0]?.amtDec || 2
   const locAmtDec = decimals[0]?.locAmtDec || 2
   const dateFormat = decimals[0]?.dateFormat || "dd/MM/yyyy"
-
   const moduleId = ModuleId.ar
   const transactionId = ARTransactionId.invoice
 
@@ -110,11 +113,13 @@ export default function PaymentDetails({ invoiceId }: { invoiceId: string }) {
           isLoading={false}
           moduleId={moduleId}
           transactionId={transactionId}
-          tableName={TableName.notDefine}
+          tableName={TableName.paymentDetails}
           onRefresh={handleRefresh}
           showHeader={true}
           showFooter={false}
           emptyMessage="No results."
+          maxHeight="200px"
+          pageSizeOption={20}
         />
       </CardContent>
     </Card>

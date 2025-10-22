@@ -20,16 +20,18 @@ export default function Other({ form }: OtherProps) {
 
   return (
     <div className="space-y-4">
-      {/* Document Upload Section */}
-      <DocumentManager
-        moduleId={ModuleId.gl}
-        transactionId={GLTransactionId.journalentry}
-        recordId={journalId}
-        recordNo={journalNo}
-        companyId={Number(companyId)}
-        maxFileSize={10}
-        maxFiles={10}
-      />
+      {/* Document Upload Section - Only show after journal entry is saved */}
+      {journalId !== "0" && (
+        <DocumentManager
+          moduleId={ModuleId.gl}
+          transactionId={GLTransactionId.journalentry}
+          recordId={journalId}
+          recordNo={journalNo}
+          companyId={Number(companyId)}
+          maxFileSize={10}
+          maxFiles={10}
+        />
+      )}
     </div>
   )
 }

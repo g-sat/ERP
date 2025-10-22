@@ -147,7 +147,7 @@ export default function Other({ form }: OtherProps) {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-2">
       <Form {...form}>
         <div className="grid grid-cols-2 gap-2">
           {/* Address Section */}
@@ -272,16 +272,18 @@ export default function Other({ form }: OtherProps) {
         </div>
       </Form>
 
-      {/* Document Upload Section */}
-      <DocumentManager
-        moduleId={ModuleId.ap}
-        transactionId={APTransactionId.invoice}
-        recordId={invoiceId}
-        recordNo={invoiceNo}
-        companyId={Number(companyId)}
-        maxFileSize={10}
-        maxFiles={10}
-      />
+      {/* Document Upload Section - Only show after invoice is saved */}
+      {invoiceId !== "0" && (
+        <DocumentManager
+          moduleId={ModuleId.ap}
+          transactionId={APTransactionId.invoice}
+          recordId={invoiceId}
+          recordNo={invoiceNo}
+          companyId={Number(companyId)}
+          maxFileSize={10}
+          maxFiles={10}
+        />
+      )}
     </div>
   )
 }

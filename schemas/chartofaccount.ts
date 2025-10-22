@@ -32,7 +32,7 @@ export const chartofAccountSchema = z.object({
     .optional(),
 })
 
-export type ChartofAccountSchemaType = z.infer<typeof chartofAccountSchema>
+export type ChartOfAccountSchemaType = z.infer<typeof chartofAccountSchema>
 
 export const chartofAccountFiltersSchema = z.object({
   isActive: z.boolean().optional(),
@@ -42,6 +42,6 @@ export const chartofAccountFiltersSchema = z.object({
   sortOrder: z.enum(["asc", "desc"]).optional(),
 })
 
-export type ChartofAccountFiltersValues = z.infer<
+export type ChartOfAccountFiltersValues = z.infer<
   typeof chartofAccountFiltersSchema
 >

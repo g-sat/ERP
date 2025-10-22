@@ -192,7 +192,7 @@ export default function CustomerForm({
                 label="Parent Customer"
               />
 
-              <AccountSetAutocomplete
+              <AccountSetupAutocomplete
                 form={form}
                 name="accSetupId"
                 label="Account Setup"

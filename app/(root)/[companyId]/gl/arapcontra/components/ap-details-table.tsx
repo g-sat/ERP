@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react"
 import { IGLContraDt } from "@/interfaces"
 import { ColumnDef } from "@tanstack/react-table"
 
-import { TableName } from "@/lib/utils"
+import { GLTransactionId, ModuleId, TableName } from "@/lib/utils"
 import { AccountBaseTable } from "@/components/table/table-account"
 
 // Use flexible data type that can work with form data
@@ -177,8 +177,8 @@ export default function ApDetailsTable({
       <AccountBaseTable
         data={data}
         columns={columns}
-        moduleId={25}
-        transactionId={1}
+        moduleId={ModuleId.gl}
+        transactionId={GLTransactionId.arapcontra}
         tableName={TableName.arApContraDt}
         emptyMessage="No AP details found."
         accessorId="itemNo"

@@ -1,7 +1,7 @@
 "use client"
 
 import React from "react"
-import { IChartofAccountLookup } from "@/interfaces/lookup"
+import { IChartOfAccountLookup } from "@/interfaces/lookup"
 import { IconCheck, IconChevronDown, IconX } from "@tabler/icons-react"
 import { Path, PathValue, UseFormReturn } from "react-hook-form"
 import Select, {
@@ -15,7 +15,7 @@ import Select, {
 } from "react-select"
 
 import { cn } from "@/lib/utils"
-import { usePayableChartofAccountLookup } from "@/hooks/use-lookup"
+import { usePayableChartOfAccountLookup } from "@/hooks/use-lookup"
 
 import { FormField, FormItem } from "../ui/form"
 import { Label } from "../ui/label"
@@ -34,7 +34,7 @@ interface PayableChartOfAccountAutocompleteProps<
   className?: string
   isDisabled?: boolean
   isRequired?: boolean
-  onChangeEvent?: (selectedOption: IChartofAccountLookup | null) => void
+  onChangeEvent?: (selectedOption: IChartOfAccountLookup | null) => void
   companyId?: number
 }
 
@@ -51,7 +51,7 @@ export default function PayableChartOfAccountAutocomplete<
   companyId = 0,
 }: PayableChartOfAccountAutocompleteProps<T>) {
   const { data: chartOfAccounts = [], isLoading } =
-    usePayableChartofAccountLookup(companyId || 0)
+    usePayableChartOfAccountLookup(companyId || 0)
 
   // Clear the form field when companyId changes
   React.useEffect(() => {
@@ -74,7 +74,7 @@ export default function PayableChartOfAccountAutocomplete<
 
   const options: FieldOption[] = React.useMemo(
     () =>
-      chartOfAccounts.map((chartOfAccount: IChartofAccountLookup) => ({
+      chartOfAccounts.map((chartOfAccount: IChartOfAccountLookup) => ({
         value: chartOfAccount.glId.toString(),
         label: chartOfAccount.glCode + " - " + chartOfAccount.glName,
       })),
@@ -208,7 +208,7 @@ export default function PayableChartOfAccountAutocomplete<
       if (onChangeEvent) {
         const selectedChartOfAccount = selectedOption
           ? chartOfAccounts.find(
-              (u: IChartofAccountLookup) =>
+              (u: IChartOfAccountLookup) =>
                 u.glId.toString() === selectedOption.value
             ) || null
           : null

@@ -11,7 +11,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 
-import { useChartofAccountLookup } from "@/hooks/use-lookup"
+import { useChartOfAccountLookup } from "@/hooks/use-lookup"
 import { useFinanceGet, useFinanceSave } from "@/hooks/use-settings"
 import { Button } from "@/components/ui/button"
 import { Form } from "@/components/ui/form"
@@ -39,7 +39,7 @@ export function FinanceForm() {
 
   // Get chart of account data to ensure it's loaded before setting form values
   const { data: chartOfAccounts = [], isLoading: isLoadingChartOfAccounts } =
-    useChartofAccountLookup(Number(companyId))
+    useChartOfAccountLookup(Number(companyId))
 
   const { mutate: saveFinanceSettings, isPending } = useFinanceSave()
 
@@ -206,63 +206,63 @@ export function FinanceForm() {
             label="Local Currency"
             isRequired={true}
           />
-          <ChartofAccountAutocomplete
+          <ChartOfAccountAutocomplete
             form={form}
             name="exhGain_GlId"
             label="Exchange Gain Account"
             isRequired={true}
             companyId={Number(companyId)}
           />
-          <ChartofAccountAutocomplete
+          <ChartOfAccountAutocomplete
             form={form}
             name="exhLoss_GlId"
             label="Exchange Loss Account"
             isRequired={true}
             companyId={Number(companyId)}
           />
-          <ChartofAccountAutocomplete
+          <ChartOfAccountAutocomplete
             form={form}
             name="bankCharge_GlId"
             label="Bank Charges Account"
             isRequired={true}
             companyId={Number(companyId)}
           />
-          <ChartofAccountAutocomplete
+          <ChartOfAccountAutocomplete
             form={form}
             name="profitLoss_GlId"
             label="Profit & Loss Account"
             isRequired={true}
             companyId={Number(companyId)}
           />
-          <ChartofAccountAutocomplete
+          <ChartOfAccountAutocomplete
             form={form}
             name="retEarning_GlId"
             label="Retained Earnings Account"
             isRequired={true}
             companyId={Number(companyId)}
           />
-          <ChartofAccountAutocomplete
+          <ChartOfAccountAutocomplete
             form={form}
             name="saleGst_GlId"
             label="Sales GST Account"
             isRequired={true}
             companyId={Number(companyId)}
           />
-          <ChartofAccountAutocomplete
+          <ChartOfAccountAutocomplete
             form={form}
             name="purGst_GlId"
             label="Purchase GST Account"
             isRequired={true}
             companyId={Number(companyId)}
           />
-          <ChartofAccountAutocomplete
+          <ChartOfAccountAutocomplete
             form={form}
             name="saleDef_GlId"
             label="Sales Deferred Account"
             isRequired={true}
             companyId={Number(companyId)}
           />
-          <ChartofAccountAutocomplete
+          <ChartOfAccountAutocomplete
             form={form}
             name="purDef_GlId"
             label="Purchase Deferred Account"

@@ -99,7 +99,7 @@ export function PortForm({
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-2">
           <div className="grid gap-2">
-            <PortregionAutocomplete
+            <PortRegionAutocomplete
               form={form}
               name="portRegionId"
               label="Port Region"

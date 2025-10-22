@@ -3,7 +3,7 @@ import { IGLJournalDt } from "@/interfaces/gl-journalentry"
 import { IVisibleFields } from "@/interfaces/setting"
 import { ColumnDef } from "@tanstack/react-table"
 
-import { TableName } from "@/lib/utils"
+import { GLTransactionId, ModuleId, TableName } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import { AccountBaseTable } from "@/components/table/table-account"
 
@@ -276,8 +276,8 @@ export default function JournalDetailsTable({
       <AccountBaseTable
         data={data}
         columns={columns}
-        moduleId={28}
-        transactionId={1}
+        moduleId={ModuleId.gl}
+        transactionId={GLTransactionId.journalentry}
         tableName={TableName.journalEntryDt}
         emptyMessage="No Journal Entry details found."
         accessorId="itemNo"

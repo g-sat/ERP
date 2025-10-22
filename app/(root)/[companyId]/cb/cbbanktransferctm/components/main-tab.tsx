@@ -127,31 +127,29 @@ export default function Main({
         companyId={companyId}
       />
 
-      <div className="rounded-lg border p-4 shadow-sm">
-        <BankTransferCtmDetailsForm
-          Hdform={form}
-          onAddRowAction={handleAddRow}
-          onCancelEdit={editingDetail ? handleCancelEdit : undefined}
-          editingDetail={editingDetail}
-          companyId={companyId}
-          visible={visible}
-          required={required}
-          existingDetails={dataDetails as CbBankTransferCtmDtSchemaType[]}
-        />
+      <BankTransferCtmDetailsForm
+        Hdform={form}
+        onAddRowAction={handleAddRow}
+        onCancelEdit={editingDetail ? handleCancelEdit : undefined}
+        editingDetail={editingDetail}
+        companyId={companyId}
+        visible={visible}
+        required={required}
+        existingDetails={dataDetails as CbBankTransferCtmDtSchemaType[]}
+      />
 
-        <BankTransferCtmDetailsTable
-          data={(dataDetails as unknown as ICbBankTransferCtmDt[]) || []}
-          visible={visible}
-          onDelete={handleDelete}
-          onBulkDelete={handleBulkDelete}
-          onEdit={handleEdit as (template: ICbBankTransferCtmDt) => void}
-          onRefresh={() => {}} // Add refresh logic if needed
-          onFilterChange={() => {}} // Add filter logic if needed
-          onDataReorder={
-            handleDataReorder as (newData: ICbBankTransferCtmDt[]) => void
-          }
-        />
-      </div>
+      <BankTransferCtmDetailsTable
+        data={(dataDetails as unknown as ICbBankTransferCtmDt[]) || []}
+        visible={visible}
+        onDelete={handleDelete}
+        onBulkDelete={handleBulkDelete}
+        onEdit={handleEdit as (template: ICbBankTransferCtmDt) => void}
+        onRefresh={() => {}} // Add refresh logic if needed
+        onFilterChange={() => {}} // Add filter logic if needed
+        onDataReorder={
+          handleDataReorder as (newData: ICbBankTransferCtmDt[]) => void
+        }
+      />
     </div>
   )
 }

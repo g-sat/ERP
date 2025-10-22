@@ -272,16 +272,18 @@ export default function Other({ form }: OtherProps) {
         </div>
       </Form>
 
-      {/* Document Upload Section */}
-      <DocumentManager
-        moduleId={ModuleId.ap}
-        transactionId={APTransactionId.debitNote}
-        recordId={debitNoteId}
-        recordNo={debitNoteNo}
-        companyId={Number(companyId)}
-        maxFileSize={10}
-        maxFiles={10}
-      />
+      {/* Document Upload Section - Only show after debit note is saved */}
+      {debitNoteId !== "0" && (
+        <DocumentManager
+          moduleId={ModuleId.ap}
+          transactionId={APTransactionId.debitNote}
+          recordId={debitNoteId}
+          recordNo={debitNoteNo}
+          companyId={Number(companyId)}
+          maxFileSize={10}
+          maxFiles={10}
+        />
+      )}
     </div>
   )
 }

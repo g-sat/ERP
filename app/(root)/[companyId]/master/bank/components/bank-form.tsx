@@ -136,7 +136,7 @@ export default function BankForm({
                 isRequired={true}
               />
               {/* Chart of Account */}
-              <ChartofAccountAutocomplete
+              <ChartOfAccountAutocomplete
                 form={form}
                 name="glId"
                 label="Chart of Account"

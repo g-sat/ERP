@@ -12,7 +12,7 @@ import { useForm } from "react-hook-form"
 import { getData } from "@/lib/api-client"
 import { BasicSetting } from "@/lib/api-routes"
 import { parseDate } from "@/lib/date-utils"
-import { useChartofAccountLookup } from "@/hooks/use-lookup"
+import { useChartOfAccountLookup } from "@/hooks/use-lookup"
 import { Button } from "@/components/ui/button"
 import { Form } from "@/components/ui/form"
 import {
@@ -51,7 +51,7 @@ export default function DebitNoteForm({
   onChargeChange,
   shouldReset = false,
 }: DebitNoteFormProps) {
-  const { isLoading: isChartOfAccountLoading } = useChartofAccountLookup(
+  const { isLoading: isChartOfAccountLoading } = useChartOfAccountLookup(
     Number(companyId)
   )
 
@@ -429,7 +429,7 @@ export default function DebitNoteForm({
             </div>
 
             <div className="col-span-1">
-              <GstAutocomplete
+              <GSTAutocomplete
                 form={form}
                 name="gstId"
                 label="VAT"

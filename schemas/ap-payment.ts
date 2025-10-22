@@ -86,9 +86,7 @@ export const appaymentHdSchema = (
     cancelRemarks: z.string().optional(),
 
     // Nested Details
-    data_details: z
-      .array(appaymentDtSchema(required, visible))
-      .min(1, "At least one invoice detail is required"),
+    data_details: z.array(appaymentDtSchema(required, visible)).optional(),
   })
 }
 

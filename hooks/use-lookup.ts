@@ -13,7 +13,7 @@ import {
   ICarrierTypeLookup,
   ICategoryLookup,
   IChargeLookup,
-  IChartofAccountLookup,
+  IChartOfAccountLookup,
   ICompanyLookup,
   IConsignmentTypeLookup,
   ICountryLookup,
@@ -778,8 +778,8 @@ export const useCreditTermLookup = () => {
   })
 }
 
-export const useChartofAccountLookup = (companyId: number) => {
-  return useQuery<IChartofAccountLookup[]>({
+export const useChartOfAccountLookup = (companyId: number) => {
+  return useQuery<IChartOfAccountLookup[]>({
     queryKey: ["chartofaccount-lookup", companyId],
     ...defaultQueryConfig,
     queryFn: async () => {
@@ -799,8 +799,8 @@ export const useChartofAccountLookup = (companyId: number) => {
   })
 }
 
-export const useBankChartofAccountLookup = (companyId: number) => {
-  return useQuery<IChartofAccountLookup[]>({
+export const useBankChartOfAccountLookup = (companyId: number) => {
+  return useQuery<IChartOfAccountLookup[]>({
     queryKey: ["bankchartofaccount-lookup", companyId],
     ...defaultQueryConfig,
     queryFn: async () => {
@@ -822,8 +822,8 @@ export const useBankChartofAccountLookup = (companyId: number) => {
   })
 }
 
-export const useReceivableChartofAccountLookup = (companyId: number) => {
-  return useQuery<IChartofAccountLookup[]>({
+export const useReceivableChartOfAccountLookup = (companyId: number) => {
+  return useQuery<IChartOfAccountLookup[]>({
     queryKey: ["receivablechartofaccount-lookup", companyId],
     ...defaultQueryConfig,
     queryFn: async () => {
@@ -845,8 +845,8 @@ export const useReceivableChartofAccountLookup = (companyId: number) => {
   })
 }
 
-export const usePayableChartofAccountLookup = (companyId: number) => {
-  return useQuery<IChartofAccountLookup[]>({
+export const usePayableChartOfAccountLookup = (companyId: number) => {
+  return useQuery<IChartOfAccountLookup[]>({
     queryKey: ["payablechartofaccount-lookup", companyId],
     ...defaultQueryConfig,
     queryFn: async () => {

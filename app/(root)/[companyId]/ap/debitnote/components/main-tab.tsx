@@ -195,34 +195,30 @@ export default function Main({
         companyId={companyId}
         defaultCurrencyId={defaults.ap.currencyId}
       />
-      <div className="rounded-lg border p-4 shadow-sm">
-        <DebitNoteDetailsForm
-          Hdform={form}
-          onAddRowAction={handleAddRow}
-          onCancelEdit={editingDetail ? handleCancelEdit : undefined}
-          editingDetail={editingDetail}
-          companyId={companyId}
-          visible={visible}
-          required={required}
-          existingDetails={dataDetails as ApDebitNoteDtSchemaType[]}
-          defaultGlId={defaults.ap.debitNoteGlId}
-          defaultUomId={defaults.common.uomId}
-          defaultGstId={defaults.common.gstId}
-        />
+      <DebitNoteDetailsForm
+        Hdform={form}
+        onAddRowAction={handleAddRow}
+        onCancelEdit={editingDetail ? handleCancelEdit : undefined}
+        editingDetail={editingDetail}
+        companyId={companyId}
+        visible={visible}
+        required={required}
+        existingDetails={dataDetails as ApDebitNoteDtSchemaType[]}
+        defaultGlId={defaults.ap.debitNoteGlId}
+        defaultUomId={defaults.common.uomId}
+        defaultGstId={defaults.common.gstId}
+      />
 
-        <DebitNoteDetailsTable
-          data={(dataDetails as unknown as IApDebitNoteDt[]) || []}
-          visible={visible}
-          onDelete={handleDelete}
-          onBulkDelete={handleBulkDelete}
-          onEdit={handleEdit as (template: IApDebitNoteDt) => void}
-          onRefresh={() => {}} // Add refresh logic if needed
-          onFilterChange={() => {}} // Add filter logic if needed
-          onDataReorder={
-            handleDataReorder as (newData: IApDebitNoteDt[]) => void
-          }
-        />
-      </div>
+      <DebitNoteDetailsTable
+        data={(dataDetails as unknown as IApDebitNoteDt[]) || []}
+        visible={visible}
+        onDelete={handleDelete}
+        onBulkDelete={handleBulkDelete}
+        onEdit={handleEdit as (template: IApDebitNoteDt) => void}
+        onRefresh={() => {}} // Add refresh logic if needed
+        onFilterChange={() => {}} // Add filter logic if needed
+        onDataReorder={handleDataReorder as (newData: IApDebitNoteDt[]) => void}
+      />
     </div>
   )
 }

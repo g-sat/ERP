@@ -891,7 +891,7 @@ export const ApAdjustment = {
 }
 
 // Accounts Payable DOCSetOff Endpoints
-export const ApDocSetoff = {
+export const ApDocsetoff = {
   get: "/account/getapdocsetoff",
   getByIdNo: "/account/getapdocsetoffbyidno",
   add: "/account/saveapdocsetoff",

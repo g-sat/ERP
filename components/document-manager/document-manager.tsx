@@ -338,7 +338,7 @@ export default function DocumentManager({
 
   return (
     <>
-      <div className="grid grid-cols-10 gap-4">
+      <div className="grid grid-cols-10 gap-2">
         {/* Upload Section - 30% */}
         <div className="col-span-3">
           <Card className="h-full">
