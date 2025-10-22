@@ -531,6 +531,13 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                         onMouseEnter={handlePopoverContentMouseEnter}
                         onMouseLeave={handleMouseLeave}
                       >
+                        {/* Header */}
+                        <div className="flex items-center gap-2 px-3 py-2 bg-muted/50 border-b">
+                          {item.icon && <item.icon className="h-4 w-4" />}
+                          <span className="font-small text-foreground">{item.title}</span>
+                        </div>
+                        
+                        {/* Sub-menu items */}
                         <div className="py-1.5">
                           {item.items.map((subItem) => (
                             <div key={subItem.url} className="[&>a]:flex">
@@ -697,6 +704,13 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                         onMouseEnter={handlePopoverContentMouseEnter}
                         onMouseLeave={handleMouseLeave}
                       >
+                        {/* Header */}
+                        <div className="flex items-center gap-2 px-3 py-2 bg-muted/50 border-b">
+                          {group.icon && <group.icon className="h-4 w-4" />}
+                          <span className="font-small text-foreground">{group.title}</span>
+                        </div>
+                        
+                        {/* Sub-menu items */}
                         <div className="py-1.5">
                           {group.items.map((subItem) => (
                             <div key={subItem.title} className="[&>a]:flex">
