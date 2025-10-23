@@ -7,11 +7,7 @@ import {
   setExchangeRateLocal,
   setRecExchangeRate,
 } from "@/helpers/account"
-import {
-  calculateLocalAmounts,
-  calculateTotalAmounts,
-  recalculateAllDetailAmounts,
-} from "@/helpers/ar-receipt-calculations"
+import { recalculateAllDetailAmounts } from "@/helpers/ar-receipt-calculations"
 import { IArReceiptDt } from "@/interfaces"
 import {
   IBankLookup,
@@ -67,8 +63,12 @@ export default function ReceiptForm({
   // State to track if receipt type is cheque
   const [isChequeReceipt, setIsChequeReceipt] = React.useState(false)
 
-  // Ref to prevent infinite loops during programmatic updates
-  const isUpdatingRef = React.useRef(false)
+  // Helper function to parse numbers with commas
+  const parseNumberWithCommas = React.useCallback((value: string): number => {
+    // Remove commas and parse as float
+    const cleanValue = value.replace(/,/g, "")
+    return parseFloat(cleanValue) || 0
+  }, [])
 
   // Function to check currency comparison without setting state
   const checkCurrencyComparison = React.useCallback(() => {
@@ -311,32 +311,6 @@ export default function ReceiptForm({
     [form]
   )
 
-  // Recalculate header totals from details
-  const recalculateHeaderTotals = React.useCallback(() => {
-    const formDetails = form.getValues("data_details") || []
-
-    if (formDetails.length === 0) {
-      // Reset all amounts to 0 if no details
-      form.setValue("totAmt", 0)
-      form.setValue("totLocalAmt", 0)
-      return
-    }
-
-    // Calculate base currency totals
-    const totals = calculateTotalAmounts(
-      formDetails as unknown as IArReceiptDt[],
-      amtDec
-    )
-    form.setValue("totAmt", totals.totAmt)
-
-    // Calculate local currency totals (always calculate)
-    const localAmounts = calculateLocalAmounts(
-      formDetails as unknown as IArReceiptDt[],
-      locAmtDec
-    )
-    form.setValue("totLocalAmt", localAmounts.totLocalAmt)
-  }, [amtDec, form, locAmtDec])
-
   // Handle currency selection
   const handleCurrencyChange = React.useCallback(
     async (selectedCurrency: ICurrencyLookup | null) => {
@@ -393,87 +367,68 @@ export default function ReceiptForm({
 
   // Handle exchange rate change
   const handleExchangeRateChange = React.useCallback(
-    (value: number) => {
-      form.setValue("exhRate", value, { shouldDirty: true })
+    (e: React.FocusEvent<HTMLInputElement>) => {
+      const exhRate = parseNumberWithCommas(e.target.value)
+      form.setValue("exhRate", exhRate, { shouldDirty: true })
     },
-    [form]
+    [form, parseNumberWithCommas]
   )
 
   // Handle totAmt change - calculate totLocalAmt and update related amounts
   const handleTotAmtChange = React.useCallback(
-    (value: number) => {
-      // Prevent infinite loops
-      if (isUpdatingRef.current) return
-
-      isUpdatingRef.current = true
-
+    (e: React.FocusEvent<HTMLInputElement>) => {
+      const totAmt = parseNumberWithCommas(e.target.value)
       const exchangeRate = form.getValues("exhRate") || 0
 
       // Calculate totLocalAmt using exchange rate with proper rounding
-      const totLocalAmt = Math.round(value * exchangeRate * 100) / 100
+      const totLocalAmt = Math.round(totAmt * exchangeRate * 100) / 100
 
       // Update totLocalAmt
       form.setValue("totLocalAmt", totLocalAmt, { shouldDirty: true })
 
       // Update recTotAmt = totAmt
-      form.setValue("recTotAmt", value, { shouldDirty: true })
+      form.setValue("recTotAmt", totAmt, { shouldDirty: true })
 
       // Update recTotLocalAmt = totLocalAmt
       form.setValue("recTotLocalAmt", totLocalAmt, { shouldDirty: true })
 
       // Update unAllocTotAmt = totAmt
-      form.setValue("unAllocTotAmt", value, { shouldDirty: true })
+      form.setValue("unAllocTotAmt", totAmt, { shouldDirty: true })
 
       // Update unAllocTotLocalAmt = totLocalAmt
       form.setValue("unAllocTotLocalAmt", totLocalAmt, { shouldDirty: true })
-
-      // Reset flag after a short delay
-      setTimeout(() => {
-        isUpdatingRef.current = false
-      }, 0)
     },
-    [form]
+    [form, parseNumberWithCommas]
   )
 
   // Handle unAllocTotAmt change - calculate unAllocTotLocalAmt
   const handleUnAllocTotAmtChange = React.useCallback(
-    (value: number) => {
-      // Prevent infinite loops
-      if (isUpdatingRef.current) return
-
-      isUpdatingRef.current = true
-
+    (e: React.FocusEvent<HTMLInputElement>) => {
+      const unAllocTotAmt = parseNumberWithCommas(e.target.value)
       const exchangeRate = form.getValues("exhRate") || 0
 
       // Calculate unAllocTotLocalAmt using exchange rate with proper rounding
-      const unAllocTotLocalAmt = Math.round(value * exchangeRate * 100) / 100
+      const unAllocTotLocalAmt =
+        Math.round(unAllocTotAmt * exchangeRate * 100) / 100
 
       // Update unAllocTotLocalAmt
       form.setValue("unAllocTotLocalAmt", unAllocTotLocalAmt, {
         shouldDirty: true,
       })
-
-      // Reset flag after a short delay
-      setTimeout(() => {
-        isUpdatingRef.current = false
-      }, 0)
     },
-    [form]
+    [form, parseNumberWithCommas]
   )
 
   // Handle recTotAmt change - calculate recTotLocalAmt and update related amounts
   const handleRecTotAmtChange = React.useCallback(
-    (value: number) => {
-      // Prevent infinite loops
-      if (isUpdatingRef.current) return
-
-      isUpdatingRef.current = true
-
+    (e: React.FocusEvent<HTMLInputElement>) => {
+      const recTotAmt = parseNumberWithCommas(e.target.value)
+      console.log("recTotAmt", recTotAmt)
       const recExchangeRate = form.getValues("recExhRate") || 0
       const exhRate = form.getValues("exhRate") || 0
 
       // Calculate recTotLocalAmt using receipt exchange rate with proper rounding
-      const recTotLocalAmt = Math.round(value * recExchangeRate * 100) / 100
+      const recTotLocalAmt = Math.round(recTotAmt * recExchangeRate * 100) / 100
 
       // Update recTotLocalAmt
       form.setValue("recTotLocalAmt", recTotLocalAmt, { shouldDirty: true })
@@ -493,13 +448,8 @@ export default function ReceiptForm({
 
       // Update unAllocTotLocalAmt = totLocalAmt
       form.setValue("unAllocTotLocalAmt", recTotLocalAmt, { shouldDirty: true })
-
-      // Reset flag after a short delay
-      setTimeout(() => {
-        isUpdatingRef.current = false
-      }, 0)
     },
-    [form]
+    [form, parseNumberWithCommas]
   )
 
   return (
@@ -579,7 +529,7 @@ export default function ReceiptForm({
           isRequired={true}
           round={exhRateDec}
           className="text-right"
-          onChangeEvent={handleExchangeRateChange}
+          onBlurEvent={handleExchangeRateChange}
         />
 
         {/* Payment Type */}
@@ -617,7 +567,7 @@ export default function ReceiptForm({
           form={form}
           name="unAllocTotAmt"
           label="Unallocated Amount"
-          onChangeEvent={handleUnAllocTotAmtChange}
+          onBlurEvent={handleUnAllocTotAmtChange}
         />
 
         {/* Unallocated Local Amount */}
@@ -653,7 +603,7 @@ export default function ReceiptForm({
           name="recTotAmt"
           label="Rec Total Amount"
           isDisabled={isCurrenciesEqual}
-          onChangeEvent={handleRecTotAmtChange}
+          onBlurEvent={handleRecTotAmtChange}
         />
 
         {/* Pay Total Local Amount */}
@@ -672,7 +622,7 @@ export default function ReceiptForm({
           round={amtDec}
           //isDisabled={!isCurrenciesEqual}
           className="text-right"
-          onChangeEvent={handleTotAmtChange}
+          onBlurEvent={handleTotAmtChange}
         />
 
         {/* Total Local Amount */}
