@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react"
+import { formatDate, formatNumber } from "@/helpers/account"
 import { IArReceiptDt } from "@/interfaces"
 import { IVisibleFields } from "@/interfaces/setting"
 import { useAuthStore } from "@/stores/auth-store"
@@ -39,14 +40,6 @@ export default function ReceiptDetailsTable({
   useEffect(() => {
     setMounted(true)
   }, [])
-
-  const formatNumber = (
-    value: number | string | null | undefined,
-    decimals: number
-  ): string => {
-    const numValue = Number(value) || 0
-    return numValue.toFixed(decimals)
-  }
 
   const EditableNumberInput = ({
     value,
@@ -135,6 +128,11 @@ export default function ReceiptDetailsTable({
       accessorKey: "docAccountDate",
       header: "Account Date",
       size: 120,
+      cell: ({ row }: { row: { original: IArReceiptDt } }) => (
+        <div className="text-center">
+          {formatDate(row.original.docAccountDate)}
+        </div>
+      ),
     },
     {
       accessorKey: "docBalAmt",
@@ -224,6 +222,9 @@ export default function ReceiptDetailsTable({
       accessorKey: "docDueDate",
       header: "Due Date",
       size: 120,
+      cell: ({ row }: { row: { original: IArReceiptDt } }) => (
+        <div className="text-center">{formatDate(row.original.docDueDate)}</div>
+      ),
     },
     {
       accessorKey: "docTotAmt",

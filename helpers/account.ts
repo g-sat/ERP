@@ -44,6 +44,42 @@ export const mathRound = (amtValue: number, precision: number): number => {
 }
 
 /**
+ * Format number with specified decimal places
+ * @param value - The value to format
+ * @param decimals - Number of decimal places
+ * @returns Formatted number string
+ */
+export const formatNumber = (
+  value: number | string | null | undefined,
+  decimals: number
+): string => {
+  const numValue = Number(value) || 0
+  return numValue.toFixed(decimals)
+}
+
+/**
+ * Format date as dd/MM/yyyy
+ * @param date - The date to format (string, Date, or null/undefined)
+ * @returns Formatted date string in dd/MM/yyyy format
+ */
+export const formatDate = (date: string | Date | null | undefined): string => {
+  if (!date) return ""
+
+  try {
+    const dateObj = date instanceof Date ? date : new Date(date)
+    if (isNaN(dateObj.getTime())) return ""
+
+    const day = dateObj.getDate().toString().padStart(2, "0")
+    const month = (dateObj.getMonth() + 1).toString().padStart(2, "0")
+    const year = dateObj.getFullYear()
+
+    return `${day}/${month}/${year}`
+  } catch {
+    return ""
+  }
+}
+
+/**
  * Calculate multiplier amount with precision
  * Used for: Exchange rate conversions, Quantity × Price calculations
  */

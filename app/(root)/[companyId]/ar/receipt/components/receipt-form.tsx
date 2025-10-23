@@ -8,9 +8,11 @@ import {
   setRecExchangeRate,
 } from "@/helpers/account"
 import {
+  calculateLocalAmount,
+  calculateRecLocalAmount,
   calculateReceiptTotalsFromTotAmt,
   calculateTotAmtFromRecTotAmt,
-  calculateUnallocatedLocalAmount,
+  recalculateAllAmountsOnExchangeRateChange,
   recalculateAllDetailAmounts,
 } from "@/helpers/ar-receipt-calculations"
 import { IArReceiptDt } from "@/interfaces"
@@ -256,7 +258,8 @@ export default function ReceiptForm({
         form.setValue("recExhRate", 0)
       }
 
-      // Update currency comparison state
+      // Update currency comparison state after setting recCurrencyId
+      // This will enable/disable recExhRate and recTotAmt fields based on currency difference
       updateCurrencyComparison()
 
       // Check if recTotAmt should be enabled
@@ -370,13 +373,90 @@ export default function ReceiptForm({
     ]
   )
 
-  // Handle exchange rate change
+  // Handle exchange rate change - recalculate all local amounts
   const handleExchangeRateChange = React.useCallback(
     (e: React.FocusEvent<HTMLInputElement>) => {
       const exhRate = parseNumberWithCommas(e.target.value)
       form.setValue("exhRate", exhRate, { shouldDirty: true })
+
+      // Get current form values
+      const totAmt = form.getValues("totAmt") || 0
+      const unAllocTotAmt = form.getValues("unAllocTotAmt") || 0
+      const dataDetails = form.getValues("data_details") || []
+
+      // Use comprehensive function to recalculate all amounts
+      if (dataDetails.length > 0) {
+        const recalculatedAmounts = recalculateAllAmountsOnExchangeRateChange(
+          dataDetails as unknown as IArReceiptDt[],
+          totAmt,
+          unAllocTotAmt,
+          exhRate,
+          decimals[0]
+        )
+
+        // Update header amounts
+        form.setValue("totLocalAmt", recalculatedAmounts.totLocalAmt, {
+          shouldDirty: true,
+        })
+        form.setValue(
+          "unAllocTotLocalAmt",
+          recalculatedAmounts.unAllocTotLocalAmt,
+          {
+            shouldDirty: true,
+          }
+        )
+        form.setValue("exhGainLoss", recalculatedAmounts.totalExhGainLoss, {
+          shouldDirty: true,
+        })
+
+        // Update details
+        form.setValue(
+          "data_details",
+          recalculatedAmounts.updatedDetails as unknown as ArReceiptDtSchemaType[],
+          { shouldDirty: true, shouldTouch: true }
+        )
+      } else {
+        // If no details, just recalculate header amounts
+        if (totAmt > 0) {
+          const totLocalAmt = calculateLocalAmount(totAmt, exhRate, decimals[0])
+          form.setValue("totLocalAmt", totLocalAmt, { shouldDirty: true })
+        }
+
+        if (unAllocTotAmt > 0) {
+          const unAllocTotLocalAmt = calculateLocalAmount(
+            unAllocTotAmt,
+            exhRate,
+            decimals[0]
+          )
+          form.setValue("unAllocTotLocalAmt", unAllocTotLocalAmt, {
+            shouldDirty: true,
+          })
+        }
+      }
     },
-    [form, parseNumberWithCommas]
+    [form, parseNumberWithCommas, decimals]
+  )
+
+  // Handle receipt exchange rate change - recalculate recTotLocalAmt
+  const handleRecExchangeRateChange = React.useCallback(
+    (e: React.FocusEvent<HTMLInputElement>) => {
+      const recExhRate = parseNumberWithCommas(e.target.value)
+      form.setValue("recExhRate", recExhRate, { shouldDirty: true })
+
+      // Get current recTotAmt
+      const recTotAmt = form.getValues("recTotAmt") || 0
+
+      // Recalculate recTotLocalAmt using helper function
+      if (recTotAmt > 0) {
+        const recTotLocalAmt = calculateRecLocalAmount(
+          recTotAmt,
+          recExhRate,
+          decimals[0]
+        )
+        form.setValue("recTotLocalAmt", recTotLocalAmt, { shouldDirty: true })
+      }
+    },
+    [form, parseNumberWithCommas, decimals]
   )
 
   // Handle totAmt change - calculate totLocalAmt and update related amounts
@@ -438,7 +518,7 @@ export default function ReceiptForm({
       const exchangeRate = form.getValues("exhRate") || 0
 
       // Use calculation function from ar-receipt-calculations
-      const unAllocTotLocalAmt = calculateUnallocatedLocalAmount(
+      const unAllocTotLocalAmt = calculateLocalAmount(
         unAllocTotAmt,
         exchangeRate,
         decimals[0] || {
@@ -470,7 +550,11 @@ export default function ReceiptForm({
       const exhRate = form.getValues("exhRate") || 0
 
       // Calculate recTotLocalAmt using receipt exchange rate with proper rounding
-      const recTotLocalAmt = Math.round(recTotAmt * recExchangeRate * 100) / 100
+      const recTotLocalAmt = calculateRecLocalAmount(
+        recTotAmt,
+        recExchangeRate,
+        decimals[0]
+      )
 
       // Update recTotLocalAmt
       form.setValue("recTotLocalAmt", recTotLocalAmt, { shouldDirty: true })
@@ -652,7 +736,7 @@ export default function ReceiptForm({
           onChangeEvent={handleRecCurrencyChange}
         />
 
-        {/* Pay Exchange Rate */}
+        {/* Pay Exchange Rate - Enabled when currencies are different */}
         <CustomNumberInput
           form={form}
           name="recExhRate"
@@ -661,9 +745,10 @@ export default function ReceiptForm({
           round={exhRateDec}
           className="text-right"
           isDisabled={isCurrenciesEqual}
+          onBlurEvent={handleRecExchangeRateChange}
         />
 
-        {/* Pay Total Amount */}
+        {/* Pay Total Amount - Enabled when currencies are different */}
         <CustomNumberInput
           form={form}
           name="recTotAmt"
@@ -686,7 +771,7 @@ export default function ReceiptForm({
           name="totAmt"
           label="Total Amount"
           round={amtDec}
-          //isDisabled={!isCurrenciesEqual}
+          isDisabled={!isCurrenciesEqual}
           className="text-right"
           onBlurEvent={handleTotAmtChange}
         />
