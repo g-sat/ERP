@@ -6,7 +6,7 @@ import {
   calculateAllocationAmounts,
   calculateTotalExchangeGainLoss,
 } from "@/helpers/ar-receipt-calculations"
-import { IApOutTransaction, IArReceiptDt } from "@/interfaces"
+import { IArOutTransaction, IArReceiptDt } from "@/interfaces"
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
 import { ArReceiptDtSchemaType, ArReceiptHdSchemaType } from "@/schemas"
 import { useAuthStore } from "@/stores/auth-store"
@@ -15,7 +15,7 @@ import { toast } from "sonner"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import OutStandingTransactionsDialog from "@/components/accounttransaction/outstandingtransactions-dialog"
+import ArOutStandingTransactionsDialog from "@/components/accounttransaction/ar-outstandingtransactions-dialog"
 
 import ReceiptDetailsTable from "./receipt-details-table"
 import ReceiptForm from "./receipt-form"
@@ -524,7 +524,7 @@ export default function Main({
   }, [form])
 
   const handleAddSelectedTransactions = useCallback(
-    (transactions: IApOutTransaction[]) => {
+    (transactions: IArOutTransaction[]) => {
       const currentData = form.getValues("data_details") || []
       const nextItemNo =
         currentData.length > 0
@@ -625,10 +625,10 @@ export default function Main({
 
       {/* Transaction Selection Dialog */}
       {showTransactionDialog && dialogParamsRef.current && (
-        <OutStandingTransactionsDialog
+        <ArOutStandingTransactionsDialog
           open={showTransactionDialog}
           onOpenChange={setShowTransactionDialog}
-          supplierId={dialogParamsRef.current.customerId}
+          customerId={dialogParamsRef.current.customerId}
           currencyId={dialogParamsRef.current.currencyId}
           accountDate={dialogParamsRef.current.accountDate}
           visible={visible}

@@ -586,20 +586,21 @@ export const setPayExchangeRate = async (form: HdForm, round: number | 6) => {
  */
 export const setRecExchangeRate = async (form: HdForm, round: number | 6) => {
   // to set recving exhange rate for the receipt
-  const { accountDate, currencyId } = form?.getValues()
-  if (accountDate && currencyId) {
+  const { accountDate, recCurrencyId } = form?.getValues()
+  if (accountDate && recCurrencyId) {
     try {
       const dt = format(
         parse(accountDate, clientDateFormat, new Date()),
         "yyyy-MM-dd"
       )
       const res = await getData(
-        `${BasicSetting.getExchangeRate}/${currencyId}/${dt}`
+        `${BasicSetting.getExchangeRate}/${recCurrencyId}/${dt}`
       )
 
       const exhRate = res?.data
+
       form.setValue("recExhRate", +Number(exhRate).toFixed(round))
-      form.setValue("payExhRate", +Number(exhRate).toFixed(round))
+      form.trigger("recExhRate")
     } catch {}
   }
 }

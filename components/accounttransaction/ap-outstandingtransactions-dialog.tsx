@@ -19,9 +19,9 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 
-import OutStandingTransactionsTable from "./outstandingtransactions-table"
+import ApOutStandingTransactionsTable from "./ap-outstandingtransactions-table"
 
-interface OutStandingTransactionsDialogProps {
+interface ApOutStandingTransactionsDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   supplierId?: number
@@ -32,7 +32,7 @@ interface OutStandingTransactionsDialogProps {
   existingDocumentIds?: number[] // Array of already selected document IDs
 }
 
-export default function OutStandingTransactionsDialog({
+export default function ApOutStandingTransactionsDialog({
   open,
   onOpenChange,
   supplierId,
@@ -41,7 +41,7 @@ export default function OutStandingTransactionsDialog({
   visible,
   onAddSelected,
   existingDocumentIds = [],
-}: OutStandingTransactionsDialogProps) {
+}: ApOutStandingTransactionsDialogProps) {
   console.log("Dialog component rendered with props:", {
     open,
     supplierId,
@@ -354,7 +354,7 @@ export default function OutStandingTransactionsDialog({
               </div>
             </div>
           ) : (
-            <OutStandingTransactionsTable
+            <ApOutStandingTransactionsTable
               data={outTransactions}
               visible={visible}
               onRefresh={handleRefresh}

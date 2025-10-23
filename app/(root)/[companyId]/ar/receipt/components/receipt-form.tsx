@@ -5,7 +5,7 @@ import {
   setDueDate,
   setExchangeRate,
   setExchangeRateLocal,
-  setPayExchangeRate,
+  setRecExchangeRate,
 } from "@/helpers/account"
 import {
   calculateLocalAmounts,
@@ -30,7 +30,6 @@ import {
   BankChartOfAccountAutocomplete,
   CompanyCustomerAutocomplete,
   CurrencyAutocomplete,
-  JobOrderCustomerAutocomplete,
   PaymentTypeAutocomplete,
 } from "@/components/autocomplete"
 import { CustomDateNew } from "@/components/custom/custom-date-new"
@@ -63,25 +62,42 @@ export default function ReceiptForm({
   const { data: paymentTypes = [] } = usePaymentTypeLookup()
 
   // State to track if currencies are the same
-  const [areCurrenciesSame, setAreCurrenciesSame] = React.useState(true)
+  const [isCurrenciesEqual, setIsCurrenciesEqual] = React.useState(true)
 
   // State to track if receipt type is cheque
   const [isChequeReceipt, setIsChequeReceipt] = React.useState(false)
 
-  // Function to check and update currency comparison state
-  const updateCurrencyComparison = React.useCallback(() => {
+  // Ref to prevent infinite loops during programmatic updates
+  const isUpdatingRef = React.useRef(false)
+
+  // Function to check currency comparison without setting state
+  const checkCurrencyComparison = React.useCallback(() => {
     const currencyId = form.getValues("currencyId") || 0
     const recCurrencyId = form.getValues("recCurrencyId") || 0
-    // Disable if both are zero OR if they are the same (and not zero)
-    const same = currencyId === recCurrencyId
-    setAreCurrenciesSame(same)
-    return same
+    const isEqual = currencyId === recCurrencyId
+    // Return true if both are zero OR if they are the same (and not zero)
+    return isEqual
   }, [form])
+
+  // Function to update currency comparison state
+  const updateCurrencyComparison = React.useCallback(() => {
+    const currenciesMatch = checkCurrencyComparison()
+    setIsCurrenciesEqual(currenciesMatch)
+    return currenciesMatch
+  }, [checkCurrencyComparison])
 
   // Initialize currency comparison state on component mount and form changes
   React.useEffect(() => {
     updateCurrencyComparison()
   }, [updateCurrencyComparison])
+
+  // Watch currency values and update comparison when they change
+  const currencyId = form.watch("currencyId")
+  const recCurrencyId = form.watch("recCurrencyId")
+
+  React.useEffect(() => {
+    updateCurrencyComparison()
+  }, [currencyId, recCurrencyId, updateCurrencyComparison])
 
   // Watch paymentTypeId and update cheque receipt state
   React.useEffect(() => {
@@ -155,6 +171,15 @@ export default function ReceiptForm({
     [exhRateDec, form, visible]
   )
 
+  // Handle account date selection
+  const handleAccountDateChange = React.useCallback(
+    async (_selectedAccountDate: Date | null) => {
+      await setExchangeRate(form, exhRateDec, visible)
+      await setRecExchangeRate(form, exhRateDec)
+    },
+    [exhRateDec, form, visible]
+  )
+
   // Handle customer selection
   const handleCustomerChange = React.useCallback(
     async (selectedCustomer: ICustomerLookup | null) => {
@@ -171,7 +196,7 @@ export default function ReceiptForm({
         // Only set exchange rates if currency is available
         if (selectedCustomer.currencyId > 0) {
           await setExchangeRate(form, exhRateDec, visible)
-          await setPayExchangeRate(form, exhRateDec)
+          await setRecExchangeRate(form, exhRateDec)
         } else {
           // If no currency, set exchange rates to zero
           form.setValue("exhRate", 0)
@@ -203,15 +228,6 @@ export default function ReceiptForm({
     [exhRateDec, form, isEdit, visible, updateCurrencyComparison]
   )
 
-  // Handle account date selection
-  const handleAccountDateChange = React.useCallback(
-    async (_selectedAccountDate: Date | null) => {
-      await setExchangeRate(form, exhRateDec, visible)
-      await setPayExchangeRate(form, exhRateDec)
-    },
-    [exhRateDec, form, visible]
-  )
-
   // Common function to check if recTotAmt should be enabled
   const checkPayTotAmtEnable = React.useCallback(() => {
     const currencyId = form.getValues("currencyId") || 0
@@ -223,11 +239,13 @@ export default function ReceiptForm({
   const handleBankChange = React.useCallback(
     async (selectedBank: IBankLookup | null) => {
       const recCurrencyId = selectedBank?.currencyId || 0
+
+      // Update recCurrencyId from bank's currency
       form.setValue("recCurrencyId", recCurrencyId)
 
       if (selectedBank && recCurrencyId > 0) {
-        // Only call setPayExchangeRate if currency is available
-        await setPayExchangeRate(form, exhRateDec)
+        // Only call setRecExchangeRate if currency is available
+        await setRecExchangeRate(form, exhRateDec)
       } else {
         // If no bank selected or no currency, set exchange rate to zero
         form.setValue("recExhRate", 0)
@@ -237,20 +255,20 @@ export default function ReceiptForm({
       updateCurrencyComparison()
 
       // Check if recTotAmt should be enabled
-      const _shouldEnablePayTotAmt = checkPayTotAmtEnable()
+      checkPayTotAmtEnable()
     },
     [exhRateDec, form, checkPayTotAmtEnable, updateCurrencyComparison]
   )
 
   // Handle pay currency change
-  const handlePayCurrencyChange = React.useCallback(
+  const handleRecCurrencyChange = React.useCallback(
     async (selectedCurrency: ICurrencyLookup | null) => {
       const recCurrencyId = selectedCurrency?.currencyId || 0
       form.setValue("recCurrencyId", recCurrencyId)
 
       if (selectedCurrency && recCurrencyId > 0) {
-        // Only call setPayExchangeRate if currency is available
-        await setPayExchangeRate(form, exhRateDec)
+        // Only call setRecExchangeRate if currency is available
+        await setRecExchangeRate(form, exhRateDec)
       } else {
         // If no currency selected, set exchange rate to zero
         form.setValue("recExhRate", 0)
@@ -260,7 +278,7 @@ export default function ReceiptForm({
       updateCurrencyComparison()
 
       // Check if recTotAmt should be enabled
-      const _shouldEnablePayTotAmt = checkPayTotAmtEnable()
+      checkPayTotAmtEnable()
     },
     [exhRateDec, form, checkPayTotAmtEnable, updateCurrencyComparison]
   )
@@ -355,22 +373,18 @@ export default function ReceiptForm({
           updatedDetails as unknown as ArReceiptDtSchemaType[],
           { shouldDirty: true, shouldTouch: true }
         )
-
-        // Recalculate header totals from updated details
-        recalculateHeaderTotals()
       }
 
       // Update currency comparison state
       updateCurrencyComparison()
 
       // Check if recTotAmt should be enabled
-      const _shouldEnablePayTotAmt = checkPayTotAmtEnable()
+      checkPayTotAmtEnable()
     },
     [
       decimals,
       exhRateDec,
       form,
-      recalculateHeaderTotals,
       visible,
       checkPayTotAmtEnable,
       updateCurrencyComparison,
@@ -379,39 +393,120 @@ export default function ReceiptForm({
 
   // Handle exchange rate change
   const handleExchangeRateChange = React.useCallback(
-    (e: React.FocusEvent<HTMLInputElement>) => {
-      const formDetails = form.getValues("data_details")
-      const exchangeRate = parseFloat(e.target.value) || 0
-
-      if (!formDetails || formDetails.length === 0) {
-        return
-      }
-
-      // Recalculate all details with new exchange rate
-      const updatedDetails = recalculateAllDetailAmounts(
-        formDetails as unknown as IArReceiptDt[],
-        exchangeRate,
-        decimals[0]
-      )
-
-      // Update form with recalculated details
-      form.setValue(
-        "data_details",
-        updatedDetails as unknown as ArReceiptDtSchemaType[],
-        { shouldDirty: true, shouldTouch: true }
-      )
-
-      // Recalculate header totals from updated details
-      recalculateHeaderTotals()
+    (value: number) => {
+      form.setValue("exhRate", value, { shouldDirty: true })
     },
-    [decimals, form, recalculateHeaderTotals]
+    [form]
+  )
+
+  // Handle totAmt change - calculate totLocalAmt and update related amounts
+  const handleTotAmtChange = React.useCallback(
+    (value: number) => {
+      // Prevent infinite loops
+      if (isUpdatingRef.current) return
+
+      isUpdatingRef.current = true
+
+      const exchangeRate = form.getValues("exhRate") || 0
+
+      // Calculate totLocalAmt using exchange rate with proper rounding
+      const totLocalAmt = Math.round(value * exchangeRate * 100) / 100
+
+      // Update totLocalAmt
+      form.setValue("totLocalAmt", totLocalAmt, { shouldDirty: true })
+
+      // Update recTotAmt = totAmt
+      form.setValue("recTotAmt", value, { shouldDirty: true })
+
+      // Update recTotLocalAmt = totLocalAmt
+      form.setValue("recTotLocalAmt", totLocalAmt, { shouldDirty: true })
+
+      // Update unAllocTotAmt = totAmt
+      form.setValue("unAllocTotAmt", value, { shouldDirty: true })
+
+      // Update unAllocTotLocalAmt = totLocalAmt
+      form.setValue("unAllocTotLocalAmt", totLocalAmt, { shouldDirty: true })
+
+      // Reset flag after a short delay
+      setTimeout(() => {
+        isUpdatingRef.current = false
+      }, 0)
+    },
+    [form]
+  )
+
+  // Handle unAllocTotAmt change - calculate unAllocTotLocalAmt
+  const handleUnAllocTotAmtChange = React.useCallback(
+    (value: number) => {
+      // Prevent infinite loops
+      if (isUpdatingRef.current) return
+
+      isUpdatingRef.current = true
+
+      const exchangeRate = form.getValues("exhRate") || 0
+
+      // Calculate unAllocTotLocalAmt using exchange rate with proper rounding
+      const unAllocTotLocalAmt = Math.round(value * exchangeRate * 100) / 100
+
+      // Update unAllocTotLocalAmt
+      form.setValue("unAllocTotLocalAmt", unAllocTotLocalAmt, {
+        shouldDirty: true,
+      })
+
+      // Reset flag after a short delay
+      setTimeout(() => {
+        isUpdatingRef.current = false
+      }, 0)
+    },
+    [form]
+  )
+
+  // Handle recTotAmt change - calculate recTotLocalAmt and update related amounts
+  const handleRecTotAmtChange = React.useCallback(
+    (value: number) => {
+      // Prevent infinite loops
+      if (isUpdatingRef.current) return
+
+      isUpdatingRef.current = true
+
+      const recExchangeRate = form.getValues("recExhRate") || 0
+      const exhRate = form.getValues("exhRate") || 0
+
+      // Calculate recTotLocalAmt using receipt exchange rate with proper rounding
+      const recTotLocalAmt = Math.round(value * recExchangeRate * 100) / 100
+
+      // Update recTotLocalAmt
+      form.setValue("recTotLocalAmt", recTotLocalAmt, { shouldDirty: true })
+
+      // Calculate totAmt = recTotLocalAmt / exhRate with proper rounding
+      const totAmt =
+        exhRate > 0 ? Math.round((recTotLocalAmt / exhRate) * 100) / 100 : 0
+
+      // Update totAmt
+      form.setValue("totAmt", totAmt, { shouldDirty: true })
+
+      // Update totLocalAmt = recTotLocalAmt
+      form.setValue("totLocalAmt", recTotLocalAmt, { shouldDirty: true })
+
+      // Update unAllocTotAmt = totAmt
+      form.setValue("unAllocTotAmt", totAmt, { shouldDirty: true })
+
+      // Update unAllocTotLocalAmt = totLocalAmt
+      form.setValue("unAllocTotLocalAmt", recTotLocalAmt, { shouldDirty: true })
+
+      // Reset flag after a short delay
+      setTimeout(() => {
+        isUpdatingRef.current = false
+      }, 0)
+    },
+    [form]
   )
 
   return (
     <FormProvider {...form}>
       <form
         onSubmit={form.handleSubmit(onSubmit)}
-        className="grid grid-cols-7 gap-2 rounded-md p-2"
+        className="grid grid-cols-8 gap-1 rounded-md p-2"
       >
         {/* Transaction Date */}
         {visible?.m_TrnDate && (
@@ -445,6 +540,7 @@ export default function ReceiptForm({
           isRequired={true}
           onChangeEvent={handleCustomerChange}
           companyId={_companyId}
+          className="col-span-2"
         />
 
         {/* Reference No */}
@@ -483,7 +579,7 @@ export default function ReceiptForm({
           isRequired={true}
           round={exhRateDec}
           className="text-right"
-          onBlurEvent={handleExchangeRateChange}
+          onChangeEvent={handleExchangeRateChange}
         />
 
         {/* Payment Type */}
@@ -521,6 +617,7 @@ export default function ReceiptForm({
           form={form}
           name="unAllocTotAmt"
           label="Unallocated Amount"
+          onChangeEvent={handleUnAllocTotAmtChange}
         />
 
         {/* Unallocated Local Amount */}
@@ -536,8 +633,7 @@ export default function ReceiptForm({
           form={form}
           name="recCurrencyId"
           label="Rec Currency"
-          isDisabled={areCurrenciesSame}
-          onChangeEvent={handlePayCurrencyChange}
+          onChangeEvent={handleRecCurrencyChange}
         />
 
         {/* Pay Exchange Rate */}
@@ -545,7 +641,10 @@ export default function ReceiptForm({
           form={form}
           name="recExhRate"
           label="Rec Exchange Rate"
-          isDisabled={areCurrenciesSame}
+          isRequired={true}
+          round={exhRateDec}
+          className="text-right"
+          isDisabled={isCurrenciesEqual}
         />
 
         {/* Pay Total Amount */}
@@ -553,7 +652,8 @@ export default function ReceiptForm({
           form={form}
           name="recTotAmt"
           label="Rec Total Amount"
-          isDisabled={areCurrenciesSame}
+          isDisabled={isCurrenciesEqual}
+          onChangeEvent={handleRecTotAmtChange}
         />
 
         {/* Pay Total Local Amount */}
@@ -570,8 +670,9 @@ export default function ReceiptForm({
           name="totAmt"
           label="Total Amount"
           round={amtDec}
-          isDisabled={!areCurrenciesSame}
+          //isDisabled={!isCurrenciesEqual}
           className="text-right"
+          onChangeEvent={handleTotAmtChange}
         />
 
         {/* Total Local Amount */}
@@ -614,21 +715,13 @@ export default function ReceiptForm({
           label="Exchange Gain/Loss"
         />
 
-        <JobOrderCustomerAutocomplete
-          form={form as UseFormReturn<ArReceiptHdSchemaType>}
-          name="jobOrderId"
-          label="Job Order"
-          customerId={form.getValues("customerId") || 0}
-          jobOrderId={form.getValues("jobOrderId") || 0}
-        />
-
         {/* Remarks */}
         <CustomTextarea
           form={form}
           name="remarks"
           label="Remarks"
           isRequired={required?.m_Remarks_Hd}
-          //className="col-span-2"
+          className="col-span-2"
         />
       </form>
     </FormProvider>

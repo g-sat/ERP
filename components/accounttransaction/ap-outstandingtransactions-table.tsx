@@ -12,7 +12,7 @@ type ExtendedColumnDef<T> = ColumnDef<T> & {
 }
 
 // Use flexible data type that can work with form data
-interface OutStandingTransactionsTableProps {
+interface ApOutStandingTransactionsTableProps {
   data: IApOutTransaction[]
   onRefresh?: () => void
   onFilterChange?: (filters: { search?: string; sortOrder?: string }) => void
@@ -22,7 +22,7 @@ interface OutStandingTransactionsTableProps {
   initialSelectedIds?: string[]
 }
 
-export default function OutStandingTransactionsTable({
+export default function ApOutStandingTransactionsTable({
   data,
   onRefresh,
   onFilterChange,
@@ -30,7 +30,7 @@ export default function OutStandingTransactionsTable({
   onBulkSelectionChange,
   initialSelectedIds,
   visible: _visible,
-}: OutStandingTransactionsTableProps) {
+}: ApOutStandingTransactionsTableProps) {
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {

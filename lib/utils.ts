@@ -449,6 +449,7 @@ export enum TableName {
   arDocSetoff = "arDocSetoff",
   arDocSetoffDt = "arDocSetoffDt",
   arDocSetoffHistory = "arDocSetoffHistory",
+  arOutTransaction = "arOutTransaction",
   //AP
   apInvoice = "apInvoice",
   apInvoiceDt = "apInvoiceDt",

@@ -849,7 +849,7 @@ export default function ReceiptPage() {
                   setShowLoadConfirm(true)
                 }
               }}
-              placeholder="Search Invoice No"
+              placeholder="Search Receipt No"
               className="h-8 text-sm"
               readOnly={!!receipt?.receiptId && receipt.receiptId !== "0"}
               disabled={!!receipt?.receiptId && receipt.receiptId !== "0"}

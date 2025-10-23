@@ -18,7 +18,7 @@ import { toast } from "sonner"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import OutStandingTransactionsDialog from "@/components/accounttransaction/outstandingtransactions-dialog"
+import ApOutStandingTransactionsDialog from "@/components/accounttransaction/ap-outstandingtransactions-dialog"
 
 import PaymentDetailsTable from "./payment-details-table"
 import PaymentForm from "./payment-form"
@@ -637,7 +637,7 @@ export default function Main({
 
       {/* Transaction Selection Dialog */}
       {showTransactionDialog && dialogParamsRef.current && (
-        <OutStandingTransactionsDialog
+        <ApOutStandingTransactionsDialog
           open={showTransactionDialog}
           onOpenChange={setShowTransactionDialog}
           supplierId={dialogParamsRef.current.supplierId}
