@@ -139,8 +139,9 @@ export function NavHeader() {
             </Link>
           </NavigationMenuLink>
         </NavigationMenuItem>
-        {/* Operations Navigation */}
-        <NavigationMenuItem>
+
+        {/* Operations Navigation - COMMENTED OUT */}
+        {/* <NavigationMenuItem>
           <NavigationMenuTrigger
             className={
               pathname.startsWith(getUrlWithCompanyId(data.projectNav[0].url))
@@ -170,10 +171,10 @@ export function NavHeader() {
               ))}
             </ul>
           </NavigationMenuContent>
-        </NavigationMenuItem>
+        </NavigationMenuItem> */}
 
-        {/* AR Navigation */}
-        <NavigationMenuItem>
+        {/* AR Navigation - COMMENTED OUT */}
+        {/* <NavigationMenuItem>
           <NavigationMenuTrigger
             className={
               pathname.startsWith(getUrlWithCompanyId(data.accountNav[0].url))
@@ -203,10 +204,10 @@ export function NavHeader() {
               ))}
             </ul>
           </NavigationMenuContent>
-        </NavigationMenuItem>
+        </NavigationMenuItem> */}
 
-        {/* AP Navigation */}
-        <NavigationMenuItem>
+        {/* AP Navigation - COMMENTED OUT */}
+        {/* <NavigationMenuItem>
           <NavigationMenuTrigger
             className={
               pathname.startsWith(getUrlWithCompanyId(data.accountNav[1].url))
@@ -236,10 +237,10 @@ export function NavHeader() {
               ))}
             </ul>
           </NavigationMenuContent>
-        </NavigationMenuItem>
+        </NavigationMenuItem> */}
 
-        {/* CB Navigation */}
-        <NavigationMenuItem>
+        {/* CB Navigation - COMMENTED OUT */}
+        {/* <NavigationMenuItem>
           <NavigationMenuTrigger
             className={
               pathname.startsWith(getUrlWithCompanyId(data.accountNav[2].url))
@@ -269,10 +270,10 @@ export function NavHeader() {
               ))}
             </ul>
           </NavigationMenuContent>
-        </NavigationMenuItem>
+        </NavigationMenuItem> */}
 
-        {/* GL Navigation */}
-        <NavigationMenuItem>
+        {/* GL Navigation - COMMENTED OUT */}
+        {/* <NavigationMenuItem>
           <NavigationMenuTrigger
             className={
               pathname.startsWith(getUrlWithCompanyId(data.accountNav[3].url))
@@ -302,7 +303,7 @@ export function NavHeader() {
               ))}
             </ul>
           </NavigationMenuContent>
-        </NavigationMenuItem>
+        </NavigationMenuItem> */}
       </NavigationMenuList>
     </NavigationMenu>
   )

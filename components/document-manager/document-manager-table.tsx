@@ -56,13 +56,14 @@ export default function DocumentManagerTable({
     {
       accessorKey: "docPath",
       header: "File Name",
+      size: 500,
       cell: ({ row }) => {
         const docPath = row.getValue("docPath") as string
         const documentNo = row.getValue("documentNo") as string
         return (
-          <div className="flex items-center gap-2">
-            <FileText className="h-4 w-4 text-blue-600" />
-            <span className="text-sm">
+          <div className="flex items-start gap-2">
+            <FileText className="mt-0.5 h-4 w-4 flex-shrink-0 text-blue-600" />
+            <span className="min-w-0 text-sm break-words whitespace-normal">
               {docPath?.split("/").pop() || documentNo || "-"}
             </span>
           </div>
@@ -72,8 +73,9 @@ export default function DocumentManagerTable({
     {
       accessorKey: "remarks",
       header: "Remarks",
+      size: 200,
       cell: ({ row }) => (
-        <div className="text-muted-foreground text-sm">
+        <div className="text-muted-foreground min-w-0 text-sm break-words whitespace-normal">
           {row.getValue("remarks") || "-"}
         </div>
       ),

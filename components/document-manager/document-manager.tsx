@@ -4,7 +4,14 @@ import { useCallback, useState } from "react"
 import { IDocType, IDocument, IDocumentTypeLookup } from "@/interfaces/lookup"
 import { useAuthStore } from "@/stores/auth-store"
 import { useQueryClient } from "@tanstack/react-query"
-import { Download, FileIcon, FileText, Upload, X } from "lucide-react"
+import {
+  Download,
+  FileIcon,
+  FileText,
+  RotateCcw,
+  Upload,
+  X,
+} from "lucide-react"
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 
@@ -42,6 +49,9 @@ interface UploadFile {
   file: File
   id: string
   preview?: string
+  progress?: number
+  status?: "pending" | "uploading" | "success" | "failed"
+  error?: string
 }
 
 export default function DocumentManager({
@@ -126,6 +136,8 @@ export default function DocumentManager({
       newFiles.push({
         file,
         id: Math.random().toString(36).substr(2, 9),
+        progress: 0,
+        status: "pending",
       })
     }
 
@@ -138,6 +150,17 @@ export default function DocumentManager({
   // Remove file from upload queue
   const removeFile = (id: string) => {
     setUploadFiles((prev) => prev.filter((f) => f.id !== id))
+  }
+
+  // Retry failed upload
+  const retryUpload = (id: string) => {
+    setUploadFiles((prev) =>
+      prev.map((f) =>
+        f.id === id
+          ? { ...f, status: "pending", progress: 0, error: undefined }
+          : f
+      )
+    )
   }
 
   // Handle drag and drop
@@ -196,6 +219,16 @@ export default function DocumentManager({
 
       for (let index = 0; index < uploadFiles.length; index++) {
         const uploadFile = uploadFiles[index]
+
+        // Update status to uploading
+        setUploadFiles((prev) =>
+          prev.map((f) =>
+            f.id === uploadFile.id
+              ? { ...f, status: "uploading", progress: 0 }
+              : f
+          )
+        )
+
         try {
           // Upload the file to get the file path
           const formData = new FormData()
@@ -206,10 +239,29 @@ export default function DocumentManager({
             formData.append("companyId", companyId.toString())
           }
 
+          // Simulate progress updates
+          const progressInterval = setInterval(() => {
+            setUploadFiles((prev) =>
+              prev.map((f) =>
+                f.id === uploadFile.id && f.status === "uploading"
+                  ? {
+                      ...f,
+                      progress: Math.min(
+                        (f.progress || 0) + Math.random() * 20,
+                        90
+                      ),
+                    }
+                  : f
+              )
+            )
+          }, 200)
+
           const uploadResponse = await fetch(`/api/documents/upload`, {
             method: "POST",
             body: formData,
           })
+
+          clearInterval(progressInterval)
 
           if (!uploadResponse.ok) {
             throw new Error("File upload failed")
@@ -217,6 +269,15 @@ export default function DocumentManager({
 
           const uploadResult = await uploadResponse.json()
           const filePath = uploadResult.filePath || uploadFile.file.name
+
+          // Update status to success
+          setUploadFiles((prev) =>
+            prev.map((f) =>
+              f.id === uploadFile.id
+                ? { ...f, status: "success", progress: 100 }
+                : f
+            )
+          )
 
           // Collect document metadata with incremented itemNo
           const documentData: IDocument = {
@@ -231,9 +292,24 @@ export default function DocumentManager({
           }
 
           documentsToSave.push(documentData)
+          successCount++
         } catch (error) {
           console.error(`Failed to upload ${uploadFile.file.name}:`, error)
           failCount++
+
+          // Update status to failed
+          setUploadFiles((prev) =>
+            prev.map((f) =>
+              f.id === uploadFile.id
+                ? {
+                    ...f,
+                    status: "failed",
+                    error:
+                      error instanceof Error ? error.message : "Upload failed",
+                  }
+                : f
+            )
+          )
         }
       }
 
@@ -244,15 +320,22 @@ export default function DocumentManager({
             await saveDocumentMutation.mutateAsync(documentsToSave)
 
           if (saveResult.result === 1) {
-            successCount = documentsToSave.length
             toast.success(
               `${successCount} document(s) uploaded successfully${failCount > 0 ? `, ${failCount} failed` : ""}`
             )
-            setUploadFiles([])
-            setSelectedDocType(null)
-            // Clear document type and remarks after upload success
-            form.setValue("docTypeId", "")
-            form.setValue("remarks", "")
+
+            // Clear successful uploads after a delay
+            setTimeout(() => {
+              setUploadFiles((prev) =>
+                prev.filter((f) => f.status !== "success")
+              )
+              if (uploadFiles.every((f) => f.status === "success")) {
+                setSelectedDocType(null)
+                form.setValue("docTypeId", "")
+                form.setValue("remarks", "")
+              }
+            }, 2000)
+
             queryClient.invalidateQueries({
               queryKey: [`documents-${moduleId}-${transactionId}-${recordId}`],
             })
@@ -344,12 +427,14 @@ export default function DocumentManager({
           <Card className="h-full">
             <CardHeader>
               <CardTitle className="flex flex-col gap-2">
-                <span>Upload Documents</span>
-                {recordId !== "0" && (
-                  <Badge variant="outline" className="w-fit">
-                    {recordNo || recordId}
-                  </Badge>
-                )}
+                <div className="flex items-center justify-between">
+                  <span>Upload Documents</span>
+                  {recordId !== "0" && (
+                    <Badge variant="outline" className="w-fit">
+                      {recordNo || recordId}
+                    </Badge>
+                  )}
+                </div>
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -387,7 +472,7 @@ export default function DocumentManager({
                   onDrop={handleDrop}
                 >
                   <Upload className="mx-auto h-12 w-12 text-gray-400" />
-                  <p className="mt-2 text-sm text-gray-600">
+                  <p className="mt-2 text-sm">
                     Drag & drop files here, or click to browse
                   </p>
                   <p className="mt-1 text-xs text-gray-500">
@@ -434,31 +519,92 @@ export default function DocumentManager({
                         Clear All
                       </Button>
                     </div>
-                    <div className="space-y-2">
+                    <div className="space-y-3">
                       {uploadFiles.map((uploadFile) => (
                         <div
                           key={uploadFile.id}
-                          className="flex items-center justify-between rounded border bg-gray-50 p-2"
+                          className="rounded-lg border border-gray-200 p-3"
                         >
-                          <div className="flex flex-1 items-center gap-2">
-                            <FileText className="h-4 w-4 text-blue-600" />
-                            <div className="flex-1">
-                              <p className="truncate text-sm font-medium">
-                                {uploadFile.file.name}
-                              </p>
-                              <p className="text-xs text-gray-500">
+                          <div className="flex items-center gap-3">
+                            <div className="flex-shrink-0">
+                              <div className="flex h-8 w-8 items-center justify-center rounded-full">
+                                <FileText className="h-4 w-4" />
+                              </div>
+                            </div>
+
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-center justify-between">
+                                <p className="truncate text-sm font-medium text-gray-900">
+                                  {uploadFile.file.name}
+                                </p>
+                                <div className="flex items-center gap-2">
+                                  {uploadFile.status === "uploading" && (
+                                    <span className="text-xs font-medium">
+                                      {Math.round(uploadFile.progress || 0)}%
+                                    </span>
+                                  )}
+                                  {uploadFile.status === "success" && (
+                                    <span className="text-xs font-medium">
+                                      Complete
+                                    </span>
+                                  )}
+                                  {uploadFile.status === "failed" && (
+                                    <span className="text-xs font-medium">
+                                      Failed
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+
+                              <p className="mb-2 text-xs text-gray-500">
                                 {formatFileSize(uploadFile.file.size)}
                               </p>
+
+                              {/* Progress Bar */}
+                              {(uploadFile.status === "uploading" ||
+                                uploadFile.status === "success") && (
+                                <div className="h-2 w-full rounded-full">
+                                  <div
+                                    className="h-2 rounded-full bg-gray-500 transition-all duration-300"
+                                    style={{
+                                      width: `${uploadFile.progress || 0}%`,
+                                    }}
+                                  />
+                                </div>
+                              )}
+
+                              {/* Error Message */}
+                              {uploadFile.status === "failed" &&
+                                uploadFile.error && (
+                                  <p className="mt-1 text-xs">
+                                    {uploadFile.error}
+                                  </p>
+                                )}
+                            </div>
+
+                            <div className="flex items-center gap-1">
+                              {uploadFile.status === "failed" && (
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => retryUpload(uploadFile.id)}
+                                  className="h-8 w-8 p-0 hover:text-gray-700"
+                                >
+                                  <RotateCcw className="h-4 w-4" />
+                                </Button>
+                              )}
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => removeFile(uploadFile.id)}
+                                className="h-8 w-8 p-0 text-gray-500 hover:text-gray-700"
+                              >
+                                <X className="h-4 w-4" />
+                              </Button>
                             </div>
                           </div>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => removeFile(uploadFile.id)}
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
                         </div>
                       ))}
                     </div>
@@ -480,7 +626,12 @@ export default function DocumentManager({
                   {isUploading ? (
                     <>
                       <Spinner size="sm" className="mr-2" />
-                      Uploading {uploadFiles.length} file(s)...
+                      Uploading{" "}
+                      {
+                        uploadFiles.filter((f) => f.status === "uploading")
+                          .length
+                      }{" "}
+                      of {uploadFiles.length} file(s)...
                     </>
                   ) : (
                     <>
@@ -571,7 +722,7 @@ export default function DocumentManager({
           </DialogHeader>
           {selectedDocument && (
             <div className="mt-4">
-              <div className="mb-2 text-sm text-gray-600">
+              <div className="mb-2 text-sm">
                 <p>
                   <strong>Type:</strong> {selectedDocument.docTypeName}
                 </p>
