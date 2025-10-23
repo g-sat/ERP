@@ -407,7 +407,7 @@ export default function DebitNoteForm({
         onSubmit={form.handleSubmit(onSubmit)}
         className="grid grid-cols-12 rounded-md p-2"
       >
-        <div className="col-span-10 grid grid-cols-6 gap-2">
+        <div className="col-span-10 grid grid-cols-6 gap-1">
           {/* Transaction Date */}
           {visible?.m_TrnDate && (
             <CustomDateNew

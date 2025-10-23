@@ -217,6 +217,62 @@ export default function InvoiceDetailsForm({
     return populatedData
   }
 
+  // Function to focus on the first visible field after form operations
+  const focusFirstVisibleField = () => {
+    setTimeout(() => {
+      if (visible?.m_ProductId) {
+        const productSelect = document.querySelector(
+          `div[class*="react-select__control"] input[aria-label*="productId"]`
+        ) as HTMLInputElement
+        if (productSelect) {
+          productSelect.focus()
+        } else {
+          const firstSelectInput = document.querySelector(
+            'div[class*="react-select__control"] input'
+          ) as HTMLInputElement
+          if (firstSelectInput) {
+            firstSelectInput.focus()
+          }
+        }
+      } else {
+        const glSelect = document.querySelector(
+          `div[class*="react-select__control"] input[aria-label*="glId"]`
+        ) as HTMLInputElement
+        if (glSelect) {
+          glSelect.focus()
+        } else {
+          const firstSelectInput = document.querySelector(
+            'div[class*="react-select__control"] input'
+          ) as HTMLInputElement
+          if (firstSelectInput) {
+            firstSelectInput.focus()
+          }
+        }
+      }
+    }, 300)
+  }
+
+  // Handler for form reset
+  const handleFormReset = () => {
+    const nextItemNo = getNextItemNo()
+    const defaultValues = createDefaultValues(nextItemNo)
+    const populatedValues = populateCodeNameFields(defaultValues)
+    form.reset(populatedValues)
+    toast.info("Form reset")
+    focusFirstVisibleField()
+  }
+
+  // Handler for cancel edit
+  const handleCancelEdit = () => {
+    _onCancelEdit?.()
+    const nextItemNo = getNextItemNo()
+    const defaultValues = createDefaultValues(nextItemNo)
+    const populatedValues = populateCodeNameFields(defaultValues)
+    form.reset(populatedValues)
+    toast.info("Edit cancelled")
+    focusFirstVisibleField()
+  }
+
   // Watch form values to trigger re-renders when they change
   const watchedExchangeRate = Hdform.watch("exhRate")
   const watchedCityExchangeRate = Hdform.watch("ctyExhRate")
@@ -502,7 +558,12 @@ export default function InvoiceDetailsForm({
 
         // Reset the form with incremented itemNo
         const nextItemNo = getNextItemNo()
-        form.reset(createDefaultValues(nextItemNo))
+        const defaultValues = createDefaultValues(nextItemNo)
+        const populatedValues = populateCodeNameFields(defaultValues)
+        form.reset(populatedValues)
+
+        // Focus on the first visible field after successful submission
+        focusFirstVisibleField()
       }
     } catch (error) {
       console.error("Error adding row:", error)
@@ -1094,11 +1155,7 @@ export default function InvoiceDetailsForm({
               type="button"
               variant="outline"
               size="sm"
-              onClick={() => {
-                const nextItemNo = getNextItemNo()
-                form.reset(createDefaultValues(nextItemNo))
-                toast.info("Form reset")
-              }}
+              onClick={handleFormReset}
             >
               Reset
             </Button>
@@ -1109,12 +1166,7 @@ export default function InvoiceDetailsForm({
                 variant="outline"
                 title="Cancel"
                 size="sm"
-                onClick={() => {
-                  _onCancelEdit?.()
-                  const nextItemNo = getNextItemNo()
-                  form.reset(createDefaultValues(nextItemNo))
-                  toast.info("Edit cancelled")
-                }}
+                onClick={handleCancelEdit}
               >
                 Cancel
               </Button>

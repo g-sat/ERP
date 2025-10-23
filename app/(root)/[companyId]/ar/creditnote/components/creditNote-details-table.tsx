@@ -283,7 +283,7 @@ export default function CreditNoteDetailsTable({
   }
 
   return (
-    <div className="w-full p-2">
+    <div className="w-full px-2 pt-1 pb-2">
       <AccountBaseTable
         data={data}
         columns={columns}

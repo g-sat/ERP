@@ -175,6 +175,103 @@ export default function DebitNoteDetailsForm({
   const { data: uoms } = useUomLookup()
   const { data: gsts } = useGstLookup()
 
+  // Function to populate code/name fields from lookup data
+  const populateCodeNameFields = (
+    formData: ArDebitNoteDtSchemaType
+  ): ArDebitNoteDtSchemaType => {
+    const populatedData = { ...formData }
+
+    // Populate GL code/name if glId is set
+    if (populatedData.glId && populatedData.glId > 0) {
+      const glData = chartOfAccounts?.find(
+        (gl: IChartOfAccountLookup) => gl.glId === populatedData.glId
+      )
+      if (glData) {
+        populatedData.glCode = glData.glCode || ""
+        populatedData.glName = glData.glName || ""
+      }
+    }
+
+    // Populate UOM code/name if uomId is set
+    if (populatedData.uomId && populatedData.uomId > 0) {
+      const uomData = uoms?.find(
+        (uom: IUomLookup) => uom.uomId === populatedData.uomId
+      )
+      if (uomData) {
+        populatedData.uomCode = uomData.uomCode || ""
+        populatedData.uomName = uomData.uomName || ""
+      }
+    }
+
+    // Populate GST name if gstId is set
+    if (populatedData.gstId && populatedData.gstId > 0) {
+      const gstData = gsts?.find(
+        (gst: IGstLookup) => gst.gstId === populatedData.gstId
+      )
+      if (gstData) {
+        populatedData.gstName = gstData.gstName || ""
+      }
+    }
+
+    return populatedData
+  }
+
+  // Function to focus on the first visible field after form operations
+  const focusFirstVisibleField = () => {
+    setTimeout(() => {
+      if (visible?.m_ProductId) {
+        const productSelect = document.querySelector(
+          `div[class*="react-select__control"] input[aria-label*="productId"]`
+        ) as HTMLInputElement
+        if (productSelect) {
+          productSelect.focus()
+        } else {
+          const firstSelectInput = document.querySelector(
+            'div[class*="react-select__control"] input'
+          ) as HTMLInputElement
+          if (firstSelectInput) {
+            firstSelectInput.focus()
+          }
+        }
+      } else {
+        const glSelect = document.querySelector(
+          `div[class*="react-select__control"] input[aria-label*="glId"]`
+        ) as HTMLInputElement
+        if (glSelect) {
+          glSelect.focus()
+        } else {
+          const firstSelectInput = document.querySelector(
+            'div[class*="react-select__control"] input'
+          ) as HTMLInputElement
+          if (firstSelectInput) {
+            firstSelectInput.focus()
+          }
+        }
+      }
+    }, 300)
+  }
+
+  // Handler for form reset
+  const handleFormReset = () => {
+    const nextItemNo = getNextItemNo()
+    const defaultValues = createDefaultValues(nextItemNo)
+    const populatedValues = populateCodeNameFields(defaultValues)
+    form.reset(populatedValues)
+    toast.info("Form reset")
+    focusFirstVisibleField()
+  }
+
+  // Handler for cancel edit
+  const handleCancelEdit = () => {
+    _onCancelEdit?.()
+    const nextItemNo = getNextItemNo()
+    const defaultValues = createDefaultValues(nextItemNo)
+    const populatedValues = populateCodeNameFields(defaultValues)
+    form.reset(populatedValues)
+    toast.info("Edit cancelled")
+    focusFirstVisibleField()
+  }
+
   // Watch form values to trigger re-renders when they change
   const watchedExchangeRate = Hdform.watch("exhRate")
   const watchedCityExchangeRate = Hdform.watch("ctyExhRate")
@@ -386,6 +483,9 @@ export default function DebitNoteDetailsForm({
       console.log("currentItemNo : ", currentItemNo)
       console.log("data : ", data)
 
+      // Populate code/name fields from lookup data
+      const populatedData = populateCodeNameFields(data)
+
       const rowData: IArDebitNoteDt = {
         debitNoteId: data.debitNoteId ?? "0",
         debitNoteNo: data.debitNoteNo ?? "",
@@ -395,21 +495,21 @@ export default function DebitNoteDetailsForm({
         productId: data.productId ?? 0,
         productCode: data.productCode ?? "",
         productName: data.productName ?? "",
-        glId: data.glId ?? 0,
-        glCode: data.glCode ?? "",
-        glName: data.glName ?? "",
+        glId: populatedData.glId ?? 0,
+        glCode: populatedData.glCode ?? "",
+        glName: populatedData.glName ?? "",
         qty: data.qty ?? 0,
         billQTY: data.billQTY ?? 0,
-        uomId: data.uomId ?? 0,
-        uomCode: data.uomCode ?? "",
-        uomName: data.uomName ?? "",
+        uomId: populatedData.uomId ?? 0,
+        uomCode: populatedData.uomCode ?? "",
+        uomName: populatedData.uomName ?? "",
         unitPrice: data.unitPrice ?? 0,
         totAmt: data.totAmt ?? 0,
         totLocalAmt: data.totLocalAmt ?? 0,
         totCtyAmt: data.totCtyAmt ?? 0,
         remarks: data.remarks ?? "",
-        gstId: data.gstId ?? 0,
-        gstName: data.gstName ?? "",
+        gstId: populatedData.gstId ?? 0,
+        gstName: populatedData.gstName ?? "",
         gstPercentage: data.gstPercentage ?? 0,
         gstAmt: data.gstAmt ?? 0,
         gstLocalAmt: data.gstLocalAmt ?? 0,
@@ -1030,39 +1130,37 @@ export default function DebitNoteDetailsForm({
           )}
 
           {/* Action buttons */}
-          <div className="col-span-1 flex items-center gap-2">
+          <div className="col-span-1 flex items-center gap-1">
+            <Button
+              type="submit"
+              size="sm"
+              variant="default"
+              className={
+                editingDetail
+                  ? "bg-orange-600 text-white hover:bg-orange-700"
+                  : "bg-green-600 text-white hover:bg-green-700"
+              }
+              disabled={form.formState.isSubmitting}
+              title="Update | Add"
+            >
+              {editingDetail ? "Update" : "Add"}
+            </Button>
             <Button
               type="button"
               variant="outline"
               size="sm"
-              className="ml-auto"
-              onClick={() => {
-                const nextItemNo = getNextItemNo()
-                form.reset(createDefaultValues(nextItemNo))
-                toast.info("Form reset")
-              }}
+              onClick={handleFormReset}
             >
               Reset
             </Button>
-            <Button
-              type="submit"
-              size="sm"
-              className="ml-auto"
-              disabled={form.formState.isSubmitting}
-            >
-              {editingDetail ? "Update" : "Add"}
-            </Button>
+
             {editingDetail && (
               <Button
                 type="button"
                 variant="outline"
+                title="Cancel"
                 size="sm"
-                onClick={() => {
-                  _onCancelEdit?.()
-                  const nextItemNo = getNextItemNo()
-                  form.reset(createDefaultValues(nextItemNo))
-                  toast.info("Edit cancelled")
-                }}
+                onClick={handleCancelEdit}
               >
                 Cancel
               </Button>
