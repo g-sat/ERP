@@ -845,7 +845,7 @@ export default function CreditNoteDetailsForm({
       <FormProvider {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit)}
-          className="-mt-2 mb-4 grid w-full grid-cols-7 gap-2 p-2"
+          className="-mt-2 mb-4 grid w-full grid-cols-8 gap-1 p-2"
         >
           {/* Hidden fields to register code/name fields with React Hook Form */}
           <input type="hidden" {...form.register("glCode")} />
@@ -868,7 +868,7 @@ export default function CreditNoteDetailsForm({
           <input type="hidden" {...form.register("voyageNo")} />
 
           {/* Section Header */}
-          <div className="col-span-7 mb-1">
+          <div className="col-span-8 mb-1">
             <div className="flex items-center gap-3">
               <Badge
                 variant="secondary"

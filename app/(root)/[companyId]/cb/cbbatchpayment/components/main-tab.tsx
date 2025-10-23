@@ -17,6 +17,7 @@ import { useAuthStore } from "@/stores/auth-store"
 import { UseFormReturn } from "react-hook-form"
 
 import { useUserSettingDefaults } from "@/hooks/use-settings"
+import { DeleteConfirmation } from "@/components/confirmation"
 
 import BatchPaymentDetailsForm from "./cbbatchpayment-details-form"
 import BatchPaymentDetailsTable from "./cbbatchpayment-details-table"
@@ -49,6 +50,14 @@ export default function Main({
 
   const [editingDetail, setEditingDetail] =
     useState<CbBatchPaymentDtSchemaType | null>(null)
+  const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false)
+  const [selectedItemsToDelete, setSelectedItemsToDelete] = useState<number[]>(
+    []
+  )
+  const [tableKey, setTableKey] = useState(0)
+  const [showSingleDeleteConfirmation, setShowSingleDeleteConfirmation] =
+    useState(false)
+  const [itemToDelete, setItemToDelete] = useState<number | null>(null)
 
   // Watch data_details for reactive updates
   const dataDetails = form.watch("data_details") || []
@@ -136,19 +145,43 @@ export default function Main({
   }
 
   const handleDelete = (itemNo: number) => {
-    const currentData = form.getValues("data_details") || []
-    const updatedData = currentData.filter((item) => item.itemNo !== itemNo)
-    form.setValue("data_details", updatedData)
-    form.trigger("data_details")
+    setItemToDelete(itemNo)
+    setShowSingleDeleteConfirmation(true)
   }
 
-  const handleBulkDelete = (selectedItemNos: number[]) => {
+  const confirmSingleDelete = () => {
+    if (itemToDelete === null) return
+
     const currentData = form.getValues("data_details") || []
     const updatedData = currentData.filter(
-      (item) => !selectedItemNos.includes(item.itemNo)
+      (item) => item.itemNo !== itemToDelete
     )
     form.setValue("data_details", updatedData)
     form.trigger("data_details")
+    setShowSingleDeleteConfirmation(false)
+    setItemToDelete(null)
+
+    // Force table to re-render and clear selection by changing the key
+    setTableKey((prev) => prev + 1)
+  }
+
+  const handleBulkDelete = (selectedItemNos: number[]) => {
+    setSelectedItemsToDelete(selectedItemNos)
+    setShowDeleteConfirmation(true)
+  }
+
+  const confirmBulkDelete = () => {
+    const currentData = form.getValues("data_details") || []
+    const updatedData = currentData.filter(
+      (item) => !selectedItemsToDelete.includes(item.itemNo)
+    )
+    form.setValue("data_details", updatedData)
+    form.trigger("data_details")
+    setShowDeleteConfirmation(false)
+    setSelectedItemsToDelete([])
+
+    // Force table to re-render and clear selection by changing the key
+    setTableKey((prev) => prev + 1)
   }
 
   const handleEdit = (detail: ICbBatchPaymentDt) => {
@@ -201,6 +234,7 @@ export default function Main({
       />
 
       <BatchPaymentDetailsTable
+        key={tableKey}
         data={(dataDetails as unknown as ICbBatchPaymentDt[]) || []}
         visible={visible}
         onDelete={handleDelete}
@@ -211,6 +245,32 @@ export default function Main({
         onDataReorder={
           handleDataReorder as (newData: ICbBatchPaymentDt[]) => void
         }
+      />
+
+      <DeleteConfirmation
+        title="Delete Selected Items"
+        description="Are you sure you want to delete the selected items? This action cannot be undone."
+        itemName={`${selectedItemsToDelete.length} item(s)`}
+        open={showDeleteConfirmation}
+        onOpenChange={setShowDeleteConfirmation}
+        onConfirm={confirmBulkDelete}
+        onCancel={() => {
+          setShowDeleteConfirmation(false)
+          setSelectedItemsToDelete([])
+        }}
+      />
+
+      <DeleteConfirmation
+        title="Delete Item"
+        description="Are you sure you want to delete this item? This action cannot be undone."
+        itemName={`Item No. ${itemToDelete}`}
+        open={showSingleDeleteConfirmation}
+        onOpenChange={setShowSingleDeleteConfirmation}
+        onConfirm={confirmSingleDelete}
+        onCancel={() => {
+          setShowSingleDeleteConfirmation(false)
+          setItemToDelete(null)
+        }}
       />
     </div>
   )

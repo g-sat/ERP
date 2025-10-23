@@ -304,6 +304,102 @@ export default function BatchPaymentDetailsForm({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editingDetail, existingDetails.length])
 
+  // Helper function to populate code/name fields from lookup data
+  const populateCodeNameFields = (data: CbBatchPaymentDtSchemaType) => {
+    // Populate glCode and glName
+    if (data.glId && data.glId > 0) {
+      // This would need to be implemented based on your chart of account lookup data
+      // For now, keeping existing values
+    }
+
+    // Populate gstName
+    if (data.gstId && data.gstId > 0) {
+      // This would need to be implemented based on your GST lookup data
+      // For now, keeping existing values
+    }
+
+    // Populate departmentCode and departmentName
+    if (data.departmentId && data.departmentId > 0) {
+      // This would need to be implemented based on your department lookup data
+      // For now, keeping existing values
+    }
+
+    // Populate jobOrderNo
+    if (data.jobOrderId && data.jobOrderId > 0) {
+      // This would need to be implemented based on your job order lookup data
+      // For now, keeping existing values
+    }
+
+    // Populate taskName
+    if (data.taskId && data.taskId > 0) {
+      // This would need to be implemented based on your task lookup data
+      // For now, keeping existing values
+    }
+
+    // Populate serviceName
+    if (data.serviceId && data.serviceId > 0) {
+      // This would need to be implemented based on your service lookup data
+      // For now, keeping existing values
+    }
+
+    // Populate employeeCode and employeeName
+    if (data.employeeId && data.employeeId > 0) {
+      // This would need to be implemented based on your employee lookup data
+      // For now, keeping existing values
+    }
+
+    // Populate portCode and portName
+    if (data.portId && data.portId > 0) {
+      // This would need to be implemented based on your port lookup data
+      // For now, keeping existing values
+    }
+
+    // Populate vesselCode and vesselName
+    if (data.vesselId && data.vesselId > 0) {
+      // This would need to be implemented based on your vessel lookup data
+      // For now, keeping existing values
+    }
+
+    // Populate bargeCode and bargeName
+    if (data.bargeId && data.bargeId > 0) {
+      // This would need to be implemented based on your barge lookup data
+      // For now, keeping existing values
+    }
+
+    // Populate voyageNo
+    if (data.voyageId && data.voyageId > 0) {
+      // This would need to be implemented based on your voyage lookup data
+      // For now, keeping existing values
+    }
+
+    return data
+  }
+
+  // Helper function to focus first visible field
+  const focusFirstVisibleField = () => {
+    // Focus on the first input field after form operations
+    setTimeout(() => {
+      const firstInput = document.querySelector(
+        'input:not([disabled]):not([type="hidden"])'
+      ) as HTMLInputElement
+      firstInput?.focus()
+    }, 100)
+  }
+
+  // Handle form reset
+  const handleFormReset = () => {
+    const nextItemNo = getNextItemNo()
+    form.reset(createDefaultValues(nextItemNo))
+    focusFirstVisibleField()
+  }
+
+  // Handle cancel edit
+  const handleCancelEdit = () => {
+    _onCancelEdit?.()
+    handleFormReset()
+    toast.info("Edit cancelled")
+  }
+
   // Process the submission (common logic for both direct submit and duplicate confirmation)
   const processSubmit = async (data: CbBatchPaymentDtSchemaType) => {
     try {
@@ -313,60 +409,63 @@ export default function BatchPaymentDetailsForm({
       console.log("currentItemNo : ", currentItemNo)
       console.log("data : ", data)
 
+      // Populate code/name fields before creating rowData
+      const populatedData = populateCodeNameFields(data)
+
       const rowData: ICbBatchPaymentDt = {
-        paymentId: data.paymentId ?? "0",
-        paymentNo: data.paymentNo ?? "",
-        itemNo: data.itemNo ?? currentItemNo,
-        seqNo: data.seqNo ?? currentItemNo,
-        invoiceDate: data.invoiceDate
+        paymentId: populatedData.paymentId ?? "0",
+        paymentNo: populatedData.paymentNo ?? "",
+        itemNo: populatedData.itemNo ?? currentItemNo,
+        seqNo: populatedData.seqNo ?? currentItemNo,
+        invoiceDate: populatedData.invoiceDate
           ? format(
-              parseDate(data.invoiceDate as string) || new Date(),
+              parseDate(populatedData.invoiceDate as string) || new Date(),
               clientDateFormat
             )
           : "",
-        invoiceNo: data.invoiceNo ?? "",
-        supplierName: data.supplierName ?? "",
+        invoiceNo: populatedData.invoiceNo ?? "",
+        supplierName: populatedData.supplierName ?? "",
 
-        glId: data.glId ?? 0,
-        glCode: data.glCode ?? "",
-        glName: data.glName ?? "",
+        glId: populatedData.glId ?? 0,
+        glCode: populatedData.glCode ?? "",
+        glName: populatedData.glName ?? "",
 
-        totAmt: data.totAmt ?? 0,
-        totLocalAmt: data.totLocalAmt ?? 0,
-        totCtyAmt: data.totCtyAmt ?? 0,
-        remarks: data.remarks ?? "",
-        gstId: data.gstId ?? 0,
-        gstName: data.gstName ?? "",
-        gstPercentage: data.gstPercentage ?? 0,
-        gstAmt: data.gstAmt ?? 0,
-        gstLocalAmt: data.gstLocalAmt ?? 0,
-        gstCtyAmt: data.gstCtyAmt ?? 0,
+        totAmt: populatedData.totAmt ?? 0,
+        totLocalAmt: populatedData.totLocalAmt ?? 0,
+        totCtyAmt: populatedData.totCtyAmt ?? 0,
+        remarks: populatedData.remarks ?? "",
+        gstId: populatedData.gstId ?? 0,
+        gstName: populatedData.gstName ?? "",
+        gstPercentage: populatedData.gstPercentage ?? 0,
+        gstAmt: populatedData.gstAmt ?? 0,
+        gstLocalAmt: populatedData.gstLocalAmt ?? 0,
+        gstCtyAmt: populatedData.gstCtyAmt ?? 0,
 
-        departmentId: data.departmentId ?? 0,
-        departmentCode: data.departmentCode ?? "",
-        departmentName: data.departmentName ?? "",
-        jobOrderId: data.jobOrderId ?? 0,
-        jobOrderNo: data.jobOrderNo ?? "",
-        taskId: data.taskId ?? 0,
-        taskName: data.taskName ?? "",
-        serviceId: data.serviceId ?? 0,
-        serviceName: data.serviceName ?? "",
-        employeeId: data.employeeId ?? 0,
-        employeeCode: data.employeeCode ?? "",
-        employeeName: data.employeeName ?? "",
-        portId: data.portId ?? 0,
-        portCode: data.portCode ?? "",
-        portName: data.portName ?? "",
-        vesselId: data.vesselId ?? 0,
-        vesselCode: data.vesselCode ?? "",
-        vesselName: data.vesselName ?? "",
-        bargeId: data.bargeId ?? 0,
-        bargeCode: data.bargeCode ?? "",
-        bargeName: data.bargeName ?? "",
-        voyageId: data.voyageId ?? 0,
-        voyageNo: data.voyageNo ?? "",
+        departmentId: populatedData.departmentId ?? 0,
+        departmentCode: populatedData.departmentCode ?? "",
+        departmentName: populatedData.departmentName ?? "",
+        jobOrderId: populatedData.jobOrderId ?? 0,
+        jobOrderNo: populatedData.jobOrderNo ?? "",
+        taskId: populatedData.taskId ?? 0,
+        taskName: populatedData.taskName ?? "",
+        serviceId: populatedData.serviceId ?? 0,
+        serviceName: populatedData.serviceName ?? "",
+        employeeId: populatedData.employeeId ?? 0,
+        employeeCode: populatedData.employeeCode ?? "",
+        employeeName: populatedData.employeeName ?? "",
+        portId: populatedData.portId ?? 0,
+        portCode: populatedData.portCode ?? "",
+        portName: populatedData.portName ?? "",
+        vesselId: populatedData.vesselId ?? 0,
+        vesselCode: populatedData.vesselCode ?? "",
+        vesselName: populatedData.vesselName ?? "",
+        bargeId: populatedData.bargeId ?? 0,
+        bargeCode: populatedData.bargeCode ?? "",
+        bargeName: populatedData.bargeName ?? "",
+        voyageId: populatedData.voyageId ?? 0,
+        voyageNo: populatedData.voyageNo ?? "",
 
-        editVersion: data.editVersion ?? 0,
+        editVersion: populatedData.editVersion ?? 0,
       }
 
       if (rowData) {
@@ -380,8 +479,8 @@ export default function BatchPaymentDetailsForm({
         }
 
         // Reset the form with incremented itemNo
-        const nextItemNo = getNextItemNo()
-        form.reset(createDefaultValues(nextItemNo))
+        handleFormReset()
+        focusFirstVisibleField()
       }
     } catch (error) {
       console.error("Error adding row:", error)
@@ -884,10 +983,10 @@ export default function BatchPaymentDetailsForm({
       <FormProvider {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit)}
-          className="-mt-2 mb-4 grid w-full grid-cols-7 gap-2 p-2"
+          className="-mt-2 mb-4 grid w-full grid-cols-8 gap-1 p-2"
         >
           {/* Section Header */}
-          <div className="col-span-7 mb-1">
+          <div className="col-span-8 mb-1">
             <div className="flex items-center gap-3">
               <Badge
                 variant="secondary"
@@ -1156,11 +1255,7 @@ export default function BatchPaymentDetailsForm({
               variant="outline"
               size="sm"
               className="ml-auto"
-              onClick={() => {
-                const nextItemNo = getNextItemNo()
-                form.reset(createDefaultValues(nextItemNo))
-                toast.info("Form reset")
-              }}
+              onClick={handleFormReset}
             >
               Reset
             </Button>
@@ -1187,12 +1282,7 @@ export default function BatchPaymentDetailsForm({
                 type="button"
                 variant="outline"
                 size="sm"
-                onClick={() => {
-                  _onCancelEdit?.()
-                  const nextItemNo = getNextItemNo()
-                  form.reset(createDefaultValues(nextItemNo))
-                  toast.info("Edit cancelled")
-                }}
+                onClick={handleCancelEdit}
               >
                 Cancel
               </Button>

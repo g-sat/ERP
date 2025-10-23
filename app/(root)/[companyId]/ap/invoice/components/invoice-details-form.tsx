@@ -34,6 +34,11 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { FormProvider, UseFormReturn, useForm } from "react-hook-form"
 import { toast } from "sonner"
 
+import {
+  useChartOfAccountLookup,
+  useGstLookup,
+  useUomLookup,
+} from "@/hooks/use-lookup"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -89,6 +94,11 @@ export default function InvoiceDetailsForm({
   const qtyDec = decimals[0]?.qtyDec || 2
   // State to manage job-specific vs department-specific rendering
   const [isJobSpecific, setIsJobSpecific] = useState(false)
+
+  // Lookup hooks
+  const { data: chartOfAccounts } = useChartOfAccountLookup(companyId)
+  const { data: uoms } = useUomLookup()
+  const { data: gsts } = useGstLookup()
 
   // Calculate next itemNo based on existing details
   const getNextItemNo = () => {
@@ -179,6 +189,103 @@ export default function InvoiceDetailsForm({
       : createDefaultValues(getNextItemNo()),
   })
 
+  // Function to populate code/name fields from lookup data
+  const populateCodeNameFields = (
+    formData: ApInvoiceDtSchemaType
+  ): ApInvoiceDtSchemaType => {
+    const populatedData = { ...formData }
+
+    // Populate GL code/name if glId is set
+    if (populatedData.glId && populatedData.glId > 0) {
+      const glData = chartOfAccounts?.find(
+        (gl: IChartOfAccountLookup) => gl.glId === populatedData.glId
+      )
+      if (glData) {
+        populatedData.glCode = glData.glCode || ""
+        populatedData.glName = glData.glName || ""
+      }
+    }
+
+    // Populate UOM code/name if uomId is set
+    if (populatedData.uomId && populatedData.uomId > 0) {
+      const uomData = uoms?.find(
+        (uom: IUomLookup) => uom.uomId === populatedData.uomId
+      )
+      if (uomData) {
+        populatedData.uomCode = uomData.uomCode || ""
+        populatedData.uomName = uomData.uomName || ""
+      }
+    }
+
+    // Populate GST name if gstId is set
+    if (populatedData.gstId && populatedData.gstId > 0) {
+      const gstData = gsts?.find(
+        (gst: IGstLookup) => gst.gstId === populatedData.gstId
+      )
+      if (gstData) {
+        populatedData.gstName = gstData.gstName || ""
+      }
+    }
+
+    return populatedData
+  }
+
+  // Function to focus on the first visible field after form operations
+  const focusFirstVisibleField = () => {
+    setTimeout(() => {
+      if (visible?.m_ProductId) {
+        const productSelect = document.querySelector(
+          `div[class*="react-select__control"] input[aria-label*="productId"]`
+        ) as HTMLInputElement
+        if (productSelect) {
+          productSelect.focus()
+        } else {
+          const firstSelectInput = document.querySelector(
+            'div[class*="react-select__control"] input'
+          ) as HTMLInputElement
+          if (firstSelectInput) {
+            firstSelectInput.focus()
+          }
+        }
+      } else {
+        const glSelect = document.querySelector(
+          `div[class*="react-select__control"] input[aria-label*="glId"]`
+        ) as HTMLInputElement
+        if (glSelect) {
+          glSelect.focus()
+        } else {
+          const firstSelectInput = document.querySelector(
+            'div[class*="react-select__control"] input'
+          ) as HTMLInputElement
+          if (firstSelectInput) {
+            firstSelectInput.focus()
+          }
+        }
+      }
+    }, 300)
+  }
+
+  // Handler for form reset
+  const handleFormReset = () => {
+    const nextItemNo = getNextItemNo()
+    const defaultValues = createDefaultValues(nextItemNo)
+    const populatedValues = populateCodeNameFields(defaultValues)
+    form.reset(populatedValues)
+    toast.info("Form reset")
+    focusFirstVisibleField()
+  }
+
+  // Handler for cancel edit
+  const handleCancelEdit = () => {
+    _onCancelEdit?.()
+    const nextItemNo = getNextItemNo()
+    const defaultValues = createDefaultValues(nextItemNo)
+    const populatedValues = populateCodeNameFields(defaultValues)
+    form.reset(populatedValues)
+    toast.info("Edit cancelled")
+    focusFirstVisibleField()
+  }
+
   // Watch form values to trigger re-renders when they change
   const watchedJobOrderId = form.watch("jobOrderId")
   const watchedTaskId = form.watch("taskId")
@@ -229,6 +336,58 @@ export default function InvoiceDetailsForm({
     // form, Hdform, decimals, visible are used inside but are stable references
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [defaultGlId, defaultUomId, defaultGstId, editingDetail])
+
+  // Populate code/name fields when defaults are applied (only for new records)
+  useEffect(() => {
+    if (editingDetail) return // Skip for edit mode
+
+    const currentGlId = form.getValues("glId")
+    const currentUomId = form.getValues("uomId")
+    const currentGstId = form.getValues("gstId")
+
+    // Populate GL code/name if glId is set and code/name are empty
+    if (currentGlId && currentGlId > 0 && !form.getValues("glCode")) {
+      const glData = chartOfAccounts?.find(
+        (gl: IChartOfAccountLookup) => gl.glId === currentGlId
+      )
+      if (glData) {
+        form.setValue("glCode", glData.glCode || "")
+        form.setValue("glName", glData.glName || "")
+      }
+    }
+
+    // Populate UOM code/name if uomId is set and code/name are empty
+    if (currentUomId && currentUomId > 0 && !form.getValues("uomCode")) {
+      const uomData = uoms?.find(
+        (uom: IUomLookup) => uom.uomId === currentUomId
+      )
+      if (uomData) {
+        form.setValue("uomCode", uomData.uomCode || "")
+        form.setValue("uomName", uomData.uomName || "")
+      }
+    }
+
+    // Populate GST name if gstId is set and name is empty
+    if (currentGstId && currentGstId > 0 && !form.getValues("gstName")) {
+      const gstData = gsts?.find(
+        (gst: IGstLookup) => gst.gstId === currentGstId
+      )
+      if (gstData) {
+        form.setValue("gstName", gstData.gstName || "")
+        // Trigger GST percentage calculation after setting default GST
+        setGSTPercentage(Hdform, form, decimals[0], visible)
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    chartOfAccounts,
+    uoms,
+    gsts,
+    editingDetail,
+    defaultGlId,
+    defaultUomId,
+    defaultGstId,
+  ])
 
   // Recalculate local amounts when exchange rate changes
   useEffect(() => {
@@ -803,10 +962,33 @@ export default function InvoiceDetailsForm({
       <FormProvider {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit)}
-          className="-mt-2 mb-4 grid w-full grid-cols-7 gap-2 p-2"
+          className="-mt-2 mb-1 grid w-full grid-cols-8 gap-1 p-2"
         >
+          {/* Hidden fields to register code/name fields with React Hook Form */}
+          <input type="hidden" {...form.register("glCode")} />
+          <input type="hidden" {...form.register("glName")} />
+          <input type="hidden" {...form.register("departmentCode")} />
+          <input type="hidden" {...form.register("departmentName")} />
+          <input type="hidden" {...form.register("productCode")} />
+          <input type="hidden" {...form.register("productName")} />
+          <input type="hidden" {...form.register("uomCode")} />
+          <input type="hidden" {...form.register("uomName")} />
+          <input type="hidden" {...form.register("gstName")} />
+          <input type="hidden" {...form.register("employeeCode")} />
+          <input type="hidden" {...form.register("employeeName")} />
+          <input type="hidden" {...form.register("bargeCode")} />
+          <input type="hidden" {...form.register("bargeName")} />
+          <input type="hidden" {...form.register("portCode")} />
+          <input type="hidden" {...form.register("portName")} />
+          <input type="hidden" {...form.register("vesselCode")} />
+          <input type="hidden" {...form.register("vesselName")} />
+          <input type="hidden" {...form.register("voyageNo")} />
+          <input type="hidden" {...form.register("jobOrderNo")} />
+          <input type="hidden" {...form.register("taskName")} />
+          <input type="hidden" {...form.register("serviceName")} />
+
           {/* Section Header */}
-          <div className="col-span-7 mb-1">
+          <div className="col-span-8 mb-1">
             <div className="flex items-center gap-3">
               <Badge
                 variant="secondary"
@@ -1102,39 +1284,37 @@ export default function InvoiceDetailsForm({
           )}
 
           {/* Action buttons */}
-          <div className="col-span-1 flex items-center gap-2">
+          <div className="col-span-1 flex items-center gap-1">
+            <Button
+              type="submit"
+              size="sm"
+              variant="default"
+              className={
+                editingDetail
+                  ? "bg-orange-600 text-white hover:bg-orange-700"
+                  : "bg-green-600 text-white hover:bg-green-700"
+              }
+              disabled={form.formState.isSubmitting}
+              title="Update | Add"
+            >
+              {editingDetail ? "Update" : "Add"}
+            </Button>
             <Button
               type="button"
               variant="outline"
               size="sm"
-              className="ml-auto"
-              onClick={() => {
-                const nextItemNo = getNextItemNo()
-                form.reset(createDefaultValues(nextItemNo))
-                toast.info("Form reset")
-              }}
+              onClick={handleFormReset}
             >
               Reset
             </Button>
-            <Button
-              type="submit"
-              size="sm"
-              className="ml-auto"
-              disabled={form.formState.isSubmitting}
-            >
-              {editingDetail ? "Update" : "Add"}
-            </Button>
+
             {editingDetail && (
               <Button
                 type="button"
                 variant="outline"
+                title="Cancel"
                 size="sm"
-                onClick={() => {
-                  _onCancelEdit?.()
-                  const nextItemNo = getNextItemNo()
-                  form.reset(createDefaultValues(nextItemNo))
-                  toast.info("Edit cancelled")
-                }}
+                onClick={handleCancelEdit}
               >
                 Cancel
               </Button>
