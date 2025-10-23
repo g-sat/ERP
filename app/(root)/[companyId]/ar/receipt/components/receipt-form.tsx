@@ -386,11 +386,15 @@ export default function ReceiptForm({
       // Update totLocalAmt
       form.setValue("totLocalAmt", totLocalAmt, { shouldDirty: true })
 
-      // Update recTotAmt = totAmt
-      form.setValue("recTotAmt", totAmt, { shouldDirty: true })
+      // Only update receipt totals for full allocation (totAmt = 0)
+      // For proportional allocation (totAmt > 0), preserve original receipt amounts
+      if (totAmt === 0) {
+        // Update recTotAmt = totAmt
+        form.setValue("recTotAmt", totAmt, { shouldDirty: true })
 
-      // Update recTotLocalAmt = totLocalAmt
-      form.setValue("recTotLocalAmt", totLocalAmt, { shouldDirty: true })
+        // Update recTotLocalAmt = totLocalAmt
+        form.setValue("recTotLocalAmt", totLocalAmt, { shouldDirty: true })
+      }
 
       // Update unAllocTotAmt = totAmt
       form.setValue("unAllocTotAmt", totAmt, { shouldDirty: true })

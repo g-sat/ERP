@@ -201,21 +201,16 @@ export default function Main({
     []
   )
 
-  // 4. Update Header Amounts
+  // 4. Update Header Amounts (only for full allocation when totAmt = 0)
   const updateHeaderAmounts = useCallback(
-    (data: ArReceiptDtSchemaType[], totAmt?: number, totLocalAmt?: number) => {
+    (data: ArReceiptDtSchemaType[]) => {
       const { totalAllocAmt, totalAllocLocalAmt } =
         calculateTotalAllocations(data)
 
-      // If totAmt and totLocalAmt are provided, use them; otherwise use calculated totals
-      const headerTotAmt = totAmt !== undefined ? totAmt : totalAllocAmt
-      const headerTotLocalAmt =
-        totLocalAmt !== undefined ? totLocalAmt : totalAllocLocalAmt
-
-      form.setValue("totAmt", headerTotAmt)
-      form.setValue("totLocalAmt", headerTotLocalAmt)
-      form.setValue("recTotAmt", headerTotAmt)
-      form.setValue("recTotLocalAmt", headerTotLocalAmt)
+      form.setValue("totAmt", totalAllocAmt)
+      form.setValue("totLocalAmt", totalAllocLocalAmt)
+      form.setValue("recTotAmt", totalAllocAmt)
+      form.setValue("recTotLocalAmt", totalAllocLocalAmt)
 
       // Calculate and update exchange gain/loss
       const totalExhGainLoss = calculateTotalExchangeGainLoss(
@@ -277,7 +272,14 @@ export default function Main({
         shouldDirty: true,
         shouldTouch: true,
       })
-      updateHeaderAmounts(updatedData)
+
+      // Check if we're in full allocation mode (totAmt = 0)
+      const currentTotAmt = form.getValues("totAmt") || 0
+
+      // Only call updateHeaderAmounts for full allocation (totAmt = 0)
+      if (currentTotAmt === 0) {
+        updateHeaderAmounts(updatedData)
+      }
 
       form.trigger("data_details")
     },
@@ -285,18 +287,6 @@ export default function Main({
   )
 
   // ==================== HELPER FUNCTIONS ====================
-
-  const calculateAmountSums = useCallback((data: ArReceiptDtSchemaType[]) => {
-    const positiveSum = data.reduce(
-      (sum, item) => sum + (item.docBalAmt > 0 ? item.docBalAmt : 0),
-      0
-    )
-    const negativeSum = data.reduce(
-      (sum, item) => sum + (item.docBalAmt < 0 ? item.docBalAmt : 0),
-      0
-    )
-    return { positiveSum, negativeSum }
-  }, [])
 
   const resetHeaderAmounts = useCallback(() => {
     form.setValue("totAmt", 0)
@@ -329,71 +319,79 @@ export default function Main({
     [calculateItemAllocation]
   )
 
-  // Helper: Proportional allocation (Case 2: totAmt > 0)
+  // Auto Allocation Function for totAmt = 0 (Full Allocation)
+  const handleFullAllocation = useCallback(() => {
+    const currentData = form.getValues("data_details") || []
+
+    // SEQUENCE 1: Validation
+    if (!validateAllocation(currentData)) return
+
+    // SEQUENCE 2 & 3: Update allocAmt and calculate allocLocalAmt
+    const updatedData = allocateFullAmounts(currentData)
+
+    // SEQUENCE 4: Update badges (calculated inside updateHeaderAmounts)
+    // SEQUENCE 5: Calculate detail items (docAllocAmt, etc - done in allocateFullAmounts)
+    // SEQUENCE 6: Update headers
+    form.setValue("data_details", updatedData, {
+      shouldDirty: true,
+      shouldTouch: true,
+    })
+    updateHeaderAmounts(updatedData)
+
+    setIsAllocated(true)
+    toast.success("Full allocation completed")
+  }, [form, validateAllocation, allocateFullAmounts, updateHeaderAmounts])
+
+  // Helper: Proportional allocation (Case 2: totAmt > 0) - Based on image example
   const allocateProportionally = useCallback(
     (
       data: ArReceiptDtSchemaType[],
       totAmt: number,
       _totLocalAmt: number,
-      usePositive: boolean
+      _usePositive: boolean
     ) => {
-      let remainingAmt = totAmt
+      // Step 1: Sort by negative amounts first (prioritize credit notes/negative balances)
+      const sortedData = [...data].sort((a, b) => {
+        const aBal = a.docBalAmt || 0
+        const bBal = b.docBalAmt || 0
 
-      return data.map((item, index) => {
+        // Negative amounts first, then positive amounts
+        if (aBal < 0 && bBal >= 0) return -1
+        if (aBal >= 0 && bBal < 0) return 1
+        return 0
+      })
+
+      // Step 2: Process allocation sequentially with pending allocation amount
+      let pendingAllocationAmt = totAmt
+      const updatedData: ArReceiptDtSchemaType[] = []
+
+      for (const item of sortedData) {
         const docBalAmt = item.docBalAmt || 0
+        let allocAmt = 0
 
-        // Skip items that don't match the selected type
-        if (usePositive && docBalAmt < 0) {
-          const calculatedValues = calculateItemAllocation(item, docBalAmt)
-          return {
-            ...item,
-            allocAmt: docBalAmt,
-            allocLocalAmt: calculatedValues.allocLocalAmt,
-            docAllocAmt: calculatedValues.docAllocAmt,
-            docAllocLocalAmt: calculatedValues.docAllocLocalAmt,
-            centDiff: calculatedValues.centDiff,
-            exhGainLoss: calculatedValues.exhGainLoss,
+        if (docBalAmt < 0) {
+          // For negative amounts (credit notes): pendingAmt = pendingAmt - (-amount) = pendingAmt + amount
+          // This means we "add back" the credit amount to our available allocation
+          pendingAllocationAmt = pendingAllocationAmt - docBalAmt // Subtracting negative = adding
+          allocAmt = docBalAmt // Allocate the full negative amount
+        } else if (docBalAmt > 0) {
+          // For positive amounts (invoices): pendingAmt = pendingAmt - amount
+          // This means we "subtract" the invoice amount from our available allocation
+          if (pendingAllocationAmt >= docBalAmt) {
+            // We have enough pending amount to cover this invoice
+            pendingAllocationAmt = pendingAllocationAmt - docBalAmt
+            allocAmt = docBalAmt // Allocate the full positive amount
+          } else {
+            // We don't have enough pending amount, allocate what we have
+            allocAmt = pendingAllocationAmt
+            pendingAllocationAmt = 0
           }
         }
-        if (!usePositive && docBalAmt >= 0) {
-          return {
-            ...item,
-            allocAmt: 0,
-            allocLocalAmt: 0,
-            docAllocAmt: 0,
-            docAllocLocalAmt: 0,
-            centDiff: 0,
-            exhGainLoss: 0,
-          }
-        }
-
-        // Check if this is the last item matching the selected type
-        const isLastMatchingItem =
-          index === data.length - 1 ||
-          data
-            .slice(index + 1)
-            .every((nextItem) =>
-              usePositive ? nextItem.docBalAmt < 0 : nextItem.docBalAmt >= 0
-            )
-
-        let allocAmt: number
-
-        // Allocate amounts
-        if (isLastMatchingItem) {
-          allocAmt = usePositive
-            ? Math.min(remainingAmt, docBalAmt)
-            : Math.max(remainingAmt, docBalAmt)
-        } else {
-          allocAmt = docBalAmt
-        }
-
-        // Deduct from remaining
-        remainingAmt -= allocAmt
 
         // Use the reusable calculation function
         const calculatedValues = calculateItemAllocation(item, allocAmt)
 
-        return {
+        updatedData.push({
           ...item,
           allocAmt,
           allocLocalAmt: calculatedValues.allocLocalAmt,
@@ -401,71 +399,80 @@ export default function Main({
           docAllocLocalAmt: calculatedValues.docAllocLocalAmt,
           centDiff: calculatedValues.centDiff,
           exhGainLoss: calculatedValues.exhGainLoss,
-        }
-      })
+        })
+      }
+
+      return updatedData
     },
     [calculateItemAllocation]
   )
 
-  // Main Auto Allocation Function (USES SMALL FUNCTIONS IN SEQUENCE)
-  const handleAutoAllocation = useCallback(() => {
+  // Helper: Calculate unallocated amounts for totAmt > 0
+  const calculateUnallocatedAmounts = useCallback(
+    (data: ArReceiptDtSchemaType[], totAmt: number) => {
+      const totalAllocAmt = data.reduce(
+        (sum, item) => sum + (item.allocAmt || 0),
+        0
+      )
+      const unAllocAmt = totAmt - totalAllocAmt
+      const unAllocLocalAmt = unAllocAmt * (form.getValues("exhRate") || 1)
+
+      return { unAllocAmt, unAllocLocalAmt }
+    },
+    [form]
+  )
+
+  // Auto Allocation Function for totAmt > 0 (Proportional Allocation)
+  const handleProportionalAllocation = useCallback(() => {
     const currentData = form.getValues("data_details") || []
     const totAmt = form.getValues("totAmt") || 0
 
     // SEQUENCE 1: Validation
     if (!validateAllocation(currentData)) return
 
-    // Case 1: Full allocation (totAmt = 0)
-    if (totAmt === 0) {
-      // SEQUENCE 2 & 3: Update allocAmt and calculate allocLocalAmt
-      const updatedData = allocateFullAmounts(currentData)
-
-      // SEQUENCE 4: Update badges (calculated inside updateHeaderAmounts)
-      // SEQUENCE 5: Calculate detail items (docAllocAmt, etc - done in allocateFullAmounts)
-      // SEQUENCE 6: Update headers
-      form.setValue("data_details", updatedData, {
-        shouldDirty: true,
-        shouldTouch: true,
-      })
-      updateHeaderAmounts(updatedData)
-
-      setIsAllocated(true)
-      toast.success("Auto allocation completed")
-      return
-    }
-
-    // Case 2: Proportional allocation (totAmt > 0)
-    const { positiveSum, negativeSum } = calculateAmountSums(currentData)
-    const usePositive = Math.abs(positiveSum) >= Math.abs(negativeSum)
-    const totLocalAmt = form.getValues("totLocalAmt") || totAmt
-
-    // SEQUENCE 2 & 3: Update allocAmt and calculate allocLocalAmt
+    // SEQUENCE 2 & 3: Update allocAmt and calculate allocLocalAmt using new logic
     const updatedData = allocateProportionally(
       currentData,
       totAmt,
-      totLocalAmt,
-      usePositive
+      0, // totLocalAmt not used in new logic
+      false // usePositive not used in new logic
     )
 
-    // SEQUENCE 4: Update badges (calculated inside updateHeaderAmounts)
-    // SEQUENCE 5: Calculate detail items (docAllocAmt, etc - done in allocateProportionally)
-    // SEQUENCE 6: Update headers
+    // SEQUENCE 4: Calculate unallocated amounts only (no header updates)
+    const { unAllocAmt, unAllocLocalAmt } = calculateUnallocatedAmounts(
+      updatedData,
+      totAmt
+    )
+
+    // Update unallocated amounts in form
+    form.setValue("unAllocTotAmt", unAllocAmt, { shouldDirty: true })
+    form.setValue("unAllocTotLocalAmt", unAllocLocalAmt, { shouldDirty: true })
+
+    // SEQUENCE 5: Update data details only
     form.setValue("data_details", updatedData, {
       shouldDirty: true,
       shouldTouch: true,
     })
-    updateHeaderAmounts(updatedData, totAmt, totLocalAmt)
 
     setIsAllocated(true)
-    toast.success("Auto allocation completed")
+    toast.success("Proportional allocation completed")
   }, [
     form,
     validateAllocation,
-    allocateFullAmounts,
-    calculateAmountSums,
     allocateProportionally,
-    updateHeaderAmounts,
+    calculateUnallocatedAmounts,
   ])
+
+  // Main Auto Allocation Function (Routes to appropriate function)
+  const handleAutoAllocation = useCallback(() => {
+    const totAmt = form.getValues("totAmt") || 0
+
+    if (totAmt === 0) {
+      handleFullAllocation()
+    } else {
+      handleProportionalAllocation()
+    }
+  }, [handleFullAllocation, handleProportionalAllocation, form])
 
   // Reset Allocation Function
   const handleResetAllocation = useCallback(() => {
