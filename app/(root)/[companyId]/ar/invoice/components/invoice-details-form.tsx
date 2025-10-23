@@ -28,6 +28,7 @@ import {
 } from "@/schemas"
 import { useAuthStore } from "@/stores/auth-store"
 import { zodResolver } from "@hookform/resolvers/zod"
+import { RotateCcwIcon, XIcon } from "lucide-react"
 import { FormProvider, UseFormReturn, useForm } from "react-hook-form"
 import { toast } from "sonner"
 
@@ -174,6 +175,47 @@ export default function InvoiceDetailsForm({
   const { data: chartOfAccounts } = useChartOfAccountLookup(companyId)
   const { data: uoms } = useUomLookup()
   const { data: gsts } = useGstLookup()
+
+  // Function to populate code/name fields from lookup data
+  const populateCodeNameFields = (
+    formData: ArInvoiceDtSchemaType
+  ): ArInvoiceDtSchemaType => {
+    const populatedData = { ...formData }
+
+    // Populate GL code/name if glId is set
+    if (populatedData.glId && populatedData.glId > 0) {
+      const glData = chartOfAccounts?.find(
+        (gl: IChartOfAccountLookup) => gl.glId === populatedData.glId
+      )
+      if (glData) {
+        populatedData.glCode = glData.glCode || ""
+        populatedData.glName = glData.glName || ""
+      }
+    }
+
+    // Populate UOM code/name if uomId is set
+    if (populatedData.uomId && populatedData.uomId > 0) {
+      const uomData = uoms?.find(
+        (uom: IUomLookup) => uom.uomId === populatedData.uomId
+      )
+      if (uomData) {
+        populatedData.uomCode = uomData.uomCode || ""
+        populatedData.uomName = uomData.uomName || ""
+      }
+    }
+
+    // Populate GST name if gstId is set
+    if (populatedData.gstId && populatedData.gstId > 0) {
+      const gstData = gsts?.find(
+        (gst: IGstLookup) => gst.gstId === populatedData.gstId
+      )
+      if (gstData) {
+        populatedData.gstName = gstData.gstName || ""
+      }
+    }
+
+    return populatedData
+  }
 
   // Watch form values to trigger re-renders when they change
   const watchedExchangeRate = Hdform.watch("exhRate")
@@ -386,6 +428,9 @@ export default function InvoiceDetailsForm({
       console.log("currentItemNo : ", currentItemNo)
       console.log("data : ", data)
 
+      // Populate code/name fields from lookup data
+      const populatedData = populateCodeNameFields(data)
+
       const rowData: IArInvoiceDt = {
         invoiceId: data.invoiceId ?? "0",
         invoiceNo: data.invoiceNo ?? "",
@@ -395,21 +440,21 @@ export default function InvoiceDetailsForm({
         productId: data.productId ?? 0,
         productCode: data.productCode ?? "",
         productName: data.productName ?? "",
-        glId: data.glId ?? 0,
-        glCode: data.glCode ?? "",
-        glName: data.glName ?? "",
+        glId: populatedData.glId ?? 0,
+        glCode: populatedData.glCode ?? "",
+        glName: populatedData.glName ?? "",
         qty: data.qty ?? 0,
         billQTY: data.billQTY ?? 0,
-        uomId: data.uomId ?? 0,
-        uomCode: data.uomCode ?? "",
-        uomName: data.uomName ?? "",
+        uomId: populatedData.uomId ?? 0,
+        uomCode: populatedData.uomCode ?? "",
+        uomName: populatedData.uomName ?? "",
         unitPrice: data.unitPrice ?? 0,
         totAmt: data.totAmt ?? 0,
         totLocalAmt: data.totLocalAmt ?? 0,
         totCtyAmt: data.totCtyAmt ?? 0,
         remarks: data.remarks ?? "",
-        gstId: data.gstId ?? 0,
-        gstName: data.gstName ?? "",
+        gstId: populatedData.gstId ?? 0,
+        gstName: populatedData.gstName ?? "",
         gstPercentage: data.gstPercentage ?? 0,
         gstAmt: data.gstAmt ?? 0,
         gstLocalAmt: data.gstLocalAmt ?? 0,
@@ -744,7 +789,7 @@ export default function InvoiceDetailsForm({
       <FormProvider {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit)}
-          className="-mt-2 mb-4 grid w-full grid-cols-7 gap-2 p-2"
+          className="-mt-2 mb-1 grid w-full grid-cols-8 gap-1 p-2"
         >
           {/* Hidden fields to register code/name fields with React Hook Form */}
           <input type="hidden" {...form.register("glCode")} />
@@ -767,7 +812,7 @@ export default function InvoiceDetailsForm({
           <input type="hidden" {...form.register("voyageNo")} />
 
           {/* Section Header */}
-          <div className="col-span-7 mb-1">
+          <div className="col-span-8 mb-1">
             <div className="flex items-center gap-3">
               <Badge
                 variant="secondary"
@@ -1023,19 +1068,32 @@ export default function InvoiceDetailsForm({
               name="remarks"
               label="Remarks"
               isRequired={required?.m_Remarks}
-              className="col-span-1"
+              className="col-span-2"
               minRows={2}
               maxRows={6}
             />
           )}
 
           {/* Action buttons */}
-          <div className="col-span-1 flex items-center gap-2">
+          <div className="col-span-1 flex items-center gap-1">
+            <Button
+              type="submit"
+              size="sm"
+              variant="default"
+              className={
+                editingDetail
+                  ? "bg-orange-600 text-white hover:bg-orange-700"
+                  : "bg-green-600 text-white hover:bg-green-700"
+              }
+              disabled={form.formState.isSubmitting}
+              title="Update | Add"
+            >
+              {editingDetail ? "Update" : "Add"}
+            </Button>
             <Button
               type="button"
               variant="outline"
               size="sm"
-              className="ml-auto"
               onClick={() => {
                 const nextItemNo = getNextItemNo()
                 form.reset(createDefaultValues(nextItemNo))
@@ -1044,18 +1102,12 @@ export default function InvoiceDetailsForm({
             >
               Reset
             </Button>
-            <Button
-              type="submit"
-              size="sm"
-              className="ml-auto"
-              disabled={form.formState.isSubmitting}
-            >
-              {editingDetail ? "Update" : "Add"}
-            </Button>
+
             {editingDetail && (
               <Button
                 type="button"
                 variant="outline"
+                title="Cancel"
                 size="sm"
                 onClick={() => {
                   _onCancelEdit?.()
