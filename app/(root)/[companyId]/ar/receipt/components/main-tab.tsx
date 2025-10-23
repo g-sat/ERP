@@ -3,8 +3,12 @@
 
 import { useCallback, useEffect, useRef, useState } from "react"
 import {
-  calculateAllocationAmounts,
-  calculateTotalExchangeGainLoss,
+  calculateExchangeGainLossSequence,
+  calculateHeaderAmountsSequence,
+  calculateItemAllocationSequence,
+  calculateTotalAllocationAmounts,
+  calculateUnallocatedAmountsSequence,
+  validateAllocation as validateAllocationCalc,
 } from "@/helpers/ar-receipt-calculations"
 import { IArOutTransaction, IArReceiptDt } from "@/interfaces"
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
@@ -52,14 +56,19 @@ export default function Main({
   // Watch data_details for reactive updates
   const dataDetails = form.watch("data_details") || []
 
-  // Calculate sum of allocAmt and allocLocalAmt
-  const totalAllocAmt = dataDetails.reduce(
-    (sum, item) => sum + (item.allocAmt || 0),
-    0
-  )
-  const totalAllocLocalAmt = dataDetails.reduce(
-    (sum, item) => sum + (item.allocLocalAmt || 0),
-    0
+  // Calculate sum of allocAmt and allocLocalAmt using helper functions
+  const { totalAllocAmt, totalAllocLocalAmt } = calculateTotalAllocationAmounts(
+    dataDetails as unknown as IArReceiptDt[],
+    decimals[0] || {
+      amtDec: 2,
+      locAmtDec: 2,
+      ctyAmtDec: 2,
+      priceDec: 2,
+      qtyDec: 2,
+      exhRateDec: 4,
+      dateFormat: "DD/MM/YYYY",
+      longDateFormat: "DD/MM/YYYY",
+    }
   )
 
   // Clear dialog params when dialog closes
@@ -69,21 +78,12 @@ export default function Main({
     }
   }, [showTransactionDialog])
 
-  // Update header exhGainLoss when details change
+  // Update header exhGainLoss when details change (SEQUENCE 6)
   useEffect(() => {
     if (dataDetails.length > 0) {
-      const totalExhGainLoss = calculateTotalExchangeGainLoss(
+      const totalExhGainLoss = calculateExchangeGainLossSequence(
         dataDetails as unknown as IArReceiptDt[],
-        decimals[0] || {
-          amtDec: 2,
-          locAmtDec: 2,
-          ctyAmtDec: 2,
-          priceDec: 2,
-          qtyDec: 2,
-          exhRateDec: 4,
-          dateFormat: "DD/MM/YYYY",
-          longDateFormat: "DD/MM/YYYY",
-        }
+        decimals[0]
       )
       form.setValue("exhGainLoss", totalExhGainLoss)
     } else {
@@ -105,23 +105,35 @@ export default function Main({
     setIsAllocated(hasAllocations)
   }, [dataDetails])
 
-  // Watch currency and receipt total fields
+  // Watch currency fields for sync logic
   const currencyId = form.watch("currencyId")
   const recCurrencyId = form.watch("recCurrencyId")
-  const recTotAmt = form.watch("recTotAmt")
-  const recTotLocalAmt = form.watch("recTotLocalAmt")
 
   // Sync totals when currencyId and recCurrencyId are the same
+  // But only when totAmt = 0 (full allocation), not during proportional allocation
+  // This effect only runs when currencies change, not when recTotAmt changes
   useEffect(() => {
-    if (currencyId && recCurrencyId && currencyId === recCurrencyId) {
-      if (recTotAmt !== undefined && recTotAmt !== null) {
-        form.setValue("totAmt", recTotAmt, { shouldDirty: true })
-      }
-      if (recTotLocalAmt !== undefined && recTotLocalAmt !== null) {
-        form.setValue("totLocalAmt", recTotLocalAmt, { shouldDirty: true })
-      }
+    const currentTotAmt = form.getValues("totAmt") || 0
+    const currentRecTotAmt = form.getValues("recTotAmt") || 0
+    const currentRecTotLocalAmt = form.getValues("recTotLocalAmt") || 0
+
+    // Only sync when:
+    // 1. Both currencies are set and the same
+    // 2. totAmt is 0 (full allocation mode)
+    // 3. recTotAmt has a value
+    // 4. recTotAmt is different from current totAmt (avoid unnecessary updates)
+    if (
+      currencyId &&
+      recCurrencyId &&
+      currencyId === recCurrencyId &&
+      currentTotAmt === 0 &&
+      currentRecTotAmt > 0 &&
+      currentRecTotAmt !== currentTotAmt
+    ) {
+      form.setValue("totAmt", currentRecTotAmt, { shouldDirty: true })
+      form.setValue("totLocalAmt", currentRecTotLocalAmt, { shouldDirty: true })
     }
-  }, [currencyId, recCurrencyId, recTotAmt, recTotLocalAmt, form])
+  }, [currencyId, recCurrencyId, form])
 
   const handleDelete = (itemNo: number) => {
     const currentData = form.getValues("data_details") || []
@@ -145,75 +157,31 @@ export default function Main({
 
   // ==================== SMALL REUSABLE FUNCTIONS (SEQUENCE) ====================
 
-  // 1. Validation Function
+  // 1. Validation Function (SEQUENCE 1)
   const validateAllocation = useCallback((data: ArReceiptDtSchemaType[]) => {
-    if (data.length === 0) {
+    if (!validateAllocationCalc(data as unknown as IArReceiptDt[])) {
       toast.warning("No receipt details to allocate")
       return false
     }
     return true
   }, [])
 
-  // 2. Calculate Allocation Amounts (docAllocAmt, docAllocLocal, centDiff, exhGainLoss)
+  // 2. Calculate Allocation Amounts (SEQUENCE 2)
   const calculateItemAllocation = useCallback(
     (item: ArReceiptDtSchemaType, allocAmt: number) => {
-      const allocationResults = calculateAllocationAmounts(
+      return calculateItemAllocationSequence(
+        item as unknown as IArReceiptDt,
         allocAmt,
-        item.docExhRate || 1,
-        item.docExhRate || 1,
-        item.docTotLocalAmt || 0,
-        decimals[0] || {
-          amtDec: 2,
-          locAmtDec: 2,
-          ctyAmtDec: 2,
-          priceDec: 2,
-          qtyDec: 2,
-          exhRateDec: 4,
-          dateFormat: "DD/MM/YYYY",
-          longDateFormat: "DD/MM/YYYY",
-        }
+        decimals[0]
       )
-
-      return {
-        docAllocAmt: allocationResults.docAllocAmt,
-        docAllocLocalAmt: allocationResults.docAllocLocalAmt,
-        centDiff: allocationResults.centDiff,
-        exhGainLoss: allocationResults.exhGainLoss,
-        allocLocalAmt: allocationResults.allocLocalAmt,
-      }
     },
     [decimals]
   )
 
-  // 3. Update Totals in Badges (Total Alloc, Total Local)
-  const calculateTotalAllocations = useCallback(
-    (data: ArReceiptDtSchemaType[]) => {
-      const totalAllocAmt = data.reduce(
-        (sum, item) => sum + (item.allocAmt || 0),
-        0
-      )
-      const totalAllocLocalAmt = data.reduce(
-        (sum, item) => sum + (item.allocLocalAmt || 0),
-        0
-      )
-      return { totalAllocAmt, totalAllocLocalAmt }
-    },
-    []
-  )
-
-  // 4. Update Header Amounts (only for full allocation when totAmt = 0)
+  // 4. Update Header Amounts (SEQUENCE 4 - only for full allocation when totAmt = 0)
   const updateHeaderAmounts = useCallback(
     (data: ArReceiptDtSchemaType[]) => {
-      const { totalAllocAmt, totalAllocLocalAmt } =
-        calculateTotalAllocations(data)
-
-      form.setValue("totAmt", totalAllocAmt)
-      form.setValue("totLocalAmt", totalAllocLocalAmt)
-      form.setValue("recTotAmt", totalAllocAmt)
-      form.setValue("recTotLocalAmt", totalAllocLocalAmt)
-
-      // Calculate and update exchange gain/loss
-      const totalExhGainLoss = calculateTotalExchangeGainLoss(
+      const headerAmounts = calculateHeaderAmountsSequence(
         data as unknown as IArReceiptDt[],
         decimals[0] || {
           amtDec: 2,
@@ -226,9 +194,14 @@ export default function Main({
           longDateFormat: "DD/MM/YYYY",
         }
       )
-      form.setValue("exhGainLoss", totalExhGainLoss)
+
+      form.setValue("totAmt", headerAmounts.totAmt)
+      form.setValue("totLocalAmt", headerAmounts.totLocalAmt)
+      form.setValue("recTotAmt", headerAmounts.recTotAmt)
+      form.setValue("recTotLocalAmt", headerAmounts.recTotLocalAmt)
+      form.setValue("exhGainLoss", headerAmounts.exhGainLoss)
     },
-    [form, decimals, calculateTotalAllocations]
+    [form, decimals]
   )
 
   // Handle cell edit for editable columns (FOLLOWS SAME SEQUENCE AS AUTO ALLOCATION)
@@ -407,19 +380,18 @@ export default function Main({
     [calculateItemAllocation]
   )
 
-  // Helper: Calculate unallocated amounts for totAmt > 0
+  // Helper: Calculate unallocated amounts for totAmt > 0 (SEQUENCE 5)
   const calculateUnallocatedAmounts = useCallback(
     (data: ArReceiptDtSchemaType[], totAmt: number) => {
-      const totalAllocAmt = data.reduce(
-        (sum, item) => sum + (item.allocAmt || 0),
-        0
+      const exchangeRate = form.getValues("exhRate") || 1
+      return calculateUnallocatedAmountsSequence(
+        data as unknown as IArReceiptDt[],
+        totAmt,
+        exchangeRate,
+        decimals[0]
       )
-      const unAllocAmt = totAmt - totalAllocAmt
-      const unAllocLocalAmt = unAllocAmt * (form.getValues("exhRate") || 1)
-
-      return { unAllocAmt, unAllocLocalAmt }
     },
-    [form]
+    [form, decimals]
   )
 
   // Auto Allocation Function for totAmt > 0 (Proportional Allocation)
@@ -439,14 +411,16 @@ export default function Main({
     )
 
     // SEQUENCE 4: Calculate unallocated amounts only (no header updates)
-    const { unAllocAmt, unAllocLocalAmt } = calculateUnallocatedAmounts(
+    const { unAllocTotAmt, unAllocTotLocalAmt } = calculateUnallocatedAmounts(
       updatedData,
       totAmt
     )
 
     // Update unallocated amounts in form
-    form.setValue("unAllocTotAmt", unAllocAmt, { shouldDirty: true })
-    form.setValue("unAllocTotLocalAmt", unAllocLocalAmt, { shouldDirty: true })
+    form.setValue("unAllocTotAmt", unAllocTotAmt, { shouldDirty: true })
+    form.setValue("unAllocTotLocalAmt", unAllocTotLocalAmt, {
+      shouldDirty: true,
+    })
 
     // SEQUENCE 5: Update data details only
     form.setValue("data_details", updatedData, {

@@ -7,7 +7,12 @@ import {
   setExchangeRateLocal,
   setRecExchangeRate,
 } from "@/helpers/account"
-import { recalculateAllDetailAmounts } from "@/helpers/ar-receipt-calculations"
+import {
+  calculateReceiptTotalsFromTotAmt,
+  calculateTotAmtFromRecTotAmt,
+  calculateUnallocatedLocalAmount,
+  recalculateAllDetailAmounts,
+} from "@/helpers/ar-receipt-calculations"
 import { IArReceiptDt } from "@/interfaces"
 import {
   IBankLookup,
@@ -379,30 +384,51 @@ export default function ReceiptForm({
     (e: React.FocusEvent<HTMLInputElement>) => {
       const totAmt = parseNumberWithCommas(e.target.value)
       const exchangeRate = form.getValues("exhRate") || 0
+      const currencyId = form.getValues("currencyId") || 0
+      const recCurrencyId = form.getValues("recCurrencyId") || 0
 
-      // Calculate totLocalAmt using exchange rate with proper rounding
-      const totLocalAmt = Math.round(totAmt * exchangeRate * 100) / 100
+      // Use calculation function from ar-receipt-calculations
+      const calculatedAmounts = calculateReceiptTotalsFromTotAmt(
+        totAmt,
+        exchangeRate,
+        decimals[0] || {
+          amtDec: 2,
+          locAmtDec: 2,
+          ctyAmtDec: 2,
+          priceDec: 2,
+          qtyDec: 2,
+          exhRateDec: 4,
+          dateFormat: "DD/MM/YYYY",
+          longDateFormat: "DD/MM/YYYY",
+        }
+      )
 
-      // Update totLocalAmt
-      form.setValue("totLocalAmt", totLocalAmt, { shouldDirty: true })
+      // Update calculated amounts
+      form.setValue("totLocalAmt", calculatedAmounts.totLocalAmt, {
+        shouldDirty: true,
+      })
 
-      // Only update receipt totals for full allocation (totAmt = 0)
-      // For proportional allocation (totAmt > 0), preserve original receipt amounts
-      if (totAmt === 0) {
-        // Update recTotAmt = totAmt
-        form.setValue("recTotAmt", totAmt, { shouldDirty: true })
-
-        // Update recTotLocalAmt = totLocalAmt
-        form.setValue("recTotLocalAmt", totLocalAmt, { shouldDirty: true })
+      // Only update recTotAmt if currencies are the same (manual entry case)
+      // This prevents circular dependencies when currencies are different
+      if (currencyId === recCurrencyId) {
+        form.setValue("recTotAmt", calculatedAmounts.recTotAmt, {
+          shouldDirty: true,
+        })
+        form.setValue("recTotLocalAmt", calculatedAmounts.recTotLocalAmt, {
+          shouldDirty: true,
+        })
       }
 
-      // Update unAllocTotAmt = totAmt
-      form.setValue("unAllocTotAmt", totAmt, { shouldDirty: true })
-
-      // Update unAllocTotLocalAmt = totLocalAmt
-      form.setValue("unAllocTotLocalAmt", totLocalAmt, { shouldDirty: true })
+      form.setValue("unAllocTotAmt", calculatedAmounts.unAllocTotAmt, {
+        shouldDirty: true,
+      })
+      form.setValue(
+        "unAllocTotLocalAmt",
+        calculatedAmounts.unAllocTotLocalAmt,
+        { shouldDirty: true }
+      )
     },
-    [form, parseNumberWithCommas]
+    [form, parseNumberWithCommas, decimals]
   )
 
   // Handle unAllocTotAmt change - calculate unAllocTotLocalAmt
@@ -411,16 +437,28 @@ export default function ReceiptForm({
       const unAllocTotAmt = parseNumberWithCommas(e.target.value)
       const exchangeRate = form.getValues("exhRate") || 0
 
-      // Calculate unAllocTotLocalAmt using exchange rate with proper rounding
-      const unAllocTotLocalAmt =
-        Math.round(unAllocTotAmt * exchangeRate * 100) / 100
+      // Use calculation function from ar-receipt-calculations
+      const unAllocTotLocalAmt = calculateUnallocatedLocalAmount(
+        unAllocTotAmt,
+        exchangeRate,
+        decimals[0] || {
+          amtDec: 2,
+          locAmtDec: 2,
+          ctyAmtDec: 2,
+          priceDec: 2,
+          qtyDec: 2,
+          exhRateDec: 4,
+          dateFormat: "DD/MM/YYYY",
+          longDateFormat: "DD/MM/YYYY",
+        }
+      )
 
       // Update unAllocTotLocalAmt
       form.setValue("unAllocTotLocalAmt", unAllocTotLocalAmt, {
         shouldDirty: true,
       })
     },
-    [form, parseNumberWithCommas]
+    [form, parseNumberWithCommas, decimals]
   )
 
   // Handle recTotAmt change - calculate recTotLocalAmt and update related amounts
@@ -437,23 +475,47 @@ export default function ReceiptForm({
       // Update recTotLocalAmt
       form.setValue("recTotLocalAmt", recTotLocalAmt, { shouldDirty: true })
 
-      // Calculate totAmt = recTotLocalAmt / exhRate with proper rounding
-      const totAmt =
-        exhRate > 0 ? Math.round((recTotLocalAmt / exhRate) * 100) / 100 : 0
+      // Get current totAmt to check if we're in proportional allocation mode
+      const currentTotAmt = form.getValues("totAmt") || 0
 
-      // Update totAmt
-      form.setValue("totAmt", totAmt, { shouldDirty: true })
+      // Only update totAmt if we're not in proportional allocation mode (totAmt > 0)
+      // This prevents circular dependency during auto allocation
+      if (currentTotAmt === 0) {
+        // Use calculation function from ar-receipt-calculations
+        const calculatedAmounts = calculateTotAmtFromRecTotAmt(
+          recTotAmt,
+          recExchangeRate,
+          exhRate,
+          decimals[0] || {
+            amtDec: 2,
+            locAmtDec: 2,
+            ctyAmtDec: 2,
+            priceDec: 2,
+            qtyDec: 2,
+            exhRateDec: 4,
+            dateFormat: "DD/MM/YYYY",
+            longDateFormat: "DD/MM/YYYY",
+          }
+        )
 
-      // Update totLocalAmt = recTotLocalAmt
-      form.setValue("totLocalAmt", recTotLocalAmt, { shouldDirty: true })
-
-      // Update unAllocTotAmt = totAmt
-      form.setValue("unAllocTotAmt", totAmt, { shouldDirty: true })
-
-      // Update unAllocTotLocalAmt = totLocalAmt
-      form.setValue("unAllocTotLocalAmt", recTotLocalAmt, { shouldDirty: true })
+        // Update all calculated amounts
+        form.setValue("totAmt", calculatedAmounts.totAmt, { shouldDirty: true })
+        form.setValue("totLocalAmt", calculatedAmounts.totLocalAmt, {
+          shouldDirty: true,
+        })
+        form.setValue("unAllocTotAmt", calculatedAmounts.unAllocTotAmt, {
+          shouldDirty: true,
+        })
+        form.setValue(
+          "unAllocTotLocalAmt",
+          calculatedAmounts.unAllocTotLocalAmt,
+          {
+            shouldDirty: true,
+          }
+        )
+      }
     },
-    [form, parseNumberWithCommas]
+    [form, parseNumberWithCommas, decimals]
   )
 
   return (

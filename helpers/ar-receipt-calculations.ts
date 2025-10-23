@@ -187,3 +187,200 @@ export const calculateTotalExchangeGainLoss = (
 
   return mathRound(totalExhGainLoss, decimals.amtDec)
 }
+
+/**
+ * Calculate total allocation amounts from details
+ */
+export const calculateTotalAllocationAmounts = (
+  details: IArReceiptDt[],
+  decimals: IDecimal
+) => {
+  const totalAllocAmt = details.reduce((sum, detail) => {
+    return sum + (Number(detail.allocAmt) || 0)
+  }, 0)
+
+  const totalAllocLocalAmt = details.reduce((sum, detail) => {
+    return sum + (Number(detail.allocLocalAmt) || 0)
+  }, 0)
+
+  return {
+    totalAllocAmt: mathRound(totalAllocAmt, decimals.amtDec),
+    totalAllocLocalAmt: mathRound(totalAllocLocalAmt, decimals.locAmtDec),
+  }
+}
+
+/**
+ * Calculate unallocated amounts for proportional allocation
+ */
+export const calculateUnallocatedAmounts = (
+  details: IArReceiptDt[],
+  totAmt: number,
+  exchangeRate: number,
+  decimals: IDecimal
+) => {
+  const { totalAllocAmt } = calculateTotalAllocationAmounts(details, decimals)
+  const unAllocAmt = totAmt - totalAllocAmt
+  const unAllocLocalAmt = mathRound(
+    unAllocAmt * exchangeRate,
+    decimals.locAmtDec
+  )
+
+  return {
+    unAllocAmt: mathRound(unAllocAmt, decimals.amtDec),
+    unAllocLocalAmt,
+  }
+}
+
+/**
+ * Calculate header amounts for full allocation (totAmt = 0)
+ */
+export const calculateHeaderAmountsForFullAllocation = (
+  details: IArReceiptDt[],
+  decimals: IDecimal
+) => {
+  const { totalAllocAmt, totalAllocLocalAmt } = calculateTotalAllocationAmounts(
+    details,
+    decimals
+  )
+  const totalExhGainLoss = calculateTotalExchangeGainLoss(details, decimals)
+
+  return {
+    totAmt: totalAllocAmt,
+    totLocalAmt: totalAllocLocalAmt,
+    recTotAmt: totalAllocAmt,
+    recTotLocalAmt: totalAllocLocalAmt,
+    exhGainLoss: totalExhGainLoss,
+  }
+}
+
+/**
+ * Calculate header amounts for proportional allocation (totAmt > 0)
+ */
+export const calculateHeaderAmountsForProportionalAllocation = (
+  details: IArReceiptDt[],
+  totAmt: number,
+  exchangeRate: number,
+  decimals: IDecimal
+) => {
+  const { unAllocAmt, unAllocLocalAmt } = calculateUnallocatedAmounts(
+    details,
+    totAmt,
+    exchangeRate,
+    decimals
+  )
+  const totalExhGainLoss = calculateTotalExchangeGainLoss(details, decimals)
+
+  return {
+    unAllocTotAmt: unAllocAmt,
+    unAllocTotLocalAmt: unAllocLocalAmt,
+    exhGainLoss: totalExhGainLoss,
+  }
+}
+
+/**
+ * Calculate receipt totals when manually entering totAmt
+ */
+export const calculateReceiptTotalsFromTotAmt = (
+  totAmt: number,
+  exchangeRate: number,
+  decimals: IDecimal
+) => {
+  const totLocalAmt = mathRound(totAmt * exchangeRate, decimals.locAmtDec)
+  const unAllocTotAmt = totAmt
+  const unAllocTotLocalAmt = totLocalAmt
+
+  return {
+    totLocalAmt,
+    recTotAmt: totAmt,
+    recTotLocalAmt: totLocalAmt,
+    unAllocTotAmt,
+    unAllocTotLocalAmt,
+  }
+}
+
+/**
+ * Calculate totAmt from recTotAmt (when currencies are different)
+ */
+export const calculateTotAmtFromRecTotAmt = (
+  recTotAmt: number,
+  recExchangeRate: number,
+  exchangeRate: number,
+  decimals: IDecimal
+) => {
+  const recTotLocalAmt = mathRound(
+    recTotAmt * recExchangeRate,
+    decimals.locAmtDec
+  )
+  const totAmt =
+    exchangeRate > 0
+      ? mathRound(recTotLocalAmt / exchangeRate, decimals.amtDec)
+      : 0
+  const totLocalAmt = recTotLocalAmt
+  const unAllocTotAmt = totAmt
+  const unAllocTotLocalAmt = totLocalAmt
+
+  return {
+    totAmt,
+    totLocalAmt,
+    recTotLocalAmt,
+    unAllocTotAmt,
+    unAllocTotLocalAmt,
+  }
+}
+
+/**
+ * Calculate unallocated local amount from unallocated amount
+ */
+export const calculateUnallocatedLocalAmount = (
+  unAllocTotAmt: number,
+  exchangeRate: number,
+  decimals: IDecimal
+) => {
+  return mathRound(unAllocTotAmt * exchangeRate, decimals.locAmtDec)
+}
+
+/**
+ * SEQUENCE 1: Validation for allocation
+ */
+export const validateAllocation = (details: IArReceiptDt[]): boolean => {
+  return details.length > 0
+}
+
+/**
+ * SEQUENCE 2: Calculate item allocation amounts
+ */
+export const calculateItemAllocationSequence = (
+  item: IArReceiptDt,
+  allocAmt: number,
+  decimals: IDecimal
+) => {
+  return calculateAllocationAmounts(
+    allocAmt,
+    item.docExhRate || 1,
+    item.docExhRate || 1,
+    item.docTotLocalAmt || 0,
+    decimals
+  )
+}
+
+/**
+ * SEQUENCE 3: Calculate total allocations
+ */
+export const calculateTotalAllocationsSequence = calculateTotalAllocationAmounts
+
+/**
+ * SEQUENCE 4: Calculate header amounts for full allocation
+ */
+export const calculateHeaderAmountsSequence =
+  calculateHeaderAmountsForFullAllocation
+
+/**
+ * SEQUENCE 5: Calculate unallocated amounts for proportional allocation
+ */
+export const calculateUnallocatedAmountsSequence =
+  calculateHeaderAmountsForProportionalAllocation
+
+/**
+ * SEQUENCE 6: Calculate exchange gain/loss
+ */
+export const calculateExchangeGainLossSequence = calculateTotalExchangeGainLoss
