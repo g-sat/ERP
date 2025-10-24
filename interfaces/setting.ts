@@ -26,6 +26,23 @@ export interface IUserSetting {
   uomId: number
 }
 
+export interface IDefaultSetting {
+  trn_Grd_TotRec: number
+  m_Grd_TotRec: number
+  ar_IN_GLId: number
+  ar_CN_GLId: number
+  ar_DN_GLId: number
+  ap_IN_GLId: number
+  ap_CN_GLId: number
+  ap_DN_GLId: number
+  ar_CurrencyId: number
+  ap_CurrencyId: number
+  cb_CurrencyId: number
+  gl_CurrencyId: number
+  gstId: number
+  uomId: number
+}
+
 export interface IDynmaicLookup {
   isBarge: boolean
   isVessel: boolean

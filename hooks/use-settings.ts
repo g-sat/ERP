@@ -2,6 +2,7 @@ import { useMemo } from "react"
 import {
   ICloneUserGridSetting,
   IDecFormat,
+  IDefaultSetting,
   IFinance,
   IGridSetting,
   IMandatoryFields,
@@ -16,6 +17,7 @@ import { getData, saveData } from "@/lib/api-client"
 import {
   BasicSetting,
   DecimalSetting,
+  DefaultSetting,
   DynamicLookupSetting,
   FinanceSetting,
   MandatoryFieldSetting,
@@ -178,6 +180,39 @@ export const useUserSettingDefaults = () => {
   }
 }
 // End User Setting Hooks
+
+// User Setting Hooks
+// =========================
+// 1. Get User Setting
+export const useDefaultSettingGet = () => {
+  return useQuery({
+    queryKey: ["DefaultSetting"],
+    placeholderData: keepPreviousData,
+    staleTime: 600000,
+    queryFn: async () => {
+      return await getData(DefaultSetting.get)
+    },
+    refetchOnWindowFocus: false,
+  })
+}
+
+// 2. Save User Setting
+export const useDefaultSettingSave = () => {
+  return useMutation({
+    mutationFn: async (data: IDefaultSetting) => {
+      try {
+        return await saveData(DefaultSetting.add, data)
+      } catch (error: unknown) {
+        if (error instanceof AxiosError) {
+          console.error("Error saving default settings:", error)
+          throw error.response?.data || "Error saving default settings."
+        }
+        throw error
+      }
+    },
+  })
+}
+
 // =========================
 // Mandatory Field Setting Hooks
 // =========================

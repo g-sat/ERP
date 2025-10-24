@@ -157,6 +157,12 @@ export const UserSetting = {
   add: "/setting/saveusersetting",
 }
 
+// Default Setting Endpoints
+export const DefaultSetting = {
+  get: "/setting/getdefaultsetting",
+  add: "/setting/savedefaultsetting",
+}
+
 // Dynamic Setting Endpoints
 export const DynamicLookupSetting = {
   get: "/setting/getdynamiclookup",

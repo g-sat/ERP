@@ -44,6 +44,27 @@ export const userSettingSchema = z
 
 export type UserSettingSchemaType = z.infer<typeof userSettingSchema>
 
+export const defaultSettingSchema = z
+  .object({
+    trn_Grd_TotRec: z.number().min(0),
+    m_Grd_TotRec: z.number().min(0),
+    ar_IN_GLId: z.number().min(0),
+    ar_CN_GLId: z.number().min(0),
+    ar_DN_GLId: z.number().min(0),
+    ap_IN_GLId: z.number().min(0),
+    ap_CN_GLId: z.number().min(0),
+    ap_DN_GLId: z.number().min(0),
+    ar_CurrencyId: z.number().min(0),
+    ap_CurrencyId: z.number().min(0),
+    cb_CurrencyId: z.number().min(0),
+    gl_CurrencyId: z.number().min(0),
+    gstId: z.number().min(0),
+    uomId: z.number().min(0),
+  })
+  .partial()
+
+export type DefaultSettingSchemaType = z.infer<typeof defaultSettingSchema>
+
 export const dynamicLookupFormSchema = z.object({
   isBarge: z.boolean(),
   isVessel: z.boolean(),
