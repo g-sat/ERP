@@ -300,14 +300,6 @@ export default function InvoiceDetailsTable({
         <div className="text-right">{row.original.docItemNo}</div>
       ),
     },
-    {
-      accessorKey: "seqNo",
-      header: "Seq No",
-      size: 60,
-      cell: ({ row }: { row: { original: IApInvoiceDt } }) => (
-        <div className="text-right">{row.original.seqNo}</div>
-      ),
-    },
   ]
 
   if (!mounted) {

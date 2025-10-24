@@ -300,14 +300,6 @@ export default function CreditNoteDetailsTable({
         <div className="text-right">{row.original.docItemNo}</div>
       ),
     },
-    {
-      accessorKey: "seqNo",
-      header: "Seq No",
-      size: 60,
-      cell: ({ row }: { row: { original: IApCreditNoteDt } }) => (
-        <div className="text-right">{row.original.seqNo}</div>
-      ),
-    },
   ]
 
   if (!mounted) {
