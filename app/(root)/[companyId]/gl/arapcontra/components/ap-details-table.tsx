@@ -54,6 +54,7 @@ export default function ApDetailsTable({
         <div className="text-right">{row.original.itemNo}</div>
       ),
     },
+
     {
       accessorKey: "documentNo",
       header: "Document No",

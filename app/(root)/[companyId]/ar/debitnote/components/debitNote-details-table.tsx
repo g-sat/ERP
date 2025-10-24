@@ -57,6 +57,14 @@ export default function DebitNoteDetailsTable({
         <div className="text-right">{row.original.itemNo}</div>
       ),
     },
+    {
+      accessorKey: "seqNo",
+      header: "Seq No",
+      size: 60,
+      cell: ({ row }: { row: { original: IArDebitNoteDt } }) => (
+        <div className="text-right">{row.original.seqNo}</div>
+      ),
+    },
     ...(visible?.m_ProductId
       ? [
           {
