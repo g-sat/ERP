@@ -1,17 +1,14 @@
 // main-tab.tsx - IMPROVED VERSION
 "use client"
 
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import {
-  calculateMultiplierAmount,
-  calculateSubtractionAmount,
-} from "@/helpers/account"
-import {
-  calculateHeaderAmountsForFullAllocation,
-  calculateHeaderAmountsForProportionalAllocation,
-  calculateTotalAllocationAmounts,
-  calculateTotalExchangeGainLoss,
-  validateAllocation as validateAllocationCalc,
+  allocateFullAmounts,
+  calculateItemAllocationSequence,
+  calculateUnallocatedAmounts,
+  totalAllocationAmount,
+  totalExchangeGainLoss,
+  validateAllocation as validateAllocationHelper,
 } from "@/helpers/ar-receipt-calculations"
 import { IArOutTransaction, IArReceiptDt } from "@/interfaces"
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
@@ -57,10 +54,13 @@ export default function Main({
   } | null>(null)
 
   // Watch data_details for reactive updates
-  const dataDetails = form.watch("data_details") || []
+  const watchedDataDetails = form.watch("data_details")
+  const dataDetails = useMemo(() => {
+    return watchedDataDetails || []
+  }, [watchedDataDetails])
 
   // Calculate sum of allocAmt and allocLocalAmt using helper functions
-  const { totalAllocAmt, totalAllocLocalAmt } = calculateTotalAllocationAmounts(
+  const { totalAllocAmt, totalAllocLocalAmt } = totalAllocationAmount(
     dataDetails as unknown as IArReceiptDt[],
     decimals[0] || {
       amtDec: 2,
@@ -90,11 +90,11 @@ export default function Main({
   // Update header exhGainLoss when details change (SEQUENCE 6)
   useEffect(() => {
     if (dataDetails.length > 0) {
-      const totalExhGainLoss = calculateTotalExchangeGainLoss(
+      const totalExhGainLoss = totalExchangeGainLoss(
         dataDetails as unknown as IArReceiptDt[],
         decimals[0]
       )
-      form.setValue("exhGainLoss", totalExhGainLoss)
+      form.setValue("exhGainLoss", totalExhGainLoss.totalExhGainLoss)
     } else {
       form.setValue("exhGainLoss", 0)
     }
@@ -168,115 +168,67 @@ export default function Main({
 
   // 1. Validation Function (SEQUENCE 1)
   const validateAllocation = useCallback((data: ArReceiptDtSchemaType[]) => {
-    if (!validateAllocationCalc(data as unknown as IArReceiptDt[])) {
+    if (!validateAllocationHelper(data as unknown as IArReceiptDt[])) {
       toast.warning("No receipt details to allocate")
       return false
     }
     return true
   }, [])
 
-  // 2. Calculate Allocation Amounts (SEQUENCE 2)
-  const calculateItemAllocation = useCallback(
-    (item: ArReceiptDtSchemaType, allocAmt: number) => {
-      const currentExhRate = form.getValues("exhRate") || 1
-      const docExhRate = item.docExhRate || 1
-
-      // Calculate allocLocalAmt = allocAmt * currentExhRate
-      const allocLocalAmt = calculateMultiplierAmount(
-        allocAmt,
-        currentExhRate,
-        decimals[0]?.locAmtDec || 2
-      )
-
-      // Calculate docAllocLocalAmt = allocAmt * docExhRate
-      const docAllocLocalAmt = calculateMultiplierAmount(
-        allocAmt,
-        docExhRate,
-        decimals[0]?.locAmtDec || 2
-      )
-
-      // Calculate centDiff = docAllocLocalAmt - allocLocalAmt
-      const centDiff = calculateSubtractionAmount(
-        docAllocLocalAmt,
-        allocLocalAmt,
-        decimals[0]?.locAmtDec || 2
-      )
-
-      // Exchange gain/loss equals cent difference
-      const exhGainLoss = centDiff
-
-      return {
-        allocLocalAmt,
-        docAllocAmt: allocAmt,
-        docAllocLocalAmt,
-        centDiff,
-        exhGainLoss,
-      }
-    },
-    [form, decimals]
-  )
-
-  // 4. Calculate Unallocated Amounts (SEPARATE FUNCTION)
-  const updateUnallocatedAmounts = useCallback(
+  // 4. Update Header Amounts (SEQUENCE 5 - only for full allocation when totAmt = 0)
+  const updateHeaderAmounts = useCallback(
     (data: ArReceiptDtSchemaType[]) => {
       const currentTotAmt = form.getValues("totAmt") || 0
       const currentExhRate = form.getValues("exhRate") || 1
 
-      if (currentTotAmt > 0) {
-        const unallocatedAmounts =
-          calculateHeaderAmountsForProportionalAllocation(
-            data as unknown as IArReceiptDt[],
-            currentTotAmt,
-            currentExhRate,
-            decimals[0] || {
-              amtDec: 2,
-              locAmtDec: 2,
-              ctyAmtDec: 2,
-              priceDec: 2,
-              qtyDec: 2,
-              exhRateDec: 4,
-              dateFormat: "DD/MM/YYYY",
-              longDateFormat: "DD/MM/YYYY",
-            }
-          )
+      const { totalAllocAmt, totalAllocLocalAmt } = totalAllocationAmount(
+        data as unknown as IArReceiptDt[],
+        decimals[0]
+      )
+      const { totalExhGainLoss } = totalExchangeGainLoss(
+        data as unknown as IArReceiptDt[],
+        decimals[0]
+      )
+      const { unAllocTotAmt, unAllocTotLocalAmt } = calculateUnallocatedAmounts(
+        data as unknown as IArReceiptDt[],
+        totalAllocAmt,
+        currentExhRate,
+        decimals[0]
+      )
 
-        form.setValue("unAllocTotAmt", unallocatedAmounts.unAllocTotAmt)
-        form.setValue(
-          "unAllocTotLocalAmt",
-          unallocatedAmounts.unAllocTotLocalAmt
-        )
+      form.setValue("totAmt", totalAllocAmt)
+      form.setValue("totLocalAmt", totalAllocLocalAmt)
+      form.setValue("recTotAmt", totalAllocAmt)
+      form.setValue("recTotLocalAmt", totalAllocLocalAmt)
+      form.setValue("exhGainLoss", totalExhGainLoss)
+
+      if (currentTotAmt > 0) {
+        form.setValue("unAllocTotAmt", unAllocTotAmt)
+        form.setValue("unAllocTotLocalAmt", unAllocTotLocalAmt)
       }
     },
     [form, decimals]
   )
 
-  // 5. Update Header Amounts (SEQUENCE 5 - only for full allocation when totAmt = 0)
-  const updateHeaderAmounts = useCallback(
+  // Helper: Calculate unallocated amounts for totAmt > 0 (SEQUENCE 5) - Using helper function
+  const updateHeaderUnallocatedAmounts = useCallback(
     (data: ArReceiptDtSchemaType[]) => {
-      const headerAmounts = calculateHeaderAmountsForFullAllocation(
+      const currentTotAmt = form.getValues("totAmt") || 0
+      const currentExhRate = form.getValues("exhRate") || 1
+
+      const { unAllocTotAmt, unAllocTotLocalAmt } = calculateUnallocatedAmounts(
         data as unknown as IArReceiptDt[],
-        decimals[0] || {
-          amtDec: 2,
-          locAmtDec: 2,
-          ctyAmtDec: 2,
-          priceDec: 2,
-          qtyDec: 2,
-          exhRateDec: 4,
-          dateFormat: "DD/MM/YYYY",
-          longDateFormat: "DD/MM/YYYY",
-        }
+        currentTotAmt,
+        currentExhRate,
+        decimals[0] || { amtDec: 2, locAmtDec: 2 }
       )
 
-      form.setValue("totAmt", headerAmounts.totAmt)
-      form.setValue("totLocalAmt", headerAmounts.totLocalAmt)
-      form.setValue("recTotAmt", headerAmounts.recTotAmt)
-      form.setValue("recTotLocalAmt", headerAmounts.recTotLocalAmt)
-      form.setValue("exhGainLoss", headerAmounts.exhGainLoss)
-
-      // Calculate unallocated amounts after setting all header values
-      updateUnallocatedAmounts(data)
+      form.setValue("unAllocTotAmt", unAllocTotAmt, { shouldDirty: true })
+      form.setValue("unAllocTotLocalAmt", unAllocTotLocalAmt, {
+        shouldDirty: true,
+      })
     },
-    [form, decimals, updateUnallocatedAmounts]
+    [form, decimals]
   )
 
   // Handle cell edit for editable columns (FOLLOWS ALLOCATION CALCULATION LOGIC)
@@ -291,14 +243,19 @@ export default function Main({
         if (item.itemNo === itemNo) {
           // If editing allocAmt, recalculate all dependent fields
           if (field === "allocAmt") {
-            const calculatedValues = calculateItemAllocation(item, value)
+            const calculatedValues = calculateItemAllocationSequence(
+              item as unknown as IArReceiptDt,
+              value,
+              currentExhRate,
+              decimals[0] || { amtDec: 2, locAmtDec: 2, exhRateDec: 4 }
+            )
             return {
               ...item,
               allocAmt: value,
               allocLocalAmt: calculatedValues.allocLocalAmt,
               docAllocAmt: calculatedValues.docAllocAmt,
               docAllocLocalAmt: calculatedValues.docAllocLocalAmt,
-              centDiff: calculatedValues.centDiff,
+              centDiff: 0,
               exhGainLoss: calculatedValues.exhGainLoss,
             }
           }
@@ -315,23 +272,22 @@ export default function Main({
       })
 
       // SEQUENCE 2: Calculate total allocation amounts
-      const { totalAllocAmt, totalAllocLocalAmt } =
-        calculateTotalAllocationAmounts(
-          updatedData as unknown as IArReceiptDt[],
-          decimals[0] || {
-            amtDec: 2,
-            locAmtDec: 2,
-            ctyAmtDec: 2,
-            priceDec: 2,
-            qtyDec: 2,
-            exhRateDec: 4,
-            dateFormat: "DD/MM/YYYY",
-            longDateFormat: "DD/MM/YYYY",
-          }
-        )
+      const { totalAllocAmt, totalAllocLocalAmt } = totalAllocationAmount(
+        updatedData as unknown as IArReceiptDt[],
+        decimals[0] || {
+          amtDec: 2,
+          locAmtDec: 2,
+          ctyAmtDec: 2,
+          priceDec: 2,
+          qtyDec: 2,
+          exhRateDec: 4,
+          dateFormat: "DD/MM/YYYY",
+          longDateFormat: "DD/MM/YYYY",
+        }
+      )
 
       // Calculate total exchange gain/loss (sum of all centDiff)
-      const totalExhGainLoss = calculateTotalExchangeGainLoss(
+      const totalExhGainLoss = totalExchangeGainLoss(
         updatedData as unknown as IArReceiptDt[],
         decimals[0] || {
           amtDec: 2,
@@ -374,10 +330,8 @@ export default function Main({
       form.setValue("recTotLocalAmt", totalAllocLocalAmt, {
         shouldDirty: true,
       })
-      form.setValue("unAllocTotAmt", unAllocTotAmt, { shouldDirty: true })
-      form.setValue("unAllocTotLocalAmt", unAllocTotLocalAmt, {
-        shouldDirty: true,
-      })
+
+      updateHeaderUnallocatedAmounts(updatedData)
 
       // Update allocation totals in header
       form.setValue("allocTotAmt", totalAllocAmt, { shouldDirty: true })
@@ -386,11 +340,13 @@ export default function Main({
       })
 
       // Update exchange gain/loss in header
-      form.setValue("exhGainLoss", totalExhGainLoss, { shouldDirty: true })
+      form.setValue("exhGainLoss", totalExhGainLoss.totalExhGainLoss, {
+        shouldDirty: true,
+      })
 
       form.trigger("data_details")
     },
-    [form, calculateItemAllocation, decimals]
+    [form, decimals, updateHeaderUnallocatedAmounts]
   )
 
   // ==================== HELPER FUNCTIONS ====================
@@ -407,29 +363,6 @@ export default function Main({
     form.setValue("exhGainLoss", 0)
   }, [form])
 
-  // Helper: Full allocation (Case 1: totAmt = 0)
-  const allocateFullAmounts = useCallback(
-    (data: ArReceiptDtSchemaType[]) => {
-      return data.map((item) => {
-        const allocAmt = item.docBalAmt || 0
-
-        // Use the reusable calculation function
-        const calculatedValues = calculateItemAllocation(item, allocAmt)
-
-        return {
-          ...item,
-          allocAmt,
-          allocLocalAmt: calculatedValues.allocLocalAmt,
-          docAllocAmt: calculatedValues.docAllocAmt,
-          docAllocLocalAmt: calculatedValues.docAllocLocalAmt,
-          centDiff: calculatedValues.centDiff,
-          exhGainLoss: calculatedValues.exhGainLoss,
-        }
-      })
-    },
-    [calculateItemAllocation]
-  )
-
   // Auto Allocation Function for totAmt = 0 (Full Allocation)
   const handleFullAllocation = useCallback(() => {
     const currentData = form.getValues("data_details") || []
@@ -438,7 +371,12 @@ export default function Main({
     if (!validateAllocation(currentData)) return
 
     // SEQUENCE 2 & 3: Update allocAmt and calculate allocLocalAmt
-    const updatedData = allocateFullAmounts(currentData)
+    const exchangeRate = form.getValues("exhRate") || 1
+    const updatedData = allocateFullAmounts(
+      currentData as unknown as IArReceiptDt[],
+      exchangeRate,
+      decimals[0] || { amtDec: 2, locAmtDec: 2 }
+    ) as unknown as ArReceiptDtSchemaType[]
 
     // SEQUENCE 4: Update badges (calculated inside updateHeaderAmounts)
     // SEQUENCE 5: Calculate detail items (docAllocAmt, etc - done in allocateFullAmounts)
@@ -451,13 +389,14 @@ export default function Main({
 
     setIsAllocated(true)
     toast.success("Full allocation completed")
-  }, [form, validateAllocation, allocateFullAmounts, updateHeaderAmounts])
+  }, [form, validateAllocation, updateHeaderAmounts, decimals])
 
   // Helper: Proportional allocation (Case 2: totAmt > 0) - Based on image example
   const allocateProportionally = useCallback(
     (
       data: ArReceiptDtSchemaType[],
       totAmt: number,
+      exhRate: number,
       _totLocalAmt: number,
       _usePositive: boolean
     ) => {
@@ -500,7 +439,12 @@ export default function Main({
         }
 
         // Use the reusable calculation function
-        const calculatedValues = calculateItemAllocation(item, allocAmt)
+        const calculatedValues = calculateItemAllocationSequence(
+          item as unknown as IArReceiptDt,
+          allocAmt,
+          exhRate,
+          decimals[0] || { amtDec: 2, locAmtDec: 2 }
+        )
 
         updatedData.push({
           ...item,
@@ -508,34 +452,21 @@ export default function Main({
           allocLocalAmt: calculatedValues.allocLocalAmt,
           docAllocAmt: calculatedValues.docAllocAmt,
           docAllocLocalAmt: calculatedValues.docAllocLocalAmt,
-          centDiff: calculatedValues.centDiff,
+          centDiff: calculatedValues.centdiff,
           exhGainLoss: calculatedValues.exhGainLoss,
         })
       }
 
       return updatedData
     },
-    [calculateItemAllocation]
-  )
-
-  // Helper: Calculate unallocated amounts for totAmt > 0 (SEQUENCE 5)
-  const calculateUnallocatedAmounts = useCallback(
-    (data: ArReceiptDtSchemaType[], totAmt: number) => {
-      const exchangeRate = form.getValues("exhRate") || 1
-      return calculateHeaderAmountsForProportionalAllocation(
-        data as unknown as IArReceiptDt[],
-        totAmt,
-        exchangeRate,
-        decimals[0]
-      )
-    },
-    [form, decimals]
+    [decimals]
   )
 
   // Auto Allocation Function for totAmt > 0 (Proportional Allocation)
   const handleProportionalAllocation = useCallback(() => {
     const currentData = form.getValues("data_details") || []
     const totAmt = form.getValues("totAmt") || 0
+    const currentExhRate = form.getValues("exhRate") || 1
 
     // SEQUENCE 1: Validation
     if (!validateAllocation(currentData)) return
@@ -544,22 +475,15 @@ export default function Main({
     const updatedData = allocateProportionally(
       currentData,
       totAmt,
+      currentExhRate,
       0, // totLocalAmt not used in new logic
       false // usePositive not used in new logic
     )
 
     // SEQUENCE 4: Calculate unallocated amounts only (no header updates)
-    const { unAllocTotAmt, unAllocTotLocalAmt } = calculateUnallocatedAmounts(
-      updatedData,
-      totAmt
-    )
+    updateHeaderUnallocatedAmounts(updatedData)
 
     // Update unallocated amounts in form
-    form.setValue("unAllocTotAmt", unAllocTotAmt, { shouldDirty: true })
-    form.setValue("unAllocTotLocalAmt", unAllocTotLocalAmt, {
-      shouldDirty: true,
-    })
-
     // SEQUENCE 5: Update data details only
     form.setValue("data_details", updatedData, {
       shouldDirty: true,
@@ -572,7 +496,7 @@ export default function Main({
     form,
     validateAllocation,
     allocateProportionally,
-    calculateUnallocatedAmounts,
+    updateHeaderUnallocatedAmounts,
   ])
 
   // Main Auto Allocation Function (Routes to appropriate function)
@@ -624,12 +548,9 @@ export default function Main({
     const customerId = form.getValues("customerId")
     const currencyId = form.getValues("currencyId")
     const accountDate = form.getValues("accountDate")
-    const paymentTypeId = form.getValues("paymentTypeId")
 
-    if (!customerId || !currencyId || !accountDate || !paymentTypeId) {
-      toast.warning(
-        "Please select Customer, Currency, Account Date and Receipt Type first"
-      )
+    if (!customerId || !currencyId || !accountDate) {
+      toast.warning("Please select Customer, Currency, Account Date first")
       return
     }
 
@@ -680,11 +601,18 @@ export default function Main({
       )
 
       const updatedData = [...currentData, ...newDetails]
+
       form.setValue("data_details", updatedData, {
         shouldDirty: true,
         shouldTouch: true,
       })
+
+      // Force form validation and re-render
       form.trigger("data_details")
+
+      // Close the dialog
+      setShowTransactionDialog(false)
+      toast.success(`Added ${transactions.length} transaction(s)`)
     },
     [form, companyId]
   )

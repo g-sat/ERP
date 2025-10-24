@@ -6,6 +6,17 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 /**
+ * Parse number string with commas to number
+ * @param value - String value that may contain commas
+ * @returns Parsed number or 0 if invalid
+ */
+export function parseNumberWithCommas(value: string): number {
+  // Remove commas and parse as float
+  const cleanValue = value.replace(/,/g, "")
+  return parseFloat(cleanValue) || 0
+}
+
+/**
  * Converts day of week number (1-7) to day name
  * @param dayNumber - Day number (1 = Sunday, 2 = Monday, ..., 7 = Saturday)
  * @returns Day name or original value if invalid
