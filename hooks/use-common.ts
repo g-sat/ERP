@@ -152,11 +152,12 @@ export function useGetWithDates<T>(
       }
       return await getData(cleanUrl(baseUrl), params)
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    gcTime: 10 * 60 * 1000, // 10 minutes (formerly cacheTime)
-    refetchOnWindowFocus: false, // Prevent refetch on window focus
-    refetchOnMount: false, // Prevent refetch on mount if data exists
-    enabled: enabled,
+    staleTime: 0,
+    gcTime: 0,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+    enabled, // won't auto-fetch unless manually triggered
     ...options,
   })
 }

@@ -34,9 +34,6 @@ export const totalAllocationAmount = (
     )
   })
 
-  console.log("totalAllocAmt", totalAllocAmt)
-  console.log("totalAllocLocalAmt", totalAllocLocalAmt)
-
   return {
     totalAllocAmt,
     totalAllocLocalAmt,
@@ -50,7 +47,6 @@ export const totalExchangeGainLoss = (
   let totalExhGainLoss = 0
 
   // totalExhGainLoss = details.reduce((sum, detail) => {
-  //   console.log("detail.exhGainLoss", detail.exhGainLoss)
   //   return sum + (Number(detail.exhGainLoss) || 0)
   // }, 0)
 
@@ -66,8 +62,6 @@ export const totalExchangeGainLoss = (
       decimals.amtDec
     )
   })
-
-  console.log("totalExhGainLoss", totalExhGainLoss)
 
   return {
     totalExhGainLoss,

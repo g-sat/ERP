@@ -588,13 +588,6 @@ export default function ReceiptPage() {
     // refetchReceipts(); // Removed: will be handled by useEffect
   }
 
-  // Refetch receipts when filters change (only if dialog is open)
-  useEffect(() => {
-    if (showListDialog) {
-      refetchReceipts()
-    }
-  }, [filters, showListDialog, refetchReceipts])
-
   // Add keyboard shortcuts
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {

@@ -284,6 +284,18 @@ export default function ReceiptForm({
       } else {
         // If currencies are different, fetch new exchange rate
         await setRecExchangeRate(form, exhRateDec)
+        form.trigger("recExhRate")
+        const recExhRate = form.getValues("recExhRate") || 0
+
+        if (totAmt > 0) {
+          form.setValue("recTotAmt", totLocalAmt, { shouldDirty: true })
+          const recTotLocalAmt = calculateMultiplierAmount(
+            totLocalAmt,
+            recExhRate,
+            decimals[0].locAmtDec || 2
+          )
+          form.setValue("recTotLocalAmt", recTotLocalAmt, { shouldDirty: true })
+        }
       }
 
       // Update currency comparison state
@@ -392,6 +404,8 @@ export default function ReceiptForm({
         decimals
       )
 
+      console.log("calculatedAmounts", calculatedAmounts)
+
       // Update all calculated amounts
       form.setValue("totAmt", calculatedAmounts.totAmt, { shouldDirty: true })
       form.setValue("totLocalAmt", calculatedAmounts.totLocalAmt, {
@@ -424,6 +438,23 @@ export default function ReceiptForm({
       const recTotAmt = form.getValues("recTotAmt") || 0
       const unAllocTotAmt = form.getValues("unAllocTotAmt") || 0
       const dataDetails = form.getValues("data_details") || []
+
+      const totLocalAmt = calculateMultiplierAmount(
+        totAmt,
+        exhRate,
+        decimals[0].locAmtDec || 2
+      )
+      console.log("totLocalAmt 495", totLocalAmt)
+      form.setValue("totLocalAmt", totLocalAmt, { shouldDirty: true })
+
+      const unAllocTotLocalAmt = calculateMultiplierAmount(
+        unAllocTotAmt,
+        exhRate,
+        decimals[0].locAmtDec || 2
+      )
+      form.setValue("unAllocTotLocalAmt", unAllocTotLocalAmt, {
+        shouldDirty: true,
+      })
 
       // If currencies are the same, sync recExhRate with exhRate
       if (currencyId === recCurrencyId && currencyId > 0) {
@@ -470,27 +501,6 @@ export default function ReceiptForm({
           recalculatedAmounts.updatedDetails as unknown as ArReceiptDtSchemaType[],
           { shouldDirty: true, shouldTouch: true }
         )
-      } else {
-        // If no details, just recalculate header amounts
-        if (totAmt > 0) {
-          const totLocalAmt = calculateMultiplierAmount(
-            totAmt,
-            exhRate,
-            decimals[0].locAmtDec || 2
-          )
-          form.setValue("totLocalAmt", totLocalAmt, { shouldDirty: true })
-        }
-
-        if (unAllocTotAmt > 0) {
-          const unAllocTotLocalAmt = calculateMultiplierAmount(
-            unAllocTotAmt,
-            exhRate,
-            decimals[0].locAmtDec || 2
-          )
-          form.setValue("unAllocTotLocalAmt", unAllocTotLocalAmt, {
-            shouldDirty: true,
-          })
-        }
       }
     },
     [form, decimals, recalculateTotAmt]
@@ -605,7 +615,6 @@ export default function ReceiptForm({
   const handleRecTotAmtChange = React.useCallback(
     (e: React.FocusEvent<HTMLInputElement>) => {
       const recTotAmt = parseNumberWithCommas(e.target.value)
-      console.log("recTotAmt", recTotAmt)
       const recExchangeRate = form.getValues("recExhRate") || 0
       const exhRate = form.getValues("exhRate") || 0
 
