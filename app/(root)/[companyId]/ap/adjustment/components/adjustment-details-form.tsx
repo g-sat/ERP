@@ -966,7 +966,7 @@ export default function AdjustmentDetailsForm({
           <ul className="list-inside list-disc space-y-1 text-sm text-red-700">
             {Object.entries(form.formState.errors).map(([field, error]) => (
               <li key={field}>
-                <span className="font-medium capitalize">{field}:</span>{" "}
+                {/* <span className="font-medium capitalize">{field}:</span>{" "} */}
                 {error?.message?.toString() || "Invalid value"}
               </li>
             ))}

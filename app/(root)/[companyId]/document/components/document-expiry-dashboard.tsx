@@ -42,15 +42,21 @@ export function DocumentExpiryDashboard() {
     ? expiredDocumentsResponse
     : expiredDocumentsResponse?.data || []
 
+  // Ensure all variables are arrays to prevent slice errors
+  const safeExpiringDocuments = Array.isArray(expiringDocuments)
+    ? expiringDocuments
+    : []
+  const safeAllDocuments = Array.isArray(allDocuments) ? allDocuments : []
+
   // Calculate statistics with proper null checks and meaningful metrics
   const stats: DashboardStats = {
-    totalDocuments: allDocuments.length,
-    expiringSoon: expiringDocuments.length,
-    expired: expiredDocuments.length,
-    verified: allDocuments.filter((doc: IUniversalDocumentHd) =>
+    totalDocuments: safeAllDocuments.length,
+    expiringSoon: safeExpiringDocuments.length,
+    expired: Array.isArray(expiredDocuments) ? expiredDocuments.length : 0,
+    verified: safeAllDocuments.filter((doc: IUniversalDocumentHd) =>
       doc.data_details?.some((detail) => detail.renewalRequired === false)
     ).length,
-    totalDetails: allDocuments.reduce(
+    totalDetails: safeAllDocuments.reduce(
       (total, doc) => total + (doc.data_details?.length || 0),
       0
     ),
@@ -216,7 +222,7 @@ export function DocumentExpiryDashboard() {
           </CardHeader>
           <CardContent>
             <div className="space-y-3 sm:space-y-4">
-              {expiringDocuments
+              {safeExpiringDocuments
                 .slice(0, 5)
                 .map((doc: IUniversalDocumentHd) => {
                   const earliestExpiry = doc.data_details
@@ -251,7 +257,7 @@ export function DocumentExpiryDashboard() {
                     </div>
                   )
                 })}
-              {expiringDocuments.length === 0 && (
+              {safeExpiringDocuments.length === 0 && (
                 <p className="text-muted-foreground text-sm">
                   No documents expiring soon
                 </p>
@@ -269,7 +275,7 @@ export function DocumentExpiryDashboard() {
           </CardHeader>
           <CardContent>
             <div className="space-y-3 sm:space-y-4">
-              {allDocuments.slice(0, 5).map((doc: IUniversalDocumentHd) => {
+              {safeAllDocuments.slice(0, 5).map((doc: IUniversalDocumentHd) => {
                 const hasFiles =
                   doc.data_details?.some((detail) => detail.filePath) || false
                 const hasRenewalRequired =
@@ -305,7 +311,7 @@ export function DocumentExpiryDashboard() {
                   </div>
                 )
               })}
-              {allDocuments.length === 0 && (
+              {safeAllDocuments.length === 0 && (
                 <p className="text-muted-foreground text-sm">
                   No recent activity
                 </p>

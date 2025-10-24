@@ -267,6 +267,7 @@ export const Lookup = {
   getCustomerDynamic: "/master/getcustomerlookupv1",
   getSupplierDynamic: "/master/getsupplierlookupv1",
   getProductDynamic: "/master/getproductlookupv1",
+  getJobOrderDynamic: "/master/getjoborderlookup_v1",
   getNumberYear: "/master/getnumberformatnextyear",
 
   getStatus: "/master/getstatuslookup",

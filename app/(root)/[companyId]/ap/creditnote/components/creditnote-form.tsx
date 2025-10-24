@@ -421,16 +421,14 @@ export default function CreditNoteForm({
           )}
 
           {/* Account Date */}
-          {visible?.m_AccountDate && (
-            <CustomDateNew
-              form={form}
-              name="accountDate"
-              label="Account Date"
-              isRequired={true}
-              onChangeEvent={handleAccountDateChange}
-              isFutureShow={false}
-            />
-          )}
+          <CustomDateNew
+            form={form}
+            name="accountDate"
+            label="Account Date"
+            isRequired={true}
+            onChangeEvent={handleAccountDateChange}
+            isFutureShow={false}
+          />
 
           {/* Supplier */}
           <CompanySupplierAutocomplete

@@ -1046,6 +1046,25 @@ export const useJobOrderLookup = () => {
     refetchOnWindowFocus: false,
   })
 }
+
+export const useJobOrderDynamicLookup = (recordcount: number) => {
+  return useQuery<IJobOrderLookup[]>({
+    queryKey: ["joborder-dynamic-lookUp"],
+    placeholderData: keepPreviousData,
+    queryFn: async () => {
+      try {
+        const data = await getData(
+          `${Lookup.getJobOrderDynamic}/${recordcount}`
+        )
+        return data?.data || []
+      } catch (error) {
+        handleApiError(error)
+      }
+    },
+    refetchOnWindowFocus: false,
+  })
+}
+
 export const useTaskLookup = () => {
   return useQuery<ITaskLookup[]>({
     queryKey: ["task-lookUp"],

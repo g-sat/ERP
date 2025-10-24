@@ -276,6 +276,7 @@ export interface IDynamicLookup {
   isCustomer: boolean
   isSupplier: boolean
   isProduct: boolean
+  isJobOrder: boolean
   createById: number
   createDate: string | Date
   editById: null | string | number

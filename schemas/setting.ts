@@ -51,6 +51,7 @@ export const dynamicLookupFormSchema = z.object({
   isCustomer: z.boolean(),
   isSupplier: z.boolean(),
   isProduct: z.boolean(),
+  isJobOrder: z.boolean(),
 })
 
 export type DynamicLookupSchemaType = z.infer<typeof dynamicLookupFormSchema>
@@ -70,6 +71,7 @@ export const mandatoryFieldsSchema = z
     m_Remarks: z.boolean(),
     m_GstId: z.boolean(),
     m_DeliveryDate: z.boolean(),
+
     m_DepartmentId: z.boolean(),
     m_EmployeeId: z.boolean(),
     m_PortId: z.boolean(),
@@ -108,6 +110,7 @@ export const visibleFieldsSchema = z
     M_Remarks: z.boolean(),
     M_GstId: z.boolean(),
     M_DeliveryDate: z.boolean(),
+
     M_DepartmentId: z.boolean(),
     M_EmployeeId: z.boolean(),
     M_PortId: z.boolean(),
@@ -120,7 +123,6 @@ export const visibleFieldsSchema = z
     M_PayeeTo: z.boolean(),
     M_GstClaimDate: z.boolean(),
     M_TrnDate: z.boolean(),
-    M_AccountDate: z.boolean(),
     M_JobOrderId: z.boolean(),
   })
   .partial()

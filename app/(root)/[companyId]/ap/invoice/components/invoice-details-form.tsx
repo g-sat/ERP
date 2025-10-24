@@ -36,6 +36,7 @@ import { toast } from "sonner"
 
 import {
   useChartOfAccountLookup,
+  useGetDynamicLookup,
   useGstLookup,
   useUomLookup,
 } from "@/hooks/use-lookup"
@@ -56,6 +57,7 @@ import {
   VesselAutocomplete,
   VoyageAutocomplete,
 } from "@/components/autocomplete"
+import DynamicJobOrderAutocomplete from "@/components/autocomplete/autocomplete-synamic-joborder"
 import CustomNumberInput from "@/components/custom/custom-number-input"
 import CustomTextarea from "@/components/custom/custom-textarea"
 
@@ -92,6 +94,9 @@ export default function InvoiceDetailsForm({
   const amtDec = decimals[0]?.amtDec || 2
   const locAmtDec = decimals[0]?.locAmtDec || 2
   const qtyDec = decimals[0]?.qtyDec || 2
+
+  const { data: dynamicLookup } = useGetDynamicLookup()
+  const isDynamicLookup = dynamicLookup?.isJobOrder ?? false
   // State to manage job-specific vs department-specific rendering
   const [isJobSpecific, setIsJobSpecific] = useState(false)
 
@@ -951,7 +956,7 @@ export default function InvoiceDetailsForm({
           <ul className="list-inside list-disc space-y-1 text-sm text-red-700">
             {Object.entries(form.formState.errors).map(([field, error]) => (
               <li key={field}>
-                <span className="font-medium capitalize">{field}:</span>{" "}
+                {/* <span className="font-medium capitalize">{field}:</span>{" "} */}
                 {error?.message?.toString() || "Invalid value"}
               </li>
             ))}
@@ -1054,12 +1059,22 @@ export default function InvoiceDetailsForm({
           {isJobSpecific ? (
             <>
               {/* JOB-SPECIFIC MODE: Job Order → Task → Service */}
-              {visible?.m_JobOrderId && (
+              {visible?.m_JobOrderId && !isDynamicLookup && (
                 <JobOrderAutocomplete
                   form={form}
                   name="jobOrderId"
                   label="Job Order"
                   isRequired={required?.m_JobOrderId && isJobSpecific}
+                  onChangeEvent={handleJobOrderChange}
+                />
+              )}
+
+              {visible?.m_JobOrderId && isDynamicLookup && (
+                <DynamicJobOrderAutocomplete
+                  form={form}
+                  name="jobOrderId"
+                  label="Job Order"
+                  recordcount={100}
                   onChangeEvent={handleJobOrderChange}
                 />
               )}

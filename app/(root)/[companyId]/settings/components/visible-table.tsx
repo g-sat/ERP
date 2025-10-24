@@ -391,25 +391,6 @@ export function VisibleTable() {
       size: 100,
     },
     {
-      accessorKey: "m_AccountDate",
-      header: "Account Date",
-      cell: ({ row }) => (
-        <div className="text-center">
-          <Checkbox
-            checked={row.original.m_AccountDate}
-            onCheckedChange={(checked) =>
-              handleFieldChange(
-                row.original,
-                "m_AccountDate",
-                checked as boolean
-              )
-            }
-          />
-        </div>
-      ),
-      size: 100,
-    },
-    {
       accessorKey: "m_TrnDate",
       header: "Trn Date",
       cell: ({ row }) => (

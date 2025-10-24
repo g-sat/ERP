@@ -95,6 +95,32 @@ export default function InvoiceForm({
     [decimals, exhRateDec, form, visible]
   )
 
+  // Handle transaction date selection
+  const handleAccountDateChange = React.useCallback(
+    async (_selectedAccountDate: Date | null) => {
+      // Additional logic when transaction date changes
+      const { accountDate } = form?.getValues()
+      form.setValue("gstClaimDate", accountDate)
+      form?.trigger("gstClaimDate")
+
+      form.setValue("deliveryDate", accountDate)
+      form?.trigger("deliveryDate")
+
+      await setExchangeRate(form, exhRateDec, visible)
+      if (visible?.m_CtyCurr) {
+        await setExchangeRateLocal(form, exhRateDec)
+      }
+      await setGSTPercentage(
+        form,
+        form.getValues("data_details"),
+        decimals[0],
+        visible
+      )
+      await setDueDate(form)
+    },
+    [decimals, exhRateDec, form, visible]
+  )
+
   // Handle customer selection
   const handleCustomerChange = React.useCallback(
     async (selectedCustomer: ICustomerLookup | null) => {
@@ -148,29 +174,6 @@ export default function InvoiceForm({
       }
     },
     [exhRateDec, form, isEdit, visible, defaultCurrencyId]
-  )
-
-  // Handle transaction date selection
-  const handleAccountDateChange = React.useCallback(
-    async (_selectedAccountDate: Date | null) => {
-      // Additional logic when transaction date changes
-      const { accountDate } = form?.getValues()
-      form.setValue("gstClaimDate", accountDate)
-      form?.trigger("gstClaimDate")
-
-      await setExchangeRate(form, exhRateDec, visible)
-      if (visible?.m_CtyCurr) {
-        await setExchangeRateLocal(form, exhRateDec)
-      }
-      await setGSTPercentage(
-        form,
-        form.getValues("data_details"),
-        decimals[0],
-        visible
-      )
-      await setDueDate(form)
-    },
-    [decimals, exhRateDec, form, visible]
   )
 
   // Handle credit term selection
@@ -421,16 +424,14 @@ export default function InvoiceForm({
           )}
 
           {/* Account Date */}
-          {visible?.m_AccountDate && (
-            <CustomDateNew
-              form={form}
-              name="accountDate"
-              label="Account Date"
-              isRequired={true}
-              onChangeEvent={handleAccountDateChange}
-              isFutureShow={false}
-            />
-          )}
+          <CustomDateNew
+            form={form}
+            name="accountDate"
+            label="Account Date"
+            isRequired={true}
+            onChangeEvent={handleAccountDateChange}
+            isFutureShow={false}
+          />
 
           {/* Customer */}
           <CompanyCustomerAutocomplete

@@ -48,6 +48,7 @@ export function DynamicLookupForm() {
       isCustomer: false,
       isSupplier: false,
       isProduct: false,
+      isJobOrder: false,
     },
   })
 
@@ -74,6 +75,7 @@ export function DynamicLookupForm() {
           isCustomer: data.isCustomer ?? false,
           isSupplier: data.isSupplier ?? false,
           isProduct: data.isProduct ?? false,
+          isJobOrder: data.isJobOrder ?? false,
         })
       }
     }
@@ -221,6 +223,26 @@ export function DynamicLookupForm() {
                     <FormLabel>Voyage Lookup</FormLabel>
                     <div className="text-muted-foreground text-sm">
                       Enable dynamic lookup for voyages
+                    </div>
+                  </div>
+                  <FormControl>
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="isJobOrder"
+              render={({ field }) => (
+                <FormItem className="flex items-center justify-between rounded-lg border p-4">
+                  <div className="space-y-0.5">
+                    <FormLabel>Job Order Lookup</FormLabel>
+                    <div className="text-muted-foreground text-sm">
+                      Enable dynamic lookup for job orders
                     </div>
                   </div>
                   <FormControl>

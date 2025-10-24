@@ -317,15 +317,16 @@ export function DocumentForm({
               </div>
               {/* Debug form validation */}
               {Object.keys(form.formState.errors).length > 0 && (
-                <div className="mt-4 rounded-md border border-red-200 bg-red-50 p-4">
-                  <h4 className="mb-2 text-sm font-medium text-red-800">
-                    Form Validation Errors:
-                  </h4>
-                  <ul className="space-y-1 text-sm text-red-700">
+                <div className="mx-2 mb-2 rounded-md border border-red-200 bg-red-50 p-3">
+                  <p className="mb-1 font-semibold text-red-800">
+                    Please fix the following errors:
+                  </p>
+                  <ul className="list-inside list-disc space-y-1 text-sm text-red-700">
                     {Object.entries(form.formState.errors).map(
                       ([field, error]) => (
                         <li key={field}>
-                          <strong>{field}:</strong> {error?.message}
+                          {/* <span className="font-medium capitalize">{field}:</span>{" "} */}
+                          {error?.message?.toString() || "Invalid value"}
                         </li>
                       )
                     )}
@@ -401,10 +402,10 @@ export function DocumentForm({
           {/* Details Dialog */}
           <DocumentDetailsForm
             open={detailsDialogOpen}
-            onOpenChange={setDetailsDialogOpen}
+            onOpenChangeAction={setDetailsDialogOpen}
             detail={editingDetail}
             documentId={form.getValues("documentId") || 0}
-            onCancel={() => setDetailsDialogOpen(false)}
+            onCancelAction={() => setDetailsDialogOpen(false)}
           />
         </DialogContent>
       </Dialog>
