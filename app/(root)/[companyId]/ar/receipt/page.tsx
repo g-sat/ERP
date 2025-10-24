@@ -611,16 +611,18 @@ export default function ReceiptPage() {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       if (isDirty) {
         e.preventDefault()
-        e.returnValue = ""
       }
     }
     window.addEventListener("beforeunload", handleBeforeUnload)
     return () => window.removeEventListener("beforeunload", handleBeforeUnload)
   }, [form.formState.isDirty])
 
-  // Clear form errors when tab changes
+  // Clear form errors when tab changes (optional)
   useEffect(() => {
-    form.clearErrors()
+    // Only clear errors if there are any errors present
+    if (Object.keys(form.formState.errors).length > 0) {
+      form.clearErrors()
+    }
   }, [activeTab, form])
 
   const handleReceiptSearch = async (value: string) => {

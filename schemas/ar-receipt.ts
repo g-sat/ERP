@@ -89,9 +89,7 @@ export const arreceiptHdSchema = (
     cancelRemarks: z.string().optional(),
 
     // Nested Details
-    data_details: z
-      .array(arreceiptDtSchema(required, visible))
-      .min(1, "At least one invoice detail is required"),
+    data_details: z.array(arreceiptDtSchema(required, visible)).optional(),
   })
 }
 
