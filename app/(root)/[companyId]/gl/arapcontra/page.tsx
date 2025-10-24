@@ -260,6 +260,18 @@ export default function GLContraPage() {
 
       if (!validationResult.success) {
         console.error("Form validation failed:", validationResult.error)
+
+        // Set field-level errors on the form so FormMessage components can display them
+        validationResult.error.issues.forEach((error) => {
+          const fieldPath = error.path.join(
+            "."
+          ) as keyof GlArapContraHdSchemaType
+          form.setError(fieldPath, {
+            type: "validation",
+            message: error.message,
+          })
+        })
+
         toast.error("Please check form data and try again")
         return
       }

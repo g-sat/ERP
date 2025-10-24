@@ -310,6 +310,7 @@ export default function ReceiptForm({
       checkPayTotAmtEnable,
       updateCurrencyComparison,
       currencyId,
+      decimals,
     ]
   )
 
@@ -404,8 +405,6 @@ export default function ReceiptForm({
         decimals
       )
 
-      console.log("calculatedAmounts", calculatedAmounts)
-
       // Update all calculated amounts
       form.setValue("totAmt", calculatedAmounts.totAmt, { shouldDirty: true })
       form.setValue("totLocalAmt", calculatedAmounts.totLocalAmt, {
@@ -444,7 +443,6 @@ export default function ReceiptForm({
         exhRate,
         decimals[0].locAmtDec || 2
       )
-      console.log("totLocalAmt 495", totLocalAmt)
       form.setValue("totLocalAmt", totLocalAmt, { shouldDirty: true })
 
       const unAllocTotLocalAmt = calculateMultiplierAmount(

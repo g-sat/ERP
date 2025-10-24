@@ -234,6 +234,16 @@ export default function InvoicePage() {
 
       if (!validationResult.success) {
         console.error("Form validation failed:", validationResult.error)
+
+        // Set field-level errors on the form so FormMessage components can display them
+        validationResult.error.issues.forEach((error) => {
+          const fieldPath = error.path.join(".") as keyof ArInvoiceHdSchemaType
+          form.setError(fieldPath, {
+            type: "validation",
+            message: error.message,
+          })
+        })
+
         toast.error("Please check form data and try again")
         return
       }
@@ -791,6 +801,11 @@ export default function InvoicePage() {
     window.addEventListener("beforeunload", handleBeforeUnload)
     return () => window.removeEventListener("beforeunload", handleBeforeUnload)
   }, [form.formState.isDirty])
+
+  // Clear form errors when tab changes
+  useEffect(() => {
+    form.clearErrors()
+  }, [activeTab, form])
 
   const handleInvoiceSearch = async (value: string) => {
     if (!value) return
