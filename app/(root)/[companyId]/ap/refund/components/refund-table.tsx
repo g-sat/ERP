@@ -5,26 +5,22 @@ import { ColumnDef } from "@tanstack/react-table"
 import { format, subMonths } from "date-fns"
 import { FormProvider, useForm } from "react-hook-form"
 
+import { ApRefund } from "@/lib/api-routes"
 import { APTransactionId, ModuleId, TableName } from "@/lib/utils"
+import { useGetWithDates } from "@/hooks/use-common"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { CustomDateNew } from "@/components/custom/custom-date-new"
 import { DialogDataTable } from "@/components/table/table-dialog"
 
 export interface RefundTableProps {
-  data: IApRefundHd[]
-  isLoading: boolean
   onPaymentSelect: (selectedPayment: IApRefundHd | undefined) => void
-  onRefresh: () => void
   onFilterChange: (filters: IApRefundFilter) => void
   initialFilters?: IApRefundFilter
 }
 
 export default function RefundTable({
-  data,
-  isLoading = false,
   onPaymentSelect,
-  onRefresh,
   onFilterChange,
   initialFilters,
 }: RefundTableProps) {
@@ -50,6 +46,25 @@ export default function RefundTable({
   const [searchQuery] = useState("")
   const [currentPage] = useState(1)
   const [pageSize] = useState(10)
+
+  // Data fetching - only when table is opened
+  const {
+    data: refundsResponse,
+    isLoading: isLoadingRefunds,
+    isRefetching: isRefetchingRefunds,
+    refetch: refetchRefunds,
+  } = useGetWithDates<IApRefundHd>(
+    `${ApRefund.get}`,
+    TableName.apRefund,
+    searchQuery,
+    form.watch("startDate")?.toString(),
+    form.watch("endDate")?.toString(),
+    undefined, // options
+    true // enabled: Fetch when table is opened
+  )
+
+  const data = refundsResponse?.data || []
+  const isLoading = isLoadingRefunds || isRefetchingRefunds
 
   const formatNumber = (value: number, decimals: number) => {
     return value.toLocaleString(undefined, {
@@ -306,6 +321,21 @@ export default function RefundTable({
     }
   }
 
+  // Show loading spinner while data is loading
+  if (isLoadingRefunds) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="text-center">
+          <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-gray-300 border-t-blue-600"></div>
+          <p className="mt-4 text-sm text-gray-600">Loading refunds...</p>
+          <p className="mt-2 text-xs text-gray-500">
+            Please wait while we fetch the refund list
+          </p>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="w-full overflow-auto">
       <FormProvider {...form}>
@@ -347,7 +377,7 @@ export default function RefundTable({
         transactionId={transactionId}
         tableName={TableName.apPayment}
         emptyMessage="No data found."
-        onRefresh={onRefresh}
+        onRefresh={() => refetchRefunds()}
         onFilterChange={handleDialogFilterChange}
         onRowSelect={(row) => onPaymentSelect(row || undefined)}
       />

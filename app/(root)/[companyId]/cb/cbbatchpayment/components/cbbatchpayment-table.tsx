@@ -5,28 +5,24 @@ import { ColumnDef } from "@tanstack/react-table"
 import { format, subMonths } from "date-fns"
 import { FormProvider, useForm } from "react-hook-form"
 
+import { CbBatchPayment } from "@/lib/api-routes"
 import { CBTransactionId, ModuleId, TableName } from "@/lib/utils"
+import { useGetWithDates } from "@/hooks/use-common"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { CustomDateNew } from "@/components/custom/custom-date-new"
 import { DialogDataTable } from "@/components/table/table-dialog"
 
 export interface BatchPaymentTableProps {
-  data: ICbBatchPaymentHd[]
-  isLoading: boolean
   onBatchPaymentSelect: (
     selectedBatchPayment: ICbBatchPaymentHd | undefined
   ) => void
-  onRefresh: () => void
   onFilterChange: (filters: ICbBatchPaymentFilter) => void
   initialFilters?: ICbBatchPaymentFilter
 }
 
 export default function BatchPaymentTable({
-  data,
-  isLoading = false,
   onBatchPaymentSelect,
-  onRefresh,
   onFilterChange,
   initialFilters,
 }: BatchPaymentTableProps) {
@@ -52,6 +48,25 @@ export default function BatchPaymentTable({
   const [searchQuery] = useState("")
   const [currentPage] = useState(1)
   const [pageSize] = useState(10)
+
+  // Data fetching - only when table is opened
+  const {
+    data: batchPaymentsResponse,
+    isLoading: isLoadingBatchPayments,
+    isRefetching: isRefetchingBatchPayments,
+    refetch: refetchBatchPayments,
+  } = useGetWithDates<ICbBatchPaymentHd>(
+    `${CbBatchPayment.get}`,
+    TableName.cbBatchPayment,
+    searchQuery,
+    form.watch("startDate")?.toString(),
+    form.watch("endDate")?.toString(),
+    undefined, // options
+    true // enabled: Fetch when table is opened
+  )
+
+  const data = batchPaymentsResponse?.data || []
+  const isLoading = isLoadingBatchPayments || isRefetchingBatchPayments
 
   const formatNumber = (value: number, decimals: number) => {
     return value.toLocaleString(undefined, {
@@ -263,6 +278,23 @@ export default function BatchPaymentTable({
     }
   }
 
+  // Show loading spinner while data is loading
+  if (isLoadingBatchPayments) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="text-center">
+          <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-gray-300 border-t-blue-600"></div>
+          <p className="mt-4 text-sm text-gray-600">
+            Loading batch payments...
+          </p>
+          <p className="mt-2 text-xs text-gray-500">
+            Please wait while we fetch the batch payment list
+          </p>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="w-full overflow-auto">
       <FormProvider {...form}>
@@ -304,7 +336,7 @@ export default function BatchPaymentTable({
         transactionId={transactionId}
         tableName={TableName.cbBatchPayment}
         emptyMessage="No data found."
-        onRefresh={onRefresh}
+        onRefresh={() => refetchBatchPayments()}
         onFilterChange={handleDialogFilterChange}
         onRowSelect={(row) => onBatchPaymentSelect(row || undefined)}
       />

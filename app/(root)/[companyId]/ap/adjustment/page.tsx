@@ -1,13 +1,12 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useState } from "react"
 import { useParams } from "next/navigation"
 import {
   IApAdjustmentDt,
   IApAdjustmentFilter,
   IApAdjustmentHd,
 } from "@/interfaces/ap-adjustment"
-import { ApiResponse } from "@/interfaces/auth"
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
 import {
   ApAdjustmentDtSchemaType,
@@ -30,8 +29,8 @@ import { toast } from "sonner"
 import { getById } from "@/lib/api-client"
 import { ApAdjustment } from "@/lib/api-routes"
 import { clientDateFormat, parseDate } from "@/lib/date-utils"
-import { APTransactionId, ModuleId, TableName } from "@/lib/utils"
-import { useDelete, useGetWithDates, usePersist } from "@/hooks/use-common"
+import { APTransactionId, ModuleId } from "@/lib/utils"
+import { useDelete, usePersist } from "@/hooks/use-common"
 import { useGetRequiredFields, useGetVisibleFields } from "@/hooks/use-lookup"
 import { Button } from "@/components/ui/button"
 import {
@@ -184,27 +183,7 @@ export default function AdjustmentPage() {
         },
   })
 
-  // API hooks for adjustments - Only fetch when List dialog is opened (optimized)
-  const {
-    data: adjustmentsResponse,
-    refetch: refetchAdjustments,
-    isLoading: isLoadingAdjustments,
-    isRefetching: isRefetchingAdjustments,
-  } = useGetWithDates<IApAdjustmentHd>(
-    `${ApAdjustment.get}`,
-    TableName.apAdjustment,
-    filters.search,
-    filters.startDate?.toString(),
-    filters.endDate?.toString(),
-    undefined, // options
-    false // enabled: Don't auto-fetch - only when List button is clicked
-  )
-
-  // Memoize adjustment data to prevent unnecessary re-renders
-  const adjustmentsData = useMemo(
-    () => (adjustmentsResponse as ApiResponse<IApAdjustmentHd>)?.data ?? [],
-    [adjustmentsResponse]
-  )
+  // Data fetching moved to AdjustmentTable component for better performance
 
   // Mutations
   const saveMutation = usePersist<ApAdjustmentHdSchemaType>(
@@ -298,7 +277,7 @@ export default function AdjustmentPage() {
           //toast.success("Adjustment updated successfully")
         }
 
-        refetchAdjustments()
+        // Data refresh handled by AdjustmentTable component
       } else {
         toast.error(response.message || "Failed to save adjustment")
       }
@@ -359,7 +338,7 @@ export default function AdjustmentPage() {
           data_details: [],
         })
         //toast.success("Adjustment deleted successfully")
-        refetchAdjustments()
+        // Data refresh handled by AdjustmentTable component
       } else {
         toast.error(response.message || "Failed to delete adjustment")
       }
@@ -784,15 +763,10 @@ export default function AdjustmentPage() {
   // Remove direct refetchAdjustments from handleFilterChange
   const handleFilterChange = (newFilters: IApAdjustmentFilter) => {
     setFilters(newFilters)
-    // refetchAdjustments(); // Removed: will be handled by useEffect
+    // Data refresh handled by AdjustmentTable component
   }
 
-  // Refetch adjustments when filters change (only if dialog is open)
-  useEffect(() => {
-    if (showListDialog) {
-      refetchAdjustments()
-    }
-  }, [filters, showListDialog, refetchAdjustments])
+  // Data refresh handled by AdjustmentTable component
 
   // Add keyboard shortcuts
   useEffect(() => {
@@ -1113,16 +1087,10 @@ export default function AdjustmentPage() {
               variant="outline"
               size="sm"
               onClick={() => setShowListDialog(true)}
-              disabled={isLoadingAdjustments || isRefetchingAdjustments}
+              disabled={false}
             >
-              {isLoadingAdjustments || isRefetchingAdjustments ? (
-                <Spinner size="sm" className="mr-1" />
-              ) : (
-                <ListFilter className="mr-1 h-4 w-4" />
-              )}
-              {isLoadingAdjustments || isRefetchingAdjustments
-                ? "Loading..."
-                : "List"}
+              <ListFilter className="mr-1 h-4 w-4" />
+              List
             </Button>
 
             <Button
@@ -1227,7 +1195,7 @@ export default function AdjustmentPage() {
         onOpenChange={(open) => {
           setShowListDialog(open)
           if (open) {
-            refetchAdjustments()
+            // Data refresh handled by AdjustmentTable component
           }
         }}
       >
@@ -1249,9 +1217,7 @@ export default function AdjustmentPage() {
             </div>
           </DialogHeader>
 
-          {isLoadingAdjustments ||
-          isRefetchingAdjustments ||
-          isSelectingAdjustment ? (
+          {isSelectingAdjustment ? (
             <div className="flex min-h-[60vh] items-center justify-center">
               <div className="text-center">
                 <Spinner size="lg" className="mx-auto" />
@@ -1269,10 +1235,7 @@ export default function AdjustmentPage() {
             </div>
           ) : (
             <AdjustmentTable
-              data={adjustmentsData || []}
-              isLoading={false}
               onAdjustmentSelect={handleAdjustmentSelect}
-              onRefresh={() => refetchAdjustments()}
               onFilterChange={handleFilterChange}
               initialFilters={filters}
             />

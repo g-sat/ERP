@@ -1,9 +1,8 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useState } from "react"
 import { useParams } from "next/navigation"
 import { ICbPettyCashFilter, ICbPettyCashHd } from "@/interfaces"
-import { ApiResponse } from "@/interfaces/auth"
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
 import {
   CbPettyCashDtSchemaType,
@@ -26,8 +25,8 @@ import { toast } from "sonner"
 import { getById } from "@/lib/api-client"
 import { CbPayment } from "@/lib/api-routes"
 import { clientDateFormat, parseDate } from "@/lib/date-utils"
-import { CBTransactionId, ModuleId, TableName } from "@/lib/utils"
-import { useDelete, useGetWithDates, usePersist } from "@/hooks/use-common"
+import { CBTransactionId, ModuleId } from "@/lib/utils"
+import { useDelete, usePersist } from "@/hooks/use-common"
 import { useGetRequiredFields, useGetVisibleFields } from "@/hooks/use-lookup"
 import { Button } from "@/components/ui/button"
 import {
@@ -152,27 +151,7 @@ export default function PettyCashPage() {
         },
   })
 
-  // API hooks for petty cash records - Only fetch when List dialog is opened (optimized)
-  const {
-    data: pettyCashResponse,
-    refetch: refetchPettyCash,
-    isLoading: isLoadingPettyCashList,
-    isRefetching: isRefetchingPettyCash,
-  } = useGetWithDates<ICbPettyCashHd>(
-    `${CbPayment.get}`,
-    TableName.cbPettyCash,
-    filters.search,
-    filters.startDate?.toString(),
-    filters.endDate?.toString(),
-    undefined, // options
-    false // enabled: Don't auto-fetch - only when List button is clicked
-  )
-
-  // Memoize petty cash data to prevent unnecessary re-renders
-  const pettyCashData = useMemo(
-    () => (pettyCashResponse as ApiResponse<ICbPettyCashHd>)?.data ?? [],
-    [pettyCashResponse]
-  )
+  // Data fetching moved to PettyCashTable component for better performance
 
   // Mutations
   const saveMutation = usePersist<CbPettyCashHdSchemaType>(`${CbPayment.add}`)
@@ -254,7 +233,7 @@ export default function PettyCashPage() {
         // Close the save confirmation dialog
         setShowSaveConfirm(false)
 
-        refetchPettyCash()
+        // Data refresh handled by PettyCashTable component
       } else {
         toast.error(response.message || "Failed to save Petty Cash")
       }
@@ -311,7 +290,7 @@ export default function PettyCashPage() {
           ...defaultPettyCash,
           data_details: [],
         })
-        refetchPettyCash()
+        // Data refresh handled by PettyCashTable component
       } else {
         toast.error(response.message || "Failed to delete Petty Cash")
       }
@@ -663,16 +642,10 @@ export default function PettyCashPage() {
               variant="outline"
               size="sm"
               onClick={() => setShowListDialog(true)}
-              disabled={isLoadingPettyCash || isRefetchingPettyCash}
+              disabled={false}
             >
-              {isLoadingPettyCash || isRefetchingPettyCash ? (
-                <Spinner size="sm" className="mr-1" />
-              ) : (
-                <ListFilter className="mr-1 h-4 w-4" />
-              )}
-              {isLoadingPettyCash || isRefetchingPettyCash
-                ? "Loading..."
-                : "List"}
+              <ListFilter className="mr-1 h-4 w-4" />
+              List
             </Button>
 
             <Button
@@ -776,7 +749,7 @@ export default function PettyCashPage() {
         onOpenChange={(open) => {
           setShowListDialog(open)
           if (open) {
-            refetchPettyCash()
+            // Data refresh handled by PettyCashTable component
           }
         }}
       >
@@ -799,9 +772,7 @@ export default function PettyCashPage() {
             </div>
           </DialogHeader>
 
-          {isLoadingPettyCashList ||
-          isRefetchingPettyCash ||
-          isSelectingPettyCash ? (
+          {isSelectingPettyCash ? (
             <div className="flex min-h-[60vh] items-center justify-center">
               <div className="text-center">
                 <Spinner size="lg" className="mx-auto" />
@@ -819,10 +790,7 @@ export default function PettyCashPage() {
             </div>
           ) : (
             <PettyCashTable
-              data={pettyCashData || []}
-              isLoading={false}
               onPettyCashSelect={handlePettyCashSelect}
-              onRefresh={() => refetchPettyCash()}
               onFilterChange={handleFilterChange}
               initialFilters={filters}
             />

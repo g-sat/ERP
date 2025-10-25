@@ -955,30 +955,11 @@ export default function ReceiptPage() {
             </div>
           </DialogHeader>
 
-          {isSelectingReceipt ? (
-            <div className="flex min-h-[60vh] items-center justify-center">
-              <div className="text-center">
-                <Spinner size="lg" className="mx-auto" />
-                <p className="mt-4 text-sm text-gray-600">
-                  {isSelectingReceipt
-                    ? "Loading receipt details..."
-                    : "Loading receipts..."}
-                </p>
-                <p className="mt-2 text-xs text-gray-500">
-                  {isSelectingReceipt
-                    ? "Please wait while we fetch the complete receipt data"
-                    : "Please wait while we fetch the receipt list"}
-                </p>
-              </div>
-            </div>
-          ) : (
-            <ReceiptTable
-              onReceiptSelect={handleReceiptSelect}
-              onRefresh={() => {}}
-              onFilterChange={handleFilterChange}
-              initialFilters={filters}
-            />
-          )}
+          <ReceiptTable
+            onReceiptSelect={handleReceiptSelect}
+            onFilterChange={handleFilterChange}
+            initialFilters={filters}
+          />
         </DialogContent>
       </Dialog>
 

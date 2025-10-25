@@ -191,27 +191,9 @@ export default function CreditNotePage() {
   })
 
   // API hooks for creditNotes - Only fetch when List dialog is opened (optimized)
-  const {
-    data: creditNotesResponse,
-    refetch: refetchCreditNotes,
-    isLoading: isLoadingCreditNotes,
-    isRefetching: isRefetchingCreditNotes,
-  } = useGetWithDates<IArCreditNoteHd>(
-    `${ArCreditNote.get}`,
-    TableName.arCreditNote,
-    filters.search,
-    filters.startDate?.toString(),
-    filters.endDate?.toString(),
-    undefined, // options
-    false // enabled: Don't auto-fetch - only when List button is clicked
-  )
+  // Data fetching moved to CreditNoteTable component for better performance
 
   // Memoize creditNote data to prevent unnecessary re-renders
-  const creditNotesData = useMemo(
-    () => (creditNotesResponse as ApiResponse<IArCreditNoteHd>)?.data ?? [],
-    [creditNotesResponse]
-  )
-
   // Mutations
   const saveMutation = usePersist<ArCreditNoteHdSchemaType>(
     `${ArCreditNote.add}`
@@ -303,8 +285,6 @@ export default function CreditNotePage() {
         } else {
           //toast.success("CreditNote updated successfully")
         }
-
-        refetchCreditNotes()
       } else {
         toast.error(response.message || "Failed to save creditNote")
       }
@@ -365,7 +345,6 @@ export default function CreditNotePage() {
           data_details: [],
         })
         //toast.success("CreditNote deleted successfully")
-        refetchCreditNotes()
       } else {
         toast.error(response.message || "Failed to delete creditNote")
       }
@@ -784,15 +763,14 @@ export default function CreditNotePage() {
   // Remove direct refetchCreditNotes from handleFilterChange
   const handleFilterChange = (newFilters: IArCreditNoteFilter) => {
     setFilters(newFilters)
-    // refetchCreditNotes(); // Removed: will be handled by useEffect
+    // ; // Removed: will be handled by useEffect
   }
 
   // Refetch creditNotes when filters change (only if dialog is open)
   useEffect(() => {
     if (showListDialog) {
-      refetchCreditNotes()
     }
-  }, [filters, showListDialog, refetchCreditNotes])
+  }, [filters, showListDialog])
 
   // Add keyboard shortcuts
   useEffect(() => {
@@ -1109,16 +1087,10 @@ export default function CreditNotePage() {
               variant="outline"
               size="sm"
               onClick={() => setShowListDialog(true)}
-              disabled={isLoadingCreditNotes || isRefetchingCreditNotes}
+              disabled={false}
             >
-              {isLoadingCreditNotes || isRefetchingCreditNotes ? (
-                <Spinner size="sm" className="mr-1" />
-              ) : (
-                <ListFilter className="mr-1 h-4 w-4" />
-              )}
-              {isLoadingCreditNotes || isRefetchingCreditNotes
-                ? "Loading..."
-                : "List"}
+              <ListFilter className="mr-1 h-4 w-4" />
+              List
             </Button>
 
             <Button
@@ -1223,7 +1195,6 @@ export default function CreditNotePage() {
         onOpenChange={(open) => {
           setShowListDialog(open)
           if (open) {
-            refetchCreditNotes()
           }
         }}
       >
@@ -1245,34 +1216,11 @@ export default function CreditNotePage() {
             </div>
           </DialogHeader>
 
-          {isLoadingCreditNotes ||
-          isRefetchingCreditNotes ||
-          isSelectingCreditNote ? (
-            <div className="flex min-h-[60vh] items-center justify-center">
-              <div className="text-center">
-                <Spinner size="lg" className="mx-auto" />
-                <p className="mt-4 text-sm text-gray-600">
-                  {isSelectingCreditNote
-                    ? "Loading creditNote details..."
-                    : "Loading creditNotes..."}
-                </p>
-                <p className="mt-2 text-xs text-gray-500">
-                  {isSelectingCreditNote
-                    ? "Please wait while we fetch the complete creditNote data"
-                    : "Please wait while we fetch the creditNote list"}
-                </p>
-              </div>
-            </div>
-          ) : (
-            <CreditNoteTable
-              data={creditNotesData || []}
-              isLoading={false}
-              onCreditNoteSelect={handleCreditNoteSelect}
-              onRefresh={() => refetchCreditNotes()}
-              onFilterChange={handleFilterChange}
-              initialFilters={filters}
-            />
-          )}
+          <CreditNoteTable
+            onCreditNoteSelect={handleCreditNoteSelect}
+            onFilterChange={handleFilterChange}
+            initialFilters={filters}
+          />
         </DialogContent>
       </Dialog>
 

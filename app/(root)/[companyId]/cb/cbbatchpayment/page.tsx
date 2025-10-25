@@ -1,9 +1,8 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useState } from "react"
 import { useParams } from "next/navigation"
 import { ICbBatchPaymentFilter, ICbBatchPaymentHd } from "@/interfaces"
-import { ApiResponse } from "@/interfaces/auth"
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
 import {
   CbBatchPaymentDtSchemaType,
@@ -26,8 +25,8 @@ import { toast } from "sonner"
 import { getById } from "@/lib/api-client"
 import { CbBatchPayment } from "@/lib/api-routes"
 import { clientDateFormat, parseDate } from "@/lib/date-utils"
-import { CBTransactionId, ModuleId, TableName } from "@/lib/utils"
-import { useDelete, useGetWithDates, usePersist } from "@/hooks/use-common"
+import { CBTransactionId, ModuleId } from "@/lib/utils"
+import { useDelete, usePersist } from "@/hooks/use-common"
 import { useGetRequiredFields, useGetVisibleFields } from "@/hooks/use-lookup"
 import { Button } from "@/components/ui/button"
 import {
@@ -145,27 +144,7 @@ export default function BatchPaymentPage() {
         },
   })
 
-  // API hooks for batch payments - Only fetch when List dialog is opened (optimized)
-  const {
-    data: batchPaymentsResponse,
-    refetch: refetchBatchPayments,
-    isLoading: isLoadingBatchPayment,
-    isRefetching: isRefetchingBatchPayment,
-  } = useGetWithDates<ICbBatchPaymentHd>(
-    `${CbBatchPayment.get}`,
-    TableName.cbBatchPayment,
-    filters.search,
-    filters.startDate?.toString(),
-    filters.endDate?.toString(),
-    undefined, // options
-    false // enabled: Don't auto-fetch - only when List button is clicked
-  )
-
-  // Memoize batch payment data to prevent unnecessary re-renders
-  const batchPaymentsData = useMemo(
-    () => (batchPaymentsResponse as ApiResponse<ICbBatchPaymentHd>)?.data ?? [],
-    [batchPaymentsResponse]
-  )
+  // Data fetching moved to BatchPaymentTable component for better performance
 
   // Mutations
   const saveMutation = usePersist<CbBatchPaymentHdSchemaType>(
@@ -247,7 +226,7 @@ export default function BatchPaymentPage() {
         // Close the save confirmation dialog
         setShowSaveConfirm(false)
 
-        refetchBatchPayments()
+        // Data refresh handled by BatchPaymentTable component
       } else {
         toast.error(response.message || "Failed to save Batch Payment")
       }
@@ -302,7 +281,7 @@ export default function BatchPaymentPage() {
           ...defaultBatchPayment,
           data_details: [],
         })
-        refetchBatchPayments()
+        // Data refresh handled by BatchPaymentTable component
       } else {
         toast.error(response.message || "Failed to delete Batch Payment")
       }
@@ -653,16 +632,10 @@ export default function BatchPaymentPage() {
               variant="outline"
               size="sm"
               onClick={() => setShowListDialog(true)}
-              disabled={isLoadingBatchPayment || isRefetchingBatchPayment}
+              disabled={false}
             >
-              {isLoadingBatchPayment || isRefetchingBatchPayment ? (
-                <Spinner size="sm" className="mr-1" />
-              ) : (
-                <ListFilter className="mr-1 h-4 w-4" />
-              )}
-              {isLoadingBatchPayment || isRefetchingBatchPayment
-                ? "Loading..."
-                : "List"}
+              <ListFilter className="mr-1 h-4 w-4" />
+              List
             </Button>
 
             <Button
@@ -766,7 +739,7 @@ export default function BatchPaymentPage() {
         onOpenChange={(open) => {
           setShowListDialog(open)
           if (open) {
-            refetchBatchPayments()
+            // Data refresh handled by BatchPaymentTable component
           }
         }}
       >
@@ -788,9 +761,7 @@ export default function BatchPaymentPage() {
             </div>
           </DialogHeader>
 
-          {isLoadingBatchPayment ||
-          isRefetchingBatchPayment ||
-          isSelectingBatchPayment ? (
+          {isSelectingBatchPayment ? (
             <div className="flex min-h-[60vh] items-center justify-center">
               <div className="text-center">
                 <Spinner size="lg" className="mx-auto" />
@@ -808,10 +779,7 @@ export default function BatchPaymentPage() {
             </div>
           ) : (
             <BatchPaymentTable
-              data={batchPaymentsData || []}
-              isLoading={false}
               onBatchPaymentSelect={handleBatchPaymentSelect}
-              onRefresh={() => refetchBatchPayments()}
               onFilterChange={handleFilterChange}
               initialFilters={filters}
             />

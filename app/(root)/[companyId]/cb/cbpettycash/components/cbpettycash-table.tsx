@@ -5,26 +5,22 @@ import { ColumnDef } from "@tanstack/react-table"
 import { format, subMonths } from "date-fns"
 import { FormProvider, useForm } from "react-hook-form"
 
+import { CbPettyCash } from "@/lib/api-routes"
 import { CBTransactionId, ModuleId, TableName } from "@/lib/utils"
+import { useGetWithDates } from "@/hooks/use-common"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { CustomDateNew } from "@/components/custom/custom-date-new"
 import { DialogDataTable } from "@/components/table/table-dialog"
 
 export interface PettyCashTableProps {
-  data: ICbPettyCashHd[]
-  isLoading: boolean
   onPettyCashSelect: (selectedPettyCash: ICbPettyCashHd | undefined) => void
-  onRefresh: () => void
   onFilterChange: (filters: ICbPettyCashFilter) => void
   initialFilters?: ICbPettyCashFilter
 }
 
 export default function PettyCashTable({
-  data,
-  isLoading = false,
   onPettyCashSelect,
-  onRefresh,
   onFilterChange,
   initialFilters,
 }: PettyCashTableProps) {
@@ -50,6 +46,25 @@ export default function PettyCashTable({
   const [searchQuery] = useState("")
   const [currentPage] = useState(1)
   const [pageSize] = useState(10)
+
+  // Data fetching - only when table is opened
+  const {
+    data: pettyCashResponse,
+    isLoading: isLoadingPettyCash,
+    isRefetching: isRefetchingPettyCash,
+    refetch: refetchPettyCash,
+  } = useGetWithDates<ICbPettyCashHd>(
+    `${CbPettyCash.get}`,
+    TableName.cbPettyCash,
+    searchQuery,
+    form.watch("startDate")?.toString(),
+    form.watch("endDate")?.toString(),
+    undefined, // options
+    true // enabled: Fetch when table is opened
+  )
+
+  const data = pettyCashResponse?.data || []
+  const isLoading = isLoadingPettyCash || isRefetchingPettyCash
 
   const formatNumber = (value: number, decimals: number) => {
     return value.toLocaleString(undefined, {
@@ -367,6 +382,21 @@ export default function PettyCashTable({
     }
   }
 
+  // Show loading spinner while data is loading
+  if (isLoadingPettyCash) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="text-center">
+          <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-gray-300 border-t-blue-600"></div>
+          <p className="mt-4 text-sm text-gray-600">Loading petty cash...</p>
+          <p className="mt-2 text-xs text-gray-500">
+            Please wait while we fetch the petty cash list
+          </p>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="w-full overflow-auto">
       <FormProvider {...form}>
@@ -408,7 +438,7 @@ export default function PettyCashTable({
         transactionId={transactionId}
         tableName={TableName.cbPettyCash}
         emptyMessage="No data found."
-        onRefresh={onRefresh}
+        onRefresh={() => refetchPettyCash()}
         onFilterChange={handleDialogFilterChange}
         onRowSelect={(row) => onPettyCashSelect(row || undefined)}
       />

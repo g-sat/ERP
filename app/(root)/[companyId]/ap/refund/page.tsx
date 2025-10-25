@@ -1,9 +1,8 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useState } from "react"
 import { useParams } from "next/navigation"
 import { IApRefundDt, IApRefundFilter, IApRefundHd } from "@/interfaces"
-import { ApiResponse } from "@/interfaces/auth"
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
 import {
   ApRefundDtSchemaType,
@@ -27,8 +26,8 @@ import { toast } from "sonner"
 import { getById } from "@/lib/api-client"
 import { ApRefund } from "@/lib/api-routes"
 import { clientDateFormat, parseDate } from "@/lib/date-utils"
-import { APTransactionId, ModuleId, TableName } from "@/lib/utils"
-import { useDelete, useGetWithDates, usePersist } from "@/hooks/use-common"
+import { APTransactionId, ModuleId } from "@/lib/utils"
+import { useDelete, usePersist } from "@/hooks/use-common"
 import { useGetRequiredFields, useGetVisibleFields } from "@/hooks/use-lookup"
 import { Button } from "@/components/ui/button"
 import {
@@ -165,27 +164,7 @@ export default function RefundPage() {
         },
   })
 
-  // API hooks for payments - Only fetch when List dialog is opened (optimized)
-  const {
-    data: paymentsResponse,
-    refetch: refetchPayments,
-    isLoading: isLoadingRefunds,
-    isRefetching: isRefetchingPayments,
-  } = useGetWithDates<IApRefundHd>(
-    `${ApRefund.get}`,
-    TableName.apPayment,
-    filters.search,
-    filters.startDate?.toString(),
-    filters.endDate?.toString(),
-    undefined, // options
-    false // enabled: Don't auto-fetch - only when List button is clicked
-  )
-
-  // Memoize refund data to prevent unnecessary re-renders
-  const paymentsData = useMemo(
-    () => (paymentsResponse as ApiResponse<IApRefundHd>)?.data ?? [],
-    [paymentsResponse]
-  )
+  // Data fetching moved to RefundTable component for better performance
 
   // Mutations
   const saveMutation = usePersist<ApRefundHdSchemaType>(`${ApRefund.add}`)
@@ -274,7 +253,7 @@ export default function RefundPage() {
           //toast.success("Refund updated successfully")
         }
 
-        refetchPayments()
+        // Data refresh handled by RefundTable component
       } else {
         toast.error(response.message || "Failed to save refund")
       }
@@ -334,7 +313,7 @@ export default function RefundPage() {
           data_details: [],
         })
         //toast.success("Refund deleted successfully")
-        refetchPayments()
+        // Data refresh handled by RefundTable component
       } else {
         toast.error(response.message || "Failed to delete refund")
       }
@@ -596,12 +575,7 @@ export default function RefundPage() {
     // refetchPayments(); // Removed: will be handled by useEffect
   }
 
-  // Refetch payments when filters change (only if dialog is open)
-  useEffect(() => {
-    if (showListDialog) {
-      refetchPayments()
-    }
-  }, [filters, showListDialog, refetchPayments])
+  // Data refresh handled by RefundTable component
 
   // Add keyboard shortcuts
   useEffect(() => {
@@ -864,14 +838,10 @@ export default function RefundPage() {
               variant="outline"
               size="sm"
               onClick={() => setShowListDialog(true)}
-              disabled={isLoadingRefunds || isRefetchingPayments}
+              disabled={false}
             >
-              {isLoadingRefunds || isRefetchingPayments ? (
-                <Spinner size="sm" className="mr-1" />
-              ) : (
-                <ListFilter className="mr-1 h-4 w-4" />
-              )}
-              {isLoadingRefunds || isRefetchingPayments ? "Loading..." : "List"}
+              <ListFilter className="mr-1 h-4 w-4" />
+              List
             </Button>
 
             <Button
@@ -974,7 +944,7 @@ export default function RefundPage() {
         onOpenChange={(open) => {
           setShowListDialog(open)
           if (open) {
-            refetchPayments()
+            // Data refresh handled by RefundTable component
           }
         }}
       >
@@ -996,7 +966,7 @@ export default function RefundPage() {
             </div>
           </DialogHeader>
 
-          {isLoadingRefunds || isRefetchingPayments || isSelectingPayment ? (
+          {isSelectingPayment ? (
             <div className="flex min-h-[60vh] items-center justify-center">
               <div className="text-center">
                 <Spinner size="lg" className="mx-auto" />
@@ -1014,10 +984,7 @@ export default function RefundPage() {
             </div>
           ) : (
             <RefundTable
-              data={paymentsData || []}
-              isLoading={false}
               onPaymentSelect={handlePaymentSelect}
-              onRefresh={() => refetchPayments()}
               onFilterChange={handleFilterChange}
               initialFilters={filters}
             />

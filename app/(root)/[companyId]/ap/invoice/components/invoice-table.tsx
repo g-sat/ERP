@@ -5,26 +5,22 @@ import { ColumnDef } from "@tanstack/react-table"
 import { format, subMonths } from "date-fns"
 import { FormProvider, useForm } from "react-hook-form"
 
+import { ApInvoice } from "@/lib/api-routes"
 import { APTransactionId, ModuleId, TableName } from "@/lib/utils"
+import { useGetWithDates } from "@/hooks/use-common"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { CustomDateNew } from "@/components/custom/custom-date-new"
 import { DialogDataTable } from "@/components/table/table-dialog"
 
 export interface InvoiceTableProps {
-  data: IApInvoiceHd[]
-  isLoading: boolean
   onInvoiceSelect: (selectedInvoice: IApInvoiceHd | undefined) => void
-  onRefresh: () => void
   onFilterChange: (filters: IApInvoiceFilter) => void
   initialFilters?: IApInvoiceFilter
 }
 
 export default function InvoiceTable({
-  data,
-  isLoading = false,
   onInvoiceSelect,
-  onRefresh,
   onFilterChange,
   initialFilters,
 }: InvoiceTableProps) {
@@ -50,6 +46,25 @@ export default function InvoiceTable({
   const [searchQuery] = useState("")
   const [currentPage] = useState(1)
   const [pageSize] = useState(10)
+
+  // Data fetching - only when table is opened
+  const {
+    data: invoicesResponse,
+    isLoading: isLoadingInvoices,
+    isRefetching: isRefetchingInvoices,
+    refetch: refetchInvoices,
+  } = useGetWithDates<IApInvoiceHd>(
+    `${ApInvoice.get}`,
+    TableName.apInvoice,
+    searchQuery,
+    form.watch("startDate")?.toString(),
+    form.watch("endDate")?.toString(),
+    undefined, // options
+    true // enabled: Fetch when table is opened
+  )
+
+  const data = invoicesResponse?.data || []
+  const isLoading = isLoadingInvoices || isRefetchingInvoices
 
   const formatNumber = (value: number, decimals: number) => {
     return value.toLocaleString(undefined, {
@@ -292,6 +307,21 @@ export default function InvoiceTable({
     }
   }
 
+  // Show loading spinner while data is loading
+  if (isLoadingInvoices) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="text-center">
+          <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-gray-300 border-t-blue-600"></div>
+          <p className="mt-4 text-sm text-gray-600">Loading invoices...</p>
+          <p className="mt-2 text-xs text-gray-500">
+            Please wait while we fetch the invoice list
+          </p>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="w-full overflow-auto">
       <FormProvider {...form}>
@@ -333,7 +363,7 @@ export default function InvoiceTable({
         transactionId={transactionId}
         tableName={TableName.apInvoice}
         emptyMessage="No data found."
-        onRefresh={onRefresh}
+        onRefresh={() => refetchInvoices()}
         onFilterChange={handleDialogFilterChange}
         onRowSelect={(row) => onInvoiceSelect(row || undefined)}
       />

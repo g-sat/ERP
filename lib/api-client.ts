@@ -176,6 +176,25 @@ export const deleteData = async (endpoint: string) => {
     throw error
   }
 }
+
+export const deleteDataWithRemarks = async (
+  endpoint: string,
+  documentId: string,
+  documentNo: string,
+  cancelRemarks: string
+) => {
+  try {
+    const response = await apiClient.post(endpoint, {
+      DocumentId: documentId,
+      DocumentNo: documentNo,
+      CancelRemarks: cancelRemarks,
+    })
+    return response.data
+  } catch (error) {
+    console.error("DELETE with remarks request failed:", error)
+    throw error
+  }
+}
 export const patchData = async (
   endpoint: string,
   data: Record<string, unknown> | unknown

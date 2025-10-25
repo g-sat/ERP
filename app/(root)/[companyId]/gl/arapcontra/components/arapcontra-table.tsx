@@ -5,26 +5,22 @@ import { ColumnDef } from "@tanstack/react-table"
 import { format, subMonths } from "date-fns"
 import { FormProvider, useForm } from "react-hook-form"
 
+import { GlArapContra } from "@/lib/api-routes"
 import { GLTransactionId, ModuleId, TableName } from "@/lib/utils"
+import { useGetWithDates } from "@/hooks/use-common"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { CustomDateNew } from "@/components/custom/custom-date-new"
 import { DialogDataTable } from "@/components/table/table-dialog"
 
 export interface ArapcontraTableProps {
-  data: IGLContraHd[]
-  isLoading: boolean
   onArapcontraSelect: (selectedArapcontra: IGLContraHd | undefined) => void
-  onRefresh: () => void
   onFilterChange: (filters: IGLContraFilter) => void
   initialFilters?: IGLContraFilter
 }
 
 export default function ArapcontraTable({
-  data,
-  isLoading = false,
   onArapcontraSelect,
-  onRefresh,
   onFilterChange,
   initialFilters,
 }: ArapcontraTableProps) {
@@ -49,6 +45,25 @@ export default function ArapcontraTable({
   const [searchQuery] = useState("")
   const [currentPage] = useState(1)
   const [pageSize] = useState(10)
+
+  // Data fetching - only when table is opened
+  const {
+    data: arapContrasResponse,
+    isLoading: isLoadingArapContras,
+    isRefetching: isRefetchingArapContras,
+    refetch: refetchArapContras,
+  } = useGetWithDates<IGLContraHd>(
+    `${GlArapContra.get}`,
+    TableName.glArapContra,
+    searchQuery,
+    form.watch("startDate")?.toString(),
+    form.watch("endDate")?.toString(),
+    undefined, // options
+    true // enabled: Fetch when table is opened
+  )
+
+  const data = arapContrasResponse?.data || []
+  const isLoading = isLoadingArapContras || isRefetchingArapContras
 
   const formatNumber = (value: number, decimals: number) => {
     return value.toLocaleString(undefined, {
@@ -271,6 +286,21 @@ export default function ArapcontraTable({
     }
   }
 
+  // Show loading spinner while data is loading
+  if (isLoadingArapContras) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="text-center">
+          <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-gray-300 border-t-blue-600"></div>
+          <p className="mt-4 text-sm text-gray-600">Loading AR/AP contra entries...</p>
+          <p className="mt-2 text-xs text-gray-500">
+            Please wait while we fetch the AR/AP contra list
+          </p>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="w-full overflow-auto">
       <FormProvider {...form}>
@@ -312,7 +342,7 @@ export default function ArapcontraTable({
         transactionId={transactionId}
         tableName={TableName.arApContra}
         emptyMessage="No contra data found."
-        onRefresh={onRefresh}
+        onRefresh={() => refetchArapContras()}
         onFilterChange={handleDialogFilterChange}
         onRowSelect={(row) => onArapcontraSelect(row || undefined)}
       />

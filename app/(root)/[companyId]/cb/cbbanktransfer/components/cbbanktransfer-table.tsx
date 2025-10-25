@@ -5,28 +5,24 @@ import { ColumnDef } from "@tanstack/react-table"
 import { format, subMonths } from "date-fns"
 import { FormProvider, useForm } from "react-hook-form"
 
+import { CbBankTransfer } from "@/lib/api-routes"
 import { CBTransactionId, ModuleId, TableName } from "@/lib/utils"
+import { useGetWithDates } from "@/hooks/use-common"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { CustomDateNew } from "@/components/custom/custom-date-new"
 import { DialogDataTable } from "@/components/table/table-dialog"
 
 export interface BankTransferTableProps {
-  data: ICbBankTransfer[]
-  isLoading: boolean
   onBankTransferSelect: (
     selectedBankTransfer: ICbBankTransfer | undefined
   ) => void
-  onRefresh: () => void
   onFilterChange: (filters: ICbBankTransferFilter) => void
   initialFilters?: ICbBankTransferFilter
 }
 
 export default function BankTransferTable({
-  data,
-  isLoading = false,
   onBankTransferSelect,
-  onRefresh,
   onFilterChange,
   initialFilters,
 }: BankTransferTableProps) {
@@ -52,6 +48,25 @@ export default function BankTransferTable({
   const [searchQuery] = useState("")
   const [currentPage] = useState(1)
   const [pageSize] = useState(10)
+
+  // Data fetching - only when table is opened
+  const {
+    data: bankTransfersResponse,
+    isLoading: isLoadingBankTransfers,
+    isRefetching: isRefetchingBankTransfers,
+    refetch: refetchBankTransfers,
+  } = useGetWithDates<ICbBankTransfer>(
+    `${CbBankTransfer.get}`,
+    TableName.cbBankTransfer,
+    searchQuery,
+    form.watch("startDate")?.toString(),
+    form.watch("endDate")?.toString(),
+    undefined, // options
+    true // enabled: Fetch when table is opened
+  )
+
+  const data = bankTransfersResponse?.data || []
+  const isLoading = isLoadingBankTransfers || isRefetchingBankTransfers
 
   const formatNumber = (value: number, decimals: number) => {
     return value.toLocaleString(undefined, {
@@ -362,6 +377,23 @@ export default function BankTransferTable({
     }
   }
 
+  // Show loading spinner while data is loading
+  if (isLoadingBankTransfers) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="text-center">
+          <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-gray-300 border-t-blue-600"></div>
+          <p className="mt-4 text-sm text-gray-600">
+            Loading bank transfers...
+          </p>
+          <p className="mt-2 text-xs text-gray-500">
+            Please wait while we fetch the bank transfer list
+          </p>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="w-full overflow-auto">
       <FormProvider {...form}>
@@ -403,7 +435,7 @@ export default function BankTransferTable({
         transactionId={transactionId}
         tableName={TableName.cbBankTransfer}
         emptyMessage="No data found."
-        onRefresh={onRefresh}
+        onRefresh={() => refetchBankTransfers()}
         onFilterChange={handleDialogFilterChange}
         onRowSelect={(row) => onBankTransferSelect(row || undefined)}
       />

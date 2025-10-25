@@ -1,13 +1,12 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useState } from "react"
 import { useParams } from "next/navigation"
 import {
   IApInvoiceDt,
   IApInvoiceFilter,
   IApInvoiceHd,
 } from "@/interfaces/ap-invoice"
-import { ApiResponse } from "@/interfaces/auth"
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
 import {
   ApInvoiceDtSchemaType,
@@ -30,8 +29,8 @@ import { toast } from "sonner"
 import { getById } from "@/lib/api-client"
 import { ApInvoice } from "@/lib/api-routes"
 import { clientDateFormat, parseDate } from "@/lib/date-utils"
-import { APTransactionId, ModuleId, TableName } from "@/lib/utils"
-import { useDelete, useGetWithDates, usePersist } from "@/hooks/use-common"
+import { APTransactionId, ModuleId } from "@/lib/utils"
+import { useDelete, usePersist } from "@/hooks/use-common"
 import { useGetRequiredFields, useGetVisibleFields } from "@/hooks/use-lookup"
 import { Button } from "@/components/ui/button"
 import {
@@ -182,27 +181,7 @@ export default function InvoicePage() {
         },
   })
 
-  // API hooks for invoices - Only fetch when List dialog is opened (optimized)
-  const {
-    data: invoicesResponse,
-    refetch: refetchInvoices,
-    isLoading: isLoadingInvoices,
-    isRefetching: isRefetchingInvoices,
-  } = useGetWithDates<IApInvoiceHd>(
-    `${ApInvoice.get}`,
-    TableName.apInvoice,
-    filters.search,
-    filters.startDate?.toString(),
-    filters.endDate?.toString(),
-    undefined, // options
-    false // enabled: Don't auto-fetch - only when List button is clicked
-  )
-
-  // Memoize invoice data to prevent unnecessary re-renders
-  const invoicesData = useMemo(
-    () => (invoicesResponse as ApiResponse<IApInvoiceHd>)?.data ?? [],
-    [invoicesResponse]
-  )
+  // Data fetching moved to InvoiceTable component for better performance
 
   // Mutations
   const saveMutation = usePersist<ApInvoiceHdSchemaType>(`${ApInvoice.add}`)
@@ -289,7 +268,7 @@ export default function InvoicePage() {
           //toast.success("Invoice updated successfully")
         }
 
-        refetchInvoices()
+        // Data refresh handled by InvoiceTable component
       } else {
         toast.error(response.message || "Failed to save invoice")
       }
@@ -350,7 +329,7 @@ export default function InvoicePage() {
           data_details: [],
         })
         //toast.success("Invoice deleted successfully")
-        refetchInvoices()
+        // Data refresh handled by InvoiceTable component
       } else {
         toast.error(response.message || "Failed to delete invoice")
       }
@@ -771,15 +750,10 @@ export default function InvoicePage() {
   // Remove direct refetchInvoices from handleFilterChange
   const handleFilterChange = (newFilters: IApInvoiceFilter) => {
     setFilters(newFilters)
-    // refetchInvoices(); // Removed: will be handled by useEffect
+    // Data refresh handled by InvoiceTable component
   }
 
-  // Refetch invoices when filters change (only if dialog is open)
-  useEffect(() => {
-    if (showListDialog) {
-      refetchInvoices()
-    }
-  }, [filters, showListDialog, refetchInvoices])
+  // Data refresh handled by InvoiceTable component
 
   // Add keyboard shortcuts
   useEffect(() => {
@@ -1090,16 +1064,10 @@ export default function InvoicePage() {
               variant="outline"
               size="sm"
               onClick={() => setShowListDialog(true)}
-              disabled={isLoadingInvoices || isRefetchingInvoices}
+              disabled={false}
             >
-              {isLoadingInvoices || isRefetchingInvoices ? (
-                <Spinner size="sm" className="mr-1" />
-              ) : (
-                <ListFilter className="mr-1 h-4 w-4" />
-              )}
-              {isLoadingInvoices || isRefetchingInvoices
-                ? "Loading..."
-                : "List"}
+              <ListFilter className="mr-1 h-4 w-4" />
+              List
             </Button>
 
             <Button
@@ -1204,7 +1172,7 @@ export default function InvoicePage() {
         onOpenChange={(open) => {
           setShowListDialog(open)
           if (open) {
-            refetchInvoices()
+            // Data refresh handled by InvoiceTable component
           }
         }}
       >
@@ -1226,32 +1194,11 @@ export default function InvoicePage() {
             </div>
           </DialogHeader>
 
-          {isLoadingInvoices || isRefetchingInvoices || isSelectingInvoice ? (
-            <div className="flex min-h-[60vh] items-center justify-center">
-              <div className="text-center">
-                <Spinner size="lg" className="mx-auto" />
-                <p className="mt-4 text-sm text-gray-600">
-                  {isSelectingInvoice
-                    ? "Loading invoice details..."
-                    : "Loading invoices..."}
-                </p>
-                <p className="mt-2 text-xs text-gray-500">
-                  {isSelectingInvoice
-                    ? "Please wait while we fetch the complete invoice data"
-                    : "Please wait while we fetch the invoice list"}
-                </p>
-              </div>
-            </div>
-          ) : (
-            <InvoiceTable
-              data={invoicesData || []}
-              isLoading={false}
-              onInvoiceSelect={handleInvoiceSelect}
-              onRefresh={() => refetchInvoices()}
-              onFilterChange={handleFilterChange}
-              initialFilters={filters}
-            />
-          )}
+          <InvoiceTable
+            onInvoiceSelect={handleInvoiceSelect}
+            onFilterChange={handleFilterChange}
+            initialFilters={filters}
+          />
         </DialogContent>
       </Dialog>
 

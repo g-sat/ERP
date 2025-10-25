@@ -1,9 +1,8 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useState } from "react"
 import { useParams } from "next/navigation"
 import { ICbBankTransfer, ICbBankTransferFilter } from "@/interfaces"
-import { ApiResponse } from "@/interfaces/auth"
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
 import { CbBankTransferSchema, CbBankTransferSchemaType } from "@/schemas"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -22,8 +21,8 @@ import { toast } from "sonner"
 import { getById } from "@/lib/api-client"
 import { CbBankTransfer } from "@/lib/api-routes"
 import { clientDateFormat, parseDate } from "@/lib/date-utils"
-import { CBTransactionId, ModuleId, TableName } from "@/lib/utils"
-import { useDelete, useGetWithDates, usePersist } from "@/hooks/use-common"
+import { CBTransactionId, ModuleId } from "@/lib/utils"
+import { useDelete, usePersist } from "@/hooks/use-common"
 import { useGetRequiredFields, useGetVisibleFields } from "@/hooks/use-lookup"
 import { Button } from "@/components/ui/button"
 import {
@@ -150,27 +149,7 @@ export default function BankTransferPage() {
         },
   })
 
-  // API hooks for bank transfers - Only fetch when List dialog is opened (optimized)
-  const {
-    data: bankTransfersResponse,
-    refetch: refetchBankTransfers,
-    isLoading: isLoadingBankTransfers,
-    isRefetching: isRefetchingBankTransfers,
-  } = useGetWithDates<ICbBankTransfer>(
-    `${CbBankTransfer.get}`,
-    TableName.cbBankTransfer,
-    filters.search,
-    filters.startDate?.toString(),
-    filters.endDate?.toString(),
-    undefined, // options
-    false // enabled: Don't auto-fetch - only when List button is clicked
-  )
-
-  // Memoize bankTransfer data to prevent unnecessary re-renders
-  const bankTransfersData = useMemo(
-    () => (bankTransfersResponse as ApiResponse<ICbBankTransfer>)?.data ?? [],
-    [bankTransfersResponse]
-  )
+  // Data fetching moved to BankTransferTable component for better performance
 
   // Mutations
   const saveMutation = usePersist<CbBankTransferSchemaType>(
@@ -264,7 +243,7 @@ export default function BankTransferPage() {
         // Close the save confirmation dialog
         setShowSaveConfirm(false)
 
-        refetchBankTransfers()
+        // Data refresh handled by BankTransferTable component
       } else {
         toast.error(response.message || "Failed to save Bank Transfer")
       }
@@ -313,7 +292,7 @@ export default function BankTransferPage() {
         setSearchNo("") // Clear search input
         setSearchNo("") // Clear search input
         form.reset(defaultBankTransfer)
-        refetchBankTransfers()
+        // Data refresh handled by BankTransferTable component
       } else {
         toast.error(response.message || "Failed to delete Bank Transfer")
       }
@@ -720,7 +699,7 @@ export default function BankTransferPage() {
         onOpenChange={(open) => {
           setShowListDialog(open)
           if (open) {
-            refetchBankTransfers()
+            // Data refresh handled by BankTransferTable component
           }
         }}
       >
@@ -742,9 +721,7 @@ export default function BankTransferPage() {
             </div>
           </DialogHeader>
 
-          {isLoadingBankTransfers ||
-          isRefetchingBankTransfers ||
-          isSelectingBankTransfer ? (
+          {isSelectingBankTransfer ? (
             <div className="flex min-h-[60vh] items-center justify-center">
               <div className="text-center">
                 <Spinner size="lg" className="mx-auto" />
@@ -762,10 +739,7 @@ export default function BankTransferPage() {
             </div>
           ) : (
             <BankTransferTable
-              data={bankTransfersData || []}
-              isLoading={false}
               onBankTransferSelect={handleBankTransferSelect}
-              onRefresh={() => refetchBankTransfers()}
               onFilterChange={handleFilterChange}
               initialFilters={filters}
             />

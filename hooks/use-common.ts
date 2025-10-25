@@ -3,7 +3,13 @@ import { UseQueryOptions, useMutation, useQuery } from "@tanstack/react-query"
 import { AxiosError } from "axios"
 import { toast } from "sonner"
 
-import { deleteData, getById, getData, saveData } from "@/lib/api-client"
+import {
+  deleteData,
+  deleteDataWithRemarks,
+  getById,
+  getData,
+  saveData,
+} from "@/lib/api-client"
 
 // ==================== COMMON TYPES & CONFIGS ====================
 type QueryParams = {
@@ -197,6 +203,27 @@ export function usePersist<T>(baseUrl: string) {
 export function useDelete<T = unknown>(baseUrl: string) {
   return useMutation<ApiResponse<T>, AxiosError<{ message?: string }>, string>({
     mutationFn: async (id) => await deleteData(`${cleanUrl(baseUrl)}/${id}`),
+    onSuccess: handleMutationResponse,
+    onError: handleMutationError,
+  })
+}
+
+/**
+ * Delete with cancel remarks hook
+ */
+export function useDeleteWithRemarks<T = unknown>(baseUrl: string) {
+  return useMutation<
+    ApiResponse<T>,
+    AxiosError<{ message?: string }>,
+    { documentId: string; documentNo: string; cancelRemarks: string }
+  >({
+    mutationFn: async ({ documentId, documentNo, cancelRemarks }) =>
+      await deleteDataWithRemarks(
+        cleanUrl(baseUrl),
+        documentId,
+        documentNo,
+        cancelRemarks
+      ),
     onSuccess: handleMutationResponse,
     onError: handleMutationError,
   })

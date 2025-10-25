@@ -1,9 +1,8 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useState } from "react"
 import { useParams } from "next/navigation"
 import { IArInvoiceDt, IArInvoiceFilter, IArInvoiceHd } from "@/interfaces"
-import { ApiResponse } from "@/interfaces/auth"
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
 import {
   ArInvoiceDtSchemaType,
@@ -26,8 +25,8 @@ import { toast } from "sonner"
 import { getById } from "@/lib/api-client"
 import { ArInvoice } from "@/lib/api-routes"
 import { clientDateFormat, parseDate } from "@/lib/date-utils"
-import { ARTransactionId, ModuleId, TableName } from "@/lib/utils"
-import { useDelete, useGetWithDates, usePersist } from "@/hooks/use-common"
+import { ARTransactionId, ModuleId } from "@/lib/utils"
+import { useDeleteWithRemarks, usePersist } from "@/hooks/use-common"
 import { useGetRequiredFields, useGetVisibleFields } from "@/hooks/use-lookup"
 import { Button } from "@/components/ui/button"
 import {
@@ -40,6 +39,7 @@ import { Input } from "@/components/ui/input"
 import { Spinner } from "@/components/ui/spinner"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
+  CancelConfirmation,
   CloneConfirmation,
   DeleteConfirmation,
   LoadConfirmation,
@@ -63,11 +63,11 @@ export default function InvoicePage() {
   const [showListDialog, setShowListDialog] = useState(false)
   const [showSaveConfirm, setShowSaveConfirm] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false)
   const [showLoadConfirm, setShowLoadConfirm] = useState(false)
   const [showResetConfirm, setShowResetConfirm] = useState(false)
   const [showCloneConfirm, setShowCloneConfirm] = useState(false)
   const [isLoadingInvoice, setIsLoadingInvoice] = useState(false)
-  const [isSelectingInvoice, setIsSelectingInvoice] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [invoice, setInvoice] = useState<ArInvoiceHdSchemaType | null>(null)
   const [searchNo, setSearchNo] = useState("")
@@ -182,32 +182,12 @@ export default function InvoicePage() {
         },
   })
 
-  // API hooks for invoices - Only fetch when List dialog is opened (optimized)
-  const {
-    data: invoicesResponse,
-    refetch: refetchInvoices,
-    isLoading: isLoadingInvoices,
-    isRefetching: isRefetchingInvoices,
-  } = useGetWithDates<IArInvoiceHd>(
-    `${ArInvoice.get}`,
-    TableName.arInvoice,
-    filters.search,
-    filters.startDate?.toString(),
-    filters.endDate?.toString(),
-    undefined, // options
-    false // enabled: Don't auto-fetch - only when List button is clicked
-  )
-
-  // Memoize invoice data to prevent unnecessary re-renders
-  const invoicesData = useMemo(
-    () => (invoicesResponse as ApiResponse<IArInvoiceHd>)?.data ?? [],
-    [invoicesResponse]
-  )
+  // Data fetching moved to InvoiceTable component for better performance
 
   // Mutations
   const saveMutation = usePersist<ArInvoiceHdSchemaType>(`${ArInvoice.add}`)
   const updateMutation = usePersist<ArInvoiceHdSchemaType>(`${ArInvoice.add}`)
-  const deleteMutation = useDelete(`${ArInvoice.delete}`)
+  const deleteMutation = useDeleteWithRemarks(`${ArInvoice.delete}`)
 
   // Remove the useGetInvoiceById hook for selection
   // const { data: invoiceByIdData, refetch: refetchInvoiceById } = ...
@@ -269,7 +249,6 @@ export default function InvoicePage() {
           const updatedSchemaType = transformToSchemaType(
             invoiceData as unknown as IArInvoiceHd
           )
-          setIsSelectingInvoice(true)
           setInvoice(updatedSchemaType)
           form.reset(updatedSchemaType)
           form.trigger()
@@ -289,7 +268,7 @@ export default function InvoicePage() {
           //toast.success("Invoice updated successfully")
         }
 
-        refetchInvoices()
+        // Data refresh handled by InvoiceTable component
       } else {
         toast.error(response.message || "Failed to save invoice")
       }
@@ -298,7 +277,6 @@ export default function InvoicePage() {
       toast.error("Network error while saving invoice")
     } finally {
       setIsSaving(false)
-      setIsSelectingInvoice(false)
     }
   }
 
@@ -334,14 +312,28 @@ export default function InvoicePage() {
     }
   }
 
-  // Handle Delete
-  const handleInvoiceDelete = async () => {
+  // Handle Delete - First Level: Confirmation
+  const handleDeleteConfirmation = () => {
+    // Close delete confirmation and open cancel confirmation
+    setShowDeleteConfirm(false)
+    setShowCancelConfirm(true)
+  }
+
+  // Handle Delete - Second Level: With Cancel Remarks
+  const handleInvoiceDelete = async (cancelRemarks: string) => {
     if (!invoice) return
 
     try {
-      const response = await deleteMutation.mutateAsync(
-        invoice.invoiceId?.toString() ?? ""
-      )
+      console.log("Cancel remarks:", cancelRemarks)
+      console.log("Invoice ID:", invoice.invoiceId)
+      console.log("Invoice No:", invoice.invoiceNo)
+
+      const response = await deleteMutation.mutateAsync({
+        documentId: invoice.invoiceId?.toString() ?? "",
+        documentNo: invoice.invoiceNo ?? "",
+        cancelRemarks: cancelRemarks,
+      })
+
       if (response.result === 1) {
         setInvoice(null)
         setSearchNo("") // Clear search input
@@ -349,8 +341,8 @@ export default function InvoicePage() {
           ...defaultInvoice,
           data_details: [],
         })
-        //toast.success("Invoice deleted successfully")
-        refetchInvoices()
+        toast.success(`Invoice ${invoice.invoiceNo} deleted successfully`)
+        // Data refresh handled by InvoiceTable component
       } else {
         toast.error(response.message || "Failed to delete invoice")
       }
@@ -558,8 +550,6 @@ export default function InvoicePage() {
   ) => {
     if (!selectedInvoice) return
 
-    setIsSelectingInvoice(true)
-
     try {
       // Fetch invoice details directly using selected invoice's values
       const response = await getById(
@@ -754,22 +744,17 @@ export default function InvoicePage() {
       toast.error("Error loading invoice. Please try again.")
       // Keep dialog open on error
     } finally {
-      setIsSelectingInvoice(false)
+      // Selection completed
     }
   }
 
   // Remove direct refetchInvoices from handleFilterChange
   const handleFilterChange = (newFilters: IArInvoiceFilter) => {
     setFilters(newFilters)
-    // refetchInvoices(); // Removed: will be handled by useEffect
+    // Data refresh handled by InvoiceTable component
   }
 
-  // Refetch invoices when filters change (only if dialog is open)
-  useEffect(() => {
-    if (showListDialog) {
-      refetchInvoices()
-    }
-  }, [filters, showListDialog, refetchInvoices])
+  // Data refresh handled by InvoiceTable component
 
   // Add keyboard shortcuts
   useEffect(() => {
@@ -1079,16 +1064,10 @@ export default function InvoicePage() {
               variant="outline"
               size="sm"
               onClick={() => setShowListDialog(true)}
-              disabled={isLoadingInvoices || isRefetchingInvoices}
+              disabled={false}
             >
-              {isLoadingInvoices || isRefetchingInvoices ? (
-                <Spinner size="sm" className="mr-1" />
-              ) : (
-                <ListFilter className="mr-1 h-4 w-4" />
-              )}
-              {isLoadingInvoices || isRefetchingInvoices
-                ? "Loading..."
-                : "List"}
+              <ListFilter className="mr-1 h-4 w-4" />
+              List
             </Button>
 
             <Button
@@ -1193,7 +1172,7 @@ export default function InvoicePage() {
         onOpenChange={(open) => {
           setShowListDialog(open)
           if (open) {
-            refetchInvoices()
+            // Data refresh handled by InvoiceTable component
           }
         }}
       >
@@ -1215,32 +1194,11 @@ export default function InvoicePage() {
             </div>
           </DialogHeader>
 
-          {isLoadingInvoices || isRefetchingInvoices || isSelectingInvoice ? (
-            <div className="flex min-h-[60vh] items-center justify-center">
-              <div className="text-center">
-                <Spinner size="lg" className="mx-auto" />
-                <p className="mt-4 text-sm text-gray-600">
-                  {isSelectingInvoice
-                    ? "Loading invoice details..."
-                    : "Loading invoices..."}
-                </p>
-                <p className="mt-2 text-xs text-gray-500">
-                  {isSelectingInvoice
-                    ? "Please wait while we fetch the complete invoice data"
-                    : "Please wait while we fetch the invoice list"}
-                </p>
-              </div>
-            </div>
-          ) : (
-            <InvoiceTable
-              data={invoicesData || []}
-              isLoading={false}
-              onInvoiceSelect={handleInvoiceSelect}
-              onRefresh={() => refetchInvoices()}
-              onFilterChange={handleFilterChange}
-              initialFilters={filters}
-            />
-          )}
+          <InvoiceTable
+            onInvoiceSelect={handleInvoiceSelect}
+            onFilterChange={handleFilterChange}
+            initialFilters={filters}
+          />
         </DialogContent>
       </Dialog>
 
@@ -1258,15 +1216,26 @@ export default function InvoicePage() {
         }
       />
 
-      {/* Delete Confirmation */}
+      {/* Delete Confirmation - First Level */}
       <DeleteConfirmation
         open={showDeleteConfirm}
         onOpenChange={setShowDeleteConfirm}
-        onConfirm={handleInvoiceDelete}
+        onConfirm={() => handleDeleteConfirmation()}
         itemName={invoice?.invoiceNo}
         title="Delete Invoice"
-        description="This action cannot be undone. All invoice details will be permanently deleted."
-        isDeleting={deleteMutation.isPending}
+        description="Are you sure you want to delete this invoice? You will be asked to provide a reason."
+        isDeleting={false}
+      />
+
+      {/* Cancel Confirmation - Second Level */}
+      <CancelConfirmation
+        open={showCancelConfirm}
+        onOpenChange={setShowCancelConfirm}
+        onConfirmAction={handleInvoiceDelete}
+        itemName={invoice?.invoiceNo}
+        title="Cancel Invoice"
+        description="Please provide a reason for cancelling this invoice."
+        isCancelling={deleteMutation.isPending}
       />
 
       {/* Load Confirmation */}

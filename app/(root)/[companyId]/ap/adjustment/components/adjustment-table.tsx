@@ -8,26 +8,22 @@ import { ColumnDef } from "@tanstack/react-table"
 import { format, subMonths } from "date-fns"
 import { FormProvider, useForm } from "react-hook-form"
 
+import { ApAdjustment } from "@/lib/api-routes"
 import { APTransactionId, ModuleId, TableName } from "@/lib/utils"
+import { useGetWithDates } from "@/hooks/use-common"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { CustomDateNew } from "@/components/custom/custom-date-new"
 import { DialogDataTable } from "@/components/table/table-dialog"
 
 export interface AdjustmentTableProps {
-  data: IApAdjustmentHd[]
-  isLoading: boolean
   onAdjustmentSelect: (selectedAdjustment: IApAdjustmentHd | undefined) => void
-  onRefresh: () => void
   onFilterChange: (filters: IApAdjustmentFilter) => void
   initialFilters?: IApAdjustmentFilter
 }
 
 export default function AdjustmentTable({
-  data,
-  isLoading = false,
   onAdjustmentSelect,
-  onRefresh,
   onFilterChange,
   initialFilters,
 }: AdjustmentTableProps) {
@@ -53,6 +49,25 @@ export default function AdjustmentTable({
   const [searchQuery] = useState("")
   const [currentPage] = useState(1)
   const [pageSize] = useState(10)
+
+  // Data fetching - only when table is opened
+  const {
+    data: adjustmentsResponse,
+    isLoading: isLoadingAdjustments,
+    isRefetching: isRefetchingAdjustments,
+    refetch: refetchAdjustments,
+  } = useGetWithDates<IApAdjustmentHd>(
+    `${ApAdjustment.get}`,
+    TableName.apAdjustment,
+    searchQuery,
+    form.watch("startDate")?.toString(),
+    form.watch("endDate")?.toString(),
+    undefined, // options
+    true // enabled: Fetch when table is opened
+  )
+
+  const data = adjustmentsResponse?.data || []
+  const isLoading = isLoadingAdjustments || isRefetchingAdjustments
 
   const formatNumber = (value: number, decimals: number) => {
     return value.toLocaleString(undefined, {
@@ -295,6 +310,21 @@ export default function AdjustmentTable({
     }
   }
 
+  // Show loading spinner while data is loading
+  if (isLoadingAdjustments) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="text-center">
+          <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-gray-300 border-t-blue-600"></div>
+          <p className="mt-4 text-sm text-gray-600">Loading adjustments...</p>
+          <p className="mt-2 text-xs text-gray-500">
+            Please wait while we fetch the adjustment list
+          </p>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="w-full overflow-auto">
       <FormProvider {...form}>
@@ -336,7 +366,7 @@ export default function AdjustmentTable({
         transactionId={transactionId}
         tableName={TableName.apAdjustment}
         emptyMessage="No data found."
-        onRefresh={onRefresh}
+        onRefresh={() => refetchAdjustments()}
         onFilterChange={handleDialogFilterChange}
         onRowSelect={(row) => onAdjustmentSelect(row || undefined)}
       />

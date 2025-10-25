@@ -1,13 +1,12 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useState } from "react"
 import { useParams } from "next/navigation"
 import {
   IApDocsetoffDt,
   IApDocsetoffFilter,
   IApDocsetoffHd,
 } from "@/interfaces"
-import { ApiResponse } from "@/interfaces/auth"
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
 import {
   ApDocsetoffDtSchemaType,
@@ -31,8 +30,8 @@ import { toast } from "sonner"
 import { getById } from "@/lib/api-client"
 import { ApDocsetoff } from "@/lib/api-routes"
 import { clientDateFormat, parseDate } from "@/lib/date-utils"
-import { APTransactionId, ModuleId, TableName } from "@/lib/utils"
-import { useDelete, useGetWithDates, usePersist } from "@/hooks/use-common"
+import { APTransactionId, ModuleId } from "@/lib/utils"
+import { useDelete, usePersist } from "@/hooks/use-common"
 import { useGetRequiredFields, useGetVisibleFields } from "@/hooks/use-lookup"
 import { Button } from "@/components/ui/button"
 import {
@@ -171,27 +170,7 @@ export default function DocsetoffPage() {
         },
   })
 
-  // API hooks for payments - Only fetch when List dialog is opened (optimized)
-  const {
-    data: paymentsResponse,
-    refetch: refetchPayments,
-    isLoading: isLoadingDocsetoffs,
-    isRefetching: isRefetchingPayments,
-  } = useGetWithDates<IApDocsetoffHd>(
-    `${ApDocsetoff.get}`,
-    TableName.apPayment,
-    filters.search,
-    filters.startDate?.toString(),
-    filters.endDate?.toString(),
-    undefined, // options
-    false // enabled: Don't auto-fetch - only when List button is clicked
-  )
-
-  // Memoize docsetoff data to prevent unnecessary re-renders
-  const paymentsData = useMemo(
-    () => (paymentsResponse as ApiResponse<IApDocsetoffHd>)?.data ?? [],
-    [paymentsResponse]
-  )
+  // Data fetching moved to DocsetoffTable component for better performance
 
   // Mutations
   const saveMutation = usePersist<ApDocsetoffHdSchemaType>(`${ApDocsetoff.add}`)
@@ -284,7 +263,7 @@ export default function DocsetoffPage() {
           //toast.success("Docsetoff updated successfully")
         }
 
-        refetchPayments()
+        // Data refresh handled by DocsetoffTable component
       } else {
         toast.error(response.message || "Failed to save docsetoff")
       }
@@ -344,7 +323,7 @@ export default function DocsetoffPage() {
           data_details: [],
         })
         //toast.success("Docsetoff deleted successfully")
-        refetchPayments()
+        // Data refresh handled by DocsetoffTable component
       } else {
         toast.error(response.message || "Failed to delete docsetoff")
       }
@@ -606,12 +585,7 @@ export default function DocsetoffPage() {
     // refetchPayments(); // Removed: will be handled by useEffect
   }
 
-  // Refetch payments when filters change (only if dialog is open)
-  useEffect(() => {
-    if (showListDialog) {
-      refetchPayments()
-    }
-  }, [filters, showListDialog, refetchPayments])
+  // Data refresh handled by DocsetoffTable component
 
   // Add keyboard shortcuts
   useEffect(() => {
@@ -878,16 +852,10 @@ export default function DocsetoffPage() {
               variant="outline"
               size="sm"
               onClick={() => setShowListDialog(true)}
-              disabled={isLoadingDocsetoffs || isRefetchingPayments}
+              disabled={false}
             >
-              {isLoadingDocsetoffs || isRefetchingPayments ? (
-                <Spinner size="sm" className="mr-1" />
-              ) : (
-                <ListFilter className="mr-1 h-4 w-4" />
-              )}
-              {isLoadingDocsetoffs || isRefetchingPayments
-                ? "Loading..."
-                : "List"}
+              <ListFilter className="mr-1 h-4 w-4" />
+              List
             </Button>
 
             <Button
@@ -992,7 +960,7 @@ export default function DocsetoffPage() {
         onOpenChange={(open) => {
           setShowListDialog(open)
           if (open) {
-            refetchPayments()
+            // Data refresh handled by DocsetoffTable component
           }
         }}
       >
@@ -1014,7 +982,7 @@ export default function DocsetoffPage() {
             </div>
           </DialogHeader>
 
-          {isLoadingDocsetoffs || isRefetchingPayments || isSelectingPayment ? (
+          {isSelectingPayment ? (
             <div className="flex min-h-[60vh] items-center justify-center">
               <div className="text-center">
                 <Spinner size="lg" className="mx-auto" />
@@ -1032,10 +1000,7 @@ export default function DocsetoffPage() {
             </div>
           ) : (
             <DocsetoffTable
-              data={paymentsData || []}
-              isLoading={false}
               onPaymentSelect={handlePaymentSelect}
-              onRefresh={() => refetchPayments()}
               onFilterChange={handleFilterChange}
               initialFilters={filters}
             />

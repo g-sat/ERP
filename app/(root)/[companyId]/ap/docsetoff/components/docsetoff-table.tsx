@@ -5,26 +5,22 @@ import { ColumnDef } from "@tanstack/react-table"
 import { format, subMonths } from "date-fns"
 import { FormProvider, useForm } from "react-hook-form"
 
+import { ApDocSetOff } from "@/lib/api-routes"
 import { APTransactionId, ModuleId, TableName } from "@/lib/utils"
+import { useGetWithDates } from "@/hooks/use-common"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { CustomDateNew } from "@/components/custom/custom-date-new"
 import { DialogDataTable } from "@/components/table/table-dialog"
 
 export interface DocsetoffTableProps {
-  data: IApDocsetoffHd[]
-  isLoading: boolean
   onPaymentSelect: (selectedPayment: IApDocsetoffHd | undefined) => void
-  onRefresh: () => void
   onFilterChange: (filters: IApDocsetoffFilter) => void
   initialFilters?: IApDocsetoffFilter
 }
 
 export default function DocsetoffTable({
-  data,
-  isLoading = false,
   onPaymentSelect,
-  onRefresh,
   onFilterChange,
   initialFilters,
 }: DocsetoffTableProps) {
@@ -50,6 +46,25 @@ export default function DocsetoffTable({
   const [searchQuery] = useState("")
   const [currentPage] = useState(1)
   const [pageSize] = useState(10)
+
+  // Data fetching - only when table is opened
+  const {
+    data: docsetoffsResponse,
+    isLoading: isLoadingDocsetoffs,
+    isRefetching: isRefetchingDocsetoffs,
+    refetch: refetchDocsetoffs,
+  } = useGetWithDates<IApDocsetoffHd>(
+    `${ApDocSetOff.get}`,
+    TableName.apDocSetOff,
+    searchQuery,
+    form.watch("startDate")?.toString(),
+    form.watch("endDate")?.toString(),
+    undefined, // options
+    true // enabled: Fetch when table is opened
+  )
+
+  const data = docsetoffsResponse?.data || []
+  const isLoading = isLoadingDocsetoffs || isRefetchingDocsetoffs
 
   const formatNumber = (value: number, decimals: number) => {
     return value.toLocaleString(undefined, {
@@ -306,6 +321,23 @@ export default function DocsetoffTable({
     }
   }
 
+  // Show loading spinner while data is loading
+  if (isLoadingDocsetoffs) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="text-center">
+          <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-gray-300 border-t-blue-600"></div>
+          <p className="mt-4 text-sm text-gray-600">
+            Loading document setoffs...
+          </p>
+          <p className="mt-2 text-xs text-gray-500">
+            Please wait while we fetch the document setoff list
+          </p>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="w-full overflow-auto">
       <FormProvider {...form}>
@@ -347,7 +379,7 @@ export default function DocsetoffTable({
         transactionId={transactionId}
         tableName={TableName.apPayment}
         emptyMessage="No data found."
-        onRefresh={onRefresh}
+        onRefresh={() => refetchDocsetoffs()}
         onFilterChange={handleDialogFilterChange}
         onRowSelect={(row) => onPaymentSelect(row || undefined)}
       />

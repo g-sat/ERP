@@ -1,9 +1,8 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useState } from "react"
 import { useParams } from "next/navigation"
 import { IGLContraFilter, IGLContraHd } from "@/interfaces"
-import { ApiResponse } from "@/interfaces/auth"
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
 import { GLContraHdSchemaType, glcontraHdSchema } from "@/schemas/gl-arapcontra"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -22,8 +21,8 @@ import { toast } from "sonner"
 import { getById } from "@/lib/api-client"
 import { GlContra } from "@/lib/api-routes"
 import { clientDateFormat, parseDate } from "@/lib/date-utils"
-import { GLTransactionId, ModuleId, TableName } from "@/lib/utils"
-import { useDelete, useGetWithDates, usePersist } from "@/hooks/use-common"
+import { GLTransactionId, ModuleId } from "@/lib/utils"
+import { useDelete, usePersist } from "@/hooks/use-common"
 import { useGetRequiredFields, useGetVisibleFields } from "@/hooks/use-lookup"
 import { Button } from "@/components/ui/button"
 import {
@@ -101,27 +100,7 @@ export default function GLContraPage() {
     },
   })
 
-  // API hooks for contra list - Only fetch when List dialog is opened (optimized)
-  const {
-    data: contraResponse,
-    refetch: refetchContraList,
-    isLoading: isLoadingContraList,
-    isRefetching: isRefetchingContraList,
-  } = useGetWithDates<IGLContraHd>(
-    `${GlContra.get}`,
-    TableName.arApContra,
-    filters.search,
-    filters.startDate?.toString(),
-    filters.endDate?.toString(),
-    undefined, // options
-    false // enabled: Don't auto-fetch - only when List button is clicked
-  )
-
-  // Memoize contra data to prevent unnecessary re-renders
-  const contraListData = useMemo(
-    () => (contraResponse as ApiResponse<IGLContraHd>)?.data ?? [],
-    [contraResponse]
-  )
+  // Data fetching moved to ArapcontraTable component for better performance
 
   // Mutations
   const saveMutation = usePersist<GLContraHdSchemaType>(`${GlContra.add}`)
@@ -300,7 +279,7 @@ export default function GLContraPage() {
         // Close the save confirmation dialog
         setShowSaveConfirm(false)
 
-        refetchContraList()
+        // Data refresh handled by ContraTable component
       } else {
         toast.error(response.message || "Failed to save contra")
       }
@@ -328,7 +307,7 @@ export default function GLContraPage() {
           ...defaultContra,
           data_details: [],
         })
-        refetchContraList()
+        // Data refresh handled by ContraTable component
       } else {
         toast.error(response.message || "Failed to delete contra")
       }
@@ -460,12 +439,7 @@ export default function GLContraPage() {
     setFilters(newFilters)
   }
 
-  // Refetch contra list when filters change (only if dialog is open)
-  useEffect(() => {
-    if (showListDialog) {
-      refetchContraList()
-    }
-  }, [filters, showListDialog, refetchContraList])
+  // Data refresh handled by ContraTable component
 
   // Add keyboard shortcuts
   useEffect(() => {
@@ -666,7 +640,7 @@ export default function GLContraPage() {
         onOpenChange={(open) => {
           setShowListDialog(open)
           if (open) {
-            refetchContraList()
+            // Data refresh handled by ContraTable component
           }
         }}
       >
@@ -688,9 +662,7 @@ export default function GLContraPage() {
             </div>
           </DialogHeader>
 
-          {isLoadingContraList ||
-          isRefetchingContraList ||
-          isSelectingContra ? (
+          {isSelectingContra ? (
             <div className="flex min-h-[60vh] items-center justify-center">
               <div className="text-center">
                 <Spinner size="lg" className="mx-auto" />
@@ -708,10 +680,7 @@ export default function GLContraPage() {
             </div>
           ) : (
             <ContraTable
-              data={contraListData || []}
-              isLoading={false}
               onArapcontraSelect={handleContraSelect}
-              onRefresh={() => refetchContraList()}
               onFilterChange={handleFilterChange}
               initialFilters={filters}
             />

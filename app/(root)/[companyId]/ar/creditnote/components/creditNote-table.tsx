@@ -5,26 +5,22 @@ import { ColumnDef } from "@tanstack/react-table"
 import { format, subMonths } from "date-fns"
 import { FormProvider, useForm } from "react-hook-form"
 
+import { ArCreditNote } from "@/lib/api-routes"
 import { ARTransactionId, ModuleId, TableName } from "@/lib/utils"
+import { useGetWithDates } from "@/hooks/use-common"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { CustomDateNew } from "@/components/custom/custom-date-new"
 import { DialogDataTable } from "@/components/table/table-dialog"
 
 export interface CreditNoteTableProps {
-  data: IArCreditNoteHd[]
-  isLoading: boolean
   onCreditNoteSelect: (selectedCreditNote: IArCreditNoteHd | undefined) => void
-  onRefresh: () => void
   onFilterChange: (filters: IArCreditNoteFilter) => void
   initialFilters?: IArCreditNoteFilter
 }
 
 export default function CreditNoteTable({
-  data,
-  isLoading = false,
   onCreditNoteSelect,
-  onRefresh,
   onFilterChange,
   initialFilters,
 }: CreditNoteTableProps) {
@@ -50,6 +46,25 @@ export default function CreditNoteTable({
   const [searchQuery] = useState("")
   const [currentPage] = useState(1)
   const [pageSize] = useState(10)
+
+  // Data fetching - only when table is opened
+  const {
+    data: creditNotesResponse,
+    isLoading: isLoadingCreditNotes,
+    isRefetching: isRefetchingCreditNotes,
+    refetch: refetchCreditNotes,
+  } = useGetWithDates<IArCreditNoteHd>(
+    `${ArCreditNote.get}`,
+    TableName.arCreditNote,
+    searchQuery,
+    form.watch("startDate")?.toString(),
+    form.watch("endDate")?.toString(),
+    undefined, // options
+    true // enabled: Fetch when table is opened
+  )
+
+  const data = creditNotesResponse?.data || []
+  const isLoading = isLoadingCreditNotes || isRefetchingCreditNotes
 
   const formatNumber = (value: number, decimals: number) => {
     return value.toLocaleString(undefined, {
@@ -292,6 +307,21 @@ export default function CreditNoteTable({
     }
   }
 
+  // Show loading spinner while data is loading
+  if (isLoadingCreditNotes) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="text-center">
+          <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-gray-300 border-t-blue-600"></div>
+          <p className="mt-4 text-sm text-gray-600">Loading credit notes...</p>
+          <p className="mt-2 text-xs text-gray-500">
+            Please wait while we fetch the credit note list
+          </p>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="w-full overflow-auto">
       <FormProvider {...form}>
@@ -333,7 +363,7 @@ export default function CreditNoteTable({
         transactionId={transactionId}
         tableName={TableName.arCreditNote}
         emptyMessage="No data found."
-        onRefresh={onRefresh}
+        onRefresh={() => refetchCreditNotes()}
         onFilterChange={handleDialogFilterChange}
         onRowSelect={(row) => onCreditNoteSelect(row || undefined)}
       />

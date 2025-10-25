@@ -1,8 +1,7 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useState } from "react"
 import { useParams } from "next/navigation"
-import { ApiResponse } from "@/interfaces/auth"
 import { IGLJournalFilter, IGLJournalHd } from "@/interfaces/gl-journalentry"
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
 import {
@@ -26,8 +25,8 @@ import { toast } from "sonner"
 import { getById } from "@/lib/api-client"
 import { GLJournalEntry } from "@/lib/api-routes"
 import { clientDateFormat, parseDate } from "@/lib/date-utils"
-import { GLTransactionId, ModuleId, TableName } from "@/lib/utils"
-import { useDelete, useGetWithDates, usePersist } from "@/hooks/use-common"
+import { GLTransactionId, ModuleId } from "@/lib/utils"
+import { useDelete, usePersist } from "@/hooks/use-common"
 import { useGetRequiredFields, useGetVisibleFields } from "@/hooks/use-lookup"
 import { Button } from "@/components/ui/button"
 import {
@@ -146,27 +145,7 @@ export default function JournalEntryPage() {
         },
   })
 
-  // API hooks for journals - Only fetch when List dialog is opened (optimized)
-  const {
-    data: journalsResponse,
-    refetch: refetchJournals,
-    isLoading: isLoadingJournals,
-    isRefetching: isRefetchingJournals,
-  } = useGetWithDates<IGLJournalHd>(
-    `${GLJournalEntry.get}`,
-    TableName.journalEntry,
-    filters.search,
-    filters.startDate?.toString(),
-    filters.endDate?.toString(),
-    undefined, // options
-    false // enabled: Don't auto-fetch - only when List button is clicked
-  )
-
-  // Memoize journal data to prevent unnecessary re-renders
-  const journalsData = useMemo(
-    () => (journalsResponse as ApiResponse<IGLJournalHd>)?.data ?? [],
-    [journalsResponse]
-  )
+  // Data fetching moved to JournalTable component for better performance
 
   // Mutations
   const saveMutation = usePersist<GLJournalHdSchemaType>(
@@ -260,7 +239,7 @@ export default function JournalEntryPage() {
         // Close the save confirmation dialog
         setShowSaveConfirm(false)
 
-        refetchJournals()
+        // Data refresh handled by JournalTable component
       } else {
         toast.error(response.message || "Failed to save Journal Entry")
       }
@@ -315,7 +294,7 @@ export default function JournalEntryPage() {
           ...defaultJournal,
           data_details: [],
         })
-        refetchJournals()
+        // Data refresh handled by JournalTable component
       } else {
         toast.error(response.message || "Failed to delete Journal Entry")
       }
@@ -519,12 +498,7 @@ export default function JournalEntryPage() {
     setFilters(newFilters)
   }
 
-  // Refetch journals when filters change (only if dialog is open)
-  useEffect(() => {
-    if (showListDialog) {
-      refetchJournals()
-    }
-  }, [filters, showListDialog, refetchJournals])
+  // Data refresh handled by JournalTable component
 
   // Add keyboard shortcuts
   useEffect(() => {
@@ -676,16 +650,10 @@ export default function JournalEntryPage() {
               variant="outline"
               size="sm"
               onClick={() => setShowListDialog(true)}
-              disabled={isLoadingJournals || isRefetchingJournals}
+              disabled={false}
             >
-              {isLoadingJournals || isRefetchingJournals ? (
-                <Spinner size="sm" className="mr-1" />
-              ) : (
-                <ListFilter className="mr-1 h-4 w-4" />
-              )}
-              {isLoadingJournals || isRefetchingJournals
-                ? "Loading..."
-                : "List"}
+              <ListFilter className="mr-1 h-4 w-4" />
+              List
             </Button>
 
             <Button
@@ -789,7 +757,7 @@ export default function JournalEntryPage() {
         onOpenChange={(open) => {
           setShowListDialog(open)
           if (open) {
-            refetchJournals()
+            // Data refresh handled by JournalTable component
           }
         }}
       >
@@ -812,7 +780,7 @@ export default function JournalEntryPage() {
             </div>
           </DialogHeader>
 
-          {isLoadingJournals || isRefetchingJournals || isSelectingJournal ? (
+          {isSelectingJournal ? (
             <div className="flex min-h-[60vh] items-center justify-center">
               <div className="text-center">
                 <Spinner size="lg" className="mx-auto" />
@@ -830,10 +798,7 @@ export default function JournalEntryPage() {
             </div>
           ) : (
             <JournalTable
-              data={journalsData || []}
-              isLoading={false}
               onJournalSelect={handleJournalSelect}
-              onRefresh={() => refetchJournals()}
               onFilterChange={handleFilterChange}
               initialFilters={filters}
             />

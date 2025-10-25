@@ -4,7 +4,9 @@ import { useAuthStore } from "@/stores/auth-store"
 import { ColumnDef } from "@tanstack/react-table"
 import { format, subMonths } from "date-fns"
 import { FormProvider, useForm } from "react-hook-form"
+import { useGetWithDates } from "@/hooks/use-common"
 
+import { GlJournalEntry } from "@/lib/api-routes"
 import { GLTransactionId, ModuleId, TableName } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
@@ -12,19 +14,13 @@ import { CustomDateNew } from "@/components/custom/custom-date-new"
 import { DialogDataTable } from "@/components/table/table-dialog"
 
 export interface JournalTableProps {
-  data: IGLJournalHd[]
-  isLoading: boolean
   onJournalSelect: (selectedJournal: IGLJournalHd | undefined) => void
-  onRefresh: () => void
   onFilterChange: (filters: IGLJournalFilter) => void
   initialFilters?: IGLJournalFilter
 }
 
 export default function JournalTable({
-  data,
-  isLoading = false,
   onJournalSelect,
-  onRefresh,
   onFilterChange,
   initialFilters,
 }: JournalTableProps) {
@@ -49,6 +45,25 @@ export default function JournalTable({
   const [searchQuery] = useState("")
   const [currentPage] = useState(1)
   const [pageSize] = useState(10)
+
+  // Data fetching - only when table is opened
+  const {
+    data: journalsResponse,
+    isLoading: isLoadingJournals,
+    isRefetching: isRefetchingJournals,
+    refetch: refetchJournals,
+  } = useGetWithDates<IGLJournalHd>(
+    `${GlJournalEntry.get}`,
+    TableName.glJournalEntry,
+    searchQuery,
+    form.watch("startDate")?.toString(),
+    form.watch("endDate")?.toString(),
+    undefined, // options
+    true // enabled: Fetch when table is opened
+  )
+
+  const data = journalsResponse?.data || []
+  const isLoading = isLoadingJournals || isRefetchingJournals
 
   const formatNumber = (value: number, decimals: number) => {
     return value.toLocaleString(undefined, {
@@ -243,6 +258,21 @@ export default function JournalTable({
     }
   }
 
+  // Show loading spinner while data is loading
+  if (isLoadingJournals) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="text-center">
+          <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-gray-300 border-t-blue-600"></div>
+          <p className="mt-4 text-sm text-gray-600">Loading journal entries...</p>
+          <p className="mt-2 text-xs text-gray-500">
+            Please wait while we fetch the journal entry list
+          </p>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="flex flex-col gap-2">
       <FormProvider {...form}>
@@ -275,7 +305,7 @@ export default function JournalTable({
         transactionId={transactionId}
         tableName={TableName.journalEntry}
         emptyMessage="No data found."
-        onRefresh={onRefresh}
+        onRefresh={() => refetchJournals()}
         onFilterChange={handleDialogFilterChange}
         onRowSelect={(row: IGLJournalHd | null) =>
           onJournalSelect(row || undefined)

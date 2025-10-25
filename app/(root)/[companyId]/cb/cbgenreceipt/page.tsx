@@ -1,8 +1,7 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useState } from "react"
 import { useParams } from "next/navigation"
-import { ApiResponse } from "@/interfaces/auth"
 import {
   ICbGenReceiptFilter,
   ICbGenReceiptHd,
@@ -29,8 +28,8 @@ import { toast } from "sonner"
 import { getById } from "@/lib/api-client"
 import { CbReceipt } from "@/lib/api-routes"
 import { clientDateFormat, parseDate } from "@/lib/date-utils"
-import { CBTransactionId, ModuleId, TableName } from "@/lib/utils"
-import { useDelete, useGetWithDates, usePersist } from "@/hooks/use-common"
+import { CBTransactionId, ModuleId } from "@/lib/utils"
+import { useDelete, usePersist } from "@/hooks/use-common"
 import { useGetRequiredFields, useGetVisibleFields } from "@/hooks/use-lookup"
 import { Button } from "@/components/ui/button"
 import {
@@ -153,27 +152,7 @@ export default function GenReceiptPage() {
         },
   })
 
-  // API hooks for receipts - Only fetch when List dialog is opened (optimized)
-  const {
-    data: receiptsResponse,
-    refetch: refetchReceipts,
-    isLoading: isLoadingReceipts,
-    isRefetching: isRefetchingReceipts,
-  } = useGetWithDates<ICbGenReceiptHd>(
-    `${CbReceipt.get}`,
-    TableName.cbGenReceipt,
-    filters.search,
-    filters.startDate?.toString(),
-    filters.endDate?.toString(),
-    undefined, // options
-    false // enabled: Don't auto-fetch - only when List button is clicked
-  )
-
-  // Memoize receipt data to prevent unnecessary re-renders
-  const receiptsData = useMemo(
-    () => (receiptsResponse as ApiResponse<ICbGenReceiptHd>)?.data ?? [],
-    [receiptsResponse]
-  )
+  // Data fetching moved to ReceiptTable component for better performance
 
   // Mutations
   const saveMutation = usePersist<CbGenReceiptHdSchemaType>(`${CbReceipt.add}`)
@@ -258,7 +237,7 @@ export default function GenReceiptPage() {
         // Close the save confirmation dialog
         setShowSaveConfirm(false)
 
-        refetchReceipts()
+        // Data refresh handled by ReceiptTable component
       } else {
         toast.error(response.message || "Failed to save Gen Receipt")
       }
@@ -315,7 +294,7 @@ export default function GenReceiptPage() {
           ...defaultReceipt,
           data_details: [],
         })
-        refetchReceipts()
+        // Data refresh handled by ReceiptTable component
       } else {
         toast.error(response.message || "Failed to delete Gen Receipt")
       }
@@ -677,16 +656,10 @@ export default function GenReceiptPage() {
               variant="outline"
               size="sm"
               onClick={() => setShowListDialog(true)}
-              disabled={isLoadingReceipts || isRefetchingReceipts}
+              disabled={false}
             >
-              {isLoadingReceipts || isRefetchingReceipts ? (
-                <Spinner size="sm" className="mr-1" />
-              ) : (
-                <ListFilter className="mr-1 h-4 w-4" />
-              )}
-              {isLoadingReceipts || isRefetchingReceipts
-                ? "Loading..."
-                : "List"}
+              <ListFilter className="mr-1 h-4 w-4" />
+              List
             </Button>
 
             <Button
@@ -790,7 +763,7 @@ export default function GenReceiptPage() {
         onOpenChange={(open) => {
           setShowListDialog(open)
           if (open) {
-            refetchReceipts()
+            // Data refresh handled by ReceiptTable component
           }
         }}
       >
@@ -812,7 +785,7 @@ export default function GenReceiptPage() {
             </div>
           </DialogHeader>
 
-          {isLoadingReceipts || isRefetchingReceipts || isSelectingReceipt ? (
+          {isSelectingReceipt ? (
             <div className="flex min-h-[60vh] items-center justify-center">
               <div className="text-center">
                 <Spinner size="lg" className="mx-auto" />
@@ -830,10 +803,7 @@ export default function GenReceiptPage() {
             </div>
           ) : (
             <ReceiptTable
-              data={receiptsData || []}
-              isLoading={false}
               onReceiptSelect={handleReceiptSelect}
-              onRefresh={() => refetchReceipts()}
               onFilterChange={handleFilterChange}
               initialFilters={filters}
             />

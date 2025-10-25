@@ -1,13 +1,12 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useState } from "react"
 import { useParams } from "next/navigation"
 import {
   IApPaymentDt,
   IApPaymentFilter,
   IApPaymentHd,
 } from "@/interfaces/ap-payment"
-import { ApiResponse } from "@/interfaces/auth"
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
 import {
   ApPaymentDtSchemaType,
@@ -30,8 +29,8 @@ import { toast } from "sonner"
 import { getById } from "@/lib/api-client"
 import { ApPayment } from "@/lib/api-routes"
 import { clientDateFormat, parseDate } from "@/lib/date-utils"
-import { APTransactionId, ModuleId, TableName } from "@/lib/utils"
-import { useDelete, useGetWithDates, usePersist } from "@/hooks/use-common"
+import { APTransactionId, ModuleId } from "@/lib/utils"
+import { useDelete, usePersist } from "@/hooks/use-common"
 import { useGetRequiredFields, useGetVisibleFields } from "@/hooks/use-lookup"
 import { Button } from "@/components/ui/button"
 import {
@@ -168,27 +167,7 @@ export default function PaymentPage() {
         },
   })
 
-  // API hooks for payments - Only fetch when List dialog is opened (optimized)
-  const {
-    data: paymentsResponse,
-    refetch: refetchPayments,
-    isLoading: isLoadingPayments,
-    isRefetching: isRefetchingPayments,
-  } = useGetWithDates<IApPaymentHd>(
-    `${ApPayment.get}`,
-    TableName.apPayment,
-    filters.search,
-    filters.startDate?.toString(),
-    filters.endDate?.toString(),
-    undefined, // options
-    false // enabled: Don't auto-fetch - only when List button is clicked
-  )
-
-  // Memoize payment data to prevent unnecessary re-renders
-  const paymentsData = useMemo(
-    () => (paymentsResponse as ApiResponse<IApPaymentHd>)?.data ?? [],
-    [paymentsResponse]
-  )
+  // Data fetching moved to PaymentTable component for better performance
 
   // Mutations
   const saveMutation = usePersist<ApPaymentHdSchemaType>(`${ApPayment.add}`)
@@ -277,7 +256,7 @@ export default function PaymentPage() {
           //toast.success("Payment updated successfully")
         }
 
-        refetchPayments()
+        // Data refresh handled by PaymentTable component
       } else {
         toast.error(response.message || "Failed to save payment")
       }
@@ -337,7 +316,7 @@ export default function PaymentPage() {
           data_details: [],
         })
         //toast.success("Payment deleted successfully")
-        refetchPayments()
+        // Data refresh handled by PaymentTable component
       } else {
         toast.error(response.message || "Failed to delete payment")
       }
@@ -596,15 +575,10 @@ export default function PaymentPage() {
   // Remove direct refetchPayments from handleFilterChange
   const handleFilterChange = (newFilters: IApPaymentFilter) => {
     setFilters(newFilters)
-    // refetchPayments(); // Removed: will be handled by useEffect
+    // Data refresh handled by PaymentTable component
   }
 
-  // Refetch payments when filters change (only if dialog is open)
-  useEffect(() => {
-    if (showListDialog) {
-      refetchPayments()
-    }
-  }, [filters, showListDialog, refetchPayments])
+  // Data refresh handled by PaymentTable component
 
   // Add keyboard shortcuts
   useEffect(() => {
@@ -867,16 +841,10 @@ export default function PaymentPage() {
               variant="outline"
               size="sm"
               onClick={() => setShowListDialog(true)}
-              disabled={isLoadingPayments || isRefetchingPayments}
+              disabled={false}
             >
-              {isLoadingPayments || isRefetchingPayments ? (
-                <Spinner size="sm" className="mr-1" />
-              ) : (
-                <ListFilter className="mr-1 h-4 w-4" />
-              )}
-              {isLoadingPayments || isRefetchingPayments
-                ? "Loading..."
-                : "List"}
+              <ListFilter className="mr-1 h-4 w-4" />
+              List
             </Button>
 
             <Button
@@ -981,7 +949,7 @@ export default function PaymentPage() {
         onOpenChange={(open) => {
           setShowListDialog(open)
           if (open) {
-            refetchPayments()
+            // Data refresh handled by PaymentTable component
           }
         }}
       >
@@ -1003,32 +971,11 @@ export default function PaymentPage() {
             </div>
           </DialogHeader>
 
-          {isLoadingPayments || isRefetchingPayments || isSelectingPayment ? (
-            <div className="flex min-h-[60vh] items-center justify-center">
-              <div className="text-center">
-                <Spinner size="lg" className="mx-auto" />
-                <p className="mt-4 text-sm text-gray-600">
-                  {isSelectingPayment
-                    ? "Loading payment details..."
-                    : "Loading payments..."}
-                </p>
-                <p className="mt-2 text-xs text-gray-500">
-                  {isSelectingPayment
-                    ? "Please wait while we fetch the complete payment data"
-                    : "Please wait while we fetch the payment list"}
-                </p>
-              </div>
-            </div>
-          ) : (
-            <PaymentTable
-              data={paymentsData || []}
-              isLoading={false}
-              onPaymentSelect={handlePaymentSelect}
-              onRefresh={() => refetchPayments()}
-              onFilterChange={handleFilterChange}
-              initialFilters={filters}
-            />
-          )}
+          <PaymentTable
+            onPaymentSelect={handlePaymentSelect}
+            onFilterChange={handleFilterChange}
+            initialFilters={filters}
+          />
         </DialogContent>
       </Dialog>
 

@@ -5,26 +5,22 @@ import { ColumnDef } from "@tanstack/react-table"
 import { format, subMonths } from "date-fns"
 import { FormProvider, useForm } from "react-hook-form"
 
+import { CbGenPayment } from "@/lib/api-routes"
 import { CBTransactionId, ModuleId, TableName } from "@/lib/utils"
+import { useGetWithDates } from "@/hooks/use-common"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { CustomDateNew } from "@/components/custom/custom-date-new"
 import { DialogDataTable } from "@/components/table/table-dialog"
 
 export interface GenPaymentTableProps {
-  data: ICbGenPaymentHd[]
-  isLoading: boolean
   onGenPaymentSelect: (selectedGenPayment: ICbGenPaymentHd | undefined) => void
-  onRefresh: () => void
   onFilterChange: (filters: ICbGenPaymentFilter) => void
   initialFilters?: ICbGenPaymentFilter
 }
 
 export default function GenPaymentTable({
-  data,
-  isLoading = false,
   onGenPaymentSelect,
-  onRefresh,
   onFilterChange,
   initialFilters,
 }: GenPaymentTableProps) {
@@ -50,6 +46,25 @@ export default function GenPaymentTable({
   const [searchQuery] = useState("")
   const [currentPage] = useState(1)
   const [pageSize] = useState(10)
+
+  // Data fetching - only when table is opened
+  const {
+    data: genPaymentsResponse,
+    isLoading: isLoadingGenPayments,
+    isRefetching: isRefetchingGenPayments,
+    refetch: refetchGenPayments,
+  } = useGetWithDates<ICbGenPaymentHd>(
+    `${CbGenPayment.get}`,
+    TableName.cbGenPayment,
+    searchQuery,
+    form.watch("startDate")?.toString(),
+    form.watch("endDate")?.toString(),
+    undefined, // options
+    true // enabled: Fetch when table is opened
+  )
+
+  const data = genPaymentsResponse?.data || []
+  const isLoading = isLoadingGenPayments || isRefetchingGenPayments
 
   const formatNumber = (value: number, decimals: number) => {
     return value.toLocaleString(undefined, {
@@ -302,6 +317,23 @@ export default function GenPaymentTable({
     }
   }
 
+  // Show loading spinner while data is loading
+  if (isLoadingGenPayments) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="text-center">
+          <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-gray-300 border-t-blue-600"></div>
+          <p className="mt-4 text-sm text-gray-600">
+            Loading general payments...
+          </p>
+          <p className="mt-2 text-xs text-gray-500">
+            Please wait while we fetch the general payment list
+          </p>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="w-full overflow-auto">
       <FormProvider {...form}>
@@ -343,7 +375,7 @@ export default function GenPaymentTable({
         transactionId={transactionId}
         tableName={TableName.cbGenPayment}
         emptyMessage="No data found."
-        onRefresh={onRefresh}
+        onRefresh={() => refetchGenPayments()}
         onFilterChange={handleDialogFilterChange}
         onRowSelect={(row) => onGenPaymentSelect(row || undefined)}
       />

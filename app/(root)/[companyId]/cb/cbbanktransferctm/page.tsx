@@ -1,10 +1,9 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useState } from "react"
 import { useParams } from "next/navigation"
 import { calculateAdditionAmount, mathRound } from "@/helpers/account"
 import { ICbBankTransferCtmFilter, ICbBankTransferCtmHd } from "@/interfaces"
-import { ApiResponse } from "@/interfaces/auth"
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
 import {
   CbBankTransferCtmHdSchema,
@@ -12,7 +11,7 @@ import {
 } from "@/schemas"
 import { useAuthStore } from "@/stores/auth-store"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { add, format, subMonths } from "date-fns"
+import { format, subMonths } from "date-fns"
 import {
   Copy,
   ListFilter,
@@ -27,8 +26,8 @@ import { toast } from "sonner"
 import { getById } from "@/lib/api-client"
 import { CbBankTransferCtm } from "@/lib/api-routes"
 import { clientDateFormat, parseDate } from "@/lib/date-utils"
-import { CBTransactionId, ModuleId, TableName } from "@/lib/utils"
-import { useDelete, useGetWithDates, usePersist } from "@/hooks/use-common"
+import { CBTransactionId, ModuleId } from "@/lib/utils"
+import { useDelete, usePersist } from "@/hooks/use-common"
 import { useGetRequiredFields, useGetVisibleFields } from "@/hooks/use-lookup"
 import { Button } from "@/components/ui/button"
 import {
@@ -62,7 +61,6 @@ export default function BankTransferCtmPage() {
   const transactionId = CBTransactionId.cbbanktransferctm
 
   const { decimals } = useAuthStore()
-  const amtDec = decimals[0]?.amtDec || 2
   const locAmtDec = decimals[0]?.locAmtDec || 2
 
   const [showListDialog, setShowListDialog] = useState(false)
@@ -148,28 +146,7 @@ export default function BankTransferCtmPage() {
         },
   })
 
-  // API hooks for bank transfers - Only fetch when List dialog is opened (optimized)
-  const {
-    data: bankTransfersResponse,
-    refetch: refetchBankTransferCtms,
-    isLoading: isLoadingBankTransferCtms,
-    isRefetching: isRefetchingBankTransferCtms,
-  } = useGetWithDates<ICbBankTransferCtmHd>(
-    `${CbBankTransferCtm.get}`,
-    TableName.cbBankTransferCtm,
-    filters.search,
-    filters.startDate?.toString(),
-    filters.endDate?.toString(),
-    undefined, // options
-    false // enabled: Don't auto-fetch - only when List button is clicked
-  )
-
-  // Memoize Bank Transfer CTM data to prevent unnecessary re-renders
-  const bankTransfersData = useMemo(
-    () =>
-      (bankTransfersResponse as ApiResponse<ICbBankTransferCtmHd>)?.data ?? [],
-    [bankTransfersResponse]
-  )
+  // Data fetching moved to BankTransferCtmTable component for better performance
 
   // Mutations
   const saveMutation = usePersist<CbBankTransferCtmHdSchemaType>(
@@ -299,7 +276,7 @@ export default function BankTransferCtmPage() {
         // Close the save confirmation dialog
         setShowSaveConfirm(false)
 
-        refetchBankTransferCtms()
+        // Data refresh handled by BankTransferCtmTable component
       } else {
         toast.error(response.message || "Failed to save Bank Transfer CTM")
       }
@@ -351,7 +328,7 @@ export default function BankTransferCtmPage() {
         setSearchNo("") // Clear search input
         setSearchNo("") // Clear search input
         form.reset(defaultBankTransferCtmHd)
-        refetchBankTransferCtms()
+        // Data refresh handled by BankTransferCtmTable component
       } else {
         toast.error(response.message || "Failed to delete Bank Transfer CTM")
       }
@@ -516,13 +493,7 @@ export default function BankTransferCtmPage() {
     setFilters(newFilters)
   }
 
-  // Refetch bank transfers when filters change (only if dialog is open)
-  useEffect(() => {
-    if (showListDialog) {
-      refetchBankTransferCtms()
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filters, showListDialog])
+  // Data refresh handled by BankTransferCtmTable component
 
   // Add keyboard shortcuts
   useEffect(() => {
@@ -685,18 +656,10 @@ export default function BankTransferCtmPage() {
               variant="outline"
               size="sm"
               onClick={() => setShowListDialog(true)}
-              disabled={
-                isLoadingBankTransferCtms || isRefetchingBankTransferCtms
-              }
+              disabled={false}
             >
-              {isLoadingBankTransferCtms || isRefetchingBankTransferCtms ? (
-                <Spinner size="sm" className="mr-1" />
-              ) : (
-                <ListFilter className="mr-1 h-4 w-4" />
-              )}
-              {isLoadingBankTransferCtms || isRefetchingBankTransferCtms
-                ? "Loading..."
-                : "List"}
+              <ListFilter className="mr-1 h-4 w-4" />
+              List
             </Button>
 
             <Button
@@ -800,7 +763,7 @@ export default function BankTransferCtmPage() {
         onOpenChange={(open) => {
           setShowListDialog(open)
           if (open) {
-            refetchBankTransferCtms()
+            // Data refresh handled by BankTransferCtmTable component
           }
         }}
       >
@@ -823,9 +786,7 @@ export default function BankTransferCtmPage() {
             </div>
           </DialogHeader>
 
-          {isLoadingBankTransferCtms ||
-          isRefetchingBankTransferCtms ||
-          isSelectingBankTransferCtm ? (
+          {isSelectingBankTransferCtm ? (
             <div className="flex min-h-[60vh] items-center justify-center">
               <div className="text-center">
                 <Spinner size="lg" className="mx-auto" />
@@ -843,10 +804,7 @@ export default function BankTransferCtmPage() {
             </div>
           ) : (
             <BankTransferCtmTable
-              data={bankTransfersData || []}
-              isLoading={false}
               onBankTransferCtmSelect={handleBankTransferCtmSelect}
-              onRefresh={() => refetchBankTransferCtms()}
               onFilterChange={handleFilterChange}
               initialFilters={filters}
             />

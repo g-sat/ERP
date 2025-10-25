@@ -15,14 +15,12 @@ import { DialogDataTable } from "@/components/table/table-dialog"
 
 export interface ReceiptTableProps {
   onReceiptSelect: (selectedReceipt: IArReceiptHd | undefined) => void
-  onRefresh: () => void
   onFilterChange: (filters: IArReceiptFilter) => void
   initialFilters?: IArReceiptFilter
 }
 
 export default function ReceiptTable({
   onReceiptSelect,
-  onRefresh,
   onFilterChange,
   initialFilters,
 }: ReceiptTableProps) {
@@ -53,6 +51,7 @@ export default function ReceiptTable({
     data: receiptsResponse,
     isLoading: isLoadingReceipts,
     isRefetching: isRefetchingReceipts,
+    refetch: refetchReceipts,
   } = useGetWithDates<IArReceiptHd>(
     `${ArReceipt.get}`,
     TableName.arReceipt,
@@ -330,7 +329,7 @@ export default function ReceiptTable({
           <Spinner size="lg" className="mx-auto" />
           <p className="mt-4 text-sm text-gray-600">Loading receipts...</p>
           <p className="mt-2 text-xs text-gray-500">
-            Please wait while we fetch the receipt list
+            Please wait while we fetch the receipt List....
           </p>
         </div>
       </div>
@@ -397,7 +396,7 @@ export default function ReceiptTable({
         transactionId={transactionId}
         tableName={TableName.arReceipt}
         emptyMessage="No receipts found matching your criteria. Try adjusting the date range or search terms."
-        onRefresh={onRefresh}
+        onRefresh={() => refetchReceipts()}
         onFilterChange={handleDialogFilterChange}
         onRowSelect={(row) => onReceiptSelect(row || undefined)}
       />

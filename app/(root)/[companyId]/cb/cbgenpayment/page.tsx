@@ -1,9 +1,8 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useState } from "react"
 import { useParams } from "next/navigation"
 import { ICbGenPaymentFilter, ICbGenPaymentHd } from "@/interfaces"
-import { ApiResponse } from "@/interfaces/auth"
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
 import {
   CbGenPaymentDtSchemaType,
@@ -26,8 +25,8 @@ import { toast } from "sonner"
 import { getById } from "@/lib/api-client"
 import { CbPayment } from "@/lib/api-routes"
 import { clientDateFormat, parseDate } from "@/lib/date-utils"
-import { CBTransactionId, ModuleId, TableName } from "@/lib/utils"
-import { useDelete, useGetWithDates, usePersist } from "@/hooks/use-common"
+import { CBTransactionId, ModuleId } from "@/lib/utils"
+import { useDelete, usePersist } from "@/hooks/use-common"
 import { useGetRequiredFields, useGetVisibleFields } from "@/hooks/use-lookup"
 import { Button } from "@/components/ui/button"
 import {
@@ -152,27 +151,7 @@ export default function GenPaymentPage() {
         },
   })
 
-  // API hooks for gen payment records - Only fetch when List dialog is opened (optimized)
-  const {
-    data: genPaymentsResponse,
-    refetch: refetchGenPayments,
-    isLoading: isLoadingGenPaymentsList,
-    isRefetching: isRefetchingGenPayments,
-  } = useGetWithDates<ICbGenPaymentHd>(
-    `${CbPayment.get}`,
-    TableName.cbGenPayment,
-    filters.search,
-    filters.startDate?.toString(),
-    filters.endDate?.toString(),
-    undefined, // options
-    false // enabled: Don't auto-fetch - only when List button is clicked
-  )
-
-  // Memoize gen payment data to prevent unnecessary re-renders
-  const genPaymentsData = useMemo(
-    () => (genPaymentsResponse as ApiResponse<ICbGenPaymentHd>)?.data ?? [],
-    [genPaymentsResponse]
-  )
+  // Data fetching moved to GenPaymentTable component for better performance
 
   // Mutations
   const saveMutation = usePersist<CbGenPaymentHdSchemaType>(`${CbPayment.add}`)
@@ -257,7 +236,7 @@ export default function GenPaymentPage() {
         // Close the save confirmation dialog
         setShowSaveConfirm(false)
 
-        refetchGenPayments()
+        // Data refresh handled by GenPaymentTable component
       } else {
         toast.error(response.message || "Failed to save Gen Payment")
       }
@@ -314,7 +293,7 @@ export default function GenPaymentPage() {
           ...defaultGenPayment,
           data_details: [],
         })
-        refetchGenPayments()
+        // Data refresh handled by GenPaymentTable component
       } else {
         toast.error(response.message || "Failed to delete Gen Payment")
       }
@@ -666,16 +645,10 @@ export default function GenPaymentPage() {
               variant="outline"
               size="sm"
               onClick={() => setShowListDialog(true)}
-              disabled={isLoadingGenPayment || isRefetchingGenPayments}
+              disabled={false}
             >
-              {isLoadingGenPayment || isRefetchingGenPayments ? (
-                <Spinner size="sm" className="mr-1" />
-              ) : (
-                <ListFilter className="mr-1 h-4 w-4" />
-              )}
-              {isLoadingGenPayment || isRefetchingGenPayments
-                ? "Loading..."
-                : "List"}
+              <ListFilter className="mr-1 h-4 w-4" />
+              List
             </Button>
 
             <Button
@@ -779,7 +752,7 @@ export default function GenPaymentPage() {
         onOpenChange={(open) => {
           setShowListDialog(open)
           if (open) {
-            refetchGenPayments()
+            // Data refresh handled by GenPaymentTable component
           }
         }}
       >
@@ -801,9 +774,7 @@ export default function GenPaymentPage() {
             </div>
           </DialogHeader>
 
-          {isLoadingGenPaymentsList ||
-          isRefetchingGenPayments ||
-          isSelectingGenPayment ? (
+          {isSelectingGenPayment ? (
             <div className="flex min-h-[60vh] items-center justify-center">
               <div className="text-center">
                 <Spinner size="lg" className="mx-auto" />
@@ -821,10 +792,7 @@ export default function GenPaymentPage() {
             </div>
           ) : (
             <GenPaymentTable
-              data={genPaymentsData || []}
-              isLoading={false}
               onGenPaymentSelect={handleGenPaymentSelect}
-              onRefresh={() => refetchGenPayments()}
               onFilterChange={handleFilterChange}
               initialFilters={filters}
             />

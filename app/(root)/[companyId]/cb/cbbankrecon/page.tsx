@@ -1,9 +1,8 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useState } from "react"
 import { useParams } from "next/navigation"
 import { ICbBankReconFilter, ICbBankReconHd } from "@/interfaces"
-import { ApiResponse } from "@/interfaces/auth"
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
 import {
   CbBankReconDtSchemaType,
@@ -26,8 +25,8 @@ import { toast } from "sonner"
 import { getById } from "@/lib/api-client"
 import { CbBankRecon } from "@/lib/api-routes"
 import { clientDateFormat, parseDate } from "@/lib/date-utils"
-import { CBTransactionId, ModuleId, TableName } from "@/lib/utils"
-import { useDelete, useGetWithDates, usePersist } from "@/hooks/use-common"
+import { CBTransactionId, ModuleId } from "@/lib/utils"
+import { useDelete, usePersist } from "@/hooks/use-common"
 import { useGetRequiredFields, useGetVisibleFields } from "@/hooks/use-lookup"
 import { Button } from "@/components/ui/button"
 import {
@@ -152,27 +151,7 @@ export default function BankReconPage() {
         },
   })
 
-  // API hooks for bank reconciliations - Only fetch when List dialog is opened (optimized)
-  const {
-    data: bankReconsResponse,
-    refetch: refetchBankRecons,
-    isLoading: isLoadingBankRecons,
-    isRefetching: isRefetchingBankRecons,
-  } = useGetWithDates<ICbBankReconHd>(
-    `${CbBankRecon.get}`,
-    TableName.cbBankRecon,
-    filters.search,
-    filters.startDate?.toString(),
-    filters.endDate?.toString(),
-    undefined, // options
-    false // enabled: Don't auto-fetch - only when List button is clicked
-  )
-
-  // Memoize bank recon data to prevent unnecessary re-renders
-  const bankReconsData = useMemo(
-    () => (bankReconsResponse as ApiResponse<ICbBankReconHd>)?.data ?? [],
-    [bankReconsResponse]
-  )
+  // Data fetching moved to BankReconTable component for better performance
 
   // Mutations
   const saveMutation = usePersist<CbBankReconHdSchemaType>(`${CbBankRecon.add}`)
@@ -251,7 +230,7 @@ export default function BankReconPage() {
         // Close the save confirmation dialog
         setShowSaveConfirm(false)
 
-        refetchBankRecons()
+        // Data refresh handled by BankReconTable component
       } else {
         toast.error(response.message || "Failed to save Bank Reconciliation")
       }
@@ -302,7 +281,7 @@ export default function BankReconPage() {
           ...defaultBankRecon,
           data_details: [],
         })
-        refetchBankRecons()
+        // Data refresh handled by BankReconTable component
       } else {
         toast.error(response.message || "Failed to delete Bank Reconciliation")
       }
@@ -723,7 +702,7 @@ export default function BankReconPage() {
         onOpenChange={(open) => {
           setShowListDialog(open)
           if (open) {
-            refetchBankRecons()
+            // Data refresh handled by BankReconTable component
           }
         }}
       >
@@ -746,9 +725,7 @@ export default function BankReconPage() {
             </div>
           </DialogHeader>
 
-          {isLoadingBankRecons ||
-          isRefetchingBankRecons ||
-          isSelectingBankRecon ? (
+          {isSelectingBankRecon ? (
             <div className="flex min-h-[60vh] items-center justify-center">
               <div className="text-center">
                 <Spinner size="lg" className="mx-auto" />
@@ -766,10 +743,7 @@ export default function BankReconPage() {
             </div>
           ) : (
             <BankReconTable
-              data={bankReconsData || []}
-              isLoading={false}
               onBankReconSelect={handleBankReconSelect}
-              onRefresh={() => refetchBankRecons()}
               onFilterChange={handleFilterChange}
               initialFilters={filters}
             />

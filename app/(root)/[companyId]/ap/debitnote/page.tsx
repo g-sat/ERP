@@ -1,13 +1,12 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useState } from "react"
 import { useParams } from "next/navigation"
 import {
   IApDebitNoteDt,
   IApDebitNoteFilter,
   IApDebitNoteHd,
 } from "@/interfaces"
-import { ApiResponse } from "@/interfaces/auth"
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
 import {
   ApDebitNoteDtSchemaType,
@@ -30,8 +29,8 @@ import { toast } from "sonner"
 import { getById } from "@/lib/api-client"
 import { ApDebitNote } from "@/lib/api-routes"
 import { clientDateFormat, parseDate } from "@/lib/date-utils"
-import { APTransactionId, ModuleId, TableName } from "@/lib/utils"
-import { useDelete, useGetWithDates, usePersist } from "@/hooks/use-common"
+import { APTransactionId, ModuleId } from "@/lib/utils"
+import { useDelete, usePersist } from "@/hooks/use-common"
 import { useGetRequiredFields, useGetVisibleFields } from "@/hooks/use-lookup"
 import { Button } from "@/components/ui/button"
 import {
@@ -187,27 +186,7 @@ export default function DebitNotePage() {
         },
   })
 
-  // API hooks for debitNotes - Only fetch when List dialog is opened (optimized)
-  const {
-    data: debitNotesResponse,
-    refetch: refetchDebitNotes,
-    isLoading: isLoadingDebitNotes,
-    isRefetching: isRefetchingDebitNotes,
-  } = useGetWithDates<IApDebitNoteHd>(
-    `${ApDebitNote.get}`,
-    TableName.apDebitNote,
-    filters.search,
-    filters.startDate?.toString(),
-    filters.endDate?.toString(),
-    undefined, // options
-    false // enabled: Don't auto-fetch - only when List button is clicked
-  )
-
-  // Memoize debitNote data to prevent unnecessary re-renders
-  const debitNotesData = useMemo(
-    () => (debitNotesResponse as ApiResponse<IApDebitNoteHd>)?.data ?? [],
-    [debitNotesResponse]
-  )
+  // Data fetching moved to DebitNoteTable component for better performance
 
   // Mutations
   const saveMutation = usePersist<ApDebitNoteHdSchemaType>(`${ApDebitNote.add}`)
@@ -298,7 +277,7 @@ export default function DebitNotePage() {
           //toast.success("DebitNote updated successfully")
         }
 
-        refetchDebitNotes()
+        // Data refresh handled by DebitNoteTable component
       } else {
         toast.error(response.message || "Failed to save debitNote")
       }
@@ -359,7 +338,7 @@ export default function DebitNotePage() {
           data_details: [],
         })
         //toast.success("DebitNote deleted successfully")
-        refetchDebitNotes()
+        // Data refresh handled by DebitNoteTable component
       } else {
         toast.error(response.message || "Failed to delete debitNote")
       }
@@ -785,15 +764,10 @@ export default function DebitNotePage() {
   // Remove direct refetchDebitNotes from handleFilterChange
   const handleFilterChange = (newFilters: IApDebitNoteFilter) => {
     setFilters(newFilters)
-    // refetchDebitNotes(); // Removed: will be handled by useEffect
+    // Data refresh handled by DebitNoteTable component
   }
 
-  // Refetch debitNotes when filters change (only if dialog is open)
-  useEffect(() => {
-    if (showListDialog) {
-      refetchDebitNotes()
-    }
-  }, [filters, showListDialog, refetchDebitNotes])
+  // Data refresh handled by DebitNoteTable component
 
   // Add keyboard shortcuts
   useEffect(() => {
@@ -1114,16 +1088,10 @@ export default function DebitNotePage() {
               variant="outline"
               size="sm"
               onClick={() => setShowListDialog(true)}
-              disabled={isLoadingDebitNotes || isRefetchingDebitNotes}
+              disabled={false}
             >
-              {isLoadingDebitNotes || isRefetchingDebitNotes ? (
-                <Spinner size="sm" className="mr-1" />
-              ) : (
-                <ListFilter className="mr-1 h-4 w-4" />
-              )}
-              {isLoadingDebitNotes || isRefetchingDebitNotes
-                ? "Loading..."
-                : "List"}
+              <ListFilter className="mr-1 h-4 w-4" />
+              List
             </Button>
 
             <Button
@@ -1228,7 +1196,7 @@ export default function DebitNotePage() {
         onOpenChange={(open) => {
           setShowListDialog(open)
           if (open) {
-            refetchDebitNotes()
+            // Data refresh handled by DebitNoteTable component
           }
         }}
       >
@@ -1250,9 +1218,7 @@ export default function DebitNotePage() {
             </div>
           </DialogHeader>
 
-          {isLoadingDebitNotes ||
-          isRefetchingDebitNotes ||
-          isSelectingDebitNote ? (
+          {isSelectingDebitNote ? (
             <div className="flex min-h-[60vh] items-center justify-center">
               <div className="text-center">
                 <Spinner size="lg" className="mx-auto" />
@@ -1270,10 +1236,7 @@ export default function DebitNotePage() {
             </div>
           ) : (
             <DebitNoteTable
-              data={debitNotesData || []}
-              isLoading={false}
               onDebitNoteSelect={handleDebitNoteSelect}
-              onRefresh={() => refetchDebitNotes()}
               onFilterChange={handleFilterChange}
               initialFilters={filters}
             />
