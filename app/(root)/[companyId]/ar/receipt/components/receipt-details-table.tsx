@@ -341,7 +341,6 @@ export default function ReceiptDetailsTable({
         }
         showHeader={true}
         showActions={true}
-        hideView={true}
         hideEdit={isCancelled}
         hideDelete={isCancelled}
         hideCheckbox={isCancelled}

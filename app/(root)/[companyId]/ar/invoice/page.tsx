@@ -993,6 +993,7 @@ export default function InvoicePage() {
   const invoiceNo = form.getValues("invoiceNo")
   const isEdit = Boolean(invoiceNo)
   const isCancelled = invoice?.isCancel === true
+  const hasPayment = (invoice?.payAmt ?? 0) > 0
 
   // Compose title text
   const titleText = isEdit ? `Invoice (Edit) - ${invoiceNo}` : "Invoice (New)"
@@ -1098,7 +1099,8 @@ export default function InvoicePage() {
                 isSaving ||
                 saveMutation.isPending ||
                 updateMutation.isPending ||
-                isCancelled
+                isCancelled ||
+                hasPayment
               }
               className={isEdit ? "bg-blue-600 hover:bg-blue-700" : ""}
             >
@@ -1155,7 +1157,8 @@ export default function InvoicePage() {
                 !invoice ||
                 invoice.invoiceId === "0" ||
                 deleteMutation.isPending ||
-                isCancelled
+                isCancelled ||
+                hasPayment
               }
             >
               {deleteMutation.isPending ? (

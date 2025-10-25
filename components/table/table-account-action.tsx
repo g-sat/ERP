@@ -1,4 +1,4 @@
-import { Eye, Pencil, Trash2 } from "lucide-react"
+import { Pencil, Trash2 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -10,7 +10,6 @@ interface AccountTableActionsProps<T> {
   onDelete?: (id: string) => void
   onSelect?: (row: T, checked: boolean) => void
   idAccessor: keyof T
-  hideView?: boolean
   hideEdit?: boolean
   hideDelete?: boolean
   hideCheckbox?: boolean
@@ -26,7 +25,6 @@ export function AccountTableActions<T>({
   onDelete,
   onSelect,
   idAccessor,
-  hideView,
   hideEdit,
   hideDelete,
   hideCheckbox = false,
@@ -62,17 +60,6 @@ export function AccountTableActions<T>({
       )}
 
       {/* Action buttons (unchanged) */}
-      {!hideView && (
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-6 w-6"
-          onClick={() => onView?.(row)}
-        >
-          <Eye className="h-4 w-4" />
-        </Button>
-      )}
-
       {!hideEdit && (
         <Button
           variant="ghost"

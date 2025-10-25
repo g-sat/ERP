@@ -280,7 +280,6 @@ export default function BatchPaymentDetailsTable({
         onDelete={handleDelete}
         showHeader={true}
         showActions={true}
-        hideView={false}
         hideEdit={false}
         hideDelete={false}
         hideCheckbox={false}

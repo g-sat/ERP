@@ -71,7 +71,6 @@ interface AccountBaseTableProps<T> {
   isConfirmed?: boolean
   showHeader?: boolean
   showActions?: boolean
-  hideView?: boolean
   hideEdit?: boolean
   hideDelete?: boolean
   hideCheckbox?: boolean
@@ -99,7 +98,6 @@ export function AccountBaseTable<T>({
   isConfirmed,
   showHeader = true,
   showActions = true,
-  hideView = false,
   hideEdit = false,
   hideDelete = false,
   hideCheckbox = false,
@@ -292,7 +290,6 @@ export function AccountBaseTable<T>({
                       row.toggleSelected(checked)
                     }}
                     idAccessor={accessorId}
-                    hideView={hideView}
                     hideEdit={hideEdit}
                     hideDelete={hideDelete}
                     hideCheckbox={hideCheckbox}

@@ -331,7 +331,6 @@ export default function PaymentDetailsTable({
         onDelete={(itemId: string) => onDelete?.(Number(itemId))}
         showHeader={true}
         showActions={true}
-        hideView={true}
         hideEdit={true}
         hideDelete={false}
         hideCheckbox={false}

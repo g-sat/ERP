@@ -209,7 +209,6 @@ export default function ApOutStandingTransactionsTable({
         initialSelectedIds={initialSelectedIds}
         showHeader={false}
         showActions={true}
-        hideView={true}
         hideEdit={true}
         hideDelete={true}
         hideCheckbox={false}

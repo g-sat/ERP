@@ -253,16 +253,6 @@ export default function InvoiceDetailsForm({
     }, 300)
   }
 
-  // Handler for form reset
-  const handleFormReset = () => {
-    const nextItemNo = getNextItemNo()
-    const defaultValues = createDefaultValues(nextItemNo)
-    const populatedValues = populateCodeNameFields(defaultValues)
-    form.reset(populatedValues)
-    toast.info("Form reset")
-    focusFirstVisibleField()
-  }
-
   // Handler for cancel edit
   const handleCancelEdit = () => {
     _onCancelEdit?.()
@@ -732,6 +722,7 @@ export default function InvoiceDetailsForm({
   }
 
   const handleTotalAmountChange = (value: number) => {
+    console.log("handleTotalAmountChange : ", value)
     form.setValue("totAmt", value)
     triggerTotalAmountCalculation()
   }
@@ -1157,14 +1148,6 @@ export default function InvoiceDetailsForm({
               title="Update | Add"
             >
               {editingDetail ? "Update" : "Add"}
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={handleFormReset}
-            >
-              Reset
             </Button>
 
             {editingDetail && (
