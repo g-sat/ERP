@@ -1,9 +1,8 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useState } from "react"
 import { useParams } from "next/navigation"
 import { IArReceiptDt, IArReceiptFilter, IArReceiptHd } from "@/interfaces"
-import { ApiResponse } from "@/interfaces/auth"
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
 import {
   ArReceiptDtSchemaType,
@@ -26,8 +25,8 @@ import { toast } from "sonner"
 import { getById } from "@/lib/api-client"
 import { ArReceipt } from "@/lib/api-routes"
 import { clientDateFormat, parseDate } from "@/lib/date-utils"
-import { ARTransactionId, ModuleId, TableName } from "@/lib/utils"
-import { useDelete, useGetWithDates, usePersist } from "@/hooks/use-common"
+import { ARTransactionId, ModuleId } from "@/lib/utils"
+import { useDelete, usePersist } from "@/hooks/use-common"
 import { useGetRequiredFields, useGetVisibleFields } from "@/hooks/use-lookup"
 import { Button } from "@/components/ui/button"
 import {
@@ -166,27 +165,7 @@ export default function ReceiptPage() {
         },
   })
 
-  // API hooks for receipts - Only fetch when List dialog is opened (optimized)
-  const {
-    data: receiptsResponse,
-    refetch: refetchReceipts,
-    isLoading: isLoadingReceipts,
-    isRefetching: isRefetchingReceipts,
-  } = useGetWithDates<IArReceiptHd>(
-    `${ArReceipt.get}`,
-    TableName.arReceipt,
-    filters.search,
-    filters.startDate?.toString(),
-    filters.endDate?.toString(),
-    undefined, // options
-    false // enabled: Don't auto-fetch - only when List button is clicked
-  )
-
-  // Memoize receipt data to prevent unnecessary re-renders
-  const receiptsData = useMemo(
-    () => (receiptsResponse as ApiResponse<IArReceiptHd>)?.data ?? [],
-    [receiptsResponse]
-  )
+  // Data fetching moved to ReceiptTable component for better performance
 
   // Mutations
   const saveMutation = usePersist<ArReceiptHdSchemaType>(`${ArReceipt.add}`)
@@ -264,7 +243,7 @@ export default function ReceiptPage() {
         // Close the save confirmation dialog
         setShowSaveConfirm(false)
 
-        refetchReceipts()
+        // Data refresh handled by ReceiptTable component
       } else {
         toast.error(response.message || "Failed to save receipt")
       }
@@ -324,7 +303,7 @@ export default function ReceiptPage() {
           data_details: [],
         })
         //toast.success("Receipt deleted successfully")
-        refetchReceipts()
+        // Data refresh handled by ReceiptTable component
       } else {
         toast.error(response.message || "Failed to delete receipt")
       }
@@ -617,14 +596,6 @@ export default function ReceiptPage() {
     return () => window.removeEventListener("beforeunload", handleBeforeUnload)
   }, [form.formState.isDirty])
 
-  // Clear form errors when tab changes (optional)
-  useEffect(() => {
-    // Only clear errors if there are any errors present
-    if (Object.keys(form.formState.errors).length > 0) {
-      form.clearErrors()
-    }
-  }, [activeTab, form])
-
   const handleReceiptSearch = async (value: string) => {
     if (!value) return
 
@@ -857,16 +828,10 @@ export default function ReceiptPage() {
               variant="outline"
               size="sm"
               onClick={() => setShowListDialog(true)}
-              disabled={isLoadingReceipts || isRefetchingReceipts}
+              disabled={false}
             >
-              {isLoadingReceipts || isRefetchingReceipts ? (
-                <Spinner size="sm" className="mr-1" />
-              ) : (
-                <ListFilter className="mr-1 h-4 w-4" />
-              )}
-              {isLoadingReceipts || isRefetchingReceipts
-                ? "Loading..."
-                : "List"}
+              <ListFilter className="mr-1 h-4 w-4" />
+              List
             </Button>
 
             <Button
@@ -970,22 +935,19 @@ export default function ReceiptPage() {
         open={showListDialog}
         onOpenChange={(open) => {
           setShowListDialog(open)
-          if (open) {
-            refetchReceipts()
-          }
         }}
       >
         <DialogContent
-          className="@container h-[90vh] w-[90vw] !max-w-none overflow-y-auto rounded-lg p-4"
+          className="@container h-[90vh] w-[90vw] !max-w-none overflow-y-auto rounded-lg p-3"
           onInteractOutside={(e) => e.preventDefault()}
         >
-          <DialogHeader className="pb-4">
+          <DialogHeader className="pb-2">
             <div className="flex items-center justify-between">
               <div>
                 <DialogTitle className="text-2xl font-bold tracking-tight">
                   Receipt List
                 </DialogTitle>
-                <p className="text-muted-foreground text-sm">
+                <p className="text-muted-foreground mt-1 text-sm">
                   Manage and select existing receipts from the list below. Use
                   search to filter records or create new receipts.
                 </p>
@@ -993,7 +955,7 @@ export default function ReceiptPage() {
             </div>
           </DialogHeader>
 
-          {isLoadingReceipts || isRefetchingReceipts || isSelectingReceipt ? (
+          {isSelectingReceipt ? (
             <div className="flex min-h-[60vh] items-center justify-center">
               <div className="text-center">
                 <Spinner size="lg" className="mx-auto" />
@@ -1011,10 +973,8 @@ export default function ReceiptPage() {
             </div>
           ) : (
             <ReceiptTable
-              data={receiptsData || []}
-              isLoading={false}
               onReceiptSelect={handleReceiptSelect}
-              onRefresh={() => refetchReceipts()}
+              onRefresh={() => {}}
               onFilterChange={handleFilterChange}
               initialFilters={filters}
             />

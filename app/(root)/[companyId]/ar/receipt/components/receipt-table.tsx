@@ -5,15 +5,15 @@ import { ColumnDef } from "@tanstack/react-table"
 import { format, subMonths } from "date-fns"
 import { FormProvider, useForm } from "react-hook-form"
 
+import { ArReceipt } from "@/lib/api-routes"
 import { ARTransactionId, ModuleId, TableName } from "@/lib/utils"
+import { useGetWithDates } from "@/hooks/use-common"
 import { Button } from "@/components/ui/button"
-import { Separator } from "@/components/ui/separator"
+import { Spinner } from "@/components/ui/spinner"
 import { CustomDateNew } from "@/components/custom/custom-date-new"
 import { DialogDataTable } from "@/components/table/table-dialog"
 
 export interface ReceiptTableProps {
-  data: IArReceiptHd[]
-  isLoading: boolean
   onReceiptSelect: (selectedReceipt: IArReceiptHd | undefined) => void
   onRefresh: () => void
   onFilterChange: (filters: IArReceiptFilter) => void
@@ -21,8 +21,6 @@ export interface ReceiptTableProps {
 }
 
 export default function ReceiptTable({
-  data,
-  isLoading = false,
   onReceiptSelect,
   onRefresh,
   onFilterChange,
@@ -49,6 +47,24 @@ export default function ReceiptTable({
 
   const [searchQuery] = useState("")
   const [currentPage] = useState(1)
+
+  // Data fetching - only when table is opened
+  const {
+    data: receiptsResponse,
+    isLoading: isLoadingReceipts,
+    isRefetching: isRefetchingReceipts,
+  } = useGetWithDates<IArReceiptHd>(
+    `${ArReceipt.get}`,
+    TableName.arReceipt,
+    searchQuery,
+    form.watch("startDate")?.toString(),
+    form.watch("endDate")?.toString(),
+    undefined, // options
+    true // enabled: Fetch when table is opened
+  )
+
+  const data = receiptsResponse?.data || []
+  const isLoading = isLoadingReceipts || isRefetchingReceipts
   const [pageSize] = useState(10)
 
   const formatNumber = (value: number, decimals: number) => {
@@ -306,38 +322,72 @@ export default function ReceiptTable({
     }
   }
 
+  // Show loading spinner while data is loading
+  if (isLoadingReceipts) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="text-center">
+          <Spinner size="lg" className="mx-auto" />
+          <p className="mt-4 text-sm text-gray-600">Loading receipts...</p>
+          <p className="mt-2 text-xs text-gray-500">
+            Please wait while we fetch the receipt list
+          </p>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="w-full overflow-auto">
-      <FormProvider {...form}>
-        <div className="mb-4 flex items-center gap-2">
-          {/* From Date */}
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-medium">From Date:</span>
-            <CustomDateNew
-              form={form}
-              name="startDate"
-              isRequired={true}
-              size="sm"
-            />
-          </div>
+      {/* Compact Filter Section */}
+      <div className="bg-card mb-2 rounded-lg border p-3">
+        <FormProvider {...form}>
+          <div className="flex items-center gap-3">
+            {/* Date Filters */}
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
+                <span className="text-muted-foreground text-sm font-medium">
+                  From:
+                </span>
+                <CustomDateNew
+                  form={form}
+                  name="startDate"
+                  isRequired={true}
+                  size="sm"
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-muted-foreground text-sm font-medium">
+                  To:
+                </span>
+                <CustomDateNew
+                  form={form}
+                  name="endDate"
+                  isRequired={true}
+                  size="sm"
+                />
+              </div>
+            </div>
 
-          {/* To Date */}
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-medium">To Date:</span>
-            <CustomDateNew
-              form={form}
-              name="endDate"
-              isRequired={true}
+            {/* Search Button */}
+            <Button
+              variant="default"
               size="sm"
-            />
+              onClick={handleSearchReceipt}
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <>
+                  <Spinner size="sm" className="mr-2" />
+                  Loading...
+                </>
+              ) : (
+                "Apply Filter"
+              )}
+            </Button>
           </div>
-
-          <Button variant="outline" size="sm" onClick={handleSearchReceipt}>
-            Search Receipt
-          </Button>
-        </div>
-      </FormProvider>
-      <Separator className="mb-4" />
+        </FormProvider>
+      </div>
 
       <DialogDataTable
         data={data}
@@ -346,7 +396,7 @@ export default function ReceiptTable({
         moduleId={moduleId}
         transactionId={transactionId}
         tableName={TableName.arReceipt}
-        emptyMessage="No data found."
+        emptyMessage="No receipts found matching your criteria. Try adjusting the date range or search terms."
         onRefresh={onRefresh}
         onFilterChange={handleDialogFilterChange}
         onRowSelect={(row) => onReceiptSelect(row || undefined)}
