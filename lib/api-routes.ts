@@ -200,6 +200,7 @@ export const UserGrid = {
   getByUserId: "/setting/getusergridbyuserid",
   add: "/setting/saveusergrid",
   clone: "/setting/cloneusergrid",
+  delete: "/setting/deleteusergrid",
 }
 
 // Master Lookup Endpoints

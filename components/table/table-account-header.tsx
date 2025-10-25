@@ -7,11 +7,13 @@ import {
   FileSpreadsheet,
   FileText,
   Layout,
+  RedoDot,
   RefreshCw,
   SlidersHorizontal,
   Trash2,
 } from "lucide-react"
-import { usePersist } from "@/hooks/use-common"
+
+import { useDelete, usePersist } from "@/hooks/use-common"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -21,9 +23,13 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
+
 // Import autoTable plugin
 import "jspdf-autotable"
 import * as XLSX from "xlsx"
+
+import { UserGrid } from "@/lib/api-routes"
+
 // Extend jsPDF to include autoTable with a more specific type
 declare module "jspdf" {
   interface jsPDF {
@@ -58,6 +64,7 @@ type AccountTableHeaderProps<TData> = {
   isConfirmed?: boolean
   data?: TData[] // Add data prop for export functionality
   hideCreate?: boolean
+  onResetLayout?: () => void // Callback to reset layout in parent component
 }
 export function AccountTableHeader<TData>({
   onRefresh,
@@ -72,6 +79,7 @@ export function AccountTableHeader<TData>({
   selectedRowsCount = 0,
   isConfirmed = false,
   data = [],
+  onResetLayout,
 }: AccountTableHeaderProps<TData>) {
   const [columnSearch, setColumnSearch] = useState("")
   const [activeButton, setActiveButton] = useState<"show" | "hide" | null>(null)
@@ -94,7 +102,8 @@ export function AccountTableHeader<TData>({
     setActiveButton("hide")
   }, [columns])
   // Add the save mutation for grid settings
-  const saveGridSettings = usePersist<IGridSetting>("/setting/saveUserGrid")
+  const saveGridSettings = usePersist<IGridSetting>(UserGrid.add)
+  const resetDefaultLayout = useDelete<IGridSetting>(UserGrid.delete)
   const handleSaveLayout = useCallback(async () => {
     try {
       const grdName = tableName
@@ -123,6 +132,7 @@ export function AccountTableHeader<TData>({
       console.error("Error saving layout:", error)
     }
   }, [moduleId, transactionId, tableName, columns, saveGridSettings])
+
   const handleExportExcel = (data: TData[]) => {
     if (!data || data.length === 0) {
       return
@@ -148,6 +158,7 @@ export function AccountTableHeader<TData>({
       console.error("Error exporting Excel:", error)
     }
   }
+
   const handleExportPdf = (data: TData[]) => {
     if (!data || data.length === 0) {
       return
@@ -204,6 +215,39 @@ export function AccountTableHeader<TData>({
       console.error("Error exporting PDF:", error)
     }
   }
+
+  const handleResetDefaultLayout = useCallback(async () => {
+    try {
+      // Call delete mutation to remove user grid settings
+      // The API route expects: DeleteUserGridById/{ModuleId}/{TransactionId}/{GrdName}
+      const response = await resetDefaultLayout.mutateAsync(
+        `${moduleId}/${transactionId}/${tableName}`
+      )
+
+      // Only reset table if response result is 1 (success)
+      if (response?.result === 1) {
+        // Reset all columns to default visibility
+        columns.forEach((column) => {
+          column.toggleVisibility(true) // Show all columns by default
+        })
+
+        // Notify parent component to reset layout state
+        if (onResetLayout) {
+          onResetLayout()
+        }
+      }
+    } catch (error) {
+      console.error("Error resetting default layout:", error)
+    }
+  }, [
+    columns,
+    resetDefaultLayout,
+    tableName,
+    moduleId,
+    transactionId,
+    onResetLayout,
+  ])
+
   return (
     <>
       <div className="mb-4 space-y-2">
@@ -262,6 +306,16 @@ export function AccountTableHeader<TData>({
             >
               <Layout className="h-4 w-4" />
               Save Layout
+            </Button>
+
+            {/* Reset Default Layout Change */}
+            <Button
+              variant="outline"
+              title="Reset Layout"
+              onClick={handleResetDefaultLayout}
+            >
+              <RedoDot className="h-4 w-4" />
+              Reset Layout
             </Button>
           </div>
           {/* Search Input */}
