@@ -235,24 +235,26 @@ export function ScreenLock({ variant = "icon", className }: ScreenLockProps) {
           )
         }
       } else if (type === "UNLOCK") {
-        // Only the initiating tab should handle the unlock
-        if (data?.tabId === tabId) {
-          // This is the tab that initiated the unlock
-          // Don't do anything here, let the original unlock handler complete
-          return
-        } else {
-          // This is a different tab, just update UI state
-          setIsLocked(false)
-          setAppLocked(false)
-          sessionStorage.removeItem(LOCK_STATE_KEY)
-          // Navigate to the tab's specific path
-          const tabSpecificPath = sessionStorage.getItem(
-            `${TAB_SPECIFIC_PATH_KEY}_${tabId}`
-          )
-          if (tabSpecificPath) {
-            router.push(tabSpecificPath)
-            sessionStorage.removeItem(`${TAB_SPECIFIC_PATH_KEY}_${tabId}`)
-          }
+        // When unlock is broadcast, apply it to ALL tabs
+        // This ensures all tabs unlock simultaneously after password is entered
+        setIsLocked(false)
+        setAppLocked(false)
+        sessionStorage.removeItem(LOCK_STATE_KEY)
+        setPassword("")
+        setLastActivity(Date.now())
+        setFailedAttempts(0)
+        setError("")
+        setMessage("")
+        setIsUnlocking(false)
+        setUnlockProgress(0)
+        setShowSuccess(false)
+        // Navigate to the tab's specific path
+        const tabSpecificPath = sessionStorage.getItem(
+          `${TAB_SPECIFIC_PATH_KEY}_${tabId}`
+        )
+        if (tabSpecificPath) {
+          router.push(tabSpecificPath)
+          sessionStorage.removeItem(`${TAB_SPECIFIC_PATH_KEY}_${tabId}`)
         }
       }
     }
