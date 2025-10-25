@@ -9,6 +9,7 @@ import {
   ArInvoiceHdSchema,
   ArInvoiceHdSchemaType,
 } from "@/schemas"
+import { usePermissionStore } from "@/stores/permission-store"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { format, subMonths } from "date-fns"
 import {
@@ -59,6 +60,13 @@ export default function InvoicePage() {
 
   const moduleId = ModuleId.ar
   const transactionId = ARTransactionId.invoice
+
+  const { hasPermission } = usePermissionStore()
+
+  const canView = hasPermission(moduleId, transactionId, "isRead")
+  const canEdit = hasPermission(moduleId, transactionId, "isEdit")
+  const canDelete = hasPermission(moduleId, transactionId, "isDelete")
+  const canCreate = hasPermission(moduleId, transactionId, "isCreate")
 
   const [showListDialog, setShowListDialog] = useState(false)
   const [showSaveConfirm, setShowSaveConfirm] = useState(false)
@@ -995,6 +1003,15 @@ export default function InvoicePage() {
   const isCancelled = invoice?.isCancel === true
   const hasPayment = (invoice?.payAmt ?? 0) > 0
 
+  // Calculate payment status
+  const balAmt = invoice?.balAmt ?? 0
+  const paymentStatus =
+    hasPayment && balAmt > 0
+      ? "Partially Paid"
+      : hasPayment && balAmt === 0
+        ? "Fully Paid"
+        : null
+
   // Compose title text
   const titleText = isEdit ? `Invoice (Edit) - ${invoiceNo}` : "Invoice (New)"
 
@@ -1041,6 +1058,20 @@ export default function InvoicePage() {
                 </div>
               </div>
             )}
+
+            {/* Payment Status Badge */}
+            {paymentStatus === "Partially Paid" && (
+              <span className="inline-flex items-center rounded-full bg-orange-100 px-3 py-1 text-xs font-medium text-orange-800">
+                <span className="mr-1 h-2 w-2 rounded-full bg-orange-400"></span>
+                Partially Paid
+              </span>
+            )}
+            {paymentStatus === "Fully Paid" && (
+              <span className="inline-flex items-center rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-800">
+                <span className="mr-1 h-2 w-2 rounded-full bg-green-400"></span>
+                Fully Paid
+              </span>
+            )}
           </div>
 
           <h1>
@@ -1052,9 +1083,9 @@ export default function InvoicePage() {
                   : "animate-pulse bg-gradient-to-r from-purple-500 to-blue-500" // default gradient border
               } `}
             >
-              {/* Inner pill: solid dark background + white text */}
+              {/* Inner pill: solid dark background + white text - same size as Fully Paid badge */}
               <span
-                className={`text-l block rounded-full px-6 font-semibold ${isEdit ? "text-white" : "text-white"}`}
+                className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${isEdit ? "text-white" : "text-white"}`}
               >
                 {titleText}
               </span>
@@ -1096,11 +1127,14 @@ export default function InvoicePage() {
               size="sm"
               onClick={() => setShowSaveConfirm(true)}
               disabled={
+                !canView ||
                 isSaving ||
                 saveMutation.isPending ||
                 updateMutation.isPending ||
                 isCancelled ||
-                hasPayment
+                hasPayment ||
+                (isEdit && !canEdit) ||
+                (!isEdit && !canCreate)
               }
               className={isEdit ? "bg-blue-600 hover:bg-blue-700" : ""}
             >
@@ -1154,11 +1188,13 @@ export default function InvoicePage() {
               size="sm"
               onClick={() => setShowDeleteConfirm(true)}
               disabled={
+                !canView ||
                 !invoice ||
                 invoice.invoiceId === "0" ||
                 deleteMutation.isPending ||
                 isCancelled ||
-                hasPayment
+                hasPayment ||
+                !canDelete
               }
             >
               {deleteMutation.isPending ? (

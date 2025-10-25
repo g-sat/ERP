@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { IArInvoiceFilter, IArInvoiceHd } from "@/interfaces"
 import { useAuthStore } from "@/stores/auth-store"
 import { ColumnDef } from "@tanstack/react-table"
@@ -47,7 +47,27 @@ export default function InvoiceTable({
   const [currentPage] = useState(1)
   const [pageSize] = useState(10)
 
-  // Data fetching - only when table is opened
+  // State to track if search has been clicked
+  const [hasSearched, setHasSearched] = useState(false)
+  // Store the actual search dates - initialize from initialFilters if available
+  const [searchStartDate, setSearchStartDate] = useState<string | undefined>(
+    initialFilters?.startDate?.toString()
+  )
+  const [searchEndDate, setSearchEndDate] = useState<string | undefined>(
+    initialFilters?.endDate?.toString()
+  )
+
+  // Update form values when initialFilters change (when dialog reopens)
+  useEffect(() => {
+    if (initialFilters?.startDate) {
+      form.setValue("startDate", initialFilters.startDate)
+    }
+    if (initialFilters?.endDate) {
+      form.setValue("endDate", initialFilters.endDate)
+    }
+  }, [initialFilters, form])
+
+  // Data fetching - only after search button is clicked OR if dates are already set
   const {
     data: invoicesResponse,
     isLoading: isLoadingInvoices,
@@ -57,10 +77,10 @@ export default function InvoiceTable({
     `${ArInvoice.get}`,
     TableName.arInvoice,
     searchQuery,
-    form.watch("startDate")?.toString(),
-    form.watch("endDate")?.toString(),
+    searchStartDate,
+    searchEndDate,
     undefined, // options
-    true // enabled: Fetch when table is opened
+    hasSearched || Boolean(searchStartDate && searchEndDate) // enabled: If searched OR dates already set
   )
 
   const data = invoicesResponse?.data || []
@@ -277,9 +297,17 @@ export default function InvoiceTable({
   ]
 
   const handleSearchInvoice = () => {
+    const startDate = form.getValues("startDate")
+    const endDate = form.getValues("endDate")
+
+    // Store the search dates (convert to string if needed)
+    setSearchStartDate(startDate?.toString())
+    setSearchEndDate(endDate?.toString())
+    setHasSearched(true) // Enable the query
+
     const newFilters: IArInvoiceFilter = {
-      startDate: form.getValues("startDate"),
-      endDate: form.getValues("endDate"),
+      startDate: startDate,
+      endDate: endDate,
       search: searchQuery,
       sortBy: "invoiceNo",
       sortOrder: "asc",
@@ -305,21 +333,6 @@ export default function InvoiceTable({
       }
       onFilterChange(newFilters)
     }
-  }
-
-  // Show loading spinner while data is loading
-  if (isLoadingInvoices) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="text-center">
-          <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-gray-300 border-t-blue-600"></div>
-          <p className="mt-4 text-sm text-gray-600">Loading invoices...</p>
-          <p className="mt-2 text-xs text-gray-500">
-            Please wait while we fetch the invoice list
-          </p>
-        </div>
-      </div>
-    )
   }
 
   return (

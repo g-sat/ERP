@@ -334,9 +334,9 @@ export default function InvoiceForm({
 
   // Handle exchange rate change
   const handleExchangeRateChange = React.useCallback(
-    (e: React.FocusEvent<HTMLInputElement>) => {
+    (value: number) => {
       const formDetails = form.getValues("data_details")
-      const exchangeRate = parseFloat(e.target.value) || 0
+      const exchangeRate = value || 0
 
       // If m_CtyCurr is false, set cityExchangeRate = exchangeRate
       let cityExchangeRate = form.getValues("ctyExhRate") || 0
@@ -373,10 +373,10 @@ export default function InvoiceForm({
 
   // Handle city exchange rate change
   const handleCityExchangeRateChange = React.useCallback(
-    (e: React.FocusEvent<HTMLInputElement>) => {
+    (value: number) => {
       const formDetails = form.getValues("data_details")
       const exchangeRate = form.getValues("exhRate") || 0
-      const cityExchangeRate = parseFloat(e.target.value) || 0
+      const cityExchangeRate = value || 0
 
       if (!formDetails || formDetails.length === 0) {
         return
@@ -410,7 +410,7 @@ export default function InvoiceForm({
         onSubmit={form.handleSubmit(onSubmit)}
         className="grid grid-cols-12 rounded-md p-2"
       >
-        <div className="col-span-10 grid grid-cols-6 gap-1">
+        <div className="col-span-10 grid grid-cols-6 gap-1 gap-y-1">
           {/* Transaction Date */}
           {visible?.m_TrnDate && (
             <CustomDateNew
@@ -505,7 +505,7 @@ export default function InvoiceForm({
             isRequired={true}
             round={exhRateDec}
             className="text-right"
-            onBlurEvent={handleExchangeRateChange}
+            onChangeEvent={handleExchangeRateChange}
           />
           {visible?.m_CtyCurr && (
             <>
@@ -517,7 +517,7 @@ export default function InvoiceForm({
                 isRequired={true}
                 round={exhRateDec}
                 className="text-right"
-                onBlurEvent={handleCityExchangeRateChange}
+                onChangeEvent={handleCityExchangeRateChange}
               />
             </>
           )}
