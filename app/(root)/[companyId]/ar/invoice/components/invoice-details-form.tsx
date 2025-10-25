@@ -28,7 +28,6 @@ import {
 } from "@/schemas"
 import { useAuthStore } from "@/stores/auth-store"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { RotateCcwIcon, XIcon } from "lucide-react"
 import { FormProvider, UseFormReturn, useForm } from "react-hook-form"
 import { toast } from "sonner"
 
@@ -68,6 +67,7 @@ interface InvoiceDetailsFormProps {
   defaultGlId?: number
   defaultUomId?: number
   defaultGstId?: number
+  isCancelled?: boolean
 }
 
 export default function InvoiceDetailsForm({
@@ -82,6 +82,7 @@ export default function InvoiceDetailsForm({
   defaultGlId = 0,
   defaultUomId = 0,
   defaultGstId = 0,
+  isCancelled = false,
 }: InvoiceDetailsFormProps) {
   const { decimals } = useAuthStore()
   const amtDec = decimals[0]?.amtDec || 2
@@ -850,7 +851,9 @@ export default function InvoiceDetailsForm({
       <FormProvider {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit)}
-          className="-mt-2 mb-1 grid w-full grid-cols-8 gap-1 p-2"
+          className={`-mt-2 mb-1 grid w-full grid-cols-8 gap-1 p-2 ${
+            isCancelled ? "pointer-events-none opacity-50" : ""
+          }`}
         >
           {/* Hidden fields to register code/name fields with React Hook Form */}
           <input type="hidden" {...form.register("glCode")} />
@@ -878,14 +881,18 @@ export default function InvoiceDetailsForm({
               <Badge
                 variant="secondary"
                 className={`px-3 py-1 text-sm font-medium ${
-                  editingDetail
-                    ? "bg-orange-100 text-orange-800 hover:bg-orange-200"
-                    : "bg-blue-100 text-blue-800 hover:bg-blue-200"
+                  isCancelled
+                    ? "bg-red-100 text-red-800 hover:bg-red-200"
+                    : editingDetail
+                      ? "bg-orange-100 text-orange-800 hover:bg-orange-200"
+                      : "bg-blue-100 text-blue-800 hover:bg-blue-200"
                 }`}
               >
-                {editingDetail
-                  ? `Details (Edit Mode - Item No. ${editingDetail.itemNo})`
-                  : "Details (Add New)"}
+                {isCancelled
+                  ? "Details (Disabled - Invoice Cancelled)"
+                  : editingDetail
+                    ? `Details (Edit Mode - Item No. ${editingDetail.itemNo})`
+                    : "Details (Add New)"}
               </Badge>
             </div>
           </div>

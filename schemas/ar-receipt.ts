@@ -86,6 +86,7 @@ export const arreceiptHdSchema = (
     editDate: z.string().optional(),
     cancelBy: z.string().optional(),
     cancelDate: z.string().optional(),
+    isCancel: z.boolean().optional(),
     cancelRemarks: z.string().optional(),
     appBy: z.string().optional(),
     appDate: z.string().optional(),

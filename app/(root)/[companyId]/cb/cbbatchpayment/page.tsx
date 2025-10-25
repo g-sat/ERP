@@ -469,14 +469,6 @@ export default function BatchPaymentPage() {
     setFilters(newFilters)
   }
 
-  // Refetch Batch Payments when filters change (only if dialog is open)
-  useEffect(() => {
-    if (showListDialog) {
-      refetchBatchPayments()
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filters, showListDialog])
-
   // Add keyboard shortcuts
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {

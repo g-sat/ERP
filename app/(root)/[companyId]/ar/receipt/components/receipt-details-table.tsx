@@ -21,6 +21,7 @@ interface ReceiptDetailsTableProps {
   onDataReorder?: (newData: IArReceiptDt[]) => void
   onCellEdit?: (itemNo: number, field: string, value: number) => void
   visible: IVisibleFields
+  isCancelled?: boolean
 }
 
 export default function ReceiptDetailsTable({
@@ -30,6 +31,7 @@ export default function ReceiptDetailsTable({
   onDataReorder,
   onCellEdit,
   visible: _visible,
+  isCancelled = false,
 }: ReceiptDetailsTableProps) {
   const [mounted, setMounted] = useState(false)
   const { decimals } = useAuthStore()
@@ -324,18 +326,25 @@ export default function ReceiptDetailsTable({
         tableName={TableName.arReceiptDt}
         emptyMessage="No receipt details found."
         accessorId="itemNo"
-        onBulkDelete={(selectedIds: string[]) =>
-          onBulkDelete?.(selectedIds.map((id) => Number(id)))
+        onBulkDelete={
+          isCancelled
+            ? undefined
+            : (selectedIds: string[]) =>
+                onBulkDelete?.(selectedIds.map((id) => Number(id)))
         }
         onBulkSelectionChange={() => {}}
-        onDataReorder={onDataReorder}
-        onDelete={(itemId: string) => onDelete?.(Number(itemId))}
+        onDataReorder={isCancelled ? undefined : onDataReorder}
+        onDelete={
+          isCancelled
+            ? undefined
+            : (itemId: string) => onDelete?.(Number(itemId))
+        }
         showHeader={true}
         showActions={true}
         hideView={true}
-        hideEdit={true}
-        hideDelete={false}
-        hideCheckbox={false}
+        hideEdit={isCancelled}
+        hideDelete={isCancelled}
+        hideCheckbox={isCancelled}
         disableOnAccountExists={false}
       />
     </div>

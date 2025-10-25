@@ -26,7 +26,7 @@ import { getById } from "@/lib/api-client"
 import { ArReceipt } from "@/lib/api-routes"
 import { clientDateFormat, parseDate } from "@/lib/date-utils"
 import { ARTransactionId, ModuleId } from "@/lib/utils"
-import { useDelete, usePersist } from "@/hooks/use-common"
+import { useDeleteWithRemarks, usePersist } from "@/hooks/use-common"
 import { useGetRequiredFields, useGetVisibleFields } from "@/hooks/use-lookup"
 import { Button } from "@/components/ui/button"
 import {
@@ -39,6 +39,7 @@ import { Input } from "@/components/ui/input"
 import { Spinner } from "@/components/ui/spinner"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
+  CancelConfirmation,
   CloneConfirmation,
   DeleteConfirmation,
   LoadConfirmation,
@@ -62,6 +63,7 @@ export default function ReceiptPage() {
   const [showListDialog, setShowListDialog] = useState(false)
   const [showSaveConfirm, setShowSaveConfirm] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false)
   const [showLoadConfirm, setShowLoadConfirm] = useState(false)
   const [showResetConfirm, setShowResetConfirm] = useState(false)
   const [showCloneConfirm, setShowCloneConfirm] = useState(false)
@@ -170,7 +172,7 @@ export default function ReceiptPage() {
   // Mutations
   const saveMutation = usePersist<ArReceiptHdSchemaType>(`${ArReceipt.add}`)
   const updateMutation = usePersist<ArReceiptHdSchemaType>(`${ArReceipt.add}`)
-  const deleteMutation = useDelete(`${ArReceipt.delete}`)
+  const deleteMutation = useDeleteWithRemarks(`${ArReceipt.delete}`)
 
   // Remove the useGetReceiptById hook for selection
   // const { data: receiptByIdData, refetch: refetchReceiptById } = ...
@@ -287,14 +289,24 @@ export default function ReceiptPage() {
     }
   }
 
-  // Handle Delete
-  const handleReceiptDelete = async () => {
+  // Handle Delete - First Level: Confirmation
+  const handleDeleteConfirmation = () => {
+    // Close delete confirmation and open cancel confirmation
+    setShowDeleteConfirm(false)
+    setShowCancelConfirm(true)
+  }
+
+  // Handle Delete - Second Level: With Cancel Remarks
+  const handleReceiptDelete = async (cancelRemarks: string) => {
     if (!receipt) return
 
     try {
-      const response = await deleteMutation.mutateAsync(
-        receipt.receiptId?.toString() ?? ""
-      )
+      const response = await deleteMutation.mutateAsync({
+        documentId: receipt.receiptId?.toString() ?? "",
+        documentNo: receipt.receiptNo ?? "",
+        cancelRemarks: cancelRemarks,
+      })
+
       if (response.result === 1) {
         setReceipt(null)
         setSearchNo("") // Clear search input
@@ -302,7 +314,7 @@ export default function ReceiptPage() {
           ...defaultReceipt,
           data_details: [],
         })
-        //toast.success("Receipt deleted successfully")
+        toast.success(`Receipt ${receipt.receiptNo} deleted successfully`)
         // Data refresh handled by ReceiptTable component
       } else {
         toast.error(response.message || "Failed to delete receipt")
@@ -380,6 +392,7 @@ export default function ReceiptPage() {
       createBy: apiReceipt.createById?.toString() ?? "",
       editBy: apiReceipt.editById?.toString() ?? "",
       cancelBy: apiReceipt.cancelById?.toString() ?? "",
+      isCancel: apiReceipt.isCancel ?? false,
       createDate: apiReceipt.createDate
         ? format(
             parseDate(apiReceipt.createDate as string) || new Date(),
@@ -679,6 +692,7 @@ export default function ReceiptPage() {
                   clientDateFormat
                 )
               : "",
+            isCancel: detailedReceipt.isCancel ?? false,
             cancelBy: detailedReceipt.cancelById?.toString() ?? "",
             cancelDate: detailedReceipt.cancelDate
               ? format(
@@ -752,6 +766,7 @@ export default function ReceiptPage() {
   // Determine mode and receipt ID from URL
   const receiptNo = form.getValues("receiptNo")
   const isEdit = Boolean(receiptNo)
+  const isCancelled = receipt?.isCancel === true
 
   // Compose title text
   const titleText = isEdit ? `Receipt (Edit) - ${receiptNo}` : "Receipt (New)"
@@ -780,11 +795,26 @@ export default function ReceiptPage() {
         onValueChange={setActiveTab}
       >
         <div className="mb-2 flex items-center justify-between">
-          <TabsList>
-            <TabsTrigger value="main">Main</TabsTrigger>
-            <TabsTrigger value="other">Other</TabsTrigger>
-            <TabsTrigger value="history">History</TabsTrigger>
-          </TabsList>
+          <div className="flex items-center gap-4">
+            <TabsList>
+              <TabsTrigger value="main">Main</TabsTrigger>
+              <TabsTrigger value="other">Other</TabsTrigger>
+              <TabsTrigger value="history">History</TabsTrigger>
+            </TabsList>
+
+            {/* Cancel Remarks Badge */}
+            {isCancelled && receipt?.cancelRemarks && (
+              <div className="flex items-center gap-2">
+                <span className="inline-flex items-center rounded-full bg-red-100 px-3 py-1 text-xs font-medium text-red-800">
+                  <span className="mr-1 h-2 w-2 rounded-full bg-red-400"></span>
+                  Cancelled
+                </span>
+                <div className="max-w-xs truncate text-sm text-red-600">
+                  {receipt.cancelRemarks}
+                </div>
+              </div>
+            )}
+          </div>
 
           <h1>
             {/* Outer wrapper: gradient border or yellow pulsing border */}
@@ -839,7 +869,10 @@ export default function ReceiptPage() {
               size="sm"
               onClick={() => setShowSaveConfirm(true)}
               disabled={
-                isSaving || saveMutation.isPending || updateMutation.isPending
+                isSaving ||
+                saveMutation.isPending ||
+                updateMutation.isPending ||
+                isCancelled
               }
               className={isEdit ? "bg-blue-600 hover:bg-blue-700" : ""}
             >
@@ -882,7 +915,7 @@ export default function ReceiptPage() {
               variant="outline"
               size="sm"
               onClick={() => setShowCloneConfirm(true)}
-              disabled={!receipt || receipt.receiptId === "0"}
+              disabled={!receipt || receipt.receiptId === "0" || isCancelled}
             >
               <Copy className="mr-1 h-4 w-4" />
               Clone
@@ -895,7 +928,8 @@ export default function ReceiptPage() {
               disabled={
                 !receipt ||
                 receipt.receiptId === "0" ||
-                deleteMutation.isPending
+                deleteMutation.isPending ||
+                isCancelled
               }
             >
               {deleteMutation.isPending ? (
@@ -918,6 +952,7 @@ export default function ReceiptPage() {
             visible={visible}
             required={required}
             companyId={Number(companyId)}
+            isCancelled={isCancelled}
           />
         </TabsContent>
 
@@ -981,11 +1016,22 @@ export default function ReceiptPage() {
       <DeleteConfirmation
         open={showDeleteConfirm}
         onOpenChange={setShowDeleteConfirm}
-        onConfirm={handleReceiptDelete}
+        onConfirm={() => handleDeleteConfirmation()}
         itemName={receipt?.receiptNo}
         title="Delete Receipt"
         description="This action cannot be undone. All receipt details will be permanently deleted."
         isDeleting={deleteMutation.isPending}
+      />
+
+      {/* Cancel Confirmation */}
+      <CancelConfirmation
+        open={showCancelConfirm}
+        onOpenChange={setShowCancelConfirm}
+        onConfirmAction={handleReceiptDelete}
+        itemName={receipt?.receiptNo}
+        title="Cancel Receipt"
+        description="Please provide a reason for cancelling this receipt."
+        isCancelling={deleteMutation.isPending}
       />
 
       {/* Load Confirmation */}

@@ -120,6 +120,7 @@ export const ArInvoiceHdSchema = (
     editDate: z.string().optional(),
     cancelBy: z.string().optional(),
     cancelDate: z.string().optional(),
+    isCancel: z.boolean().optional(),
     cancelRemarks: z.string().optional(),
 
     // Nested Details

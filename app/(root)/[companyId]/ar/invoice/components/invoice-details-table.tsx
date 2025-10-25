@@ -16,6 +16,7 @@ interface InvoiceDetailsTableProps {
   onFilterChange?: (filters: { search?: string; sortOrder?: string }) => void
   onDataReorder?: (newData: IArInvoiceDt[]) => void
   visible: IVisibleFields
+  isCancelled?: boolean
 }
 
 export default function InvoiceDetailsTable({
@@ -27,6 +28,7 @@ export default function InvoiceDetailsTable({
   onFilterChange,
   onDataReorder,
   visible,
+  isCancelled = false,
 }: InvoiceDetailsTableProps) {
   const [mounted, setMounted] = useState(false)
 
@@ -302,9 +304,9 @@ export default function InvoiceDetailsTable({
         showHeader={true}
         showActions={true}
         hideView={false}
-        hideEdit={false}
-        hideDelete={false}
-        hideCheckbox={false}
+        hideEdit={isCancelled}
+        hideDelete={isCancelled}
+        hideCheckbox={isCancelled}
         disableOnAccountExists={false}
       />
     </div>

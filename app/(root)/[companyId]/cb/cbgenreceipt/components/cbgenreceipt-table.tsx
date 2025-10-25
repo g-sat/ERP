@@ -8,29 +8,25 @@ import { ColumnDef } from "@tanstack/react-table"
 import { format, subMonths } from "date-fns"
 import { FormProvider, useForm } from "react-hook-form"
 
+import { CbReceipt } from "@/lib/api-routes"
 import { CBTransactionId, ModuleId, TableName } from "@/lib/utils"
+import { useGetWithDates } from "@/hooks/use-common"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { CustomDateNew } from "@/components/custom/custom-date-new"
 import { DialogDataTable } from "@/components/table/table-dialog"
 
-export interface ReceiptTableProps {
-  data: ICbGenReceiptHd[]
-  isLoading: boolean
+export interface CbGenReceiptTableProps {
   onReceiptSelect: (selectedReceipt: ICbGenReceiptHd | undefined) => void
-  onRefresh: () => void
   onFilterChange: (filters: ICbGenReceiptFilter) => void
   initialFilters?: ICbGenReceiptFilter
 }
 
-export default function ReceiptTable({
-  data,
-  isLoading = false,
+export default function CbGenReceiptTable({
   onReceiptSelect,
-  onRefresh,
   onFilterChange,
   initialFilters,
-}: ReceiptTableProps) {
+}: CbGenReceiptTableProps) {
   const { decimals } = useAuthStore()
   const amtDec = decimals[0]?.amtDec || 2
   const locAmtDec = decimals[0]?.locAmtDec || 2
@@ -53,6 +49,25 @@ export default function ReceiptTable({
   const [searchQuery] = useState("")
   const [currentPage] = useState(1)
   const [pageSize] = useState(10)
+
+  // Data fetching - only when table is opened
+  const {
+    data: receiptsResponse,
+    isLoading: isLoadingReceipts,
+    isRefetching: isRefetchingReceipts,
+    refetch: refetchReceipts,
+  } = useGetWithDates<ICbGenReceiptHd>(
+    `${CbReceipt.get}`,
+    TableName.cbGenReceipt,
+    searchQuery,
+    form.watch("startDate")?.toString(),
+    form.watch("endDate")?.toString(),
+    undefined, // options
+    true // enabled: Fetch when table is opened
+  )
+
+  const data = receiptsResponse?.data || []
+  const isLoading = isLoadingReceipts || isRefetchingReceipts
 
   const formatNumber = (value: number, decimals: number) => {
     return value.toLocaleString(undefined, {
@@ -378,6 +393,21 @@ export default function ReceiptTable({
     }
   }
 
+  // Show loading spinner while data is loading
+  if (isLoadingReceipts) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="text-center">
+          <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-gray-300 border-t-blue-600"></div>
+          <p className="mt-4 text-sm text-gray-600">Loading receipts...</p>
+          <p className="mt-2 text-xs text-gray-500">
+            Please wait while we fetch the receipt list
+          </p>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="w-full overflow-auto">
       <FormProvider {...form}>
@@ -419,7 +449,7 @@ export default function ReceiptTable({
         transactionId={transactionId}
         tableName={TableName.cbGenReceipt}
         emptyMessage="No data found."
-        onRefresh={onRefresh}
+        onRefresh={() => refetchReceipts()}
         onFilterChange={handleDialogFilterChange}
         onRowSelect={(row) => onReceiptSelect(row || undefined)}
       />

@@ -66,6 +66,8 @@ const defaultDocsetoff = {
   createDate: "",
   editBy: "",
   editDate: "",
+  isCancel: false,
+  cancelById: 0,
   cancelBy: "",
   cancelDate: "",
   cancelRemarks: "",

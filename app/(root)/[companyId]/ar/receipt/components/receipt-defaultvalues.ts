@@ -67,6 +67,7 @@ const defaultReceipt = {
   createDate: "",
   editBy: "",
   editDate: "",
+  isCancel: false,
   cancelBy: "",
   cancelDate: "",
   cancelRemarks: "",

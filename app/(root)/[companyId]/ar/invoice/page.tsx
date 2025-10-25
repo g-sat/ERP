@@ -468,6 +468,7 @@ export default function InvoicePage() {
             clientDateFormat
           )
         : "",
+      isCancel: apiInvoice.isCancel ?? false,
       cancelRemarks: apiInvoice.cancelRemarks ?? "",
       data_details:
         apiInvoice.data_details?.map(
@@ -652,6 +653,7 @@ export default function InvoicePage() {
             editDate: detailedInvoice.editDate ?? "",
             cancelBy: detailedInvoice.cancelBy ?? "",
             cancelDate: detailedInvoice.cancelDate ?? "",
+            isCancel: detailedInvoice.isCancel ?? false,
             cancelRemarks: detailedInvoice.cancelRemarks ?? "",
             data_details:
               detailedInvoice.data_details?.map((detail: IArInvoiceDt) => ({
@@ -890,6 +892,8 @@ export default function InvoicePage() {
             editVersion: detailedInvoice.editVersion ?? 0,
             salesOrderId: detailedInvoice.salesOrderId ?? 0,
             salesOrderNo: detailedInvoice.salesOrderNo ?? "",
+            isCancel: detailedInvoice.isCancel ?? false,
+            cancelRemarks: detailedInvoice.cancelRemarks ?? "",
 
             data_details:
               detailedInvoice.data_details?.map((detail: IArInvoiceDt) => ({
@@ -988,6 +992,7 @@ export default function InvoicePage() {
   // Determine mode and invoice ID from URL
   const invoiceNo = form.getValues("invoiceNo")
   const isEdit = Boolean(invoiceNo)
+  const isCancelled = invoice?.isCancel === true
 
   // Compose title text
   const titleText = isEdit ? `Invoice (Edit) - ${invoiceNo}` : "Invoice (New)"
@@ -1016,11 +1021,26 @@ export default function InvoicePage() {
         onValueChange={setActiveTab}
       >
         <div className="mb-2 flex items-center justify-between">
-          <TabsList>
-            <TabsTrigger value="main">Main</TabsTrigger>
-            <TabsTrigger value="other">Other</TabsTrigger>
-            <TabsTrigger value="history">History</TabsTrigger>
-          </TabsList>
+          <div className="flex items-center gap-4">
+            <TabsList>
+              <TabsTrigger value="main">Main</TabsTrigger>
+              <TabsTrigger value="other">Other</TabsTrigger>
+              <TabsTrigger value="history">History</TabsTrigger>
+            </TabsList>
+
+            {/* Cancel Remarks Badge */}
+            {isCancelled && invoice?.cancelRemarks && (
+              <div className="flex items-center gap-2">
+                <span className="inline-flex items-center rounded-full bg-red-100 px-3 py-1 text-xs font-medium text-red-800">
+                  <span className="mr-1 h-2 w-2 rounded-full bg-red-400"></span>
+                  Cancelled
+                </span>
+                <div className="max-w-xs truncate text-sm text-red-600">
+                  {invoice.cancelRemarks}
+                </div>
+              </div>
+            )}
+          </div>
 
           <h1>
             {/* Outer wrapper: gradient border or yellow pulsing border */}
@@ -1075,7 +1095,10 @@ export default function InvoicePage() {
               size="sm"
               onClick={() => setShowSaveConfirm(true)}
               disabled={
-                isSaving || saveMutation.isPending || updateMutation.isPending
+                isSaving ||
+                saveMutation.isPending ||
+                updateMutation.isPending ||
+                isCancelled
               }
               className={isEdit ? "bg-blue-600 hover:bg-blue-700" : ""}
             >
@@ -1118,7 +1141,7 @@ export default function InvoicePage() {
               variant="outline"
               size="sm"
               onClick={() => setShowCloneConfirm(true)}
-              disabled={!invoice || invoice.invoiceId === "0"}
+              disabled={!invoice || invoice.invoiceId === "0" || isCancelled}
             >
               <Copy className="mr-1 h-4 w-4" />
               Clone
@@ -1131,7 +1154,8 @@ export default function InvoicePage() {
               disabled={
                 !invoice ||
                 invoice.invoiceId === "0" ||
-                deleteMutation.isPending
+                deleteMutation.isPending ||
+                isCancelled
               }
             >
               {deleteMutation.isPending ? (
@@ -1154,6 +1178,7 @@ export default function InvoicePage() {
             visible={visible}
             required={required}
             companyId={Number(companyId)}
+            isCancelled={isCancelled}
           />
         </TabsContent>
 

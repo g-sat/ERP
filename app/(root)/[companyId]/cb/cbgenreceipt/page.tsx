@@ -50,7 +50,7 @@ import {
 } from "@/components/confirmation"
 
 import { defaultReceipt } from "./components/cbgenreceipt-defaultvalues"
-import ReceiptTable from "./components/cbgenreceipt-table"
+import CbGenReceiptTable from "./components/cbgenreceipt-table"
 import History from "./components/history"
 import Main from "./components/main-tab"
 import Other from "./components/other"
@@ -496,14 +496,6 @@ export default function GenReceiptPage() {
     setFilters(newFilters)
   }
 
-  // Refetch receipts when filters change (only if dialog is open)
-  useEffect(() => {
-    if (showListDialog) {
-      refetchReceipts()
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filters, showListDialog])
-
   // Add keyboard shortcuts
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
@@ -785,29 +777,11 @@ export default function GenReceiptPage() {
             </div>
           </DialogHeader>
 
-          {isSelectingReceipt ? (
-            <div className="flex min-h-[60vh] items-center justify-center">
-              <div className="text-center">
-                <Spinner size="lg" className="mx-auto" />
-                <p className="mt-4 text-sm text-gray-600">
-                  {isSelectingReceipt
-                    ? "Loading Gen Receipt details..."
-                    : "Loading Gen Receipts..."}
-                </p>
-                <p className="mt-2 text-xs text-gray-500">
-                  {isSelectingReceipt
-                    ? "Please wait while we fetch the complete Gen Receipt data"
-                    : "Please wait while we fetch the Gen Receipt list"}
-                </p>
-              </div>
-            </div>
-          ) : (
-            <ReceiptTable
-              onReceiptSelect={handleReceiptSelect}
-              onFilterChange={handleFilterChange}
-              initialFilters={filters}
-            />
-          )}
+          <CbGenReceiptTable
+            onReceiptSelect={handleReceiptSelect}
+            onFilterChange={handleFilterChange}
+            initialFilters={filters}
+          />
         </DialogContent>
       </Dialog>
 

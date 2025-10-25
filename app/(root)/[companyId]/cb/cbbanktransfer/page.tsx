@@ -193,7 +193,7 @@ export default function BankTransferPage() {
         validationResult.error.issues.forEach((error) => {
           const fieldPath = error.path.join(
             "."
-          ) as keyof CbBankTransferHdSchemaType
+          ) as keyof CbBankTransferSchemaType
           form.setError(fieldPath, {
             type: "validation",
             message: error.message,
@@ -448,14 +448,6 @@ export default function BankTransferPage() {
   const handleFilterChange = (newFilters: ICbBankTransferFilter) => {
     setFilters(newFilters)
   }
-
-  // Refetch bank transfers when filters change (only if dialog is open)
-  useEffect(() => {
-    if (showListDialog) {
-      refetchBankTransfers()
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filters, showListDialog])
 
   // Add keyboard shortcuts
   useEffect(() => {

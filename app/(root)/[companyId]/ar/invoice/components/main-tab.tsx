@@ -27,6 +27,7 @@ interface MainProps {
   visible: IVisibleFields
   required: IMandatoryFields
   companyId: number
+  isCancelled?: boolean
 }
 
 export default function Main({
@@ -36,6 +37,7 @@ export default function Main({
   visible,
   required,
   companyId,
+  isCancelled = false,
 }: MainProps) {
   const { decimals } = useAuthStore()
   const amtDec = decimals[0]?.amtDec || 2
@@ -241,6 +243,7 @@ export default function Main({
         defaultGlId={defaults.ar.invoiceGlId}
         defaultUomId={defaults.common.uomId}
         defaultGstId={defaults.common.gstId}
+        isCancelled={isCancelled}
       />
 
       <InvoiceDetailsTable
@@ -253,6 +256,7 @@ export default function Main({
         onRefresh={() => {}} // Add refresh logic if needed
         onFilterChange={() => {}} // Add filter logic if needed
         onDataReorder={handleDataReorder as (newData: IArInvoiceDt[]) => void}
+        isCancelled={isCancelled}
       />
 
       <DeleteConfirmation

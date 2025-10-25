@@ -81,6 +81,7 @@ export const apdocsetoffHdSchema = (
     createDate: z.string().optional(),
     editBy: z.string().optional(),
     editDate: z.string().optional(),
+    isCancel: z.boolean().optional(),
     cancelBy: z.string().optional(),
     cancelDate: z.string().optional(),
     cancelRemarks: z.string().optional(),

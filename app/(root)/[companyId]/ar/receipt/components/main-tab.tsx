@@ -31,6 +31,7 @@ interface MainProps {
   visible: IVisibleFields
   required: IMandatoryFields
   companyId: number
+  isCancelled?: boolean
 }
 
 export default function Main({
@@ -40,6 +41,7 @@ export default function Main({
   visible,
   required,
   companyId,
+  isCancelled = false,
 }: MainProps) {
   const { decimals } = useAuthStore()
   const amtDec = decimals[0]?.amtDec || 2
@@ -626,6 +628,7 @@ export default function Main({
         visible={visible}
         required={required}
         companyId={companyId}
+        isCancelled={isCancelled}
       />
 
       <div className="px-2 pt-1">

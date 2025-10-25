@@ -47,6 +47,7 @@ interface ReceiptFormProps {
   visible: IVisibleFields
   required: IMandatoryFields
   companyId: number
+  isCancelled?: boolean
 }
 
 export default function ReceiptForm({
@@ -56,6 +57,7 @@ export default function ReceiptForm({
   visible,
   required,
   companyId: _companyId,
+  isCancelled = false,
 }: ReceiptFormProps) {
   const { decimals } = useAuthStore()
   const amtDec = decimals[0]?.amtDec || 2
@@ -636,7 +638,9 @@ export default function ReceiptForm({
     <FormProvider {...form}>
       <form
         onSubmit={form.handleSubmit(onSubmit)}
-        className="grid grid-cols-8 gap-1 rounded-md p-2"
+        className={`grid grid-cols-8 gap-1 rounded-md p-2 ${
+          isCancelled ? "pointer-events-none opacity-50" : ""
+        }`}
       >
         {/* Transaction Date */}
         {visible?.m_TrnDate && (
