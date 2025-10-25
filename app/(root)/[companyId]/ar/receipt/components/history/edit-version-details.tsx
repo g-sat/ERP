@@ -7,16 +7,11 @@ import { ColumnDef } from "@tanstack/react-table"
 import { format } from "date-fns"
 import { AlertCircle } from "lucide-react"
 
+import { ARTransactionId, ModuleId, TableName } from "@/lib/utils"
 import {
-  APTransactionId,
-  ARTransactionId,
-  ModuleId,
-  TableName,
-} from "@/lib/utils"
-import {
-  useGetAPInvoiceHistoryDetails,
-  useGetAPInvoiceHistoryList,
-} from "@/hooks/use-ap"
+  useGetARReceiptHistoryDetails,
+  useGetARReceiptHistoryList,
+} from "@/hooks/use-ar"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
@@ -49,10 +44,10 @@ export default function EditVersionDetails({
   )
 
   const { data: receiptHistoryData, refetch: refetchHistory } =
-    useGetAPInvoiceHistoryList<IArReceiptHd[]>(receiptId)
+    useGetARReceiptHistoryList<IArReceiptHd[]>(receiptId)
 
   const { data: receiptDetailsData, refetch: refetchDetails } =
-    useGetAPInvoiceHistoryDetails<IArReceiptHd>(
+    useGetARReceiptHistoryDetails<IArReceiptHd>(
       selectedReceipt?.receiptId || "",
       selectedReceipt?.editVersion?.toString() || ""
     )

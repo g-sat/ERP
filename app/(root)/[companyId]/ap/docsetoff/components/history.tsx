@@ -7,7 +7,6 @@ import { UseFormReturn } from "react-hook-form"
 import AccountDetails from "./history/account-details"
 import EditVersionDetails from "./history/edit-version-details"
 import GLPostDetails from "./history/gl-post-details"
-import PaymentDetails from "./history/payment-details"
 
 interface HistoryProps {
   form: UseFormReturn<ApDocsetoffHdSchemaType>
@@ -30,7 +29,6 @@ export default function History({ form, isEdit: _isEdit }: HistoryProps) {
   return (
     <div className="space-y-4">
       <AccountDetails {...accountDetails} />
-      <PaymentDetails setoffId={form.getValues().setoffId || ""} />
       <GLPostDetails setoffId={form.getValues().setoffId || ""} />
       <EditVersionDetails setoffId={form.getValues().setoffId || ""} />
     </div>

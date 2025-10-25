@@ -14,6 +14,8 @@ interface AccountDetailsProps {
   editDate: string | null
   cancelBy: string | null
   cancelDate: string | null
+  appBy: string | null
+  appDate: string | null
 }
 
 export default function AccountDetails({
@@ -23,6 +25,8 @@ export default function AccountDetails({
   editDate,
   cancelBy,
   cancelDate,
+  appBy,
+  appDate,
 }: AccountDetailsProps) {
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
@@ -38,98 +42,75 @@ export default function AccountDetails({
 
   return (
     <Card>
-      <CardHeader className="pb-3">
-        <CardTitle className="text-lg font-semibold">Account Details</CardTitle>
+      <CardHeader>
+        <CardTitle className="text-lg font-semibold">Details</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-2 gap-6">
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <h3 className="text-muted-foreground text-sm font-medium">
-                Transaction History
-              </h3>
-              <div className="bg-card rounded-lg border p-4">
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground text-sm">
-                      Created By
-                    </span>
-                    <div className="flex items-center gap-2">
-                      <Badge variant="outline" className="font-normal">
-                        {createBy}
-                      </Badge>
-                      <span className="text-muted-foreground text-sm">
-                        {safeFormatDate(createDate, datetimeFormat)}
-                      </span>
-                    </div>
-                  </div>
-                  <Separator />
-                  <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground text-sm">
-                      Last Edited By
-                    </span>
-                    <div className="flex items-center gap-2">
-                      <Badge variant="outline" className="font-normal">
-                        {editBy || "-"}
-                      </Badge>
-                      <span className="text-muted-foreground text-sm">
-                        {safeFormatDate(editDate, datetimeFormat)}
-                      </span>
-                    </div>
-                  </div>
-                  <Separator />
-                  <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground text-sm">
-                      Cancelled By
-                    </span>
-                    <div className="flex items-center gap-2">
-                      <Badge variant="outline" className="font-normal">
-                        {cancelBy || "-"}
-                      </Badge>
-                      <span className="text-muted-foreground text-sm">
-                        {safeFormatDate(cancelDate, datetimeFormat)}
-                      </span>
-                    </div>
-                  </div>
+        <div className="bg-card rounded-lg border p-4">
+          <div className="grid grid-cols-3 gap-6">
+            {/* Left Column */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground text-sm">
+                  Created By
+                </span>
+                <div className="flex items-center gap-2">
+                  <Badge variant="outline" className="font-normal">
+                    {createBy}
+                  </Badge>
+                  <span className="text-muted-foreground text-sm">
+                    {safeFormatDate(createDate, datetimeFormat)}
+                  </span>
+                </div>
+              </div>
+              <Separator />
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground text-sm">
+                  Cancelled By
+                </span>
+                <div className="flex items-center gap-2">
+                  <Badge variant="outline" className="font-normal">
+                    {cancelBy || "-"}
+                  </Badge>
+                  <span className="text-muted-foreground text-sm">
+                    {safeFormatDate(cancelDate, datetimeFormat)}
+                  </span>
                 </div>
               </div>
             </div>
-          </div>
 
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <h3 className="text-muted-foreground text-sm font-medium">
-                Amount Details
-              </h3>
-              <div className="bg-card rounded-lg border p-4">
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground text-sm">
-                      Balance Amount
-                    </span>
-                    <span className="font-medium tabular-nums"></span>
-                  </div>
-                  <Separator />
-                  <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground text-sm">
-                      Balance Base Amount
-                    </span>
-                    <span className="font-medium tabular-nums"></span>
-                  </div>
-                  <Separator />
-                  <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground text-sm">
-                      Receipt Amount
-                    </span>
-                    <span className="font-medium tabular-nums"></span>
-                  </div>
-                  <Separator />
-                  <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground text-sm">
-                      Receipt Base Amount
-                    </span>
-                    <span className="font-medium tabular-nums"></span>
-                  </div>
+            {/* Vertical Separator */}
+            <div className="flex justify-center">
+              <Separator orientation="vertical" className="h-full" />
+            </div>
+
+            {/* Right Column */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground text-sm">
+                  Last Edited By
+                </span>
+                <div className="flex items-center gap-2">
+                  <Badge variant="outline" className="font-normal">
+                    {editBy || "-"}
+                  </Badge>
+                  <span className="text-muted-foreground text-sm">
+                    {safeFormatDate(editDate, datetimeFormat)}
+                  </span>
+                </div>
+              </div>
+              <Separator />
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground text-sm">
+                  Approved By
+                </span>
+                <div className="flex items-center gap-2">
+                  <Badge variant="outline" className="font-normal">
+                    {appBy || "-"}
+                  </Badge>
+                  <span className="text-muted-foreground text-sm">
+                    {safeFormatDate(appDate, datetimeFormat)}
+                  </span>
                 </div>
               </div>
             </div>

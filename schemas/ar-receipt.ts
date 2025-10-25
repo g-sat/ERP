@@ -87,6 +87,9 @@ export const arreceiptHdSchema = (
     cancelBy: z.string().optional(),
     cancelDate: z.string().optional(),
     cancelRemarks: z.string().optional(),
+    appBy: z.string().optional(),
+    appDate: z.string().optional(),
+    appStatusId: z.number().optional(),
 
     // Nested Details
     data_details: z.array(arreceiptDtSchema(required, visible)).optional(),

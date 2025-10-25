@@ -2,7 +2,7 @@ import { ApiResponse } from "@/interfaces/auth"
 import { useQuery } from "@tanstack/react-query"
 
 import { getById, getData } from "@/lib/api-client"
-import { ArInvoice } from "@/lib/api-routes"
+import { ArInvoice, ArReceipt } from "@/lib/api-routes"
 
 /**
  * 1. Invoice Management
@@ -87,6 +87,52 @@ export function useGetARInvoiceHistoryDetails<T>(
     refetchOnReconnect: false,
     gcTime: 10 * 60 * 1000,
     staleTime: 5 * 60 * 1000,
+    ...options,
+  })
+}
+
+/**
+ * 1.2 Get AR Receipt History List
+ */
+export function useGetARReceiptHistoryList<T>(receiptId: string, options = {}) {
+  return useQuery<ApiResponse<T>>({
+    queryKey: ["ar-receipt-history-list", receiptId],
+    queryFn: async () => {
+      // Clean up the URL by removing any double slashes
+      return await getData(`${ArReceipt.history}/${receiptId}`)
+    },
+    enabled: !!receiptId && receiptId !== "0",
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+    gcTime: 10 * 60 * 1000,
+    staleTime: 5 * 60 * 1000,
+    ...options,
+  })
+}
+
+/**
+ * 1.3 Get AR Receipt History Details
+ */
+export function useGetARReceiptHistoryDetails<T>(
+  receiptId: string,
+  editVersion: string,
+  options = {}
+) {
+  return useQuery<ApiResponse<T>>({
+    queryKey: ["ar-receipt-history-details", receiptId, editVersion],
+    queryFn: async () => {
+      // Clean up the URL by removing any double slashes
+      return await getData(
+        `${ArReceipt.historyDetails}/${receiptId}/${editVersion}`
+      )
+    },
+    enabled: !!receiptId && receiptId !== "0",
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+    gcTime: 0,
+    staleTime: 0,
     ...options,
   })
 }
