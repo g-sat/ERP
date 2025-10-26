@@ -327,6 +327,36 @@ export default function InvoicePage() {
     setShowCancelConfirm(true)
   }
 
+  // Handle Search No Blur - Trim spaces before and after, then trigger load confirmation
+  const handleSearchNoBlur = () => {
+    // Trim leading and trailing spaces
+    const trimmedValue = searchNo.trim()
+
+    // Only update if there was a change (handles "   value   " => "value")
+    if (trimmedValue !== searchNo) {
+      setSearchNo(trimmedValue)
+    }
+
+    // Show load confirmation if there's a value after trimming
+    if (trimmedValue) {
+      setShowLoadConfirm(true)
+    }
+  }
+
+  // Handle Search No Enter Key
+  const handleSearchNoKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    // Trim the value and check if it's not empty before triggering
+    const trimmedValue = searchNo.trim()
+    if (e.key === "Enter" && trimmedValue) {
+      e.preventDefault()
+      // Update the search input with trimmed value if it was changed
+      if (trimmedValue !== searchNo) {
+        setSearchNo(trimmedValue)
+      }
+      setShowLoadConfirm(true)
+    }
+  }
+
   // Handle Delete - Second Level: With Cancel Remarks
   const handleInvoiceDelete = async (cancelRemarks: string) => {
     if (!invoice) return
@@ -1096,17 +1126,8 @@ export default function InvoicePage() {
             <Input
               value={searchNo}
               onChange={(e) => setSearchNo(e.target.value)}
-              onBlur={() => {
-                if (searchNo.trim()) {
-                  setShowLoadConfirm(true)
-                }
-              }}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && searchNo.trim()) {
-                  e.preventDefault()
-                  setShowLoadConfirm(true)
-                }
-              }}
+              onBlur={handleSearchNoBlur}
+              onKeyDown={handleSearchNoKeyDown}
               placeholder="Search Invoice No"
               className="h-8 text-sm"
               readOnly={!!invoice?.invoiceId && invoice.invoiceId !== "0"}
