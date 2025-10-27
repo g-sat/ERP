@@ -1016,6 +1016,7 @@ export const usePaymentTypeLookup = () => {
     refetchOnWindowFocus: false,
   })
 }
+
 export const useVesselLookup = () => {
   return useQuery<IVesselLookup[]>({
     queryKey: ["vessel-lookUp"],
@@ -1031,6 +1032,103 @@ export const useVesselLookup = () => {
     refetchOnWindowFocus: false,
   })
 }
+
+export const useCustomerDynamicLookup = () => {
+  return useQuery<ICustomerLookup[]>({
+    queryKey: ["customer-dynamic-lookUp"],
+    placeholderData: keepPreviousData,
+    queryFn: async () => {
+      try {
+        const data = await getData(`${Lookup.getCustomerDynamic}`)
+        return data?.data || []
+      } catch (error) {
+        handleApiError(error)
+      }
+    },
+    refetchOnWindowFocus: false,
+  })
+}
+
+export const useSupplierDynamicLookup = () => {
+  return useQuery<ISupplierLookup[]>({
+    queryKey: ["supplier-dynamic-lookUp"],
+    placeholderData: keepPreviousData,
+    queryFn: async () => {
+      try {
+        const data = await getData(`${Lookup.getSupplierDynamic}`)
+        return data?.data || []
+      } catch (error) {
+        handleApiError(error)
+      }
+    },
+    refetchOnWindowFocus: false,
+  })
+}
+
+export const useProductDynamicLookup = () => {
+  return useQuery<IProductLookup[]>({
+    queryKey: ["product-dynamic-lookUp"],
+    placeholderData: keepPreviousData,
+    queryFn: async () => {
+      try {
+        const data = await getData(`${Lookup.getProductDynamic}`)
+        return data?.data || []
+      } catch (error) {
+        handleApiError(error)
+      }
+    },
+    refetchOnWindowFocus: false,
+  })
+}
+
+export const useVoyageDynamicLookup = () => {
+  return useQuery<IVoyageLookup[]>({
+    queryKey: ["voyage-dynamic-lookUp"],
+    placeholderData: keepPreviousData,
+    queryFn: async () => {
+      try {
+        const data = await getData(`${Lookup.getVoyageDynamic}`)
+        return data?.data || []
+      } catch (error) {
+        handleApiError(error)
+      }
+    },
+    refetchOnWindowFocus: false,
+  })
+}
+
+export const useVesselDynamicLookup = () => {
+  return useQuery<IVesselLookup[]>({
+    queryKey: ["vessel-dynamic-lookUp"],
+    placeholderData: keepPreviousData,
+    queryFn: async () => {
+      try {
+        const data = await getData(`${Lookup.getVesselDynamic}`)
+        return data?.data || []
+      } catch (error) {
+        handleApiError(error)
+      }
+    },
+    refetchOnWindowFocus: false,
+  })
+}
+
+export const useBargeDynamicLookup = () => {
+  return useQuery<IBargeLookup[]>({
+    queryKey: ["barge-dynamic-lookUp"],
+    placeholderData: keepPreviousData,
+    queryFn: async () => {
+      try {
+        const data = await getData(`${Lookup.getBargeDynamic}`)
+        return data?.data || []
+      } catch (error) {
+        handleApiError(error)
+      }
+    },
+    refetchOnWindowFocus: false,
+  })
+}
+
 export const useJobOrderLookup = () => {
   return useQuery<IJobOrderLookup[]>({
     queryKey: ["joborder-lookUp"],
@@ -1117,6 +1215,7 @@ export const useCompanyCustomerLookup = (companyId: number) => {
       try {
         // Using the new api-client approach
         const data = await getData(`${Lookup.getCompanyCustomer}/${companyId}`)
+        //const data = await getData(`${Lookup.getCustomer}`)
         return data?.data || []
       } catch (error) {
         handleApiError(error)

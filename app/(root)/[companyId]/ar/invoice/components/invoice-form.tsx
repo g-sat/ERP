@@ -29,11 +29,13 @@ import { format } from "date-fns"
 import { FormProvider, UseFormReturn } from "react-hook-form"
 
 import { clientDateFormat } from "@/lib/date-utils"
+import { useGetDynamicLookup } from "@/hooks/use-lookup"
 import {
   BankAutocomplete,
-  CompanyCustomerAutocomplete,
   CreditTermAutocomplete,
   CurrencyAutocomplete,
+  CustomerAutocomplete,
+  DynamicCustomerAutocomplete,
 } from "@/components/autocomplete"
 import { CustomDateNew } from "@/components/custom/custom-date-new"
 import CustomInput from "@/components/custom/custom-input"
@@ -64,6 +66,9 @@ export default function InvoiceForm({
   const locAmtDec = decimals[0]?.locAmtDec || 2
   const ctyAmtDec = decimals[0]?.ctyAmtDec || 2
   const exhRateDec = decimals[0]?.exhRateDec || 6
+
+  const { data: dynamicLookup } = useGetDynamicLookup()
+  const isDynamicCustomer = dynamicLookup?.isCustomer ?? false
 
   const onSubmit = async () => {
     await onSuccessAction("save")
@@ -433,15 +438,35 @@ export default function InvoiceForm({
             isFutureShow={false}
           />
 
-          {/* Customer */}
-          <CompanyCustomerAutocomplete
+          {/* Customer by company*/}
+          {/* <CompanyCustomerAutocomplete
             form={form}
             name="customerId"
             label="Customer"
             isRequired={true}
             onChangeEvent={handleCustomerChange}
             companyId={_companyId}
-          />
+          /> */}
+
+          {/* Customer */}
+          {isDynamicCustomer ? (
+            <DynamicCustomerAutocomplete
+              form={form}
+              name="customerId"
+              label="Customer"
+              isRequired={true}
+              onChangeEvent={handleCustomerChange}
+            />
+          ) : (
+            <CustomerAutocomplete
+              form={form}
+              name="customerId"
+              label="Customer"
+              isRequired={true}
+              onChangeEvent={handleCustomerChange}
+            />
+          )}
+
           {/* customerInvoiceNo */}
           <CustomInput
             form={form}

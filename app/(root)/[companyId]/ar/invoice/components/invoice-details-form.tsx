@@ -260,7 +260,7 @@ export default function InvoiceDetailsForm({
     const defaultValues = createDefaultValues(nextItemNo)
     const populatedValues = populateCodeNameFields(defaultValues)
     form.reset(populatedValues)
-    toast.info("Edit cancelled")
+    toast.info("Detail cancelled")
     focusFirstVisibleField()
   }
 
@@ -1150,17 +1150,15 @@ export default function InvoiceDetailsForm({
               {editingDetail ? "Update" : "Add"}
             </Button>
 
-            {editingDetail && (
-              <Button
-                type="button"
-                variant="outline"
-                title="Cancel"
-                size="sm"
-                onClick={handleCancelEdit}
-              >
-                Cancel
-              </Button>
-            )}
+            <Button
+              type="button"
+              variant="outline"
+              title="Cancel"
+              size="sm"
+              onClick={handleCancelEdit}
+            >
+              Cancel
+            </Button>
           </div>
         </form>
       </FormProvider>

@@ -1031,16 +1031,19 @@ export default function InvoicePage() {
   const invoiceNo = form.getValues("invoiceNo")
   const isEdit = Boolean(invoiceNo)
   const isCancelled = invoice?.isCancel === true
-  const hasPayment = (invoice?.payAmt ?? 0) > 0
-
   // Calculate payment status
   const balAmt = invoice?.balAmt ?? 0
+  const payAmt = invoice?.payAmt ?? 0
+  const totAmt = invoice?.totAmt ?? 0
+
   const paymentStatus =
-    hasPayment && balAmt > 0
-      ? "Partially Paid"
-      : hasPayment && balAmt === 0
-        ? "Fully Paid"
-        : null
+    balAmt === 0 && payAmt > 0
+      ? "Fully Paid"
+      : balAmt > 0 && payAmt > 0
+        ? "Partially Paid"
+        : balAmt > 0 && payAmt === 0
+          ? "Not Paid"
+          : null
 
   // Compose title text
   const titleText = isEdit ? `Invoice (Edit) - ${invoiceNo}` : "Invoice (New)"
@@ -1090,6 +1093,12 @@ export default function InvoicePage() {
             )}
 
             {/* Payment Status Badge */}
+            {paymentStatus === "Not Paid" && (
+              <span className="inline-flex items-center rounded-full bg-red-100 px-3 py-1 text-xs font-medium text-red-800">
+                <span className="mr-1 h-2 w-2 rounded-full bg-red-400"></span>
+                Not Paid
+              </span>
+            )}
             {paymentStatus === "Partially Paid" && (
               <span className="inline-flex items-center rounded-full bg-orange-100 px-3 py-1 text-xs font-medium text-orange-800">
                 <span className="mr-1 h-2 w-2 rounded-full bg-orange-400"></span>
@@ -1153,7 +1162,7 @@ export default function InvoicePage() {
                 saveMutation.isPending ||
                 updateMutation.isPending ||
                 isCancelled ||
-                hasPayment ||
+                payAmt > 0 ||
                 (isEdit && !canEdit) ||
                 (!isEdit && !canCreate)
               }
@@ -1214,7 +1223,7 @@ export default function InvoicePage() {
                 invoice.invoiceId === "0" ||
                 deleteMutation.isPending ||
                 isCancelled ||
-                hasPayment ||
+                payAmt > 0 ||
                 !canDelete
               }
             >

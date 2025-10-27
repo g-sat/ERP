@@ -27,12 +27,13 @@ import { useAuthStore } from "@/stores/auth-store"
 import { FormProvider, UseFormReturn } from "react-hook-form"
 
 import { parseNumberWithCommas } from "@/lib/utils"
-import { usePaymentTypeLookup } from "@/hooks/use-lookup"
+import { useGetDynamicLookup, usePaymentTypeLookup } from "@/hooks/use-lookup"
 import {
   BankAutocomplete,
   BankChartOfAccountAutocomplete,
-  CompanyCustomerAutocomplete,
   CurrencyAutocomplete,
+  CustomerAutocomplete,
+  DynamicCustomerAutocomplete,
   PaymentTypeAutocomplete,
 } from "@/components/autocomplete"
 import { CustomDateNew } from "@/components/custom/custom-date-new"
@@ -63,6 +64,9 @@ export default function ReceiptForm({
   const amtDec = decimals[0]?.amtDec || 2
   const locAmtDec = decimals[0]?.locAmtDec || 2
   const exhRateDec = decimals[0]?.exhRateDec || 6
+
+  const { data: dynamicLookup } = useGetDynamicLookup()
+  const isDynamicCustomer = dynamicLookup?.isCustomer ?? false
 
   const { data: paymentTypes = [] } = usePaymentTypeLookup()
 
@@ -664,16 +668,34 @@ export default function ReceiptForm({
           isFutureShow={false}
         />
 
+        {/* Customer by company*/}
+        {/* <CompanyCustomerAutocomplete
+            form={form}
+            name="customerId"
+            label="Customer"
+            isRequired={true}
+            onChangeEvent={handleCustomerChange}
+            companyId={_companyId}
+          /> */}
+
         {/* Customer */}
-        <CompanyCustomerAutocomplete
-          form={form}
-          name="customerId"
-          label="Customer"
-          isRequired={true}
-          onChangeEvent={handleCustomerChange}
-          companyId={_companyId}
-          className="col-span-2"
-        />
+        {isDynamicCustomer ? (
+          <DynamicCustomerAutocomplete
+            form={form}
+            name="customerId"
+            label="Customer"
+            isRequired={true}
+            onChangeEvent={handleCustomerChange}
+          />
+        ) : (
+          <CustomerAutocomplete
+            form={form}
+            name="customerId"
+            label="Customer"
+            isRequired={true}
+            onChangeEvent={handleCustomerChange}
+          />
+        )}
 
         {/* Reference No */}
         <CustomInput
