@@ -469,233 +469,159 @@ export function AccountBaseTable<T>({
         />
       )}
 
-      <Table>
-        {/* ============================================================================
-          DRAG AND DROP CONTEXT
-          ============================================================================ */}
 
-        {/* Wrap table in drag and drop context for column reordering */}
+      {/* ========================================================================= */}
+      {/* MAIN TABLE CONTAINER - NO OUTER <Table>! */}
+      {/* ========================================================================= */}
+      <div className="overflow-x-auto rounded-lg border">
         <DndContext
           sensors={sensors}
           collisionDetection={closestCenter}
           onDragEnd={handleDragEnd}
         >
-          {/* ============================================================================
-            TABLE CONTAINER
-            ============================================================================ */}
+          {/* ========================================================================= */}
+          {/* SINGLE TABLE - NO NESTING */}
+          {/* ========================================================================= */}
+          <Table className="w-full table-fixed border-collapse">
+            <colgroup>
+              {table.getAllLeafColumns().map((col) => (
+                <col
+                  key={col.id}
+                  style={{
+                    width: `${col.getSize()}px`,
+                    minWidth: `${col.getSize()}px`,
+                    maxWidth: `${col.getSize()}px`,
+                  }}
+                />
+              ))}
+            </colgroup>
 
-          {/* Main table container with horizontal scrolling */}
-          <div className="overflow-x-auto rounded-lg border">
-            {/* Fixed header table with column sizing */}
-            <Table
-              className="w-full table-fixed border-collapse"
-              style={{ minWidth: "100%" }}
-            >
-              {/* Column group for consistent sizing */}
-              <colgroup>
-                {table.getAllLeafColumns().map((col) => (
-                  <col
-                    key={col.id}
-                    style={{
-                      width: `${col.getSize()}px`,
-                      minWidth: `${col.getSize()}px`,
-                      maxWidth: `${col.getSize()}px`,
-                    }} // Set column width from table state
-                  />
-                ))}
-              </colgroup>
-
-              {/* Sticky table header */}
-              <TableHeader className="bg-background sticky top-0 z-20">
-                {table.getHeaderGroups().map((headerGroup) => (
-                  <TableRow key={headerGroup.id} className="bg-muted/50">
-                    {/* Render each header */}
-                    {headerGroup.headers.map((header) => {
-                      // Don't use SortableTableHeader for drag-actions column
-                      if (header.id === "drag-actions") {
-                        return (
-                          <TableHead
-                            key={header.id}
-                            colSpan={header.colSpan}
-                            style={{
-                              width: header.getSize(),
-                              minWidth: header.column.columnDef.minSize,
-                              maxWidth: header.column.columnDef.maxSize,
-                            }}
-                            className="bg-muted group hover:bg-muted/80 relative transition-colors"
-                          >
-                            {header.isPlaceholder ? null : (
-                              <div className="flex items-center justify-between pl-3">
-                                <div className="flex items-center">
-                                  <span className="font-medium">
-                                    {flexRender(
-                                      header.column.columnDef.header,
-                                      header.getContext()
-                                    )}
-                                  </span>
-                                </div>
-                              </div>
-                            )}
-                          </TableHead>
-                        )
-                      }
-
-                      // Use SortableTableHeader for regular columns
+            {/* Sticky Header */}
+            <TableHeader className="bg-background sticky top-0 z-20">
+              {table.getHeaderGroups().map((headerGroup) => (
+                <TableRow key={headerGroup.id} className="bg-muted/50">
+                  {headerGroup.headers.map((header) => {
+                    if (header.id === "drag-actions") {
                       return (
-                        <SortableTableHeader key={header.id} header={header} />
+                        <TableHead
+                          key={header.id}
+                          colSpan={header.colSpan}
+                          style={{
+                            width: header.getSize(),
+                            minWidth: header.column.columnDef.minSize,
+                            maxWidth: header.column.columnDef.maxSize,
+                          }}
+                          className="bg-muted group hover:bg-muted/80 relative transition-colors"
+                        >
+                          {header.isPlaceholder ? null : (
+                            <div className="flex items-center justify-between pl-3">
+                              <div className="flex items-center">
+                                <span className="font-medium">
+                                  {flexRender(
+                                    header.column.columnDef.header,
+                                    header.getContext()
+                                  )}
+                                </span>
+                              </div>
+                            </div>
+                          )}
+                        </TableHead>
+                      )
+                    }
+                    return <SortableTableHeader key={header.id} header={header} />
+                  })}
+                </TableRow>
+              ))}
+            </TableHeader>
+
+            {/* Scrollable Body */}
+            <TableBody>
+              <SortableContext
+                items={data.map((item) =>
+                  String((item as Record<string, unknown>)[accessorId as string])
+                )}
+                strategy={verticalListSortingStrategy}
+              >
+                {table.getRowModel().rows.map((row) => (
+                  <TableRow key={row.id}>
+                    {row.getVisibleCells().map((cell, cellIndex) => {
+                      const isActions = cell.column.id === "drag-actions"
+                      const isFirstColumn = cellIndex === 0
+
+                      return (
+                        <TableCell
+                          key={cell.id}
+                          className={`py-1 ${
+                            isFirstColumn || isActions
+                              ? "bg-background sticky left-0 z-10"
+                              : ""
+                          }`}
+                          style={{
+                            width: `${cell.column.getSize()}px`,
+                            minWidth: `${cell.column.getSize()}px`,
+                            maxWidth: `${cell.column.getSize()}px`,
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            whiteSpace: "nowrap",
+                            position: isFirstColumn || isActions ? "sticky" : "relative",
+                            left: isFirstColumn || isActions ? 0 : "auto",
+                            zIndex: isFirstColumn || isActions ? 10 : 1,
+                          }}
+                        >
+                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                        </TableCell>
                       )
                     })}
                   </TableRow>
                 ))}
-              </TableHeader>
-            </Table>
 
-            {/* Scrollable body container */}
-            <div
-              className="max-h-[460px] overflow-y-auto" // Allow vertical scrolling if needed
-            >
-              {/* Body table with same column sizing as header */}
-              <Table
-                className="w-full table-fixed border-collapse"
-                style={{ minWidth: "100%" }}
-              >
-                {/* Column group matching header for alignment */}
-                <colgroup>
-                  {table.getAllLeafColumns().map((col) => (
-                    <col
-                      key={col.id}
-                      style={{
-                        width: `${col.getSize()}px`,
-                        minWidth: `${col.getSize()}px`,
-                        maxWidth: `${col.getSize()}px`,
-                      }} // Match header column widths
-                    />
-                  ))}
-                </colgroup>
+                {/* Empty Rows */}
+                {Array.from({
+                  length: Math.max(0, pageSize - table.getRowModel().rows.length),
+                }).map((_, index) => (
+                  <TableRow key={`empty-${index}`} className="h-7">
+                    {table.getAllLeafColumns().map((column, cellIndex) => {
+                      const isActions = column.id === "drag-actions"
+                      const isFirstColumn = cellIndex === 0
 
-                <TableBody>
-                  {/* ============================================================================
-                    DATA ROWS RENDERING
-                    ============================================================================ */}
-
-                  {/* Sortable context for row dragging */}
-                  <SortableContext
-                    items={data.map((item) =>
-                      String(
-                        (item as Record<string, unknown>)[accessorId as string]
-                      )
-                    )}
-                    strategy={verticalListSortingStrategy}
-                  >
-                    {/* Render data rows */}
-                    {table.getRowModel().rows.map((row) => {
                       return (
-                        <TableRow key={row.id}>
-                          {/* Render each visible cell in the row */}
-                          {row.getVisibleCells().map((cell, cellIndex) => {
-                            const isActions = cell.column.id === "drag-actions"
-                            const isFirstColumn = cellIndex === 0
-
-                            return (
-                              <TableCell
-                                key={cell.id}
-                                className={`py-1 ${
-                                  isFirstColumn || isActions
-                                    ? "bg-background sticky left-0 z-10" // Make first column and actions sticky
-                                    : ""
-                                }`}
-                                style={{
-                                  width: `${cell.column.getSize()}px`,
-                                  minWidth: `${cell.column.getSize()}px`,
-                                  maxWidth: `${cell.column.getSize()}px`,
-                                  overflow: "hidden",
-                                  textOverflow: "ellipsis",
-                                  whiteSpace: "nowrap",
-                                  position:
-                                    isFirstColumn || isActions
-                                      ? "sticky"
-                                      : "relative",
-                                  left: isFirstColumn || isActions ? 0 : "auto",
-                                  zIndex: isFirstColumn || isActions ? 10 : 1,
-                                }}
-                              >
-                                {/* Render cell content using column definition */}
-                                {flexRender(
-                                  cell.column.columnDef.cell, // Cell renderer from column definition
-                                  cell.getContext() // Cell context with row data
-                                )}
-                              </TableCell>
-                            )
-                          })}
-                        </TableRow>
+                        <TableCell
+                          key={`empty-${index}-${column.id}`}
+                          className={`py-1 ${
+                            isFirstColumn || isActions
+                              ? "bg-background sticky left-0 z-10"
+                              : ""
+                          }`}
+                          style={{
+                            width: `${column.getSize()}px`,
+                            minWidth: `${column.getSize()}px`,
+                            maxWidth: `${column.getSize()}px`,
+                            position: isFirstColumn || isActions ? "sticky" : "relative",
+                            left: isFirstColumn || isActions ? 0 : "auto",
+                            zIndex: isFirstColumn || isActions ? 10 : 1,
+                          }}
+                        />
                       )
                     })}
-                  </SortableContext>
+                  </TableRow>
+                ))}
 
-                  {/* ============================================================================
-                    EMPTY ROWS TO FILL PAGE SIZE
-                    ============================================================================ */}
-
-                  {/* Add empty rows to fill the remaining space based on page size */}
-                  {Array.from({
-                    length: Math.max(
-                      0,
-                      pageSize - table.getRowModel().rows.length
-                    ),
-                  }).map((_, index) => (
-                    <TableRow key={`empty-${index}`} className="h-7">
-                      {table.getAllLeafColumns().map((column, cellIndex) => {
-                        const isActions = column.id === "drag-actions"
-                        const isFirstColumn = cellIndex === 0
-
-                        return (
-                          <TableCell
-                            key={`empty-${index}-${column.id}`}
-                            className={`py-1 ${
-                              isFirstColumn || isActions
-                                ? "bg-background sticky left-0 z-10" // Make first column and actions sticky
-                                : ""
-                            }`}
-                            style={{
-                              width: `${column.getSize()}px`,
-                              minWidth: `${column.getSize()}px`,
-                              maxWidth: `${column.getSize()}px`,
-                              position:
-                                isFirstColumn || isActions
-                                  ? "sticky"
-                                  : "relative",
-                              left: isFirstColumn || isActions ? 0 : "auto",
-                              zIndex: isFirstColumn || isActions ? 10 : 1,
-                            }}
-                          >
-                            {/* Empty cell content */}
-                          </TableCell>
-                        )
-                      })}
-                    </TableRow>
-                  ))}
-
-                  {/* ============================================================================
-                    EMPTY STATE OR LOADING
-                    ============================================================================ */}
-
-                  {/* Show empty state or loading message when no data */}
-                  {table.getRowModel().rows.length === 0 && (
-                    <TableRow>
-                      <TableCell
-                        colSpan={tableColumns.length} // Span all columns
-                        className="h-7 text-center" // Center the message
-                      >
-                        {isLoading ? "Loading..." : emptyMessage}
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </div>
-          </div>
+                {/* Empty State */}
+                {table.getRowModel().rows.length === 0 && (
+                  <TableRow>
+                    <TableCell
+                      colSpan={tableColumns.length}
+                      className="h-7 text-center"
+                    >
+                      {isLoading ? "Loading..." : emptyMessage}
+                    </TableCell>
+                  </TableRow>
+                )}
+              </SortableContext>
+            </TableBody>
+          </Table>
         </DndContext>
-      </Table>
+      </div>
     </div>
   )
 }
