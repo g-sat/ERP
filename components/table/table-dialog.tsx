@@ -31,6 +31,7 @@ import {
 
 import { TableName } from "@/lib/utils"
 import { useGetGridLayout } from "@/hooks/use-settings"
+// Virtual scrolling removed - using empty rows instead
 
 import {
   Table,
@@ -121,6 +122,8 @@ export function DialogDataTable<T>({
   const [pageSize, setPageSize] = useState(15)
   const [rowSelection, setRowSelection] = useState({})
 
+  // Reference removed as not needed without virtual scrolling
+
   useEffect(() => {
     if (gridSettingsData) {
       try {
@@ -200,6 +203,8 @@ export function DialogDataTable<T>({
     }
   }, [gridSettingsData, table])
 
+  // Virtual scrolling removed - using empty rows instead
+
   const sensors = useSensors(
     useSensor(MouseSensor, {}),
     useSensor(TouchSensor, {}),
@@ -208,6 +213,7 @@ export function DialogDataTable<T>({
 
   const handleSearch = (query: string) => {
     setSearchQuery(query)
+
     if (data && data.length > 0) {
       table.setGlobalFilter(query)
     } else if (onFilterChange) {
@@ -231,14 +237,27 @@ export function DialogDataTable<T>({
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event
+
     if (active && over && active.id !== over.id) {
-      const oldIndex = table.getAllColumns().findIndex((col) => col.id === active.id)
-      const newIndex = table.getAllColumns().findIndex((col) => col.id === over.id)
-      const newColumnOrder = arrayMove(table.getAllColumns(), oldIndex, newIndex)
+      const oldIndex = table
+        .getAllColumns()
+        .findIndex((col) => col.id === active.id)
+
+      const newIndex = table
+        .getAllColumns()
+        .findIndex((col) => col.id === over.id)
+
+      const newColumnOrder = arrayMove(
+        table.getAllColumns(),
+        oldIndex,
+        newIndex
+      )
+
       table.setColumnOrder(newColumnOrder.map((col) => col.id))
     }
   }
 
+  // Handle row click
   const handleRowClick = (row: T) => {
     if (onRowSelect) {
       onRowSelect(row)
@@ -253,6 +272,7 @@ export function DialogDataTable<T>({
       }
       onFilterChange(filters)
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sorting, searchQuery, data?.length, isLoading])
 
   return (
@@ -261,6 +281,7 @@ export function DialogDataTable<T>({
         searchQuery={searchQuery}
         onSearchChange={handleSearch}
         onRefresh={onRefresh}
+        //columns={table.getAllLeafColumns()}
         columns={table
           .getHeaderGroups()
           .flatMap((group) => group.headers)
@@ -270,132 +291,167 @@ export function DialogDataTable<T>({
         moduleId={moduleId || 1}
         transactionId={transactionId || 1}
       />
+      <Table>
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd}
+        >
+          <div className="overflow-x-auto rounded-lg border">
+            <Table
+              className="w-full table-fixed border-collapse"
+              style={{ minWidth: "100%" }}
+            >
+              <colgroup>
+                {table.getAllLeafColumns().map((col) => (
+                  <col
+                    key={col.id}
+                    style={{
+                      width: `${col.getSize()}px`,
+                      minWidth: `${col.getSize()}px`,
+                      maxWidth: `${col.getSize()}px`,
+                    }}
+                  />
+                ))}
+              </colgroup>
 
-      {/* DndContext wraps the scroll container — OUTSIDE <Table> */}
-      <DndContext
-        sensors={sensors}
-        collisionDetection={closestCenter}
-        onDragEnd={handleDragEnd}
-      >
-        <div className="overflow-x-auto rounded-lg border">
+              <TableHeader className="bg-background sticky top-0 z-20">
+                {table.getHeaderGroups().map((headerGroup) => (
+                  <TableRow key={headerGroup.id} className="bg-muted/50">
+                    <SortableContext
+                      items={headerGroup.headers.map((header) => header.id)}
+                      strategy={horizontalListSortingStrategy}
+                    >
+                      {headerGroup.headers.map((header) => (
+                        <SortableTableHeader key={header.id} header={header} />
+                      ))}
+                    </SortableContext>
+                  </TableRow>
+                ))}
+              </TableHeader>
+            </Table>
 
-          {/* ONLY ONE <Table> */}
-          <Table className="w-full caption-bottom text-sm">
+            <div className="max-h-[480px] overflow-y-auto">
+              <Table
+                className="w-full table-fixed border-collapse"
+                style={{ minWidth: "100%" }}
+              >
+                <colgroup>
+                  {table.getAllLeafColumns().map((col) => (
+                    <col
+                      key={col.id}
+                      style={{
+                        width: `${col.getSize()}px`,
+                        minWidth: `${col.getSize()}px`,
+                        maxWidth: `${col.getSize()}px`,
+                      }}
+                    />
+                  ))}
+                </colgroup>
 
-            <colgroup>
-              {table.getAllLeafColumns().map((col) => (
-                <col
-                  key={col.id}
-                  style={{
-                    width: `${col.getSize()}px`,
-                    minWidth: `${col.getSize()}px`,
-                    maxWidth: `${col.getSize()}px`,
-                  }}
-                />
-              ))}
-            </colgroup>
-
-            {/* HEADER */}
-            <TableHeader className="sticky top-0 bg-background z-20">
-              {table.getHeaderGroups().map((headerGroup) => (
-                <TableRow key={headerGroup.id} className="bg-muted/50">
-                  <SortableContext
-                    items={headerGroup.headers.map((h) => h.id)}
-                    strategy={horizontalListSortingStrategy}
-                  >
-                    {headerGroup.headers.map((header) => (
-                      <SortableTableHeader key={header.id} header={header} />
-                    ))}
-                  </SortableContext>
-                </TableRow>
-              ))}
-            </TableHeader>
-
-            {/* BODY - Scrollable */}
-            <tbody className="max-h-[480px] overflow-y-auto block">
-              {table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  onClick={() => handleRowClick(row.original)}
-                  className={`py-1 ${onRowSelect ? "hover:bg-muted/50 cursor-pointer" : ""}`}
-                >
-                  {row.getVisibleCells().map((cell, cellIndex) => {
-                    const isActions = cell.column.id === "actions"
-                    const isFirstColumn = cellIndex === 0
-
+                <TableBody>
+                  {/* Render data rows */}
+                  {table.getRowModel().rows.map((row) => {
                     return (
-                      <TableCell
-                        key={cell.id}
-                        className={`px-2 py-1 ${
-                          isFirstColumn || isActions
-                            ? "bg-background sticky left-0 z-10"
-                            : ""
-                        }`}
-                        style={{
-                          width: `${cell.column.getSize()}px`,
-                          minWidth: `${cell.column.getSize()}px`,
-                          maxWidth: `${cell.column.getSize()}px`,
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          whiteSpace: "nowrap",
-                          position: isFirstColumn || isActions ? "sticky" : "relative",
-                          left: isFirstColumn || isActions ? 0 : "auto",
-                          zIndex: isFirstColumn || isActions ? 10 : 1,
-                        }}
+                      <TableRow
+                        key={row.id}
+                        onClick={() => handleRowClick(row.original)}
+                        className={`py-1 ${onRowSelect ? "hover:bg-muted/50 cursor-pointer" : ""}`}
                       >
-                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                      </TableCell>
+                        {row.getVisibleCells().map((cell, cellIndex) => {
+                          const isActions = cell.column.id === "actions"
+                          const isFirstColumn = cellIndex === 0
+
+                          return (
+                            <TableCell
+                              key={cell.id}
+                              className={`px-2 py-1 ${
+                                isFirstColumn || isActions
+                                  ? "bg-background sticky left-0 z-10"
+                                  : ""
+                              }`}
+                              style={{
+                                width: `${cell.column.getSize()}px`,
+                                minWidth: `${cell.column.getSize()}px`,
+                                maxWidth: `${cell.column.getSize()}px`,
+                                overflow: "hidden",
+                                textOverflow: "ellipsis",
+                                whiteSpace: "nowrap",
+                                position:
+                                  isFirstColumn || isActions
+                                    ? "sticky"
+                                    : "relative",
+                                left: isFirstColumn || isActions ? 0 : "auto",
+                                zIndex: isFirstColumn || isActions ? 10 : 1,
+                              }}
+                            >
+                              {flexRender(
+                                cell.column.columnDef.cell,
+                                cell.getContext()
+                              )}
+                            </TableCell>
+                          )
+                        })}
+                      </TableRow>
                     )
                   })}
-                </TableRow>
-              ))}
 
-              {/* Empty Rows */}
-              {Array.from({
-                length: Math.min(
-                  Math.max(0, pageSize - table.getRowModel().rows.length),
-                  10
-                ),
-              }).map((_, index) => (
-                <TableRow key={`empty-${index}`} className="h-7">
-                  {table.getAllLeafColumns().map((column, cellIndex) => {
-                    const isActions = column.id === "actions"
-                    const isFirstColumn = cellIndex === 0
+                  {/* Add empty rows to fill the remaining space based on page size */}
+                  {Array.from({
+                    length: Math.min(
+                      Math.max(0, pageSize - table.getRowModel().rows.length),
+                      10 // Limit to maximum 10 empty rows to prevent excessive height
+                    ),
+                  }).map((_, index) => (
+                    <TableRow key={`empty-${index}`} className="h-7">
+                      {table.getAllLeafColumns().map((column, cellIndex) => {
+                        const isActions = column.id === "actions"
+                        const isFirstColumn = cellIndex === 0
 
-                    return (
+                        return (
+                          <TableCell
+                            key={`empty-${index}-${column.id}`}
+                            className={`px-2 py-1 ${
+                              isFirstColumn || isActions
+                                ? "bg-background sticky left-0 z-10"
+                                : ""
+                            }`}
+                            style={{
+                              width: `${column.getSize()}px`,
+                              minWidth: `${column.getSize()}px`,
+                              maxWidth: `${column.getSize()}px`,
+                              position:
+                                isFirstColumn || isActions
+                                  ? "sticky"
+                                  : "relative",
+                              left: isFirstColumn || isActions ? 0 : "auto",
+                              zIndex: isFirstColumn || isActions ? 10 : 1,
+                            }}
+                          >
+                            {/* Empty cell content */}
+                          </TableCell>
+                        )
+                      })}
+                    </TableRow>
+                  ))}
+
+                  {/* Show empty state or loading message when no data */}
+                  {table.getRowModel().rows.length === 0 && (
+                    <TableRow>
                       <TableCell
-                        key={`empty-${index}-${column.id}`}
-                        className={`px-2 py-1 ${
-                          isFirstColumn || isActions
-                            ? "bg-background sticky left-0 z-10"
-                            : ""
-                        }`}
-                        style={{
-                          width: `${column.getSize()}px`,
-                          minWidth: `${column.getSize()}px`,
-                          maxWidth: `${column.getSize()}px`,
-                          position: isFirstColumn || isActions ? "sticky" : "relative",
-                          left: isFirstColumn || isActions ? 0 : "auto",
-                          zIndex: isFirstColumn || isActions ? 10 : 1,
-                        }}
-                      />
-                    )
-                  })}
-                </TableRow>
-              ))}
-
-              {/* Empty State */}
-              {table.getRowModel().rows.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={tableColumns.length} className="h-7 py-2 text-center">
-                    {isLoading ? "Loading..." : emptyMessage}
-                  </TableCell>
-                </TableRow>
-              )}
-            </tbody>
-          </Table>
-        </div>
-      </DndContext>
+                        colSpan={tableColumns.length}
+                        className="h-7 py-2 text-center"
+                      >
+                        {isLoading ? "Loading..." : emptyMessage}
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          </div>
+        </DndContext>
+      </Table>
 
       <MainTableFooter
         currentPage={currentPage}
