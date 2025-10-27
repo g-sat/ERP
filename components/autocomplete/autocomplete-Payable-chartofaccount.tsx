@@ -96,7 +96,7 @@ export default function PayableChartOfAccountAutocomplete<
     (props: ClearIndicatorProps<FieldOption>) => {
       return (
         <components.ClearIndicator {...props}>
-          <IconX size={12} className="size-4 shrink-0" />
+          <IconX size={10} className="size-3 shrink-0" />
         </components.ClearIndicator>
       )
     }

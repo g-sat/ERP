@@ -2,7 +2,12 @@
 
 import React from "react"
 import { IBargeLookup } from "@/interfaces/lookup"
-import { IconCheck, IconChevronDown, IconX } from "@tabler/icons-react"
+import {
+  IconCheck,
+  IconChevronDown,
+  IconRefresh,
+  IconX,
+} from "@tabler/icons-react"
 import { Path, PathValue, UseFormReturn } from "react-hook-form"
 import Select, {
   ClearIndicatorProps,
@@ -42,7 +47,17 @@ export default function BargeAutocomplete<T extends Record<string, unknown>>({
   isRequired?: boolean
   onChangeEvent?: (selectedOption: IBargeLookup | null) => void
 }) {
-  const { data: barges = [], isLoading } = useBargeLookup()
+  const { data: barges = [], isLoading, refetch } = useBargeLookup()
+
+  // Handle refresh with animation
+  const handleRefresh = React.useCallback(async () => {
+    try {
+      await refetch()
+    } catch (error) {
+      console.error("Error refreshing barges:", error)
+    }
+  }, [refetch])
+
   // Memoize options to prevent unnecessary recalculations
   const options: FieldOption[] = React.useMemo(
     () =>
@@ -69,7 +84,7 @@ export default function BargeAutocomplete<T extends Record<string, unknown>>({
     (props: ClearIndicatorProps<FieldOption>) => {
       return (
         <components.ClearIndicator {...props}>
-          <IconX size={12} className="size-4 shrink-0" />
+          <IconX size={10} className="size-3 shrink-0" />
         </components.ClearIndicator>
       )
     }
@@ -124,7 +139,7 @@ export default function BargeAutocomplete<T extends Record<string, unknown>>({
       valueContainer: () => cn("px-0 py-0.5 gap-1"),
       input: () =>
         cn("text-foreground placeholder:text-muted-foreground m-0 p-0"),
-      indicatorsContainer: () => cn(""), // Gap removed
+      indicatorsContainer: () => cn("flex gap-0.5"), // Reduced gap between indicators // Gap removed
       clearIndicator: () =>
         cn("text-muted-foreground hover:text-foreground p-1 rounded-sm"),
       dropdownIndicator: () => cn("text-muted-foreground p-1 rounded-sm"),

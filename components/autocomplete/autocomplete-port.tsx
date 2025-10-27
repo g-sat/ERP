@@ -2,7 +2,12 @@
 
 import React from "react"
 import { IPortLookup } from "@/interfaces/lookup"
-import { IconCheck, IconChevronDown, IconX } from "@tabler/icons-react"
+import {
+  IconCheck,
+  IconChevronDown,
+  IconRefresh,
+  IconX,
+} from "@tabler/icons-react"
 import { Path, PathValue, UseFormReturn } from "react-hook-form"
 import Select, {
   ClearIndicatorProps,
@@ -42,7 +47,17 @@ export default function PortAutocomplete<T extends Record<string, unknown>>({
   isRequired?: boolean
   onChangeEvent?: (selectedOption: IPortLookup | null) => void
 }) {
-  const { data: ports = [], isLoading } = usePortLookup()
+  const { data: ports = [], isLoading, refetch } = usePortLookup()
+
+  // Handle refresh with animation
+  const handleRefresh = React.useCallback(async () => {
+    try {
+      await refetch()
+    } catch (error) {
+      console.error("Error refreshing ports:", error)
+    }
+  }, [refetch])
+
   // Memoize options to prevent unnecessary recalculations
   const options: FieldOption[] = React.useMemo(
     () =>
@@ -55,7 +70,9 @@ export default function PortAutocomplete<T extends Record<string, unknown>>({
 
   // SSR hydration fix: only render Select after mount
   const [mounted, setMounted] = React.useState(false)
-  React.useEffect(() => { setMounted(true) }, [])
+  React.useEffect(() => {
+    setMounted(true)
+  }, [])
 
   // Custom components with display names
   const DropdownIndicator = React.memo(
@@ -73,7 +90,7 @@ export default function PortAutocomplete<T extends Record<string, unknown>>({
     (props: ClearIndicatorProps<FieldOption>) => {
       return (
         <components.ClearIndicator {...props}>
-          <IconX size={12} className="size-4 shrink-0" />
+             <IconX size={10} className="size-3 shrink-0" />
         </components.ClearIndicator>
       )
     }
@@ -220,10 +237,26 @@ export default function PortAutocomplete<T extends Record<string, unknown>>({
     return (
       <div className={cn("flex flex-col gap-1", className)}>
         {label && (
-          <Label htmlFor={name} className="text-sm font-medium">
-            {label}
-            {isRequired && <span className="ml-1 text-red-500">*</span>}
-          </Label>
+          <div className="flex items-center gap-1">
+            <Label htmlFor={name} className="text-sm font-medium">
+              {label}
+            </Label>
+            <button
+              type="button"
+              onClick={handleRefresh}
+              disabled={isLoading}
+              className="hover:bg-accent flex items-center justify-center rounded-sm p-0.5 transition-colors disabled:opacity-50"
+              title="Refresh ports"
+            >
+              <IconRefresh
+                size={12}
+                className={`text-muted-foreground hover:text-foreground transition-colors ${
+                  isLoading ? "animate-spin" : ""
+                }`}
+              />
+            </button>
+            {isRequired && <span className="text-sm text-red-500">*</span>}
+          </div>
         )}
         <FormField
           control={form.control}
@@ -275,15 +308,31 @@ export default function PortAutocomplete<T extends Record<string, unknown>>({
   return (
     <div className={cn("flex flex-col gap-1", className)}>
       {label && (
-        <div
-          className={cn(
-            "text-sm font-medium",
-            isDisabled && "text-muted-foreground opacity-70"
-          )}
-        >
-          {label}
+        <div className="flex items-center gap-1">
+          <div
+            className={cn(
+              "text-sm font-medium",
+              isDisabled && "text-muted-foreground opacity-70"
+            )}
+          >
+            {label}
+          </div>
+          <button
+            type="button"
+            onClick={handleRefresh}
+            disabled={isLoading}
+            className="hover:bg-accent flex items-center justify-center rounded-sm p-0.5 transition-colors disabled:opacity-50"
+            title="Refresh ports"
+          >
+            <IconRefresh
+              size={12}
+              className={`text-muted-foreground hover:text-foreground transition-colors ${
+                isLoading ? "animate-spin" : ""
+              }`}
+            />
+          </button>
           {isRequired && (
-            <span className="text-destructive ml-1" aria-hidden="true">
+            <span className="text-destructive text-sm" aria-hidden="true">
               *
             </span>
           )}

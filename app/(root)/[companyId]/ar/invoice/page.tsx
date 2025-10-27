@@ -30,12 +30,7 @@ import { ARTransactionId, ModuleId } from "@/lib/utils"
 import { useDeleteWithRemarks, usePersist } from "@/hooks/use-common"
 import { useGetRequiredFields, useGetVisibleFields } from "@/hooks/use-lookup"
 import { Button } from "@/components/ui/button"
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Spinner } from "@/components/ui/spinner"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -1016,6 +1011,8 @@ export default function InvoicePage() {
           setShowLoadConfirm(false)
         }
       } else {
+        // Close the load confirmation dialog on success
+        setShowLoadConfirm(false)
         toast.error(
           response?.message || "Failed to fetch invoice details (direct)"
         )
@@ -1034,7 +1031,6 @@ export default function InvoicePage() {
   // Calculate payment status
   const balAmt = invoice?.balAmt ?? 0
   const payAmt = invoice?.payAmt ?? 0
-  const totAmt = invoice?.totAmt ?? 0
 
   const paymentStatus =
     balAmt === 0 && payAmt > 0
@@ -1043,7 +1039,7 @@ export default function InvoicePage() {
         ? "Partially Paid"
         : balAmt > 0 && payAmt === 0
           ? "Not Paid"
-          : null
+          : ""
 
   // Compose title text
   const titleText = isEdit ? `Invoice (Edit) - ${invoiceNo}` : "Invoice (New)"
@@ -1271,16 +1267,17 @@ export default function InvoicePage() {
         }}
       >
         <DialogContent
-          className="flex flex-col @container h-auto w-[80vw] !max-w-none gap-0 p-0 rounded-lg overflow-hidden"
+          className="@container flex h-auto w-[80vw] !max-w-none flex-col gap-0 overflow-hidden rounded-lg p-0"
           onInteractOutside={(e) => e.preventDefault()}
         >
           {/* Header */}
-          <div className="flex flex-col gap-1 p-2 border-b bg-background">
+          <div className="bg-background flex flex-col gap-1 border-b p-2">
             <DialogTitle className="text-2xl font-bold tracking-tight">
               Invoice List
             </DialogTitle>
-            <p className="text-sm text-muted-foreground">
-              Manage and select existing invoices from the list below. Use search to filter records or create new invoices.
+            <p className="text-muted-foreground text-sm">
+              Manage and select existing invoices from the list below. Use
+              search to filter records or create new invoices.
             </p>
           </div>
 

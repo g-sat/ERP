@@ -46,9 +46,20 @@ export default function ChargeAutocomplete<T extends Record<string, unknown>>({
   onChangeEvent?: (selectedOption: IChargeLookup | null) => void
   companyId?: number
 }) {
-  const { data: allCharges = [], isLoading: isLoadingAll } = useChargeLookup(
-    taskId || 0
-  )
+  const {
+    data: allCharges = [],
+    isLoading: isLoadingAll,
+    refetch,
+  } = useChargeLookup(taskId || 0)
+
+  // Handle refresh with animation
+  const handleRefresh = React.useCallback(async () => {
+    try {
+      await refetch()
+    } catch (error) {
+      console.error("Error refreshing charges:", error)
+    }
+  }, [refetch])
 
   // Determine which data and loading state to use
   const isJobOrderMode = taskId
@@ -81,7 +92,7 @@ export default function ChargeAutocomplete<T extends Record<string, unknown>>({
     (props: ClearIndicatorProps<FieldOption>) => {
       return (
         <components.ClearIndicator {...props}>
-          <IconX size={12} className="size-4 shrink-0" />
+             <IconX size={10} className="size-3 shrink-0" />
         </components.ClearIndicator>
       )
     }
