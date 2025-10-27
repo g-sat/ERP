@@ -88,3 +88,4 @@ export { default as WorkLocationAutocomplete } from "./autocomplete-worklocation
 export { default as CurrentYearAutocomplete } from "./autocomplete-year-current"
 export { default as FutureYearAutocomplete } from "./autocomplete-year-future"
 export { default as MonthAutocomplete } from "./autocomplete-month"
+export { default as DynamicJobOrderAutocomplete } from "./autocomplete-dynamic-joborder"

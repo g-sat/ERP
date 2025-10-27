@@ -23,6 +23,7 @@ import { Separator } from "@/components/ui/separator"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Switch } from "@/components/ui/switch"
 import { SaveConfirmation } from "@/components/confirmation/save-confirmation"
+import { CustomNumberInput } from "@/components/custom"
 import { LockSkeleton } from "@/components/skeleton/lock-skeleton"
 
 type DynamicLookupResponse = IApiSuccessResponse<DynamicLookupSchemaType>
@@ -49,6 +50,13 @@ export function DynamicLookupForm() {
       isSupplier: false,
       isProduct: false,
       isJobOrder: false,
+      bargeCount: 0,
+      vesselCount: 0,
+      voyageCount: 0,
+      customerCount: 0,
+      supplierCount: 0,
+      productCount: 0,
+      jobOrderCount: 0,
     },
   })
 
@@ -76,6 +84,13 @@ export function DynamicLookupForm() {
           isSupplier: data.isSupplier ?? false,
           isProduct: data.isProduct ?? false,
           isJobOrder: data.isJobOrder ?? false,
+          bargeCount: data.bargeCount ?? 0,
+          vesselCount: data.vesselCount ?? 0,
+          voyageCount: data.voyageCount ?? 0,
+          customerCount: data.customerCount ?? 0,
+          supplierCount: data.supplierCount ?? 0,
+          productCount: data.productCount ?? 0,
+          jobOrderCount: data.jobOrderCount ?? 0,
         })
       }
     }
@@ -171,9 +186,9 @@ export function DynamicLookupForm() {
 
         <Separator />
 
-        <div className="grid gap-6 md:grid-cols-2">
-          <div className="space-y-4">
-            <h3 className="text-lg font-medium">Shipping Related</h3>
+        <div className="space-y-4">
+          {/* Barge Row */}
+          <div className="grid gap-4 md:grid-cols-2">
             <FormField
               control={form.control}
               name="isBarge"
@@ -196,6 +211,33 @@ export function DynamicLookupForm() {
             />
             <FormField
               control={form.control}
+              name="bargeCount"
+              render={({ field }) => (
+                <FormItem className="flex items-center justify-between rounded-lg border p-4">
+                  <div className="space-y-0.5">
+                    <FormLabel>Barge Count</FormLabel>
+                    <div className="text-muted-foreground text-sm">
+                      Number of barges to show in the lookup
+                    </div>
+                  </div>
+                  <FormControl>
+                    <CustomNumberInput
+                      form={form}
+                      name="bargeCount"
+                      label="Barge Count"
+                      isRequired
+                      round={0}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+          </div>
+
+          {/* Vessel Row */}
+          <div className="grid gap-4 md:grid-cols-2">
+            <FormField
+              control={form.control}
               name="isVessel"
               render={({ field }) => (
                 <FormItem className="flex items-center justify-between rounded-lg border p-4">
@@ -214,6 +256,33 @@ export function DynamicLookupForm() {
                 </FormItem>
               )}
             />
+            <FormField
+              control={form.control}
+              name="vesselCount"
+              render={({ field }) => (
+                <FormItem className="flex items-center justify-between rounded-lg border p-4">
+                  <div className="space-y-0.5">
+                    <FormLabel>Vessel Count</FormLabel>
+                    <div className="text-muted-foreground text-sm">
+                      Number of vessels to show in the lookup
+                    </div>
+                  </div>
+                  <FormControl>
+                    <CustomNumberInput
+                      form={form}
+                      name="vesselCount"
+                      label="Vessel Count"
+                      isRequired
+                      round={0}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+          </div>
+
+          {/* Voyage Row */}
+          <div className="grid gap-4 md:grid-cols-2">
             <FormField
               control={form.control}
               name="isVoyage"
@@ -236,19 +305,22 @@ export function DynamicLookupForm() {
             />
             <FormField
               control={form.control}
-              name="isJobOrder"
+              name="voyageCount"
               render={({ field }) => (
                 <FormItem className="flex items-center justify-between rounded-lg border p-4">
                   <div className="space-y-0.5">
-                    <FormLabel>Job Order Lookup</FormLabel>
+                    <FormLabel>Voyage Count</FormLabel>
                     <div className="text-muted-foreground text-sm">
-                      Enable dynamic lookup for job orders
+                      Number of voyages to show in the lookup
                     </div>
                   </div>
                   <FormControl>
-                    <Switch
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
+                    <CustomNumberInput
+                      form={form}
+                      name="voyageCount"
+                      label="Voyage Count"
+                      isRequired
+                      round={0}
                     />
                   </FormControl>
                 </FormItem>
@@ -256,8 +328,8 @@ export function DynamicLookupForm() {
             />
           </div>
 
-          <div className="space-y-4">
-            <h3 className="text-lg font-medium">Business Related</h3>
+          {/* Customer Row */}
+          <div className="grid gap-4 md:grid-cols-2">
             <FormField
               control={form.control}
               name="isCustomer"
@@ -280,6 +352,33 @@ export function DynamicLookupForm() {
             />
             <FormField
               control={form.control}
+              name="customerCount"
+              render={({ field }) => (
+                <FormItem className="flex items-center justify-between rounded-lg border p-4">
+                  <div className="space-y-0.5">
+                    <FormLabel>Customer Count</FormLabel>
+                    <div className="text-muted-foreground text-sm">
+                      Number of customers to show in the lookup
+                    </div>
+                  </div>
+                  <FormControl>
+                    <CustomNumberInput
+                      form={form}
+                      name="customerCount"
+                      label="Customer Count"
+                      isRequired
+                      round={0}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+          </div>
+
+          {/* Supplier Row */}
+          <div className="grid gap-4 md:grid-cols-2">
+            <FormField
+              control={form.control}
               name="isSupplier"
               render={({ field }) => (
                 <FormItem className="flex items-center justify-between rounded-lg border p-4">
@@ -300,6 +399,33 @@ export function DynamicLookupForm() {
             />
             <FormField
               control={form.control}
+              name="supplierCount"
+              render={({ field }) => (
+                <FormItem className="flex items-center justify-between rounded-lg border p-4">
+                  <div className="space-y-0.5">
+                    <FormLabel>Supplier Count</FormLabel>
+                    <div className="text-muted-foreground text-sm">
+                      Number of suppliers to show in the lookup
+                    </div>
+                  </div>
+                  <FormControl>
+                    <CustomNumberInput
+                      form={form}
+                      name="supplierCount"
+                      label="Supplier Count"
+                      isRequired
+                      round={0}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+          </div>
+
+          {/* Product Row */}
+          <div className="grid gap-4 md:grid-cols-2">
+            <FormField
+              control={form.control}
               name="isProduct"
               render={({ field }) => (
                 <FormItem className="flex items-center justify-between rounded-lg border p-4">
@@ -313,6 +439,76 @@ export function DynamicLookupForm() {
                     <Switch
                       checked={field.value}
                       onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="productCount"
+              render={({ field }) => (
+                <FormItem className="flex items-center justify-between rounded-lg border p-4">
+                  <div className="space-y-0.5">
+                    <FormLabel>Product Count</FormLabel>
+                    <div className="text-muted-foreground text-sm">
+                      Number of products to show in the lookup
+                    </div>
+                  </div>
+                  <FormControl>
+                    <CustomNumberInput
+                      form={form}
+                      name="productCount"
+                      label="Product Count"
+                      isRequired
+                      round={0}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+          </div>
+
+          {/* Job Order Row */}
+          <div className="grid gap-4 md:grid-cols-2">
+            <FormField
+              control={form.control}
+              name="isJobOrder"
+              render={({ field }) => (
+                <FormItem className="flex items-center justify-between rounded-lg border p-4">
+                  <div className="space-y-0.5">
+                    <FormLabel>Job Order Lookup</FormLabel>
+                    <div className="text-muted-foreground text-sm">
+                      Enable dynamic lookup for job orders
+                    </div>
+                  </div>
+                  <FormControl>
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="jobOrderCount"
+              render={({ field }) => (
+                <FormItem className="flex items-center justify-between rounded-lg border p-4">
+                  <div className="space-y-0.5">
+                    <FormLabel>Job Order Count</FormLabel>
+                    <div className="text-muted-foreground text-sm">
+                      Number of job orders to show in the lookup
+                    </div>
+                  </div>
+                  <FormControl>
+                    <CustomNumberInput
+                      form={form}
+                      name="jobOrderCount"
+                      label="Job Order Count"
+                      isRequired
+                      round={0}
                     />
                   </FormControl>
                 </FormItem>

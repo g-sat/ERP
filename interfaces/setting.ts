@@ -50,6 +50,14 @@ export interface IDynmaicLookup {
   isCustomer: boolean
   isSupplier: boolean
   isProduct: boolean
+  isJobOrder: boolean
+  bargeCount: number
+  vesselCount: number
+  voyageCount: number
+  customerCount: number
+  supplierCount: number
+  productCount: number
+  jobOrderCount: number
 }
 
 export interface IFinance {

@@ -73,6 +73,13 @@ export const dynamicLookupFormSchema = z.object({
   isSupplier: z.boolean(),
   isProduct: z.boolean(),
   isJobOrder: z.boolean(),
+  bargeCount: z.number().min(0),
+  vesselCount: z.number().min(0),
+  voyageCount: z.number().min(0),
+  customerCount: z.number().min(0),
+  supplierCount: z.number().min(0),
+  productCount: z.number().min(0),
+  jobOrderCount: z.number().min(0),
 })
 
 export type DynamicLookupSchemaType = z.infer<typeof dynamicLookupFormSchema>

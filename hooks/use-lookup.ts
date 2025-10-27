@@ -1047,15 +1047,13 @@ export const useJobOrderLookup = () => {
   })
 }
 
-export const useJobOrderDynamicLookup = (recordcount: number) => {
+export const useJobOrderDynamicLookup = () => {
   return useQuery<IJobOrderLookup[]>({
     queryKey: ["joborder-dynamic-lookUp"],
     placeholderData: keepPreviousData,
     queryFn: async () => {
       try {
-        const data = await getData(
-          `${Lookup.getJobOrderDynamic}/${recordcount}`
-        )
+        const data = await getData(`${Lookup.getJobOrderDynamic}`)
         return data?.data || []
       } catch (error) {
         handleApiError(error)

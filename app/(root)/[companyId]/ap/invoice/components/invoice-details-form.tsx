@@ -46,6 +46,7 @@ import {
   BargeAutocomplete,
   ChartOfAccountAutocomplete,
   DepartmentAutocomplete,
+  DynamicJobOrderAutocomplete,
   EmployeeAutocomplete,
   GSTAutocomplete,
   JobOrderAutocomplete,
@@ -57,7 +58,6 @@ import {
   VesselAutocomplete,
   VoyageAutocomplete,
 } from "@/components/autocomplete"
-import DynamicJobOrderAutocomplete from "@/components/autocomplete/autocomplete-synamic-joborder"
 import CustomNumberInput from "@/components/custom/custom-number-input"
 import CustomTextarea from "@/components/custom/custom-textarea"
 
@@ -1074,7 +1074,6 @@ export default function InvoiceDetailsForm({
                   form={form}
                   name="jobOrderId"
                   label="Job Order"
-                  recordcount={100}
                   onChangeEvent={handleJobOrderChange}
                 />
               )}

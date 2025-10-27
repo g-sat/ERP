@@ -35,7 +35,6 @@ export default function DynamicJobOrderAutocomplete<
   className,
   isRequired = false,
   onChangeEvent,
-  recordcount = 100,
 }: {
   form: UseFormReturn<T>
   name?: Path<T>
@@ -44,10 +43,8 @@ export default function DynamicJobOrderAutocomplete<
   isDisabled?: boolean
   isRequired?: boolean
   onChangeEvent?: (selectedOption: IJobOrderLookup | null) => void
-  recordcount?: number
 }) {
-  const { data: jobOrders = [], isLoading } =
-    useJobOrderDynamicLookup(recordcount)
+  const { data: jobOrders = [], isLoading } = useJobOrderDynamicLookup()
   // Memoize options to prevent unnecessary recalculations
   const options: FieldOption[] = React.useMemo(
     () =>

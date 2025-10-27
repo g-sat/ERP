@@ -277,6 +277,13 @@ export interface IDynamicLookup {
   isSupplier: boolean
   isProduct: boolean
   isJobOrder: boolean
+  bargeCount: number
+  vesselCount: number
+  voyageCount: number
+  customerCount: number
+  supplierCount: number
+  productCount: number
+  jobOrderCount: number
   createById: number
   createDate: string | Date
   editById: null | string | number
