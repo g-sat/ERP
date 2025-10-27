@@ -16,6 +16,7 @@ import { MainTable } from "@/components/table/table-main"
 interface AccountGroupTableProps {
   data: IAccountGroup[]
   isLoading?: boolean
+  totalRecords?: number
   onSelect?: (accountGroup: IAccountGroup | null) => void
   onDelete?: (accountGroupId: string) => void
   onEdit?: (accountGroup: IAccountGroup) => void
@@ -34,6 +35,7 @@ interface AccountGroupTableProps {
 export function AccountGroupTable({
   data,
   isLoading = false,
+  totalRecords = 0,
   onSelect,
   onDelete,
   onEdit,
@@ -141,6 +143,7 @@ export function AccountGroupTable({
       data={data}
       columns={columns}
       isLoading={isLoading}
+      totalRecords={totalRecords}
       moduleId={moduleId}
       transactionId={transactionId}
       tableName={TableName.accountGroup}

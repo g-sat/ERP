@@ -16,6 +16,7 @@ import { MainTable } from "@/components/table/table-main"
 interface AccountSetupDtTableProps {
   data: IAccountSetupDt[]
   isLoading?: boolean
+  totalRecords?: number
   onSelect?: (accountSetupDt: IAccountSetupDt | null) => void
   onDelete?: (accountSetupDtId: string) => void
   onEdit?: (accountSetupDt: IAccountSetupDt) => void
@@ -34,6 +35,7 @@ interface AccountSetupDtTableProps {
 export function AccountSetupDtTable({
   data,
   isLoading = false,
+  totalRecords = 0,
   onSelect,
   onDelete,
   onEdit,
@@ -149,6 +151,7 @@ export function AccountSetupDtTable({
       data={data}
       columns={columns}
       isLoading={isLoading}
+      totalRecords={totalRecords}
       moduleId={moduleId}
       transactionId={transactionId}
       tableName={TableName.accountSetupDt}

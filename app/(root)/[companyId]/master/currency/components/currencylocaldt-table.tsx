@@ -11,6 +11,7 @@ import { MainTable } from "@/components/table/table-main"
 interface CurrencyLocalDtsTableProps {
   data: ICurrencyLocalDt[]
   isLoading?: boolean
+  totalRecords?: number
   onSelect?: (localDt: ICurrencyLocalDt | null) => void
   onDelete?: (id: string) => void
   onEdit?: (localDt: ICurrencyLocalDt) => void
@@ -29,6 +30,7 @@ interface CurrencyLocalDtsTableProps {
 export function CurrencyLocalDtsTable({
   data,
   isLoading = false,
+  totalRecords = 0,
   onSelect,
   onDelete,
   onEdit,
@@ -136,6 +138,7 @@ export function CurrencyLocalDtsTable({
       data={data}
       columns={columns}
       isLoading={isLoading}
+      totalRecords={totalRecords}
       moduleId={moduleId}
       transactionId={transactionId}
       tableName={TableName.currencyLocalDt}

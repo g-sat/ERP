@@ -16,6 +16,7 @@ import { MainTable } from "@/components/table/table-main"
 interface ContactsTableProps {
   data: IBankContact[]
   isLoading?: boolean
+  totalRecords?: number
   onSelect?: (contact: IBankContact | null) => void
   onDelete?: (contactId: string) => Promise<void>
   onEdit?: (contact: IBankContact | null) => void
@@ -34,6 +35,7 @@ interface ContactsTableProps {
 export function ContactsTable({
   data,
   isLoading = false,
+  totalRecords = 0,
   onSelect,
   onDelete,
   onEdit,
@@ -222,6 +224,7 @@ export function ContactsTable({
       data={data}
       columns={columns}
       isLoading={isLoading}
+      totalRecords={totalRecords}
       moduleId={moduleId}
       transactionId={transactionId}
       tableName={TableName.bankContact}

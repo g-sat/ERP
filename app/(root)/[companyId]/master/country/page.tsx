@@ -64,12 +64,16 @@ export default function CountryPage() {
   } = useGet<ICountry>(`${Country.get}`, "countries", filters.search)
 
   // Destructure with fallback values
-  const { result: countriesResult, data: countriesdata } =
-    (countriesResponse as ApiResponse<ICountry>) ?? {
-      result: 0,
-      message: "",
-      data: [],
-    }
+  const {
+    result: countriesResult,
+    data: countriesdata,
+    totalRecords,
+  } = (countriesResponse as ApiResponse<ICountry>) ?? {
+    result: 0,
+    message: "",
+    data: [],
+    totalRecords: 0,
+  }
 
   // Define mutations for CRUD operations
   const saveMutation = usePersist<CountrySchemaType>(`${Country.add}`)
@@ -312,6 +316,7 @@ export default function CountryPage() {
         <CountriesTable
           data={filters.search ? [] : countriesdata || []}
           isLoading={isLoading}
+          totalRecords={totalRecords}
           onSelect={canView ? handleViewCountry : undefined}
           onCreate={canCreate ? handleCreateCountry : undefined}
           onEdit={canEdit ? handleEditCountry : undefined}

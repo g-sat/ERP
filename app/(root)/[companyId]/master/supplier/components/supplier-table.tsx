@@ -16,6 +16,7 @@ import { DialogDataTable } from "@/components/table/table-dialog"
 interface SupplierTableProps {
   data: ISupplier[]
   isLoading?: boolean
+  totalRecords?: number
   onSelect?: (supplier: ISupplier | null) => void
   onFilterChange?: (filters: ISupplierFilter) => void
   onRefresh?: () => void
@@ -26,6 +27,7 @@ interface SupplierTableProps {
 export function SupplierTable({
   data,
   isLoading = false,
+  totalRecords = 0,
   onSelect,
   onFilterChange,
   onRefresh,
@@ -255,6 +257,7 @@ export function SupplierTable({
       data={data}
       columns={columns}
       isLoading={isLoading}
+      totalRecords={totalRecords}
       moduleId={moduleId}
       transactionId={transactionId}
       tableName={TableName.supplier}

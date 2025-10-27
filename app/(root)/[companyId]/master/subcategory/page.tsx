@@ -60,12 +60,16 @@ export default function SubCategoryPage() {
   } = useGet<ISubCategory>(`${SubCategory.get}`, "subCategorys", filters.search)
 
   // Destructure with fallback values
-  const { result: subCategorysResult, data: subCategorysData } =
-    (subCategorysResponse as ApiResponse<ISubCategory>) ?? {
-      result: 0,
-      message: "",
-      data: [],
-    }
+  const {
+    result: subCategorysResult,
+    data: subCategorysData,
+    totalRecords,
+  } = (subCategorysResponse as ApiResponse<ISubCategory>) ?? {
+    result: 0,
+    message: "",
+    data: [],
+    totalRecords: 0,
+  }
 
   // Handle result = -1 and result = -2 cases
   useEffect(() => {
@@ -322,6 +326,7 @@ export default function SubCategoryPage() {
         <SubCategoryTable
           data={filters.search ? [] : subCategorysData || []}
           isLoading={isLoading}
+          totalRecords={totalRecords}
           onSelect={canView ? handleViewSubCategory : undefined}
           onDelete={canDelete ? handleDeleteSubCategory : undefined}
           onEdit={canEdit ? handleEditSubCategory : undefined}

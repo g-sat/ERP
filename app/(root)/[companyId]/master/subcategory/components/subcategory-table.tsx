@@ -16,6 +16,7 @@ import { MainTable } from "@/components/table/table-main"
 interface SubCategoryTableProps {
   data: ISubCategory[]
   isLoading?: boolean
+  totalRecords?: number
   onSelect?: (subcategory: ISubCategory | null) => void
   onDelete?: (subcategoryId: string) => void
   onEdit?: (subcategory: ISubCategory) => void
@@ -34,6 +35,7 @@ interface SubCategoryTableProps {
 export function SubCategoryTable({
   data,
   isLoading = false,
+  totalRecords = 0,
   onSelect,
   onDelete,
   onEdit,
@@ -138,6 +140,7 @@ export function SubCategoryTable({
       data={data}
       columns={columns}
       isLoading={isLoading}
+      totalRecords={totalRecords}
       moduleId={moduleId}
       transactionId={transactionId}
       tableName={TableName.subCategory}

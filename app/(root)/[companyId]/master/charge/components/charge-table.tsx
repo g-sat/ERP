@@ -16,6 +16,7 @@ import { MainTable } from "@/components/table/table-main"
 interface ChargeTableProps {
   data: ICharge[]
   isLoading?: boolean
+  totalRecords?: number
   onSelect?: (charge: ICharge | null) => void
   onDelete?: (chargeId: string) => void
   onEdit?: (charge: ICharge) => void
@@ -34,6 +35,7 @@ interface ChargeTableProps {
 export function ChargeTable({
   data,
   isLoading = false,
+  totalRecords = 0,
   onSelect,
   onDelete,
   onEdit,
@@ -157,6 +159,7 @@ export function ChargeTable({
       data={data}
       columns={columns}
       isLoading={isLoading}
+      totalRecords={totalRecords}
       moduleId={moduleId}
       transactionId={transactionId}
       tableName={TableName.charge}

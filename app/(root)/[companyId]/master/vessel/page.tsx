@@ -61,12 +61,16 @@ export default function VesselPage() {
   } = useGet<IVessel>(`${Vessel.get}`, "vessels", filters.search)
 
   // Destructure with fallback values
-  const { result: vesselsResult, data: vesselsData } =
-    (vesselsResponse as ApiResponse<IVessel>) ?? {
-      result: 0,
-      message: "",
-      data: [],
-    }
+  const {
+    result: vesselsResult,
+    data: vesselsData,
+    totalRecords,
+  } = (vesselsResponse as ApiResponse<IVessel>) ?? {
+    result: 0,
+    message: "",
+    data: [],
+    totalRecords: 0,
+  }
 
   // Handle result = -1 and result = -2 cases
   useEffect(() => {
@@ -306,6 +310,7 @@ export default function VesselPage() {
           <VesselTable
             data={[]}
             isLoading={false}
+            totalRecords={0}
             onSelect={() => {}}
             onDelete={() => {}}
             onEdit={() => {}}
@@ -324,6 +329,7 @@ export default function VesselPage() {
         <VesselTable
           data={filters.search ? [] : vesselsData || []}
           isLoading={isLoading}
+          totalRecords={totalRecords}
           onSelect={canView ? handleViewVessel : undefined}
           onDelete={canDelete ? handleDeleteVessel : undefined}
           onEdit={canEdit ? handleEditVessel : undefined}

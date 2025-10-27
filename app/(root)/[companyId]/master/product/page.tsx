@@ -55,12 +55,16 @@ export default function ProductPage() {
     isLoading,
   } = useGet<IProduct>(`${Product.get}`, "products", filters.search)
 
-  const { result: productsResult, data: productsData } =
-    (productsResponse as ApiResponse<IProduct>) ?? {
-      result: 0,
-      message: "",
-      data: [],
-    }
+  const {
+    result: productsResult,
+    data: productsData,
+    totalRecords,
+  } = (productsResponse as ApiResponse<IProduct>) ?? {
+    result: 0,
+    message: "",
+    data: [],
+    totalRecords: 0,
+  }
 
   const saveMutation = usePersist<ProductSchemaType>(`${Product.add}`)
   const updateMutation = usePersist<ProductSchemaType>(`${Product.add}`)
@@ -286,6 +290,7 @@ export default function ProductPage() {
           moduleId={moduleId}
           transactionId={transactionId}
           isLoading={isLoading}
+          totalRecords={totalRecords}
           // Pass permissions to table
           canEdit={canEdit}
           canDelete={canDelete}

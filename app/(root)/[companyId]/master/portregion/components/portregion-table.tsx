@@ -16,6 +16,7 @@ import { MainTable } from "@/components/table/table-main"
 interface PortRegionsTableProps {
   data: IPortRegion[]
   isLoading?: boolean
+  totalRecords?: number
   onSelect?: (portregion: IPortRegion | null) => void
   onDelete?: (portRegionId: string) => void
   onEdit?: (portregion: IPortRegion) => void
@@ -34,6 +35,7 @@ interface PortRegionsTableProps {
 export function PortRegionsTable({
   data,
   isLoading = false,
+  totalRecords = 0,
   onSelect,
   onDelete,
   onEdit,
@@ -146,6 +148,7 @@ export function PortRegionsTable({
       data={data}
       columns={columns}
       isLoading={isLoading}
+      totalRecords={totalRecords}
       moduleId={moduleId}
       transactionId={transactionId}
       tableName={TableName.portRegion}

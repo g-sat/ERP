@@ -4,10 +4,10 @@ import { useAuthStore } from "@/stores/auth-store"
 import { ColumnDef } from "@tanstack/react-table"
 import { format, subMonths } from "date-fns"
 import { FormProvider, useForm } from "react-hook-form"
-import { useGetWithDates } from "@/hooks/use-common"
 
-import { GlJournalEntry } from "@/lib/api-routes"
+import { GLJournalEntry } from "@/lib/api-routes"
 import { GLTransactionId, ModuleId, TableName } from "@/lib/utils"
+import { useGetWithDates } from "@/hooks/use-common"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { CustomDateNew } from "@/components/custom/custom-date-new"
@@ -53,8 +53,8 @@ export default function JournalTable({
     isRefetching: isRefetchingJournals,
     refetch: refetchJournals,
   } = useGetWithDates<IGLJournalHd>(
-    `${GlJournalEntry.get}`,
-    TableName.glJournalEntry,
+    `${GLJournalEntry.get}`,
+    TableName.journalEntry,
     searchQuery,
     form.watch("startDate")?.toString(),
     form.watch("endDate")?.toString(),
@@ -264,7 +264,9 @@ export default function JournalTable({
       <div className="flex min-h-screen items-center justify-center">
         <div className="text-center">
           <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-gray-300 border-t-blue-600"></div>
-          <p className="mt-4 text-sm text-gray-600">Loading journal entries...</p>
+          <p className="mt-4 text-sm text-gray-600">
+            Loading journal entries...
+          </p>
           <p className="mt-2 text-xs text-gray-500">
             Please wait while we fetch the journal entry list
           </p>
@@ -289,7 +291,7 @@ export default function JournalTable({
             label="End Date"
             onChangeEvent={handleEndDateChange}
           />
-          <Button onClick={onRefresh} variant="outline">
+          <Button onClick={() => refetchJournals()} variant="outline">
             Refresh
           </Button>
         </div>

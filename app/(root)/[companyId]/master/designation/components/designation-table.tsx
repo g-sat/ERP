@@ -16,6 +16,7 @@ import { MainTable } from "@/components/table/table-main"
 interface DesignationsTableProps {
   data: IDesignation[]
   isLoading?: boolean
+  totalRecords?: number
   onSelect?: (designation: IDesignation | null) => void
   onDelete?: (designationId: string) => void
   onEdit?: (designation: IDesignation) => void
@@ -34,6 +35,7 @@ interface DesignationsTableProps {
 export function DesignationsTable({
   data,
   isLoading = false,
+  totalRecords = 0,
   onSelect,
   onDelete,
   onEdit,
@@ -138,6 +140,7 @@ export function DesignationsTable({
       data={data}
       columns={columns}
       isLoading={isLoading}
+      totalRecords={totalRecords}
       moduleId={moduleId}
       transactionId={transactionId}
       tableName={TableName.designation}

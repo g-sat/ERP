@@ -111,18 +111,26 @@ export default function OrderTypePage() {
   )
 
   // Extract data from responses with fallback values
-  const { result: ordertypesResult, data: ordertypesData } =
-    (ordertypesResponse as ApiResponse<IOrderType>) ?? {
-      result: 0,
-      message: "",
-      data: [],
-    }
-  const { result: ordertypesCategoryResult, data: ordertypesCategoryData } =
-    (ordertypesCategoryResponse as ApiResponse<IOrderTypeCategory>) ?? {
-      result: 0,
-      message: "",
-      data: [],
-    }
+  const {
+    result: ordertypesResult,
+    data: ordertypesData,
+    totalRecords: ordertypesTotalRecords,
+  } = (ordertypesResponse as ApiResponse<IOrderType>) ?? {
+    result: 0,
+    message: "",
+    data: [],
+    totalRecords: 0,
+  }
+  const {
+    result: ordertypesCategoryResult,
+    data: ordertypesCategoryData,
+    totalRecords: ordertypesCategoryTotalRecords,
+  } = (ordertypesCategoryResponse as ApiResponse<IOrderTypeCategory>) ?? {
+    result: 0,
+    message: "",
+    data: [],
+    totalRecords: 0,
+  }
 
   // Mutations
   const saveMutation = usePersist<OrderTypeSchemaType>(`${OrderType.add}`)
@@ -485,6 +493,7 @@ export default function OrderTypePage() {
               <OrderTypeTable
                 data={[]}
                 isLoading={false}
+                totalRecords={ordertypesTotalRecords}
                 onSelect={() => {}}
                 onDelete={() => {}}
                 onEdit={() => {}}
@@ -502,6 +511,7 @@ export default function OrderTypePage() {
           ) : (
             <OrderTypeTable
               data={filters.search ? [] : ordertypesData || []}
+              totalRecords={ordertypesTotalRecords}
               onSelect={canView ? handleViewOrderType : undefined}
               onDelete={canDelete ? handleDeleteOrderType : undefined}
               onEdit={canEdit ? handleEditOrderType : undefined}
@@ -544,6 +554,7 @@ export default function OrderTypePage() {
               <OrderTypeCategoryTable
                 data={[]}
                 isLoading={false}
+                totalRecords={ordertypesCategoryTotalRecords}
                 onSelect={() => {}}
                 onDelete={() => {}}
                 onEdit={() => {}}
@@ -561,6 +572,7 @@ export default function OrderTypePage() {
           ) : (
             <OrderTypeCategoryTable
               data={categoryFilters.search ? [] : ordertypesCategoryData || []}
+              totalRecords={ordertypesCategoryTotalRecords}
               onSelect={
                 canViewCategory ? handleViewOrderTypeCategory : undefined
               }

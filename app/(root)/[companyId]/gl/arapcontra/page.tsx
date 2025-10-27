@@ -242,9 +242,7 @@ export default function GLContraPage() {
 
         // Set field-level errors on the form so FormMessage components can display them
         validationResult.error.issues.forEach((error) => {
-          const fieldPath = error.path.join(
-            "."
-          ) as keyof GlArapContraHdSchemaType
+          const fieldPath = error.path.join(".") as keyof GLContraHdSchemaType
           form.setError(fieldPath, {
             type: "validation",
             message: error.message,

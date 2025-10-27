@@ -16,6 +16,7 @@ import { MainTable } from "@/components/table/table-main"
 interface WorkLocationTableProps {
   data: IWorkLocation[]
   isLoading?: boolean
+  totalRecords?: number
   onSelect?: (worklocation: IWorkLocation | null) => void
   onDelete?: (worklocationId: string) => void
   onEdit?: (worklocation: IWorkLocation) => void
@@ -34,6 +35,7 @@ interface WorkLocationTableProps {
 export function WorkLocationTable({
   data,
   isLoading = false,
+  totalRecords = 0,
   onSelect,
   onDelete,
   onEdit,
@@ -149,6 +151,7 @@ export function WorkLocationTable({
       data={data}
       columns={columns}
       isLoading={isLoading}
+      totalRecords={totalRecords}
       moduleId={moduleId}
       transactionId={transactionId}
       tableName={TableName.workLocation}

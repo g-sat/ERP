@@ -23,7 +23,7 @@ import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 
 import { getById } from "@/lib/api-client"
-import { CbPayment } from "@/lib/api-routes"
+import { CbGenPayment } from "@/lib/api-routes"
 import { clientDateFormat, parseDate } from "@/lib/date-utils"
 import { CBTransactionId, ModuleId } from "@/lib/utils"
 import { useDelete, usePersist } from "@/hooks/use-common"
@@ -154,11 +154,13 @@ export default function GenPaymentPage() {
   // Data fetching moved to GenPaymentTable component for better performance
 
   // Mutations
-  const saveMutation = usePersist<CbGenPaymentHdSchemaType>(`${CbPayment.add}`)
-  const updateMutation = usePersist<CbGenPaymentHdSchemaType>(
-    `${CbPayment.add}`
+  const saveMutation = usePersist<CbGenPaymentHdSchemaType>(
+    `${CbGenPayment.add}`
   )
-  const deleteMutation = useDelete(`${CbPayment.delete}`)
+  const updateMutation = usePersist<CbGenPaymentHdSchemaType>(
+    `${CbGenPayment.add}`
+  )
+  const deleteMutation = useDelete(`${CbGenPayment.delete}`)
 
   // Handle Save
   const handleSaveGenPayment = async () => {
@@ -449,7 +451,7 @@ export default function GenPaymentPage() {
     try {
       // Fetch gen payment details directly using selected gen payment's values
       const response = await getById(
-        `${CbPayment.getByIdNo}/${selectedGenPayment.paymentId}/${selectedGenPayment.paymentNo}`
+        `${CbGenPayment.getByIdNo}/${selectedGenPayment.paymentId}/${selectedGenPayment.paymentNo}`
       )
 
       if (response?.result === 1) {
@@ -487,14 +489,6 @@ export default function GenPaymentPage() {
     setFilters(newFilters)
   }
 
-  // Refetch gen payments when filters change (only if dialog is open)
-  useEffect(() => {
-    if (showListDialog) {
-      refetchGenPayments()
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filters, showListDialog])
-
   // Add keyboard shortcuts
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
@@ -531,7 +525,7 @@ export default function GenPaymentPage() {
     setIsLoadingGenPayment(true)
 
     try {
-      const response = await getById(`${CbPayment.getByIdNo}/0/${value}`)
+      const response = await getById(`${CbGenPayment.getByIdNo}/0/${value}`)
 
       if (response?.result === 1) {
         const detailedGenPayment = Array.isArray(response.data)

@@ -16,6 +16,7 @@ import { MainTable } from "@/components/table/table-main"
 interface CountriesTableProps {
   data: ICountry[]
   isLoading?: boolean
+  totalRecords?: number
   onSelect?: (country: ICountry | null) => void
   onCreate?: () => void
   onEdit?: (country: ICountry) => void
@@ -34,6 +35,7 @@ interface CountriesTableProps {
 export function CountriesTable({
   data,
   isLoading = false,
+  totalRecords = 0,
   onSelect,
   onCreate,
   onEdit,
@@ -145,6 +147,7 @@ export function CountriesTable({
       data={data}
       columns={columns}
       isLoading={isLoading}
+      totalRecords={totalRecords}
       moduleId={moduleId}
       transactionId={transactionId}
       tableName={TableName.country}

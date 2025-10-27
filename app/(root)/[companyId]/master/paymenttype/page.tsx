@@ -56,12 +56,16 @@ export default function PaymentTypePage() {
     isLoading,
   } = useGet<IPaymentType>(`${PaymentType.get}`, "paymentTypes", filters.search)
 
-  const { result: paymentTypesResult, data: paymentTypesData } =
-    (paymentTypesResponse as ApiResponse<IPaymentType>) ?? {
-      result: 0,
-      message: "",
-      data: [],
-    }
+  const {
+    result: paymentTypesResult,
+    data: paymentTypesData,
+    totalRecords,
+  } = (paymentTypesResponse as ApiResponse<IPaymentType>) ?? {
+    result: 0,
+    message: "",
+    data: [],
+    totalRecords: 0,
+  }
 
   const saveMutation = usePersist<PaymentTypeSchemaType>(`${PaymentType.add}`)
   const updateMutation = usePersist<PaymentTypeSchemaType>(`${PaymentType.add}`)
@@ -287,6 +291,7 @@ export default function PaymentTypePage() {
         <PaymentTypesTable
           data={filters.search ? [] : paymentTypesData || []}
           isLoading={isLoading}
+          totalRecords={totalRecords}
           onSelect={canView ? handleViewPaymentType : undefined}
           onDelete={canDelete ? handleDeletePaymentType : undefined}
           onEdit={canEdit ? handleEditPaymentType : undefined}

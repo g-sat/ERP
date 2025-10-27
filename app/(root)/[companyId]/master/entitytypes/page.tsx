@@ -59,12 +59,16 @@ export default function EntityTypePage() {
   } = useGet<IEntityType>(`${EntityType.get}`, "entityTypes", filters.search)
 
   // Destructure with fallback values
-  const { result: entityTypesResult, data: entityTypesData } =
-    (entityTypesResponse as ApiResponse<IEntityType>) ?? {
-      result: 0,
-      message: "",
-      data: [],
-    }
+  const {
+    result: entityTypesResult,
+    data: entityTypesData,
+    totalRecords,
+  } = (entityTypesResponse as ApiResponse<IEntityType>) ?? {
+    result: 0,
+    message: "",
+    data: [],
+    totalRecords: 0,
+  }
 
   // Define mutations for CRUD operations
   const saveMutation = usePersist<EntityTypeSchemaType>(`${EntityType.add}`)
@@ -296,6 +300,7 @@ export default function EntityTypePage() {
         <EntityTypesTable
           data={filters.search ? [] : entityTypesData || []}
           isLoading={isLoading}
+          totalRecords={totalRecords}
           onSelect={canView ? handleViewEntityType : undefined}
           onDelete={canDelete ? handleDeleteEntityType : undefined}
           onEdit={canEdit ? handleEditEntityType : undefined}

@@ -58,12 +58,16 @@ export default function LeaveTypePage() {
   } = useGet<ILeaveType>(`${LeaveType.get}`, "leaveTypes", filters.search)
 
   // Destructure with fallback values
-  const { result: leaveTypesResult, data: leaveTypesData } =
-    (leaveTypesResponse as ApiResponse<ILeaveType>) ?? {
-      result: 0,
-      message: "",
-      data: [],
-    }
+  const {
+    result: leaveTypesResult,
+    data: leaveTypesData,
+    totalRecords,
+  } = (leaveTypesResponse as ApiResponse<ILeaveType>) ?? {
+    result: 0,
+    message: "",
+    data: [],
+    totalRecords: 0,
+  }
 
   // Define mutations for CRUD operations
   const saveMutation = usePersist<LeaveTypeSchemaType>(`${LeaveType.add}`)
@@ -300,6 +304,7 @@ export default function LeaveTypePage() {
         <LeaveTypesTable
           data={filters.search ? [] : leaveTypesData || []}
           isLoading={isLoading}
+          totalRecords={totalRecords}
           onSelect={canView ? handleViewLeaveType : undefined}
           onDelete={canDelete ? handleDeleteLeaveType : undefined}
           onEdit={canEdit ? handleEditLeaveType : undefined}

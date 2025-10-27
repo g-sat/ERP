@@ -5,7 +5,6 @@ import { Checkbox } from "@/components/ui/checkbox"
 
 interface AccountTableActionsProps<T> {
   row: T & { debitNoteId?: number }
-  onView?: (row: T) => void
   onEdit?: (row: T) => void
   onDelete?: (id: string) => void
   onSelect?: (row: T, checked: boolean) => void
@@ -20,7 +19,6 @@ interface AccountTableActionsProps<T> {
 
 export function AccountTableActions<T>({
   row,
-  onView,
   onEdit,
   onDelete,
   onSelect,

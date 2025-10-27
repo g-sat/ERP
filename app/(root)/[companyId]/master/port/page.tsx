@@ -56,12 +56,16 @@ export default function PortPage() {
     isLoading,
   } = useGet<IPort>(`${Port.get}`, "ports", filters.search)
 
-  const { result: portsResult, data: portsData } =
-    (portsResponse as ApiResponse<IPort>) ?? {
-      result: 0,
-      message: "",
-      data: [],
-    }
+  const {
+    result: portsResult,
+    data: portsData,
+    totalRecords,
+  } = (portsResponse as ApiResponse<IPort>) ?? {
+    result: 0,
+    message: "",
+    data: [],
+    totalRecords: 0,
+  }
 
   const saveMutation = usePersist<PortSchemaType>(`${Port.add}`)
   const updateMutation = usePersist<PortSchemaType>(`${Port.add}`)
@@ -287,6 +291,7 @@ export default function PortPage() {
           moduleId={moduleId}
           transactionId={transactionId}
           isLoading={isLoading}
+          totalRecords={totalRecords}
           // Pass permissions to table
           canEdit={canEdit}
           canDelete={canDelete}

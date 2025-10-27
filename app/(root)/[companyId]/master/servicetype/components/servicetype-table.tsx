@@ -16,6 +16,7 @@ import { MainTable } from "@/components/table/table-main"
 interface ServiceTypesTableProps {
   data: IServiceType[]
   isLoading?: boolean
+  totalRecords?: number
   onSelect?: (servicetype: IServiceType | null) => void
   onDelete?: (serviceTypeId: string) => void
   onEdit?: (servicetype: IServiceType) => void
@@ -34,6 +35,7 @@ interface ServiceTypesTableProps {
 export function ServiceTypeTable({
   data,
   isLoading = false,
+  totalRecords = 0,
   onSelect,
   onDelete,
   onEdit,
@@ -143,6 +145,7 @@ export function ServiceTypeTable({
       data={data}
       columns={columns}
       isLoading={isLoading}
+      totalRecords={totalRecords}
       moduleId={moduleId}
       transactionId={transactionId}
       tableName={TableName.serviceType}

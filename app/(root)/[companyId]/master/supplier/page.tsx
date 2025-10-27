@@ -166,11 +166,12 @@ export default function SupplierPage() {
       }
     )
 
-  const { data: suppliersData } =
+  const { data: suppliersData, totalRecords } =
     (suppliersResponse as ApiResponse<ISupplier>) ?? {
       result: 0,
       message: "",
       data: [],
+      totalRecords: 0,
     }
 
   // Mutations

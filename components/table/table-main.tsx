@@ -98,6 +98,7 @@ interface MainTableProps<T> {
   data: T[] // Array of data items to display in the table
   columns: ColumnDef<T>[] // Column definitions for the table structure
   isLoading?: boolean // Loading state indicator
+  totalRecords?: number // Total records
   moduleId?: number // Module ID for grid layout settings
   transactionId?: number // Transaction ID for grid layout settings
   tableName: TableName // Name of the table for grid layout persistence
@@ -155,6 +156,7 @@ export function MainTable<T>({
   data, // Array of data items
   columns, // Column definitions
   isLoading, // Loading state
+  totalRecords, // Total records
   moduleId, // Module ID for settings
   transactionId, // Transaction ID for settings
   tableName, // Table name for settings
@@ -328,7 +330,7 @@ export function MainTable<T>({
     // ============================================================================
     data, // Data array to display
     columns: tableColumns, // Column definitions (including actions)
-    pageCount: Math.ceil(data.length / pageSize), // Total number of pages
+    pageCount: Math.ceil((totalRecords || data.length) / pageSize), // Total number of pages
     // ============================================================================
     // STATE CHANGE HANDLERS
     // ============================================================================
@@ -701,9 +703,9 @@ export function MainTable<T>({
       {showFooter && (
         <MainTableFooter
           currentPage={currentPage} // Current page number
-          totalPages={Math.ceil(data.length / pageSize)} // Total number of pages
+          totalPages={Math.ceil((totalRecords || data.length) / pageSize)} // Total number of pages
           pageSize={pageSize} // Current page size
-          totalRecords={data.length} // Total number of records
+          totalRecords={totalRecords || data.length} // Total number of records
           onPageChange={handlePageChange} // Page change handler
           onPageSizeChange={handlePageSizeChange} // Page size change handler
           pageSizeOptions={[15, 50, 100, 500]} // Available page size options

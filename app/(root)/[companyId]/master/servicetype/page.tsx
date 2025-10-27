@@ -111,18 +111,26 @@ export default function ServiceTypePage() {
   )
 
   // Extract data from responses with fallback values
-  const { result: servicetypesResult, data: servicetypesData } =
-    (servicetypesResponse as ApiResponse<IServiceType>) ?? {
-      result: 0,
-      message: "",
-      data: [],
-    }
-  const { result: servicetypesCategoryResult, data: servicetypesCategoryData } =
-    (servicetypesCategoryResponse as ApiResponse<IServiceTypeCategory>) ?? {
-      result: 0,
-      message: "",
-      data: [],
-    }
+  const {
+    result: servicetypesResult,
+    data: servicetypesData,
+    totalRecords: servicetypesTotalRecords,
+  } = (servicetypesResponse as ApiResponse<IServiceType>) ?? {
+    result: 0,
+    message: "",
+    data: [],
+    totalRecords: 0,
+  }
+  const {
+    result: servicetypesCategoryResult,
+    data: servicetypesCategoryData,
+    totalRecords: servicetypesCategoryTotalRecords,
+  } = (servicetypesCategoryResponse as ApiResponse<IServiceTypeCategory>) ?? {
+    result: 0,
+    message: "",
+    data: [],
+    totalRecords: 0,
+  }
 
   // Mutations
   const saveMutation = usePersist<ServiceTypeSchemaType>(`${ServiceType.add}`)
@@ -474,6 +482,7 @@ export default function ServiceTypePage() {
               <ServiceTypeTable
                 data={[]}
                 isLoading={false}
+                totalRecords={servicetypesTotalRecords}
                 onSelect={() => {}}
                 onDelete={() => {}}
                 onEdit={() => {}}
@@ -491,6 +500,7 @@ export default function ServiceTypePage() {
           ) : (
             <ServiceTypeTable
               data={filters.search ? [] : servicetypesData || []}
+              totalRecords={servicetypesTotalRecords}
               onSelect={canView ? handleViewServiceType : undefined}
               onDelete={canDelete ? handleDeleteServiceType : undefined}
               onEdit={canEdit ? handleEditServiceType : undefined}
@@ -533,6 +543,7 @@ export default function ServiceTypePage() {
               <ServiceTypeCategoryTable
                 data={[]}
                 isLoading={false}
+                totalRecords={servicetypesCategoryTotalRecords}
                 onSelect={() => {}}
                 onDelete={() => {}}
                 onEdit={() => {}}
@@ -552,6 +563,7 @@ export default function ServiceTypePage() {
               data={
                 categoryFilters.search ? [] : servicetypesCategoryData || []
               }
+              totalRecords={servicetypesCategoryTotalRecords}
               onSelect={
                 canViewCategory ? handleViewServiceTypeCategory : undefined
               }

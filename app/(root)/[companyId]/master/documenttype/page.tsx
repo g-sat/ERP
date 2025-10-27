@@ -62,12 +62,16 @@ export default function DocumentTypePage() {
   )
 
   // Destructure with fallback values
-  const { result: documentTypesResult, data: documentTypesData } =
-    (documentTypesResponse as ApiResponse<IDocumentType>) ?? {
-      result: 0,
-      message: "",
-      data: [],
-    }
+  const {
+    result: documentTypesResult,
+    data: documentTypesData,
+    totalRecords,
+  } = (documentTypesResponse as ApiResponse<IDocumentType>) ?? {
+    result: 0,
+    message: "",
+    data: [],
+    totalRecords: 0,
+  }
 
   // Define mutations for CRUD operations
   const saveMutation = usePersist<DocumentTypeSchemaType>(`${DocumentType.add}`)
@@ -305,6 +309,7 @@ export default function DocumentTypePage() {
         <DocumentTypesTable
           data={filters.search ? [] : documentTypesData || []}
           isLoading={isLoading}
+          totalRecords={totalRecords}
           onSelect={canView ? handleViewDocumentType : undefined}
           onDelete={canDelete ? handleDeleteDocumentType : undefined}
           onEdit={canEdit ? handleEditDocumentType : undefined}

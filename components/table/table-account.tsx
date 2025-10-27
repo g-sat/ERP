@@ -283,7 +283,6 @@ export function AccountBaseTable<T>({
                   {/* Action Buttons */}
                   <AccountTableActions
                     row={item as T & { debitNoteId?: number }}
-                    onView={onSelect}
                     onEdit={onEdit}
                     onDelete={onDelete}
                     onSelect={(_, checked) => {
@@ -469,7 +468,6 @@ export function AccountBaseTable<T>({
         />
       )}
 
-
       {/* ========================================================================= */}
       {/* MAIN TABLE CONTAINER - NO OUTER <Table>! */}
       {/* ========================================================================= */}
@@ -528,7 +526,9 @@ export function AccountBaseTable<T>({
                         </TableHead>
                       )
                     }
-                    return <SortableTableHeader key={header.id} header={header} />
+                    return (
+                      <SortableTableHeader key={header.id} header={header} />
+                    )
                   })}
                 </TableRow>
               ))}
@@ -538,7 +538,9 @@ export function AccountBaseTable<T>({
             <TableBody>
               <SortableContext
                 items={data.map((item) =>
-                  String((item as Record<string, unknown>)[accessorId as string])
+                  String(
+                    (item as Record<string, unknown>)[accessorId as string]
+                  )
                 )}
                 strategy={verticalListSortingStrategy}
               >
@@ -563,12 +565,18 @@ export function AccountBaseTable<T>({
                             overflow: "hidden",
                             textOverflow: "ellipsis",
                             whiteSpace: "nowrap",
-                            position: isFirstColumn || isActions ? "sticky" : "relative",
+                            position:
+                              isFirstColumn || isActions
+                                ? "sticky"
+                                : "relative",
                             left: isFirstColumn || isActions ? 0 : "auto",
                             zIndex: isFirstColumn || isActions ? 10 : 1,
                           }}
                         >
-                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext()
+                          )}
                         </TableCell>
                       )
                     })}
@@ -577,7 +585,10 @@ export function AccountBaseTable<T>({
 
                 {/* Empty Rows */}
                 {Array.from({
-                  length: Math.max(0, pageSize - table.getRowModel().rows.length),
+                  length: Math.max(
+                    0,
+                    pageSize - table.getRowModel().rows.length
+                  ),
                 }).map((_, index) => (
                   <TableRow key={`empty-${index}`} className="h-7">
                     {table.getAllLeafColumns().map((column, cellIndex) => {
@@ -596,7 +607,10 @@ export function AccountBaseTable<T>({
                             width: `${column.getSize()}px`,
                             minWidth: `${column.getSize()}px`,
                             maxWidth: `${column.getSize()}px`,
-                            position: isFirstColumn || isActions ? "sticky" : "relative",
+                            position:
+                              isFirstColumn || isActions
+                                ? "sticky"
+                                : "relative",
                             left: isFirstColumn || isActions ? 0 : "auto",
                             zIndex: isFirstColumn || isActions ? 10 : 1,
                           }}

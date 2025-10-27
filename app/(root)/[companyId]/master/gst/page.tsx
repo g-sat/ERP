@@ -134,24 +134,36 @@ export default function GstPage() {
   )
 
   // Extract data from responses with fallback values
-  const { result: gstsResult, data: gstsData } =
-    (gstsResponse as ApiResponse<IGst>) ?? {
-      result: 0,
-      message: "",
-      data: [],
-    }
-  const { result: gstsDtResult, data: gstsDtData } =
-    (gstsDtResponse as ApiResponse<IGstDt>) ?? {
-      result: 0,
-      message: "",
-      data: [],
-    }
-  const { result: gstsCategoryResult, data: gstsCategoryData } =
-    (gstsCategoryResponse as ApiResponse<IGstCategory>) ?? {
-      result: 0,
-      message: "",
-      data: [],
-    }
+  const {
+    result: gstsResult,
+    data: gstsData,
+    totalRecords: gstsTotalRecords,
+  } = (gstsResponse as ApiResponse<IGst>) ?? {
+    result: 0,
+    message: "",
+    data: [],
+    totalRecords: 0,
+  }
+  const {
+    result: gstsDtResult,
+    data: gstsDtData,
+    totalRecords: gstsDtTotalRecords,
+  } = (gstsDtResponse as ApiResponse<IGstDt>) ?? {
+    result: 0,
+    message: "",
+    data: [],
+    totalRecords: 0,
+  }
+  const {
+    result: gstsCategoryResult,
+    data: gstsCategoryData,
+    totalRecords: gstsCategoryTotalRecords,
+  } = (gstsCategoryResponse as ApiResponse<IGstCategory>) ?? {
+    result: 0,
+    message: "",
+    data: [],
+    totalRecords: 0,
+  }
 
   // Mutations
   const saveMutation = usePersist<GstSchemaType>(`${Gst.add}`)
@@ -580,6 +592,7 @@ export default function GstPage() {
               <GstTable
                 data={[]}
                 isLoading={false}
+                totalRecords={gstsTotalRecords}
                 onSelect={() => {}}
                 onDelete={() => {}}
                 onEdit={() => {}}
@@ -598,6 +611,7 @@ export default function GstPage() {
             <GstTable
               data={filters.search ? [] : gstsData || []}
               isLoading={isLoadingGst}
+              totalRecords={gstsTotalRecords}
               onSelect={canView ? handleViewGst : undefined}
               onDelete={canDelete ? handleDeleteGst : undefined}
               onEdit={canEdit ? handleEditGst : undefined}
@@ -643,6 +657,7 @@ export default function GstPage() {
               <GstDtTable
                 data={[]}
                 isLoading={false}
+                totalRecords={gstsDtTotalRecords}
                 onSelect={() => {}}
                 onDelete={() => {}}
                 onEdit={() => {}}
@@ -661,6 +676,7 @@ export default function GstPage() {
             <GstDtTable
               data={dtFilters.search ? [] : gstsDtData || []}
               isLoading={isLoadingGstDt}
+              totalRecords={gstsDtTotalRecords}
               onSelect={canViewDt ? handleViewGstDt : undefined}
               onDelete={canDeleteDt ? handleDeleteGstDt : undefined}
               onEdit={canEditDt ? handleEditGstDt : undefined}
@@ -709,6 +725,7 @@ export default function GstPage() {
               <GstCategoryTable
                 data={[]}
                 isLoading={false}
+                totalRecords={gstsCategoryTotalRecords}
                 onSelect={() => {}}
                 onDelete={() => {}}
                 onEdit={() => {}}
@@ -727,6 +744,7 @@ export default function GstPage() {
             <GstCategoryTable
               data={categoryFilters.search ? [] : gstsCategoryData || []}
               isLoading={isLoadingGstCategory}
+              totalRecords={gstsCategoryTotalRecords}
               onSelect={canViewCategory ? handleViewGstCategory : undefined}
               onDelete={canDeleteCategory ? handleDeleteGstCategory : undefined}
               onEdit={canEditCategory ? handleEditGstCategory : undefined}

@@ -11,6 +11,7 @@ import { MainTable } from "@/components/table/table-main"
 interface TaxDtTableProps {
   data: ITaxDt[]
   isLoading?: boolean
+  totalRecords?: number
   onSelect?: (taxdt: ITaxDt | null) => void
   onDelete?: (taxId: string) => void
   onEdit?: (taxdt: ITaxDt) => void
@@ -29,6 +30,7 @@ interface TaxDtTableProps {
 export function TaxDtTable({
   data,
   isLoading = false,
+  totalRecords = 0,
   onSelect,
   onDelete,
   onEdit,
@@ -134,6 +136,7 @@ export function TaxDtTable({
       data={data}
       columns={columns}
       isLoading={isLoading}
+      totalRecords={totalRecords}
       moduleId={moduleId}
       transactionId={transactionId}
       tableName={TableName.taxDt}

@@ -5,7 +5,7 @@ import { ColumnDef } from "@tanstack/react-table"
 import { format, subMonths } from "date-fns"
 import { FormProvider, useForm } from "react-hook-form"
 
-import { GlArapContra } from "@/lib/api-routes"
+import { GlContra } from "@/lib/api-routes"
 import { GLTransactionId, ModuleId, TableName } from "@/lib/utils"
 import { useGetWithDates } from "@/hooks/use-common"
 import { Button } from "@/components/ui/button"
@@ -53,7 +53,7 @@ export default function ArapcontraTable({
     isRefetching: isRefetchingArapContras,
     refetch: refetchArapContras,
   } = useGetWithDates<IGLContraHd>(
-    `${GlArapContra.get}`,
+    `${GlContra.get}`,
     TableName.glArapContra,
     searchQuery,
     form.watch("startDate")?.toString(),
@@ -292,7 +292,9 @@ export default function ArapcontraTable({
       <div className="flex min-h-screen items-center justify-center">
         <div className="text-center">
           <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-gray-300 border-t-blue-600"></div>
-          <p className="mt-4 text-sm text-gray-600">Loading AR/AP contra entries...</p>
+          <p className="mt-4 text-sm text-gray-600">
+            Loading AR/AP contra entries...
+          </p>
           <p className="mt-2 text-xs text-gray-500">
             Please wait while we fetch the AR/AP contra list
           </p>
@@ -340,7 +342,7 @@ export default function ArapcontraTable({
         isLoading={isLoading}
         moduleId={moduleId}
         transactionId={transactionId}
-        tableName={TableName.arApContra}
+        tableName={TableName.glArapContra}
         emptyMessage="No contra data found."
         onRefresh={() => refetchArapContras()}
         onFilterChange={handleDialogFilterChange}

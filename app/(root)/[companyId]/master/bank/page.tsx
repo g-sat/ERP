@@ -160,11 +160,12 @@ export default function BankPage() {
       bank?.bankId?.toString() || ""
     )
 
-  const { data: banksData } = (banksResponse as ApiResponse<IBank>) ?? {
-    result: 0,
-    message: "",
-    data: [],
-  }
+  const { data: banksData, totalRecords } =
+    (banksResponse as ApiResponse<IBank>) ?? {
+      result: 0,
+      message: "",
+      data: [],
+    }
 
   // Mutations
   const saveMutation = usePersist<BankSchemaType>(`${Bank.add}`)
@@ -652,6 +653,7 @@ export default function BankPage() {
                       key={`address-${bank?.bankId || "new"}`}
                       data={addresses}
                       isLoading={isLoadingAddresses}
+                      totalRecords={totalRecords}
                       onSelect={canView ? handleAddressSelect : undefined}
                       onDelete={canDelete ? handleAddressDelete : undefined}
                       onEdit={canEdit ? handleAddressEdit : undefined}
@@ -668,6 +670,7 @@ export default function BankPage() {
                       key={`contact-${bank?.bankId || "new"}`}
                       data={contacts}
                       isLoading={isLoadingContacts}
+                      totalRecords={totalRecords}
                       onSelect={canView ? handleContactSelect : undefined}
                       onDelete={canDelete ? handleContactDelete : undefined}
                       onEdit={canEdit ? handleContactEdit : undefined}

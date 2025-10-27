@@ -16,6 +16,7 @@ import { MainTable } from "@/components/table/table-main"
 interface ServiceTypeCategoryTableProps {
   data: IServiceTypeCategory[]
   isLoading?: boolean
+  totalRecords?: number
   onSelect?: (servicetypedtcategory: IServiceTypeCategory | null) => void
   onDelete?: (servicetypeId: string) => void
   onEdit?: (servicetypedtcategory: IServiceTypeCategory) => void
@@ -34,6 +35,7 @@ interface ServiceTypeCategoryTableProps {
 export function ServiceTypeCategoryTable({
   data,
   isLoading = false,
+  totalRecords = 0,
   onSelect,
   onDelete,
   onEdit,
@@ -143,6 +145,7 @@ export function ServiceTypeCategoryTable({
       data={data}
       columns={columns}
       isLoading={isLoading}
+      totalRecords={totalRecords}
       moduleId={moduleId}
       transactionId={transactionId}
       tableName={TableName.serviceTypeCategory}

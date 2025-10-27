@@ -256,16 +256,14 @@ export default function BankTransferCtmForm({
         )}
 
         {/* Account Date */}
-        {visible?.m_AccountDate && (
-          <CustomDateNew
-            form={form}
-            name="accountDate"
-            label="Account Date"
-            isRequired={true}
-            onChangeEvent={handleAccountDateChange}
-            isFutureShow={false}
-          />
-        )}
+        <CustomDateNew
+          form={form}
+          name="accountDate"
+          label="Account Date"
+          isRequired={true}
+          onChangeEvent={handleAccountDateChange}
+          isFutureShow={false}
+        />
 
         {/* Payee To */}
         {visible?.m_PayeeTo && (

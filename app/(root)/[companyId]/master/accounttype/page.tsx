@@ -59,12 +59,16 @@ export default function AccountTypePage() {
   } = useGet<IAccountType>(`${AccountType.get}`, "accountTypes", filters.search)
 
   // Destructure with fallback values
-  const { result: accountTypesResult, data: accountTypesData } =
-    (accountTypesResponse as ApiResponse<IAccountType>) ?? {
-      result: 0,
-      message: "",
-      data: [],
-    }
+  const {
+    result: accountTypesResult,
+    data: accountTypesData,
+    totalRecords,
+  } = (accountTypesResponse as ApiResponse<IAccountType>) ?? {
+    result: 0,
+    message: "",
+    data: [],
+    totalRecords: 0,
+  }
 
   // Define mutations for CRUD operations
   const saveMutation = usePersist<AccountTypeSchemaType>(`${AccountType.add}`)
@@ -302,6 +306,7 @@ export default function AccountTypePage() {
         <AccountTypesTable
           data={filters.search ? [] : accountTypesData || []}
           isLoading={isLoading}
+          totalRecords={totalRecords}
           onSelect={canView ? handleViewAccountType : undefined}
           onDelete={canDelete ? handleDeleteAccountType : undefined}
           onEdit={canEdit ? handleEditAccountType : undefined}

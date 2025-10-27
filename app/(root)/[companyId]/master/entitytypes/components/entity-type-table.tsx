@@ -11,6 +11,7 @@ import { MainTable } from "@/components/table/table-main"
 interface EntityTypesTableProps {
   data: IEntityType[]
   isLoading?: boolean
+  totalRecords?: number
   onSelect?: (entityType: IEntityType | null) => void
   onDelete?: (entityTypeId: string) => void
   onEdit?: (entityType: IEntityType) => void
@@ -29,6 +30,7 @@ interface EntityTypesTableProps {
 export function EntityTypesTable({
   data,
   isLoading = false,
+  totalRecords = 0,
   onSelect,
   onDelete,
   onEdit,
@@ -108,6 +110,7 @@ export function EntityTypesTable({
       data={data}
       columns={columns}
       isLoading={isLoading}
+      totalRecords={totalRecords}
       moduleId={moduleId}
       transactionId={transactionId}
       tableName={TableName.entityTypes}

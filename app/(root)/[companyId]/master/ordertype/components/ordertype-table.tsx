@@ -16,6 +16,7 @@ import { MainTable } from "@/components/table/table-main"
 interface OrderTypeTableProps {
   data: IOrderType[]
   isLoading?: boolean
+  totalRecords?: number
   onSelect?: (ordertype: IOrderType | null) => void
   onDelete?: (orderTypeId: string) => void
   onEdit?: (ordertype: IOrderType) => void
@@ -34,6 +35,7 @@ interface OrderTypeTableProps {
 export function OrderTypeTable({
   data,
   isLoading = false,
+  totalRecords = 0,
   onSelect,
   onDelete,
   onEdit,
@@ -145,6 +147,7 @@ export function OrderTypeTable({
       data={data}
       columns={columns}
       isLoading={isLoading}
+      totalRecords={totalRecords}
       moduleId={moduleId}
       transactionId={transactionId}
       tableName={TableName.orderType}

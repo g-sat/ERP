@@ -16,6 +16,7 @@ import { MainTable } from "@/components/table/table-main"
 interface BargeTableProps {
   data: IBarge[]
   isLoading?: boolean
+  totalRecords?: number
   onSelect?: (barge: IBarge | null) => void
   onDelete?: (bargeId: string) => void
   onEdit?: (barge: IBarge) => void
@@ -34,6 +35,7 @@ interface BargeTableProps {
 export function BargeTable({
   data,
   isLoading = false,
+  totalRecords = 0,
   onSelect,
   onDelete,
   onEdit,
@@ -193,6 +195,7 @@ export function BargeTable({
       data={data}
       columns={columns}
       isLoading={isLoading}
+      totalRecords={totalRecords}
       moduleId={moduleId}
       transactionId={transactionId}
       tableName={TableName.barge}

@@ -56,12 +56,16 @@ export default function DesignationPage() {
     isLoading,
   } = useGet<IDesignation>(`${Designation.get}`, "designations", filters.search)
 
-  const { result: designationsResult, data: designationsData } =
-    (designationsResponse as ApiResponse<IDesignation>) ?? {
-      result: 0,
-      message: "",
-      data: [],
-    }
+  const {
+    result: designationsResult,
+    data: designationsData,
+    totalRecords,
+  } = (designationsResponse as ApiResponse<IDesignation>) ?? {
+    result: 0,
+    message: "",
+    data: [],
+    totalRecords: 0,
+  }
 
   useEffect(() => {
     if (designationsData?.length > 0) {
@@ -301,6 +305,7 @@ export default function DesignationPage() {
           moduleId={moduleId}
           transactionId={transactionId}
           isLoading={isLoading}
+          totalRecords={totalRecords}
           canEdit={canEdit}
           canDelete={canDelete}
           canView={canView}

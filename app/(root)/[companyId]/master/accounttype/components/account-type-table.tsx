@@ -16,6 +16,7 @@ import { MainTable } from "@/components/table/table-main"
 interface AccountTypesTableProps {
   data: IAccountType[]
   isLoading?: boolean
+  totalRecords?: number
   onSelect?: (accountType: IAccountType | null) => void
   onDelete?: (accountTypeId: string) => void
   onEdit?: (accountType: IAccountType) => void
@@ -34,6 +35,7 @@ interface AccountTypesTableProps {
 export function AccountTypesTable({
   data,
   isLoading = false,
+  totalRecords = 0,
   onSelect,
   onDelete,
   onEdit,
@@ -148,6 +150,7 @@ export function AccountTypesTable({
       data={data}
       columns={columns}
       isLoading={isLoading}
+      totalRecords={totalRecords}
       moduleId={moduleId}
       transactionId={transactionId}
       tableName={TableName.accountType}

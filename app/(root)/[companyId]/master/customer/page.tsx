@@ -163,6 +163,7 @@ export default function CustomerPage() {
       result: 0,
       message: "",
       data: [],
+      totalRecords: 0,
     }
 
   // Mutations

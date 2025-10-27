@@ -16,6 +16,7 @@ import { MainTable } from "@/components/table/table-main"
 interface CategoryTableProps {
   data: ICategory[]
   isLoading?: boolean
+  totalRecords?: number
   onSelect?: (category: ICategory | null) => void
   onDelete?: (categoryId: string) => void
   onEdit?: (category: ICategory) => void
@@ -34,6 +35,7 @@ interface CategoryTableProps {
 export function CategoryTable({
   data,
   isLoading = false,
+  totalRecords = 0,
   onSelect,
   onDelete,
   onEdit,
@@ -141,6 +143,7 @@ export function CategoryTable({
       data={data}
       columns={columns}
       isLoading={isLoading}
+      totalRecords={totalRecords}
       moduleId={moduleId}
       transactionId={transactionId}
       tableName={TableName.category}

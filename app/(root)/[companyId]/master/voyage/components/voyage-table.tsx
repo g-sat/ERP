@@ -16,6 +16,7 @@ import { MainTable } from "@/components/table/table-main"
 interface VoyageTableProps {
   data: IVoyage[]
   isLoading?: boolean
+  totalRecords?: number
   onSelect?: (voyage: IVoyage | null) => void
   onDelete?: (voyageId: string) => void
   onEdit?: (voyage: IVoyage) => void
@@ -34,6 +35,7 @@ interface VoyageTableProps {
 export function VoyageTable({
   data,
   isLoading = false,
+  totalRecords = 0,
   onSelect,
   onDelete,
   onEdit,
@@ -150,6 +152,7 @@ export function VoyageTable({
       data={data}
       columns={columns}
       isLoading={isLoading}
+      totalRecords={totalRecords}
       moduleId={moduleId}
       transactionId={transactionId}
       tableName={TableName.voyage}

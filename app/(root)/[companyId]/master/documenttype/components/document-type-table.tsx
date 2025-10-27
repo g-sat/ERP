@@ -16,6 +16,7 @@ import { MainTable } from "@/components/table/table-main"
 interface DocumentTypesTableProps {
   data: IDocumentType[]
   isLoading?: boolean
+  totalRecords?: number
   onSelect?: (documentType: IDocumentType | null) => void
   onDelete?: (documentTypeId: string) => void
   onEdit?: (documentType: IDocumentType) => void
@@ -34,6 +35,7 @@ interface DocumentTypesTableProps {
 export function DocumentTypesTable({
   data,
   isLoading = false,
+  totalRecords = 0,
   onSelect,
   onDelete,
   onEdit,
@@ -137,6 +139,7 @@ export function DocumentTypesTable({
       data={data}
       columns={columns}
       isLoading={isLoading}
+      totalRecords={totalRecords}
       moduleId={moduleId}
       transactionId={transactionId}
       tableName={TableName.documentType}

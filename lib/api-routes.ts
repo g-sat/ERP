@@ -899,7 +899,7 @@ export const ApAdjustment = {
 }
 
 // Accounts Payable DOCSetOff Endpoints
-export const ApDocsetoff = {
+export const ApDocSetOff = {
   get: "/account/getapdocsetoff",
   getByIdNo: "/account/getapdocsetoffbyidno",
   add: "/account/saveapdocsetoff",
@@ -909,7 +909,7 @@ export const ApDocsetoff = {
 }
 
 // Cash Book Payment Endpoints
-export const CbPayment = {
+export const CbGenPayment = {
   get: "/account/getcbgenpayment",
   getByIdNo: "/account/getcbgenpaymentbyidno",
   add: "/account/savecbgenpayment",
@@ -919,7 +919,7 @@ export const CbPayment = {
 }
 
 // Cash Book Receipt Endpoints
-export const CbReceipt = {
+export const CbGenReceipt = {
   get: "/account/getcbgenreceipt",
   getByIdNo: "/account/getcbgenreceiptbyidno",
   add: "/account/savecbgenreceipt",

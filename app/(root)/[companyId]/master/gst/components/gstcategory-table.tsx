@@ -16,6 +16,7 @@ import { MainTable } from "@/components/table/table-main"
 interface GstCategoryTableProps {
   data: IGstCategory[]
   isLoading?: boolean
+  totalRecords?: number
   onSelect?: (gstdtcategory: IGstCategory | null) => void
   onDelete?: (gstId: string) => void
   onEdit?: (gstdtcategory: IGstCategory) => void
@@ -34,6 +35,7 @@ interface GstCategoryTableProps {
 export function GstCategoryTable({
   data,
   isLoading = false,
+  totalRecords = 0,
   onSelect,
   onDelete,
   onEdit,
@@ -145,6 +147,7 @@ export function GstCategoryTable({
       data={data}
       columns={columns}
       isLoading={isLoading}
+      totalRecords={totalRecords}
       moduleId={moduleId}
       transactionId={transactionId}
       tableName={TableName.gstCategory}

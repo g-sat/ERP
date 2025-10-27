@@ -16,6 +16,7 @@ import { MainTable } from "@/components/table/table-main"
 interface CreditTermDtsTableProps {
   data: ICreditTermDt[]
   isLoading?: boolean
+  totalRecords?: number
   onSelect?: (creditTermDt: ICreditTermDt | null) => void
   onDelete?: (creditTermId: string) => void
   onEdit?: (creditTermDt: ICreditTermDt) => void
@@ -34,6 +35,7 @@ interface CreditTermDtsTableProps {
 export function CreditTermDtsTable({
   data,
   isLoading = false,
+  totalRecords = 0,
   onSelect,
   onDelete,
   onEdit,
@@ -168,6 +170,7 @@ export function CreditTermDtsTable({
       data={data}
       columns={columns}
       isLoading={isLoading}
+      totalRecords={totalRecords}
       moduleId={moduleId}
       transactionId={transactionId}
       tableName={TableName.creditTermDt}

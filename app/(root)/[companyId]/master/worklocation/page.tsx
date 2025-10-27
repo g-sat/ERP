@@ -65,12 +65,16 @@ export default function WorkLocationPage() {
   )
 
   // Destructure with fallback values
-  const { result: workLocationsResult, data: workLocationsData } =
-    (workLocationsResponse as ApiResponse<IWorkLocation>) ?? {
-      result: 0,
-      message: "",
-      data: [],
-    }
+  const {
+    result: workLocationsResult,
+    data: workLocationsData,
+    totalRecords,
+  } = (workLocationsResponse as ApiResponse<IWorkLocation>) ?? {
+    result: 0,
+    message: "",
+    data: [],
+    totalRecords: 0,
+  }
 
   // Handle result = -1 and result = -2 cases
   useEffect(() => {
@@ -331,6 +335,7 @@ export default function WorkLocationPage() {
         <WorkLocationTable
           data={filters.search ? [] : workLocationsData || []}
           isLoading={isLoading}
+          totalRecords={totalRecords}
           onSelect={canView ? handleViewWorkLocation : undefined}
           onDelete={canDelete ? handleDeleteWorkLocation : undefined}
           onEdit={canEdit ? handleEditWorkLocation : undefined}

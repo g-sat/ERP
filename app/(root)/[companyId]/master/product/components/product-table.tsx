@@ -16,6 +16,7 @@ import { MainTable } from "@/components/table/table-main"
 interface ProductsTableProps {
   data: IProduct[]
   isLoading?: boolean
+  totalRecords?: number
   onSelect?: (product: IProduct | null) => void
   onDelete?: (productId: string) => void
   onEdit?: (product: IProduct) => void
@@ -34,6 +35,7 @@ interface ProductsTableProps {
 export function ProductsTable({
   data,
   isLoading = false,
+  totalRecords = 0,
   onSelect,
   onDelete,
   onEdit,
@@ -138,6 +140,7 @@ export function ProductsTable({
       data={data}
       columns={columns}
       isLoading={isLoading}
+      totalRecords={totalRecords}
       moduleId={moduleId}
       transactionId={transactionId}
       tableName={TableName.product}

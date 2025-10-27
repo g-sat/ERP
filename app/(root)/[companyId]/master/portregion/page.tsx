@@ -56,12 +56,16 @@ export default function PortRegionPage() {
     isLoading,
   } = useGet<IPortRegion>(`${PortRegion.get}`, "portregions", filters.search)
 
-  const { result: portregionsResult, data: portregionsData } =
-    (portRegionsResponse as ApiResponse<IPortRegion>) ?? {
-      result: 0,
-      message: "",
-      data: [],
-    }
+  const {
+    result: portregionsResult,
+    data: portregionsData,
+    totalRecords,
+  } = (portRegionsResponse as ApiResponse<IPortRegion>) ?? {
+    result: 0,
+    message: "",
+    data: [],
+    totalRecords: 0,
+  }
 
   const saveMutation = usePersist<PortRegionSchemaType>(`${PortRegion.add}`)
   const updateMutation = usePersist<PortRegionSchemaType>(`${PortRegion.add}`)
@@ -298,6 +302,7 @@ export default function PortRegionPage() {
           moduleId={moduleId}
           transactionId={transactionId}
           isLoading={isLoading}
+          totalRecords={totalRecords}
           // Pass permissions to table
           canEdit={canEdit}
           canDelete={canDelete}

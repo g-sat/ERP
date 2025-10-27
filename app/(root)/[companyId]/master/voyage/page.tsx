@@ -61,12 +61,16 @@ export default function VoyagePage() {
   } = useGet<IVoyage>(`${Voyage.get}`, "voyages", filters.search)
 
   // Destructure with fallback values
-  const { result: voyagesResult, data: voyagesData } =
-    (voyagesResponse as ApiResponse<IVoyage>) ?? {
-      result: 0,
-      message: "",
-      data: [],
-    }
+  const {
+    result: voyagesResult,
+    data: voyagesData,
+    totalRecords,
+  } = (voyagesResponse as ApiResponse<IVoyage>) ?? {
+    result: 0,
+    message: "",
+    data: [],
+    totalRecords: 0,
+  }
 
   // Handle result = -1 and result = -2 cases
   useEffect(() => {
@@ -319,6 +323,7 @@ export default function VoyagePage() {
         <VoyageTable
           data={filters.search ? [] : voyagesData || []}
           isLoading={isLoading}
+          totalRecords={totalRecords}
           onSelect={canView ? handleViewVoyage : undefined}
           onDelete={canDelete ? handleDeleteVoyage : undefined}
           onEdit={canEdit ? handleEditVoyage : undefined}

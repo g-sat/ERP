@@ -83,12 +83,14 @@ export default function CreditTermPage() {
       result: 0,
       message: "",
       data: [],
+      totalRecords: 0,
     }
   const { result: creditTermsDtResult, data: creditTermsDtData } =
     (creditTermsDtResponse as ApiResponse<ICreditTermDt>) ?? {
       result: 0,
       message: "",
       data: [],
+      totalRecords: 0,
     }
 
   // Mutations
@@ -363,7 +365,9 @@ export default function CreditTermPage() {
         const response = await getById(`${CreditTerm.getByCode}/${trimmedCode}`)
 
         if (response.result === 1 && response.data) {
-          const creditTermData = Array.isArray(response.data) ? response.data[0] : response.data
+          const creditTermData = Array.isArray(response.data)
+            ? response.data[0]
+            : response.data
 
           if (creditTermData) {
             setExistingCreditTerm(creditTermData as ICreditTerm)

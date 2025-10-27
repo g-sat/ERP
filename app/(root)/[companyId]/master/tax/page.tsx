@@ -134,24 +134,36 @@ export default function TaxPage() {
   )
 
   // Extract data from responses with fallback values
-  const { result: taxsResult, data: taxsData } =
-    (taxsResponse as ApiResponse<ITax>) ?? {
-      result: 0,
-      message: "",
-      data: [],
-    }
-  const { result: taxsDtResult, data: taxsDtData } =
-    (taxsDtResponse as ApiResponse<ITaxDt>) ?? {
-      result: 0,
-      message: "",
-      data: [],
-    }
-  const { result: taxsCategoryResult, data: taxsCategoryData } =
-    (taxsCategoryResponse as ApiResponse<ITaxCategory>) ?? {
-      result: 0,
-      message: "",
-      data: [],
-    }
+  const {
+    result: taxsResult,
+    data: taxsData,
+    totalRecords,
+  } = (taxsResponse as ApiResponse<ITax>) ?? {
+    result: 0,
+    message: "",
+    data: [],
+    totalRecords: 0,
+  }
+  const {
+    result: taxsDtResult,
+    data: taxsDtData,
+    totalRecords: taxsDtTotalRecords,
+  } = (taxsDtResponse as ApiResponse<ITaxDt>) ?? {
+    result: 0,
+    message: "",
+    data: [],
+    totalRecords: 0,
+  }
+  const {
+    result: taxsCategoryResult,
+    data: taxsCategoryData,
+    totalRecords: taxsCategoryTotalRecords,
+  } = (taxsCategoryResponse as ApiResponse<ITaxCategory>) ?? {
+    result: 0,
+    message: "",
+    data: [],
+    totalRecords: 0,
+  }
 
   // Mutations
   const saveMutation = usePersist<TaxSchemaType>(`${Tax.add}`)
@@ -478,7 +490,9 @@ export default function TaxPage() {
           const response = await getById(`${Tax.getByCode}/${trimmedCode}`)
 
           if (response.result === 1 && response.data) {
-            const taxData = Array.isArray(response.data) ? response.data[0] : response.data
+            const taxData = Array.isArray(response.data)
+              ? response.data[0]
+              : response.data
 
             if (taxData) {
               setExistingTax(taxData as ITax)
@@ -490,7 +504,9 @@ export default function TaxPage() {
             `${TaxCategory.getByCode}/${trimmedCode}`
           )
           if (response.result === 1 && response.data) {
-            const categoryData = Array.isArray(response.data) ? response.data[0] : response.data
+            const categoryData = Array.isArray(response.data)
+              ? response.data[0]
+              : response.data
 
             if (categoryData) {
               setExistingTaxCategory(categoryData as ITaxCategory)
@@ -566,6 +582,7 @@ export default function TaxPage() {
               <TaxTable
                 data={[]}
                 isLoading={false}
+                totalRecords={totalRecords}
                 onSelect={() => {}}
                 onDelete={() => {}}
                 onEdit={() => {}}
@@ -584,6 +601,7 @@ export default function TaxPage() {
             <TaxTable
               data={filters.search ? [] : taxsData || []}
               isLoading={isLoadingTax}
+              totalRecords={totalRecords}
               onSelect={canView ? handleViewTax : undefined}
               onDelete={canDelete ? handleDeleteTax : undefined}
               onEdit={canEdit ? handleEditTax : undefined}
@@ -629,6 +647,7 @@ export default function TaxPage() {
               <TaxDtTable
                 data={[]}
                 isLoading={false}
+                totalRecords={taxsDtTotalRecords}
                 onSelect={() => {}}
                 onDelete={() => {}}
                 onEdit={() => {}}
@@ -647,6 +666,7 @@ export default function TaxPage() {
             <TaxDtTable
               data={dtFilters.search ? [] : taxsDtData || []}
               isLoading={isLoadingTaxDt}
+              totalRecords={taxsDtTotalRecords}
               onSelect={canViewDt ? handleViewTaxDt : undefined}
               onDelete={canDeleteDt ? handleDeleteTaxDt : undefined}
               onEdit={canEditDt ? handleEditTaxDt : undefined}
@@ -695,6 +715,7 @@ export default function TaxPage() {
               <TaxCategoryTable
                 data={[]}
                 isLoading={false}
+                totalRecords={taxsCategoryTotalRecords}
                 onSelect={() => {}}
                 onDelete={() => {}}
                 onEdit={() => {}}
@@ -713,6 +734,7 @@ export default function TaxPage() {
             <TaxCategoryTable
               data={categoryFilters.search ? [] : taxsCategoryData || []}
               isLoading={isLoadingTaxCategory}
+              totalRecords={taxsCategoryTotalRecords}
               onSelect={canViewCategory ? handleViewTaxCategory : undefined}
               onDelete={canDeleteCategory ? handleDeleteTaxCategory : undefined}
               onEdit={canEditCategory ? handleEditTaxCategory : undefined}

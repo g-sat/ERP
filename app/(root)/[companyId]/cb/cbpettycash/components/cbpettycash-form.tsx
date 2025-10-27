@@ -377,16 +377,14 @@ export default function PettyCashForm({
         )}
 
         {/* Account Date */}
-        {visible?.m_AccountDate && (
-          <CustomDateNew
-            form={form}
-            name="accountDate"
-            label="Account Date"
-            isRequired={true}
-            onChangeEvent={handleAccountDateChange}
-            isFutureShow={false}
-          />
-        )}
+        <CustomDateNew
+          form={form}
+          name="accountDate"
+          label="Account Date"
+          isRequired={true}
+          onChangeEvent={handleAccountDateChange}
+          isFutureShow={false}
+        />
 
         {/* Payee To */}
         <CustomInputGroup

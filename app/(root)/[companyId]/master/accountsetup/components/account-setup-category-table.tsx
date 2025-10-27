@@ -16,6 +16,7 @@ import { MainTable } from "@/components/table/table-main"
 interface AccountSetupCategoryTableProps {
   data: IAccountSetupCategory[]
   isLoading?: boolean
+  totalRecords?: number
   onSelect?: (accountSetupCategory: IAccountSetupCategory | null) => void
   onDelete?: (accountSetupCategoryId: string) => void
   onEdit?: (accountSetupCategory: IAccountSetupCategory) => void
@@ -34,6 +35,7 @@ interface AccountSetupCategoryTableProps {
 export function AccountSetupCategoryTable({
   data,
   isLoading = false,
+  totalRecords = 0,
   onSelect,
   onDelete,
   onEdit,
@@ -141,6 +143,7 @@ export function AccountSetupCategoryTable({
       data={data}
       columns={columns}
       isLoading={isLoading}
+      totalRecords={totalRecords}
       moduleId={moduleId}
       transactionId={transactionId}
       tableName={TableName.accountSetupCategory}

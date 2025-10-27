@@ -65,12 +65,16 @@ export default function AccountGroupPage() {
   )
 
   // Destructure with fallback values
-  const { result: accountGroupsResult, data: accountGroupsData } =
-    (accountGroupsResponse as ApiResponse<IAccountGroup>) ?? {
-      result: 0,
-      message: "",
-      data: [],
-    }
+  const {
+    result: accountGroupsResult,
+    data: accountGroupsData,
+    totalRecords,
+  } = (accountGroupsResponse as ApiResponse<IAccountGroup>) ?? {
+    result: 0,
+    message: "",
+    data: [],
+    totalRecords: 0,
+  }
 
   // Handle result = -1 and result = -2 cases
   useEffect(() => {
@@ -328,6 +332,7 @@ export default function AccountGroupPage() {
         <AccountGroupTable
           data={filters.search ? [] : accountGroupsData || []}
           isLoading={isLoading}
+          totalRecords={totalRecords}
           onSelect={canView ? handleViewAccountGroup : undefined}
           onDelete={canDelete ? handleDeleteAccountGroup : undefined}
           onEdit={canEdit ? handleEditAccountGroup : undefined}

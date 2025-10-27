@@ -16,6 +16,7 @@ import { MainTable } from "@/components/table/table-main"
 interface CoaCategory3TableProps {
   data: ICoaCategory3[]
   isLoading?: boolean
+  totalRecords?: number
   onSelect?: (category: ICoaCategory3 | null) => void
   onDelete?: (id: string) => void
   onEdit?: (category: ICoaCategory3) => void
@@ -34,6 +35,7 @@ interface CoaCategory3TableProps {
 export function CoaCategory3Table({
   data,
   isLoading = false,
+  totalRecords = 0,
   onSelect,
   onDelete,
   onEdit,
@@ -146,6 +148,7 @@ export function CoaCategory3Table({
       data={data}
       columns={columns}
       isLoading={isLoading}
+      totalRecords={totalRecords}
       moduleId={moduleId}
       transactionId={transactionId}
       tableName={TableName.coaCategory3}

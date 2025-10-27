@@ -58,12 +58,16 @@ export default function LoanTypePage() {
   } = useGet<ILoanType>(`${LoanType.get}`, "loanTypes", filters.search)
 
   // Destructure with fallback values
-  const { result: loanTypesResult, data: loanTypesData } =
-    (loanTypesResponse as ApiResponse<ILoanType>) ?? {
-      result: 0,
-      message: "",
-      data: [],
-    }
+  const {
+    result: loanTypesResult,
+    data: loanTypesData,
+    totalRecords,
+  } = (loanTypesResponse as ApiResponse<ILoanType>) ?? {
+    result: 0,
+    message: "",
+    data: [],
+    totalRecords: 0,
+  }
 
   // Define mutations for CRUD operations
   const saveMutation = usePersist<LoanTypeSchemaType>(`${LoanType.add}`)
@@ -282,6 +286,7 @@ export default function LoanTypePage() {
           <LoanTypesTable
             data={[]}
             isLoading={false}
+            totalRecords={totalRecords}
             onSelect={() => {}}
             onDelete={() => {}}
             onEdit={() => {}}
@@ -300,6 +305,7 @@ export default function LoanTypePage() {
         <LoanTypesTable
           data={filters.search ? [] : loanTypesData || []}
           isLoading={isLoading}
+          totalRecords={totalRecords}
           onSelect={canView ? handleViewLoanType : undefined}
           onDelete={canDelete ? handleDeleteLoanType : undefined}
           onEdit={canEdit ? handleEditLoanType : undefined}

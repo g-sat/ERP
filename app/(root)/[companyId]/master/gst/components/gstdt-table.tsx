@@ -11,6 +11,7 @@ import { MainTable } from "@/components/table/table-main"
 interface GstDtTableProps {
   data: IGstDt[]
   isLoading?: boolean
+  totalRecords?: number
   onSelect?: (gstdt: IGstDt | null) => void
   onDelete?: (gstId: string) => void
   onEdit?: (gstdt: IGstDt) => void
@@ -29,6 +30,7 @@ interface GstDtTableProps {
 export function GstDtTable({
   data,
   isLoading = false,
+  totalRecords = 0,
   onSelect,
   onDelete,
   onEdit,
@@ -134,6 +136,7 @@ export function GstDtTable({
       data={data}
       columns={columns}
       isLoading={isLoading}
+      totalRecords={totalRecords}
       moduleId={moduleId}
       transactionId={transactionId}
       tableName={TableName.gstDt}

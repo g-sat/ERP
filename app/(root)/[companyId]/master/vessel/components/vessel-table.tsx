@@ -16,6 +16,7 @@ import { MainTable } from "@/components/table/table-main"
 interface VesselTableProps {
   data: IVessel[]
   isLoading?: boolean
+  totalRecords?: number
   onSelect?: (vessel: IVessel | null) => void
   onDelete?: (vesselId: string) => void
   onEdit?: (vessel: IVessel) => void
@@ -34,6 +35,7 @@ interface VesselTableProps {
 export function VesselTable({
   data,
   isLoading = false,
+  totalRecords = 0,
   onSelect,
   onDelete,
   onEdit,
@@ -181,6 +183,7 @@ export function VesselTable({
       data={data}
       columns={columns}
       isLoading={isLoading}
+      totalRecords={totalRecords}
       moduleId={moduleId}
       transactionId={transactionId}
       tableName={TableName.vessel}

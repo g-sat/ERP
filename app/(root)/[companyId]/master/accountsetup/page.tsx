@@ -128,26 +128,38 @@ export default function AccountSetupPage() {
     filtersDt.search
   )
 
-  const { result: categoryResult, data: categoryData } =
-    (categoryResponse as ApiResponse<IAccountSetupCategory>) ?? {
-      result: 0,
-      message: "",
-      data: [],
-    }
+  const {
+    result: categoryResult,
+    data: categoryData,
+    totalRecords: categoryTotalRecords,
+  } = (categoryResponse as ApiResponse<IAccountSetupCategory>) ?? {
+    result: 0,
+    message: "",
+    data: [],
+    totalRecords: 0,
+  }
 
-  const { result: setupResult, data: setupData } =
-    (setupResponse as ApiResponse<IAccountSetup>) ?? {
-      result: 0,
-      message: "",
-      data: [],
-    }
+  const {
+    result: setupResult,
+    data: setupData,
+    totalRecords: setupTotalRecords,
+  } = (setupResponse as ApiResponse<IAccountSetup>) ?? {
+    result: 0,
+    message: "",
+    data: [],
+    totalRecords: 0,
+  }
 
-  const { result: dtResult, data: dtData } =
-    (dtResponse as ApiResponse<IAccountSetupDt>) ?? {
-      result: 0,
-      message: "",
-      data: [],
-    }
+  const {
+    result: dtResult,
+    data: dtData,
+    totalRecords: dtTotalRecords,
+  } = (dtResponse as ApiResponse<IAccountSetupDt>) ?? {
+    result: 0,
+    message: "",
+    data: [],
+    totalRecords: 0,
+  }
 
   // Account Setup Category mutations
   const saveMutationCategory = usePersist<AccountSetupCategorySchemaType>(
@@ -661,6 +673,7 @@ export default function AccountSetupPage() {
               <AccountSetupTable
                 data={[]}
                 isLoading={false}
+                totalRecords={setupTotalRecords}
                 onSelect={() => {}}
                 onDelete={() => {}}
                 onEdit={() => {}}
@@ -678,6 +691,7 @@ export default function AccountSetupPage() {
           ) : (
             <AccountSetupTable
               data={filtersSetup.search ? [] : setupData || []}
+              totalRecords={setupTotalRecords}
               onSelect={canView ? handleSetupSelect : undefined}
               onDelete={canDelete ? handleDeleteSetup : undefined}
               onEdit={canEdit ? handleEditSetup : undefined}
@@ -718,6 +732,7 @@ export default function AccountSetupPage() {
               <AccountSetupDtTable
                 data={[]}
                 isLoading={false}
+                totalRecords={dtTotalRecords}
                 onSelect={() => {}}
                 onDelete={() => {}}
                 onEdit={() => {}}
@@ -735,6 +750,7 @@ export default function AccountSetupPage() {
           ) : (
             <AccountSetupDtTable
               data={filtersDt.search ? [] : dtData || []}
+              totalRecords={dtTotalRecords}
               onSelect={canViewDt ? handleDtSelect : undefined}
               onDelete={canDeleteDt ? handleDeleteDt : undefined}
               onEdit={canEditDt ? handleEditDt : undefined}
@@ -777,6 +793,7 @@ export default function AccountSetupPage() {
               <AccountSetupCategoryTable
                 data={[]}
                 isLoading={false}
+                totalRecords={categoryTotalRecords}
                 onSelect={() => {}}
                 onDelete={() => {}}
                 onEdit={() => {}}
@@ -794,6 +811,7 @@ export default function AccountSetupPage() {
           ) : (
             <AccountSetupCategoryTable
               data={filtersCategory.search ? [] : categoryData || []}
+              totalRecords={categoryTotalRecords}
               onSelect={canViewCategory ? handleCategorySelect : undefined}
               onDelete={canDeleteCategory ? handleDeleteCategory : undefined}
               onEdit={canEditCategory ? handleEditCategory : undefined}

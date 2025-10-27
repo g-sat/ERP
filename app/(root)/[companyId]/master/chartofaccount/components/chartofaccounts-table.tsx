@@ -16,6 +16,7 @@ import { MainTable } from "@/components/table/table-main"
 interface ChartOfAccountsTableProps {
   data: IChartOfAccount[]
   isLoading?: boolean
+  totalRecords?: number
   onSelect?: (chartOfAccount: IChartOfAccount | null) => void
   onDelete?: (chartOfAccountId: string) => void
   onEdit?: (chartOfAccount: IChartOfAccount) => void
@@ -34,6 +35,7 @@ interface ChartOfAccountsTableProps {
 export function ChartOfAccountsTable({
   data,
   isLoading = false,
+  totalRecords = 0,
   onSelect,
   onDelete,
   onEdit,
@@ -374,6 +376,7 @@ export function ChartOfAccountsTable({
       data={data}
       columns={columns}
       isLoading={isLoading}
+      totalRecords={totalRecords}
       moduleId={moduleId}
       transactionId={transactionId}
       tableName={TableName.chartOfAccount}

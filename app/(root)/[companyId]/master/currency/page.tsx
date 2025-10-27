@@ -110,24 +110,36 @@ export default function CurrencyPage() {
   )
 
   // Extract data from responses with fallback values
-  const { result: currenciesResult, data: currenciesData } =
-    (currenciesResponse as ApiResponse<ICurrency>) ?? {
-      result: 0,
-      message: "",
-      data: [],
-    }
-  const { result: currencyDtResult, data: currencyDtData } =
-    (currencyDtResponse as ApiResponse<ICurrencyDt>) ?? {
-      result: 0,
-      message: "",
-      data: [],
-    }
-  const { result: currencyLocalDtResult, data: currencyLocalDtData } =
-    (currencyLocalDtResponse as ApiResponse<ICurrencyLocalDt>) ?? {
-      result: 0,
-      message: "",
-      data: [],
-    }
+  const {
+    result: currenciesResult,
+    data: currenciesData,
+    totalRecords: currenciesTotalRecords,
+  } = (currenciesResponse as ApiResponse<ICurrency>) ?? {
+    result: 0,
+    message: "",
+    data: [],
+    totalRecords: 0,
+  }
+  const {
+    result: currencyDtResult,
+    data: currencyDtData,
+    totalRecords: currencyDtTotalRecords,
+  } = (currencyDtResponse as ApiResponse<ICurrencyDt>) ?? {
+    result: 0,
+    message: "",
+    data: [],
+    totalRecords: 0,
+  }
+  const {
+    result: currencyLocalDtResult,
+    data: currencyLocalDtData,
+    totalRecords: currencyLocalDtTotalRecords,
+  } = (currencyLocalDtResponse as ApiResponse<ICurrencyLocalDt>) ?? {
+    result: 0,
+    message: "",
+    data: [],
+    totalRecords: 0,
+  }
 
   // Mutations
   const saveMutation = usePersist<CurrencySchemaType>(`${Currency.add}`)
@@ -573,6 +585,7 @@ export default function CurrencyPage() {
               <CurrenciesTable
                 data={[]}
                 isLoading={false}
+                totalRecords={currenciesTotalRecords}
                 onSelect={() => {}}
                 onDelete={() => {}}
                 onEdit={() => {}}
@@ -591,6 +604,7 @@ export default function CurrencyPage() {
             <CurrenciesTable
               data={filters.search ? [] : currenciesData || []}
               isLoading={isLoadingCurrency}
+              totalRecords={currenciesTotalRecords}
               onSelect={canView ? handleViewCurrency : undefined}
               onDelete={canDelete ? handleDeleteCurrency : undefined}
               onEdit={canEdit ? handleEditCurrency : undefined}
@@ -637,6 +651,7 @@ export default function CurrencyPage() {
               <CurrencyDtsTable
                 data={[]}
                 isLoading={false}
+                totalRecords={currencyDtTotalRecords}
                 onSelect={() => {}}
                 onDelete={() => {}}
                 onEdit={() => {}}
@@ -655,6 +670,7 @@ export default function CurrencyPage() {
             <CurrencyDtsTable
               data={dtFilters.search ? [] : currencyDtData || []}
               isLoading={isLoadingCurrencyDt}
+              totalRecords={currencyDtTotalRecords}
               onSelect={canViewDt ? handleViewCurrencyDt : undefined}
               onDelete={canDeleteDt ? handleDeleteCurrencyDt : undefined}
               onEdit={canEditDt ? handleEditCurrencyDt : undefined}
@@ -704,6 +720,7 @@ export default function CurrencyPage() {
               <CurrencyLocalDtsTable
                 data={[]}
                 isLoading={false}
+                totalRecords={currencyLocalDtTotalRecords}
                 onSelect={() => {}}
                 onDelete={() => {}}
                 onEdit={() => {}}
@@ -722,6 +739,7 @@ export default function CurrencyPage() {
             <CurrencyLocalDtsTable
               data={localDtFilters.search ? [] : currencyLocalDtData || []}
               isLoading={isLoadingCurrencyLocalDt}
+              totalRecords={currencyLocalDtTotalRecords}
               onSelect={canViewLocalDt ? handleViewCurrencyLocalDt : undefined}
               onDelete={
                 canDeleteLocalDt ? handleDeleteCurrencyLocalDt : undefined

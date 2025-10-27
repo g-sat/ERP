@@ -56,12 +56,16 @@ export default function TaskPage() {
     isLoading,
   } = useGet<ITask>(`${Task.get}`, "tasks", filters.search)
 
-  const { result: tasksResult, data: tasksData } =
-    (tasksResponse as ApiResponse<ITask>) ?? {
-      result: 0,
-      message: "",
-      data: [],
-    }
+  const {
+    result: tasksResult,
+    data: tasksData,
+    totalRecords,
+  } = (tasksResponse as ApiResponse<ITask>) ?? {
+    result: 0,
+    message: "",
+    data: [],
+    totalRecords: 0,
+  }
 
   const saveMutation = usePersist<TaskSchemaType>(`${Task.add}`)
   const updateMutation = usePersist<TaskSchemaType>(`${Task.add}`)
@@ -285,6 +289,7 @@ export default function TaskPage() {
         <TasksTable
           data={filters.search ? [] : tasksData || []}
           isLoading={isLoading}
+          totalRecords={totalRecords}
           onSelect={canView ? handleViewTask : undefined}
           onDelete={canDelete ? handleDeleteTask : undefined}
           onEdit={canEdit ? handleEditTask : undefined}

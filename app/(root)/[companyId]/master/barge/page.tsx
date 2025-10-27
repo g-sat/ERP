@@ -61,12 +61,16 @@ export default function BargePage() {
   } = useGet<IBarge>(`${Barge.get}`, "barges", filters.search)
 
   // Destructure with fallback values
-  const { result: bargesResult, data: bargesData } =
-    (bargesResponse as ApiResponse<IBarge>) ?? {
-      result: 0,
-      message: "",
-      data: [],
-    }
+  const {
+    result: bargesResult,
+    data: bargesData,
+    totalRecords,
+  } = (bargesResponse as ApiResponse<IBarge>) ?? {
+    result: 0,
+    message: "",
+    data: [],
+    totalRecords: 0,
+  }
 
   // Handle result = -1 and result = -2 cases
   useEffect(() => {
@@ -325,6 +329,7 @@ export default function BargePage() {
         <BargeTable
           data={filters.search ? [] : bargesData || []}
           isLoading={isLoading}
+          totalRecords={totalRecords}
           onSelect={canView ? handleViewBarge : undefined}
           onDelete={canDelete ? handleDeleteBarge : undefined}
           onEdit={canEdit ? handleEditBarge : undefined}

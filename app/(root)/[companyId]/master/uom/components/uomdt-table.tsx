@@ -11,6 +11,7 @@ import { MainTable } from "@/components/table/table-main"
 interface UomDtTableProps {
   data: IUomDt[]
   isLoading?: boolean
+  totalRecords?: number
   onSelect?: (uomdt: IUomDt | null) => void
   onDelete?: (uomId: string) => void
   onEdit?: (uomdt: IUomDt) => void
@@ -29,6 +30,7 @@ interface UomDtTableProps {
 export function UomDtTable({
   data,
   isLoading = false,
+  totalRecords = 0,
   onSelect,
   onDelete,
   onEdit,
@@ -121,6 +123,7 @@ export function UomDtTable({
       data={data}
       columns={columns}
       isLoading={isLoading}
+      totalRecords={totalRecords}
       moduleId={moduleId}
       transactionId={transactionId}
       tableName={TableName.uomDt}

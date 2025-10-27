@@ -16,6 +16,7 @@ import { DialogDataTable } from "@/components/table/table-dialog"
 interface BankTableProps {
   data: IBank[]
   isLoading?: boolean
+  totalRecords?: number
   onSelect?: (bank: IBank | null) => void
   onFilterChange?: (filters: IBankFilter) => void
   onRefresh?: () => void
@@ -26,6 +27,7 @@ interface BankTableProps {
 export function BankTable({
   data,
   isLoading = false,
+  totalRecords = 0,
   onSelect,
   onFilterChange,
   onRefresh,
@@ -207,6 +209,7 @@ export function BankTable({
       data={data}
       columns={columns}
       isLoading={isLoading}
+      totalRecords={totalRecords}
       moduleId={moduleId}
       transactionId={transactionId}
       tableName={TableName.bank}

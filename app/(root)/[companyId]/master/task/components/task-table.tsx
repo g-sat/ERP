@@ -16,6 +16,7 @@ import { MainTable } from "@/components/table/table-main"
 interface TasksTableProps {
   data: ITask[]
   isLoading?: boolean
+  totalRecords?: number
   onSelect?: (task: ITask | null) => void
   onDelete?: (taskId: string) => void
   onEdit?: (task: ITask) => void
@@ -34,6 +35,7 @@ interface TasksTableProps {
 export function TasksTable({
   data,
   isLoading = false,
+  totalRecords = 0,
   onSelect,
   onDelete,
   onEdit,
@@ -138,6 +140,7 @@ export function TasksTable({
       data={data}
       columns={columns}
       isLoading={isLoading}
+      totalRecords={totalRecords}
       moduleId={moduleId}
       transactionId={transactionId}
       tableName={TableName.task}

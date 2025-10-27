@@ -56,12 +56,16 @@ export default function DepartmentPage() {
     isLoading,
   } = useGet<IDepartment>(`${Department.get}`, "departments", filters.search)
 
-  const { result: departmentsResult, data: departmentsData } =
-    (departmentsResponse as ApiResponse<IDepartment>) ?? {
-      result: 0,
-      message: "",
-      data: [],
-    }
+  const {
+    result: departmentsResult,
+    data: departmentsData,
+    totalRecords,
+  } = (departmentsResponse as ApiResponse<IDepartment>) ?? {
+    result: 0,
+    message: "",
+    data: [],
+    totalRecords: 0,
+  }
 
   useEffect(() => {
     if (departmentsData?.length > 0) {
@@ -299,6 +303,7 @@ export default function DepartmentPage() {
           moduleId={moduleId}
           transactionId={transactionId}
           isLoading={isLoading}
+          totalRecords={totalRecords}
           // Pass permissions to table
           canEdit={canEdit}
           canDelete={canDelete}

@@ -16,6 +16,7 @@ import { MainTable } from "@/components/table/table-main"
 interface LeaveTypesTableProps {
   data: ILeaveType[]
   isLoading?: boolean
+  totalRecords?: number
   onSelect?: (leaveType: ILeaveType | null) => void
   onDelete?: (leaveTypeId: string) => void
   onEdit?: (leaveType: ILeaveType) => void
@@ -34,6 +35,7 @@ interface LeaveTypesTableProps {
 export function LeaveTypesTable({
   data,
   isLoading = false,
+  totalRecords = 0,
   onSelect,
   onDelete,
   onEdit,
@@ -137,6 +139,7 @@ export function LeaveTypesTable({
       data={data}
       columns={columns}
       isLoading={isLoading}
+      totalRecords={totalRecords}
       moduleId={moduleId}
       transactionId={transactionId}
       tableName={TableName.leaveType}

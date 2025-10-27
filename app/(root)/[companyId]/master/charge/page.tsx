@@ -64,12 +64,16 @@ export default function ChargePage() {
   } = useGet<ICharge>(`${Charge.get}`, "charges", filters.search)
 
   // Destructure with fallback values
-  const { result: chargesResult, data: chargesData } =
-    (chargesResponse as ApiResponse<ICharge>) ?? {
-      result: 0,
-      message: "",
-      data: [],
-    }
+  const {
+    result: chargesResult,
+    data: chargesData,
+    totalRecords,
+  } = (chargesResponse as ApiResponse<ICharge>) ?? {
+    result: 0,
+    message: "",
+    data: [],
+    totalRecords: 0,
+  }
 
   // Handle result = -1 and result = -2 cases
   useEffect(() => {
@@ -331,6 +335,7 @@ export default function ChargePage() {
         <ChargeTable
           data={filters.search ? [] : chargesData || []}
           isLoading={isLoading}
+          totalRecords={totalRecords}
           onSelect={canView ? handleViewCharge : undefined}
           onDelete={canDelete ? handleDeleteCharge : undefined}
           onEdit={canEdit ? handleEditCharge : undefined}

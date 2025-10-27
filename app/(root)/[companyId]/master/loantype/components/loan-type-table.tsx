@@ -16,6 +16,7 @@ import { MainTable } from "@/components/table/table-main"
 interface LoanTypesTableProps {
   data: ILoanType[]
   isLoading?: boolean
+  totalRecords?: number
   onSelect?: (loanType: ILoanType | null) => void
   onDelete?: (loanTypeId: string) => void
   onEdit?: (loanType: ILoanType) => void
@@ -34,6 +35,7 @@ interface LoanTypesTableProps {
 export function LoanTypesTable({
   data,
   isLoading = false,
+  totalRecords = 0,
   onSelect,
   onDelete,
   onEdit,
@@ -137,6 +139,7 @@ export function LoanTypesTable({
       data={data}
       columns={columns}
       isLoading={isLoading}
+      totalRecords={totalRecords}
       moduleId={moduleId}
       transactionId={transactionId}
       tableName={TableName.loanType}

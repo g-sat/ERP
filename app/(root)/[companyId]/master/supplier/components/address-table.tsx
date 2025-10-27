@@ -16,6 +16,7 @@ import { MainTable } from "@/components/table/table-main"
 interface AddresssTableProps {
   data: ISupplierAddress[]
   isLoading?: boolean
+  totalRecords?: number
   onSelect?: (address: ISupplierAddress | null) => void
   onDelete?: (addressId: string) => Promise<void>
   onEdit?: (address: ISupplierAddress | null) => void
@@ -34,6 +35,7 @@ interface AddresssTableProps {
 export function AddresssTable({
   data,
   isLoading = false,
+  totalRecords = 0,
   onSelect,
   onDelete,
   onEdit,
@@ -268,6 +270,7 @@ export function AddresssTable({
       data={data}
       columns={columns}
       isLoading={isLoading}
+      totalRecords={totalRecords}
       moduleId={moduleId}
       transactionId={transactionId}
       tableName={TableName.supplierAddress}

@@ -16,6 +16,7 @@ import { MainTable } from "@/components/table/table-main"
 interface DepartmentsTableProps {
   data: IDepartment[]
   isLoading?: boolean
+  totalRecords?: number
   onSelect?: (department: IDepartment | null) => void
   onDelete?: (departmentId: string) => void
   onEdit?: (department: IDepartment) => void
@@ -34,6 +35,7 @@ interface DepartmentsTableProps {
 export function DepartmentsTable({
   data,
   isLoading = false,
+  totalRecords = 0,
   onSelect,
   onDelete,
   onEdit,
@@ -138,6 +140,7 @@ export function DepartmentsTable({
       data={data}
       columns={columns}
       isLoading={isLoading}
+      totalRecords={totalRecords}
       moduleId={moduleId}
       transactionId={transactionId}
       tableName={TableName.department}
