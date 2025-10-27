@@ -1262,28 +1262,27 @@ export default function InvoicePage() {
         }}
       >
         <DialogContent
-          className="@container h-[90vh] w-[90vw] !max-w-none overflow-y-auto rounded-lg p-4"
+          className="flex flex-col @container h-auto w-[80vw] !max-w-none gap-0 p-0 rounded-lg overflow-hidden"
           onInteractOutside={(e) => e.preventDefault()}
         >
-          <DialogHeader className="pb-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <DialogTitle className="text-2xl font-bold tracking-tight">
-                  Invoice List
-                </DialogTitle>
-                <p className="text-muted-foreground text-sm">
-                  Manage and select existing invoices from the list below. Use
-                  search to filter records or create new invoices.
-                </p>
-              </div>
-            </div>
-          </DialogHeader>
+          {/* Header */}
+          <div className="flex flex-col gap-1 p-2 border-b bg-background">
+            <DialogTitle className="text-2xl font-bold tracking-tight">
+              Invoice List
+            </DialogTitle>
+            <p className="text-sm text-muted-foreground">
+              Manage and select existing invoices from the list below. Use search to filter records or create new invoices.
+            </p>
+          </div>
 
-          <InvoiceTable
-            onInvoiceSelect={handleInvoiceSelect}
-            onFilterChange={handleFilterChange}
-            initialFilters={filters}
-          />
+          {/* Table Container - Takes remaining space */}
+          <div className="flex-1 overflow-auto px-4 py-2">
+            <InvoiceTable
+              onInvoiceSelect={handleInvoiceSelect}
+              onFilterChange={handleFilterChange}
+              initialFilters={filters}
+            />
+          </div>
         </DialogContent>
       </Dialog>
 
