@@ -9,9 +9,9 @@ import { AlertCircle } from "lucide-react"
 
 import { ARTransactionId, ModuleId, TableName } from "@/lib/utils"
 import {
-  useGetAPInvoiceHistoryDetails,
-  useGetAPInvoiceHistoryList,
-} from "@/hooks/use-ap"
+  useGetARInvoiceHistoryDetails,
+  useGetARInvoiceHistoryList,
+} from "@/hooks/use-ar"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
@@ -50,10 +50,10 @@ export default function EditVersionDetails({
 
   const { data: invoiceHistoryData, refetch: refetchHistory } =
     //useGetARInvoiceHistoryList<IArInvoiceHd[]>("14120250100024")
-    useGetAPInvoiceHistoryList<IArInvoiceHd[]>(invoiceId)
+    useGetARInvoiceHistoryList<IArInvoiceHd[]>(invoiceId)
 
   const { data: invoiceDetailsData, refetch: refetchDetails } =
-    useGetAPInvoiceHistoryDetails<IArInvoiceHd>(
+    useGetARInvoiceHistoryDetails<IArInvoiceHd>(
       selectedInvoice?.invoiceId || "",
       selectedInvoice?.editVersion?.toString() || ""
     )
@@ -409,8 +409,19 @@ export default function EditVersionDetails({
               <CardContent>
                 {dialogData ? (
                   <div className="grid grid-cols-6 gap-2">
-                    {Object.entries(dialogData).map(([key, value]) =>
-                      key !== "data_details" ? (
+                    {Object.entries(dialogData).map(([key, value]) => {
+                      // Filter out ID fields and data_details
+                      const isIdField =
+                        key.toLowerCase().includes("id") ||
+                        key.toLowerCase().includes("invoice") ||
+                        key.toLowerCase().includes("receipt") ||
+                        key.toLowerCase().includes("payment") ||
+                        key.toLowerCase().includes("refund") ||
+                        key.toLowerCase().includes("creditnote") ||
+                        key.toLowerCase().includes("debitnote") ||
+                        key === "data_details"
+
+                      return !isIdField ? (
                         <div key={key} className="flex flex-col gap-1">
                           <span className="text-muted-foreground text-sm">
                             {key.replace(/([A-Z])/g, " $1").trim()}
@@ -418,7 +429,7 @@ export default function EditVersionDetails({
                           <span className="font-medium">{String(value)}</span>
                         </div>
                       ) : null
-                    )}
+                    })}
                   </div>
                 ) : (
                   <div className="text-muted-foreground py-4 text-center">
