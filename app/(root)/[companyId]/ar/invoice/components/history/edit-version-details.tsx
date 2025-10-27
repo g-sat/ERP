@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { IArInvoiceDt, IArInvoiceHd } from "@/interfaces"
+import { IArInvoiceHd } from "@/interfaces"
 import { useAuthStore } from "@/stores/auth-store"
 import { ColumnDef } from "@tanstack/react-table"
 import { format } from "date-fns"
@@ -13,6 +13,7 @@ import {
   useGetARInvoiceHistoryList,
 } from "@/hooks/use-ar"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
   Dialog,
@@ -20,8 +21,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { BasicTable } from "@/components/table/table-basic"
 import { DialogDataTable } from "@/components/table/table-dialog"
+
+import { EditVersionDetailsForm } from "./edit-version-details-form"
 
 // Extended column definition with hide property
 type _ExtendedColumnDef<T> = ColumnDef<T> & {
@@ -302,16 +304,6 @@ export default function EditVersionDetails({
     },
   ]
 
-  const detailsColumns: ColumnDef<IArInvoiceDt>[] = [
-    { accessorKey: "itemNo", header: "Item No" },
-    { accessorKey: "productCode", header: "Product Code" },
-    { accessorKey: "productName", header: "Product Name" },
-    { accessorKey: "qty", header: "Quantity" },
-    { accessorKey: "unitPrice", header: "Unit Price" },
-    { accessorKey: "totAmt", header: "Total Amount" },
-    { accessorKey: "remarks", header: "Remarks" },
-  ]
-
   const handleRefresh = async () => {
     try {
       // Only refetch if we don't have a "Data does not exist" error
@@ -379,87 +371,43 @@ export default function EditVersionDetails({
       >
         <DialogContent className="@container h-[80vh] w-[90vw] !max-w-none overflow-y-auto rounded-lg p-4">
           <DialogHeader>
-            <DialogTitle>Invoice Details</DialogTitle>
+            <DialogTitle>
+              Invoice Details :{" "}
+              <Badge variant="secondary">
+                {dialogData?.invoiceNo} : v {selectedInvoice?.editVersion}
+              </Badge>
+            </DialogTitle>
           </DialogHeader>
 
-          {/* Error handling for details data */}
-          {hasDetailsError && (
-            <Alert
-              variant={
-                invoiceDetailsData?.message === "Data does not exist"
-                  ? "default"
-                  : "destructive"
+          {dialogData ? (
+            <EditVersionDetailsForm
+              headerData={dialogData as unknown as Record<string, unknown>}
+              detailsData={
+                (dialogData?.data_details || []) as unknown as Record<
+                  string,
+                  unknown
+                >[]
               }
-              className="mb-4"
-            >
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>
-                {invoiceDetailsData?.message === "Data does not exist"
-                  ? "No invoice details found for this version."
-                  : `Failed to load invoice details: ${invoiceDetailsData?.message || "Unknown error"}`}
-              </AlertDescription>
-            </Alert>
+              summaryData={{
+                transactionAmount: dialogData?.totAmt,
+                localAmount: dialogData?.totLocalAmt,
+                gstAmount: dialogData?.gstAmt,
+                localGstAmount: dialogData?.gstLocalAmt,
+                totalAmount: dialogData?.totAmtAftGst,
+                localTotalAmount: dialogData?.totLocalAmtAftGst,
+                paymentAmount: dialogData?.payAmt,
+                localPaymentAmount: dialogData?.payLocalAmt,
+                balanceAmount: dialogData?.balAmt,
+                localBalanceAmount: dialogData?.balLocalAmt,
+              }}
+            />
+          ) : (
+            <div className="text-muted-foreground py-8 text-center">
+              {hasDetailsError
+                ? "Error loading invoice details"
+                : "No invoice details available"}
+            </div>
           )}
-
-          <div className="grid gap-2">
-            <Card>
-              <CardHeader>
-                <CardTitle>Invoice Header</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {dialogData ? (
-                  <div className="grid grid-cols-6 gap-2">
-                    {Object.entries(dialogData).map(([key, value]) => {
-                      // Filter out ID fields and data_details
-                      const isIdField =
-                        key.toLowerCase().includes("id") ||
-                        key.toLowerCase().includes("invoice") ||
-                        key.toLowerCase().includes("receipt") ||
-                        key.toLowerCase().includes("payment") ||
-                        key.toLowerCase().includes("refund") ||
-                        key.toLowerCase().includes("creditnote") ||
-                        key.toLowerCase().includes("debitnote") ||
-                        key === "data_details"
-
-                      return !isIdField ? (
-                        <div key={key} className="flex flex-col gap-1">
-                          <span className="text-muted-foreground text-sm">
-                            {key.replace(/([A-Z])/g, " $1").trim()}
-                          </span>
-                          <span className="font-medium">{String(value)}</span>
-                        </div>
-                      ) : null
-                    })}
-                  </div>
-                ) : (
-                  <div className="text-muted-foreground py-4 text-center">
-                    {hasDetailsError
-                      ? "Error loading invoice details"
-                      : "No invoice details available"}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader>
-                <CardTitle>Invoice Details</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <BasicTable
-                  data={dialogData?.data_details || []}
-                  columns={detailsColumns}
-                  moduleId={moduleId}
-                  transactionId={transactionId}
-                  tableName={TableName.arInvoiceHistory}
-                  emptyMessage="No invoice details available"
-                  onRefresh={handleRefresh}
-                  showHeader={true}
-                  showFooter={false}
-                  maxHeight="300px"
-                />
-              </CardContent>
-            </Card>
-          </div>
         </DialogContent>
       </Dialog>
     </>
