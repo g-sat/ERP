@@ -28,7 +28,7 @@ export interface ITaxDt {
   taxCode: string
   taxName: string
   taxPercentage: number
-  validFrom: string
+  validFrom: Date | string
   createById: number
   editById: number
   createBy: string

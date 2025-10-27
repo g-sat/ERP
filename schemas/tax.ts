@@ -35,15 +35,9 @@ export const taxDtSchema = z.object({
   taxPercentage: z
     .number()
     .min(0, { message: "Percentage must be non-negative" }),
-  validFrom: z.union([z.string(), z.date()]).refine(
-    (val) => {
-      // Ensure it's not empty string or invalid date
-      if (typeof val === "string") return val.trim().length > 0
-      if (val instanceof Date) return !isNaN(val.getTime())
-      return false
-    },
-    { message: "Valid from is required and must be a valid date" }
-  ),
+  validFrom: z.union([z.date(), z.string()], {
+    message: "Valid from is required and must be a valid date",
+  }),
 })
 
 export type TaxDtSchemaType = z.infer<typeof taxDtSchema>

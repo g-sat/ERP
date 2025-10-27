@@ -80,8 +80,8 @@ export function CurrencyDtsTable({
         }
         return date && isValid(date) ? format(date, dateFormat) : "-"
       },
-      size: 120,
-      minSize: 50,
+      size: 180,
+      minSize: 150,
     },
     {
       accessorKey: "createBy",

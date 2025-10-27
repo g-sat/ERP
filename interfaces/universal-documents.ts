@@ -22,7 +22,7 @@ export interface IUniversalDocumentDt {
   documentNo: string | null // varchar(100)
   issueOn: string | null // date, ISO string (e.g., '2025-01-10')
   expiryOn: string | null // date, ISO string
-  validFrom: string | null // date, ISO string
+  validFrom: Date | string
   filePath: string | null // nvarchar(1000)
   remarks: string | null // nvarchar(500)
   renewalRequired: boolean // bit, default 0,
