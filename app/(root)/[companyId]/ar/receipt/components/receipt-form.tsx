@@ -2,23 +2,25 @@
 
 import * as React from "react"
 import {
-  calculateMultiplierAmount,
   setDueDate,
   setExchangeRate,
   setExchangeRateLocal,
   setRecExchangeRate,
 } from "@/helpers/account"
 import {
-  calculateReceiptTotalsFromTotAmt,
-  calculateTotAmtFromRecTotAmt,
-  computeLocalAmountsAndExchangeGainLoss,
-  recalculateAllAmountsOnExchangeRateChange,
+  handleScenarioA,
+  handleScenarioB,
+  handleScenarioD,
+  handleScenarioE,
+  handleScenarioF,
+  handleScenarioG,
 } from "@/helpers/ar-receipt-calculations"
-import { IArReceiptDt, IDecimal } from "@/interfaces"
+import { IArReceiptDt } from "@/interfaces"
 import {
   IBankLookup,
   ICurrencyLookup,
   ICustomerLookup,
+  IJobOrderLookup,
   IPaymentTypeLookup,
 } from "@/interfaces/lookup"
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
@@ -34,6 +36,7 @@ import {
   CurrencyAutocomplete,
   CustomerAutocomplete,
   DynamicCustomerAutocomplete,
+  JobOrderCustomerAutocomplete,
   PaymentTypeAutocomplete,
 } from "@/components/autocomplete"
 import { CustomDateNew } from "@/components/custom/custom-date-new"
@@ -49,6 +52,8 @@ interface ReceiptFormProps {
   required: IMandatoryFields
   companyId: number
   isCancelled?: boolean
+  dataDetails?: ArReceiptDtSchemaType[]
+  onScenarioCalled?: (scenario: string) => void
 }
 
 export default function ReceiptForm({
@@ -59,6 +64,8 @@ export default function ReceiptForm({
   required,
   companyId: _companyId,
   isCancelled = false,
+  dataDetails = [],
+  onScenarioCalled,
 }: ReceiptFormProps) {
   const { decimals } = useAuthStore()
   const amtDec = decimals[0]?.amtDec || 2
@@ -83,6 +90,20 @@ export default function ReceiptForm({
     const isEqual = currencyId === recCurrencyId
     // Return true if both are zero OR if they are the same (and not zero)
     return isEqual
+  }, [form])
+
+  // Helper function to get current form values
+  const getCurrentFormValues = React.useCallback(() => {
+    return {
+      totAmt: form.getValues("totAmt") || 0,
+      exhRate: form.getValues("exhRate") || 1,
+      recExhRate: form.getValues("recExhRate") || 1,
+      recTotAmt: form.getValues("recTotAmt") || 0,
+      recTotLocalAmt: form.getValues("recTotLocalAmt") || 0,
+      currencyId: form.getValues("currencyId") || 0,
+      recCurrencyId: form.getValues("recCurrencyId") || 0,
+      dataDetails: form.getValues("data_details") || [],
+    }
   }, [form])
 
   // Function to update currency comparison state
@@ -268,58 +289,6 @@ export default function ReceiptForm({
     [exhRateDec, form, checkPayTotAmtEnable, updateCurrencyComparison]
   )
 
-  // Handle pay currency change
-  const handleRecCurrencyChange = React.useCallback(
-    async (selectedCurrency: ICurrencyLookup | null) => {
-      const recCurrencyId = selectedCurrency?.currencyId || 0
-      form.setValue("recCurrencyId", recCurrencyId)
-
-      // Get current form values
-      const exhRate = form.getValues("exhRate") || 0
-      const totAmt = form.getValues("totAmt") || 0
-      const totLocalAmt = form.getValues("totLocalAmt") || 0
-
-      // If both currencies are the same, sync the values
-      if (currencyId === recCurrencyId && currencyId > 0) {
-        // Sync exchange rates
-        form.setValue("recExhRate", exhRate, { shouldDirty: true })
-
-        // Sync amounts
-        form.setValue("recTotAmt", totAmt, { shouldDirty: true })
-        form.setValue("recTotLocalAmt", totLocalAmt, { shouldDirty: true })
-      } else {
-        // If currencies are different, fetch new exchange rate
-        await setRecExchangeRate(form, exhRateDec)
-        form.trigger("recExhRate")
-        const recExhRate = form.getValues("recExhRate") || 0
-
-        if (totAmt > 0) {
-          form.setValue("recTotAmt", totLocalAmt, { shouldDirty: true })
-          const recTotLocalAmt = calculateMultiplierAmount(
-            totLocalAmt,
-            recExhRate,
-            decimals[0].locAmtDec || 2
-          )
-          form.setValue("recTotLocalAmt", recTotLocalAmt, { shouldDirty: true })
-        }
-      }
-
-      // Update currency comparison state
-      updateCurrencyComparison()
-
-      // Check if recTotAmt should be enabled
-      checkPayTotAmtEnable()
-    },
-    [
-      exhRateDec,
-      form,
-      checkPayTotAmtEnable,
-      updateCurrencyComparison,
-      currencyId,
-      decimals,
-    ]
-  )
-
   // Handle receipt type change
   const handlePaymentTypeChange = React.useCallback(
     (selectedReceiptType: IPaymentTypeLookup | null) => {
@@ -348,294 +317,450 @@ export default function ReceiptForm({
     [form]
   )
 
+  // Handle job order change
+  const handleJobOrderChange = React.useCallback(
+    (selectedJobOrder: IJobOrderLookup | null) => {
+      if (selectedJobOrder) {
+        form.setValue("jobOrderId", selectedJobOrder.jobOrderId || 0)
+        form.setValue("jobOrderNo", selectedJobOrder.jobOrderNo || "")
+      } else {
+        form.setValue("jobOrderId", 0)
+        form.setValue("jobOrderNo", "")
+      }
+    },
+    [form]
+  )
+
+  // Handle pay currency change
+  const handleRecCurrencyChange = React.useCallback(
+    async (selectedCurrency: ICurrencyLookup | null) => {
+      const recCurrencyId = selectedCurrency?.currencyId || 0
+      form.setValue("recCurrencyId", recCurrencyId)
+
+      // Get current form values
+      const { totAmt, exhRate, dataDetails } = getCurrentFormValues()
+
+      // 1.1 (currency == recCurrencyId) - sync exhRate = recExhRate and call Scenario A
+      if (
+        currencyId === recCurrencyId &&
+        currencyId > 0 &&
+        dataDetails.length == 0
+      ) {
+        form.setValue("recExhRate", exhRate, { shouldDirty: true })
+
+        console.log(
+          "🔄 SCENARIO A CALLED from: Currency Change (Same Currency)"
+        )
+        onScenarioCalled?.("Scenario A (Currency Change - Same Currency)")
+
+        const result = handleScenarioA(
+          totAmt,
+          exhRate,
+          exhRate, // recExhRate = exhRate when currencies are equal
+          decimals[0] || { amtDec: 2, locAmtDec: 2 }
+        )
+
+        // Update form with results
+        form.setValue("totLocalAmt", result.totLocalAmt, { shouldDirty: true })
+        form.setValue("recTotAmt", result.recTotAmt, { shouldDirty: true })
+        form.setValue("recTotLocalAmt", result.recTotLocalAmt, {
+          shouldDirty: true,
+        })
+        form.setValue("unAllocTotAmt", result.unAllocTotAmt, {
+          shouldDirty: true,
+        })
+        form.setValue("unAllocTotLocalAmt", result.unAllocTotLocalAmt, {
+          shouldDirty: true,
+        })
+      } else {
+        // 1.4 on change recCurrency - call Scenario G
+        if (recCurrencyId > 0) {
+          await setRecExchangeRate(form, exhRateDec)
+          form.trigger("recExhRate")
+          const recExhRate = form.getValues("recExhRate") || 0
+
+          console.log("🔄 SCENARIO G CALLED from: Receipt Currency Change")
+          onScenarioCalled?.("Scenario G (Receipt Currency Change)")
+
+          const result = handleScenarioG(
+            dataDetails as unknown as IArReceiptDt[],
+            totAmt,
+            exhRate,
+            recExhRate,
+            decimals[0] || { amtDec: 2, locAmtDec: 2 }
+          )
+
+          // Update form with results
+          form.setValue("totAmt", result.totAmt, { shouldDirty: true })
+          form.setValue("totLocalAmt", result.totLocalAmt, {
+            shouldDirty: true,
+          })
+          form.setValue("recTotAmt", result.recTotAmt, { shouldDirty: true })
+          form.setValue("recTotLocalAmt", result.recTotLocalAmt, {
+            shouldDirty: true,
+          })
+          form.setValue("unAllocTotAmt", result.unAllocTotAmt, {
+            shouldDirty: true,
+          })
+          form.setValue("unAllocTotLocalAmt", result.unAllocTotLocalAmt, {
+            shouldDirty: true,
+          })
+          form.setValue("allocTotAmt", result.sumAllocAmt, {
+            shouldDirty: true,
+          })
+          form.setValue("allocTotLocalAmt", result.sumAllocLocalAmt, {
+            shouldDirty: true,
+          })
+          form.setValue("exhGainLoss", result.sumExhGainLoss, {
+            shouldDirty: true,
+          })
+
+          // Update details
+          form.setValue(
+            "data_details",
+            result.updatedDetails as unknown as ArReceiptDtSchemaType[],
+            { shouldDirty: true, shouldTouch: true }
+          )
+        }
+      }
+
+      // Update currency comparison state
+      updateCurrencyComparison()
+      checkPayTotAmtEnable()
+    },
+    [
+      exhRateDec,
+      form,
+      getCurrentFormValues,
+      updateCurrencyComparison,
+      checkPayTotAmtEnable,
+      currencyId,
+      decimals,
+      onScenarioCalled,
+    ]
+  )
+
   // Handle currency selection
   const handleCurrencyChange = React.useCallback(
     async (selectedCurrency: ICurrencyLookup | null) => {
-      // Additional logic when currency changes
       const currencyId = selectedCurrency?.currencyId || 0
       const accountDate = form.getValues("accountDate")
 
       if (currencyId && accountDate) {
-        // First update exchange rates
+        // Update exchange rates
         await setExchangeRate(form, exhRateDec, visible)
         if (visible?.m_CtyCurr) {
           await setExchangeRateLocal(form, exhRateDec)
         }
 
-        // Get current details and ensure they exist
-        const formDetails = form.getValues("data_details")
-        if (!formDetails || formDetails.length === 0) {
-          return
+        // Get updated values
+        const {
+          totAmt,
+          exhRate,
+          recExhRate,
+          recCurrencyId,
+          dataDetails,
+          recTotLocalAmt,
+        } = getCurrentFormValues()
+
+        // 1.1 (currency == recCurrencyId) - sync exhRate = recExhRate and call Scenario A
+        if (
+          currencyId === recCurrencyId &&
+          currencyId > 0 &&
+          dataDetails.length == 0
+        ) {
+          form.setValue("recExhRate", exhRate, { shouldDirty: true })
+
+          console.log(
+            "🔄 SCENARIO A CALLED from: Currency Change (Same Currency)"
+          )
+          onScenarioCalled?.("Scenario A (Currency Change - Same Currency)")
+
+          const result = handleScenarioA(
+            totAmt,
+            exhRate,
+            exhRate, // recExhRate = exhRate when currencies are equal
+            decimals[0] || { amtDec: 2, locAmtDec: 2 }
+          )
+
+          // Update form with results
+          form.setValue("totLocalAmt", result.totLocalAmt, {
+            shouldDirty: true,
+          })
+          form.setValue("recTotAmt", result.recTotAmt, { shouldDirty: true })
+          form.setValue("recTotLocalAmt", result.recTotLocalAmt, {
+            shouldDirty: true,
+          })
+          form.setValue("unAllocTotAmt", result.unAllocTotAmt, {
+            shouldDirty: true,
+          })
+          form.setValue("unAllocTotLocalAmt", result.unAllocTotLocalAmt, {
+            shouldDirty: true,
+          })
         }
+        // 1.3 on change currency - call Scenario F
+        else if (dataDetails.length > 0) {
+          console.log(
+            "🔄 SCENARIO F CALLED from: Currency Change (Different Currency)"
+          )
+          onScenarioCalled?.(
+            "Scenario F (Currency Change - Different Currency)"
+          )
 
-        // Get updated exchange rates
-        const exchangeRate = form.getValues("exhRate") || 0
+          const result = handleScenarioF(
+            dataDetails as unknown as IArReceiptDt[],
+            recTotLocalAmt,
+            exhRate,
+            recExhRate,
+            decimals[0] || { amtDec: 2, locAmtDec: 2 }
+          )
 
-        // Recalculate all details with new exchange rates
-        const updatedDetails = computeLocalAmountsAndExchangeGainLoss(
-          formDetails as unknown as IArReceiptDt[],
-          exchangeRate,
-          decimals[0]
-        )
+          // Update form with results
+          form.setValue("totAmt", result.totAmt, { shouldDirty: true })
+          form.setValue("totLocalAmt", result.totLocalAmt, {
+            shouldDirty: true,
+          })
+          form.setValue("recTotAmt", result.recTotAmt, { shouldDirty: true })
+          form.setValue("recTotLocalAmt", result.recTotLocalAmt, {
+            shouldDirty: true,
+          })
+          form.setValue("unAllocTotAmt", result.unAllocTotAmt, {
+            shouldDirty: true,
+          })
+          form.setValue("unAllocTotLocalAmt", result.unAllocTotLocalAmt, {
+            shouldDirty: true,
+          })
+          form.setValue("allocTotAmt", result.sumAllocAmt, {
+            shouldDirty: true,
+          })
+          form.setValue("allocTotLocalAmt", result.sumAllocLocalAmt, {
+            shouldDirty: true,
+          })
+          form.setValue("exhGainLoss", result.sumExhGainLoss, {
+            shouldDirty: true,
+          })
 
-        // Update form with recalculated details
-        form.setValue(
-          "data_details",
-          updatedDetails as unknown as ArReceiptDtSchemaType[],
-          { shouldDirty: true, shouldTouch: true }
-        )
+          // Update details
+          form.setValue(
+            "data_details",
+            result.updatedDetails as unknown as ArReceiptDtSchemaType[],
+            { shouldDirty: true, shouldTouch: true }
+          )
+        }
       }
 
       // Update currency comparison state
       updateCurrencyComparison()
-
-      // Check if recTotAmt should be enabled
       checkPayTotAmtEnable()
     },
     [
-      decimals,
       exhRateDec,
       form,
       visible,
-      checkPayTotAmtEnable,
+      getCurrentFormValues,
       updateCurrencyComparison,
+      checkPayTotAmtEnable,
+      decimals,
+      onScenarioCalled,
     ]
   )
 
-  // Separate function to calculate and update amounts from recTotAmt
-  const recalculateTotAmt = React.useCallback(
-    (recTotLocalAmt: number, exhRate: number, decimals: IDecimal) => {
-      const calculatedAmounts = calculateTotAmtFromRecTotAmt(
-        recTotLocalAmt,
-        exhRate,
-        decimals
-      )
-
-      // Update all calculated amounts
-      form.setValue("totAmt", calculatedAmounts.totAmt, { shouldDirty: true })
-      form.setValue("totLocalAmt", calculatedAmounts.totLocalAmt, {
-        shouldDirty: true,
-      })
-      form.setValue("unAllocTotAmt", calculatedAmounts.unAllocTotAmt, {
-        shouldDirty: true,
-      })
-      form.setValue(
-        "unAllocTotLocalAmt",
-        calculatedAmounts.unAllocTotLocalAmt,
-        {
-          shouldDirty: true,
-        }
-      )
-    },
-    [form]
-  )
-
-  // Handle exchange rate change - recalculate all local amounts
+  // 1.3 Handle exchange rate change - call Scenario D
   const handleExchangeRateChange = React.useCallback(
     (e: React.FocusEvent<HTMLInputElement>) => {
       const exhRate = parseNumberWithCommas(e.target.value)
+
       form.setValue("exhRate", exhRate, { shouldDirty: true })
 
-      // Get current form values
-      const currencyId = form.getValues("currencyId") || 0
-      const recCurrencyId = form.getValues("recCurrencyId") || 0
-      const totAmt = form.getValues("totAmt") || 0
-      const recTotAmt = form.getValues("recTotAmt") || 0
-      const unAllocTotAmt = form.getValues("unAllocTotAmt") || 0
-      const dataDetails = form.getValues("data_details") || []
+      // Sync recExhRate with exhRate for Scenario D
+      form.setValue("recExhRate", exhRate, { shouldDirty: true })
 
-      const totLocalAmt = calculateMultiplierAmount(
+      const { totAmt, dataDetails } = getCurrentFormValues()
+
+      // Call Scenario D: Change the exhRate && (currency == recCurrencyId)
+      console.log("🔄 SCENARIO D CALLED from: Exchange Rate Change")
+      onScenarioCalled?.("Scenario D (Exchange Rate Change)")
+
+      const result = handleScenarioD(
+        dataDetails as unknown as IArReceiptDt[],
         totAmt,
         exhRate,
-        decimals[0].locAmtDec || 2
+        exhRate, // Use exhRate as recExhRate since they're synced
+        decimals[0] || { amtDec: 2, locAmtDec: 2 }
       )
-      form.setValue("totLocalAmt", totLocalAmt, { shouldDirty: true })
 
-      const unAllocTotLocalAmt = calculateMultiplierAmount(
-        unAllocTotAmt,
-        exhRate,
-        decimals[0].locAmtDec || 2
-      )
-      form.setValue("unAllocTotLocalAmt", unAllocTotLocalAmt, {
+      // Update form with results
+      form.setValue("totLocalAmt", result.totLocalAmt, { shouldDirty: true })
+      form.setValue("recTotAmt", result.recTotAmt, { shouldDirty: true })
+      form.setValue("recTotLocalAmt", result.recTotLocalAmt, {
         shouldDirty: true,
       })
+      form.setValue("unAllocTotAmt", result.unAllocTotAmt, {
+        shouldDirty: true,
+      })
+      form.setValue("unAllocTotLocalAmt", result.unAllocTotLocalAmt, {
+        shouldDirty: true,
+      })
+      form.setValue("allocTotAmt", result.sumAllocAmt, { shouldDirty: true })
+      form.setValue("allocTotLocalAmt", result.sumAllocLocalAmt, {
+        shouldDirty: true,
+      })
+      form.setValue("exhGainLoss", result.sumExhGainLoss, { shouldDirty: true })
 
-      // If currencies are the same, sync recExhRate with exhRate
-      if (currencyId === recCurrencyId && currencyId > 0) {
-        form.setValue("recExhRate", exhRate, { shouldDirty: true })
-        const recTotLocalAmt = calculateMultiplierAmount(
-          recTotAmt,
-          exhRate,
-          decimals[0].locAmtDec || 2
-        )
-        form.setValue("recTotLocalAmt", recTotLocalAmt, { shouldDirty: true })
-      } else {
-        const recTotLocalAmt = form.getValues("recTotLocalAmt") || 0
-        recalculateTotAmt(recTotLocalAmt, exhRate, decimals[0])
-      }
-
-      // Use comprehensive function to recalculate all amounts
-      if (dataDetails.length > 0) {
-        const recalculatedAmounts = recalculateAllAmountsOnExchangeRateChange(
-          dataDetails as unknown as IArReceiptDt[],
-          totAmt,
-          unAllocTotAmt,
-          exhRate,
-          decimals[0]
-        )
-
-        // Update header amounts
-        form.setValue("totLocalAmt", recalculatedAmounts.totLocalAmt, {
-          shouldDirty: true,
-        })
-        form.setValue(
-          "unAllocTotLocalAmt",
-          recalculatedAmounts.unAllocTotLocalAmt,
-          {
-            shouldDirty: true,
-          }
-        )
-        form.setValue("exhGainLoss", recalculatedAmounts.totalExhGainLoss, {
-          shouldDirty: true,
-        })
-
-        // Update details
-        form.setValue(
-          "data_details",
-          recalculatedAmounts.updatedDetails as unknown as ArReceiptDtSchemaType[],
-          { shouldDirty: true, shouldTouch: true }
-        )
-      }
+      // Update details
+      form.setValue(
+        "data_details",
+        result.updatedDetails as unknown as ArReceiptDtSchemaType[],
+        { shouldDirty: true, shouldTouch: true }
+      )
     },
-    [form, decimals, recalculateTotAmt]
+    [form, decimals, getCurrentFormValues, onScenarioCalled]
   )
 
-  // Handle receipt exchange rate change - recalculate recTotLocalAmt
+  // 1.4 Handle receipt exchange rate change - call Scenario E
   const handleRecExchangeRateChange = React.useCallback(
     (e: React.FocusEvent<HTMLInputElement>) => {
       const recExhRate = parseNumberWithCommas(e.target.value)
+
       form.setValue("recExhRate", recExhRate, { shouldDirty: true })
 
-      // Get current form values
-      const currencyId = form.getValues("currencyId") || 0
-      const recCurrencyId = form.getValues("recCurrencyId") || 0
-      const recTotAmt = form.getValues("recTotAmt") || 0
+      const { recTotAmt, exhRate, dataDetails } = getCurrentFormValues()
 
-      // If currencies are the same, sync exhRate with recExhRate
-      if (currencyId === recCurrencyId && currencyId > 0) {
-        form.setValue("exhRate", recExhRate, { shouldDirty: true })
-      }
+      // Call Scenario E: Change the recExhRate && (currency != recCurrencyId)
+      console.log("🔄 SCENARIO E CALLED from: Receipt Exchange Rate Change")
+      onScenarioCalled?.("Scenario E (Receipt Exchange Rate Change)")
 
-      // Recalculate recTotLocalAmt using helper function
-      if (recTotAmt > 0) {
-        const recTotLocalAmt = calculateMultiplierAmount(
-          recTotAmt,
-          recExhRate,
-          decimals[0].locAmtDec || 2
-        )
-        form.setValue("recTotLocalAmt", recTotLocalAmt, { shouldDirty: true })
+      const result = handleScenarioE(
+        dataDetails as unknown as IArReceiptDt[],
+        recTotAmt,
+        recExhRate,
+        exhRate,
+        decimals[0] || { amtDec: 2, locAmtDec: 2 }
+      )
 
-        const exhRate = form.getValues("exhRate") || 0
-        recalculateTotAmt(recTotLocalAmt, exhRate, decimals[0])
-      }
+      // Update form with results
+      form.setValue("totAmt", result.totAmt, { shouldDirty: true })
+      form.setValue("totLocalAmt", result.totLocalAmt, { shouldDirty: true })
+      form.setValue("recTotAmt", result.recTotAmt, { shouldDirty: true })
+      form.setValue("recTotLocalAmt", result.recTotLocalAmt, {
+        shouldDirty: true,
+      })
+      form.setValue("unAllocTotAmt", result.unAllocTotAmt, {
+        shouldDirty: true,
+      })
+      form.setValue("unAllocTotLocalAmt", result.unAllocTotLocalAmt, {
+        shouldDirty: true,
+      })
+      form.setValue("allocTotAmt", result.sumAllocAmt, { shouldDirty: true })
+      form.setValue("allocTotLocalAmt", result.sumAllocLocalAmt, {
+        shouldDirty: true,
+      })
+      form.setValue("exhGainLoss", result.sumExhGainLoss, { shouldDirty: true })
+
+      // Update details
+      form.setValue(
+        "data_details",
+        result.updatedDetails as unknown as ArReceiptDtSchemaType[],
+        { shouldDirty: true, shouldTouch: true }
+      )
     },
-    [form, decimals, recalculateTotAmt]
+    [form, decimals, getCurrentFormValues, onScenarioCalled]
   )
 
-  // Handle totAmt change - calculate totLocalAmt and update related amounts
+  // Handle totAmt change - call appropriate scenario based on currency comparison
   const handleTotAmtChange = React.useCallback(
     (e: React.FocusEvent<HTMLInputElement>) => {
       const totAmt = parseNumberWithCommas(e.target.value)
-      const exchangeRate = form.getValues("exhRate") || 0
-      const currencyId = form.getValues("currencyId") || 0
-      const recCurrencyId = form.getValues("recCurrencyId") || 0
 
-      // Use calculation function from ar-receipt-calculations
-      const calculatedAmounts = calculateReceiptTotalsFromTotAmt(
+      form.setValue("totAmt", totAmt, { shouldDirty: true })
+
+      const { exhRate, recExhRate, currencyId, recCurrencyId } =
+        getCurrentFormValues()
+
+      // Debug logging
+      console.log("🔍 DEBUG - totAmt change:", {
         totAmt,
-        exchangeRate,
-        decimals[0] || {
-          amtDec: 2,
-          locAmtDec: 2,
-          ctyAmtDec: 2,
-          priceDec: 2,
-          qtyDec: 2,
-          exhRateDec: 4,
-          dateFormat: "DD/MM/YYYY",
-          longDateFormat: "DD/MM/YYYY",
-        }
-      )
-
-      // Update calculated amounts
-      form.setValue("totLocalAmt", calculatedAmounts.totLocalAmt, {
-        shouldDirty: true,
+        exhRate,
+        recExhRate,
+        currencyId,
+        recCurrencyId,
+        isEqual: currencyId === recCurrencyId,
+        currencyIdGreaterThanZero: currencyId > 0,
       })
 
-      // Only update recTotAmt if currencies are the same (manual entry case)
-      // This prevents circular dependencies when currencies are different
-      if (currencyId === recCurrencyId) {
-        form.setValue("recTotAmt", calculatedAmounts.recTotAmt, {
+      // 1.1 (currency == recCurrencyId) - call Scenario A
+      if (currencyId === recCurrencyId && currencyId > 0) {
+        console.log(
+          "🔄 SCENARIO A CALLED from: Total Amount Change (Same Currency)"
+        )
+        onScenarioCalled?.("Scenario A (Total Amount Change - Same Currency)")
+
+        const result = handleScenarioA(
+          totAmt,
+          exhRate,
+          recExhRate,
+          decimals[0] || { amtDec: 2, locAmtDec: 2 }
+        )
+
+        // Update form with results
+        form.setValue("totLocalAmt", result.totLocalAmt, { shouldDirty: true })
+        form.setValue("recTotAmt", result.recTotAmt, { shouldDirty: true })
+        form.setValue("recTotLocalAmt", result.recTotLocalAmt, {
           shouldDirty: true,
         })
-        form.setValue("recTotLocalAmt", calculatedAmounts.recTotLocalAmt, {
+        form.setValue("unAllocTotAmt", result.unAllocTotAmt, {
+          shouldDirty: true,
+        })
+        form.setValue("unAllocTotLocalAmt", result.unAllocTotLocalAmt, {
           shouldDirty: true,
         })
       }
-
-      form.setValue("unAllocTotAmt", calculatedAmounts.unAllocTotAmt, {
-        shouldDirty: true,
-      })
-      form.setValue(
-        "unAllocTotLocalAmt",
-        calculatedAmounts.unAllocTotLocalAmt,
-        { shouldDirty: true }
-      )
     },
-    [form, decimals]
+    [form, decimals, getCurrentFormValues, onScenarioCalled]
   )
 
-  // Handle unAllocTotAmt change - calculate unAllocTotLocalAmt
-  const handleUnAllocTotAmtChange = React.useCallback(
-    (e: React.FocusEvent<HTMLInputElement>) => {
-      const unAllocTotAmt = parseNumberWithCommas(e.target.value)
-      const exchangeRate = form.getValues("exhRate") || 0
-
-      // Use calculation function from ar-receipt-calculations
-      const unAllocTotLocalAmt = calculateMultiplierAmount(
-        unAllocTotAmt,
-        exchangeRate,
-        decimals[0].locAmtDec || 2
-      )
-
-      // Update unAllocTotLocalAmt
-      form.setValue("unAllocTotLocalAmt", unAllocTotLocalAmt, {
-        shouldDirty: true,
-      })
-    },
-    [form, decimals]
-  )
-
-  // Handle recTotAmt change - calculate recTotLocalAmt and update related amounts
+  // Handle recTotAmt change - call appropriate scenario based on currency comparison
   const handleRecTotAmtChange = React.useCallback(
     (e: React.FocusEvent<HTMLInputElement>) => {
       const recTotAmt = parseNumberWithCommas(e.target.value)
-      const recExchangeRate = form.getValues("recExhRate") || 0
-      const exhRate = form.getValues("exhRate") || 0
 
-      // Calculate recTotLocalAmt using receipt exchange rate with proper rounding
-      const recTotLocalAmt = calculateMultiplierAmount(
-        recTotAmt,
-        recExchangeRate,
-        decimals[0].locAmtDec || 2
-      )
+      form.setValue("recTotAmt", recTotAmt, { shouldDirty: true })
 
-      // Update recTotLocalAmt
-      form.setValue("recTotLocalAmt", recTotLocalAmt, { shouldDirty: true })
+      const { exhRate, recExhRate, currencyId, recCurrencyId } =
+        getCurrentFormValues()
 
-      // Use the separate function for amount calculations
-      recalculateTotAmt(recTotLocalAmt, exhRate, decimals[0])
+      // 1.2 (currency != recCurrencyId) - call Scenario B
+      if (currencyId !== recCurrencyId && recCurrencyId > 0) {
+        console.log(
+          "🔄 SCENARIO B CALLED from: Receipt Total Amount Change (Different Currency)"
+        )
+        onScenarioCalled?.(
+          "Scenario B (Receipt Total Amount Change - Different Currency)"
+        )
+
+        const result = handleScenarioB(
+          recTotAmt,
+          recExhRate,
+          exhRate,
+          decimals[0] || { amtDec: 2, locAmtDec: 2 }
+        )
+
+        // Update form with results
+        form.setValue("totAmt", result.totAmt, { shouldDirty: true })
+        form.setValue("totLocalAmt", result.totLocalAmt, { shouldDirty: true })
+        form.setValue("recTotAmt", result.recTotAmt, { shouldDirty: true })
+        form.setValue("recTotLocalAmt", result.recTotLocalAmt, {
+          shouldDirty: true,
+        })
+        form.setValue("unAllocTotAmt", result.unAllocTotAmt, {
+          shouldDirty: true,
+        })
+        form.setValue("unAllocTotLocalAmt", result.unAllocTotLocalAmt, {
+          shouldDirty: true,
+        })
+      }
     },
-    [form, decimals, recalculateTotAmt]
+    [form, decimals, getCurrentFormValues, onScenarioCalled]
   )
 
   return (
@@ -686,6 +811,8 @@ export default function ReceiptForm({
             label="Customer"
             isRequired={true}
             onChangeEvent={handleCustomerChange}
+            className="col-span-2"
+            isDisabled={dataDetails.length > 0}
           />
         ) : (
           <CustomerAutocomplete
@@ -694,6 +821,8 @@ export default function ReceiptForm({
             label="Customer"
             isRequired={true}
             onChangeEvent={handleCustomerChange}
+            className="col-span-2"
+            isDisabled={dataDetails.length > 0}
           />
         )}
 
@@ -766,15 +895,15 @@ export default function ReceiptForm({
           />
         )}
 
-        {/* Unallocated Amount */}
+        {/* Unallocated Amount - Always read-only */}
         <CustomNumberInput
           form={form}
           name="unAllocTotAmt"
           label="Unallocated Amount"
-          onBlurEvent={handleUnAllocTotAmtChange}
+          isDisabled={true}
         />
 
-        {/* Unallocated Local Amount */}
+        {/* Unallocated Local Amount - Always read-only */}
         <CustomNumberInput
           form={form}
           name="unAllocTotLocalAmt"
@@ -802,7 +931,7 @@ export default function ReceiptForm({
           onBlurEvent={handleRecExchangeRateChange}
         />
 
-        {/* Pay Total Amount - Enabled when currencies are different */}
+        {/* Pay Total Amount - Read-only when currencies are equal */}
         <CustomNumberInput
           form={form}
           name="recTotAmt"
@@ -811,7 +940,7 @@ export default function ReceiptForm({
           onBlurEvent={handleRecTotAmtChange}
         />
 
-        {/* Pay Total Local Amount */}
+        {/* Pay Total Local Amount - Always read-only */}
         <CustomNumberInput
           form={form}
           name="recTotLocalAmt"
@@ -819,7 +948,7 @@ export default function ReceiptForm({
           isDisabled={true}
         />
 
-        {/* Total Amount */}
+        {/* Total Amount - Read-only when currencies are different */}
         <CustomNumberInput
           form={form}
           name="totAmt"
@@ -830,7 +959,7 @@ export default function ReceiptForm({
           onBlurEvent={handleTotAmtChange}
         />
 
-        {/* Total Local Amount */}
+        {/* Total Local Amount - Always read-only */}
         <CustomNumberInput
           form={form}
           name="totLocalAmt"
@@ -869,6 +998,17 @@ export default function ReceiptForm({
           name="exhGainLoss"
           label="Exchange Gain/Loss"
         />
+
+        {visible?.m_JobOrderIdHd && (
+          <JobOrderCustomerAutocomplete
+            form={form}
+            name="jobOrderId"
+            label="Job Order"
+            onChangeEvent={handleJobOrderChange}
+            customerId={form.getValues("customerId") || 0}
+            jobOrderId={form.getValues("jobOrderId") || 0}
+          />
+        )}
 
         {/* Remarks */}
         <CustomTextarea

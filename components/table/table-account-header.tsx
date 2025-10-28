@@ -81,6 +81,12 @@ export function AccountTableHeader<TData>({
   data = [],
   onResetLayout,
 }: AccountTableHeaderProps<TData>) {
+  // Debug logging
+  console.log("Header props:", {
+    hasSelectedRows,
+    selectedRowsCount,
+    dataLength: data?.length,
+  })
   const [columnSearch, setColumnSearch] = useState("")
   const [activeButton, setActiveButton] = useState<"show" | "hide" | null>(null)
   // Filter columns based on search - memoized to prevent re-renders
@@ -253,22 +259,25 @@ export function AccountTableHeader<TData>({
       <div className="mb-4 space-y-2">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            {/* Bulk Delete Button - only show when items are selected */}
-            {hasSelectedRows && selectedRowsCount > 0 && (
-              <Button
-                variant="destructive"
-                onClick={onBulkDelete}
-                disabled={isConfirmed}
-                title={
-                  isConfirmed
-                    ? "Cannot delete when confirmed"
-                    : `Delete ${selectedRowsCount} selected item${selectedRowsCount !== 1 ? "s" : ""}`
-                }
-              >
-                <Trash2 className="mr-2 h-4 w-4" />
-                Delete ({selectedRowsCount})
-              </Button>
-            )}
+            {/* Bulk Delete Button - only show when items are selected and data exists */}
+            {hasSelectedRows &&
+              selectedRowsCount > 0 &&
+              data &&
+              data.length > 0 && (
+                <Button
+                  variant="destructive"
+                  onClick={onBulkDelete}
+                  disabled={isConfirmed}
+                  title={
+                    isConfirmed
+                      ? "Cannot delete when confirmed"
+                      : `Delete ${selectedRowsCount} selected item${selectedRowsCount !== 1 ? "s" : ""}`
+                  }
+                >
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Delete ({selectedRowsCount})
+                </Button>
+              )}
             <Button
               variant="outline"
               size="icon"

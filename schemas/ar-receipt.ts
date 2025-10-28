@@ -53,7 +53,7 @@ export const arreceiptHdSchema = (
     unAllocTotLocalAmt: z
       .number()
       .min(0, "Unallocated Total Local Amount is required"),
-    exhGainLoss: z.number().min(0, "Exchange Gain/Loss is required"),
+    exhGainLoss: z.number().optional(),
 
     remarks: required?.m_Remarks_Hd
       ? z.string().min(3, "Remarks must be at least 3 characters")

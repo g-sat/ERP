@@ -7,123 +7,109 @@ import {
 import { IArReceiptDt, IDecimal } from "@/interfaces"
 
 // ============================================================================
-//  DETAILS CALCULATIONS
+// HEADER CALCULATIONS (IArReceiptHd)
 // ============================================================================
 
-export const totalAllocationAmount = (
-  details: IArReceiptDt[],
+/**
+ * 1. totLocalAmt = totAmt * exhRate
+ */
+export const calculateTotLocalAmt = (
+  totAmt: number,
+  exhRate: number,
   decimals: IDecimal
-) => {
-  let totalAllocAmt = 0
-  let totalAllocLocalAmt = 0
-
-  // Use addition helper for each detail
-  details.forEach((detail) => {
-    const allocAmt = Number(detail.allocAmt) || 0
-    const allocLocalAmt = Number(detail.allocLocalAmt) || 0
-
-    totalAllocAmt = calculateAdditionAmount(
-      totalAllocAmt,
-      allocAmt,
-      decimals.amtDec
-    )
-    totalAllocLocalAmt = calculateAdditionAmount(
-      totalAllocLocalAmt,
-      allocLocalAmt,
-      decimals.locAmtDec
-    )
-  })
-
-  return {
-    totalAllocAmt,
-    totalAllocLocalAmt,
-  }
+): number => {
+  return calculateMultiplierAmount(totAmt, exhRate, decimals.locAmtDec)
 }
 
-export const totalExchangeGainLoss = (
-  details: IArReceiptDt[],
-  decimals: IDecimal
-) => {
-  let totalExhGainLoss = 0
-
-  // totalExhGainLoss = details.reduce((sum, detail) => {
-  //   return sum + (Number(detail.exhGainLoss) || 0)
-  // }, 0)
-
-  // return mathRound(totalExhGainLoss, decimals.amtDec)
-
-  // Use addition helper for each detail
-  details.forEach((detail) => {
-    const exhGainLoss = Number(detail.exhGainLoss) || 0
-
-    totalExhGainLoss = calculateAdditionAmount(
-      totalExhGainLoss,
-      exhGainLoss,
-      decimals.amtDec
-    )
-  })
-
-  return {
-    totalExhGainLoss,
-  }
+/**
+ * 2. recTotAmt = totAmt
+ */
+export const calculateRecTotAmt = (totAmt: number): number => {
+  return totAmt
 }
 
-export const computeLocalAmountsAndExchangeGainLoss = (
-  details: IArReceiptDt[],
-  exchangeRate: number,
+/**
+ * 2.1 recTotLocalAmt = recTotAmt * recExhRate
+ */
+export const calculateRecTotLocalAmt = (
+  recTotAmt: number,
+  recExhRate: number,
   decimals: IDecimal
-) => {
-  const updatedDetails = details.map((detail) => {
-    const allocAmt = detail.allocAmt || 0
-    const docExhRate = detail.docExhRate || 1
-
-    // Calculate allocLocalAmt with new exchange rate
-    const allocLocalAmt = calculateMultiplierAmount(
-      allocAmt,
-      exchangeRate,
-      decimals.locAmtDec
-    )
-
-    // Calculate docAllocLocalAmt with document exchange rate
-    const docAllocLocalAmt = calculateMultiplierAmount(
-      allocAmt,
-      docExhRate,
-      decimals.locAmtDec
-    )
-
-    // Calculate exhGainLoss = docAllocLocalAmt - allocLocalAmt
-    const exhGainLoss = calculateSubtractionAmount(
-      docAllocLocalAmt,
-      allocLocalAmt,
-      decimals.locAmtDec
-    )
-
-    return {
-      ...detail,
-      allocLocalAmt,
-      docAllocLocalAmt,
-      centDiff: 0,
-      exhGainLoss: exhGainLoss,
-    }
-  })
-
-  return updatedDetails
+): number => {
+  return calculateMultiplierAmount(recTotAmt, recExhRate, decimals.locAmtDec)
 }
 
-export const calculateItemAllocationSequence = (
-  item: IArReceiptDt,
+/**
+ * 3. unAllocTotAmt = totAmt - allocAmtHd
+ */
+export const calculateUnAllocTotAmt = (
+  totAmt: number,
+  allocAmtHd: number,
+  decimals: IDecimal
+): number => {
+  return calculateSubtractionAmount(totAmt, allocAmtHd, decimals.amtDec)
+}
+
+/**
+ * 3.1 unAllocTotLocalAmt = totLocalAmt - allocLocalAmtHd
+ */
+export const calculateUnAllocTotLocalAmt = (
+  totLocalAmt: number,
+  allocLocalAmtHd: number,
+  decimals: IDecimal
+): number => {
+  return calculateSubtractionAmount(
+    totLocalAmt,
+    allocLocalAmtHd,
+    decimals.locAmtDec
+  )
+}
+
+/**
+ * 4. totAmt = recTotLocalAmt / exhRate
+ */
+export const calculateTotAmtFromRecTotLocalAmt = (
+  recTotLocalAmt: number,
+  exhRate: number,
+  decimals: IDecimal
+): number => {
+  return exhRate > 0
+    ? calculateDivisionAmount(recTotLocalAmt, exhRate, decimals.amtDec)
+    : 0
+}
+
+/**
+ * 4.1 totLocalAmt = recTotLocalAmt
+ */
+export const calculateTotLocalAmtFromRecTotLocalAmt = (
+  recTotLocalAmt: number
+): number => {
+  return recTotLocalAmt
+}
+
+// ============================================================================
+// DETAIL CALCULATIONS (IArReceiptDt)
+// ============================================================================
+
+/**
+ * i. allocLocalAmt = allocAmt * ExhRate
+ */
+export const calculateAllocLocalAmt = (
   allocAmt: number,
   exhRate: number,
   decimals: IDecimal
-) => {
-  const docExhRate = item.docExhRate || 1
+): number => {
+  return calculateMultiplierAmount(allocAmt, exhRate, decimals.locAmtDec)
+}
 
-  // Calculate allocation amounts using account helpers
-  const allocLocalAmt = calculateMultiplierAmount(
-    allocAmt,
-    exhRate,
-    decimals.locAmtDec
-  )
+/**
+ * ii. docAllocAmt = allocAmt & docAllocLocalAmt = docAllocAmt * docExhRate
+ */
+export const calculateDocAllocAmounts = (
+  allocAmt: number,
+  docExhRate: number,
+  decimals: IDecimal
+) => {
   const docAllocAmt = allocAmt
   const docAllocLocalAmt = calculateMultiplierAmount(
     allocAmt,
@@ -131,197 +117,621 @@ export const calculateItemAllocationSequence = (
     decimals.locAmtDec
   )
 
-  // Calculate cent difference using subtraction helper
-  const exhGainLoss = calculateSubtractionAmount(
+  return {
+    docAllocAmt,
+    docAllocLocalAmt,
+  }
+}
+
+/**
+ * iii. exhGainLoss = docAllocLocalAmt - allocLocalAmt
+ */
+export const calculateExhGainLoss = (
+  docAllocLocalAmt: number,
+  allocLocalAmt: number,
+  decimals: IDecimal
+): number => {
+  return calculateSubtractionAmount(
     docAllocLocalAmt,
     allocLocalAmt,
     decimals.locAmtDec
   )
+}
+
+/**
+ * iv. sum of allocAmt & allocLocalAmt
+ */
+export const calculateSumAllocationAmounts = (
+  details: IArReceiptDt[],
+  decimals: IDecimal
+) => {
+  let sumAllocAmt = 0
+  let sumAllocLocalAmt = 0
+
+  details.forEach((detail) => {
+    const allocAmt = Number(detail.allocAmt) || 0
+    const allocLocalAmt = Number(detail.allocLocalAmt) || 0
+
+    sumAllocAmt = calculateAdditionAmount(
+      sumAllocAmt,
+      allocAmt,
+      decimals.amtDec
+    )
+    sumAllocLocalAmt = calculateAdditionAmount(
+      sumAllocLocalAmt,
+      allocLocalAmt,
+      decimals.locAmtDec
+    )
+  })
 
   return {
-    allocLocalAmt,
-    docAllocAmt,
-    docAllocLocalAmt,
-    centdiff: 0,
-    exhGainLoss,
+    sumAllocAmt,
+    sumAllocLocalAmt,
   }
 }
 
-//totAmt=0
-export const allocateFullAmounts = (
-  data: IArReceiptDt[],
-  exchangeRate: number,
+/**
+ * v. sum of exhGainLoss
+ */
+export const calculateSumExhGainLoss = (
+  details: IArReceiptDt[],
   decimals: IDecimal
-) => {
-  return data.map((item) => {
-    const allocAmt = item.docBalAmt || 0
+): number => {
+  let sumExhGainLoss = 0
 
-    // Calculate allocation amounts using the sequence function
-    const calculatedValues = calculateItemAllocationSequence(
-      item,
-      allocAmt,
-      exchangeRate,
-      decimals
+  details.forEach((detail) => {
+    const exhGainLoss = Number(detail.exhGainLoss) || 0
+    sumExhGainLoss = calculateAdditionAmount(
+      sumExhGainLoss,
+      exhGainLoss,
+      decimals.amtDec
     )
-
-    return {
-      ...item,
-      allocAmt,
-      allocLocalAmt: calculatedValues.allocLocalAmt,
-      docAllocAmt: calculatedValues.docAllocAmt,
-      docAllocLocalAmt: calculatedValues.docAllocLocalAmt,
-      exhGainLoss: calculatedValues.exhGainLoss,
-    }
   })
+
+  return sumExhGainLoss
 }
 
-export const calculateHeaderAmountsForProportionalAllocation = (
-  details: IArReceiptDt[],
+// ============================================================================
+// SCENARIO IMPLEMENTATIONS
+// ============================================================================
+
+/**
+ * Scenario A: (currency == recCurrencyId) && (data_details.length == 0 || sum(allocAmt) == 0)
+ * => then pass totAmt to function 1
+ * => then pass totAmt to recTotAmt into function 2 => 2.1
+ * => then pass totAmt to unAllocTotAmt into function 3 => 3.1
+ */
+export const handleScenarioA = (
   totAmt: number,
-  exchangeRate: number,
+  exhRate: number,
+  recExhRate: number,
   decimals: IDecimal
 ) => {
-  // Calculate unallocated amounts inline
-  const { unAllocTotAmt, unAllocTotLocalAmt } = calculateUnallocatedAmounts(
-    details,
-    totAmt,
-    exchangeRate,
+  // 1. totLocalAmt = totAmt * exhRate
+  const totLocalAmt = calculateTotLocalAmt(totAmt, exhRate, decimals)
+
+  // 2. recTotAmt = totAmt
+  const recTotAmt = calculateRecTotAmt(totAmt)
+
+  // 2.1 recTotLocalAmt = recTotAmt * recExhRate
+  const recTotLocalAmt = calculateRecTotLocalAmt(
+    recTotAmt,
+    recExhRate,
     decimals
   )
 
-  const { totalExhGainLoss } = totalExchangeGainLoss(details, decimals)
+  // 3. unAllocTotAmt = totAmt - allocAmtHd (allocAmtHd = 0 in this scenario)
+  const unAllocTotAmt = calculateUnAllocTotAmt(totAmt, 0, decimals)
 
-  return {
-    unAllocTotAmt: unAllocTotAmt,
-    unAllocTotLocalAmt: unAllocTotLocalAmt,
-    exhGainLoss: totalExhGainLoss,
-  }
-}
-
-// ============================================================================
-//  HEADER CALCULATIONS
-// ============================================================================
-
-export const calculateUnallocatedAmounts = (
-  details: IArReceiptDt[],
-  totAmt: number,
-  exchangeRate: number,
-  decimals: IDecimal
-) => {
-  const { totalAllocAmt } = totalAllocationAmount(details, decimals)
-  const unAllocAmt = calculateSubtractionAmount(
-    totAmt,
-    totalAllocAmt,
-    decimals.amtDec
-  )
-  const unAllocLocalAmt = calculateMultiplierAmount(
-    unAllocAmt,
-    exchangeRate,
-    decimals.locAmtDec
-  )
-
-  return {
-    unAllocTotAmt: unAllocAmt,
-    unAllocTotLocalAmt: unAllocLocalAmt,
-  }
-}
-
-export const calculateTotAmtFromRecTotAmt = (
-  recTotLocalAmt: number,
-  exchangeRate: number,
-  decimals: IDecimal
-) => {
-  // Use division helper for totAmt calculation
-  const totAmt =
-    exchangeRate > 0
-      ? calculateDivisionAmount(recTotLocalAmt, exchangeRate, decimals.amtDec)
-      : 0
-
-  const totLocalAmt = recTotLocalAmt
-  const unAllocTotAmt = totAmt
-  const unAllocTotLocalAmt = totLocalAmt
-
-  return {
-    totAmt,
+  // 3.1 unAllocTotLocalAmt = totLocalAmt - allocLocalAmtHd (allocLocalAmtHd = 0 in this scenario)
+  const unAllocTotLocalAmt = calculateUnAllocTotLocalAmt(
     totLocalAmt,
+    0,
+    decimals
+  )
+
+  return {
+    totLocalAmt,
+    recTotAmt,
     recTotLocalAmt,
     unAllocTotAmt,
     unAllocTotLocalAmt,
   }
 }
 
-export const calculateReceiptTotalsFromTotAmt = (
-  totAmt: number,
-  exchangeRate: number,
+/**
+ * Scenario B: (currency != recCurrencyId) && (data_details.length == 0 || sum(allocAmt) == 0)
+ * => then pass recTotAmt to function 2.1
+ * => then pass recTotAmt to function 4 => 4.1 => 3 => 3.1
+ */
+export const handleScenarioB = (
+  recTotAmt: number,
+  recExhRate: number,
+  exhRate: number,
   decimals: IDecimal
 ) => {
-  // Use multiplier helper for local amount calculation
-  const totLocalAmt = calculateMultiplierAmount(
-    totAmt,
-    exchangeRate,
-    decimals.locAmtDec
+  // 2.1 recTotLocalAmt = recTotAmt * recExhRate
+  const recTotLocalAmt = calculateRecTotLocalAmt(
+    recTotAmt,
+    recExhRate,
+    decimals
   )
-  const unAllocTotAmt = totAmt
-  const unAllocTotLocalAmt = totLocalAmt
+
+  // 4. totAmt = recTotLocalAmt / exhRate
+  const totAmt = calculateTotAmtFromRecTotLocalAmt(
+    recTotLocalAmt,
+    exhRate,
+    decimals
+  )
+
+  // 4.1 totLocalAmt = recTotLocalAmt
+  const totLocalAmt = calculateTotLocalAmtFromRecTotLocalAmt(recTotLocalAmt)
+
+  // 3. unAllocTotAmt = totAmt - allocAmtHd (allocAmtHd = 0 in this scenario)
+  const unAllocTotAmt = calculateUnAllocTotAmt(totAmt, 0, decimals)
+
+  // 3.1 unAllocTotLocalAmt = totLocalAmt - allocLocalAmtHd (allocLocalAmtHd = 0 in this scenario)
+  const unAllocTotLocalAmt = calculateUnAllocTotLocalAmt(
+    totLocalAmt,
+    0,
+    decimals
+  )
 
   return {
+    totAmt,
     totLocalAmt,
-    recTotAmt: totAmt,
-    recTotLocalAmt: totLocalAmt,
+    recTotAmt,
+    recTotLocalAmt,
     unAllocTotAmt,
     unAllocTotLocalAmt,
   }
 }
 
-export const recalculateAllAmountsOnExchangeRateChange = (
+/**
+ * Scenario C: (data_details.length != 0 || sum(allocAmt) != 0)
+ * => then call i=>ii=> iii => iv => v => 3 => 3.1
+ */
+export const handleScenarioC = (
   details: IArReceiptDt[],
   totAmt: number,
-  unAllocTotAmt: number,
-  exchangeRate: number,
+  exhRate: number,
   decimals: IDecimal
 ) => {
-  // 1. Calculate header amounts using existing functions
-  const totLocalAmt = calculateMultiplierAmount(
-    totAmt,
-    exchangeRate,
-    decimals.locAmtDec
-  )
-  const unAllocTotLocalAmt = calculateMultiplierAmount(
-    unAllocTotAmt,
-    exchangeRate,
-    decimals.locAmtDec
-  )
+  // Process each detail: i => ii => iii
+  const updatedDetails = details.map((detail) => {
+    const allocAmt = Number(detail.allocAmt) || 0
+    const docExhRate = Number(detail.docExhRate) || 1
 
-  // 2. Recalculate all details with totLocalAmt, allocLocalAmt, docAllocLocalAmt, and centDiff
-  const updatedDetails = computeLocalAmountsAndExchangeGainLoss(
-    details,
-    exchangeRate,
-    decimals
-  ) as unknown as IArReceiptDt[]
+    // i. allocLocalAmt = allocAmt * ExhRate
+    const allocLocalAmt = calculateAllocLocalAmt(allocAmt, exhRate, decimals)
 
-  // 3. Calculate allocation amounts using existing function
-  const { totalAllocAmt, totalAllocLocalAmt } = totalAllocationAmount(
+    // ii. docAllocAmt = allocAmt & docAllocLocalAmt = docAllocAmt * docExhRate
+    const { docAllocAmt, docAllocLocalAmt } = calculateDocAllocAmounts(
+      allocAmt,
+      docExhRate,
+      decimals
+    )
+
+    // iii. exhGainLoss = docAllocLocalAmt - allocLocalAmt
+    const exhGainLoss = calculateExhGainLoss(
+      docAllocLocalAmt,
+      allocLocalAmt,
+      decimals
+    )
+
+    return {
+      ...detail,
+      allocLocalAmt,
+      docAllocAmt,
+      docAllocLocalAmt,
+      exhGainLoss,
+    }
+  })
+
+  // iv. sum of allocAmt & allocLocalAmt
+  const { sumAllocAmt, sumAllocLocalAmt } = calculateSumAllocationAmounts(
     updatedDetails,
     decimals
   )
 
-  // 4. Calculate exchange gain/loss using existing function
-  const { totalExhGainLoss } = totalExchangeGainLoss(updatedDetails, decimals)
+  // v. sum of exhGainLoss
+  const sumExhGainLoss = calculateSumExhGainLoss(updatedDetails, decimals)
+
+  // 3. unAllocTotAmt = totAmt - allocAmtHd
+  const unAllocTotAmt = calculateUnAllocTotAmt(totAmt, sumAllocAmt, decimals)
+
+  // 3.1 unAllocTotLocalAmt = totLocalAmt - allocLocalAmtHd
+  const totLocalAmt = calculateTotLocalAmt(totAmt, exhRate, decimals)
+  const unAllocTotLocalAmt = calculateUnAllocTotLocalAmt(
+    totLocalAmt,
+    sumAllocLocalAmt,
+    decimals
+  )
 
   return {
-    // Header amounts
-    totLocalAmt,
-    unAllocTotLocalAmt,
-
-    // Updated details
     updatedDetails,
-
-    // Sum calculations
-    totalAllocAmt,
-    totalAllocLocalAmt,
-    totalExhGainLoss,
+    sumAllocAmt,
+    sumAllocLocalAmt,
+    sumExhGainLoss,
+    unAllocTotAmt,
+    unAllocTotLocalAmt,
   }
 }
+
+/**
+ * Scenario D: Change the exhRate && (currency == recCurrencyId)
+ * => 1 => 2 => 2.2 => i=>ii=> iii => iv => v => 3 => 3.1
+ */
+export const handleScenarioD = (
+  details: IArReceiptDt[],
+  totAmt: number,
+  exhRate: number,
+  recExhRate: number,
+  decimals: IDecimal
+) => {
+  // 1. totLocalAmt = totAmt * exhRate
+  const totLocalAmt = calculateTotLocalAmt(totAmt, exhRate, decimals)
+
+  // 2. recTotAmt = totAmt
+  const recTotAmt = calculateRecTotAmt(totAmt)
+
+  // 2.2 recTotLocalAmt = recTotAmt * recExhRate
+  const recTotLocalAmt = calculateRecTotLocalAmt(
+    recTotAmt,
+    recExhRate,
+    decimals
+  )
+
+  // Process details: i => ii => iii
+  const updatedDetails = details.map((detail) => {
+    const allocAmt = Number(detail.allocAmt) || 0
+    const docExhRate = Number(detail.docExhRate) || 1
+
+    // i. allocLocalAmt = allocAmt * ExhRate
+    const allocLocalAmt = calculateAllocLocalAmt(allocAmt, exhRate, decimals)
+
+    // ii. docAllocAmt = allocAmt & docAllocLocalAmt = docAllocAmt * docExhRate
+    const { docAllocAmt, docAllocLocalAmt } = calculateDocAllocAmounts(
+      allocAmt,
+      docExhRate,
+      decimals
+    )
+
+    // iii. exhGainLoss = docAllocLocalAmt - allocLocalAmt
+    const exhGainLoss = calculateExhGainLoss(
+      docAllocLocalAmt,
+      allocLocalAmt,
+      decimals
+    )
+
+    return {
+      ...detail,
+      allocLocalAmt,
+      docAllocAmt,
+      docAllocLocalAmt,
+      exhGainLoss,
+    }
+  })
+
+  // iv. sum of allocAmt & allocLocalAmt
+  const { sumAllocAmt, sumAllocLocalAmt } = calculateSumAllocationAmounts(
+    updatedDetails,
+    decimals
+  )
+
+  // v. sum of exhGainLoss
+  const sumExhGainLoss = calculateSumExhGainLoss(updatedDetails, decimals)
+
+  // 3. unAllocTotAmt = totAmt - allocAmtHd
+  const unAllocTotAmt = calculateUnAllocTotAmt(totAmt, sumAllocAmt, decimals)
+
+  // 3.1 unAllocTotLocalAmt = totLocalAmt - allocLocalAmtHd
+  const unAllocTotLocalAmt = calculateUnAllocTotLocalAmt(
+    totLocalAmt,
+    sumAllocLocalAmt,
+    decimals
+  )
+
+  return {
+    totLocalAmt,
+    recTotAmt,
+    recTotLocalAmt,
+    updatedDetails,
+    sumAllocAmt,
+    sumAllocLocalAmt,
+    sumExhGainLoss,
+    unAllocTotAmt,
+    unAllocTotLocalAmt,
+  }
+}
+
+/**
+ * Scenario E: Change the recExhRate && (currency != recCurrencyId)
+ * => 2.1 => 4 => 4.1 => i=>ii=> iii => iv => v => 3 => 3.1
+ */
+export const handleScenarioE = (
+  details: IArReceiptDt[],
+  recTotAmt: number,
+  recExhRate: number,
+  exhRate: number,
+  decimals: IDecimal
+) => {
+  // 2.1 recTotLocalAmt = recTotAmt * recExhRate
+  const recTotLocalAmt = calculateRecTotLocalAmt(
+    recTotAmt,
+    recExhRate,
+    decimals
+  )
+
+  // 4. totAmt = recTotLocalAmt / exhRate
+  const totAmt = calculateTotAmtFromRecTotLocalAmt(
+    recTotLocalAmt,
+    exhRate,
+    decimals
+  )
+
+  // 4.1 totLocalAmt = recTotLocalAmt
+  const totLocalAmt = calculateTotLocalAmtFromRecTotLocalAmt(recTotLocalAmt)
+
+  // Process details: i => ii => iii
+  const updatedDetails = details.map((detail) => {
+    const allocAmt = Number(detail.allocAmt) || 0
+    const docExhRate = Number(detail.docExhRate) || 1
+
+    // i. allocLocalAmt = allocAmt * ExhRate
+    const allocLocalAmt = calculateAllocLocalAmt(allocAmt, exhRate, decimals)
+
+    // ii. docAllocAmt = allocAmt & docAllocLocalAmt = docAllocAmt * docExhRate
+    const { docAllocAmt, docAllocLocalAmt } = calculateDocAllocAmounts(
+      allocAmt,
+      docExhRate,
+      decimals
+    )
+
+    // iii. exhGainLoss = docAllocLocalAmt - allocLocalAmt
+    const exhGainLoss = calculateExhGainLoss(
+      docAllocLocalAmt,
+      allocLocalAmt,
+      decimals
+    )
+
+    return {
+      ...detail,
+      allocLocalAmt,
+      docAllocAmt,
+      docAllocLocalAmt,
+      exhGainLoss,
+    }
+  })
+
+  // iv. sum of allocAmt & allocLocalAmt
+  const { sumAllocAmt, sumAllocLocalAmt } = calculateSumAllocationAmounts(
+    updatedDetails,
+    decimals
+  )
+
+  // v. sum of exhGainLoss
+  const sumExhGainLoss = calculateSumExhGainLoss(updatedDetails, decimals)
+
+  // 3. unAllocTotAmt = totAmt - allocAmtHd
+  const unAllocTotAmt = calculateUnAllocTotAmt(totAmt, sumAllocAmt, decimals)
+
+  // 3.1 unAllocTotLocalAmt = totLocalAmt - allocLocalAmtHd
+  const unAllocTotLocalAmt = calculateUnAllocTotLocalAmt(
+    totLocalAmt,
+    sumAllocLocalAmt,
+    decimals
+  )
+
+  return {
+    totAmt,
+    totLocalAmt,
+    recTotAmt,
+    recTotLocalAmt,
+    updatedDetails,
+    sumAllocAmt,
+    sumAllocLocalAmt,
+    sumExhGainLoss,
+    unAllocTotAmt,
+    unAllocTotLocalAmt,
+  }
+}
+
+/**
+ * Scenario F: Change the currency && (currency != recCurrencyId)
+ * => totAmt = recTotLocalAmt / exhRate => 1 => 2 => 2.2 => pass all details allocAmt=0 > i=>ii=> iii => iv => v => 3 => 3.1
+ */
+export const handleScenarioF = (
+  details: IArReceiptDt[],
+  recTotLocalAmt: number,
+  exhRate: number,
+  recExhRate: number,
+  decimals: IDecimal
+) => {
+  // totAmt = recTotLocalAmt / exhRate
+  const totAmt = calculateTotAmtFromRecTotLocalAmt(
+    recTotLocalAmt,
+    exhRate,
+    decimals
+  )
+
+  // 1. totLocalAmt = totAmt * exhRate
+  const totLocalAmt = calculateTotLocalAmt(totAmt, exhRate, decimals)
+
+  // 2. recTotAmt = totAmt
+  const recTotAmt = calculateRecTotAmt(totAmt)
+
+  // 2.2 recTotLocalAmt = recTotAmt * recExhRate
+  const newRecTotLocalAmt = calculateRecTotLocalAmt(
+    recTotAmt,
+    recExhRate,
+    decimals
+  )
+
+  // Process details with allocAmt=0: i => ii => iii
+  const updatedDetails = details.map((detail) => {
+    const allocAmt = 0 // Set allocAmt to 0 as per specification
+    const docExhRate = Number(detail.docExhRate) || 1
+
+    // i. allocLocalAmt = allocAmt * ExhRate
+    const allocLocalAmt = calculateAllocLocalAmt(allocAmt, exhRate, decimals)
+
+    // ii. docAllocAmt = allocAmt & docAllocLocalAmt = docAllocAmt * docExhRate
+    const { docAllocAmt, docAllocLocalAmt } = calculateDocAllocAmounts(
+      allocAmt,
+      docExhRate,
+      decimals
+    )
+
+    // iii. exhGainLoss = docAllocLocalAmt - allocLocalAmt
+    const exhGainLoss = calculateExhGainLoss(
+      docAllocLocalAmt,
+      allocLocalAmt,
+      decimals
+    )
+
+    return {
+      ...detail,
+      allocAmt: 0, // Ensure allocAmt is set to 0
+      allocLocalAmt,
+      docAllocAmt,
+      docAllocLocalAmt,
+      exhGainLoss,
+    }
+  })
+
+  // iv. sum of allocAmt & allocLocalAmt
+  const { sumAllocAmt, sumAllocLocalAmt } = calculateSumAllocationAmounts(
+    updatedDetails,
+    decimals
+  )
+
+  // v. sum of exhGainLoss
+  const sumExhGainLoss = calculateSumExhGainLoss(updatedDetails, decimals)
+
+  // 3. unAllocTotAmt = totAmt - allocAmtHd
+  const unAllocTotAmt = calculateUnAllocTotAmt(totAmt, sumAllocAmt, decimals)
+
+  // 3.1 unAllocTotLocalAmt = totLocalAmt - allocLocalAmtHd
+  const unAllocTotLocalAmt = calculateUnAllocTotLocalAmt(
+    totLocalAmt,
+    sumAllocLocalAmt,
+    decimals
+  )
+
+  return {
+    totAmt,
+    totLocalAmt,
+    recTotAmt,
+    recTotLocalAmt: newRecTotLocalAmt,
+    updatedDetails,
+    sumAllocAmt,
+    sumAllocLocalAmt,
+    sumExhGainLoss,
+    unAllocTotAmt,
+    unAllocTotLocalAmt,
+  }
+}
+
+/**
+ * Scenario G: Change the recCurrency && (currency != recCurrencyId)
+ * => recTotAmt = totAmt * exhRate => 2.1 => 4 => 4.1 => pass all details allocAmt=0 => i=>ii=> iii => iv => v => 3 => 3.1
+ */
+export const handleScenarioG = (
+  details: IArReceiptDt[],
+  totAmt: number,
+  exhRate: number,
+  recExhRate: number,
+  decimals: IDecimal
+) => {
+  // recTotAmt = totAmt * exhRate
+  const recTotAmt = calculateTotLocalAmt(totAmt, exhRate, decimals)
+
+  // 2.1 recTotLocalAmt = recTotAmt * recExhRate
+  const recTotLocalAmt = calculateRecTotLocalAmt(
+    recTotAmt,
+    recExhRate,
+    decimals
+  )
+
+  // 4. totAmt = recTotLocalAmt / exhRate
+  const newTotAmt = calculateTotAmtFromRecTotLocalAmt(
+    recTotLocalAmt,
+    exhRate,
+    decimals
+  )
+
+  // 4.1 totLocalAmt = recTotLocalAmt
+  const totLocalAmt = calculateTotLocalAmtFromRecTotLocalAmt(recTotLocalAmt)
+
+  // Process details with allocAmt=0: i => ii => iii
+  const updatedDetails = details.map((detail) => {
+    const allocAmt = 0 // Set allocAmt to 0 as per specification
+    const docExhRate = Number(detail.docExhRate) || 1
+
+    // i. allocLocalAmt = allocAmt * ExhRate
+    const allocLocalAmt = calculateAllocLocalAmt(allocAmt, exhRate, decimals)
+
+    // ii. docAllocAmt = allocAmt & docAllocLocalAmt = docAllocAmt * docExhRate
+    const { docAllocAmt, docAllocLocalAmt } = calculateDocAllocAmounts(
+      allocAmt,
+      docExhRate,
+      decimals
+    )
+
+    // iii. exhGainLoss = docAllocLocalAmt - allocLocalAmt
+    const exhGainLoss = calculateExhGainLoss(
+      docAllocLocalAmt,
+      allocLocalAmt,
+      decimals
+    )
+
+    return {
+      ...detail,
+      allocAmt: 0, // Ensure allocAmt is set to 0
+      allocLocalAmt,
+      docAllocAmt,
+      docAllocLocalAmt,
+      exhGainLoss,
+    }
+  })
+
+  // iv. sum of allocAmt & allocLocalAmt
+  const { sumAllocAmt, sumAllocLocalAmt } = calculateSumAllocationAmounts(
+    updatedDetails,
+    decimals
+  )
+
+  // v. sum of exhGainLoss
+  const sumExhGainLoss = calculateSumExhGainLoss(updatedDetails, decimals)
+
+  // 3. unAllocTotAmt = totAmt - allocAmtHd
+  const unAllocTotAmt = calculateUnAllocTotAmt(newTotAmt, sumAllocAmt, decimals)
+
+  // 3.1 unAllocTotLocalAmt = totLocalAmt - allocLocalAmtHd
+  const unAllocTotLocalAmt = calculateUnAllocTotLocalAmt(
+    totLocalAmt,
+    sumAllocLocalAmt,
+    decimals
+  )
+
+  return {
+    totAmt: newTotAmt,
+    totLocalAmt,
+    recTotAmt,
+    recTotLocalAmt,
+    updatedDetails,
+    sumAllocAmt,
+    sumAllocLocalAmt,
+    sumExhGainLoss,
+    unAllocTotAmt,
+    unAllocTotLocalAmt,
+  }
+}
+
+// ============================================================================
+// UTILITY FUNCTIONS
+// ============================================================================
 
 export const validateAllocation = (details: IArReceiptDt[]): boolean => {
   return details.length > 0

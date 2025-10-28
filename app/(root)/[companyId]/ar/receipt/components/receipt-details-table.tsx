@@ -68,7 +68,16 @@ export default function ReceiptDetailsTable({
       const numValue = Number(displayValue) || 0
       const roundedValue = Number(numValue.toFixed(decimals))
       setDisplayValue(formatNumber(roundedValue, decimals))
-      onChange(roundedValue)
+
+      // Only trigger onChange if the value actually changed
+      if (roundedValue !== value) {
+        console.log(
+          `Value changed from ${value} to ${roundedValue} - triggering calculation`
+        )
+        onChange(roundedValue)
+      } else {
+        console.log(`Value unchanged (${value}) - skipping calculation`)
+      }
     }
 
     const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
@@ -146,16 +155,7 @@ export default function ReceiptDetailsTable({
         </div>
       ),
     },
-    {
-      accessorKey: "docBalLocalAmt",
-      header: "Balance Local Amt",
-      size: 140,
-      cell: ({ row }: { row: { original: IArReceiptDt } }) => (
-        <div className="text-right">
-          {formatNumber(row.original.docBalLocalAmt, locAmtDec)}
-        </div>
-      ),
-    },
+
     {
       accessorKey: "allocAmt",
       header: "Alloc Amt",
@@ -189,36 +189,34 @@ export default function ReceiptDetailsTable({
       },
     },
     {
+      accessorKey: "docBalLocalAmt",
+      header: "Balance Local Amt",
+      size: 140,
+      cell: ({ row }: { row: { original: IArReceiptDt } }) => (
+        <div className="text-right">
+          {formatNumber(row.original.docBalLocalAmt, locAmtDec)}
+        </div>
+      ),
+    },
+    {
       accessorKey: "allocLocalAmt",
       header: "Alloc Local Amt",
       size: 170,
-      cell: ({ row }: { row: { original: IArReceiptDt } }) => {
-        const docBalLocalAmt = row.original.docBalLocalAmt || 0
-        const isNegative = docBalLocalAmt < 0
-
-        return (
-          <EditableNumberInput
-            value={row.original.allocLocalAmt || 0}
-            decimals={locAmtDec}
-            onChange={(value) => {
-              let numValue = Number(value) || 0
-
-              if (isNegative && numValue > 0) numValue = -Math.abs(numValue)
-              if (!isNegative && numValue < 0) numValue = Math.abs(numValue)
-
-              if (isNegative) {
-                if (numValue < docBalLocalAmt) numValue = docBalLocalAmt
-              } else {
-                if (numValue > docBalLocalAmt) numValue = docBalLocalAmt
-              }
-
-              if (onCellEdit) {
-                onCellEdit(row.original.itemNo, "allocLocalAmt", numValue)
-              }
-            }}
-          />
-        )
-      },
+      cell: ({ row }: { row: { original: IArReceiptDt } }) => (
+        <div className="text-right">
+          {formatNumber(row.original.allocLocalAmt, locAmtDec)}
+        </div>
+      ),
+    },
+    {
+      accessorKey: "exhGainLoss",
+      header: "Exh Gain/Loss",
+      size: 100,
+      cell: ({ row }: { row: { original: IArReceiptDt } }) => (
+        <div className="text-right">
+          {formatNumber(row.original.exhGainLoss, amtDec)}
+        </div>
+      ),
     },
     {
       accessorKey: "docDueDate",
@@ -279,16 +277,7 @@ export default function ReceiptDetailsTable({
         </div>
       ),
     },
-    {
-      accessorKey: "exhGainLoss",
-      header: "Exh Gain/Loss",
-      size: 100,
-      cell: ({ row }: { row: { original: IArReceiptDt } }) => (
-        <div className="text-right">
-          {formatNumber(row.original.exhGainLoss, amtDec)}
-        </div>
-      ),
-    },
+
     {
       accessorKey: "transactionId",
       header: "Transaction",
@@ -341,10 +330,12 @@ export default function ReceiptDetailsTable({
         }
         showHeader={true}
         showActions={true}
-        hideEdit={isCancelled}
+        hideEdit={true}
         hideDelete={isCancelled}
         hideCheckbox={isCancelled}
         disableOnAccountExists={false}
+        maxHeight="380px"
+        pageSizeOption={10}
       />
     </div>
   )

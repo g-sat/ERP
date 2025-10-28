@@ -3,19 +3,17 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import {
-  allocateFullAmounts,
-  calculateItemAllocationSequence,
-  calculateUnallocatedAmounts,
-  totalAllocationAmount,
-  totalExchangeGainLoss,
+  handleScenarioC,
   validateAllocation as validateAllocationHelper,
 } from "@/helpers/ar-receipt-calculations"
 import { IArOutTransaction, IArReceiptDt } from "@/interfaces"
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
 import { ArReceiptDtSchemaType, ArReceiptHdSchemaType } from "@/schemas"
 import { useAuthStore } from "@/stores/auth-store"
+import { Plus, RotateCcw, Zap } from "lucide-react"
 import { UseFormReturn } from "react-hook-form"
-import { toast } from "sonner"
+
+// import { toast } from "sonner"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -49,6 +47,9 @@ export default function Main({
 
   const [showTransactionDialog, setShowTransactionDialog] = useState(false)
   const [isAllocated, setIsAllocated] = useState(false)
+  const [refreshKey, setRefreshKey] = useState(0)
+  const [dataDetails, setDataDetails] = useState<ArReceiptDtSchemaType[]>([])
+  const [lastScenarioCalled, setLastScenarioCalled] = useState<string>("None")
   const dialogParamsRef = useRef<{
     customerId: number
     currencyId: number
@@ -57,30 +58,20 @@ export default function Main({
 
   // Watch data_details for reactive updates
   const watchedDataDetails = form.watch("data_details")
-  const dataDetails = useMemo(() => {
-    return watchedDataDetails || []
+
+  // Update local state when form data changes
+  useEffect(() => {
+    console.log("DataDetails updated from form:", watchedDataDetails)
+    setDataDetails(watchedDataDetails || [])
   }, [watchedDataDetails])
 
-  // Calculate sum of allocAmt and allocLocalAmt using helper functions
-  const { totalAllocAmt, totalAllocLocalAmt } = totalAllocationAmount(
-    dataDetails as unknown as IArReceiptDt[],
-    decimals[0] || {
-      amtDec: 2,
-      locAmtDec: 2,
-      ctyAmtDec: 2,
-      priceDec: 2,
-      qtyDec: 2,
-      exhRateDec: 4,
-      dateFormat: "DD/MM/YYYY",
-      longDateFormat: "DD/MM/YYYY",
-    }
-  )
-
-  // Update header form with allocation totals
-  useEffect(() => {
-    form.setValue("allocTotAmt", totalAllocAmt, { shouldDirty: true })
-    form.setValue("allocTotLocalAmt", totalAllocLocalAmt, { shouldDirty: true })
-  }, [totalAllocAmt, totalAllocLocalAmt, form])
+  // Calculate sum of balAmt (balance amounts) from receipt details
+  const totalBalanceAmt = useMemo(() => {
+    return dataDetails.reduce((sum, detail) => {
+      const balAmt = Number((detail as unknown as IArReceiptDt).docBalAmt) || 0
+      return sum + balAmt
+    }, 0)
+  }, [dataDetails])
 
   // Clear dialog params when dialog closes
   useEffect(() => {
@@ -88,19 +79,6 @@ export default function Main({
       dialogParamsRef.current = null
     }
   }, [showTransactionDialog])
-
-  // Update header exhGainLoss when details change (SEQUENCE 6)
-  useEffect(() => {
-    if (dataDetails.length > 0) {
-      const totalExhGainLoss = totalExchangeGainLoss(
-        dataDetails as unknown as IArReceiptDt[],
-        decimals[0]
-      )
-      form.setValue("exhGainLoss", totalExhGainLoss.totalExhGainLoss)
-    } else {
-      form.setValue("exhGainLoss", 0)
-    }
-  }, [dataDetails, form, decimals])
 
   // Check allocation status when data details change
   useEffect(() => {
@@ -116,41 +94,17 @@ export default function Main({
     setIsAllocated(hasAllocations)
   }, [dataDetails])
 
-  // Watch currency fields for sync logic
-  const currencyId = form.watch("currencyId")
-  const recCurrencyId = form.watch("recCurrencyId")
-
-  // Sync totals when currencyId and recCurrencyId are the same
-  // But only when totAmt = 0 (full allocation), not during proportional allocation
-  // This effect only runs when currencies change, not when recTotAmt changes
-  useEffect(() => {
-    const currentTotAmt = form.getValues("totAmt") || 0
-    const currentRecTotAmt = form.getValues("recTotAmt") || 0
-    const currentRecTotLocalAmt = form.getValues("recTotLocalAmt") || 0
-
-    // Only sync when:
-    // 1. Both currencies are set and the same
-    // 2. totAmt is 0 (full allocation mode)
-    // 3. recTotAmt has a value
-    // 4. recTotAmt is different from current totAmt (avoid unnecessary updates)
-    if (
-      currencyId &&
-      recCurrencyId &&
-      currencyId === recCurrencyId &&
-      currentTotAmt === 0 &&
-      currentRecTotAmt > 0 &&
-      currentRecTotAmt !== currentTotAmt
-    ) {
-      form.setValue("totAmt", currentRecTotAmt, { shouldDirty: true })
-      form.setValue("totLocalAmt", currentRecTotLocalAmt, { shouldDirty: true })
-    }
-  }, [currencyId, recCurrencyId, form])
-
   const handleDelete = (itemNo: number) => {
     const currentData = form.getValues("data_details") || []
     const updatedData = currentData.filter((item) => item.itemNo !== itemNo)
     form.setValue("data_details", updatedData)
+    setDataDetails(updatedData)
     form.trigger("data_details")
+
+    // Clear allocation status if no data left
+    if (updatedData.length === 0) {
+      setIsAllocated(false)
+    }
   }
 
   const handleBulkDelete = (selectedItemNos: number[]) => {
@@ -159,365 +113,173 @@ export default function Main({
       (item) => !selectedItemNos.includes(item.itemNo)
     )
     form.setValue("data_details", updatedData)
+    setDataDetails(updatedData)
     form.trigger("data_details")
+
+    // Clear allocation status if no data left
+    if (updatedData.length === 0) {
+      setIsAllocated(false)
+    }
   }
 
   const handleDataReorder = (newData: IArReceiptDt[]) => {
     form.setValue("data_details", newData as unknown as ArReceiptDtSchemaType[])
+    setDataDetails(newData as unknown as ArReceiptDtSchemaType[])
   }
 
-  // ==================== SMALL REUSABLE FUNCTIONS (SEQUENCE) ====================
+  // ==================== HELPER FUNCTIONS ====================
 
-  // 1. Validation Function (SEQUENCE 1)
+  // Validation Function
   const validateAllocation = useCallback((data: ArReceiptDtSchemaType[]) => {
     if (!validateAllocationHelper(data as unknown as IArReceiptDt[])) {
-      toast.warning("No receipt details to allocate")
+      // toast.warning("No receipt details to allocate")
       return false
     }
     return true
   }, [])
 
-  // 4. Update Header Amounts (SEQUENCE 5 - only for full allocation when totAmt = 0)
-  const updateHeaderAmounts = useCallback(
-    (data: ArReceiptDtSchemaType[]) => {
-      const currentTotAmt = form.getValues("totAmt") || 0
-      const currentExhRate = form.getValues("exhRate") || 1
+  // Common function to call Scenario C and update form
+  const callScenarioC = useCallback(
+    (data: ArReceiptDtSchemaType[], source: string = "unknown") => {
+      const totAmt = form.getValues("totAmt") || 0
+      const exhRate = form.getValues("exhRate") || 1
 
-      const { totalAllocAmt, totalAllocLocalAmt } = totalAllocationAmount(
+      console.log(`🔄 SCENARIO C CALLED from: ${source}`)
+      console.log(`📊 Input data:`, {
+        totAmt,
+        exhRate,
+        dataLength: data.length,
+      })
+
+      // Update scenario tracking
+      setLastScenarioCalled(`Scenario C (${source})`)
+
+      // Call Scenario C
+      const result = handleScenarioC(
         data as unknown as IArReceiptDt[],
-        decimals[0]
-      )
-      const { totalExhGainLoss } = totalExchangeGainLoss(
-        data as unknown as IArReceiptDt[],
-        decimals[0]
-      )
-      const { unAllocTotAmt, unAllocTotLocalAmt } = calculateUnallocatedAmounts(
-        data as unknown as IArReceiptDt[],
-        totalAllocAmt,
-        currentExhRate,
-        decimals[0]
-      )
-
-      form.setValue("totAmt", totalAllocAmt)
-      form.setValue("totLocalAmt", totalAllocLocalAmt)
-      form.setValue("recTotAmt", totalAllocAmt)
-      form.setValue("recTotLocalAmt", totalAllocLocalAmt)
-      form.setValue("exhGainLoss", totalExhGainLoss)
-
-      if (currentTotAmt > 0) {
-        form.setValue("unAllocTotAmt", unAllocTotAmt)
-        form.setValue("unAllocTotLocalAmt", unAllocTotLocalAmt)
-      }
-    },
-    [form, decimals]
-  )
-
-  // Helper: Calculate unallocated amounts for totAmt > 0 (SEQUENCE 5) - Using helper function
-  const updateHeaderUnallocatedAmounts = useCallback(
-    (data: ArReceiptDtSchemaType[]) => {
-      const currentTotAmt = form.getValues("totAmt") || 0
-      const currentExhRate = form.getValues("exhRate") || 1
-
-      const { unAllocTotAmt, unAllocTotLocalAmt } = calculateUnallocatedAmounts(
-        data as unknown as IArReceiptDt[],
-        currentTotAmt,
-        currentExhRate,
+        totAmt,
+        exhRate,
         decimals[0] || { amtDec: 2, locAmtDec: 2 }
       )
 
-      form.setValue("unAllocTotAmt", unAllocTotAmt, { shouldDirty: true })
-      form.setValue("unAllocTotLocalAmt", unAllocTotLocalAmt, {
+      // Debug: Log the result to see what we're getting
+      console.log("✅ Scenario C result:", result)
+
+      // Update form with results
+      console.log("Setting form data_details to:", result.updatedDetails)
+      form.setValue(
+        "data_details",
+        result.updatedDetails as unknown as ArReceiptDtSchemaType[],
+        {
+          shouldDirty: true,
+          shouldTouch: true,
+        }
+      )
+
+      // Verify the form was updated
+      const updatedFormData = form.getValues("data_details")
+      console.log("Form data_details after setValue:", updatedFormData)
+
+      // Update local state as well
+      setDataDetails(
+        result.updatedDetails as unknown as ArReceiptDtSchemaType[]
+      )
+
+      // Update header amounts
+      form.setValue("unAllocTotAmt", result.unAllocTotAmt, {
         shouldDirty: true,
       })
+      form.setValue("unAllocTotLocalAmt", result.unAllocTotLocalAmt, {
+        shouldDirty: true,
+      })
+      form.setValue("allocTotAmt", result.sumAllocAmt, { shouldDirty: true })
+      form.setValue("allocTotLocalAmt", result.sumAllocLocalAmt, {
+        shouldDirty: true,
+      })
+      form.setValue("exhGainLoss", result.sumExhGainLoss, { shouldDirty: true })
+
+      // Trigger form validation and re-render
+      form.trigger("data_details")
+
+      // Force re-render by updating the form state
+      form.trigger()
+
+      // Force component re-render
+      setRefreshKey((prev) => prev + 1)
     },
     [form, decimals]
   )
 
-  // Handle cell edit for editable columns (FOLLOWS ALLOCATION CALCULATION LOGIC)
+  // Handle cell edit for allocAmt field - call Scenario C
   const handleCellEdit = useCallback(
     (itemNo: number, field: string, value: number) => {
-      const currentData = form.getValues("data_details") || []
-      const currentTotAmt = form.getValues("totAmt") || 0
-      const currentExhRate = form.getValues("exhRate") || 1
+      if (field !== "allocAmt") return
 
-      // SEQUENCE 1: Update the specific item
+      const currentData = form.getValues("data_details") || []
+
+      // Find the current value for this item
+      const currentItem = currentData.find((item) => item.itemNo === itemNo)
+      const currentValue = currentItem?.allocAmt || 0
+
+      console.log(`Cell edit - Item ${itemNo}: ${currentValue} → ${value}`)
+
+      // Only proceed if value actually changed
+      if (currentValue === value) {
+        console.log(`Value unchanged for item ${itemNo} - skipping calculation`)
+        return
+      }
+
+      // Update the specific item with new allocAmt
       const updatedData = currentData.map((item) => {
         if (item.itemNo === itemNo) {
-          // If editing allocAmt, recalculate all dependent fields
-          if (field === "allocAmt") {
-            const calculatedValues = calculateItemAllocationSequence(
-              item as unknown as IArReceiptDt,
-              value,
-              currentExhRate,
-              decimals[0] || { amtDec: 2, locAmtDec: 2, exhRateDec: 4 }
-            )
-            return {
-              ...item,
-              allocAmt: value,
-              allocLocalAmt: calculatedValues.allocLocalAmt,
-              docAllocAmt: calculatedValues.docAllocAmt,
-              docAllocLocalAmt: calculatedValues.docAllocLocalAmt,
-              centDiff: 0,
-              exhGainLoss: calculatedValues.exhGainLoss,
-            }
-          }
-          // If editing allocLocalAmt, just update it (allocAmt is primary)
-          else if (field === "allocLocalAmt") {
-            return { ...item, allocLocalAmt: value }
-          }
-          // For other fields, just update the field
-          else {
-            return { ...item, [field]: value }
+          return {
+            ...item,
+            allocAmt: value,
           }
         }
         return item
       })
 
-      // SEQUENCE 2: Calculate total allocation amounts
-      const { totalAllocAmt, totalAllocLocalAmt } = totalAllocationAmount(
-        updatedData as unknown as IArReceiptDt[],
-        decimals[0] || {
-          amtDec: 2,
-          locAmtDec: 2,
-          ctyAmtDec: 2,
-          priceDec: 2,
-          qtyDec: 2,
-          exhRateDec: 4,
-          dateFormat: "DD/MM/YYYY",
-          longDateFormat: "DD/MM/YYYY",
-        }
+      console.log(
+        `Value changed for item ${itemNo} - triggering Scenario C calculation`
       )
-
-      // Calculate total exchange gain/loss (sum of all centDiff)
-      const totalExhGainLoss = totalExchangeGainLoss(
-        updatedData as unknown as IArReceiptDt[],
-        decimals[0] || {
-          amtDec: 2,
-          locAmtDec: 2,
-          ctyAmtDec: 2,
-          priceDec: 2,
-          qtyDec: 2,
-          exhRateDec: 4,
-          dateFormat: "DD/MM/YYYY",
-          longDateFormat: "DD/MM/YYYY",
-        }
-      )
-
-      // SEQUENCE 3: Calculate unallocated amounts (pending allocation logic)
-      let unAllocTotAmt = 0
-      let unAllocTotLocalAmt = 0
-
-      if (currentTotAmt > 0) {
-        // Proportional allocation: unAllocTotAmt = totAmt - totalAllocAmt
-        unAllocTotAmt = currentTotAmt - totalAllocAmt
-        unAllocTotLocalAmt = unAllocTotAmt * currentExhRate
-      } else {
-        // Full allocation: totAmt = totalAllocAmt, unAllocTotAmt = 0
-        unAllocTotAmt = 0
-        unAllocTotLocalAmt = 0
-      }
-
-      // SEQUENCE 4: Update form values
-      form.setValue("data_details", updatedData, {
-        shouldDirty: true,
-        shouldTouch: true,
-      })
-
-      // Update header amounts based on allocation mode
-
-      // Full allocation mode: update all header amounts
-      form.setValue("totAmt", totalAllocAmt, { shouldDirty: true })
-      form.setValue("totLocalAmt", totalAllocLocalAmt, { shouldDirty: true })
-      form.setValue("recTotAmt", totalAllocAmt, { shouldDirty: true })
-      form.setValue("recTotLocalAmt", totalAllocLocalAmt, {
-        shouldDirty: true,
-      })
-
-      updateHeaderUnallocatedAmounts(updatedData)
-
-      // Update allocation totals in header
-      form.setValue("allocTotAmt", totalAllocAmt, { shouldDirty: true })
-      form.setValue("allocTotLocalAmt", totalAllocLocalAmt, {
-        shouldDirty: true,
-      })
-
-      // Update exchange gain/loss in header
-      form.setValue("exhGainLoss", totalExhGainLoss.totalExhGainLoss, {
-        shouldDirty: true,
-      })
-
-      form.trigger("data_details")
+      // Call Scenario C with updated data
+      callScenarioC(updatedData, "Cell Edit")
     },
-    [form, decimals, updateHeaderUnallocatedAmounts]
+    [form, callScenarioC]
   )
 
-  // ==================== HELPER FUNCTIONS ====================
+  // ==================== MAIN FUNCTIONS ====================
 
-  const resetHeaderAmounts = useCallback(() => {
-    form.setValue("totAmt", 0)
-    form.setValue("totLocalAmt", 0)
-    form.setValue("recTotAmt", 0)
-    form.setValue("recTotLocalAmt", 0)
-    form.setValue("unAllocTotAmt", 0)
-    form.setValue("unAllocTotLocalAmt", 0)
-    form.setValue("allocTotAmt", 0)
-    form.setValue("allocTotLocalAmt", 0)
-    form.setValue("exhGainLoss", 0)
-  }, [form])
-
-  // Auto Allocation Function for totAmt = 0 (Full Allocation)
-  const handleFullAllocation = useCallback(() => {
-    const currentData = form.getValues("data_details") || []
-
-    // SEQUENCE 1: Validation
-    if (!validateAllocation(currentData)) return
-
-    // SEQUENCE 2 & 3: Update allocAmt and calculate allocLocalAmt
-    const exchangeRate = form.getValues("exhRate") || 1
-    const updatedData = allocateFullAmounts(
-      currentData as unknown as IArReceiptDt[],
-      exchangeRate,
-      decimals[0] || { amtDec: 2, locAmtDec: 2 }
-    ) as unknown as ArReceiptDtSchemaType[]
-
-    // SEQUENCE 4: Update badges (calculated inside updateHeaderAmounts)
-    // SEQUENCE 5: Calculate detail items (docAllocAmt, etc - done in allocateFullAmounts)
-    // SEQUENCE 6: Update headers
-    form.setValue("data_details", updatedData, {
-      shouldDirty: true,
-      shouldTouch: true,
-    })
-    updateHeaderAmounts(updatedData)
-
-    setIsAllocated(true)
-    toast.success("Full allocation completed")
-  }, [form, validateAllocation, updateHeaderAmounts, decimals])
-
-  // Helper: Proportional allocation (Case 2: totAmt > 0) - Based on image example
-  const allocateProportionally = useCallback(
-    (
-      data: ArReceiptDtSchemaType[],
-      totAmt: number,
-      exhRate: number,
-      _totLocalAmt: number,
-      _usePositive: boolean
-    ) => {
-      // Step 1: Sort by negative amounts first (prioritize credit notes/negative balances)
-      const sortedData = [...data].sort((a, b) => {
-        const aBal = a.docBalAmt || 0
-        const bBal = b.docBalAmt || 0
-
-        // Negative amounts first, then positive amounts
-        if (aBal < 0 && bBal >= 0) return -1
-        if (aBal >= 0 && bBal < 0) return 1
-        return 0
-      })
-
-      // Step 2: Process allocation sequentially with pending allocation amount
-      let pendingAllocationAmt = totAmt
-      const updatedData: ArReceiptDtSchemaType[] = []
-
-      for (const item of sortedData) {
-        const docBalAmt = item.docBalAmt || 0
-        let allocAmt = 0
-
-        if (docBalAmt < 0) {
-          // For negative amounts (credit notes): pendingAmt = pendingAmt - (-amount) = pendingAmt + amount
-          // This means we "add back" the credit amount to our available allocation
-          pendingAllocationAmt = pendingAllocationAmt - docBalAmt // Subtracting negative = adding
-          allocAmt = docBalAmt // Allocate the full negative amount
-        } else if (docBalAmt > 0) {
-          // For positive amounts (invoices): pendingAmt = pendingAmt - amount
-          // This means we "subtract" the invoice amount from our available allocation
-          if (pendingAllocationAmt >= docBalAmt) {
-            // We have enough pending amount to cover this invoice
-            pendingAllocationAmt = pendingAllocationAmt - docBalAmt
-            allocAmt = docBalAmt // Allocate the full positive amount
-          } else {
-            // We don't have enough pending amount, allocate what we have
-            allocAmt = pendingAllocationAmt
-            pendingAllocationAmt = 0
-          }
-        }
-
-        // Use the reusable calculation function
-        const calculatedValues = calculateItemAllocationSequence(
-          item as unknown as IArReceiptDt,
-          allocAmt,
-          exhRate,
-          decimals[0] || { amtDec: 2, locAmtDec: 2 }
-        )
-
-        updatedData.push({
-          ...item,
-          allocAmt,
-          allocLocalAmt: calculatedValues.allocLocalAmt,
-          docAllocAmt: calculatedValues.docAllocAmt,
-          docAllocLocalAmt: calculatedValues.docAllocLocalAmt,
-          centDiff: calculatedValues.centdiff,
-          exhGainLoss: calculatedValues.exhGainLoss,
-        })
-      }
-
-      return updatedData
-    },
-    [decimals]
-  )
-
-  // Auto Allocation Function for totAmt > 0 (Proportional Allocation)
-  const handleProportionalAllocation = useCallback(() => {
-    const currentData = form.getValues("data_details") || []
-    const totAmt = form.getValues("totAmt") || 0
-    const currentExhRate = form.getValues("exhRate") || 1
-
-    // SEQUENCE 1: Validation
-    if (!validateAllocation(currentData)) return
-
-    // SEQUENCE 2 & 3: Update allocAmt and calculate allocLocalAmt using new logic
-    const updatedData = allocateProportionally(
-      currentData,
-      totAmt,
-      currentExhRate,
-      0, // totLocalAmt not used in new logic
-      false // usePositive not used in new logic
-    )
-
-    // SEQUENCE 4: Calculate unallocated amounts only (no header updates)
-    updateHeaderUnallocatedAmounts(updatedData)
-
-    // Update unallocated amounts in form
-    // SEQUENCE 5: Update data details only
-    form.setValue("data_details", updatedData, {
-      shouldDirty: true,
-      shouldTouch: true,
-    })
-
-    setIsAllocated(true)
-    toast.success("Proportional allocation completed")
-  }, [
-    form,
-    validateAllocation,
-    allocateProportionally,
-    updateHeaderUnallocatedAmounts,
-  ])
-
-  // Main Auto Allocation Function (Routes to appropriate function)
+  // 1.1 Auto Allocation Button - calls Scenario C
   const handleAutoAllocation = useCallback(() => {
-    const totAmt = form.getValues("totAmt") || 0
+    const currentData = form.getValues("data_details") || []
 
-    if (totAmt === 0) {
-      handleFullAllocation()
-    } else {
-      handleProportionalAllocation()
-    }
-  }, [handleFullAllocation, handleProportionalAllocation, form])
+    // Validation
+    if (!validateAllocation(currentData)) return
 
-  // Reset Allocation Function
+    // For auto allocation, we need to set allocAmt to docBalAmt for each item
+    const updatedData = currentData.map((item) => ({
+      ...item,
+      allocAmt: item.docBalAmt || 0, // Set allocAmt to the balance amount
+    }))
+
+    console.log("Auto allocation - original data:", currentData)
+    console.log("Auto allocation - updated data with allocAmt:", updatedData)
+
+    // Call Scenario C with updated data
+    callScenarioC(updatedData, "Auto Allocation")
+
+    setIsAllocated(true)
+    // toast.success("Auto allocation completed")
+  }, [form, validateAllocation, callScenarioC])
+
+  // 1.2 Reset Button - pass zero amounts and call Scenario C
   const handleResetAllocation = useCallback(() => {
     const currentData = form.getValues("data_details") || []
 
     if (currentData.length === 0) {
-      toast.warning("No receipt details to reset")
+      // toast.warning("No receipt details to reset")
       return
     }
 
@@ -525,34 +287,24 @@ export default function Main({
     const updatedData = currentData.map((item) => ({
       ...item,
       allocAmt: 0,
-      allocLocalAmt: 0,
-      docAllocAmt: 0,
-      docAllocLocalAmt: 0,
-      centDiff: 0,
-      exhGainLoss: 0,
     }))
 
-    form.setValue("data_details", updatedData, {
-      shouldDirty: true,
-      shouldTouch: true,
-    })
-
-    // Reset all header amounts
-    resetHeaderAmounts()
+    // Call Scenario C with reset data
+    callScenarioC(updatedData, "Reset Allocation")
 
     setIsAllocated(false)
-    toast.success(
-      `Reset ${currentData.length} allocation(s) and all header amounts (including unallocated amounts) to 0`
-    )
-  }, [form, resetHeaderAmounts])
+    // toast.success(`Reset ${currentData.length} allocation(s)`)
+  }, [form, callScenarioC])
+
+  // Check if customer is selected
+  const customerId = form.watch("customerId")
+  const currencyId = form.watch("currencyId")
+  const accountDate = form.watch("accountDate")
+  const isCustomerSelected = customerId && customerId > 0
 
   const handleSelectTransaction = useCallback(() => {
-    const customerId = form.getValues("customerId")
-    const currencyId = form.getValues("currencyId")
-    const accountDate = form.getValues("accountDate")
-
     if (!customerId || !currencyId || !accountDate) {
-      toast.warning("Please select Customer, Currency, Account Date first")
+      // toast.warning("Please select Customer, Currency, Account Date first")
       return
     }
 
@@ -563,7 +315,7 @@ export default function Main({
     }
 
     setShowTransactionDialog(true)
-  }, [form])
+  }, [customerId, currencyId, accountDate])
 
   const handleAddSelectedTransactions = useCallback(
     (transactions: IArOutTransaction[]) => {
@@ -609,12 +361,15 @@ export default function Main({
         shouldTouch: true,
       })
 
+      // Update local state
+      setDataDetails(updatedData)
+
       // Force form validation and re-render
       form.trigger("data_details")
 
       // Close the dialog
       setShowTransactionDialog(false)
-      toast.success(`Added ${transactions.length} transaction(s)`)
+      // toast.success(`Added ${transactions.length} transaction(s)`)
     },
     [form, companyId]
   )
@@ -629,17 +384,33 @@ export default function Main({
         required={required}
         companyId={companyId}
         isCancelled={isCancelled}
+        dataDetails={dataDetails}
+        onScenarioCalled={setLastScenarioCalled}
       />
 
       <div className="px-2 pt-1">
         {/* Control Row */}
-        <div className="mb-2 flex items-center gap-2">
-          <Button onClick={handleSelectTransaction}>Select Transaction</Button>
+        <div className="flex items-center gap-1">
+          <Button
+            onClick={handleSelectTransaction}
+            disabled={!isCustomerSelected}
+            className={
+              !isCustomerSelected ? "cursor-not-allowed opacity-50" : ""
+            }
+          >
+            <Plus className="h-4 w-4" />
+            Select Transaction
+          </Button>
           <Button
             onClick={handleAutoAllocation}
-            disabled={isAllocated}
-            className={isAllocated ? "cursor-not-allowed opacity-50" : ""}
+            disabled={isAllocated || dataDetails.length === 0}
+            className={
+              isAllocated || dataDetails.length === 0
+                ? "cursor-not-allowed opacity-50"
+                : ""
+            }
           >
+            <Zap className="h-4 w-4" />
             Auto Allocation
           </Button>
           <Button
@@ -648,22 +419,54 @@ export default function Main({
             disabled={!isAllocated}
             className={!isAllocated ? "cursor-not-allowed opacity-50" : ""}
           >
+            <RotateCcw className="h-4 w-4" />
             Reset Allocation
           </Button>
           <Badge
             variant="secondary"
             className="border-blue-200 bg-blue-100 px-3 py-1 text-sm font-medium text-blue-800"
           >
-            Total Alloc: {totalAllocAmt.toFixed(amtDec)}
+            Total Alloc: {(form.getValues("allocTotAmt") || 0).toFixed(amtDec)}
           </Badge>
           <Badge
             variant="outline"
             className="border-green-200 bg-green-50 px-3 py-1 text-sm font-medium text-green-800"
           >
-            Total Local: {totalAllocLocalAmt.toFixed(locAmtDec)}
+            Total Local:{" "}
+            {(form.getValues("allocTotLocalAmt") || 0).toFixed(locAmtDec)}
+          </Badge>
+          <Badge
+            variant="outline"
+            className="border-orange-200 bg-orange-50 px-3 py-1 text-sm font-medium text-orange-800"
+          >
+            Balance Amt: {totalBalanceAmt.toFixed(amtDec)}
           </Badge>
         </div>
+        {/* Debug: Show current data details */}
+        {process.env.NODE_ENV === "development" && (
+          <div className="mt-2 bg-gray-100 p-2 text-xs">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <strong>Debug Info:</strong>
+                <br />
+                <strong>Data Details Count:</strong> {dataDetails.length}
+                <br />
+                <strong>Last Scenario Called:</strong> {lastScenarioCalled}
+                <br />
+                <strong>Is Allocated:</strong> {isAllocated ? "Yes" : "No"}
+              </div>
+              <div>
+                <strong>First Item:</strong>
+                <br />
+                <pre className="max-h-20 overflow-auto text-xs">
+                  {JSON.stringify(dataDetails[0] || {}, null, 2)}
+                </pre>
+              </div>
+            </div>
+          </div>
+        )}
         <ReceiptDetailsTable
+          key={refreshKey}
           data={(dataDetails as unknown as IArReceiptDt[]) || []}
           visible={visible}
           onDelete={handleDelete}
