@@ -8,8 +8,6 @@ import { FormProvider, useForm } from "react-hook-form"
 import { ArInvoice } from "@/lib/api-routes"
 import { ARTransactionId, ModuleId, TableName } from "@/lib/utils"
 import { useGetWithDatesAndPagination } from "@/hooks/use-common"
-import { useUserSettingDefaults } from "@/hooks/use-settings"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { CustomDateNew } from "@/components/custom/custom-date-new"
@@ -19,12 +17,14 @@ export interface InvoiceTableProps {
   onInvoiceSelect: (selectedInvoice: IArInvoiceHd | undefined) => void
   onFilterChange: (filters: IArInvoiceFilter) => void
   initialFilters?: IArInvoiceFilter
+  pageSize: number
 }
 
 export default function InvoiceTable({
   onInvoiceSelect,
   onFilterChange,
   initialFilters,
+  pageSize: _pageSize,
 }: InvoiceTableProps) {
   const { decimals } = useAuthStore()
   const amtDec = decimals[0]?.amtDec || 2
@@ -32,7 +32,6 @@ export default function InvoiceTable({
   const exhRateDec = decimals[0]?.exhRateDec || 9
   const dateFormat = decimals[0]?.dateFormat || "dd/MM/yyyy"
   //const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
-  const { defaults } = useUserSettingDefaults()
 
   const moduleId = ModuleId.ar
   const transactionId = ARTransactionId.invoice
@@ -48,9 +47,7 @@ export default function InvoiceTable({
 
   const [searchQuery] = useState("")
   const [currentPage, setCurrentPage] = useState(1)
-  const [pageSize, setPageSize] = useState(
-    defaults?.common?.trnGridTotalRecords || 100
-  )
+  const [pageSize, setPageSize] = useState(_pageSize)
 
   // State to track if search has been clicked
   const [hasSearched, setHasSearched] = useState(false)
@@ -127,24 +124,46 @@ export default function InvoiceTable({
         const payAmt = row.original.payAmt ?? 0
         const status = getPaymentStatus(balAmt, payAmt)
 
-        const getStatusVariant = (status: string) => {
+        const getStatusStyle = (status: string) => {
           switch (status) {
             case "Fully Paid":
-              return "default"
+              return "bg-green-100 text-green-800"
             case "Partially Paid":
-              return "secondary"
+              return "bg-orange-100 text-orange-800"
             case "Not Paid":
-              return "destructive"
+              return "bg-red-100 text-red-800"
             case "Cancelled":
-              return "outline"
+              return "bg-gray-100 text-gray-800"
             default:
-              return "outline"
+              return "bg-gray-100 text-gray-800"
+          }
+        }
+
+        const getStatusDot = (status: string) => {
+          switch (status) {
+            case "Fully Paid":
+              return "bg-green-400"
+            case "Partially Paid":
+              return "bg-orange-400"
+            case "Not Paid":
+              return "bg-red-400"
+            case "Cancelled":
+              return "bg-gray-400"
+            default:
+              return "bg-gray-400"
           }
         }
 
         return (
           <div className="flex justify-center">
-            <Badge variant={getStatusVariant(status)}>{status || "-"}</Badge>
+            <span
+              className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${getStatusStyle(status)}`}
+            >
+              <span
+                className={`mr-1 h-2 w-2 rounded-full ${getStatusDot(status)}`}
+              ></span>
+              {status || "-"}
+            </span>
           </div>
         )
       },

@@ -29,6 +29,7 @@ import { clientDateFormat, parseDate } from "@/lib/date-utils"
 import { ARTransactionId, ModuleId } from "@/lib/utils"
 import { useDeleteWithRemarks, usePersist } from "@/hooks/use-common"
 import { useGetRequiredFields, useGetVisibleFields } from "@/hooks/use-lookup"
+import { useUserSettingDefaults } from "@/hooks/use-settings"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
@@ -57,6 +58,8 @@ export default function InvoicePage() {
   const transactionId = ARTransactionId.invoice
 
   const { hasPermission } = usePermissionStore()
+  const { defaults } = useUserSettingDefaults()
+  const pageSize = defaults?.common?.trnGridTotalRecords || 100
 
   const canView = hasPermission(moduleId, transactionId, "isRead")
   const canEdit = hasPermission(moduleId, transactionId, "isEdit")
@@ -83,7 +86,7 @@ export default function InvoicePage() {
     sortBy: "invoiceNo",
     sortOrder: "asc",
     pageNumber: 1,
-    pageSize: 15,
+    pageSize: pageSize,
   })
 
   const { data: visibleFieldsData } = useGetVisibleFields(
@@ -1311,6 +1314,7 @@ export default function InvoicePage() {
               onInvoiceSelect={handleInvoiceSelect}
               onFilterChange={handleFilterChange}
               initialFilters={filters}
+              pageSize={pageSize || 50}
             />
           </div>
         </DialogContent>

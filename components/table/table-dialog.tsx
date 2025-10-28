@@ -175,8 +175,7 @@ export function DialogDataTable<T>({
   const tableColumns: ColumnDef<T>[] = [...columns]
 
   // Determine if we're using server-side pagination
-  const isServerSidePagination =
-    totalRecords !== undefined && totalRecords !== data.length
+  const isServerSidePagination = serverSidePagination
 
   const table = useReactTable({
     data,
@@ -451,44 +450,43 @@ export function DialogDataTable<T>({
                   })}
 
                   {/* Add empty rows to fill the remaining space based on page size */}
-                  {!isServerSidePagination &&
-                    Array.from({
-                      length: Math.min(
-                        Math.max(0, pageSize - table.getRowModel().rows.length),
-                        10 // Limit to maximum 10 empty rows to prevent excessive height
-                      ),
-                    }).map((_, index) => (
-                      <TableRow key={`empty-${index}`} className="h-7">
-                        {table.getAllLeafColumns().map((column, cellIndex) => {
-                          const isActions = column.id === "actions"
-                          const isFirstColumn = cellIndex === 0
+                  {Array.from({
+                    length: Math.min(
+                      Math.max(0, pageSize - table.getRowModel().rows.length),
+                      10 // Limit to maximum 10 empty rows to prevent excessive height
+                    ),
+                  }).map((_, index) => (
+                    <TableRow key={`empty-${index}`} className="h-7">
+                      {table.getAllLeafColumns().map((column, cellIndex) => {
+                        const isActions = column.id === "actions"
+                        const isFirstColumn = cellIndex === 0
 
-                          return (
-                            <TableCell
-                              key={`empty-${index}-${column.id}`}
-                              className={`px-2 py-1 ${
+                        return (
+                          <TableCell
+                            key={`empty-${index}-${column.id}`}
+                            className={`px-2 py-1 ${
+                              isFirstColumn || isActions
+                                ? "bg-background sticky left-0 z-10"
+                                : ""
+                            }`}
+                            style={{
+                              width: `${column.getSize()}px`,
+                              minWidth: `${column.getSize()}px`,
+                              maxWidth: `${column.getSize()}px`,
+                              position:
                                 isFirstColumn || isActions
-                                  ? "bg-background sticky left-0 z-10"
-                                  : ""
-                              }`}
-                              style={{
-                                width: `${column.getSize()}px`,
-                                minWidth: `${column.getSize()}px`,
-                                maxWidth: `${column.getSize()}px`,
-                                position:
-                                  isFirstColumn || isActions
-                                    ? "sticky"
-                                    : "relative",
-                                left: isFirstColumn || isActions ? 0 : "auto",
-                                zIndex: isFirstColumn || isActions ? 10 : 1,
-                              }}
-                            >
-                              {/* Empty cell content */}
-                            </TableCell>
-                          )
-                        })}
-                      </TableRow>
-                    ))}
+                                  ? "sticky"
+                                  : "relative",
+                              left: isFirstColumn || isActions ? 0 : "auto",
+                              zIndex: isFirstColumn || isActions ? 10 : 1,
+                            }}
+                          >
+                            {/* Empty cell content */}
+                          </TableCell>
+                        )
+                      })}
+                    </TableRow>
+                  ))}
 
                   {/* Show empty state or loading message when no data */}
                   {table.getRowModel().rows.length === 0 && (
