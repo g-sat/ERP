@@ -7,7 +7,9 @@ import { FormProvider, useForm } from "react-hook-form"
 
 import { ArInvoice } from "@/lib/api-routes"
 import { ARTransactionId, ModuleId, TableName } from "@/lib/utils"
-import { useGetWithDates } from "@/hooks/use-common"
+import { useGetWithDatesAndPagination } from "@/hooks/use-common"
+import { useUserSettingDefaults } from "@/hooks/use-settings"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { CustomDateNew } from "@/components/custom/custom-date-new"
@@ -30,6 +32,7 @@ export default function InvoiceTable({
   const exhRateDec = decimals[0]?.exhRateDec || 9
   const dateFormat = decimals[0]?.dateFormat || "dd/MM/yyyy"
   //const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
+  const { defaults } = useUserSettingDefaults()
 
   const moduleId = ModuleId.ar
   const transactionId = ARTransactionId.invoice
@@ -44,8 +47,10 @@ export default function InvoiceTable({
   })
 
   const [searchQuery] = useState("")
-  const [currentPage] = useState(1)
-  const [pageSize] = useState(10)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize, setPageSize] = useState(
+    defaults?.common?.trnGridTotalRecords || 100
+  )
 
   // State to track if search has been clicked
   const [hasSearched, setHasSearched] = useState(false)
@@ -73,17 +78,20 @@ export default function InvoiceTable({
     isLoading: isLoadingInvoices,
     isRefetching: isRefetchingInvoices,
     refetch: refetchInvoices,
-  } = useGetWithDates<IArInvoiceHd>(
+  } = useGetWithDatesAndPagination<IArInvoiceHd>(
     `${ArInvoice.get}`,
     TableName.arInvoice,
     searchQuery,
     searchStartDate,
     searchEndDate,
+    currentPage,
+    pageSize,
     undefined, // options
     hasSearched || Boolean(searchStartDate && searchEndDate) // enabled: If searched OR dates already set
   )
 
   const data = invoicesResponse?.data || []
+  const totalRecords = invoicesResponse?.totalRecords || data.length
   const isLoading = isLoadingInvoices || isRefetchingInvoices
 
   const formatNumber = (value: number, decimals: number) => {
@@ -93,10 +101,53 @@ export default function InvoiceTable({
     })
   }
 
+  const getPaymentStatus = (balAmt: number, payAmt: number) => {
+    if (balAmt === 0 && payAmt > 0) {
+      return "Fully Paid"
+    } else if (balAmt > 0 && payAmt > 0) {
+      return "Partially Paid"
+    } else if (balAmt > 0 && payAmt === 0) {
+      return "Not Paid"
+    } else if (balAmt === 0 && payAmt === 0) {
+      return "Cancelled"
+    }
+    return ""
+  }
+
   const columns: ColumnDef<IArInvoiceHd>[] = [
     {
       accessorKey: "invoiceNo",
       header: "Invoice No",
+    },
+    {
+      accessorKey: "paymentStatus",
+      header: "Payment Status",
+      cell: ({ row }) => {
+        const balAmt = row.original.balAmt ?? 0
+        const payAmt = row.original.payAmt ?? 0
+        const status = getPaymentStatus(balAmt, payAmt)
+
+        const getStatusVariant = (status: string) => {
+          switch (status) {
+            case "Fully Paid":
+              return "default"
+            case "Partially Paid":
+              return "secondary"
+            case "Not Paid":
+              return "destructive"
+            case "Cancelled":
+              return "outline"
+            default:
+              return "outline"
+          }
+        }
+
+        return (
+          <div className="flex justify-center">
+            <Badge variant={getStatusVariant(status)}>{status || "-"}</Badge>
+          </div>
+        )
+      },
     },
     {
       accessorKey: "referenceNo",
@@ -246,6 +297,7 @@ export default function InvoiceTable({
         </div>
       ),
     },
+
     {
       accessorKey: "remarks",
       header: "Remarks",
@@ -304,6 +356,7 @@ export default function InvoiceTable({
     setSearchStartDate(startDate?.toString())
     setSearchEndDate(endDate?.toString())
     setHasSearched(true) // Enable the query
+    setCurrentPage(1) // Reset to first page when searching
 
     const newFilters: IArInvoiceFilter = {
       startDate: startDate,
@@ -311,10 +364,45 @@ export default function InvoiceTable({
       search: searchQuery,
       sortBy: "invoiceNo",
       sortOrder: "asc",
-      pageNumber: currentPage,
+      pageNumber: 1, // Always start from page 1 when searching
       pageSize: pageSize,
     }
     onFilterChange(newFilters)
+  }
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page)
+    // The query will automatically refetch due to query key change
+    if (onFilterChange) {
+      const newFilters: IArInvoiceFilter = {
+        startDate: form.getValues("startDate"),
+        endDate: form.getValues("endDate"),
+        search: searchQuery,
+        sortBy: "invoiceNo",
+        sortOrder: "asc",
+        pageNumber: page,
+        pageSize: pageSize,
+      }
+      onFilterChange(newFilters)
+    }
+  }
+
+  const handlePageSizeChange = (size: number) => {
+    setPageSize(size)
+    setCurrentPage(1) // Reset to first page when changing page size
+    // The query will automatically refetch due to query key change
+    if (onFilterChange) {
+      const newFilters: IArInvoiceFilter = {
+        startDate: form.getValues("startDate"),
+        endDate: form.getValues("endDate"),
+        search: searchQuery,
+        sortBy: "invoiceNo",
+        sortOrder: "asc",
+        pageNumber: 1,
+        pageSize: size,
+      }
+      onFilterChange(newFilters)
+    }
   }
 
   const handleDialogFilterChange = (filters: {
@@ -379,6 +467,13 @@ export default function InvoiceTable({
         onRefresh={() => refetchInvoices()}
         onFilterChange={handleDialogFilterChange}
         onRowSelect={(row) => onInvoiceSelect(row || undefined)}
+        // Paging props
+        onPageChange={handlePageChange}
+        onPageSizeChange={handlePageSizeChange}
+        currentPage={currentPage}
+        pageSize={pageSize}
+        totalRecords={totalRecords}
+        serverSidePagination={true}
       />
     </div>
   )

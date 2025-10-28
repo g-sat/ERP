@@ -10,7 +10,8 @@ import { useQueryClient } from "@tanstack/react-query"
 import { getById } from "@/lib/api-client"
 import { Country } from "@/lib/api-routes"
 import { MasterTransactionId, ModuleId } from "@/lib/utils"
-import { useDelete, useGet, usePersist } from "@/hooks/use-common"
+import { useDelete, useGetWithPagination, usePersist } from "@/hooks/use-common"
+import { useUserSettingDefaults } from "@/hooks/use-settings"
 import {
   Dialog,
   DialogContent,
@@ -48,20 +49,51 @@ export default function CountryPage() {
     sortOrder?: string
   }>({})
 
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize, setPageSize] = useState(50)
+
+  // Get user setting defaults
+  const { defaults } = useUserSettingDefaults()
+
+  // Update page size when defaults change
+  useEffect(() => {
+    if (defaults?.common?.masterGridTotalRecords) {
+      setPageSize(defaults.common.masterGridTotalRecords)
+    }
+  }, [defaults?.common?.masterGridTotalRecords])
+
   // Filter handler wrapper
   const handleFilterChange = useCallback(
     (newFilters: { search?: string; sortOrder?: string }) => {
       setFilters(newFilters)
+      setCurrentPage(1) // Reset to first page when filtering
     },
     []
   )
+
+  // Pagination handlers
+  const handlePageChange = useCallback((page: number) => {
+    setCurrentPage(page)
+  }, [])
+
+  const handlePageSizeChange = useCallback((size: number) => {
+    setPageSize(size)
+    setCurrentPage(1)
+  }, [])
 
   // page.tsx
   const {
     data: countriesResponse,
     refetch,
     isLoading,
-  } = useGet<ICountry>(`${Country.get}`, "countries", filters.search)
+  } = useGetWithPagination<ICountry>(
+    `${Country.get}`,
+    "countries",
+    filters.search,
+    currentPage,
+    pageSize
+  )
 
   // Destructure with fallback values
   const {
@@ -314,7 +346,7 @@ export default function CountryPage() {
         </LockSkeleton>
       ) : countriesResult ? (
         <CountriesTable
-          data={filters.search ? [] : countriesdata || []}
+          data={countriesdata || []}
           isLoading={isLoading}
           totalRecords={totalRecords}
           onSelect={canView ? handleViewCountry : undefined}
@@ -323,6 +355,11 @@ export default function CountryPage() {
           onDelete={canDelete ? handleDeleteCountry : undefined}
           onRefresh={handleRefresh}
           onFilterChange={handleFilterChange}
+          onPageChange={handlePageChange}
+          onPageSizeChange={handlePageSizeChange}
+          currentPage={currentPage}
+          pageSize={pageSize}
+          serverSidePagination={true}
           moduleId={moduleId}
           transactionId={transactionId}
           // Pass permissions to table

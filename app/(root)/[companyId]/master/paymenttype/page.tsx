@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { ApiResponse } from "@/interfaces/auth"
 import { IPaymentType, IPaymentTypeFilter } from "@/interfaces/paymenttype"
 import { PaymentTypeSchemaType } from "@/schemas/paymenttype"
@@ -10,7 +10,8 @@ import { useQueryClient } from "@tanstack/react-query"
 import { getById } from "@/lib/api-client"
 import { PaymentType } from "@/lib/api-routes"
 import { MasterTransactionId, ModuleId } from "@/lib/utils"
-import { useDelete, useGet, usePersist } from "@/hooks/use-common"
+import { useDelete, useGetWithPagination, usePersist } from "@/hooks/use-common"
+import { useUserSettingDefaults } from "@/hooks/use-settings"
 import {
   Dialog,
   DialogContent,
@@ -43,18 +44,49 @@ export default function PaymentTypePage() {
 
   const [filters, setFilters] = useState<IPaymentTypeFilter>({})
 
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize, setPageSize] = useState(50)
+
+  // Get user setting defaults
+  const { defaults } = useUserSettingDefaults()
+
+  // Update page size when defaults change
+  useEffect(() => {
+    if (defaults?.common?.masterGridTotalRecords) {
+      setPageSize(defaults.common.masterGridTotalRecords)
+    }
+  }, [defaults?.common?.masterGridTotalRecords])
+
   // Filter handler wrapper
   const handleFilterChange = useCallback(
     (newFilters: { search?: string; sortOrder?: string }) => {
       setFilters(newFilters as IPaymentTypeFilter)
+      setCurrentPage(1) // Reset to first page when filtering
     },
     []
   )
+
+  // Pagination handlers
+  const handlePageChange = useCallback((page: number) => {
+    setCurrentPage(page)
+  }, [])
+
+  const handlePageSizeChange = useCallback((size: number) => {
+    setPageSize(size)
+    setCurrentPage(1)
+  }, [])
   const {
     data: paymentTypesResponse,
     refetch,
     isLoading,
-  } = useGet<IPaymentType>(`${PaymentType.get}`, "paymentTypes", filters.search)
+  } = useGetWithPagination<IPaymentType>(
+    `${PaymentType.get}`,
+    "paymentTypes",
+    filters.search,
+    currentPage,
+    pageSize
+  )
 
   const {
     result: paymentTypesResult,
@@ -289,7 +321,7 @@ export default function PaymentTypePage() {
         </LockSkeleton>
       ) : (
         <PaymentTypesTable
-          data={filters.search ? [] : paymentTypesData || []}
+          data={paymentTypesData || []}
           isLoading={isLoading}
           totalRecords={totalRecords}
           onSelect={canView ? handleViewPaymentType : undefined}
@@ -298,6 +330,11 @@ export default function PaymentTypePage() {
           onCreate={canCreate ? handleCreatePaymentType : undefined}
           onRefresh={handleRefresh}
           onFilterChange={handleFilterChange}
+          onPageChange={handlePageChange}
+          onPageSizeChange={handlePageSizeChange}
+          currentPage={currentPage}
+          pageSize={pageSize}
+          serverSidePagination={true}
           moduleId={moduleId}
           transactionId={transactionId}
           // Pass permissions to table

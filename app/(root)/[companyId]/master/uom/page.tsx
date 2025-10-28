@@ -10,7 +10,8 @@ import { useQueryClient } from "@tanstack/react-query"
 import { getData } from "@/lib/api-client"
 import { Uom, UomDt } from "@/lib/api-routes"
 import { MasterTransactionId, ModuleId } from "@/lib/utils"
-import { useDelete, useGet, usePersist } from "@/hooks/use-common"
+import { useDelete, useGetWithPagination, usePersist } from "@/hooks/use-common"
+import { useUserSettingDefaults } from "@/hooks/use-settings"
 import {
   Dialog,
   DialogContent,
@@ -50,27 +51,82 @@ export default function UomPage() {
   const canEditDt = hasPermission(moduleId, transactionIdDt, "isEdit")
   const canDeleteDt = hasPermission(moduleId, transactionIdDt, "isDelete")
 
+  // Get user settings for default page size
+  const { defaults } = useUserSettingDefaults()
+
   // State for filters
   const [filters, setFilters] = useState<IUomFilter>({})
   const [dtFilters, setDtFilters] = useState<IUomFilter>({})
+
+  // Separate pagination state for each tab
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize, setPageSize] = useState(
+    defaults?.common?.masterGridTotalRecords || 50
+  )
+  const [dtCurrentPage, setDtCurrentPage] = useState(1)
+  const [dtPageSize, setDtPageSize] = useState(
+    defaults?.common?.masterGridTotalRecords || 50
+  )
+
+  // Update page size when user settings change
+  useEffect(() => {
+    if (defaults?.common?.masterGridTotalRecords) {
+      setPageSize(defaults.common.masterGridTotalRecords)
+      setDtPageSize(defaults.common.masterGridTotalRecords)
+    }
+  }, [defaults?.common?.masterGridTotalRecords])
+
+  // Page change handlers for each tab
+  const handlePageChange = useCallback((page: number) => {
+    setCurrentPage(page)
+  }, [])
+
+  const handleDtPageChange = useCallback((page: number) => {
+    setDtCurrentPage(page)
+  }, [])
+
+  // Page size change handlers for each tab
+  const handlePageSizeChange = useCallback((size: number) => {
+    setPageSize(size)
+    setCurrentPage(1) // Reset to first page when changing page size
+  }, [])
+
+  const handleDtPageSizeChange = useCallback((size: number) => {
+    setDtPageSize(size)
+    setDtCurrentPage(1) // Reset to first page when changing page size
+  }, [])
 
   // Data fetching
   const {
     data: uomsResponse,
     refetch: refetchUom,
     isLoading: isLoadingUom,
-  } = useGet<IUom>(`${Uom.get}`, "uoms", filters.search)
+  } = useGetWithPagination<IUom>(
+    `${Uom.get}`,
+    "uoms",
+    filters.search,
+    currentPage,
+    pageSize
+  )
 
   const {
     data: uomDtResponse,
     refetch: refetchUomDt,
     isLoading: isLoadingUomDt,
-  } = useGet<IUomDt>(`${UomDt.get}`, "uomsdt", dtFilters.search)
+  } = useGetWithPagination<IUomDt>(
+    `${UomDt.get}`,
+    "uomsdt",
+    dtFilters.search,
+    dtCurrentPage,
+    dtPageSize
+  )
 
   // Extract data from responses
   const uomsData = (uomsResponse as ApiResponse<IUom>)?.data || []
   const uomDtData = (uomDtResponse as ApiResponse<IUomDt>)?.data || []
-
+  const totalRecords = (uomsResponse as ApiResponse<IUom>)?.totalRecords || 0
+  const totalRecordsDt =
+    (uomDtResponse as ApiResponse<IUomDt>)?.totalRecords || 0
   // Mutations
   const saveMutation = usePersist<UomSchemaType>(`${Uom.add}`)
   const updateMutation = usePersist<UomSchemaType>(`${Uom.add}`)
@@ -160,6 +216,7 @@ export default function UomPage() {
   const handleUomDtFilterChange = useCallback(
     (newFilters: { search?: string; sortOrder?: string }) => {
       setDtFilters(newFilters as IUomFilter)
+      setDtCurrentPage(1) // Reset to first page when filtering
     },
     []
   )
@@ -397,6 +454,7 @@ export default function UomPage() {
               <UomTable
                 data={[]}
                 isLoading={false}
+                totalRecords={totalRecords}
                 onSelect={() => {}}
                 onDelete={() => {}}
                 onEdit={() => {}}
@@ -415,12 +473,18 @@ export default function UomPage() {
             <UomTable
               data={uomsData}
               isLoading={isLoadingUom}
+              totalRecords={totalRecords}
               onSelect={canView ? handleViewUom : undefined}
               onDelete={canDelete ? handleDeleteUom : undefined}
               onEdit={canEdit ? handleEditUom : undefined}
               onCreate={canCreate ? handleCreateUom : undefined}
               onRefresh={refetchUom}
               onFilterChange={handleUomFilterChange}
+              onPageChange={handlePageChange}
+              onPageSizeChange={handlePageSizeChange}
+              currentPage={currentPage}
+              pageSize={pageSize}
+              serverSidePagination={true}
               moduleId={moduleId}
               transactionId={transactionId}
             />
@@ -449,6 +513,7 @@ export default function UomPage() {
             <LockSkeleton locked={true}>
               <UomDtTable
                 data={[]}
+                totalRecords={totalRecordsDt}
                 onSelect={() => {}}
                 onDelete={() => {}}
                 onEdit={() => {}}
@@ -466,12 +531,18 @@ export default function UomPage() {
           ) : (
             <UomDtTable
               data={uomDtData}
+              totalRecords={totalRecordsDt}
               onSelect={canViewDt ? handleViewUomDt : undefined}
               onDelete={canDeleteDt ? handleDeleteUomDt : undefined}
               onEdit={canEditDt ? handleEditUomDt : undefined}
               onCreate={canCreateDt ? handleCreateUomDt : undefined}
               onRefresh={refetchUomDt}
               onFilterChange={handleUomDtFilterChange}
+              onPageChange={handleDtPageChange}
+              onPageSizeChange={handleDtPageSizeChange}
+              currentPage={dtCurrentPage}
+              pageSize={dtPageSize}
+              serverSidePagination={true}
               moduleId={moduleId}
               transactionId={transactionIdDt}
               canView={canViewDt}

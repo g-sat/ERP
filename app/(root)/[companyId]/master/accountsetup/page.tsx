@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { useParams } from "next/navigation"
 import {
   IAccountSetup,
@@ -26,7 +26,8 @@ import {
   AccountSetupDt,
 } from "@/lib/api-routes"
 import { MasterTransactionId, ModuleId } from "@/lib/utils"
-import { useDelete, useGet, usePersist } from "@/hooks/use-common"
+import { useDelete, useGetWithPagination, usePersist } from "@/hooks/use-common"
+import { useUserSettingDefaults } from "@/hooks/use-settings"
 import {
   Dialog,
   DialogContent,
@@ -90,20 +91,48 @@ export default function AccountSetupPage() {
   const canEditDt = hasPermission(moduleId, transactionIdDt, "isEdit")
   const canDeleteDt = hasPermission(moduleId, transactionIdDt, "isDelete")
 
+  // Get user settings for default page size
+  const { defaults } = useUserSettingDefaults()
+
   const [filtersCategory, setFiltersCategory] =
     useState<IAccountSetupCategoryFilter>({})
   const [filtersSetup, setFiltersSetup] = useState<IAccountSetupFilter>({})
   const [filtersDt, setFiltersDt] = useState<IAccountSetupDtFilter>({})
+
+  // Separate pagination state for each tab
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize, setPageSize] = useState(
+    defaults?.common?.masterGridTotalRecords || 50
+  )
+  const [setupCurrentPage, setSetupCurrentPage] = useState(1)
+  const [setupPageSize, setSetupPageSize] = useState(
+    defaults?.common?.masterGridTotalRecords || 50
+  )
+  const [dtCurrentPage, setDtCurrentPage] = useState(1)
+  const [dtPageSize, setDtPageSize] = useState(
+    defaults?.common?.masterGridTotalRecords || 50
+  )
+
+  // Update page size when user settings change
+  useEffect(() => {
+    if (defaults?.common?.masterGridTotalRecords) {
+      setPageSize(defaults.common.masterGridTotalRecords)
+      setSetupPageSize(defaults.common.masterGridTotalRecords)
+      setDtPageSize(defaults.common.masterGridTotalRecords)
+    }
+  }, [defaults?.common?.masterGridTotalRecords])
 
   // Account Setup Category data
   const {
     data: categoryResponse,
     refetch: refetchCategory,
     isLoading: isLoadingCategory,
-  } = useGet<IAccountSetupCategory>(
+  } = useGetWithPagination<IAccountSetupCategory>(
     `${AccountSetupCategory.get}`,
     "accountSetupCategories",
-    filtersCategory.search
+    filtersCategory.search,
+    currentPage,
+    pageSize
   )
 
   // Account Setup data
@@ -111,10 +140,12 @@ export default function AccountSetupPage() {
     data: setupResponse,
     refetch: refetchSetup,
     isLoading: isLoadingSetup,
-  } = useGet<IAccountSetup>(
+  } = useGetWithPagination<IAccountSetup>(
     `${AccountSetup.get}`,
     "accountSetups",
-    filtersSetup.search
+    filtersSetup.search,
+    setupCurrentPage,
+    setupPageSize
   )
 
   // Account Setup Dt data
@@ -122,10 +153,12 @@ export default function AccountSetupPage() {
     data: dtResponse,
     refetch: refetchDt,
     isLoading: isLoadingDt,
-  } = useGet<IAccountSetupDt>(
+  } = useGetWithPagination<IAccountSetupDt>(
     `${AccountSetupDt.get}`,
     "accountSetupDts",
-    filtersDt.search
+    filtersDt.search,
+    dtCurrentPage,
+    dtPageSize
   )
 
   const {
@@ -268,6 +301,7 @@ export default function AccountSetupPage() {
   const handleCategoryFilterChange = useCallback(
     (newFilters: { search?: string; sortOrder?: string }) => {
       setFiltersCategory(newFilters as IAccountSetupCategoryFilter)
+      setCurrentPage(1) // Reset to first page when filtering
     },
     []
   )
@@ -275,6 +309,7 @@ export default function AccountSetupPage() {
   const handleSetupFilterChange = useCallback(
     (newFilters: { search?: string; sortOrder?: string }) => {
       setFiltersSetup(newFilters as IAccountSetupFilter)
+      setSetupCurrentPage(1) // Reset to first page when filtering
     },
     []
   )
@@ -282,9 +317,39 @@ export default function AccountSetupPage() {
   const handleDtFilterChange = useCallback(
     (newFilters: { search?: string; sortOrder?: string }) => {
       setFiltersDt(newFilters as IAccountSetupDtFilter)
+      setDtCurrentPage(1) // Reset to first page when filtering
     },
     []
   )
+
+  // Page change handlers for each tab
+  const handlePageChange = useCallback((page: number) => {
+    setCurrentPage(page)
+  }, [])
+
+  const handleSetupPageChange = useCallback((page: number) => {
+    setSetupCurrentPage(page)
+  }, [])
+
+  const handleDtPageChange = useCallback((page: number) => {
+    setDtCurrentPage(page)
+  }, [])
+
+  // Page size change handlers for each tab
+  const handlePageSizeChange = useCallback((size: number) => {
+    setPageSize(size)
+    setCurrentPage(1) // Reset to first page when changing page size
+  }, [])
+
+  const handleSetupPageSizeChange = useCallback((size: number) => {
+    setSetupPageSize(size)
+    setSetupCurrentPage(1) // Reset to first page when changing page size
+  }, [])
+
+  const handleDtPageSizeChange = useCallback((size: number) => {
+    setDtPageSize(size)
+    setDtCurrentPage(1) // Reset to first page when changing page size
+  }, [])
 
   const handleCategorySelect = (category: IAccountSetupCategory | null) => {
     if (!category) return
@@ -690,7 +755,7 @@ export default function AccountSetupPage() {
             </LockSkeleton>
           ) : (
             <AccountSetupTable
-              data={filtersSetup.search ? [] : setupData || []}
+              data={setupData || []}
               totalRecords={setupTotalRecords}
               onSelect={canView ? handleSetupSelect : undefined}
               onDelete={canDelete ? handleDeleteSetup : undefined}
@@ -698,6 +763,11 @@ export default function AccountSetupPage() {
               onCreate={canCreate ? handleCreateSetup : undefined}
               onRefresh={refetchSetup}
               onFilterChange={handleSetupFilterChange}
+              onPageChange={handleSetupPageChange}
+              onPageSizeChange={handleSetupPageSizeChange}
+              currentPage={setupCurrentPage}
+              pageSize={setupPageSize}
+              serverSidePagination={true}
               moduleId={moduleId}
               transactionId={transactionId}
               // Pass permissions to table
@@ -749,7 +819,8 @@ export default function AccountSetupPage() {
             </LockSkeleton>
           ) : (
             <AccountSetupDtTable
-              data={filtersDt.search ? [] : dtData || []}
+              data={dtData || []}
+              isLoading={false}
               totalRecords={dtTotalRecords}
               onSelect={canViewDt ? handleDtSelect : undefined}
               onDelete={canDeleteDt ? handleDeleteDt : undefined}
@@ -757,6 +828,11 @@ export default function AccountSetupPage() {
               onCreate={canCreateDt ? handleCreateDt : undefined}
               onRefresh={refetchDt}
               onFilterChange={handleDtFilterChange}
+              onPageChange={handleDtPageChange}
+              onPageSizeChange={handleDtPageSizeChange}
+              currentPage={dtCurrentPage}
+              pageSize={dtPageSize}
+              serverSidePagination={true}
               moduleId={moduleId}
               transactionId={transactionIdDt}
               canEdit={canEditDt}
@@ -810,7 +886,8 @@ export default function AccountSetupPage() {
             </LockSkeleton>
           ) : (
             <AccountSetupCategoryTable
-              data={filtersCategory.search ? [] : categoryData || []}
+              data={categoryData || []}
+              isLoading={isLoadingCategory}
               totalRecords={categoryTotalRecords}
               onSelect={canViewCategory ? handleCategorySelect : undefined}
               onDelete={canDeleteCategory ? handleDeleteCategory : undefined}
@@ -818,6 +895,11 @@ export default function AccountSetupPage() {
               onCreate={canCreateCategory ? handleCreateCategory : undefined}
               onRefresh={refetchCategory}
               onFilterChange={handleCategoryFilterChange}
+              onPageChange={handlePageChange}
+              onPageSizeChange={handlePageSizeChange}
+              currentPage={currentPage}
+              pageSize={pageSize}
+              serverSidePagination={true}
               moduleId={moduleId}
               transactionId={transactionIdCategory}
               canEdit={canEditCategory}

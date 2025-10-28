@@ -18,7 +18,8 @@ import { useQueryClient } from "@tanstack/react-query"
 import { getById } from "@/lib/api-client"
 import { OrderType, OrderTypeCategory } from "@/lib/api-routes"
 import { MasterTransactionId, ModuleId } from "@/lib/utils"
-import { useDelete, useGet, usePersist } from "@/hooks/use-common"
+import { useDelete, useGetWithPagination, usePersist } from "@/hooks/use-common"
+import { useUserSettingDefaults } from "@/hooks/use-settings"
 import {
   Dialog,
   DialogContent,
@@ -73,15 +74,37 @@ export default function OrderTypePage() {
     "isDelete"
   )
 
+  // Get user settings for default page size
+  const { defaults } = useUserSettingDefaults()
+
   // State for filters
   const [filters, setFilters] = useState<IOrderTypeFilter>({})
   const [categoryFilters, setCategoryFilters] =
     useState<IOrderTypeCategoryFilter>({})
 
+  // Separate pagination state for each tab
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize, setPageSize] = useState(
+    defaults?.common?.masterGridTotalRecords || 50
+  )
+  const [categoryCurrentPage, setCategoryCurrentPage] = useState(1)
+  const [categoryPageSize, setCategoryPageSize] = useState(
+    defaults?.common?.masterGridTotalRecords || 50
+  )
+
+  // Update page size when user settings change
+  useEffect(() => {
+    if (defaults?.common?.masterGridTotalRecords) {
+      setPageSize(defaults.common.masterGridTotalRecords)
+      setCategoryPageSize(defaults.common.masterGridTotalRecords)
+    }
+  }, [defaults?.common?.masterGridTotalRecords])
+
   // Filter change handlers
   const handleFilterChange = useCallback(
     (newFilters: { search?: string; sortOrder?: string }) => {
       setFilters(newFilters as IOrderTypeFilter)
+      setCurrentPage(1) // Reset to first page when filtering
     },
     []
   )
@@ -89,25 +112,54 @@ export default function OrderTypePage() {
   const handleCategoryFilterChange = useCallback(
     (newFilters: { search?: string; sortOrder?: string }) => {
       setCategoryFilters(newFilters as IOrderTypeCategoryFilter)
+      setCategoryCurrentPage(1) // Reset to first page when filtering
     },
     []
   )
+
+  // Page change handlers for each tab
+  const handlePageChange = useCallback((page: number) => {
+    setCurrentPage(page)
+  }, [])
+
+  const handleCategoryPageChange = useCallback((page: number) => {
+    setCategoryCurrentPage(page)
+  }, [])
+
+  // Page size change handlers for each tab
+  const handlePageSizeChange = useCallback((size: number) => {
+    setPageSize(size)
+    setCurrentPage(1) // Reset to first page when changing page size
+  }, [])
+
+  const handleCategoryPageSizeChange = useCallback((size: number) => {
+    setCategoryPageSize(size)
+    setCategoryCurrentPage(1) // Reset to first page when changing page size
+  }, [])
 
   // Data fetching
   const {
     data: ordertypesResponse,
     refetch: refetchOrderType,
     isLoading: isLoadingOrderType,
-  } = useGet<IOrderType>(`${OrderType.get}`, "ordertypes", filters.search)
+  } = useGetWithPagination<IOrderType>(
+    `${OrderType.get}`,
+    "ordertypes",
+    filters.search,
+    currentPage,
+    pageSize
+  )
 
   const {
     data: ordertypesCategoryResponse,
     refetch: refetchOrderTypeCategory,
     isLoading: isLoadingOrderTypeCategory,
-  } = useGet<IOrderTypeCategory>(
+  } = useGetWithPagination<IOrderTypeCategory>(
     `${OrderTypeCategory.get}`,
     "ordertypecategory",
-    categoryFilters.search
+    categoryFilters.search,
+    categoryCurrentPage,
+    categoryPageSize
   )
 
   // Extract data from responses with fallback values
@@ -510,7 +562,7 @@ export default function OrderTypePage() {
             </LockSkeleton>
           ) : (
             <OrderTypeTable
-              data={filters.search ? [] : ordertypesData || []}
+              data={ordertypesData || []}
               totalRecords={ordertypesTotalRecords}
               onSelect={canView ? handleViewOrderType : undefined}
               onDelete={canDelete ? handleDeleteOrderType : undefined}
@@ -518,6 +570,11 @@ export default function OrderTypePage() {
               onCreate={canCreate ? handleCreateOrderType : undefined}
               onRefresh={refetchOrderType}
               onFilterChange={handleFilterChange}
+              onPageChange={handlePageChange}
+              onPageSizeChange={handlePageSizeChange}
+              currentPage={currentPage}
+              pageSize={pageSize}
+              serverSidePagination={true}
               moduleId={moduleId}
               transactionId={transactionId}
               canEdit={canEdit}
@@ -571,7 +628,7 @@ export default function OrderTypePage() {
             </LockSkeleton>
           ) : (
             <OrderTypeCategoryTable
-              data={categoryFilters.search ? [] : ordertypesCategoryData || []}
+              data={ordertypesCategoryData || []}
               totalRecords={ordertypesCategoryTotalRecords}
               onSelect={
                 canViewCategory ? handleViewOrderTypeCategory : undefined
@@ -585,6 +642,11 @@ export default function OrderTypePage() {
               }
               onRefresh={refetchOrderTypeCategory}
               onFilterChange={handleCategoryFilterChange}
+              onPageChange={handleCategoryPageChange}
+              onPageSizeChange={handleCategoryPageSizeChange}
+              currentPage={categoryCurrentPage}
+              pageSize={categoryPageSize}
+              serverSidePagination={true}
               moduleId={moduleId}
               transactionId={transactionIdCategory}
               canEdit={canEditCategory}

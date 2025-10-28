@@ -56,6 +56,13 @@ interface DialogDataTableProps<T> {
   onRefresh?: () => void
   onFilterChange?: (filters: { search?: string; sortOrder?: string }) => void
   onRowSelect?: (row: T | null) => void
+  // Paging props
+  onPageChange?: (page: number) => void
+  onPageSizeChange?: (pageSize: number) => void
+  currentPage?: number
+  pageSize?: number
+  totalRecords?: number
+  serverSidePagination?: boolean
 }
 
 export function DialogDataTable<T>({
@@ -69,6 +76,13 @@ export function DialogDataTable<T>({
   onRefresh,
   onFilterChange,
   onRowSelect,
+  // Pagination props
+  onPageChange, // Page change callback
+  onPageSizeChange, // Page size change callback
+  currentPage: propCurrentPage, // Current page from props
+  pageSize: propPageSize, // Page size from props
+  totalRecords,
+  serverSidePagination = false, // Whether to use server-side pagination
 }: DialogDataTableProps<T>) {
   const { data: gridSettings } = useGetGridLayout(
     moduleId?.toString() || "",
@@ -118,8 +132,8 @@ export function DialogDataTable<T>({
   )
   const [columnSizing, setColumnSizing] = useState(getInitialColumnSizing)
   const [searchQuery, setSearchQuery] = useState("")
-  const [currentPage, setCurrentPage] = useState(1)
-  const [pageSize, setPageSize] = useState(50)
+  const [currentPage, setCurrentPage] = useState(propCurrentPage || 1)
+  const [pageSize, setPageSize] = useState(propPageSize || 50)
   const [rowSelection, setRowSelection] = useState({})
 
   // Reference removed as not needed without virtual scrolling
@@ -160,33 +174,48 @@ export function DialogDataTable<T>({
 
   const tableColumns: ColumnDef<T>[] = [...columns]
 
+  // Determine if we're using server-side pagination
+  const isServerSidePagination =
+    totalRecords !== undefined && totalRecords !== data.length
+
   const table = useReactTable({
     data,
     columns: tableColumns,
-    pageCount: Math.ceil(data.length / pageSize),
+    pageCount: Math.ceil((totalRecords || data.length) / pageSize), // Total number of pages
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     onColumnVisibilityChange: setColumnVisibility,
     onColumnSizingChange: setColumnSizing,
     onRowSelectionChange: setRowSelection,
     getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
+    // Disable client-side pagination when using server-side pagination
+    getPaginationRowModel: serverSidePagination
+      ? undefined
+      : getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     enableColumnResizing: true,
     enableRowSelection: true,
     columnResizeMode: "onChange",
+
     state: {
-      sorting,
-      columnFilters,
-      columnVisibility,
-      columnSizing,
-      rowSelection,
-      pagination: {
-        pageIndex: currentPage - 1,
-        pageSize,
-      },
-      globalFilter: searchQuery,
+      sorting, // Current sorting state
+      columnFilters, // Current filter state
+      columnVisibility, // Current visibility state
+      columnSizing, // Current column sizes
+      rowSelection, // Current selected rows
+      pagination: serverSidePagination
+        ? {
+            // Server-side pagination state
+            pageIndex: 0, // Always show first page of current data
+            pageSize: data.length, // Show all data from server
+          }
+        : {
+            // Client-side pagination state
+            pageIndex: currentPage - 1, // Convert to 0-based index
+            pageSize, // Items per page
+          },
+      globalFilter: searchQuery, // Current search query
     },
   })
 
@@ -202,6 +231,19 @@ export function DialogDataTable<T>({
       }
     }
   }, [gridSettingsData, table])
+
+  // Sync internal state with props when they change
+  useEffect(() => {
+    if (propCurrentPage !== undefined && propCurrentPage !== currentPage) {
+      setCurrentPage(propCurrentPage)
+    }
+  }, [propCurrentPage, currentPage])
+
+  useEffect(() => {
+    if (propPageSize !== undefined && propPageSize !== pageSize) {
+      setPageSize(propPageSize)
+    }
+  }, [propPageSize, pageSize])
 
   // Virtual scrolling removed - using empty rows instead
 
@@ -227,12 +269,24 @@ export function DialogDataTable<T>({
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page)
-    table.setPageIndex(page - 1)
+    // Only update table pagination for client-side pagination
+    if (!isServerSidePagination) {
+      table.setPageIndex(page - 1)
+    }
+    if (onPageChange) {
+      onPageChange(page)
+    }
   }
 
   const handlePageSizeChange = (size: number) => {
     setPageSize(size)
-    table.setPageSize(size)
+    // Only update table pagination for client-side pagination
+    if (!isServerSidePagination) {
+      table.setPageSize(size)
+    }
+    if (onPageSizeChange) {
+      onPageSizeChange(size)
+    }
   }
 
   const handleDragEnd = (event: DragEndEvent) => {
@@ -397,43 +451,44 @@ export function DialogDataTable<T>({
                   })}
 
                   {/* Add empty rows to fill the remaining space based on page size */}
-                  {Array.from({
-                    length: Math.min(
-                      Math.max(0, pageSize - table.getRowModel().rows.length),
-                      10 // Limit to maximum 10 empty rows to prevent excessive height
-                    ),
-                  }).map((_, index) => (
-                    <TableRow key={`empty-${index}`} className="h-7">
-                      {table.getAllLeafColumns().map((column, cellIndex) => {
-                        const isActions = column.id === "actions"
-                        const isFirstColumn = cellIndex === 0
+                  {!isServerSidePagination &&
+                    Array.from({
+                      length: Math.min(
+                        Math.max(0, pageSize - table.getRowModel().rows.length),
+                        10 // Limit to maximum 10 empty rows to prevent excessive height
+                      ),
+                    }).map((_, index) => (
+                      <TableRow key={`empty-${index}`} className="h-7">
+                        {table.getAllLeafColumns().map((column, cellIndex) => {
+                          const isActions = column.id === "actions"
+                          const isFirstColumn = cellIndex === 0
 
-                        return (
-                          <TableCell
-                            key={`empty-${index}-${column.id}`}
-                            className={`px-2 py-1 ${
-                              isFirstColumn || isActions
-                                ? "bg-background sticky left-0 z-10"
-                                : ""
-                            }`}
-                            style={{
-                              width: `${column.getSize()}px`,
-                              minWidth: `${column.getSize()}px`,
-                              maxWidth: `${column.getSize()}px`,
-                              position:
+                          return (
+                            <TableCell
+                              key={`empty-${index}-${column.id}`}
+                              className={`px-2 py-1 ${
                                 isFirstColumn || isActions
-                                  ? "sticky"
-                                  : "relative",
-                              left: isFirstColumn || isActions ? 0 : "auto",
-                              zIndex: isFirstColumn || isActions ? 10 : 1,
-                            }}
-                          >
-                            {/* Empty cell content */}
-                          </TableCell>
-                        )
-                      })}
-                    </TableRow>
-                  ))}
+                                  ? "bg-background sticky left-0 z-10"
+                                  : ""
+                              }`}
+                              style={{
+                                width: `${column.getSize()}px`,
+                                minWidth: `${column.getSize()}px`,
+                                maxWidth: `${column.getSize()}px`,
+                                position:
+                                  isFirstColumn || isActions
+                                    ? "sticky"
+                                    : "relative",
+                                left: isFirstColumn || isActions ? 0 : "auto",
+                                zIndex: isFirstColumn || isActions ? 10 : 1,
+                              }}
+                            >
+                              {/* Empty cell content */}
+                            </TableCell>
+                          )
+                        })}
+                      </TableRow>
+                    ))}
 
                   {/* Show empty state or loading message when no data */}
                   {table.getRowModel().rows.length === 0 && (
@@ -454,13 +509,13 @@ export function DialogDataTable<T>({
       </Table>
 
       <MainTableFooter
-        currentPage={currentPage}
-        totalPages={Math.ceil(data.length / pageSize)}
-        pageSize={pageSize}
-        totalRecords={data.length}
-        onPageChange={handlePageChange}
-        onPageSizeChange={handlePageSizeChange}
-        pageSizeOptions={[50, 100, 500]}
+        currentPage={currentPage} // Current page number
+        totalPages={Math.ceil((totalRecords || data.length) / pageSize)} // Total number of pages
+        pageSize={pageSize} // Current page size
+        totalRecords={totalRecords || data.length} // Total number of records
+        onPageChange={handlePageChange} // Page change handler
+        onPageSizeChange={handlePageSizeChange} // Page size change handler
+        pageSizeOptions={[50, 100, 500]} // Available page size options
       />
     </>
   )

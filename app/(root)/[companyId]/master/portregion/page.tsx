@@ -10,7 +10,8 @@ import { useQueryClient } from "@tanstack/react-query"
 import { getById } from "@/lib/api-client"
 import { PortRegion } from "@/lib/api-routes"
 import { MasterTransactionId, ModuleId } from "@/lib/utils"
-import { useDelete, useGet, usePersist } from "@/hooks/use-common"
+import { useDelete, useGetWithPagination, usePersist } from "@/hooks/use-common"
+import { useUserSettingDefaults } from "@/hooks/use-settings"
 import {
   Dialog,
   DialogContent,
@@ -43,18 +44,49 @@ export default function PortRegionPage() {
 
   const [filters, setFilters] = useState<IPortRegionFilter>({})
 
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize, setPageSize] = useState(50)
+
+  // Get user setting defaults
+  const { defaults } = useUserSettingDefaults()
+
+  // Update page size when defaults change
+  useEffect(() => {
+    if (defaults?.common?.masterGridTotalRecords) {
+      setPageSize(defaults.common.masterGridTotalRecords)
+    }
+  }, [defaults?.common?.masterGridTotalRecords])
+
   // Filter handler wrapper
   const handleFilterChange = useCallback(
     (newFilters: { search?: string; sortOrder?: string }) => {
       setFilters(newFilters as IPortRegionFilter)
+      setCurrentPage(1) // Reset to first page when filtering
     },
     []
   )
+
+  // Pagination handlers
+  const handlePageChange = useCallback((page: number) => {
+    setCurrentPage(page)
+  }, [])
+
+  const handlePageSizeChange = useCallback((size: number) => {
+    setPageSize(size)
+    setCurrentPage(1)
+  }, [])
   const {
     data: portRegionsResponse,
     refetch,
     isLoading,
-  } = useGet<IPortRegion>(`${PortRegion.get}`, "portregions", filters.search)
+  } = useGetWithPagination<IPortRegion>(
+    `${PortRegion.get}`,
+    "portregions",
+    filters.search,
+    currentPage,
+    pageSize
+  )
 
   const {
     result: portregionsResult,
@@ -292,13 +324,18 @@ export default function PortRegionPage() {
         </LockSkeleton>
       ) : portregionsResult ? (
         <PortRegionsTable
-          data={filters.search ? [] : portregionsData || []}
+          data={portregionsData || []}
           onSelect={canView ? handleViewPortRegion : undefined}
           onDelete={canDelete ? handleDeletePortRegion : undefined}
           onEdit={canEdit ? handleEditPortRegion : undefined}
           onCreate={canCreate ? handleCreatePortRegion : undefined}
           onRefresh={handleRefresh}
           onFilterChange={handleFilterChange}
+          onPageChange={handlePageChange}
+          onPageSizeChange={handlePageSizeChange}
+          currentPage={currentPage}
+          pageSize={pageSize}
+          serverSidePagination={true}
           moduleId={moduleId}
           transactionId={transactionId}
           isLoading={isLoading}

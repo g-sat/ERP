@@ -19,7 +19,8 @@ import { useQueryClient } from "@tanstack/react-query"
 import { getById } from "@/lib/api-client"
 import { Currency } from "@/lib/api-routes"
 import { MasterTransactionId, ModuleId } from "@/lib/utils"
-import { useDelete, useGet, usePersist } from "@/hooks/use-common"
+import { useDelete, useGetWithPagination, usePersist } from "@/hooks/use-common"
+import { useUserSettingDefaults } from "@/hooks/use-settings"
 import {
   Dialog,
   DialogContent,
@@ -81,32 +82,70 @@ export default function CurrencyPage() {
     "isRead"
   )
 
+  // Get user settings for default page size
+  const { defaults } = useUserSettingDefaults()
+
   // State for filters
   const [filters, setFilters] = useState<ICurrencyFilter>({})
   const [dtFilters, setDtFilters] = useState<ICurrencyFilter>({})
   const [localDtFilters, setLocalDtFilters] = useState<ICurrencyFilter>({})
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize, setPageSize] = useState(
+    defaults?.common?.masterGridTotalRecords || 50
+  )
+  const [dtCurrentPage, setDtCurrentPage] = useState(1)
+  const [dtPageSize, setDtPageSize] = useState(
+    defaults?.common?.masterGridTotalRecords || 50
+  )
+  const [localCurrentPage, setLocalCurrentPage] = useState(1)
+  const [localPageSize, setLocalPageSize] = useState(
+    defaults?.common?.masterGridTotalRecords || 50
+  )
+
+  // Update page size when user settings change
+  useEffect(() => {
+    if (defaults?.common?.masterGridTotalRecords) {
+      setPageSize(defaults.common.masterGridTotalRecords)
+      setDtPageSize(defaults.common.masterGridTotalRecords)
+      setLocalPageSize(defaults.common.masterGridTotalRecords)
+    }
+  }, [defaults?.common?.masterGridTotalRecords])
 
   // Data fetching
   const {
     data: currenciesResponse,
     refetch: refetchCurrency,
     isLoading: isLoadingCurrency,
-  } = useGet<ICurrency>(`${Currency.get}`, "currencies", filters.search)
+  } = useGetWithPagination<ICurrency>(
+    `${Currency.get}`,
+    "currencies",
+    filters.search,
+    currentPage,
+    pageSize
+  )
 
   const {
     data: currencyDtResponse,
     refetch: refetchCurrencyDt,
     isLoading: isLoadingCurrencyDt,
-  } = useGet<ICurrencyDt>(`${Currency.getDt}`, "currencyDt", dtFilters.search)
+  } = useGetWithPagination<ICurrencyDt>(
+    `${Currency.getDt}`,
+    "currencyDt",
+    dtFilters.search,
+    dtCurrentPage,
+    dtPageSize
+  )
 
   const {
     data: currencyLocalDtResponse,
     refetch: refetchCurrencyLocalDt,
     isLoading: isLoadingCurrencyLocalDt,
-  } = useGet<ICurrencyLocalDt>(
+  } = useGetWithPagination<ICurrencyLocalDt>(
     `${Currency.getLocalDt}`,
     "currencyLocalDt",
-    localDtFilters.search
+    localDtFilters.search,
+    localCurrentPage,
+    localPageSize
   )
 
   // Extract data from responses with fallback values
@@ -265,6 +304,7 @@ export default function CurrencyPage() {
   const handleCurrencyFilterChange = useCallback(
     (newFilters: { search?: string; sortOrder?: string }) => {
       setFilters(newFilters as ICurrencyFilter)
+      setCurrentPage(1) // Reset to first page when filtering
     },
     []
   )
@@ -272,6 +312,7 @@ export default function CurrencyPage() {
   const handleCurrencyDtFilterChange = useCallback(
     (newFilters: { search?: string; sortOrder?: string }) => {
       setDtFilters(newFilters as ICurrencyFilter)
+      setDtCurrentPage(1) // Reset to first page when filtering
     },
     []
   )
@@ -279,9 +320,39 @@ export default function CurrencyPage() {
   const handleCurrencyLocalDtFilterChange = useCallback(
     (newFilters: { search?: string; sortOrder?: string }) => {
       setLocalDtFilters(newFilters as ICurrencyFilter)
+      setLocalCurrentPage(1) // Reset to first page when filtering
     },
     []
   )
+
+  // Page change handlers
+  const handlePageChange = useCallback((page: number) => {
+    setCurrentPage(page)
+  }, [])
+
+  const handleDtPageChange = useCallback((page: number) => {
+    setDtCurrentPage(page)
+  }, [])
+
+  const handleLocalPageChange = useCallback((page: number) => {
+    setLocalCurrentPage(page)
+  }, [])
+
+  // Page size change handlers
+  const handlePageSizeChange = useCallback((size: number) => {
+    setPageSize(size)
+    setCurrentPage(1) // Reset to first page when changing page size
+  }, [])
+
+  const handleDtPageSizeChange = useCallback((size: number) => {
+    setDtPageSize(size)
+    setDtCurrentPage(1) // Reset to first page when changing page size
+  }, [])
+
+  const handleLocalPageSizeChange = useCallback((size: number) => {
+    setLocalPageSize(size)
+    setLocalCurrentPage(1) // Reset to first page when changing page size
+  }, [])
 
   // Helper function for API responses
   const handleApiResponse = useCallback(
@@ -602,7 +673,7 @@ export default function CurrencyPage() {
             </LockSkeleton>
           ) : currenciesResult ? (
             <CurrenciesTable
-              data={filters.search ? [] : currenciesData || []}
+              data={currenciesData || []}
               isLoading={isLoadingCurrency}
               totalRecords={currenciesTotalRecords}
               onSelect={canView ? handleViewCurrency : undefined}
@@ -611,6 +682,11 @@ export default function CurrencyPage() {
               onCreate={canCreate ? handleCreateCurrency : undefined}
               onRefresh={refetchCurrency}
               onFilterChange={handleCurrencyFilterChange}
+              onPageChange={handlePageChange}
+              onPageSizeChange={handlePageSizeChange}
+              currentPage={currentPage}
+              pageSize={pageSize}
+              serverSidePagination={true}
               moduleId={MODULE_ID}
               transactionId={TRANSACTION_ID}
               canEdit={canEdit}
@@ -668,7 +744,7 @@ export default function CurrencyPage() {
             </LockSkeleton>
           ) : currencyDtResult ? (
             <CurrencyDtsTable
-              data={dtFilters.search ? [] : currencyDtData || []}
+              data={currencyDtData || []}
               isLoading={isLoadingCurrencyDt}
               totalRecords={currencyDtTotalRecords}
               onSelect={canViewDt ? handleViewCurrencyDt : undefined}
@@ -677,6 +753,11 @@ export default function CurrencyPage() {
               onCreate={canCreateDt ? handleCreateCurrencyDt : undefined}
               onRefresh={refetchCurrencyDt}
               onFilterChange={handleCurrencyDtFilterChange}
+              onPageChange={handleDtPageChange}
+              onPageSizeChange={handleDtPageSizeChange}
+              currentPage={dtCurrentPage}
+              pageSize={dtPageSize}
+              serverSidePagination={true}
               moduleId={MODULE_ID}
               transactionId={TRANSACTION_ID_DT}
               canEdit={canEditDt}
@@ -737,7 +818,7 @@ export default function CurrencyPage() {
             </LockSkeleton>
           ) : currencyLocalDtResult ? (
             <CurrencyLocalDtsTable
-              data={localDtFilters.search ? [] : currencyLocalDtData || []}
+              data={currencyLocalDtData || []}
               isLoading={isLoadingCurrencyLocalDt}
               totalRecords={currencyLocalDtTotalRecords}
               onSelect={canViewLocalDt ? handleViewCurrencyLocalDt : undefined}
@@ -750,6 +831,11 @@ export default function CurrencyPage() {
               }
               onRefresh={refetchCurrencyLocalDt}
               onFilterChange={handleCurrencyLocalDtFilterChange}
+              onPageChange={handleLocalPageChange}
+              onPageSizeChange={handleLocalPageSizeChange}
+              currentPage={localCurrentPage}
+              pageSize={localPageSize}
+              serverSidePagination={true}
               moduleId={MODULE_ID}
               transactionId={TRANSACTION_ID_LOCAL_DT}
               canEdit={canEditLocalDt}

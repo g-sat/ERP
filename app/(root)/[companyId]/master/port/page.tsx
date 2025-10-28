@@ -10,7 +10,8 @@ import { useQueryClient } from "@tanstack/react-query"
 import { getById } from "@/lib/api-client"
 import { Port } from "@/lib/api-routes"
 import { MasterTransactionId, ModuleId } from "@/lib/utils"
-import { useDelete, useGet, usePersist } from "@/hooks/use-common"
+import { useDelete, useGetWithPagination, usePersist } from "@/hooks/use-common"
+import { useUserSettingDefaults } from "@/hooks/use-settings"
 import {
   Dialog,
   DialogContent,
@@ -42,19 +43,50 @@ export default function PortPage() {
   const queryClient = useQueryClient()
 
   const [filters, setFilters] = useState<IPortFilter>({})
+  const { defaults } = useUserSettingDefaults()
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize, setPageSize] = useState(
+    defaults?.common?.masterGridTotalRecords || 50
+  )
+
+  // Update page size when user settings change
+  useEffect(() => {
+    if (defaults?.common?.masterGridTotalRecords) {
+      setPageSize(defaults.common.masterGridTotalRecords)
+    }
+  }, [defaults?.common?.masterGridTotalRecords])
 
   // Filter handler wrapper
   const handleFilterChange = useCallback(
     (newFilters: { search?: string; sortOrder?: string }) => {
       setFilters(newFilters as IPortFilter)
+      setCurrentPage(1) // Reset to first page when filtering
     },
     []
   )
+
+  // Page change handler
+  const handlePageChange = useCallback((page: number) => {
+    setCurrentPage(page)
+  }, [])
+
+  // Page size change handler
+  const handlePageSizeChange = useCallback((size: number) => {
+    setPageSize(size)
+    setCurrentPage(1) // Reset to first page when changing page size
+  }, [])
+
   const {
     data: portsResponse,
     refetch,
     isLoading,
-  } = useGet<IPort>(`${Port.get}`, "ports", filters.search)
+  } = useGetWithPagination<IPort>(
+    `${Port.get}`,
+    "ports",
+    filters.search,
+    currentPage,
+    pageSize
+  )
 
   const {
     result: portsResult,
@@ -281,13 +313,18 @@ export default function PortPage() {
         </LockSkeleton>
       ) : portsResult ? (
         <PortsTable
-          data={filters.search ? [] : portsData || []}
+          data={portsData || []}
           onSelect={canView ? handleViewPort : undefined}
           onDelete={canDelete ? handleDeletePort : undefined}
           onEdit={canEdit ? handleEditPort : undefined}
           onCreate={canCreate ? handleCreatePort : undefined}
           onRefresh={handleRefresh}
           onFilterChange={handleFilterChange}
+          onPageChange={handlePageChange}
+          onPageSizeChange={handlePageSizeChange}
+          currentPage={currentPage}
+          pageSize={pageSize}
+          serverSidePagination={true}
           moduleId={moduleId}
           transactionId={transactionId}
           isLoading={isLoading}

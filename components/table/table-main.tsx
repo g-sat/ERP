@@ -110,6 +110,14 @@ interface MainTableProps<T> {
   onRefresh?: () => void // Callback function for refresh button
   onFilterChange?: (filters: { search?: string; sortOrder?: string }) => void // Callback for filter changes
   // ============================================================================
+  // PAGINATION PROPS
+  // ============================================================================
+  onPageChange?: (page: number) => void // Callback for page changes
+  onPageSizeChange?: (pageSize: number) => void // Callback for page size changes
+  currentPage?: number // Current page number
+  pageSize?: number // Current page size
+  serverSidePagination?: boolean // Whether to use server-side pagination
+  // ============================================================================
   // ACTION HANDLER PROPS
   // ============================================================================
   onSelect?: (item: T | null) => void // Callback when item is selected/viewed
@@ -165,6 +173,12 @@ export function MainTable<T>({
   // Header functionality props
   onRefresh, // Refresh callback
   onFilterChange, // Filter change callback
+  // Pagination props
+  onPageChange, // Page change callback
+  onPageSizeChange, // Page size change callback
+  currentPage: propCurrentPage, // Current page from props
+  pageSize: propPageSize, // Page size from props
+  serverSidePagination = false, // Whether to use server-side pagination
   // Action handler props
   onSelect, // Item selection callback
   onCreate, // Create item callback
@@ -233,8 +247,8 @@ export function MainTable<T>({
   ) // Column visibility state
   const [columnSizing, setColumnSizing] = useState(getInitialColumnSizing) // Column width settings
   const [searchQuery, setSearchQuery] = useState("") // Global search query
-  const [currentPage, setCurrentPage] = useState(1) // Current page number
-  const [pageSize, setPageSize] = useState(50) // Number of items per page
+  const [currentPage, setCurrentPage] = useState(propCurrentPage || 1) // Current page number
+  const [pageSize, setPageSize] = useState(propPageSize || 50) // Number of items per page
   const [rowSelection, setRowSelection] = useState({}) // Selected rows state
   // Reference to table container (removed as not needed)
   // ============================================================================
@@ -343,7 +357,9 @@ export function MainTable<T>({
     // ROW MODELS (DATA PROCESSING)
     // ============================================================================
     getCoreRowModel: getCoreRowModel(), // Basic row processing
-    getPaginationRowModel: getPaginationRowModel(), // Pagination functionality
+    getPaginationRowModel: serverSidePagination
+      ? undefined
+      : getPaginationRowModel(), // Pagination functionality (disabled for server-side)
     getSortedRowModel: getSortedRowModel(), // Sorting functionality
     getFilteredRowModel: getFilteredRowModel(), // Filtering functionality
     // ============================================================================
@@ -361,11 +377,17 @@ export function MainTable<T>({
       columnVisibility, // Current visibility state
       columnSizing, // Current column sizes
       rowSelection, // Current selected rows
-      pagination: {
-        // Current pagination state
-        pageIndex: currentPage - 1, // Convert to 0-based index
-        pageSize, // Items per page
-      },
+      pagination: serverSidePagination
+        ? {
+            // Server-side pagination state
+            pageIndex: 0, // Always show first page of current data
+            pageSize: data.length, // Show all data from server
+          }
+        : {
+            // Client-side pagination state
+            pageIndex: currentPage - 1, // Convert to 0-based index
+            pageSize, // Items per page
+          },
       globalFilter: searchQuery, // Current search query
     },
   })
@@ -436,6 +458,10 @@ export function MainTable<T>({
   const handlePageChange = (page: number) => {
     setCurrentPage(page) // Update local page state
     table.setPageIndex(page - 1) // Convert to 0-based index for table
+    // Call external handler if provided (for server-side pagination)
+    if (onPageChange) {
+      onPageChange(page)
+    }
   }
   /**
    * Handle page size changes in pagination
@@ -444,6 +470,10 @@ export function MainTable<T>({
   const handlePageSizeChange = (size: number) => {
     setPageSize(size) // Update local page size state
     table.setPageSize(size) // Update table page size
+    // Call external handler if provided (for server-side pagination)
+    if (onPageSizeChange) {
+      onPageSizeChange(size)
+    }
   }
   /**
    * Handle drag and drop end event for column reordering

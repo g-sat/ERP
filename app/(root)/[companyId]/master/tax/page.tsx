@@ -20,7 +20,8 @@ import { useQueryClient } from "@tanstack/react-query"
 import { getById } from "@/lib/api-client"
 import { Tax, TaxCategory, TaxDt } from "@/lib/api-routes"
 import { MasterTransactionId, ModuleId } from "@/lib/utils"
-import { useDelete, useGet, usePersist } from "@/hooks/use-common"
+import { useDelete, useGetWithPagination, usePersist } from "@/hooks/use-common"
+import { useUserSettingDefaults } from "@/hooks/use-settings"
 import {
   Dialog,
   DialogContent,
@@ -85,17 +86,67 @@ export default function TaxPage() {
   // State for filters
   const [filters, setFilters] = useState<ITaxFilter>({})
 
+  // Separate pagination state for each tab
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize, setPageSize] = useState(50)
+  const [dtCurrentPage, setDtCurrentPage] = useState(1)
+  const [dtPageSize, setDtPageSize] = useState(50)
+  const [categoryCurrentPage, setCategoryCurrentPage] = useState(1)
+  const [categoryPageSize, setCategoryPageSize] = useState(50)
+
+  // Get user setting defaults
+  const { defaults } = useUserSettingDefaults()
+
+  // Update page size when defaults change
+  useEffect(() => {
+    if (defaults?.common?.masterGridTotalRecords) {
+      setPageSize(defaults.common.masterGridTotalRecords)
+      setDtPageSize(defaults.common.masterGridTotalRecords)
+      setCategoryPageSize(defaults.common.masterGridTotalRecords)
+    }
+  }, [defaults?.common?.masterGridTotalRecords])
+
   // Filter change handlers
   const handleFilterChange = useCallback(
     (newFilters: { search?: string; sortOrder?: string }) => {
       setFilters(newFilters as ITaxFilter)
+      setCurrentPage(1) // Reset to first page when filtering
     },
     []
   )
 
+  // Pagination handlers for each tab
+  const handlePageChange = useCallback((page: number) => {
+    setCurrentPage(page)
+  }, [])
+
+  const handleDtPageChange = useCallback((page: number) => {
+    setDtCurrentPage(page)
+  }, [])
+
+  const handleCategoryPageChange = useCallback((page: number) => {
+    setCategoryCurrentPage(page)
+  }, [])
+
+  const handlePageSizeChange = useCallback((size: number) => {
+    setPageSize(size)
+    setCurrentPage(1)
+  }, [])
+
+  const handleDtPageSizeChange = useCallback((size: number) => {
+    setDtPageSize(size)
+    setDtCurrentPage(1)
+  }, [])
+
+  const handleCategoryPageSizeChange = useCallback((size: number) => {
+    setCategoryPageSize(size)
+    setCategoryCurrentPage(1)
+  }, [])
+
   const handleDtFilterChange = useCallback(
     (newFilters: { search?: string; sortOrder?: string }) => {
       setDtFilters(newFilters as ITaxFilter)
+      setDtCurrentPage(1) // Reset to first page when filtering
     },
     []
   )
@@ -103,6 +154,7 @@ export default function TaxPage() {
   const handleCategoryFilterChange = useCallback(
     (newFilters: { search?: string; sortOrder?: string }) => {
       setCategoryFilters(newFilters as ITaxCategoryFilter)
+      setCategoryCurrentPage(1) // Reset to first page when filtering
     },
     []
   )
@@ -115,22 +167,36 @@ export default function TaxPage() {
     data: taxsResponse,
     refetch: refetchTax,
     isLoading: isLoadingTax,
-  } = useGet<ITax>(`${Tax.get}`, "taxs", filters.search)
+  } = useGetWithPagination<ITax>(
+    `${Tax.get}`,
+    "taxs",
+    filters.search,
+    currentPage,
+    pageSize
+  )
 
   const {
     data: taxsDtResponse,
     refetch: refetchTaxDt,
     isLoading: isLoadingTaxDt,
-  } = useGet<ITaxDt>(`${TaxDt.get}`, "taxsdt", dtFilters.search)
+  } = useGetWithPagination<ITaxDt>(
+    `${TaxDt.get}`,
+    "taxsdt",
+    dtFilters.search,
+    dtCurrentPage,
+    dtPageSize
+  )
 
   const {
     data: taxsCategoryResponse,
     refetch: refetchTaxCategory,
     isLoading: isLoadingTaxCategory,
-  } = useGet<ITaxCategory>(
+  } = useGetWithPagination<ITaxCategory>(
     `${TaxCategory.get}`,
     "taxcategory",
-    categoryFilters.search
+    categoryFilters.search,
+    categoryCurrentPage,
+    categoryPageSize
   )
 
   // Extract data from responses with fallback values
@@ -599,7 +665,7 @@ export default function TaxPage() {
             </LockSkeleton>
           ) : taxsResult ? (
             <TaxTable
-              data={filters.search ? [] : taxsData || []}
+              data={taxsData || []}
               isLoading={isLoadingTax}
               totalRecords={totalRecords}
               onSelect={canView ? handleViewTax : undefined}
@@ -608,6 +674,11 @@ export default function TaxPage() {
               onCreate={canCreate ? handleCreateTax : undefined}
               onRefresh={refetchTax}
               onFilterChange={handleFilterChange}
+              onPageChange={handlePageChange}
+              onPageSizeChange={handlePageSizeChange}
+              currentPage={currentPage}
+              pageSize={pageSize}
+              serverSidePagination={true}
               moduleId={moduleId}
               transactionId={transactionId}
               canEdit={canEdit}
@@ -664,7 +735,7 @@ export default function TaxPage() {
             </LockSkeleton>
           ) : taxsDtResult ? (
             <TaxDtTable
-              data={dtFilters.search ? [] : taxsDtData || []}
+              data={taxsDtData || []}
               isLoading={isLoadingTaxDt}
               totalRecords={taxsDtTotalRecords}
               onSelect={canViewDt ? handleViewTaxDt : undefined}
@@ -673,6 +744,11 @@ export default function TaxPage() {
               onCreate={canCreateDt ? handleCreateTaxDt : undefined}
               onRefresh={refetchTaxDt}
               onFilterChange={handleDtFilterChange}
+              onPageChange={handleDtPageChange}
+              onPageSizeChange={handleDtPageSizeChange}
+              currentPage={dtCurrentPage}
+              pageSize={dtPageSize}
+              serverSidePagination={true}
               moduleId={moduleId}
               transactionId={transactionIdDt}
               canEdit={canEditDt}
@@ -732,7 +808,7 @@ export default function TaxPage() {
             </LockSkeleton>
           ) : taxsCategoryResult ? (
             <TaxCategoryTable
-              data={categoryFilters.search ? [] : taxsCategoryData || []}
+              data={taxsCategoryData || []}
               isLoading={isLoadingTaxCategory}
               totalRecords={taxsCategoryTotalRecords}
               onSelect={canViewCategory ? handleViewTaxCategory : undefined}
@@ -741,6 +817,11 @@ export default function TaxPage() {
               onCreate={canCreateCategory ? handleCreateTaxCategory : undefined}
               onRefresh={refetchTaxCategory}
               onFilterChange={handleCategoryFilterChange}
+              onPageChange={handleCategoryPageChange}
+              onPageSizeChange={handleCategoryPageSizeChange}
+              currentPage={categoryCurrentPage}
+              pageSize={categoryPageSize}
+              serverSidePagination={true}
               moduleId={moduleId}
               transactionId={transactionIdCategory}
               canEdit={canEditCategory}

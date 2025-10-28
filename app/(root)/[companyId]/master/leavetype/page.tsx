@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { ApiResponse } from "@/interfaces/auth"
 import { ILeaveType, ILeaveTypeFilter } from "@/interfaces/leavetype"
 import { LeaveTypeSchemaType } from "@/schemas/leavetype"
@@ -10,7 +10,8 @@ import { useQueryClient } from "@tanstack/react-query"
 import { getById } from "@/lib/api-client"
 import { LeaveType } from "@/lib/api-routes"
 import { MasterTransactionId, ModuleId } from "@/lib/utils"
-import { useDelete, useGet, usePersist } from "@/hooks/use-common"
+import { useDelete, useGetWithPagination, usePersist } from "@/hooks/use-common"
+import { useUserSettingDefaults } from "@/hooks/use-settings"
 import {
   Dialog,
   DialogContent,
@@ -40,22 +41,52 @@ export default function LeaveTypePage() {
   const canView = hasPermission(moduleId, transactionId, "isRead")
   const canCreate = hasPermission(moduleId, transactionId, "isCreate")
 
-  // Fetch leave types from the API using useGet
+  // Fetch leave types from the API using useGetWithPagination
   const [filters, setFilters] = useState<ILeaveTypeFilter>({})
+  const { defaults } = useUserSettingDefaults()
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize, setPageSize] = useState(
+    defaults?.common?.masterGridTotalRecords || 50
+  )
+
+  // Update page size when user settings change
+  useEffect(() => {
+    if (defaults?.common?.masterGridTotalRecords) {
+      setPageSize(defaults.common.masterGridTotalRecords)
+    }
+  }, [defaults?.common?.masterGridTotalRecords])
 
   // Filter handler wrapper
   const handleFilterChange = useCallback(
     (newFilters: { search?: string; sortOrder?: string }) => {
       setFilters(newFilters as ILeaveTypeFilter)
+      setCurrentPage(1) // Reset to first page when filtering
     },
     []
   )
+
+  // Page change handler
+  const handlePageChange = useCallback((page: number) => {
+    setCurrentPage(page)
+  }, [])
+
+  // Page size change handler
+  const handlePageSizeChange = useCallback((size: number) => {
+    setPageSize(size)
+    setCurrentPage(1) // Reset to first page when changing page size
+  }, [])
 
   const {
     data: leaveTypesResponse,
     refetch,
     isLoading,
-  } = useGet<ILeaveType>(`${LeaveType.get}`, "leaveTypes", filters.search)
+  } = useGetWithPagination<ILeaveType>(
+    `${LeaveType.get}`,
+    "leaveTypes",
+    filters.search,
+    currentPage,
+    pageSize
+  )
 
   // Destructure with fallback values
   const {
@@ -302,7 +333,7 @@ export default function LeaveTypePage() {
         </LockSkeleton>
       ) : (
         <LeaveTypesTable
-          data={filters.search ? [] : leaveTypesData || []}
+          data={leaveTypesData || []}
           isLoading={isLoading}
           totalRecords={totalRecords}
           onSelect={canView ? handleViewLeaveType : undefined}
@@ -311,6 +342,11 @@ export default function LeaveTypePage() {
           onCreate={canCreate ? handleCreateLeaveType : undefined}
           onRefresh={handleRefresh}
           onFilterChange={handleFilterChange}
+          onPageChange={handlePageChange}
+          onPageSizeChange={handlePageSizeChange}
+          currentPage={currentPage}
+          pageSize={pageSize}
+          serverSidePagination={true}
           moduleId={moduleId}
           transactionId={transactionId}
           // Pass permissions to table

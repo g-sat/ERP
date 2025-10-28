@@ -2,7 +2,12 @@
 
 import React, { useCallback, useState } from "react"
 import { IBargeLookup } from "@/interfaces/lookup"
-import { IconCheck, IconChevronDown, IconX } from "@tabler/icons-react"
+import {
+  IconCheck,
+  IconChevronDown,
+  IconRefresh,
+  IconX,
+} from "@tabler/icons-react"
 import { Path, PathValue, UseFormReturn } from "react-hook-form"
 import Select, {
   ClearIndicatorProps,
@@ -110,6 +115,25 @@ export default function BargeAutocomplete<T extends Record<string, unknown>>({
     }
   )
   ClearIndicator.displayName = "ClearIndicator"
+
+  const IndicatorsContainer = React.memo(
+    (props: { children: React.ReactNode }) => {
+      return (
+        <div className="flex gap-0.5">
+          {props.children}
+          <button
+            type="button"
+            onClick={handleRefresh}
+            className="text-muted-foreground hover:text-foreground rounded-sm p-1 transition-colors"
+            title="Refresh barges"
+          >
+            <IconRefresh size={12} className="size-3 shrink-0" />
+          </button>
+        </div>
+      )
+    }
+  )
+  IndicatorsContainer.displayName = "IndicatorsContainer"
 
   const Option = React.memo((props: OptionProps<FieldOption>) => {
     return (
@@ -302,6 +326,7 @@ export default function BargeAutocomplete<T extends Record<string, unknown>>({
                     DropdownIndicator,
                     ClearIndicator,
                     Option,
+                    IndicatorsContainer,
                   }}
                   className="react-select-container"
                   classNamePrefix="react-select__"
@@ -357,6 +382,7 @@ export default function BargeAutocomplete<T extends Record<string, unknown>>({
           DropdownIndicator,
           ClearIndicator,
           Option,
+          IndicatorsContainer,
         }}
         className="react-select-container"
         classNamePrefix="react-select__"

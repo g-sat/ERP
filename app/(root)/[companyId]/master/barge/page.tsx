@@ -10,7 +10,8 @@ import { useQueryClient } from "@tanstack/react-query"
 import { getById } from "@/lib/api-client"
 import { Barge } from "@/lib/api-routes"
 import { MasterTransactionId, ModuleId } from "@/lib/utils"
-import { useDelete, useGet, usePersist } from "@/hooks/use-common"
+import { useDelete, useGetWithPagination, usePersist } from "@/hooks/use-common"
+import { useUserSettingDefaults } from "@/hooks/use-settings"
 import {
   Dialog,
   DialogContent,
@@ -42,23 +43,55 @@ export default function BargePage() {
   const canDelete = hasPermission(moduleId, transactionId, "isDelete")
   const canCreate = hasPermission(moduleId, transactionId, "isCreate")
 
+  // Get user settings for default page size
+  const { defaults } = useUserSettingDefaults()
+
   // Fetch account groups from the API using useGet
   const [filters, setFilters] = useState<IBargeFilter>({})
   const [isLocked, setIsLocked] = useState(false)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize, setPageSize] = useState(
+    defaults?.common?.masterGridTotalRecords || 50
+  )
+
+  // Update page size when user settings change
+  useEffect(() => {
+    if (defaults?.common?.masterGridTotalRecords) {
+      setPageSize(defaults.common.masterGridTotalRecords)
+    }
+  }, [defaults?.common?.masterGridTotalRecords])
 
   // Filter handler wrapper
   const handleFilterChange = useCallback(
     (newFilters: { search?: string; sortOrder?: string }) => {
       setFilters(newFilters as IBargeFilter)
+      setCurrentPage(1) // Reset to first page when filtering
     },
     []
   )
+
+  // Page change handler
+  const handlePageChange = useCallback((page: number) => {
+    setCurrentPage(page)
+  }, [])
+
+  // Page size change handler
+  const handlePageSizeChange = useCallback((size: number) => {
+    setPageSize(size)
+    setCurrentPage(1) // Reset to first page when changing page size
+  }, [])
 
   const {
     data: bargesResponse,
     refetch,
     isLoading,
-  } = useGet<IBarge>(`${Barge.get}`, "barges", filters.search)
+  } = useGetWithPagination<IBarge>(
+    `${Barge.get}`,
+    "barges",
+    filters.search,
+    currentPage,
+    pageSize
+  )
 
   // Destructure with fallback values
   const {
@@ -327,7 +360,7 @@ export default function BargePage() {
         </LockSkeleton>
       ) : (
         <BargeTable
-          data={filters.search ? [] : bargesData || []}
+          data={bargesData || []}
           isLoading={isLoading}
           totalRecords={totalRecords}
           onSelect={canView ? handleViewBarge : undefined}
@@ -336,6 +369,11 @@ export default function BargePage() {
           onCreate={canCreate ? handleCreateBarge : undefined}
           onRefresh={handleRefresh}
           onFilterChange={handleFilterChange}
+          onPageChange={handlePageChange}
+          onPageSizeChange={handlePageSizeChange}
+          currentPage={currentPage}
+          pageSize={pageSize}
+          serverSidePagination={true}
           moduleId={moduleId}
           transactionId={transactionId}
           // Pass permissions to table

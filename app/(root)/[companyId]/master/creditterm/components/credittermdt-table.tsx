@@ -23,6 +23,11 @@ interface CreditTermDtsTableProps {
   onCreate?: () => void
   onRefresh?: () => void
   onFilterChange?: (filters: { search?: string; sortOrder?: string }) => void
+  onPageChange?: (page: number) => void
+  onPageSizeChange?: (pageSize: number) => void
+  currentPage?: number
+  pageSize?: number
+  serverSidePagination?: boolean
   moduleId?: number
   transactionId?: number
   // Permission props
@@ -42,6 +47,11 @@ export function CreditTermDtsTable({
   onCreate,
   onRefresh,
   onFilterChange,
+  onPageChange,
+  onPageSizeChange,
+  currentPage = 1,
+  pageSize = 50,
+  serverSidePagination = false,
   moduleId,
   transactionId,
   // Permission props
@@ -179,6 +189,11 @@ export function CreditTermDtsTable({
       // Add handlers if provided
       onRefresh={onRefresh}
       onFilterChange={onFilterChange}
+      onPageChange={onPageChange}
+      onPageSizeChange={onPageSizeChange}
+      currentPage={currentPage}
+      pageSize={pageSize}
+      serverSidePagination={serverSidePagination}
       //handler column props
       onSelect={onSelect}
       onCreate={onCreate}

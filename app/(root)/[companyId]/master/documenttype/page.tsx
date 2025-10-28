@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { ApiResponse } from "@/interfaces/auth"
 import { IDocumentType, IDocumentTypeFilter } from "@/interfaces/documenttype"
 import { DocumentTypeSchemaType } from "@/schemas/documenttype"
@@ -10,7 +10,8 @@ import { useQueryClient } from "@tanstack/react-query"
 import { getById } from "@/lib/api-client"
 import { DocumentType } from "@/lib/api-routes"
 import { MasterTransactionId, ModuleId } from "@/lib/utils"
-import { useDelete, useGet, usePersist } from "@/hooks/use-common"
+import { useDelete, useGetWithPagination, usePersist } from "@/hooks/use-common"
+import { useUserSettingDefaults } from "@/hooks/use-settings"
 import {
   Dialog,
   DialogContent,
@@ -40,25 +41,53 @@ export default function DocumentTypePage() {
   const canView = hasPermission(moduleId, transactionId, "isRead")
   const canCreate = hasPermission(moduleId, transactionId, "isCreate")
 
+  // Get user settings for default page size
+  const { defaults } = useUserSettingDefaults()
+
   // Fetch document types from the API using useGet
   const [filters, setFilters] = useState<IDocumentTypeFilter>({})
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize, setPageSize] = useState(
+    defaults?.common?.masterGridTotalRecords || 50
+  )
+
+  // Update page size when user settings change
+  useEffect(() => {
+    if (defaults?.common?.masterGridTotalRecords) {
+      setPageSize(defaults.common.masterGridTotalRecords)
+    }
+  }, [defaults?.common?.masterGridTotalRecords])
 
   // Filter handler wrapper
   const handleFilterChange = useCallback(
     (newFilters: { search?: string; sortOrder?: string }) => {
       setFilters(newFilters as IDocumentTypeFilter)
+      setCurrentPage(1) // Reset to first page when filtering
     },
     []
   )
+
+  // Page change handler
+  const handlePageChange = useCallback((page: number) => {
+    setCurrentPage(page)
+  }, [])
+
+  // Page size change handler
+  const handlePageSizeChange = useCallback((size: number) => {
+    setPageSize(size)
+    setCurrentPage(1) // Reset to first page when changing page size
+  }, [])
 
   const {
     data: documentTypesResponse,
     refetch,
     isLoading,
-  } = useGet<IDocumentType>(
+  } = useGetWithPagination<IDocumentType>(
     `${DocumentType.get}`,
     "documentTypes",
-    filters.search
+    filters.search,
+    currentPage,
+    pageSize
   )
 
   // Destructure with fallback values
@@ -307,7 +336,7 @@ export default function DocumentTypePage() {
         </LockSkeleton>
       ) : (
         <DocumentTypesTable
-          data={filters.search ? [] : documentTypesData || []}
+          data={documentTypesData || []}
           isLoading={isLoading}
           totalRecords={totalRecords}
           onSelect={canView ? handleViewDocumentType : undefined}
@@ -316,6 +345,11 @@ export default function DocumentTypePage() {
           onCreate={canCreate ? handleCreateDocumentType : undefined}
           onRefresh={handleRefresh}
           onFilterChange={handleFilterChange}
+          onPageChange={handlePageChange}
+          onPageSizeChange={handlePageSizeChange}
+          currentPage={currentPage}
+          pageSize={pageSize}
+          serverSidePagination={true}
           moduleId={moduleId}
           transactionId={transactionId}
           // Pass permissions to table

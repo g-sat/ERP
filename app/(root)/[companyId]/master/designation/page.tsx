@@ -10,7 +10,8 @@ import { useQueryClient } from "@tanstack/react-query"
 import { getById } from "@/lib/api-client"
 import { Designation } from "@/lib/api-routes"
 import { MasterTransactionId, ModuleId } from "@/lib/utils"
-import { useDelete, useGet, usePersist } from "@/hooks/use-common"
+import { useDelete, useGetWithPagination, usePersist } from "@/hooks/use-common"
+import { useUserSettingDefaults } from "@/hooks/use-settings"
 import {
   Dialog,
   DialogContent,
@@ -42,19 +43,49 @@ export default function DesignationPage() {
   const queryClient = useQueryClient()
 
   const [filters, setFilters] = useState<IDesignationFilter>({})
+  const { defaults } = useUserSettingDefaults()
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize, setPageSize] = useState(
+    defaults?.common?.masterGridTotalRecords || 50
+  )
+
+  // Update page size when user settings change
+  useEffect(() => {
+    if (defaults?.common?.masterGridTotalRecords) {
+      setPageSize(defaults.common.masterGridTotalRecords)
+    }
+  }, [defaults?.common?.masterGridTotalRecords])
 
   // Filter handler wrapper
   const handleFilterChange = useCallback(
     (newFilters: { search?: string; sortOrder?: string }) => {
       setFilters(newFilters as IDesignationFilter)
+      setCurrentPage(1) // Reset to first page when filtering
     },
     []
   )
+
+  // Page change handler
+  const handlePageChange = useCallback((page: number) => {
+    setCurrentPage(page)
+  }, [])
+
+  // Page size change handler
+  const handlePageSizeChange = useCallback((size: number) => {
+    setPageSize(size)
+    setCurrentPage(1) // Reset to first page when changing page size
+  }, [])
   const {
     data: designationsResponse,
     refetch,
     isLoading,
-  } = useGet<IDesignation>(`${Designation.get}`, "designations", filters.search)
+  } = useGetWithPagination<IDesignation>(
+    `${Designation.get}`,
+    "designations",
+    filters.search,
+    currentPage,
+    pageSize
+  )
 
   const {
     result: designationsResult,
@@ -295,13 +326,18 @@ export default function DesignationPage() {
         </LockSkeleton>
       ) : designationsResult ? (
         <DesignationsTable
-          data={filters.search ? [] : designationsData || []}
+          data={designationsData || []}
           onSelect={canView ? handleViewDesignation : undefined}
           onDelete={canDelete ? handleDeleteDesignation : undefined}
           onEdit={canEdit ? handleEditDesignation : undefined}
           onCreate={canCreate ? handleCreateDesignation : undefined}
           onRefresh={handleRefresh}
           onFilterChange={handleFilterChange}
+          onPageChange={handlePageChange}
+          onPageSizeChange={handlePageSizeChange}
+          currentPage={currentPage}
+          pageSize={pageSize}
+          serverSidePagination={true}
           moduleId={moduleId}
           transactionId={transactionId}
           isLoading={isLoading}

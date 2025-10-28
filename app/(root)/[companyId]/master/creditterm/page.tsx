@@ -17,7 +17,8 @@ import { useQueryClient } from "@tanstack/react-query"
 import { getById } from "@/lib/api-client"
 import { CreditTerm, CreditTermDt } from "@/lib/api-routes"
 import { MasterTransactionId, ModuleId } from "@/lib/utils"
-import { useDelete, useGet, usePersist } from "@/hooks/use-common"
+import { useDelete, useGetWithPagination, usePersist } from "@/hooks/use-common"
+import { useUserSettingDefaults } from "@/hooks/use-settings"
 import {
   Dialog,
   DialogContent,
@@ -60,38 +61,73 @@ export default function CreditTermPage() {
   const [filters, setFilters] = useState<ICreditTermFilter>({})
   const [dtFilters, setDtFilters] = useState<ICreditTermFilter>({})
 
+  // Pagination state
+  const { defaults } = useUserSettingDefaults()
+
+  // Separate pagination state for each tab
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize, setPageSize] = useState(
+    defaults?.common?.masterGridTotalRecords || 50
+  )
+  const [dtCurrentPage, setDtCurrentPage] = useState(1)
+  const [dtPageSize, setDtPageSize] = useState(
+    defaults?.common?.masterGridTotalRecords || 50
+  )
+
+  // Update page size when user settings change
+  useEffect(() => {
+    if (defaults?.common?.masterGridTotalRecords) {
+      setPageSize(defaults.common.masterGridTotalRecords)
+      setDtPageSize(defaults.common.masterGridTotalRecords)
+    }
+  }, [defaults?.common?.masterGridTotalRecords])
+
   // Data fetching
   const {
     data: creditTermsResponse,
     refetch: refetchCreditTerm,
     isLoading: isLoadingCreditTerm,
-  } = useGet<ICreditTerm>(`${CreditTerm.get}`, "creditterms", filters.search)
+  } = useGetWithPagination<ICreditTerm>(
+    `${CreditTerm.get}`,
+    "creditterms",
+    filters.search,
+    currentPage,
+    pageSize
+  )
 
   const {
     data: creditTermsDtResponse,
     refetch: refetchCreditTermDt,
     isLoading: isLoadingCreditTermDt,
-  } = useGet<ICreditTermDt>(
+  } = useGetWithPagination<ICreditTermDt>(
     `${CreditTermDt.get}`,
     "credittermsdt",
-    dtFilters.search
+    dtFilters.search,
+    dtCurrentPage,
+    dtPageSize
   )
 
   // Extract data from responses with fallback values
-  const { result: creditTermsResult, data: creditTermsData } =
-    (creditTermsResponse as ApiResponse<ICreditTerm>) ?? {
-      result: 0,
-      message: "",
-      data: [],
-      totalRecords: 0,
-    }
-  const { result: creditTermsDtResult, data: creditTermsDtData } =
-    (creditTermsDtResponse as ApiResponse<ICreditTermDt>) ?? {
-      result: 0,
-      message: "",
-      data: [],
-      totalRecords: 0,
-    }
+  const {
+    result: creditTermsResult,
+    data: creditTermsData,
+    totalRecords: creditTermsTotalRecords,
+  } = (creditTermsResponse as ApiResponse<ICreditTerm>) ?? {
+    result: 0,
+    message: "",
+    data: [],
+    totalRecords: 0,
+  }
+  const {
+    result: creditTermsDtResult,
+    data: creditTermsDtData,
+    totalRecords: creditTermsDtTotalRecords,
+  } = (creditTermsDtResponse as ApiResponse<ICreditTermDt>) ?? {
+    result: 0,
+    message: "",
+    data: [],
+    totalRecords: 0,
+  }
 
   // Mutations
   const saveMutation = usePersist<CreditTermSchemaType>(`${CreditTerm.add}`)
@@ -132,15 +168,6 @@ export default function CreditTermPage() {
     useState(false)
   const [existingCreditTerm, setExistingCreditTerm] =
     useState<ICreditTerm | null>(null)
-
-  // Refetch when filters change
-  useEffect(() => {
-    if (filters.search !== undefined) refetchCreditTerm()
-  }, [filters.search, refetchCreditTerm])
-
-  useEffect(() => {
-    if (dtFilters.search !== undefined) refetchCreditTermDt()
-  }, [dtFilters.search, refetchCreditTermDt])
 
   // Action handlers
   const handleCreateCreditTerm = () => {
@@ -185,6 +212,7 @@ export default function CreditTermPage() {
   const handleFilterChange = useCallback(
     (newFilters: { search?: string; sortOrder?: string }) => {
       setFilters(newFilters as ICreditTermFilter)
+      setCurrentPage(1) // Reset to first page when filtering
     },
     []
   )
@@ -192,9 +220,30 @@ export default function CreditTermPage() {
   const handleDtFilterChange = useCallback(
     (newFilters: { search?: string; sortOrder?: string }) => {
       setDtFilters(newFilters as ICreditTermFilter)
+      setDtCurrentPage(1) // Reset to first page when filtering
     },
     []
   )
+
+  // Page change handlers
+  const handlePageChange = useCallback((page: number) => {
+    setCurrentPage(page)
+  }, [])
+
+  const handleDtPageChange = useCallback((page: number) => {
+    setDtCurrentPage(page)
+  }, [])
+
+  // Page size change handlers
+  const handlePageSizeChange = useCallback((size: number) => {
+    setPageSize(size)
+    setCurrentPage(1) // Reset to first page when changing page size
+  }, [])
+
+  const handleDtPageSizeChange = useCallback((size: number) => {
+    setDtPageSize(size)
+    setDtCurrentPage(1) // Reset to first page when changing page size
+  }, [])
 
   // Helper function for API responses
   const handleApiResponse = (
@@ -450,14 +499,20 @@ export default function CreditTermPage() {
             </LockSkeleton>
           ) : creditTermsResult ? (
             <CreditTermsTable
-              data={filters.search ? [] : creditTermsData || []}
+              data={creditTermsData || []}
               isLoading={isLoadingCreditTerm}
+              totalRecords={creditTermsTotalRecords}
               onSelect={canView ? handleViewCreditTerm : undefined}
               onDelete={canDelete ? handleDeleteCreditTerm : undefined}
               onEdit={canEdit ? handleEditCreditTerm : undefined}
               onCreate={canCreate ? handleCreateCreditTerm : undefined}
               onRefresh={refetchCreditTerm}
               onFilterChange={handleFilterChange}
+              onPageChange={handlePageChange}
+              onPageSizeChange={handlePageSizeChange}
+              currentPage={currentPage}
+              pageSize={pageSize}
+              serverSidePagination={true}
               moduleId={moduleId}
               transactionId={transactionId}
               canEdit={canEdit}
@@ -513,14 +568,20 @@ export default function CreditTermPage() {
             </LockSkeleton>
           ) : creditTermsDtResult ? (
             <CreditTermDtsTable
-              data={dtFilters.search ? [] : creditTermsDtData || []}
+              data={creditTermsDtData || []}
               isLoading={isLoadingCreditTermDt}
+              totalRecords={creditTermsDtTotalRecords}
               onSelect={canViewDt ? handleViewCreditTermDt : undefined}
               onDelete={canDeleteDt ? handleDeleteCreditTermDt : undefined}
               onEdit={canEditDt ? handleEditCreditTermDt : undefined}
               onCreate={canCreateDt ? handleCreateCreditTermDt : undefined}
               onRefresh={refetchCreditTermDt}
               onFilterChange={handleDtFilterChange}
+              onPageChange={handleDtPageChange}
+              onPageSizeChange={handleDtPageSizeChange}
+              currentPage={dtCurrentPage}
+              pageSize={dtPageSize}
+              serverSidePagination={true}
               moduleId={moduleId}
               transactionId={transactionIdDt}
               canEdit={canEditDt}

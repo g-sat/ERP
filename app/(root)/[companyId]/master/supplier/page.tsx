@@ -18,8 +18,14 @@ import { ListFilter, RotateCcw, Save, Trash2 } from "lucide-react"
 
 import { Supplier, SupplierAddress, SupplierContact } from "@/lib/api-routes"
 import { MasterTransactionId, ModuleId } from "@/lib/utils"
-import { useDelete, useGet, useGetById, usePersist } from "@/hooks/use-common"
+import {
+  useDelete,
+  useGetById,
+  useGetWithPagination,
+  usePersist,
+} from "@/hooks/use-common"
 import { useGetSupplierById } from "@/hooks/use-master"
+import { useUserSettingDefaults } from "@/hooks/use-settings"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -75,6 +81,18 @@ export default function SupplierPage() {
     sortOrder: "asc",
   })
   const [key, setKey] = useState(0)
+  const { defaults } = useUserSettingDefaults()
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize, setPageSize] = useState(
+    defaults?.common?.masterGridTotalRecords || 50
+  )
+
+  // Update page size when user settings change
+  useEffect(() => {
+    if (defaults?.common?.masterGridTotalRecords) {
+      setPageSize(defaults.common.masterGridTotalRecords)
+    }
+  }, [defaults?.common?.masterGridTotalRecords])
 
   // State for code availability check
   const [showLoadDialog, setShowLoadDialog] = useState(false)
@@ -134,7 +152,13 @@ export default function SupplierPage() {
     data: suppliersResponse,
     refetch: refetchSuppliers,
     isLoading: isLoadingSuppliers,
-  } = useGet<ISupplier>(`${Supplier.get}`, "suppliers", filters.search)
+  } = useGetWithPagination<ISupplier>(
+    `${Supplier.get}`,
+    "suppliers",
+    filters.search,
+    currentPage,
+    pageSize
+  )
 
   const { refetch: refetchSupplierDetails } = useGetSupplierById<ISupplier>(
     `${Supplier.getById}`,
@@ -166,13 +190,16 @@ export default function SupplierPage() {
       }
     )
 
-  const { data: suppliersData, totalRecords } =
-    (suppliersResponse as ApiResponse<ISupplier>) ?? {
-      result: 0,
-      message: "",
-      data: [],
-      totalRecords: 0,
-    }
+  const {
+    result: suppliersResult,
+    data: suppliersData,
+    totalRecords,
+  } = (suppliersResponse as ApiResponse<ISupplier>) ?? {
+    result: 0,
+    message: "",
+    data: [],
+    totalRecords: 0,
+  }
 
   // Mutations
   const saveMutation = usePersist<SupplierSchemaType>(`${Supplier.add}`)
@@ -495,8 +522,24 @@ export default function SupplierPage() {
     }
   }
 
-  const handleFilterChange = (newFilters: ISupplierFilter) =>
-    setFilters(newFilters)
+  const handleFilterChange = useCallback(
+    (newFilters: { search?: string; sortOrder?: string }) => {
+      setFilters(newFilters as ISupplierFilter)
+      setCurrentPage(1) // Reset to first page when filtering
+    },
+    []
+  )
+
+  // Page change handler
+  const handlePageChange = useCallback((page: number) => {
+    setCurrentPage(page)
+  }, [])
+
+  // Page size change handler
+  const handlePageSizeChange = useCallback((size: number) => {
+    setPageSize(size)
+    setCurrentPage(1) // Reset to first page when changing page size
+  }, [])
 
   const handleSupplierLookup = async (
     supplierCode: string,
@@ -721,8 +764,14 @@ export default function SupplierPage() {
           <SupplierTable
             data={suppliersData || []}
             isLoading={isLoadingSuppliers}
+            totalRecords={totalRecords}
             onSelect={handleSupplierSelect}
             onFilterChange={handleFilterChange}
+            onPageChange={handlePageChange}
+            onPageSizeChange={handlePageSizeChange}
+            currentPage={currentPage}
+            pageSize={pageSize}
+            serverSidePagination={true}
             onRefresh={() => refetchSuppliers()}
             moduleId={moduleId}
             transactionId={transactionId}

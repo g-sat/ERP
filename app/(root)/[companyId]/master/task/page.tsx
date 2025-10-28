@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { ApiResponse } from "@/interfaces/auth"
 import { ITask, ITaskFilter } from "@/interfaces/task"
 import { TaskSchemaType } from "@/schemas/task"
@@ -10,7 +10,8 @@ import { useQueryClient } from "@tanstack/react-query"
 import { getById } from "@/lib/api-client"
 import { Task } from "@/lib/api-routes"
 import { MasterTransactionId, ModuleId } from "@/lib/utils"
-import { useDelete, useGet, usePersist } from "@/hooks/use-common"
+import { useDelete, useGetWithPagination, usePersist } from "@/hooks/use-common"
+import { useUserSettingDefaults } from "@/hooks/use-settings"
 import {
   Dialog,
   DialogContent,
@@ -43,18 +44,49 @@ export default function TaskPage() {
 
   const [filters, setFilters] = useState<ITaskFilter>({})
 
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize, setPageSize] = useState(50)
+
+  // Get user setting defaults
+  const { defaults } = useUserSettingDefaults()
+
+  // Update page size when defaults change
+  useEffect(() => {
+    if (defaults?.common?.masterGridTotalRecords) {
+      setPageSize(defaults.common.masterGridTotalRecords)
+    }
+  }, [defaults?.common?.masterGridTotalRecords])
+
   // Filter handler wrapper
   const handleFilterChange = useCallback(
     (newFilters: { search?: string; sortOrder?: string }) => {
       setFilters(newFilters as ITaskFilter)
+      setCurrentPage(1) // Reset to first page when filtering
     },
     []
   )
+
+  // Pagination handlers
+  const handlePageChange = useCallback((page: number) => {
+    setCurrentPage(page)
+  }, [])
+
+  const handlePageSizeChange = useCallback((size: number) => {
+    setPageSize(size)
+    setCurrentPage(1)
+  }, [])
   const {
     data: tasksResponse,
     refetch,
     isLoading,
-  } = useGet<ITask>(`${Task.get}`, "tasks", filters.search)
+  } = useGetWithPagination<ITask>(
+    `${Task.get}`,
+    "tasks",
+    filters.search,
+    currentPage,
+    pageSize
+  )
 
   const {
     result: tasksResult,
@@ -287,7 +319,7 @@ export default function TaskPage() {
         </LockSkeleton>
       ) : (
         <TasksTable
-          data={filters.search ? [] : tasksData || []}
+          data={tasksData || []}
           isLoading={isLoading}
           totalRecords={totalRecords}
           onSelect={canView ? handleViewTask : undefined}
@@ -296,6 +328,11 @@ export default function TaskPage() {
           onCreate={canCreate ? handleCreateTask : undefined}
           onRefresh={handleRefresh}
           onFilterChange={handleFilterChange}
+          onPageChange={handlePageChange}
+          onPageSizeChange={handlePageSizeChange}
+          currentPage={currentPage}
+          pageSize={pageSize}
+          serverSidePagination={true}
           moduleId={moduleId}
           transactionId={transactionId}
           // Pass permissions to table

@@ -168,6 +168,73 @@ export function useGetWithDates<T>(
   })
 }
 
+/**
+ * GET with pagination support
+ */
+export function useGetWithPagination<T>(
+  baseUrl: string,
+  queryKey: string,
+  filters?: string,
+  pageNumber: number = 1,
+  pageSize: number = 50,
+  options?: UseQueryOptions<ApiResponse<T>>
+) {
+  return useQuery<ApiResponse<T>>({
+    queryKey: [queryKey, filters, pageNumber, pageSize],
+    queryFn: async () => {
+      const params: QueryParams = {
+        ...baseQueryConfig,
+        searchString: filters?.trim() || "null",
+        pageNumber: pageNumber.toString(),
+        pageSize: pageSize.toString(),
+      }
+      return await getData(cleanUrl(baseUrl), params)
+    },
+    staleTime: 0, // No stale time for pagination to ensure fresh data
+    gcTime: 10 * 60 * 1000, // 10 minutes (formerly cacheTime)
+    refetchOnWindowFocus: false, // Prevent refetch on window focus
+    refetchOnMount: true, // Allow refetch on mount for pagination
+    ...options,
+  })
+}
+
+/**
+ * GET with date range filters and pagination support
+ */
+export function useGetWithDatesAndPagination<T>(
+  baseUrl: string,
+  queryKey: string,
+  filters?: string,
+  startDate?: string,
+  endDate?: string,
+  pageNumber: number = 1,
+  pageSize: number = 50,
+  options?: UseQueryOptions<ApiResponse<T>>,
+  enabled?: boolean
+) {
+  return useQuery<ApiResponse<T>>({
+    queryKey: [queryKey, filters, startDate, endDate, pageNumber, pageSize],
+    queryFn: async () => {
+      const params: QueryParams = {
+        ...baseQueryConfig,
+        searchString: filters?.trim() || "",
+        startDate: startDate?.trim() || "",
+        endDate: endDate?.trim() || "",
+        pageNumber: pageNumber.toString(),
+        pageSize: pageSize.toString(),
+      }
+      return await getData(cleanUrl(baseUrl), params)
+    },
+    staleTime: 0,
+    gcTime: 0,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+    enabled, // won't auto-fetch unless manually triggered
+    ...options,
+  })
+}
+
 // ==================== MUTATION HOOKS ====================
 
 const handleMutationResponse = (response: ApiResponse<unknown>) => {

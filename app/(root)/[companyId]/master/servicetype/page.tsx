@@ -18,7 +18,8 @@ import { useQueryClient } from "@tanstack/react-query"
 import { getById } from "@/lib/api-client"
 import { ServiceType, ServiceTypeCategory } from "@/lib/api-routes"
 import { MasterTransactionId, ModuleId } from "@/lib/utils"
-import { useDelete, useGet, usePersist } from "@/hooks/use-common"
+import { useDelete, useGetWithPagination, usePersist } from "@/hooks/use-common"
+import { useUserSettingDefaults } from "@/hooks/use-settings"
 import {
   Dialog,
   DialogContent,
@@ -73,15 +74,37 @@ export default function ServiceTypePage() {
     "isRead"
   )
 
+  // Get user settings for default page size
+  const { defaults } = useUserSettingDefaults()
+
   // State for filters
   const [filters, setFilters] = useState<IServiceTypeFilter>({})
   const [categoryFilters, setCategoryFilters] =
     useState<IServiceTypeCategoryFilter>({})
 
+  // Separate pagination state for each tab
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize, setPageSize] = useState(
+    defaults?.common?.masterGridTotalRecords || 50
+  )
+  const [categoryCurrentPage, setCategoryCurrentPage] = useState(1)
+  const [categoryPageSize, setCategoryPageSize] = useState(
+    defaults?.common?.masterGridTotalRecords || 50
+  )
+
+  // Update page size when user settings change
+  useEffect(() => {
+    if (defaults?.common?.masterGridTotalRecords) {
+      setPageSize(defaults.common.masterGridTotalRecords)
+      setCategoryPageSize(defaults.common.masterGridTotalRecords)
+    }
+  }, [defaults?.common?.masterGridTotalRecords])
+
   // Filter change handlers
   const handleFilterChange = useCallback(
     (newFilters: { search?: string; sortOrder?: string }) => {
       setFilters(newFilters as IServiceTypeFilter)
+      setCurrentPage(1) // Reset to first page when filtering
     },
     []
   )
@@ -89,25 +112,54 @@ export default function ServiceTypePage() {
   const handleCategoryFilterChange = useCallback(
     (newFilters: { search?: string; sortOrder?: string }) => {
       setCategoryFilters(newFilters as IServiceTypeCategoryFilter)
+      setCategoryCurrentPage(1) // Reset to first page when filtering
     },
     []
   )
+
+  // Page change handlers for each tab
+  const handlePageChange = useCallback((page: number) => {
+    setCurrentPage(page)
+  }, [])
+
+  const handleCategoryPageChange = useCallback((page: number) => {
+    setCategoryCurrentPage(page)
+  }, [])
+
+  // Page size change handlers for each tab
+  const handlePageSizeChange = useCallback((size: number) => {
+    setPageSize(size)
+    setCurrentPage(1) // Reset to first page when changing page size
+  }, [])
+
+  const handleCategoryPageSizeChange = useCallback((size: number) => {
+    setCategoryPageSize(size)
+    setCategoryCurrentPage(1) // Reset to first page when changing page size
+  }, [])
 
   // Data fetching
   const {
     data: servicetypesResponse,
     refetch: refetchServiceType,
     isLoading: isLoadingServiceType,
-  } = useGet<IServiceType>(`${ServiceType.get}`, "servicetypes", filters.search)
+  } = useGetWithPagination<IServiceType>(
+    `${ServiceType.get}`,
+    "servicetypes",
+    filters.search,
+    currentPage,
+    pageSize
+  )
 
   const {
     data: servicetypesCategoryResponse,
     refetch: refetchServiceTypeCategory,
     isLoading: isLoadingServiceTypeCategory,
-  } = useGet<IServiceTypeCategory>(
+  } = useGetWithPagination<IServiceTypeCategory>(
     `${ServiceTypeCategory.get}`,
     "servicetypecategory",
-    categoryFilters.search
+    categoryFilters.search,
+    categoryCurrentPage,
+    categoryPageSize
   )
 
   // Extract data from responses with fallback values
@@ -499,7 +551,7 @@ export default function ServiceTypePage() {
             </LockSkeleton>
           ) : (
             <ServiceTypeTable
-              data={filters.search ? [] : servicetypesData || []}
+              data={servicetypesData || []}
               totalRecords={servicetypesTotalRecords}
               onSelect={canView ? handleViewServiceType : undefined}
               onDelete={canDelete ? handleDeleteServiceType : undefined}
@@ -507,6 +559,11 @@ export default function ServiceTypePage() {
               onCreate={canCreate ? handleCreateServiceType : undefined}
               onRefresh={refetchServiceType}
               onFilterChange={handleFilterChange}
+              onPageChange={handlePageChange}
+              onPageSizeChange={handlePageSizeChange}
+              currentPage={currentPage}
+              pageSize={pageSize}
+              serverSidePagination={true}
               moduleId={moduleId}
               transactionId={transactionId}
               canEdit={canEdit}
@@ -560,9 +617,7 @@ export default function ServiceTypePage() {
             </LockSkeleton>
           ) : (
             <ServiceTypeCategoryTable
-              data={
-                categoryFilters.search ? [] : servicetypesCategoryData || []
-              }
+              data={servicetypesCategoryData || []}
               totalRecords={servicetypesCategoryTotalRecords}
               onSelect={
                 canViewCategory ? handleViewServiceTypeCategory : undefined
@@ -578,6 +633,11 @@ export default function ServiceTypePage() {
               }
               onRefresh={refetchServiceTypeCategory}
               onFilterChange={handleCategoryFilterChange}
+              onPageChange={handleCategoryPageChange}
+              onPageSizeChange={handleCategoryPageSizeChange}
+              currentPage={categoryCurrentPage}
+              pageSize={categoryPageSize}
+              serverSidePagination={true}
               moduleId={moduleId}
               transactionId={transactionId}
               canEdit={canEditCategory}

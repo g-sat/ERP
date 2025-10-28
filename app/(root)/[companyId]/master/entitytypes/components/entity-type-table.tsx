@@ -18,6 +18,11 @@ interface EntityTypesTableProps {
   onCreate?: () => void
   onRefresh?: () => void
   onFilterChange?: (filters: { search?: string; sortOrder?: string }) => void
+  onPageChange?: (page: number) => void
+  onPageSizeChange?: (pageSize: number) => void
+  currentPage?: number
+  pageSize?: number
+  serverSidePagination?: boolean
   moduleId?: number
   transactionId?: number
   // Permission props
@@ -121,6 +126,11 @@ export function EntityTypesTable({
       onCreate={onCreate}
       onRefresh={onRefresh}
       onFilterChange={onFilterChange}
+      onPageChange={onPageChange}
+      onPageSizeChange={onPageSizeChange}
+      currentPage={currentPage}
+      pageSize={pageSize}
+      serverSidePagination={serverSidePagination}
       canView={canView}
       canEdit={canEdit}
       canDelete={canDelete}

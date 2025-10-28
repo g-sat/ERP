@@ -19,6 +19,11 @@ interface CustomerTableProps {
   totalRecords?: number
   onSelect?: (customer: ICustomer | null) => void
   onFilterChange?: (filters: ICustomerFilter) => void
+  onPageChange?: (page: number) => void
+  onPageSizeChange?: (pageSize: number) => void
+  currentPage?: number
+  pageSize?: number
+  serverSidePagination?: boolean
   onRefresh?: () => void
   moduleId: number
   transactionId: number
@@ -30,6 +35,11 @@ export function CustomerTable({
   totalRecords = 0,
   onSelect,
   onFilterChange,
+  onPageChange,
+  onPageSizeChange,
+  currentPage = 1,
+  pageSize = 50,
+  serverSidePagination = false,
   onRefresh,
   moduleId,
   transactionId,
@@ -201,6 +211,11 @@ export function CustomerTable({
         emptyMessage="No customers found."
         onRefresh={onRefresh}
         onFilterChange={handleDialogFilterChange}
+        onPageChange={onPageChange}
+        onPageSizeChange={onPageSizeChange}
+        currentPage={currentPage}
+        pageSize={pageSize}
+        serverSidePagination={serverSidePagination}
         onRowSelect={onSelect}
       />
     </div>

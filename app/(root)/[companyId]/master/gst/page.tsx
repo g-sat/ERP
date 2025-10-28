@@ -20,7 +20,8 @@ import { useQueryClient } from "@tanstack/react-query"
 import { getById } from "@/lib/api-client"
 import { Gst, GstCategory, GstDt } from "@/lib/api-routes"
 import { MasterTransactionId, ModuleId } from "@/lib/utils"
-import { useDelete, useGet, usePersist } from "@/hooks/use-common"
+import { useDelete, useGetWithPagination, usePersist } from "@/hooks/use-common"
+import { useUserSettingDefaults } from "@/hooks/use-settings"
 import {
   Dialog,
   DialogContent,
@@ -84,11 +85,40 @@ export default function GstPage() {
 
   // State for filters
   const [filters, setFilters] = useState<IGstFilter>({})
+  const [dtFilters, setDtFilters] = useState<IGstFilter>({})
+  const [categoryFilters, setCategoryFilters] = useState<IGstCategoryFilter>({})
+
+  // Pagination state
+  const { defaults } = useUserSettingDefaults()
+
+  // Separate pagination state for each tab
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize, setPageSize] = useState(
+    defaults?.common?.masterGridTotalRecords || 50
+  )
+  const [dtCurrentPage, setDtCurrentPage] = useState(1)
+  const [dtPageSize, setDtPageSize] = useState(
+    defaults?.common?.masterGridTotalRecords || 50
+  )
+  const [categoryCurrentPage, setCategoryCurrentPage] = useState(1)
+  const [categoryPageSize, setCategoryPageSize] = useState(
+    defaults?.common?.masterGridTotalRecords || 50
+  )
+
+  // Update page size when user settings change
+  useEffect(() => {
+    if (defaults?.common?.masterGridTotalRecords) {
+      setPageSize(defaults.common.masterGridTotalRecords)
+      setDtPageSize(defaults.common.masterGridTotalRecords)
+      setCategoryPageSize(defaults.common.masterGridTotalRecords)
+    }
+  }, [defaults?.common?.masterGridTotalRecords])
 
   // Filter change handlers
   const handleFilterChange = useCallback(
     (newFilters: { search?: string; sortOrder?: string }) => {
       setFilters(newFilters as IGstFilter)
+      setCurrentPage(1) // Reset to first page when filtering
     },
     []
   )
@@ -96,6 +126,7 @@ export default function GstPage() {
   const handleDtFilterChange = useCallback(
     (newFilters: { search?: string; sortOrder?: string }) => {
       setDtFilters(newFilters as IGstFilter)
+      setDtCurrentPage(1) // Reset to first page when filtering
     },
     []
   )
@@ -103,34 +134,75 @@ export default function GstPage() {
   const handleCategoryFilterChange = useCallback(
     (newFilters: { search?: string; sortOrder?: string }) => {
       setCategoryFilters(newFilters as IGstCategoryFilter)
+      setCategoryCurrentPage(1) // Reset to first page when filtering
     },
     []
   )
 
-  const [dtFilters, setDtFilters] = useState<IGstFilter>({})
-  const [categoryFilters, setCategoryFilters] = useState<IGstCategoryFilter>({})
+  // Page change handlers
+  const handlePageChange = useCallback((page: number) => {
+    setCurrentPage(page)
+  }, [])
+
+  const handleDtPageChange = useCallback((page: number) => {
+    setDtCurrentPage(page)
+  }, [])
+
+  const handleCategoryPageChange = useCallback((page: number) => {
+    setCategoryCurrentPage(page)
+  }, [])
+
+  // Page size change handlers
+  const handlePageSizeChange = useCallback((size: number) => {
+    setPageSize(size)
+    setCurrentPage(1) // Reset to first page when changing page size
+  }, [])
+
+  const handleDtPageSizeChange = useCallback((size: number) => {
+    setDtPageSize(size)
+    setDtCurrentPage(1) // Reset to first page when changing page size
+  }, [])
+
+  const handleCategoryPageSizeChange = useCallback((size: number) => {
+    setCategoryPageSize(size)
+    setCategoryCurrentPage(1) // Reset to first page when changing page size
+  }, [])
 
   // Data fetching
   const {
     data: gstsResponse,
     refetch: refetchGst,
     isLoading: isLoadingGst,
-  } = useGet<IGst>(`${Gst.get}`, "gsts", filters.search)
+  } = useGetWithPagination<IGst>(
+    `${Gst.get}`,
+    "gsts",
+    filters.search,
+    currentPage,
+    pageSize
+  )
 
   const {
     data: gstsDtResponse,
     refetch: refetchGstDt,
     isLoading: isLoadingGstDt,
-  } = useGet<IGstDt>(`${GstDt.get}`, "gstsdt", dtFilters.search)
+  } = useGetWithPagination<IGstDt>(
+    `${GstDt.get}`,
+    "gstsdt",
+    dtFilters.search,
+    dtCurrentPage,
+    dtPageSize
+  )
 
   const {
     data: gstsCategoryResponse,
     refetch: refetchGstCategory,
     isLoading: isLoadingGstCategory,
-  } = useGet<IGstCategory>(
+  } = useGetWithPagination<IGstCategory>(
     `${GstCategory.get}`,
     "gstcategory",
-    categoryFilters.search
+    categoryFilters.search,
+    categoryCurrentPage,
+    categoryPageSize
   )
 
   // Extract data from responses with fallback values
@@ -209,19 +281,6 @@ export default function GstPage() {
   const [showLoadDialogCategory, setShowLoadDialogCategory] = useState(false)
   const [existingGstCategory, setExistingGstCategory] =
     useState<IGstCategory | null>(null)
-
-  // Refetch when filters change
-  useEffect(() => {
-    if (filters.search !== undefined) refetchGst()
-  }, [filters.search, refetchGst])
-
-  useEffect(() => {
-    if (dtFilters.search !== undefined) refetchGstDt()
-  }, [dtFilters.search, refetchGstDt])
-
-  useEffect(() => {
-    if (categoryFilters.search !== undefined) refetchGstCategory()
-  }, [categoryFilters.search, refetchGstCategory])
 
   // Action handlers
   const handleCreateGst = () => {
@@ -609,7 +668,7 @@ export default function GstPage() {
             </LockSkeleton>
           ) : gstsResult ? (
             <GstTable
-              data={filters.search ? [] : gstsData || []}
+              data={gstsData || []}
               isLoading={isLoadingGst}
               totalRecords={gstsTotalRecords}
               onSelect={canView ? handleViewGst : undefined}
@@ -618,6 +677,11 @@ export default function GstPage() {
               onCreate={canCreate ? handleCreateGst : undefined}
               onRefresh={refetchGst}
               onFilterChange={handleFilterChange}
+              onPageChange={handlePageChange}
+              onPageSizeChange={handlePageSizeChange}
+              currentPage={currentPage}
+              pageSize={pageSize}
+              serverSidePagination={true}
               moduleId={moduleId}
               transactionId={transactionId}
               canEdit={canEdit}
@@ -674,7 +738,7 @@ export default function GstPage() {
             </LockSkeleton>
           ) : gstsDtResult ? (
             <GstDtTable
-              data={dtFilters.search ? [] : gstsDtData || []}
+              data={gstsDtData || []}
               isLoading={isLoadingGstDt}
               totalRecords={gstsDtTotalRecords}
               onSelect={canViewDt ? handleViewGstDt : undefined}
@@ -683,6 +747,11 @@ export default function GstPage() {
               onCreate={canCreateDt ? handleCreateGstDt : undefined}
               onRefresh={refetchGstDt}
               onFilterChange={handleDtFilterChange}
+              onPageChange={handleDtPageChange}
+              onPageSizeChange={handleDtPageSizeChange}
+              currentPage={dtCurrentPage}
+              pageSize={dtPageSize}
+              serverSidePagination={true}
               moduleId={moduleId}
               transactionId={transactionIdDt}
               canEdit={canEditDt}
@@ -742,7 +811,7 @@ export default function GstPage() {
             </LockSkeleton>
           ) : gstsCategoryResult ? (
             <GstCategoryTable
-              data={categoryFilters.search ? [] : gstsCategoryData || []}
+              data={gstsCategoryData || []}
               isLoading={isLoadingGstCategory}
               totalRecords={gstsCategoryTotalRecords}
               onSelect={canViewCategory ? handleViewGstCategory : undefined}
@@ -751,6 +820,11 @@ export default function GstPage() {
               onCreate={canCreateCategory ? handleCreateGstCategory : undefined}
               onRefresh={refetchGstCategory}
               onFilterChange={handleCategoryFilterChange}
+              onPageChange={handleCategoryPageChange}
+              onPageSizeChange={handleCategoryPageSizeChange}
+              currentPage={categoryCurrentPage}
+              pageSize={categoryPageSize}
+              serverSidePagination={true}
               moduleId={moduleId}
               transactionId={transactionIdCategory}
               canEdit={canEditCategory}

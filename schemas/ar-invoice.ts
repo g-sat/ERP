@@ -118,6 +118,7 @@ export const ArInvoiceHdSchema = (
 
     // Job Order Fields
     jobOrderId: z.number().optional(),
+    jobOrderNo: z.string().optional(),
 
     // Vessel Fields
     vesselId: z.number().optional(),

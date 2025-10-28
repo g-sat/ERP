@@ -10,7 +10,8 @@ import { useQueryClient } from "@tanstack/react-query"
 import { getById } from "@/lib/api-client"
 import { Product } from "@/lib/api-routes"
 import { MasterTransactionId, ModuleId } from "@/lib/utils"
-import { useDelete, useGet, usePersist } from "@/hooks/use-common"
+import { useDelete, useGetWithPagination, usePersist } from "@/hooks/use-common"
+import { useUserSettingDefaults } from "@/hooks/use-settings"
 import {
   Dialog,
   DialogContent,
@@ -41,6 +42,17 @@ export default function ProductPage() {
   const canCreate = hasPermission(moduleId, transactionId, "isCreate")
 
   const [filters, setFilters] = useState<IProductFilter>({})
+  const { defaults } = useUserSettingDefaults()
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize, setPageSize] = useState(
+    defaults?.common?.masterGridTotalRecords || 50
+  )
+
+  useEffect(() => {
+    if (defaults?.common?.masterGridTotalRecords) {
+      setPageSize(defaults.common.masterGridTotalRecords)
+    }
+  }, [defaults?.common?.masterGridTotalRecords])
 
   // Filter handler wrapper
   const handleFilterChange = useCallback(
@@ -53,7 +65,13 @@ export default function ProductPage() {
     data: productsResponse,
     refetch,
     isLoading,
-  } = useGet<IProduct>(`${Product.get}`, "products", filters.search)
+  } = useGetWithPagination<IProduct>(
+    `${Product.get}`,
+    "products",
+    filters.search,
+    currentPage,
+    pageSize
+  )
 
   const {
     result: productsResult,
@@ -100,6 +118,15 @@ export default function ProductPage() {
   const handleRefresh = () => {
     refetch()
   }
+
+  const handlePageChange = useCallback((page: number) => {
+    setCurrentPage(page)
+  }, [])
+
+  const handlePageSizeChange = useCallback((size: number) => {
+    setPageSize(size)
+    setCurrentPage(1)
+  }, [])
 
   const handleCreateProduct = () => {
     setModalMode("create")
@@ -287,6 +314,11 @@ export default function ProductPage() {
           onCreate={canCreate ? handleCreateProduct : undefined}
           onRefresh={handleRefresh}
           onFilterChange={handleFilterChange}
+          onPageChange={handlePageChange}
+          onPageSizeChange={handlePageSizeChange}
+          currentPage={currentPage}
+          pageSize={pageSize}
+          serverSidePagination={true}
           moduleId={moduleId}
           transactionId={transactionId}
           isLoading={isLoading}

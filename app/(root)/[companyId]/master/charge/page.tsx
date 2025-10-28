@@ -10,7 +10,8 @@ import { useQueryClient } from "@tanstack/react-query"
 import { getById } from "@/lib/api-client"
 import { Charge } from "@/lib/api-routes"
 import { MasterTransactionId, ModuleId } from "@/lib/utils"
-import { useDelete, useGet, usePersist } from "@/hooks/use-common"
+import { useDelete, useGetWithPagination, usePersist } from "@/hooks/use-common"
+import { useUserSettingDefaults } from "@/hooks/use-settings"
 import {
   Dialog,
   DialogContent,
@@ -49,19 +50,50 @@ export default function ChargePage() {
   const [filters, setFilters] = useState<IChargeFilter>({})
   const [isLocked, setIsLocked] = useState(false)
 
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize, setPageSize] = useState(50)
+
+  // Get user setting defaults
+  const { defaults } = useUserSettingDefaults()
+
+  // Update page size when defaults change
+  useEffect(() => {
+    if (defaults?.common?.masterGridTotalRecords) {
+      setPageSize(defaults.common.masterGridTotalRecords)
+    }
+  }, [defaults?.common?.masterGridTotalRecords])
+
   // Filter handler wrapper
   const handleFilterChange = useCallback(
     (newFilters: { search?: string; sortOrder?: string }) => {
       setFilters(newFilters as IChargeFilter)
+      setCurrentPage(1) // Reset to first page when filtering
     },
     []
   )
+
+  // Pagination handlers
+  const handlePageChange = useCallback((page: number) => {
+    setCurrentPage(page)
+  }, [])
+
+  const handlePageSizeChange = useCallback((size: number) => {
+    setPageSize(size)
+    setCurrentPage(1)
+  }, [])
 
   const {
     data: chargesResponse,
     refetch,
     isLoading,
-  } = useGet<ICharge>(`${Charge.get}`, "charges", filters.search)
+  } = useGetWithPagination<ICharge>(
+    `${Charge.get}`,
+    "charges",
+    filters.search,
+    currentPage,
+    pageSize
+  )
 
   // Destructure with fallback values
   const {
@@ -333,7 +365,7 @@ export default function ChargePage() {
         </LockSkeleton>
       ) : (
         <ChargeTable
-          data={filters.search ? [] : chargesData || []}
+          data={chargesData || []}
           isLoading={isLoading}
           totalRecords={totalRecords}
           onSelect={canView ? handleViewCharge : undefined}
@@ -342,6 +374,11 @@ export default function ChargePage() {
           onCreate={canCreate ? handleCreateCharge : undefined}
           onRefresh={handleRefresh}
           onFilterChange={handleFilterChange}
+          onPageChange={handlePageChange}
+          onPageSizeChange={handlePageSizeChange}
+          currentPage={currentPage}
+          pageSize={pageSize}
+          serverSidePagination={true}
           moduleId={moduleId}
           transactionId={transactionId}
           // Pass permissions to table

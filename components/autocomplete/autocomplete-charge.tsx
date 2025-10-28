@@ -2,7 +2,12 @@
 
 import React from "react"
 import { IChargeLookup } from "@/interfaces/lookup"
-import { IconCheck, IconChevronDown, IconX } from "@tabler/icons-react"
+import {
+  IconCheck,
+  IconChevronDown,
+  IconRefresh,
+  IconX,
+} from "@tabler/icons-react"
 import { Path, PathValue, UseFormReturn } from "react-hook-form"
 import Select, {
   ClearIndicatorProps,
@@ -92,12 +97,31 @@ export default function ChargeAutocomplete<T extends Record<string, unknown>>({
     (props: ClearIndicatorProps<FieldOption>) => {
       return (
         <components.ClearIndicator {...props}>
-             <IconX size={10} className="size-3 shrink-0" />
+          <IconX size={10} className="size-3 shrink-0" />
         </components.ClearIndicator>
       )
     }
   )
   ClearIndicator.displayName = "ClearIndicator"
+
+  const IndicatorsContainer = React.memo(
+    (props: { children: React.ReactNode }) => {
+      return (
+        <div className="flex gap-0.5">
+          {props.children}
+          <button
+            type="button"
+            onClick={handleRefresh}
+            className="text-muted-foreground hover:text-foreground rounded-sm p-1 transition-colors"
+            title="Refresh charges"
+          >
+            <IconRefresh size={12} className="size-3 shrink-0" />
+          </button>
+        </div>
+      )
+    }
+  )
+  IndicatorsContainer.displayName = "IndicatorsContainer"
 
   const Option = React.memo((props: OptionProps<FieldOption>) => {
     return (
@@ -263,6 +287,7 @@ export default function ChargeAutocomplete<T extends Record<string, unknown>>({
                     DropdownIndicator,
                     ClearIndicator,
                     Option,
+                    IndicatorsContainer,
                   }}
                   className="react-select-container"
                   classNamePrefix="react-select__"
@@ -317,6 +342,7 @@ export default function ChargeAutocomplete<T extends Record<string, unknown>>({
           DropdownIndicator,
           ClearIndicator,
           Option,
+          IndicatorsContainer,
         }}
         className="react-select-container"
         classNamePrefix="react-select__"

@@ -31,7 +31,8 @@ import {
   CoaCategory3,
 } from "@/lib/api-routes"
 import { MasterTransactionId, ModuleId } from "@/lib/utils"
-import { useDelete, useGet, usePersist } from "@/hooks/use-common"
+import { useDelete, useGetWithPagination, usePersist } from "@/hooks/use-common"
+import { useUserSettingDefaults } from "@/hooks/use-settings"
 import {
   Dialog,
   DialogContent,
@@ -84,6 +85,9 @@ export default function ChartOfAccountPage() {
   const canView3 = hasPermission(moduleId, transactionId3, "isRead")
   const canCreate3 = hasPermission(moduleId, transactionId3, "isCreate")
 
+  // Get user settings for default page size
+  const { defaults } = useUserSettingDefaults()
+
   // State for filters
   const [filters1, setFilters1] = useState<ICoaCategory1Filter>({})
   const [filters2, setFilters2] = useState<ICoaCategory2Filter>({})
@@ -91,56 +95,128 @@ export default function ChartOfAccountPage() {
   const [filtersChart, setFiltersChart] = useState<IChartOfAccountFilter>({})
   const [activeTab, setActiveTab] = useState("chartofaccount")
 
+  // Separate pagination state for each tab
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize, setPageSize] = useState(
+    defaults?.common?.masterGridTotalRecords || 50
+  )
+  const [category1CurrentPage, setCategory1CurrentPage] = useState(1)
+  const [category1PageSize, setCategory1PageSize] = useState(
+    defaults?.common?.masterGridTotalRecords || 50
+  )
+  const [category2CurrentPage, setCategory2CurrentPage] = useState(1)
+  const [category2PageSize, setCategory2PageSize] = useState(
+    defaults?.common?.masterGridTotalRecords || 50
+  )
+  const [category3CurrentPage, setCategory3CurrentPage] = useState(1)
+  const [category3PageSize, setCategory3PageSize] = useState(
+    defaults?.common?.masterGridTotalRecords || 50
+  )
+
+  // Update page size when user settings change
+  useEffect(() => {
+    if (defaults?.common?.masterGridTotalRecords) {
+      setPageSize(defaults.common.masterGridTotalRecords)
+      setCategory1PageSize(defaults.common.masterGridTotalRecords)
+      setCategory2PageSize(defaults.common.masterGridTotalRecords)
+      setCategory3PageSize(defaults.common.masterGridTotalRecords)
+    }
+  }, [defaults?.common?.masterGridTotalRecords])
+
   // Data fetching
   const {
     data: category1Response,
     refetch: refetch1,
     isLoading: isLoading1,
-  } = useGet<ICoaCategory1>(
+  } = useGetWithPagination<ICoaCategory1>(
     `${CoaCategory1.get}`,
     "coacategory1",
-    filters1.search
+    filters1.search,
+    category1CurrentPage,
+    category1PageSize
   )
 
   const {
     data: category2Response,
     refetch: refetch2,
     isLoading: isLoading2,
-  } = useGet<ICoaCategory2>(
+  } = useGetWithPagination<ICoaCategory2>(
     `${CoaCategory2.get}`,
     "coacategory2",
-    filters2.search
+    filters2.search,
+    category2CurrentPage,
+    category2PageSize
   )
 
   const {
     data: category3Response,
     refetch: refetch3,
     isLoading: isLoading3,
-  } = useGet<ICoaCategory3>(
+  } = useGetWithPagination<ICoaCategory3>(
     `${CoaCategory3.get}`,
     "coacategory3",
-    filters3.search
+    filters3.search,
+    category3CurrentPage,
+    category3PageSize
   )
 
   const {
     data: chartOfAccountsResponse,
     refetch: refetchChart,
     isLoading: isLoadingChart,
-  } = useGet<IChartOfAccount>(
+  } = useGetWithPagination<IChartOfAccount>(
     `${ChartOfAccount.get}`,
     "chartofaccounts",
-    filtersChart.search
+    filtersChart.search,
+    currentPage,
+    pageSize
   )
 
   // Extract data from responses
-  const category1Data =
-    (category1Response as ApiResponse<ICoaCategory1>)?.data || []
-  const category2Data =
-    (category2Response as ApiResponse<ICoaCategory2>)?.data || []
-  const category3Data =
-    (category3Response as ApiResponse<ICoaCategory3>)?.data || []
-  const chartOfAccountsData =
-    (chartOfAccountsResponse as ApiResponse<IChartOfAccount>)?.data || []
+  const {
+    result: chartOfAccountsResult,
+    data: chartOfAccountsData,
+    totalRecords: chartOfAccountsTotalRecords,
+  } = (chartOfAccountsResponse as ApiResponse<IChartOfAccount>) ?? {
+    result: 0,
+    message: "",
+    data: [],
+    totalRecords: 0,
+  }
+
+  // Destructure with fallback values
+  const {
+    result: category1Result,
+    data: category1Data,
+    totalRecords: category1TotalRecords,
+  } = (category1Response as ApiResponse<ICoaCategory1>) ?? {
+    result: 0,
+    message: "",
+    data: [],
+    totalRecords: 0,
+  }
+
+  const {
+    result: category2Result,
+    data: category2Data,
+    totalRecords: category2TotalRecords,
+  } = (category2Response as ApiResponse<ICoaCategory2>) ?? {
+    result: 0,
+    message: "",
+    data: [],
+    totalRecords: 0,
+  }
+
+  const {
+    result: category3Result,
+    data: category3Data,
+    totalRecords: category3TotalRecords,
+  } = (category3Response as ApiResponse<ICoaCategory3>) ?? {
+    result: 0,
+    message: "",
+    data: [],
+    totalRecords: 0,
+  }
 
   // Mutations
   const saveMutation1 = usePersist<CoaCategory1SchemaType>(
@@ -243,6 +319,44 @@ export default function ChartOfAccountPage() {
     if (filtersChart.search !== undefined) refetchChart()
   }, [filtersChart.search, refetchChart])
 
+  // Page change handlers for each tab
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page)
+  }
+
+  const handleCategory1PageChange = (page: number) => {
+    setCategory1CurrentPage(page)
+  }
+
+  const handleCategory2PageChange = (page: number) => {
+    setCategory2CurrentPage(page)
+  }
+
+  const handleCategory3PageChange = (page: number) => {
+    setCategory3CurrentPage(page)
+  }
+
+  // Page size change handlers for each tab
+  const handlePageSizeChange = (size: number) => {
+    setPageSize(size)
+    setCurrentPage(1) // Reset to first page when changing page size
+  }
+
+  const handleCategory1PageSizeChange = (size: number) => {
+    setCategory1PageSize(size)
+    setCategory1CurrentPage(1)
+  }
+
+  const handleCategory2PageSizeChange = (size: number) => {
+    setCategory2PageSize(size)
+    setCategory2CurrentPage(1)
+  }
+
+  const handleCategory3PageSizeChange = (size: number) => {
+    setCategory3PageSize(size)
+    setCategory3CurrentPage(1)
+  }
+
   // Action handlers
   const handleCreateChartOfAccount = () => {
     setModalMode("create")
@@ -333,6 +447,7 @@ export default function ChartOfAccountPage() {
     sortOrder?: string
   }) => {
     setFilters1(filters as ICoaCategory1Filter)
+    setCategory1CurrentPage(1) // Reset to first page when filtering
   }
 
   const handleCategory2FilterChange = (filters: {
@@ -340,6 +455,7 @@ export default function ChartOfAccountPage() {
     sortOrder?: string
   }) => {
     setFilters2(filters as ICoaCategory2Filter)
+    setCategory2CurrentPage(1) // Reset to first page when filtering
   }
 
   const handleCategory3FilterChange = (filters: {
@@ -347,6 +463,7 @@ export default function ChartOfAccountPage() {
     sortOrder?: string
   }) => {
     setFilters3(filters as ICoaCategory3Filter)
+    setCategory3CurrentPage(1) // Reset to first page when filtering
   }
 
   // Helper function for API responses
@@ -829,6 +946,7 @@ export default function ChartOfAccountPage() {
               <ChartOfAccountsTable
                 data={[]}
                 isLoading={false}
+                totalRecords={chartOfAccountsTotalRecords}
                 onSelect={() => {}}
                 onDelete={() => {}}
                 onEdit={() => {}}
@@ -846,12 +964,18 @@ export default function ChartOfAccountPage() {
           ) : (
             <ChartOfAccountsTable
               data={chartOfAccountsData}
+              totalRecords={chartOfAccountsTotalRecords}
               onSelect={canView ? handleViewChartOfAccount : undefined}
               onDelete={canDelete ? handleDeleteChartOfAccount : undefined}
               onEdit={canEdit ? handleEditChartOfAccount : undefined}
               onCreate={canCreate ? handleCreateChartOfAccount : undefined}
               onRefresh={refetchChart}
               onFilterChange={handleChartFilterChange}
+              onPageChange={handlePageChange}
+              onPageSizeChange={handlePageSizeChange}
+              currentPage={currentPage}
+              pageSize={pageSize}
+              serverSidePagination={true}
               moduleId={moduleId}
               transactionId={transactionId}
               canView={canView}
@@ -889,6 +1013,7 @@ export default function ChartOfAccountPage() {
               <CoaCategory1Table
                 data={[]}
                 isLoading={false}
+                totalRecords={category1TotalRecords}
                 onSelect={() => {}}
                 onDelete={() => {}}
                 onEdit={() => {}}
@@ -906,6 +1031,7 @@ export default function ChartOfAccountPage() {
           ) : (
             <CoaCategory1Table
               data={category1Data}
+              totalRecords={category1TotalRecords}
               isLoading={isLoading1}
               onSelect={canView ? handleViewCategory1 : undefined}
               onDelete={canDelete1 ? handleDelete1 : undefined}
@@ -913,6 +1039,11 @@ export default function ChartOfAccountPage() {
               onCreate={canCreate ? handleCreateCategory1 : undefined}
               onRefresh={refetch1}
               onFilterChange={handleCategory1FilterChange}
+              onPageChange={handleCategory1PageChange}
+              onPageSizeChange={handleCategory1PageSizeChange}
+              currentPage={category1CurrentPage}
+              pageSize={category1PageSize}
+              serverSidePagination={true}
               moduleId={moduleId}
               transactionId={transactionId}
               canView={canView1}
@@ -950,6 +1081,7 @@ export default function ChartOfAccountPage() {
               <CoaCategory2Table
                 data={[]}
                 isLoading={false}
+                totalRecords={category2TotalRecords}
                 onSelect={() => {}}
                 onDelete={() => {}}
                 onEdit={() => {}}
@@ -968,12 +1100,18 @@ export default function ChartOfAccountPage() {
             <CoaCategory2Table
               data={category2Data}
               isLoading={isLoading2}
+              totalRecords={category2TotalRecords}
               onSelect={canView ? handleViewCategory2 : undefined}
               onDelete={canDelete2 ? handleDelete2 : undefined}
               onEdit={canEdit ? handleEdit2 : undefined}
               onCreate={canCreate ? handleCreateCategory2 : undefined}
               onRefresh={refetch2}
               onFilterChange={handleCategory2FilterChange}
+              onPageChange={handleCategory2PageChange}
+              onPageSizeChange={handleCategory2PageSizeChange}
+              currentPage={category2CurrentPage}
+              pageSize={category2PageSize}
+              serverSidePagination={true}
               moduleId={moduleId}
               transactionId={transactionId}
               canView={canView2}
@@ -1011,6 +1149,7 @@ export default function ChartOfAccountPage() {
               <CoaCategory3Table
                 data={[]}
                 isLoading={false}
+                totalRecords={category3TotalRecords}
                 onSelect={() => {}}
                 onDelete={() => {}}
                 onEdit={() => {}}
@@ -1028,6 +1167,7 @@ export default function ChartOfAccountPage() {
           ) : (
             <CoaCategory3Table
               data={category3Data}
+              totalRecords={category3TotalRecords}
               isLoading={isLoading3}
               onSelect={canView ? handleViewCategory3 : undefined}
               onDelete={canDelete3 ? handleDelete3 : undefined}
@@ -1035,6 +1175,11 @@ export default function ChartOfAccountPage() {
               onCreate={canCreate ? handleCreateCategory3 : undefined}
               onRefresh={refetch3}
               onFilterChange={handleCategory3FilterChange}
+              onPageChange={handleCategory3PageChange}
+              onPageSizeChange={handleCategory3PageSizeChange}
+              currentPage={category3CurrentPage}
+              pageSize={category3PageSize}
+              serverSidePagination={true}
               moduleId={moduleId}
               transactionId={transactionId}
               canView={canView3}

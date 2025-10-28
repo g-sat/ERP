@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { IArReceiptFilter, IArReceiptHd } from "@/interfaces"
 import { useAuthStore } from "@/stores/auth-store"
 import { ColumnDef } from "@tanstack/react-table"
@@ -7,7 +7,8 @@ import { FormProvider, useForm } from "react-hook-form"
 
 import { ArReceipt } from "@/lib/api-routes"
 import { ARTransactionId, ModuleId, TableName } from "@/lib/utils"
-import { useGetWithDates } from "@/hooks/use-common"
+import { useGetWithDatesAndPagination } from "@/hooks/use-common"
+import { useUserSettingDefaults } from "@/hooks/use-settings"
 import { Button } from "@/components/ui/button"
 import { Spinner } from "@/components/ui/spinner"
 import { CustomDateNew } from "@/components/custom/custom-date-new"
@@ -30,6 +31,7 @@ export default function ReceiptTable({
   const exhRateDec = decimals[0]?.exhRateDec || 9
   const dateFormat = decimals[0]?.dateFormat || "dd/MM/yyyy"
   //const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
+  const { defaults } = useUserSettingDefaults()
 
   const moduleId = ModuleId.ar
   const transactionId = ARTransactionId.receipt
@@ -44,27 +46,52 @@ export default function ReceiptTable({
   })
 
   const [searchQuery] = useState("")
-  const [currentPage] = useState(1)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize, setPageSize] = useState(
+    defaults?.common?.trnGridTotalRecords || 100
+  )
 
-  // Data fetching - only when table is opened
+  // State to track if search has been clicked
+  const [hasSearched, setHasSearched] = useState(false)
+  // Store the actual search dates - initialize from initialFilters if available
+  const [searchStartDate, setSearchStartDate] = useState<string | undefined>(
+    initialFilters?.startDate?.toString()
+  )
+  const [searchEndDate, setSearchEndDate] = useState<string | undefined>(
+    initialFilters?.endDate?.toString()
+  )
+
+  // Update form values when initialFilters change (when dialog reopens)
+  useEffect(() => {
+    if (initialFilters?.startDate) {
+      form.setValue("startDate", initialFilters.startDate)
+    }
+    if (initialFilters?.endDate) {
+      form.setValue("endDate", initialFilters.endDate)
+    }
+  }, [initialFilters, form])
+
+  // Data fetching - only after search button is clicked OR if dates are already set
   const {
     data: receiptsResponse,
     isLoading: isLoadingReceipts,
     isRefetching: isRefetchingReceipts,
     refetch: refetchReceipts,
-  } = useGetWithDates<IArReceiptHd>(
+  } = useGetWithDatesAndPagination<IArReceiptHd>(
     `${ArReceipt.get}`,
     TableName.arReceipt,
     searchQuery,
-    form.watch("startDate")?.toString(),
-    form.watch("endDate")?.toString(),
+    searchStartDate,
+    searchEndDate,
+    currentPage,
+    pageSize,
     undefined, // options
-    true // enabled: Fetch when table is opened
+    hasSearched || Boolean(searchStartDate && searchEndDate) // enabled: If searched OR dates already set
   )
 
   const data = receiptsResponse?.data || []
+  const totalRecords = receiptsResponse?.totalRecords || data.length
   const isLoading = isLoadingReceipts || isRefetchingReceipts
-  const [pageSize] = useState(10)
 
   const formatNumber = (value: number, decimals: number) => {
     return value.toLocaleString(undefined, {
@@ -291,16 +318,60 @@ export default function ReceiptTable({
   ]
 
   const handleSearchReceipt = () => {
+    const startDate = form.getValues("startDate")
+    const endDate = form.getValues("endDate")
+
+    // Store the search dates (convert to string if needed)
+    setSearchStartDate(startDate?.toString())
+    setSearchEndDate(endDate?.toString())
+    setHasSearched(true) // Enable the query
+    setCurrentPage(1) // Reset to first page when searching
+
     const newFilters: IArReceiptFilter = {
-      startDate: form.getValues("startDate"),
-      endDate: form.getValues("endDate"),
+      startDate: startDate,
+      endDate: endDate,
       search: searchQuery,
       sortBy: "receiptNo",
       sortOrder: "asc",
-      pageNumber: currentPage,
+      pageNumber: 1, // Always start from page 1 when searching
       pageSize: pageSize,
     }
     onFilterChange(newFilters)
+  }
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page)
+    // The query will automatically refetch due to query key change
+    if (onFilterChange) {
+      const newFilters: IArReceiptFilter = {
+        startDate: form.getValues("startDate"),
+        endDate: form.getValues("endDate"),
+        search: searchQuery,
+        sortBy: "receiptNo",
+        sortOrder: "asc",
+        pageNumber: page,
+        pageSize: pageSize,
+      }
+      onFilterChange(newFilters)
+    }
+  }
+
+  const handlePageSizeChange = (size: number) => {
+    setPageSize(size)
+    setCurrentPage(1) // Reset to first page when changing page size
+    // The query will automatically refetch due to query key change
+    if (onFilterChange) {
+      const newFilters: IArReceiptFilter = {
+        startDate: form.getValues("startDate"),
+        endDate: form.getValues("endDate"),
+        search: searchQuery,
+        sortBy: "receiptNo",
+        sortOrder: "asc",
+        pageNumber: 1,
+        pageSize: size,
+      }
+      onFilterChange(newFilters)
+    }
   }
 
   const handleDialogFilterChange = (filters: {
@@ -319,21 +390,6 @@ export default function ReceiptTable({
       }
       onFilterChange(newFilters)
     }
-  }
-
-  // Show loading spinner while data is loading
-  if (isLoadingReceipts) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="text-center">
-          <Spinner size="lg" className="mx-auto" />
-          <p className="mt-4 text-sm text-gray-600">Loading receipts...</p>
-          <p className="mt-2 text-xs text-gray-500">
-            Please wait while we fetch the receipt List....
-          </p>
-        </div>
-      </div>
-    )
   }
 
   return (
@@ -399,6 +455,13 @@ export default function ReceiptTable({
         onRefresh={() => refetchReceipts()}
         onFilterChange={handleDialogFilterChange}
         onRowSelect={(row) => onReceiptSelect(row || undefined)}
+        // Pagination props
+        onPageChange={handlePageChange}
+        onPageSizeChange={handlePageSizeChange}
+        currentPage={currentPage}
+        pageSize={pageSize}
+        totalRecords={totalRecords}
+        serverSidePagination={true}
       />
     </div>
   )
