@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useCallback, useState } from "react"
-import { ICustomerLookup } from "@/interfaces/lookup"
+import { IProductLookup } from "@/interfaces/lookup"
 import {
   IconCheck,
   IconChevronDown,
@@ -20,7 +20,7 @@ import Select, {
 } from "react-select"
 
 import { cn } from "@/lib/utils"
-import { useCustomerDynamicLookup } from "@/hooks/use-lookup"
+import { useProductDynamicLookup } from "@/hooks/use-lookup"
 
 import { FormField, FormItem } from "../ui/form"
 import { Label } from "../ui/label"
@@ -30,9 +30,7 @@ interface FieldOption {
   label: string
 }
 
-export default function DynamicCustomerAutocomplete<
-  T extends Record<string, unknown>,
->({
+export default function ProductAutocomplete<T extends Record<string, unknown>>({
   form,
   label,
   name,
@@ -47,32 +45,32 @@ export default function DynamicCustomerAutocomplete<
   className?: string
   isDisabled?: boolean
   isRequired?: boolean
-  onChangeEvent?: (selectedOption: ICustomerLookup | null) => void
+  onChangeEvent?: (selectedOption: IProductLookup | null) => void
 }) {
   const [query, setQuery] = useState("")
   const [justSelected, setJustSelected] = useState(false)
 
-  // Get customer name field from id
-  const customerNameField =
+  // Get product name field from id
+  const productNameField =
     form && name
       ? (`${name.toString().replace("Id", "Name")}` as Path<T>)
       : null
-  const currentCustomerName = customerNameField
-    ? String(form.getValues(customerNameField) || "")
+  const currentProductName = productNameField
+    ? String(form.getValues(productNameField) || "")
     : ""
 
-  // Use customer name for edit mode prefill, otherwise query from typing
+  // Use product name for edit mode prefill, otherwise query from typing
   const searchString = justSelected
     ? undefined
-    : currentCustomerName && !query
-      ? currentCustomerName
+    : currentProductName && !query
+      ? currentProductName
       : query || undefined
 
   const {
-    data: customers = [],
+    data: products = [],
     isLoading,
     refetch,
-  } = useCustomerDynamicLookup({
+  } = useProductDynamicLookup({
     searchString,
   })
 
@@ -81,23 +79,25 @@ export default function DynamicCustomerAutocomplete<
     try {
       await refetch()
     } catch (error) {
-      console.error("Error refreshing customers:", error)
+      console.error("Error refreshing products:", error)
     }
   }, [refetch])
 
   // Memoize options to prevent unnecessary recalculations
   const options: FieldOption[] = React.useMemo(
     () =>
-      customers
-        .filter(
-          (customer: ICustomerLookup) => customer && customer.customerId != null
-        )
-        .map((customer: ICustomerLookup) => ({
-          value: customer.customerId.toString(),
-          label: `${customer.customerCode} - ${customer.customerName}`,
-        })),
-    [customers]
+      products.map((product: IProductLookup) => ({
+        value: product.productId.toString(),
+        label: product.productName,
+      })),
+    [products]
   )
+
+  // SSR hydration fix: only render Select after mount
+  const [mounted, setMounted] = React.useState(false)
+  React.useEffect(() => {
+    setMounted(true)
+  }, [])
 
   // Custom components with display names
   const DropdownIndicator = React.memo(
@@ -170,7 +170,7 @@ export default function DynamicCustomerAutocomplete<
       valueContainer: () => cn("px-0 py-0.5 gap-1"),
       input: () =>
         cn("text-foreground placeholder:text-muted-foreground m-0 p-0"),
-      indicatorsContainer: () => cn("flex gap-0.5"), // Reduced gap between indicators
+      indicatorsContainer: () => cn(""), // Gap removed
       clearIndicator: () =>
         cn("text-muted-foreground hover:text-foreground p-1 rounded-sm"),
       dropdownIndicator: () => cn("text-muted-foreground p-1 rounded-sm"),
@@ -230,37 +230,33 @@ export default function DynamicCustomerAutocomplete<
         const value = selectedOption ? Number(selectedOption.value) : 0
         form.setValue(name, value as PathValue<T, Path<T>>)
 
-        // Also set customerName
-        if (selectedOption && customerNameField) {
-          const customer = customers.find(
-            (u: ICustomerLookup) =>
-              u &&
-              u.customerId != null &&
-              u.customerId.toString() === selectedOption.value
+        // Also set productName
+        if (selectedOption && productNameField) {
+          const product = products.find(
+            (u: IProductLookup) =>
+              u.productId.toString() === selectedOption.value
           )
-          if (customer) {
+          if (product) {
             form.setValue(
-              customerNameField,
-              customer.customerName as PathValue<T, Path<T>>
+              productNameField,
+              product.productName as PathValue<T, Path<T>>
             )
           }
-        } else if (customerNameField) {
-          form.setValue(customerNameField, "" as PathValue<T, Path<T>>)
+        } else if (productNameField) {
+          form.setValue(productNameField, "" as PathValue<T, Path<T>>)
         }
       }
       if (onChangeEvent) {
-        const selectedUser = selectedOption
-          ? customers.find(
-              (u: ICustomerLookup) =>
-                u &&
-                u.customerId != null &&
-                u.customerId.toString() === selectedOption.value
+        const selectedProduct = selectedOption
+          ? products.find(
+              (u: IProductLookup) =>
+                u.productId.toString() === selectedOption.value
             ) || null
           : null
-        onChangeEvent(selectedUser)
+        onChangeEvent(selectedProduct)
       }
     },
-    [form, name, onChangeEvent, customers, customerNameField]
+    [form, name, onChangeEvent, products, productNameField]
   )
 
   // Keep query after selection. Only change when user types.
@@ -279,12 +275,18 @@ export default function DynamicCustomerAutocomplete<
   const getValue = React.useCallback(() => {
     if (form && name) {
       const formValue = form.getValues(name)
+      // Convert form value to string for comparison
       return (
         options.find((option) => option.value === formValue?.toString()) || null
       )
     }
     return null
   }, [form, name, options])
+
+  if (!mounted) {
+    // Optionally, return a skeleton/loader here
+    return null
+  }
 
   if (form && name) {
     return (
@@ -299,7 +301,7 @@ export default function DynamicCustomerAutocomplete<
               onClick={handleRefresh}
               disabled={isLoading}
               className="hover:bg-accent flex items-center justify-center rounded-sm p-0.5 transition-colors disabled:opacity-50"
-              title="Refresh customers"
+              title="Refresh products"
             >
               <IconRefresh
                 size={12}
@@ -321,12 +323,11 @@ export default function DynamicCustomerAutocomplete<
             return (
               <FormItem className={cn("flex flex-col", className)}>
                 <Select
-                  instanceId={name || "customer-select"}
                   options={options}
                   value={getValue()}
                   onChange={handleChange}
                   onInputChange={handleInputChange}
-                  placeholder="Select Customer..."
+                  placeholder="Select Product..."
                   isDisabled={isDisabled || isLoading}
                   isClearable={true}
                   isSearchable={true}
@@ -344,7 +345,7 @@ export default function DynamicCustomerAutocomplete<
                   }
                   menuPosition="fixed"
                   isLoading={isLoading}
-                  loadingMessage={() => "Loading customers..."}
+                  loadingMessage={() => "Loading products..."}
                 />
                 {showError && (
                   <p className="text-destructive mt-1 text-xs">
@@ -377,7 +378,7 @@ export default function DynamicCustomerAutocomplete<
             onClick={handleRefresh}
             disabled={isLoading}
             className="hover:bg-accent flex items-center justify-center rounded-sm p-0.5 transition-colors disabled:opacity-50"
-            title="Refresh customers"
+            title="Refresh products"
           >
             <IconRefresh
               size={12}
@@ -394,11 +395,10 @@ export default function DynamicCustomerAutocomplete<
         </div>
       )}
       <Select
-        instanceId={name || "customer-select"}
         options={options}
         onChange={handleChange}
         onInputChange={handleInputChange}
-        placeholder="Select Customer..."
+        placeholder="Select Product..."
         isDisabled={isDisabled || isLoading}
         isClearable={true}
         isSearchable={true}
@@ -416,7 +416,7 @@ export default function DynamicCustomerAutocomplete<
         }
         menuPosition="fixed"
         isLoading={isLoading}
-        loadingMessage={() => "Loading customers..."}
+        loadingMessage={() => "Loading products..."}
       />
     </div>
   )

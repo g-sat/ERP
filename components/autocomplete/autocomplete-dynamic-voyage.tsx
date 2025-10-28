@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useCallback, useState } from "react"
-import { ICustomerLookup } from "@/interfaces/lookup"
+import { IVoyageLookup } from "@/interfaces/lookup"
 import {
   IconCheck,
   IconChevronDown,
@@ -20,7 +20,7 @@ import Select, {
 } from "react-select"
 
 import { cn } from "@/lib/utils"
-import { useCustomerDynamicLookup } from "@/hooks/use-lookup"
+import { useVoyageDynamicLookup } from "@/hooks/use-lookup"
 
 import { FormField, FormItem } from "../ui/form"
 import { Label } from "../ui/label"
@@ -30,9 +30,7 @@ interface FieldOption {
   label: string
 }
 
-export default function DynamicCustomerAutocomplete<
-  T extends Record<string, unknown>,
->({
+export default function VoyageAutocomplete<T extends Record<string, unknown>>({
   form,
   label,
   name,
@@ -47,32 +45,30 @@ export default function DynamicCustomerAutocomplete<
   className?: string
   isDisabled?: boolean
   isRequired?: boolean
-  onChangeEvent?: (selectedOption: ICustomerLookup | null) => void
+  onChangeEvent?: (selectedOption: IVoyageLookup | null) => void
 }) {
   const [query, setQuery] = useState("")
   const [justSelected, setJustSelected] = useState(false)
 
-  // Get customer name field from id
-  const customerNameField =
-    form && name
-      ? (`${name.toString().replace("Id", "Name")}` as Path<T>)
-      : null
-  const currentCustomerName = customerNameField
-    ? String(form.getValues(customerNameField) || "")
+  // Get voyage no field from id
+  const voyageNoField =
+    form && name ? (`${name.toString().replace("Id", "No")}` as Path<T>) : null
+  const currentVoyageNo = voyageNoField
+    ? String(form.getValues(voyageNoField) || "")
     : ""
 
-  // Use customer name for edit mode prefill, otherwise query from typing
+  // Use voyage no for edit mode prefill, otherwise query from typing
   const searchString = justSelected
     ? undefined
-    : currentCustomerName && !query
-      ? currentCustomerName
+    : currentVoyageNo && !query
+      ? currentVoyageNo
       : query || undefined
 
   const {
-    data: customers = [],
+    data: voyages = [],
     isLoading,
     refetch,
-  } = useCustomerDynamicLookup({
+  } = useVoyageDynamicLookup({
     searchString,
   })
 
@@ -81,22 +77,18 @@ export default function DynamicCustomerAutocomplete<
     try {
       await refetch()
     } catch (error) {
-      console.error("Error refreshing customers:", error)
+      console.error("Error refreshing voyages:", error)
     }
   }, [refetch])
 
   // Memoize options to prevent unnecessary recalculations
   const options: FieldOption[] = React.useMemo(
     () =>
-      customers
-        .filter(
-          (customer: ICustomerLookup) => customer && customer.customerId != null
-        )
-        .map((customer: ICustomerLookup) => ({
-          value: customer.customerId.toString(),
-          label: `${customer.customerCode} - ${customer.customerName}`,
-        })),
-    [customers]
+      voyages.map((voyage: IVoyageLookup) => ({
+        value: voyage.voyageId.toString(),
+        label: voyage.voyageNo,
+      })),
+    [voyages]
   )
 
   // Custom components with display names
@@ -230,37 +222,32 @@ export default function DynamicCustomerAutocomplete<
         const value = selectedOption ? Number(selectedOption.value) : 0
         form.setValue(name, value as PathValue<T, Path<T>>)
 
-        // Also set customerName
-        if (selectedOption && customerNameField) {
-          const customer = customers.find(
-            (u: ICustomerLookup) =>
-              u &&
-              u.customerId != null &&
-              u.customerId.toString() === selectedOption.value
+        // Also set voyageNo
+        if (selectedOption && voyageNoField) {
+          const voyage = voyages.find(
+            (u: IVoyageLookup) => u.voyageId.toString() === selectedOption.value
           )
-          if (customer) {
+          if (voyage) {
             form.setValue(
-              customerNameField,
-              customer.customerName as PathValue<T, Path<T>>
+              voyageNoField,
+              voyage.voyageNo as PathValue<T, Path<T>>
             )
           }
-        } else if (customerNameField) {
-          form.setValue(customerNameField, "" as PathValue<T, Path<T>>)
+        } else if (voyageNoField) {
+          form.setValue(voyageNoField, "" as PathValue<T, Path<T>>)
         }
       }
       if (onChangeEvent) {
-        const selectedUser = selectedOption
-          ? customers.find(
-              (u: ICustomerLookup) =>
-                u &&
-                u.customerId != null &&
-                u.customerId.toString() === selectedOption.value
+        const selectedVoyage = selectedOption
+          ? voyages.find(
+              (u: IVoyageLookup) =>
+                u.voyageId.toString() === selectedOption.value
             ) || null
           : null
-        onChangeEvent(selectedUser)
+        onChangeEvent(selectedVoyage)
       }
     },
-    [form, name, onChangeEvent, customers, customerNameField]
+    [form, name, onChangeEvent, voyages, voyageNoField]
   )
 
   // Keep query after selection. Only change when user types.
@@ -279,6 +266,7 @@ export default function DynamicCustomerAutocomplete<
   const getValue = React.useCallback(() => {
     if (form && name) {
       const formValue = form.getValues(name)
+      // Convert form value to string for comparison
       return (
         options.find((option) => option.value === formValue?.toString()) || null
       )
@@ -299,7 +287,7 @@ export default function DynamicCustomerAutocomplete<
               onClick={handleRefresh}
               disabled={isLoading}
               className="hover:bg-accent flex items-center justify-center rounded-sm p-0.5 transition-colors disabled:opacity-50"
-              title="Refresh customers"
+              title="Refresh voyages"
             >
               <IconRefresh
                 size={12}
@@ -321,12 +309,11 @@ export default function DynamicCustomerAutocomplete<
             return (
               <FormItem className={cn("flex flex-col", className)}>
                 <Select
-                  instanceId={name || "customer-select"}
                   options={options}
                   value={getValue()}
                   onChange={handleChange}
                   onInputChange={handleInputChange}
-                  placeholder="Select Customer..."
+                  placeholder="Select Voyage..."
                   isDisabled={isDisabled || isLoading}
                   isClearable={true}
                   isSearchable={true}
@@ -344,7 +331,7 @@ export default function DynamicCustomerAutocomplete<
                   }
                   menuPosition="fixed"
                   isLoading={isLoading}
-                  loadingMessage={() => "Loading customers..."}
+                  loadingMessage={() => "Loading voyages..."}
                 />
                 {showError && (
                   <p className="text-destructive mt-1 text-xs">
@@ -377,7 +364,7 @@ export default function DynamicCustomerAutocomplete<
             onClick={handleRefresh}
             disabled={isLoading}
             className="hover:bg-accent flex items-center justify-center rounded-sm p-0.5 transition-colors disabled:opacity-50"
-            title="Refresh customers"
+            title="Refresh voyages"
           >
             <IconRefresh
               size={12}
@@ -394,11 +381,10 @@ export default function DynamicCustomerAutocomplete<
         </div>
       )}
       <Select
-        instanceId={name || "customer-select"}
         options={options}
         onChange={handleChange}
         onInputChange={handleInputChange}
-        placeholder="Select Customer..."
+        placeholder="Select Voyage..."
         isDisabled={isDisabled || isLoading}
         isClearable={true}
         isSearchable={true}
@@ -416,7 +402,7 @@ export default function DynamicCustomerAutocomplete<
         }
         menuPosition="fixed"
         isLoading={isLoading}
-        loadingMessage={() => "Loading customers..."}
+        loadingMessage={() => "Loading voyages..."}
       />
     </div>
   )

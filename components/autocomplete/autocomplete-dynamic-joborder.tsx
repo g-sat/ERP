@@ -1,6 +1,6 @@
 "use client"
 
-import React from "react"
+import React, { useCallback, useState } from "react"
 import { IJobOrderLookup } from "@/interfaces/lookup"
 import { IconCheck, IconChevronDown, IconX } from "@tabler/icons-react"
 import { Path, PathValue, UseFormReturn } from "react-hook-form"
@@ -44,7 +44,26 @@ export default function DynamicJobOrderAutocomplete<
   isRequired?: boolean
   onChangeEvent?: (selectedOption: IJobOrderLookup | null) => void
 }) {
-  const { data: jobOrders = [], isLoading } = useJobOrderDynamicLookup()
+  const [query, setQuery] = useState("")
+  const [justSelected, setJustSelected] = useState(false)
+
+  // Determine job order no field from id
+  const jobOrderNoField =
+    form && name ? (`${name.toString().replace("Id", "No")}` as Path<T>) : null
+  const currentJobOrderNo = jobOrderNoField
+    ? String(form.getValues(jobOrderNoField) || "")
+    : ""
+
+  // Use job order no for edit mode prefill, otherwise query from typing
+  const searchString = justSelected
+    ? undefined
+    : currentJobOrderNo && !query
+      ? currentJobOrderNo
+      : query || undefined
+
+  const { data: jobOrders = [], isLoading } = useJobOrderDynamicLookup({
+    searchString,
+  })
   // Memoize options to prevent unnecessary recalculations
   const options: FieldOption[] = React.useMemo(
     () =>
@@ -180,10 +199,27 @@ export default function DynamicJobOrderAutocomplete<
   const handleChange = React.useCallback(
     (option: SingleValue<FieldOption> | MultiValue<FieldOption>) => {
       const selectedOption = Array.isArray(option) ? option[0] : option
+      setJustSelected(true)
       if (form && name) {
         // Set the value as a number
         const value = selectedOption ? Number(selectedOption.value) : 0
         form.setValue(name, value as PathValue<T, Path<T>>)
+
+        // Also set jobOrderNo
+        if (selectedOption && jobOrderNoField) {
+          const jo = jobOrders.find(
+            (u: IJobOrderLookup) =>
+              u.jobOrderId.toString() === selectedOption.value
+          )
+          if (jo) {
+            form.setValue(
+              jobOrderNoField,
+              jo.jobOrderNo as PathValue<T, Path<T>>
+            )
+          }
+        } else if (jobOrderNoField) {
+          form.setValue(jobOrderNoField, "" as PathValue<T, Path<T>>)
+        }
       }
       if (onChangeEvent) {
         const selectedJobOrder = selectedOption
@@ -195,7 +231,19 @@ export default function DynamicJobOrderAutocomplete<
         onChangeEvent(selectedJobOrder)
       }
     },
-    [form, name, onChangeEvent, jobOrders]
+    [form, name, onChangeEvent, jobOrders, jobOrderNoField]
+  )
+
+  // Keep query after selection. Only change when user types.
+  const handleInputChange = useCallback(
+    (inputValue: string) => {
+      if (justSelected && inputValue === "") {
+        return
+      }
+      if (justSelected) setJustSelected(false)
+      setQuery(inputValue)
+    },
+    [justSelected]
   )
 
   // Memoize getValue to prevent unnecessary recalculations
@@ -232,6 +280,7 @@ export default function DynamicJobOrderAutocomplete<
                   options={options}
                   value={getValue()}
                   onChange={handleChange}
+                  onInputChange={handleInputChange}
                   placeholder="Select JobOrder..."
                   isDisabled={isDisabled || isLoading}
                   isClearable={true}
@@ -286,6 +335,7 @@ export default function DynamicJobOrderAutocomplete<
       <Select
         options={options}
         onChange={handleChange}
+        onInputChange={handleInputChange}
         placeholder="Select JobOrder..."
         isDisabled={isDisabled || isLoading}
         isClearable={true}

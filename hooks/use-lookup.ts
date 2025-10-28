@@ -1033,13 +1033,24 @@ export const useVesselLookup = () => {
   })
 }
 
-export const useCustomerDynamicLookup = () => {
+export const useCustomerDynamicLookup = (queryParams?: {
+  searchString?: string
+}) => {
   return useQuery<ICustomerLookup[]>({
-    queryKey: ["customer-dynamic-lookUp"],
+    queryKey: ["customer-dynamic-lookUp", queryParams?.searchString],
     placeholderData: keepPreviousData,
     queryFn: async () => {
       try {
-        const data = await getData(`${Lookup.getCustomerDynamic}`)
+        const searchParams = new URLSearchParams()
+        if (queryParams?.searchString) {
+          searchParams.append("searchString", queryParams.searchString)
+        }
+
+        const url = queryParams?.searchString
+          ? `${Lookup.getCustomerDynamic}?${searchParams.toString()}`
+          : Lookup.getCustomerDynamic
+
+        const data = await getData(url)
         return data?.data || []
       } catch (error) {
         handleApiError(error)
@@ -1049,13 +1060,24 @@ export const useCustomerDynamicLookup = () => {
   })
 }
 
-export const useSupplierDynamicLookup = () => {
+export const useSupplierDynamicLookup = (queryParams?: {
+  searchString?: string
+}) => {
   return useQuery<ISupplierLookup[]>({
-    queryKey: ["supplier-dynamic-lookUp"],
+    queryKey: ["supplier-dynamic-lookUp", queryParams?.searchString],
     placeholderData: keepPreviousData,
     queryFn: async () => {
       try {
-        const data = await getData(`${Lookup.getSupplierDynamic}`)
+        const searchParams = new URLSearchParams()
+        if (queryParams?.searchString) {
+          searchParams.append("searchString", queryParams.searchString)
+        }
+
+        const url = queryParams?.searchString
+          ? `${Lookup.getSupplierDynamic}?${searchParams.toString()}`
+          : Lookup.getSupplierDynamic
+
+        const data = await getData(url)
         return data?.data || []
       } catch (error) {
         handleApiError(error)
@@ -1065,13 +1087,24 @@ export const useSupplierDynamicLookup = () => {
   })
 }
 
-export const useProductDynamicLookup = () => {
+export const useProductDynamicLookup = (queryParams?: {
+  searchString?: string
+}) => {
   return useQuery<IProductLookup[]>({
-    queryKey: ["product-dynamic-lookUp"],
+    queryKey: ["product-dynamic-lookUp", queryParams?.searchString],
     placeholderData: keepPreviousData,
     queryFn: async () => {
       try {
-        const data = await getData(`${Lookup.getProductDynamic}`)
+        const searchParams = new URLSearchParams()
+        if (queryParams?.searchString) {
+          searchParams.append("searchString", queryParams.searchString)
+        }
+
+        const url = queryParams?.searchString
+          ? `${Lookup.getProductDynamic}?${searchParams.toString()}`
+          : Lookup.getProductDynamic
+
+        const data = await getData(url)
         return data?.data || []
       } catch (error) {
         handleApiError(error)
@@ -1081,13 +1114,24 @@ export const useProductDynamicLookup = () => {
   })
 }
 
-export const useVoyageDynamicLookup = () => {
+export const useVoyageDynamicLookup = (queryParams?: {
+  searchString?: string
+}) => {
   return useQuery<IVoyageLookup[]>({
-    queryKey: ["voyage-dynamic-lookUp"],
+    queryKey: ["voyage-dynamic-lookUp", queryParams?.searchString],
     placeholderData: keepPreviousData,
     queryFn: async () => {
       try {
-        const data = await getData(`${Lookup.getVoyageDynamic}`)
+        const searchParams = new URLSearchParams()
+        if (queryParams?.searchString) {
+          searchParams.append("searchString", queryParams.searchString)
+        }
+
+        const url = queryParams?.searchString
+          ? `${Lookup.getVoyageDynamic}?${searchParams.toString()}`
+          : Lookup.getVoyageDynamic
+
+        const data = await getData(url)
         return data?.data || []
       } catch (error) {
         handleApiError(error)
@@ -1097,13 +1141,25 @@ export const useVoyageDynamicLookup = () => {
   })
 }
 
-export const useVesselDynamicLookup = () => {
+export const useVesselDynamicLookup = (queryParams?: {
+  searchString?: string
+}) => {
   return useQuery<IVesselLookup[]>({
-    queryKey: ["vessel-dynamic-lookUp"],
+    queryKey: ["vessel-dynamic-lookUp", queryParams?.searchString],
     placeholderData: keepPreviousData,
     queryFn: async () => {
       try {
-        const data = await getData(`${Lookup.getVesselDynamic}`)
+        const searchParams = new URLSearchParams()
+        if (queryParams?.searchString) {
+          searchParams.append("searchString", queryParams.searchString)
+        }
+
+        const url = queryParams?.searchString
+          ? `${Lookup.getVesselDynamic}?${searchParams.toString()}`
+          : Lookup.getVesselDynamic
+
+        const data = await getData(url)
+
         return data?.data || []
       } catch (error) {
         handleApiError(error)
@@ -1113,13 +1169,55 @@ export const useVesselDynamicLookup = () => {
   })
 }
 
-export const useBargeDynamicLookup = () => {
+export const useVesselById = (vesselId: number) => {
+  return useQuery<IVesselLookup | null>({
+    queryKey: ["vessel-by-id", vesselId],
+    queryFn: async () => {
+      try {
+        if (!vesselId || vesselId === 0) return null
+
+        // Try to get vessel by ID using the regular vessel lookup with a filter
+        const data = await getData(`${Lookup.getVessel}?vesselId=${vesselId}`)
+
+        if (data?.data && Array.isArray(data.data) && data.data.length > 0) {
+          const vessel = data.data[0]
+          return {
+            vesselId: vessel.vesselId,
+            vesselName: vessel.vesselName,
+            vesselCode: vessel.vesselCode || "",
+            imoCode: vessel.imoCode || "",
+          }
+        }
+
+        return null
+      } catch (error) {
+        handleApiError(error)
+        return null
+      }
+    },
+    enabled: !!vesselId && vesselId !== 0,
+    refetchOnWindowFocus: false,
+  })
+}
+
+export const useBargeDynamicLookup = (queryParams?: {
+  searchString?: string
+}) => {
   return useQuery<IBargeLookup[]>({
-    queryKey: ["barge-dynamic-lookUp"],
+    queryKey: ["barge-dynamic-lookUp", queryParams?.searchString],
     placeholderData: keepPreviousData,
     queryFn: async () => {
       try {
-        const data = await getData(`${Lookup.getBargeDynamic}`)
+        const searchParams = new URLSearchParams()
+        if (queryParams?.searchString) {
+          searchParams.append("searchString", queryParams.searchString)
+        }
+
+        const url = queryParams?.searchString
+          ? `${Lookup.getBargeDynamic}?${searchParams.toString()}`
+          : Lookup.getBargeDynamic
+
+        const data = await getData(url)
         return data?.data || []
       } catch (error) {
         handleApiError(error)
@@ -1145,13 +1243,24 @@ export const useJobOrderLookup = () => {
   })
 }
 
-export const useJobOrderDynamicLookup = () => {
+export const useJobOrderDynamicLookup = (queryParams?: {
+  searchString?: string
+}) => {
   return useQuery<IJobOrderLookup[]>({
-    queryKey: ["joborder-dynamic-lookUp"],
+    queryKey: ["joborder-dynamic-lookUp", queryParams?.searchString],
     placeholderData: keepPreviousData,
     queryFn: async () => {
       try {
-        const data = await getData(`${Lookup.getJobOrderDynamic}`)
+        const searchParams = new URLSearchParams()
+        if (queryParams?.searchString) {
+          searchParams.append("searchString", queryParams.searchString)
+        }
+
+        const url = queryParams?.searchString
+          ? `${Lookup.getJobOrderDynamic}?${searchParams.toString()}`
+          : Lookup.getJobOrderDynamic
+
+        const data = await getData(url)
         return data?.data || []
       } catch (error) {
         handleApiError(error)

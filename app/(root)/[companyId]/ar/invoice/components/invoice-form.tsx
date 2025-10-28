@@ -41,6 +41,7 @@ import {
   PortAutocomplete,
   VesselAutocomplete,
 } from "@/components/autocomplete"
+import DynamicVesselAutocomplete from "@/components/autocomplete/autocomplete-dynamic-vessel"
 import ServiceTypeAutocomplete from "@/components/autocomplete/autocomplete-servicetype"
 import { CustomDateNew } from "@/components/custom/custom-date-new"
 import CustomInput from "@/components/custom/custom-input"
@@ -653,7 +654,11 @@ export default function InvoiceForm({
 
           {/* Vessel */}
           {visible?.m_VesselIdHd && (
-            <VesselAutocomplete form={form} name="vesselId" label="Vessel" />
+            <DynamicVesselAutocomplete
+              form={form}
+              name="vesselId"
+              label="Vessel"
+            />
           )}
 
           {/* Port */}

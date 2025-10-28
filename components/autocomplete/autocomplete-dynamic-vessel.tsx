@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useCallback, useState } from "react"
-import { ICustomerLookup } from "@/interfaces/lookup"
+import { IVesselLookup } from "@/interfaces/lookup"
 import {
   IconCheck,
   IconChevronDown,
@@ -20,7 +20,7 @@ import Select, {
 } from "react-select"
 
 import { cn } from "@/lib/utils"
-import { useCustomerDynamicLookup } from "@/hooks/use-lookup"
+import { useVesselDynamicLookup } from "@/hooks/use-lookup"
 
 import { FormField, FormItem } from "../ui/form"
 import { Label } from "../ui/label"
@@ -30,7 +30,7 @@ interface FieldOption {
   label: string
 }
 
-export default function DynamicCustomerAutocomplete<
+export default function DynamicVesselAutocomplete<
   T extends Record<string, unknown>,
 >({
   form,
@@ -47,57 +47,79 @@ export default function DynamicCustomerAutocomplete<
   className?: string
   isDisabled?: boolean
   isRequired?: boolean
-  onChangeEvent?: (selectedOption: ICustomerLookup | null) => void
+  onChangeEvent?: (selectedOption: IVesselLookup | null) => void
 }) {
   const [query, setQuery] = useState("")
+  const [selectedVessel, setSelectedVessel] = useState<IVesselLookup | null>(
+    null
+  )
   const [justSelected, setJustSelected] = useState(false)
 
-  // Get customer name field from id
-  const customerNameField =
+  // Get vessel name from form for edit mode
+  const vesselNameField =
     form && name
       ? (`${name.toString().replace("Id", "Name")}` as Path<T>)
       : null
-  const currentCustomerName = customerNameField
-    ? String(form.getValues(customerNameField) || "")
+  const currentVesselName = vesselNameField
+    ? String(form.getValues(vesselNameField) || "")
     : ""
 
-  // Use customer name for edit mode prefill, otherwise query from typing
+  // Determine search string: use vesselName for edit mode, query for search mode
+  // Don't make API call if user just selected (to prevent clearing)
   const searchString = justSelected
     ? undefined
-    : currentCustomerName && !query
-      ? currentCustomerName
+    : currentVesselName && !query
+      ? currentVesselName
       : query || undefined
 
   const {
-    data: customers = [],
+    data: vessels = [],
     isLoading,
     refetch,
-  } = useCustomerDynamicLookup({
-    searchString,
+  } = useVesselDynamicLookup({
+    searchString: searchString,
   })
+
+  // Use vessels from dynamic lookup
+  const displayVessels = vessels
 
   // Handle refresh with animation
   const handleRefresh = React.useCallback(async () => {
     try {
       await refetch()
     } catch (error) {
-      console.error("Error refreshing customers:", error)
+      console.error("Error refreshing vessels:", error)
     }
   }, [refetch])
 
   // Memoize options to prevent unnecessary recalculations
   const options: FieldOption[] = React.useMemo(
     () =>
-      customers
-        .filter(
-          (customer: ICustomerLookup) => customer && customer.customerId != null
-        )
-        .map((customer: ICustomerLookup) => ({
-          value: customer.customerId.toString(),
-          label: `${customer.customerCode} - ${customer.customerName}`,
-        })),
-    [customers]
+      displayVessels.map((vessel: IVesselLookup) => ({
+        value: vessel.vesselId.toString(),
+        label: vessel.vesselName,
+      })),
+    [displayVessels]
   )
+
+  // Ensure the currently selected vessel is present in options
+  const mergedOptions: FieldOption[] = React.useMemo(() => {
+    if (selectedVessel) {
+      const exists = options.some(
+        (o) => o.value === selectedVessel.vesselId.toString()
+      )
+      if (!exists) {
+        return [
+          {
+            value: selectedVessel.vesselId.toString(),
+            label: selectedVessel.vesselName,
+          },
+          ...options,
+        ]
+      }
+    }
+    return options
+  }, [options, selectedVessel])
 
   // Custom components with display names
   const DropdownIndicator = React.memo(
@@ -221,55 +243,73 @@ export default function DynamicCustomerAutocomplete<
   )
 
   // Memoize handleChange to prevent unnecessary recreations
-  const handleChange = useCallback(
+  const handleChange = React.useCallback(
     (option: SingleValue<FieldOption> | MultiValue<FieldOption>) => {
       const selectedOption = Array.isArray(option) ? option[0] : option
+
+      // Don't clear query on selection - keep it for better UX
+      // Query will be cleared when user starts typing again
       setJustSelected(true)
+
       if (form && name) {
-        // Set the value as a number
+        // Set the vesselId value
         const value = selectedOption ? Number(selectedOption.value) : 0
         form.setValue(name, value as PathValue<T, Path<T>>)
 
-        // Also set customerName
-        if (selectedOption && customerNameField) {
-          const customer = customers.find(
-            (u: ICustomerLookup) =>
-              u &&
-              u.customerId != null &&
-              u.customerId.toString() === selectedOption.value
+        // Also set the vesselName field
+        if (selectedOption) {
+          const vessel = displayVessels.find(
+            (u: IVesselLookup) => u.vesselId.toString() === selectedOption.value
           )
-          if (customer) {
+          if (vessel && vesselNameField) {
             form.setValue(
-              customerNameField,
-              customer.customerName as PathValue<T, Path<T>>
+              vesselNameField,
+              vessel.vesselName as PathValue<T, Path<T>>
             )
           }
-        } else if (customerNameField) {
-          form.setValue(customerNameField, "" as PathValue<T, Path<T>>)
+        } else if (vesselNameField) {
+          // Clear vesselName when no option selected
+          form.setValue(vesselNameField, "" as PathValue<T, Path<T>>)
         }
       }
       if (onChangeEvent) {
-        const selectedUser = selectedOption
-          ? customers.find(
-              (u: ICustomerLookup) =>
-                u &&
-                u.customerId != null &&
-                u.customerId.toString() === selectedOption.value
+        const selectedVessel = selectedOption
+          ? displayVessels.find(
+              (u: IVesselLookup) =>
+                u.vesselId.toString() === selectedOption.value
             ) || null
           : null
-        onChangeEvent(selectedUser)
+        onChangeEvent(selectedVessel)
+      }
+      // Persist the selected vessel locally so it remains visible
+      if (selectedOption) {
+        const vessel = displayVessels.find(
+          (u: IVesselLookup) => u.vesselId.toString() === selectedOption.value
+        )
+        if (vessel) {
+          setSelectedVessel(vessel)
+        }
+      } else {
+        // Clear selected vessel when option is cleared
+        setSelectedVessel(null)
       }
     },
-    [form, name, onChangeEvent, customers, customerNameField]
+    [form, name, onChangeEvent, displayVessels, vesselNameField]
   )
 
-  // Keep query after selection. Only change when user types.
+  // Handle input change for search
   const handleInputChange = useCallback(
     (inputValue: string) => {
+      // If user just selected and input is being cleared, don't clear the query
       if (justSelected && inputValue === "") {
-        return
+        return // Don't clear query, don't reset justSelected yet
       }
-      if (justSelected) setJustSelected(false)
+
+      // Reset justSelected flag when user starts typing
+      if (justSelected) {
+        setJustSelected(false)
+      }
+
       setQuery(inputValue)
     },
     [justSelected]
@@ -279,12 +319,14 @@ export default function DynamicCustomerAutocomplete<
   const getValue = React.useCallback(() => {
     if (form && name) {
       const formValue = form.getValues(name)
-      return (
-        options.find((option) => option.value === formValue?.toString()) || null
+      // Convert form value to string for comparison
+      const fromOptions = mergedOptions.find(
+        (option) => option.value === formValue?.toString()
       )
+      return fromOptions || null
     }
     return null
-  }, [form, name, options])
+  }, [form, name, mergedOptions])
 
   if (form && name) {
     return (
@@ -299,7 +341,7 @@ export default function DynamicCustomerAutocomplete<
               onClick={handleRefresh}
               disabled={isLoading}
               className="hover:bg-accent flex items-center justify-center rounded-sm p-0.5 transition-colors disabled:opacity-50"
-              title="Refresh customers"
+              title="Refresh vessels"
             >
               <IconRefresh
                 size={12}
@@ -321,12 +363,11 @@ export default function DynamicCustomerAutocomplete<
             return (
               <FormItem className={cn("flex flex-col", className)}>
                 <Select
-                  instanceId={name || "customer-select"}
-                  options={options}
+                  options={mergedOptions}
                   value={getValue()}
                   onChange={handleChange}
                   onInputChange={handleInputChange}
-                  placeholder="Select Customer..."
+                  placeholder="Select Vessel..."
                   isDisabled={isDisabled || isLoading}
                   isClearable={true}
                   isSearchable={true}
@@ -344,7 +385,7 @@ export default function DynamicCustomerAutocomplete<
                   }
                   menuPosition="fixed"
                   isLoading={isLoading}
-                  loadingMessage={() => "Loading customers..."}
+                  loadingMessage={() => "Loading vessels..."}
                 />
                 {showError && (
                   <p className="text-destructive mt-1 text-xs">
@@ -377,7 +418,7 @@ export default function DynamicCustomerAutocomplete<
             onClick={handleRefresh}
             disabled={isLoading}
             className="hover:bg-accent flex items-center justify-center rounded-sm p-0.5 transition-colors disabled:opacity-50"
-            title="Refresh customers"
+            title="Refresh vessels"
           >
             <IconRefresh
               size={12}
@@ -394,11 +435,10 @@ export default function DynamicCustomerAutocomplete<
         </div>
       )}
       <Select
-        instanceId={name || "customer-select"}
-        options={options}
+        options={mergedOptions}
         onChange={handleChange}
         onInputChange={handleInputChange}
-        placeholder="Select Customer..."
+        placeholder="Select Vessel..."
         isDisabled={isDisabled || isLoading}
         isClearable={true}
         isSearchable={true}
@@ -416,7 +456,7 @@ export default function DynamicCustomerAutocomplete<
         }
         menuPosition="fixed"
         isLoading={isLoading}
-        loadingMessage={() => "Loading customers..."}
+        loadingMessage={() => "Loading vessels..."}
       />
     </div>
   )

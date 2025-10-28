@@ -206,7 +206,7 @@ export const UserGrid = {
 // Master Lookup Endpoints
 export const Lookup = {
   getCountry: "/master/getcountrylookup",
-  getVesselDynamic: "/master/getvessellookupv1",
+
   getBarge: "/master/getbargelookup",
   getCurrency: "/master/getcurrencylookup",
   getChartOfAccount: "/master/getchartofaccountlookup",
@@ -269,12 +269,7 @@ export const Lookup = {
   getSupplier: "/master/getsupplierlookup",
   getPaymentType: "/master/getpaymenttypelookup",
   getVessel: "/master/getvessellookup",
-  getBargeDynamic: "/master/getbargelookupv1",
-  getVoyageDynamic: "/master/getvoyagelookupv1",
-  getCustomerDynamic: "/master/getcustomerlookupv1",
-  getSupplierDynamic: "/master/getsupplierlookupv1",
-  getProductDynamic: "/master/getproductlookupv1",
-  getJobOrderDynamic: "/master/getjoborderlookup_v1",
+
   getNumberYear: "/master/getnumberformatnextyear",
 
   getStatus: "/master/getstatuslookup",
@@ -304,6 +299,14 @@ export const Lookup = {
 
   getJobOrderTask: "/master/getjobordertasklookup",
   getJobOrderCharge: "/master/getjoborderchargelookup",
+
+  getVesselDynamic: "/master/getvessellookup_v1",
+  getBargeDynamic: "/master/getbargelookup_v1",
+  getVoyageDynamic: "/master/getvoyagelookup_v1",
+  getCustomerDynamic: "/master/getcustomerlookup_v1",
+  getSupplierDynamic: "/master/getsupplierlookup_v1",
+  getProductDynamic: "/master/getproductlookup_v1",
+  getJobOrderDynamic: "/master/getjoborderlookup_v1",
 }
 
 // Universal Documents Endpoints
