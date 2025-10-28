@@ -77,8 +77,6 @@ const defaultInvoice = {
   ctyExhRate: 0,
   creditTermId: 0,
   bankId: 0,
-  jobOrderId: 0,
-  jobOrderNo: "",
   totAmt: 0,
   totLocalAmt: 0,
   totCtyAmt: 0,
@@ -134,6 +132,13 @@ const defaultInvoice = {
   appStatusId: "",
   appById: "",
   appDate: "",
+  jobOrderId: 0,
+  jobOrderNo: "",
+  vesselId: 0,
+  portId: 0,
+  serviceTypeId: 0,
+  otherRemarks: "",
+  advRecAmt: 0,
   data_details: [],
 }
 

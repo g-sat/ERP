@@ -157,6 +157,7 @@ export default function InvoicePage() {
           editVersion: invoice.editVersion ?? 0,
           purchaseOrderId: invoice.purchaseOrderId ?? 0,
           purchaseOrderNo: invoice.purchaseOrderNo ?? "",
+          serviceTypeId: invoice.serviceTypeId ?? 0,
           data_details:
             invoice.data_details?.map((detail) => ({
               ...detail,
@@ -454,6 +455,7 @@ export default function InvoicePage() {
           )
         : "",
       cancelRemarks: apiInvoice.cancelRemarks ?? "",
+      serviceTypeId: apiInvoice.serviceTypeId ?? 0,
       data_details:
         apiInvoice.data_details?.map(
           (detail) =>
@@ -646,6 +648,7 @@ export default function InvoicePage() {
             cancelBy: detailedInvoice.cancelBy ?? "",
             cancelDate: detailedInvoice.cancelDate ?? "",
             cancelRemarks: detailedInvoice.cancelRemarks ?? "",
+            serviceTypeId: detailedInvoice.serviceTypeId ?? 0,
             data_details:
               detailedInvoice.data_details?.map((detail: IApInvoiceDt) => ({
                 invoiceId: detail.invoiceId?.toString() ?? "0",
@@ -884,7 +887,7 @@ export default function InvoicePage() {
             editVersion: detailedInvoice.editVersion ?? 0,
             purchaseOrderId: detailedInvoice.purchaseOrderId ?? 0,
             purchaseOrderNo: detailedInvoice.purchaseOrderNo ?? "",
-
+            serviceTypeId: detailedInvoice.serviceTypeId ?? 0,
             data_details:
               detailedInvoice.data_details?.map((detail: IApInvoiceDt) => ({
                 invoiceId: detail.invoiceId?.toString() ?? "0",
@@ -1177,16 +1180,17 @@ export default function InvoicePage() {
         }}
       >
         <DialogContent
-          className="flex flex-col @container h-auto w-[80vw] !max-w-none gap-0 p-0 rounded-lg overflow-hidden"
+          className="@container flex h-auto w-[80vw] !max-w-none flex-col gap-0 overflow-hidden rounded-lg p-0"
           onInteractOutside={(e) => e.preventDefault()}
         >
           {/* Header */}
-          <div className="flex flex-col gap-1 p-2 border-b bg-background">
+          <div className="bg-background flex flex-col gap-1 border-b p-2">
             <DialogTitle className="text-2xl font-bold tracking-tight">
               Invoice List
             </DialogTitle>
-            <p className="text-sm text-muted-foreground">
-              Manage and select existing invoices from the list below. Use search to filter records or create new invoices.
+            <p className="text-muted-foreground text-sm">
+              Manage and select existing invoices from the list below. Use
+              search to filter records or create new invoices.
             </p>
           </div>
 

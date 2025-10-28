@@ -31,7 +31,7 @@ export function MainTableFooter({
   totalRecords,
   onPageChange,
   onPageSizeChange,
-  pageSizeOptions = [15, 50, 100, 500],
+  pageSizeOptions = [50, 100, 500],
 }: MainTableFooterProps) {
   return (
     <div className="flex items-center justify-between pt-2">

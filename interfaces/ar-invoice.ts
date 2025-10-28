@@ -22,8 +22,7 @@ export interface IArInvoiceHd {
   bankId: number
   bankCode: null | string | number
   bankName: null | string
-  jobOrderId: number
-  jobOrderNo: string
+
   totAmt: number
   totLocalAmt: number
   totCtyAmt: number
@@ -82,6 +81,19 @@ export interface IArInvoiceHd {
   appStatusId: null | number
   appById: null | number
   appDate: null | Date
+
+  jobOrderId: number
+  jobOrderNo: string
+  vesselId: number
+  vesselCode: string
+  vesselName: string
+  portId: number
+  portCode: string
+  portName: string
+  serviceTypeId: number
+  serviceTypeName: string
+  otherRemarks: string
+  advRecAmt: number
   data_details: IArInvoiceDt[]
 }
 

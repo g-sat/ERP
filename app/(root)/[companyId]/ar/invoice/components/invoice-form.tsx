@@ -21,6 +21,7 @@ import {
   ICreditTermLookup,
   ICurrencyLookup,
   ICustomerLookup,
+  IJobOrderLookup,
 } from "@/interfaces/lookup"
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
 import { ArInvoiceDtSchemaType, ArInvoiceHdSchemaType } from "@/schemas"
@@ -36,7 +37,11 @@ import {
   CurrencyAutocomplete,
   CustomerAutocomplete,
   DynamicCustomerAutocomplete,
+  JobOrderAutocomplete,
+  PortAutocomplete,
+  VesselAutocomplete,
 } from "@/components/autocomplete"
+import ServiceTypeAutocomplete from "@/components/autocomplete/autocomplete-servicetype"
 import { CustomDateNew } from "@/components/custom/custom-date-new"
 import CustomInput from "@/components/custom/custom-input"
 import CustomNumberInput from "@/components/custom/custom-number-input"
@@ -202,6 +207,30 @@ export default function InvoiceForm({
   const handleDeliveryDateChange = React.useCallback(
     async (_selectedDeliveryDate: Date | null) => {
       await setDueDate(form)
+    },
+    [form]
+  )
+
+  // Handle job order selection
+  const handleJobOrderChange = React.useCallback(
+    (selectedJobOrder: IJobOrderLookup | null) => {
+      if (selectedJobOrder) {
+        // Set vesselId and portId from selected job order
+        form.setValue("vesselId", selectedJobOrder.vesselId || 0)
+        form.setValue("portId", selectedJobOrder.portId || 0)
+
+        // Trigger validation for the updated fields
+        form.trigger("vesselId")
+        form.trigger("portId")
+      } else {
+        // Clear vesselId and portId when job order is cleared
+        form.setValue("vesselId", 0)
+        form.setValue("portId", 0)
+
+        // Trigger validation for the cleared fields
+        form.trigger("vesselId")
+        form.trigger("portId")
+      }
     },
     [form]
   )
@@ -453,7 +482,7 @@ export default function InvoiceForm({
             <DynamicCustomerAutocomplete
               form={form}
               name="customerId"
-              label="Customer"
+              label="Customer-D"
               isRequired={true}
               onChangeEvent={handleCustomerChange}
             />
@@ -461,7 +490,7 @@ export default function InvoiceForm({
             <CustomerAutocomplete
               form={form}
               name="customerId"
-              label="Customer"
+              label="Customer-S"
               isRequired={true}
               onChangeEvent={handleCustomerChange}
             />
@@ -610,6 +639,36 @@ export default function InvoiceForm({
                 className="text-right"
               />
             </>
+          )}
+
+          {/* Job Order */}
+          {visible?.m_JobOrderIdHd && (
+            <JobOrderAutocomplete
+              form={form}
+              name="jobOrderId"
+              label="Job Order"
+              onChangeEvent={handleJobOrderChange}
+            />
+          )}
+
+          {/* Vessel */}
+          {visible?.m_VesselIdHd && (
+            <VesselAutocomplete form={form} name="vesselId" label="Vessel" />
+          )}
+
+          {/* Port */}
+          {visible?.m_PortIdHd && (
+            <PortAutocomplete form={form} name="portId" label="Port" />
+          )}
+
+          {/* Service Type */}
+          {visible?.m_ServiceTypeId && (
+            <ServiceTypeAutocomplete
+              form={form}
+              name="serviceTypeId"
+              label="Service Type"
+              isRequired={true}
+            />
           )}
 
           {/* Remarks */}

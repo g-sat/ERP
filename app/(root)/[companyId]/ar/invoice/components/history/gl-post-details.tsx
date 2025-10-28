@@ -295,7 +295,7 @@ export default function GLPostDetails({ invoiceId }: GLPostDetailsProps) {
           showHeader={true}
           showFooter={false}
           maxHeight="300px"
-          pageSizeOption={10}
+          pageSizeOption={50}
         />
       </CardContent>
     </Card>

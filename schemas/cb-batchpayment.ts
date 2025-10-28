@@ -212,6 +212,12 @@ export const cbBatchPaymentDtSchema = (
         : z.number().optional(),
     serviceName: z.string().optional(),
 
+    // Service Type Fields
+    serviceTypeId: visible?.m_ServiceTypeId
+      ? z.number().min(1, "Service Type is required")
+      : z.number().optional(),
+    serviceTypeName: z.string().optional(),
+
     // Audit Fields
     editVersion: z.number().optional(),
   })

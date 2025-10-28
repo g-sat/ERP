@@ -100,5 +100,7 @@ export interface ICbBatchPaymentDt {
   taskName: string
   serviceId: number
   serviceName: string
+  serviceTypeId: number
+  serviceTypeName: string
   editVersion: number
 }

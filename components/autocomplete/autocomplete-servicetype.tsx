@@ -1,13 +1,8 @@
 "use client"
 
 import React from "react"
-import { IProductLookup } from "@/interfaces/lookup"
-import {
-  IconCheck,
-  IconChevronDown,
-  IconRefresh,
-  IconX,
-} from "@tabler/icons-react"
+import { IServiceTypeLookup } from "@/interfaces/lookup"
+import { IconCheck, IconChevronDown, IconX } from "@tabler/icons-react"
 import { Path, PathValue, UseFormReturn } from "react-hook-form"
 import Select, {
   ClearIndicatorProps,
@@ -20,7 +15,7 @@ import Select, {
 } from "react-select"
 
 import { cn } from "@/lib/utils"
-import { useProductLookup } from "@/hooks/use-lookup"
+import { useServiceTypeLookup } from "@/hooks/use-lookup"
 
 import { FormField, FormItem } from "../ui/form"
 import { Label } from "../ui/label"
@@ -30,7 +25,9 @@ interface FieldOption {
   label: string
 }
 
-export default function ProductAutocomplete<T extends Record<string, unknown>>({
+export default function ServiceTypeAutocomplete<
+  T extends Record<string, unknown>,
+>({
   form,
   label,
   name,
@@ -45,34 +42,18 @@ export default function ProductAutocomplete<T extends Record<string, unknown>>({
   className?: string
   isDisabled?: boolean
   isRequired?: boolean
-  onChangeEvent?: (selectedOption: IProductLookup | null) => void
+  onChangeEvent?: (selectedOption: IServiceTypeLookup | null) => void
 }) {
-  const { data: products = [], isLoading, refetch } = useProductLookup()
-
-  // Handle refresh with animation
-  const handleRefresh = React.useCallback(async () => {
-    try {
-      await refetch()
-    } catch (error) {
-      console.error("Error refreshing products:", error)
-    }
-  }, [refetch])
-
+  const { data: serviceTypes = [], isLoading } = useServiceTypeLookup()
   // Memoize options to prevent unnecessary recalculations
   const options: FieldOption[] = React.useMemo(
     () =>
-      products.map((product: IProductLookup) => ({
-        value: product.productId.toString(),
-        label: product.productName,
+      serviceTypes.map((serviceType: IServiceTypeLookup) => ({
+        value: serviceType.serviceTypeId.toString(),
+        label: serviceType.serviceTypeName,
       })),
-    [products]
+    [serviceTypes]
   )
-
-  // SSR hydration fix: only render Select after mount
-  const [mounted, setMounted] = React.useState(false)
-  React.useEffect(() => {
-    setMounted(true)
-  }, [])
 
   // Custom components with display names
   const DropdownIndicator = React.memo(
@@ -205,16 +186,16 @@ export default function ProductAutocomplete<T extends Record<string, unknown>>({
         form.setValue(name, value as PathValue<T, Path<T>>)
       }
       if (onChangeEvent) {
-        const selectedProduct = selectedOption
-          ? products.find(
-              (u: IProductLookup) =>
-                u.productId.toString() === selectedOption.value
+        const selectedServiceType = selectedOption
+          ? serviceTypes.find(
+              (u: IServiceTypeLookup) =>
+                u.serviceTypeId.toString() === selectedOption.value
             ) || null
           : null
-        onChangeEvent(selectedProduct)
+        onChangeEvent(selectedServiceType)
       }
     },
-    [form, name, onChangeEvent, products]
+    [form, name, onChangeEvent, serviceTypes]
   )
 
   // Memoize getValue to prevent unnecessary recalculations
@@ -229,35 +210,14 @@ export default function ProductAutocomplete<T extends Record<string, unknown>>({
     return null
   }, [form, name, options])
 
-  if (!mounted) {
-    // Optionally, return a skeleton/loader here
-    return null
-  }
-
   if (form && name) {
     return (
       <div className={cn("flex flex-col gap-1", className)}>
         {label && (
-          <div className="flex items-center gap-1">
-            <Label htmlFor={name} className="text-sm font-medium">
-              {label}
-            </Label>
-            <button
-              type="button"
-              onClick={handleRefresh}
-              disabled={isLoading}
-              className="hover:bg-accent flex items-center justify-center rounded-sm p-0.5 transition-colors disabled:opacity-50"
-              title="Refresh products"
-            >
-              <IconRefresh
-                size={12}
-                className={`text-muted-foreground hover:text-foreground transition-colors ${
-                  isLoading ? "animate-spin" : ""
-                }`}
-              />
-            </button>
-            {isRequired && <span className="text-sm text-red-500">*</span>}
-          </div>
+          <Label htmlFor={name} className="text-sm font-medium">
+            {label}
+            {isRequired && <span className="ml-1 text-red-500">*</span>}
+          </Label>
         )}
         <FormField
           control={form.control}
@@ -272,7 +232,7 @@ export default function ProductAutocomplete<T extends Record<string, unknown>>({
                   options={options}
                   value={getValue()}
                   onChange={handleChange}
-                  placeholder="Select Product..."
+                  placeholder="Select ServiceType..."
                   isDisabled={isDisabled || isLoading}
                   isClearable={true}
                   isSearchable={true}
@@ -290,7 +250,7 @@ export default function ProductAutocomplete<T extends Record<string, unknown>>({
                   }
                   menuPosition="fixed"
                   isLoading={isLoading}
-                  loadingMessage={() => "Loading products..."}
+                  loadingMessage={() => "Loading serviceTypes..."}
                 />
                 {showError && (
                   <p className="text-destructive mt-1 text-xs">
@@ -309,31 +269,15 @@ export default function ProductAutocomplete<T extends Record<string, unknown>>({
   return (
     <div className={cn("flex flex-col gap-1", className)}>
       {label && (
-        <div className="flex items-center gap-1">
-          <div
-            className={cn(
-              "text-sm font-medium",
-              isDisabled && "text-muted-foreground opacity-70"
-            )}
-          >
-            {label}
-          </div>
-          <button
-            type="button"
-            onClick={handleRefresh}
-            disabled={isLoading}
-            className="hover:bg-accent flex items-center justify-center rounded-sm p-0.5 transition-colors disabled:opacity-50"
-            title="Refresh products"
-          >
-            <IconRefresh
-              size={12}
-              className={`text-muted-foreground hover:text-foreground transition-colors ${
-                isLoading ? "animate-spin" : ""
-              }`}
-            />
-          </button>
+        <div
+          className={cn(
+            "text-sm font-medium",
+            isDisabled && "text-muted-foreground opacity-70"
+          )}
+        >
+          {label}
           {isRequired && (
-            <span className="text-destructive text-sm" aria-hidden="true">
+            <span className="text-destructive ml-1" aria-hidden="true">
               *
             </span>
           )}
@@ -342,7 +286,7 @@ export default function ProductAutocomplete<T extends Record<string, unknown>>({
       <Select
         options={options}
         onChange={handleChange}
-        placeholder="Select Product..."
+        placeholder="Select ServiceType..."
         isDisabled={isDisabled || isLoading}
         isClearable={true}
         isSearchable={true}
@@ -360,7 +304,7 @@ export default function ProductAutocomplete<T extends Record<string, unknown>>({
         }
         menuPosition="fixed"
         isLoading={isLoading}
-        loadingMessage={() => "Loading products..."}
+        loadingMessage={() => "Loading serviceTypes..."}
       />
     </div>
   )

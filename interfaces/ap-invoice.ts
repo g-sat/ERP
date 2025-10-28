@@ -62,6 +62,10 @@ export interface IApInvoiceHd {
 
   arInvoiceId: string
   arInvoiceNo: null | string
+
+  serviceTypeId: number
+  serviceTypeName: string
+
   createById: number
   createDate: Date | string
   editById: null | number

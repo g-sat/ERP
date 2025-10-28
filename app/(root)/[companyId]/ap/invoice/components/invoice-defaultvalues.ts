@@ -139,6 +139,7 @@ const defaultInvoice = {
   appStatusId: "",
   appById: "",
   appDate: "",
+  serviceTypeId: 0,
   data_details: [],
 }
 

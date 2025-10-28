@@ -120,8 +120,6 @@ export default function InvoicePage() {
           ctyExhRate: invoice.ctyExhRate ?? 0,
           creditTermId: invoice.creditTermId ?? 0,
           bankId: invoice.bankId ?? 0,
-          jobOrderId: invoice.jobOrderId ?? 0,
-          jobOrderNo: invoice.jobOrderNo ?? "",
           totAmt: invoice.totAmt ?? 0,
           totLocalAmt: invoice.totLocalAmt ?? 0,
           totCtyAmt: invoice.totCtyAmt ?? 0,
@@ -159,6 +157,13 @@ export default function InvoicePage() {
           editVersion: invoice.editVersion ?? 0,
           salesOrderId: invoice.salesOrderId ?? 0,
           salesOrderNo: invoice.salesOrderNo ?? "",
+          jobOrderId: invoice.jobOrderId ?? 0,
+          jobOrderNo: invoice.jobOrderNo ?? "",
+          vesselId: invoice.vesselId ?? 0,
+          portId: invoice.portId ?? 0,
+          serviceTypeId: invoice.serviceTypeId ?? 0,
+          otherRemarks: invoice.otherRemarks ?? "",
+          advRecAmt: invoice.advRecAmt ?? 0,
           data_details:
             invoice.data_details?.map((detail) => ({
               ...detail,
@@ -440,8 +445,7 @@ export default function InvoicePage() {
       ctyExhRate: apiInvoice.ctyExhRate ?? 0,
       creditTermId: apiInvoice.creditTermId ?? 0,
       bankId: apiInvoice.bankId ?? 0,
-      jobOrderId: apiInvoice.jobOrderId ?? 0,
-      jobOrderNo: apiInvoice.jobOrderNo ?? "",
+
       totAmt: apiInvoice.totAmt ?? 0,
       totLocalAmt: apiInvoice.totLocalAmt ?? 0,
       totCtyAmt: apiInvoice.totCtyAmt ?? 0,
@@ -479,6 +483,13 @@ export default function InvoicePage() {
       editVersion: apiInvoice.editVersion ?? 0,
       salesOrderId: apiInvoice.salesOrderId ?? 0,
       salesOrderNo: apiInvoice.salesOrderNo ?? "",
+      jobOrderId: apiInvoice.jobOrderId ?? 0,
+      jobOrderNo: apiInvoice.jobOrderNo ?? "",
+      vesselId: apiInvoice.vesselId ?? 0,
+      portId: apiInvoice.portId ?? 0,
+      serviceTypeId: apiInvoice.serviceTypeId ?? 0,
+      otherRemarks: apiInvoice.otherRemarks ?? "",
+      advRecAmt: apiInvoice.advRecAmt ?? 0,
       createBy: apiInvoice.createBy ?? "",
       editBy: apiInvoice.editBy ?? "",
       cancelBy: apiInvoice.cancelBy ?? "",
@@ -563,6 +574,7 @@ export default function InvoicePage() {
               opRefNo: detail.opRefNo ?? "",
               salesOrderId: detail.salesOrderId ?? "",
               salesOrderNo: detail.salesOrderNo ?? "",
+
               supplyDate: detail.supplyDate
                 ? format(
                     parseDate(detail.supplyDate as string) || new Date(),
@@ -680,6 +692,12 @@ export default function InvoicePage() {
             editVersion: detailedInvoice.editVersion ?? 0,
             salesOrderId: detailedInvoice.salesOrderId ?? 0,
             salesOrderNo: detailedInvoice.salesOrderNo ?? "",
+            jobOrderId: detailedInvoice.jobOrderId ?? 0,
+            vesselId: detailedInvoice.vesselId ?? 0,
+            portId: detailedInvoice.portId ?? 0,
+            serviceTypeId: detailedInvoice.serviceTypeId ?? 0,
+            otherRemarks: detailedInvoice.otherRemarks ?? "",
+            advRecAmt: detailedInvoice.advRecAmt ?? 0,
             createBy: detailedInvoice.createBy ?? "",
             createDate: detailedInvoice.createDate ?? "",
             editBy: detailedInvoice.editBy ?? "",
@@ -925,6 +943,12 @@ export default function InvoicePage() {
             editVersion: detailedInvoice.editVersion ?? 0,
             salesOrderId: detailedInvoice.salesOrderId ?? 0,
             salesOrderNo: detailedInvoice.salesOrderNo ?? "",
+            jobOrderId: detailedInvoice.jobOrderId ?? 0,
+            vesselId: detailedInvoice.vesselId ?? 0,
+            portId: detailedInvoice.portId ?? 0,
+            serviceTypeId: detailedInvoice.serviceTypeId ?? 0,
+            otherRemarks: detailedInvoice.otherRemarks ?? "",
+            advRecAmt: detailedInvoice.advRecAmt ?? 0,
             isCancel: detailedInvoice.isCancel ?? false,
             cancelRemarks: detailedInvoice.cancelRemarks ?? "",
 
@@ -1248,7 +1272,7 @@ export default function InvoicePage() {
         </TabsContent>
 
         <TabsContent value="other">
-          <Other form={form} />
+          <Other form={form} visible={visible} />
         </TabsContent>
 
         <TabsContent value="history">

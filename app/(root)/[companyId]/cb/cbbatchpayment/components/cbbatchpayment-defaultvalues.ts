@@ -46,6 +46,8 @@ const defaultBatchPaymentDetails = {
   taskName: "",
   serviceId: 0,
   serviceName: "",
+  serviceTypeId: 0,
+  serviceTypeName: "",
   editVersion: 0,
 }
 

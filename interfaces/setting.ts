@@ -157,6 +157,12 @@ export interface IVisibleFields {
   m_BankId: boolean
   m_CtyCurr: boolean
   m_PayeeTo: boolean
+  m_ServiceTypeId: boolean
+  m_OtherRemarks: boolean
+  m_JobOrderIdHd: boolean
+  m_PortIdHd: boolean
+  m_VesselIdHd: boolean
+  m_AdvRecAmt: boolean
 }
 
 export interface INumberFormatDetails {

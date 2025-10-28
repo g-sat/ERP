@@ -17,6 +17,7 @@ import {
   IJobOrderLookup,
   IPortLookup,
   IServiceLookup,
+  IServiceTypeLookup,
   ITaskLookup,
   IVesselLookup,
   IVoyageLookup,
@@ -49,6 +50,7 @@ import {
   VesselAutocomplete,
   VoyageAutocomplete,
 } from "@/components/autocomplete"
+import ServiceTypeAutocomplete from "@/components/autocomplete/autocomplete-servicetype"
 import { DuplicateConfirmation } from "@/components/confirmation"
 import { CustomDateNew } from "@/components/custom/custom-date-new"
 import CustomInput from "@/components/custom/custom-input"
@@ -162,6 +164,8 @@ export default function BatchPaymentDetailsForm({
           bargeName: editingDetail.bargeName ?? "",
           voyageId: editingDetail.voyageId ?? 0,
           voyageNo: editingDetail.voyageNo ?? "",
+          serviceTypeId: editingDetail.serviceTypeId ?? 0,
+          serviceTypeName: editingDetail.serviceTypeName ?? "",
           editVersion: editingDetail.editVersion ?? 0,
         }
       : createDefaultValues(getNextItemNo()),
@@ -293,7 +297,8 @@ export default function BatchPaymentDetailsForm({
         bargeName: editingDetail.bargeName ?? "",
         voyageId: editingDetail.voyageId ?? 0,
         voyageNo: editingDetail.voyageNo ?? "",
-
+        serviceTypeId: editingDetail.serviceTypeId ?? 0,
+        serviceTypeName: editingDetail.serviceTypeName ?? "",
         editVersion: editingDetail.editVersion ?? 0,
       })
     } else {
@@ -464,7 +469,8 @@ export default function BatchPaymentDetailsForm({
         bargeName: populatedData.bargeName ?? "",
         voyageId: populatedData.voyageId ?? 0,
         voyageNo: populatedData.voyageNo ?? "",
-
+        serviceTypeId: populatedData.serviceTypeId ?? 0,
+        serviceTypeName: populatedData.serviceTypeName ?? "",
         editVersion: populatedData.editVersion ?? 0,
       }
 
@@ -831,6 +837,20 @@ export default function BatchPaymentDetailsForm({
     }
   }
 
+  // Handle Service Type change
+  const handleServiceTypeChange = (
+    selectedOption: IServiceTypeLookup | null
+  ) => {
+    if (selectedOption) {
+      form.setValue("serviceTypeId", selectedOption.serviceTypeId, {
+        shouldValidate: true,
+        shouldDirty: true,
+      })
+    } else {
+      form.setValue("serviceTypeId", 0, { shouldValidate: true })
+    }
+  }
+
   // ============================================================================
   // CALCULATION HANDLERS
   // ============================================================================
@@ -954,7 +974,8 @@ export default function BatchPaymentDetailsForm({
       bargeName: lastRecord.bargeName ?? "",
       voyageId: lastRecord.voyageId ?? 0,
       voyageNo: lastRecord.voyageNo ?? "",
-
+      serviceTypeId: lastRecord.serviceTypeId ?? 0,
+      serviceTypeName: lastRecord.serviceTypeName ?? "",
       editVersion: 0,
     })
 
@@ -1234,6 +1255,17 @@ export default function BatchPaymentDetailsForm({
             className="col-span-1 text-right"
             isDisabled={true}
           />
+
+          {/* Service Type */}
+          {visible?.m_ServiceTypeId && (
+            <ServiceTypeAutocomplete
+              form={form}
+              name="serviceTypeId"
+              label="Service Type"
+              isRequired={visible?.m_ServiceTypeId}
+              onChangeEvent={handleServiceTypeChange}
+            />
+          )}
 
           {/* Remarks */}
           {visible?.m_Remarks && (

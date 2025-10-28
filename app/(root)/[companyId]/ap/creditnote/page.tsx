@@ -161,6 +161,7 @@ export default function CreditNotePage() {
           editVersion: creditNote.editVersion ?? 0,
           purchaseOrderId: creditNote.purchaseOrderId ?? 0,
           purchaseOrderNo: creditNote.purchaseOrderNo ?? "",
+          serviceTypeId: creditNote.serviceTypeId ?? 0,
           data_details:
             creditNote.data_details?.map((detail) => ({
               ...detail,
@@ -470,6 +471,7 @@ export default function CreditNotePage() {
           )
         : "",
       cancelRemarks: apiCreditNote.cancelRemarks ?? "",
+      serviceTypeId: apiCreditNote.serviceTypeId ?? 0,
       data_details:
         apiCreditNote.data_details?.map(
           (detail) =>
@@ -662,6 +664,7 @@ export default function CreditNotePage() {
             cancelBy: detailedCreditNote.cancelBy ?? "",
             cancelDate: detailedCreditNote.cancelDate ?? "",
             cancelRemarks: detailedCreditNote.cancelRemarks ?? "",
+            serviceTypeId: detailedCreditNote.serviceTypeId ?? 0,
             data_details:
               detailedCreditNote.data_details?.map(
                 (detail: IApCreditNoteDt) => ({
@@ -902,7 +905,7 @@ export default function CreditNotePage() {
             editVersion: detailedCreditNote.editVersion ?? 0,
             purchaseOrderId: detailedCreditNote.purchaseOrderId ?? 0,
             purchaseOrderNo: detailedCreditNote.purchaseOrderNo ?? "",
-
+            serviceTypeId: detailedCreditNote.serviceTypeId ?? 0,
             data_details:
               detailedCreditNote.data_details?.map(
                 (detail: IApCreditNoteDt) => ({

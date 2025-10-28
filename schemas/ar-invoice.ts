@@ -41,13 +41,6 @@ export const ArInvoiceHdSchema = (
         ? z.number().min(1, "Bank is required")
         : z.number().optional(),
 
-    // Job Order Fields
-    jobOrderId:
-      required?.m_JobOrderId && visible?.m_JobOrderId
-        ? z.number().min(1, "Job Order is required")
-        : z.number().optional(),
-    jobOrderNo: z.string().optional(),
-
     // Amounts
     totAmt: required?.m_TotAmt ? z.number().min(0) : z.number().optional(),
     totLocalAmt: z.number().optional(),
@@ -122,6 +115,24 @@ export const ArInvoiceHdSchema = (
     cancelDate: z.string().optional(),
     isCancel: z.boolean().optional(),
     cancelRemarks: z.string().optional(),
+
+    // Job Order Fields
+    jobOrderId: z.number().optional(),
+
+    // Vessel Fields
+    vesselId: z.number().optional(),
+
+    // Port Fields
+    portId: z.number().optional(),
+
+    // Service Type Fields
+    serviceTypeId: visible?.m_ServiceTypeId
+      ? z.number().min(1, "Service Type is required")
+      : z.number().optional(),
+
+    // Other Remarks Fields
+    otherRemarks: z.string().optional(),
+    advRecAmt: z.number().optional(),
 
     // Nested Details
     data_details: z

@@ -117,6 +117,11 @@ export const apinvoiceHdSchema = (
     cancelDate: z.string().optional(),
     cancelRemarks: z.string().optional(),
 
+    // Service Type Fields
+    serviceTypeId: visible?.m_ServiceTypeId
+      ? z.number().min(1, "Service Type is required")
+      : z.number().optional(),
+
     // Nested Details
     data_details: z
       .array(apinvoiceDtSchema(required, visible))

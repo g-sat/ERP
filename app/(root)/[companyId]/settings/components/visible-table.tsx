@@ -73,17 +73,25 @@ export function VisibleTable() {
   const columns: ColumnDef<IVisibleFields>[] = [
     {
       accessorKey: "moduleName",
-      header: "Module Name",
-      size: 150,
+      header: () => (
+        <div className="text-center font-medium text-wrap">Module Name</div>
+      ),
+      size: 200,
     },
     {
       accessorKey: "transactionName",
-      header: "Transaction Name",
-      size: 150,
+      header: () => (
+        <div className="text-center font-medium text-wrap">
+          Transaction Name
+        </div>
+      ),
+      size: 200,
     },
     {
       accessorKey: "m_ProductId",
-      header: "Product",
+      header: () => (
+        <div className="text-center font-medium text-wrap">Product</div>
+      ),
       cell: ({ row }) => (
         <div className="text-center">
           <Checkbox
@@ -94,11 +102,15 @@ export function VisibleTable() {
           />
         </div>
       ),
-      size: 100,
+      size: 120,
+      minSize: 100,
+      maxSize: 150,
     },
     {
       accessorKey: "m_QTY",
-      header: "QTY",
+      header: () => (
+        <div className="text-center font-medium text-wrap">QTY</div>
+      ),
       cell: ({ row }) => (
         <div className="text-center">
           <Checkbox
@@ -113,7 +125,9 @@ export function VisibleTable() {
     },
     {
       accessorKey: "m_BillQTY",
-      header: "Bill QTY",
+      header: () => (
+        <div className="text-center font-medium text-wrap">Bill QTY</div>
+      ),
       cell: ({ row }) => (
         <div className="text-center">
           <Checkbox
@@ -128,7 +142,9 @@ export function VisibleTable() {
     },
     {
       accessorKey: "m_UomId",
-      header: "UOM",
+      header: () => (
+        <div className="text-center font-medium text-wrap">UOM</div>
+      ),
       cell: ({ row }) => (
         <div className="text-center">
           <Checkbox
@@ -143,7 +159,9 @@ export function VisibleTable() {
     },
     {
       accessorKey: "m_UnitPrice",
-      header: "Unit Price",
+      header: () => (
+        <div className="text-center font-medium text-wrap">Unit Price</div>
+      ),
       cell: ({ row }) => (
         <div className="text-center">
           <Checkbox
@@ -158,7 +176,9 @@ export function VisibleTable() {
     },
     {
       accessorKey: "m_Remarks",
-      header: "Remarks",
+      header: () => (
+        <div className="text-center font-medium text-wrap">Remarks</div>
+      ),
       cell: ({ row }) => (
         <div className="text-center">
           <Checkbox
@@ -173,7 +193,9 @@ export function VisibleTable() {
     },
     {
       accessorKey: "m_GstId",
-      header: "GST",
+      header: () => (
+        <div className="text-center font-medium text-wrap">GST</div>
+      ),
       cell: ({ row }) => (
         <div className="text-center">
           <Checkbox
@@ -188,7 +210,9 @@ export function VisibleTable() {
     },
     {
       accessorKey: "m_DeliveryDate",
-      header: "Delivery Date",
+      header: () => (
+        <div className="text-center font-medium text-wrap">Delivery Date</div>
+      ),
       cell: ({ row }) => (
         <div className="text-center">
           <Checkbox
@@ -207,7 +231,9 @@ export function VisibleTable() {
     },
     {
       accessorKey: "m_DepartmentId",
-      header: "Department",
+      header: () => (
+        <div className="text-center font-medium text-wrap">Department</div>
+      ),
       cell: ({ row }) => (
         <div className="text-center">
           <Checkbox
@@ -226,7 +252,9 @@ export function VisibleTable() {
     },
     {
       accessorKey: "m_EmployeeId",
-      header: "Employee",
+      header: () => (
+        <div className="text-center font-medium text-wrap">Employee</div>
+      ),
       cell: ({ row }) => (
         <div className="text-center">
           <Checkbox
@@ -245,7 +273,9 @@ export function VisibleTable() {
     },
     {
       accessorKey: "m_PortId",
-      header: "Port",
+      header: () => (
+        <div className="text-center font-medium text-wrap">Port</div>
+      ),
       cell: ({ row }) => (
         <div className="text-center">
           <Checkbox
@@ -260,7 +290,9 @@ export function VisibleTable() {
     },
     {
       accessorKey: "m_VesselId",
-      header: "Vessel",
+      header: () => (
+        <div className="text-center font-medium text-wrap">Vessel</div>
+      ),
       cell: ({ row }) => (
         <div className="text-center">
           <Checkbox
@@ -275,7 +307,9 @@ export function VisibleTable() {
     },
     {
       accessorKey: "m_BargeId",
-      header: "Barge",
+      header: () => (
+        <div className="text-center font-medium text-wrap">Barge</div>
+      ),
       cell: ({ row }) => (
         <div className="text-center">
           <Checkbox
@@ -290,7 +324,9 @@ export function VisibleTable() {
     },
     {
       accessorKey: "m_VoyageId",
-      header: "Voyage",
+      header: () => (
+        <div className="text-center font-medium text-wrap">Voyage</div>
+      ),
       cell: ({ row }) => (
         <div className="text-center">
           <Checkbox
@@ -305,7 +341,9 @@ export function VisibleTable() {
     },
     {
       accessorKey: "m_SupplyDate",
-      header: "Supply Date",
+      header: () => (
+        <div className="text-center font-medium text-wrap">Supply Date</div>
+      ),
       cell: ({ row }) => (
         <div className="text-center">
           <Checkbox
@@ -324,7 +362,9 @@ export function VisibleTable() {
     },
     {
       accessorKey: "m_BankId",
-      header: "Bank",
+      header: () => (
+        <div className="text-center font-medium text-wrap">Bank</div>
+      ),
       cell: ({ row }) => (
         <div className="text-center">
           <Checkbox
@@ -339,7 +379,9 @@ export function VisibleTable() {
     },
     {
       accessorKey: "m_CtyCurr",
-      header: "City Currency",
+      header: () => (
+        <div className="text-center font-medium text-wrap">City Currency</div>
+      ),
       cell: ({ row }) => (
         <div className="text-center">
           <Checkbox
@@ -354,7 +396,9 @@ export function VisibleTable() {
     },
     {
       accessorKey: "m_JobOrderId",
-      header: "Job Order",
+      header: () => (
+        <div className="text-center font-medium text-wrap">Job Order</div>
+      ),
       cell: ({ row }) => (
         <div className="text-center">
           <Checkbox
@@ -373,7 +417,9 @@ export function VisibleTable() {
     },
     {
       accessorKey: "m_GstClaimDate",
-      header: "GST Claim Date",
+      header: () => (
+        <div className="text-center font-medium text-wrap">GST Claim Date</div>
+      ),
       cell: ({ row }) => (
         <div className="text-center">
           <Checkbox
@@ -392,7 +438,9 @@ export function VisibleTable() {
     },
     {
       accessorKey: "m_TrnDate",
-      header: "Trn Date",
+      header: () => (
+        <div className="text-center font-medium text-wrap">Trn Date</div>
+      ),
       cell: ({ row }) => (
         <div className="text-center">
           <Checkbox
@@ -407,13 +455,141 @@ export function VisibleTable() {
     },
     {
       accessorKey: "m_PayeeTo",
-      header: "Payee To",
+      header: () => (
+        <div className="text-center font-medium text-wrap">Payee To</div>
+      ),
       cell: ({ row }) => (
         <div className="text-center">
           <Checkbox
             checked={row.original.m_PayeeTo}
             onCheckedChange={(checked) =>
               handleFieldChange(row.original, "m_PayeeTo", checked as boolean)
+            }
+          />
+        </div>
+      ),
+      size: 100,
+    },
+
+    {
+      accessorKey: "m_ServiceTypeId",
+      header: () => (
+        <div className="text-center font-medium text-wrap">Service Type</div>
+      ),
+      cell: ({ row }) => (
+        <div className="text-center">
+          <Checkbox
+            checked={row.original.m_ServiceTypeId}
+            onCheckedChange={(checked) =>
+              handleFieldChange(
+                row.original,
+                "m_ServiceTypeId",
+                checked as boolean
+              )
+            }
+          />
+        </div>
+      ),
+      size: 100,
+    },
+
+    {
+      accessorKey: "m_JobOrderIdHd",
+      header: () => (
+        <div className="text-center font-medium text-wrap">
+          Job Order Header
+        </div>
+      ),
+      cell: ({ row }) => (
+        <div className="text-center">
+          <Checkbox
+            checked={row.original.m_JobOrderIdHd}
+            onCheckedChange={(checked) =>
+              handleFieldChange(
+                row.original,
+                "m_JobOrderIdHd",
+                checked as boolean
+              )
+            }
+          />
+        </div>
+      ),
+      size: 100,
+    },
+
+    {
+      accessorKey: "m_OtherRemarks",
+      header: () => (
+        <div className="text-center font-medium text-wrap">Other Remarks</div>
+      ),
+      cell: ({ row }) => (
+        <div className="text-center">
+          <Checkbox
+            checked={row.original.m_OtherRemarks}
+            onCheckedChange={(checked) =>
+              handleFieldChange(
+                row.original,
+                "m_OtherRemarks",
+                checked as boolean
+              )
+            }
+          />
+        </div>
+      ),
+      size: 100,
+    },
+
+    {
+      accessorKey: "m_PortIdHd",
+      header: () => (
+        <div className="text-center font-medium text-wrap">Port Header</div>
+      ),
+      cell: ({ row }) => (
+        <div className="text-center">
+          <Checkbox
+            checked={row.original.m_PortIdHd}
+            onCheckedChange={(checked) =>
+              handleFieldChange(row.original, "m_PortIdHd", checked as boolean)
+            }
+          />
+        </div>
+      ),
+      size: 100,
+    },
+
+    {
+      accessorKey: "m_VesselIdHd",
+      header: () => (
+        <div className="text-center font-medium text-wrap">Vessel Header</div>
+      ),
+      cell: ({ row }) => (
+        <div className="text-center">
+          <Checkbox
+            checked={row.original.m_VesselIdHd}
+            onCheckedChange={(checked) =>
+              handleFieldChange(
+                row.original,
+                "m_VesselIdHd",
+                checked as boolean
+              )
+            }
+          />
+        </div>
+      ),
+      size: 100,
+    },
+
+    {
+      accessorKey: "m_AdvRecAmt",
+      header: () => (
+        <div className="text-center font-medium text-wrap">Adv Rec Amt</div>
+      ),
+      cell: ({ row }) => (
+        <div className="text-center">
+          <Checkbox
+            checked={row.original.m_AdvRecAmt}
+            onCheckedChange={(checked) =>
+              handleFieldChange(row.original, "m_AdvRecAmt", checked as boolean)
             }
           />
         </div>

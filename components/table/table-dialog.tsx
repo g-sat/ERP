@@ -119,7 +119,7 @@ export function DialogDataTable<T>({
   const [columnSizing, setColumnSizing] = useState(getInitialColumnSizing)
   const [searchQuery, setSearchQuery] = useState("")
   const [currentPage, setCurrentPage] = useState(1)
-  const [pageSize, setPageSize] = useState(15)
+  const [pageSize, setPageSize] = useState(50)
   const [rowSelection, setRowSelection] = useState({})
 
   // Reference removed as not needed without virtual scrolling
@@ -460,7 +460,7 @@ export function DialogDataTable<T>({
         totalRecords={data.length}
         onPageChange={handlePageChange}
         onPageSizeChange={handlePageSizeChange}
-        pageSizeOptions={[15, 50, 100, 500]}
+        pageSizeOptions={[50, 100, 500]}
       />
     </>
   )

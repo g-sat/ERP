@@ -21,6 +21,7 @@ import {
   ICreditTermLookup,
   ICurrencyLookup,
   ICustomerLookup,
+  IServiceTypeLookup,
 } from "@/interfaces/lookup"
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
 import { ArCreditNoteDtSchemaType, ArCreditNoteHdSchemaType } from "@/schemas"
@@ -35,6 +36,7 @@ import {
   CreditTermAutocomplete,
   CurrencyAutocomplete,
 } from "@/components/autocomplete"
+import ServiceTypeAutocomplete from "@/components/autocomplete/autocomplete-servicetype"
 import { CustomDateNew } from "@/components/custom/custom-date-new"
 import CustomInput from "@/components/custom/custom-input"
 import CustomNumberInput from "@/components/custom/custom-number-input"
@@ -401,6 +403,20 @@ export default function CreditNoteForm({
     [decimals, form, recalculateHeaderTotals, visible?.m_CtyCurr]
   )
 
+  // Handle service type change
+  const handleServiceTypeChange = (
+    selectedOption: IServiceTypeLookup | null
+  ) => {
+    if (selectedOption) {
+      form.setValue("serviceTypeId", selectedOption.serviceTypeId, {
+        shouldValidate: true,
+        shouldDirty: true,
+      })
+    } else {
+      form.setValue("serviceTypeId", 0, { shouldValidate: true })
+    }
+  }
+
   return (
     <FormProvider {...form}>
       <form
@@ -582,6 +598,17 @@ export default function CreditNoteForm({
                 className="text-right"
               />
             </>
+          )}
+
+          {/* Service Type */}
+          {visible?.m_ServiceTypeId && (
+            <ServiceTypeAutocomplete
+              form={form}
+              name="serviceTypeId"
+              label="Service Type"
+              isRequired={visible?.m_ServiceTypeId}
+              onChangeEvent={handleServiceTypeChange}
+            />
           )}
 
           {/* Remarks */}

@@ -234,7 +234,7 @@ export function MainTable<T>({
   const [columnSizing, setColumnSizing] = useState(getInitialColumnSizing) // Column width settings
   const [searchQuery, setSearchQuery] = useState("") // Global search query
   const [currentPage, setCurrentPage] = useState(1) // Current page number
-  const [pageSize, setPageSize] = useState(15) // Number of items per page
+  const [pageSize, setPageSize] = useState(50) // Number of items per page
   const [rowSelection, setRowSelection] = useState({}) // Selected rows state
   // Reference to table container (removed as not needed)
   // ============================================================================
@@ -708,7 +708,7 @@ export function MainTable<T>({
           totalRecords={totalRecords || data.length} // Total number of records
           onPageChange={handlePageChange} // Page change handler
           onPageSizeChange={handlePageSizeChange} // Page size change handler
-          pageSizeOptions={[15, 50, 100, 500]} // Available page size options
+          pageSizeOptions={[50, 100, 500]} // Available page size options
         />
       )}
     </div>

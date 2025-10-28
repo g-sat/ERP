@@ -136,6 +136,7 @@ const defaultCreditNote = {
   appStatusId: "",
   appById: "",
   appDate: "",
+  serviceTypeId: 0,
   data_details: [],
 }
 

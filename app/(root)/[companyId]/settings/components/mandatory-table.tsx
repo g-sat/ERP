@@ -87,21 +87,25 @@ export function MandatoryTable() {
   const columns: ColumnDef<IMandatoryFields>[] = [
     {
       accessorKey: "moduleName",
-      header: "Module Name",
-      size: 150,
-      minSize: 100,
-      maxSize: 200,
+      header: () => (
+        <div className="text-center font-medium text-wrap">Module Name</div>
+      ),
+      size: 200,
     },
     {
       accessorKey: "transactionName",
-      header: "Transaction Name",
-      size: 150,
-      minSize: 100,
-      maxSize: 200,
+      header: () => (
+        <div className="text-center font-medium text-wrap">
+          Transaction Name
+        </div>
+      ),
+      size: 200,
     },
     {
       accessorKey: "m_ProductId",
-      header: "Product",
+      header: () => (
+        <div className="text-center font-medium text-wrap">Product</div>
+      ),
       cell: ({ row }) => (
         <div className="text-center">
           <Checkbox
@@ -116,7 +120,9 @@ export function MandatoryTable() {
     },
     {
       accessorKey: "m_JobOrderId",
-      header: "Job Order",
+      header: () => (
+        <div className="text-center font-medium text-wrap">Job Order</div>
+      ),
       cell: ({ row }) => (
         <div className="text-center">
           <Checkbox
@@ -135,7 +141,7 @@ export function MandatoryTable() {
     },
     {
       accessorKey: "m_GLId",
-      header: "GL",
+      header: () => <div className="text-center font-medium text-wrap">GL</div>,
       cell: ({ row }) => (
         <div className="text-center">
           <Checkbox
@@ -150,7 +156,9 @@ export function MandatoryTable() {
     },
     {
       accessorKey: "m_QTY",
-      header: "QTY",
+      header: () => (
+        <div className="text-center font-medium text-wrap">QTY</div>
+      ),
       cell: ({ row }) => (
         <div className="text-center">
           <Checkbox
@@ -165,7 +173,9 @@ export function MandatoryTable() {
     },
     {
       accessorKey: "m_UomId",
-      header: "UOM",
+      header: () => (
+        <div className="text-center font-medium text-wrap">UOM</div>
+      ),
       cell: ({ row }) => (
         <div className="text-center">
           <Checkbox
@@ -180,7 +190,9 @@ export function MandatoryTable() {
     },
     {
       accessorKey: "m_UnitPrice",
-      header: "Unit Price",
+      header: () => (
+        <div className="text-center font-medium text-wrap">Unit Price</div>
+      ),
       cell: ({ row }) => (
         <div className="text-center">
           <Checkbox
@@ -195,7 +207,9 @@ export function MandatoryTable() {
     },
     {
       accessorKey: "m_TotAmt",
-      header: "Total Amount",
+      header: () => (
+        <div className="text-center font-medium text-wrap">Total Amount</div>
+      ),
       cell: ({ row }) => (
         <div className="text-center">
           <Checkbox
@@ -210,7 +224,9 @@ export function MandatoryTable() {
     },
     {
       accessorKey: "m_Remarks",
-      header: "Remarks",
+      header: () => (
+        <div className="text-center font-medium text-wrap">Remarks</div>
+      ),
       cell: ({ row }) => (
         <div className="text-center">
           <Checkbox
@@ -225,7 +241,9 @@ export function MandatoryTable() {
     },
     {
       accessorKey: "m_GstId",
-      header: "GST",
+      header: () => (
+        <div className="text-center font-medium text-wrap">GST</div>
+      ),
       cell: ({ row }) => (
         <div className="text-center">
           <Checkbox
@@ -240,7 +258,9 @@ export function MandatoryTable() {
     },
     {
       accessorKey: "m_DeliveryDate",
-      header: "Delivery Date",
+      header: () => (
+        <div className="text-center font-medium text-wrap">Delivery Date</div>
+      ),
       cell: ({ row }) => (
         <div className="text-center">
           <Checkbox
@@ -259,7 +279,9 @@ export function MandatoryTable() {
     },
     {
       accessorKey: "m_DepartmentId",
-      header: "Department",
+      header: () => (
+        <div className="text-center font-medium text-wrap">Department</div>
+      ),
       cell: ({ row }) => (
         <div className="text-center">
           <Checkbox
@@ -278,7 +300,9 @@ export function MandatoryTable() {
     },
     {
       accessorKey: "m_EmployeeId",
-      header: "Employee",
+      header: () => (
+        <div className="text-center font-medium text-wrap">Employee</div>
+      ),
       cell: ({ row }) => (
         <div className="text-center">
           <Checkbox
@@ -297,7 +321,9 @@ export function MandatoryTable() {
     },
     {
       accessorKey: "m_PortId",
-      header: "Port",
+      header: () => (
+        <div className="text-center font-medium text-wrap">Port</div>
+      ),
       cell: ({ row }) => (
         <div className="text-center">
           <Checkbox
@@ -312,7 +338,9 @@ export function MandatoryTable() {
     },
     {
       accessorKey: "m_VesselId",
-      header: "Vessel",
+      header: () => (
+        <div className="text-center font-medium text-wrap">Vessel</div>
+      ),
       cell: ({ row }) => (
         <div className="text-center">
           <Checkbox
@@ -327,7 +355,9 @@ export function MandatoryTable() {
     },
     {
       accessorKey: "m_BargeId",
-      header: "Barge",
+      header: () => (
+        <div className="text-center font-medium text-wrap">Barge</div>
+      ),
       cell: ({ row }) => (
         <div className="text-center">
           <Checkbox
@@ -342,7 +372,9 @@ export function MandatoryTable() {
     },
     {
       accessorKey: "m_VoyageId",
-      header: "Voyage",
+      header: () => (
+        <div className="text-center font-medium text-wrap">Voyage</div>
+      ),
       cell: ({ row }) => (
         <div className="text-center">
           <Checkbox
@@ -357,7 +389,9 @@ export function MandatoryTable() {
     },
     {
       accessorKey: "m_SupplyDate",
-      header: "Supply Date",
+      header: () => (
+        <div className="text-center font-medium text-wrap">Supply Date</div>
+      ),
       cell: ({ row }) => (
         <div className="text-center">
           <Checkbox
@@ -376,7 +410,9 @@ export function MandatoryTable() {
     },
     {
       accessorKey: "m_ReferenceNo",
-      header: "Reference No",
+      header: () => (
+        <div className="text-center font-medium text-wrap">Reference No</div>
+      ),
       cell: ({ row }) => (
         <div className="text-center">
           <Checkbox
@@ -395,7 +431,11 @@ export function MandatoryTable() {
     },
     {
       accessorKey: "m_SuppInvoiceNo",
-      header: "Supplier Invoice No",
+      header: () => (
+        <div className="text-center font-medium text-wrap">
+          Supplier Invoice No
+        </div>
+      ),
       cell: ({ row }) => (
         <div className="text-center">
           <Checkbox
@@ -414,7 +454,9 @@ export function MandatoryTable() {
     },
     {
       accessorKey: "m_BankId",
-      header: "Bank",
+      header: () => (
+        <div className="text-center font-medium text-wrap">Bank</div>
+      ),
       cell: ({ row }) => (
         <div className="text-center">
           <Checkbox
@@ -429,7 +471,9 @@ export function MandatoryTable() {
     },
     {
       accessorKey: "m_Remarks_Hd",
-      header: "Remarks Hd",
+      header: () => (
+        <div className="text-center font-medium text-wrap">Remarks Hd</div>
+      ),
       cell: ({ row }) => (
         <div className="text-center">
           <Checkbox
@@ -448,7 +492,9 @@ export function MandatoryTable() {
     },
     {
       accessorKey: "m_Address1",
-      header: "Address 1",
+      header: () => (
+        <div className="text-center font-medium text-wrap">Address 1</div>
+      ),
       cell: ({ row }) => (
         <div className="text-center">
           <Checkbox
@@ -463,7 +509,9 @@ export function MandatoryTable() {
     },
     {
       accessorKey: "m_Address2",
-      header: "Address 2",
+      header: () => (
+        <div className="text-center font-medium text-wrap">Address 2</div>
+      ),
       cell: ({ row }) => (
         <div className="text-center">
           <Checkbox
@@ -478,7 +526,9 @@ export function MandatoryTable() {
     },
     {
       accessorKey: "m_Address3",
-      header: "Address 3",
+      header: () => (
+        <div className="text-center font-medium text-wrap">Address 3</div>
+      ),
       cell: ({ row }) => (
         <div className="text-center">
           <Checkbox
@@ -493,7 +543,9 @@ export function MandatoryTable() {
     },
     {
       accessorKey: "m_Address4",
-      header: "Address 4",
+      header: () => (
+        <div className="text-center font-medium text-wrap">Address 4</div>
+      ),
       cell: ({ row }) => (
         <div className="text-center">
           <Checkbox
@@ -508,7 +560,9 @@ export function MandatoryTable() {
     },
     {
       accessorKey: "m_PinCode",
-      header: "Pincode",
+      header: () => (
+        <div className="text-center font-medium text-wrap">Pincode</div>
+      ),
       cell: ({ row }) => (
         <div className="text-center">
           <Checkbox
@@ -523,7 +577,9 @@ export function MandatoryTable() {
     },
     {
       accessorKey: "m_Countryd",
-      header: "Country",
+      header: () => (
+        <div className="text-center font-medium text-wrap">Country</div>
+      ),
       cell: ({ row }) => (
         <div className="text-center">
           <Checkbox
@@ -538,7 +594,9 @@ export function MandatoryTable() {
     },
     {
       accessorKey: "m_PhoneNo",
-      header: "Phone No",
+      header: () => (
+        <div className="text-center font-medium text-wrap">Phone No</div>
+      ),
       cell: ({ row }) => (
         <div className="text-center">
           <Checkbox
@@ -553,7 +611,9 @@ export function MandatoryTable() {
     },
     {
       accessorKey: "m_ContactName",
-      header: "Contact Name",
+      header: () => (
+        <div className="text-center font-medium text-wrap">Contact Name</div>
+      ),
       cell: ({ row }) => (
         <div className="text-center">
           <Checkbox
@@ -572,7 +632,9 @@ export function MandatoryTable() {
     },
     {
       accessorKey: "m_MobileNo",
-      header: "Mobile No",
+      header: () => (
+        <div className="text-center font-medium text-wrap">Mobile No</div>
+      ),
       cell: ({ row }) => (
         <div className="text-center">
           <Checkbox
@@ -587,7 +649,9 @@ export function MandatoryTable() {
     },
     {
       accessorKey: "m_EmailAdd",
-      header: "Email",
+      header: () => (
+        <div className="text-center font-medium text-wrap">Email</div>
+      ),
       cell: ({ row }) => (
         <div className="text-center">
           <Checkbox

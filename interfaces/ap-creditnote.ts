@@ -64,6 +64,10 @@ export interface IApCreditNoteHd {
 
   arCreditNoteId: string
   arCreditNoteNo: null | string
+
+  serviceTypeId: number
+  serviceTypeName: string
+
   createById: number
   createDate: Date | string
   editById: null | number

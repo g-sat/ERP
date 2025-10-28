@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import { useParams } from "next/navigation"
 import { IBankAddress, IBankContact } from "@/interfaces/bank"
 import { ICustomerAddress, ICustomerContact } from "@/interfaces/customer"
+import { IVisibleFields } from "@/interfaces/setting"
 import { ISupplierAddress, ISupplierContact } from "@/interfaces/supplier"
 import { ArInvoiceHdSchemaType } from "@/schemas"
 import { UseFormReturn } from "react-hook-form"
@@ -20,14 +21,16 @@ import DynamicContactAutocomplete, {
   EntityType as ContactEntityType,
 } from "@/components/autocomplete/autocomplete-contact-dynamic"
 import CustomInput from "@/components/custom/custom-input"
+import CustomNumberInput from "@/components/custom/custom-number-input"
 import CustomTextarea from "@/components/custom/custom-textarea"
 import DocumentManager from "@/components/document-manager"
 
 interface OtherProps {
   form: UseFormReturn<ArInvoiceHdSchemaType>
+  visible?: IVisibleFields
 }
 
-export default function Other({ form }: OtherProps) {
+export default function Other({ form, visible }: OtherProps) {
   const params = useParams()
   const companyId = params.companyId as string
 
@@ -270,6 +273,36 @@ export default function Other({ form }: OtherProps) {
             </CardContent>
           </Card>
         </div>
+        {/* Other Information Section */}
+        {(visible?.m_OtherRemarks || visible?.m_AdvRecAmt) && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Other Information</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 gap-4">
+                {visible?.m_OtherRemarks && (
+                  <CustomTextarea
+                    form={form}
+                    name="otherRemarks"
+                    label="Other Remarks"
+                    isRequired={false}
+                  />
+                )}
+                {visible?.m_AdvRecAmt && (
+                  <CustomNumberInput
+                    form={form}
+                    name="advRecAmt"
+                    label="Advance Received Amount"
+                    isRequired={false}
+                    round={2}
+                    className="text-right"
+                  />
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </Form>
 
       {/* Document Upload Section - Only show after invoice is saved */}

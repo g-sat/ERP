@@ -20,6 +20,8 @@ export interface IVesselLookup {
 export interface IJobOrderLookup {
   jobOrderId: number
   jobOrderNo: string
+  vesselId: number
+  portId: number
 }
 
 export interface ITaskLookup {
