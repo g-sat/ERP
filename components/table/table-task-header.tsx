@@ -7,11 +7,12 @@ import {
   Layout,
   Plus,
   Receipt,
+  RedoDot,
   RefreshCw,
   SlidersHorizontal,
 } from "lucide-react"
 
-import { usePersist } from "@/hooks/use-common"
+import { useDelete, usePersist } from "@/hooks/use-common"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -54,6 +55,7 @@ type TaskTableHeaderProps<TData> = {
   hasDebitNoteInSelection?: boolean // Whether any selected row has debit note
   // Props for job order info display
   data?: TData[] // Table data to display charges summary
+  onResetLayout?: () => void // Callback to reset layout in parent component
 }
 export function TaskTableHeader<TData>({
   onRefresh,
@@ -74,6 +76,7 @@ export function TaskTableHeader<TData>({
   hideColumnsOnDebitNote = [],
   hasDebitNoteInSelection = false,
   data = [],
+  onResetLayout,
 }: TaskTableHeaderProps<TData>) {
   const [columnSearch, setColumnSearch] = useState("")
   const [activeButton, setActiveButton] = useState<"show" | "hide" | null>(null)
@@ -165,6 +168,7 @@ export function TaskTableHeader<TData>({
   }, [onCombinedService])
   // Add the save mutation for grid settings
   const saveGridSettings = usePersist<IGridSetting>("/setting/saveUserGrid")
+  const resetDefaultLayout = useDelete<IGridSetting>("/setting/deleteUserGrid")
   const handleSaveLayout = useCallback(async () => {
     try {
       const grdName = tableName
@@ -193,6 +197,37 @@ export function TaskTableHeader<TData>({
       console.error("Error saving layout:", error)
     }
   }, [moduleId, transactionId, tableName, columns, saveGridSettings])
+
+  const handleResetDefaultLayout = useCallback(async () => {
+    try {
+      // Call delete mutation to remove user grid settings
+      const response = await resetDefaultLayout.mutateAsync(
+        `${moduleId}/${transactionId}/${tableName}`
+      )
+
+      // Only reset table if response result is 1 (success)
+      if (response?.result === 1) {
+        // Reset all columns to default visibility
+        columns.forEach((column) => {
+          column.toggleVisibility(true) // Show all columns by default
+        })
+
+        // Notify parent component to reset layout state
+        if (onResetLayout) {
+          onResetLayout()
+        }
+      }
+    } catch (error) {
+      console.error("Error resetting default layout:", error)
+    }
+  }, [
+    columns,
+    resetDefaultLayout,
+    tableName,
+    moduleId,
+    transactionId,
+    onResetLayout,
+  ])
   return (
     <>
       <div className="mb-4 space-y-2">
@@ -397,6 +432,15 @@ export function TaskTableHeader<TData>({
               onClick={handleSaveLayout}
             >
               <Layout className="h-4 w-4" />
+            </Button>
+
+            {/* Reset Default Layout Change */}
+            <Button
+              variant="outline"
+              title="Reset Layout"
+              onClick={handleResetDefaultLayout}
+            >
+              <RedoDot className="h-4 w-4" />
             </Button>
           </div>
         </div>

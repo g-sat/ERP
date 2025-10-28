@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import {
   DndContext,
   DragEndEvent,
@@ -244,6 +244,22 @@ export function JobTable<T>({
     }
   }
 
+  // Handle reset layout - reset all columns to visible and default sizes
+  const handleResetLayout = useCallback(() => {
+    // Reset all columns to visible
+    const allColumnsVisible: VisibilityState = {}
+    table.getAllLeafColumns().forEach((column) => {
+      allColumnsVisible[column.id] = true
+    })
+    setColumnVisibility(allColumnsVisible)
+
+    // Reset sorting
+    setSorting([])
+
+    // Reset column sizes to default
+    setColumnSizing({})
+  }, [table])
+
   return (
     <div className="space-y-4">
       {/* Table Header with Search, Export, and Column Management */}
@@ -257,6 +273,7 @@ export function JobTable<T>({
         tableName={tableName}
         moduleId={moduleId || 0}
         transactionId={transactionId || 0}
+        onResetLayout={handleResetLayout}
       />
 
       <Table>

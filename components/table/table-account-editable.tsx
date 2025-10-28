@@ -431,6 +431,22 @@ export function AccountEditableBaseTable<T>({
     }
   }, [sorting, searchQuery, data?.length, onFilterChange])
 
+  // Handle reset layout - reset all columns to visible and default sizes
+  const handleResetLayout = useCallback(() => {
+    // Reset all columns to visible
+    const allColumnsVisible: VisibilityState = {}
+    table.getAllLeafColumns().forEach((column) => {
+      allColumnsVisible[column.id] = true
+    })
+    setColumnVisibility(allColumnsVisible)
+
+    // Reset sorting
+    setSorting([])
+
+    // Reset column sizes to default
+    setColumnSizing({})
+  }, [table])
+
   return (
     <div className="space-y-4">
       {showHeader && (
@@ -451,6 +467,7 @@ export function AccountEditableBaseTable<T>({
           selectedRowsCount={selectedRowsCount}
           isConfirmed={isConfirmed}
           data={data}
+          onResetLayout={handleResetLayout}
         />
       )}
 

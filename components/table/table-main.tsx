@@ -4,7 +4,7 @@
 // IMPORTS SECTION
 // ============================================================================
 // React hooks for component state and lifecycle management
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 // Drag and Drop functionality for column reordering
 import {
   DndContext,
@@ -520,6 +520,28 @@ export function MainTable<T>({
       onFilterChange(filters) // Call parent to fetch filtered data from server
     }
   }, [sorting, searchQuery, data?.length, onFilterChange]) // Re-run when these values change
+
+  // ============================================================================
+  // RESET LAYOUT HANDLER
+  // ============================================================================
+  /**
+   * Handle reset layout - reset all columns to visible and default sizes
+   */
+  const handleResetLayout = useCallback(() => {
+    // Reset all columns to visible
+    const allColumnsVisible: VisibilityState = {}
+    table.getAllLeafColumns().forEach((column) => {
+      allColumnsVisible[column.id] = true
+    })
+    setColumnVisibility(allColumnsVisible)
+
+    // Reset sorting
+    setSorting([])
+
+    // Reset column sizes to default
+    setColumnSizing({})
+  }, [table])
+
   // ============================================================================
   // RENDER SECTION
   // ============================================================================
@@ -545,6 +567,7 @@ export function MainTable<T>({
           hideCreateButton={!canCreate} // Hide create button if no permission
           moduleId={moduleId || 1} // Module ID for settings (default to 1)
           transactionId={transactionId || 1} // Transaction ID for settings (default to 1)
+          onResetLayout={handleResetLayout} // Reset layout handler
         />
       )}
       <Table>
