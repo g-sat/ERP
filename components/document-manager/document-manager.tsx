@@ -702,7 +702,7 @@ export default function DocumentManager({
           setPreviewUrl("")
         }}
       >
-        <DialogContent className="max-h-[90vh] max-w-4xl">
+        <DialogContent className="h-[90vh] w-[90vw] !max-w-none">
           <DialogHeader>
             <DialogTitle className="flex items-center justify-between">
               <span>Document Preview</span>
@@ -722,14 +722,30 @@ export default function DocumentManager({
           </DialogHeader>
           {selectedDocument && (
             <div className="mt-4">
-              <div className="mb-2 text-sm">
-                <p>
-                  <strong>Type:</strong> {selectedDocument.docTypeName}
-                </p>
-                <p>
-                  <strong>File:</strong>{" "}
-                  {selectedDocument.docPath?.split("/").pop()}
-                </p>
+              <div className="mb-4 grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <p>
+                    <strong>Type:</strong> {selectedDocument.docTypeName}
+                  </p>
+                  <p>
+                    <strong>File Name:</strong>{" "}
+                    {selectedDocument.docPath?.split("/").pop()}
+                  </p>
+                </div>
+                <div>
+                  <p>
+                    <strong>Remarks:</strong>{" "}
+                    {selectedDocument.remarks || "N/A"}
+                  </p>
+                  <p>
+                    By {selectedDocument.createBy || "N/A"} on{" "}
+                    {selectedDocument.createDate
+                      ? new Date(
+                          selectedDocument.createDate
+                        ).toLocaleDateString()
+                      : "N/A"}
+                  </p>
+                </div>
               </div>
               <iframe
                 src={previewUrl}
