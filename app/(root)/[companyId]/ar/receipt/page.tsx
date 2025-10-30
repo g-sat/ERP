@@ -10,7 +10,7 @@ import {
   arreceiptHdSchema,
 } from "@/schemas"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { format, subMonths } from "date-fns"
+import { format, parse, subMonths } from "date-fns"
 import {
   Copy,
   ListFilter,
@@ -23,7 +23,7 @@ import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 
 import { getById } from "@/lib/api-client"
-import { ArReceipt } from "@/lib/api-routes"
+import { ArReceipt, BasicSetting } from "@/lib/api-routes"
 import { clientDateFormat, parseDate } from "@/lib/date-utils"
 import { ARTransactionId, ModuleId } from "@/lib/utils"
 import { useDeleteWithRemarks, usePersist } from "@/hooks/use-common"
@@ -73,6 +73,9 @@ export default function ReceiptPage() {
   const [receipt, setReceipt] = useState<ArReceiptHdSchemaType | null>(null)
   const [searchNo, setSearchNo] = useState("")
   const [activeTab, setActiveTab] = useState("main")
+
+  // Track previous account date to send as PrevAccountDate to API
+  const [previousAccountDate, setPreviousAccountDate] = useState<string>("")
 
   const [filters, setFilters] = useState<IArReceiptFilter>({
     startDate: format(subMonths(new Date(), 1), "yyyy-MM-dd"),
@@ -221,33 +224,73 @@ export default function ReceiptPage() {
         return
       }
 
-      const response =
-        Number(formValues.receiptId) === 0
-          ? await saveMutation.mutateAsync(formValues)
-          : await updateMutation.mutateAsync(formValues)
+      try {
+        const accountDate = form.getValues("accountDate") as unknown as string
+        const isNew = Number(formValues.receiptId) === 0
+        const prevAccountDate = isNew ? accountDate : previousAccountDate
 
-      if (response.result === 1) {
-        const receiptData = Array.isArray(response.data)
-          ? response.data[0]
-          : response.data
+        console.log("accountDate", accountDate)
+        console.log("prevAccountDate", prevAccountDate)
 
-        // Transform API response back to form values
-        if (receiptData) {
-          const updatedSchemaType = transformToSchemaType(
-            receiptData as unknown as IArReceiptHd
-          )
-          setIsSelectingReceipt(true)
-          setReceipt(updatedSchemaType)
-          form.reset(updatedSchemaType)
-          form.trigger()
+        const acc =
+          typeof accountDate === "string"
+            ? format(
+                parse(accountDate, clientDateFormat, new Date()),
+                "yyyy-MM-dd"
+              )
+            : format(accountDate, "yyyy-MM-dd")
+
+        const prev = prevAccountDate
+          ? typeof prevAccountDate === "string"
+            ? format(
+                parse(prevAccountDate, clientDateFormat, new Date()),
+                "yyyy-MM-dd"
+              )
+            : format(prevAccountDate, "yyyy-MM-dd")
+          : ""
+
+        const glCheck = await getById(
+          `${BasicSetting.getCheckPeriodClosedByAccountDate}/${moduleId}/${acc}/${prev}`
+        )
+
+        if (glCheck?.result === 1) {
+          toast.error("GL Period is closed for this date")
+          return
         }
+      } catch (_e) {
+        // If the check fails to reach API, block save as safe default
+        toast.error("Failed to validate GL Period. Please try again.")
+        return
+      }
+      {
+        const response =
+          Number(formValues.receiptId) === 0
+            ? await saveMutation.mutateAsync(formValues)
+            : await updateMutation.mutateAsync(formValues)
 
-        // Close the save confirmation dialog
-        setShowSaveConfirm(false)
+        if (response.result === 1) {
+          const receiptData = Array.isArray(response.data)
+            ? response.data[0]
+            : response.data
 
-        // Data refresh handled by ReceiptTable component
-      } else {
-        toast.error(response.message || "Failed to save receipt")
+          // Transform API response back to form values
+          if (receiptData) {
+            const updatedSchemaType = transformToSchemaType(
+              receiptData as unknown as IArReceiptHd
+            )
+            setIsSelectingReceipt(true)
+            setReceipt(updatedSchemaType)
+            form.reset(updatedSchemaType)
+            form.trigger()
+          }
+
+          // Close the save confirmation dialog
+          setShowSaveConfirm(false)
+
+          // Data refresh handled by ReceiptTable component
+        } else {
+          toast.error(response.message || "Failed to save receipt")
+        }
       }
     } catch (error) {
       console.error("Save error:", error)
@@ -473,6 +516,15 @@ export default function ReceiptPage() {
           : response.data
 
         if (detailedReceipt) {
+          {
+            const parsed = parseDate(detailedReceipt.accountDate as string)
+            setPreviousAccountDate(
+              parsed
+                ? format(parsed, "dd/MM/yyyy")
+                : (detailedReceipt.accountDate as string)
+            )
+          }
+
           // Parse dates properly
           const updatedReceipt = {
             ...detailedReceipt,
@@ -623,6 +675,14 @@ export default function ReceiptPage() {
           : response.data
 
         if (detailedReceipt) {
+          {
+            const parsed = parseDate(detailedReceipt.accountDate as string)
+            setPreviousAccountDate(
+              parsed
+                ? format(parsed, "dd/MM/yyyy")
+                : (detailedReceipt.accountDate as string)
+            )
+          }
           // Parse dates properly
           const updatedReceipt = {
             ...detailedReceipt,

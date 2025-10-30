@@ -130,6 +130,7 @@ export const BasicSetting = {
   getExchangeRate: "/setting/getexchangerate",
   getExchangeRateLocal: "/setting/getexchangeratelocal",
   getCheckPeriodClosed: "/setting/getcheckperiodclosed",
+  getCheckPeriodClosedByAccountDate: "/setting/GetGlPeriodClose",
   getGstPercentage: "/setting/getgstpercentage",
   getDaysfromCreditTerm: "/setting/getcredittermday",
 }

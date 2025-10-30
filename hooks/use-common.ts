@@ -48,7 +48,7 @@ export function useGet<T>(
   baseUrl: string,
   queryKey: string,
   filters?: string,
-  options?: UseQueryOptions<ApiResponse<T>>
+  options?: Partial<UseQueryOptions<ApiResponse<T>>>
 ) {
   return useQuery<ApiResponse<T>>({
     queryKey: [queryKey, filters],
@@ -74,7 +74,7 @@ export function useGetById<T>(
   baseUrl: string,
   queryKey: string,
   id: string,
-  options?: UseQueryOptions<ApiResponse<T>>
+  options?: Partial<UseQueryOptions<ApiResponse<T>>>
 ) {
   return useQuery<ApiResponse<T>>({
     queryKey: [queryKey, id],
@@ -96,7 +96,7 @@ export function useGetByPath<T>(
   queryKey: string,
   path?: string,
   filters?: string,
-  options?: UseQueryOptions<ApiResponse<T>>
+  options?: Partial<UseQueryOptions<ApiResponse<T>>>
 ) {
   return useQuery<ApiResponse<T>>({
     queryKey: [queryKey, path, filters],
@@ -122,7 +122,7 @@ export function useGetByParams<T>(
   baseUrl: string,
   queryKey: string,
   params: string,
-  options?: UseQueryOptions<ApiResponse<T>>
+  options?: Partial<UseQueryOptions<ApiResponse<T>>>
 ) {
   return useQuery<ApiResponse<T>>({
     queryKey: [queryKey, params],
@@ -144,7 +144,7 @@ export function useGetWithDates<T>(
   filters?: string,
   startDate?: string,
   endDate?: string,
-  options?: UseQueryOptions<ApiResponse<T>>,
+  options?: Partial<UseQueryOptions<ApiResponse<T>>>,
   enabled?: boolean
 ) {
   return useQuery<ApiResponse<T>>({
@@ -177,7 +177,7 @@ export function useGetWithPagination<T>(
   filters?: string,
   pageNumber: number = 1,
   pageSize: number = 50,
-  options?: UseQueryOptions<ApiResponse<T>>
+  options?: Partial<UseQueryOptions<ApiResponse<T>>>
 ) {
   return useQuery<ApiResponse<T>>({
     queryKey: [queryKey, filters, pageNumber, pageSize],
@@ -209,7 +209,7 @@ export function useGetWithDatesAndPagination<T>(
   endDate?: string,
   pageNumber: number = 1,
   pageSize: number = 50,
-  options?: UseQueryOptions<ApiResponse<T>>,
+  options?: Partial<UseQueryOptions<ApiResponse<T>>>,
   enabled?: boolean
 ) {
   return useQuery<ApiResponse<T>>({

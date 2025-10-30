@@ -89,8 +89,8 @@ export function ChecklistMain({
       masterName: jobData?.masterName ?? "",
       charters: jobData?.charters ?? "",
       chartersAgent: jobData?.chartersAgent ?? "",
-      invoiceDate: jobData?.invoiceDate
-        ? parseDate(jobData.invoiceDate as string) || undefined
+      accountDate: jobData?.accountDate
+        ? parseDate(jobData.accountDate as string) || undefined
         : undefined,
       seriesDate: jobData?.seriesDate
         ? parseDate(jobData.seriesDate as string) || undefined
@@ -117,7 +117,7 @@ export function ChecklistMain({
   // Watch customerId to reset address and contact when customer changes
   const customerId = form.watch("customerId")
 
-  // Watch jobOrderDate to update invoiceDate
+  // Watch jobOrderDate to update accountDate
   const jobOrderDate = form.watch("jobOrderDate")
 
   useEffect(() => {
@@ -146,8 +146,8 @@ export function ChecklistMain({
       masterName: jobData?.masterName ?? "",
       charters: jobData?.charters ?? "",
       chartersAgent: jobData?.chartersAgent ?? "",
-      invoiceDate: jobData?.invoiceDate
-        ? parseDate(jobData.invoiceDate as string) || undefined
+      accountDate: jobData?.accountDate
+        ? parseDate(jobData.accountDate as string) || undefined
         : undefined,
       seriesDate: jobData?.seriesDate
         ? parseDate(jobData.seriesDate as string) || undefined
@@ -187,10 +187,10 @@ export function ChecklistMain({
     }
   }, [customerId, jobData?.customerId, form])
 
-  // Update invoiceDate when jobOrderDate changes
+  // Update accountDate when jobOrderDate changes
   useEffect(() => {
     if (jobOrderDate) {
-      form.setValue("invoiceDate", jobOrderDate)
+      form.setValue("accountDate", jobOrderDate)
     }
   }, [jobOrderDate, form])
 
@@ -211,10 +211,10 @@ export function ChecklistMain({
             : data.jobOrderDate,
         etaDate: formatDateWithoutTimezone(data.etaDate),
         etdDate: formatDateWithoutTimezone(data.etdDate),
-        invoiceDate:
-          data.invoiceDate instanceof Date
-            ? formatDateWithoutTimezone(data.invoiceDate)
-            : data.invoiceDate,
+        accountDate:
+          data.accountDate instanceof Date
+            ? formatDateWithoutTimezone(data.accountDate)
+            : data.accountDate,
         seriesDate:
           data.seriesDate instanceof Date
             ? formatDateWithoutTimezone(data.seriesDate)
@@ -536,7 +536,7 @@ export function ChecklistMain({
               <div className="grid grid-cols-1 gap-2">
                 <CustomDateNew
                   form={form}
-                  name="invoiceDate"
+                  name="accountDate"
                   label="Invoice Date"
                   isDisabled={isConfirmed}
                 />

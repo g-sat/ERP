@@ -7,12 +7,7 @@ export const JobOrderHdSchema = z
       .string()
       .max(20, "Job Order No must be less than 20 characters")
       .optional(),
-    jobOrderDate: z
-      .union([z.date(), z.string()])
-      .refine(
-        (val) => val !== null && val !== undefined && val !== "",
-        "Job Order Date is required"
-      ),
+    jobOrderDate: z.union([z.date(), z.string()]),
     customerId: z.number().min(1, "Customer is required"),
     currencyId: z.number().min(1, "Currency is required"),
     exhRate: z.number().min(0, "Exchange rate must be 0 or greater"),
@@ -55,7 +50,7 @@ export const JobOrderHdSchema = z
       .optional(),
     invoiceId: z.string().optional(),
     invoiceNo: z.string().optional(),
-    invoiceDate: z.union([z.date(), z.string()]).optional(),
+    accountDate: z.union([z.date(), z.string()]).optional(),
     seriesDate: z.union([z.date(), z.string()]).optional(),
     addressId: z.number().min(1, "Address is required"),
     contactId: z.number().min(1, "Contact is required"),

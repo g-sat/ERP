@@ -39,7 +39,6 @@ import {
   DynamicCustomerAutocomplete,
   JobOrderAutocomplete,
   PortAutocomplete,
-  VesselAutocomplete,
 } from "@/components/autocomplete"
 import DynamicVesselAutocomplete from "@/components/autocomplete/autocomplete-dynamic-vessel"
 import ServiceTypeAutocomplete from "@/components/autocomplete/autocomplete-servicetype"

@@ -33,7 +33,7 @@ export interface IJobOrderHd {
   chartersAgent?: string
   invoiceId?: string
   invoiceNo?: string
-  invoiceDate?: Date | string
+  accountDate?: Date | string
   seriesDate?: Date | string
   addressId?: number
   contactId?: number

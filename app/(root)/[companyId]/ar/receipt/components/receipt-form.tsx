@@ -356,7 +356,6 @@ export default function ReceiptForm({
         const result = handleScenarioA(
           totAmt,
           exhRate,
-          exhRate, // recExhRate = exhRate when currencies are equal
           decimals[0] || { amtDec: 2, locAmtDec: 2 }
         )
 
@@ -479,7 +478,6 @@ export default function ReceiptForm({
           const result = handleScenarioA(
             totAmt,
             exhRate,
-            exhRate, // recExhRate = exhRate when currencies are equal
             decimals[0] || { amtDec: 2, locAmtDec: 2 }
           )
 
@@ -698,7 +696,6 @@ export default function ReceiptForm({
         const result = handleScenarioA(
           totAmt,
           exhRate,
-          recExhRate,
           decimals[0] || { amtDec: 2, locAmtDec: 2 }
         )
 

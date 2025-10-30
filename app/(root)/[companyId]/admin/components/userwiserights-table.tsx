@@ -23,6 +23,7 @@ type PermissionType =
   | "isDelete"
   | "isExport"
   | "isPrint"
+  | "isPost"
 
 export function UserWiseSettingTable() {
   const form = useForm()
@@ -98,6 +99,7 @@ export function UserWiseSettingTable() {
               isDelete: checked,
               isExport: checked,
               isPrint: checked,
+              isPost: checked,
             }
           : right
       )
@@ -125,7 +127,8 @@ export function UserWiseSettingTable() {
       right.isEdit &&
       right.isDelete &&
       right.isExport &&
-      right.isPrint
+      right.isPrint &&
+      right.isPost
     )
   }
 
@@ -168,6 +171,7 @@ export function UserWiseSettingTable() {
                   isDelete: isChecked,
                   isExport: isChecked,
                   isPrint: isChecked,
+                  isPost: isChecked,
                 }))
               )
             }}
@@ -349,6 +353,34 @@ export function UserWiseSettingTable() {
               row.original.moduleId,
               row.original.transactionId,
               "isPrint",
+              Boolean(checked)
+            )
+          }
+        />
+      ),
+      size: 100,
+    },
+    {
+      id: "isPost",
+      header: () => (
+        <div className="flex items-center gap-2">
+          <span>Post</span>
+          <Checkbox
+            checked={isColumnAllSelected("isPost")}
+            onCheckedChange={(checked) =>
+              handleColumnSelectAll("isPost", Boolean(checked))
+            }
+          />
+        </div>
+      ),
+      cell: ({ row }) => (
+        <Checkbox
+          checked={row.original.isPost}
+          onCheckedChange={(checked) =>
+            handlePermissionChange(
+              row.original.moduleId,
+              row.original.transactionId,
+              "isPost",
               Boolean(checked)
             )
           }

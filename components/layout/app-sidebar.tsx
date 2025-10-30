@@ -69,26 +69,23 @@ import {
   SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
+  SidebarMenuBadge,
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarMenuSub,
   SidebarMenuSubButton,
   SidebarMenuSubItem,
-  SidebarMenuBadge,
   useSidebar,
 } from "@/components/ui/sidebar"
 import { Spinner } from "@/components/ui/spinner"
 import { CompanySwitcher } from "@/components/layout/company-switcher"
+
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from "../ui/collapsible"
-import {
-  Popover,
-  PopoverTrigger,
-  PopoverContent,
-} from "../ui/popover"
+import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover"
 
 // Interface for user transaction data
 interface IUserTransaction {
@@ -109,6 +106,7 @@ interface IUserTransaction {
   isDelete: boolean
   isExport: boolean
   isPrint: boolean
+  isPost: boolean
   isVisible: boolean
 }
 
@@ -275,6 +273,7 @@ interface MenuItem {
     delete: boolean
     export: boolean
     print: boolean
+    post: boolean
   }
 }
 
@@ -316,6 +315,7 @@ const buildDynamicMenu = (transactions: IUserTransaction[]) => {
           delete: transaction.isDelete,
           export: transaction.isExport,
           print: transaction.isPrint,
+          post: transaction.isPost,
         },
       })
     }
@@ -390,7 +390,9 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
     null
   )
   const [hoveredMenu, setHoveredMenu] = React.useState<string | null>(null)
-  const [hoveredSubMenu, setHoveredSubMenu] = React.useState<string | null>(null)
+  const [hoveredSubMenu, setHoveredSubMenu] = React.useState<string | null>(
+    null
+  )
   const closeTimeoutRef = React.useRef<NodeJS.Timeout | null>(null)
   const pathname = usePathname()
 
@@ -518,25 +520,25 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                           </div>
                           <span>{item.title}</span>
                           {item.title === "Approvals" && approvalCount > 0 && (
-                            <SidebarMenuBadge>
-                              {approvalCount}
-                            </SidebarMenuBadge>
+                            <SidebarMenuBadge>{approvalCount}</SidebarMenuBadge>
                           )}
                         </SidebarMenuButton>
                       </PopoverTrigger>
                       <PopoverContent
                         side="right"
                         align="start"
-                        className="w-56 p-0 max-h-[calc(100vh-2rem)] overflow-y-auto"
+                        className="max-h-[calc(100vh-2rem)] w-56 overflow-y-auto p-0"
                         onMouseEnter={handlePopoverContentMouseEnter}
                         onMouseLeave={handleMouseLeave}
                       >
                         {/* Header */}
-                        <div className="flex items-center gap-2 px-3 py-2 bg-muted/50 border-b">
+                        <div className="bg-muted/50 flex items-center gap-2 border-b px-3 py-2">
                           {item.icon && <item.icon className="h-4 w-4" />}
-                          <span className="font-small text-foreground">{item.title}</span>
+                          <span className="font-small text-foreground">
+                            {item.title}
+                          </span>
                         </div>
-                        
+
                         {/* Sub-menu items */}
                         <div className="py-1.5">
                           {item.items.map((subItem) => (
@@ -546,7 +548,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                                 onClick={() =>
                                   handleSubMenuClick(item.title, subItem.title)
                                 }
-                                className={`flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus:bg-accent focus:text-foreground ${
+                                className={`text-muted-foreground hover:bg-accent hover:text-foreground focus:bg-accent focus:text-foreground flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-sm transition-colors ${
                                   pathname === getUrlWithCompanyId(subItem.url)
                                     ? "bg-accent text-foreground"
                                     : ""
@@ -586,11 +588,12 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                               {item.icon && <item.icon className="h-4 w-4" />}
                             </div>
                             <span>{item.title}</span>
-                            {item.title === "Approvals" && approvalCount > 0 && (
-                              <SidebarMenuBadge>
-                                {approvalCount}
-                              </SidebarMenuBadge>
-                            )}
+                            {item.title === "Approvals" &&
+                              approvalCount > 0 && (
+                                <SidebarMenuBadge>
+                                  {approvalCount}
+                                </SidebarMenuBadge>
+                              )}
                             <ChevronRightIcon className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
                           </SidebarMenuButton>
                         </CollapsibleTrigger>
@@ -623,7 +626,9 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                                     {subItem.icon && (
                                       <subItem.icon className="h-4 w-4" />
                                     )}
-                                    <span className="text-xs">{subItem.title}</span>
+                                    <span className="text-xs">
+                                      {subItem.title}
+                                    </span>
                                   </Link>
                                 </SidebarMenuSubButton>
                               </SidebarMenuSubItem>
@@ -651,9 +656,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                       </div>
                       <span>{item.title}</span>
                       {item.title === "Approvals" && approvalCount > 0 && (
-                        <SidebarMenuBadge>
-                          {approvalCount}
-                        </SidebarMenuBadge>
+                        <SidebarMenuBadge>{approvalCount}</SidebarMenuBadge>
                       )}
                     </Link>
                   </SidebarMenuButton>
@@ -700,16 +703,18 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                       <PopoverContent
                         side="right"
                         align="start"
-                        className="w-56 p-0 max-h-[calc(100vh-2rem)] overflow-y-auto"
+                        className="max-h-[calc(100vh-2rem)] w-56 overflow-y-auto p-0"
                         onMouseEnter={handlePopoverContentMouseEnter}
                         onMouseLeave={handleMouseLeave}
                       >
                         {/* Header */}
-                        <div className="flex items-center gap-2 px-3 py-2 bg-muted/50 border-b">
+                        <div className="bg-muted/50 flex items-center gap-2 border-b px-3 py-2">
                           {group.icon && <group.icon className="h-4 w-4" />}
-                          <span className="font-medium text-xs text-foreground">{group.title}</span>
+                          <span className="text-foreground text-xs font-medium">
+                            {group.title}
+                          </span>
                         </div>
-                        
+
                         {/* Sub-menu items */}
                         <div className="py-1.5">
                           {group.items.map((subItem) => (
@@ -719,7 +724,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                                 onClick={() =>
                                   handleSubMenuClick(group.title, subItem.title)
                                 }
-                                className={`flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus:bg-accent focus:text-foreground ${
+                                className={`text-muted-foreground hover:bg-accent hover:text-foreground focus:bg-accent focus:text-foreground flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-sm transition-colors ${
                                   pathname === getUrlWithCompanyId(subItem.url)
                                     ? "bg-accent text-foreground"
                                     : ""
@@ -792,7 +797,9 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                                       {subItem.icon && (
                                         <subItem.icon className="h-4 w-4" />
                                       )}
-                                      <span className="text-xs">{subItem.title}</span>
+                                      <span className="text-xs">
+                                        {subItem.title}
+                                      </span>
                                     </Link>
                                   </SidebarMenuSubButton>
                                 </SidebarMenuSubItem>

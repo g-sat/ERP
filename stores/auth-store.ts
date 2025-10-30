@@ -913,6 +913,7 @@ export const useAuthStore = create<AuthState>()(
                     isDelete: item.isDelete,
                     isExport: item.isExport,
                     isPrint: item.isPrint,
+                    isPost: item.isPost,
                     isVisible: item.isVisible,
                   })
                 )

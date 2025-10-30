@@ -2,8 +2,13 @@
 
 import { useCallback, useEffect, useState } from "react"
 import { useParams, useRouter } from "next/navigation"
+import { setExchangeRate_JobOrder } from "@/helpers/account"
 import { IJobOrderHd } from "@/interfaces/checklist"
-import { ICurrencyLookup } from "@/interfaces/lookup"
+import {
+  ICurrencyLookup,
+  ICustomerLookup,
+  IVesselLookup,
+} from "@/interfaces/lookup"
 import { JobOrderHdSchema, JobOrderHdSchemaType } from "@/schemas"
 import { useAuthStore } from "@/stores/auth-store"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -13,7 +18,7 @@ import { toast } from "sonner"
 
 import { getData } from "@/lib/api-client"
 import { BasicSetting } from "@/lib/api-routes"
-import { clientDateFormat, parseDate } from "@/lib/date-utils"
+import { parseDate } from "@/lib/date-utils"
 import { useSaveJobOrder } from "@/hooks/use-checklist"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -23,10 +28,10 @@ import {
   ContactAutocomplete,
   CurrencyAutocomplete,
   CustomerAutocomplete,
+  DynamicVesselAutocomplete,
   GSTAutocomplete,
   PortAutocomplete,
   StatusAutocomplete,
-  VesselAutocomplete,
   VoyageAutocomplete,
 } from "@/components/autocomplete"
 import CustomCheckbox from "@/components/custom/custom-checkbox"
@@ -72,8 +77,8 @@ export default function NewChecklistPage() {
       masterName: "",
       charters: "",
       chartersAgent: "",
-      invoiceDate: new Date(), // Set to current date for new records
-      seriesDate: undefined,
+      accountDate: new Date(), // Set to current date for new records
+      seriesDate: new Date(), // Set to current date for new records
       addressId: 0,
       contactId: 0,
       natureOfCall: "",
@@ -96,7 +101,7 @@ export default function NewChecklistPage() {
   // Watch customerId to reset address and contact when customer changes
   const customerId = form.watch("customerId")
 
-  // Watch jobOrderDate to update invoiceDate
+  // Watch jobOrderDate to update accountDate
   const jobOrderDate = form.watch("jobOrderDate")
 
   // Reset address and contact when customer changes
@@ -115,7 +120,7 @@ export default function NewChecklistPage() {
   // Update invoiceDate when jobOrderDate changes
   useEffect(() => {
     if (jobOrderDate) {
-      form.setValue("invoiceDate", jobOrderDate)
+      form.setValue("accountDate", jobOrderDate)
     }
   }, [jobOrderDate, form])
 
@@ -130,7 +135,7 @@ export default function NewChecklistPage() {
           jobOrderDate instanceof Date
             ? jobOrderDate
             : parseDate(jobOrderDate as string) || new Date(),
-          clientDateFormat
+          "yyyy-MM-dd"
         )
         const res = await getData(
           `${BasicSetting.getExchangeRate}/${currencyId}/${dt}`
@@ -141,6 +146,58 @@ export default function NewChecklistPage() {
       }
     },
     [exhRateDec, form]
+  )
+
+  // Handle customer selection
+  const handleCustomerChange = useCallback(
+    async (selectedCustomer: ICustomerLookup | null) => {
+      if (selectedCustomer) {
+        // Reset address and contact when customer changes
+        form.setValue("addressId", 0)
+        form.setValue("contactId", 0)
+        form.setValue("currencyId", selectedCustomer.currencyId || 0)
+
+        // Store customer code for label display
+        if (selectedCustomer.customerCode) {
+          setCustomerCode(selectedCustomer.customerCode)
+        } else {
+          setCustomerCode("")
+        }
+
+        // Set exchange rate using the job order specific function
+        await setExchangeRate_JobOrder(form, exhRateDec)
+
+        toast.info("Address and contact have been reset for the new customer.")
+      } else {
+        // Clear fields when customer is cleared
+        form.setValue("addressId", 0)
+        form.setValue("contactId", 0)
+        form.setValue("currencyId", 0)
+        setCustomerCode("")
+        form.setValue("exhRate", 0)
+      }
+    },
+    [form, exhRateDec]
+  )
+
+  // Handle vessel selection
+  const handleVesselChange = useCallback(
+    (selectedVessel: IVesselLookup | null) => {
+      if (selectedVessel) {
+        // Populate IMO code when vessel changes
+        if (selectedVessel.imoCode) {
+          form.setValue("imoCode", selectedVessel.imoCode)
+          toast.info(`IMO code has been populated: ${selectedVessel.imoCode}`)
+        } else {
+          form.setValue("imoCode", "")
+          toast.info("Selected vessel has no IMO code")
+        }
+      } else {
+        // Clear IMO code when vessel is cleared
+        form.setValue("imoCode", "")
+      }
+    },
+    [form]
   )
 
   // Handle form submission
@@ -176,7 +233,7 @@ export default function NewChecklistPage() {
   }
 
   return (
-    <div className="container mx-auto space-y-2 px-2 py-2">
+    <div className="@container mx-auto space-y-2 px-2 py-2">
       {/* Header Section */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -229,7 +286,7 @@ export default function NewChecklistPage() {
                   </Badge>
                 </div>
                 <div className="mb-4 border-b border-gray-200"></div>
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-4 gap-2">
                   <CustomDateNew
                     form={form}
                     name="jobOrderDate"
@@ -241,40 +298,7 @@ export default function NewChecklistPage() {
                     name="customerId"
                     label={`Customer${customerCode ? ` (${customerCode})` : ""}`}
                     isRequired={true}
-                    onChangeEvent={(selectedCustomer) => {
-                      // Reset address and contact when customer changes
-                      if (selectedCustomer?.customerId !== customerId) {
-                        form.setValue("addressId", 0)
-                        form.setValue("contactId", 0)
-                        form.setValue(
-                          "currencyId",
-                          selectedCustomer?.currencyId ?? 0
-                        )
-
-                        // Store customer code for label display
-                        if (selectedCustomer?.customerCode) {
-                          setCustomerCode(selectedCustomer.customerCode)
-                        } else {
-                          setCustomerCode("")
-                        }
-
-                        // Trigger currency change to update exchange rate
-                        if (selectedCustomer?.currencyId) {
-                          // Create a minimal currency object for the API call
-                          const currencyObj = {
-                            currencyId: selectedCustomer.currencyId,
-                            currencyCode: "",
-                            currencyName: "",
-                            isMultiply: false,
-                          }
-                          handleCurrencyChange(currencyObj)
-                        }
-
-                        toast.info(
-                          "Address and contact have been reset for the new customer."
-                        )
-                      }
-                    }}
+                    onChangeEvent={handleCustomerChange}
                   />
                   <CurrencyAutocomplete
                     form={form}
@@ -307,25 +331,12 @@ export default function NewChecklistPage() {
                     name="jobOrderNo"
                     label="Job Order No"
                   />
-                  <VesselAutocomplete
+                  <DynamicVesselAutocomplete
                     form={form}
                     name="vesselId"
                     label="Vessel"
                     isRequired={true}
-                    onChangeEvent={(selectedVessel) => {
-                      // Populate IMO code when vessel changes
-                      if (selectedVessel?.imoCode) {
-                        form.setValue("imoCode", selectedVessel.imoCode)
-                        toast.info(
-                          `IMO code has been populated: ${selectedVessel.imoCode}`
-                        )
-                      } else {
-                        form.setValue("imoCode", "")
-                        if (selectedVessel) {
-                          toast.info("Selected vessel has no IMO code")
-                        }
-                      }
-                    }}
+                    onChangeEvent={handleVesselChange}
                   />
                   <CustomInput
                     form={form}
@@ -364,12 +375,14 @@ export default function NewChecklistPage() {
                     name="etaDate"
                     label="ETA Date"
                     isRequired={false}
+                    isFutureShow={true}
                   />
                   <CustomDateTimePicker
                     form={form}
                     name="etdDate"
                     label="ETD Date"
                     isRequired={false}
+                    isFutureShow={true}
                   />
                   <CustomInput
                     form={form}
@@ -444,8 +457,8 @@ export default function NewChecklistPage() {
                 <div className="grid grid-cols-1 gap-2">
                   <CustomDateNew
                     form={form}
-                    name="invoiceDate"
-                    label="Invoice Date"
+                    name="accountDate"
+                    label="Account Date"
                   />
                   <CustomDateNew
                     form={form}

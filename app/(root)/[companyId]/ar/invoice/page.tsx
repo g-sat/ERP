@@ -11,7 +11,7 @@ import {
 } from "@/schemas"
 import { usePermissionStore } from "@/stores/permission-store"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { format, subMonths } from "date-fns"
+import { format, parse, subMonths } from "date-fns"
 import {
   Copy,
   ListFilter,
@@ -24,7 +24,7 @@ import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 
 import { getById } from "@/lib/api-client"
-import { ArInvoice } from "@/lib/api-routes"
+import { ArInvoice, BasicSetting } from "@/lib/api-routes"
 import { clientDateFormat, parseDate } from "@/lib/date-utils"
 import { ARTransactionId, ModuleId } from "@/lib/utils"
 import { useDeleteWithRemarks, usePersist } from "@/hooks/use-common"
@@ -65,6 +65,7 @@ export default function InvoicePage() {
   const canEdit = hasPermission(moduleId, transactionId, "isEdit")
   const canDelete = hasPermission(moduleId, transactionId, "isDelete")
   const canCreate = hasPermission(moduleId, transactionId, "isCreate")
+  const _canPost = hasPermission(moduleId, transactionId, "isPost")
 
   const [showListDialog, setShowListDialog] = useState(false)
   const [showSaveConfirm, setShowSaveConfirm] = useState(false)
@@ -78,6 +79,9 @@ export default function InvoicePage() {
   const [invoice, setInvoice] = useState<ArInvoiceHdSchemaType | null>(null)
   const [searchNo, setSearchNo] = useState("")
   const [activeTab, setActiveTab] = useState("main")
+
+  // Track previous account date to send as PrevAccountDate to API
+  const [previousAccountDate, setPreviousAccountDate] = useState<string>("")
 
   const [filters, setFilters] = useState<IArInvoiceFilter>({
     startDate: format(subMonths(new Date(), 1), "yyyy-MM-dd"),
@@ -193,8 +197,6 @@ export default function InvoicePage() {
         },
   })
 
-  // Data fetching moved to InvoiceTable component for better performance
-
   // Mutations
   const saveMutation = usePersist<ArInvoiceHdSchemaType>(`${ArInvoice.add}`)
   const updateMutation = usePersist<ArInvoiceHdSchemaType>(`${ArInvoice.add}`)
@@ -245,43 +247,85 @@ export default function InvoicePage() {
         return
       }
 
-      const response =
-        Number(formValues.invoiceId) === 0
-          ? await saveMutation.mutateAsync(formValues)
-          : await updateMutation.mutateAsync(formValues)
+      // Check GL period closed before saving (supports previous account date)
+      try {
+        const accountDate = form.getValues("accountDate") as unknown as string
+        const isNew = Number(formValues.invoiceId) === 0
+        const prevAccountDate = isNew ? accountDate : previousAccountDate
 
-      if (response.result === 1) {
-        const invoiceData = Array.isArray(response.data)
-          ? response.data[0]
-          : response.data
+        console.log("accountDate", accountDate)
+        console.log("prevAccountDate", prevAccountDate)
 
-        // Transform API response back to form values
-        if (invoiceData) {
-          const updatedSchemaType = transformToSchemaType(
-            invoiceData as unknown as IArInvoiceHd
-          )
-          setInvoice(updatedSchemaType)
-          form.reset(updatedSchemaType)
-          form.trigger()
+        const acc =
+          typeof accountDate === "string"
+            ? format(
+                parse(accountDate, clientDateFormat, new Date()),
+                "yyyy-MM-dd"
+              )
+            : format(accountDate, "yyyy-MM-dd")
+
+        const prev = prevAccountDate
+          ? typeof prevAccountDate === "string"
+            ? format(
+                parse(prevAccountDate, clientDateFormat, new Date()),
+                "yyyy-MM-dd"
+              )
+            : format(prevAccountDate, "yyyy-MM-dd")
+          : ""
+
+        const glCheck = await getById(
+          `${BasicSetting.getCheckPeriodClosedByAccountDate}/${moduleId}/${acc}/${prev}`
+        )
+
+        if (glCheck?.result === 1) {
+          toast.error("GL Period is closed for this date")
+          return
         }
+      } catch (_e) {
+        // If the check fails to reach API, block save as safe default
+        toast.error("Failed to validate GL Period. Please try again.")
+        return
+      }
 
-        // Close the save confirmation dialog
-        setShowSaveConfirm(false)
+      {
+        const response =
+          Number(formValues.invoiceId) === 0
+            ? await saveMutation.mutateAsync(formValues)
+            : await updateMutation.mutateAsync(formValues)
 
-        // Check if this was a new invoice or update
-        const wasNewInvoice = Number(formValues.invoiceId) === 0
+        if (response.result === 1) {
+          const invoiceData = Array.isArray(response.data)
+            ? response.data[0]
+            : response.data
 
-        if (wasNewInvoice) {
-          //toast.success(
-          // `Invoice ${invoiceData?.invoiceNo || ""} saved successfully`
-          //)
+          // Transform API response back to form values
+          if (invoiceData) {
+            const updatedSchemaType = transformToSchemaType(
+              invoiceData as unknown as IArInvoiceHd
+            )
+            setInvoice(updatedSchemaType)
+            form.reset(updatedSchemaType)
+            form.trigger()
+          }
+
+          // Close the save confirmation dialog
+          setShowSaveConfirm(false)
+
+          // Check if this was a new invoice or update
+          const wasNewInvoice = Number(formValues.invoiceId) === 0
+
+          if (wasNewInvoice) {
+            //toast.success(
+            // `Invoice ${invoiceData?.invoiceNo || ""} saved successfully`
+            //)
+          } else {
+            //toast.success("Invoice updated successfully")
+          }
+
+          // Data refresh handled by InvoiceTable component
         } else {
-          //toast.success("Invoice updated successfully")
+          toast.error(response.message || "Failed to save invoice")
         }
-
-        // Data refresh handled by InvoiceTable component
-      } else {
-        toast.error(response.message || "Failed to save invoice")
       }
     } catch (error) {
       console.error("Save error:", error)
@@ -611,6 +655,14 @@ export default function InvoicePage() {
           : response.data
 
         if (detailedInvoice) {
+          {
+            const parsed = parseDate(detailedInvoice.accountDate as string)
+            setPreviousAccountDate(
+              parsed
+                ? format(parsed, "dd/MM/yyyy")
+                : (detailedInvoice.accountDate as string)
+            )
+          }
           // Parse dates properly
           const updatedInvoice = {
             ...detailedInvoice,
@@ -862,6 +914,14 @@ export default function InvoicePage() {
           : response.data
 
         if (detailedInvoice) {
+          {
+            const parsed = parseDate(detailedInvoice.accountDate as string)
+            setPreviousAccountDate(
+              parsed
+                ? format(parsed, "dd/MM/yyyy")
+                : (detailedInvoice.accountDate as string)
+            )
+          }
           // Parse dates properly
           const updatedInvoice = {
             ...detailedInvoice,
@@ -1115,20 +1175,20 @@ export default function InvoicePage() {
               </div>
             )}
 
-            {/* Payment Status Badge */}
-            {paymentStatus === "Not Paid" && (
+            {/* Payment Status Badge - Only show if not cancelled */}
+            {!isCancelled && paymentStatus === "Not Paid" && (
               <span className="inline-flex items-center rounded-full bg-red-100 px-3 py-1 text-xs font-medium text-red-800">
                 <span className="mr-1 h-2 w-2 rounded-full bg-red-400"></span>
                 Not Paid
               </span>
             )}
-            {paymentStatus === "Partially Paid" && (
+            {!isCancelled && paymentStatus === "Partially Paid" && (
               <span className="inline-flex items-center rounded-full bg-orange-100 px-3 py-1 text-xs font-medium text-orange-800">
                 <span className="mr-1 h-2 w-2 rounded-full bg-orange-400"></span>
                 Partially Paid
               </span>
             )}
-            {paymentStatus === "Fully Paid" && (
+            {!isCancelled && paymentStatus === "Fully Paid" && (
               <span className="inline-flex items-center rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-800">
                 <span className="mr-1 h-2 w-2 rounded-full bg-green-400"></span>
                 Fully Paid

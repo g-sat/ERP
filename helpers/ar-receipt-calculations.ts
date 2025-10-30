@@ -22,13 +22,6 @@ export const calculateTotLocalAmt = (
 }
 
 /**
- * 2. recTotAmt = totAmt
- */
-export const calculateRecTotAmt = (totAmt: number): number => {
-  return totAmt
-}
-
-/**
  * 2.1 recTotLocalAmt = recTotAmt * recExhRate
  */
 export const calculateRecTotLocalAmt = (
@@ -204,31 +197,22 @@ export const calculateSumExhGainLoss = (
 export const handleScenarioA = (
   totAmt: number,
   exhRate: number,
-  recExhRate: number,
   decimals: IDecimal
 ) => {
   // 1. totLocalAmt = totAmt * exhRate
   const totLocalAmt = calculateTotLocalAmt(totAmt, exhRate, decimals)
 
   // 2. recTotAmt = totAmt
-  const recTotAmt = calculateRecTotAmt(totAmt)
+  const recTotAmt = totAmt
 
-  // 2.1 recTotLocalAmt = recTotAmt * recExhRate
-  const recTotLocalAmt = calculateRecTotLocalAmt(
-    recTotAmt,
-    recExhRate,
-    decimals
-  )
+  //2.1 recTotLocalAmt
+  const recTotLocalAmt = totLocalAmt
 
-  // 3. unAllocTotAmt = totAmt - allocAmtHd (allocAmtHd = 0 in this scenario)
-  const unAllocTotAmt = calculateUnAllocTotAmt(totAmt, 0, decimals)
+  // 3. unAllocTotAmt = totAmt
+  const unAllocTotAmt = totAmt
 
-  // 3.1 unAllocTotLocalAmt = totLocalAmt - allocLocalAmtHd (allocLocalAmtHd = 0 in this scenario)
-  const unAllocTotLocalAmt = calculateUnAllocTotLocalAmt(
-    totLocalAmt,
-    0,
-    decimals
-  )
+  // 3.1 unAllocTotLocalAmt = totLocalAmt
+  const unAllocTotLocalAmt = totLocalAmt
 
   return {
     totLocalAmt,
@@ -373,7 +357,7 @@ export const handleScenarioD = (
   const totLocalAmt = calculateTotLocalAmt(totAmt, exhRate, decimals)
 
   // 2. recTotAmt = totAmt
-  const recTotAmt = calculateRecTotAmt(totAmt)
+  const recTotAmt = totAmt
 
   // 2.2 recTotLocalAmt = recTotAmt * recExhRate
   const recTotLocalAmt = calculateRecTotLocalAmt(
@@ -559,7 +543,7 @@ export const handleScenarioF = (
   const totLocalAmt = calculateTotLocalAmt(totAmt, exhRate, decimals)
 
   // 2. recTotAmt = totAmt
-  const recTotAmt = calculateRecTotAmt(totAmt)
+  const recTotAmt = totAmt
 
   // 2.2 recTotLocalAmt = recTotAmt * recExhRate
   const newRecTotLocalAmt = calculateRecTotLocalAmt(

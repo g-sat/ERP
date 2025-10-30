@@ -768,3 +768,37 @@ export const setAddressContactDetails = async (
     }
   }
 }
+
+//For Job Order
+
+/**
+ * Fetch and set exchange rate based on currency and date
+ * Also sets city exchange rate if not using separate city currency
+ * Modules: AP, AR, CB, GL
+ */
+export const setExchangeRate_JobOrder = async (
+  form: HdForm,
+  round: number | 6
+) => {
+  // to set exhange rate
+  const { jobOrderDate, currencyId } = form?.getValues()
+  if (jobOrderDate && currencyId) {
+    try {
+      const dt =
+        typeof jobOrderDate === "string"
+          ? format(
+              parse(jobOrderDate, clientDateFormat, new Date()),
+              "yyyy-MM-dd"
+            )
+          : format(jobOrderDate, "yyyy-MM-dd")
+      const res = await getData(
+        `${BasicSetting.getExchangeRate}/${currencyId}/${dt}`
+      )
+
+      const exhRate = res?.data
+
+      form.setValue("exhRate", +Number(exhRate).toFixed(round))
+      form.trigger("exhRate")
+    } catch {}
+  }
+}

@@ -23,6 +23,7 @@ interface CustomDateTimePickerProps<T extends FieldValues = FieldValues> {
   isRequired?: boolean
   placeholder?: string
   size?: "default" | "sm" | "lg"
+  isFutureShow?: boolean
 }
 
 export const CustomDateTimePicker = <T extends FieldValues = FieldValues>({
@@ -35,6 +36,7 @@ export const CustomDateTimePicker = <T extends FieldValues = FieldValues>({
   isRequired = false,
   placeholder = "Pick a date and time",
   size = "default",
+  isFutureShow = false,
 }: CustomDateTimePickerProps<T>) => {
   const { decimals } = useAuthStore()
   const dateFormat = decimals[0]?.dateFormat || "dd/MM/yyyy"
@@ -98,9 +100,11 @@ export const CustomDateTimePicker = <T extends FieldValues = FieldValues>({
                     field.onChange(date)
                     handleDateChange(date)
                   }}
-                  disabled={(date) =>
-                    date > new Date() || date < new Date("1900-01-01")
-                  }
+                  disabled={(date) => {
+                    const isFutureDate = date > new Date()
+                    const isTooPast = date < new Date("1900-01-01")
+                    return (!isFutureShow && isFutureDate) || isTooPast
+                  }}
                 />
                 <div className="border-t p-3">
                   <TimePicker

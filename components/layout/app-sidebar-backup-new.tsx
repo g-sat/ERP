@@ -110,6 +110,7 @@ interface IUserTransaction {
   isDelete: boolean
   isExport: boolean
   isPrint: boolean
+  isPost: boolean
   isVisible: boolean
 }
 // Icon mapping for modules (main categories)
@@ -283,6 +284,7 @@ interface MenuItem {
     delete: boolean
     export: boolean
     print: boolean
+    post: boolean
   }
 }
 // Removed unused SettingNavItem interface
@@ -324,6 +326,7 @@ const buildDynamicMenu = (transactions: IUserTransaction[]) => {
           delete: transaction.isDelete,
           export: transaction.isExport,
           print: transaction.isPrint,
+          post: transaction.isPost,
         },
       })
     }

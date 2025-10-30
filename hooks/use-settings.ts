@@ -12,6 +12,7 @@ import {
 import { DynamicLookupSchemaType } from "@/schemas/setting"
 import { keepPreviousData, useMutation, useQuery } from "@tanstack/react-query"
 import { AxiosError } from "axios"
+import { format, parse } from "date-fns"
 
 import { getData, saveData } from "@/lib/api-client"
 import {
@@ -26,6 +27,7 @@ import {
   UserSetting,
   VisibleFieldSetting,
 } from "@/lib/api-routes"
+import { clientDateFormat } from "@/lib/date-utils"
 
 // Common query configuration
 // =========================
@@ -541,7 +543,7 @@ export const useGetExchangeRateLocal = (
 }
 // 4. Get Check Period Closed
 export const useGetCheckPeriodClosed = (
-  moduleId: string,
+  moduleId: number,
   accountDate: string
 ) => {
   return useQuery({
@@ -549,6 +551,44 @@ export const useGetCheckPeriodClosed = (
     queryFn: async () => {
       return await getData(
         `/setting/GetCheckPeriodClosed/${moduleId}/${accountDate}`
+      )
+    },
+    refetchOnWindowFocus: false,
+  })
+}
+
+// 4.1. Get Check Period Closed by account date & Previous account date
+export const useGetCheckPeriodClosedByAccountDate = (
+  moduleId: number,
+  accountDate: string,
+  previousAccountDate: string
+) => {
+  return useQuery({
+    queryKey: [
+      "checkperiodclosed",
+      moduleId,
+      accountDate
+        ? format(parse(accountDate, clientDateFormat, new Date()), "dd-MM-yyyy")
+        : "",
+      previousAccountDate
+        ? format(
+            parse(previousAccountDate, clientDateFormat, new Date()),
+            "dd-MM-yyyy"
+          )
+        : "",
+    ],
+    queryFn: async () => {
+      const acc = accountDate
+        ? format(parse(accountDate, clientDateFormat, new Date()), "dd-MM-yyyy")
+        : ""
+      const prev = previousAccountDate
+        ? format(
+            parse(previousAccountDate, clientDateFormat, new Date()),
+            "dd-MM-yyyy"
+          )
+        : ""
+      return await getData(
+        `/setting/GetGlPeriodClose/${moduleId}/${acc}/${prev}`
       )
     },
     refetchOnWindowFocus: false,

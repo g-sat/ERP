@@ -26,7 +26,6 @@ import {
   usePersist,
 } from "@/hooks/use-common"
 import { useGetBankById } from "@/hooks/use-master"
-import { useUserSettingDefaults } from "@/hooks/use-settings"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -142,7 +141,14 @@ export default function BankPage() {
     data: banksResponse,
     refetch: refetchBanks,
     isLoading: isLoadingBanks,
-  } = useGet<IBank>(`${Bank.get}`, "banks", filters.search)
+  } = useGetWithPagination<IBank>(
+    `${Bank.get}`,
+    "banks",
+    filters.search,
+    1,
+    50,
+    { enabled: showListDialog }
+  )
 
   const { refetch: refetchBankDetails } = useGetBankById<IBank>(
     `${Bank.getById}`,

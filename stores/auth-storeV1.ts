@@ -762,6 +762,7 @@ export const useAuthStore = create<AuthState>()(
                 isDelete: boolean
                 isExport: boolean
                 isPrint: boolean
+                isPost: boolean
                 isVisible: boolean
               }
 
@@ -784,6 +785,7 @@ export const useAuthStore = create<AuthState>()(
                   isDelete: item.isDelete,
                   isExport: item.isExport,
                   isPrint: item.isPrint,
+                  isPost: item.isPost,
                   isVisible: item.isVisible,
                 })
               )
