@@ -612,6 +612,7 @@ export default function ReceiptForm({
           label="Currency"
           isRequired={true}
           onChangeEvent={handleCurrencyChange}
+          isDisabled={dataDetails.length > 0}
         />
 
         {/* Exchange Rate */}
