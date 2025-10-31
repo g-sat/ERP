@@ -559,10 +559,6 @@ export function LaunchServicesTab({
           taskId={Task.LaunchServices}
           serviceId={selectedItem?.launchServiceId ?? 0}
           isConfirmed={isConfirmed}
-          onSave={(purchaseData) => {
-            console.log("Purchase data saved:", purchaseData)
-          }}
-          onCancel={() => {}}
         />
       )}
       {/* Save Confirmation */}

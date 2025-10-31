@@ -568,10 +568,6 @@ export function EquipmentUsedTab({
           taskId={Task.EquipmentUsed}
           serviceId={selectedItem?.equipmentUsedId ?? 0}
           isConfirmed={isConfirmed}
-          onSave={(purchaseData) => {
-            console.log("Purchase data saved:", purchaseData)
-          }}
-          onCancel={() => {}}
         />
       )}
 

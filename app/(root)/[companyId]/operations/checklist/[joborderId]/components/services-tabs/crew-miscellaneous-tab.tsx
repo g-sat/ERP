@@ -563,10 +563,6 @@ export function CrewMiscellaneousTab({
           taskId={Task.CrewMiscellaneous}
           serviceId={selectedItem?.crewMiscellaneousId ?? 0}
           isConfirmed={isConfirmed}
-          onSave={(purchaseData) => {
-            console.log("Purchase data saved:", purchaseData)
-          }}
-          onCancel={() => {}}
         />
       )}
       {/* Save Confirmation */}

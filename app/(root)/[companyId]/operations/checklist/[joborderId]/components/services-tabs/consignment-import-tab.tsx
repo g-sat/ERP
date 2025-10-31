@@ -572,10 +572,6 @@ export function ConsignmentImportTab({
           taskId={Task.ConsignmentImport}
           serviceId={selectedItem?.consignmentImportId ?? 0}
           isConfirmed={isConfirmed}
-          onSave={(purchaseData) => {
-            console.log("Purchase data saved:", purchaseData)
-          }}
-          onCancel={() => {}}
         />
       )}
 

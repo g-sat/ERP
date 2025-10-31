@@ -590,10 +590,6 @@ export function PortExpensesTab({
           taskId={Task.PortExpenses}
           serviceId={selectedItem?.portExpenseId ?? 0}
           isConfirmed={isConfirmed}
-          onSave={(purchaseData) => {
-            console.log("Purchase data saved:", purchaseData)
-          }}
-          onCancel={() => {}}
         />
       )}
 

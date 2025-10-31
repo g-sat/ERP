@@ -540,10 +540,6 @@ export function TechniciansSurveyorsTab({
           taskId={Task.TechniciansSurveyors}
           serviceId={selectedItem?.technicianSurveyorId ?? 0}
           isConfirmed={isConfirmed}
-          onSave={(purchaseData) => {
-            console.log("Purchase data saved:", purchaseData)
-          }}
-          onCancel={() => {}}
         />
       )}
       {/* Save Confirmation */}

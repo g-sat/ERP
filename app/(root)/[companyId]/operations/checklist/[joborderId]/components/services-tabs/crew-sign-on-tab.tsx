@@ -556,10 +556,6 @@ export function CrewSignOnTab({
           taskId={Task.CrewSignOn}
           serviceId={selectedItem?.crewSignOnId ?? 0}
           isConfirmed={isConfirmed}
-          onSave={(purchaseData) => {
-            console.log("Purchase data saved:", purchaseData)
-          }}
-          onCancel={() => {}}
         />
       )}
 

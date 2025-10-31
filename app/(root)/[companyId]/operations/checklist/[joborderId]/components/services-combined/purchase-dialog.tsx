@@ -2,10 +2,10 @@
 
 import { useCallback, useEffect, useRef, useState } from "react"
 import { IPurchaseData, ISavePurchaseData } from "@/interfaces/checklist"
-import { useQuery } from "@tanstack/react-query"
+import { useQueryClient } from "@tanstack/react-query"
 
-import { getData, saveData } from "@/lib/api-client"
 import { JobOrder_Purchase } from "@/lib/api-routes"
+import { useGet, usePersist } from "@/hooks/use-common"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -27,8 +27,6 @@ interface PurchaseDialogProps {
   taskId: number
   serviceId: number
   isConfirmed: boolean
-  onSave?: (purchaseData: IPurchaseData[]) => void
-  onCancel?: () => void
 }
 
 export function PurchaseDialog({
@@ -40,105 +38,30 @@ export function PurchaseDialog({
   taskId,
   serviceId,
   isConfirmed,
-  onSave,
-  onCancel,
 }: PurchaseDialogProps) {
+  const queryClient = useQueryClient()
   const [purchaseData, setPurchaseData] = useState<IPurchaseData[]>([])
-  const [isSaving, setIsSaving] = useState(false)
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const [initialSelectedIds, setInitialSelectedIds] = useState<string[]>([])
   const isUpdatingRef = useRef(false)
 
-  // Handle save action
-  const handleSave = useCallback(async () => {
-    try {
-      setIsSaving(true)
-
-      console.log("selectedIds", selectedIds)
-      console.log("purchaseData", purchaseData)
-
-      // Prepare the data to send to API - map ALL items with isAllocated based on selection
-      const purchaseListData: ISavePurchaseData[] = purchaseData.map(
-        (item) => ({
-          jobOrderId,
-          taskId,
-          serviceId,
-          moduleId: item.moduleId,
-          transactionId: item.transactionId,
-          documentId: item.documentId,
-          itemNo: item.itemNo,
-          // Set isAllocated to true if item is in selectedIds, false otherwise
-          isAllocated: selectedIds.includes(
-            `${item.documentId}_${item.itemNo}`
-          ),
-        })
-      )
-
-      console.log("purchaseListData", purchaseListData)
-
-      // Call the API
-      await saveData(JobOrder_Purchase.saveBulkList, purchaseListData)
-
-      // Reset unsaved changes flag
-      setHasUnsavedChanges(false)
-
-      // Call parent onSave callback if provided
-      if (onSave) {
-        onSave(purchaseData)
-      }
-
-      // Close dialog after successful save
-      onOpenChangeAction(false)
-    } catch (error) {
-      console.error("Error saving purchase list:", error)
-    } finally {
-      setIsSaving(false)
-    }
-  }, [
-    purchaseData,
-    selectedIds,
-    jobOrderId,
-    taskId,
-    serviceId,
-    onSave,
-    onOpenChangeAction,
-  ])
-
-  // Handle cancel action
-  const handleCancel = useCallback(() => {
-    if (onCancel) {
-      onCancel()
-    }
-    onOpenChangeAction(false)
-  }, [onCancel, onOpenChangeAction])
-
-  // Handle bulk selection changes from table
-  const handleBulkSelectionChange = useCallback((selectedIds: string[]) => {
-    if (isUpdatingRef.current) return
-    isUpdatingRef.current = true
-    setSelectedIds(selectedIds)
-    // Note: hasUnsavedChanges will be updated automatically by useEffect
-    setTimeout(() => {
-      isUpdatingRef.current = false
-    }, 0)
-  }, [])
+  // Mutation for saving purchase data
+  const saveMutation = usePersist<ISavePurchaseData[]>(
+    JobOrder_Purchase.saveBulkList
+  )
 
   // Fetch purchase data when dialog opens
-  const { data: purchaseResponse, isLoading } = useQuery({
-    queryKey: [`purchase-list-${jobOrderId}-${taskId}-${serviceId}`],
-    queryFn: async () => {
-      const response = await getData(
-        `${JobOrder_Purchase.getList}/${jobOrderId}/${taskId}/${serviceId}`
-      )
-      return response
-    },
-    enabled: open, // Only fetch when dialog is open
-    staleTime: 0.5 * 60 * 1000, // 0.5 minutes
-    gcTime: 1 * 60 * 1000, // 1 minute
-    refetchOnWindowFocus: false,
-    refetchOnMount: false,
-  })
+  const { data: purchaseResponse, isLoading } = useGet<IPurchaseData>(
+    `${JobOrder_Purchase.getList}/${jobOrderId}/${taskId}/${serviceId}`,
+    `purchase-list-${jobOrderId}-${taskId}-${serviceId}`,
+    undefined,
+    {
+      enabled: open,
+      staleTime: 0.5 * 60 * 1000,
+      gcTime: 1 * 60 * 1000,
+    }
+  )
 
   // Update data when API response is received
   useEffect(() => {
@@ -188,6 +111,72 @@ export function PurchaseDialog({
   const unallocatedCount = purchaseData.filter(
     (item) => item.isAllocated === false
   ).length
+
+  // Handle save action
+  const handleSave = useCallback(async () => {
+    try {
+      // Prepare the data to send to API - map ALL items with isAllocated based on selection
+      const purchaseListData: ISavePurchaseData[] = purchaseData.map(
+        (item) => ({
+          jobOrderId,
+          taskId,
+          serviceId,
+          moduleId: item.moduleId,
+          transactionId: item.transactionId,
+          documentId: item.documentId,
+          itemNo: item.itemNo,
+          // Set isAllocated to true if item is in selectedIds, false otherwise
+          isAllocated: selectedIds.includes(
+            `${item.documentId}_${item.itemNo}`
+          ),
+        })
+      )
+
+      // Call the API using mutation
+      const response = await saveMutation.mutateAsync(purchaseListData)
+
+      // usePersist handles toast notifications automatically
+      if (response.result === 1) {
+        // Invalidate purchase list query to refetch fresh data
+        queryClient.invalidateQueries({
+          queryKey: [`purchase-list-${jobOrderId}-${taskId}-${serviceId}`],
+        })
+
+        // Reset unsaved changes flag
+        setHasUnsavedChanges(false)
+
+        // Close dialog after successful save
+        onOpenChangeAction(false)
+      }
+    } catch (_error) {
+      // Error handling is done by usePersist automatically
+    }
+  }, [
+    purchaseData,
+    selectedIds,
+    jobOrderId,
+    taskId,
+    serviceId,
+    onOpenChangeAction,
+    saveMutation,
+    queryClient,
+  ])
+
+  // Handle cancel action
+  const handleCancel = useCallback(() => {
+    onOpenChangeAction(false)
+  }, [onOpenChangeAction])
+
+  // Handle bulk selection changes from table
+  const handleBulkSelectionChange = useCallback((selectedIds: string[]) => {
+    if (isUpdatingRef.current) return
+    isUpdatingRef.current = true
+    setSelectedIds(selectedIds)
+    // Note: hasUnsavedChanges will be updated automatically by useEffect
+    setTimeout(() => {
+      isUpdatingRef.current = false
+    }, 0)
+  }, [])
 
   return (
     <Dialog open={open} onOpenChange={onOpenChangeAction}>
@@ -276,7 +265,7 @@ export function PurchaseDialog({
             type="button"
             variant="outline"
             onClick={handleCancel}
-            disabled={isLoading || isSaving}
+            disabled={isLoading || saveMutation.isPending}
           >
             Cancel
           </Button>
@@ -284,10 +273,13 @@ export function PurchaseDialog({
             type="button"
             onClick={handleSave}
             disabled={
-              isLoading || isConfirmed || isSaving || !hasUnsavedChanges
+              isLoading ||
+              isConfirmed ||
+              saveMutation.isPending ||
+              !hasUnsavedChanges
             }
           >
-            {isSaving ? "Saving..." : "Save Selected Items"}
+            {saveMutation.isPending ? "Saving..." : "Save Selected Items"}
           </Button>
         </DialogFooter>
       </DialogContent>

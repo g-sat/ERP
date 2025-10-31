@@ -540,10 +540,6 @@ export function MedicalAssistanceTab({
           taskId={Task.MedicalAssistance}
           serviceId={selectedItem?.medicalAssistanceId ?? 0}
           isConfirmed={isConfirmed}
-          onSave={(purchaseData) => {
-            console.log("Purchase data saved:", purchaseData)
-          }}
-          onCancel={() => {}}
         />
       )}
       {/* Save Confirmation */}

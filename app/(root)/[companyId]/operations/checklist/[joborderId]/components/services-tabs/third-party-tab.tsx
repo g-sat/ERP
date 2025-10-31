@@ -523,10 +523,6 @@ export function ThirdPartyTab({
           taskId={Task.ThirdParty}
           serviceId={selectedItem?.thirdPartyId ?? 0}
           isConfirmed={isConfirmed}
-          onSave={(purchaseData) => {
-            console.log("Purchase data saved:", purchaseData)
-          }}
-          onCancel={() => {}}
         />
       )}
       {/* Save Confirmation */}

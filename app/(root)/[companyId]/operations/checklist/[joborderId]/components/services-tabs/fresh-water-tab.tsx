@@ -543,10 +543,6 @@ export function FreshWaterTab({
           taskId={Task.FreshWater}
           serviceId={selectedItem?.freshWaterId ?? 0}
           isConfirmed={isConfirmed}
-          onSave={(purchaseData) => {
-            console.log("Purchase data saved:", purchaseData)
-          }}
-          onCancel={() => {}}
         />
       )}
 

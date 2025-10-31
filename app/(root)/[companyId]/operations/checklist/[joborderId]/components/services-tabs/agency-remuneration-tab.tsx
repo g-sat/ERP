@@ -565,10 +565,6 @@ export function AgencyRemunerationTab({
           taskId={Task.AgencyRemuneration}
           serviceId={selectedItem?.agencyRemunerationId ?? 0}
           isConfirmed={isConfirmed}
-          onSave={(purchaseData) => {
-            console.log("Purchase data saved:", purchaseData)
-          }}
-          onCancel={() => {}}
         />
       )}
       {/* Save Confirmation */}

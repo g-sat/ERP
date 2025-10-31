@@ -527,10 +527,6 @@ export function LandingItemsTab({
           taskId={Task.LandingItems}
           serviceId={selectedItem?.landingItemId ?? 0}
           isConfirmed={isConfirmed}
-          onSave={(purchaseData) => {
-            console.log("Purchase data saved:", purchaseData)
-          }}
-          onCancel={() => {}}
         />
       )}
 
