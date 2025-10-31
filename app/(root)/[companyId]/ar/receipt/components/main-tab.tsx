@@ -14,6 +14,7 @@ import { ArReceiptDtSchemaType, ArReceiptHdSchemaType } from "@/schemas"
 import { useAuthStore } from "@/stores/auth-store"
 import { Plus, RotateCcw, Zap } from "lucide-react"
 import { UseFormReturn } from "react-hook-form"
+import { toast } from "sonner"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -132,25 +133,17 @@ export default function Main({
     return true
   }, [])
 
-  // Handle cell edit for allocAmt field
-  const handleCellEdit = useCallback(
-    (itemNo: number, field: string, value: number) => {
-      if (field !== "allocAmt") return
-
-      const currentData = form.getValues("data_details") || []
-      const currentItem = currentData.find((item) => item.itemNo === itemNo)
-      const currentValue = currentItem?.allocAmt || 0
-
-      if (currentValue === value) {
-        return
-      }
-
-      const updatedData = [...currentData]
+  // Helper function to update allocation calculations
+  const updateAllocationCalculations = useCallback(
+    (
+      updatedData: ArReceiptDtSchemaType[],
+      rowIndex: number,
+      allocValue: number
+    ) => {
       const arr = updatedData as unknown as IArReceiptDt[]
-      const rowIndex = arr.findIndex((r) => r.itemNo === itemNo)
-      if (rowIndex === -1) return
+      if (rowIndex === -1 || rowIndex >= arr.length) return
 
-      calculateManualAllocation(arr, rowIndex, value)
+      calculateManualAllocation(arr, rowIndex, allocValue)
 
       const exhRate = Number(form.getValues("exhRate"))
       const dec = decimals[0] || { amtDec: 2, locAmtDec: 2 }
@@ -200,6 +193,57 @@ export default function Main({
     [form, decimals]
   )
 
+  // Handle cell edit for allocAmt field
+  const handleCellEdit = useCallback(
+    (itemNo: number, field: string, value: number) => {
+      if (field !== "allocAmt") return
+
+      const currentData = form.getValues("data_details") || []
+      const currentItem = currentData.find((item) => item.itemNo === itemNo)
+      const currentValue = currentItem?.allocAmt || 0
+
+      if (currentValue === value) {
+        return
+      }
+
+      const balAmt = Number(currentItem?.docBalAmt) || 0
+      const allocAmt = Number(value) || 0
+
+      // Validation 1: Don't allow manual entry when totAmt = 0
+      const headerTotAmt = Number(form.getValues("totAmt")) || 0
+      if (headerTotAmt === 0) {
+        toast.error(
+          "Total Amount is zero. Cannot manually allocate. Please use Auto Allocation or enter Total Amount."
+        )
+        // Set amount to 0
+        const updatedData = [...currentData]
+        const arr = updatedData as unknown as IArReceiptDt[]
+        const rowIndex = arr.findIndex((r) => r.itemNo === itemNo)
+        if (rowIndex === -1) return
+
+        updateAllocationCalculations(updatedData, rowIndex, 0)
+        return
+      }
+
+      // Validation 2: Check if (allocAmt >= balAmt) && (totAmt <= allocAmt)
+      // If condition is NOT met, set amount to 0
+      const isAllocAmtValid = allocAmt >= balAmt && headerTotAmt <= allocAmt
+
+      const updatedData = [...currentData]
+      const arr = updatedData as unknown as IArReceiptDt[]
+      const rowIndex = arr.findIndex((r) => r.itemNo === itemNo)
+      if (rowIndex === -1) return
+
+      // Use helper function to update calculations
+      updateAllocationCalculations(
+        updatedData,
+        rowIndex,
+        isAllocAmtValid ? allocAmt : 0
+      )
+    },
+    [form, updateAllocationCalculations]
+  )
+
   // ==================== MAIN FUNCTIONS ====================
 
   const handleAutoAllocation = useCallback(() => {
@@ -232,8 +276,12 @@ export default function Main({
       (s, r) => s + (Number(r.exhGainLoss) || 0),
       0
     )
+
+    // If totAmt was 0, update it with the calculated sumAllocAmt
+    const finalTotAmt = totAmt === 0 ? sumAllocAmt : totAmt
+
     const { unAllocAmt, unAllocLocalAmt } = calculateUnallocated(
-      totAmt,
+      finalTotAmt,
       totLocalAmt,
       sumAllocAmt,
       sumAllocLocalAmt,
@@ -245,6 +293,15 @@ export default function Main({
       shouldTouch: true,
     })
     setDataDetails(updatedData)
+
+    // Update totAmt if it was 0
+    if (totAmt === 0) {
+      form.setValue("totAmt", sumAllocAmt, { shouldDirty: true })
+      form.setValue("totLocalAmt", sumAllocLocalAmt, { shouldDirty: true })
+      form.setValue("recTotAmt", sumAllocAmt, { shouldDirty: true })
+      form.setValue("recTotLocalAmt", sumAllocLocalAmt, { shouldDirty: true })
+    }
+
     form.setValue("allocTotAmt", sumAllocAmt, { shouldDirty: true })
     form.setValue("allocTotLocalAmt", sumAllocLocalAmt, { shouldDirty: true })
     form.setValue("exhGainLoss", sumExhGainLoss, { shouldDirty: true })
