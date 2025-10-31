@@ -6,7 +6,7 @@ import { useAuthStore } from "@/stores/auth-store"
 import { ColumnDef } from "@tanstack/react-table"
 
 import { ARTransactionId, ModuleId, TableName } from "@/lib/utils"
-import { AccountBaseTable } from "@/components/table/table-account"
+import { AccountReceiptBaseTable } from "@/components/table/table-account-receipt"
 
 // Extended column definition with hide property
 type ExtendedColumnDef<T> = ColumnDef<T> & {
@@ -307,7 +307,7 @@ export default function ReceiptDetailsTable({
 
   return (
     <div>
-      <AccountBaseTable
+      <AccountReceiptBaseTable
         data={data}
         columns={visibleColumns as ColumnDef<IArReceiptDt>[]}
         moduleId={ModuleId.ar}
