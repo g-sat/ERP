@@ -5,7 +5,6 @@ import {
   autoAllocateAmounts,
   calauteLocalAmtandGainLoss,
   calculateManualAllocation,
-  calculateSameCurrency,
   calculateUnallocated,
   validateAllocation as validateAllocationHelper,
 } from "@/helpers/ar-receipt-calculations"
@@ -152,11 +151,11 @@ export default function Main({
       if (rowIndex === -1) return
 
       calculateManualAllocation(arr, rowIndex, value)
-      const exhRate = Number(form.getValues("exhRate")) || 1
+
+      const exhRate = Number(form.getValues("exhRate"))
       const dec = decimals[0] || { amtDec: 2, locAmtDec: 2 }
       calauteLocalAmtandGainLoss(arr, rowIndex, exhRate, dec)
 
-      const totAmt = Number(form.getValues("totAmt")) || 0
       const sumAllocAmt = arr.reduce((s, r) => s + (Number(r.allocAmt) || 0), 0)
       const sumAllocLocalAmt = arr.reduce(
         (s, r) => s + (Number(r.allocLocalAmt) || 0),
@@ -166,7 +165,23 @@ export default function Main({
         (s, r) => s + (Number(r.exhGainLoss) || 0),
         0
       )
-      const { totLocalAmt } = calculateSameCurrency(totAmt, exhRate, dec)
+
+      form.setValue("data_details", updatedData, {
+        shouldDirty: true,
+        shouldTouch: true,
+      })
+      setDataDetails(updatedData)
+      form.setValue("totAmt", sumAllocAmt, { shouldDirty: true })
+      form.setValue("totLocalAmt", sumAllocLocalAmt, { shouldDirty: true })
+      form.setValue("recTotAmt", sumAllocAmt, { shouldDirty: true })
+      form.setValue("recTotLocalAmt", sumAllocLocalAmt, { shouldDirty: true })
+      form.setValue("allocTotAmt", sumAllocAmt, { shouldDirty: true })
+      form.setValue("allocTotLocalAmt", sumAllocLocalAmt, { shouldDirty: true })
+      form.setValue("exhGainLoss", sumExhGainLoss, { shouldDirty: true })
+
+      const totAmt = Number(form.getValues("totAmt"))
+      const totLocalAmt = Number(form.getValues("totLocalAmt"))
+
       const { unAllocAmt, unAllocLocalAmt } = calculateUnallocated(
         totAmt,
         totLocalAmt,
@@ -175,14 +190,6 @@ export default function Main({
         dec
       )
 
-      form.setValue("data_details", updatedData, {
-        shouldDirty: true,
-        shouldTouch: true,
-      })
-      setDataDetails(updatedData)
-      form.setValue("allocTotAmt", sumAllocAmt, { shouldDirty: true })
-      form.setValue("allocTotLocalAmt", sumAllocLocalAmt, { shouldDirty: true })
-      form.setValue("exhGainLoss", sumExhGainLoss, { shouldDirty: true })
       form.setValue("unAllocTotAmt", unAllocAmt, { shouldDirty: true })
       form.setValue("unAllocTotLocalAmt", unAllocLocalAmt, {
         shouldDirty: true,
@@ -213,11 +220,9 @@ export default function Main({
     const arr = updatedData as unknown as IArReceiptDt[]
     const exhRate = Number(form.getValues("exhRate")) || 1
     for (let i = 0; i < arr.length; i++) {
-      console.log("arr[i]", arr[i])
-      console.log("exhRate", exhRate)
-      console.log("dec", dec)
       calauteLocalAmtandGainLoss(arr, i, exhRate, dec)
     }
+    const totLocalAmt = Number(form.getValues("totLocalAmt")) || 0
     const sumAllocAmt = arr.reduce((s, r) => s + (Number(r.allocAmt) || 0), 0)
     const sumAllocLocalAmt = arr.reduce(
       (s, r) => s + (Number(r.allocLocalAmt) || 0),
@@ -227,7 +232,6 @@ export default function Main({
       (s, r) => s + (Number(r.exhGainLoss) || 0),
       0
     )
-    const { totLocalAmt } = calculateSameCurrency(totAmt, exhRate, dec)
     const { unAllocAmt, unAllocLocalAmt } = calculateUnallocated(
       totAmt,
       totLocalAmt,
@@ -272,7 +276,7 @@ export default function Main({
     const sumAllocLocalAmt = 0
     const sumExhGainLoss = 0
     const totAmt = Number(form.getValues("totAmt")) || 0
-    const { totLocalAmt } = calculateSameCurrency(totAmt, exhRate, dec)
+    const totLocalAmt = Number(form.getValues("totLocalAmt")) || 0
     const { unAllocAmt, unAllocLocalAmt } = calculateUnallocated(
       totAmt,
       totLocalAmt,

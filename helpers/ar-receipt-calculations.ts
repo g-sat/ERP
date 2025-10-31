@@ -13,8 +13,6 @@ export const validateAllocation = (details: IArReceiptDt[]): boolean => {
   return details.length > 0
 }
 
-//
-
 // ============================================================================
 // HEADER CALCULATIONS
 // ============================================================================
