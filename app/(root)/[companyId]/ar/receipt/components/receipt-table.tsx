@@ -6,6 +6,7 @@ import { format, subMonths } from "date-fns"
 import { FormProvider, useForm } from "react-hook-form"
 
 import { ArReceipt } from "@/lib/api-routes"
+import { formatNumber } from "@/lib/format-utils"
 import { ARTransactionId, ModuleId, TableName } from "@/lib/utils"
 import { useGetWithDatesAndPagination } from "@/hooks/use-common"
 import { useUserSettingDefaults } from "@/hooks/use-settings"
@@ -92,13 +93,6 @@ export default function ReceiptTable({
   const data = receiptsResponse?.data || []
   const totalRecords = receiptsResponse?.totalRecords || data.length
   const isLoading = isLoadingReceipts || isRefetchingReceipts
-
-  const formatNumber = (value: number, decimals: number) => {
-    return value.toLocaleString(undefined, {
-      minimumFractionDigits: decimals,
-      maximumFractionDigits: decimals,
-    })
-  }
 
   const columns: ColumnDef<IArReceiptHd>[] = [
     {

@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react"
-import { formatDate, formatNumber } from "@/helpers/account"
+import { formatDate } from "@/helpers/account"
 import { IArReceiptDt } from "@/interfaces"
 import { IVisibleFields } from "@/interfaces/setting"
 import { useAuthStore } from "@/stores/auth-store"
 import { ColumnDef } from "@tanstack/react-table"
 
+import { formatNumber } from "@/lib/format-utils"
 import { ARTransactionId, ModuleId, TableName } from "@/lib/utils"
 import { AccountReceiptBaseTable } from "@/components/table/table-account-receipt"
 
