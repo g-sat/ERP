@@ -399,7 +399,7 @@ export function TechniciansSurveyorsTab({
 
           // Fetch the debit note data using the returned ID
           const debitNoteResponse = (await getData(
-            `${JobOrder_DebitNote.getById}/${jobData.jobOrderId}/${Task.TechniciansSurveyors}/${response.result}`
+            `${JobOrder_DebitNote.getById}/${jobData.jobOrderId}/${Task.TechniciansSurveyors}/${response.totalRecords}`
           )) as ApiResponse<IDebitNoteHd>
 
           if (debitNoteResponse.result === 1 && debitNoteResponse.data) {

@@ -393,7 +393,7 @@ export function LaunchServicesTab({
 
           // Fetch the debit note data using the returned ID
           const debitNoteResponse = (await getData(
-            `${JobOrder_DebitNote.getById}/${jobData.jobOrderId}/${Task.LaunchServices}/${response.result}`
+            `${JobOrder_DebitNote.getById}/${jobData.jobOrderId}/${Task.LaunchServices}/${response.totalRecords}`
           )) as ApiResponse<IDebitNoteHd>
           console.log("debitNoteResponse", debitNoteResponse)
           if (debitNoteResponse.result === 1 && debitNoteResponse.data) {

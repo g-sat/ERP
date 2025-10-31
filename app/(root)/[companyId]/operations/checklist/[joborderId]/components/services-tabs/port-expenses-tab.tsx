@@ -396,12 +396,16 @@ export function PortExpensesTab({
         // Call the mutation
         const response = await debitNoteMutation.mutateAsync(debitNoteData)
 
+        console.log("response", response)
+
         // Check if the mutation was successful
         if (response.result > 0) {
+          console.log("response.totalRecords", response.totalRecords)
           // Fetch the debit note data using the returned ID FIRST
           const debitNoteResponse = (await getData(
-            `${JobOrder_DebitNote.getById}/${jobData.jobOrderId}/${Task.PortExpenses}/${response.result}`
+            `${JobOrder_DebitNote.getById}/${jobData.jobOrderId}/${Task.PortExpenses}/${response.totalRecords}`
           )) as ApiResponse<IDebitNoteHd>
+          console.log("debitNoteResponse", debitNoteResponse)
 
           if (debitNoteResponse.result === 1 && debitNoteResponse.data) {
             console.log("New debit note data:", debitNoteResponse.data)

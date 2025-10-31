@@ -379,7 +379,7 @@ export function CrewSignOnTab({
 
           // Fetch the debit note data using the returned ID
           const debitNoteResponse = (await getData(
-            `${JobOrder_DebitNote.getById}/${jobData.jobOrderId}/${Task.CrewSignOn}/${response.result}`
+            `${JobOrder_DebitNote.getById}/${jobData.jobOrderId}/${Task.CrewSignOn}/${response.totalRecords}`
           )) as ApiResponse<IDebitNoteHd>
 
           if (debitNoteResponse.result === 1 && debitNoteResponse.data) {

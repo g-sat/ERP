@@ -381,7 +381,7 @@ export function OtherServiceTab({
 
           // Fetch the debit note data using the returned ID
           const debitNoteResponse = (await getData(
-            `${JobOrder_DebitNote.getById}/${jobData.jobOrderId}/${Task.OtherService}/${response.result}`
+            `${JobOrder_DebitNote.getById}/${jobData.jobOrderId}/${Task.OtherService}/${response.totalRecords}`
           )) as ApiResponse<IDebitNoteHd>
 
           if (debitNoteResponse.result === 1 && debitNoteResponse.data) {
