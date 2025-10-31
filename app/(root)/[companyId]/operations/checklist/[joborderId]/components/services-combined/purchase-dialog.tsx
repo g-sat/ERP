@@ -1,7 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useRef, useState } from "react"
-import { IPurchaseData } from "@/interfaces/checklist"
+import { IPurchaseData, ISavePurchaseData } from "@/interfaces/checklist"
 import { useQuery } from "@tanstack/react-query"
 
 import { getData, saveData } from "@/lib/api-client"
@@ -15,7 +15,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { PageLoadingSpinner } from "@/components/skeleton/loading-spinner"
 
 import { PurchaseTable } from "./purchase-table"
 
@@ -48,6 +47,7 @@ export function PurchaseDialog({
   const [isSaving, setIsSaving] = useState(false)
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
   const [selectedIds, setSelectedIds] = useState<string[]>([])
+  const [initialSelectedIds, setInitialSelectedIds] = useState<string[]>([])
   const isUpdatingRef = useRef(false)
 
   // Handle save action
@@ -55,18 +55,27 @@ export function PurchaseDialog({
     try {
       setIsSaving(true)
 
-      // Get selected items
-      const selectedItems = purchaseData.filter((item) =>
-        selectedIds.includes(`${item.invoiceId}_${item.itemNo}`)
+      console.log("selectedIds", selectedIds)
+      console.log("purchaseData", purchaseData)
+
+      // Prepare the data to send to API - map ALL items with isAllocated based on selection
+      const purchaseListData: ISavePurchaseData[] = purchaseData.map(
+        (item) => ({
+          jobOrderId,
+          taskId,
+          serviceId,
+          moduleId: item.moduleId,
+          transactionId: item.transactionId,
+          documentId: item.documentId,
+          itemNo: item.itemNo,
+          // Set isAllocated to true if item is in selectedIds, false otherwise
+          isAllocated: selectedIds.includes(
+            `${item.documentId}_${item.itemNo}`
+          ),
+        })
       )
 
-      // Prepare the data to send to API
-      const purchaseListData = {
-        jobOrderId,
-        taskId,
-        serviceId,
-        purchaseData: selectedItems,
-      }
+      console.log("purchaseListData", purchaseListData)
 
       // Call the API
       await saveData(JobOrder_Purchase.saveBulkList, purchaseListData)
@@ -116,11 +125,7 @@ export function PurchaseDialog({
   }, [])
 
   // Fetch purchase data when dialog opens
-  const {
-    data: purchaseResponse,
-    isLoading,
-    error,
-  } = useQuery({
+  const { data: purchaseResponse, isLoading } = useQuery({
     queryKey: [`purchase-list-${jobOrderId}-${taskId}-${serviceId}`],
     queryFn: async () => {
       const response = await getData(
@@ -151,76 +156,30 @@ export function PurchaseDialog({
         setPurchaseData(purchaseResponse.data)
 
         // Pre-select all items that are already allocated
-        const initialSelectedIds = purchaseResponse.data
+        const preSelectedIds = purchaseResponse.data
           .filter((item: IPurchaseData) => item.isAllocated === true)
-          .map((item: IPurchaseData) => `${item.invoiceId}_${item.itemNo}`)
+          .map((item: IPurchaseData) => `${item.documentId}_${item.itemNo}`)
 
-        setSelectedIds(initialSelectedIds)
+        setInitialSelectedIds(preSelectedIds)
+        setSelectedIds(preSelectedIds)
         setHasUnsavedChanges(false)
       } else {
         // Set empty arrays if no data
         setPurchaseData([])
         setSelectedIds([])
+        setInitialSelectedIds([])
         setHasUnsavedChanges(false)
       }
     }
   }, [purchaseResponse, onOpenChangeAction])
 
-  // Set unsaved changes when selections exist
+  // Set unsaved changes when selections change from initial state
   useEffect(() => {
-    setHasUnsavedChanges(selectedIds.length > 0)
-  }, [selectedIds])
-
-  // Show loading state when dialog is opening and data is being fetched
-  if (open && isLoading) {
-    return (
-      <Dialog open={open} onOpenChange={onOpenChangeAction}>
-        <DialogContent
-          className="max-h-[95vh] w-[95vw] !max-w-none overflow-y-auto"
-          onPointerDownOutside={(e) => {
-            e.preventDefault()
-          }}
-        >
-          <DialogHeader>
-            <DialogTitle>{title}</DialogTitle>
-            <DialogDescription>{description}</DialogDescription>
-          </DialogHeader>
-          <div className="flex items-center justify-center py-8">
-            <PageLoadingSpinner text="Loading purchase details..." />
-          </div>
-        </DialogContent>
-      </Dialog>
-    )
-  }
-
-  // Show error state if API call fails
-  if (error) {
-    return (
-      <Dialog open={open} onOpenChange={onOpenChangeAction}>
-        <DialogContent
-          className="max-h-[95vh] w-[95vw] !max-w-none overflow-y-auto"
-          onPointerDownOutside={(e) => {
-            e.preventDefault()
-          }}
-        >
-          <DialogHeader>
-            <DialogTitle>{title}</DialogTitle>
-            <DialogDescription>{description}</DialogDescription>
-          </DialogHeader>
-          <div className="flex items-center justify-center py-8">
-            <div className="text-center">
-              <p className="text-red-500">Error loading purchase details</p>
-              <p className="mt-2 text-sm text-gray-500">
-                {error instanceof Error
-                  ? error.message
-                  : "Unknown error occurred"}
-              </p>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
-    )
-  }
+    const hasChanged =
+      selectedIds.length !== initialSelectedIds.length ||
+      !selectedIds.every((id) => initialSelectedIds.includes(id))
+    setHasUnsavedChanges(hasChanged)
+  }, [selectedIds, initialSelectedIds])
 
   const totalCount = purchaseData.length
   const allocatedCount = purchaseData.filter(
@@ -277,7 +236,19 @@ export function PurchaseDialog({
             </div>
           </div>
 
-          {totalCount === 0 && (
+          {isLoading ? (
+            <div className="mb-4 flex items-center justify-center py-8">
+              <div className="text-center">
+                <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-gray-300 border-t-blue-600"></div>
+                <p className="mt-4 text-sm text-gray-600">
+                  Loading purchase data...
+                </p>
+                <p className="mt-2 text-xs text-gray-500">
+                  Please wait while we fetch the purchase list
+                </p>
+              </div>
+            </div>
+          ) : totalCount === 0 ? (
             <div className="mb-4 rounded-lg border border-gray-200 bg-gray-50 p-4">
               <div className="flex items-center gap-2 text-gray-700">
                 <div className="h-1 w-1 rounded-full bg-gray-500"></div>
@@ -286,18 +257,18 @@ export function PurchaseDialog({
                 </span>
               </div>
             </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <PurchaseTable
+                data={purchaseData}
+                isLoading={isLoading}
+                isConfirmed={isConfirmed}
+                initialSelectedIds={initialSelectedIds}
+                selectedIds={selectedIds}
+                onBulkSelectionChange={handleBulkSelectionChange}
+              />
+            </div>
           )}
-
-          <div className="overflow-x-auto">
-            <PurchaseTable
-              data={purchaseData}
-              isLoading={isLoading}
-              isConfirmed={isConfirmed}
-              initialSelectedIds={selectedIds}
-              selectedIds={selectedIds}
-              onBulkSelectionChange={handleBulkSelectionChange}
-            />
-          </div>
         </>
 
         <DialogFooter className="flex justify-end gap-2 pt-4">

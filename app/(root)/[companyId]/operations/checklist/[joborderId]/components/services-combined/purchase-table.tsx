@@ -5,7 +5,7 @@ import { IPurchaseData } from "@/interfaces"
 import { ColumnDef } from "@tanstack/react-table"
 
 import { TableName } from "@/lib/utils"
-import { DebitNoteBaseTable } from "@/components/table/table-debitnote"
+import { PurchaseBaseTable } from "@/components/table/table-purchase"
 
 interface PurchaseTableProps {
   data: IPurchaseData[]
@@ -22,31 +22,25 @@ interface PurchaseTableProps {
 export function PurchaseTable({
   data,
   isLoading = false,
-  onSelect,
+  onSelect: _onSelect,
   onDataReorder,
   onBulkSelectionChange,
   isConfirmed,
   initialSelectedIds = [],
-  selectedIds = [],
+  selectedIds: _selectedIds = [],
 }: PurchaseTableProps) {
-  console.log("Purchase data", data)
-
-  // Add uniqueId field combining invoiceId and itemNo for proper identification
-  // and update isAllocated based on current selection
+  // Add uniqueId field combining documentId and itemNo for proper identification
   const dataWithUniqueId = useMemo(
     () =>
       data.map((item) => {
-        const uniqueId = `${item.invoiceId}_${item.itemNo}`
-        const isCurrentlySelected = selectedIds.includes(uniqueId)
+        const uniqueId = `${item.documentId}_${item.itemNo}`
 
         return {
           ...item,
           uniqueId,
-          // Update isAllocated: true if originally allocated OR currently selected
-          isAllocated: item.isAllocated || isCurrentlySelected,
         }
       }),
-    [data, selectedIds]
+    [data]
   )
   // Define columns for the purchase table
   const columns: ColumnDef<IPurchaseData & { uniqueId: string }>[] = useMemo(
@@ -84,8 +78,8 @@ export function PurchaseTable({
         minSize: 100,
       },
       {
-        accessorKey: "invoiceNo",
-        header: "Invoice No",
+        accessorKey: "documentNo",
+        header: "Document No",
         size: 150,
         minSize: 120,
         enableColumnFilter: true,
@@ -102,7 +96,7 @@ export function PurchaseTable({
       },
       {
         accessorKey: "accountDate",
-        header: "Invoice Date",
+        header: "Account Date",
         cell: ({ row }) => {
           const date = row.getValue("accountDate") as Date | string
           return date ? new Date(date).toLocaleDateString() : "-"
@@ -202,26 +196,6 @@ export function PurchaseTable({
     // No-op for purchase table - this prevents the useEffect from triggering
   }, [])
 
-  const handleSelect = useCallback(() => {
-    // No-op for purchase table
-  }, [])
-
-  const handleCreate = useCallback(() => {
-    // No-op for purchase table
-  }, [])
-
-  const handleEdit = useCallback(() => {
-    // No-op for purchase table
-  }, [])
-
-  const handleDelete = useCallback(() => {
-    // No-op for purchase table
-  }, [])
-
-  const handleBulkDelete = useCallback(() => {
-    // No-op for purchase table
-  }, [])
-
   const handleDataReorder = useCallback(() => {
     // No-op for purchase table
   }, [])
@@ -229,7 +203,6 @@ export function PurchaseTable({
   // Prevent onBulkSelectionChange from being called unnecessarily
   const handleBulkSelectionChange = useCallback(
     (selectedIds: string[]) => {
-      console.log("selectedIds", selectedIds)
       // Always call the parent's handler if it exists
       onBulkSelectionChange?.(selectedIds)
     },
@@ -240,7 +213,7 @@ export function PurchaseTable({
   const visibleColumns = columns
 
   return (
-    <DebitNoteBaseTable
+    <PurchaseBaseTable
       data={dataWithUniqueId}
       columns={visibleColumns}
       isLoading={isLoading}
@@ -251,21 +224,13 @@ export function PurchaseTable({
       accessorId="uniqueId"
       onRefresh={handleRefresh}
       onFilterChange={handleFilterChange}
-      onSelect={onSelect || handleSelect}
-      onCreate={handleCreate}
-      onEdit={handleEdit}
-      onDelete={handleDelete}
-      onBulkDelete={handleBulkDelete}
       onBulkSelectionChange={handleBulkSelectionChange}
       onDataReorder={onDataReorder || handleDataReorder}
       isConfirmed={isConfirmed}
       showHeader={false}
       showActions={true}
-      hideView={true}
-      hideEdit={true}
-      hideDelete={true}
-      hideCreate={true}
-      disableOnDebitNoteExists={false}
+      hideCheckbox={false}
+      disableOnPurchaseExists={false}
       initialSelectedIds={initialSelectedIds}
     />
   )
