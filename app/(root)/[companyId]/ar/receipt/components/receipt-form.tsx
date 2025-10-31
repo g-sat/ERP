@@ -8,10 +8,12 @@ import {
   setRecExchangeRate,
 } from "@/helpers/account"
 import {
+  calauteLocalAmtandGainLoss,
   calculateDiffCurrency,
   calculateSameCurrency,
   calculateUnallocated,
 } from "@/helpers/ar-receipt-calculations"
+import { IArReceiptDt } from "@/interfaces"
 import {
   IBankLookup,
   ICurrencyLookup,
@@ -129,7 +131,6 @@ export default function ReceiptForm({
         form.setValue("recTotAmt", 0, { shouldDirty: true })
       }
 
-      console.log("recTotAmt", form.getValues("recTotAmt") || 0)
       // Different currency scenario - recTotAmt drives everything
       const {
         recTotAmt: newRecTotAmt,
@@ -163,7 +164,53 @@ export default function ReceiptForm({
         shouldDirty: true,
       })
     }
-  }, [form, decimals])
+
+    // Recalculate all details with new exchange rate if data details exist
+    if (dataDetails && dataDetails.length > 0) {
+      const updatedDetails = [...dataDetails]
+      const arr = updatedDetails as unknown as IArReceiptDt[]
+      const exhRateForDetails = form.getValues("exhRate") || 0
+      const dec = decimals[0] || { amtDec: 2, locAmtDec: 2 }
+
+      for (let i = 0; i < arr.length; i++) {
+        calauteLocalAmtandGainLoss(arr, i, exhRateForDetails, dec)
+      }
+
+      // Recalculate header totals from recalculated details
+      const sumAllocAmt = arr.reduce((s, r) => s + (Number(r.allocAmt) || 0), 0)
+      const sumAllocLocalAmt = arr.reduce(
+        (s, r) => s + (Number(r.allocLocalAmt) || 0),
+        0
+      )
+      const sumExhGainLoss = arr.reduce(
+        (s, r) => s + (Number(r.exhGainLoss) || 0),
+        0
+      )
+
+      form.setValue("data_details", updatedDetails, {
+        shouldDirty: true,
+        shouldTouch: true,
+      })
+      form.setValue("allocTotAmt", sumAllocAmt, { shouldDirty: true })
+      form.setValue("allocTotLocalAmt", sumAllocLocalAmt, { shouldDirty: true })
+      form.setValue("exhGainLoss", sumExhGainLoss, { shouldDirty: true })
+
+      // Recalculate unallocated amounts with updated totals
+      const currentTotAmt = form.getValues("totAmt") || 0
+      const currentTotLocalAmt = form.getValues("totLocalAmt") || 0
+      const { unAllocAmt, unAllocLocalAmt } = calculateUnallocated(
+        currentTotAmt,
+        currentTotLocalAmt,
+        sumAllocAmt,
+        sumAllocLocalAmt,
+        dec
+      )
+      form.setValue("unAllocTotAmt", unAllocAmt, { shouldDirty: true })
+      form.setValue("unAllocTotLocalAmt", unAllocLocalAmt, {
+        shouldDirty: true,
+      })
+    }
+  }, [form, decimals, dataDetails])
 
   // Initialize currency comparison state on component mount and form changes
   React.useEffect(() => {
