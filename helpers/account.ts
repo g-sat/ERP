@@ -20,6 +20,7 @@ import { addDays, format, parse } from "date-fns"
 import { getData } from "@/lib/api-client"
 import { BasicSetting, Lookup } from "@/lib/api-routes"
 import { clientDateFormat } from "@/lib/date-utils"
+import { formatNumberSimple } from "@/lib/format-utils"
 
 // Generic types for cross-module compatibility (AP, AR, CB, GL)
 // Using 'any' type intentionally to support all module-specific form types
@@ -48,13 +49,13 @@ export const mathRound = (amtValue: number, precision: number): number => {
  * @param value - The value to format
  * @param decimals - Number of decimal places
  * @returns Formatted number string
+ * @deprecated Use formatNumberSimple from @/lib/format-utils instead
  */
 export const formatNumber = (
   value: number | string | null | undefined,
   decimals: number
 ): string => {
-  const numValue = Number(value) || 0
-  return numValue.toFixed(decimals)
+  return formatNumberSimple(value, decimals)
 }
 
 /**
