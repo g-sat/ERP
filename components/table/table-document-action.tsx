@@ -7,7 +7,7 @@ interface DocumentTableActionsProps<T> {
   row: T & { debitNoteId?: number }
   onView?: (row: T) => void
   onDownload?: (row: T) => void
-  onDelete?: (id: string) => void
+  onDelete?: (row: T) => void
   onSelect?: (row: T, checked: boolean) => void
   idAccessor: keyof T
   hideView?: boolean
@@ -102,9 +102,7 @@ export function DocumentTableActions<T>({
               ? "cursor-not-allowed text-gray-400 opacity-50"
               : "text-destructive hover:bg-destructive/10"
           }`}
-          onClick={() =>
-            !hasValidAccountId && onDelete?.(String(row[idAccessor]))
-          }
+          onClick={() => !hasValidAccountId && onDelete?.(row)}
           title={
             hasValidAccountId ? "Cannot delete - Debit Note exists" : "Delete"
           }

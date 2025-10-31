@@ -63,7 +63,7 @@ interface DocumentBaseTableProps<T> {
   onFilterChange?: (filters: { search?: string; sortOrder?: string }) => void
   onSelect?: (item: T | null) => void
   onDownload?: (item: T) => void
-  onDelete?: (itemId: string) => void
+  onDelete?: (item: T) => void
   onBulkDelete?: (selectedIds: string[]) => void
   onBulkSelectionChange?: (selectedIds: string[]) => void
   onPurchase?: (itemId: string) => void

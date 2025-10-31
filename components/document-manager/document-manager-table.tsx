@@ -15,11 +15,11 @@ interface DocumentManagerTableProps {
   isLoading?: boolean
   onPreview?: (doc: IDocType) => void
   onDownload?: (doc: IDocType) => void
-  onDelete?: (documentId: string) => void
-  onSelect?: (documentId: string, checked: boolean) => void
-  onSelectAll?: (checked: boolean) => void
-  selectedDocuments?: string[]
-  selectAll?: boolean
+  onDelete?: (doc: IDocType) => void
+  // onSelect?: (documentId: string, checked: boolean) => void
+  // onSelectAll?: (checked: boolean) => void
+  // selectedDocuments?: string[]
+  // selectAll?: boolean
 }
 
 export default function DocumentManagerTable({
@@ -28,10 +28,10 @@ export default function DocumentManagerTable({
   onPreview,
   onDownload,
   onDelete,
-  onSelect: _onSelect,
-  onSelectAll: _onSelectAll,
-  selectedDocuments: _selectedDocuments = [],
-  selectAll: _selectAll = false,
+  // onSelect: _onSelect,
+  // onSelectAll: _onSelectAll,
+  // selectedDocuments: _selectedDocuments = [],
+  // selectAll: _selectAll = false,
 }: DocumentManagerTableProps) {
   const { decimals } = useAuthStore()
   const dateFormat = decimals[0]?.dateFormat || "dd/MM/yyyy"
@@ -136,7 +136,7 @@ export default function DocumentManagerTable({
       hideView={false}
       hideDownload={false}
       hideDelete={false}
-      hideCheckbox={false}
+      hideCheckbox={true}
     />
   )
 }

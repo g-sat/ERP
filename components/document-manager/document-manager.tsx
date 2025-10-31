@@ -29,6 +29,7 @@ import {
 import { Label } from "@/components/ui/label"
 import { Spinner } from "@/components/ui/spinner"
 import DocumentTypeAutocomplete from "@/components/autocomplete/autocomplete-document-type"
+import { DeleteConfirmation } from "@/components/confirmation/delete-confirmation"
 import CustomTextarea from "@/components/custom/custom-textarea"
 
 import DocumentManagerTable from "./document-manager-table"
@@ -87,8 +88,12 @@ export default function DocumentManager({
     null
   )
   const [previewUrl, setPreviewUrl] = useState<string>("")
-  const [selectedDocuments, setSelectedDocuments] = useState<string[]>([])
-  const [selectAll, setSelectAll] = useState(false)
+  const [_selectedDocuments, _setSelectedDocuments] = useState<string[]>([])
+  const [_selectAll, _setSelectAll] = useState(false)
+  const [documentToDelete, setDocumentToDelete] = useState<IDocType | null>(
+    null
+  )
+  const [isDeleting, setIsDeleting] = useState(false)
 
   const { data: documents, isLoading } = useGet<IDocType>(
     `${Admin.getDocumentById}/${moduleId}/${transactionId}/${recordId}`,
@@ -355,18 +360,54 @@ export default function DocumentManager({
     }
   }
 
-  // Delete document
-  const handleDelete = async (documentId: string) => {
+  // Delete document - opens confirmation dialog
+  const handleDelete = (doc: IDocType) => {
+    setDocumentToDelete(doc)
+  }
+
+  // Confirm delete and perform actual deletion
+  const handleConfirmDelete = async () => {
+    if (!documentToDelete) return
+
+    setIsDeleting(true)
     try {
-      const response = await deleteDocumentMutation.mutateAsync(documentId)
+      // Build the full API URL with all required parameters
+      const deleteUrl = `/${moduleId}/${transactionId}/${documentToDelete.documentId}/${documentToDelete.itemNo}`
+      const response = await deleteDocumentMutation.mutateAsync(deleteUrl)
 
       if (response.result === 1) {
+        // Also delete the physical file
+        try {
+          // Extract the relative path from docPath
+          const filePath = documentToDelete.docPath.replace(/^\/documents/, "")
+          const deleteFileResponse = await fetch(
+            `/api/documents/delete${filePath}`,
+            {
+              method: "DELETE",
+            }
+          )
+          if (!deleteFileResponse.ok) {
+            console.warn(
+              "Failed to delete physical file:",
+              documentToDelete.docPath
+            )
+          }
+        } catch (fileError) {
+          console.error("Error deleting physical file:", fileError)
+        }
+
         queryClient.invalidateQueries({
           queryKey: [`documents-${moduleId}-${transactionId}-${recordId}`],
         })
+
+        toast.success("Document deleted successfully")
       }
     } catch (error) {
       console.error("Delete error:", error)
+      toast.error("Failed to delete document")
+    } finally {
+      setIsDeleting(false)
+      setDocumentToDelete(null)
     }
   }
 
@@ -391,22 +432,22 @@ export default function DocumentManager({
   }
 
   // Handle checkbox selection
-  const handleSelectDocument = (documentId: string, checked: boolean) => {
+  const _handleSelectDocument = (documentId: string, checked: boolean) => {
     if (checked) {
-      setSelectedDocuments((prev) => [...prev, documentId])
+      _setSelectedDocuments((prev) => [...prev, documentId])
     } else {
-      setSelectedDocuments((prev) => prev.filter((id) => id !== documentId))
+      _setSelectedDocuments((prev) => prev.filter((id) => id !== documentId))
     }
   }
 
   // Handle select all checkbox
-  const handleSelectAll = (checked: boolean) => {
-    setSelectAll(checked)
+  const _handleSelectAll = (checked: boolean) => {
+    _setSelectAll(checked)
     if (checked && Array.isArray(documents?.data)) {
       const allIds = (documents.data as IDocType[]).map((doc) => doc.documentId)
-      setSelectedDocuments(allIds)
+      _setSelectedDocuments(allIds)
     } else {
-      setSelectedDocuments([])
+      _setSelectedDocuments([])
     }
   }
 
@@ -660,11 +701,11 @@ export default function DocumentManager({
               <CardTitle className="flex items-center justify-between">
                 <span>Uploaded Documents</span>
                 <div className="flex items-center gap-2">
-                  {selectedDocuments.length > 0 && (
+                  {/* {selectedDocuments.length > 0 && (
                     <Badge variant="default">
                       {selectedDocuments.length} selected
                     </Badge>
-                  )}
+                  )} */}
                   {documents?.data && Array.isArray(documents.data) && (
                     <Badge variant="secondary">
                       {documents.data.length} document(s)
@@ -684,10 +725,10 @@ export default function DocumentManager({
                 onPreview={handlePreview}
                 onDownload={handleDownload}
                 onDelete={handleDelete}
-                onSelect={handleSelectDocument}
-                onSelectAll={handleSelectAll}
-                selectedDocuments={selectedDocuments}
-                selectAll={selectAll}
+                // onSelect={handleSelectDocument}
+                // onSelectAll={handleSelectAll}
+                // selectedDocuments={selectedDocuments}
+                // selectAll={selectAll}
               />
             </CardContent>
           </Card>
@@ -756,6 +797,21 @@ export default function DocumentManager({
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <DeleteConfirmation
+        open={!!documentToDelete}
+        onOpenChange={(open) => !open && setDocumentToDelete(null)}
+        onConfirm={handleConfirmDelete}
+        isDeleting={isDeleting}
+        title="Delete Document"
+        itemName={
+          documentToDelete
+            ? documentToDelete.docPath?.split("/").pop() || "this document"
+            : undefined
+        }
+        description="This action cannot be undone. The document will be permanently removed."
+      />
     </>
   )
 }
