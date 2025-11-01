@@ -172,20 +172,16 @@ export default function ReceiptForm({
       const exhRateForDetails = form.getValues("exhRate") || 0
       const dec = decimals[0] || { amtDec: 2, locAmtDec: 2 }
 
+      // Clear all allocations when currency or amount changes
       for (let i = 0; i < arr.length; i++) {
+        arr[i].allocAmt = 0
         calauteLocalAmtandGainLoss(arr, i, exhRateForDetails, dec)
       }
 
       // Recalculate header totals from recalculated details
-      const sumAllocAmt = arr.reduce((s, r) => s + (Number(r.allocAmt) || 0), 0)
-      const sumAllocLocalAmt = arr.reduce(
-        (s, r) => s + (Number(r.allocLocalAmt) || 0),
-        0
-      )
-      const sumExhGainLoss = arr.reduce(
-        (s, r) => s + (Number(r.exhGainLoss) || 0),
-        0
-      )
+      const sumAllocAmt = 0 // All allocations cleared
+      const sumAllocLocalAmt = 0 // All allocations cleared
+      const sumExhGainLoss = 0 // All allocations cleared
 
       form.setValue("data_details", updatedDetails, {
         shouldDirty: true,
