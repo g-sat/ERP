@@ -895,9 +895,9 @@ export default function ReceiptPage() {
                   : "animate-pulse bg-gradient-to-r from-purple-500 to-blue-500" // default gradient border
               } `}
             >
-              {/* Inner pill: solid dark background + white text */}
+              {/* Inner pill: solid dark background + white text - same size as Fully Paid badge */}
               <span
-                className={`text-l block rounded-full px-6 font-semibold ${isEdit ? "text-white" : "text-white"}`}
+                className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${isEdit ? "text-white" : "text-white"}`}
               >
                 {titleText}
               </span>
