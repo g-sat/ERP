@@ -89,124 +89,144 @@ export default function ReceiptForm({
   }, [form])
 
   // Common function to recalculate amounts based on currency comparison
-  const recalculateAmountsBasedOnCurrency = React.useCallback(() => {
-    const currencyId = form.getValues("currencyId") || 0
-    const recCurrencyId = form.getValues("recCurrencyId") || 0
-    const totAmt = form.getValues("totAmt") || 0
-    const recTotAmt = form.getValues("recTotAmt") || 0
-    const exhRate = form.getValues("exhRate") || 0
-    const recExhRate = form.getValues("recExhRate") || 0
-    const allocTotAmt = form.getValues("allocTotAmt") || 0
-    const allocTotLocalAmt = form.getValues("allocTotLocalAmt") || 0
+  const recalculateAmountsBasedOnCurrency = React.useCallback(
+    (clearAllocations = false) => {
+      const currencyId = form.getValues("currencyId") || 0
+      const recCurrencyId = form.getValues("recCurrencyId") || 0
+      const totAmt = form.getValues("totAmt") || 0
+      const recTotAmt = form.getValues("recTotAmt") || 0
+      const exhRate = form.getValues("exhRate") || 0
+      const recExhRate = form.getValues("recExhRate") || 0
+      const allocTotAmt = form.getValues("allocTotAmt") || 0
+      const allocTotLocalAmt = form.getValues("allocTotLocalAmt") || 0
 
-    if (currencyId === recCurrencyId) {
-      // Same currency scenario - totAmt drives everything
-      const {
-        totLocalAmt: newTotLocalAmt,
-        recTotAmt: newRecTotAmt,
-        recTotLocalAmt: newRecTotLocalAmt,
-      } = calculateSameCurrency(totAmt || 0, exhRate || 0, decimals[0])
-      form.setValue("recTotAmt", newRecTotAmt, { shouldDirty: true })
-      form.setValue("recTotLocalAmt", newRecTotLocalAmt, {
-        shouldDirty: true,
-      })
-      form.setValue("totLocalAmt", newTotLocalAmt, { shouldDirty: true })
+      if (currencyId === recCurrencyId) {
+        // Same currency scenario - totAmt drives everything
+        const {
+          totLocalAmt: newTotLocalAmt,
+          recTotAmt: newRecTotAmt,
+          recTotLocalAmt: newRecTotLocalAmt,
+        } = calculateSameCurrency(totAmt || 0, exhRate || 0, decimals[0])
+        form.setValue("recTotAmt", newRecTotAmt, { shouldDirty: true })
+        form.setValue("recTotLocalAmt", newRecTotLocalAmt, {
+          shouldDirty: true,
+        })
+        form.setValue("totLocalAmt", newTotLocalAmt, { shouldDirty: true })
 
-      // Calculate unallocated amounts
-      const { unAllocAmt, unAllocLocalAmt } = calculateUnallocated(
-        totAmt,
-        newTotLocalAmt,
-        allocTotAmt,
-        allocTotLocalAmt,
-        decimals[0]
-      )
-      form.setValue("unAllocTotAmt", unAllocAmt, { shouldDirty: true })
-      form.setValue("unAllocTotLocalAmt", unAllocLocalAmt, {
-        shouldDirty: true,
-      })
-    } else {
-      if (totAmt > 0) {
-        form.setValue("recTotAmt", totAmt, { shouldDirty: true })
+        // Calculate unallocated amounts
+        const { unAllocAmt, unAllocLocalAmt } = calculateUnallocated(
+          totAmt,
+          newTotLocalAmt,
+          allocTotAmt,
+          allocTotLocalAmt,
+          decimals[0]
+        )
+        form.setValue("unAllocTotAmt", unAllocAmt, { shouldDirty: true })
+        form.setValue("unAllocTotLocalAmt", unAllocLocalAmt, {
+          shouldDirty: true,
+        })
       } else {
-        form.setValue("recTotAmt", 0, { shouldDirty: true })
+        if (totAmt > 0) {
+          form.setValue("recTotAmt", totAmt, { shouldDirty: true })
+        } else {
+          form.setValue("recTotAmt", 0, { shouldDirty: true })
+        }
+
+        // Different currency scenario - recTotAmt drives everything
+        const {
+          recTotAmt: newRecTotAmt,
+          recTotLocalAmt: newRecTotLocalAmt,
+          totAmt: newTotAmt,
+          totLocalAmt: newTotLocalAmt,
+        } = calculateDiffCurrency(
+          recTotAmt || 0,
+          recExhRate,
+          exhRate,
+          decimals[0]
+        )
+
+        form.setValue("recTotAmt", newRecTotAmt, { shouldDirty: true })
+        form.setValue("recTotLocalAmt", newRecTotLocalAmt, {
+          shouldDirty: true,
+        })
+        form.setValue("totAmt", newTotAmt, { shouldDirty: true })
+        form.setValue("totLocalAmt", newTotLocalAmt, { shouldDirty: true })
+
+        // Calculate unallocated amounts
+        const { unAllocAmt, unAllocLocalAmt } = calculateUnallocated(
+          newTotAmt,
+          newTotLocalAmt,
+          allocTotAmt,
+          allocTotLocalAmt,
+          decimals[0]
+        )
+        form.setValue("unAllocTotAmt", unAllocAmt, { shouldDirty: true })
+        form.setValue("unAllocTotLocalAmt", unAllocLocalAmt, {
+          shouldDirty: true,
+        })
       }
 
-      // Different currency scenario - recTotAmt drives everything
-      const {
-        recTotAmt: newRecTotAmt,
-        recTotLocalAmt: newRecTotLocalAmt,
-        totAmt: newTotAmt,
-        totLocalAmt: newTotLocalAmt,
-      } = calculateDiffCurrency(
-        recTotAmt || 0,
-        recExhRate,
-        exhRate,
-        decimals[0]
-      )
+      // Recalculate all details with new exchange rate if data details exist
+      if (dataDetails && dataDetails.length > 0) {
+        const updatedDetails = [...dataDetails]
+        const arr = updatedDetails as unknown as IArReceiptDt[]
+        const exhRateForDetails = form.getValues("exhRate") || 0
+        const dec = decimals[0] || { amtDec: 2, locAmtDec: 2 }
 
-      form.setValue("recTotAmt", newRecTotAmt, { shouldDirty: true })
-      form.setValue("recTotLocalAmt", newRecTotLocalAmt, {
-        shouldDirty: true,
-      })
-      form.setValue("totAmt", newTotAmt, { shouldDirty: true })
-      form.setValue("totLocalAmt", newTotLocalAmt, { shouldDirty: true })
+        // Clear all allocations only when clearAllocations flag is true
+        if (clearAllocations) {
+          for (let i = 0; i < arr.length; i++) {
+            arr[i].allocAmt = 0
+          }
+        }
 
-      // Calculate unallocated amounts
-      const { unAllocAmt, unAllocLocalAmt } = calculateUnallocated(
-        newTotAmt,
-        newTotLocalAmt,
-        allocTotAmt,
-        allocTotLocalAmt,
-        decimals[0]
-      )
-      form.setValue("unAllocTotAmt", unAllocAmt, { shouldDirty: true })
-      form.setValue("unAllocTotLocalAmt", unAllocLocalAmt, {
-        shouldDirty: true,
-      })
-    }
+        // Recalculate local amounts and gain/loss for all rows
+        for (let i = 0; i < arr.length; i++) {
+          calauteLocalAmtandGainLoss(arr, i, exhRateForDetails, dec)
+        }
 
-    // Recalculate all details with new exchange rate if data details exist
-    if (dataDetails && dataDetails.length > 0) {
-      const updatedDetails = [...dataDetails]
-      const arr = updatedDetails as unknown as IArReceiptDt[]
-      const exhRateForDetails = form.getValues("exhRate") || 0
-      const dec = decimals[0] || { amtDec: 2, locAmtDec: 2 }
+        // Recalculate header totals from recalculated details
+        const sumAllocAmt = arr.reduce(
+          (s, r) => s + (Number(r.allocAmt) || 0),
+          0
+        )
+        const sumAllocLocalAmt = arr.reduce(
+          (s, r) => s + (Number(r.allocLocalAmt) || 0),
+          0
+        )
+        const sumExhGainLoss = arr.reduce(
+          (s, r) => s + (Number(r.exhGainLoss) || 0),
+          0
+        )
 
-      // Clear all allocations when currency or amount changes
-      for (let i = 0; i < arr.length; i++) {
-        arr[i].allocAmt = 0
-        calauteLocalAmtandGainLoss(arr, i, exhRateForDetails, dec)
+        form.setValue("data_details", updatedDetails, {
+          shouldDirty: true,
+          shouldTouch: true,
+        })
+        form.setValue("allocTotAmt", sumAllocAmt, { shouldDirty: true })
+        form.setValue("allocTotLocalAmt", sumAllocLocalAmt, {
+          shouldDirty: true,
+        })
+        form.setValue("exhGainLoss", sumExhGainLoss, { shouldDirty: true })
+
+        // Recalculate unallocated amounts with updated totals
+        const currentTotAmt = form.getValues("totAmt") || 0
+        const currentTotLocalAmt = form.getValues("totLocalAmt") || 0
+        const { unAllocAmt, unAllocLocalAmt } = calculateUnallocated(
+          currentTotAmt,
+          currentTotLocalAmt,
+          sumAllocAmt,
+          sumAllocLocalAmt,
+          dec
+        )
+        form.setValue("unAllocTotAmt", unAllocAmt, { shouldDirty: true })
+        form.setValue("unAllocTotLocalAmt", unAllocLocalAmt, {
+          shouldDirty: true,
+        })
       }
-
-      // Recalculate header totals from recalculated details
-      const sumAllocAmt = 0 // All allocations cleared
-      const sumAllocLocalAmt = 0 // All allocations cleared
-      const sumExhGainLoss = 0 // All allocations cleared
-
-      form.setValue("data_details", updatedDetails, {
-        shouldDirty: true,
-        shouldTouch: true,
-      })
-      form.setValue("allocTotAmt", sumAllocAmt, { shouldDirty: true })
-      form.setValue("allocTotLocalAmt", sumAllocLocalAmt, { shouldDirty: true })
-      form.setValue("exhGainLoss", sumExhGainLoss, { shouldDirty: true })
-
-      // Recalculate unallocated amounts with updated totals
-      const currentTotAmt = form.getValues("totAmt") || 0
-      const currentTotLocalAmt = form.getValues("totLocalAmt") || 0
-      const { unAllocAmt, unAllocLocalAmt } = calculateUnallocated(
-        currentTotAmt,
-        currentTotLocalAmt,
-        sumAllocAmt,
-        sumAllocLocalAmt,
-        dec
-      )
-      form.setValue("unAllocTotAmt", unAllocAmt, { shouldDirty: true })
-      form.setValue("unAllocTotLocalAmt", unAllocLocalAmt, {
-        shouldDirty: true,
-      })
-    }
-  }, [form, decimals, dataDetails])
+    },
+    [form, decimals, dataDetails]
+  )
 
   // Initialize currency comparison state on component mount and form changes
   React.useEffect(() => {
@@ -448,8 +468,8 @@ export default function ReceiptForm({
         form.setValue("recExhRate", 0)
       }
 
-      // Recalculate all amounts based on currency comparison
-      recalculateAmountsBasedOnCurrency()
+      // Recalculate all amounts based on currency comparison - clear allocations for currency change
+      recalculateAmountsBasedOnCurrency(true)
     },
     [form, exhRateDec, recalculateAmountsBasedOnCurrency]
   )
@@ -464,8 +484,8 @@ export default function ReceiptForm({
         // First update exchange rates
         await setExchangeRate(form, exhRateDec, visible)
 
-        // Recalculate all amounts based on currency comparison
-        recalculateAmountsBasedOnCurrency()
+        // Recalculate all amounts based on currency comparison - clear allocations for currency change
+        recalculateAmountsBasedOnCurrency(true)
       }
     },
     [form, exhRateDec, visible, accountDate, recalculateAmountsBasedOnCurrency]
@@ -477,8 +497,8 @@ export default function ReceiptForm({
       const exhRate = parseNumberWithCommas(e.target.value)
       form.setValue("exhRate", exhRate, { shouldDirty: true })
 
-      // Recalculate all amounts based on currency comparison
-      recalculateAmountsBasedOnCurrency()
+      // Recalculate all amounts based on currency comparison - don't clear allocations for exchange rate change
+      recalculateAmountsBasedOnCurrency(false)
     },
     [form, recalculateAmountsBasedOnCurrency]
   )
@@ -489,8 +509,8 @@ export default function ReceiptForm({
       const recExhRate = parseNumberWithCommas(e.target.value)
       form.setValue("recExhRate", recExhRate, { shouldDirty: true })
 
-      // Recalculate all amounts based on currency comparison
-      recalculateAmountsBasedOnCurrency()
+      // Recalculate all amounts based on currency comparison - don't clear allocations for exchange rate change
+      recalculateAmountsBasedOnCurrency(false)
     },
     [form, recalculateAmountsBasedOnCurrency]
   )
@@ -501,8 +521,8 @@ export default function ReceiptForm({
       const totAmt = parseNumberWithCommas(e.target.value)
       form.setValue("totAmt", totAmt, { shouldDirty: true })
 
-      // Recalculate all amounts based on currency comparison
-      recalculateAmountsBasedOnCurrency()
+      // Recalculate all amounts based on currency comparison - clear allocations for totAmt change
+      recalculateAmountsBasedOnCurrency(true)
     },
     [form, recalculateAmountsBasedOnCurrency]
   )
@@ -513,8 +533,8 @@ export default function ReceiptForm({
       const recTotAmt = parseNumberWithCommas(e.target.value)
       form.setValue("recTotAmt", recTotAmt, { shouldDirty: true })
 
-      // Recalculate all amounts based on currency comparison
-      recalculateAmountsBasedOnCurrency()
+      // Recalculate all amounts based on currency comparison - clear allocations for recTotAmt change
+      recalculateAmountsBasedOnCurrency(true)
     },
     [form, recalculateAmountsBasedOnCurrency]
   )
