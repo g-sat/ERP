@@ -69,11 +69,11 @@ export default function GLPostDetails({ invoiceId }: GLPostDetailsProps) {
     },
     {
       accessorKey: "CurrencyCode",
-      header: "Currency",
+      header: "Currency Code",
     },
     {
       accessorKey: "CurrencyName",
-      header: "Currency",
+      header: "Currency Name",
       hidden: true,
     },
     {

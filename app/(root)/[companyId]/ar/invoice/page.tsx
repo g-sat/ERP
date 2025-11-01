@@ -837,11 +837,11 @@ export default function InvoicePage() {
           form.reset(updatedInvoice)
           form.trigger()
 
+          // Set the invoice number in search input
+          setSearchNo(updatedInvoice.invoiceNo || "")
+
           // Close dialog only on success
           setShowListDialog(false)
-          toast.success(
-            `Invoice ${selectedInvoice.invoiceNo} loaded successfully`
-          )
         }
       } else {
         toast.error(response?.message || "Failed to fetch invoice details")
@@ -888,7 +888,6 @@ export default function InvoicePage() {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       if (isDirty) {
         e.preventDefault()
-        e.returnValue = ""
       }
     }
     window.addEventListener("beforeunload", handleBeforeUnload)
@@ -1348,9 +1347,6 @@ export default function InvoicePage() {
         open={showListDialog}
         onOpenChange={(open) => {
           setShowListDialog(open)
-          if (open) {
-            // Data refresh handled by InvoiceTable component
-          }
         }}
       >
         <DialogContent

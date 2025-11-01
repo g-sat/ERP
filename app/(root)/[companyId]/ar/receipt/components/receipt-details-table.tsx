@@ -123,7 +123,7 @@ export default function ReceiptDetailsTable({
 
     {
       accessorKey: "docCurrencyCode",
-      header: "Currency",
+      header: "Currency Code",
       size: 60,
     },
     {
@@ -290,7 +290,7 @@ export default function ReceiptDetailsTable({
     },
     {
       accessorKey: "docCurrencyId",
-      header: "Currency",
+      header: "Currency ID",
       size: 100,
       cell: ({ row }: { row: { original: IArReceiptDt } }) => (
         <div className="text-right">{row.original.docCurrencyId}</div>

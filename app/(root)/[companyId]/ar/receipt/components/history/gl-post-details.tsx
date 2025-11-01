@@ -77,12 +77,12 @@ export default function GLPostDetails({ receiptId }: GLPostDetailsProps) {
     },
     {
       accessorKey: "CurrencyCode",
-      header: "Currency",
+      header: "Currency Code",
       size: 60,
     },
     {
       accessorKey: "CurrencyName",
-      header: "Currency",
+      header: "Currency Name",
       hidden: true,
     },
     {
@@ -243,14 +243,6 @@ export default function GLPostDetails({ receiptId }: GLPostDetailsProps) {
     {
       accessorKey: "productName",
       header: "Product Name",
-    },
-    {
-      accessorKey: "customerCode",
-      header: "Customer Code",
-    },
-    {
-      accessorKey: "customerName",
-      header: "Customer Name",
     },
     {
       accessorKey: "moduleFrom",

@@ -9,7 +9,6 @@ import { ArReceipt } from "@/lib/api-routes"
 import { formatNumber } from "@/lib/format-utils"
 import { ARTransactionId, ModuleId, TableName } from "@/lib/utils"
 import { useGetWithDatesAndPagination } from "@/hooks/use-common"
-import { useUserSettingDefaults } from "@/hooks/use-settings"
 import { Button } from "@/components/ui/button"
 import { Spinner } from "@/components/ui/spinner"
 import { CustomDateNew } from "@/components/custom/custom-date-new"
@@ -19,12 +18,14 @@ export interface ReceiptTableProps {
   onReceiptSelect: (selectedReceipt: IArReceiptHd | undefined) => void
   onFilterChange: (filters: IArReceiptFilter) => void
   initialFilters?: IArReceiptFilter
+  pageSize: number
 }
 
 export default function ReceiptTable({
   onReceiptSelect,
   onFilterChange,
   initialFilters,
+  pageSize: _pageSize,
 }: ReceiptTableProps) {
   const { decimals } = useAuthStore()
   const amtDec = decimals[0]?.amtDec || 2
@@ -32,7 +33,6 @@ export default function ReceiptTable({
   const exhRateDec = decimals[0]?.exhRateDec || 9
   const dateFormat = decimals[0]?.dateFormat || "dd/MM/yyyy"
   //const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
-  const { defaults } = useUserSettingDefaults()
 
   const moduleId = ModuleId.ar
   const transactionId = ARTransactionId.receipt
@@ -48,9 +48,7 @@ export default function ReceiptTable({
 
   const [searchQuery] = useState("")
   const [currentPage, setCurrentPage] = useState(1)
-  const [pageSize, setPageSize] = useState(
-    defaults?.common?.trnGridTotalRecords || 100
-  )
+  const [pageSize, setPageSize] = useState(_pageSize)
 
   // State to track if search has been clicked
   const [hasSearched, setHasSearched] = useState(false)

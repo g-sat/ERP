@@ -247,7 +247,9 @@ export const calauteLocalAmtandGainLoss = (
 export const calculateManualAllocation = (
   details: IArReceiptDt[],
   rowNumber: number,
-  allocAmt: number
+  allocAmt: number,
+  totAmt?: number,
+  decimals?: IDecimal
 ) => {
   if (!details || rowNumber < 0 || rowNumber >= details.length) {
     return details[rowNumber]
@@ -264,6 +266,35 @@ export const calculateManualAllocation = (
     const absDesired = Math.abs(desired)
     if (absDesired > maxAbs) {
       desired = Math.sign(bal) * maxAbs
+    }
+  }
+
+  // If totAmt is provided, do the calculation with negatives first
+  if (totAmt !== undefined && totAmt > 0) {
+    // Calculate remaining amount after processing all negative balances first
+    let remainingAllocationAmt = Number(totAmt) || 0
+
+    // First, calculate the sum of all negative balances
+    details.forEach((row, idx) => {
+      const balanceAmount = Number(row.docBalAmt) || 0
+      if (balanceAmount < 0 && idx !== rowNumber) {
+        // Subtract negative balance (which adds to remaining)
+        remainingAllocationAmt = decimals
+          ? calculateSubtractionAmount(
+              remainingAllocationAmt,
+              balanceAmount,
+              decimals.amtDec
+            )
+          : remainingAllocationAmt - balanceAmount
+      }
+    })
+
+    // Now check if the desired allocation is valid
+    // Check: (remainingAllocationAmt <= allocAmt) && (allocAmt >= balAmt)
+    const isValid = desired >= bal && remainingAllocationAmt <= desired
+
+    if (!isValid) {
+      desired = 0
     }
   }
 

@@ -143,10 +143,12 @@ export default function Main({
       const arr = updatedData as unknown as IArReceiptDt[]
       if (rowIndex === -1 || rowIndex >= arr.length) return
 
-      calculateManualAllocation(arr, rowIndex, allocValue)
-
       const exhRate = Number(form.getValues("exhRate"))
       const dec = decimals[0] || { amtDec: 2, locAmtDec: 2 }
+      const totAmt = Number(form.getValues("totAmt")) || 0
+
+      calculateManualAllocation(arr, rowIndex, allocValue, totAmt, dec)
+
       calauteLocalAmtandGainLoss(arr, rowIndex, exhRate, dec)
 
       const sumAllocAmt = arr.reduce((s, r) => s + (Number(r.allocAmt) || 0), 0)
@@ -172,7 +174,6 @@ export default function Main({
       form.setValue("allocTotLocalAmt", sumAllocLocalAmt, { shouldDirty: true })
       form.setValue("exhGainLoss", sumExhGainLoss, { shouldDirty: true })
 
-      const totAmt = Number(form.getValues("totAmt"))
       const totLocalAmt = Number(form.getValues("totLocalAmt"))
 
       const { unAllocAmt, unAllocLocalAmt } = calculateUnallocated(
@@ -206,10 +207,7 @@ export default function Main({
         return
       }
 
-      const balAmt = Number(currentItem?.docBalAmt) || 0
-      const allocAmt = Number(value) || 0
-
-      // Validation 1: Don't allow manual entry when totAmt = 0
+      // Don't allow manual entry when totAmt = 0 or totAmt > 0
       const headerTotAmt = Number(form.getValues("totAmt")) || 0
       if (headerTotAmt === 0) {
         toast.error(
@@ -225,21 +223,20 @@ export default function Main({
         return
       }
 
-      // Validation 2: Check if (allocAmt >= balAmt) && (totAmt <= allocAmt)
-      // If condition is NOT met, set amount to 0
-      const isAllocAmtValid = allocAmt >= balAmt && headerTotAmt <= allocAmt
+      // When totAmt > 0, block manual entry and use Auto Allocation only
+      if (headerTotAmt > 0) {
+        toast.error(
+          "Total Amount is greater than zero. Cannot manually allocate. Please use Auto Allocation button."
+        )
+        // Set amount to 0
+        const updatedData = [...currentData]
+        const arr = updatedData as unknown as IArReceiptDt[]
+        const rowIndex = arr.findIndex((r) => r.itemNo === itemNo)
+        if (rowIndex === -1) return
 
-      const updatedData = [...currentData]
-      const arr = updatedData as unknown as IArReceiptDt[]
-      const rowIndex = arr.findIndex((r) => r.itemNo === itemNo)
-      if (rowIndex === -1) return
-
-      // Use helper function to update calculations
-      updateAllocationCalculations(
-        updatedData,
-        rowIndex,
-        isAllocAmtValid ? allocAmt : 0
-      )
+        updateAllocationCalculations(updatedData, rowIndex, 0)
+        return
+      }
     },
     [form, updateAllocationCalculations]
   )

@@ -9,6 +9,7 @@ import {
   ArReceiptHdSchemaType,
   arreceiptHdSchema,
 } from "@/schemas"
+import { usePermissionStore } from "@/stores/permission-store"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { format, parse, subMonths } from "date-fns"
 import {
@@ -28,13 +29,9 @@ import { clientDateFormat, parseDate } from "@/lib/date-utils"
 import { ARTransactionId, ModuleId } from "@/lib/utils"
 import { useDeleteWithRemarks, usePersist } from "@/hooks/use-common"
 import { useGetRequiredFields, useGetVisibleFields } from "@/hooks/use-lookup"
+import { useUserSettingDefaults } from "@/hooks/use-settings"
 import { Button } from "@/components/ui/button"
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Spinner } from "@/components/ui/spinner"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -60,6 +57,16 @@ export default function ReceiptPage() {
   const moduleId = ModuleId.ar
   const transactionId = ARTransactionId.receipt
 
+  const { hasPermission } = usePermissionStore()
+  const { defaults } = useUserSettingDefaults()
+  const pageSize = defaults?.common?.trnGridTotalRecords || 100
+
+  const canView = hasPermission(moduleId, transactionId, "isRead")
+  const canEdit = hasPermission(moduleId, transactionId, "isEdit")
+  const canDelete = hasPermission(moduleId, transactionId, "isDelete")
+  const canCreate = hasPermission(moduleId, transactionId, "isCreate")
+  const _canPost = hasPermission(moduleId, transactionId, "isPost")
+
   const [showListDialog, setShowListDialog] = useState(false)
   const [showSaveConfirm, setShowSaveConfirm] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
@@ -68,7 +75,6 @@ export default function ReceiptPage() {
   const [showResetConfirm, setShowResetConfirm] = useState(false)
   const [showCloneConfirm, setShowCloneConfirm] = useState(false)
   const [isLoadingReceipt, setIsLoadingReceipt] = useState(false)
-  const [isSelectingReceipt, setIsSelectingReceipt] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [receipt, setReceipt] = useState<ArReceiptHdSchemaType | null>(null)
   const [searchNo, setSearchNo] = useState("")
@@ -84,7 +90,7 @@ export default function ReceiptPage() {
     sortBy: "receiptNo",
     sortOrder: "asc",
     pageNumber: 1,
-    pageSize: 15,
+    pageSize: pageSize,
   })
 
   const { data: visibleFieldsData } = useGetVisibleFields(
@@ -278,7 +284,6 @@ export default function ReceiptPage() {
             const updatedSchemaType = transformToSchemaType(
               receiptData as unknown as IArReceiptHd
             )
-            setIsSelectingReceipt(true)
             setReceipt(updatedSchemaType)
             form.reset(updatedSchemaType)
             form.trigger()
@@ -297,7 +302,6 @@ export default function ReceiptPage() {
       toast.error("Network error while saving receipt")
     } finally {
       setIsSaving(false)
-      setIsSelectingReceipt(false)
     }
   }
 
@@ -502,8 +506,6 @@ export default function ReceiptPage() {
   ) => {
     if (!selectedReceipt) return
 
-    setIsSelectingReceipt(true)
-
     try {
       // Fetch receipt details directly using selected receipt's values
       const response = await getById(
@@ -606,10 +608,13 @@ export default function ReceiptPage() {
           form.reset(updatedReceipt)
           form.trigger()
 
+          // Set the receipt number in search input
+          setSearchNo(updatedReceipt.receiptNo || "")
+
           // Close dialog only on success
           setShowListDialog(false)
           toast.success(
-            `Receipt ${selectedReceipt.receiptNo} loaded successfully`
+            `Receipt ${updatedReceipt.receiptNo} loaded successfully`
           )
         }
       } else {
@@ -621,7 +626,7 @@ export default function ReceiptPage() {
       toast.error("Error loading receipt. Please try again.")
       // Keep dialog open on error
     } finally {
-      setIsSelectingReceipt(false)
+      // Selection completed
     }
   }
 
@@ -660,6 +665,11 @@ export default function ReceiptPage() {
     window.addEventListener("beforeunload", handleBeforeUnload)
     return () => window.removeEventListener("beforeunload", handleBeforeUnload)
   }, [form.formState.isDirty])
+
+  // Clear form errors when tab changes
+  useEffect(() => {
+    form.clearErrors()
+  }, [activeTab, form])
 
   const handleReceiptSearch = async (value: string) => {
     if (!value) return
@@ -929,10 +939,13 @@ export default function ReceiptPage() {
               size="sm"
               onClick={() => setShowSaveConfirm(true)}
               disabled={
+                !canView ||
                 isSaving ||
                 saveMutation.isPending ||
                 updateMutation.isPending ||
-                isCancelled
+                isCancelled ||
+                (isEdit && !canEdit) ||
+                (!isEdit && !canCreate)
               }
               className={isEdit ? "bg-blue-600 hover:bg-blue-700" : ""}
             >
@@ -986,10 +999,12 @@ export default function ReceiptPage() {
               size="sm"
               onClick={() => setShowDeleteConfirm(true)}
               disabled={
+                !canView ||
                 !receipt ||
                 receipt.receiptId === "0" ||
                 deleteMutation.isPending ||
-                isCancelled
+                isCancelled ||
+                !canDelete
               }
             >
               {deleteMutation.isPending ? (
@@ -1033,28 +1048,29 @@ export default function ReceiptPage() {
         }}
       >
         <DialogContent
-          className="@container h-[90vh] w-[90vw] !max-w-none overflow-y-auto rounded-lg p-3"
+          className="@container flex h-auto w-[80vw] !max-w-none flex-col gap-0 overflow-hidden rounded-lg p-0"
           onInteractOutside={(e) => e.preventDefault()}
         >
-          <DialogHeader className="pb-2">
-            <div className="flex items-center justify-between">
-              <div>
-                <DialogTitle className="text-2xl font-bold tracking-tight">
-                  Receipt List
-                </DialogTitle>
-                <p className="text-muted-foreground mt-1 text-sm">
-                  Manage and select existing receipts from the list below. Use
-                  search to filter records or create new receipts.
-                </p>
-              </div>
-            </div>
-          </DialogHeader>
+          {/* Header */}
+          <div className="bg-background flex flex-col gap-1 border-b p-2">
+            <DialogTitle className="text-2xl font-bold tracking-tight">
+              Receipt List
+            </DialogTitle>
+            <p className="text-muted-foreground text-sm">
+              Manage and select existing receipts from the list below. Use
+              search to filter records or create new receipts.
+            </p>
+          </div>
 
-          <ReceiptTable
-            onReceiptSelect={handleReceiptSelect}
-            onFilterChange={handleFilterChange}
-            initialFilters={filters}
-          />
+          {/* Table Container - Takes remaining space */}
+          <div className="flex-1 overflow-auto px-4 py-2">
+            <ReceiptTable
+              onReceiptSelect={handleReceiptSelect}
+              onFilterChange={handleFilterChange}
+              initialFilters={filters}
+              pageSize={pageSize || 50}
+            />
+          </div>
         </DialogContent>
       </Dialog>
 
