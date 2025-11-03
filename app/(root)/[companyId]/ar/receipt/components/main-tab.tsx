@@ -94,14 +94,64 @@ export default function Main({
   const handleDelete = (itemNo: number) => {
     const currentData = form.getValues("data_details") || []
     const updatedData = currentData.filter((item) => item.itemNo !== itemNo)
-    form.setValue("data_details", updatedData)
-    setDataDetails(updatedData)
-    form.trigger("data_details")
 
-    // Clear allocation status if no data left
-    if (updatedData.length === 0) {
-      setIsAllocated(false)
+    // Reset all allocations to 0 for remaining records
+    const resetData = updatedData.map((item) => ({
+      ...item,
+      allocAmt: 0,
+    }))
+    const resetArr = resetData as unknown as IArReceiptDt[]
+
+    // Recalculate local amounts and gain/loss after reset
+    const dec = decimals[0] || { amtDec: 2, locAmtDec: 2 }
+    const exhRate = Number(form.getValues("exhRate")) || 1
+    for (let i = 0; i < resetArr.length; i++) {
+      calauteLocalAmtandGainLoss(resetArr, i, exhRate, dec)
     }
+
+    // Update reset data with calculated values
+    const finalResetData: ArReceiptDtSchemaType[] = resetData.map(
+      (item, index) => ({
+        ...item,
+        allocLocalAmt: resetArr[index]?.allocLocalAmt || 0,
+        exhGainLoss: resetArr[index]?.exhGainLoss || 0,
+      })
+    )
+
+    // Reset sums
+    const resetSumAllocAmt = 0
+    const resetSumAllocLocalAmt = 0
+    const resetSumExhGainLoss = 0
+
+    // Recalculate unallocated amounts
+    const totAmt = Number(form.getValues("totAmt")) || 0
+    const totLocalAmt = Number(form.getValues("totLocalAmt")) || 0
+    const { unAllocAmt, unAllocLocalAmt } = calculateUnallocated(
+      totAmt,
+      totLocalAmt,
+      resetSumAllocAmt,
+      resetSumAllocLocalAmt,
+      dec
+    )
+
+    // Update form values
+    form.setValue("data_details", finalResetData, {
+      shouldDirty: true,
+      shouldTouch: true,
+    })
+    setDataDetails(finalResetData)
+    form.setValue("allocTotAmt", resetSumAllocAmt, { shouldDirty: true })
+    form.setValue("allocTotLocalAmt", resetSumAllocLocalAmt, {
+      shouldDirty: true,
+    })
+    form.setValue("exhGainLoss", resetSumExhGainLoss, { shouldDirty: true })
+    form.setValue("unAllocTotAmt", unAllocAmt, { shouldDirty: true })
+    form.setValue("unAllocTotLocalAmt", unAllocLocalAmt, {
+      shouldDirty: true,
+    })
+    setIsAllocated(false)
+    form.trigger("data_details")
+    setRefreshKey((prev) => prev + 1)
   }
 
   const handleBulkDelete = (selectedItemNos: number[]) => {
@@ -109,14 +159,64 @@ export default function Main({
     const updatedData = currentData.filter(
       (item) => !selectedItemNos.includes(item.itemNo)
     )
-    form.setValue("data_details", updatedData)
-    setDataDetails(updatedData)
-    form.trigger("data_details")
 
-    // Clear allocation status if no data left
-    if (updatedData.length === 0) {
-      setIsAllocated(false)
+    // Reset all allocations to 0 for remaining records
+    const resetData = updatedData.map((item) => ({
+      ...item,
+      allocAmt: 0,
+    }))
+    const resetArr = resetData as unknown as IArReceiptDt[]
+
+    // Recalculate local amounts and gain/loss after reset
+    const dec = decimals[0] || { amtDec: 2, locAmtDec: 2 }
+    const exhRate = Number(form.getValues("exhRate")) || 1
+    for (let i = 0; i < resetArr.length; i++) {
+      calauteLocalAmtandGainLoss(resetArr, i, exhRate, dec)
     }
+
+    // Update reset data with calculated values
+    const finalResetData: ArReceiptDtSchemaType[] = resetData.map(
+      (item, index) => ({
+        ...item,
+        allocLocalAmt: resetArr[index]?.allocLocalAmt || 0,
+        exhGainLoss: resetArr[index]?.exhGainLoss || 0,
+      })
+    )
+
+    // Reset sums
+    const resetSumAllocAmt = 0
+    const resetSumAllocLocalAmt = 0
+    const resetSumExhGainLoss = 0
+
+    // Recalculate unallocated amounts
+    const totAmt = Number(form.getValues("totAmt")) || 0
+    const totLocalAmt = Number(form.getValues("totLocalAmt")) || 0
+    const { unAllocAmt, unAllocLocalAmt } = calculateUnallocated(
+      totAmt,
+      totLocalAmt,
+      resetSumAllocAmt,
+      resetSumAllocLocalAmt,
+      dec
+    )
+
+    // Update form values
+    form.setValue("data_details", finalResetData, {
+      shouldDirty: true,
+      shouldTouch: true,
+    })
+    setDataDetails(finalResetData)
+    form.setValue("allocTotAmt", resetSumAllocAmt, { shouldDirty: true })
+    form.setValue("allocTotLocalAmt", resetSumAllocLocalAmt, {
+      shouldDirty: true,
+    })
+    form.setValue("exhGainLoss", resetSumExhGainLoss, { shouldDirty: true })
+    form.setValue("unAllocTotAmt", unAllocAmt, { shouldDirty: true })
+    form.setValue("unAllocTotLocalAmt", unAllocLocalAmt, {
+      shouldDirty: true,
+    })
+    setIsAllocated(false)
+    form.trigger("data_details")
+    setRefreshKey((prev) => prev + 1)
   }
 
   const handleDataReorder = (newData: IArReceiptDt[]) => {
