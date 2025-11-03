@@ -61,7 +61,8 @@ export default function DocumentManagerTable({
       size: 500,
       cell: ({ row }) => {
         const docPath = row.getValue("docPath") as string
-        const documentNo = row.getValue("documentNo") as string
+        // Access documentNo directly from row.original since it's not a column
+        const documentNo = (row.original as { documentNo?: string }).documentNo
         return (
           <div className="flex items-start gap-2">
             <FileText className="mt-0.5 h-4 w-4 flex-shrink-0 text-blue-600" />
