@@ -50,6 +50,9 @@ export default function DynamicCustomerAutocomplete<
   onChangeEvent?: (selectedOption: ICustomerLookup | null) => void
 }) {
   const [query, setQuery] = useState("")
+  const [selectedCustomer, setSelectedCustomer] = useState<ICustomerLookup | null>(
+    null
+  )
   const [justSelected, setJustSelected] = useState(false)
 
   // Get customer name field from id
@@ -62,6 +65,7 @@ export default function DynamicCustomerAutocomplete<
     : ""
 
   // Use customer name for edit mode prefill, otherwise query from typing
+  // Don't make API call if user just selected (to prevent clearing)
   const searchString = justSelected
     ? undefined
     : currentCustomerName && !query
@@ -76,6 +80,9 @@ export default function DynamicCustomerAutocomplete<
     searchString,
   })
 
+  // Use customers from dynamic lookup
+  const displayCustomers = customers
+
   // Handle refresh with animation
   const handleRefresh = React.useCallback(async () => {
     try {
@@ -88,7 +95,7 @@ export default function DynamicCustomerAutocomplete<
   // Memoize options to prevent unnecessary recalculations
   const options: FieldOption[] = React.useMemo(
     () =>
-      customers
+      displayCustomers
         .filter(
           (customer: ICustomerLookup) => customer && customer.customerId != null
         )
@@ -96,8 +103,27 @@ export default function DynamicCustomerAutocomplete<
           value: customer.customerId.toString(),
           label: `${customer.customerCode} - ${customer.customerName}`,
         })),
-    [customers]
+    [displayCustomers]
   )
+
+  // Ensure the currently selected customer is present in options
+  const mergedOptions: FieldOption[] = React.useMemo(() => {
+    if (selectedCustomer) {
+      const exists = options.some(
+        (o) => o.value === selectedCustomer.customerId.toString()
+      )
+      if (!exists) {
+        return [
+          {
+            value: selectedCustomer.customerId.toString(),
+            label: `${selectedCustomer.customerCode} - ${selectedCustomer.customerName}`,
+          },
+          ...options,
+        ]
+      }
+    }
+    return options
+  }, [options, selectedCustomer])
 
   // Custom components with display names
   const DropdownIndicator = React.memo(
@@ -221,36 +247,41 @@ export default function DynamicCustomerAutocomplete<
   )
 
   // Memoize handleChange to prevent unnecessary recreations
-  const handleChange = useCallback(
+  const handleChange = React.useCallback(
     (option: SingleValue<FieldOption> | MultiValue<FieldOption>) => {
       const selectedOption = Array.isArray(option) ? option[0] : option
+
+      // Don't clear query on selection - keep it for better UX
+      // Query will be cleared when user starts typing again
       setJustSelected(true)
+
       if (form && name) {
-        // Set the value as a number
+        // Set the customerId value
         const value = selectedOption ? Number(selectedOption.value) : 0
         form.setValue(name, value as PathValue<T, Path<T>>)
 
-        // Also set customerName
-        if (selectedOption && customerNameField) {
-          const customer = customers.find(
+        // Also set the customerName field
+        if (selectedOption) {
+          const customer = displayCustomers.find(
             (u: ICustomerLookup) =>
               u &&
               u.customerId != null &&
               u.customerId.toString() === selectedOption.value
           )
-          if (customer) {
+          if (customer && customerNameField) {
             form.setValue(
               customerNameField,
               customer.customerName as PathValue<T, Path<T>>
             )
           }
         } else if (customerNameField) {
+          // Clear customerName when no option selected
           form.setValue(customerNameField, "" as PathValue<T, Path<T>>)
         }
       }
       if (onChangeEvent) {
         const selectedUser = selectedOption
-          ? customers.find(
+          ? displayCustomers.find(
               (u: ICustomerLookup) =>
                 u &&
                 u.customerId != null &&
@@ -259,17 +290,38 @@ export default function DynamicCustomerAutocomplete<
           : null
         onChangeEvent(selectedUser)
       }
+      // Persist the selected customer locally so it remains visible
+      if (selectedOption) {
+        const customer = displayCustomers.find(
+          (u: ICustomerLookup) =>
+            u &&
+            u.customerId != null &&
+            u.customerId.toString() === selectedOption.value
+        )
+        if (customer) {
+          setSelectedCustomer(customer)
+        }
+      } else {
+        // Clear selected customer when option is cleared
+        setSelectedCustomer(null)
+      }
     },
-    [form, name, onChangeEvent, customers, customerNameField]
+    [form, name, onChangeEvent, displayCustomers, customerNameField]
   )
 
-  // Keep query after selection. Only change when user types.
+  // Handle input change for search
   const handleInputChange = useCallback(
     (inputValue: string) => {
+      // If user just selected and input is being cleared, don't clear the query
       if (justSelected && inputValue === "") {
-        return
+        return // Don't clear query, don't reset justSelected yet
       }
-      if (justSelected) setJustSelected(false)
+
+      // Reset justSelected flag when user starts typing
+      if (justSelected) {
+        setJustSelected(false)
+      }
+
       setQuery(inputValue)
     },
     [justSelected]
@@ -279,12 +331,14 @@ export default function DynamicCustomerAutocomplete<
   const getValue = React.useCallback(() => {
     if (form && name) {
       const formValue = form.getValues(name)
-      return (
-        options.find((option) => option.value === formValue?.toString()) || null
+      // Convert form value to string for comparison
+      const fromOptions = mergedOptions.find(
+        (option) => option.value === formValue?.toString()
       )
+      return fromOptions || null
     }
     return null
-  }, [form, name, options])
+  }, [form, name, mergedOptions])
 
   if (form && name) {
     return (
@@ -322,7 +376,7 @@ export default function DynamicCustomerAutocomplete<
               <FormItem className={cn("flex flex-col", className)}>
                 <Select
                   instanceId={name || "customer-select"}
-                  options={options}
+                  options={mergedOptions}
                   value={getValue()}
                   onChange={handleChange}
                   onInputChange={handleInputChange}
@@ -395,7 +449,7 @@ export default function DynamicCustomerAutocomplete<
       )}
       <Select
         instanceId={name || "customer-select"}
-        options={options}
+        options={mergedOptions}
         onChange={handleChange}
         onInputChange={handleInputChange}
         placeholder="Select Customer..."

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { useParams } from "next/navigation"
+import { mathRound, setDueDate } from "@/helpers/account"
 import { IArInvoiceDt, IArInvoiceFilter, IArInvoiceHd } from "@/interfaces"
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
 import {
@@ -9,6 +10,7 @@ import {
   ArInvoiceHdSchema,
   ArInvoiceHdSchemaType,
 } from "@/schemas"
+import { useAuthStore } from "@/stores/auth-store"
 import { usePermissionStore } from "@/stores/permission-store"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { format, parse, subMonths } from "date-fns"
@@ -58,6 +60,7 @@ export default function InvoicePage() {
   const transactionId = ARTransactionId.invoice
 
   const { hasPermission } = usePermissionStore()
+  const { decimals } = useAuthStore()
   const { defaults } = useUserSettingDefaults()
   const pageSize = defaults?.common?.trnGridTotalRecords || 100
 
@@ -338,33 +341,120 @@ export default function InvoicePage() {
   }
 
   // Handle Clone
-  const handleCloneInvoice = () => {
+  const handleCloneInvoice = async () => {
     if (invoice) {
       // Create a proper clone with form values
+      const currentDate = new Date()
+      const dateStr = format(currentDate, clientDateFormat)
+
       const clonedInvoice: ArInvoiceHdSchemaType = {
         ...invoice,
         invoiceId: "0",
         invoiceNo: "",
-        // Reset amounts for new invoice
-        totAmt: 0,
-        totLocalAmt: 0,
-        totCtyAmt: 0,
-        gstAmt: 0,
-        gstLocalAmt: 0,
-        gstCtyAmt: 0,
-        totAmtAftGst: 0,
-        totLocalAmtAftGst: 0,
-        totCtyAmtAftGst: 0,
+        // Set all dates to current date
+        trnDate: dateStr,
+        accountDate: dateStr,
+        deliveryDate: dateStr,
+        gstClaimDate: dateStr,
+        // dueDate will be calculated based on accountDate and credit terms
+        dueDate: dateStr,
+        // Clear all audit fields
+        createBy: "",
+        editBy: "",
+        cancelBy: "",
+        createDate: "",
+        editDate: "",
+        cancelDate: "",
+        // Clear all balance and payment amounts
         balAmt: 0,
         balLocalAmt: 0,
         payAmt: 0,
         payLocalAmt: 0,
         exGainLoss: 0,
-        // Reset data details
-        data_details: [],
+        // Clear AP invoice link
+        apInvoiceId: "0",
+        apInvoiceNo: "",
+        // Keep data details - do not remove
+        data_details:
+          invoice.data_details?.map((detail) => ({
+            ...detail,
+            invoiceId: "0",
+            invoiceNo: "",
+            apInvoiceId: "0",
+            apInvoiceNo: "",
+            editVersion: 0,
+          })) || [],
       }
+
+      // Calculate totals from details with proper rounding
+      const amtDec = decimals[0]?.amtDec || 2
+      const locAmtDec = decimals[0]?.locAmtDec || 2
+      const ctyAmtDec = decimals[0]?.ctyAmtDec || 2
+
+      const details = clonedInvoice.data_details || []
+      if (details.length > 0) {
+        const totAmt = details.reduce((sum, d) => sum + (d.totAmt || 0), 0)
+        const gstAmt = details.reduce((sum, d) => sum + (d.gstAmt || 0), 0)
+        const totLocalAmt = details.reduce(
+          (sum, d) => sum + (d.totLocalAmt || 0),
+          0
+        )
+        const gstLocalAmt = details.reduce(
+          (sum, d) => sum + (d.gstLocalAmt || 0),
+          0
+        )
+        const totCtyAmt = details.reduce(
+          (sum, d) => sum + (d.totCtyAmt || 0),
+          0
+        )
+        const gstCtyAmt = details.reduce(
+          (sum, d) => sum + (d.gstCtyAmt || 0),
+          0
+        )
+
+        clonedInvoice.totAmt = mathRound(totAmt, amtDec)
+        clonedInvoice.gstAmt = mathRound(gstAmt, amtDec)
+        clonedInvoice.totAmtAftGst = mathRound(totAmt + gstAmt, amtDec)
+        clonedInvoice.totLocalAmt = mathRound(totLocalAmt, locAmtDec)
+        clonedInvoice.gstLocalAmt = mathRound(gstLocalAmt, locAmtDec)
+        clonedInvoice.totLocalAmtAftGst = mathRound(
+          totLocalAmt + gstLocalAmt,
+          locAmtDec
+        )
+        clonedInvoice.totCtyAmt = mathRound(totCtyAmt, ctyAmtDec)
+        clonedInvoice.gstCtyAmt = mathRound(gstCtyAmt, ctyAmtDec)
+        clonedInvoice.totCtyAmtAftGst = mathRound(
+          totCtyAmt + gstCtyAmt,
+          ctyAmtDec
+        )
+      } else {
+        // Reset amounts if no details
+        clonedInvoice.totAmt = 0
+        clonedInvoice.totLocalAmt = 0
+        clonedInvoice.totCtyAmt = 0
+        clonedInvoice.gstAmt = 0
+        clonedInvoice.gstLocalAmt = 0
+        clonedInvoice.gstCtyAmt = 0
+        clonedInvoice.totAmtAftGst = 0
+        clonedInvoice.totLocalAmtAftGst = 0
+        clonedInvoice.totCtyAmtAftGst = 0
+      }
+
       setInvoice(clonedInvoice)
       form.reset(clonedInvoice)
+
+      // Calculate due date based on accountDate and credit terms
+      if (clonedInvoice.creditTermId && clonedInvoice.accountDate) {
+        try {
+          await setDueDate(form)
+        } catch (error) {
+          console.error("Error calculating due date:", error)
+        }
+      }
+
+      // Clear search input
+      setSearchNo("")
+
       toast.success("Invoice cloned successfully")
     }
   }

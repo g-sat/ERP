@@ -48,6 +48,7 @@ export default function BargeAutocomplete<T extends Record<string, unknown>>({
   onChangeEvent?: (selectedOption: IBargeLookup | null) => void
 }) {
   const [query, setQuery] = useState("")
+  const [selectedBarge, setSelectedBarge] = useState<IBargeLookup | null>(null)
   const [justSelected, setJustSelected] = useState(false)
 
   // Get barge name field from id
@@ -60,6 +61,7 @@ export default function BargeAutocomplete<T extends Record<string, unknown>>({
     : ""
 
   // Use barge name for edit mode prefill, otherwise query from typing
+  // Don't make API call if user just selected (to prevent clearing)
   const searchString = justSelected
     ? undefined
     : currentBargeName && !query
@@ -74,6 +76,9 @@ export default function BargeAutocomplete<T extends Record<string, unknown>>({
     searchString,
   })
 
+  // Use barges from dynamic lookup
+  const displayBarges = barges
+
   // Handle refresh with animation
   const handleRefresh = React.useCallback(async () => {
     try {
@@ -86,12 +91,31 @@ export default function BargeAutocomplete<T extends Record<string, unknown>>({
   // Memoize options to prevent unnecessary recalculations
   const options: FieldOption[] = React.useMemo(
     () =>
-      barges.map((barge: IBargeLookup) => ({
+      displayBarges.map((barge: IBargeLookup) => ({
         value: barge.bargeId.toString(),
         label: barge.bargeName,
       })),
-    [barges]
+    [displayBarges]
   )
+
+  // Ensure the currently selected barge is present in options
+  const mergedOptions: FieldOption[] = React.useMemo(() => {
+    if (selectedBarge) {
+      const exists = options.some(
+        (o) => o.value === selectedBarge.bargeId.toString()
+      )
+      if (!exists) {
+        return [
+          {
+            value: selectedBarge.bargeId.toString(),
+            label: selectedBarge.bargeName,
+          },
+          ...options,
+        ]
+      }
+    }
+    return options
+  }, [options, selectedBarge])
 
   // Custom components with display names
   const DropdownIndicator = React.memo(
@@ -115,25 +139,6 @@ export default function BargeAutocomplete<T extends Record<string, unknown>>({
     }
   )
   ClearIndicator.displayName = "ClearIndicator"
-
-  const IndicatorsContainer = React.memo(
-    (props: { children: React.ReactNode }) => {
-      return (
-        <div className="flex gap-0.5">
-          {props.children}
-          <button
-            type="button"
-            onClick={handleRefresh}
-            className="text-muted-foreground hover:text-foreground rounded-sm p-1 transition-colors"
-            title="Refresh barges"
-          >
-            <IconRefresh size={12} className="size-3 shrink-0" />
-          </button>
-        </div>
-      )
-    }
-  )
-  IndicatorsContainer.displayName = "IndicatorsContainer"
 
   const Option = React.memo((props: OptionProps<FieldOption>) => {
     return (
@@ -183,7 +188,7 @@ export default function BargeAutocomplete<T extends Record<string, unknown>>({
       valueContainer: () => cn("px-0 py-0.5 gap-1"),
       input: () =>
         cn("text-foreground placeholder:text-muted-foreground m-0 p-0"),
-      indicatorsContainer: () => cn("flex gap-0.5"), // Reduced gap between indicators // Gap removed
+      indicatorsContainer: () => cn("flex gap-0.5"), // Reduced gap between indicators
       clearIndicator: () =>
         cn("text-muted-foreground hover:text-foreground p-1 rounded-sm"),
       dropdownIndicator: () => cn("text-muted-foreground p-1 rounded-sm"),
@@ -234,49 +239,72 @@ export default function BargeAutocomplete<T extends Record<string, unknown>>({
   )
 
   // Memoize handleChange to prevent unnecessary recreations
-  const handleChange = useCallback(
+  const handleChange = React.useCallback(
     (option: SingleValue<FieldOption> | MultiValue<FieldOption>) => {
       const selectedOption = Array.isArray(option) ? option[0] : option
+
+      // Don't clear query on selection - keep it for better UX
+      // Query will be cleared when user starts typing again
       setJustSelected(true)
+
       if (form && name) {
-        // Set the value as a number
+        // Set the bargeId value
         const value = selectedOption ? Number(selectedOption.value) : 0
         form.setValue(name, value as PathValue<T, Path<T>>)
 
-        // Also set bargeName
-        if (selectedOption && bargeNameField) {
-          const barge = barges.find(
+        // Also set the bargeName field
+        if (selectedOption) {
+          const barge = displayBarges.find(
             (u: IBargeLookup) => u.bargeId.toString() === selectedOption.value
           )
-          if (barge) {
+          if (barge && bargeNameField) {
             form.setValue(
               bargeNameField,
               barge.bargeName as PathValue<T, Path<T>>
             )
           }
         } else if (bargeNameField) {
+          // Clear bargeName when no option selected
           form.setValue(bargeNameField, "" as PathValue<T, Path<T>>)
         }
       }
       if (onChangeEvent) {
         const selectedBarge = selectedOption
-          ? barges.find(
+          ? displayBarges.find(
               (u: IBargeLookup) => u.bargeId.toString() === selectedOption.value
             ) || null
           : null
         onChangeEvent(selectedBarge)
       }
+      // Persist the selected barge locally so it remains visible
+      if (selectedOption) {
+        const barge = displayBarges.find(
+          (u: IBargeLookup) => u.bargeId.toString() === selectedOption.value
+        )
+        if (barge) {
+          setSelectedBarge(barge)
+        }
+      } else {
+        // Clear selected barge when option is cleared
+        setSelectedBarge(null)
+      }
     },
-    [form, name, onChangeEvent, barges, bargeNameField]
+    [form, name, onChangeEvent, displayBarges, bargeNameField]
   )
 
-  // Keep query after selection. Only change when user types.
+  // Handle input change for search
   const handleInputChange = useCallback(
     (inputValue: string) => {
+      // If user just selected and input is being cleared, don't clear the query
       if (justSelected && inputValue === "") {
-        return
+        return // Don't clear query, don't reset justSelected yet
       }
-      if (justSelected) setJustSelected(false)
+
+      // Reset justSelected flag when user starts typing
+      if (justSelected) {
+        setJustSelected(false)
+      }
+
       setQuery(inputValue)
     },
     [justSelected]
@@ -286,21 +314,39 @@ export default function BargeAutocomplete<T extends Record<string, unknown>>({
   const getValue = React.useCallback(() => {
     if (form && name) {
       const formValue = form.getValues(name)
-      return (
-        options.find((option) => option.value === formValue?.toString()) || null
+      // Convert form value to string for comparison
+      const fromOptions = mergedOptions.find(
+        (option) => option.value === formValue?.toString()
       )
+      return fromOptions || null
     }
     return null
-  }, [form, name, options])
+  }, [form, name, mergedOptions])
 
   if (form && name) {
     return (
       <div className={cn("flex flex-col gap-1", className)}>
         {label && (
-          <Label htmlFor={name} className="text-sm font-medium">
-            {label}
-            {isRequired && <span className="ml-1 text-red-500">*</span>}
-          </Label>
+          <div className="flex items-center gap-1">
+            <Label htmlFor={name} className="text-sm font-medium">
+              {label}
+            </Label>
+            <button
+              type="button"
+              onClick={handleRefresh}
+              disabled={isLoading}
+              className="hover:bg-accent flex items-center justify-center rounded-sm p-0.5 transition-colors disabled:opacity-50"
+              title="Refresh barges"
+            >
+              <IconRefresh
+                size={12}
+                className={`text-muted-foreground hover:text-foreground transition-colors ${
+                  isLoading ? "animate-spin" : ""
+                }`}
+              />
+            </button>
+            {isRequired && <span className="text-sm text-red-500">*</span>}
+          </div>
         )}
         <FormField
           control={form.control}
@@ -312,7 +358,7 @@ export default function BargeAutocomplete<T extends Record<string, unknown>>({
             return (
               <FormItem className={cn("flex flex-col", className)}>
                 <Select
-                  options={options}
+                  options={mergedOptions}
                   value={getValue()}
                   onChange={handleChange}
                   onInputChange={handleInputChange}
@@ -326,7 +372,6 @@ export default function BargeAutocomplete<T extends Record<string, unknown>>({
                     DropdownIndicator,
                     ClearIndicator,
                     Option,
-                    IndicatorsContainer,
                   }}
                   className="react-select-container"
                   classNamePrefix="react-select__"
@@ -354,22 +399,38 @@ export default function BargeAutocomplete<T extends Record<string, unknown>>({
   return (
     <div className={cn("flex flex-col gap-1", className)}>
       {label && (
-        <div
-          className={cn(
-            "text-sm font-medium",
-            isDisabled && "text-muted-foreground opacity-70"
-          )}
-        >
-          {label}
+        <div className="flex items-center gap-1">
+          <div
+            className={cn(
+              "text-sm font-medium",
+              isDisabled && "text-muted-foreground opacity-70"
+            )}
+          >
+            {label}
+          </div>
+          <button
+            type="button"
+            onClick={handleRefresh}
+            disabled={isLoading}
+            className="hover:bg-accent flex items-center justify-center rounded-sm p-0.5 transition-colors disabled:opacity-50"
+            title="Refresh barges"
+          >
+            <IconRefresh
+              size={12}
+              className={`text-muted-foreground hover:text-foreground transition-colors ${
+                isLoading ? "animate-spin" : ""
+              }`}
+            />
+          </button>
           {isRequired && (
-            <span className="text-destructive ml-1" aria-hidden="true">
+            <span className="text-destructive text-sm" aria-hidden="true">
               *
             </span>
           )}
         </div>
       )}
       <Select
-        options={options}
+        options={mergedOptions}
         onChange={handleChange}
         onInputChange={handleInputChange}
         placeholder="Select Barge..."
@@ -382,7 +443,6 @@ export default function BargeAutocomplete<T extends Record<string, unknown>>({
           DropdownIndicator,
           ClearIndicator,
           Option,
-          IndicatorsContainer,
         }}
         className="react-select-container"
         classNamePrefix="react-select__"

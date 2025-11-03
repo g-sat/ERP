@@ -9,6 +9,7 @@ import {
   ArReceiptHdSchemaType,
   arreceiptHdSchema,
 } from "@/schemas"
+import { useAuthStore } from "@/stores/auth-store"
 import { usePermissionStore } from "@/stores/permission-store"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { format, parse, subMonths } from "date-fns"
@@ -58,6 +59,7 @@ export default function ReceiptPage() {
   const transactionId = ARTransactionId.receipt
 
   const { hasPermission } = usePermissionStore()
+  const { decimals } = useAuthStore()
   const { defaults } = useUserSettingDefaults()
   const pageSize = defaults?.common?.trnGridTotalRecords || 100
 
@@ -309,11 +311,25 @@ export default function ReceiptPage() {
   const handleCloneReceipt = () => {
     if (receipt) {
       // Create a proper clone with form values
+      const currentDate = new Date()
+      const dateStr = format(currentDate, clientDateFormat)
+
       const clonedReceipt: ArReceiptHdSchemaType = {
         ...receipt,
         receiptId: "0",
         receiptNo: "",
-        // Reset amounts for new receipt
+        // Set all dates to current date
+        trnDate: dateStr,
+        accountDate: dateStr,
+        chequeDate: dateStr,
+        // Clear all audit fields
+        createBy: "",
+        editBy: "",
+        cancelBy: "",
+        createDate: "",
+        editDate: "",
+        cancelDate: "",
+        // Clear all amounts for new receipt
         totAmt: 0,
         totLocalAmt: 0,
         recTotAmt: 0,
@@ -327,11 +343,16 @@ export default function ReceiptPage() {
         allocTotLocalAmt: 0,
         bankChgAmt: 0,
         bankChgLocalAmt: 0,
-        // Reset data details
+        // Clear data details - remove all records
         data_details: [],
       }
+
       setReceipt(clonedReceipt)
       form.reset(clonedReceipt)
+
+      // Clear search input
+      setSearchNo("")
+
       toast.success("Receipt cloned successfully")
     }
   }

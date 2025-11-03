@@ -109,28 +109,33 @@ export default function InvoiceForm({
     [decimals, exhRateDec, form, visible]
   )
 
-  // Handle transaction date selection
+  // Handle account date selection
   const handleAccountDateChange = React.useCallback(
-    async (_selectedAccountDate: Date | null) => {
-      // Additional logic when transaction date changes
-      const { accountDate } = form?.getValues()
-      form.setValue("gstClaimDate", accountDate)
-      form?.trigger("gstClaimDate")
+    async (selectedAccountDate: Date | null) => {
+      // Get the updated account date from form (should be set by CustomDateNew)
+      const accountDate = form?.getValues("accountDate") || selectedAccountDate
 
-      form.setValue("deliveryDate", accountDate)
-      form?.trigger("deliveryDate")
+      if (accountDate) {
+        // Set gstClaimDate and deliveryDate to the new account date
+        form.setValue("gstClaimDate", accountDate)
+        form?.trigger("gstClaimDate")
 
-      await setExchangeRate(form, exhRateDec, visible)
-      if (visible?.m_CtyCurr) {
-        await setExchangeRateLocal(form, exhRateDec)
+        form.setValue("deliveryDate", accountDate)
+        form?.trigger("deliveryDate")
+
+        // Ensure accountDate is set in form (in case it wasn't updated yet)
+        if (selectedAccountDate) {
+          form.setValue("accountDate", selectedAccountDate)
+        }
+
+        await setExchangeRate(form, exhRateDec, visible)
+        if (visible?.m_CtyCurr) {
+          await setExchangeRateLocal(form, exhRateDec)
+        }
+
+        // Call setDueDate after all other updates to ensure accountDate and deliveryDate are set
+        await setDueDate(form)
       }
-      await setGSTPercentage(
-        form,
-        form.getValues("data_details"),
-        decimals[0],
-        visible
-      )
-      await setDueDate(form)
     },
     [decimals, exhRateDec, form, visible]
   )

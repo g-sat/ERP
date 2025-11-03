@@ -48,6 +48,9 @@ export default function VoyageAutocomplete<T extends Record<string, unknown>>({
   onChangeEvent?: (selectedOption: IVoyageLookup | null) => void
 }) {
   const [query, setQuery] = useState("")
+  const [selectedVoyage, setSelectedVoyage] = useState<IVoyageLookup | null>(
+    null
+  )
   const [justSelected, setJustSelected] = useState(false)
 
   // Get voyage no field from id
@@ -58,6 +61,7 @@ export default function VoyageAutocomplete<T extends Record<string, unknown>>({
     : ""
 
   // Use voyage no for edit mode prefill, otherwise query from typing
+  // Don't make API call if user just selected (to prevent clearing)
   const searchString = justSelected
     ? undefined
     : currentVoyageNo && !query
@@ -72,6 +76,9 @@ export default function VoyageAutocomplete<T extends Record<string, unknown>>({
     searchString,
   })
 
+  // Use voyages from dynamic lookup
+  const displayVoyages = voyages
+
   // Handle refresh with animation
   const handleRefresh = React.useCallback(async () => {
     try {
@@ -84,12 +91,31 @@ export default function VoyageAutocomplete<T extends Record<string, unknown>>({
   // Memoize options to prevent unnecessary recalculations
   const options: FieldOption[] = React.useMemo(
     () =>
-      voyages.map((voyage: IVoyageLookup) => ({
+      displayVoyages.map((voyage: IVoyageLookup) => ({
         value: voyage.voyageId.toString(),
         label: voyage.voyageNo,
       })),
-    [voyages]
+    [displayVoyages]
   )
+
+  // Ensure the currently selected voyage is present in options
+  const mergedOptions: FieldOption[] = React.useMemo(() => {
+    if (selectedVoyage) {
+      const exists = options.some(
+        (o) => o.value === selectedVoyage.voyageId.toString()
+      )
+      if (!exists) {
+        return [
+          {
+            value: selectedVoyage.voyageId.toString(),
+            label: selectedVoyage.voyageNo,
+          },
+          ...options,
+        ]
+      }
+    }
+    return options
+  }, [options, selectedVoyage])
 
   // Custom components with display names
   const DropdownIndicator = React.memo(
@@ -213,50 +239,73 @@ export default function VoyageAutocomplete<T extends Record<string, unknown>>({
   )
 
   // Memoize handleChange to prevent unnecessary recreations
-  const handleChange = useCallback(
+  const handleChange = React.useCallback(
     (option: SingleValue<FieldOption> | MultiValue<FieldOption>) => {
       const selectedOption = Array.isArray(option) ? option[0] : option
+
+      // Don't clear query on selection - keep it for better UX
+      // Query will be cleared when user starts typing again
       setJustSelected(true)
+
       if (form && name) {
-        // Set the value as a number
+        // Set the voyageId value
         const value = selectedOption ? Number(selectedOption.value) : 0
         form.setValue(name, value as PathValue<T, Path<T>>)
 
-        // Also set voyageNo
-        if (selectedOption && voyageNoField) {
-          const voyage = voyages.find(
+        // Also set the voyageNo field
+        if (selectedOption) {
+          const voyage = displayVoyages.find(
             (u: IVoyageLookup) => u.voyageId.toString() === selectedOption.value
           )
-          if (voyage) {
+          if (voyage && voyageNoField) {
             form.setValue(
               voyageNoField,
               voyage.voyageNo as PathValue<T, Path<T>>
             )
           }
         } else if (voyageNoField) {
+          // Clear voyageNo when no option selected
           form.setValue(voyageNoField, "" as PathValue<T, Path<T>>)
         }
       }
       if (onChangeEvent) {
         const selectedVoyage = selectedOption
-          ? voyages.find(
+          ? displayVoyages.find(
               (u: IVoyageLookup) =>
                 u.voyageId.toString() === selectedOption.value
             ) || null
           : null
         onChangeEvent(selectedVoyage)
       }
+      // Persist the selected voyage locally so it remains visible
+      if (selectedOption) {
+        const voyage = displayVoyages.find(
+          (u: IVoyageLookup) => u.voyageId.toString() === selectedOption.value
+        )
+        if (voyage) {
+          setSelectedVoyage(voyage)
+        }
+      } else {
+        // Clear selected voyage when option is cleared
+        setSelectedVoyage(null)
+      }
     },
-    [form, name, onChangeEvent, voyages, voyageNoField]
+    [form, name, onChangeEvent, displayVoyages, voyageNoField]
   )
 
-  // Keep query after selection. Only change when user types.
+  // Handle input change for search
   const handleInputChange = useCallback(
     (inputValue: string) => {
+      // If user just selected and input is being cleared, don't clear the query
       if (justSelected && inputValue === "") {
-        return
+        return // Don't clear query, don't reset justSelected yet
       }
-      if (justSelected) setJustSelected(false)
+
+      // Reset justSelected flag when user starts typing
+      if (justSelected) {
+        setJustSelected(false)
+      }
+
       setQuery(inputValue)
     },
     [justSelected]
@@ -267,12 +316,13 @@ export default function VoyageAutocomplete<T extends Record<string, unknown>>({
     if (form && name) {
       const formValue = form.getValues(name)
       // Convert form value to string for comparison
-      return (
-        options.find((option) => option.value === formValue?.toString()) || null
+      const fromOptions = mergedOptions.find(
+        (option) => option.value === formValue?.toString()
       )
+      return fromOptions || null
     }
     return null
-  }, [form, name, options])
+  }, [form, name, mergedOptions])
 
   if (form && name) {
     return (
@@ -309,7 +359,7 @@ export default function VoyageAutocomplete<T extends Record<string, unknown>>({
             return (
               <FormItem className={cn("flex flex-col", className)}>
                 <Select
-                  options={options}
+                  options={mergedOptions}
                   value={getValue()}
                   onChange={handleChange}
                   onInputChange={handleInputChange}
@@ -381,7 +431,7 @@ export default function VoyageAutocomplete<T extends Record<string, unknown>>({
         </div>
       )}
       <Select
-        options={options}
+        options={mergedOptions}
         onChange={handleChange}
         onInputChange={handleInputChange}
         placeholder="Select Voyage..."

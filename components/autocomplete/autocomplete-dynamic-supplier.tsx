@@ -50,6 +50,9 @@ export default function SupplierAutocomplete<
   onChangeEvent?: (selectedOption: ISupplierLookup | null) => void
 }) {
   const [query, setQuery] = useState("")
+  const [selectedSupplier, setSelectedSupplier] = useState<ISupplierLookup | null>(
+    null
+  )
   const [justSelected, setJustSelected] = useState(false)
 
   // Get supplier name field from id
@@ -62,6 +65,7 @@ export default function SupplierAutocomplete<
     : ""
 
   // Use supplier name for edit mode prefill, otherwise query from typing
+  // Don't make API call if user just selected (to prevent clearing)
   const searchString = justSelected
     ? undefined
     : currentSupplierName && !query
@@ -76,6 +80,9 @@ export default function SupplierAutocomplete<
     searchString,
   })
 
+  // Use suppliers from dynamic lookup
+  const displaySuppliers = suppliers
+
   // Handle refresh with animation
   const handleRefresh = React.useCallback(async () => {
     try {
@@ -88,7 +95,7 @@ export default function SupplierAutocomplete<
   // Memoize options to prevent unnecessary recalculations
   const options: FieldOption[] = React.useMemo(
     () =>
-      suppliers
+      displaySuppliers
         .filter(
           (supplier: ISupplierLookup) => supplier && supplier.supplierId != null
         )
@@ -96,8 +103,27 @@ export default function SupplierAutocomplete<
           value: supplier.supplierId.toString(),
           label: `${supplier.supplierCode} - ${supplier.supplierName}`,
         })),
-    [suppliers]
+    [displaySuppliers]
   )
+
+  // Ensure the currently selected supplier is present in options
+  const mergedOptions: FieldOption[] = React.useMemo(() => {
+    if (selectedSupplier) {
+      const exists = options.some(
+        (o) => o.value === selectedSupplier.supplierId.toString()
+      )
+      if (!exists) {
+        return [
+          {
+            value: selectedSupplier.supplierId.toString(),
+            label: `${selectedSupplier.supplierCode} - ${selectedSupplier.supplierName}`,
+          },
+          ...options,
+        ]
+      }
+    }
+    return options
+  }, [options, selectedSupplier])
 
   // Custom components with display names
   const DropdownIndicator = React.memo(
@@ -170,7 +196,7 @@ export default function SupplierAutocomplete<
       valueContainer: () => cn("px-0 py-0.5 gap-1"),
       input: () =>
         cn("text-foreground placeholder:text-muted-foreground m-0 p-0"),
-      indicatorsContainer: () => cn(""), // Gap removed
+      indicatorsContainer: () => cn("flex gap-0.5"), // Reduced gap between indicators
       clearIndicator: () =>
         cn("text-muted-foreground hover:text-foreground p-1 rounded-sm"),
       dropdownIndicator: () => cn("text-muted-foreground p-1 rounded-sm"),
@@ -221,36 +247,41 @@ export default function SupplierAutocomplete<
   )
 
   // Memoize handleChange to prevent unnecessary recreations
-  const handleChange = useCallback(
+  const handleChange = React.useCallback(
     (option: SingleValue<FieldOption> | MultiValue<FieldOption>) => {
       const selectedOption = Array.isArray(option) ? option[0] : option
+
+      // Don't clear query on selection - keep it for better UX
+      // Query will be cleared when user starts typing again
       setJustSelected(true)
+
       if (form && name) {
-        // Set the value as a number
+        // Set the supplierId value
         const value = selectedOption ? Number(selectedOption.value) : 0
         form.setValue(name, value as PathValue<T, Path<T>>)
 
-        // Also set supplierName
-        if (selectedOption && supplierNameField) {
-          const supplier = suppliers.find(
+        // Also set the supplierName field
+        if (selectedOption) {
+          const supplier = displaySuppliers.find(
             (u: ISupplierLookup) =>
               u &&
               u.supplierId != null &&
               u.supplierId.toString() === selectedOption.value
           )
-          if (supplier) {
+          if (supplier && supplierNameField) {
             form.setValue(
               supplierNameField,
               supplier.supplierName as PathValue<T, Path<T>>
             )
           }
         } else if (supplierNameField) {
+          // Clear supplierName when no option selected
           form.setValue(supplierNameField, "" as PathValue<T, Path<T>>)
         }
       }
       if (onChangeEvent) {
         const selectedUser = selectedOption
-          ? suppliers.find(
+          ? displaySuppliers.find(
               (u: ISupplierLookup) =>
                 u &&
                 u.supplierId != null &&
@@ -259,17 +290,38 @@ export default function SupplierAutocomplete<
           : null
         onChangeEvent(selectedUser)
       }
+      // Persist the selected supplier locally so it remains visible
+      if (selectedOption) {
+        const supplier = displaySuppliers.find(
+          (u: ISupplierLookup) =>
+            u &&
+            u.supplierId != null &&
+            u.supplierId.toString() === selectedOption.value
+        )
+        if (supplier) {
+          setSelectedSupplier(supplier)
+        }
+      } else {
+        // Clear selected supplier when option is cleared
+        setSelectedSupplier(null)
+      }
     },
-    [form, name, onChangeEvent, suppliers, supplierNameField]
+    [form, name, onChangeEvent, displaySuppliers, supplierNameField]
   )
 
-  // Keep query after selection. Only change when user types.
+  // Handle input change for search
   const handleInputChange = useCallback(
     (inputValue: string) => {
+      // If user just selected and input is being cleared, don't clear the query
       if (justSelected && inputValue === "") {
-        return
+        return // Don't clear query, don't reset justSelected yet
       }
-      if (justSelected) setJustSelected(false)
+
+      // Reset justSelected flag when user starts typing
+      if (justSelected) {
+        setJustSelected(false)
+      }
+
       setQuery(inputValue)
     },
     [justSelected]
@@ -279,12 +331,14 @@ export default function SupplierAutocomplete<
   const getValue = React.useCallback(() => {
     if (form && name) {
       const formValue = form.getValues(name)
-      return (
-        options.find((option) => option.value === formValue?.toString()) || null
+      // Convert form value to string for comparison
+      const fromOptions = mergedOptions.find(
+        (option) => option.value === formValue?.toString()
       )
+      return fromOptions || null
     }
     return null
-  }, [form, name, options])
+  }, [form, name, mergedOptions])
 
   if (form && name) {
     return (
@@ -322,7 +376,7 @@ export default function SupplierAutocomplete<
               <FormItem className={cn("flex flex-col", className)}>
                 <Select
                   instanceId={name || "supplier-select"}
-                  options={options}
+                  options={mergedOptions}
                   value={getValue()}
                   onChange={handleChange}
                   onInputChange={handleInputChange}
@@ -395,7 +449,7 @@ export default function SupplierAutocomplete<
       )}
       <Select
         instanceId={name || "supplier-select"}
-        options={options}
+        options={mergedOptions}
         onChange={handleChange}
         onInputChange={handleInputChange}
         placeholder="Select Supplier..."

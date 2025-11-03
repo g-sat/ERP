@@ -48,6 +48,9 @@ export default function ProductAutocomplete<T extends Record<string, unknown>>({
   onChangeEvent?: (selectedOption: IProductLookup | null) => void
 }) {
   const [query, setQuery] = useState("")
+  const [selectedProduct, setSelectedProduct] = useState<IProductLookup | null>(
+    null
+  )
   const [justSelected, setJustSelected] = useState(false)
 
   // Get product name field from id
@@ -60,6 +63,7 @@ export default function ProductAutocomplete<T extends Record<string, unknown>>({
     : ""
 
   // Use product name for edit mode prefill, otherwise query from typing
+  // Don't make API call if user just selected (to prevent clearing)
   const searchString = justSelected
     ? undefined
     : currentProductName && !query
@@ -74,6 +78,9 @@ export default function ProductAutocomplete<T extends Record<string, unknown>>({
     searchString,
   })
 
+  // Use products from dynamic lookup
+  const displayProducts = products
+
   // Handle refresh with animation
   const handleRefresh = React.useCallback(async () => {
     try {
@@ -86,18 +93,31 @@ export default function ProductAutocomplete<T extends Record<string, unknown>>({
   // Memoize options to prevent unnecessary recalculations
   const options: FieldOption[] = React.useMemo(
     () =>
-      products.map((product: IProductLookup) => ({
+      displayProducts.map((product: IProductLookup) => ({
         value: product.productId.toString(),
         label: product.productName,
       })),
-    [products]
+    [displayProducts]
   )
 
-  // SSR hydration fix: only render Select after mount
-  const [mounted, setMounted] = React.useState(false)
-  React.useEffect(() => {
-    setMounted(true)
-  }, [])
+  // Ensure the currently selected product is present in options
+  const mergedOptions: FieldOption[] = React.useMemo(() => {
+    if (selectedProduct) {
+      const exists = options.some(
+        (o) => o.value === selectedProduct.productId.toString()
+      )
+      if (!exists) {
+        return [
+          {
+            value: selectedProduct.productId.toString(),
+            label: selectedProduct.productName,
+          },
+          ...options,
+        ]
+      }
+    }
+    return options
+  }, [options, selectedProduct])
 
   // Custom components with display names
   const DropdownIndicator = React.memo(
@@ -170,7 +190,7 @@ export default function ProductAutocomplete<T extends Record<string, unknown>>({
       valueContainer: () => cn("px-0 py-0.5 gap-1"),
       input: () =>
         cn("text-foreground placeholder:text-muted-foreground m-0 p-0"),
-      indicatorsContainer: () => cn(""), // Gap removed
+      indicatorsContainer: () => cn("flex gap-0.5"), // Reduced gap between indicators
       clearIndicator: () =>
         cn("text-muted-foreground hover:text-foreground p-1 rounded-sm"),
       dropdownIndicator: () => cn("text-muted-foreground p-1 rounded-sm"),
@@ -221,51 +241,74 @@ export default function ProductAutocomplete<T extends Record<string, unknown>>({
   )
 
   // Memoize handleChange to prevent unnecessary recreations
-  const handleChange = useCallback(
+  const handleChange = React.useCallback(
     (option: SingleValue<FieldOption> | MultiValue<FieldOption>) => {
       const selectedOption = Array.isArray(option) ? option[0] : option
+
+      // Don't clear query on selection - keep it for better UX
+      // Query will be cleared when user starts typing again
       setJustSelected(true)
+
       if (form && name) {
-        // Set the value as a number
+        // Set the productId value
         const value = selectedOption ? Number(selectedOption.value) : 0
         form.setValue(name, value as PathValue<T, Path<T>>)
 
-        // Also set productName
-        if (selectedOption && productNameField) {
-          const product = products.find(
+        // Also set the productName field
+        if (selectedOption) {
+          const product = displayProducts.find(
             (u: IProductLookup) =>
               u.productId.toString() === selectedOption.value
           )
-          if (product) {
+          if (product && productNameField) {
             form.setValue(
               productNameField,
               product.productName as PathValue<T, Path<T>>
             )
           }
         } else if (productNameField) {
+          // Clear productName when no option selected
           form.setValue(productNameField, "" as PathValue<T, Path<T>>)
         }
       }
       if (onChangeEvent) {
         const selectedProduct = selectedOption
-          ? products.find(
+          ? displayProducts.find(
               (u: IProductLookup) =>
                 u.productId.toString() === selectedOption.value
             ) || null
           : null
         onChangeEvent(selectedProduct)
       }
+      // Persist the selected product locally so it remains visible
+      if (selectedOption) {
+        const product = displayProducts.find(
+          (u: IProductLookup) => u.productId.toString() === selectedOption.value
+        )
+        if (product) {
+          setSelectedProduct(product)
+        }
+      } else {
+        // Clear selected product when option is cleared
+        setSelectedProduct(null)
+      }
     },
-    [form, name, onChangeEvent, products, productNameField]
+    [form, name, onChangeEvent, displayProducts, productNameField]
   )
 
-  // Keep query after selection. Only change when user types.
+  // Handle input change for search
   const handleInputChange = useCallback(
     (inputValue: string) => {
+      // If user just selected and input is being cleared, don't clear the query
       if (justSelected && inputValue === "") {
-        return
+        return // Don't clear query, don't reset justSelected yet
       }
-      if (justSelected) setJustSelected(false)
+
+      // Reset justSelected flag when user starts typing
+      if (justSelected) {
+        setJustSelected(false)
+      }
+
       setQuery(inputValue)
     },
     [justSelected]
@@ -276,17 +319,13 @@ export default function ProductAutocomplete<T extends Record<string, unknown>>({
     if (form && name) {
       const formValue = form.getValues(name)
       // Convert form value to string for comparison
-      return (
-        options.find((option) => option.value === formValue?.toString()) || null
+      const fromOptions = mergedOptions.find(
+        (option) => option.value === formValue?.toString()
       )
+      return fromOptions || null
     }
     return null
-  }, [form, name, options])
-
-  if (!mounted) {
-    // Optionally, return a skeleton/loader here
-    return null
-  }
+  }, [form, name, mergedOptions])
 
   if (form && name) {
     return (
@@ -323,7 +362,7 @@ export default function ProductAutocomplete<T extends Record<string, unknown>>({
             return (
               <FormItem className={cn("flex flex-col", className)}>
                 <Select
-                  options={options}
+                  options={mergedOptions}
                   value={getValue()}
                   onChange={handleChange}
                   onInputChange={handleInputChange}
@@ -395,7 +434,7 @@ export default function ProductAutocomplete<T extends Record<string, unknown>>({
         </div>
       )}
       <Select
-        options={options}
+        options={mergedOptions}
         onChange={handleChange}
         onInputChange={handleInputChange}
         placeholder="Select Product..."

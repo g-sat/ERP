@@ -2,7 +2,12 @@
 
 import React, { useCallback, useState } from "react"
 import { IJobOrderLookup } from "@/interfaces/lookup"
-import { IconCheck, IconChevronDown, IconX } from "@tabler/icons-react"
+import {
+  IconCheck,
+  IconChevronDown,
+  IconRefresh,
+  IconX,
+} from "@tabler/icons-react"
 import { Path, PathValue, UseFormReturn } from "react-hook-form"
 import Select, {
   ClearIndicatorProps,
@@ -45,6 +50,9 @@ export default function DynamicJobOrderAutocomplete<
   onChangeEvent?: (selectedOption: IJobOrderLookup | null) => void
 }) {
   const [query, setQuery] = useState("")
+  const [selectedJobOrder, setSelectedJobOrder] = useState<IJobOrderLookup | null>(
+    null
+  )
   const [justSelected, setJustSelected] = useState(false)
 
   // Determine job order no field from id
@@ -55,24 +63,61 @@ export default function DynamicJobOrderAutocomplete<
     : ""
 
   // Use job order no for edit mode prefill, otherwise query from typing
+  // Don't make API call if user just selected (to prevent clearing)
   const searchString = justSelected
     ? undefined
     : currentJobOrderNo && !query
       ? currentJobOrderNo
       : query || undefined
 
-  const { data: jobOrders = [], isLoading } = useJobOrderDynamicLookup({
+  const {
+    data: jobOrders = [],
+    isLoading,
+    refetch,
+  } = useJobOrderDynamicLookup({
     searchString,
   })
+
+  // Use job orders from dynamic lookup
+  const displayJobOrders = jobOrders
+
+  // Handle refresh with animation
+  const handleRefresh = React.useCallback(async () => {
+    try {
+      await refetch()
+    } catch (error) {
+      console.error("Error refreshing job orders:", error)
+    }
+  }, [refetch])
+
   // Memoize options to prevent unnecessary recalculations
   const options: FieldOption[] = React.useMemo(
     () =>
-      jobOrders.map((jobOrder: IJobOrderLookup) => ({
+      displayJobOrders.map((jobOrder: IJobOrderLookup) => ({
         value: jobOrder.jobOrderId.toString(),
         label: jobOrder.jobOrderNo,
       })),
-    [jobOrders]
+    [displayJobOrders]
   )
+
+  // Ensure the currently selected job order is present in options
+  const mergedOptions: FieldOption[] = React.useMemo(() => {
+    if (selectedJobOrder) {
+      const exists = options.some(
+        (o) => o.value === selectedJobOrder.jobOrderId.toString()
+      )
+      if (!exists) {
+        return [
+          {
+            value: selectedJobOrder.jobOrderId.toString(),
+            label: selectedJobOrder.jobOrderNo,
+          },
+          ...options,
+        ]
+      }
+    }
+    return options
+  }, [options, selectedJobOrder])
 
   // Custom components with display names
   const DropdownIndicator = React.memo(
@@ -145,7 +190,7 @@ export default function DynamicJobOrderAutocomplete<
       valueContainer: () => cn("px-0 py-0.5 gap-1"),
       input: () =>
         cn("text-foreground placeholder:text-muted-foreground m-0 p-0"),
-      indicatorsContainer: () => cn(""), // Gap removed
+      indicatorsContainer: () => cn("flex gap-0.5"), // Reduced gap between indicators
       clearIndicator: () =>
         cn("text-muted-foreground hover:text-foreground p-1 rounded-sm"),
       dropdownIndicator: () => cn("text-muted-foreground p-1 rounded-sm"),
@@ -199,48 +244,71 @@ export default function DynamicJobOrderAutocomplete<
   const handleChange = React.useCallback(
     (option: SingleValue<FieldOption> | MultiValue<FieldOption>) => {
       const selectedOption = Array.isArray(option) ? option[0] : option
+
+      // Don't clear query on selection - keep it for better UX
+      // Query will be cleared when user starts typing again
       setJustSelected(true)
+
       if (form && name) {
-        // Set the value as a number
+        // Set the jobOrderId value
         const value = selectedOption ? Number(selectedOption.value) : 0
         form.setValue(name, value as PathValue<T, Path<T>>)
 
-        // Also set jobOrderNo
-        if (selectedOption && jobOrderNoField) {
-          const jo = jobOrders.find(
+        // Also set the jobOrderNo field
+        if (selectedOption) {
+          const jo = displayJobOrders.find(
             (u: IJobOrderLookup) =>
               u.jobOrderId.toString() === selectedOption.value
           )
-          if (jo) {
+          if (jo && jobOrderNoField) {
             form.setValue(
               jobOrderNoField,
               jo.jobOrderNo as PathValue<T, Path<T>>
             )
           }
         } else if (jobOrderNoField) {
+          // Clear jobOrderNo when no option selected
           form.setValue(jobOrderNoField, "" as PathValue<T, Path<T>>)
         }
       }
       if (onChangeEvent) {
         const selectedJobOrder = selectedOption
-          ? jobOrders.find(
+          ? displayJobOrders.find(
               (u: IJobOrderLookup) =>
                 u.jobOrderId.toString() === selectedOption.value
             ) || null
           : null
         onChangeEvent(selectedJobOrder)
       }
+      // Persist the selected job order locally so it remains visible
+      if (selectedOption) {
+        const jo = displayJobOrders.find(
+          (u: IJobOrderLookup) => u.jobOrderId.toString() === selectedOption.value
+        )
+        if (jo) {
+          setSelectedJobOrder(jo)
+        }
+      } else {
+        // Clear selected job order when option is cleared
+        setSelectedJobOrder(null)
+      }
     },
-    [form, name, onChangeEvent, jobOrders, jobOrderNoField]
+    [form, name, onChangeEvent, displayJobOrders, jobOrderNoField]
   )
 
-  // Keep query after selection. Only change when user types.
+  // Handle input change for search
   const handleInputChange = useCallback(
     (inputValue: string) => {
+      // If user just selected and input is being cleared, don't clear the query
       if (justSelected && inputValue === "") {
-        return
+        return // Don't clear query, don't reset justSelected yet
       }
-      if (justSelected) setJustSelected(false)
+
+      // Reset justSelected flag when user starts typing
+      if (justSelected) {
+        setJustSelected(false)
+      }
+
       setQuery(inputValue)
     },
     [justSelected]
@@ -251,21 +319,38 @@ export default function DynamicJobOrderAutocomplete<
     if (form && name) {
       const formValue = form.getValues(name)
       // Convert form value to string for comparison
-      return (
-        options.find((option) => option.value === formValue?.toString()) || null
+      const fromOptions = mergedOptions.find(
+        (option) => option.value === formValue?.toString()
       )
+      return fromOptions || null
     }
     return null
-  }, [form, name, options])
+  }, [form, name, mergedOptions])
 
   if (form && name) {
     return (
       <div className={cn("flex flex-col gap-1", className)}>
         {label && (
-          <Label htmlFor={name} className="text-sm font-medium">
-            {label}
-            {isRequired && <span className="ml-1 text-red-500">*</span>}
-          </Label>
+          <div className="flex items-center gap-1">
+            <Label htmlFor={name} className="text-sm font-medium">
+              {label}
+            </Label>
+            <button
+              type="button"
+              onClick={handleRefresh}
+              disabled={isLoading}
+              className="hover:bg-accent flex items-center justify-center rounded-sm p-0.5 transition-colors disabled:opacity-50"
+              title="Refresh job orders"
+            >
+              <IconRefresh
+                size={12}
+                className={`text-muted-foreground hover:text-foreground transition-colors ${
+                  isLoading ? "animate-spin" : ""
+                }`}
+              />
+            </button>
+            {isRequired && <span className="text-sm text-red-500">*</span>}
+          </div>
         )}
         <FormField
           control={form.control}
@@ -277,7 +362,7 @@ export default function DynamicJobOrderAutocomplete<
             return (
               <FormItem className={cn("flex flex-col", className)}>
                 <Select
-                  options={options}
+                  options={mergedOptions}
                   value={getValue()}
                   onChange={handleChange}
                   onInputChange={handleInputChange}
@@ -318,22 +403,38 @@ export default function DynamicJobOrderAutocomplete<
   return (
     <div className={cn("flex flex-col gap-1", className)}>
       {label && (
-        <div
-          className={cn(
-            "text-sm font-medium",
-            isDisabled && "text-muted-foreground opacity-70"
-          )}
-        >
-          {label}
+        <div className="flex items-center gap-1">
+          <div
+            className={cn(
+              "text-sm font-medium",
+              isDisabled && "text-muted-foreground opacity-70"
+            )}
+          >
+            {label}
+          </div>
+          <button
+            type="button"
+            onClick={handleRefresh}
+            disabled={isLoading}
+            className="hover:bg-accent flex items-center justify-center rounded-sm p-0.5 transition-colors disabled:opacity-50"
+            title="Refresh job orders"
+          >
+            <IconRefresh
+              size={12}
+              className={`text-muted-foreground hover:text-foreground transition-colors ${
+                isLoading ? "animate-spin" : ""
+              }`}
+            />
+          </button>
           {isRequired && (
-            <span className="text-destructive ml-1" aria-hidden="true">
+            <span className="text-destructive text-sm" aria-hidden="true">
               *
             </span>
           )}
         </div>
       )}
       <Select
-        options={options}
+        options={mergedOptions}
         onChange={handleChange}
         onInputChange={handleInputChange}
         placeholder="Select JobOrder..."
