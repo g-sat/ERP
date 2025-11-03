@@ -75,6 +75,10 @@ export default function InvoiceForm({
   const { data: dynamicLookup } = useGetDynamicLookup()
   const isDynamicCustomer = dynamicLookup?.isCustomer ?? false
 
+  // Refs to store original values on focus for comparison on change
+  const originalExhRateRef = React.useRef<number>(0)
+  const originalCtyExhRateRef = React.useRef<number>(0)
+
   const onSubmit = async () => {
     await onSuccessAction("save")
   }
@@ -366,11 +370,36 @@ export default function InvoiceForm({
     [decimals, exhRateDec, form, recalculateHeaderTotals, visible]
   )
 
+  // Handle exchange rate focus - capture original value
+  const handleExchangeRateFocus = React.useCallback(() => {
+    originalExhRateRef.current = form.getValues("exhRate") || 0
+    console.log(
+      "handleExchangeRateFocus - original value:",
+      originalExhRateRef.current
+    )
+  }, [form])
+
   // Handle exchange rate change
   const handleExchangeRateChange = React.useCallback(
     (value: number) => {
-      const formDetails = form.getValues("data_details")
       const exchangeRate = value || 0
+      const originalExhRate = originalExhRateRef.current
+
+      console.log("handleExchangeRateChange", {
+        newValue: exchangeRate,
+        originalValue: originalExhRate,
+        isDifferent: exchangeRate !== originalExhRate,
+      })
+
+      // Only recalculate if value is different from original
+      if (exchangeRate === originalExhRate) {
+        console.log("Exchange Rate unchanged - skipping recalculation")
+        return
+      }
+
+      console.log("Exchange Rate changed - recalculating amounts")
+
+      const formDetails = form.getValues("data_details")
 
       // If m_CtyCurr is false, set cityExchangeRate = exchangeRate
       let cityExchangeRate = form.getValues("ctyExhRate") || 0
@@ -405,12 +434,37 @@ export default function InvoiceForm({
     [decimals, form, recalculateHeaderTotals, visible?.m_CtyCurr]
   )
 
+  // Handle city exchange rate focus - capture original value
+  const handleCityExchangeRateFocus = React.useCallback(() => {
+    originalCtyExhRateRef.current = form.getValues("ctyExhRate") || 0
+    console.log(
+      "handleCityExchangeRateFocus - original value:",
+      originalCtyExhRateRef.current
+    )
+  }, [form])
+
   // Handle city exchange rate change
   const handleCityExchangeRateChange = React.useCallback(
     (value: number) => {
+      const cityExchangeRate = value || 0
+      const originalCtyExhRate = originalCtyExhRateRef.current
+
+      console.log("handleCityExchangeRateChange", {
+        newValue: cityExchangeRate,
+        originalValue: originalCtyExhRate,
+        isDifferent: cityExchangeRate !== originalCtyExhRate,
+      })
+
+      // Only recalculate if value is different from original
+      if (cityExchangeRate === originalCtyExhRate) {
+        console.log("City Exchange Rate unchanged - skipping recalculation")
+        return
+      }
+
+      console.log("City Exchange Rate changed - recalculating amounts")
+
       const formDetails = form.getValues("data_details")
       const exchangeRate = form.getValues("exhRate") || 0
-      const cityExchangeRate = value || 0
 
       if (!formDetails || formDetails.length === 0) {
         return
@@ -559,6 +613,7 @@ export default function InvoiceForm({
             isRequired={true}
             round={exhRateDec}
             className="text-right"
+            onFocusEvent={handleExchangeRateFocus}
             onChangeEvent={handleExchangeRateChange}
           />
           {visible?.m_CtyCurr && (
@@ -571,6 +626,7 @@ export default function InvoiceForm({
                 isRequired={true}
                 round={exhRateDec}
                 className="text-right"
+                onFocusEvent={handleCityExchangeRateFocus}
                 onChangeEvent={handleCityExchangeRateChange}
               />
             </>

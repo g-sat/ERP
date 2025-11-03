@@ -500,6 +500,10 @@ export default function ReceiptForm({
   // Handle exchange rate focus - capture original value
   const handleExchangeRateFocus = React.useCallback(() => {
     originalExhRateRef.current = form.getValues("exhRate") || 0
+    console.log(
+      "handleExchangeRateFocus - original value:",
+      originalExhRateRef.current
+    )
   }, [form])
 
   // Handle exchange rate change
@@ -531,6 +535,10 @@ export default function ReceiptForm({
   // Handle receipt exchange rate focus - capture original value
   const handleRecExchangeRateFocus = React.useCallback(() => {
     originalRecExhRateRef.current = form.getValues("recExhRate") || 0
+    console.log(
+      "handleRecExchangeRateFocus - original value:",
+      originalRecExhRateRef.current
+    )
   }, [form])
 
   // Handle receipt exchange rate change
@@ -562,6 +570,10 @@ export default function ReceiptForm({
   // Handle totAmt focus - capture original value
   const handleTotAmtFocus = React.useCallback(() => {
     originalTotAmtRef.current = form.getValues("totAmt") || 0
+    console.log(
+      "handleTotAmtFocus - original value:",
+      originalTotAmtRef.current
+    )
   }, [form])
 
   // Handle totAmt change
@@ -595,6 +607,10 @@ export default function ReceiptForm({
   // Handle recTotAmt focus - capture original value
   const handleRecTotAmtFocus = React.useCallback(() => {
     originalRecTotAmtRef.current = form.getValues("recTotAmt") || 0
+    console.log(
+      "handleRecTotAmtFocus - original value:",
+      originalRecTotAmtRef.current
+    )
   }, [form])
 
   // Handle recTotAmt change

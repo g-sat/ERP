@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, useRef } from "react"
 import {
   handleGstPercentageChange,
   handleQtyChange,
@@ -88,6 +88,11 @@ export default function InvoiceDetailsForm({
   const amtDec = decimals[0]?.amtDec || 2
   const locAmtDec = decimals[0]?.locAmtDec || 2
   const qtyDec = decimals[0]?.qtyDec || 2
+
+  // Refs to store original values on focus for comparison on change
+  const originalTotAmtRef = useRef<number>(0)
+  const originalUnitPriceRef = useRef<number>(0)
+  const originalGstPercentageRef = useRef<number>(0)
 
   // Calculate next itemNo based on existing details
   const getNextItemNo = () => {
@@ -721,13 +726,60 @@ export default function InvoiceDetailsForm({
     form.setValue("gstCtyAmt", rowData.gstCtyAmt)
   }
 
+  // Handle totAmt focus - capture original value
+  const handleTotalAmountFocus = () => {
+    originalTotAmtRef.current = form.getValues("totAmt") || 0
+    console.log(
+      "handleTotalAmountFocus - original value:",
+      originalTotAmtRef.current
+    )
+  }
+
   const handleTotalAmountChange = (value: number) => {
-    console.log("handleTotalAmountChange : ", value)
+    const originalTotAmt = originalTotAmtRef.current
+
+    console.log("handleTotalAmountChange", {
+      newValue: value,
+      originalValue: originalTotAmt,
+      isDifferent: value !== originalTotAmt,
+    })
+
+    // Only recalculate if value is different from original
+    if (value === originalTotAmt) {
+      console.log("Total Amount unchanged - skipping recalculation")
+      return
+    }
+
+    console.log("Total Amount changed - recalculating amounts")
     form.setValue("totAmt", value)
     triggerTotalAmountCalculation()
   }
 
+  // Handle gstPercentage focus - capture original value
+  const handleGstPercentageFocus = () => {
+    originalGstPercentageRef.current = form.getValues("gstPercentage") || 0
+    console.log(
+      "handleGstPercentageFocus - original value:",
+      originalGstPercentageRef.current
+    )
+  }
+
   const handleGstPercentageManualChange = (value: number) => {
+    const originalGstPercentage = originalGstPercentageRef.current
+
+    console.log("handleGstPercentageManualChange", {
+      newValue: value,
+      originalValue: originalGstPercentage,
+      isDifferent: value !== originalGstPercentage,
+    })
+
+    // Only recalculate if value is different from original
+    if (value === originalGstPercentage) {
+      console.log("GST Percentage unchanged - skipping recalculation")
+      return
+    }
+
+    console.log("GST Percentage changed - recalculating amounts")
     form.setValue("gstPercentage", value)
     triggerGstCalculation()
   }
@@ -794,7 +846,32 @@ export default function InvoiceDetailsForm({
     form.setValue("gstCtyAmt", rowData.gstCtyAmt)
   }
 
+  // Handle unitPrice focus - capture original value
+  const handleUnitPriceFocus = () => {
+    originalUnitPriceRef.current = form.getValues("unitPrice") || 0
+    console.log(
+      "handleUnitPriceFocus - original value:",
+      originalUnitPriceRef.current
+    )
+  }
+
   const handleUnitPriceChange = (value: number) => {
+    const originalUnitPrice = originalUnitPriceRef.current
+
+    console.log("handleUnitPriceChange", {
+      newValue: value,
+      originalValue: originalUnitPrice,
+      isDifferent: value !== originalUnitPrice,
+    })
+
+    // Only recalculate if value is different from original
+    if (value === originalUnitPrice) {
+      console.log("Unit Price unchanged - skipping recalculation")
+      return
+    }
+
+    console.log("Unit Price changed - recalculating amounts")
+
     form.setValue("unitPrice", value)
 
     // Get form values AFTER setting unitPrice
@@ -1029,6 +1106,7 @@ export default function InvoiceDetailsForm({
               isRequired={required?.m_UnitPrice}
               round={amtDec}
               className="text-right"
+              onFocusEvent={handleUnitPriceFocus}
               onChangeEvent={handleUnitPriceChange}
             />
           )}
@@ -1041,6 +1119,7 @@ export default function InvoiceDetailsForm({
             isRequired={required?.m_TotAmt}
             round={amtDec}
             className="text-right"
+            onFocusEvent={handleTotalAmountFocus}
             onChangeEvent={handleTotalAmountChange}
           />
 
@@ -1084,6 +1163,7 @@ export default function InvoiceDetailsForm({
             label="GST Percentage"
             round={2}
             className="text-right"
+            onFocusEvent={handleGstPercentageFocus}
             onChangeEvent={handleGstPercentageManualChange}
           />
 
