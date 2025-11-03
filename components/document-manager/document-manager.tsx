@@ -240,6 +240,7 @@ export default function DocumentManager({
           formData.append("file", uploadFile.file)
           formData.append("moduleId", moduleId.toString())
           formData.append("transactionId", transactionId.toString())
+          formData.append("documentId", recordId)
           if (companyId) {
             formData.append("companyId", companyId.toString())
           }
@@ -378,10 +379,14 @@ export default function DocumentManager({
       if (response.result === 1) {
         // Also delete the physical file
         try {
-          // Extract the relative path from docPath
-          const filePath = documentToDelete.docPath.replace(/^\/documents/, "")
+          // Extract the relative path from docPath and encode each segment
+          const pathSegments = documentToDelete.docPath
+            .replace(/^\/documents\//, "")
+            .split("/")
+            .map((segment) => encodeURIComponent(segment))
+            .join("/")
           const deleteFileResponse = await fetch(
-            `/api/documents/delete${filePath}`,
+            `/api/documents/delete/${pathSegments}`,
             {
               method: "DELETE",
             }
@@ -415,18 +420,29 @@ export default function DocumentManager({
   const handlePreview = (doc: IDocType) => {
     setSelectedDocument(doc)
     // Use API route for serving documents with proper cache control
+    // Encode each path segment to handle special characters in file names
+    const pathSegments = doc.docPath
+      .replace("/documents/", "")
+      .split("/")
+      .map((segment) => encodeURIComponent(segment))
+      .join("/")
     const cacheBuster = `?v=${Date.now()}`
-    setPreviewUrl(
-      `/api/documents/serve${doc.docPath.replace("/documents", "")}${cacheBuster}`
-    )
+    setPreviewUrl(`/api/documents/serve/${pathSegments}${cacheBuster}`)
   }
 
   // Download document
   const handleDownload = (doc: IDocType) => {
     const link = document.createElement("a")
     // Use API route for serving documents with proper cache control
+    // Encode each path segment to handle special characters in file names
+    const pathSegments = doc.docPath
+      .replace("/documents/", "")
+      .split("/")
+      .map((segment) => encodeURIComponent(segment))
+      .join("/")
     const cacheBuster = `?v=${Date.now()}`
-    link.href = `/api/documents/serve${doc.docPath.replace("/documents", "")}${cacheBuster}`
+    link.href = `/api/documents/serve/${pathSegments}${cacheBuster}`
+    // Use original file name from database for download (preserved in fileName field)
     link.download = doc.docPath.split("/").pop() || "document"
     link.click()
   }

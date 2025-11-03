@@ -8,7 +8,10 @@ export async function GET(
   { params }: { params: { path: string[] } }
 ) {
   try {
-    const filePath = params.path.join("/")
+    // Join path segments and decode URL-encoded characters
+    const filePath = params.path
+      .map((segment) => decodeURIComponent(segment))
+      .join("/")
     const fullPath = join(process.cwd(), "public", "documents", filePath)
 
     // Security check - ensure path is within documents directory
@@ -61,6 +64,11 @@ export async function GET(
         break
     }
 
+    // Get file name for Content-Disposition header (sanitize for safe display)
+    const fileName = filePath.split("/").pop() || "document"
+    // Encode filename for Content-Disposition header to handle special characters
+    const encodedFileName = encodeURIComponent(fileName)
+
     // Return file with no-cache headers
     return new NextResponse(new Uint8Array(fileBuffer), {
       status: 200,
@@ -69,7 +77,7 @@ export async function GET(
         "Cache-Control": "no-cache, no-store, must-revalidate",
         Pragma: "no-cache",
         Expires: "0",
-        "Content-Disposition": `inline; filename="${filePath.split("/").pop()}"`,
+        "Content-Disposition": `inline; filename*=UTF-8''${encodedFileName}`,
       },
     })
   } catch (error) {

@@ -8,7 +8,10 @@ export async function DELETE(
   { params }: { params: { path: string[] } }
 ) {
   try {
-    const filePath = params.path.join("/")
+    // Join path segments and decode URL-encoded characters
+    const filePath = params.path
+      .map((segment) => decodeURIComponent(segment))
+      .join("/")
     const fullPath = join(process.cwd(), "public", "documents", filePath)
 
     // Security check - ensure path is within documents directory
