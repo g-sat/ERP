@@ -82,11 +82,11 @@ export function AccountReceiptTableHeader<TData>({
   onResetLayout,
 }: AccountReceiptTableHeaderProps<TData>) {
   // Debug logging
-  console.log("Header props:", {
-    hasSelectedRows,
-    selectedRowsCount,
-    dataLength: data?.length,
-  })
+  // console.log("Header props:", {
+  //   hasSelectedRows,
+  //   selectedRowsCount,
+  //   dataLength: data?.length,
+  // })
   const [columnSearch, setColumnSearch] = useState("")
   const [activeButton, setActiveButton] = useState<"show" | "hide" | null>(null)
   // Filter columns based on search - memoized to prevent re-renders
@@ -134,8 +134,8 @@ export function AccountReceiptTableHeader<TData>({
         grdString: "",
       }
       await saveGridSettings.mutateAsync(gridSettings)
-    } catch (error) {
-      console.error("Error saving layout:", error)
+    } catch (_error) {
+      // console.error("Error saving layout:", _error)
     }
   }, [moduleId, transactionId, tableName, columns, saveGridSettings])
 
@@ -160,8 +160,8 @@ export function AccountReceiptTableHeader<TData>({
       const workbook = XLSX.utils.book_new()
       XLSX.utils.book_append_sheet(workbook, worksheet, "Sheet1")
       XLSX.writeFile(workbook, `${tableName}.xlsx`)
-    } catch (error) {
-      console.error("Error exporting Excel:", error)
+    } catch (_error) {
+      // console.error("Error exporting Excel:", _error)
     }
   }
 
@@ -217,8 +217,8 @@ export function AccountReceiptTableHeader<TData>({
         margin: { top: 20, right: 10, bottom: 20, left: 10 },
       })
       doc.save(`${tableName}.pdf`)
-    } catch (error) {
-      console.error("Error exporting PDF:", error)
+    } catch (_error) {
+      // console.error("Error exporting PDF:", _error)
     }
   }
 
@@ -242,8 +242,8 @@ export function AccountReceiptTableHeader<TData>({
           onResetLayout()
         }
       }
-    } catch (error) {
-      console.error("Error resetting default layout:", error)
+    } catch (_error) {
+      // console.error("Error resetting default layout:", _error)
     }
   }, [
     columns,

@@ -15,6 +15,7 @@ interface CustomNumberInputProps<TSchemaType extends FieldValues> {
   name: Path<TSchemaType>
   className?: string
   onBlurEvent?: (e: React.FocusEvent<HTMLInputElement>) => void
+  onFocusEvent?: (e: React.FocusEvent<HTMLInputElement>) => void
   onChangeEvent?: (value: number) => void
   isRequired?: boolean
   isDisabled?: boolean
@@ -27,6 +28,7 @@ export default function CustomNumberInput<TSchemaType extends FieldValues>({
   name,
   className,
   onBlurEvent,
+  onFocusEvent,
   onChangeEvent,
   isRequired = false,
   isDisabled = false,
@@ -52,6 +54,12 @@ export default function CustomNumberInput<TSchemaType extends FieldValues>({
             <FormItem className={cn("flex flex-col", className)}>
               <NumericFormat
                 value={value ?? ""}
+                onFocus={(e) => {
+                  e.target.select()
+                  if (onFocusEvent) {
+                    onFocusEvent(e)
+                  }
+                }}
                 onValueChange={(values) => {
                   const { floatValue } = values
                   const roundedValue = floatValue

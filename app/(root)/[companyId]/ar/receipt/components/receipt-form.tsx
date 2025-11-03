@@ -79,6 +79,12 @@ export default function ReceiptForm({
   // State to track if receipt type is cheque
   const [isChequeReceipt, setIsChequeReceipt] = React.useState(false)
 
+  // Refs to store original values on focus for comparison on blur
+  const originalExhRateRef = React.useRef<number>(0)
+  const originalRecExhRateRef = React.useRef<number>(0)
+  const originalTotAmtRef = React.useRef<number>(0)
+  const originalRecTotAmtRef = React.useRef<number>(0)
+
   // Function to update currency comparison state
   const updateCurrencyComparison = React.useCallback(() => {
     const currencyId = form.getValues("currencyId") || 0
@@ -491,50 +497,130 @@ export default function ReceiptForm({
     [form, exhRateDec, visible, accountDate, recalculateAmountsBasedOnCurrency]
   )
 
+  // Handle exchange rate focus - capture original value
+  const handleExchangeRateFocus = React.useCallback(() => {
+    originalExhRateRef.current = form.getValues("exhRate") || 0
+  }, [form])
+
   // Handle exchange rate change
   const handleExchangeRateChange = React.useCallback(
     (e: React.FocusEvent<HTMLInputElement>) => {
       const exhRate = parseNumberWithCommas(e.target.value)
-      form.setValue("exhRate", exhRate, { shouldDirty: true })
+      const originalExhRate = originalExhRateRef.current
 
-      // Recalculate all amounts based on currency comparison - don't clear allocations for exchange rate change
-      recalculateAmountsBasedOnCurrency(false)
+      console.log("handleExchangeRateChange", {
+        newValue: exhRate,
+        originalValue: originalExhRate,
+        isDifferent: exhRate !== originalExhRate,
+      })
+
+      // Only recalculate if value is different from original
+      if (exhRate !== originalExhRate) {
+        console.log("Exchange Rate changed - recalculating amounts")
+        form.setValue("exhRate", exhRate, { shouldDirty: true })
+
+        // Recalculate all amounts based on currency comparison - don't clear allocations for exchange rate change
+        recalculateAmountsBasedOnCurrency(false)
+      } else {
+        console.log("Exchange Rate unchanged - skipping recalculation")
+      }
     },
     [form, recalculateAmountsBasedOnCurrency]
   )
+
+  // Handle receipt exchange rate focus - capture original value
+  const handleRecExchangeRateFocus = React.useCallback(() => {
+    originalRecExhRateRef.current = form.getValues("recExhRate") || 0
+  }, [form])
 
   // Handle receipt exchange rate change
   const handleRecExchangeRateChange = React.useCallback(
     (e: React.FocusEvent<HTMLInputElement>) => {
       const recExhRate = parseNumberWithCommas(e.target.value)
-      form.setValue("recExhRate", recExhRate, { shouldDirty: true })
+      const originalRecExhRate = originalRecExhRateRef.current
 
-      // Recalculate all amounts based on currency comparison - don't clear allocations for exchange rate change
-      recalculateAmountsBasedOnCurrency(false)
+      console.log("handleRecExchangeRateChange", {
+        newValue: recExhRate,
+        originalValue: originalRecExhRate,
+        isDifferent: recExhRate !== originalRecExhRate,
+      })
+
+      // Only recalculate if value is different from original
+      if (recExhRate !== originalRecExhRate) {
+        console.log("Receipt Exchange Rate changed - recalculating amounts")
+        form.setValue("recExhRate", recExhRate, { shouldDirty: true })
+
+        // Recalculate all amounts based on currency comparison - don't clear allocations for exchange rate change
+        recalculateAmountsBasedOnCurrency(false)
+      } else {
+        console.log("Receipt Exchange Rate unchanged - skipping recalculation")
+      }
     },
     [form, recalculateAmountsBasedOnCurrency]
   )
+
+  // Handle totAmt focus - capture original value
+  const handleTotAmtFocus = React.useCallback(() => {
+    originalTotAmtRef.current = form.getValues("totAmt") || 0
+  }, [form])
 
   // Handle totAmt change
   const handleTotAmtChange = React.useCallback(
     (e: React.FocusEvent<HTMLInputElement>) => {
       const totAmt = parseNumberWithCommas(e.target.value)
-      form.setValue("totAmt", totAmt, { shouldDirty: true })
+      const originalTotAmt = originalTotAmtRef.current
 
-      // Recalculate all amounts based on currency comparison - clear allocations for totAmt change
-      recalculateAmountsBasedOnCurrency(true)
+      console.log("handleTotAmtChange", {
+        newValue: totAmt,
+        originalValue: originalTotAmt,
+        isDifferent: totAmt !== originalTotAmt,
+      })
+
+      // Only recalculate if value is different from original
+      if (totAmt !== originalTotAmt) {
+        console.log(
+          "Total Amount changed - recalculating amounts and clearing allocations"
+        )
+        form.setValue("totAmt", totAmt, { shouldDirty: true })
+
+        // Recalculate all amounts based on currency comparison - clear allocations for totAmt change
+        recalculateAmountsBasedOnCurrency(true)
+      } else {
+        console.log("Total Amount unchanged - skipping recalculation")
+      }
     },
     [form, recalculateAmountsBasedOnCurrency]
   )
+
+  // Handle recTotAmt focus - capture original value
+  const handleRecTotAmtFocus = React.useCallback(() => {
+    originalRecTotAmtRef.current = form.getValues("recTotAmt") || 0
+  }, [form])
 
   // Handle recTotAmt change
   const handleRecTotAmtChange = React.useCallback(
     (e: React.FocusEvent<HTMLInputElement>) => {
       const recTotAmt = parseNumberWithCommas(e.target.value)
-      form.setValue("recTotAmt", recTotAmt, { shouldDirty: true })
+      const originalRecTotAmt = originalRecTotAmtRef.current
 
-      // Recalculate all amounts based on currency comparison - clear allocations for recTotAmt change
-      recalculateAmountsBasedOnCurrency(true)
+      console.log("handleRecTotAmtChange", {
+        newValue: recTotAmt,
+        originalValue: originalRecTotAmt,
+        isDifferent: recTotAmt !== originalRecTotAmt,
+      })
+
+      // Only recalculate if value is different from original
+      if (recTotAmt !== originalRecTotAmt) {
+        console.log(
+          "Receipt Total Amount changed - recalculating amounts and clearing allocations"
+        )
+        form.setValue("recTotAmt", recTotAmt, { shouldDirty: true })
+
+        // Recalculate all amounts based on currency comparison - clear allocations for recTotAmt change
+        recalculateAmountsBasedOnCurrency(true)
+      } else {
+        console.log("Receipt Total Amount unchanged - skipping recalculation")
+      }
     },
     [form, recalculateAmountsBasedOnCurrency]
   )
@@ -639,6 +725,7 @@ export default function ReceiptForm({
           isRequired={true}
           round={exhRateDec}
           className="text-right"
+          onFocusEvent={handleExchangeRateFocus}
           onBlurEvent={handleExchangeRateChange}
         />
 
@@ -705,6 +792,7 @@ export default function ReceiptForm({
           round={exhRateDec}
           className="text-right"
           isDisabled={isCurrenciesEqual}
+          onFocusEvent={handleRecExchangeRateFocus}
           onBlurEvent={handleRecExchangeRateChange}
         />
 
@@ -714,6 +802,7 @@ export default function ReceiptForm({
           name="recTotAmt"
           label="Rec Total Amount"
           isDisabled={isCurrenciesEqual}
+          onFocusEvent={handleRecTotAmtFocus}
           onBlurEvent={handleRecTotAmtChange}
         />
 
@@ -733,6 +822,7 @@ export default function ReceiptForm({
           round={amtDec}
           isDisabled={!isCurrenciesEqual}
           className="text-right"
+          onFocusEvent={handleTotAmtFocus}
           onBlurEvent={handleTotAmtChange}
         />
 

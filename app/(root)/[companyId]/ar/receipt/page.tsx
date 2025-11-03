@@ -201,7 +201,7 @@ export default function ReceiptPage() {
         form.getValues() as unknown as IArReceiptHd
       )
 
-      console.log("formValues", formValues)
+      // console.log("formValues", formValues)
 
       // Validate the form data using the schema
       const validationResult = arreceiptHdSchema(required, visible).safeParse(
@@ -235,8 +235,8 @@ export default function ReceiptPage() {
         const isNew = Number(formValues.receiptId) === 0
         const prevAccountDate = isNew ? accountDate : previousAccountDate
 
-        console.log("accountDate", accountDate)
-        console.log("prevAccountDate", prevAccountDate)
+        // console.log("accountDate", accountDate)
+        // console.log("prevAccountDate", prevAccountDate)
 
         const acc =
           typeof accountDate === "string"

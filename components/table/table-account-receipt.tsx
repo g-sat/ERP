@@ -177,12 +177,12 @@ export function AccountReceiptBaseTable<T>({
   const hasSelectedRows = selectedRowsCount > 0
 
   // Debug logging
-  console.log("Table state:", {
-    dataLength: data?.length,
-    selectedRowsCount,
-    hasSelectedRows,
-    rowSelection,
-  })
+  // console.log("Table state:", {
+  //   dataLength: data?.length,
+  //   selectedRowsCount,
+  //   hasSelectedRows,
+  //   rowSelection,
+  // })
 
   // Create a separate component for the drag handle
   function DragHandle({ id }: { id: string | number }) {
@@ -234,8 +234,8 @@ export function AccountReceiptBaseTable<T>({
         if (Object.keys(colSize).length > 0) {
           setColumnSizing(colSize)
         }
-      } catch (error) {
-        console.error("Error parsing grid settings:", error)
+      } catch (_error) {
+        // console.error("Error parsing grid settings:", _error)
       }
     }
   }, [gridSettingsData])
@@ -382,9 +382,9 @@ export function AccountReceiptBaseTable<T>({
         if (onDataReorder) {
           onDataReorder(newData)
         } else {
-          console.warn(
-            "onDataReorder callback not provided. Row reordering will not persist."
-          )
+          // console.warn(
+          //   "onDataReorder callback not provided. Row reordering will not persist."
+          // )
         }
       }
     }
@@ -443,7 +443,7 @@ export function AccountReceiptBaseTable<T>({
   // Clear row selection when data becomes empty
   useEffect(() => {
     if (!data?.length) {
-      console.log("Clearing row selection - data is empty")
+      // console.log("Clearing row selection - data is empty")
       setRowSelection({})
     }
   }, [data?.length])

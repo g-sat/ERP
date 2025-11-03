@@ -251,23 +251,23 @@ export const calculateManualAllocation = (
   totAmt?: number,
   decimals?: IDecimal
 ) => {
-  console.log(
-    "calculateManualAllocation",
-    details,
-    rowNumber,
-    allocAmt,
-    totAmt,
-    decimals
-  )
+  // console.log(
+  //   "calculateManualAllocation",
+  //   details,
+  //   rowNumber,
+  //   allocAmt,
+  //   totAmt,
+  //   decimals
+  // )
   if (!details || rowNumber < 0 || rowNumber >= details.length) {
-    console.log("calculateManualAllocation not valid", details, rowNumber)
+    // console.log("calculateManualAllocation not valid", details, rowNumber)
     return details[rowNumber]
   }
 
   const currentBalance = Number(details[rowNumber].docBalAmt) || 0
-  console.log("calculateManualAllocation currentBalance", currentBalance)
+  // console.log("calculateManualAllocation currentBalance", currentBalance)
   let finalAllocation = Number(allocAmt) || 0
-  console.log("calculateManualAllocation finalAllocation", finalAllocation)
+  // console.log("calculateManualAllocation finalAllocation", finalAllocation)
 
   // Helper function to subtract amount from remaining with decimals support
   const subtractFromRemaining = (remaining: number, amount: number) => {
@@ -290,7 +290,7 @@ export const calculateManualAllocation = (
 
   // If totAmt is provided, calculate with negatives-first logic
   if (totAmt !== undefined && totAmt > 0) {
-    console.log("calculateManualAllocation totAmt", totAmt)
+    // console.log("calculateManualAllocation totAmt", totAmt)
     let remainingAllocationAmt = Number(totAmt) || 0
 
     // Process all other rows to calculate remaining allocation
