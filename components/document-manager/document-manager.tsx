@@ -741,6 +741,13 @@ export default function DocumentManager({
                 onPreview={handlePreview}
                 onDownload={handleDownload}
                 onDelete={handleDelete}
+                onRefresh={() => {
+                  queryClient.invalidateQueries({
+                    queryKey: [
+                      `documents-${moduleId}-${transactionId}-${recordId}`,
+                    ],
+                  })
+                }}
                 // onSelect={handleSelectDocument}
                 // onSelectAll={handleSelectAll}
                 // selectedDocuments={selectedDocuments}
