@@ -872,16 +872,18 @@ export default function ReceiptPage() {
               <TabsTrigger value="history">History</TabsTrigger>
             </TabsList>
 
-            {/* Cancel Remarks Badge */}
-            {isCancelled && receipt?.cancelRemarks && (
+            {/* Cancel Remarks Badge - Only show when cancelled */}
+            {isCancelled && (
               <div className="flex items-center gap-2">
                 <span className="inline-flex items-center rounded-full bg-red-100 px-3 py-1 text-xs font-medium text-red-800">
                   <span className="mr-1 h-2 w-2 rounded-full bg-red-400"></span>
                   Cancelled
                 </span>
-                <div className="max-w-xs truncate text-sm text-red-600">
-                  {receipt.cancelRemarks}
-                </div>
+                {receipt?.cancelRemarks && (
+                  <div className="max-w-xs truncate text-sm text-red-600">
+                    {receipt.cancelRemarks}
+                  </div>
+                )}
               </div>
             )}
           </div>

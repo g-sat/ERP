@@ -1,25 +1,45 @@
 export interface IGlTransactionDetails {
-  DocumentNo?: string
-  ReferenceNo?: string
-  AccountDate?: string | Date
-  CurrencyCode?: string
-  CurrencyName?: string
-  ExhRate?: number
-  CtyExhRate?: number
-  BankCode?: string
-  BankName?: string
-  GLCode?: string
-  GLName?: string
-  IsDebit?: boolean
-  TotAmt?: number
-  TotLocalAmt?: number
-  TotCtyAmt?: number
-  gstCode?: string
-  gstName?: string
-  gstAmt?: number
-  gstLocalAmt?: number
-  gstCtyAmt?: number
-  createDate?: string | Date
+  documentNo: string
+  referenceNo: string
+  accountDate: string | Date
+  currencyCode: string
+  exhRate: number
+  ctyExhRate: number
+  bankCode: string
+  bankName: string
+  glId: number
+  glCode: string
+  glName: string
+  isDebit: boolean
+  totAmt: number
+  totLocalAmt: number
+  totCtyAmt: number
+  gstCode: string
+  gstName: string
+  gstAmt: number
+  gstLocalAmt: number
+  gstCtyAmt: number
+  remarks: string
+  departmentCode: string
+  departmentName: string
+  employeeCode: string
+  employeeName: string
+  portCode: string
+  portName: string
+  vesselCode: string
+  vesselName: string
+  voyageNo: string
+  bargeCode: string
+  bargeName: string
+  productCode: string
+  productName: string
+  supplierCode: string
+  supplierName: string
+  customerCode: string
+  customerName: string
+  moduleFrom: string
+  createBy: string
+  createDate: string | Date
 }
 
 export interface IPaymentDetails {

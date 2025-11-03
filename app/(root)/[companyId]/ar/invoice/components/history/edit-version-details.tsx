@@ -7,6 +7,7 @@ import { ColumnDef } from "@tanstack/react-table"
 import { format } from "date-fns"
 import { AlertCircle } from "lucide-react"
 
+import { formatNumber } from "@/lib/format-utils"
 import { ARTransactionId, ModuleId, TableName } from "@/lib/utils"
 import {
   useGetARInvoiceHistoryDetails,
@@ -164,7 +165,7 @@ export default function EditVersionDetails({
       cell: ({ row }) => (
         <div className="text-right">
           {row.original.exhRate
-            ? row.original.exhRate.toFixed(exhRateDec)
+            ? formatNumber(row.original.exhRate, exhRateDec)
             : "-"}
         </div>
       ),
@@ -175,7 +176,7 @@ export default function EditVersionDetails({
       cell: ({ row }) => (
         <div className="text-right">
           {row.original.ctyExhRate
-            ? row.original.ctyExhRate.toFixed(exhRateDec)
+            ? formatNumber(row.original.ctyExhRate, exhRateDec)
             : "-"}
         </div>
       ),
@@ -201,7 +202,9 @@ export default function EditVersionDetails({
       header: "Total Amount",
       cell: ({ row }) => (
         <div className="text-right">
-          {row.original.totAmt ? row.original.totAmt.toFixed(amtDec) : "-"}
+          {row.original.totAmt
+            ? formatNumber(row.original.totAmt, amtDec)
+            : "-"}
         </div>
       ),
     },
@@ -211,7 +214,7 @@ export default function EditVersionDetails({
       cell: ({ row }) => (
         <div className="text-right">
           {row.original.totLocalAmt
-            ? row.original.totLocalAmt.toFixed(locAmtDec)
+            ? formatNumber(row.original.totLocalAmt, locAmtDec)
             : "-"}
         </div>
       ),
@@ -221,7 +224,9 @@ export default function EditVersionDetails({
       header: "GST Amount",
       cell: ({ row }) => (
         <div className="text-right">
-          {row.original.gstAmt ? row.original.gstAmt.toFixed(amtDec) : "-"}
+          {row.original.gstAmt
+            ? formatNumber(row.original.gstAmt, amtDec)
+            : "-"}
         </div>
       ),
     },
@@ -231,7 +236,7 @@ export default function EditVersionDetails({
       cell: ({ row }) => (
         <div className="text-right">
           {row.original.gstLocalAmt
-            ? row.original.gstLocalAmt.toFixed(locAmtDec)
+            ? formatNumber(row.original.gstLocalAmt, locAmtDec)
             : "-"}
         </div>
       ),
@@ -242,7 +247,7 @@ export default function EditVersionDetails({
       cell: ({ row }) => (
         <div className="text-right">
           {row.original.totAmtAftGst
-            ? row.original.totAmtAftGst.toFixed(amtDec)
+            ? formatNumber(row.original.totAmtAftGst, amtDec)
             : "-"}
         </div>
       ),
@@ -253,7 +258,7 @@ export default function EditVersionDetails({
       cell: ({ row }) => (
         <div className="text-right">
           {row.original.totLocalAmtAftGst
-            ? row.original.totLocalAmtAftGst.toFixed(locAmtDec)
+            ? formatNumber(row.original.totLocalAmtAftGst, locAmtDec)
             : "-"}
         </div>
       ),

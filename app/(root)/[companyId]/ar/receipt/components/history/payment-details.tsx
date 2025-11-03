@@ -1,19 +1,20 @@
-import { IPaymentDetails } from "@/interfaces"
 import { ApiResponse } from "@/interfaces/auth"
+import { IPaymentDetails } from "@/interfaces/history"
 import { useAuthStore } from "@/stores/auth-store"
 import { ColumnDef } from "@tanstack/react-table"
 import { format } from "date-fns"
 
+import { formatNumber } from "@/lib/format-utils"
 import { ARTransactionId, ModuleId, TableName } from "@/lib/utils"
 import { useGetPaymentDetails } from "@/hooks/use-histoy"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { BasicTable } from "@/components/table/table-basic"
 
-interface ReceiptDetailsProps {
+interface PaymentDetailsProps {
   receiptId: string
 }
 
-export default function ReceiptDetails({ receiptId }: ReceiptDetailsProps) {
+export default function PaymentDetails({ receiptId }: PaymentDetailsProps) {
   const { decimals } = useAuthStore()
   const amtDec = decimals[0]?.amtDec || 2
   const locAmtDec = decimals[0]?.locAmtDec || 2
@@ -21,16 +22,16 @@ export default function ReceiptDetails({ receiptId }: ReceiptDetailsProps) {
   const moduleId = ModuleId.ar
   const transactionId = ARTransactionId.receipt
 
-  const { data: receiptDetails, refetch: refetchReceipt } =
-    //useGetReceiptDetails<IPaymentDetails>(25, 1, "14120250100024")
+  const { data: paymentDetails, refetch: refetchPayment } =
+    //useGetPaymentDetails<IPaymentDetails>(25, 1, "14120250100024")
     useGetPaymentDetails<IPaymentDetails>(
       Number(moduleId),
       Number(transactionId),
       receiptId
     )
 
-  const { data: receiptDetailsData } =
-    (receiptDetails as ApiResponse<IPaymentDetails>) ?? {
+  const { data: paymentDetailsData } =
+    (paymentDetails as ApiResponse<IPaymentDetails>) ?? {
       result: 0,
       message: "",
       data: [],
@@ -58,44 +59,63 @@ export default function ReceiptDetails({ receiptId }: ReceiptDetailsProps) {
     {
       accessorKey: "TotAmt",
       header: "Total Amount",
-      cell: ({ row }) =>
-        row.original.TotAmt ? row.original.TotAmt.toFixed(amtDec) : "-",
+      cell: ({ row }) => (
+        <div className="text-right">
+          {row.original.TotAmt
+            ? formatNumber(row.original.TotAmt, amtDec)
+            : "-"}
+        </div>
+      ),
     },
     {
       accessorKey: "TotLocalAmt",
       header: "Local Amount",
-      cell: ({ row }) =>
-        row.original.TotLocalAmt
-          ? row.original.TotLocalAmt.toFixed(locAmtDec)
-          : "-",
+      cell: ({ row }) => (
+        <div className="text-right">
+          {row.original.TotLocalAmt
+            ? formatNumber(row.original.TotLocalAmt, locAmtDec)
+            : "-"}
+        </div>
+      ),
     },
     {
       accessorKey: "AllAmt",
       header: "Allocated Amount",
-      cell: ({ row }) =>
-        row.original.AllAmt ? row.original.AllAmt.toFixed(amtDec) : "-",
+      cell: ({ row }) => (
+        <div className="text-right">
+          {row.original.AllAmt
+            ? formatNumber(row.original.AllAmt, amtDec)
+            : "-"}
+        </div>
+      ),
     },
     {
       accessorKey: "AllLocalAmt",
       header: "Allocated Local Amount",
-      cell: ({ row }) =>
-        row.original.AllLocalAmt
-          ? row.original.AllLocalAmt.toFixed(locAmtDec)
-          : "-",
+      cell: ({ row }) => (
+        <div className="text-right">
+          {row.original.AllLocalAmt
+            ? formatNumber(row.original.AllLocalAmt, locAmtDec)
+            : "-"}
+        </div>
+      ),
     },
     {
       accessorKey: "ExGainLoss",
       header: "Exchange Gain/Loss",
-      cell: ({ row }) =>
-        row.original.ExGainLoss
-          ? Number(row.original.ExGainLoss).toFixed(amtDec)
-          : "-",
+      cell: ({ row }) => (
+        <div className="text-right">
+          {row.original.ExGainLoss
+            ? formatNumber(Number(row.original.ExGainLoss), amtDec)
+            : "-"}
+        </div>
+      ),
     },
   ]
 
   const handleRefresh = async () => {
     try {
-      await refetchReceipt()
+      await refetchPayment()
     } catch (error) {
       console.error("Error refreshing data:", error)
     }
@@ -104,21 +124,22 @@ export default function ReceiptDetails({ receiptId }: ReceiptDetailsProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Receipt Details</CardTitle>
+        <CardTitle>Payment Details</CardTitle>
       </CardHeader>
       <CardContent>
         <BasicTable
-          data={receiptDetailsData || []}
+          data={paymentDetailsData || []}
           columns={columns}
           isLoading={false}
           moduleId={moduleId}
           transactionId={transactionId}
-          tableName={TableName.arReceiptDt}
+          tableName={TableName.paymentDetails}
           onRefresh={handleRefresh}
           showHeader={true}
           showFooter={false}
           emptyMessage="No results."
-          maxHeight="300px"
+          maxHeight="200px"
+          pageSizeOption={5}
         />
       </CardContent>
     </Card>

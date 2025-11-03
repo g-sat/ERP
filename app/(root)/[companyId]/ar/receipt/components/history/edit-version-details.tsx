@@ -7,6 +7,7 @@ import { ColumnDef } from "@tanstack/react-table"
 import { format } from "date-fns"
 import { AlertCircle } from "lucide-react"
 
+import { formatNumber } from "@/lib/format-utils"
 import { ARTransactionId, ModuleId, TableName } from "@/lib/utils"
 import {
   useGetARReceiptHistoryDetails,
@@ -81,13 +82,6 @@ export default function EditVersionDetails({
   const hasHistoryError = receiptHistoryData?.result === -1
   const hasDetailsError = receiptDetailsData?.result === -1
 
-  const formatNumber = (value: number, decimals: number) => {
-    return value.toLocaleString(undefined, {
-      minimumFractionDigits: decimals,
-      maximumFractionDigits: decimals,
-    })
-  }
-
   const columns: ColumnDef<IArReceiptHd>[] = [
     {
       accessorKey: "editVersion",
@@ -143,7 +137,9 @@ export default function EditVersionDetails({
       header: "Exchange Rate",
       cell: ({ row }) => (
         <div className="text-right">
-          {formatNumber(row.getValue("exhRate"), exhRateDec)}
+          {row.original.exhRate
+            ? formatNumber(row.original.exhRate, exhRateDec)
+            : "-"}
         </div>
       ),
     },
@@ -183,7 +179,9 @@ export default function EditVersionDetails({
       header: "Total Amount",
       cell: ({ row }) => (
         <div className="text-right">
-          {formatNumber(row.getValue("totAmt"), amtDec)}
+          {row.original.totAmt
+            ? formatNumber(row.original.totAmt, amtDec)
+            : "-"}
         </div>
       ),
     },
@@ -192,7 +190,9 @@ export default function EditVersionDetails({
       header: "Total Local Amount",
       cell: ({ row }) => (
         <div className="text-right">
-          {formatNumber(row.getValue("totLocalAmt"), locAmtDec)}
+          {row.original.totLocalAmt
+            ? formatNumber(row.original.totLocalAmt, locAmtDec)
+            : "-"}
         </div>
       ),
     },
@@ -201,7 +201,9 @@ export default function EditVersionDetails({
       header: "Pay Total Amount",
       cell: ({ row }) => (
         <div className="text-right">
-          {formatNumber(row.getValue("recTotAmt"), amtDec)}
+          {row.original.recTotAmt
+            ? formatNumber(row.original.recTotAmt, amtDec)
+            : "-"}
         </div>
       ),
     },
@@ -210,7 +212,9 @@ export default function EditVersionDetails({
       header: "Pay Total Local Amount",
       cell: ({ row }) => (
         <div className="text-right">
-          {formatNumber(row.getValue("recTotLocalAmt"), locAmtDec)}
+          {row.original.recTotLocalAmt
+            ? formatNumber(row.original.recTotLocalAmt, locAmtDec)
+            : "-"}
         </div>
       ),
     },
@@ -219,7 +223,9 @@ export default function EditVersionDetails({
       header: "Unallocated Amount",
       cell: ({ row }) => (
         <div className="text-right">
-          {formatNumber(row.getValue("unAllocTotAmt"), amtDec)}
+          {row.original.unAllocTotAmt
+            ? formatNumber(row.original.unAllocTotAmt, amtDec)
+            : "-"}
         </div>
       ),
     },
@@ -228,7 +234,9 @@ export default function EditVersionDetails({
       header: "Unallocated Local Amount",
       cell: ({ row }) => (
         <div className="text-right">
-          {formatNumber(row.getValue("unAllocTotLocalAmt"), locAmtDec)}
+          {row.original.unAllocTotLocalAmt
+            ? formatNumber(row.original.unAllocTotLocalAmt, locAmtDec)
+            : "-"}
         </div>
       ),
     },
@@ -237,7 +245,9 @@ export default function EditVersionDetails({
       header: "Exchange Gain/Loss",
       cell: ({ row }) => (
         <div className="text-right">
-          {formatNumber(row.getValue("exhGainLoss"), locAmtDec)}
+          {row.original.exhGainLoss
+            ? formatNumber(row.original.exhGainLoss, locAmtDec)
+            : "-"}
         </div>
       ),
     },
@@ -246,7 +256,9 @@ export default function EditVersionDetails({
       header: "Bank Charges Amount",
       cell: ({ row }) => (
         <div className="text-right">
-          {formatNumber(row.getValue("bankChgAmt"), amtDec)}
+          {row.original.bankChgAmt
+            ? formatNumber(row.original.bankChgAmt, amtDec)
+            : "-"}
         </div>
       ),
     },
@@ -255,7 +267,9 @@ export default function EditVersionDetails({
       header: "Bank Charges Local Amount",
       cell: ({ row }) => (
         <div className="text-right">
-          {formatNumber(row.getValue("bankChgLocalAmt"), locAmtDec)}
+          {row.original.bankChgLocalAmt
+            ? formatNumber(row.original.bankChgLocalAmt, locAmtDec)
+            : "-"}
         </div>
       ),
     },
@@ -307,12 +321,85 @@ export default function EditVersionDetails({
 
   const detailsColumns: ColumnDef<IArReceiptDt>[] = [
     { accessorKey: "itemNo", header: "Item No" },
-    { accessorKey: "productCode", header: "Product Code" },
-    { accessorKey: "productName", header: "Product Name" },
-    { accessorKey: "qty", header: "Quantity" },
-    { accessorKey: "unitPrice", header: "Unit Price" },
-    { accessorKey: "totAmt", header: "Total Amount" },
-    { accessorKey: "remarks", header: "Remarks" },
+    { accessorKey: "documentNo", header: "Document No" },
+    { accessorKey: "referenceNo", header: "Reference No" },
+    {
+      accessorKey: "docTotAmt",
+      header: "Document Total Amount",
+      cell: ({ row }) => (
+        <div className="text-right">
+          {row.original.docTotAmt
+            ? formatNumber(row.original.docTotAmt, amtDec)
+            : "-"}
+        </div>
+      ),
+    },
+    {
+      accessorKey: "docTotLocalAmt",
+      header: "Document Total Local Amount",
+      cell: ({ row }) => (
+        <div className="text-right">
+          {row.original.docTotLocalAmt
+            ? formatNumber(row.original.docTotLocalAmt, locAmtDec)
+            : "-"}
+        </div>
+      ),
+    },
+    {
+      accessorKey: "allocAmt",
+      header: "Allocated Amount",
+      cell: ({ row }) => (
+        <div className="text-right">
+          {row.original.allocAmt
+            ? formatNumber(row.original.allocAmt, amtDec)
+            : "-"}
+        </div>
+      ),
+    },
+    {
+      accessorKey: "allocLocalAmt",
+      header: "Allocated Local Amount",
+      cell: ({ row }) => (
+        <div className="text-right">
+          {row.original.allocLocalAmt
+            ? formatNumber(row.original.allocLocalAmt, locAmtDec)
+            : "-"}
+        </div>
+      ),
+    },
+    {
+      accessorKey: "docBalAmt",
+      header: "Document Balance Amount",
+      cell: ({ row }) => (
+        <div className="text-right">
+          {row.original.docBalAmt
+            ? formatNumber(row.original.docBalAmt, amtDec)
+            : "-"}
+        </div>
+      ),
+    },
+    {
+      accessorKey: "docBalLocalAmt",
+      header: "Document Balance Local Amount",
+      cell: ({ row }) => (
+        <div className="text-right">
+          {row.original.docBalLocalAmt
+            ? formatNumber(row.original.docBalLocalAmt, locAmtDec)
+            : "-"}
+        </div>
+      ),
+    },
+    {
+      accessorKey: "exhGainLoss",
+      header: "Exchange Gain/Loss",
+      cell: ({ row }) => (
+        <div className="text-right">
+          {row.original.exhGainLoss
+            ? formatNumber(row.original.exhGainLoss, locAmtDec)
+            : "-"}
+        </div>
+      ),
+    },
   ]
 
   const handleRefresh = async () => {

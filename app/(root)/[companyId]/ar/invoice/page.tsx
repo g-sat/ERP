@@ -247,6 +247,8 @@ export default function InvoicePage() {
         return
       }
 
+      console.log("handleSaveInvoice formValues", formValues)
+
       // Check GL period closed before saving (supports previous account date)
       try {
         const accountDate = form.getValues("accountDate") as unknown as string
@@ -1114,12 +1116,14 @@ export default function InvoicePage() {
   const invoiceNo = form.getValues("invoiceNo")
   const isEdit = Boolean(invoiceNo)
   const isCancelled = invoice?.isCancel === true
-  // Calculate payment status
+
+  // Calculate payment status only if not cancelled
   const balAmt = invoice?.balAmt ?? 0
   const payAmt = invoice?.payAmt ?? 0
 
-  const paymentStatus =
-    balAmt === 0 && payAmt > 0
+  const paymentStatus = isCancelled
+    ? ""
+    : balAmt === 0 && payAmt > 0
       ? "Fully Paid"
       : balAmt > 0 && payAmt > 0
         ? "Partially Paid"
@@ -1161,16 +1165,18 @@ export default function InvoicePage() {
               <TabsTrigger value="history">History</TabsTrigger>
             </TabsList>
 
-            {/* Cancel Remarks Badge */}
-            {isCancelled && invoice?.cancelRemarks && (
+            {/* Cancel Remarks Badge - Only show when cancelled */}
+            {isCancelled && (
               <div className="flex items-center gap-2">
                 <span className="inline-flex items-center rounded-full bg-red-100 px-3 py-1 text-xs font-medium text-red-800">
                   <span className="mr-1 h-2 w-2 rounded-full bg-red-400"></span>
                   Cancelled
                 </span>
-                <div className="max-w-xs truncate text-sm text-red-600">
-                  {invoice.cancelRemarks}
-                </div>
+                {invoice?.cancelRemarks && (
+                  <div className="max-w-xs truncate text-sm text-red-600">
+                    {invoice.cancelRemarks}
+                  </div>
+                )}
               </div>
             )}
 
