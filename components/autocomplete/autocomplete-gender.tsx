@@ -208,6 +208,120 @@ export default function GenderAutocomplete<T extends Record<string, unknown>>({
     return null
   }, [form, name, options])
 
+  // Handle menu close to maintain focus on the control
+  const selectControlRef = React.useRef<HTMLDivElement>(null)
+  const isTabPressedRef = React.useRef(false)
+  const handleMenuClose = React.useCallback(() => {
+    // Only refocus if Tab was NOT pressed (i.e., option was selected)
+    if (!isTabPressedRef.current) {
+      // Use requestAnimationFrame for smoother timing and less flicker
+      requestAnimationFrame(() => {
+        if (selectControlRef.current) {
+          const input = selectControlRef.current.querySelector(
+            "input"
+          ) as HTMLElement
+          if (input) {
+            const activeElement = document.activeElement as HTMLElement
+            const form = selectControlRef.current.closest("form")
+            
+            // Only refocus if:
+            // 1. Focus is not already on the input
+            // 2. Focus is on the form, body, or outside the form
+            // 3. Focus is not on another form field
+            if (
+              activeElement !== input &&
+              form &&
+              (activeElement === form ||
+                activeElement === document.body ||
+                !form.contains(activeElement) ||
+                activeElement.tagName === "BODY")
+            ) {
+              input.focus()
+            }
+          }
+        }
+      })
+    } else {
+      // Reset the flag after menu closes (for Tab navigation)
+      requestAnimationFrame(() => {
+        isTabPressedRef.current = false
+      })
+    }
+  }, [])
+
+  // Handle Tab key to close menu and allow normal tab navigation
+  const handleKeyDown = React.useCallback(
+    (event: React.KeyboardEvent<HTMLDivElement>) => {
+      if (event.key === "Tab") {
+        // Set flag to prevent onMenuClose from refocusing
+        isTabPressedRef.current = true
+        // Close the menu by blurring the input, then allow normal tab navigation
+        const target = event.currentTarget
+        if (target) {
+          const input = target.querySelector("input") as HTMLElement
+          if (input && document.activeElement === input) {
+            event.preventDefault()
+            const form = target.closest("form")
+            let targetElement: HTMLElement | null = null
+            if (form) {
+              const allFocusable = Array.from(
+                form.querySelectorAll<HTMLElement>(
+                  "button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([disabled]):not([tabindex='-1'])"
+                )
+              )
+              // Find the input's position in the focusable elements
+              const inputIndex = allFocusable.findIndex(
+                (el) => el === input || el.contains(input)
+              )
+              
+              if (event.shiftKey) {
+                // Shift+Tab: go to previous element
+                if (inputIndex !== -1 && inputIndex > 0) {
+                  targetElement = allFocusable[inputIndex - 1]
+                } else {
+                  // Fallback: find previous element before wrapper div
+                  const wrapperIndex = allFocusable.findIndex(
+                    (el) => target.contains(el) || el.contains(target)
+                  )
+                  if (wrapperIndex !== -1 && wrapperIndex > 0) {
+                    targetElement = allFocusable[wrapperIndex - 1]
+                  }
+                }
+              } else {
+                // Tab: go to next element
+                if (inputIndex !== -1 && inputIndex < allFocusable.length - 1) {
+                  targetElement = allFocusable[inputIndex + 1]
+                } else {
+                  // Fallback: find next element after wrapper div
+                  const wrapperIndex = allFocusable.findIndex(
+                    (el) => target.contains(el) || el.contains(target)
+                  )
+                  if (
+                    wrapperIndex !== -1 &&
+                    wrapperIndex < allFocusable.length - 1
+                  ) {
+                    targetElement = allFocusable[wrapperIndex + 1]
+                  }
+                }
+              }
+            }
+            // Blur to close menu and immediately focus target element to prevent flicker
+            if (targetElement) {
+              // Focus target element first (synchronously) to prevent form from receiving focus
+              targetElement.focus()
+              // Then blur to close menu (this won't affect the already-focused element)
+              input.blur()
+            } else {
+              // If no target element found, just blur
+              input.blur()
+            }
+          }
+        }
+      }
+    },
+    []
+  )
+
   if (form && name) {
     return (
       <div className={cn("flex flex-col gap-1", className)}>
@@ -226,30 +340,34 @@ export default function GenderAutocomplete<T extends Record<string, unknown>>({
 
             return (
               <FormItem className={cn("flex flex-col", className)}>
-                <Select
-                  options={options}
-                  value={getValue()}
-                  onChange={handleChange}
-                  placeholder="Select Gender..."
-                  isDisabled={isDisabled || isLoading}
-                  isClearable={true}
-                  isSearchable={true}
-                  styles={customStyles}
-                  classNames={selectClassNames}
-                  components={{
-                    DropdownIndicator,
-                    ClearIndicator,
-                    Option,
-                  }}
-                  className="react-select-container"
-                  classNamePrefix="react-select__"
-                  menuPortalTarget={
-                    typeof document !== "undefined" ? document.body : null
-                  }
-                  menuPosition="fixed"
-                  isLoading={isLoading}
-                  loadingMessage={() => "Loading orderTypes..."}
-                />
+                <div ref={selectControlRef} onKeyDown={handleKeyDown}>
+                  <Select
+                    options={options}
+                    value={getValue()}
+                    onChange={handleChange}
+                    onMenuClose={handleMenuClose}
+                    placeholder="Select Gender..."
+                    isDisabled={isDisabled || isLoading}
+                    isClearable={true}
+                    isSearchable={true}
+                    styles={customStyles}
+                    classNames={selectClassNames}
+                    components={{
+                      DropdownIndicator,
+                      ClearIndicator,
+                      Option,
+                    }}
+                    className="react-select-container"
+                    classNamePrefix="react-select__"
+                    menuPortalTarget={
+                      typeof document !== "undefined" ? document.body : null
+                    }
+                    menuPosition="fixed"
+                    isLoading={isLoading}
+                    loadingMessage={() => "Loading orderTypes..."}
+                    blurInputOnSelect={true}
+                  />
+                </div>
                 {showError && (
                   <p className="text-destructive mt-1 text-xs">
                     {error.message}
@@ -281,29 +399,33 @@ export default function GenderAutocomplete<T extends Record<string, unknown>>({
           )}
         </div>
       )}
-      <Select
-        options={options}
-        onChange={handleChange}
-        placeholder="Select Gender..."
-        isDisabled={isDisabled || isLoading}
-        isClearable={true}
-        isSearchable={true}
-        styles={customStyles}
-        classNames={selectClassNames}
-        components={{
-          DropdownIndicator,
-          ClearIndicator,
-          Option,
-        }}
-        className="react-select-container"
-        classNamePrefix="react-select__"
-        menuPortalTarget={
-          typeof document !== "undefined" ? document.body : null
-        }
-        menuPosition="fixed"
-        isLoading={isLoading}
-        loadingMessage={() => "Loading orderTypes..."}
-      />
+      <div ref={selectControlRef} onKeyDown={handleKeyDown}>
+        <Select
+          options={options}
+          onChange={handleChange}
+          onMenuClose={handleMenuClose}
+          placeholder="Select Gender..."
+          isDisabled={isDisabled || isLoading}
+          isClearable={true}
+          isSearchable={true}
+          styles={customStyles}
+          classNames={selectClassNames}
+          components={{
+            DropdownIndicator,
+            ClearIndicator,
+            Option,
+          }}
+          className="react-select-container"
+          classNamePrefix="react-select__"
+          menuPortalTarget={
+            typeof document !== "undefined" ? document.body : null
+          }
+          menuPosition="fixed"
+          isLoading={isLoading}
+          loadingMessage={() => "Loading orderTypes..."}
+          blurInputOnSelect={true}
+        />
+      </div>
     </div>
   )
 }

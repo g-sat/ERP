@@ -2,7 +2,12 @@
 
 import React from "react"
 import { IRankLookup } from "@/interfaces/lookup"
-import { IconCheck, IconChevronDown, IconX } from "@tabler/icons-react"
+import {
+  IconCheck,
+  IconChevronDown,
+  IconRefresh,
+  IconX,
+} from "@tabler/icons-react"
 import { Path, PathValue, UseFormReturn } from "react-hook-form"
 import Select, {
   ClearIndicatorProps,
@@ -42,16 +47,53 @@ export default function RankAutocomplete<T extends Record<string, unknown>>({
   isRequired?: boolean
   onChangeEvent?: (selectedOption: IRankLookup | null) => void
 }) {
-  const { data: ranks = [], isLoading } = useRankLookup()
+  const { data: ranks = [], isLoading, refetch } = useRankLookup()
+
+  // Handle refresh with animation
+  const handleRefresh = React.useCallback(async () => {
+    try {
+      await refetch()
+    } catch (error) {
+      console.error("Error refreshing ranks:", error)
+    }
+  }, [refetch])
+
   // Memoize options to prevent unnecessary recalculations
-  const options: FieldOption[] = React.useMemo(
+  const baseOptions: FieldOption[] = React.useMemo(
     () =>
-      ranks.map((rank: IRankLookup) => ({
-        value: rank.rankId.toString(),
-        label: rank.rankName,
-      })),
+      ranks
+        .filter((rank: IRankLookup) => rank && rank.rankId != null)
+        .map((rank: IRankLookup) => ({
+          value: rank.rankId.toString(),
+          label: `${rank.rankCode} - ${rank.rankName}`,
+        })),
     [ranks]
   )
+
+  // Watch form value to make it reactive
+  const watchedValue = form && name ? form.watch(name) : null
+
+  // Create options with selected rank at top
+  const options: FieldOption[] = React.useMemo(() => {
+    if (!form || !name || !watchedValue || watchedValue === 0) {
+      return baseOptions
+    }
+
+    const selectedValue = watchedValue.toString()
+    const selectedOption = baseOptions.find(
+      (opt) => opt.value === selectedValue
+    )
+
+    if (!selectedOption) {
+      return baseOptions
+    }
+
+    // Remove selected option from base options and put it at the top
+    const otherOptions = baseOptions.filter(
+      (opt) => opt.value !== selectedValue
+    )
+    return [selectedOption, ...otherOptions]
+  }, [form, name, baseOptions, watchedValue])
 
   // Custom components with display names
   const DropdownIndicator = React.memo(
@@ -124,7 +166,7 @@ export default function RankAutocomplete<T extends Record<string, unknown>>({
       valueContainer: () => cn("px-0 py-0.5 gap-1"),
       input: () =>
         cn("text-foreground placeholder:text-muted-foreground m-0 p-0"),
-      indicatorsContainer: () => cn(""), // Gap removed
+      indicatorsContainer: () => cn("flex gap-0.5"), // Reduced gap between indicators
       clearIndicator: () =>
         cn("text-muted-foreground hover:text-foreground p-1 rounded-sm"),
       dropdownIndicator: () => cn("text-muted-foreground p-1 rounded-sm"),
@@ -184,12 +226,15 @@ export default function RankAutocomplete<T extends Record<string, unknown>>({
         form.setValue(name, value as PathValue<T, Path<T>>)
       }
       if (onChangeEvent) {
-        const selectedRank = selectedOption
+        const selectedUser = selectedOption
           ? ranks.find(
-              (u: IRankLookup) => u.rankId.toString() === selectedOption.value
+              (u: IRankLookup) =>
+                u &&
+                u.rankId != null &&
+                u.rankId.toString() === selectedOption.value
             ) || null
           : null
-        onChangeEvent(selectedRank)
+        onChangeEvent(selectedUser)
       }
     },
     [form, name, onChangeEvent, ranks]
@@ -199,7 +244,6 @@ export default function RankAutocomplete<T extends Record<string, unknown>>({
   const getValue = React.useCallback(() => {
     if (form && name) {
       const formValue = form.getValues(name)
-      // Convert form value to string for comparison
       return (
         options.find((option) => option.value === formValue?.toString()) || null
       )
@@ -207,14 +251,177 @@ export default function RankAutocomplete<T extends Record<string, unknown>>({
     return null
   }, [form, name, options])
 
+  // Handle menu close to maintain focus on the control
+  const selectControlRef = React.useRef<HTMLDivElement>(null)
+  const isTabPressedRef = React.useRef(false)
+  const handleMenuClose = React.useCallback(() => {
+    // Only refocus if Tab was NOT pressed (i.e., option was selected)
+    if (!isTabPressedRef.current) {
+      // Use requestAnimationFrame for smoother timing and less flicker
+      requestAnimationFrame(() => {
+        if (selectControlRef.current) {
+          const input = selectControlRef.current.querySelector(
+            "input"
+          ) as HTMLElement
+          if (input) {
+            const activeElement = document.activeElement as HTMLElement
+            const form = selectControlRef.current.closest("form")
+
+            // Only refocus if:
+            // 1. Focus is not already on the input
+            // 2. Focus is on the form, body, or outside the form
+            // 3. Focus is not on another form field
+            if (
+              activeElement !== input &&
+              form &&
+              (activeElement === form ||
+                activeElement === document.body ||
+                !form.contains(activeElement) ||
+                activeElement.tagName === "BODY")
+            ) {
+              input.focus()
+            }
+          }
+        }
+      })
+    } else {
+      // Reset the flag after menu closes (for Tab navigation)
+      requestAnimationFrame(() => {
+        isTabPressedRef.current = false
+      })
+    }
+  }, [])
+
+  // Handle Tab key to close menu and allow normal tab navigation
+  const handleKeyDown = React.useCallback(
+    (event: React.KeyboardEvent<HTMLDivElement>) => {
+      if (event.key === "Tab") {
+        // Set flag to prevent onMenuClose from refocusing
+        isTabPressedRef.current = true
+        // Close the menu by blurring the input, then allow normal tab navigation
+        const target = event.currentTarget
+        if (target) {
+          const input = target.querySelector("input") as HTMLElement
+          if (input && document.activeElement === input) {
+            event.preventDefault()
+            const form = target.closest("form")
+            let targetElement: HTMLElement | null = null
+            if (form) {
+              const allFocusable = Array.from(
+                form.querySelectorAll<HTMLElement>(
+                  "button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([disabled]):not([tabindex='-1'])"
+                )
+              )
+              // Find the input's position in the focusable elements
+              const inputIndex = allFocusable.findIndex(
+                (el) => el === input || el.contains(input)
+              )
+
+              if (event.shiftKey) {
+                // Shift+Tab: go to previous element
+                if (inputIndex !== -1 && inputIndex > 0) {
+                  targetElement = allFocusable[inputIndex - 1]
+                } else {
+                  // Fallback: find previous element before wrapper div
+                  const wrapperIndex = allFocusable.findIndex(
+                    (el) => target.contains(el) || el.contains(target)
+                  )
+                  if (wrapperIndex !== -1 && wrapperIndex > 0) {
+                    targetElement = allFocusable[wrapperIndex - 1]
+                  }
+                }
+              } else {
+                // Tab: go to next element
+                if (inputIndex !== -1 && inputIndex < allFocusable.length - 1) {
+                  targetElement = allFocusable[inputIndex + 1]
+                } else {
+                  // Fallback: find next element after wrapper div
+                  const wrapperIndex = allFocusable.findIndex(
+                    (el) => target.contains(el) || el.contains(target)
+                  )
+                  if (
+                    wrapperIndex !== -1 &&
+                    wrapperIndex < allFocusable.length - 1
+                  ) {
+                    targetElement = allFocusable[wrapperIndex + 1]
+                  }
+                }
+              }
+            }
+            // Blur to close menu and immediately focus target element to prevent flicker
+            if (targetElement) {
+              // Focus target element first (synchronously) to prevent form from receiving focus
+              targetElement.focus()
+              // Then blur to close menu (this won't affect the already-focused element)
+              input.blur()
+            } else {
+              // If no target element found, just blur
+              input.blur()
+            }
+          }
+        }
+      }
+    },
+    []
+  )
+
+  // Handle menu open to scroll to selected option
+  const handleMenuOpen = React.useCallback(() => {
+    // Use setTimeout to ensure the menu is fully rendered
+    setTimeout(() => {
+      const selectedValue = form && name ? form.getValues(name) : null
+      if (selectedValue) {
+        // Try multiple selectors to find the menu
+        const selectors = [
+          `[id*="${name || "rank-select"}"] .react-select__menu-list`,
+          ".react-select__menu-list",
+          '[class*="react-select__menu-list"]',
+        ]
+
+        let menuList: HTMLElement | null = null
+        for (const selector of selectors) {
+          menuList = document.querySelector(selector) as HTMLElement
+          if (menuList) break
+        }
+
+        if (menuList) {
+          const selectedOption = menuList.querySelector(
+            '.react-select__option[aria-selected="true"]'
+          ) as HTMLElement
+          if (selectedOption) {
+            // Scroll the selected option to the top of the visible area
+            menuList.scrollTop = selectedOption.offsetTop - menuList.offsetTop
+          }
+        }
+      }
+    }, 150)
+  }, [form, name])
+
   if (form && name) {
     return (
       <div className={cn("flex flex-col gap-1", className)}>
         {label && (
-          <Label htmlFor={name} className="text-sm font-medium">
-            {label}
-            {isRequired && <span className="ml-1 text-red-500">*</span>}
-          </Label>
+          <div className="flex items-center gap-1">
+            <Label htmlFor={name} className="text-sm font-medium">
+              {label}
+            </Label>
+            <button
+              type="button"
+              onClick={handleRefresh}
+              disabled={isLoading}
+              tabIndex={-1}
+              className="hover:bg-accent flex items-center justify-center rounded-sm p-0.5 transition-colors disabled:opacity-50"
+              title="Refresh ranks"
+            >
+              <IconRefresh
+                size={12}
+                className={`text-muted-foreground hover:text-foreground transition-colors ${
+                  isLoading ? "animate-spin" : ""
+                }`}
+              />
+            </button>
+            {isRequired && <span className="text-sm text-red-500">*</span>}
+          </div>
         )}
         <FormField
           control={form.control}
@@ -225,30 +432,52 @@ export default function RankAutocomplete<T extends Record<string, unknown>>({
 
             return (
               <FormItem className={cn("flex flex-col", className)}>
-                <Select
-                  options={options}
-                  value={getValue()}
-                  onChange={handleChange}
-                  placeholder="Select Rank..."
-                  isDisabled={isDisabled || isLoading}
-                  isClearable={true}
-                  isSearchable={true}
-                  styles={customStyles}
-                  classNames={selectClassNames}
-                  components={{
-                    DropdownIndicator,
-                    ClearIndicator,
-                    Option,
-                  }}
-                  className="react-select-container"
-                  classNamePrefix="react-select__"
-                  menuPortalTarget={
-                    typeof document !== "undefined" ? document.body : null
-                  }
-                  menuPosition="fixed"
-                  isLoading={isLoading}
-                  loadingMessage={() => "Loading orderTypes..."}
-                />
+                <div ref={selectControlRef} onKeyDown={handleKeyDown}>
+                  <Select
+                    instanceId={name || "rank-select"}
+                    options={options}
+                    value={getValue()}
+                    onChange={handleChange}
+                    onMenuOpen={handleMenuOpen}
+                    onMenuClose={handleMenuClose}
+                    placeholder="Select Rank..."
+                    isDisabled={isDisabled || isLoading}
+                    isClearable={true}
+                    isSearchable={true}
+                    filterOption={(option, inputValue) => {
+                      // Always show selected option, even if it doesn't match search
+                      const selectedValue =
+                        form && name ? form.getValues(name) : null
+                      if (
+                        selectedValue &&
+                        option.value === selectedValue.toString()
+                      ) {
+                        return true
+                      }
+                      // For other options, use default filtering
+                      return option.label
+                        .toLowerCase()
+                        .includes(inputValue.toLowerCase())
+                    }}
+                    styles={customStyles}
+                    classNames={selectClassNames}
+                    components={{
+                      DropdownIndicator,
+                      ClearIndicator,
+                      Option,
+                    }}
+                    className="react-select-container"
+                    classNamePrefix="react-select__"
+                    menuPortalTarget={
+                      typeof document !== "undefined" ? document.body : null
+                    }
+                    menuPosition="fixed"
+                    menuShouldScrollIntoView={true}
+                    isLoading={isLoading}
+                    loadingMessage={() => "Loading ranks..."}
+                    blurInputOnSelect={true}
+                  />
+                </div>
                 {showError && (
                   <p className="text-destructive mt-1 text-xs">
                     {error.message}
@@ -266,43 +495,76 @@ export default function RankAutocomplete<T extends Record<string, unknown>>({
   return (
     <div className={cn("flex flex-col gap-1", className)}>
       {label && (
-        <div
-          className={cn(
-            "text-sm font-medium",
-            isDisabled && "text-muted-foreground opacity-70"
-          )}
-        >
-          {label}
+        <div className="flex items-center gap-1">
+          <div
+            className={cn(
+              "text-sm font-medium",
+              isDisabled && "text-muted-foreground opacity-70"
+            )}
+          >
+            {label}
+          </div>
+          <button
+            type="button"
+            onClick={handleRefresh}
+            disabled={isLoading}
+            tabIndex={-1}
+            className="hover:bg-accent flex items-center justify-center rounded-sm p-0.5 transition-colors disabled:opacity-50"
+            title="Refresh ranks"
+          >
+            <IconRefresh
+              size={12}
+              className={`text-muted-foreground hover:text-foreground transition-colors ${
+                isLoading ? "animate-spin" : ""
+              }`}
+            />
+          </button>
           {isRequired && (
-            <span className="text-destructive ml-1" aria-hidden="true">
+            <span className="text-destructive text-sm" aria-hidden="true">
               *
             </span>
           )}
         </div>
       )}
-      <Select
-        options={options}
-        onChange={handleChange}
-        placeholder="Select Rank..."
-        isDisabled={isDisabled || isLoading}
-        isClearable={true}
-        isSearchable={true}
-        styles={customStyles}
-        classNames={selectClassNames}
-        components={{
-          DropdownIndicator,
-          ClearIndicator,
-          Option,
-        }}
-        className="react-select-container"
-        classNamePrefix="react-select__"
-        menuPortalTarget={
-          typeof document !== "undefined" ? document.body : null
-        }
-        menuPosition="fixed"
-        isLoading={isLoading}
-        loadingMessage={() => "Loading orderTypes..."}
-      />
+      <div ref={selectControlRef} onKeyDown={handleKeyDown}>
+        <Select
+          instanceId={name || "rank-select"}
+          options={options}
+          onChange={handleChange}
+          onMenuOpen={handleMenuOpen}
+          onMenuClose={handleMenuClose}
+          placeholder="Select Rank..."
+          isDisabled={isDisabled || isLoading}
+          isClearable={true}
+          isSearchable={true}
+          filterOption={(option, inputValue) => {
+            // Always show selected option, even if it doesn't match search
+            const selectedValue = form && name ? form.getValues(name) : null
+            if (selectedValue && option.value === selectedValue.toString()) {
+              return true
+            }
+            // For other options, use default filtering
+            return option.label.toLowerCase().includes(inputValue.toLowerCase())
+          }}
+          styles={customStyles}
+          classNames={selectClassNames}
+          components={{
+            DropdownIndicator,
+            ClearIndicator,
+            Option,
+          }}
+          className="react-select-container"
+          classNamePrefix="react-select__"
+          menuPortalTarget={
+            typeof document !== "undefined" ? document.body : null
+          }
+          menuPosition="fixed"
+          menuShouldScrollIntoView={true}
+          isLoading={isLoading}
+          loadingMessage={() => "Loading ranks..."}
+          blurInputOnSelect={true}
+        />
+      </div>
     </div>
   )
 }
