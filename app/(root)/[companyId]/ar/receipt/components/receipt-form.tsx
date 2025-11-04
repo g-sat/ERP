@@ -24,8 +24,10 @@ import {
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
 import { ArReceiptDtSchemaType, ArReceiptHdSchemaType } from "@/schemas"
 import { useAuthStore } from "@/stores/auth-store"
+import { format } from "date-fns"
 import { FormProvider, UseFormReturn } from "react-hook-form"
 
+import { clientDateFormat } from "@/lib/date-utils"
 import { parseNumberWithCommas } from "@/lib/utils"
 import { useGetDynamicLookup, usePaymentTypeLookup } from "@/hooks/use-lookup"
 import {
@@ -323,12 +325,22 @@ export default function ReceiptForm({
     async (_selectedTrnDate: Date | null) => {
       // Additional logic when transaction date changes
       const { trnDate } = form?.getValues()
-      form.setValue("accountDate", trnDate)
+
+      // Format trnDate to string if it's a Date object
+      const trnDateStr =
+        typeof trnDate === "string"
+          ? trnDate
+          : format(trnDate || new Date(), clientDateFormat)
+
+      form.setValue("accountDate", trnDateStr)
       form?.trigger("accountDate")
+
       await setExchangeRate(form, exhRateDec, visible)
       if (visible?.m_CtyCurr) {
         await setExchangeRateLocal(form, exhRateDec)
       }
+
+      // Calculate and set due date (for detail records)
       await setDueDate(form)
     },
     [exhRateDec, form, visible]
@@ -336,9 +348,26 @@ export default function ReceiptForm({
 
   // Handle account date selection
   const handleAccountDateChange = React.useCallback(
-    async (_selectedAccountDate: Date | null) => {
-      await setExchangeRate(form, exhRateDec, visible)
-      await setRecExchangeRate(form, exhRateDec)
+    async (selectedAccountDate: Date | null) => {
+      // Get the updated account date from form (should be set by CustomDateNew)
+      const accountDate = form?.getValues("accountDate") || selectedAccountDate
+
+      if (accountDate) {
+        // Ensure accountDate is set in form (as string)
+        if (selectedAccountDate) {
+          const accountDateValue =
+            typeof selectedAccountDate === "string"
+              ? selectedAccountDate
+              : format(selectedAccountDate, clientDateFormat)
+          form.setValue("accountDate", accountDateValue)
+        }
+
+        await setExchangeRate(form, exhRateDec, visible)
+        await setRecExchangeRate(form, exhRateDec)
+
+        // Calculate and set due date (for detail records)
+        await setDueDate(form)
+      }
     },
     [exhRateDec, form, visible]
   )
@@ -354,6 +383,7 @@ export default function ReceiptForm({
           form.setValue("bankId", selectedCustomer.bankId || 0)
         }
 
+        // Calculate and set due date (for detail records)
         await setDueDate(form)
 
         // Only set exchange rates if currency is available
@@ -380,6 +410,9 @@ export default function ReceiptForm({
         // Clear exchange rates
         form.setValue("exhRate", 0)
         form.setValue("recExhRate", 0)
+
+        // Calculate and set due date (for detail records)
+        await setDueDate(form)
 
         // Update currency comparison state
         updateCurrencyComparison()
