@@ -247,13 +247,15 @@ export default function COACategory3Autocomplete<
                 }
               }
             }
-            // Blur to close menu
-            input.blur()
-            // Focus the next element after blur completes
+            // Blur to close menu and immediately focus next element to prevent flicker
             if (nextElement) {
-              setTimeout(() => {
-                nextElement?.focus()
-              }, 10)
+              // Focus next element first (in same frame) to prevent form from receiving focus
+              nextElement.focus()
+              // Then blur to close menu (this won't affect the already-focused element)
+              input.blur()
+            } else {
+              // If no next element found, just blur
+              input.blur()
             }
           }
         }
