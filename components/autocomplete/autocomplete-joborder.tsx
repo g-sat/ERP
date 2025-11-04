@@ -237,6 +237,7 @@ export default function JobOrderAutocomplete<
               type="button"
               onClick={handleRefresh}
               disabled={isLoading}
+              tabIndex={-1}
               className="hover:bg-accent flex items-center justify-center rounded-sm p-0.5 transition-colors disabled:opacity-50"
               title="Refresh job orders"
             >
@@ -313,6 +314,7 @@ export default function JobOrderAutocomplete<
             type="button"
             onClick={handleRefresh}
             disabled={isLoading}
+            tabIndex={-1}
             className="hover:bg-accent flex items-center justify-center rounded-sm p-0.5 transition-colors disabled:opacity-50"
             title="Refresh job orders"
           >

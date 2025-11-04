@@ -99,6 +99,7 @@ export default function BargeAutocomplete<T extends Record<string, unknown>>({
           <button
             type="button"
             onClick={handleRefresh}
+            tabIndex={-1}
             className="text-muted-foreground hover:text-foreground rounded-sm p-1 transition-colors"
             title="Refresh barges"
           >
