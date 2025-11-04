@@ -4,7 +4,7 @@ import { useParams } from "next/navigation"
 import { IJobOrderHd } from "@/interfaces/checklist"
 
 import { ModuleId, OperationsTransactionId } from "@/lib/utils"
-import DocumentManager from "@/components/document-manager"
+import DocumentOperationsManager from "@/components/document-manager/document-operations-manager"
 
 interface ChecklistDocumentsFormProps {
   jobData?: IJobOrderHd | null
@@ -22,7 +22,7 @@ export function ChecklistDocuments({
   const jobOrderNo = jobData?.jobOrderNo || ""
 
   return (
-    <DocumentManager
+    <DocumentOperationsManager
       moduleId={ModuleId.operations}
       transactionId={OperationsTransactionId.checklist}
       recordId={jobOrderId}
