@@ -363,8 +363,9 @@ export default function CurrencyAutocomplete<
                     loadingMessage={() => "Loading currencies..."}
                     tabIndex={0}
                     blurInputOnSelect={true}
-                  instanceId={name}
-                />
+                    instanceId={name}
+                  />
+                </div>
                 {showError && (
                   <p className="text-destructive mt-1 text-xs">
                     {error.message}
