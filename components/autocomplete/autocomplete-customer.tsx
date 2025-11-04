@@ -61,7 +61,7 @@ export default function CustomerAutocomplete<
   }, [refetch])
 
   // Memoize options to prevent unnecessary recalculations
-  const options: FieldOption[] = React.useMemo(
+  const baseOptions: FieldOption[] = React.useMemo(
     () =>
       customers
         .filter(
@@ -73,6 +73,31 @@ export default function CustomerAutocomplete<
         })),
     [customers]
   )
+
+  // Watch form value to make it reactive
+  const watchedValue = form && name ? form.watch(name) : null
+
+  // Create options with selected customer at top
+  const options: FieldOption[] = React.useMemo(() => {
+    if (!form || !name || !watchedValue || watchedValue === 0) {
+      return baseOptions
+    }
+
+    const selectedValue = watchedValue.toString()
+    const selectedOption = baseOptions.find(
+      (opt) => opt.value === selectedValue
+    )
+
+    if (!selectedOption) {
+      return baseOptions
+    }
+
+    // Remove selected option from base options and put it at the top
+    const otherOptions = baseOptions.filter(
+      (opt) => opt.value !== selectedValue
+    )
+    return [selectedOption, ...otherOptions]
+  }, [form, name, baseOptions, watchedValue])
 
   // Custom components with display names
   const DropdownIndicator = React.memo(
@@ -230,6 +255,38 @@ export default function CustomerAutocomplete<
     return null
   }, [form, name, options])
 
+  // Handle menu open to scroll to selected option
+  const handleMenuOpen = React.useCallback(() => {
+    // Use setTimeout to ensure the menu is fully rendered
+    setTimeout(() => {
+      const selectedValue = form && name ? form.getValues(name) : null
+      if (selectedValue) {
+        // Try multiple selectors to find the menu
+        const selectors = [
+          `[id*="${name || "customer-select"}"] .react-select__menu-list`,
+          ".react-select__menu-list",
+          '[class*="react-select__menu-list"]',
+        ]
+
+        let menuList: HTMLElement | null = null
+        for (const selector of selectors) {
+          menuList = document.querySelector(selector) as HTMLElement
+          if (menuList) break
+        }
+
+        if (menuList) {
+          const selectedOption = menuList.querySelector(
+            '.react-select__option[aria-selected="true"]'
+          ) as HTMLElement
+          if (selectedOption) {
+            // Scroll the selected option to the top of the visible area
+            menuList.scrollTop = selectedOption.offsetTop - menuList.offsetTop
+          }
+        }
+      }
+    }, 150)
+  }, [form, name])
+
   if (form && name) {
     return (
       <div className={cn("flex flex-col gap-1", className)}>
@@ -270,10 +327,26 @@ export default function CustomerAutocomplete<
                   options={options}
                   value={getValue()}
                   onChange={handleChange}
+                  onMenuOpen={handleMenuOpen}
                   placeholder="Select Customer..."
                   isDisabled={isDisabled || isLoading}
                   isClearable={true}
                   isSearchable={true}
+                  filterOption={(option, inputValue) => {
+                    // Always show selected option, even if it doesn't match search
+                    const selectedValue =
+                      form && name ? form.getValues(name) : null
+                    if (
+                      selectedValue &&
+                      option.value === selectedValue.toString()
+                    ) {
+                      return true
+                    }
+                    // For other options, use default filtering
+                    return option.label
+                      .toLowerCase()
+                      .includes(inputValue.toLowerCase())
+                  }}
                   styles={customStyles}
                   classNames={selectClassNames}
                   components={{
@@ -287,6 +360,7 @@ export default function CustomerAutocomplete<
                     typeof document !== "undefined" ? document.body : null
                   }
                   menuPosition="fixed"
+                  menuShouldScrollIntoView={true}
                   isLoading={isLoading}
                   loadingMessage={() => "Loading customers..."}
                 />
@@ -342,10 +416,20 @@ export default function CustomerAutocomplete<
         instanceId={name || "customer-select"}
         options={options}
         onChange={handleChange}
+        onMenuOpen={handleMenuOpen}
         placeholder="Select Customer..."
         isDisabled={isDisabled || isLoading}
         isClearable={true}
         isSearchable={true}
+        filterOption={(option, inputValue) => {
+          // Always show selected option, even if it doesn't match search
+          const selectedValue = form && name ? form.getValues(name) : null
+          if (selectedValue && option.value === selectedValue.toString()) {
+            return true
+          }
+          // For other options, use default filtering
+          return option.label.toLowerCase().includes(inputValue.toLowerCase())
+        }}
         styles={customStyles}
         classNames={selectClassNames}
         components={{
@@ -359,6 +443,7 @@ export default function CustomerAutocomplete<
           typeof document !== "undefined" ? document.body : null
         }
         menuPosition="fixed"
+        menuShouldScrollIntoView={true}
         isLoading={isLoading}
         loadingMessage={() => "Loading customers..."}
       />
