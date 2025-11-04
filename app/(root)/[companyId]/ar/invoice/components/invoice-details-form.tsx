@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef } from "react"
+import { useEffect, useRef, useState } from "react"
 import {
   handleGstPercentageChange,
   handleQtyChange,
@@ -89,6 +89,9 @@ export default function InvoiceDetailsForm({
   const locAmtDec = decimals[0]?.locAmtDec || 2
   const qtyDec = decimals[0]?.qtyDec || 2
 
+  // Track if submit was attempted to show errors only after submit
+  const [submitAttempted, setSubmitAttempted] = useState(false)
+
   // Refs to store original values on focus for comparison on change
   const originalTotAmtRef = useRef<number>(0)
   const originalUnitPriceRef = useRef<number>(0)
@@ -102,19 +105,34 @@ export default function InvoiceDetailsForm({
   }
 
   // Factory function to create default values with dynamic itemNo and defaults
-  const createDefaultValues = (itemNo: number): ArInvoiceDtSchemaType => ({
-    ...defaultInvoiceDetails,
-    itemNo,
-    seqNo: itemNo,
-    docItemNo: itemNo,
-    glId: defaultGlId || defaultInvoiceDetails.glId,
-    uomId: defaultUomId || defaultInvoiceDetails.uomId,
-    gstId: defaultGstId || defaultInvoiceDetails.gstId,
-  })
+  const createDefaultValues = (itemNo: number): ArInvoiceDtSchemaType => {
+    // Use defaults if available, otherwise use defaultInvoiceDetails values
+    const glId =
+      defaultGlId && defaultGlId > 0 ? defaultGlId : defaultInvoiceDetails.glId
+    const uomId =
+      defaultUomId && defaultUomId > 0
+        ? defaultUomId
+        : defaultInvoiceDetails.uomId
+    const gstId =
+      defaultGstId && defaultGstId > 0
+        ? defaultGstId
+        : defaultInvoiceDetails.gstId
+
+    return {
+      ...defaultInvoiceDetails,
+      itemNo,
+      seqNo: itemNo,
+      docItemNo: itemNo,
+      glId,
+      uomId,
+      gstId,
+    }
+  }
 
   const form = useForm<ArInvoiceDtSchemaType>({
     resolver: zodResolver(ArInvoiceDtSchema(required, visible)),
-    mode: "onBlur",
+    mode: "onSubmit",
+    reValidateMode: "onChange",
     defaultValues: editingDetail
       ? {
           invoiceId: editingDetail.invoiceId ?? "0",
@@ -265,6 +283,8 @@ export default function InvoiceDetailsForm({
     const defaultValues = createDefaultValues(nextItemNo)
     const populatedValues = populateCodeNameFields(defaultValues)
     form.reset(populatedValues)
+    // Reset submit attempted flag when canceling
+    setSubmitAttempted(false)
     toast.info("Detail cancelled")
     focusFirstVisibleField()
   }
@@ -277,34 +297,49 @@ export default function InvoiceDetailsForm({
   useEffect(() => {
     if (editingDetail) return // Skip for edit mode
 
-    const currentGlId = form.getValues("glId")
-    const currentUomId = form.getValues("uomId")
-    const currentGstId = form.getValues("gstId")
+    // Wait a bit to ensure form is reset before applying defaults
+    const timeoutId = setTimeout(() => {
+      const currentGlId = form.getValues("glId")
+      const currentUomId = form.getValues("uomId")
+      const currentGstId = form.getValues("gstId")
 
-    // Set default GL ID if not already set
-    if (defaultGlId && defaultGlId > 0 && (!currentGlId || currentGlId === 0)) {
-      form.setValue("glId", defaultGlId)
-    }
+      // Set default GL ID if not already set
+      if (
+        defaultGlId &&
+        defaultGlId > 0 &&
+        (!currentGlId || currentGlId === 0)
+      ) {
+        form.setValue("glId", defaultGlId, { shouldValidate: false })
+      }
 
-    // Set default UOM ID if not already set
-    if (
-      defaultUomId &&
-      defaultUomId > 0 &&
-      (!currentUomId || currentUomId === 0)
-    ) {
-      form.setValue("uomId", defaultUomId)
-    }
+      // Set default UOM ID if not already set
+      if (
+        defaultUomId &&
+        defaultUomId > 0 &&
+        (!currentUomId || currentUomId === 0)
+      ) {
+        form.setValue("uomId", defaultUomId, { shouldValidate: false })
+      }
 
-    // Set default GST ID if not already set
-    if (
-      defaultGstId &&
-      defaultGstId > 0 &&
-      (!currentGstId || currentGstId === 0)
-    ) {
-      form.setValue("gstId", defaultGstId)
-    }
+      // Set default GST ID if not already set
+      if (
+        defaultGstId &&
+        defaultGstId > 0 &&
+        (!currentGstId || currentGstId === 0)
+      ) {
+        form.setValue("gstId", defaultGstId, { shouldValidate: false })
+      }
+    }, 100)
+
+    return () => clearTimeout(timeoutId)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [defaultGlId, defaultUomId, defaultGstId, editingDetail])
+  }, [
+    defaultGlId,
+    defaultUomId,
+    defaultGstId,
+    editingDetail,
+    existingDetails.length,
+  ])
 
   // Populate code/name fields when defaults are applied (only for new records)
   useEffect(() => {
@@ -451,26 +486,67 @@ export default function InvoiceDetailsForm({
         editVersion: editingDetail.editVersion ?? 0,
       })
     } else {
-      // New record - reset to defaults
-      form.reset(createDefaultValues(nextItemNo))
+      // New record - reset to defaults with proper default values
+      const defaultValues = createDefaultValues(nextItemNo)
+      form.reset(defaultValues)
+
+      // Reset submit attempted flag when creating new record
+      setSubmitAttempted(false)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editingDetail, existingDetails.length])
 
   const onSubmit = async (data: ArInvoiceDtSchemaType) => {
     try {
-      // Validate data against schema
+      console.log("data : ", data)
+      // Trigger validation - React Hook Form will validate automatically via zodResolver
+      // but we'll also validate manually to ensure all errors are caught
+      const isValid = await form.trigger()
+
+      if (!isValid) {
+        // Validation failed - React Hook Form will display errors automatically
+        const errors = form.formState.errors
+        const errorFields = Object.keys(errors)
+        const errorMessages = errorFields
+          .map((field) => {
+            const error = errors[field as keyof typeof errors]
+            return error?.message || `${field} is invalid`
+          })
+          .filter(Boolean)
+
+        if (errorMessages.length > 0) {
+          toast.error(
+            `Please fix validation errors: ${errorMessages.join(", ")}`
+          )
+        } else {
+          toast.error("Please fix form validation errors")
+        }
+        console.error("Form validation errors:", errors)
+        return
+      }
+
+      // Additional Zod validation for safety
       const validationResult = ArInvoiceDtSchema(required, visible).safeParse(
         data
       )
 
       if (!validationResult.success) {
+        // Set field-level errors from Zod validation
+        validationResult.error.issues.forEach((issue) => {
+          const fieldPath = issue.path.join(".") as keyof ArInvoiceDtSchemaType
+          form.setError(fieldPath, {
+            type: "validation",
+            message: issue.message,
+          })
+        })
+
         const errors = validationResult.error.issues
         const errorMessage = errors
           .map((err) => `${err.path.join(".")}: ${err.message}`)
           .join(", ")
         toast.error(`Validation failed: ${errorMessage}`)
-        console.error("Validation errors:", errors)
+        setSubmitAttempted(true)
+        console.error("Zod validation errors:", errors)
         return
       }
 
@@ -557,6 +633,9 @@ export default function InvoiceDetailsForm({
         const defaultValues = createDefaultValues(nextItemNo)
         const populatedValues = populateCodeNameFields(defaultValues)
         form.reset(populatedValues)
+
+        // Reset submit attempted flag on successful submission
+        setSubmitAttempted(false)
 
         // Focus on the first visible field after successful submission
         focusFirstVisibleField()
@@ -899,8 +978,8 @@ export default function InvoiceDetailsForm({
 
   return (
     <>
-      {/* Display form errors */}
-      {Object.keys(form.formState.errors).length > 0 && (
+      {/* Display form errors only after submit attempt */}
+      {submitAttempted && Object.keys(form.formState.errors).length > 0 && (
         <div className="mx-2 mb-2 rounded-md border border-red-200 bg-red-50 p-3">
           <p className="mb-1 font-semibold text-red-800">
             Please fix the following errors:
