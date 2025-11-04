@@ -240,12 +240,6 @@ export default function Main({
       rowIndex: number,
       allocValue: number
     ) => {
-      console.log(
-        "updateAllocationCalculations",
-        updatedData,
-        rowIndex,
-        allocValue
-      )
       const arr = updatedData as unknown as IArReceiptDt[]
       if (rowIndex === -1 || rowIndex >= arr.length) return
 
@@ -311,16 +305,13 @@ export default function Main({
 
       // Don't allow manual entry when totAmt = 0
       const headerTotAmt = Number(form.getValues("totAmt")) || 0
-      console.log("headerTotAmt", headerTotAmt)
       if (headerTotAmt === 0) {
-        console.log("Don't allow manual entry when totAmt = 0")
         toast.error(
           "Total Amount is zero. Cannot manually allocate. Please use Auto Allocation or enter Total Amount."
         )
         // Set amount to 0
         const updatedData = [...currentData]
 
-        console.log("updatedData", updatedData)
         const arr = updatedData as unknown as IArReceiptDt[]
         const rowIndex = arr.findIndex((r) => r.itemNo === itemNo)
         if (rowIndex === -1) return
@@ -329,7 +320,6 @@ export default function Main({
         return
       } else {
         // When totAmt > 0, allow manual entry with validation
-        console.log("When totAmt > 0, allow manual entry with validation")
         const updatedData = [...currentData]
         const arr = updatedData as unknown as IArReceiptDt[]
         const rowIndex = arr.findIndex((r) => r.itemNo === itemNo)

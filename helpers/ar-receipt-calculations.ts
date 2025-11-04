@@ -233,8 +233,8 @@ export const calauteLocalAmtandGainLoss = (
     allocLocalAmt,
     decimals.locAmtDec
   )
-  // centDiff is the same as exhGainLoss in this calculation
-  const centDiff = exhGainLoss
+  // centDiff is always set to 0
+  const centDiff = 0
 
   details[rowNumber].allocLocalAmt = allocLocalAmt
   details[rowNumber].docAllocAmt = docAllocAmt

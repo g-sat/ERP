@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import {
+  calculateMultiplierAmount,
   setDueDate,
   setExchangeRate,
   setExchangeRateLocal,
@@ -86,6 +87,7 @@ export default function ReceiptForm({
   const originalRecExhRateRef = React.useRef<number>(0)
   const originalTotAmtRef = React.useRef<number>(0)
   const originalRecTotAmtRef = React.useRef<number>(0)
+  const originalBankChgAmtRef = React.useRef<number>(0)
 
   // Function to update currency comparison state
   const updateCurrencyComparison = React.useCallback(() => {
@@ -674,6 +676,53 @@ export default function ReceiptForm({
     [form, recalculateAmountsBasedOnCurrency]
   )
 
+  // Handle bank charges amount focus - capture original value
+  const handleBankChgAmtFocus = React.useCallback(() => {
+    originalBankChgAmtRef.current = form.getValues("bankChgAmt") || 0
+    console.log(
+      "handleBankChgAmtFocus - original value:",
+      originalBankChgAmtRef.current
+    )
+  }, [form])
+
+  // Handle bank charges amount change
+  const handleBankChgAmtChange = React.useCallback(
+    (e: React.FocusEvent<HTMLInputElement>) => {
+      const bankChgAmt = parseNumberWithCommas(e.target.value)
+      const originalBankChgAmt = originalBankChgAmtRef.current
+
+      console.log("handleBankChgAmtChange", {
+        newValue: bankChgAmt,
+        originalValue: originalBankChgAmt,
+        isDifferent: bankChgAmt !== originalBankChgAmt,
+      })
+
+      // Only recalculate if value is different from original
+      if (bankChgAmt !== originalBankChgAmt) {
+        console.log("Bank Charges Amount changed - recalculating local amount")
+        form.setValue("bankChgAmt", bankChgAmt, { shouldDirty: true })
+
+        // Calculate bank charges local amount: bankChgAmt * exhRate
+        const exhRate = form.getValues("exhRate") || 0
+        if (exhRate > 0) {
+          const bankChgLocalAmt = calculateMultiplierAmount(
+            bankChgAmt,
+            exhRate,
+            locAmtDec
+          )
+          form.setValue("bankChgLocalAmt", bankChgLocalAmt, {
+            shouldDirty: true,
+          })
+        } else {
+          form.setValue("bankChgLocalAmt", 0, { shouldDirty: true })
+        }
+      } else {
+        console.log("Bank Charges Amount unchanged - skipping recalculation")
+      }
+    },
+    [form, locAmtDec]
+  )
+
   return (
     <FormProvider {...form}>
       <form
@@ -898,6 +947,8 @@ export default function ReceiptForm({
           form={form}
           name="bankChgAmt"
           label="Bank Charges Amount"
+          onFocusEvent={handleBankChgAmtFocus}
+          onBlurEvent={handleBankChgAmtChange}
         />
 
         {/* Bank Charges Local Amount */}

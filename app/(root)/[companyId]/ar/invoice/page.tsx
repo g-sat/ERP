@@ -2,7 +2,18 @@
 
 import { useEffect, useState } from "react"
 import { useParams } from "next/navigation"
-import { mathRound, setDueDate } from "@/helpers/account"
+import {
+  mathRound,
+  setDueDate,
+  setExchangeRate,
+  setExchangeRateLocal,
+} from "@/helpers/account"
+import {
+  calculateCountryAmounts,
+  calculateLocalAmounts,
+  calculateTotalAmounts,
+  recalculateAllDetailAmounts,
+} from "@/helpers/ar-invoice-calculations"
 import { IArInvoiceDt, IArInvoiceFilter, IArInvoiceHd } from "@/interfaces"
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
 import {
@@ -452,6 +463,71 @@ export default function InvoicePage() {
 
       setInvoice(clonedInvoice)
       form.reset(clonedInvoice)
+
+      // Get exchange rate decimal places
+      const exhRateDec = decimals[0]?.exhRateDec || 6
+
+      // Fetch and set new exchange rates based on new account date
+      if (clonedInvoice.currencyId && clonedInvoice.accountDate) {
+        try {
+          await setExchangeRate(form, exhRateDec, visible)
+          if (visible?.m_CtyCurr) {
+            await setExchangeRateLocal(form, exhRateDec)
+          }
+
+          // Get updated exchange rates
+          const exchangeRate = form.getValues("exhRate") || 0
+          const cityExchangeRate = form.getValues("ctyExhRate") || 0
+
+          // Recalculate detail amounts with new exchange rates if details exist
+          const formDetails = form.getValues("data_details")
+          if (formDetails && formDetails.length > 0) {
+            const updatedDetails = recalculateAllDetailAmounts(
+              formDetails as unknown as IArInvoiceDt[],
+              exchangeRate,
+              cityExchangeRate,
+              decimals[0],
+              !!visible?.m_CtyCurr
+            )
+
+            // Update form with recalculated details
+            form.setValue(
+              "data_details",
+              updatedDetails as unknown as ArInvoiceDtSchemaType[],
+              { shouldDirty: true, shouldTouch: true }
+            )
+
+            // Recalculate header totals from updated details
+            const totals = calculateTotalAmounts(
+              updatedDetails as unknown as IArInvoiceDt[],
+              amtDec
+            )
+            form.setValue("totAmt", totals.totAmt)
+            form.setValue("gstAmt", totals.gstAmt)
+            form.setValue("totAmtAftGst", totals.totAmtAftGst)
+
+            const localAmounts = calculateLocalAmounts(
+              updatedDetails as unknown as IArInvoiceDt[],
+              locAmtDec
+            )
+            form.setValue("totLocalAmt", localAmounts.totLocalAmt)
+            form.setValue("gstLocalAmt", localAmounts.gstLocalAmt)
+            form.setValue("totLocalAmtAftGst", localAmounts.totLocalAmtAftGst)
+
+            if (visible?.m_CtyCurr) {
+              const countryAmounts = calculateCountryAmounts(
+                updatedDetails as unknown as IArInvoiceDt[],
+                visible?.m_CtyCurr ? ctyAmtDec : locAmtDec
+              )
+              form.setValue("totCtyAmt", countryAmounts.totCtyAmt)
+              form.setValue("gstCtyAmt", countryAmounts.gstCtyAmt)
+              form.setValue("totCtyAmtAftGst", countryAmounts.totCtyAmtAftGst)
+            }
+          }
+        } catch (error) {
+          console.error("Error updating exchange rates:", error)
+        }
+      }
 
       // Calculate due date based on accountDate and credit terms
       if (clonedInvoice.creditTermId && clonedInvoice.accountDate) {

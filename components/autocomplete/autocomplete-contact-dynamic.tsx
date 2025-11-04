@@ -4,7 +4,12 @@ import React from "react"
 import { IBankContact } from "@/interfaces/bank"
 import { ICustomerContact } from "@/interfaces/customer"
 import { ISupplierContact } from "@/interfaces/supplier"
-import { IconCheck, IconChevronDown, IconX } from "@tabler/icons-react"
+import {
+  IconCheck,
+  IconChevronDown,
+  IconRefresh,
+  IconX,
+} from "@tabler/icons-react"
 import { Path, PathValue, UseFormReturn } from "react-hook-form"
 import Select, {
   ClearIndicatorProps,
@@ -76,8 +81,12 @@ export default function DynamicContactAutocomplete<
     entityType === EntityType.BANK ? entityId : 0
   )
 
-  // Get the appropriate data based on entity type
-  const { data: contacts = [], isLoading } = React.useMemo(() => {
+  // Get the appropriate data and refetch based on entity type
+  const {
+    data: contacts = [],
+    isLoading,
+    refetch,
+  } = React.useMemo(() => {
     switch (entityType) {
       case EntityType.CUSTOMER:
         return customerContactData
@@ -86,9 +95,18 @@ export default function DynamicContactAutocomplete<
       case EntityType.BANK:
         return bankContactData
       default:
-        return { data: [], isLoading: false }
+        return { data: [], isLoading: false, refetch: async () => ({}) }
     }
   }, [entityType, customerContactData, supplierContactData, bankContactData])
+
+  // Handle refresh with animation
+  const handleRefresh = React.useCallback(async () => {
+    try {
+      await refetch()
+    } catch (error) {
+      console.error("Error refreshing contacts:", error)
+    }
+  }, [refetch])
 
   // Memoize options to prevent unnecessary recalculations
   const options: FieldOption[] = React.useMemo(
@@ -263,7 +281,7 @@ export default function DynamicContactAutocomplete<
           if (input) {
             const activeElement = document.activeElement as HTMLElement
             const form = selectControlRef.current.closest("form")
-            
+
             // Only refocus if:
             // 1. Focus is not already on the input
             // 2. Focus is on the form, body, or outside the form
@@ -313,7 +331,7 @@ export default function DynamicContactAutocomplete<
               const inputIndex = allFocusable.findIndex(
                 (el) => el === input || el.contains(input)
               )
-              
+
               if (event.shiftKey) {
                 // Shift+Tab: go to previous element
                 if (inputIndex !== -1 && inputIndex > 0) {
@@ -391,12 +409,29 @@ export default function DynamicContactAutocomplete<
   if (form && name) {
     return (
       <div className={cn("flex flex-col gap-1", className)}>
-        {label && (
-          <Label htmlFor={name} className="text-sm font-medium">
-            {label}
-            {isRequired && <span className="ml-1 text-red-500">*</span>}
-          </Label>
-        )}
+        <div className="flex items-center gap-1">
+          {label && (
+            <Label htmlFor={name} className="text-sm font-medium">
+              {label}
+              {isRequired && <span className="ml-1 text-red-500">*</span>}
+            </Label>
+          )}
+          <button
+            type="button"
+            onClick={handleRefresh}
+            disabled={isLoading}
+            tabIndex={-1}
+            className="hover:bg-accent flex items-center justify-center rounded-sm p-0.5 transition-colors disabled:opacity-50"
+            title="Refresh contacts"
+          >
+            <IconRefresh
+              size={12}
+              className={`text-muted-foreground hover:text-foreground transition-colors ${
+                isLoading ? "animate-spin" : ""
+              }`}
+            />
+          </button>
+        </div>
         <FormField
           control={form.control}
           name={name}
@@ -406,30 +441,34 @@ export default function DynamicContactAutocomplete<
 
             return (
               <FormItem className={cn("flex flex-col", className)}>
-                <Select
-                  options={options}
-                  value={getValue()}
-                  onChange={handleChange}
-                  placeholder={getPlaceholder()}
-                  isDisabled={isDisabled || isLoading}
-                  isClearable={true}
-                  isSearchable={true}
-                  styles={customStyles}
-                  classNames={selectClassNames}
-                  components={{
-                    DropdownIndicator,
-                    ClearIndicator,
-                    Option,
-                  }}
-                  className="react-select-container"
-                  classNamePrefix="react-select__"
-                  menuPortalTarget={
-                    typeof document !== "undefined" ? document.body : null
-                  }
-                  menuPosition="fixed"
-                  isLoading={isLoading}
-                  loadingMessage={() => getLoadingMessage()}
-                />
+                <div ref={selectControlRef} onKeyDown={handleKeyDown}>
+                  <Select
+                    options={options}
+                    value={getValue()}
+                    onChange={handleChange}
+                    onMenuClose={handleMenuClose}
+                    placeholder={getPlaceholder()}
+                    isDisabled={isDisabled || isLoading}
+                    isClearable={true}
+                    isSearchable={true}
+                    styles={customStyles}
+                    classNames={selectClassNames}
+                    components={{
+                      DropdownIndicator,
+                      ClearIndicator,
+                      Option,
+                    }}
+                    className="react-select-container"
+                    classNamePrefix="react-select__"
+                    menuPortalTarget={
+                      typeof document !== "undefined" ? document.body : null
+                    }
+                    menuPosition="fixed"
+                    isLoading={isLoading}
+                    loadingMessage={() => getLoadingMessage()}
+                    blurInputOnSelect={true}
+                  />
+                </div>
                 {showError && (
                   <p className="text-destructive mt-1 text-xs">
                     {error.message}
@@ -446,44 +485,65 @@ export default function DynamicContactAutocomplete<
   // Standalone version (no form)
   return (
     <div className={cn("flex flex-col gap-1", className)}>
-      {label && (
-        <div
-          className={cn(
-            "text-sm font-medium",
-            isDisabled && "text-muted-foreground opacity-70"
-          )}
+      <div className="flex items-center gap-1">
+        {label && (
+          <div
+            className={cn(
+              "text-sm font-medium",
+              isDisabled && "text-muted-foreground opacity-70"
+            )}
+          >
+            {label}
+            {isRequired && (
+              <span className="text-destructive ml-1" aria-hidden="true">
+                *
+              </span>
+            )}
+          </div>
+        )}
+        <button
+          type="button"
+          onClick={handleRefresh}
+          disabled={isLoading}
+          tabIndex={-1}
+          className="hover:bg-accent flex items-center justify-center rounded-sm p-0.5 transition-colors disabled:opacity-50"
+          title="Refresh contacts"
         >
-          {label}
-          {isRequired && (
-            <span className="text-destructive ml-1" aria-hidden="true">
-              *
-            </span>
-          )}
-        </div>
-      )}
-      <Select
-        options={options}
-        onChange={handleChange}
-        placeholder={getPlaceholder()}
-        isDisabled={isDisabled || isLoading}
-        isClearable={true}
-        isSearchable={true}
-        styles={customStyles}
-        classNames={selectClassNames}
-        components={{
-          DropdownIndicator,
-          ClearIndicator,
-          Option,
-        }}
-        className="react-select-container"
-        classNamePrefix="react-select__"
-        menuPortalTarget={
-          typeof document !== "undefined" ? document.body : null
-        }
-        menuPosition="fixed"
-        isLoading={isLoading}
-        loadingMessage={() => getLoadingMessage()}
-      />
+          <IconRefresh
+            size={12}
+            className={`text-muted-foreground hover:text-foreground transition-colors ${
+              isLoading ? "animate-spin" : ""
+            }`}
+          />
+        </button>
+      </div>
+      <div ref={selectControlRef} onKeyDown={handleKeyDown}>
+        <Select
+          options={options}
+          onChange={handleChange}
+          onMenuClose={handleMenuClose}
+          placeholder={getPlaceholder()}
+          isDisabled={isDisabled || isLoading}
+          isClearable={true}
+          isSearchable={true}
+          styles={customStyles}
+          classNames={selectClassNames}
+          components={{
+            DropdownIndicator,
+            ClearIndicator,
+            Option,
+          }}
+          className="react-select-container"
+          classNamePrefix="react-select__"
+          menuPortalTarget={
+            typeof document !== "undefined" ? document.body : null
+          }
+          menuPosition="fixed"
+          isLoading={isLoading}
+          loadingMessage={() => getLoadingMessage()}
+          blurInputOnSelect={true}
+        />
+      </div>
     </div>
   )
 }
