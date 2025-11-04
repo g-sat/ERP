@@ -388,20 +388,28 @@ export const setGSTPercentage = async (
  * Modules: AP, AR
  */
 export const setDueDate = async (form: HdForm) => {
+  console.log("form", form.getValues())
+  console.log("call this function to set due date")
   //to set due date
   const { accountDate, creditTermId, deliveryDate } = form?.getValues()
 
   if (deliveryDate && creditTermId) {
+    console.log("deliveryDate and creditTermId are available")
     try {
-      const dt = format(
-        parse(accountDate, clientDateFormat, new Date()),
-        "yyyy-MM-dd"
-      )
+      // Parse accountDate to Date object if it's a string, otherwise use as-is
+      const accountDateObj =
+        typeof accountDate === "string"
+          ? parse(accountDate, clientDateFormat, new Date())
+          : accountDate
+
+      const dt = format(accountDateObj, "yyyy-MM-dd")
+      console.log("dt", dt)
       const res = await getData(
         `${BasicSetting.getDaysfromCreditTerm}/${creditTermId}/${dt}`
       )
 
       const days = res?.data as number
+      console.log("days", days)
 
       // Parse deliveryDate string to Date object before adding days
       const deliveryDateObj =
@@ -413,7 +421,11 @@ export const setDueDate = async (form: HdForm) => {
       console.log("dueDate", dueDate)
       form.setValue("dueDate", format(dueDate, clientDateFormat))
       form.trigger("dueDate")
-    } catch {}
+    } catch (error) {
+      console.error("Error setting due date:", error)
+    }
+  } else {
+    console.log("deliveryDate and creditTermId are not available")
   }
 }
 

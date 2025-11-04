@@ -26,8 +26,8 @@ import {
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
 import { ArInvoiceDtSchemaType, ArInvoiceHdSchemaType } from "@/schemas"
 import { useAuthStore } from "@/stores/auth-store"
-import { format } from "date-fns"
-import { FormProvider, UseFormReturn } from "react-hook-form"
+import { format, parse } from "date-fns"
+import { FormProvider, UseFormReturn, useWatch } from "react-hook-form"
 
 import { clientDateFormat } from "@/lib/date-utils"
 import { useGetDynamicLookup } from "@/hooks/use-lookup"
@@ -75,6 +75,25 @@ export default function InvoiceForm({
   const { data: dynamicLookup } = useGetDynamicLookup()
   const isDynamicCustomer = dynamicLookup?.isCustomer ?? false
 
+  // Watch account date to use as minDate for due date
+  const accountDateValue = useWatch({
+    control: form.control,
+    name: "accountDate",
+  })
+  const dueDateMinDate = React.useMemo(() => {
+    if (!accountDateValue) return new Date()
+
+    // Parse account date string to Date object if needed
+    const accountDateObj =
+      typeof accountDateValue === "string"
+        ? parse(accountDateValue, clientDateFormat, new Date())
+        : accountDateValue
+
+    return accountDateObj && !isNaN(accountDateObj.getTime())
+      ? accountDateObj
+      : new Date()
+  }, [accountDateValue])
+
   // Refs to store original values on focus for comparison on change
   const originalExhRateRef = React.useRef<number>(0)
   const originalCtyExhRateRef = React.useRef<number>(0)
@@ -83,15 +102,56 @@ export default function InvoiceForm({
     await onSuccessAction("save")
   }
 
+  // Helper function to calculate and set due date
+  const calculateAndSetDueDate = React.useCallback(async () => {
+    const creditTermId = form.getValues("creditTermId")
+    const accountDate = form.getValues("accountDate")
+    const deliveryDate = form.getValues("deliveryDate")
+
+    console.log("creditTermId", creditTermId)
+    console.log("accountDate", accountDate)
+    console.log("deliveryDate", deliveryDate)
+    if (creditTermId && creditTermId > 0) {
+      console.log(
+        "Credit term available - calculate due date based on credit term"
+      )
+      // Credit term available - calculate due date based on credit term
+      await setDueDate(form)
+    } else if (accountDate) {
+      console.log("No credit term - set due date to account date")
+      // No credit term - set due date to account date
+      const dueDateValue =
+        typeof accountDate === "string"
+          ? accountDate
+          : format(accountDate, clientDateFormat)
+      form.setValue("dueDate", dueDateValue)
+      form.trigger("dueDate")
+    } else {
+      console.log("No account date either - set to today")
+      // No account date either - set to today
+      const todayValue = format(new Date(), clientDateFormat)
+      form.setValue("dueDate", todayValue)
+      form.trigger("dueDate")
+    }
+    console.log("dueDate", form.getValues("dueDate"))
+  }, [form])
+
   // Handle transaction date selection
   const handleTrnDateChange = React.useCallback(
     async (_selectedTrnDate: Date | null) => {
       // Additional logic when transaction date changes
       const { trnDate } = form?.getValues()
-      form.setValue("gstClaimDate", trnDate)
+
+      // Format trnDate to string if it's a Date object
+      const trnDateStr =
+        typeof trnDate === "string"
+          ? trnDate
+          : format(trnDate || new Date(), clientDateFormat)
+
+      form.setValue("gstClaimDate", trnDateStr)
       form?.trigger("gstClaimDate")
-      form.setValue("accountDate", trnDate)
-      form.setValue("deliveryDate", trnDate)
+      form.setValue("accountDate", trnDateStr)
+      form.setValue("deliveryDate", trnDateStr)
       form?.trigger("accountDate")
       form?.trigger("deliveryDate")
       await setExchangeRate(form, exhRateDec, visible)
@@ -116,16 +176,26 @@ export default function InvoiceForm({
       const accountDate = form?.getValues("accountDate") || selectedAccountDate
 
       if (accountDate) {
-        // Set gstClaimDate and deliveryDate to the new account date
-        form.setValue("gstClaimDate", accountDate)
+        // Format account date to string if it's a Date object
+        const accountDateStr =
+          typeof accountDate === "string"
+            ? accountDate
+            : format(accountDate, clientDateFormat)
+
+        // Set gstClaimDate and deliveryDate to the new account date (as strings)
+        form.setValue("gstClaimDate", accountDateStr)
         form?.trigger("gstClaimDate")
 
-        form.setValue("deliveryDate", accountDate)
+        form.setValue("deliveryDate", accountDateStr)
         form?.trigger("deliveryDate")
 
-        // Ensure accountDate is set in form (in case it wasn't updated yet)
+        // Ensure accountDate is set in form (as string)
         if (selectedAccountDate) {
-          form.setValue("accountDate", selectedAccountDate)
+          const accountDateValue =
+            typeof selectedAccountDate === "string"
+              ? selectedAccountDate
+              : format(selectedAccountDate, clientDateFormat)
+          form.setValue("accountDate", accountDateValue)
         }
 
         await setExchangeRate(form, exhRateDec, visible)
@@ -133,11 +203,11 @@ export default function InvoiceForm({
           await setExchangeRateLocal(form, exhRateDec)
         }
 
-        // Call setDueDate after all other updates to ensure accountDate and deliveryDate are set
-        await setDueDate(form)
+        // Calculate and set due date
+        await calculateAndSetDueDate()
       }
     },
-    [decimals, exhRateDec, form, visible]
+    [exhRateDec, form, visible, calculateAndSetDueDate]
   )
 
   // Handle customer selection
@@ -151,10 +221,12 @@ export default function InvoiceForm({
           form.setValue("bankId", selectedCustomer.bankId || 0)
         }
 
-        await setDueDate(form)
         await setExchangeRate(form, exhRateDec, visible)
         await setExchangeRateLocal(form, exhRateDec)
         await setAddressContactDetails(form, EntityType.CUSTOMER)
+
+        // Calculate and set due date after customer fields are set
+        await calculateAndSetDueDate()
       } else {
         // ✅ Customer cleared - reset all related fields
         if (!isEdit) {
@@ -168,8 +240,8 @@ export default function InvoiceForm({
         form.setValue("exhRate", 0)
         form.setValue("ctyExhRate", 0)
 
-        // Clear due date
-        form.setValue("dueDate", format(new Date(), clientDateFormat))
+        // Calculate and set due date (will use account date if available, otherwise today)
+        await calculateAndSetDueDate()
 
         // Clear address fields
         form.setValue("addressId", 0)
@@ -192,16 +264,23 @@ export default function InvoiceForm({
         form.trigger()
       }
     },
-    [exhRateDec, form, isEdit, visible, defaultCurrencyId]
+    [
+      exhRateDec,
+      form,
+      isEdit,
+      visible,
+      defaultCurrencyId,
+      calculateAndSetDueDate,
+    ]
   )
 
   // Handle credit term selection
   const handleCreditTermChange = React.useCallback(
-    (_selectedCreditTerm: ICreditTermLookup | null) => {
-      // Additional logic when credit term changes
-      setDueDate(form)
+    async (_selectedCreditTerm: ICreditTermLookup | null) => {
+      // Calculate and set due date when credit term changes
+      await calculateAndSetDueDate()
     },
-    [form]
+    [calculateAndSetDueDate]
   )
 
   // Handle bank selection
@@ -587,7 +666,7 @@ export default function InvoiceForm({
             label="Due Date"
             isRequired={true}
             isFutureShow={true}
-            minDate={new Date()}
+            minDate={dueDateMinDate}
           />
 
           {/* Bank */}
