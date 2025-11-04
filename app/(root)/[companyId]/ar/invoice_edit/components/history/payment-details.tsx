@@ -110,7 +110,7 @@ export default function PaymentDetails({ invoiceId }: { invoiceId: string }) {
           isLoading={false}
           moduleId={moduleId}
           transactionId={transactionId}
-          tableName={TableName.notDefine}
+          tableName={TableName.paymentDetails}
           onRefresh={handleRefresh}
           showHeader={true}
           showFooter={false}

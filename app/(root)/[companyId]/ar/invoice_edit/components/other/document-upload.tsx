@@ -179,7 +179,7 @@ export default function DocumentUpload() {
             isLoading={isLoading}
             moduleId={moduleId}
             transactionId={transactionId}
-            tableName={TableName.notDefine}
+            tableName={TableName.document}
             onRefresh={refetch}
             showHeader={true}
             showFooter={false}

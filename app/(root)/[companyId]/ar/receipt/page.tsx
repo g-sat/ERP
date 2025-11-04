@@ -59,7 +59,7 @@ export default function ReceiptPage() {
   const transactionId = ARTransactionId.receipt
 
   const { hasPermission } = usePermissionStore()
-  const { decimals } = useAuthStore()
+  const { decimals, user } = useAuthStore()
   const { defaults } = useUserSettingDefaults()
   const pageSize = defaults?.common?.trnGridTotalRecords || 100
 
@@ -173,9 +173,19 @@ export default function ReceiptPage() {
               editVersion: detail.editVersion ?? 0,
             })) || [],
         }
-      : {
-          ...defaultReceipt,
-        },
+      : (() => {
+          // For new receipt, set createDate with time and createBy
+          const currentDateTime = decimals[0]?.longDateFormat
+            ? format(new Date(), decimals[0].longDateFormat)
+            : format(new Date(), "dd/MM/yyyy HH:mm:ss")
+          const userName = user?.userName || ""
+          
+          return {
+            ...defaultReceipt,
+            createBy: userName,
+            createDate: currentDateTime,
+          }
+        })(),
   })
 
   // Data fetching moved to ReceiptTable component for better performance
@@ -396,8 +406,18 @@ export default function ReceiptPage() {
   const handleReceiptReset = () => {
     setReceipt(null)
     setSearchNo("") // Clear search input
+
+    // Get current date/time and user name - always set for reset (new receipt)
+    const currentDateTime = decimals[0]?.longDateFormat
+      ? format(new Date(), decimals[0].longDateFormat)
+      : format(new Date(), "dd/MM/yyyy HH:mm:ss")
+    const userName = user?.userName || ""
+
     form.reset({
       ...defaultReceipt,
+      // Always set createBy and createDate to current user and current date/time on reset
+      createBy: userName,
+      createDate: currentDateTime,
       data_details: [],
     })
     toast.success("Receipt reset successfully")
@@ -464,19 +484,19 @@ export default function ReceiptPage() {
       createDate: apiReceipt.createDate
         ? format(
             parseDate(apiReceipt.createDate as string) || new Date(),
-            clientDateFormat
+            decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
           )
         : "",
       editDate: apiReceipt.editDate
         ? format(
             parseDate(apiReceipt.editDate as unknown as string) || new Date(),
-            clientDateFormat
+            decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
           )
         : "",
       cancelDate: apiReceipt.cancelDate
         ? format(
             parseDate(apiReceipt.cancelDate as unknown as string) || new Date(),
-            clientDateFormat
+            decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
           )
         : "",
       cancelRemarks: apiReceipt.cancelRemarks ?? "",
@@ -657,6 +677,26 @@ export default function ReceiptPage() {
     // refetchReceipts(); // Removed: will be handled by useEffect
   }
 
+  // Set createBy and createDate for new receipts on page load/refresh
+  useEffect(() => {
+    if (!receipt && user && decimals.length > 0) {
+      const currentReceiptId = form.getValues("receiptId")
+      const currentReceiptNo = form.getValues("receiptNo")
+      const isNewReceipt =
+        !currentReceiptId || currentReceiptId === "0" || !currentReceiptNo
+
+      if (isNewReceipt) {
+        const currentDateTime = decimals[0]?.longDateFormat
+          ? format(new Date(), decimals[0].longDateFormat)
+          : format(new Date(), "dd/MM/yyyy HH:mm:ss")
+        const userName = user?.userName || ""
+
+        form.setValue("createBy", userName)
+        form.setValue("createDate", currentDateTime)
+      }
+    }
+  }, [receipt, user, decimals, form])
+
   // Add keyboard shortcuts
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
@@ -773,14 +813,14 @@ export default function ReceiptPage() {
             createDate: detailedReceipt.createDate
               ? format(
                   parseDate(detailedReceipt.createDate as string) || new Date(),
-                  clientDateFormat
+                  decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
                 )
               : "",
             editBy: detailedReceipt.editById?.toString() ?? "",
             editDate: detailedReceipt.editDate
               ? format(
                   parseDate(detailedReceipt.editDate as string) || new Date(),
-                  clientDateFormat
+                  decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
                 )
               : "",
             isCancel: detailedReceipt.isCancel ?? false,
@@ -788,7 +828,7 @@ export default function ReceiptPage() {
             cancelDate: detailedReceipt.cancelDate
               ? format(
                   parseDate(detailedReceipt.cancelDate as string) || new Date(),
-                  clientDateFormat
+                  decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
                 )
               : "",
             cancelRemarks: detailedReceipt.cancelRemarks ?? "",
@@ -1092,6 +1132,7 @@ export default function ReceiptPage() {
               onFilterChange={handleFilterChange}
               initialFilters={filters}
               pageSize={pageSize || 50}
+              onClose={() => setShowListDialog(false)}
             />
           </div>
         </DialogContent>

@@ -60,7 +60,7 @@ export default function InvoicePage() {
   const transactionId = ARTransactionId.invoice
 
   const { hasPermission } = usePermissionStore()
-  const { decimals } = useAuthStore()
+  const { decimals, user } = useAuthStore()
   const { defaults } = useUserSettingDefaults()
   const pageSize = defaults?.common?.trnGridTotalRecords || 100
 
@@ -195,9 +195,19 @@ export default function InvoicePage() {
               editVersion: detail.editVersion ?? 0,
             })) || [],
         }
-      : {
-          ...defaultInvoice,
-        },
+      : (() => {
+          // For new invoice, set createDate with time and createBy
+          const currentDateTime = decimals[0]?.longDateFormat
+            ? format(new Date(), decimals[0].longDateFormat)
+            : format(new Date(), "dd/MM/yyyy HH:mm:ss")
+          const userName = user?.userName || ""
+
+          return {
+            ...defaultInvoice,
+            createBy: userName,
+            createDate: currentDateTime,
+          }
+        })(),
   })
 
   // Mutations
@@ -532,8 +542,18 @@ export default function InvoicePage() {
   const handleInvoiceReset = () => {
     setInvoice(null)
     setSearchNo("") // Clear search input
+
+    // Get current date/time and user name - always set for reset (new invoice)
+    const currentDateTime = decimals[0]?.longDateFormat
+      ? format(new Date(), decimals[0].longDateFormat)
+      : format(new Date(), "dd/MM/yyyy HH:mm:ss")
+    const userName = user?.userName || ""
+
     form.reset({
       ...defaultInvoice,
+      // Always set createBy and createDate to current user and current date/time on reset
+      createBy: userName,
+      createDate: currentDateTime,
       data_details: [],
     })
     toast.success("Invoice reset successfully")
@@ -635,20 +655,20 @@ export default function InvoicePage() {
       createDate: apiInvoice.createDate
         ? format(
             parseDate(apiInvoice.createDate as string) || new Date(),
-            clientDateFormat
+            decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
           )
         : "",
 
       editDate: apiInvoice.editDate
         ? format(
             parseDate(apiInvoice.editDate as unknown as string) || new Date(),
-            clientDateFormat
+            decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
           )
         : "",
       cancelDate: apiInvoice.cancelDate
         ? format(
             parseDate(apiInvoice.cancelDate as unknown as string) || new Date(),
-            clientDateFormat
+            decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
           )
         : "",
       isCancel: apiInvoice.isCancel ?? false,
@@ -846,11 +866,26 @@ export default function InvoicePage() {
             otherRemarks: detailedInvoice.otherRemarks ?? "",
             advRecAmt: detailedInvoice.advRecAmt ?? 0,
             createBy: detailedInvoice.createBy ?? "",
-            createDate: detailedInvoice.createDate ?? "",
+            createDate: detailedInvoice.createDate
+              ? format(
+                  parseDate(detailedInvoice.createDate as string) || new Date(),
+                  decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
+                )
+              : "",
             editBy: detailedInvoice.editBy ?? "",
-            editDate: detailedInvoice.editDate ?? "",
+            editDate: detailedInvoice.editDate
+              ? format(
+                  parseDate(detailedInvoice.editDate as string) || new Date(),
+                  decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
+                )
+              : "",
             cancelBy: detailedInvoice.cancelBy ?? "",
-            cancelDate: detailedInvoice.cancelDate ?? "",
+            cancelDate: detailedInvoice.cancelDate
+              ? format(
+                  parseDate(detailedInvoice.cancelDate as string) || new Date(),
+                  decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
+                )
+              : "",
             isCancel: detailedInvoice.isCancel ?? false,
             cancelRemarks: detailedInvoice.cancelRemarks ?? "",
             data_details:
@@ -955,6 +990,26 @@ export default function InvoicePage() {
   }
 
   // Data refresh handled by InvoiceTable component
+
+  // Set createBy and createDate for new invoices on page load/refresh
+  useEffect(() => {
+    if (!invoice && user && decimals.length > 0) {
+      const currentInvoiceId = form.getValues("invoiceId")
+      const currentInvoiceNo = form.getValues("invoiceNo")
+      const isNewInvoice =
+        !currentInvoiceId || currentInvoiceId === "0" || !currentInvoiceNo
+
+      if (isNewInvoice) {
+        const currentDateTime = decimals[0]?.longDateFormat
+          ? format(new Date(), decimals[0].longDateFormat)
+          : format(new Date(), "dd/MM/yyyy HH:mm:ss")
+        const userName = user?.userName || ""
+
+        form.setValue("createBy", userName)
+        form.setValue("createDate", currentDateTime)
+      }
+    }
+  }, [invoice, user, decimals, form])
 
   // Add keyboard shortcuts
   useEffect(() => {
@@ -1467,6 +1522,7 @@ export default function InvoicePage() {
               onFilterChange={handleFilterChange}
               initialFilters={filters}
               pageSize={pageSize || 50}
+              onClose={() => setShowListDialog(false)}
             />
           </div>
         </DialogContent>

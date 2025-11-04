@@ -362,7 +362,7 @@ export default function EditVersionDetails({
             isLoading={false}
             moduleId={moduleId}
             transactionId={transactionId}
-            tableName={TableName.notDefine}
+            tableName={TableName.arDebitNoteHistory}
             emptyMessage={
               hasHistoryError ? "Error loading data" : "No results."
             }

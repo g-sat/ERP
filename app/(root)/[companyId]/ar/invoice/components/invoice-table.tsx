@@ -3,6 +3,7 @@ import { IArInvoiceFilter, IArInvoiceHd } from "@/interfaces"
 import { useAuthStore } from "@/stores/auth-store"
 import { ColumnDef } from "@tanstack/react-table"
 import { format, subMonths } from "date-fns"
+import { X } from "lucide-react"
 import { FormProvider, useForm } from "react-hook-form"
 
 import { ArInvoice } from "@/lib/api-routes"
@@ -10,7 +11,7 @@ import { formatNumber } from "@/lib/format-utils"
 import { ARTransactionId, ModuleId, TableName } from "@/lib/utils"
 import { useGetWithDatesAndPagination } from "@/hooks/use-common"
 import { Button } from "@/components/ui/button"
-import { Separator } from "@/components/ui/separator"
+import { Spinner } from "@/components/ui/spinner"
 import { CustomDateNew } from "@/components/custom/custom-date-new"
 import { DialogDataTable } from "@/components/table/table-dialog"
 
@@ -19,6 +20,7 @@ export interface InvoiceTableProps {
   onFilterChange: (filters: IArInvoiceFilter) => void
   initialFilters?: IArInvoiceFilter
   pageSize: number
+  onClose?: () => void
 }
 
 export default function InvoiceTable({
@@ -26,6 +28,7 @@ export default function InvoiceTable({
   onFilterChange,
   initialFilters,
   pageSize: _pageSize,
+  onClose,
 }: InvoiceTableProps) {
   const { decimals } = useAuthStore()
   const amtDec = decimals[0]?.amtDec || 2
@@ -447,36 +450,68 @@ export default function InvoiceTable({
 
   return (
     <div className="w-full overflow-auto">
-      <FormProvider {...form}>
-        <div className="mb-4 flex items-center gap-2">
-          {/* From Date */}
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-medium">From Date:</span>
-            <CustomDateNew
-              form={form}
-              name="startDate"
-              isRequired={true}
-              size="sm"
-            />
-          </div>
+      {/* Compact Filter Section */}
+      <div className="bg-card mb-2 rounded-lg border p-3">
+        <FormProvider {...form}>
+          <div className="flex items-center gap-3">
+            {/* Date Filters */}
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
+                <span className="text-muted-foreground text-sm font-medium">
+                  From:
+                </span>
+                <CustomDateNew
+                  form={form}
+                  name="startDate"
+                  isRequired={true}
+                  size="sm"
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-muted-foreground text-sm font-medium">
+                  To:
+                </span>
+                <CustomDateNew
+                  form={form}
+                  name="endDate"
+                  isRequired={true}
+                  size="sm"
+                />
+              </div>
+            </div>
 
-          {/* To Date */}
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-medium">To Date:</span>
-            <CustomDateNew
-              form={form}
-              name="endDate"
-              isRequired={true}
+            {/* Search Button */}
+            <Button
+              variant="default"
               size="sm"
-            />
-          </div>
+              onClick={handleSearchInvoice}
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <>
+                  <Spinner size="sm" className="mr-2" />
+                  Loading...
+                </>
+              ) : (
+                "Search"
+              )}
+            </Button>
 
-          <Button variant="outline" size="sm" onClick={handleSearchInvoice}>
-            Search Invoice
-          </Button>
-        </div>
-      </FormProvider>
-      <Separator className="mb-4" />
+            {/* Close Button */}
+            {onClose && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onClose}
+                className="ml-auto"
+              >
+                <X className="mr-1 h-4 w-4" />
+                Close
+              </Button>
+            )}
+          </div>
+        </FormProvider>
+      </div>
 
       <DialogDataTable
         data={data}
@@ -485,11 +520,11 @@ export default function InvoiceTable({
         moduleId={moduleId}
         transactionId={transactionId}
         tableName={TableName.arInvoice}
-        emptyMessage="No data found."
+        emptyMessage="No invoices found matching your criteria. Try adjusting the date range or search terms."
         onRefresh={() => refetchInvoices()}
         onFilterChange={handleDialogFilterChange}
         onRowSelect={(row) => onInvoiceSelect(row || undefined)}
-        // Paging props
+        // Pagination props
         onPageChange={handlePageChange}
         onPageSizeChange={handlePageSizeChange}
         currentPage={currentPage}

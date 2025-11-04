@@ -3,6 +3,7 @@ import { IArReceiptFilter, IArReceiptHd } from "@/interfaces"
 import { useAuthStore } from "@/stores/auth-store"
 import { ColumnDef } from "@tanstack/react-table"
 import { format, subMonths } from "date-fns"
+import { X } from "lucide-react"
 import { FormProvider, useForm } from "react-hook-form"
 
 import { ArReceipt } from "@/lib/api-routes"
@@ -19,6 +20,7 @@ export interface ReceiptTableProps {
   onFilterChange: (filters: IArReceiptFilter) => void
   initialFilters?: IArReceiptFilter
   pageSize: number
+  onClose?: () => void
 }
 
 export default function ReceiptTable({
@@ -26,6 +28,7 @@ export default function ReceiptTable({
   onFilterChange,
   initialFilters,
   pageSize: _pageSize,
+  onClose,
 }: ReceiptTableProps) {
   const { decimals } = useAuthStore()
   const amtDec = decimals[0]?.amtDec || 2
@@ -503,9 +506,22 @@ export default function ReceiptTable({
                   Loading...
                 </>
               ) : (
-                "Apply Filter"
+                "Search"
               )}
             </Button>
+
+            {/* Close Button */}
+            {onClose && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onClose}
+                className="ml-auto"
+              >
+                <X className="mr-1 h-4 w-4" />
+                Close
+              </Button>
+            )}
           </div>
         </FormProvider>
       </div>
