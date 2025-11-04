@@ -215,32 +215,38 @@ export default function COACategory1Autocomplete<
   const handleMenuClose = React.useCallback(() => {
     // Only refocus if Tab was NOT pressed (i.e., option was selected)
     if (!isTabPressedRef.current) {
-      // Refocus the input after menu closes to prevent focus shift to form
-      setTimeout(() => {
+      // Use requestAnimationFrame for smoother timing and less flicker
+      requestAnimationFrame(() => {
         if (selectControlRef.current) {
           const input = selectControlRef.current.querySelector(
             "input"
           ) as HTMLElement
-          if (input && document.activeElement !== input) {
-            // Only refocus if focus is not already on another field
+          if (input) {
+            const activeElement = document.activeElement as HTMLElement
             const form = selectControlRef.current.closest("form")
-            if (form) {
-              const activeElement = document.activeElement as HTMLElement
-              // If focus is on the form or body, refocus the input
-              if (
-                activeElement === form ||
+
+            // Only refocus if:
+            // 1. Focus is not already on the input
+            // 2. Focus is on the form, body, or outside the form
+            // 3. Focus is not on another form field
+            if (
+              activeElement !== input &&
+              form &&
+              (activeElement === form ||
                 activeElement === document.body ||
-                !form.contains(activeElement)
-              ) {
-                input.focus()
-              }
+                !form.contains(activeElement) ||
+                activeElement.tagName === "BODY")
+            ) {
+              input.focus()
             }
           }
         }
-      }, 0)
+      })
     } else {
-      // Reset the flag after menu closes
-      isTabPressedRef.current = false
+      // Reset the flag after menu closes (for Tab navigation)
+      requestAnimationFrame(() => {
+        isTabPressedRef.current = false
+      })
     }
   }, [])
 
