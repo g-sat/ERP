@@ -120,6 +120,34 @@ export function ChecklistMain({
   // Watch jobOrderDate to update accountDate
   const jobOrderDate = form.watch("jobOrderDate")
 
+  // Watch etaDate and etdDate for validation
+  const etaDate = form.watch("etaDate")
+  const etdDate = form.watch("etdDate")
+
+  // Validate etaDate and etdDate rules
+  useEffect(() => {
+    // Rule 1: If etaDate is empty, then etdDate should be empty
+    if (!etaDate && etdDate) {
+      form.setValue("etdDate", undefined, { shouldValidate: false })
+      toast.info("ETD Date has been cleared because ETA Date is empty")
+      return
+    }
+
+    // Rule 2 & 3: If etaDate >= etdDate (with time), then etdDate should be empty
+    if (etaDate && etdDate) {
+      const eta = etaDate instanceof Date ? etaDate : new Date(etaDate)
+      const etd = etdDate instanceof Date ? etdDate : new Date(etdDate)
+
+      // Compare dates with time (full timestamp comparison)
+      if (eta.getTime() >= etd.getTime()) {
+        form.setValue("etdDate", undefined, { shouldValidate: false })
+        toast.error(
+          "ETD Date must be greater than ETA Date (with time). ETD Date has been cleared."
+        )
+      }
+    }
+  }, [etaDate, etdDate, form])
+
   useEffect(() => {
     form.reset({
       jobOrderId: jobData?.jobOrderId ?? 0,
@@ -203,6 +231,20 @@ export function ChecklistMain({
 
   const onSubmit = async (data: JobOrderSchemaType) => {
     try {
+      // Validate etaDate < etdDate before submission (with time)
+      if (data.etaDate && data.etdDate) {
+        const eta =
+          data.etaDate instanceof Date ? data.etaDate : new Date(data.etaDate)
+        const etd =
+          data.etdDate instanceof Date ? data.etdDate : new Date(data.etdDate)
+
+        // Compare dates with time (full timestamp comparison)
+        if (eta.getTime() >= etd.getTime()) {
+          toast.error("ETD Date must be greater than ETA Date (with time)")
+          return
+        }
+      }
+
       const formData: Partial<IJobOrderHd> = {
         ...data,
         jobOrderDate:
@@ -446,6 +488,7 @@ export function ChecklistMain({
                   label="ETA Date"
                   isRequired={false}
                   isDisabled={isConfirmed}
+                  isFutureShow={true}
                 />
                 <CustomDateTimePicker
                   form={form}
@@ -453,6 +496,7 @@ export function ChecklistMain({
                   label="ETD Date"
                   isRequired={false}
                   isDisabled={isConfirmed}
+                  isFutureShow={true}
                 />
                 <CustomInput
                   form={form}
@@ -537,7 +581,7 @@ export function ChecklistMain({
                 <CustomDateNew
                   form={form}
                   name="accountDate"
-                  label="Invoice Date"
+                  label="Account | Debit Note Date"
                   isDisabled={isConfirmed}
                 />
                 <CustomDateNew

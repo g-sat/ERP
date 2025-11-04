@@ -15,6 +15,7 @@ import {
   Receipt,
   RefreshCcw,
   RotateCcw,
+  Upload,
   X,
 } from "lucide-react"
 import { toast } from "sonner"
@@ -39,6 +40,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 import { ChecklistDetailsForm } from "./checklist-details-form"
+import { ChecklistDocuments } from "./checklist-documents"
 import { ChecklistHistory } from "./checklist-history"
 import { ChecklistMain } from "./checklist-main"
 import { DebitNoteItemsTable } from "./debit-note-items-table"
@@ -276,6 +278,12 @@ export function ChecklistTabs({ jobData, onClone }: ChecklistTabsProps) {
                 <span className="text-xs sm:text-sm">History</span>
               </div>
             </TabsTrigger>
+            <TabsTrigger value="documents">
+              <div className="flex items-center gap-1">
+                <Upload className="h-3 w-3 sm:h-4 sm:w-4" />
+                <span className="text-xs sm:text-sm">Documents</span>
+              </div>
+            </TabsTrigger>
           </TabsList>
         </Tabs>
 
@@ -451,6 +459,13 @@ export function ChecklistTabs({ jobData, onClone }: ChecklistTabsProps) {
 
         <TabsContent value="history" className="mt-0">
           <ChecklistHistory
+            jobData={currentJobData}
+            isConfirmed={isConfirmed}
+          />
+        </TabsContent>
+
+        <TabsContent value="documents" className="mt-0">
+          <ChecklistDocuments
             jobData={currentJobData}
             isConfirmed={isConfirmed}
           />
