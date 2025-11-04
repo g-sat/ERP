@@ -209,6 +209,59 @@ export default function COACategory2Autocomplete<
     return null
   }, [form, name, options])
 
+  // Handle Tab key to close menu and allow normal tab navigation
+  const handleKeyDown = React.useCallback(
+    (event: React.KeyboardEvent<HTMLDivElement>) => {
+      if (event.key === "Tab" && !event.shiftKey) {
+        // Close the menu by blurring the input, then allow normal tab navigation
+        const target = event.currentTarget
+        if (target) {
+          const input = target.querySelector("input") as HTMLElement
+          if (input && document.activeElement === input) {
+            event.preventDefault()
+            // Find the next element BEFORE blurring
+            const form = target.closest("form")
+            let nextElement: HTMLElement | null = null
+            if (form) {
+              const allFocusable = Array.from(
+                form.querySelectorAll<HTMLElement>(
+                  "button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([disabled]):not([tabindex='-1'])"
+                )
+              )
+              // Find the input's position in the focusable elements
+              const inputIndex = allFocusable.findIndex(
+                (el) => el === input || el.contains(input)
+              )
+              if (inputIndex !== -1 && inputIndex < allFocusable.length - 1) {
+                nextElement = allFocusable[inputIndex + 1]
+              } else {
+                // Fallback: find next element after wrapper div
+                const wrapperIndex = allFocusable.findIndex(
+                  (el) => target.contains(el) || el.contains(target)
+                )
+                if (
+                  wrapperIndex !== -1 &&
+                  wrapperIndex < allFocusable.length - 1
+                ) {
+                  nextElement = allFocusable[wrapperIndex + 1]
+                }
+              }
+            }
+            // Blur to close menu
+            input.blur()
+            // Focus the next element after blur completes
+            if (nextElement) {
+              setTimeout(() => {
+                nextElement?.focus()
+              }, 10)
+            }
+          }
+        }
+      }
+    },
+    []
+  )
+
   if (form && name) {
     return (
       <div className={cn("flex flex-col gap-1", className)}>
@@ -227,30 +280,33 @@ export default function COACategory2Autocomplete<
 
             return (
               <FormItem className={cn("flex flex-col", className)}>
-                <Select
-                  options={options}
-                  value={getValue()}
-                  onChange={handleChange}
-                  placeholder="Select COACategory2..."
-                  isDisabled={isDisabled || isLoading}
-                  isClearable={true}
-                  isSearchable={true}
-                  styles={customStyles}
-                  classNames={selectClassNames}
-                  components={{
-                    DropdownIndicator,
-                    ClearIndicator,
-                    Option,
-                  }}
-                  className="react-select-container"
-                  classNamePrefix="react-select__"
-                  menuPortalTarget={
-                    typeof document !== "undefined" ? document.body : null
-                  }
-                  menuPosition="fixed"
-                  isLoading={isLoading}
-                  loadingMessage={() => "Loading coacategory2s..."}
-                />
+                <div onKeyDown={handleKeyDown}>
+                  <Select
+                    options={options}
+                    value={getValue()}
+                    onChange={handleChange}
+                    placeholder="Select COACategory2..."
+                    isDisabled={isDisabled || isLoading}
+                    isClearable={true}
+                    isSearchable={true}
+                    styles={customStyles}
+                    classNames={selectClassNames}
+                    components={{
+                      DropdownIndicator,
+                      ClearIndicator,
+                      Option,
+                    }}
+                    className="react-select-container"
+                    classNamePrefix="react-select__"
+                    menuPortalTarget={
+                      typeof document !== "undefined" ? document.body : null
+                    }
+                    menuPosition="fixed"
+                    isLoading={isLoading}
+                    loadingMessage={() => "Loading coacategory2s..."}
+                    blurInputOnSelect={true}
+                  />
+                </div>
                 {showError && (
                   <p className="text-destructive mt-1 text-xs">
                     {error.message}
@@ -282,29 +338,32 @@ export default function COACategory2Autocomplete<
           )}
         </div>
       )}
-      <Select
-        options={options}
-        onChange={handleChange}
-        placeholder="Select COACategory2..."
-        isDisabled={isDisabled || isLoading}
-        isClearable={true}
-        isSearchable={true}
-        styles={customStyles}
-        classNames={selectClassNames}
-        components={{
-          DropdownIndicator,
-          ClearIndicator,
-          Option,
-        }}
-        className="react-select-container"
-        classNamePrefix="react-select__"
-        menuPortalTarget={
-          typeof document !== "undefined" ? document.body : null
-        }
-        menuPosition="fixed"
-        isLoading={isLoading}
-        loadingMessage={() => "Loading coacategory2s..."}
-      />
+      <div onKeyDown={handleKeyDown}>
+        <Select
+          options={options}
+          onChange={handleChange}
+          placeholder="Select COACategory2..."
+          isDisabled={isDisabled || isLoading}
+          isClearable={true}
+          isSearchable={true}
+          styles={customStyles}
+          classNames={selectClassNames}
+          components={{
+            DropdownIndicator,
+            ClearIndicator,
+            Option,
+          }}
+          className="react-select-container"
+          classNamePrefix="react-select__"
+          menuPortalTarget={
+            typeof document !== "undefined" ? document.body : null
+          }
+          menuPosition="fixed"
+          isLoading={isLoading}
+          loadingMessage={() => "Loading coacategory2s..."}
+          blurInputOnSelect={true}
+        />
+      </div>
     </div>
   )
 }

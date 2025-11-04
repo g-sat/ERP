@@ -33,6 +33,7 @@ import CustomAccordion, {
   CustomAccordionItem,
   CustomAccordionTrigger,
 } from "@/components/custom/custom-accordion"
+import CustomCheckbox from "@/components/custom/custom-checkbox"
 import CustomInput from "@/components/custom/custom-input"
 import CustomSwitch from "@/components/custom/custom-switch"
 import CustomTextarea from "@/components/custom/custom-textarea"
@@ -51,6 +52,10 @@ const defaultValues = {
   isBargeMandatory: false,
   isBankAccount: false,
   isJobSpecific: false,
+  isOperational: false,
+  isPayableAccount: false,
+  isReceivableAccount: false,
+  isUniversal: false,
   seqNo: 0,
   remarks: "",
   isActive: true,
@@ -226,68 +231,59 @@ export function ChartOfAccountForm({
               label="Remarks"
               isDisabled={isReadOnly}
             />
-            <div className="grid grid-cols-5 gap-2">
-              <CustomSwitch
+            <div className="grid grid-cols-3 gap-2">
+              <CustomCheckbox
                 form={form}
                 name="isSysControl"
                 label="System Control"
-                activeColor="success"
                 isDisabled={isReadOnly}
               />
-              <CustomSwitch
+              <CustomCheckbox
                 form={form}
                 name="isJobSpecific"
                 label="Job Control"
-                activeColor="success"
                 isDisabled={isReadOnly}
               />{" "}
-              <CustomSwitch
+              <CustomCheckbox
                 form={form}
                 name="isBankAccount"
                 label="Bank Control"
-                activeColor="success"
                 isDisabled={isReadOnly}
               />
-              <CustomSwitch
+              <CustomCheckbox
                 form={form}
                 name="isDeptMandatory"
                 label="Dep. Mandatory"
-                activeColor="success"
                 isDisabled={isReadOnly}
               />{" "}
-              <CustomSwitch
+              <CustomCheckbox
                 form={form}
                 name="isBargeMandatory"
                 label="Barge Mandatory"
-                activeColor="success"
                 isDisabled={isReadOnly}
               />{" "}
-              <CustomSwitch
+              <CustomCheckbox
                 form={form}
                 name="isOperational"
                 label="Operational"
-                activeColor="success"
                 isDisabled={isReadOnly}
               />{" "}
-              <CustomSwitch
+              <CustomCheckbox
                 form={form}
                 name="isPayableAccount"
                 label="Payable Account"
-                activeColor="success"
                 isDisabled={isReadOnly}
               />{" "}
-              <CustomSwitch
+              <CustomCheckbox
                 form={form}
                 name="isReceivableAccount"
                 label="Receivable Account"
-                activeColor="success"
                 isDisabled={isReadOnly}
               />{" "}
-              <CustomSwitch
+              <CustomCheckbox
                 form={form}
                 name="isUniversal"
                 label="Universal"
-                activeColor="success"
                 isDisabled={isReadOnly}
               />{" "}
             </div>
