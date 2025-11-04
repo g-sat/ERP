@@ -58,8 +58,8 @@ export default function PortAutocomplete<T extends Record<string, unknown>>({
     }
   }, [refetch])
 
-  // Memoize options to prevent unnecessary recalculations
-  const options: FieldOption[] = React.useMemo(
+  // Memoize base options to prevent unnecessary recalculations
+  const baseOptions: FieldOption[] = React.useMemo(
     () =>
       ports.map((port: IPortLookup) => ({
         value: port.portId.toString(),
@@ -67,6 +67,31 @@ export default function PortAutocomplete<T extends Record<string, unknown>>({
       })),
     [ports]
   )
+
+  // Watch form value to make it reactive
+  const watchedValue = form && name ? form.watch(name) : null
+
+  // Create options with selected port at top
+  const options: FieldOption[] = React.useMemo(() => {
+    if (!form || !name || !watchedValue || watchedValue === 0) {
+      return baseOptions
+    }
+
+    const selectedValue = watchedValue.toString()
+    const selectedOption = baseOptions.find(
+      (opt) => opt.value === selectedValue
+    )
+
+    if (!selectedOption) {
+      return baseOptions
+    }
+
+    // Remove selected option from base options and put it at the top
+    const otherOptions = baseOptions.filter(
+      (opt) => opt.value !== selectedValue
+    )
+    return [selectedOption, ...otherOptions]
+  }, [form, name, baseOptions, watchedValue])
 
   // SSR hydration fix: only render Select after mount
   const [mounted, setMounted] = React.useState(false)
@@ -228,6 +253,38 @@ export default function PortAutocomplete<T extends Record<string, unknown>>({
     return null
   }, [form, name, options])
 
+  // Handle menu open to scroll to selected option
+  const handleMenuOpen = React.useCallback(() => {
+    // Use setTimeout to ensure the menu is fully rendered
+    setTimeout(() => {
+      const selectedValue = form && name ? form.getValues(name) : null
+      if (selectedValue) {
+        // Try multiple selectors to find the menu
+        const selectors = [
+          `[id*="${name || "port-select"}"] .react-select__menu-list`,
+          ".react-select__menu-list",
+          '[class*="react-select__menu-list"]',
+        ]
+
+        let menuList: HTMLElement | null = null
+        for (const selector of selectors) {
+          menuList = document.querySelector(selector) as HTMLElement
+          if (menuList) break
+        }
+
+        if (menuList) {
+          const selectedOption = menuList.querySelector(
+            '.react-select__option[aria-selected="true"]'
+          ) as HTMLElement
+          if (selectedOption) {
+            // Scroll the selected option to the top of the visible area
+            menuList.scrollTop = selectedOption.offsetTop - menuList.offsetTop
+          }
+        }
+      }
+    }, 150)
+  }, [form, name])
+
   if (!mounted) {
     // Optionally, return a skeleton/loader here
     return null
@@ -272,10 +329,26 @@ export default function PortAutocomplete<T extends Record<string, unknown>>({
                   options={options}
                   value={getValue()}
                   onChange={handleChange}
+                  onMenuOpen={handleMenuOpen}
                   placeholder="Select Port..."
                   isDisabled={isDisabled || isLoading}
                   isClearable={true}
                   isSearchable={true}
+                  filterOption={(option, inputValue) => {
+                    // Always show selected option, even if it doesn't match search
+                    const selectedValue =
+                      form && name ? form.getValues(name) : null
+                    if (
+                      selectedValue &&
+                      option.value === selectedValue.toString()
+                    ) {
+                      return true
+                    }
+                    // For other options, use default filtering
+                    return option.label
+                      .toLowerCase()
+                      .includes(inputValue.toLowerCase())
+                  }}
                   styles={customStyles}
                   classNames={selectClassNames}
                   components={{
@@ -289,6 +362,7 @@ export default function PortAutocomplete<T extends Record<string, unknown>>({
                     typeof document !== "undefined" ? document.body : null
                   }
                   menuPosition="fixed"
+                  menuShouldScrollIntoView={true}
                   isLoading={isLoading}
                   loadingMessage={() => "Loading ports..."}
                 />
@@ -343,10 +417,20 @@ export default function PortAutocomplete<T extends Record<string, unknown>>({
       <Select
         options={options}
         onChange={handleChange}
+        onMenuOpen={handleMenuOpen}
         placeholder="Select Port..."
         isDisabled={isDisabled || isLoading}
         isClearable={true}
         isSearchable={true}
+        filterOption={(option, inputValue) => {
+          // Always show selected option, even if it doesn't match search
+          const selectedValue = form && name ? form.getValues(name) : null
+          if (selectedValue && option.value === selectedValue.toString()) {
+            return true
+          }
+          // For other options, use default filtering
+          return option.label.toLowerCase().includes(inputValue.toLowerCase())
+        }}
         styles={customStyles}
         classNames={selectClassNames}
         components={{
@@ -360,6 +444,7 @@ export default function PortAutocomplete<T extends Record<string, unknown>>({
           typeof document !== "undefined" ? document.body : null
         }
         menuPosition="fixed"
+        menuShouldScrollIntoView={true}
         isLoading={isLoading}
         loadingMessage={() => "Loading ports..."}
       />
