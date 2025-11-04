@@ -209,19 +209,55 @@ export default function AccountTypeAutocomplete<
     return null
   }, [form, name, options])
 
+  // Handle menu close to maintain focus on the control
+  const selectControlRef = React.useRef<HTMLDivElement>(null)
+  const isTabPressedRef = React.useRef(false)
+  const handleMenuClose = React.useCallback(() => {
+    // Only refocus if Tab was NOT pressed (i.e., option was selected)
+    if (!isTabPressedRef.current) {
+      // Refocus the input after menu closes to prevent focus shift to form
+      setTimeout(() => {
+        if (selectControlRef.current) {
+          const input = selectControlRef.current.querySelector(
+            "input"
+          ) as HTMLElement
+          if (input && document.activeElement !== input) {
+            // Only refocus if focus is not already on another field
+            const form = selectControlRef.current.closest("form")
+            if (form) {
+              const activeElement = document.activeElement as HTMLElement
+              // If focus is on the form or body, refocus the input
+              if (
+                activeElement === form ||
+                activeElement === document.body ||
+                !form.contains(activeElement)
+              ) {
+                input.focus()
+              }
+            }
+          }
+        }
+      }, 0)
+    } else {
+      // Reset the flag after menu closes
+      isTabPressedRef.current = false
+    }
+  }, [])
+
   // Handle Tab key to close menu and allow normal tab navigation
   const handleKeyDown = React.useCallback(
     (event: React.KeyboardEvent<HTMLDivElement>) => {
-      if (event.key === "Tab" && !event.shiftKey) {
+      if (event.key === "Tab") {
+        // Set flag to prevent onMenuClose from refocusing
+        isTabPressedRef.current = true
         // Close the menu by blurring the input, then allow normal tab navigation
         const target = event.currentTarget
         if (target) {
           const input = target.querySelector("input") as HTMLElement
           if (input && document.activeElement === input) {
             event.preventDefault()
-            // Find the next element BEFORE blurring
             const form = target.closest("form")
-            let nextElement: HTMLElement | null = null
+            let targetElement: HTMLElement | null = null
             if (form) {
               const allFocusable = Array.from(
                 form.querySelectorAll<HTMLElement>(
@@ -232,29 +268,46 @@ export default function AccountTypeAutocomplete<
               const inputIndex = allFocusable.findIndex(
                 (el) => el === input || el.contains(input)
               )
-              if (inputIndex !== -1 && inputIndex < allFocusable.length - 1) {
-                nextElement = allFocusable[inputIndex + 1]
+
+              if (event.shiftKey) {
+                // Shift+Tab: go to previous element
+                if (inputIndex !== -1 && inputIndex > 0) {
+                  targetElement = allFocusable[inputIndex - 1]
+                } else {
+                  // Fallback: find previous element before wrapper div
+                  const wrapperIndex = allFocusable.findIndex(
+                    (el) => target.contains(el) || el.contains(target)
+                  )
+                  if (wrapperIndex !== -1 && wrapperIndex > 0) {
+                    targetElement = allFocusable[wrapperIndex - 1]
+                  }
+                }
               } else {
-                // Fallback: find next element after wrapper div
-                const wrapperIndex = allFocusable.findIndex(
-                  (el) => target.contains(el) || el.contains(target)
-                )
-                if (
-                  wrapperIndex !== -1 &&
-                  wrapperIndex < allFocusable.length - 1
-                ) {
-                  nextElement = allFocusable[wrapperIndex + 1]
+                // Tab: go to next element
+                if (inputIndex !== -1 && inputIndex < allFocusable.length - 1) {
+                  targetElement = allFocusable[inputIndex + 1]
+                } else {
+                  // Fallback: find next element after wrapper div
+                  const wrapperIndex = allFocusable.findIndex(
+                    (el) => target.contains(el) || el.contains(target)
+                  )
+                  if (
+                    wrapperIndex !== -1 &&
+                    wrapperIndex < allFocusable.length - 1
+                  ) {
+                    targetElement = allFocusable[wrapperIndex + 1]
+                  }
                 }
               }
             }
-            // Blur to close menu and immediately focus next element to prevent flicker
-            if (nextElement) {
-              // Focus next element first (in same frame) to prevent form from receiving focus
-              nextElement.focus()
+            // Blur to close menu and immediately focus target element to prevent flicker
+            if (targetElement) {
+              // Focus target element first (in same frame) to prevent form from receiving focus
+              targetElement.focus()
               // Then blur to close menu (this won't affect the already-focused element)
               input.blur()
             } else {
-              // If no next element found, just blur
+              // If no target element found, just blur
               input.blur()
             }
           }
@@ -282,11 +335,12 @@ export default function AccountTypeAutocomplete<
 
             return (
               <FormItem className={cn("flex flex-col", className)}>
-                <div onKeyDown={handleKeyDown}>
+                <div ref={selectControlRef} onKeyDown={handleKeyDown}>
                   <Select
                     options={options}
                     value={getValue()}
                     onChange={handleChange}
+                    onMenuClose={handleMenuClose}
                     placeholder="Select AccountType..."
                     isDisabled={isDisabled || isLoading}
                     isClearable={true}
@@ -340,10 +394,11 @@ export default function AccountTypeAutocomplete<
           )}
         </div>
       )}
-      <div onKeyDown={handleKeyDown}>
+      <div ref={selectControlRef} onKeyDown={handleKeyDown}>
         <Select
           options={options}
           onChange={handleChange}
+          onMenuClose={handleMenuClose}
           placeholder="Select AccountType..."
           isDisabled={isDisabled || isLoading}
           isClearable={true}
