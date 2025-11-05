@@ -16,6 +16,7 @@ interface DocumentManagerTableProps {
   onPreview?: (doc: IDocType) => void
   onDownload?: (doc: IDocType) => void
   onDelete?: (doc: IDocType) => void
+  onEdit?: (doc: IDocType) => void
   onRefresh?: () => void
   // onSelect?: (documentId: string, checked: boolean) => void
   // onSelectAll?: (checked: boolean) => void
@@ -29,6 +30,7 @@ export default function DocumentManagerTable({
   onPreview,
   onDownload,
   onDelete,
+  onEdit,
   onRefresh,
   // onSelect: _onSelect,
   // onSelectAll: _onSelectAll,
@@ -134,6 +136,7 @@ export default function DocumentManagerTable({
       }}
       onDownload={onDownload}
       onDelete={onDelete}
+      onEdit={onEdit}
       onRefresh={onRefresh}
       showHeader={true}
       showActions={true}

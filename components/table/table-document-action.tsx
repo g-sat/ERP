@@ -1,4 +1,4 @@
-import { Download, Eye, Trash2 } from "lucide-react"
+import { Download, Eye, Pencil, Trash2 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -8,11 +8,13 @@ interface DocumentTableActionsProps<T> {
   onView?: (row: T) => void
   onDownload?: (row: T) => void
   onDelete?: (row: T) => void
+  onEdit?: (row: T) => void
   onSelect?: (row: T, checked: boolean) => void
   idAccessor: keyof T
   hideView?: boolean
   hideDownload?: boolean
   hideDelete?: boolean
+  hideEdit?: boolean
   hideCheckbox?: boolean
   isSelected: boolean
   onCheckboxChange?: (checked: boolean) => void // ✅ Make optional
@@ -24,11 +26,13 @@ export function DocumentTableActions<T>({
   onView,
   onDownload,
   onDelete,
+  onEdit,
   onSelect,
   idAccessor,
   hideView,
   hideDownload,
   hideDelete,
+  hideEdit = false,
   hideCheckbox = false,
   isSelected,
   onCheckboxChange,
@@ -90,6 +94,22 @@ export function DocumentTableActions<T>({
           }
         >
           <Download className="h-4 w-4" />
+        </Button>
+      )}
+
+      {!hideEdit && (
+        <Button
+          variant="ghost"
+          size="icon"
+          className={`h-6 w-6 ${
+            hasValidAccountId
+              ? "cursor-not-allowed text-gray-400 opacity-50"
+              : ""
+          }`}
+          onClick={() => !hasValidAccountId && onEdit?.(row)}
+          title={hasValidAccountId ? "Cannot edit - Debit Note exists" : "Edit"}
+        >
+          <Pencil className="h-4 w-4" />
         </Button>
       )}
 

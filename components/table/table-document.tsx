@@ -64,6 +64,7 @@ interface DocumentBaseTableProps<T> {
   onSelect?: (item: T | null) => void
   onDownload?: (item: T) => void
   onDelete?: (item: T) => void
+  onEdit?: (item: T) => void
   onBulkDelete?: (selectedIds: string[]) => void
   onBulkSelectionChange?: (selectedIds: string[]) => void
   onPurchase?: (itemId: string) => void
@@ -94,6 +95,7 @@ export function DocumentBaseTable<T>({
   onSelect,
   onDownload,
   onDelete,
+  onEdit,
   onBulkDelete,
   onBulkSelectionChange,
   onDataReorder,
@@ -295,6 +297,7 @@ export function DocumentBaseTable<T>({
                     onView={onSelect}
                     onDownload={onDownload}
                     onDelete={onDelete}
+                    onEdit={onEdit}
                     onSelect={(_, checked) => {
                       row.toggleSelected(checked)
                     }}

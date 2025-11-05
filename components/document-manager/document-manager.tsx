@@ -94,6 +94,11 @@ export default function DocumentManager({
     null
   )
   const [isDeleting, setIsDeleting] = useState(false)
+  const [documentToEdit, setDocumentToEdit] = useState<IDocType | null>(null)
+  const [isUpdating, setIsUpdating] = useState(false)
+  const [editDocType, setEditDocType] = useState<IDocumentTypeLookup | null>(
+    null
+  )
 
   const { data: documents, isLoading } = useGet<IDocType>(
     `${Admin.getDocumentById}/${moduleId}/${transactionId}/${recordId}`,
@@ -364,6 +369,69 @@ export default function DocumentManager({
   // Delete document - opens confirmation dialog
   const handleDelete = (doc: IDocType) => {
     setDocumentToDelete(doc)
+  }
+
+  // Edit document - opens edit dialog
+  const handleEdit = (doc: IDocType) => {
+    setDocumentToEdit(doc)
+    // Set the current document type from the document
+    if (doc.docTypeId) {
+      setEditDocType({
+        docTypeId: doc.docTypeId,
+        docTypeCode: doc.docTypeCode || "",
+        docTypeName: doc.docTypeName || "",
+      })
+    }
+    // Set the current remarks in the form
+    form.setValue("editRemarks", doc.remarks || "")
+    form.setValue("editDocTypeId", doc.docTypeId?.toString() || "")
+  }
+
+  // Confirm update and perform actual update
+  const handleConfirmUpdate = async () => {
+    if (!documentToEdit || !editDocType) {
+      toast.error("Please select document type")
+      return
+    }
+
+    setIsUpdating(true)
+    try {
+      // Prepare the document data for update (backend expects List<SaveDocumentViewModel>)
+      const documentData: IDocument = {
+        transactionId: documentToEdit.transactionId,
+        moduleId: documentToEdit.moduleId,
+        documentId: documentToEdit.documentId,
+        documentNo: documentToEdit.documentNo,
+        itemNo: documentToEdit.itemNo,
+        docTypeId: editDocType.docTypeId,
+        docPath: documentToEdit.docPath, // Keep existing path
+        remarks: form.getValues("editRemarks") || "",
+      }
+
+      // Pass as array to match backend List<SaveDocumentViewModel>
+      const response = await saveDocumentMutation.mutateAsync([documentData])
+
+      if (response.result === 1) {
+        toast.success("Document updated successfully")
+        queryClient.invalidateQueries({
+          queryKey: [`documents-${moduleId}-${transactionId}-${recordId}`],
+        })
+        setDocumentToEdit(null)
+        setEditDocType(null)
+        form.setValue("editRemarks", "")
+        form.setValue("editDocTypeId", "")
+        onUploadSuccess?.()
+      } else {
+        throw new Error(response.message || "Update failed")
+      }
+    } catch (error) {
+      console.error("Update error:", error)
+      toast.error(
+        error instanceof Error ? error.message : "Failed to update document"
+      )
+    } finally {
+      setIsUpdating(false)
+    }
   }
 
   // Confirm delete and perform actual deletion
@@ -741,6 +809,7 @@ export default function DocumentManager({
                 onPreview={handlePreview}
                 onDownload={handleDownload}
                 onDelete={handleDelete}
+                onEdit={handleEdit}
                 onRefresh={() => {
                   queryClient.invalidateQueries({
                     queryKey: [
@@ -818,6 +887,89 @@ export default function DocumentManager({
               />
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Dialog */}
+      <Dialog
+        open={!!documentToEdit}
+        onOpenChange={(open) => {
+          if (!open) {
+            setDocumentToEdit(null)
+            setEditDocType(null)
+            form.setValue("editRemarks", "")
+            form.setValue("editDocTypeId", "")
+          }
+        }}
+      >
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Edit Document</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            {/* Document Type Selection */}
+            <div className="grid gap-2">
+              <Label>Document Type *</Label>
+              <DocumentTypeAutocomplete
+                form={form}
+                name="editDocTypeId"
+                label=""
+                onChangeEvent={(option) => {
+                  setEditDocType(option)
+                }}
+              />
+            </div>
+
+            {/* Remarks */}
+            <div className="grid gap-2">
+              <Label>Remarks</Label>
+              <CustomTextarea
+                form={form}
+                name="editRemarks"
+                label=""
+                placeholder="Enter remarks"
+              />
+            </div>
+
+            {/* File Info (Read-only) */}
+            {documentToEdit && (
+              <div className="bg-muted/50 rounded-lg border p-3">
+                <p className="mb-1 text-sm font-medium">File Name:</p>
+                <p className="text-muted-foreground text-sm">
+                  {documentToEdit.docPath?.split("/").pop() || "-"}
+                </p>
+              </div>
+            )}
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                setDocumentToEdit(null)
+                setEditDocType(null)
+                form.setValue("editRemarks", "")
+                form.setValue("editDocTypeId", "")
+              }}
+              disabled={isUpdating}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              onClick={handleConfirmUpdate}
+              disabled={isUpdating || !editDocType}
+            >
+              {isUpdating ? (
+                <>
+                  <Spinner size="sm" className="mr-2" />
+                  Updating...
+                </>
+              ) : (
+                "Update"
+              )}
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
 
