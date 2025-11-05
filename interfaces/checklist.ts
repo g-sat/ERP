@@ -46,7 +46,7 @@ export interface IJobOrderHd {
   isTaxable?: boolean
   isClose?: boolean
   isPost?: boolean
-  editVersion?: string
+  editVersion?: number
   createById?: number
   createDate?: Date | string
   editById?: number

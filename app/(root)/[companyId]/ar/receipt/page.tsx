@@ -3,9 +3,9 @@
 import { useEffect, useState } from "react"
 import { useParams } from "next/navigation"
 import {
+  setDueDate,
   setExchangeRate,
   setRecExchangeRate,
-  setDueDate,
 } from "@/helpers/account"
 import { IArReceiptDt, IArReceiptFilter, IArReceiptHd } from "@/interfaces"
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
@@ -184,7 +184,7 @@ export default function ReceiptPage() {
             ? format(new Date(), decimals[0].longDateFormat)
             : format(new Date(), "dd/MM/yyyy HH:mm:ss")
           const userName = user?.userName || ""
-          
+
           return {
             ...defaultReceipt,
             createBy: userName,
@@ -904,7 +904,9 @@ export default function ReceiptPage() {
           setSearchNo(updatedReceipt.receiptNo || "")
 
           // Show success message
-          toast.success(`Receipt ${updatedReceipt.receiptNo || value} loaded successfully`)
+          toast.success(
+            `Receipt ${updatedReceipt.receiptNo || value} loaded successfully`
+          )
 
           // Close the load confirmation dialog on success
           setShowLoadConfirm(false)
@@ -928,7 +930,9 @@ export default function ReceiptPage() {
   const isCancelled = receipt?.isCancel === true
 
   // Compose title text
-  const titleText = isEdit ? `Receipt (Edit) - ${receiptNo}` : "Receipt (New)"
+  const titleText = isEdit
+    ? `Receipt (Edit)- v[${receipt?.editVersion}] - ${receiptNo}`
+    : "Receipt (New)"
 
   // Show loading spinner while essential data is loading
   if (!visible || !required) {

@@ -124,7 +124,7 @@ export function ChecklistTabs({ jobData, onClone }: ChecklistTabsProps) {
       jobOrderId: 0, // Reset ID for new record
       jobOrderNo: "", // Reset job order number
       jobOrderDate: new Date().toISOString().split("T")[0], // Set to today
-      editVersion: "", // Reset edit version
+      editVersion: 0, // Reset edit version
       // Add any other fields that should be reset for a new record
     }
 
@@ -137,8 +137,12 @@ export function ChecklistTabs({ jobData, onClone }: ChecklistTabsProps) {
   }
 
   const handleFormSubmit = () => {
+    console.log("handleFormSubmit called, formRef:", formRef)
     if (formRef) {
+      console.log("Calling formRef.requestSubmit()")
       formRef.requestSubmit()
+    } else {
+      console.error("formRef is null, cannot submit form")
     }
   }
 

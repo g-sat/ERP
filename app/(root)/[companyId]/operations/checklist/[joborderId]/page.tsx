@@ -123,7 +123,8 @@ export default function JobOrderDetailsPage() {
                     className="flex h-8 items-center border-2 border-blue-200 bg-gradient-to-r from-blue-50 to-blue-100 px-4 text-sm font-semibold text-blue-800 shadow-sm transition-all duration-300 hover:scale-105 hover:border-blue-300 hover:bg-gradient-to-r hover:from-blue-100 hover:to-blue-200 hover:shadow-md dark:border-blue-700 dark:from-blue-900 dark:to-blue-800 dark:text-blue-200 dark:hover:from-blue-800 dark:hover:to-blue-700"
                   >
                     <span className="mr-1 text-blue-600">📋</span>
-                    {jobOrderResponse?.data?.jobOrderNo}
+                    {jobOrderResponse?.data?.jobOrderNo} : v[
+                    {jobOrderResponse?.data?.editVersion}]
                   </Badge>
                 </TooltipTrigger>
                 <TooltipContent className="max-w-sm border border-gray-200 bg-white p-4 shadow-lg">

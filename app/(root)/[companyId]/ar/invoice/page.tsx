@@ -1358,7 +1358,9 @@ export default function InvoicePage() {
           : ""
 
   // Compose title text
-  const titleText = isEdit ? `Invoice (Edit) - ${invoiceNo}` : "Invoice (New)"
+  const titleText = isEdit
+    ? `Invoice (Edit)- v[${invoice?.editVersion}] - ${invoiceNo}`
+    : "Invoice (New)"
 
   // Show loading spinner while essential data is loading
   if (!visible || !required) {

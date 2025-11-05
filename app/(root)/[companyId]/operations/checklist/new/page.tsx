@@ -104,6 +104,12 @@ export default function NewChecklistPage() {
   // Watch jobOrderDate to update accountDate
   const jobOrderDate = form.watch("jobOrderDate")
 
+  // Watch accountDate to update exchange rate
+  const accountDate = form.watch("accountDate")
+
+  // Watch currencyId to update exchange rate
+  const currencyId = form.watch("currencyId")
+
   // Watch etaDate and etdDate for validation
   const etaDate = form.watch("etaDate")
   const etdDate = form.watch("etdDate")
@@ -152,25 +158,55 @@ export default function NewChecklistPage() {
     }
   }, [jobOrderDate, form])
 
+  // Update exchange rate when accountDate or currencyId changes
+  useEffect(() => {
+    const updateExchangeRate = async () => {
+      if (accountDate && currencyId) {
+        try {
+          const dt = format(
+            accountDate instanceof Date
+              ? accountDate
+              : parseDate(accountDate as string) || new Date(),
+            "yyyy-MM-dd"
+          )
+          const res = await getData(
+            `${BasicSetting.getExchangeRate}/${currencyId}/${dt}`
+          )
+          const exhRate = res?.data
+
+          if (exhRate) {
+            form.setValue("exhRate", +Number(exhRate).toFixed(exhRateDec))
+          }
+        } catch (error) {
+          console.error("Error fetching exchange rate:", error)
+        }
+      }
+    }
+
+    updateExchangeRate()
+  }, [accountDate, currencyId, exhRateDec, form])
+
   // Handle currency selection
   const handleCurrencyChange = useCallback(
     async (selectedCurrency: ICurrencyLookup | null) => {
-      const currencyId = selectedCurrency?.currencyId || 0
-      const jobOrderDate = form.getValues("jobOrderDate")
+      const selectedCurrencyId = selectedCurrency?.currencyId || 0
+      const accountDate = form.getValues("accountDate") || form.getValues("jobOrderDate")
 
-      if (currencyId && jobOrderDate) {
+      if (selectedCurrencyId && accountDate) {
         const dt = format(
-          jobOrderDate instanceof Date
-            ? jobOrderDate
-            : parseDate(jobOrderDate as string) || new Date(),
+          accountDate instanceof Date
+            ? accountDate
+            : parseDate(accountDate as string) || new Date(),
           "yyyy-MM-dd"
         )
         const res = await getData(
-          `${BasicSetting.getExchangeRate}/${currencyId}/${dt}`
+          `${BasicSetting.getExchangeRate}/${selectedCurrencyId}/${dt}`
         )
         const exhRate = res?.data
 
-        form.setValue("exhRate", +Number(exhRate).toFixed(exhRateDec))
+        if (exhRate) {
+          form.setValue("exhRate", +Number(exhRate).toFixed(exhRateDec))
+        }
       }
     },
     [exhRateDec, form]

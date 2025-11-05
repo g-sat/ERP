@@ -10,7 +10,7 @@ import {
 import { JobOrderHdSchema, JobOrderHdSchemaType } from "@/schemas/checklist"
 import { useAuthStore } from "@/stores/auth-store"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { format } from "date-fns"
+import { format, parse } from "date-fns"
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 import { z } from "zod"
@@ -111,7 +111,7 @@ export function ChecklistMain({
       statusId: jobData?.statusId ?? 201,
       gstId: jobData?.gstId ?? 0,
       gstPercentage: jobData?.gstPercentage ?? 0,
-      editVersion: jobData?.editVersion ?? "",
+      editVersion: jobData?.editVersion ?? 0,
     },
   })
 
@@ -123,6 +123,12 @@ export function ChecklistMain({
 
   // Watch jobOrderDate to update accountDate
   const jobOrderDate = form.watch("jobOrderDate")
+
+  // Watch accountDate to update exchange rate
+  const accountDate = form.watch("accountDate")
+
+  // Watch currencyId to update exchange rate when date or currency changes
+  const currencyId = form.watch("currencyId")
 
   // Watch etaDate and etdDate for validation
   const etaDate = form.watch("etaDate")
@@ -197,7 +203,7 @@ export function ChecklistMain({
       statusId: jobData?.statusId ?? 201,
       gstId: jobData?.gstId ?? 0,
       gstPercentage: jobData?.gstPercentage ?? 0,
-      editVersion: jobData?.editVersion ?? "",
+      editVersion: jobData?.editVersion ?? 0,
       vesselDistance: jobData?.vesselDistance ?? 10,
     })
   }, [jobData, form])
@@ -226,6 +232,36 @@ export function ChecklistMain({
     }
   }, [jobOrderDate, form])
 
+  // Update exchange rate when accountDate or currencyId changes
+  useEffect(() => {
+    const updateExchangeRate = async () => {
+      if (accountDate && currencyId) {
+        try {
+          // Format date to yyyy-MM-dd (matching account.ts pattern)
+          const dt =
+            typeof accountDate === "string"
+              ? format(
+                  parse(accountDate, clientDateFormat, new Date()),
+                  "yyyy-MM-dd"
+                )
+              : format(accountDate, "yyyy-MM-dd")
+          const res = await getData(
+            `${BasicSetting.getExchangeRate}/${currencyId}/${dt}`
+          )
+          const exhRate = res?.data
+
+          if (exhRate) {
+            form.setValue("exhRate", +Number(exhRate).toFixed(exhRateDec))
+          }
+        } catch (error) {
+          console.error("Error fetching exchange rate:", error)
+        }
+      }
+    }
+
+    updateExchangeRate()
+  }, [accountDate, currencyId, exhRateDec, form])
+
   // Initialize customer code when jobData is loaded
   useEffect(() => {
     if (jobData?.customerCode) {
@@ -234,6 +270,7 @@ export function ChecklistMain({
   }, [jobData?.customerCode])
 
   const onSubmit = async (data: JobOrderSchemaType) => {
+    console.log("Form data:", data)
     try {
       // Validate etaDate < etdDate before submission (with time)
       if (data.etaDate && data.etdDate) {
@@ -249,22 +286,30 @@ export function ChecklistMain({
         }
       }
 
+      // Format dates - following ar-invoice pattern
+      // Date-only fields (accountDate, seriesDate, jobOrderDate) should be strings in "dd/MM/yyyy" format
+      // DateTime fields (etaDate, etdDate) should include time using formatDateWithoutTimezone
+      const formatDateOnly = (date: Date | string | null | undefined) => {
+        if (!date) return undefined
+        try {
+          const dateObj =
+            date instanceof Date ? date : parseDate(date as string)
+          if (!dateObj || isNaN(dateObj.getTime())) return undefined
+          return format(dateObj, clientDateFormat) // "dd/MM/yyyy"
+        } catch {
+          return undefined
+        }
+      }
+
       const formData: Partial<IJobOrderHd> = {
         ...data,
-        jobOrderDate:
-          data.jobOrderDate instanceof Date
-            ? formatDateWithoutTimezone(data.jobOrderDate)
-            : data.jobOrderDate,
+        // Date-only fields: format as "dd/MM/yyyy" string (like ar-invoice accountDate)
+        jobOrderDate: formatDateOnly(data.jobOrderDate),
+        accountDate: formatDateOnly(data.accountDate),
+        seriesDate: formatDateOnly(data.seriesDate),
+        // DateTime fields: format with time using formatDateWithoutTimezone
         etaDate: formatDateWithoutTimezone(data.etaDate),
         etdDate: formatDateWithoutTimezone(data.etdDate),
-        accountDate:
-          data.accountDate instanceof Date
-            ? formatDateWithoutTimezone(data.accountDate)
-            : data.accountDate,
-        seriesDate:
-          data.seriesDate instanceof Date
-            ? formatDateWithoutTimezone(data.seriesDate)
-            : data.seriesDate,
       }
 
       console.log("Formatted form data:", formData)
@@ -273,6 +318,11 @@ export function ChecklistMain({
       const response = await updateJobOrderDirect(formData)
       console.log("Update API call completed:", response)
       if (response.result === 1) {
+        //update data from response
+        form.reset(response.data)
+        //update edit version
+        form.setValue("editVersion", response.data.editVersion ?? 0)
+
         toast.success(response.message || "Job order updated successfully!")
       } else {
         toast.error(response.message || "Update failed")
@@ -289,22 +339,27 @@ export function ChecklistMain({
     async (selectedCurrency: ICurrencyLookup | null) => {
       // Additional logic when currency changes
       console.log("Selected currency:", selectedCurrency)
-      const currencyId = selectedCurrency?.currencyId || 0
-      const jobOrderDate = form.getValues("jobOrderDate")
+      const selectedCurrencyId = selectedCurrency?.currencyId || 0
+      const accountDate =
+        form.getValues("accountDate") || form.getValues("jobOrderDate")
 
-      if (currencyId && jobOrderDate) {
-        const dt = format(
-          jobOrderDate instanceof Date
-            ? jobOrderDate
-            : parseDate(jobOrderDate as string) || new Date(),
-          clientDateFormat
-        )
+      if (selectedCurrencyId && accountDate) {
+        // Format date to yyyy-MM-dd (matching account.ts pattern)
+        const dt =
+          typeof accountDate === "string"
+            ? format(
+                parse(accountDate, clientDateFormat, new Date()),
+                "yyyy-MM-dd"
+              )
+            : format(accountDate, "yyyy-MM-dd")
         const res = await getData(
-          `${BasicSetting.getExchangeRate}/${currencyId}/${dt}`
+          `${BasicSetting.getExchangeRate}/${selectedCurrencyId}/${dt}`
         )
         const exhRate = res?.data
 
-        form.setValue("exhRate", +Number(exhRate).toFixed(exhRateDec))
+        if (exhRate) {
+          form.setValue("exhRate", +Number(exhRate).toFixed(exhRateDec))
+        }
       }
     },
     [exhRateDec, form]
@@ -373,10 +428,66 @@ export function ChecklistMain({
         <form
           onSubmit={(e) => {
             console.log("Form submit event triggered")
-            form.handleSubmit(onSubmit)(e)
+            form.handleSubmit(
+              (data) => {
+                console.log("Form validation passed, calling onSubmit")
+                onSubmit(data)
+              },
+              (errors) => {
+                console.error("Form validation failed:", errors)
+                console.error("Form values:", form.getValues())
+                console.error(
+                  "Form errors details:",
+                  JSON.stringify(errors, null, 2)
+                )
+
+                // Extract error messages from react-hook-form error structure
+                const errorMessages: string[] = []
+
+                // Handle react-hook-form error structure: { fieldName: { message: string, type: string } }
+                Object.entries(errors).forEach(([fieldName, error]) => {
+                  if (error) {
+                    // Handle FieldError object with message property
+                    if (error.message && typeof error.message === "string") {
+                      errorMessages.push(`${fieldName}: ${error.message}`)
+                    }
+                    // Handle nested errors (for array fields)
+                    else if (error.root?.message) {
+                      errorMessages.push(`${fieldName}: ${error.root.message}`)
+                    }
+                    // Fallback for unknown error structure
+                    else {
+                      errorMessages.push(`${fieldName}: Invalid value`)
+                    }
+                  }
+                })
+
+                if (errorMessages.length > 0) {
+                  const errorText =
+                    errorMessages.length === 1
+                      ? errorMessages[0]
+                      : `Validation errors:\n${errorMessages.map((msg) => `• ${msg}`).join("\n")}`
+
+                  console.log("Showing toast with errors:", errorText)
+                  toast.error(errorText, {
+                    duration: 5000, // Show for 5 seconds
+                  })
+                } else {
+                  console.log(
+                    "No error messages extracted, showing generic error"
+                  )
+                  toast.error("Please fill in all required fields")
+                }
+              }
+            )(e)
           }}
           className="space-y-6"
-          ref={setFormRef}
+          ref={(ref) => {
+            console.log("Form ref callback called:", ref)
+            if (setFormRef) {
+              setFormRef(ref)
+            }
+          }}
         >
           {/* Main Content - Side by Side Layout */}
           <div className="flex gap-4">

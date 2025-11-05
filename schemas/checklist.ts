@@ -65,7 +65,7 @@ export const JobOrderHdSchema = z
     isTaxable: z.boolean().optional(),
     isClose: z.boolean().optional(),
     isPost: z.boolean().optional(),
-    editVersion: z.string().optional(),
+    editVersion: z.number().optional(),
     createdBy: z.string().optional(),
     createdDate: z.union([z.date(), z.string()]).optional(),
     editedBy: z.string().optional(),
