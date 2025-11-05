@@ -84,7 +84,7 @@ export function TaxDtForm({
             ...defaultValues,
           }
     )
-  }, [initialData, form, defaultValues])
+  }, [initialData, form, dateFormat, defaultValues])
 
   const onSubmit = (data: TaxDtSchemaType) => {
     submitAction(data)

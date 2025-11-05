@@ -174,7 +174,6 @@ export default function ChartOfAccountPage() {
 
   // Extract data from responses
   const {
-    result: chartOfAccountsResult,
     data: chartOfAccountsData,
     totalRecords: chartOfAccountsTotalRecords,
   } = (chartOfAccountsResponse as ApiResponse<IChartOfAccount>) ?? {
@@ -186,7 +185,6 @@ export default function ChartOfAccountPage() {
 
   // Destructure with fallback values
   const {
-    result: category1Result,
     data: category1Data,
     totalRecords: category1TotalRecords,
   } = (category1Response as ApiResponse<ICoaCategory1>) ?? {
@@ -208,7 +206,6 @@ export default function ChartOfAccountPage() {
   }
 
   const {
-    result: category3Result,
     data: category3Data,
     totalRecords: category3TotalRecords,
   } = (category3Response as ApiResponse<ICoaCategory3>) ?? {

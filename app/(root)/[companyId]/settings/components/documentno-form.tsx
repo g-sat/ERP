@@ -265,8 +265,6 @@ export function DocumentNoForm() {
       monthDelimiter: data.monthDelimiter || "",
     }
 
-    console.log("data to save", payload)
-
     saveNumberFormat(payload, {
       onSuccess: (response) => {
         if (response.result === 1) {

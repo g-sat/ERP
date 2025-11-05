@@ -49,8 +49,6 @@ export function AccountForm() {
   const { data: chartOfAccounts = [], isLoading: isLoadingChartOfAccounts } =
     useChartOfAccountLookup(Number(companyId))
 
-  console.log("chartOfAccounts", userSettingResponse)
-
   const { mutate: saveUserSettings, isPending } = useUserSettingSave()
 
   const form = useForm<UserSettingSchemaType>({

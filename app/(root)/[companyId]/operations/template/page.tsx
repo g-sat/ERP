@@ -173,7 +173,6 @@ export default function TemplatePage() {
         : response.data
       template = templateData
 
-      console.log("Edit Template:", template)
       setModalMode("edit")
       setSelectedTemplate(template)
       setIsFormFilled(true) // For edit mode, form is considered filled
@@ -268,13 +267,6 @@ export default function TemplatePage() {
   // Handler for loading existing template
   const handleLoadExistingTemplate = () => {
     if (existingTemplate) {
-      // Log the data we're about to set
-      console.log("About to load template data:", {
-        existingTemplate,
-        currentModalMode: modalMode,
-        currentSelectedTemplate: selectedTemplate,
-      })
-
       // Set the states
       setModalMode("edit")
       setSelectedTemplate(existingTemplate)
@@ -317,8 +309,6 @@ export default function TemplatePage() {
         data_details: templateDetails,
       }
 
-      console.log("Saving template with data:", combinedData)
-
       // Show save confirmation
       setSaveConfirmation({
         isOpen: true,
@@ -348,10 +338,6 @@ export default function TemplatePage() {
 
   // Additional details handlers - Handle both add and edit
   const handleDetailFormSubmit = (data: TemplateDtSchemaType) => {
-    console.log("handleDetailFormSubmit called with:", data)
-    console.log("selectedDetail:", _selectedDetail)
-    console.log("templateDetails before:", templateDetails)
-
     if (_selectedDetail) {
       // Edit existing detail
       const updatedDetail: ITemplateDt = {
@@ -363,7 +349,6 @@ export default function TemplatePage() {
         isServiceCharge: data.isServiceCharge,
         serviceCharge: data.serviceCharge,
       }
-      console.log("Updating detail:", updatedDetail)
       handleUpdateDetail(updatedDetail)
     } else {
       // Add new detail
@@ -377,7 +362,6 @@ export default function TemplatePage() {
         isServiceCharge: data.isServiceCharge,
         serviceCharge: data.serviceCharge,
       }
-      console.log("Adding new detail:", newDetail)
 
       // Add to existing array
       setTemplateDetails((prev) => [...prev, newDetail])
@@ -386,8 +370,6 @@ export default function TemplatePage() {
     // Reset form after successful addition/update
     setSelectedDetail(undefined)
     setShouldResetDetailForm(true)
-
-    console.log("Form submitted, selectedDetail cleared")
   }
 
   const handleViewDetail = (detail: ITemplateDt | null) => {
@@ -397,12 +379,9 @@ export default function TemplatePage() {
 
   // Handler for editing a template detail
   const handleEditDetail = (detail: ITemplateDt) => {
-    console.log("Edit Template Detail:", detail)
-    console.log("Setting selectedDetail to:", detail)
     setSelectedDetail(detail)
     // The form will be pre-filled with this detail data
     setShouldResetDetailForm(false) // Don't reset when editing
-    console.log("selectedDetail state updated")
   }
 
   // Check if template form is fully filled

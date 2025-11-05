@@ -8,7 +8,7 @@ import { ColumnDef } from "@tanstack/react-table"
 import { format, subMonths } from "date-fns"
 import { FormProvider, useForm } from "react-hook-form"
 
-import { CbReceipt } from "@/lib/api-routes"
+import { CbGenReceipt } from "@/lib/api-routes"
 import { CBTransactionId, ModuleId, TableName } from "@/lib/utils"
 import { useGetWithDates } from "@/hooks/use-common"
 import { Button } from "@/components/ui/button"
@@ -57,7 +57,7 @@ export default function CbGenReceiptTable({
     isRefetching: isRefetchingReceipts,
     refetch: refetchReceipts,
   } = useGetWithDates<ICbGenReceiptHd>(
-    `${CbReceipt.get}`,
+    `${CbGenReceipt.get}`,
     TableName.cbGenReceipt,
     searchQuery,
     form.watch("startDate")?.toString(),

@@ -22,15 +22,15 @@ interface FormErrors {
 interface ResetPasswordProps {
   userId: number
   userCode: string
-  onCancel: () => void
-  onSuccess?: () => void
+  onCancelAction: () => void
+  onSuccessAction?: () => void
 }
 
 export function ResetPassword({
   userId,
   userCode,
-  onCancel,
-  onSuccess,
+  onCancelAction,
+  onSuccessAction,
 }: ResetPasswordProps) {
   const [resetPasswordData, setResetPasswordData] = useState<ResetPasswordData>(
     {
@@ -60,7 +60,7 @@ export function ResetPassword({
   const handleCancelReset = () => {
     resetForm()
     resetPasswordMutation.reset()
-    onCancel()
+    onCancelAction()
   }
 
   const validateForm = () => {
@@ -99,7 +99,7 @@ export function ResetPassword({
       if (response.result === 1) {
         toast.success("Password reset successfully")
         resetForm()
-        onSuccess?.()
+        onSuccessAction?.()
       } else {
         toast.error("Failed to reset password")
       }

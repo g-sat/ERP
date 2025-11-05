@@ -371,8 +371,8 @@ export function UserForm({
             <ResetPassword
               userId={initialData.userId}
               userCode={initialData.userCode}
-              onCancel={handleCancelReset}
-              onSuccess={handleResetSuccess}
+              onCancelAction={handleCancelReset}
+              onSuccessAction={handleResetSuccess}
             />
           )}
         </DialogContent>

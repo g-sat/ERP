@@ -2,10 +2,7 @@
 "use client"
 
 import { useEffect } from "react"
-import {
-  calculateLocalAmounts,
-  calculateTotalAmounts,
-} from "@/helpers/cb-bankrecon-calculations"
+import { calculateTotalAmounts } from "@/helpers/cb-bankrecon-calculations"
 import { ICbBankReconDt } from "@/interfaces"
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
 import { CbBankReconDtSchemaType, CbBankReconHdSchemaType } from "@/schemas"
@@ -54,11 +51,6 @@ export default function Main({
     )
     form.setValue("totAmt", totals.totAmt)
 
-    // Calculate local currency totals
-    const localAmounts = calculateLocalAmounts(
-      dataDetails as unknown as ICbBankReconDt[],
-      locAmtDec
-    )
     // Note: Bank reconciliation header doesn't have totLocalAmt field
     // This is just calculated from details
 

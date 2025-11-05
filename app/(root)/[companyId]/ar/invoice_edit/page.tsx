@@ -757,7 +757,7 @@ export default function InvoicePage() {
         <TabsContent value="main">
           <Main
             form={form}
-            onSuccess={handleConfirmation}
+            onSuccessAction={handleConfirmation}
             isEdit={isEdit}
             visible={visible}
             companyId={Number(companyId)}

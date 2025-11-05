@@ -33,12 +33,7 @@ import { APTransactionId, ModuleId } from "@/lib/utils"
 import { useDelete, usePersist } from "@/hooks/use-common"
 import { useGetRequiredFields, useGetVisibleFields } from "@/hooks/use-lookup"
 import { Button } from "@/components/ui/button"
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Spinner } from "@/components/ui/spinner"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -70,7 +65,7 @@ export default function InvoicePage() {
   const [showResetConfirm, setShowResetConfirm] = useState(false)
   const [showCloneConfirm, setShowCloneConfirm] = useState(false)
   const [isLoadingInvoice, setIsLoadingInvoice] = useState(false)
-  const [isSelectingInvoice, setIsSelectingInvoice] = useState(false)
+  const [_isSelectingInvoice, setIsSelectingInvoice] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [invoice, setInvoice] = useState<ApInvoiceHdSchemaType | null>(null)
   const [searchNo, setSearchNo] = useState("")

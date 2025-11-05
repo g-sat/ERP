@@ -70,7 +70,7 @@ export default function CreditNotePage() {
   const [showResetConfirm, setShowResetConfirm] = useState(false)
   const [showCloneConfirm, setShowCloneConfirm] = useState(false)
   const [isLoadingCreditNote, setIsLoadingCreditNote] = useState(false)
-  const [isSelectingCreditNote, setIsSelectingCreditNote] = useState(false)
+  const [_isSelectingCreditNote, setIsSelectingCreditNote] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [creditNote, setCreditNote] = useState<ApCreditNoteHdSchemaType | null>(
     null

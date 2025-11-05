@@ -70,7 +70,7 @@ export default function PaymentPage() {
   const [showResetConfirm, setShowResetConfirm] = useState(false)
   const [showCloneConfirm, setShowCloneConfirm] = useState(false)
   const [isLoadingPayment, setIsLoadingPayment] = useState(false)
-  const [isSelectingPayment, setIsSelectingPayment] = useState(false)
+  const [_isSelectingPayment, setIsSelectingPayment] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [payment, setPayment] = useState<ApPaymentHdSchemaType | null>(null)
   const [searchNo, setSearchNo] = useState("")

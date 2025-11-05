@@ -42,7 +42,7 @@ import CustomTextarea from "@/components/custom/custom-textarea"
 
 interface InvoiceFormProps {
   form: UseFormReturn<ArInvoiceHdSchemaType>
-  onSuccess: (action: string) => Promise<void>
+  onSuccessAction: (action: string) => Promise<void>
   isEdit: boolean
   visible: IVisibleFields
   companyId: number
@@ -50,7 +50,7 @@ interface InvoiceFormProps {
 
 export default function InvoiceForm({
   form,
-  onSuccess,
+  onSuccessAction,
   isEdit,
   visible,
   companyId: _companyId,
@@ -60,15 +60,14 @@ export default function InvoiceForm({
   const locAmtDec = decimals[0]?.locAmtDec || 2
   const ctyAmtDec = decimals[0]?.ctyAmtDec || 2
   const exhRateDec = decimals[0]?.exhRateDec || 6
-  const dateFormat = decimals[0]?.dateFormat || "dd/MM/yyyy"
 
   const onSubmit = async () => {
-    await onSuccess("save")
+    await onSuccessAction("save")
   }
 
   // Handle transaction date selection
   const handleTrnDateChange = React.useCallback(
-    async (selectedTrnDate: Date | null) => {
+    async (_selectedTrnDate: Date | null) => {
       // Additional logic when transaction date changes
       const { trnDate } = form?.getValues()
       form.setValue("gstClaimDate", trnDate)
@@ -113,7 +112,7 @@ export default function InvoiceForm({
 
   // Handle transaction date selection
   const handleAccountDateChange = React.useCallback(
-    async (selectedAccountDate: Date | null) => {
+    async (_selectedAccountDate: Date | null) => {
       // Additional logic when transaction date changes
       const { accountDate } = form?.getValues()
       form.setValue("gstClaimDate", accountDate)
@@ -136,7 +135,7 @@ export default function InvoiceForm({
 
   // Handle credit term selection
   const handleCreditTermChange = React.useCallback(
-    (selectedCreditTerm: ICreditTermLookup | null) => {
+    (_selectedCreditTerm: ICreditTermLookup | null) => {
       // Additional logic when credit term changes
       setDueDate(form)
     },
@@ -145,7 +144,7 @@ export default function InvoiceForm({
 
   // Handle bank selection
   const handleBankChange = React.useCallback(
-    (selectedBank: IBankLookup | null) => {
+    (_selectedBank: IBankLookup | null) => {
       // Additional logic when bank changes
     },
     []
@@ -153,7 +152,7 @@ export default function InvoiceForm({
 
   // Handle delivery date change
   const handleDeliveryDateChange = React.useCallback(
-    async (selectedDeliveryDate: Date | null) => {
+    async (_selectedDeliveryDate: Date | null) => {
       await setDueDate(form)
     },
     [form]

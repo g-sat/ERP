@@ -2,7 +2,10 @@
 
 import { useState } from "react"
 import { IApprovalLevel, IApprovalProcess } from "@/interfaces/approval"
-import { approvalLevelSchema } from "@/schemas/approval"
+import {
+  ApprovalLevelSchemaType,
+  approvalLevelSchema,
+} from "@/schemas/approval"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Loader2 } from "lucide-react"
 import { useForm } from "react-hook-form"
@@ -37,16 +40,16 @@ interface ApprovalLevelFormProps {
   mode: "create" | "edit" | "view"
   level?: IApprovalLevel
   processes: IApprovalProcess[]
-  onSuccess: () => void
-  onCancel: () => void
+  onSuccessAction: () => void
+  onCancelAction: () => void
 }
 
 export function ApprovalLevelForm({
   mode,
   level,
   processes,
-  onSuccess,
-  onCancel,
+  onSuccessAction,
+  onCancelAction,
 }: ApprovalLevelFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -54,7 +57,7 @@ export function ApprovalLevelForm({
   // const saveLevel = useSaveApprovalLevel()
   // const updateLevel = useUpdateApprovalLevel()
 
-  const form = useForm<IApprovalLevel>({
+  const form = useForm<ApprovalLevelSchemaType>({
     resolver: zodResolver(approvalLevelSchema),
     defaultValues: {
       levelId: level?.levelId || 0,
@@ -65,12 +68,12 @@ export function ApprovalLevelForm({
     },
   })
 
-  const onSubmit = async (data: IApprovalLevel) => {
+  const onSubmit = async (data: ApprovalLevelSchemaType) => {
     setIsSubmitting(true)
     try {
       // TODO: Implement save/update functionality
       toast.success("Approval level functionality not yet implemented")
-      onSuccess()
+      onSuccessAction()
     } catch (error) {
       console.error("Error saving approval level:", error)
       toast.error("Failed to save approval level")
@@ -204,7 +207,7 @@ export function ApprovalLevelForm({
             <Button
               type="button"
               variant="outline"
-              onClick={onCancel}
+              onClick={onCancelAction}
               disabled={isSubmitting}
             >
               Cancel
@@ -220,7 +223,7 @@ export function ApprovalLevelForm({
 
         {isViewMode && (
           <div className="flex justify-end">
-            <Button type="button" variant="outline" onClick={onCancel}>
+            <Button type="button" variant="outline" onClick={onCancelAction}>
               Close
             </Button>
           </div>

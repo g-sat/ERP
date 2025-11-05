@@ -191,7 +191,6 @@ export default function SupplierPage() {
     )
 
   const {
-    result: suppliersResult,
     data: suppliersData,
     totalRecords,
   } = (suppliersResponse as ApiResponse<ISupplier>) ?? {

@@ -38,7 +38,6 @@ export function CurrencyDtForm({
 }: CurrencyDtFormProps) {
   const { decimals } = useAuthStore()
   const exhRateDec = decimals[0]?.exhRateDec || 6
-  const dateFormat = decimals[0]?.dateFormat || "dd/MM/yyyy"
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
 
   console.log("initialData", initialData)
@@ -93,7 +92,7 @@ export function CurrencyDtForm({
             ...defaultValues,
           }
     )
-  }, [initialData, form])
+  }, [initialData, form, exhRateDec, defaultValues])
 
   const onSubmit = (data: CurrencyDtSchemaType) => {
     // Format date to ISO string before submission

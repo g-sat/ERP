@@ -44,12 +44,6 @@ export default function ArOutStandingTransactionsDialog({
   onAddSelected,
   existingDocumentIds = [],
 }: ArOutStandingTransactionsDialogProps) {
-  console.log("Dialog component rendered with props:", {
-    open,
-    customerId,
-    currencyId,
-    accountDate,
-  })
   const [outTransactions, setOutTransactions] = useState<IArOutTransaction[]>(
     []
   )
@@ -93,20 +87,7 @@ export default function ArOutStandingTransactionsDialog({
 
   // Load transactions when dialog opens
   useEffect(() => {
-    console.log("useEffect triggered with:", {
-      open,
-      customerId,
-      currencyId,
-      accountDate,
-    })
-
     if (!open || !customerId || !currencyId || !accountDate) {
-      console.log("Dialog conditions not met:", {
-        open,
-        customerId,
-        currencyId,
-        accountDate,
-      })
       return
     }
 
@@ -115,7 +96,6 @@ export default function ArOutStandingTransactionsDialog({
 
     // Prevent duplicate calls with same parameters (only if actively loading)
     if (isLoadingRef.current && lastLoadParamsRef.current === paramsKey) {
-      console.log("API call already in progress, skipping duplicate")
       return
     }
 
@@ -124,18 +104,10 @@ export default function ArOutStandingTransactionsDialog({
       isLoadingRef.current = false
     }
 
-    console.log("All conditions met, proceeding with API call")
-
     const loadTransactions = async () => {
       // Set loading flag and store params
       isLoadingRef.current = true
       lastLoadParamsRef.current = paramsKey
-
-      console.log("Loading transactions with params:", {
-        customerId,
-        currencyId,
-        accountDate,
-      })
 
       setIsLoading(true)
       setSelectedTransactions([])
@@ -159,32 +131,18 @@ export default function ArOutStandingTransactionsDialog({
           "yyyy-MM-dd"
         )
         const url = `${Account.getArOutstandTransaction}/${customerId}/${currencyId}/${dt}`
-        console.log("API URL:", url)
-        console.log("Formatted date:", dt)
-        console.log("Starting API call at:", new Date().toISOString())
 
         const response = await getById(url)
 
-        console.log("API call completed at:", new Date().toISOString())
-        console.log("API Response:", response)
-
         // Clear timeout since API call completed
         clearTimeout(timeoutId)
-
-        console.log("Response received, updating state...")
-        console.log("Response result:", response?.result)
-        console.log("Response data length:", response?.data?.length)
 
         if (response?.result === 1) {
           // Show all transactions (don't filter)
           const allTransactions = response.data || []
 
-          console.log("Setting transactions:", allTransactions.length, "items")
           setOutTransactions(allTransactions)
-          console.log("Transactions loaded successfully!")
-          console.log("Already selected document IDs:", existingDocumentIds)
         } else {
-          console.log("Response result is not 1, setting empty array")
           setOutTransactions([])
           const errorMsg = response?.message || "Failed to load transactions"
           console.error("Failed to fetch outstanding transactions:", errorMsg)
@@ -206,7 +164,6 @@ export default function ArOutStandingTransactionsDialog({
         })
         setOutTransactions([])
       } finally {
-        console.log("Finally block - resetting loading state")
         setIsLoading(false)
         isLoadingRef.current = false
       }
@@ -217,15 +174,11 @@ export default function ArOutStandingTransactionsDialog({
 
     // No cleanup function - let the request complete naturally
     // State updates are safe and loading state will always be reset
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, customerId, currencyId, accountDate])
 
   // Function to calculate totals for selected transactions
   const calculateSelectedTotals = useCallback(
     (selectedIds: string[], transactions: IArOutTransaction[]) => {
-      console.log("selectedIds", selectedIds)
-      console.log("transactions", transactions)
-
       if (selectedIds.length === 0) {
         return { totAmt: 0, totLocalAmt: 0 }
       }
@@ -234,8 +187,6 @@ export default function ArOutStandingTransactionsDialog({
       let totLocalAmt = 0
 
       selectedIds.forEach((docId) => {
-        console.log("docId", docId)
-        console.log("transactions", transactions)
         const transaction = transactions.find(
           (t) => t.documentId.toString() === docId
         )
@@ -244,9 +195,6 @@ export default function ArOutStandingTransactionsDialog({
           totLocalAmt += transaction.balLocalAmt || 0
         }
       })
-
-      console.log("totAmt", totAmt)
-      console.log("totLocalAmt", totLocalAmt)
 
       return { totAmt, totLocalAmt }
     },
@@ -282,7 +230,6 @@ export default function ArOutStandingTransactionsDialog({
     )
 
     if (newlySelectedIds.length === 0) {
-      console.log("No new transactions selected")
       onOpenChange(false)
       return
     }
@@ -292,11 +239,6 @@ export default function ArOutStandingTransactionsDialog({
         return outTransactions.find((t) => t.documentId.toString() === docId)
       })
       .filter((t): t is IArOutTransaction => t !== undefined)
-
-    console.log(
-      "Adding newly selected transactions:",
-      selectedTransactionsData.length
-    )
 
     if (onAddSelected) {
       onAddSelected(selectedTransactionsData)

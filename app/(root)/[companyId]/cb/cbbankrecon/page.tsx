@@ -461,14 +461,6 @@ export default function BankReconPage() {
     setFilters(newFilters)
   }
 
-  // Refetch bank reconciliations when filters change (only if dialog is open)
-  useEffect(() => {
-    if (showListDialog) {
-      refetchBankRecons()
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filters, showListDialog])
-
   // Add keyboard shortcuts
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {

@@ -28,7 +28,7 @@ import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 
 import { getById } from "@/lib/api-client"
-import { ApDocsetoff } from "@/lib/api-routes"
+import { ApDocSetOff } from "@/lib/api-routes"
 import { clientDateFormat, parseDate } from "@/lib/date-utils"
 import { APTransactionId, ModuleId } from "@/lib/utils"
 import { useDelete, usePersist } from "@/hooks/use-common"
@@ -173,11 +173,11 @@ export default function DocsetoffPage() {
   // Data fetching moved to DocsetoffTable component for better performance
 
   // Mutations
-  const saveMutation = usePersist<ApDocsetoffHdSchemaType>(`${ApDocsetoff.add}`)
+  const saveMutation = usePersist<ApDocsetoffHdSchemaType>(`${ApDocSetOff.add}`)
   const updateMutation = usePersist<ApDocsetoffHdSchemaType>(
-    `${ApDocsetoff.add}`
+    `${ApDocSetOff.add}`
   )
-  const deleteMutation = useDelete(`${ApDocsetoff.delete}`)
+  const deleteMutation = useDelete(`${ApDocSetOff.delete}`)
 
   // Remove the useGetPaymentById hook for selection
   // const { data: paymentByIdData, refetch: refetchPaymentById } = ...
@@ -211,7 +211,7 @@ export default function DocsetoffPage() {
         validationResult.error.issues.forEach((error) => {
           const fieldPath = error.path.join(
             "."
-          ) as keyof ApDocSetOffHdSchemaType
+          ) as keyof ApDocsetoffHdSchemaType
           form.setError(fieldPath, {
             type: "validation",
             message: error.message,
@@ -470,7 +470,7 @@ export default function DocsetoffPage() {
     try {
       // Fetch docsetoff details directly using selected docsetoff's values
       const response = await getById(
-        `${ApDocsetoff.getByIdNo}/${selectedPayment.setoffId}/${selectedPayment.setoffNo}`
+        `${ApDocSetOff.getByIdNo}/${selectedPayment.setoffId}/${selectedPayment.setoffNo}`
       )
 
       if (response?.result === 1) {
@@ -624,7 +624,7 @@ export default function DocsetoffPage() {
     setIsLoadingDocsetoff(true)
 
     try {
-      const response = await getById(`${ApDocsetoff.getByIdNo}/0/${value}`)
+      const response = await getById(`${ApDocSetOff.getByIdNo}/0/${value}`)
 
       if (response?.result === 1) {
         const detailedPayment = Array.isArray(response.data)

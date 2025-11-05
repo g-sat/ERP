@@ -47,7 +47,7 @@ export default function ARReportsPage() {
     setLedgerData([])
   }
 
-  const handleOutstandingView = (transaction: unknown) => {
+  const _handleOutstandingView = (transaction: unknown) => {
     console.log("View outstanding transaction:", transaction)
   }
 

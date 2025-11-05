@@ -476,7 +476,7 @@ export default function OrderTypePage() {
         console.error("Error checking code availability:", error)
       }
     },
-    [modalMode, isModalOpen, isCategoryModalOpen]
+    [modalMode]
   )
 
   // Load existing records

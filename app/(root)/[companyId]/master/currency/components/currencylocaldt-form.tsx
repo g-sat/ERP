@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, useMemo } from "react"
 import { ICurrencyLocalDt } from "@/interfaces/currency"
 import {
   CurrencyLocalDtSchemaType,
@@ -41,28 +41,16 @@ export function CurrencyLocalDtForm({
 }: CurrencyLocalDtFormProps) {
   const { decimals } = useAuthStore()
   const exhRateDec = decimals[0]?.exhRateDec || 6
-  const dateFormat = decimals[0]?.dateFormat || "dd/MM/yyyy"
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
 
-  console.log("initialData", initialData)
-  console.log("initialData?.validFrom", initialData?.validFrom)
-  console.log(
-    "parseDate(initialData?.validFrom as string)",
-    parseDate(initialData?.validFrom as string)
+  const defaultValues = useMemo(
+    () => ({
+      currencyId: 0,
+      exhRate: exhRateDec || 9,
+      validFrom: format(new Date(), clientDateFormat),
+    }),
+    [exhRateDec]
   )
-  console.log(
-    "format(parseDate(initialData?.validFrom as string) || new Date(), dateFormat)",
-    format(
-      parseDate(initialData?.validFrom as string) || new Date(),
-      clientDateFormat
-    )
-  )
-
-  const defaultValues = {
-    currencyId: 0,
-    exhRate: exhRateDec || 9,
-    validFrom: format(new Date(), clientDateFormat),
-  }
 
   const form = useForm<CurrencyLocalDtSchemaType>({
     resolver: zodResolver(currencyLocalDtSchema),
@@ -96,7 +84,7 @@ export function CurrencyLocalDtForm({
             ...defaultValues,
           }
     )
-  }, [initialData, form])
+  }, [initialData, form, exhRateDec, defaultValues, clientDateFormat])
 
   const onSubmit = (data: CurrencyLocalDtSchemaType) => {
     // Format date to ISO string before submission
@@ -106,8 +94,6 @@ export function CurrencyLocalDtForm({
     }
     submitAction(formattedData)
   }
-
-  console.log("form.getValues()", form.getValues())
 
   return (
     <div className="max-w flex flex-col gap-2">

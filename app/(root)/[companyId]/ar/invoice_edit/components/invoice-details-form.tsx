@@ -72,7 +72,7 @@ export default function InvoiceDetailsForm() {
     },
   })
 
-  const onSubmit = (data: ArInvoiceDtSchemaType) => {
+  const onSubmit = (_data: ArInvoiceDtSchemaType) => {
     // Handle form submission
   }
 

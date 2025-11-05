@@ -1,7 +1,7 @@
 // main-tab.tsx - IMPROVED VERSION
 "use client"
 
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import {
   calculateAllocationAmounts,
   calculateTotalExchangeGainLoss,
@@ -50,7 +50,10 @@ export default function Main({
   } | null>(null)
 
   // Watch data_details for reactive updates
-  const dataDetails = form.watch("data_details") || []
+  const dataDetails = useMemo(
+    () => form.watch("data_details") || [],
+    [form.watch("data_details")]
+  )
 
   // Calculate sum of allocAmt and allocLocalAmt
   const totalAllocAmt = dataDetails.reduce(

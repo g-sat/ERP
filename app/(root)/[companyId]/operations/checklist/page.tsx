@@ -118,9 +118,7 @@ export default function ChecklistPage() {
   }
 
   const handleAddNew = () => {
-    console.log("Opening new job order in new tab")
     const url = `/${companyId}/operations/checklist/new`
-    console.log("Opening URL:", url)
     window.open(url, "_blank")
   }
 
@@ -163,7 +161,6 @@ export default function ChecklistPage() {
   }, [apiData])
 
   const statusCounts = getStatusCounts
-  console.log("statusCounts", statusCounts)
 
   return (
     <div className="@container mx-auto space-y-2 px-4 pt-2 pb-4 sm:space-y-3 sm:px-6 sm:pt-3 sm:pb-6">

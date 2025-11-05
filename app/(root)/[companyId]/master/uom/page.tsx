@@ -400,7 +400,7 @@ export default function UomPage() {
         console.error("Error checking code availability:", error)
       }
     },
-    [modalMode, isModalOpen]
+    [modalMode]
   )
 
   // Load existing records

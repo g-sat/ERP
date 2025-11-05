@@ -55,8 +55,6 @@ export function DefaultForm() {
   const { data: chartOfAccounts = [], isLoading: isLoadingChartOfAccounts } =
     useChartOfAccountLookup(Number(companyId))
 
-  console.log("chartOfAccounts", defaultSettingResponse)
-
   const { mutate: saveDefaultSettings, isPending } = useDefaultSettingSave()
 
   const form = useForm<DefaultSettingSchemaType>({

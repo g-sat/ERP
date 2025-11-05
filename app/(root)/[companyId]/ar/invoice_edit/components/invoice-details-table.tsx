@@ -822,7 +822,7 @@ export default function InvoiceDetailsTable({
     }
   }
 
-  const handleExportPdf = (data: InvoiceDetailRow[]) => {}
+  const handleExportPdf = (_data: InvoiceDetailRow[]) => {}
 
   const columns: ColumnDef<InvoiceDetailRow>[] = [
     {

@@ -23,7 +23,7 @@ import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 
 import { getById } from "@/lib/api-client"
-import { CbPayment } from "@/lib/api-routes"
+import { CbPettyCash } from "@/lib/api-routes"
 import { clientDateFormat, parseDate } from "@/lib/date-utils"
 import { CBTransactionId, ModuleId } from "@/lib/utils"
 import { useDelete, usePersist } from "@/hooks/use-common"
@@ -154,9 +154,11 @@ export default function PettyCashPage() {
   // Data fetching moved to PettyCashTable component for better performance
 
   // Mutations
-  const saveMutation = usePersist<CbPettyCashHdSchemaType>(`${CbPayment.add}`)
-  const updateMutation = usePersist<CbPettyCashHdSchemaType>(`${CbPayment.add}`)
-  const deleteMutation = useDelete(`${CbPayment.delete}`)
+  const saveMutation = usePersist<CbPettyCashHdSchemaType>(`${CbPettyCash.add}`)
+  const updateMutation = usePersist<CbPettyCashHdSchemaType>(
+    `${CbPettyCash.add}`
+  )
+  const deleteMutation = useDelete(`${CbPettyCash.delete}`)
 
   // Handle Save
   const handleSavePettyCash = async () => {
@@ -446,7 +448,7 @@ export default function PettyCashPage() {
     try {
       // Fetch petty cash details directly using selected record's values
       const response = await getById(
-        `${CbPayment.getByIdNo}/${selectedPettyCash.paymentId}/${selectedPettyCash.paymentNo}`
+        `${CbPettyCash.getByIdNo}/${selectedPettyCash.paymentId}/${selectedPettyCash.paymentNo}`
       )
 
       if (response?.result === 1) {
@@ -484,14 +486,6 @@ export default function PettyCashPage() {
     setFilters(newFilters)
   }
 
-  // Refetch petty cash records when filters change (only if dialog is open)
-  useEffect(() => {
-    if (showListDialog) {
-      refetchPettyCash()
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filters, showListDialog])
-
   // Add keyboard shortcuts
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
@@ -528,7 +522,7 @@ export default function PettyCashPage() {
     setIsLoadingPettyCash(true)
 
     try {
-      const response = await getById(`${CbPayment.getByIdNo}/0/${value}`)
+      const response = await getById(`${CbPettyCash.getByIdNo}/0/${value}`)
 
       if (response?.result === 1) {
         const detailedPettyCash = Array.isArray(response.data)

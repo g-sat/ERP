@@ -77,7 +77,7 @@ export function PaymentTypeForm({
             ...defaultValues,
           }
     )
-  }, [initialData, form, defaultValues])
+  }, [initialData, form])
 
   const handleCodeBlur = (_e: React.FocusEvent<HTMLInputElement>) => {
     const code = form.getValues("paymentTypeCode")

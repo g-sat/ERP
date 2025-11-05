@@ -70,7 +70,7 @@ export default function DebitNotePage() {
   const [showResetConfirm, setShowResetConfirm] = useState(false)
   const [showCloneConfirm, setShowCloneConfirm] = useState(false)
   const [isLoadingDebitNote, setIsLoadingDebitNote] = useState(false)
-  const [isSelectingDebitNote, setIsSelectingDebitNote] = useState(false)
+  const [_isSelectingDebitNote, setIsSelectingDebitNote] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [debitNote, setDebitNote] = useState<ArDebitNoteHdSchemaType | null>(
     null

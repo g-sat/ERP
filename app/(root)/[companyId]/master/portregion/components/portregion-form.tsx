@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, useMemo } from "react"
 import { IPortRegion } from "@/interfaces/portregion"
 import { PortRegionSchemaType, portregionSchema } from "@/schemas/portregion"
 import { useAuthStore } from "@/stores/auth-store"
@@ -41,14 +41,17 @@ export function PortRegionForm({
   const { decimals } = useAuthStore()
   const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
 
-  const defaultValues = {
-    portRegionId: 0,
-    portRegionName: "",
-    portRegionCode: "",
-    countryId: 0,
-    remarks: "",
-    isActive: true,
-  }
+  const defaultValues = useMemo(
+    () => ({
+      portRegionId: 0,
+      portRegionName: "",
+      portRegionCode: "",
+      countryId: 0,
+      remarks: "",
+      isActive: true,
+    }),
+    []
+  )
 
   const form = useForm<PortRegionSchemaType>({
     resolver: zodResolver(portregionSchema),

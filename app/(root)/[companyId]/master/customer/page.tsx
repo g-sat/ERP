@@ -183,7 +183,6 @@ export default function CustomerPage() {
     )
 
   const {
-    result: customersResult,
     data: customersData,
     totalRecords,
   } = (customersResponse as ApiResponse<ICustomer>) ?? {

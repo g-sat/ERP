@@ -83,7 +83,7 @@ export default function BatchPaymentDetailsForm({
   companyId,
   existingDetails = [],
   defaultGlId = 0,
-  defaultUomId = 0,
+  defaultUomId: _defaultUomId = 0,
   defaultGstId = 0,
 }: BatchPaymentDetailsFormProps) {
   const { decimals } = useAuthStore()

@@ -76,7 +76,7 @@ export default function ReceiptDetailsForm({
   companyId,
   existingDetails = [],
   defaultGlId = 0,
-  defaultUomId = 0,
+  defaultUomId: _defaultUomId = 0,
   defaultGstId = 0,
 }: ReceiptDetailsFormProps) {
   const { decimals } = useAuthStore()

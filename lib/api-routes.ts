@@ -912,6 +912,9 @@ export const ApDocSetOff = {
   historyDetails: "/account/gethistoryapdocsetoffdetailsbyid",
 }
 
+// Alias for ApDocsetoff (casing variant)
+export const ApDocsetoff = ApDocSetOff
+
 // Cash Book Payment Endpoints
 export const CbGenPayment = {
   get: "/account/getcbgenpayment",
@@ -922,6 +925,9 @@ export const CbGenPayment = {
   historyDetails: "/account/gethistorycbgenpaymentdetailsbyid",
 }
 
+// Alias for CbPayment
+export const CbPayment = CbGenPayment
+
 // Cash Book Receipt Endpoints
 export const CbGenReceipt = {
   get: "/account/getcbgenreceipt",
@@ -931,6 +937,9 @@ export const CbGenReceipt = {
   history: "/account/GetHistoryCBGenReceiptById",
   historyDetails: "/account/gethistorycbgenreceiptdetailsbyid",
 }
+
+// Alias for CbReceipt
+export const CbReceipt = CbGenReceipt
 
 // Cash Book Batch Payment Endpoints
 export const CbBatchPayment = {

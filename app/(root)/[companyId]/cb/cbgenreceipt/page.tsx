@@ -69,7 +69,7 @@ export default function GenReceiptPage() {
   const [showResetConfirm, setShowResetConfirm] = useState(false)
   const [showCloneConfirm, setShowCloneConfirm] = useState(false)
   const [isLoadingReceipt, setIsLoadingReceipt] = useState(false)
-  const [isSelectingReceipt, setIsSelectingReceipt] = useState(false)
+  const [_isSelectingReceipt, setIsSelectingReceipt] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [receipt, setReceipt] = useState<CbGenReceiptHdSchemaType | null>(null)
   const [searchNo, setSearchNo] = useState("")

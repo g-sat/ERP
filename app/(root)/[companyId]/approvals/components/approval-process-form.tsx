@@ -2,7 +2,10 @@
 
 import { useState } from "react"
 import { IApprovalProcess } from "@/interfaces/approval"
-import { approvalProcessSchema } from "@/schemas/approval"
+import {
+  ApprovalProcessSchemaType,
+  approvalProcessSchema,
+} from "@/schemas/approval"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Loader2 } from "lucide-react"
 import { useForm } from "react-hook-form"
@@ -36,15 +39,15 @@ import { Switch } from "@/components/ui/switch"
 interface ApprovalProcessFormProps {
   mode: "create" | "edit" | "view"
   process?: IApprovalProcess
-  onSuccess: () => void
-  onCancel: () => void
+  onSuccessAction: () => void
+  onCancelAction: () => void
 }
 
 export function ApprovalProcessForm({
   mode,
   process,
-  onSuccess,
-  onCancel,
+  onSuccessAction,
+  onCancelAction,
 }: ApprovalProcessFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -52,7 +55,7 @@ export function ApprovalProcessForm({
   // const saveProcess = useSaveApprovalProcess()
   // const updateProcess = useUpdateApprovalProcess()
 
-  const form = useForm<IApprovalProcess>({
+  const form = useForm<ApprovalProcessSchemaType>({
     resolver: zodResolver(approvalProcessSchema),
     defaultValues: {
       processId: process?.processId || 0,
@@ -61,16 +64,18 @@ export function ApprovalProcessForm({
       transactionId: process?.transactionId || undefined,
       isActive: process?.isActive ?? true,
       createById: process?.createById || 0,
-      createdDate: process?.createdDate || new Date().toISOString(),
+      createdDate: process?.createdDate
+        ? new Date(process.createdDate)
+        : new Date(),
     },
   })
 
-  const onSubmit = async (data: IApprovalProcess) => {
+  const onSubmit = async (data: ApprovalProcessSchemaType) => {
     setIsSubmitting(true)
     try {
       // TODO: Implement save/update functionality
       toast.success("Approval process functionality not yet implemented")
-      onSuccess()
+      onSuccessAction()
     } catch (error) {
       console.error("Error saving approval process:", error)
       toast.error("Failed to save approval process")
@@ -195,7 +200,7 @@ export function ApprovalProcessForm({
             <Button
               type="button"
               variant="outline"
-              onClick={onCancel}
+              onClick={onCancelAction}
               disabled={isSubmitting}
             >
               Cancel
@@ -211,7 +216,7 @@ export function ApprovalProcessForm({
 
         {isViewMode && (
           <div className="flex justify-end">
-            <Button type="button" variant="outline" onClick={onCancel}>
+            <Button type="button" variant="outline" onClick={onCancelAction}>
               Close
             </Button>
           </div>

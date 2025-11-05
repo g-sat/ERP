@@ -70,7 +70,7 @@ export default function GenPaymentDetailsForm({
   companyId,
   existingDetails = [],
   defaultGlId = 0,
-  defaultUomId = 0,
+  defaultUomId: _defaultUomId = 0,
   defaultGstId = 0,
 }: GenPaymentDetailsFormProps) {
   const { decimals } = useAuthStore()

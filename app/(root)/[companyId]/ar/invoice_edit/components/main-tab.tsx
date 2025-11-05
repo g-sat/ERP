@@ -10,7 +10,7 @@ import InvoiceForm from "./invoice-form"
 
 interface MainProps {
   form: UseFormReturn<ArInvoiceHdSchemaType>
-  onSuccess: (action: string) => Promise<void>
+  onSuccessAction: (action: string) => Promise<void>
   isEdit: boolean
   visible: IVisibleFields
   companyId: number
@@ -18,7 +18,7 @@ interface MainProps {
 
 export default function Main({
   form,
-  onSuccess,
+  onSuccessAction,
   isEdit,
   visible,
   companyId,
@@ -27,7 +27,7 @@ export default function Main({
     <div className="divide-y">
       <InvoiceForm
         form={form}
-        onSuccess={onSuccess}
+        onSuccessAction={onSuccessAction}
         isEdit={isEdit}
         visible={visible}
         companyId={companyId}
