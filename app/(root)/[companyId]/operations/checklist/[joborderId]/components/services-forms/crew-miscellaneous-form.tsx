@@ -27,6 +27,7 @@ import CustomAccordion, {
   CustomAccordionTrigger,
 } from "@/components/custom/custom-accordion"
 import CustomInput from "@/components/custom/custom-input"
+import CustomNumberInput from "@/components/custom/custom-number-input"
 import CustomTextarea from "@/components/custom/custom-textarea"
 import { FormLoadingSpinner } from "@/components/skeleton/loading-spinner"
 
@@ -117,11 +118,10 @@ export function CrewMiscellaneousForm({
         <form onSubmit={form.handleSubmit(onSubmit)}>
           <div className="grid gap-2">
             <div className="grid grid-cols-2 gap-2">
-              <CustomInput
+              <CustomNumberInput
                 form={form}
                 name="quantity"
                 label="Quantity"
-                type="number"
                 isRequired
                 isDisabled={isConfirmed}
               />

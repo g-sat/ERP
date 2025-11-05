@@ -116,26 +116,6 @@ export default function BargeAutocomplete<T extends Record<string, unknown>>({
   )
   ClearIndicator.displayName = "ClearIndicator"
 
-  const IndicatorsContainer = React.memo(
-    (props: { children: React.ReactNode }) => {
-      return (
-        <div className="flex gap-0.5">
-          {props.children}
-          <button
-            type="button"
-            onClick={handleRefresh}
-            tabIndex={-1}
-            className="text-muted-foreground hover:text-foreground rounded-sm p-1 transition-colors"
-            title="Refresh barges"
-          >
-            <IconRefresh size={12} className="size-3 shrink-0" />
-          </button>
-        </div>
-      )
-    }
-  )
-  IndicatorsContainer.displayName = "IndicatorsContainer"
-
   const Option = React.memo((props: OptionProps<FieldOption>) => {
     return (
       <components.Option {...props}>
@@ -184,7 +164,7 @@ export default function BargeAutocomplete<T extends Record<string, unknown>>({
       valueContainer: () => cn("px-0 py-0.5 gap-1"),
       input: () =>
         cn("text-foreground placeholder:text-muted-foreground m-0 p-0"),
-      indicatorsContainer: () => cn("flex gap-0.5"), // Reduced gap between indicators // Gap removed
+      indicatorsContainer: () => cn(""), // Gap removed
       clearIndicator: () =>
         cn("text-muted-foreground hover:text-foreground p-1 rounded-sm"),
       dropdownIndicator: () => cn("text-muted-foreground p-1 rounded-sm"),
@@ -416,10 +396,27 @@ export default function BargeAutocomplete<T extends Record<string, unknown>>({
     return (
       <div className={cn("flex flex-col gap-1", className)}>
         {label && (
-          <Label htmlFor={name} className="text-sm font-medium">
-            {label}
-            {isRequired && <span className="ml-1 text-red-500">*</span>}
-          </Label>
+          <div className="flex items-center gap-1">
+            <Label htmlFor={name} className="text-sm font-medium">
+              {label}
+            </Label>
+            <button
+              type="button"
+              onClick={handleRefresh}
+              disabled={isLoading}
+              tabIndex={-1}
+              className="hover:bg-accent flex items-center justify-center rounded-sm p-0.5 transition-colors disabled:opacity-50"
+              title="Refresh barges"
+            >
+              <IconRefresh
+                size={12}
+                className={`text-muted-foreground hover:text-foreground transition-colors ${
+                  isLoading ? "animate-spin" : ""
+                }`}
+              />
+            </button>
+            {isRequired && <span className="text-sm text-red-500">*</span>}
+          </div>
         )}
         <FormField
           control={form.control}
@@ -462,7 +459,6 @@ export default function BargeAutocomplete<T extends Record<string, unknown>>({
                       DropdownIndicator,
                       ClearIndicator,
                       Option,
-                      IndicatorsContainer,
                     }}
                     className="react-select-container"
                     classNamePrefix="react-select__"
@@ -493,15 +489,32 @@ export default function BargeAutocomplete<T extends Record<string, unknown>>({
   return (
     <div className={cn("flex flex-col gap-1", className)}>
       {label && (
-        <div
-          className={cn(
-            "text-sm font-medium",
-            isDisabled && "text-muted-foreground opacity-70"
-          )}
-        >
-          {label}
+        <div className="flex items-center gap-1">
+          <div
+            className={cn(
+              "text-sm font-medium",
+              isDisabled && "text-muted-foreground opacity-70"
+            )}
+          >
+            {label}
+          </div>
+          <button
+            type="button"
+            onClick={handleRefresh}
+            disabled={isLoading}
+            tabIndex={-1}
+            className="hover:bg-accent flex items-center justify-center rounded-sm p-0.5 transition-colors disabled:opacity-50"
+            title="Refresh barges"
+          >
+            <IconRefresh
+              size={12}
+              className={`text-muted-foreground hover:text-foreground transition-colors ${
+                isLoading ? "animate-spin" : ""
+              }`}
+            />
+          </button>
           {isRequired && (
-            <span className="text-destructive ml-1" aria-hidden="true">
+            <span className="text-destructive text-sm" aria-hidden="true">
               *
             </span>
           )}
@@ -532,7 +545,6 @@ export default function BargeAutocomplete<T extends Record<string, unknown>>({
             DropdownIndicator,
             ClearIndicator,
             Option,
-            IndicatorsContainer,
           }}
           className="react-select-container"
           classNamePrefix="react-select__"

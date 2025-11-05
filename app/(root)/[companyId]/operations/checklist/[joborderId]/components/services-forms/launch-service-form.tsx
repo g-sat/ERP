@@ -42,6 +42,7 @@ import CustomAccordion, {
 import { CustomDateNew } from "@/components/custom/custom-date-new"
 import { CustomDateTimePicker } from "@/components/custom/custom-date-time-picker"
 import CustomInput from "@/components/custom/custom-input"
+import CustomNumberInput from "@/components/custom/custom-number-input"
 import CustomTextarea from "@/components/custom/custom-textarea"
 import { FormLoadingSpinner } from "@/components/skeleton/loading-spinner"
 
@@ -444,39 +445,38 @@ export function LaunchServiceForm({
                 </div>
               </div>
 
-              <CustomInput
+              <CustomNumberInput
                 form={form}
                 name="distance"
                 label="Distance (NM)"
-                type="number"
                 isDisabled={isConfirmed}
               />
-              <CustomInput
+              <CustomNumberInput
                 form={form}
                 name="deliveredWeight"
                 label="Cargo Delivered Weight"
-                type="number"
                 isDisabled={isConfirmed}
               />
-              <CustomInput
+              <CustomNumberInput
                 form={form}
                 name="landedWeight"
                 label="Cargo Landed Weight"
-                type="number"
                 isDisabled={isConfirmed}
               />
               <CustomDateTimePicker
                 form={form}
                 name="loadingTime"
                 label="Loading Time (1)"
-                isDisabled={isConfirmed}
+                isDisabled={false}
+                isFutureShow={true}
                 onChangeEvent={() => calculateWaitingTime()}
               />
               <CustomDateTimePicker
                 form={form}
                 name="leftJetty"
                 label="Left Jetty Time (2)"
-                isDisabled={isConfirmed}
+                isDisabled={false}
+                isFutureShow={true}
                 onChangeEvent={() => calculateWaitingTime()}
               />
               <div className="space-y-1">
@@ -497,14 +497,16 @@ export function LaunchServiceForm({
                 form={form}
                 name="alongsideVessel"
                 label="Alongside Vessel Time (3)"
-                isDisabled={isConfirmed}
+                isDisabled={false}
+                isFutureShow={true}
                 onChangeEvent={() => calculateTimeDiff()}
               />
               <CustomDateTimePicker
                 form={form}
                 name="departedFromVessel"
                 label="Departed Vessel Time (4)"
-                isDisabled={isConfirmed}
+                isDisabled={false}
+                isFutureShow={true}
                 onChangeEvent={() => calculateTimeDiff()}
               />
               <div className="space-y-1">
@@ -523,7 +525,8 @@ export function LaunchServiceForm({
                 form={form}
                 name="arrivedAtJetty"
                 label="Arrived at Jetty Time (5)"
-                isDisabled={isConfirmed}
+                isDisabled={false}
+                isFutureShow={true}
               />
             </div>
 

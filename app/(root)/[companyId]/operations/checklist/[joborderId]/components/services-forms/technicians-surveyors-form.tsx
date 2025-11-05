@@ -31,6 +31,7 @@ import CustomAccordion, {
 } from "@/components/custom/custom-accordion"
 import { CustomDateNew } from "@/components/custom/custom-date-new"
 import CustomInput from "@/components/custom/custom-input"
+import CustomNumberInput from "@/components/custom/custom-number-input"
 import CustomTextarea from "@/components/custom/custom-textarea"
 import { FormLoadingSpinner } from "@/components/skeleton/loading-spinner"
 
@@ -190,11 +191,10 @@ export function TechniciansSurveyorsForm({
                 isRequired
                 isDisabled={isConfirmed}
               />
-              <CustomInput
+              <CustomNumberInput
                 form={form}
                 name="quantity"
                 label="Quantity"
-                type="number"
                 isRequired
                 isDisabled={isConfirmed}
               />

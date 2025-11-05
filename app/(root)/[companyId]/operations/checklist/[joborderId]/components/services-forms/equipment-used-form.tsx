@@ -30,6 +30,7 @@ import CustomAccordion, {
 import CustomCheckbox from "@/components/custom/custom-checkbox"
 import { CustomDateNew } from "@/components/custom/custom-date-new"
 import CustomInput from "@/components/custom/custom-input"
+import CustomNumberInput from "@/components/custom/custom-number-input"
 import CustomTextarea from "@/components/custom/custom-textarea"
 import { FormLoadingSpinner } from "@/components/skeleton/loading-spinner"
 
@@ -265,18 +266,16 @@ export function EquipmentUsedForm({
                   isDisabled={isConfirmed}
                   companyId={jobData.companyId}
                 />
-                <CustomInput
+                <CustomNumberInput
                   form={form}
                   name="craneloading"
                   label="Crane Loading (hr)"
-                  type="number"
                   isDisabled={isConfirmed}
                 />
-                <CustomInput
+                <CustomNumberInput
                   form={form}
                   name="craneOffloading"
                   label="Crane Offloading (hr)"
-                  type="number"
                   isDisabled={isConfirmed}
                 />
               </div>
@@ -292,18 +291,16 @@ export function EquipmentUsedForm({
                   isDisabled={isConfirmed}
                   companyId={jobData.companyId}
                 />
-                <CustomInput
+                <CustomNumberInput
                   form={form}
                   name="forkliftloading"
                   label="ForkLift Loading (hr)"
-                  type="number"
                   isDisabled={isConfirmed}
                 />
-                <CustomInput
+                <CustomNumberInput
                   form={form}
                   name="forkliftOffloading"
                   label="ForkLift OffLoading (hr)"
-                  type="number"
                   isDisabled={isConfirmed}
                 />
               </div>
@@ -319,18 +316,16 @@ export function EquipmentUsedForm({
                   isDisabled={isConfirmed}
                   companyId={jobData.companyId}
                 />
-                <CustomInput
+                <CustomNumberInput
                   form={form}
                   name="stevedoreloading"
                   label="Stevedor Loading (Nos)"
-                  type="number"
                   isDisabled={isConfirmed}
                 />
-                <CustomInput
+                <CustomNumberInput
                   form={form}
                   name="stevedoreOffloading"
                   label="Stevedor OffLoad (Nos)"
-                  type="number"
                   isDisabled={isConfirmed}
                 />
               </div>
