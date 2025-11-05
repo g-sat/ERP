@@ -1,17 +1,17 @@
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
 import * as z from "zod"
 
-export const ArCreditNoteHdSchema = (
+export const ArAdjustmentHdSchema = (
   required: IMandatoryFields,
   visible: IVisibleFields
 ) => {
   return z.object({
     // Core Fields
 
-    creditNoteId: z.string().optional(),
-    creditNoteNo: z.string().optional(),
-    suppCreditNoteNo: required?.m_SuppInvoiceNo
-      ? z.string().min(1, "Supplier Credit Note No is required")
+    adjustmentId: z.string().optional(),
+    adjustmentNo: z.string().optional(),
+    suppAdjustmentNo: required?.m_SuppInvoiceNo
+      ? z.string().min(1, "Supplier Adjustment No is required")
       : z.string().optional(),
     referenceNo: required?.m_ReferenceNo
       ? z.string().min(1, "Reference No is required")
@@ -104,8 +104,8 @@ export const ArCreditNoteHdSchema = (
     moduleFrom: z.string().optional(),
 
     supplierName: z.string().optional(),
-    apCreditNoteId: z.string().optional(),
-    apCreditNoteNo: z.string().optional(),
+    apAdjustmentId: z.string().optional(),
+    apAdjustmentNo: z.string().optional(),
     editVersion: z.number().optional(),
     createBy: z.string().optional(),
     createDate: z.string().optional(),
@@ -137,33 +137,33 @@ export const ArCreditNoteHdSchema = (
 
     // Nested Details
     data_details: z
-      .array(ArCreditNoteDtSchema(required, visible))
-      .min(1, "At least one credit note detail is required"),
+      .array(ArAdjustmentDtSchema(required, visible))
+      .min(1, "At least one adjustment detail is required"),
   })
 }
 
-export type ArCreditNoteHdSchemaType = z.infer<
-  ReturnType<typeof ArCreditNoteHdSchema>
+export type ArAdjustmentHdSchemaType = z.infer<
+  ReturnType<typeof ArAdjustmentHdSchema>
 >
 
-export const ArCreditNoteHdFiltersSchema = z.object({
+export const ArAdjustmentHdFiltersSchema = z.object({
   isActive: z.boolean().optional(),
   search: z.string().optional(),
   sortOrder: z.enum(["asc", "desc"]).optional(),
 })
 
-export type ArCreditNoteHdFiltersValues = z.infer<
-  typeof ArCreditNoteHdFiltersSchema
+export type ArAdjustmentHdFiltersValues = z.infer<
+  typeof ArAdjustmentHdFiltersSchema
 >
 
-export const ArCreditNoteDtSchema = (
+export const ArAdjustmentDtSchema = (
   required: IMandatoryFields,
   visible: IVisibleFields
 ) => {
   return z.object({
     // Core Fields
-    creditNoteId: z.string().optional(),
-    creditNoteNo: z.string().optional(),
+    adjustmentId: z.string().optional(),
+    adjustmentNo: z.string().optional(),
     itemNo: z.number().min(1, "Item No must be at least 1"),
     seqNo: z.number().min(1, "Sequence No must be at least 1"),
     docItemNo: z.number(),
@@ -291,23 +291,23 @@ export const ArCreditNoteDtSchema = (
 
     // Supplier Details
     supplierName: z.string().optional(),
-    suppCreditNoteNo: z.string().optional(),
-    apCreditNoteId: z.string().optional(),
-    apCreditNoteNo: z.string().optional(),
+    suppAdjustmentNo: z.string().optional(),
+    apAdjustmentId: z.string().optional(),
+    apAdjustmentNo: z.string().optional(),
     editVersion: z.number().optional(),
   })
 }
 
-export type ArCreditNoteDtSchemaType = z.infer<
-  ReturnType<typeof ArCreditNoteDtSchema>
+export type ArAdjustmentDtSchemaType = z.infer<
+  ReturnType<typeof ArAdjustmentDtSchema>
 >
 
-export const ArCreditNoteDtFiltersSchema = z.object({
+export const ArAdjustmentDtFiltersSchema = z.object({
   isActive: z.boolean().optional(),
   search: z.string().optional(),
   sortOrder: z.enum(["asc", "desc"]).optional(),
 })
 
-export type ArCreditNoteDtFiltersValues = z.infer<
-  typeof ArCreditNoteDtFiltersSchema
+export type ArAdjustmentDtFiltersValues = z.infer<
+  typeof ArAdjustmentDtFiltersSchema
 >

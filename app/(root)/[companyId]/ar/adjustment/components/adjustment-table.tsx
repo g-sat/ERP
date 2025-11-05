@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react"
-import { IArCreditNoteFilter, IArCreditNoteHd } from "@/interfaces"
+import { IArAdjustmentFilter, IArAdjustmentHd } from "@/interfaces"
 import { useAuthStore } from "@/stores/auth-store"
 import { ColumnDef } from "@tanstack/react-table"
 import { format, subMonths } from "date-fns"
 import { X } from "lucide-react"
 import { FormProvider, useForm } from "react-hook-form"
 
-import { ArCreditNote } from "@/lib/api-routes"
+import { ArAdjustment } from "@/lib/api-routes"
 import { formatNumber } from "@/lib/format-utils"
 import { ARTransactionId, ModuleId, TableName } from "@/lib/utils"
 import { useGetWithDatesAndPagination } from "@/hooks/use-common"
@@ -15,21 +15,21 @@ import { Spinner } from "@/components/ui/spinner"
 import { CustomDateNew } from "@/components/custom/custom-date-new"
 import { DialogDataTable } from "@/components/table/table-dialog"
 
-export interface CreditNoteTableProps {
-  onCreditNoteSelect: (selectedCreditNote: IArCreditNoteHd | undefined) => void
-  onFilterChange: (filters: IArCreditNoteFilter) => void
-  initialFilters?: IArCreditNoteFilter
+export interface AdjustmentTableProps {
+  onAdjustmentSelect: (selectedAdjustment: IArAdjustmentHd | undefined) => void
+  onFilterChange: (filters: IArAdjustmentFilter) => void
+  initialFilters?: IArAdjustmentFilter
   pageSize: number
   onClose?: () => void
 }
 
-export default function CreditNoteTable({
-  onCreditNoteSelect,
+export default function AdjustmentTable({
+  onAdjustmentSelect,
   onFilterChange,
   initialFilters,
   pageSize: _pageSize,
   onClose,
-}: CreditNoteTableProps) {
+}: AdjustmentTableProps) {
   const { decimals } = useAuthStore()
   const amtDec = decimals[0]?.amtDec || 2
   const locAmtDec = decimals[0]?.locAmtDec || 2
@@ -38,7 +38,7 @@ export default function CreditNoteTable({
   //const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
 
   const moduleId = ModuleId.ar
-  const transactionId = ARTransactionId.creditNote
+  const transactionId = ARTransactionId.adjustment
 
   const form = useForm({
     defaultValues: {
@@ -75,13 +75,13 @@ export default function CreditNoteTable({
 
   // Data fetching - only after search button is clicked OR if dates are already set
   const {
-    data: creditNotesResponse,
-    isLoading: isLoadingCreditNotes,
-    isRefetching: isRefetchingCreditNotes,
-    refetch: refetchCreditNotes,
-  } = useGetWithDatesAndPagination<IArCreditNoteHd>(
-    `${ArCreditNote.get}`,
-    TableName.arCreditNote,
+    data: adjustmentsResponse,
+    isLoading: isLoadingAdjustments,
+    isRefetching: isRefetchingAdjustments,
+    refetch: refetchAdjustments,
+  } = useGetWithDatesAndPagination<IArAdjustmentHd>(
+    `${ArAdjustment.get}`,
+    TableName.arAdjustment,
     searchQuery,
     searchStartDate,
     searchEndDate,
@@ -91,9 +91,9 @@ export default function CreditNoteTable({
     hasSearched || Boolean(searchStartDate && searchEndDate) // enabled: If searched OR dates already set
   )
 
-  const data = creditNotesResponse?.data || []
-  const totalRecords = creditNotesResponse?.totalRecords || data.length
-  const isLoading = isLoadingCreditNotes || isRefetchingCreditNotes
+  const data = adjustmentsResponse?.data || []
+  const totalRecords = adjustmentsResponse?.totalRecords || data.length
+  const isLoading = isLoadingAdjustments || isRefetchingAdjustments
 
   const getPaymentStatus = (
     balAmt: number,
@@ -116,10 +116,10 @@ export default function CreditNoteTable({
     return ""
   }
 
-  const columns: ColumnDef<IArCreditNoteHd>[] = [
+  const columns: ColumnDef<IArAdjustmentHd>[] = [
     {
-      accessorKey: "creditNoteNo",
-      header: "CreditNote No",
+      accessorKey: "adjustmentNo",
+      header: "Adjustment No",
     },
     {
       accessorKey: "paymentStatus",
@@ -373,7 +373,7 @@ export default function CreditNoteTable({
     },
   ]
 
-  const handleSearchCreditNote = () => {
+  const handleSearchAdjustment = () => {
     const startDate = form.getValues("startDate")
     const endDate = form.getValues("endDate")
 
@@ -383,11 +383,11 @@ export default function CreditNoteTable({
     setHasSearched(true) // Enable the query
     setCurrentPage(1) // Reset to first page when searching
 
-    const newFilters: IArCreditNoteFilter = {
+    const newFilters: IArAdjustmentFilter = {
       startDate: startDate,
       endDate: endDate,
       search: searchQuery,
-      sortBy: "creditNoteNo",
+      sortBy: "adjustmentNo",
       sortOrder: "asc",
       pageNumber: 1, // Always start from page 1 when searching
       pageSize: pageSize,
@@ -399,11 +399,11 @@ export default function CreditNoteTable({
     setCurrentPage(page)
     // The query will automatically refetch due to query key change
     if (onFilterChange) {
-      const newFilters: IArCreditNoteFilter = {
+      const newFilters: IArAdjustmentFilter = {
         startDate: form.getValues("startDate"),
         endDate: form.getValues("endDate"),
         search: searchQuery,
-        sortBy: "creditNoteNo",
+        sortBy: "adjustmentNo",
         sortOrder: "asc",
         pageNumber: page,
         pageSize: pageSize,
@@ -417,11 +417,11 @@ export default function CreditNoteTable({
     setCurrentPage(1) // Reset to first page when changing page size
     // The query will automatically refetch due to query key change
     if (onFilterChange) {
-      const newFilters: IArCreditNoteFilter = {
+      const newFilters: IArAdjustmentFilter = {
         startDate: form.getValues("startDate"),
         endDate: form.getValues("endDate"),
         search: searchQuery,
-        sortBy: "creditNoteNo",
+        sortBy: "adjustmentNo",
         sortOrder: "asc",
         pageNumber: 1,
         pageSize: size,
@@ -435,11 +435,11 @@ export default function CreditNoteTable({
     sortOrder?: string
   }) => {
     if (onFilterChange) {
-      const newFilters: IArCreditNoteFilter = {
+      const newFilters: IArAdjustmentFilter = {
         startDate: form.getValues("startDate"),
         endDate: form.getValues("endDate"),
         search: filters.search || "",
-        sortBy: "creditNoteNo",
+        sortBy: "adjustmentNo",
         sortOrder: (filters.sortOrder as "asc" | "desc") || "asc",
         pageNumber: currentPage,
         pageSize: pageSize,
@@ -484,7 +484,7 @@ export default function CreditNoteTable({
             <Button
               variant="default"
               size="sm"
-              onClick={handleSearchCreditNote}
+              onClick={handleSearchAdjustment}
               disabled={isLoading}
             >
               {isLoading ? (
@@ -519,11 +519,11 @@ export default function CreditNoteTable({
         isLoading={isLoading}
         moduleId={moduleId}
         transactionId={transactionId}
-        tableName={TableName.arCreditNote}
-        emptyMessage="No creditNotes found matching your criteria. Try adjusting the date range or search terms."
-        onRefresh={() => refetchCreditNotes()}
+        tableName={TableName.arAdjustment}
+        emptyMessage="No adjustments found matching your criteria. Try adjusting the date range or search terms."
+        onRefresh={() => refetchAdjustments()}
         onFilterChange={handleDialogFilterChange}
-        onRowSelect={(row) => onCreditNoteSelect(row || undefined)}
+        onRowSelect={(row) => onAdjustmentSelect(row || undefined)}
         // Pagination props
         onPageChange={handlePageChange}
         onPageSizeChange={handlePageSizeChange}

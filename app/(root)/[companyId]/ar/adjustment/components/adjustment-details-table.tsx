@@ -1,24 +1,27 @@
 import React, { useEffect, useState } from "react"
-import { IArDebitNoteDt } from "@/interfaces"
+import { IArAdjustmentDt } from "@/interfaces"
 import { IVisibleFields } from "@/interfaces/setting"
+import { useAuthStore } from "@/stores/auth-store"
 import { ColumnDef } from "@tanstack/react-table"
 
+import { formatNumber } from "@/lib/format-utils"
 import { ARTransactionId, ModuleId, TableName } from "@/lib/utils"
 import { AccountBaseTable } from "@/components/table/table-account"
 
 // Use flexible data type that can work with form data
-interface DebitNoteDetailsTableProps {
-  data: IArDebitNoteDt[]
+interface AdjustmentDetailsTableProps {
+  data: IArAdjustmentDt[]
   onDelete?: (itemNo: number) => void
   onBulkDelete?: (selectedItemNos: number[]) => void
-  onEdit?: (template: IArDebitNoteDt) => void
+  onEdit?: (template: IArAdjustmentDt) => void
   onRefresh?: () => void
   onFilterChange?: (filters: { search?: string; sortOrder?: string }) => void
-  onDataReorder?: (newData: IArDebitNoteDt[]) => void
+  onDataReorder?: (newData: IArAdjustmentDt[]) => void
   visible: IVisibleFields
+  isCancelled?: boolean
 }
 
-export default function DebitNoteDetailsTable({
+export default function AdjustmentDetailsTable({
   data,
   onDelete,
   onBulkDelete,
@@ -27,8 +30,12 @@ export default function DebitNoteDetailsTable({
   onFilterChange,
   onDataReorder,
   visible,
-}: DebitNoteDetailsTableProps) {
+  isCancelled = false,
+}: AdjustmentDetailsTableProps) {
   const [mounted, setMounted] = useState(false)
+  const { decimals } = useAuthStore()
+  const amtDec = decimals[0]?.amtDec || 2
+  const locAmtDec = decimals[0]?.locAmtDec || 2
 
   useEffect(() => {
     setMounted(true)
@@ -48,12 +55,12 @@ export default function DebitNoteDetailsTable({
   }
 
   // Define columns with visible prop checks
-  const columns: ColumnDef<IArDebitNoteDt>[] = [
+  const columns: ColumnDef<IArAdjustmentDt>[] = [
     {
       accessorKey: "itemNo",
       header: "Item No",
       size: 60,
-      cell: ({ row }: { row: { original: IArDebitNoteDt } }) => (
+      cell: ({ row }: { row: { original: IArAdjustmentDt } }) => (
         <div className="text-right">{row.original.itemNo}</div>
       ),
     },
@@ -61,7 +68,7 @@ export default function DebitNoteDetailsTable({
       accessorKey: "seqNo",
       header: "Seq No",
       size: 60,
-      cell: ({ row }: { row: { original: IArDebitNoteDt } }) => (
+      cell: ({ row }: { row: { original: IArAdjustmentDt } }) => (
         <div className="text-right">{row.original.seqNo}</div>
       ),
     },
@@ -108,7 +115,7 @@ export default function DebitNoteDetailsTable({
             accessorKey: "qty",
             header: "Qty",
             size: 60,
-            cell: ({ row }: { row: { original: IArDebitNoteDt } }) => (
+            cell: ({ row }: { row: { original: IArAdjustmentDt } }) => (
               <div className="text-right">{row.original.qty}</div>
             ),
           },
@@ -130,18 +137,22 @@ export default function DebitNoteDetailsTable({
             accessorKey: "unitPrice",
             header: "Price",
             size: 100,
-            cell: ({ row }: { row: { original: IArDebitNoteDt } }) => (
-              <div className="text-right">{row.original.unitPrice}</div>
+            cell: ({ row }) => (
+              <div className="text-right">
+                {formatNumber(row.getValue("unitPrice"), amtDec)}
+              </div>
             ),
-          },
+          } as ColumnDef<IArAdjustmentDt>,
         ]
       : []),
     {
       accessorKey: "totAmt",
       header: "Amount",
       size: 100,
-      cell: ({ row }: { row: { original: IArDebitNoteDt } }) => (
-        <div className="text-right">{row.original.totAmt}</div>
+      cell: ({ row }) => (
+        <div className="text-right">
+          {formatNumber(row.getValue("totAmt"), amtDec)}
+        </div>
       ),
     },
 
@@ -149,16 +160,20 @@ export default function DebitNoteDetailsTable({
       accessorKey: "gstPercentage",
       header: "GST %",
       size: 50,
-      cell: ({ row }: { row: { original: IArDebitNoteDt } }) => (
-        <div className="text-right">{row.original.gstPercentage}</div>
+      cell: ({ row }) => (
+        <div className="text-right">
+          {formatNumber(row.getValue("gstPercentage"), 2)}
+        </div>
       ),
     },
     {
       accessorKey: "gstAmt",
       header: "GST Amount",
       size: 100,
-      cell: ({ row }: { row: { original: IArDebitNoteDt } }) => (
-        <div className="text-right">{row.original.gstAmt}</div>
+      cell: ({ row }) => (
+        <div className="text-right">
+          {formatNumber(row.getValue("gstAmt"), amtDec)}
+        </div>
       ),
     },
     ...(visible?.m_BillQTY
@@ -167,7 +182,7 @@ export default function DebitNoteDetailsTable({
             accessorKey: "billQTY",
             header: "Bill Qty",
             size: 60,
-            cell: ({ row }: { row: { original: IArDebitNoteDt } }) => (
+            cell: ({ row }: { row: { original: IArAdjustmentDt } }) => (
               <div className="text-right">{row.original.billQTY}</div>
             ),
           },
@@ -177,8 +192,10 @@ export default function DebitNoteDetailsTable({
       accessorKey: "totLocalAmt",
       header: "Local Amount",
       size: 100,
-      cell: ({ row }: { row: { original: IArDebitNoteDt } }) => (
-        <div className="text-right">{row.original.totLocalAmt}</div>
+      cell: ({ row }) => (
+        <div className="text-right">
+          {formatNumber(row.getValue("totLocalAmt"), locAmtDec)}
+        </div>
       ),
     },
     ...(visible?.m_CtyCurr
@@ -187,10 +204,12 @@ export default function DebitNoteDetailsTable({
             accessorKey: "totCtyAmt",
             header: "Country Amount",
             size: 100,
-            cell: ({ row }: { row: { original: IArDebitNoteDt } }) => (
-              <div className="text-right">{row.original.totCtyAmt}</div>
+            cell: ({ row }) => (
+              <div className="text-right">
+                {formatNumber(row.getValue("totCtyAmt"), locAmtDec)}
+              </div>
             ),
-          },
+          } as ColumnDef<IArAdjustmentDt>,
         ]
       : []),
     ...(visible?.m_GstId
@@ -206,8 +225,10 @@ export default function DebitNoteDetailsTable({
       accessorKey: "gstLocalAmt",
       header: "GST Local Amount",
       size: 100,
-      cell: ({ row }: { row: { original: IArDebitNoteDt } }) => (
-        <div className="text-right">{row.original.gstLocalAmt}</div>
+      cell: ({ row }) => (
+        <div className="text-right">
+          {formatNumber(row.getValue("gstLocalAmt"), locAmtDec)}
+        </div>
       ),
     },
     ...(visible?.m_CtyCurr
@@ -216,10 +237,12 @@ export default function DebitNoteDetailsTable({
             accessorKey: "gstCtyAmt",
             header: "GST Country Amount",
             size: 100,
-            cell: ({ row }: { row: { original: IArDebitNoteDt } }) => (
-              <div className="text-right">{row.original.gstCtyAmt}</div>
+            cell: ({ row }) => (
+              <div className="text-right">
+                {formatNumber(row.getValue("gstCtyAmt"), locAmtDec)}
+              </div>
             ),
-          },
+          } as ColumnDef<IArAdjustmentDt>,
         ]
       : []),
 
@@ -272,7 +295,7 @@ export default function DebitNoteDetailsTable({
       accessorKey: "docItemNo",
       header: "Doc Item No",
       size: 80,
-      cell: ({ row }: { row: { original: IArDebitNoteDt } }) => (
+      cell: ({ row }: { row: { original: IArAdjustmentDt } }) => (
         <div className="text-right">{row.original.docItemNo}</div>
       ),
     },
@@ -288,9 +311,9 @@ export default function DebitNoteDetailsTable({
         data={data}
         columns={columns}
         moduleId={ModuleId.ar}
-        transactionId={ARTransactionId.debitNote}
-        tableName={TableName.arDebitNoteDt}
-        emptyMessage="No debitNote details found."
+        transactionId={ARTransactionId.adjustment}
+        tableName={TableName.arAdjustmentDt}
+        emptyMessage="No adjustment details found."
         accessorId="itemNo"
         onRefresh={onRefresh}
         onFilterChange={onFilterChange}
@@ -301,9 +324,9 @@ export default function DebitNoteDetailsTable({
         onDelete={handleDelete}
         showHeader={true}
         showActions={true}
-        hideEdit={false}
-        hideDelete={false}
-        hideCheckbox={false}
+        hideEdit={isCancelled}
+        hideDelete={isCancelled}
+        hideCheckbox={isCancelled}
         disableOnAccountExists={false}
       />
     </div>

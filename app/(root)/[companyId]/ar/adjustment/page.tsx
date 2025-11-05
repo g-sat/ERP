@@ -13,17 +13,17 @@ import {
   calculateLocalAmounts,
   calculateTotalAmounts,
   recalculateAllDetailAmounts,
-} from "@/helpers/ar-creditNote-calculations"
+} from "@/helpers/ar-adjustment-calculations"
 import {
-  IArCreditNoteDt,
-  IArCreditNoteFilter,
-  IArCreditNoteHd,
+  IArAdjustmentDt,
+  IArAdjustmentFilter,
+  IArAdjustmentHd,
 } from "@/interfaces"
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
 import {
-  ArCreditNoteDtSchemaType,
-  ArCreditNoteHdSchema,
-  ArCreditNoteHdSchemaType,
+  ArAdjustmentDtSchemaType,
+  ArAdjustmentHdSchema,
+  ArAdjustmentHdSchemaType,
 } from "@/schemas"
 import { useAuthStore } from "@/stores/auth-store"
 import { usePermissionStore } from "@/stores/permission-store"
@@ -41,7 +41,7 @@ import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 
 import { getById } from "@/lib/api-client"
-import { ArCreditNote, BasicSetting } from "@/lib/api-routes"
+import { ArAdjustment, BasicSetting } from "@/lib/api-routes"
 import { clientDateFormat, parseDate } from "@/lib/date-utils"
 import { ARTransactionId, ModuleId } from "@/lib/utils"
 import { useDeleteWithRemarks, usePersist } from "@/hooks/use-common"
@@ -61,18 +61,18 @@ import {
   SaveConfirmation,
 } from "@/components/confirmation"
 
-import { defaultCreditNote } from "./components/creditNote-defaultvalues"
-import CreditNoteTable from "./components/creditNote-table"
+import { defaultAdjustment } from "./components/adjustment-defaultvalues"
+import AdjustmentTable from "./components/adjustment-table"
 import History from "./components/history"
 import Main from "./components/main-tab"
 import Other from "./components/other"
 
-export default function CreditNotePage() {
+export default function AdjustmentPage() {
   const params = useParams()
   const companyId = params.companyId as string
 
   const moduleId = ModuleId.ar
-  const transactionId = ARTransactionId.creditNote
+  const transactionId = ARTransactionId.adjustment
 
   const { hasPermission } = usePermissionStore()
   const { decimals, user } = useAuthStore()
@@ -92,9 +92,9 @@ export default function CreditNotePage() {
   const [showLoadConfirm, setShowLoadConfirm] = useState(false)
   const [showResetConfirm, setShowResetConfirm] = useState(false)
   const [showCloneConfirm, setShowCloneConfirm] = useState(false)
-  const [isLoadingCreditNote, setIsLoadingCreditNote] = useState(false)
+  const [isLoadingAdjustment, setIsLoadingAdjustment] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
-  const [creditNote, setCreditNote] = useState<ArCreditNoteHdSchemaType | null>(
+  const [adjustment, setAdjustment] = useState<ArAdjustmentHdSchemaType | null>(
     null
   )
   const [searchNo, setSearchNo] = useState("")
@@ -103,11 +103,11 @@ export default function CreditNotePage() {
   // Track previous account date to send as PrevAccountDate to API
   const [previousAccountDate, setPreviousAccountDate] = useState<string>("")
 
-  const [filters, setFilters] = useState<IArCreditNoteFilter>({
+  const [filters, setFilters] = useState<IArAdjustmentFilter>({
     startDate: format(subMonths(new Date(), 1), "yyyy-MM-dd"),
     endDate: format(new Date(), "yyyy-MM-dd"),
     search: "",
-    sortBy: "creditNoteNo",
+    sortBy: "adjustmentNo",
     sortOrder: "asc",
     pageNumber: 1,
     pageSize: pageSize,
@@ -128,74 +128,74 @@ export default function CreditNotePage() {
   const required: IMandatoryFields = requiredFieldsData ?? null
 
   // Add form state management
-  const form = useForm<ArCreditNoteHdSchemaType>({
-    resolver: zodResolver(ArCreditNoteHdSchema(required, visible)),
-    defaultValues: creditNote
+  const form = useForm<ArAdjustmentHdSchemaType>({
+    resolver: zodResolver(ArAdjustmentHdSchema(required, visible)),
+    defaultValues: adjustment
       ? {
-          creditNoteId: creditNote.creditNoteId?.toString() ?? "0",
-          creditNoteNo: creditNote.creditNoteNo ?? "",
-          referenceNo: creditNote.referenceNo ?? "",
-          suppCreditNoteNo: creditNote.suppCreditNoteNo ?? "",
-          trnDate: creditNote.trnDate ?? new Date(),
-          accountDate: creditNote.accountDate ?? new Date(),
-          dueDate: creditNote.dueDate ?? new Date(),
-          deliveryDate: creditNote.deliveryDate ?? new Date(),
-          gstClaimDate: creditNote.gstClaimDate ?? new Date(),
-          customerId: creditNote.customerId ?? 0,
-          currencyId: creditNote.currencyId ?? 0,
-          exhRate: creditNote.exhRate ?? 0,
-          ctyExhRate: creditNote.ctyExhRate ?? 0,
-          creditTermId: creditNote.creditTermId ?? 0,
-          bankId: creditNote.bankId ?? 0,
-          totAmt: creditNote.totAmt ?? 0,
-          totLocalAmt: creditNote.totLocalAmt ?? 0,
-          totCtyAmt: creditNote.totCtyAmt ?? 0,
-          gstAmt: creditNote.gstAmt ?? 0,
-          gstLocalAmt: creditNote.gstLocalAmt ?? 0,
-          gstCtyAmt: creditNote.gstCtyAmt ?? 0,
-          totAmtAftGst: creditNote.totAmtAftGst ?? 0,
-          totLocalAmtAftGst: creditNote.totLocalAmtAftGst ?? 0,
-          totCtyAmtAftGst: creditNote.totCtyAmtAftGst ?? 0,
-          balAmt: creditNote.balAmt ?? 0,
-          balLocalAmt: creditNote.balLocalAmt ?? 0,
-          payAmt: creditNote.payAmt ?? 0,
-          payLocalAmt: creditNote.payLocalAmt ?? 0,
-          exGainLoss: creditNote.exGainLoss ?? 0,
-          operationId: creditNote.operationId ?? 0,
-          operationNo: creditNote.operationNo ?? "",
-          remarks: creditNote.remarks ?? "",
-          address1: creditNote.address1 ?? "",
-          address2: creditNote.address2 ?? "",
-          address3: creditNote.address3 ?? "",
-          address4: creditNote.address4 ?? "",
-          pinCode: creditNote.pinCode ?? "",
-          countryId: creditNote.countryId ?? 0,
-          phoneNo: creditNote.phoneNo ?? "",
-          faxNo: creditNote.faxNo ?? "",
-          contactName: creditNote.contactName ?? "",
-          mobileNo: creditNote.mobileNo ?? "",
-          emailAdd: creditNote.emailAdd ?? "",
-          moduleFrom: creditNote.moduleFrom ?? "",
-          supplierName: creditNote.supplierName ?? "",
-          addressId: creditNote.addressId ?? 0,
-          contactId: creditNote.contactId ?? 0,
-          apCreditNoteId: creditNote.apCreditNoteId ?? "",
-          apCreditNoteNo: creditNote.apCreditNoteNo ?? "",
-          editVersion: creditNote.editVersion ?? 0,
-          salesOrderId: creditNote.salesOrderId ?? 0,
-          salesOrderNo: creditNote.salesOrderNo ?? "",
-          jobOrderId: creditNote.jobOrderId ?? 0,
-          jobOrderNo: creditNote.jobOrderNo ?? "",
-          vesselId: creditNote.vesselId ?? 0,
-          portId: creditNote.portId ?? 0,
-          serviceTypeId: creditNote.serviceTypeId ?? 0,
-          otherRemarks: creditNote.otherRemarks ?? "",
-          advRecAmt: creditNote.advRecAmt ?? 0,
+          adjustmentId: adjustment.adjustmentId?.toString() ?? "0",
+          adjustmentNo: adjustment.adjustmentNo ?? "",
+          referenceNo: adjustment.referenceNo ?? "",
+          suppAdjustmentNo: adjustment.suppAdjustmentNo ?? "",
+          trnDate: adjustment.trnDate ?? new Date(),
+          accountDate: adjustment.accountDate ?? new Date(),
+          dueDate: adjustment.dueDate ?? new Date(),
+          deliveryDate: adjustment.deliveryDate ?? new Date(),
+          gstClaimDate: adjustment.gstClaimDate ?? new Date(),
+          customerId: adjustment.customerId ?? 0,
+          currencyId: adjustment.currencyId ?? 0,
+          exhRate: adjustment.exhRate ?? 0,
+          ctyExhRate: adjustment.ctyExhRate ?? 0,
+          creditTermId: adjustment.creditTermId ?? 0,
+          bankId: adjustment.bankId ?? 0,
+          totAmt: adjustment.totAmt ?? 0,
+          totLocalAmt: adjustment.totLocalAmt ?? 0,
+          totCtyAmt: adjustment.totCtyAmt ?? 0,
+          gstAmt: adjustment.gstAmt ?? 0,
+          gstLocalAmt: adjustment.gstLocalAmt ?? 0,
+          gstCtyAmt: adjustment.gstCtyAmt ?? 0,
+          totAmtAftGst: adjustment.totAmtAftGst ?? 0,
+          totLocalAmtAftGst: adjustment.totLocalAmtAftGst ?? 0,
+          totCtyAmtAftGst: adjustment.totCtyAmtAftGst ?? 0,
+          balAmt: adjustment.balAmt ?? 0,
+          balLocalAmt: adjustment.balLocalAmt ?? 0,
+          payAmt: adjustment.payAmt ?? 0,
+          payLocalAmt: adjustment.payLocalAmt ?? 0,
+          exGainLoss: adjustment.exGainLoss ?? 0,
+          operationId: adjustment.operationId ?? 0,
+          operationNo: adjustment.operationNo ?? "",
+          remarks: adjustment.remarks ?? "",
+          address1: adjustment.address1 ?? "",
+          address2: adjustment.address2 ?? "",
+          address3: adjustment.address3 ?? "",
+          address4: adjustment.address4 ?? "",
+          pinCode: adjustment.pinCode ?? "",
+          countryId: adjustment.countryId ?? 0,
+          phoneNo: adjustment.phoneNo ?? "",
+          faxNo: adjustment.faxNo ?? "",
+          contactName: adjustment.contactName ?? "",
+          mobileNo: adjustment.mobileNo ?? "",
+          emailAdd: adjustment.emailAdd ?? "",
+          moduleFrom: adjustment.moduleFrom ?? "",
+          supplierName: adjustment.supplierName ?? "",
+          addressId: adjustment.addressId ?? 0,
+          contactId: adjustment.contactId ?? 0,
+          apAdjustmentId: adjustment.apAdjustmentId ?? "",
+          apAdjustmentNo: adjustment.apAdjustmentNo ?? "",
+          editVersion: adjustment.editVersion ?? 0,
+          salesOrderId: adjustment.salesOrderId ?? 0,
+          salesOrderNo: adjustment.salesOrderNo ?? "",
+          jobOrderId: adjustment.jobOrderId ?? 0,
+          jobOrderNo: adjustment.jobOrderNo ?? "",
+          vesselId: adjustment.vesselId ?? 0,
+          portId: adjustment.portId ?? 0,
+          serviceTypeId: adjustment.serviceTypeId ?? 0,
+          otherRemarks: adjustment.otherRemarks ?? "",
+          advRecAmt: adjustment.advRecAmt ?? 0,
           data_details:
-            creditNote.data_details?.map((detail) => ({
+            adjustment.data_details?.map((detail) => ({
               ...detail,
-              creditNoteId: detail.creditNoteId?.toString() ?? "0",
-              creditNoteNo: detail.creditNoteNo?.toString() ?? "",
+              adjustmentId: detail.adjustmentId?.toString() ?? "0",
+              adjustmentNo: detail.adjustmentNo?.toString() ?? "",
               totAmt: detail.totAmt ?? 0,
               totLocalAmt: detail.totLocalAmt ?? 0,
               totCtyAmt: detail.totCtyAmt ?? 0,
@@ -206,21 +206,21 @@ export default function CreditNotePage() {
               supplyDate: detail.supplyDate ?? "",
               remarks: detail.remarks ?? "",
               supplierName: detail.supplierName ?? "",
-              suppCreditNoteNo: detail.suppCreditNoteNo ?? "",
-              apCreditNoteId: detail.apCreditNoteId ?? "0",
-              apCreditNoteNo: detail.apCreditNoteNo ?? "",
+              suppAdjustmentNo: detail.suppAdjustmentNo ?? "",
+              apAdjustmentId: detail.apAdjustmentId ?? "0",
+              apAdjustmentNo: detail.apAdjustmentNo ?? "",
               editVersion: detail.editVersion ?? 0,
             })) || [],
         }
       : (() => {
-          // For new creditNote, set createDate with time and createBy
+          // For new adjustment, set createDate with time and createBy
           const currentDateTime = decimals[0]?.longDateFormat
             ? format(new Date(), decimals[0].longDateFormat)
             : format(new Date(), "dd/MM/yyyy HH:mm:ss")
           const userName = user?.userName || ""
 
           return {
-            ...defaultCreditNote,
+            ...defaultAdjustment,
             createBy: userName,
             createDate: currentDateTime,
           }
@@ -228,19 +228,19 @@ export default function CreditNotePage() {
   })
 
   // Mutations
-  const saveMutation = usePersist<ArCreditNoteHdSchemaType>(
-    `${ArCreditNote.add}`
+  const saveMutation = usePersist<ArAdjustmentHdSchemaType>(
+    `${ArAdjustment.add}`
   )
-  const updateMutation = usePersist<ArCreditNoteHdSchemaType>(
-    `${ArCreditNote.add}`
+  const updateMutation = usePersist<ArAdjustmentHdSchemaType>(
+    `${ArAdjustment.add}`
   )
-  const deleteMutation = useDeleteWithRemarks(`${ArCreditNote.delete}`)
+  const deleteMutation = useDeleteWithRemarks(`${ArAdjustment.delete}`)
 
-  // Remove the useGetCreditNoteById hook for selection
-  // const { data: creditNoteByIdData, refetch: refetchCreditNoteById } = ...
+  // Remove the useGetAdjustmentById hook for selection
+  // const { data: adjustmentByIdData, refetch: refetchAdjustmentById } = ...
 
   // Handle Save
-  const handleSaveCreditNote = async () => {
+  const handleSaveAdjustment = async () => {
     // Prevent double-submit
     if (isSaving || saveMutation.isPending || updateMutation.isPending) {
       return
@@ -251,11 +251,11 @@ export default function CreditNotePage() {
     try {
       // Get form values and validate them
       const formValues = transformToSchemaType(
-        form.getValues() as unknown as IArCreditNoteHd
+        form.getValues() as unknown as IArAdjustmentHd
       )
 
       // Validate the form data using the schema
-      const validationResult = ArCreditNoteHdSchema(
+      const validationResult = ArAdjustmentHdSchema(
         required,
         visible
       ).safeParse(formValues)
@@ -267,7 +267,7 @@ export default function CreditNotePage() {
         validationResult.error.issues.forEach((error) => {
           const fieldPath = error.path.join(
             "."
-          ) as keyof ArCreditNoteHdSchemaType
+          ) as keyof ArAdjustmentHdSchemaType
           form.setError(fieldPath, {
             type: "validation",
             message: error.message,
@@ -284,12 +284,12 @@ export default function CreditNotePage() {
         return
       }
 
-      console.log("handleSaveCreditNote formValues", formValues)
+      console.log("handleSaveAdjustment formValues", formValues)
 
       // Check GL period closed before saving (supports previous account date)
       try {
         const accountDate = form.getValues("accountDate") as unknown as string
-        const isNew = Number(formValues.creditNoteId) === 0
+        const isNew = Number(formValues.adjustmentId) === 0
         const prevAccountDate = isNew ? accountDate : previousAccountDate
 
         console.log("accountDate", accountDate)
@@ -328,23 +328,23 @@ export default function CreditNotePage() {
 
       {
         const response =
-          Number(formValues.creditNoteId) === 0
+          Number(formValues.adjustmentId) === 0
             ? await saveMutation.mutateAsync(formValues)
             : await updateMutation.mutateAsync(formValues)
 
         if (response.result === 1) {
-          const creditNoteData = Array.isArray(response.data)
+          const adjustmentData = Array.isArray(response.data)
             ? response.data[0]
             : response.data
 
           // Transform API response back to form values
-          if (creditNoteData) {
+          if (adjustmentData) {
             const updatedSchemaType = transformToSchemaType(
-              creditNoteData as unknown as IArCreditNoteHd
+              adjustmentData as unknown as IArAdjustmentHd
             )
 
-            setSearchNo(updatedSchemaType.creditNoteNo || "")
-            setCreditNote(updatedSchemaType)
+            setSearchNo(updatedSchemaType.adjustmentNo || "")
+            setAdjustment(updatedSchemaType)
             form.reset(updatedSchemaType)
             form.trigger()
           }
@@ -352,41 +352,41 @@ export default function CreditNotePage() {
           // Close the save confirmation dialog
           setShowSaveConfirm(false)
 
-          // Check if this was a new creditNote or update
-          const wasNewCreditNote = Number(formValues.creditNoteId) === 0
+          // Check if this was a new adjustment or update
+          const wasNewAdjustment = Number(formValues.adjustmentId) === 0
 
-          if (wasNewCreditNote) {
+          if (wasNewAdjustment) {
             //toast.success(
-            // `CreditNote ${creditNoteData?.creditNoteNo || ""} saved successfully`
+            // `Adjustment ${adjustmentData?.adjustmentNo || ""} saved successfully`
             //)
           } else {
-            //toast.success("CreditNote updated successfully")
+            //toast.success("Adjustment updated successfully")
           }
 
-          // Data refresh handled by CreditNoteTable component
+          // Data refresh handled by AdjustmentTable component
         } else {
-          toast.error(response.message || "Failed to save creditNote")
+          toast.error(response.message || "Failed to save adjustment")
         }
       }
     } catch (error) {
       console.error("Save error:", error)
-      toast.error("Network error while saving creditNote")
+      toast.error("Network error while saving adjustment")
     } finally {
       setIsSaving(false)
     }
   }
 
   // Handle Clone
-  const handleCloneCreditNote = async () => {
-    if (creditNote) {
+  const handleCloneAdjustment = async () => {
+    if (adjustment) {
       // Create a proper clone with form values
       const currentDate = new Date()
       const dateStr = format(currentDate, clientDateFormat)
 
-      const clonedCreditNote: ArCreditNoteHdSchemaType = {
-        ...creditNote,
-        creditNoteId: "0",
-        creditNoteNo: "",
+      const clonedAdjustment: ArAdjustmentHdSchemaType = {
+        ...adjustment,
+        adjustmentId: "0",
+        adjustmentNo: "",
         // Set all dates to current date
         trnDate: dateStr,
         accountDate: dateStr,
@@ -407,17 +407,17 @@ export default function CreditNotePage() {
         payAmt: 0,
         payLocalAmt: 0,
         exGainLoss: 0,
-        // Clear AP creditNote link
-        apCreditNoteId: "0",
-        apCreditNoteNo: "",
+        // Clear AP adjustment link
+        apAdjustmentId: "0",
+        apAdjustmentNo: "",
         // Keep data details - do not remove
         data_details:
-          creditNote.data_details?.map((detail) => ({
+          adjustment.data_details?.map((detail) => ({
             ...detail,
-            creditNoteId: "0",
-            creditNoteNo: "",
-            apCreditNoteId: "0",
-            apCreditNoteNo: "",
+            adjustmentId: "0",
+            adjustmentNo: "",
+            apAdjustmentId: "0",
+            apAdjustmentNo: "",
             editVersion: 0,
           })) || [],
       }
@@ -427,7 +427,7 @@ export default function CreditNotePage() {
       const locAmtDec = decimals[0]?.locAmtDec || 2
       const ctyAmtDec = decimals[0]?.ctyAmtDec || 2
 
-      const details = clonedCreditNote.data_details || []
+      const details = clonedAdjustment.data_details || []
       if (details.length > 0) {
         const totAmt = details.reduce((sum, d) => sum + (d.totAmt || 0), 0)
         const gstAmt = details.reduce((sum, d) => sum + (d.gstAmt || 0), 0)
@@ -448,42 +448,42 @@ export default function CreditNotePage() {
           0
         )
 
-        clonedCreditNote.totAmt = mathRound(totAmt, amtDec)
-        clonedCreditNote.gstAmt = mathRound(gstAmt, amtDec)
-        clonedCreditNote.totAmtAftGst = mathRound(totAmt + gstAmt, amtDec)
-        clonedCreditNote.totLocalAmt = mathRound(totLocalAmt, locAmtDec)
-        clonedCreditNote.gstLocalAmt = mathRound(gstLocalAmt, locAmtDec)
-        clonedCreditNote.totLocalAmtAftGst = mathRound(
+        clonedAdjustment.totAmt = mathRound(totAmt, amtDec)
+        clonedAdjustment.gstAmt = mathRound(gstAmt, amtDec)
+        clonedAdjustment.totAmtAftGst = mathRound(totAmt + gstAmt, amtDec)
+        clonedAdjustment.totLocalAmt = mathRound(totLocalAmt, locAmtDec)
+        clonedAdjustment.gstLocalAmt = mathRound(gstLocalAmt, locAmtDec)
+        clonedAdjustment.totLocalAmtAftGst = mathRound(
           totLocalAmt + gstLocalAmt,
           locAmtDec
         )
-        clonedCreditNote.totCtyAmt = mathRound(totCtyAmt, ctyAmtDec)
-        clonedCreditNote.gstCtyAmt = mathRound(gstCtyAmt, ctyAmtDec)
-        clonedCreditNote.totCtyAmtAftGst = mathRound(
+        clonedAdjustment.totCtyAmt = mathRound(totCtyAmt, ctyAmtDec)
+        clonedAdjustment.gstCtyAmt = mathRound(gstCtyAmt, ctyAmtDec)
+        clonedAdjustment.totCtyAmtAftGst = mathRound(
           totCtyAmt + gstCtyAmt,
           ctyAmtDec
         )
       } else {
         // Reset amounts if no details
-        clonedCreditNote.totAmt = 0
-        clonedCreditNote.totLocalAmt = 0
-        clonedCreditNote.totCtyAmt = 0
-        clonedCreditNote.gstAmt = 0
-        clonedCreditNote.gstLocalAmt = 0
-        clonedCreditNote.gstCtyAmt = 0
-        clonedCreditNote.totAmtAftGst = 0
-        clonedCreditNote.totLocalAmtAftGst = 0
-        clonedCreditNote.totCtyAmtAftGst = 0
+        clonedAdjustment.totAmt = 0
+        clonedAdjustment.totLocalAmt = 0
+        clonedAdjustment.totCtyAmt = 0
+        clonedAdjustment.gstAmt = 0
+        clonedAdjustment.gstLocalAmt = 0
+        clonedAdjustment.gstCtyAmt = 0
+        clonedAdjustment.totAmtAftGst = 0
+        clonedAdjustment.totLocalAmtAftGst = 0
+        clonedAdjustment.totCtyAmtAftGst = 0
       }
 
-      setCreditNote(clonedCreditNote)
-      form.reset(clonedCreditNote)
+      setAdjustment(clonedAdjustment)
+      form.reset(clonedAdjustment)
 
       // Get exchange rate decimal places
       const exhRateDec = decimals[0]?.exhRateDec || 6
 
       // Fetch and set new exchange rates based on new account date
-      if (clonedCreditNote.currencyId && clonedCreditNote.accountDate) {
+      if (clonedAdjustment.currencyId && clonedAdjustment.accountDate) {
         try {
           await setExchangeRate(form, exhRateDec, visible)
           if (visible?.m_CtyCurr) {
@@ -498,7 +498,7 @@ export default function CreditNotePage() {
           const formDetails = form.getValues("data_details")
           if (formDetails && formDetails.length > 0) {
             const updatedDetails = recalculateAllDetailAmounts(
-              formDetails as unknown as IArCreditNoteDt[],
+              formDetails as unknown as IArAdjustmentDt[],
               exchangeRate,
               cityExchangeRate,
               decimals[0],
@@ -508,13 +508,13 @@ export default function CreditNotePage() {
             // Update form with recalculated details
             form.setValue(
               "data_details",
-              updatedDetails as unknown as ArCreditNoteDtSchemaType[],
+              updatedDetails as unknown as ArAdjustmentDtSchemaType[],
               { shouldDirty: true, shouldTouch: true }
             )
 
             // Recalculate header totals from updated details
             const totals = calculateTotalAmounts(
-              updatedDetails as unknown as IArCreditNoteDt[],
+              updatedDetails as unknown as IArAdjustmentDt[],
               amtDec
             )
             form.setValue("totAmt", totals.totAmt)
@@ -522,7 +522,7 @@ export default function CreditNotePage() {
             form.setValue("totAmtAftGst", totals.totAmtAftGst)
 
             const localAmounts = calculateLocalAmounts(
-              updatedDetails as unknown as IArCreditNoteDt[],
+              updatedDetails as unknown as IArAdjustmentDt[],
               locAmtDec
             )
             form.setValue("totLocalAmt", localAmounts.totLocalAmt)
@@ -531,7 +531,7 @@ export default function CreditNotePage() {
 
             if (visible?.m_CtyCurr) {
               const countryAmounts = calculateCountryAmounts(
-                updatedDetails as unknown as IArCreditNoteDt[],
+                updatedDetails as unknown as IArAdjustmentDt[],
                 visible?.m_CtyCurr ? ctyAmtDec : locAmtDec
               )
               form.setValue("totCtyAmt", countryAmounts.totCtyAmt)
@@ -545,7 +545,7 @@ export default function CreditNotePage() {
       }
 
       // Calculate due date based on accountDate and credit terms
-      if (clonedCreditNote.creditTermId && clonedCreditNote.accountDate) {
+      if (clonedAdjustment.creditTermId && clonedAdjustment.accountDate) {
         try {
           await setDueDate(form)
         } catch (error) {
@@ -556,7 +556,7 @@ export default function CreditNotePage() {
       // Clear search input
       setSearchNo("")
 
-      toast.success("CreditNote cloned successfully")
+      toast.success("Adjustment cloned successfully")
     }
   }
 
@@ -598,183 +598,183 @@ export default function CreditNotePage() {
   }
 
   // Handle Delete - Second Level: With Cancel Remarks
-  const handleCreditNoteDelete = async (cancelRemarks: string) => {
-    if (!creditNote) return
+  const handleAdjustmentDelete = async (cancelRemarks: string) => {
+    if (!adjustment) return
 
     try {
       console.log("Cancel remarks:", cancelRemarks)
-      console.log("CreditNote ID:", creditNote.creditNoteId)
-      console.log("CreditNote No:", creditNote.creditNoteNo)
+      console.log("Adjustment ID:", adjustment.adjustmentId)
+      console.log("Adjustment No:", adjustment.adjustmentNo)
 
       const response = await deleteMutation.mutateAsync({
-        documentId: creditNote.creditNoteId?.toString() ?? "",
-        documentNo: creditNote.creditNoteNo ?? "",
+        documentId: adjustment.adjustmentId?.toString() ?? "",
+        documentNo: adjustment.adjustmentNo ?? "",
         cancelRemarks: cancelRemarks,
       })
 
       if (response.result === 1) {
-        setCreditNote(null)
+        setAdjustment(null)
         setSearchNo("") // Clear search input
         form.reset({
-          ...defaultCreditNote,
+          ...defaultAdjustment,
           data_details: [],
         })
         toast.success(
-          `CreditNote ${creditNote.creditNoteNo} deleted successfully`
+          `Adjustment ${adjustment.adjustmentNo} deleted successfully`
         )
-        // Data refresh handled by CreditNoteTable component
+        // Data refresh handled by AdjustmentTable component
       } else {
-        toast.error(response.message || "Failed to delete creditNote")
+        toast.error(response.message || "Failed to delete adjustment")
       }
     } catch {
-      toast.error("Network error while deleting creditNote")
+      toast.error("Network error while deleting adjustment")
     }
   }
 
   // Handle Reset
-  const handleCreditNoteReset = () => {
-    setCreditNote(null)
+  const handleAdjustmentReset = () => {
+    setAdjustment(null)
     setSearchNo("") // Clear search input
 
-    // Get current date/time and user name - always set for reset (new creditNote)
+    // Get current date/time and user name - always set for reset (new adjustment)
     const currentDateTime = decimals[0]?.longDateFormat
       ? format(new Date(), decimals[0].longDateFormat)
       : format(new Date(), "dd/MM/yyyy HH:mm:ss")
     const userName = user?.userName || ""
 
     form.reset({
-      ...defaultCreditNote,
+      ...defaultAdjustment,
       // Always set createBy and createDate to current user and current date/time on reset
       createBy: userName,
       createDate: currentDateTime,
       data_details: [],
     })
-    toast.success("CreditNote reset successfully")
+    toast.success("Adjustment reset successfully")
   }
 
-  // Helper function to transform IArCreditNoteHd to ArCreditNoteHdSchemaType
+  // Helper function to transform IArAdjustmentHd to ArAdjustmentHdSchemaType
   const transformToSchemaType = (
-    apiCreditNote: IArCreditNoteHd
-  ): ArCreditNoteHdSchemaType => {
+    apiAdjustment: IArAdjustmentHd
+  ): ArAdjustmentHdSchemaType => {
     return {
-      creditNoteId: apiCreditNote.creditNoteId?.toString() ?? "0",
-      creditNoteNo: apiCreditNote.creditNoteNo ?? "",
-      referenceNo: apiCreditNote.referenceNo ?? "",
-      suppCreditNoteNo: apiCreditNote.suppCreditNoteNo ?? "",
-      trnDate: apiCreditNote.trnDate
+      adjustmentId: apiAdjustment.adjustmentId?.toString() ?? "0",
+      adjustmentNo: apiAdjustment.adjustmentNo ?? "",
+      referenceNo: apiAdjustment.referenceNo ?? "",
+      suppAdjustmentNo: apiAdjustment.suppAdjustmentNo ?? "",
+      trnDate: apiAdjustment.trnDate
         ? format(
-            parseDate(apiCreditNote.trnDate as string) || new Date(),
+            parseDate(apiAdjustment.trnDate as string) || new Date(),
             clientDateFormat
           )
         : clientDateFormat,
-      accountDate: apiCreditNote.accountDate
+      accountDate: apiAdjustment.accountDate
         ? format(
-            parseDate(apiCreditNote.accountDate as string) || new Date(),
+            parseDate(apiAdjustment.accountDate as string) || new Date(),
             clientDateFormat
           )
         : clientDateFormat,
-      dueDate: apiCreditNote.dueDate
+      dueDate: apiAdjustment.dueDate
         ? format(
-            parseDate(apiCreditNote.dueDate as string) || new Date(),
+            parseDate(apiAdjustment.dueDate as string) || new Date(),
             clientDateFormat
           )
         : clientDateFormat,
-      deliveryDate: apiCreditNote.deliveryDate
+      deliveryDate: apiAdjustment.deliveryDate
         ? format(
-            parseDate(apiCreditNote.deliveryDate as string) || new Date(),
+            parseDate(apiAdjustment.deliveryDate as string) || new Date(),
             clientDateFormat
           )
         : clientDateFormat,
-      gstClaimDate: apiCreditNote.gstClaimDate
+      gstClaimDate: apiAdjustment.gstClaimDate
         ? format(
-            parseDate(apiCreditNote.gstClaimDate as string) || new Date(),
+            parseDate(apiAdjustment.gstClaimDate as string) || new Date(),
             clientDateFormat
           )
         : clientDateFormat,
-      customerId: apiCreditNote.customerId ?? 0,
-      currencyId: apiCreditNote.currencyId ?? 0,
-      exhRate: apiCreditNote.exhRate ?? 0,
-      ctyExhRate: apiCreditNote.ctyExhRate ?? 0,
-      creditTermId: apiCreditNote.creditTermId ?? 0,
-      bankId: apiCreditNote.bankId ?? 0,
+      customerId: apiAdjustment.customerId ?? 0,
+      currencyId: apiAdjustment.currencyId ?? 0,
+      exhRate: apiAdjustment.exhRate ?? 0,
+      ctyExhRate: apiAdjustment.ctyExhRate ?? 0,
+      creditTermId: apiAdjustment.creditTermId ?? 0,
+      bankId: apiAdjustment.bankId ?? 0,
 
-      totAmt: apiCreditNote.totAmt ?? 0,
-      totLocalAmt: apiCreditNote.totLocalAmt ?? 0,
-      totCtyAmt: apiCreditNote.totCtyAmt ?? 0,
-      gstAmt: apiCreditNote.gstAmt ?? 0,
-      gstLocalAmt: apiCreditNote.gstLocalAmt ?? 0,
-      gstCtyAmt: apiCreditNote.gstCtyAmt ?? 0,
-      totAmtAftGst: apiCreditNote.totAmtAftGst ?? 0,
-      totLocalAmtAftGst: apiCreditNote.totLocalAmtAftGst ?? 0,
-      totCtyAmtAftGst: apiCreditNote.totCtyAmtAftGst ?? 0,
-      balAmt: apiCreditNote.balAmt ?? 0,
-      balLocalAmt: apiCreditNote.balLocalAmt ?? 0,
-      payAmt: apiCreditNote.payAmt ?? 0,
-      payLocalAmt: apiCreditNote.payLocalAmt ?? 0,
-      exGainLoss: apiCreditNote.exGainLoss ?? 0,
-      operationId: apiCreditNote.operationId ?? 0,
-      operationNo: apiCreditNote.operationNo ?? "",
-      remarks: apiCreditNote.remarks ?? "",
-      addressId: apiCreditNote.addressId ?? 0, // Not available in IArCreditNoteHd
-      contactId: apiCreditNote.contactId ?? 0, // Not available in IArCreditNoteHd
-      address1: apiCreditNote.address1 ?? "",
-      address2: apiCreditNote.address2 ?? "",
-      address3: apiCreditNote.address3 ?? "",
-      address4: apiCreditNote.address4 ?? "",
-      pinCode: apiCreditNote.pinCode ?? "",
-      countryId: apiCreditNote.countryId ?? 0,
-      phoneNo: apiCreditNote.phoneNo ?? "",
-      faxNo: apiCreditNote.faxNo ?? "",
-      contactName: apiCreditNote.contactName ?? "",
-      mobileNo: apiCreditNote.mobileNo ?? "",
-      emailAdd: apiCreditNote.emailAdd ?? "",
-      moduleFrom: apiCreditNote.moduleFrom ?? "",
-      supplierName: apiCreditNote.supplierName ?? "",
-      apCreditNoteId: apiCreditNote.apCreditNoteId ?? "",
-      apCreditNoteNo: apiCreditNote.apCreditNoteNo ?? "",
-      editVersion: apiCreditNote.editVersion ?? 0,
-      salesOrderId: apiCreditNote.salesOrderId ?? 0,
-      salesOrderNo: apiCreditNote.salesOrderNo ?? "",
-      jobOrderId: apiCreditNote.jobOrderId ?? 0,
-      jobOrderNo: apiCreditNote.jobOrderNo ?? "",
-      vesselId: apiCreditNote.vesselId ?? 0,
-      portId: apiCreditNote.portId ?? 0,
-      serviceTypeId: apiCreditNote.serviceTypeId ?? 0,
-      otherRemarks: apiCreditNote.otherRemarks ?? "",
-      advRecAmt: apiCreditNote.advRecAmt ?? 0,
-      createBy: apiCreditNote.createBy ?? "",
-      editBy: apiCreditNote.editBy ?? "",
-      cancelBy: apiCreditNote.cancelBy ?? "",
-      createDate: apiCreditNote.createDate
+      totAmt: apiAdjustment.totAmt ?? 0,
+      totLocalAmt: apiAdjustment.totLocalAmt ?? 0,
+      totCtyAmt: apiAdjustment.totCtyAmt ?? 0,
+      gstAmt: apiAdjustment.gstAmt ?? 0,
+      gstLocalAmt: apiAdjustment.gstLocalAmt ?? 0,
+      gstCtyAmt: apiAdjustment.gstCtyAmt ?? 0,
+      totAmtAftGst: apiAdjustment.totAmtAftGst ?? 0,
+      totLocalAmtAftGst: apiAdjustment.totLocalAmtAftGst ?? 0,
+      totCtyAmtAftGst: apiAdjustment.totCtyAmtAftGst ?? 0,
+      balAmt: apiAdjustment.balAmt ?? 0,
+      balLocalAmt: apiAdjustment.balLocalAmt ?? 0,
+      payAmt: apiAdjustment.payAmt ?? 0,
+      payLocalAmt: apiAdjustment.payLocalAmt ?? 0,
+      exGainLoss: apiAdjustment.exGainLoss ?? 0,
+      operationId: apiAdjustment.operationId ?? 0,
+      operationNo: apiAdjustment.operationNo ?? "",
+      remarks: apiAdjustment.remarks ?? "",
+      addressId: apiAdjustment.addressId ?? 0, // Not available in IArAdjustmentHd
+      contactId: apiAdjustment.contactId ?? 0, // Not available in IArAdjustmentHd
+      address1: apiAdjustment.address1 ?? "",
+      address2: apiAdjustment.address2 ?? "",
+      address3: apiAdjustment.address3 ?? "",
+      address4: apiAdjustment.address4 ?? "",
+      pinCode: apiAdjustment.pinCode ?? "",
+      countryId: apiAdjustment.countryId ?? 0,
+      phoneNo: apiAdjustment.phoneNo ?? "",
+      faxNo: apiAdjustment.faxNo ?? "",
+      contactName: apiAdjustment.contactName ?? "",
+      mobileNo: apiAdjustment.mobileNo ?? "",
+      emailAdd: apiAdjustment.emailAdd ?? "",
+      moduleFrom: apiAdjustment.moduleFrom ?? "",
+      supplierName: apiAdjustment.supplierName ?? "",
+      apAdjustmentId: apiAdjustment.apAdjustmentId ?? "",
+      apAdjustmentNo: apiAdjustment.apAdjustmentNo ?? "",
+      editVersion: apiAdjustment.editVersion ?? 0,
+      salesOrderId: apiAdjustment.salesOrderId ?? 0,
+      salesOrderNo: apiAdjustment.salesOrderNo ?? "",
+      jobOrderId: apiAdjustment.jobOrderId ?? 0,
+      jobOrderNo: apiAdjustment.jobOrderNo ?? "",
+      vesselId: apiAdjustment.vesselId ?? 0,
+      portId: apiAdjustment.portId ?? 0,
+      serviceTypeId: apiAdjustment.serviceTypeId ?? 0,
+      otherRemarks: apiAdjustment.otherRemarks ?? "",
+      advRecAmt: apiAdjustment.advRecAmt ?? 0,
+      createBy: apiAdjustment.createBy ?? "",
+      editBy: apiAdjustment.editBy ?? "",
+      cancelBy: apiAdjustment.cancelBy ?? "",
+      createDate: apiAdjustment.createDate
         ? format(
-            parseDate(apiCreditNote.createDate as string) || new Date(),
+            parseDate(apiAdjustment.createDate as string) || new Date(),
             decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
           )
         : "",
 
-      editDate: apiCreditNote.editDate
+      editDate: apiAdjustment.editDate
         ? format(
-            parseDate(apiCreditNote.editDate as unknown as string) ||
+            parseDate(apiAdjustment.editDate as unknown as string) ||
               new Date(),
             decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
           )
         : "",
-      cancelDate: apiCreditNote.cancelDate
+      cancelDate: apiAdjustment.cancelDate
         ? format(
-            parseDate(apiCreditNote.cancelDate as unknown as string) ||
+            parseDate(apiAdjustment.cancelDate as unknown as string) ||
               new Date(),
             decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
           )
         : "",
-      isCancel: apiCreditNote.isCancel ?? false,
-      cancelRemarks: apiCreditNote.cancelRemarks ?? "",
+      isCancel: apiAdjustment.isCancel ?? false,
+      cancelRemarks: apiAdjustment.cancelRemarks ?? "",
       data_details:
-        apiCreditNote.data_details?.map(
+        apiAdjustment.data_details?.map(
           (detail) =>
             ({
               ...detail,
-              creditNoteId: detail.creditNoteId?.toString() ?? "0",
-              creditNoteNo: detail.creditNoteNo ?? "",
+              adjustmentId: detail.adjustmentId?.toString() ?? "0",
+              adjustmentNo: detail.adjustmentNo ?? "",
               itemNo: detail.itemNo ?? 0,
               seqNo: detail.seqNo ?? 0,
               docItemNo: detail.docItemNo ?? 0,
@@ -836,161 +836,161 @@ export default function CreditNotePage() {
                   )
                 : "",
               supplierName: detail.supplierName ?? "",
-              suppCreditNoteNo: detail.suppCreditNoteNo ?? "",
-              apCreditNoteId: detail.apCreditNoteId ?? "",
-              apCreditNoteNo: detail.apCreditNoteNo ?? "",
+              suppAdjustmentNo: detail.suppAdjustmentNo ?? "",
+              apAdjustmentId: detail.apAdjustmentId ?? "",
+              apAdjustmentNo: detail.apAdjustmentNo ?? "",
               editVersion: detail.editVersion ?? 0,
-            }) as unknown as ArCreditNoteDtSchemaType
+            }) as unknown as ArAdjustmentDtSchemaType
         ) || [],
     }
   }
 
-  const handleCreditNoteSelect = async (
-    selectedCreditNote: IArCreditNoteHd | undefined
+  const handleAdjustmentSelect = async (
+    selectedAdjustment: IArAdjustmentHd | undefined
   ) => {
-    if (!selectedCreditNote) return
+    if (!selectedAdjustment) return
 
     try {
-      // Fetch creditNote details directly using selected creditNote's values
+      // Fetch adjustment details directly using selected adjustment's values
       const response = await getById(
-        `${ArCreditNote.getByIdNo}/${selectedCreditNote.creditNoteId}/${selectedCreditNote.creditNoteNo}`
+        `${ArAdjustment.getByIdNo}/${selectedAdjustment.adjustmentId}/${selectedAdjustment.adjustmentNo}`
       )
 
       if (response?.result === 1) {
-        const detailedCreditNote = Array.isArray(response.data)
+        const detailedAdjustment = Array.isArray(response.data)
           ? response.data[0]
           : response.data
 
-        if (detailedCreditNote) {
+        if (detailedAdjustment) {
           {
-            const parsed = parseDate(detailedCreditNote.accountDate as string)
+            const parsed = parseDate(detailedAdjustment.accountDate as string)
             setPreviousAccountDate(
               parsed
                 ? format(parsed, "dd/MM/yyyy")
-                : (detailedCreditNote.accountDate as string)
+                : (detailedAdjustment.accountDate as string)
             )
           }
           // Parse dates properly
-          const updatedCreditNote = {
-            ...detailedCreditNote,
-            creditNoteId: detailedCreditNote.creditNoteId?.toString() ?? "0",
-            creditNoteNo: detailedCreditNote.creditNoteNo ?? "",
-            referenceNo: detailedCreditNote.referenceNo ?? "",
-            suppCreditNoteNo: detailedCreditNote.suppCreditNoteNo ?? "",
-            trnDate: detailedCreditNote.trnDate
+          const updatedAdjustment = {
+            ...detailedAdjustment,
+            adjustmentId: detailedAdjustment.adjustmentId?.toString() ?? "0",
+            adjustmentNo: detailedAdjustment.adjustmentNo ?? "",
+            referenceNo: detailedAdjustment.referenceNo ?? "",
+            suppAdjustmentNo: detailedAdjustment.suppAdjustmentNo ?? "",
+            trnDate: detailedAdjustment.trnDate
               ? format(
-                  parseDate(detailedCreditNote.trnDate as string) || new Date(),
+                  parseDate(detailedAdjustment.trnDate as string) || new Date(),
                   clientDateFormat
                 )
               : clientDateFormat,
-            accountDate: detailedCreditNote.accountDate
+            accountDate: detailedAdjustment.accountDate
               ? format(
-                  parseDate(detailedCreditNote.accountDate as string) ||
+                  parseDate(detailedAdjustment.accountDate as string) ||
                     new Date(),
                   clientDateFormat
                 )
               : clientDateFormat,
-            dueDate: detailedCreditNote.dueDate
+            dueDate: detailedAdjustment.dueDate
               ? format(
-                  parseDate(detailedCreditNote.dueDate as string) || new Date(),
+                  parseDate(detailedAdjustment.dueDate as string) || new Date(),
                   clientDateFormat
                 )
               : clientDateFormat,
-            deliveryDate: detailedCreditNote.deliveryDate
+            deliveryDate: detailedAdjustment.deliveryDate
               ? format(
-                  parseDate(detailedCreditNote.deliveryDate as string) ||
+                  parseDate(detailedAdjustment.deliveryDate as string) ||
                     new Date(),
                   clientDateFormat
                 )
               : clientDateFormat,
-            gstClaimDate: detailedCreditNote.gstClaimDate
+            gstClaimDate: detailedAdjustment.gstClaimDate
               ? format(
-                  parseDate(detailedCreditNote.gstClaimDate as string) ||
+                  parseDate(detailedAdjustment.gstClaimDate as string) ||
                     new Date(),
                   clientDateFormat
                 )
               : clientDateFormat,
 
-            customerId: detailedCreditNote.customerId ?? 0,
-            currencyId: detailedCreditNote.currencyId ?? 0,
-            exhRate: detailedCreditNote.exhRate ?? 0,
-            ctyExhRate: detailedCreditNote.ctyExhRate ?? 0,
-            creditTermId: detailedCreditNote.creditTermId ?? 0,
-            bankId: detailedCreditNote.bankId ?? 0,
-            totAmt: detailedCreditNote.totAmt ?? 0,
-            totLocalAmt: detailedCreditNote.totLocalAmt ?? 0,
-            totCtyAmt: detailedCreditNote.totCtyAmt ?? 0,
-            gstAmt: detailedCreditNote.gstAmt ?? 0,
-            gstLocalAmt: detailedCreditNote.gstLocalAmt ?? 0,
-            gstCtyAmt: detailedCreditNote.gstCtyAmt ?? 0,
-            totAmtAftGst: detailedCreditNote.totAmtAftGst ?? 0,
-            totLocalAmtAftGst: detailedCreditNote.totLocalAmtAftGst ?? 0,
-            totCtyAmtAftGst: detailedCreditNote.totCtyAmtAftGst ?? 0,
-            balAmt: detailedCreditNote.balAmt ?? 0,
-            balLocalAmt: detailedCreditNote.balLocalAmt ?? 0,
-            payAmt: detailedCreditNote.payAmt ?? 0,
-            payLocalAmt: detailedCreditNote.payLocalAmt ?? 0,
-            exGainLoss: detailedCreditNote.exGainLoss ?? 0,
-            operationId: detailedCreditNote.operationId ?? 0,
-            operationNo: detailedCreditNote.operationNo ?? "",
-            remarks: detailedCreditNote.remarks ?? "",
-            addressId: detailedCreditNote.addressId ?? 0, // Not available in IArCreditNoteHd
-            contactId: detailedCreditNote.contactId ?? 0, // Not available in IArCreditNoteHd
-            address1: detailedCreditNote.address1 ?? "",
-            address2: detailedCreditNote.address2 ?? "",
-            address3: detailedCreditNote.address3 ?? "",
-            address4: detailedCreditNote.address4 ?? "",
-            pinCode: detailedCreditNote.pinCode ?? "",
-            countryId: detailedCreditNote.countryId ?? 0,
-            phoneNo: detailedCreditNote.phoneNo ?? "",
-            faxNo: detailedCreditNote.faxNo ?? "",
-            contactName: detailedCreditNote.contactName ?? "",
-            mobileNo: detailedCreditNote.mobileNo ?? "",
-            emailAdd: detailedCreditNote.emailAdd ?? "",
-            moduleFrom: detailedCreditNote.moduleFrom ?? "",
-            customerName: detailedCreditNote.customerName ?? "",
-            apCreditNoteId: detailedCreditNote.apCreditNoteId ?? "",
-            apCreditNoteNo: detailedCreditNote.apCreditNoteNo ?? "",
-            editVersion: detailedCreditNote.editVersion ?? 0,
-            salesOrderId: detailedCreditNote.salesOrderId ?? 0,
-            salesOrderNo: detailedCreditNote.salesOrderNo ?? "",
-            jobOrderId: detailedCreditNote.jobOrderId ?? 0,
-            vesselId: detailedCreditNote.vesselId ?? 0,
-            portId: detailedCreditNote.portId ?? 0,
-            serviceTypeId: detailedCreditNote.serviceTypeId ?? 0,
-            otherRemarks: detailedCreditNote.otherRemarks ?? "",
-            advRecAmt: detailedCreditNote.advRecAmt ?? 0,
-            createBy: detailedCreditNote.createBy ?? "",
-            createDate: detailedCreditNote.createDate
+            customerId: detailedAdjustment.customerId ?? 0,
+            currencyId: detailedAdjustment.currencyId ?? 0,
+            exhRate: detailedAdjustment.exhRate ?? 0,
+            ctyExhRate: detailedAdjustment.ctyExhRate ?? 0,
+            creditTermId: detailedAdjustment.creditTermId ?? 0,
+            bankId: detailedAdjustment.bankId ?? 0,
+            totAmt: detailedAdjustment.totAmt ?? 0,
+            totLocalAmt: detailedAdjustment.totLocalAmt ?? 0,
+            totCtyAmt: detailedAdjustment.totCtyAmt ?? 0,
+            gstAmt: detailedAdjustment.gstAmt ?? 0,
+            gstLocalAmt: detailedAdjustment.gstLocalAmt ?? 0,
+            gstCtyAmt: detailedAdjustment.gstCtyAmt ?? 0,
+            totAmtAftGst: detailedAdjustment.totAmtAftGst ?? 0,
+            totLocalAmtAftGst: detailedAdjustment.totLocalAmtAftGst ?? 0,
+            totCtyAmtAftGst: detailedAdjustment.totCtyAmtAftGst ?? 0,
+            balAmt: detailedAdjustment.balAmt ?? 0,
+            balLocalAmt: detailedAdjustment.balLocalAmt ?? 0,
+            payAmt: detailedAdjustment.payAmt ?? 0,
+            payLocalAmt: detailedAdjustment.payLocalAmt ?? 0,
+            exGainLoss: detailedAdjustment.exGainLoss ?? 0,
+            operationId: detailedAdjustment.operationId ?? 0,
+            operationNo: detailedAdjustment.operationNo ?? "",
+            remarks: detailedAdjustment.remarks ?? "",
+            addressId: detailedAdjustment.addressId ?? 0, // Not available in IArAdjustmentHd
+            contactId: detailedAdjustment.contactId ?? 0, // Not available in IArAdjustmentHd
+            address1: detailedAdjustment.address1 ?? "",
+            address2: detailedAdjustment.address2 ?? "",
+            address3: detailedAdjustment.address3 ?? "",
+            address4: detailedAdjustment.address4 ?? "",
+            pinCode: detailedAdjustment.pinCode ?? "",
+            countryId: detailedAdjustment.countryId ?? 0,
+            phoneNo: detailedAdjustment.phoneNo ?? "",
+            faxNo: detailedAdjustment.faxNo ?? "",
+            contactName: detailedAdjustment.contactName ?? "",
+            mobileNo: detailedAdjustment.mobileNo ?? "",
+            emailAdd: detailedAdjustment.emailAdd ?? "",
+            moduleFrom: detailedAdjustment.moduleFrom ?? "",
+            customerName: detailedAdjustment.customerName ?? "",
+            apAdjustmentId: detailedAdjustment.apAdjustmentId ?? "",
+            apAdjustmentNo: detailedAdjustment.apAdjustmentNo ?? "",
+            editVersion: detailedAdjustment.editVersion ?? 0,
+            salesOrderId: detailedAdjustment.salesOrderId ?? 0,
+            salesOrderNo: detailedAdjustment.salesOrderNo ?? "",
+            jobOrderId: detailedAdjustment.jobOrderId ?? 0,
+            vesselId: detailedAdjustment.vesselId ?? 0,
+            portId: detailedAdjustment.portId ?? 0,
+            serviceTypeId: detailedAdjustment.serviceTypeId ?? 0,
+            otherRemarks: detailedAdjustment.otherRemarks ?? "",
+            advRecAmt: detailedAdjustment.advRecAmt ?? 0,
+            createBy: detailedAdjustment.createBy ?? "",
+            createDate: detailedAdjustment.createDate
               ? format(
-                  parseDate(detailedCreditNote.createDate as string) ||
+                  parseDate(detailedAdjustment.createDate as string) ||
                     new Date(),
                   decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
                 )
               : "",
-            editBy: detailedCreditNote.editBy ?? "",
-            editDate: detailedCreditNote.editDate
+            editBy: detailedAdjustment.editBy ?? "",
+            editDate: detailedAdjustment.editDate
               ? format(
-                  parseDate(detailedCreditNote.editDate as string) ||
+                  parseDate(detailedAdjustment.editDate as string) ||
                     new Date(),
                   decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
                 )
               : "",
-            cancelBy: detailedCreditNote.cancelBy ?? "",
-            cancelDate: detailedCreditNote.cancelDate
+            cancelBy: detailedAdjustment.cancelBy ?? "",
+            cancelDate: detailedAdjustment.cancelDate
               ? format(
-                  parseDate(detailedCreditNote.cancelDate as string) ||
+                  parseDate(detailedAdjustment.cancelDate as string) ||
                     new Date(),
                   decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
                 )
               : "",
-            isCancel: detailedCreditNote.isCancel ?? false,
-            cancelRemarks: detailedCreditNote.cancelRemarks ?? "",
+            isCancel: detailedAdjustment.isCancel ?? false,
+            cancelRemarks: detailedAdjustment.cancelRemarks ?? "",
             data_details:
-              detailedCreditNote.data_details?.map(
-                (detail: IArCreditNoteDt) => ({
-                  creditNoteId: detail.creditNoteId?.toString() ?? "0",
-                  creditNoteNo: detail.creditNoteNo ?? "",
+              detailedAdjustment.data_details?.map(
+                (detail: IArAdjustmentDt) => ({
+                  adjustmentId: detail.adjustmentId?.toString() ?? "0",
+                  adjustmentNo: detail.adjustmentNo ?? "",
                   itemNo: detail.itemNo ?? 0,
                   seqNo: detail.seqNo ?? 0,
                   docItemNo: detail.docItemNo ?? 0,
@@ -1051,57 +1051,57 @@ export default function CreditNotePage() {
                       )
                     : "",
                   supplierName: detail.supplierName ?? "",
-                  suppCreditNoteNo: detail.suppCreditNoteNo ?? "",
-                  apCreditNoteId: detail.apCreditNoteId ?? "",
-                  apCreditNoteNo: detail.apCreditNoteNo ?? "",
+                  suppAdjustmentNo: detail.suppAdjustmentNo ?? "",
+                  apAdjustmentId: detail.apAdjustmentId ?? "",
+                  apAdjustmentNo: detail.apAdjustmentNo ?? "",
                   editVersion: detail.editVersion ?? 0,
                 })
               ) || [],
           }
 
-          //setCreditNote(updatedCreditNote as ArCreditNoteHdSchemaType)
-          setCreditNote(transformToSchemaType(updatedCreditNote))
-          form.reset(updatedCreditNote)
+          //setAdjustment(updatedAdjustment as ArAdjustmentHdSchemaType)
+          setAdjustment(transformToSchemaType(updatedAdjustment))
+          form.reset(updatedAdjustment)
           form.trigger()
 
-          // Set the creditNote number in search input
-          setSearchNo(updatedCreditNote.creditNoteNo || "")
+          // Set the adjustment number in search input
+          setSearchNo(updatedAdjustment.adjustmentNo || "")
 
           // Close dialog only on success
           setShowListDialog(false)
         }
       } else {
-        toast.error(response?.message || "Failed to fetch creditNote details")
+        toast.error(response?.message || "Failed to fetch adjustment details")
         // Keep dialog open on failure so user can try again
       }
     } catch (error) {
-      console.error("Error fetching creditNote details:", error)
-      toast.error("Error loading creditNote. Please try again.")
+      console.error("Error fetching adjustment details:", error)
+      toast.error("Error loading adjustment. Please try again.")
       // Keep dialog open on error
     } finally {
       // Selection completed
     }
   }
 
-  // Remove direct refetchCreditNotes from handleFilterChange
-  const handleFilterChange = (newFilters: IArCreditNoteFilter) => {
+  // Remove direct refetchAdjustments from handleFilterChange
+  const handleFilterChange = (newFilters: IArAdjustmentFilter) => {
     setFilters(newFilters)
-    // Data refresh handled by CreditNoteTable component
+    // Data refresh handled by AdjustmentTable component
   }
 
-  // Data refresh handled by CreditNoteTable component
+  // Data refresh handled by AdjustmentTable component
 
-  // Set createBy and createDate for new creditNotes on page load/refresh
+  // Set createBy and createDate for new adjustments on page load/refresh
   useEffect(() => {
-    if (!creditNote && user && decimals.length > 0) {
-      const currentCreditNoteId = form.getValues("creditNoteId")
-      const currentCreditNoteNo = form.getValues("creditNoteNo")
-      const isNewCreditNote =
-        !currentCreditNoteId ||
-        currentCreditNoteId === "0" ||
-        !currentCreditNoteNo
+    if (!adjustment && user && decimals.length > 0) {
+      const currentAdjustmentId = form.getValues("adjustmentId")
+      const currentAdjustmentNo = form.getValues("adjustmentNo")
+      const isNewAdjustment =
+        !currentAdjustmentId ||
+        currentAdjustmentId === "0" ||
+        !currentAdjustmentNo
 
-      if (isNewCreditNote) {
+      if (isNewAdjustment) {
         const currentDateTime = decimals[0]?.longDateFormat
           ? format(new Date(), decimals[0].longDateFormat)
           : format(new Date(), "dd/MM/yyyy HH:mm:ss")
@@ -1111,7 +1111,7 @@ export default function CreditNotePage() {
         form.setValue("createDate", currentDateTime)
       }
     }
-  }, [creditNote, user, decimals, form])
+  }, [adjustment, user, decimals, form])
 
   // Add keyboard shortcuts
   useEffect(() => {
@@ -1148,126 +1148,126 @@ export default function CreditNotePage() {
     form.clearErrors()
   }, [activeTab, form])
 
-  const handleCreditNoteSearch = async (value: string) => {
+  const handleAdjustmentSearch = async (value: string) => {
     if (!value) return
 
-    setIsLoadingCreditNote(true)
+    setIsLoadingAdjustment(true)
 
     try {
-      const response = await getById(`${ArCreditNote.getByIdNo}/0/${value}`)
+      const response = await getById(`${ArAdjustment.getByIdNo}/0/${value}`)
 
       if (response?.result === 1) {
-        const detailedCreditNote = Array.isArray(response.data)
+        const detailedAdjustment = Array.isArray(response.data)
           ? response.data[0]
           : response.data
 
-        if (detailedCreditNote) {
+        if (detailedAdjustment) {
           {
-            const parsed = parseDate(detailedCreditNote.accountDate as string)
+            const parsed = parseDate(detailedAdjustment.accountDate as string)
             setPreviousAccountDate(
               parsed
                 ? format(parsed, "dd/MM/yyyy")
-                : (detailedCreditNote.accountDate as string)
+                : (detailedAdjustment.accountDate as string)
             )
           }
           // Parse dates properly
-          const updatedCreditNote = {
-            ...detailedCreditNote,
-            creditNoteId: detailedCreditNote.creditNoteId?.toString() ?? "0",
-            creditNoteNo: detailedCreditNote.creditNoteNo ?? "",
-            referenceNo: detailedCreditNote.referenceNo ?? "",
-            suppCreditNoteNo: detailedCreditNote.suppCreditNoteNo ?? "",
-            trnDate: detailedCreditNote.trnDate
+          const updatedAdjustment = {
+            ...detailedAdjustment,
+            adjustmentId: detailedAdjustment.adjustmentId?.toString() ?? "0",
+            adjustmentNo: detailedAdjustment.adjustmentNo ?? "",
+            referenceNo: detailedAdjustment.referenceNo ?? "",
+            suppAdjustmentNo: detailedAdjustment.suppAdjustmentNo ?? "",
+            trnDate: detailedAdjustment.trnDate
               ? format(
-                  parseDate(detailedCreditNote.trnDate as string) || new Date(),
+                  parseDate(detailedAdjustment.trnDate as string) || new Date(),
                   clientDateFormat
                 )
               : clientDateFormat,
-            accountDate: detailedCreditNote.accountDate
+            accountDate: detailedAdjustment.accountDate
               ? format(
-                  parseDate(detailedCreditNote.accountDate as string) ||
+                  parseDate(detailedAdjustment.accountDate as string) ||
                     new Date(),
                   clientDateFormat
                 )
               : clientDateFormat,
-            dueDate: detailedCreditNote.dueDate
+            dueDate: detailedAdjustment.dueDate
               ? format(
-                  parseDate(detailedCreditNote.dueDate as string) || new Date(),
+                  parseDate(detailedAdjustment.dueDate as string) || new Date(),
                   clientDateFormat
                 )
               : clientDateFormat,
-            deliveryDate: detailedCreditNote.deliveryDate
+            deliveryDate: detailedAdjustment.deliveryDate
               ? format(
-                  parseDate(detailedCreditNote.deliveryDate as string) ||
+                  parseDate(detailedAdjustment.deliveryDate as string) ||
                     new Date(),
                   clientDateFormat
                 )
               : clientDateFormat,
-            gstClaimDate: detailedCreditNote.gstClaimDate
+            gstClaimDate: detailedAdjustment.gstClaimDate
               ? format(
-                  parseDate(detailedCreditNote.gstClaimDate as string) ||
+                  parseDate(detailedAdjustment.gstClaimDate as string) ||
                     new Date(),
                   clientDateFormat
                 )
               : clientDateFormat,
 
-            customerId: detailedCreditNote.customerId ?? 0,
-            currencyId: detailedCreditNote.currencyId ?? 0,
-            exhRate: detailedCreditNote.exhRate ?? 0,
-            ctyExhRate: detailedCreditNote.ctyExhRate ?? 0,
-            creditTermId: detailedCreditNote.creditTermId ?? 0,
-            bankId: detailedCreditNote.bankId ?? 0,
-            totAmt: detailedCreditNote.totAmt ?? 0,
-            totLocalAmt: detailedCreditNote.totLocalAmt ?? 0,
-            totCtyAmt: detailedCreditNote.totCtyAmt ?? 0,
-            gstAmt: detailedCreditNote.gstAmt ?? 0,
-            gstLocalAmt: detailedCreditNote.gstLocalAmt ?? 0,
-            gstCtyAmt: detailedCreditNote.gstCtyAmt ?? 0,
-            totAmtAftGst: detailedCreditNote.totAmtAftGst ?? 0,
-            totLocalAmtAftGst: detailedCreditNote.totLocalAmtAftGst ?? 0,
-            totCtyAmtAftGst: detailedCreditNote.totCtyAmtAftGst ?? 0,
-            balAmt: detailedCreditNote.balAmt ?? 0,
-            balLocalAmt: detailedCreditNote.balLocalAmt ?? 0,
-            payAmt: detailedCreditNote.payAmt ?? 0,
-            payLocalAmt: detailedCreditNote.payLocalAmt ?? 0,
-            exGainLoss: detailedCreditNote.exGainLoss ?? 0,
-            operationId: detailedCreditNote.operationId ?? 0,
-            operationNo: detailedCreditNote.operationNo ?? "",
-            remarks: detailedCreditNote.remarks ?? "",
-            addressId: detailedCreditNote.addressId ?? 0, // Not available in IArCreditNoteHd
-            contactId: detailedCreditNote.contactId ?? 0, // Not available in IArCreditNoteHd
-            address1: detailedCreditNote.address1 ?? "",
-            address2: detailedCreditNote.address2 ?? "",
-            address3: detailedCreditNote.address3 ?? "",
-            address4: detailedCreditNote.address4 ?? "",
-            pinCode: detailedCreditNote.pinCode ?? "",
-            countryId: detailedCreditNote.countryId ?? 0,
-            phoneNo: detailedCreditNote.phoneNo ?? "",
-            faxNo: detailedCreditNote.faxNo ?? "",
-            contactName: detailedCreditNote.contactName ?? "",
-            mobileNo: detailedCreditNote.mobileNo ?? "",
-            emailAdd: detailedCreditNote.emailAdd ?? "",
-            moduleFrom: detailedCreditNote.moduleFrom ?? "",
-            customerName: detailedCreditNote.customerName ?? "",
-            apCreditNoteId: detailedCreditNote.apCreditNoteId ?? "",
-            apCreditNoteNo: detailedCreditNote.apCreditNoteNo ?? "",
-            editVersion: detailedCreditNote.editVersion ?? 0,
-            salesOrderId: detailedCreditNote.salesOrderId ?? 0,
-            salesOrderNo: detailedCreditNote.salesOrderNo ?? "",
-            jobOrderId: detailedCreditNote.jobOrderId ?? 0,
-            vesselId: detailedCreditNote.vesselId ?? 0,
-            portId: detailedCreditNote.portId ?? 0,
-            serviceTypeId: detailedCreditNote.serviceTypeId ?? 0,
-            otherRemarks: detailedCreditNote.otherRemarks ?? "",
-            advRecAmt: detailedCreditNote.advRecAmt ?? 0,
-            isCancel: detailedCreditNote.isCancel ?? false,
-            cancelRemarks: detailedCreditNote.cancelRemarks ?? "",
+            customerId: detailedAdjustment.customerId ?? 0,
+            currencyId: detailedAdjustment.currencyId ?? 0,
+            exhRate: detailedAdjustment.exhRate ?? 0,
+            ctyExhRate: detailedAdjustment.ctyExhRate ?? 0,
+            creditTermId: detailedAdjustment.creditTermId ?? 0,
+            bankId: detailedAdjustment.bankId ?? 0,
+            totAmt: detailedAdjustment.totAmt ?? 0,
+            totLocalAmt: detailedAdjustment.totLocalAmt ?? 0,
+            totCtyAmt: detailedAdjustment.totCtyAmt ?? 0,
+            gstAmt: detailedAdjustment.gstAmt ?? 0,
+            gstLocalAmt: detailedAdjustment.gstLocalAmt ?? 0,
+            gstCtyAmt: detailedAdjustment.gstCtyAmt ?? 0,
+            totAmtAftGst: detailedAdjustment.totAmtAftGst ?? 0,
+            totLocalAmtAftGst: detailedAdjustment.totLocalAmtAftGst ?? 0,
+            totCtyAmtAftGst: detailedAdjustment.totCtyAmtAftGst ?? 0,
+            balAmt: detailedAdjustment.balAmt ?? 0,
+            balLocalAmt: detailedAdjustment.balLocalAmt ?? 0,
+            payAmt: detailedAdjustment.payAmt ?? 0,
+            payLocalAmt: detailedAdjustment.payLocalAmt ?? 0,
+            exGainLoss: detailedAdjustment.exGainLoss ?? 0,
+            operationId: detailedAdjustment.operationId ?? 0,
+            operationNo: detailedAdjustment.operationNo ?? "",
+            remarks: detailedAdjustment.remarks ?? "",
+            addressId: detailedAdjustment.addressId ?? 0, // Not available in IArAdjustmentHd
+            contactId: detailedAdjustment.contactId ?? 0, // Not available in IArAdjustmentHd
+            address1: detailedAdjustment.address1 ?? "",
+            address2: detailedAdjustment.address2 ?? "",
+            address3: detailedAdjustment.address3 ?? "",
+            address4: detailedAdjustment.address4 ?? "",
+            pinCode: detailedAdjustment.pinCode ?? "",
+            countryId: detailedAdjustment.countryId ?? 0,
+            phoneNo: detailedAdjustment.phoneNo ?? "",
+            faxNo: detailedAdjustment.faxNo ?? "",
+            contactName: detailedAdjustment.contactName ?? "",
+            mobileNo: detailedAdjustment.mobileNo ?? "",
+            emailAdd: detailedAdjustment.emailAdd ?? "",
+            moduleFrom: detailedAdjustment.moduleFrom ?? "",
+            customerName: detailedAdjustment.customerName ?? "",
+            apAdjustmentId: detailedAdjustment.apAdjustmentId ?? "",
+            apAdjustmentNo: detailedAdjustment.apAdjustmentNo ?? "",
+            editVersion: detailedAdjustment.editVersion ?? 0,
+            salesOrderId: detailedAdjustment.salesOrderId ?? 0,
+            salesOrderNo: detailedAdjustment.salesOrderNo ?? "",
+            jobOrderId: detailedAdjustment.jobOrderId ?? 0,
+            vesselId: detailedAdjustment.vesselId ?? 0,
+            portId: detailedAdjustment.portId ?? 0,
+            serviceTypeId: detailedAdjustment.serviceTypeId ?? 0,
+            otherRemarks: detailedAdjustment.otherRemarks ?? "",
+            advRecAmt: detailedAdjustment.advRecAmt ?? 0,
+            isCancel: detailedAdjustment.isCancel ?? false,
+            cancelRemarks: detailedAdjustment.cancelRemarks ?? "",
 
             data_details:
-              detailedCreditNote.data_details?.map(
-                (detail: IArCreditNoteDt) => ({
-                  creditNoteId: detail.creditNoteId?.toString() ?? "0",
-                  creditNoteNo: detail.creditNoteNo ?? "",
+              detailedAdjustment.data_details?.map(
+                (detail: IArAdjustmentDt) => ({
+                  adjustmentId: detail.adjustmentId?.toString() ?? "0",
+                  adjustmentNo: detail.adjustmentNo ?? "",
                   itemNo: detail.itemNo ?? 0,
                   seqNo: detail.seqNo ?? 0,
                   docItemNo: detail.docItemNo ?? 0,
@@ -1328,25 +1328,25 @@ export default function CreditNotePage() {
                       )
                     : "",
                   supplierName: detail.supplierName ?? "",
-                  suppCreditNoteNo: detail.suppCreditNoteNo ?? "",
-                  apCreditNoteId: detail.apCreditNoteId ?? "",
-                  apCreditNoteNo: detail.apCreditNoteNo ?? "",
+                  suppAdjustmentNo: detail.suppAdjustmentNo ?? "",
+                  apAdjustmentId: detail.apAdjustmentId ?? "",
+                  apAdjustmentNo: detail.apAdjustmentNo ?? "",
                   editVersion: detail.editVersion ?? 0,
                 })
               ) || [],
           }
 
-          //setCreditNote(updatedCreditNote as ArCreditNoteHdSchemaType)
-          setCreditNote(transformToSchemaType(updatedCreditNote))
-          form.reset(updatedCreditNote)
+          //setAdjustment(updatedAdjustment as ArAdjustmentHdSchemaType)
+          setAdjustment(transformToSchemaType(updatedAdjustment))
+          form.reset(updatedAdjustment)
           form.trigger()
 
-          // Set the creditNote number in search input to the actual creditNote number from database
-          setSearchNo(updatedCreditNote.creditNoteNo || "")
+          // Set the adjustment number in search input to the actual adjustment number from database
+          setSearchNo(updatedAdjustment.adjustmentNo || "")
 
           // Show success message
           toast.success(
-            `CreditNote ${updatedCreditNote.creditNoteNo || value} loaded successfully`
+            `Adjustment ${updatedAdjustment.adjustmentNo || value} loaded successfully`
           )
 
           // Close the load confirmation dialog on success
@@ -1356,24 +1356,24 @@ export default function CreditNotePage() {
         // Close the load confirmation dialog on success
         setShowLoadConfirm(false)
         toast.error(
-          response?.message || "Failed to fetch creditNote details (direct)"
+          response?.message || "Failed to fetch adjustment details (direct)"
         )
       }
     } catch {
-      toast.error("Error searching for creditNote")
+      toast.error("Error searching for adjustment")
     } finally {
-      setIsLoadingCreditNote(false)
+      setIsLoadingAdjustment(false)
     }
   }
 
-  // Determine mode and creditNote ID from URL
-  const creditNoteNo = form.getValues("creditNoteNo")
-  const isEdit = Boolean(creditNoteNo)
-  const isCancelled = creditNote?.isCancel === true
+  // Determine mode and adjustment ID from URL
+  const adjustmentNo = form.getValues("adjustmentNo")
+  const isEdit = Boolean(adjustmentNo)
+  const isCancelled = adjustment?.isCancel === true
 
   // Calculate payment status only if not cancelled
-  const balAmt = creditNote?.balAmt ?? 0
-  const payAmt = creditNote?.payAmt ?? 0
+  const balAmt = adjustment?.balAmt ?? 0
+  const payAmt = adjustment?.payAmt ?? 0
 
   const paymentStatus = isCancelled
     ? ""
@@ -1387,8 +1387,8 @@ export default function CreditNotePage() {
 
   // Compose title text
   const titleText = isEdit
-    ? `CreditNote (Edit)- v[${creditNote?.editVersion}] - ${creditNoteNo}`
-    : "CreditNote (New)"
+    ? `Adjustment (Edit)- v[${adjustment?.editVersion}] - ${adjustmentNo}`
+    : "Adjustment (New)"
 
   // Show loading spinner while essential data is loading
   if (!visible || !required) {
@@ -1397,7 +1397,7 @@ export default function CreditNotePage() {
         <div className="text-center">
           <Spinner size="lg" className="mx-auto" />
           <p className="mt-4 text-sm text-gray-600">
-            Loading creditNote form...
+            Loading adjustment form...
           </p>
           <p className="mt-2 text-xs text-gray-500">
             Preparing field settings and validation rules
@@ -1430,9 +1430,9 @@ export default function CreditNotePage() {
                   <span className="mr-1 h-2 w-2 rounded-full bg-red-400"></span>
                   Cancelled
                 </span>
-                {creditNote?.cancelRemarks && (
+                {adjustment?.cancelRemarks && (
                   <div className="max-w-xs truncate text-sm text-red-600">
-                    {creditNote.cancelRemarks}
+                    {adjustment.cancelRemarks}
                   </div>
                 )}
               </div>
@@ -1483,13 +1483,13 @@ export default function CreditNotePage() {
               onChange={(e) => setSearchNo(e.target.value)}
               onBlur={handleSearchNoBlur}
               onKeyDown={handleSearchNoKeyDown}
-              placeholder="Search CreditNote No"
+              placeholder="Search Adjustment No"
               className="h-8 text-sm"
               readOnly={
-                !!creditNote?.creditNoteId && creditNote.creditNoteId !== "0"
+                !!adjustment?.adjustmentId && adjustment.adjustmentId !== "0"
               }
               disabled={
-                !!creditNote?.creditNoteId && creditNote.creditNoteId !== "0"
+                !!adjustment?.adjustmentId && adjustment.adjustmentId !== "0"
               }
             />
             <Button
@@ -1537,7 +1537,7 @@ export default function CreditNotePage() {
             <Button
               variant="outline"
               size="sm"
-              disabled={!creditNote || creditNote.creditNoteId === "0"}
+              disabled={!adjustment || adjustment.adjustmentId === "0"}
             >
               <Printer className="mr-1 h-4 w-4" />
               Print
@@ -1547,7 +1547,7 @@ export default function CreditNotePage() {
               variant="outline"
               size="sm"
               onClick={() => setShowResetConfirm(true)}
-              //disabled={!creditNote}
+              //disabled={!adjustment}
             >
               <RotateCcw className="mr-1 h-4 w-4" />
               Reset
@@ -1558,7 +1558,7 @@ export default function CreditNotePage() {
               size="sm"
               onClick={() => setShowCloneConfirm(true)}
               disabled={
-                !creditNote || creditNote.creditNoteId === "0" || isCancelled
+                !adjustment || adjustment.adjustmentId === "0" || isCancelled
               }
             >
               <Copy className="mr-1 h-4 w-4" />
@@ -1571,8 +1571,8 @@ export default function CreditNotePage() {
               onClick={() => setShowDeleteConfirm(true)}
               disabled={
                 !canView ||
-                !creditNote ||
-                creditNote.creditNoteId === "0" ||
+                !adjustment ||
+                adjustment.adjustmentId === "0" ||
                 deleteMutation.isPending ||
                 isCancelled ||
                 payAmt > 0 ||
@@ -1593,7 +1593,7 @@ export default function CreditNotePage() {
           <Main
             form={form}
             onSuccessAction={async () => {
-              handleSaveCreditNote()
+              handleSaveAdjustment()
             }}
             isEdit={isEdit}
             visible={visible}
@@ -1626,18 +1626,18 @@ export default function CreditNotePage() {
           {/* Header */}
           <div className="bg-background flex flex-col gap-1 border-b p-2">
             <DialogTitle className="text-2xl font-bold tracking-tight">
-              CreditNote List
+              Adjustment List
             </DialogTitle>
             <p className="text-muted-foreground text-sm">
-              Manage and select existing creditNotes from the list below. Use
-              search to filter records or create new creditNotes.
+              Manage and select existing adjustments from the list below. Use
+              search to filter records or create new adjustments.
             </p>
           </div>
 
           {/* Table Container - Takes remaining space */}
           <div className="flex-1 overflow-auto px-4 py-2">
-            <CreditNoteTable
-              onCreditNoteSelect={handleCreditNoteSelect}
+            <AdjustmentTable
+              onAdjustmentSelect={handleAdjustmentSelect}
               onFilterChange={handleFilterChange}
               initialFilters={filters}
               pageSize={pageSize || 50}
@@ -1651,10 +1651,10 @@ export default function CreditNotePage() {
       <SaveConfirmation
         open={showSaveConfirm}
         onOpenChange={setShowSaveConfirm}
-        onConfirm={handleSaveCreditNote}
-        itemName={creditNote?.creditNoteNo || "New CreditNote"}
+        onConfirm={handleSaveAdjustment}
+        itemName={adjustment?.adjustmentNo || "New Adjustment"}
         operationType={
-          creditNote?.creditNoteId && creditNote.creditNoteId !== "0"
+          adjustment?.adjustmentId && adjustment.adjustmentId !== "0"
             ? "update"
             : "create"
         }
@@ -1668,9 +1668,9 @@ export default function CreditNotePage() {
         open={showDeleteConfirm}
         onOpenChange={setShowDeleteConfirm}
         onConfirm={() => handleDeleteConfirmation()}
-        itemName={creditNote?.creditNoteNo}
-        title="Delete CreditNote"
-        description="Are you sure you want to delete this creditNote? You will be asked to provide a reason."
+        itemName={adjustment?.adjustmentNo}
+        title="Delete Adjustment"
+        description="Are you sure you want to delete this adjustment? You will be asked to provide a reason."
         isDeleting={false}
       />
 
@@ -1678,10 +1678,10 @@ export default function CreditNotePage() {
       <CancelConfirmation
         open={showCancelConfirm}
         onOpenChange={setShowCancelConfirm}
-        onConfirmAction={handleCreditNoteDelete}
-        itemName={creditNote?.creditNoteNo}
-        title="Cancel CreditNote"
-        description="Please provide a reason for cancelling this creditNote."
+        onConfirmAction={handleAdjustmentDelete}
+        itemName={adjustment?.adjustmentNo}
+        title="Cancel Adjustment"
+        description="Please provide a reason for cancelling this adjustment."
         isCancelling={deleteMutation.isPending}
       />
 
@@ -1689,21 +1689,21 @@ export default function CreditNotePage() {
       <LoadConfirmation
         open={showLoadConfirm}
         onOpenChange={setShowLoadConfirm}
-        onLoad={() => handleCreditNoteSearch(searchNo)}
+        onLoad={() => handleAdjustmentSearch(searchNo)}
         code={searchNo}
-        typeLabel="CreditNote"
+        typeLabel="Adjustment"
         showDetails={false}
-        description={`Do you want to load CreditNote ${searchNo}?`}
-        isLoading={isLoadingCreditNote}
+        description={`Do you want to load Adjustment ${searchNo}?`}
+        isLoading={isLoadingAdjustment}
       />
 
       {/* Reset Confirmation */}
       <ResetConfirmation
         open={showResetConfirm}
         onOpenChange={setShowResetConfirm}
-        onConfirm={handleCreditNoteReset}
-        itemName={creditNote?.creditNoteNo}
-        title="Reset CreditNote"
+        onConfirm={handleAdjustmentReset}
+        itemName={adjustment?.adjustmentNo}
+        title="Reset Adjustment"
         description="This will clear all unsaved changes."
       />
 
@@ -1711,10 +1711,10 @@ export default function CreditNotePage() {
       <CloneConfirmation
         open={showCloneConfirm}
         onOpenChange={setShowCloneConfirm}
-        onConfirm={handleCloneCreditNote}
-        itemName={creditNote?.creditNoteNo}
-        title="Clone CreditNote"
-        description="This will create a copy as a new creditNote."
+        onConfirm={handleCloneAdjustment}
+        itemName={adjustment?.adjustmentNo}
+        title="Clone Adjustment"
+        description="This will create a copy as a new adjustment."
       />
     </div>
   )

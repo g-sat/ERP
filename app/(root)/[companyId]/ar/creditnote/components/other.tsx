@@ -4,14 +4,14 @@ import { useEffect, useState } from "react"
 import { useParams } from "next/navigation"
 import { IBankAddress, IBankContact } from "@/interfaces/bank"
 import { ICustomerAddress, ICustomerContact } from "@/interfaces/customer"
+import { IVisibleFields } from "@/interfaces/setting"
 import { ISupplierAddress, ISupplierContact } from "@/interfaces/supplier"
 import { ArCreditNoteHdSchemaType } from "@/schemas"
 import { UseFormReturn } from "react-hook-form"
 
 import { ARTransactionId, ModuleId } from "@/lib/utils"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Form } from "@/components/ui/form"
-import { Separator } from "@/components/ui/separator"
 import { CountryAutocomplete } from "@/components/autocomplete"
 import DynamicAddressAutocomplete, {
   EntityType as AddressEntityType,
@@ -20,14 +20,16 @@ import DynamicContactAutocomplete, {
   EntityType as ContactEntityType,
 } from "@/components/autocomplete/autocomplete-contact-dynamic"
 import CustomInput from "@/components/custom/custom-input"
+import CustomNumberInput from "@/components/custom/custom-number-input"
 import CustomTextarea from "@/components/custom/custom-textarea"
 import DocumentManager from "@/components/document-manager"
 
 interface OtherProps {
   form: UseFormReturn<ArCreditNoteHdSchemaType>
+  visible?: IVisibleFields
 }
 
-export default function Other({ form }: OtherProps) {
+export default function Other({ form, visible }: OtherProps) {
   const params = useParams()
   const companyId = params.companyId as string
 
@@ -147,17 +149,14 @@ export default function Other({ form }: OtherProps) {
   }
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-1">
       <Form {...form}>
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-2 gap-1">
           {/* Address Section */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Address Information</CardTitle>
-            </CardHeader>
+          <Card className="border-0">
             <CardContent>
-              <div className="grid gap-1">
-                {customerId > 0 && (
+              {customerId > 0 && (
+                <div className="mb-1">
                   <DynamicAddressAutocomplete
                     form={form}
                     name="addressId"
@@ -166,9 +165,10 @@ export default function Other({ form }: OtherProps) {
                     entityType={AddressEntityType.CUSTOMER}
                     onChangeEvent={handleAddressSelect}
                   />
-                )}
-                <Separator className="my-2" />
-                <div className="grid grid-cols-2 gap-2">
+                </div>
+              )}
+              <div className="grid">
+                <div className="grid grid-cols-2 gap-x-1 gap-y-0">
                   <CustomTextarea
                     form={form}
                     name="address1"
@@ -181,8 +181,6 @@ export default function Other({ form }: OtherProps) {
                     label="Address Line 2"
                     isDisabled={!selectedAddress}
                   />
-                </div>
-                <div className="grid grid-cols-2 gap-2">
                   <CustomTextarea
                     form={form}
                     name="address3"
@@ -196,7 +194,7 @@ export default function Other({ form }: OtherProps) {
                     isDisabled={!selectedAddress}
                   />
                 </div>
-                <div className="grid grid-cols-4 gap-2">
+                <div className="grid grid-cols-4 gap-1">
                   <CountryAutocomplete
                     form={form}
                     name="countryId"
@@ -221,19 +219,15 @@ export default function Other({ form }: OtherProps) {
                     isDisabled={!selectedAddress}
                   />
                 </div>
-                <div className="grid grid-cols-2 gap-2"></div>
               </div>
             </CardContent>
           </Card>
 
           {/* Contact Section */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Contact Information</CardTitle>
-            </CardHeader>
+          <Card className="border-0">
             <CardContent>
-              <div className="grid gap-2">
-                {customerId > 0 && (
+              {customerId > 0 && (
+                <div className="mb-1">
                   <DynamicContactAutocomplete
                     form={form}
                     name="contactId"
@@ -242,9 +236,10 @@ export default function Other({ form }: OtherProps) {
                     entityType={ContactEntityType.CUSTOMER}
                     onChangeEvent={handleContactSelect}
                   />
-                )}
-                <Separator className="my-2" />
-                <div className="grid grid-cols-2 gap-2">
+                </div>
+              )}
+              <div className="grid gap-1">
+                <div className="grid grid-cols-2 gap-1">
                   <CustomInput
                     form={form}
                     name="contactName"
@@ -258,7 +253,7 @@ export default function Other({ form }: OtherProps) {
                     isDisabled={!selectedAddress}
                   />
                 </div>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-2 gap-1">
                   <CustomInput
                     form={form}
                     name="mobileNo"
@@ -270,6 +265,33 @@ export default function Other({ form }: OtherProps) {
             </CardContent>
           </Card>
         </div>
+        {/* Other Information Section */}
+        {(visible?.m_OtherRemarks || visible?.m_AdvRecAmt) && (
+          <Card className="border-0">
+            <CardContent>
+              <div className="grid grid-cols-2 gap-1">
+                {visible?.m_OtherRemarks && (
+                  <CustomTextarea
+                    form={form}
+                    name="otherRemarks"
+                    label="Other Remarks"
+                    isRequired={false}
+                  />
+                )}
+                {visible?.m_AdvRecAmt && (
+                  <CustomNumberInput
+                    form={form}
+                    name="advRecAmt"
+                    label="Advance Received Amount"
+                    isRequired={false}
+                    round={2}
+                    className="text-right"
+                  />
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </Form>
 
       {/* Document Upload Section - Only show after creditNote is saved */}

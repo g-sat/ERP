@@ -1,6 +1,6 @@
 "use client"
 
-import { ArDebitNoteHdSchemaType } from "@/schemas"
+import { ArAdjustmentHdSchemaType } from "@/schemas"
 import { useAuthStore } from "@/stores/auth-store"
 import { UseFormReturn } from "react-hook-form"
 
@@ -10,7 +10,7 @@ import GLPostDetails from "./history/gl-post-details"
 import PaymentDetails from "./history/payment-details"
 
 interface HistoryProps {
-  form: UseFormReturn<ArDebitNoteHdSchemaType>
+  form: UseFormReturn<ArAdjustmentHdSchemaType>
   isEdit: boolean
 }
 
@@ -34,9 +34,9 @@ export default function History({ form, isEdit: _isEdit }: HistoryProps) {
   return (
     <div className="space-y-4">
       <AccountDetails {...accountDetails} />
-      <PaymentDetails debitNoteId={form.getValues().debitNoteId || ""} />
-      <GLPostDetails debitNoteId={form.getValues().debitNoteId || ""} />
-      <EditVersionDetails debitNoteId={form.getValues().debitNoteId || ""} />
+      <PaymentDetails adjustmentId={form.getValues().adjustmentId || ""} />
+      <GLPostDetails adjustmentId={form.getValues().adjustmentId || ""} />
+      <EditVersionDetails adjustmentId={form.getValues().adjustmentId || ""} />
     </div>
   )
 }

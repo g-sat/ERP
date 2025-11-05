@@ -66,12 +66,15 @@ export default function ReceiptDetailsTable({
     }
 
     const handleBlur = () => {
-      const numValue = Number(displayValue) || 0
+      // Remove commas and other formatting characters before parsing
+      const cleanedValue = displayValue.replace(/,/g, "").trim()
+      const numValue = Number(cleanedValue) || 0
       const roundedValue = Number(numValue.toFixed(decimals))
       setDisplayValue(formatNumber(roundedValue, decimals))
 
-      // Only trigger onChange if the value actually changed
-      if (roundedValue !== value) {
+      // Only trigger onChange if the value actually changed (with tolerance for floating point precision)
+      const tolerance = Math.pow(10, -decimals) / 2
+      if (Math.abs(roundedValue - value) > tolerance) {
         console.log(
           `Value changed from ${value} to ${roundedValue} - triggering calculation`
         )

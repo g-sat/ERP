@@ -27,6 +27,7 @@ interface MainProps {
   visible: IVisibleFields
   required: IMandatoryFields
   companyId: number
+  isCancelled?: boolean
 }
 
 export default function Main({
@@ -36,6 +37,7 @@ export default function Main({
   visible,
   required,
   companyId,
+  isCancelled = false,
 }: MainProps) {
   const { decimals } = useAuthStore()
   const amtDec = decimals[0]?.amtDec || 2
@@ -241,6 +243,7 @@ export default function Main({
         defaultGlId={defaults.ar.creditNoteGlId}
         defaultUomId={defaults.common.uomId}
         defaultGstId={defaults.common.gstId}
+        isCancelled={isCancelled}
       />
 
       <CreditNoteDetailsTable
@@ -255,6 +258,7 @@ export default function Main({
         onDataReorder={
           handleDataReorder as (newData: IArCreditNoteDt[]) => void
         }
+        isCancelled={isCancelled}
       />
 
       <DeleteConfirmation

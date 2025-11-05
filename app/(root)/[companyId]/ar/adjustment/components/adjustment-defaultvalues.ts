@@ -2,9 +2,9 @@ import { format } from "date-fns"
 
 import { clientDateFormat } from "@/lib/date-utils"
 
-const defaultDebitNoteDetails = {
-  debitNoteId: "0",
-  debitNoteNo: "",
+const defaultAdjustmentDetails = {
+  adjustmentId: "0",
+  adjustmentNo: "",
   itemNo: 0,
   seqNo: 0,
   docItemNo: 0,
@@ -55,18 +55,18 @@ const defaultDebitNoteDetails = {
   salesOrderNo: "",
   supplyDate: format(new Date(), clientDateFormat),
   supplierName: "",
-  suppDebitNoteNo: "",
-  apDebitNoteId: "",
-  apDebitNoteNo: "",
+  suppAdjustmentNo: "",
+  apAdjustmentId: "",
+  apAdjustmentNo: "",
   editVersion: 0,
 }
 
-const defaultDebitNote = {
+const defaultAdjustment = {
   companyId: 0,
-  debitNoteId: "0",
-  debitNoteNo: "",
+  adjustmentId: "0",
+  adjustmentNo: "",
   referenceNo: "",
-  suppDebitNoteNo: "",
+  suppAdjustmentNo: "",
   trnDate: format(new Date(), clientDateFormat),
   accountDate: format(new Date(), clientDateFormat),
   deliveryDate: format(new Date(), clientDateFormat),
@@ -77,10 +77,6 @@ const defaultDebitNote = {
   ctyExhRate: 0,
   creditTermId: 0,
   bankId: 0,
-  invoiceId: "0",
-  invoiceNo: "",
-  jobOrderId: 0,
-  jobOrderNo: "",
   totAmt: 0,
   totLocalAmt: 0,
   totCtyAmt: 0,
@@ -116,8 +112,8 @@ const defaultDebitNote = {
   emailAdd: "",
   moduleFrom: "",
   supplierName: "",
-  apDebitNoteId: "0",
-  apDebitNoteNo: "",
+  apAdjustmentId: "0",
+  apAdjustmentNo: "",
   createById: 0,
   createDate: format(new Date(), clientDateFormat),
   editById: "",
@@ -136,14 +132,21 @@ const defaultDebitNote = {
   appStatusId: "",
   appById: "",
   appDate: "",
+  jobOrderId: 0,
+  jobOrderNo: "",
+  vesselId: 0,
+  portId: 0,
+  serviceTypeId: 0,
+  otherRemarks: "",
+  advRecAmt: 0,
   data_details: [],
 }
 
 // Function to get default values with custom date format
 export const getDefaultValues = (dateFormat: string = clientDateFormat) => {
   return {
-    defaultDebitNote: {
-      ...defaultDebitNote,
+    defaultAdjustment: {
+      ...defaultAdjustment,
       trnDate: format(new Date(), dateFormat),
       accountDate: format(new Date(), dateFormat),
       deliveryDate: format(new Date(), dateFormat),
@@ -151,12 +154,12 @@ export const getDefaultValues = (dateFormat: string = clientDateFormat) => {
       gstClaimDate: format(new Date(), dateFormat),
       createDate: format(new Date(), dateFormat),
     },
-    defaultDebitNoteDetails: {
-      ...defaultDebitNoteDetails,
+    defaultAdjustmentDetails: {
+      ...defaultAdjustmentDetails,
       deliveryDate: format(new Date(), dateFormat),
       supplyDate: format(new Date(), dateFormat),
     },
   }
 }
 
-export { defaultDebitNote, defaultDebitNoteDetails }
+export { defaultAdjustment, defaultAdjustmentDetails }

@@ -1,9 +1,9 @@
-export interface IArCreditNoteHd {
+export interface IArAdjustmentHd {
   companyId: number
-  creditNoteId: string
-  creditNoteNo: string
+  adjustmentId: string
+  adjustmentNo: string
   referenceNo: string
-  suppCreditNoteNo: string
+  suppAdjustmentNo: string
   trnDate: Date | string
   accountDate: Date | string
   deliveryDate: Date | string
@@ -61,8 +61,8 @@ export interface IArCreditNoteHd {
   moduleFrom: string
   supplierName: string
 
-  apCreditNoteId: string
-  apCreditNoteNo: null | string
+  apAdjustmentId: string
+  apAdjustmentNo: null | string
   createById: number
   createDate: Date | string
   editById: null | number
@@ -94,10 +94,10 @@ export interface IArCreditNoteHd {
   serviceTypeName: string
   otherRemarks: string
   advRecAmt: number
-  data_details: IArCreditNoteDt[]
+  data_details: IArAdjustmentDt[]
 }
 
-export interface IArCreditNoteFilter {
+export interface IArAdjustmentFilter {
   startDate: Date | string
   endDate: Date | string
   search: string
@@ -107,9 +107,9 @@ export interface IArCreditNoteFilter {
   pageSize?: number
 }
 
-export interface IArCreditNoteDt {
-  creditNoteId: string
-  creditNoteNo: string
+export interface IArAdjustmentDt {
+  adjustmentId: string
+  adjustmentNo: string
   itemNo: number
   seqNo: number
   docItemNo: number
@@ -161,8 +161,8 @@ export interface IArCreditNoteDt {
   salesOrderNo: string
   supplyDate: Date | string
   supplierName: string
-  apCreditNoteId: string
-  apCreditNoteNo: string
-  suppCreditNoteNo: string
+  suppAdjustmentNo: string
+  apAdjustmentId: string
+  apAdjustmentNo: string
   editVersion: number
 }

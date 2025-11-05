@@ -1,18 +1,18 @@
 "use client"
 
 import { useState } from "react"
-import { IArDebitNoteDt, IArDebitNoteHd } from "@/interfaces"
+import { IArAdjustmentHd } from "@/interfaces"
 import { useAuthStore } from "@/stores/auth-store"
 import { ColumnDef } from "@tanstack/react-table"
 import { format } from "date-fns"
-import { AlertCircle } from "lucide-react"
 
+import { formatNumber } from "@/lib/format-utils"
 import { ARTransactionId, ModuleId, TableName } from "@/lib/utils"
 import {
-  useGetAPDebitNoteHistoryDetails,
-  useGetAPDebitNoteHistoryList,
-} from "@/hooks/use-ap"
-import { Alert, AlertDescription } from "@/components/ui/alert"
+  useGetARAdjustmentHistoryDetails,
+  useGetARAdjustmentHistoryList,
+} from "@/hooks/use-ar"
+import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
   Dialog,
@@ -20,8 +20,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { BasicTable } from "@/components/table/table-basic"
 import { DialogDataTable } from "@/components/table/table-dialog"
+
+import { EditVersionDetailsForm } from "./edit-version-details-form"
 
 // Extended column definition with hide property
 type _ExtendedColumnDef<T> = ColumnDef<T> & {
@@ -29,11 +30,11 @@ type _ExtendedColumnDef<T> = ColumnDef<T> & {
 }
 
 interface EditVersionDetailsProps {
-  debitNoteId: string
+  adjustmentId: string
 }
 
 export default function EditVersionDetails({
-  debitNoteId,
+  adjustmentId,
 }: EditVersionDetailsProps) {
   const { decimals } = useAuthStore()
   const amtDec = decimals[0]?.amtDec || 2
@@ -42,58 +43,58 @@ export default function EditVersionDetails({
   const exhRateDec = decimals[0]?.exhRateDec || 2
 
   const moduleId = ModuleId.ar
-  const transactionId = ARTransactionId.debitNote
+  const transactionId = ARTransactionId.adjustment
 
-  const [selectedDebitNote, setSelectedDebitNote] =
-    useState<IArDebitNoteHd | null>(null)
+  const [selectedAdjustment, setSelectedAdjustment] =
+    useState<IArAdjustmentHd | null>(null)
 
-  const { data: debitNoteHistoryData, refetch: refetchHistory } =
-    //useGetARDebitNoteHistoryList<IArDebitNoteHd[]>("14120250100024")
-    useGetAPDebitNoteHistoryList<IArDebitNoteHd[]>(debitNoteId)
+  const { data: adjustmentHistoryData, refetch: refetchHistory } =
+    //useGetARAdjustmentHistoryList<IArAdjustmentHd[]>("14120250100024")
+    useGetARAdjustmentHistoryList<IArAdjustmentHd[]>(adjustmentId)
 
-  const { data: debitNoteDetailsData, refetch: refetchDetails } =
-    useGetAPDebitNoteHistoryDetails<IArDebitNoteHd>(
-      selectedDebitNote?.debitNoteId || "",
-      selectedDebitNote?.editVersion?.toString() || ""
+  const { data: adjustmentDetailsData, refetch: refetchDetails } =
+    useGetARAdjustmentHistoryDetails<IArAdjustmentHd>(
+      selectedAdjustment?.adjustmentId || "",
+      selectedAdjustment?.editVersion?.toString() || ""
     )
 
-  function isIArDebitNoteHdArray(arr: unknown): arr is IArDebitNoteHd[] {
+  function isIArAdjustmentHdArray(arr: unknown): arr is IArAdjustmentHd[] {
     return (
       Array.isArray(arr) &&
       (arr.length === 0 ||
-        (typeof arr[0] === "object" && "debitNoteId" in arr[0]))
+        (typeof arr[0] === "object" && "adjustmentId" in arr[0]))
     )
   }
 
   // Check if history data is successful and has valid data
-  const tableData: IArDebitNoteHd[] =
-    debitNoteHistoryData?.result === 1 &&
-    isIArDebitNoteHdArray(debitNoteHistoryData?.data)
-      ? debitNoteHistoryData.data
+  const tableData: IArAdjustmentHd[] =
+    adjustmentHistoryData?.result === 1 &&
+    isIArAdjustmentHdArray(adjustmentHistoryData?.data)
+      ? adjustmentHistoryData.data
       : []
 
   // Check if details data is successful and has valid data
-  const dialogData: IArDebitNoteHd | undefined =
-    debitNoteDetailsData?.result === 1 &&
-    debitNoteDetailsData?.data &&
-    typeof debitNoteDetailsData.data === "object" &&
-    debitNoteDetailsData.data !== null &&
-    !Array.isArray(debitNoteDetailsData.data)
-      ? (debitNoteDetailsData.data as IArDebitNoteHd)
+  const dialogData: IArAdjustmentHd | undefined =
+    adjustmentDetailsData?.result === 1 &&
+    adjustmentDetailsData?.data &&
+    typeof adjustmentDetailsData.data === "object" &&
+    adjustmentDetailsData.data !== null &&
+    !Array.isArray(adjustmentDetailsData.data)
+      ? (adjustmentDetailsData.data as IArAdjustmentHd)
       : undefined
 
   // Check for API errors
-  const hasHistoryError = debitNoteHistoryData?.result === -1
-  const hasDetailsError = debitNoteDetailsData?.result === -1
+  const hasHistoryError = adjustmentHistoryData?.result === -1
+  const hasDetailsError = adjustmentDetailsData?.result === -1
 
-  const columns: ColumnDef<IArDebitNoteHd>[] = [
+  const columns: ColumnDef<IArAdjustmentHd>[] = [
     {
       accessorKey: "editVersion",
       header: "Edit Version",
     },
     {
-      accessorKey: "debitNoteNo",
-      header: "DebitNote No",
+      accessorKey: "adjustmentNo",
+      header: "Adjustment No",
     },
     {
       accessorKey: "referenceNo",
@@ -161,7 +162,7 @@ export default function EditVersionDetails({
       cell: ({ row }) => (
         <div className="text-right">
           {row.original.exhRate
-            ? row.original.exhRate.toFixed(exhRateDec)
+            ? formatNumber(row.original.exhRate, exhRateDec)
             : "-"}
         </div>
       ),
@@ -172,7 +173,7 @@ export default function EditVersionDetails({
       cell: ({ row }) => (
         <div className="text-right">
           {row.original.ctyExhRate
-            ? row.original.ctyExhRate.toFixed(exhRateDec)
+            ? formatNumber(row.original.ctyExhRate, exhRateDec)
             : "-"}
         </div>
       ),
@@ -198,7 +199,9 @@ export default function EditVersionDetails({
       header: "Total Amount",
       cell: ({ row }) => (
         <div className="text-right">
-          {row.original.totAmt ? row.original.totAmt.toFixed(amtDec) : "-"}
+          {row.original.totAmt
+            ? formatNumber(row.original.totAmt, amtDec)
+            : "-"}
         </div>
       ),
     },
@@ -208,7 +211,7 @@ export default function EditVersionDetails({
       cell: ({ row }) => (
         <div className="text-right">
           {row.original.totLocalAmt
-            ? row.original.totLocalAmt.toFixed(locAmtDec)
+            ? formatNumber(row.original.totLocalAmt, locAmtDec)
             : "-"}
         </div>
       ),
@@ -218,7 +221,9 @@ export default function EditVersionDetails({
       header: "GST Amount",
       cell: ({ row }) => (
         <div className="text-right">
-          {row.original.gstAmt ? row.original.gstAmt.toFixed(amtDec) : "-"}
+          {row.original.gstAmt
+            ? formatNumber(row.original.gstAmt, amtDec)
+            : "-"}
         </div>
       ),
     },
@@ -228,7 +233,7 @@ export default function EditVersionDetails({
       cell: ({ row }) => (
         <div className="text-right">
           {row.original.gstLocalAmt
-            ? row.original.gstLocalAmt.toFixed(locAmtDec)
+            ? formatNumber(row.original.gstLocalAmt, locAmtDec)
             : "-"}
         </div>
       ),
@@ -239,7 +244,7 @@ export default function EditVersionDetails({
       cell: ({ row }) => (
         <div className="text-right">
           {row.original.totAmtAftGst
-            ? row.original.totAmtAftGst.toFixed(amtDec)
+            ? formatNumber(row.original.totAmtAftGst, amtDec)
             : "-"}
         </div>
       ),
@@ -250,7 +255,7 @@ export default function EditVersionDetails({
       cell: ({ row }) => (
         <div className="text-right">
           {row.original.totLocalAmtAftGst
-            ? row.original.totLocalAmtAftGst.toFixed(locAmtDec)
+            ? formatNumber(row.original.totLocalAmtAftGst, locAmtDec)
             : "-"}
         </div>
       ),
@@ -301,28 +306,18 @@ export default function EditVersionDetails({
     },
   ]
 
-  const detailsColumns: ColumnDef<IArDebitNoteDt>[] = [
-    { accessorKey: "itemNo", header: "Item No" },
-    { accessorKey: "productCode", header: "Product Code" },
-    { accessorKey: "productName", header: "Product Name" },
-    { accessorKey: "qty", header: "Quantity" },
-    { accessorKey: "unitPrice", header: "Unit Price" },
-    { accessorKey: "totAmt", header: "Total Amount" },
-    { accessorKey: "remarks", header: "Remarks" },
-  ]
-
   const handleRefresh = async () => {
     try {
       // Only refetch if we don't have a "Data does not exist" error
       if (
         !hasHistoryError ||
-        debitNoteHistoryData?.message !== "Data does not exist"
+        adjustmentHistoryData?.message !== "Data does not exist"
       ) {
         await refetchHistory()
       }
       if (
         !hasDetailsError ||
-        debitNoteDetailsData?.message !== "Data does not exist"
+        adjustmentDetailsData?.message !== "Data does not exist"
       ) {
         await refetchDetails()
       }
@@ -338,116 +333,65 @@ export default function EditVersionDetails({
           <CardTitle>Edit Version Details</CardTitle>
         </CardHeader>
         <CardContent>
-          {/* Error handling for history data */}
-          {hasHistoryError && (
-            <Alert
-              variant={
-                debitNoteHistoryData?.message === "Data does not exist"
-                  ? "default"
-                  : "destructive"
-              }
-              className="mb-4"
-            >
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>
-                {debitNoteHistoryData?.message === "Data does not exist"
-                  ? "No debitNote history found for this debitNote."
-                  : `Failed to load debitNote history: ${debitNoteHistoryData?.message || "Unknown error"}`}
-              </AlertDescription>
-            </Alert>
-          )}
           <DialogDataTable
             data={tableData}
             columns={columns}
             isLoading={false}
             moduleId={moduleId}
             transactionId={transactionId}
-            tableName={TableName.arDebitNoteHistory}
+            tableName={TableName.arAdjustmentHistory}
             emptyMessage={
               hasHistoryError ? "Error loading data" : "No results."
             }
             onRefresh={handleRefresh}
-            onRowSelect={(debitNote) => setSelectedDebitNote(debitNote)}
+            onRowSelect={(adjustment) => setSelectedAdjustment(adjustment)}
           />
         </CardContent>
       </Card>
 
       <Dialog
-        open={!!selectedDebitNote}
-        onOpenChange={() => setSelectedDebitNote(null)}
+        open={!!selectedAdjustment}
+        onOpenChange={() => setSelectedAdjustment(null)}
       >
         <DialogContent className="@container h-[80vh] w-[90vw] !max-w-none overflow-y-auto rounded-lg p-4">
           <DialogHeader>
-            <DialogTitle>DebitNote Details</DialogTitle>
+            <DialogTitle>
+              Adjustment Details :{" "}
+              <Badge variant="secondary">
+                {dialogData?.adjustmentNo} : v {selectedAdjustment?.editVersion}
+              </Badge>
+            </DialogTitle>
           </DialogHeader>
 
-          {/* Error handling for details data */}
-          {hasDetailsError && (
-            <Alert
-              variant={
-                debitNoteDetailsData?.message === "Data does not exist"
-                  ? "default"
-                  : "destructive"
+          {dialogData ? (
+            <EditVersionDetailsForm
+              headerData={dialogData as unknown as Record<string, unknown>}
+              detailsData={
+                (dialogData?.data_details || []) as unknown as Record<
+                  string,
+                  unknown
+                >[]
               }
-              className="mb-4"
-            >
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>
-                {debitNoteDetailsData?.message === "Data does not exist"
-                  ? "No debitNote details found for this version."
-                  : `Failed to load debitNote details: ${debitNoteDetailsData?.message || "Unknown error"}`}
-              </AlertDescription>
-            </Alert>
+              summaryData={{
+                transactionAmount: dialogData?.totAmt,
+                localAmount: dialogData?.totLocalAmt,
+                gstAmount: dialogData?.gstAmt,
+                localGstAmount: dialogData?.gstLocalAmt,
+                totalAmount: dialogData?.totAmtAftGst,
+                localTotalAmount: dialogData?.totLocalAmtAftGst,
+                paymentAmount: dialogData?.payAmt,
+                localPaymentAmount: dialogData?.payLocalAmt,
+                balanceAmount: dialogData?.balAmt,
+                localBalanceAmount: dialogData?.balLocalAmt,
+              }}
+            />
+          ) : (
+            <div className="text-muted-foreground py-8 text-center">
+              {hasDetailsError
+                ? "Error loading adjustment details"
+                : "No adjustment details available"}
+            </div>
           )}
-
-          <div className="grid gap-2">
-            <Card>
-              <CardHeader>
-                <CardTitle>DebitNote Header</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {dialogData ? (
-                  <div className="grid grid-cols-6 gap-2">
-                    {Object.entries(dialogData).map(([key, value]) =>
-                      key !== "data_details" ? (
-                        <div key={key} className="flex flex-col gap-1">
-                          <span className="text-muted-foreground text-sm">
-                            {key.replace(/([A-Z])/g, " $1").trim()}
-                          </span>
-                          <span className="font-medium">{String(value)}</span>
-                        </div>
-                      ) : null
-                    )}
-                  </div>
-                ) : (
-                  <div className="text-muted-foreground py-4 text-center">
-                    {hasDetailsError
-                      ? "Error loading debitNote details"
-                      : "No debitNote details available"}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader>
-                <CardTitle>DebitNote Details</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <BasicTable
-                  data={dialogData?.data_details || []}
-                  columns={detailsColumns}
-                  moduleId={moduleId}
-                  transactionId={transactionId}
-                  tableName={TableName.arDebitNoteHistory}
-                  emptyMessage="No debitNote details available"
-                  onRefresh={handleRefresh}
-                  showHeader={true}
-                  showFooter={false}
-                  maxHeight="300px"
-                />
-              </CardContent>
-            </Card>
-          </div>
         </DialogContent>
       </Dialog>
     </>

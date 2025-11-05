@@ -6,27 +6,28 @@ import {
   calculateCountryAmounts,
   calculateLocalAmounts,
   calculateTotalAmounts,
-} from "@/helpers/ar-debitNote-calculations"
-import { IArDebitNoteDt } from "@/interfaces"
+} from "@/helpers/ar-adjustment-calculations"
+import { IArAdjustmentDt } from "@/interfaces"
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
-import { ArDebitNoteDtSchemaType, ArDebitNoteHdSchemaType } from "@/schemas"
+import { ArAdjustmentDtSchemaType, ArAdjustmentHdSchemaType } from "@/schemas"
 import { useAuthStore } from "@/stores/auth-store"
 import { UseFormReturn } from "react-hook-form"
 
 import { useUserSettingDefaults } from "@/hooks/use-settings"
 import { DeleteConfirmation } from "@/components/confirmation"
 
-import DebitNoteDetailsForm from "./debitNote-details-form"
-import DebitNoteDetailsTable from "./debitNote-details-table"
-import DebitNoteForm from "./debitNote-form"
+import AdjustmentDetailsForm from "./adjustment-details-form"
+import AdjustmentDetailsTable from "./adjustment-details-table"
+import AdjustmentForm from "./adjustment-form"
 
 interface MainProps {
-  form: UseFormReturn<ArDebitNoteHdSchemaType>
+  form: UseFormReturn<ArAdjustmentHdSchemaType>
   onSuccessAction: (action: string) => Promise<void>
   isEdit: boolean
   visible: IVisibleFields
   required: IMandatoryFields
   companyId: number
+  isCancelled?: boolean
 }
 
 export default function Main({
@@ -36,6 +37,7 @@ export default function Main({
   visible,
   required,
   companyId,
+  isCancelled = false,
 }: MainProps) {
   const { decimals } = useAuthStore()
   const amtDec = decimals[0]?.amtDec || 2
@@ -46,7 +48,7 @@ export default function Main({
   const { defaults } = useUserSettingDefaults()
 
   const [editingDetail, setEditingDetail] =
-    useState<ArDebitNoteDtSchemaType | null>(null)
+    useState<ArAdjustmentDtSchemaType | null>(null)
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false)
   const [selectedItemsToDelete, setSelectedItemsToDelete] = useState<number[]>(
     []
@@ -84,7 +86,7 @@ export default function Main({
 
     // Calculate base currency totals
     const totals = calculateTotalAmounts(
-      dataDetails as unknown as IArDebitNoteDt[],
+      dataDetails as unknown as IArAdjustmentDt[],
       amtDec
     )
     form.setValue("totAmt", totals.totAmt)
@@ -93,7 +95,7 @@ export default function Main({
 
     // Calculate local currency totals (always calculate)
     const localAmounts = calculateLocalAmounts(
-      dataDetails as unknown as IArDebitNoteDt[],
+      dataDetails as unknown as IArAdjustmentDt[],
       locAmtDec
     )
     form.setValue("totLocalAmt", localAmounts.totLocalAmt)
@@ -103,7 +105,7 @@ export default function Main({
     // Calculate country currency totals (always calculate)
     // If m_CtyCurr is false, country amounts = local amounts
     const countryAmounts = calculateCountryAmounts(
-      dataDetails as unknown as IArDebitNoteDt[],
+      dataDetails as unknown as IArAdjustmentDt[],
       visible?.m_CtyCurr ? ctyAmtDec : locAmtDec
     )
     form.setValue("totCtyAmt", countryAmounts.totCtyAmt)
@@ -125,7 +127,7 @@ export default function Main({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dataDetails, amtDec, locAmtDec, ctyAmtDec])
 
-  const handleAddRow = (rowData: IArDebitNoteDt) => {
+  const handleAddRow = (rowData: IArAdjustmentDt) => {
     const currentData = form.getValues("data_details") || []
 
     if (editingDetail) {
@@ -135,7 +137,7 @@ export default function Main({
       )
       form.setValue(
         "data_details",
-        updatedData as unknown as ArDebitNoteDtSchemaType[],
+        updatedData as unknown as ArAdjustmentDtSchemaType[],
         { shouldDirty: true, shouldTouch: true }
       )
 
@@ -145,7 +147,7 @@ export default function Main({
       const updatedData = [...currentData, rowData]
       form.setValue(
         "data_details",
-        updatedData as unknown as ArDebitNoteDtSchemaType[],
+        updatedData as unknown as ArAdjustmentDtSchemaType[],
         { shouldDirty: true, shouldTouch: true }
       )
     }
@@ -194,10 +196,10 @@ export default function Main({
     setTableKey((prev) => prev + 1)
   }
 
-  const handleEdit = (detail: IArDebitNoteDt) => {
+  const handleEdit = (detail: IArAdjustmentDt) => {
     // console.log("Editing detail:", detail)
-    // Convert IArDebitNoteDt to ArDebitNoteDtSchemaType and set for editing
-    setEditingDetail(detail as unknown as ArDebitNoteDtSchemaType)
+    // Convert IArAdjustmentDt to ArAdjustmentDtSchemaType and set for editing
+    setEditingDetail(detail as unknown as ArAdjustmentDtSchemaType)
     // console.log("Editing editingDetail:", editingDetail)
   }
 
@@ -205,7 +207,7 @@ export default function Main({
     setEditingDetail(null)
   }
 
-  const handleDataReorder = (newData: IArDebitNoteDt[]) => {
+  const handleDataReorder = (newData: IArAdjustmentDt[]) => {
     // Update itemNo sequentially after reordering
     const reorderedData = newData.map((item, index) => ({
       ...item,
@@ -213,13 +215,13 @@ export default function Main({
     }))
     form.setValue(
       "data_details",
-      reorderedData as unknown as ArDebitNoteDtSchemaType[]
+      reorderedData as unknown as ArAdjustmentDtSchemaType[]
     )
   }
 
   return (
     <div className="w-full">
-      <DebitNoteForm
+      <AdjustmentForm
         form={form}
         onSuccessAction={onSuccessAction}
         isEdit={isEdit}
@@ -229,7 +231,7 @@ export default function Main({
         defaultCurrencyId={defaults.ar.currencyId}
       />
 
-      <DebitNoteDetailsForm
+      <AdjustmentDetailsForm
         Hdform={form}
         onAddRowAction={handleAddRow}
         onCancelEdit={editingDetail ? handleCancelEdit : undefined}
@@ -237,22 +239,26 @@ export default function Main({
         companyId={companyId}
         visible={visible}
         required={required}
-        existingDetails={dataDetails as ArDebitNoteDtSchemaType[]}
-        defaultGlId={defaults.ar.debitNoteGlId}
+        existingDetails={dataDetails as ArAdjustmentDtSchemaType[]}
+        defaultGlId={defaults.ar.invoiceGlId}
         defaultUomId={defaults.common.uomId}
         defaultGstId={defaults.common.gstId}
+        isCancelled={isCancelled}
       />
 
-      <DebitNoteDetailsTable
+      <AdjustmentDetailsTable
         key={tableKey}
-        data={(dataDetails as unknown as IArDebitNoteDt[]) || []}
+        data={(dataDetails as unknown as IArAdjustmentDt[]) || []}
         visible={visible}
         onDelete={handleDelete}
         onBulkDelete={handleBulkDelete}
-        onEdit={handleEdit as (template: IArDebitNoteDt) => void}
+        onEdit={handleEdit as (template: IArAdjustmentDt) => void}
         onRefresh={() => {}} // Add refresh logic if needed
         onFilterChange={() => {}} // Add filter logic if needed
-        onDataReorder={handleDataReorder as (newData: IArDebitNoteDt[]) => void}
+        onDataReorder={
+          handleDataReorder as (newData: IArAdjustmentDt[]) => void
+        }
+        isCancelled={isCancelled}
       />
 
       <DeleteConfirmation

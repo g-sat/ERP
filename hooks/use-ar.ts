@@ -2,7 +2,7 @@ import { ApiResponse } from "@/interfaces/auth"
 import { useQuery } from "@tanstack/react-query"
 
 import { getById, getData } from "@/lib/api-client"
-import { ArInvoice, ArReceipt } from "@/lib/api-routes"
+import { ArAdjustment, ArInvoice, ArReceipt } from "@/lib/api-routes"
 
 /**
  * 1. Invoice Management
@@ -133,6 +133,55 @@ export function useGetARReceiptHistoryDetails<T>(
     refetchOnReconnect: false,
     gcTime: 0,
     staleTime: 0,
+    ...options,
+  })
+}
+
+/**
+ * 1.4 Get AR Adjustment History List
+ */
+export function useGetARAdjustmentHistoryList<T>(
+  adjustmentId: string,
+  options = {}
+) {
+  return useQuery<ApiResponse<T>>({
+    queryKey: ["ar-adjustment-history-list", adjustmentId],
+    queryFn: async () => {
+      // Clean up the URL by removing any double slashes
+      return await getData(`${ArAdjustment.history}/${adjustmentId}`)
+    },
+    enabled: !!adjustmentId && adjustmentId !== "0",
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+    gcTime: 10 * 60 * 1000,
+    staleTime: 5 * 60 * 1000,
+    ...options,
+  })
+}
+
+/**
+ * 1.5 Get AR Adjustment History Details
+ */
+export function useGetARAdjustmentHistoryDetails<T>(
+  adjustmentId: string,
+  editVersion: string,
+  options = {}
+) {
+  return useQuery<ApiResponse<T>>({
+    queryKey: ["ar-adjustment-history-details", adjustmentId, editVersion],
+    queryFn: async () => {
+      // Clean up the URL by removing any double slashes
+      return await getData(
+        `${ArAdjustment.historyDetails}/${adjustmentId}/${editVersion}`
+      )
+    },
+    enabled: !!adjustmentId && adjustmentId !== "0",
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+    gcTime: 10 * 60 * 1000,
+    staleTime: 5 * 60 * 1000,
     ...options,
   })
 }

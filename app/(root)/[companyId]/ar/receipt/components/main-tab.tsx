@@ -247,7 +247,40 @@ export default function Main({
       const dec = decimals[0] || { amtDec: 2, locAmtDec: 2 }
       const totAmt = Number(form.getValues("totAmt")) || 0
 
-      calculateManualAllocation(arr, rowIndex, allocValue, totAmt, dec)
+      // console.log(
+      //   "updateAllocationCalculations",
+      //   arr,
+      //   rowIndex,
+      //   allocValue,
+      //   totAmt,
+      //   dec
+      // )
+
+      const { wasAutoSetToZero } = calculateManualAllocation(
+        arr,
+        rowIndex,
+        allocValue,
+        totAmt,
+        dec
+      )
+
+      // Show toast if allocation was auto-set to zero due to remaining amount <= 0
+      if (wasAutoSetToZero) {
+        console.log(
+          "updateAllocationCalculations wasAutoSetToZero",
+          wasAutoSetToZero
+        )
+        toast.error("Now it's auto set to zero. Please check the allocation.")
+      }
+
+      // console.log(
+      //   "updateAllocationCalculations calculateManualAllocation",
+      //   arr,
+      //   rowIndex,
+      //   allocValue,
+      //   totAmt,
+      //   dec
+      // )
 
       calauteLocalAmtandGainLoss(arr, rowIndex, exhRate, dec)
 
@@ -295,6 +328,8 @@ export default function Main({
     (itemNo: number, field: string, value: number) => {
       if (field !== "allocAmt") return
 
+      // console.log("handleCellEdit", itemNo, field, value)
+
       const currentData = form.getValues("data_details") || []
       const currentItem = currentData.find((item) => item.itemNo === itemNo)
       const currentValue = currentItem?.allocAmt || 0
@@ -319,12 +354,18 @@ export default function Main({
         updateAllocationCalculations(updatedData, rowIndex, 0)
         return
       } else {
+        // console.log("handleCellEdit else", itemNo, field, value)
         // When totAmt > 0, allow manual entry with validation
         const updatedData = [...currentData]
         const arr = updatedData as unknown as IArReceiptDt[]
         const rowIndex = arr.findIndex((r) => r.itemNo === itemNo)
         if (rowIndex === -1) return
 
+        // console.log(
+        //   "handleCellEdit else updateAllocationCalculations",
+        //   rowIndex,
+        //   value
+        // )
         updateAllocationCalculations(updatedData, rowIndex, value)
       }
     },

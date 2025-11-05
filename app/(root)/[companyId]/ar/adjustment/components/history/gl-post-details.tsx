@@ -4,6 +4,7 @@ import { useAuthStore } from "@/stores/auth-store"
 import { ColumnDef } from "@tanstack/react-table"
 import { format } from "date-fns"
 
+import { formatNumber } from "@/lib/format-utils"
 import { ARTransactionId, ModuleId, TableName } from "@/lib/utils"
 import { useGetGlPostDetails } from "@/hooks/use-histoy"
 import { Badge } from "@/components/ui/badge"
@@ -15,24 +16,24 @@ type ExtendedColumnDef<T> = ColumnDef<T> & {
   hidden?: boolean
 }
 interface GLPostDetailsProps {
-  debitNoteId: string
+  adjustmentId: string
 }
 
-export default function GLPostDetails({ debitNoteId }: GLPostDetailsProps) {
+export default function GLPostDetails({ adjustmentId }: GLPostDetailsProps) {
   const { decimals } = useAuthStore()
   const amtDec = decimals[0]?.amtDec || 2
   const locAmtDec = decimals[0]?.locAmtDec || 2
   const exhRateDec = decimals[0]?.exhRateDec || 6
   const dateFormat = decimals[0]?.dateFormat || "dd/MM/yyyy"
   const moduleId = ModuleId.ar
-  const transactionId = ARTransactionId.debitNote
+  const transactionId = ARTransactionId.adjustment
 
   const { data: glPostDetails, refetch: refetchGlPost } =
     //useGetGlPostDetails<IGlTransactionDetails>(25, 1, "14120250100024")
     useGetGlPostDetails<IGlTransactionDetails>(
       Number(moduleId),
       Number(transactionId),
-      debitNoteId
+      adjustmentId
     )
 
   const { data: glPostDetailsData } =
@@ -50,95 +51,114 @@ export default function GLPostDetails({ debitNoteId }: GLPostDetailsProps) {
 
   const columns: ExtendedColumnDef<IGlTransactionDetails>[] = [
     {
-      accessorKey: "DocumentNo",
+      accessorKey: "documentNo",
       header: "Document No",
     },
     {
-      accessorKey: "ReferenceNo",
+      accessorKey: "referenceNo",
       header: "Reference No",
     },
     {
-      accessorKey: "AccountDate",
+      accessorKey: "accountDate",
       header: "Acc. Date",
       cell: ({ row }) => {
-        const date = row.original.AccountDate
-          ? new Date(row.original.AccountDate)
+        const date = row.original.accountDate
+          ? new Date(row.original.accountDate)
           : null
         return date ? format(date, dateFormat) : "-"
       },
     },
     {
-      accessorKey: "CurrencyCode",
-      header: "Currency",
+      accessorKey: "customerName",
+      header: "Customer Name",
     },
     {
-      accessorKey: "CurrencyName",
-      header: "Currency",
-      hidden: true,
+      accessorKey: "moduleFrom",
+      header: "Module",
     },
     {
-      accessorKey: "ExhRate",
+      accessorKey: "currencyCode",
+      header: "Currency Code",
+    },
+    {
+      accessorKey: "exhRate",
       header: "Exh. Rate",
-      cell: ({ row }) =>
-        row.original.ExhRate ? row.original.ExhRate.toFixed(exhRateDec) : "-",
+      cell: ({ row }) => (
+        <div className="text-right">
+          {row.original.exhRate
+            ? formatNumber(row.original.exhRate, exhRateDec)
+            : "-"}
+        </div>
+      ),
     },
     {
-      accessorKey: "CtyExhRate",
+      accessorKey: "ctyExhRate",
       header: "Country Exchange Rate",
-      cell: ({ row }) =>
-        row.original.CtyExhRate
-          ? row.original.CtyExhRate.toFixed(exhRateDec)
-          : "-",
-      hidden: true,
+      cell: ({ row }) => (
+        <div className="text-right">
+          {row.original.ctyExhRate
+            ? formatNumber(row.original.ctyExhRate, exhRateDec)
+            : "-"}
+        </div>
+      ),
     },
     {
-      accessorKey: "BankCode",
+      accessorKey: "bankCode",
       header: "Bank Code",
-      hidden: true,
     },
     {
-      accessorKey: "BankName",
+      accessorKey: "bankName",
       header: "Bank",
     },
     {
-      accessorKey: "GLCode",
+      accessorKey: "glCode",
       header: "GL Code",
     },
     {
-      accessorKey: "GLName",
+      accessorKey: "glName",
       header: "GL Name",
     },
     {
-      accessorKey: "IsDebit",
+      accessorKey: "isDebit",
       header: "Type",
       cell: ({ row }) => (
-        <Badge variant={row.original.IsDebit ? "default" : "destructive"}>
-          {row.original.IsDebit ? "Debit" : "Credit"}
+        <Badge variant={row.original.isDebit ? "default" : "destructive"}>
+          {row.original.isDebit ? "Debit" : "Credit"}
         </Badge>
       ),
     },
     {
-      accessorKey: "TotAmt",
+      accessorKey: "totAmt",
       header: "Total Amount",
-      cell: ({ row }) =>
-        row.original.TotAmt ? row.original.TotAmt.toFixed(amtDec) : "-",
+      cell: ({ row }) => (
+        <div className="text-right">
+          {row.original.totAmt
+            ? formatNumber(row.original.totAmt, amtDec)
+            : "-"}
+        </div>
+      ),
     },
     {
-      accessorKey: "TotLocalAmt",
+      accessorKey: "totLocalAmt",
       header: "Total Local Amount",
-      cell: ({ row }) =>
-        row.original.TotLocalAmt
-          ? row.original.TotLocalAmt.toFixed(locAmtDec)
-          : "-",
+      cell: ({ row }) => (
+        <div className="text-right">
+          {row.original.totLocalAmt
+            ? formatNumber(row.original.totLocalAmt, locAmtDec)
+            : "-"}
+        </div>
+      ),
     },
     {
-      accessorKey: "TotCtyAmt",
+      accessorKey: "totCtyAmt",
       header: "Total Country Amount",
-      cell: ({ row }) =>
-        row.original.TotCtyAmt
-          ? row.original.TotCtyAmt.toFixed(locAmtDec)
-          : "-",
-      hidden: true,
+      cell: ({ row }) => (
+        <div className="text-right">
+          {row.original.totCtyAmt
+            ? formatNumber(row.original.totCtyAmt, locAmtDec)
+            : "-"}
+        </div>
+      ),
     },
     {
       accessorKey: "gstCode",
@@ -147,29 +167,39 @@ export default function GLPostDetails({ debitNoteId }: GLPostDetailsProps) {
     {
       accessorKey: "gstName",
       header: "GST Name",
-      hidden: true,
     },
     {
       accessorKey: "gstAmt",
       header: "GST Amount",
-      cell: ({ row }) =>
-        row.original.gstAmt ? row.original.gstAmt.toFixed(amtDec) : "-",
+      cell: ({ row }) => (
+        <div className="text-right">
+          {row.original.gstAmt
+            ? formatNumber(row.original.gstAmt, amtDec)
+            : "-"}
+        </div>
+      ),
     },
     {
       accessorKey: "gstLocalAmt",
       header: "GST Local Amount",
-      cell: ({ row }) =>
-        row.original.gstLocalAmt
-          ? row.original.gstLocalAmt.toFixed(locAmtDec)
-          : "-",
+      cell: ({ row }) => (
+        <div className="text-right">
+          {row.original.gstLocalAmt
+            ? formatNumber(row.original.gstLocalAmt, locAmtDec)
+            : "-"}
+        </div>
+      ),
     },
     {
       accessorKey: "gstCtyAmt",
       header: "GST Country Amount",
-      cell: ({ row }) =>
-        row.original.gstCtyAmt
-          ? row.original.gstCtyAmt.toFixed(locAmtDec)
-          : "-",
+      cell: ({ row }) => (
+        <div className="text-right">
+          {row.original.gstCtyAmt
+            ? formatNumber(row.original.gstCtyAmt, locAmtDec)
+            : "-"}
+        </div>
+      ),
       hidden: true,
     },
     {
@@ -197,7 +227,6 @@ export default function GLPostDetails({ debitNoteId }: GLPostDetailsProps) {
     {
       accessorKey: "portCode",
       header: "Port Code",
-      hidden: true,
     },
     {
       accessorKey: "portName",
@@ -206,7 +235,6 @@ export default function GLPostDetails({ debitNoteId }: GLPostDetailsProps) {
     {
       accessorKey: "vesselCode",
       header: "Vessel Code",
-      hidden: true,
     },
     {
       accessorKey: "vesselName",
@@ -219,7 +247,6 @@ export default function GLPostDetails({ debitNoteId }: GLPostDetailsProps) {
     {
       accessorKey: "bargeCode",
       header: "Barge Code",
-      hidden: true,
     },
     {
       accessorKey: "bargeName",
@@ -228,7 +255,6 @@ export default function GLPostDetails({ debitNoteId }: GLPostDetailsProps) {
     {
       accessorKey: "productCode",
       header: "Product Code",
-      hidden: true,
     },
     {
       accessorKey: "productName",
@@ -243,16 +269,13 @@ export default function GLPostDetails({ debitNoteId }: GLPostDetailsProps) {
       header: "Supplier Name",
     },
     {
-      accessorKey: "moduleFrom",
-      header: "Module",
+      accessorKey: "customerCode",
+      header: "Customer Code",
     },
+
     {
-      accessorKey: "createByCode",
-      header: "Created By Code",
-    },
-    {
-      accessorKey: "createByName",
-      header: "Created By Name",
+      accessorKey: "createBy",
+      header: "Created By",
     },
     {
       accessorKey: "createDate",
@@ -274,9 +297,6 @@ export default function GLPostDetails({ debitNoteId }: GLPostDetailsProps) {
     }
   }
 
-  // Filter out columns with hidden: true
-  const visibleColumns = columns.filter((column) => !column.hidden)
-
   return (
     <Card>
       <CardHeader>
@@ -285,7 +305,7 @@ export default function GLPostDetails({ debitNoteId }: GLPostDetailsProps) {
       <CardContent>
         <BasicTable
           data={glPostDetailsData || []}
-          columns={visibleColumns}
+          columns={columns}
           isLoading={false}
           moduleId={moduleId}
           transactionId={transactionId}
@@ -295,7 +315,7 @@ export default function GLPostDetails({ debitNoteId }: GLPostDetailsProps) {
           showHeader={true}
           showFooter={false}
           maxHeight="300px"
-          pageSizeOption={10}
+          pageSizeOption={50}
         />
       </CardContent>
     </Card>

@@ -14,34 +14,41 @@ import {
   calculateLocalAmounts,
   calculateTotalAmounts,
   recalculateAllDetailAmounts,
-} from "@/helpers/ar-debitNote-calculations"
-import { IArDebitNoteDt } from "@/interfaces"
+} from "@/helpers/ar-adjustment-calculations"
+import { IArAdjustmentDt } from "@/interfaces"
 import {
   IBankLookup,
   ICreditTermLookup,
   ICurrencyLookup,
   ICustomerLookup,
+  IJobOrderLookup,
 } from "@/interfaces/lookup"
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
-import { ArDebitNoteDtSchemaType, ArDebitNoteHdSchemaType } from "@/schemas"
+import { ArAdjustmentDtSchemaType, ArAdjustmentHdSchemaType } from "@/schemas"
 import { useAuthStore } from "@/stores/auth-store"
-import { format } from "date-fns"
-import { FormProvider, UseFormReturn } from "react-hook-form"
+import { format, parse } from "date-fns"
+import { FormProvider, UseFormReturn, useWatch } from "react-hook-form"
 
 import { clientDateFormat } from "@/lib/date-utils"
+import { useGetDynamicLookup } from "@/hooks/use-lookup"
 import {
   BankAutocomplete,
-  CompanyCustomerAutocomplete,
   CreditTermAutocomplete,
   CurrencyAutocomplete,
+  CustomerAutocomplete,
+  DynamicCustomerAutocomplete,
+  JobOrderAutocomplete,
+  PortAutocomplete,
 } from "@/components/autocomplete"
+import DynamicVesselAutocomplete from "@/components/autocomplete/autocomplete-dynamic-vessel"
+import ServiceTypeAutocomplete from "@/components/autocomplete/autocomplete-servicetype"
 import { CustomDateNew } from "@/components/custom/custom-date-new"
 import CustomInput from "@/components/custom/custom-input"
 import CustomNumberInput from "@/components/custom/custom-number-input"
 import CustomTextarea from "@/components/custom/custom-textarea"
 
-interface DebitNoteFormProps {
-  form: UseFormReturn<ArDebitNoteHdSchemaType>
+interface AdjustmentFormProps {
+  form: UseFormReturn<ArAdjustmentHdSchemaType>
   onSuccessAction: (action: string) => Promise<void>
   isEdit: boolean
   visible: IVisibleFields
@@ -50,7 +57,7 @@ interface DebitNoteFormProps {
   defaultCurrencyId?: number
 }
 
-export default function DebitNoteForm({
+export default function AdjustmentForm({
   form,
   onSuccessAction,
   isEdit,
@@ -58,26 +65,93 @@ export default function DebitNoteForm({
   required,
   companyId: _companyId,
   defaultCurrencyId = 0,
-}: DebitNoteFormProps) {
+}: AdjustmentFormProps) {
   const { decimals } = useAuthStore()
   const amtDec = decimals[0]?.amtDec || 2
   const locAmtDec = decimals[0]?.locAmtDec || 2
   const ctyAmtDec = decimals[0]?.ctyAmtDec || 2
   const exhRateDec = decimals[0]?.exhRateDec || 6
 
+  const { data: dynamicLookup } = useGetDynamicLookup()
+  const isDynamicCustomer = dynamicLookup?.isCustomer ?? false
+
+  // Watch account date to use as minDate for due date
+  const accountDateValue = useWatch({
+    control: form.control,
+    name: "accountDate",
+  })
+  const dueDateMinDate = React.useMemo(() => {
+    if (!accountDateValue) return new Date()
+
+    // Parse account date string to Date object if needed
+    const accountDateObj =
+      typeof accountDateValue === "string"
+        ? parse(accountDateValue, clientDateFormat, new Date())
+        : accountDateValue
+
+    return accountDateObj && !isNaN(accountDateObj.getTime())
+      ? accountDateObj
+      : new Date()
+  }, [accountDateValue])
+
+  // Refs to store original values on focus for comparison on change
+  const originalExhRateRef = React.useRef<number>(0)
+  const originalCtyExhRateRef = React.useRef<number>(0)
+
   const onSubmit = async () => {
     await onSuccessAction("save")
   }
+
+  // Helper function to calculate and set due date
+  const calculateAndSetDueDate = React.useCallback(async () => {
+    const creditTermId = form.getValues("creditTermId")
+    const accountDate = form.getValues("accountDate")
+    const deliveryDate = form.getValues("deliveryDate")
+
+    console.log("creditTermId", creditTermId)
+    console.log("accountDate", accountDate)
+    console.log("deliveryDate", deliveryDate)
+    if (creditTermId && creditTermId > 0) {
+      console.log(
+        "Credit term available - calculate due date based on credit term"
+      )
+      // Credit term available - calculate due date based on credit term
+      await setDueDate(form)
+    } else if (accountDate) {
+      console.log("No credit term - set due date to account date")
+      // No credit term - set due date to account date
+      const dueDateValue =
+        typeof accountDate === "string"
+          ? accountDate
+          : format(accountDate, clientDateFormat)
+      form.setValue("dueDate", dueDateValue)
+      form.trigger("dueDate")
+    } else {
+      console.log("No account date either - set to today")
+      // No account date either - set to today
+      const todayValue = format(new Date(), clientDateFormat)
+      form.setValue("dueDate", todayValue)
+      form.trigger("dueDate")
+    }
+    console.log("dueDate", form.getValues("dueDate"))
+  }, [form])
 
   // Handle transaction date selection
   const handleTrnDateChange = React.useCallback(
     async (_selectedTrnDate: Date | null) => {
       // Additional logic when transaction date changes
       const { trnDate } = form?.getValues()
-      form.setValue("gstClaimDate", trnDate)
+
+      // Format trnDate to string if it's a Date object
+      const trnDateStr =
+        typeof trnDate === "string"
+          ? trnDate
+          : format(trnDate || new Date(), clientDateFormat)
+
+      form.setValue("gstClaimDate", trnDateStr)
       form?.trigger("gstClaimDate")
-      form.setValue("accountDate", trnDate)
-      form.setValue("deliveryDate", trnDate)
+      form.setValue("accountDate", trnDateStr)
+      form.setValue("deliveryDate", trnDateStr)
       form?.trigger("accountDate")
       form?.trigger("deliveryDate")
       await setExchangeRate(form, exhRateDec, visible)
@@ -95,6 +169,51 @@ export default function DebitNoteForm({
     [decimals, exhRateDec, form, visible]
   )
 
+  // Handle account date selection
+  const handleAccountDateChange = React.useCallback(
+    async (selectedAccountDate: Date | null) => {
+      // Get the updated account date from form (should be set by CustomDateNew)
+      const accountDate = form?.getValues("accountDate") || selectedAccountDate
+
+      if (accountDate) {
+        // Format account date to string if it's a Date object
+        const accountDateStr =
+          typeof accountDate === "string"
+            ? accountDate
+            : format(accountDate, clientDateFormat)
+
+        // Set gstClaimDate and deliveryDate to the new account date (as strings)
+        form.setValue("gstClaimDate", accountDateStr)
+        form?.trigger("gstClaimDate")
+
+        form.setValue("deliveryDate", accountDateStr)
+        form?.trigger("deliveryDate")
+
+        // Ensure accountDate is set in form (as string) and trigger to ensure it's updated
+        if (selectedAccountDate) {
+          const accountDateValue =
+            typeof selectedAccountDate === "string"
+              ? selectedAccountDate
+              : format(selectedAccountDate, clientDateFormat)
+          form.setValue("accountDate", accountDateValue)
+          form.trigger("accountDate")
+        }
+
+        // Wait a tick to ensure form state is updated before calling setExchangeRate
+        await new Promise((resolve) => setTimeout(resolve, 0))
+
+        await setExchangeRate(form, exhRateDec, visible)
+        if (visible?.m_CtyCurr) {
+          await setExchangeRateLocal(form, exhRateDec)
+        }
+
+        // Calculate and set due date
+        await calculateAndSetDueDate()
+      }
+    },
+    [exhRateDec, form, visible, calculateAndSetDueDate]
+  )
+
   // Handle customer selection
   const handleCustomerChange = React.useCallback(
     async (selectedCustomer: ICustomerLookup | null) => {
@@ -106,10 +225,12 @@ export default function DebitNoteForm({
           form.setValue("bankId", selectedCustomer.bankId || 0)
         }
 
-        await setDueDate(form)
         await setExchangeRate(form, exhRateDec, visible)
         await setExchangeRateLocal(form, exhRateDec)
         await setAddressContactDetails(form, EntityType.CUSTOMER)
+
+        // Calculate and set due date after customer fields are set
+        await calculateAndSetDueDate()
       } else {
         // ✅ Customer cleared - reset all related fields
         if (!isEdit) {
@@ -123,8 +244,8 @@ export default function DebitNoteForm({
         form.setValue("exhRate", 0)
         form.setValue("ctyExhRate", 0)
 
-        // Clear due date
-        form.setValue("dueDate", format(new Date(), clientDateFormat))
+        // Calculate and set due date (will use account date if available, otherwise today)
+        await calculateAndSetDueDate()
 
         // Clear address fields
         form.setValue("addressId", 0)
@@ -147,39 +268,23 @@ export default function DebitNoteForm({
         form.trigger()
       }
     },
-    [exhRateDec, form, isEdit, visible, defaultCurrencyId]
-  )
-
-  // Handle transaction date selection
-  const handleAccountDateChange = React.useCallback(
-    async (_selectedAccountDate: Date | null) => {
-      // Additional logic when transaction date changes
-      const { accountDate } = form?.getValues()
-      form.setValue("gstClaimDate", accountDate)
-      form?.trigger("gstClaimDate")
-
-      await setExchangeRate(form, exhRateDec, visible)
-      if (visible?.m_CtyCurr) {
-        await setExchangeRateLocal(form, exhRateDec)
-      }
-      await setGSTPercentage(
-        form,
-        form.getValues("data_details"),
-        decimals[0],
-        visible
-      )
-      await setDueDate(form)
-    },
-    [decimals, exhRateDec, form, visible]
+    [
+      exhRateDec,
+      form,
+      isEdit,
+      visible,
+      defaultCurrencyId,
+      calculateAndSetDueDate,
+    ]
   )
 
   // Handle credit term selection
   const handleCreditTermChange = React.useCallback(
-    (_selectedCreditTerm: ICreditTermLookup | null) => {
-      // Additional logic when credit term changes
-      setDueDate(form)
+    async (_selectedCreditTerm: ICreditTermLookup | null) => {
+      // Calculate and set due date when credit term changes
+      await calculateAndSetDueDate()
     },
-    [form]
+    [calculateAndSetDueDate]
   )
 
   // Handle bank selection
@@ -198,6 +303,30 @@ export default function DebitNoteForm({
     [form]
   )
 
+  // Handle job order selection
+  const handleJobOrderChange = React.useCallback(
+    (selectedJobOrder: IJobOrderLookup | null) => {
+      if (selectedJobOrder) {
+        // Set vesselId and portId from selected job order
+        form.setValue("vesselId", selectedJobOrder.vesselId || 0)
+        form.setValue("portId", selectedJobOrder.portId || 0)
+
+        // Trigger validation for the updated fields
+        form.trigger("vesselId")
+        form.trigger("portId")
+      } else {
+        // Clear vesselId and portId when job order is cleared
+        form.setValue("vesselId", 0)
+        form.setValue("portId", 0)
+
+        // Trigger validation for the cleared fields
+        form.trigger("vesselId")
+        form.trigger("portId")
+      }
+    },
+    [form]
+  )
+
   // Set default currency when form is initialized (not in edit mode)
   React.useEffect(() => {
     // Only run when defaultCurrencyId is loaded and we're not in edit mode
@@ -205,7 +334,7 @@ export default function DebitNoteForm({
       const currentCurrencyId = form.getValues("currencyId")
       const currentCustomerId = form.getValues("customerId")
 
-      console.log("DebitNote Form - Checking defaults:", {
+      console.log("Adjustment Form - Checking defaults:", {
         currentCurrencyId,
         currentCustomerId,
         defaultCurrencyId,
@@ -218,7 +347,7 @@ export default function DebitNoteForm({
         (!currentCustomerId || currentCustomerId === 0)
       ) {
         console.log(
-          "DebitNote Form - Setting default currency:",
+          "Adjustment Form - Setting default currency:",
           defaultCurrencyId
         )
         form.setValue("currencyId", defaultCurrencyId)
@@ -255,7 +384,7 @@ export default function DebitNoteForm({
 
     // Calculate base currency totals
     const totals = calculateTotalAmounts(
-      formDetails as unknown as IArDebitNoteDt[],
+      formDetails as unknown as IArAdjustmentDt[],
       amtDec
     )
     form.setValue("totAmt", totals.totAmt)
@@ -264,7 +393,7 @@ export default function DebitNoteForm({
 
     // Calculate local currency totals (always calculate)
     const localAmounts = calculateLocalAmounts(
-      formDetails as unknown as IArDebitNoteDt[],
+      formDetails as unknown as IArAdjustmentDt[],
       locAmtDec
     )
     form.setValue("totLocalAmt", localAmounts.totLocalAmt)
@@ -274,7 +403,7 @@ export default function DebitNoteForm({
     // Calculate country currency totals (always calculate)
     // If m_CtyCurr is false, country amounts = local amounts
     const countryAmounts = calculateCountryAmounts(
-      formDetails as unknown as IArDebitNoteDt[],
+      formDetails as unknown as IArAdjustmentDt[],
       visible?.m_CtyCurr ? ctyAmtDec : locAmtDec
     )
     form.setValue("totCtyAmt", countryAmounts.totCtyAmt)
@@ -308,7 +437,7 @@ export default function DebitNoteForm({
 
         // Recalculate all details with new exchange rates
         const updatedDetails = recalculateAllDetailAmounts(
-          formDetails as unknown as IArDebitNoteDt[],
+          formDetails as unknown as IArAdjustmentDt[],
           exchangeRate,
           cityExchangeRate,
           decimals[0],
@@ -318,7 +447,7 @@ export default function DebitNoteForm({
         // Update form with recalculated details
         form.setValue(
           "data_details",
-          updatedDetails as unknown as ArDebitNoteDtSchemaType[],
+          updatedDetails as unknown as ArAdjustmentDtSchemaType[],
           { shouldDirty: true, shouldTouch: true }
         )
 
@@ -329,11 +458,36 @@ export default function DebitNoteForm({
     [decimals, exhRateDec, form, recalculateHeaderTotals, visible]
   )
 
+  // Handle exchange rate focus - capture original value
+  const handleExchangeRateFocus = React.useCallback(() => {
+    originalExhRateRef.current = form.getValues("exhRate") || 0
+    console.log(
+      "handleExchangeRateFocus - original value:",
+      originalExhRateRef.current
+    )
+  }, [form])
+
   // Handle exchange rate change
   const handleExchangeRateChange = React.useCallback(
-    (e: React.FocusEvent<HTMLInputElement>) => {
+    (value: number) => {
+      const exchangeRate = value || 0
+      const originalExhRate = originalExhRateRef.current
+
+      console.log("handleExchangeRateChange", {
+        newValue: exchangeRate,
+        originalValue: originalExhRate,
+        isDifferent: exchangeRate !== originalExhRate,
+      })
+
+      // Only recalculate if value is different from original
+      if (exchangeRate === originalExhRate) {
+        console.log("Exchange Rate unchanged - skipping recalculation")
+        return
+      }
+
+      console.log("Exchange Rate changed - recalculating amounts")
+
       const formDetails = form.getValues("data_details")
-      const exchangeRate = parseFloat(e.target.value) || 0
 
       // If m_CtyCurr is false, set cityExchangeRate = exchangeRate
       let cityExchangeRate = form.getValues("ctyExhRate") || 0
@@ -348,7 +502,7 @@ export default function DebitNoteForm({
 
       // Recalculate all details with new exchange rate
       const updatedDetails = recalculateAllDetailAmounts(
-        formDetails as unknown as IArDebitNoteDt[],
+        formDetails as unknown as IArAdjustmentDt[],
         exchangeRate,
         cityExchangeRate,
         decimals[0],
@@ -358,7 +512,7 @@ export default function DebitNoteForm({
       // Update form with recalculated details
       form.setValue(
         "data_details",
-        updatedDetails as unknown as ArDebitNoteDtSchemaType[],
+        updatedDetails as unknown as ArAdjustmentDtSchemaType[],
         { shouldDirty: true, shouldTouch: true }
       )
 
@@ -368,12 +522,37 @@ export default function DebitNoteForm({
     [decimals, form, recalculateHeaderTotals, visible?.m_CtyCurr]
   )
 
+  // Handle city exchange rate focus - capture original value
+  const handleCityExchangeRateFocus = React.useCallback(() => {
+    originalCtyExhRateRef.current = form.getValues("ctyExhRate") || 0
+    console.log(
+      "handleCityExchangeRateFocus - original value:",
+      originalCtyExhRateRef.current
+    )
+  }, [form])
+
   // Handle city exchange rate change
   const handleCityExchangeRateChange = React.useCallback(
-    (e: React.FocusEvent<HTMLInputElement>) => {
+    (value: number) => {
+      const cityExchangeRate = value || 0
+      const originalCtyExhRate = originalCtyExhRateRef.current
+
+      console.log("handleCityExchangeRateChange", {
+        newValue: cityExchangeRate,
+        originalValue: originalCtyExhRate,
+        isDifferent: cityExchangeRate !== originalCtyExhRate,
+      })
+
+      // Only recalculate if value is different from original
+      if (cityExchangeRate === originalCtyExhRate) {
+        console.log("City Exchange Rate unchanged - skipping recalculation")
+        return
+      }
+
+      console.log("City Exchange Rate changed - recalculating amounts")
+
       const formDetails = form.getValues("data_details")
       const exchangeRate = form.getValues("exhRate") || 0
-      const cityExchangeRate = parseFloat(e.target.value) || 0
 
       if (!formDetails || formDetails.length === 0) {
         return
@@ -381,7 +560,7 @@ export default function DebitNoteForm({
 
       // Recalculate all details with new city exchange rate
       const updatedDetails = recalculateAllDetailAmounts(
-        formDetails as unknown as IArDebitNoteDt[],
+        formDetails as unknown as IArAdjustmentDt[],
         exchangeRate,
         cityExchangeRate,
         decimals[0],
@@ -391,7 +570,7 @@ export default function DebitNoteForm({
       // Update form with recalculated details
       form.setValue(
         "data_details",
-        updatedDetails as unknown as ArDebitNoteDtSchemaType[],
+        updatedDetails as unknown as ArAdjustmentDtSchemaType[],
         { shouldDirty: true, shouldTouch: true }
       )
 
@@ -407,7 +586,7 @@ export default function DebitNoteForm({
         onSubmit={form.handleSubmit(onSubmit)}
         className="grid grid-cols-12 rounded-md p-2"
       >
-        <div className="col-span-10 grid grid-cols-6 gap-1">
+        <div className="col-span-10 grid grid-cols-6 gap-1 gap-y-1">
           {/* Transaction Date */}
           {visible?.m_TrnDate && (
             <CustomDateNew
@@ -430,20 +609,40 @@ export default function DebitNoteForm({
             isFutureShow={false}
           />
 
-          {/* Customer */}
-          <CompanyCustomerAutocomplete
+          {/* Customer by company*/}
+          {/* <CompanyCustomerAutocomplete
             form={form}
             name="customerId"
             label="Customer"
             isRequired={true}
             onChangeEvent={handleCustomerChange}
             companyId={_companyId}
-          />
-          {/* customerDebitNoteNo */}
+          /> */}
+
+          {/* Customer */}
+          {isDynamicCustomer ? (
+            <DynamicCustomerAutocomplete
+              form={form}
+              name="customerId"
+              label="Customer-D"
+              isRequired={true}
+              onChangeEvent={handleCustomerChange}
+            />
+          ) : (
+            <CustomerAutocomplete
+              form={form}
+              name="customerId"
+              label="Customer-S"
+              isRequired={true}
+              onChangeEvent={handleCustomerChange}
+            />
+          )}
+
+          {/* customerAdjustmentNo */}
           <CustomInput
             form={form}
-            name="suppDebitNoteNo"
-            label="Customer DebitNote No."
+            name="suppAdjustmentNo"
+            label="Customer Adjustment No."
             isRequired={required?.m_SuppInvoiceNo}
           />
 
@@ -471,7 +670,7 @@ export default function DebitNoteForm({
             label="Due Date"
             isRequired={true}
             isFutureShow={true}
-            minDate={new Date()}
+            minDate={dueDateMinDate}
           />
 
           {/* Bank */}
@@ -502,7 +701,8 @@ export default function DebitNoteForm({
             isRequired={true}
             round={exhRateDec}
             className="text-right"
-            onBlurEvent={handleExchangeRateChange}
+            onFocusEvent={handleExchangeRateFocus}
+            onChangeEvent={handleExchangeRateChange}
           />
           {visible?.m_CtyCurr && (
             <>
@@ -514,7 +714,8 @@ export default function DebitNoteForm({
                 isRequired={true}
                 round={exhRateDec}
                 className="text-right"
-                onBlurEvent={handleCityExchangeRateChange}
+                onFocusEvent={handleCityExchangeRateFocus}
+                onChangeEvent={handleCityExchangeRateChange}
               />
             </>
           )}
@@ -584,6 +785,40 @@ export default function DebitNoteForm({
             </>
           )}
 
+          {/* Job Order */}
+          {visible?.m_JobOrderIdHd && (
+            <JobOrderAutocomplete
+              form={form}
+              name="jobOrderId"
+              label="Job Order"
+              onChangeEvent={handleJobOrderChange}
+            />
+          )}
+
+          {/* Vessel */}
+          {visible?.m_VesselIdHd && (
+            <DynamicVesselAutocomplete
+              form={form}
+              name="vesselId"
+              label="Vessel"
+            />
+          )}
+
+          {/* Port */}
+          {visible?.m_PortIdHd && (
+            <PortAutocomplete form={form} name="portId" label="Port" />
+          )}
+
+          {/* Service Type */}
+          {visible?.m_ServiceTypeId && (
+            <ServiceTypeAutocomplete
+              form={form}
+              name="serviceTypeId"
+              label="Service Type"
+              isRequired={true}
+            />
+          )}
+
           {/* Remarks */}
           <CustomTextarea
             form={form}
@@ -594,7 +829,7 @@ export default function DebitNoteForm({
           />
         </div>
 
-        {/* {form.watch("debitNoteId") != "0" && (
+        {/* {form.watch("adjustmentId") != "0" && (
           <>
             {/* Summary Box */}
         {/* Right Section: Summary Box */}
