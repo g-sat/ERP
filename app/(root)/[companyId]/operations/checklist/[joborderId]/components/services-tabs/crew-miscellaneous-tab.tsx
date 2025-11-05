@@ -241,16 +241,17 @@ export function CrewMiscellaneousTab({
 
   // Actual save function that gets called after confirmation
   const handleConfirmSave = useCallback(async () => {
-    if (!saveConfirmation.formData) return
+    const { formData, operationType } = saveConfirmation
+    if (!formData) return
 
     try {
       const processedData = {
-        ...saveConfirmation.formData,
+        ...formData,
       }
       const submitData = { ...processedData, ...jobDataProps }
 
       let response
-      if (saveConfirmation.operationType === "update" && selectedItem) {
+      if (operationType === "update" && selectedItem) {
         response = await updateMutation.mutateAsync({
           ...submitData,
           crewMiscellaneousId: selectedItem.crewMiscellaneousId,
@@ -287,8 +288,7 @@ export function CrewMiscellaneousTab({
       })
     }
   }, [
-    saveConfirmation.formData,
-    saveConfirmation.operationType,
+    saveConfirmation,
     jobDataProps,
     selectedItem,
     updateMutation,

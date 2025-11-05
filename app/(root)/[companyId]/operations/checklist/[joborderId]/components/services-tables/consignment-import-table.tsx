@@ -87,6 +87,17 @@ export function ConsignmentImportTable({
         minSize: 130,
       },
       {
+        accessorKey: "statusName",
+        header: "Status",
+        cell: ({ row }) => (
+          <div className="text-center">
+            <Badge variant="default">{row.getValue("statusName") || "-"}</Badge>
+          </div>
+        ),
+        size: 120,
+        minSize: 100,
+      },
+      {
         accessorKey: "awbNo",
         header: "AWB No",
         cell: ({ row }) => (

@@ -82,6 +82,25 @@ export function LaunchServiceTable({
         minSize: 130,
       },
       {
+        accessorKey: "statusName",
+        header: "Status",
+        cell: ({ row }) => {
+          const status = row.getValue("statusName") as string
+          return (
+            <div className="text-center">
+              <Badge
+                variant={status === "Active" ? "default" : "secondary"}
+                className="font-medium"
+              >
+                {status || "-"}
+              </Badge>
+            </div>
+          )
+        },
+        size: 120,
+        minSize: 100,
+      },
+      {
         accessorKey: "date",
         header: "Service Date",
         cell: ({ row }) => {
@@ -377,25 +396,6 @@ export function LaunchServiceTable({
         header: "Remarks",
         size: 200,
         minSize: 150,
-      },
-      {
-        accessorKey: "statusName",
-        header: "Status",
-        cell: ({ row }) => {
-          const status = row.getValue("statusName") as string
-          return (
-            <div className="text-center">
-              <Badge
-                variant={status === "Active" ? "default" : "secondary"}
-                className="font-medium"
-              >
-                {status || "-"}
-              </Badge>
-            </div>
-          )
-        },
-        size: 120,
-        minSize: 100,
       },
       {
         accessorKey: "editVersion",

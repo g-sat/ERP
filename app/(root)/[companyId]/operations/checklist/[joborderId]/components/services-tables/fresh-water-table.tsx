@@ -82,6 +82,17 @@ export function FreshWaterTable({
         minSize: 130,
       },
       {
+        accessorKey: "statusName",
+        header: "Status",
+        cell: ({ row }) => (
+          <div className="text-center">
+            <Badge variant="default">{row.getValue("statusName") || "-"}</Badge>
+          </div>
+        ),
+        size: 120,
+        minSize: 100,
+      },
+      {
         accessorKey: "date",
         header: "Date",
         cell: ({ row }) => {
@@ -182,17 +193,6 @@ export function FreshWaterTable({
         header: "Remarks",
         size: 200,
         minSize: 150,
-      },
-      {
-        accessorKey: "statusName",
-        header: "Status",
-        cell: ({ row }) => (
-          <div className="text-center">
-            <Badge variant="default">{row.getValue("statusName") || "-"}</Badge>
-          </div>
-        ),
-        size: 120,
-        minSize: 100,
       },
       {
         accessorKey: "editVersion",

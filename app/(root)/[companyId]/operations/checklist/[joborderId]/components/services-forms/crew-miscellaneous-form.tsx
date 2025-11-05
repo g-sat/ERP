@@ -26,7 +26,6 @@ import CustomAccordion, {
   CustomAccordionItem,
   CustomAccordionTrigger,
 } from "@/components/custom/custom-accordion"
-import CustomInput from "@/components/custom/custom-input"
 import CustomNumberInput from "@/components/custom/custom-number-input"
 import CustomTextarea from "@/components/custom/custom-textarea"
 import { FormLoadingSpinner } from "@/components/skeleton/loading-spinner"
@@ -58,8 +57,8 @@ export function CrewMiscellaneousForm({
     Number(jobData.companyId)
   )
 
-  console.log("initialData :", initialData)
   const form = useForm<CrewMiscellaneousSchemaType>({
+    mode: "onChange",
     resolver: zodResolver(CrewMiscellaneousSchema),
     defaultValues: {
       crewMiscellaneousId: initialData?.crewMiscellaneousId ?? 0,
@@ -99,6 +98,10 @@ export function CrewMiscellaneousForm({
     isChartOfAccountLoading,
   ])
 
+  const onSubmit = (data: CrewMiscellaneousSchemaType) => {
+    submitAction(data)
+  }
+
   // Show loading state while data is being fetched
   if (isChartOfAccountLoading) {
     return (
@@ -106,10 +109,6 @@ export function CrewMiscellaneousForm({
         <FormLoadingSpinner text="Loading form data..." />
       </div>
     )
-  }
-
-  const onSubmit = (data: CrewMiscellaneousSchemaType) => {
-    submitAction(data)
   }
 
   return (

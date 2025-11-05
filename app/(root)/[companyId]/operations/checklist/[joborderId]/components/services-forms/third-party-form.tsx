@@ -69,6 +69,7 @@ export function ThirdPartyForm({
       taskId: Task.ThirdParty,
       debitNoteId: initialData?.debitNoteId ?? 0,
       debitNoteNo: initialData?.debitNoteNo ?? "",
+      description: initialData?.description ?? "",
       remarks: initialData?.remarks ?? "",
       quantity: initialData?.quantity ?? 0,
       glId: initialData?.glId ?? taskDefaults.glId ?? 0,
@@ -95,6 +96,7 @@ export function ThirdPartyForm({
       taskId: Task.ThirdParty,
       debitNoteId: initialData?.debitNoteId ?? 0,
       debitNoteNo: initialData?.debitNoteNo ?? "",
+      description: initialData?.description ?? "",
       remarks: initialData?.remarks ?? "",
       quantity: initialData?.quantity ?? 0,
       glId: initialData?.glId ?? taskDefaults.glId ?? 0,
@@ -140,12 +142,6 @@ export function ThirdPartyForm({
         <form onSubmit={form.handleSubmit(onSubmit)}>
           <div className="grid gap-2">
             <div className="grid grid-cols-3 gap-2">
-              <SupplierAutocomplete
-                form={form}
-                name="supplierId"
-                label="Supplier Name"
-                isDisabled={isConfirmed}
-              />
               <ChargeAutocomplete
                 form={form}
                 name="chargeId"
@@ -155,14 +151,19 @@ export function ThirdPartyForm({
                 isDisabled={isConfirmed}
                 companyId={jobData.companyId}
               />
-              <ChartOfAccountAutocomplete
+              <SupplierAutocomplete
                 form={form}
-                name="glId"
-                label="GL Account"
-                isRequired={true}
-                isDisabled={true}
-                companyId={jobData.companyId}
+                name="supplierId"
+                label="Supplier Name"
+                isDisabled={isConfirmed}
               />
+              <CustomInput
+                form={form}
+                name="name"
+                label="Name"
+                isDisabled={isConfirmed}
+              />
+
               <CustomNumberInput
                 form={form}
                 name="quantity"
@@ -192,13 +193,30 @@ export function ThirdPartyForm({
                 label="Deliver Date"
                 isDisabled={isConfirmed}
               />
+
+              <ChartOfAccountAutocomplete
+                form={form}
+                name="glId"
+                label="GL Account"
+                isRequired={true}
+                isDisabled={true}
+                companyId={jobData.companyId}
+              />
             </div>
-            <CustomTextarea
-              form={form}
-              name="remarks"
-              label="Remarks"
-              isDisabled={isConfirmed}
-            />
+            <div className="grid grid-cols-2 gap-2">
+              <CustomTextarea
+                form={form}
+                name="description"
+                label="Description"
+                isDisabled={isConfirmed}
+              />
+              <CustomTextarea
+                form={form}
+                name="remarks"
+                label="Remarks"
+                isDisabled={isConfirmed}
+              />
+            </div>
 
             {/* Audit Information Section */}
             {initialData &&

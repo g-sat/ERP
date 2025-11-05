@@ -87,6 +87,55 @@ export function TechnicianSurveyorTable({
         minSize: 130,
       },
       {
+        accessorKey: "statusName",
+        header: "Status",
+        cell: ({ row }) => (
+          <div className="text-center">
+            <Badge variant="default">{row.getValue("statusName") || "-"}</Badge>
+          </div>
+        ),
+        size: 120,
+        minSize: 100,
+      },
+      {
+        accessorKey: "isTransport",
+        header: "Transport",
+        cell: ({ row }) => {
+          const isTransport = row.getValue("isTransport") as boolean
+          return (
+            <div className="text-center">
+              <Badge
+                variant={isTransport ? "default" : "outline"}
+                className={isTransport ? "bg-green-600 hover:bg-green-700" : ""}
+              >
+                {isTransport ? "Yes" : "No"}
+              </Badge>
+            </div>
+          )
+        },
+        size: 100,
+        minSize: 80,
+      },
+      {
+        accessorKey: "isHotel",
+        header: "Hotel",
+        cell: ({ row }) => {
+          const isHotel = row.getValue("isHotel") as boolean
+          return (
+            <div className="text-center">
+              <Badge
+                variant={isHotel ? "default" : "outline"}
+                className={isHotel ? "bg-blue-600 hover:bg-blue-700" : ""}
+              >
+                {isHotel ? "Yes" : "No"}
+              </Badge>
+            </div>
+          )
+        },
+        size: 100,
+        minSize: 80,
+      },
+      {
         accessorKey: "name",
         header: "Name",
         cell: ({ row }) => (
@@ -210,17 +259,6 @@ export function TechnicianSurveyorTable({
         header: "Remarks",
         size: 200,
         minSize: 150,
-      },
-      {
-        accessorKey: "statusName",
-        header: "Status",
-        cell: ({ row }) => (
-          <div className="text-center">
-            <Badge variant="default">{row.getValue("statusName") || "-"}</Badge>
-          </div>
-        ),
-        size: 120,
-        minSize: 100,
       },
       {
         accessorKey: "editVersion",

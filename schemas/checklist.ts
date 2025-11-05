@@ -113,7 +113,7 @@ export const AgencyRemunerationSchema = z.object({
   taskId: z.number().min(1, "Task ID is required"),
   glId: z.number().min(1, "GL Account is required"),
   chargeId: z.number().min(1, "Charge is required"),
-  debitNoteId: z.number(),
+  debitNoteId: z.number().optional(),
   debitNoteNo: z.string().optional(),
   statusId: z.number().min(1, "Status is required"),
   remarks: z
@@ -149,6 +149,7 @@ export const ConsignmentExportSchema = z.object({
   clearedBy: z.string().optional(),
   billEntryNo: z.string().optional(),
   declarationNo: z.string().optional(),
+  referenceNo: z.string().optional(),
   receiveDate: z.union([z.string(), z.date()]).optional(),
   deliverDate: z.union([z.string(), z.date()]).optional(),
   arrivalDate: z.union([z.string(), z.date()]).optional(),
@@ -160,7 +161,7 @@ export const ConsignmentExportSchema = z.object({
     .max(500, "Remarks must be less than 500 characters")
     .optional()
     .optional(),
-  debitNoteId: z.number(),
+  debitNoteId: z.number().optional(),
   debitNoteNo: z.string().optional(),
   editVersion: z.number(),
 })
@@ -190,6 +191,7 @@ export const ConsignmentImportSchema = z.object({
   clearedBy: z.string().optional(),
   billEntryNo: z.string().optional(),
   declarationNo: z.string().optional(),
+  referenceNo: z.string().optional(),
   receiveDate: z.union([z.string(), z.date()]).optional(),
   deliverDate: z.union([z.string(), z.date()]).optional(),
   arrivalDate: z.union([z.string(), z.date()]).optional(),
@@ -201,7 +203,7 @@ export const ConsignmentImportSchema = z.object({
     .max(500, "Remarks must be less than 500 characters")
     .optional()
     .optional(),
-  debitNoteId: z.number(),
+  debitNoteId: z.number().optional(),
   debitNoteNo: z.string().optional(),
   editVersion: z.number(),
 })
@@ -215,12 +217,12 @@ export const CrewMiscellaneousSchema = z.object({
   jobOrderId: z.number().min(1, "Job Order ID is required"),
   jobOrderNo: z.string().min(1, "Job Order No is required"),
   taskId: z.number().min(1, "Task ID is required"),
-  debitNoteId: z.number(),
+  debitNoteId: z.number().optional(),
   debitNoteNo: z.string().optional(),
   description: z.string().min(1, "Description is required"),
-  glId: z.number().min(1, "GL Account is required"),
+  glId: z.number().optional(),
   quantity: z.number().min(0, "Quantity must be 0 or greater"),
-  chargeId: z.number(),
+  chargeId: z.number().optional(),
   remarks: z
     .string()
     .max(500, "Remarks must be less than 500 characters")
@@ -381,7 +383,7 @@ export const LandingItemsSchema = z.object({
     .max(500, "Remarks must be less than 500 characters")
     .optional()
     .optional(),
-  debitNoteId: z.number(),
+  debitNoteId: z.number().optional(),
   debitNoteNo: z.string().optional(),
   editVersion: z.number(),
 })
@@ -408,7 +410,7 @@ export const MedicalAssistanceSchema = z.object({
     .max(500, "Remarks must be less than 500 characters")
     .optional()
     .optional(),
-  debitNoteId: z.number(),
+  debitNoteId: z.number().optional(),
   debitNoteNo: z.string().optional(),
   editVersion: z.number(),
 })
@@ -430,8 +432,9 @@ export const OtherServiceSchema = z.object({
   amount: z.number().min(0, "Amount must be 0 or greater"),
   uomId: z.number().min(1, "UOM is required"),
   statusId: z.number().min(1, "Status is required"),
-  debitNoteId: z.number(),
+  debitNoteId: z.number().optional(),
   debitNoteNo: z.string().optional(),
+  description: z.string().optional(),
   remarks: z
     .string()
     .max(500, "Remarks must be less than 500 characters")
@@ -558,8 +561,10 @@ export const TechnicianSurveyorSchema = z.object({
     .max(500, "Remarks must be less than 500 characters")
     .optional()
     .optional(),
-  debitNoteId: z.number(),
+  debitNoteId: z.number().optional(),
   debitNoteNo: z.string().optional(),
+  isTransport: z.boolean().optional(),
+  isHotel: z.boolean().optional(),
   editVersion: z.number(),
 })
 
@@ -572,8 +577,10 @@ export const ThirdPartySchema = z.object({
   jobOrderId: z.number().min(1, "Job Order ID is required"),
   jobOrderNo: z.string().min(1, "Job Order No is required"),
   taskId: z.number().min(1, "Task ID is required"),
-  debitNoteId: z.number(),
+  debitNoteId: z.number().optional(),
   debitNoteNo: z.string().optional(),
+  description: z.string().optional(),
+  name: z.string().optional(),
   remarks: z
     .string()
     .max(500, "Remarks must be less than 500 characters")
@@ -637,7 +644,7 @@ export type DebitNoteDtSchemaType = z.infer<typeof debitNoteDtSchema>
 
 // Define debitNoteHdSchema after debitNoteDtSchema
 export const debitNoteHdSchema = z.object({
-  debitNoteId: z.number(),
+  debitNoteId: z.number().optional(),
   debitNoteNo: z.string().min(1, "Debit Note Number is required"),
   debitNoteDate: z.union([z.string(), z.date()]).optional(),
   jobOrderId: z.number().min(1, "Job Order ID is required"),

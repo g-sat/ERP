@@ -91,6 +91,7 @@ export function ConsignmentImportForm({
       clearedBy: initialData?.clearedBy ?? "",
       billEntryNo: initialData?.billEntryNo ?? "",
       declarationNo: initialData?.declarationNo ?? "",
+      referenceNo: initialData?.referenceNo ?? "",
       receiveDate: initialData?.receiveDate
         ? format(
             parseDate(initialData.receiveDate as string) || new Date(),
@@ -143,6 +144,7 @@ export function ConsignmentImportForm({
       clearedBy: initialData?.clearedBy ?? "",
       billEntryNo: initialData?.billEntryNo ?? "",
       declarationNo: initialData?.declarationNo ?? "",
+      referenceNo: initialData?.referenceNo ?? "",
       receiveDate: initialData?.receiveDate
         ? format(
             parseDate(initialData.receiveDate as string) || new Date(),
@@ -237,9 +239,18 @@ export function ConsignmentImportForm({
 
               <CustomDateNew
                 form={form}
+                name="arrivalDate"
+                label="Date Arrived"
+                isDisabled={isConfirmed}
+                isFutureShow={true}
+              />
+
+              <CustomDateNew
+                form={form}
                 name="receiveDate"
                 label="Date Received"
                 isDisabled={isConfirmed}
+                isFutureShow={true}
               />
               <ConsignmentTypeAutocomplete
                 form={form}
@@ -258,7 +269,7 @@ export function ConsignmentImportForm({
               <LandingTypeAutocomplete
                 form={form}
                 name="landingTypeId"
-                label="Landing Type"
+                label="Location Type"
                 isDisabled={isConfirmed}
               />
               <ChargeAutocomplete
@@ -277,6 +288,20 @@ export function ConsignmentImportForm({
                 isRequired={true}
                 isDisabled={true}
                 companyId={jobData.companyId}
+              />
+              <CustomInput
+                form={form}
+                name="referenceNo"
+                label="Reference No"
+                isRequired={false}
+                isDisabled={isConfirmed}
+              />
+              <StatusTaskAutocomplete
+                form={form}
+                name="statusId"
+                label="Status"
+                isRequired={true}
+                isDisabled={isConfirmed}
               />
             </div>
             <div className="grid grid-cols-3 gap-2">
@@ -305,6 +330,7 @@ export function ConsignmentImportForm({
                 name="deliverDate"
                 label="Date Delivered"
                 isDisabled={isConfirmed}
+                isFutureShow={true}
               />
               <CustomInput
                 form={form}
@@ -336,20 +362,6 @@ export function ConsignmentImportForm({
                 form={form}
                 name="refundInstrumentNo"
                 label="Refund Instrument No"
-                isDisabled={isConfirmed}
-              />
-              <CustomDateNew
-                form={form}
-                name="arrivalDate"
-                label="Date Arrived"
-                isDisabled={isConfirmed}
-              />
-
-              <StatusTaskAutocomplete
-                form={form}
-                name="statusId"
-                label="Status"
-                isRequired={true}
                 isDisabled={isConfirmed}
               />
             </div>

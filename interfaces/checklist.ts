@@ -129,6 +129,7 @@ export interface IConsignmentExport {
   clearedBy?: string
   billEntryNo?: string
   declarationNo?: string
+  referenceNo?: string
   receiveDate?: Date | string
   deliverDate?: Date | string
   arrivalDate?: Date | string
@@ -180,6 +181,7 @@ export interface IConsignmentImport {
   clearedBy?: string
   billEntryNo?: string
   declarationNo?: string
+  referenceNo?: string
   receiveDate?: Date | string
   deliverDate?: Date | string
   arrivalDate?: Date | string
@@ -623,6 +625,7 @@ export interface IOtherService {
   gstAmt: number
   totAmtAftGst: number
   remarks: string
+  description?: string
   createById: number
   createDate: Date
   editById?: number
@@ -698,6 +701,8 @@ export interface ITechnicianSurveyor {
   remarks: string
   debitNoteId?: number
   debitNoteNo?: string
+  isTransport: boolean
+  isHotel: boolean
   totAmt: number
   gstAmt: number
   totAmtAftGst: number
@@ -719,6 +724,8 @@ export interface IThirdParty {
   taskName?: string
   debitNoteId?: number
   debitNoteNo?: string
+  description?: string
+  name?: string
   totAmt: number
   gstAmt: number
   totAmtAftGst: number

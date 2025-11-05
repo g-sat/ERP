@@ -81,6 +81,17 @@ export function CrewSignOnTable({
         minSize: 130,
       },
       {
+        accessorKey: "statusName",
+        header: "Status",
+        cell: ({ row }) => (
+          <div className="text-center">
+            <Badge variant="default">{row.getValue("statusName") || "-"}</Badge>
+          </div>
+        ),
+        size: 120,
+        minSize: 100,
+      },
+      {
         accessorKey: "visaTypeName",
         header: "Visa Type",
         cell: ({ row }) => (
@@ -203,17 +214,6 @@ export function CrewSignOnTable({
         header: "Remarks",
         size: 200,
         minSize: 150,
-      },
-      {
-        accessorKey: "statusName",
-        header: "Status",
-        cell: ({ row }) => (
-          <div className="text-center">
-            <Badge variant="default">{row.getValue("statusName") || "-"}</Badge>
-          </div>
-        ),
-        size: 120,
-        minSize: 100,
       },
       {
         accessorKey: "editVersion",

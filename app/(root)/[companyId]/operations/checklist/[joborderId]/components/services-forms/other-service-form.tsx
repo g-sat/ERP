@@ -86,6 +86,7 @@ export function OtherServiceForm({
       quantity: initialData?.quantity ?? 1,
       amount: initialData?.amount ?? 0,
       remarks: initialData?.remarks ?? "",
+      description: initialData?.description ?? "",
       editVersion: initialData?.editVersion ?? 0,
     },
   })
@@ -134,6 +135,7 @@ export function OtherServiceForm({
       quantity: initialData?.quantity ?? 1,
       amount: initialData?.amount ?? 0,
       remarks: initialData?.remarks ?? "",
+      description: initialData?.description ?? "",
       editVersion: initialData?.editVersion ?? 0,
     })
   }, [
@@ -225,12 +227,20 @@ export function OtherServiceForm({
                 isDisabled={isConfirmed || !isCashToMaster}
               />
             </div>
-            <CustomTextarea
-              form={form}
-              name="remarks"
-              label="Remarks"
-              isDisabled={isConfirmed}
-            />
+            <div className="grid grid-cols-2 gap-2">
+              <CustomTextarea
+                form={form}
+                name="description"
+                label="Description"
+                isDisabled={isConfirmed}
+              />
+              <CustomTextarea
+                form={form}
+                name="remarks"
+                label="Remarks"
+                isDisabled={isConfirmed}
+              />
+            </div>
 
             {/* Audit Information Section */}
             {initialData &&

@@ -29,6 +29,7 @@ import CustomAccordion, {
   CustomAccordionItem,
   CustomAccordionTrigger,
 } from "@/components/custom/custom-accordion"
+import CustomCheckbox from "@/components/custom/custom-checkbox"
 import { CustomDateNew } from "@/components/custom/custom-date-new"
 import CustomInput from "@/components/custom/custom-input"
 import CustomNumberInput from "@/components/custom/custom-number-input"
@@ -95,6 +96,8 @@ export function TechniciansSurveyorsForm({
       remarks: initialData?.remarks ?? "",
       debitNoteId: initialData?.debitNoteId ?? 0,
       debitNoteNo: initialData?.debitNoteNo ?? "",
+      isTransport: initialData?.isTransport ?? false,
+      isHotel: initialData?.isHotel ?? false,
       editVersion: initialData?.editVersion ?? 0,
     },
   })
@@ -130,6 +133,8 @@ export function TechniciansSurveyorsForm({
       remarks: initialData?.remarks ?? "",
       debitNoteId: initialData?.debitNoteId ?? 0,
       debitNoteNo: initialData?.debitNoteNo ?? "",
+      isTransport: initialData?.isTransport ?? false,
+      isHotel: initialData?.isHotel ?? false,
       editVersion: initialData?.editVersion ?? 0,
     })
   }, [
@@ -244,6 +249,18 @@ export function TechniciansSurveyorsForm({
                 name="statusId"
                 label="Status"
                 isRequired
+                isDisabled={isConfirmed}
+              />
+              <CustomCheckbox
+                form={form}
+                name="isTransport"
+                label="Is Transport"
+                isDisabled={isConfirmed}
+              />
+              <CustomCheckbox
+                form={form}
+                name="isHotel"
+                label="Is Hotel"
                 isDisabled={isConfirmed}
               />
             </div>

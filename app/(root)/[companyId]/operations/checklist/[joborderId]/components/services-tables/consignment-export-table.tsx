@@ -10,6 +10,7 @@ import { ColumnDef } from "@tanstack/react-table"
 import { format, isValid } from "date-fns"
 
 import { TableName } from "@/lib/utils"
+import { Badge } from "@/components/ui/badge"
 import { TaskTable } from "@/components/table/table-task"
 
 import ConsignmentExportHistoryDialog from "../services-history/consignment-export-history-dialog"
@@ -83,6 +84,17 @@ export function ConsignmentExportTable({
         header: "Debit Note No",
         size: 180,
         minSize: 130,
+      },
+      {
+        accessorKey: "statusName",
+        header: "Status",
+        cell: ({ row }) => (
+          <div className="text-center">
+            <Badge variant="default">{row.getValue("statusName") || "-"}</Badge>
+          </div>
+        ),
+        size: 120,
+        minSize: 100,
       },
       {
         accessorKey: "awbNo",
