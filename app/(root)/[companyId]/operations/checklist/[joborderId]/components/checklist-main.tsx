@@ -62,6 +62,9 @@ export function ChecklistMain({
   // State to track customer code for label display
   const [customerCode, setCustomerCode] = useState<string>("")
 
+  // Ref to track if we just updated to prevent useEffect from overwriting response data
+  const justUpdatedRef = React.useRef(false)
+
   type JobOrderSchemaType = z.infer<typeof JobOrderHdSchema>
 
   // Direct API functions using api-client.ts for save, update operations
@@ -170,6 +173,12 @@ export function ChecklistMain({
   }, [etaDate, etdDate, form])
 
   useEffect(() => {
+    // Skip reset if we just updated (to prevent overwriting response data)
+    if (justUpdatedRef.current) {
+      justUpdatedRef.current = false
+      return
+    }
+
     form.reset({
       jobOrderId: jobData?.jobOrderId ?? 0,
       jobOrderNo: jobData?.jobOrderNo ?? "",
@@ -422,12 +431,24 @@ export function ChecklistMain({
             setCustomerCode(responseData.customerCode)
           }
 
+          // Set flag to prevent useEffect from overwriting this reset
+          justUpdatedRef.current = true
+
           // Reset form with updated data from server response
           // This ensures form reflects the latest server state (including editVersion, timestamps, etc.)
-          form.reset(updatedSchemaType)
+          // Use reset with keepDefaultValues: false to ensure all fields are updated
+          form.reset(updatedSchemaType, {
+            keepDefaultValues: false,
+            keepDirty: false,
+            keepErrors: false,
+          })
+
+          // Wait a tick to ensure form state is updated before triggering validation
+          await new Promise((resolve) => setTimeout(resolve, 0))
           form.trigger()
 
           // Trigger parent refetch to update page.tsx data (including editVersion in header)
+          // This will update jobData prop, but we've already reset the form with response data
           if (onUpdateSuccess) {
             onUpdateSuccess()
           }
