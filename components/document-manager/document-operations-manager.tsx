@@ -457,11 +457,132 @@ export default function DocumentOperationsManager({
 
   // Handle bulk selection change
   const handleBulkSelectionChange = useCallback((selectedIds: string[]) => {
+    console.log("handleBulkSelectionChange called with:", selectedIds)
     setSelectedDocumentIds(selectedIds)
   }, [])
 
+  // Bulk download documents
+  const handleBulkDownload = useCallback(() => {
+    console.log("handleBulkDownload called")
+    console.log("selectedDocumentIds:", selectedDocumentIds)
+    console.log("documents?.data:", documents?.data)
+
+    if (selectedDocumentIds.length === 0) {
+      toast.error("Please select at least one document to download")
+      return
+    }
+
+    if (!Array.isArray(documents?.data)) {
+      toast.error("No documents available")
+      return
+    }
+
+    // Convert all IDs to strings for comparison
+    const selectedIdsSet = new Set(
+      selectedDocumentIds.map((id) => String(id).trim())
+    )
+    console.log("selectedIdsSet:", Array.from(selectedIdsSet))
+    console.log(
+      "All document IDs:",
+      documents.data.map((d: IDocType) => String(d.documentId).trim())
+    )
+
+    let selectedDocs = (documents.data as IDocType[]).filter((doc) => {
+      const docId = String(doc.documentId).trim()
+      const isSelected = selectedIdsSet.has(docId)
+      console.log(
+        `Document ID: "${docId}" (type: ${typeof doc.documentId}), Selected: ${isSelected}`
+      )
+      return isSelected
+    })
+
+    console.log("selectedDocs count:", selectedDocs.length)
+    console.log("selectedDocumentIds count:", selectedDocumentIds.length)
+    console.log(
+      "selectedDocs:",
+      selectedDocs.map((d) => ({ id: d.documentId, path: d.docPath }))
+    )
+
+    if (selectedDocs.length === 0) {
+      toast.error("Selected documents not found")
+      return
+    }
+
+    // Safety check: ensure we're not downloading more than selected
+    if (selectedDocs.length > selectedDocumentIds.length) {
+      console.error("ERROR: More documents matched than selected!", {
+        selectedDocs: selectedDocs.length,
+        selectedIds: selectedDocumentIds.length,
+        selectedIdsArray: selectedDocumentIds,
+        matchedDocIds: selectedDocs.map((d) => String(d.documentId).trim()),
+        allDocIds: documents.data.map((d: IDocType) =>
+          String(d.documentId).trim()
+        ),
+      })
+      // Only download the exact number that was selected
+      // Take only the documents that match the selected IDs exactly
+      selectedDocs = selectedDocs
+        .filter((doc) => {
+          const docId = String(doc.documentId).trim()
+          return selectedIdsSet.has(docId)
+        })
+        .slice(0, selectedDocumentIds.length)
+
+      console.log(`Limiting download to ${selectedDocs.length} documents`)
+
+      if (selectedDocs.length === 0) {
+        toast.error("Could not match selected documents. Please try again.")
+        return
+      }
+    }
+
+    // Allow download if we have at least some documents (in case some were deleted)
+    if (selectedDocs.length === 0) {
+      toast.error("Selected documents not found")
+      return
+    }
+
+    // Log if we found fewer documents than selected (some might have been deleted)
+    if (selectedDocs.length < selectedDocumentIds.length) {
+      console.warn(
+        `Warning: Found ${selectedDocs.length} documents but ${selectedDocumentIds.length} were selected. Some documents may have been deleted.`
+      )
+    }
+
+    console.log(
+      `Downloading exactly ${selectedDocs.length} document(s) as selected`
+    )
+    selectedDocs.forEach((doc, index) => {
+      setTimeout(() => {
+        console.log(
+          `Downloading document ${index + 1}/${selectedDocs.length}: ${doc.docPath}`
+        )
+        const link = document.createElement("a")
+        // Encode each path segment to handle special characters in file names
+        const pathSegments = doc.docPath
+          .replace("/documents/", "")
+          .split("/")
+          .map((segment) => encodeURIComponent(segment))
+          .join("/")
+        const cacheBuster = `?v=${Date.now()}`
+        link.href = `/api/documents/serve/${pathSegments}${cacheBuster}`
+        // Use original file name from database for download
+        link.download = doc.docPath.split("/").pop() || "document"
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+      }, index * 200) // Stagger by 200ms to avoid browser blocking
+    })
+
+    toast.success(`Downloading ${selectedDocs.length} document(s)`)
+  }, [selectedDocumentIds, documents?.data])
+
   // Bulk print documents
   const handleBulkPrint = useCallback(() => {
+    console.log("handleBulkPrint called")
+    console.log("selectedDocumentIds:", selectedDocumentIds)
+    console.log("documents?.data:", documents?.data)
+
     if (selectedDocumentIds.length === 0) {
       toast.error("Please select at least one document to print")
       return
@@ -472,13 +593,62 @@ export default function DocumentOperationsManager({
       return
     }
 
-    const selectedDocs = (documents.data as IDocType[]).filter((doc) =>
-      selectedDocumentIds.includes(doc.documentId)
+    // Convert all IDs to strings for comparison
+    const selectedIdsSet = new Set(
+      selectedDocumentIds.map((id) => String(id).trim())
+    )
+    console.log("selectedIdsSet:", Array.from(selectedIdsSet))
+    console.log(
+      "All document IDs:",
+      documents.data.map((d: IDocType) => String(d.documentId).trim())
+    )
+
+    let selectedDocs = (documents.data as IDocType[]).filter((doc) => {
+      const docId = String(doc.documentId).trim()
+      const isSelected = selectedIdsSet.has(docId)
+      console.log(
+        `Document ID: "${docId}" (type: ${typeof doc.documentId}), Selected: ${isSelected}`
+      )
+      return isSelected
+    })
+
+    console.log("selectedDocs count:", selectedDocs.length)
+    console.log("selectedDocumentIds count:", selectedDocumentIds.length)
+    console.log(
+      "selectedDocs:",
+      selectedDocs.map((d) => ({ id: d.documentId, path: d.docPath }))
     )
 
     if (selectedDocs.length === 0) {
       toast.error("Selected documents not found")
       return
+    }
+
+    // Safety check: ensure we're not printing more than selected
+    if (selectedDocs.length > selectedDocumentIds.length) {
+      console.error("ERROR: More documents matched than selected!", {
+        selectedDocs: selectedDocs.length,
+        selectedIds: selectedDocumentIds.length,
+        selectedIdsArray: selectedDocumentIds,
+        matchedDocIds: selectedDocs.map((d) => String(d.documentId).trim()),
+        allDocIds: documents.data.map((d: IDocType) =>
+          String(d.documentId).trim()
+        ),
+      })
+      // Only print the exact number that was selected
+      selectedDocs = selectedDocs
+        .filter((doc) => {
+          const docId = String(doc.documentId).trim()
+          return selectedIdsSet.has(docId)
+        })
+        .slice(0, selectedDocumentIds.length)
+
+      console.log(`Limiting print to ${selectedDocs.length} documents`)
+
+      if (selectedDocs.length === 0) {
+        toast.error("Could not match selected documents. Please try again.")
+        return
+      }
     }
 
     // Open each document in a new window and trigger print
@@ -872,6 +1042,16 @@ export default function DocumentOperationsManager({
                       <Badge variant="default">
                         {selectedDocumentIds.length} selected
                       </Badge>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleBulkDownload}
+                        disabled={selectedDocumentIds.length === 0}
+                        title="Download selected documents"
+                      >
+                        <Download className="mr-2 h-4 w-4" />
+                        Download ({selectedDocumentIds.length})
+                      </Button>
                       <Button
                         variant="outline"
                         size="sm"
