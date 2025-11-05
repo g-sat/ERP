@@ -355,14 +355,18 @@ export default function ReceiptForm({
       const accountDate = form?.getValues("accountDate") || selectedAccountDate
 
       if (accountDate) {
-        // Ensure accountDate is set in form (as string)
+        // Ensure accountDate is set in form (as string) and trigger to ensure it's updated
         if (selectedAccountDate) {
           const accountDateValue =
             typeof selectedAccountDate === "string"
               ? selectedAccountDate
               : format(selectedAccountDate, clientDateFormat)
           form.setValue("accountDate", accountDateValue)
+          form.trigger("accountDate")
         }
+
+        // Wait a tick to ensure form state is updated before calling setExchangeRate
+        await new Promise((resolve) => setTimeout(resolve, 0))
 
         await setExchangeRate(form, exhRateDec, visible)
         await setRecExchangeRate(form, exhRateDec)
@@ -702,12 +706,12 @@ export default function ReceiptForm({
         console.log("Bank Charges Amount changed - recalculating local amount")
         form.setValue("bankChgAmt", bankChgAmt, { shouldDirty: true })
 
-        // Calculate bank charges local amount: bankChgAmt * exhRate
-        const exhRate = form.getValues("exhRate") || 0
-        if (exhRate > 0) {
+        // Calculate bank charges local amount: bankChgAmt * recExhRate
+        const recExhRate = form.getValues("recExhRate") || 0
+        if (recExhRate > 0) {
           const bankChgLocalAmt = calculateMultiplierAmount(
             bankChgAmt,
-            exhRate,
+            recExhRate,
             locAmtDec
           )
           form.setValue("bankChgLocalAmt", bankChgLocalAmt, {

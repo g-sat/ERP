@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useState } from "react"
 import { IArOutTransaction } from "@/interfaces"
 import { IVisibleFields } from "@/interfaces/setting"
+import { useAuthStore } from "@/stores/auth-store"
 import { ColumnDef } from "@tanstack/react-table"
 
+import { formatNumber } from "@/lib/format-utils"
 import { TableName } from "@/lib/utils"
 import { AccountBaseTable } from "@/components/table/table-account"
 
@@ -32,6 +34,10 @@ export default function ArOutStandingTransactionsTable({
   visible: _visible,
 }: ArOutStandingTransactionsTableProps) {
   const [mounted, setMounted] = useState(false)
+  const { decimals } = useAuthStore()
+  const amtDec = decimals[0]?.amtDec || 2
+  const locAmtDec = decimals[0]?.locAmtDec || 2
+  const exhRateDec = decimals[0]?.exhRateDec || 6
 
   useEffect(() => {
     setMounted(true)
@@ -104,7 +110,9 @@ export default function ArOutStandingTransactionsTable({
       header: "Exchange Rate",
       size: 100,
       cell: ({ row }: { row: { original: IArOutTransaction } }) => (
-        <div className="text-right">{row.original.exhRate}</div>
+        <div className="text-right">
+          {formatNumber(row.original.exhRate, exhRateDec)}
+        </div>
       ),
     },
     {
@@ -112,7 +120,9 @@ export default function ArOutStandingTransactionsTable({
       header: "Total Amount",
       size: 120,
       cell: ({ row }: { row: { original: IArOutTransaction } }) => (
-        <div className="text-right">{row.original.totAmt}</div>
+        <div className="text-right">
+          {formatNumber(row.original.totAmt, amtDec)}
+        </div>
       ),
     },
     {
@@ -120,7 +130,9 @@ export default function ArOutStandingTransactionsTable({
       header: "Total Local Amt",
       size: 120,
       cell: ({ row }: { row: { original: IArOutTransaction } }) => (
-        <div className="text-right">{row.original.totLocalAmt}</div>
+        <div className="text-right">
+          {formatNumber(row.original.totLocalAmt, locAmtDec)}
+        </div>
       ),
     },
     {
@@ -128,7 +140,9 @@ export default function ArOutStandingTransactionsTable({
       header: "Balance Amount",
       size: 120,
       cell: ({ row }: { row: { original: IArOutTransaction } }) => (
-        <div className="text-right">{row.original.balAmt}</div>
+        <div className="text-right">
+          {formatNumber(row.original.balAmt, amtDec)}
+        </div>
       ),
     },
     {
@@ -136,7 +150,9 @@ export default function ArOutStandingTransactionsTable({
       header: "Balance Local Amt",
       size: 140,
       cell: ({ row }: { row: { original: IArOutTransaction } }) => (
-        <div className="text-right">{row.original.balLocalAmt}</div>
+        <div className="text-right">
+          {formatNumber(row.original.balLocalAmt, locAmtDec)}
+        </div>
       ),
     },
     {
@@ -193,7 +209,7 @@ export default function ArOutStandingTransactionsTable({
   }
 
   return (
-    <div className="w-full p-2">
+    <div className="w-full">
       <AccountBaseTable
         data={data}
         columns={visibleColumns as ColumnDef<IArOutTransaction>[]}

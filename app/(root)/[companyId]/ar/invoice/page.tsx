@@ -1313,8 +1313,13 @@ export default function InvoicePage() {
           form.reset(updatedInvoice)
           form.trigger()
 
+          // Set the invoice number in search input to the actual invoice number from database
+          setSearchNo(updatedInvoice.invoiceNo || "")
+
           // Show success message
-          toast.success(`Invoice ${value} loaded successfully`)
+          toast.success(
+            `Invoice ${updatedInvoice.invoiceNo || value} loaded successfully`
+          )
 
           // Close the load confirmation dialog on success
           setShowLoadConfirm(false)

@@ -3,7 +3,9 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 import { IApOutTransaction } from "@/interfaces"
 import { IVisibleFields } from "@/interfaces/setting"
+import { useAuthStore } from "@/stores/auth-store"
 import { format, parse } from "date-fns"
+import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 
 import { getById } from "@/lib/api-client"
@@ -17,7 +19,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
+import { CustomNumberInput } from "@/components/custom"
 
 import ApOutStandingTransactionsTable from "./ap-outstandingtransactions-table"
 
@@ -53,8 +55,21 @@ export default function ApOutStandingTransactionsDialog({
   )
   const [isLoading, setIsLoading] = useState(false)
   const [selectedTransactions, setSelectedTransactions] = useState<string[]>([])
-  const [selectedTotAmt, setSelectedTotAmt] = useState<number>(0)
-  const [selectedTotLocalAmt, setSelectedTotLocalAmt] = useState<number>(0)
+
+  const { decimals } = useAuthStore()
+  const amtDec = decimals[0]?.amtDec || 2
+  const locAmtDec = decimals[0]?.locAmtDec || 2
+
+  // Create a minimal form for the summary fields
+  const summaryForm = useForm<{
+    selectedTotAmt: number
+    selectedTotLocalAmt: number
+  }>({
+    defaultValues: {
+      selectedTotAmt: 0,
+      selectedTotLocalAmt: 0,
+    },
+  })
 
   // Use ref to prevent duplicate API calls
   const isLoadingRef = useRef(false)
@@ -244,9 +259,15 @@ export default function ApOutStandingTransactionsDialog({
       selectedTransactions,
       outTransactions
     )
-    setSelectedTotAmt(totAmt)
-    setSelectedTotLocalAmt(totLocalAmt)
-  }, [selectedTransactions, outTransactions, calculateSelectedTotals])
+    // Update form values
+    summaryForm.setValue("selectedTotAmt", totAmt)
+    summaryForm.setValue("selectedTotLocalAmt", totLocalAmt)
+  }, [
+    selectedTransactions,
+    outTransactions,
+    calculateSelectedTotals,
+    summaryForm,
+  ])
 
   const handleBulkSelectionChange = useCallback((selectedIds: string[]) => {
     setSelectedTransactions(selectedIds)
@@ -309,7 +330,7 @@ export default function ApOutStandingTransactionsDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex h-[90vh] w-[90vw] !max-w-none flex-col overflow-y-auto rounded-lg">
+      <DialogContent className="flex h-[80vh] w-[80vw] !max-w-none flex-col overflow-y-auto rounded-lg">
         <DialogHeader>
           <DialogTitle>AP Transaction List</DialogTitle>
           <DialogDescription>
@@ -317,25 +338,46 @@ export default function ApOutStandingTransactionsDialog({
           </DialogDescription>
         </DialogHeader>
 
-        {/* Summary Input Fields */}
-        <div className="flex gap-4 py-4">
-          <div className="flex flex-col gap-1">
-            <label className="text-sm font-medium">Selected Total Amount</label>
-            <Input
-              value={selectedTotAmt.toFixed(2)}
-              readOnly
-              className="bg-muted/5 w-[150px] text-right"
+        {/* Summary Input Fields and Action Buttons */}
+        <div className="flex items-end justify-between gap-4 pb-4">
+          <div className="flex gap-4">
+            <CustomNumberInput
+              form={summaryForm}
+              name="selectedTotAmt"
+              label="Total Amount"
+              isDisabled={true}
+              round={amtDec}
+              className="w-[150px]"
+            />
+            <CustomNumberInput
+              form={summaryForm}
+              name="selectedTotLocalAmt"
+              label="Total Local Amount"
+              isDisabled={true}
+              round={locAmtDec}
+              className="w-[150px]"
             />
           </div>
-          <div className="flex flex-col gap-1">
-            <label className="text-sm font-medium">
-              Selected Total Local Amount
-            </label>
-            <Input
-              value={selectedTotLocalAmt.toFixed(2)}
-              readOnly
-              className="bg-muted/5 w-[150px] text-right"
-            />
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={handleCancel}>
+              Cancel
+            </Button>
+            <Button
+              onClick={handleAddSelected}
+              disabled={
+                selectedTransactions.filter(
+                  (docId) => !existingDocumentIds.includes(Number(docId))
+                ).length === 0
+              }
+            >
+              Add Selected (
+              {
+                selectedTransactions.filter(
+                  (docId) => !existingDocumentIds.includes(Number(docId))
+                ).length
+              }
+              )
+            </Button>
           </div>
         </div>
 
@@ -364,41 +406,6 @@ export default function ApOutStandingTransactionsDialog({
               initialSelectedIds={existingDocumentIds.map(String)}
             />
           )}
-        </div>
-
-        {/* Action Buttons */}
-        <div className="border-t pt-4">
-          <div className="flex items-center justify-between">
-            <div className="text-muted-foreground text-sm">
-              {selectedTransactions.length} transaction(s) selected
-              {existingDocumentIds.length > 0 && (
-                <span className="ml-2 text-xs text-blue-600">
-                  ({existingDocumentIds.length} already added)
-                </span>
-              )}
-            </div>
-            <div className="flex gap-2">
-              <Button variant="outline" onClick={handleCancel}>
-                Cancel
-              </Button>
-              <Button
-                onClick={handleAddSelected}
-                disabled={
-                  selectedTransactions.filter(
-                    (docId) => !existingDocumentIds.includes(Number(docId))
-                  ).length === 0
-                }
-              >
-                Add Selected (
-                {
-                  selectedTransactions.filter(
-                    (docId) => !existingDocumentIds.includes(Number(docId))
-                  ).length
-                }
-                )
-              </Button>
-            </div>
-          </div>
         </div>
       </DialogContent>
     </Dialog>

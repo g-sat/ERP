@@ -2,6 +2,11 @@
 
 import { useEffect, useState } from "react"
 import { useParams } from "next/navigation"
+import {
+  setExchangeRate,
+  setRecExchangeRate,
+  setDueDate,
+} from "@/helpers/account"
 import { IArReceiptDt, IArReceiptFilter, IArReceiptHd } from "@/interfaces"
 import { IMandatoryFields, IVisibleFields } from "@/interfaces/setting"
 import {
@@ -318,7 +323,7 @@ export default function ReceiptPage() {
   }
 
   // Handle Clone
-  const handleCloneReceipt = () => {
+  const handleCloneReceipt = async () => {
     if (receipt) {
       // Create a proper clone with form values
       const currentDate = new Date()
@@ -359,6 +364,26 @@ export default function ReceiptPage() {
 
       setReceipt(clonedReceipt)
       form.reset(clonedReceipt)
+      form.trigger("accountDate")
+
+      // Get exchange rate decimal places
+      const exhRateDec = decimals[0]?.exhRateDec || 6
+
+      // Fetch and set new exchange rates based on new account date
+      if (clonedReceipt.currencyId && clonedReceipt.accountDate) {
+        try {
+          // Wait a tick to ensure form state is updated before calling setExchangeRate
+          await new Promise((resolve) => setTimeout(resolve, 0))
+
+          await setExchangeRate(form, exhRateDec, visible)
+          await setRecExchangeRate(form, exhRateDec)
+
+          // Calculate and set due date (for detail records)
+          await setDueDate(form)
+        } catch (error) {
+          console.error("Error updating exchange rates:", error)
+        }
+      }
 
       // Clear search input
       setSearchNo("")
@@ -875,8 +900,11 @@ export default function ReceiptPage() {
           form.reset(updatedReceipt)
           form.trigger()
 
+          // Set the receipt number in search input to the actual receipt number from database
+          setSearchNo(updatedReceipt.receiptNo || "")
+
           // Show success message
-          toast.success(`Receipt ${value} loaded successfully`)
+          toast.success(`Receipt ${updatedReceipt.receiptNo || value} loaded successfully`)
 
           // Close the load confirmation dialog on success
           setShowLoadConfirm(false)

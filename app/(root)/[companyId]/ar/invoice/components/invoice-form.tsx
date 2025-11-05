@@ -189,14 +189,18 @@ export default function InvoiceForm({
         form.setValue("deliveryDate", accountDateStr)
         form?.trigger("deliveryDate")
 
-        // Ensure accountDate is set in form (as string)
+        // Ensure accountDate is set in form (as string) and trigger to ensure it's updated
         if (selectedAccountDate) {
           const accountDateValue =
             typeof selectedAccountDate === "string"
               ? selectedAccountDate
               : format(selectedAccountDate, clientDateFormat)
           form.setValue("accountDate", accountDateValue)
+          form.trigger("accountDate")
         }
+
+        // Wait a tick to ensure form state is updated before calling setExchangeRate
+        await new Promise((resolve) => setTimeout(resolve, 0))
 
         await setExchangeRate(form, exhRateDec, visible)
         if (visible?.m_CtyCurr) {
