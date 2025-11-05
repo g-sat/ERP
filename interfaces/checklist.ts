@@ -24,8 +24,8 @@ export interface IJobOrderHd {
   voyageNo?: string
   natureOfCall?: string
   isps?: string
-  etaDate?: Date | string
-  etdDate?: Date | string
+  etaDate?: Date | string | null
+  etdDate?: Date | string | null
   ownerName?: string
   ownerAgent?: string
   masterName?: string

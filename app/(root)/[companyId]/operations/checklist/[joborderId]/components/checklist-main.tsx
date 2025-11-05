@@ -377,6 +377,14 @@ export function ChecklistMain({
       // DateTime fields (etaDate, etdDate) should include time using formatDateWithoutTimezone
       const formValues = transformToSchemaType(data as unknown as IJobOrderHd)
 
+      // Format DateTime fields - convert null to undefined to match IJobOrderHd interface
+      const etaDateFormatted = data.etaDate
+        ? formatDateWithoutTimezone(data.etaDate)
+        : undefined
+      const etdDateFormatted = data.etdDate
+        ? formatDateWithoutTimezone(data.etdDate)
+        : undefined
+
       const formData: Partial<IJobOrderHd> = {
         ...formValues,
         // Date-only fields: already strings in "dd/MM/yyyy" format (from transformToSchemaType)
@@ -384,8 +392,9 @@ export function ChecklistMain({
         accountDate: formValues.accountDate as string,
         seriesDate: formValues.seriesDate as string,
         // DateTime fields: format with time using formatDateWithoutTimezone
-        etaDate: formatDateWithoutTimezone(data.etaDate),
-        etdDate: formatDateWithoutTimezone(data.etdDate),
+        // Convert null to undefined to match IJobOrderHd interface (Date | string | undefined, not null)
+        etaDate: etaDateFormatted,
+        etdDate: etdDateFormatted,
       }
 
       // console.log("Formatted form data:", formData)

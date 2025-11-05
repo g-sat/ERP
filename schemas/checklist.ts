@@ -26,8 +26,8 @@ export const JobOrderHdSchema = z
       .max(50, "Nature of Call must be less than 50 characters")
       .optional(),
     isps: z.string().max(20, "ISPS must be less than 20 characters").optional(),
-    etaDate: z.union([z.date(), z.string()]).optional(),
-    etdDate: z.union([z.date(), z.string()]).optional(),
+    etaDate: z.union([z.date(), z.string(), z.null()]).optional(),
+    etdDate: z.union([z.date(), z.string(), z.null()]).optional(),
     ownerName: z
       .string()
       .max(200, "Owner Name must be less than 200 characters")

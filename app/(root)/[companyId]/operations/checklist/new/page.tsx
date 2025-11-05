@@ -341,6 +341,14 @@ export default function NewChecklistPage() {
 
       const formValues = transformToSchemaType(values)
 
+      // Format DateTime fields - convert null to undefined to match IJobOrderHd interface
+      const etaDateFormatted = values.etaDate
+        ? formatDateWithoutTimezone(values.etaDate)
+        : undefined
+      const etdDateFormatted = values.etdDate
+        ? formatDateWithoutTimezone(values.etdDate)
+        : undefined
+
       const formData: Partial<IJobOrderHd> = {
         ...formValues,
         // Date-only fields: already strings in "dd/MM/yyyy" format (from transformToSchemaType)
@@ -348,8 +356,9 @@ export default function NewChecklistPage() {
         accountDate: formValues.accountDate as string,
         seriesDate: formValues.seriesDate as string,
         // DateTime fields: format with time using formatDateWithoutTimezone
-        etaDate: formatDateWithoutTimezone(values.etaDate),
-        etdDate: formatDateWithoutTimezone(values.etdDate),
+        // Convert null to undefined to match IJobOrderHd interface (Date | string | undefined, not null)
+        etaDate: etaDateFormatted,
+        etdDate: etdDateFormatted,
       }
 
       const response = await saveJobOrderMutation.mutateAsync(
