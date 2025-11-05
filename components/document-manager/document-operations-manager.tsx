@@ -1035,7 +1035,7 @@ export default function DocumentOperationsManager({
           <Card className="h-full">
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
-                <span>Uploaded Documents</span>
+                <span>Documents List</span>
                 <div className="flex items-center gap-2">
                   {selectedDocumentIds.length > 0 && (
                     <div className="flex items-center gap-2">

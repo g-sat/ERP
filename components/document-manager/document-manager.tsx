@@ -783,7 +783,7 @@ export default function DocumentManager({
           <Card className="h-full">
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
-                <span>Uploaded Documents</span>
+                <span>Documents List </span>
                 <div className="flex items-center gap-2">
                   {/* {selectedDocuments.length > 0 && (
                     <Badge variant="default">
