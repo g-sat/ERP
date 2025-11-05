@@ -3,7 +3,11 @@
 import { useEffect, useMemo, useState, type ChangeEvent } from "react"
 import { useParams } from "next/navigation"
 import type { IJobOrderHd } from "@/interfaces/checklist"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { format } from "date-fns"
+import { useForm } from "react-hook-form"
 import { toast } from "sonner"
+import { z } from "zod"
 
 import { JobOrder } from "@/lib/api-routes"
 import { OperationsStatus } from "@/lib/operations-utils"
@@ -12,11 +16,21 @@ import { searchJobOrdersDirect } from "@/hooks/use-checklist"
 import { useGetWithDates } from "@/hooks/use-common"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Form } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { CustomDateNew } from "@/components/custom/custom-date-new"
 import { DataTableSkeleton } from "@/components/skeleton/data-table-skeleton"
 
 import { ChecklistTable } from "./components/checklist-table"
+
+// Schema for date filter form
+const dateFilterSchema = z.object({
+  startDate: z.string().optional(),
+  endDate: z.string().optional(),
+})
+
+type DateFilterFormType = z.infer<typeof dateFilterSchema>
 
 export default function ChecklistPage() {
   const params = useParams()
@@ -31,7 +45,7 @@ export default function ChecklistPage() {
   // Add this at the top of your component
   const today = new Date()
   const defaultStartDate = new Date(today)
-  defaultStartDate.setMonth(today.getMonth() - 7) // Go back 7 months
+  defaultStartDate.setMonth(today.getMonth() - 2) // Go back 2 months
 
   // Format dates to YYYY-MM-DD for input fields
   const formatDate = (date: Date) => date.toISOString().split("T")[0]
@@ -39,6 +53,15 @@ export default function ChecklistPage() {
   // Inside your component state
   const [startDate, setStartDate] = useState(formatDate(defaultStartDate))
   const [endDate, setEndDate] = useState(formatDate(today))
+
+  // Initialize form for date filters
+  const dateFilterForm = useForm<DateFilterFormType>({
+    resolver: zodResolver(dateFilterSchema),
+    defaultValues: {
+      startDate: format(defaultStartDate, "dd/MM/yyyy"),
+      endDate: format(today, "dd/MM/yyyy"),
+    },
+  })
 
   // API hooks for job order using api-client.ts through useGetHeader
   const {
@@ -75,12 +98,20 @@ export default function ChecklistPage() {
     setSearchQuery(e.target.value)
   }
 
-  const handleStartDateChange = (e: ChangeEvent<HTMLInputElement>) => {
-    setStartDate(e.target.value)
+  // Handler to sync startDate from form to state (convert dd/MM/yyyy to YYYY-MM-DD)
+  const handleStartDateChange = (date: Date | null) => {
+    if (date) {
+      const formattedDate = formatDate(date)
+      setStartDate(formattedDate)
+    }
   }
 
-  const handleEndDateChange = (e: ChangeEvent<HTMLInputElement>) => {
-    setEndDate(e.target.value)
+  // Handler to sync endDate from form to state (convert dd/MM/yyyy to YYYY-MM-DD)
+  const handleEndDateChange = (date: Date | null) => {
+    if (date) {
+      const formattedDate = formatDate(date)
+      setEndDate(formattedDate)
+    }
   }
 
   const handleStatusChange = (value: string) => {
@@ -92,6 +123,11 @@ export default function ChecklistPage() {
     setEndDate(formatDate(today))
     setSearchQuery("")
     setSelectedStatus("All")
+    // Reset form values
+    dateFilterForm.reset({
+      startDate: format(defaultStartDate, "dd/MM/yyyy"),
+      endDate: format(today, "dd/MM/yyyy"),
+    })
   }
 
   const handleSearchClick = async () => {
@@ -198,24 +234,26 @@ export default function ChecklistPage() {
       <div className="bg-card rounded-lg border p-4 shadow-sm">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex flex-col gap-2 sm:flex-row sm:gap-2">
-            <div className="flex items-center gap-2">
-              <span className="text-muted-foreground text-xs">📅</span>
-              <Input
-                type="date"
-                value={startDate}
-                onChange={handleStartDateChange}
-                className="w-full sm:w-[160px]"
-              />
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-muted-foreground text-xs">📅</span>
-              <Input
-                type="date"
-                value={endDate}
-                onChange={handleEndDateChange}
-                className="w-full sm:w-[160px]"
-              />
-            </div>
+            <Form {...dateFilterForm}>
+              <div className="flex items-center gap-2">
+                <span className="text-muted-foreground text-xs">📅</span>
+                <CustomDateNew
+                  form={dateFilterForm}
+                  name="startDate"
+                  onChangeEvent={handleStartDateChange}
+                  className="w-full sm:w-[160px]"
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-muted-foreground text-xs">📅</span>
+                <CustomDateNew
+                  form={dateFilterForm}
+                  name="endDate"
+                  onChangeEvent={handleEndDateChange}
+                  className="w-full sm:w-[160px]"
+                />
+              </div>
+            </Form>
             <div className="flex items-center gap-2">
               <span className="text-muted-foreground text-xs">🔎</span>
               <Input

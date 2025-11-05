@@ -1,8 +1,11 @@
 import { IJobOrderHd } from "@/interfaces/checklist"
 import { useQuery } from "@tanstack/react-query"
+
 import { getData, saveData } from "@/lib/api-client"
 import { JobOrder } from "@/lib/api-routes"
+
 import { useDelete, useGet, useGetById, usePersist } from "./use-common"
+
 // Enhanced query hooks using api-client.ts
 export function useGetJobOrders(filters?: string) {
   return useGet<IJobOrderHd>(JobOrder.get, "joborders", filters)
@@ -86,6 +89,7 @@ export const updateJobOrderDirect = async (
   jobOrderData: Partial<IJobOrderHd>
 ) => {
   try {
+    console.log("Updating job order:", jobOrderData)
     const response = await saveData(JobOrder.add, jobOrderData)
     return response
   } catch (error) {

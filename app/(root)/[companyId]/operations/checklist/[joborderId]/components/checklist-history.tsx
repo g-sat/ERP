@@ -2,8 +2,9 @@
 
 import { useMemo } from "react"
 import { IJobOrderHd } from "@/interfaces/checklist"
+import { useAuthStore } from "@/stores/auth-store"
 import { ColumnDef } from "@tanstack/react-table"
-import { format } from "date-fns"
+import { format, isValid } from "date-fns"
 
 import { JobOrder } from "@/lib/api-routes"
 import { TableName } from "@/lib/utils"
@@ -36,6 +37,9 @@ export function ChecklistHistory({
   jobData,
   isConfirmed: _isConfirmed = false,
 }: ChecklistHistoryFormProps) {
+  const { decimals } = useAuthStore()
+  const datetimeFormat = decimals[0]?.longDateFormat || "dd/MM/yyyy HH:mm:ss"
+
   // Fetch history data
   const { data: historyResponse, isLoading: isHistoryLoading } =
     useGet<IJobOrderHistory>(
@@ -46,9 +50,25 @@ export function ChecklistHistory({
 
   const formatDate = (dateValue: string | Date | null | undefined) => {
     if (!dateValue) return "-"
+
     try {
-      const date = dateValue instanceof Date ? dateValue : new Date(dateValue)
-      return format(date, "dd/MM/yyyy HH:mm")
+      let date: Date | null = null
+
+      // Handle Date objects
+      if (dateValue instanceof Date) {
+        date = dateValue
+      }
+      // Handle string dates
+      else if (typeof dateValue === "string") {
+        date = new Date(dateValue)
+      }
+
+      // Validate and format the date
+      if (date && isValid(date) && !isNaN(date.getTime())) {
+        return format(date, datetimeFormat)
+      }
+
+      return "-"
     } catch {
       return "-"
     }
@@ -153,7 +173,7 @@ export function ChecklistHistory({
         maxSize: 300,
       },
     ],
-    []
+    [datetimeFormat]
   )
 
   // Extract history data from response

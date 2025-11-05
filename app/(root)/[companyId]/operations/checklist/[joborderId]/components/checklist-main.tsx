@@ -2,7 +2,11 @@
 
 import React, { useEffect, useState } from "react"
 import { IJobOrderHd } from "@/interfaces/checklist"
-import { ICurrencyLookup } from "@/interfaces/lookup"
+import {
+  ICurrencyLookup,
+  ICustomerLookup,
+  IVesselLookup,
+} from "@/interfaces/lookup"
 import { JobOrderHdSchema, JobOrderHdSchemaType } from "@/schemas/checklist"
 import { useAuthStore } from "@/stores/auth-store"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -306,6 +310,63 @@ export function ChecklistMain({
     [exhRateDec, form]
   )
 
+  // Handle customer selection
+  const handleCustomerChange = React.useCallback(
+    (selectedCustomer: ICustomerLookup | null) => {
+      // Reset address and contact when customer changes
+      if (selectedCustomer?.customerId !== customerId) {
+        form.setValue("addressId", 0)
+        form.setValue("contactId", 0)
+        form.setValue("currencyId", selectedCustomer?.currencyId ?? 0)
+
+        // Store customer code for label display
+        if (selectedCustomer?.customerCode) {
+          setCustomerCode(selectedCustomer.customerCode)
+        } else {
+          setCustomerCode("")
+        }
+
+        // Trigger currency change to update exchange rate
+        if (selectedCustomer?.currencyId) {
+          // Create a minimal currency object for the API call
+          const currencyObj = {
+            currencyId: selectedCustomer.currencyId,
+            currencyCode: "",
+            currencyName: "",
+            isMultiply: false,
+          }
+          handleCurrencyChange(currencyObj)
+        }
+
+        toast.info("Address and contact have been reset for the new customer.")
+      }
+    },
+    [customerId, form, setCustomerCode, handleCurrencyChange]
+  )
+
+  // Handle vessel selection
+  const handleVesselChange = React.useCallback(
+    (selectedVessel: IVesselLookup | null) => {
+      console.log("Selected vessel:", selectedVessel)
+      console.log("Selected vessel IMO code:", selectedVessel?.imoCode)
+      console.log("All vessel data:", selectedVessel)
+
+      // Populate IMO code when vessel changes
+      if (selectedVessel?.imoCode) {
+        console.log("Setting IMO code to:", selectedVessel.imoCode)
+        form.setValue("imoCode", selectedVessel.imoCode)
+        toast.info(`IMO code has been populated: ${selectedVessel.imoCode}`)
+      } else {
+        console.log("No IMO code found, clearing field")
+        form.setValue("imoCode", "")
+        if (selectedVessel) {
+          toast.info("Selected vessel has no IMO code")
+        }
+      }
+    },
+    [form]
+  )
+
   return (
     <div className="max-w flex flex-col gap-2">
       <Form {...form}>
@@ -344,40 +405,7 @@ export function ChecklistMain({
                   label={`Customer${customerCode ? ` (${customerCode})` : ""}`}
                   isRequired={true}
                   isDisabled={isConfirmed}
-                  onChangeEvent={(selectedCustomer) => {
-                    // Reset address and contact when customer changes
-                    if (selectedCustomer?.customerId !== customerId) {
-                      form.setValue("addressId", 0)
-                      form.setValue("contactId", 0)
-                      form.setValue(
-                        "currencyId",
-                        selectedCustomer?.currencyId ?? 0
-                      )
-
-                      // Store customer code for label display
-                      if (selectedCustomer?.customerCode) {
-                        setCustomerCode(selectedCustomer.customerCode)
-                      } else {
-                        setCustomerCode("")
-                      }
-
-                      // Trigger currency change to update exchange rate
-                      if (selectedCustomer?.currencyId) {
-                        // Create a minimal currency object for the API call
-                        const currencyObj = {
-                          currencyId: selectedCustomer.currencyId,
-                          currencyCode: "",
-                          currencyName: "",
-                          isMultiply: false,
-                        }
-                        handleCurrencyChange(currencyObj)
-                      }
-
-                      toast.info(
-                        "Address and contact have been reset for the new customer."
-                      )
-                    }
-                  }}
+                  onChangeEvent={handleCustomerChange}
                 />
                 <CurrencyAutocomplete
                   form={form}
@@ -417,32 +445,7 @@ export function ChecklistMain({
                   name="vesselId"
                   label="Vessel"
                   isRequired={true}
-                  onChangeEvent={(selectedVessel) => {
-                    console.log("Selected vessel:", selectedVessel)
-                    console.log(
-                      "Selected vessel IMO code:",
-                      selectedVessel?.imoCode
-                    )
-                    console.log("All vessel data:", selectedVessel)
-
-                    // Populate IMO code when vessel changes
-                    if (selectedVessel?.imoCode) {
-                      console.log(
-                        "Setting IMO code to:",
-                        selectedVessel.imoCode
-                      )
-                      form.setValue("imoCode", selectedVessel.imoCode)
-                      toast.info(
-                        `IMO code has been populated: ${selectedVessel.imoCode}`
-                      )
-                    } else {
-                      console.log("No IMO code found, clearing field")
-                      form.setValue("imoCode", "")
-                      if (selectedVessel) {
-                        toast.info("Selected vessel has no IMO code")
-                      }
-                    }
-                  }}
+                  onChangeEvent={handleVesselChange}
                   isDisabled={isConfirmed}
                 />
                 <CustomInput

@@ -203,7 +203,7 @@ export function ChecklistTable({
           const date = row.original.etaDate
             ? new Date(row.original.etaDate)
             : null
-          return date ? format(date, dateFormat) : "-"
+          return date && isValid(date) ? format(date, datetimeFormat) : "-"
         },
       },
       {
@@ -213,7 +213,7 @@ export function ChecklistTable({
           const date = row.original.etdDate
             ? new Date(row.original.etdDate)
             : null
-          return date ? format(date, dateFormat) : "-"
+          return date && isValid(date) ? format(date, datetimeFormat) : "-"
         },
       },
       {
