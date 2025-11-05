@@ -301,6 +301,7 @@ export default function ReceiptPage() {
             const updatedSchemaType = transformToSchemaType(
               receiptData as unknown as IArReceiptHd
             )
+            setSearchNo(updatedSchemaType.receiptNo || "")
             setReceipt(updatedSchemaType)
             form.reset(updatedSchemaType)
             form.trigger()

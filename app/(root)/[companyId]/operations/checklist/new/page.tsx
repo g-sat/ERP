@@ -12,13 +12,17 @@ import {
 import { JobOrderHdSchema, JobOrderHdSchemaType } from "@/schemas"
 import { useAuthStore } from "@/stores/auth-store"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { format } from "date-fns"
+import { format, parse } from "date-fns"
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 
 import { getData } from "@/lib/api-client"
 import { BasicSetting } from "@/lib/api-routes"
-import { parseDate } from "@/lib/date-utils"
+import {
+  clientDateFormat,
+  formatDateWithoutTimezone,
+  parseDate,
+} from "@/lib/date-utils"
 import { useSaveJobOrder } from "@/hooks/use-checklist"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -59,7 +63,7 @@ export default function NewChecklistPage() {
     defaultValues: {
       jobOrderId: 0,
       jobOrderNo: "",
-      jobOrderDate: new Date(),
+      jobOrderDate: format(new Date(), clientDateFormat),
       imoCode: "",
       vesselDistance: 10,
       portId: 0,
@@ -77,8 +81,8 @@ export default function NewChecklistPage() {
       masterName: "",
       charters: "",
       chartersAgent: "",
-      accountDate: new Date(), // Set to current date for new records
-      seriesDate: new Date(), // Set to current date for new records
+      accountDate: format(new Date(), clientDateFormat), // Set to current date as string for new records
+      seriesDate: format(new Date(), clientDateFormat), // Set to current date as string for new records
       addressId: 0,
       contactId: 0,
       natureOfCall: "",
@@ -151,10 +155,15 @@ export default function NewChecklistPage() {
     }
   }, [customerId, form])
 
-  // Update invoiceDate when jobOrderDate changes
+  // Update accountDate when jobOrderDate changes
   useEffect(() => {
     if (jobOrderDate) {
-      form.setValue("accountDate", jobOrderDate)
+      // Ensure accountDate is set as string
+      const accountDateStr =
+        typeof jobOrderDate === "string"
+          ? jobOrderDate
+          : format(jobOrderDate, clientDateFormat)
+      form.setValue("accountDate", accountDateStr)
     }
   }, [jobOrderDate, form])
 
@@ -163,10 +172,10 @@ export default function NewChecklistPage() {
     const updateExchangeRate = async () => {
       if (accountDate && currencyId) {
         try {
+          // Format date to yyyy-MM-dd (matching account.ts pattern)
+          // accountDate is always a string in clientDateFormat
           const dt = format(
-            accountDate instanceof Date
-              ? accountDate
-              : parseDate(accountDate as string) || new Date(),
+            parse(accountDate as string, clientDateFormat, new Date()),
             "yyyy-MM-dd"
           )
           const res = await getData(
@@ -194,10 +203,10 @@ export default function NewChecklistPage() {
         form.getValues("accountDate") || form.getValues("jobOrderDate")
 
       if (selectedCurrencyId && accountDate) {
+        // Format date to yyyy-MM-dd (matching account.ts pattern)
+        // accountDate is always a string in clientDateFormat
         const dt = format(
-          accountDate instanceof Date
-            ? accountDate
-            : parseDate(accountDate as string) || new Date(),
+          parse(accountDate as string, clientDateFormat, new Date()),
           "yyyy-MM-dd"
         )
         const res = await getData(
@@ -287,7 +296,65 @@ export default function NewChecklistPage() {
         }
       }
 
-      const response = await saveJobOrderMutation.mutateAsync(values)
+      // Format dates - following ar-invoice pattern
+      // Transform form values to ensure dates are properly formatted as strings
+      // Use transformToSchemaType pattern (like AR invoice) to ensure consistency
+      const transformToSchemaType = (
+        formData: JobOrderHdSchemaType
+      ): JobOrderHdSchemaType => {
+        return {
+          ...formData,
+          // Date-only fields: ensure they are strings in "dd/MM/yyyy" format
+          jobOrderDate:
+            typeof formData.jobOrderDate === "string"
+              ? formData.jobOrderDate
+              : format(
+                  formData.jobOrderDate instanceof Date
+                    ? formData.jobOrderDate
+                    : parseDate(formData.jobOrderDate as string) || new Date(),
+                  clientDateFormat
+                ),
+          accountDate:
+            typeof formData.accountDate === "string"
+              ? formData.accountDate
+              : format(
+                  formData.accountDate instanceof Date
+                    ? formData.accountDate
+                    : parseDate(
+                        (formData.accountDate as string | undefined) || ""
+                      ) || new Date(),
+                  clientDateFormat
+                ),
+          seriesDate:
+            typeof formData.seriesDate === "string"
+              ? formData.seriesDate
+              : format(
+                  formData.seriesDate instanceof Date
+                    ? formData.seriesDate
+                    : parseDate(
+                        (formData.seriesDate as string | undefined) || ""
+                      ) || new Date(),
+                  clientDateFormat
+                ),
+        }
+      }
+
+      const formValues = transformToSchemaType(values)
+
+      const formData: Partial<IJobOrderHd> = {
+        ...formValues,
+        // Date-only fields: already strings in "dd/MM/yyyy" format (from transformToSchemaType)
+        jobOrderDate: formValues.jobOrderDate as string,
+        accountDate: formValues.accountDate as string,
+        seriesDate: formValues.seriesDate as string,
+        // DateTime fields: format with time using formatDateWithoutTimezone
+        etaDate: formatDateWithoutTimezone(values.etaDate),
+        etdDate: formatDateWithoutTimezone(values.etdDate),
+      }
+
+      const response = await saveJobOrderMutation.mutateAsync(
+        formData as JobOrderHdSchemaType
+      )
 
       if (response.result === 1) {
         // Extract job order data from response (handle array or object)

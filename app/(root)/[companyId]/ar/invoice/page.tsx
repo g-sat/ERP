@@ -329,6 +329,8 @@ export default function InvoicePage() {
             const updatedSchemaType = transformToSchemaType(
               invoiceData as unknown as IArInvoiceHd
             )
+
+            setSearchNo(updatedSchemaType.invoiceNo || "")
             setInvoice(updatedSchemaType)
             form.reset(updatedSchemaType)
             form.trigger()

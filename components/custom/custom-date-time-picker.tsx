@@ -1,7 +1,7 @@
 import React from "react"
 import { useAuthStore } from "@/stores/auth-store"
 import { format } from "date-fns"
-import { CalendarIcon } from "lucide-react"
+import { CalendarIcon, X } from "lucide-react"
 import { FieldValues, Path, UseFormReturn } from "react-hook-form"
 
 import { cn } from "@/lib/utils"
@@ -48,6 +48,16 @@ export const CustomDateTimePicker = <T extends FieldValues = FieldValues>({
     }
   }
 
+  // Handle clear date
+  const handleClear = (
+    field: { onChange: (value: Date | null) => void },
+    event: React.MouseEvent
+  ) => {
+    event.stopPropagation()
+    field.onChange(null)
+    handleDateChange(undefined)
+  }
+
   // Get button size classes based on size prop
   const getButtonSizeClasses = () => {
     switch (size) {
@@ -73,50 +83,66 @@ export const CustomDateTimePicker = <T extends FieldValues = FieldValues>({
         name={name}
         render={({ field }) => (
           <FormItem>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  disabled={isDisabled}
-                  className={cn(
-                    "w-full justify-start text-left font-normal",
-                    getButtonSizeClasses(),
-                    !field.value && "text-muted-foreground"
-                  )}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {field.value ? (
-                    format(field.value, `${dateFormat} HH:mm`)
-                  ) : (
-                    <span>{placeholder}</span>
-                  )}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={field.value}
-                  onSelect={(date) => {
-                    field.onChange(date)
-                    handleDateChange(date)
-                  }}
-                  disabled={(date) => {
-                    const isFutureDate = date > new Date()
-                    const isTooPast = date < new Date("1900-01-01")
-                    return (!isFutureShow && isFutureDate) || isTooPast
-                  }}
-                />
-                <div className="border-t p-3">
-                  <TimePicker
-                    setDate={(date) => {
+            <div className="relative w-full">
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    disabled={isDisabled}
+                    className={cn(
+                      "w-full justify-start text-left font-normal",
+                      getButtonSizeClasses(),
+                      !field.value && "text-muted-foreground",
+                      field.value && "pr-8"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {field.value ? (
+                      format(field.value, `${dateFormat} HH:mm`)
+                    ) : (
+                      <span>{placeholder}</span>
+                    )}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={field.value}
+                    onSelect={(date) => {
                       field.onChange(date)
                       handleDateChange(date)
                     }}
-                    date={field.value}
+                    disabled={(date) => {
+                      const isFutureDate = date > new Date()
+                      const isTooPast = date < new Date("1900-01-01")
+                      return (!isFutureShow && isFutureDate) || isTooPast
+                    }}
                   />
-                </div>
-              </PopoverContent>
-            </Popover>
+                  {field.value && (
+                    <div className="border-t p-3">
+                      <TimePicker
+                        setDate={(date) => {
+                          field.onChange(date)
+                          handleDateChange(date)
+                        }}
+                        date={field.value}
+                      />
+                    </div>
+                  )}
+                </PopoverContent>
+              </Popover>
+              {field.value && !isDisabled && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="absolute top-0 right-0 h-full rounded-l-none hover:bg-transparent"
+                  onClick={(e) => handleClear(field, e)}
+                >
+                  <X className="text-muted-foreground hover:text-foreground h-4 w-4" />
+                </Button>
+              )}
+            </div>
             <FormMessage />
           </FormItem>
         )}

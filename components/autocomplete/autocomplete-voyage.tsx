@@ -193,6 +193,9 @@ export default function VoyageAutocomplete<T extends Record<string, unknown>>({
   const handleChange = React.useCallback(
     (option: SingleValue<FieldOption> | MultiValue<FieldOption>) => {
       const selectedOption = Array.isArray(option) ? option[0] : option
+      // Mark that an option was selected (not just cleared)
+      isOptionSelectedRef.current = !!selectedOption
+
       if (form && name) {
         // Set the value as a number
         const value = selectedOption ? Number(selectedOption.value) : 0
@@ -226,9 +229,13 @@ export default function VoyageAutocomplete<T extends Record<string, unknown>>({
   // Handle menu close to maintain focus on the control
   const selectControlRef = React.useRef<HTMLDivElement>(null)
   const isTabPressedRef = React.useRef(false)
+  const isOptionSelectedRef = React.useRef(false)
+
   const handleMenuClose = React.useCallback(() => {
-    // Only refocus if Tab was NOT pressed (i.e., option was selected)
-    if (!isTabPressedRef.current) {
+    // Only refocus if:
+    // 1. Tab was NOT pressed (to allow Tab navigation)
+    // 2. An option was actually selected (to distinguish from clicking outside)
+    if (!isTabPressedRef.current && isOptionSelectedRef.current) {
       // Use requestAnimationFrame for smoother timing and less flicker
       requestAnimationFrame(() => {
         if (selectControlRef.current) {
@@ -238,7 +245,7 @@ export default function VoyageAutocomplete<T extends Record<string, unknown>>({
           if (input) {
             const activeElement = document.activeElement as HTMLElement
             const form = selectControlRef.current.closest("form")
-            
+
             // Only refocus if:
             // 1. Focus is not already on the input
             // 2. Focus is on the form, body, or outside the form
@@ -256,12 +263,13 @@ export default function VoyageAutocomplete<T extends Record<string, unknown>>({
           }
         }
       })
-    } else {
-      // Reset the flag after menu closes (for Tab navigation)
-      requestAnimationFrame(() => {
-        isTabPressedRef.current = false
-      })
     }
+
+    // Reset flags after menu closes
+    requestAnimationFrame(() => {
+      isTabPressedRef.current = false
+      isOptionSelectedRef.current = false
+    })
   }, [])
 
   // Handle Tab key to close menu and allow normal tab navigation
@@ -288,7 +296,7 @@ export default function VoyageAutocomplete<T extends Record<string, unknown>>({
               const inputIndex = allFocusable.findIndex(
                 (el) => el === input || el.contains(input)
               )
-              
+
               if (event.shiftKey) {
                 // Shift+Tab: go to previous element
                 if (inputIndex !== -1 && inputIndex > 0) {

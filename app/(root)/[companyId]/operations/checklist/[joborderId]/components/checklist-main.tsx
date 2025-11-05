@@ -72,8 +72,11 @@ export function ChecklistMain({
       jobOrderId: jobData?.jobOrderId ?? 0,
       jobOrderNo: jobData?.jobOrderNo ?? "",
       jobOrderDate: jobData?.jobOrderDate
-        ? parseDate(jobData.jobOrderDate as string) || undefined
-        : new Date(),
+        ? format(
+            parseDate(jobData.jobOrderDate as string) || new Date(),
+            clientDateFormat
+          )
+        : format(new Date(), clientDateFormat),
       imoCode: jobData?.imoCode ?? "",
       vesselDistance: jobData?.vesselDistance ?? 10,
       portId: jobData?.portId ?? 0,
@@ -96,11 +99,17 @@ export function ChecklistMain({
       charters: jobData?.charters ?? "",
       chartersAgent: jobData?.chartersAgent ?? "",
       accountDate: jobData?.accountDate
-        ? parseDate(jobData.accountDate as string) || undefined
-        : undefined,
+        ? format(
+            parseDate(jobData.accountDate as string) || new Date(),
+            clientDateFormat
+          )
+        : format(new Date(), clientDateFormat),
       seriesDate: jobData?.seriesDate
-        ? parseDate(jobData.seriesDate as string) || undefined
-        : undefined,
+        ? format(
+            parseDate(jobData.seriesDate as string) || new Date(),
+            clientDateFormat
+          )
+        : format(new Date(), clientDateFormat),
       addressId: jobData?.addressId ?? 0,
       contactId: jobData?.contactId ?? 0,
       natureOfCall: jobData?.natureOfCall ?? "",
@@ -165,8 +174,11 @@ export function ChecklistMain({
       jobOrderId: jobData?.jobOrderId ?? 0,
       jobOrderNo: jobData?.jobOrderNo ?? "",
       jobOrderDate: jobData?.jobOrderDate
-        ? parseDate(jobData.jobOrderDate as string) || new Date()
-        : new Date(),
+        ? format(
+            parseDate(jobData.jobOrderDate as string) || new Date(),
+            clientDateFormat
+          )
+        : format(new Date(), clientDateFormat),
       portId: jobData?.portId ?? 0,
       customerId: jobData?.customerId ?? 0,
       currencyId: jobData?.currencyId ?? 0,
@@ -187,11 +199,17 @@ export function ChecklistMain({
       charters: jobData?.charters ?? "",
       chartersAgent: jobData?.chartersAgent ?? "",
       accountDate: jobData?.accountDate
-        ? parseDate(jobData.accountDate as string) || undefined
-        : undefined,
+        ? format(
+            parseDate(jobData.accountDate as string) || new Date(),
+            clientDateFormat
+          )
+        : format(new Date(), clientDateFormat),
       seriesDate: jobData?.seriesDate
-        ? parseDate(jobData.seriesDate as string) || undefined
-        : undefined,
+        ? format(
+            parseDate(jobData.seriesDate as string) || new Date(),
+            clientDateFormat
+          )
+        : format(new Date(), clientDateFormat),
       addressId: jobData?.addressId ?? 0,
       contactId: jobData?.contactId ?? 0,
       natureOfCall: jobData?.natureOfCall ?? "",
@@ -230,7 +248,12 @@ export function ChecklistMain({
   // Update accountDate when jobOrderDate changes
   useEffect(() => {
     if (jobOrderDate) {
-      form.setValue("accountDate", jobOrderDate)
+      // Ensure accountDate is set as string
+      const accountDateStr =
+        typeof jobOrderDate === "string"
+          ? jobOrderDate
+          : format(jobOrderDate, clientDateFormat)
+      form.setValue("accountDate", accountDateStr)
     }
   }, [jobOrderDate, form])
 
@@ -240,13 +263,11 @@ export function ChecklistMain({
       if (accountDate && currencyId) {
         try {
           // Format date to yyyy-MM-dd (matching account.ts pattern)
-          const dt =
-            typeof accountDate === "string"
-              ? format(
-                  parse(accountDate, clientDateFormat, new Date()),
-                  "yyyy-MM-dd"
-                )
-              : format(accountDate, "yyyy-MM-dd")
+          // accountDate is always a string in clientDateFormat
+          const dt = format(
+            parse(accountDate as string, clientDateFormat, new Date()),
+            "yyyy-MM-dd"
+          )
           const res = await getData(
             `${BasicSetting.getExchangeRate}/${currencyId}/${dt}`
           )
@@ -279,8 +300,11 @@ export function ChecklistMain({
       jobOrderId: apiJobOrder.jobOrderId ?? 0,
       jobOrderNo: apiJobOrder.jobOrderNo ?? "",
       jobOrderDate: apiJobOrder.jobOrderDate
-        ? parseDate(apiJobOrder.jobOrderDate as string) || new Date()
-        : new Date(),
+        ? format(
+            parseDate(apiJobOrder.jobOrderDate as string) || new Date(),
+            clientDateFormat
+          )
+        : format(new Date(), clientDateFormat),
       portId: apiJobOrder.portId ?? 0,
       customerId: apiJobOrder.customerId ?? 0,
       currencyId: apiJobOrder.currencyId ?? 0,
@@ -301,11 +325,17 @@ export function ChecklistMain({
       charters: apiJobOrder.charters ?? "",
       chartersAgent: apiJobOrder.chartersAgent ?? "",
       accountDate: apiJobOrder.accountDate
-        ? parseDate(apiJobOrder.accountDate as string) || undefined
-        : undefined,
+        ? format(
+            parseDate(apiJobOrder.accountDate as string) || new Date(),
+            clientDateFormat
+          )
+        : format(new Date(), clientDateFormat),
       seriesDate: apiJobOrder.seriesDate
-        ? parseDate(apiJobOrder.seriesDate as string) || undefined
-        : undefined,
+        ? format(
+            parseDate(apiJobOrder.seriesDate as string) || new Date(),
+            clientDateFormat
+          )
+        : format(new Date(), clientDateFormat),
       addressId: apiJobOrder.addressId ?? 0,
       contactId: apiJobOrder.contactId ?? 0,
       natureOfCall: apiJobOrder.natureOfCall ?? "",
@@ -342,26 +372,17 @@ export function ChecklistMain({
       }
 
       // Format dates - following ar-invoice pattern
+      // Use transformToSchemaType to ensure dates are properly formatted as strings
       // Date-only fields (accountDate, seriesDate, jobOrderDate) should be strings in "dd/MM/yyyy" format
       // DateTime fields (etaDate, etdDate) should include time using formatDateWithoutTimezone
-      const formatDateOnly = (date: Date | string | null | undefined) => {
-        if (!date) return undefined
-        try {
-          const dateObj =
-            date instanceof Date ? date : parseDate(date as string)
-          if (!dateObj || isNaN(dateObj.getTime())) return undefined
-          return format(dateObj, clientDateFormat) // "dd/MM/yyyy"
-        } catch {
-          return undefined
-        }
-      }
+      const formValues = transformToSchemaType(data as unknown as IJobOrderHd)
 
       const formData: Partial<IJobOrderHd> = {
-        ...data,
-        // Date-only fields: format as "dd/MM/yyyy" string (like ar-invoice accountDate)
-        jobOrderDate: formatDateOnly(data.jobOrderDate),
-        accountDate: formatDateOnly(data.accountDate),
-        seriesDate: formatDateOnly(data.seriesDate),
+        ...formValues,
+        // Date-only fields: already strings in "dd/MM/yyyy" format (from transformToSchemaType)
+        jobOrderDate: formValues.jobOrderDate as string,
+        accountDate: formValues.accountDate as string,
+        seriesDate: formValues.seriesDate as string,
         // DateTime fields: format with time using formatDateWithoutTimezone
         etaDate: formatDateWithoutTimezone(data.etaDate),
         etdDate: formatDateWithoutTimezone(data.etdDate),
@@ -425,13 +446,11 @@ export function ChecklistMain({
 
       if (selectedCurrencyId && accountDate) {
         // Format date to yyyy-MM-dd (matching account.ts pattern)
-        const dt =
-          typeof accountDate === "string"
-            ? format(
-                parse(accountDate, clientDateFormat, new Date()),
-                "yyyy-MM-dd"
-              )
-            : format(accountDate, "yyyy-MM-dd")
+        // accountDate is always a string in clientDateFormat
+        const dt = format(
+          parse(accountDate as string, clientDateFormat, new Date()),
+          "yyyy-MM-dd"
+        )
         const res = await getData(
           `${BasicSetting.getExchangeRate}/${selectedCurrencyId}/${dt}`
         )

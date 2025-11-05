@@ -176,6 +176,9 @@ export default function FileTypeAutocomplete<
   const handleChange = React.useCallback(
     (option: SingleValue<FieldOption> | MultiValue<FieldOption>) => {
       const selectedOption = Array.isArray(option) ? option[0] : option
+      // Mark that an option was selected (not just cleared)
+      isOptionSelectedRef.current = !!selectedOption
+      
       if (form && name) {
         // Set the value as a string
         const value = selectedOption ? selectedOption.value : ""
@@ -202,9 +205,13 @@ export default function FileTypeAutocomplete<
   // Handle menu close to maintain focus on the control
   const selectControlRef = React.useRef<HTMLDivElement>(null)
   const isTabPressedRef = React.useRef(false)
+  const isOptionSelectedRef = React.useRef(false)
+  
   const handleMenuClose = React.useCallback(() => {
-    // Only refocus if Tab was NOT pressed (i.e., option was selected)
-    if (!isTabPressedRef.current) {
+    // Only refocus if:
+    // 1. Tab was NOT pressed (to allow Tab navigation)
+    // 2. An option was actually selected (to distinguish from clicking outside)
+    if (!isTabPressedRef.current && isOptionSelectedRef.current) {
       // Use requestAnimationFrame for smoother timing and less flicker
       requestAnimationFrame(() => {
         if (selectControlRef.current) {
@@ -232,12 +239,13 @@ export default function FileTypeAutocomplete<
           }
         }
       })
-    } else {
-      // Reset the flag after menu closes (for Tab navigation)
-      requestAnimationFrame(() => {
-        isTabPressedRef.current = false
-      })
     }
+    
+    // Reset flags after menu closes
+    requestAnimationFrame(() => {
+      isTabPressedRef.current = false
+      isOptionSelectedRef.current = false
+    })
   }, [])
 
   // Handle Tab key to close menu and allow normal tab navigation
