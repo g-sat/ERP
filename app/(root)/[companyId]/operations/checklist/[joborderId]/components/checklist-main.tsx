@@ -47,12 +47,14 @@ interface ChecklistMainProps {
   jobData?: IJobOrderHd | null
   setFormRef?: (ref: HTMLFormElement | null) => void
   isConfirmed?: boolean
+  onUpdateSuccess?: () => void
 }
 
 export function ChecklistMain({
   jobData,
   setFormRef,
   isConfirmed,
+  onUpdateSuccess,
 }: ChecklistMainProps) {
   const { decimals } = useAuthStore()
   const exhRateDec = decimals[0]?.exhRateDec || 6
@@ -253,8 +255,8 @@ export function ChecklistMain({
           if (exhRate) {
             form.setValue("exhRate", +Number(exhRate).toFixed(exhRateDec))
           }
-        } catch (error) {
-          console.error("Error fetching exchange rate:", error)
+        } catch (_error) {
+          // console.error("Error fetching exchange rate:", error)
         }
       }
     }
@@ -269,8 +271,61 @@ export function ChecklistMain({
     }
   }, [jobData?.customerCode])
 
+  // Helper function to transform IJobOrderHd to JobOrderHdSchemaType
+  const transformToSchemaType = (
+    apiJobOrder: IJobOrderHd
+  ): JobOrderHdSchemaType => {
+    return {
+      jobOrderId: apiJobOrder.jobOrderId ?? 0,
+      jobOrderNo: apiJobOrder.jobOrderNo ?? "",
+      jobOrderDate: apiJobOrder.jobOrderDate
+        ? parseDate(apiJobOrder.jobOrderDate as string) || new Date()
+        : new Date(),
+      portId: apiJobOrder.portId ?? 0,
+      customerId: apiJobOrder.customerId ?? 0,
+      currencyId: apiJobOrder.currencyId ?? 0,
+      exhRate: apiJobOrder.exhRate ?? 0,
+      vesselId: apiJobOrder.vesselId ?? 0,
+      voyageId: apiJobOrder.voyageId ?? 0,
+      lastPortId: apiJobOrder.lastPortId ?? 0,
+      nextPortId: apiJobOrder.nextPortId ?? 0,
+      etaDate: apiJobOrder.etaDate
+        ? parseDate(apiJobOrder.etaDate as string) || undefined
+        : undefined,
+      etdDate: apiJobOrder.etdDate
+        ? parseDate(apiJobOrder.etdDate as string) || undefined
+        : undefined,
+      ownerName: apiJobOrder.ownerName ?? "",
+      ownerAgent: apiJobOrder.ownerAgent ?? "",
+      masterName: apiJobOrder.masterName ?? "",
+      charters: apiJobOrder.charters ?? "",
+      chartersAgent: apiJobOrder.chartersAgent ?? "",
+      accountDate: apiJobOrder.accountDate
+        ? parseDate(apiJobOrder.accountDate as string) || undefined
+        : undefined,
+      seriesDate: apiJobOrder.seriesDate
+        ? parseDate(apiJobOrder.seriesDate as string) || undefined
+        : undefined,
+      addressId: apiJobOrder.addressId ?? 0,
+      contactId: apiJobOrder.contactId ?? 0,
+      natureOfCall: apiJobOrder.natureOfCall ?? "",
+      isps: apiJobOrder.isps ?? "",
+      imoCode: apiJobOrder.imoCode ?? "",
+      isTaxable: apiJobOrder.isTaxable ?? false,
+      isClose: apiJobOrder.isClose ?? false,
+      isPost: apiJobOrder.isPost ?? false,
+      isActive: apiJobOrder.isActive ?? true,
+      remarks: apiJobOrder.remarks ?? "",
+      statusId: apiJobOrder.statusId ?? 201,
+      gstId: apiJobOrder.gstId ?? 0,
+      gstPercentage: apiJobOrder.gstPercentage ?? 0,
+      editVersion: apiJobOrder.editVersion ?? 0,
+      vesselDistance: apiJobOrder.vesselDistance ?? 10,
+    }
+  }
+
   const onSubmit = async (data: JobOrderSchemaType) => {
-    console.log("Form data:", data)
+    // console.log("Form data:", data)
     try {
       // Validate etaDate < etdDate before submission (with time)
       if (data.etaDate && data.etdDate) {
@@ -312,23 +367,48 @@ export function ChecklistMain({
         etdDate: formatDateWithoutTimezone(data.etdDate),
       }
 
-      console.log("Formatted form data:", formData)
+      // console.log("Formatted form data:", formData)
 
-      console.log("Calling updateJobOrder API using api-client.ts...")
+      // console.log("Calling updateJobOrder API using api-client.ts...")
       const response = await updateJobOrderDirect(formData)
-      console.log("Update API call completed:", response)
+      // console.log("Update API call completed:", response)
       if (response.result === 1) {
-        //update data from response
-        form.reset(response.data)
-        //update edit version
-        form.setValue("editVersion", response.data.editVersion ?? 0)
+        // Extract job order data from response (handle array or object)
+        const jobOrderData = Array.isArray(response.data)
+          ? response.data[0]
+          : response.data
+
+        // Transform API response back to form values
+        if (jobOrderData) {
+          const updatedSchemaType = transformToSchemaType(
+            jobOrderData as unknown as IJobOrderHd
+          )
+
+          // Update customer code if available
+          const responseData = jobOrderData as IJobOrderHd & {
+            customerCode?: string
+          }
+          if (responseData.customerCode) {
+            setCustomerCode(responseData.customerCode)
+          }
+
+          // Reset form with updated data from server response
+          // This ensures form reflects the latest server state (including editVersion, timestamps, etc.)
+          form.reset(updatedSchemaType)
+          form.trigger()
+
+          // Trigger parent refetch to update page.tsx data (including editVersion in header)
+          if (onUpdateSuccess) {
+            onUpdateSuccess()
+          }
+        }
 
         toast.success(response.message || "Job order updated successfully!")
       } else {
         toast.error(response.message || "Update failed")
       }
-    } catch (error) {
-      console.error("Error saving job order:", error)
+    } catch (_error) {
+      // console.error("Error saving job order:", _error)
       toast.error("Failed to save job order. Please try again.")
       // Don't call onSuccess on failure - keep dialog open
     }
@@ -338,7 +418,7 @@ export function ChecklistMain({
   const handleCurrencyChange = React.useCallback(
     async (selectedCurrency: ICurrencyLookup | null) => {
       // Additional logic when currency changes
-      console.log("Selected currency:", selectedCurrency)
+      // console.log("Selected currency:", selectedCurrency)
       const selectedCurrencyId = selectedCurrency?.currencyId || 0
       const accountDate =
         form.getValues("accountDate") || form.getValues("jobOrderDate")
@@ -402,17 +482,17 @@ export function ChecklistMain({
   // Handle vessel selection
   const handleVesselChange = React.useCallback(
     (selectedVessel: IVesselLookup | null) => {
-      console.log("Selected vessel:", selectedVessel)
-      console.log("Selected vessel IMO code:", selectedVessel?.imoCode)
-      console.log("All vessel data:", selectedVessel)
+      // console.log("Selected vessel:", selectedVessel)
+      // console.log("Selected vessel IMO code:", selectedVessel?.imoCode)
+      // console.log("All vessel data:", selectedVessel)
 
       // Populate IMO code when vessel changes
       if (selectedVessel?.imoCode) {
-        console.log("Setting IMO code to:", selectedVessel.imoCode)
+        // console.log("Setting IMO code to:", selectedVessel.imoCode)
         form.setValue("imoCode", selectedVessel.imoCode)
         toast.info(`IMO code has been populated: ${selectedVessel.imoCode}`)
       } else {
-        console.log("No IMO code found, clearing field")
+        // console.log("No IMO code found, clearing field")
         form.setValue("imoCode", "")
         if (selectedVessel) {
           toast.info("Selected vessel has no IMO code")
@@ -427,19 +507,19 @@ export function ChecklistMain({
       <Form {...form}>
         <form
           onSubmit={(e) => {
-            console.log("Form submit event triggered")
+            // console.log("Form submit event triggered")
             form.handleSubmit(
               (data) => {
-                console.log("Form validation passed, calling onSubmit")
+                // console.log("Form validation passed, calling onSubmit")
                 onSubmit(data)
               },
               (errors) => {
-                console.error("Form validation failed:", errors)
-                console.error("Form values:", form.getValues())
-                console.error(
-                  "Form errors details:",
-                  JSON.stringify(errors, null, 2)
-                )
+                // console.error("Form validation failed:", errors)
+                // console.error("Form values:", form.getValues())
+                // console.error(
+                //   "Form errors details:",
+                //   JSON.stringify(errors, null, 2)
+                // )
 
                 // Extract error messages from react-hook-form error structure
                 const errorMessages: string[] = []
@@ -468,14 +548,14 @@ export function ChecklistMain({
                       ? errorMessages[0]
                       : `Validation errors:\n${errorMessages.map((msg) => `• ${msg}`).join("\n")}`
 
-                  console.log("Showing toast with errors:", errorText)
+                  // console.log("Showing toast with errors:", errorText)
                   toast.error(errorText, {
                     duration: 5000, // Show for 5 seconds
                   })
                 } else {
-                  console.log(
-                    "No error messages extracted, showing generic error"
-                  )
+                  // console.log(
+                  //   "No error messages extracted, showing generic error"
+                  // )
                   toast.error("Please fill in all required fields")
                 }
               }
@@ -483,7 +563,7 @@ export function ChecklistMain({
           }}
           className="space-y-6"
           ref={(ref) => {
-            console.log("Form ref callback called:", ref)
+            // console.log("Form ref callback called:", ref)
             if (setFormRef) {
               setFormRef(ref)
             }

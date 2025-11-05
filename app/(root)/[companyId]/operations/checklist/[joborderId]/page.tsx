@@ -21,27 +21,27 @@ export default function JobOrderDetailsPage() {
   const router = useRouter()
   const jobOrderId = params.joborderId as string // Note: using joborderId (lowercase) to match directory name
 
-  console.log("JobOrderDetailsPage - params:", params)
-  console.log("JobOrderDetailsPage - jobOrderId:", jobOrderId)
-  console.log("JobOrderDetailsPage - companyId:", params.companyId)
+  // console.log("JobOrderDetailsPage - params:", params)
+  // console.log("JobOrderDetailsPage - jobOrderId:", jobOrderId)
+  // console.log("JobOrderDetailsPage - companyId:", params.companyId)
 
   // Fetch the job order data using the hook
   const {
     data: jobOrderResponse,
     isLoading,
-    error,
     isError,
+    refetch: refetchJobOrder,
   } = useGetJobOrderByIdNo(jobOrderId)
 
   // Debug logging
-  console.log("JobOrderDetailsPage - API Response:", {
-    isLoading,
-    isError,
-    hasData: !!jobOrderResponse?.data,
-    error: error?.message,
-    jobOrderId,
-    companyId: params.companyId,
-  })
+  // console.log("JobOrderDetailsPage - API Response:", {
+  //   isLoading,
+  //   isError,
+  //   hasData: !!jobOrderResponse?.data,
+  //   error: error?.message,
+  //   jobOrderId,
+  //   companyId: params.companyId,
+  // })
 
   const statusColors: Record<string, string> = {
     Pending:
@@ -64,7 +64,7 @@ export default function JobOrderDetailsPage() {
 
   // Handle clone functionality
   const handleClone = (clonedData: IJobOrderHd) => {
-    console.log("Cloning job order:", clonedData)
+    // console.log("Cloning job order:", clonedData)
 
     // Create query parameters with the cloned data
     const queryParams = new URLSearchParams()
@@ -108,7 +108,7 @@ export default function JobOrderDetailsPage() {
             </div>
             <div>
               <h1 className="text-xl font-bold tracking-tight sm:text-3xl">
-                Job Order Details{" "}
+                Checklist Details{" "}
               </h1>
             </div>
           </div>
@@ -123,19 +123,18 @@ export default function JobOrderDetailsPage() {
                     className="flex h-8 items-center border-2 border-blue-200 bg-gradient-to-r from-blue-50 to-blue-100 px-4 text-sm font-semibold text-blue-800 shadow-sm transition-all duration-300 hover:scale-105 hover:border-blue-300 hover:bg-gradient-to-r hover:from-blue-100 hover:to-blue-200 hover:shadow-md dark:border-blue-700 dark:from-blue-900 dark:to-blue-800 dark:text-blue-200 dark:hover:from-blue-800 dark:hover:to-blue-700"
                   >
                     <span className="mr-1 text-blue-600">📋</span>
-                    {jobOrderResponse?.data?.jobOrderNo} : v[
-                    {jobOrderResponse?.data?.editVersion}]
+                    {`${jobOrderResponse?.data?.jobOrderNo} : v[${jobOrderResponse?.data?.editVersion}]`}
                   </Badge>
                 </TooltipTrigger>
                 <TooltipContent className="max-w-sm border border-gray-200 bg-white p-4 shadow-lg">
                   <div className="space-y-2">
                     <h4 className="mb-3 font-semibold text-blue-800">
-                      Job Order Details
+                      Checklist Details
                     </h4>
                     <div className="grid grid-cols-1 gap-2 text-sm">
                       <div className="flex justify-between">
                         <span className="font-medium text-gray-600">
-                          Job Order No:
+                          JobOrderNo:
                         </span>
                         <span className="text-gray-800">
                           {jobOrderResponse?.data?.jobOrderNo}
@@ -236,6 +235,7 @@ export default function JobOrderDetailsPage() {
       <ChecklistTabs
         jobData={jobOrderResponse?.data as IJobOrderHd}
         onClone={handleClone}
+        onUpdateSuccess={refetchJobOrder}
       />
     </div>
   )

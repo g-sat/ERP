@@ -14,7 +14,6 @@ import {
   Printer,
   Receipt,
   RefreshCcw,
-  RotateCcw,
   Upload,
   X,
 } from "lucide-react"
@@ -48,13 +47,18 @@ import { DebitNoteItemsTable } from "./debit-note-items-table"
 interface ChecklistTabsProps {
   jobData: IJobOrderHd
   onClone?: (clonedData: IJobOrderHd) => void
+  onUpdateSuccess?: () => void
 }
 
-export function ChecklistTabs({ jobData, onClone }: ChecklistTabsProps) {
+export function ChecklistTabs({
+  jobData,
+  onClone,
+  onUpdateSuccess,
+}: ChecklistTabsProps) {
   const [activeTab, setActiveTab] = useState("main")
   const [showConfirmDialog, setShowConfirmDialog] = useState(false)
   const [confirmAction, setConfirmAction] = useState<{
-    type: "reset" | "clone" | "cancel" | "update"
+    type: "clone" | "cancel" | "update"
     title: string
     message: string
   } | null>(null)
@@ -69,10 +73,6 @@ export function ChecklistTabs({ jobData, onClone }: ChecklistTabsProps) {
 
   // Fetch detailed job order data when jobData is available
   const jobOrderId = jobData?.jobOrderId?.toString() || ""
-  const jobOrderNo = jobData?.jobOrderNo || ""
-
-  console.log("ChecklistTabs - jobOrderId:", jobOrderId)
-  console.log("ChecklistTabs - jobOrderNo:", jobOrderNo)
 
   const {
     data: detailedJobData,
@@ -99,18 +99,18 @@ export function ChecklistTabs({ jobData, onClone }: ChecklistTabsProps) {
     ? isStatusConfirmed(currentJobData.statusName)
     : false
 
-  console.log("Original jobData:", jobData)
-  console.log("Detailed jobData:", detailedJobData)
-  console.log("Current jobData:", currentJobData)
-  console.log(isConfirmed, "isConfirmed checklist")
+  // console.log("Original jobData:", jobData)
+  // console.log("Detailed jobData:", detailedJobData)
+  // console.log("Current jobData:", currentJobData)
+  // console.log(isConfirmed, "isConfirmed checklist")
 
   // Handle loading and error states
   if (isLoading) {
-    console.log("Loading detailed job order data...")
+    // console.log("Loading detailed job order data...")
   }
 
   if (error) {
-    console.error("Error fetching detailed job order:", error)
+    // console.error("Error fetching detailed job order:", error)
   }
 
   const handlePrint = () => {
@@ -131,18 +131,18 @@ export function ChecklistTabs({ jobData, onClone }: ChecklistTabsProps) {
     // Update the parent component to handle the clone
     if (onClone) {
       // Pass the cloned data back to parent
-      console.log("Cloning job order:", clonedData)
+      // console.log("Cloning job order:", clonedData)
       onClone(clonedData)
     }
   }
 
   const handleFormSubmit = () => {
-    console.log("handleFormSubmit called, formRef:", formRef)
+    // console.log("handleFormSubmit called, formRef:", formRef)
     if (formRef) {
-      console.log("Calling formRef.requestSubmit()")
+      // console.log("Calling formRef.requestSubmit()")
       formRef.requestSubmit()
     } else {
-      console.error("formRef is null, cannot submit form")
+      // console.error("formRef is null, cannot submit form")
     }
   }
 
@@ -163,8 +163,8 @@ export function ChecklistTabs({ jobData, onClone }: ChecklistTabsProps) {
       } else {
         setDebitNoteError("Failed to fetch debit note data")
       }
-    } catch (err) {
-      console.error("Error fetching debit note data:", err)
+    } catch (_err) {
+      // console.error("Error fetching debit note data:", _err)
       setDebitNoteError("Error fetching debit note data")
     } finally {
       setDebitNoteLoading(false)
@@ -191,7 +191,7 @@ export function ChecklistTabs({ jobData, onClone }: ChecklistTabsProps) {
         saveData
       )
       if (response.data.result > 0) {
-        console.log("Debit note data saved successfully")
+        // console.log("Debit note data saved successfully")
         toast.success("Debit note data saved successfully")
         setShowDebitNoteDialog(false)
         // Refresh the details tab and main data
@@ -202,8 +202,8 @@ export function ChecklistTabs({ jobData, onClone }: ChecklistTabsProps) {
         // Refresh even on error to show current state
         refetch()
       }
-    } catch (err) {
-      console.error("Error saving debit note data:", err)
+    } catch (_err) {
+      // console.error("Error saving debit note data:", _err)
       setDebitNoteError("Error saving debit note data")
       toast.error("Error saving debit note data")
       // Refresh even on error to show current state
@@ -344,7 +344,7 @@ export function ChecklistTabs({ jobData, onClone }: ChecklistTabsProps) {
                   parseInt(currentJobData.invoiceId) > 0
               )}
               onClick={() => {
-                console.log("Invoice Create triggered")
+                // console.log("Invoice Create triggered")
               }}
             >
               <FileText className="mr-1 h-4 w-4" />
@@ -359,31 +359,11 @@ export function ChecklistTabs({ jobData, onClone }: ChecklistTabsProps) {
               variant="outline"
               size="sm"
               onClick={() => {
-                console.log("Manual refresh triggered")
+                // console.log("Manual refresh triggered")
                 refetch()
               }}
             >
               <RefreshCcw className="h-4 w-4" />
-            </Button>
-          )}
-
-          {/* Reset button - only show in create mode */}
-          {!isConfirmed && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                setConfirmAction({
-                  type: "reset",
-                  title: "Reset Form",
-                  message:
-                    "Do you want to reset the form? All entered data will be lost.",
-                })
-                setShowConfirmDialog(true)
-              }}
-            >
-              <RotateCcw className="mr-1 h-4 w-4" />
-              Reset
             </Button>
           )}
 
@@ -451,6 +431,14 @@ export function ChecklistTabs({ jobData, onClone }: ChecklistTabsProps) {
             jobData={currentJobData}
             setFormRef={setFormRef}
             isConfirmed={isConfirmed}
+            onUpdateSuccess={() => {
+              // Refetch data in ChecklistTabs
+              refetch()
+              // Refetch data in page.tsx (parent component)
+              if (onUpdateSuccess) {
+                onUpdateSuccess()
+              }
+            }}
           />
         </TabsContent>
 
@@ -493,7 +481,7 @@ export function ChecklistTabs({ jobData, onClone }: ChecklistTabsProps) {
             <Button
               onClick={() => {
                 if (confirmAction) {
-                  console.log(`${confirmAction.type} confirmed`)
+                  // console.log(`${confirmAction.type} confirmed`)
 
                   switch (confirmAction.type) {
                     case "clone":
@@ -502,13 +490,9 @@ export function ChecklistTabs({ jobData, onClone }: ChecklistTabsProps) {
                     case "update":
                       handleFormSubmit()
                       break
-                    case "reset":
-                      // Reset form logic
-                      console.log("Resetting form")
-                      break
                     case "cancel":
                       // Cancel job order logic
-                      console.log("Cancelling job order")
+                      // console.log("Cancelling job order")
                       break
                   }
                 }

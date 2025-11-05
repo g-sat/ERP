@@ -91,7 +91,7 @@ export default function NewChecklistPage() {
       statusId: 201,
       gstId: 0,
       gstPercentage: 0,
-      editVersion: "",
+      editVersion: 0,
     },
   })
 
@@ -190,7 +190,8 @@ export default function NewChecklistPage() {
   const handleCurrencyChange = useCallback(
     async (selectedCurrency: ICurrencyLookup | null) => {
       const selectedCurrencyId = selectedCurrency?.currencyId || 0
-      const accountDate = form.getValues("accountDate") || form.getValues("jobOrderDate")
+      const accountDate =
+        form.getValues("accountDate") || form.getValues("jobOrderDate")
 
       if (selectedCurrencyId && accountDate) {
         const dt = format(
@@ -289,11 +290,17 @@ export default function NewChecklistPage() {
       const response = await saveJobOrderMutation.mutateAsync(values)
 
       if (response.result === 1) {
+        // Extract job order data from response (handle array or object)
+        const jobOrderData = Array.isArray(response.data)
+          ? response.data[0]
+          : response.data
+
+        // Get jobOrderId from response data
+        const jobOrderId = (jobOrderData as IJobOrderHd)?.jobOrderId
+
         toast.success(response.message || "Job order created successfully!")
+
         // Redirect to the new job order page
-        const jobOrderId = Array.isArray(response.data)
-          ? (response.data[0] as IJobOrderHd)?.jobOrderId
-          : (response.data as IJobOrderHd)?.jobOrderId
         if (jobOrderId) {
           router.push(`/${companyId}/operations/checklist/${jobOrderId}`)
         } else {
@@ -324,10 +331,10 @@ export default function NewChecklistPage() {
           </div>
           <div>
             <h1 className="text-2xl font-bold tracking-tight">
-              Create New Job Order
+              Create New Checklist
             </h1>
             <p className="text-muted-foreground text-sm">
-              Fill in the details to create a new job order
+              Fill in the details to create a new checklist
             </p>
           </div>
         </div>
