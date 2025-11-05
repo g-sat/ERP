@@ -1,5 +1,6 @@
 "use client"
 
+import { useCallback, useMemo } from "react"
 import { IDocType } from "@/interfaces/lookup"
 import { useAuthStore } from "@/stores/auth-store"
 import { ColumnDef } from "@tanstack/react-table"
@@ -34,78 +35,102 @@ export default function DocumentOperationsManagerTable({
   const { decimals } = useAuthStore()
   const dateFormat = decimals[0]?.dateFormat || "dd/MM/yyyy"
 
-  // Define columns using the same pattern as table-account
-  const columns: ColumnDef<IDocType>[] = [
-    {
-      accessorKey: "itemNo",
-      header: "Item No",
-      cell: ({ row }) => (
-        <div className="font-medium">{row.getValue("itemNo") || "-"}</div>
-      ),
-      size: 60,
-    },
-    {
-      accessorKey: "docTypeName",
-      header: "Document Type",
-      cell: ({ row }) => (
-        <div className="font-medium">{row.getValue("docTypeName")}</div>
-      ),
-    },
-    {
-      accessorKey: "docPath",
-      header: "File Name",
-      size: 500,
-      cell: ({ row }) => {
-        const docPath = row.getValue("docPath") as string
-        // Access documentNo directly from row.original since it's not a column
-        const documentNo = (row.original as { documentNo?: string }).documentNo
-        return (
-          <div className="flex items-start gap-2">
-            <FileText className="mt-0.5 h-4 w-4 flex-shrink-0 text-blue-600" />
-            <span className="min-w-0 text-sm break-words whitespace-normal">
-              {docPath?.split("/").pop() || documentNo || "-"}
-            </span>
+  // Memoize columns to prevent re-creation on every render
+  const columns: ColumnDef<IDocType>[] = useMemo(
+    () => [
+      {
+        accessorKey: "itemNo",
+        header: "Item No",
+        cell: ({ row }) => (
+          <div className="font-medium">{row.getValue("itemNo") || "-"}</div>
+        ),
+        size: 60,
+      },
+      {
+        accessorKey: "docTypeName",
+        header: "Document Type",
+        cell: ({ row }) => (
+          <div className="font-medium">{row.getValue("docTypeName")}</div>
+        ),
+      },
+      {
+        accessorKey: "docPath",
+        header: "File Name",
+        size: 500,
+        cell: ({ row }) => {
+          const docPath = row.getValue("docPath") as string
+          // Access documentNo directly from row.original since it's not a column
+          const documentNo = (row.original as { documentNo?: string })
+            .documentNo
+          return (
+            <div className="flex items-start gap-2">
+              <FileText className="mt-0.5 h-4 w-4 flex-shrink-0 text-blue-600" />
+              <span className="min-w-0 text-sm break-words whitespace-normal">
+                {docPath?.split("/").pop() || documentNo || "-"}
+              </span>
+            </div>
+          )
+        },
+      },
+      {
+        accessorKey: "remarks",
+        header: "Remarks",
+        size: 200,
+        cell: ({ row }) => (
+          <div className="text-muted-foreground min-w-0 text-sm break-words whitespace-normal">
+            {row.getValue("remarks") || "-"}
           </div>
-        )
+        ),
       },
-    },
-    {
-      accessorKey: "remarks",
-      header: "Remarks",
-      size: 200,
-      cell: ({ row }) => (
-        <div className="text-muted-foreground min-w-0 text-sm break-words whitespace-normal">
-          {row.getValue("remarks") || "-"}
-        </div>
-      ),
-    },
-    {
-      accessorKey: "createDate",
-      header: "Created Date",
-      cell: ({ row }) => {
-        const date = row.getValue("createDate") as string
-        return date ? format(new Date(date), dateFormat) : "-"
+      {
+        accessorKey: "createDate",
+        header: "Created Date",
+        cell: ({ row }) => {
+          const date = row.getValue("createDate") as string
+          return date ? format(new Date(date), dateFormat) : "-"
+        },
       },
-    },
-    {
-      accessorKey: "createBy",
-      header: "Created By",
-      cell: ({ row }) => <div>{row.getValue("createBy") || "-"}</div>,
-    },
-    {
-      accessorKey: "editDate",
-      header: "Edit Date",
-      cell: ({ row }) => {
-        const date = row.getValue("editDate") as string
-        return date ? format(new Date(date), dateFormat) : "-"
+      {
+        accessorKey: "createBy",
+        header: "Created By",
+        cell: ({ row }) => <div>{row.getValue("createBy") || "-"}</div>,
       },
+      {
+        accessorKey: "editDate",
+        header: "Edit Date",
+        cell: ({ row }) => {
+          const date = row.getValue("editDate") as string
+          return date ? format(new Date(date), dateFormat) : "-"
+        },
+      },
+      {
+        accessorKey: "editBy",
+        header: "Edit By",
+        cell: ({ row }) => <div>{row.getValue("editBy") || "-"}</div>,
+      },
+    ],
+    [dateFormat]
+  )
+
+  // Memoize callbacks to prevent re-creation on every render
+  const handleSelect = useCallback(
+    (item: IDocType | null) => {
+      if (item) {
+        onPreview?.(item)
+      }
     },
-    {
-      accessorKey: "editBy",
-      header: "Edit By",
-      cell: ({ row }) => <div>{row.getValue("editBy") || "-"}</div>,
-    },
-  ]
+    [onPreview]
+  )
+
+  const handleDataReorder = useCallback((_newData: IDocType[]) => {
+    // Handle data reorder - this will update the parent component
+    // The itemNo will be automatically updated in the table component
+  }, [])
+
+  const handleSaveOrder = useCallback((_newData: IDocType[]) => {
+    // Handle save order - this should save the new order to the backend
+    console.log("Save order:", _newData)
+  }, [])
 
   return (
     <DocumentOperationsTable<IDocType>
@@ -115,19 +140,9 @@ export default function DocumentOperationsManagerTable({
       tableName={TableName.document}
       emptyMessage="No documents uploaded yet"
       accessorId="documentId"
-      onSelect={(item) => {
-        if (item) {
-          onPreview?.(item)
-        }
-      }}
-      onDataReorder={(_newData) => {
-        // Handle data reorder - this will update the parent component
-        // The itemNo will be automatically updated in the table component
-      }}
-      onSaveOrder={(_newData) => {
-        // Handle save order - this should save the new order to the backend
-        console.log("Save order:", _newData)
-      }}
+      onSelect={handleSelect}
+      onDataReorder={handleDataReorder}
+      onSaveOrder={handleSaveOrder}
       onDownload={onDownload}
       onDelete={onDelete}
       onRefresh={onRefresh}
@@ -137,7 +152,7 @@ export default function DocumentOperationsManagerTable({
       showActions={true}
       hideView={false}
       hideDownload={false}
-      hideDelete={false}
+      hideDelete={true}
       hideCheckbox={false}
     />
   )

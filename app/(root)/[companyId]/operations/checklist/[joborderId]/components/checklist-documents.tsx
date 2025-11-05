@@ -1,5 +1,6 @@
 "use client"
 
+import { useMemo } from "react"
 import { useParams } from "next/navigation"
 import { IJobOrderHd } from "@/interfaces/checklist"
 
@@ -18,8 +19,15 @@ export function ChecklistDocuments({
   const params = useParams()
   const companyId = params.companyId as string
 
-  const jobOrderId = jobData?.jobOrderId?.toString() || "0"
-  const jobOrderNo = jobData?.jobOrderNo || ""
+  // Memoize jobOrderId and jobOrderNo to prevent infinite re-renders
+  const jobOrderId = useMemo(
+    () => jobData?.jobOrderId?.toString() || "0",
+    [jobData?.jobOrderId]
+  )
+  const jobOrderNo = useMemo(
+    () => jobData?.jobOrderNo || "",
+    [jobData?.jobOrderNo]
+  )
 
   return (
     <DocumentOperationsManager

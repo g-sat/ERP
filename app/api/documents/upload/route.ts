@@ -103,6 +103,7 @@ export async function POST(request: NextRequest) {
       ModuleId.ap,
       ModuleId.cb,
       ModuleId.gl,
+      ModuleId.operations,
     ]
 
     // Create directory path based on module type

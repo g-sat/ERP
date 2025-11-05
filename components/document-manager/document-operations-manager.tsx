@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useState } from "react"
+import { useCallback, useMemo, useState } from "react"
 import { IDocType, IDocument, IDocumentTypeLookup } from "@/interfaces/lookup"
 import { useAuthStore } from "@/stores/auth-store"
 import { useQueryClient } from "@tanstack/react-query"
@@ -10,7 +10,6 @@ import {
   FileText,
   Printer,
   RotateCcw,
-  Trash2,
   Upload,
   X,
 } from "lucide-react"
@@ -115,45 +114,52 @@ export default function DocumentOperationsManager({
     }
   }
 
-  // Add files with validation
-  const addFiles = (files: File[]) => {
-    const newFiles: UploadFile[] = []
+  // Add files with validation - memoized to prevent re-creation
+  const addFiles = useCallback(
+    (files: File[]) => {
+      setUploadFiles((prev) => {
+        const newFiles: UploadFile[] = []
 
-    for (const file of files) {
-      // Check file count
-      if (uploadFiles.length + newFiles.length >= maxFiles) {
-        toast.error(`Maximum ${maxFiles} files allowed`)
-        break
-      }
+        for (const file of files) {
+          // Check file count
+          if (prev.length + newFiles.length >= maxFiles) {
+            toast.error(`Maximum ${maxFiles} files allowed`)
+            break
+          }
 
-      // Check file size
-      const fileSizeMB = file.size / (1024 * 1024)
-      if (fileSizeMB > maxFileSize) {
-        toast.error(`${file.name} exceeds ${maxFileSize}MB limit`)
-        continue
-      }
+          // Check file size
+          const fileSizeMB = file.size / (1024 * 1024)
+          if (fileSizeMB > maxFileSize) {
+            toast.error(`${file.name} exceeds ${maxFileSize}MB limit`)
+            continue
+          }
 
-      // Check file type
-      const fileExt = "." + file.name.split(".").pop()?.toLowerCase()
-      if (!allowedFileTypes.includes(fileExt)) {
-        toast.error(`${file.name} type not allowed`)
-        continue
-      }
+          // Check file type
+          const fileExt = "." + file.name.split(".").pop()?.toLowerCase()
+          if (!allowedFileTypes.includes(fileExt)) {
+            toast.error(`${file.name} type not allowed`)
+            continue
+          }
 
-      // Add file
-      newFiles.push({
-        file,
-        id: Math.random().toString(36).substr(2, 9),
-        progress: 0,
-        status: "pending",
+          // Add file
+          newFiles.push({
+            file,
+            id: Math.random().toString(36).substr(2, 9),
+            progress: 0,
+            status: "pending",
+          })
+        }
+
+        if (newFiles.length > 0) {
+          toast.success(`${newFiles.length} file(s) added`)
+          return [...prev, ...newFiles]
+        }
+
+        return prev
       })
-    }
-
-    if (newFiles.length > 0) {
-      setUploadFiles((prev) => [...prev, ...newFiles])
-      toast.success(`${newFiles.length} file(s) added`)
-    }
-  }
+    },
+    [maxFiles, maxFileSize, allowedFileTypes]
+  )
 
   // Remove file from upload queue
   const removeFile = (id: string) => {
@@ -193,8 +199,7 @@ export default function DocumentOperationsManager({
       const files = Array.from(e.dataTransfer.files)
       addFiles(files)
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [uploadFiles.length, maxFiles, maxFileSize, allowedFileTypes]
+    [addFiles]
   )
 
   // Upload all files
@@ -877,18 +882,6 @@ export default function DocumentOperationsManager({
                         <Printer className="mr-2 h-4 w-4" />
                         Print ({selectedDocumentIds.length})
                       </Button>
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        onClick={handleBulkDelete}
-                        disabled={
-                          selectedDocumentIds.length === 0 || isBulkDeleting
-                        }
-                        title="Delete selected documents"
-                      >
-                        <Trash2 className="mr-2 h-4 w-4" />
-                        Delete ({selectedDocumentIds.length})
-                      </Button>
                     </div>
                   )}
                   {documents?.data && Array.isArray(documents.data) && (
@@ -901,22 +894,24 @@ export default function DocumentOperationsManager({
             </CardHeader>
             <CardContent>
               <DocumentOperationsManagerTable
-                data={
-                  Array.isArray(documents?.data)
-                    ? (documents.data as IDocType[])
-                    : []
-                }
+                data={useMemo(
+                  () =>
+                    Array.isArray(documents?.data)
+                      ? (documents.data as IDocType[])
+                      : [],
+                  [documents?.data]
+                )}
                 isLoading={isLoading}
                 onPreview={handlePreview}
                 onDownload={handleDownload}
                 onDelete={handleDelete}
-                onRefresh={() => {
+                onRefresh={useCallback(() => {
                   queryClient.invalidateQueries({
                     queryKey: [
                       `documents-${moduleId}-${transactionId}-${recordId}`,
                     ],
                   })
-                }}
+                }, [queryClient, moduleId, transactionId, recordId])}
                 onBulkSelectionChange={handleBulkSelectionChange}
                 onBulkDelete={handleBulkDelete}
               />

@@ -1,4 +1,4 @@
-import { existsSync, unlink } from "fs"
+import { existsSync } from "fs"
 import { unlink as unlinkPromise } from "fs/promises"
 import { join } from "path"
 import { NextRequest, NextResponse } from "next/server"

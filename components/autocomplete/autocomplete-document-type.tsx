@@ -2,7 +2,12 @@
 
 import React from "react"
 import { IDocumentTypeLookup } from "@/interfaces/lookup"
-import { IconCheck, IconChevronDown, IconX } from "@tabler/icons-react"
+import {
+  IconCheck,
+  IconChevronDown,
+  IconRefresh,
+  IconX,
+} from "@tabler/icons-react"
 import { Path, PathValue, UseFormReturn } from "react-hook-form"
 import Select, {
   ClearIndicatorProps,
@@ -44,9 +49,23 @@ export default function DocumentTypeAutocomplete<
   isRequired?: boolean
   onChangeEvent?: (selectedOption: IDocumentTypeLookup | null) => void
 }) {
-  const { data: documentTypes = [], isLoading } = useDocumentTypeLookup()
-  // Memoize options to prevent unnecessary recalculations
-  const options: FieldOption[] = React.useMemo(
+  const {
+    data: documentTypes = [],
+    isLoading,
+    refetch,
+  } = useDocumentTypeLookup()
+
+  // Handle refresh with animation
+  const handleRefresh = React.useCallback(async () => {
+    try {
+      await refetch()
+    } catch (error) {
+      console.error("Error refreshing document types:", error)
+    }
+  }, [refetch])
+
+  // Memoize base options to prevent unnecessary recalculations
+  const baseOptions: FieldOption[] = React.useMemo(
     () =>
       documentTypes.map((documentType: IDocumentTypeLookup) => ({
         value: documentType.docTypeId.toString(),
@@ -54,6 +73,31 @@ export default function DocumentTypeAutocomplete<
       })),
     [documentTypes]
   )
+
+  // Watch form value to make it reactive
+  const watchedValue = form && name ? form.watch(name) : null
+
+  // Create options with selected document type at top
+  const options: FieldOption[] = React.useMemo(() => {
+    if (!form || !name || !watchedValue || watchedValue === 0) {
+      return baseOptions
+    }
+
+    const selectedValue = watchedValue.toString()
+    const selectedOption = baseOptions.find(
+      (opt) => opt.value === selectedValue
+    )
+
+    if (!selectedOption) {
+      return baseOptions
+    }
+
+    // Remove selected option from base options and put it at the top
+    const otherOptions = baseOptions.filter(
+      (opt) => opt.value !== selectedValue
+    )
+    return [selectedOption, ...otherOptions]
+  }, [form, name, baseOptions, watchedValue])
 
   // Custom components with display names
   const DropdownIndicator = React.memo(
@@ -126,7 +170,7 @@ export default function DocumentTypeAutocomplete<
       valueContainer: () => cn("px-0 py-0.5 gap-1"),
       input: () =>
         cn("text-foreground placeholder:text-muted-foreground m-0 p-0"),
-      indicatorsContainer: () => cn(""), // Gap removed
+      indicatorsContainer: () => cn("flex gap-0.5"), // Reduced gap between indicators
       clearIndicator: () =>
         cn("text-muted-foreground hover:text-foreground p-1 rounded-sm"),
       dropdownIndicator: () => cn("text-muted-foreground p-1 rounded-sm"),
@@ -225,7 +269,7 @@ export default function DocumentTypeAutocomplete<
           if (input) {
             const activeElement = document.activeElement as HTMLElement
             const form = selectControlRef.current.closest("form")
-            
+
             // Only refocus if:
             // 1. Focus is not already on the input
             // 2. Focus is on the form, body, or outside the form
@@ -275,7 +319,7 @@ export default function DocumentTypeAutocomplete<
               const inputIndex = allFocusable.findIndex(
                 (el) => el === input || el.contains(input)
               )
-              
+
               if (event.shiftKey) {
                 // Shift+Tab: go to previous element
                 if (inputIndex !== -1 && inputIndex > 0) {
@@ -324,14 +368,63 @@ export default function DocumentTypeAutocomplete<
     []
   )
 
+  // Handle menu open to scroll to selected option
+  const handleMenuOpen = React.useCallback(() => {
+    // Use setTimeout to ensure the menu is fully rendered
+    setTimeout(() => {
+      const selectedValue = form && name ? form.getValues(name) : null
+      if (selectedValue) {
+        // Try multiple selectors to find the menu
+        const selectors = [
+          `[id*="${name || "bank-select"}"] .react-select__menu-list`,
+          ".react-select__menu-list",
+          '[class*="react-select__menu-list"]',
+        ]
+
+        let menuList: HTMLElement | null = null
+        for (const selector of selectors) {
+          menuList = document.querySelector(selector) as HTMLElement
+          if (menuList) break
+        }
+
+        if (menuList) {
+          const selectedOption = menuList.querySelector(
+            '.react-select__option[aria-selected="true"]'
+          ) as HTMLElement
+          if (selectedOption) {
+            // Scroll the selected option to the top of the visible area
+            menuList.scrollTop = selectedOption.offsetTop - menuList.offsetTop
+          }
+        }
+      }
+    }, 150)
+  }, [form, name])
+
   if (form && name) {
     return (
       <div className={cn("flex flex-col gap-1", className)}>
         {label && (
-          <Label htmlFor={name} className="text-sm font-medium">
-            {label}
-            {isRequired && <span className="ml-1 text-red-500">*</span>}
-          </Label>
+          <div className="flex items-center gap-1">
+            <Label htmlFor={name} className="text-sm font-medium">
+              {label}
+            </Label>
+            <button
+              type="button"
+              onClick={handleRefresh}
+              disabled={isLoading}
+              tabIndex={-1}
+              className="hover:bg-accent flex items-center justify-center rounded-sm p-0.5 transition-colors disabled:opacity-50"
+              title="Refresh document types"
+            >
+              <IconRefresh
+                size={12}
+                className={`text-muted-foreground hover:text-foreground transition-colors ${
+                  isLoading ? "animate-spin" : ""
+                }`}
+              />
+            </button>
+            {isRequired && <span className="text-sm text-red-500">*</span>}
+          </div>
         )}
         <FormField
           control={form.control}
@@ -347,11 +440,27 @@ export default function DocumentTypeAutocomplete<
                     options={options}
                     value={getValue()}
                     onChange={handleChange}
+                    onMenuOpen={handleMenuOpen}
                     onMenuClose={handleMenuClose}
-                    placeholder="Select DocumentType..."
+                    placeholder="Select Document Type..."
                     isDisabled={isDisabled || isLoading}
                     isClearable={true}
                     isSearchable={true}
+                    filterOption={(option, inputValue) => {
+                      // Always show selected option, even if it doesn't match search
+                      const selectedValue =
+                        form && name ? form.getValues(name) : null
+                      if (
+                        selectedValue &&
+                        option.value === selectedValue.toString()
+                      ) {
+                        return true
+                      }
+                      // For other options, use default filtering
+                      return option.label
+                        .toLowerCase()
+                        .includes(inputValue.toLowerCase())
+                    }}
                     styles={customStyles}
                     classNames={selectClassNames}
                     components={{
@@ -365,8 +474,10 @@ export default function DocumentTypeAutocomplete<
                       typeof document !== "undefined" ? document.body : null
                     }
                     menuPosition="fixed"
+                    menuShouldScrollIntoView={true}
                     isLoading={isLoading}
-                    loadingMessage={() => "Loading documentTypes..."}
+                    loadingMessage={() => "Loading document types..."}
+                    instanceId={name}
                     blurInputOnSelect={true}
                   />
                 </div>
@@ -387,15 +498,32 @@ export default function DocumentTypeAutocomplete<
   return (
     <div className={cn("flex flex-col gap-1", className)}>
       {label && (
-        <div
-          className={cn(
-            "text-sm font-medium",
-            isDisabled && "text-muted-foreground opacity-70"
-          )}
-        >
-          {label}
+        <div className="flex items-center gap-1">
+          <div
+            className={cn(
+              "text-sm font-medium",
+              isDisabled && "text-muted-foreground opacity-70"
+            )}
+          >
+            {label}
+          </div>
+          <button
+            type="button"
+            onClick={handleRefresh}
+            disabled={isLoading}
+            tabIndex={-1}
+            className="hover:bg-accent flex items-center justify-center rounded-sm p-0.5 transition-colors disabled:opacity-50"
+            title="Refresh document types"
+          >
+            <IconRefresh
+              size={12}
+              className={`text-muted-foreground hover:text-foreground transition-colors ${
+                isLoading ? "animate-spin" : ""
+              }`}
+            />
+          </button>
           {isRequired && (
-            <span className="text-destructive ml-1" aria-hidden="true">
+            <span className="text-destructive text-sm" aria-hidden="true">
               *
             </span>
           )}
@@ -405,11 +533,21 @@ export default function DocumentTypeAutocomplete<
         <Select
           options={options}
           onChange={handleChange}
+          onMenuOpen={handleMenuOpen}
           onMenuClose={handleMenuClose}
-          placeholder="Select DocumentType..."
+          placeholder="Select Document Type..."
           isDisabled={isDisabled || isLoading}
           isClearable={true}
           isSearchable={true}
+          filterOption={(option, inputValue) => {
+            // Always show selected option, even if it doesn't match search
+            const selectedValue = form && name ? form.getValues(name) : null
+            if (selectedValue && option.value === selectedValue.toString()) {
+              return true
+            }
+            // For other options, use default filtering
+            return option.label.toLowerCase().includes(inputValue.toLowerCase())
+          }}
           styles={customStyles}
           classNames={selectClassNames}
           components={{
@@ -423,8 +561,10 @@ export default function DocumentTypeAutocomplete<
             typeof document !== "undefined" ? document.body : null
           }
           menuPosition="fixed"
+          menuShouldScrollIntoView={true}
           isLoading={isLoading}
-          loadingMessage={() => "Loading documentTypes..."}
+          loadingMessage={() => "Loading document types..."}
+          instanceId={name}
           blurInputOnSelect={true}
         />
       </div>
