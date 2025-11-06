@@ -615,17 +615,17 @@ export default function CustomerPage() {
   const isEdit = Boolean(customer?.customerId && customer.customerId > 0)
 
   return (
-    <div className="@container mx-auto space-y-2 px-4 pt-2 pb-4 sm:space-y-3 sm:px-6 sm:pt-3 sm:pb-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="space-y-1">
-          <h1 className="text-xl font-bold tracking-tight sm:text-3xl">
+    <div className="@container mx-auto space-y-1.5 px-4 pt-2 pb-4 sm:space-y-2 sm:px-6 sm:pt-3 sm:pb-6">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <div className="space-y-0.5">
+          <h1 className="text-xl font-bold tracking-tight sm:text-2xl">
             Customer
           </h1>
-          <p className="text-muted-foreground text-sm">
+          <p className="text-muted-foreground text-xs">
             Manage customer information, addresses, and contacts
           </p>
         </div>
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-2">
+        <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-1.5">
           <Button
             variant="outline"
             size="sm"
@@ -684,9 +684,9 @@ export default function CustomerPage() {
 
       <Separator />
 
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-2">
         <Card>
-          <CardContent>
+          <CardContent className="p-4">
             <CustomerForm
               key={key}
               initialData={customer || undefined}
@@ -698,7 +698,7 @@ export default function CustomerPage() {
 
         {customer && (
           <Card>
-            <CardContent>
+            <CardContent className="p-4">
               <Tabs
                 defaultValue="address"
                 value={activeTab}
@@ -707,7 +707,7 @@ export default function CustomerPage() {
                 }
                 className="w-full"
               >
-                <div className="mb-4 flex items-center justify-between">
+                <div className="mb-2 flex items-center justify-between">
                   <TabsList className="grid w-[350px] grid-cols-2">
                     <TabsTrigger value="address">
                       Addresses
@@ -723,7 +723,7 @@ export default function CustomerPage() {
                     </TabsTrigger>
                   </TabsList>
                 </div>
-                <TabsContent value="address" className="space-y-4">
+                <TabsContent value="address" className="space-y-2">
                   <div className="rounded-md">
                     <AddresssTable
                       key={`address-${customer?.customerId || "new"}`}
@@ -743,7 +743,7 @@ export default function CustomerPage() {
                     />
                   </div>
                 </TabsContent>
-                <TabsContent value="contact" className="space-y-4">
+                <TabsContent value="contact" className="space-y-2">
                   <div className="rounded-md">
                     <ContactsTable
                       key={`contact-${customer?.customerId || "new"}`}

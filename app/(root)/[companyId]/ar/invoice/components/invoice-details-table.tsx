@@ -306,29 +306,31 @@ export default function InvoiceDetailsTable({
   }
 
   return (
-    <div className="w-full px-2 pt-1 pb-2">
-      <AccountBaseTable
-        data={data}
-        columns={columns}
-        moduleId={ModuleId.ar}
-        transactionId={ARTransactionId.invoice}
-        tableName={TableName.arInvoiceDt}
-        emptyMessage="No invoice details found."
-        accessorId="itemNo"
-        onRefresh={onRefresh}
-        onFilterChange={onFilterChange}
-        onBulkDelete={handleBulkDelete}
-        onBulkSelectionChange={() => {}}
-        onDataReorder={onDataReorder}
-        onEdit={onEdit}
-        onDelete={handleDelete}
-        showHeader={true}
-        showActions={true}
-        hideEdit={isCancelled}
-        hideDelete={isCancelled}
-        hideCheckbox={isCancelled}
-        disableOnAccountExists={false}
-      />
+    <div className="bg-card rounded-lg border shadow-sm">
+      <div className="max-h-[50vh] overflow-auto p-3">
+        <AccountBaseTable
+          data={data}
+          columns={columns}
+          moduleId={ModuleId.ar}
+          transactionId={ARTransactionId.invoice}
+          tableName={TableName.arInvoiceDt}
+          emptyMessage="No invoice details found."
+          accessorId="itemNo"
+          onRefresh={onRefresh}
+          onFilterChange={onFilterChange}
+          onBulkDelete={handleBulkDelete}
+          onBulkSelectionChange={() => {}}
+          onDataReorder={onDataReorder}
+          onEdit={onEdit}
+          onDelete={handleDelete}
+          showHeader={true}
+          showActions={true}
+          hideEdit={isCancelled}
+          hideDelete={isCancelled}
+          hideCheckbox={isCancelled}
+          disableOnAccountExists={false}
+        />
+      </div>
     </div>
   )
 }
