@@ -1,6 +1,10 @@
 "use client"
 
 import { useCallback, useEffect, useRef, useState } from "react"
+import {
+  calculateDivisionAmount,
+  calculateMultiplierAmount,
+} from "@/helpers/account"
 import { calculateDebitNoteSummary } from "@/helpers/debit-note-calculations"
 import {
   IBulkChargeData,
@@ -12,6 +16,7 @@ import {
   DebitNoteDtSchemaType,
   DebitNoteHdSchemaType,
 } from "@/schemas/checklist"
+import { useAuthStore } from "@/stores/auth-store"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { ListChecks, Printer, Save, Trash } from "lucide-react"
 
@@ -62,6 +67,9 @@ export default function DebitNoteDialog({
   onClearSelection,
   jobOrder,
 }: DebitNoteDialogProps) {
+  const { decimals } = useAuthStore()
+  const amtDec = decimals[0]?.amtDec || 2
+
   const [debitNoteHdState, setDebitNoteHdState] = useState<IDebitNoteHd>(
     debitNoteHd ?? ({} as IDebitNoteHd)
   )
@@ -212,11 +220,89 @@ export default function DebitNoteDialog({
     []
   )
 
+  // Function to create service charge entry
+  const createServiceChargeEntry = useCallback(
+    (
+      currentItemNo: number,
+      chargeId: number,
+      glId: number,
+      totAftGstAmt: number,
+      serviceCharge: number,
+      taskId: number
+    ) => {
+      if (serviceCharge <= 0 || totAftGstAmt <= 0) return
+
+      // Calculate unitPrice = totAftGstAmt / serviceCharge using account helper
+      const unitPrice = calculateDivisionAmount(
+        totAftGstAmt,
+        serviceCharge,
+        amtDec
+      )
+      const qty = 1
+      // Calculate totAmt = qty * unitPrice using account helper
+      const totAmt = calculateMultiplierAmount(qty, unitPrice, amtDec)
+
+      // Create service charge entry
+      const serviceChargeItem: IDebitNoteDt = {
+        debitNoteId: debitNoteHdState?.debitNoteId ?? 0,
+        debitNoteNo: debitNoteHdState?.debitNoteNo ?? "",
+        itemNo: currentItemNo + 1, // Insert after current item
+        taskId: taskId,
+        chargeId: chargeId,
+        glId: glId,
+        qty: qty,
+        unitPrice: unitPrice,
+        totLocalAmt: 0,
+        totAmt: totAmt,
+        gstId: 0,
+        gstPercentage: 0,
+        gstAmt: 0,
+        totAftGstAmt: totAmt, // Since gstAmt = 0
+        remarks: `${serviceCharge} % Service Charges`,
+        editVersion: 0,
+        isServiceCharge: false,
+        serviceCharge: 0,
+      }
+
+      // Add service charge entry and update itemNo for items after
+      setDetails((prev) => {
+        // Find the index of the current item
+        const currentIndex = prev.findIndex(
+          (item) => item.itemNo === currentItemNo
+        )
+
+        if (currentIndex < 0) {
+          // Current item not found, just add at the end
+          return [...prev, serviceChargeItem]
+        }
+
+        // First, update itemNo for all items that come after the current item
+        // Increment their itemNo by 1 to make room for the service charge entry
+        const updatedDetails = prev.map((item) => {
+          if (item.itemNo > currentItemNo) {
+            return {
+              ...item,
+              itemNo: item.itemNo + 1,
+            }
+          }
+          return item
+        })
+
+        // Insert service charge entry right after current item
+        updatedDetails.splice(currentIndex + 1, 0, serviceChargeItem)
+
+        return updatedDetails
+      })
+    },
+    [debitNoteHdState, amtDec]
+  )
+
   // Handler for form submission (create or edit) - add to table directly
   const handleFormSubmit = useCallback(
     (data: DebitNoteDtSchemaType) => {
       if (modalMode === "edit" && selectedDebitNoteDetail) {
         // Update existing item
+        const updatedItemNo = selectedDebitNoteDetail.itemNo
         setDetails((prev) =>
           prev.map((item) =>
             item.itemNo === selectedDebitNoteDetail.itemNo
@@ -241,16 +327,35 @@ export default function DebitNoteDialog({
           )
         )
 
+        // Create service charge entry if needed
+        if (
+          data.isServiceCharge &&
+          data.serviceCharge > 0 &&
+          data.totAftGstAmt > 0
+        ) {
+          createServiceChargeEntry(
+            updatedItemNo,
+            data.chargeId ?? 0,
+            data.glId ?? 0,
+            data.totAftGstAmt,
+            data.serviceCharge,
+            data.taskId ?? 0
+          )
+        }
+
         // Reset form after successful update
         setSelectedDebitNoteDetail(undefined)
         setModalMode("create")
         setShouldResetForm(true)
       } else {
         // Add new item to local state directly (no confirmation needed for add)
+        const currentItemNo = detailsRef.current?.length ?? 0
+        const newItemNo = currentItemNo + 1
+
         const newItem: IDebitNoteDt = {
           debitNoteId: debitNoteHd?.debitNoteId ?? 0,
           debitNoteNo: debitNoteHd?.debitNoteNo ?? "",
-          itemNo: (detailsRef.current?.length ?? 0) + 1,
+          itemNo: newItemNo,
           taskId: data.taskId ?? 0,
           chargeId: data.chargeId ?? 0,
           glId: data.glId ?? 0,
@@ -270,13 +375,29 @@ export default function DebitNoteDialog({
 
         setDetails((prev) => [...prev, newItem])
 
+        // Create service charge entry if needed
+        if (
+          data.isServiceCharge &&
+          data.serviceCharge > 0 &&
+          data.totAftGstAmt > 0
+        ) {
+          createServiceChargeEntry(
+            newItemNo,
+            data.chargeId ?? 0,
+            data.glId ?? 0,
+            data.totAftGstAmt,
+            data.serviceCharge,
+            data.taskId ?? 0
+          )
+        }
+
         // Reset form after successful addition
         setSelectedDebitNoteDetail(undefined)
         setModalMode("create")
         setShouldResetForm(true)
       }
     },
-    [debitNoteHd, modalMode, selectedDebitNoteDetail]
+    [debitNoteHd, modalMode, selectedDebitNoteDetail, createServiceChargeEntry]
   )
 
   // Handler for deleting a debit note detail
