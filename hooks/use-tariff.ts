@@ -2,7 +2,7 @@ import { ITaskDetails } from "@/interfaces/checklist"
 import { CopyRate, ITariff } from "@/interfaces/tariff"
 import { useQuery } from "@tanstack/react-query"
 import { AxiosError } from "axios"
-import { getById, getData, saveData } from "@/lib/api-client"
+import { getById, getData, postData, saveData } from "@/lib/api-client"
 import { Tariff } from "@/lib/api-routes"
 /**
  * Query Configuration
@@ -118,12 +118,22 @@ export const updateTariffDirect = async (tariffData: Partial<ITariff>) => {
 }
 /**
  * 2.3 Delete Tariff Direct
+ * @param {number} customerId - Customer ID
+ * @param {number} taskId - Task ID
  * @param {string} tariffId - Tariff ID to delete
  * @returns {Promise} Promise containing delete response
  */
-export const deleteTariffDirect = async (tariffId: string) => {
+export const deleteTariffDirect = async (
+  customerId: number,
+  taskId: number,
+  tariffId: string
+) => {
   try {
-    const response = await getData(`${Tariff.delete}/${tariffId}`)
+    // POST request with parameters in URL path and empty body
+    const response = await postData(
+      `${Tariff.delete}/${customerId}/${taskId}/${tariffId}`,
+      {}
+    )
     return response
   } catch (error) {
     console.error("Error deleting tariff:", error)

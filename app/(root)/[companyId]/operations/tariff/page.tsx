@@ -226,12 +226,10 @@ export default function TariffPage() {
   // Delete confirmation state
   const [deleteConfirmation, setDeleteConfirmation] = useState<{
     isOpen: boolean
-    tariffId: string | null
-    tariffName: string | null
+    tariff: ITariff | null
   }>({
     isOpen: false,
-    tariffId: null,
-    tariffName: null,
+    tariff: null,
   })
 
   // Save confirmation state
@@ -417,23 +415,31 @@ export default function TariffPage() {
     setIsModalOpen(true)
   }
 
-  const handleDeleteConfirmation = (tariffId: string, task: string) => {
+  const handleDeleteConfirmation = (tariff: ITariff) => {
     setDeleteConfirmation({
       isOpen: true,
-      tariffId,
-      tariffName: task,
+      tariff,
     })
   }
 
   const handleDeleteTariff = async () => {
-    if (deleteConfirmation.tariffId) {
+    if (deleteConfirmation.tariff) {
+      const { tariff } = deleteConfirmation
+      const customerId = tariff.customerId || apiParams.customerId
+      const taskId = tariff.taskId || currentTaskId
+      const tariffId = tariff.tariffId?.toString() || ""
+
+      if (!customerId || !taskId || !tariffId) {
+        toast.error("Missing required information to delete tariff")
+        return
+      }
+
       try {
-        const response = await deleteTariffDirect(deleteConfirmation.tariffId)
+        const response = await deleteTariffDirect(customerId, taskId, tariffId)
         if (response?.result === 1) {
           setDeleteConfirmation({
             isOpen: false,
-            tariffId: null,
-            tariffName: null,
+            tariff: null,
           })
           toast.success(response.message || "Tariff deleted successfully")
           refetchTariffByTask()
@@ -631,7 +637,7 @@ export default function TariffPage() {
     isLoadingCount || isLoadingTariffByTask || isSearching || isTabLoading
 
   return (
-    <div className="container mx-auto space-y-2 px-4 pt-2 pb-4 sm:space-y-3 sm:px-6 sm:pt-3 sm:pb-6">
+    <div className="@container mx-auto space-y-2 px-4 pt-2 pb-4 sm:space-y-3 sm:px-6 sm:pt-3 sm:pb-6">
       {/* Header Section */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="space-y-1">
@@ -954,13 +960,17 @@ export default function TariffPage() {
         onOpenChange={() =>
           setDeleteConfirmation({
             isOpen: false,
-            tariffId: null,
-            tariffName: null,
+            tariff: null,
           })
         }
         onConfirm={handleDeleteTariff}
         title="Delete Tariff"
-        description={`Are you sure you want to delete the tariff "${deleteConfirmation.tariffName}"? This action cannot be undone.`}
+        description={`Are you sure you want to delete the tariff "${deleteConfirmation.tariff?.taskName || deleteConfirmation.tariff?.chargeName || ""}"? This action cannot be undone.`}
+        itemName={
+          deleteConfirmation.tariff?.taskName ||
+          deleteConfirmation.tariff?.chargeName ||
+          ""
+        }
       />
 
       {/* Save Confirmation Dialog */}

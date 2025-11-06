@@ -1054,7 +1054,7 @@ export const Tariff = {
   getTariffByTask: "/operations/gettariffbytask",
   getById: "/operations/gettariffbyid",
   add: "/operations/savetariff",
-  delete: "/operations/deletetariff",
+  delete: "/operations/DeleteTariff",
   copy: "/operations/copytariff",
   copyCompanyTariff: "/operations/copycompanytariff",
 }

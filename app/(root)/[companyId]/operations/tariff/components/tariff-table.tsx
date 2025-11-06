@@ -1,12 +1,14 @@
 "use client"
 
 import { ITariff, ITariffFilter } from "@/interfaces/tariff"
+import { useAuthStore } from "@/stores/auth-store"
 import {
   IconCircleCheckFilled,
   IconSquareRoundedXFilled,
 } from "@tabler/icons-react"
 import { ColumnDef } from "@tanstack/react-table"
 
+import { formatNumber } from "@/lib/format-utils"
 import { Task } from "@/lib/operations-utils"
 import { TableName } from "@/lib/utils"
 import { MainTable } from "@/components/table/table-main"
@@ -14,7 +16,7 @@ import { MainTable } from "@/components/table/table-main"
 interface TariffTableProps {
   data: ITariff[]
   isLoading?: boolean
-  onDelete?: (tariffId: string, task: string) => void
+  onDelete?: (tariff: ITariff) => void
   onEdit?: (tariff: ITariff) => void
   onRefresh?: () => void
   onFilterChange?: (filters: ITariffFilter) => void
@@ -45,21 +47,28 @@ export function TariffTable({
   onSelect,
   onCreate,
 }: TariffTableProps) {
+  const { decimals } = useAuthStore()
+  const amtDec = decimals[0]?.amtDec || 2
+
   // Define columns for the table
   const columns: ColumnDef<ITariff>[] = [
-    {
-      accessorKey: "portName",
-      header: "Port",
-      cell: ({ row }) => <div>{row.getValue("portName")}</div>,
-    },
     {
       accessorKey: "taskName",
       header: "Task",
       cell: ({ row }) => <div>{row.getValue("taskName")}</div>,
+      size: 100,
     },
+    {
+      accessorKey: "portName",
+      header: "Port",
+      cell: ({ row }) => <div>{row.getValue("portName")}</div>,
+      size: 80,
+    },
+
     {
       accessorKey: "chargeName",
       header: "Charge",
+      size: 250,
     },
     {
       accessorKey: "visaTypeName",
@@ -75,38 +84,52 @@ export function TariffTable({
         }
         return <div>-</div>
       },
+      size: 80,
     },
     {
       accessorKey: "uomName",
       header: "UOM",
+      size: 80,
     },
     {
       accessorKey: "displayRate",
       header: "Display Rate",
       cell: ({ row }) => (
-        <div className="text-right">{row.getValue("displayRate")}</div>
+        <div className="text-right">
+          {formatNumber(row.getValue("displayRate"), amtDec)}
+        </div>
       ),
+      size: 80,
     },
     {
       accessorKey: "basicRate",
       header: "Basic Rate",
       cell: ({ row }) => (
-        <div className="text-right">{row.getValue("basicRate")}</div>
+        <div className="text-right">
+          {formatNumber(row.getValue("basicRate"), amtDec)}
+        </div>
       ),
+      size: 80,
     },
     {
       accessorKey: "minUnit",
       header: "Min Unit",
       cell: ({ row }) => (
-        <div className="text-right">{row.getValue("minUnit")}</div>
+        <div className="text-right">
+          {formatNumber(row.getValue("minUnit"), amtDec)}
+        </div>
       ),
+      size: 80,
     },
     {
       accessorKey: "maxUnit",
       header: "Max Unit",
       cell: ({ row }) => (
-        <div className="text-right">{row.getValue("maxUnit")}</div>
+        <div className="text-right">
+          {formatNumber(row.getValue("maxUnit"), amtDec)}
+        </div>
       ),
+      size: 80,
     },
     {
       accessorKey: "isAdditional",
@@ -120,20 +143,26 @@ export function TariffTable({
           )}
         </div>
       ),
+      size: 80,
     },
     {
       accessorKey: "additionalUnit",
       header: "Additional Unit",
       cell: ({ row }) => (
-        <div className="text-right">{row.getValue("additionalUnit")}</div>
+        <div className="text-right">
+          {formatNumber(row.getValue("additionalUnit"), amtDec)}
+        </div>
       ),
     },
     {
       accessorKey: "additionalRate",
       header: "Additional Rate",
       cell: ({ row }) => (
-        <div className="text-right">{row.getValue("additionalRate")}</div>
+        <div className="text-right">
+          {formatNumber(row.getValue("additionalRate"), amtDec)}
+        </div>
       ),
+      size: 80,
     },
     {
       accessorKey: "isPrepayment",
@@ -147,13 +176,17 @@ export function TariffTable({
           )}
         </div>
       ),
+      size: 80,
     },
     {
       accessorKey: "prepaymentPercentage",
       header: "Prepayment %",
       cell: ({ row }) => (
-        <div className="text-right">{row.getValue("prepaymentPercentage")}</div>
+        <div className="text-right">
+          {formatNumber(row.getValue("prepaymentPercentage"), 2)}
+        </div>
       ),
+      size: 80,
     },
     {
       accessorKey: "isDefault",
@@ -167,6 +200,7 @@ export function TariffTable({
           )}
         </div>
       ),
+      size: 80,
     },
     {
       accessorKey: "isActive",
@@ -180,15 +214,16 @@ export function TariffTable({
           )}
         </div>
       ),
+      size: 80,
     },
   ]
 
-  // Handle delete with task name
+  // Handle delete with tariff object
   const handleDelete = (tariffId: string) => {
     if (onDelete) {
       const tariff = data.find((t) => t.tariffId?.toString() === tariffId)
       if (tariff) {
-        onDelete(tariffId, tariff.taskName || "")
+        onDelete(tariff)
       }
     }
   }
