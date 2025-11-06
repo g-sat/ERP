@@ -89,6 +89,7 @@ export default function CustomNumberInput<TSchemaType extends FieldValues>({
                 thousandSeparator={true}
                 allowNegative={false}
                 disabled={isDisabled}
+                tabIndex={isDisabled ? -1 : undefined}
                 className={cn(
                   "border-input ring-offset-background flex h-9 w-full rounded-md border px-3 py-1.5 text-right text-sm",
                   "focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none",

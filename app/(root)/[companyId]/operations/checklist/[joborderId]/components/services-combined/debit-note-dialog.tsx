@@ -741,6 +741,7 @@ export default function DebitNoteDialog({
               onChargeChange={() => {}}
               shouldReset={shouldResetForm}
               summaryTotals={summaryTotals}
+              currencyCode={jobOrder?.currencyCode}
             />
           </div>
 

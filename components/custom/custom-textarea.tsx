@@ -62,6 +62,7 @@ export default function CustomTextarea<T extends Record<string, unknown>>({
                   value={value || ""}
                   placeholder={placeholder}
                   disabled={isDisabled}
+                  tabIndex={isDisabled ? -1 : undefined}
                   maxLength={maxLength}
                   onBlur={() => {
                     field.onBlur()
