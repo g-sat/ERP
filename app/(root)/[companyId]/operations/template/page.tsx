@@ -24,7 +24,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { Separator } from "@/components/ui/separator"
 import { DeleteConfirmation } from "@/components/confirmation/delete-confirmation"
 import { LoadConfirmation } from "@/components/confirmation/load-confirmation"
 import { SaveConfirmation } from "@/components/confirmation/save-confirmation"
@@ -478,15 +477,15 @@ export default function TemplatePage() {
         }}
       >
         <DialogContent
-          className="max-h-[90vh] w-[90vw] !max-w-none overflow-y-auto"
+          className="max-h-[95vh] w-[95vw] !max-w-none overflow-y-auto"
           onPointerDownOutside={(e) => {
             e.preventDefault()
           }}
         >
-          <DialogHeader>
-            <div className="flex items-center justify-between">
-              <div>
-                <DialogTitle>
+          <DialogHeader className="border-b pb-2">
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex-1">
+                <DialogTitle className="text-2xl font-bold">
                   {modalMode === "create" && "Create Template"}
                   {modalMode === "edit" && "Update Template"}
                   {modalMode === "view" && "View Template"}
@@ -499,7 +498,17 @@ export default function TemplatePage() {
                       : "View template details."}
                 </DialogDescription>
               </div>
-              <div className="mr-6 flex gap-2">
+              <div className="flex flex-nowrap items-center gap-2 overflow-x-auto">
+                <Button
+                  size="sm"
+                  variant="default"
+                  onClick={handleSave}
+                  disabled={!isTemplateFormComplete}
+                  className="h-8 px-2"
+                >
+                  <Save className="mr-2 h-4 w-4" />
+                  Save
+                </Button>
                 <Button
                   variant="destructive"
                   size="sm"
@@ -511,72 +520,66 @@ export default function TemplatePage() {
                     }
                   }}
                   disabled={modalMode !== "edit" || !selectedTemplate}
+                  className="h-8 px-2"
                 >
                   <Trash className="mr-2 h-4 w-4" />
                   Delete
                 </Button>
-                <Button
-                  size="sm"
-                  variant="default"
-                  onClick={handleSave}
-                  disabled={!isTemplateFormComplete}
-                >
-                  <Save className="mr-2 h-4 w-4" />
-                  Save
-                </Button>
               </div>
             </div>
           </DialogHeader>
-          <Separator />
-          <h3>Header Entry Form</h3>
-          <TemplateForm
-            ref={templateFormRef}
-            initialData={
-              modalMode === "edit" || modalMode === "view"
-                ? selectedTemplate
-                : undefined
-            }
-            onCancel={() => setIsModalOpen(false)}
-            isReadOnly={modalMode === "view"}
-            onCodeBlur={() => {}}
-            onChange={handleFormChange}
-          />
 
-          {/* Details Form Section - Always visible like debit note */}
-          <div className="bg-card mb-2 rounded-lg border p-4 shadow-sm">
-            <h3 className="mb-4 text-lg font-medium">Details Entry Form</h3>
-            <TemplateDetailsForm
-              initialData={_selectedDetail} // Pass selected detail for editing
-              submitAction={handleDetailFormSubmit}
-              onCancel={() => setSelectedDetail(undefined)}
-              isSubmitting={false}
-              isReadOnly={!isTemplateFormComplete}
-              shouldReset={shouldResetDetailForm}
-              onReset={() => setShouldResetDetailForm(false)}
-              taskId={
-                modalMode === "create"
-                  ? currentFormData?.taskId
-                  : selectedTemplate?.taskId
-              }
-            />
-          </div>
-
-          {/* Details Table Section - Always visible like debit note */}
-          <div className="bg-card rounded-lg border shadow-sm">
-            <div className="p-4">
-              <h3 className="mb-4 text-lg font-medium">Details Table</h3>
-              <TemplateDetailsTable
-                data={templateDetails}
-                isLoading={false}
-                onSelect={handleViewDetail}
-                onDelete={handleDeleteDetail}
-                onBulkDelete={() => {}}
-                onEdit={handleEditDetail}
-                onCreate={() => setSelectedDetail(undefined)}
-                onRefresh={() => {}}
-                onFilterChange={() => {}}
-                onDataReorder={() => {}}
+          <div className="@container">
+            {/* Header Form Section */}
+            <div className="bg-card mb-2 rounded-lg border p-4 shadow-sm">
+              <TemplateForm
+                ref={templateFormRef}
+                initialData={
+                  modalMode === "edit" || modalMode === "view"
+                    ? selectedTemplate
+                    : undefined
+                }
+                onCancel={() => setIsModalOpen(false)}
+                isReadOnly={modalMode === "view"}
+                onCodeBlur={() => {}}
+                onChange={handleFormChange}
               />
+            </div>
+
+            {/* Details Form Section - Always visible like debit note */}
+            <div className="bg-card mb-2 rounded-lg border p-4 shadow-sm">
+              <TemplateDetailsForm
+                initialData={_selectedDetail} // Pass selected detail for editing
+                submitAction={handleDetailFormSubmit}
+                onCancel={() => setSelectedDetail(undefined)}
+                isSubmitting={false}
+                isReadOnly={!isTemplateFormComplete}
+                shouldReset={shouldResetDetailForm}
+                onReset={() => setShouldResetDetailForm(false)}
+                taskId={
+                  modalMode === "create"
+                    ? currentFormData?.taskId
+                    : selectedTemplate?.taskId
+                }
+              />
+            </div>
+
+            {/* Details Table Section - Always visible like debit note */}
+            <div className="bg-card rounded-lg border shadow-sm">
+              <div className="max-h-[50vh] overflow-auto p-4">
+                <TemplateDetailsTable
+                  data={templateDetails}
+                  isLoading={false}
+                  onSelect={handleViewDetail}
+                  onDelete={handleDeleteDetail}
+                  onBulkDelete={() => {}}
+                  onEdit={handleEditDetail}
+                  onCreate={() => setSelectedDetail(undefined)}
+                  onRefresh={() => {}}
+                  onFilterChange={() => {}}
+                  onDataReorder={() => {}}
+                />
+              </div>
             </div>
           </div>
         </DialogContent>
