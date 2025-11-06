@@ -94,6 +94,8 @@ export function TechniciansSurveyorsTab({
   })
   // State for selected items (for bulk operations)
   const [selectedItems, setSelectedItems] = useState<string[]>([])
+  // Key to reset table selection state
+  const [tableResetKey, setTableResetKey] = useState(0)
 
   const jobDataProps = useMemo(
     () => ({
@@ -316,6 +318,8 @@ export function TechniciansSurveyorsTab({
 
   const handleClearSelection = useCallback(() => {
     setSelectedItems([])
+    // Reset table selection by changing key
+    setTableResetKey((prev) => prev + 1)
   }, [])
 
   const handleDebitNote = useCallback(
@@ -415,12 +419,24 @@ export function TechniciansSurveyorsTab({
           console.log(
             `Debit note created successfully for ${foundItems.length} item(s)`
           )
+
+          // Clear selections FIRST to prevent errors when accessing item.id on undefined items
+          handleClearSelection()
+
+          // Invalidate queries with a small delay to allow clear selection to complete
+          requestAnimationFrame(() => {
+            setTimeout(() => {
+              queryClient.invalidateQueries({ queryKey: ["technicianSurveyor"] })
+              queryClient.invalidateQueries({ queryKey: ["taskCount"] })
+              queryClient.invalidateQueries({ queryKey: ["debitNote"] })
+            }, 50)
+          })
         }
       } catch (error) {
         console.error("Error handling debit note:", error)
       }
     },
-    [debitNoteMutation, data, jobData]
+    [debitNoteMutation, data, jobData, queryClient, handleClearSelection]
   )
   const handlePurchase = useCallback(() => setShowPurchaseModal(true), [])
 
@@ -435,8 +451,19 @@ export function TechniciansSurveyorsTab({
         await debitNoteDeleteMutation.mutateAsync(
           `${jobData.jobOrderId}/${Task.TechniciansSurveyors}/${debitNoteId}`
         )
-        queryClient.invalidateQueries({ queryKey: ["technicianSurveyor"] })
-        queryClient.invalidateQueries({ queryKey: ["debitNote"] })
+
+        // Clear selections FIRST to prevent errors when accessing item.id on undefined items
+        handleClearSelection()
+
+        // Invalidate queries with a small delay to allow clear selection to complete
+        requestAnimationFrame(() => {
+          setTimeout(() => {
+            queryClient.invalidateQueries({ queryKey: ["technicianSurveyor"] })
+            queryClient.invalidateQueries({ queryKey: ["debitNote"] })
+            queryClient.invalidateQueries({ queryKey: ["taskCount"] })
+          }, 50)
+        })
+
         onTaskAdded?.()
         setShowDebitNoteModal(false)
         setDebitNoteHd(null)
@@ -444,7 +471,13 @@ export function TechniciansSurveyorsTab({
         console.error("Failed to delete debit note:", error)
       }
     },
-    [debitNoteDeleteMutation, jobData.jobOrderId, queryClient, onTaskAdded]
+    [
+      debitNoteDeleteMutation,
+      jobData.jobOrderId,
+      queryClient,
+      onTaskAdded,
+      handleClearSelection,
+    ]
   )
 
   return (
@@ -452,6 +485,7 @@ export function TechniciansSurveyorsTab({
       <div className="space-y-4">
         <div className="overflow-x-auto">
           <TechnicianSurveyorTable
+            key={tableResetKey}
             data={data || []}
             onTechnicianSurveyorSelect={handleSelect}
             onDeleteTechnicianSurveyor={handleDelete}
@@ -523,6 +557,7 @@ export function TechniciansSurveyorsTab({
           debitNoteHd={debitNoteHd ?? undefined}
           isConfirmed={isConfirmed}
           onDelete={handleDeleteDebitNote}
+          onClearSelection={handleClearSelection}
           title="Debit Note"
           description="Manage debit note details for this technicians surveyors."
           jobOrder={jobData}

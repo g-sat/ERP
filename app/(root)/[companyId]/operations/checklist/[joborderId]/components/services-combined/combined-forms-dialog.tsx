@@ -122,12 +122,53 @@ export function CombinedFormsDialog({
     },
   })
 
+  // Helper function to safely invalidate queries and force refetch
+  // This ensures tables refresh after task forwarding or bulk updates
+  const safeInvalidateQueries = () => {
+    const queryKeys = [
+      "joborder",
+      "agencyRemuneration",
+      "consignmentExport",
+      "consignmentImport",
+      "crewMiscellaneous",
+      "crewSignOff",
+      "crewSignOn",
+      "equipmentUsed",
+      "freshWater",
+      "landingItems",
+      "launchServices",
+      "medicalAssistance",
+      "otherService",
+      "portExpenses",
+      "technicianSurveyor",
+      "thirdParty",
+      "taskCount",
+    ]
+
+    // Invalidate all queries that start with each query key
+    // This matches queries with jobOrderId like ["portExpenses", "11171"]
+    // Using refetchType: "active" ensures active queries (currently used by components) refetch immediately
+    queryKeys.forEach((queryKey) => {
+      try {
+        queryClient.invalidateQueries({
+          queryKey: [queryKey], // Match all queries starting with this key, regardless of additional params
+          refetchType: "active", // Refetch active queries to refresh tables immediately
+        })
+      } catch (error) {
+        // Silently handle individual query invalidation errors
+        console.warn(`Failed to invalidate query ${queryKey}:`, error)
+      }
+    })
+  }
+
   // Bulk Update Hook
-  const bulkUpdateMutation = usePersist<BulkUpdateData>("/project/bulkupdate")
+  const bulkUpdateMutation = usePersist<BulkUpdateData>(
+    "/operations/bulkupdate"
+  )
 
   // Task Forward Hook
   const taskForwardMutation = usePersist<TaskForwardData>(
-    "/project/savetaskforward"
+    "/operations/savetaskforward"
   )
 
   // Bulk Update Handlers
@@ -147,40 +188,29 @@ export function CombinedFormsDialog({
         )) as ApiResponse<BulkUpdateData>
 
         // Check if the operation was successful (result=1)
-        if (response?.result === 1) {
-          // Invalidate relevant queries
-          queryClient.invalidateQueries({ queryKey: ["joborder"] })
-
-          // Invalidate all service queries to refresh tables
-          queryClient.invalidateQueries({ queryKey: ["agencyRemuneration"] })
-          queryClient.invalidateQueries({ queryKey: ["consignmentExport"] })
-          queryClient.invalidateQueries({ queryKey: ["consignmentImport"] })
-          queryClient.invalidateQueries({ queryKey: ["crewMiscellaneous"] })
-          queryClient.invalidateQueries({ queryKey: ["crewSignOff"] })
-          queryClient.invalidateQueries({ queryKey: ["crewSignOn"] })
-          queryClient.invalidateQueries({ queryKey: ["equipmentUsed"] })
-          queryClient.invalidateQueries({ queryKey: ["freshWater"] })
-          queryClient.invalidateQueries({ queryKey: ["landingItems"] })
-          queryClient.invalidateQueries({ queryKey: ["launchServices"] })
-          queryClient.invalidateQueries({ queryKey: ["medicalAssistance"] })
-          queryClient.invalidateQueries({ queryKey: ["otherService"] })
-          queryClient.invalidateQueries({ queryKey: ["portExpenses"] })
-          queryClient.invalidateQueries({ queryKey: ["technicianSurveyor"] })
-          queryClient.invalidateQueries({ queryKey: ["thirdParty"] })
-          queryClient.invalidateQueries({ queryKey: ["taskCount"] })
+        if (response && response.result === 1) {
+          // Clear selections FIRST to prevent errors when accessing item.id on undefined items
+          if (onClearSelection) {
+            onClearSelection()
+          }
 
           // Reset form
           setSelectedField("")
           setSelectedDate("")
 
+          // Use requestAnimationFrame to ensure clear selection completes before invalidating
+          // This prevents the table from trying to access item.id on undefined items
+          requestAnimationFrame(() => {
+            // Use setTimeout to allow React to process the state update from clear selection
+            setTimeout(() => {
+              safeInvalidateQueries()
+            }, 50) // Small delay to allow clear selection state update to complete
+          })
+
           toast.success("Bulk update completed successfully!")
 
           if (onTaskAdded) {
             onTaskAdded()
-          }
-
-          if (onClearSelection) {
-            onClearSelection()
           }
 
           // Close the dialog on success
@@ -222,40 +252,56 @@ export function CombinedFormsDialog({
         )) as ApiResponse<TaskForwardData>
 
         // Check if the operation was successful (result=1)
-        if (response?.result === 1) {
-          // Invalidate relevant queries
-          queryClient.invalidateQueries({ queryKey: ["joborder"] })
+        if (response && response.result === 1) {
+          console.log(response, "response task forward")
+          console.log(taskForwardData, "taskForwardData task forward")
 
-          // Invalidate all service queries to refresh tables
-          queryClient.invalidateQueries({ queryKey: ["agencyRemuneration"] })
-          queryClient.invalidateQueries({ queryKey: ["consignmentExport"] })
-          queryClient.invalidateQueries({ queryKey: ["consignmentImport"] })
-          queryClient.invalidateQueries({ queryKey: ["crewMiscellaneous"] })
-          queryClient.invalidateQueries({ queryKey: ["crewSignOff"] })
-          queryClient.invalidateQueries({ queryKey: ["crewSignOn"] })
-          queryClient.invalidateQueries({ queryKey: ["equipmentUsed"] })
-          queryClient.invalidateQueries({ queryKey: ["freshWater"] })
-          queryClient.invalidateQueries({ queryKey: ["landingItems"] })
-          queryClient.invalidateQueries({ queryKey: ["launchServices"] })
-          queryClient.invalidateQueries({ queryKey: ["medicalAssistance"] })
-          queryClient.invalidateQueries({ queryKey: ["otherService"] })
-          queryClient.invalidateQueries({ queryKey: ["portExpenses"] })
-          queryClient.invalidateQueries({ queryKey: ["technicianSurveyor"] })
-          queryClient.invalidateQueries({ queryKey: ["thirdParty"] })
-          queryClient.invalidateQueries({ queryKey: ["taskCount"] })
+          // Save target job order ID before resetting
+          const targetJobOrderId = selectedJobOrder?.jobOrderId
+
+          // Clear selections FIRST to prevent errors when accessing item.id on undefined items
+          // This ensures the table clears selectedRowIds before data refreshes
+          if (onClearSelection) {
+            onClearSelection()
+          }
 
           // Reset form
           setSelectedJobOrder(null)
           form.reset()
 
-          toast.success("Task forwarded successfully!")
+          // Use requestAnimationFrame to ensure clear selection completes before invalidating
+          // This prevents the table from trying to access item.id on undefined items
+          requestAnimationFrame(() => {
+            // Use setTimeout to allow React to process the state update from clear selection
+            setTimeout(() => {
+              // Invalidate queries for both source and target job orders
+              // This ensures tables refresh on both the source (where items were removed)
+              // and target (where items were added) job orders
+              safeInvalidateQueries()
+              
+              // Also explicitly invalidate queries for the target job order
+              // in case the user has it open in another tab/window
+              if (targetJobOrderId) {
+                queryClient.invalidateQueries({
+                  predicate: (query) => {
+                    return (
+                      Array.isArray(query.queryKey) &&
+                      (query.queryKey[0] === "portExpenses" ||
+                        query.queryKey[0] === "taskCount" ||
+                        query.queryKey[0] === "joborder") &&
+                      query.queryKey[1] === String(targetJobOrderId)
+                    )
+                  },
+                  refetchType: "active",
+                })
+              }
+            }, 50) // Small delay to allow clear selection state update to complete
+          })
+
+          // toast.success("Task forwarded successfully!")
 
           if (onTaskAdded) {
             onTaskAdded()
-          }
-
-          if (onClearSelection) {
-            onClearSelection()
           }
 
           // Close the dialog on success

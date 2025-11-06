@@ -21,9 +21,8 @@ export default function JobOrderDetailsPage() {
   const router = useRouter()
   const jobOrderId = params.joborderId as string // Note: using joborderId (lowercase) to match directory name
 
-  // console.log("JobOrderDetailsPage - params:", params)
-  // console.log("JobOrderDetailsPage - jobOrderId:", jobOrderId)
-  // console.log("JobOrderDetailsPage - companyId:", params.companyId)
+  // Validate jobOrderId format (should be numeric string)
+  const isValidJobOrderId = jobOrderId && /^\d+$/.test(jobOrderId)
 
   // Fetch the job order data using the hook
   const {
@@ -31,7 +30,7 @@ export default function JobOrderDetailsPage() {
     isLoading,
     isError,
     refetch: refetchJobOrder,
-  } = useGetJobOrderByIdNo(jobOrderId)
+  } = useGetJobOrderByIdNo(isValidJobOrderId ? jobOrderId : "")
 
   // Debug logging
   // console.log("JobOrderDetailsPage - API Response:", {
@@ -64,26 +63,40 @@ export default function JobOrderDetailsPage() {
 
   // Handle clone functionality
   const handleClone = (clonedData: IJobOrderHd) => {
-    // console.log("Cloning job order:", clonedData)
-
-    // Create query parameters with the cloned data
-    const queryParams = new URLSearchParams()
-
-    // Add all the cloned data as query parameters
-    Object.entries(clonedData).forEach(([key, value]) => {
-      if (value !== null && value !== undefined) {
-        queryParams.append(key, String(value))
+    try {
+      // Store cloned data in sessionStorage for the new page to use
+      // This avoids URL length limits and preserves complex objects
+      const clonedDataForStorage = {
+        ...clonedData,
+        jobOrderId: 0, // Reset ID for new record
+        jobOrderNo: "", // Reset job order number
+        jobOrderDate: new Date().toISOString().split("T")[0], // Set to today
+        editVersion: 0, // Reset edit version
       }
-    })
-
-    // Navigate to the new checklist page with cloned data
-    const newUrl = `/operations/checklist/new`
-    router.push(newUrl)
+      sessionStorage.setItem(
+        "clonedJobOrder",
+        JSON.stringify(clonedDataForStorage)
+      )
+      // Navigate to the new checklist page
+      router.push(`/${params.companyId}/operations/checklist/new`)
+    } catch (error) {
+      console.error("Error cloning job order:", error)
+    }
   }
 
   // Handle loading state
   if (isLoading) {
     return <JobOrderDetailsSkeleton />
+  }
+
+  // Handle invalid jobOrderId format
+  if (!isValidJobOrderId) {
+    return (
+      <JobOrderNotFound
+        jobOrderId={jobOrderId}
+        companyId={params.companyId as string}
+      />
+    )
   }
 
   // Handle error state - Job order not found in current company

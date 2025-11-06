@@ -53,6 +53,7 @@ interface DebitNoteDialogProps {
   onOpenChange: (open: boolean) => void
   onDelete?: (debitNoteId: number) => void
   onUpdateHeader?: (updatedHeader: IDebitNoteHd) => void
+  onClearSelection?: () => void
   jobOrder?: IJobOrderHd
 }
 
@@ -66,6 +67,7 @@ export default function DebitNoteDialog({
   onOpenChange,
   onDelete,
   onUpdateHeader,
+  onClearSelection,
   jobOrder,
 }: DebitNoteDialogProps) {
   const [debitNoteHdState, setDebitNoteHdState] = useState<IDebitNoteHd>(
@@ -343,6 +345,11 @@ export default function DebitNoteDialog({
         // Close the save confirmation dialog
         setSaveConfirmation({ isOpen: false })
 
+        // Clear selections FIRST to prevent errors when accessing item.id on undefined items
+        if (onClearSelection) {
+          onClearSelection()
+        }
+
         // Update local state with response data if available
         if (response.data && "data_details" in response.data) {
           const responseData = response.data as unknown as {
@@ -360,16 +367,23 @@ export default function DebitNoteDialog({
           }
         }
 
-        // Invalidate queries to refresh data
-        queryClient.invalidateQueries({
-          queryKey: [
-            JobOrder_DebitNote.getDetails,
-            debitNoteHdState.jobOrderId,
-            taskId,
-            debitNoteHdState.debitNoteId,
-          ],
+        // Invalidate queries with a small delay to allow clear selection to complete
+        requestAnimationFrame(() => {
+          setTimeout(() => {
+            // Invalidate queries to refresh data
+            queryClient.invalidateQueries({
+              queryKey: [
+                JobOrder_DebitNote.getDetails,
+                debitNoteHdState.jobOrderId,
+                taskId,
+                debitNoteHdState.debitNoteId,
+              ],
+            })
+            queryClient.invalidateQueries({ queryKey: ["debit-note-details"] })
+            queryClient.invalidateQueries({ queryKey: ["portExpenses"] })
+            queryClient.invalidateQueries({ queryKey: ["taskCount"] })
+          }, 50)
         })
-        queryClient.invalidateQueries({ queryKey: ["debit-note-details"] })
       }
     } catch (error) {
       console.error("Error saving debit note:", error)
@@ -382,6 +396,7 @@ export default function DebitNoteDialog({
     queryClient,
     taskId,
     onUpdateHeader,
+    onClearSelection,
   ])
 
   // Handler for deleting the entire debit note - shows confirmation first

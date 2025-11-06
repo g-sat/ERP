@@ -82,11 +82,13 @@ export function ChecklistTabs({
   } = useGetJobOrderByIdNo(jobOrderId)
 
   // Force refetch when component mounts or jobData changes
+  // Removed refetch from dependencies to prevent infinite loops
   React.useEffect(() => {
-    if (jobData?.jobOrderId && jobData?.jobOrderNo) {
+    if (jobData?.jobOrderId && jobData?.jobOrderNo && !isLoading) {
       refetch()
     }
-  }, [jobData?.jobOrderId, jobData?.jobOrderNo, refetch])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [jobData?.jobOrderId, jobData?.jobOrderNo])
 
   // Check if detailed data is available and successful
   const isDetailedJobData = detailedJobData?.result === 1
@@ -526,8 +528,8 @@ export function ChecklistTabs({
               onDelete={handleDebitNoteDelete}
               onBulkDelete={handleDebitNoteBulkDelete}
               onDataReorder={handleDebitNoteDataReorder}
-              moduleId={parseInt(jobOrderId)}
-              transactionId={parseInt(jobOrderId)}
+              moduleId={parseInt(jobOrderId) || 0}
+              transactionId={parseInt(jobOrderId) || 0}
               isConfirmed={isConfirmed}
             />
           </div>

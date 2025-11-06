@@ -99,6 +99,8 @@ export function CrewMiscellaneousTab({
 
   // State for selected items (for bulk operations)
   const [selectedItems, setSelectedItems] = useState<string[]>([])
+  // Key to reset table selection state
+  const [tableResetKey, setTableResetKey] = useState(0)
 
   const jobDataProps = useMemo(
     () => ({
@@ -302,6 +304,13 @@ export function CrewMiscellaneousTab({
     setShowCombinedServiceModal(true)
   }, [])
 
+  // Function to clear selection after operations
+  const handleClearSelection = useCallback(() => {
+    setSelectedItems([])
+    // Reset table selection by changing key
+    setTableResetKey((prev) => prev + 1)
+  }, [])
+
   const handleDebitNote = useCallback(
     async (crewMiscellaneousId: string, debitNoteNo?: string) => {
       try {
@@ -399,12 +408,24 @@ export function CrewMiscellaneousTab({
           console.log(
             `Debit note created successfully for ${foundItems.length} item(s)`
           )
+
+          // Clear selections FIRST to prevent errors when accessing item.id on undefined items
+          handleClearSelection()
+
+          // Invalidate queries with a small delay to allow clear selection to complete
+          requestAnimationFrame(() => {
+            setTimeout(() => {
+              queryClient.invalidateQueries({ queryKey: ["crewMiscellaneous"] })
+              queryClient.invalidateQueries({ queryKey: ["taskCount"] })
+              queryClient.invalidateQueries({ queryKey: ["debitNote"] })
+            }, 50)
+          })
         }
       } catch (error) {
         console.error("Error handling debit note:", error)
       }
     },
-    [debitNoteMutation, data, jobData]
+    [debitNoteMutation, data, jobData, queryClient, handleClearSelection]
   )
   const handlePurchase = useCallback(() => setShowPurchaseModal(true), [])
   const handleCreate = () => {
@@ -424,8 +445,19 @@ export function CrewMiscellaneousTab({
         await debitNoteDeleteMutation.mutateAsync(
           `${jobData.jobOrderId}/${Task.CrewMiscellaneous}/${debitNoteId}`
         )
-        queryClient.invalidateQueries({ queryKey: ["crewMiscellaneous"] })
-        queryClient.invalidateQueries({ queryKey: ["debitNote"] })
+
+        // Clear selections FIRST to prevent errors when accessing item.id on undefined items
+        handleClearSelection()
+
+        // Invalidate queries with a small delay to allow clear selection to complete
+        requestAnimationFrame(() => {
+          setTimeout(() => {
+            queryClient.invalidateQueries({ queryKey: ["crewMiscellaneous"] })
+            queryClient.invalidateQueries({ queryKey: ["debitNote"] })
+            queryClient.invalidateQueries({ queryKey: ["taskCount"] })
+          }, 50)
+        })
+
         onTaskAdded?.()
         setShowDebitNoteModal(false)
         setDebitNoteHd(null)
@@ -433,19 +465,21 @@ export function CrewMiscellaneousTab({
         console.error("Failed to delete debit note:", error)
       }
     },
-    [debitNoteDeleteMutation, jobData.jobOrderId, queryClient, onTaskAdded]
+    [
+      debitNoteDeleteMutation,
+      jobData.jobOrderId,
+      queryClient,
+      onTaskAdded,
+      handleClearSelection,
+    ]
   )
-
-  // Function to clear selection after operations
-  const handleClearSelection = useCallback(() => {
-    setSelectedItems([])
-  }, [])
 
   return (
     <>
       <div className="space-y-4">
         <div className="overflow-x-auto">
           <CrewMiscellaneousTable
+            key={tableResetKey}
             data={data || []}
             onCrewMiscellaneousSelect={handleSelect}
             onDeleteCrewMiscellaneous={handleDelete}
@@ -546,6 +580,7 @@ export function CrewMiscellaneousTab({
           debitNoteHd={debitNoteHd ?? undefined}
           isConfirmed={isConfirmed}
           onDelete={handleDeleteDebitNote}
+          onClearSelection={handleClearSelection}
           title="Debit Note"
           description="Manage debit note details for this crew miscellaneous."
           jobOrder={jobData}
