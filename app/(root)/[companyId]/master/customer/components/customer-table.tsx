@@ -199,7 +199,7 @@ export function CustomerTable({
 
   // Original table implementation for backward compatibility
   return (
-    <div>
+    <div className="w-full overflow-auto">
       <DialogDataTable
         data={data}
         columns={columns}

@@ -108,6 +108,9 @@ export default function BankForm({
                 name="bankCode"
                 label="Bank Code"
                 isRequired
+                isDisabled={
+                  initialData?.bankId ? initialData.bankId > 0 : false
+                }
                 onBlurEvent={() => {
                   const bankCode = form.getValues("bankCode")
                   if (bankCode && onBankLookup) {

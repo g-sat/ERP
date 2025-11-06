@@ -205,18 +205,20 @@ export function BankTable({
   }
 
   return (
-    <DialogDataTable
-      data={data}
-      columns={columns}
-      isLoading={isLoading}
-      totalRecords={totalRecords}
-      moduleId={moduleId}
-      transactionId={transactionId}
-      tableName={TableName.bank}
-      emptyMessage="No banks found."
-      onRefresh={onRefresh}
-      onFilterChange={handleDialogFilterChange}
-      onRowSelect={onSelect}
-    />
+    <div className="w-full overflow-auto">
+      <DialogDataTable
+        data={data}
+        columns={columns}
+        isLoading={isLoading}
+        totalRecords={totalRecords}
+        moduleId={moduleId}
+        transactionId={transactionId}
+        tableName={TableName.bank}
+        emptyMessage="No banks found."
+        onRefresh={onRefresh}
+        onFilterChange={handleDialogFilterChange}
+        onRowSelect={onSelect}
+      />
+    </div>
   )
 }

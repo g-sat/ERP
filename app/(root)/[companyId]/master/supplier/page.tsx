@@ -36,6 +36,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Separator } from "@/components/ui/separator"
+import { Spinner } from "@/components/ui/spinner"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { DeleteConfirmation } from "@/components/confirmation/delete-confirmation"
 import { LoadConfirmation } from "@/components/confirmation/load-confirmation"
@@ -133,6 +134,7 @@ export default function SupplierPage() {
     useState<ISupplierAddress | null>(null)
   const [pendingDeleteContact, setPendingDeleteContact] =
     useState<ISupplierContact | null>(null)
+  const [isSaving, setIsSaving] = useState(false)
 
   // Helper function to reset all form and table data
   const resetAllData = () => {
@@ -190,15 +192,13 @@ export default function SupplierPage() {
       }
     )
 
-  const {
-    data: suppliersData,
-    totalRecords,
-  } = (suppliersResponse as ApiResponse<ISupplier>) ?? {
-    result: 0,
-    message: "",
-    data: [],
-    totalRecords: 0,
-  }
+  const { data: suppliersData, totalRecords } =
+    (suppliersResponse as ApiResponse<ISupplier>) ?? {
+      result: 0,
+      message: "",
+      data: [],
+      totalRecords: 0,
+    }
 
   // Mutations
   const saveMutation = usePersist<SupplierSchemaType>(`${Supplier.add}`)
@@ -276,6 +276,7 @@ export default function SupplierPage() {
   const handleSupplierSaveConfirm = async () => {
     if (!pendingSupplierData) return
 
+    setIsSaving(true)
     try {
       const response =
         pendingSupplierData.supplierId === 0
@@ -294,6 +295,7 @@ export default function SupplierPage() {
     } catch (error) {
       console.error("Error saving supplier:", error)
     } finally {
+      setIsSaving(false)
       setPendingSupplierData(null)
       setShowSupplierSaveConfirmation(false)
     }
@@ -617,6 +619,9 @@ export default function SupplierPage() {
     }
   }
 
+  // Determine edit mode
+  const isEdit = Boolean(supplier?.supplierId && supplier.supplierId > 0)
+
   return (
     <div className="@container mx-auto space-y-2 px-4 pt-2 pb-4 sm:space-y-3 sm:px-6 sm:pt-3 sm:pb-6">
       {/* Header Section */}
@@ -644,10 +649,27 @@ export default function SupplierPage() {
             onClick={() =>
               document.getElementById("supplier-form-submit")?.click()
             }
-            disabled={!supplier}
+            disabled={
+              isSaving ||
+              saveMutation.isPending ||
+              updateMutation.isPending ||
+              (isEdit && !canEdit) ||
+              (!isEdit && !canCreate)
+            }
+            className={isEdit ? "bg-blue-600 hover:bg-blue-700" : ""}
           >
-            <Save className="mr-1 h-4 w-4" />
-            Save
+            {isSaving || saveMutation.isPending || updateMutation.isPending ? (
+              <Spinner size="sm" className="mr-1" />
+            ) : (
+              <Save className="mr-1 h-4 w-4" />
+            )}
+            {isSaving || saveMutation.isPending || updateMutation.isPending
+              ? isEdit
+                ? "Updating..."
+                : "Saving..."
+              : isEdit
+                ? "Update"
+                : "Save"}
           </Button>
           <Button
             variant="outline"

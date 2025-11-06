@@ -36,6 +36,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Separator } from "@/components/ui/separator"
+import { Spinner } from "@/components/ui/spinner"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { DeleteConfirmation } from "@/components/confirmation/delete-confirmation"
 import { LoadConfirmation } from "@/components/confirmation/load-confirmation"
@@ -122,6 +123,7 @@ export default function BankPage() {
     useState<IBankAddress | null>(null)
   const [pendingDeleteContact, setPendingDeleteContact] =
     useState<IBankContact | null>(null)
+  const [isSaving, setIsSaving] = useState(false)
 
   // Helper function to reset all form and table data
   const resetAllData = () => {
@@ -251,6 +253,7 @@ export default function BankPage() {
   const handleBankSaveConfirm = async () => {
     if (!pendingBankData) return
 
+    setIsSaving(true)
     try {
       const response =
         pendingBankData.bankId === 0
@@ -269,6 +272,7 @@ export default function BankPage() {
     } catch (error) {
       console.error("Error saving bank:", error)
     } finally {
+      setIsSaving(false)
       setPendingBankData(null)
       setShowBankSaveConfirmation(false)
     }
@@ -568,6 +572,9 @@ export default function BankPage() {
     }
   }
 
+  // Determine edit mode
+  const isEdit = Boolean(bank?.bankId && bank.bankId > 0)
+
   return (
     <div className="@container mx-auto space-y-2 px-4 pt-2 pb-4 sm:space-y-3 sm:px-6 sm:pt-3 sm:pb-6">
       {/* Header Section */}
@@ -591,10 +598,27 @@ export default function BankPage() {
             variant="default"
             size="sm"
             onClick={() => document.getElementById("bank-form-submit")?.click()}
-            disabled={!bank}
+            disabled={
+              isSaving ||
+              saveMutation.isPending ||
+              updateMutation.isPending ||
+              (isEdit && !canEdit) ||
+              (!isEdit && !canCreate)
+            }
+            className={isEdit ? "bg-blue-600 hover:bg-blue-700" : ""}
           >
-            <Save className="mr-1 h-4 w-4" />
-            Save
+            {isSaving || saveMutation.isPending || updateMutation.isPending ? (
+              <Spinner size="sm" className="mr-1" />
+            ) : (
+              <Save className="mr-1 h-4 w-4" />
+            )}
+            {isSaving || saveMutation.isPending || updateMutation.isPending
+              ? isEdit
+                ? "Updating..."
+                : "Saving..."
+              : isEdit
+                ? "Update"
+                : "Save"}
           </Button>
           <Button
             variant="outline"

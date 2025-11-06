@@ -124,6 +124,9 @@ export default function SupplierForm({
                 name="supplierCode"
                 label="Supplier Code"
                 isRequired
+                isDisabled={
+                  initialData?.supplierId ? initialData.supplierId > 0 : false
+                }
                 onBlurEvent={() => {
                   const supplierCode = form.getValues("supplierCode")
                   if (supplierCode && onSupplierLookup) {
@@ -204,6 +207,7 @@ export default function SupplierForm({
                 name="customerId"
                 label="Customer"
               />
+              <CustomTextarea form={form} name="remarks" label="Remarks" />
             </div>
 
             <div className="grid grid-cols-6 gap-2">
@@ -238,7 +242,6 @@ export default function SupplierForm({
                 label="Active Status"
                 activeColor="success"
               />
-              <CustomTextarea form={form} name="remarks" label="Remarks" />
             </div>
 
             {/* Audit Information Section */}

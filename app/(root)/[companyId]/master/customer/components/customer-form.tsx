@@ -26,8 +26,8 @@ import CustomAccordion, {
   CustomAccordionItem,
   CustomAccordionTrigger,
 } from "@/components/custom/custom-accordion"
+import CustomCheckbox from "@/components/custom/custom-checkbox"
 import CustomInput from "@/components/custom/custom-input"
-import CustomSwitch from "@/components/custom/custom-switch"
 import CustomTextarea from "@/components/custom/custom-textarea"
 
 interface CustomerFormProps {
@@ -124,6 +124,9 @@ export default function CustomerForm({
                 name="customerCode"
                 label="Customer Code"
                 isRequired
+                isDisabled={
+                  initialData?.customerId ? initialData.customerId > 0 : false
+                }
                 onBlurEvent={() => {
                   const customerCode = form.getValues("customerCode")
                   if (customerCode && onCustomerLookup) {
@@ -204,41 +207,28 @@ export default function CustomerForm({
                 name="customerId"
                 label="Supplier"
               />
+              <CustomTextarea form={form} name="remarks" label="Remarks" />
             </div>
 
             <div className="grid grid-cols-6 gap-2">
-              <CustomSwitch
+              <CustomCheckbox
                 form={form}
                 name="isCustomer"
                 label="Is Customer"
-                activeColor="success"
               />
-              <CustomSwitch
-                form={form}
-                name="isVendor"
-                label="Is Vendor"
-                activeColor="success"
-              />
+              <CustomCheckbox form={form} name="isVendor" label="Is Vendor" />
 
-              <CustomSwitch
-                form={form}
-                name="isTrader"
-                label="Is Trader"
-                activeColor="success"
-              />
-              <CustomSwitch
+              <CustomCheckbox form={form} name="isTrader" label="Is Trader" />
+              <CustomCheckbox
                 form={form}
                 name="isSupplier"
                 label="Is Supplier"
-                activeColor="success"
               />
-              <CustomSwitch
+              <CustomCheckbox
                 form={form}
                 name="isActive"
                 label="Active Status"
-                activeColor="success"
               />
-              <CustomTextarea form={form} name="remarks" label="Remarks" />
             </div>
 
             {/* Audit Information Section */}

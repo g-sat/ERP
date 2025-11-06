@@ -36,6 +36,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Separator } from "@/components/ui/separator"
+import { Spinner } from "@/components/ui/spinner"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { DeleteConfirmation } from "@/components/confirmation/delete-confirmation"
 import { LoadConfirmation } from "@/components/confirmation/load-confirmation"
@@ -133,6 +134,7 @@ export default function CustomerPage() {
     useState<ICustomerAddress | null>(null)
   const [pendingDeleteContact, setPendingDeleteContact] =
     useState<ICustomerContact | null>(null)
+  const [isSaving, setIsSaving] = useState(false)
 
   // Helper function to reset all form and table data
   const resetAllData = () => {
@@ -182,15 +184,13 @@ export default function CustomerPage() {
       customer?.customerId?.toString() || ""
     )
 
-  const {
-    data: customersData,
-    totalRecords,
-  } = (customersResponse as ApiResponse<ICustomer>) ?? {
-    result: 0,
-    message: "",
-    data: [],
-    totalRecords: 0,
-  }
+  const { data: customersData, totalRecords } =
+    (customersResponse as ApiResponse<ICustomer>) ?? {
+      result: 0,
+      message: "",
+      data: [],
+      totalRecords: 0,
+    }
 
   // Mutations
   const saveMutation = usePersist<CustomerSchemaType>(`${Customer.add}`)
@@ -268,6 +268,7 @@ export default function CustomerPage() {
   const handleCustomerSaveConfirm = async () => {
     if (!pendingCustomerData) return
 
+    setIsSaving(true)
     try {
       const response =
         pendingCustomerData.customerId === 0
@@ -286,6 +287,7 @@ export default function CustomerPage() {
     } catch (error) {
       console.error("Error saving customer:", error)
     } finally {
+      setIsSaving(false)
       setPendingCustomerData(null)
       setShowCustomerSaveConfirmation(false)
     }
@@ -609,6 +611,9 @@ export default function CustomerPage() {
     }
   }
 
+  // Determine edit mode
+  const isEdit = Boolean(customer?.customerId && customer.customerId > 0)
+
   return (
     <div className="@container mx-auto space-y-2 px-4 pt-2 pb-4 sm:space-y-3 sm:px-6 sm:pt-3 sm:pb-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -637,12 +642,20 @@ export default function CustomerPage() {
             onClick={() =>
               document.getElementById("customer-form-submit")?.click()
             }
-            disabled={!customer}
-            className="w-full sm:w-auto"
+            className={`w-full sm:w-auto ${isEdit ? "bg-blue-600 hover:bg-blue-700" : ""}`}
           >
-            <Save className="mr-1 h-4 w-4" />
-            <span className="hidden sm:inline">Save</span>
-            <span className="sm:hidden">Save</span>
+            {isSaving || saveMutation.isPending || updateMutation.isPending ? (
+              <Spinner size="sm" className="mr-1" />
+            ) : (
+              <Save className="mr-1 h-4 w-4" />
+            )}
+            {isSaving || saveMutation.isPending || updateMutation.isPending
+              ? isEdit
+                ? "Updating..."
+                : "Saving..."
+              : isEdit
+                ? "Update"
+                : "Save"}
           </Button>
           <Button
             variant="outline"

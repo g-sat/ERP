@@ -263,23 +263,25 @@ export function SupplierTable({
   }
 
   return (
-    <DialogDataTable
-      data={data}
-      columns={columns}
-      isLoading={isLoading}
-      totalRecords={totalRecords}
-      moduleId={moduleId}
-      transactionId={transactionId}
-      tableName={TableName.supplier}
-      emptyMessage="No suppliers found."
-      onRefresh={onRefresh}
-      onFilterChange={handleDialogFilterChange}
-      onPageChange={onPageChange}
-      onPageSizeChange={onPageSizeChange}
-      currentPage={currentPage}
-      pageSize={pageSize}
-      serverSidePagination={serverSidePagination}
-      onRowSelect={onSelect}
-    />
+    <div className="w-full overflow-auto">
+      <DialogDataTable
+        data={data}
+        columns={columns}
+        isLoading={isLoading}
+        totalRecords={totalRecords}
+        moduleId={moduleId}
+        transactionId={transactionId}
+        tableName={TableName.supplier}
+        emptyMessage="No suppliers found."
+        onRefresh={onRefresh}
+        onFilterChange={handleDialogFilterChange}
+        onPageChange={onPageChange}
+        onPageSizeChange={onPageSizeChange}
+        currentPage={currentPage}
+        pageSize={pageSize}
+        serverSidePagination={serverSidePagination}
+        onRowSelect={onSelect}
+      />
+    </div>
   )
 }
