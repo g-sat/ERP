@@ -20,8 +20,8 @@ import {
   ChartOfAccountAutocomplete,
   GSTAutocomplete,
 } from "@/components/autocomplete"
+import CustomCheckbox from "@/components/custom/custom-checkbox"
 import CustomNumberInput from "@/components/custom/custom-number-input"
-import CustomSwitch from "@/components/custom/custom-switch"
 import CustomTextArea from "@/components/custom/custom-textarea"
 
 interface DebitNoteFormProps {
@@ -36,6 +36,11 @@ interface DebitNoteFormProps {
   companyId?: number
   onChargeChange?: (chargeName: string) => void // Add callback for charge name changes
   shouldReset?: boolean // Add prop to trigger form reset
+  summaryTotals?: {
+    totalAmount: number
+    vatAmount: number
+    totalAfterVat: number
+  } // Summary totals from table
 }
 
 export default function DebitNoteForm({
@@ -50,6 +55,7 @@ export default function DebitNoteForm({
   companyId,
   onChargeChange,
   shouldReset = false,
+  summaryTotals,
 }: DebitNoteFormProps) {
   const { isLoading: isChartOfAccountLoading } = useChartOfAccountLookup(
     Number(companyId)
@@ -343,194 +349,221 @@ export default function DebitNoteForm({
     submitAction(data)
   }
 
-  const handleReset = () => {
+  const handleCancel = () => {
+    // Reset form to default values
     form.reset({
       ...defaultValues,
     })
+    // Notify parent that charge is cleared
+    onChargeChange?.("")
+    // Call the onCancel callback if provided
+    onCancel?.()
   }
 
   return (
-    <div className="flex flex-col">
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-1">
-          {/* Row 1 */}
-          <div className="grid grid-cols-12 gap-2">
-            <div className="col-span-1">
-              <CustomNumberInput
-                form={form}
-                name="itemNo"
-                label="Item No"
-                round={0}
-                isDisabled={isConfirmed || !initialData}
-              />
+    <Form {...form}>
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="grid grid-cols-12 rounded-md p-1"
+      >
+        {/* Left Section: Form Fields */}
+        <div className="col-span-10 grid grid-cols-10 gap-1 gap-y-1">
+          <div className="col-span-2">
+            <ChargeAutocomplete
+              form={form}
+              name="chargeId"
+              label="Charge Name"
+              taskId={taskId}
+              isRequired={true}
+              isDisabled={isConfirmed}
+              onChangeEvent={handleChargeChange}
+            />
+          </div>
+
+          <div className="col-span-1">
+            <ChartOfAccountAutocomplete
+              form={form}
+              name="glId"
+              label="Gl Account"
+              isDisabled={isConfirmed}
+              isRequired={true}
+              companyId={companyId}
+            />
+          </div>
+
+          <div className="col-span-1">
+            <CustomNumberInput
+              form={form}
+              name="qty"
+              label="Qty"
+              round={0}
+              isDisabled={isConfirmed}
+            />
+          </div>
+
+          <div className="col-span-1">
+            <CustomNumberInput
+              form={form}
+              name="unitPrice"
+              label="Unit Price"
+              round={2}
+              isDisabled={isConfirmed}
+            />
+          </div>
+
+          <div className="col-span-1">
+            <CustomNumberInput
+              form={form}
+              name="totLocalAmt"
+              label="Amt Local"
+              round={2}
+              isDisabled={isConfirmed}
+            />
+          </div>
+
+          <div className="col-span-1">
+            <CustomNumberInput
+              form={form}
+              name="totAmt"
+              label="Total Amt"
+              round={2}
+              isDisabled={isConfirmed}
+            />
+          </div>
+
+          {/* Second Row: Vat, Vat %, Vat Amt, Tot Aft Vat, Is Sr Chg?, Service Chg, Remarks */}
+          <div className="col-span-1">
+            <GSTAutocomplete
+              form={form}
+              name="gstId"
+              label="Vat"
+              isDisabled={isConfirmed}
+              onChangeEvent={handleGSTChange}
+            />
+          </div>
+
+          <div className="col-span-1">
+            <CustomNumberInput
+              form={form}
+              name="gstPercentage"
+              label="Vat %"
+              round={2}
+              isDisabled={true}
+            />
+          </div>
+
+          <div className="col-span-1">
+            <CustomNumberInput
+              form={form}
+              name="gstAmt"
+              label="Vat Amt"
+              round={2}
+              isDisabled={isConfirmed}
+            />
+          </div>
+
+          <div className="col-span-1">
+            <CustomNumberInput
+              form={form}
+              name="totAftGstAmt"
+              label="Tot Aft Vat"
+              round={2}
+              isDisabled={true}
+            />
+          </div>
+
+          <div className="col-span-1">
+            <CustomCheckbox
+              form={form}
+              name="isServiceCharge"
+              label="Is Sr Chg?"
+              isDisabled={isConfirmed}
+            />
+          </div>
+
+          <div className="col-span-1">
+            <CustomNumberInput
+              form={form}
+              name="serviceCharge"
+              label="Service Chg"
+              round={2}
+              isDisabled={isConfirmed || !watchedValues.isServiceCharge}
+            />
+          </div>
+
+          <div className="col-span-5">
+            <CustomTextArea
+              form={form}
+              name="remarks"
+              label="Remarks"
+              isDisabled={isConfirmed}
+              isRequired={true}
+            />
+          </div>
+
+          {/* Action Buttons */}
+          <div className="col-span-2 flex items-center justify-end gap-2">
+            <Button
+              variant="outline"
+              type="button"
+              onClick={handleCancel}
+              disabled={isConfirmed}
+            >
+              {isConfirmed ? "Close" : "Cancel"}
+            </Button>
+            {!isConfirmed && (
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? "Saving..." : initialData ? "Update" : "Add"}
+              </Button>
+            )}
+          </div>
+        </div>
+
+        {/* Right Section: Summary Box */}
+        <div className="col-span-2 ml-2 flex flex-col justify-start">
+          <div className="w-full rounded-md border border-blue-200 bg-blue-50 p-3 shadow-sm">
+            {/* Header */}
+            <div className="mb-2 border-b border-blue-300 pb-2 text-center text-sm font-bold text-blue-800">
+              Summary
             </div>
 
-            <div className="col-span-2">
-              <ChargeAutocomplete
-                form={form}
-                name="chargeId"
-                label="Charge Name"
-                taskId={taskId}
-                isRequired={true}
-                isDisabled={isConfirmed}
-                onChangeEvent={handleChargeChange}
-              />
-            </div>
-
-            <div className="col-span-2">
-              <ChartOfAccountAutocomplete
-                form={form}
-                name="glId"
-                label="GL Account"
-                isDisabled={isConfirmed}
-                isRequired={true}
-                companyId={companyId}
-              />
-            </div>
-
-            <div className="col-span-1">
-              <CustomNumberInput
-                form={form}
-                name="qty"
-                label="Quantity"
-                round={0}
-                isDisabled={isConfirmed}
-              />
-            </div>
-
-            <div className="col-span-1">
-              <CustomNumberInput
-                form={form}
-                name="unitPrice"
-                label="Unit Price"
-                round={2}
-                isDisabled={isConfirmed}
-              />
-            </div>
-
-            <div className="col-span-1">
-              <CustomNumberInput
-                form={form}
-                name="totLocalAmt"
-                label="Amount Local"
-                round={2}
-                isDisabled={isConfirmed}
-              />
-            </div>
-
-            <div className="col-span-1">
-              <CustomNumberInput
-                form={form}
-                name="totAmt"
-                label="Total Amount"
-                round={2}
-                isDisabled={isConfirmed}
-              />
-            </div>
-
-            <div className="col-span-1">
-              <GSTAutocomplete
-                form={form}
-                name="gstId"
-                label="VAT"
-                isDisabled={isConfirmed}
-                onChangeEvent={handleGSTChange}
-              />
-            </div>
-
-            <div className="col-span-1">
-              <CustomNumberInput
-                form={form}
-                name="gstPercentage"
-                label="VAT %"
-                round={2}
-                isDisabled={true}
-              />
-            </div>
-
-            <div className="col-span-1">
-              <CustomNumberInput
-                form={form}
-                name="gstAmt"
-                label="VAT Amount"
-                round={2}
-                isDisabled={isConfirmed}
-              />
-            </div>
-
-            <div className="col-span-1">
-              <CustomNumberInput
-                form={form}
-                name="totAftGstAmt"
-                label="Total After VAT"
-                round={2}
-                isDisabled={true}
-              />
-            </div>
-
-            <div className="col-span-1">
-              <CustomSwitch
-                form={form}
-                name="isServiceCharge"
-                label="Is Ser. Chrg.?"
-                isDisabled={isConfirmed}
-              />
-            </div>
-
-            <div className="col-span-1">
-              <CustomNumberInput
-                form={form}
-                name="serviceCharge"
-                label="Service Charge"
-                round={2}
-                isDisabled={isConfirmed || !watchedValues.isServiceCharge}
-              />
-            </div>
-
-            <div className="col-span-4">
-              <CustomTextArea
-                form={form}
-                name="remarks"
-                label="Remarks"
-                isDisabled={isConfirmed}
-                isRequired={true}
-              />
-            </div>
-
-            <div className="col-span-5 flex items-center justify-end">
-              <div className="flex gap-2">
-                {!isConfirmed && (
-                  <Button
-                    variant="destructive"
-                    type="button"
-                    onClick={handleReset}
-                    disabled={isSubmitting}
-                  >
-                    Reset
-                  </Button>
-                )}
-                <Button
-                  variant="outline"
-                  type="button"
-                  onClick={onCancel}
-                  disabled={isConfirmed}
-                >
-                  {isConfirmed ? "Close" : "Cancel"}
-                </Button>
-                {!isConfirmed && (
-                  <Button type="submit" disabled={isSubmitting}>
-                    {isSubmitting
-                      ? "Saving..."
-                      : initialData
-                        ? "Update"
-                        : "Add"}
-                  </Button>
-                )}
+            {/* Summary Values */}
+            <div className="space-y-2 text-sm">
+              <div className="flex items-center justify-between">
+                <span className="font-medium text-blue-600">Amt</span>
+                <span className="font-medium text-gray-700">
+                  {(summaryTotals?.totalAmount || 0).toLocaleString(undefined, {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="font-medium text-blue-600">Gst</span>
+                <span className="font-medium text-gray-700">
+                  {(summaryTotals?.vatAmount || 0).toLocaleString(undefined, {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}
+                </span>
+              </div>
+              <hr className="my-1 border-blue-300" />
+              <div className="flex items-center justify-between">
+                <span className="font-bold text-blue-800">Total</span>
+                <span className="font-bold text-blue-900">
+                  {(summaryTotals?.totalAfterVat || 0).toLocaleString(
+                    undefined,
+                    {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    }
+                  )}
+                </span>
               </div>
             </div>
           </div>
-        </form>
-      </Form>
-    </div>
+        </div>
+      </form>
+    </Form>
   )
 }

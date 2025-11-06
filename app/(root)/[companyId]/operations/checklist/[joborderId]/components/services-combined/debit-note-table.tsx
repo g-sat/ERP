@@ -2,11 +2,12 @@
 
 import { useMemo } from "react"
 import { IDebitNoteDt } from "@/interfaces/checklist"
+import { useAuthStore } from "@/stores/auth-store"
 import { ColumnDef } from "@tanstack/react-table"
 import { ArrowUpDown } from "lucide-react"
 
+import { formatNumber } from "@/lib/format-utils"
 import { TableName } from "@/lib/utils"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { DebitNoteBaseTable } from "@/components/table/table-debitnote"
 
@@ -41,6 +42,9 @@ export function DebitNoteTable({
   transactionId,
   isConfirmed,
 }: DebitNoteTableProps) {
+  const { decimals } = useAuthStore()
+  const amtDec = decimals[0]?.amtDec || 2
+
   // Define columns for the debit note table
   const columns: ColumnDef<IDebitNoteDt>[] = useMemo(
     () => [
@@ -60,118 +64,78 @@ export function DebitNoteTable({
             </Button>
           </div>
         ),
-        cell: ({ row }) => (
+        cell: ({ row }: { row: { original: IDebitNoteDt } }) => (
           <div className="text-right font-medium">
-            {row.getValue("itemNo") || "-"}
+            {row.original.itemNo || "-"}
           </div>
         ),
-        size: 60,
-        minSize: 50,
+        size: 40,
       },
       {
         accessorKey: "remarks",
         header: "Remarks",
-        cell: ({ row }) => (
-          <div className="max-w-xs truncate">
-            {row.getValue("remarks") || "-"}
-          </div>
-        ),
-        size: 350,
-        minSize: 250,
+        size: 200,
       },
       {
         accessorKey: "qty",
         header: "Qty",
-        cell: ({ row }) => (
-          <div className="text-right">{row.getValue("qty") || "0"}</div>
-        ),
         size: 60,
-        minSize: 60,
+        cell: ({ row }: { row: { original: IDebitNoteDt } }) => (
+          <div className="text-right">{row.original.qty}</div>
+        ),
       },
       {
         accessorKey: "unitPrice",
         header: "Unit Price",
+        size: 100,
         cell: ({ row }) => (
           <div className="text-right">
-            {typeof row.getValue("unitPrice") === "number"
-              ? (row.getValue("unitPrice") as number).toFixed(2)
-              : "0.00"}
+            {formatNumber(row.getValue("unitPrice"), amtDec)}
           </div>
         ),
-        size: 100,
-        minSize: 80,
-      },
+      } as ColumnDef<IDebitNoteDt>,
       {
         accessorKey: "totAmt",
         header: "Amount",
+        size: 100,
         cell: ({ row }) => (
-          <div className="text-right font-medium">
-            {typeof row.getValue("totAmt") === "number"
-              ? (row.getValue("totAmt") as number).toFixed(2)
-              : "0.00"}
+          <div className="text-right">
+            {formatNumber(row.getValue("totAmt"), amtDec)}
           </div>
         ),
-        size: 120,
-        minSize: 100,
       },
       {
         accessorKey: "gstPercentage",
         header: "VAT %",
+        size: 50,
         cell: ({ row }) => (
           <div className="text-right">
-            {typeof row.getValue("gstPercentage") === "number"
-              ? `${row.getValue("gstPercentage") as number}%`
-              : "0%"}
+            {formatNumber(row.getValue("gstPercentage"), 2)}
           </div>
         ),
-        size: 60,
-        minSize: 50,
       },
       {
         accessorKey: "gstAmt",
         header: "VAT",
+        size: 100,
         cell: ({ row }) => (
           <div className="text-right">
-            {typeof row.getValue("gstAmt") === "number"
-              ? (row.getValue("gstAmt") as number).toFixed(2)
-              : "0.00"}
+            {formatNumber(row.getValue("gstAmt"), amtDec)}
           </div>
         ),
-        size: 80,
-        minSize: 60,
       },
       {
         accessorKey: "totAftGstAmt",
         header: "Total",
+        size: 100,
         cell: ({ row }) => (
-          <div className="text-right font-medium">
-            {typeof row.getValue("totAftGstAmt") === "number"
-              ? (row.getValue("totAftGstAmt") as number).toFixed(2)
-              : "0.00"}
+          <div className="text-right">
+            {formatNumber(row.getValue("totAftGstAmt"), amtDec)}
           </div>
         ),
-        size: 120,
-        minSize: 100,
-      },
-      {
-        accessorKey: "editVersion",
-        header: "Version",
-        cell: ({ row }) => (
-          <div className="flex justify-center">
-            <Badge
-              variant="secondary"
-              className="flex items-center justify-center rounded-full bg-red-500 px-3 py-1 text-xs font-semibold text-white"
-            >
-              {row.getValue("editVersion") || "0"}
-            </Badge>
-          </div>
-        ),
-        size: 80,
-        minSize: 60,
-        maxSize: 100,
       },
     ],
-    [] // No dependencies needed since column definitions don't depend on props
+    [amtDec] // Include amtDec in dependencies
   )
 
   return (

@@ -13,15 +13,7 @@ import {
   DebitNoteHdSchemaType,
 } from "@/schemas/checklist"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
-import {
-  DollarSign,
-  ListChecks,
-  Printer,
-  Receipt,
-  Save,
-  Trash,
-  TrendingUp,
-} from "lucide-react"
+import { ListChecks, Printer, Save, Trash } from "lucide-react"
 
 import { getData } from "@/lib/api-client"
 import { JobOrder_DebitNote } from "@/lib/api-routes"
@@ -223,35 +215,68 @@ export default function DebitNoteDialog({
   // Handler for form submission (create or edit) - add to table directly
   const handleFormSubmit = useCallback(
     (data: DebitNoteDtSchemaType) => {
-      // Add new item to local state directly (no confirmation needed for add)
-      const newItem: IDebitNoteDt = {
-        debitNoteId: debitNoteHd?.debitNoteId ?? 0,
-        debitNoteNo: debitNoteHd?.debitNoteNo ?? "",
-        itemNo: (detailsRef.current?.length ?? 0) + 1,
-        taskId: data.taskId ?? 0,
-        chargeId: data.chargeId ?? 0,
-        glId: data.glId ?? 0,
-        qty: data.qty ?? 0,
-        unitPrice: data.unitPrice ?? 0,
-        totLocalAmt: data.totLocalAmt ?? 0,
-        totAmt: data.totAmt ?? 0,
-        gstId: data.gstId ?? 0,
-        gstPercentage: data.gstPercentage ?? 0,
-        gstAmt: data.gstAmt ?? 0,
-        totAftGstAmt: data.totAftGstAmt ?? 0,
-        remarks: data.remarks ?? "",
-        editVersion: data.editVersion ?? 0,
-        isServiceCharge: data.isServiceCharge ?? false,
-        serviceCharge: data.serviceCharge ?? 0,
+      if (modalMode === "edit" && selectedDebitNoteDetail) {
+        // Update existing item
+        setDetails((prev) =>
+          prev.map((item) =>
+            item.itemNo === selectedDebitNoteDetail.itemNo
+              ? {
+                  ...item,
+                  chargeId: data.chargeId ?? 0,
+                  glId: data.glId ?? 0,
+                  qty: data.qty ?? 0,
+                  unitPrice: data.unitPrice ?? 0,
+                  totLocalAmt: data.totLocalAmt ?? 0,
+                  totAmt: data.totAmt ?? 0,
+                  gstId: data.gstId ?? 0,
+                  gstPercentage: data.gstPercentage ?? 0,
+                  gstAmt: data.gstAmt ?? 0,
+                  totAftGstAmt: data.totAftGstAmt ?? 0,
+                  remarks: data.remarks ?? "",
+                  editVersion: data.editVersion ?? 0,
+                  isServiceCharge: data.isServiceCharge ?? false,
+                  serviceCharge: data.serviceCharge ?? 0,
+                }
+              : item
+          )
+        )
+
+        // Reset form after successful update
+        setSelectedDebitNoteDetail(undefined)
+        setModalMode("create")
+        setShouldResetForm(true)
+      } else {
+        // Add new item to local state directly (no confirmation needed for add)
+        const newItem: IDebitNoteDt = {
+          debitNoteId: debitNoteHd?.debitNoteId ?? 0,
+          debitNoteNo: debitNoteHd?.debitNoteNo ?? "",
+          itemNo: (detailsRef.current?.length ?? 0) + 1,
+          taskId: data.taskId ?? 0,
+          chargeId: data.chargeId ?? 0,
+          glId: data.glId ?? 0,
+          qty: data.qty ?? 0,
+          unitPrice: data.unitPrice ?? 0,
+          totLocalAmt: data.totLocalAmt ?? 0,
+          totAmt: data.totAmt ?? 0,
+          gstId: data.gstId ?? 0,
+          gstPercentage: data.gstPercentage ?? 0,
+          gstAmt: data.gstAmt ?? 0,
+          totAftGstAmt: data.totAftGstAmt ?? 0,
+          remarks: data.remarks ?? "",
+          editVersion: data.editVersion ?? 0,
+          isServiceCharge: data.isServiceCharge ?? false,
+          serviceCharge: data.serviceCharge ?? 0,
+        }
+
+        setDetails((prev) => [...prev, newItem])
+
+        // Reset form after successful addition
+        setSelectedDebitNoteDetail(undefined)
+        setModalMode("create")
+        setShouldResetForm(true)
       }
-
-      setDetails((prev) => [...prev, newItem])
-
-      // Reset form after successful addition
-      setSelectedDebitNoteDetail(undefined)
-      setShouldResetForm(true)
     },
-    [debitNoteHd]
+    [debitNoteHd, modalMode, selectedDebitNoteDetail]
   )
 
   // Handler for deleting a debit note detail
@@ -607,128 +632,98 @@ export default function DebitNoteDialog({
         }}
       >
         <DialogHeader className="border-b pb-2">
-          <div className="flex items-center justify-between">
-            <div>
-              <DialogTitle className="text-2xl font-bold">{title}</DialogTitle>
-              <DialogDescription>{description}</DialogDescription>
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex flex-1 flex-col gap-1">
+              <DialogTitle className="text-2xl font-bold">
+                {title} :{" "}
+                <Badge
+                  variant="secondary"
+                  className="bg-orange-100 px-2 py-0.5 text-xs whitespace-nowrap text-orange-800 hover:bg-orange-200"
+                >
+                  {debitNoteHdState?.taskName || "N/A"}
+                </Badge>
+              </DialogTitle>
+              <DialogDescription>
+                <div className="flex flex-nowrap items-center gap-2 overflow-x-auto">
+                  <Badge
+                    variant="secondary"
+                    className="bg-green-100 px-2 py-0.5 text-xs whitespace-nowrap text-green-800 hover:bg-green-200"
+                  >
+                    {debitNoteHdState?.debitNoteNo || "N/A"}
+                  </Badge>
+                  <Badge
+                    variant="secondary"
+                    className="bg-blue-100 px-2 py-0.5 text-xs whitespace-nowrap text-blue-800 hover:bg-blue-200"
+                  >
+                    {debitNoteHdState?.debitNoteDate
+                      ? new Date(
+                          debitNoteHdState.debitNoteDate
+                        ).toLocaleDateString()
+                      : "N/A"}
+                  </Badge>
+                  <Badge
+                    variant="secondary"
+                    className="bg-purple-100 px-2 py-0.5 text-xs whitespace-nowrap text-purple-800 hover:bg-purple-200"
+                  >
+                    {debitNoteHdState?.chargeName || "N/A"}
+                  </Badge>
+                  <Badge
+                    variant="secondary"
+                    className="bg-red-100 px-2 py-0.5 text-xs whitespace-nowrap text-red-800 hover:bg-red-200"
+                  >
+                    v[{debitNoteHdState?.editVersion}]
+                  </Badge>
+                </div>
+              </DialogDescription>
             </div>
-            <div className="mr-10 flex flex-nowrap gap-2 overflow-x-auto">
-              <Badge
-                variant="secondary"
-                className="bg-green-100 px-3 py-1 whitespace-nowrap text-green-800 hover:bg-green-200"
+            <div className="flex flex-nowrap items-center gap-2 overflow-x-auto">
+              {/* Action Buttons */}
+              <Button
+                size="sm"
+                variant="default"
+                disabled={isConfirmed || !debitNoteHdState?.debitNoteId}
+                onClick={() => setSaveConfirmation({ isOpen: true })}
+                className="h-8 px-2"
               >
-                {debitNoteHdState?.debitNoteNo || "N/A"}
-              </Badge>
-              <Badge
-                variant="secondary"
-                className="bg-blue-100 px-3 py-1 whitespace-nowrap text-blue-800 hover:bg-blue-200"
+                <Save className="mr-2 h-4 w-4" />
+                Save
+              </Button>
+              <Button
+                variant="destructive"
+                size="sm"
+                disabled={isConfirmed || !debitNoteHdState?.debitNoteId}
+                onClick={handleDeleteDebitNote}
+                className="h-8 px-2"
               >
-                {debitNoteHdState?.debitNoteDate
-                  ? new Date(
-                      debitNoteHdState.debitNoteDate
-                    ).toLocaleDateString()
-                  : "N/A"}
-              </Badge>
-              <Badge
-                variant="secondary"
-                className="bg-purple-100 px-3 py-1 whitespace-nowrap text-purple-800 hover:bg-purple-200"
+                <Trash className="mr-2 h-4 w-4" />
+                Delete
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                disabled={false}
+                className="h-8 px-2"
               >
-                {debitNoteHdState?.chargeName || "N/A"}
-              </Badge>
-              <Badge
-                variant="secondary"
-                className="bg-orange-100 px-3 py-1 whitespace-nowrap text-orange-800 hover:bg-orange-200"
+                <Printer className="mr-2 h-4 w-4" />
+                Print
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                disabled={isConfirmed}
+                onClick={() => setBulkChargesDialog({ isOpen: true })}
+                className="h-8 px-2"
               >
-                {debitNoteHdState?.taskName || "N/A"}
-              </Badge>
+                <ListChecks className="mr-2 h-4 w-4" />
+                Bulk Charges
+              </Button>
             </div>
           </div>
         </DialogHeader>
 
         <div className="@container">
-          {/* Summary Section */}
-          <div className="bg-card mb-2 rounded-lg border p-4 shadow-sm">
-            <div className="flex flex-col space-y-5 lg:flex-row lg:items-center lg:justify-between lg:space-y-0">
-              {/* Financial Summary */}
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-                <div className="flex items-center gap-3">
-                  <div className="rounded-full bg-blue-100 p-2">
-                    <DollarSign className="h-4 w-4 text-blue-600" />
-                  </div>
-                  <div>
-                    <p className="text-xs font-medium">Total Amount</p>
-                    <p className="text-lg font-bold">
-                      ${summaryTotals.totalAmount.toLocaleString()}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3">
-                  <div className="rounded-full bg-green-100 p-2">
-                    <Receipt className="h-4 w-4 text-green-600" />
-                  </div>
-                  <div>
-                    <p className="text-xs font-medium">VAT Amount</p>
-                    <p className="text-lg font-bold">
-                      ${summaryTotals.vatAmount.toLocaleString()}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3">
-                  <div className="rounded-full bg-purple-100 p-2">
-                    <TrendingUp className="h-4 w-4 text-purple-600" />
-                  </div>
-                  <div>
-                    <p className="text-xs font-medium">Total After VAT</p>
-                    <p className="text-lg font-bold">
-                      ${summaryTotals.totalAfterVat.toLocaleString()}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex flex-col gap-3 sm:flex-row">
-                <Button
-                  size="sm"
-                  variant="outline"
-                  disabled={isConfirmed}
-                  onClick={() => setBulkChargesDialog({ isOpen: true })}
-                >
-                  <ListChecks className="mr-2 h-4 w-4" />
-                  Bulk Charges
-                </Button>
-
-                <Button size="sm" variant="outline" disabled={false}>
-                  <Printer className="mr-2 h-4 w-4" />
-                  Print
-                </Button>
-
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  disabled={isConfirmed || !debitNoteHdState?.debitNoteId}
-                  onClick={handleDeleteDebitNote}
-                >
-                  <Trash className="mr-2 h-4 w-4" />
-                  Delete
-                </Button>
-                <Button
-                  size="sm"
-                  variant="default"
-                  disabled={isConfirmed || !debitNoteHdState?.debitNoteId}
-                  onClick={() => setSaveConfirmation({ isOpen: true })}
-                >
-                  <Save className="mr-2 h-4 w-4" />
-                  Save
-                </Button>
-              </div>
-            </div>
-          </div>
-
-          {/* form Section */}
-          <div className="bg-card mb-2 rounded-lg border p-4 shadow-sm">
+          {/* Form Section */}
+          <div className="bg-card mb-2 rounded-lg border p-1 shadow-sm">
             <DebitNoteForm
               debitNoteHd={debitNoteHdState}
               initialData={
@@ -745,12 +740,13 @@ export default function DebitNoteDialog({
               companyId={debitNoteHdState?.companyId || 0}
               onChargeChange={() => {}}
               shouldReset={shouldResetForm}
+              summaryTotals={summaryTotals}
             />
           </div>
 
           {/* Table Section */}
           <div className="bg-card rounded-lg border shadow-sm">
-            <div className="p-4">
+            <div className="max-h-[50vh] overflow-auto p-3">
               <DebitNoteTable
                 data={details}
                 onSelect={handleViewDebitNoteDetail}
