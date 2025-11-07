@@ -273,6 +273,27 @@ export default function Main({
         toast.error("Now it's auto set to zero. Please check the allocation.")
       }
 
+      const clampedValue =
+        typeof result?.allocAmt === "number"
+          ? Number(result.allocAmt)
+          : Number(arr[rowIndex]?.allocAmt) || 0
+
+      // Clamp to the absolute balance of the current row as a final safety check
+      const balanceLimit = Math.abs(Number(arr[rowIndex]?.docBalAmt) || 0)
+      const adjustedValue =
+        Math.abs(clampedValue) > balanceLimit
+          ? Math.sign(clampedValue) * balanceLimit
+          : clampedValue
+
+      if (adjustedValue !== clampedValue) {
+        arr[rowIndex].allocAmt = adjustedValue
+        if (adjustedValue === 0) {
+          toast.error(
+            "Allocation exceeds remaining balance. It has been reset."
+          )
+        }
+      }
+
       // console.log(
       //   "updateAllocationCalculations calculateManualAllocation",
       //   arr,
@@ -320,12 +341,7 @@ export default function Main({
       form.trigger("data_details")
       setRefreshKey((prev) => prev + 1)
 
-      const finalAllocation =
-        typeof result?.allocAmt === "number"
-          ? Number(result.allocAmt)
-          : Number(arr[rowIndex]?.allocAmt) || 0
-
-      return finalAllocation
+      return arr[rowIndex].allocAmt as number
     },
     [form, decimals]
   )
@@ -587,37 +603,50 @@ export default function Main({
 
       <div className="px-2 pt-1">
         {/* Control Row */}
-        <div className="mb-2 flex items-center gap-1">
+        <div className="mb-2 flex flex-wrap items-center gap-1">
           <Button
+            size="sm"
             onClick={handleSelectTransaction}
             disabled={!isCustomerSelected}
             className={
-              !isCustomerSelected ? "cursor-not-allowed opacity-50" : ""
+              !isCustomerSelected
+                ? "cursor-not-allowed px-3 py-1 text-xs opacity-50"
+                : "px-3 py-1 text-xs"
             }
+            title="Select outstanding transactions"
           >
             <Plus className="h-4 w-4" />
-            Select Transaction
+            Select Txn
           </Button>
           <Button
+            size="sm"
             onClick={handleAutoAllocation}
-            disabled={isAllocated || dataDetails.length === 0}
-            className={
-              isAllocated || dataDetails.length === 0
-                ? "cursor-not-allowed opacity-50"
-                : ""
-            }
+            // disabled={isAllocated || dataDetails.length === 0}
+            // className={
+            //   isAllocated || dataDetails.length === 0
+            //     ? "cursor-not-allowed opacity-50"
+            //     : ""
+            // }
+            className="px-3 py-1 text-xs"
+            title="Auto allocate amounts"
           >
             <Zap className="h-4 w-4" />
-            Auto Allocation
+            Auto Alloc
           </Button>
           <Button
             variant="destructive"
+            size="sm"
             onClick={handleResetAllocation}
             disabled={!isAllocated}
-            className={!isAllocated ? "cursor-not-allowed opacity-50" : ""}
+            className={
+              !isAllocated
+                ? "cursor-not-allowed px-3 py-1 text-xs opacity-50"
+                : "px-3 py-1 text-xs"
+            }
+            title="Reset all allocations"
           >
             <RotateCcw className="h-4 w-4" />
-            Reset Allocation
+            Reset Alloc
           </Button>
           <Badge
             variant="secondary"
