@@ -257,15 +257,6 @@ export default function ReceiptForm({
     }
   }, [currencyId, recCurrencyId, updateCurrencyComparison, form])
 
-  // Watch exhRate and sync to recExhRate when currencies are equal
-  const exhRate = form.watch("exhRate")
-
-  React.useEffect(() => {
-    if (currencyId === recCurrencyId && currencyId > 0 && exhRate > 0) {
-      form.setValue("recExhRate", exhRate, { shouldDirty: true })
-    }
-  }, [exhRate, currencyId, recCurrencyId, form])
-
   // Watch paymentTypeId and update cheque receipt state
   React.useEffect(() => {
     const paymentTypeId = form.watch("paymentTypeId")
@@ -507,8 +498,8 @@ export default function ReceiptForm({
       if (recCurrencyId > 0 && recCurrencyId !== currencyId) {
         await setRecExchangeRate(form, exhRateDec)
       } else if (recCurrencyId > 0 && recCurrencyId === currencyId) {
-        const exhRate = form.getValues("exhRate") || 0
-        form.setValue("recExhRate", exhRate, { shouldDirty: true })
+        const exhRateValue = form.getValues("exhRate") || 0
+        form.setValue("recExhRate", exhRateValue, { shouldDirty: true })
       } else {
         form.setValue("recExhRate", 0)
       }
@@ -528,6 +519,13 @@ export default function ReceiptForm({
       if (currencyId && accountDate) {
         // First update exchange rates
         await setExchangeRate(form, exhRateDec, visible)
+
+        const recCurrencyId = form.getValues("recCurrencyId") || 0
+        if (currencyId > 0 && recCurrencyId === currencyId) {
+          const exhRateValue = form.getValues("exhRate") || 0
+          form.setValue("recCurrencyId", currencyId, { shouldDirty: true })
+          form.setValue("recExhRate", exhRateValue, { shouldDirty: true })
+        }
 
         // Recalculate all amounts based on currency comparison - clear allocations for currency change
         recalculateAmountsBasedOnCurrency(true)
@@ -561,6 +559,12 @@ export default function ReceiptForm({
       if (exhRate !== originalExhRate) {
         console.log("Exchange Rate changed - recalculating amounts")
         form.setValue("exhRate", exhRate, { shouldDirty: true })
+
+        const currentCurrency = form.getValues("currencyId") || 0
+        const currentRecCurrency = form.getValues("recCurrencyId") || 0
+        if (currentCurrency > 0 && currentCurrency === currentRecCurrency) {
+          form.setValue("recExhRate", exhRate, { shouldDirty: true })
+        }
 
         // Recalculate all amounts based on currency comparison - don't clear allocations for exchange rate change
         recalculateAmountsBasedOnCurrency(false)
