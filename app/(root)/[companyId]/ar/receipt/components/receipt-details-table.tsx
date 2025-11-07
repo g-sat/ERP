@@ -20,7 +20,7 @@ interface ReceiptDetailsTableProps {
   onDelete?: (itemNo: number) => void
   onBulkDelete?: (selectedItemNos: number[]) => void
   onDataReorder?: (newData: IArReceiptDt[]) => void
-  onCellEdit?: (itemNo: number, field: string, value: number) => void
+  onCellEdit?: (itemNo: number, field: string, value: number) => number | void
   visible: IVisibleFields
   isCancelled?: boolean
 }
@@ -51,7 +51,7 @@ export default function ReceiptDetailsTable({
   }: {
     value: number
     decimals: number
-    onChange: (value: number) => void
+    onChange: (value: number) => number | void
   }) => {
     const [displayValue, setDisplayValue] = useState(
       formatNumber(value, decimals)
@@ -66,22 +66,19 @@ export default function ReceiptDetailsTable({
     }
 
     const handleBlur = () => {
-      // Remove commas and other formatting characters before parsing
       const cleanedValue = displayValue.replace(/,/g, "").trim()
       const numValue = Number(cleanedValue) || 0
       const roundedValue = Number(numValue.toFixed(decimals))
-      setDisplayValue(formatNumber(roundedValue, decimals))
 
-      // Only trigger onChange if the value actually changed (with tolerance for floating point precision)
       const tolerance = Math.pow(10, -decimals) / 2
-      if (Math.abs(roundedValue - value) > tolerance) {
-        console.log(
-          `Value changed from ${value} to ${roundedValue} - triggering calculation`
-        )
-        onChange(roundedValue)
-      } else {
-        console.log(`Value unchanged (${value}) - skipping calculation`)
+      if (Math.abs(roundedValue - value) <= tolerance) {
+        setDisplayValue(formatNumber(value, decimals))
+        return
       }
+
+      const result = onChange(roundedValue)
+      const finalValue = typeof result === "number" ? result : roundedValue
+      setDisplayValue(formatNumber(finalValue, decimals))
     }
 
     const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
@@ -185,8 +182,15 @@ export default function ReceiptDetailsTable({
               }
 
               if (onCellEdit) {
-                onCellEdit(row.original.itemNo, "allocAmt", numValue)
+                const result = onCellEdit(
+                  row.original.itemNo,
+                  "allocAmt",
+                  numValue
+                )
+                return typeof result === "number" ? result : numValue
               }
+
+              return numValue
             }}
           />
         )

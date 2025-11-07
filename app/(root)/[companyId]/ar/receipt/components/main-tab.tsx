@@ -239,7 +239,7 @@ export default function Main({
       updatedData: ArReceiptDtSchemaType[],
       rowIndex: number,
       allocValue: number
-    ) => {
+    ): number | undefined => {
       const arr = updatedData as unknown as IArReceiptDt[]
       if (rowIndex === -1 || rowIndex >= arr.length) return
 
@@ -256,7 +256,7 @@ export default function Main({
       //   dec
       // )
 
-      const { wasAutoSetToZero } = calculateManualAllocation(
+      const { result, wasAutoSetToZero } = calculateManualAllocation(
         arr,
         rowIndex,
         allocValue,
@@ -319,6 +319,13 @@ export default function Main({
       })
       form.trigger("data_details")
       setRefreshKey((prev) => prev + 1)
+
+      const finalAllocation =
+        typeof result?.allocAmt === "number"
+          ? Number(result.allocAmt)
+          : Number(arr[rowIndex]?.allocAmt) || 0
+
+      return finalAllocation
     },
     [form, decimals]
   )
@@ -335,7 +342,7 @@ export default function Main({
       const currentValue = currentItem?.allocAmt || 0
 
       if (currentValue === value) {
-        return
+        return currentValue
       }
 
       // Don't allow manual entry when totAmt = 0
@@ -351,8 +358,12 @@ export default function Main({
         const rowIndex = arr.findIndex((r) => r.itemNo === itemNo)
         if (rowIndex === -1) return
 
-        updateAllocationCalculations(updatedData, rowIndex, 0)
-        return
+        const finalValue = updateAllocationCalculations(
+          updatedData,
+          rowIndex,
+          0
+        )
+        return finalValue ?? 0
       } else {
         // console.log("handleCellEdit else", itemNo, field, value)
         // When totAmt > 0, allow manual entry with validation
@@ -366,7 +377,12 @@ export default function Main({
         //   rowIndex,
         //   value
         // )
-        updateAllocationCalculations(updatedData, rowIndex, value)
+        const finalValue = updateAllocationCalculations(
+          updatedData,
+          rowIndex,
+          value
+        )
+        return finalValue
       }
     },
     [form, updateAllocationCalculations]
