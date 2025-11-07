@@ -1456,7 +1456,8 @@ export default function InvoicePage() {
                 size="sm"
                 onClick={() => {
                   if (invoice?.invoiceNo) {
-                    handleInvoiceSearch(invoice.invoiceNo)
+                    setSearchNo(invoice.invoiceNo)
+                    setShowLoadConfirm(true)
                   }
                 }}
                 disabled={isLoadingInvoice}

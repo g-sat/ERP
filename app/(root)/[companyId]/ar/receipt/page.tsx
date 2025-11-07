@@ -1007,7 +1007,8 @@ export default function ReceiptPage() {
                 size="sm"
                 onClick={() => {
                   if (receipt?.receiptNo) {
-                    handleReceiptSearch(receipt.receiptNo)
+                    setSearchNo(receipt.receiptNo)
+                    setShowLoadConfirm(true)
                   }
                 }}
                 disabled={isLoadingReceipt}
