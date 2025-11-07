@@ -11,8 +11,12 @@ import { TableName } from "@/lib/utils"
 
 import { DocumentOperationsTable } from "../table/table-document-operations"
 
+type DocRow = IDocType & {
+  selectionId: string
+}
+
 interface DocumentOperationsManagerTableProps {
-  data: IDocType[]
+  data: DocRow[]
   isLoading?: boolean
   onPreview?: (doc: IDocType) => void
   onDownload?: (doc: IDocType) => void
@@ -36,7 +40,7 @@ export default function DocumentOperationsManagerTable({
   const dateFormat = decimals[0]?.dateFormat || "dd/MM/yyyy"
 
   // Memoize columns to prevent re-creation on every render
-  const columns: ColumnDef<IDocType>[] = useMemo(
+  const columns: ColumnDef<DocRow>[] = useMemo(
     () => [
       {
         accessorKey: "itemNo",
@@ -114,7 +118,7 @@ export default function DocumentOperationsManagerTable({
 
   // Memoize callbacks to prevent re-creation on every render
   const handleSelect = useCallback(
-    (item: IDocType | null) => {
+    (item: DocRow | null) => {
       if (item) {
         onPreview?.(item)
       }
@@ -122,24 +126,24 @@ export default function DocumentOperationsManagerTable({
     [onPreview]
   )
 
-  const handleDataReorder = useCallback((_newData: IDocType[]) => {
+  const handleDataReorder = useCallback((_newData: DocRow[]) => {
     // Handle data reorder - this will update the parent component
     // The itemNo will be automatically updated in the table component
   }, [])
 
-  const handleSaveOrder = useCallback((_newData: IDocType[]) => {
+  const handleSaveOrder = useCallback((_newData: DocRow[]) => {
     // Handle save order - this should save the new order to the backend
     console.log("Save order:", _newData)
   }, [])
 
   return (
-    <DocumentOperationsTable<IDocType>
+    <DocumentOperationsTable<DocRow>
       data={data}
       columns={columns}
       isLoading={isLoading}
       tableName={TableName.document}
       emptyMessage="No documents uploaded yet"
-      accessorId="documentId"
+      accessorId="selectionId"
       onSelect={handleSelect}
       onDataReorder={handleDataReorder}
       onSaveOrder={handleSaveOrder}

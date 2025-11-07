@@ -74,7 +74,7 @@ export default function DocumentOperationsManager({
     ".jpeg",
     ".png",
   ],
-  maxFiles = 10,
+  maxFiles = 20,
 }: DocumentOperationsManagerProps) {
   const { decimals: _decimals } = useAuthStore()
   const form = useForm()
@@ -100,6 +100,11 @@ export default function DocumentOperationsManager({
   const { data: documents, isLoading } = useGet<IDocType>(
     `${Admin.getDocumentById}/${moduleId}/${transactionId}/${recordId}`,
     `documents-${moduleId}-${transactionId}-${recordId}`
+  )
+
+  const buildDocKey = useCallback(
+    (doc: IDocType) => `${doc.documentId}-${doc.itemNo}`,
+    []
   )
 
   const saveDocumentMutation = usePersist<IDocument | IDocument[]>(
@@ -478,20 +483,18 @@ export default function DocumentOperationsManager({
     }
 
     // Convert all IDs to strings for comparison
-    const selectedIdsSet = new Set(
-      selectedDocumentIds.map((id) => String(id).trim())
-    )
+    const selectedIdsSet = new Set(selectedDocumentIds.map((id) => id.trim()))
     console.log("selectedIdsSet:", Array.from(selectedIdsSet))
     console.log(
-      "All document IDs:",
-      documents.data.map((d: IDocType) => String(d.documentId).trim())
+      "All document keys:",
+      documents.data.map((d: IDocType) => buildDocKey(d))
     )
 
     let selectedDocs = (documents.data as IDocType[]).filter((doc) => {
-      const docId = String(doc.documentId).trim()
-      const isSelected = selectedIdsSet.has(docId)
+      const docKey = buildDocKey(doc)
+      const isSelected = selectedIdsSet.has(docKey)
       console.log(
-        `Document ID: "${docId}" (type: ${typeof doc.documentId}), Selected: ${isSelected}`
+        `Document Key: "${docKey}" (itemNo: ${doc.itemNo}), Selected: ${isSelected}`
       )
       return isSelected
     })
@@ -514,17 +517,15 @@ export default function DocumentOperationsManager({
         selectedDocs: selectedDocs.length,
         selectedIds: selectedDocumentIds.length,
         selectedIdsArray: selectedDocumentIds,
-        matchedDocIds: selectedDocs.map((d) => String(d.documentId).trim()),
-        allDocIds: documents.data.map((d: IDocType) =>
-          String(d.documentId).trim()
-        ),
+        matchedDocKeys: selectedDocs.map((d) => buildDocKey(d)),
+        allDocKeys: documents.data.map((d: IDocType) => buildDocKey(d)),
       })
       // Only download the exact number that was selected
       // Take only the documents that match the selected IDs exactly
       selectedDocs = selectedDocs
         .filter((doc) => {
-          const docId = String(doc.documentId).trim()
-          return selectedIdsSet.has(docId)
+          const docKey = buildDocKey(doc)
+          return selectedIdsSet.has(docKey)
         })
         .slice(0, selectedDocumentIds.length)
 
@@ -575,7 +576,7 @@ export default function DocumentOperationsManager({
     })
 
     toast.success(`Downloading ${selectedDocs.length} document(s)`)
-  }, [selectedDocumentIds, documents?.data])
+  }, [selectedDocumentIds, documents?.data, buildDocKey])
 
   // Bulk print documents
   const handleBulkPrint = useCallback(() => {
@@ -594,20 +595,18 @@ export default function DocumentOperationsManager({
     }
 
     // Convert all IDs to strings for comparison
-    const selectedIdsSet = new Set(
-      selectedDocumentIds.map((id) => String(id).trim())
-    )
+    const selectedIdsSet = new Set(selectedDocumentIds.map((id) => id.trim()))
     console.log("selectedIdsSet:", Array.from(selectedIdsSet))
     console.log(
-      "All document IDs:",
-      documents.data.map((d: IDocType) => String(d.documentId).trim())
+      "All document keys:",
+      documents.data.map((d: IDocType) => buildDocKey(d))
     )
 
     let selectedDocs = (documents.data as IDocType[]).filter((doc) => {
-      const docId = String(doc.documentId).trim()
-      const isSelected = selectedIdsSet.has(docId)
+      const docKey = buildDocKey(doc)
+      const isSelected = selectedIdsSet.has(docKey)
       console.log(
-        `Document ID: "${docId}" (type: ${typeof doc.documentId}), Selected: ${isSelected}`
+        `Document Key: "${docKey}" (itemNo: ${doc.itemNo}), Selected: ${isSelected}`
       )
       return isSelected
     })
@@ -630,16 +629,14 @@ export default function DocumentOperationsManager({
         selectedDocs: selectedDocs.length,
         selectedIds: selectedDocumentIds.length,
         selectedIdsArray: selectedDocumentIds,
-        matchedDocIds: selectedDocs.map((d) => String(d.documentId).trim()),
-        allDocIds: documents.data.map((d: IDocType) =>
-          String(d.documentId).trim()
-        ),
+        matchedDocKeys: selectedDocs.map((d) => buildDocKey(d)),
+        allDocKeys: documents.data.map((d: IDocType) => buildDocKey(d)),
       })
       // Only print the exact number that was selected
       selectedDocs = selectedDocs
         .filter((doc) => {
-          const docId = String(doc.documentId).trim()
-          return selectedIdsSet.has(docId)
+          const docKey = buildDocKey(doc)
+          return selectedIdsSet.has(docKey)
         })
         .slice(0, selectedDocumentIds.length)
 
@@ -694,7 +691,7 @@ export default function DocumentOperationsManager({
     })
 
     toast.success(`Printing ${selectedDocs.length} document(s)`)
-  }, [selectedDocumentIds, documents?.data])
+  }, [selectedDocumentIds, documents?.data, buildDocKey])
 
   // Bulk delete documents
   const handleBulkDelete = useCallback(() => {
@@ -709,7 +706,7 @@ export default function DocumentOperationsManager({
     }
 
     const selectedDocs = (documents.data as IDocType[]).filter((doc) =>
-      selectedDocumentIds.includes(doc.documentId)
+      selectedDocumentIds.includes(buildDocKey(doc))
     )
 
     if (selectedDocs.length === 0) {
@@ -718,7 +715,7 @@ export default function DocumentOperationsManager({
     }
 
     setDocumentsToDelete(selectedDocs)
-  }, [selectedDocumentIds, documents?.data])
+  }, [selectedDocumentIds, documents?.data, buildDocKey])
 
   // Confirm bulk delete and perform actual deletion
   const handleConfirmBulkDelete = async () => {
@@ -1077,9 +1074,12 @@ export default function DocumentOperationsManager({
                 data={useMemo(
                   () =>
                     Array.isArray(documents?.data)
-                      ? (documents.data as IDocType[])
+                      ? (documents.data as IDocType[]).map((doc) => ({
+                          ...doc,
+                          selectionId: buildDocKey(doc),
+                        }))
                       : [],
-                  [documents?.data]
+                  [documents?.data, buildDocKey]
                 )}
                 isLoading={isLoading}
                 onPreview={handlePreview}
