@@ -520,10 +520,17 @@ export default function ReceiptForm({
         // First update exchange rates
         await setExchangeRate(form, exhRateDec, visible)
 
-        const recCurrencyId = form.getValues("recCurrencyId") || 0
-        if (currencyId > 0 && recCurrencyId === currencyId) {
-          const exhRateValue = form.getValues("exhRate") || 0
+        const receiptId = form.getValues("receiptId")
+        let currentRecCurrency = form.getValues("recCurrencyId") || 0
+        const isNewReceipt = !isEdit || !receiptId || receiptId === "0"
+
+        if (currencyId > 0 && (isNewReceipt || currentRecCurrency === 0)) {
           form.setValue("recCurrencyId", currencyId, { shouldDirty: true })
+          currentRecCurrency = currencyId
+        }
+
+        if (currencyId > 0 && currentRecCurrency === currencyId) {
+          const exhRateValue = form.getValues("exhRate") || 0
           form.setValue("recExhRate", exhRateValue, { shouldDirty: true })
         }
 
@@ -531,7 +538,14 @@ export default function ReceiptForm({
         recalculateAmountsBasedOnCurrency(true)
       }
     },
-    [form, exhRateDec, visible, accountDate, recalculateAmountsBasedOnCurrency]
+    [
+      form,
+      exhRateDec,
+      visible,
+      accountDate,
+      recalculateAmountsBasedOnCurrency,
+      isEdit,
+    ]
   )
 
   // Handle exchange rate focus - capture original value
