@@ -9,6 +9,11 @@ import {
   ApInvoice,
 } from "@/lib/api-routes"
 
+const NO_CACHE_QUERY_OPTIONS = {
+  gcTime: 0,
+  staleTime: 0,
+}
+
 /**
  * 1. Invoice Management
  * -------------------
@@ -34,11 +39,7 @@ export function useGetInvoiceById<T>(
       const cleanUrl = baseUrl.replace(/\/+/g, "/")
       return await getById(`${cleanUrl}/${invoiceId}/${invoiceNo}`)
     },
-    refetchOnWindowFocus: false,
-    refetchOnMount: false,
-    refetchOnReconnect: false,
-    gcTime: 10 * 60 * 1000,
-    staleTime: 5 * 60 * 1000,
+    ...NO_CACHE_QUERY_OPTIONS,
     ...options,
   })
 }
@@ -57,11 +58,7 @@ export function useGetAPInvoiceHistoryList<T>(invoiceId: string, options = {}) {
       return await getData(`${ApInvoice.history}/${invoiceId}`)
     },
     enabled: !!invoiceId && invoiceId !== "0",
-    refetchOnWindowFocus: false,
-    refetchOnMount: false,
-    refetchOnReconnect: false,
-    gcTime: 10 * 60 * 1000,
-    staleTime: 5 * 60 * 1000,
+    ...NO_CACHE_QUERY_OPTIONS,
     ...options,
   })
 }
@@ -87,11 +84,7 @@ export function useGetAPInvoiceHistoryDetails<T>(
       )
     },
     enabled: !!invoiceId && invoiceId !== "0",
-    refetchOnWindowFocus: false,
-    refetchOnMount: false,
-    refetchOnReconnect: false,
-    gcTime: 10 * 60 * 1000,
-    staleTime: 5 * 60 * 1000,
+    ...NO_CACHE_QUERY_OPTIONS,
     ...options,
   })
 }
@@ -115,11 +108,7 @@ export function useGetAPAdjustmentHistoryList<T>(
       return await getData(`${ApAdjustment.history}/${adjustmentId}`)
     },
     enabled: !!adjustmentId && adjustmentId !== "0",
-    refetchOnWindowFocus: false,
-    refetchOnMount: false,
-    refetchOnReconnect: false,
-    gcTime: 10 * 60 * 1000,
-    staleTime: 5 * 60 * 1000,
+    ...NO_CACHE_QUERY_OPTIONS,
     ...options,
   })
 }
@@ -145,11 +134,7 @@ export function useGetAPAdjustmentHistoryDetails<T>(
       )
     },
     enabled: !!adjustmentId && adjustmentId !== "0",
-    refetchOnWindowFocus: false,
-    refetchOnMount: false,
-    refetchOnReconnect: false,
-    gcTime: 10 * 60 * 1000,
-    staleTime: 5 * 60 * 1000,
+    ...NO_CACHE_QUERY_OPTIONS,
     ...options,
   })
 }
@@ -171,11 +156,7 @@ export function useGetAPDebitNoteHistoryList<T>(
       return await getData(`${ApDebitNote.history}/${debitNoteId}`)
     },
     enabled: !!debitNoteId && debitNoteId !== "0",
-    refetchOnWindowFocus: false,
-    refetchOnMount: false,
-    refetchOnReconnect: false,
-    gcTime: 10 * 60 * 1000,
-    staleTime: 5 * 60 * 1000,
+    ...NO_CACHE_QUERY_OPTIONS,
     ...options,
   })
 }

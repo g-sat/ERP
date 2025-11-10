@@ -32,8 +32,8 @@ export function useGetInvoiceById<T>(
     refetchOnWindowFocus: false,
     refetchOnMount: false,
     refetchOnReconnect: false,
-    gcTime: 10 * 60 * 1000,
-    staleTime: 5 * 60 * 1000,
+    gcTime: 0,
+    staleTime: 0,
     ...options,
   })
 }
@@ -55,8 +55,8 @@ export function useGetARInvoiceHistoryList<T>(invoiceId: string, options = {}) {
     refetchOnWindowFocus: false,
     refetchOnMount: false,
     refetchOnReconnect: false,
-    gcTime: 10 * 60 * 1000,
-    staleTime: 5 * 60 * 1000,
+    gcTime: 0,
+    staleTime: 0,
     ...options,
   })
 }
@@ -85,8 +85,8 @@ export function useGetARInvoiceHistoryDetails<T>(
     refetchOnWindowFocus: false,
     refetchOnMount: false,
     refetchOnReconnect: false,
-    gcTime: 10 * 60 * 1000,
-    staleTime: 5 * 60 * 1000,
+    gcTime: 0,
+    staleTime: 0,
     ...options,
   })
 }
@@ -105,8 +105,8 @@ export function useGetARReceiptHistoryList<T>(receiptId: string, options = {}) {
     refetchOnWindowFocus: false,
     refetchOnMount: false,
     refetchOnReconnect: false,
-    gcTime: 10 * 60 * 1000,
-    staleTime: 5 * 60 * 1000,
+    gcTime: 0,
+    staleTime: 0,
     ...options,
   })
 }
@@ -154,8 +154,8 @@ export function useGetARAdjustmentHistoryList<T>(
     refetchOnWindowFocus: false,
     refetchOnMount: false,
     refetchOnReconnect: false,
-    gcTime: 10 * 60 * 1000,
-    staleTime: 5 * 60 * 1000,
+    gcTime: 0,
+    staleTime: 0,
     ...options,
   })
 }

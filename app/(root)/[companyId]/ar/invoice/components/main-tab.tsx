@@ -1,7 +1,7 @@
 // main-tab.tsx - IMPROVED VERSION
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import {
   calculateCountryAmounts,
   calculateLocalAmounts,
@@ -57,9 +57,27 @@ export default function Main({
   const [showSingleDeleteConfirmation, setShowSingleDeleteConfirmation] =
     useState(false)
   const [itemToDelete, setItemToDelete] = useState<number | null>(null)
+  const previousInvoiceKeyRef = useRef<string>("")
 
   // Watch data_details for reactive updates
   const dataDetails = form.watch("data_details") || []
+  const currentInvoiceId = form.watch("invoiceId")
+  const currentInvoiceNo = form.watch("invoiceNo")
+
+  useEffect(() => {
+    const currentKey = `${currentInvoiceId ?? ""}::${currentInvoiceNo ?? ""}`
+    if (previousInvoiceKeyRef.current === currentKey) {
+      return
+    }
+
+    previousInvoiceKeyRef.current = currentKey
+    setEditingDetail(null)
+    setSelectedItemsToDelete([])
+    setItemToDelete(null)
+    setShowDeleteConfirmation(false)
+    setShowSingleDeleteConfirmation(false)
+    setTableKey((prev) => prev + 1)
+  }, [currentInvoiceId, currentInvoiceNo])
 
   // Clear editingDetail when data_details is reset/cleared
   useEffect(() => {
@@ -67,6 +85,29 @@ export default function Main({
       setEditingDetail(null)
     }
   }, [dataDetails.length, editingDetail])
+
+  useEffect(() => {
+    if (!editingDetail) {
+      return
+    }
+
+    const details = (dataDetails as unknown as IArInvoiceDt[]) || []
+    const editingExists = details.some((detail) => {
+      const detailInvoiceId = `${detail.invoiceId ?? ""}`
+      const editingInvoiceId = `${editingDetail.invoiceId ?? ""}`
+      const detailInvoiceNo = detail.invoiceNo ?? ""
+      const editingInvoiceNo = editingDetail.invoiceNo ?? ""
+      return (
+        detail.itemNo === editingDetail.itemNo &&
+        detailInvoiceId === editingInvoiceId &&
+        detailInvoiceNo === editingInvoiceNo
+      )
+    })
+
+    if (!editingExists) {
+      setEditingDetail(null)
+    }
+  }, [dataDetails, editingDetail])
 
   // Recalculate header totals when details change
   useEffect(() => {

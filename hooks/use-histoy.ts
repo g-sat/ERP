@@ -31,8 +31,8 @@ export function useGetGlPostDetails<T>(
     refetchOnWindowFocus: false,
     refetchOnMount: false,
     refetchOnReconnect: false,
-    gcTime: 10 * 60 * 1000,
-    staleTime: 5 * 60 * 1000,
+    gcTime: 0,
+    staleTime: 0,
     ...options,
   })
 }
@@ -64,8 +64,8 @@ export function useGetPaymentDetails<T>(
     refetchOnWindowFocus: false,
     refetchOnMount: false,
     refetchOnReconnect: false,
-    gcTime: 10 * 60 * 1000,
-    staleTime: 5 * 60 * 1000,
+    gcTime: 0,
+    staleTime: 0,
     ...options,
   })
 }

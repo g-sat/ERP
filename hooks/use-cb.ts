@@ -12,6 +12,11 @@ import {
   CbReceipt,
 } from "@/lib/api-routes"
 
+const NO_CACHE_QUERY_OPTIONS = {
+  gcTime: 0,
+  staleTime: 0,
+}
+
 // CB Gen Payment History Hooks
 export function useGetCBGenPaymentHistoryList<T>(
   paymentId: string,
@@ -23,6 +28,7 @@ export function useGetCBGenPaymentHistoryList<T>(
       return await getData(`${CbPayment.history}/${paymentId}`)
     },
     enabled: !!paymentId && paymentId !== "0",
+    ...NO_CACHE_QUERY_OPTIONS,
     ...options,
   })
 }
@@ -40,6 +46,7 @@ export function useGetCBGenPaymentHistoryDetails<T>(
       )
     },
     enabled: !!paymentId && paymentId !== "0" && !!editVersion,
+    ...NO_CACHE_QUERY_OPTIONS,
     ...options,
   })
 }
@@ -55,6 +62,7 @@ export function useGetCBGenReceiptHistoryList<T>(
       return await getData(`${CbReceipt.history}/${receiptId}`)
     },
     enabled: !!receiptId && receiptId !== "0",
+    ...NO_CACHE_QUERY_OPTIONS,
     ...options,
   })
 }
@@ -72,6 +80,7 @@ export function useGetCBGenReceiptHistoryDetails<T>(
       )
     },
     enabled: !!receiptId && receiptId !== "0" && !!editVersion,
+    ...NO_CACHE_QUERY_OPTIONS,
     ...options,
   })
 }
@@ -87,6 +96,7 @@ export function useGetCBBatchPaymentHistoryList<T>(
       return await getData(`${CbBatchPayment.history}/${paymentId}`)
     },
     enabled: !!paymentId && paymentId !== "0",
+    ...NO_CACHE_QUERY_OPTIONS,
     ...options,
   })
 }
@@ -104,6 +114,7 @@ export function useGetCBBatchPaymentHistoryDetails<T>(
       )
     },
     enabled: !!paymentId && paymentId !== "0" && !!editVersion,
+    ...NO_CACHE_QUERY_OPTIONS,
     ...options,
   })
 }
@@ -119,6 +130,7 @@ export function useGetCBBankTransferHistoryList<T>(
       return await getData(`${CbBankTransfer.history}/${transferId}`)
     },
     enabled: !!transferId && transferId !== "0",
+    ...NO_CACHE_QUERY_OPTIONS,
     ...options,
   })
 }
@@ -136,6 +148,7 @@ export function useGetCBBankTransferHistoryDetails<T>(
       )
     },
     enabled: !!transferId && transferId !== "0" && !!editVersion,
+    ...NO_CACHE_QUERY_OPTIONS,
     ...options,
   })
 }
@@ -151,6 +164,7 @@ export function useGetCBBankTransferCtmHistoryList<T>(
       return await getData(`${CbBankTransferCtm.history}/${transferId}`)
     },
     enabled: !!transferId && transferId !== "0",
+    ...NO_CACHE_QUERY_OPTIONS,
     ...options,
   })
 }
@@ -168,6 +182,7 @@ export function useGetCBBankTransferCtmHistoryDetails<T>(
       )
     },
     enabled: !!transferId && transferId !== "0" && !!editVersion,
+    ...NO_CACHE_QUERY_OPTIONS,
     ...options,
   })
 }
@@ -180,6 +195,7 @@ export function useGetCBBankReconHistoryList<T>(reconId: string, options = {}) {
       return await getData(`${CbBankRecon.history}/${reconId}`)
     },
     enabled: !!reconId && reconId !== "0",
+    ...NO_CACHE_QUERY_OPTIONS,
     ...options,
   })
 }
@@ -197,6 +213,7 @@ export function useGetCBBankReconHistoryDetails<T>(
       )
     },
     enabled: !!reconId && reconId !== "0" && !!editVersion,
+    ...NO_CACHE_QUERY_OPTIONS,
     ...options,
   })
 }
@@ -212,6 +229,7 @@ export function useGetCBPettyCashHistoryList<T>(
       return await getData(`${CbPettyCash.history}/${pettyCashId}`)
     },
     enabled: !!pettyCashId && pettyCashId !== "0",
+    ...NO_CACHE_QUERY_OPTIONS,
     ...options,
   })
 }
@@ -229,6 +247,7 @@ export function useGetCBPettyCashHistoryDetails<T>(
       )
     },
     enabled: !!pettyCashId && pettyCashId !== "0" && !!editVersion,
+    ...NO_CACHE_QUERY_OPTIONS,
     ...options,
   })
 }
